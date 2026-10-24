@@ -95,40 +95,74 @@ const stage = (g: Ctx, T: T, tod: TimeOfDay, x: number, f: number, w: number, h:
   if (lamps) box(g, sx + 8, f - 3 * 34 - 28, 4, 3, '#FFE8A8');
   return w;
 };
-/** A light tower: a lattice mast, its bank of lamps up top (lit after dark), on its trailer. */
-const lightTower = (g: Ctx, T: T, tod: TimeOfDay, x: number, f: number, h: number) => {
-  box(g, x - 3, f - h, 7, h - 8, INK); box(g, x - 2, f - h, 5, h - 8, T('#4A4E58')); box(g, x - 2, f - h, 1, h - 8, T('#8A8E98'));
-  g.strokeStyle = T('#6A6E78'); g.lineWidth = 1; g.beginPath(); for (let y = f - h + 4; y < f - 12; y += 8) { g.moveTo(x - 2, y); g.lineTo(x + 3, y + 8); } g.stroke();
-  box(g, x - 16, f - 12, 34, 12, INK); box(g, x - 15, f - 11, 32, 8, T('#C8A020')); box(g, x - 15, f - 11, 32, 2, T('#E8C850'));
-  for (const wx of [x - 12, x + 8]) { box(g, wx, f - 4, 6, 4, INK); }
-  box(g, x - 14, f - h - 16, 30, 16, INK);
-  for (let k = 0; k < 4; k++) for (let r = 0; r < 2; r++) box(g, x - 13 + k * 7, f - h - 15 + r * 7, 6, 6, tod.lamps > 0.3 ? '#FFF2C8' : T(r ? '#A8A898' : '#C8C8B8'));
+/** A wheel: its tire inked, the hub lit up its upper left; `r` its radius, middle at (x, y). */
+const wheel = (g: Ctx, T: T, x: number, y: number, r: number) => {
+  g.fillStyle = INK; g.beginPath(); g.arc(x, y, r + 1, 0, Math.PI * 2); g.fill();
+  g.fillStyle = T('#26262C'); g.beginPath(); g.arc(x, y, r, 0, Math.PI * 2); g.fill();
+  const hr = Math.max(1.5, r * 0.5);
+  g.fillStyle = T('#8A8E96'); g.beginPath(); g.arc(x, y, hr, 0, Math.PI * 2); g.fill();
+  box(g, x - hr + 1, y - hr + 1, Math.max(1, hr * 0.6), Math.max(1, hr * 0.6), T('#D2D6DC')); box(g, x - 1, y - 1, 2, 2, T('#4A4E56'));
 };
-/** The studio tour's tram, parked: a tug and two open cars under striped canopies. */
+/** A light tower: its trailer (the outriggers down on their pads, the engine box louvered, hazard stripes), the mast in
+ *  lattice (two chords, the zigzag), its bank of lamps up top in their rims (lit after dark), the cable down it. */
+const lightTower = (g: Ctx, T: T, tod: TimeOfDay, x: number, f: number, h: number) => {
+  const Y = rampF(T, '#C8A020'), S = rampF(T, '#6A6E78');
+  for (const s of [-1, 1]) { g.strokeStyle = INK; g.lineWidth = 2; g.beginPath(); g.moveTo(x, f - 8); g.lineTo(x + s * 26, f - 2); g.stroke(); box(g, x + s * 26 - 3, f - 2, 7, 2, T('#3A3438')); }
+  box(g, x - 16, f - 14, 34, 11, INK); box(g, x - 15, f - 13, 32, 9, Y[2]); box(g, x - 15, f - 13, 32, 1, Y[4]); box(g, x - 15, f - 5, 32, 1, Y[1]);
+  for (let k = 0; k < 4; k++) box(g, x + 4 + k * 3, f - 11, 1, 5, Y[0]);
+  g.save(); g.beginPath(); g.rect(x - 14, f - 9, 14, 3); g.clip(); for (let k = 0; k < 5; k++) poly(g, [[x - 16 + k * 4, f - 9], [x - 14 + k * 4, f - 9], [x - 16 + k * 4, f - 6], [x - 18 + k * 4, f - 6]], INK); g.restore();
+  wheel(g, T, x - 8, f - 3, 3); wheel(g, T, x + 10, f - 3, 3);
+  // (the mast)
+  box(g, x - 3, f - h, 1, h - 14, INK); box(g, x + 3, f - h, 1, h - 14, INK); box(g, x - 2, f - h, 1, h - 14, S[4]); box(g, x + 2, f - h, 1, h - 14, S[2]);
+  g.strokeStyle = S[3]; g.lineWidth = 1; g.beginPath(); for (let y = f - h + 2; y < f - 16; y += 6) { g.moveTo(x - 1, y); g.lineTo(x + 2, y + 6); } g.stroke();
+  box(g, x + 4, f - h + 10, 1, h - 24, T('#2A2A30'));
+  // (the lamp bank: its frame, eight heads in their rims)
+  box(g, x - 14, f - h - 16, 30, 16, INK); box(g, x - 13, f - h - 15, 28, 1, S[3]);
+  for (let k = 0; k < 4; k++) for (let r = 0; r < 2; r++) {
+    const lx = x - 13 + k * 7, ly = f - h - 14 + r * 7;
+    box(g, lx, ly, 6, 6, S[1]); box(g, lx + 1, ly + 1, 4, 4, tod.lamps > 0.3 ? '#FFF2C8' : T(r ? '#A8A898' : '#C8C8B8')); box(g, lx + 1, ly + 1, 2, 1, tod.lamps > 0.3 ? '#FFFFFF' : T('#ECECE0'));
+  }
+  box(g, x - 15, f - h - 1, 32, 1, S[1]);
+};
+/** The studio tour's tram, parked: the tug (its windshield, the roof on its posts, the headlight, the bumper) and two open
+ *  cars under striped canopies (lit along their tops, the valances' hems), the bench seats' backs in rows (blue vinyl),
+ *  the couplings, the wheels; HAPPYWOOD TOURS down its side. */
 const tram = (g: Ctx, T: T, x: number, f: number) => {
-  const C = rampF(T, '#E8E2D4'), S = rampF(T, '#B4243A');
+  const C = rampF(T, '#E8E2D4'), Sr = rampF(T, '#B4243A'), S = rampF(T, '#6A6E78'), Se = rampF(T, '#3A6AB8');
   // (the tug)
-  box(g, x - 1, f - 31, 42, 23, INK); box(g, x, f - 30, 40, 21, C[2]); box(g, x, f - 30, 40, 2, C[3]); box(g, x + 4, f - 26, 14, 9, T('#4A6888')); box(g, x + 4, f - 26, 14, 2, T('#A8C0D0'));
+  box(g, x - 1, f - 31, 42, 23, INK); box(g, x, f - 30, 40, 21, C[2]); box(g, x, f - 30, 40, 2, C[4]); box(g, x, f - 28, 40, 1, C[3]); box(g, x, f - 30, 2, 21, C[3]); box(g, x + 37, f - 30, 3, 21, C[1]);
+  box(g, x, f - 15, 40, 3, Sr[2]); box(g, x, f - 15, 40, 1, Sr[3]);
+  box(g, x + 4, f - 27, 16, 10, INK); box(g, x + 5, f - 26, 14, 8, T('#4A6888')); box(g, x + 5, f - 26, 14, 3, T('#A8C0D0')); box(g, x + 15, f - 25, 1, 5, T('#D8E8F0'));
+  box(g, x + 4, f - 44, 2, 14, S[2]); box(g, x + 30, f - 44, 2, 14, S[2]); box(g, x + 1, f - 47, 36, 4, INK); box(g, x + 2, f - 46, 34, 2, C[3]);
+  box(g, x - 2, f - 21, 3, 3, T('#FFF2C0')); box(g, x - 3, f - 11, 8, 3, INK); box(g, x - 2, f - 10, 6, 1, S[4]);
+  // (the cars)
   for (let k = 0; k < 2; k++) {
     const cx = x + 48 + k * 76;
-    box(g, cx - 1, f - 21, 72, 13, INK); box(g, cx, f - 20, 70, 11, C[2]); box(g, cx, f - 20, 70, 2, C[3]); box(g, cx, f - 12, 70, 2, S[2]);
-    for (let s = 0; s < 4; s++) box(g, cx + 4 + s * 17, f - 26, 12, 6, T('#5A4A3A'));
-    for (const px of [cx + 2, cx + 66]) box(g, px, f - 44, 2, 24, T('#6A6E78'));
-    box(g, cx - 3, f - 49, 76, 7, INK);
-    for (let s = 0; s < 74; s += 6) box(g, cx - 2 + s, f - 48, Math.min(6, 74 - s), 5, (s / 6) % 2 ? C[3] : S[3]);
-    box(g, cx - 2, f - 48, 74, 1, T('#FFFFFF'));
+    box(g, cx - 7, f - 13, 8, 2, INK);
+    box(g, cx - 1, f - 21, 72, 13, INK); box(g, cx, f - 20, 70, 11, C[2]); box(g, cx, f - 20, 70, 2, C[4]); box(g, cx, f - 13, 70, 3, Sr[2]); box(g, cx, f - 13, 70, 1, Sr[3]);
+    for (let s = 0; s < 4; s++) { box(g, cx + 3 + s * 17, f - 30, 14, 10, INK); box(g, cx + 4 + s * 17, f - 29, 12, 9, Se[2]); box(g, cx + 4 + s * 17, f - 29, 12, 1, Se[4]); box(g, cx + 4 + s * 17, f - 29, 1, 9, Se[3]); box(g, cx + 4 + s * 17, f - 25, 12, 1, Se[1]); }
+    for (const px of [cx + 2, cx + 66]) { box(g, px - 1, f - 44, 4, 24, INK); box(g, px, f - 44, 2, 24, S[3]); box(g, px, f - 44, 1, 24, S[4]); }
+    box(g, cx - 3, f - 50, 76, 7, INK);
+    for (let s = 0; s < 74; s += 6) { const red = (s / 6) % 2 === 0, sw = Math.min(6, 74 - s); box(g, cx - 2 + s, f - 49, sw, 5, red ? Sr[3] : C[3]); box(g, cx - 2 + s, f - 49, sw, 1, red ? Sr[4] : C[4]); box(g, cx - 2 + s, f - 45, sw, 1, red ? Sr[1] : C[1]); }
+    for (const wx of [cx + 10, cx + 58]) wheel(g, T, wx, f - 4, 4);
   }
-  for (const wx of [x + 8, x + 32, x + 56, x + 110, x + 132, x + 186]) { box(g, wx - 1, f - 9, 11, 9, INK); box(g, wx, f - 8, 9, 8, T('#26262C')); box(g, wx + 3, f - 6, 3, 3, T('#7A7A84')); }
-  signText(g, 'HAPPYWOOD TOURS', x + 124, f - 13, plain(1, 1, T('#F4EEE2')));
+  for (const wx of [x + 9, x + 31]) wheel(g, T, wx, f - 4, 4);
+  signText(g, 'HAPPYWOOD TOURS', x + 124, f - 13, plain(1, 1, T('#F4EEE2'), Sr[0]));
 };
-/** A golf cart parked (the backlot security's), its canopy. */
+/** A golf cart parked (the backlot security's): its body lit up top, the seat, the steering wheel, the windshield, the
+ *  canopy on its posts, SECURITY down its side, the light bar on the roof, the wheels. */
 const cart = (g: Ctx, T: T, x: number, f: number) => {
-  const C = rampF(T, '#F0EEE8');
-  box(g, x - 1, f - 19, 38, 12, INK); box(g, x, f - 18, 36, 10, C[2]); box(g, x, f - 18, 36, 2, C[3]); box(g, x, f - 12, 36, 2, T('#1E3A8A'));
-  for (const px of [x + 2, x + 32]) box(g, px, f - 38, 2, 20, T('#6A6E78'));
-  box(g, x - 2, f - 41, 40, 4, INK); box(g, x - 1, f - 40, 38, 2, C[3]);
-  box(g, x + 16, f - 45, 6, 4, INK); box(g, x + 17, f - 44, 4, 2, T('#B4243A'));
-  for (const wx of [x + 4, x + 26]) { box(g, wx - 1, f - 8, 9, 8, INK); box(g, wx, f - 7, 7, 7, T('#26262C')); }
+  const C = rampF(T, '#F0EEE8'), S = rampF(T, '#6A6E78'), B = rampF(T, '#1E3A8A');
+  box(g, x - 1, f - 19, 38, 12, INK); box(g, x, f - 18, 36, 10, C[2]); box(g, x, f - 18, 36, 2, C[4]); box(g, x, f - 18, 2, 10, C[3]); box(g, x + 34, f - 18, 2, 10, C[1]);
+  box(g, x, f - 10, 36, 2, B[2]); box(g, x, f - 10, 36, 1, B[3]);
+  box(g, x + 10, f - 26, 14, 8, INK); box(g, x + 11, f - 25, 12, 6, T('#2A2A30')); box(g, x + 11, f - 25, 12, 1, T('#4A4A54'));
+  box(g, x + 27, f - 26, 2, 8, INK); box(g, x + 25, f - 27, 6, 2, INK);
+  for (const px of [x + 2, x + 32]) { box(g, px - 1, f - 38, 4, 20, INK); box(g, px, f - 38, 2, 20, S[3]); box(g, px, f - 38, 1, 20, S[4]); }
+  box(g, x + 31, f - 37, 2, 14, T('#9AB8D0'));
+  box(g, x - 2, f - 41, 40, 4, INK); box(g, x - 1, f - 40, 38, 2, C[3]); box(g, x - 1, f - 40, 38, 1, C[4]);
+  box(g, x + 14, f - 45, 10, 4, INK); box(g, x + 15, f - 44, 4, 2, T('#B4243A')); box(g, x + 19, f - 44, 4, 2, T('#3A6AF8'));
+  signText(g, 'SECURITY', x + 18, f - 11, plain(1, 1, B[1]));
+  for (const wx of [x + 7, x + 29]) wheel(g, T, wx, f - 4, 4);
 };
 /** A shed (PROPS, COMMISSARY): a stucco box under a tile edge, a roll-up door, its name on a board. */
 const shed = (g: Ctx, T: T, tod: TimeOfDay, x: number, f: number, w: number, h: number, name: string, col: string) => {

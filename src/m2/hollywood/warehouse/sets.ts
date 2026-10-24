@@ -174,6 +174,17 @@ const paintCamera = (g: Ctx) => {
   // (the monitor on its arm; the seat)
   box(g, -32, -124, 4, 16, INK); box(g, -50, -138, 22, 16, INK); box(g, -49, -137, 20, 14, G[2]); box(g, -47, -135, 16, 10, '#2E7A3E'); box(g, -47, -135, 16, 2, '#7AD08A');
   box(g, -44, -58, 4, 34, INK); box(g, -43, -57, 2, 32, S[3]); box(g, -52, -62, 18, 6, INK); box(g, -51, -61, 16, 4, G[4]);
+  // (the wear on it: the reels' spokes, a strip of camera tape (A-CAM), the focus wheel and its marks, the cables looped
+  // down off the body to the dolly, the chassis' rivets and its scuffed edge, a sandbag riding on it)
+  for (const [rx, r] of [[-14, 15], [12, 13]] as const) for (let k = 0; k < 3; k++) { const a = k * 2.09 + 0.4; box(g, Math.round(rx + Math.cos(a) * r * 0.6) - 1, Math.round(-152 + Math.sin(a) * r * 0.6) - 1, 3, 3, G[1]); }
+  box(g, 4, -135, 11, 9, INK); box(g, 5, -134, 9, 7, '#F4F0E8'); box(g, 5, -128, 9, 1, '#C8C2B4'); words(g, 'A', 10, -127, plain(1, 1, '#B91C1C'));
+  g.fillStyle = INK; g.beginPath(); g.arc(32, -108, 6, 0, Math.PI * 2); g.fill(); g.fillStyle = G[4]; g.beginPath(); g.arc(32, -108, 5, 0, Math.PI * 2); g.fill();
+  for (let k = 0; k < 8; k++) { const a = (k / 8) * Math.PI * 2; box(g, Math.round(32 + Math.cos(a) * 4), Math.round(-108 + Math.sin(a) * 4), 1, 1, G[1]); }
+  box(g, 31, -109, 2, 2, G[6]); box(g, 29, -100, 8, 1, '#F4F0E8');
+  for (const [w2, col] of [[3, INK], [1, G[2]]] as const) { g.strokeStyle = col; g.lineWidth = w2; g.beginPath(); g.moveTo(-27, -108); g.bezierCurveTo(-40, -96, -30, -70, -38, -26); g.stroke(); g.beginPath(); g.moveTo(23, -110); g.bezierCurveTo(30, -80, 14, -60, 22, -26); g.stroke(); }
+  for (let x2 = -42; x2 < 44; x2 += 9) box(g, x2, -21, 1, 1, G[6]);
+  for (let k = 0; k < 6; k++) box(g, -40 + k * 14 + (k % 2) * 3, -10, 4, 1, G[2]);
+  sandbag(g, -26, -24, 16);
 };
 /** The dolly's track on the floor going along at depth d (two rails, the ties between, going back a step). */
 const dollyTrack = (c: Ctx, v: View, a: number, b: number, d: number) => {
@@ -208,6 +219,17 @@ const paintCraneBase = (g: Ctx) => {
   for (let k = 0; k < 4; k++) { box(g, -96 + k * 7, -110 + k * -4, 8, 26, INK); box(g, -95 + k * 7, -109 + k * -4, 6, 24, '#B8A040'); }
   box(g, -12, -128, 24, 12, INK); box(g, -11, -127, 22, 10, G[4]);
   words(g, 'TECHNO-ISH', 0, -12, plain(1, 1, '#C8C8D0'));
+  // (the detail: the arm's lightening holes stepped down its length, the cable run along it, the base's hazard stripes and
+  // rivets, the hubs, the leveling jacks down at its ends, the operator's wheel)
+  for (let t = 0.06; t < 0.95; t += 0.07) { const ax = -90 + 240 * t, ay = -96 - 154 * t; box(g, Math.round(ax) - 2, Math.round(ay) - 1, 4, 3, S[1]); box(g, Math.round(ax) - 2, Math.round(ay) - 1, 4, 1, S[0]); }
+  g.strokeStyle = INK; g.lineWidth = 1; g.beginPath(); g.moveTo(-80, -96); g.lineTo(150, -244); g.stroke();
+  g.save(); g.beginPath(); g.rect(-59, -26, 118, 4); g.clip();
+  for (let k = 0; k < 17; k++) poly(g, [[-62 + k * 8, -26], [-58 + k * 8, -26], [-62 + k * 8, -22], [-66 + k * 8, -22]], k % 2 ? '#18181B' : '#E8C020');
+  g.restore();
+  for (let x2 = -56; x2 < 58; x2 += 8) box(g, x2, -19, 1, 1, G[6]);
+  for (const wx of [-46, -16, 16, 46]) { box(g, wx - 2, -7, 4, 4, '#8A8E96'); box(g, wx - 2, -7, 2, 2, '#D2D6DC'); }
+  for (const jx of [-64, 60]) { box(g, jx - 1, -24, 5, 22, INK); box(g, jx, -23, 3, 20, S[3]); box(g, jx - 4, -3, 11, 3, INK); box(g, jx - 3, -3, 9, 2, S[2]); }
+  g.fillStyle = INK; g.beginPath(); g.arc(20, -112, 7, 0, Math.PI * 2); g.fill(); g.fillStyle = S[3]; g.beginPath(); g.arc(20, -112, 5, 0, Math.PI * 2); g.fill(); box(g, 19, -117, 2, 10, INK); box(g, 15, -113, 10, 2, INK);
 };
 /** Video village: a black pop-up over the monitors on their cart, the director's and the producer's chairs, the
  *  headphones, a cooler. Feet at 0 (its left). */
@@ -278,6 +300,27 @@ const paintCatering = (g: Ctx) => {
   box(g, x + 262, -196, 34, 60, INK); box(g, x + 263, -195, 32, 58, '#1A1C20');
   for (let k = 0; k < 6; k++) box(g, x + 266, -188 + k * 8, 18 + (k * 7) % 8, 2, '#E8E4DA');
   box(g, x + 4, -100, 20, 50, R[2]); box(g, x + 4, -100, 20, 1, R[4]); box(g, x + 20, -76, 2, 4, S[4]);
+  // (the detail: the roof's vents and its AC, the body's panel seams and rivets, the wheels' fenders, the lights; in the
+  // window the hood's stainless banded, the order tickets on their rail, the fryer glowing; the chili lights strung
+  // under the awning, the health grade (a C), the menu written up, the propane bottles at its back, the grease run down)
+  box(g, x + 40, -h - 8, 40, 8, INK); box(g, x + 41, -h - 7, 38, 7, S[3]); box(g, x + 41, -h - 7, 38, 1, S[5]); for (let k = 0; k < 9; k++) box(g, x + 44 + k * 4, -h - 5, 2, 4, S[1]);
+  for (const vx of [x + 120, x + 200]) { box(g, vx - 1, -h - 5, 22, 5, INK); box(g, vx, -h - 4, 20, 4, S[2]); box(g, vx, -h - 4, 20, 1, S[4]); }
+  for (const sx of [x + 26, x + 270]) { box(g, sx, -h + 3, 1, h - 60, R[2]); box(g, sx + 1, -h + 3, 1, h - 60, R[4]); for (let y = -h + 10; y < -60; y += 12) box(g, sx - 2, y, 1, 1, R[1]); }
+  for (let x2 = x + 6; x2 < x + w - 6; x2 += 12) box(g, x2, -h + 6, 1, 1, R[1]);
+  for (const wx of [x + 40, x + w - 50]) { g.strokeStyle = INK; g.lineWidth = 4; g.beginPath(); g.arc(wx, -18, 22, Math.PI * 1.08, Math.PI * 1.92); g.stroke(); g.strokeStyle = R[1]; g.lineWidth = 2; g.beginPath(); g.arc(wx, -18, 22, Math.PI * 1.1, Math.PI * 1.9); g.stroke(); box(g, wx - 2, -21, 4, 4, S[5]); for (let k = 0; k < 5; k++) { const a = k * 1.256; box(g, Math.round(wx + Math.cos(a) * 9), Math.round(-18 + Math.sin(a) * 9), 1, 1, S[5]); } }
+  box(g, x + 1, -62, 4, 6, INK); box(g, x + 2, -61, 2, 4, '#FFF2C0'); box(g, x + w - 5, -62, 4, 8, INK); box(g, x + w - 4, -61, 2, 6, '#EF4444');
+  bandedGradient(g, x + 40, -206, 110, 18, [S[5], S[4], S[3], S[2]], 4, 1);
+  box(g, x + 40, -189, 110, 1, INK);
+  box(g, x + 160, -204, 92, 1, S[4]);
+  for (let k = 0; k < 6; k++) { const tx = x + 166 + k * 14; box(g, tx, -203, 9, 12 + (k % 3) * 3, '#F4F0E8'); for (let y = -200; y < -192 + (k % 3) * 3; y += 3) box(g, tx + 1, y, 6 - (y & 1), 1, '#8A8A94'); }
+  box(g, x + 40, -128, 70, 6, '#3A2A1A'); box(g, x + 42, -127, 30, 4, '#F08A2A'); box(g, x + 74, -127, 30, 4, '#F8C040'); box(g, x + 42, -127, 30, 1, '#FFE8A0');
+  for (let k = 0; k < 24; k++) { const lx = x + 26 + k * 10, ly = -204 + Math.round(Math.sin(k * 0.9) * 2) + ((k % 2) ? 2 : 0); box(g, lx, ly, 3, 4, k % 2 ? '#22A04A' : '#DC2626'); box(g, lx, ly, 1, 1, '#FFFFFF'); }
+  box(g, x + 232, -150, 22, 26, INK); box(g, x + 233, -149, 20, 24, '#F4F0E8'); words(g, 'C', x + 243, -129, plain(3, 3, '#1E40AF'));
+  box(g, x + 263, -195, 32, 58, '#1A1C20');
+  words(g, 'MENU', x + 279, -184, plain(1, 1, '#FDE68A')); words(g, 'TACO', x + 279, -172, plain(1, 1, '#E8E4DA')); words(g, 'DOGS', x + 279, -162, plain(1, 1, '#E8E4DA')); words(g, '???', x + 279, -152, plain(1, 1, '#F87171'));
+  for (const px of [x + 230, x + 246]) { box(g, px - 1, -64, 14, 28, INK); box(g, px, -63, 12, 26, '#ECEAE4'); box(g, px, -63, 3, 26, '#FFFFFF'); box(g, px + 9, -63, 3, 26, '#B8B4AC'); box(g, px + 4, -68, 4, 5, S[2]); }
+  for (let k = 0; k < 9; k++) { const jx = x + 46 + k * 11, col = ['#DC2626', '#F8C040', '#22A04A', '#E8E4DA'][k % 4]; box(g, jx - 1, -177, 8, 11, INK); box(g, jx, -176, 6, 10, col); box(g, jx, -176, 2, 10, mix(col, '#FFFFFF', 0.35)); box(g, jx, -179, 6, 3, '#5A5A64'); }
+  box(g, x + 40, -165, 110, 2, S[3]); box(g, x + 40, -165, 110, 1, S[5]);
 };
 /** The call sheet on its board on legs: the pages pinned up, Steve's headshot (yellow), CALL ME scrawled on it. */
 const paintCallSheet = (g: Ctx) => {
@@ -308,6 +351,19 @@ const paintTrailer = (g: Ctx, name: string) => {
   for (let k = 0; k < 3; k++) { box(g, 18 - k * 4, -20 + k * 7, 52 + k * 8, 4, INK); box(g, 19 - k * 4, -19 + k * 7, 50 + k * 8, 2, S[3]); }
   box(g, 78, -116, 30, 22, INK); box(g, 79, -115, 28, 20, lit() ? '#FFD88A' : '#3A4258'); box(g, 79, -115, 28, 3, '#7A8AA0');
   for (const wx of [w - 26]) { g.fillStyle = INK; g.beginPath(); g.arc(wx, -10, 10, 0, Math.PI * 2); g.fill(); g.fillStyle = '#26262C'; g.beginPath(); g.arc(wx, -10, 8, 0, Math.PI * 2); g.fill(); }
+  // (the detail: its corners rounded, the hub, the window's curtain half drawn and its glint, the door's hinges and its
+  // little window, the step rail, the satellite dish on the roof (a star's), the power cord down to the floor, the road
+  // grime up its foot)
+  g.clearRect(-1, -h - 1, 2, 1); g.clearRect(w - 1, -h - 1, 2, 1); g.clearRect(-1, -h, 1, 1); g.clearRect(w, -h, 1, 1); box(g, 0, -h, 1, 1, INK); box(g, w - 1, -h, 1, 1, INK);
+  box(g, w - 30, -14, 8, 8, S[4]); box(g, w - 30, -14, 3, 3, S[6]);
+  box(g, 79, -115, 10, 20, lit() ? '#C8783A' : '#C8B8A0'); for (let y = -115; y < -95; y += 2) box(g, 88, y, 1, 1, lit() ? '#8A4A1A' : '#9A8A72');
+  if (!lit()) box(g, 102, -113, 2, 4, '#E8F0F8');
+  for (const hy of [-118, -76, -34]) { box(g, 24, hy, 3, 6, S[2]); box(g, 24, hy, 1, 6, S[5]); }
+  box(g, 34, -120, 22, 4, INK); box(g, 35, -119, 20, 2, '#3A4258');
+  box(g, 6, -40, 2, 30, INK); box(g, 6, -40, 12, 2, INK); box(g, 7, -39, 1, 28, S[4]);
+  box(g, 72, -h - 3, 3, 3, INK); g.fillStyle = INK; g.beginPath(); g.ellipse(80, -h - 8, 9, 6, -0.5, 0, Math.PI * 2); g.fill(); g.fillStyle = '#D8D8DE'; g.beginPath(); g.ellipse(80, -h - 8, 7, 4.5, -0.5, 0, Math.PI * 2); g.fill(); box(g, 79, -h - 9, 2, 2, '#5A5A64');
+  for (const [w2, col] of [[3, INK], [1, '#3A3A44']] as const) { g.strokeStyle = col; g.lineWidth = w2; g.beginPath(); g.moveTo(w - 6, -60); g.quadraticCurveTo(w + 2, -20, w - 2, 0); g.stroke(); }
+  checker(g, 0, -20, w, 4, R[2], 0, 2); box(g, 0, -12, w - 36, 2, R[1]);
 };
 /** The mothership's walls (a run of them, w wide): riveted panels, the greebles, the light strips (lit live), a door
  *  that'll never open. Feet at 0. */
@@ -349,7 +405,18 @@ const paintClutter = (g: Ctx, k: number) => {
   else if (k === 1) { flightCase(g, -40, 0, 56, 34, 'ELECTRIC'); sandbag(g, 26, 0); sandbag(g, 30, -8, 16); }
   else if (k === 2) { cStand(g, 0, 0, 110); box(g, -4, -114, 34, 26, INK); box(g, -3, -113, 32, 24, '#2A2A30'); box(g, -1, -111, 28, 20, '#F4F0E8'); }
   else if (k === 3) { flightCase(g, -30, 0, 36, 40); flightCase(g, -28, -40, 32, 20); appleBox(g, 10, 0, 30, 14, P); }
-  else if (k === 4) { box(g, -24, -20, 48, 20, INK); box(g, -23, -19, 46, 18, '#3A3A44'); box(g, -23, -19, 46, 2, '#5A5A66'); words(g, 'FOG', 0, -8, plain(1, 1, '#F4F0E8')); box(g, 24, -12, 8, 6, '#18181B'); }
+  else if (k === 4) {
+    // (the fog machine: its case lit up top, the vents, the fluid bottle up its back, the knob and its lamp, the nozzle
+    // out the front, its remote on a cord)
+    box(g, -24, -20, 48, 20, INK); box(g, -23, -19, 46, 18, '#3A3A44'); box(g, -23, -19, 46, 2, '#5A5A66'); box(g, -23, -19, 2, 18, '#4A4A56'); box(g, -23, -3, 46, 2, '#24242C');
+    for (let k2 = 0; k2 < 5; k2++) box(g, -20 + k2 * 4, -15, 2, 8, '#24242C');
+    words(g, 'FOG', 6, -8, plain(1, 1, '#F4F0E8'));
+    box(g, -18, -32, 12, 13, INK); box(g, -17, -31, 10, 12, '#9AD8E8'); box(g, -17, -26, 10, 7, '#5AB0C8'); box(g, -17, -31, 2, 12, '#E0F4FA'); box(g, -14, -34, 4, 3, '#18181B');
+    box(g, 14, -16, 4, 4, '#18181B'); box(g, 15, -15, 2, 2, '#9A9AA4'); box(g, 19, -16, 2, 2, '#22D35A');
+    box(g, 24, -14, 8, 8, INK); box(g, 25, -13, 6, 6, '#18181B'); box(g, 25, -13, 6, 1, '#4A4A54');
+    for (const [w2, col] of [[3, INK], [1, '#3A3A44']] as const) { g.strokeStyle = col; g.lineWidth = w2; g.beginPath(); g.moveTo(-24, -6); g.quadraticCurveTo(-38, 2, -48, -2); g.stroke(); }
+    box(g, -56, -6, 9, 6, INK); box(g, -55, -5, 7, 4, '#2A2A30'); box(g, -53, -4, 2, 2, '#EF4444');
+  }
   else { sandbag(g, -20, 0); sandbag(g, 0, 0); sandbag(g, -10, -8); flightCase(g, 16, 0, 40, 24, 'CAM'); }
 };
 /** A cable run snaking along the floor at depth d (black, a lit edge). */

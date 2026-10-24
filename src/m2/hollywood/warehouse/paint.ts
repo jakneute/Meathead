@@ -148,6 +148,10 @@ export const appleBox = (g: Ctx, x: number, y: number, w = 30, h = 14, P = pal()
   box(g, x - 1, y - h - 1, w + 2, h + 1, INK);
   box(g, x, y - h, w, h, P[3]); box(g, x, y - h, w, 1, P[5]); box(g, x, y - h, 2, h, P[4]); box(g, x + w - 2, y - h, 2, h, P[1]);
   box(g, x + w / 2 - 5, y - h + 3, 10, 3, P[0]); box(g, x + 3, y - 4, w - 6, 1, P[2]);
+  // (the ply's grain, its nail heads, a scuff off a corner)
+  for (let k = 0; k < 3; k++) box(g, x + 3 + ((k * 7 + x) % 5), y - h + 7 + k * 2, Math.max(4, w * 0.3 - k * 2), 1, P[2]);
+  for (const nx of [x + 2, x + w - 4]) for (const ny of [y - h + 2, y - 3]) box(g, nx, ny, 1, 1, P[0]);
+  box(g, x + w - 6, y - h, 4, 1, P[4]);
 };
 /** A flight case (black, its aluminium corners and edging, a stencil on its lid), its foot at (x, y). */
 export const flightCase = (g: Ctx, x: number, y: number, w: number, h: number, label?: string) => {
@@ -158,6 +162,11 @@ export const flightCase = (g: Ctx, x: number, y: number, w: number, h: number, l
   box(g, x, y - h * 0.55, w, 2, S[2]); box(g, x, y - h * 0.55, w, 1, S[4]);
   box(g, x + w / 2 - 4, y - h * 0.55 - 2, 8, 5, S[1]);
   if (label && w > signW(label, plain(1, 1, '#000')) + 8) signText(g, label, x + w / 2, y - h * 0.55 - 5, plain(1, 1, '#E8E4DA'));
+  // (the rivets along its edging, the latch's shine, scuffs dragged across it, a strip of tape stuck on)
+  for (let rx = x + 8; rx < x + w - 7; rx += 6) { box(g, rx, y - h + 1, 1, 1, S[5]); box(g, rx, y - 3, 1, 1, S[4]); }
+  box(g, x + w / 2 - 3, y - h * 0.55 - 1, 2, 1, S[5]);
+  for (let k = 0; k < 3; k++) { const sx = x + 6 + ((k * 13 + w) % Math.max(1, w - 14)); box(g, sx, y - h * 0.3 + k, 5, 1, G[4]); }
+  if (h > 18) { box(g, x + 4, y - h + 4, 10, 4, '#F4F0E8'); box(g, x + 4, y - h + 7, 10, 1, '#C8C2B4'); }
 };
 /** A run of gaffer tape (a spike mark: a T, a cross, an L), its middle at (x, y), lying on the floor (sy squashed). */
 export const spike = (g: Ctx, x: number, y: number, col: string, kind: 0 | 1 | 2, s = 1) => {
