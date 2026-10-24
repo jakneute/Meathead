@@ -16,7 +16,7 @@ import type { FrameContext } from '../../m1/game/core/context';
 import type { GameState } from '../../m1/game/core/state';
 import { registerWeapon } from '../../m1/game/combat/customWeapons';
 import { isMidBoss } from '../../m1/game/combat/midBoss';
-import { specialsHalf, HALF } from './half';
+import { subBossDmg } from './subBoss';
 import { playSound } from '../../m1/game/platform/audio';
 import { groundLineAt } from '../../m1/game/core/terrain';
 import { isHumanoidKind, kindFacing } from '../../m1/game/render/enemies';
@@ -321,8 +321,9 @@ const gnaw = (ctx: FrameContext, a: Alien) => {
   a.chomp++;
   if (--a.bite > 0) return true;
   a.bite = BITE.every + Math.floor(Math.random() * 3);
-  // (one opted in, weapons/half.ts: they get their teeth into it, but half as deep)
-  const bite = specialsHalf(e) ? BITE.dmg * HALF : BITE.dmg;
+  // (a sub-boss (the Ensemble Cast, opted in, too): they get their teeth into it, but only its share as deep:
+  // weapons/subBoss.ts)
+  const bite = subBossDmg(e, BITE.dmg, false);
   e.health -= bite;
   bitten.set(e, (bitten.get(e) ?? 0) + bite);
   // (a squirt of him)

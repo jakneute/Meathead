@@ -16,6 +16,7 @@ import { shakeScreen } from '../../m1/game/core/state';
 import { registerWeapon } from '../../m1/game/combat/customWeapons';
 import { isMidBoss } from '../../m1/game/combat/midBoss';
 import { specialsHalf, heavyHit, HALF } from './half';
+import { subBossDmg } from './subBoss';
 import { playSound } from '../../m1/game/platform/audio';
 import { groundLineAt } from '../../m1/game/core/terrain';
 import { CANVAS_WIDTH } from '../../m1/constants';
@@ -150,12 +151,14 @@ const runDown = (ctx: FrameContext, e: Enemy, dir: number, speed: number, how: '
   const { fx, state } = ctx;
   // (one opted in, weapons/half.ts: the car's a heavy hit, not the end of him; knocked flying, dazed half as long)
   if (specialsHalf(e)) {
-    const dmg = how === 'car' ? heavyHit(e) : STUNTMAN.dmg;
+    // (the stuntman's a plain hit: its share, weapons/subBoss.ts)
+    const dmg = how === 'car' ? heavyHit(e) : subBossDmg(e, STUNTMAN.dmg);
     e.health -= dmg; fx.spawnDamageNumber(e.pos, dmg, true);
     e.vel = { x: dir * 6, y: -5 }; e.pauseTimer = Math.max(e.pauseTimer || 0, 40 * HALF);
     return;
   }
-  if (isMidBoss(e)) { e.health -= MIDBOSS_HIT; fx.spawnDamageNumber(e.pos, MIDBOSS_HIT, true); return; }
+  // (a sub-boss: its share of it, weapons/subBoss.ts)
+  if (isMidBoss(e)) { const dmg = subBossDmg(e, MIDBOSS_HIT); e.health -= dmg; fx.spawnDamageNumber(e.pos, dmg, true); return; }
   if (how === 'stuntman' && e.health > STUNTMAN.dmg) {
     e.health -= STUNTMAN.dmg; fx.spawnDamageNumber(e.pos, STUNTMAN.dmg, true);
     e.vel = { x: dir * 6, y: -5 }; e.pauseTimer = Math.max(e.pauseTimer || 0, 40);
@@ -206,7 +209,8 @@ const stunt = (ctx: FrameContext, p: Projectile, car: Extract<Part, { kind: 'car
     if (!alive(e) || car.hit.includes(e.id)) continue;
     const d = Math.hypot(e.pos.x + e.width / 2 - cx, e.pos.y + e.height / 2 - cy);
     if (d > BLAST.radius + e.width / 2) continue;
-    const k = Math.max(0, 1 - d / (BLAST.radius + e.width / 2)), dmg = Math.round(BLAST.edge + (BLAST.dmg - BLAST.edge) * k);
+    // (a sub-boss takes its share of it: weapons/subBoss.ts)
+    const k = Math.max(0, 1 - d / (BLAST.radius + e.width / 2)), dmg = subBossDmg(e, Math.round(BLAST.edge + (BLAST.dmg - BLAST.edge) * k));
     const away = Math.sign(e.pos.x + e.width / 2 - cx) || car.dir;
     if (specialsHalf(e)) { e.health -= dmg; fx.spawnDamageNumber(e.pos, dmg, true); e.vel = { x: away * 7 * k * HALF, y: -6 * k * HALF }; e.pauseTimer = Math.max(e.pauseTimer || 0, 40 * HALF); continue; }
     if (isMidBoss(e)) { e.health -= dmg; fx.spawnDamageNumber(e.pos, dmg, true); continue; }

@@ -22,6 +22,7 @@ import { m2Kill } from '../moves/killLines';
 import { grabCallout } from '../moves/callouts';
 import { isRobot } from '../kinds';
 import { specialsHalf, halfKill } from './half';
+import { subBossDmg } from './subBoss';
 import { since } from '../frames';
 import { struckAt } from './strikes';
 import { impactRing, smokePuff, spokes, wordPop, wordPopLimited, debris, nudge, clearFlourish, coneAt, starAt, puffAt } from './gunFlourish';
@@ -122,8 +123,10 @@ let bossHitThisShot = false;
  *  a bolt or two and oil, and a little blood: they bleed too). */
 const bossHit = (ctx: FrameContext, e: Enemy, x: number, y: number, dx: number, dy: number) => {
   const { state, fx } = ctx;
-  e.health -= BOSS_HIT; e.hitFlash = 4;
-  fx.spawnDamageNumber(e.pos, BOSS_HIT, true);
+  // (a sub-boss: its share of it, weapons/subBoss.ts)
+  const dmg = subBossDmg(e, BOSS_HIT);
+  e.health -= dmg; e.hitFlash = 4;
+  fx.spawnDamageNumber(e.pos, dmg, true);
   const robot = isRobot(e);
   fx.spawnExplosion({ x, y }, robot ? '#FDE047' : '#8B0000', robot ? 10 : 12, -dx * 3, 10);
   for (let i = 0; i < 8; i++) {

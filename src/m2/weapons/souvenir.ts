@@ -13,6 +13,7 @@ import type { GameState } from '../../m1/game/core/state';
 import { registerWeapon } from '../../m1/game/combat/customWeapons';
 import { isMidBoss } from '../../m1/game/combat/midBoss';
 import { specialsHalf, HALF } from './half';
+import { subBossDmg } from './subBoss';
 import { gunDeathMode } from '../../m1/game/enemies/gunDeaths';
 import { startGunKill } from '../../m1/game/enemies/deaths';
 import { spared } from '../../m1/game/enemies/enemies';
@@ -366,7 +367,8 @@ const hitEnemy = (ctx: FrameContext, p: Projectile, e: Enemy) => {
   const speed = Math.hypot(p.vel.x, p.vel.y);
   f.hits[e.id] = state.frame;
   // (how fast it's going counts for a light one; a heavy one hits hard however it gets there: it's the weight)
-  const dmg = Math.round(t.dmg * Math.max(0.5 + t.mass * 0.45, Math.min(1.2, speed / t.speed)));
+  // (a sub-boss takes its share of it: weapons/subBoss.ts)
+  const dmg = subBossDmg(e, Math.round(t.dmg * Math.max(0.5 + t.mass * 0.45, Math.min(1.2, speed / t.speed))));
   const dir = Math.sign(p.vel.x) || 1;
   if (hitHook?.(e, t.id, dmg)) f.gone = true;
   e.health -= dmg;

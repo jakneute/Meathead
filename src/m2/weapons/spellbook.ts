@@ -32,6 +32,7 @@ import { drawLeg, drawArmTo, drawTorsoFromHips } from '../../m1/game/render/play
 import { setArmor } from '../../m1/game/core/resist';
 import { vineGrip } from '../../m1/game/combat/muzzle';
 import { specialsHalf, specialsOff, realMax, HALF } from './half';
+import { subBossDmg, landBoss } from './subBoss';
 import { since } from '../frames';
 import { struckAt } from './strikes';
 
@@ -145,7 +146,8 @@ const spellKill = (ctx: FrameContext, e: Enemy, how: 'charred' | 'fried' | 'panc
   bolts = bolts.filter(b => b.e !== e); burning.delete(e);
 };
 const hurt = (ctx: FrameContext, e: Enemy, dmg: number, how: 'charred' | 'fried' | 'pancaked') => {
-  if (specialsOff(e)) dmg *= 0.5;
+  // (a land boss: half, and his fight takes its own share of that; a sub-boss: its share, weapons/subBoss.ts)
+  if (specialsOff(e)) dmg = landBoss(e) ? dmg * 0.5 : subBossDmg(e, dmg, false);
   e.health -= dmg;
   if (e.health <= 0) { if (isMidBoss(e)) e.health = 1; else { spellKill(ctx, e, how); return true; } }
   ctx.fx.spawnDamageNumber(e.pos, Math.round(dmg), dmg > 30);
@@ -430,7 +432,7 @@ const tick = (ctx: FrameContext, input: { secondary?: boolean }, equipped: boole
     if (left <= 0) { burning.delete(e); continue; }
     burning.set(e, left - 1);
     for (let i = 0; i < 2; i++) state.particles.push({ pos: { x: e.pos.x + Math.random() * e.width, y: e.pos.y + Math.random() * e.height * 0.7 }, vel: { x: (Math.random() - 0.5), y: -1.2 - Math.random() * 1.8 }, life: 16 + Math.random() * 8, color: Math.random() < 0.25 ? 'rgba(68, 64, 60, 0.6)' : Math.random() < 0.5 ? '#F97316' : '#FDE047', size: 3 + Math.random() * 4 });
-    const bd = specialsHalf(e) ? realMax(e) * ON_CAST.burn : METEOR.burnDmg;
+    const bd = specialsHalf(e) ? realMax(e) * ON_CAST.burn : subBossDmg(e, METEOR.burnDmg, false);
     e.health -= bd;
     if (left % 20 === 0) ctx.fx.spawnDamageNumber(e.pos, Math.round(bd * 20));
     if (e.health <= 0) { if (isMidBoss(e)) e.health = 1; else spellKill(ctx, e, 'charred'); }

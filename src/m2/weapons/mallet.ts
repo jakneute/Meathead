@@ -28,6 +28,7 @@ import { groundLineAt } from '../../m1/game/core/terrain';
 import { registerWeapon } from '../../m1/game/combat/customWeapons';
 import { isMidBoss } from '../../m1/game/combat/midBoss';
 import { specialsHalf, heavyHit, HALF } from './half';
+import { subBossDmg } from './subBoss';
 import { playSound } from '../../m1/game/platform/audio';
 import { setArmor } from '../../m1/game/core/resist';
 import { CANVAS_WIDTH, HUD_CLEAR_X, HUD_CLEAR_Y } from '../../m1/constants';
@@ -187,6 +188,8 @@ const toonKill = (ctx: FrameContext, e: Enemy, how: 'fling' | 'launch' | 'flatte
 const bonk = (ctx: FrameContext, e: Enemy, dmg: number, vel: { x: number; y: number }, how: 'fling' | 'launch' | 'flatten', as?: MalletHow) => {
   const { fx, state } = ctx;
   struck.add(e);
+  // (a sub-boss takes its share of it, whatever the hit: weapons/subBoss.ts)
+  dmg = subBossDmg(e, dmg);
   const cx = e.pos.x + e.width / 2, cy = e.pos.y + e.height * 0.4;
   // (the broken stick: a little tok, no fanfare; a mid-boss just takes its few points)
   if (stick) {
@@ -419,7 +422,7 @@ const tick = (ctx: FrameContext, input: { shoot: boolean }, equipped: boolean) =
           struck.add(e);
           // (one opted in, weapons/half.ts: not flattened, a heavy hit)
           if (specialsHalf(e)) { const h = heavyHit(e); e.health -= h; ctx.fx.spawnDamageNumber(e.pos, h, true); e.pauseTimer = Math.max(e.pauseTimer || 0, 50 * HALF); continue; }
-          if (isMidBoss(e)) { e.health -= 120; if (ownNumber(e)) ctx.fx.spawnDamageNumber(e.pos, 120, true); noteBig(state, e, 'smash'); continue; }
+          if (isMidBoss(e)) { const h = subBossDmg(e, 120); e.health -= h; if (ownNumber(e)) ctx.fx.spawnDamageNumber(e.pos, h, true); noteBig(state, e, 'smash'); continue; }
           toonKill(ctx, e, 'flatten', dir);
         }
         if (!hang) { for (let i = 0; i < 14; i++) state.particles.push({ pos: { x: px + dir * 70, y: fy - 2 }, vel: { x: (Math.random() - 0.5) * 8, y: -1 - Math.random() * 4 }, life: 24, color: i % 2 ? '#D6D3D1' : '#A8A29E', size: 3 + Math.random() * 3 }); landFx(px + dir * 70, fy, false); }

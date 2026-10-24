@@ -30,7 +30,7 @@ import { FULL_BAG_LINES, EMPTY_BAG_LINES } from '../lines/weaponLines';
 import { emptyCue } from './dry';
 import { isRobot } from '../kinds';
 import { specialsHalf, specialsOff, realMax, halfKill } from './half';
-import { isMidBoss } from '../../m1/game/combat/midBoss';
+import { subBossDmg } from './subBoss';
 import { since } from '../frames';
 import { setUi } from '../store';
 import { struckAt } from './strikes';
@@ -204,8 +204,10 @@ const bleed = (ctx: FrameContext, e: Enemy, near: number, mouth: { x: number; y:
   const dmg = Math.floor(bleedBank);
   bleedBank -= dmg;
   if (dmg <= 0) return;
-  e.health -= dmg; e.hitFlash = 3;
-  fx.spawnDamageNumber(e.pos, dmg);
+  // (a sub-boss loses its share of what's drawn (weapons/subBoss.ts); the bag fills by all of it, as ever)
+  const lost = subBossDmg(e, dmg);
+  e.health -= lost; e.hitFlash = 3;
+  fx.spawnDamageNumber(e.pos, lost);
   if (!noBagFrom.has(e)) intoBag(e, dmg * BLEED.bag * bagMul(e));
   playSound('glug', 0.6, -3);
   if (bleedRobot) playSound('clink', 0.4, 4); else playSound('splat', 0.35, 2);
@@ -354,15 +356,6 @@ const SPRAY_FRAMES = 100, GLOB_EVERY = 1, GLOB_DMG = 13, GLOB_SPEED = 15, GLOB_S
  * up (birds, somebody on a ledge) to well down (off a ledge, at whoever's below).
  */
 const FAN_UP = 1.0, FAN_DOWN = 0.9, FAN_SHARE = 0.48;
-/**
- * A glob on a sub-boss (a mid-boss, to the engine) does this share of GLOB_DMG (the user's: "reduce the blood spray
- * damage when fighting minibosses/bosses to 35 percent": it was going in full, 13 a glob, and shredding them). Not the
- * land bosses (OWN_SHARE): each one's fight already takes only its SHARE (35%) of a special weapon's hit off him, so
- * there it's cut once already, not twice.
- */
-const BOSS_GLOB_SHARE = 0.35;
-const OWN_SHARE = new Set(['m2:safariartie', 'm2:donnie', 'm2:sp_queen', 'm2:steve', 'm2:fl_harry', 'm2:fr_tucker_boss', 'm2:piper', 'm2:ct_stupid_dad']);
-const globDamage = (e: Enemy, dmg: number) => (isMidBoss(e) && !OWN_SHARE.has(e.kind ?? '') ? Math.max(1, Math.round(dmg * BOSS_GLOB_SHARE)) : dmg);
 let sprayLeft = 0, secondaryWas = false, emptySaidAt = -9999;
 /** How often he says the bag's empty (when he does: about one try in three). */
 const EMPTY_LINE_GAP = 420, EMPTY_LINE_CHANCE = 0.25;
@@ -457,7 +450,8 @@ const update = (ctx: FrameContext, p: Projectile): boolean => {
     g.hit.push(e.id);
     // (a fight with its own say over the gore landing on its boss (Tucker's: it's his weakness, not a hit): it has it)
     if (!g.scrap && [...globHooks].some(h => h(ctx, e))) { splat(); return false; }
-    const dmg = globDamage(e, p.damage);
+    // (a sub-boss: its share of it: weapons/subBoss.ts)
+    const dmg = subBossDmg(e, p.damage);
     e.health -= dmg;
     splat();
     const dir = Math.sign(p.vel.x) || 1;

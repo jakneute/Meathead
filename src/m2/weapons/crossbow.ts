@@ -11,8 +11,9 @@
 // Every enemy gets the animation: rearing back, heaving forward over it, a green look about him, his mouth going.
 // A boss or a mid-boss never gets sick on it (unless his own fight says otherwise: setDartTaker; HELICOPTER HARRY's
 // does, the user's opt-in: his weakness, and his fight does what it does to him): the darts just hit him harder, a
-// machine gun (BOSS_DART_DMG). One opted in (weapons/half.ts: the Ensemble Cast) does get sick, at half:
-// half the darts' extra hurt, and half as many heaves; it dies its own fight's way (never puked to death).
+// machine gun (BOSS_DART_DMG; a sub-boss, its share of that: weapons/subBoss.ts). One opted in (weapons/half.ts: the
+// Ensemble Cast) does get sick, at half: the darts' extra hurt at a sub-boss's share, and half as many heaves; it dies
+// its own fight's way (never puked to death).
 
 import type { Enemy, Projectile } from '../../m1/types';
 import { poofEnemy } from '../../m1/game/core/cartoonKills';
@@ -31,6 +32,7 @@ import { drawEnemyAt, setHeldFilter } from '../moves/grab';
 import { drawComposited } from '../../m1/game/render/composite';
 import { isRobot } from '../kinds';
 import { specialsHalf, specialsOff, realMax, HALF } from './half';
+import { subBossDmg } from './subBoss';
 import { drawGooPuddle, drawGooOverhang, drawGooString, gooOverhangDrips, type GooPalette } from '../../m1/game/render/goo';
 
 type Ctx = CanvasRenderingContext2D;
@@ -187,8 +189,9 @@ const darted = (ctx: FrameContext, e: Enemy, p: Projectile, through = 1) => {
   for (let i = 0; i < 2; i++) puff(state, { pos: { x: cx, y: cy }, vel: { x: -Math.sign(p.vel.x) * Math.random() * 2, y: -Math.random() * 2 }, life: 12, color: i ? '#B91C1C' : '#84CC16', size: 1.5 });
   playSound('click', 0.4, 10);
   { const take = takerOf(e); if (take && take(ctx, e)) return; }
-  if (specialsOff(e)) { hurt(ctx, e, BOSS_DART_DMG); e.hitFlash = 2; ctx.fx.spawnDamageNumber(e.pos, BOSS_DART_DMG); return; }
-  if (specialsHalf(e)) { hurt(ctx, e, BOSS_DART_DMG * HALF * through); e.hitFlash = 2; }
+  // (a sub-boss: its share of it, in hurt; the Ensemble Cast's share stands in for the half it was)
+  if (specialsOff(e)) { const n = hurt(ctx, e, BOSS_DART_DMG); e.hitFlash = 2; ctx.fx.spawnDamageNumber(e.pos, Math.round(n)); return; }
+  if (specialsHalf(e)) { hurt(ctx, e, BOSS_DART_DMG * through); e.hitFlash = 2; }
   else hurt(ctx, e, DART.dmg * through);
   if (!alive(e)) return;
   const s = sickOf(e); tracked.add(e);
@@ -196,11 +199,14 @@ const darted = (ctx: FrameContext, e: Enemy, p: Projectile, through = 1) => {
   if (s.t < 0 && state.frame >= s.immuneUntil) { s.tol -= DART.sick * through; if (s.tol <= 0) getSick(state, e, s); }
 };
 
-/** Hurt by it (a dart, the puke, a puddle of it): dead of any of it, it's the plague that got him: puked to death. */
+/** Hurt by it (a dart, the puke, a puddle of it): dead of any of it, it's the plague that got him: puked to death. A
+ *  sub-boss takes its share of any of it (weapons/subBoss.ts). What it took, back. */
 const hurt = (ctx: FrameContext, e: Enemy, dmg: number) => {
+  dmg = subBossDmg(e, dmg, false);
   e.health -= dmg;
-  if (e.health > 0 || isMidBoss(e)) return;
+  if (e.health > 0 || isMidBoss(e)) return dmg;
   pukedToDeath(ctx, e);
+  return dmg;
 };
 
 // ---------------------------------------------------------------------------------------------------------------
