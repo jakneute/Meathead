@@ -124,6 +124,7 @@ for (const t of allStrings([introLines.MEATHEAD_TICKET, introLines.MEATHEAD_PARK
 for (const t of allStrings([introLines.TICKET_LADY, introLines.TICKET_NEXT, introLines.TICKET_ALARM, introLines.TICKET_CUT, introLines.TICKET_REENTRY])) add('m2.ticket', t, 'INTRO');
 for (const t of allStrings([introLines.GUARD_ALERT, introLines.GUARD_BARK, introLines.GUARD_IDLE, introLines.GUARD_WELCOME, introLines.GUARD_WELCOME_BACK])) { add('m2.guard', t, 'INTRO'); add('m2.guardf', t, 'INTRO'); }
 for (const t of introLines.PA_LINES) add('m2.pa', t, 'INTRO');
+for (const t of introLines.PA_ALPHA_END) add('m2.pa', t, 'INTRO');
 // (Adventure Land: every section's, by voice)
 for (const byVoice of ADV_VOICE_LINES) for (const [v, lines] of Object.entries(byVoice)) for (const t of lines) add(v, t, 'ADVENTURE');
 // (Spooky Land: every section's, by voice)

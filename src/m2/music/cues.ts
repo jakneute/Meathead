@@ -463,6 +463,8 @@ const hubArr = (s: GameState): string => {
 /** What the game wants on right now. */
 const gameWants = (s: GameState | null): Want => {
   const none: Want = { cands: [], cutscene: false };
+  // (the alpha's ending (alphaEnd.ts): quiet under the PA; then the theme, triumphant, under THE END?)
+  { const m = momentOn('alphaend'); if (m) return m.arg === 'end' ? { cands: [{ song: 'title', arrs: ['main'] }], cutscene: false } : none; }
   // (the title screen: the theme, whatever's behind it)
   if (onTitle) return { cands: [{ song: 'title', arrs: ['main'] }], cutscene: false };
   if (!s || !stage) return none;

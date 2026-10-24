@@ -2,7 +2,7 @@
 // into a portal. Each ticks musicMoment every frame it's up (with who or where); the cue system (cues.ts) reads
 // momentOn. Nothing imported: anything can call it.
 
-export type MomentKind = 'victory' | 'walkaway' | 'portal';
+export type MomentKind = 'victory' | 'walkaway' | 'portal' | 'alphaend';
 const at: Partial<Record<MomentKind, { t: number; arg?: string }>> = {};
 /** When the tab was hidden (null: it's showing). */
 let hiddenAt: number | null = null;

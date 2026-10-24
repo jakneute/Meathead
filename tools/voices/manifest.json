@@ -50716,6 +50716,16 @@
  },
  {
   "voice": "m2.pa",
+  "text": "CHECK BACK LATER-ISH FOR THE GRAND ENDGAME CONTENT!",
+  "from": "INTRO"
+ },
+ {
+  "voice": "m2.pa",
+  "text": "CONGRATULATIONS! YOU FINISHED THE ALPHA BUILD OF MEATHEAD 2!",
+  "from": "INTRO"
+ },
+ {
+  "voice": "m2.pa",
   "text": "FRENCH FRIES ARE NOW FREEDOM FRIES. FRENCH KISSING IS NOW A MISDEMEANOR.",
   "from": "INTRO"
  },
@@ -50737,6 +50747,11 @@
  {
   "voice": "m2.pa",
   "text": "NACHO CHEESE IS NOW LEGALLY CHEESE. GOD BLESS.",
+  "from": "INTRO"
+ },
+ {
+  "voice": "m2.pa",
+  "text": "NEW FEATURES IN THE MAIN GAME TOO, PROBABLY. STAY TUNED!",
   "from": "INTRO"
  },
  {

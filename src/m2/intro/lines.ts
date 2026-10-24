@@ -58,6 +58,14 @@ export const GUARD_BARK: Record<Dressed, string[]> = {
   nude: ["DON'T LOOK AT IT! TAKE HIM DOWN!", "I'M NOT TACKLING HIM! HE'S NAKED!", 'THERE ARE FAMILIES HERE, YOU PERVERT!'],
 };
 
+/** The PA (the same announcer as America USA's), the night the last land's cleared: the alpha's ending (alphaEnd.ts).
+ *  Three lines, one after another (the user's one speech, split so each fits on screen). */
+export const PA_ALPHA_END = [
+  'CONGRATULATIONS! YOU FINISHED THE ALPHA BUILD OF MEATHEAD 2!',
+  'CHECK BACK LATER-ISH FOR THE GRAND ENDGAME CONTENT!',
+  'NEW FEATURES IN THE MAIN GAME TOO, PROBABLY. STAY TUNED!',
+];
+
 /** The PA, in America USA: every so often, annoyingly. */
 export const PA_LINES = [
   'AMERICA USA: VOTED GREATEST LAND IN HAPPY LAND. BY AMERICA USA.',

@@ -32,6 +32,11 @@ import { PIPER } from './walkAway/piper';
 import { STUPID_DAD } from './walkAway/stupidDad';
 import { musicMoment } from './music/moments';
 import { setTimeOfDayOverride, timeOfDayOverride } from './timeOfDay';
+import { type AlphaEnd, startAlphaEnd, tickAlphaEnd, drawAlphaEnd, warmAlphaEnd, devAlphaEnd } from './alphaEnd';
+import { alphaEndDuePeek, takeAlphaEndDue } from './store';
+
+// (dev, the cheats build: ?alphaend, the alpha's ending on its own; ?alphaend=walk, the next walk-away ends in it)
+devAlphaEnd();
 
 /** The bosses that have a walk-away (add each boss's SceneDef here). */
 export const WALK_AWAY_SCENES = { 'safari-artie': SAFARI_ARTIE, 'donnie-dracula': DONNIE_DRACULA, 'space-queen': SPACE_QUEEN, 'stuntman-steve': STUNTMAN_STEVE, 'helicopter-harry': HELICOPTER_HARRY, tucker: TUCKER, piper: PIPER, 'stupid-dad': STUPID_DAD } satisfies Record<string, SceneDef>;
@@ -59,6 +64,8 @@ export interface WalkAway {
   props: Prop[];
   bits: Bit[]; embers: Bit[];
   lastStep: number; farted: number;
+  /** The alpha's ending, playing in its place (the last land just cleared: alphaEnd.ts). */
+  alpha?: AlphaEnd;
 }
 
 /** How long before A does anything (so a mashed jump off the boss's death doesn't skip it unseen). */
@@ -80,6 +87,8 @@ const listenKeys = (on: boolean) => {
 export const playWalkAway = (state: GameState | null, opts: WalkAwayOpts): WalkAway => {
   const def = WALK_AWAY_SCENES[opts.boss];
   listenKeys(true);
+  // (the alpha's ending next: its PA painted ahead while he walks)
+  if (alphaEndDuePeek()) warmAlphaEnd();
   return {
     def, boss: opts.boss, weakness: !!opts.weakness, weapon: opts.weapon ?? def.weapon, onDone: opts.onDone, t: 0, done: false, armed: false,
     nude: state ? isNude(state) : false, shat: state ? isShat(state) : false,
@@ -159,6 +168,7 @@ export const walkAwayOn = () => performance.now() - tickedAt < 250;
 export const tickWalkAway = (w: WalkAway, controls?: Controls | null, padA = false) => {
   if (w.done) return;
   tickedAt = performance.now();
+  if (w.alpha) { tickAlphaEnd(w.alpha, controls, padA); return; }
   musicMoment('walkaway', w.boss);
   w.t++;
   const t = w.t, u = t % CYCLE;
@@ -185,14 +195,18 @@ export const tickWalkAway = (w: WalkAway, controls?: Controls | null, padA = fal
   // before A would take, it's just used up)
   offerSkip();
   const start = takeSkip();
-  if (start && w.armed && t > A_AFTER) { w.done = true; listenKeys(false); playSound('menuok', 0.8); w.onDone(); return; }
+  if (start && w.armed && t > A_AFTER) { leave(w); return; }
   const a = !!controls?.jump || enterDown || padA;
   if (!a) w.armed = true;
-  else if (w.armed && t > A_AFTER) {
-    w.done = true; listenKeys(false);
-    playSound('menuok', 0.8);
-    w.onDone();
-  }
+  else if (w.armed && t > A_AFTER) leave(w);
+};
+/** A: off to the hub (or the lot); the last land just cleared, the alpha's ending instead (it goes to the title). */
+const leave = (w: WalkAway) => {
+  listenKeys(false);
+  playSound('menuok', 0.8);
+  if (takeAlphaEndDue()) { w.alpha = startAlphaEnd(); return; }
+  w.done = true;
+  w.onDone();
 };
 
 /** What an act sets off: its sounds, its spatter (his frame to the picture's). */
@@ -347,6 +361,7 @@ const drawBottom = (c: Ctx, w: WalkAway) => {
 /** Draws it over the whole screen (call it from the stage's drawHud, screen space, last). */
 export const drawWalkAway = (c: Ctx, w: WalkAway) => {
   if (typeof document === 'undefined') return;
+  if (w.alpha) { drawAlphaEnd(c, w.alpha); return; }
   const pic = lowRes();
   drawScene(pic.c, w);
   // (the picture up between the bars, the lens's ghosts if the scene has its sun up: screen.ts)

@@ -159,7 +159,23 @@ export const arrived = () => { leaving = false; };
 const cleared = new Set<string>();
 const progressListeners = new Set<() => void>();
 /** A land's boss is beaten: the land's cleared (the day goes on: timeOfDay.ts). */
-export const markLandCleared = (id: string) => { if (cleared.has(id)) return; cleared.add(id); progressListeners.forEach(l => l()); };
+export const markLandCleared = (id: string) => {
+  if (cleared.has(id)) return;
+  cleared.add(id);
+  // (the last of the alpha's eight (hub/lands.ts LANDS) just now: the alpha's ending plays as he walks off (alphaEnd.ts).
+  // Only on the kill that clears it: a file loaded all-cleared, or a rematch, never sets it)
+  if (cleared.size === ALPHA_LANDS) alphaEndDue = true;
+  progressListeners.forEach(l => l());
+};
+/** The lands in the alpha (hub/lands.ts LANDS: not imported, to keep the store free of art). */
+const ALPHA_LANDS = 8;
+let alphaEndDue = false;
+/** The alpha's ending is due (the last land just cleared): peeked, to paint it ahead. */
+export const alphaEndDuePeek = () => alphaEndDue;
+/** ...and taken, once: true the one time. */
+export const takeAlphaEndDue = () => { const d = alphaEndDue; alphaEndDue = false; return d; };
+/** (dev: the next walk-away ends in it) */
+export const setAlphaEndDue = (on: boolean) => { alphaEndDue = on; };
 export const isLandCleared = (id: string) => cleared.has(id);
 /** How many lands he's cleared (0..9). */
 export const landsCleared = () => cleared.size;
