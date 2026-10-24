@@ -207,7 +207,10 @@ const drawBoa = (c: Ctx, e: Enemy, f: number) => {
   const fx = e.facing ?? 1;
   const hy = -e.height / 2;
   const toBranch = { x: ((e.homeX ?? 0) - (e.pos.x + e.width / 2)) * fx, y: (e.homeY ?? 0) - (e.pos.y + e.height) };
-  const loose = e.aiState === 'loose' || !!e.isBlownAway || e.homeY === undefined || e.homeX === undefined || !(Math.hypot(toBranch.x, toBranch.y) < BOA_HANG + BOA_REACH + 40);
+  // (alive and still hung on, knocked about by a charge however far: its tail stretches back to the branch, never cut
+  // loose (the user's: the snapper's stalk going when its head's knocked far off its root; the same here))
+  const hung = e.health > 0 && e.aiState !== 'loose' && e.homeY !== undefined && e.homeX !== undefined;
+  const loose = !hung && (e.aiState === 'loose' || !!e.isBlownAway || e.homeY === undefined || e.homeX === undefined || !(Math.hypot(toBranch.x, toBranch.y) < BOA_HANG + BOA_REACH + 40));
   const ax = loose ? -34 + Math.sin(f * 0.4) * 6 : toBranch.x, ay = loose ? hy + 30 : toBranch.y;
   drawBoaArt(c, e, f, ax, ay, loose);
 };

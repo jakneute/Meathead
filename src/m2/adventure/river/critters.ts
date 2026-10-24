@@ -309,7 +309,10 @@ export const drawSnapper = (c: Ctx, e: Enemy, f: number) => {
   // with no homeY), or well out of its stalk's reach: a ragged stub, no roots)
   const fc = e.facing ?? 1;
   const toRoot = { x: ((e.homeX ?? 0) - (e.pos.x + e.width / 2)) * fc, y: (e.homeY ?? 0) - (e.pos.y + e.height) };
-  const loose = e.aiState === 'loose' || !!e.isBlownAway || e.homeY === undefined || e.homeX === undefined || !(Math.hypot(toRoot.x, toRoot.y) < SNAP_STALK);
+  // (alive and still rooted, knocked about by a charge however far: the stalk stretches back to its root, never a stub
+  // (the user's: "the 'rope' effect disappears when the head is far away from the base"))
+  const rooted = e.health > 0 && e.aiState !== 'loose' && e.homeY !== undefined && e.homeX !== undefined;
+  const loose = !rooted && (e.aiState === 'loose' || !!e.isBlownAway || e.homeY === undefined || e.homeX === undefined || !(Math.hypot(toRoot.x, toRoot.y) < SNAP_STALK));
   const rx = loose ? -10 + Math.sin(f * 0.3) * 3 : toRoot.x, ry = loose ? 4 : toRoot.y;
   drawStalk(c, e, f, loose, rx, ry);
   const since = sinceHurt(e, f);
