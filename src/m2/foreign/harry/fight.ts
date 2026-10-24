@@ -103,7 +103,12 @@ const WIND = 168, TRACK = 0.7, DROP_T = 12, FIST_DMG = 32, STUCK_T = 400, YANK_T
 const TAUNT_EVERY = 760, HINT_GAP = 600;
 /** Her wear (the user: "if the statue of liberty smashes enough times it will crumble and fall apart"): smashes she
  *  survives (the last one's her end: she comes apart while it's stuck); the collapse's length. */
-const STATUE_LIFE = 6, CRUMBLE_T = 170;
+const STATUE_LIFE = 8, CRUMBLE_T = 170;
+/** The side punch (the user's: "horizontal smashes where it punches the righthand wall but gets stuck in it"): this
+ *  share of her smashes after the first; her fist pulled back here, across the floor to the right-hand wall; the
+ *  punch's length; how high it homes (up and down on him, not across: px off the floor, its middle). */
+const SIDE_SHARE = 0.4, SIDE_X0 = ARENA_L + 70, SIDE_X1 = ARENA_R - FIST_W / 2, SIDE_T = 16, SIDE_LO = FIST_H / 2, SIDE_HI = 250;
+const sideY = (y: number) => Math.max(GY - SIDE_HI, Math.min(GY - SIDE_LO, y));
 /** Him without her, enraged: his walk this much faster, his gun's rests this much shorter, his walks this much
  *  shorter (so the walls come round more often). */
 const RAGE_WALK = 1.35, RAGE_REST = 0.65, RAGE_WALK_T = 0.55;
@@ -166,7 +171,9 @@ export interface Fight {
   /** Her: risen (dy), the arm (its state, clock, the target, the fist, the block it leaves), her face and the rest. */
   arm: { st: ArmSt; t: number; T: number; tx: number; fx: number; fy: number; from: { x: number; y: number }; block: Block | null;
     /** Low on health: this smash's fakeout (or none), the tell's glint (frames left), the second slam to come, how far the windup locks, the drop's length. */
-    fake?: Fake | null; glint?: number; redo?: boolean; track?: number; dropT?: number };
+    fake?: Fake | null; glint?: number; redo?: boolean; track?: number; dropT?: number;
+    /** A side punch (at the right-hand wall, homing up and down: `ty` its height), and whether it's had him yet. */
+    side?: boolean; ty?: number; hit?: boolean };
   lib: { dy: number; face: Face; shake: number; stains: Stain[]; tear: number; broken: number; hand: { x: number; y: number }; tablet: boolean; gun: boolean; tilt: number; gone: boolean; wear: number };
   /** Her smashes so far; her collapse (frames into it, -1: not); she's gone (crumbled: him enraged). */
   smashes: number; crumble: number; crumbled: boolean;
@@ -731,7 +738,9 @@ const windup = (state: GameState, f: Fight) => {
   a.track = Math.min(f.hp < HP * 0.25 ? 0.84 : f.hp < HP * 0.5 ? 0.77 : TRACK, 1 - LOCK_MIN / T);
   a.dropT = Math.max(7, Math.round(DROP_T / Math.sqrt(hk)));
   // (and below half, faking him out now and then: re-aimed, a feint, or two slams)
-  a.fake = f.hp < HP * 0.5 && !a.redo && f.smashes < STATUE_LIFE - 1 && Math.random() < FAKE_SHARE ? (['reaim', 'feint', 'double'] as const)[Math.floor(Math.random() * 3)] : null;
+  // (a side punch now and then (never the first: the slam's taught first), no fakeouts on it)
+  a.side = !a.redo && f.smashes > 0 && Math.random() < SIDE_SHARE; a.hit = false; a.ty = sideY(pmid(state).y);
+  a.fake = !a.side && f.hp < HP * 0.5 && !a.redo && f.smashes < STATUE_LIFE - 1 && Math.random() < FAKE_SHARE ? (['reaim', 'feint', 'double'] as const)[Math.floor(Math.random() * 3)] : null;
   a.from = { x: a.fx, y: a.fy };
   a.tx = Math.max(ARENA_L + 64, Math.min(ARENA_R - 64, pmid(state).x));
   playSound('grind', 0.7, -10);
@@ -756,8 +765,9 @@ const statue = (ctx: FrameContext, f: Fight) => {
     case 'wind': {
       // (up and over him: tracking him the first stretch, then locked; rumbling, the fist going hot)
       const u = a.t / a.T, tr = a.track ?? TRACK;
-      if (u < tr) a.tx += (Math.max(ARENA_L + 64, Math.min(ARENA_R - 64, pmid(state).x)) - a.tx) * 0.08;
-      const g = reach(a.tx, HIGH, lib.dy), k = ease(Math.min(1, u / 0.35));
+      // (a side punch homes up and down on him, pulled back low at her side; the slam across, up over him)
+      if (u < tr) { if (a.side) a.ty = (a.ty ?? GY) + (sideY(pmid(state).y) - (a.ty ?? GY)) * 0.08; else a.tx += (Math.max(ARENA_L + 64, Math.min(ARENA_R - 64, pmid(state).x)) - a.tx) * 0.08; }
+      const g = a.side ? reach(SIDE_X0, a.ty ?? GY, lib.dy) : reach(a.tx, HIGH, lib.dy), k = ease(Math.min(1, u / 0.35));
       a.fx = a.from.x + (g.x - a.from.x) * k; a.fy = a.from.y + (g.y - a.from.y) * k - Math.sin(Math.min(1, u) * Math.PI) * 30;
       lib.shake = u > tr ? 1.2 : 0.4; lib.face = 'strain';
       if (a.t % 28 === 0) playSound('rumble', 0.6, -6 + u * 6);
@@ -785,6 +795,17 @@ const statue = (ctx: FrameContext, f: Fight) => {
       break;
     }
     case 'drop': {
+      if (a.side) {
+        // (the punch: straight across the floor at the height it locked on, into the right-hand wall; anybody in its
+        // way taken along)
+        const u = Math.min(1, a.t / SIDE_T), ty = a.ty ?? GY;
+        a.fx = a.from.x + (SIDE_X1 - a.from.x) * u * u; a.fy = a.from.y + (ty - a.from.y) * Math.min(1, u * 2);
+        if (!a.hit && p.health > 0 && !p.inCutscene && p.invincibilityTimer <= 0 && p.pos.x + p.width > a.fx - FIST_W / 2 && p.pos.x < a.fx + FIST_W / 2 && p.pos.y + p.height > a.fy - FIST_H / 2 && p.pos.y < a.fy + FIST_H / 2) {
+          a.hit = true; hurtPlayer(ctx, FIST_DMG, 'm2:fl_liberty_fist', { x: 9, y: -7 }, 16);
+        }
+        if (u >= 1) wallImpact(ctx, f);
+        break;
+      }
       const u = Math.min(1, a.t / (a.dropT ?? DROP_T));
       a.fx = a.from.x + (a.tx - a.from.x) * u; a.fy = a.from.y + (GY - FIST_H / 2 - a.from.y) * u * u;
       if (u >= 1) impact(ctx, f);
@@ -793,11 +814,14 @@ const statue = (ctx: FrameContext, f: Fight) => {
     case 'stuck': {
       // (straining at it: shaking, cracks up her arm; silent (the user: no noise as she struggles), the landing and the
       // yank free are the sounds)
-      a.fx = a.tx + Math.sin(a.t * 0.9) * (a.t > STUCK_T - 80 ? 2 : 0.6); a.fy = GY - FIST_H / 2;
+      const jig = Math.sin(a.t * 0.9) * (a.t > STUCK_T - 80 ? 2 : 0.6);
+      if (a.side) { a.fx = SIDE_X1; a.fy = (a.ty ?? GY) + jig; } else { a.fx = a.tx + jig; a.fy = GY - FIST_H / 2; }
       lib.shake = 1.4; lib.face = 'strain';
-      if (a.t % 10 === 0) puff(state, a.tx + (Math.random() - 0.5) * FIST_W, GY - 4, 1, '#A8A29E');
+      if (a.side) { if (a.t % 10 === 0) puff(state, ARENA_R - 4, a.fy + (Math.random() - 0.5) * FIST_H, 1, '#A8A29E'); }
+      else if (a.t % 10 === 0) puff(state, a.tx + (Math.random() - 0.5) * FIST_W, GY - 4, 1, '#A8A29E');
       // (a silent tug: the torch lifts a hair in its hole, dust and grit kicked up round it, and drops back)
-      if (a.t % TUG_EVERY === 1) { puff(state, a.tx, GY - 6, 3, '#D6D3D1'); for (let i = 0; i < 3; i++) state.particles.push({ pos: { x: a.tx + (Math.random() - 0.5) * 40, y: GY - 4 }, vel: { x: (Math.random() - 0.5) * 2.5, y: -1 - Math.random() * 2 }, life: 24, color: i % 2 ? '#8A8378' : '#6B5B45', size: 2 + Math.random() * 2, grav: 0.3 }); }
+      if (a.t % TUG_EVERY === 1 && a.side) puff(state, ARENA_R - 6, a.fy, 3, '#D6D3D1');
+      else if (a.t % TUG_EVERY === 1) { puff(state, a.tx, GY - 6, 3, '#D6D3D1'); for (let i = 0; i < 3; i++) state.particles.push({ pos: { x: a.tx + (Math.random() - 0.5) * 40, y: GY - 4 }, vel: { x: (Math.random() - 0.5) * 2.5, y: -1 - Math.random() * 2 }, life: 24, color: i % 2 ? '#8A8378' : '#6B5B45', size: 2 + Math.random() * 2, grav: 0.3 }); }
       // (her last smash: she comes apart while it's stuck)
       if (f.smashes >= STATUE_LIFE && a.t === 30) { startCrumble(ctx, f); break; }
       // (a double slam: torn straight back out, and at him again where he's got to)
@@ -831,6 +855,10 @@ const statue = (ctx: FrameContext, f: Fight) => {
 const STAKE = 14;
 const armView = (f: Fight) => {
   const a = f.arm;
+  // (a side punch: straight across, the torch turned flame first into the wall; stuck, the flame what's in the wall)
+  if (a.side && a.st === 'drop') { const e = ease(Math.min(1, a.t / SIDE_T)); return { x: a.fx + (FIST_W / 2) * e, y: a.fy, smash: e, side: true }; }
+  if (a.side && a.st === 'stuck') return { x: a.fx + FIST_W / 2 + STAKE, y: a.fy, smash: 1, side: true };
+  if (a.side && (a.st === 'yank' || a.st === 'snap')) { const sm = 1 - ease(Math.min(1, a.t / (a.st === 'snap' ? SNAP_T : YANK_T))); return { x: a.fx + (FIST_W / 2 + STAKE) * sm, y: a.fy, smash: sm, side: true }; }
   if (a.st === 'drop') {
     const u = Math.min(1, a.t / DROP_T), k = u * u, S = { x: LIB.shR.x, y: LIB.shR.y + f.lib.dy }, to = { x: a.tx, y: GY + STAKE };
     const a0 = Math.atan2(a.from.y - S.y, a.from.x - S.x), a1 = Math.atan2(to.y - S.y, to.x - S.x);
@@ -913,9 +941,29 @@ const impact = (ctx: FrameContext, f: Fight) => {
   // (the user: no collision once it's down: it hurts only landing on him; then it's just there, planted at the back of
   // the floor: nothing to stand on, no wall, no cover from his rounds or his sweeps. a.block stays null: fistBox's
   // null, so his rounds, his walk and his floor spots all go straight through it)
-  f.stuckN++;
   // (the hole it leaves: there for the rest of the fight)
   (f.holes ??= []).push(a.tx); if (f.holes.length > 8) f.holes.shift();
+  smashed(ctx, f);
+};
+/** The side punch into the right-hand wall: stuck in it (no collision, the floor's way); anybody pinned there, hit and
+ *  put out in front of it. */
+const wallImpact = (ctx: FrameContext, f: Fight) => {
+  const { state } = ctx, a = f.arm, p = state.player;
+  a.st = 'stuck'; a.t = 0; a.fx = SIDE_X1; a.fy = a.ty ?? GY - FIST_H / 2;
+  // (her torch, if she lets go of it crumbling: down the wall from here)
+  a.tx = SIDE_X1;
+  playSound('boom', 1, -12); playSound('crash', 1, -8); playSound('thud', 1, -14); shakeScreen(state, 20, 10);
+  puff(state, ARENA_R - 4, a.fy, 20, '#A8A29E');
+  if (p.pos.x + p.width > a.fx - FIST_W / 2 && p.pos.y + p.height > a.fy - FIST_H / 2 && p.pos.y < a.fy + FIST_H / 2) {
+    p.pos.x = a.fx - FIST_W / 2 - p.width - 2;
+    if (!a.hit && p.invincibilityTimer <= 0 && p.health > 0 && !p.inCutscene) { a.hit = true; hurtPlayer(ctx, FIST_DMG, 'm2:fl_liberty_fist', { x: -7, y: -6 }, 16); }
+  }
+  smashed(ctx, f);
+};
+/** Either smash landed: her wear, his rant. */
+const smashed = (ctx: FrameContext, f: Fight) => {
+  const { state } = ctx;
+  f.stuckN++;
   // (her wear: each smash cracks her more, chips flying off her, the patina flaking)
   f.smashes++; f.lib.wear = Math.min(1, f.smashes / STATUE_LIFE);
   chipHer(state, f, 4 + f.smashes * 2);
@@ -944,9 +992,14 @@ const unstick = (state: GameState, f: Fight, snap: boolean) => {
   a.from = { x: a.fx, y: a.fy };
   a.st = snap ? 'snap' : 'yank'; a.t = 0;
   playSound('crack', 1, -6); playSound('crumble', 0.8, -4); shakeScreen(state, 8, 4);
-  puff(state, a.tx, GY, 12, '#A8A29E');
-  // (torn out of its hole: dirt and broken slab flung up out of it)
-  for (let i = 0; i < 18; i++) state.particles.push({ pos: { x: a.tx + (Math.random() - 0.5) * 30, y: GY - 4 }, vel: { x: (Math.random() - 0.5) * 7, y: -3 - Math.random() * 6 }, life: 40 + Math.random() * 20, color: ['#8A8378', '#6B5B45', '#A8A29E', '#3A2E22'][i % 4], size: 2 + Math.random() * 5, grav: 0.35 });
+  // (torn out of its hole: dirt and broken slab flung up out of it; out of the wall, flung back off it)
+  if (a.side) {
+    puff(state, ARENA_R - 4, a.fy, 12, '#A8A29E');
+    for (let i = 0; i < 18; i++) state.particles.push({ pos: { x: ARENA_R - 6, y: a.fy + (Math.random() - 0.5) * 40 }, vel: { x: -2 - Math.random() * 6, y: -2 - Math.random() * 4 }, life: 40 + Math.random() * 20, color: ['#8A8378', '#6B5B45', '#A8A29E', '#3A2E22'][i % 4], size: 2 + Math.random() * 5, grav: 0.35 });
+  } else {
+    puff(state, a.tx, GY, 12, '#A8A29E');
+    for (let i = 0; i < 18; i++) state.particles.push({ pos: { x: a.tx + (Math.random() - 0.5) * 30, y: GY - 4 }, vel: { x: (Math.random() - 0.5) * 7, y: -3 - Math.random() * 6 }, life: 40 + Math.random() * 20, color: ['#8A8378', '#6B5B45', '#A8A29E', '#3A2E22'][i % 4], size: 2 + Math.random() * 5, grav: 0.35 });
+  }
   if (!snap && !f.barf) { f.queue = f.stuckN % 2 === 1 ? ['crown'] : ['cling', 'walk', 'crown']; if (Math.random() < 0.7) bark(f, L.HARRY_UNSTUCK); }
 };
 
@@ -1865,7 +1918,7 @@ export const drawStatue = (c: Ctx, state: GameState, f: Fight) => {
     drawRambo(g, CROWN.x, CROWN.y, { pose: P.pose, f: fr, facing: f.facing, talking: !!f.said, scale: CROWN_SCALE, green: f.green, concrete: f.concrete });
   } : undefined;
   // (toppling: the arm goes over with her)
-  const arm = f.lib.tilt > 0 || f.lib.dy > 0 ? (g: Ctx) => { const v = armView(f); drawArm(g, { ...libLook(f, fr), dy: 0, shake: 0 }, v.x, v.y, { torch: !f.torch, smash: v.smash, floor: GY }); } : undefined;
+  const arm = f.lib.tilt > 0 || f.lib.dy > 0 ? (g: Ctx) => { const v = armView(f); drawArm(g, { ...libLook(f, fr), dy: 0, shake: 0 }, v.x, v.y, { torch: !f.torch, smash: v.smash, floor: v.side ? undefined : GY, wall: v.side ? ARENA_R : undefined }); } : undefined;
   drawLibertyBody(c, libLook(f, fr, crown), arm);
 };
 
@@ -1900,7 +1953,7 @@ export const drawFightBack = (c: Ctx, state: GameState, f: Fight) => {
   if (f.puddle && !(f.death && f.death.how === 'barfed')) drawPuddle(c, f.puddle.x, f.puddle.k, 0, fr);
   // (the holes the torch has left in the floor (not the one it's in: that one's drawn with it))
   for (const hx of f.holes ?? []) {
-    if (a.st === 'stuck' && Math.abs(hx - a.tx) < 1) continue;
+    if (a.st === 'stuck' && !a.side && Math.abs(hx - a.tx) < 1) continue;
     ellR(c, hx, GY, 34, 7, dith(c, '#3A2E22'));
     ellR(c, hx, GY, 30, 6, '#3A2E22'); ellR(c, hx, GY + 0.6, 22, 4.4, '#241A12'); ellR(c, hx, GY + 1, 16, 3.5, '#0E0A08');
     box(c, hx - 26, GY - 1, 18, 1, '#6B5B45');
@@ -1908,7 +1961,16 @@ export const drawFightBack = (c: Ctx, state: GameState, f: Fight) => {
     for (const ox of [-30, 24]) shapeR(c, () => { c.moveTo(hx + ox - 7, GY + 2); c.lineTo(hx + ox - 2, GY - 6); c.lineTo(hx + ox + 6, GY + 2); c.closePath(); }, CONC_HARD, hx + ox - 7, hx + ox + 6, 1);
   }
   // (the windup's mark on the floor: her fist's shadow, stepped, following him; then locked, flashing red, a target)
-  if (a.st === 'wind' || a.st === 'drop' || a.st === 'feint') {
+  // (a side punch's mark: on the right-hand wall at the height it's homing on, closing in, then locked and flashing)
+  if (a.side && (a.st === 'wind' || a.st === 'drop')) {
+    const u = a.st === 'wind' ? a.t / a.T : 1, locked = u >= (a.track ?? TRACK), hot = fr % 8 < 4, ty = a.ty ?? GY;
+    const ry = FIST_H / 2 + 6 + (1 - u) * 30, dk = Math.min(1, 0.3 + u * 0.7), wx = ARENA_R - 3;
+    c.fillStyle = `rgba(0,0,0,${(0.3 * dk).toFixed(2)})`; c.beginPath(); c.ellipse(wx, ty, 9, ry, 0, 0, Math.PI * 2); c.fill();
+    c.strokeStyle = '#1A0B06'; c.lineWidth = 5; c.beginPath(); c.ellipse(wx, ty, 8, ry, 0, 0, Math.PI * 2); c.stroke();
+    c.strokeStyle = locked ? (hot ? '#EF4444' : '#FDE047') : 'rgba(239, 68, 68, 0.75)'; c.lineWidth = 3; c.stroke();
+    if (locked) for (const s of [-1, 1]) box(c, wx - 12, ty + s * (ry + 4) - (s > 0 ? 0 : 2), 10, 2, hot ? '#EF4444' : '#FDE047');
+  }
+  if (!a.side && (a.st === 'wind' || a.st === 'drop' || a.st === 'feint')) {
     const u = a.st === 'wind' ? a.t / a.T : 1, locked = u >= (a.track ?? TRACK), hot = fr % 8 < 4;
     const rx = FIST_W / 2 + 6 + (1 - u) * 30, dk = Math.min(1, 0.3 + u * 0.7);
     ellR(c, a.tx, GY - 2, rx + 6, 10, dith(c, `rgba(0,0,0,${(0.3 * dk).toFixed(2)})`));
@@ -1926,10 +1988,11 @@ export const drawFightBack = (c: Ctx, state: GameState, f: Fight) => {
     const stuck = a.st === 'stuck' ? Math.min(1, a.t / STUCK_T) : undefined;
     const glow = a.st === 'wind' ? Math.max(0, (a.t / a.T - 0.4) / 0.6) : a.st === 'drop' || a.st === 'feint' ? 1 : 0;
     // (stuck: the cracks in the slab round it)
-    if (a.st === 'stuck') { c.strokeStyle = '#1A0B06'; c.lineWidth = 2; for (const s of [-1, 1]) { c.beginPath(); c.moveTo(a.tx + s * FIST_W / 2, GY - 1); c.lineTo(a.tx + s * (FIST_W / 2 + 26), GY - 4); c.lineTo(a.tx + s * (FIST_W / 2 + 50), GY - 2); c.stroke(); } }
+    if (a.st === 'stuck' && a.side) { c.strokeStyle = '#1A0B06'; c.lineWidth = 2; for (const s of [-1, 1]) { c.beginPath(); c.moveTo(ARENA_R - 1, a.fy + s * FIST_H / 2); c.lineTo(ARENA_R - 4, a.fy + s * (FIST_H / 2 + 22)); c.lineTo(ARENA_R - 2, a.fy + s * (FIST_H / 2 + 44)); c.stroke(); } }
+    if (a.st === 'stuck' && !a.side) { c.strokeStyle = '#1A0B06'; c.lineWidth = 2; for (const s of [-1, 1]) { c.beginPath(); c.moveTo(a.tx + s * FIST_W / 2, GY - 1); c.lineTo(a.tx + s * (FIST_W / 2 + 26), GY - 4); c.lineTo(a.tx + s * (FIST_W / 2 + 50), GY - 2); c.stroke(); } }
     const away = a.st === 'wind' || a.st === 'drop' || a.st === 'feint' ? { x: LIB.head.x, y: LIB.head.y - 40 } : undefined;
     const v = armView(f);
-    drawArm(c, libLook(f, fr), v.x, v.y, { torch: !f.torch, glow, stuck, away, straight: a.st === 'drop' || a.st === 'stuck' || a.st === 'yank' || a.st === 'snap', smash: v.smash, floor: GY, tug: a.st === 'stuck' && a.t % TUG_EVERY < 7 ? 1 : 0 });
+    drawArm(c, libLook(f, fr), v.x, v.y, { torch: !f.torch, glow, stuck, away, straight: a.st === 'drop' || a.st === 'stuck' || a.st === 'yank' || a.st === 'snap', smash: v.smash, floor: v.side ? undefined : GY, wall: v.side ? ARENA_R : undefined, tug: a.st === 'stuck' && a.t % TUG_EVERY < 7 ? 1 : 0 });
     // (a fakeout's tell: a glint off her fist, a four-point star flaring and shrinking)
     if (a.glint && a.glint > 0) {
       const k = a.glint / 22, R = 10 + 46 * Math.sin(k * Math.PI), gx = a.fx + 18, gy = a.fy - 30;

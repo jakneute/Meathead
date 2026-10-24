@@ -827,7 +827,7 @@ const FIST_SINK = 6;
  * under that's hidden), the flame on top, leaning a little back toward her, her fist round the handle above the floor.
  * `glow` (0..1): the windup's tell.
  */
-export const drawArm = (c: Ctx, L: LibLook, fx: number, fy: number, opts: { torch: boolean; glow?: number; stuck?: number; away?: { x: number; y: number }; straight?: boolean; smash?: number; floor?: number; tug?: number }) => {
+export const drawArm = (c: Ctx, L: LibLook, fx: number, fy: number, opts: { torch: boolean; glow?: number; stuck?: number; away?: { x: number; y: number }; straight?: boolean; smash?: number; floor?: number; wall?: number; tug?: number }) => {
   c.save();
   // (she's at the back: past the arena's end walls she's behind them, never painted over them)
   c.beginPath(); c.rect(ARENA_L, -100000, ARENA_R - ARENA_L, 200000); c.clip();
@@ -846,12 +846,14 @@ export const drawArm = (c: Ctx, L: LibLook, fx: number, fy: number, opts: { torc
   // (smashing onto the floor (the user: "you can see her fist in the ground, like the whole torch went in"): she turns
   // it over in her fist as it comes down, flame first like an ice pick, and drives the whole torch into the slab, her
   // fist punched in after it up to the knuckles. Anywhere else, staked butt first: rammed in at a slant, back toward her)
-  const pick = opts.torch && opts.floor !== undefined && w > 0;
+  // (punched into the right-hand wall: the same, flame first, turned over to point at the wall, her fist in after it)
+  const side = opts.torch && opts.wall !== undefined && w > 0;
+  const pick = (opts.torch && opts.floor !== undefined && w > 0) || side;
   const turn = T.x < S.x ? -1 : 1;
-  const ta = pick ? upA + turn * Math.PI * w : upA + Math.max(-0.62, Math.min(0.62, lean * 0.35 + (lean >= 0 ? RAM : -RAM))) * w;
+  const ta = side ? upA + (Math.PI / 2) * w : pick ? upA + turn * Math.PI * w : upA + Math.max(-0.62, Math.min(0.62, lean * 0.35 + (lean >= 0 ? RAM : -RAM))) * w;
   // (her hand: there (sunk into the floor once it's in), or up the handle from the butt)
   const full = GRIP + HEAD;
-  const H = pick ? { x: T.x, y: Math.min(T.y, opts.floor! + FIST_SINK) } : { x: T.x + Math.cos(ta) * (BUTT + RISE) * w, y: T.y + Math.sin(ta) * (BUTT + RISE) * w };
+  const H = side ? { x: Math.min(T.x, opts.wall! + FIST_SINK), y: T.y } : pick ? { x: T.x, y: Math.min(T.y, opts.floor! + FIST_SINK) } : { x: T.x + Math.cos(ta) * (BUTT + RISE) * w, y: T.y + Math.sin(ta) * (BUTT + RISE) * w };
   // (the elbow: a gentle sculpted bend: out to her side raised, up over the line lowered, away from her face rearing)
   const hdx = H.x - S.x, hdy = H.y - S.y, hd = Math.hypot(hdx, hdy) || 1, nx = -hdy / hd, ny = hdx / hd;
   const mid = { x: S.x + hdx * 0.5, y: S.y + hdy * 0.5 };
