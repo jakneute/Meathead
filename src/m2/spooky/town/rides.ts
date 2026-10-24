@@ -326,9 +326,13 @@ const drawCups = (c: Ctx, state: GameState, v: View) => {
   // (the front rail of the deck: iron posts, brass knobs)
   for (let x = cx - CUPS.r - 40; x <= cx + CUPS.r + 40; x += 40) { box(c, x - 3, GY - 23, 6, 23, INK); box(c, x - 2, GY - 22, 4, 22, IRON[3]); box(c, x - 2, GY - 22, 1, 22, IRON[5]); ell(c, x, GY - 24, 3, 3, BRASS[4], 1); }
   // (its signs: the name up over the hub (clear of its canopy, and of the lamp and the ATM either side), the height
-  // limit at the queue's end, its yellow line)
+  // limit at the queue's end, its measuring arm: a thin dark wooden ruler, ticked, a red tip (no lit yellow: the only
+  // yellow lips on the ride are the coffins you can stand on)
   signPost(c, cx - R + 60, GY, 70, 'MUST BE THIS SHORT', '#1E1036', '#E9D5FF', 7);
-  box(c, cx - R + 24, GY - 53, 72, 5, INK); box(c, cx - R + 25, GY - 52, 70, 3, '#FDE047');
+  const ax = cx - R + 28, ay = GY - 52;
+  box(c, ax, ay, 64, 4, INK); box(c, ax + 1, ay + 1, 62, 2, OAK[2]);
+  for (let t = 4; t < 58; t += 6) box(c, ax + t, ay + 1, 1, t % 12 === 4 ? 2 : 1, '#8A7A9A');
+  box(c, ax + 1, ay + 1, 5, 2, '#7F1D1D');
 };
 
 // The carousel ----------------------------------------------------------------------------------------------------
