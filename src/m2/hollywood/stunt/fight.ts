@@ -742,8 +742,14 @@ const dying = (ctx: FrameContext, f: Fight): Controls => {
   }
   // (it never hangs)
   if (t > 1800) f.deathSaid = 4;
+  // (Meathead out of the shot: he walks in to watch (the user's: "just have meathead walk into frame if he is out of
+  // it"), till he's well in it, and never right up on him)
+  const mx = pmid(state).x, dir = d.x > mx ? 1 : -1, inShot = mx > f.camX + FRY_IN && mx < f.camX + CANVAS_WIDTH - FRY_IN;
+  if (t > 20 && !p.hidden && !inShot && Math.abs(d.x - mx) > FRY_NEAR) return { ...hands(), [dir > 0 ? 'right' : 'left']: true } as Controls;
   return hands();
 };
+/** Fried: Meathead walks in from out of the shot till he's this far in from its edge (px), stopping short of him. */
+const FRY_IN = 120, FRY_NEAR = 150;
 
 /** The sidestep's beats (frames): the cut to black and back; the stagger out (how fast, its trip and wheeze, where
  *  they come); the brace; the half-step before his back goes; the flight's gravity; Meathead's stroll in. */
