@@ -61,6 +61,13 @@ export const GAGS: Record<'trap' | 'log' | 'wolves' | 'leeches' | 'rapids' | 'bi
   },
 };
 
+/** He tries a charge down in leech water (leeches.ts): nothing (the first time, then now and then). */
+export const NO_CHARGE: ByPants = {
+  clean: ['I CAN\'T CHARGE IN THIS. IT\'S LEECH SOUP.', 'NO RUN-UP. JUST LEECHES.', 'IT\'S MORE LEECH THAN WATER. I CAN\'T MOVE.', 'THEY\'RE HANGING OFF MY LEGS. NO CHARGE.'],
+  shitty: ['CAN\'T CHARGE. THEY\'RE HOLDING MY PANTS DOWN.', 'NO CHARGE. MY PANTS ARE FULL OF LEECHES. AND WORSE.', 'THEY\'RE STUCK IN THE SHIT. SO AM I.'],
+  nude: ['CAN\'T CHARGE. ONE\'S GOT ME BY THE NUTS.', 'NO CHARGE. THEY\'RE HANGING OFF MY DICK LIKE AN ANCHOR.', 'NAKED IN LEECH SOUP. NOTHING TO PUSH OFF WITH.'],
+};
+
 // ---------------------------------------------------------------------------------------------------------------
 // The station: Tucker and Meathead (each group's pools by the state of Meathead)
 
@@ -267,7 +274,7 @@ export const KILL_CALLS: Record<string, Record<string, string[]>> = {
 
 export const VOICE_LINES: Record<string, string[]> = {
   meathead: [
-    ...allOf(ARRIVE), ...Object.values(GAGS).flatMap(allOf), ...allOf(NO_TICKET), ...allOf(CHASE), ...STATION_EMPTY,
+    ...allOf(ARRIVE), ...Object.values(GAGS).flatMap(allOf), ...allOf(NO_CHARGE), ...allOf(NO_TICKET), ...allOf(CHASE), ...STATION_EMPTY,
     ...Object.values(HURT).flatMap(h => h.hurt),
   ],
   death: Object.values(HURT).flatMap(h => h.death),
