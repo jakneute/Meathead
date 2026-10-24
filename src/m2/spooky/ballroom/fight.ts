@@ -797,8 +797,9 @@ const takeHits = (ctx: FrameContext, f: Fight) => {
   f.moveSeen = e.hitByMove;
   const sv = f.souvenir; f.souvenir = null;
   // (a charge move landing on him: knocked back, and whatever he'd got hold of (a guest) let go)
-  // (his poise: a charge move only knocks him off what he's doing every so often; off a guest, always)
-  if (melee && dealt > 0 && f.mode !== 'dead' && f.mode !== 'drain' && f.mode !== 'stunned' && state.enemies.includes(e)) {
+  // (his poise: a charge move only knocks him off what he's doing every so often; off a guest, always; never off his
+  // grab, the tell or the swoop (the user's): that you get out of the way of)
+  if (melee && dealt > 0 && f.mode !== 'dead' && f.mode !== 'drain' && f.mode !== 'stunned' && f.mode !== 'aim' && f.mode !== 'dive' && state.enemies.includes(e)) {
     if (f.prey || f.total - f.staggerAt >= POISE_T) stagger(state, f);
     // (a dive kick that doesn't knock him about: he slides out from under it, away across the room)
     else if (state.player.isDivekicking) dodge(state, f);
