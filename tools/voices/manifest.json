@@ -16336,6 +16336,11 @@
  },
  {
   "voice": "death",
+  "text": "THE WATERFALL HAD ROCKS",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "death",
   "text": "THE WOLVERINE GOT YOUR ANKLES",
   "from": "content/deaths"
  },
@@ -16821,6 +16826,11 @@
  },
  {
   "voice": "death",
+  "text": "WATERFALL 1, MEATHEAD 0",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "death",
   "text": "WAXED",
   "from": "FRONTIER"
  },
@@ -16843,6 +16853,11 @@
   "voice": "death",
   "text": "WENT IN THE LAVA. LAVA WON.",
   "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "death",
+  "text": "WENT OVER THE WATERFALL",
+  "from": "FRONTIER"
  },
  {
   "voice": "death",
@@ -60666,6 +60681,11 @@
  },
  {
   "voice": "meathead",
+  "text": "AT LEAST IT RINSES MY PAAAANTS!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
   "text": "AT LEAST MY ASS ISN'T IN THE CEILING.",
   "from": "SPOOKY"
  },
@@ -75246,6 +75266,11 @@
  },
  {
   "voice": "meathead",
+  "text": "MY BALLS ARE GOING FIRST!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
   "text": "MY BALLS ARE ICE CUBES!",
   "from": "FANTASY"
  },
@@ -76028,6 +76053,11 @@
   "voice": "meathead",
   "text": "NAKED AND COUGHING UP HAIR. LIKE MY UNCLE AFTER A BENDER.",
   "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "NAKED AND FALLIIIING!",
+  "from": "FRONTIER"
  },
  {
   "voice": "meathead",
@@ -77666,6 +77696,11 @@
  },
  {
   "voice": "meathead",
+  "text": "NOT THE WATERFALL!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
   "text": "NOT TODAY, CHIPPER.",
   "from": "FRONTIER"
  },
@@ -78063,6 +78098,11 @@
   "voice": "meathead",
   "text": "OH SHIIIIT!",
   "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "meathead",
+  "text": "OH SHIIIT! AND I ALREADY DID!",
+  "from": "FRONTIER"
  },
  {
   "voice": "meathead",
@@ -86566,6 +86606,11 @@
  },
  {
   "voice": "meathead",
+  "text": "THE FALLS! THE FALLS!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
   "text": "THE FAN CUT ME!",
   "from": "FANTASY"
  },
@@ -90502,6 +90547,11 @@
  {
   "voice": "meathead",
   "text": "WATER! UP MY NOSE!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
+  "text": "WATERFAAAAALL!",
   "from": "FRONTIER"
  },
  {
