@@ -254,6 +254,14 @@ export const updateRide = (ctx: FrameContext) => {
 // The sawmill: the belts, their logs, the head saw
 
 const BELT_LOG = 120;
+/** A log tipped off the jack ladder onto the deck: it carries on along belt one into the saw like the mill's own (the
+ *  user's: it just vanished at the top instead). `x` its left end where it came down. */
+export const deckLogOntoBelt = (state: GameState, x: number, len: number) => {
+  const tw = townOf(state), lx = Math.max(X(BELTS[0][0]), x);
+  const L = { belt: 0, x: lx, len, m: makeMover(state, lx, MILL_DECK - 28, len, `fr-belt-log-${len}`), cut: 0 };
+  moveMover(state, L.m, lx, MILL_DECK - 28);
+  tw.beltLogs.push(L);
+};
 const beltY = MILL_DECK;
 export const updateMill = (ctx: FrameContext) => {
   const { state } = ctx, tw = townOf(state), p = state.player;

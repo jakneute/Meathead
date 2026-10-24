@@ -25,6 +25,7 @@ import { hr, TIMBER, STEEL } from './paint';
 import { onScreen } from './view';
 import { townOf, type PondLog } from './state';
 import { WATERS, LOGS, LADDER, X } from './layout';
+import { deckLogOntoBelt } from './hazards';
 import { LADDER_UP, BIRLER_SEEN } from './lines';
 
 const R = 14, SINK = 2, PUSH = 3.2, ANSWER = 0.08, EASE = 0.03, BACK = 260;
@@ -141,7 +142,7 @@ export const updateLogs = (ctx: FrameContext, controls: Controls): Controls => {
         if (was < 1) { playSound('thud', 0.8, -8); shakeScreen(state, 3, 2); }
         // (set down on the deck: it stays put under him till he steps off it (no drop out from under him), then it's
         // gone (a new one floats out back home a while later))
-        if (!mine) { L.gone = BACK; moveMover(state, L.m, at.cx - L.len / 2, at.cy - R, true); if (ride?.L === L) ride = null; }
+        if (!mine) { L.gone = BACK; moveMover(state, L.m, at.cx - L.len / 2, at.cy - R, true); if (ride?.L === L) ride = null; deckLogOntoBelt(state, at.cx - L.len / 2, L.len); }
       }
       continue;
     }
