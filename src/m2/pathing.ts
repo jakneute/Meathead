@@ -9,6 +9,9 @@
 //                it nearest his level; no hop from where it stands, it walks to one that works (under a jump-through
 //                ledge, or a run-up off the end of a solid one) and goes from there.
 //   him below    stopped at the edge of what it's on, him down below that way: it goes on off the edge after him.
+//   wedged       dropped middle first into a slot narrower than it (the engine stands it on what's under its middle)
+//                and stuck there in the solids either side: a moment of that, chasing or not, and it hops up out onto
+//                the lower of them (the user's: "address narrow gaps like this so enemies can't get stuck there").
 //
 // Only while it's going after him under its own steam (in whatever state it was in when it last walked his way: an
 // attack's lunge, a pose, running off with his stuff, none of that), only once it's been seen, never while he's
@@ -51,6 +54,8 @@ interface Mem {
   fails: number; giveUpUntil: number;
   /** Its own few frames' offset on retries (so a crowd doesn't all think on the one frame). */
   jitter: number;
+  /** Since when it's been wedged in a slot (0: it isn't). */
+  wedgedAt: number;
 }
 const mems = new WeakMap<Enemy, Mem>();
 const memOf = (e: Enemy) => {
@@ -58,7 +63,7 @@ const memOf = (e: Enemy) => {
   if (!m) {
     let j = 0;
     for (let i = 0; i < e.id.length; i++) j = (j * 31 + e.id.charCodeAt(i)) % 997;
-    mems.set(e, (m = { chaseAt: -1e9, speed: 2, nextTry: 0, backUntil: 0, backDir: 1, dropUntil: 0, dropDir: 1, dropSpeed: 2, dropFeet: 0, goUntil: 0, goX: 0, arrivedAt: -1e9, fails: 0, giveUpUntil: 0, jitter: j % 9 }));
+    mems.set(e, (m = { chaseAt: -1e9, speed: 2, nextTry: 0, backUntil: 0, backDir: 1, dropUntil: 0, dropDir: 1, dropSpeed: 2, dropFeet: 0, goUntil: 0, goX: 0, arrivedAt: -1e9, fails: 0, giveUpUntil: 0, jitter: j % 9, wedgedAt: 0 }));
   }
   return m;
 };
@@ -100,6 +105,25 @@ const faceAhead = (state: GameState, e: Enemy, dir: number, reach: number) => {
     top = on.y;
   }
   return { gap: best.gap, top };
+};
+
+/** Wedged: stood (its middle over a floor) with its sides into something solid more than a step up, not just up
+ *  against a face (the engine never walks one into a face: only a drop into a slot narrower than it does this). The
+ *  lowest such thing it's into, its top within a hop, or null. */
+const WEDGED_FOR = 40;
+const wedgedIn = (state: GameState, e: Enemy) => {
+  const feet = e.pos.y + e.height, x0 = e.pos.x, x1 = x0 + e.width, cx = (x0 + x1) / 2;
+  let low: Block | null = null;
+  for (const b of near(state, x0, x1)) {
+    if (!hard(b) || b.y >= feet - STEP || b.y + b.h <= e.pos.y + 4) continue;
+    if (x1 <= b.x + 4 || x0 >= b.x + b.w - 4) continue;
+    // (its middle in it: not a slot (set into a hole in the rock, say): left be)
+    if (cx > b.x && cx < b.x + b.w) return null;
+    // (no room on top of it (a door's wall shut under the wall over the doorway): not a way out)
+    if (state.blocks.some(o => o !== b && hard(o) && o.x < b.x + b.w && o.x + o.w > b.x && o.y < b.y && o.y + o.h > b.y - e.height)) continue;
+    if (!low || b.y > low.y) low = b;
+  }
+  return low && feet - low.y <= MAX_RISE ? low : null;
 };
 
 /**
@@ -251,6 +275,17 @@ export const pathAfterAI = (ctx: FrameContext, e: Enemy) => {
   if ((e.pauseTimer ?? 0) > 0 || (e.frozenTimer ?? 0) > 0) return;
   const m = memOf(e);
   const cx = e.pos.x + e.width / 2, feet = e.pos.y + e.height;
+  // Wedged in a slot a moment: up out onto the lower side (its middle well onto it)
+  const wedge = wedgedIn(state, e);
+  if (!wedge) m.wedgedAt = 0;
+  else if (!m.wedgedAt) m.wedgedAt = f;
+  else if (f - m.wedgedAt > WEDGED_FOR) {
+    const dir = wedge.x + wedge.w / 2 > cx ? 1 : -1, inset = Math.min(wedge.w / 2, e.width / 2 + 6);
+    const a = arc((dir > 0 ? wedge.x + inset : wedge.x + wedge.w - inset) - cx, feet - wedge.y, 24);
+    m.wedgedAt = 0;
+    hop(e, m, f, a.vx, a.vy);
+    return;
+  }
   const pcx = p.pos.x + p.width / 2, pf = p.pos.y + p.height, dx = pcx - cx, pdir = (Math.sign(dx) || 1) as 1 | -1;
   const off = p.health <= 0 || p.inCutscene || holdingOff(state);
   // (walking his way: what it's after him in, and how fast it goes)

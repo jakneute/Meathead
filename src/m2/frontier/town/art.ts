@@ -144,17 +144,30 @@ const drawSolid = (c: Ctx, state: GameState, v: TownView, [a, b, h, h2]: [number
     lipAt(c, xa, top, xb - xa, [H[1], H[4], H[5], H[6]]);
     return;
   }
-  if (![2560, 4965, 5280, 5580].includes(a)) return;
-  // (a crate: planked, cross-braced, stenciled, its top going back; its lid's edge lit)
+  if (![2560, 4965, 5250, 5560].includes(a)) return;
+  // (a crate (or crates side by side, filling an alley wall to wall): planked, cross-braced, stenciled, their top going
+  // back; the lid's edge lit. Flush against a store, no side going back there and its top going back kept off the
+  // store's front (the store's nearer: they were painted over it))
   const P = hr7('#A07848'), W = hr('varn', VARNISH);
+  const flush = (side: -1 | 1) => SOLIDS.some(([a2, b2, h3]) => (side < 0 ? b2 === a : a2 === b) && h3 >= h);
+  const fl = flush(-1), fr = flush(1);
+  c.save(); c.beginPath(); c.rect(fl ? xa : xa - 400, top - 400, (fr ? xb : xb + 400) - (fl ? xa : xa - 400), bot - top + 800); c.clip();
   topBack(c, v.eye, xa, xb, top, 1, 0.93, [P[2], P[3], P[4], P[4], P[5]], 2);
-  for (const [e, side] of [[xa, -1], [xb, 1]] as const) sideBack(c, v.eye, e, side, top, bot, 1, 0.93, [P[1], P[2], P[2], P[3], P[4]], 2, bot >= GY - 1);
-  box(c, xa - 1, top - 1, xb - xa + 2, bot - top + 1, INK); box(c, xa, top, xb - xa, bot - top, P[3]);
-  for (let y = top + 10; y < bot; y += 10) { box(c, xa, y, xb - xa, 1, P[1]); box(c, xa, y + 1, xb - xa, 1, P[4]); }
-  box(c, xa, top, 4, bot - top, P[5]); box(c, xb - 4, top, 4, bot - top, P[1]);
-  c.strokeStyle = W[2]; c.lineWidth = 3; c.beginPath(); c.moveTo(xa + 3, top + 3); c.lineTo(xb - 3, bot - 3); c.stroke();
-  c.strokeStyle = P[5]; c.lineWidth = 1; c.beginPath(); c.moveTo(xa + 3, top + 1); c.lineTo(xb - 3, bot - 5); c.stroke();
-  box(c, xa + 4, bot - 16, 14, 6, W[1]); box(c, xa + 5, bot - 15, 12, 1, P[2]);
+  if (!fl) sideBack(c, v.eye, xa, -1, top, bot, 1, 0.93, [P[1], P[2], P[2], P[3], P[4]], 2, bot >= GY - 1);
+  if (!fr) sideBack(c, v.eye, xb, 1, top, bot, 1, 0.93, [P[1], P[2], P[2], P[3], P[4]], 2, bot >= GY - 1);
+  c.restore();
+  const n = Math.max(1, Math.round((b - a) / 42)), cw = (xb - xa) / n;
+  for (let k = 0; k < n; k++) {
+    const ca = Math.round(xa + k * cw), cb = Math.round(xa + (k + 1) * cw);
+    box(c, ca - 1, top - 1, cb - ca + 2, bot - top + 1, INK); box(c, ca, top, cb - ca, bot - top, P[3]);
+    for (let y = top + 10; y < bot; y += 10) { box(c, ca, y, cb - ca, 1, P[1]); box(c, ca, y + 1, cb - ca, 1, P[4]); }
+    box(c, ca, top, 4, bot - top, P[5]); box(c, cb - 4, top, 4, bot - top, P[1]);
+    // (every other one's brace the other way)
+    const [x0, x1] = k % 2 ? [cb - 3, ca + 3] : [ca + 3, cb - 3];
+    c.strokeStyle = W[2]; c.lineWidth = 3; c.beginPath(); c.moveTo(x0, top + 3); c.lineTo(x1, bot - 3); c.stroke();
+    c.strokeStyle = P[5]; c.lineWidth = 1; c.beginPath(); c.moveTo(x0, top + 1); c.lineTo(x1, bot - 5); c.stroke();
+    box(c, ca + 4, bot - 16, 14, 6, W[1]); box(c, ca + 5, bot - 15, 12, 1, P[2]);
+  }
   lipAt(c, xa, top, xb - xa);
 };
 
