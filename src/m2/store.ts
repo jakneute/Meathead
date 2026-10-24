@@ -45,6 +45,8 @@ export interface M2Ui {
   logTip?: boolean;
   /** (a beatdown, on top of somebody) The punch buttons (the user's: "show the buttons you need to press"). */
   beatTip?: boolean;
+  /** (the soul sucker) He's kept on trying to suck with the gore bag full: the spray button, to empty some. */
+  sprayTip?: boolean;
   /** (the helicopter, flying) The main HUD's his helicopter's: the PWR row the rotor boost's charge (0..1), the
    *  rockets' charges beside it (0..3, fractional while one's coming back), the weapon the machine gun. */
   heliHud?: boolean;

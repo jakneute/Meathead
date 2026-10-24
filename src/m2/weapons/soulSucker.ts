@@ -30,7 +30,9 @@ import { FULL_BAG_LINES, EMPTY_BAG_LINES } from '../lines/weaponLines';
 import { emptyCue } from './dry';
 import { isRobot } from '../kinds';
 import { specialsHalf, specialsOff, realMax, halfKill } from './half';
+import { isMidBoss } from '../../m1/game/combat/midBoss';
 import { since } from '../frames';
+import { setUi } from '../store';
 import { struckAt } from './strikes';
 import { bloodOf, bloodCtx, bloodCtxOf, bloodGore, kindGore, markKindGore } from '../../m1/game/enemies/kindBlood';
 
@@ -129,6 +131,12 @@ const runAway = (state: GameState, e: Enemy, away: number) => {
 
 let suckingAt = -10, fullSaidAt = -9999;
 const FULL_LINE_GAP = 360;
+/** Trying to suck with the bag full: since when (each try's a frame it's held; they come every shootCooldown), the last
+ *  try, and whether the spray's button is up for it (the user's: after a little while of trying, "Y: spray blood"). */
+let fullTryFrom = -9999, fullTryAt = -9999, sprayTip = false;
+/** Trying this long, the tip; let go this long (or sprayed, or the bag's not full), it comes down. */
+const TIP_AFTER = 70, TRY_GAP = 24, TIP_DROP = 45;
+const showSprayTip = (on: boolean) => { if (on !== sprayTip) { sprayTip = on; setUi({ sprayTip: on }); } };
 /** His line, up while it's said (and not at all if it can't be said now). */
 const meatheadSays = (state: GameState, text: string) => {
   say(text, MEATHEAD_VOICE, 'casual', {
@@ -213,6 +221,9 @@ const fire = (ctx: FrameContext) => {
   if (gore >= SPRAY * MAX_SPRAYS) {
     // (and he says so: once a go, a while apart)
     if (since(state.frame, suckingAt) > 30 && since(state.frame, fullSaidAt) > FULL_LINE_GAP) { fullSaidAt = state.frame; meatheadSays(state, pickLine(FULL_BAG_LINES)); }
+    // (still trying, or a fresh go at it)
+    if (since(state.frame, fullTryAt) > TRY_GAP) fullTryFrom = state.frame;
+    fullTryAt = state.frame;
     suckingAt = state.frame - 2;
     pl.shootCooldown = 18;
     playSound('click', 0.8, -6);
@@ -343,6 +354,15 @@ const SPRAY_FRAMES = 100, GLOB_EVERY = 1, GLOB_DMG = 13, GLOB_SPEED = 15, GLOB_S
  * up (birds, somebody on a ledge) to well down (off a ledge, at whoever's below).
  */
 const FAN_UP = 1.0, FAN_DOWN = 0.9, FAN_SHARE = 0.48;
+/**
+ * A glob on a sub-boss (a mid-boss, to the engine) does this share of GLOB_DMG (the user's: "reduce the blood spray
+ * damage when fighting minibosses/bosses to 35 percent": it was going in full, 13 a glob, and shredding them). Not the
+ * land bosses (OWN_SHARE): each one's fight already takes only its SHARE (35%) of a special weapon's hit off him, so
+ * there it's cut once already, not twice.
+ */
+const BOSS_GLOB_SHARE = 0.35;
+const OWN_SHARE = new Set(['m2:safariartie', 'm2:donnie', 'm2:sp_queen', 'm2:steve', 'm2:fl_harry', 'm2:fr_tucker_boss', 'm2:piper', 'm2:ct_stupid_dad']);
+const globDamage = (e: Enemy, dmg: number) => (isMidBoss(e) && !OWN_SHARE.has(e.kind ?? '') ? Math.max(1, Math.round(dmg * BOSS_GLOB_SHARE)) : dmg);
 let sprayLeft = 0, secondaryWas = false, emptySaidAt = -9999;
 /** How often he says the bag's empty (when he does: about one try in three). */
 const EMPTY_LINE_GAP = 420, EMPTY_LINE_CHANCE = 0.25;
@@ -361,6 +381,10 @@ const tick = (ctx: FrameContext, input: { secondary?: boolean; moveUp: boolean; 
   // Secondary: a spray's worth out of the bag (once it's going it goes; another waits till it's done)
   const press = !!input.secondary && !secondaryWas;
   secondaryWas = !!input.secondary;
+  // (the spray's tip: up after a while of trying on a full bag; down once he sprays, gives up trying, or can't now)
+  const full = gore >= SPRAY * MAX_SPRAYS;
+  if (!equipped || !full || pl.inCutscene || sprayLeft > 0 || since(state.frame, fullTryAt) > TIP_DROP) { showSprayTip(false); if (!full) fullTryAt = -9999; }
+  else if (fullTryAt - fullTryFrom >= TIP_AFTER) showSprayTip(true);
   if (equipped && input.secondary && sprayLeft <= 0 && gore >= SPRAY) { sprayShare = bagOther / gore; bagOther -= SPRAY * sprayShare; setGore(gore - SPRAY); sprayLeft = SPRAY_FRAMES; }
   // (nothing in the bag: it splutters, a drip comes out; now and then he says so)
   else if (equipped && press && sprayLeft <= 0) {
@@ -433,13 +457,14 @@ const update = (ctx: FrameContext, p: Projectile): boolean => {
     g.hit.push(e.id);
     // (a fight with its own say over the gore landing on its boss (Tucker's: it's his weakness, not a hit): it has it)
     if (!g.scrap && [...globHooks].some(h => h(ctx, e))) { splat(); return false; }
-    e.health -= p.damage;
+    const dmg = globDamage(e, p.damage);
+    e.health -= dmg;
     splat();
     const dir = Math.sign(p.vel.x) || 1;
     // (killed by it: a pratfall, slid off along the slick on their back: goreSlide; a boss's end is his own)
     if (e.health <= 0) { if (!startGoreSlide(ctx, e)) { fx.blowAwayEnemy(e, { x: dir * 6, y: -6 }, m2Kill('gore_kill'), dir); fx.spawnKillCallout(e, grabCallout('gorespray')); } }
     // (no knockback: it holds them in it, slowed, rather than washing them out of it)
-    else { fx.spawnDamageNumber(e.pos, p.damage); e.vel.x *= 0.8; }
+    else { fx.spawnDamageNumber(e.pos, dmg); e.vel.x *= 0.8; }
     // (one in two goes on through: it's a gush, not bullets)
     if (g.hit.length > 1 || Math.random() < 0.5) return false;
   }
@@ -558,6 +583,179 @@ const drawBleed = (c0: Ctx, mouth: { x: number; y: number }) => {
   }
 };
 
+// ---------------------------------------------------------------------------------------------------------------
+// The suck, drawn (looks only: what pulls is REACH, SPREAD and CLOSE up top, and this keeps to that same cone)
+//
+// It has to read on a sunny noon and in a dark cellar both, so everything in it is inked: a dark line under a bright
+// one (the dark shows on the light, the bright on the dark). A ghostly green funnel over the cone, darker and greener
+// the nearer the intake, a dithered rim at its reach; rings closing in on the nozzle; streaks corkscrewing in, faster
+// the nearer they get; dust whipping in; the odd wailing soul dragged in, stretched out; and on whoever it's got hold
+// of, speed lines streaming off them and their soul being drawn out ahead of them into the intake. It winds up over
+// its first few frames. All of it a few strokes and a few cached sprites: no filters, no gradients made per frame.
+
+const GHOST = '#86EFAC', GHOST_HI = '#F0FDF4', GHOST_DIM = '#22C55E', VOID = '#2E1065';
+/** The first frame of this go at it (it winds up from there), and the last it was going. */
+let suckSince = -99, suckWas = -99;
+const WIND_UP = 10;
+/** Streaks in the spiral, dust, souls, rings: how many (capped; it's the same few every frame). */
+const STREAKS = 12, MOTES = 9, WISPS = 4, RINGS = 3, TETHERS = 6;
+/** (a fixed scatter: each streak, mote and soul its own line in, frame after frame) */
+const hash = (k: number) => { const s = Math.sin(k * 127.1 + 311.7) * 43758.5453; return s - Math.floor(s); };
+
+/** The dithered rim: a 2x2 checker, a dark pixel and a pale one (it shows on anything). */
+const dithers = new WeakMap<Ctx, CanvasPattern>();
+const ditherOf = (c: Ctx) => {
+  let p = dithers.get(c);
+  if (!p) {
+    const cv = document.createElement('canvas'); cv.width = 2; cv.height = 2;
+    const g = cv.getContext('2d')!;
+    g.fillStyle = VOID; g.fillRect(0, 0, 1, 1); g.fillStyle = GHOST; g.fillRect(1, 1, 1, 1);
+    p = c.createPattern(cv, 'repeat')!; dithers.set(c, p);
+  }
+  return p;
+};
+/** A soul being dragged in: a wailing little ghost, head first (left: facing right it's coming in leftward), its tail
+ *  streaming behind; both ways round, made once. */
+let wispR: HTMLCanvasElement | null = null, wispL: HTMLCanvasElement | null = null;
+const WISP_W = 16, WISP_H = 12;
+const wispOf = (f: number) => {
+  if (!wispR) {
+    const paint = (flip: boolean) => {
+      const cv = document.createElement('canvas'); cv.width = WISP_W; cv.height = WISP_H;
+      const g = cv.getContext('2d')!;
+      if (flip) { g.translate(WISP_W, 0); g.scale(-1, 1); }
+      const body = (grow: number) => {
+        g.beginPath(); g.arc(6, 6, 4.5 + grow, Math.PI * 0.5, Math.PI * 1.5);
+        g.lineTo(9, 1.5 - grow); g.lineTo(15 + grow, 3); g.lineTo(11, 5.5); g.lineTo(15.5 + grow, 8); g.lineTo(9, 10.5 + grow); g.closePath(); g.fill();
+      };
+      g.fillStyle = INK; body(1);
+      g.fillStyle = GHOST; body(0);
+      g.fillStyle = GHOST_HI; g.fillRect(3, 3, 3, 2);
+      // (the face: hollow eyes, mouth wide open, screaming)
+      g.fillStyle = INK; g.fillRect(3, 5, 2, 2); g.fillRect(7, 5, 2, 2); g.fillRect(4, 8, 3, 2);
+      return cv;
+    };
+    wispR = paint(false); wispL = paint(true);
+  }
+  return f > 0 ? wispR : wispL!;
+};
+/** The glow in the intake's mouth (made once). */
+let glow: HTMLCanvasElement | null = null;
+const GLOW_R = 26;
+const glowSprite = () => {
+  if (!glow) {
+    glow = document.createElement('canvas'); glow.width = glow.height = GLOW_R * 2;
+    const g = glow.getContext('2d')!, gr = g.createRadialGradient(GLOW_R, GLOW_R, 0, GLOW_R, GLOW_R, GLOW_R);
+    gr.addColorStop(0, 'rgba(240, 253, 244, 0.95)'); gr.addColorStop(0.3, 'rgba(134, 239, 172, 0.7)'); gr.addColorStop(1, 'rgba(34, 197, 94, 0)');
+    g.fillStyle = gr; g.fillRect(0, 0, GLOW_R * 2, GLOW_R * 2);
+  }
+  return glow;
+};
+
+const drawSuck = (c: Ctx, state: GameState, mouth: { x: number; y: number }) => {
+  const f = state.player.facing, fr = state.frame, mx = mouth.x, my = mouth.y;
+  const ramp = Math.min(1, (fr - suckSince + 1) / WIND_UP);
+  const base = f > 0 ? 0 : Math.PI, a0 = base - SPREAD, a1 = base + SPREAD;
+  /** A point in the cone: `r` out from the intake, `a` off straight ahead (up is negative). */
+  const px = (r: number, a: number) => mx + f * Math.cos(a) * r, py = (r: number, a: number) => my + Math.sin(a) * r;
+  const fan = (r: number) => { c.beginPath(); c.moveTo(mx, my); c.arc(mx, my, r, a0, a1); c.closePath(); };
+  c.save();
+  c.lineCap = 'round'; c.lineJoin = 'round';
+  // The funnel: a shade over the whole cone (it darkens a sunny day a touch), then green, thicker the nearer in
+  c.globalAlpha = 0.07 * ramp; c.fillStyle = VOID; fan(REACH); c.fill();
+  c.fillStyle = GHOST_DIM;
+  c.globalAlpha = 0.08 * ramp; fan(REACH); c.fill();
+  c.globalAlpha = 0.1 * ramp; fan(REACH * 0.62); c.fill();
+  c.globalAlpha = 0.14 * ramp; fan(REACH * 0.32); c.fill();
+  // (its rim, at the reach: dithered, dark and pale pixels both)
+  c.globalAlpha = 0.6 * ramp; c.fillStyle = ditherOf(c);
+  c.beginPath(); c.arc(mx, my, REACH, a0, a1); c.arc(mx, my, REACH - 8, a1, a0, true); c.closePath(); c.fill();
+  // Rings closing in on the nozzle (a ripple in the air), bolder as they near it
+  for (let i = 0; i < RINGS; i++) {
+    const ph = (fr * 0.022 + i / RINGS) % 1, r = REACH * (1 - ph * ph);
+    if (r < 10) continue;
+    const s = 0.92 - ph * 0.25;
+    c.globalAlpha = (0.2 + 0.45 * ph) * ramp;
+    c.strokeStyle = INK; c.lineWidth = 2.5 + ph * 1.5; c.beginPath(); c.arc(mx, my, r, base - SPREAD * s, base + SPREAD * s); c.stroke();
+    c.strokeStyle = GHOST_HI; c.lineWidth = 1; c.beginPath(); c.arc(mx, my, r, base - SPREAD * s, base + SPREAD * s); c.stroke();
+  }
+  // The spiral: streaks corkscrewing in (slow out at the edge, whipping in at the end), a dark line under a bright one
+  for (let k = 0; k < STREAKS; k++) {
+    const sp = 0.016 + hash(k) * 0.01, amp = SPREAD * (0.35 + hash(k + 40) * 0.6), spin = hash(k + 80) * Math.PI * 2;
+    const ph = (fr * sp + k / STREAKS) % 1;
+    const at = (q: number) => { const r = REACH * (1 - q * q); return { r, a: amp * Math.sin(spin + q * 7.5) }; };
+    const head = at(ph);
+    if (head.r < 8) continue;
+    const alpha = (0.3 + 0.65 * ph) * ramp * Math.min(1, head.r / 16, (1 - ph) * 30, ph * 8);
+    c.beginPath();
+    for (let j = 0; j < 5; j++) { const p = at(Math.max(0, ph - j * 0.03)); if (j) c.lineTo(px(p.r, p.a), py(p.r, p.a)); else c.moveTo(px(p.r, p.a), py(p.r, p.a)); }
+    c.globalAlpha = alpha * 0.8; c.strokeStyle = INK; c.lineWidth = 2.5 + ph * 2; c.stroke();
+    c.globalAlpha = alpha; c.strokeStyle = ph > 0.55 ? GHOST_HI : GHOST; c.lineWidth = 1 + ph; c.stroke();
+  }
+  // Dust and grit whipping straight in, each a fleck with its motion line behind it
+  for (let k = 0; k < MOTES; k++) {
+    const ph = (fr * (0.03 + hash(k + 120) * 0.02) + hash(k + 160)) % 1, a = (hash(k + 200) * 2 - 1) * SPREAD * 0.95;
+    const r = REACH * (1 - ph * ph), rb = REACH * (1 - Math.max(0, ph - 0.09) ** 2);
+    if (r < 8) continue;
+    const x = Math.round(px(r, a)), y = Math.round(py(r, a));
+    c.globalAlpha = 0.7 * ramp * Math.min(1, ph * 6);
+    c.strokeStyle = INK; c.lineWidth = 1; c.beginPath(); c.moveTo(x, y); c.lineTo(px(rb, a), py(rb, a)); c.stroke();
+    c.fillStyle = INK; c.fillRect(x - 1, y - 1, 3, 3);
+    c.fillStyle = k % 3 ? '#D6D3D1' : '#A8A29E'; c.fillRect(x, y, 1 + (k & 1), 1 + (k & 1));
+  }
+  // Souls: the odd wailing ghost dragged in, stretched out longer and thinner the nearer it gets
+  const wisp = wispOf(f);
+  for (let k = 0; k < WISPS; k++) {
+    const ph = (fr * 0.011 + k / WISPS + hash(k + 240) * 0.1) % 1;
+    const r = REACH * 0.95 * (1 - ph * ph), a = SPREAD * 0.6 * Math.sin(k * 2.1 + ph * 5);
+    if (r < 12) continue;
+    const sx = 1 + ph * 1.6, sy = 1 - ph * 0.45;
+    c.globalAlpha = 0.9 * ramp * Math.min(1, ph * 5, r / 24);
+    c.save(); c.translate(Math.round(px(r, a)), Math.round(py(r, a) + Math.sin(fr * 0.2 + k * 2) * 2)); c.rotate(f * a); c.scale(sx, sy);
+    c.drawImage(wisp, -WISP_W / 2, -WISP_H / 2);
+    c.restore();
+  }
+  // Whoever it's got hold of: speed lines streaming off the far side of them, and their soul drawn out ahead of them
+  // into the intake (the nearer, the bolder)
+  let tethers = 0;
+  for (const e of state.enemies) {
+    if (tethers >= TETHERS || !suckable(e)) continue;
+    const ps = poise.get(e);
+    if (!ps || ps.lastPulled < fr - 1) continue;
+    const near = inCone(state, e, mouth) ?? 0;
+    tethers++;
+    const ex = e.pos.x + e.width / 2, ey = e.pos.y + e.height / 2, dx = mx - ex, dy = my - ey, d = Math.hypot(dx, dy) || 1;
+    const ux = dx / d, uy = dy / d, nx = -uy, ny = ux, back = e.width / 2 + 2, len = 10 + near * 16;
+    c.globalAlpha = (0.55 + near * 0.4) * ramp;
+    for (let i = -1; i <= 1; i++) {
+      const off = i * e.height * 0.3, slide = ((fr * 2 + i * 5 + (e.pos.x | 0)) % 8);
+      const sx0 = ex - ux * (back + slide) + nx * off, sy0 = ey - uy * (back + slide) + ny * off;
+      c.beginPath(); c.moveTo(sx0, sy0); c.lineTo(sx0 - ux * len, sy0 - uy * len);
+      c.strokeStyle = INK; c.lineWidth = 3; c.stroke(); c.strokeStyle = GHOST_HI; c.lineWidth = 1; c.stroke();
+    }
+    // (the soul: a wavering string of green blobs, out of him and on into the nozzle)
+    for (let j = 0; j < 5; j++) {
+      const t = ((fr * 0.05 + j / 5) % 1), wob = Math.sin(t * Math.PI) * Math.sin(fr * 0.3 + j * 1.7) * 6;
+      const x = Math.round(ex + dx * t + nx * wob), y = Math.round(ey + dy * t + ny * wob), s = 3 + Math.round((1 - t) * near * 2);
+      c.globalAlpha = (0.35 + near * 0.55) * ramp * Math.min(1, (1 - t) * 4);
+      c.fillStyle = INK; c.fillRect(x - s / 2 - 1, y - s / 2 - 1, s + 2, s + 2);
+      c.fillStyle = j & 1 ? GHOST : GHOST_HI; c.fillRect(x - s / 2, y - s / 2, s, s);
+    }
+  }
+  // The intake: a glow in its mouth, a dark eye of the vortex, and a churn of arcs spinning round it
+  c.globalAlpha = (0.65 + Math.sin(fr * 0.4) * 0.15) * ramp;
+  const gs = GLOW_R * (0.9 + Math.sin(fr * 0.4) * 0.1);
+  c.drawImage(glowSprite(), mx - gs, my - gs, gs * 2, gs * 2);
+  c.globalAlpha = 0.75 * ramp; c.fillStyle = VOID; c.beginPath(); c.arc(mx + f * 2, my, 4, 0, Math.PI * 2); c.fill();
+  for (let i = 0; i < 3; i++) {
+    const r = 9 + i * 6, s = fr * (0.35 - i * 0.07) * -f + i * 2.1;
+    c.globalAlpha = (0.9 - i * 0.2) * ramp;
+    c.strokeStyle = INK; c.lineWidth = 3; c.beginPath(); c.arc(mx + f * r * 0.5, my, r, s, s + 1.6); c.stroke();
+    c.strokeStyle = i ? GHOST : GHOST_HI; c.lineWidth = 1.25; c.beginPath(); c.arc(mx + f * r * 0.5, my, r, s, s + 1.6); c.stroke();
+  }
+  c.restore();
+};
+
 /** Over the enemies: everybody's poise (a bar on them, while it's been worn at or he's got the sucker out), the cone of
  * air while it's going, and whoever's going in. */
 const drawOverlay = (c: Ctx, state: GameState) => {
@@ -566,15 +764,11 @@ const drawOverlay = (c: Ctx, state: GameState) => {
   void out;
   const sucking = since(state.frame, suckingAt) <= 1 && out;
   const mouth = muzzlePoint(pl, 'SOUL_SUCKER');
-  // The pull: streaks of air rushing in to the intake from all over the cone
+  // The pull: the vortex (the funnel, the rings, the spiral, the dust, the souls) over the cone
   if (sucking) {
-    for (let k = 0; k < 14; k++) {
-      const ph = ((state.frame * 0.09 + k * 0.37) % 1), a = ((k * 0.61) % 1 - 0.5) * 2 * SPREAD;
-      const d = REACH * (1 - ph);
-      const x = mouth.x + pl.facing * Math.cos(a) * d, y = mouth.y + Math.sin(a) * d;
-      c.strokeStyle = `rgba(230, 230, 240, ${(0.15 + ph * 0.45).toFixed(2)})`; c.lineWidth = 1.5;
-      c.beginPath(); c.moveTo(x, y); c.lineTo(x - pl.facing * Math.cos(a) * 14, y - Math.sin(a) * 14); c.stroke();
-    }
+    if (since(state.frame, suckWas) > 2) suckSince = state.frame;
+    suckWas = state.frame;
+    drawSuck(c, state, mouth);
   }
   // The bleed: drops across from him into the intake (pixels, stepped shades, no blending)
   drawBleed(c, mouth);
@@ -608,7 +802,7 @@ const drawOverlay = (c: Ctx, state: GameState) => {
 /** Everything it was in the middle of, stopped (through a door): no spray going, nobody half way in, nothing pulled. */
 const calmDown = (e: Enemy) => { const ps = poise.get(e); if (ps?.held) { e.puppet = ps.held.puppet; e.harmless = ps.held.harmless; ps.held = undefined; } panicking.delete(e); };
 export const stopSoulSucker = () => {
-  for (const e of [...panicking]) calmDown(e); for (const d of DROPS) d.on = false; bleedFrom = null; bleedBank = 0; sprayLeft = 0; swallowing = []; suckingAt = -10; stains.length = 0; syncArmor(false); stopGoreSlides(); };
+  for (const e of [...panicking]) calmDown(e); for (const d of DROPS) d.on = false; bleedFrom = null; bleedBank = 0; sprayLeft = 0; swallowing = []; suckingAt = -10; fullTryAt = fullTryFrom = -9999; showSprayTip(false); stains.length = 0; syncArmor(false); stopGoreSlides(); };
 
 /** (a fight's hooks, Wilderness Land's Tucker's) Bosses whose blood, drawn by the sucker, doesn't go in the bag (his
  *  fight's bag fills off the critters only: the user's "not directly"); and a say over a glob of the spray landing on

@@ -690,6 +690,12 @@ const App2: React.FC = () => {
             <span className="inline-flex items-center gap-3 align-middle"><Prompt pad={['X']} kb={['@fire']} label="PUNCH" /><Prompt pad={['B']} kb={['@special']} label="KNEE" /><Prompt pad={['Y']} kb={['@secondary']} label="HEADBUTT" /></span>
           </div>
         )}
+        {/* The soul sucker: he's kept trying to suck with the bag full: Y empties it */}
+        {status === GameStatus.PLAYING && ui.map === null && !ui.introCutscene && ui.sprayTip && !ui.beatTip && !ui.upPrompt && !ui.holdUpPrompt && !ui.holdDownPrompt && (
+          <div className="absolute left-1/2 -translate-x-1/2 top-[132px] z-30 px-3 py-2 text-[9px] text-white bg-black/75 border-2 border-zinc-600">
+            <Prompt pad={['Y']} kb={['@secondary']} label="SPRAY BLOOD" />
+          </div>
+        )}
         {/* The cheats build's frame rate, top right */}
         {!M2_PUBLIC && <FpsMeter />}
         {/* Foreign Lands' helicopter: the flying controls, for a while once he's jacked it */}
