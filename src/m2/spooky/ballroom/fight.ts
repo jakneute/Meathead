@@ -114,6 +114,9 @@ const SPEW_CHANCE = 0.3;
 const WINDED_T = [0, 78, 62, 50];
 /** The grab: the tell, the swoop's length, how far past him it carries on. */
 const AIM_T = [0, 46, 38, 32], DIVE_T = [0, 50, 44, 38], DIVE_PAST = 240;
+/** Swoops in a row before he's winded (by phase: lower on life, he chains them, the user's: "up to 3 in a row"); a
+ *  grab ends the run (the next goes from one again). */
+const CHAIN = [0, 1, 2, 3];
 // (only on the way down and at the bottom: once he's pulling back up past the mark, he can't get hold of anybody)
 /** The grab's target is locked this long before he goes (the marker stops following him: move off it). */
 const LOCK_T = 10;
@@ -216,6 +219,8 @@ export interface Fight {
   pit: Pit;
   /** The swoop: its curve (from, the bottom of it at him, on past), how long. */
   dive: { ax: number; ay: number; cx: number; cy: number; bx: number; by: number; d: number; tx: number; ty: number } | null;
+  /** Swoops so far in this run (CHAIN). */
+  chain: number;
   /** Where the swoop's going to bottom out (shown on the floor through the tell): following him, then locked. */
   mark: { x: number; y: number; locked: boolean } | null;
   held: { t: number; presses: number; was: Controls } | null;
@@ -353,7 +358,7 @@ export const startFight = (state: GameState): Fight => {
   e.facing = -1; e.seen = true;
   const f: Fight = {
     hp: HP, iframes: 0, flash: 0, mode: 'intro', t: 0, total: 0, x: CORNER_X, y: GY, vx: 0, vy: 0, facing: -1,
-    intro: 'plead', introT: 0, skipT: 0, admireT: 0, circle: 0, pit: newPit(), powered: false, dive: null, mark: null, held: null,
+    intro: 'plead', introT: 0, skipT: 0, admireT: 0, circle: 0, pit: newPit(), powered: false, dive: null, chain: 0, mark: null, held: null,
     guests: [], guestT: 0, prey: null, drops: [], splats: [], aimX: 0, aimY: 0, stunT: 0, side: -1, redeemAt: 0, staggerAt: -99999, wrongN: 0, hintAt: -99999, knockedLoose: false,
     said: null, satanSaid: null, nagT: 0, tauntT: 0, souvenir: null, moveSeen: e.hitByMove,
     death: null, deathSaid: 0, cam: null, wigOff: null, e, full: 0, fullAt: -9999, burpT: 0,
@@ -491,7 +496,7 @@ export const updateFight = (ctx: FrameContext, f: Fight, controls: Controls): Co
         f.side = f.side > 0 ? -1 : 1;
         // (the grab, or the spew: he's got blood in him to spit whether or not he's just had a drink)
         if (Math.random() < SPEW_CHANCE) { to(f, 'spew'); f.aimX = pmid(state).x; f.aimY = pmid(state).y; bark(f, L.DONNIE_SPEW); }
-        else to(f, 'aim');
+        else { to(f, 'aim'); f.chain = 1; }
       }
       break;
     }
@@ -529,7 +534,8 @@ export const updateFight = (ctx: FrameContext, f: Fight, controls: Controls): Co
       // (his claws on him: got him)
       const m = pmid(state), p = state.player;
       if (s < 0.62 && canHurtHim(state) && p.invincibilityTimer <= 0 && Math.abs(m.x - f.x) < CLAW_X && Math.abs(m.y - (f.y - 46)) < CLAW_Y) { grab(state, f, controls); break; }
-      if (s >= 1) { f.dive = null; to(f, 'winded'); }
+      // (missed: winded, or lower on life, straight into another go from up there)
+      if (s >= 1) { f.dive = null; if (f.chain < CHAIN[ph]) { f.chain++; to(f, 'aim'); } else { f.chain = 0; to(f, 'winded'); } }
       break;
     }
     case 'drain': out = drain(ctx, f, controls); break;
@@ -633,7 +639,7 @@ export const updateFight = (ctx: FrameContext, f: Fight, controls: Controls): Co
 // The grab and the drain
 
 const grab = (state: GameState, f: Fight, controls: Controls) => {
-  to(f, 'drain'); f.dive = null;
+  to(f, 'drain'); f.dive = null; f.chain = 0;
   f.held = { t: 0, presses: 0, was: { ...controls } };
   f.y = GY - 4; f.vx = 0; f.vy = 0;
   faceHim(state, f);
