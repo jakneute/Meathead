@@ -118,7 +118,9 @@ const AIM_T = [0, 46, 38, 32], DIVE_T = [0, 50, 44, 38], DIVE_PAST = 240;
 /** The grab's target is locked this long before he goes (the marker stops following him: move off it). */
 const LOCK_T = 10;
 /** ...but the swoop still bends after him on the way down: this far a frame (by phase), till this far through it. */
-const HOME = [0, 2.6, 3.4, 4.2], HOME_TILL = 0.45;
+// (harder to shake as the fight goes on, the user's: "his homing attacks should get a bit harder to avoid as the fight goes
+// on"; were 2.6/3.4/4.2 a frame, and to 0.45 of the way, every phase)
+const HOME = [0, 2.8, 4.2, 5.6], HOME_TILL = [0, 0.45, 0.55, 0.64];
 /** How close his claws have to come (px, either way, across and up and down). */
 const CLAW_X = 42, CLAW_Y = 50;
 /** Held: a drain every so often (his damage, Donnie's heal), let go after this long at most, or this many presses. */
@@ -127,7 +129,8 @@ const DRAIN_EVERY = 18, DRAIN_DMG = 5, DRAIN_HEAL = 5, DRAIN_MAX = 150, ESCAPE_P
 const GUEST_EVERY = [0, 640, 520, 420], GUEST_SPEED = 3.4, SUCK_T = 90, GUEST_HEAL = 3;
 /** The spew: the aim first, then the stream (by phase), a drop every so often, how hard, how fast; how fast his aim
  *  can follow Meathead (px a frame: about his walk, so standing still or walking straight away gets you hosed). */
-const SPEW_AIM = 34, SPEW_T = [0, 99, 120, 144], SPEW_EVERY = 3, BLOOD_DMG = 14, BLOOD_SPEED = 8.5, AIM_FOLLOW = 3.2;
+// (the aim catches up quicker by phase too: was 3.2 throughout)
+const SPEW_AIM = 34, SPEW_T = [0, 99, 120, 144], SPEW_EVERY = 3, BLOOD_DMG = 14, BLOOD_SPEED = 8.5, AIM_FOLLOW = [0, 3.2, 3.9, 4.6];
 /** The spray: drops a go, how wide the cone (radians either side of the aim), how big a drop's hit is (px about it). */
 const SPRAY_N = 2, SPRAY_CONE = 0.13, DROP_HIT = 5;
 /** The stream comes in bursts: this many frames on, this many off. */
@@ -513,7 +516,7 @@ export const updateFight = (ctx: FrameContext, f: Fight, controls: Controls): Co
     case 'dive': {
       const d = f.dive!, s = Math.min(1, f.t / d.d), u = 1 - s;
       // (homing: the bottom of the swoop dragged after him, so a little step aside isn't enough; jump it, or run)
-      if (s < HOME_TILL) {
+      if (s < HOME_TILL[ph]) {
         const pm = pmid(state).x;
         d.tx += Math.max(-HOME[ph] * sl, Math.min(HOME[ph] * sl, pm - d.tx));
         d.bx = Math.max(ARENA_L + 60, Math.min(ARENA_R - 60, d.tx + (d.tx >= d.ax ? 1 : -1) * DIVE_PAST));
@@ -582,7 +585,7 @@ export const updateFight = (ctx: FrameContext, f: Fight, controls: Controls): Co
       // all over the place)
       f.vy = (f.vy + (GY - 170 + sag - f.y) * 0.03) * 0.85; f.y += f.vy;
       faceHim(state, f);
-      const m = pmid(state), follow = AIM_FOLLOW * sl;
+      const m = pmid(state), follow = AIM_FOLLOW[phase(f)] * sl;
       f.aimX += Math.max(-follow, Math.min(follow, m.x - f.aimX)); f.aimY += Math.max(-follow, Math.min(follow, m.y - f.aimY));
       const firing = f.t > SPEW_AIM && (f.t - SPEW_AIM) % (BURST_ON + BURST_OFF) < BURST_ON;
       if (firing && f.t % SPEW_EVERY === 0) {
