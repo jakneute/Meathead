@@ -67,7 +67,7 @@ import FpsMeter from './FpsMeter';
 import { clearSkyCache } from './intro/art/sky';
 import { landLeft } from './landCaches';
 import { canSkip, requestSkip } from '../m1/game/platform/skip';
-import { getAudioContext } from '../m1/game/platform/audio';
+import { getAudioContext, playMenuBack } from '../m1/game/platform/audio';
 import { STAFF_SLOT, AMERICA_SLOT, landAt } from './hub/lands';
 import { getUi, subscribeUi, onTravel, setUi, goTo, takeBossKill, setStartCheckpoint, requestCarHop, restoreClearedLands, restoreKept, restoreBossDeaths, restoreFound, isLandCleared, isLandComplete, setAlphaEndSeen, ALPHA_LAND_COUNT } from './store';
 import { alphaEndOver } from './alphaEnd';
@@ -386,6 +386,8 @@ const App2: React.FC = () => {
   const mapFrom = useSyncExternalStore(subscribeParkMap, parkMapFrom);
   const openMap = () => {
     const st = live.current.status, u = getUi();
+    // (no map in the gym: he's not at the park yet (the user's))
+    if (live.current.stage === GYM_STAGE) { if (st === GameStatus.PAUSED) playMenuBack(); return; }
     if (st === GameStatus.PLAYING) {
       if (canSkip() || u.introCutscene || u.locked || u.map !== null || u.introTicket || u.pick) return;
       openParkMap('play'); setStatus(GameStatus.PAUSED);
@@ -849,7 +851,7 @@ const App2: React.FC = () => {
         {wheelAt !== null && status === GameStatus.PLAYING && !noSwitching() && <WeaponWheel weapons={arsenal()} index={wheelAt} current={weapon} nameOf={w => (w === 'GUN' && ui.catHud ? 'HAIRBALL' : weaponName(w))} Art={ui.catHud ? CatWeaponArt : M2WeaponArt} />}
         {status === GameStatus.PAUSED && !mapFrom && (
           <PauseMenu weapons={arsenal()} current={weapon} ammo={hud.ammo} selected={pauseSel} locked={!!ui.noSwitch} card={card} cat={!!ui.catHud}
-            onPick={i => { setPauseSel(i); equip(i); }} onResume={resume} onMap={() => { setPauseSel(arsenal().length + 1); openMap(); }} onOptions={() => { setPauseSel(arsenal().length + 2); openOptions(); }} onSkip={stage === INTRO_STAGE && !M2_PUBLIC ? skipIntro : stage === GYM_STAGE && !M2_PUBLIC ? skipGym : undefined} skipLabel={stage === GYM_STAGE ? 'SKIP STAGE' : undefined}
+            onPick={i => { setPauseSel(i); equip(i); }} onResume={resume} onMap={() => { setPauseSel(arsenal().length + 1); openMap(); }} mapOff={stage === GYM_STAGE} onOptions={() => { setPauseSel(arsenal().length + 2); openOptions(); }} onSkip={stage === INTRO_STAGE && !M2_PUBLIC ? skipIntro : stage === GYM_STAGE && !M2_PUBLIC ? skipGym : undefined} skipLabel={stage === GYM_STAGE ? 'SKIP STAGE' : undefined}
             onHub={landOfStage(stage) || stage === PEN_STAGE ? askHub : undefined} hubAsk={hubAsk} onHubAnswer={answerHub} onHubPick={a => setHubAsk(a)} skin={theme?.pause}
             onQuit={() => { setPauseSel(quitIndex()); askQuit(); }} quitAt={quitIndex()} asking={asking} onFile={activeSlot() !== null} />
         )}

@@ -141,6 +141,8 @@ interface Props {
   onResume: () => void;
   /** MAP: the park map (parkmap/ParkMap.tsx). */
   onMap: () => void;
+  /** No map here (the gym: he's not at the park yet): its button grayed out. */
+  mapOff?: boolean;
   /** OPTIONS: the options screen (Meathead 1's, OptionsScreen.tsx). */
   onOptions: () => void;
   /** In the intro: skip the rest of it (picked out as weapons.length + 3). */
@@ -177,7 +179,7 @@ const HAIRBALL_INFO = {
   description: 'Hork. A wet wad of fur and spit, hacked up at whoever. Never runs dry. Nobody wants to touch it, least of all the guy it hits.',
 };
 
-const PauseMenu: React.FC<Props> = ({ weapons, current, ammo, selected, onPick, onResume, onMap, onOptions, onSkip, skipLabel, skin = PLAIN_PAUSE, locked = false, onHub, hubAsk = null, onHubAnswer, onHubPick, card = null, onQuit, quitAt = -1, asking = 'hub', onFile = false, cat = false }) => {
+const PauseMenu: React.FC<Props> = ({ weapons, current, ammo, selected, onPick, onResume, onMap, onOptions, onSkip, skipLabel, skin = PLAIN_PAUSE, locked = false, onHub, hubAsk = null, onHubAnswer, onHubPick, card = null, onQuit, quitAt = -1, asking = 'hub', onFile = false, cat = false, mapOff = false }) => {
   const onQuitBtn = selected === quitAt;
   const shown = selected < weapons.length ? weapons[selected] : current;
   const info = cat && shown === 'GUN' ? HAIRBALL_INFO : M2_WEAPON_INFO[shown];
@@ -301,7 +303,7 @@ const PauseMenu: React.FC<Props> = ({ weapons, current, ammo, selected, onPick, 
 
         <div className="flex gap-2 mt-4" style={{ animation: 'pm-fade 0.25s ease-out 0.3s both' }}>
           <MenuBtn on={onResumeBtn} onClick={onResume} cls={btnCls} bg={skin.button} edge={skin.buttonEdge} icon="▶">RESUME</MenuBtn>
-          <MenuBtn on={onMapBtn} onClick={onMap} cls={btnCls} bg="linear-gradient(180deg, #0E7490, #155E75)" edge="#083344" icon="✦">MAP</MenuBtn>
+          <MenuBtn on={onMapBtn} onClick={onMap} cls={btnCls} bg={mapOff ? 'linear-gradient(180deg, #52525B, #3F3F46)' : 'linear-gradient(180deg, #0E7490, #155E75)'} edge={mapOff ? '#27272A' : '#083344'} icon="✦">MAP</MenuBtn>
           <MenuBtn on={onOptionsBtn} onClick={onOptions} cls={btnCls} bg="linear-gradient(180deg, #3F6212, #365314)" edge="#1A2E05" icon="⚙">OPTIONS</MenuBtn>
           {onSkip && <MenuBtn on={onSkipBtn} onClick={onSkip} cls={btnCls} bg="linear-gradient(180deg, #2563EB, #1E3A8A)" edge="#172554" icon="»">{skipLabel ?? (walkBackOn() ? 'SKIP TO HUB' : 'SKIP INTRO')}</MenuBtn>}
           {onHub && <MenuBtn on={onSkipBtn} onClick={onHub} cls={btnCls} bg="linear-gradient(180deg, #B91C1C, #7F1D1D)" edge="#450A0A" icon="«">BACK TO HUB</MenuBtn>}
