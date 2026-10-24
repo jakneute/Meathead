@@ -51,6 +51,7 @@ import { m2Grab, m2Kind } from '../kinds';
 import { drawingHeld, type HeldHow } from '../held';
 import { isMachineKind } from '../../m1/game/enemies/kinds';
 import { markMachineGore } from '../../m1/game/enemies/machineGore';
+import { bloodOf, bloodCtx, tintRed, markKindGore } from '../../m1/game/enemies/kindBlood';
 import { hurtPlayer } from '../../m1/game/bosses/shared';
 import { enemyGender } from '../../m1/content/gender';
 import { meatheadSays } from '../adventure/section';
@@ -779,6 +780,8 @@ export const updateGrab = (ctx: FrameContext, g: Grab, controls: Controls): Cont
   if (tip !== beatTip) { beatTip = tip; setUi({ beatTip: tip }); }
   // (a machine in his hands is out of the enemy list: what comes off it, punched, shaken, smashed, is scrap all the same)
   if (g.held && isMachineKind(g.held.kind)) { const p = ctx.state.player; markMachineGore(ctx.state, p.pos.x - 70, p.pos.y - 70, p.width + 140, p.height + 80, 30); }
+  // (and one that doesn't bleed red, an alien: what comes off it is its own color, green)
+  if (g.held) { const p = ctx.state.player; markKindGore(ctx.state, g.held.kind, p.pos.x - 70, p.pos.y - 70, p.width + 140, p.height + 80, 4); }
   // (a thrown body's hits first: whoever's where it's landing gets it before they're moved out of his way)
   if (g.flying.length) flyInto(ctx, g);
   // (only once he's got hold of somebody: before that, whoever he's going for has to stay where he can get them)
@@ -1340,6 +1343,7 @@ const stompHim = (ctx: FrameContext, g: Grab, first: boolean) => {
   const { state, fx } = ctx, p = state.player, e = g.held;
   if (!e || !g.hitAt) return;
   const at = pinnedHead(e, g.hitAt.x, g.hitAt.y, g.dir), scrap = isMachineKind(e.kind);
+  markKindGore(state, e.kind, at.x - 90, at.y - 90, 180, 140, 40);
   if (first) {
     e.health = 0; e.isBlownAway = true;
     if (scrap) markMachineGore(state, at.x - 80, at.y - 80, 160, 120, 40);
@@ -1361,7 +1365,7 @@ const stompHim = (ctx: FrameContext, g: Grab, first: boolean) => {
       state.projectiles.push({
         id: `stompgib-${state.frame}-${i}`, pos: { x: at.x - size / 2, y: at.y - size - 4 }, vel: { x: Math.cos(a) * sp, y: Math.sin(a) * sp },
         width: size, height: size, health: 1, maxHealth: 1, type: 'projectile', damage: GIB_DMG, owner: 'player',
-        custom: 'SOUL_SUCKER', customData: { life: 60, hit: [] as string[], chunk: true, spin: Math.random() * 6, shade: i % 3, scrap },
+        custom: 'SOUL_SUCKER', customData: { life: 60, hit: [] as string[], chunk: true, spin: Math.random() * 6, shade: i % 3, scrap, blood: bloodOf(e.kind) },
       });
     }
   }
@@ -1386,6 +1390,8 @@ const hugBurst = (ctx: FrameContext, g: Grab, e: Enemy) => {
   const at = { x: centerX(state) + g.dir * HUG_AT * buffs.size, y: feetY(state) - HUG_UP - e.height / 2 };
   const scrap = isMachineKind(e.kind);
   if (scrap) markMachineGore(state, at.x - 90, at.y - 90, 180, 140, 40);
+  // (an alien: its own color, all of it, the rain down from up there too)
+  markKindGore(state, e.kind, at.x - 130, at.y - 290, 260, 360, 60);
   g.held = null;
   e.health = 0; e.isBlownAway = true; e.pos = { x: at.x - e.width / 2, y: at.y - e.height / 2 };
   if (!e.noHeal) { p.health = Math.min(INITIAL_PLAYER_HEALTH, p.health + KILL_HEAL); g.hp = p.health; fx.spawnDamageNumber({ x: centerX(state), y: p.pos.y - 20 }, `+${KILL_HEAL} HP`, true, '#4ADE80'); }
@@ -1398,13 +1404,13 @@ const hugBurst = (ctx: FrameContext, g: Grab, e: Enemy) => {
     state.projectiles.push({
       id: `huggib-${state.frame}-${i}`, pos: { x: at.x - size / 2, y: at.y - size / 2 }, vel: { x: Math.cos(a) * sp, y: Math.sin(a) * sp - 3 },
       width: size, height: size, health: 1, maxHealth: 1, type: 'projectile', damage: GIB_DMG, owner: 'player',
-      custom: 'SOUL_SUCKER', customData: { life: 70, hit: [] as string[], chunk: true, spin: Math.random() * 6, shade: i % 3, scrap },
+      custom: 'SOUL_SUCKER', customData: { life: 70, hit: [] as string[], chunk: true, spin: Math.random() * 6, shade: i % 3, scrap, blood: bloodOf(e.kind) },
     });
   }
   for (let i = 0; i < 18; i++) state.particles.push({ pos: { x: at.x + (Math.random() - 0.5) * 50, y: at.y + (Math.random() - 0.5) * 50 }, vel: { x: (Math.random() - 0.5) * 1.2, y: -0.3 - Math.random() * 0.5 }, life: 70 + Math.random() * 40, color: scrap ? 'rgba(40, 40, 40, 0.35)' : 'rgba(185, 28, 28, 0.32)', size: 10 + Math.random() * 10 });
   for (let i = 0; i < 30; i++) state.particles.push({ pos: { x: at.x + (Math.random() - 0.5) * 200, y: at.y - 140 - Math.random() * 120 }, vel: { x: (Math.random() - 0.5) * 0.8, y: 1 + Math.random() * 2 }, life: 80 + Math.random() * 40, color: scrap ? '#1C1917' : i % 3 ? '#B91C1C' : '#7F1D1D', size: 2 + Math.random() * 2, grav: 0.15 });
   // (him, covered in it: red all over for a few seconds, unless he's dyed already)
-  if (!scrap && !(p.dyeTimer && p.dyeTimer > 0)) { p.dyeColor = '#8B1A1A'; p.dyeParts = []; p.dyeTimer = 240; }
+  if (!scrap && !(p.dyeTimer && p.dyeTimer > 0)) { const blood = bloodOf(e.kind); p.dyeColor = blood ? tintRed('#8B1A1A', blood) : '#8B1A1A'; p.dyeParts = []; p.dyeTimer = 240; }
   fx.spawnKillCallout(e, grabCallout('hugged'));
   fx.speakVulgarity(m2Kill('beatdown_kill'));
   p.killSatisfactionTimer = 60;
@@ -1422,6 +1428,7 @@ const smashHim = (ctx: FrameContext, g: Grab, e: Enemy) => {
   // (a machine: it's bits of casing that go everywhere, and oil and sparks, not meat)
   const scrap = isMachineKind(e.kind);
   if (scrap) markMachineGore(state, at.x - 80, at.y - 80, 160, 120, 40);
+  markKindGore(state, e.kind, at.x - 90, at.y - 90, 180, 140, 40);
   g.held = null;
   e.health = 0; e.isBlownAway = true; e.pos = { x: at.x - e.width / 2, y: at.y - e.height / 2 };
   if (!e.noHeal) { p.health = Math.min(INITIAL_PLAYER_HEALTH, p.health + KILL_HEAL); g.hp = p.health; }
@@ -1433,7 +1440,7 @@ const smashHim = (ctx: FrameContext, g: Grab, e: Enemy) => {
     state.projectiles.push({
       id: `gib-${state.frame}-${i}`, pos: { x: at.x - size / 2, y: at.y - size / 2 - 6 }, vel: { x: Math.cos(a) * sp, y: Math.sin(a) * sp },
       width: size, height: size, health: 1, maxHealth: 1, type: 'projectile', damage: GIB_DMG, owner: 'player',
-      custom: 'SOUL_SUCKER', customData: { life: 70, hit: [] as string[], chunk: true, spin: Math.random() * 6, shade: i % 3, scrap },
+      custom: 'SOUL_SUCKER', customData: { life: 70, hit: [] as string[], chunk: true, spin: Math.random() * 6, shade: i % 3, scrap, blood: bloodOf(e.kind) },
     });
   }
   if (!e.noHeal) fx.spawnDamageNumber({ x: centerX(state), y: p.pos.y - 20 }, `+${KILL_HEAL} HP`, true, '#4ADE80');
@@ -1768,6 +1775,7 @@ const airImpact = (ctx: FrameContext, g: Grab, where: 'floor' | 'wall' | 'ceilin
   // (blood, or scrap off a machine)
   const scrap = isMachineKind(e.kind) || !!m2Kind(e.kind)?.robot;
   if (scrap) markMachineGore(state, at.x - 80, at.y - 80, 160, 120, 30);
+  markKindGore(state, e.kind, at.x - 80, at.y - 80, 160, 120, 30);
   playSound('slam'); playSound('crunch', 1.1, -5); playSound('splat', 1, -2);
   shakeScreen(state, A.SHAKE_T, A.SHAKE_POW);
   fx.spawnExplosion(at, scrap ? '#57534E' : '#8B0000', 16, 0, 10);
@@ -2255,7 +2263,7 @@ const bearPose = (c: Ctx, f: number, rise: number, sq: number, part: 'body' | 'a
  * lying there, the floor cracked out from where his head was and dented in, a pool of it spreading, and the head itself
  * a flat red splat (bits of skull, brains). Gone after a while, faded out; gone at once in another stage.
  */
-export const drawPulped = (ctx: Ctx, state: GameState) => {
+export const drawPulped = (main: Ctx, state: GameState) => {
   if (!pulped.length) return;
   for (let i = pulped.length - 1; i >= 0; i--) {
     const q = pulped[i], age = state.frame - q.born;
@@ -2264,6 +2272,8 @@ export const drawPulped = (ctx: Ctx, state: GameState) => {
   const v = state.view;
   for (const q of pulped) {
     if (v && (q.x < v.x - 200 || q.x > v.x + v.w + 200)) continue;
+    // (an alien's pool and what's left of its head: its own blood, green)
+    const ctx = bloodCtx(main, q.e.kind);
     const age = state.frame - q.born;
     let s = q.seed;
     const rnd = () => { s = (s * 9301 + 49297) % 233280; return s / 233280; };

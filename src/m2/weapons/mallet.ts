@@ -42,6 +42,7 @@ import { say, MEATHEAD_VOICE, pickLine } from '../../m1/game/platform/speech';
 import { DUCK_LINES } from '../lines/weaponLines';
 import { shieldTakesBlow, clang } from './shield';
 import { m2Kind } from '../kinds';
+import { bloodOf, bloodCtxOf } from '../../m1/game/enemies/kindBlood';
 import { since } from '../frames';
 import { struckAt } from './strikes';
 import { emptyCue } from './dry';
@@ -206,8 +207,8 @@ const bonk = (ctx: FrameContext, e: Enemy, dmg: number, vel: { x: number; y: num
   playSound('bonk'); shakeScreen(state, 8, 5);
   for (let i = 0; i < 8; i++) { const a = (i / 8) * Math.PI * 2; state.particles.push({ pos: { x: cx, y: cy }, vel: { x: Math.cos(a) * 4, y: Math.sin(a) * 4 }, life: 10, color: i % 2 ? '#FFFFFF' : '#FDE047', size: 3 }); }
   // (one opted in, weapons/half.ts: hurt, and sent half as far, dazed half as long; never the cartoon death)
-  if (specialsHalf(e)) { if (spun) tornadoGore(cx, cy, side); e.health -= dmg; fx.spawnDamageNumber(e.pos, dmg, true); e.vel = { x: vel.x * HALF, y: vel.y * HALF }; e.pauseTimer = Math.max(e.pauseTimer || 0, 50 * HALF); return; }
-  if (isMidBoss(e)) { if (spun) tornadoGore(cx, cy, side); e.health -= dmg; if (ownNumber(e)) fx.spawnDamageNumber(e.pos, dmg, true); noteBig(state, e, as ?? howNow()); return; }
+  if (specialsHalf(e)) { if (spun) tornadoGore(cx, cy, side, e.kind); e.health -= dmg; fx.spawnDamageNumber(e.pos, dmg, true); e.vel = { x: vel.x * HALF, y: vel.y * HALF }; e.pauseTimer = Math.max(e.pauseTimer || 0, 50 * HALF); return; }
+  if (isMidBoss(e)) { if (spun) tornadoGore(cx, cy, side, e.kind); e.health -= dmg; if (ownNumber(e)) fx.spawnDamageNumber(e.pos, dmg, true); noteBig(state, e, as ?? howNow()); return; }
   // (a blow from in front, at his shield: it's the shield it lands on; he goes flying all the same, but the blow does
   // him no harm (whatever he hits on the way does). The overhead ones, flattening, come down over it)
   if (how !== 'flatten' && shieldTakesBlow(e, vel.x || (cx - (state.player.pos.x + state.player.width / 2)))) {
@@ -217,7 +218,7 @@ const bonk = (ctx: FrameContext, e: Enemy, dmg: number, vel: { x: number; y: num
   }
   // (the queen's kids: any hit's the end of them, dropping whatever they drop right where it lands, not where they do)
   if (m2Kind(e.kind)?.malletOneShot) dmg = Math.max(dmg, e.health);
-  if (spun) tornadoGore(cx, cy, side);
+  if (spun) tornadoGore(cx, cy, side, e.kind);
   e.health -= dmg;
   if (e.health <= 0) { toonKill(ctx, e, how, Math.sign(vel.x) || dir); return; }
   fx.spawnDamageNumber(e.pos, dmg, true);
@@ -721,7 +722,8 @@ const funnelHalf = (i: number, near: boolean, frame: number): HTMLCanvasElement 
 
 /** Junk going round in it, or flung out of it; bits of whoever it hits. */
 type JunkKind = 'rock' | 'splinter' | 'paper' | 'can' | 'shoe' | 'hat' | 'blood' | 'tooth';
-interface Junk { kind: JunkKind; fly: boolean; ang: number; rad: number; h: number; x: number; y: number; vx: number; vy: number; rot: number; vr: number; life: number; floor: number }
+/** (`blood`: blood that isn't red, an alien's: kindBlood) */
+interface Junk { blood?: string; kind: JunkKind; fly: boolean; ang: number; rad: number; h: number; x: number; y: number; vx: number; vy: number; rot: number; vr: number; life: number; floor: number }
 let junk: Junk[] = [];
 /** Stars where it lands on somebody. */
 let impacts: { x: number; y: number; t: number; rot: number }[] = [];
@@ -779,17 +781,17 @@ const artTick = (state: GameState) => {
 
 /** A tornado's hit: a star bursting where it landed, and bits of him (blood, the odd tooth) flung off the way he went. */
 const tornadoStar = (cx: number, cy: number, side: number) => { impacts.push({ x: cx - side * 6, y: cy, t: 0, rot: rnd() * Math.PI }); };
-const tornadoGore = (cx: number, cy: number, side: number) => {
-  const n = 5 + Math.floor(rnd() * 4);
-  for (let i = 0; i < n; i++) junk.push({ kind: 'blood', fly: true, ang: 0, rad: 0, h: 0, x: cx, y: cy, vx: side * (2 + rnd() * 6), vy: -2 - rnd() * 4, rot: 0, vr: 0, life: 40, floor: cy + 40 });
+const tornadoGore = (cx: number, cy: number, side: number, kind?: string) => {
+  const n = 5 + Math.floor(rnd() * 4), blood = bloodOf(kind);
+  for (let i = 0; i < n; i++) junk.push({ blood, kind: 'blood', fly: true, ang: 0, rad: 0, h: 0, x: cx, y: cy, vx: side * (2 + rnd() * 6), vy: -2 - rnd() * 4, rot: 0, vr: 0, life: 40, floor: cy + 40 });
   if (rnd() < 0.55) for (let i = 0, m = 1 + Math.floor(rnd() * 2); i < m; i++) junk.push({ kind: 'tooth', fly: true, ang: 0, rad: 0, h: 0, x: cx, y: cy - 6, vx: side * (3 + rnd() * 5), vy: -4 - rnd() * 3, rot: rnd() * 6, vr: 0.4, life: 70, floor: cy + 40 });
 };
 
 const box = (c: Ctx, x: number, y: number, w: number, h: number, col: string) => { c.fillStyle = col; c.fillRect(Math.round(x), Math.round(y), w, h); };
 
 /** One bit of junk at (x, y), stepped and inked. */
-const drawJunk = (c: Ctx, j: Junk) => {
-  const a = j.life < 12 ? j.life / 12 : 1;
+const drawJunk = (c0: Ctx, j: Junk) => {
+  const a = j.life < 12 ? j.life / 12 : 1, c = j.blood ? bloodCtxOf(c0, j.blood) : c0;
   c.save(); c.globalAlpha *= a; c.translate(Math.round(j.x), Math.round(j.y)); c.rotate(j.kind === 'blood' ? 0 : j.rot);
   switch (j.kind) {
     case 'rock': box(c, -3, -2, 6, 5, INK); box(c, -2, -1, 4, 3, '#78716C'); box(c, -2, -1, 2, 1, '#A8A29E'); box(c, 1, 1, 1, 1, '#44403C'); break;

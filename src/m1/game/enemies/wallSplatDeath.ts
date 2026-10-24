@@ -7,6 +7,7 @@
 import type { GameState } from '../core/state';
 import { floorTopAt } from '../core/terrain';
 import type { EnemyDeath } from './deaths';
+import { kindGore } from './kindBlood';
 
 /** One run of goo down the wall: off the puddle's middle by `dx` (+ out from the wall), how far it'll get, how fast. */
 export interface GooRun { dx: number; top: number; max: number; speed: number; start: number; w: number; br: number; seed: number }
@@ -82,7 +83,7 @@ export const updateWallSplat = (state: GameState, d: EnemyDeath) => {
   // (a drip off the wall where there's no floor to pool on)
   if (ws.foot === null && d.t % 23 === 0 && d.t < WALLSPLAT_FRAMES - WALLSPLAT_FADE) {
     const run = ws.runs[Math.floor(Math.random() * ws.runs.length)];
-    state.particles.push({ pos: { x: ws.wx + run.dx, y: ws.cy + run.top + Math.min(run.max, Math.max(0, d.t - run.start) * run.speed) + run.br }, vel: { x: 0, y: 1 }, life: 50, color: '#7F1D1D', size: 2 + Math.random() * 2 });
+    state.particles.push(kindGore({ pos: { x: ws.wx + run.dx, y: ws.cy + run.top + Math.min(run.max, Math.max(0, d.t - run.start) * run.speed) + run.br }, vel: { x: 0, y: 1 }, life: 50, color: '#7F1D1D', size: 2 + Math.random() * 2 }, d.sprite?.kind));
   }
   return d.t < WALLSPLAT_FRAMES;
 };

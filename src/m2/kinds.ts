@@ -32,6 +32,9 @@ export interface M2Kind {
   gender?: 'm' | 'f' | 'n' | ((e: Enemy) => 'm' | 'f' | 'n');
   /** A machine: scrap and sparks, not blood and guts (see adventure/dino). */
   robot?: boolean;
+  /** What it bleeds, if not red (its blood's base color): Zorblax's people, green. Every red the engine throws off or
+   *  draws of it goes that color (m1/game/enemies/kindBlood). */
+  blood?: string;
   /** Walls stop it going along (it doesn't walk into rock): the default for anything that doesn't fly. */
   solid?: boolean;
   /** Something sharp out in front (a spear, horns): shoulder charging into it from the front hurts him (the mugger's
@@ -86,7 +89,7 @@ export const registerM2Kind = (d: M2Kind) => {
     afterAI(ctx.state, e, bx, by, moved);
     return moved;
   } : ai;
-  registerKind(d.kind as EnemyKind, { stats: d.stats, ai: guarded, make: d.make, machine: d.robot, humanoid: d.humanoid, solid: d.solid ?? !d.stats.air, pointy: d.pointy, spiky: d.spiky, touch: d.touch });
+  registerKind(d.kind as EnemyKind, { stats: d.stats, ai: guarded, make: d.make, machine: d.robot, humanoid: d.humanoid, solid: d.solid ?? !d.stats.air, pointy: d.pointy, spiky: d.spiky, touch: d.touch, blood: d.blood });
   registerKindDrawer(d.kind as EnemyKind, d.draw);
   if (d.midBoss) registerMidBossKind(d.kind);
   if (d.specialsHalf) registerHalfKind(d.kind);

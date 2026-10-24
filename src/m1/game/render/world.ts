@@ -19,6 +19,7 @@ import { customWeapon, customWeapons } from '../combat/customWeapons';
 import { drawBullet, drawThrown, drawEnemyBullet, drawIcePellet, drawDart, drawPoopLog, drawCocaine, drawMethBarrel, drawSludgeBlob, drawDarkOrb, drawOilRocket } from './projectiles';
 import { drawSadBolt } from './bosses/alien';
 import { drawParticle } from './particles';
+import { tintKindGore } from '../enemies/kindBlood';
 import { viewRectOf, inView } from './viewCull';
 import { drawTsunamiBack, drawTsunamiFront } from './fx/tsunami';
 import { drawComposited, needsComposite } from './composite';
@@ -1432,6 +1433,9 @@ const goreLayer = (ctx: CanvasRenderingContext2D, state: GameState) => {
 
 const drawParticles = (ctx: CanvasRenderingContext2D, state: GameState) => {
   const { particles } = state;
+  // (blood made since the particles last moved, an alien's in its own color before it's drawn (and painted onto the
+  // layer for good): see kindBlood)
+  tintKindGore(state);
   // Gore that's stuck fast to the walls and ceiling doesn't change: it's painted once onto a layer and the layer is
   // drawn (after a weakness kill that's a couple of thousand splats, which were being redrawn every frame)
   const layer = goreLayer(ctx, state);

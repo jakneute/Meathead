@@ -32,6 +32,7 @@ import { isRobot } from '../kinds';
 import { specialsHalf, specialsOff, realMax, halfKill } from './half';
 import { since } from '../frames';
 import { struckAt } from './strikes';
+import { bloodOf, bloodCtx, bloodCtxOf, bloodGore, kindGore, markKindGore } from '../../m1/game/enemies/kindBlood';
 
 type Ctx = CanvasRenderingContext2D;
 const INK = '#1A0B06';
@@ -50,7 +51,19 @@ export const onGore = (f: () => void) => { listeners.add(f); return () => { list
 /** How much more than its due an enemy puts in the bag (a stage can set `goreMul` on it: Tucker's critters, fewer of
  *  them now, each worth more, so the weakness fills as fast as it did). */
 const bagMul = (e: Enemy) => (e as Enemy & { goreMul?: number }).goreMul ?? 1;
-const setGore = (v: number) => { const n = Math.max(0, Math.min(SPRAY * MAX_SPRAYS, v)); if (n !== gore) { gore = n; listeners.forEach(f => f()); } };
+const setGore = (v: number) => { const n = Math.max(0, Math.min(SPRAY * MAX_SPRAYS, v)); if (n !== gore) { gore = n; if (bagOther > gore) bagOther = gore; listeners.forEach(f => f()); } };
+/** How much of what's in the bag isn't red (an alien ground up, its slime: kindBlood), and what it is: the spray's
+ *  globs come out that color as often as it's that share of the bag. */
+let bagOther = 0, bagBlood: string | null = null;
+/** Into the bag, off `e`: its own blood's share of it kept count of. */
+const intoBag = (e: Enemy, amt: number) => {
+  const was = gore;
+  setGore(gore + amt);
+  const blood = bloodOf(e.kind);
+  if (blood && gore > was) { bagOther += gore - was; bagBlood = blood; }
+};
+/** The spray going now: how much of it is the other blood. */
+let sprayShare = 0;
 /** (for tests) */
 export const setGoreBag = (v: number) => setGore(v);
 
@@ -185,11 +198,11 @@ const bleed = (ctx: FrameContext, e: Enemy, near: number, mouth: { x: number; y:
   if (dmg <= 0) return;
   e.health -= dmg; e.hitFlash = 3;
   fx.spawnDamageNumber(e.pos, dmg);
-  if (!noBagFrom.has(e)) setGore(gore + dmg * BLEED.bag * bagMul(e));
+  if (!noBagFrom.has(e)) intoBag(e, dmg * BLEED.bag * bagMul(e));
   playSound('glug', 0.6, -3);
   if (bleedRobot) playSound('clink', 0.4, 4); else playSound('splat', 0.35, 2);
   // (a spurt out of the hole, some of it going down him)
-  for (let i = 0; i < 5; i++) state.particles.push({ pos: { x: bleedSrc.x, y: bleedSrc.y }, vel: { x: (Math.random() - 0.5) * 2.5, y: -0.5 - Math.random() * 1.5 }, life: 26, color: bleedRobot && i % 2 ? (i === 1 ? '#FDE047' : '#0A0A0A') : (i % 2 ? '#B91C1C' : '#7F1D1D'), size: 2, grav: 0.3 });
+  for (let i = 0; i < 5; i++) state.particles.push(kindGore({ pos: { x: bleedSrc.x, y: bleedSrc.y }, vel: { x: (Math.random() - 0.5) * 2.5, y: -0.5 - Math.random() * 1.5 }, life: 26, color: bleedRobot && i % 2 ? (i === 1 ? '#FDE047' : '#0A0A0A') : (i % 2 ? '#B91C1C' : '#7F1D1D'), size: 2, grav: 0.3 }, e.kind));
 };
 
 const fire = (ctx: FrameContext) => {
@@ -288,7 +301,7 @@ const swallow = (ctx: FrameContext, e: Enemy) => {
 const grind = (ctx: FrameContext, s: Swallow) => {
   const { state, fx } = ctx;
   const pl = state.player, mouth = muzzlePoint(pl, 'SOUL_SUCKER');
-  setGore(gore + poiseMax(s.e) * bagMul(s.e));
+  intoBag(s.e, poiseMax(s.e) * bagMul(s.e));
   s.e.health = 0;
   // (cartoon kills: through the grinder in a puff of smoke, nothing out the intake)
   if (state.cartoonKills) {
@@ -301,6 +314,8 @@ const grind = (ctx: FrameContext, s: Swallow) => {
     return;
   }
   playSound('grind'); playSound('splat', 0.9, -3); playSound('crunch', 0.8, -4);
+  // (out of the enemies by now: what comes out the intake is its blood (an alien's, green: kindBlood))
+  markKindGore(state, s.e.kind, mouth.x - 80, mouth.y - 80, 160, 140, 12);
   // (it all comes back out the intake as it goes through: a gusher of blood and bits, up and out and all over the floor)
   fx.spawnDeathShower({ x: mouth.x, y: mouth.y }, pl.facing, 2.6, false, 70);
   for (let i = 0; i < 80; i++) {
@@ -346,7 +361,7 @@ const tick = (ctx: FrameContext, input: { secondary?: boolean; moveUp: boolean; 
   // Secondary: a spray's worth out of the bag (once it's going it goes; another waits till it's done)
   const press = !!input.secondary && !secondaryWas;
   secondaryWas = !!input.secondary;
-  if (equipped && input.secondary && sprayLeft <= 0 && gore >= SPRAY) { setGore(gore - SPRAY); sprayLeft = SPRAY_FRAMES; }
+  if (equipped && input.secondary && sprayLeft <= 0 && gore >= SPRAY) { sprayShare = bagOther / gore; bagOther -= SPRAY * sprayShare; setGore(gore - SPRAY); sprayLeft = SPRAY_FRAMES; }
   // (nothing in the bag: it splutters, a drip comes out; now and then he says so)
   else if (equipped && press && sprayLeft <= 0) {
     const mouth = muzzlePoint(pl, 'SOUL_SUCKER');
@@ -367,13 +382,14 @@ const tick = (ctx: FrameContext, input: { secondary?: boolean; moveUp: boolean; 
         id: `gore-${state.frame}-${Math.random()}`, pos: { x: mouth.x - size / 2, y: mouth.y - size / 2 },
         vel: { x: pl.facing * Math.cos(a) * GLOB_SPEED + pl.vel.x, y: Math.sin(a) * GLOB_SPEED },
         width: size, height: size, health: 1, maxHealth: 1, type: 'projectile', damage: GLOB_DMG, owner: 'player',
-        custom: 'SOUL_SUCKER', customData: { life: GLOB_LIFE, hit: [] as string[], chunk, spin: Math.random() * 6, shade: Math.floor(Math.random() * 3) },
+        custom: 'SOUL_SUCKER', customData: { life: GLOB_LIFE, hit: [] as string[], chunk, spin: Math.random() * 6, shade: Math.floor(Math.random() * 3), blood: bagBlood && Math.random() < sprayShare ? bagBlood : undefined },
       });
     }
     if (sprayLeft % 12 === 0) playSound('gorespray');
-    // (a mist of it hanging at the intake, thick, and drool running off it)
-    state.particles.push({ pos: { x: mouth.x + pl.facing * 4, y: mouth.y }, vel: { x: pl.facing * (1 + Math.random() * 2.5), y: (Math.random() - 0.5) * 2.5 }, life: 12, color: 'rgba(153, 27, 27, 0.55)', size: 7 + Math.random() * 6 });
-    if (sprayLeft % 4 === 0) state.particles.push({ pos: { x: mouth.x, y: mouth.y + 4 }, vel: { x: pl.facing * 0.5, y: 0.5 }, life: 40, color: '#991B1B', size: 2 + Math.random() * 2 });
+    // (a mist of it hanging at the intake, thick, and drool running off it; the alien share of it green)
+    const mix = () => (bagBlood && Math.random() < sprayShare ? bagBlood : null);
+    state.particles.push(bloodGore({ pos: { x: mouth.x + pl.facing * 4, y: mouth.y }, vel: { x: pl.facing * (1 + Math.random() * 2.5), y: (Math.random() - 0.5) * 2.5 }, life: 12, color: 'rgba(153, 27, 27, 0.55)', size: 7 + Math.random() * 6 }, mix()));
+    if (sprayLeft % 4 === 0) state.particles.push(bloodGore({ pos: { x: mouth.x, y: mouth.y + 4 }, vel: { x: pl.facing * 0.5, y: 0.5 }, life: 40, color: '#991B1B', size: 2 + Math.random() * 2 }, mix()));
   }
   // Whoever it's had hold of keeps running a while after it lets go
   for (const e of state.enemies) {
@@ -398,18 +414,19 @@ const tick = (ctx: FrameContext, input: { secondary?: boolean; moveUp: boolean; 
 /** A glob of gore: straight out, dropping a little, through whoever it hits (once each), splatting on whatever's solid. */
 const update = (ctx: FrameContext, p: Projectile): boolean => {
   const { state, fx } = ctx;
-  const g = p.customData as { life: number; hit: string[]; chunk: boolean; spin: number; shade: number; scrap?: boolean };
+  // (`blood`: some of what was in the bag that isn't red (an alien's): the glob, its drips and its stains that color)
+  const g = p.customData as { life: number; hit: string[]; chunk: boolean; spin: number; shade: number; scrap?: boolean; blood?: string };
   p.vel.y += g.chunk ? 0.4 : 0.25;
   g.spin += 0.3;
   // (dripping as it goes; a machine's bits, sparking and leaking oil)
-  if (Math.random() < 0.3) state.particles.push({ pos: { x: p.pos.x + p.width / 2, y: p.pos.y + p.height / 2 }, vel: { x: p.vel.x * 0.3, y: p.vel.y * 0.3 + 0.5 }, life: g.scrap ? 10 : 20, color: g.scrap ? (Math.random() < 0.5 ? '#FDE047' : '#1C1917') : '#B91C1C', size: 1.5 + Math.random() * 2 });
+  if (Math.random() < 0.3) state.particles.push(bloodGore({ pos: { x: p.pos.x + p.width / 2, y: p.pos.y + p.height / 2 }, vel: { x: p.vel.x * 0.3, y: p.vel.y * 0.3 + 0.5 }, life: g.scrap ? 10 : 20, color: g.scrap ? (Math.random() < 0.5 ? '#FDE047' : '#1C1917') : '#B91C1C', size: 1.5 + Math.random() * 2 }, g.blood));
   p.pos.x += p.vel.x; p.pos.y += p.vel.y;
-  const splat = () => { for (let i = 0; i < 3; i++) state.particles.push({ pos: { x: p.pos.x + p.width / 2, y: p.pos.y + p.height / 2 }, vel: { x: -p.vel.x * 0.1 + (Math.random() - 0.5) * 2, y: -Math.random() * 2 }, life: 18, color: g.scrap ? ['#FDE047', '#9CA3AF', '#0A0A0A'][i] : '#7F1D1D', size: 2 + Math.random() * 2 }); };
+  const splat = () => { for (let i = 0; i < 3; i++) state.particles.push(bloodGore({ pos: { x: p.pos.x + p.width / 2, y: p.pos.y + p.height / 2 }, vel: { x: -p.vel.x * 0.1 + (Math.random() - 0.5) * 2, y: -Math.random() * 2 }, life: 18, color: g.scrap ? ['#FDE047', '#9CA3AF', '#0A0A0A'][i] : '#7F1D1D', size: 2 + Math.random() * 2 }, g.blood)); };
   if (--g.life <= 0) return false;
   const hit = state.blocks.find(b => b.type !== 'pit' && b.type !== 'door' && p.pos.x < b.x + b.w && p.pos.x + p.width > b.x && p.pos.y < b.y + b.h && p.pos.y + p.height > b.y
     && (!b.oneWay || (p.vel.y > 0 && p.pos.y + p.height - p.vel.y <= b.y + 2)));
   // (scrap just clatters off it: no stain)
-  if (hit) { splat(); if (!g.scrap) stain(state, p, hit); else playSound('clink', 0.5, 4); return false; }
+  if (hit) { splat(); if (!g.scrap) stain(state, p, hit, g.blood); else playSound('clink', 0.5, 4); return false; }
   for (const e of state.enemies) {
     if (e.health <= 0 || e.isBlownAway || e.innocent || e.type === 'boss' || g.hit.includes(e.id)) continue;
     if (p.pos.x > e.pos.x + e.width || p.pos.x + p.width < e.pos.x || p.pos.y > e.pos.y + e.height || p.pos.y + p.height < e.pos.y) continue;
@@ -436,7 +453,7 @@ const update = (ctx: FrameContext, p: Projectile): boolean => {
  */
 const STAINS = 420;
 const stains: Particle[] = [];
-const stain = (state: GameState, p: Projectile, b: { x: number; y: number; w: number; h: number }) => {
+const stain = (state: GameState, p: Projectile, b: { x: number; y: number; w: number; h: number }, blood?: string) => {
   const cx = p.pos.x + p.width / 2, cy = p.pos.y + p.height / 2;
   // (which face it hit: the one it came in through)
   const prevX = cx - p.vel.x, prevY = cy - p.vel.y;
@@ -444,10 +461,10 @@ const stain = (state: GameState, p: Projectile, b: { x: number; y: number; w: nu
   const at = floor ? { x: cx, y: b.y } : ceil ? { x: cx, y: b.y + b.h } : wallL ? { x: b.x, y: cy } : wallR ? { x: b.x + b.w, y: cy } : { x: cx, y: cy };
   const colors = ['#7F1D1D', '#991B1B', '#8B0000', '#6B1414'];
   const add = (x: number, y: number, size: number, onFloor: boolean, run = 0) => {
-    const q: Particle = { pos: { x, y }, vel: { x: 0, y: 0 }, life: 999999, color: colors[Math.floor(Math.random() * colors.length)], size, ...(onFloor ? { isSplat: true } : { isStuck: true }) };
+    const q: Particle = bloodGore({ pos: { x, y }, vel: { x: 0, y: 0 }, life: 999999, color: colors[Math.floor(Math.random() * colors.length)], size, ...(onFloor ? { isSplat: true } : { isStuck: true }) }, blood);
     state.particles.push(q); stains.push(q);
     // (a run of it down a wall)
-    for (let k = 1; k <= run; k++) { const d: Particle = { pos: { x: x + (Math.random() - 0.5), y: y + k * size * 0.9 }, vel: { x: 0, y: 0 }, life: 999999, color: q.color, size: Math.max(1, size * (0.6 - k * 0.1)), isStuck: true }; state.particles.push(d); stains.push(d); }
+    for (let k = 1; k <= run; k++) { const d: Particle = { pos: { x: x + (Math.random() - 0.5), y: y + k * size * 0.9 }, vel: { x: 0, y: 0 }, life: 999999, color: q.color, tint: q.tint, size: Math.max(1, size * (0.6 - k * 0.1)), isStuck: true }; state.particles.push(d); stains.push(d); }
   };
   add(at.x, at.y, 3 + Math.random() * 3.5, floor, !floor && Math.random() < 0.5 ? 1 + Math.floor(Math.random() * 3) : 0);
   for (let i = 0; i < 2; i++) if (Math.random() < 0.7) add(at.x + (floor || ceil ? (Math.random() - 0.5) * 22 : 0), at.y + (floor || ceil ? 0 : (Math.random() - 0.5) * 22), 1 + Math.random() * 2, floor);
@@ -466,9 +483,11 @@ export const smearFloor = (state: GameState, x: number, y: number) => {
   if (stains.length > STAINS) { const gone = new Set(stains.splice(0, stains.length - STAINS)); state.particles = state.particles.filter(q => !gone.has(q)); }
 };
 
-const draw = (c: Ctx, p: Projectile) => {
+const draw = (c0: Ctx, p: Projectile) => {
   const x = p.pos.x + p.width / 2, y = p.pos.y + p.height / 2, r = p.width / 2;
-  const g = p.customData as { chunk?: boolean; spin?: number; shade?: number; scrap?: boolean };
+  const g = p.customData as { chunk?: boolean; spin?: number; shade?: number; scrap?: boolean; blood?: string };
+  // (an alien's: its slime's color, kindBlood)
+  const c = g.blood ? bloodCtxOf(c0, g.blood) : c0;
   if (g.chunk && g.scrap) {
     // A chunk of a machine: a bent plate of its casing, a bolt in it, a wire hanging out, tumbling
     c.save(); c.translate(x, y); c.rotate(g.spin ?? 0);
@@ -502,11 +521,11 @@ const draw = (c: Ctx, p: Projectile) => {
 /** In his fist: the purple drum, its green window, the hose to the flared intake (the grinder's teeth turning in it), the gore bag under, as full as it is. */
 const drawHeld = (c: Ctx, frame: number) => {
   const full = gore / (SPRAY * MAX_SPRAYS);
-  // (the bag, swelling with what's in it)
-  const br = 3 + full * 5;
-  c.fillStyle = INK; c.beginPath(); c.ellipse(8, 9 + br * 0.6, br + 1.2, br * 0.85 + 1.2, 0, 0, Math.PI * 2); c.fill();
-  c.fillStyle = full > 0 ? '#B91C1C' : '#78716C'; c.beginPath(); c.ellipse(8, 9 + br * 0.6, br, br * 0.85, 0, 0, Math.PI * 2); c.fill();
-  if (full > 0) { c.fillStyle = '#7F1D1D'; c.fillRect(9, 9 + br * 0.6, 2, 2); c.fillStyle = '#FCA5A5'; c.fillRect(6, 8 + br * 0.3, 1, 1); }
+  // (the bag, swelling with what's in it; mostly an alien's slime, green: kindBlood)
+  const br = 3 + full * 5, b = bagBlood && bagOther > gore / 2 ? bloodCtxOf(c, bagBlood) : c;
+  b.fillStyle = INK; b.beginPath(); b.ellipse(8, 9 + br * 0.6, br + 1.2, br * 0.85 + 1.2, 0, 0, Math.PI * 2); b.fill();
+  b.fillStyle = full > 0 ? '#B91C1C' : '#78716C'; b.beginPath(); b.ellipse(8, 9 + br * 0.6, br, br * 0.85, 0, 0, Math.PI * 2); b.fill();
+  if (full > 0) { b.fillStyle = '#7F1D1D'; b.fillRect(9, 9 + br * 0.6, 2, 2); b.fillStyle = '#FCA5A5'; b.fillRect(6, 8 + br * 0.3, 1, 1); }
   c.fillStyle = INK; c.fillRect(-3, -4, 18, 11);
   c.fillStyle = '#7C3AED'; c.fillRect(-2, -3, 16, 9); c.fillStyle = '#A78BFA'; c.fillRect(-2, -3, 16, 2); c.fillStyle = '#4C1D95'; c.fillRect(-2, 4, 16, 2);
   c.fillStyle = frame % 40 < 20 ? '#4ADE80' : '#86EFAC'; c.fillRect(1, -1, 5, 4);
@@ -518,7 +537,9 @@ const drawHeld = (c: Ctx, frame: number) => {
 };
 
 const BLOOD = ['#5F0F0F', '#991B1B', '#DC2626', '#F87171'];
-const drawBleed = (c: Ctx, mouth: { x: number; y: number }) => {
+const drawBleed = (c0: Ctx, mouth: { x: number; y: number }) => {
+  // (one that doesn't bleed red: its own color)
+  const c = bloodCtx(c0, bleedFrom?.kind);
   const sx = bleedSrc.x, sy = bleedSrc.y, dx = mouth.x - sx, dy = mouth.y - sy, len = Math.hypot(dx, dy) || 1;
   // (bowed out across the line of it: square to it)
   const nx = -dy / len, ny = dx / len;

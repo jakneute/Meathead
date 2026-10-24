@@ -184,9 +184,14 @@ export interface KindDef {
    *  hurting him): true if it's dealt with it (the engine does nothing more with that touch this frame). A mid-boss
    *  made of parts (the T. rex) lands his moves on itself. */
   touch?: (ctx: FrameContext, e: Enemy) => boolean;
+  /** What it bleeds, if it isn't red (its blood's base color: Meathead 2's aliens, green): every red the engine throws
+   *  off it or draws of it is turned to that (see kindBlood). */
+  blood?: string;
 }
 const kindDefs = new Map<EnemyKind, KindDef>();
-export const registerKind = (kind: EnemyKind, def: KindDef) => { KIND_STATS[kind] = def.stats; kindDefs.set(kind, def); };
+/** Some kind's been registered that bleeds something other than red (kindBlood has work to do). */
+export let kindsBleedOther = false;
+export const registerKind = (kind: EnemyKind, def: KindDef) => { KIND_STATS[kind] = def.stats; kindDefs.set(kind, def); if (def.blood) kindsBleedOther = true; };
 export const kindDef = (kind?: EnemyKind) => (kind ? kindDefs.get(kind) : undefined);
 /** A game's own machine (a robot): no blood in it. */
 export const isMachineKind = (kind?: EnemyKind | string) => !!(kind && kindDefs.get(kind as EnemyKind)?.machine);

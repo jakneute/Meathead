@@ -933,6 +933,8 @@ export interface Particle {
   grav?: number;
   /** Drawn as a plain block on the pixel grid (lit on its top-left), never as a twinkle, streak or clump. */
   chunk?: boolean;
+  /** Drawn in this color instead (blood that isn't red: an alien's; see kindBlood). Still blood to the engine. */
+  tint?: string;
 }
 
 /**

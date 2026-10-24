@@ -20,6 +20,7 @@ import { drawEnemyAt } from '../moves/grab';
 import { m2Kill } from '../moves/killLines';
 import { grabCallout } from '../moves/callouts';
 import { smearFloor } from './soulSucker';
+import { markKindGore } from '../../m1/game/enemies/kindBlood';
 
 type Ctx = CanvasRenderingContext2D;
 type Phase = 'fall' | 'slip' | 'slide' | 'drop' | 'rest';
@@ -93,6 +94,9 @@ const tickOne = (ctx: FrameContext, s: Slider): boolean => {
   s.t++;
   const e = s.e;
   const bottom = state.camera.y + CANVAS_HEIGHT + 260;
+  // (out of the enemies, so the engine doesn't know whose the slick and the burst are: one that doesn't bleed red, an
+  // alien, its own color)
+  markKindGore(state, e.kind, s.x - 80, s.feet - e.height - 30, 160, e.height + 40, 2);
   switch (s.phase) {
     case 'fall': {
       // (out of the air: down to the floor, tumbling, flailing all the way)

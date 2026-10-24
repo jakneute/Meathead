@@ -9,6 +9,7 @@ import { CANVAS_HEIGHT } from '../../m1/constants';
 import { kindFacing, isHumanoidKind, KIND_HEAD } from '../../m1/game/render/enemies';
 import { drawEnemyAt } from '../moves/grab';
 import { viewRectOf, inView } from '../../m1/game/render/viewCull';
+import { kindGore } from '../../m1/game/enemies/kindBlood';
 
 type Ctx = CanvasRenderingContext2D;
 /** A piece's shape, in the enemy's own picture (feet at the origin, facing right): a circle (its head) or a box. */
@@ -80,7 +81,7 @@ export const tickDismember = (state: GameState) => {
     if (!p.down) {
       p.vy = Math.min(16, p.vy + G); p.x += p.vx; p.y += p.vy; p.rot += p.vr;
       // (bleeding as it goes)
-      if (p.t % 2 === 0 && state.particles.length < 900) state.particles.push({ pos: { x: p.x, y: p.y }, vel: { x: p.vx * 0.2, y: p.vy * 0.2 }, life: 24, color: p.t % 4 ? '#991B1B' : '#7F1D1D', size: 2 + Math.random() * 2 });
+      if (p.t % 2 === 0 && state.particles.length < 900) state.particles.push(kindGore({ pos: { x: p.x, y: p.y }, vel: { x: p.vx * 0.2, y: p.vy * 0.2 }, life: 24, color: p.t % 4 ? '#991B1B' : '#7F1D1D', size: 2 + Math.random() * 2 }, p.e.kind));
       // (into a wall: it stops dead and drops)
       if (state.blocks.some(b => solid(b) && !b.oneWay && p.x > b.x && p.x < b.x + b.w && p.y > b.y + 4 && p.y < b.y + b.h)) { p.x -= p.vx; p.vx = -p.vx * 0.2; }
       const floor = p.vy > 0 ? floorUnder(state, p.x, p.y - p.vy - 4) : null;
@@ -88,7 +89,7 @@ export const tickDismember = (state: GameState) => {
         p.y = floor - 4;
         if (!p.bounced && p.vy > 4) { p.bounced = true; p.vy = -p.vy * 0.3; p.vx *= 0.5; p.vr *= 0.5; }
         else { p.down = true; p.vx = 0; p.vy = 0; p.t = 0; p.rot = Math.round(p.rot / (Math.PI / 2)) * (Math.PI / 2) + (Math.random() - 0.5) * 0.5;
-          state.particles.push({ pos: { x: p.x, y: floor - 0.5 }, vel: { x: 0, y: 0 }, life: LIE, color: '#7F1D1D', size: 5 + Math.random() * 3, isSplat: true }); }
+          state.particles.push(kindGore({ pos: { x: p.x, y: floor - 0.5 }, vel: { x: 0, y: 0 }, life: LIE, color: '#7F1D1D', size: 5 + Math.random() * 3, isSplat: true }, p.e.kind)); }
       }
       if (p.y > bottom) return false;
       return true;

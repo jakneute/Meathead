@@ -42,6 +42,7 @@ import { getStageLayout } from '../stages';
 import { groundLineAt, floorTopAt, floorFinder, runYAt } from './terrain';
 import { landOnFloor } from './splatSurface';
 import { scrapMachineGore } from '../enemies/machineGore';
+import { tintKindGore } from '../enemies/kindBlood';
 import { purgeCartoonGore } from './cartoonKills';
 
 const INTRO_JUMP_START = 80;
@@ -731,6 +732,8 @@ const updateParticles = (ctx: FrameContext) => {
   const { state, stageId } = ctx;
   // (a game's own machines don't bleed: what comes off them is scrap, sparks and oil)
   scrapMachineGore(state);
+  // (and a kind that bleeds something other than red (Meathead 2's aliens: green): its blood in its own color)
+  tintKindGore(state);
   // (cartoon kills: no blood made anywhere gets drawn)
   purgeCartoonGore(state);
   // Tommy's arena floor is a sludge pool: blood just sinks into it

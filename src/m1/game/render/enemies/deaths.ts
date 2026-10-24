@@ -16,6 +16,7 @@ import { drawGunDeath, drawEjected } from './gunDeaths';
 import { drawDrowned } from './drownDeath';
 import { drawWallSplat } from './wallSplatDeath';
 import { isMachineKind } from '../../enemies/kinds';
+import { bloodCtx } from '../../enemies/kindBlood';
 
 type Ctx = CanvasRenderingContext2D;
 
@@ -34,8 +35,11 @@ const fadeOut = (d: EnemyDeath, n: number) => clamp01((DEATH_FRAMES[d.kind] - d.
 export const drawEnemyDeaths = (ctx: Ctx, state: GameState) => {
   // (the ones that lie where they are, off the screen: not drawn (a room hammered with explosions has dozens))
   const view = state.enemyDeaths.length ? viewRectOf(ctx, 200) : null;
+  const main = ctx;
   for (const d of state.enemyDeaths) {
     if ((d.kind === 'pancaked' || d.kind === 'ceilinged') && !inView(view, d.x, d.y) && !inView(view, d.x + d.w, d.y + d.h)) continue;
+    // (one that bleeds something other than red, an alien: its gore drawn in its own blood)
+    const ctx = bloodCtx(main, d.sprite?.kind);
     ctx.save();
     switch (d.kind) {
       case 'charred': drawCharred(ctx, d, state.frame, state); break;
@@ -132,7 +136,8 @@ const drawBodyMasked = (ctx: Ctx, d: EnemyDeath, state: GameState, o: Parameters
   g.globalCompositeOperation = 'source-over'; g.globalAlpha = 1; g.filter = 'none';
   drawBody(g, d, state, o);
   g.globalCompositeOperation = 'source-atop';
-  g.save(); over(g); g.restore();
+  // (an alien's: its blood painted on it in its own color)
+  g.save(); over(bloodCtx(g, d.sprite?.kind)); g.restore();
   g.globalCompositeOperation = 'source-over';
   g.setTransform(1, 0, 0, 1, 0, 0);
   ctx.drawImage(maskBuf, 0, 0, cw, ch, x0, y0, bw, bh);

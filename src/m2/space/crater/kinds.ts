@@ -10,7 +10,7 @@
 //            something in its way, it heaves itself up and over. Small: a slide (or anything) finishes it.
 //   RUNNER   (m2:sp_fleer) one that got out alive, in a state (an arm off, his head on fire): sees him and runs for it,
 //            screaming, for the haunted house, and in. Harmless (they're the ones that escape); killable all the same.
-// They bleed green (Zorblax's slime: the engine's blood off them, turned).
+// They bleed green (Zorblax's slime: `blood` on each kind, and the engine turns every red of theirs to it: kindBlood).
 
 import type { Enemy } from '../../../m1/types';
 import type { FrameContext } from '../../../m1/game/core/context';
@@ -19,7 +19,6 @@ import { registerM2Kind, registerHurtLines } from '../../kinds';
 import { registerDeathKind } from '../../../m1/game/player/deathAnim';
 import { playSound } from '../../../m1/game/platform/audio';
 import { say, pickLine } from '../../../m1/game/platform/speech';
-import { isGoreColor } from '../../../m1/game/core/effects';
 import { hurtPlayer } from '../../../m1/game/bosses/shared';
 import { inHazard } from '../../hazardHit';
 import { isShat, isNude } from '../../../m1/game/player/gut';
@@ -120,7 +119,7 @@ const fire = (state: GameState, e: Enemy) => {
   playSound('raygun', 0.5, 4);
 };
 
-/** Each frame (the section's update): the bolts, the green blood. */
+/** Each frame (the section's update): the bolts. */
 export const tickAliens = (ctx: FrameContext) => {
   const { state } = ctx, p = state.player;
   game = state;
@@ -139,7 +138,6 @@ export const tickAliens = (ctx: FrameContext) => {
     if (b.vy && b.y > floorAt(b.x)) { spark(); return false; }
     return true;
   });
-  greenBlood(state);
 };
 /** The bolts, live (for the lighting: each one its own light, so they glow in the dark of the house). */
 export const liveBolts = () => bolts;
@@ -167,24 +165,8 @@ export const drawBolts = (c: Ctx, f: number) => {
   }
 };
 
-// ---------------------------------------------------------------------------------------------------------------
-// Green blood: whatever the engine throws off one of them, Zorblax's slime instead
-
-const SLIME = [ALIEN.slime, ALIEN.slimeDark, ALIEN.slimeLight, '#7DB32A', ALIEN.hide[4]];
-const checked = new WeakSet<object>();
-const greenBlood = (state: GameState) => {
-  const zones: { x: number; y: number; w: number; h: number }[] = [];
-  for (const e of state.enemies) if (e.kind && ALIEN_KINDS.has(e.kind)) zones.push({ x: e.pos.x - 30, y: e.pos.y - 30, w: e.width + 60, h: e.height + 60 });
-  for (const d of state.enemyDeaths) if (d.sprite?.kind && ALIEN_KINDS.has(d.sprite.kind)) zones.push({ x: d.x - 70, y: d.y - 70, w: d.w + 140, h: d.h + 140 });
-  if (!zones.length) return;
-  for (const q of state.particles) {
-    if (checked.has(q)) continue;
-    checked.add(q);
-    if (q.ownBlood || q.isStuck || !(isGoreColor(q.color) || q.isBossGore)) continue;
-    if (!zones.some(z => q.pos.x > z.x && q.pos.x < z.x + z.w && q.pos.y > z.y && q.pos.y < z.y + z.h)) continue;
-    q.color = SLIME[Math.floor(Math.random() * SLIME.length)];
-  }
-};
+/** What they bleed: Zorblax's slime, green (every red of theirs the engine makes, turned to it). */
+const SLIME = ALIEN.slime;
 
 // ---------------------------------------------------------------------------------------------------------------
 // The AIs
@@ -378,7 +360,7 @@ const poseOf = (e: Enemy): AlienPose => {
 };
 
 registerM2Kind({
-  kind: GRUNT, stats: { w: 40, h: 86, hp: 140, contact: 10, mass: 220 }, ai: gruntAI, humanoid: true, grab: 'body',
+  kind: GRUNT, stats: { w: 40, h: 86, hp: 140, contact: 10, mass: 220 }, ai: gruntAI, humanoid: true, grab: 'body', blood: SLIME,
   // (posted up, he stays up: his own coming down after him)
   pathing: false,
   gender: e => (isWoman(e) ? 'f' : 'm'),
@@ -395,7 +377,7 @@ registerM2Kind({
 });
 
 registerM2Kind({
-  kind: BRUTE, stats: { w: 58, h: 118, hp: 360, contact: 16, mass: 480 }, ai: bruteAI, humanoid: true, grab: 'none',
+  kind: BRUTE, stats: { w: 58, h: 118, hp: 360, contact: 16, mass: 480 }, ai: bruteAI, humanoid: true, grab: 'none', blood: SLIME,
   spiky: { source: SPIKES, label: 'SPIKED!', damage: 18 },
   gender: 'm',
   head: { x: 14, y: -132, r: 12 },
@@ -415,14 +397,14 @@ const crawlPose = (e: Enemy): CrawlPose => {
 };
 
 registerM2Kind({
-  kind: CRAWLER, stats: { w: 50, h: 30, hp: 35, contact: 7, mass: 60 }, ai: crawlerAI, humanoid: false, grab: 'critter',
+  kind: CRAWLER, stats: { w: 50, h: 30, hp: 35, contact: 7, mass: 60 }, ai: crawlerAI, humanoid: false, grab: 'critter', blood: SLIME,
   gender: e => (isWoman(e) ? 'f' : 'm'),
   head: { x: 22, y: -26, r: 8 },
   draw: (c, e, f) => drawCrawler(c, seedOf(e), crawlPose(e), e.aiState === 'crawl' ? (e.aiTimer ?? 0) : f, isWoman(e)),
 });
 
 registerM2Kind({
-  kind: FLEER, stats: { w: 40, h: 86, hp: 40, contact: 0, mass: 200 }, ai: fleerAI, humanoid: true, grab: 'body',
+  kind: FLEER, stats: { w: 40, h: 86, hp: 40, contact: 0, mass: 200 }, ai: fleerAI, humanoid: true, grab: 'body', blood: SLIME,
   make: b => ({ ...b, harmless: true }),
   gender: e => (isWoman(e) ? 'f' : 'm'),
   head: { x: 10, y: -96, r: 10 },

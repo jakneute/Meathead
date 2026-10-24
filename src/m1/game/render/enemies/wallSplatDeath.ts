@@ -8,6 +8,7 @@
 
 import type { EnemyDeath } from '../../enemies/deaths';
 import { WALLSPLAT_FRAMES, WALLSPLAT_FADE, type WallSplat } from '../../enemies/wallSplatDeath';
+import { bloodOf, tintRed } from '../../enemies/kindBlood';
 
 type Ctx = CanvasRenderingContext2D;
 
@@ -29,8 +30,9 @@ const toRgb = (hex: string) => { let v = RGB.get(hex); if (!v) { v = rgb(hex); R
 interface Baked { c: HTMLCanvasElement; ox: number; oy: number }
 const baked = new WeakMap<WallSplat, Baked>();
 
-/** Paints the splat the once: its picture, and where its top-left corner goes (world). */
-const bake = (ws: WallSplat): Baked | null => {
+/** Paints the splat the once: its picture, and where its top-left corner goes (world). `blood`: one that doesn't bleed
+ *  red (an alien), its reds turned to that. */
+const bake = (ws: WallSplat, blood?: string): Baked | null => {
   if (typeof document === 'undefined') return null;
   const { side, r, seed } = ws;
   const spray = Math.max(0.6, Math.min(1.6, ws.speed / 16));
@@ -43,7 +45,7 @@ const bake = (ws: WallSplat): Baked | null => {
   const put = (x: number, y: number, hex: string) => {
     x = Math.round(x); y = Math.round(y);
     if (x < 0 || y < 0 || x >= W || y >= H) return;
-    const [rr, gg, bb] = toRgb(hex), i = (y * W + x) * 4;
+    const [rr, gg, bb] = toRgb(blood ? tintRed(hex, blood) : hex), i = (y * W + x) * 4;
     px[i] = rr; px[i + 1] = gg; px[i + 2] = bb; px[i + 3] = 255;
   };
   const filled = (x: number, y: number) => x >= 0 && y >= 0 && x < W && y < H && px[(y * W + x) * 4 + 3] > 0;
@@ -178,7 +180,7 @@ export const drawWallSplat = (ctx: Ctx, d: EnemyDeath) => {
 
   // The splat itself (painted the once): bursting out to its size over its first few frames
   let b = baked.get(ws);
-  if (!b) { const nb = bake(ws); if (nb) { b = nb; baked.set(ws, nb); } }
+  if (!b) { const nb = bake(ws, bloodOf(d.sprite?.kind)); if (nb) { b = nb; baked.set(ws, nb); } }
   if (b) {
     const grow = Math.min(1, 0.5 + t / 10);
     const sm = ctx.imageSmoothingEnabled;

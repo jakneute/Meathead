@@ -26,6 +26,7 @@ import { drawEnemyAt, grabHolding } from '../moves/grab';
 import { m2Kill } from '../moves/killLines';
 import { grabCallout } from '../moves/callouts';
 import { isRobot } from '../kinds';
+import { bloodCtx, kindGore } from '../../m1/game/enemies/kindBlood';
 
 type Ctx = CanvasRenderingContext2D;
 const INK = '#1A0B06';
@@ -108,7 +109,7 @@ interface Bone {
 }
 type Mat = 'steel' | 'chrome' | 'brass' | 'wood';
 /** ...and come loose: in the world, falling. */
-interface Piece { b: Bone; x: number; y: number; a: number; vx: number; vy: number; va: number; face: 1 | -1; t: number; still: boolean }
+interface Piece { b: Bone; x: number; y: number; a: number; vx: number; vy: number; va: number; face: 1 | -1; t: number; still: boolean; kind?: string }
 
 interface Corpse {
   e: Enemy; x: number; y: number; vy: number; t: number; face: 1 | -1; bones: Bone[];
@@ -278,7 +279,7 @@ const gnaw = (ctx: FrameContext, a: Alien) => {
   e.health -= bite;
   bitten.set(e, (bitten.get(e) ?? 0) + bite);
   // (a squirt of him)
-  if (Math.random() < 0.5) state.particles.push({ pos: { x: a.x + a.face * 4, y: a.y - 6 }, vel: { x: -a.face * (0.5 + Math.random() * 2), y: -1 - Math.random() * 2 }, life: 16, color: Math.random() < 0.5 ? '#B91C1C' : '#7F1D1D', size: 1.5 + Math.random() * 2, grav: 0.3 });
+  if (Math.random() < 0.5) state.particles.push(kindGore({ pos: { x: a.x + a.face * 4, y: a.y - 6 }, vel: { x: -a.face * (0.5 + Math.random() * 2), y: -1 - Math.random() * 2 }, life: 16, color: Math.random() < 0.5 ? '#B91C1C' : '#7F1D1D', size: 1.5 + Math.random() * 2, grav: 0.3 }, e.kind));
   if (Math.random() < 0.25) playSound('gnaw', 0.5);
   if (e.health <= 0 && !isMidBoss(e)) eatenAlive(ctx, e);
   return true;
@@ -503,7 +504,8 @@ const rot = (ctx: FrameContext, c: Corpse) => {
   const e = c.e, robot = isRobot(e);
   // The flesh, bitten away (bites go in where they're chewing, and all over)
   if (c.t <= EAT && c.flesh) {
-    const g = c.flesh.getContext('2d')!;
+    // (the raw edges of the bites: in his own blood's color (an alien's, green: kindBlood))
+    const g = bloodCtx(c.flesh.getContext('2d')!, e.kind);
     const r = Math.max(3, Math.min(9, Math.min(e.width, e.height) * 0.15));
     const n = Math.ceil(((e.width * 1.6) * (e.height * 1.3)) / (Math.PI * r * r) / EAT * 3);
     const chewers = aliens.filter(a => a.on?.corpse === c);
@@ -515,7 +517,7 @@ const rot = (ctx: FrameContext, c: Corpse) => {
       g.beginPath(); g.arc(bx, by, r + 2.5, 0, Math.PI * 2); g.fill();
       g.globalCompositeOperation = 'destination-out';
       g.beginPath(); g.arc(bx, by, r, 0, Math.PI * 2); g.fill();
-      if (Math.random() < 0.15) state.particles.push({ pos: { x: c.x + (bx - c.fx), y: c.y + (by - c.fy) }, vel: { x: (Math.random() - 0.5) * 3, y: -1 - Math.random() * 2 }, life: robot ? 10 : 20, color: robot ? (Math.random() < 0.5 ? '#FDE047' : '#FFFFFF') : '#991B1B', size: 2 + Math.random() * 2, grav: 0.3 });
+      if (Math.random() < 0.15) state.particles.push(kindGore({ pos: { x: c.x + (bx - c.fx), y: c.y + (by - c.fy) }, vel: { x: (Math.random() - 0.5) * 3, y: -1 - Math.random() * 2 }, life: robot ? 10 : 20, color: robot ? (Math.random() < 0.5 ? '#FDE047' : '#FFFFFF') : '#991B1B', size: 2 + Math.random() * 2, grav: 0.3 }, e.kind));
     }
     g.globalCompositeOperation = 'source-atop'; g.fillStyle = robot ? 'rgba(24, 24, 27, 0.05)' : 'rgba(127, 29, 29, 0.05)'; g.fillRect(0, 0, c.flesh.width, c.flesh.height);
     g.globalCompositeOperation = 'source-over';
@@ -525,7 +527,7 @@ const rot = (ctx: FrameContext, c: Corpse) => {
   // The skeleton: dripping
   if (c.t > EAT && c.bones.length && state.frame % 5 === 0) {
     const b = c.bones[Math.floor(Math.random() * c.bones.length)];
-    state.particles.push({ pos: { x: c.x + c.face * b.x, y: c.y + b.y }, vel: { x: 0, y: 0.5 }, life: 26, color: robot ? '#0A0A0A' : '#991B1B', size: 2, grav: 0.25 });
+    state.particles.push(kindGore({ pos: { x: c.x + c.face * b.x, y: c.y + b.y }, vel: { x: 0, y: 0.5 }, life: 26, color: robot ? '#0A0A0A' : '#991B1B', size: 2, grav: 0.25 }, e.kind));
   }
   // ...and down it comes, in bits (once it's on the floor and has stood there a while)
   const down = c.landedAt >= 0 && c.t >= Math.max(EAT + STAND, c.landedAt + 40);
@@ -544,7 +546,7 @@ const crumble = (state: GameState, c: Corpse) => {
     for (const k of bits) {
       const skull = k.kind === 'skull' || k.kind === 'snout' || k.kind === 'beak' || k.kind === 'head' || k.kind === 'jaw' || k.kind === 'dome' || k.kind === 'orb';
       // (a machine's lamps: some still on in the heap, some knocked out)
-      pieces.push({ b: { ...k, x: 0, y: 0, lit: k.lit && Math.random() < 0.5 ? k.lit : undefined }, x: c.x + c.face * k.x, y: c.y + k.y, a: c.face * k.a, vx: (x - c.x) * 0.03 + (Math.random() - 0.5) * 2, vy: skull ? -3 - Math.random() * 2 : -Math.random() * 2, va: (Math.random() - 0.5) * 0.3, face: c.face, t: 0, still: false });
+      pieces.push({ b: { ...k, x: 0, y: 0, lit: k.lit && Math.random() < 0.5 ? k.lit : undefined }, x: c.x + c.face * k.x, y: c.y + k.y, a: c.face * k.a, vx: (x - c.x) * 0.03 + (Math.random() - 0.5) * 2, vy: skull ? -3 - Math.random() * 2 : -Math.random() * 2, va: (Math.random() - 0.5) * 0.3, face: c.face, t: 0, still: false, kind: c.e.kind });
     }
   }
   // (a puff of bone dust, or of a machine's grit and sparks)
@@ -1251,7 +1253,9 @@ const drawOverlay = (c: Ctx, state: GameState) => {
     const till = Math.max(EAT + STAND, k.landedAt + 40) - k.t;
     if (k.t > EAT && till < TEETER) c.rotate(Math.sin(k.t * 0.9) * 0.04 * (1 - till / TEETER));
     c.save(); c.scale(k.face, 1);
-    for (const b of k.bones) drawBone(c, b);
+    // (the blood on the bones: his own color, an alien's green)
+    const kc = bloodCtx(c, k.e.kind);
+    for (const b of k.bones) drawBone(kc, b);
     c.restore();
     if (k.flesh) {
       const jitter = k.t % 4 < 2 ? 1 : 0;
@@ -1274,7 +1278,7 @@ const drawOverlay = (c: Ctx, state: GameState) => {
   for (const p of pieces) {
     c.save(); c.globalAlpha = p.t > LIE ? Math.max(0, 1 - (p.t - LIE) / FADE) : 1;
     c.translate(p.x, p.y); c.rotate(p.a); c.scale(p.face, 1);
-    drawBone(c, p.b);
+    drawBone(bloodCtx(c, p.kind), p.b);
     c.restore();
   }
   // The litter (not the ones on a bush: they're back there with it, behind him: drawUnder)

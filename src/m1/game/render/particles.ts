@@ -5,6 +5,8 @@ import { Particle } from '../../types';
 import { isGoreColor } from '../core/effects';
 
 const GLOSS = 'rgba(255, 255, 255, 0.35)';
+/** A landed splat's dark wet middle (a red one's; any other blood's, just darker). */
+const WET = 'rgba(40, 0, 0, 0.35)', WET_TINTED = 'rgba(0, 0, 0, 0.3)';
 
 /** Stable per-particle wobble so splats don't flicker frame to frame. */
 const hash = (p: Particle, salt: number) => {
@@ -35,17 +37,17 @@ export const drawParticle = (ctx: CanvasRenderingContext2D, p: Particle) => {
   // Everything else (sparks, embers, charge-ups, dust, smoke, motes): chunky, on the pixel grid. Bright ones are lit
   // things: going fast, a streak with a hot head; slower, a little four-pointed twinkle with a halo; the dull ones are
   // dust and smoke: a clump of pixels, lit on its top
-  const lum = luminance(p.color);
+  const col = p.tint ?? p.color, lum = luminance(col);
   const px = Math.round(x / 2) * 2, py = Math.round(y / 2) * 2, s = Math.max(2, Math.round(r) * 2);
   // (a plain block: a casing, a pebble, a drop; lit on its top-left once it's big enough to have one)
   if (p.chunk) {
-    ctx.fillStyle = p.color; ctx.fillRect(px - s / 2, py - s / 2, s, s);
+    ctx.fillStyle = col; ctx.fillRect(px - s / 2, py - s / 2, s, s);
     if (s >= 4) { ctx.fillStyle = 'rgba(255, 255, 255, 0.4)'; ctx.fillRect(px - s / 2, py - s / 2, 2, 2); }
     return;
   }
   const speed = Math.hypot(p.vel.x, p.vel.y);
   if (lum > 0.55) {
-    ctx.fillStyle = p.color;
+    ctx.fillStyle = col;
     if (speed > 2.5) {
       // (the streak: back along where it's come from, in two steps, thinning)
       const k = Math.min(3, speed * 0.6);
@@ -67,7 +69,7 @@ export const drawParticle = (ctx: CanvasRenderingContext2D, p: Particle) => {
     return;
   }
   // (a clump: a square body with its corners knocked off, a lighter pixel on top, a darker one under)
-  ctx.fillStyle = p.color;
+  ctx.fillStyle = col;
   ctx.fillRect(px - s / 2, py - s / 2 + 2, s, Math.max(2, s - 4));
   ctx.fillRect(px - s / 2 + 2, py - s / 2, Math.max(2, s - 4), s);
   if (s >= 6) {
@@ -96,7 +98,8 @@ const drawDroplet = (ctx: CanvasRenderingContext2D, p: Particle, x: number, y: n
   // (along its path: the shape's points turned by hand, not the canvas turned and put back for each of a thousand drops)
   const a = Math.atan2(p.vel.y, p.vel.x), c = Math.cos(a), s = Math.sin(a);
   const px = (u: number, v: number) => x + u * c - v * s, py = (u: number, v: number) => y + u * s + v * c;
-  ctx.fillStyle = p.color;
+  // (an alien's: its own color, see kindBlood)
+  ctx.fillStyle = p.tint ?? p.color;
   ctx.beginPath();
   // Teardrop: round head leading, pointed tail behind
   ctx.moveTo(px(-r * stretch * 1.4, 0), py(-r * stretch * 1.4, 0));
@@ -172,14 +175,14 @@ const pathsOf = (p: Particle, x: number, y: number, r: number, onFloor: boolean,
 const paintSplat = (ctx: CanvasRenderingContext2D, p: Particle, x: number, y: number, r: number, onFloor: boolean, big: number) => {
   if (canPath) {
     const s = pathsOf(p, x, y, r, onFloor, big);
-    ctx.fillStyle = p.color;
+    ctx.fillStyle = p.tint ?? p.color;
     ctx.fill(s.blob);
     if (s.drip) ctx.fill(s.drip);
-    ctx.fillStyle = 'rgba(40, 0, 0, 0.35)';
+    ctx.fillStyle = p.tint ? WET_TINTED : WET;
     ctx.fill(s.wet);
     return;
   }
-  ctx.fillStyle = p.color;
+  ctx.fillStyle = p.tint ?? p.color;
   ctx.beginPath();
   const points = 9;
   for (let i = 0; i < points; i++) {
@@ -206,7 +209,7 @@ const paintSplat = (ctx: CanvasRenderingContext2D, p: Particle, x: number, y: nu
     ctx.fill();
   }
   // Dark wet centre
-  ctx.fillStyle = 'rgba(40, 0, 0, 0.35)';
+  ctx.fillStyle = p.tint ? WET_TINTED : WET;
   ctx.beginPath();
   ctx.ellipse(x, y, big * 0.45, big * 0.45 * (onFloor ? 0.35 : 1), 0, 0, Math.PI * 2);
   ctx.fill();
