@@ -60,6 +60,71 @@ const CheatPanel: React.FC<{ skin: PauseSkin; onClose: () => void }> = ({ skin, 
   );
 };
 
+// The menu's flourishes (all CSS, all small: transforms and opacity, a shine across a slot, scanlines over the up-close
+// well): the panel drops in with a bounce, the title stamps down, the slots pop in one after another, the one picked
+// out bobs with a cursor round it and a shine across it, its art idles. Off for anyone who's asked for less motion.
+const PAUSE_CSS = `
+@keyframes pm-fade { from { opacity: 0; } to { opacity: 1; } }
+@keyframes pm-drop { 0% { transform: translateY(-48px) scale(0.96); opacity: 0; } 55% { transform: translateY(7px) scale(1.01); opacity: 1; } 78% { transform: translateY(-3px) scale(1); } 100% { transform: translateY(0) scale(1); } }
+@keyframes pm-stamp { 0% { transform: scale(2.3) rotate(-7deg); opacity: 0; } 60% { transform: scale(0.9) rotate(1deg); opacity: 1; } 80% { transform: scale(1.05) rotate(0deg); } 100% { transform: scale(1); } }
+@keyframes pm-slot-in { 0% { transform: translateY(10px) scale(0.6); opacity: 0; } 70% { transform: translateY(-2px) scale(1.06); opacity: 1; } 100% { transform: translateY(0) scale(1); } }
+@keyframes pm-pop { 0% { transform: scale(0.7); opacity: 0; } 70% { transform: scale(1.06); opacity: 1; } 100% { transform: scale(1); } }
+@keyframes pm-bob { 0%, 100% { transform: translateY(0) rotate(0deg); } 25% { transform: translateY(-2px) rotate(-4deg); } 75% { transform: translateY(-1px) rotate(4deg); } }
+@keyframes pm-float { 0%, 100% { transform: translate(0, 0) rotate(-2deg); } 50% { transform: translate(0, -4px) rotate(2deg); } }
+@keyframes pm-drift { from { background-position: 0 0, 0 0; } to { background-position: 24px 12px, 0 0; } }
+@keyframes pm-shine { 0%, 55% { transform: translateX(-140%) skewX(-20deg); } 85%, 100% { transform: translateX(240%) skewX(-20deg); } }
+@keyframes pm-cursor-in { from { transform: scale(1.6); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+@keyframes pm-cursor { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.07); } }
+@keyframes pm-nudge { 0%, 100% { transform: translateX(0); } 50% { transform: translateX(3px); } }
+@keyframes pm-glint { 0%, 80% { opacity: 0; transform: scale(0.4) rotate(0deg); } 88% { opacity: 1; transform: scale(1) rotate(45deg); } 96%, 100% { opacity: 0; transform: scale(0.4) rotate(90deg); } }
+.pm-btn:active { transform: translateY(3px) !important; border-bottom-width: 1px !important; box-shadow: 1px 1px 0 #000 !important; }
+@media (prefers-reduced-motion: reduce) { .pm-root, .pm-root * { animation: none !important; transition: none !important; } }
+`;
+
+/** A slot's pixel frame: a bevel (lit top-left, shadowed bottom-right) and a dark pixel notched out of each corner. */
+const PIXEL_BEVEL = 'inset 2px 2px 0 rgba(255,255,255,0.22), inset -2px -2px 0 rgba(0,0,0,0.5)';
+const Notches: React.FC<{ color?: string }> = ({ color = '#000' }) => (<>
+  {(['left-[-2px] top-[-2px]', 'right-[-2px] top-[-2px]', 'left-[-2px] bottom-[-2px]', 'right-[-2px] bottom-[-2px]'] as const).map(p =>
+    <span key={p} className={`absolute ${p} w-[4px] h-[4px] pointer-events-none`} style={{ background: color }} />)}
+</>);
+
+/** A shine run across whatever it's in (that's to be `relative` and `overflow-hidden`, or this is put in a box that is). */
+const Shine: React.FC<{ period?: number; delay?: number }> = ({ period = 2.2, delay = 0 }) => (
+  <span className="absolute inset-y-0 left-0 w-[40%] pointer-events-none"
+    style={{ background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.45), transparent)', animation: `pm-shine ${period}s ease-in-out ${delay}s infinite` }} />
+);
+
+/** The cursor round the one picked out: four yellow corner brackets that snap in and breathe. */
+const SlotCursor: React.FC = () => (
+  <span className="absolute inset-[-6px] pointer-events-none" style={{ animation: 'pm-cursor-in 0.14s ease-out, pm-cursor 0.9s ease-in-out 0.14s infinite' }}>
+    {([['left-0 top-0', 'border-l-[3px] border-t-[3px]'], ['right-0 top-0', 'border-r-[3px] border-t-[3px]'], ['left-0 bottom-0', 'border-l-[3px] border-b-[3px]'], ['right-0 bottom-0', 'border-r-[3px] border-b-[3px]']] as const).map(([p, b]) =>
+      <span key={p} className={`absolute ${p} ${b} w-[11px] h-[11px] border-yellow-300`} style={{ filter: 'drop-shadow(1px 1px 0 #000)' }} />)}
+  </span>
+);
+
+/** A section head (ARSENAL, CONTROLS): drop-shadowed, between the zone's own stripe and accent pips. */
+const SectionHead: React.FC<{ skin: PauseSkin; children: React.ReactNode }> = ({ skin, children }) => (
+  <div className="flex items-center gap-[5px] mb-2">
+    <span className="w-[14px] h-[3px]" style={{ background: skin.stripe, boxShadow: '1px 1px 0 #000' }} />
+    <span className="w-[4px] h-[4px] rotate-45" style={{ background: skin.accent, boxShadow: '1px 1px 0 #000' }} />
+    <span className="text-[8px] font-black tracking-widest" style={{ color: skin.muted, textShadow: '1px 1px 0 #000, 2px 2px 0 rgba(0,0,0,0.35)' }}>{children}</span>
+    <span className="w-[4px] h-[4px] rotate-45" style={{ background: skin.accent, boxShadow: '1px 1px 0 #000' }} />
+    <span className="w-[14px] h-[3px]" style={{ background: skin.stripe, boxShadow: '1px 1px 0 #000' }} />
+  </div>
+);
+
+/** A button along the bottom: chunky, presses down when clicked, and when picked out a cursor nudging at it and a
+ *  shine across it. */
+const MenuBtn: React.FC<{ on: boolean; onClick: () => void; cls: string; bg: string; edge: string; icon: React.ReactNode; children: React.ReactNode }> = ({ on, onClick, cls, bg, edge, icon, children }) => (
+  <button onClick={onClick}
+    className={`pm-btn relative flex items-center gap-2 ${cls} py-[7px] text-white font-black uppercase tracking-wider transition-all ${on ? 'translate-x-1 -translate-y-[1px]' : 'opacity-85 hover:opacity-100 hover:-translate-y-[1px]'}`}
+    style={{ background: bg, borderBottom: `4px solid ${edge}`, boxShadow: on ? `0 0 12px rgba(250,204,21,0.6), 3px 3px 0 #000, ${PIXEL_BEVEL}` : `3px 3px 0 #000, ${PIXEL_BEVEL}`, outline: on ? '2px solid #FACC15' : 'none', textShadow: '1px 1px 0 rgba(0,0,0,0.6)' }}>
+    {on && <span className="absolute inset-0 overflow-hidden pointer-events-none"><Shine period={1.8} /></span>}
+    {on && <span className="absolute left-2 text-yellow-300" style={{ animation: 'pm-nudge 0.5s ease-in-out infinite' }}>&#9654;</span>}
+    <span className="w-4 text-center">{icon}</span>{children}
+  </button>
+);
+
 // Meathead 2's pause menu: the arsenal (each weapon with how much is left in it), the one picked out up close with its
 // name, where it came from and what it does, and RESUME. Looks the way Meathead 1's does. Moved round with the D-pad or
 // stick (or the arrow keys), picked with the confirm button (or ENTER, or a click); the weapon picked is the one he's
@@ -132,10 +197,14 @@ const PauseMenu: React.FC<Props> = ({ weapons, current, ammo, selected, onPick, 
   useEffect(() => () => setCheatPanelOpen(false), []);
 
   return (
-    <div className="absolute inset-0 z-40 flex items-center justify-center bg-black/70">
+    <div className="pm-root absolute inset-0 z-40 flex items-center justify-center bg-black/70">
+      <style>{PAUSE_CSS}</style>
+      {/* (a soft vignette behind the panel) */}
+      <div className="absolute inset-0 pointer-events-none" style={{ background: 'radial-gradient(ellipse at center, transparent 35%, rgba(0,0,0,0.55) 100%)', animation: 'pm-fade 0.2s ease-out' }} />
+      <div className="relative" style={{ animation: 'pm-drop 0.42s cubic-bezier(0.2, 0.9, 0.3, 1) both' }}>
       <div className="relative flex flex-col items-center w-[600px] px-6 pt-4 pb-3"
         style={skin.frame}>
-        <div className="absolute left-0 right-0 top-0 h-[6px]" style={{ background: skin.stripe }} />
+        <div className="absolute left-0 right-0 top-0 h-[6px] overflow-hidden" style={{ background: skin.stripe }}><Shine period={4.5} delay={0.5} /></div>
         {skin.deco}
         {/* The cheats (mouse only) */}
         {!cheatsOpen && !M2_PUBLIC && <div role="button" onClick={() => setCheatsOpen(true)} onMouseDown={e => e.preventDefault()}
@@ -147,13 +216,13 @@ const PauseMenu: React.FC<Props> = ({ weapons, current, ammo, selected, onPick, 
         {/* BACK TO HUB, asked first (over the menu: nothing behind it can be clicked) */}
         {hubAsk !== null && (
           <div className="absolute inset-0 z-[20] flex items-center justify-center bg-black/70" onClick={e => e.stopPropagation()} onContextMenu={e => e.preventDefault()}>
-            <div className="flex flex-col items-center gap-3 px-6 py-4 border-4 border-red-600 bg-zinc-950 shadow-[4px_4px_0_#000]">
+            <div className="flex flex-col items-center gap-3 px-6 py-4 border-4 border-red-600 bg-zinc-950 shadow-[4px_4px_0_#000]" style={{ animation: 'pm-pop 0.2s ease-out' }}>
               <div className="text-[12px] font-black tracking-widest text-yellow-300">{asking === 'quit' ? 'QUIT TO TITLE?' : 'BACK TO THE HUB?'}</div>
               <div className="text-[7px] font-black tracking-wider text-zinc-300">{asking === 'quit' ? (onFile ? "YOU'LL LOSE WHAT YOU'VE DONE SINCE THE LAST SAVE." : 'NO SAVE FILE: YOU LOSE EVERY LAND, EVERY WEAPON.') : "YOU'LL LOSE YOUR PLACE IN THIS LAND."}</div>
               <div className="flex gap-3">
                 {(['NO', 'YES'] as const).map((t, k) => (
                   <button key={t} onMouseEnter={() => onHubPick?.(k as 0 | 1)} onClick={() => onHubAnswer?.(k === 1)}
-                    className={`px-4 py-[6px] text-[10px] font-black border-2 ${hubAsk === k ? 'bg-yellow-400 text-black border-yellow-400' : 'bg-zinc-900 text-white border-zinc-700'}`}>
+                    className={`pm-btn px-4 py-[6px] text-[10px] font-black border-2 transition-transform ${hubAsk === k ? 'scale-110' : ''} ${hubAsk === k ? 'bg-yellow-400 text-black border-yellow-400' : 'bg-zinc-900 text-white border-zinc-700'}`}>
                     {hubAsk === k ? '▶ ' : ''}{t}
                   </button>
                 ))}
@@ -165,15 +234,15 @@ const PauseMenu: React.FC<Props> = ({ weapons, current, ammo, selected, onPick, 
             </div>
           </div>
         )}
-        <h2 className={`mt-1 ${skin.sub ? 'mb-1' : 'mb-3'} ${skin.title.length > 12 ? 'text-2xl' : 'text-3xl'} font-black italic tracking-widest whitespace-nowrap`} style={skin.titleStyle}>{skin.title}</h2>
-        {skin.sub && <div className="mb-3 text-[7px] font-black tracking-wider" style={{ color: skin.muted }}>{skin.sub}</div>}
+        <h2 className={`mt-1 ${skin.sub ? 'mb-1' : 'mb-3'} ${skin.title.length > 12 ? 'text-2xl' : 'text-3xl'} font-black italic tracking-widest whitespace-nowrap`} style={{ ...skin.titleStyle, animation: 'pm-stamp 0.34s cubic-bezier(0.3, 1.4, 0.5, 1) 0.16s both' }}>{skin.title}</h2>
+        {skin.sub && <div className="mb-3 text-[7px] font-black tracking-wider" style={{ color: skin.muted, textShadow: '1px 1px 0 rgba(0,0,0,0.5)', animation: 'pm-fade 0.25s ease-out 0.35s both' }}>{skin.sub}</div>}
 
         {card ? (
           // A stretch with its own controls (no weapon switching there): its controls, in place of the weapons
-          <div className="flex flex-col items-center w-full">
-            <div className="text-[8px] font-black tracking-widest mb-2" style={{ color: skin.muted }}>CONTROLS</div>
+          <div className="flex flex-col items-center w-full" style={{ animation: 'pm-pop 0.28s ease-out 0.2s both' }}>
+            <SectionHead skin={skin}>CONTROLS</SectionHead>
             <div className="text-[11px] font-black uppercase leading-tight mb-2" style={{ color: skin.text, textShadow: '1px 1px 0 rgba(0,0,0,0.35)' }}>{card.title}</div>
-            <div className="flex flex-col items-start gap-[6px] px-4 py-3 min-w-[300px] bg-black/60 border border-zinc-700 text-[8px] font-black text-zinc-200 tracking-wider">
+            <div className="relative flex flex-col items-start gap-[6px] px-4 py-3 min-w-[300px] bg-black/60 border border-zinc-700 text-[8px] font-black text-zinc-200 tracking-wider" style={{ boxShadow: `${PIXEL_BEVEL}, 2px 2px 0 rgba(0,0,0,0.5)` }}>
               {card.rows.map((r, i) => <CardRowView key={i} row={r} size={15} />)}
             </div>
           </div>
@@ -181,17 +250,20 @@ const PauseMenu: React.FC<Props> = ({ weapons, current, ammo, selected, onPick, 
         <div className="flex gap-4 w-full items-start">
           {/* The arsenal */}
           <div className="flex flex-col items-center">
-            <div className="text-[8px] font-black tracking-widest mb-2" style={{ color: skin.muted }}>ARSENAL</div>
+            <SectionHead skin={skin}>ARSENAL</SectionHead>
             <div className="grid grid-cols-3 gap-[10px] p-2" style={skin.well}>
               {weapons.map((w, i) => {
                 const on = selected === i, equipped = w === current, fill = left(w);
                 return (
                   <button key={w} onClick={() => { if (!locked) onPick(i); }}
-                    className={`relative w-[64px] h-[64px] flex items-center justify-center border-2 transition-transform ${on ? 'scale-110 border-white' : equipped ? 'border-yellow-500' : 'border-zinc-600'} ${locked && !equipped ? 'opacity-35' : ''}`}
-                    style={{ background: on ? skin.slotOn : skin.slot, boxShadow: on ? '0 0 12px rgba(250,204,21,0.6)' : 'none' }}>
-                    <span className="absolute left-1 top-0 text-[7px] font-black text-zinc-300">{i + 1}</span>
-                    <Art type={w} size={46} />
-                    {fill !== null && <span className="absolute left-1 right-1 bottom-1 h-[3px] bg-black"><span className="block h-full bg-green-400" style={{ width: `${Math.max(0, Math.min(1, fill)) * 100}%` }} /></span>}
+                    className={`relative w-[64px] h-[64px] flex items-center justify-center border-2 transition-transform duration-150 ${on ? 'scale-110 border-white z-[1]' : equipped ? 'border-yellow-500 hover:scale-105' : 'border-zinc-600 hover:scale-105'} ${locked && !equipped ? 'opacity-35' : ''}`}
+                    style={{ background: on ? skin.slotOn : skin.slot, boxShadow: on ? `0 0 12px rgba(250,204,21,0.6), 2px 2px 0 #000, ${PIXEL_BEVEL}` : `2px 2px 0 rgba(0,0,0,0.6), ${PIXEL_BEVEL}`, animation: `pm-slot-in 0.26s ease-out ${0.18 + i * 0.03}s backwards` }}>
+                    <Notches />
+                    {on && <span className="absolute inset-0 overflow-hidden pointer-events-none"><Shine period={2} /></span>}
+                    {on && <SlotCursor />}
+                    <span className="absolute left-1 top-0 text-[7px] font-black text-zinc-300" style={{ textShadow: '1px 1px 0 #000' }}>{i + 1}</span>
+                    <span className="flex" style={on ? { animation: 'pm-bob 1.1s ease-in-out infinite' } : undefined}><Art type={w} size={46} /></span>
+                    {fill !== null && <span className="absolute left-1 right-1 bottom-1 h-[3px] bg-black"><span className="block h-full bg-green-400" style={{ width: `${Math.max(0, Math.min(1, fill)) * 100}%`, boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.45)' }} /></span>}
                   </button>
                 );
               })}
@@ -199,10 +271,16 @@ const PauseMenu: React.FC<Props> = ({ weapons, current, ammo, selected, onPick, 
           </div>
 
           {/* The one picked out, up close */}
-          <div className="flex-1 flex flex-col items-center text-center pt-5">
-            <div className="w-[104px] h-[104px] flex items-center justify-center mb-2 border-2 border-zinc-700"
-              style={{ background: `radial-gradient(circle, rgba(255,255,255,0.1) 0%, rgba(0,0,0,0.6) 70%)`, borderColor: skin.accent }}>
-              <Art type={shown} size={88} />
+          <div className="flex-1 flex flex-col items-center text-center pt-5" style={{ animation: 'pm-fade 0.3s ease-out 0.22s both' }}>
+            {/* (a dot field drifting behind it, the art floating over: a little depth; scanlines and a glint over the lot) */}
+            <div className="relative w-[104px] h-[104px] flex items-center justify-center mb-2 border-2 border-zinc-700 overflow-hidden"
+              style={{ backgroundImage: `radial-gradient(circle, rgba(255,255,255,0.14) 1px, transparent 1.5px), radial-gradient(circle, rgba(255,255,255,0.1) 0%, rgba(0,0,0,0.6) 70%)`, backgroundSize: '12px 12px, auto', borderColor: skin.accent, boxShadow: `${PIXEL_BEVEL}, 0 0 0 2px #000, 3px 3px 0 2px rgba(0,0,0,0.45)`, animation: 'pm-drift 6s linear infinite' }}>
+              <span key={shown} className="flex" style={{ animation: 'pm-pop 0.22s ease-out' }}>
+                <span className="flex" style={{ animation: 'pm-float 2.4s ease-in-out infinite' }}><Art type={shown} size={88} /></span>
+              </span>
+              <span className="absolute inset-0 pointer-events-none" style={{ background: 'repeating-linear-gradient(180deg, rgba(0,0,0,0.18) 0 1px, transparent 1px 3px)' }} />
+              <span className="absolute inset-0 overflow-hidden pointer-events-none"><Shine period={3.4} delay={0.8} /></span>
+              <span className="absolute right-[10px] top-[10px] w-[10px] h-[10px] pointer-events-none" style={{ animation: 'pm-glint 3.4s linear 0.8s infinite', opacity: 0, background: 'linear-gradient(90deg, transparent 4px, #fff 4px 6px, transparent 6px), linear-gradient(180deg, transparent 4px, #fff 4px 6px, transparent 6px)' }} />
             </div>
             <div className="text-[11px] font-black uppercase leading-tight mb-1" style={{ color: skin.text, textShadow: '1px 1px 0 rgba(0,0,0,0.35)' }}>{info?.name ?? shown}</div>
             <div className="text-[7px] font-black uppercase tracking-wider mb-2 text-center" style={{ color: skin.accent }}>FROM {info?.from ?? ''}{shown === current && <span className="block text-red-500 whitespace-nowrap mt-[2px]">[ EQUIPPED ]</span>}</div>
@@ -212,7 +290,7 @@ const PauseMenu: React.FC<Props> = ({ weapons, current, ammo, selected, onPick, 
             {shown === 'MALLET' && malletBroken() && <div className="text-[7px] font-black tracking-wider text-red-500 mt-[2px]">BROKEN: JUST A STICK. NO TORNADO, NO SMASHES. AMMO FIXES IT.</div>}
             {/* How it's worked: a line per move, the buttons for whatever's being played on */}
             {info?.controls?.length ? (
-              <div className="mt-2 w-full flex flex-col items-start gap-[3px] px-2 py-1 bg-black/60 border border-zinc-700 text-[6px] font-black text-zinc-200 tracking-wider">
+              <div className="mt-2 w-full flex flex-col items-start gap-[3px] px-2 py-1 bg-black/60 border border-zinc-700 text-[6px] font-black text-zinc-200 tracking-wider" style={{ boxShadow: `${PIXEL_BEVEL}, 2px 2px 0 rgba(0,0,0,0.5)` }}>
                 {info.controls.map((k, i) => <ChordPrompt key={i} pad={k.pad} join={k.join ?? '+'} kb={k.kb} mouse={k.mouse} label={k.label} size={12} />)}
                 {info.note && <span className="text-red-400 mt-[1px]">{info.note}</span>}
               </div>
@@ -221,51 +299,15 @@ const PauseMenu: React.FC<Props> = ({ weapons, current, ammo, selected, onPick, 
         </div>
         )}
 
-        <div className="flex gap-2 mt-4">
-          <button onClick={onResume}
-            className={`relative flex items-center gap-2 ${btnCls} py-[7px] text-white font-black uppercase tracking-wider transition-all ${onResumeBtn ? 'translate-x-1' : 'opacity-85 hover:opacity-100'}`}
-            style={{ background: skin.button, borderBottom: `4px solid ${skin.buttonEdge}`, boxShadow: onResumeBtn ? '0 0 12px rgba(250,204,21,0.6), 3px 3px 0 #000' : '3px 3px 0 #000', outline: onResumeBtn ? '2px solid #FACC15' : 'none' }}>
-            {onResumeBtn && <span className="absolute left-2 text-yellow-300 animate-pulse">&#9654;</span>}
-            <span className="w-4 text-center">▶</span>RESUME
-          </button>
-          <button onClick={onMap}
-            className={`relative flex items-center gap-2 ${btnCls} py-[7px] text-white font-black uppercase tracking-wider transition-all ${onMapBtn ? 'translate-x-1' : 'opacity-85 hover:opacity-100'}`}
-            style={{ background: 'linear-gradient(180deg, #0E7490, #155E75)', borderBottom: '4px solid #083344', boxShadow: onMapBtn ? '0 0 12px rgba(250,204,21,0.6), 3px 3px 0 #000' : '3px 3px 0 #000', outline: onMapBtn ? '2px solid #FACC15' : 'none' }}>
-            {onMapBtn && <span className="absolute left-2 text-yellow-300 animate-pulse">&#9654;</span>}
-            <span className="w-4 text-center">✦</span>MAP
-          </button>
-          <button onClick={onOptions}
-            className={`relative flex items-center gap-2 ${btnCls} py-[7px] text-white font-black uppercase tracking-wider transition-all ${onOptionsBtn ? 'translate-x-1' : 'opacity-85 hover:opacity-100'}`}
-            style={{ background: 'linear-gradient(180deg, #3F6212, #365314)', borderBottom: '4px solid #1A2E05', boxShadow: onOptionsBtn ? '0 0 12px rgba(250,204,21,0.6), 3px 3px 0 #000' : '3px 3px 0 #000', outline: onOptionsBtn ? '2px solid #FACC15' : 'none' }}>
-            {onOptionsBtn && <span className="absolute left-2 text-yellow-300 animate-pulse">&#9654;</span>}
-            <span className="w-4 text-center">⚙</span>OPTIONS
-          </button>
-          {onSkip && (
-            <button onClick={onSkip}
-              className={`relative flex items-center gap-2 ${btnCls} py-[7px] text-white font-black uppercase tracking-wider transition-all ${onSkipBtn ? 'translate-x-1' : 'opacity-85 hover:opacity-100'}`}
-              style={{ background: 'linear-gradient(180deg, #2563EB, #1E3A8A)', borderBottom: '4px solid #172554', boxShadow: onSkipBtn ? '0 0 12px rgba(250,204,21,0.6), 3px 3px 0 #000' : '3px 3px 0 #000', outline: onSkipBtn ? '2px solid #FACC15' : 'none' }}>
-              {onSkipBtn && <span className="absolute left-2 text-yellow-300 animate-pulse">&#9654;</span>}
-              <span className="w-4 text-center">»</span>{skipLabel ?? (walkBackOn() ? 'SKIP TO HUB' : 'SKIP INTRO')}
-            </button>
-          )}
-          {onHub && (
-            <button onClick={onHub}
-              className={`relative flex items-center gap-2 ${btnCls} py-[7px] text-white font-black uppercase tracking-wider transition-all ${onSkipBtn ? 'translate-x-1' : 'opacity-85 hover:opacity-100'}`}
-              style={{ background: 'linear-gradient(180deg, #B91C1C, #7F1D1D)', borderBottom: '4px solid #450A0A', boxShadow: onSkipBtn ? '0 0 12px rgba(250,204,21,0.6), 3px 3px 0 #000' : '3px 3px 0 #000', outline: onSkipBtn ? '2px solid #FACC15' : 'none' }}>
-              {onSkipBtn && <span className="absolute left-2 text-yellow-300 animate-pulse">&#9654;</span>}
-              <span className="w-4 text-center">«</span>BACK TO HUB
-            </button>
-          )}
-          {onQuit && (
-            <button onClick={onQuit}
-              className={`relative flex items-center gap-2 ${btnCls} py-[7px] text-white font-black uppercase tracking-wider transition-all ${onQuitBtn ? 'translate-x-1' : 'opacity-85 hover:opacity-100'}`}
-              style={{ background: 'linear-gradient(180deg, #52525B, #27272A)', borderBottom: '4px solid #09090B', boxShadow: onQuitBtn ? '0 0 12px rgba(250,204,21,0.6), 3px 3px 0 #000' : '3px 3px 0 #000', outline: onQuitBtn ? '2px solid #FACC15' : 'none' }}>
-              {onQuitBtn && <span className="absolute left-2 text-yellow-300 animate-pulse">&#9654;</span>}
-              <span className="w-4 text-center">✕</span>QUIT
-            </button>
-          )}
+        <div className="flex gap-2 mt-4" style={{ animation: 'pm-fade 0.25s ease-out 0.3s both' }}>
+          <MenuBtn on={onResumeBtn} onClick={onResume} cls={btnCls} bg={skin.button} edge={skin.buttonEdge} icon="▶">RESUME</MenuBtn>
+          <MenuBtn on={onMapBtn} onClick={onMap} cls={btnCls} bg="linear-gradient(180deg, #0E7490, #155E75)" edge="#083344" icon="✦">MAP</MenuBtn>
+          <MenuBtn on={onOptionsBtn} onClick={onOptions} cls={btnCls} bg="linear-gradient(180deg, #3F6212, #365314)" edge="#1A2E05" icon="⚙">OPTIONS</MenuBtn>
+          {onSkip && <MenuBtn on={onSkipBtn} onClick={onSkip} cls={btnCls} bg="linear-gradient(180deg, #2563EB, #1E3A8A)" edge="#172554" icon="»">{skipLabel ?? (walkBackOn() ? 'SKIP TO HUB' : 'SKIP INTRO')}</MenuBtn>}
+          {onHub && <MenuBtn on={onSkipBtn} onClick={onHub} cls={btnCls} bg="linear-gradient(180deg, #B91C1C, #7F1D1D)" edge="#450A0A" icon="«">BACK TO HUB</MenuBtn>}
+          {onQuit && <MenuBtn on={onQuitBtn} onClick={onQuit} cls={btnCls} bg="linear-gradient(180deg, #52525B, #27272A)" edge="#09090B" icon="✕">QUIT</MenuBtn>}
         </div>
-        <div className="mt-3 flex items-center gap-4 text-[6px] tracking-wider px-2 py-1 bg-black/60 text-zinc-400">
+        <div className="mt-3 flex items-center gap-4 text-[6px] tracking-wider px-2 py-1 bg-black/60 text-zinc-400" style={{ boxShadow: PIXEL_BEVEL }}>
           <Prompt pad={['START', 'BACK']} kb={['ESC']} mouse="right" label="RESUME" size={15} />
           <Prompt pad={['SELECT']} kb={['@map']} label="MAP" size={15} />
           {card ? <Prompt pad={['DPAD', 'OK']} kb={['ENTER']} mouse="left" label="SELECT" size={15} />
@@ -273,6 +315,7 @@ const PauseMenu: React.FC<Props> = ({ weapons, current, ammo, selected, onPick, 
             : <Prompt pad={['DPAD', 'OK']} kb={['1-9']} mouse="left" label="EQUIP" size={15} />}
           {!M2_PUBLIC && <Prompt pad={['X']} mouse="left" label="CHEATS" size={15} />}
         </div>
+      </div>
       </div>
     </div>
   );
