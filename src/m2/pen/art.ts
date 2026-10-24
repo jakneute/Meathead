@@ -1,5 +1,5 @@
 // The staff room, painted: Happy Land's back of house, where the cheer stops. The inside of the grungy block building
-// the hub's STAFF ONLY door is in (hub/draw.ts: backBuilding): the same cinderblock, painted the cream that's peeling
+// the hub's STAFF ONLY door is in (hub/staffDoor.ts): the same cinderblock, painted the cream that's peeling
 // off it outside (and peeling in here too, the gray-brown block under it), the rusty pipe and the gray conduit it has
 // outside coming through, the back of the same gray steel door (its push bar, SMILE! YOU'RE ON STAGE), the same cracked
 // wired window (the hub's lamp post, string lights and bunting out through it, the hour's sky), the greasy vent's fan.
@@ -32,7 +32,7 @@ const rx = (r: number) => X0 + r;
 // The wall's bands, top to bottom: painted block, the stripe, the tiled wainscot, the rubber base.
 const STRIPE = 410, WAIN = 430, BASE = 536;
 const WALLC = '#8E846A';
-/** The block under the paint (the hub's back building's own, outside: hub/draw.ts). */
+/** The block under the paint (the hub's back building's own, outside: hub/staffDoor.ts). */
 const BLOCK = ['#4E463A', '#5A5144', '#62594B', '#6B6153', '#7A7062', '#8A8072'];
 const fade = (c: string, k = 0.45) => mix(c, WALLC, k);
 
@@ -186,7 +186,7 @@ const ceilingFaults = (c: Ctx) => {
 
 const wall = (c: Ctx, a: number, b: number) => {
   const w = b - a;
-  // Painted block: the building's own cinderblock (outside: hub/draw.ts), painted the cream that's peeling off it out
+  // Painted block: the building's own cinderblock (outside: hub/staffDoor.ts), painted the cream that's peeling off it out
   // there, gone the color of nicotine in here; darker up under the ceiling, a shade lighter where the lights hit it
   bandedGradient(c, a, CEIL_Y, w, STRIPE - CEIL_Y, ['#5E5644', '#766C56', '#8E846A', '#968C72', '#8C8268'], 12);
   for (let y = CEIL_Y + 10, row = 0; y < STRIPE; y += 24, row++) {
@@ -1116,7 +1116,7 @@ const sink = (c: Ctx) => {
 };
 
 // ---------------------------------------------------------------------------------------------------------------
-// The building's own: what it has outside (hub/draw.ts: backBuilding, staffDoor) seen from in here
+// The building's own: what it has outside (hub/staffDoor.ts) seen from in here
 
 /** The rusty water pipe along the top of the wall, under the ceiling (outside it runs up the building's side). */
 // (a function, not a value: index.ts imports this file, so CEIL_Y isn't there yet while this file's top level runs)
@@ -1175,7 +1175,7 @@ const conduit = (c: Ctx) => {
   note(c, rx(128), 300, ['LEAVE', 'IT', 'ON'], { size: 5, paper: '#F2E890', ink: '#B91C1C' });
 };
 
-/** The window: the building's cracked wired one (outside: hub/draw.ts), from in here. Its glass; out through it is live. */
+/** The window: the building's cracked wired one (outside: hub/staffDoor.ts), from in here. Its glass; out through it is live. */
 const WIN = { r: 22, y: 166, w: 64, h: 50 };
 /** Its frame, its sill (top in shade), grime run down the paint under it: the still part, in the strip. */
 const windowFrame = (c: Ctx) => {
@@ -1294,8 +1294,8 @@ const paintFanGuard = (g: Ctx) => {
 };
 
 /**
- * The door out to the hub (the player presses up at it): the back of the hub's gray steel STAFF ONLY door (hub/draw.ts:
- * staffDoor). Its hinges this side, the closer up top, the push bar, the deadbolt's thumb turn, the kick plate kicked
+ * The door out to the hub (the player presses up at it): the back of the hub's gray steel STAFF ONLY door (hub/staffDoor.ts:
+ * drawStaffDoor). Its hinges this side, the closer up top, the push bar, the deadbolt's thumb turn, the kick plate kicked
  * in, SMILE! YOU'RE ON STAGE on it (the last thing they see before they go out there), the day showing in a line under
  * it. TO THE HUB over it.
  */

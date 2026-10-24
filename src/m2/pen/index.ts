@@ -47,7 +47,7 @@ export const PIGEON_HOLE = { x: X0 + 1910, y: CEIL_Y + 14 };
 /** The seeds the staff are drawn from (who's in the uniform): a pool, so their stamps get used again. */
 const SEEDS = 23;
 
-interface Pen { grab: Grab; next: number; cooldown: number; vermin: number; gone: boolean }
+interface Pen { grab: Grab; next: number; cooldown: number; vermin: number; upWas: boolean }
 const getPen = (state: GameState) => state.stage as Pen | null;
 
 const practiceReady = (state: GameState, e: Enemy) => {
@@ -100,7 +100,7 @@ export const penLayout: StageLayout = {
     state.blocks.push({ x: X0 - WALL, y: -3000, w: WALL, h: 3600, type: 'wall', hidden: true, tag: 'pen-l' }, { x: X0 + LEN, y: -3000, w: WALL, h: 3600, type: 'wall', hidden: true, tag: 'pen-r' });
     state.blocks.push({ x: X0 - WALL, y: -3000, w: LEN + WALL * 2, h: 3000 + CEIL_Y, type: 'wall', hidden: true, tag: 'pen-ceiling' });
     state.blocks.push({ x: SHELF.x, y: SHELF.y, w: SHELF.w, h: 16, type: 'platform', oneWay: true, hidden: true, tag: 'pen-shelf' } as never);
-    const pen: Pen = { grab: createGrab(state), next: Math.floor(Math.random() * ROSTER.length), cooldown: 0, vermin: VERMIN_RESPAWN, gone: false };
+    const pen: Pen = { grab: createGrab(state), next: Math.floor(Math.random() * ROSTER.length), cooldown: 0, vermin: VERMIN_RESPAWN, upWas: false };
     state.stage = pen;
     state.cameraMinX = X0 - WALL;
     state.cameraMaxX = X0 + LEN + WALL - CANVAS_WIDTH;
@@ -133,11 +133,13 @@ export const penLayout: StageLayout = {
       if (count(k => k === RAT) < RATS) sendRat(state);
       else if (count(k => k === PIGEON) < PIGEONS) sendPigeon(state);
     }
-    // The way back: its door at the room's left end. Walked on into, he's out (no up: the user's "any transitions with a
-    // door at the edge just goes through automatically"); he starts just past it, so only walking on into it takes him
+    // The way back: its door at the room's left end, up at it to go (the user's: "exiting the break room should require
+    // pressing up on the door"); the end wall stops him walking on past it. Not while he's got someone in his hands.
     const p = state.player, cx = p.pos.x + p.width / 2;
-    setUi({ nearExit: false, near: null, map: null });
-    if (!pen.gone && cx < EXIT_X - 6 && p.health > 0 && !grabbing(pen.grab)) { pen.gone = true; goTo('hub'); }
+    const near = p.isGrounded && Math.abs(cx - EXIT_X) < 60 && p.health > 0 && !grabbing(pen.grab);
+    setUi({ nearExit: near, near: null, map: null });
+    if (near && controls.up && !pen.upWas) goTo('hub');
+    pen.upWas = !!controls.up;
     return out;
   },
   drawBackdrop: (ctx, state) => { drawPenBackdrop(ctx, state); return true; },
