@@ -14,6 +14,16 @@ const externalVoices = (): Plugin => ({
   load: id => (id === '\0meathead-desktop-voices' ? `export default 'desktop:voices';` : null),
 });
 
+/** MEATHEAD_WEB=1 (tools/release/build.mjs's web builds, for itch.io): the voice pack's left out of the page too, but
+ * fetched from beside it (web/voices.bin next to web/index.html): the browser then never holds the pack twice over as
+ * base64 text in the script, and the page is a few MB to parse instead of a hundred and more. */
+const webVoices = (): Plugin => ({
+  name: 'meathead-web-voices',
+  enforce: 'pre',
+  resolveId: id => (/voices(-m1)?\.bin\?url$/.test(id) ? '\0meathead-web-voices' : null),
+  load: id => (id === '\0meathead-web-voices' ? `export default 'voices.bin';` : null),
+});
+
 // Every build is one self-contained HTML file: `--mode public` (Meathead 1 standard: no cheats, the intro always; see
 // src/m1/build.ts), `--mode release` (Meathead 1 with the cheats), `--mode m2public` / `--mode m2` (Meathead 2 without / with
 // them); tools/release/build.mjs puts them in release-m1/ and release-m2/. `--mode steam`: the standard build for the
@@ -28,6 +38,7 @@ export default defineConfig(({ mode }) => ({
   optimizeDeps: { entries: ['index.html', 'meathead2.html'] },
   plugins: [
     ...(mode === 'steam' ? [externalVoices()] : []),
+    ...(process.env.MEATHEAD_WEB ? [webVoices()] : []),
     react(), tailwindcss(),
     ...(mode === 'release' || mode === 'public' || mode === 'steam' || mode === 'm2' || mode === 'm2public' ? [viteSingleFile()] : []),
     ...(mode === 'm2' || mode === 'm2public' || mode === 'perf' ? [m2Stub()] : []),
