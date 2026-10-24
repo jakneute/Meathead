@@ -452,7 +452,7 @@ export const plainLook = (p: Player) => {
   p.swimming = false; p.swimDash = undefined;
   p.vine = undefined; p.ladder = undefined; p.dropVine = undefined; p.leverPull = undefined; p.freefall = undefined;
   p.extinguisher = undefined; p.throne = undefined; p.copterSeat = undefined; p.tragon = undefined; p.broomRide = undefined;
-  p.cartSeat = undefined; p.logSeat = undefined; p.logRoll = undefined; p.seatPunch = undefined; p.kickPose = undefined;
+  p.cartSeat = undefined; p.logSeat = undefined; p.logPaddle = undefined; p.logRoll = undefined; p.seatPunch = undefined; p.kickPose = undefined;
   p.gunslinger = undefined; p.axeSwing = undefined; p.airGrab = undefined; p.untouchable = undefined;
   p.noContactUntil = undefined; p.noContactHurt = false; p.throwPitch = undefined; p.throwKeg = undefined;
   p.spriteRot = undefined; p.spriteScaleX = undefined; p.spriteScaleY = undefined;

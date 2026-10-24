@@ -22,6 +22,7 @@ import { type Ctx, box, checker, mix, hash, still, INK, hr, asIs, pixelBlob, POO
 import { X, Y, x0, waterY, inSewer, indoorsAt, realAt, SIGNS, LOAD_X, CHASM, CHIPPER, PIPES, JUNK, GUSHERS, DUCK_LINE } from './layout';
 import { LOG_LEN, RIM, SINK, DUCK_SINK, ducked, logTilt } from './ride';
 import { rideOf } from './state';
+import { paddleShown, paddlePose, drawPaddle } from '../../../m1/game/render/player/paddlePose';
 import { drawFlumeBack, drawFlumeFront } from './flume';
 import { drawEarth, drawStation, drawCanyon, drawShedBack, drawShedFront, drawSplashPool, drawCamp, drawBreak, SLAM_AT } from './parkArt';
 import { drawSewerBack, drawSewerFront, drawCulvert } from './sewerArt';
@@ -262,6 +263,8 @@ const drawLog = (c: Ctx, state: GameState, back: boolean) => {
     still(c, `lr-log-${rx > 5840 ? 1 : 0}`, -hl - 4, -RIM - 2, LOG_LEN + 8, RIM + HULL + 4, g => paintLogNear(g, rx > 5840));
   }
   c.restore();
+  // (his paddle, if he's paddling: its part below the rim again, down the log's near side over it and into the water)
+  if (!back && inIt) drawPaddleOverLog(c, state);
   if (!back && onWater) {
     // (the water over its foot: see-through, lapping; the foam collar; the wake's V trailing off its tail; the bow wave)
     c.globalAlpha = 0.55; box(c, x - hl - 8, wl - 3, LOG_LEN + 16, 12, body); c.globalAlpha = 1;
@@ -277,6 +280,19 @@ const drawLog = (c: Ctx, state: GameState, back: boolean) => {
       c.fillStyle = foam; c.beginPath(); c.moveTo(x + hl - 2, wl - 1); c.quadraticCurveTo(x + hl + 6, wl - h, x + hl + 10 + v * 2, wl - h * 0.5); c.lineTo(x + hl + 6, wl - 1); c.closePath(); c.fill();
     }
   }
+};
+
+/** The paddle's lower part (render/player/paddlePose.ts records how he was drawn this frame), clipped to below the log's
+ *  rim in his frame, so the shaft runs down in front of the log's near side and the blade's out over the water. */
+const drawPaddleOverLog = (c: Ctx, state: GameState) => {
+  const s = paddleShown;
+  if (s.frame !== state.frame || !s.q || !state.player.logPaddle) return;
+  c.save();
+  c.translate(s.x, s.y); c.rotate(s.rot);
+  c.beginPath(); c.rect(-120, -RIM - 2 + SINK + 1, 240, 120); c.clip();
+  c.scale(s.facing, 1); c.translate(0, s.bodyY); c.rotate(s.bodyRot);
+  drawPaddle(c, paddlePose(s.q));
+  c.restore();
 };
 
 // ---------------------------------------------------------------------------------------------------------------

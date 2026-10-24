@@ -266,6 +266,9 @@ export interface Player extends Entity {
   /** Sat down inside a log-flume log (Meathead 2's Wilderness Land, frontier/logride/ride.ts): the cart's seat, sat up,
    *  legs out forward down in the log, the free hand gripping its side, the gun hand his own; ducked, hunched down in it. */
   logSeat?: boolean;
+  /** Paddling the log (Meathead 2's log ride, sat in it, not mid-hop): `mode` 1 boosting (hard strokes), -1 braking
+   *  (the blade planted, braced); `t` frames into it (render/player/paddlePose.ts). */
+  logPaddle?: { mode: 1 | -1; t: number };
   /** Unarmed for a stretch (Meathead 2's log ride, the user's): nothing in his hand, no firing; the weapon he had
    *  out is still his (currentWeapon untouched), back the moment this is cleared. */
   holstered?: boolean;

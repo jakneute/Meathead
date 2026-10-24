@@ -1,5 +1,5 @@
 // Riding the log: it follows the flume at the ride's own pace (the stretch's speed) on the water (bobbing, its wake and
-// its spray, the water lapping); left drags his hands in the water (brake), right paddles (faster), where the ride lets
+// its spray, the water lapping); left digs his paddle in (brake), right paddles hard (faster), where the ride lets
 // him (not on the chain, not down a drop); jump hops him up out of the log and back down into it, and left or right in
 // the hop carries him a little back or on along it (the log always follows, catching up under him: the user's, to get
 // out of the way of things); down ducks him right down in it. He faces the way he's going. He sits in it (Player.logSeat:
@@ -21,6 +21,7 @@ import { setUi } from '../../store';
 import { meatheadSays, speak, byPants } from '../section';
 import type { ByPants } from '../talk';
 import { rideOf, type Ride } from './state';
+import { paddlePose, paddleLean, bladeMid, STROKE, POWER } from '../../../m1/game/render/player/paddlePose';
 import { X, x0, x1, waterY, speedAt, slopeAt, realAt, RIDE_CPS, START, END, DROPS } from './layout';
 import {
   RIDE_VOICES, RIDE_START, FIRST_SAW, LIFT_HILL, BIG_DROP, PHOTO, SEWER, REAL_RIVER, FALLS, CHIPPER_SEEN,
@@ -74,7 +75,7 @@ export const board = (state: GameState, rx: number, mode: 'ride' | 'scene' = 'ri
 /** Out of the log (on his feet: the clearing, or dead). */
 export const unboard = (state: GameState) => {
   const p = state.player, r = rideOf(state);
-  p.carried = false; p.noSpecials = false; p.logSeat = false; p.holstered = false; p.spriteRot = 0;
+  p.carried = false; p.noSpecials = false; p.logSeat = false; p.logPaddle = undefined; p.holstered = false; p.spriteRot = 0;
   setUi({ noSwitch: false, pauseControls: null });
   state.cameraOverride = null;
   if (r.log.mode !== 'done') r.log.mode = 'off';
@@ -145,13 +146,8 @@ export const updateRide = (ctx: FrameContext, controls: Controls): Controls => {
   L.float = base < 6 && Math.abs(slopeAt(L.rx)) < 0.15 ? Math.sin(L.t * 0.09) * 1.6 : 0;
   // (the lift hill's chain: clack clack)
   if (base < 1.5 && L.t % 14 === 0) playSound('click', 0.5, -6);
-  // (paddling: a slap of water now and then; braking: a hiss)
-  if (free && L.t % 14 === 0 && (controls.right || controls.left)) playSound('splash', 0.24, controls.right ? 4 : -4);
-  // (and the water off his hands: thrown back paddling, curling up off them braking)
-  if (free && L.t % 4 === 0 && L.up <= 0 && (controls.right || controls.left)) {
-    const sw = L.rx > 5700 && L.rx < 8440;
-    drops(state, riderX(r) + (controls.right ? -24 : 28), waterY(L.rx) - 2, 2, controls.right ? 3 : 5, 16, sw);
-  }
+  // (braking: a hiss now and then; paddling's slap comes with each stroke, below)
+  if (free && L.t % 14 === 0 && controls.left && !controls.right) playSound('splash', 0.24, -4);
   // (the water lapping at it, always; the real river rushing)
   if (L.t % 44 === 0) playSound('splash', 0.07, 6 + Math.random() * 6);
   if (realAt(L.rx) && L.t % 90 === 0) playSound('gush', 0.08, -10);
@@ -209,6 +205,9 @@ export const updateRide = (ctx: FrameContext, controls: Controls): Controls => {
   // (sat in the log: on his feet as far as ducking goes; up out of it, in the air, stood up off his seat)
   p.isGrounded = L.up <= 0;
   p.logSeat = L.up <= 0;
+  // (paddling it, sat in it: hard strokes boosting, the blade planted braking; up out of it in a hop, ducked, or where
+  // the ride's got it (the chain, a drop), his seat pose as ever)
+  paddle(state, r, free && L.up <= 0 && !ducked(state) && !p.inCutscene ? dir : 0);
   // (drawn turned with the log, all the way: art.ts turns the log about his feet, so the two stay one piece on a slope
   // and, ducked, he stays down inside it behind its near side)
   p.spriteRot = L.up > 0 ? 0 : logTilt(L.rx);
@@ -223,6 +222,42 @@ export const updateRide = (ctx: FrameContext, controls: Controls): Controls => {
   return { ...controls, left: false, right: false, jump: false, special: false, charge: false, shoot: false, secondary: false };
 };
 const jumpWas = new WeakMap<GameState, boolean>();
+
+/** Water off the paddle's blade at world (x, y): `vx`/`vy` its throw (a little scatter on it). Capped: never piles up. */
+const spray = (state: GameState, x: number, y: number, n: number, vx: number, vy: number, sw: boolean) => {
+  for (let i = 0; i < n && state.particles.length < 500; i++) state.particles.push({
+    pos: { x: x + (Math.random() - 0.5) * 6, y: y - Math.random() * 3 }, vel: { x: vx + (Math.random() - 0.5) * 1.6, y: vy * (0.6 + Math.random() * 0.6) },
+    life: 18 + Math.random() * 14, color: sw ? (i % 2 ? '#8A8A3A' : '#6A6A2A') : i % 3 ? '#E0F2FE' : '#93C5FD', size: 2 + Math.random() * 2.5,
+  });
+};
+
+/** His paddling (Player.logPaddle, render/player/paddlePose.ts): `dir` 1 boosting, -1 braking, 0 not; the water off
+ *  the blade with it: thrown back off each stroke, a flick as it comes out, piled up curling over it braking. */
+const paddle = (state: GameState, r: Ride, dir: number) => {
+  const p = state.player, L = r.log;
+  if (!dir) { p.logPaddle = undefined; return; }
+  const mode = dir > 0 ? 1 : -1;
+  p.logPaddle = p.logPaddle?.mode === mode ? { mode, t: p.logPaddle.t + 1 } : { mode, t: 0 };
+  const q = p.logPaddle, pp = paddlePose(q), [lx, ly] = bladeMid(pp), lean = paddleLean(q);
+  // (the blade's x in the world: through his lean, his facing, the log's tilt)
+  const cr = Math.cos(lean.rot), sr = Math.sin(lean.rot), bx = (lx * cr - ly * sr) * p.facing, by = lx * sr + ly * cr + lean.y;
+  const tilt = p.spriteRot || 0, x = riderX(r) + bx * Math.cos(tilt) - by * Math.sin(tilt);
+  const wy = waterY(L.rx) - 2, sw = L.rx > 5700 && L.rx < 8440, back = -p.facing;
+  if (mode > 0) {
+    const f = q.t % STROKE, out = Math.ceil(STROKE * POWER);
+    // (the catch: dug in, a slap)
+    if (f === 0) { playSound('splash', 0.22, 5); spray(state, x, wy, 3, 0, -2.5, sw); }
+    // (hauled back: the water shoved off it behind)
+    else if (f < out && f % 2 === 0) spray(state, x, wy, 2, back * (2 + Math.random() * 3), -1.5 - Math.random() * 2, sw);
+    // (out: a flick of it off the blade, up and back)
+    else if (f === out) spray(state, x, wy - 4, 6, back * 2.5, -4.5, sw);
+    // (swung forward: dripping)
+    else if (f % 4 === 1) spray(state, x, wy - 10, 1, 0, 0.5, sw);
+  } else if (q.t % 2 === 0) {
+    // (braking: the water piling up against the blade's upstream face and curling up over it)
+    spray(state, x + 4, wy, 2, 0.6 + Math.random(), -3.5 - Math.random() * 2.5, sw);
+  }
+};
 
 /** A board line from the operator or him as the log goes, once a ride. */
 export const rideStartLine = (state: GameState) => meatheadSays(state, pickLine(byPants(state, RIDE_START)), true);

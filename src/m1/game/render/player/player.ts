@@ -9,6 +9,7 @@ import { drawCopterSeatPose } from './copterPose';
 import { drawTragonPose } from './tragonPose';
 import { drawBroomRidePose } from './broomPose';
 import { seatPunchLean, drawSeatPunchArm, drawSeatPunchBackArm } from './seatPunch';
+import { paddleLean, drawPaddleBackArm, drawPaddleFront, paddleShown } from './paddlePose';
 import { drawCatPlayer, setCatBody } from './catBody';
 import { BOULDER_THROW_FRAMES, GUN_COOLDOWN, COLORS, INITIAL_PLAYER_HEALTH, PLAYER_TERMINAL_VELOCITY, PLAYER_MOVE_SPEED, PLAYER_INVINCIBILITY_FRAMES, SPECIAL_HURT_FRAMES } from '../../../constants';
 import { peeProgress } from '../../scenes/victoryPee';
@@ -448,6 +449,9 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
     // Ducked right down in it, hunched over, under whatever's coming
     bodyRot = 0.5;
     bodyY = 5;
+  } else if (logSeated && p.logPaddle) {
+    // Paddling it: leaning into each stroke boosting, braced back against the paddle braking (render/player/paddlePose.ts)
+    const l = paddleLean(p.logPaddle); bodyRot = l.rot; bodyY = l.y;
   } else if (logSeated) {
     // Sat up in the log, legs out in front of him down in it, bobbing with the water
     bodyRot = -0.07;
@@ -591,6 +595,9 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
     // Ducked: hunched right over, both hands gripping the front of the cart, head down
     drawReachingArm(ctx, -6, -40, 6, -30, 18, -28, skinShadow);
     ctx.fillStyle = skinShadow; ctx.beginPath(); ctx.arc(18, -28, 4.5, 0, Math.PI * 2); ctx.fill();
+  } else if (logSeated && p.logPaddle) {
+    // Across him to the paddle's grip
+    drawPaddleBackArm(ctx, p.logPaddle);
   } else if (logSeated) {
     // Down at his side, gripping the log's rim
     drawReachingArm(ctx, -6, -40, -12, -32, -9, -24, skinShadow);
@@ -1261,6 +1268,11 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
     ctx.fillStyle = skinTone; ctx.beginPath(); ctx.ellipse(ramX, ramY, 8.5, 7.5, 0.3, 0, Math.PI * 2); ctx.fill();
     ctx.fillStyle = skinShadow; ctx.beginPath(); ctx.ellipse(ramX - 1, ramY + 5, 6, 1.6, 0.3, 0, Math.PI * 2); ctx.fill();
     ctx.fillStyle = skinHighlight; ctx.beginPath(); ctx.ellipse(ramX + 2.5, ramY - 3, 3.5, 2, 0.3, 0, Math.PI * 2); ctx.fill();
+  } else if (logSeated && p.logPaddle) {
+    // Paddling: the paddle down the log's near side, his near hand low on it (and noted, for the ride's art to draw its
+    // lower part again over the log's near side)
+    drawPaddleFront(ctx, p.logPaddle);
+    Object.assign(paddleShown, { frame: state.frame, x: anchorX, y: anchorY, rot: p.spriteRot || 0, facing: p.facing, bodyY, bodyRot, q: p.logPaddle });
   } else if (lounging && !logSeated && p.seatPunch !== undefined) {
     // The haymaker from the seat (render/player/seatPunch.ts)
     drawSeatPunchArm(ctx, p.seatPunch, bodyRot);
