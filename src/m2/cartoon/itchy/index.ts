@@ -28,6 +28,7 @@ import { itchyOf, saidOnce, ITCHY_DONE } from './state';
 import { makeHazards, updateHazards, noteSafe, onDropped } from './hazards';
 import { drawHazardsBack, drawHazardsFront } from './hazardArt';
 import { drawItchyBackdrop, drawItchyBack, drawItchySigns, itchyLamps } from './art';
+import { primeAmphiFar } from '../amphi/far';
 import { ARRIVE, REVISIT, GAGS } from './lines';
 import { drawItchyDeathCam } from './deaths';
 import { tickHurtGag, drawHurtGag } from '../../hurtGags';
@@ -91,7 +92,11 @@ export const itchy: CartoonSection = {
     if (runExits(state, endExits('itchy')) && leavingRight) state.stageMemo[ITCHY_DONE] = '1';
     return controls;
   },
-  drawBackdrop: (c, state) => drawItchyBackdrop(c, state),
+  drawBackdrop: (c, state) => {
+    // (near the gate on: the amphitheater's far off stamped ahead, a layer a frame (amphi/far.ts), under this one's)
+    if (state.camera.x > x1 - 2400) primeAmphiFar(c);
+    return drawItchyBackdrop(c, state);
+  },
   drawBack: (c, state) => {
     const k = itchyOf(state);
     drawItchyBack(c, state, !!state.stageMemo[ITCHY_DONE]);

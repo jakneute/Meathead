@@ -234,6 +234,20 @@ export const stamp = (ctx: Ctx, key: string, x: number, y: number, w: number, h:
   Object.assign(ctx, s.after);
 };
 
+/** stamp(), but painted into its stamp straight away, even the first time it's asked for (not live first, stamped the
+ *  next time): for stamping art ahead of where it's wanted, onto a scratch canvas at the transform it'll be shown at
+ *  (Cartoon Land's amphitheater's far off, from the other side of the gate). Its canvas, for the caller to put a pixel
+ *  of somewhere it's painted over (the GPU then draws the rest of it in now, not on the frame it's first shown). */
+export const prestamp = (ctx: Ctx, key: string, x: number, y: number, w: number, h: number, paint: (g: Ctx) => void): HTMLCanvasElement | null => {
+  const m = ctx.getTransform(), al = Math.round(ctx.globalAlpha * 64) / 64;
+  const id = `${al === 1 ? key : `${key}~${al}`}@${q(m.a)},${q(m.d)}`;
+  if (!stamps.has(id)) {
+    if (!asked.has(id)) asked.set(id, frameNo - SETTLE);
+    stamp(ctx, key, x, y, w, h, paint);
+  }
+  return stamps.get(id)?.c ?? null;
+};
+
 /** Does the clipped stamp `s`, scaled to the transform `m`, reach over every part of the art's box (x, y, w, h) that's
  *  on the canvas? */
 const covers = (ctx: Ctx, m: DOMMatrix, s: Stamp, x: number, y: number, w: number, h: number) => {

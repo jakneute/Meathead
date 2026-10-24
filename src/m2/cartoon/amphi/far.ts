@@ -22,6 +22,7 @@ import { snap2, wave, mist } from '../../adventure/farArt';
 import { signText, type Look } from '../../signLetters';
 import { box, mix, hash, checker, stamp, INK, type Ctx } from '../kit';
 import { MONUMENT_AT, drawMonument } from '../monument';
+import { prestamp } from '../../../m1/game/render/stamp';
 import { SECTIONS } from '../geometry';
 import { farSpooky, farHollywood } from '../glimpse';
 
@@ -366,6 +367,28 @@ const paintGrove = (g: Ctx, tod: TimeOfDay) => {
 };
 
 // ---------------------------------------------------------------------------------------------------------------
+
+/** Stamped ahead, a layer a frame, from the other side of the gate (itchy/index.ts, near its way on): through it is a
+ *  teleport, and every layer was painted live and then stamped on its first two frames in (two long frames). Onto a
+ *  scratch canvas at the backdrop's own transform (`c`'s, its drawing state), so they're the very stamps drawAmphiFar
+ *  asks for; a pixel of each put down on `c` before its own backdrop's painted over it (so the GPU draws it in now). */
+let scratch: Ctx | null = null, primed = '', primeStep = 0;
+export const primeAmphiFar = (c: Ctx) => {
+  const tod = timeOfDay(), m = c.getTransform(), key = `${tod.key}-${fk()}-${m.a},${m.d}`;
+  if (primed !== key) { primed = key; primeStep = 0; }
+  const layers: [string, number, number, (g: Ctx) => void][] = [
+    ['clouds', CW, CH, g => paintClouds(g, tod)], ['country', HW, HH, g => paintCountry(g, tod)], ['park', PW, PH, g => paintPark(g, tod)],
+    ['grove', GW, GH, g => paintGrove(g, tod)], ['blimp', 330, 64, g => paintBlimp(g, tod)],
+  ];
+  if (primeStep >= layers.length || typeof document === 'undefined') return;
+  if (!scratch) { const cv = document.createElement('canvas'); cv.width = 1; cv.height = 1; scratch = cv.getContext('2d')!; }
+  const [k, w, h, paint] = layers[primeStep++], g = scratch;
+  Object.assign(g, { lineCap: c.lineCap, lineJoin: c.lineJoin, miterLimit: c.miterLimit, lineWidth: c.lineWidth, font: c.font, textAlign: c.textAlign, textBaseline: c.textBaseline, globalAlpha: 1 });
+  g.imageSmoothingEnabled = c.imageSmoothingEnabled;
+  g.setTransform(m.a, 0, 0, m.d, 0, 0);
+  const cv = prestamp(g, `ct-amf-${k}-${tod.key}-${fk()}`, 0, 0, w, h, paint);
+  if (cv) { c.save(); c.setTransform(1, 0, 0, 1, 0, 0); c.drawImage(cv, 0, 0, 1, 1, 0, 0, 1, 1); c.restore(); }
+};
 
 export const drawAmphiFar = (c: Ctx, state: GameState) => {
   const tod = timeOfDay(), hz = horizonY(state), cx = state.camera.x, f = state.frame;
