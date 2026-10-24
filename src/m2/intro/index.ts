@@ -22,6 +22,7 @@
 import type { StageLayout } from '../../m1/game/stages/index';
 import type { GameState } from '../../m1/game/core/state';
 import type { FrameContext } from '../../m1/game/core/context';
+import type { Controls } from '../../m1/game/platform/input';
 import type { Enemy } from '../../m1/types';
 import { groundBlocks } from '../../m1/game/core/terrain';
 import { makeKindEnemy } from '../../m1/game/enemies/kinds';
@@ -251,7 +252,7 @@ export const introLayout: StageLayout = {
     if (intro.walkIn !== null) { security(ctx, intro); return walkBackIn(state, intro); }
 
     walkways(state);
-    watchForTrouble(ctx, intro);
+    watchForTrouble(ctx, intro, controls);
     security(ctx, intro);
     detector(ctx, intro);
     line(ctx, intro);
@@ -433,8 +434,11 @@ const walkways = (state: GameState) => {
 // ---------------------------------------------------------------------------------------------------------------
 // Postal: has he started something?
 
-const watchForTrouble = (ctx: FrameContext, intro: Intro) => {
-  const { state } = ctx;
+const watchForTrouble = (ctx: FrameContext, intro: Intro, controls: Controls) => {
+  const { state } = ctx, p = state.player;
+  // (any weapon fired, any attack started, out in the open (the user's: "any weapon or attack should trigger a security
+  // response in america usa. special weapons show no resistance"): whatever it hits or doesn't, that's trouble)
+  if (!intro.provoked && p.health > 0 && !p.inCutscene && (controls.shoot || controls.special || controls.secondary || controls.charge || p.isCharging || p.isUppercutting || p.isDivekicking || p.isSliding || intro.grab.phase !== 'idle' || state.projectiles.some(q => q.owner === 'player'))) { provoke(ctx, intro, null); return; }
   let hit: Enemy | null = null;
   for (const e of state.enemies) {
     if (e.kind !== 'parksec' && !guests.has(e)) continue;
