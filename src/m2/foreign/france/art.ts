@@ -20,6 +20,7 @@ import {
 } from '../kit';
 import { bulbs } from '../../hollywood/blvd/kit';
 import { balustrade, ironRail } from '../italy/art';
+import { monaLisa } from './mona';
 
 const lampsOn = () => timeOfDay().lamps > 0.3;
 export const STONE = '#E7DCC4', CREAM = '#EDE4D3', ZINC = '#6A7488', IRON = '#2E3436', BISTRO = '#14532D', OXBLOOD = '#7F1D1D', GOLD = '#CA8A04', VELVET = '#8E1230';
@@ -452,7 +453,7 @@ export const drawFlowerStall = (c: Ctx, v: View, a: number, b: number, top: numb
   });
   lip(c, a, top, w);
 };
-/** The Mona Lisa stand (a box he stands on): its wooden front, the print in its gilt frame (her dark dress, her folded
+/** The Mona Lisa stand (a box he stands on): its wooden front, the print in its gilt frame (mona.ts: grossed up; her folded
  *  hands, her face, the hazy landscape behind), a rack of postcards of her. */
 export const drawMonaStand = (c: Ctx, v: View, a: number, b: number, top: number) => {
   if (!onScreen(v, a - 10, b + 10)) return;
@@ -463,29 +464,12 @@ export const drawMonaStand = (c: Ctx, v: View, a: number, b: number, top: number
     box(g, -1, 0, w + 2, h + 1, INK); planks(g, 0, 0, w, h, Wd, false, 7, 12);
     const fx = Math.round(w / 2 - 22), fy = 10;
     box(g, fx - 5, fy - 5, 54, 64, INK); box(g, fx - 4, fy - 4, 52, 62, Gd[3]); box(g, fx - 4, fy - 4, 52, 2, Gd[5]); box(g, fx - 4, fy - 4, 2, 62, Gd[4]); box(g, fx + 46, fy - 4, 2, 62, Gd[1]); for (let k = 0; k < 6; k++) box(g, fx - 3 + k * 9, fy - 3, 3, 1, Gd[1]);
-    bandOf(g, fx, fy, 44, 54);
+    monaLisa(g, fx, fy, 44, 54);
     // (the postcards of her in a rack either side)
-    for (const px0 of [6, w - 16]) for (let k = 0; k < 3; k++) { box(g, px0 - 1, 12 + k * 22, 12, 16, INK); box(g, px0, 13 + k * 22, 10, 14, hour('#4A5A3A')); box(g, px0 + 3, 15 + k * 22, 4, 4, hour('#D8B080')); box(g, px0 + 2, 19 + k * 22, 6, 7, hour('#2A2018')); }
+    for (const px0 of [6, w - 16]) for (let k = 0; k < 3; k++) { box(g, px0 - 1, 12 + k * 22, 12, 16, INK); box(g, px0, 13 + k * 22, 10, 14, hour('#F2EEE0')); monaLisa(g, px0 + 1, 14 + k * 22, 8, 12); }
   });
   lip(c, a, top, w);
 };
-/** The Mona Lisa herself (local, in a w x h box): the hazy landscape in bands, her hair and veil, her face (THAT
- *  smile), her dark dress, her hands folded. */
-const bandOf = (g: Ctx, x: number, y: number, w: number, h: number) => {
-  const L = ['#6A7A5A', '#7A8A62', '#5A6A4A', '#4A5A3A'];
-  for (let k = 0; k < 4; k++) box(g, x, y + (k * h) / 4, w, h / 4 + 1, hour(L[k]));
-  checker(g, x, y + h / 4 - 1, w, 2, hour(L[1]), 0, 1);
-  box(g, x + 4, y + h * 0.3, 8, 2, hour('#8A6A4A'));
-  const cx = x + w / 2;
-  poly(g, [[cx - 14, y + h], [cx - 10, y + 22], [cx + 10, y + 22], [cx + 14, y + h]], hour('#2A2018'));
-  g.fillStyle = hour('#1C1410'); g.beginPath(); g.ellipse(cx, y + 16, 9, 11, 0, 0, Math.PI * 2); g.fill();
-  g.fillStyle = hour('#D8B080'); g.beginPath(); g.ellipse(cx, y + 16, 6, 8, 0, 0, Math.PI * 2); g.fill();
-  box(g, cx - 4, y + 10, 3, 6, hour('#E8C898')); box(g, cx - 3, y + 15, 2, 1, hour('#3A2A20')); box(g, cx + 1, y + 15, 2, 1, hour('#3A2A20'));
-  box(g, cx - 2, y + 20, 4, 1, hour('#8A5A40')); box(g, cx + 2, y + 19, 1, 1, hour('#8A5A40'));
-  box(g, cx - 4, y + 23, 8, 6, hour('#D8B080'));
-  g.fillStyle = hour('#D8B080'); g.beginPath(); g.ellipse(cx - 2, y + 40, 8, 4, 0.2, 0, Math.PI * 2); g.fill(); box(g, cx - 7, y + 38, 6, 2, hour('#E8C898'));
-};
-
 // ---------------------------------------------------------------------------------------------------------------
 // LE LOUVRE
 
@@ -593,7 +577,7 @@ export const monaPostcard = (c: Ctx, v: View, x: number, y: number) => {
   const d = 0.97, [px, py] = at(v.eye, x, y, d), Wd = ramp6(dimmed('#6B4423')), Gd = ramp6(hour(GOLD)), Vl = ramp6(hour(VELVET));
   c.save(); c.beginPath(); c.rect(px - 60, py - 60, 120, y - (py - 60)); c.clip();
   for (const [lx0, lx1] of [[px - 8, px - 12], [px + 8, px + 12], [px, px + 2]] as const) { c.strokeStyle = INK; c.lineWidth = 3; c.beginPath(); c.moveTo(lx0, py - 40); c.lineTo(lx1, py); c.stroke(); c.strokeStyle = Wd[3]; c.lineWidth = 1.5; c.beginPath(); c.moveTo(lx0, py - 40); c.lineTo(lx1, py); c.stroke(); }
-  box(c, px - 11, py - 46, 22, 28, INK); box(c, px - 10, py - 45, 20, 26, dimmed(GOLD)); bandOf(c, px - 8, py - 43, 16, 22);
+  box(c, px - 11, py - 46, 22, 28, INK); box(c, px - 10, py - 45, 20, 26, dimmed(GOLD)); monaLisa(c, px - 8, py - 43, 16, 22);
   box(c, px - 12, py - 19, 24, 3, INK); box(c, px - 11, py - 19, 22, 2, Wd[4]);
   c.restore();
   // (the rope, in front of it on the apex)
