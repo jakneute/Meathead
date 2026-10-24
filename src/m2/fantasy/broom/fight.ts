@@ -55,7 +55,7 @@ import { timeOfDay } from '../../timeOfDay';
 import {
   W, H, HORIZON, FOCAL, CAM_BACK, CAM_UP, WALL_R, MIN_ALT, MAX_ALT, MOAT, CASTLE_U, WINDOW, SOLIDS, TOWERS, FLAGS, BALLOONS, TREES,
   CASTLE_K, CASTLE_CX, CASTLE_CY, TOWER_PX, view, setView, project, seen, solidAt, radiusAt, topOf, balloonAt,
-  drawSky, drawGround, castleSprite, towerSprite, treeSprite, flagSprite, balloonSprite, drawSprite, drawMipped, setSplats,
+  drawSky, drawGround, primeGround, groundReady, castleSprite, towerSprite, treeSprite, flagSprite, balloonSprite, drawSprite, drawMipped, setSplats,
   type Proj, type Solid, type Splat,
 } from './arena';
 import { drawMeatheadBroom, drawMeatheadFall, riderCanvas, clearRiders, drawThing, drawCorpse, RIDER_W, RIDER_H, RIDER_AX, RIDER_AY, type Thing } from './art';
@@ -666,6 +666,9 @@ export const updateFight = (ctx: FrameContext, controls: Controls): Controls => 
   const { state } = ctx, f = fightOf(state), p = state.player;
   if (f.phase === 'off' || f.phase === 'dead') return {} as Controls;
   holdHim(state, true);
+  // (a cold start (fast travel, a respawn) with the floor's texture not all painted yet: held black, the fight not
+  // begun, while the rest of it's painted a slice a frame, not in one long frame)
+  if (f.phase === 'fly' && f.t === 0 && !primeGround(10)) return {} as Controls;
   f.t++;
   if (f.fade > 0 && f.phase === 'fly') f.fade = Math.max(0, f.fade - 1 / 30);
   if (f.tips > 0) f.tips--;
@@ -1019,6 +1022,8 @@ const shadow = (g: CanvasRenderingContext2D, x: number, z: number, r: number, k 
 export const drawFight = (c0: CanvasRenderingContext2D, state: GameState) => {
   const f = fightOf(state);
   if (f.phase === 'off') return;
+  // (held black till its floor's painted: updateFight)
+  if (f.phase === 'fly' && f.t === 0 && !groundReady()) { c0.fillStyle = '#000'; c0.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT); return; }
   const fr = state.frame;
   // (dead: his tumble plays out with the death scene's frames)
   if (f.phase === 'dead') {

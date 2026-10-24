@@ -21,6 +21,7 @@ import { W, H, FOCAL, TOWERS } from './world';
 import { TS, TEXEL, HALF, OS, paintGroundSteps, outsideFor, outsideRaw } from './ground';
 import { drawSky as skyDraw } from './sky';
 import { Mode7 } from '../../gl/mode7';
+import { idleJob } from '../../../m1/game/scenes/art/raster';
 
 export { W, H, HORIZON, FOCAL, WALL_R, MIN_ALT, MAX_ALT, MOAT, TOWERS, FLAGS, TREES } from './world';
 export { castleSprite, towerSprite, treeSprite, flagSprite, balloonSprite, drawSprite, drawMipped, CASTLE_K, CASTLE_CX, CASTLE_CY, TOWER_PX, BALLOON_AX, BALLOON_AY } from './sprites';
@@ -205,13 +206,24 @@ function* buildSteps(tod: TimeOfDay): Generator<void, Ground> {
 let job: { key: string; it: Generator<void, Ground> } | null = null;
 /** Paint the ground's texture a few milliseconds at a time before it's needed (the runway calls this every frame on
  *  the way to the deathmatch), so taking off doesn't hitch on painting it all at once. */
-export const primeGround = (budgetMs = 3) => {
+export const primeGround = (budgetMs = 3): boolean => {
   const tod = timeOfDay();
   // (built: its GPU copy sent up now too, rather than on the first frame of the fight)
-  if (ground && ground.key === tod.key) { m7.sync(ground); return; }
+  if (ground && ground.key === tod.key) { m7.sync(ground); return true; }
   if (!job || job.key !== tod.key) job = { key: tod.key, it: buildSteps(tod) };
   const t0 = performance.now();
-  while (performance.now() - t0 < budgetMs) { const r = job.it.next(); if (r.done) { ground = r.value; splatsOn(ground, tod); job = null; return; } }
+  while (performance.now() - t0 < budgetMs) { const r = job.it.next(); if (r.done) { ground = r.value; splatsOn(ground, tod); job = null; return true; } }
+  return false;
+};
+/** Built for the hour (nothing painted to find out)? */
+export const groundReady = () => !!ground && ground.key === timeOfDay().key;
+let warming = false;
+/** The ground built further ahead, in idle moments only (anywhere in the keep, or a checkpoint start near the fight):
+ *  fast travel and respawns land on the deathmatch with it painted, or most of it. */
+export const prewarmGround = () => {
+  if (warming || groundReady()) return;
+  warming = true;
+  idleJob(until => { const done = primeGround(Math.max(0.5, until - performance.now())); if (done) warming = false; return done; });
 };
 /** The floor on the GPU (gl/mode7.ts), the view's size; the software sampler below if it can't. */
 const m7 = new Mode7(W, H, TEXEL, FAR);

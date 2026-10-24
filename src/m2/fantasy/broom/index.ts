@@ -23,7 +23,7 @@
 // straight up on his broom. Once it's on there's no leaving it (the sub-boss rule) till the last suitor's down.
 
 import type { GameState } from '../../../m1/game/core/state';
-import { CANVAS_WIDTH } from '../../../m1/constants';
+import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../../../m1/constants';
 import type { FantasySection } from '../section';
 import { layOwn, endWalls, runExits, fantasyState, hands, type Exit } from '../section';
 import { SECTIONS, DOORS, GY } from '../geometry';
@@ -68,7 +68,12 @@ export const broom: FantasySection = {
     return controls;
   },
   cameraX: () => ({ min: x0, max: x0 + LEN - CANVAS_WIDTH }),
-  drawBackdrop: (c, state) => (inFight(state) ? true : drawSideBackdrop(c, state, x0, LEN)),
+  // (not won yet: the fight's about to start (its own view), not the side view, whose floor would be painted all at once)
+  drawBackdrop: (c, state) => {
+    if (inFight(state)) return true;
+    if (!broomDone(state)) { c.fillStyle = '#000'; c.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT); return true; }
+    return drawSideBackdrop(c, state, x0, LEN);
+  },
   drawBack: (c, state) => {
     if (inFight(state)) return;
     // (after: a wall walk high on the castle's crown, the grounds far below; the way to her chambers: side.ts)

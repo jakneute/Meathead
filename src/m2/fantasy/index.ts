@@ -35,6 +35,7 @@ import type { Zone } from '../hudThemes';
 import { onLandLeft } from '../landCaches';
 import { clearBanded } from './tragons/cache';
 import { clearDragonSprites } from './tragons/dragon';
+import { prewarmGround } from './broom/arena';
 export { FANTASY_VOICE_LINES } from './voices';
 
 export const FANTASY_STAGE = 'M2 Fairy Land';
@@ -99,6 +100,8 @@ export const fantasyLayout: StageLayout = {
     if (import.meta.env.DEV && !devStarted) { devStarted = true; const q = new URLSearchParams(location.search).get('fantasy'); if (q) state.checkpoint = +q; }
     const cp = FANTASY_CHECKPOINTS.find(c => c.cp === state.checkpoint) ?? FANTASY_CHECKPOINTS[0];
     fs.section = sectionAt(cp.x).id;
+    // (starting in the keep or at the deathmatch: its floor painted ahead in idle moments (broom/arena.ts))
+    if (fs.section === 'keep' || fs.section === 'broom') prewarmGround();
     // (a boss's checkpoint: back for another go at him, nobody else about)
     if (cp.clear) {
       const [l, r] = cp.clear;

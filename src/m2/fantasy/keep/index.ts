@@ -32,7 +32,7 @@ import { buildHazards, updateHazards, drawHazardsBack, drawHazardsFront, drawDra
 import { drawKeepBackdrop, drawKeepBack, drawGatehouseVeil, keepLamps } from './art';
 import { buildRunway, updateRunway, updateBoutique, drawBoutique, drawBoutiqueFront, drawRunway, drawRunwayFront, drawRunwayHud, runwayPiper } from './runway';
 import { ARRIVE, GAGS, PIPER_KEEP } from './lines';
-import { primeGround } from '../broom/arena';
+import { primeGround, prewarmGround } from '../broom/arena';
 import '../square/kinds';
 import '../glen/kinds';
 import './kinds';
@@ -63,8 +63,9 @@ export const keep: FantasySection = {
     updateBoutique(state);
     const out = updateRunway(ctx, controls);
     const rx = p.pos.x + p.width / 2 - x0;
-    // (near the runway: the deathmatch's ground painted a few milliseconds a frame, so taking off doesn't hitch)
-    if (rx > RUNWAY - 1500) primeGround();
+    // (near the runway: the deathmatch's ground painted a few milliseconds a frame, so taking off doesn't hitch;
+    // anywhere else in the keep, in idle moments)
+    if (rx > RUNWAY - 1500) primeGround(); else prewarmGround();
     const free = !p.inCutscene && p.health > 0;
     const once = (key: string, pool: string[], after = false) => { if (!k.said[key] && free) { k.said[key] = true; meatheadSays(state, pickLine(pool), after); } };
     if (state.checkpoint === 40 && rx < 500 && state.frame > 40) once('arrive', byPants(state, ARRIVE));
