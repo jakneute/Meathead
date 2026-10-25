@@ -60,6 +60,7 @@ import { registerDeathKind, type MeatheadDeathKind } from '../../../m1/game/play
 import { ENEMY_HIT_COOLDOWN, CANVAS_WIDTH, CANVAS_HEIGHT, BULLET_DAMAGE, BOSS_CHARGE_DAMAGE, BOSS_UPPERCUT_DAMAGE } from '../../../m1/constants';
 import { setErect } from '../../../m1/game/render/player/body';
 import { registerM2Kind, registerHurtLines } from '../../kinds';
+import { newSpam, spamTick, hitKey, swatOff, type Spam } from '../../bossSpam';
 import { TOO_BIG_BY_KIND } from '../../lines/weaponLines';
 import { setUi } from '../../store';
 import { box, label, saidOver, voice, meatheadSays } from '../section';
@@ -177,6 +178,8 @@ export interface Fight {
   stay: number; goes: number; slamIn: number; fightT: number;
   mv: Move; mvFrom: number; mvTo: number; mvY0: number; mvY1: number; mvH: number; lastMv: Move; riseY: number;
   e: Enemy; moveSeen: number | undefined;
+  /** The same hit landing on her over and over (bossSpam.ts). */
+  spam: Spam;
   said: string | null; tauntT: number; tauntHer: boolean; hintAt: number; wrongN: number; lowSaid: boolean;
   intro: IntroStep; introT: number; skipT: number; camX: number; doorT: number | null;
   closeup: { face: PiperFace; t: number } | null;
@@ -257,7 +260,7 @@ const fresh = (state: GameState, e: Enemy): Fight => ({
   hazards: [], debris: [], rubble: [], shots: [], patches: [], splats: [], holes: [], thin: 0,
   chand: null, chandDown: null, roofHole: null, stun: 0, ice: null, thawT: 0, thawedAt: -9999, throwAt: -9999, rip: null, hopFrom: 0, hopTo: 0, zo: 1,
   stay: 0, goes: 0, slamIn: 160, fightT: 0, mv: 'dash', mvFrom: 0, mvTo: 0, mvY0: GY, mvY1: GY, mvH: 0, lastMv: 'perch', riseY: GY,
-  e, moveSeen: e.hitByMove, said: null, tauntT: 0, tauntHer: true, hintAt: -9999, wrongN: 0, lowSaid: false,
+  e, moveSeen: e.hitByMove, spam: newSpam(), said: null, tauntT: 0, tauntHer: true, hintAt: -9999, wrongN: 0, lowSaid: false,
   intro: 'approach', introT: 0, skipT: 0, camX: state.camera.x, doorT: null, closeup: null,
   erect: 1, death: null, deathSaid: 0, cam: null, entrance: 0,
 });
@@ -1027,6 +1030,15 @@ const takeHits = (ctx: FrameContext, f: Fight) => {
   // (the flintlock: a hole, breather or no)
   // (not while she's off round the room (the user's: "you cannot pop her as she bounces around"))
   if (!melee && p.currentWeapon === 'FLINTLOCK') { if (f.act !== 'bounce') hole(ctx, f); return; }
+  // (a dive kick on her: she's a balloon, and he's bounced right off her, flung off to the side, boing (the user's:
+  // "piper bounces you too"): no stomping chain on her head; no hurt)
+  if (melee && p.isDivekicking) { swatOff(state, f.x, 9, -10); playSound('boing', 0.8, -2 + Math.random() * 4); playSound('squish', 0.4, 4); }
+  // (the user's: "i don't want the player to be given more than 5 uninterrupted seconds spamming the same attack on a
+  // boss": the same hit landing for 4 s (the ray gun held on her from one spot) and she's off somewhere now, stay or no)
+  else if (f.act !== 'bounce' && f.act !== 'flop' && f.act !== 'getup' && !airborne(f) && spamTick(f.spam, state.frame, hitKey(p, melee))) {
+    f.stay = 999;
+    if (f.act === 'walk' || f.act === 'sit') startMove(state, f);
+  }
   if (f.iframes > 0) return;
   const plain = plainHit(state, melee);
   // (him thinking out loud about the flintlock, now and then; never about a weapon he hasn't got)
