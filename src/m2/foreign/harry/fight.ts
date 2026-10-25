@@ -54,6 +54,7 @@ import { isShat, isNude } from '../../../m1/game/player/gut';
 import { makeKindEnemy } from '../../../m1/game/enemies/kinds';
 import { ENEMY_HIT_COOLDOWN, CANVAS_WIDTH, CANVAS_HEIGHT, BULLET_DAMAGE, BOSS_CHARGE_DAMAGE, BOSS_UPPERCUT_DAMAGE } from '../../../m1/constants';
 import { registerM2Kind } from '../../kinds';
+import { newSpam, spamTick, hitKey, swatOff, type Spam } from '../../bossSpam';
 import { keepForRevisits } from '../../store';
 import { setDartTaker } from '../../weapons/crossbow';
 import { TOO_BIG_BY_KIND } from '../../lines/weaponLines';
@@ -86,8 +87,10 @@ const QUEASY_DARTS = 10;
 const DART_DMG = 2, SICK_AT = QUEASY_DARTS, SICK_COOL = 150, SICK_DECAY = 0.008;
 /** Her concrete on him (the weakness's hit). Its splash on the floor round him (and what it does to Meathead). */
 const HEAVY = 150, SPLASH_R = 120, SPLASH_DMG = 18;
-/** Walking at him: how fast, how close he comes, how long a walk lasts (the stuck arm's walk lasts till she's up). */
-const WALK_V = 0.8, WALK_NEAR = 170, WALK_T = 250;
+/** Walking at him: how fast, how close he comes, how long a walk lasts (the stuck arm's walk lasts till she's up, but
+ *  he leaps across to the far side every STUCK_HOP of it). Shorter, and the side-switching hops (the user's: "he
+ *  should probably switch sides more often": the walk was 250, the stuck one never hopped). */
+const WALK_V = 0.8, WALK_NEAR = 170, WALK_T = 170, STUCK_HOP = 150;
 /** The machine gun (head on): a burst's rounds, the frames between them, the rest after; a round's speed and hurt. */
 // (a burst's 5 rounds 4 frames apart: 20 frames of stream past any one spot. A full jump keeps his feet over chest
 // height for ~36 frames (jump speed 7 held 15 frames, gravity 0.65), so one jump clears a whole burst, with room: the
@@ -186,6 +189,8 @@ export interface Fight {
   torch: { x: number; y: number; vy: number; a: number; down: boolean } | null;
   gunDrop: { x: number; y: number; vy: number; a: number; down: boolean } | null;
   e: Enemy; moveSeen: number | undefined;
+  /** The same hit landing on him over and over (bossSpam.ts). */
+  spam: Spam;
   said: string | null;
   wrongN: number; hintAt: number; lowSaid: boolean; tauntT: number; gloatAt: number; lastHp: number;
   intro: Intro; introT: number; skipT: number; ripped: boolean; jet: boolean;
@@ -283,7 +288,7 @@ export const startFight = (state: GameState): Fight => {
     lib: { dy: seen ? 0 : LIB.sink, face: 'stern', shake: 0, stains: [], tear: 0, broken: 0, hand: { ...HAND_TABLET }, tablet: true, gun: false, tilt: 0, gone: false, wear: 0 },
     smashes: 0, crumble: -1, crumbled: false, puddle: null,
     rounds: [], chunks: [], piles: [], torch: null, gunDrop: null,
-    e, moveSeen: e.hitByMove, said: null,
+    e, moveSeen: e.hitByMove, spam: newSpam(), said: null,
     wrongN: 0, hintAt: -9999, lowSaid: false, tauntT: 0, gloatAt: -999, lastHp: state.player.health,
     intro: 'land', introT: 0, skipT: 0, ripped: seen, jet: !seen,
     death: null, deathSaid: 0, cam: null, walls: [],
@@ -466,10 +471,11 @@ const leapTo = (f: Fight, x1: number, y1: number, T: number, h: number, then: Ac
   playSound('jump', 0.8, -6);
 };
 
-/** Down to the floor from wherever he is, clear of the fist and over away from Meathead. */
-const floorSpot = (state: GameState, f: Fight) => {
+/** Down to the floor from wherever he is, clear of the fist and over away from Meathead (`away`: and a good way from
+ *  where he is now, so it's a real move). */
+const floorSpot = (state: GameState, f: Fight, away = false) => {
   const m = pmid(state).x, fb = fistBox(f);
-  const cands = [ARENA_L + 120, MID - 160, MID + 160, ARENA_R - 120].filter(x => !fb || x < fb.x0 - 50 || x > fb.x1 + 50);
+  const cands = [ARENA_L + 120, MID - 160, MID + 160, ARENA_R - 120].filter(x => (!fb || x < fb.x0 - 50 || x > fb.x1 + 50) && (!away || Math.abs(x - f.hx) >= 200));
   return cands.sort((a, b) => Math.abs(b - m) - Math.abs(a - m))[0] ?? MID;
 };
 
@@ -532,6 +538,8 @@ const harry = (ctx: FrameContext, f: Fight) => {
       // (done: a walk's time up; the stuck arm's walk once she's up again)
       if (f.move === 'walk' && f.moveT > WALK_T * (f.crumbled ? RAGE_WALK_T : 1) && f.burst === 0) setAct(f, 'idle');
       if (f.move === 'stuckWalk' && f.arm.st === 'up' && f.burst === 0) setAct(f, 'idle');
+      // (her arm stuck a long while: over to the far side and on at him from there)
+      else if (f.move === 'stuckWalk' && f.moveT > STUCK_HOP && f.burst === 0) { f.moveT = 0; leapTo(f, floorSpot(state, f, true), GY, 40, 90, 'idle', 1); }
       break;
     }
     case 'crown':
@@ -1168,6 +1176,14 @@ const takeHits = (ctx: FrameContext, f: Fight) => {
   // (puking his guts out, without her: wide open, every hit a big one)
   const base = plain ?? Math.max(1, dealt * SHARE);
   hurt(ctx, f, f.barf?.stage === 'grief' ? Math.max(GRIEF_HIT, base) : base, IFRAMES);
+  // (the user's: "i don't want the player to be given more than 5 uninterrupted seconds spamming the same attack on a
+  // boss": the same hit landing on him for 4 s on the floor (ducked under his bursts with the ray gun going, a dive-kick
+  // chain off his head) and he's off it: a shove off him if he's on him (no hurt), and a leap away to the far side)
+  if (!f.barf && !f.leap && !f.pin && f.hy >= GY - 2 && (f.act === 'walk' || f.act === 'idle') && spamTick(f.spam, state.frame, hitKey(state.player, melee))) {
+    if (melee) swatOff(state, f.hx);
+    f.burst = 0; f.moveT = 0;
+    leapTo(f, floorSpot(state, f, true), GY, 40, 90, 'idle', 1);
+  }
 };
 
 const hurt = (ctx: FrameContext, f: Fight, dmg: number, iframes: number) => {
