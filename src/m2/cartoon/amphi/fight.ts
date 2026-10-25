@@ -164,7 +164,8 @@ const hopAir = (vy: number) => Math.ceil((2 * -vy) / HOP_G) + 1;
 /** The hop's tell (frames of knee bend before he goes), the give as he lands. */
 const HOP_TELL = 16, LAND_GIVE = 10;
 /** Baffled (each one of the family flattened), the clapperboard's reset in this fight; the cars' flight. */
-const BAFFLE_T = 84, RECHARGE = 420, CAR_V = 15;
+// (somewhat longer (the user's: "somewhat increase the cooldown on the clapperboard"), still the one hard timer: was 420)
+const BAFFLE_T = 84, RECHARGE = 540, CAR_V = 15;
 /** How full the clapperboard's ring shows: the timer, all there is to it. */
 const takeK = (f: Fight) => (f.recharge > 0 ? 1 - f.recharge / RECHARGE : 1);
 /** Up and pathetic: his stagger, the trips. */
