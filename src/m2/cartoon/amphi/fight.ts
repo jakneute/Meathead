@@ -108,7 +108,10 @@ const SWAT_WIND = 16, SWAT_FAST = 7, SWAT_LIVE = 6, SWAT_RECOVER = 40, SWAT_GAP 
  *  between them; their flight; how many fly all over the set with each armful (more once he's lost some of them); the
  *  hurt one does Meathead; the family's jerky walk (px a step, a step every 8 frames). */
 // (quicker, the user's: were [300, 420] and 30)
-const CALL_EVERY: [number, number] = [220, 310], BOTTLES: [number, number] = [1, 2], TOSS_GAP = 24, BOTTLE_T = 34, SPRAY = 3, BEER_DMG = 6;
+const CALL_EVERY: [number, number] = [220, 310], BOTTLES: [number, number] = [1, 2], TOSS_GAP = 24, BOTTLE_T = 34, SPRAY = 1, BEER_DMG = 6;
+/** The bottles drawn this much up, and their hit that much bigger (the user's: "make the beer projectiles larger, easier
+ *  to read and fewer of them": the spray was 3 an armful). */
+const BOTTLE_S = 1.7;
 /** The beer run's rush (the user's: "they will move very quickly to the fridge and throw it then back to their
  *  'default' track"): px a frame there and back. */
 const RUSH = 9;
@@ -957,7 +960,7 @@ const errand = (ctx: FrameContext, f: Fight) => {
         throwBottle(f, er.left <= 1 ? 'catch' : (['short', 'long', 'head', 'wall'] as const)[Math.floor(Math.random() * 4)]);
         const n = SPRAY + (f.kills >= 2 ? 1 : 0);
         // (two of them about where he's stood: with the family harmless now, the bottles keep him moving)
-        for (let k = 0; k < n; k++) throwSpray(f, state, k < 2);
+        for (let k = 0; k < n; k++) throwSpray(f, state, k < 1);
         playSound('whoosh', 0.5, 8); playSound('clink', 0.5, 6);
         er.left--;
         if (er.left <= 0) { er.step = 'back'; er.t = 0; }
@@ -1008,7 +1011,7 @@ const bottles = (ctx: FrameContext, f: Fight) => {
       const q = bottleAt(b);
       if (q.u > 0.45 && q.d > 0.95) {
         const at = proj(E, X(q.x), q.y, q.d);
-        if (hits(pRect(state), { x0: at.x - 5, x1: at.x + 5, y0: at.y - 7, y1: at.y + 7 })) {
+        if (hits(pRect(state), { x0: at.x - 5 * BOTTLE_S, x1: at.x + 5 * BOTTLE_S, y0: at.y - 7 * BOTTLE_S, y1: at.y + 7 * BOTTLE_S })) {
           hurtPlayer(ctx, BEER_DMG, hurtSrc(state, 'm2:ct_dad_beer'), { x: Math.sign(b.bx - b.ax || 1) * 4, y: -4 }, 8);
           smash(state, at.x, at.y); playSound('bonk', 0.8, 6);
           b.t = -1; continue;
@@ -1622,7 +1625,7 @@ export const fightItems = (c: Ctx, state: GameState, f: Fight): Item[] => {
   // (the bottles in the air)
   for (const b of f.bottles) {
     const u = b.t / b.T, d = b.ad + (b.bd - b.ad) * u, x = b.ax + (b.bx - b.ax) * u, y = b.ay + (b.by - b.ay) * u - 70 * Math.sin(Math.PI * u);
-    at(d, X(x), () => drawBottle(c, X(x), y, b.rot));
+    at(d, X(x), () => { c.save(); c.translate(X(x), y); c.scale(BOTTLE_S, BOTTLE_S); drawBottle(c, 0, 0, b.rot); c.restore(); });
   }
   // (the cars in the air)
   for (const car of f.cars) { const p = carAt(car); at(p.d, X(p.x), () => drawCarAt(c, X(p.x), p.y, car.dir, car.wheel, p.rot, car.paint)); }
