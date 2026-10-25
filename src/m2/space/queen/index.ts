@@ -200,10 +200,10 @@ export const queen: SpaceSection = {
       tickVictory(state, q.victory);
       if (victoryDone(q.victory) && state.frame - q.wonAt > 60) {
         q.victory = null;
-        markBossDeath('space', f.byWeakness); markLandCleared('space'); noteBossKill();
-        // (her pieces where they lie, for the revisits; a plain death's her corpse)
+        // (her pieces where they lie, for the revisits (a plain death's her corpse): kept before the clear's save)
         keepForRevisits(WRECK_KEPT, f.blown ? packPieces(f.pieces, f.splats) : null);
         keepForRevisits(HEAP_KEPT, !f.blown && f.endo ? packEndo(f.endo) : null);
+        markBossDeath('space', f.byWeakness); markLandCleared('space'); noteBossKill();
         q.walk = playWalkAway(state, { boss: 'space-queen', weakness: f.byWeakness, onDone: () => goTo('hub') });
       }
     }

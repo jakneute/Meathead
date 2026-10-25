@@ -30,7 +30,7 @@ import { frameDeath } from '../../deathFrame';
 import type { FantasySection } from '../section';
 import { layOwn, endWalls, fantasyState, hands, ledge, solid, landVisit, meatheadSays, byPants } from '../section';
 import { DOORS } from '../geometry';
-import { goTo, markLandCleared, markBossDeath, noteBossKill, isLandCleared, setUi } from '../../store';
+import { goTo, markLandCleared, markBossDeath, noteBossKill, isLandCleared, setUi, keepForRevisits, keptForRevisits } from '../../store';
 import { type Victory, startVictory, tickVictory, drawVictory, victoryDone } from '../../victory';
 import { type WalkAway, playWalkAway, tickWalkAway, drawWalkAway } from '../../walkAway';
 import { markBossFight } from '../../bossQuiet';
@@ -65,7 +65,7 @@ const leave = (state: GameState, weakness: boolean) => {
   s.walk = playWalkAway(state, { boss: 'piper', weakness, onDone: () => goTo('hub') });
 };
 const endOf = (state: GameState): { how: 'cork' | 'balloon'; x: number } | null => {
-  const m = state.stageMemo[PIPER_END_MEMO];
+  const m = keptForRevisits(PIPER_END_MEMO);
   if (!m) return null;
   const [how, x] = m.split(':');
   return { how: how === 'balloon' ? 'balloon' : 'cork', x: +x || R(850) };
@@ -150,7 +150,7 @@ export const bedroom: FantasySection = {
       if (fightOver(f)) {
         s.fight = 'won'; s.wonAt = state.frame;
         const weak = killedByWeakness(f);
-        state.stageMemo[PIPER_END_MEMO] = `${weak ? 'balloon' : 'cork'}:${Math.round(weak ? f.x : f.death?.x ?? f.x)}`;
+        keepForRevisits(PIPER_END_MEMO, `${weak ? 'balloon' : 'cork'}:${Math.round(weak ? f.x : f.death?.x ?? f.x)}`);
         endFight(state, f);
         state.blocks = state.blocks.filter(b => !s.walls.includes(b)); s.walls = [];
         s.victory = startVictory();

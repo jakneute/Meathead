@@ -515,7 +515,7 @@ const intro = (ctx: FrameContext, f: Fight): Controls => {
 const phase = (f: Fight) => (f.hp > (HP * 2) / 3 ? 1 : f.hp > HP / 3 ? 2 : 3);
 const to = (f: Fight, m: Mode) => { f.mode = m; f.t = 0; f.ph = null; };
 const pmid = (state: GameState) => ({ x: state.player.pos.x + state.player.width / 2, y: state.player.pos.y + state.player.height / 2 });
-const canHurt = (state: GameState) => state.player.health > 0 && state.deathTimer <= 0 && state.player.invincibilityTimer <= 0;
+const canHurt = (state: GameState) => state.player.health > 0 && state.deathTimer <= 0 && state.player.invincibilityTimer <= 0 && !state.player.inCutscene;
 const kinAbout = (state: GameState) => state.enemies.filter(e => isKin(e) && e.health > 0 && !e.isBlownAway);
 
 export const updateFight = (ctx: FrameContext, f: Fight, controls: Controls): Controls => {
@@ -1106,7 +1106,9 @@ const sync = (f: Fight) => {
 const die = (ctx: FrameContext, f: Fight) => {
   const { state } = ctx;
   f.token++;
-  to(f, 'dead'); f.deathT = 0; f.drops = []; f.sacs = []; f.litter = []; f.barf = []; f.y = 0; if (f.pool) f.pool.going = true;
+  to(f, 'dead'); f.deathT = 0; f.drops = []; f.sacs = []; f.litter = []; f.barf = []; f.y = 0; f.can = null; if (f.pool) f.pool.going = true;
+  // (the spitters' gobs still in the air: gone with her, none landing in her death)
+  resetKin();
   if (f.e) state.enemies = state.enemies.filter(o => o !== f.e);
   // (her offspring: dead where they stand, the lot)
   for (const k of kinAbout(state)) destroyKin(ctx, k);

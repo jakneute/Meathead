@@ -1149,6 +1149,8 @@ const die = (ctx: FrameContext, f: Fight, weak: boolean) => {
   token++; silenceAll();
   f.mode = 'dead';
   state.enemies = state.enemies.filter(o => o !== f.e);
+  // (frozen when she went: thawed, his specials back)
+  if (f.ice || f.thawT > 0) { p.noSpecials = false; f.thawT = 0; }
   f.shots = []; f.debris = []; f.ice = null; f.stun = 0; f.said = null;
   state.damageNumbers = [];
   setUi({ iceMash: null });

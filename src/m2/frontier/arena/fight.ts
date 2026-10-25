@@ -904,6 +904,8 @@ const die = (ctx: FrameContext, f: Fight, lions: boolean) => {
   silenceAll();
   f.mode = 'dead'; f.said = null; f.talking = false;
   state.enemies = state.enemies.filter(o => o !== f.e);
+  // (not their kill: the mountain lions on their way called off, none pouncing on his corpse)
+  if (!lions) { f.lions = []; lionsWaiting = false; }
   for (const l of f.lions) if (l.e) { MAULING.delete(l.e); state.enemies = state.enemies.filter(o => o !== l.e); l.e = undefined; }
   clearCritters(state, f);
   f.shots = [];

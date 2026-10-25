@@ -933,9 +933,12 @@ const crumbling = (ctx: FrameContext, f: Fight) => {
     f.crumble = -1; f.crumbled = true; lib.gone = true; lib.shake = 0; a.st = 'hidden'; a.block = null;
     playSound('crash', 1, -16); playSound('boom', 1, -18); playSound('crumble', 1, -10); shakeScreen(state, 30, 16);
     for (let i = 0; i < 40; i++) puff(state, VIEW_X + Math.random() * 800, sy(440 + Math.random() * 60), 1, i % 2 ? '#A8A29E' : '#78716C');
-    f.queue = ['cling', 'walk', 'cling'];
-    meatheadSays(state, pick(L.MH_CRUMBLE), false);
-    bark(f, L.HARRY_ENRAGED);
+    // (him dead already: no lines over his death)
+    if (f.mode !== 'dead') {
+      f.queue = ['cling', 'walk', 'cling'];
+      meatheadSays(state, pick(L.MH_CRUMBLE), false);
+      bark(f, L.HARRY_ENRAGED);
+    }
   }
 };
 
@@ -1232,6 +1235,8 @@ const die = (ctx: FrameContext, f: Fight, how: How) => {
   const weak = how !== 'spin';
   const { state } = ctx, p = state.player;
   if (f.mode === 'dead') return;
+  // (dead with him pinned: let go, Meathead back on his feet)
+  if (f.pin) unpin(state, f, false);
   token++;
   f.mode = 'dead'; f.t = 0;
   state.enemies = state.enemies.filter(o => o !== f.e);
@@ -1258,6 +1263,7 @@ const skipToEnd = (state: GameState, f: Fight) => {
   token++; silenceAll(); state.playerVulgarityTimer = 0; f.said = null;
   d.step = d.how !== 'spin' ? 'set' : 'still'; d.x = f.hx; d.y = GY; d.mound = 1; d.st = 'gone'; d.stT = 999; d.fade = 0;
   f.lib.gone = true; f.lib.broken = 1; f.chunks = [];
+  if (f.crumble >= 0) f.crumbled = true;
   if (!f.crumbled) {
     f.torch = { x: TORCH_X, y: GY - 40, vy: 0, a: -Math.PI / 2, down: true };
     f.gunDrop = { x: GUN_X, y: GY - 40, vy: 0, a: 0, down: true };

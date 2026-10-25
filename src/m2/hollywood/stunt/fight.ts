@@ -174,12 +174,14 @@ setStormPick((state, px, py) => {
   const f = live;
   if (!f || f.mode !== 'on') return null;
   const a = state.camera.x, b = a + CANVAS_WIDTH;
+  // (his entrance beat on a retry: not his to be struck in yet)
+  const still = f.entrance > 0;
   const seen = (c: Car) => c.x + 60 > a && c.x - 60 < b;
   const nearest = (cs: Car[]) => cs.sort((p, q) => Math.hypot(p.x - px, p.y - py) - Math.hypot(q.x - px, q.y - py))[0]?.e ?? null;
   return {
     meteor: nearest(f.cars.filter(c => c.color === 'red' && targetable(c) && seen(c))),
     comet: nearest(f.cars.filter(c => c.color === 'blue' && targetable(c) && seen(c))),
-    bolt: f.sx > a - 20 && f.sx < b + 20 ? f.e : null,
+    bolt: !still && f.sx > a - 20 && f.sx < b + 20 ? f.e : null,
   };
 });
 let devBolt = false;
