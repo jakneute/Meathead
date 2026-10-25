@@ -51,6 +51,7 @@ import { hurtPlayer } from '../../../m1/game/bosses/shared';
 import { makeKindEnemy } from '../../../m1/game/enemies/kinds';
 import { ENEMY_HIT_COOLDOWN, CANVAS_WIDTH, CANVAS_HEIGHT, BULLET_DAMAGE, BOSS_CHARGE_DAMAGE, BOSS_UPPERCUT_DAMAGE } from '../../../m1/constants';
 import { registerM2Kind } from '../../kinds';
+import { newSpam, spamTick, hitKey, swatOff, type Spam } from '../../bossSpam';
 import { TOO_BIG_BY_KIND } from '../../lines/weaponLines';
 import { hazardHit, hazardVictims, boxHits } from '../../hazardHit';
 import { setGoreBag, goreBag, SPRAY, noBagFrom, onGlobHit, beingSucked } from '../../weapons/soulSucker';
@@ -154,6 +155,8 @@ export interface Fight {
   mode: 'on' | 'dead'; t: number;
   hp: number; iframes: number; flash: number;
   e: Enemy; moveSeen: number | undefined;
+  /** The same hit landing on him over and over (bossSpam.ts). */
+  spam: Spam;
   // ---- Tucker: where, which way, what he's at; the gun's angle (off straight ahead, + down), where it's aimed (world)
   tx: number; facing: 1 | -1; act: Act; actT: number; aim: number; aimX: number; aimY: number; jerkX: number; jerkY: number;
   /** Where he heard Meathead last (world), and when. */
@@ -247,7 +250,7 @@ export const startFight = (state: GameState, tx: number, facing: 1 | -1): Fight 
   setGoreBag(0);
   const m = pmid(state);
   const f: Fight = {
-    mode: 'on', t: 0, hp: HP, iframes: 0, flash: 0, e, moveSeen: e.hitByMove,
+    mode: 'on', t: 0, hp: HP, iframes: 0, flash: 0, e, moveSeen: e.hitByMove, spam: newSpam(),
     tx, facing, act: 'listen', actT: 20, aim: 0.6, aimX: m.x, aimY: m.y, jerkX: 0, jerkY: 0,
     heard: { x: m.x, y: m.y, at: 0 }, runDir: 1, runN: 0, runFire: 0, runShot: 0, wasGrounded: state.player.isGrounded, pShots: 0, stepT: 0,
     shots: [], smoke: [], queue: [], rustle: null, stampedes: 0, swarms: [],
@@ -830,6 +833,16 @@ const takeHits = (ctx: FrameContext, f: Fight) => {
     f.runDir = (pmid(state).x < f.tx ? 1 : -1) as 1 | -1;
     f.runN = 50 + Math.round(Math.random() * 40);
     f.runFire = 40; f.runShot = 0;
+  }
+  // (the user's: "i don't want the player to be given more than 5 uninterrupted seconds spamming the same attack on a
+  // boss": the same hit landing for 4 s. Shot at from one spot (he hears every shot, near enough): the gun up at it now,
+  // or off the hip if he's running; chased down and kicked on his run: shoved off him (no hurt) and away the other way)
+  if (f.hp > 0 && f.act !== 'bloody' && f.act !== 'getup' && spamTick(f.spam, state.frame, hitKey(state.player, melee))) {
+    if (melee) {
+      swatOff(state, f.tx);
+      setAct(f, 'run'); f.runDir = (pmid(state).x < f.tx ? 1 : -1) as 1 | -1; f.runN = 60 + Math.round(Math.random() * 40); f.runFire = 30; f.runShot = 0;
+    } else if (f.act === 'run') f.runFire = 1;
+    else if (f.act === 'listen' || f.act === 'reload' || f.act === 'recoil') { setAct(f, 'cock'); playSound('click', 0.9, -4); bark(f, L.TF_HEAR); }
   }
   for (let i = 0; i < 4; i++) state.particles.push({ pos: { x: f.tx, y: GY - 60 }, vel: { x: (Math.random() - 0.5) * 3, y: -1 - Math.random() * 2 }, life: 18, color: '#B91C1C', size: 2 + Math.random() * 2, grav: 0.3 });
   playSound('gunhit', 0.5, 2);
