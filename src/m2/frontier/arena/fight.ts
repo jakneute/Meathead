@@ -159,6 +159,8 @@ export interface Fight {
   spam: Spam;
   // ---- Tucker: where, which way, what he's at; the gun's angle (off straight ahead, + down), where it's aimed (world)
   tx: number; facing: 1 | -1; act: Act; actT: number; aim: number; aimX: number; aimY: number; jerkX: number; jerkY: number;
+  /** Jostled by the critters running through him (px a frame, easing off), and how long he's been stumbling (frames). */
+  shove: number; bumped: number;
   /** Where he heard Meathead last (world), and when. */
   heard: { x: number; y: number; at: number };
   /** A blind run (the user's): which way, frames left of it, to his next shot off the hip, the shot's pose held. */
@@ -251,7 +253,7 @@ export const startFight = (state: GameState, tx: number, facing: 1 | -1): Fight 
   const m = pmid(state);
   const f: Fight = {
     mode: 'on', t: 0, hp: HP, iframes: 0, flash: 0, e, moveSeen: e.hitByMove, spam: newSpam(),
-    tx, facing, act: 'listen', actT: 20, aim: 0.6, aimX: m.x, aimY: m.y, jerkX: 0, jerkY: 0,
+    tx, facing, act: 'listen', actT: 20, aim: 0.6, aimX: m.x, aimY: m.y, jerkX: 0, jerkY: 0, shove: 0, bumped: 0,
     heard: { x: m.x, y: m.y, at: 0 }, runDir: 1, runN: 0, runFire: 0, runShot: 0, wasGrounded: state.player.isGrounded, pShots: 0, stepT: 0,
     shots: [], smoke: [], queue: [], rustle: null, stampedes: 0, swarms: [],
     bloody: 0, shower: 0, lions: [], pack: 2, maulT: 0, maulDealt: 0, clawed: 0,
@@ -571,6 +573,22 @@ const tickCritters = (ctx: FrameContext, f: Fight) => {
       const hit = state.enemies.find(e => isCritter(e) && e.health > 0 && !e.isBlownAway && !e.puppet && e.pos.x < hb.x + hb.w && e.pos.x + e.width > hb.x && e.pos.y < hb.y + hb.h && e.pos.y + e.height > hb.y);
       if (hit) hurtPlayer(ctx, critterDmg(hit), hit.kind!, { x: (hit.facing ?? 1) * 4, y: -3 });
     } }
+  // (the critters running through him (the user's): they don't hurt him or stop what he's at, they jostle him along
+  // the way they're going, a stumble each, a little off; it makes where he'll be a lot harder to call)
+  if (f.mode === 'on' && f.act !== 'mauled' && f.act !== 'bloody' && f.act !== 'getup') {
+    for (const e of state.enemies) {
+      if (!isCritter(e) || e.health <= 0 || e.isBlownAway || e.pos.y + e.height < GY - 90) continue;
+      if (Math.abs(e.pos.x + e.width / 2 - f.tx) > 26 + e.width / 2) continue;
+      f.shove += (e.facing ?? 1) * (0.35 + Math.random() * 0.45); f.bumped = Math.max(f.bumped, 18);
+      if (Math.random() < 0.04) playSound('thud', 0.3, 6);
+    }
+  }
+  if (f.shove) {
+    f.shove = Math.max(-5, Math.min(5, f.shove)) * 0.86;
+    f.tx = Math.max(ARENA_L + 50, Math.min(ARENA_R - 50, f.tx + f.shove + (Math.random() - 0.5) * Math.abs(f.shove) * 0.6));
+    if (Math.abs(f.shove) < 0.05) f.shove = 0;
+  }
+  if (f.bumped > 0) f.bumped--;
   // (out: off the view's far edge (or the arena's), just gone: never a kill, never a callout)
   state.enemies = state.enemies.filter(e => {
     // (a lion leaving: off either edge of the view (it came on in it; the sucker can turn it round), or at the wall it's
@@ -1396,7 +1414,15 @@ export const drawFightBack = (c: Ctx, state: GameState, f: Fight) => {
     const look = tuckerLook(f);
     const blink = f.iframes > 0 && Math.floor(fr / 3) % 2 === 0;
     if (blink) c.globalAlpha = 0.65;
-    drawTucker(c, f.tx, GY, f.facing, fr, look.pose, { wounds: woundsOf(f), face: look.face, aim: look.aim, pan: look.pan, pistol: look.pistol, talking: f.talking });
+    // (jostled by the critters: a stumble, arms out, tipped the way he's being carried and wobbling (not over a shot:
+    // the aim's the tell))
+    const stumble = f.bumped > 0 && f.act !== 'aim' && f.act !== 'pan' && f.act !== 'recoil';
+    if (stumble) {
+      const tip = Math.max(-0.28, Math.min(0.28, f.shove * 0.07)) + Math.sin(fr * 0.6) * 0.06;
+      c.save(); c.translate(f.tx, GY); c.rotate(tip); c.translate(-f.tx, -GY);
+      drawTucker(c, f.tx, GY, f.facing, fr, 'hurt', { wounds: woundsOf(f), face: 'shock', talking: f.talking });
+      c.restore();
+    } else drawTucker(c, f.tx, GY, f.facing, fr, look.pose, { wounds: woundsOf(f), face: look.face, aim: look.aim, pan: look.pan, pistol: look.pistol, talking: f.talking });
     c.globalAlpha = 1;
     // (sat up dazed: his cap's off, beside him)
     if (look.pose === 'sit') drawTuckerCap(c, f.tx - f.facing * 30, GY - 4, 0.4);
