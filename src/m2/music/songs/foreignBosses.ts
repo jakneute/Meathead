@@ -80,8 +80,13 @@ const TABLA = 'd12 ?b12 c12 d12 ?b12 c12 d12 b12 c12 c12 b12 ?b12';
 const WAR = 'f4 r12 r12 f12 f4 f12. f24 f12';
 
 const EXTRA = ['color', 'bigben', 'samba', 'tabla', 'taiko', 'didge'];
+// (each landmark's own colors well up front (the user's: "make sure the ride of the wonders instrumentation changes
+// when fighting the different monuments. the song seems to be exactly the same"): its instrument takes the lead from
+// the horns as well as doubling it, the brass and the choir back off under it, its own percussion up; vol's a multiplier on each part's own)
 const mech = (own: string[], color?: string, more: Record<string, number> = {}) => ({
-  mute: EXTRA.filter(p => !own.includes(p)), ...(color ? { inst: { color } } : {}), vol: { ...more },
+  mute: EXTRA.filter(p => !own.includes(p)),
+  ...(color ? { inst: { color, horns: color } } : {}),
+  vol: own.length ? { trumpet: 0.4, twin: 0.4, choir: 0.65, ...more, color: 1.6, samba: 1.4, tabla: 1.4, taiko: 1.35, didge: 1.5, bigben: 1.5 } : { ...more },
 });
 
 export const BOSS_HELI_GAUNTLET: Song = {
