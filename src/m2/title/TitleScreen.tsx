@@ -7,7 +7,9 @@ import { useCursorSound, useOpenCloseSound } from '../../m1/components/useCursor
 import { getActiveGamepad, isButtonPressed, getGamepadMovement, GP_BUTTONS, menuButtons } from '../../m1/game/platform/gamepad';
 import { getAudioContext, audioRunning, playMenuOk } from '../../m1/game/platform/audio';
 import { isDesktop, quitToDesktop } from '../../m1/game/platform/desktop';
-import { anyFile, latestSlot, closeFile, subscribeFiles, filesVersion, type Slot } from '../save';
+import { anyFile, latestSlot, closeFile, subscribeFiles, filesVersion, readFile, SLOTS, type Slot } from '../save';
+import { ALPHA_LAND_COUNT } from '../store';
+import SoundTest from './SoundTest';
 import { M2_GUIDE_PAGES } from '../ControlsGuide';
 import { PLAIN_PAUSE } from '../hudThemes';
 import { M2_PUBLIC } from '../build';
@@ -20,13 +22,16 @@ import { M2_PUBLIC } from '../build';
 // confirm and back: swapped on a Nintendo pad). The cheats build saves nothing (as Meathead 1's doesn't): no CONTINUE, no
 // file select; START GAME is NO SAVE.
 
-type Kind = 'continue' | 'new' | 'hub' | 'ending' | 'options' | 'quit';
+type Kind = 'continue' | 'new' | 'hub' | 'ending' | 'sound' | 'options' | 'quit';
 interface TitleOption { label: string; kind: Kind }
-const titleOptions = (hasFile: boolean): TitleOption[] => [
+const titleOptions = (hasFile: boolean, cleared: boolean): TitleOption[] => [
   ...(hasFile ? [{ label: 'CONTINUE', kind: 'continue' as const }] : []),
   { label: 'START GAME', kind: 'new' },
   // (the cheats build only: straight onto the hub)
   ...(!M2_PUBLIC ? [{ label: 'SKIP TO HUB', kind: 'hub' as const }, { label: 'ALPHA ENDING', kind: 'ending' as const }] : []),
+  // (the standard build, once a file's cleared the game: the sound test (title/SoundTest.tsx); the cheats build has
+  // it in its cheat panel only)
+  ...(cleared ? [{ label: 'SOUND TEST', kind: 'sound' as const }] : []),
   { label: 'OPTIONS', kind: 'options' },
   ...(isDesktop ? [{ label: 'QUIT GAME', kind: 'quit' as const }] : []),
 ];
@@ -43,7 +48,9 @@ const TitleScreen: React.FC<{
   onEnding?: () => void;
 }> = ({ onNew, onContinue, onHub, onEnding }) => {
   const filesV = useSyncExternalStore(subscribeFiles, filesVersion, filesVersion);
-  const options = React.useMemo(() => titleOptions(!!M2_PUBLIC && anyFile()), [filesV]);
+  const options = React.useMemo(() => titleOptions(!!M2_PUBLIC && anyFile(), !!M2_PUBLIC && SLOTS.some(s => (readFile(s)?.cleared.length ?? 0) >= ALPHA_LAND_COUNT)), [filesV]);
+  const [soundOpen, setSoundOpen] = useState(false);
+  const soundRef = useRef(false); soundRef.current = soundOpen;
   const [sel, setSel] = useState(0);
   const [locked, setLocked] = useState(true);
   const [optionsOpen, setOptionsOpen] = useState(false);
@@ -86,7 +93,7 @@ const TitleScreen: React.FC<{
   useOpenCloseSound(quitAsk !== null);
 
   const closeOptions = () => { shutAt.current = performance.now(); setOptionsOpen(false); };
-  const busy = () => optionsOpen || fileSelect || performance.now() - shutAt.current < 150;
+  const busy = () => optionsOpen || fileSelect || soundRef.current || performance.now() - shutAt.current < 150;
 
   const pick = (i: number) => {
     const o = options[i];
@@ -98,6 +105,7 @@ const TitleScreen: React.FC<{
     if (o.kind === 'continue') { const slot = latestSlot(); if (slot) { playMenuOk(); onContinue(slot); } return; }
     if (o.kind === 'hub') { if (onHub) { playMenuOk(); onHub(); } return; }
     if (o.kind === 'ending') { if (onEnding) { playMenuOk(); onEnding(); } return; }
+    if (o.kind === 'sound') { playMenuOk(); setSoundOpen(true); return; }
     // (the cheats build: straight in, NO SAVE)
     if (!M2_PUBLIC) { playMenuOk(); onNew(null); return; }
     playMenuOk();
@@ -222,6 +230,7 @@ const TitleScreen: React.FC<{
           {!locked && <Prompt pad={['OK']} kb={['ENTER']} mouse="left" label={current?.kind === 'new' ? 'START' : current?.kind === 'continue' ? 'CONTINUE' : current?.kind === 'quit' ? 'QUIT' : 'OPEN'} size={18} className="text-[8px] font-black text-white/85 tracking-wider [text-shadow:1px_1px_0_#000] animate-pulse" />}
         </div>
       </div>}
+      {soundOpen && <SoundTest onClose={() => { shutAt.current = performance.now(); setSoundOpen(false); }} />}
       {/* QUIT GAME (the desktop app's): are you sure? */}
       {quitAsk !== null && (
         <div className="absolute inset-0 flex items-center justify-center bg-black/80 z-20 animate-in fade-in duration-150">

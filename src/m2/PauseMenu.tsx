@@ -1,4 +1,5 @@
 import React, { useEffect, useSyncExternalStore } from 'react';
+import SoundTest from './title/SoundTest';
 import type { WeaponType } from '../m1/types';
 import { maxAmmo } from '../m1/constants';
 import { Prompt } from '../m1/components/ButtonIcons';
@@ -23,6 +24,7 @@ const Chip: React.FC<{ on: boolean; skin: PauseSkin; onClick: () => void; childr
 const CheatPanel: React.FC<{ skin: PauseSkin; onClose: () => void }> = ({ skin, onClose }) => {
   const c = useSyncExternalStore(subscribeCheats, getCheats);
   const pants = pantsNow(), tod = todNow();
+  const [browse, setBrowse] = React.useState(false);
   // (where the pad's cursor is: row by row, CHEAT_ROWS)
   const cur = cheatCursor();
   const at = (r: number, col: number) => cur.row === r && cur.col === col;
@@ -53,8 +55,10 @@ const CheatPanel: React.FC<{ skin: PauseSkin; onClose: () => void }> = ({ skin, 
         <Chip on={false} at={at(CHEAT_ROWS.indexOf('music'), 0)} skin={skin} w={24} onClick={() => stepMusic(-1)}>&lt;</Chip>
         <Chip on={false} at={at(CHEAT_ROWS.indexOf('music'), 1)} skin={skin} w={24} onClick={() => stepMusic(1)}>&gt;</Chip>
         <Chip on={false} at={at(CHEAT_ROWS.indexOf('music'), 2)} skin={skin} w={40} onClick={stopMusicTest}>STOP</Chip>
-        <div className="self-center text-[7px] font-black tracking-wider max-w-[300px] truncate" style={{ color: skin.text }}>{soundTestLabel()}</div>
+        <Chip on={false} at={false} skin={skin} w={56} onClick={() => setBrowse(true)}>BROWSE</Chip>
+        <div className="self-center text-[7px] font-black tracking-wider max-w-[240px] truncate" style={{ color: skin.text }}>{soundTestLabel()}</div>
       </>)}
+      {browse && <SoundTest onClose={() => setBrowse(false)} />}
       <div className="mt-auto"><Chip on={false} at={at(CHEAT_ROWS.indexOf('done'), 0)} skin={skin} w={80} onClick={onClose}>DONE</Chip></div>
     </div>
   );
