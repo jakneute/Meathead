@@ -103,9 +103,9 @@ const SoundTest: React.FC<{ onClose: () => void }> = ({ onClose }) => {
         </div>
         <div className="mt-3 text-[7px] text-[#ffd8ee] tracking-wider truncate">NOW PLAYING: <span className="text-[#fde047]">{nowLabel ?? '-'}</span></div>
         <div className="mt-3 flex items-center justify-center gap-5">
-          <Prompt pad={['DPAD_UP', 'DPAD_DOWN']} kb={['@up', '@down']} label="PICK" />
-          <Prompt pad={['OK']} kb={['ENTER']} mouse="left" label={onFolder ? 'OPEN' : 'PLAY'} />
-          <Prompt pad={['BACK']} kb={['ESC']} mouse="right" label={path.length ? 'BACK' : 'CLOSE'} />
+          <Prompt pad={['DPAD_UP', 'DPAD_DOWN']} kb={['@up', '@down']} label="PICK"  className="text-[8px] font-black text-[#fff6d8] tracking-wider [text-shadow:1px_1px_0_#000]" />
+          <Prompt pad={['OK']} kb={['ENTER']} mouse="left" label={onFolder ? 'OPEN' : 'PLAY'}  className="text-[8px] font-black text-[#fff6d8] tracking-wider [text-shadow:1px_1px_0_#000]" />
+          <Prompt pad={['BACK']} kb={['ESC']} mouse="right" label={path.length ? 'BACK' : 'CLOSE'}  className="text-[8px] font-black text-[#fff6d8] tracking-wider [text-shadow:1px_1px_0_#000]" />
         </div>
       </div>
     </div>
