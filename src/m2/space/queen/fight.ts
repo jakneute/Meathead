@@ -519,9 +519,10 @@ export const updateFight = (ctx: FrameContext, f: Fight, controls: Controls): Co
   const { state } = ctx;
   f.total++;
   live = f;
-  // (her brood never drops health (the user's): any that a kill's just thrown down in here is gone again; the
-  // boss-door refill's out on the landing, kept)
-  if (state.pickups.some(k => k.type.endsWith('_health') && k.id !== 'queen-health')) state.pickups = state.pickups.filter(k => !k.type.endsWith('_health') || k.id === 'queen-health');
+  // (her brood never drops anything (the user's: "no ammo drops. nothing"): whatever a kill's just thrown down in here
+  // is gone again; the boss-door refill's out on the landing, kept)
+  const kept = (id: string) => id === 'queen-health' || id === 'queen-ammo';
+  if (state.pickups.some(k => !kept(k.id))) state.pickups = state.pickups.filter(k => kept(k.id));
   if (f.mode === 'intro') return intro(ctx, f);
   if (f.mode === 'wait') return controls;
   f.t++;
