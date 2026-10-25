@@ -61,7 +61,7 @@ import { body as drawMeatheadBody } from '../../../m1/game/render/player/deathAn
 import { stabLean, STAB_WOUND } from '../../../m1/game/render/player/player';
 import { ENEMY_HIT_COOLDOWN, CANVAS_WIDTH, CANVAS_HEIGHT, BULLET_DAMAGE, BOSS_CHARGE_DAMAGE, BOSS_UPPERCUT_DAMAGE } from '../../../m1/constants';
 import { registerM2Kind, registerHurtLines } from '../../kinds';
-import { newSpam, spamTick, hitKey, type Spam } from '../../bossSpam';
+import { newSpam, spamTick, hitKey, swatOff, type Spam } from '../../bossSpam';
 import { aliensOn, brushOff, popAliensIn, setSpawnerBaits, takeBites, type SpawnerBait } from '../../weapons/spawner';
 import { grabCallout } from '../../moves/callouts';
 import { type Eaten, startEaten, updateEaten, landEaten, collapse, drawEatenStanding, drawEatenLoose, swarmAt, FLESH_END, COLLAPSE_MIN, COLLAPSE_MAX } from './eaten';
@@ -943,16 +943,16 @@ const takeHits = (ctx: FrameContext, f: Fight) => {
     if (f.hp <= 0) { f.byWeakness = aliensOn(e) > 0; return; }
   }
   if (knockable) { knock(ctx, f, true); return; }
-  if (spamTick(f.spam, state.frame, hitKey(state.player, melee))) shakeSpam(state, f);
+  if (spamTick(f.spam, state.frame, hitKey(state.player, melee))) shakeSpam(state, f, melee);
 };
 
 /** The user's: "i don't want the player to be given more than 5 uninterrupted seconds spamming the same attack on a
  *  boss" (stood holding fire on him, a dive-kick chain off his head). Out in the open (or seeing stars), he's off into a
- *  bush (out of the line, out from under him); no bushes left, up his vine (over his line of fire); up it already, a
- *  dart down at him now. */
+ *  bush (out of the line, out from under him); no bushes left, up his vine (over his line of fire); up it already (only
+ *  a jump gets at him there), a kick swatted off (no hurt). */
 const SPAM_OFF: ReadonlySet<Mode> = new Set(['stunned', 'whistle', 'watch', 'exposed', 'landed']);
-const shakeSpam = (state: GameState, f: Fight) => {
-  if (f.mode === 'dodge' && f.perch && f.vy === 0 && f.t > 12) { f.spitT = 0; const m = mouth(f); fireDart(state, f, m.x, m.y); return; }
+const shakeSpam = (state: GameState, f: Fight, melee: boolean) => {
+  if (f.mode === 'dodge') { if (melee) swatOff(state, f.x); return; }
   if (!SPAM_OFF.has(f.mode)) return;
   f.dropped = false; f.attacks = 0;
   if (liveBushes(f).length) diveIn(state, f);
