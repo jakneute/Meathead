@@ -714,24 +714,63 @@ const heads = (c: Ctx) => {
   poly(c, [fx + fw, fy + 16, fx + fw + 12, fy + 21, fx + fw + 12, fy + fh - 4, fx + fw, fy + fh], INK); poly(c, [fx + fw + 1, fy + 18, fx + fw + 11, fy + 22, fx + fw + 11, fy + fh - 5, fx + fw + 1, fy + fh - 2], '#D8D4C8');
 };
 
-/** The laundry cart, heaped with sweaty costume parts, a striped sleeve over the side. */
+/** The laundry cart (the user's: "make the laundry bucket in the employee break room more detailed"): a canvas hamper
+ *  slung in a steel frame, its weave and seams, the stenciled COSTUMING mark faded on it, stains soaked through; swivel
+ *  casters; heaped over the top with the day's sweaty costume parts (a mascot's foam head, its eyes staring, a striped
+ *  sleeve and a sock over the side, a four-fingered glove, a tutu, a sweat-ringed shirt), the stink coming off it. */
 const laundry = (c: Ctx) => {
-  const x = rx(1598), w = 112, y = 470;
+  const x = rx(1598), w = 112, y = 470, bot = G - 12;
   shade(c, x, y, w, G - y - 10, 0.3);
-  poly(c, [x - 1, y - 1, x + w + 1, y - 1, x + w - 5, G - 11, x + 5, G - 11], INK);
-  poly(c, [x, y, x + w, y, x + w - 6, G - 12, x + 6, G - 12], '#A89E80');
-  poly(c, [x, y, x + 20, y, x + 22, G - 12, x + 6, G - 12], '#BCB294');
-  poly(c, [x + w - 18, y, x + w, y, x + w - 6, G - 12, x + w - 18, G - 12], '#8A8064');
-  for (let k = 0; k < 4; k++) pixelBlob(c, x + 20 + k * 26, y + 30 + (k % 2) * 14, 10, 6, 'rgba(90, 70, 30, 0.3)');
-  text(c, 'LAUNDRY', x + w / 2, y + 26, fade('#2D51B0', 0.25), 8, 'center', null);
-  box(c, x - 2, y - 2, w + 4, 4, '#6B737E'); box(c, x - 2, y - 2, w + 4, 1, '#A3ABB6');
-  for (const wx of [x + 10, x + w - 10]) { box(c, wx - 1, G - 12, 3, 6, '#3A4048'); ball(c, wx, G - 5, 5, '#2A2A2E'); }
-  // (the heap)
-  pixelBlob(c, x + 30, y - 10, 28, 14, '#D4A017'); pixelBlob(c, x + 70, y - 12, 30, 16, '#7A5224'); pixelBlob(c, x + 54, y - 22, 18, 10, '#2D51B0');
-  pixelBlob(c, x + 26, y - 14, 10, 6, '#F2CC4A'); pixelBlob(c, x + 66, y - 18, 12, 6, '#9A6C36');
+  // (the canvas body: tapered, banded light to dark across, the weave in it, its stitched seams)
+  poly(c, [x - 1, y - 1, x + w + 1, y - 1, x + w - 5, bot + 1, x + 5, bot + 1], INK);
+  poly(c, [x, y, x + w, y, x + w - 6, bot, x + 6, bot], '#A89E80');
+  poly(c, [x, y, x + 22, y, x + 24, bot, x + 6, bot], '#BCB294');
+  poly(c, [x + 4, y, x + 10, y, x + 11, bot, x + 7, bot], '#CCC2A4');
+  poly(c, [x + w - 20, y, x + w, y, x + w - 6, bot, x + w - 20, bot], '#8A8064');
+  poly(c, [x + w - 8, y, x + w, y, x + w - 6, bot, x + w - 10, bot], '#746A50');
+  for (let k = 0; k < 14; k++) { const tx = x + 6 + k * 7.4; box(c, Math.round(tx), y + 3, 1, bot - y - 6, 'rgba(70, 60, 36, 0.22)'); }
+  for (let r = 0; r < 7; r++) box(c, x + 6, y + 6 + r * 9, w - 12, 1, 'rgba(255, 250, 230, 0.12)');
+  for (const sx of [x + 30, x + w - 30]) for (let k = 0; k < 9; k++) box(c, sx, y + 4 + k * 7, 1, 4, '#6E6448');
+  // (the stains soaked through: sweat, grease paint, something blue)
+  for (const [bx, by, bw, bh, col] of [[x + 22, y + 34, 12, 8, 'rgba(90, 70, 30, 0.3)'], [x + 62, y + 46, 14, 7, 'rgba(90, 70, 30, 0.26)'], [x + 84, y + 28, 9, 6, 'rgba(45, 81, 176, 0.25)'], [x + 44, y + 58, 10, 5, 'rgba(120, 40, 30, 0.22)']] as const) pixelBlob(c, bx, by, bw, bh, col);
+  text(c, 'LAUNDRY', x + w / 2, y + 22, fade('#2D51B0', 0.3), 8, 'center', null);
+  text(c, 'COSTUMING DEPT.', x + w / 2, y + 32, fade('#2D51B0', 0.18), 5, 'center', null);
+  // (the frame: a steel rim round the top, its uprights at the corners, rivets, a dent)
+  box(c, x - 3, y - 3, w + 6, 5, INK); box(c, x - 2, y - 2, w + 4, 3, '#6B737E'); box(c, x - 2, y - 2, w + 4, 1, '#A3ABB6');
+  for (const ux of [x - 1, x + w - 2]) { box(c, ux - 1, y, 5, bot - y + 2, INK); box(c, ux, y, 3, bot - y + 1, '#5E6670'); box(c, ux, y, 1, bot - y + 1, '#98A0AA'); }
+  box(c, x - 2, bot - 2, w + 4, 4, INK); box(c, x - 1, bot - 1, w + 2, 2, '#5E6670');
+  for (const rvx of [x + 2, x + w / 2, x + w - 4]) { box(c, rvx, y - 2, 2, 2, '#2A3038'); box(c, rvx, y - 2, 1, 1, '#C8D0DA'); }
+  box(c, x + 70, y - 2, 8, 1, '#4A525C');
+  // (the casters: swivel forks, chrome hubs, a hair wound round one)
+  for (const wx of [x + 10, x + w - 10]) {
+    box(c, wx - 3, bot + 2, 7, 3, INK); box(c, wx - 2, bot + 2, 5, 2, '#6B737E');
+    box(c, wx - 1, bot + 4, 3, 3, '#3A4048');
+    ball(c, wx, G - 5, 5, '#1E1E22'); ball(c, wx, G - 5, 2.4, '#8A929C', false); box(c, wx - 1, G - 7, 1, 1, '#E0E6EE');
+  }
+  line(c, [x + w - 14, G - 8, x + w - 6, G - 3, x + w - 12, G - 1], '#3A2A1A', 1);
+  // (the heap: a mascot's foam head (a cartoon rabbit, ears flopped, eyes staring), a tutu, shirts and costume bodies)
+  pixelBlob(c, x + 30, y - 10, 28, 14, '#D4A017'); pixelBlob(c, x + 72, y - 12, 30, 16, '#7A5224'); pixelBlob(c, x + 54, y - 20, 18, 10, '#2D51B0');
+  pixelBlob(c, x + 26, y - 14, 10, 6, '#F2CC4A'); pixelBlob(c, x + 68, y - 18, 12, 6, '#9A6C36');
+  // (the tutu: pink tulle in stepped frills)
+  for (let k = 0; k < 6; k++) poly(c, [x + 8 + k * 5, y - 8, x + 11 + k * 5, y - 14 - (k % 2) * 3, x + 14 + k * 5, y - 8], k % 2 ? '#F9A8D4' : '#F472B6');
+  // (the mascot head: a big foam bunny, one ear up, one flopped over the rim)
+  const hx = x + 54, hy = y - 30;
+  ball(c, hx, hy, 15, '#E8E4DC'); ball(c, hx - 3, hy - 3, 11, '#F6F3EC', false);
+  poly(c, [hx - 8, hy - 12, hx - 12, hy - 34, hx - 4, hy - 34, hx - 2, hy - 13], INK); poly(c, [hx - 7, hy - 13, hx - 10, hy - 32, hx - 5, hy - 32, hx - 3, hy - 13], '#F0ECE4'); box(c, hx - 8, hy - 29, 2, 14, '#F4A8C0');
+  poly(c, [hx + 4, hy - 12, hx + 22, hy - 20, hx + 26, hy - 14, hx + 7, hy - 8], INK); poly(c, [hx + 5, hy - 11, hx + 21, hy - 18, hx + 24, hy - 14, hx + 7, hy - 9], '#E0DCD4');
+  for (const ex of [hx - 6, hx + 5]) { ball(c, ex, hy - 1, 4, '#FFFFFF'); ball(c, ex + 1, hy, 2, INK); box(c, ex, hy - 2, 1, 1, '#FFFFFF'); }
+  box(c, hx - 2, hy + 5, 4, 3, '#F472B6'); line(c, [hx - 6, hy + 9, hx, hy + 11, hx + 6, hy + 9], INK, 1);
+  pixelBlob(c, hx + 6, hy + 8, 5, 3, 'rgba(90, 70, 30, 0.35)');
+  // (over the side: a striped sleeve, a sock, the four-fingered white glove hanging off the rim)
   for (let k = 0; k < 5; k++) box(c, x + 6 + k * 6, y, 6, 30, k % 2 ? '#F1EFEA' : '#B91C1C');
   box(c, x + 5, y + 30, 32, 6, INK); box(c, x + 6, y + 30, 30, 5, '#F1EFEA');
-  oval(c, x + 92, y - 2, 10, 8, INK); oval(c, x + 92, y - 2, 9, 7, '#F1EFEA'); for (let k = 0; k < 3; k++) box(c, x + 96 + k * 3, y + 4, 2, 8, '#F1EFEA');
+  for (let k = 0; k < 4; k++) box(c, x + 44, y + k * 9, 8, 9, k % 2 ? '#2D51B0' : '#F2CC4A');
+  box(c, x + 43, y + 36, 12, 5, INK); box(c, x + 44, y + 36, 11, 4, '#F2CC4A');
+  oval(c, x + 92, y - 2, 10, 8, INK); oval(c, x + 92, y - 2, 9, 7, '#F1EFEA'); for (let k = 0; k < 3; k++) { box(c, x + 95 + k * 3, y + 4, 3, 10, INK); box(c, x + 96 + k * 3, y + 4, 2, 9, '#F1EFEA'); }
+  box(c, x + 88, y - 3, 8, 1, '#C8C4BC');
+  // (the stink: wavy lines up off the heap, and a fly)
+  for (const sx of [x + 34, x + 62, x + 86]) line(c, [sx, y - 40, sx + 3, y - 46, sx, y - 52, sx + 3, y - 58], 'rgba(130, 150, 60, 0.5)', 1);
+  box(c, x + 76, y - 48, 2, 2, INK); box(c, x + 75, y - 49, 1, 1, 'rgba(220, 230, 240, 0.7)'); box(c, x + 78, y - 49, 1, 1, 'rgba(220, 230, 240, 0.7)');
 };
 
 /** NOT FOR GUESTS on the wall by the punching bag; the hole somebody punched in the tile instead. */
