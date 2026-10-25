@@ -1,9 +1,9 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Prompt } from '../../m1/components/ButtonIcons';
 import { useCursorSound } from '../../m1/components/useCursorSound';
-import { getActiveGamepad, isButtonPressed, getGamepadMovement, menuButtons } from '../../m1/game/platform/gamepad';
+import { getActiveGamepad, isButtonPressed, getGamepadMovement, menuButtons, GP_BUTTONS } from '../../m1/game/platform/gamepad';
 import { playMenuOk, playMenuBack } from '../../m1/game/platform/audio';
-import { soundTree, setSoundTest, soundTestCue, trackOf, isFolder, type Folder, type Item } from '../music/soundTest';
+import { soundTree, setSoundTest, soundTestCue, trackOf, trackCount, isFolder, type Folder, type Item } from '../music/soundTest';
 
 // The sound test (music/soundTest.ts): the folders (GENERAL, the lands), then a land's songs, a song's arrangements;
 // pick a track and it plays (over whatever the game's playing, till it's stopped or the screen's shut). On the title
@@ -12,8 +12,9 @@ import { soundTree, setSoundTest, soundTestCue, trackOf, isFolder, type Folder, 
 
 const PAD_REPEAT_MS = 160, ROWS = 11;
 
-/** How many tracks are in it, all the way down. */
-const count = (f: Folder): number => f.items.reduce((n, it) => n + (isFolder(it) ? count(it) : 1), 0);
+/** Up while it's open (the game's own pad poll leaves the cheat panel be meanwhile: App.tsx). */
+let openNow = false;
+export const soundTestOpen = () => openNow;
 
 const SoundTest: React.FC<{ onClose: () => void }> = ({ onClose }) => {
   const root: Folder = { name: '', items: soundTree() };
@@ -27,14 +28,16 @@ const SoundTest: React.FC<{ onClose: () => void }> = ({ onClose }) => {
   const playing = soundTestCue();
   useCursorSound(sel, true, path.join('/'));
 
-  const act = (a: 'up' | 'down' | 'ok' | 'back') => {
+  // (a row clicked: that row, not the cursor's last place)
+  const act = (a: 'up' | 'down' | 'ok' | 'back', at = sel) => {
     const n = items.length;
     if (a === 'up') setSel(i => (i + n - 1) % n);
     else if (a === 'down') setSel(i => (i + 1) % n);
     else if (a === 'ok') {
       playMenuOk();
-      const it = items[sel];
-      if (isFolder(it)) { setPath(p => [...p, sel]); setSel(0); }
+      const it = items[at];
+      if (!it) return;
+      if (isFolder(it)) { setPath(p => [...p, at]); setSel(0); }
       else { setSoundTest({ song: it.song, arr: it.arr }); bump(k => k + 1); }
     } else {
       playMenuBack();
@@ -45,6 +48,7 @@ const SoundTest: React.FC<{ onClose: () => void }> = ({ onClose }) => {
   const actRef = useRef(act); actRef.current = act;
 
   useEffect(() => {
+    openNow = true;
     const onKey = (e: KeyboardEvent) => {
       const k = e.key.toLowerCase();
       const a = k === 'arrowup' || k === 'w' ? 'up' : k === 'arrowdown' || k === 's' ? 'down' : k === 'enter' || k === ' ' ? 'ok' : k === 'escape' || k === 'backspace' ? 'back' : null;
@@ -60,7 +64,7 @@ const SoundTest: React.FC<{ onClose: () => void }> = ({ onClose }) => {
     const poll = () => {
       const gp = getActiveGamepad();
       if (gp) {
-        const m = menuButtons(gp), now = { ok: isButtonPressed(gp, m.ok), back: isButtonPressed(gp, m.back) }, was = prev ?? now;
+        const m = menuButtons(gp), now = { ok: isButtonPressed(gp, m.ok) || isButtonPressed(gp, GP_BUTTONS.START), back: isButtonPressed(gp, m.back) }, was = prev ?? now;
         const move = getGamepadMovement(gp, 0.25), t = Date.now(), dir = move.up ? 'up' : move.down ? 'down' : null;
         if (!dir) lastMove = 0; else if (t - lastMove > PAD_REPEAT_MS) { lastMove = t; actRef.current(dir); }
         if (now.ok && !was.ok) actRef.current('ok');
@@ -70,7 +74,7 @@ const SoundTest: React.FC<{ onClose: () => void }> = ({ onClose }) => {
       frame = requestAnimationFrame(poll);
     };
     frame = requestAnimationFrame(poll);
-    return () => { window.removeEventListener('keydown', onKey, true); window.removeEventListener('contextmenu', onContext, true); cancelAnimationFrame(frame); };
+    return () => { openNow = false; window.removeEventListener('keydown', onKey, true); window.removeEventListener('contextmenu', onContext, true); cancelAnimationFrame(frame); };
   }, []);
 
   // (a window of the list round the cursor)
@@ -92,10 +96,10 @@ const SoundTest: React.FC<{ onClose: () => void }> = ({ onClose }) => {
             const i = first + k, on = i === sel;
             const isPlaying = !isFolder(it) && playing && it.song === playing.song && it.arr === playing.arr;
             return (
-              <button key={`${key}-${i}`} onMouseEnter={() => setSel(i)} onClick={() => { setSel(i); actRef.current('ok'); }}
+              <button key={`${key}-${i}`} onMouseEnter={() => setSel(i)} onClick={() => { setSel(i); actRef.current('ok', i); }}
                 className={`relative flex items-center justify-between px-4 py-[5px] text-left text-[9px] font-black tracking-wider border-2 border-black ${on ? 'bg-[#d01c78] text-[#fff6d8]' : 'bg-[#3a0828] text-white/75 hover:bg-[#5a0a3a]'}`}>
                 <span className="truncate pr-3">{on && <span className="text-[#fcd850] mr-2">&#9654;</span>}{isFolder(it) ? it.name : it.label}</span>
-                <span className="shrink-0 text-[7px] opacity-80">{isFolder(it) ? `${count(it)}` : isPlaying ? '♪ NOW' : ''}</span>
+                <span className="shrink-0 text-[7px] opacity-80">{isFolder(it) ? `${trackCount(it)}` : isPlaying ? '♪ NOW' : ''}</span>
               </button>
             );
           })}

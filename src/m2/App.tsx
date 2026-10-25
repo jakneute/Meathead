@@ -93,6 +93,7 @@ setFrameHook(state => {
   const p = state.player;
   setUi({ locked: !!p.inCutscene || state.deathTimer > 0 || p.health <= 0 || !!p.hidden || !!p.leverPull || !!p.freefall || portalArrivalPending(), killCam: isKillCam(state) });
 });
+import { soundTestOpen } from './title/SoundTest';
 import { getCheats, subscribeCheats, availableWeapons, subscribeArsenal, setLiveState, cheatPanelOpen, setCheatPanelOpen, moveCheatCursor, activateCheat } from './cheats';
 import { attachM2Keys, mapButton } from './input';
 import { setKeyProfile, keysFor } from '../m1/game/platform/keys';
@@ -526,6 +527,8 @@ const App2: React.FC = () => {
         }
         // The cheat panel (X in the pause menu): its own cursor; backing out of it is back to the weapon select
         if (paused() && cheatPanelOpen()) {
+          // (its sound test up: that takes the pad; the panel waits)
+          if (soundTestOpen()) { Object.assign(prev, btn); id = requestAnimationFrame(poll); return; }
           const m = getGamepadMovement(gp, 0.25);
           const dx = m.left ? -1 : m.right ? 1 : 0, dy = m.up ? -1 : m.down ? 1 : 0;
           if ((dx || dy) && now - lastMove > 180) { moveCheatCursor(dx, dy); lastMove = now; }

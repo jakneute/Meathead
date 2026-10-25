@@ -31,7 +31,14 @@ const FILED: { name: string; keys: string[] }[] = [
 /** Left out of it altogether, wherever they're filed: the portal walk's and the walk-away's songs (the user's: "remove
  *  the heading in and walk it off songs from the sound test"). */
 const HIDDEN = (song: string) => /^(portal|walkaway)(:|$)/.test(song);
-const name = (arr: string) => arr.replace(/-/g, ' ').toUpperCase();
+/** Arrangement ids as the player sees them: the lands by their names on screen (land-names), a few code names spelled
+ *  out; the rest as they are. */
+const SAYS: Record<string, string> = {
+  adventure: 'JUNGLE LAND', spooky: 'SPOOKY LAND', space: 'FUTURE LAND', hollywood: 'HOLLYWOOD LAND', foreign: 'FOREIGN LANDS',
+  frontier: 'WILDERNESS LAND', fantasy: 'FAIRY LAND', cartoon: 'CARTOON LAND', whitehouse1: 'WHITE HOUSE', whitehouse2: 'WHITE HOUSE II',
+  act1: 'ACT 1', act2: 'ACT 2', act3: 'ACT 3', bigben: 'BIG BEN', logride: 'LOG RIDE', dirtbike: 'DIRT BIKE', qte: 'SHOWDOWN',
+};
+const name = (arr: string) => SAYS[arr] ?? arr.replace(/-/g, ' ').replace(/(\D)(\d)$/, '$1 $2').toUpperCase();
 
 let tree: Folder[] | null = null;
 /** The folders, each arrangement once in all of them. */
@@ -53,7 +60,8 @@ export const soundTree = (): Folder[] => {
     for (const [arr, a] of Object.entries(s.arrangements)) {
       if (seen.has(a)) continue;
       seen.add(a);
-      const j = JSON.stringify(a);
+      const plays = Object.entries(s.parts).map(([k, d]) => +!((d.only && !d.only.includes(arr)) || d.not?.includes(arr)) + k);
+      const j = JSON.stringify([a, plays]);
       groups.set(j, [...(groups.get(j) ?? []), arr]);
     }
     const tracks = [...groups.values()].map((arrs): Track => {
@@ -75,10 +83,19 @@ export const soundTree = (): Folder[] => {
   tree = out.filter(f => f.items.length);
   return tree;
 };
-/** Every track, in the tree's order (the cheat panel's < > step through these). */
+/** Every track, in the tree's order (the cheat panel's < > step through these): flattened the once. */
+let flatList: Track[] | null = null;
 export const allTracks = (): Track[] => {
+  if (flatList) return flatList;
   const flat = (its: Item[]): Track[] => its.flatMap(it => (isFolder(it) ? flat(it.items) : [it]));
-  return flat(soundTree());
+  return (flatList = flat(soundTree()));
+};
+/** How many tracks are in a folder, all the way down (counted the once). */
+const counts = new WeakMap<Folder, number>();
+export const trackCount = (f: Folder): number => {
+  let n = counts.get(f);
+  if (n === undefined) { n = f.items.reduce((k, it) => k + (isFolder(it) ? trackCount(it) : 1), 0); counts.set(f, n); }
+  return n;
 };
 /** The track playing this. */
 export const trackOf = (cue: Cue | null) => (cue ? allTracks().find(t => t.song === cue.song && t.arr === cue.arr) ?? null : null);

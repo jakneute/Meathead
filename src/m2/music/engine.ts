@@ -287,7 +287,10 @@ const playNote = (p: Playing, part: PartPlay, e: NoteEv, when: number) => {
   const c = ctx!;
   const lane = part.lane;
   if (!lane) return;
-  const name = e.inst && INSTRUMENTS[e.inst] ? e.inst : typeof e.n === 'string' ? e.n : lane.key;
+  // (the part swapped onto another instrument by the arrangement: that one throughout, over the part's own changes
+  // (its MML's @inst: a guitar going to power chords for a section); a drum's named hits are still the drum's)
+  const swapped = lane.key !== part.def.inst && typeof e.n === 'number';
+  const name = !swapped && e.inst && INSTRUMENTS[e.inst] ? e.inst : typeof e.n === 'string' ? e.n : lane.key;
   const def = INSTRUMENTS[name];
   if (!def) return;
   const note = typeof e.n === 'number' ? e.n + (part.def.tr ?? 0) : 60;
