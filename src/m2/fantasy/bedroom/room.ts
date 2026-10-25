@@ -667,8 +667,24 @@ const TROPHIES: { look: SuitorLook; gag: 'tongue' | 'lance' | 'shaker' | 'broom'
   { look: look('THADDEUS', 'wizard', PALE_S, '#5A5A60', '#1E3678', '#F6D365', 0.5), gag: 'broom' },
 ];
 
-/** A head on a walnut shield (x, y the shield's middle), his name on a brass plate, X-eyed, a gag. */
+/** Blood, dark (dried) to wet highlight. */
+const GORE = ['#2A0406', '#4A0A0E', '#6E1016', '#981C20', '#C42A2A', '#F06A5A'];
+/** A run of blood down from (x, y), `len` long: dark edge, wet middle, a bulb at its foot and a glint. */
+const drip = (g: Ctx, x: number, y: number, len: number, w = 2) => {
+  B(g, x - 1, y, w + 2, len, GORE[1]); B(g, x, y, w, len, GORE[3]); B(g, x, y, 1, len - 1, GORE[4]);
+  ell(g, x + w / 2, y + len, w / 2 + 1.6, w / 2 + 2, GORE[1]); ell(g, x + w / 2, y + len, w / 2 + 0.8, w / 2 + 1.2, GORE[3]); B(g, x, y + len - 1, 1, 1, GORE[5]);
+};
+
+/** A head on a walnut shield (x, y the shield's middle), his name on a brass plate, X-eyed, a gag; mounted fresh: the
+ *  wall sprayed behind it, the stump torn and wet, blood run down the walnut onto the plate, his face beaten in. */
 const trophyArt = (g: Ctx, x: number, y: number, T: (typeof TROPHIES)[number], i: number) => {
+  // (the spray on the wallpaper behind it: a fan of spatter, a few runs down the wall)
+  for (let k = 0; k < 26; k++) {
+    const a = -Math.PI / 2 + (hash(i * 31 + k * 1.3) - 0.5) * 2.6, d = 22 + hash(i * 17 + k * 2.7) * 30, sz = 1 + Math.round(hash(i * 7 + k * 3.1) * 2.4);
+    const px = Math.round(x + Math.cos(a) * d * 1.2), py = Math.round(y - 6 + Math.sin(a) * d);
+    B(g, px, py, sz, sz, k % 3 ? GORE[2] : GORE[1]); if (sz > 2) B(g, px, py, 1, 1, GORE[4]);
+  }
+  for (let k = 0; k < 2; k++) { const px = Math.round(x + (k ? 24 : -30) + hash(i * 5 + k) * 6); drip(g, px, y - 36 + Math.round(hash(i * 9 + k) * 10), 18 + Math.round(hash(i * 3 + k) * 22), 1); }
   // (what's crossed behind the shield)
   if (T.gag === 'lance') { g.save(); g.translate(x, y); g.rotate(-0.6); B(g, -44, -3, 88, 6, INK); B(g, -43, -2, 86, 4, '#E8E0D0'); for (let k = -40; k < 40; k += 10) B(g, k, -2, 5, 4, '#C8203A'); polyF(g, [[43, -5], [54, 0], [43, 5]], '#C8203A'); g.restore(); }
   if (T.gag === 'broom') { g.save(); g.translate(x, y); g.rotate(0.55); B(g, -46, -2, 70, 4, INK); B(g, -45, -1, 68, 2, '#8A5A2A'); polyF(g, [[22, -7], [46, -11], [46, 11], [22, 7]], '#C8A060'); for (let k = 0; k < 6; k++) B(g, 26 + k * 3, -8 + k, 1, 16 - k * 2, '#8A6A30'); g.restore(); }
@@ -680,9 +696,25 @@ const trophyArt = (g: Ctx, x: number, y: number, T: (typeof TROPHIES)[number], i
   g.save(); g.beginPath(); g.rect(x - 30, y - 58, 60, 62); g.clip();
   drawSuitor(g, x - 2, y + 73, 1, 0, T.look, 'hurt');
   g.restore();
-  ell(g, x + 1, y + 2, 11, 4, INK); ell(g, x + 1, y + 2, 10, 3, '#2E7A3A'); B(g, x - 8, y + 1, 18, 1, '#5AAA5A');
-  // (X eyes; the gag)
+  // (the stump: the felt collar soaked through, torn meat hanging out of it in tags, the bone's end, wet)
+  ell(g, x + 1, y + 2, 11, 4, INK); ell(g, x + 1, y + 2, 10, 3, '#2E5A2A'); B(g, x - 8, y + 1, 18, 1, '#4A7A3A');
+  ell(g, x + 1, y + 3, 9, 3, GORE[2]); ell(g, x, y + 2, 6, 2, GORE[3]);
+  for (let k = 0; k < 7; k++) { const tx = x - 8 + k * 3 + Math.round(hash(i * 11 + k) * 2), th = 3 + Math.round(hash(i * 13 + k * 1.9) * 5); polyF(g, [[tx - 1, y + 3], [tx + 3, y + 3], [tx + 1, y + 3 + th]], k % 2 ? GORE[3] : '#B8545A'); B(g, tx, y + 3, 1, th - 2, GORE[1]); }
+  ell(g, x + 3, y + 2, 2.4, 1.6, '#E8E0C8'); B(g, x + 2, y + 1, 1, 1, '#FFFFFF');
+  B(g, x - 3, y + 1, 2, 1, GORE[5]); B(g, x + 6, y + 2, 1, 1, GORE[5]);
+  // (run down the walnut, a couple to the brass plate, a drop on it)
+  const runs = [[-7, 14], [-2, 26], [4, 30], [9, 18]];
+  runs.forEach(([dx, L], k) => drip(g, x + dx, y + 6, L + Math.round(hash(i * 19 + k) * 6), k % 2 ? 2 : 1));
+  ell(g, x - 1, y + 40, 3, 1.5, GORE[2]); B(g, x - 2, y + 39, 1, 1, GORE[5]);
+  // (beaten in: a gash across the brow, crudely stitched, blood down over one eye; a black eye going yellow at its
+  // edge; a nosebleed in two runs to his lip; blood out the corner of his mouth and off his chin)
   const ex = x + 2, ey = y - 18;
+  ell(g, ex + 7, ey + 2, 5, 4, '#5A2A5A'); ell(g, ex + 7, ey + 2, 4, 3, '#7A3A6A'); B(g, ex + 10, ey + 4, 2, 1, '#9A9A3A');
+  B(g, ex - 6, ey - 8, 14, 3, GORE[1]); B(g, ex - 5, ey - 7, 12, 1, GORE[3]); for (let k = 0; k < 4; k++) B(g, ex - 4 + k * 3, ey - 9, 1, 5, '#1A1010');
+  B(g, ex - 2, ey - 5, 2, 9, GORE[2]); B(g, ex - 2, ey - 5, 1, 8, GORE[4]); B(g, ex - 2, ey + 4, 2, 2, GORE[3]);
+  B(g, ex + 3, ey + 4, 1, 4, GORE[3]); B(g, ex + 5, ey + 4, 1, 3, GORE[3]); B(g, ex + 3, ey + 4, 1, 1, GORE[5]);
+  B(g, x - 1, y - 7, 2, 7, GORE[2]); B(g, x - 1, y - 7, 1, 6, GORE[4]); ell(g, x, y + 0, 1.6, 1.8, GORE[3]);
+  // (X eyes; the gag)
   for (const dx of [0, 5]) { B(g, ex + dx - 1, ey - 1, 4, 4, '#F4F0E8'); B(g, ex + dx - 1, ey - 1, 1, 1, INK); B(g, ex + dx + 2, ey - 1, 1, 1, INK); B(g, ex + dx, ey, 2, 2, INK); B(g, ex + dx - 1, ey + 2, 1, 1, INK); B(g, ex + dx + 2, ey + 2, 1, 1, INK); }
   if (T.gag === 'tongue' || T.gag === 'lance' || T.gag === 'broom') { B(g, x + 4, y - 11, 5, 7, INK); B(g, x + 5, y - 11, 3, 6, '#E86A8A'); B(g, x + 5, y - 11, 1, 5, '#FFA0B8'); }
   if (T.gag === 'apple') { ballR(g, x + 7, y - 9, 5, ['#3A0A0A', '#6A1010', '#A81E1E', '#D83A2E', '#F06A50', '#FFB0A0']); B(g, x + 7, y - 16, 1, 3, WALNUT[2]); B(g, x + 8, y - 16, 3, 2, LEAF[3]); }
