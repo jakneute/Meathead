@@ -1,7 +1,7 @@
 // SPOOKY LAND's fights: the hell demon (BLOATHAZAR, Satan's boy: the sub-boss) and Donnie Dracula (the land's boss).
 // The land's theme and its set pieces are in spooky.ts.
 //
-// ---- "HELL'S COUCH POTATO" (boss:demon) ----
+// ---- "SATAN'S BIGGEST FAN" (boss:demon; was Hell's Couch Potato, for the old couch demon) ----
 // A fat, lazy demon with a pitchfork who'd rather be lying down: thrash metal that keeps running out of breath. The
 // riff gallops (E minor, the flat two and the flat five, a chromatic slide down like him sliding off the couch), twin
 // guitars in thirds, a skank beat; then it slumps into a half-time doom groove, the rhythm guitar dragging the tune
@@ -42,7 +42,7 @@ import { pump, gallop, riff, BEAT16, MM2, DRIVE, FILL, FILL2, FILL_BIG, ROLL_UP,
 const ROLL = (n: string) => `o2 _v50 [${n}32]8 _v70 [${n}32]8 _v90 [${n}32]8 _v110 [${n}32]8`;
 
 // =====================================================================================================================
-// HELL'S COUCH POTATO
+// SATAN'S BIGGEST FAN
 
 const R1 = 'o2 e8 e8 e8 f8 e8 e8 g8 f+8';
 const R2 = 'o2 e8 e8 e8 f8 e8 e8 b-8 a8';
@@ -83,7 +83,7 @@ const DK = '{kh}16 k16 k16 k16 {sh}16 k16 k16 k16 {kh}16 k16 k16 k16 {sh}16 k16 
 const DK_IN = '{kx}16 k16 k16 k16 {sh}16 k16 k16 k16 {kh}16 k16 k16 k16 {sh}16 k16 k16 k16';
 
 export const BOSS_DEMON: Song = {
-  title: 'Hell\'s Couch Potato',
+  title: "Satan's Biggest Fan",
   bpm: 200,
   loopFrom: 16,
   reverb: 'room',
