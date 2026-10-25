@@ -110,11 +110,19 @@ export const BOSS_PUNDITS: Song = {
   },
   arrangements: {
     main: {},
-    perot: { inst: { tagB: 'banjo', pah: 'accordion', xylo: 'marimba' }, vol: { pah: 1.1, xylo: 1.2 } },
-    falwell: { inst: { tagB: 'churchorgan', pad: 'churchorgan', xylo: 'vibes' }, vol: { pad: 0.85, tagB: 0.75, xylo: 1.1 } },
-    limbaugh: { inst: { tagB: 'distlead', pah: 'organ', xylo: 'organ' }, vol: { tagB: 0.75, pah: 1.1, gtr: 1.15 } },
-    dole: { inst: { tagB: 'trumpet', xylo: 'flute' }, vol: { kit: 1.1, xylo: 1.1 } },
-    newt: { inst: { tagB: 'brass' }, vol: { hits: 1.4, timp: 1.4, counter: 1.3, pad: 1.3, theme: 1.1, gtr: 1.1 } },
+    // (the same march, a band of its own for each (the user's: "make the 'those mean men' songs have different
+    // instrumentation based on the sub boss"; "the composition the same, just different instruments"): the tune's own
+    // instrument swapped for his, and the parts under it)
+    // (Perot: a Texas hoedown, harmonica on the tune, banjo, accordion, tuba, steel guitar)
+    perot: { inst: { theme: 'harmonica', counter: 'banjo', tagB: 'banjo', pah: 'accordion', low: 'tuba', gtr: 'steelgtr', xylo: 'marimba' }, vol: { theme: 1.2, pah: 1.1, xylo: 1.2 } },
+    // (Falwell: the church, organ on the tune, the choir up, vibes)
+    falwell: { inst: { theme: 'churchorgan', counter: 'oohs', tagB: 'churchorgan', pad: 'churchorgan', gtr: 'cleangtr', xylo: 'vibes' }, vol: { choir: 1.6, pad: 0.85, tagB: 0.75, xylo: 1.1 } },
+    // (Limbaugh: talk-radio rock, a distorted lead, synth brass, organ, clav)
+    limbaugh: { inst: { theme: 'distlead', counter: 'synthbrass', tagB: 'distlead', pah: 'organ', xylo: 'clav' }, vol: { theme: 0.85, tagB: 0.75, pah: 1.1, gtr: 1.3 } },
+    // (Dole: a veterans' parade, muted trumpet on the tune, clarinet, tuba, fife and snare)
+    dole: { inst: { theme: 'mutetrumpet', counter: 'clarinet', tagB: 'trumpet', low: 'tuba', xylo: 'flute' }, vol: { kit: 1.25, xylo: 1.2 } },
+    // (Newt: the full orchestra, horns on the tune, trumpets, the hits and timpani and choir up, glockenspiel)
+    newt: { inst: { theme: 'horn', counter: 'trumpet', tagB: 'brass', xylo: 'glock' }, vol: { hits: 1.4, timp: 1.4, choir: 1.3, counter: 1.3, pad: 1.3, theme: 1.15, gtr: 1.1 } },
   },
 };
 
