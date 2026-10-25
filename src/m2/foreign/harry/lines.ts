@@ -145,6 +145,12 @@ export const HARRY_CLING_UP: ByPants = {
   shitty: ['NOBODY HIDES UNDER ME! ESPECIALLY NOT SMELLING LIKE THAT!', 'BOTTOM TO TOP, STINKY! RUN!'],
   nude: ["DON'T STAND UNDER ME NAKED! NOBODY WANTS THAT VIEW!", 'BOTTOM TO TOP! RUN, NUDIE!'],
 };
+/** The rifle butt coming (him right up on Harry a while). */
+export const HARRY_BUTT: ByPants = {
+  clean: ['BACK OFF, MAN!', 'PERSONAL SPACE, MAN!', 'GET OUT OF MY AURA!'],
+  shitty: ['BACK OFF! YOU REEK, MAN!', 'NOT IN MY FACE WITH THAT SMELL!'],
+  nude: ['PUT THAT AWAY AND BACK OFF!', 'NOT WITH YOUR THING OUT, MAN!'],
+};
 export const HARRY_HURT: ByPants = {
   clean: [
     'SON OF A BITCH!', 'THAT ALL YOU GOT?', 'OW! MY GOOD PEC!', 'I DID NAM! THE RESTAURANT! I CAN TAKE IT!', 'MOTHERFUCKER!',
@@ -313,6 +319,10 @@ export const HURT: HurtTable = {
     hurt: ['HE SHOT STRAIGHT DOWN!', 'OW! IT CAME UP THE FLOOR!', 'I SHOULD HAVE JUMPED!'],
     death: ['MOWED DOWN BOTTOM TO TOP', 'SHOT FROM ABOVE BY A HIPPIE', 'SPRAYED OFF A WALL'],
   },
+  'm2:fl_harry_butt': {
+    hurt: ['THE BUTT OF HIS GUN! MY TEETH!', 'OW! HE HIT ME WITH THE GUN!', 'RIFLE BUTT! IN THE NOSE!'],
+    death: ['BUTTED TO DEATH BY A HIPPIE', 'GUN-STOCKED BY HARRY', 'STOCK TO THE SKULL'],
+  },
   'm2:fl_liberty_barf': {
     hurt: ['CONCRETE PUKE! IT BURNS!', 'OW! SHE PUKED ON ME!', "IT'S SETTING ON MY LEGS!"],
     death: ['DROWNED IN STATUE PUKE', 'BURIED IN CONCRETE VOMIT', 'PUKED ON BY A MONUMENT'],
@@ -325,7 +335,7 @@ export const VOICE_LINES = pavilionVoices({ pa: { clean: [], shitty: [], nude: [
   [HARRY]: [
     ...allOf(HARRY_QUEASY), ...allOf(HARRY_RIP), ...allOf(HARRY_RANT), ...allOf(HARRY_SUMMON), HARRY_MONUMENT,
     ...allOf(HARRY_TAUNT), ...allOf(HARRY_FIRE), ...allOf(HARRY_CROWN), ...levels(HARRY_STUCK), ...allOf(HARRY_UNSTUCK), ...allOf(HARRY_FAKE),
-    ...allOf(HARRY_CLING_DOWN), ...allOf(HARRY_CLING_UP), ...allOf(HARRY_HURT), ...allOf(HARRY_GLOAT), ...allOf(HARRY_COUNTER), ...allOf(HARRY_LOW),
+    ...allOf(HARRY_CLING_DOWN), ...allOf(HARRY_CLING_UP), ...allOf(HARRY_HURT), ...allOf(HARRY_BUTT), ...allOf(HARRY_GLOAT), ...allOf(HARRY_COUNTER), ...allOf(HARRY_LOW),
     ...allOf(HARRY_SICK_FIRST), ...allOf(HARRY_SICK), ...allOf(HARRY_CONCRETED), ...allOf(HARRY_FOLLOWUP),
     ...allOf(HARRY_DEATH), ...allOf(HARRY_PERFORATED), ...allOf(HARRY_BURIED),
     ...allOf(HARRY_CRUMBLE), ...allOf(HARRY_ENRAGED), ...allOf(HARRY_GRIEF_SICK), ...allOf(HARRY_BARF_DEATH),

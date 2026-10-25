@@ -124,6 +124,9 @@ const GRIEF_T = 200, GRIEF_DRAIN = 60, GRIEF_HIT = 75;
  *  Harry stands, and where his face is from his feet's middle (lying on his back, head toward Harry). */
 const PIN_T = 150, PIN_SHOTS = [40, 62, 84, 106, 128], PIN_DMG = 13, PIN_ROUNDS = 5, PIN_EVERY = 3, PIN_GAP = 150;
 const PIN_AIM = 0.45, PIN_REACH = 52, PIN_HEAD = 25;
+/** The rifle butt (the user's: "harry should rifle butt you if you linger for a bit right up to him"): right up to him
+ *  (px, middles) on the floor this long (frames); the jab's wind-up, then the hit, its hurt; how long before another. */
+const BUTT_NEAR = 64, BUTT_AFTER = 50, BUTT_WIND = 10, BUTT_T = 22, BUTT_DMG = 12, BUTT_GAP = 100;
 
 // ---------------------------------------------------------------------------------------------------------------
 // The state
@@ -180,6 +183,8 @@ export interface Fight {
   lib: { dy: number; face: Face; shake: number; stains: Stain[]; tear: number; broken: number; hand: { x: number; y: number }; tablet: boolean; gun: boolean; tilt: number; gone: boolean; wear: number };
   /** Her smashes so far; her collapse (frames into it, -1: not); she's gone (crumbled: him enraged). */
   smashes: number; crumble: number; crumbled: boolean;
+  /** The rifle butt: frames into it (0: not), how long he's been right up on him, when the last one was. */
+  butt: number; buttNear: number; buttAt: number;
   /** Where the torch has been driven into the floor (the holes it leaves). */
   holes?: number[];
   /** His own puke on the floor (the grief puke). */
@@ -286,7 +291,7 @@ export const startFight = (state: GameState): Fight => {
     sick: 0, sickAt: -999, sickOn: false, sickFirst: false, barf: null, green: 0, concrete: 0,
     arm: { st: seen ? 'up' : 'hidden', t: 0, T: 0, tx: MID, fx: FIST_UP.x, fy: FIST_UP.y, from: { ...FIST_UP }, block: null },
     lib: { dy: seen ? 0 : LIB.sink, face: 'stern', shake: 0, stains: [], tear: 0, broken: 0, hand: { ...HAND_TABLET }, tablet: true, gun: false, tilt: 0, gone: false, wear: 0 },
-    smashes: 0, crumble: -1, crumbled: false, puddle: null,
+    smashes: 0, crumble: -1, crumbled: false, puddle: null, butt: 0, buttNear: 0, buttAt: -999,
     rounds: [], chunks: [], piles: [], torch: null, gunDrop: null,
     e, moveSeen: e.hitByMove, spam: newSpam(), said: null,
     wrongN: 0, hintAt: -9999, lowSaid: false, tauntT: 0, gloatAt: -999, lastHp: state.player.health,
@@ -441,6 +446,7 @@ export const updateFight = (ctx: FrameContext, f: Fight, controls: Controls): Co
   // (the counter: him pinned, the gun in his face; her arm carries on)
   if (f.pin) { const out = pinning(ctx, f); statue(ctx, f); sync(state, f); return out; }
   if (f.barf) barfing(ctx, f); else harry(ctx, f);
+  rifleButt(ctx, f);
   // (her concrete's just killed him: the death's begun)
   if (f.mode !== 'on') return hands();
   statue(ctx, f);
@@ -988,6 +994,27 @@ const smashed = (ctx: FrameContext, f: Fight) => {
   }));
   // (the followup's landed: the queasiness can start again)
   if (f.sickOn) { f.sickOn = false; f.sick = 0; }
+};
+
+/** Lingering right up against him on the floor: the M60's butt jabbed into him, and he's knocked back off. */
+const rifleButt = (ctx: FrameContext, f: Fight) => {
+  const { state } = ctx, p = state.player, m = pmid(state);
+  if (f.butt > 0) {
+    f.butt++;
+    if (f.butt === BUTT_WIND) {
+      const away = (m.x < f.hx ? -1 : 1) as 1 | -1;
+      playSound('whoosh', 0.7, 2);
+      if (Math.abs(m.x - f.hx) < BUTT_NEAR + 16 && p.pos.y + p.height > GY - 70 && p.invincibilityTimer <= 0 && p.health > 0 && !p.inCutscene) {
+        hurtPlayer(ctx, BUTT_DMG, 'm2:fl_harry_butt', { x: away * 10, y: -5 }, 14);
+        playSound('punch', 1, -4); shakeScreen(state, 5, 3);
+      }
+    }
+    if (f.butt >= BUTT_T) { f.butt = 0; f.buttAt = f.total; }
+    return;
+  }
+  const close = f.hy >= GY - 2 && (f.act === 'walk' || f.act === 'idle') && !f.leap && Math.abs(m.x - f.hx) < BUTT_NEAR && p.pos.y + p.height > GY - 60;
+  f.buttNear = close ? f.buttNear + 1 : Math.max(0, f.buttNear - 2);
+  if (f.buttNear >= BUTT_AFTER && f.total - f.buttAt > BUTT_GAP) { f.buttNear = 0; f.butt = 1; f.facing = (m.x < f.hx ? -1 : 1) as 1 | -1; bark(f, L.HARRY_BUTT); }
 };
 
 /** Free: yanked up slowly (her time's up), or snapped up (he's barfed on her). */
@@ -1636,6 +1663,8 @@ const libLook = (f: Fight, fr: number, crown?: (c: Ctx) => void): LibLook => ({
 /** Harry's look, by what he's at. */
 const harryPose = (f: Fight): { pose: RamboPose; lean?: number; rot?: number } => {
   if (f.entrance > 0) return { pose: 'flex' };
+  // (the rifle butt: leaned back on the wind-up, jabbed forward on the hit)
+  if (f.butt > 0) return { pose: 'fire', lean: f.butt < BUTT_WIND ? -0.3 : 0.45 };
   if (f.flash > 0 && (f.act === 'walk' || f.act === 'idle')) return { pose: 'hurt' };
   switch (f.act) {
     case 'walk': return { pose: f.moving ? 'walk' : f.firing ? 'fire' : 'stand' };

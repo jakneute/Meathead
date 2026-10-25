@@ -7666,6 +7666,11 @@
  },
  {
   "voice": "death",
+  "text": "BUTTED TO DEATH BY A HIPPIE",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "death",
   "text": "BUTTERED",
   "from": "HOLLYWOOD"
  },
@@ -10383,6 +10388,11 @@
   "voice": "death",
   "text": "GUIDED TO THE AFTERLIFE",
   "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "GUN-STOCKED BY HARRY",
+  "from": "FOREIGN"
  },
  {
   "voice": "death",
@@ -15398,6 +15408,11 @@
   "voice": "death",
   "text": "STILL FALLING",
   "from": "CARTOON"
+ },
+ {
+  "voice": "death",
+  "text": "STOCK TO THE SKULL",
+  "from": "FOREIGN"
  },
  {
   "voice": "death",
@@ -31531,6 +31546,16 @@
  },
  {
   "voice": "m2.foreign.harry",
+  "text": "BACK OFF, MAN!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.harry",
+  "text": "BACK OFF! YOU REEK, MAN!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.harry",
   "text": "BAMBOO STRAWS! I HANDED OUT BAMBOO STRAWS FOR TWENTY YEARS! I'LL SHOVE ONE UP YOUR ASS!",
   "from": "FOREIGN"
  },
@@ -31917,6 +31942,11 @@
  {
   "voice": "m2.foreign.harry",
   "text": "GET HIM, LADY! FIST OF FREEDOM!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.harry",
+  "text": "GET OUT OF MY AURA!",
   "from": "FOREIGN"
  },
  {
@@ -32656,6 +32686,11 @@
  },
  {
   "voice": "m2.foreign.harry",
+  "text": "NOT IN MY FACE WITH THAT SMELL!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.harry",
   "text": "NOT LIKE THIS! NOT DOWNWIND OF YOU!",
   "from": "FOREIGN"
  },
@@ -32667,6 +32702,11 @@
  {
   "voice": "m2.foreign.harry",
   "text": "NOT LIKE THIS... NOT LIKE A ROCK STAR... BLUB...",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.harry",
+  "text": "NOT WITH YOUR THING OUT, MAN!",
   "from": "FOREIGN"
  },
  {
@@ -32796,6 +32836,11 @@
  },
  {
   "voice": "m2.foreign.harry",
+  "text": "PERSONAL SPACE, MAN!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.harry",
   "text": "PISA! FALL ON THE NUDIST, YOU CROOKED SUMBITCH!",
   "from": "FOREIGN"
  },
@@ -32852,6 +32897,11 @@
  {
   "voice": "m2.foreign.harry",
   "text": "PUT SOME PANTS ON! THIS IS A FAMILY RIDE!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.harry",
+  "text": "PUT THAT AWAY AND BACK OFF!",
   "from": "FOREIGN"
  },
  {
@@ -78911,6 +78961,11 @@
  },
  {
   "voice": "meathead",
+  "text": "OW! HE HIT ME WITH THE GUN!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "meathead",
   "text": "OW! HE SAID SORRY AND THEN HE AXED ME!",
   "from": "FOREIGN"
  },
@@ -80648,6 +80703,11 @@
   "voice": "meathead",
   "text": "RIDING IN A FULL DIAPER. LET'S GO.",
   "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
+  "text": "RIFLE BUTT! IN THE NOSE!",
+  "from": "FOREIGN"
  },
  {
   "voice": "meathead",
@@ -86168,6 +86228,11 @@
   "voice": "meathead",
   "text": "THE BUTLER WANTS A TIP!",
   "from": "SPACE"
+ },
+ {
+  "voice": "meathead",
+  "text": "THE BUTT OF HIS GUN! MY TEETH!",
+  "from": "FOREIGN"
  },
  {
   "voice": "meathead",
