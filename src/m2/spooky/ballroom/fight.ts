@@ -54,6 +54,7 @@ import { isShat, isNude } from '../../../m1/game/player/gut';
 import { makeKindEnemy } from '../../../m1/game/enemies/kinds';
 import { ENEMY_HIT_COOLDOWN, CANVAS_WIDTH, CANVAS_HEIGHT, BULLET_DAMAGE, BOSS_CHARGE_DAMAGE, BOSS_UPPERCUT_DAMAGE } from '../../../m1/constants';
 import { registerM2Kind, registerHurtLines } from '../../kinds';
+import { newSpam, spamTick, hitKey, type Spam } from '../../bossSpam';
 import { setSouvenirPick, setSouvenirHit, souvenirMaxHit } from '../../weapons/souvenir';
 import { drawPerson, lookOf } from '../../adventure/temple/people';
 import { drawDonnie, drawLooseWig, DONNIE_H, type DonniePose } from '../donnie';
@@ -243,6 +244,8 @@ export interface Fight {
   souvenir: { id: string } | null;
   /** The last of Meathead's moves that landed on him. */
   moveSeen: number | undefined;
+  /** The same hit landing on him over and over (bossSpam.ts). */
+  spam: Spam;
   /** Gluttony: how full he is (steps, 0..FULL_MAX), when he last had a gulp; the burp after a drink (frames into it). */
   full: number; fullAt: number; burpT: number;
   death: Death | null;
@@ -363,7 +366,7 @@ export const startFight = (state: GameState): Fight => {
     hp: HP, iframes: 0, flash: 0, mode: 'intro', t: 0, total: 0, x: CORNER_X, y: GY, vx: 0, vy: 0, facing: -1,
     intro: 'plead', introT: 0, skipT: 0, admireT: 0, circle: 0, pit: newPit(), powered: false, dive: null, chain: 0, mark: null, held: null,
     guests: [], guestT: 0, prey: null, drops: [], splats: [], aimX: 0, aimY: 0, stunT: 0, side: -1, redeemAt: 0, staggerAt: -99999, wrongN: 0, hintAt: -99999, knockedLoose: false,
-    said: null, satanSaid: null, nagT: 0, tauntT: 0, souvenir: null, moveSeen: e.hitByMove,
+    said: null, satanSaid: null, nagT: 0, tauntT: 0, souvenir: null, moveSeen: e.hitByMove, spam: newSpam(),
     death: null, deathSaid: 0, cam: null, wigOff: null, e, full: 0, fullAt: -9999, burpT: 0,
     goo: [], muck: [], ceilSplat: 0, ball: { a: 0, v: 0 },
     beat: null, beatOn: false, beatEnd: -9999, beatsDone: new Set(), guestKills: 0,
@@ -814,6 +817,13 @@ const takeHits = (ctx: FrameContext, f: Fight) => {
     else if (state.player.isDivekicking) dodge(state, f);
   }
   if (f.mode === 'dead' || dealt <= 0 || !state.enemies.includes(e)) return;
+  // (the user's: "i don't want the player to be given more than 5 uninterrupted seconds spamming the same attack on a
+  // boss": the ray gun held on him from one spot (a dive kick he already slides out from under, every one) and he's out
+  // of it: off the floor if he was winded, a quick slide away and up)
+  if (!sv && f.mode !== 'stunned' && f.mode !== 'drain' && spamTick(f.spam, state.frame, hitKey(state.player, melee))) {
+    dodge(state, f);
+    if (f.mode === 'winded') to(f, 'rise');
+  }
   // The Redeemer: down he goes, and it hurts (in his breather, it's not landed: it bounces about, it'll be back)
   // (once per go: it bounces about and hits him again, but it's the first one that puts him down; down already, it's
   // just another souvenir till he's back up)
