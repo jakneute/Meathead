@@ -68,6 +68,7 @@ import { hurtPlayer } from '../../../m1/game/bosses/shared';
 import { makeKindEnemy } from '../../../m1/game/enemies/kinds';
 import { ENEMY_HIT_COOLDOWN, CANVAS_WIDTH, CANVAS_HEIGHT, BULLET_DAMAGE, BOSS_CHARGE_DAMAGE, BOSS_UPPERCUT_DAMAGE } from '../../../m1/constants';
 import { registerM2Kind, registerHurtLines } from '../../kinds';
+import { newSpam, spamTick, hitKey, swatOff, type Spam } from '../../bossSpam';
 import { setStuntCarHook, snapClapper } from '../../weapons/stuntCar';
 import type { ByPants } from '../talk';
 import { speak, meatheadSays, byPants, saidOver, box, label, getCartoon } from '../section';
@@ -215,6 +216,8 @@ export interface Fight {
   mode: 'on' | 'dead'; t: number; stage: string;
   hp: number; iframes: number; flash: number;
   e: Enemy; moveSeen: number | undefined;
+  /** The same hit landing on him over and over (bossSpam.ts). */
+  spam: Spam;
   /** Him: what he's at, its clock; where (section x, feet's height off the deck), which way he faces, on the couch. */
   act: Act; actT: number; x: number; y: number; vy: number; facing: 1 | -1; seated: boolean; landT: number;
   swatWind: number; swatAt: number; swatHit: boolean;
@@ -357,7 +360,7 @@ export const startFight = (state: GameState, retry: boolean): Fight => {
   const fam = {} as Record<Member, Fam>;
   for (const m of MEMBERS) { const h = homeOf(m); fam[m] = { id: m, alive: true, x: h.x, d: h.d, home: { x: h.x, d: h.d }, stepT: 0, dir: -1, way: Math.random() < 0.5 ? 1 : -1, idle: 0 }; }
   const f: Fight = {
-    mode: 'on', t: 0, stage: String(state.stageId), hp: HP, iframes: 0, flash: 0, e, moveSeen: e.hitByMove,
+    mode: 'on', t: 0, stage: String(state.stageId), hp: HP, iframes: 0, flash: 0, e, moveSeen: e.hitByMove, spam: newSpam(),
     act: retry ? 'enter' : 'sit', actT: 0, x, y: 0, vy: 0, facing: -1, seated: true, landT: -999,
     swatWind: SWAT_WIND, swatAt: -999, swatHit: false, nextAtk: 'puke', pukes: 0, rages: 0, hopAt: 0,
     couch: { x: COUCH_HOME, vx: 0, squash: 0, crushed: false, rot: 0 },
@@ -1174,11 +1177,24 @@ const takeHits = (ctx: FrameContext, f: Fight) => {
   e.health = BIG; e.maxHealth = BIG;
   const melee = e.hitByMove !== f.moveSeen;
   f.moveSeen = e.hitByMove;
+  // (off it (winded, waddling back, baffled, up with no couch), a dive kick's batted off him too, with whatever's to
+  // hand (the user's: "dad guy automatically counters it"; "the swat won't hurt"): it doesn't land, no stomping chain,
+  // in his breather or out of it)
+  if (melee && dealt > 0 && state.player.isDivekicking && !f.seated && f.act !== 'rage' && f.act !== 'rise' && state.enemies.includes(e)) {
+    swatOff(state, X(f.x), 11, -8);
+    playSound('bonk', 1, -2);
+    ctx.fx.spawnDamageNumber({ x: state.player.pos.x, y: state.player.pos.y - 24 }, 'BATTED!', true, '#FDE047');
+    return;
+  }
   if (dealt <= 0 || !state.enemies.includes(e) || f.iframes > 0) return;
   // (in the rage nothing lands but what's fired at him (the moves get him hammered: touch above))
   if (melee && (f.act === 'rage' || f.act === 'rise')) return;
   // (on his couch, no move lands either: he bats every one away (batAway)); but puking he can't, and they do
   if (melee && f.seated && !f.couch.crushed && f.act !== 'puke') return;
+  // (the user's: "i don't want the player to be given more than 5 uninterrupted seconds spamming the same attack on a
+  // boss": shots getting past the family onto him on his couch for 4 s and he yells for a beer there and then: the
+  // armful comes down all over the set, a couple of bottles about where he's stood)
+  if (!melee && f.seated && !f.couch.crushed && spamTick(f.spam, state.frame, hitKey(state.player, melee)) && !f.errand) f.callAt = Math.min(f.callAt, f.t);
   // (one of the family in the way of his move: it eats it)
   { const who = melee ? famBetween(state, f) : undefined; if (who) { const pr = pRect(state); eaten(state, f, (pr.x0 + pr.x1) / 2 + state.player.facing * 20, pr.y0 + 30, who); return; } }
   const plain = plainHit(state, melee);
