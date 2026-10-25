@@ -18,6 +18,7 @@
 import { type Ctx, type Ramp, shape, shapeTop, ell, px, line, limb, fill, dith } from './paint';
 import { DAD_K, SKIN, FLUSH, TANK, BOXER, SOCK, SLIPPER, HAIR, STRIPE, STAIN, MUSTARD, SPOT, VEIN, TAT, MIC, IRIS, TEETH, can } from './dad';
 import { BLOOD, gutRope, tooth } from './carnage';
+import { idleTasks } from '../../../m1/game/scenes/art/raster';
 
 const hash = (n: number) => { const s = Math.sin(n * 91.7 + 17.3) * 43758.5453; return s - Math.floor(s); };
 const MEAT: Ramp = ['#F08A86', '#C8383C', '#9A1C24', '#6A0A12', '#2E0206'];
@@ -316,9 +317,7 @@ const paintBit = (c: Ctx, kind: BitKind, seed: number) => {
 const baked = new Map<string, HTMLCanvasElement>();
 /** (off out of Cartoon Land: landCaches.ts; up to ~50 MB of them after the kill cam) */
 export const clearDadBits = () => baked.clear();
-const bakedTurn = (c: Ctx, key: string, x: number, y: number, w: number, h: number, paint: (g: Ctx) => void, most = 16) => {
-  const m = c.getTransform(), sc = Math.hypot(m.a, m.b);
-  const res = Math.min(most, 2 ** Math.ceil(Math.log2(Math.max(1, sc))));
+const bakeAt = (key: string, res: number, x: number, y: number, w: number, h: number, paint: (g: Ctx) => void) => {
   const id = `${key}@${res}`;
   let cv = baked.get(id);
   if (!cv) {
@@ -329,8 +328,24 @@ const bakedTurn = (c: Ctx, key: string, x: number, y: number, w: number, h: numb
     paint(g);
     baked.set(id, cv);
   }
+  return cv;
+};
+const bakedTurn = (c: Ctx, key: string, x: number, y: number, w: number, h: number, paint: (g: Ctx) => void, most = 16) => {
+  const m = c.getTransform(), sc = Math.hypot(m.a, m.b);
+  const res = Math.min(most, 2 ** Math.ceil(Math.log2(Math.max(1, sc))));
+  const cv = bakeAt(key, res, x, y, w, h, paint);
   const was = c.imageSmoothingEnabled;
   c.imageSmoothingEnabled = false; c.drawImage(cv, x, y, w, h); c.imageSmoothingEnabled = was;
+};
+
+/** Every bit and the head baked ahead, at every step the kill cam's zoom will want, a few milliseconds at a time while
+ *  the fight's on (the user's: the kill sometimes ran at 6 fps: the first one after his bits were let go (landCaches)
+ *  painted them all as the zoom stepped up, dozens in a frame). The bits are the burst's own, always the same set. */
+export const prewarmDadBits = () => {
+  const { bits } = burst(0, 0, 1), jobs: (() => void)[] = [];
+  for (const res of [1, 2, 4, 8]) for (const b of bits) jobs.push(() => { bakeAt(`ct-dadbit-${b.kind}-${b.seed}`, res, -46, -34, 92, 68, g => paintBit(g, b.kind, b.seed)); });
+  for (const res of [1, 2, 4, 8, 16]) jobs.push(() => { bakeAt('ct-dadhead', res, -22, -32, 44, 62, paintHead); });
+  idleTasks(jobs);
 };
 
 /** A bit (world: its middle), live while it moves, stamped once it's down; the drip off a torn end while it's fresh. */

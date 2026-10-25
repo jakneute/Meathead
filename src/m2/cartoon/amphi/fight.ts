@@ -79,7 +79,7 @@ import {
   type P, type Member, type PileCan, eyeOf, proj, drawMallet, drawFridge, drawBottle, drawDrop, drawPuddle, drawCouchAt,
   drawCarAt, drawWreck, drawStuntmanAt, drawWallSplat, drawMember, drawDeadMember, drawDadGore, drawPile, drawSeep, drawBlood,
 } from './fightArt';
-import { type Bit, type Splat, type Head, burst, tickBits, tickHead, settleAll, stumpOf, drawBit, drawSplat, drawHead } from './dadBits';
+import { type Bit, type Splat, type Head, burst, tickBits, tickHead, settleAll, stumpOf, drawBit, drawSplat, drawHead, prewarmDadBits } from './dadBits';
 import { setStampHold } from '../../../m1/game/render/stamp';
 import type { Anim } from './family';
 import * as L from './lines';
@@ -345,6 +345,8 @@ const homeOf = (m: Member) => (m === 'mom' ? MOM : m === 'sis' ? SIS : m === 'gr
  *  (a beat for his entrance first, no swats, no beer). */
 export const startFight = (state: GameState, retry: boolean): Fight => {
   token++;
+  // (his pieces baked ahead in the fight's quiet moments, so the kill cam never paints them all at once)
+  prewarmDadBits();
   const x = COUCH_HOME + SEAT_DX;
   const e = makeKindEnemy(KIND as EnemyKind, X(x), STAGE_Y);
   e.facing = -1; e.seen = true;
