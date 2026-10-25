@@ -43,7 +43,8 @@ const INK = '#1A0B06';
 
 const CAST_COOLDOWN = 80, REACH = 680, CAST_POSE = 32;
 /** The wind-up: this long reading it out, the runes building, before the storm comes (he's stood there for it). */
-const WINDUP = 40;
+// (a little quicker (the user's: "slightly speed up spellbooks' cast time"): was 40)
+const WINDUP = 34;
 /** The storm still to come (the wind-up's frames left), and the cast to finish when it's done. */
 let winding = 0;
 const METEOR = { dmg: 80, edge: 25, radius: 95, burn: 240, burnDmg: 0.4 };
