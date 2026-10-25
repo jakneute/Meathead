@@ -61,6 +61,7 @@ import { body as drawMeatheadBody } from '../../../m1/game/render/player/deathAn
 import { stabLean, STAB_WOUND } from '../../../m1/game/render/player/player';
 import { ENEMY_HIT_COOLDOWN, CANVAS_WIDTH, CANVAS_HEIGHT, BULLET_DAMAGE, BOSS_CHARGE_DAMAGE, BOSS_UPPERCUT_DAMAGE } from '../../../m1/constants';
 import { registerM2Kind, registerHurtLines } from '../../kinds';
+import { newSpam, spamTick, hitKey, type Spam } from '../../bossSpam';
 import { aliensOn, brushOff, popAliensIn, setSpawnerBaits, takeBites, type SpawnerBait } from '../../weapons/spawner';
 import { grabCallout } from '../../moves/callouts';
 import { type Eaten, startEaten, updateEaten, landEaten, collapse, drawEatenStanding, drawEatenLoose, swarmAt, FLESH_END, COLLAPSE_MIN, COLLAPSE_MAX } from './eaten';
@@ -216,6 +217,8 @@ export interface Fight {
   moveSeen: number | undefined;
   /** This gut's the counter (he grabbed at him); when the last one was (state.frame). */
   counter: boolean; counterAt: number;
+  /** The same hit landing on him over and over (bossSpam.ts). */
+  spam: Spam;
   e: Enemy;
 }
 
@@ -353,7 +356,7 @@ export const startFight = (state: GameState, retry = false): Fight => {
     agitated: false, calmT: 0, swatT: 0, herd: [], stampedes: 0, overT: 0, darts: [], poison: 0, pokes: 0,
     said: null, nextCups: 0, byWeakness: false, death: null, gore: null, eaten: null, eatenSaid: 0, eatenOver: false, cam: null, puke: null, noBushesSaid: false,
     vineHp: VINE_HP, vineChewed: 0, vine: null as unknown as SpawnerBait, snap: null, dropped: false, feedGap: 0, perch: false, spitT: 0, perchT: 0, lureT: 0, inBlind: true, blindT: 0, entrance: 0,
-    attacks: 0, lastAttack: null, sameRun: 0, lunged: false, moveSeen: e.hitByMove, counter: false, counterAt: -9999, e,
+    attacks: 0, lastAttack: null, sameRun: 0, lunged: false, moveSeen: e.hitByMove, counter: false, counterAt: -9999, spam: newSpam(), e,
   };
   // (the vine: up over his hands while he's hanging off it)
   f.vine = {
@@ -939,7 +942,21 @@ const takeHits = (ctx: FrameContext, f: Fight) => {
     f.hp -= dmg; f.iframes = IFRAMES; f.flash = 10;
     if (f.hp <= 0) { f.byWeakness = aliensOn(e) > 0; return; }
   }
-  if (knockable) knock(ctx, f, true);
+  if (knockable) { knock(ctx, f, true); return; }
+  if (spamTick(f.spam, state.frame, hitKey(state.player, melee))) shakeSpam(state, f);
+};
+
+/** The user's: "i don't want the player to be given more than 5 uninterrupted seconds spamming the same attack on a
+ *  boss" (stood holding fire on him, a dive-kick chain off his head). Out in the open (or seeing stars), he's off into a
+ *  bush (out of the line, out from under him); no bushes left, up his vine (over his line of fire); up it already, a
+ *  dart down at him now. */
+const SPAM_OFF: ReadonlySet<Mode> = new Set(['stunned', 'whistle', 'watch', 'exposed', 'landed']);
+const shakeSpam = (state: GameState, f: Fight) => {
+  if (f.mode === 'dodge' && f.perch && f.vy === 0 && f.t > 12) { f.spitT = 0; const m = mouth(f); fireDart(state, f, m.x, m.y); return; }
+  if (!SPAM_OFF.has(f.mode)) return;
+  f.dropped = false; f.attacks = 0;
+  if (liveBushes(f).length) diveIn(state, f);
+  else perch(f);
 };
 
 /** A bush chewed: thinner, then gone (and if he's in it, out he comes). */
