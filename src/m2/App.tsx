@@ -71,6 +71,10 @@ import { getAudioContext, playMenuBack } from '../m1/game/platform/audio';
 import { STAFF_SLOT, AMERICA_SLOT, landAt } from './hub/lands';
 import { getUi, subscribeUi, onTravel, setUi, goTo, takeBossKill, setStartCheckpoint, requestCarHop, restoreClearedLands, restoreKept, restoreBossDeaths, restoreFound, isLandCleared, isLandComplete, setAlphaEndSeen, ALPHA_LAND_COUNT } from './store';
 import { alphaEndOver } from './alphaEnd';
+import { setCutsceneBubbles } from '../m1/game/render/speechStyle';
+// (Meathead 2's cutscenes, the skippable ones bar the intro's: the words over heads in speech bubbles; in play, just the
+// words (speechStyle.ts))
+setCutsceneBubbles(state => canSkip() && state.stageId !== INTRO_STAGE && state.stageId !== GYM_STAGE);
 import TitleScreen from './title/TitleScreen';
 import { readFile, deleteFile, playOnFile, saveProgress, closeFile, activeSlot, type Slot } from './save';
 import { setFrameHook } from '../m1/game/core/update';

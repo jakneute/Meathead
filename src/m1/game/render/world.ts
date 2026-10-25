@@ -1,4 +1,5 @@
 import { GameStatus, Enemy, TommyBoard, DamageNumber, Particle } from '../../types';
+import { markCutsceneFrame, bubblesNow, drawBubbleRows } from './speechStyle';
 import { attackless } from '../enemies/attackless';
 import { hazeBands, steppedGlow, bandedGradient, checker, pixelBlob } from './pixelArt';
 import { INK, ink, shaded, shadedTop, dark, lite } from './npc/kit';
@@ -70,6 +71,8 @@ const FONT = '"Press Start 2P"';
 
 /** Renders one frame of the game world (everything except the React HUD/menus). */
 export const drawWorld = (ctx: CanvasRenderingContext2D, state: GameState, view: WorldView) => {
+  // (a cutscene's frame: the words over heads in bubbles, where the game wants them: speechStyle.ts)
+  markCutsceneFrame(state);
   // The skyfall's camera, coming down out of the sky with him: drawn from up there, the camera's own place untouched
   const lift = view.status === GameStatus.LEVEL_INTRO ? state.introLift ?? 0 : 0;
   if (lift <= 0) { drawWorldAt(ctx, state, view, 0); return; }
@@ -1298,7 +1301,9 @@ export const drawPlayerSpeech = (ctx: CanvasRenderingContext2D, state: GameState
   const rows: string[] = [];
   { let cur = ''; for (const w of line.split(' ')) { const t = cur ? `${cur} ${w}` : w; if (cur && ctx.measureText(t).width > CANVAS_WIDTH - 60) { rows.push(cur); cur = w; } else cur = t; } if (cur) rows.push(cur); }
   const half = Math.max(...rows.map(r => ctx.measureText(r).width)) / 2 + 8;
-  const say = (x: number, y: number) => rows.forEach((r, i) => ctx.fillText(r, x, y - (rows.length - 1 - i) * 13));
+  const tipAt = player.pos.x + player.width / 2;
+  // (in a cutscene, a bubble round them (speechStyle.ts); in play, just the words)
+  const say = (x: number, y: number, tip = tipAt) => { if (bubblesNow()) drawBubbleRows(ctx, rows, x, y, tip, 13, `bold 10px ${FONT}`); else rows.forEach((r, i) => ctx.fillText(r, x, y - (rows.length - 1 - i) * 13)); };
   // (the camera pulled back or pushed in (a section's zoom, a kill cam): the words kept their full size, and on screen
   // in the view)
   // (the render scale off the canvas's height: a cylinder's strip (the world wrapped round) is wider than the screen,
@@ -1308,7 +1313,7 @@ export const drawPlayerSpeech = (ctx: CanvasRenderingContext2D, state: GameState
     const L = -m.e / m.a, R = (ctx.canvas.width - m.e) / m.a, h = half / z;
     const x = Math.max(L + h, Math.min(R - h, player.pos.x + player.width / 2));
     ctx.translate(x, player.pos.y - 20); ctx.scale(1 / z, 1 / z);
-    say(0, 0);
+    say(0, 0, (player.pos.x + player.width / 2 - x) * z);
     ctx.restore();
     return;
   }

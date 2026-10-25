@@ -11,6 +11,7 @@ import type { Block } from '../../m1/types';
 import { groundBlocks, type GroundRun } from '../../m1/game/core/terrain';
 import { CANVAS_WIDTH, CANVAS_HEIGHT, HUD_CLEAR_X, HUD_CLEAR_Y } from '../../m1/constants';
 import { say, MEATHEAD_VOICE } from '../../m1/game/platform/speech';
+import { bubblesNow, drawBubbleRows } from '../../m1/game/render/speechStyle';
 import type { SectionId } from './geometry';
 
 type Ctx = CanvasRenderingContext2D;
@@ -174,6 +175,7 @@ export const saidOver = (c: Ctx, s: string, x: number, y: number, col = '#FFFFFF
   let cur = '';
   for (const w of words) { const t = cur ? `${cur} ${w}` : w; if (c.measureText(t).width > wide && cur) { lines.push(cur); cur = w; } else cur = t; }
   if (cur) lines.push(cur);
+  const tip = x;
   // (kept whole on screen: slid in off the edges, down off the top and out from under the HUD; a speaker near an
   // edge, or a fixed camera framing them close to it, would cut the words off)
   // (the render scale off the canvas's height: a cylinder's strip is wider than the screen, never taller)
@@ -182,18 +184,19 @@ export const saidOver = (c: Ctx, s: string, x: number, y: number, col = '#FFFFFF
   const z = m.a / k;
   if (m.a > 0 && m.d > 0 && z > 1.01) {
     const L = -m.e / m.a, R = (c.canvas.width - m.e) / m.a, T = -m.f / m.d;
-    const half = (Math.max(...lines.map(l => c.measureText(l).width)) / 2 + 6) / z, up = ((lines.length - 1) * 11 + 9) / z;
+    const half = (Math.max(...lines.map(l => c.measureText(l).width)) / 2 + (bubblesNow() ? 12 : 6)) / z, up = ((lines.length - 1) * 11 + 9) / z;
     x = Math.min(Math.max(x, L + half), R - half); y = Math.max(y, T + 6 / z + up);
     // (and out from under the HUD, pushed in or not)
     const hudR = (SAY_HUD_X * k - m.e) / m.a, hudB = (SAY_HUD_Y * k - m.f) / m.d;
     if (x - half < hudR && y - up < hudB) y = hudB + 4 / z + up;
     c.save(); c.translate(x, y); c.scale(1 / z, 1 / z);
-    lines.forEach((l, i) => label(c, l, 0, -(lines.length - 1 - i) * 11, col, 7));
+    if (bubblesNow()) drawBubbleRows(c, lines, 0, 0, (tip - x) * z, 11, '7px "Press Start 2P"');
+    else lines.forEach((l, i) => label(c, l, 0, -(lines.length - 1 - i) * 11, col, 7));
     c.restore();
     return;
   }
   if (m.a > 0 && m.d > 0) {
-    const half = Math.max(...lines.map(l => c.measureText(l).width)) / 2 + 6, top = y - (lines.length - 1) * 11 - 9;
+    const half = Math.max(...lines.map(l => c.measureText(l).width)) / 2 + (bubblesNow() ? 12 : 6), top = y - (lines.length - 1) * 11 - (bubblesNow() ? 15 : 9);
     const L = -m.e / m.a, R = (c.canvas.width - m.e) / m.a, T = -m.f / m.d;
     x = Math.min(Math.max(x, L + half), R - half);
     let dy = Math.max(0, T + 6 - top);
@@ -201,5 +204,7 @@ export const saidOver = (c: Ctx, s: string, x: number, y: number, col = '#FFFFFF
     if (x - half < hudR && top + dy < hudB) dy = hudB + 4 - top;
     y += dy;
   }
-  lines.forEach((l, i) => label(c, l, x, y - (lines.length - 1 - i) * 11, col, 7));
+  // (a cutscene: in a bubble, its tail down to whoever's talking; in play, just the words)
+  if (bubblesNow()) drawBubbleRows(c, lines, x, y, tip, 11, '7px "Press Start 2P"');
+  else lines.forEach((l, i) => label(c, l, x, y - (lines.length - 1 - i) * 11, col, 7));
 };
