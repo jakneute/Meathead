@@ -38,7 +38,7 @@ export const M2_WEAPON_INFO: Partial<Record<WeaponType, M2Weapon>> = {
   },
   SPELLBOOK: {
     name: 'SPELLBOOK OF THE DAMNED', from: 'FAIRY LAND',
-    controls: [{ pad: ['X'], kb: ['@fire'], label: 'ELEMENTAL STORM (9-13 MANA)' }, { pad: ['Y'], kb: ['@secondary'], label: 'BULK UP (24 MANA)' }],
+    controls: [{ pad: ['X'], kb: ['@fire'], label: 'ELEMENTAL STORM (7-10 MANA)' }, { pad: ['Y'], kb: ['@secondary'], label: 'BULK UP (18 MANA)' }],
     description: "Some wizard's diary, now with murder. Launch meteors, comets and lightning bolts at three assholes at once. Second spell, BULK UP: huge and fast, and every punch, kick and charge hits way harder. Beatdowns hardest of all. Runs on mana. Ammo refills it.",
     blurb: "Some wizard's diary, now with murder. Launch meteors, comets and lightning at three assholes. Second spell, BULK UP: huge, fast, and your fists and feet hit way harder.",
   },

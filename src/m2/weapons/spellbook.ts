@@ -56,9 +56,10 @@ const BOLT = { every: 14, dmg: 15, maxFrames: 186 };
 const ON_CAST = { meteor: 0.45, comet: 0.45, bolt: 0.04, burn: 0.0011 };
 /** The last storm's three (the only opted-in ones its meteor and comet can touch). */
 let castThree: Enemy[] = [];
-/** What each costs in mana: a storm 9 to 13, a roll each time (11 on average); bulking up a lot more. */
-const MANA = { storm: [9, 13] as const };
-const BULK = { mana: 24, frames: 720, cooldown: 480, speed: 1.6, size: 1.3, knock: 2.2 };
+/** What each costs in mana: a storm 7 to 10, a roll each time (8.5 on average); bulking up a lot more. (Somewhat less
+ *  for both, the user's: were 9-13 and 24.) */
+const MANA = { storm: [7, 10] as const };
+const BULK = { mana: 18, frames: 720, cooldown: 480, speed: 1.6, size: 1.3, knock: 2.2 };
 
 const alive = (e: Enemy) => e.health > 0 && !e.isBlownAway && !e.innocent && e.type !== 'boss';
 const mid = (e: Enemy) => ({ x: e.pos.x + e.width / 2, y: e.pos.y + e.height / 2 });
