@@ -509,6 +509,9 @@ const steve = (ctx: FrameContext, f: Fight) => {
       break;
     }
     case 'idle': case 'flail': case 'angry': {
+      // (stood out mid-stage off his rope (his tow car blown up, or him flailing at Meathead on the way back): back
+      // to his end as soon as Meathead's off him (the user's: his tow cancelled and he stayed stuck there, safe to blast))
+      if (!atEnd && !f.tow && d >= FLAIL_AT) { setAct(f, 'scramble'); break; }
       f.facing = m.x < f.sx ? -1 : 1;
       f.sz += (0 - f.sz) * 0.2;
       if (d < FLAIL_AT) {
