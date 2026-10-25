@@ -218,7 +218,7 @@ const fall = (state: GameState, el: Element, target: Enemy | null, fallback: { x
   const to = target ? mid(target) : fallback;
   const side = Math.random() < 0.5 ? -1 : 1;
   // (the rift it comes out of: up in the sky, off to one side of him, on the screen, below the HUD)
-  const size = el === 'meteor' ? 1.15 : 0.9;
+  const size = 1.25;
   const from = riftSpot(state, { x: to.x + side * (130 + Math.random() * 90), y: state.camera.y + HUD_CLEAR_Y + 30 + Math.random() * 40 }, size, to);
   openRift(from.x, from.y, size, RIFT_OPEN + 34);
   pending.push({ at: state.frame + RIFT_OPEN, el, target, to, from, three: castThree });
@@ -231,7 +231,8 @@ const emerge = (state: GameState, q: (typeof pending)[number]) => {
   const d = Math.hypot(to.x - from.x, to.y - from.y) || 1, sp = el === 'meteor' ? 13 : 15;
   for (let i = 0; i < 10; i++) state.particles.push({ pos: { x: from.x, y: from.y }, vel: { x: (Math.random() - 0.5) * 5, y: (Math.random() - 0.5) * 3 }, life: 18, color: i % 2 ? '#A855F7' : '#1E1B4B', size: 3 + Math.random() * 3 });
   playSound('whoosh', 0.9, el === 'meteor' ? -6 : 3);
-  const size = el === 'meteor' ? 26 : 18;
+  // (both a bit bigger, and the same size (the user's): were 26 and 18)
+  const size = 32;
   state.projectiles.push({
     id: `spell-${el}-${state.frame}-${Math.random()}`, pos: { x: from.x - size / 2, y: from.y - size / 2 },
     vel: { x: (to.x - from.x) / d * sp, y: (to.y - from.y) / d * sp }, width: size, height: size, health: 1, maxHealth: 1,
