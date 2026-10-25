@@ -99,6 +99,32 @@ export const tickDismember = (state: GameState) => {
 };
 
 /** The pieces (world space): each one its own bit of the enemy's picture, turned however it's landed. */
+/** Each piece, cut out of the picture once into a canvas of its own (at PIECE_RES), then just put down turned: a
+ *  turned transform can't come out of the stamp cache, so every piece was the whole enemy painted live, every frame,
+ *  clipped (a stunt car flattening a crowd: dozens of them at once, the user's slowdown). */
+const PIECE_RES = 2;
+const baked = new WeakMap<Piece, { cv: HTMLCanvasElement; x: number; y: number; w: number; h: number }>();
+const bakePiece = (p: Piece, state: GameState) => {
+  let b = baked.get(p);
+  if (b) return b;
+  const cut = p.cut;
+  let x: number, y: number, w: number, h: number;
+  if ('x0' in cut) { const a = cut.x0 * p.face, e = cut.x1 * p.face; x = Math.min(a, e); y = cut.y0; w = Math.abs(e - a); h = cut.y1 - cut.y0; }
+  else { x = cut.x * p.face - cut.r; y = cut.y - cut.r; w = h = cut.r * 2; }
+  x = Math.floor(x) - 2; y = Math.floor(y) - 2; w = Math.ceil(w) + 4; h = Math.ceil(h) + 4;
+  const cv = document.createElement('canvas'); cv.width = Math.max(1, w * PIECE_RES); cv.height = Math.max(1, h * PIECE_RES);
+  const g = cv.getContext('2d')!;
+  g.imageSmoothingEnabled = false; g.scale(PIECE_RES, PIECE_RES); g.translate(-x, -y);
+  // (cut out of the picture: in its own coordinates, mirrored the way it faces)
+  g.beginPath();
+  if ('x0' in cut) { const a = cut.x0 * p.face, e = cut.x1 * p.face; g.rect(Math.min(a, e), cut.y0, Math.abs(e - a), cut.y1 - cut.y0); }
+  else g.arc(cut.x * p.face, cut.y, cut.r, 0, Math.PI * 2);
+  g.clip();
+  drawEnemyAt(g, p.e, state, 0, 0, 0, p.face);
+  b = { cv, x, y, w, h };
+  baked.set(p, b);
+  return b;
+};
 export const drawDismember = (c: Ctx, state: GameState) => {
   if (!pieces.length) return;
   // (only the ones in view: a room's worth lying about off the screen isn't drawn)
@@ -107,15 +133,10 @@ export const drawDismember = (c: Ctx, state: GameState) => {
     if (!inView(view, p.x, p.y)) continue;
     const alpha = p.down && p.t > LIE - FADE ? (LIE - p.t) / FADE : 1;
     if (alpha <= 0) continue;
+    const b = bakePiece(p, state);
     c.save(); c.globalAlpha = alpha;
     c.translate(p.x, p.y); c.rotate(p.rot); c.translate(-p.cx * p.face, -p.cy);
-    // (cut out of the picture: in its own coordinates, mirrored the way it faces)
-    c.beginPath();
-    const cut = p.cut;
-    if ('x0' in cut) { const a = cut.x0 * p.face, b = cut.x1 * p.face; c.rect(Math.min(a, b), cut.y0, Math.abs(b - a), cut.y1 - cut.y0); }
-    else c.arc(cut.x * p.face, cut.y, cut.r, 0, Math.PI * 2);
-    c.clip();
-    drawEnemyAt(c, p.e, state, 0, 0, 0, p.face);
+    c.drawImage(b.cv, b.x, b.y, b.w, b.h);
     c.restore();
   }
 };
