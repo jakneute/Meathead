@@ -51,9 +51,9 @@ export const M2_WEAPON_INFO: Partial<Record<WeaponType, M2Weapon>> = {
     name: 'MALLET OF PAIN', from: 'CARTOON LAND',
     description: "A cartoon mallet that hits like a real one. Knock them out of the zip code, into orbit or flat as a pancake, or spin and bonk the whole room. No ammo: it wears out. Ammo pickups fix it. Physics optional.",
     controls: [
-      { pad: ['X'], kb: ['@fire'], label: 'SWING (2)' },
+      { pad: ['X'], kb: ['@fire'], label: 'TAP: SWING (2)' },
       { pad: ['X'], kb: ['@fire'], label: 'HOLD, STANDING: TORNADO (1 A HIT)' },
-      { pad: ['Y'], kb: ['@secondary'], label: 'LAUNCH (3) · IN THE AIR: SMASH DOWN (4)' },
+      { pad: ['Y'], kb: ['@secondary'], label: 'TAP: LAUNCH (3) · IN THE AIR: SMASH DOWN (4)' },
       { pad: ['Y'], kb: ['@secondary'], label: 'HOLD, STANDING: PANCAKE SMASH (6)' },
     ],
     note: 'STANDING OR IN THE AIR. NOT WHILE DUCKING. WEARS ONLY WHEN IT HITS.',
