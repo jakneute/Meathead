@@ -103,12 +103,25 @@ export const playOnFile = (slot: Slot | null, playTimeMs = 0) => {
   startClock();
 };
 
+/** A write the browser refused (storage blocked: a privacy setting, a game page in a frame it won't let store): said
+ *  the once, along the bottom for a few seconds, so nobody plays a land on thinking it's kept. */
+let warned = false;
+const cantSave = () => {
+  if (warned || typeof document === 'undefined') return;
+  warned = true;
+  const el = document.createElement('div');
+  el.textContent = "SAVING ISN'T WORKING IN THIS BROWSER. PROGRESS WON'T BE KEPT.";
+  el.style.cssText = 'position:fixed;left:50%;bottom:24px;transform:translateX(-50%);z-index:9999;padding:8px 14px;background:#7f1d1d;color:#fff6d8;border:2px solid #000;font:9px "Press Start 2P",monospace;letter-spacing:1px;pointer-events:none;text-align:center;max-width:90vw';
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), 7000);
+};
+
 /** Saves the run's progress (store.ts's, as it is now) to the file in use (nothing, playing with NO SAVE). */
 export const saveProgress = () => {
   if (active === null) return;
   tick();
   const file: SaveFile = { cleared: clearedLands(), kept: allKept(), deaths: allBossDeaths(), found: allFound(), alphaSeen: alphaEndSeen(), version: VERSION, playTimeMs: playTime(), lastPlayed: Date.now() };
-  if (writeJson(keyOf(active), file)) changed();
+  if (writeJson(keyOf(active), file)) changed(); else cantSave();
 };
 
 /** The time played since the last save, put on the file in use (nothing else: what's on it is what was there at the
@@ -117,7 +130,8 @@ const putTimeOn = () => {
   if (active === null) return;
   tick();
   const f = readFile(active);
-  if (f && writeJson(keyOf(active), { ...f, playTimeMs: playTime(), lastPlayed: Date.now() })) changed();
+  if (!f) return;
+  if (writeJson(keyOf(active), { ...f, playTimeMs: playTime(), lastPlayed: Date.now() })) changed(); else cantSave();
 };
 
 /** Done with the file in use (quit to the title, to the desktop): its time played goes on it, and the clock stops. */
