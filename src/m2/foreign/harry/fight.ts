@@ -52,9 +52,9 @@ import { SKIP_AFTER, offerSkip, takeSkip, drawSkipPrompt } from '../../../m1/gam
 import { hurtPlayer } from '../../../m1/game/bosses/shared';
 import { isShat, isNude } from '../../../m1/game/player/gut';
 import { makeKindEnemy } from '../../../m1/game/enemies/kinds';
-import { ENEMY_HIT_COOLDOWN, CANVAS_WIDTH, CANVAS_HEIGHT, BULLET_DAMAGE, BOSS_CHARGE_DAMAGE, BOSS_UPPERCUT_DAMAGE } from '../../../m1/constants';
+import { CANVAS_WIDTH, CANVAS_HEIGHT, BULLET_DAMAGE, BOSS_CHARGE_DAMAGE, BOSS_UPPERCUT_DAMAGE } from '../../../m1/constants';
 import { registerM2Kind } from '../../kinds';
-import { newSpam, spamTick, hitKey, swatOff, type Spam } from '../../bossSpam';
+import { newSpam, spamTick, hitKey, swatOff, type Spam, BOSS_IFRAMES } from '../../bossSpam';
 import { keepForRevisits } from '../../store';
 import { setDartTaker } from '../../weapons/crossbow';
 import { TOO_BIG_BY_KIND } from '../../lines/weaponLines';
@@ -79,7 +79,7 @@ const pick = pickLine;
 /** His health (the land bosses'), and the enemy's (never runs out: the hits come off ours). */
 const HP = 666, BIG = 100000;
 /** Anything but the ray gun and his moves: this share; the breather after a hit. */
-const SHARE = 0.35, IFRAMES = ENEMY_HIT_COOLDOWN;
+const SHARE = 0.35, IFRAMES = BOSS_IFRAMES;
 /** A dart: its scratch (never the last of him: only her concrete or a real hit kills), how many make him sick, how
  *  long unhit before the queasiness starts going off, and how fast. */
 /** (the user: "harry takes more shots to make queasy too": 7 -> 10, with her or without) */

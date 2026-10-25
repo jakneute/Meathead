@@ -52,9 +52,9 @@ import { bossIntroSeen, markBossIntroSeen } from '../../bossIntro';
 import { hurtPlayer } from '../../../m1/game/bosses/shared';
 import { isShat, isNude } from '../../../m1/game/player/gut';
 import { makeKindEnemy } from '../../../m1/game/enemies/kinds';
-import { ENEMY_HIT_COOLDOWN, CANVAS_WIDTH, CANVAS_HEIGHT, BULLET_DAMAGE, BOSS_CHARGE_DAMAGE, BOSS_UPPERCUT_DAMAGE } from '../../../m1/constants';
+import { CANVAS_WIDTH, CANVAS_HEIGHT, BULLET_DAMAGE, BOSS_CHARGE_DAMAGE, BOSS_UPPERCUT_DAMAGE } from '../../../m1/constants';
 import { registerM2Kind, registerHurtLines } from '../../kinds';
-import { newSpam, spamTick, hitKey, type Spam } from '../../bossSpam';
+import { newSpam, spamTick, hitKey, type Spam, BOSS_IFRAMES } from '../../bossSpam';
 import { setSouvenirPick, setSouvenirHit, souvenirMaxHit } from '../../weapons/souvenir';
 import { drawPerson, lookOf } from '../../adventure/temple/people';
 import { drawDonnie, drawLooseWig, DONNIE_H, type DonniePose } from '../donnie';
@@ -84,10 +84,10 @@ const pick = pickLine;
 const HP = 666, BIG = 100000;
 /** Most weapons: what of their usual damage gets through (a land boss shrugs off what isn't his weakness; at least 1); after each hit, a boss's breather (the
  *  standard one, as every boss has it: blinking, nothing lands). */
-const SHARE = 0.35, IFRAMES = ENEMY_HIT_COOLDOWN;
+const SHARE = 0.35, IFRAMES = BOSS_IFRAMES;
 /** The launcher's other souvenirs (it hits hard, and they bounce back for more): a smaller share (the Redeemer's the
  *  point of it, not the rest of the bag); the same breather. */
-const SOUV_SHARE = 0.15, SOUV_IFRAMES = ENEMY_HIT_COOLDOWN;
+const SOUV_SHARE = 0.15, SOUV_IFRAMES = BOSS_IFRAMES;
 /** The Redeemer: what it takes off him, how long he's down for. */
 const REDEEMER_DMG = 90, REDEEMER_STUN = 120;
 /** Any other little Jesus on him (down already, wise to it): the full REDEEMER_DMG; in his i-frames, this much (it

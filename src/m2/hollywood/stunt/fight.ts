@@ -46,9 +46,9 @@ import { SKIP_AFTER, offerSkip, takeSkip, drawSkipPrompt } from '../../../m1/gam
 import { hurtPlayer } from '../../../m1/game/bosses/shared';
 import { isShat, isNude } from '../../../m1/game/player/gut';
 import { makeKindEnemy } from '../../../m1/game/enemies/kinds';
-import { ENEMY_HIT_COOLDOWN, CANVAS_WIDTH, CANVAS_HEIGHT, BULLET_DAMAGE, BOSS_CHARGE_DAMAGE, BOSS_UPPERCUT_DAMAGE } from '../../../m1/constants';
+import { CANVAS_WIDTH, CANVAS_HEIGHT, BULLET_DAMAGE, BOSS_CHARGE_DAMAGE, BOSS_UPPERCUT_DAMAGE } from '../../../m1/constants';
 import { registerM2Kind } from '../../kinds';
-import { newSpam, spamTick, hitKey, swatOff, type Spam } from '../../bossSpam';
+import { newSpam, spamTick, hitKey, swatOff, type Spam, BOSS_IFRAMES } from '../../bossSpam';
 import { setStormPick, setStormHit } from '../../weapons/spellbook';
 import { TOO_BIG_BY_KIND } from '../../lines/weaponLines';
 import { drawSteveGross, drawSteveGrossBack } from './steveGross';
@@ -76,7 +76,7 @@ const pick = pickLine;
 /** His health (the land bosses'), and the enemy's (never runs out: the hits come off ours). */
 const HP = 666, BIG = 100000;
 /** Anything but the ray gun, his moves and the book: this share; the breather after a hit. */
-const SHARE = 0.35, IFRAMES = ENEMY_HIT_COOLDOWN;
+const SHARE = 0.35, IFRAMES = BOSS_IFRAMES;
 /** The lightning on him: the first strike of a storm, each one after (no breather: it's one long hit); stunned this
  *  long past the last strike, then smoking a while. (The playtest: a touch more, +25% on 24 and 6.) */
 const ZAP_FIRST = 30, ZAP_EACH = 7.5, ZAP_HOLD = 26, SMOKE_T = 70;

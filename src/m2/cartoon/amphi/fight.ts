@@ -66,9 +66,9 @@ import { pickLine, silenceAll, isTalking } from '../../../m1/game/platform/speec
 import { SKIP_AFTER, offerSkip, takeSkip, drawSkipPrompt } from '../../../m1/game/platform/skip';
 import { hurtPlayer } from '../../../m1/game/bosses/shared';
 import { makeKindEnemy } from '../../../m1/game/enemies/kinds';
-import { ENEMY_HIT_COOLDOWN, CANVAS_WIDTH, CANVAS_HEIGHT, BULLET_DAMAGE, BOSS_CHARGE_DAMAGE, BOSS_UPPERCUT_DAMAGE } from '../../../m1/constants';
+import { CANVAS_WIDTH, CANVAS_HEIGHT, BULLET_DAMAGE, BOSS_CHARGE_DAMAGE, BOSS_UPPERCUT_DAMAGE } from '../../../m1/constants';
 import { registerM2Kind, registerHurtLines } from '../../kinds';
-import { newSpam, spamTick, hitKey, swatOff, type Spam } from '../../bossSpam';
+import { newSpam, spamTick, hitKey, swatOff, type Spam, BOSS_IFRAMES } from '../../bossSpam';
 import { setStuntCarHook, snapClapper } from '../../weapons/stuntCar';
 import type { ByPants } from '../talk';
 import { speak, meatheadSays, byPants, saidOver, box, label, getCartoon } from '../section';
@@ -94,7 +94,9 @@ const pick = pickLine;
 
 /** His health (the land bosses'), the enemy's (never runs out: the hits come off ours); the share anything but the ray
  *  gun and his moves does; the breather; up and pathetic: twice the hurt, half the breather. */
-const HP = 666, BIG = 100000, SHARE = 0.35, IFRAMES = ENEMY_HIT_COOLDOWN, SAD_MULT = 2, SAD_IFRAMES = 30;
+const HP = 666, BIG = 100000, SHARE = 0.35, IFRAMES = BOSS_IFRAMES, SAD_MULT = 1, SAD_IFRAMES = 0;
+// (no multiplier and no breather up off his crushed couch (the user's: "he gets zero there. no damage multipliers
+// though"): every hit lands as it is; were x2 and 30 frames)
 /** His seat on the couch (from its middle), half the couch's width (the arena, the couch's spot, the fridge: layout.ts). */
 const SEAT_DX = 46, COUCH_HALF = 76;
 /** Where the family stands at the fridge. */

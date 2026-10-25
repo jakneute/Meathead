@@ -59,9 +59,9 @@ import { makeKindEnemy } from '../../../m1/game/enemies/kinds';
 import { registerDeathKind, type MeatheadDeath } from '../../../m1/game/player/deathAnim';
 import { body as drawMeatheadBody } from '../../../m1/game/render/player/deathAnim';
 import { stabLean, STAB_WOUND } from '../../../m1/game/render/player/player';
-import { ENEMY_HIT_COOLDOWN, CANVAS_WIDTH, CANVAS_HEIGHT, BULLET_DAMAGE, BOSS_CHARGE_DAMAGE, BOSS_UPPERCUT_DAMAGE } from '../../../m1/constants';
+import { CANVAS_WIDTH, CANVAS_HEIGHT, BULLET_DAMAGE, BOSS_CHARGE_DAMAGE, BOSS_UPPERCUT_DAMAGE } from '../../../m1/constants';
 import { registerM2Kind, registerHurtLines } from '../../kinds';
-import { newSpam, spamTick, hitKey, swatOff, type Spam } from '../../bossSpam';
+import { newSpam, spamTick, hitKey, swatOff, type Spam, BOSS_IFRAMES } from '../../bossSpam';
 import { aliensOn, brushOff, popAliensIn, setSpawnerBaits, takeBites, type SpawnerBait } from '../../weapons/spawner';
 import { grabCallout } from '../../moves/callouts';
 import { type Eaten, startEaten, updateEaten, landEaten, collapse, drawEatenStanding, drawEatenLoose, swarmAt, FLESH_END, COLLAPSE_MIN, COLLAPSE_MAX } from './eaten';
@@ -82,7 +82,7 @@ const pick = pickLine;
 /** His health (Meathead 1's bosses: 666), and the enemy's (never runs out: the hits are taken off ours). */
 const HP = 666, BIG = 100000;
 /** The breather after a hit (Meathead 1's). */
-const IFRAMES = ENEMY_HIT_COOLDOWN;
+const IFRAMES = BOSS_IFRAMES;
 /** A bush: how much chewing it takes (a litter of three on it eats one in about five seconds). */
 const BUSH_HP = 90;
 /** Stunned: shot out of his bush, or dropped off his chewed-through vine. */

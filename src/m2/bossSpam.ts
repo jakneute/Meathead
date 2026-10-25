@@ -10,6 +10,9 @@ import { playSound } from '../m1/game/platform/audio';
 
 /** The run that's too long (frames, first hit to last: a boss's breather is 60, so this is the fifth hit running, 4 s
  *  in), and the gap with no hits that ends a run. */
+/** A land boss's breather after a hit (frames): Meathead's own (PLAYER_INVINCIBILITY_FRAMES) (the user's: "set bosses to
+ *  75 frames too"; was ENEMY_HIT_COOLDOWN, 60). */
+export const BOSS_IFRAMES = 75;
 export const RUN = 240, GAP = 90;
 
 export type Spam = { key: string; since: number; last: number };

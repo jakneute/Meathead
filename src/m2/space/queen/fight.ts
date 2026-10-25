@@ -60,9 +60,9 @@ import { hurtPlayer } from '../../../m1/game/bosses/shared';
 import { isShat, isNude } from '../../../m1/game/player/gut';
 import { makeKindEnemy } from '../../../m1/game/enemies/kinds';
 import { registerDeathKind } from '../../../m1/game/player/deathAnim';
-import { ENEMY_HIT_COOLDOWN, BULLET_DAMAGE, BOSS_CHARGE_DAMAGE, BOSS_UPPERCUT_DAMAGE, CANVAS_WIDTH, CANVAS_HEIGHT, HUD_CLEAR_Y } from '../../../m1/constants';
+import { BULLET_DAMAGE, BOSS_CHARGE_DAMAGE, BOSS_UPPERCUT_DAMAGE, CANVAS_WIDTH, CANVAS_HEIGHT, HUD_CLEAR_Y } from '../../../m1/constants';
 import { registerM2Kind, registerHurtLines } from '../../kinds';
-import { newSpam, spamTick, hitKey, type Spam } from '../../bossSpam';
+import { newSpam, spamTick, hitKey, type Spam, BOSS_IFRAMES } from '../../bossSpam';
 import { takeBites } from '../../weapons/spawner';
 import { takeMalletHit, malletReadBy, type MalletHow } from '../../weapons/mallet';
 import { type Piece, type Splat, burstQueen, chipQueen, burstSpray, tickPieces, headPiece, drawPieces, drawSplats } from './burst';
@@ -98,7 +98,7 @@ const dressed = (state: GameState): L.Dressed => (isNude(state) ? 'nude' : isSha
 /** Her health (a main boss's); the enemy's (never runs out: the hits are taken off ours). */
 const HP = 666, BIG = 100000;
 /** Any special weapon that isn't her weakness (the mallet): this share gets through; after each hit, the breather. */
-const SHARE = 0.35, IFRAMES = ENEMY_HIT_COOLDOWN;
+const SHARE = 0.35, IFRAMES = BOSS_IFRAMES;
 /** Her two sides (where she stands: her feet's middle). */
 const SIDE_X = { [-1]: DISCO_SIDES.l, [1]: DISCO_SIDES.r } as Record<-1 | 1, number>;
 /** Where she drops in for the cutscene (on screen with him, the extinguisher and the booth); the camera then. */

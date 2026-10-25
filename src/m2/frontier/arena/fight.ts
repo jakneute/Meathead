@@ -49,9 +49,9 @@ import { silenceAll, pickLine } from '../../../m1/game/platform/speech';
 import { SKIP_AFTER, offerSkip, takeSkip, drawSkipPrompt } from '../../../m1/game/platform/skip';
 import { hurtPlayer } from '../../../m1/game/bosses/shared';
 import { makeKindEnemy } from '../../../m1/game/enemies/kinds';
-import { ENEMY_HIT_COOLDOWN, CANVAS_WIDTH, CANVAS_HEIGHT, BULLET_DAMAGE, BOSS_CHARGE_DAMAGE, BOSS_UPPERCUT_DAMAGE } from '../../../m1/constants';
+import { CANVAS_WIDTH, CANVAS_HEIGHT, BULLET_DAMAGE, BOSS_CHARGE_DAMAGE, BOSS_UPPERCUT_DAMAGE } from '../../../m1/constants';
 import { registerM2Kind } from '../../kinds';
-import { newSpam, spamTick, hitKey, swatOff, type Spam } from '../../bossSpam';
+import { newSpam, spamTick, hitKey, swatOff, type Spam, BOSS_IFRAMES } from '../../bossSpam';
 import { TOO_BIG_BY_KIND } from '../../lines/weaponLines';
 import { hazardHit, hazardVictims, boxHits } from '../../hazardHit';
 import { setGoreBag, goreBag, SPRAY, noBagFrom, onGlobHit, beingSucked } from '../../weapons/soulSucker';
@@ -75,7 +75,7 @@ import * as L from './lines';
 /** His health (the land bosses'), and the engine's stand-in (never runs out: the hits come off ours). */
 const HP = 666, BIG = 100000;
 /** Anything but the ray gun and his moves: this share; the breather after a hit. */
-const SHARE = 0.35, IFRAMES = ENEMY_HIT_COOLDOWN;
+const SHARE = 0.35, IFRAMES = BOSS_IFRAMES;
 /** The routine (frames): listening between shots, the cock, the aim, the flash in the pan, the kick after, the reload. */
 const LISTEN: [number, number] = [80, 30], COCK: [number, number] = [16, 10], AIM: [number, number] = [54, 26];
 const PAN: [number, number] = [22, 13], RECOIL: [number, number] = [16, 10], RELOAD: [number, number] = [66, 32];

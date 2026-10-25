@@ -57,10 +57,10 @@ import { hurtPlayer } from '../../../m1/game/bosses/shared';
 import { isShat, isNude } from '../../../m1/game/player/gut';
 import { makeKindEnemy } from '../../../m1/game/enemies/kinds';
 import { registerDeathKind, type MeatheadDeathKind } from '../../../m1/game/player/deathAnim';
-import { ENEMY_HIT_COOLDOWN, CANVAS_WIDTH, CANVAS_HEIGHT, BULLET_DAMAGE, BOSS_CHARGE_DAMAGE, BOSS_UPPERCUT_DAMAGE } from '../../../m1/constants';
+import { CANVAS_WIDTH, CANVAS_HEIGHT, BULLET_DAMAGE, BOSS_CHARGE_DAMAGE, BOSS_UPPERCUT_DAMAGE } from '../../../m1/constants';
 import { setErect } from '../../../m1/game/render/player/body';
 import { registerM2Kind, registerHurtLines } from '../../kinds';
-import { newSpam, spamTick, hitKey, swatOff, type Spam } from '../../bossSpam';
+import { newSpam, spamTick, hitKey, swatOff, type Spam, BOSS_IFRAMES } from '../../bossSpam';
 import { TOO_BIG_BY_KIND } from '../../lines/weaponLines';
 import { setUi } from '../../store';
 import { box, label, saidOver, voice, meatheadSays } from '../section';
@@ -83,7 +83,7 @@ const pick = pickLine;
 /** Her health (the land bosses'), and the enemy's (never runs out: the hits come off ours). */
 const HP = 666, BIG = 100000;
 /** Anything but the ray gun and his moves: this share; the breather after a hit. */
-const SHARE = 0.35, IFRAMES = ENEMY_HIT_COOLDOWN;
+const SHARE = 0.35, IFRAMES = BOSS_IFRAMES;
 /** The flintlock: a hole's damage (the ball's own boss hit, as the number that comes up says), holes to kill her. */
 const HOLE_DMG = 150, HOLES_TO_DIE = 4;
 /** Her box (the enemy's), feet to the top of her beehive. */
