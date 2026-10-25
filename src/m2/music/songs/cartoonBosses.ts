@@ -114,9 +114,9 @@ export const BOSS_PUNDITS: Song = {
     // instrumentation based on the sub boss"; "the composition the same, just different instruments"): the tune's own
     // instrument swapped for his, and the parts under it)
     // (Perot: a Texas hoedown, harmonica on the tune, banjo, accordion, tuba, steel guitar)
-    perot: { inst: { theme: 'harmonica', counter: 'banjo', tagB: 'banjo', pah: 'accordion', low: 'tuba', gtr: 'steelgtr', xylo: 'marimba' }, vol: { theme: 1.2, pah: 1.1, xylo: 1.2 } },
+    perot: { hold: ['gtr'], inst: { theme: 'harmonica', counter: 'banjo', tagB: 'banjo', pah: 'accordion', low: 'tuba', gtr: 'steelgtr', xylo: 'marimba' }, vol: { theme: 1.2, pah: 1.1, xylo: 1.2 } },
     // (Falwell: the church, organ on the tune, the choir up, vibes)
-    falwell: { inst: { theme: 'churchorgan', counter: 'oohs', tagB: 'churchorgan', pad: 'churchorgan', gtr: 'cleangtr', xylo: 'vibes' }, vol: { choir: 1.6, pad: 0.85, tagB: 0.75, xylo: 1.1 } },
+    falwell: { hold: ['gtr'], inst: { theme: 'churchorgan', counter: 'oohs', tagB: 'churchorgan', pad: 'churchorgan', gtr: 'cleangtr', xylo: 'vibes' }, vol: { choir: 1.6, pad: 0.85, tagB: 0.75, xylo: 1.1 } },
     // (Limbaugh: talk-radio rock, a distorted lead, synth brass, organ, clav)
     limbaugh: { inst: { theme: 'distlead', counter: 'synthbrass', tagB: 'distlead', pah: 'organ', xylo: 'clav' }, vol: { theme: 0.85, tagB: 0.75, pah: 1.1, gtr: 1.3 } },
     // (Dole: a veterans' parade, muted trumpet on the tune, clarinet, tuba, fife and snare)

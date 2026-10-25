@@ -8,6 +8,7 @@
 // aren't in it (HIDDEN). Whatever it's playing wins over the game's own cue (cues.ts), unmuffled.
 
 import { SONGS } from './songs/index';
+import { LANDS } from '../hub/lands';
 
 export interface Cue { song: string; arr?: string }
 /** A track: its row's label (in its song's folder, just the arrangement), and its whole name (NOW PLAYING). */
@@ -31,11 +32,10 @@ const FILED: { name: string; keys: string[] }[] = [
 /** Left out of it altogether, wherever they're filed: the portal walk's and the walk-away's songs (the user's: "remove
  *  the heading in and walk it off songs from the sound test"). */
 const HIDDEN = (song: string) => /^(portal|walkaway)(:|$)/.test(song);
-/** Arrangement ids as the player sees them: the lands by their names on screen (land-names), a few code names spelled
+/** Arrangement ids as the player sees them: the lands by their names on screen (the hub's), a few code names spelled
  *  out; the rest as they are. */
 const SAYS: Record<string, string> = {
-  adventure: 'JUNGLE LAND', spooky: 'SPOOKY LAND', space: 'FUTURE LAND', hollywood: 'HOLLYWOOD LAND', foreign: 'FOREIGN LANDS',
-  frontier: 'WILDERNESS LAND', fantasy: 'FAIRY LAND', cartoon: 'CARTOON LAND', whitehouse1: 'WHITE HOUSE', whitehouse2: 'WHITE HOUSE II',
+  ...Object.fromEntries(LANDS.map(l => [l.id, l.name])), whitehouse1: 'WHITE HOUSE', whitehouse2: 'WHITE HOUSE II',
   act1: 'ACT 1', act2: 'ACT 2', act3: 'ACT 3', bigben: 'BIG BEN', logride: 'LOG RIDE', dirtbike: 'DIRT BIKE', qte: 'SHOWDOWN',
 };
 const name = (arr: string) => SAYS[arr] ?? arr.replace(/-/g, ' ').replace(/(\D)(\d)$/, '$1 $2').toUpperCase();
@@ -45,6 +45,7 @@ let tree: Folder[] | null = null;
 export const soundTree = (): Folder[] => {
   if (tree) return tree;
   const seen = new Set<unknown>();
+  const heard = new Map<unknown, Set<string>>();
   const itemsOf = (keys: string[]): Item[] => keys.flatMap((song): Item[] => {
     const s = SONGS[song];
     if (!s || HIDDEN(song)) return [];
@@ -58,10 +59,11 @@ export const soundTree = (): Folder[] => {
     // aren't 'main')
     const groups = new Map<string, string[]>();
     for (const [arr, a] of Object.entries(s.arrangements)) {
-      if (seen.has(a)) continue;
-      seen.add(a);
       const plays = Object.entries(s.parts).map(([k, d]) => +!((d.only && !d.only.includes(arr)) || d.not?.includes(arr)) + k);
       const j = JSON.stringify([a, plays]);
+      const was = heard.get(a) ?? new Set<string>();
+      if (was.has(j)) continue;
+      heard.set(a, was.add(j));
       groups.set(j, [...(groups.get(j) ?? []), arr]);
     }
     const tracks = [...groups.values()].map((arrs): Track => {
@@ -102,11 +104,15 @@ export const trackOf = (cue: Cue | null) => (cue ? allTracks().find(t => t.song 
 
 let test: Cue | null = null;
 let at = -1;
+let picks = 0;
 
 export const soundTestCue = () => test;
+/** Counts up each pick: the same track picked again starts over (cues.ts). */
+export const soundTestPicks = () => picks;
 /** Plays this (or stops the test: null). */
 export const setSoundTest = (cue: Cue | null) => {
   // (only what's in it: anything else (a hidden song, a cue gone since) stops it)
+  picks++;
   at = cue ? allTracks().findIndex(t => t.song === cue.song && t.arr === cue.arr) : -1;
   test = at < 0 ? null : cue;
 };
@@ -114,6 +120,7 @@ export const setSoundTest = (cue: Cue | null) => {
 export const stepSoundTest = (d: number) => {
   const list = allTracks();
   if (!list.length) { setSoundTest(null); return; }
+  picks++;
   at = ((at + d + 1 + list.length + 1) % (list.length + 1)) - 1;
   test = at < 0 ? null : list[at];
 };

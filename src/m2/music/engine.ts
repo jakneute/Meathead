@@ -46,6 +46,9 @@ export interface Part {
 export interface Arrangement {
   /** Parts played on another instrument here. */
   inst?: Record<string, string>;
+  /** Parts kept on their swapped instrument (inst) through their own MML's @ changes (a guitar's power-chord and chug
+   *  sections on the swap's guitar too); a swapped part not in it still follows its @s. */
+  hold?: string[];
   /** Parts out. */
   mute?: string[];
   /** Only these parts (the rest out). */
@@ -146,8 +149,9 @@ export const samplesFor = (song: Song, arr?: string): Set<string> => {
     const cfg = arr !== undefined ? partIn(song, name, arr) : null;
     if (arr !== undefined && !cfg) continue;
     const insts = cfg ? new Set([cfg.inst]) : new Set([p.inst, ...Object.values(song.arrangements ?? {}).map(a => a.inst?.[name]).filter((x): x is string => !!x)]);
+    const held = arr !== undefined && !!song.arrangements?.[arr]?.hold?.includes(name);
     for (const e of parse(song, p).notes) {
-      const list = e.inst ? [e.inst] : typeof e.n === 'string' ? [e.n] : [...insts];
+      const list = e.inst && !(held && typeof e.n === 'number') ? [e.inst] : typeof e.n === 'string' ? [e.n] : [...insts];
       for (const inst of list) {
         if (!INSTRUMENTS[inst]) continue;
         const n = typeof e.n === 'number' ? e.n + (p.tr ?? 0) : 60;
@@ -287,10 +291,10 @@ const playNote = (p: Playing, part: PartPlay, e: NoteEv, when: number) => {
   const c = ctx!;
   const lane = part.lane;
   if (!lane) return;
-  // (the part swapped onto another instrument by the arrangement: that one throughout, over the part's own changes
-  // (its MML's @inst: a guitar going to power chords for a section); a drum's named hits are still the drum's)
-  const swapped = lane.key !== part.def.inst && typeof e.n === 'number';
-  const name = !swapped && e.inst && INSTRUMENTS[e.inst] ? e.inst : typeof e.n === 'string' ? e.n : lane.key;
+  // (a part the arrangement holds on its swap (Arrangement.hold): that instrument throughout, over the part's own @
+  // changes; a drum's named hits are still the drum's)
+  const held = typeof e.n === 'number' && !!p.song.arrangements?.[p.arrangement]?.hold?.includes(part.name);
+  const name = !held && e.inst && INSTRUMENTS[e.inst] ? e.inst : typeof e.n === 'string' ? e.n : lane.key;
   const def = INSTRUMENTS[name];
   if (!def) return;
   const note = typeof e.n === 'number' ? e.n + (part.def.tr ?? 0) : 60;

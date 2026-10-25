@@ -26,7 +26,7 @@ import { getSettings } from '../../m1/game/settings';
 import { isTalking } from '../../m1/game/platform/speech';
 import { play, stop, setMix, useContext, prewarm, prewarmRooms, nowPlaying } from './engine';
 import { SONGS } from './songs/index';
-import { soundTestCue, type Cue } from './soundTest';
+import { soundTestCue, type Cue, soundTestPicks } from './soundTest';
 import { momentOn } from './moments';
 import { bossFightName, inBossFight } from '../bossQuiet';
 import { getUi, walkBackOn, isLandCleared } from '../store';
@@ -546,7 +546,7 @@ const apply = () => {
     const got = pick(w.cands, w.cutscene);
     cue = got?.cue ?? null; quiet = !!got?.quiet;
   }
-  const key = cue ? `${cue.song}:${cue.arr ?? ''}` : '';
+  const key = cue ? `${cue.song}:${cue.arr ?? ''}${test ? `#${soundTestPicks()}` : ''}` : '';
   if (key !== last) {
     last = key;
     if (!cue || !SONGS[cue.song]) stop(0.6);
