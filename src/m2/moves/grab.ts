@@ -850,6 +850,9 @@ const envGuard = (ctx: FrameContext, g: Grab, hurt: boolean) => {
   if (p.swimming && TWO_HANDED.has(g.phase)) { letGo(state, g); return true; }
   // (going up faster than the grab left him going: something else did that, the engine's gravity only pulls down)
   if (PINNED.has(g.phase) && p.vel.y < Math.min(g.lastVy, 0) - 0.5) {
+    // (shaking one down: a hit's knock doesn't make him let go, he takes it and keeps shaking (the user's: his shakedown
+    // cut short, the ammo with it); his feet stay put)
+    if (g.phase === 'shake' && hurt) { p.vel.y = Math.max(p.vel.y, 0); p.vel.x = 0; return false; }
     if (hurt || hazardOwnersIn(state, p.pos.x, p.pos.y, p.width, p.height).length) { letGo(state, g); return true; }
     // (nothing under him to stand back on (a pit's spring, an updraft over a gap): let go, and it carries him off)
     if (!standBack(state)) { letGo(state, g); return true; }
@@ -1028,6 +1031,9 @@ const stepGrab = (ctx: FrameContext, g: Grab, controls: Controls): Controls => {
       // Got him: up by the neck (in the air: down they both come first, no harm in the landing for him)
       g.phase = p.isGrounded ? 'shake' : 'drop'; g.t = 0; g.held = e; g.thrown = null; take(state, e); g.fall = 0;
       e.facing = (-g.dir) as 1 | -1;
+      // (whatever he'd just let go at Meathead from right there (a swing's hit, a shot point-blank) goes nowhere: the one
+      // he's got by the neck doesn't get to hurt him (the user's: "interrupted by the very enemy i'm shaking"))
+      { const ex = e.pos.x + e.width / 2, ey = e.pos.y + e.height / 2; state.projectiles = state.projectiles.filter(q => q.owner !== 'enemy' || Math.hypot(q.pos.x + q.width / 2 - ex, q.pos.y + q.height / 2 - ey) > 90); }
       playSound('punch', 0.8, 4);
       return hold();
     }
