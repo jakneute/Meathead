@@ -119,7 +119,10 @@ const ATTACKS = [0, 2, 2, 3];
 const VOLLEY_AIM = [0, 32, 28, 24], VOLLEY_GAP = 9, VOLLEY_N = 3;
 /** The lunge: coiled this long first (by phase); how fast he flies (frames, at most / at least); landed, how long he
  *  stands there before he's off back to a bush (or whistling). */
-const COIL = [0, 34, 30, 26], LUNGE_MIN = 16, LUNGE_MAX = 44, LANDED = 40;
+const COIL = [0, 34, 30, 26], LUNGE_MIN = 16, LUNGE_MAX = 44, LANDED = 28;
+/** Stood out of his bush after a volley; the whistle, start to the herd (shorter, the user's: "speeding up artie's
+ *  whistle too. he stands idly for too long i think": were 40, 40 and 60). */
+const EXPOSED = 28, WHISTLE_T = 42;
 
 /** Sources of hurt (each with its lines and its death screen). */
 const KNIFE = 'm2:safari_knife', BLOWDART = 'm2:safari_dart', POISON = 'm2:safari_poison';
@@ -464,7 +467,7 @@ export const updateFight = (ctx: FrameContext, f: Fight, controls: Controls): Co
       break;
     case 'lunge': lunging(state, f); break;
     case 'landed': if (f.t >= LANDED) afterAttack(state, f); break;
-    case 'exposed': if (f.t >= 40) afterAttack(state, f); break;
+    case 'exposed': if (f.t >= EXPOSED) afterAttack(state, f); break;
     case 'hop': if (onArc(f)) whistle(f); break;
     case 'knocked': case 'trampled':
       f.x = Math.max(ARENA_L + 30, Math.min(ARENA_R - 30, f.x + f.vx)); f.vy += 0.5; f.y += f.vy;
@@ -486,10 +489,10 @@ export const updateFight = (ctx: FrameContext, f: Fight, controls: Controls): Co
       break;
     case 'whistle':
       if (f.t === 1) { playSound('beep', 0.7, 14); bark(f, L.ARTIE_WHISTLE); }
-      if (f.t === 14) playSound('beep', 0.7, 20);
-      if (f.t === 30) playSound('beep', 0.6, 16);
+      if (f.t === 10) playSound('beep', 0.7, 20);
+      if (f.t === 21) playSound('beep', 0.6, 16);
       if (f.t % 10 === 0) state.particles.push({ pos: { x: f.x + f.facing * 10, y: f.y - 76 }, vel: { x: f.facing * 0.6, y: -1.2 }, life: 40, color: '#F472B6', size: 4 });
-      if (f.t >= 60) stampede(state, f);
+      if (f.t >= WHISTLE_T) stampede(state, f);
       break;
     case 'watch': watch(state, f); break;
     case 'dodge':
