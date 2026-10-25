@@ -404,6 +404,9 @@ export const drawFireball = (c: Ctx, x: number, y: number, vx: number, vy: numbe
   for (let k = 0; k < 4; k++) { const tt = ((fr + k * 4) % 16) / 16; c.globalAlpha = 0.35 * (1 - tt); c.fillStyle = '#3E3440'; c.beginPath(); c.ellipse(x + Math.cos(back) * (14 + tt * 22), y + Math.sin(back) * (14 + tt * 22) - tt * 6, 4 + tt * 6, 3 + tt * 5, 0, 0, Math.PI * 2); c.fill(); c.globalAlpha = 1; }
   for (let k = 0; k < 5; k++) { const a = back + (k - 2) * 0.45 + Math.sin(fr * 0.6 + k) * 0.15, L = 18 + ((fr + k * 3) % 6); polyF(c, [[x + Math.cos(a - 0.5) * 9, y + Math.sin(a - 0.5) * 9], [x + Math.cos(a) * L, y + Math.sin(a) * L], [x + Math.cos(a + 0.5) * 9, y + Math.sin(a + 0.5) * 9]], k % 2 ? FIRE[2] : FIRE[1]); }
   for (let k = 0; k < 4; k++) { const a = fr * 0.5 + k * 1.6; polyF(c, [[x + Math.cos(a) * 8, y + Math.sin(a) * 8], [x + Math.cos(a + 0.3) * 15, y + Math.sin(a + 0.3) * 15], [x + Math.cos(a + 0.6) * 8, y + Math.sin(a + 0.6) * 8]], k % 2 ? FIRE[3] : FIRE[2]); }
+  // (readable over anything: a pulsing glow round it, then a dark rim)
+  c.globalAlpha = 0.28 + 0.12 * Math.sin(fr * 0.5); c.fillStyle = '#FDBA74'; c.beginPath(); c.ellipse(x, y, 22, 22, 0, 0, Math.PI * 2); c.fill(); c.globalAlpha = 1;
+  c.fillStyle = '#2A0A04'; c.beginPath(); c.ellipse(x, y, 14, 14, 0, 0, Math.PI * 2); c.fill();
   const rings: [number, string, number][] = [[12, FIRE[0], 0], [11, FIRE[1], 0], [9, FIRE[2], 1], [6.5, FIRE[3], 1.6], [4.5, FIRE[4], 2.2], [2.2, FIRE[5], 2.8]];
   for (const [r, col, o] of rings) { c.fillStyle = col; c.beginPath(); c.ellipse(x - o, y - o, r, r, 0, 0, Math.PI * 2); c.fill(); }
   box(c, x - 4, y - 5, 2, 1, '#FFFFFF');
@@ -417,6 +420,9 @@ export const drawIceball = (c: Ctx, x: number, y: number, vx: number, fr: number
   const r0 = fr * 0.08, hx = (k: number, r: number): [number, number] => [x + Math.cos((k * Math.PI) / 3 + r0) * r, y + Math.sin((k * Math.PI) / 3 + r0) * r];
   // (points sticking out of it: a crystal cluster)
   for (let k = 0; k < 6; k += 2) { const [px, py] = hx(k, 16); polyF(c, [hx(k - 0.4, 9), [px, py], hx(k + 0.4, 9)], ICE[1]); polyF(c, [hx(k - 0.2, 9), [px, py], hx(k, 9)], ICE[4]); }
+  // (readable over anything: a pulsing glow round it, then a dark rim)
+  c.globalAlpha = 0.3 + 0.12 * Math.sin(fr * 0.5); c.fillStyle = '#BAE6FD'; c.beginPath(); c.ellipse(x, y, 22, 22, 0, 0, Math.PI * 2); c.fill(); c.globalAlpha = 1;
+  polyF(c, [0, 1, 2, 3, 4, 5].map((k) => hx(k, 13.5)), '#0C2440');
   polyF(c, [0, 1, 2, 3, 4, 5].map((k) => hx(k, 11.5)), ICE[0]); polyF(c, [0, 1, 2, 3, 4, 5].map((k) => hx(k, 10)), ICE[2]);
   polyF(c, [[x, y], hx(3, 10), hx(4, 10), hx(5, 10)], ICE[3]); polyF(c, [[x, y], hx(4, 10), hx(5, 10)], ICE[4]); polyF(c, [[x, y], hx(0, 10), hx(1, 10)], ICE[1]);
   polyF(c, [[x - 1, y - 1], hx(4, 6), hx(5, 6)], ICE[5]);
@@ -430,9 +436,12 @@ export const drawIceball = (c: Ctx, x: number, y: number, vx: number, fr: number
 export const drawBolt = (c: Ctx, x: number, y: number, tx: number, ty: number, t: number, aimT: number, strikeT: number, fr: number) => {
   const dx = tx - x, dy = ty - y, d = Math.hypot(dx, dy) || 1, len = 1400, ex = x + (dx / d) * len, ey = y + (dy / d) * len;
   if (t < aimT) {
-    if (fr % 4 < 2) { c.strokeStyle = 'rgba(165, 243, 252, 0.6)'; c.lineWidth = 1; c.beginPath(); c.moveTo(x, y); c.lineTo(ex, ey); c.stroke(); }
+    // (the line it'll strike down: always there, thicker and hotter as it nears, flashing white at the last)
+    const k = t / aimT, last = k > 0.7 && fr % 4 < 2;
+    c.strokeStyle = 'rgba(12, 20, 40, 0.55)'; c.lineWidth = 4 + k * 2; c.beginPath(); c.moveTo(x, y); c.lineTo(ex, ey); c.stroke();
+    c.strokeStyle = last ? '#FFFFFF' : `rgba(103, 232, 249, ${(0.55 + 0.4 * k).toFixed(2)})`; c.lineWidth = 2 + k * 2; c.setLineDash([10, 6]); c.lineDashOffset = -fr * 2;
+    c.beginPath(); c.moveTo(x, y); c.lineTo(ex, ey); c.stroke(); c.setLineDash([]); c.lineDashOffset = 0;
     // (charging up at the cable's end: a ball of sparks gathering)
-    const k = t / aimT;
     for (let m = 0; m < 5; m++) { const a = fr * 0.7 + m * 1.3, r = 10 * (1 - k) + 3; box(c, x + Math.cos(a) * r, y + Math.sin(a) * r, 2, 2, m % 2 ? '#67E8F9' : '#FFFFFF'); }
     c.globalAlpha = 0.3 + 0.4 * k; c.fillStyle = '#A5F3FC'; c.beginPath(); c.ellipse(x, y, 4 + k * 4, 4 + k * 4, 0, 0, Math.PI * 2); c.fill(); c.globalAlpha = 1;
     return;

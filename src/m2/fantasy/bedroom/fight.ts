@@ -1748,6 +1748,12 @@ export const drawFightBack = (c: Ctx, state: GameState, f: Fight) => {
 export const drawFightFront = (c: Ctx, state: GameState, f: Fight) => {
   const fr = state.frame, p = state.player;
   for (const s of f.shots) {
+    // (a lobbed fireball: where it'll come down, marked on the floor, tightening as it falls)
+    if (s.kind === 'fire') {
+      const k = Math.min(1, s.t / 60), r = 30 - k * 12, on = fr % 6 < 3;
+      c.globalAlpha = 0.25 + 0.35 * k; c.fillStyle = '#F97316'; c.beginPath(); c.ellipse(s.tx, GY - 1, r, r * 0.22, 0, 0, Math.PI * 2); c.fill(); c.globalAlpha = 1;
+      c.strokeStyle = on ? '#FDE047' : '#7C2D12'; c.lineWidth = 2; c.beginPath(); c.ellipse(s.tx, GY - 1, r, r * 0.22, 0, 0, Math.PI * 2); c.stroke();
+    }
     if (s.kind === 'fire') drawFireball(c, s.x, s.y, s.vx, s.vy, fr);
     else if (s.kind === 'ice') drawIceball(c, s.x, s.y, s.vx, fr);
     else drawBolt(c, s.x, s.y, s.tx, s.ty, s.t, AIM_T, STRIKE_T, fr);
