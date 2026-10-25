@@ -42,8 +42,8 @@
 //                 counters, no puking, no hammer, and hardly any fight (double damage); then one more snap and the
 //                 last car comes down on HIM: the weakness death (smashed to bits, the kill cam on his head). No car
 //                 touches his health while any of the family's up (the user's); once they're all gone and the couch is
-//                 crushed (him up, flailing), only the clapperboard's car kills him in one; anything else does double
-//                 (SAD_MULT; the user's: "everything else does a modestly multiplied value").
+//                 crushed (him up, flailing), only the clapperboard's car kills him in one; anything else lands as it is
+//                 (SAD_MULT 1, no breather (SAD_IFRAMES 0): the user's).
 //
 // Two deaths. The weakness (the user's: "stupid dad won't say anything after getting killed by the car that smashes him
 //   to death. his parts will be everywhere. the zoomed in camera will linger on his decapitated head"): the car comes
