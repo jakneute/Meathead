@@ -3,7 +3,7 @@ import { Prompt } from '../../m1/components/ButtonIcons';
 import { useCursorSound } from '../../m1/components/useCursorSound';
 import { getActiveGamepad, isButtonPressed, getGamepadMovement, menuButtons, GP_BUTTONS } from '../../m1/game/platform/gamepad';
 import { playMenuOk, playMenuBack } from '../../m1/game/platform/audio';
-import { soundTree, setSoundTest, soundTestCue, trackOf, trackCount, isFolder, type Folder, type Item } from '../music/soundTest';
+import { soundTree, setSoundTest, setSoundTestScreen, soundTestCue, trackOf, trackCount, isFolder, type Folder, type Item } from '../music/soundTest';
 
 // The sound test (music/soundTest.ts): the folders (GENERAL, the lands), then a land's songs, a song's arrangements;
 // pick a track and it plays (over whatever the game's playing, till it's stopped or the screen's shut). On the title
@@ -12,9 +12,6 @@ import { soundTree, setSoundTest, soundTestCue, trackOf, trackCount, isFolder, t
 
 const PAD_REPEAT_MS = 160, ROWS = 11;
 
-/** Up while it's open (the game's own pad poll leaves the cheat panel be meanwhile: App.tsx). */
-let openNow = false;
-export const soundTestOpen = () => openNow;
 
 const SoundTest: React.FC<{ onClose: () => void }> = ({ onClose }) => {
   const root: Folder = { name: '', items: soundTree() };
@@ -48,8 +45,10 @@ const SoundTest: React.FC<{ onClose: () => void }> = ({ onClose }) => {
   const actRef = useRef(act); actRef.current = act;
 
   useEffect(() => {
-    openNow = true;
+    setSoundTestScreen(true);
     const onKey = (e: KeyboardEvent) => {
+      // (every key's its while it's up: none reach the game behind (the park map's TAB))
+      e.stopPropagation();
       const k = e.key.toLowerCase();
       const a = k === 'arrowup' || k === 'w' ? 'up' : k === 'arrowdown' || k === 's' ? 'down' : k === 'enter' || k === ' ' ? 'ok' : k === 'escape' || k === 'backspace' ? 'back' : null;
       if (!a) return;
@@ -74,7 +73,7 @@ const SoundTest: React.FC<{ onClose: () => void }> = ({ onClose }) => {
       frame = requestAnimationFrame(poll);
     };
     frame = requestAnimationFrame(poll);
-    return () => { openNow = false; window.removeEventListener('keydown', onKey, true); window.removeEventListener('contextmenu', onContext, true); cancelAnimationFrame(frame); };
+    return () => { setSoundTestScreen(false); window.removeEventListener('keydown', onKey, true); window.removeEventListener('contextmenu', onContext, true); cancelAnimationFrame(frame); };
   }, []);
 
   // (a window of the list round the cursor)

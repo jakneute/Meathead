@@ -550,7 +550,7 @@ const apply = () => {
   if (key !== last) {
     last = key;
     if (!cue || !SONGS[cue.song]) stop(0.6);
-    else play(cue.song, SONGS[cue.song], cue.arr ?? 'main');
+    else play(cue.song, SONGS[cue.song], cue.arr ?? 'main', !!test);
   } else if (cue && !nowPlaying() && !SONGS[cue.song].once) play(cue.song, SONGS[cue.song], cue.arr ?? 'main');
   setMix(isTalking(), !test && (paused || (!!state?.player.swimming && !!LAND_OF_STAGE[stage ?? ''])), !test && quiet);
   warmLand(stage ? LAND_OF_STAGE[stage] ?? null : null);

@@ -9,6 +9,7 @@
 
 import { SONGS } from './songs/index';
 import { LANDS } from '../hub/lands';
+import { partIn } from './engine';
 
 export interface Cue { song: string; arr?: string }
 /** A track: its row's label (in its song's folder, just the arrangement), and its whole name (NOW PLAYING). */
@@ -59,11 +60,10 @@ export const soundTree = (): Folder[] => {
     // aren't 'main')
     const groups = new Map<string, string[]>();
     for (const [arr, a] of Object.entries(s.arrangements)) {
-      const plays = Object.entries(s.parts).map(([k, d]) => +!((d.only && !d.only.includes(arr)) || d.not?.includes(arr)) + k);
-      const j = JSON.stringify([a, plays]);
-      const was = heard.get(a) ?? new Set<string>();
+      const j = JSON.stringify([a, Object.keys(s.parts).map(k => partIn(s, k, arr))]);
+      const was = heard.get(s) ?? new Set<string>();
       if (was.has(j)) continue;
-      heard.set(a, was.add(j));
+      heard.set(s, was.add(j));
       groups.set(j, [...(groups.get(j) ?? []), arr]);
     }
     const tracks = [...groups.values()].map((arrs): Track => {
@@ -101,6 +101,11 @@ export const trackCount = (f: Folder): number => {
 };
 /** The track playing this. */
 export const trackOf = (cue: Cue | null) => (cue ? allTracks().find(t => t.song === cue.song && t.arr === cue.arr) ?? null : null);
+
+/** How many sound test screens are up (title/SoundTest.tsx): while any is, it has the pad and keys (App.tsx). */
+let open = 0;
+export const soundTestOpen = () => open > 0;
+export const setSoundTestScreen = (up: boolean) => { open = Math.max(0, open + (up ? 1 : -1)); };
 
 let test: Cue | null = null;
 let at = -1;

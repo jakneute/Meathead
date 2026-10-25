@@ -130,7 +130,7 @@ export const BOSS_HELI_GAUNTLET: Song = {
     redeemer: mech(['color', 'samba'], 'flute'),
     pisa: mech(['color'], 'banjo'),
     taj: mech(['color', 'tabla'], 'sitar'),
-    bigben: mech(['bigben']),
+    bigben: mech(['color', 'bigben'], 'chimes'),
     colosseum: mech(['color', 'taiko'], 'brass'),
     pyramid: mech(['color', 'tabla'], 'oboe'),
     moai: mech(['color', 'taiko'], 'marimba'),

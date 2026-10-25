@@ -2,20 +2,20 @@
 // The land's theme and its set pieces are in spooky.ts.
 //
 // ---- "SATAN'S BIGGEST FAN" (boss:demon; was Hell's Couch Potato, for the old couch demon) ----
-// A fat, lazy demon with a pitchfork who'd rather be lying down: thrash metal that keeps running out of breath. The
-// riff gallops (E minor, the flat two and the flat five, a chromatic slide down like him sliding off the couch), twin
+// A big punk demon showing off for Satan: thrash metal that keeps overreaching and running out of breath. The
+// riff gallops (E minor, the flat two and the flat five, a chromatic slide down), twin
 // guitars in thirds, a skank beat; then it slumps into a half-time doom groove, the rhythm guitar dragging the tune
 // (bending, and a tuba farting down an octave at the end of it); then a shred solo; then a breakdown with gang shouts
-// ("HEY!") and double kick. It opens with a yawn: the power chord ringing out, the tuba groaning, the hi-hat counting
+// ("HEY!") and double kick. It opens with a swagger: the power chord ringing out, the tuba groaning, the hi-hat counting
 // in. (Already Mega Man boss energy before the high-energy pass; that pass only took the tune off the tuba.)
 //
-// E minor, 200. 36 bars: the 4-bar yawn (once), then:
+// E minor, 200. 36 bars: the 4-bar warm-up (once), then:
 //   A  (8)  the riff (E, F, G, the C-D-E stabs, the slide), the twin leads in thirds over the second half.
 //   B  (8)  the slump: half time, power chords (E - A-Bb - E - Bb-A - C D - E), the rhythm guitar's tune, the lead
 //           yawning, the tuba's fart.
 //   C  (8)  the riff again under the solo (harmonic minor runs, sweeps, a divebomb).
 //   D  (8)  the breakdown: chugs, double kick, the gang shouting HEY!, the leads screaming long notes.
-// ARRANGEMENTS: main, intro (the yawn: the power chord, the tuba, the kit, the bass).
+// ARRANGEMENTS: main, intro (the warm-up: the power chord, the tuba, the kit, the bass).
 //
 // ---- "FANGS FOR COMING" (boss:donnie-dracula) ----
 // Donnie: a fat balding PA guy in a cheap wig and cape, juiced up by Satan in a tacky ballroom. Tacky grandeur as a

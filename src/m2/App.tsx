@@ -93,7 +93,7 @@ setFrameHook(state => {
   const p = state.player;
   setUi({ locked: !!p.inCutscene || state.deathTimer > 0 || p.health <= 0 || !!p.hidden || !!p.leverPull || !!p.freefall || portalArrivalPending(), killCam: isKillCam(state) });
 });
-import { soundTestOpen } from './title/SoundTest';
+import { soundTestOpen } from './music/soundTest';
 import { getCheats, subscribeCheats, availableWeapons, subscribeArsenal, setLiveState, cheatPanelOpen, setCheatPanelOpen, moveCheatCursor, activateCheat } from './cheats';
 import { attachM2Keys, mapButton } from './input';
 import { setKeyProfile, keysFor } from '../m1/game/platform/keys';

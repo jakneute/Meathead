@@ -150,8 +150,10 @@ export const samplesFor = (song: Song, arr?: string): Set<string> => {
     if (arr !== undefined && !cfg) continue;
     const insts = cfg ? new Set([cfg.inst]) : new Set([p.inst, ...Object.values(song.arrangements ?? {}).map(a => a.inst?.[name]).filter((x): x is string => !!x)]);
     const held = arr !== undefined && !!song.arrangements?.[arr]?.hold?.includes(name);
+    // (all of them: the swaps of the arrangements that hold this part, for its @ notes too)
+    const holds = arr !== undefined ? [] : Object.values(song.arrangements ?? {}).filter(a => a.hold?.includes(name)).map(a => a.inst?.[name]).filter((x): x is string => !!x);
     for (const e of parse(song, p).notes) {
-      const list = e.inst && !(held && typeof e.n === 'number') ? [e.inst] : typeof e.n === 'string' ? [e.n] : [...insts];
+      const list = e.inst && !(held && typeof e.n === 'number') ? [e.inst, ...(typeof e.n === 'number' ? holds : [])] : typeof e.n === 'string' ? [e.n] : [...insts];
       for (const inst of list) {
         if (!INSTRUMENTS[inst]) continue;
         const n = typeof e.n === 'number' ? e.n + (p.tr ?? 0) : 60;
@@ -261,7 +263,7 @@ const dropLane = (lane: Lane, fade: number) => {
 };
 
 /** What a part is in an arrangement: its instrument and level (or null: it's out), and its reverb send. */
-const partIn = (song: Song, name: string, arr: string): { inst: string; level: number; rev?: number } | null => {
+export const partIn = (song: Song, name: string, arr: string): { inst: string; level: number; rev?: number } | null => {
   const def = song.parts[name];
   const a = song.arrangements?.[arr];
   if (def.only && !def.only.includes(arr)) return null;
@@ -459,12 +461,12 @@ const begin = (id: string, song: Song, arrangement: string) => {
   tick();
 };
 
-/** Plays a song (from the top), fading out whatever was on; already on, it just changes arrangement. Waits (a beat,
- *  at most) for any of its instruments not made yet. */
-export const play = (id: string, song: Song, arrangement = 'main') => {
+/** Plays a song (from the top), fading out whatever was on; already on, it just changes arrangement (unless restart:
+ *  the sound test's pick, over again from the top). Waits (a beat, at most) for any of its instruments not made yet. */
+export const play = (id: string, song: Song, arrangement = 'main', restart = false) => {
   const c = ensureChain();
   if (!c) return;
-  if (current && current.id === id && !current.fading) { pending = null; setArrangement(arrangement); return; }
+  if (!restart && current && current.id === id && !current.fading && !current.done) { pending = null; setArrangement(arrangement); return; }
   if (pending?.id === id) return;
   stop(FADE_OUT);
   // (what this arrangement plays, first; the song's other arrangements' instruments after, in idle time)
