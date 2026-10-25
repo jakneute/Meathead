@@ -1,57 +1,119 @@
-// The sound test (the cheat panel's SOUND TEST): every composed song in every arrangement, browsed by folder (the
-// user's: "make the sound test a selectable option with folders you can browse through... clear out duplicates"):
-// a song filed under more than one cue (the red mist under the ceiling's, the Road Rash chase under the teenagers',
-// the pundits' one march under each of the five) and the portal and walk-away cuts of one song each (onlyArr) are
-// listed once. Whatever it's playing wins over the game's own cue (cues.ts), unmuffled.
+// The sound test (the title's once a file's cleared the game, the cheat panel's): every composed song in every
+// arrangement, browsed by folder (the user's: "make the sound test a selectable option with folders you can browse
+// through... clear out duplicates" / "separate songs based on the 'lands' they come from"): GENERAL, then a folder per
+// land in the park's order; in each, a song with more than one arrangement is a folder of them. Each arrangement's
+// listed once: a song filed under more than one cue (the red mist under the ceiling's, the Road Rash chase under the
+// teenagers', the pundits' one march under each of the five), the portal and walk-away cuts (onlyArr: their land's or
+// boss's, in its folder), and an arrangement that's note for note another of its song's (`main: {}` beside
+// `jungle: {}`: listed under the other's name). One the game never picks (cues.ts) is still here, marked (UNUSED) (the
+// user's: "keep it in there, but specify (unused) for those cases"). Whatever it's playing wins over the game's own
+// cue (cues.ts), unmuffled.
 
 import { SONGS } from './songs/index';
 
 export interface Cue { song: string; arr?: string }
-export interface Track extends Cue { label: string }
-export interface Folder { name: string; tracks: Track[] }
+/** A track: its row's label (in its song's folder, just the arrangement), and its whole name (NOW PLAYING). */
+export interface Track extends Cue { label: string; full: string }
+export interface Folder { name: string; items: Item[] }
+export type Item = Track | Folder;
+export const isFolder = (it: Item): it is Folder => 'items' in it;
 
-/** The folders, and the cues in each, in order (a cue not in any lands in OTHER). The first cue a song's filed under
- *  is the one it's listed by. */
+/** The folders, and the cues in each, in order (a cue not in any lands in OTHER); 'song/arr' files just that one
+ *  arrangement (the walk-away's and the portal walk's own, the rest being the lands' and the bosses' cuts). */
 const FILED: { name: string; keys: string[] }[] = [
-  { name: 'MENUS & HUB', keys: ['title', 'hub', 'intro', 'gym', 'staff'] },
-  { name: 'JINGLES', keys: ['jingle:victory', 'jingle:death'] },
-  { name: 'PORTALS & WALK-AWAYS', keys: ['portal', 'walkaway'] },
-  { name: 'JUNGLE LAND', keys: ['land:adventure', 'seq:river', 'seq:mine-cart', 'seq:temple-collapse', 'boss:trex', 'boss:safari-artie'] },
-  { name: 'SPOOKY LAND', keys: ['land:spooky', 'seq:clock-tower', 'seq:red-mist', 'seq:satan', 'boss:demon', 'boss:donnie-dracula'] },
-  { name: 'FUTURE LAND', keys: ['land:space', 'seq:space-train', 'seq:stalker', 'boss:ufo', 'boss:space-queen'] },
-  { name: 'HOLLYWOOD LAND', keys: ['land:hollywood', 'seq:coaster', 'seq:disaster-ride', 'seq:havoc', 'boss:ensemble-cast', 'boss:stuntman-steve'] },
-  { name: 'FOREIGN LANDS', keys: ['land:foreign', 'seq:heli', 'boss:heli-gauntlet', 'boss:helicopter-harry'] },
-  { name: 'WILDERNESS LAND', keys: ['land:frontier', 'seq:train', 'seq:brawl', 'seq:duel', 'seq:draw', 'seq:log-ride', 'seq:road-rash', 'boss:tucker'] },
-  { name: 'FAIRY LAND', keys: ['land:fantasy', 'seq:tragons', 'boss:fairy-wheel', 'boss:broomsticks', 'boss:piper'] },
+  { name: 'GENERAL', keys: ['title', 'hub', 'staff', 'intro', 'gym', 'jingle:victory', 'jingle:death', 'portal/main', 'walkaway/main'] },
+  { name: 'JUNGLE LAND', keys: ['portal:adventure', 'land:adventure', 'seq:river', 'seq:mine-cart', 'seq:temple-collapse', 'boss:trex', 'boss:safari-artie', 'walkaway:safari-artie'] },
+  { name: 'SPOOKY LAND', keys: ['portal:spooky', 'land:spooky', 'seq:ceiling', 'seq:clock-tower', 'seq:satan', 'boss:demon', 'boss:donnie-dracula', 'walkaway:donnie-dracula'] },
+  { name: 'FUTURE LAND', keys: ['portal:space', 'land:space', 'seq:space-train', 'boss:ufo', 'seq:stalker', 'boss:space-queen', 'walkaway:space-queen'] },
+  { name: 'HOLLYWOOD LAND', keys: ['portal:hollywood', 'land:hollywood', 'seq:coaster', 'boss:ensemble-cast', 'seq:disaster-ride', 'seq:havoc', 'boss:stuntman-steve', 'walkaway:stuntman-steve'] },
+  { name: 'FOREIGN LANDS', keys: ['portal:foreign', 'land:foreign', 'seq:heli', 'boss:heli-gauntlet', 'boss:helicopter-harry', 'walkaway:helicopter-harry'] },
+  { name: 'WILDERNESS LAND', keys: ['portal:frontier', 'land:frontier', 'seq:train', 'seq:brawl', 'seq:duel', 'seq:draw', 'seq:log-ride', 'seq:road-rash', 'boss:tucker', 'walkaway:tucker'] },
+  { name: 'FAIRY LAND', keys: ['land:fantasy', 'boss:fairy-wheel', 'seq:tragons', 'boss:broomsticks', 'boss:piper'] },
   { name: 'CARTOON LAND', keys: ['land:cartoon', 'boss:perot', 'boss:stupid-dad'] },
 ];
 
-let folders: Folder[] | null = null;
-/** The folders, each arrangement once in all of them (the same arrangement under another cue, or cut out of its song
- *  for one cue, isn't listed again). */
-export const soundFolders = (): Folder[] => {
-  if (folders) return folders;
+/** What cues.ts never picks, by song ('*': the whole song). Worked out from it, with every song as composed now:
+ *  - the walk-away and the portal walk: no music under either (the user's: their own sounds only), every cut;
+ *  - the theme's lounge and calliope stand in for the staff room, the intro and the hub till theirs are written (they
+ *    are); its 'cutscene' is only ever asked for by those stand-ins;
+ *  - a land's 'boss': only for a fight with no song of its own (every fight has one);
+ *  - a land's arrangement for a section its sequence always has (the river, the mine cart, the star sled, the saucer's
+ *    whole orbit, the basement's stalker, DISASTER: THE RIDE, Timber Tumble's ride, its sewer and river);
+ *  - 'main' where the cue always asks for one of the others (Satan's finale by its step, the helicopter by the ride,
+ *    the pundits each by name). */
+const UNUSED: Record<string, '*' | string[]> = {
+  title: ['lounge', 'calliope', 'cutscene'],
+  'land:adventure': ['river', 'underwater', 'cart', 'boss'],
+  'land:spooky': ['boss'],
+  'land:space': ['ride', 'orbit', 'stalker', 'boss'],
+  'land:hollywood': ['disaster', 'boss'],
+  'land:foreign': ['boss'],
+  'land:frontier': ['logride', 'sewer', 'river', 'boss'],
+  'land:fantasy': ['boss'],
+  'seq:satan': ['main'],
+  'seq:heli': ['main'],
+  'boss:perot': ['main'],
+};
+const unused = (song: string, arr: string) => {
+  if (song === 'walkaway' || song === 'portal' || song.startsWith('walkaway:') || song.startsWith('portal:')) return true;
+  const u = UNUSED[song];
+  return u === '*' || !!u?.includes(arr);
+};
+const UN = ' (UNUSED)';
+const name = (arr: string) => arr.replace(/-/g, ' ').toUpperCase();
+
+let tree: Folder[] | null = null;
+/** The folders, each arrangement once in all of them. */
+export const soundTree = (): Folder[] => {
+  if (tree) return tree;
   const seen = new Set<unknown>();
-  const tracksOf = (keys: string[]) => keys.flatMap(song => {
+  const itemsOf = (keys: string[]): Item[] => keys.flatMap((key): Item[] => {
+    const [song, only] = key.split('/');
     const s = SONGS[song];
     if (!s) return [];
-    const arrs = s.arrangements ?? { main: s };
-    return Object.entries(arrs).flatMap(([arr, a]) => {
-      if (seen.has(a)) return [];
+    const title = (s.title ?? song).toUpperCase();
+    if (!s.arrangements) {
+      if (seen.has(s)) return [];
+      seen.add(s);
+      return [{ song, label: title, full: title }];
+    }
+    // (arrangements note for note the same, by what's in them: small, so compared whole; listed by the names that
+    // aren't 'main')
+    const groups = new Map<string, string[]>();
+    for (const [arr, a] of Object.entries(s.arrangements)) {
+      if ((only && arr !== only) || seen.has(a)) continue;
       seen.add(a);
-      const label = `${s.title ?? song}${arr !== 'main' ? ` (${arr.replace(/-/g, ' ')})` : ''}`.toUpperCase();
-      return [{ song, arr: s.arrangements ? arr : undefined, label }];
+      const j = JSON.stringify(a);
+      groups.set(j, [...(groups.get(j) ?? []), arr]);
+    }
+    const tracks = [...groups.values()].map((arrs): Track => {
+      const named = arrs.filter(a => a !== 'main'), un = arrs.every(a => unused(song, a)) ? UN : '';
+      const label = named.length ? named.map(name).join(' / ') : 'MAIN';
+      return { song, arr: arrs[0], label: label + un, full: `${title} (${label})${un}` };
     });
+    // (one: the song's own row, by its title; one of several (the rest listed under another cue), by both)
+    if (tracks.length === 1) {
+      const t = tracks[0];
+      if (!only && Object.keys(s.arrangements).length > 1) return [{ ...t, label: t.full }];
+      const full = title + (t.label.endsWith(UN) ? UN : '');
+      return [{ ...t, label: full, full }];
+    }
+    return tracks.length ? [{ name: title + (tracks.every(t => t.label.endsWith(UN)) ? UN : ''), items: tracks }] : [];
   });
-  const out = FILED.map(f => ({ name: f.name, tracks: tracksOf(f.keys) }));
-  const filed = new Set(FILED.flatMap(f => f.keys));
-  const other = tracksOf(Object.keys(SONGS).filter(k => !filed.has(k)));
-  if (other.length) out.push({ name: 'OTHER', tracks: other });
-  folders = out.filter(f => f.tracks.length);
-  return folders;
+  const out = FILED.map(f => ({ name: f.name, items: itemsOf(f.keys) }));
+  const filed = new Set(FILED.flatMap(f => f.keys.map(k => k.split('/')[0])));
+  const other = itemsOf(Object.keys(SONGS).filter(k => !filed.has(k)));
+  if (other.length) out.push({ name: 'OTHER', items: other });
+  tree = out.filter(f => f.items.length);
+  return tree;
 };
-/** Every track, in folder order (the pad's < > steps through these). */
-const allTracks = () => soundFolders().flatMap(f => f.tracks);
+/** Every track, in the tree's order (the cheat panel's < > step through these). */
+export const allTracks = (): Track[] => {
+  const flat = (its: Item[]): Track[] => its.flatMap(it => (isFolder(it) ? flat(it.items) : [it]));
+  return flat(soundTree());
+};
+/** The track playing this. */
+export const trackOf = (cue: Cue | null) => (cue ? allTracks().find(t => t.song === cue.song && t.arr === cue.arr) ?? null : null);
 
 let test: Cue | null = null;
 let at = -1;
@@ -70,7 +132,4 @@ export const stepSoundTest = (d: number) => {
   test = at < 0 ? null : list[at];
 };
 /** What it's on, for the panel. */
-export const soundTestLabel = () => {
-  if (!test) return 'OFF';
-  return allTracks().find(t => t.song === test!.song && t.arr === test!.arr)?.label ?? test.song.toUpperCase();
-};
+export const soundTestLabel = () => (test ? trackOf(test)?.full ?? test.song.toUpperCase() : 'OFF');
