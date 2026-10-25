@@ -21,13 +21,13 @@ export const isFolder = (it: Item): it is Folder => 'items' in it;
 /** The folders, and the cues in each, in order (a cue not in any lands in OTHER); 'song/arr' files just that one
  *  arrangement (the walk-away's and the portal walk's own, the rest being the lands' and the bosses' cuts). */
 const FILED: { name: string; keys: string[] }[] = [
-  { name: 'GENERAL', keys: ['title', 'hub', 'staff', 'intro', 'gym', 'jingle:victory', 'jingle:death', 'portal/main', 'walkaway/main'] },
-  { name: 'JUNGLE LAND', keys: ['portal:adventure', 'land:adventure', 'seq:river', 'seq:mine-cart', 'seq:temple-collapse', 'boss:trex', 'boss:safari-artie', 'walkaway:safari-artie'] },
-  { name: 'SPOOKY LAND', keys: ['portal:spooky', 'land:spooky', 'seq:ceiling', 'seq:clock-tower', 'seq:satan', 'boss:demon', 'boss:donnie-dracula', 'walkaway:donnie-dracula'] },
-  { name: 'FUTURE LAND', keys: ['portal:space', 'land:space', 'seq:space-train', 'boss:ufo', 'seq:stalker', 'boss:space-queen', 'walkaway:space-queen'] },
-  { name: 'HOLLYWOOD LAND', keys: ['portal:hollywood', 'land:hollywood', 'seq:coaster', 'boss:ensemble-cast', 'seq:disaster-ride', 'seq:havoc', 'boss:stuntman-steve', 'walkaway:stuntman-steve'] },
-  { name: 'FOREIGN LANDS', keys: ['portal:foreign', 'land:foreign', 'seq:heli', 'boss:heli-gauntlet', 'boss:helicopter-harry', 'walkaway:helicopter-harry'] },
-  { name: 'WILDERNESS LAND', keys: ['portal:frontier', 'land:frontier', 'seq:train', 'seq:brawl', 'seq:duel', 'seq:draw', 'seq:log-ride', 'seq:road-rash', 'boss:tucker', 'walkaway:tucker'] },
+  { name: 'GENERAL', keys: ['title', 'hub', 'staff', 'intro', 'gym', 'jingle:victory', 'jingle:death'] },
+  { name: 'JUNGLE LAND', keys: ['land:adventure', 'seq:river', 'seq:mine-cart', 'seq:temple-collapse', 'boss:trex', 'boss:safari-artie'] },
+  { name: 'SPOOKY LAND', keys: ['land:spooky', 'seq:ceiling', 'seq:clock-tower', 'seq:satan', 'boss:demon', 'boss:donnie-dracula'] },
+  { name: 'FUTURE LAND', keys: ['land:space', 'seq:space-train', 'boss:ufo', 'seq:stalker', 'boss:space-queen'] },
+  { name: 'HOLLYWOOD LAND', keys: ['land:hollywood', 'seq:coaster', 'boss:ensemble-cast', 'seq:disaster-ride', 'seq:havoc', 'boss:stuntman-steve'] },
+  { name: 'FOREIGN LANDS', keys: ['land:foreign', 'seq:heli', 'boss:heli-gauntlet', 'boss:helicopter-harry'] },
+  { name: 'WILDERNESS LAND', keys: ['land:frontier', 'seq:train', 'seq:brawl', 'seq:duel', 'seq:draw', 'seq:log-ride', 'seq:road-rash', 'boss:tucker'] },
   { name: 'FAIRY LAND', keys: ['land:fantasy', 'boss:fairy-wheel', 'seq:tragons', 'boss:broomsticks', 'boss:piper'] },
   { name: 'CARTOON LAND', keys: ['land:cartoon', 'boss:perot', 'boss:stupid-dad'] },
 ];
@@ -59,7 +59,8 @@ const unused = (song: string, arr: string) => {
   const u = UNUSED[song];
   return u === '*' || !!u?.includes(arr);
 };
-const UN = ' (UNUSED)';
+// (no labels on them (the user's: "remove the unused labels"): the never-picked ones are just listed)
+const UN = '';
 const name = (arr: string) => arr.replace(/-/g, ' ').toUpperCase();
 
 let tree: Folder[] | null = null;
@@ -102,7 +103,9 @@ export const soundTree = (): Folder[] => {
   });
   const out = FILED.map(f => ({ name: f.name, items: itemsOf(f.keys) }));
   const filed = new Set(FILED.flatMap(f => f.keys.map(k => k.split('/')[0])));
-  const other = itemsOf(Object.keys(SONGS).filter(k => !filed.has(k)));
+  // (the portal walk's and the walk-away's songs left out altogether (the user's: "remove the heading in and walk it off
+  // songs from the sound test"))
+  const other = itemsOf(Object.keys(SONGS).filter(k => !filed.has(k) && !/^(portal|walkaway)(:|$)/.test(k)));
   if (other.length) out.push({ name: 'OTHER', items: other });
   tree = out.filter(f => f.items.length);
   return tree;
