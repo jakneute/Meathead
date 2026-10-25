@@ -3,11 +3,9 @@
 // through... clear out duplicates" / "separate songs based on the 'lands' they come from"): GENERAL, then a folder per
 // land in the park's order; in each, a song with more than one arrangement is a folder of them. Each arrangement's
 // listed once: a song filed under more than one cue (the red mist under the ceiling's, the Road Rash chase under the
-// teenagers', the pundits' one march under each of the five), the portal and walk-away cuts (onlyArr: their land's or
-// boss's, in its folder), and an arrangement that's note for note another of its song's (`main: {}` beside
-// `jungle: {}`: listed under the other's name). One the game never picks (cues.ts) is still here, marked (UNUSED) (the
-// user's: "keep it in there, but specify (unused) for those cases"). Whatever it's playing wins over the game's own
-// cue (cues.ts), unmuffled.
+// teenagers', the pundits' one march under each of the five), and an arrangement that's note for note another of its
+// song's (`main: {}` beside `jungle: {}`: listed under the other's name). The portal walk's and the walk-away's songs
+// aren't in it (HIDDEN). Whatever it's playing wins over the game's own cue (cues.ts), unmuffled.
 
 import { SONGS } from './songs/index';
 
@@ -18,8 +16,7 @@ export interface Folder { name: string; items: Item[] }
 export type Item = Track | Folder;
 export const isFolder = (it: Item): it is Folder => 'items' in it;
 
-/** The folders, and the cues in each, in order (a cue not in any lands in OTHER); 'song/arr' files just that one
- *  arrangement (the walk-away's and the portal walk's own, the rest being the lands' and the bosses' cuts). */
+/** The folders, and the cues in each, in order (a cue in none of them lands in OTHER). */
 const FILED: { name: string; keys: string[] }[] = [
   { name: 'GENERAL', keys: ['title', 'hub', 'staff', 'intro', 'gym', 'jingle:victory', 'jingle:death'] },
   { name: 'JUNGLE LAND', keys: ['land:adventure', 'seq:river', 'seq:mine-cart', 'seq:temple-collapse', 'boss:trex', 'boss:safari-artie'] },
@@ -31,36 +28,9 @@ const FILED: { name: string; keys: string[] }[] = [
   { name: 'FAIRY LAND', keys: ['land:fantasy', 'boss:fairy-wheel', 'seq:tragons', 'boss:broomsticks', 'boss:piper'] },
   { name: 'CARTOON LAND', keys: ['land:cartoon', 'boss:perot', 'boss:stupid-dad'] },
 ];
-
-/** What cues.ts never picks, by song ('*': the whole song). Worked out from it, with every song as composed now:
- *  - the walk-away and the portal walk: no music under either (the user's: their own sounds only), every cut;
- *  - the theme's lounge and calliope stand in for the staff room, the intro and the hub till theirs are written (they
- *    are); its 'cutscene' is only ever asked for by those stand-ins;
- *  - a land's 'boss': only for a fight with no song of its own (every fight has one);
- *  - a land's arrangement for a section its sequence always has (the river, the mine cart, the star sled, the saucer's
- *    whole orbit, the basement's stalker, DISASTER: THE RIDE, Timber Tumble's ride, its sewer and river);
- *  - 'main' where the cue always asks for one of the others (Satan's finale by its step, the helicopter by the ride,
- *    the pundits each by name). */
-const UNUSED: Record<string, '*' | string[]> = {
-  title: ['lounge', 'calliope', 'cutscene'],
-  'land:adventure': ['river', 'underwater', 'cart', 'boss'],
-  'land:spooky': ['boss'],
-  'land:space': ['ride', 'orbit', 'stalker', 'boss'],
-  'land:hollywood': ['disaster', 'boss'],
-  'land:foreign': ['boss'],
-  'land:frontier': ['logride', 'sewer', 'river', 'boss'],
-  'land:fantasy': ['boss'],
-  'seq:satan': ['main'],
-  'seq:heli': ['main'],
-  'boss:perot': ['main'],
-};
-const unused = (song: string, arr: string) => {
-  if (song === 'walkaway' || song === 'portal' || song.startsWith('walkaway:') || song.startsWith('portal:')) return true;
-  const u = UNUSED[song];
-  return u === '*' || !!u?.includes(arr);
-};
-// (no labels on them (the user's: "remove the unused labels"): the never-picked ones are just listed)
-const UN = '';
+/** Left out of it altogether, wherever they're filed: the portal walk's and the walk-away's songs (the user's: "remove
+ *  the heading in and walk it off songs from the sound test"). */
+const HIDDEN = (song: string) => /^(portal|walkaway)(:|$)/.test(song);
 const name = (arr: string) => arr.replace(/-/g, ' ').toUpperCase();
 
 let tree: Folder[] | null = null;
@@ -68,10 +38,9 @@ let tree: Folder[] | null = null;
 export const soundTree = (): Folder[] => {
   if (tree) return tree;
   const seen = new Set<unknown>();
-  const itemsOf = (keys: string[]): Item[] => keys.flatMap((key): Item[] => {
-    const [song, only] = key.split('/');
+  const itemsOf = (keys: string[]): Item[] => keys.flatMap((song): Item[] => {
     const s = SONGS[song];
-    if (!s) return [];
+    if (!s || HIDDEN(song)) return [];
     const title = (s.title ?? song).toUpperCase();
     if (!s.arrangements) {
       if (seen.has(s)) return [];
@@ -82,30 +51,26 @@ export const soundTree = (): Folder[] => {
     // aren't 'main')
     const groups = new Map<string, string[]>();
     for (const [arr, a] of Object.entries(s.arrangements)) {
-      if ((only && arr !== only) || seen.has(a)) continue;
+      if (seen.has(a)) continue;
       seen.add(a);
       const j = JSON.stringify(a);
       groups.set(j, [...(groups.get(j) ?? []), arr]);
     }
     const tracks = [...groups.values()].map((arrs): Track => {
-      const named = arrs.filter(a => a !== 'main'), un = arrs.every(a => unused(song, a)) ? UN : '';
+      const named = arrs.filter(a => a !== 'main');
       const label = named.length ? named.map(name).join(' / ') : 'MAIN';
-      return { song, arr: arrs[0], label: label + un, full: `${title} (${label})${un}` };
+      return { song, arr: arrs[0], label, full: `${title} (${label})` };
     });
     // (one: the song's own row, by its title; one of several (the rest listed under another cue), by both)
     if (tracks.length === 1) {
       const t = tracks[0];
-      if (!only && Object.keys(s.arrangements).length > 1) return [{ ...t, label: t.full }];
-      const full = title + (t.label.endsWith(UN) ? UN : '');
-      return [{ ...t, label: full, full }];
+      return [Object.keys(s.arrangements).length > 1 ? { ...t, label: t.full } : { ...t, label: title, full: title }];
     }
-    return tracks.length ? [{ name: title + (tracks.every(t => t.label.endsWith(UN)) ? UN : ''), items: tracks }] : [];
+    return tracks.length ? [{ name: title, items: tracks }] : [];
   });
   const out = FILED.map(f => ({ name: f.name, items: itemsOf(f.keys) }));
-  const filed = new Set(FILED.flatMap(f => f.keys.map(k => k.split('/')[0])));
-  // (the portal walk's and the walk-away's songs left out altogether (the user's: "remove the heading in and walk it off
-  // songs from the sound test"))
-  const other = itemsOf(Object.keys(SONGS).filter(k => !filed.has(k) && !/^(portal|walkaway)(:|$)/.test(k)));
+  const filed = new Set(FILED.flatMap(f => f.keys));
+  const other = itemsOf(Object.keys(SONGS).filter(k => !filed.has(k)));
   if (other.length) out.push({ name: 'OTHER', items: other });
   tree = out.filter(f => f.items.length);
   return tree;
@@ -124,8 +89,9 @@ let at = -1;
 export const soundTestCue = () => test;
 /** Plays this (or stops the test: null). */
 export const setSoundTest = (cue: Cue | null) => {
-  test = cue;
+  // (only what's in it: anything else (a hidden song, a cue gone since) stops it)
   at = cue ? allTracks().findIndex(t => t.song === cue.song && t.arr === cue.arr) : -1;
+  test = at < 0 ? null : cue;
 };
 /** On to the next (or back to the last) track; past either end, the test's off. */
 export const stepSoundTest = (d: number) => {
@@ -135,4 +101,4 @@ export const stepSoundTest = (d: number) => {
   test = at < 0 ? null : list[at];
 };
 /** What it's on, for the panel. */
-export const soundTestLabel = () => (test ? trackOf(test)?.full ?? test.song.toUpperCase() : 'OFF');
+export const soundTestLabel = () => (test ? trackOf(test)?.full ?? 'OFF' : 'OFF');
