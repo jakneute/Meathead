@@ -1789,6 +1789,8 @@ export const drawFightHud = (c: Ctx, state: GameState, f: Fight, band: { x1: num
   if (state.player.inCutscene) return;
   const w = band.x2 - band.x1, k = Math.max(0, f.hp / HP);
   box(c, band.x1, 22, w, 14, '#18181B'); box(c, band.x1 + 2, 24, (w - 4) * k, 10, f.iframes > 0 && Math.floor(f.iframes / 4) % 2 ? '#FBCFE8' : '#F472B6');
+  // (in tenths, like Tucker's (the user's: "make sure they are all segmented"))
+  for (let i = 1; i < 10; i++) box(c, Math.round(band.x1 + 2 + ((w - 4) * i) / 10), 24, 1, 10, '#18181B');
   label(c, 'PIPER THE PIXIE', band.mid, 50, '#F9A8D4', 7);
   // (the holes in her, as little marks under her bar)
   for (let i = 0; i < f.holes.length; i++) { box(c, band.x2 - 14 - i * 12, 40, 8, 8, '#E8D07A'); box(c, band.x2 - 12 - i * 12, 42, 4, 4, '#5A0A0A'); }

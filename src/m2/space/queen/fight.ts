@@ -1523,6 +1523,8 @@ export const drawFightHud = (c: Ctx, f: Fight, band: { x1: number; x2: number; m
   if (inCutscene || f.mode === 'dead' || f.mode === 'intro' || f.mode === 'wait') return;
   const w = band.x2 - band.x1, k = Math.max(0, f.hp / HP);
   box(c, band.x1, 22, w, 14, '#18181B'); box(c, band.x1 + 2, 24, (w - 4) * k, 10, f.iframes > 0 && Math.floor(f.iframes / 4) % 2 ? '#D9F99D' : '#65A30D');
+  // (in tenths, like Tucker's (the user's: "make sure they are all segmented"))
+  for (let i = 1; i < 10; i++) box(c, Math.round(band.x1 + 2 + ((w - 4) * i) / 10), 24, 1, 10, '#18181B');
   // (the chunk a mallet hit just took off her: flashing white and yellow where it was, then gone)
   if (f.barT > 0 && f.barFrom > f.hp) {
     const k0 = Math.min(1, f.barFrom / HP), x = band.x1 + 2 + (w - 4) * k;

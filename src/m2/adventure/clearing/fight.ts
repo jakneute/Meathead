@@ -1590,5 +1590,7 @@ export const drawFightHud = (c: Ctx, f: Fight, band: { x1: number; x2: number; m
   if (inCutscene || f.mode === 'dead') return;
   const w = band.x2 - band.x1, k = Math.max(0, f.hp / HP);
   box(c, band.x1, 22, w, 14, '#18181B'); box(c, band.x1 + 2, 24, (w - 4) * k, 10, f.iframes > 0 && Math.floor(f.iframes / 4) % 2 ? '#FDE68A' : '#F59E0B');
+  // (in tenths, like Tucker's (the user's: "make sure they are all segmented"))
+  for (let i = 1; i < 10; i++) box(c, Math.round(band.x1 + 2 + ((w - 4) * i) / 10), 24, 1, 10, '#18181B');
   label(c, 'SAFARI ARTIE', band.mid, 50, '#FDE68A', 7);
 };
