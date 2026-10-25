@@ -102,14 +102,15 @@ const REDEEMER_BOOST = 0.25;
 /** A Redeemer landing on him: the callout over him ("CHRIST'D!" the main one: in twice). */
 const REDEEMER_CALLOUTS = ["CHRIST'D!", "CHRIST'D!", "JESUS'D!", 'SAVED!', 'HOLY HIT!', 'BORN AGAIN!', 'THE LORD SMITES!'];
 /** Hovering about between goes (frames, by phase); how high (feet above the floor). */
-const HOVER_T = [0, 140, 110, 88], HOVER_UP = 160;
+// (shorter (the user's: "i want his swoop attacks to happen more often"): were 140/110/88)
+const HOVER_T = [0, 105, 82, 64], HOVER_UP = 160;
 /** Now and then, hovering, he swoops down low across the floor (in the line of fire) for a while: every this often,
  *  for this long (frames), down to this far off the floor. */
 const SWOOP_EVERY = 300, SWOOP_T = 110, SWOOP_UP = 34;
 /** His poise: knocked off what he's doing by a charge move at most this often (frames); his sucking a guest, always. */
 const POISE_T = 170;
 /** After his hover, the spew instead of the grab this often (it's his whether or not he's had a drink). */
-const SPEW_CHANCE = 0.3;
+const SPEW_CHANCE = 0.2;
 /** Winded (down on the floor, catching his breath: the window), after a swoop that missed and after the spew (by phase). */
 const WINDED_T = [0, 78, 62, 50];
 /** The grab: the tell, the swoop's length, how far past him it carries on. */
@@ -129,7 +130,9 @@ const CLAW_X = 42, CLAW_Y = 50;
 /** Held: a drain every so often (his damage, Donnie's heal), let go after this long at most, or this many presses. */
 const DRAIN_EVERY = 18, DRAIN_DMG = 5, DRAIN_HEAL = 6, DRAIN_MAX = 150, ESCAPE_PRESSES = 9;
 /** The guests: how often one runs through (by phase), how fast; sucking one dry, how long and what it heals. */
-const GUEST_EVERY = [0, 640, 520, 420], GUEST_SPEED = 3.4, SUCK_T = 90, GUEST_HEAL = 4;
+// (fewer of them through (the user's: "somewhat limit how frequently innocent guests run into donnie's fight"): were
+// 640/520/420)
+const GUEST_EVERY = [0, 900, 760, 620], GUEST_SPEED = 3.4, SUCK_T = 90, GUEST_HEAL = 4;
 /** The spew: the aim first, then the stream (by phase), a drop every so often, how hard, how fast; how fast his aim
  *  can follow Meathead (px a frame: about his walk, so standing still or walking straight away gets you hosed). */
 // (the aim catches up quicker by phase too: was 3.2 throughout)
