@@ -35,7 +35,9 @@
 import type { GameState } from '../../../m1/game/core/state';
 import type { Block } from '../../../m1/types';
 import type { FrontierSection } from '../section';
-import { layOwn, endWalls, endExits, runExits, hands } from '../section';
+import { layOwn, endWalls, endExits, runExits, hands, meatheadSays, byPants } from '../section';
+import * as L from './lines';
+import { pickLine } from '../../../m1/game/platform/speech';
 import { DOORS } from '../geometry';
 import { topBand, CANVAS_HEIGHT } from '../../../m1/constants';
 import { goTo, landsCleared, markLandCleared, markBossDeath, noteBossKill, isLandCleared, setWalkBack } from '../../store';
@@ -49,7 +51,7 @@ import { updateEntry, drawEntryHud, setFelled } from './entry';
 import { startCatchup, updateCatchup, drawCatchupHud, branchDone, setBranchMemos } from './catchup';
 import { startFakeout, updateFakeout, startEntrance, tickEntrance, layFlat, drawIntroHud } from './intro';
 import { drawArenaCast, drawTuckerWords } from './cast';
-import { drawArenaBackdrop, drawArenaBack, drawBoulder, drawLeaves, tickLeaves, drawFallingTree, drawRemainsMark } from './art';
+import { drawArenaBackdrop, drawArenaBack, drawBoulder, drawLeaves, tickLeaves, drawFallingTree, drawRemainsMark, SIGN_X } from './art';
 import { startFight, updateFight, fightOver, endFight, tickFightWon, resetFight, holdIn, killedByWeakness, drawFightBack, drawFightFront, drawFightHud, fightZoom, deathNeed, fightHoldTick } from './fight';
 import { frameDeath } from '../../deathFrame';
 
@@ -140,6 +142,8 @@ export const arena: FrontierSection = {
       case 'body': {
         runExits(state, endExits('arena', { left: false }));
         if (isLandCleared('frontier') || p.health <= 0 || p.inCutscene) return controls;
+        // (walking past the lions board: his say on it, the once a visit)
+        if (!state.stageMemo['fr-sign-said'] && Math.abs(p.pos.x + p.width / 2 - SIGN_X) < 60) { state.stageMemo['fr-sign-said'] = '1'; meatheadSays(state, pickLine(byPants(state, L.MH_SIGN)), false); }
         // (up to the body: the fake-out; a retry: he pops up again as he comes near)
         if (s.tMode === 'impaled' && p.isGrounded && pmid(state) > HANG_X - BODY_NEAR) { startFakeout(state); return hands(); }
         if (s.tMode === 'flat' && pmid(state) > FIGHT_X - ENTRANCE_NEAR) { lockWalls(state, s); startEntrance(state); }

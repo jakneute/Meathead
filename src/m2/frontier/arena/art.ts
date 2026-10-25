@@ -227,7 +227,8 @@ const drawTrees = (c: Ctx, v: View, dMin: number, dMax: number) => {
 // The sign before the glade: the Forest Service's routed brown board on two 4x4s (YOU ARE IN GRIZZLY COUNTRY, a bear
 // routed in), the county's yellow lion notice screwed on under it, a hunter's orange tape round one post
 
-const SIGN_X = ARENA_L - 205, SIGN_D = 0.93;
+export const SIGN_X = ARENA_L - 205;
+const SIGN_D = 0.93;
 export const paintBearSign = (g: Ctx) => {
   const Wd = ['#1A120A', '#2E2214', '#46341E', '#5E482A', '#786038'], S = hr('steel', STEEL, 0.2);
   // (the posts: rough-sawn 4x4s, lit down the left, checked; sunk in a ring of dirt)
