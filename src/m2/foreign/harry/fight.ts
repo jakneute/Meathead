@@ -239,7 +239,7 @@ registerM2Kind({
 TOO_BIG_BY_KIND[HARRY_KIND] = L.GRAB_HARRY;
 
 // The weakness: the darts are his fight's (the user's opt-in)
-setDartTaker(HARRY_KIND, (ctx) => { const f = live; if (f && f.mode === 'on') darted(ctx, f); return true; });
+setDartTaker(HARRY_KIND, (ctx) => { const f = live; if (f && f.mode === 'on' && f.act !== 'crown') darted(ctx, f); return true; });
 
 // ---------------------------------------------------------------------------------------------------------------
 // Saying things (one at a time; words only while said)
@@ -1195,6 +1195,9 @@ const takeHits = (ctx: FrameContext, f: Fight) => {
   const melee = e.hitByMove !== f.moveSeen;
   f.moveSeen = e.hitByMove;
   if (dealt <= 0 || !state.enemies.includes(e) || f.iframes > 0) return;
+  // (up in her crown at the controls: behind the glass, nothing gets him (the user's: "helicopter harry shouldn't be
+  // hurtable when he's piloting the statue"))
+  if (f.act === 'crown') { if (f.total % 6 === 0) playSound('clink', 0.5, 6); return; }
   const plain = plainHit(state, melee);
   // (no hint at a weapon he hasn't got (the user's))
   if (plain === null && state.player.availableWeapons.includes('CROSSBOW') && state.player.currentWeapon !== 'CROSSBOW' && f.barfs === 0 && (++f.wrongN === 2 || f.wrongN % 5 === 0) && f.total - f.hintAt > HINT_GAP) {
