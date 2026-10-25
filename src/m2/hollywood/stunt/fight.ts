@@ -48,6 +48,7 @@ import { isShat, isNude } from '../../../m1/game/player/gut';
 import { makeKindEnemy } from '../../../m1/game/enemies/kinds';
 import { ENEMY_HIT_COOLDOWN, CANVAS_WIDTH, CANVAS_HEIGHT, BULLET_DAMAGE, BOSS_CHARGE_DAMAGE, BOSS_UPPERCUT_DAMAGE } from '../../../m1/constants';
 import { registerM2Kind } from '../../kinds';
+import { newSpam, spamTick, hitKey, swatOff, type Spam } from '../../bossSpam';
 import { setStormPick, setStormHit } from '../../weapons/spellbook';
 import { TOO_BIG_BY_KIND } from '../../lines/weaponLines';
 import { drawSteveGross, drawSteveGrossBack } from './steveGross';
@@ -128,6 +129,8 @@ export interface Fight extends Garage {
   redT: number; blueT: number;
   pyro: { t: number; x: number; hit: boolean } | null; fire: Map<number, number>;
   e: Enemy; moveSeen: number | undefined; grabWas: string;
+  /** The same hit landing on him over and over (bossSpam.ts). */
+  spam: Spam;
   said: string | null; paSaid: string | null;
   wrongN: number; hintAt: number; lowSaid: boolean; crowdAt: number;
   intro: Intro; introT: number; skipT: number; camX: number; replay: number;
@@ -235,7 +238,7 @@ export const startFight = (state: GameState): Fight => {
     sx: STEVE_AT(side), sz: 0, side, facing: -1, act: 'idle', actT: 0,
     zapT: 0, frizz: 0, singe: 0, zappedOnce: false, closeT: 0, flailAt: -999, pushAt: -999, tauntT: 0, tow: null,
     redT: 0, blueT: 0, pyro: null, fire: new Map(),
-    e, moveSeen: e.hitByMove, grabWas: 'idle', said: null, paSaid: null, wrongN: 0, hintAt: -9999, lowSaid: false, crowdAt: -99,
+    e, moveSeen: e.hitByMove, spam: newSpam(), grabWas: 'idle', said: null, paSaid: null, wrongN: 0, hintAt: -9999, lowSaid: false, crowdAt: -99,
     intro: 'land', introT: 0, skipT: 0, camX: camFor(pmid(state).x), replay: 0,
     fall: FLUNG_IN.on ? { t: 0, x0: pmid(state).x, over: 0, style: 'flail' } : null,
     death: null, deathSaid: 0, cam: null, entrance: 0,
@@ -593,6 +596,20 @@ const takeHits = (ctx: FrameContext, f: Fight) => {
     f.hintAt = f.total; meatheadSays(state, pick(L.MEATHEAD_HINT), false);
   }
   hurt(ctx, f, plain ?? Math.max(1, dealt * SHARE), IFRAMES);
+  // (the user's: "i don't want the player to be given more than 5 uninterrupted seconds spamming the same attack on a
+  // boss": the same hit landing on him for 4 s. On top of him (a dive-kick chain, the charge): his arms going, a shove
+  // off him (no hurt) and the tow called there and then; shot at from down the stage: a car at him now)
+  if (f.zapT <= 0 && f.act !== 'zapped' && f.act !== 'smoking' && spamTick(f.spam, state.frame, hitKey(state.player, melee))) {
+    const m = pmid(state);
+    if (melee || Math.abs(m.x - f.sx) < TOW_NEAR) {
+      swatOff(state, f.sx);
+      if (!f.tow && f.act !== 'towed' && f.act !== 'yank') callTow(ctx, f); else { setAct(f, 'flail'); bark(f, L.STEVE_FLAIL); }
+    } else {
+      f.pushAt = f.total;
+      spawnRed(state, f, doorOf(f.side, Math.random() < 0.4), (-f.side) as 1 | -1, 'drift');
+      if (Math.random() < 0.5) bark(f, L.STEVE_TOO_CLOSE);
+    }
+  }
 };
 
 const hurt = (ctx: FrameContext, f: Fight, dmg: number, iframes: number) => {
