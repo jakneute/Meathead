@@ -808,9 +808,14 @@ const debrisFloor = (f: Fight, x: number) => {
 /** A part torn loose where she landed (kept clear of the others and the walls): one of the three unsafe areas. */
 const loosen = (ctx: FrameContext, f: Fight, kind: HazardKind, quiet = false) => {
   const { state } = ctx;
-  const ok = (x: number) => x > ARENA_L + 260 && x < ARENA_R - 260 && f.hazards.every(h => Math.abs(h.x - x) > 480);
-  let x = f.x;
-  for (let d = 0; d < 60 && !ok(x); d++) for (const s of [1, -1]) { const c = f.x + s * d * 40; if (ok(c)) { x = c; break; } }
+  // (nearest her landing that's well clear of the others; with no such spot left (the room's only so wide for three),
+  // the one furthest from them all: never on top of another (the user's: the lightning and the cold on the same spot))
+  const lo = ARENA_L + 260, hi = ARENA_R - 260, gap = (x: number) => f.hazards.reduce((m, h) => Math.min(m, Math.abs(h.x - x)), Infinity);
+  let x = Math.max(lo, Math.min(hi, f.x)), best = -1;
+  for (let c = lo; c <= hi; c += 20) {
+    const g = gap(c), score = g > 480 ? 1e6 - Math.abs(c - f.x) : g;
+    if (score > best) { best = score; x = c; }
+  }
   f.hazards.push({ kind, x, t: 0, dir: x < ARENA_MID ? 1 : -1, hit: false });
   playSound('crack', 1, -8); playSound('clang', 0.8, -6);
   if (kind === 'heat') playSound('ignite', 0.8, -4);
