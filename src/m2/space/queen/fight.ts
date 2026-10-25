@@ -62,6 +62,7 @@ import { makeKindEnemy } from '../../../m1/game/enemies/kinds';
 import { registerDeathKind } from '../../../m1/game/player/deathAnim';
 import { ENEMY_HIT_COOLDOWN, BULLET_DAMAGE, BOSS_CHARGE_DAMAGE, BOSS_UPPERCUT_DAMAGE, CANVAS_WIDTH, CANVAS_HEIGHT, HUD_CLEAR_Y } from '../../../m1/constants';
 import { registerM2Kind, registerHurtLines } from '../../kinds';
+import { newSpam, spamTick, hitKey, type Spam } from '../../bossSpam';
 import { takeBites } from '../../weapons/spawner';
 import { takeMalletHit, malletReadBy, type MalletHow } from '../../weapons/mallet';
 import { type Piece, type Splat, burstQueen, chipQueen, burstSpray, tickPieces, headPiece, drawPieces, drawSplats } from './burst';
@@ -187,6 +188,8 @@ interface Spot { x: number; r: number; t: number }
 export interface Fight {
   mode: Mode; t: number; total: number;
   hp: number; iframes: number; flash: number; moveSeen: number | undefined;
+  /** The same hit landing on her over and over (bossSpam.ts). */
+  spam: Spam;
   /** Her side (-1 left, 1 right), where she is (x), how far up she is (the leap), which way she faces. */
   side: -1 | 1; x: number; y: number; facing: 1 | -1;
   ext: number; ph: string | null;
@@ -254,7 +257,7 @@ export interface Fight {
 export const makeFight = (state: GameState): Fight => {
   const seen = bossIntroSeen(state, 'queen');
   return {
-    mode: 'wait', t: 0, total: 0, hp: HP, iframes: 0, flash: 0, moveSeen: undefined,
+    mode: 'wait', t: 0, total: 0, hp: HP, iframes: 0, flash: 0, moveSeen: undefined, spam: newSpam(),
     side: 1, x: seen ? SIDE_X[1] : INTRO_X, y: 0, facing: -1, ext: 0, ph: null,
     step: 'lights', stepT: 0, skipT: 0, token: 0,
     glass: !seen, booth: 1, beam: 0, alive: 1,
@@ -776,6 +779,14 @@ const leaping = (ctx: FrameContext, f: Fight) => {
   }
   if (f.t >= (hop ? 14 : LAND_T)) to(f, 'idle');
 };
+/** Off from the spam (above): a hop over him if there's room past him, else the big leap; either way a gush of barf
+ *  marked on his spot (it only comes down if she passes over it). */
+const spamHop = (state: GameState, f: Fight) => {
+  const pm = pmid(state).x, hopX = pm + (Math.sign(pm - f.x) || 1) * HOP_PAST;
+  f.litter = [];
+  if (hopX >= X_MIN && hopX <= X_MAX && Math.abs(hopX - f.x) >= 260) startLeap(state, f, hopX); else startLeap(state, f);
+  f.barf.push({ x: Math.max(X_MIN, Math.min(X_MAX, pm)), let: false, due: 0, landed: 0 });
+};
 /** Is world x on the screen (this far in from its edges)? */
 const onScreen = (state: GameState, x: number, inset: number) => x > state.camera.x + inset && x < state.camera.x + CANVAS_WIDTH - inset;
 /** Which of her young comes out (her odds by phase, no more than two chargers on their way). */
@@ -965,7 +976,18 @@ const takeHits = (ctx: FrameContext, f: Fight) => {
   e.health = BIG; e.maxHealth = BIG;
   const melee = e.hitByMove !== f.moveSeen;
   f.moveSeen = e.hitByMove;
+  // (a dive kick onto her: she's slick with her motor oil and it burns (the user's: "the alien gives auto contact
+  // damage... that motor oil burns!"): the kick lands, and so does the oil, so bouncing on her head's a losing trade)
+  if (melee && p.isDivekicking && canHurt(state)) {
+    hurtPlayer(ctx, TOUCH_DMG, OIL, { x: (Math.sign(pmid(state).x - f.x) || 1) * 7, y: -8 }, 14);
+    bleedOil(state, { x: pmid(state).x, y: p.pos.y + p.height }, (Math.sign(pmid(state).x - f.x) || 1) as 1 | -1, 6);
+    playSound('flame', 0.6, 4);
+  }
   if (dealt <= 0 || !state.enemies.includes(e)) return;
+  // (the user's: "i don't want the player to be given more than 5 uninterrupted seconds spamming the same attack on a
+  // boss": the same hit landing for 4 s (the ray gun held on her from one spot, mostly; her skitters keep to her side
+  // of him, still in his line) and she's off, a hop clean over him, barfing on the spot he's stood on as she goes)
+  if (f.total - f.eventAt > 4 && (f.mode === 'idle' || f.mode === 'birth' || f.mode === 'flail') && spamTick(f.spam, state.frame, hitKey(p, melee))) spamHop(state, f);
   // (a throw or a bat just landed on her: that's had its say; the engine's share of the same knock isn't extra)
   if (f.total - f.eventAt <= 4) return;
   const nib = Math.min(dealt, bites), hit = dealt - nib;
