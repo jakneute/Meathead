@@ -92,7 +92,9 @@ const SPIT_EVERY = [0, 170, 140, 110], SPIT_AIM = 24;
 /** Run down while he's agitated: the big hit. */
 const TRAMPLE_DMG = 150;
 /** The litter's bites, on him: only this share of each (one of them's nothing to him; it's what they do to him). */
-const NIBBLE_SHARE = 0.2;
+// (a bit less, and capped (the user's: "once a fair amount of goblins are nibbling him, it won't go higher"): was 0.2,
+// uncapped; past NIBBLE_CAP of them on him, more just share the same nibbling)
+const NIBBLE_SHARE = 0.15, NIBBLE_CAP = 4;
 /** A special weapon that isn't his weakness (the spawner): this share of its usual damage gets through (every land boss's
  *  way; the ray gun and his moves in full). */
 const SHARE = 0.35;
@@ -929,7 +931,7 @@ const takeHits = (ctx: FrameContext, f: Fight) => {
   if (f.mode === 'dead' || dealt <= 0 || !state.enemies.includes(e)) return;
   const nib = Math.min(dealt, bites), hit = dealt - nib;
   // (the litter's nibbles: always, no breather)
-  if (nib > 0) { f.hp -= nib * NIBBLE_SHARE; if (f.hp <= 0) f.byWeakness = true; }
+  if (nib > 0) { const on = aliensOn(e); f.hp -= nib * NIBBLE_SHARE * (on > NIBBLE_CAP ? NIBBLE_CAP / on : 1); if (f.hp <= 0) f.byWeakness = true; }
   if (hit <= 0.5) return;
   // (up in his bush: gunfire hurts him but doesn't shift him; a charge move knocks him out into the clearing, his
   // breather or not. Flying at him on a lunge, nothing stops him: it's to be got out of the way of)
