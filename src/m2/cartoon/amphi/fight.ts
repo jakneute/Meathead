@@ -162,6 +162,8 @@ const hopAir = (vy: number) => Math.ceil((2 * -vy) / HOP_G) + 1;
 const HOP_TELL = 16, LAND_GIVE = 10;
 /** Baffled (each one of the family flattened), the clapperboard's reset in this fight; the cars' flight. */
 const BAFFLE_T = 84, RECHARGE = 420, CAR_V = 15;
+/** How full the clapperboard's ring shows: the timer, all there is to it. */
+const takeK = (f: Fight) => (f.recharge > 0 ? 1 - f.recharge / RECHARGE : 1);
 /** Up and pathetic: his stagger, the trips. */
 const SAD_WALK = 0.85, TRIP_T = 80, HEAVE_T = 90;
 /** Chatter (him at the family, at Meathead): how often. */
@@ -226,7 +228,8 @@ export interface Fight {
   cars: Car[]; wrecks: Wreck[]; flung: Flung[];
   kills: number; recharge: number; sad: boolean;
   /** Since the last snap; his counter (or the throw off the couch) seen since it (the next take's ready after it). */
-  takeT: number; counterSeen: boolean;
+  /** A kill landed mid-counter: the next counter's owed, started once this one's done (back to sitting). */
+  takeT: number; owed: boolean;
   words: Map<'dad' | Member | 'crew', string>;
   /** The zoom (eased: out to take in the whole set while it's on), the clapperboard's ready flash, the crew's last excuse. */
   zoom: number; readyFlash: number; crewAt: number; blocked: number; blockSaidAt: number;
@@ -361,7 +364,7 @@ export const startFight = (state: GameState, retry: boolean): Fight => {
     fridge: { open: 0, dx: 0, tilt: 0, jolt: 0 },
     family: fam, errand: null, callAt: retry ? 240 : 160,
     bottles: [], drops: [], puddles: [], cars: [], wrecks: [], flung: [],
-    kills: 0, recharge: 0, sad: false, takeT: 0, counterSeen: false, words: new Map(),
+    kills: 0, recharge: 0, sad: false, takeT: 0, owed: false, words: new Map(),
     chatAt: rnd(...CHAT_EVERY) * 0.6, bundy: 0, lowSaid: false, wrongN: 0, hintAt: -9999, dudAt: -9999, saidPuke: false, saidRage: false,
     flat: 1, death: null, deathSaid: 0, cam: null, zoom: 1, readyFlash: 0, crewAt: -9999, blocked: 0, blockSaidAt: -9999, pukeTier: 0,
   };
@@ -375,7 +378,11 @@ export const startFight = (state: GameState, retry: boolean): Fight => {
 // ---------------------------------------------------------------------------------------------------------------
 // Each frame
 
-const setAct = (f: Fight, a: Act) => { f.act = a; f.actT = 0; };
+/** (back to sitting with a counter owed: baffled first, then that counter: the user's "queue the next attack for dad
+ *  guy automatically after he finishes his current one") */
+const setAct = (f: Fight, a: Act) => { if (a === 'sit' && f.owed && !f.sad) { f.owed = false; a = 'baffled'; } f.act = a; f.actT = 0; };
+/** His counters (a puke, or the hammer through to back on the couch): a kill in one doesn't cut it short. */
+const COUNTER_ACTS = new Set<Act>(['pukeWind', 'puke', 'rise', 'rage', 'tired', 'return']);
 const seatX = (f: Fight) => f.couch.x + SEAT_DX;
 /** The world rectangle of something (section x, world y). */
 type R = { x0: number; x1: number; y0: number; y1: number };
@@ -389,14 +396,11 @@ export const updateFight = (ctx: FrameContext, f: Fight, controls: Controls): Co
   f.t++;
   if (f.iframes > 0) f.iframes--;
   if (f.flash > 0) f.flash--;
-  // (the next take's ready once his counter's done (the user's: "the next stuntman is ready after the couch attack is
-  // done, either the puking or the hammer"): the car's landed and he's back to sitting (or up off the crushed couch))
+  // (the next take's on a hard timer (the user's: "give it a hard timer, regardless of the attack dad guy does. you
+  // can send another car during one of his attacks"): when the ring's full, it's ready)
   if (f.recharge > 0) {
     f.takeT++;
-    const settled = !f.cars.length && f.takeT > 30 && (f.act === 'sit' || f.act === 'up') && f.counterSeen;
-    if (f.act === 'pukeWind' || f.act === 'puke' || f.act === 'rise' || f.act === 'rage' || f.act === 'thrown' || f.act === 'tired' || f.act === 'return') f.counterSeen = true;
-    if (settled) { f.recharge = 0; f.counterSeen = false; if (f.mode === 'on') { f.readyFlash = 36; playSound('clap', 0.5, 4); } }
-    else f.recharge = Math.max(1, f.recharge - 1);
+    if (--f.recharge <= 0) { f.recharge = 0; if (f.mode === 'on') { f.readyFlash = 36; playSound('clap', 0.5, 4); } }
   }
   if (f.readyFlash > 0) f.readyFlash--;
   view(state, f);
@@ -1106,7 +1110,9 @@ const onKill = (ctx: FrameContext, f: Fight, who: Member, couchToo = false) => {
   // (1, 2, 3, then that's everybody (the couch's line is crushCouch's: with the last one it says that instead))
   if (couchToo) return;
   dadSays(f, state, L.DAD_KILL[n >= MEMBERS.length ? 4 : Math.min(2, n - 1)]);
-  setAct(f, 'baffled');
+  // (mid-counter: he finishes it, then the next one's straight on (owed); otherwise baffled, then the counter)
+  if (COUNTER_ACTS.has(f.act)) f.owed = true;
+  else setAct(f, 'baffled');
 };
 
 /** The car that gets the family's last goes on into the couch: it's crushed, he's thrown off it, up for good and pathetic. */
@@ -1697,7 +1703,7 @@ const drawCooldown = (c: Ctx, state: GameState, f: Fight) => {
   const p = state.player;
   if (p.currentWeapon !== 'STUNT_CAR' || p.inCutscene || (f.recharge <= 0 && f.readyFlash <= 0)) return;
   const s = toScreen(state, f, p.pos.x + p.width / 2, p.pos.y);
-  const x = Math.round(s.x + 30), y = Math.round(s.y + 6), k = f.recharge > 0 ? 1 - f.recharge / RECHARGE : 1;
+  const x = Math.round(s.x + 30), y = Math.round(s.y + 6), k = takeK(f);
   // (the ring: a dark track, the fill going round from the top, a bright edge)
   c.fillStyle = 'rgba(12, 10, 20, 0.75)'; c.beginPath(); c.arc(x, y, 13, 0, Math.PI * 2); c.fill();
   c.lineWidth = 3; c.strokeStyle = '#3F3F46'; c.beginPath(); c.arc(x, y, 10, 0, Math.PI * 2); c.stroke();
@@ -1731,7 +1737,7 @@ export const drawFightHud = (c: Ctx, state: GameState, f: Fight, band: { x1: num
   label(c, 'DAD GUY', band.mid, 50, '#FDE047', 7);
   // (the clapperboard's reset: only once he's got it)
   if (state.player.availableWeapons.includes('STUNT_CAR')) {
-    const r = f.recharge > 0 ? 1 - f.recharge / RECHARGE : 1, bw = 90, bx = band.x2 - bw;
+    const r = takeK(f), bw = 90, bx = band.x2 - bw;
     box(c, bx, 58, bw, 8, '#18181B'); box(c, bx + 1, 59, (bw - 2) * r, 6, r >= 1 ? (Math.floor(state.frame / 10) % 2 ? '#F8FAFC' : '#FDE047') : '#A1A1AA');
     label(c, r >= 1 ? 'ACTION!' : 'NEXT TAKE', bx + bw / 2, 76, r >= 1 ? '#FDE047' : '#D4D4D8', 6);
   }
