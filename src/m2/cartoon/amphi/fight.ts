@@ -36,8 +36,9 @@
 //   THE WEAKNESS  The CLAPPERBOARD: here each snap sends one stunt car that homes in on one of his TV family and
 //                 flattens it (wrecks and bodies stay put); the scene takes a while to reset before another
 //                 (RECHARGE: it can't be spammed in this fight; it's itself everywhere else). He's more baffled and fed up
-//                 with each, and each sets off his counter (a puke or the hammer). Once they're all dead, the next car comes
-//                 down on his couch and crushes it (the user's: 1-4 the family, the 5th the couch, the 6th him): he's up, pathetic, no couch, no
+//                 with each, and each sets off his counter (a puke or the hammer). The car that gets the last of them goes on
+//                 into his couch and crushes it too (the user's: "the last family member you kill also destroys the couch":
+//                 1-4 the family and the couch, the 5th him): he's up, pathetic, no couch, no
 //                 counters, no puking, no hammer, and hardly any fight (double damage); then one more snap and the
 //                 last car comes down on HIM: the weakness death (smashed to bits, the kill cam on his head). No car
 //                 touches his health while any of the family's up (the user's); once they're all gone and the couch is
@@ -1030,8 +1031,8 @@ const smash = (state: GameState, x: number, y: number) => {
 // ---------------------------------------------------------------------------------------------------------------
 // The stunt cars (scripted: each homes in on its one)
 
-/** The nearest of the family to him; once they're all gone, his couch; then him (the user's: "1-4 get the family
- *  members, the 5th gets the couch, the 6th gets him"). */
+/** The nearest of the family to him; once they're all gone, him (the last of them takes the couch with them: the
+ *  user's; a couch somehow still standing gets the next one). */
 const launchCar = (state: GameState, f: Fight) => {
   const m = pmid(state), al = alive(f);
   const target: Member | 'dad' = al.length ? al.sort((a, b) => Math.abs(f.family[a].x - m.x) - Math.abs(f.family[b].x - m.x))[0] : 'dad';
@@ -1073,8 +1074,11 @@ const cars = (ctx: FrameContext, f: Fight) => {
     const who = c.target, m = f.family[who];
     m.alive = false;
     f.flung.push({ x: X(c.bx), y: STAGE_Y - 60, d: c.bd, vx: c.dir * 1.2, vy: -6, t: 0, dir: c.dir, seed: f.kills + 3, stuck: false });
-    onKill(ctx, f, who);
-    f.wrecks.push({ x: c.bx, d: c.bd, dir: c.dir, paint: c.paint, t: 0, onCouch: false });
+    // (the last of them: the car tumbles on into the couch and crushes it as well, one car less to him)
+    const last = !alive(f).length && !f.couch.crushed;
+    onKill(ctx, f, who, last);
+    if (last) { const cp = proj(E, X(f.couch.x), STAGE_Y - 30, 1); boom(ctx, cp.x, cp.y); crushCouch(ctx, f, c); }
+    else f.wrecks.push({ x: c.bx, d: c.bd, dir: c.dir, paint: c.paint, t: 0, onCouch: false });
     c.t = -1;
   }
   f.cars = f.cars.filter(c => c.t >= 0);
@@ -1089,7 +1093,7 @@ const boom = (ctx: FrameContext, x: number, y: number) => {
 };
 
 /** One of the family flattened: him more baffled each time, the laugh track, and (the first two) his counter. */
-const onKill = (ctx: FrameContext, f: Fight, who: Member) => {
+const onKill = (ctx: FrameContext, f: Fight, who: Member, couchToo = false) => {
   const { state } = ctx;
   f.kills++;
   if (f.errand?.who === who) f.errand = null;
@@ -1099,12 +1103,13 @@ const onKill = (ctx: FrameContext, f: Fight, who: Member) => {
   if (Math.random() < 0.6) meathead(state, L.MH_KILL);
   // (whatever he was at, he stops; the puke's cut off; the couch slides on by itself)
   const n = f.kills;
-  // (1, 2, 3, then that's everybody (the couch's line is crushCouch's))
+  // (1, 2, 3, then that's everybody (the couch's line is crushCouch's: with the last one it says that instead))
+  if (couchToo) return;
   dadSays(f, state, L.DAD_KILL[n >= MEMBERS.length ? 4 : Math.min(2, n - 1)]);
   setAct(f, 'baffled');
 };
 
-/** The car after the family's last (the 5th) comes down on the couch: it's crushed, he's thrown off it, up for good and pathetic. */
+/** The car that gets the family's last goes on into the couch: it's crushed, he's thrown off it, up for good and pathetic. */
 const crushCouch = (ctx: FrameContext, f: Fight, c: Car) => {
   const { state } = ctx, m = pmid(state);
   const cc = f.couch;

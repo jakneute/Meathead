@@ -288,7 +288,7 @@ export const DAD_HURT: ByPants = {
   nude: ["OW! DON'T HIT ME WITH YOUR BALLS OUT!", 'OW! SOMETHING SLAPPED ME. I HOPE IT WAS A HAND.', 'NOT THE THROAT, YOU NAKED FREAK! I NEED THAT!'],
 };
 /** A family member flattened by a stunt car: more baffled, more fed up, every time (by index: kills 1, 2, 3; the couch
- *  (the 5th car, crushCouch); 4, that's everybody). */
+ *  (the car that gets the last of the family goes on into it: crushCouch); 4, that's everybody). */
 export const DAD_KILL: ByPants[] = [
   {
     clean: ['WHAT THE HELL? WHERE\'D THAT CAR COME FROM?', 'WHO THE HELL PARKED ON MY FAMILY?'],
