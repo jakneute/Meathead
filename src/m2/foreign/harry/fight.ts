@@ -105,9 +105,9 @@ const TAUNT_EVERY = 760, HINT_GAP = 600;
  *  survives (the last one's her end: she comes apart while it's stuck); the collapse's length. */
 const STATUE_LIFE = 8, CRUMBLE_T = 170;
 /** The side punch (the user's: "horizontal smashes where it punches the righthand wall but gets stuck in it"): this
- *  share of her smashes after the first; her fist pulled back here, across the floor to the right-hand wall; the
- *  punch's length; how high it homes (up and down on him, not across: px off the floor, its middle). */
-const SIDE_SHARE = 0.4, SIDE_X0 = ARENA_L + 70, SIDE_X1 = ARENA_R - FIST_W / 2, SIDE_T = 16, SIDE_LO = FIST_H / 2, SIDE_HI = 250;
+ *  share of her smashes after the first; her fist's stop in the right-hand wall; the punch's length; how high it homes
+ *  (up and down on him, not across: px off the floor, its middle). */
+const SIDE_SHARE = 0.4, SIDE_X1 = ARENA_R - FIST_W / 2, SIDE_T = 16, SIDE_LO = FIST_H / 2, SIDE_HI = 250;
 const sideY = (y: number) => Math.max(GY - SIDE_HI, Math.min(GY - SIDE_LO, y));
 /** Him without her, enraged: his walk this much faster, his gun's rests this much shorter, his walks this much
  *  shorter (so the walls come round more often). */
@@ -767,8 +767,10 @@ const statue = (ctx: FrameContext, f: Fight) => {
       const u = a.t / a.T, tr = a.track ?? TRACK;
       // (a side punch homes up and down on him, pulled back low at her side; the slam across, up over him)
       if (u < tr) { if (a.side) a.ty = (a.ty ?? GY) + (sideY(pmid(state).y) - (a.ty ?? GY)) * 0.08; else a.tx += (Math.max(ARENA_L + 64, Math.min(ARENA_R - 64, pmid(state).x)) - a.tx) * 0.08; }
-      const g = a.side ? reach(SIDE_X0, a.ty ?? GY, lib.dy) : reach(a.tx, HIGH, lib.dy), k = ease(Math.min(1, u / 0.35));
-      a.fx = a.from.x + (g.x - a.from.x) * k; a.fy = a.from.y + (g.y - a.from.y) * k - Math.sin(Math.min(1, u) * Math.PI) * 30;
+      // (a side punch: cocked back at her shoulder, a little off it toward the height it's homing on, no lift: a
+      // straight pull back, the torch tipping over to point at the wall as it goes)
+      const sh = LIB.shR.y + lib.dy, g = a.side ? reach(LIB.shR.x - 70, sh + ((a.ty ?? GY) - sh) * 0.55, lib.dy) : reach(a.tx, HIGH, lib.dy), k = ease(Math.min(1, u / 0.35));
+      a.fx = a.from.x + (g.x - a.from.x) * k; a.fy = a.from.y + (g.y - a.from.y) * k - (a.side ? 0 : Math.sin(Math.min(1, u) * Math.PI) * 30);
       lib.shake = u > tr ? 1.2 : 0.4; lib.face = 'strain';
       if (a.t % 28 === 0) playSound('rumble', 0.6, -6 + u * 6);
       if (a.t % 6 === 0) state.particles.push({ pos: { x: a.fx + (Math.random() - 0.5) * 80, y: a.fy + 30 }, vel: { x: 0, y: 1 + Math.random() }, life: 40, color: '#A8A29E', size: 3, grav: 0.2 });
@@ -799,7 +801,7 @@ const statue = (ctx: FrameContext, f: Fight) => {
         // (the punch: straight across the floor at the height it locked on, into the right-hand wall; anybody in its
         // way taken along)
         const u = Math.min(1, a.t / SIDE_T), ty = a.ty ?? GY;
-        a.fx = a.from.x + (SIDE_X1 - a.from.x) * u * u; a.fy = a.from.y + (ty - a.from.y) * Math.min(1, u * 2);
+        a.fx = a.from.x + (SIDE_X1 - a.from.x) * u * u; a.fy = a.from.y + (ty - a.from.y) * ease(Math.min(1, u * 1.6));
         if (!a.hit && p.health > 0 && !p.inCutscene && p.invincibilityTimer <= 0 && p.pos.x + p.width > a.fx - FIST_W / 2 && p.pos.x < a.fx + FIST_W / 2 && p.pos.y + p.height > a.fy - FIST_H / 2 && p.pos.y < a.fy + FIST_H / 2) {
           a.hit = true; hurtPlayer(ctx, FIST_DMG, 'm2:fl_liberty_fist', { x: 9, y: -7 }, 16);
         }
@@ -856,7 +858,8 @@ const STAKE = 14;
 const armView = (f: Fight) => {
   const a = f.arm;
   // (a side punch: straight across, the torch turned flame first into the wall; stuck, the flame what's in the wall)
-  if (a.side && a.st === 'drop') { const e = ease(Math.min(1, a.t / SIDE_T)); return { x: a.fx + (FIST_W / 2) * e, y: a.fy, smash: e, side: true }; }
+  if (a.side && a.st === 'wind') return { x: a.fx, y: a.fy, smash: 0.75 * ease(Math.min(1, a.t / a.T / 0.35)), side: true };
+  if (a.side && a.st === 'drop') { const e = ease(Math.min(1, a.t / SIDE_T)); return { x: a.fx + (FIST_W / 2) * e, y: a.fy, smash: 0.75 + 0.25 * e, side: true }; }
   if (a.side && a.st === 'stuck') return { x: a.fx + FIST_W / 2 + STAKE, y: a.fy, smash: 1, side: true };
   if (a.side && (a.st === 'yank' || a.st === 'snap')) { const sm = 1 - ease(Math.min(1, a.t / (a.st === 'snap' ? SNAP_T : YANK_T))); return { x: a.fx + (FIST_W / 2 + STAKE) * sm, y: a.fy, smash: sm, side: true }; }
   if (a.st === 'drop') {
