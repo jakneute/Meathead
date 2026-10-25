@@ -86,10 +86,12 @@ const BALL_V: [number, number] = [18, 25], BALL_DMG = 46, SPREAD = 0.03;
 /** A wild shot off the hip on his blind run: a lot less than the planted, aimed one (the user's). */
 const HIP_DMG = 26;
 /** His shuffle (px a frame), how near he'll come (and backs off nearer), how far he wants to be; hurrying back on screen. */
-const WALK: [number, number] = [0.45, 0.85], TOO_NEAR = 150, WANT = 300, HURRY = 2.4;
+// (far more on the move (the user's: "it's too easy to infinite dive kick on tucker. make him far more mobile"): were
+// 0.45-0.85 and 0.3-0.55 runs)
+const WALK: [number, number] = [0.9, 1.5], TOO_NEAR = 150, WANT = 300, HURRY = 2.4;
 /** The blind run (the user's: now and then he runs about flailing, firing as he goes): how likely instead of a planted
  *  shot, how fast, how long (frames), the gap between shots off the hip, how far off those go (px at what he heard). */
-const RUN_CHANCE: [number, number] = [0.3, 0.55], RUN_V: [number, number] = [3.2, 4.6], RUN_LEN: [number, number] = [70, 140];
+const RUN_CHANCE: [number, number] = [0.5, 0.75], RUN_V: [number, number] = [3.2, 4.6], RUN_LEN: [number, number] = [70, 140];
 const RUN_FIRE: [number, number] = [26, 46], RUN_ERR = 90;
 /** The noises: how far off he hears each (px of error either way). */
 const ERR = { jump: 40, land: 30, step: 70, shot: 16, hit: 0 };
@@ -822,6 +824,13 @@ const takeHits = (ctx: FrameContext, f: Fight) => {
   }
   const dmg = plain ?? Math.max(1, dealt * SHARE);
   f.hp -= dmg; f.iframes = IFRAMES; f.flash = 8;
+  // (stomped on or bashed up close: he bolts, blind, away from it (no standing there to be dive kicked again and again))
+  if (melee && f.hp > 0 && (f.act === 'listen' || f.act === 'cock' || f.act === 'aim' || f.act === 'pan' || f.act === 'recoil' || f.act === 'reload')) {
+    setAct(f, 'run');
+    f.runDir = (pmid(state).x < f.tx ? 1 : -1) as 1 | -1;
+    f.runN = 50 + Math.round(Math.random() * 40);
+    f.runFire = 40; f.runShot = 0;
+  }
   for (let i = 0; i < 4; i++) state.particles.push({ pos: { x: f.tx, y: GY - 60 }, vel: { x: (Math.random() - 0.5) * 3, y: -1 - Math.random() * 2 }, life: 18, color: '#B91C1C', size: 2 + Math.random() * 2, grav: 0.3 });
   playSound('gunhit', 0.5, 2);
   ctx.fx.spawnDamageNumber({ x: f.tx - 10, y: GY - TUCKER_H - 10 }, Math.max(1, Math.round(dmg)), dmg > 40);

@@ -85,12 +85,14 @@ const run = (ground: boolean) => (_ctx: FrameContext, e: Enemy) => {
 };
 
 const flyer = (b: Enemy): Enemy => ({ ...b, enemyType: 'flyer', initialY: b.pos.y });
+/** Drawn and sized this much up from their art (the user's: "make the critters a little bigger too"). */
+const BIGGER = 1.25;
 for (const c of Object.keys(DEF) as Critter[]) {
   const d = DEF[c], air = FLYING_CRITTERS.includes(c);
   registerM2Kind({
-    kind: kindOf(c), stats: { w: d.w, h: d.h, hp: d.hp, contact: d.dmg, mass: d.mass, air },
-    ai: run(!air), make: air ? flyer : undefined, draw: (cx, e, f) => DRAW[c](cx, e, f),
-    head: { x: d.w * 0.4, y: -d.h * 0.7, r: Math.max(4, d.h * 0.25) }, gender: 'n', grab: 'critter', solid: false, pathing: false,
+    kind: kindOf(c), stats: { w: Math.round(d.w * BIGGER), h: Math.round(d.h * BIGGER), hp: d.hp, contact: d.dmg, mass: d.mass, air },
+    ai: run(!air), make: air ? flyer : undefined, draw: (cx, e, f) => { cx.save(); cx.scale(BIGGER, BIGGER); DRAW[c](cx, e, f); cx.restore(); },
+    head: { x: d.w * BIGGER * 0.4, y: -d.h * BIGGER * 0.7, r: Math.max(4, d.h * BIGGER * 0.25) }, gender: 'n', grab: 'critter', solid: false, pathing: false,
   });
 }
 
