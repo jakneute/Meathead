@@ -576,6 +576,10 @@ export const updateFight = (ctx: FrameContext, f: Fight, controls: Controls): Co
       f.facing = toward; f.ext *= 0.85;
       if (f.linger >= FLAIL_LINGER) { toFlail(f); break; }
       if (f.forceLeap) { startLeap(state, f); break; }
+      // (stood in her pool of oil: a litter, always, there and then, and the pool goes as they come (the user's: "if the
+      // alien is standing in a pool of motor oil, it should always spawn enemies to come after you from that point");
+      // past the cap only by a couple, never a flood)
+      if (f.pool && !f.pool.going && f.y === 0 && Math.abs(f.pool.x - f.x) < POOL_R * 0.6 && kinAbout(state).length + f.sacs.length <= KIN_CAP[ph] + 2) { f.birthT = 0; f.acts++; to(f, 'birth'); f.ph = 'turn'; playSound('snort', 0.7, -8); break; }
       // (stood here long enough, or had her two goes at him from here: off she goes; now and then sooner)
       if (f.acts >= STAY_ACTS || f.stay >= STAY_MAX[ph] || (f.stay >= STAY_MIN && Math.random() < 0.012)) { relocate(state, f); break; }
       if (++f.birthT >= BIRTH_EVERY[ph] && kinAbout(state).length + f.sacs.length + litterOf(f) <= KIN_CAP[ph]) { f.birthT = 0; f.acts++; to(f, 'birth'); f.ph = 'turn'; playSound('snort', 0.7, -8); }
