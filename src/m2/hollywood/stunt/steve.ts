@@ -59,6 +59,8 @@ export interface SteveLook {
   /** Pants gone, the briefs catching after them (0..1): scorched, holed, burned down to the rhinestone waistband, then
    *  that too: his bare ass, seen side-on (the front kept under the gut's shadow and his thigh: nothing shows). */
   briefsBurn?: number;
+  /** Split open on the pavement (his standard death, the user's: "an open head wound at the top of his mullet"). */
+  headWound?: boolean;
 }
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -968,6 +970,15 @@ const drawHead = (c: Ctx, mood: Mood, f: number, d: number, L: SteveLook, pose: 
   if (pose === 'idle') { const a = Math.sin(f * 0.15) * 0.25; line(c, [11.2, 8.2, 11.2 + Math.cos(-0.3 + a) * 4.6, 8.2 + Math.sin(-0.3 + a) * 4.6], 1.4, '#7A5A2E'); line(c, [11.2, 8.2, 11.2 + Math.cos(-0.3 + a) * 4.6, 8.2 + Math.sin(-0.3 + a) * 4.6], 0.6, '#E8C590'); }
   // ---- beaten
   if (N) headGore(c, f, d);
+  // ---- split open on the crown, where he came down on it: a ragged gash through the mullet, bone white in it, the
+  // blood welling out over the hair and running down
+  if (L.headWound && N) {
+    shape(c, () => { c.moveTo(-6.4, -12.4); c.lineTo(-3.4, -14.6); c.lineTo(-0.6, -13.2); c.lineTo(2.2, -14.8); c.lineTo(4.8, -12.8); c.lineTo(2.6, -11.2); c.lineTo(-0.4, -12); c.lineTo(-3.6, -10.8); c.closePath(); }, ['#FCA5A5', '#DC2626', '#B91C1C', '#7F1D1D', '#450A0A'], -6.4, 4.8, 0.7);
+    line(c, [-4.6, -12.6, -2, -12.9, 0.6, -12.4, 3.2, -12.8], 0.7, '#F5F0E0');
+    line(c, [-3.8, -12.2, -1.2, -12.4], 0.4, '#C8B89A');
+    for (const [dx, len] of [[-5.6, 5], [-2.4, 8], [1.2, 6], [3.8, 4]] as const) line(c, [dx, -11.4, dx - 0.4, -11.4 + len], 0.9, '#991B1B');
+    px(c, -1, -13.4, 0.8, 0.8, '#FECACA');
+  }
 };
 
 /** The cheap gold aviators: gold wire, a double bridge, gradient lenses (dark over amber), the arena lights in them.

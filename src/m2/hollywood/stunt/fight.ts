@@ -64,7 +64,7 @@ import { CAR, drawCar, drawCarShadow, extents, onFloorX } from './carArt';
 import { type Car, FLUNG_IN, LAND_FALL } from './state';
 import { drawSteve, drawSteveAsh, drawSteveBrace, drawStevePants, STEVE_H, type StevePose } from './steve';
 import { drawSkids, drawRamp, drawHoop, drawRing, drawPyro, ringAt, RING_R, PYRO_X, drawTells } from './art';
-import { flame } from './paint';
+import { flame, hash } from './paint';
 import * as L from './lines';
 
 type Ctx = CanvasRenderingContext2D;
@@ -110,6 +110,8 @@ interface Death {
   how: 'stunt' | 'fried'; t: number; step: string; at: number;
   x: number; y: number; vx: number; vy: number; rot: number; car: Car | null;
   pants: { x: number; y: number; vy: number } | null;
+  /** Where his head hit the pavement, and when (the splat, and the pool spreading out of it). */
+  hit?: { x: number; t: number };
   /** The stunt: the end whose ring of fire he goes into (the far one from Meathead, parked off the shot at the other);
    *  the stagger's beat ('go', 'trip', 'wheeze') and its clock; where the stagger started; the cut's black (0..1). */
   side: 1 | -1; sub: string; subT: number; from: number; fade: number;
@@ -733,6 +735,24 @@ const die = (ctx: FrameContext, f: Fight, fried: boolean) => {
   } else playSound('hurt', 0.8, -4);
 };
 
+/** The splat where his head hit the pavement (spattered out in a burst, stepped reds, a lit rim), and the pool that
+ *  keeps spreading out of it, slow, dark, glossy: he's not getting up. `u`: frames since he hit. */
+const drawHeadSplat = (c: Ctx, x: number, u: number, facing: 1 | -1) => {
+  const burst = Math.min(1, u / 6), pool = Math.min(1, u / 240);
+  const rx = 22 + 26 * burst + 46 * pool, ry = 4 + 2 * burst + 4 * pool, px0 = x - facing * 10 * pool;
+  // (the spatter: flecks and streaks thrown out round it)
+  for (let i = 0; i < 14; i++) {
+    const a = hash(i * 7.3) * Math.PI * 2, r = (30 + hash(i * 3.1) * 60) * burst;
+    c.fillStyle = i % 3 ? '#7F1D1D' : '#991B1B';
+    c.beginPath(); c.ellipse(Math.round(x + Math.cos(a) * r), Math.round(GY + Math.sin(a) * 4 * burst), 1.5 + hash(i) * 3, 1 + hash(i + 9), 0, 0, Math.PI * 2); c.fill();
+  }
+  // (the pool: banded dark to bright, its lit rim, a glint)
+  for (const [k, col] of [[1, '#3F0A0A'], [0.82, '#5A0E0E'], [0.62, '#7F1D1D'], [0.4, '#991B1B']] as const) {
+    c.fillStyle = col; c.beginPath(); c.ellipse(Math.round(px0), GY, rx * k, ry * k, 0, 0, Math.PI * 2); c.fill();
+  }
+  c.fillStyle = 'rgba(254, 202, 202, 0.55)'; c.fillRect(Math.round(px0 - rx * 0.3), GY - Math.round(ry * 0.4), Math.round(rx * 0.25), 1);
+};
+
 /** The deaths' beats. */
 const dying = (ctx: FrameContext, f: Fight): Controls => {
   const { state } = ctx, d = f.death!, p = state.player;
@@ -951,6 +971,11 @@ const sidestep = (ctx: FrameContext, f: Fight): Controls => {
         // (CRUNCH: on his head; the brace flies off him and lands on the mat; the crowd's gone dead quiet)
         d.x += CROWN * Math.sin(d.rot * f.facing); d.y = GY; d.rot = Math.PI - 0.08;
         d.step = 'crumple'; d.at = t;
+        // (his head on the pavement: a burst of blood, the splat it leaves, the pool spreading from it (the user's: "a
+        // big blood splat where his head hit. make sure to sell the idea he's dead"))
+        d.hit = { x: d.x, t };
+        for (let i = 0; i < 40; i++) state.particles.push({ pos: { x: d.x + (Math.random() - 0.5) * 10, y: GY - 6 }, vel: { x: (Math.random() - 0.5) * 9, y: -2 - Math.random() * 6 }, life: 40 + Math.random() * 30, color: ['#7F1D1D', '#991B1B', '#B91C1C', '#DC2626'][i % 4], size: 2 + Math.random() * 4, grav: 0.35 });
+        playSound('splat', 1.2, -8);
         stopSound('fallwhistle');
         playSound('crunch', 1.2, -6); playSound('crack', 1, -4); playSound('thud', 1.2, -8); shakeScreen(state, 14, 7);
         d.brace = { x: d.x, y: GY - 12, vx: (MAT_X(side) - d.x) / 30, vy: -6 };
@@ -1093,7 +1118,9 @@ const drawHim = (c: Ctx, f: Fight, fr: number) => {
       drawSteveBrace(c, d.x + f.facing * 100, GY, fr);
       return;
     }
-    const lk = { ...look, pantsDown: !!d.pants, briefsBurn: d.bburn };
+    const lk = { ...look, pantsDown: !!d.pants, briefsBurn: d.bburn, headWound: !!d.hit };
+    // (under him: where his head hit, the splat, and the pool spreading out from it the rest of the scene)
+    if (d.hit) drawHeadSplat(c, d.hit.x, d.t - d.hit.t, f.facing);
     // (on his last legs: the whole of him wobbling about his feet)
     const wobbly = (pose: StevePose, amt: number, dx = 0) => {
       c.save(); c.translate(d.x + dx, GY); c.rotate(Math.sin(fr * 0.13) * amt + Math.sin(fr * 0.31) * amt * 0.4);
