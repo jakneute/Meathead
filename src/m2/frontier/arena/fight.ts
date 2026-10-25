@@ -1534,7 +1534,7 @@ export const drawFightHud = (c: Ctx, state: GameState, f: Fight, band: { x1: num
     box(c, band.x1 + 2, 24, fw, 3, flash ? '#FFE0E0' : '#E04040'); box(c, band.x1 + 2, 24, fw, 1, flash ? '#FFFFFF' : '#F88080');
     box(c, band.x1 + 2, 31, fw, 3, flash ? '#E08080' : '#6E0C0C'); checker(c, band.x1 + 2, 30, fw, 1, flash ? '#E08080' : '#6E0C0C', 0, 1);
     for (let i = 1; i < 10; i++) box(c, Math.round(band.x1 + 2 + ((w - 4) * i) / 10), 24, 1, 10, '#18120C');
-    label(c, 'TUCKER', band.mid, 50, '#FDE68A', 7);
+    label(c, 'TUCKER THE TRAIN CONDUCTOR', band.mid, 50, '#FDE68A', 7);
     return;
   }
   if (!d) return;

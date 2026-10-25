@@ -105,7 +105,7 @@ const leave = (state: GameState, weakness: boolean) => {
 export const arena: FrontierSection = {
   id: 'arena', x0, x1,
   checkpoints: [
-    { name: 'TUCKER', cp: 60, x: DOORS.arena.start.x, y: GY, manual: true },
+    { name: 'TUCKER THE TRAIN CONDUCTOR', cp: 60, x: DOORS.arena.start.x, y: GY, manual: true },
     { name: 'THE GLADE', cp: 61, x: CP61_X, y: GY, manual: true },
   ],
   build: (state) => {
