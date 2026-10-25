@@ -93,7 +93,9 @@ const FROM_FAR = 0.35;
 /** Close to Steve: a car sent straight at him (this often at most); his flail (how close; its slap, how often). */
 const CLOSE = 520, PUSH_GAP = 110, FLAIL_AT = 80, FLAIL_DMG = 3, FLAIL_EVERY = 45;
 /** Hanging about him (this near, this long): off on a tow rope. The tow's speed, its rope. */
-const TOW_NEAR = 260, TOW_AFTER = 150, TOW_V = 9, ROPE = 70;
+// (sooner and from a bit further (the user's: "steve should call in the tow cable if you spend a little time just standing
+// close to him"): were 260 px, 150 frames)
+const TOW_NEAR = 300, TOW_AFTER = 90, TOW_V = 9, ROPE = 70;
 /** Stranded mid-stage (his tow blown up): back to an end on foot, wheezing (px a frame). */
 const SCRAMBLE_V = 1.7;
 /** Steve's taunts; Meathead's thinking out loud about the book. */
