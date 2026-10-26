@@ -31,8 +31,8 @@ type Ctx = CanvasRenderingContext2D;
 const INK = '#1A0B06';
 
 /** How long it's held to go off; how near somebody has to be for it to find him; how far a ball goes. */
-const CHARGE = 48, LOCK_REACH = 560, RANGE = 1500, COOLDOWN = 34;
-/** A boss or a mid-boss hit: one ball a CHARGE + COOLDOWN (82 frames): ~110 a second, about the ray gun's 125 (25
+const CHARGE = 36, LOCK_REACH = 560, RANGE = 1500, COOLDOWN = 34;
+/** A boss or a mid-boss hit: one ball a CHARGE + COOLDOWN (70 frames): ~130 a second, about the ray gun's 125 (25
  *  every 12), the gun's six bolts' worth in one go. Against a boss with Meathead 1's breather (Safari Artie: one hit a
  *  second counts) it's the best there is a shot. */
 const BOSS_HIT = 150;
