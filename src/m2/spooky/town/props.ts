@@ -566,9 +566,9 @@ const drawLamps = (c: Ctx, v: View) => {
 export const townLamps = (): Light[] => LAMPS.map(([rx, h]) => ({ x: X(rx), y: Y(h) - 162, r: 140, a: 0.8, color: '#FFD27A' }));
 
 export const drawProps = (c: Ctx, v: View) => {
-  drawGags(c, v);
   drawLamps(c, v);
   drawLedges(c, v);
   drawSolids(c, v);
+  drawGags(c, v);
   void checker; void textW;
 };

@@ -15,6 +15,7 @@
     "release:web:m1": "node tools/release/build.mjs web m1",
     "release:web:m2": "node tools/release/build.mjs web m2",
     "release:steam": "vite build --mode steam && node tools/steam/package.mjs",
+    "release:steam:m2": "node tools/release/build.mjs m2 && node tools/steam/package-m2.mjs",
     "release:linux": "vite build --mode steam && node tools/linux/package-m1.mjs",
     "release:linux:m2": "node tools/release/build.mjs m2 && node tools/linux/package-m2.mjs",
     "icon": "node tools/icon/make.mjs",

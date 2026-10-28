@@ -30,6 +30,7 @@ release-m2/
 .steam-build/
 .linux-build-m1/
 .linux-build-m2/
+.steam-build-m2/
 .build/
 
 # Notes, not part of the game

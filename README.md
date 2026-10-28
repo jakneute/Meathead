@@ -25,7 +25,7 @@ Finished and content-locked. Fly to eight cities. Wreck the place, take the boss
 
 ### Play it
 
-Download `release-m1/Meathead.html`. Double-click it; it plays in your browser offline, nothing to install.
+The built HTML file isn't in git — build it first with `npm run release:m1` (see **Building from source**), then open `release-m1/Meathead.html`. Double-click it; it plays in your browser offline, nothing to install.
 
 - **Browser:** desktop Chrome or Edge.
 - **Controller:** Xbox, PlayStation and Switch pads all work. Plug in and press a button; prompts switch to match.
@@ -62,7 +62,7 @@ Meathead goes to a theme park. Eight themed lands plus a hub and an intro. Plays
 
 ### Play it
 
-`release-m2/Meathead2.html` is the standard build. `release-m2/Meathead2-cheats.html` adds the cheat panel (god mode, unlimited ammo, checkpoint skip, pants, time of day). Double-click either; plays in the browser offline.
+The built HTML files aren't in git — build them first with `npm run release:m2` (see **Building from source**). Then `release-m2/Meathead2.html` is the standard build; `release-m2/Meathead2-cheats.html` adds the cheat panel (god mode, unlimited ammo, checkpoint skip, pants, time of day). Double-click either; plays in the browser offline.
 
 The web folder (`release-m2/web/`) is the itch.io build (voice pack beside the page, not inside it).
 
@@ -80,7 +80,7 @@ The web folder (`release-m2/web/`) is the itch.io build (voice pack beside the p
 
 ## Building from source
 
-You'll need [Node.js](https://nodejs.org).
+You'll need [Node.js](https://nodejs.org). Run all commands from the project root (the folder that contains `package.json`).
 
 ```sh
 npm install
@@ -89,7 +89,8 @@ npm run release:m1       # builds release-m1/Meathead.html + Meathead-cheats.htm
 npm run release:m2       # builds release-m2/Meathead2.html + Meathead2-cheats.html
 npm run release:web:m1   # itch.io folder: release-m1/web/
 npm run release:web:m2   # itch.io folder: release-m2/web/
-npm run release:steam    # Meathead 1 desktop app for Steam: release-m1/steam/Meathead.exe
+npm run release:steam    # Meathead 1 desktop app for Steam (Windows): release-m1/steam/Meathead.exe
+npm run release:steam:m2 # Meathead 2 desktop app for Steam (Windows): release-m2/steam/Meathead2.exe
 npm run release:linux    # Meathead 1 Linux desktop app (Steam Machine): release-m1/linux/
 npm run release:linux:m2 # Meathead 2 Linux desktop app (Steam Machine): release-m2/linux/
 npx tsc --noEmit -p .    # type-check (clean before committing)

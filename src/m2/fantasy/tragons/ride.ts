@@ -676,7 +676,8 @@ export const updateRide = (ctx: FrameContext, controls: Controls): Controls => {
   for (const tr of t.trains) placeBlocks(state, tr);
 
   // ---- down off the ride: all the way to the ground
-  if (riding && alive && p.pos.y + p.height >= GY - 6 && p.pos.x + p.width / 2 > GATE_X + 10) {
+  // (pOn or t.lock: safely on the train going through a steep drop — not a fall)
+  if (riding && alive && !pOn && !t.lock && p.pos.y + p.height >= GY - 6 && p.pos.x + p.width / 2 > GATE_X + 10) {
     p.invincibilityTimer = 0; p.freefall = undefined;
     hurtPlayer(ctx, 9999, t.flung ? FLUNG_SRC : FELL_SRC);
   }

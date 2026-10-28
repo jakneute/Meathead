@@ -611,5 +611,5 @@ export const dropCars = (state: GameState, g: Garage) => {
 /** How many of a color are still out there doing their thing. */
 export const countCars = (g: Garage, color: CarColor) => g.cars.filter(c => c.color === color && bodied(c) && c.mode !== 'exit' && c.mode !== 'tow').length;
 /** The ones a spell can go for (out of their doors, still cars). */
-export const targetable = (car: Car) => bodied(car) && !car.scripted && car.mode !== 'exit' && car.z > BACK_Z + 30;
+export const targetable = (car: Car) => bodied(car) && !car.scripted && car.mode !== 'exit' && car.mode !== 'tow' && car.z > BACK_Z + 30;
 export { bodied };

@@ -457,10 +457,14 @@ const steve = (ctx: FrameContext, f: Fight) => {
   if (f.frizz > 0) f.frizz = Math.max(0, f.frizz - 0.002);
   // Struck (the lightning): jerking, lit up, going nowhere, till it's off him; then smoking
   if (f.zapT > 0) {
-    if (f.act !== 'zapped') { if (f.tow) dropTow(f); setAct(f, 'zapped'); }
-    if (--f.zapT === 0) setAct(f, 'smoking');
-    f.sz += (0 - f.sz) * 0.2;
-    return;
+    // (being dragged: zap doesn't interrupt — only killing him does)
+    if (f.act !== 'yank' && f.act !== 'towed') {
+      if (f.act !== 'zapped') { setAct(f, 'zapped'); }
+      if (--f.zapT === 0) setAct(f, 'smoking');
+      f.sz += (0 - f.sz) * 0.2;
+      return;
+    }
+    f.zapT--;
   }
   const atEnd = Math.abs(f.sx - STEVE_AT(f.side)) < 6;
   switch (f.act) {
@@ -506,6 +510,8 @@ const steve = (ctx: FrameContext, f: Fight) => {
       const to = STEVE_AT(f.side), dir = Math.sign(to - f.sx);
       f.sx += dir * Math.min(SCRAMBLE_V, Math.abs(to - f.sx)); f.facing = (dir || f.facing) as 1 | -1;
       if (f.actT % 40 === 1) playSound('snort', 0.4, 6);
+      // (keep closeT building while scrambling — so the tow fires quickly once he gets back)
+      f.closeT = d < TOW_NEAR ? f.closeT + 1 : Math.max(0, f.closeT - 1);
       if (Math.abs(to - f.sx) < 1) setAct(f, 'idle');
       if (d < FLAIL_AT) setAct(f, 'flail');
       break;
