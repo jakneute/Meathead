@@ -257,18 +257,46 @@ const paintSolid = (g: Ctx, i: number) => {
       board(g, x - 28, y - 40, 'HEARSE PARKING - VALET ONLY', '#1C1917', '#FDE68A', 6); break;
     }
     case 'arcade': {
-      // The arcade's roof: a stone entablature on columns (to stand on); its board
-      box(g, x - 1, y - 1, w + 2, h + 2, INK); box(g, x, y, w, h, STONE[3]); box(g, x, y, w, 6, STONE[4]); box(g, x, y + h - 5, w, 5, STONE[1]);
-      for (let k = x + 6; k < x + w - 6; k += 12) box(g, k, y + h - 5, 6, 3, STONE[2]);
-      lip(g, x, y, w);
-      for (let k = 0; k <= 6; k++) {
-        const cx = x + 10 + k * ((w - 30) / 6), ch = GY - y - h;
-        box(g, cx - 5, y + h, 24, 7, INK); box(g, cx - 4, y + h, 22, 6, STONE[4]); box(g, cx - 4, y + h, 22, 1, STONE[5]);
-        box(g, cx - 1, y + h + 6, 16, ch - 12, INK); box(g, cx, y + h + 6, 14, ch - 12, STONE[4]); box(g, cx, y + h + 6, 4, ch - 12, STONE[5]); box(g, cx + 10, y + h + 6, 4, ch - 12, STONE[2]);
-        for (let fx = cx + 5; fx < cx + 10; fx += 3) box(g, fx, y + h + 8, 1, ch - 16, STONE[3]);
-        box(g, cx - 5, GY - 7, 24, 7, INK); box(g, cx - 4, GY - 6, 22, 6, STONE[3]); box(g, cx - 4, GY - 6, 22, 1, STONE[5]);
+      // The Grand Arcade: a Victorian Gothic colonnade. 9 fluted columns, dentilled entablature, bat-carved frieze.
+      const nCols = 9, step = (w - 30) / 8;
+      // Entablature
+      box(g, x - 2, y - 2, w + 4, h + 4, INK);
+      box(g, x, y, w, h, STONE[3]);
+      box(g, x, y, w, 4, STONE[5]); box(g, x, y + 4, w, 4, STONE[4]);     // lit top courses
+      // Dentil course near the bottom
+      box(g, x, y + h - 14, w, 14, STONE[2]); box(g, x, y + h - 14, w, 1, STONE[3]);
+      for (let dx = x + 5; dx < x + w - 5; dx += 12) {
+        box(g, dx, y + h - 13, 7, 10, STONE[3]); box(g, dx, y + h - 13, 7, 1, STONE[4]);
       }
-      board(g, x + w / 2, y + h / 2 + 1, 'THE GRAND ARCADE - NO LOITERING', '#1E1036', '#E9D5FF', 6); break;
+      box(g, x, y + h - 4, w, 4, STONE[1]);   // soffit (dark underside)
+      // Frieze: bat silhouettes in relief, one per bay
+      for (let k = 0; k < 8; k++) {
+        const bx = Math.round(x + 10 + k * step + step / 2), fy = y + 7;
+        poly(g, [[bx - 2, fy + 3], [bx - 10, fy], [bx - 7, fy + 7], [bx - 2, fy + 6]], STONE[2]);
+        poly(g, [[bx + 2, fy + 3], [bx + 10, fy], [bx + 7, fy + 7], [bx + 2, fy + 6]], STONE[2]);
+        box(g, bx - 2, fy + 1, 5, 8, STONE[2]); box(g, bx - 1, fy, 3, 2, STONE[2]);
+      }
+      lip(g, x, y, w);
+      // Columns: fluted shafts, Gothic capitals, wide plinths
+      for (let k = 0; k < nCols; k++) {
+        const cx = x + 10 + k * step, colH = GY - (y + h) - 10;
+        // Capital: abacus, echinus, neck
+        box(g, cx - 7, y + h, 30, 4, INK); box(g, cx - 6, y + h, 28, 3, STONE[5]);
+        box(g, cx - 4, y + h + 4, 24, 3, INK); box(g, cx - 3, y + h + 4, 22, 2, STONE[4]);
+        box(g, cx - 2, y + h + 7, 20, 2, INK); box(g, cx - 1, y + h + 7, 18, 2, STONE[4]);
+        // Carved trefoil on capital face
+        box(g, cx + 2, y + h + 4, 2, 3, STONE[3]); box(g, cx + 6, y + h + 4, 2, 3, STONE[3]);
+        // Fluted shaft (5 flutes)
+        const sy = y + h + 10;
+        box(g, cx - 2, sy, 20, colH, INK);
+        for (let f = 0; f < 5; f++) box(g, cx - 1 + f * 4, sy, 3, colH, ([STONE[5], STONE[4], STONE[3], STONE[4], STONE[2]] as const)[f]);
+        box(g, cx - 1, sy + 3, 1, colH - 6, STONE[5]);
+        // Wide plinth at foot
+        box(g, cx - 5, GY - 11, 26, 11, INK); box(g, cx - 4, GY - 10, 24, 10, STONE[3]); box(g, cx - 4, GY - 10, 24, 1, STONE[5]);
+        box(g, cx - 7, GY - 4, 30, 4, INK); box(g, cx - 6, GY - 3, 28, 3, STONE[4]); box(g, cx - 6, GY - 3, 28, 1, STONE[5]);
+      }
+      board(g, x + w / 2, y + h / 2 - 1, 'THE GRAND ARCADE - NO LOITERING', '#1E1036', '#E9D5FF', 6);
+      break;
     }
   }
 };
@@ -289,19 +317,32 @@ const solidBack = (c: Ctx, v: View, i: number) => {
     }
   } else if (what === 'hearse') boxBack(c, v, x + 40, x + w - 8, y, y + 16, 0.95, ['#26262E'], ['#0E0E14']);
   else if (what === 'arcade') {
-    // (the colonnade going back: its back row of columns and the wall under it, arcade cabinets glowing (dim) in its
-    // shade; the roof's top going back)
+    // (the colonnade going back: 9 back columns, wall behind, 8 arcade cabinets one per bay, dimly glowing)
     const D = 0.86, h = top - base, eye = v.eye;
+    const nCols = 9, step = (w - 30) / 8;
+    const THEMES: [string, string][] = [
+      ['#1E3A8A', '#22D3EE'], ['#7F1D1D', '#F472B6'], ['#14532D', '#A3E635'], ['#4A1D5E', '#C084FC'],
+      ['#78350F', '#FB923C'], ['#0F172A', '#38BDF8'], ['#3B0764', '#E879F9'], ['#1C1917', '#F87171'],
+    ];
     atDepth(c, eye, D, () => {
       box(c, x - 1, y, w + 2, GY - y, INK); box(c, x, y + h, w, GY - y - h, STONE[1]);
-      for (let k = 0; k < 6; k++) {
-        const cx = x + 40 + k * ((w - 80) / 5);
-        box(c, cx - 15, GY - 64, 30, 64, INK); box(c, cx - 14, GY - 63, 28, 63, ['#1E3A8A', '#7F1D1D', '#14532D'][k % 3]);
-        box(c, cx - 10, GY - 58, 20, 16, '#0A0A12'); box(c, cx - 9, GY - 57, 18, 14, ['#22D3EE', '#F472B6', '#A3E635'][k % 3]);
-        box(c, cx - 9, GY - 57, 18, 3, '#FFFFFF');
-        box(c, cx - 12, GY - 38, 24, 6, '#18181B'); box(c, cx - 6, GY - 37, 3, 3, '#EF4444'); box(c, cx + 2, GY - 37, 3, 3, '#FDE047');
+      // Cabinets: one per bay
+      for (let k = 0; k < 8; k++) {
+        const cxB = x + 10 + k * step + step / 2, [bg, sc] = THEMES[k];
+        const cw = 36, cabX = cxB - cw / 2;
+        box(c, cabX - 1, GY - 70, cw + 2, 70, INK); box(c, cabX, GY - 69, cw, 69, bg);
+        box(c, cabX, GY - 69, cw, 6, sc);                                    // marquee
+        box(c, cabX + 3, GY - 60, cw - 6, 20, '#0A0A12'); box(c, cabX + 4, GY - 59, cw - 8, 18, sc);
+        box(c, cabX + 4, GY - 59, cw - 8, 3, '#FFFFFF');                     // screen glare
+        box(c, cabX + 3, GY - 36, cw - 6, 8, '#18181B');                     // control deck
+        box(c, cabX + 5, GY - 34, 4, 4, '#EF4444'); box(c, cabX + 11, GY - 34, 4, 4, sc);
+        box(c, cabX + cw / 2 - 2, GY - 22, 4, 2, '#26262E');                 // coin slot
       }
-      for (let k = 0; k <= 6; k++) { const cx = x + 10 + k * ((w - 30) / 6); box(c, cx - 1, y + h, 16, GY - y - h, INK); box(c, cx, y + h, 14, GY - y - h, STONE[2]); box(c, cx, y + h, 3, GY - y - h, STONE[3]); }
+      // Back columns
+      for (let k = 0; k < nCols; k++) {
+        const cx = x + 10 + k * step;
+        box(c, cx - 1, y + h, 16, GY - y - h, INK); box(c, cx, y + h, 14, GY - y - h, STONE[2]); box(c, cx, y + h, 3, GY - y - h, STONE[3]);
+      }
     });
     boxBack(c, v, x, x + w, y, y + h, D, [STONE[4], STONE[3]], [STONE[2], STONE[3]]);
   }

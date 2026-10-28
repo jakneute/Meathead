@@ -70,7 +70,7 @@ export const SOLIDS: [number, number, number, number, SolidWhat][] = [
   [1060, 160, 40, 90, 'statue'],
   [5480, 62, 170, 0, 'hearse'],
   // (the arcade's roof: a ceiling over the skeleton, a high road over him)
-  [8450, 150, 520, 118, 'arcade'],
+  [8400, 175, 720, 138, 'arcade'],
 ];
 
 /** Things to stand on (one-way: balconies, the gallows): [x, height, width]. */
@@ -121,7 +121,7 @@ export const PICKUPS: [number, number, 'small_health' | 'small_ammo'][] = [
   [2600, 165, 'small_ammo'],
   [4650, 205, 'small_health'],
   [7795, 200, 'small_ammo'],
-  [8900, 150, 'small_health'],
+  [8900, 175, 'small_health'],
 ];
 
 /** The haunted kiddie rides (set pieces: rides.ts): where each one stands. */
