@@ -160,7 +160,13 @@ const shutDoor = (b: Block | null) => { if (b) b.y = GY - DOOR_H; };
  *  under the next section: the spikes keep him under it, knocking him down off them); the spikes this far into him (his
  *  top: ducked or not, there's no more room) under the section over his middle and he's done. */
 const SLAB_GAP = 60, CRUSH_IN = 50;
-const setSlabs = (dg: Dungeon) => dg.slabs.forEach((b, i) => { const tip = dg.room === 'down' ? dg.tips[i] : dg.tip; b.y = CEIL_TOP - 60; b.h = Math.max(1, Math.min(tip - SLAB_GAP, CEIL_TOP + 40) - b.y); });
+const setSlabs = (dg: Dungeon) => dg.slabs.forEach((b, i) => {
+  const tip = dg.room === 'down' ? dg.tips[i] : dg.tip; b.y = CEIL_TOP - 60;
+  // (come down behind him for good: solid all the way down as it falls, a wall from the roof to the floor once it's in
+  // it (no walking back in under where it lies))
+  if (dg.room === 'escaped' || dg.room === 'jammed') { b.h = Math.max(1, Math.min(tip, GY) - b.y); return; }
+  b.h = Math.max(1, Math.min(tip - SLAB_GAP, CEIL_TOP + 40) - b.y);
+});
 const run = (ctx: FrameContext, dg: Dungeon) => {
   setSlabs(dg);
   const { state } = ctx, p = state.player, cx = p.pos.x + p.width / 2;
