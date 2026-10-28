@@ -22,7 +22,7 @@ import { signText, signW, signH, print } from '../adventure/letters';
 import { snap2, wave, jag, range, mist, canopy, palm, poly as fpoly } from '../adventure/farArt';
 import { farStrip } from './farStrip';
 import { drawTeaseStrip } from './teases';
-import { drawDeadRhino, DEAD_HORN } from '../adventure/clearing/stampede';
+import { drawDeadRhino, drawDeadBeast, DEAD_HORN, PILE } from '../adventure/clearing/stampede';
 import { drawSafariArtie } from '../adventure/river/artie';
 
 const STONE = rampOf('#8A7766');
@@ -316,28 +316,29 @@ const paintStalks = (g: Ctx, w: number, h: number) => {
 };
 
 /**
- * Artie, gored (his standard death): the heap where his rhino slammed him into the temple's wing, a block of the wing
+ * Artie, gored (his standard death): the pile where his rhino slammed him into the temple's wing, a block of the wing
  * stood up where it came down with them (cracked in round the horn, their blood sprayed up it and run down it), the
  * rhino crumpled up against it (nose in the stone, a back leg stuck up), Artie folded backward over its horn, the horn
- * out through him; the pool under them. The clearing's own drawings of the two (stampede.ts, river/artie.ts), scaled.
+ * out through him; the hippo's face in the rhino's backside, the elephant stood on its head on top of the lot, on him;
+ * the pool under them. The clearing's own drawings of them (stampede.ts, river/artie.ts), scaled, laid as they fell.
  */
 const paintHeap = (g: Ctx, w: number, h: number) => {
-  const gy = h - 2, wx = w - 30, k = 0.56;
-  // (the pool, spread)
-  g.fillStyle = BLOOD[0]; g.beginPath(); g.ellipse(wx - 30, gy, 40, 4, 0, 0, Math.PI * 2); g.fill();
-  g.fillStyle = BLOOD[1]; g.beginPath(); g.ellipse(wx - 28, gy - 0.5, 32, 2.6, 0, 0, Math.PI * 2); g.fill();
-  box(g, wx - 52, gy - 1, 8, 1, BLOOD[3]);
+  const gy = h - 2, wx = w - 30, k = 0.56, bh = 118;
+  // (the pool, spread the length of the pile)
+  g.fillStyle = BLOOD[0]; g.beginPath(); g.ellipse(wx - 70, gy, 86, 4.5, 0, 0, Math.PI * 2); g.fill();
+  g.fillStyle = BLOOD[1]; g.beginPath(); g.ellipse(wx - 64, gy - 0.5, 72, 3, 0, 0, Math.PI * 2); g.fill();
+  box(g, wx - 52, gy - 1, 8, 1, BLOOD[3]); box(g, wx - 120, gy - 1, 10, 1, BLOOD[3]);
   // (the block of the wing: stone courses, lit up the left, the crack star round where the horn went in, the blood)
-  box(g, wx - 1, gy - 66, 32, 67, INK);
-  for (let r = 0; r < 5; r++) {
-    const y = gy - 65 + r * 13, off = r % 2 ? 8 : 0;
+  box(g, wx - 1, gy - bh, 32, bh + 1, INK);
+  for (let r = 0; r < 9; r++) {
+    const y = gy - bh + 1 + r * 13, off = r % 2 ? 8 : 0;
     for (let x = wx - off; x < w; x += 18) {
       const L = Math.max(wx, x), R = Math.min(w - 1, x + 18);
       box(g, L, y, R - L, 13, STONE[0]); box(g, L + 1, y + 1, R - L - 2, 11, STONE[2]);
       box(g, L + 1, y + 1, R - L - 2, 2, STONE[3]); box(g, L + 1, y + 1, 2, 11, STONE[3]); box(g, L + 1, y + 10, R - L - 2, 2, STONE[1]);
     }
   }
-  box(g, wx, gy - 66, 3, 66, STONE[4]); g.fillStyle = stipple(g, STONE[1]); g.fillRect(w - 8, gy - 66, 7, 66);
+  box(g, wx, gy - bh, 3, bh, STONE[4]); g.fillStyle = stipple(g, STONE[1]); g.fillRect(w - 8, gy - bh, 7, bh);
   const hx = wx, hy = gy + DEAD_HORN.ty * k;
   g.strokeStyle = STONE[0]; g.lineWidth = 1.5;
   for (const [dx, dy] of [[14, -12], [20, 4], [10, 18], [12, -24], [24, -6]] as const) { g.beginPath(); g.moveTo(hx, hy); g.lineTo(hx + dx * 0.5, hy + dy * 0.4 + 2); g.lineTo(hx + dx, hy + dy); g.stroke(); }
@@ -345,6 +346,7 @@ const paintHeap = (g: Ctx, w: number, h: number) => {
   for (const [rx, len] of [[hx + 3, 26], [hx + 8, 18], [hx + 13, 30]] as const) { box(g, rx, hy + 2, 2, Math.min(len, gy - hy - 2), BLOOD[1]); box(g, rx, hy + 2, 1, Math.min(len, gy - hy - 2) - 2, BLOOD[2]); }
   // (the two of them, crumpled into each other against it)
   g.save(); g.translate(wx, gy); g.scale(k, k);
+  g.save(); g.translate(PILE.hippo.x, PILE.hippo.y); drawDeadBeast(g, 'hippo', PILE.hippo.rot); g.restore();
   drawDeadRhino(g, 1, 0);
   const on = 0.75, hipX = DEAD_HORN.bx + (DEAD_HORN.tx - DEAD_HORN.bx) * on, hipY = DEAD_HORN.by + (DEAD_HORN.ty - DEAD_HORN.by) * on;
   g.save(); g.translate(hipX, hipY); g.scale(0.8, 0.9); g.rotate(0.54);
@@ -355,6 +357,7 @@ const paintHeap = (g: Ctx, w: number, h: number) => {
   g.fillStyle = INK; g.beginPath(); g.moveTo(bx - 4, by - 3); g.lineTo(DEAD_HORN.tx, DEAD_HORN.ty); g.lineTo(bx + 3, by + 4); g.closePath(); g.fill();
   g.fillStyle = '#E8DDBE'; g.beginPath(); g.moveTo(bx - 2.5, by - 2); g.lineTo(DEAD_HORN.tx, DEAD_HORN.ty); g.lineTo(bx + 2, by + 2.5); g.closePath(); g.fill();
   g.fillStyle = BLOOD[2]; g.beginPath(); g.moveTo(bx - 2.5, by - 2); g.lineTo(bx + (DEAD_HORN.tx - bx) * 0.7, by + (DEAD_HORN.ty - by) * 0.7); g.lineTo(bx + 2, by + 2.5); g.closePath(); g.fill();
+  g.save(); g.translate(PILE.elephant.x, PILE.elephant.y); drawDeadBeast(g, 'elephant', PILE.elephant.rot); g.restore();
   g.restore();
 };
 
@@ -592,9 +595,6 @@ const props = (weakness: boolean): Prop[] => {
     } },
     // A chewed bush, burning, off to the left
     { id: 'stalkfire', x: 14, z: 20, w: 1.6, h: 1.1, ppm: 20, paint: paintStalks, heat: 1, live: (c, sx, sy, s, t) => { smoke(c, sx, sy - s * 0.8, s, t, 5, { n: 7, size: 0.8, rise: 0.03 }); fire(c, sx, sy - s * 0.1, s * 1.1, t, 9); } },
-    // The hippo, belly up, near on the right; the elephant's leg on the left
-    { id: 'hippo', x: -6.7, z: 3.6, w: 3.0, h: 1.4, ppm: 24, paint: paintHippo, live: (c, sx, sy, s, t) => flies(c, sx - s * 1.1, sy - s * 0.4, s, t, 6, 3) },
-    { id: 'leg', x: -9.6, z: 7.8, w: 0.8, h: 1.7, ppm: 24, paint: paintLeg, live: (c, sx, sy, s, t) => flies(c, sx, sy - s * 1.7, s, t, 3, 8) },
     // His parachute, caught on a stalk
     { id: 'chute', x: 5.5, z: 9.5, w: 3.6, h: 1.6, ppm: 24, paint: paintChute, live: (c, sx, sy, s) => chuteWords(c, sx, sy, s) },
     { id: 'stalks-a', x: 3.4, z: 13, w: 1.3, h: 1, ppm: 40, paint: paintStalks },
@@ -604,11 +604,17 @@ const props = (weakness: boolean): Prop[] => {
   out.push({ id: 'camp-tent', x: -7.6, z: 15, w: 3.2, h: 1.3, ppm: 24, paint: paintTent });
   out.push({ id: 'pa-pole', x: 7.2, z: 11, w: 1.6, h: 3.4, ppm: 24, paint: paintPA, live: paLive });
   out.push({ id: 'fake-rock', x: -3.8, z: 18, w: 2, h: 1, ppm: 24, paint: paintFakeRock });
+  if (weakness) {
+    // The hippo, belly up, near on the right; the elephant's leg on the left (gored, they're in his pile)
+    out.push({ id: 'hippo', x: -6.7, z: 3.6, w: 3.0, h: 1.4, ppm: 24, paint: paintHippo, live: (c, sx, sy, s, t) => flies(c, sx - s * 1.1, sy - s * 0.4, s, t, 6, 3) });
+    out.push({ id: 'leg', x: -9.6, z: 7.8, w: 0.8, h: 1.7, ppm: 24, paint: paintLeg, live: (c, sx, sy, s, t) => flies(c, sx, sy - s * 1.7, s, t, 3, 8) });
+  }
   if (!weakness) {
-    // Artie, gored: the heap against the block of the wing, him over the rhino's horn; the flies; and every so often,
-    // one more out of him
-    out.push({ id: 'artie-heap', x: 2.6, z: 6, w: 3.6, h: 2.4, ppm: 32, paint: paintHeap, live: (c, sx, sy, s, t) => {
-      const rx = sx - s * 0.5, ry = sy - s * 1.3;
+    // Artie, gored: the pile against the block of the wing, him over the rhino's horn under the other two; the flies;
+    // and every so often, one more out of him
+    out.push({ id: 'artie-heap', x: 1.0, z: 6, w: 6.8, h: 4.6, ppm: 32, paint: paintHeap, live: (c, sx, sy, s, t) => {
+      const rx = sx + s * 1.1, ry = sy - s * 1.3;
+      flies(c, sx - s * 1.6, sy - s * 1.2, s, t, 5, 4);
       flies(c, rx, ry, s, t, 7, 1);
       const u = t % 260;
       if (u < 90) {

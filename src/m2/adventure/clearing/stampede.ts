@@ -299,6 +299,13 @@ const tail = (c: Ctx, r: string[], x0: number, y0: number, cx: number, cy: numbe
   }
 };
 
+/** A dead eye: an X, inked, `r` out from its middle. */
+const xEye = (c: Ctx, x: number, y: number, r: number) => {
+  x = Math.round(x); y = Math.round(y);
+  c.fillStyle = INK;
+  for (let i = -r; i <= r; i++) { c.fillRect(x + i, y + i, 2, 2); c.fillRect(x + i, y - i, 2, 2); }
+};
+
 // ---------------------------------------------------------------------------------------------------------------
 // The rhino: a black rhino in a temper. The barrel of it in armor plates (the shield over the shoulder, the one over the
 // rump, the folds between them and down over the legs, the hide studded with tubercles), the hump of the shoulders, the
@@ -472,16 +479,24 @@ const paintRhino = (c: Ctx, fr: number, how: 'live' | 'bloody') => {
 // bottom one, the pegs of its front teeth, the pink of its mouth and tongue; the eyes and the ears and the nostrils up
 // on top in their bumps, the ears flicking. Stubby legs, four toes.
 
-const paintHippo = (c: Ctx, fr: number) => {
-  const r = RAMPS.hippo, ph = phOf(fr), u = fr / FRAMES;
-  const bob = Math.round(Math.abs(Math.sin(ph)) * 3) - 1, by = -40 + bob;
-  // (a trot: diagonal pairs together)
-  const hind = (x: number, y: number, k: number, far: boolean) => gaitLeg(c, 'hippo', { x, y: by + y }, u + k, 15, 14, false, 24, 7, 20, 15, 15, r, far);
-  const front = (x: number, y: number, k: number, far: boolean) => gaitLeg(c, 'hippo', { x, y: by + y }, u + k, 15, 14, true, 24, 7, 19, 15, 15, r, far);
-  hind(-38, 14, 0.5, true); front(38, 16, 0.04, true);
-  hind(-46, 16, 0, false); front(30, 18, 0.54, false);
-  // (the stubby tail, a flat paddle, flicking)
-  const fl = Math.sin(ph * 2) * 5;
+const paintHippo = (c: Ctx, fr: number, dead = false, tw = 0) => {
+  const r = RAMPS.hippo, ph = dead ? 0 : phOf(fr), u = fr / FRAMES;
+  const bob = dead ? 0 : Math.round(Math.abs(Math.sin(ph)) * 3) - 1, by = -40 + bob;
+  if (dead) {
+    // (dead in the pile: the hind legs stuck out stiff behind, one kicking; the fronts crumpled under it, soles up)
+    deadLeg(c, [-38, by + 14, -54, by + 24 + tw * 0.3, -72, by + 30 + tw], 13, r, true, false, 'hippo');
+    deadLeg(c, [38, by + 16, 50, by + 30, 36, by + 36], 13, r, true, false, 'hippo');
+    deadLeg(c, [-46, by + 16, -64, by + 28, -84, by + 36], 14, r, false, true, 'hippo');
+    deadLeg(c, [30, by + 18, 46, by + 32, 30, by + 40], 14, r, false, true, 'hippo');
+  } else {
+    // (a trot: diagonal pairs together)
+    const hind = (x: number, y: number, k: number, far: boolean) => gaitLeg(c, 'hippo', { x, y: by + y }, u + k, 15, 14, false, 24, 7, 20, 15, 15, r, far);
+    const front = (x: number, y: number, k: number, far: boolean) => gaitLeg(c, 'hippo', { x, y: by + y }, u + k, 15, 14, true, 24, 7, 19, 15, 15, r, far);
+    hind(-38, 14, 0.5, true); front(38, 16, 0.04, true);
+    hind(-46, 16, 0, false); front(30, 18, 0.54, false);
+  }
+  // (the stubby tail, a flat paddle, flicking; dead, it hangs)
+  const fl = dead ? 7 : Math.sin(ph * 2) * 5;
   tail(c, r, -66, by - 6, -72, by - 2, -74, by + 6 + fl, 4, 2);
   // The barrel
   const path = () => {
@@ -512,7 +527,7 @@ const paintHippo = (c: Ctx, fr: number) => {
   });
   c.restore();
   // The head: the jaws about a hinge under its ear, gaping (wider on the footfall)
-  const gape = 0.22 + Math.abs(Math.sin(ph)) * 0.28, H = { x: 42, y: by - 4 };
+  const gape = dead ? 0.66 : 0.22 + Math.abs(Math.sin(ph)) * 0.28, H = { x: 42, y: by - 4 };
   const upA = -gape * 0.6, loA = gape * 0.5;
   const at = (a: number, x: number, y: number): P => ({ x: H.x + x * Math.cos(a) - y * Math.sin(a), y: H.y + x * Math.sin(a) + y * Math.cos(a) });
   // (the mouth: dark red in the back of it, pink further forward)
@@ -535,6 +550,14 @@ const paintHippo = (c: Ctx, fr: number) => {
   c.fillStyle = PINK[4]; c.fillRect(10, -1, 8, 1);
   tusk(28, false);
   for (const px2 of [34, 37]) { c.fillStyle = INK; c.fillRect(px2 - 1, -3, 4, 4); c.fillStyle = IVORY[2]; c.fillRect(px2, -2, 2, 2); c.fillStyle = IVORY[3]; c.fillRect(px2, -2, 1, 1); }
+  if (dead) {
+    // (the tongue lolled out over its bottom jaw, hanging off the front of it, the blood down it)
+    part(c, () => { c.moveTo(12, -2); c.quadraticCurveTo(34, -5, 44, 3); c.quadraticCurveTo(50, 14, 44, 20); c.quadraticCurveTo(38, 14, 34, 8); c.quadraticCurveTo(24, 3, 12, 3); c.closePath(); }, PINK, 12, -5, 38, 25, () => {
+      c.strokeStyle = PINK[1]; c.lineWidth = 1; c.beginPath(); c.moveTo(16, 0); c.quadraticCurveTo(34, -1, 44, 12); c.stroke();
+      c.fillStyle = BLOOD[2]; c.fillRect(42, 10, 4, 6); c.fillStyle = BLOOD[1]; c.fillRect(43, 15, 2, 4);
+    }, false, 1.5);
+    c.fillStyle = BLOOD[2]; c.fillRect(44, 20, 2, 7); c.fillRect(43, 26, 4, 2);
+  }
   c.restore();
   // The top: the dome of the head, the muzzle, the nostrils up on top; the eye in its bump, the ear
   part(c, () => c.ellipse(H.x - 4, H.y - 10, 16, 15, 0, 0, TAU), r, H.x - 20, H.y - 25, 32, 30, () => fold(c, r, H.x - 14, H.y - 16, H.x - 10, H.y - 4, H.x - 14, H.y + 4, 1.5));
@@ -560,11 +583,18 @@ const paintHippo = (c: Ctx, fr: number) => {
   const eb = at(upA * 0.5, -2, -22);
   part(c, () => c.ellipse(eb.x, eb.y, 6, 5, 0, 0, TAU), r, eb.x - 6, eb.y - 5, 12, 10, undefined, false, 1.5);
   c.fillStyle = PINK[2]; c.fillRect(Math.round(eb.x - 2), Math.round(eb.y - 1), 6, 4);
-  c.fillStyle = INK; c.fillRect(Math.round(eb.x - 1), Math.round(eb.y - 1), 4, 3);
-  c.fillStyle = '#6A2A14'; c.fillRect(Math.round(eb.x), Math.round(eb.y - 1), 2, 2);
-  c.fillStyle = '#F8FAFC'; c.fillRect(Math.round(eb.x), Math.round(eb.y - 1), 1, 1);
-  c.fillStyle = INK; c.fillRect(Math.round(eb.x - 3), Math.round(eb.y - 4), 7, 2);
-  const flick = Math.sin(ph * 2) > 0.6 ? 0.6 : -0.2;
+  if (dead) {
+    xEye(c, eb.x, eb.y, 3);
+    // (blood out its nostrils, run down the muzzle)
+    const n0 = at(upA, 29, -22), n1 = at(upA, 34, -21);
+    for (const [nx, ny, l] of [[n0.x, n0.y, 9], [n1.x, n1.y, 6]] as const) { c.fillStyle = BLOOD[1]; c.fillRect(Math.round(nx), Math.round(ny), 2, l); c.fillStyle = BLOOD[2]; c.fillRect(Math.round(nx), Math.round(ny), 1, l - 1); }
+  } else {
+    c.fillStyle = INK; c.fillRect(Math.round(eb.x - 1), Math.round(eb.y - 1), 4, 3);
+    c.fillStyle = '#6A2A14'; c.fillRect(Math.round(eb.x), Math.round(eb.y - 1), 2, 2);
+    c.fillStyle = '#F8FAFC'; c.fillRect(Math.round(eb.x), Math.round(eb.y - 1), 1, 1);
+    c.fillStyle = INK; c.fillRect(Math.round(eb.x - 3), Math.round(eb.y - 4), 7, 2);
+  }
+  const flick = dead ? 1 : Math.sin(ph * 2) > 0.6 ? 0.6 : -0.2;
   c.save(); c.translate(H.x - 14, H.y - 22); c.rotate(flick);
   part(c, () => c.ellipse(0, -4, 3, 5, 0, 0, TAU), r, -3, -9, 6, 10, () => { c.fillStyle = PINK[2]; c.beginPath(); c.ellipse(0.5, -4, 1.5, 3.2, 0, 0, TAU); c.fill(); }, false, 1.5);
   c.restore();
@@ -576,13 +606,21 @@ const paintHippo = (c: Ctx, fr: number) => {
 // legs; the high shoulder, the dip of the back; the great ear flapping, veined, its edge torn; the tusks, the trunk up
 // trumpeting on the stride and swinging down off it, its lip open under it; the eye, lashed, in its wrinkles.
 
-const paintElephant = (c: Ctx, fr: number) => {
-  const r = RAMPS.elephant, ph = phOf(fr), u = fr / FRAMES;
-  const bob = Math.round(Math.sin(ph * 2) * 1.5), by = -74 + bob;
-  const leg2 = (x: number, y: number, k: number, far: boolean, front: boolean) =>
-    gaitLeg(c, 'elephant', { x, y: by + y }, u + k, 31, 30, true, 32, 12, front ? 26 : 28, 21, 24, r, far);
-  leg2(-50, 14, 0.5, true, false); leg2(42, 16, 0.75, true, true);
-  leg2(-58, 18, 0, false, false); leg2(34, 20, 0.25, false, true);
+const paintElephant = (c: Ctx, fr: number, dead = false, tw = 0) => {
+  const r = RAMPS.elephant, ph = dead ? -Math.PI / 2 : phOf(fr), u = fr / FRAMES;
+  const bob = dead ? 0 : Math.round(Math.sin(ph * 2) * 1.5), by = -74 + bob;
+  if (dead) {
+    // (dead-bug stiff: all four out straight and splayed, the soles showing, a back one twitching)
+    deadLeg(c, [-50, by + 14, -60, by + 42, -70 + tw, by + 70], 20, r, true, true, 'elephant');
+    deadLeg(c, [42, by + 16, 52, by + 44, 62, by + 72], 20, r, true, true, 'elephant');
+    deadLeg(c, [-58, by + 18, -70, by + 46, -82, by + 74], 21, r, false, true, 'elephant');
+    deadLeg(c, [34, by + 20, 46, by + 48, 58, by + 76], 21, r, false, true, 'elephant');
+  } else {
+    const leg2 = (x: number, y: number, k: number, far: boolean, front: boolean) =>
+      gaitLeg(c, 'elephant', { x, y: by + y }, u + k, 31, 30, true, 32, 12, front ? 26 : 28, 21, 24, r, far);
+    leg2(-50, 14, 0.5, true, false); leg2(42, 16, 0.75, true, true);
+    leg2(-58, 18, 0, false, false); leg2(34, 20, 0.25, false, true);
+  }
   // (the tail, a long rope swinging, its tuft)
   tail(c, r, -82, by - 14, -94, by + Math.sin(ph) * 8, -90, by + 24 + Math.sin(ph) * 4, 2.5, 5);
   // The body: the high shoulder, the dip of the back, the sloped rump
@@ -612,7 +650,7 @@ const paintElephant = (c: Ctx, fr: number) => {
   c.restore();
   // The head: the dome of the forehead, the face down into the trunk
   const hx = 60, hy = by - 2 + Math.round(Math.sin(ph) * 2);
-  const sw = Math.sin(ph) * 14;
+  const sw = dead ? -14 : Math.sin(ph) * 14;
   // (the far tusk, behind the trunk)
   const tuskArt = (dx: number, dy: number, far: boolean) => part(c, () => {
     c.moveTo(hx + 12 + dx, hy + 10 + dy); c.quadraticCurveTo(hx + 34 + dx, hy + 28 + dy, hx + 46 + dx, hy + 14 + dy);
@@ -635,9 +673,14 @@ const paintElephant = (c: Ctx, fr: number) => {
     bumps(c, r, hx, hy - 4, 14, 12, 8, 31);
   });
   // (the lip under the trunk, open: trumpeting on the stride)
-  const open = Math.max(0, sw) / 14;
+  const open = dead ? 1.6 : Math.max(0, sw) / 14;
   c.fillStyle = INK; c.beginPath(); c.moveTo(hx + 4, hy + 16); c.lineTo(hx + 16, hy + 16 + open * 2); c.lineTo(hx + 6, hy + 22 + open * 4); c.closePath(); c.fill();
   c.fillStyle = PINK[2]; c.beginPath(); c.moveTo(hx + 6, hy + 17); c.lineTo(hx + 14, hy + 17 + open * 2); c.lineTo(hx + 7, hy + 20 + open * 4); c.closePath(); c.fill();
+  if (dead) {
+    // (the tongue hung out of its lip, the blood off it)
+    part(c, () => { c.moveTo(hx + 6, hy + 19); c.quadraticCurveTo(hx + 14, hy + 22, hx + 16, hy + 32); c.quadraticCurveTo(hx + 14, hy + 38, hx + 9, hy + 34); c.quadraticCurveTo(hx + 8, hy + 26, hx + 5, hy + 22); c.closePath(); }, PINK, hx + 5, hy + 19, 12, 19, undefined, false, 1.5);
+    c.fillStyle = BLOOD[2]; c.fillRect(hx + 11, hy + 34, 2, 6); c.fillStyle = BLOOD[1]; c.fillRect(hx + 10, hy + 39, 4, 2);
+  }
   // The trunk: tapering down from the face, ringed with wrinkles, swinging; the end of it, its nostril
   const t0 = { x: hx + 18, y: hy + 6 }, tc = { x: hx + 40 + sw * 0.4, y: hy + 24 }, t1 = { x: hx + 34 + sw, y: hy + 50 - Math.max(0, -sw) * 2.4 };
   const N = 12, pts: P[] = [];
@@ -663,15 +706,19 @@ const paintElephant = (c: Ctx, fr: number) => {
   c.fillStyle = INK; c.beginPath(); c.ellipse(e.x, e.y, 5, 4, 0, 0, TAU); c.fill();
   c.fillStyle = r[2]; c.beginPath(); c.ellipse(e.x, e.y, 3.6, 2.6, 0, 0, TAU); c.fill();
   c.fillStyle = INK; c.fillRect(Math.round(e.x - 1), Math.round(e.y), 3, 2);
+  if (dead) { c.fillStyle = BLOOD[2]; c.fillRect(Math.round(e.x - 1), Math.round(e.y + 2), 3, 8); c.fillStyle = BLOOD[1]; c.fillRect(Math.round(e.x - 2), Math.round(e.y + 9), 5, 2); }
   tuskArt(0, 0, false);
-  // The eye, lashed, in its wrinkles
-  c.fillStyle = INK; c.beginPath(); c.ellipse(hx + 8, hy - 6, 3.4, 2.2, -0.15, 0, TAU); c.fill();
-  c.fillStyle = '#6A3A1A'; c.fillRect(hx + 7, hy - 7, 3, 2);
-  c.fillStyle = '#F8FAFC'; c.fillRect(hx + 7, hy - 7, 1, 1);
+  // The eye, lashed, in its wrinkles (dead: an X)
+  if (dead) xEye(c, hx + 8, hy - 6, 3);
+  else {
+    c.fillStyle = INK; c.beginPath(); c.ellipse(hx + 8, hy - 6, 3.4, 2.2, -0.15, 0, TAU); c.fill();
+    c.fillStyle = '#6A3A1A'; c.fillRect(hx + 7, hy - 7, 3, 2);
+    c.fillStyle = '#F8FAFC'; c.fillRect(hx + 7, hy - 7, 1, 1);
+  }
   c.fillStyle = INK; c.fillRect(hx + 4, hy - 10, 9, 2); c.fillRect(hx + 5, hy - 12, 1, 2); c.fillRect(hx + 8, hy - 12, 1, 2); c.fillRect(hx + 11, hy - 11, 1, 2);
   c.strokeStyle = r[1]; c.lineWidth = 1; for (const k of [0, 3]) { c.beginPath(); c.moveTo(hx + 2, hy - 2 + k); c.quadraticCurveTo(hx + 8, hy + 1 + k, hx + 14, hy - 3 + k); c.stroke(); }
   // The ear, flapping over the shoulder: veined inside, its edge torn
-  const flap = Math.sin(ph) * 0.18;
+  const flap = dead ? 0.4 : Math.sin(ph) * 0.18;
   c.save(); c.translate(hx - 12, hy - 14); c.rotate(flap);
   const ear = () => {
     c.moveTo(2, -6);
@@ -777,10 +824,10 @@ export const DEAD_HORN = (() => {
 })();
 
 /** A dead leg by its joints (hip, knee, foot), the foot square to the shin (sole up: turned over). */
-const deadLeg = (c: Ctx, j: number[], th: number, r: string[], far: boolean, soleUp = false) => {
+const deadLeg = (c: Ctx, j: number[], th: number, r: string[], far: boolean, soleUp = false, kind: Beast = 'rhino') => {
   const [hx, hy, kx, ky, fx, fy] = j;
   const rot = Math.atan2(fy - ky, fx - kx) - Math.PI / 2;
-  legArt(c, 'rhino', { x: hx, y: hy }, { x: kx, y: ky }, { x: fx, y: fy }, th + 6, th + 1, th, r, far, rot, soleUp);
+  legArt(c, kind, { x: hx, y: hy }, { x: kx, y: ky }, { x: fx, y: fy }, th + 6, th + 1, th, r, far, rot, soleUp);
 };
 
 /**
@@ -827,4 +874,30 @@ const paintDeadRhino = (c: Ctx, k: number, tw: number) => {
   c.save(); c.translate(DEAD_HEAD.x, DEAD_HEAD.y); c.rotate(DEAD_HEAD.rot);
   rhinoHead(c, r, 0, 'dead');
   c.restore();
+};
+
+// ---------------------------------------------------------------------------------------------------------------
+// The hippo and the elephant that came on after the rhino (his standard death, fight.ts) and ran into the heap: dead in
+// it, stiff. Each pose baked once into its own canvas (at the screen's scale) and drawn turned (the stamp cache won't
+// take a rotated transform).
+
+/** Where each ends up dead in the pile (the wall's foot the origin): its feet's middle, how far it's turned. The
+ *  hippo's face in the rhino's backside; the elephant stood on its head on the top of the lot, its back to the wall. */
+export const PILE = { hippo: { x: -222, y: -10, rot: 0.2 }, elephant: { x: -140, y: -116, rot: 1.35 } };
+
+const baked = new Map<string, HTMLCanvasElement>();
+/** One of them dead, its feet's middle at the origin, facing right, turned `rot` about its feet; `tw` a leg's twitch. */
+export const drawDeadBeast = (c: Ctx, kind: 'hippo' | 'elephant', rot: number, tw = 0) => {
+  const b = BEASTS[kind], x = -b.w / 2 - 50, y = -b.h - 56, w = b.w + 130, h = b.h + 62;
+  const m = c.getTransform(), sc = Math.max(1, Math.round(Math.hypot(m.a, m.b) * 2) / 2);
+  const id = `${kind}:${tw}@${sc}`;
+  let cv = baked.get(id);
+  if (!cv) {
+    cv = document.createElement('canvas'); cv.width = Math.ceil(w * sc); cv.height = Math.ceil(h * sc);
+    const g = cv.getContext('2d')!;
+    g.setTransform(sc, 0, 0, sc, -x * sc, -y * sc);
+    if (kind === 'hippo') paintHippo(g, 0, true, tw); else paintElephant(g, 0, true, tw);
+    baked.set(id, cv);
+  }
+  c.save(); c.rotate(rot); c.drawImage(cv, x, y, w, h); c.restore();
 };

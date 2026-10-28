@@ -70,7 +70,7 @@ import { box, label, saidOver, hands, speak, voice, meatheadSays } from '../sect
 import { GY } from '../geometry';
 import { drawBushArt, drawVine, drawCrawlRipple } from './art';
 import { ARENA_L, ARENA_R, ARENA_MID, BLIND_X, BLIND_Y, BUSH_X, BUSH_W, BUSH_H, VIEW_L, TEMPLE_X } from './arena';
-import { type Animal, type Beast, BEASTS, makeStampede, updateStampede, stampedeOver, nearestTo, clearStampede, drawStampede, drawWarnings, drawBeastAt, gallopFrame, rhinoHorn, drawDeadRhino, DEAD_HORN } from './stampede';
+import { type Animal, type Beast, BEASTS, makeStampede, updateStampede, stampedeOver, nearestTo, clearStampede, drawStampede, drawWarnings, drawBeastAt, gallopFrame, rhinoHorn, drawDeadRhino, drawDeadBeast, DEAD_HORN, PILE } from './stampede';
 import * as L from './lines';
 
 type Ctx = CanvasRenderingContext2D;
@@ -1027,7 +1027,7 @@ const die = (ctx: FrameContext, f: Fight) => {
     // (gored: out of the world, ours to draw; down off whatever he was up, then the whistle. Out of Meathead's hands)
     state.enemies = state.enemies.filter(o => o !== e);
     f.death = { how: 'gored', t: 0, x: f.x, facing: f.facing };
-    f.gore = { phase: 'fall', t: 0, all: 0, vy: Math.max(0, f.vy), rx: 0, run: 0, said: 0, doneAt: 0, jump: 0, jumped: false, over: false, token: 0 };
+    f.gore = { phase: 'fall', t: 0, all: 0, vy: Math.max(0, f.vy), rx: 0, run: 0, said: 0, doneAt: 0, jump: 0, jumped: false, over: false, token: 0, hx: 0, hT: 0, hSt: 0, ex: 0, eT: 0, eSt: 0, ek: 0, bumpT: 0, landT: 0, hopped: 0 };
     f.y = Math.min(f.y, GY);
     const p = state.player;
     p.isCharging = false; p.isSliding = false; p.isUppercutting = false; p.isDivekicking = false; p.recoiling = false;
@@ -1037,8 +1037,10 @@ const die = (ctx: FrameContext, f: Fight) => {
 
 // ---------------------------------------------------------------------------------------------------------------
 // Gored (his standard death, the user's): the mating whistle one last time, for Meathead, and the rhino comes for him
-// instead: gores him, carries him across the clearing on its horn and slams him into the temple's wall. The both of
-// them dead of it in a heap against it. A cutscene: no HUD, skipped all or nothing (to the heap, done).
+// instead: gores him, carries him across the clearing on its horn and slams him into the temple's wall. Then the hippo
+// he whistled up runs into the back of the rhino, and the elephant into the back of the hippo, up and over onto the top
+// of the lot, its head down on him: all four dead in a pile against the wall, him pinned under the three of them (the
+// user's: "a big pile of corpses that ran into each other"). A cutscene: no HUD, skipped all or nothing (to the pile).
 
 export interface Gore {
   /** Down off whatever he was up (a vine, the air); off the wall a way, if he's too near it for a run at him; the
@@ -1054,6 +1056,15 @@ export interface Gore {
   over: boolean;
   /** (bumped on a skip: whatever was still to be said, not seen to) */
   token: number;
+  /** The hippo, then the elephant, after it: where (feet's middle, world x), how long in its step (warning, then
+   *  running), how far on (0 not yet, 1 its warning, 2 running, 3 in the pile; the elephant 3 going up and over (ek
+   *  0..1), 4 in the pile). */
+  hx: number; hT: number; hSt: number;
+  ex: number; eT: number; eSt: number; ek: number;
+  /** The heap's t at the last one into it (the jolt), at the elephant's landing (then his last words). */
+  bumpT: number; landT: number;
+  /** Which of them Meathead's hopped (1 the hippo, 2 the elephant). */
+  hopped: number;
 }
 /** How fast the rhino comes (quicker than in the stampede: it's come a long way for this). */
 const RUSH = 11;
@@ -1067,6 +1078,14 @@ const GORE_WARN = 50;
 const ON_HORN = 0.4, ON_HORN_WALL = 0.75;
 /** Against the wall: his hip, the wall's foot the origin. */
 const WRECK_HIP = { x: DEAD_HORN.bx + (DEAD_HORN.tx - DEAD_HORN.bx) * ON_HORN_WALL, y: DEAD_HORN.by + (DEAD_HORN.ty - DEAD_HORN.by) * ON_HORN_WALL };
+/** The two after it: how fast (frames of gait at this pace), when the hippo comes (the heap's t), its warning, how long
+ *  after the hippo's in the pile the elephant comes; the elephant's trip up over the top (frames). */
+const PILE_RUSH = 10, HIPPO_IN = 50, PILE_WARN = 44, ELE_IN = 30, TUMBLE = 26;
+const HIPPO_AT = PILE.hippo, ELE_AT = PILE.elephant;
+/** Where the elephant runs into the hippo's backside (the wall's foot the origin, its feet's middle). */
+const ELE_HITS = -380;
+/** Meathead backs off this far for the pile (clear of all of it). */
+const PILE_CLEAR = TEMPLE_X - 500;
 
 const nextGore = (g: Gore, phase: Gore['phase']) => { g.phase = phase; g.t = 0; };
 const goreBlood = (state: GameState, x: number, y: number, n: number, vx: number, vy: number, spread: number) => {
@@ -1143,9 +1162,10 @@ const gored = (ctx: FrameContext, f: Fight, g: Gore, controls: Controls): Contro
     }
     case 'wreck': {
       // (the blood running off them, into the pool)
-      if (g.t < 300 && g.t % 7 === 0) goreBlood(state, TEMPLE_X + WRECK_HIP.x + (Math.random() - 0.5) * 16, GY + WRECK_HIP.y + 10, 1, 0, 0, 0.6);
-      // His last words from the heap, then Meathead's say; then it's done
-      if (g.t === 60 && g.said < 3) {
+      if (g.t < 600 && g.t % 7 === 0) goreBlood(state, TEMPLE_X + WRECK_HIP.x + (Math.random() - 0.5) * 16, GY + WRECK_HIP.y + 10, 1, 0, 0, 0.6);
+      pileOn(ctx, g);
+      // His last words from under the pile, then Meathead's say; then it's done
+      if (g.eSt === 4 && g.t >= g.landT + 45 && g.said < 3) {
         const tok = g.token;
         g.said = 3;
         announce(f, L.ARTIE_DIES, () => {
@@ -1154,11 +1174,67 @@ const gored = (ctx: FrameContext, f: Fight, g: Gore, controls: Controls): Contro
           meatheadSays(state, pick(L.MEATHEAD_GORED[pants()]), true, () => { if (g.token === tok) { g.said = 5; g.doneAt = g.t; } });
         });
       }
-      if ((g.said >= 5 && g.t >= g.doneAt + 50) || g.t > 1200) g.over = true;
+      if ((g.said >= 5 && g.t >= g.doneAt + 50) || g.t > 2000) g.over = true;
       break;
     }
   }
   return alive ? meatheadGored(state, f, g) : controls;
+};
+
+/** Running on, the hippo or the elephant: its feet drumming, the dust off its heels. */
+const pounding = (state: GameState, x: number, t: number, big: boolean) => {
+  if (t % 4 === 0) { playSound('thud', big ? 0.6 : 0.45, big ? -12 : -9); shakeScreen(state, big ? 8 : 6, big ? 2.4 : 1.6); }
+  if (t % 3 === 0) state.particles.push({ pos: { x: x - (big ? 70 : 50), y: GY - 4 }, vel: { x: -1 - Math.random() * 2, y: -0.5 - Math.random() * 1.5 }, life: 26, color: Math.random() < 0.5 ? 'rgba(168, 140, 100, 0.7)' : 'rgba(120, 100, 70, 0.6)', size: 5 + Math.random() * 7 });
+};
+/** A cloud of dust up off a crash. */
+const crashDust = (state: GameState, x: number, y: number, n: number) => {
+  for (let i = 0; i < n; i++) state.particles.push({ pos: { x: x + (Math.random() - 0.5) * 60, y: y + (Math.random() - 0.5) * 30 }, vel: { x: (Math.random() - 0.5) * 5, y: -1 - Math.random() * 3 }, life: 40 + Math.random() * 20, color: Math.random() < 0.5 ? 'rgba(168, 140, 100, 0.75)' : 'rgba(214, 211, 209, 0.6)', size: 6 + Math.random() * 10 });
+};
+/** The elephant on its way up over the top: its feet's middle (world) and its turn, `k` of the way. */
+const eleTumble = (g: Gore) => {
+  const k = g.ek, e = k * k * (3 - 2 * k);
+  return { x: g.ex + (TEMPLE_X + ELE_AT.x - g.ex) * e, y: GY + ELE_AT.y * e - Math.sin(Math.PI * k) * 70, rot: ELE_AT.rot * e };
+};
+
+/** The heap, each frame: the hippo after the rhino, then the elephant after the hippo, each into the back of the last. */
+const pileOn = (ctx: FrameContext, g: Gore) => {
+  const { state } = ctx;
+  // The hippo: its bellow, its warning, here it comes; face-first into the rhino's backside
+  if (g.hSt === 0 && g.t >= HIPPO_IN) { g.hSt = 1; g.hT = 0; playSound('rumble', 0.6); playSound('bellow', 0.9, -2); shakeScreen(state, 14, 2); }
+  else if (g.hSt === 1 && ++g.hT >= PILE_WARN) { g.hSt = 2; g.hT = 0; g.hx = VIEW_L - 140; }
+  else if (g.hSt === 2) {
+    g.hT++; g.hx += PILE_RUSH;
+    pounding(state, g.hx, g.hT, false);
+    if (g.hx >= TEMPLE_X + HIPPO_AT.x) {
+      g.hSt = 3; g.bumpT = g.t;
+      playSound('crash', 1, -8); playSound('crunch', 1.1, -6); playSound('squish', 1, -4); playSound('gorespray', 0.8); playSound('bellow', 0.8, -10);
+      shakeScreen(state, 22, 10);
+      goreBlood(state, TEMPLE_X - 130, GY - 56, 24, -2, -4, 7);
+      crashDust(state, TEMPLE_X - 140, GY - 40, 10);
+    }
+  }
+  // The elephant: its trumpet, its warning, here it comes; into the hippo, up and over the top, down on its head on him
+  if (g.hSt === 3 && g.eSt === 0 && g.t >= g.bumpT + ELE_IN) { g.eSt = 1; g.eT = 0; playSound('rumble', 0.8, -4); playSound('horn', 1, 4); shakeScreen(state, 18, 3); }
+  else if (g.eSt === 1 && ++g.eT >= PILE_WARN) { g.eSt = 2; g.eT = 0; g.ex = VIEW_L - 160; }
+  else if (g.eSt === 2) {
+    g.eT++; g.ex += PILE_RUSH;
+    pounding(state, g.ex, g.eT, true);
+    if (g.ex >= TEMPLE_X + ELE_HITS) {
+      g.eSt = 3; g.ek = 0; g.bumpT = g.t;
+      playSound('crash', 1, -10); playSound('squish', 1, -6); playSound('horn', 0.8, -4);
+      shakeScreen(state, 18, 8);
+      crashDust(state, TEMPLE_X - 300, GY - 50, 8);
+    }
+  } else if (g.eSt === 3) {
+    g.ek = Math.min(1, g.ek + 1 / TUMBLE);
+    if (g.ek >= 1) {
+      g.eSt = 4; g.bumpT = g.t; g.landT = g.t;
+      playSound('boom', 0.8, -10); playSound('crash', 1, -12); playSound('crunch', 1.2, -8); playSound('splat', 1, -4); playSound('gorespray', 1); playSound('hurt', 1, 6);
+      shakeScreen(state, 34, 14);
+      goreBlood(state, TEMPLE_X + WRECK_HIP.x, GY + WRECK_HIP.y, 40, -3, -6, 9);
+      crashDust(state, TEMPLE_X - 60, GY - 120, 14);
+    }
+  }
 };
 
 /** Meathead, through it: back off the wall (what's coming at it), a hop over the rhino as it comes by him, watching. */
@@ -1170,6 +1246,12 @@ const meatheadGored = (state: GameState, f: Fight, g: Gore): Controls => {
     const back = g.rx - 60, front = g.rx + (g.phase === 'carry' ? 140 : 90);
     if (front > p.pos.x - 90 && back < p.pos.x + p.width) { g.jumped = true; g.jump = 16; return { ...hands(), jump: true }; }
   }
+  if (g.phase === 'wreck') {
+    const cx = g.hSt === 2 ? g.hx : g.eSt === 2 ? g.ex : null, bit = g.hSt === 2 ? 1 : 2;
+    // (timed so he's up at the top of it as its middle goes under him: the elephant's that tall)
+    if (cx !== null && !(g.hopped & bit) && p.isGrounded && pc - cx > 0 && pc - cx <= PILE_RUSH * 27) { g.hopped |= bit; g.jump = 16; return { ...hands(), jump: true }; }
+    if (cx === null && g.eSt < 3 && pc > PILE_CLEAR && p.isGrounded) return { ...hands(), left: true };
+  }
   if (!running && g.phase !== 'wreck' && pc > CLEAR_X && p.isGrounded) return { ...hands(), left: true };
   p.facing = (g.phase === 'wreck' ? TEMPLE_X : f.x) > pc ? 1 : -1;
   return hands();
@@ -1180,6 +1262,7 @@ const skipGore = (state: GameState, f: Fight, g: Gore) => {
   g.token++;
   silenceAll(); state.playerVulgarityTimer = 0; f.said = null;
   g.phase = 'wreck'; g.t = 400; g.said = 6; g.over = true; g.jump = 0;
+  g.hSt = 3; g.eSt = 4; g.ek = 1; g.bumpT = -100; g.landT = 0;
   f.x = TEMPLE_X + WRECK_HIP.x; f.y = GY;
 };
 
@@ -1485,17 +1568,32 @@ const drawGored = (c: Ctx, state: GameState, f: Fight, g: Gore) => {
       c.fillStyle = '#5A0E0E'; c.beginPath(); c.ellipse(-34, -1, 12 + pool * 56, 2.5 + pool * 3, 0, 0, Math.PI * 2); c.fill();
       c.fillStyle = '#8E1414'; c.beginPath(); c.ellipse(-32, -1.5, 9 + pool * 48, 1.6 + pool * 2.2, 0, 0, Math.PI * 2); c.fill();
       if (pool > 0.3) { c.fillStyle = '#D93A2E'; c.fillRect(Math.round(-52 - pool * 10), -3, Math.round(6 + pool * 8), 1); }
-      // (the jolt of it: shoved up against the wall, settling back)
-      const jolt = g.t < 8 ? (8 - g.t) * 0.6 : 0;
+      // (the jolt of each one into it: shoved up against the wall, settling back)
+      const since = g.t - g.bumpT, jolt = since < 8 ? (8 - since) * 0.6 : 0;
+      const tw = fr % 89 < 8 ? (Math.round(Math.sin(fr * 1.7)) * 4) : 0;
       c.save(); c.translate(jolt, 0);
+      // (the hippo, its face buried in the rhino's backside: behind it)
+      if (g.hSt >= 3) {
+        c.fillStyle = 'rgba(26, 11, 6, 0.3)'; c.fillRect(HIPPO_AT.x - 80, -3, 150, 4);
+        c.save(); c.translate(HIPPO_AT.x, HIPPO_AT.y); drawDeadBeast(c, 'hippo', HIPPO_AT.rot, g.eSt === 4 ? tw : 0); c.restore();
+      }
       drawDeadRhino(c, k, fr);
       // (him: folded right over the horn the wrong way, crushed flat against the stone, his head down at the foot of it)
       c.save(); c.translate(WRECK_HIP.x, WRECK_HIP.y); c.scale(0.8, 0.9); c.rotate(0.54);
       drawSafariArtie(c, 0, 29, -1, fr, 'broken', dmg);
       c.restore();
       hornOut(c, WRECK_HIP.x, WRECK_HIP.y, DEAD_HORN.tx + 2, DEAD_HORN.ty, 0.55);
+      // (the elephant on top of the lot, stood on its head on him, its legs stuck out stiff)
+      if (g.eSt === 4) { c.save(); c.translate(ELE_AT.x, ELE_AT.y); drawDeadBeast(c, 'elephant', ELE_AT.rot, -tw); c.restore(); }
       c.restore();
       c.restore();
+      // (on its way up over the top)
+      if (g.eSt === 3) { const e = eleTumble(g); c.save(); c.translate(e.x, e.y); drawDeadBeast(c, 'elephant', e.rot); c.restore(); }
+      // (the two coming: their warnings, then them)
+      if (g.hSt === 1) drawWarnings(c, state, [{ kind: 'hippo', dir: 1, x: 0, warn: Math.max(1, PILE_WARN - g.hT), t: 0, done: false, block: null, metArtie: true, tame: true }]);
+      if (g.eSt === 1) drawWarnings(c, state, [{ kind: 'elephant', dir: 1, x: 0, warn: Math.max(1, PILE_WARN - g.eT), t: 0, done: false, block: null, metArtie: true, tame: true }]);
+      if (g.hSt === 2) drawBeastAt(c, 'hippo', g.hx, 1, gallopFrame(g.hT, PILE_RUSH));
+      if (g.eSt === 2) drawBeastAt(c, 'elephant', g.ex, 1, gallopFrame(g.eT, PILE_RUSH));
       return;
     }
   }
