@@ -37,7 +37,7 @@ import { isMidBoss } from '../../m1/game/combat/midBoss';
 import { impactKill, ceilingSplat } from '../../m1/game/enemies/enemies';
 import { buffs } from '../../m1/game/core/buffs';
 import { playSound } from '../../m1/game/platform/audio';
-import { INITIAL_PLAYER_HEALTH, POWER_CELLS } from '../../m1/constants';
+import { INITIAL_PLAYER_HEALTH, POWER_CELLS, SPECIAL_HURT_FRAMES } from '../../m1/constants';
 import { beginSprite, endSprite } from '../../m1/game/render/player/spriteOutline';
 import { playerTint } from '../../m1/game/render/player/player';
 import { drawLeg, drawArmTo, drawTorsoFromHips, drawHead, type Mood } from '../../m1/game/render/player/body';
@@ -331,6 +331,20 @@ const wallBetween = (state: GameState, to: number) => {
     if (d < bestD) { bestD = d; best = k; }
   }
   return best;
+};
+/** A beatdown's lunge or an air grab run into a wall (or an air grab up into a ceiling): bonked off it, as a charge is
+ *  off a wall (an uppercut off a ceiling): the thud, the dust, the recoil pose, knocked back; the grab's over. */
+const bonk = (ctx: FrameContext, g: Grab, how: 'wall' | 'ceiling') => {
+  const { state } = ctx, p = state.player, face = g.dir;
+  const wx = how === 'wall' ? (face > 0 ? p.pos.x + p.width : p.pos.x) : p.pos.x + p.width / 2, wy = how === 'wall' ? p.pos.y + p.height * 0.35 : p.pos.y;
+  playSound('thud', 0.9); playSound('punch', 0.5, -6); shakeScreen(state, 8, 4);
+  for (let i = 0; i < 12; i++) state.particles.push({ pos: { x: wx + (how === 'ceiling' ? (Math.random() - 0.5) * 30 : 0), y: wy + (how === 'wall' ? (Math.random() - 0.5) * 30 : 0) }, vel: how === 'wall' ? { x: -face * (1 + Math.random() * 3), y: -1 - Math.random() * 3 } : { x: (Math.random() - 0.5) * 4, y: 1 + Math.random() * 3 }, life: 22, color: i % 2 ? '#A8A29E' : '#D6D3D1', size: 3 + Math.random() * 4 });
+  for (let i = 0; i < 5; i++) state.particles.push({ pos: { x: wx, y: wy }, vel: { x: (Math.random() - 0.5) * 4, y: (Math.random() - 0.5) * 4 }, life: 10, color: '#FEF3C7', size: 2 + Math.random() * 2 });
+  g.airSpent = !p.isGrounded; g.diveOk = true;
+  end(state, g);
+  p.hurtForm = how === 'wall' ? 'charge' : 'uppercut'; p.hurtFormTimer = SPECIAL_HURT_FRAMES;
+  if (how === 'wall') { p.vel.x = -face * 3.5; p.pushbackTimer = Math.max(p.pushbackTimer, 12); p.isHarmlessPushback = true; }
+  else p.vel.y = Math.max(p.vel.y, 2);
 };
 /** Can he get at this one without anything solid in between? */
 const clearTo = (state: GameState, e: Enemy) => !wallBetween(state, e.pos.x + e.width / 2);
@@ -1001,7 +1015,10 @@ const stepGrab = (ctx: FrameContext, g: Grab, controls: Controls): Controls => {
       p.power = 0; p.vel.x = 0; p.jumpHoldTimer = 0;
       // (forward, never through a wall)
       const nx = p.pos.x + g.avx, w = wallBetween(state, g.avx > 0 ? nx + p.width : nx);
-      if (w) { p.pos.x = g.avx > 0 ? w.x - p.width : w.x + w.w; g.avx = 0; } else if (!walled(state, nx)) p.pos.x = nx;
+      if (w) { p.pos.x = g.avx > 0 ? w.x - p.width : w.x + w.w; bonk(ctx, g, 'wall'); return { ...NO_CONTROLS }; }
+      if (!walled(state, nx)) p.pos.x = nx;
+      // (up into a ceiling: bonked off it, the uppercut's recoil)
+      if (g.t > 1 && p.vel.y < 0 && ceilingOver(state, p.vel.y - 2)) { bonk(ctx, g, 'ceiling'); return { ...NO_CONTROLS }; }
       const hit = airReach(state, g.dir);
       if (hit && !canGrab(state, hit)) {
         // (a boss, something far too big: the hands close on nothing, and down he comes)
@@ -1080,7 +1097,7 @@ const stepGrab = (ctx: FrameContext, g: Grab, controls: Controls): Controls => {
       if (!hit) {
         // (the step swept, not jumped: a thin column at this speed would otherwise be stepped clean over)
         const nx = p.pos.x + g.dir * LUNGE_SPEED, w = wallBetween(state, g.dir > 0 ? nx + p.width : nx);
-        if (w) { p.pos.x = g.dir > 0 ? w.x - p.width : w.x + w.w; g.phase = 'whiff'; g.t = 0; playSound('thud', 0.8, -4); shakeScreen(state, 4, 3); return hold(); }
+        if (w) { p.pos.x = g.dir > 0 ? w.x - p.width : w.x + w.w; bonk(ctx, g, 'wall'); return { ...NO_CONTROLS }; }
         if (!walled(state, nx)) p.pos.x = nx;
       }
       else placeAt(state, g.dir > 0 ? hit.pos.x - p.width + 6 : hit.pos.x + hit.width - 6, p.pos.x);
