@@ -2,6 +2,7 @@
 // Movement and special moves mirror the GameMaker version's oPlayer step order:
 // cooldowns -> special inputs -> special moves -> facing -> crouch -> X -> Y.
 
+import { notePowerShort } from './powerShort';
 import { shoveSetDistance } from '../core/resist';
 import { Enemy, WeaponType, Rect, Block, Player } from '../../types';
 import {
@@ -297,6 +298,7 @@ const startSpecialMoves = (ctx: FrameContext, input: FrameInput) => {
   // In the water it's a lunge: forward, up, or down (down + special's the same whether he's floating or stood on the
   // bottom: no slide, no dive kick)
   if (player.swimming && !player.skiing) {
+    if (!player.isCharging && !(cheats.infinitePower || player.power >= 1)) notePowerShort();
     if (player.isCharging || !(cheats.infinitePower || player.power >= 1)) return;
     if (!cheats.infinitePower) player.power -= 1;
     player.swimDash = input.moveUp ? { x: 0, y: -1 } : input.moveDown ? { x: 0, y: 1 } : { x: player.facing, y: 0 };
@@ -316,6 +318,8 @@ const startSpecialMoves = (ctx: FrameContext, input: FrameInput) => {
   const only = input.chargeOnly;
   const airDive = input.moveDown && !player.isGrounded && !only;
 
+  // (asked for one without a cell for it: the HUD's told (powerShort.ts))
+  if (!free && player.power < 1 && !locked && !airDive && !player.isCharging && !player.isUppercutting) notePowerShort();
   // Shoulder charge, or a slide when crouching (or pressing down with it) on the ground
   if (!locked && (!input.moveUp || only) && !airDive && !player.isCharging && (free || player.power >= 1)) {
     if (!free) player.power -= 1;

@@ -56,6 +56,7 @@ import { hurtPlayer } from '../../m1/game/bosses/shared';
 import { enemyGender } from '../../m1/content/gender';
 import { meatheadSays } from '../adventure/section';
 import { floorTopAt } from '../../m1/game/core/terrain';
+import { notePowerShort } from '../../m1/game/player/powerShort';
 import { hazardOwnersIn } from '../hazardHit';
 import { TOO_BIG_LINES, TOO_BIG_BY_KIND, GRAB_IMMUNE_LINES } from '../lines/weaponLines';
 
@@ -302,9 +303,16 @@ const centerX = (state: GameState) => state.player.pos.x + state.player.width / 
 
 /** Into the wall? (the lunge stops at one) */
 /** Something solid he'd be in at x (a wall, the side of a ledge; not what he's standing on, nor a one-way platform). */
+/** How high a rise under his feet is still the floor (a slope's steps, a seam), not a wall: he goes up it. */
+const STEP = 24;
 const solidAt = (state: GameState, x: number) => {
   const p = state.player;
-  return state.blocks.find(b => !b.oneWay && b.type !== 'pit' && x < b.x + b.w && x + p.width > b.x && p.pos.y + 4 < b.y + b.h && p.pos.y + p.height - 4 > b.y);
+  return state.blocks.find(b => !b.oneWay && b.type !== 'pit' && x < b.x + b.w && x + p.width > b.x && p.pos.y + 4 < b.y + b.h && p.pos.y + p.height - STEP > b.y);
+};
+/** Onto the floor where he's got to, if it's risen under him (up a slope's steps). */
+const stepUp = (state: GameState) => {
+  const p = state.player, feet = p.pos.y + p.height, top = floorTopAt(state.blocks, centerX(state), feet, STEP);
+  if (top !== null && top < feet) { p.pos.y = top - p.height; p.vel.y = Math.min(p.vel.y, 0); }
 };
 const walled = (state: GameState, x: number) => !!solidAt(state, x);
 /** The nearest solid thing between his front and the point `to` (world x), at his height: a wall, a column, a beam.
@@ -315,7 +323,8 @@ const wallBetween = (state: GameState, to: number) => {
   let best: { x: number; w: number } | null = null, bestD = Infinity;
   for (const k of state.blocks) {
     if (k.oneWay || k.type === 'pit' || k.x >= b || k.x + k.w <= a) continue;
-    if (!(p.pos.y + 4 < k.y + k.h && p.pos.y + p.height - 4 > k.y)) continue;
+    // (a rise under his feet he'd go up (a slope's steps) isn't a wall: the user's, the lunge stopped dead on a slope)
+    if (!(p.pos.y + 4 < k.y + k.h && p.pos.y + p.height - STEP > k.y)) continue;
     // (one he's already standing in doesn't count: that's the floor's business)
     if (k.x < mid && k.x + k.w > mid) continue;
     const d = to > mid ? k.x - mid : mid - (k.x + k.w);
@@ -955,7 +964,7 @@ const stepGrab = (ctx: FrameContext, g: Grab, controls: Controls): Controls => {
       const costs = go === 'beat' || go === 'air';
       // (the user's: a critter grab's free: a beatdown at one in front of him goes whatever his bars)
       const atCritter = go === 'beat' && isCritter(inReach(state, p.facing, 160));
-      if (costs && !atCritter && !ctx.cheats.infinitePower && p.power < POWER_CELLS - 1e-6) { playSound('beep', 0.4, -10); return out; }
+      if (costs && !atCritter && !ctx.cheats.infinitePower && p.power < POWER_CELLS - 1e-6) { if (y) g.yChord = true; notePowerShort(); return out; }
       if (costs && !atCritter && !ctx.cheats.infinitePower) { g.spent = true; p.power = 0; p.powerLocked = true; }
       if (touching) { p.pushbackTimer = 0; p.vel.x = 0; }
       if (y) g.yChord = true;
@@ -1075,6 +1084,7 @@ const stepGrab = (ctx: FrameContext, g: Grab, controls: Controls): Controls => {
         if (!walled(state, nx)) p.pos.x = nx;
       }
       else placeAt(state, g.dir > 0 ? hit.pos.x - p.width + 6 : hit.pos.x + hit.width - 6, p.pos.x);
+      if (p.isGrounded) stepUp(state);
       const e = hit ?? inReach(state, g.dir, LUNGE_REACH);
       if (e && isCritter(e)) return grabCritter(ctx, g, e, hold);
       if (e) {

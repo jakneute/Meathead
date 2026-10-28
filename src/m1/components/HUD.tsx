@@ -30,6 +30,8 @@ interface HUDProps {
   powerExtra?: React.ReactNode;
   /** Meathead 2's weapon tried empty: bumped each time (the weapon's box flashes red and shakes, `alertText` by it). */
   alert?: number;
+  /** Bumped when a power move's asked for without the power for it: the power cells blink red. */
+  powerAlert?: number;
   alertText?: string;
 }
 
@@ -51,7 +53,7 @@ export interface HudSkin {
 }
 
 /** The in-game HUD: health, power cells and the equipped weapon on a steel plate in the corner. */
-const HUD: React.FC<HUDProps> = ({ health, maxHealth, power, currentWeapon, ammo, maxAmmo, weaponName, weaponArt, weaponExtra, ammoLabel, skin, powerCells = POWER_CELLS, powerExtra, cellWidth, alert, alertText }) => {
+const HUD: React.FC<HUDProps> = ({ health, maxHealth, power, currentWeapon, ammo, maxAmmo, weaponName, weaponArt, weaponExtra, ammoLabel, skin, powerCells = POWER_CELLS, powerExtra, cellWidth, alert, alertText, powerAlert }) => {
   const hp = Math.max(0, Math.min(1, health / maxHealth));
   const low = hp < 0.35;
   const limited = maxAmmo !== Infinity;
@@ -87,8 +89,11 @@ const HUD: React.FC<HUDProps> = ({ health, maxHealth, power, currentWeapon, ammo
         {/* Power: two cells, any special spends one */}
         <div className="flex items-center gap-2">
           <span className="relative w-[26px] text-[8px] font-black text-zinc-300" style={{ color: skin?.label }}>{skin?.pwrLabel ?? 'PWR'}</span>
-          <div className="flex gap-[6px]">
+          <div className="relative flex gap-[6px]">
             {Array.from({ length: powerCells }, (_, i) => <PowerCell key={i} fill={Math.max(0, Math.min(1, power - i))} skin={skin} width={cellWidth} />)}
+            {/* (not enough power for what was asked: a red blink over the cells) */}
+            {powerAlert ? <div key={powerAlert} className="absolute -inset-[2px] pointer-events-none" style={{ background: '#DC2626', border: '2px solid #FCA5A5', opacity: 0, animation: 'mh-hud-pwr 0.6s steps(1, end) forwards' }} /> : null}
+            {powerAlert ? <style>{`@keyframes mh-hud-pwr { 0% { opacity: 0.8; } 20% { opacity: 0; } 40% { opacity: 0.8; } 60% { opacity: 0; } 80% { opacity: 0.6; } 100% { opacity: 0; } }`}</style> : null}
           </div>
           {powerExtra}
         </div>
