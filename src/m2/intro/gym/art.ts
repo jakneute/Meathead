@@ -25,7 +25,8 @@ import { INK, ink, shaded, shadedTop, dark, lite } from '../../../m1/game/render
 import { drawSouvenir } from '../../../m1/game/garage/draw';
 import { stamp, mix, hash } from '../art/kit';
 import { newsPicture } from './shots';
-import { X0, Y, LEFT, RIGHT, CEIL_Y, LEDGES, DUCT, MEZZ, MEZZ_Y, RING, EXIT_X, SOUVENIR_SPOTS, WALL_SHELVES, SQUAT_X, TRUCK_X } from './course';
+import { board } from './obstacles';
+import { X0, Y, LEFT, RIGHT, CEIL_Y, LEDGES, DUCT, MEZZ, MEZZ_Y, SCAF, RING, EXIT_X, SOUVENIR_SPOTS, WALL_SHELVES, SQUAT_X, TRUCK_X } from './course';
 
 type Ctx = CanvasRenderingContext2D;
 const R = (x: number) => X0 + x;
@@ -459,6 +460,70 @@ export const drawGymMid = (c: Ctx, state: GameState) => {
     box3(c, E, DUCT.x1, DUCT.x2, CEIL_Y, DUCT.bottom, D_BOX, 1, ['#3E464C', '#4C555C', '#5A636A', '#687279']);
     duct(c);
   }
+};
+
+/**
+ * The renovation's scaffold off the mezzanine's end: steel tube posts going back to the wall, cross-braced, the plank
+ * deck on top (its lit lip: stood on), caution tape strung under it; the plywood partition hung off the ceiling down
+ * to the deck's far end, hazard-striped, spray-painted. Broken (dive-kicked through): only the post stubs on their
+ * base plates; the partition still hung there (its boards and poles are the debris, obstacles.ts).
+ */
+export const drawScaffold = (c: Ctx, state: GameState, broken: boolean) => {
+  const E = eyeOf(state), { x1, x2, wallX, deck } = SCAF;
+  if (!seen(state, E, x1 - 40, x2 + 40, D_WALL) && !seen(state, E, x1 - 40, x2 + 40, 1)) return;
+  const posts = [x1 + 6, (x1 + wallX) / 2, wallX - 6];
+  // (the partition: its side running back to the wall, its face)
+  box3(c, E, wallX, x2, CEIL_Y, deck, D_WALL, 1, ['#4A3A26', '#5A4630', '#6A5236', '#7A5E3E'], ['#6A5236', '#7A5E3E', '#8A6A46', '#9A764E']);
+  stamp(c, `m2gym-partition-${wallX}`, wallX - 2, CEIL_Y - 2, x2 - wallX + 4, deck - CEIL_Y + 4, g => {
+    const w = x2 - wallX, h = deck - CEIL_Y;
+    bandedGradient(g, wallX, CEIL_Y, w, h, ['#C49A60', '#B88E56', '#AC824C', '#A07642', '#946A3A'], 10);
+    for (let y = CEIL_Y + 96; y < deck; y += 96) { g.fillStyle = '#6A4A26'; g.fillRect(wallX, y, w, 2); }
+    for (let k = 0; k < 18; k++) { g.fillStyle = k % 2 ? '#9A6E3C' : '#D4AC70'; g.fillRect(wallX + 4 + hash(k * 3.1) * (w - 12), CEIL_Y + 8 + hash(k * 7.7) * (h - 16), 6 + hash(k) * 6, 1); }
+    // (hazard stripes along its foot, a spray-painted X across it)
+    for (let x = wallX; x < x2; x += 12) { g.fillStyle = '#FACC15'; g.fillRect(x, deck - 14, 6, 14); g.fillStyle = '#111'; g.fillRect(x + 6, deck - 14, 6, 14); }
+    g.strokeStyle = '#B91C1C'; g.lineWidth = 5; g.lineCap = 'round';
+    const my = CEIL_Y + h * 0.55;
+    g.beginPath(); g.moveTo(wallX + 12, my - 30); g.lineTo(x2 - 12, my + 30); g.moveTo(x2 - 12, my - 30); g.lineTo(wallX + 12, my + 30); g.stroke();
+    g.lineCap = 'butt';
+    g.strokeStyle = INK; g.lineWidth = 2; g.strokeRect(wallX, CEIL_Y - 2, w, h + 2);
+  });
+  if (broken) {
+    // (what's left: the post stubs, snapped off, on their base plates)
+    for (const px of posts) { steel(c, px - 3, Y - 14, 6, 14, '#9CA3AF'); c.fillStyle = INK; c.fillRect(px - 8, Y - 3, 16, 3); c.fillStyle = '#52525B'; c.fillRect(px - 7, Y - 2, 14, 1); }
+    return;
+  }
+  footShadow(c, E, x1, wallX, D_BOX, 1);
+  // (the posts at the back, and the ties between front and back under the deck)
+  for (const px of posts) {
+    const a = proj(E, px, Y, D_BOX), b = proj(E, px, deck, D_BOX);
+    c.strokeStyle = INK; c.lineWidth = 5; c.beginPath(); c.moveTo(a.x, a.y); c.lineTo(b.x, b.y); c.stroke();
+    c.strokeStyle = '#71717A'; c.lineWidth = 3; c.stroke();
+    const t0 = proj(E, px, Y - 70, D_BOX), t1 = proj(E, px, Y - 70, 1);
+    c.strokeStyle = INK; c.lineWidth = 4; c.beginPath(); c.moveTo(t0.x, t0.y); c.lineTo(t1.x, t1.y); c.stroke();
+    c.strokeStyle = '#8A8F98'; c.lineWidth = 2; c.stroke();
+  }
+  // (the deck in depth: its boards' tops, their seams going back)
+  box3(c, E, x1, wallX, deck, deck + 12, D_BOX, 1, ['#6A4A26', '#7A5530', '#8A6038', '#9A6C40'], ['#8A6038', '#9A6C40', '#AA7848', '#BA8450'], 'left');
+  if (deck > E.y) for (let x = x1 + 22; x < wallX; x += 22) { const a = proj(E, x, deck, D_BOX), b = proj(E, x, deck, 1); c.strokeStyle = '#5A3C1E'; c.lineWidth = 1; c.beginPath(); c.moveTo(a.x, a.y); c.lineTo(b.x, b.y); c.stroke(); }
+  // The front: posts, braces, the tape, the deck's edge (stamped)
+  stamp(c, `m2gym-scaffold-${x1}`, x1 - 10, deck - 4, wallX - x1 + 20, Y - deck + 6, g => {
+    for (let i = 0; i < posts.length - 1; i++) {
+      // (an X of braces between each pair of posts)
+      for (const [ya, yb] of [[Y - 8, deck + 20], [deck + 20, Y - 8]] as const) {
+        g.strokeStyle = INK; g.lineWidth = 4; g.beginPath(); g.moveTo(posts[i], ya); g.lineTo(posts[i + 1], yb); g.stroke();
+        g.strokeStyle = '#A1A1AA'; g.lineWidth = 2; g.stroke();
+      }
+    }
+    // (the ledger across, the caution tape strung under the deck)
+    steel(g, x1, Y - 72, wallX - x1, 5, '#9CA3AF');
+    for (let x = x1 + 8; x < wallX - 8; x += 10) { g.fillStyle = (x / 10) % 2 < 1 ? '#FACC15' : '#1C1917'; g.fillRect(x, deck + 22 + Math.sin(x * 0.05) * 2, 10, 5); }
+    for (const px of posts) { steel(g, px - 3, deck, 6, Y - deck, '#9CA3AF'); g.fillStyle = INK; g.fillRect(px - 8, Y - 3, 16, 3); g.fillStyle = '#52525B'; g.fillRect(px - 7, Y - 2, 14, 1); }
+    // (the boards' ends along the front, a couple overhanging)
+    for (let x = x1, k = 0; x < wallX; x += 44, k++) board(g, x - (k % 3 === 1 ? 4 : 0), deck, Math.min(44, wallX - x) + (k % 3 === 1 ? 4 : 0));
+    steel(g, x1, deck + 6, wallX - x1, 5, '#71717A');
+    // (the lit lip: stood on)
+    g.fillStyle = '#F4F4F5'; g.fillRect(x1 + 1, deck, wallX - x1 - 2, 1.4);
+  });
 };
 
 /** The mezzanine's deck going back to the wall (diamond plate), its side toward the eye (the steel edge, the locker

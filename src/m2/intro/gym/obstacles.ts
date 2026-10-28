@@ -21,7 +21,7 @@ import { INK, ink, shaded, shadedTop, dark, lite } from '../../../m1/game/render
 type Ctx = CanvasRenderingContext2D;
 
 export interface Thing { kind: Obstacle; x: number; broken: number; shots: number }
-export interface Debris { kind: 'tub' | 'dumbbell' | 'kbell' | 'plate'; x: number; y: number; vx: number; vy: number; rot: number; life: number; rolling?: boolean }
+export interface Debris { kind: 'tub' | 'dumbbell' | 'kbell' | 'plate' | 'board' | 'pole'; x: number; y: number; vx: number; vy: number; rot: number; life: number; rolling?: boolean }
 
 /** Its box, for what hits it. */
 export const thingBox = (t: Thing) => {
@@ -78,6 +78,19 @@ const smash = (ctx: FrameContext, t: Thing, debris: Debris[], dir: number, killa
   for (const e of state.enemies) if (killable(e) && overlaps({ x: e.pos.x, y: e.pos.y, w: e.width, h: e.height }, { x: b.x - 10, y: b.y, w: b.w + 20, h: b.h })) kill(ctx, e, dir * 8, -6);
 };
 
+/** The scaffold dive-kicked through (index.ts): its boards and its poles down on whoever's under it (x1..x2, under
+ *  deck): them done, the lot lying there after. */
+export const collapse = (ctx: FrameContext, debris: Debris[], killable: (e: Enemy) => boolean, x1: number, x2: number, deck: number) => {
+  const { state, fx } = ctx;
+  for (let k = 0; k < 9; k++) debris.push({ kind: 'board', x: x1 + 14 + (k * (x2 - x1 - 28)) / 8, y: deck + 4, vx: (Math.random() - 0.5) * 3, vy: 1 + Math.random() * 3, rot: (Math.random() - 0.5) * 0.7, life: 1e9 });
+  for (const px of [x1 + 6, (x1 + x2) / 2, x2 - 6]) debris.push({ kind: 'pole', x: px, y: deck + 40, vx: (Math.random() - 0.5) * 4, vy: 0, rot: Math.PI / 2 + (Math.random() - 0.5) * 0.5, life: 1e9 });
+  for (const e of state.enemies) if (killable(e) && e.pos.x + e.width > x1 && e.pos.x < x2 && e.pos.y > deck - 10) kill(ctx, e, (Math.random() - 0.5) * 5, -2);
+  for (let k = 0; k < 30; k++) state.particles.push({ pos: { x: x1 + Math.random() * (x2 - x1), y: deck + Math.random() * (Y - deck) }, vel: { x: (Math.random() - 0.5) * 3, y: -Math.random() * 2 }, life: 50 + Math.random() * 40, color: ['#B8B2A0', '#8A8473', '#A0703C'][k % 3], size: 3 + Math.random() * 6 });
+  playSound('crash', 1, -6); playSound('crack', 1, -2); playSound('clang', 0.9, -4); playSound('thud', 0.8);
+  shakeScreen(state, 14, 8);
+  fx.spawnExplosion({ x: (x1 + x2) / 2, y: deck + 30 }, '#A0703C', 14, 0, 12);
+};
+
 /** Each frame: what's hit them, and the pieces flying. */
 export const updateThings = (ctx: FrameContext, things: Thing[], debris: Debris[], killable: (e: Enemy) => boolean, seen: (x: number, w: number) => boolean = () => true) => {
   const { state } = ctx;
@@ -114,8 +127,13 @@ export const updateThings = (ctx: FrameContext, things: Thing[], debris: Debris[
     d.vy += d.rolling ? 0 : 0.5;
     d.x += d.vx; d.y += d.vy;
     d.rot += d.vx * 0.08;
-    const r = d.kind === 'plate' ? 12 : d.kind === 'kbell' ? 12 : 9;
-    if (d.y > Y - r) { d.y = Y - r; d.vy = Math.abs(d.vy) > 2 ? -d.vy * 0.3 : 0; d.vx *= d.rolling ? 0.995 : 0.8; if (Math.abs(d.vy) > 1) playSound('thud', 0.3, 4); }
+    const long = d.kind === 'board' || d.kind === 'pole';
+    const r = d.kind === 'plate' ? 12 : d.kind === 'kbell' ? 12 : long ? 3 : 9;
+    if (d.y > Y - r) {
+      d.y = Y - r; d.vy = Math.abs(d.vy) > 2 ? -d.vy * 0.3 : 0; d.vx *= d.rolling ? 0.995 : 0.8; if (Math.abs(d.vy) > 1) playSound('thud', 0.3, 4);
+      // (a board or a pole down: it falls flat)
+      if (long) d.rot += (Math.round(d.rot / Math.PI) * Math.PI - d.rot) * 0.3;
+    }
     if (Math.abs(d.vx) < 0.1) d.vx = 0;
     if (Math.hypot(d.vx, d.vy) < 2.5) continue;
     for (const e of state.enemies) if (killable(e) && overlaps({ x: e.pos.x, y: e.pos.y, w: e.width, h: e.height }, { x: d.x - r, y: d.y - r, w: r * 2, h: r * 2 })) kill(ctx, e, d.vx * 1.4, -7);
@@ -154,6 +172,13 @@ const plateRound = (c: Ctx, x: number, y: number, rot = 0) => {
   c.strokeStyle = '#52525B'; c.lineWidth = 1; c.beginPath(); c.arc(0, 0, 9, 0, Math.PI * 2); c.stroke();
   c.fillStyle = '#A1A1AA'; c.fillRect(-2, -2, 4, 4);
   c.restore();
+};
+
+/** A scaffold board (x, y its top left, w long, 6 thick): pine, its grain, a lit top edge, inked round. */
+export const board = (c: Ctx, x: number, y: number, w: number) => {
+  shadedTop(c, () => c.rect(x, y, w, 6), '#A0703C', x, y, w, 6, 0.9);
+  c.fillStyle = '#7A5230'; c.fillRect(x + 4, y + 3, w * 0.4, 1); c.fillRect(x + w * 0.55, y + 2, w * 0.3, 1);
+  c.fillStyle = '#D8A868'; c.fillRect(x + 1, y + 0.5, w - 2, 1);
 };
 
 export const drawThing = (c: Ctx, t: Thing, frame: number) => {
@@ -217,6 +242,8 @@ export const drawDebris = (c: Ctx, debris: Debris[]) => {
     if (d.kind === 'tub') { c.save(); c.translate(d.x, d.y + 13); c.rotate(d.rot); tub(c, 0, 13); c.restore(); }
     else if (d.kind === 'dumbbell') dumbbell(c, d.x, d.y, d.rot);
     else if (d.kind === 'kbell') kbell(c, d.x, d.y + 2, d.rot);
+    else if (d.kind === 'board') { c.save(); c.translate(d.x, d.y); c.rotate(d.rot); board(c, -22, -3, 44); c.restore(); }
+    else if (d.kind === 'pole') { c.save(); c.translate(d.x, d.y); c.rotate(d.rot); steel(c, -32, -2.5, 64, 5, '#9CA3AF'); c.restore(); }
     else plateRound(c, d.x, d.y, d.rot);
   }
 };

@@ -34,11 +34,11 @@ import { createGrab, updateGrab, drawGrab, beatShove, type Grab } from '../../mo
 import { speak, saidOver } from '../../adventure/section';
 import type { Dressed } from '../lines';
 import {
-  GYM_STAGE, X0, Y, LEFT, RIGHT, CEIL_Y, START_X, ROOMS, ROOM_ORDER, LEDGES, OBSTACLES, SPAWNS, DUCT, MEZZ, MEZZ_Y, RING, PAD_X, JET_X, JET_Y, EXIT_X, EXIT_AT, type Role,
+  GYM_STAGE, X0, Y, LEFT, RIGHT, CEIL_Y, START_X, ROOMS, ROOM_ORDER, LEDGES, OBSTACLES, SPAWNS, DUCT, MEZZ, MEZZ_Y, SCAF, RING, PAD_X, JET_X, JET_Y, EXIT_X, EXIT_AT, type Role,
 } from './course';
 import { registerGmen, gstate, gOf, isWomanG, GMAN, GCRAWL, GPAD, GJET, type Pose } from './gman';
-import { updateThings, drawThing, drawDebris, type Thing, type Debris } from './obstacles';
-import { drawGymBackdrop, drawGymBack, drawGymMid, drawRingFront, drawGymNear, drawCeilingHole, setExitOpen } from './art';
+import { updateThings, drawThing, drawDebris, collapse, type Thing, type Debris } from './obstacles';
+import { drawGymBackdrop, drawGymBack, drawGymMid, drawScaffold, drawRingFront, drawGymNear, drawCeilingHole, setExitOpen } from './art';
 import { createScene, tickScene, drawScene, sfx, type Scene, type Beat } from './scene';
 import { shotSquat, shotTv, shotDoorway, shotAgent, shotAgentF, shotMeathead, shotArrival, shotTicket, shotToddler, shotGlasses, shotGlassesOn, setShotDress } from './shots';
 import { grossChoke, grossTruck, prewarmGross, finishGross } from './gross';
@@ -74,6 +74,8 @@ interface Gym {
   exitOpen: number;
   /** (the duct) The way he was sliding as he went under it (0: not under it). */
   ductDir: number;
+  /** (the scaffold) The frame it came down (0: still up). */
+  scafBroken: number;
   /** The rooms whose G-men haven't come yet; who's coming down through the ceiling, where and when (frames); the
    *  tiles knocked out up there (till when). */
   pending: Set<number>;
@@ -197,6 +199,11 @@ export const gymLayout: StageLayout = {
       { x: LEFT - 60, y: -3000, w: RIGHT - LEFT + 120, h: 3000 + CEIL_Y, type: 'wall', hidden: true, tag: 'gym2-ceiling' },
       { x: EXIT_X - 30, y: -3000, w: 40, h: 3600, type: 'wall', hidden: true, tag: 'gym2-exit' },
     );
+    // (the scaffold's deck, solid till it's dive-kicked through; the partition over its far end, ceiling to deck)
+    state.blocks.push(
+      { x: SCAF.x1, y: SCAF.deck, w: SCAF.x2 - SCAF.x1, h: 14, type: 'platform', hidden: true, tag: 'gym2-scaf-deck' },
+      { x: SCAF.wallX, y: -3000, w: SCAF.x2 - SCAF.wallX, h: 3000 + SCAF.deck, type: 'wall', hidden: true, tag: 'gym2-scaf-wall' },
+    );
     LEDGES.forEach((l, i) => state.blocks.push({ x: l.x, y: l.y, w: l.w, h: 14, type: 'platform', hidden: true, oneWay: true, tag: `gym2-ledge-${i}` } as never));
     state.cameraMinX = LEFT - 60;
     state.cameraMaxX = RIGHT + 60 - CANVAS_WIDTH;
@@ -205,7 +212,7 @@ export const gymLayout: StageLayout = {
       phase: openingSeen ? 'play' : 'opening', scene: null, waiting: !openingSeen, grab: createGrab(state),
       things: OBSTACLES.map(o => ({ kind: o.kind, x: o.x, broken: 0, shots: 0 })), debris: [], rooms: new Map(), barked: new Set(),
       moved: false, spawnX: START_X, pad: null as unknown as Enemy, jet: null as unknown as Enemy,
-      done: new Set(), shove: -1, punchesSeen: 0, mountBase: null, sawShake: false, sawArc: false, ringHello: false, exitOpen: 0, ringSaid: null, ductDir: 0,
+      done: new Set(), shove: -1, punchesSeen: 0, mountBase: null, sawShake: false, sawArc: false, ringHello: false, exitOpen: 0, ringSaid: null, ductDir: 0, scafBroken: 0,
       pending: new Set(SPAWNS.map((_, i) => i)), drops: [], holes: [],
     };
     state.stage = gym;
@@ -245,7 +252,7 @@ export const gymLayout: StageLayout = {
   },
   drawBackdrop: (c) => { drawGymBackdrop(c); return true; },
   drawBack: (c, state) => drawGymBack(c, state),
-  drawMid: (c, state) => { drawGymMid(c, state); const gym = getGym(state); if (gym) { for (const t of gym.things) drawThing(c, t, state.frame); drawDebris(c, gym.debris); } },
+  drawMid: (c, state) => { drawGymMid(c, state); const gym = getGym(state); if (gym) { drawScaffold(c, state, !!gym.scafBroken); for (const t of gym.things) drawThing(c, t, state.frame); drawDebris(c, gym.debris); } },
   drawFront: (c, state) => {
     const gym = getGym(state);
     if (!gym) return;
@@ -294,6 +301,7 @@ const play = (ctx: FrameContext, gym: Gym, controlsIn: Controls): Controls => {
   if (Math.abs(px - gym.spawnX) > 120) gym.moved = true;
   arrivals(ctx, gym);
   let controls = duct(state, gym, controlsIn);
+  scaffold(ctx, gym);
   controls = ring(ctx, gym, controls);
   controls = updateGrab(ctx, gym.grab, controls);
   gmen(state, gym);
@@ -326,12 +334,32 @@ const duct = (state: GameState, gym: Gym, controls: Controls): Controls => {
     }
     return controls;
   }
-  if (!gym.ductDir) gym.ductDir = p.facing;
+  if (!gym.ductDir) {
+    // (only a slide gets in under it: a charge (or anything else) that's carried him in is put back out, stood up
+    // against it, not ducked on through: the user's)
+    if (!p.isSliding) {
+      p.pos.x = (cx < (DUCT.x1 + DUCT.x2) / 2 ? DUCT.x1 - 4 : DUCT.x2 + 4) - p.width / 2; p.vel.x = 0;
+      return controls;
+    }
+    gym.ductDir = p.facing;
+  }
   if (p.isSliding) return { ...controls, jump: false, up: false };
   // (the slide's run out under it: on through, low, the way he was going)
   p.facing = gym.ductDir as 1 | -1;
   p.pos.x += gym.ductDir * 5;
   return { ...controls, down: true, jump: false, up: false, left: false, right: false, special: false, charge: false, shoot: false };
+};
+
+/** The scaffold: a dive kick coming down onto its deck goes through it, and the lot comes down on whoever's under it
+ *  (the only way on: the partition's over its far end). */
+const scaffold = (ctx: FrameContext, gym: Gym) => {
+  const { state } = ctx, p = state.player;
+  if (gym.scafBroken) return;
+  const feet = p.pos.y + p.height, over = p.pos.x + p.width > SCAF.x1 && p.pos.x < SCAF.wallX;
+  if (!p.isDivekicking || !over || feet > SCAF.deck + 2 || feet < SCAF.deck - Math.max(24, p.vel.y + 8)) return;
+  gym.scafBroken = state.frame;
+  state.blocks = state.blocks.filter(b => b.tag !== 'gym2-scaf-deck');
+  collapse(ctx, gym.debris, e => !isPadded(gym, e) && alive(e), SCAF.x1, SCAF.wallX, SCAF.deck);
 };
 
 /**
@@ -349,9 +377,10 @@ const arrivals = (ctx: FrameContext, gym: Gym) => {
   for (const i of [...gym.pending]) {
     const s = SPAWNS[i];
     // (its spot just in on the right of the screen, or anywhere on it: never one behind him, off the left)
-    if (!(s.x < cam + CANVAS_WIDTH - 30 && s.x > cam + 20)) continue;
+    const at = s.from ?? s.x;
+    if (!(at < cam + CANVAS_WIDTH - 30 && at > cam + 20)) continue;
     gym.pending.delete(i);
-    gym.drops.push({ s, i, x: s.x, at: state.frame + TELEGRAPH + k++ * DROP_GAP });
+    gym.drops.push({ s, i, x: at, at: state.frame + TELEGRAPH + k++ * DROP_GAP });
   }
   for (const d of gym.drops) if (d.at - state.frame < TELEGRAPH && state.frame % 4 === 0) state.particles.push({ pos: { x: d.x + (Math.random() - 0.5) * 40, y: CEIL_Y + 2 }, vel: { x: 0, y: 0.6 + Math.random() }, life: 50, color: '#B8B2A0', size: 1.5 + Math.random() * 2 });
   gym.drops = gym.drops.filter(d => {
@@ -361,7 +390,9 @@ const arrivals = (ctx: FrameContext, gym: Gym) => {
     const e = addG(state, gym, kind, d.x, CEIL_Y + 8 + h, 17 + i * 31, crawl ? 'crawl' : s.role === 'carry' ? 'carry' : s.role === 'link' ? 'link' : s.role === 'perch' ? 'perch' : s.role === 'huddle' ? 'huddle' : 'cower');
     // (coming down: a bystander till he's landed, so the drop doesn't hurt him (nor does anything else meanwhile))
     e.vel = { x: 0, y: 1.5 }; e.innocent = true; gOf(e)!.dropping = true;
-    gym.rooms.set(e, { room: s.room, role: s.role, homeX: s.x });
+    // (one that drops in past where he's going: lands, and runs in there to cower)
+    if (s.from !== undefined) { gym.rooms.set(e, { room: s.room, role: 'cower', homeX: s.x, runTo: s.x } as never); gOf(e)!.pose = 'flee'; }
+    else gym.rooms.set(e, { room: s.room, role: s.role, homeX: s.x });
     gym.holes.push({ x: d.x, until: state.frame + 240 });
     for (let k = 0; k < 14; k++) state.particles.push({ pos: { x: d.x + (Math.random() - 0.5) * 50, y: CEIL_Y }, vel: { x: (Math.random() - 0.5) * 3, y: 1 + Math.random() * 3 }, life: 50 + Math.random() * 30, color: k % 3 ? '#8A8473' : '#B8B2A0', size: 2 + Math.random() * 5 });
     playSound('crack', 0.5, 2);

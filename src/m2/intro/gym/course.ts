@@ -10,7 +10,9 @@
 //             kettlebell rack before it: slide into it and they go rolling down under the duct like bowling balls.
 //   uppercut  two up on the tall storage shelves, out of reach; the cable machine with one hiding behind its stack
 //             (uppercut it: the weights go up the rods, and come down).
-//   divekick  up the plyo boxes to the mezzanine, then off the edge onto the four huddled below; the bench at the end
+//   divekick  up the plyo boxes to the mezzanine, and on off its end onto the renovation's scaffold, four G-men
+//             huddled under it and a plywood partition past it up to the ceiling: the only way on is a dive kick down
+//             through its boards, and it all comes down on them (the user's: a forced dive kick). The bench past it
 //             (dive kick its bar end: the plates go flying).
 //   mix       a bit of everything.
 //   ring      Meathead 1's ring: the two padded trainers, the grabs.
@@ -33,7 +35,8 @@ const R = (x: number) => X0 + x;
 export type Obstacle = 'tubs' | 'rack' | 'kbells' | 'cable' | 'bench';
 export interface ObstacleSpot { kind: Obstacle; x: number }
 export type Role = 'carry' | 'cower' | 'link' | 'crawl' | 'huddle' | 'perch' | 'hide';
-export interface Spawn { room: Room; role: Role; x: number; y?: number }
+/** `from`: where he drops in, if not where he ends up (he runs there: under the scaffold, from past it). */
+export interface Spawn { room: Room; role: Role; x: number; y?: number; from?: number }
 export interface Ledge { x: number; y: number; w: number; look: 'shelf' | 'step' }
 
 /** Where each room starts (its lesson comes up as he gets there), and where it ends. */
@@ -52,6 +55,9 @@ export const DUCT = { x1: R(2330), x2: R(2560), bottom: Y - 48 };
 /** The mezzanine (up the plyo boxes), and its edge. */
 export const MEZZ_Y = Y - 200;
 export const MEZZ = { x1: R(3600), x2: R(3820) };
+/** The scaffold off the mezzanine's end: its deck (stood on, broken only by a dive kick), the plywood partition hung
+ *  off the ceiling down to it at its far end (wallX..x2: the way on's down through it, not over). */
+export const SCAF = { x1: MEZZ.x2, x2: R(4060), wallX: R(4000), deck: Y - 140 };
 
 export const LEDGES: Ledge[] = [
   { x: R(2880), y: Y - 120, w: 130, look: 'shelf' },
@@ -65,7 +71,7 @@ export const OBSTACLES: ObstacleSpot[] = [
   { kind: 'rack', x: R(1930) },
   { kind: 'kbells', x: R(2210) },
   { kind: 'cable', x: R(3360) },
-  { kind: 'bench', x: R(4120) },
+  { kind: 'bench', x: R(4180) },
   { kind: 'tubs', x: R(4420) },
   { kind: 'rack', x: R(4800) },
 ];
@@ -79,8 +85,10 @@ export const SPAWNS: Spawn[] = [
   { room: 'slide', role: 'crawl', x: R(2600) }, { room: 'slide', role: 'crawl', x: R(2650) }, { room: 'slide', role: 'crawl', x: R(2700) },
   { room: 'uppercut', role: 'perch', x: R(2945), y: Y - 120 }, { room: 'uppercut', role: 'perch', x: R(3175), y: Y - 150 },
   { room: 'uppercut', role: 'hide', x: R(3405) },
-  { room: 'divekick', role: 'huddle', x: R(3870) }, { room: 'divekick', role: 'huddle', x: R(3905) }, { room: 'divekick', role: 'huddle', x: R(3940) }, { room: 'divekick', role: 'huddle', x: R(3975) },
-  { room: 'divekick', role: 'huddle', x: R(4170) },
+  // (down past the scaffold, and in under it)
+  { room: 'divekick', role: 'huddle', x: R(3870), from: R(4090) }, { room: 'divekick', role: 'huddle', x: R(3905), from: R(4090) },
+  { room: 'divekick', role: 'huddle', x: R(3940), from: R(4090) }, { room: 'divekick', role: 'huddle', x: R(3975), from: R(4090) },
+  { room: 'divekick', role: 'huddle', x: R(4250) },
   { room: 'mix', role: 'carry', x: R(4350) }, { room: 'mix', role: 'cower', x: R(4470) }, { room: 'mix', role: 'perch', x: R(4625), y: Y - 120 }, { room: 'mix', role: 'huddle', x: R(4760) },
 ];
 
