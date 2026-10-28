@@ -459,7 +459,7 @@ const steve = (ctx: FrameContext, f: Fight) => {
   if (f.zapT > 0) {
     // (being dragged: zap doesn't interrupt — only killing him does)
     if (f.act !== 'yank' && f.act !== 'towed') {
-      if (f.act !== 'zapped') { setAct(f, 'zapped'); }
+      if (f.act !== 'zapped') { if (f.tow) dropTow(f); setAct(f, 'zapped'); }
       if (--f.zapT === 0) setAct(f, 'smoking');
       f.sz += (0 - f.sz) * 0.2;
       return;
@@ -614,11 +614,11 @@ const takeHits = (ctx: FrameContext, f: Fight) => {
   // (the user's: "i don't want the player to be given more than 5 uninterrupted seconds spamming the same attack on a
   // boss": the same hit landing on him for 4 s. On top of him (a dive-kick chain, the charge): his arms going, a shove
   // off him (no hurt) and the tow called there and then; shot at from down the stage: a car at him now)
-  if (f.zapT <= 0 && f.act !== 'zapped' && f.act !== 'smoking' && spamTick(f.spam, state.frame, hitKey(state.player, melee))) {
+  if (f.zapT <= 0 && f.act !== 'zapped' && f.act !== 'smoking' && f.act !== 'yank' && f.act !== 'towed' && f.act !== 'call' && spamTick(f.spam, state.frame, hitKey(state.player, melee))) {
     const m = pmid(state);
     if (melee || Math.abs(m.x - f.sx) < TOW_NEAR) {
       swatOff(state, f.sx);
-      if (!f.tow && f.act !== 'towed' && f.act !== 'yank') callTow(ctx, f); else { setAct(f, 'flail'); bark(f, L.STEVE_FLAIL); }
+      if (!f.tow) callTow(ctx, f); else { setAct(f, 'flail'); bark(f, L.STEVE_FLAIL); }
     } else {
       f.pushAt = f.total;
       spawnRed(state, f, doorOf(f.side, Math.random() < 0.4), (-f.side) as 1 | -1, 'drift');
@@ -640,6 +640,8 @@ const hurt = (ctx: FrameContext, f: Fight, dmg: number, iframes: number) => {
 /** The book's storm on him: the lightning (stunned, struck, the pyro off), or a meteor's or comet's splash off a car. */
 const struck = (ctx: FrameContext, f: Fight, el: 'meteor' | 'comet' | 'bolt') => {
   if (el !== 'bolt') { if (f.iframes <= 0) hurt(ctx, f, el === 'meteor' ? METEOR_SPLASH : COMET_SPLASH, IFRAMES); if (f.hp <= 0) die(ctx, f, false); return; }
+  // (on the rope: a bolt's plain damage, no stun, no pyro; only killing him gets him off it)
+  if (f.act === 'yank' || f.act === 'towed') { if (f.iframes <= 0) hurt(ctx, f, ZAP_FIRST, IFRAMES); if (f.hp <= 0) die(ctx, f, true); return; }
   const first = f.zapT <= 0 && f.act !== 'zapped';
   f.zapT = ZAP_HOLD;
   const dmg = first ? ZAP_FIRST : ZAP_EACH;
@@ -682,7 +684,7 @@ const pyro = (ctx: FrameContext, f: Fight) => {
 const thrownHit = (ctx: FrameContext, f: Fight) => {
   if (f.mode !== 'on') return;
   hurt(ctx, f, THROWN_DMG, IFRAMES);
-  if (f.tow) dropTow(f);
+  if (f.tow && f.act !== 'yank' && f.act !== 'towed') dropTow(f);
   if (quiet(f)) steveLine(f, L.STEVE_CAR_HIT);
   f.hype = 1;
   if (f.hp <= 0) die(ctx, f, false);

@@ -259,7 +259,7 @@ export const updateRamps = (state: GameState, g: Garage, aimX: number) => {
 /** Blown up (a head-on, a meteor, thrown, landed on him): a fireball, and a burning wreck where it comes down. */
 export const boom = (ctx: FrameContext, g: Garage, car: Car) => {
   const { state, fx } = ctx;
-  if (car.mode === 'wreck' || car.mode === 'gone') return;
+  if (car.mode === 'wreck' || car.mode === 'gone' || car.mode === 'tow') return;
   const at = { x: car.x, y: car.y + car.z * 0.45 - CAR.BODY };
   fx.spawnExplosion(at, '#F97316', 40, 0, 24); fx.spawnExplosion(at, '#FDE047', 24, 0, 16); fx.spawnExplosion(at, '#57534E', 20, 0, 22);
   for (let i = 0; i < 10; i++) state.particles.push({ pos: { x: car.x + (Math.random() - 0.5) * 80, y: at.y }, vel: { x: (Math.random() - 0.5) * 9, y: -3 - Math.random() * 7 }, life: 40 + Math.random() * 30, color: car.color === 'red' ? '#DC2626' : '#2563EB', size: 3 + Math.random() * 4, grav: 0.35, chunk: true });
@@ -269,7 +269,7 @@ export const boom = (ctx: FrameContext, g: Garage, car: Car) => {
 };
 /** Frozen solid (a comet): stopped dead, in the air too; a beat later, shattered. */
 export const freeze = (ctx: FrameContext, _g: Garage, car: Car) => {
-  if (car.mode === 'wreck' || car.mode === 'gone' || car.mode === 'frozen') return;
+  if (car.mode === 'wreck' || car.mode === 'gone' || car.mode === 'frozen' || car.mode === 'tow') return;
   car.mode = 'frozen'; car.t = 0; car.ice = 1; car.vx = 0; car.vy = 0; car.speed = 0;
   playSound('ice', 1, -4); playSound('crack', 0.7, 2);
 };
@@ -287,6 +287,7 @@ const shatter = (ctx: FrameContext, g: Garage, car: Car) => {
 };
 /** Into the end wall: crumpled; him on its roof, hurt and thrown back off it. */
 const crash = (ctx: FrameContext, g: Garage, car: Car) => {
+  if (car.mode === 'tow') return;
   const { state } = ctx, { hx } = extents(car.yaw);
   car.x = car.dir > 0 ? ARENA_R - hx : ARENA_L + hx;
   playSound('crash', 1, -4); playSound('slam', 0.8, -6); shakeScreen(state, 14, 7);
