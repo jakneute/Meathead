@@ -15,6 +15,8 @@
     "release:web:m1": "node tools/release/build.mjs web m1",
     "release:web:m2": "node tools/release/build.mjs web m2",
     "release:steam": "vite build --mode steam && node tools/steam/package.mjs",
+    "release:linux": "vite build --mode steam && node tools/linux/package-m1.mjs",
+    "release:linux:m2": "node tools/release/build.mjs m2 && node tools/linux/package-m2.mjs",
     "icon": "node tools/icon/make.mjs",
     "voices": "node tools/voices/run.cjs",
     "voices:m2": "node node_modules/esbuild/bin/esbuild tools/voices/m2pack.ts --bundle --platform=node --format=cjs --outfile=tools/voices/.m2pack.cjs --log-level=error --loader:.bin=empty --loader:.png=dataurl && node tools/voices/.m2pack.cjs",

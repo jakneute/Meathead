@@ -1,0 +1,9 @@
+{
+  "name": "meathead2",
+  "productName": "Meathead 2",
+  "version": "1.0.0",
+  "description": "Meathead 2: Meathead Goes to Happy Land",
+  "author": "John Albright",
+  "private": true,
+  "main": "main-m2.cjs"
+}

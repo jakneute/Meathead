@@ -90,6 +90,8 @@ npm run release:m2       # builds release-m2/Meathead2.html + Meathead2-cheats.h
 npm run release:web:m1   # itch.io folder: release-m1/web/
 npm run release:web:m2   # itch.io folder: release-m2/web/
 npm run release:steam    # Meathead 1 desktop app for Steam: release-m1/steam/Meathead.exe
+npm run release:linux    # Meathead 1 Linux desktop app (Steam Machine): release-m1/linux/
+npm run release:linux:m2 # Meathead 2 Linux desktop app (Steam Machine): release-m2/linux/
 npx tsc --noEmit -p .    # type-check (clean before committing)
 ```
 

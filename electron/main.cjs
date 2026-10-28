@@ -9,6 +9,9 @@ const path = require('path');
 const fs = require('fs');
 const steam = require('./steam.cjs');
 
+// (Steam Machine / Steam Deck: the sandbox is blocked on read-only filesystems)
+if (process.platform === 'linux') app.commandLine.appendSwitch('no-sandbox');
+
 app.setName('Meathead');
 // (one copy running at a time: two writing the same save files would trample each other)
 if (!app.requestSingleInstanceLock()) { app.quit(); process.exit(0); }
