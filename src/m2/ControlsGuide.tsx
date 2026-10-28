@@ -106,9 +106,9 @@ const MOVES_R: Section[] = [
     { label: 'DIVE KICK (IN THE AIR)', pad: [c('+', 'DPAD_DOWN', 'B')], kb: [c('+', '@down', '@special'), one('@downSpecial')] },
   ] },
   { head: 'GRABS', rows: [
-    { label: 'BEATDOWN', pad: [c('+', 'Y', 'B')], kb: [one('@@beatdown')] },
+    { label: 'BEATDOWN (BOTH BARS)', pad: [c('+', 'Y', 'B')], kb: [one('@@beatdown')] },
     { label: 'SHAKEDOWN', pad: [c('+', 'Y', 'X')], kb: [one('@@shakedown')] },
-    { label: 'AIR GRAB', pad: [c('+', 'A', 'B')], kb: [one('@@airGrab')] },
+    { label: 'AIR GRAB (BOTH BARS)', pad: [c('+', 'A', 'B')], kb: [one('@@airGrab')] },
   ] },
 ];
 
