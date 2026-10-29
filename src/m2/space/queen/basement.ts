@@ -524,7 +524,8 @@ const forceGo = (state: GameState, h: Hunter) => {
  *  "very shortly after that jump in front of you"): her silhouette over the near pipes, fast, his way; then down out of
  *  the ceiling in front of him at x (kept on the screen: the drop's seen; she's out of nowhere only off it), on level
  *  lvl, slow, peeking about (peekPath). `forced`: a stretch's go (committed to it). */
-const FRONT_PASS = 50, FRONT_DROP = FRONT_PASS + 14, FRONT_IN = 150;
+// (the playtest: 50 and 14 wanted "ninja reaction times": slowed a fair way)
+const FRONT_PASS = 95, FRONT_DROP = FRONT_PASS + 40, FRONT_IN = 150;
 const frontGo = (state: GameState, h: Hunter, x: number, lvl: 0 | 1, forced: boolean) => {
   const cx = pmid(state), ahead = (Math.sign(x - cx) || 1) as 1 | -1, camL = state.camera.x;
   h.fake = null; h.rattle = null; h.path = []; h.leg = 0; h.sniff = 0; h.leaving = false; h.huntOnDrop = false;
