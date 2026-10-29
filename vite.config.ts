@@ -32,6 +32,9 @@ export default defineConfig(({ mode }) => ({
   server: {
     port: 3000,
     host: '0.0.0.0',
+    // (not the built games, the desktop apps' thousands of files, the scratch builds, the test output: watching those
+    // stalled the dev server's start for minutes)
+    watch: { ignored: ['**/release-m1/**', '**/release-m2/**', '**/.build/**', '**/.steam-build*/**', '**/.linux-build*/**', '**/tools/**/out/**', '**/tools/voices/**', '**/promo/**', '**/close/**', '**/Fun Stuff/**'] },
   },
   // (the dev server's dependency scan: just the two games' pages, never the built ones in release-m1/ and release-m2/
   // (100+ MB each), which it would otherwise crawl for minutes whenever its cache is stale)
