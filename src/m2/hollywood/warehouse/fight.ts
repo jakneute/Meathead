@@ -56,6 +56,8 @@ export const CRUSH = 6;
 const capOf = (killed: number) => Math.min(9, 4 + Math.floor(killed / 2));
 /** The least gap between two of them getting on him (frames): staggered, not a swarm in one frame. */
 const LATCH_GAP = 14;
+/** How often a drop comes down right on him (its shadow the warning) once a couple are dead. */
+const AIMED_DROP = 0.4;
 /** Thrown off by a move or a wall: how long before that one can get back on him (frames). */
 const OFF_FOR = 120;
 /** A shot knocks one loose at most this often (frames): no keeping them off just stood there firing. */
@@ -410,7 +412,9 @@ export const updateFight = (ctx: FrameContext): Controls | null => {
   if (F.spawnT > 0) F.spawnT--;
   const up = F.actors.filter(a => a.e).length + F.arrivals.length;
   if (alive && F.next < F.order.length && up < capOf(F.killed) && F.arrivals.length < 2 && (F.spawnT <= 0 || up === 0)) {
-    F.arrivals.push({ i: F.order[F.next++], mode: Math.random() < 0.7 ? 'drop' : 'wire', x: spawnX(state), y: 0, vy: 0, t: 0 });
+    // (now and then one drops right where he's stood (its shadow the warning): no standing in one spot all fight)
+    const mode = Math.random() < 0.7 ? 'drop' : 'wire', onHimX = mode === 'drop' && F.killed >= 2 && Math.random() < AIMED_DROP;
+    F.arrivals.push({ i: F.order[F.next++], mode, x: onHimX ? clampX(p.pos.x + p.width / 2) : spawnX(state), y: 0, vy: 0, t: 0 });
     F.spawnT = 48 + Math.floor(Math.random() * 42);
   }
   // All of them dead

@@ -1,7 +1,8 @@
 // THE ENSEMBLE CAST: the Revengers, thirty of them on the books (legally distinct parodies: an A-lister in each legally
 // distinct costume), every one distinct (the costume, the build, the hair, the skin, a gender mix), modestly detailed.
 // The joke (the user's): they've played superheroes so long they think they ARE superheroes; they're just people in
-// costumes. No powers, no moves of their own (the user's playtest notes): they come at him and DOGPILE him, latching on
+// costumes. No powers, no moves of their own (the user's playtest notes): they come at him (each their own way: hopping,
+// flipping over him, feinting; see actorAI) and DOGPILE him, latching on
 // like cockroaches (fight.ts: legs, back, head, a growing pile; every one on him slows him; enough of them and he's
 // down under it, dead). They're heavy to shove (hard to push about), and they die like the ordinary people they are:
 // they fall over dead where they stand, bloodied, and stay there. Never gibbed, whatever the weapon (but the flintlock
@@ -83,18 +84,43 @@ export const ACTOR_KIND = 'm2:hww_actor' as const;
 const castOf = (e: Enemy) => CAST[e.variant ?? 0] ?? CAST[0];
 
 // ---------------------------------------------------------------------------------------------------------------
-// How they fight: no moves. At him (quicker the lighter they are), a hop up at him if he's up off the floor over them;
-// touching him, they're on him (fight.ts does the latching, the pile and the shaking off).
+// How they fight: no moves of their own but getting on him, and each comes at him their own way (the user's: "make it
+// so many jump around. vary their movements. try to get me to move"), so stood still firing one way doesn't hold them:
+//   WALK   the big ones: a steady plod (they soak the shots)
+//   HOP    bounding at him in arcs, over his shots, onto him
+//   FLIP   the acrobats: in fast, then a flip clean over his head, down behind him, and at his back
+//   FEINT  in, a stop, a step back (his shots wasted), then a sprint at him; now and then a hop instead
+// A hop up at him if he's up off the floor over them, whoever; touching him, they're on him (fight.ts does the
+// latching, the pile and the shaking off).
 
 const can = (state: GameState) => state.player.health > 0 && !holdingOff(state) && !state.player.inCutscene && !state.player.carried;
 /** How quick they come (px a frame). */
 export const actorSpeed = (i: number) => (CAST[i]?.speed ?? 1.3) * 1.55;
+type Style = 'walk' | 'hop' | 'flip' | 'feint';
+/** Each one's way of coming at him, by who they are. */
+const styleOf = (i: number): Style => {
+  const a = CAST[i];
+  if (!a || a.look?.heavy) return 'walk';
+  if (a.speed >= 1.6) return 'flip';
+  return i % 2 ? 'hop' : 'feint';
+};
+/** The jumps: a hop (up, along at most), the flip over him (up, along), the wait between them (frames, + a random bit). */
+const HOP = { VY: -11.5, VX: 6.5, CD: 44, RAND: 30, FROM: 90, TO: 360 };
+const FLIP = { VY: -13.5, VX: 7.5, CD: 80, AT: 230 };
+/** The feint: how far off it stops, how long it holds, how long it backs off, the sprint's speed (x their walk). */
+const FEINT = { AT: 230, HOLD: 22, BACK: 24, SPRINT: 2.1 };
+const onFloor = (e: Enemy) => Math.abs(e.vel.y) < 0.01;
 
 const actorAI = (ctx: FrameContext, e: Enemy) => {
   const { state } = ctx, p = mid(state.player), m = mid(e), dx = p.x - m.x, dy = p.y - m.y;
   tick(e);
   e.leapCd = Math.max(0, (e.leapCd ?? 0) - 1);
   if (e.health <= 0) { e.vel.x = 0; return false; }
+  const i = e.variant ?? 0, style = styleOf(i), sp = actorSpeed(i), toward = (dx < 0 ? -1 : 1) as 1 | -1;
+  const jump = (vy: number, vx: number, cd: number) => {
+    e.vel.y = vy; e.vel.x = vx; e.leapCd = cd; setState(e, 'air');
+    playSound('jump', 0.4, 2 + (i % 5));
+  };
   switch (e.aiState) {
     // The hero landing (down on one knee, a fist on the floor: the beat after they come down)
     case 'land':
@@ -104,14 +130,42 @@ const actorAI = (ctx: FrameContext, e: Enemy) => {
     default:
       setState(e, 'approach');
       break;
+    // Up in a jump: carried along it (no steering) till they're down
+    case 'air':
+      if (e.aiTimer > 4 && onFloor(e)) { setState(e, 'approach'); e.facing = toward; }
+      break;
+    // The feint: stopped, then backing off, then the sprint in
+    case 'hold':
+      e.vel.x = 0; e.facing = toward;
+      if (e.aiTimer > FEINT.HOLD) setState(e, 'back');
+      break;
+    case 'back':
+      e.facing = toward;
+      e.vel.x = safeAhead(ctx, e, (-toward) as 1 | -1) ? -toward * sp * 0.8 : 0;
+      if (e.aiTimer > FEINT.BACK) setState(e, 'sprint');
+      break;
+    case 'sprint':
+      e.facing = toward;
+      e.vel.x = safeAhead(ctx, e, toward) ? toward * sp * FEINT.SPRINT : 0;
+      if (e.aiTimer > 90) setState(e, 'approach');
+      break;
     case 'approach': {
       if (!can(state)) { e.vel.x = 0; break; }
-      e.facing = (dx < 0 ? -1 : 1) as 1 | -1;
-      e.vel.x = Math.abs(dx) > 4 && safeAhead(ctx, e, e.facing) ? e.facing * actorSpeed(e.variant ?? 0) : 0;
+      e.facing = toward;
+      e.vel.x = Math.abs(dx) > 4 && safeAhead(ctx, e, e.facing) ? e.facing * sp * (style === 'walk' ? 0.85 : 1) : 0;
+      const ready = (e.leapCd ?? 0) <= 0 && onFloor(e), ax = Math.abs(dx);
       // (he's up off the floor over them: a hop up at him, arms out)
-      if ((e.leapCd ?? 0) <= 0 && dy < -46 && Math.abs(dx) < 130) {
-        e.vel.y = -10.5; e.vel.x = Math.max(-5, Math.min(5, dx / 18)); e.leapCd = 46;
-        playSound('jump', 0.4, 2 + ((e.variant ?? 0) % 5));
+      if (ready && dy < -46 && ax < 130) { jump(-10.5, Math.max(-5, Math.min(5, dx / 18)), 46); break; }
+      if (!ready) break;
+      if (style === 'hop' && ax > HOP.FROM && ax < HOP.TO) {
+        // (an arc that comes down on him: over a shot at his chest)
+        jump(HOP.VY, toward * Math.min(HOP.VX, ax / 36), HOP.CD + Math.floor(Math.random() * HOP.RAND));
+      } else if (style === 'flip' && ax < FLIP.AT && ax > 60) {
+        // (clean over his head, down behind him: then they turn and come at his back)
+        jump(FLIP.VY, toward * FLIP.VX, FLIP.CD + Math.floor(Math.random() * 30));
+      } else if (style === 'feint' && ax < FEINT.AT && ax > 120) {
+        if (Math.random() < 0.35) jump(HOP.VY, toward * Math.min(HOP.VX, ax / 36), HOP.CD + 40);
+        else { setState(e, 'hold'); e.leapCd = 150; }
       }
       break;
     }
