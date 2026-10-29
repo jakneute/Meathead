@@ -528,7 +528,8 @@ const fumes = (ctx: FrameContext, co: Coaster) => {
 const BREACH_T = 75;
 const caseShots = (ctx: FrameContext, co: Coaster) => {
   const { state } = ctx, p = state.player, s = STOPS[2];
-  const x0 = X(s.shrine.x), x1 = x0 + s.shrine.w, y1 = Y(s.h) - s.shrine.h + 72, y0 = y1 - 74, cx = (x0 + x1) / 2, cy = y1 - 36;
+  // (the whole of it, case and base: a shot from the deck comes in at the base's height; and a little round it)
+  const x0 = X(s.shrine.x) - 6, x1 = X(s.shrine.x) + s.shrine.w + 6, y0 = Y(s.h) - s.shrine.h - 6, y1 = Y(s.h), cx = (x0 + x1) / 2, cy = Y(s.h) - s.shrine.h + 36;
   // (back at the checkpoint after it: the case whole again)
   if (co.breach > BREACH_T && p.health > 0 && state.deathTimer <= 0) { co.breach = -1; co.caseDmg = 0; }
   if (co.breach >= 0) {
@@ -543,7 +544,10 @@ const caseShots = (ctx: FrameContext, co: Coaster) => {
   if (Math.abs(p.pos.x - x0) > 1400) return;
   for (const pr of state.projectiles) {
     if (pr.owner !== 'player' || co.caseSeen.has(pr)) continue;
-    if (pr.pos.x + pr.width < x0 || pr.pos.x > x1 || pr.pos.y + pr.height < y0 || pr.pos.y > y1) continue;
+    // (where it is and where it's going this frame: a fast shot's stopped by the case's block before it's ever inside it)
+    const ax = Math.min(pr.pos.x, pr.pos.x + pr.vel.x * 1.5), bx = Math.max(pr.pos.x, pr.pos.x + pr.vel.x * 1.5) + pr.width;
+    const ay = Math.min(pr.pos.y, pr.pos.y + pr.vel.y * 1.5), by = Math.max(pr.pos.y, pr.pos.y + pr.vel.y * 1.5) + pr.height;
+    if (bx < x0 || ax > x1 || by < y0 || ay > y1) continue;
     co.caseSeen.add(pr); co.caseDmg += pr.damage > 0 ? pr.damage : BULLET_DAMAGE; pr.health = 0;
     const hx = Math.max(x0, Math.min(x1, pr.pos.x + pr.width / 2)), hy = Math.max(y0, Math.min(y1, pr.pos.y + pr.height / 2));
     for (let i = 0; i < 5; i++) state.particles.push({ pos: { x: hx, y: hy }, vel: { x: (Math.random() - 0.5) * 5, y: -1 - Math.random() * 3 }, life: 24, color: i % 2 ? '#E0F2FE' : '#BEF264', size: 2 + Math.random() * 2, grav: 0.3 });
