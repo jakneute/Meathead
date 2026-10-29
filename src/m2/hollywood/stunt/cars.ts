@@ -47,12 +47,15 @@ export const RED = { V: 10.5, ENTER_T: 44, DRIFT_AT: 205, DECAY: 0.955, DRIFT_T:
 export const BLUE = { V: 9, VX: 8.5, VY: -12.5, G: 0.42 };
 /** The ramps: how long (along the floor), the lip's height, how fast they creep after him. */
 export const RAMP = { LEN: 130, H: 52, V: 3.2 };
-/** What a car does to him: hurt (before the land's softening), and the launch (along, up). */
+/** What a car does to him: hurt (before the land's softening), and the launch (along, up). (The user's: "reduce the
+ *  knockback of steve's cars": about 30% less than the first pass's 15/-14, 12/-11, 12/-15, 10/-12, and a drift's
+ *  share of the car's speed 0.3 to 0.2.) */
 export const HIT = {
-  HEADON: { dmg: 10, vx: 15, vy: -14 },
-  DRIFT: { dmg: 6, vx: 12, vy: -11 },
-  LAND: { dmg: 10, vx: 12, vy: -15 },
-  WALL: { dmg: 8, vx: 10, vy: -12 },
+  HEADON: { dmg: 10, vx: 10.5, vy: -10 },
+  DRIFT: { dmg: 6, vx: 8.5, vy: -8 },
+  LAND: { dmg: 10, vx: 8.5, vy: -10.5 },
+  WALL: { dmg: 8, vx: 7, vy: -8.5 },
+  DRIFT_SPEED: 0.2,
 };
 /** A launch: the drag on it a frame; no other car gets him this long into one (no pinball). */
 const LAUNCH_DRAG = 0.992, LAUNCH_SAFE = 14;
@@ -346,7 +349,7 @@ const contact = (ctx: FrameContext, g: Garage, car: Car) => {
   // off it)
   car.hit = true;
   const way = moving ? car.dir : away;
-  launchHim(ctx, g, way * (HIT.DRIFT.vx + car.speed * 0.3), HIT.DRIFT.vy, HIT.DRIFT.dmg, car.color === 'blue' ? 'm2:stunt_landing' : 'm2:stunt_drift');
+  launchHim(ctx, g, way * (HIT.DRIFT.vx + car.speed * HIT.DRIFT_SPEED), HIT.DRIFT.vy, HIT.DRIFT.dmg, car.color === 'blue' ? 'm2:stunt_landing' : 'm2:stunt_drift');
 };
 
 export const updateCars = (ctx: FrameContext, g: Garage) => {

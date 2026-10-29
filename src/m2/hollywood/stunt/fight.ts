@@ -1330,6 +1330,32 @@ export const drawFightHud = (c: Ctx, f: Fight, band: { x1: number; x2: number; m
   // (in tenths, like Tucker's (the user's: "make sure they are all segmented"))
   for (let i = 1; i < 10; i++) box(c, Math.round(band.x1 + 2 + ((w - 4) * i) / 10), 24, 1, 10, '#18181B');
   label(c, 'STUNTMAN STEVE', band.mid, 50, '#FDE047', 7);
+  drawCarWarnings(c, f);
+};
+
+/** The cars on their way that are off the screen (the user's: "give a warning when one offscreen is coming"): a
+ *  flashing arrow at that edge, at its height, in its color; quicker the nearer it is. */
+const COMING: ReadonlySet<Car['mode']> = new Set(['enter', 'run', 'drift', 'orbit', 'approach', 'climb', 'air']);
+const drawCarWarnings = (c: Ctx, f: Fight) => {
+  const s = game;
+  if (!s) return;
+  const camX = s.camera.x, camY = s.camera.y, fr = s.frame;
+  for (const car of f.cars) {
+    if (car.scripted || !COMING.has(car.mode)) continue;
+    const sx = car.x - camX, half = CAR.L / 2;
+    const side = sx + half < 0 ? -1 : sx - half > CANVAS_WIDTH ? 1 : 0;
+    // (on the screen already, or going away from it)
+    if (!side || car.dir === side) continue;
+    const off = side < 0 ? -(sx + half) : sx - half - CANVAS_WIDTH;
+    const every = off < 250 ? 4 : off < 600 ? 7 : 11;
+    if (Math.floor(fr / every) % 2) continue;
+    const x = side < 0 ? 6 : CANVAS_WIDTH - 6, y = Math.max(70, Math.min(CANVAS_HEIGHT - 40, car.y + car.z * ZK - camY - 30));
+    const col = car.color === 'red' ? '#EF4444' : car.color === 'blue' ? '#3B82F6' : '#FACC15';
+    c.beginPath(); c.moveTo(x, y); c.lineTo(x - side * 20, y - 13); c.lineTo(x - side * 20, y + 13); c.closePath();
+    c.fillStyle = '#000'; c.fill(); c.strokeStyle = '#000'; c.lineWidth = 4; c.stroke();
+    c.fillStyle = col; c.fill();
+    c.fillStyle = '#FFF'; c.fillRect(x - side * 13 - 1, y - 6, 2, 7); c.fillRect(x - side * 13 - 1, y + 3, 2, 2);
+  }
 };
 
 /** For the jumbotron: the replay while it's on; OUCH when he's hit. */
