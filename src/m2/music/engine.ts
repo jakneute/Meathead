@@ -536,6 +536,10 @@ export const stop = (fade = FADE_OUT) => {
   for (const q of live) fadeOut(q, fade);
 };
 
+// (the dev server swapping this file in fresh on an edit: the old copy's song out and its scheduler stopped, so it's
+// never left playing under the new copy's)
+if (import.meta.hot) import.meta.hot.dispose(() => { stop(0.2); if (timer) clearInterval(timer); timer = null; });
+
 /** What's playing (its id and arrangement), or null. */
 export const nowPlaying = () => (current ? { id: current.id, arr: current.arrangement, done: current.done } : null);
 

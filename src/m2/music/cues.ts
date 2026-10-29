@@ -564,3 +564,6 @@ const start = () => {
   setTimeout(() => { for (const id of ['title', 'hub', 'intro', 'staff', 'jingle:death', 'jingle:victory']) if (SONGS[id]) prewarm(SONGS[id]); prewarmRooms(); }, 2500);
   timer = setInterval(() => { try { apply(); } catch (err) { console.error('music', err); } }, 100);
 };
+// (the dev server swapping this file in fresh on an edit: the old copy's loop stopped, or it goes on asking for the
+// song of wherever he was when it was swapped (the user's: the parking lot's music on at the hub))
+if (import.meta.hot) import.meta.hot.dispose(() => { if (timer) clearInterval(timer); timer = null; });
