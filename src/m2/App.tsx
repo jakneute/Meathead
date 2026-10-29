@@ -20,7 +20,7 @@ import { drawM2DeathMessage, prewarmDeathText } from './deathText';
 import { installCanvasSafety } from './canvasSafety';
 import { setDropTable } from '../m1/game/core/effects';
 import { M2_GUT_LINES, M2_GUT_DEATH } from './lines/gutLines';
-import { createFullAmmo, maxAmmo, INITIAL_PLAYER_HEALTH, enemyMeleeDamage, WHEEL_COOLDOWN_MS, HUD_CLEAR_X, CANVAS_WIDTH as VIEW_W } from '../m1/constants';
+import { createFullAmmo, maxAmmo, INITIAL_PLAYER_HEALTH, enemyMeleeDamage, WHEEL_COOLDOWN_MS, HUD_CLEAR_Y } from '../m1/constants';
 import { getActiveGamepad, isButtonPressed, GP_BUTTONS, getGamepadMovement, menuButtons } from '../m1/game/platform/gamepad';
 import { hasRightStick } from '../m1/game/platform/device';
 import WeaponWheel, { wheelIndexAt } from '../m1/components/WeaponWheel';
@@ -693,12 +693,13 @@ const App2: React.FC = () => {
             {!nearLand && !ui.nearExit && !ui.nearAmerica && ui.near === STAFF_SLOT && <div className="mt-1 text-center text-[#FDE047] whitespace-nowrap">PRACTICE YOUR KILLING HERE! UNLIMITED AMMO!</div>}
           </div>
         )}
-        {/* The staff room, a special weapon out (the user's: its controls up top, as the pause menu has them; small, out
-            of the way: centered over the room right of the HUD; the free ammo's said at the door, not here) */}
+        {/* The staff room, a special weapon out (the user's: its controls up top, as the pause menu has them, "a bit bigger
+            and more centered", noticed but off the fight plane: centered on the screen, just under the HUD's corner;
+            the free ammo's said at the door, not here) */}
         {status === GameStatus.PLAYING && ui.map === null && stage === PEN_STAGE && weapon !== 'GUN' && !!M2_WEAPON_INFO[weapon]?.controls?.length && (
-          <div className="absolute -translate-x-1/2 top-[8px] z-30 flex flex-col items-start gap-[2px] px-2 py-1 text-[6px] font-black tracking-wider text-zinc-200 bg-black/55 border border-zinc-700 pointer-events-none" style={{ left: `${(HUD_CLEAR_X + VIEW_W) / 2}px` }}>
-            <div className="self-center text-[7px] text-[#FDE047] mb-[1px]">{weaponName(weapon)}</div>
-            {M2_WEAPON_INFO[weapon]!.controls.map((k, i) => <ChordPrompt key={i} pad={k.pad} join={k.join ?? '+'} kb={k.kb} mouse={k.mouse} label={k.label} size={10} />)}
+          <div className="absolute left-1/2 -translate-x-1/2 z-30 flex flex-col items-start gap-[4px] px-3 py-2 text-[8px] font-black tracking-wider text-zinc-100 bg-black/60 border-2 border-zinc-600 pointer-events-none" style={{ top: `${HUD_CLEAR_Y + 8}px` }}>
+            <div className="self-center text-[9px] text-[#FDE047] mb-[2px]">{weaponName(weapon)}</div>
+            {M2_WEAPON_INFO[weapon]!.controls.map((k, i) => <ChordPrompt key={i} pad={k.pad} join={k.join ?? '+'} kb={k.kb} mouse={k.mouse} label={k.label} size={14} />)}
           </div>
         )}
         {/* What up does here, in a land (a lever to pull) */}
