@@ -974,11 +974,12 @@ const stepGrab = (ctx: FrameContext, g: Grab, controls: Controls): Controls => {
       if (g.airLock) out = g.diveOk && out.down && !p.isGrounded ? { ...out, charge: false } : { ...out, special: false, charge: false };
       if (!g.queued || !free) return out;
       const go = g.queued.want; g.queued = null;
-      // (the beatdown and the air grab take both bars, full: short of that, nothing (the shakedown's free))
+      // (the beatdown and the air grab take both bars, full: short of that, no grab, and the buttons pressed for it do
+      // what they do on their own (a jump, a charge, a shot): the user's)
       const costs = go === 'beat' || go === 'air';
       // (the user's: a critter grab's free: a beatdown at one in front of him goes whatever his bars)
-      const atCritter = go === 'beat' && isCritter(inReach(state, p.facing, 160));
-      if (costs && !atCritter && !ctx.cheats.infinitePower && p.power < POWER_CELLS - 1e-6) { if (y) g.yChord = true; notePowerShort(); return out; }
+      const ahead = go === 'beat' ? inReach(state, p.facing, 160) : null, atCritter = !!ahead && isCritter(ahead);
+      if (costs && !atCritter && !ctx.cheats.infinitePower && p.power < POWER_CELLS - 1e-6) { notePowerShort(); return controls; }
       if (costs && !atCritter && !ctx.cheats.infinitePower) { g.spent = true; p.power = 0; p.powerLocked = true; }
       if (touching) { p.pushbackTimer = 0; p.vel.x = 0; }
       if (y) g.yChord = true;
