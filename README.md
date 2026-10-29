@@ -66,15 +66,24 @@ The built HTML files aren't in git — build them first with `npm run release:m2
 
 The web folder (`release-m2/web/`) is the itch.io build (voice pack beside the page, not inside it).
 
-### Extra controls in Meathead 2
+### New controls in Meathead 2
+
+Everything from Meathead 1 works the same. Meathead 2 adds grabs, a park map and a weapon wheel. Keys can be remapped in OPTIONS.
 
 | Move | Keyboard + mouse | Controller |
 | --- | --- | --- |
-| Beatdown (pin, punch to heal) | R, then click to punch, Space to get off | Y + B, then X to punch, A to get off |
-| Shakedown (grab, shake out ammo, throw) | T | Y + X |
-| Grab a small critter and throw it | R or T on a critter | Y + B or Y + X |
-| Vines | jump into one; W/S to climb, A/D to pump | stick; A to let go |
-| Cheat panel | Pause → click CHEATS | Pause → X |
+| Beatdown: tackle him, get on top, every hit heals you | R | Y + B |
+| ↳ on top of him: punch / knee / headbutt | Left click / right click / F | X / B / Y |
+| ↳ jump off | Space | A |
+| Shakedown: up by the neck, shake the ammo out of him | T | Y + X |
+| ↳ throw him / slam him | Hold a direction / hold down | Hold a direction / hold down |
+| Air grab: leap up, grab one, drive him into the ground | Q | A + B |
+| ↳ backflip / dive on the way down | Hold back / hold forward | Hold back / hold forward |
+| Grab a small critter and throw it | R or T on a critter, then a direction | Y + B or Y + X on a critter, then a direction |
+| Park map | Tab or M | Select |
+| Weapon wheel | (mouse wheel / 1–9 to swap) | Right stick: push toward a weapon, let go to pick it |
+
+The beatdown and the air grab each take **both power cells, full**, and the cells don't start refilling until the grab is over (if it ends in the air, not until you land). Short of that, the cells blink red. The shakedown and critter grabs are free. Some enemies are too fat or too greasy to grab at all.
 
 ---
 
