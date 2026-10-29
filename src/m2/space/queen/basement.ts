@@ -254,6 +254,8 @@ export interface Hunter {
    *  that edge growing as she comes (`rush`). Which the next is; how long she's been seen on the ceiling this crawl (a
    *  front one doesn't drop till she has been). (His noise's ambush is its own, as it was.) */
   rush: boolean; nextBack: boolean; ceilSeen: number;
+  /** The back ambush's wind-up (frames of it so far; RUSH_WIND, she's sprinting) and the side she's coming from. */
+  rushT: number; rushSide: 1 | -1;
   /** A front ambush's tell (its length: the pass, then the drop); 0 otherwise. */
   frontT: number;
   /** This go's the back ambush's (lost him: she snoops about a good while before she goes). */
@@ -272,7 +274,7 @@ export const makeHunter = (state: GameState): Hunter => {
     wasGrounded: true, lastVy: 0, lastShoot: false, lastJump: false, lastMove: false, warned: false, freeMove: false, warnedAt: -9999, doom: false, lastCd: 0,
     cam: 0,
     win: WINDOWS.map(([a, b, force]) => ({ a, b, force, at: rnd(a, force), done: false })), forced: false, fx: 0, flvl: 0, committed: false, hidNear: false, goneAt: -9999,
-    chase: null, rush: false, nextBack: false, ceilSeen: 0, frontT: 0, wasRush: false,
+    chase: null, rush: false, nextBack: false, ceilSeen: 0, rushT: 0, rushSide: -1, frontT: 0, wasRush: false,
   };
 };
 export const buildHunter = (state: GameState, h: Hunter) => {
@@ -440,9 +442,10 @@ const ambush = (state: GameState, h: Hunter) => {
 };
 /** A stretch's go from BEHIND (the back ambush): how far back she bursts out, the least room it needs, her sprint's
  *  top speed (under her hunt's: a race he can read), and how near him a hiding spot has to be for it. */
-// (about 2.5 s from the bang behind him to her on him, stood still (the user's: "about the same 2 second reaction time
-// to hide" / "maybe a little more"): 1400 back at 9 a frame, after her wind up to speed)
-const RUSH_FROM = 1400, RUSH_MIN = 760, RUSH_TOP = 9, RUSH_COVER = 340;
+// (the user's: "5 seconds of increasing glowing intensity until it sprints on screen"): RUSH_WIND frames of her coming
+// (off the screen behind him, kept there, unseen: the red at that edge and her sounds swelling), then the sprint in
+// from just off it (RUSH_FROM) at RUSH_TOP
+const RUSH_WIND = 300, RUSH_FROM = CANVAS_WIDTH / 2 + 170, RUSH_MIN = CANVAS_WIDTH / 2 + 100, RUSH_TOP = 12, RUSH_COVER = 340;
 const rushGo = (state: GameState, h: Hunter) => {
   const cx = pmid(state), dir = (state.player.facing || 1) as 1 | -1, lv = plevel(state);
   const lvl: 0 | 1 = lv === 1 && catwalkAt(cx) ? 1 : 0, y = lvl ? CATWALK_Y : BF;
@@ -454,7 +457,7 @@ const rushGo = (state: GameState, h: Hunter) => {
   h.fake = null; h.fg = null; h.rattle = null; h.path = []; h.leg = 0; h.sniff = 0; h.leaving = false;
   h.out = 0; h.passedClose = false; h.hidNear = false; h.forced = false; h.committed = true;
   h.x = x; h.y = levelY(lvl, x); h.dir = x > cx ? -1 : 1; h.entry = 'duct';
-  to(h, 'hunt'); h.rush = true; h.wasRush = true; h.lastSeen = state.frame; h.lastX = cx;
+  to(h, 'hunt'); h.rush = true; h.wasRush = true; h.rushT = 0; h.rushSide = (x < cx ? -1 : 1); h.lastSeen = state.frame; h.lastX = cx;
   // (behind him in the dark: a grille banged out, her screech, and she's coming flat out)
   playSound('clang', 0.8, -6); playSound('screams', 0.9, -4); shakeScreen(state, 4, 2);
   return true;
@@ -850,6 +853,18 @@ const startLeap = (state: GameState, h: Hunter, then: Mode) => {
 const HUNT_TOP = 15.5;
 const hunting = (ctx: FrameContext, h: Hunter) => {
   const { state } = ctx, cx = pmid(state);
+  // (the back ambush coming: off the screen behind him, kept there, unseen, heard, her red at that edge swelling;
+  // hidden or not, then she's in)
+  if (h.rush && h.rushT < RUSH_WIND) {
+    h.rushT++;
+    const k = h.rushT / RUSH_WIND, every = Math.round(40 - k * 34);
+    h.x = clampLvl(h, cx + h.rushSide * RUSH_FROM); h.y = levelY(h.lvl, h.x); h.dir = (-h.rushSide) as 1 | -1;
+    h.t = 0; h.lastSeen = state.frame; h.lastX = cx;
+    if (h.rushT % every === 0) { playSound('click', 0.15 + k * 0.6, 2 + k * 8); if (k > 0.35) playSound('thud', 0.1 + k * 0.5, -14 + k * 4); }
+    if (k > 0.7 && h.rushT % 50 === 0) screech(state, 0.3 + k * 0.5, -6, 40);
+    if (h.rushT === RUSH_WIND) { playSound('screams', 0.95, -2); playSound('roar', 0.6, -6); }
+    return;
+  }
   if (h.hid >= 0 && h.hidT >= 0) { to(h, 'search'); h.path = [{ x: clampLvl(h, cx), stop: 140 }]; h.speed = 2; return; }
   const lv = plevel(state);
   const same = Math.abs(pfeet(state) - h.y) < 70;
@@ -1492,7 +1507,9 @@ const drawEdgeHint = (c: Ctx, state: GameState, h: Hunter) => {
     const side = Math.max(0, Math.min(1, (o + 20) / 80)), near = Math.max(0, Math.min(1, 1 - Math.max(0, o) / 700));
     if (come) { const v = side * (0.35 + 0.65 * near); if (sx < CANVAS_WIDTH / 2) l = v; else r = v; }
     // (the back ambush's sprint: the red behind him swelling, bigger and bigger, the nearer she gets)
-    edgeK.grow += ((h.rush ? near : 0) - edgeK.grow) * 0.15;
+    const wind = h.rush ? (h.rushT < RUSH_WIND ? h.rushT / RUSH_WIND : 1) : 0;
+    edgeK.grow += ((h.rush ? Math.max(wind, near) : 0) - edgeK.grow) * 0.15;
+    if (h.rush && h.rushT < RUSH_WIND) { const v = 0.15 + 0.85 * wind; if (h.rushSide < 0) { l = v; r = 0; } else { r = v; l = 0; } }
     // (on the screen but up in a vent, coming: a little down out of the top over her)
     if (h.mode === 'tell' && h.entry !== 'duct') t = (1 - side) * Math.min(1, h.t / 60);
     const ty = (h.mode === 'tell' || h.mode === 'ceil' ? CEIL_B + 60 : h.y - 110) - cam.y;
