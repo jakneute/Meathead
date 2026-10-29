@@ -1775,12 +1775,12 @@ export const drawFightHud = (c: Ctx, state: GameState, f: Fight, band: { x1: num
   const bars = (k: number) => { const bar = Math.round(k * 44); c.fillStyle = '#000'; c.fillRect(0, 0, CANVAS_WIDTH, bar); c.fillRect(0, CANVAS_HEIGHT - bar, CANVAS_WIDTH, bar); };
   if (f.mode === 'intro') {
     if (f.closeup) {
-      // (her face, close up: banded pink behind her, red for the rage)
+      // (all of her, close up (head to glass heels, centered): banded pink behind her, red for the rage)
       const rage = f.closeup.face === 'rage';
       const bands = rage ? ['#5A0A14', '#7A1420', '#9A1E2A', '#B82A34'] : ['#3A1030', '#5A1A48', '#7A2A62', '#9A3A7A'];
       bands.forEach((col, i) => { c.fillStyle = col; c.fillRect(0, (i * CANVAS_HEIGHT) / bands.length, CANVAS_WIDTH, CANVAS_HEIGHT / bands.length + 1); });
       const k = Math.min(1, f.closeup.t / 12);
-      drawPiperCloseup(c, CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2 - 30,3.2 + k * 0.4, fr, { face: rage ? 'rage' : f.said ? 'talk' : 'sultry', talking: !!f.said, mess: rage ? 0.5 : 0, jolt: rage ? 1.5 : 0 });
+      drawPiperCloseup(c, CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2, 3.2 + k * 0.4, fr, { face: rage ? 'rage' : f.said ? 'talk' : 'sultry', talking: !!f.said, mess: rage ? 0.5 : 0, jolt: rage ? 1.5 : 0 });
       if (f.said) saidOver(c, f.said, CANVAS_WIDTH / 2, 92, '#F9A8D4', 520);
     }
     bars(Math.min(1, f.skipT / 20));

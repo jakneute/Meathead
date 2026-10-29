@@ -15,7 +15,7 @@
 // sultry talk, and ENRAGED (insulted: red to the roots, the beehive coming down, fists up, the wings buzzing).
 //
 // drawPiper(c, x, feetY, facing, frame, pose, opts): her feet's point (world or screen), facing 1 right / -1 left.
-// drawPiperCloseup(c, cx, cy, scale, frame, opts): her face at close-up size (a portrait: the reveal, the insult's
+// drawPiperCloseup(c, cx, cy, scale, frame, opts): all of her as a gross-up (a portrait: the reveal, the insult's
 // reaction, the fight's taunts).
 // opts.thin (her fight's flintlock holes, the deflated balloon: bedroom/): 0 her .. 1 a SUPERMODEL .. 2 skin and bone.
 
@@ -757,8 +757,8 @@ const flat = (c: Ctx, f: number) => {
 // ---------------------------------------------------------------------------------------------------------------
 // The close-up
 
-/** Her face close up, the REN & STIMPY GROSS-UP (piperGross.ts: painted, cached): (cx, cy) the middle of her face on
- *  screen, `scale` 3.6 the hold (the whole screen her face), less as it lurches in. 'rage' her furious face; any other
+/** All of her close up, the REN & STIMPY GROSS-UP (piperGross.ts: painted, cached, head to glass heels): (cx, cy) the
+ *  middle of her on screen, `scale` 3.6 the hold (480 x 500 of her), less as it lurches in. 'rage' her furious face; any other
  *  the sultry one (`talking` her mouth going). For the reveal (the door kicked in) and the insult landing. */
 export const drawPiperCloseup = (c: Ctx, cx: number, cy: number, scale: number, f: number, opts: { face?: PiperFace; talking?: boolean; mess?: number; jolt?: number } = {}) =>
   drawGrossUp(c, cx, cy, scale / 3.6, f, opts.face === 'rage', !!opts.talking, opts.jolt ?? 0);
