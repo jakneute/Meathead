@@ -56,7 +56,7 @@ Meathead goes to a theme park. Eight themed lands plus a hub and an intro. Plays
 
 **The lands:** Jungle Land · Spooky Land · Future Land · Hollywood Land · Foreign Lands · Wilderness Land · Fairy Land · Cartoon Land
 
-**The bosses** are the seven deadly sins plus a robot. They're set up early in their land and escalate until the fight. Each one has a weakness weapon; standard kills are ugly set pieces.
+**The bosses** are the seven deadly sins plus a robot. Each one's set up in their land before you get to the fight (most early on, some late). Each one has a weakness weapon; standard kills are ugly set pieces.
 
 **The weapons:** ray gun, souvenir launcher, soul sucker, flintlock, spellbook, clapperboard, mallet, spawner, crossbow.
 
