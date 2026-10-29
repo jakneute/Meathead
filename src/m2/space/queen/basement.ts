@@ -221,8 +221,12 @@ export interface Hunter {
   /** The door: shut, being kicked (the frames), in. */
   door: 'shut' | 'kicking' | 'in'; doorT: number; block: Block | null;
   wasGrounded: boolean; lastVy: number; lastShoot: boolean; lastJump: boolean; lastMove: boolean;
-  /** This life's one free loud thing (a shot or a charge move): nothing hears it; he catches himself. */
-  warned: boolean; freeMove: boolean;
+  /** This life's one free loud thing (a shot or a charge move): nothing hears it; he catches himself. Then a couple
+   *  of seconds' grace (a rapid-fire weapon's next few shots, a held trigger: still the one warning), the frame it
+   *  started; past it, the next one's his death (the noise ambush, and there's no hiding from it: `doom`). */
+  warned: boolean; freeMove: boolean; warnedAt: number; doom: boolean;
+  /** His weapon's wait between shots, last frame (it going up: a shot fired). */
+  lastCd: number;
   /** The kill: the camera in on it (0..1). */
   cam: number;
   /** The hiding spot she tore open on him (seen getting in), -1 none: gutted, its door gone. */
@@ -261,7 +265,7 @@ export const makeHunter = (state: GameState): Hunter => {
     noise: 0, hid: -1, hidT: 0, torn: -1, fgNext: 420, leaving: false, heart: 0, passedClose: false,
     saidDark: cx > B + 400, saidSpot: cx > B + 700, saidGun: false, hideSaidAt: -99999,
     door: state.stageMemo[DOOR_MEMO] ? 'in' : 'shut', doorT: 0, block: null,
-    wasGrounded: true, lastVy: 0, lastShoot: false, lastJump: false, lastMove: false, warned: false, freeMove: false,
+    wasGrounded: true, lastVy: 0, lastShoot: false, lastJump: false, lastMove: false, warned: false, freeMove: false, warnedAt: -9999, doom: false, lastCd: 0,
     cam: 0,
     win: WINDOWS.map(([a, b, force]) => ({ a, b, force, at: rnd(a, force), done: false })), forced: false, fx: 0, flvl: 0, committed: false, hidNear: false, goneAt: -9999,
     chase: null, rush: false, nextBack: false, ceilSeen: 0,
@@ -335,9 +339,10 @@ export const tickHunter = (ctx: FrameContext, h: Hunter, controls: Controls): Co
         }
       }
       h.hidT = h.hidT < 0 ? h.hidT : h.hidT + 1;
-      p.hidden = true; p.vel.x = 0; p.pos.x += (HIDES[spot].x - cx) * 0.4;
+      p.hidden = true; p.hiding = true; p.vel.x = 0; p.pos.x += (HIDES[spot].x - cx) * 0.4;
+      p.isCharging = false; p.isSliding = false; p.isUppercutting = false; p.isDivekicking = false;
       out = hands();
-    } else if (h.hid >= 0) { h.hid = -1; p.hidden = false; playSound('clink', 0.4, -2); }
+    } else if (h.hid >= 0) { h.hid = -1; p.hidden = false; p.hiding = false; playSound('clink', 0.4, -2); }
   }
   // (his heart, in there: quicker with her near)
   // (the music's heartbeat carries it now: the low thud pitched down read as a whoosh (the user's))
@@ -379,16 +384,21 @@ const hearHim = (state: GameState, h: Hunter, controls: Controls) => {
   if (h.hid >= 0) { h.noise *= 0.95; return; }
   let n = 0;
   if (Math.abs(p.vel.x) > 0.5 && p.isGrounded) n += 0.5;
-  const shot = !!controls.shoot && !h.lastShoot, moving = p.isCharging || p.isSliding || p.isUppercutting || p.isDivekicking, moveStart = moving && !h.lastMove;
+  // (a shot: the trigger pressed, or any weapon going off (its wait between shots starting over: a held trigger's
+  // every shot, the crossbow's stream and all))
+  const cd = p.shootCooldown ?? 0, went = cd > h.lastCd; h.lastCd = cd;
+  const shot = (!!controls.shoot && !h.lastShoot) || went, moving = p.isCharging || p.isSliding || p.isUppercutting || p.isDivekicking, moveStart = moving && !h.lastMove;
   // (the first loud thing this life, a shot or a charge move: nothing hears it; he catches himself, whispering. One
   // warning a life, the two shared; after it, every one counts)
   if (!h.warned && (shot || moveStart)) {
-    h.warned = true; h.freeMove = !shot;
+    h.warned = true; h.freeMove = !shot; h.warnedAt = state.frame;
     meatheadSays(state, pick(shot ? L.MH_WARN_SHOOT : L.MH_WARN_MOVE), false);
+  } else if (state.frame - h.warnedAt < WARN_GRACE) {
+    // (the grace after his warning: nothing more hears him yet)
   } else {
     // (loud past his one warning: she's on it, down out of the ceiling right in front of him, screeching; a moment to
     // hide in (she's not looking yet), then she's on him)
-    if ((shot || (moveStart && !h.freeMove)) && h.opened && !h.finale && !['hunt', 'kill', 'ambush', 'leap', 'crouch'].includes(h.mode)) ambush(state, h);
+    if ((shot || (moveStart && !h.freeMove)) && h.opened && !h.finale && !['hunt', 'kill', 'ambush', 'leap', 'crouch'].includes(h.mode)) { ambush(state, h); h.doom = true; }
     if (shot) {
       n += 45;
       if (inPlay(h) && !h.saidGun) { h.saidGun = true; meatheadSays(state, pick(L.MH_USELESS), false); }
@@ -410,6 +420,9 @@ const hearHim = (state: GameState, h: Hunter, controls: Controls) => {
 /** The ambush (his noise: the special case, as it always was): how far in front of him she comes down, how long she
  *  screeches (his window to hide) before she's on him. */
 const AMBUSH_AHEAD = 230, AMBUSH_T = 60;
+/** After his one warning: this long (frames) before any more noise counts (the user's: "give it a couple seconds, to
+ *  make sure rapid fire weapons like the crossbow don't immediately trigger it"). */
+const WARN_GRACE = 120;
 const ambush = (state: GameState, h: Hunter) => {
   h.leaving = false;
   const cx = pmid(state), dir = (state.player.facing || 1) as 1 | -1, lv = plevel(state);
@@ -723,7 +736,9 @@ const runHer = (ctx: FrameContext, h: Hunter) => {
       if (h.t === 14) { playSound('land', 0.9, -10); shakeScreen(state, 5, 3); dust(state, h.x, h.y - 4, 8); }
       if (h.t % 20 === 15) screech(state, 0.5, -2, 150);
       if (h.t >= AMBUSH_T) {
-        if (h.hid >= 0) { to(h, 'search'); h.path = [{ x: clampLvl(h, cx), stop: 160 }]; h.speed = 1.8; }
+        // (past his warning: she heard exactly where he is; in a locker or not, she has him)
+        if (h.hid >= 0 && h.doom) { h.hidT = -1; spotted(state, h); }
+        else if (h.hid >= 0) { to(h, 'search'); h.path = [{ x: clampLvl(h, cx), stop: 160 }]; h.speed = 1.8; }
         else spotted(state, h);
       }
       break;
@@ -842,7 +857,7 @@ const hunting = (ctx: FrameContext, h: Hunter) => {
   // (seen getting in: she tears it open, the door (the tarp) flung off, and him out of it by the head)
   if (h.hid >= 0 && h.hidT < 0 && Math.abs(h.x - cx) < 60) {
     const sp = HIDES[h.hid];
-    h.torn = h.hid; state.player.hidden = false; h.hid = -1;
+    h.torn = h.hid; state.player.hidden = false; state.player.hiding = false; h.hid = -1;
     playSound('crash', 1, -4); playSound('clang', 1, -8); playSound('roar', 0.9, -4); shakeScreen(state, 10, 5);
     for (let k = 0; k < 18; k++) state.particles.push({ pos: { x: sp.x + (Math.random() - 0.5) * 40, y: sp.y - 20 - Math.random() * 100 }, vel: { x: -h.dir * (2 + Math.random() * 7), y: -2 - Math.random() * 5 }, life: 50, color: sp.kind === 'dark' ? '#1E293B' : k % 3 ? '#475569' : '#94A3B8', size: 3 + Math.random() * 6, grav: 0.35 });
     startKill(state, h); return;

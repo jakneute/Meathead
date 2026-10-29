@@ -143,6 +143,8 @@ export const gateControls = (ctx: FrameContext, c: Controls): FrameInput => {
   player.specialHeldLastFrame = specialHeld;
   player.shootHeldLastFrame = shootHeld;
 
+  // (hiding (a locker): nothing at all gets through; the stage lets him out)
+  if (player.hiding && player.hidden) return { shoot: false, secondary: false, shootPressed: false, moveLeft: false, moveRight: false, moveUp: false, moveDown: false, jump: false, jumpPressed: false, special: false, specialPressed: false, chargeOnly: false };
   const canAct = state.playerStunTimer <= 0 && player.pushbackTimer <= 0;
   const locked = player.lockTimer > 0;
   const canSteer = canAct && (!locked || (player.recoiling && player.vel.y < 0));
@@ -247,6 +249,8 @@ export const updatePlayerActions = (ctx: FrameContext, input: FrameInput) => {
   if (armsBusy(player)) input = { ...input, shoot: false, shootPressed: false };
   // (sat in a ride's car (a mine cart, a star sled: boarding, riding, and the rest): along for the ride, no gun)
   if (player.cartSeat) input = { ...input, shoot: false, shootPressed: false, secondary: false };
+  // (hiding: nothing fires, whatever it is (the playtest: a friend snapped the clapperboard from a locker))
+  if (player.hiding && player.hidden) input = { ...input, shoot: false, shootPressed: false, secondary: false };
   // (fire pressed with it empty: its own little failure; before anything fires, so the last shot doesn't count as one)
   updateDryFire(ctx, input);
   // Secondary fire: with the oil rocket launcher out, the flamethrower (if he's got it), so he can light what he's slicked

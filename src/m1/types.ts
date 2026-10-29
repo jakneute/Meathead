@@ -253,6 +253,9 @@ export interface Player extends Entity {
   skiSpeed?: number;
   /** Not drawn (rolled up inside a snowball, say). */
   hidden?: boolean;
+  /** In a hiding spot (Meathead 2's basement lockers): nothing he does gets through, not a shot, a jump or a move; he
+   *  can only pause, or let go and get out. */
+  hiding?: boolean;
   /** Held where something else puts him (Meathead 2's vines): no gravity, no moving himself, the engine leaves his
    * position alone; he can still face, shoot and be hurt. */
   carried?: boolean;
