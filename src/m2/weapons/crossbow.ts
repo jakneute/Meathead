@@ -779,6 +779,31 @@ const drawBolt = (c: Ctx, x: number, y: number, a: number, sd: number) => {
   c.fillStyle = INK; c.fillRect(nx - 1, ny - 1, 2, 2);
 };
 
+/** Each puddle painted the once (all but its bubbles) at the scale it's shown at, kept till it grows or the scale
+ *  changes: a crowd puking left the floor covered in puddles that were each a few hundred fills a frame (the user's:
+ *  slowdown "when using the crossbow and a ton of people are hurling"). The bubbles are live, over it. */
+const baked = new WeakMap<Puddle, { key: string; cv: HTMLCanvasElement; x: number; y: number; w: number; h: number }>();
+const PAD_X = 24, PAD_UP = 40, PAD_DOWN = 30;
+const drawPuddle = (c: Ctx, state: GameState, q: Puddle, sh: ReturnType<typeof puddleShape>) => {
+  const m = c.getTransform(), k = Math.round(Math.hypot(m.a, m.b) * 16) / 16;
+  if (typeof document === 'undefined' || m.b !== 0 || m.c !== 0 || k <= 0) { drawGooPuddle(c, state, sh, PUKE_GOO); return; }
+  const x = Math.floor(sh.pos.x) - PAD_X, base = sh.pos.y + sh.height, y = Math.floor(base) - PAD_UP;
+  const w = Math.ceil(sh.width) + PAD_X * 2, h = PAD_UP + PAD_DOWN;
+  const key = `${x},${y},${w},${k}`;
+  let b = baked.get(q);
+  if (!b || b.key !== key) {
+    const cv = b?.cv ?? document.createElement('canvas');
+    cv.width = Math.ceil(w * k); cv.height = Math.ceil(h * k);
+    const g = cv.getContext('2d')!;
+    g.setTransform(k, 0, 0, k, -x * k, -y * k);
+    drawGooPuddle(g, state, sh, PUKE_GOO, 'still');
+    b = { key, cv, x, y, w, h };
+    baked.set(q, b);
+  }
+  c.drawImage(b.cv, b.x, b.y, b.w, b.h);
+  drawGooPuddle(c, state, sh, PUKE_GOO, 'bubbles');
+};
+
 const drawOverlay = (c: Ctx, state: GameState) => {
   const f = state.frame;
   // The lock: brackets round him, closing in and out
@@ -795,7 +820,7 @@ const drawOverlay = (c: Ctx, state: GameState) => {
     if (q.x + q.w < vx0 || q.x - q.w > vx1) continue;
     c.globalAlpha = q.t > PUDDLE_LIFE - 60 ? (PUDDLE_LIFE - q.t) / 60 : 1;
     const sh = puddleShape(q);
-    drawGooPuddle(c, state, sh, PUKE_GOO);
+    drawPuddle(c, state, q, sh);
     if (q.ledge && q.t >= q.soak) drawGooOverhang(c, sh, q.ledge, f, PUKE_GOO, 0);
   }
   // (steam coming up off them, warm still: a couple of wisps of stepped specks a puddle, wavering, fading as they go;

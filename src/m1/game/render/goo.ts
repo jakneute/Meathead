@@ -42,7 +42,9 @@ export type GooShape = Pick<Projectile, 'pos' | 'width' | 'height' | 'id'> & { s
  * and ragged at the edges, thickest in the middle where it's still lumpy, a wet sheen along the top of it, flecks of it
  * splattered on the ground round it, and bubbles coming up through it and popping.
  */
-export const drawGooPuddle = (ctx: CanvasRenderingContext2D, state: GameState, p: GooShape, pal: GooPalette = SLUDGE_GOO) => {
+/** `part`: all of it; just what's still (to be painted the once and kept: everything but the bubbles); just the
+ *  bubbles (live, over a kept one). */
+export const drawGooPuddle = (ctx: CanvasRenderingContext2D, state: GameState, p: GooShape, pal: GooPalette = SLUDGE_GOO, part: 'all' | 'still' | 'bubbles' = 'all') => {
   // (the finale's slick grows and runs together: its lumps are pinned to the floor, not to its end, or they'd crawl)
   const slick = p.slick !== undefined;
   const seed = slick ? 313 : p.seed ?? (p.id.length * 37 + Math.round(p.pos.x)) % 997;
@@ -53,6 +55,7 @@ export const drawGooPuddle = (ctx: CanvasRenderingContext2D, state: GameState, p
   const floorAt = (x: number) => { const g = groundLineAt(state.groundRuns, x); return g !== null && g !== undefined && Math.abs(g - base) < 24 ? g : base; };
   const thick = Math.min(9, Math.max(4, p.height * 0.55));
   const n = Math.max(6, Math.round(p.width / 6));
+  if (part !== 'bubbles') {
   const top: [number, number][] = [];
   for (let i = 0; i <= n; i++) {
     const t = i / n, x = slick ? Math.min(x1, Math.max(x0, (g0 + i) * 6)) : x0 + t * p.width;
@@ -111,6 +114,8 @@ export const drawGooPuddle = (ctx: CanvasRenderingContext2D, state: GameState, p
     ctx.fillStyle = k % 2 ? pal.chunkB : pal.chunkA; ctx.fillRect(cx, cy - 1, cw, 2); ctx.fillRect(cx + 1, cy - 2, Math.max(1, cw - 2), 1);
     ctx.fillStyle = k % 2 ? pal.chunkBLit : pal.chunkALit; ctx.fillRect(cx, cy - 1, 1, 1);
   }
+  }
+  if (part === 'still') return;
   // Bubbles: one comes up, swells, and pops
   for (let k = 0; k < Math.max(1, Math.round(p.width / 40)); k++) {
     const period = 50 + Math.round(h(k + 30) * 40), ph = (state.frame + Math.round(h(k + 40) * period)) % period;
