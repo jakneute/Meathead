@@ -2,7 +2,7 @@
 // errors. Pass: "PRESS ANY BUTTON" (Meathead 2) or "START GAME" (Meathead 1) in BODY, and no PAGEERROR lines.
 //
 //   node tools/smoke/loadcheck.mjs                         release-m2/app/Meathead2.html
-//   node tools/smoke/loadcheck.mjs release-m1/Meathead.html
+//   node tools/smoke/loadcheck.mjs release-m1/app/Meathead.html
 import { chromium } from 'playwright';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';

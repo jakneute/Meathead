@@ -25,7 +25,7 @@ Finished and content-locked. Fly to eight cities. Wreck the place, take the boss
 
 ### Play it
 
-The built HTML file isn't in git — build it first with `npm run release:m1` (see **Building from source**), then open `release-m1/Meathead.html`. Double-click it; it plays in your browser offline, nothing to install.
+The built HTML file isn't in git — build it first with `npm run release:m1` (see **Building from source**), then open `release-m1/Meathead-cheats.html` (the game with its cheat panel). Double-click it; it plays in your browser offline, nothing to install. The standard build (no cheats) is `release-m1/app/Meathead.html`.
 
 - **Browser:** desktop Chrome or Edge.
 - **Controller:** Xbox, PlayStation and Switch pads all work. Plug in and press a button; prompts switch to match. The tables below use Xbox buttons; the others are in the same places.
@@ -93,7 +93,7 @@ You'll need [Node.js](https://nodejs.org). Run all commands from the project roo
 ```sh
 npm install
 npm run dev              # play both games at http://localhost:3000
-npm run release:m1       # builds release-m1/Meathead.html + Meathead-cheats.html
+npm run release:m1       # builds release-m1/Meathead-cheats.html + release-m1/app/Meathead.html
 npm run release:m2       # builds release-m2/Meathead2-cheats.html + release-m2/app/Meathead2.html
 npm run release:web:m1   # itch.io folder: release-m1/web/
 npm run release:web:m2   # itch.io folder: release-m2/web/

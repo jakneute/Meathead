@@ -1,7 +1,7 @@
 // `npm run release` (both games), `npm run release:m1`, `npm run release:m2`: each game's two single-file builds,
 // into a folder of its own:
-//   release-m1/Meathead.html          the standard build (no cheats, the intro always)
-//   release-m1/Meathead-cheats.html   the same with the cheat panel and the debug options
+//   release-m1/Meathead-cheats.html   the game with the cheat panel and the debug options (the one HTML at the top)
+//   release-m1/app/Meathead.html      the standard build (no cheats, the intro always)
 //   release-m1/steam/                 the desktop app for Steam (npm run release:steam: the standard build)
 //   release-m2/Meathead2-cheats.html  Meathead 2 with the cheat panel (the one HTML file at the folder's top: the owner's)
 //   release-m2/app/Meathead2.html     Meathead 2's standard build (no cheat panel): what the Windows and Linux apps are
@@ -18,7 +18,7 @@ import path from 'path';
 
 const root = path.resolve(path.dirname(new URL(import.meta.url).pathname.replace(/^\/([A-Za-z]:)/, '$1')), '../..');
 const BUILDS = {
-  m1: [['public', 'index.html', 'release-m1/Meathead.html'], ['release', 'index.html', 'release-m1/Meathead-cheats.html']],
+  m1: [['public', 'index.html', 'release-m1/app/Meathead.html'], ['release', 'index.html', 'release-m1/Meathead-cheats.html']],
   m2: [['m2public', 'meathead2.html', 'release-m2/app/Meathead2.html'], ['m2', 'meathead2.html', 'release-m2/Meathead2-cheats.html']],
 };
 const WEB = {
