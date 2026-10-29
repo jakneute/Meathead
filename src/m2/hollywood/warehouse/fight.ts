@@ -209,10 +209,17 @@ const arrive = (ctx: FrameContext, a: Arrival) => {
   return true;
 };
 
-/** Where the next one comes in: somewhere on the stage well clear of him. */
+/** Where the next one comes in: somewhere on the stage well clear of him, on the other side of him from the last one
+ *  (the user's: "make sure they drop from all sides"), unless there's no room that side. */
 const spawnX = (state: GameState) => {
-  const p = state.player, px = p.pos.x + p.width / 2;
-  for (let k = 0; k < 8; k++) { const x = L0 + Math.random() * (R0 - L0); if (Math.abs(x - px) > 170) return x; }
+  const F = whOf(state).fight, p = state.player, px = p.pos.x + p.width / 2;
+  const want: 1 | -1 = F.lastSide === 1 ? -1 : 1;
+  for (const side of [want, -want]) {
+    const lo = side > 0 ? px + 170 : L0, hi = side > 0 ? R0 : px - 170;
+    if (hi - lo < 30) continue;
+    F.lastSide = side as 1 | -1;
+    return lo + Math.random() * (hi - lo);
+  }
   return px < (L0 + R0) / 2 ? R0 : L0;
 };
 

@@ -69,6 +69,8 @@ export interface Fight {
   grabWas?: boolean; bonkWas?: number;
   /** The hints (the last one, frame), and whether he's thrown one off with a move yet, or slammed the pile on a wall. */
   hintAt?: number; triedMove?: boolean; triedWall?: boolean;
+  /** Which side of him the last one came in on (the next comes in on the other). */
+  lastSide?: 1 | -1;
   /** The frame the last one got on him (they get on a beat apart, not all at once). */
   latchAt?: number;
   /** The pile's had him (the crush). */

@@ -441,8 +441,9 @@ export const drawBody = (c: Ctx, i: number, x: number, y: number, dir: 1 | -1, f
 
 registerM2Kind({
   kind: ACTOR_KIND,
-  // (heavy to shove: a charge or a shot barely moves one)
-  stats: { w: 36, h: 74, hp: BIG, contact: 0, mass: 560 },
+  // (a little lighter than him: a charge into one shoves it, and he doesn't bounce far back off it (the user's: "too
+  // bouncy"; it was 560, half again his weight))
+  stats: { w: 36, h: 74, hp: BIG, contact: 0, mass: 220 },
   ai: actorAI,
   // (his grab gets one: the rest still pile on him while he's at it)
   // (people in costumes, not real bosses: the special weapons' specials work on them, at about half; weapons/half.ts)
