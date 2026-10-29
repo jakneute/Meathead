@@ -440,7 +440,9 @@ const ambush = (state: GameState, h: Hunter) => {
 };
 /** A stretch's go from BEHIND (the back ambush): how far back she bursts out, the least room it needs, her sprint's
  *  top speed (under her hunt's: a race he can read), and how near him a hiding spot has to be for it. */
-const RUSH_FROM = 760, RUSH_MIN = 520, RUSH_TOP = 11, RUSH_COVER = 340;
+// (about 2.5 s from the bang behind him to her on him, stood still (the user's: "about the same 2 second reaction time
+// to hide" / "maybe a little more"): 1400 back at 9 a frame, after her wind up to speed)
+const RUSH_FROM = 1400, RUSH_MIN = 760, RUSH_TOP = 9, RUSH_COVER = 340;
 const rushGo = (state: GameState, h: Hunter) => {
   const cx = pmid(state), dir = (state.player.facing || 1) as 1 | -1, lv = plevel(state);
   const lvl: 0 | 1 = lv === 1 && catwalkAt(cx) ? 1 : 0, y = lvl ? CATWALK_Y : BF;
