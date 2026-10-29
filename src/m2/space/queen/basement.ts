@@ -764,8 +764,7 @@ const runHer = (ctx: FrameContext, h: Hunter) => {
       if (sees(state, h)) spotted(state, h);
       // (the back ambush lost him: she snoops about a good while (the user's: "he still snoops around for back ambushes
       // too"), a step this way and that)
-      if (h.wasRush && tgt && Math.abs(sx - h.x) <= 4 && h.t % 90 === 45) tgt.x = h.x + (Math.random() < 0.5 ? -1 : 1) * rnd(60, 160);
-      if (h.t > (h.wasRush ? 460 : 220)) leave(h);
+      if (h.t > (h.wasRush ? 300 : 220)) leave(h);
       break;
     }
     case 'crouch':
@@ -865,7 +864,9 @@ const hunting = (ctx: FrameContext, h: Hunter) => {
     if (h.rushT === RUSH_WIND) { playSound('screams', 0.95, -2); playSound('roar', 0.6, -6); }
     return;
   }
-  if (h.hid >= 0 && h.hidT >= 0) { to(h, 'search'); h.path = [{ x: clampLvl(h, cx), stop: 140 }]; h.speed = 2; return; }
+  // (he's in a hiding spot: lost him. The back ambush runs on in to about where he went, stops, and looks about there
+  // (the user's: "it stops generally around your hiding area, looks around, then leaves"))
+  if (h.hid >= 0 && h.hidT >= 0 && !(h.wasRush && Math.abs(cx - h.x) > 90)) { to(h, 'search'); h.path = [{ x: clampLvl(h, h.wasRush ? h.x : cx), stop: 140 }]; h.speed = 2; return; }
   const lv = plevel(state);
   const same = Math.abs(pfeet(state) - h.y) < 70;
   if (same || sees(state, h)) { h.lastSeen = state.frame; h.lastX = cx; }
@@ -1159,8 +1160,12 @@ export const drawHunter = (c: Ctx, state: GameState, h: Hunter) => {
   const pose = kill ? (kt < K_SNATCH ? 'swipe' : kt >= K_RIP + 14 && kt < K_TOSS ? 'roar' : 'grab') : h.mode === 'crouch' || h.mode === 'ambush' ? 'roar' : h.mode === 'leap' ? 'swipe' : h.mode === 'hunt' ? 'stalk' : h.mode === 'search' || (h.mode === 'prowl' && h.sniff > 0) ? 'idle' : 'stalk';
   const moving = h.mode === 'prowl' && h.sniff === 0 || h.mode === 'hunt' || h.mode === 'search';
   if (alpha < 1) c.globalAlpha = alpha;
-  c.save(); c.translate(h.x, h.y + dy); c.scale(QS, QS * crouch); c.translate(-h.x, -GY);
-  drawQueen(c, h.x, h.dir, { pose, t: f, ext: 0, alive: 1, beat: 0, free: true, stride: moving ? f * (h.mode === 'hunt' ? 0.35 : 0.16) : 0, jaw: kill ? jawOpen(kt) : undefined, inner: kill ? (kt >= K_RIP + 14 && kt < K_TOSS ? 1 : 0) : undefined });
+  // (after him flat out (the back ambush on the screen, a hunt): a sprint, not a walk: low, leaning into it, her legs
+  // going twice as quick, bobbing with each bound)
+  const sprint = h.mode === 'hunt' && !h.finale;
+  const bob = sprint ? Math.abs(Math.sin(f * 0.6)) * -6 : 0;
+  c.save(); c.translate(h.x, h.y + dy + bob); if (sprint) c.rotate(h.dir * 0.16); c.scale(QS, QS * crouch * (sprint ? 0.9 : 1)); c.translate(-h.x, -GY);
+  drawQueen(c, h.x, h.dir, { pose, t: f, ext: 0, alive: 1, beat: 0, free: true, stride: moving ? f * (sprint ? 0.7 : h.mode === 'hunt' ? 0.35 : 0.16) : 0, jaw: kill ? jawOpen(kt) : undefined, inner: kill ? (kt >= K_RIP + 14 && kt < K_TOSS ? 1 : 0) : undefined });
   c.restore();
   c.globalAlpha = 1;
   if (kill) drawRip(c, state, h);
