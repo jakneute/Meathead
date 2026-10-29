@@ -37,7 +37,7 @@ import { isMidBoss } from '../../m1/game/combat/midBoss';
 import { impactKill, ceilingSplat } from '../../m1/game/enemies/enemies';
 import { buffs } from '../../m1/game/core/buffs';
 import { playSound } from '../../m1/game/platform/audio';
-import { INITIAL_PLAYER_HEALTH, POWER_CELLS, SPECIAL_HURT_FRAMES } from '../../m1/constants';
+import { INITIAL_PLAYER_HEALTH, SPECIAL_HURT_FRAMES } from '../../m1/constants';
 import { beginSprite, endSprite } from '../../m1/game/render/player/spriteOutline';
 import { playerTint } from '../../m1/game/render/player/player';
 import { drawLeg, drawArmTo, drawTorsoFromHips, drawHead, type Mood } from '../../m1/game/render/player/body';
@@ -262,9 +262,6 @@ export interface Grab {
   pb: number;
   /** Missed a grab in the air: none again till he's landed. */
   airSpent: boolean;
-  /** A beatdown or an air grab on: it took both his bars, and they don't start coming back till it's over (then, if
-   *  he's up in the air, not till he's down: like the uppercut). */
-  spent: boolean;
   bumpT: number;
   /** The controls last frame (to catch presses). */
   was: Controls;
@@ -294,7 +291,7 @@ export interface Grab {
 }
 
 export const createGrab = (state: GameState): Grab => ({
-  phase: 'idle', t: 0, dir: 1, held: null, blow: 'punch', blowT: -1, want: null, window: BEAT_WINDOW, healBank: 0, punchN: 0, ammoLeft: 0, nextPunchAt: 0, hp: state.player.health, yHeld: 0, yChord: false, was: { ...NO_CONTROLS }, shaken: new WeakSet(), gate: new Set(), pend: null, clearT: 0, calmed: new Set(), toss: 'forward', thrown: null, flying: [], fall: 0, pitch: 'right', aim: null, queued: null, windHp: 0, pb: 0, bumpT: 0, airSpent: false, spent: false,
+  phase: 'idle', t: 0, dir: 1, held: null, blow: 'punch', blowT: -1, want: null, window: BEAT_WINDOW, healBank: 0, punchN: 0, ammoLeft: 0, nextPunchAt: 0, hp: state.player.health, yHeld: 0, yChord: false, was: { ...NO_CONTROLS }, shaken: new WeakSet(), gate: new Set(), pend: null, clearT: 0, calmed: new Set(), toss: 'forward', thrown: null, flying: [], fall: 0, pitch: 'right', aim: null, queued: null, windHp: 0, pb: 0, bumpT: 0, airSpent: false,
   airLock: false, diveOk: false, arcJump: true, arc: 'down', ang: 0, avx: 0, avy: 0, hitAt: null, lastVy: 0, airT: 0,
 });
 
@@ -385,8 +382,6 @@ const putBack = (state: GameState, e: Enemy, x: number) => {
 const GATED: (keyof Controls)[] = ['special', 'shoot', 'secondary', 'charge'];
 const end = (state: GameState, g: Grab) => {
   g.phase = 'idle'; g.t = 0; g.held = null; g.blowT = -1; g.want = null; g.ammoLeft = 0;
-  // (over: his bars start coming back now, on the ground; up in the air, once he's down)
-  if (g.spent) { g.spent = false; state.player.powerLocked = !state.player.isGrounded; }
   for (const k of GATED) g.gate.add(k);
   state.player.hidden = false;
 };
@@ -910,8 +905,6 @@ const stepGrab = (ctx: FrameContext, g: Grab, controls: Controls): Controls => {
   const press = (k: keyof Controls) => !!controls[k] && !was[k];
   if (state.deathTimer > 0 || p.health <= 0) { if (g.phase !== 'idle') letGo(state, g); return controls; }
   g.t++;
-  // (a beatdown or an air grab on: no bars coming back through it, on the ground or not)
-  if (g.spent && g.phase !== 'idle') { p.power = 0; p.powerLocked = true; }
   // (the world never gets a say in a grab once it's on: see envGuard)
   if (g.phase !== 'idle' && envGuard(ctx, g, hurt)) return { ...NO_CONTROLS };
   const hold = () => { p.vel.x = 0; return { ...NO_CONTROLS }; };
@@ -974,13 +967,9 @@ const stepGrab = (ctx: FrameContext, g: Grab, controls: Controls): Controls => {
       if (g.airLock) out = g.diveOk && out.down && !p.isGrounded ? { ...out, charge: false } : { ...out, special: false, charge: false };
       if (!g.queued || !free) return out;
       const go = g.queued.want; g.queued = null;
-      // (the beatdown and the air grab take both bars, full: short of that, no grab, and the buttons pressed for it do
-      // what they do on their own (a jump, a charge, a shot): the user's)
-      const costs = go === 'beat' || go === 'air';
-      // (the user's: a critter grab's free: a beatdown at one in front of him goes whatever his bars)
-      const ahead = go === 'beat' ? inReach(state, p.facing, 160) : null, atCritter = !!ahead && isCritter(ahead);
-      if (costs && !atCritter && !ctx.cheats.infinitePower && p.power < POWER_CELLS - 1e-6) { notePowerShort(); return controls; }
-      if (costs && !atCritter && !ctx.cheats.infinitePower) { g.spent = true; p.power = 0; p.powerLocked = true; }
+      // (the air grab drains whatever power he's got: none at all, and it's not there (the cells blink red, the buttons
+      // do what they do on their own); the beatdown and the shakedown are free)
+      if (go === 'air' && !ctx.cheats.infinitePower && p.power <= 0.001) { notePowerShort(); return controls; }
       if (touching) { p.pushbackTimer = 0; p.vel.x = 0; }
       if (y) g.yChord = true;
       g.dir = p.facing; g.t = 0;
@@ -1573,8 +1562,6 @@ const CRITTER_HOLD = 120, PITCH_FOLLOW = 12;
 /** Frames it's brought up to his ear before it can be pitched (a shakedown's SHAKE_FRAMES, this is well under). */
 const CRITTER_SETTLE = 16;
 const grabCritter = (ctx: FrameContext, g: Grab, e: Enemy, hold: () => Controls) => {
-  // (a critter's free: the bars a beatdown took for it, back)
-  if (g.spent) { g.spent = false; ctx.state.player.power = POWER_CELLS; ctx.state.player.powerLocked = false; }
   g.phase = 'critter'; g.t = 0; g.held = e; take(ctx.state, e);
   e.facing = g.dir;
   // (one of Meathead 2's own: torn loose from whatever it hung off or lived in, a branch, a stalk, a hole: drawn

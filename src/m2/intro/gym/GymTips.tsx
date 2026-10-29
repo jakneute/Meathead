@@ -44,7 +44,7 @@ const CARDS: Record<GymTip, { how: React.ReactNode; what: string; note?: string 
   beatdown: {
     how: <ChordPrompt pad={['Y', 'B']} join="+" kb={['@beatdown']} size={S} label="BEATDOWN" />,
     what: 'TACKLE HIM AND GET ON TOP. EVERY HIT HEALS YOU. GET IT DONE BEFORE HE SHOVES YOU OFF.',
-    note: "TAKES BOTH POWER BARS, FULL. THEY DON'T REFILL TILL IT'S OVER. OUT THERE, SOME ARE TOO FAT OR TOO GREASY TO GRAB.",
+    note: 'OUT THERE, SOME ARE TOO FAT OR TOO GREASY TO GRAB.',
   },
   shakedown: {
     how: <ChordPrompt pad={['Y', 'X']} join="+" kb={['@shakedown']} size={S} label="SHAKEDOWN" />,
@@ -54,7 +54,7 @@ const CARDS: Record<GymTip, { how: React.ReactNode; what: string; note?: string 
   airgrab: {
     how: <ChordPrompt pad={['A', 'B']} join="+" kb={['@airGrab']} size={S} label="AIR GRAB" />,
     what: 'LEAP UP AND GRAB THE ONE ON THE JETPACK. IT SLAMS HIM AND HEALS YOU.',
-    note: "TAKES BOTH POWER BARS, FULL; THEY REFILL ONCE YOU'RE DOWN. HOLD BACK: BACKFLIP. HOLD FORWARD: DIVE.",
+    note: 'HOLD BACK: BACKFLIP. HOLD FORWARD: DIVE.',
   },
   exit: {
     how: <span className="text-red-400">EXIT &#9654;</span>,
