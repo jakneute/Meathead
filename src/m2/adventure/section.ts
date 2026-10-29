@@ -109,6 +109,9 @@ export const teleport = (state: GameState, x: number, feetY: number) => {
   p.pos.x = x - p.width / 2; p.pos.y = feetY - p.height;
   p.vel.x = 0; p.vel.y = 0;
   state.camera.x = x - CANVAS_WIDTH / 2;
+  // (and him in the camera's rows: a camera left way up (or down) where he was would count him as fallen out of the
+  // world before it caught up (a playtest: an instant fall death backtracking in Cartoon Land))
+  state.camera.y = Math.max(p.pos.y - 560, Math.min(state.camera.y, p.pos.y));
 };
 
 /** Nobody touches anything (a cutscene). */
