@@ -244,12 +244,12 @@ export interface Hunter {
   /** The stairs' panic run (heard, never seen till she has him): frames in, the furthest he's got (x), frames since he
    *  last got further, where she is behind him (x, unseen), and her lunge on (he stopped, or turned back). */
   chase: { t: number; best: number; still: number; herX: number; lunge: boolean } | null;
-  /** The two ambushes (the user's: "the player has to identify a back or front ambush, like recognizing mechanics for a
-   *  boss fight"): from in FRONT, she's up on the ceiling first, crawling in where he can see her, then down in front of
-   *  him (`amb`: this crawl's that one); from BEHIND, she sprints at him out of the dark behind, her red at that edge
-   *  growing as she comes (`rush`). Which one the next noise ambush is (they take turns); how long she's been seen on
-   *  the ceiling this crawl (a stretch's go doesn't drop till she has been). */
-  amb: boolean; rush: boolean; nextBack: boolean; ceilSeen: number;
+  /** A stretch's go comes one of two ways, taking turns (the user's: "the player has to identify a back or front
+   *  ambush, like recognizing mechanics for a boss fight"): from in FRONT, she's up on the ceiling first, crawling in
+   *  where he can see her, then down in front of him; from BEHIND, she sprints at him out of the dark behind, her red at
+   *  that edge growing as she comes (`rush`). Which the next is; how long she's been seen on the ceiling this crawl (a
+   *  front one doesn't drop till she has been). (His noise's ambush is its own, as it was.) */
+  rush: boolean; nextBack: boolean; ceilSeen: number;
 }
 export const makeHunter = (state: GameState): Hunter => {
   const cx = state.player.pos.x + state.player.width / 2;
@@ -264,7 +264,7 @@ export const makeHunter = (state: GameState): Hunter => {
     wasGrounded: true, lastVy: 0, lastShoot: false, lastJump: false, lastMove: false, warned: false, freeMove: false,
     cam: 0,
     win: WINDOWS.map(([a, b, force]) => ({ a, b, force, at: rnd(a, force), done: false })), forced: false, fx: 0, flvl: 0, committed: false, hidNear: false, goneAt: -9999,
-    chase: null, amb: false, rush: false, nextBack: false, ceilSeen: 0,
+    chase: null, rush: false, nextBack: false, ceilSeen: 0,
   };
 };
 export const buildHunter = (state: GameState, h: Hunter) => {
@@ -293,7 +293,7 @@ const plevel = (state: GameState): 0 | 1 | -1 => {
   return Math.abs(f - CATWALK_Y) < 8 ? 1 : Math.abs(f - floorY(x)) < 12 ? 0 : -1;
 };
 const inPlay = (h: Hunter) => h.mode !== 'away' && h.mode !== 'tell';
-const to = (h: Hunter, m: Mode) => { h.mode = m; h.t = 0; if (m === 'away') h.committed = false; if (m !== 'ceil') { h.amb = false; h.ceilSeen = 0; } if (m !== 'hunt') h.rush = false; };
+const to = (h: Hunter, m: Mode) => { h.mode = m; h.t = 0; if (m === 'away') h.committed = false; if (m !== 'ceil') h.ceilSeen = 0; if (m !== 'hunt') h.rush = false; };
 const vol = (state: GameState, x: number, k: number) => Math.max(0, k * (1 - Math.abs(x - pmid(state)) / 1000));
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -388,7 +388,7 @@ const hearHim = (state: GameState, h: Hunter, controls: Controls) => {
   } else {
     // (loud past his one warning: she's on it, down out of the ceiling right in front of him, screeching; a moment to
     // hide in (she's not looking yet), then she's on him)
-    if ((shot || (moveStart && !h.freeMove)) && h.opened && !h.finale && !['hunt', 'kill', 'ambush', 'leap', 'crouch'].includes(h.mode) && !h.amb) ambush(state, h);
+    if ((shot || (moveStart && !h.freeMove)) && h.opened && !h.finale && !['hunt', 'kill', 'ambush', 'leap', 'crouch'].includes(h.mode)) ambush(state, h);
     if (shot) {
       n += 45;
       if (inPlay(h) && !h.saidGun) { h.saidGun = true; meatheadSays(state, pick(L.MH_USELESS), false); }
@@ -407,43 +407,38 @@ const hearHim = (state: GameState, h: Hunter, controls: Controls) => {
   }
 };
 
-/** The ambush: how far in front of him she comes down, how long she screeches (his window to hide) before she's on him;
- *  the front one's crawl in along the ceiling (from just off the screen ahead, px a frame, the most it takes); the back
- *  one's sprint (from how far behind him, the least room it needs, its top speed: under her hunt's, a race he can read). */
-const AMBUSH_AHEAD = 230, AMBUSH_T = 60, AMB_CRAWL = 6.5, AMB_CRAWL_T = 100;
-const RUSH_FROM = 760, RUSH_MIN = 520, RUSH_TOP = 11;
+/** The ambush (his noise: the special case, as it always was): how far in front of him she comes down, how long she
+ *  screeches (his window to hide) before she's on him. */
+const AMBUSH_AHEAD = 230, AMBUSH_T = 60;
 const ambush = (state: GameState, h: Hunter) => {
   h.leaving = false;
   const cx = pmid(state), dir = (state.player.facing || 1) as 1 | -1, lv = plevel(state);
   h.lvl = lv === 1 && catwalkAt(cx) ? 1 : 0;
+  h.x = cx + dir * AMBUSH_AHEAD; h.x = clampLvl(h, h.x);
+  if (Math.abs(h.x - cx) < 120) { h.x = cx - dir * AMBUSH_AHEAD; h.x = clampLvl(h, h.x); }
+  h.y = levelY(h.lvl, h.x); h.dir = h.x > cx ? -1 : 1; h.entry = 'vent';
   h.fg = null; h.rattle = null; h.fake = null; h.path = []; h.leg = 0; h.forced = false;
-  // (they take turns, front and back; the one there's no room for, the other)
-  const front = clampLvl(h, cx + dir * AMBUSH_AHEAD), back = clampLvl(h, cx - dir * RUSH_FROM);
-  const frontOk = Math.abs(front - cx) >= 120, backOk = Math.abs(back - cx) >= RUSH_MIN;
-  const goBack = backOk && (h.nextBack || !frontOk);
-  if (!goBack && !frontOk) { dropAmbush(state, h, clampLvl(h, cx - dir * AMBUSH_AHEAD)); return; }
-  h.nextBack = !goBack;
-  if (goBack) {
-    // (behind: a grille banged out back there in the dark, her screech, and she's coming flat out)
-    h.x = back; h.y = levelY(h.lvl, h.x); h.dir = h.x > cx ? -1 : 1; h.entry = 'duct';
-    to(h, 'hunt'); h.rush = true; h.lastSeen = state.frame; h.lastX = cx;
-    playSound('clang', 0.8, -6); playSound('screams', 0.9, -4); shakeScreen(state, 4, 2);
-    return;
-  }
-  // (in front: up on the ceiling just off the screen ahead, crawling in over him where he can see her, then down)
-  const camL = state.camera.x;
-  h.x = dir > 0 ? Math.min(STAIRS_A - 30, camL + CANVAS_WIDTH + 60) : Math.max(B + 40, camL - 60);
-  if ((h.x - cx) * dir < AMBUSH_AHEAD + 40) { dropAmbush(state, h, front); return; }
-  h.y = CEIL_B; h.dir = (-dir) as 1 | -1; h.entry = 'ceil'; h.speed = AMB_CRAWL;
-  to(h, 'ceil'); h.amb = true;
-  playSound('clang', 0.9, -6); playSound('screams', 0.8, -4); shakeScreen(state, 5, 3); dust(state, h.x, CEIL_B + 4, 10);
-};
-/** The front ambush's drop: down off the ceiling at x, rearing, screeching (AMBUSH_T to hide in). */
-const dropAmbush = (state: GameState, h: Hunter, x: number) => {
-  const cx = pmid(state);
-  h.x = x; h.y = levelY(h.lvl, h.x); h.dir = h.x > cx ? -1 : 1; h.entry = 'vent';
   to(h, 'ambush');
   playSound('clang', 1, -6); playSound('screams', 0.9, -4); shakeScreen(state, 8, 4); dust(state, h.x, CEIL_B + 4, 10);
+};
+/** A stretch's go from BEHIND (the back ambush): how far back she bursts out, the least room it needs, her sprint's
+ *  top speed (under her hunt's: a race he can read), and how near him a hiding spot has to be for it. */
+const RUSH_FROM = 760, RUSH_MIN = 520, RUSH_TOP = 11, RUSH_COVER = 340;
+const rushGo = (state: GameState, h: Hunter) => {
+  const cx = pmid(state), dir = (state.player.facing || 1) as 1 | -1, lv = plevel(state);
+  const lvl: 0 | 1 = lv === 1 && catwalkAt(cx) ? 1 : 0, y = lvl ? CATWALK_Y : BF;
+  // (her level's ends where he is: she's away, nowhere yet)
+  h.lvl = lvl; h.x = cx;
+  const x = clampLvl(h, cx - dir * RUSH_FROM);
+  if (Math.abs(x - cx) < RUSH_MIN) return false;
+  if (!HIDES.some((sp, i) => i !== h.torn && Math.abs(sp.y - y) < 10 && Math.abs(sp.x - cx) < RUSH_COVER)) return false;
+  h.fake = null; h.fg = null; h.rattle = null; h.path = []; h.leg = 0; h.sniff = 0; h.leaving = false;
+  h.out = 0; h.passedClose = false; h.hidNear = false; h.forced = false; h.committed = true;
+  h.x = x; h.y = levelY(lvl, x); h.dir = x > cx ? -1 : 1; h.entry = 'duct';
+  to(h, 'hunt'); h.rush = true; h.lastSeen = state.frame; h.lastX = cx;
+  // (behind him in the dark: a grille banged out, her screech, and she's coming flat out)
+  playSound('clang', 0.8, -6); playSound('screams', 0.9, -4); shakeScreen(state, 4, 2);
+  return true;
 };
 
 /** Her x kept on her level (a catwalk's ends; the basement's). */
@@ -490,6 +485,9 @@ const paid = (h: Hunter, cx: number) => { const w = h.win.find(v => !v.done && v
 const forceGo = (state: GameState, h: Hunter) => {
   const cx = pmid(state), lv = plevel(state);
   if (lv < 0 || onLadder(state)) return false;
+  // (they take turns (the user's: "the player has to identify a back or front ambush"): this one from behind, if
+  // there's the room and a hiding spot near him for it)
+  if (h.nextBack) { h.nextBack = false; if (rushGo(state, h)) return true; } else h.nextBack = true;
   const camL = state.camera.x, camR = camL + CANVAS_WIDTH;
   const pcx = Math.min(STAIRS_A - 30, cx + Math.max(0, state.player.vel.x) * SCURRY_RUN);
   const a = forceAim(state, h, pcx);
@@ -653,16 +651,6 @@ const runHer = (ctx: FrameContext, h: Hunter) => {
       return;
     }
     case 'ceil': {
-      // (the front ambush: crawling in along the ceiling toward where she'll drop, in front of him; there (or out of
-      // time), down)
-      if (h.amb) {
-        const side = Math.sign(h.x - cx) || 1, goal = clampLvl(h, cx + side * AMBUSH_AHEAD), d = goal - h.x;
-        if (Math.abs(d) > 2) { h.dir = d < 0 ? -1 : 1; h.x += Math.sign(d) * Math.min(Math.abs(d), h.speed); }
-        if (h.t % 4 === 0) playSound('click', Math.max(0.3, vol(state, h.x, 0.6)), 4);
-        if (h.t % 6 === 0) dust(state, h.x, CEIL_B + 10, 2);
-        if (Math.abs(goal - h.x) <= 2 || h.t >= AMB_CRAWL_T) dropAmbush(state, h, h.x);
-        return;
-      }
       if (h.forced) {
         // (a stretch's go: scuttling along the ceiling upside down to the one spot picked at the start, no re-aiming;
         // her claws on it, heard as near wherever she is; there (or out of time), down where she is)
