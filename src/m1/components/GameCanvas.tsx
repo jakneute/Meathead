@@ -32,6 +32,8 @@ interface GameCanvasProps extends GameEvents {
 }
 
 const FRAME_MS = 1000 / 60;
+/** The most game steps run in one display frame to catch up on a late one. */
+const MAX_CATCHUP = 3;
 
 /**
  * Hosts the canvas and the fixed-timestep game loop. All simulation lives in
@@ -122,7 +124,7 @@ const GameCanvas: React.FC<GameCanvasProps> = (props) => {
       }
     };
 
-    const tick = () => {
+    const tick = (render = true) => {
       const p = propsRef.current;
       const frameCtx = createFrameContext(state, p.stageId, p.currentWeapon, p.cheats, p);
       const raw = readControls(kbRef.current);
@@ -139,7 +141,7 @@ const GameCanvas: React.FC<GameCanvasProps> = (props) => {
         // (and whether he's in a little cutscene, out of his hands, or one that can be skipped: the HUD's put away for it)
         p.onPlayerUpdate(player.health, player.power, player.weaponAmmo, forcedWeapon, state.lockWeapon, !!player.inCutscene || (canSkip() && state.deathTimer <= 0));
       }
-      draw();
+      if (render) draw();
     };
 
     // In menus: clear the stage and draw a single blank frame
@@ -171,17 +173,23 @@ const GameCanvas: React.FC<GameCanvasProps> = (props) => {
     const loop = (now: number) => {
       if (now > coveredAt) { frameId = requestAnimationFrame(loop); return; }
       if (lastTime === 0) lastTime = now;
-      const elapsed = now - lastTime;
-      if (elapsed >= FRAME_MS - 2) {
+      // Game time keeps to the clock: a late frame (a hitch, a busy machine, the display's timing wobbling) is caught up
+      // on the next, up to a few steps at once, drawn once; it never just runs slow (the user's: it held 60 on the
+      // meter and still slowed down). A long stall (a hidden tab) isn't raced through: it starts over from now.
+      let behind = now - lastTime;
+      if (behind > FRAME_MS * 6 || behind < -FRAME_MS) { lastTime = now - FRAME_MS; behind = FRAME_MS; }
+      let steps = 0;
+      while (behind >= FRAME_MS - 2 && steps < MAX_CATCHUP) { steps++; behind -= FRAME_MS; }
+      for (let i = 0; i < steps; i++) {
         // (one bad frame must never stop the game: say what went wrong, clear the canvas state it left behind, carry on)
-        try { tick(); } catch (err) {
+        try { tick(i === steps - 1); } catch (err) {
           console.error('frame failed', err);
           noteFail('frame', err);
           const c = canvasRef.current?.getContext('2d') as (CanvasRenderingContext2D & { reset?: () => void }) | null | undefined;
           c?.reset?.();
         }
-        lastTime = now - Math.min(elapsed % FRAME_MS, FRAME_MS);
       }
+      lastTime += steps * FRAME_MS;
       frameId = requestAnimationFrame(loop);
     };
     frameId = requestAnimationFrame(loop);
