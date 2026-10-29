@@ -516,6 +516,9 @@ const forceGo = (state: GameState, h: Hunter) => {
   if (h.nextBack) { h.nextBack = false; if (rushGo(state, h)) return true; } else h.nextBack = true;
   // (in front: the pass over the pipes, then down in front of him)
   const a = forceAim(state, h, cx);
+  // (no room for one in front of him (the stairs' foot just ahead): from behind instead, the sprint; a front one never
+  // comes down behind him)
+  if ((a.x - cx) * ((state.player.facing || 1) as number) < 180 && rushGo(state, h)) return true;
   frontGo(state, h, a.x, a.lvl === 1 && lv === 1 ? 1 : 0, true);
   return true;
 };
@@ -527,7 +530,8 @@ const forceGo = (state: GameState, h: Hunter) => {
 // (the playtest: 50 and 14 wanted "ninja reaction times": slowed a fair way)
 const FRONT_PASS = 95, FRONT_DROP = FRONT_PASS + 40, FRONT_IN = 150;
 const frontGo = (state: GameState, h: Hunter, x: number, lvl: 0 | 1, forced: boolean) => {
-  const cx = pmid(state), ahead = (Math.sign(x - cx) || 1) as 1 | -1, camL = state.camera.x;
+  const cx = pmid(state), ahead = (state.player.facing || 1) as 1 | -1, camL = state.camera.x;
+  if ((x - cx) * ahead < 180) x = cx + ahead * 300;
   h.fake = null; h.rattle = null; h.path = []; h.leg = 0; h.sniff = 0; h.leaving = false; h.huntOnDrop = false;
   h.out = 0; h.passedClose = false; h.hidNear = false; h.forced = false; h.committed = forced;
   h.lvl = lvl;
@@ -854,6 +858,14 @@ const hunting = (ctx: FrameContext, h: Hunter) => {
   const fast = h.finale ? 3.9 : Math.min(h.rush ? RUSH_TOP : HUNT_TOP, 5 + h.t * 0.35);
   // (the back ambush's sprint: once she's up with him, it's a hunt like any)
   if (h.rush && Math.abs(cx - h.x) < 160) h.rush = false;
+  // (and coming, heard: off the screen behind him, never seen till she's on it; her claws and her feet on the floor,
+  // quicker and louder the nearer she is, a screech as she closes)
+  if (h.rush) {
+    const near = Math.max(0, Math.min(1, 1 - (Math.abs(cx - h.x) - 160) / (RUSH_FROM - 160)));
+    const every = Math.round(12 - near * 8);
+    if (h.t % every === 0) { playSound('thud', 0.25 + near * 0.6, -12 + near * 4); playSound('click', 0.3 + near * 0.5, 4 + near * 6); }
+    if (near > 0.6 && h.t % 40 === 0) screech(state, 0.5 + near * 0.4, -4, 60);
+  }
   // (the back ambush: she's after where he was on his level, not him; up (or down) a level when she gets there, he's
   // out of her sight: she's lost him, and snoops about there (the user's: avoided by hiding, or "by taking a different
   // altitude and still pressing on"))
