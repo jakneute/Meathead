@@ -804,7 +804,9 @@ const sees = (state: GameState, h: Hunter) => {
 const senses = (state: GameState, h: Hunter) => {
   const p = state.player, lv = plevel(state);
   if (h.hid >= 0 || p.health <= 0 || lv < 0 || lv === h.lvl) return false;
-  return Math.abs(pmid(state) - h.x) < 150 && (Math.abs(p.vel.x) > 0.5 || h.noise > 8);
+  // (walking's quiet: going on past her a level up (or down) is the way by her that isn't hiding; a jump, a hard
+  // landing, a shot near her, and she's up after him)
+  return Math.abs(pmid(state) - h.x) < 150 && h.noise > 8;
 };
 const spotted = (state: GameState, h: Hunter) => {
   h.leaving = false;
@@ -839,7 +841,12 @@ const hunting = (ctx: FrameContext, h: Hunter) => {
   const fast = h.finale ? 3.9 : Math.min(h.rush ? RUSH_TOP : HUNT_TOP, 5 + h.t * 0.35);
   // (the back ambush's sprint: once she's up with him, it's a hunt like any)
   if (h.rush && Math.abs(cx - h.x) < 160) h.rush = false;
-  if (!same && lv >= 0 && lv !== h.lvl && Math.abs(cx - h.x) < 260 && (lv === 0 || catwalkAt(cx))) { startLeap(state, h, 'hunt'); return; }
+  // (the back ambush: she's after where he was on his level, not him; up (or down) a level when she gets there, he's
+  // out of her sight: she's lost him, and snoops about there (the user's: avoided by hiding, or "by taking a different
+  // altitude and still pressing on"))
+  if (h.wasRush && !same && !sees(state, h)) {
+    if (Math.abs(cx - h.x) < 200 || state.frame - h.lastSeen > 90) { to(h, 'search'); h.path = [{ x: clampLvl(h, h.x + Math.sign(cx - h.x) * 120), stop: 140 }]; h.speed = 2; return; }
+  } else if (!same && lv >= 0 && lv !== h.lvl && Math.abs(cx - h.x) < 260 && (lv === 0 || catwalkAt(cx))) { startLeap(state, h, 'hunt'); return; }
   const want = clampLvl(h, cx);
   if (Math.abs(want - h.x) > 3) h.x += Math.sign(want - h.x) * Math.min(fast, Math.abs(want - h.x));
   // (at the end of her catwalk and him down below and on: down she goes)
