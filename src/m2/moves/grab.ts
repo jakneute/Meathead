@@ -56,7 +56,6 @@ import { hurtPlayer } from '../../m1/game/bosses/shared';
 import { enemyGender } from '../../m1/content/gender';
 import { meatheadSays } from '../adventure/section';
 import { floorTopAt } from '../../m1/game/core/terrain';
-import { notePowerShort } from '../../m1/game/player/powerShort';
 import { hazardOwnersIn } from '../hazardHit';
 import { TOO_BIG_LINES, TOO_BIG_BY_KIND, GRAB_IMMUNE_LINES } from '../lines/weaponLines';
 
@@ -967,9 +966,6 @@ const stepGrab = (ctx: FrameContext, g: Grab, controls: Controls): Controls => {
       if (g.airLock) out = g.diveOk && out.down && !p.isGrounded ? { ...out, charge: false } : { ...out, special: false, charge: false };
       if (!g.queued || !free) return out;
       const go = g.queued.want; g.queued = null;
-      // (the air grab drains whatever power he's got: none at all, and it's not there (the cells blink red, the buttons
-      // do what they do on their own); the beatdown and the shakedown are free)
-      if (go === 'air' && !ctx.cheats.infinitePower && p.power <= 0.001) { notePowerShort(); return controls; }
       if (touching) { p.pushbackTimer = 0; p.vel.x = 0; }
       if (y) g.yChord = true;
       g.dir = p.facing; g.t = 0;

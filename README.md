@@ -82,7 +82,7 @@ Everything from Meathead 1 works the same. Meathead 2 adds grabs and a park map.
 | Grab a small critter and throw it | R or T on a critter, then a direction | Y + B or Y + X on a critter, then a direction |
 | Park map | Tab or M | Select |
 
-The air grab uses up whatever power you have (any at all will do; with none, the power cells blink red). The beatdown, the shakedown and critter grabs are free. Some enemies are too fat or too greasy to grab at all.
+The air grab uses up whatever power you have (it works at zero too), and there's no second one till you've landed. The beatdown, the shakedown and critter grabs are free. Some enemies are too fat or too greasy to grab at all.
 
 ---
 
