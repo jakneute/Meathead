@@ -126,9 +126,14 @@ export const HURT: Record<string, { hurt: string[]; death: string[] }> = {
     hurt: ['THE REVENGERS BILLBOARD FELL ON ME!', 'RESEMBLED! I GOT RESEMBLED!'],
     death: ['FLATTENED BY THE REVENGERS', 'RESEMBLED. INTO A PANCAKE.'],
   },
-  'm2:hwh_flood': {
-    hurt: ['THE FLOOD! IT\'S UP MY ASS!', "WATER IN MY EVERYTHING! MY BUTTHOLE'S A SPONGE!", 'I SWALLOWED A FISH! A PLASTIC ONE!'],
+  // (the surge's first rush in: not on fire yet)
+  'm2:hwh_surge': {
+    hurt: ["THE FLOOD! IT'S UP MY ASS!", "WATER IN MY EVERYTHING! MY BUTTHOLE'S A SPONGE!", 'I SWALLOWED A FISH! A PLASTIC ONE!'],
     death: ['SWEPT AWAY ON A BACKLOT', 'THE FLOOD GOT HIM'],
+  },
+  'm2:hwh_flood': {
+    hurt: ["THE WATER'S ON FIRE! HOW IS THE WATER ON FIRE?!", 'BURNING WATER! UP MY ASS!', 'MY BALLS ARE BOILING!', "IT'S HOT TUB HOT! HELL HOT TUB!"],
+    death: ['BOILED IN A BURNING FLOOD', 'COOKED IN THE FLOOD'],
   },
   'm2:hwh_drown': {
     hurt: ['GLUB GLUB GLUB!', 'I CAN\'T SWIM IN JEANS!'],

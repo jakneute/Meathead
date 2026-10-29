@@ -36,7 +36,7 @@ import { type Ctx, INK, box, poly, hash, mix, checker, STEEL, BRASS, PLY, ramp6,
 import { enamel, hillside } from '../../hub/letters';
 import { steveCard, paintStandee } from '../blvd/props';
 import { BRICK } from '../lot/paint';
-import { SNOW, ROCK } from './paint';
+import { SNOW, ROCK, flame, smokeUp } from './paint';
 import { blowNear } from './snowzone';
 import { inView } from '../blvd/paint';
 
@@ -438,6 +438,21 @@ const floodFront = (c: Ctx, state: GameState, hv: Hv) => {
   box(c, a, sy + 3, b - a, 3, 'rgba(160, 80, 60, 0.35)');
   // (the foam along its top, chopping)
   for (let x = Math.floor(a / 8) * 8; x < b; x += 8) { const h2 = Math.sin(x * 0.05 + f * 0.15) * 3; box(c, x, sy + h2 - 2, 8, 3, '#E2E8F0'); if ((x / 8 + (f >> 3)) % 3 === 0) box(c, x + 2, sy + h2 - 4, 4, 2, '#FFFFFF'); }
+  // (on fire (the user's: "make the flood water... on fire as well. sell the idea that the water will hurt you as it
+  // rises"): the lava's lit the oil on it; its heat glowing up off it, the flames in patches along it all the way, their
+  // smoke going up, embers). Not the surge (the user's: "the initial flood wave isn't on fire. it's the rising water
+  // that is"): it catches once the wave's in.
+  if (!s.on) {
+  for (let i = 0; i < 4; i++) { c.fillStyle = `rgba(249, 115, 22, ${(0.2 - i * 0.045).toFixed(3)})`; c.fillRect(a, sy - 12 - i * 12, b - a, 12); }
+  c.fillStyle = 'rgba(234, 88, 12, 0.3)'; c.fillRect(a, sy, b - a, 14);
+  for (let x = Math.floor(a / 30) * 30; x < b; x += 30) {
+    const k = Math.floor(x / 30), on = hash(k * 1.37 + Math.floor(f / 240 + hash(k) * 3)) > 0.18;
+    if (!on) continue;
+    flame(c, x + 15 + (hash(k * 2.1) - 0.5) * 10, sy + 2 + Math.sin(x * 0.05 + f * 0.15) * 3, 18 + hash(k * 3.3) * 14, 26 + hash(k * 5.7) * 34, f, k);
+  }
+  for (let x = Math.floor(a / 230) * 230 + 90; x < b; x += 230) smokeUp(c, x, sy - 30, f, x * 0.01, 0.9, 0.4, 6);
+  for (let k = 0; k < 14; k++) { const t = ((f * 0.9 + k * 37) % 120) / 120, ex = a + ((k * 211) % Math.max(1, b - a)) + Math.sin(t * 6 + k) * 8, ey = sy - 10 - t * 150; box(c, ex, ey, 2, 2, t < 0.5 ? '#FDE047' : '#F97316'); }
+  }
   // (junk floating on it: a standee face down, a tire, a plush, a plywood sheet)
   for (let k = 0; k < 5; k++) {
     const jx = a + ((k * 197 + f * 0.6) % Math.max(1, b - a)), jy = sy - 4 + Math.sin(f * 0.1 + k) * 2;

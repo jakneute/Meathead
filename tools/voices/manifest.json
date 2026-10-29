@@ -7231,6 +7231,11 @@
  },
  {
   "voice": "death",
+  "text": "BOILED IN A BURNING FLOOD",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "death",
   "text": "BOILED IN BUTTER BREW",
   "from": "FANTASY"
  },
@@ -8163,6 +8168,11 @@
   "voice": "death",
   "text": "COOKED BY A HEAT MAIN",
   "from": "FANTASY"
+ },
+ {
+  "voice": "death",
+  "text": "COOKED IN THE FLOOD",
+  "from": "HOLLYWOOD"
  },
  {
   "voice": "death",
@@ -62281,6 +62291,11 @@
  },
  {
   "voice": "meathead",
+  "text": "BURNING WATER! UP MY ASS!",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "meathead",
   "text": "BURNT MY ASS ON A CRACK!",
   "from": "HAZARD_HURT"
  },
@@ -73336,6 +73351,11 @@
  },
  {
   "voice": "meathead",
+  "text": "IT'S HOT TUB HOT! HELL HOT TUB!",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "meathead",
   "text": "IT'S HOT! IT'S 10W-40!",
   "from": "SPACE"
  },
@@ -75423,6 +75443,11 @@
   "voice": "meathead",
   "text": "MY ASSHOLE'S HUMMING!",
   "from": "FANTASY"
+ },
+ {
+  "voice": "meathead",
+  "text": "MY BALLS ARE BOILING!",
+  "from": "HOLLYWOOD"
  },
  {
   "voice": "meathead",
@@ -88472,6 +88497,11 @@
  {
   "voice": "meathead",
   "text": "THE WATER'S COMING. CLIMB, FAT ASS!",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "meathead",
+  "text": "THE WATER'S ON FIRE! HOW IS THE WATER ON FIRE?!",
   "from": "HOLLYWOOD"
  },
  {

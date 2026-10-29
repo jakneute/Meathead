@@ -200,11 +200,13 @@ export const updateHazards = (ctx: FrameContext): HazEvents => {
       fd.h = Math.min(FLOOD_MAX, fd.h + rate);
       if (f % 50 === 0) playSound('glug', 0.3, -8);
     }
+    // (it's on fire: its crackle under everything while it's up)
+    if (!fd.drain && fd.wave >= 120 && f % 36 === 0) playSound('flame', 0.35, -6 + Math.random() * 4);
     const surf = Y(fd.h);
     if (live(state) && cx < X(CLIMB.b)) {
       if (feet > surf + 14) {
-        if (!hv.wet) { hv.wet = true; playSound('splash', 0.9, -2); }
-        if (p.invincibilityTimer <= 0) hurtPlayer(ctx, 12, 'm2:hwh_flood', { x: 0, y: -11 }, 16);
+        if (!hv.wet) { hv.wet = true; playSound('splash', 0.9, -2); if (fd.wave >= 120) playSound('flame', 0.9, 2); }
+        if (p.invincibilityTimer <= 0) hurtPlayer(ctx, 12, fd.wave >= 120 ? 'm2:hwh_flood' : 'm2:hwh_surge', { x: 0, y: -11 }, 16);
         else if (!p.carried) p.vel.y = Math.min(p.vel.y, -2.5);
       } else hv.wet = false;
       if (p.pos.y > surf + 4) { if (++fd.under > 80) hurtPlayer(ctx, 9999, 'm2:hwh_drown', { x: 0, y: -2 }, 0); }
