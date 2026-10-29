@@ -43,7 +43,7 @@ The built HTML file isn't in git — build it first with `npm run release:m1` (s
 | Slide | Down + right click, or C on the ground | Down + B |
 | Uppercut | Up + right click, or E | Up + B |
 | Dive kick | Down + right click in the air, or C in the air | Down + B in the air |
-| Swap weapon | Mouse wheel / 1–9 | LB / RB |
+| Swap weapon | Mouse wheel / 1–9 | LB / RB, or the right stick (weapon wheel) |
 | Pause / arsenal | Esc | Start |
 
 Special moves cost one power cell. You get two; they refill over time. A dive-kick stomp refunds one.
@@ -68,7 +68,7 @@ The web folder (`release-m2/web/`) is the itch.io build (voice pack beside the p
 
 ### New controls in Meathead 2
 
-Everything from Meathead 1 works the same. Meathead 2 adds grabs, a park map and a weapon wheel. Keys can be remapped in OPTIONS.
+Everything from Meathead 1 works the same. Meathead 2 adds grabs and a park map. Keys can be remapped in OPTIONS.
 
 | Move | Keyboard + mouse | Controller |
 | --- | --- | --- |
@@ -81,7 +81,6 @@ Everything from Meathead 1 works the same. Meathead 2 adds grabs, a park map and
 | ↳ backflip / dive on the way down | Hold back / hold forward | Hold back / hold forward |
 | Grab a small critter and throw it | R or T on a critter, then a direction | Y + B or Y + X on a critter, then a direction |
 | Park map | Tab or M | Select |
-| Weapon wheel | (mouse wheel / 1–9 to swap) | Right stick: push toward a weapon, let go to pick it |
 
 The beatdown and the air grab each take **both power cells, full**, and the cells don't start refilling until the grab is over (if it ends in the air, not until you land). Short of that, the cells blink red. The shakedown and critter grabs are free. Some enemies are too fat or too greasy to grab at all.
 
