@@ -62,7 +62,7 @@ Meathead goes to a theme park. Eight themed lands plus a hub and an intro. Plays
 
 ### Play it
 
-The built HTML files aren't in git — build them first with `npm run release:m2` (see **Building from source**). Then `release-m2/Meathead2.html` is the standard build; `release-m2/Meathead2-cheats.html` adds the cheat panel (god mode, unlimited ammo, checkpoint skip, pants, time of day). Double-click either; plays in the browser offline.
+The built HTML files aren't in git — build them first with `npm run release:m2` (see **Building from source**). Then `release-m2/Meathead2-cheats.html` is the game with the cheat panel (god mode, unlimited ammo, checkpoint skip, pants, time of day). Double-click it; it plays in the browser offline. The standard build (no cheats) is `release-m2/app/Meathead2.html`, the page the Windows and Linux apps are made from.
 
 The web folder (`release-m2/web/`) is the itch.io build (voice pack beside the page, not inside it).
 
@@ -94,7 +94,7 @@ You'll need [Node.js](https://nodejs.org). Run all commands from the project roo
 npm install
 npm run dev              # play both games at http://localhost:3000
 npm run release:m1       # builds release-m1/Meathead.html + Meathead-cheats.html
-npm run release:m2       # builds release-m2/Meathead2.html + Meathead2-cheats.html
+npm run release:m2       # builds release-m2/Meathead2-cheats.html + release-m2/app/Meathead2.html
 npm run release:web:m1   # itch.io folder: release-m1/web/
 npm run release:web:m2   # itch.io folder: release-m2/web/
 npm run release:steam    # Meathead 1 desktop app for Steam (Windows): release-m1/steam/Meathead.exe

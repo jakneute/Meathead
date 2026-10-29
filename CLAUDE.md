@@ -31,7 +31,8 @@ The owner isn't a programmer. They test the built HTML files directly and descri
      silent.
    - Commit `tools/voices/manifest.json` too.
 3. Build:
-   - `npm run release:m2` builds `release-m2/Meathead2.html` and `Meathead2-cheats.html`.
+   - `npm run release:m2` builds `release-m2/Meathead2-cheats.html` (the one HTML at the folder's top) and the standard
+     `release-m2/app/Meathead2.html` (what the Windows and Linux apps are packaged from).
    - `npm run release:web:m2` builds the itch folder `release-m2/web/`.
    - Meathead 1: `release:m1`, `release:web:m1`, `release:steam`.
    - One release build at a time.

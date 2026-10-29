@@ -3,8 +3,9 @@
 //   release-m1/Meathead.html          the standard build (no cheats, the intro always)
 //   release-m1/Meathead-cheats.html   the same with the cheat panel and the debug options
 //   release-m1/steam/                 the desktop app for Steam (npm run release:steam: the standard build)
-//   release-m2/Meathead2.html         Meathead 2's standard build (no cheat panel)
-//   release-m2/Meathead2-cheats.html  Meathead 2 with the cheat panel
+//   release-m2/Meathead2-cheats.html  Meathead 2 with the cheat panel (the one HTML file at the folder's top: the owner's)
+//   release-m2/app/Meathead2.html     Meathead 2's standard build (no cheat panel): what the Windows and Linux apps are
+//                                     packaged from (tools/steam/package-m2.mjs, tools/linux/package-m2.mjs)
 // `npm run release:web` (both games), `npm run release:web:m1`, `npm run release:web:m2`: the standard builds for the
 // browser (itch.io: zip the folder), the voice pack beside the page instead of inside it:
 //   release-m1/web/index.html + voices.bin
@@ -18,7 +19,7 @@ import path from 'path';
 const root = path.resolve(path.dirname(new URL(import.meta.url).pathname.replace(/^\/([A-Za-z]:)/, '$1')), '../..');
 const BUILDS = {
   m1: [['public', 'index.html', 'release-m1/Meathead.html'], ['release', 'index.html', 'release-m1/Meathead-cheats.html']],
-  m2: [['m2public', 'meathead2.html', 'release-m2/Meathead2.html'], ['m2', 'meathead2.html', 'release-m2/Meathead2-cheats.html']],
+  m2: [['m2public', 'meathead2.html', 'release-m2/app/Meathead2.html'], ['m2', 'meathead2.html', 'release-m2/Meathead2-cheats.html']],
 };
 const WEB = {
   m1: [['public', 'index.html', 'release-m1/web/index.html', 'src/m1/generated/voices-m1.bin']],

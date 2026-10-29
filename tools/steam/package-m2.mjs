@@ -10,12 +10,12 @@ import path from 'node:path';
 import { createRequire } from 'node:module';
 
 const root = path.resolve(import.meta.dirname, '..', '..');
-const page = path.join(root, 'release-m2', 'Meathead2.html');
+const page = path.join(root, 'release-m2', 'app', 'Meathead2.html');
 const stage = path.join(root, '.steam-build-m2', 'app');
 const outTmp = path.join(root, '.steam-build-m2', 'out');
 const dest = path.join(root, 'release-m2', 'steam');
 
-if (!fs.existsSync(page)) { console.error('No release-m2/Meathead2.html: run npm run release:m2 first.'); process.exit(1); }
+if (!fs.existsSync(page)) { console.error('No release-m2/app/Meathead2.html: run npm run release:m2 first.'); process.exit(1); }
 
 const electronVersion = createRequire(import.meta.url)('electron/package.json').version;
 
