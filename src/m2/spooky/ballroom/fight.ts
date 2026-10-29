@@ -84,7 +84,7 @@ const pick = pickLine;
 const HP = 666, BIG = 100000;
 /** Most weapons: what of their usual damage gets through (a land boss shrugs off what isn't his weakness; at least 1); after each hit, a boss's breather (the
  *  standard one, as every boss has it: blinking, nothing lands). */
-const SHARE = 0.35, IFRAMES = BOSS_IFRAMES;
+const SHARE = 0.25, IFRAMES = BOSS_IFRAMES;
 /** The launcher's other souvenirs (it hits hard, and they bounce back for more): a smaller share (the Redeemer's the
  *  point of it, not the rest of the bag); the same breather. */
 const SOUV_SHARE = 0.15, SOUV_IFRAMES = BOSS_IFRAMES;

@@ -45,7 +45,7 @@ The owner isn't a programmer. They test the built HTML files directly and descri
 
 ## Standing design rules (the short list; more in the session memory)
 
-- **Bosses:** 666 HP, a 75-frame breather (`BOSS_IFRAMES` in `src/m2/bossSpam.ts`), non-weakness specials at 35%.
+- **Bosses:** 666 HP, a 75-frame breather (`BOSS_IFRAMES` in `src/m2/bossSpam.ts`), non-weakness specials at 25% (sub-bosses: 35%).
   - No more than about 5 seconds of spamming one attack. Ray gun and dive-kick chains especially.
   - Exception: Dad Guy after his couch is crushed has no breather and no multiplier.
 - **Boss sins:** the 8 bosses are the 7 deadly sins plus a robot (Artie pride, Donnie gluttony, the Queen robot, Steve

@@ -97,7 +97,7 @@ const TRAMPLE_DMG = 150;
 const NIBBLE_SHARE = 0.15, NIBBLE_CAP = 4;
 /** A special weapon that isn't his weakness (the spawner): this share of its usual damage gets through (every land boss's
  *  way; the ray gun and his moves in full). */
-const SHARE = 0.35;
+const SHARE = 0.25;
 /** His vine: how much chewing it takes (it's the same vine each time he goes up, till it's chewed through). */
 const VINE_HP = 30;
 /** Hanging off it: how much vine there is above his hands (what they can get at). */

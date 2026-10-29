@@ -13,7 +13,7 @@
 //               he squirts out of it (forty years of baby oil). Hang about by him and he's off: a tow car, a rope,
 //               dragged on his belly the length of the stage to the other end (blow the tow car up and he's stranded,
 //               scrambling back on foot).
-//   HURTING HIM The ray gun and Meathead's moves in full; any other weapon 35% (every land boss's way); the 60-frame
+//   HURTING HIM The ray gun and Meathead's moves in full; any other weapon 25% (every land boss's way); the 60-frame
 //               breather after each hit. His WEAKNESS is the SPELLBOOK, its storm picking by what's on the screen:
 //               METEORS for the red cars, COMETS for the blue, the LIGHTNING for Steve (stunned and struck the whole
 //               time it's on him: the user's opt-in to a status on a boss). "WHY DID I WEAR A CONDUCTIVE SUIT". Every
@@ -77,7 +77,7 @@ const pick = pickLine;
 /** His health (the land bosses'), and the enemy's (never runs out: the hits come off ours). */
 const HP = 666, BIG = 100000;
 /** Anything but the ray gun, his moves and the book: this share; the breather after a hit. */
-const SHARE = 0.35, IFRAMES = BOSS_IFRAMES;
+const SHARE = 0.25, IFRAMES = BOSS_IFRAMES;
 /** The lightning on him: the first strike of a storm, each one after (no breather: it's one long hit); stunned this
  *  long past the last strike, then smoking a while. (The playtest: a touch more, +25% on 24 and 6.) */
 const ZAP_FIRST = 30, ZAP_EACH = 7.5, ZAP_HOLD = 26, SMOKE_T = 70;

@@ -31,7 +31,7 @@
 //                 hopping at random (run under him; his knees bend a beat before each hop: the tell). The hammer hurts
 //                 where it's drawn (its head; him). Every move into him gets him hammered (no melee lands); then he's
 //                 winded, a wheeze (open), and shuffles back to the couch.
-//   HURTING HIM   The ray gun and Meathead's moves in full; anything else 35% (every land boss's way); the 60-frame
+//   HURTING HIM   The ray gun and Meathead's moves in full; anything else 25% (every land boss's way); the 60-frame
 //                 breather. 666 health.
 //   THE WEAKNESS  The CLAPPERBOARD: here each snap sends one stunt car that homes in on one of his TV family and
 //                 flattens it (wrecks and bodies stay put); the scene takes a while to reset before another
@@ -94,7 +94,7 @@ const pick = pickLine;
 
 /** His health (the land bosses'), the enemy's (never runs out: the hits come off ours); the share anything but the ray
  *  gun and his moves does; the breather; up and pathetic: twice the hurt, half the breather. */
-const HP = 666, BIG = 100000, SHARE = 0.35, IFRAMES = BOSS_IFRAMES, SAD_MULT = 1, SAD_IFRAMES = 0;
+const HP = 666, BIG = 100000, SHARE = 0.25, IFRAMES = BOSS_IFRAMES, SAD_MULT = 1, SAD_IFRAMES = 0;
 // (no multiplier and no breather up off his crushed couch (the user's: "he gets zero there. no damage multipliers
 // though"): every hit lands as it is; were x2 and 30 frames)
 /** His seat on the couch (from its middle), half the couch's width (the arena, the couch's spot, the fridge: layout.ts). */

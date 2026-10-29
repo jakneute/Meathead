@@ -26,7 +26,7 @@
 //               hurt by anything else meanwhile; a brief punch-in), then slink off; he gets up more clawed every time.
 //               Slinking off, each is a real enemy (critters.ts LION_KIND): full, harmless, a lot of poise; sucked up
 //               (a big helping in the bag) or killed before it's off the view's edge, else just gone.
-//   HURTING HIM The ray gun and Meathead's moves at Meathead 1's boss values; anything else 35%; the 60-frame breather.
+//   HURTING HIM The ray gun and Meathead's moves at Meathead 1's boss values; anything else 25%; the 60-frame breather.
 //
 // Two deaths (the land bosses' rule): the weakness (the lions' mauling the last thing to hurt him): THE SLOW-MO KILL
 // (the kill cam, slowed: the close-up of them at his throat and his split crown, then a TUG OF WAR: one cat's jaws in
@@ -75,7 +75,7 @@ import * as L from './lines';
 /** His health (the land bosses'), and the engine's stand-in (never runs out: the hits come off ours). */
 const HP = 666, BIG = 100000;
 /** Anything but the ray gun and his moves: this share; the breather after a hit. */
-const SHARE = 0.35, IFRAMES = BOSS_IFRAMES;
+const SHARE = 0.25, IFRAMES = BOSS_IFRAMES;
 /** The routine (frames): listening between shots, the cock, the aim, the flash in the pan, the kick after, the reload. */
 const LISTEN: [number, number] = [80, 30], COCK: [number, number] = [16, 10], AIM: [number, number] = [54, 26];
 const PAN: [number, number] = [22, 13], RECOIL: [number, number] = [16, 10], RELOAD: [number, number] = [66, 32];

@@ -17,7 +17,7 @@
 //               (across to the far wall and rotating slowly down to his own feet: safe only right under him) or
 //               SWEEP 2 (straight down and arcing up across the floor and up the far wall: get to the far end and
 //               uppercut at the last moment).
-//   HURTING HIM Meathead's moves and the ray gun in full; anything else 35% (every land boss's way); the 60-frame
+//   HURTING HIM Meathead's moves and the ray gun in full; anything else 25% (every land boss's way); the 60-frame
 //               breather after each hit. No instant kills. His WEAKNESS (opted in: weapons/crossbow.ts setDartTaker,
 //               over the "no puke on bosses" rule) is the PLAGUE CROSSBOW: the darts barely scratch him, but enough of
 //               them and he's airsick: he barfs on her; she snaps up standing (her stuck arm yanked free if it was),
@@ -79,7 +79,7 @@ const pick = pickLine;
 /** His health (the land bosses'), and the enemy's (never runs out: the hits come off ours). */
 const HP = 666, BIG = 100000;
 /** Anything but the ray gun and his moves: this share; the breather after a hit. */
-const SHARE = 0.35, IFRAMES = BOSS_IFRAMES;
+const SHARE = 0.25, IFRAMES = BOSS_IFRAMES;
 /** A dart: its scratch (never the last of him: only her concrete or a real hit kills), how many make him sick, how
  *  long unhit before the queasiness starts going off, and how fast. */
 /** (the user: "harry takes more shots to make queasy too": 7 -> 10, with her or without) */

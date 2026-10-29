@@ -24,7 +24,7 @@
 //   THROWS      Near a loose part, she rips a bit of it off and shouts its name: "FIRE BALL!" (lobbed, it burns where
 //               it lands a while), "ICE BALL!" (straight at him: frozen, mash), "LIGHTNING BOLT!" (the cable's end
 //               aimed: a flickering line first, then the bolt down it).
-//   HURTING HER The ray gun and his moves in full; any other weapon 35% (every land boss's way); the 60-frame
+//   HURTING HER The ray gun and his moves in full; any other weapon 25% (every land boss's way); the 60-frame
 //               breather. Her WEAKNESS is the FLINTLOCK (no headshot, the user's opt-in: holes): a ball in her blows a
 //               HOLE in her, fat and gore jetting out, and she goes round the room like a let-go balloon (ricocheting
 //               off the walls and the ceiling; touching her hurts; she can't be shot while she's at it), leaking all
@@ -83,7 +83,7 @@ const pick = pickLine;
 /** Her health (the land bosses'), and the enemy's (never runs out: the hits come off ours). */
 const HP = 666, BIG = 100000;
 /** Anything but the ray gun and his moves: this share; the breather after a hit. */
-const SHARE = 0.35, IFRAMES = BOSS_IFRAMES;
+const SHARE = 0.25, IFRAMES = BOSS_IFRAMES;
 /** The flintlock: a hole's damage (the ball's own boss hit, as the number that comes up says), holes to kill her. */
 const HOLE_DMG = 150, HOLES_TO_DIE = 4;
 /** Her box (the enemy's), feet to the top of her beehive. */

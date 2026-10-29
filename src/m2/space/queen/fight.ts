@@ -25,7 +25,7 @@
 //   THE FLAIL     him in close too long (her reach, about a second and a half): a twitch and a spark (the tell), then all
 //                 four arms going at once, a wide heavy hit that knocks him back. Backing off resets it.
 //   HURTING HER   a main boss's rules: 666, the 60-frame breather after each hit; the ray gun and his moves Meathead 1's
-//                 way (a shot 25; charge and slide 35; uppercut and dive kick 50); any other special weapon 35%. Her
+//                 way (a shot 25; charge and slide 35; uppercut and dive kick 50); any other special weapon 25%. Her
 //                 weakness is the MALLET (in full). And:
 //                   - one of her own (or anybody) thrown into her: it's destroyed, and she's hurt;
 //                   - one of her own BATTED back into her with the mallet: the big one (not a finisher: eight-odd of them
@@ -98,7 +98,7 @@ const dressed = (state: GameState): L.Dressed => (isNude(state) ? 'nude' : isSha
 /** Her health (a main boss's); the enemy's (never runs out: the hits are taken off ours). */
 const HP = 666, BIG = 100000;
 /** Any special weapon that isn't her weakness (the mallet): this share gets through; after each hit, the breather. */
-const SHARE = 0.35, IFRAMES = BOSS_IFRAMES;
+const SHARE = 0.25, IFRAMES = BOSS_IFRAMES;
 /** Her two sides (where she stands: her feet's middle). */
 const SIDE_X = { [-1]: DISCO_SIDES.l, [1]: DISCO_SIDES.r } as Record<-1 | 1, number>;
 /** Where she drops in for the cutscene (on screen with him, the extinguisher and the booth); the camera then. */
