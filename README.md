@@ -28,11 +28,11 @@ Finished and content-locked. Fly to eight cities. Wreck the place, take the boss
 The built HTML file isn't in git — build it first with `npm run release:m1` (see **Building from source**), then open `release-m1/Meathead.html`. Double-click it; it plays in your browser offline, nothing to install.
 
 - **Browser:** desktop Chrome or Edge.
-- **Controller:** Xbox, PlayStation and Switch pads all work. Plug in and press a button; prompts switch to match.
+- **Controller:** Xbox, PlayStation and Switch pads all work. Plug in and press a button; prompts switch to match. The tables below use Xbox buttons; the others are in the same places.
 
 ### Controls (Meathead 1)
 
-| Action | Keyboard + mouse | Controller |
+| Action | Keyboard + mouse | Controller (Xbox) |
 | --- | --- | --- |
 | Move | A / D or arrows | Stick / D-pad |
 | Aim up / crouch | W / S | Up / down |
@@ -70,14 +70,14 @@ The web folder (`release-m2/web/`) is the itch.io build (voice pack beside the p
 
 Everything from Meathead 1 works the same. Meathead 2 adds grabs and a park map. Keys can be remapped in OPTIONS.
 
-| Move | Keyboard + mouse | Controller |
+| Move | Keyboard + mouse | Controller (Xbox) |
 | --- | --- | --- |
 | Beatdown: tackle him, get on top, every hit heals you | R | Y + B |
 | ↳ on top of him: punch / knee / headbutt | Left click / right click / F | X / B / Y |
 | ↳ jump off | Space | A |
 | Shakedown: up by the neck, shake the ammo out of him | T | Y + X |
 | ↳ throw him / slam him | Hold a direction / hold down | Hold a direction / hold down |
-| Air grab: leap up, grab one, drive him into the ground | Q | A + B |
+| Air grab: leap up, grab one, drive him into the ground; it heals you | Q | A + B |
 | ↳ backflip / dive on the way down | Hold back / hold forward | Hold back / hold forward |
 | Grab a small critter and throw it | R or T on a critter, then a direction | Y + B or Y + X on a critter, then a direction |
 | Park map | Tab or M | Select |
