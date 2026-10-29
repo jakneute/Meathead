@@ -53,9 +53,14 @@ const landX = (i: number) => CANVAS_WIDTH / 2 + (i - (WORD.length - 1) / 2) * ST
 const LAND_Y = CANVAS_HEIGHT / 2;
 
 /** A frame: the next letter's stamp when it lands (the jolt, the thud, the ink), the ink flying and drying. */
+/** The frame it was last ticked, and whether it was still up: the shell keeps pause, the map and the wheel off it. */
+let tickedAt = -99, up = false;
+/** VICTORY on screen right now (ticked this frame or the last): no pause, no map, no weapon wheel (the user's). */
+export const victoryOn = (frame: number) => up && frame - tickedAt <= 2;
 export const tickVictory = (state: GameState, v: Victory) => {
   musicMoment('victory');
   v.t++;
+  tickedAt = state.frame; up = !victoryDone(v);
   for (let i = v.stamped; i < WORD.length; i++) {
     if (v.t < startOf(i) + FLY) break;
     v.stamped = i + 1;

@@ -31,6 +31,8 @@ export interface M2Ui {
   noSwitch?: boolean;
   /** Not his to play right now (a cutscene, the victory walk, a grab or a lever under way, dying): no weapon wheel, no switching. */
   locked?: boolean;
+  /** Not his to play right now (a cutscene, VICTORY, dying): no pause menu, no map, no weapon wheel. */
+  noPause?: boolean;
   /** What pressing up does right here, if anything (a lever to pull...): its prompt (a land's own; reset each frame). */
   upPrompt?: string | null;
   /** What HOLDING up does right here, if anything (hiding in a locker: only while it's held): shown as HOLD, the up

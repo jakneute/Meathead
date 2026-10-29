@@ -92,8 +92,10 @@ const noSwitching = () => !!getUi().noSwitch || !!getUi().locked;
 // (each frame: is the game his to play? Not in a cutscene (the victory walk's one), dying or dead, mid-grab, mid-lever)
 setFrameHook(state => {
   const p = state.player;
-  setUi({ locked: !!p.inCutscene || state.deathTimer > 0 || p.health <= 0 || !!p.hidden || !!p.leverPull || !!p.freefall || portalArrivalPending(), killCam: isKillCam(state) });
+  const still = !!p.inCutscene || victoryOn(state.frame) || state.deathTimer > 0 || p.health <= 0;
+  setUi({ locked: still || !!p.hidden || !!p.leverPull || !!p.freefall || portalArrivalPending(), noPause: still, killCam: isKillCam(state) });
 });
+import { victoryOn } from './victory';
 import { soundTestOpen } from './music/soundTest';
 import { getCheats, subscribeCheats, availableWeapons, subscribeArsenal, setLiveState, cheatPanelOpen, setCheatPanelOpen, moveCheatCursor, activateCheat } from './cheats';
 import { attachM2Keys, mapButton } from './input';
@@ -413,6 +415,9 @@ const App2: React.FC = () => {
     const st = live.current.status;
     // (a scene that can be skipped: START / ESC skips it, rather than pausing)
     if (st === GameStatus.PLAYING && canSkip()) { requestSkip(); return; }
+    // (not his to play (a cutscene before its skip's offered, VICTORY, dying): START does nothing, no pause menu (the user's:
+    // a button masher's START in the skip's buffer isn't punished with a pause either))
+    if (st === GameStatus.PLAYING && (getUi().noPause || getUi().introCutscene)) return;
     if (st === GameStatus.PLAYING) { setPauseSel(noSwitching() ? arsenal().length : Math.max(0, arsenal().indexOf(live.current.weapon))); setStatus(GameStatus.PAUSED); }
     else if (st === GameStatus.PAUSED) setStatus(GameStatus.PLAYING);
   };
