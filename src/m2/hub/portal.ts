@@ -284,7 +284,8 @@ const shock = (c: Ctx, pt: Show, vx: number, vy: number, u: number) => {
  * size here, smoothly: no crawl as the camera moves), and the same again solid in the portal's color (its light on him). */
 // (the picture's room round him: wide and tall enough for the biggest weapon held up or swung out (the mallet's head
 // was cut off): ME_H is his own height's room, PAD_TOP more over it)
-const HI = 3, ME_W = 260, ME_H = 206, ME_FOOT = 12, PAD_TOP = 80;
+// (and room under his feet: a long weapon hung head-down (the mallet) reaches past them)
+const HI = 3, ME_W = 260, ME_H = 246, ME_FOOT = 52, PAD_TOP = 80;
 let fig: HTMLCanvasElement | null = null, tint: HTMLCanvasElement | null = null;
 const pose: BackPose = { step: 0, t: 0, nude: false, shat: false, rim: '#FFFFFF', weapon: null };
 let held: import('../../m1/types').WeaponType = 'GUN';
@@ -302,7 +303,7 @@ const paintFigure = (state: GameState, pt: Show, step: number, col: string, fron
   const nude = isNude(state), shat = isShat(state), rim = mix(pt.land.swirl[2], '#FFFFFF', 0.35);
   held = state.player.currentWeapon ?? 'GUN';
   if (!front) {
-    pose.step = step; pose.t = pt.t; pose.nude = nude; pose.shat = shat; pose.rim = rim; pose.weapon = holdWeapon;
+    pose.step = step; pose.t = pt.t; pose.nude = nude; pose.shat = shat; pose.rim = rim; pose.weapon = holdWeapon; pose.weaponType = held;
     drawMeatheadBack(g, ME_W / 2, PAD_TOP + ME_H - ME_FOOT, pose);
   } else {
     // (from the front, walking out at us: the walk-away's him, his arms swinging, his weapon down by his left side)

@@ -88,7 +88,9 @@ export const tickPortalWalk = (w: PortalWalk) => {
 // (nearest pixels: the picture's own sprite scaling, the same as the props'), here and at the hub
 
 /** His canvas: wide enough for his arms and what's hanging off his left fist, his feet `ME_FOOT` up from its bottom. */
-const ME_W = 150, ME_H = 206, ME_FOOT = 12;
+// (wide and tall enough for anything he carries: the mallet's head hangs well out past his fist (the playtest: it was cut off
+// at the old 150 wide))
+const ME_W = 300, ME_H = 300, ME_FOOT = 52;
 let meCv: HTMLCanvasElement | null = null;
 const backPose: BackPose = { step: 0, t: 0, nude: false, shat: false, rim: '#FFFFFF', weapon: null };
 let poseWeapon: WeaponType = 'GUN';
@@ -104,7 +106,7 @@ export const drawBackFigure = (c: Ctx, x: number, y: number, scale: number, o: {
   const g = meCv.getContext('2d')!;
   g.setTransform(1, 0, 0, 1, 0, 0); g.clearRect(0, 0, ME_W, ME_H); g.imageSmoothingEnabled = false;
   backPose.step = o.step; backPose.t = o.t; backPose.nude = o.nude; backPose.shat = o.shat; backPose.rim = o.rim;
-  poseWeapon = o.weapon ?? 'GUN'; backPose.weapon = o.weapon ? holdWeapon : null;
+  poseWeapon = o.weapon ?? 'GUN'; backPose.weapon = o.weapon ? holdWeapon : null; backPose.weaponType = poseWeapon;
   drawMeatheadBack(g, ME_W / 2, ME_H - ME_FOOT, backPose);
   c.save();
   c.imageSmoothingEnabled = false;

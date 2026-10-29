@@ -29,7 +29,16 @@ export interface BackPose {
   rim: string;
   /** What he's carrying (as he holds it in the game: its grip at the origin, pointing +x), or nothing. */
   weapon: ((c: Ctx, t: number) => void) | null;
+  /** Which it is (for the ones not held pointing +x: the mallet's held head-up). */
+  weaponType?: string;
 }
+/** A weapon held some other way than pointing +x in the game: the turn that points it +x (so it hangs head-down). */
+const HELD_TURN: Record<string, number> = { MALLET: 1.15 };
+/** ...and gripped further along it than in the game (art px toward its business end): the mallet hung head-down by the
+ *  end of its long handle reached the ground (the playtest: its head cut off under the picture). */
+const HELD_SHIFT: Record<string, number> = { MALLET: 20 };
+/** Hung from his fist tipped out away from his leg this much (radians), so it's seen past him, not hidden behind it. */
+const OUT_TILT = 0.22;
 
 /** His weapon's drawn this much bigger than it is in the game (to his size here). */
 const WS = 2.4;
@@ -110,15 +119,6 @@ export const drawMeatheadBack = (c: Ctx, x: number, y: number, p: BackPose) => {
   // His shadow (stippled)
   c.fillStyle = stipple(c, '#000000'); c.beginPath(); c.ellipse(0, 0, 40, 6, 0, 0, Math.PI * 2); c.fill();
   c.fillStyle = 'rgba(0,0,0,0.35)'; c.beginPath(); c.ellipse(0, 0, 30, 4, 0, 0, Math.PI * 2); c.fill();
-  // His weapon, in his left fist, hanging down in front of his thigh, muzzle to the ground: in front of him, so behind
-  // him from here (drawn first: his leg, his arm and his fist over it; what sticks out past him showing). Where his fist
-  // comes to (arm(): its swing a third of his stride's, the other way)
-  if (p.weapon) {
-    const sw = Math.sin(step), swing = -sw * 0.35, fx = -(44 - swing * 1.5), fy = -64 + bob - swing * 4;
-    c.save(); c.translate(fx + 14, fy + 2); c.rotate(Math.PI / 2 - 0.12 + sw * 0.04); c.scale(WS, WS); c.translate(-5, -6);
-    p.weapon(c, p.t);
-    c.restore();
-  }
   // Legs: the one out in front of him first (it's further off)
   const hipY = -74 + bob;
   const ahead = Math.sin(step) > 0 ? 1 : -1;
@@ -244,6 +244,16 @@ export const drawMeatheadBack = (c: Ctx, x: number, y: number, p: BackPose) => {
       // (the tan line: brown to white, a dithered row between)
       c.fillStyle = stipple(c, PALE[2]); c.fillRect(-26, by + 14, 52, 2);
     }
+  }
+  // His weapon, in his left fist, hanging down by his thigh, muzzle to the ground, tipped out a little; drawn over his
+  // legs and his back, under his arm and fist (the playtest: drawn behind him, most of it was hidden behind his leg).
+  // Where his fist comes to (arm(): its swing a third of his stride's, the other way)
+  if (p.weapon) {
+    const sw = Math.sin(step), swing = -sw * 0.35, fx = -(44 - swing * 1.5), fy = -64 + bob - swing * 4;
+    c.save(); c.translate(fx, fy + 2); c.rotate(Math.PI / 2 + OUT_TILT + sw * 0.04 + (HELD_TURN[p.weaponType ?? ''] ?? 0)); c.scale(WS, WS);
+    { const k = HELD_SHIFT[p.weaponType ?? ''] ?? 0, a = -(HELD_TURN[p.weaponType ?? ''] ?? 0); c.translate(-5 - k * Math.cos(a), -6 - k * Math.sin(a)); }
+    p.weapon(c, p.t);
+    c.restore();
   }
   // Arms: swinging against his legs (his left, with the weapon in it, hardly at all)
   const sw = Math.sin(step);
