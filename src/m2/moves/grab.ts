@@ -139,6 +139,8 @@ const BLOWS: Record<Blow, { dmg: number; gap: number; hit: number; len: number; 
   head: { dmg: 40, gap: 24, hit: 10, len: 18, shake: [11, 6] },
 };
 const HEAL_PER_DMG = 2 / 15, KILL_HEAL = 10;
+/** What one heals him: n, or its share of it (Enemy.healK), never under 1. */
+const healOf = (e: Enemy, n: number) => (e.healK === undefined ? n : Math.max(1, Math.round(n * e.healK)));
 /** A blow pressed for too early (the last one's still going) is kept this long and thrown the moment it can be. */
 const BLOW_BUFFER = 10;
 /**
@@ -1235,7 +1237,7 @@ const stepGrab = (ctx: FrameContext, g: Grab, controls: Controls): Controls => {
       // The ammo shaken out of him as he's shaken, a bit at a time, falling out the front of him (clear of Meathead, so
       // it's seen to drop before it's picked up) (the first time he's shaken: after that, he's empty)
       // (nothing in what gives nothing back: the queen's kin, say, like their beatdowns don't heal)
-      if (g.t === 1 && !g.shaken.has(e)) { g.shaken.add(e); g.ammoLeft = e.noHeal ? 0 : SHAKE_AMMO; }
+      if (g.t === 1 && !g.shaken.has(e)) { g.shaken.add(e); g.ammoLeft = e.noHeal || e.noAmmo ? 0 : SHAKE_AMMO; }
       if (g.ammoLeft > 0 && g.t % SHAKE_DROP_EVERY === SHAKE_DROP_EVERY - 1) {
         const k = SHAKE_AMMO - g.ammoLeft--;
         state.pickups.push({ id: `shake-${state.frame}-${k}`, pos: { x: centerX(state) + g.dir * 46 - 10, y: p.pos.y + 20 }, vel: { x: g.dir * (1.5 + k * 1.2), y: -4 - k }, width: 20, height: 20, type: 'small_ammo', life: 600 });
@@ -1277,7 +1279,7 @@ const landBlow = (ctx: FrameContext, g: Grab, e: Enemy) => {
   e.health -= dmg;
   // (healing by the blow's own damage, unbulked: the same a second whichever he's throwing)
   if (!e.noHeal) {
-    g.healBank += B.dmg * HEAL_PER_DMG;
+    g.healBank += B.dmg * HEAL_PER_DMG * (e.healK ?? 1);
     const h = Math.floor(g.healBank); g.healBank -= h;
     if (h > 0) { p.health = Math.min(INITIAL_PLAYER_HEALTH, p.health + h); g.hp = p.health; }
   }
@@ -1314,12 +1316,12 @@ const landBlow = (ctx: FrameContext, g: Grab, e: Enemy) => {
     return;
   }
   // Done: the rest of the health back, and him left lying there
-  if (!e.noHeal) { p.health = Math.min(INITIAL_PLAYER_HEALTH, p.health + KILL_HEAL); g.hp = p.health; }
+  if (!e.noHeal) { p.health = Math.min(INITIAL_PLAYER_HEALTH, p.health + healOf(e, KILL_HEAL)); g.hp = p.health; }
   e.pos = { x: e.pos.x, y: feetY(state) - e.height };
   release(state, e);
   fx.blowAwayEnemy(e, { x: g.dir * (g.blow === 'knee' ? 2.5 : 1.5), y: g.blow === 'knee' ? -4 : -2 }, m2Kill('beatdown_kill'), g.dir);
   fx.spawnKillCallout(e, grabCallout(BLOW_CALLOUT[g.blow]));
-  if (!e.noHeal) fx.spawnDamageNumber({ x: centerX(state), y: p.pos.y - 20 }, `+${KILL_HEAL} HP`, true, '#4ADE80');
+  if (!e.noHeal) fx.spawnDamageNumber({ x: centerX(state), y: p.pos.y - 20 }, `+${healOf(e, KILL_HEAL)} HP`, true, '#4ADE80');
   playSound('crunch'); shakeScreen(state, 10, 6);
   g.held = null; g.phase = 'kill'; g.t = 0;
 };
@@ -1380,7 +1382,7 @@ const stompHim = (ctx: FrameContext, g: Grab, first: boolean) => {
     e.health = 0; e.isBlownAway = true;
     if (scrap) markMachineGore(state, at.x - 80, at.y - 80, 160, 120, 40);
     pulped.push({ e, x: g.hitAt.x, y: g.hitAt.y, dir: g.dir, born: state.frame, stage: String(state.stageId), crater: 1, scrap, seed: Math.random() * 1000 });
-    if (!e.noHeal) { p.health = Math.min(INITIAL_PLAYER_HEALTH, p.health + KILL_HEAL); g.hp = p.health; fx.spawnDamageNumber({ x: centerX(state), y: p.pos.y - 20 }, `+${KILL_HEAL} HP`, true, '#4ADE80'); }
+    if (!e.noHeal) { p.health = Math.min(INITIAL_PLAYER_HEALTH, p.health + healOf(e, KILL_HEAL)); g.hp = p.health; fx.spawnDamageNumber({ x: centerX(state), y: p.pos.y - 20 }, `+${healOf(e, KILL_HEAL)} HP`, true, '#4ADE80'); }
     fx.spawnKillCallout({ pos: { x: at.x - e.width / 2, y: at.y - e.height }, width: e.width, height: e.height, kind: e.kind, health: 0, isBlownAway: true }, grabCallout('stomp'));
     fx.speakVulgarity(m2Kill('beatdown_kill'));
     p.killSatisfactionTimer = 60;
@@ -1426,7 +1428,7 @@ const hugBurst = (ctx: FrameContext, g: Grab, e: Enemy) => {
   markKindGore(state, e.kind, at.x - 130, at.y - 290, 260, 360, 60);
   g.held = null;
   e.health = 0; e.isBlownAway = true; e.pos = { x: at.x - e.width / 2, y: at.y - e.height / 2 };
-  if (!e.noHeal) { p.health = Math.min(INITIAL_PLAYER_HEALTH, p.health + KILL_HEAL); g.hp = p.health; fx.spawnDamageNumber({ x: centerX(state), y: p.pos.y - 20 }, `+${KILL_HEAL} HP`, true, '#4ADE80'); }
+  if (!e.noHeal) { p.health = Math.min(INITIAL_PLAYER_HEALTH, p.health + healOf(e, KILL_HEAL)); g.hp = p.health; fx.spawnDamageNumber({ x: centerX(state), y: p.pos.y - 20 }, `+${healOf(e, KILL_HEAL)} HP`, true, '#4ADE80'); }
   playSound('splat', 1.3, -7); playSound('crunch', 1.2, -8); playSound('boom', 0.6, -12); playSound('slam', 0.8, -4);
   shakeScreen(state, 22, 12);
   // Everywhere: out all round, chunks of him flung (they hurt whoever they land on), a red mist hanging, it raining down
@@ -1463,7 +1465,7 @@ const smashHim = (ctx: FrameContext, g: Grab, e: Enemy) => {
   markKindGore(state, e.kind, at.x - 90, at.y - 90, 180, 140, 40);
   g.held = null;
   e.health = 0; e.isBlownAway = true; e.pos = { x: at.x - e.width / 2, y: at.y - e.height / 2 };
-  if (!e.noHeal) { p.health = Math.min(INITIAL_PLAYER_HEALTH, p.health + KILL_HEAL); g.hp = p.health; }
+  if (!e.noHeal) { p.health = Math.min(INITIAL_PLAYER_HEALTH, p.health + healOf(e, KILL_HEAL)); g.hp = p.health; }
   playSound('slam'); playSound('crunch', 1.2, -6); playSound('splat', 1.2, -4); playSound('boom', 0.5, -10);
   shakeScreen(state, 20, 10);
   for (let k = 0; k < 3; k++) fx.spawnDeathShower(at, (k - 1) * 0.8, 2.2, false, 80);
@@ -1475,7 +1477,7 @@ const smashHim = (ctx: FrameContext, g: Grab, e: Enemy) => {
       custom: 'SOUL_SUCKER', customData: { life: 70, hit: [] as string[], chunk: true, spin: Math.random() * 6, shade: i % 3, scrap, blood: bloodOf(e.kind) },
     });
   }
-  if (!e.noHeal) fx.spawnDamageNumber({ x: centerX(state), y: p.pos.y - 20 }, `+${KILL_HEAL} HP`, true, '#4ADE80');
+  if (!e.noHeal) fx.spawnDamageNumber({ x: centerX(state), y: p.pos.y - 20 }, `+${healOf(e, KILL_HEAL)} HP`, true, '#4ADE80');
   fx.spawnKillCallout(e, grabCallout('smash'));
   fx.speakVulgarity(m2Kill('beatdown_kill'));
   p.killSatisfactionTimer = 60;
@@ -1801,8 +1803,8 @@ const airImpact = (ctx: FrameContext, g: Grab, where: 'floor' | 'wall' | 'ceilin
   const dmg = Math.round((e.maxHealth * A.DAMAGE_SHARE * k + A.DAMAGE_FLAT) * buffs.knock);
   e.health -= dmg;
   if (!e.noHeal) {
-    p.health = Math.min(INITIAL_PLAYER_HEALTH, p.health + A.HEAL); g.hp = p.health;
-    fx.spawnDamageNumber({ x: centerX(state), y: p.pos.y - 20 }, `+${A.HEAL} HP`, true, '#4ADE80');
+    p.health = Math.min(INITIAL_PLAYER_HEALTH, p.health + healOf(e, A.HEAL)); g.hp = p.health;
+    fx.spawnDamageNumber({ x: centerX(state), y: p.pos.y - 20 }, `+${healOf(e, A.HEAL)} HP`, true, '#4ADE80');
   }
   // (blood, or scrap off a machine)
   const scrap = isMachineKind(e.kind) || !!m2Kind(e.kind)?.robot;

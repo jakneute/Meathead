@@ -63,6 +63,8 @@ const SHOT_GAP = 40;
 /** The hints: piled on a while (frames) before the first, and the least gap between them. */
 const HINT_AFTER = 150, HINT_GAP = 600;
 /** What they do to him: a jump on, the pile every so often (per one on him), a hero landing on his head. */
+/** The grabs' healing off them: this share of the usual. */
+const HEAL_K = 0.4;
 const LATCH_HURT = 2, PILE_HURT = 2, PILE_EVERY = 40, FLOP_HURT = 8;
 const L0 = X(ARENA.a) + 50, R0 = X(ARENA.b) - 50;
 const clampX = (x: number) => Math.max(L0, Math.min(R0, x));
@@ -143,8 +145,9 @@ const appear = (state: GameState, a: Arrival) => {
   const F = whOf(state).fight, c = CAST[a.i], p = state.player;
   const e = makeKindEnemy(ACTOR_KIND as EnemyKind, a.x, a.y);
   e.variant = a.i; e.health = BIG; e.maxHealth = BIG; e.seen = true;
-  // (pure attrition: no beatdown or air grab heals off them, no ammo shaken out of them)
-  e.noHeal = true;
+  // (the grabs heal off them, but a lot less (the user's: "don't remove the healing... but reduce it"); no ammo
+  // shaken out of them)
+  e.healK = HEAL_K; e.noAmmo = true;
   e.homeX = e.pos.x; e.homeY = e.pos.y; e.initialY = e.pos.y;
   e.facing = a.x > p.pos.x + p.width / 2 ? -1 : 1;
   e.aiState = a.mode === 'drop' ? 'land' : 'approach'; e.aiTimer = 0; e.leapCd = 20;

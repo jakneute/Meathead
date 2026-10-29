@@ -564,6 +564,10 @@ export interface Enemy extends Entity {
   innocent?: boolean;
   /** (M2 grabs) Gives nothing back: beating it up heals him nothing, shaking it down drops no ammo (the queen's kin). */
   noHeal?: boolean;
+  /** (M2 grabs) Heals him only this share of the usual (unset: all of it). */
+  healK?: number;
+  /** (M2 grabs) Shaking it down drops no ammo. */
+  noAmmo?: boolean;
   /** (M2 grabs) Thrown, or hit by somebody thrown: this much more it takes (unset: 1). */
   throwVuln?: number;
   /** A mid-boss already took a hit from this tsunami wave (it's washed over once, not every frame). */
