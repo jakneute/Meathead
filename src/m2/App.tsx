@@ -20,7 +20,7 @@ import { drawM2DeathMessage, prewarmDeathText } from './deathText';
 import { installCanvasSafety } from './canvasSafety';
 import { setDropTable } from '../m1/game/core/effects';
 import { M2_GUT_LINES, M2_GUT_DEATH } from './lines/gutLines';
-import { createFullAmmo, maxAmmo, INITIAL_PLAYER_HEALTH, enemyMeleeDamage, WHEEL_COOLDOWN_MS } from '../m1/constants';
+import { createFullAmmo, maxAmmo, INITIAL_PLAYER_HEALTH, enemyMeleeDamage, WHEEL_COOLDOWN_MS, HUD_CLEAR_X, CANVAS_WIDTH as VIEW_W } from '../m1/constants';
 import { getActiveGamepad, isButtonPressed, GP_BUTTONS, getGamepadMovement, menuButtons } from '../m1/game/platform/gamepad';
 import { hasRightStick } from '../m1/game/platform/device';
 import WeaponWheel, { wheelIndexAt } from '../m1/components/WeaponWheel';
@@ -28,7 +28,7 @@ import PauseMenu from './PauseMenu';
 import { portalArrivalPending } from './portalArrival';
 import { THEMES, PLAIN_PAUSE } from './hudThemes';
 import GoreBag from './GoreBag';
-import { M2_WEAPONS, M2WeaponArt, weaponName, registerWeapons, ammoName } from './weapons';
+import { M2_WEAPONS, M2WeaponArt, weaponName, registerWeapons, ammoName, M2_WEAPON_INFO } from './weapons';
 import { dryAlert, dryAlertText } from './weapons/dry';
 import { powerShort } from '../m1/game/player/powerShort';
 import { malletBroken } from './weapons/mallet';
@@ -693,10 +693,12 @@ const App2: React.FC = () => {
             {!nearLand && !ui.nearExit && !ui.nearAmerica && ui.near === STAFF_SLOT && <div className="mt-1 text-center text-[#FDE047] whitespace-nowrap">PRACTICE YOUR KILLING HERE! UNLIMITED AMMO!</div>}
           </div>
         )}
-        {/* The staff room: practice, so the ammo's free (said only once he's got a weapon that takes any) */}
-        {status === GameStatus.PLAYING && ui.map === null && stage === PEN_STAGE && owned.some(w => w !== 'GUN') && (
-          <div className="absolute left-1/2 -translate-x-1/2 top-[132px] z-30 px-3 py-1 text-[8px] tracking-wider text-[#FDE047] bg-black/75 border-2 border-zinc-600 whitespace-nowrap">
-            STAFF ROOM: UNLIMITED AMMO FOR EVERY WEAPON
+        {/* The staff room, a special weapon out (the user's: its controls up top, as the pause menu has them; small, out
+            of the way: centered over the room right of the HUD; the free ammo's said at the door, not here) */}
+        {status === GameStatus.PLAYING && ui.map === null && stage === PEN_STAGE && weapon !== 'GUN' && !!M2_WEAPON_INFO[weapon]?.controls?.length && (
+          <div className="absolute -translate-x-1/2 top-[8px] z-30 flex flex-col items-start gap-[2px] px-2 py-1 text-[6px] font-black tracking-wider text-zinc-200 bg-black/55 border border-zinc-700 pointer-events-none" style={{ left: `${(HUD_CLEAR_X + VIEW_W) / 2}px` }}>
+            <div className="self-center text-[7px] text-[#FDE047] mb-[1px]">{weaponName(weapon)}</div>
+            {M2_WEAPON_INFO[weapon]!.controls.map((k, i) => <ChordPrompt key={i} pad={k.pad} join={k.join ?? '+'} kb={k.kb} mouse={k.mouse} label={k.label} size={10} />)}
           </div>
         )}
         {/* What up does here, in a land (a lever to pull) */}
