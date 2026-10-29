@@ -115,6 +115,9 @@ let ctx: AudioContext | null = null;
 let master: GainNode | null = null;
 let muffleF: BiquadFilterNode | null = null;
 let current: Playing | null = null;
+/** Every song still sounding (the one on, and any fading out): a new one in fades out the rest, so none is ever left
+ *  playing under it (the user's: skip in and back out of a land fast enough and its music "lingers" at the hub). */
+const live = new Set<Playing>();
 let pending: { id: string; token: number } | null = null;
 let token = 0;
 let timer: ReturnType<typeof setInterval> | null = null;
@@ -183,6 +186,8 @@ const ensureChain = (): AudioContext | null => {
   const c = getCtx();
   if (c.state === 'closed') return null;
   if (ctx === c && master) return c;
+  // (a new audio context: the old one's songs out first, on the old one)
+  for (const q of live) fadeOut(q, 0.3);
   ctx = c;
   current = null;
   master = c.createGain();
@@ -456,6 +461,9 @@ const begin = (id: string, song: Song, arrangement: string) => {
     if (cfg) { if (cfg.rev !== undefined) part.send[0] = cfg.rev; part.lane = laneFor(p, part, cfg.inst, cfg.level, 0); }
     p.parts.push(part);
   }
+  // (anything else still sounding: out)
+  for (const q of live) fadeOut(q, FADE_OUT);
+  live.add(p);
   current = p;
   if (!timer) timer = setInterval(tick, TICK_MS);
   tick();
@@ -504,12 +512,10 @@ export const setArrangement = (arr: string) => {
   }
 };
 
-/** Fades out whatever's playing. */
-export const stop = (fade = FADE_OUT) => {
-  pending = null;
-  const p = current;
-  current = null;
-  if (!p || !ctx) return;
+/** One song faded out, and let go of once it's quiet. */
+const fadeOut = (p: Playing, fade: number) => {
+  live.delete(p);
+  if (!ctx) return;
   p.fading = true; p.done = true;
   p.out.gain.cancelScheduledValues(ctx.currentTime);
   p.out.gain.setTargetAtTime(0, ctx.currentTime, fade / 4);
@@ -521,6 +527,13 @@ export const stop = (fade = FADE_OUT) => {
       p.bus.disconnect(); p.tone.disconnect(); p.out.disconnect();
     } catch { /* gone */ }
   }, (fade + 5) * 1000);
+};
+
+/** Fades out whatever's playing (and anything still sounding from before it). */
+export const stop = (fade = FADE_OUT) => {
+  pending = null;
+  current = null;
+  for (const q of live) fadeOut(q, fade);
 };
 
 /** What's playing (its id and arrangement), or null. */
