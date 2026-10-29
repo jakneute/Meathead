@@ -2,7 +2,7 @@
 // into a folder of its own:
 //   release-m1/Meathead-cheats.html   the game with the cheat panel and the debug options (the one HTML at the top)
 //   release-m1/app/Meathead.html      the standard build (no cheats, the intro always)
-//   release-m1/steam/                 the desktop app for Steam (npm run release:steam: the standard build)
+//   release-m1/windows/               the Windows desktop app (for Steam) (npm run release:steam: the standard build)
 //   release-m2/Meathead2-cheats.html  Meathead 2 with the cheat panel (the one HTML file at the folder's top: the owner's)
 //   release-m2/app/Meathead2.html     Meathead 2's standard build (no cheat panel): what the Windows and Linux apps are
 //                                     packaged from (tools/steam/package-m2.mjs, tools/linux/package-m2.mjs)

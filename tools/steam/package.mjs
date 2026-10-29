@@ -1,6 +1,6 @@
 // `npm run release:steam` (after `vite build --mode steam`): Meathead 1 as a Windows desktop app, for Steam. The steam
 // build's page (.steam-build/page/index.html: the public build, but its voices left out) and the Electron side
-// (electron/) go into a staging folder, Electron's packaged round them, and the lot lands in release-m1/steam/
+// (electron/) go into a staging folder, Electron's packaged round them, and the lot lands in release-m1/windows/
 // (Meathead.exe and its files: no installer, Steam installs it). That folder's never in git (it's big: see .gitignore),
 // and the public build leaves it alone.
 //
@@ -18,7 +18,7 @@ const voices = path.join(root, 'src', 'm1', 'generated', 'voices-m1.bin');
 const stage = path.join(root, '.steam-build', 'app');
 const extra = path.join(root, '.steam-build', 'extra');
 const outTmp = path.join(root, '.steam-build', 'out');
-const dest = path.join(root, 'release-m1', 'steam');
+const dest = path.join(root, 'release-m1', 'windows');
 
 if (!fs.existsSync(page)) { console.error('No .steam-build/page/index.html: run vite build --mode steam first (npm run release:steam does).'); process.exit(1); }
 if (fs.readFileSync(page, 'utf8').includes('data:application/octet-stream;base64,')) { console.error('The steam page still has the voices inside it.'); process.exit(1); }
@@ -61,4 +61,4 @@ fs.rmSync(path.join(root, '.steam-build'), { recursive: true, force: true });
 
 const size = dir => fs.readdirSync(dir, { withFileTypes: true }).reduce((n, e) => n + (e.isDirectory() ? size(path.join(dir, e.name)) : fs.statSync(path.join(dir, e.name)).size), 0);
 const mb = f => `${(fs.statSync(path.join(dest, f)).size / 1048576).toFixed(1)} MB`;
-console.log(`release-m1/steam/Meathead.exe (Electron ${electronVersion}): ${(size(dest) / 1048576).toFixed(1)} MB in all; resources/app.asar (the game) ${mb('resources/app.asar')}, resources/voices.bin ${mb('resources/voices.bin')}`);
+console.log(`release-m1/windows/Meathead.exe (Electron ${electronVersion}): ${(size(dest) / 1048576).toFixed(1)} MB in all; resources/app.asar (the game) ${mb('resources/app.asar')}, resources/voices.bin ${mb('resources/voices.bin')}`);

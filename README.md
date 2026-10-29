@@ -97,8 +97,8 @@ npm run release:m1       # builds release-m1/Meathead-cheats.html + release-m1/a
 npm run release:m2       # builds release-m2/Meathead2-cheats.html + release-m2/app/Meathead2.html
 npm run release:web:m1   # itch.io folder: release-m1/web/
 npm run release:web:m2   # itch.io folder: release-m2/web/
-npm run release:steam    # Meathead 1 desktop app for Steam (Windows): release-m1/steam/Meathead.exe
-npm run release:steam:m2 # Meathead 2 desktop app for Steam (Windows): release-m2/steam/Meathead2.exe
+npm run release:steam    # Meathead 1 desktop app for Steam (Windows): release-m1/windows/Meathead.exe
+npm run release:steam:m2 # Meathead 2 desktop app for Steam (Windows): release-m2/windows/Meathead2.exe
 npm run release:linux    # Meathead 1 Linux desktop app (Steam Machine): release-m1/linux/
 npm run release:linux:m2 # Meathead 2 Linux desktop app (Steam Machine): release-m2/linux/
 npx tsc --noEmit -p .    # type-check (clean before committing)
@@ -155,4 +155,4 @@ tools/
   perf/                  Frame-time profiler
 ```
 
-`release-m1/` and `release-m2/` hold the built HTML files. `release-m2/web/` and `release-m1/web/` are the itch.io folders. `release-m1/steam/` is the Windows desktop build (not in git; too large).
+`release-m1/` and `release-m2/` hold the built HTML files. `release-m2/web/` and `release-m1/web/` are the itch.io folders. `release-m1/windows/` and `release-m2/windows/` are the Windows desktop builds (not in git; too large).
