@@ -13,8 +13,8 @@ const grip = [[0, 'down', 'ArrowDown']];
 
 export const SCENARIOS = [
   // The crossbow on a crowd (the user's: slowdown "when using the crossbow and a ton of people are hurling and i move
-  // back and forth"): every weapon on, the crossbow (9), fire held, pacing left and right
-  { name: 'crossbow-crowd', q: 'foreign=0', warm: 8, keys: [
+  // back and forth", in the break room): every weapon on, the crossbow (9), fire held, pacing left and right
+  { name: 'crossbow-crowd', q: 'pen', warm: 8, keys: [
     [0, 'js', 'window.__m2SetCheat("allWeapons", true)'], [400, 'tap', '9'],
     [800, 'js', 'window.dispatchEvent(new MouseEvent("mousedown", { button: 0 }))'],
     ...Array.from({ length: 24 }, (_, i) => [1200 + i * 1400, 'down', i % 2 ? 'ArrowLeft' : 'ArrowRight']),
