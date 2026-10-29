@@ -6,7 +6,8 @@
 //               HOLLYWOOD MOVIE. ONCE. FOR ABOUT 2 SECONDS." His posse revs up in the doors; on.
 //   THE POSSE   Steve sends his stunt drivers (cars.ts): RED cars drift into him along the floor, BLUE cars jump the
 //               (many, always moving) ramps through the hoops and come down on him; both come from either end. They
-//               mostly send him flying. While he's way off from Steve, they come quicker.
+//               mostly send him flying. They come in a set order, a beat at a time with a rest after each (BEATS).
+//               While he's way off from Steve, they come quicker.
 //   STEVE       Wants nothing to do with him (a total pussy): he stays at his end directing traffic. Too close, and a car
 //               is sent straight at him; right up to him, Steve flails his arms (a slap, a little hurt); grab him and
 //               he squirts out of it (forty years of baby oil). Hang about by him and he's off: a tow car, a rope,
@@ -85,11 +86,19 @@ const METEOR_SPLASH = 30, COMET_SPLASH = 20, THROWN_DMG = 120;
 /** The pyro: a beat after the lightning lands, the jets go off out from him down the stage this fast (px a frame);
  *  each burns this long; the blast that throws him (along, up; no hurt). */
 const PYRO_DELAY = 14, PYRO_SPEED = 24, PYRO_BURN = 42, PYRO_VX = 17, PYRO_VY = -12;
-/** Cars: how often (frames, by phase), how many out at once; quicker while he's way off from Steve. */
-const RED_EVERY = [0, 165, 130, 100], BLUE_EVERY = [0, 230, 180, 140], MAX_RED = [0, 3, 4, 5], MAX_BLUE = [0, 1, 2, 3];
+/** Cars (the user's: "a little less chaotic... a little more of a pattern"): Steve sends them in a set order, one beat
+ *  at a time, the same loop each phase (a red from his end, from the far end, one from each; a blue off a ramp), a
+ *  rest after each beat (frames, by phase) that waits on the cars out to drop under the cap; quicker while he's way off
+ *  from Steve. */
+type Beat = { red?: 'near' | 'far' | 'both'; blue?: boolean };
+const BEATS: Beat[][] = [
+  [],
+  [{ red: 'near' }, { blue: true }, { red: 'near' }, { red: 'far' }, { blue: true }],
+  [{ red: 'near' }, { blue: true }, { red: 'both' }, { blue: true }, { red: 'far' }, { red: 'near', blue: true }],
+  [{ red: 'both' }, { blue: true }, { red: 'near', blue: true }, { red: 'far' }, { blue: true }, { red: 'both' }, { red: 'near', blue: true }],
+];
+const BEAT_GAP = [0, 150, 125, 105], MAX_RED = [0, 2, 3, 3], MAX_BLUE = [0, 1, 1, 2];
 const FAR = 1000, FAR_RATE = 1.35;
-/** How often a red car comes from the far end (at him, toward Steve) instead of Steve's own. */
-const FROM_FAR = 0.35;
 /** Close to Steve: a car sent straight at him (this often at most); his flail (how close; its slap, how often). */
 const CLOSE = 520, PUSH_GAP = 110, FLAIL_AT = 80, FLAIL_DMG = 3, FLAIL_EVERY = 45;
 /** Hanging about him (this near, this long): off on a tow rope. The tow's speed, its rope. */
@@ -130,7 +139,8 @@ export interface Fight extends Garage {
   zapT: number; frizz: number; singe: number; zappedOnce: boolean;
   closeT: number; flailAt: number; pushAt: number; tauntT: number;
   tow: Car | null;
-  redT: number; blueT: number;
+  /** The posse: frames since the last beat; the next beat (BEATS, by phase); the phase it's on. */
+  redT: number; beat: number; beatPh: number;
   pyro: { t: number; x: number; hit: boolean } | null; fire: Map<number, number>;
   e: Enemy; moveSeen: number | undefined; grabWas: string;
   /** The same hit landing on him over and over (bossSpam.ts). */
@@ -243,7 +253,7 @@ export const startFight = (state: GameState): Fight => {
     mode: 'intro', t: 0, total: 0, hp: HP, iframes: 0, flash: 0,
     sx: STEVE_AT(side), sz: 0, side, facing: -1, act: 'idle', actT: 0,
     zapT: 0, frizz: 0, singe: 0, zappedOnce: false, closeT: 0, flailAt: -999, pushAt: -999, tauntT: 0, tow: null,
-    redT: 0, blueT: 0, pyro: null, fire: new Map(),
+    redT: 0, beat: 0, beatPh: 1, pyro: null, fire: new Map(),
     e, moveSeen: e.hitByMove, spam: newSpam(), grabWas: 'idle', said: null, paSaid: null, wrongN: 0, hintAt: -9999, lowSaid: false, crowdAt: -99,
     intro: 'land', introT: 0, skipT: 0, camX: camFor(pmid(state).x), replay: 0,
     fall: FLUNG_IN.on ? { t: 0, x0: pmid(state).x, over: 0, style: 'flail' } : null,
@@ -277,7 +287,7 @@ const beginFight = (state: GameState, f: Fight) => {
   if (f.fall) { f.fall = null; p.pos.x = MAT_X(-1) - p.width / 2; touchDown(state, true); }
   p.inCutscene = false; p.isDucking = false;
   f.mode = 'on'; f.act = 'idle'; f.actT = 0; f.replay = 0;
-  f.redT = RED_EVERY[1] - 50; f.blueT = BLUE_EVERY[1] * 0.4;
+  f.redT = BEAT_GAP[1] - 50; f.beat = 0; f.beatPh = 1;
   if (!state.enemies.includes(f.e)) state.enemies.push(f.e);
 };
 
@@ -563,29 +573,32 @@ const dropTow = (f: Fight) => {
   if (f.act === 'yank' || f.act === 'towed' || f.act === 'call') setAct(f, 'getup');
 };
 
-/** The posse, sent: red cars (from either end, at him), blue cars off whichever ramp's jump comes down nearest him. */
+/** The posse, sent, beat by beat (BEATS): red cars out of a door on his end or the far one, at him; a blue car off
+ *  whichever ramp's jump comes down nearest him. */
 const spawn = (ctx: FrameContext, f: Fight) => {
   const { state } = ctx, m = pmid(state), ph = phase(f);
   // (not while he's out of it: nobody's calling them)
   if (f.zapT > 0 || f.act === 'smoking' || f.act === 'towed' || f.act === 'yank') return;
-  const rate = Math.abs(m.x - f.sx) > FAR ? FAR_RATE : 1;
-  f.redT += rate; f.blueT += rate;
-  if (f.redT >= RED_EVERY[ph] && countCars(f, 'red') < MAX_RED[ph]) {
-    f.redT = Math.random() * 30;
-    // (from Steve's end, or now and then the far one; whichever, out of a door on that side of him, at him)
-    let from = Math.random() < FROM_FAR ? (-f.side as 1 | -1) : f.side;
-    const doors = DOORS_X.filter(x => (x - m.x) * from > 140);
-    if (!doors.length) from = (-from) as 1 | -1;
-    const pool = DOORS_X.filter(x => (x - m.x) * from > 140);
-    const door = pool.length ? pool[Math.floor(Math.random() * pool.length)] : doorOf(from);
-    spawnRed(state, f, door, (-from) as 1 | -1);
-    if (f.act === 'idle') setAct(f, 'wave');
-    if (Math.random() < 0.35) bark(f, L.STEVE_SEND);
-  }
-  if (f.blueT >= BLUE_EVERY[ph] && countCars(f, 'blue') < MAX_BLUE[ph]) {
-    const i = pickRamp(f, m.x);
-    if (i >= 0 && spawnBlue(state, f, i)) { f.blueT = Math.random() * 40; if (Math.random() < 0.3) bark(f, L.STEVE_RAMP); }
-  }
+  // (a new phase: its loop from the top)
+  if (f.beatPh !== ph) { f.beatPh = ph; f.beat = 0; }
+  f.redT += Math.abs(m.x - f.sx) > FAR ? FAR_RATE : 1;
+  const loop = BEATS[ph] ?? BEATS[1], beat = loop[f.beat % loop.length];
+  if (f.redT < BEAT_GAP[ph]) return;
+  const reds = beat.red === 'both' ? 2 : beat.red ? 1 : 0;
+  if (countCars(f, 'red') + reds > MAX_RED[ph] || (beat.blue && countCars(f, 'blue') >= MAX_BLUE[ph])) return;
+  const ramp = beat.blue ? pickRamp(f, m.x) : -1;
+  if (beat.blue && ramp < 0) return;
+  f.redT = 0; f.beat++;
+  const send = (from: 1 | -1) => {
+    // (out of a door on that side of him, well clear of him; none there, the other side)
+    let pool = DOORS_X.filter(x => (x - m.x) * from > 140);
+    if (!pool.length) { from = (-from) as 1 | -1; pool = DOORS_X.filter(x => (x - m.x) * from > 140); }
+    spawnRed(state, f, pool.length ? pool[Math.floor(Math.random() * pool.length)] : doorOf(from), (-from) as 1 | -1);
+  };
+  if (beat.red === 'near' || beat.red === 'both') send(f.side);
+  if (beat.red === 'far' || beat.red === 'both') send((-f.side) as 1 | -1);
+  if (reds) { if (f.act === 'idle') setAct(f, 'wave'); if (Math.random() < 0.35) bark(f, L.STEVE_SEND); }
+  if (beat.blue && spawnBlue(state, f, ramp) && Math.random() < 0.3) bark(f, L.STEVE_RAMP);
 };
 
 // ---------------------------------------------------------------------------------------------------------------
