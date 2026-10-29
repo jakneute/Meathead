@@ -59996,6 +59996,11 @@
  },
  {
   "voice": "meathead",
+  "text": "A WALL. I COULD SCRAPE 'EM ALL OFF ON A WALL.",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "meathead",
   "text": "A WAND! TO THE NUTS!",
   "from": "FANTASY"
  },
@@ -62683,6 +62688,21 @@
   "voice": "meathead",
   "text": "CHARGE MEETS CHARGE! SLIDE MEETS SLIDE! IT'S NOT ROCKET SCIENCE!",
   "from": "m1/game/stages/victor/doorman.ts:540"
+ },
+ {
+  "voice": "meathead",
+  "text": "CHARGE THE WALL. NAKED BATTERING RAM. THEY'RE THE PADDING.",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "meathead",
+  "text": "CHARGE THE WALL. THEY'RE THE CUSHION.",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "meathead",
+  "text": "CHARGE THE WALL. THEY'RE THE CUSHION. A WET ONE.",
+  "from": "HOLLYWOOD"
  },
  {
   "voice": "meathead",
@@ -66868,6 +66888,16 @@
   "voice": "meathead",
   "text": "GRAB ONE OF HER BRATS. THROW IT AT HER. NOT AT MY PANTS.",
   "from": "SPACE"
+ },
+ {
+  "voice": "meathead",
+  "text": "GRAB ONE. CHARGE ONE. GET THESE NERDS OFF ME.",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "meathead",
+  "text": "GRAB ONE. CHARGE ONE. THEY CHOSE TO HUG THIS.",
+  "from": "HOLLYWOOD"
  },
  {
   "voice": "meathead",
@@ -76246,6 +76276,11 @@
  },
  {
   "voice": "meathead",
+  "text": "NAKED DOGPILE. SHOULDER THROUGH IT BEFORE IT GETS WEIRD.",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "meathead",
   "text": "NAKED DONKEY KONG! WRONG GAME!",
   "from": "CARTOON"
  },
@@ -80388,6 +80423,16 @@
   "voice": "meathead",
   "text": "RAKES. TEETH UP. THE OLD RAKE BIT.",
   "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "RAM THE WALL. SMEAR 'EM OFF LIKE I SMEAR EVERYTHING.",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "meathead",
+  "text": "RAM THE WALL. THEY'RE THE AIRBAG FOR MY DICK.",
+  "from": "HOLLYWOOD"
  },
  {
   "voice": "meathead",
@@ -88656,6 +88701,11 @@
  },
  {
   "voice": "meathead",
+  "text": "THERE'S A MOVIE STAR ON MY NUTS. CHARGE. GRAB. SOMETHING.",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "meathead",
   "text": "THERE'S A NAME TAG. HI, BRENDA.",
   "from": "SPACE"
  },
@@ -89051,6 +89101,11 @@
  },
  {
   "voice": "meathead",
+  "text": "THEY'RE LIKE CATS. SHOULDER THROUGH 'EM, THEY FALL OFF.",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "meathead",
   "text": "THEY'RE POINTY. I GOT IT.",
   "from": "CARTOON"
  },
@@ -89073,6 +89128,11 @@
   "voice": "meathead",
   "text": "THEY'RE SHOOTING OUT THE WINDOW! RUDE!",
   "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "THEY'RE SITTING IN IT. A CHARGE'LL SHAKE 'EM OFF.",
+  "from": "HOLLYWOOD"
  },
  {
   "voice": "meathead",

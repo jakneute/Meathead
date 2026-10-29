@@ -30,6 +30,8 @@ export interface Actor {
   cling: { slot: number; t: number; fx: number; fy: number } | null;
   /** Frames gone off the engine's list in his grab (he's got hold of them). */
   heldT: number;
+  /** Thrown off him by a move or a wall: not back on him till this frame. */
+  offUntil?: number;
 }
 /** One on the way in: dropping from the rafters (a hero landing), or lowered on a wire. */
 export interface Arrival {
@@ -63,6 +65,10 @@ export interface Fight {
   /** Shaking them off: the move that last threw them (each charge once), the last shot that knocked one loose (frame),
    *  his shots already counted, his weapon's cooldown last frame (a shot that makes no projectile). */
   moveId: number; knockAt: number; seen: WeakSet<Projectile>; lastCd: number;
+  /** His grab on last frame, his knocked-back-off-a-wall timer last frame (the edges: a grab started, a wall hit). */
+  grabWas?: boolean; bonkWas?: number;
+  /** The hints (the last one, frame), and whether he's thrown one off with a move yet, or slammed the pile on a wall. */
+  hintAt?: number; triedMove?: boolean; triedWall?: boolean;
   /** The frame the last one got on him (they get on a beat apart, not all at once). */
   latchAt?: number;
   /** The pile's had him (the crush). */

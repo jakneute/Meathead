@@ -10,8 +10,10 @@
 // They have no moves: they DOGPILE him. Touching him, one's on him like a cockroach (a hold each: his legs, his back,
 // round his waist, on his shoulders, across the top: a growing pile), and every one on him slows him; with CRUSH of
 // them on him he can't move at all and he's dead under them (piled on: its own hurt and death lines). He shakes them
-// off: a charge (any of the charge moves) throws the lot off and hurts them; every shot knocks one loose. Let up, and
-// they're all over him. His grab gets one at a time (the rest keep piling on).
+// off (the user's: "pretty much any strategy equally viable", standing still firing no sure thing): a charge move or a
+// grab throws one off (the uppercut and the dive kick two), and that one keeps off him a while; slammed into a wall
+// (a charge or a lunge into it), the whole pile comes off. A shot knocks one loose only now and then, and they're
+// straight back on. Meathead hints at the move and the wall if he hasn't tried them.
 //
 // Their real health is kept here (cast.ts: the engine's never runs out); dead, they fall over where they stand,
 // bloodied, and the bodies stay, piling up where they fell on each other. Never respawned once past (CAST_MEMO, kept
@@ -36,8 +38,9 @@ import type { ByPants } from '../blvd/lines';
 import { X, GY, ROOF_Y, ARENA, ARENA_CAM, ARENA_TRIGGER, CAST_MEMO } from './layout';
 import { whOf, type Arrival, type Actor } from './state';
 import { CAST, ACTOR_KIND, BIG, drawArriving, drawBody, drawClinger } from './cast';
-import { CAST_ARRIVE, KILL_QUIPS, HALF, LAST, DEATH, ARRIVE, LATCH, CAP_RESEMBLE, CAP_SURE, CAP_REPLY, AD_CAST, AD_SHRUG } from './lines';
+import { CAST_ARRIVE, KILL_QUIPS, HALF, LAST, DEATH, ARRIVE, LATCH, CAP_RESEMBLE, CAP_SURE, CAP_REPLY, AD_CAST, AD_SHRUG, HINT_MOVE, HINT_WALL } from './lines';
 import { adSay, castSay } from './talk';
+import { grabLocked } from '../../moves/grab';
 import { hurtTaken } from '../../../m1/game/core/resist';
 import { setHalfHooks } from '../../weapons/half';
 import { setDropTable } from '../../../m1/game/core/effects';
@@ -53,6 +56,14 @@ export const CRUSH = 6;
 const capOf = (killed: number) => Math.min(9, 4 + Math.floor(killed / 2));
 /** The least gap between two of them getting on him (frames): staggered, not a swarm in one frame. */
 const LATCH_GAP = 14;
+/** Thrown off by a move or a wall: how long before that one can get back on him (frames). */
+const OFF_FOR = 120;
+/** A shot knocks one loose at most this often (frames): no keeping them off just stood there firing. */
+const SHOT_GAP = 40;
+/** The hints: piled on a while (frames) before the first, and the least gap between them. */
+const HINT_AFTER = 150, HINT_GAP = 600;
+/** What they do to him: a jump on, the pile every so often (per one on him), a hero landing on his head. */
+const LATCH_HURT = 2, PILE_HURT = 2, PILE_EVERY = 40, FLOP_HURT = 8;
 const L0 = X(ARENA.a) + 50, R0 = X(ARENA.b) - 50;
 const clampX = (x: number) => Math.max(L0, Math.min(R0, x));
 const DOOR_H = 700;
@@ -187,7 +198,7 @@ const arrive = (ctx: FrameContext, a: Arrival) => {
     playSound('slam', 0.9, -8); shakeScreen(state, 7, 4);
     for (let k = 0; k < 14; k++) state.particles.push({ pos: { x: a.x + (Math.random() - 0.5) * 50, y: ground - 4 }, vel: { x: (Math.random() - 0.5) * 6, y: -0.5 - Math.random() * 2 }, life: 30, color: 'rgba(168, 162, 158, 0.7)', size: 4 + Math.random() * 5 });
     const pcx = p.pos.x + p.width / 2;
-    if (p.health > 0 && Math.abs(pcx - a.x) < 40 && p.pos.y + p.height > ground - 90 && p.invincibilityTimer <= 0 && !p.inCutscene) hurtPlayer(ctx, 10, 'm2:hww_flop', { x: Math.sign(pcx - a.x || 1) * 8, y: -6 }, 20);
+    if (p.health > 0 && Math.abs(pcx - a.x) < 40 && p.pos.y + p.height > ground - 90 && p.invincibilityTimer <= 0 && !p.inCutscene) hurtPlayer(ctx, FLOP_HURT, 'm2:hww_flop', { x: Math.sign(pcx - a.x || 1) * 8, y: -6 }, 20);
   } else playSound('clink', 0.5, 4);
   if (a.i === 0) F.said.capDown = true;
   else if (!F.said.arrived) { F.said.arrived = true; meatheadSays(state, pickLine(CAST_ARRIVE), true); }
@@ -219,11 +230,11 @@ const latch = (ctx: FrameContext, a: Actor) => {
   a.cling = { slot, t: 0, fx: ex - px, fy: e.pos.y + e.height - feet };
   playSound('thud', 0.6, 4 + (a.i % 4)); shakeScreen(state, 3, 2);
   // (jumped on: it hurts a little; it's what they're doing that's the danger)
-  if (p.invincibilityTimer <= 0 && p.health > 0) hurtPlayer(ctx, 3, 'm2:hww_pile', undefined, 0);
+  if (p.invincibilityTimer <= 0 && p.health > 0) hurtPlayer(ctx, LATCH_HURT, 'm2:hww_pile', undefined, 0);
   castBark(state, a.i, LATCH, 0.35, 300);
 };
-/** Off him: thrown (a charge), or knocked loose (a shot): back on the engine's list, off the side of him they were on,
- *  dazed a while; hurt by it. */
+/** Off him: thrown (a move, a wall), or knocked loose (a shot): back on the engine's list, off the side of him they
+ *  were on, dazed a while; hurt by it. Thrown, they keep off him a while (OFF_FOR); a shot's, straight back on. */
 const shakeOff = (ctx: FrameContext, a: Actor, how: 'charge' | 'shot', dmg: number) => {
   const { state } = ctx, p = state.player, e = a.e!, s = slotOf(a.cling!.slot), f = (p.facing ?? 1) as 1 | -1;
   const side = (Math.sign(s.dx) || (a.i % 2 ? 1 : -1)) * f;
@@ -235,6 +246,7 @@ const shakeOff = (ctx: FrameContext, a: Actor, how: 'charge' | 'shot', dmg: numb
   e.health = BIG; e.aiState = 'approach'; e.aiTimer = 0; e.facing = (-side) as 1 | -1;
   state.enemies.push(e);
   a.cling = null;
+  if (how === 'charge') a.offUntil = state.frame + OFF_FOR;
   a.lx = e.pos.x + e.width / 2; a.ly = e.pos.y + e.height;
   a.hp -= dmg; a.flash = 6;
   for (let k = 0; k < 6; k++) state.particles.push({ pos: { x: a.lx, y: a.ly - 50 }, vel: { x: side * (1 + Math.random() * 3), y: -2 - Math.random() * 2 }, life: 20, color: '#B91C1C', size: 2 + Math.random() * 2, grav: 0.3 });
@@ -300,34 +312,52 @@ export const updateFight = (ctx: FrameContext): Controls | null => {
     if (a.hp <= 0) fall(ctx, a);
   }
 
-  // The dogpile. Shaking them off: any charge move throws the lot (each move once); each shot knocks one loose
+  // The dogpile. Shaking them off: a charge move or a grab throws one off (the uppercut and the dive kick two; each move
+  // once), slammed into a wall the lot; a shot now and then knocks one loose
   const alive = p.health > 0;
   const attacking = p.isCharging || p.isUppercutting || !!p.isDivekicking;
-  let on = F.actors.filter(a => a.cling);
-  if (alive && attacking && on.length && p.moveId !== F.moveId) {
-    F.moveId = p.moveId ?? -1;
-    const dmg = p.isCharging ? 20 : 35;
-    for (const a of on) shakeOff(ctx, a, 'charge', dmg);
+  // (the ones in front of him first: that's where he's going; the last on, first off)
+  const order = () => F.actors.filter(a => a.cling).sort((u, v) => (+slotOf(v.cling!.slot).front - +slotOf(u.cling!.slot).front) || (u.cling!.t - v.cling!.t));
+  const grabOn = grabLocked(), grabStart = grabOn && !F.grabWas;
+  F.grabWas = grabOn;
+  // (a wall: knocked back off it out of a charge or a slide (player.ts wallBonk) or a lunge (grab.ts bonk))
+  const hf = p.hurtFormTimer ?? 0, wall = hf > (F.bonkWas ?? 0) && (p.hurtForm === 'charge' || p.hurtForm === 'slide') && !!p.isHarmlessPushback;
+  F.bonkWas = hf;
+  let on = order();
+  if (alive && wall && on.length) {
+    F.triedWall = F.triedMove = true;
+    for (const a of on) shakeOff(ctx, a, 'charge', 30);
+    playSound('crunch', 0.9, -4); playSound('thud', 1, -8); shakeScreen(state, 12, 5);
+  } else if (alive && on.length && ((attacking && p.moveId !== F.moveId) || grabStart)) {
+    if (attacking) F.moveId = p.moveId ?? -1;
+    F.triedMove = true;
+    const two = p.isUppercutting || !!p.isDivekicking;
+    for (const a of on.slice(0, two ? 2 : 1)) shakeOff(ctx, a, 'charge', p.isCharging ? 20 : grabStart ? 15 : 35);
     playSound('punch', 0.9, -4); playSound('whoosh', 0.8, -6); shakeScreen(state, 8, 4);
-  }
+  } else if (attacking) F.moveId = p.moveId ?? -1;
   let fired = false;
   for (const pr of state.projectiles) if (pr.owner === 'player' && !F.seen.has(pr)) { F.seen.add(pr); fired = true; }
   const cd = p.shootCooldown ?? 0;
   if (cd > F.lastCd) fired = true;
   F.lastCd = cd;
-  on = F.actors.filter(a => a.cling);
-  if (alive && fired && on.length && state.frame - F.knockAt >= 6) {
+  on = order();
+  if (alive && fired && on.length && state.frame - F.knockAt >= SHOT_GAP) {
     F.knockAt = state.frame;
-    // (the ones in front of him first: that's where he's shooting; the last on, first off)
-    const pick = [...on].sort((u, v) => (+slotOf(v.cling!.slot).front - +slotOf(u.cling!.slot).front) || (u.cling!.t - v.cling!.t))[0];
-    shakeOff(ctx, pick, 'shot', 15);
+    shakeOff(ctx, on[0], 'shot', 15);
     playSound('punch', 0.5, 6);
+  }
+  // (the hints: piled on a while and he hasn't thrown one off with a move yet; then, a pile on him and never a wall)
+  on = order();
+  const pileT = on.reduce((m, a) => Math.max(m, a.cling!.t), 0);
+  if (alive && pileT > HINT_AFTER && state.frame - (F.hintAt ?? -9999) > HINT_GAP && quiet(state)) {
+    if (!F.triedMove && on.length >= 2) { F.hintAt = state.frame; meatheadSays(state, pickLine(byPants(state, HINT_MOVE)), false); }
+    else if (F.triedMove && !F.triedWall && on.length >= 3) { F.hintAt = state.frame; meatheadSays(state, pickLine(byPants(state, HINT_WALL)), false); }
   }
   // Getting on him: anyone touching him (a little reach: they jump at him), not dazed off a shove, not mid-landing
   if (alive && !p.inCutscene && !attacking) for (const a of F.actors) {
     if (state.frame - (F.latchAt ?? -9999) < LATCH_GAP) break;
     const e = a.e;
-    if (!e || a.cling || e.health <= 0 || (e.leapCd ?? 0) > 0 || e.aiState === 'land') continue;
+    if (!e || a.cling || e.health <= 0 || (e.leapCd ?? 0) > 0 || e.aiState === 'land' || (a.offUntil ?? 0) > state.frame) continue;
     if ((e.pauseTimer ?? 0) > 0 && Math.abs(e.vel.x) > 1) continue;
     // (in no state to: puking, panicking in the soul sucker's pull, frozen, tased)
     if (e.harmless || (e.frozenTimer ?? 0) > 0 || e.isTased) continue;
@@ -352,9 +382,9 @@ export const updateFight = (ctx: FrameContext): Controls | null => {
     const k = Math.max(0, 1 - n / CRUSH);
     if (!attacking && p.pushbackTimer <= 0) { const max = PLAYER_MOVE_SPEED * buffs.speed * k; if (Math.abs(p.vel.x) > max) p.vel.x = Math.sign(p.vel.x) * max; }
     if (p.vel.y < 0 && !attacking) p.vel.y += 0.1 * n;
-    // (they hurt, piled on: a little every half second, more the more of them; i-frames don't stop it, it's weight)
-    if (n >= CRUSH || state.frame % 30 === 0) {
-      const dmg = n >= CRUSH ? 0 : n * 2;
+    // (they hurt, piled on: a little every two-thirds of a second, more the more of them; i-frames don't stop it, it's weight)
+    if (n >= CRUSH || state.frame % PILE_EVERY === 0) {
+      const dmg = n >= CRUSH ? 0 : n * PILE_HURT;
       if (dmg > 0 && !ctx.cheats.invincible) { p.health = Math.max(0, p.health - hurtTaken(ctx.stageId, dmg)); state.lastHurt = { source: 'm2:hww_pile', at: state.frame }; playSound('punch', 0.4, -4 + n); }
     }
     if ((n >= CRUSH || p.health <= 0) && !F.crushed && !ctx.cheats.invincible) {

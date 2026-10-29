@@ -47,6 +47,18 @@ export const KILL_QUIPS = ["NOW THAT'S A DEATH SCENE.", 'NO STUNT DOUBLE.', 'STR
 export const HALF = ["HALF THE CAST. THE SEQUEL'S GONNA BE CHEAP.", "HALF DOWN. THE POSTER'S ALL BLANK SPACE NOW."];
 /** The last one standing. */
 export const LAST = ['ONE LEFT. THE ONE WHO PLAYS THE TALKING RACCOON.', "LAST ONE. YOU'RE THE LEAD NOW. CONGRATULATIONS."];
+/** The dogpile hints (the user's: "vocal hints to the player if they haven't tried it yet"): he's never thrown one off
+ *  with a charge or a grab; then, he's never slammed the pile into a wall. */
+export const HINT_MOVE: ByPants = {
+  clean: ["THEY'RE LIKE CATS. SHOULDER THROUGH 'EM, THEY FALL OFF.", 'GRAB ONE. CHARGE ONE. GET THESE NERDS OFF ME.'],
+  shitty: ["THEY'RE SITTING IN IT. A CHARGE'LL SHAKE 'EM OFF.", 'GRAB ONE. CHARGE ONE. THEY CHOSE TO HUG THIS.'],
+  nude: ["THERE'S A MOVIE STAR ON MY NUTS. CHARGE. GRAB. SOMETHING.", 'NAKED DOGPILE. SHOULDER THROUGH IT BEFORE IT GETS WEIRD.'],
+};
+export const HINT_WALL: ByPants = {
+  clean: ["A WALL. I COULD SCRAPE 'EM ALL OFF ON A WALL.", "CHARGE THE WALL. THEY'RE THE CUSHION."],
+  shitty: ["RAM THE WALL. SMEAR 'EM OFF LIKE I SMEAR EVERYTHING.", "CHARGE THE WALL. THEY'RE THE CUSHION. A WET ONE."],
+  nude: ["RAM THE WALL. THEY'RE THE AIRBAG FOR MY DICK.", "CHARGE THE WALL. NAKED BATTERING RAM. THEY'RE THE PADDING."],
+};
 /** The last one dead (the user's line, word for word). */
 export const CLEAN_UP = 'BETTER CLEAN UP THE BODIES.';
 /** Hopping down off the bulldozer in the lot, after the exec's meltdown: he cares about neither. */
@@ -275,7 +287,7 @@ const castLines = (v: string) => [...(v === ACTOR_VOICE_OF[0] ? [CAP_RESEMBLE, .
 export const VOICE_LINES: Record<string, string[]> = {
   meathead: [
     ...BURST_WHAT, ...BURST_NEVER, ...BURST, ...BACK_AGAIN, ...Object.values(GAG_LINES).flat(), ...CASE, ...CAP_REPLY, ...CAST_ARRIVE, ...KILL_QUIPS,
-    ...HALF, ...LAST, CLEAN_UP, ...SHRUG,
+    ...HALF, ...LAST, ...pools(HINT_MOVE), ...pools(HINT_WALL), CLEAN_UP, ...SHRUG,
     ...Object.values(HURT).flatMap(h => h.hurt),
   ],
   death: Object.values(HURT).flatMap(h => h.death),
