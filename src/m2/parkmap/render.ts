@@ -211,6 +211,9 @@ const landLook = (li: number, big: boolean): Look => ({ sx: 1, sy: big ? 2 : 1, 
 /** Where a land's name sits. */
 export const landLabelAt = (li: number) => inLand(li, 0, 1.0);
 
+/** The park from above, no labels (the base art, map size): Hollywood Land's breach shows it flooded (coaster/flood.ts). */
+export const parkArt = () => baseArt();
+
 /** A zoom level's finished canvas. */
 export const levelCanvas = (i: number): HTMLCanvasElement => {
   const have = levels[i];

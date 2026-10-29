@@ -25,6 +25,7 @@
 // Every stop has a SERVICE STAIRS door at its left end (locked while the staff are at him): down and out at the
 // station. So the way back from the warehouse (DOORS.coaster.end: under the booth) is the stairs, or another launch.
 
+import { GUN_COOLDOWN, BULLET_DAMAGE } from '../../../m1/constants';
 import { SECTIONS, GY } from '../geometry';
 export { GY };
 import type { StuntWire } from '../section';
@@ -115,6 +116,8 @@ export const BOOTH = { a: 13860, b: 14200, h: 1100 + 260, lever: 13930, cab: 140
 export const BOOTH_LEVER: HandLever = { x: X(BOOTH.lever), y: Y(BOOTH.h) - 12, len: 60, from: -0.6, to: 0.6, stand: 0 };
 /** The biohazard's fumes (stop 3): how far either side of the case they reach, how often it vents. */
 export const FUMES = { reach: 190, every: 330, tell: 60, vent: 90 } as const;
+/** The Rock God's case: the damage it takes to break (index.ts caseShots): 30 s of the ray gun's sustained fire. */
+export const CASE_HP = Math.round((30 * 60 / GUN_COOLDOWN) * BULLET_DAMAGE);
 
 /** The stunt wires, in a steady order: stop 2's over the shrine, stop 3's up to the booth's balcony. */
 export const WIRES: StuntWire[] = [

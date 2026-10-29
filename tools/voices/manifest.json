@@ -9966,6 +9966,11 @@
  },
  {
   "voice": "death",
+  "text": "FLOODED THE WHOLE PARK",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "death",
   "text": "FLOORED",
   "from": "SPOOKY"
  },
@@ -12053,6 +12058,11 @@
   "voice": "death",
   "text": "KILLED BY YARD EQUIPMENT",
   "from": "ADVENTURE"
+ },
+ {
+  "voice": "death",
+  "text": "KILLED EVERYONE AT HAPPY LAND",
+  "from": "HOLLYWOOD"
  },
  {
   "voice": "death",
@@ -71836,6 +71846,11 @@
  },
  {
   "voice": "meathead",
+  "text": "I'M NOT SITTING ON THAT. IT'S GLOWING.",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "meathead",
   "text": "I'M NOT THE PINATA!",
   "from": "FOREIGN"
  },
@@ -77651,6 +77666,11 @@
  },
  {
   "voice": "meathead",
+  "text": "NOPE. THAT SEAT HAS A SKULL ON IT.",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "meathead",
   "text": "NOPE. TOO FAR. WAY TOO FAR.",
   "from": "FANTASY"
  },
@@ -77768,6 +77788,11 @@
   "voice": "meathead",
   "text": "NOT STOPPING NOW.",
   "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
+  "text": "NOT THAT ONE. THAT ONE'S STILL ALIVE.",
+  "from": "HOLLYWOOD"
  },
  {
   "voice": "meathead",
@@ -78248,6 +78273,11 @@
   "voice": "meathead",
   "text": "OH NO. OH NO NO NO.",
   "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
+  "text": "OH NO. THAT'S A LOT OF ROCK STAR.",
+  "from": "HOLLYWOOD"
  },
  {
   "voice": "meathead",
@@ -90271,6 +90301,11 @@
  },
  {
   "voice": "meathead",
+  "text": "UH OH. 1973 IS LOOSE.",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "meathead",
   "text": "UH OH. THAT ONE WAS ONE TOO MANY.",
   "from": "m1/game/stages/barry/hyper.ts:72"
  },
@@ -93761,6 +93796,16 @@
  },
  {
   "voice": "reporter",
+  "text": "EVERYONE AT HAPPY LAND IS NOW DEAD.",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "reporter",
+  "text": "IT HAD NOT BEEN FLUSHED SINCE 1973. IT WAS UNDER FEDERAL CONTAINMENT.",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "reporter",
   "text": "Oh my God. It was an imposter president all along!",
   "from": "m1/components/EndingCutscene.tsx:102"
  },
@@ -93773,6 +93818,16 @@
   "voice": "reporter",
   "text": "Sources say he cries himself to sleep.",
   "from": "GYM"
+ },
+ {
+  "voice": "reporter",
+  "text": "THE SEWAGE BROKE THE CONTAINMENT IN SECONDS. IT HAS COVERED ALL EIGHT LANDS.",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "reporter",
+  "text": "THIS IS SKY NINE, LIVE OVER HAPPY LAND, WHERE A MAN HAS SHOT OPEN THE ROCK GOD'S TOUR BUS TOILET.",
+  "from": "HOLLYWOOD"
  },
  {
   "voice": "skier",

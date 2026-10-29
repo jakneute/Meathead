@@ -45,14 +45,14 @@ import { hurtPlayer } from '../../../m1/game/bosses/shared';
 import { playSound } from '../../../m1/game/platform/audio';
 import { shakeScreen } from '../../../m1/game/core/state';
 import { makeKindEnemy } from '../../../m1/game/enemies/kinds';
-import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../../../m1/constants';
+import { CANVAS_WIDTH, CANVAS_HEIGHT, BULLET_DAMAGE } from '../../../m1/constants';
 import { setHazardZones, hazardVictims, hazardKill, hazardHit, boxHits } from '../../hazardHit';
 import { heard } from '../../bossQuiet';
 import { lookOf, drawPerson } from '../../adventure/temple/people';
 import { byPants } from '../blvd/kinds';
 import { PA_VOICE } from '../blvd/lines';
 import {
-  x0, x1, X, Y, GY, QUEUE_GROUND, STATION, RAILS, RAIL_H, GUESTS, GATE_OPS, STEVE_STANDEE, STOPS, BOOTH, FUMES, WAVES, WIRES,
+  x0, x1, X, Y, GY, QUEUE_GROUND, STATION, RAILS, RAIL_H, GUESTS, GATE_OPS, STEVE_STANDEE, STOPS, BOOTH, FUMES, CASE_HP, WAVES, WIRES,
   PICKUPS, CHECKPOINTS, queueH, parkAt, CLEARED_MEMO, LEVER_MEMO, LAUNCHED_MEMO, WALKER_MEMO, BOOTH_LEVER, CARS, CAR_GAP, type Place,
 } from './layout';
 import { giant, drawGiantFront } from './giant';
@@ -67,6 +67,7 @@ import { drawCoasterBackdrop, drawCoasterBack, drawTrain, drawFlyingTrain, drawT
 import { cview } from './paint';
 import * as L from './lines';
 import { updateThrones, drawThroneFront, inCase, throneState, throneHere } from './thrones';
+import { FLOOD_SOURCE, drawFloodCam } from './flood';
 import { inPlay } from '../../moves/grab';
 
 const narr = L.NARRATOR;
@@ -517,6 +518,49 @@ const fumes = (ctx: FrameContext, co: Coaster) => {
   for (const e of hazardVictims(state)) if (!co.fumeHit.has(e) && inZ(e.pos.x, e.pos.y, e.width, e.height)) { co.fumeHit.add(e); hazardHit(ctx, e, 40, cx, 'GASSED!', { color: '#BEF264' }); }
 };
 
+/** The Rock God's case, shot (the user's: "you can shoot the glass case it's hiding behind, causing toxic sludge to
+ *  fly everywhere" / "you have to put a lot of shots into it" / "something like 30 seconds of sustained fire from your
+ *  standard gun... very unlikely to trigger through normal gameplay" / "the glass gets more and more cracked"): only his
+ *  shots count (not what's thrown or slammed into it), each by its damage (one that says none, as a ray gun shot), till
+ *  CASE_HP: 30 s of the ray gun's. It cracks more and more (shrine.ts); then it goes: glass and sludge everywhere, his
+ *  last words, and the containment breaches: the whole park flooded (flood.ts), his death and everyone's. */
+/** The breach: frames of it gushing out over the stop before the news shot. */
+const BREACH_T = 75;
+const caseShots = (ctx: FrameContext, co: Coaster) => {
+  const { state } = ctx, p = state.player, s = STOPS[2];
+  const x0 = X(s.shrine.x), x1 = x0 + s.shrine.w, y1 = Y(s.h) - s.shrine.h + 72, y0 = y1 - 74, cx = (x0 + x1) / 2, cy = y1 - 36;
+  // (back at the checkpoint after it: the case whole again)
+  if (co.breach > BREACH_T && p.health > 0 && state.deathTimer <= 0) { co.breach = -1; co.caseDmg = 0; }
+  if (co.breach >= 0) {
+    // (gushing out of it, over the stop; the alarm; then it's everywhere)
+    co.breach++;
+    for (let i = 0; i < 6; i++) state.particles.push({ pos: { x: cx + (Math.random() - 0.5) * 50, y: cy + (Math.random() - 0.5) * 30 }, vel: { x: (Math.random() - 0.5) * 20, y: -3 - Math.random() * 13 }, life: 60 + Math.random() * 40, color: ['#84CC16', '#BEF264', '#4D7C0F', '#365314', '#5C3A16'][i % 5], size: 3 + Math.random() * 6, grav: 0.4 });
+    if (co.breach % 20 === 0) { playSound('gush', 0.9, -8); shakeScreen(state, 6, 4); }
+    if (co.breach === BREACH_T && p.health > 0) hurtPlayer(ctx, 9999, FLOOD_SOURCE);
+    return;
+  }
+  if (co.ride.on || throneState(state, 2) === 'exploded') return;
+  if (Math.abs(p.pos.x - x0) > 1400) return;
+  for (const pr of state.projectiles) {
+    if (pr.owner !== 'player' || co.caseSeen.has(pr)) continue;
+    if (pr.pos.x + pr.width < x0 || pr.pos.x > x1 || pr.pos.y + pr.height < y0 || pr.pos.y > y1) continue;
+    co.caseSeen.add(pr); co.caseDmg += pr.damage > 0 ? pr.damage : BULLET_DAMAGE; pr.health = 0;
+    const hx = Math.max(x0, Math.min(x1, pr.pos.x + pr.width / 2)), hy = Math.max(y0, Math.min(y1, pr.pos.y + pr.height / 2));
+    for (let i = 0; i < 5; i++) state.particles.push({ pos: { x: hx, y: hy }, vel: { x: (Math.random() - 0.5) * 5, y: -1 - Math.random() * 3 }, life: 24, color: i % 2 ? '#E0F2FE' : '#BEF264', size: 2 + Math.random() * 2, grav: 0.3 });
+    playSound('clink', 0.6, 4 + (co.caseDmg / CASE_HP) * 10);
+  }
+  if (co.caseDmg < CASE_HP) return;
+  // It goes
+  co.breach = 0;
+  playSound('glass', 1, -2); playSound('boom', 0.8, -8); playSound('splat', 1, -4); playSound('fart', 0.7, -12); playSound('rumble', 1, -14);
+  shakeScreen(state, 18, 8);
+  ctx.fx.spawnGlassShatter({ x: cx, y: cy });
+  for (let i = 0; i < 70; i++) state.particles.push({ pos: { x: cx + (Math.random() - 0.5) * 50, y: cy + (Math.random() - 0.5) * 30 }, vel: { x: (Math.random() - 0.5) * 22, y: -3 - Math.random() * 14 }, life: 70 + Math.random() * 50, color: ['#84CC16', '#BEF264', '#4D7C0F', '#365314', '#5C3A16'][i % 5], size: 3 + Math.random() * 6, grav: 0.4 });
+  for (let i = 0; i < 12; i++) state.particles.push({ pos: { x: cx + (Math.random() - 0.5) * 120, y: cy - Math.random() * 40 }, vel: { x: (Math.random() - 0.5) * 2, y: -0.4 - Math.random() }, life: 90, color: 'rgba(132, 204, 22, 0.3)', size: 20 + Math.random() * 18 });
+  setHazardZones(state, 'hwc-fumes', []);
+  meatheadSays(state, pickLine(L.CASE_BREAK), false);
+};
+
 /** Stop 2's track walker, flying (the train's hit him). */
 const walkerFlies = (state: GameState, co: Coaster) => {
   const w = co.walker;
@@ -570,6 +614,7 @@ export const coaster: HollywoodSection = {
     if (upIn) co.upLatch = true;
     updatePlungers(ctx);
     fumes(ctx, co);
+    caseShots(ctx, co);
     walkerFlies(state, co);
     co.lever += ((state.stageMemo[LEVER_MEMO] ? 1 : 0) - co.lever) * 0.2;
     if (co.ride.on) return riding(ctx, co);
@@ -640,6 +685,8 @@ export const coaster: HollywoodSection = {
     }
   },
   drawHud: (c, state) => {
+    // (the breach's news shot, over everything: his death, and everyone's)
+    if (drawFloodCam(c, state)) return;
     const co = coasterOf(state), r = co.ride;
     if (!r.on) return;
     // (the PA's words, riding: low on the screen, whole)

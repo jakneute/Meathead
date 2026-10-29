@@ -10,8 +10,9 @@
 //
 // Let go of crouch before a stage is done: he stands up, nothing changes (a SHITTY one starts its 15 s over next time).
 // No gut, no meter, his pants never count as shat. Each toilet's state is its own, kept across deaths in
-// state.stageMemo (THRONE_MEMO), like the stops' staff. Stop 3's is in its hazmat case: he lifts the case, sits, and it
-// drops back down over him (shut in with it: it doesn't vent while he's in there; blown up, it never vents again).
+// state.stageMemo (THRONE_MEMO), like the stops' staff. Stop 3's, the Rock God's in its hazmat case, he won't sit on
+// (the user's: "make sure you cannot shit on it; it's harmful"): crouched by it he says no. Its case can be shot to
+// pieces instead (index.ts caseShots): the sludge everywhere, the toilet gone (EXPLODED), and it never vents again.
 
 import type { GameState } from '../../../m1/game/core/state';
 import type { FrameContext } from '../../../m1/game/core/context';
@@ -76,7 +77,7 @@ const throneBy = (state: GameState) => {
   for (let i = 0; i < 3; i++) {
     const g = throneAt(i);
     if (Math.abs(cx - g.mx) > g.sw / 2 + 70 || feet < g.top - 8 || feet > g.deck + 8) continue;
-    if (!state.stageMemo[CLEARED_MEMO(i)] || throneState(state, i) === 'exploded') continue;
+    if (i === 2 || !state.stageMemo[CLEARED_MEMO(i)] || throneState(state, i) === 'exploded') continue;
     return i;
   }
   return -1;
@@ -90,6 +91,11 @@ export const updateThrones = (ctx: FrameContext, co: Coaster, controls: Controls
   if (co.sit) return sitting(ctx, co, controls, pa);
   // Crouched by one (on the deck by its plinth, or up on it), the stop's staff dead, the toilet still there
   const by = controls.down && !p.isSliding && !p.isCharging ? throneBy(state) : -1;
+  // (crouched by the Rock God's: no)
+  if (by < 0 && controls.down && p.isGrounded && throneState(state, 2) !== 'exploded' && state.frame - co.nopeAt > 600) {
+    const g = throneAt(2), cx = p.pos.x + p.width / 2, feet = p.pos.y + p.height;
+    if (Math.abs(cx - g.mx) <= g.sw / 2 + 70 && feet >= g.top - 8 && feet <= g.deck + 8) { co.nopeAt = state.frame; meatheadSays(state, pickLine(L.THRONE_NOPE), false); }
+  }
   if (by < 0) { co.squat = { i: -1, t: 0 }; return null; }
   if (co.squat.i !== by) co.squat = { i: by, t: 0 };
   if (++co.squat.t < HOLD) return null;

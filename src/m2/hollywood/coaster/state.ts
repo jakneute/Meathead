@@ -70,6 +70,9 @@ export interface Coaster {
   sleeper: Said | null; sleepAt: number;
   /** The fumes (stop 3): frames into the cycle. */
   fumeT: number; fumeHit: WeakSet<Enemy>;
+  /** The Rock God's case: the damage it's taken (enough and it goes: index.ts caseShots), the shots counted, the
+   *  breach (frames since it went; -1 whole), his last refusal to sit on it (frame). */
+  caseDmg: number; caseSeen: WeakSet<object>; breach: number; nopeAt: number;
   /** The lever's throw (0 NORMAL .. 1 EXPERIMENTAL), for drawing; up's been let go since the last press. */
   lever: number; upLatch: boolean;
   /** The lever being thrown (him hauling on it: ../lever.ts), or null. */
@@ -94,7 +97,7 @@ export const coasterOf = (state: GameState): Coaster => {
       stops: [0, 1, 2].map(() => ({ phase: 'idle', wave: 0, t: 0, spawnT: 0, queue: [], out: [], door: 0, upper: 0, doorT: 0, upperT: 0, go: false, n: 0 })),
       guests: [], plungers: [], faceStuck: 0, said: {}, normalNo: 0,
       pa: null, paBusy: false, paAt: -9999, paFrom: 'train', barks: new WeakMap(), barkAt: -9999,
-      guestSaid: null, guestAt: -9999, sleeper: null, sleepAt: -9999, fumeT: 0, fumeHit: new WeakSet(), lever: 0, upLatch: true, pull: null, walkerT: 0, walker: null, squat: { i: -1, t: 0 }, sit: null,
+      guestSaid: null, guestAt: -9999, sleeper: null, sleepAt: -9999, fumeT: 0, fumeHit: new WeakSet(), caseDmg: 0, caseSeen: new WeakSet(), breach: -1, nopeAt: -9999, lever: 0, upLatch: true, pull: null, walkerT: 0, walker: null, squat: { i: -1, t: 0 }, sit: null,
     };
     ALL.set(k, o);
   }

@@ -98,6 +98,19 @@ export const THRONE_DONE = ["LEAVE IT. THAT'S HISTORY NOW.", 'PUT MY NAME ON THE
 export const THRONE_UHOH = ['UH OH.', "THAT GURGLE WASN'T ME.", "OH NO. IT'S PUSHING BACK."];
 /** His last words (the blowout). */
 export const THRONE_BLOW = ['OH SHIIIIIT!', 'NOT LIKE THIIIIS!'];
+/** Crouched by the Rock God's (in its case: he won't, it'd kill him). */
+export const THRONE_NOPE = ["NOT THAT ONE. THAT ONE'S STILL ALIVE.", "I'M NOT SITTING ON THAT. IT'S GLOWING.", 'NOPE. THAT SEAT HAS A SKULL ON IT.'];
+/** Its case shot to pieces: the sludge everywhere (his last words). */
+export const CASE_BREAK = ['UH OH. 1973 IS LOOSE.', "OH NO. THAT'S A LOT OF ROCK STAR."];
+/** The breach's news shot (flood.ts): the helicopter's reporter, what happened, then the last of it. */
+export const REPORTER = 'reporter';
+export const FLOOD_REPORT = [
+  "THIS IS SKY NINE, LIVE OVER HAPPY LAND, WHERE A MAN HAS SHOT OPEN THE ROCK GOD'S TOUR BUS TOILET.",
+  'IT HAD NOT BEEN FLUSHED SINCE 1973. IT WAS UNDER FEDERAL CONTAINMENT.',
+  'THE SEWAGE BROKE THE CONTAINMENT IN SECONDS. IT HAS COVERED ALL EIGHT LANDS.',
+];
+export const FLOOD_LAST = 'EVERYONE AT HAPPY LAND IS NOW DEAD.';
+export const FLOOD_DEATH = ['KILLED EVERYONE AT HAPPY LAND', 'FLOODED THE WHOLE PARK'];
 
 // ---------------------------------------------------------------------------------------------------------------
 // The queue's guests (outraged: he's cut in front of them), the voices the park's guests already have
@@ -241,10 +254,11 @@ export const VOICE_LINES: Record<string, string[]> = {
     ...CUT_LINE, ...SHOVE, ...STEVE_STANDEE, ...BOARD, ...BOARD_AGAIN, ...Object.values(RIDE_LINES).flat(), ...TOILET_LINES.flat(),
     ...STAFF_OUT, ...CLEARED, ...LOCKED, ...WALKER, ...BOOTH, ...LEVER_LOCKED, ...LEVER_FIRST, NORMAL_FINE, ...LEVER, ...LAUNCH, ...RIDE_BACK, ...BENT,
     ...THRONE_SIT.flat(), ...THRONE_SIT_AGAIN, ...THRONE_CASE, ...THRONE_STRAIN, ...THRONE_PLOP, ...THRONE_CLOG, ...THRONE_STAND,
-    ...THRONE_DONE, ...THRONE_UHOH, ...THRONE_BLOW,
+    ...THRONE_DONE, ...THRONE_UHOH, ...THRONE_BLOW, ...THRONE_NOPE, ...CASE_BREAK,
     ...Object.values(HURT).flatMap(h => h.hurt),
   ],
-  death: Object.values(HURT).flatMap(h => h.death),
+  death: [...Object.values(HURT).flatMap(h => h.death), ...FLOOD_DEATH],
+  [REPORTER]: [...FLOOD_REPORT, FLOOD_LAST],
   [GUEST_VOICES.m]: pools(QUEUE_OUTRAGE),
   [GUEST_VOICES.f]: pools(QUEUE_OUTRAGE),
   [STAFF_VOICES.rideop]: pools(RIDEOP_BARK), [STAFF_VOICES.rideopf]: pools(RIDEOP_BARK),

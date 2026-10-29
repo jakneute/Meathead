@@ -17,11 +17,12 @@ import { drawPerson } from '../../adventure/temple/people';
 import { type Ctx, type CView, INK, vis, pal, lattice, member, rivets, hazard, goldStar, beam, chains, PORCELAIN, CHROME, MARBLE, BIO, POO } from './paint';
 import { box, checker, mix, hash, poly, at, atDepth, still, stillAt, signW, STEEL, BRASS, ramp6, hour, lit, board, deco, plain, words, sideBack, topBack, glassOf, ball } from '../blvd/kit';
 import { velvetRopePaint } from '../blvd/props';
-import { X, Y, STOPS, BOOTH, BOOTH_LEVER, FUMES, LAUNCHED_MEMO, LEVER_MEMO, CLEARED_MEMO } from './layout';
+import { X, Y, STOPS, BOOTH, BOOTH_LEVER, FUMES, LAUNCHED_MEMO, LEVER_MEMO, CLEARED_MEMO, CASE_HP } from './layout';
 import { throwAngle } from '../lever';
 import type { Coaster } from './state';
 import { throneState, caseLift, drawThroneMess } from './thrones';
 import { WALL_D } from './set';
+
 
 export const TITLES = ['THE CHAIRMAN OF THE BOWEL', "THE GODFATHER'S CLOG", "THE ROCK GOD'S TOUR BUS TOILET"];
 const PLAQUES: [string, string][] = [['AS SAT ON BY', 'DINO SINATRELLI 1961'], ['AS CLOGGED BY', 'MARLOWE BRANDOE 1994'], ['NEVER FLUSHED', 'SINCE 1973']];
@@ -306,11 +307,29 @@ export const drawShrineTitle = (c: Ctx, v: CView, i: number) => {
 // ---------------------------------------------------------------------------------------------------------------
 // The shrine
 
+/** The case's front pane's cracks, `n` of CRACKS (each a star of lines off a strike, dark with a lit edge; the later
+ *  ones longer, running into each other). */
+const CRACKS = 16;
+const paintCracks = (g: Ctx, sw: number, n: number) => {
+  g.lineWidth = 1;
+  for (let k = 0; k < n; k++) {
+    const ox = 10 + hash(k * 7.3) * (sw - 20), oy = 8 + hash(k * 3.1 + 2) * 56, arms = 5 + (k % 3);
+    for (let r = 0; r < arms; r++) {
+      const a = r * (Math.PI * 2 / arms) + k, l = 8 + hash(k + r * 1.7) * (10 + k * 1.6);
+      const mx = ox + Math.cos(a + 0.2) * l * 0.5, my = oy + Math.sin(a + 0.2) * l * 0.5, ex = ox + Math.cos(a) * l, ey = oy + Math.sin(a) * l;
+      g.strokeStyle = 'rgba(10, 10, 14, 0.75)'; g.beginPath(); g.moveTo(ox, oy); g.lineTo(mx, my); g.lineTo(ex, ey); g.stroke();
+      g.strokeStyle = 'rgba(240, 249, 255, 0.65)'; g.beginPath(); g.moveTo(ox + 1, oy); g.lineTo(mx + 1, my); g.lineTo(ex + 1, ey); g.stroke();
+    }
+    // (the ring round a strike)
+    g.strokeStyle = 'rgba(240, 249, 255, 0.45)'; g.beginPath(); g.arc(ox, oy, 3 + (k % 3), 0, Math.PI * 2); g.stroke();
+  }
+};
+
 export const drawShrine = (c: Ctx, v: CView, state: GameState, i: number, co: Coaster) => {
   const s = STOPS[i], f = state.frame, dy = Y(s.h), sx = X(s.shrine.x), sw = s.shrine.w, top = dy - s.shrine.h, mx = sx + sw / 2;
   if (!vis(v, sx - 200, sx + sw + 200, dy - 260, dy)) return;
   const eye = v.eye, night = lit();
-  const gone = throneState(state, i) === 'exploded', lift = caseLift(co);
+  const gone = throneState(state, i) === 'exploded' || (i === 2 && co.breach >= 0), lift = caseLift(co);
   // (the lights on their stands, aimed at it)
   if (!gone) { lightStand(c, v, sx - 64, dy, mx - 8, top - 30, f, night); lightStand(c, v, sx + sw + 64, dy, mx + 8, top - 30, f + 20, night); }
   // (the velvet ropes either side, the plaque in front of the left one)
@@ -354,6 +373,9 @@ export const drawShrine = (c: Ctx, v: CView, state: GameState, i: number, co: Co
       // (the front pane: tinted in bands, two streaks of glare; the steel corners; the lid (lit: stand on it))
       for (let k = 0; k < 3; k++) { c.fillStyle = `rgba(132, 204, 22, ${0.1 + k * 0.05})`; c.fillRect(sx + jx, ct + k * 24, sw, 24); }
       c.fillStyle = 'rgba(255,255,255,0.35)'; c.fillRect(sx + jx + 12, ct + 6, 3, 58); c.fillRect(sx + jx + 20, ct + 6, 2, 38); c.fillRect(sx + jx + sw - 26, ct + 30, 2, 30);
+      // (shot: cracks spreading over it, more and more the more it's taken (index.ts CASE_HP), till it's all crazed)
+      const cracks = Math.min(CRACKS, Math.floor((co.caseDmg / CASE_HP) * (CRACKS + 1)));
+      if (cracks > 0) still(c, `hwc-case-cracks-${cracks}-${sw}`, sx + jx, ct, 0, 0, sw, 72, g => paintCracks(g, sw, cracks));
       for (const px of [sx + jx, sx + sw - 7 + jx]) { box(c, px - 1, ct - 1, 9, 74, INK); box(c, px, ct, 7, 72, S[3]); box(c, px, ct, 2, 72, S[5]); box(c, px + 6, ct, 1, 72, S[1]); rivets(c, px + 3, px + 3, ct + 10, 1, S); }
       box(c, sx + jx - 2, ct - 2, sw + 4, 7, INK); box(c, sx + jx - 1, ct - 1, sw + 2, 5, S[2]); hazard(c, sx + jx - 1, ct + 2, sw + 2, 2, 4);
       box(c, sx + jx - 1, ct - 1, sw + 2, 2, pal().lip[2]); box(c, sx + jx - 1, ct - 1, sw + 2, 1, pal().lip[3]);
