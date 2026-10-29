@@ -244,6 +244,12 @@ export interface Hunter {
   /** The stairs' panic run (heard, never seen till she has him): frames in, the furthest he's got (x), frames since he
    *  last got further, where she is behind him (x, unseen), and her lunge on (he stopped, or turned back). */
   chase: { t: number; best: number; still: number; herX: number; lunge: boolean } | null;
+  /** The two ambushes (the user's: "the player has to identify a back or front ambush, like recognizing mechanics for a
+   *  boss fight"): from in FRONT, she's up on the ceiling first, crawling in where he can see her, then down in front of
+   *  him (`amb`: this crawl's that one); from BEHIND, she sprints at him out of the dark behind, her red at that edge
+   *  growing as she comes (`rush`). Which one the next noise ambush is (they take turns); how long she's been seen on
+   *  the ceiling this crawl (a stretch's go doesn't drop till she has been). */
+  amb: boolean; rush: boolean; nextBack: boolean; ceilSeen: number;
 }
 export const makeHunter = (state: GameState): Hunter => {
   const cx = state.player.pos.x + state.player.width / 2;
@@ -258,7 +264,7 @@ export const makeHunter = (state: GameState): Hunter => {
     wasGrounded: true, lastVy: 0, lastShoot: false, lastJump: false, lastMove: false, warned: false, freeMove: false,
     cam: 0,
     win: WINDOWS.map(([a, b, force]) => ({ a, b, force, at: rnd(a, force), done: false })), forced: false, fx: 0, flvl: 0, committed: false, hidNear: false, goneAt: -9999,
-    chase: null,
+    chase: null, amb: false, rush: false, nextBack: false, ceilSeen: 0,
   };
 };
 export const buildHunter = (state: GameState, h: Hunter) => {
@@ -287,7 +293,7 @@ const plevel = (state: GameState): 0 | 1 | -1 => {
   return Math.abs(f - CATWALK_Y) < 8 ? 1 : Math.abs(f - floorY(x)) < 12 ? 0 : -1;
 };
 const inPlay = (h: Hunter) => h.mode !== 'away' && h.mode !== 'tell';
-const to = (h: Hunter, m: Mode) => { h.mode = m; h.t = 0; if (m === 'away') h.committed = false; };
+const to = (h: Hunter, m: Mode) => { h.mode = m; h.t = 0; if (m === 'away') h.committed = false; if (m !== 'ceil') { h.amb = false; h.ceilSeen = 0; } if (m !== 'hunt') h.rush = false; };
 const vol = (state: GameState, x: number, k: number) => Math.max(0, k * (1 - Math.abs(x - pmid(state)) / 1000));
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -382,7 +388,7 @@ const hearHim = (state: GameState, h: Hunter, controls: Controls) => {
   } else {
     // (loud past his one warning: she's on it, down out of the ceiling right in front of him, screeching; a moment to
     // hide in (she's not looking yet), then she's on him)
-    if ((shot || (moveStart && !h.freeMove)) && h.opened && !h.finale && !['hunt', 'kill', 'ambush', 'leap', 'crouch'].includes(h.mode)) ambush(state, h);
+    if ((shot || (moveStart && !h.freeMove)) && h.opened && !h.finale && !['hunt', 'kill', 'ambush', 'leap', 'crouch'].includes(h.mode) && !h.amb) ambush(state, h);
     if (shot) {
       n += 45;
       if (inPlay(h) && !h.saidGun) { h.saidGun = true; meatheadSays(state, pick(L.MH_USELESS), false); }
@@ -401,16 +407,41 @@ const hearHim = (state: GameState, h: Hunter, controls: Controls) => {
   }
 };
 
-/** The ambush: how far in front of him she comes down, how long she screeches (his window to hide) before she's on him. */
-const AMBUSH_AHEAD = 230, AMBUSH_T = 60;
+/** The ambush: how far in front of him she comes down, how long she screeches (his window to hide) before she's on him;
+ *  the front one's crawl in along the ceiling (from just off the screen ahead, px a frame, the most it takes); the back
+ *  one's sprint (from how far behind him, the least room it needs, its top speed: under her hunt's, a race he can read). */
+const AMBUSH_AHEAD = 230, AMBUSH_T = 60, AMB_CRAWL = 6.5, AMB_CRAWL_T = 100;
+const RUSH_FROM = 760, RUSH_MIN = 520, RUSH_TOP = 11;
 const ambush = (state: GameState, h: Hunter) => {
   h.leaving = false;
   const cx = pmid(state), dir = (state.player.facing || 1) as 1 | -1, lv = plevel(state);
   h.lvl = lv === 1 && catwalkAt(cx) ? 1 : 0;
-  h.x = cx + dir * AMBUSH_AHEAD; h.x = clampLvl(h, h.x);
-  if (Math.abs(h.x - cx) < 120) { h.x = cx - dir * AMBUSH_AHEAD; h.x = clampLvl(h, h.x); }
-  h.y = levelY(h.lvl, h.x); h.dir = h.x > cx ? -1 : 1; h.entry = 'vent';
   h.fg = null; h.rattle = null; h.fake = null; h.path = []; h.leg = 0; h.forced = false;
+  // (they take turns, front and back; the one there's no room for, the other)
+  const front = clampLvl(h, cx + dir * AMBUSH_AHEAD), back = clampLvl(h, cx - dir * RUSH_FROM);
+  const frontOk = Math.abs(front - cx) >= 120, backOk = Math.abs(back - cx) >= RUSH_MIN;
+  const goBack = backOk && (h.nextBack || !frontOk);
+  if (!goBack && !frontOk) { dropAmbush(state, h, clampLvl(h, cx - dir * AMBUSH_AHEAD)); return; }
+  h.nextBack = !goBack;
+  if (goBack) {
+    // (behind: a grille banged out back there in the dark, her screech, and she's coming flat out)
+    h.x = back; h.y = levelY(h.lvl, h.x); h.dir = h.x > cx ? -1 : 1; h.entry = 'duct';
+    to(h, 'hunt'); h.rush = true; h.lastSeen = state.frame; h.lastX = cx;
+    playSound('clang', 0.8, -6); playSound('screams', 0.9, -4); shakeScreen(state, 4, 2);
+    return;
+  }
+  // (in front: up on the ceiling just off the screen ahead, crawling in over him where he can see her, then down)
+  const camL = state.camera.x;
+  h.x = dir > 0 ? Math.min(STAIRS_A - 30, camL + CANVAS_WIDTH + 60) : Math.max(B + 40, camL - 60);
+  if ((h.x - cx) * dir < AMBUSH_AHEAD + 40) { dropAmbush(state, h, front); return; }
+  h.y = CEIL_B; h.dir = (-dir) as 1 | -1; h.entry = 'ceil'; h.speed = AMB_CRAWL;
+  to(h, 'ceil'); h.amb = true;
+  playSound('clang', 0.9, -6); playSound('screams', 0.8, -4); shakeScreen(state, 5, 3); dust(state, h.x, CEIL_B + 4, 10);
+};
+/** The front ambush's drop: down off the ceiling at x, rearing, screeching (AMBUSH_T to hide in). */
+const dropAmbush = (state: GameState, h: Hunter, x: number) => {
+  const cx = pmid(state);
+  h.x = x; h.y = levelY(h.lvl, h.x); h.dir = h.x > cx ? -1 : 1; h.entry = 'vent';
   to(h, 'ambush');
   playSound('clang', 1, -6); playSound('screams', 0.9, -4); shakeScreen(state, 8, 4); dust(state, h.x, CEIL_B + 4, 10);
 };
@@ -446,6 +477,9 @@ const FORCE_STAND = 600, FORCE_MIN = 480, FORCE_MAX = 820, FORCE_END_MIN = 320, 
  *  she is), her scuttle (px/frame: menacing, readable, a bit over his walk) and its range when she starts from wherever
  *  she already is. */
 const SCURRY_RUN = 60, SCURRY_T = 150, SCURRY = 7, SCURRY_LO = 6, SCURRY_HI = 8;
+/** ...and seen first: up there on the screen (this far in from its edges) this many frames before she drops, coming on
+ *  in no nearer him than CEIL_NEAR for it; the most the crawl can take then. */
+const CEIL_IN = 60, CEIL_SEEN = 45, CEIL_NEAR = 300, SCURRY_T_MAX = SCURRY_T + 110;
 const owed = (h: Hunter) => h.win.some(w => !w.done);
 /** Hidden through a go of hers: it pays the first stretch still owed that he's in or past. */
 const paid = (h: Hunter, cx: number) => { const w = h.win.find(v => !v.done && v.a <= cx + 300); if (w) w.done = true; };
@@ -619,14 +653,30 @@ const runHer = (ctx: FrameContext, h: Hunter) => {
       return;
     }
     case 'ceil': {
+      // (the front ambush: crawling in along the ceiling toward where she'll drop, in front of him; there (or out of
+      // time), down)
+      if (h.amb) {
+        const side = Math.sign(h.x - cx) || 1, goal = clampLvl(h, cx + side * AMBUSH_AHEAD), d = goal - h.x;
+        if (Math.abs(d) > 2) { h.dir = d < 0 ? -1 : 1; h.x += Math.sign(d) * Math.min(Math.abs(d), h.speed); }
+        if (h.t % 4 === 0) playSound('click', Math.max(0.3, vol(state, h.x, 0.6)), 4);
+        if (h.t % 6 === 0) dust(state, h.x, CEIL_B + 10, 2);
+        if (Math.abs(goal - h.x) <= 2 || h.t >= AMB_CRAWL_T) dropAmbush(state, h, h.x);
+        return;
+      }
       if (h.forced) {
         // (a stretch's go: scuttling along the ceiling upside down to the one spot picked at the start, no re-aiming;
         // her claws on it, heard as near wherever she is; there (or out of time), down where she is)
-        const d = h.fx - h.x;
+        // (and never down before he's seen her up there a while (the user's: the front ambush's tell is the ceiling
+        // crawl): her spot off the screen, she comes on in over him till she has been, no nearer than CEIL_NEAR)
+        const camL = state.camera.x, inView = h.x > camL + CEIL_IN && h.x < camL + CANVAS_WIDTH - CEIL_IN;
+        if (inView) h.ceilSeen++;
+        const need = h.ceilSeen < CEIL_SEEN, side = Math.sign(h.x - cx) || 1;
+        const goal = need && Math.abs(h.fx - cx) > CEIL_NEAR ? clampLvl(h, cx + side * CEIL_NEAR) : h.fx;
+        const d = goal - h.x;
         if (Math.abs(d) > 1) { h.dir = d < 0 ? -1 : 1; h.x += Math.sign(d) * Math.min(Math.abs(d), h.speed); }
         if (h.t % 4 === 0) playSound('click', Math.max(0.22, vol(state, h.x, 0.5)), 4);
         if (h.t % 6 === 0) dust(state, h.x, CEIL_B + 10, 2);
-        if (Math.abs(h.fx - h.x) <= 1 || h.t >= SCURRY_T) {
+        if ((!need && Math.abs(h.x - cx) <= Math.abs(h.fx - cx) + 1) || h.t >= SCURRY_T_MAX) {
           h.forced = false; landForced(state, h); to(h, 'drop'); playSound('thud', Math.max(0.4, vol(state, h.x, 0.8)), -8);
         }
         return;
@@ -668,7 +718,7 @@ const runHer = (ctx: FrameContext, h: Hunter) => {
       else if ((h.sniff += 1) >= (tgt.stop ?? 0)) {
         h.leg++; h.sniff = 0;
         // (at the way out she was heading for: up it)
-        if (h.leaving && h.leg >= h.path.length) { h.leaving = false; to(h, 'climb'); h.entry = h.lvl === 0 && !VENTS.includes(Math.round(h.x)) && DUCTS.some(d => Math.abs(d - h.x) < 40) ? 'duct' : 'vent'; return; }
+        if (h.leaving && h.leg >= h.path.length) { leave(h); return; }
         // (the end of her way: now and then she doubles back a stretch before she goes)
         if (h.leg >= h.path.length && Math.random() < 0.3 && h.out < 600) h.path.push({ x: clampLvl(h, h.x - h.dir * rnd(250, 450)), stop: rnd(30, 90) });
       } else if (h.sniff % 30 === 0) { h.dir = (-h.dir) as 1 | -1; if (h.sniff % 90 === 0) playSound('snort', 0.3 + vol(state, h.x, 0.25), -4); }
@@ -724,8 +774,10 @@ const runHer = (ctx: FrameContext, h: Hunter) => {
       break;
     }
     case 'climb':
-      if (h.t === 2) playSound('clang', vol(state, h.x, 0.5), -2);
-      if (h.t >= 24) {
+      // (the crouch, then up: a whoosh, a bang up in the ceiling as she goes through it)
+      if (h.t === CLIMB_CROUCH) playSound('whoosh', vol(state, h.x, 0.7), -6);
+      if (h.t === CLIMB_CROUCH + 8) { playSound('clang', vol(state, h.x, 0.5), -2); dust(state, h.x, CEIL_B + 4, 6); }
+      if (h.t >= CLIMB_T) {
         to(h, 'away'); h.next = h.finale ? 9999 : rnd(200, 380); h.goneAt = state.frame;
         if (h.hidNear) paid(h, cx);
         h.hidNear = false;
@@ -739,14 +791,11 @@ const runHer = (ctx: FrameContext, h: Hunter) => {
   if (h.hid < 0 && p.health > 0 && state.deathTimer <= 0 && h.mode !== 'leap' && h.mode !== 'crouch' && Math.abs(h.x - cx) < 48 && Math.abs(pfeet(state) - h.y) < 70) startKill(state, h);
 };
 
-/** Off she goes, back up a vent (or into a duct). */
-/** Off she goes: to the nearest way out on her level (a vent over her, a duct in the back wall), walking, and up or in
- *  there; never just gone where there's no way out (the stairs, the end walls). */
+/** Off she goes (the user's: "when it 'despawns' it jumps up offscreen"): from where she stands, a crouch and a leap
+ *  straight up, past the ceiling and off the top of the screen, into the dark up there. */
 const leave = (h: Hunter) => {
-  const ways = h.lvl === 1 ? VENTS.filter(v => catwalkAt(v) && Math.abs(clampLvl(h, v) - v) < 2) : [...DUCTS, ...VENTS.filter(v => !catwalkAt(v))];
-  const way = ways.length ? ways.reduce((a, v) => (Math.abs(v - h.x) < Math.abs(a - h.x) ? v : a)) : h.x;
-  if (Math.abs(way - h.x) > 30 && !h.leaving) { h.leaving = true; h.path = [{ x: way }]; h.leg = 0; h.sniff = 0; to(h, 'prowl'); h.speed = Math.max(h.speed, 2); return; }
-  h.leaving = false; to(h, 'climb'); h.entry = h.lvl === 0 && DUCTS.some(d => Math.abs(d - h.x) < 40) ? 'duct' : 'vent';
+  h.leaving = false; h.path = []; h.leg = 0; h.sniff = 0;
+  to(h, 'climb'); h.entry = 'vent';
 };
 
 /** She sees him: on her level, in front of her and near enough (or right on her), not hidden. */
@@ -792,7 +841,9 @@ const hunting = (ctx: FrameContext, h: Hunter) => {
   h.dir = cx < h.x ? -1 : 1;
   // (seen, he's as good as dead: she gets up to speed in half a second, then outruns him, charging or not (his charge is
   // 14 a frame); only the run up the stairs to the door is a chase he can win)
-  const fast = h.finale ? 3.9 : Math.min(HUNT_TOP, 5 + h.t * 0.35);
+  const fast = h.finale ? 3.9 : Math.min(h.rush ? RUSH_TOP : HUNT_TOP, 5 + h.t * 0.35);
+  // (the back ambush's sprint: once she's up with him, it's a hunt like any)
+  if (h.rush && Math.abs(cx - h.x) < 160) h.rush = false;
   if (!same && lv >= 0 && lv !== h.lvl && Math.abs(cx - h.x) < 260 && (lv === 0 || catwalkAt(cx))) { startLeap(state, h, 'hunt'); return; }
   const want = clampLvl(h, cx);
   if (Math.abs(want - h.x) > 3) h.x += Math.sign(want - h.x) * Math.min(fast, Math.abs(want - h.x));
@@ -811,6 +862,9 @@ const hunting = (ctx: FrameContext, h: Hunter) => {
   // (lost him: out of sight a good while, a way off; not on the stairs (she's on him to the door))
   if (!h.finale && state.frame - h.lastSeen > 200 && Math.abs(cx - h.x) > 500) { to(h, 'search'); h.path = [{ x: clampLvl(h, h.lastX), stop: 120 }]; h.speed = 2.2; }
 };
+
+/** Her leaving leap: the crouch (frames), then up and gone by CLIMB_T. */
+const CLIMB_CROUCH = 10, CLIMB_T = 30;
 
 const steps = (state: GameState, h: Hunter, every: number) => {
   // (her heavy footfalls only when she's in view (the user: whooshing thuds from her out of sight); the clicks of her
@@ -1054,8 +1108,9 @@ export const drawHunter = (c: Ctx, state: GameState, h: Hunter) => {
   let dy = 0, alpha = 1;
   if (h.mode === 'drop') { if (h.entry === 'duct') alpha = Math.min(1, h.t / 18); else dy = -(h.y - CEIL_B) * Math.max(0, 1 - h.t / 16); }
   if (h.mode === 'ambush') dy = -(h.y - CEIL_B) * Math.max(0, 1 - h.t / 14);
-  if (h.mode === 'climb') { if (h.entry === 'duct') alpha = Math.max(0, 1 - h.t / 20); else dy = -(h.y - CEIL_B) * Math.min(1, h.t / 22); }
-  const crouch = h.mode === 'crouch' ? 0.82 : h.mode === 'ambush' && h.t >= 14 ? 0.9 + Math.sin(h.t * 0.6) * 0.03 : 1;
+  // (leaving: down on her haunches, then a leap straight up off the top of the screen, quickening)
+  if (h.mode === 'climb') { const k = Math.max(0, h.t - CLIMB_CROUCH) / (CLIMB_T - CLIMB_CROUCH); dy = -(h.y - (state.camera.y - 220)) * Math.min(1, k * k * 1.4 + k * 0.3); }
+  const crouch = h.mode === 'crouch' || (h.mode === 'climb' && h.t < CLIMB_CROUCH) ? 0.82 : h.mode === 'ambush' && h.t >= 14 ? 0.9 + Math.sin(h.t * 0.6) * 0.03 : 1;
   const kill = h.mode === 'kill', kt = killT(state, h);
   const pose = kill ? (kt < K_SNATCH ? 'swipe' : kt >= K_RIP + 14 && kt < K_TOSS ? 'roar' : 'grab') : h.mode === 'crouch' || h.mode === 'ambush' ? 'roar' : h.mode === 'leap' ? 'swipe' : h.mode === 'hunt' ? 'stalk' : h.mode === 'search' || (h.mode === 'prowl' && h.sniff > 0) ? 'idle' : 'stalk';
   const moving = h.mode === 'prowl' && h.sniff === 0 || h.mode === 'hunt' || h.mode === 'search';
@@ -1382,7 +1437,7 @@ const redAir = (c: Ctx, f: number, sx: number, cy: number, top: number, floor: n
  *  she goes from off the side to up over the screen); the height and the top's x it's at (eased: it never jumps between
  *  the ceiling and the floor); whether she's coming (held: it only changes once she's been going the other way a while,
  *  so her turning about where she stands doesn't flick it), and where she was last frame. */
-const edgeK = { l: 0, r: 0, t: 0, y: 0, x: 0, come: false, other: 0, lastX: 0 };
+const edgeK = { l: 0, r: 0, t: 0, y: 0, x: 0, come: false, other: 0, lastX: 0, grow: 0 };
 /** Her coming at him from off the screen (the stalk, not the stairs): her red bleeding in at that edge ahead of her,
  *  growing a little as she nears, ticking with her clicks; gone once she's on the screen or turns off. Everything off
  *  where she really is, continuously: the side by how far off it she is, fading into the top as she comes on under a
@@ -1407,21 +1462,25 @@ const drawEdgeHint = (c: Ctx, state: GameState, h: Hunter) => {
     const o = sx < CANVAS_WIDTH / 2 ? -sx : sx - CANVAS_WIDTH;
     const side = Math.max(0, Math.min(1, (o + 20) / 80)), near = Math.max(0, Math.min(1, 1 - Math.max(0, o) / 700));
     if (come) { const v = side * (0.35 + 0.65 * near); if (sx < CANVAS_WIDTH / 2) l = v; else r = v; }
+    // (the back ambush's sprint: the red behind him swelling, bigger and bigger, the nearer she gets)
+    edgeK.grow += ((h.rush ? near : 0) - edgeK.grow) * 0.15;
     // (on the screen but up in a vent, coming: a little down out of the top over her)
     if (h.mode === 'tell' && h.entry !== 'duct') t = (1 - side) * Math.min(1, h.t / 60);
     const ty = (h.mode === 'tell' || h.mode === 'ceil' ? CEIL_B + 60 : h.y - 110) - cam.y;
     y = shown ? edgeK.y + (ty - edgeK.y) * 0.06 : ty;
     x = shown ? edgeK.x + (sx - edgeK.x) * 0.2 : sx;
   }
+  if (!h.rush) edgeK.grow *= 0.85;
   edgeK.lastX = h.x; edgeK.y = y; edgeK.x = x;
   const ease = (a: number, b: number) => a + (b - a) * (b > a ? 0.04 : 0.08);
   edgeK.l = ease(edgeK.l, l); edgeK.r = ease(edgeK.r, r); edgeK.t = ease(edgeK.t, t);
   if (edgeK.l + edgeK.r + edgeK.t < 0.01) return;
   const period = h.mode === 'tell' ? 10 : h.mode === 'ceil' ? (h.forced ? 4 : 7) : 13, p = redPulse(f, h.t % period);
-  const R = reds(), sm = c.imageSmoothingEnabled, H = 420, yy = Math.max(H / 2 - 60, Math.min(CANVAS_HEIGHT - H / 2 + 60, y));
+  const g = edgeK.grow, W = 150 + 260 * g, H = 420 + 260 * g, A = 0.55 + 0.35 * g;
+  const R = reds(), sm = c.imageSmoothingEnabled, yy = Math.max(H / 2 - 60, Math.min(CANVAS_HEIGHT - H / 2 + 60, y));
   c.imageSmoothingEnabled = false;
-  sprite(c, R.edge, 0, yy - H / 2, 150, H, 0.55 * edgeK.l * p);
-  if (edgeK.r > 0.004) { c.save(); c.translate(CANVAS_WIDTH, 0); c.scale(-1, 1); sprite(c, R.edge, 0, yy - H / 2, 150, H, 0.55 * edgeK.r * p); c.restore(); }
+  sprite(c, R.edge, 0, yy - H / 2, W, H, A * edgeK.l * p);
+  if (edgeK.r > 0.004) { c.save(); c.translate(CANVAS_WIDTH, 0); c.scale(-1, 1); sprite(c, R.edge, 0, yy - H / 2, W, H, A * edgeK.r * p); c.restore(); }
   sprite(c, R.top, x - 180, 0, 360, 120, 0.4 * edgeK.t * p);
   c.imageSmoothingEnabled = sm;
 };
