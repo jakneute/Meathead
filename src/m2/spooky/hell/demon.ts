@@ -48,7 +48,7 @@ import { rectsOverlap, boundsOf } from '../../../m1/game/core/utils';
 import { getAttackHitbox, recoilOff } from '../../../m1/game/player/player';
 import { BOUNCE_FRAMES } from '../../../m1/constants';
 import { subBossMelee } from '../../upgrades/bossMelee';
-import { cheapShotGate, crushGroups, crushLines } from '../../upgrades/cheapShot';
+import { cheapShotGate, cheapShotStunT, crushGroups, crushLines } from '../../upgrades/cheapShot';
 import { isShat, isNude } from '../../../m1/game/player/gut';
 import { topBand, CANVAS_WIDTH } from '../../../m1/constants';
 import { solid, box, label, saidOver, meatheadSays, voice, type Said } from '../section';
@@ -456,6 +456,8 @@ export const updateDemon = (ctx: FrameContext) => {
   if (cs === 'stunned') {
     // (stood there staggered; stagger's run out, so it's back to walking the frame the stun's over)
     d.st = 'stagger'; d.t = STAGGER_FRAMES; d.vx = 0; d.vy = 0; d.hurtSince = 0;
+    // (the guitar let go of: it hits the floor behind him (drawDemon), back in his hand when the stun's over)
+    if (d.e && cheapShotStunT(d.e) === 1) { playSound('clang', 0.9, -4); playSound('grind', 0.5, -10); }
     hazards(ctx, d);
     place(d);
     return;
@@ -865,7 +867,13 @@ interface Pose {
   /** The far hand on the guitar's neck too (two hands). */
   both: boolean;
   mouth: number; puff: number; look: boolean; sat: boolean; tuck: boolean; hornHot: number; hairFire: boolean; hornsUp: boolean; cry: boolean;
+  /** The cheap shot's stun: knock-kneed (both knees in together, the feet splayed), the eye screwed shut (or bulging),
+   *  the tail limp on the floor. */
+  knock: boolean; squint: boolean; droop: boolean;
 }
+
+/** Stunned off the hand armor's cheap shot: frames into it (-1 not). */
+const stunOf = (d: Demon) => (d.e && d.fight === 'on' ? cheapShotStunT(d.e) : -1);
 
 const poseOf = (d: Demon, f: number): Pose => {
   const st = d.st, t = d.t, mad = madOf(d);
@@ -875,7 +883,19 @@ const poseOf = (d: Demon, f: number): Pose => {
     squat: 0, lean: 0.05, tilt: glance ? -0.3 : 0, stride: st === 'walk' && Math.abs(d.vx) > 0.1 ? Math.sin(f * 0.22) : 0,
     near: [40, -104], far: [-16, -78], gtr: { ang: -2.3, glint: false, hot: 0, behind: true }, both: false,
     mouth: talking && Math.floor(f / 6) % 2 ? 6 : 0, puff: 0, look: glance, sat: false, tuck: false, hornHot: 0, hairFire: false, hornsUp: false, cry: false,
+    knock: false, squint: false, droop: false,
   };
+  const stun = stunOf(d);
+  if (stun >= 0) {
+    // (the cheap shot's stun: the guitar dropped (it's on the floor behind him, drawDemon), both hands clamped over his
+    // crotch, hunched right over them, knees knocked in, the tail limp, wheezing, bawling; trembling all over)
+    const sh = f % 4 < 2 ? 1 : -1, wz = Math.abs(Math.sin(f * 0.16));
+    P.gtr = null; P.knock = true; P.droop = true; P.cry = true; P.squint = f % 64 < 44;
+    P.squat = 22 + wz * 3; P.lean = 0.55 + wz * 0.08; P.tilt = 0.32 + wz * 0.12;
+    P.near = [16 + sh, -58]; P.far = [4 - sh, -61];
+    P.mouth = 3 + Math.round(wz * 5);
+    return P;
+  }
   const k = (n: number) => Math.min(1, t / n);
   switch (st) {
     case 'lounge': {
@@ -938,13 +958,16 @@ const legs = (c: Ctx, P: Pose, S: readonly string[], f: number) => {
   const hipY = P.sat ? -20 : -LEG + P.squat;
   const feet: [P2, P2] = P.sat ? [[70, 0], [56, -2]]
     : P.tuck ? [[18, hipY + 44], [-6, hipY + 48]]
+    : P.knock ? [[34, 0], [-28, 0]]
     : [[16 + P.stride * 22, 0], [-14 - P.stride * 22, 0]];
+  // (knock-kneed: both knees jammed in together under him, knocking)
+  const knockK = (far: boolean): P2 => [4 + (far ? -2 : 2) * (f % 6 < 3 ? 1 : 0), hipY + 34];
   for (const [i, hx] of [[1, -8], [0, 10]] as [number, number][]) {
     const far = i === 1, J = far ? JEANS.map(x => mix(x, INK, 0.25)) : JEANS;
     const [fx, fy] = feet[i === 1 ? 1 : 0];
     const ank: P2 = [fx - 2, fy - 14];
     // (the knee always forward: src/m2/art/limb.ts)
-    const kn = knee(hx, hipY, ank[0], ank[1], THIGH, SHIN, 1);
+    const kn = P.knock ? knockK(far) : knee(hx, hipY, ank[0], ank[1], THIGH, SHIN, 1);
     thick(c, hx, hipY, kn[0], kn[1], 22, J);
     thick(c, kn[0], kn[1], ank[0], ank[1], 18, J);
     // (the rip at the knee: red showing through, the white threads)
@@ -982,7 +1005,9 @@ const drawPunk = (c: Ctx, d: Demon, f: number) => {
   far = reach(farSh[0], farSh[1], far[0], far[1]);
   // (the tail: a whip from the small of his back, curling up behind him; a spiked collar near the end; the spade)
   const tw = Math.round(Math.sin(f * 0.12) * 8), tb = R(-14, -4);
-  const tp: P2 = [tb[0] - 62, tb[1] - 40 + tw], tq: P2 = [tb[0] - 50, tb[1] + 30];
+  // (the cheap shot's stun: limp, down along the floor behind him, the spade twitching)
+  const tp: P2 = P.droop ? [tb[0] - 70, Math.min(-8, tb[1] + 56) - (f % 50 < 4 ? 4 : 0)] : [tb[0] - 62, tb[1] - 40 + tw];
+  const tq: P2 = P.droop ? [tb[0] - 26, tb[1] + 34] : [tb[0] - 50, tb[1] + 30];
   c.lineCap = 'round';
   for (const [col, w] of [[INK, 9], [S[1], 5], [S[3], 2]] as [string, number][]) { c.strokeStyle = col; c.lineWidth = w; c.beginPath(); c.moveTo(tb[0], tb[1]); c.quadraticCurveTo(tq[0], tq[1], tp[0], tp[1]); c.stroke(); }
   c.lineCap = 'butt';
@@ -1075,8 +1100,18 @@ const head = (c: Ctx, P: Pose, S: readonly string[], d: Demon, f: number) => {
   ring(c, -9, -18, 3); ring(c, -16, -30, 1.5); ring(c, -13, -27, 1.5);
   // (the eye: yellow, slit; up at his dad when he's looking; the brow down hard, its rings)
   const ey = -22, up = P.look ? -2 : 0;
-  box(c, 8, ey - 3, 10, 7, INK); box(c, 9, ey - 2, 8, 5, EYE);
-  box(c, 12 + (P.look ? -1 : 1), ey - 2 + up + (P.look ? 1 : 0), 2, 5 + (P.look ? -2 : 0), INK);
+  if (P.squint) {
+    // (screwed shut: a > of creases)
+    c.fillStyle = INK; c.beginPath(); c.moveTo(8, ey - 4); c.lineTo(17, ey); c.lineTo(8, ey + 3); c.lineTo(8, ey + 1); c.lineTo(13, ey); c.lineTo(8, ey - 2); c.fill();
+    box(c, 17, ey - 6, 2, 2, S[1]); box(c, 17, ey + 3, 2, 2, S[1]);
+  } else if (P.knock) {
+    // (bulging, the pupil shrunk to a pinprick)
+    box(c, 7, ey - 5, 12, 10, INK); box(c, 8, ey - 4, 10, 8, EYE); box(c, 9, ey - 4, 3, 2, '#FFF7C0');
+    box(c, 12, ey - 1, 2, 2, INK);
+  } else {
+    box(c, 8, ey - 3, 10, 7, INK); box(c, 9, ey - 2, 8, 5, EYE);
+    box(c, 12 + (P.look ? -1 : 1), ey - 2 + up + (P.look ? 1 : 0), 2, 5 + (P.look ? -2 : 0), INK);
+  }
   if (P.cry) for (let i = 0; i < 2; i++) { const ty = ((f * 2 + i * 15) % 30); box(c, 10 + i * 4, ey + 4 + ty, 2, 3, '#7DD3FC'); }
   c.fillStyle = INK; c.beginPath(); c.moveTo(5, ey - 7 - (P.cry ? 2 : 0)); c.lineTo(20, ey - 3 + (P.cry ? -3 : 0)); c.lineTo(19, ey - 1); c.lineTo(5, ey - 4); c.fill();
   ring(c, 9, ey - 9, 1.5); ring(c, 13, ey - 9, 1.5);
@@ -1122,6 +1157,9 @@ export const drawDemon = (c: Ctx, state: GameState) => {
   if (d.fight === 'gone' && d.sink >= 1) drawSunk(c, state, d.x, f - d.sunkAt);
   if (d.guitarAt !== null) guitar(c, d.guitarAt - 70, GY - 9, 0.04, false, 0, true);
   if (d.fight === 'gone') return;
+  // (stunned off the cheap shot: the guitar let go of, flat on the floor behind him, well clear of Meathead; it's back in
+  // his hand after)
+  if (stunOf(d) >= 0) guitar(c, d.x - d.facing * 24, GY - 9, d.facing > 0 ? Math.PI - 0.04 : 0.04, false, 0);
   if (d.x < state.camera.x - 500 || d.x > state.camera.x + CANVAS_WIDTH + 500) return;
   const st = d.st, t = d.t, mad = madOf(d);
   // (his shadow where he'll come down: in steps, darker as he comes)
