@@ -1,4 +1,7 @@
-@import "tailwindcss";
+/* (only the source code scanned for class names: left to itself Tailwind crawls the whole project, the voice packs and
+   tools and all, and it held up the dev server's first page by half a minute) */
+@import "tailwindcss" source(none);
+@source "../";
 
 @theme {
   --font-sans: 'Press Start 2P', cursive;
