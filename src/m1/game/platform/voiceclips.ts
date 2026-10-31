@@ -148,6 +148,26 @@ const fxChain = (ctx: AudioContext, fx: string, out: AudioNode): AudioNode => {
     drive.connect(echo); echo.connect(dark); dark.connect(fb); fb.connect(echo); dark.connect(eg); eg.connect(out);
     return low;
   }
+  if (fx === 'echo') {
+    // A yell that rings off everything (Meathead 2's amulet): shouted hoarse, a canyon throwing it back three times,
+    // each quieter and duller, with the hall round it
+    const drive = ctx.createWaveShaper();
+    const curve = new Float32Array(1024);
+    for (let i = 0; i < curve.length; i++) { const x = (i / (curve.length - 1)) * 2 - 1; curve[i] = Math.tanh(2.2 * x) / Math.tanh(2.2); }
+    drive.curve = curve;
+    const low = ctx.createBiquadFilter(); low.type = 'lowshelf'; low.frequency.value = 220; low.gain.value = 6;
+    drive.connect(low); low.connect(out);
+    for (const [at, level, cut] of [[0.2, 0.5, 3200], [0.4, 0.32, 2200], [0.62, 0.18, 1500], [0.86, 0.09, 1100]] as const) {
+      const d = ctx.createDelay(1.5); d.delayTime.value = at;
+      const g = ctx.createGain(); g.gain.value = level;
+      const lp = ctx.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = cut;
+      low.connect(d); d.connect(lp); lp.connect(g); g.connect(out);
+    }
+    const hall = ctx.createConvolver(); hall.buffer = hallFor(ctx);
+    const wet = ctx.createGain(); wet.gain.value = 0.35;
+    low.connect(hall); hall.connect(wet); wet.connect(out);
+    return drive;
+  }
   if (fx === 'radio_mild') {
     // A handheld radio, quietly: just the phone band, no crunch
     const hp = ctx.createBiquadFilter(); hp.type = 'highpass'; hp.frequency.value = 320;

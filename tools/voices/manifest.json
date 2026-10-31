@@ -57190,6 +57190,11 @@
   "from": "INTRO"
  },
  {
+  "voice": "m2.yell",
+  "text": "FUCK OFF!",
+  "from": "UPGRADES"
+ },
+ {
   "voice": "meathead",
   "text": "...AND THIS.",
   "from": "m1/components/IntroCutscene.tsx:45"

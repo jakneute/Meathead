@@ -28,6 +28,7 @@ import { FANTASY_VOICE_LINES } from '../../src/m2/fantasy/voices';
 import { CARTOON_VOICE_LINES } from '../../src/m2/cartoon/voices';
 import { VOICE_LINES as GYM_VOICE_LINES } from '../../src/m2/intro/gym/lines';
 import { AMERICA_DENY } from '../../src/m2/lines/hubLines';
+import { UPGRADE_VOICE_LINES } from '../../src/m2/upgrades/lines';
 
 const ROOT = path.resolve(__dirname, '../..');
 const IN = path.join(ROOT, 'src/m1/generated/voices.bin');
@@ -87,6 +88,8 @@ for (const byVoice of FANTASY_VOICE_LINES) for (const [v, lines] of Object.entri
 for (const byVoice of CARTOON_VOICE_LINES) for (const [v, lines] of Object.entries(byVoice)) add(v, lines);
 for (const [v, lines] of Object.entries(GYM_VOICE_LINES)) add(v, lines);
 add('meathead', AMERICA_DENY);
+// (the hidden upgrades: the amulet's yell)
+for (const [v, lines] of Object.entries(UPGRADE_VOICE_LINES)) add(v, lines);
 for (const v of ['m2.guest', 'm2.guest2']) add(v, [introLines.GUEST_HURRY, introLines.GUEST_CUT, introLines.GUEST_HIT, introLines.GUEST_REACT, introLines.GUEST_REACT_NOW]);
 // The death screens
 want.add('death|YOU DIED');
