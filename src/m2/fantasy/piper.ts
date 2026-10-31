@@ -32,8 +32,10 @@ export type PiperPose =
   | 'enraged'  // insulted: fists up and shaking, stamping, the beehive coming loose, the wings buzzing
   | 'point'    // jabbing the wand at somebody (a curse, an order)
   | 'hurt'     // hit: reeling, the jiggle going through her
+  | 'clutch'   // the cheap shot's stun: doubled over clutching her middle, knees clamped, wings drooping and twitching,
+               // trembling, glitter falling off her (her fight's 300 frames of it; face 'wheeze')
   | 'flat';    // down: on her back, a mountain range of pink, the wings crumpled, the wand rolled away
-export type PiperFace = 'sultry' | 'talk' | 'gloat' | 'rage' | 'shock' | 'hurt' | 'out';
+export type PiperFace = 'sultry' | 'talk' | 'gloat' | 'rage' | 'shock' | 'hurt' | 'out' | 'wheeze';
 
 export interface PiperOpts {
   /** Talking: her mouth goes (shapes off the frame count). */
@@ -246,11 +248,11 @@ const sparkle = (c: Ctx, x: number, y: number, s: number, col: string) => { px(c
 // Her parts (all facing right, about her feet; a frame's `j` is the jiggle (0..1) going through her)
 
 /** The wings: little gossamer things on her back (`buzz`: blurred, beating; `crumple`: bent, down). */
-const wings = (c: Ctx, x: number, y: number, f: number, buzz: boolean, crumple = false) => {
+const wings = (c: Ctx, x: number, y: number, f: number, buzz: boolean, crumple = false, droop = 0) => {
   // (straining: a tremble in them even at rest, like they're holding her up)
   const beat = buzz ? Math.sin(f * 2.2) * 0.5 : Math.sin(f * 0.08) * 0.08 + Math.sin(f * 0.9) * 0.025;
   for (const [k, sc] of [[0, 1], [1, 0.8]] as const) {
-    c.save(); c.translate(x - k * 4, y + k * 6); c.rotate(-0.5 - beat - k * 0.3 + (crumple ? 1.1 : 0)); c.scale(sc, sc);
+    c.save(); c.translate(x - k * 4, y + k * 6); c.rotate(-0.5 - beat - k * 0.3 + (crumple ? 1.1 : 0) + droop); c.scale(sc, sc);
     c.globalAlpha = buzz ? 0.55 : 0.85;
     const path = () => { c.moveTo(0, 0); c.bezierCurveTo(-8, -18, -26, -26, -30, -12); c.bezierCurveTo(-30, -2, -14, 4, 0, 0); };
     shape(c, path, WING, -30, 0);
@@ -375,6 +377,14 @@ const head = (c: Ctx, hx: number, hy: number, face: PiperFace, f: number, talkin
     // (the mascara smudged under it)
     px(c, ex - 3, hy + 1, 7, 1, dith(c, '#3A2A48'));
     if (face === 'out') { line(c, [ex - 3, hy - 6, ex + 3, hy - 2], 1.2, LASH); line(c, [ex - 3, hy - 2, ex + 3, hy - 6], 1.2, LASH); return; }
+    // (the wheeze: squeezed shut in a pained crease (> <), a tear squeezed out, wobbling down)
+    if (face === 'wheeze') {
+      line(c, [ex - o * 4, hy - 6, ex + o * 2, hy - 3, ex - o * 4, hy], 1.4, LASH);
+      for (let k = -1; k <= 1; k++) line(c, [ex - o * 1, hy - 3 + k * 2.6, ex + o * 3.4, hy - 3 + k * 3.4], 0.7, LASH);
+      const tt = (f + (near ? 0 : 17)) % 34;
+      ell(c, ex + o * 3, hy + 1 + tt * 0.35, 1, 1.4, '#BEE8FF'); px(c, ex + o * 3 - 0.4, hy + 0.4 + tt * 0.35, 0.6, 0.6, '#FFFFFF');
+      return;
+    }
     const shut = face === 'hurt' || (face === 'sultry' && f % 200 < 8);
     if (shut) { line(c, [ex - 4, hy - 3, ex + 4, hy - 3], 1.4, LASH); for (let k = -1; k <= 1; k++) line(c, [ex + k * 2.5, hy - 3, ex + k * 3, hy - 1], 0.8, LASH); return; }
     const bulge = face === 'rage' || face === 'shock' ? 1.3 : 1;
@@ -396,6 +406,7 @@ const head = (c: Ctx, hx: number, hy: number, face: PiperFace, f: number, talkin
   eye(hx + 7, true); eye(hx - 5, false);
   // (the brows: drawn on, arched; down in a V when she's furious)
   if (face === 'rage') { line(c, [hx + 2, hy - 9, hx + 11, hy - 13], 1.6, HAIR[4]); line(c, [hx - 1, hy - 9, hx - 9, hy - 12], 1.6, HAIR[4]); }
+  else if (face === 'wheeze') { line(c, [hx + 2, hy - 13, hx + 7, hy - 12, hx + 12, hy - 9], 1.3, HAIR[4]); line(c, [hx - 1, hy - 13, hx - 5, hy - 12, hx - 9, hy - 9], 1.3, HAIR[4]); line(c, [hx + 1, hy - 16, hx + 2, hy - 18], 0.6, sk[3]); line(c, [hx - 1, hy - 16, hx - 2, hy - 18], 0.6, sk[3]); }
   else { line(c, [hx + 3, hy - 11, hx + 8, hy - 13, hx + 12, hy - 11], 1.2, HAIR[4]); line(c, [hx - 2, hy - 11, hx - 6, hy - 12, hx - 9, hy - 10], 1.2, HAIR[4]); }
   // (the button nose, the beauty mark)
   ell(c, hx + 4, hy + 2, 2.4, 2, sk[2]); px(c, hx + 3, hy + 1, 1, 1, sk[0]);
@@ -418,6 +429,13 @@ const head = (c: Ctx, hx: number, hy: number, face: PiperFace, f: number, talkin
     // (a grin, delighted, her tongue at her teeth, lipstick on them)
     fill(c, LIPS, () => { c.moveTo(mx - 7, my); c.quadraticCurveTo(mx, my + 7, mx + 7, my - 1); c.quadraticCurveTo(mx, my + 3, mx - 7, my); });
     px(c, mx - 4, my + 1, 8, 2, '#F8F0D0'); px(c, mx - 2, my + 1, 2, 1, LIPS); px(c, mx + 2, my + 1, 1, 2, '#5A0A14'); px(c, mx - 4, my + 1, 1, 2, GOLD[1]);
+  } else if (face === 'wheeze') {
+    // (the silent wheeze: a long O, sucking in and out, the lips stretched round it, the teeth showing; drool)
+    const h = 7 + Math.sin(f * 0.22) * 2.5;
+    ell(c, mx, my + h / 2, 3.6, h / 2 + 1, '#3A0A14'); ell(c, mx, my + h - 1.5, 2.2, 1.2, '#B83A5A');
+    c.strokeStyle = LIPS; c.lineWidth = 1.6; c.beginPath(); c.ellipse(mx, my + h / 2, 4.2, h / 2 + 1.6, 0, 0, Math.PI * 2); c.stroke();
+    px(c, mx - 2, my + 0.2, 4, 1.2, '#F4EAC0'); px(c, mx + 1, my + 0.2, 1, 1.2, GOLD[1]);
+    const dt = f % 50; if (dt < 30) line(c, [mx + 2, my + h + 1, mx + 2.4, my + h + 2 + dt * 0.25], 0.8, '#D8ECF8');
   } else if (face === 'out' || face === 'hurt') { ell(c, mx, my + 1, 3, 2.4, '#3A0A14'); line(c, [mx - 4, my - 1, mx + 4, my - 1], 1.2, LIPS); }
   else {
     // (the pout: full red lips, a highlight; parted when she talks)
@@ -633,10 +651,13 @@ const armTo = (c: Ctx, sx: number, sy: number, hx: number, hy: number, near: boo
 };
 
 /** The legs: thick, the knees dimpled, the calves (hidden by the gown down to the shins), the ankles, the heels. */
-const legs = (c: Ctx, step: number, thin = 0) => {
+const legs = (c: Ctx, step: number, thin = 0, knock = false) => {
   const bw = piperBodyW(thin), t2 = Math.max(0, Math.min(1, thin - 1)), sk = t2 > 0.3 ? GAUNT : SKIN;
-  for (const [lx0, near] of [[-18, false], [22, true]] as const) {
+  // (`knock`: the knees clamped together, the shins leant in at the top, the feet pigeon-toed in under her)
+  const LEGS: readonly (readonly [number, boolean])[] = knock ? [[-9, false], [13, true]] : [[-18, false], [22, true]];
+  for (const [lx0, near] of LEGS) {
     const lx = lx0 * bw, w = bw < 1 ? 0.5 + bw * 0.5 : 1;
+    if (knock) { c.save(); c.translate(lx, 0); c.rotate(near ? -0.14 : 0.14); c.translate(-lx, 0); }
     const lift = near ? Math.max(0, step) * 4 : Math.max(0, -step) * 4;
     const r = near ? sk : ([sk[1], sk[2], sk[3], sk[3], sk[4]] as const);
     const leg = () => { c.moveTo(lx - 12 * w, -22); c.quadraticCurveTo(lx - 14 * w, -12 - lift, lx - 4 * w, -8 - lift); c.lineTo(lx + 8 * w, -8 - lift); c.quadraticCurveTo(lx + 16 * w, -14 - lift, lx + 12 * w, -22); c.closePath(); };
@@ -645,13 +666,14 @@ const legs = (c: Ctx, step: number, thin = 0) => {
     overlay(c, leg, STUBBLE(c)); overlay(c, leg, CELLULITE(c), bw);
     if (near) line(c, [lx + 6 * w, -9 - lift, lx + 4 * w, -13 - lift, lx + 7 * w, -16 - lift, lx + 5 * w, -21], 0.6, '#7A86C8');
     foot(c, lx - 2, -lift, near);
+    if (knock) c.restore();
   }
 };
 
 // ---------------------------------------------------------------------------------------------------------------
 // The figure
 
-const FACES: Record<PiperPose, PiperFace> = { stand: 'sultry', talk: 'talk', gloat: 'gloat', lounge: 'sultry', enraged: 'rage', point: 'talk', hurt: 'hurt', flat: 'out' };
+const FACES: Record<PiperPose, PiperFace> = { stand: 'sultry', talk: 'talk', gloat: 'gloat', lounge: 'sultry', enraged: 'rage', point: 'talk', hurt: 'hurt', flat: 'out', clutch: 'wheeze' };
 
 /** Her, whole, in a pose. */
 export const drawPiper = (c: Ctx, x: number, feetY: number, facing: 1 | -1, f: number, pose: PiperPose, opts: PiperOpts = {}) => {
@@ -663,24 +685,29 @@ export const drawPiper = (c: Ctx, x: number, feetY: number, facing: 1 | -1, f: n
   if (pose === 'lounge') { lounge(c, f, face, talking, mess, opts.chaise !== false); c.restore(); return; }
   if (pose === 'flat') { flat(c, f); c.restore(); return; }
   // (the jiggle: going through her as she stamps, as she's hit; a breath otherwise)
-  const j = enraged ? (f % 16) / 16 : pose === 'hurt' ? (f % 24) / 24 : 0;
+  const clutch = pose === 'clutch';
+  const j = enraged ? (f % 16) / 16 : pose === 'hurt' ? (f % 24) / 24 : clutch ? (f % 30) / 30 : 0;
   const breathe = Math.sin(f * 0.06) * 1;
   const stamp = enraged ? (Math.floor(f / 8) % 2 ? 1 : -1) : pose === 'gloat' ? 0.5 + Math.sin(f * 0.2) * 0.5 : 0;
-  const shake = enraged ? (f % 4 < 2 ? 1 : -1) : 0;
+  const shake = enraged ? (f % 4 < 2 ? 1 : -1) : clutch ? (f % 4 < 2 ? 0.8 : -0.8) : 0;
   // (leaked down: the body drawn in to bw of her width, the arms and the hands in with it)
   const thin = Math.max(0, Math.min(2, opts.thin ?? 0)), bw = piperBodyW(thin), hk = 0.45 + 0.55 * bw;
   const toss = opts.toss ? tossPose(Math.max(0, Math.min(1, opts.toss.k)), bw, hk, -114) : null;
-  const lean = toss ? toss.lean : pose === 'hurt' ? -0.12 : 0;
-  c.translate(shake, pose === 'gloat' ? -Math.abs(stamp) * 3 : 0); c.rotate(lean);
-  // the wings, behind her
-  wings(c, -30 * bw, -112, f, enraged || pose === 'gloat');
+  // (clutched: doubled over forward, a slow sway on it, sagged down at the knees)
+  const lean = toss ? toss.lean : pose === 'hurt' ? -0.12 : clutch ? 0.13 + Math.sin(f * 0.07) * 0.03 : 0;
+  c.translate(shake, pose === 'gloat' ? -Math.abs(stamp) * 3 : clutch ? 3 : 0); c.rotate(lean);
+  // the wings, behind her (clutched: drooped right down, a twitch through them now and then)
+  const droop = clutch ? 0.95 - (f % 47 < 5 ? 0.45 * Math.sin(((f % 47) / 5) * Math.PI) : 0) - (f % 113 < 3 ? 0.3 : 0) : 0;
+  wings(c, -30 * bw, -112, f, enraged || pose === 'gloat', false, droop);
   // the far arm, behind her
   const sh = -114 + breathe;
+  // (clutched: both hands pressed in under the belly, all her short arms will reach, the far one wrung up under it)
+  const lowY = -64 + (16 * (1 - bw)) / 0.77;
   const farHand: [number, number, 'open' | 'fist' | 'wand' | 'clasp' | 'bonbon'] =
-    enraged ? [-38, -150 + (f % 8 < 4 ? 0 : 6), 'fist'] : pose === 'gloat' ? [-4, -112, 'clasp'] : pose === 'talk' || pose === 'point' ? [-48, -70, 'open'] : [-26, -150, 'open'];
+    clutch ? [-6, lowY - 4 + (f % 6 < 3 ? 1 : 0), 'open'] : enraged ? [-38, -150 + (f % 8 < 4 ? 0 : 6), 'fist'] : pose === 'gloat' ? [-4, -112, 'clasp'] : pose === 'talk' || pose === 'point' ? [-48, -70, 'open'] : [-26, -150, 'open'];
   if (toss) armTo(c, -34 * bw, sh, toss.far[0], toss.far[1], false, 'wand', f, enraged, thin);
   else armTo(c, -34 * bw, sh, farHand[0] * hk, farHand[1], false, farHand[2], f, enraged, thin);
-  legs(c, stamp, thin);
+  legs(c, stamp, thin, clutch);
   body(c, j, f, thin);
   // the head (its beehive behind it)
   const hx = 8 * hk, hy = -138 + breathe;
@@ -689,6 +716,7 @@ export const drawPiper = (c: Ctx, x: number, feetY: number, facing: 1 | -1, f: n
   // the near arm, in front
   const nearHand: [number, number, 'open' | 'fist' | 'wand' | 'clasp' | 'bonbon'] =
     enraged ? [52, -146 - (f % 8 < 4 ? 6 : 0), 'fist']
+      : clutch ? [26, lowY + (f % 6 < 3 ? 0 : 1), 'open']
       : pose === 'gloat' ? [12, -112, 'clasp']
         : pose === 'talk' ? [56, -96 + Math.sin(f * 0.08) * 6, 'wand']
           : pose === 'point' ? [70, -108, 'wand']
@@ -701,6 +729,18 @@ export const drawPiper = (c: Ctx, x: number, feetY: number, facing: 1 | -1, f: n
     armTo(c, toss.sx, sh, toss.hand[0], toss.hand[1] + dy, true, 'open', f, enraged, thin, [toss.elb[0], toss.elb[1] + dy]);
     if (opts.toss.k < TOSS_RELEASE) tossBall(c, toss.hand[0], toss.hand[1] + dy, opts.toss.kind, Math.max(0, Math.min(1, opts.toss.grow ?? 1)), f);
   } else armTo(c, 38 * bw, sh, nearHand[0] * hk, nearHand[1], true, nearHand[2], f, enraged, thin);
+  // (clutched: glitter shaking loose off her and drifting down; the wheeze puffing out of her in little gasps)
+  if (clutch) {
+    for (let k = 0; k < 7; k++) {
+      const t = (f * 1.3 + k * 23) % 70, gx = (-40 + ((k * 37) % 84)) * bw + Math.sin((f + k * 9) * 0.15) * 3, gy = -120 + ((k * 29) % 40) + t * 1.6;
+      if (gy > -2) continue;
+      c.globalAlpha = Math.min(1, (70 - t) / 25);
+      if ((f + k * 5) % 12 < 4) sparkle(c, gx, gy, 1.5, '#FFFFFF'); else px(c, gx, gy, 1, 1, k % 3 === 0 ? '#FFF0A0' : k % 3 === 1 ? '#FFD6F4' : '#C8F0FF');
+      c.globalAlpha = 1;
+    }
+    const wt = f % 40;
+    if (wt < 14) { c.globalAlpha = 1 - wt / 14; line(c, [hx + 12 + wt * 0.8, hy + 8, hx + 17 + wt * 0.8, hy + 6], 0.8, '#FFFFFF'); line(c, [hx + 12 + wt * 0.8, hy + 11, hx + 18 + wt * 0.8, hy + 12], 0.8, '#FFFFFF'); c.globalAlpha = 1; }
+  }
   // (steam off her when she's furious)
   if (enraged) for (let k = 0; k < 3; k++) { const t = (f * 2 + k * 20) % 60; c.globalAlpha = 1 - t / 60; ell(c, hx - 10 + k * 12, hy - 60 - t * 0.6, 4 + t * 0.1, 3 + t * 0.08, '#FFFFFF'); c.globalAlpha = 1; }
   c.restore();

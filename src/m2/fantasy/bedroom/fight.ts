@@ -60,7 +60,7 @@ import { registerDeathKind, type MeatheadDeathKind } from '../../../m1/game/play
 import { CANVAS_WIDTH, CANVAS_HEIGHT, BULLET_DAMAGE } from '../../../m1/constants';
 import { bossMelee } from '../../upgrades/bossMelee';
 import { takeYell } from '../../upgrades/amulet';
-import { cheapShotGate, cheapShotStunned, crushGroups, crushLines, crushPool } from '../../upgrades/cheapShot';
+import { cheapShotGate, cheapShotStunned, cheapShotStunT, crushGroups, crushLines, crushPool } from '../../upgrades/cheapShot';
 import { setErect } from '../../../m1/game/render/player/body';
 import { registerM2Kind, registerHurtLines } from '../../kinds';
 import { newSpam, spamTick, hitKey, swatOff, type Spam, BOSS_IFRAMES } from '../../bossSpam';
@@ -1093,6 +1093,9 @@ const hole = (ctx: FrameContext, f: Fight) => {
   // enable one of the environmental hazards right away that isn't active. nothing if all 3 are active"; "all three can be
   // off at once": the two-at-once hold doesn't stop this one): a loose one that's not on, else the next torn loose)
   popHazard(ctx, f);
+  // (stunned off the cheap shot: the hole's in her, but she stays planted where she was kicked, doubled over (the
+  // user's: "they cannot be moved during this moment"): no ride round the room)
+  if (cheapShotStunned(f.e)) { token++; f.said = null; herMaybe(f, L.PIPER_HOLE, tokened(() => hisLine(state, L.MH_HOLE))); return; }
   // (whatever she was at, she's off: a let-go balloon)
   f.slamHit = true;
   setAct(f, 'bounce', BOUNCE_T + f.holes.length * BOUNCE_EACH);
@@ -1415,9 +1418,11 @@ const poseOf = (f: Fight): { pose: PiperPose; sx: number; sy: number; face?: Pip
     if (f.intro === 'rage' || f.intro === 'fight' || f.intro === 'on') return { pose: 'enraged', sx: 1, sy: 1 };
     return { pose: 'lounge', sx: 1, sy: 1 };
   }
+  // (stunned off the cheap shot: doubled over clutching her middle, the knees clamped (piper.ts 'clutch'); the first
+  // frames of it a buckle down onto them, then a slow heave of the wheeze; over the hits' flinch too)
+  const st = f.mode === 'on' && f.act === 'walk' ? cheapShotStunT(f.e) : -1;
+  if (st >= 0) { const b = st < 14 ? Math.sin((st / 14) * Math.PI) * 0.1 : 0, h = Math.sin(st * 0.22) * 0.02; return { pose: 'clutch', sx: 1 + b + h, sy: 1 - b - h, face: 'wheeze' }; }
   if (f.flash > 0 && f.act !== 'bounce') return { pose: 'hurt', sx: 1, sy: 1 };
-  // (stunned off the cheap shot: reeling)
-  if (f.mode === 'on' && f.act === 'walk' && cheapShotStunned(f.e)) return { pose: 'hurt', sx: 1, sy: 1, face: 'shock' };
   switch (f.act) {
     case 'crouch': { const k = Math.min(1, f.actT / 12); return { pose: 'enraged', sx: 1 + 0.12 * k, sy: 1 - 0.16 * k }; }
     case 'rise': case 'hop': return { pose: 'enraged', sx: 0.92, sy: 1.08 };
@@ -1618,7 +1623,7 @@ const drawHer = (c: Ctx, f: Fight, fr: number) => {
   const blink = f.iframes > 0 && Math.floor(fr / 3) % 2 === 0;
   if (blink) c.globalAlpha = 0.65;
   // (her waddle: a rock from foot to foot as she comes)
-  const waddle = f.mode === 'on' && f.act === 'walk' ? Math.sin(fr * 0.18) * 0.05 : 0;
+  const waddle = f.mode === 'on' && f.act === 'walk' && P.pose !== 'clutch' ? Math.sin(fr * 0.18) * 0.05 : 0;
   c.save();
   if (f.act === 'bounce') { c.translate(f.x, f.y - 85); c.rotate(f.rot); c.translate(-f.x, -(f.y - 85)); }
   // (the flutter-dash: leant into it, head first)
@@ -1628,7 +1633,7 @@ const drawHer = (c: Ctx, f: Fight, fr: number) => {
   else {
     // (a throw: the wind-up, the release, the follow-through (unless a hit's knocked her out of it))
     // (ripping it off the loose part: her hand out at it, the ball forming in it; then the throw)
-    const toss = f.mode !== 'on' || !f.rip || P.pose === 'hurt' ? undefined
+    const toss = f.mode !== 'on' || !f.rip || P.pose === 'hurt' || P.pose === 'clutch' ? undefined
       : f.act === 'rip' ? { k: 0, kind: f.rip, grow: Math.min(1, f.actT / f.actLen) }
         : f.act === 'throw' ? { k: f.actT / f.actLen, kind: f.rip } : undefined;
     drawPiper(c, f.x, f.y, f.facing, fr, P.pose, { face: P.face, mess, thin: f.thin, talking: !!f.said, toss });
