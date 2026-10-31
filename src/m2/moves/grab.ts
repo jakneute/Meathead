@@ -159,11 +159,11 @@ const BEAT_WINDOW = 150, BULK_WINDOW = 1.5, SHOVE_VX = 9, SHOVE_VY = 7, SHOVE_RE
 /**
  * The line-up (the user: "when a beatdown grab is successful, line everything up and play a short jingle before the
  * smashing happens", "kinda like a fatality sting"): between the catch and the first blow, LINEUP frames (TUNE: 45, 0.75 s)
- * where the two of them snap into the mount (over LINEUP_SNAP), the world dims round them and holds still, nothing can
- * hurt him, and the sting plays (music/sting.ts); then the blow window starts (it doesn't tick in here). Blows pressed in
+ * where the two of them snap into the mount (over LINEUP_SNAP), the world round them holds still (no darkening), nothing
+ * can hurt him, and the sting plays (music/sting.ts); then the blow window starts (it doesn't tick in here). Blows pressed in
  * its last BLOW_BUFFER frames are kept for the first. LINEUP_HIT: the frame the sting's big hit lands on (a jolt then).
  */
-const LINEUP = 45, LINEUP_SNAP = 8, LINEUP_HIT = 20, LINEUP_DIM = 0.55, LINEUP_STILL_X = 640;
+const LINEUP = 45, LINEUP_SNAP = 8, LINEUP_HIT = 20, LINEUP_STILL_X = 640;
 // The shakedown
 /** Thrown, it takes a modest share of him; slammed, a big one. */
 /** Each throw's animation: how long, and the frame he lets go on. */
@@ -2601,24 +2601,14 @@ export const drawGrab = (ctx: Ctx, state: GameState, g: Grab) => {
       return;
     }
     case 'lineup': {
-      // The line-up: a white pop on the catch, the world going dark round the two of them (stepped rings: SNES), the two
-      // of them easing into the mount; a dull red throb on the sting's big hit; then still, him trembling to go
+      // The line-up: a white pop on the catch, the two of them easing into the mount; a jolt on the sting's big hit; then
+      // still, him trembling to go. (No darkening: the owner's "the screen shouldn't get darker when beating down a
+      // regular enemy".)
       const L = g.line, e = g.held;
       const s = Math.min(1, g.t / LINEUP_SNAP), ease = 1 - (1 - s) ** 3;
-      const a = LINEUP_DIM * Math.max(0, Math.min(1, g.t / 5, (LINEUP - g.t) / 6));
       const cy = y - 30;
-      if (a > 0.01) {
-        const grad = ctx.createRadialGradient(x, cy, 0, x, cy, 240);
-        const band = (k: number) => `rgba(0, 0, 0, ${(a * k).toFixed(3)})`;
-        grad.addColorStop(0, band(0)); grad.addColorStop(0.42, band(0));
-        grad.addColorStop(0.42, band(0.35)); grad.addColorStop(0.66, band(0.35));
-        grad.addColorStop(0.66, band(0.7)); grad.addColorStop(0.88, band(0.7));
-        grad.addColorStop(0.88, band(1)); grad.addColorStop(1, band(1));
-        ctx.fillStyle = grad; ctx.fillRect(x - 3000, cy - 3000, 6000, 6000);
-      }
       if (g.t < 3) { ctx.fillStyle = `rgba(255, 255, 255, ${(0.35 * (1 - g.t / 3)).toFixed(3)})`; ctx.fillRect(x - 3000, cy - 3000, 6000, 6000); }
       const throb = g.t - LINEUP_HIT;
-      if (throb >= 0 && throb < 6) { ctx.fillStyle = `rgba(110, 0, 0, ${(0.22 * (1 - throb / 6)).toFixed(3)})`; ctx.fillRect(x - 3000, cy - 3000, 6000, 6000); }
       if (e) {
         if (!L || L.pinned || ease >= 1) drawPinned(ctx, e, state, x, y, g.dir, throb >= 0 && throb < 3 ? 1 : 0, 0);
         else {
