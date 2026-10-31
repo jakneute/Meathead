@@ -123,6 +123,8 @@ const shoe = (c: Ctx, x: number, y: number, w = 11) => {
 
 /** (the show's other people are painted the same way: Chelsea, the animator's hand) */
 export { part as toonPart, partTop as toonTop, flat as toonFlat, limb as toonLimb, rp as toonRamp, type Rp };
+/** (the White House's second floor's pundits do the same nut shot: the crossed eyes, the wheeze) */
+export { crossed as toonCrossed, wheeze as toonWheeze };
 
 type Pose = 'stand' | 'talk' | 'tell' | 'throw' | 'air' | 'glide' | 'reel' | 'land' | 'nut';
 const poseOf = (q: Pundit, s: SimView, reel: number, stun = -1): Pose => {
