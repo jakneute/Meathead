@@ -1,7 +1,7 @@
 // His four moves (charge, slide, uppercut, dive kick) against a boss, normalized (the owner's: "normalize charge and
 // slide damage to bosses"): each counts as MOVE_VALUE, times the non-weakness share: a land boss's 25% (37.5), a
 // sub-boss's 35% (52.5). With that move's armor piece (state.ts pieceFor) the share doubles: 50% (75) / 70% (105).
-// Regular enemies keep their own tables (+50% with the piece: state.ts armorDamageK; apply.ts hooks the engine).
+// Regular enemies keep their own tables (the piece adds nothing on them: extra damage is for bosses only).
 
 import type { Player } from '../../m1/types';
 import { meleeMoveOf, type MeleeMove } from '../../m1/game/core/tuning';

@@ -19,7 +19,8 @@
 //   maxHealth()       100 + 10 per find (150 with all 5)
 //   ammoScale()       1 + 0.1 per find (1.5 with all 5): every weapon's capacity times this (constants maxAmmo)
 //   powerCells()      2 + floor(shards / 3) (3 at 3, 4 at 6)
-//   armorDamageK(move)  1.5 when that move's piece is owned, else 1 (regular enemies' damage tables)
+//   armorDamageK(move)  1.5 when that move's piece is owned, else 1 (unused on regular enemies: the owner's extra
+//                       damage is for bosses only)
 //   pieceFor(move)    which piece boosts a move: charge→pauldrons, slide→legs, uppercut→armguards, divekick→sabatons
 //   Boss and sub-boss melee (the normalized 150 × share, doubled by the piece): bossMelee.ts.
 //

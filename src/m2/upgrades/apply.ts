@@ -1,15 +1,15 @@
 // The hidden upgrades put into the engine (state.ts's README): run once, from App.tsx, before anything's built.
 // Max health (respawns, pickups, the gore on him), every weapon's capacity, the power cells, the dive kick free (no
 // stomp refund: the owner's "just remove the dive kick refunding. it's just generally free to use"), and his moves'
-// damage: +50% on regular enemies with the move's piece, the sub-bosses that take his moves through the engine (the
+// damage: regular enemies' tables untouched, piece or not (the owner's "upgraded charge moves should only do extra
+// damage to bosses"), the sub-bosses that take his moves through the engine (the
 // White House pundits) normalized (bossMelee.ts). The land bosses' own fights work theirs out themselves (each
 // fight.ts's plain hit: bossMelee), and the rex and the hell demon land his moves on themselves (subBossMelee).
 
 import type { Enemy } from '../../m1/types';
 import { setPlayerMaxHealth, setPowerCells, setStompRefund, setMeleeDamageHook } from '../../m1/game/core/tuning';
 import { setMaxAmmoScale, maxAmmo, MAX_AMMO } from '../../m1/constants';
-import { isMidBoss } from '../../m1/game/combat/midBoss';
-import { maxHealth, ammoScale, powerCells, armorDamageK, subscribeUpgrades } from './state';
+import { maxHealth, ammoScale, powerCells, subscribeUpgrades } from './state';
 import { bossMeleeOf } from './bossMelee';
 import { liveState } from '../cheats';
 import type { WeaponType } from '../../m1/types';
@@ -28,9 +28,8 @@ export const installUpgrades = () => {
   setMeleeDamageHook((e: Enemy, move, damage) => {
     if (e.type === 'boss') return damage;
     if (e.kind && ENGINE_SUB_BOSSES.has(e.kind)) return bossMeleeOf(move, true);
-    // (the land bosses' fights, the ensemble, the machines: their own say, left as it is)
-    if (isMidBoss(e)) return damage;
-    return damage * armorDamageK(move);
+    // (everything else, regular enemies, the land bosses' fights, the ensemble, the machines: as it is)
+    return damage;
   });
   // (changed mid-run, the cheats: his numbers brought into line on the spot; more room's handed to him filled)
   let was = { hp: maxHealth(), k: ammoScale() };

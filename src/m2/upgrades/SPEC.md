@@ -25,10 +25,14 @@ starting number to be adjusted by feel in play.
 - CHARGE MOVES ON BOSSES: all four (charge, slide, uppercut, dive kick) are normalized: each counts as 150 against a
   boss, times the non-weakness share: 25% on a land boss (37.5), 35% on a sub-boss (52.5). With that move's armor
   piece the share doubles: 50% (75) / 70% (105). Regular enemies keep their damage tables (ENEMY_CHARGE 20, SLIDE 20,
-  UPPERCUT 150, DIVEKICK 150) and the armor's +50% applies on top of those. ("normalize charge and slide damage to
+  UPPERCUT 150, DIVEKICK 150) UNCHANGED, piece or not ("upgraded charge moves should only do extra damage to bosses",
+  2026-10-31). ("normalize charge and slide damage to
   bosses... for regular enemies, those damage tables are fine.") Each land boss's fight.ts computes melee damage
   itself (BOSS_CHARGE_DAMAGE / BOSS_UPPERCUT_DAMAGE): change it there, per fight, via one shared helper.
-- Every armor piece's damage boost is a FLAT +50%, overall.
+- An armor piece's extra damage is FOR BOSSES ONLY (land bosses and sub-bosses: the doubled share above). Regular
+  enemies take the same as without it. (Replaces the earlier "flat +50% overall".)
+- EACH CHARGE-MOVE PIECE ALSO MAKES ITS MOVE GO SOMEWHAT FURTHER (sabatons: the dive kick; pauldrons: the charge; leg
+  armor: the slide; armguards: the uppercut). TUNE: about +25% distance/height.
 - "All new moves have utility in all situations."
 
 ## The 8 armor pieces
@@ -46,14 +50,14 @@ plating, film reels, a stunt pad; Foreign: flag patches, a Viking horn; Wilderne
 Fairy: pink sequins, glitter crystal, tiara spikes; Cartoon: flat, outlined, a big white glove.
 
 ### SABATONS (feet): the dive kick
-- +50% damage. Ignores spikes: the spiky enemies that punish a dive kick (KindDef.spiky) and spike hazards.
+- More damage on bosses; the dive kick goes further. Ignores spikes: the spiky enemies that punish a dive kick (KindDef.spiky) and spike hazards.
 - HIT-CONFIRM FOLLOW-UP: Y+B (the beatdown chord; R on the keyboard) shortly after a non-fatal dive-kick hit: he flips
   upside down, grabs the enemy by the shoulders, flips around (swinging them up and over) and hurls them straight
   ahead at high speed: the enemy is a MISSILE into whatever's ahead. Weight counts (melee collateral: mass × speed),
   more potent than the shakedown's throw. Works on enemies in the air too; gravity arcs the throw down. No steering.
 
 ### PAULDRONS (shoulders): the shoulder charge
-- +50% damage. Ignores what punishes a charge: horned beasts, spear enemies (KindDef.pointy).
+- More damage on bosses; the charge goes further. Ignores what punishes a charge: horned beasts, spear enemies (KindDef.pointy).
 - FOLLOW-UP: Y+B after a non-fatal charge hit: he grabs them and SPINS THEM INTO THE GROUND, stuck for good with just
   their head out: harmless. Only on an enemy standing on the ground. The charge pushes them back, so the follow-up's
   reach is wide.
@@ -62,12 +66,12 @@ Fairy: pink sequins, glitter crystal, tiara spikes; Cartoon: flat, outlined, a b
   first, then kicks.
 
 ### LEG ARMOR (knees and shins): the slide tackle
-- +50% damage. Ignores damage from the front while sliding.
+- More damage on bosses; the slide goes further. Ignores damage from the front while sliding.
 - A non-fatal slide TRIPS / STUNS any enemy and DOESN'T STOP HIM (no bounce-off; he slides on through). Bosses can't
   be tripped (they just take the damage). NO follow-up grab: it's a keep-away tool.
 
 ### ARMGUARDS (forearms): the uppercut
-- +50% damage. Hits enemies otherwise invulnerable to it.
+- More damage on bosses; the uppercut goes higher/further. Hits enemies otherwise invulnerable to it.
 - FOLLOW-UP: the NINJA DROP (Ryu Hayabusa's Izuna Drop): up with them, upside down, driven head-first into the
   ground spinning like a top: a near-guaranteed kill.
 
@@ -105,8 +109,13 @@ Fairy: pink sequins, glitter crystal, tiara spikes; Cartoon: flat, outlined, a b
   separate layers. Shown once he has the amulet.
 
 ### CAPE (back)
-- Hold jump in the air to float slowly down, steering: SUPER MARIO WORLD's cape (TUNE). Jumps, charges and lunges
-  carry a little further. Keep it short or split from behind so his jeans' seat still shows.
+- "cape should somewhat increase general movement speed, jump height and add a float ability" (2026-10-31): somewhat
+  faster walking/running (TUNE ~+12%), somewhat higher jumps (TUNE ~+15%), and hold jump in the air to float slowly
+  down, steering: SUPER MARIO WORLD's cape (TUNE).
+- THE CAPE AND THE BULK UP (the spellbook's: speed ×1.6, src/m2/weapons/spellbook.ts BULK, through buffs.speed): "a
+  'bulk up' effect with a cape upgrade should increase your movement speed even more. a cape's movement speed increase
+  shouldn't be as much as a non-cape bulk up." So the cape's speed boost is well under the bulk up's (~×1.12 < ×1.6),
+  and they STACK (multiply): bulked with the cape ≈ ×1.8. Keep it short or split from behind so his jeans' seat still shows.
 
 ### Dad Guy
 - He still knocks Meathead back off a charge move; with that move's armor piece, the move hurts him during the
