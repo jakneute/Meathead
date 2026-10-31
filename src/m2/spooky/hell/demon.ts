@@ -48,7 +48,7 @@ import { rectsOverlap, boundsOf } from '../../../m1/game/core/utils';
 import { getAttackHitbox, recoilOff } from '../../../m1/game/player/player';
 import { BOUNCE_FRAMES } from '../../../m1/constants';
 import { subBossMelee } from '../../upgrades/bossMelee';
-import { cheapShotGate, cheapShotStunT, crushGroups, crushLines } from '../../upgrades/cheapShot';
+import { cheapShotGate, cheapShotStunT, crushGroups, crushLines, registerClearThreats } from '../../upgrades/cheapShot';
 import { isShat, isNude } from '../../../m1/game/player/gut';
 import { topBand, CANVAS_WIDTH } from '../../../m1/constants';
 import { solid, box, label, saidOver, meatheadSays, voice, type Said } from '../section';
@@ -156,6 +156,20 @@ export const demonOf = (state: GameState) => hellOf(state).demon;
 
 // (after the hand armor's cheap shot, these come out of his crushed-nuts lines: upgrades/cheapShot.ts)
 crushGroups('demon', { hurt: [DEMON_HURT], taunt: [DEMON_CHATTER, DEMON_FEINT], attack: [DEMON_HIT] });
+// (the cheap shot's free window, the moment the stun starts: his hellfire pillars snuffed (burning, glowing, or still to
+// come up) in a burst of smoke and embers, his shockwaves along the floor crumbled to dust. The fire walls are the
+// pit's own: they stay)
+registerClearThreats('demon', state => {
+  const d = demonOf(state);
+  if (!d) return;
+  for (const pl of d.pillars) {
+    if (pl.t < 0) continue;
+    for (let i = 0; i < 14; i++) state.particles.push({ pos: { x: pl.x + (Math.random() - 0.5) * PILLAR_W, y: GY - Math.random() * (pl.t >= pillarGlow(d) ? PILLAR_H * 0.6 : 30) }, vel: { x: (Math.random() - 0.5) * 2, y: -1 - Math.random() * 3 }, life: 40 + Math.random() * 20, color: i % 3 ? 'rgba(68, 64, 60, 0.6)' : (i % 2 ? '#F97316' : '#FDE047'), size: 4 + Math.random() * 6, grav: -0.02 });
+  }
+  for (const w of d.waves) for (let i = 0; i < 8; i++) state.particles.push({ pos: { x: w.x + (Math.random() - 0.5) * 24, y: GY - Math.random() * WAVE_H }, vel: { x: (Math.random() - 0.5) * 3, y: -1 - Math.random() * 2 }, life: 26, color: i % 2 ? '#78350F' : 'rgba(168, 162, 158, 0.6)', size: 3 + Math.random() * 4, grav: 0.2 });
+  if (d.pillars.length || d.waves.length) { playSound('flame', 0.6, 6); playSound('thud', 0.5, -8); }
+  d.pillars = []; d.waves = [];
+});
 /** Up for the cheap shot: on the floor, roused, not off it in a leap or head down in the rush (or beaten). */
 const CHEAP_NO = new Set<St>(['rise', 'feint', 'air', 'rush', 'beaten', 'sink']);
 const dressed = (state: GameState): Dressed => (isNude(state) ? 'nude' : isShat(state) ? 'shitty' : 'clean');

@@ -55,7 +55,7 @@ import { makeKindEnemy } from '../../../m1/game/enemies/kinds';
 import { CANVAS_WIDTH, CANVAS_HEIGHT, BULLET_DAMAGE } from '../../../m1/constants';
 import { bossMelee } from '../../upgrades/bossMelee';
 import { takeYell } from '../../upgrades/amulet';
-import { cheapShotGate, cheapShotStunned, crushGroups, crushLines } from '../../upgrades/cheapShot';
+import { cheapShotGate, cheapShotStunned, crushGroups, crushLines, registerClearThreats } from '../../upgrades/cheapShot';
 import { CHEAP_STUN } from '../../upgrades/tune';
 import { registerM2Kind, registerHurtLines } from '../../kinds';
 import { newSpam, spamTick, hitKey, type Spam, BOSS_IFRAMES } from '../../bossSpam';
@@ -345,6 +345,15 @@ crushGroups('donnie', {
   hurt: [L.DONNIE_HURT, L.DONNIE_ESCAPED],
   taunt: [L.DONNIE_TAUNT, L.DONNIE_GORGE, L.DONNIE_TEMPTED, L.DONNIE_GREASED],
   attack: [L.DONNIE_DIVE, L.DONNIE_DRAIN, L.DONNIE_SNATCH, L.DONNIE_SPEW],
+});
+// (the cheap shot's free window, the moment the stun starts: the blood he'd spewed still in the air bursts into a fine
+// red mist (his hold on Meathead or a guest, his swoop and his stream already end with the stun: stun())
+registerClearThreats('donnie', state => {
+  const f = live;
+  if (!f) return;
+  for (const d of f.drops) for (let i = 0; i < 3; i++) state.particles.push({ pos: { x: d.x, y: d.y }, vel: { x: (Math.random() - 0.5) * 2.4, y: -0.6 - Math.random() * 1.6 }, life: 22, color: i % 2 ? 'rgba(185, 28, 28, 0.7)' : 'rgba(127, 29, 29, 0.55)', size: 3 + Math.random() * 3, grav: 0.05 });
+  if (f.drops.length) playSound('splat', 0.5, 6);
+  f.drops = []; f.mark = null; f.dive = null;
 });
 const bark = (f: Fight, lines: L.ByPants) => { if (quiet(f)) sayBark(f, pick(crushLines(f.e, lines)[pants()])); };
 /** A bark only if one of them's not been said lately (one that comes round a lot: never the same twice in a while). */

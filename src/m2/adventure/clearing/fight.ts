@@ -62,7 +62,7 @@ import { stabLean, STAB_WOUND } from '../../../m1/game/render/player/player';
 import { CANVAS_WIDTH, CANVAS_HEIGHT, BULLET_DAMAGE } from '../../../m1/constants';
 import { bossMelee } from '../../upgrades/bossMelee';
 import { takeYell } from '../../upgrades/amulet';
-import { cheapShotGate, cheapShotStunned, crushGroups, crushLines } from '../../upgrades/cheapShot';
+import { cheapShotGate, cheapShotStunned, crushGroups, crushLines, registerClearThreats } from '../../upgrades/cheapShot';
 import { CHEAP_STUN } from '../../upgrades/tune';
 import { registerM2Kind, registerHurtLines } from '../../kinds';
 import { newSpam, spamTick, hitKey, swatOff, type Spam, BOSS_IFRAMES } from '../../bossSpam';
@@ -353,6 +353,28 @@ crushGroups('artie', {
   hurt: [L.ARTIE_KNOCKED, L.ARTIE_TRAMPLED, L.ARTIE_VINE_SNAP, L.ARTIE_BUSH],
   taunt: [L.ARTIE_CUPS, L.ARTIE_LURE, L.ARTIE_AGITATED, L.ARTIE_PERCH, L.ARTIE_DODGE, L.ARTIE_NO_BUSHES, L.ARTIE_PEP],
   attack: [L.ARTIE_GRAB, L.ARTIE_DART, L.ARTIE_LUNGE, L.ARTIE_WHISTLE, L.ARTIE_COUNTER],
+});
+// (the cheap shot's free window, the moment the stun starts: the herd that's out bursts where it stands (gore and
+// chunks), the ones still coming are called off, the darts in the air puff to nothing, the poison's out of him)
+registerClearThreats('artie', state => {
+  const f = live;
+  if (!f) return;
+  let burst = false;
+  for (const a of f.herd) {
+    if (a.done) continue;
+    a.done = true;
+    if (a.warn > 0) continue;
+    const b = BEASTS[a.kind], cx = a.x + b.w / 2, cy = GY - b.h / 2;
+    blood(state, cx, cy, 1); blood(state, cx, cy, -1);
+    for (let i = 0; i < 12; i++) state.particles.push({ pos: { x: cx + (Math.random() - 0.5) * b.w * 0.8, y: cy + (Math.random() - 0.5) * b.h * 0.6 }, vel: { x: (Math.random() - 0.5) * 10, y: -3 - Math.random() * 7 }, life: 40 + Math.random() * 25, color: ['#7F1D1D', '#B91C1C', '#5E2E3C', '#4A3F2E'][i % 4], size: 4 + Math.random() * 6, grav: 0.4, chunk: true });
+    state.damageNumbers.push({ id: `artie-herd-${state.frame}-${a.kind}`, text: 'SPLAT!', pos: { x: cx - 20, y: GY - b.h - 20 }, vel: { x: 0, y: -2 }, life: 50, maxLife: 50, isCritical: true, isCallout: true, color: '#FCA5A5' });
+    burst = true;
+  }
+  clearStampede(state, f.herd);
+  if (burst) { playSound('splat', 1, -6); playSound('crunch', 1, -8); shakeScreen(state, 12, 6); }
+  for (const d of f.darts) for (let i = 0; i < 4; i++) state.particles.push({ pos: { x: d.x, y: d.y }, vel: { x: (Math.random() - 0.5) * 3, y: -1 - Math.random() * 2 }, life: 18, color: i % 2 ? '#FDE047' : '#DC2626', size: 2, grav: 0.15 });
+  if (f.darts.length) playSound('whoosh', 0.4, 12);
+  f.darts = []; f.poison = 0;
 });
 const bark = (f: Fight, lines: L.ByPants) => {
   const text = pick(crushLines(f.e, lines)[pants()]);
@@ -818,6 +840,8 @@ const watch = (state: GameState, f: Fight) => {
 const feed = (state: GameState, f: Fight) => {
   // (not while there's a bush left: then it's just the stampede he whistled up, however long he's up his vine)
   if (f.mode === 'dead' || liveBushes(f).length) return;
+  // (the cheap shot's free window: no more of the herd till it's over)
+  if (cheapShotStunned(f.e)) return;
   const up = f.mode === 'dodge' || f.mode === 'stunned' || f.mode === 'knocked' || f.mode === 'trampled';
   if (!up || f.herd.some(a => !a.done && a.warn > 0)) return;
   const running = f.herd.filter(a => !a.done);

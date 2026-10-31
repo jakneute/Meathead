@@ -37,7 +37,7 @@ import { rectsOverlap, boundsOf } from '../../../m1/game/core/utils';
 import { topBand, CANVAS_WIDTH, BOUNCE_FRAMES } from '../../../m1/constants';
 import { subBossMelee } from '../../upgrades/bossMelee';
 import { moveArmored } from '../../upgrades/state';
-import { cheapShotGate, cheapShotStunned, cheapShotStunT, crushGroups, crushLines, crushPool } from '../../upgrades/cheapShot';
+import { cheapShotGate, cheapShotStunned, cheapShotStunT, registerClearThreats, crushGroups, crushLines, crushPool } from '../../upgrades/cheapShot';
 import { getAdv, solid, box, label, saidOver, meatheadSays, voice, type Said } from '../section';
 import { say, cutVoice, pickLine } from '../../../m1/game/platform/speech';
 import { isShat, isNude } from '../../../m1/game/player/gut';
@@ -153,6 +153,21 @@ crushGroups('rex', {
 });
 /** The part the cheap shot goes by (its legs: the one down where he can reach from the floor). */
 const cheapE = (r: Rex) => r.parts.legs.e;
+// (the cheap shot's free window, the moment the stun starts: it has no minions or shots, but its guard is the charge in
+// its parts (a live part shocks him off and takes a fraction): every part's charge shorts out in a burst of sparks and
+// stays out for the stun (hit() builds none), so every hit lands in full)
+registerClearThreats('rex', state => {
+  const r = rexOf(state);
+  if (!r || r.fight !== 'on') return;
+  let any = false;
+  for (const id of PARTS) {
+    const part = r.parts[id];
+    if (part.broken) continue;
+    if (part.live || part.meter > 20) { const c = centerOf(worldBox(r, id)); sparks(state, c.x, c.y, 16, '#A5F3FC'); sparks(state, c.x, c.y, 8); any = true; }
+    part.live = false; part.meter = 0;
+  }
+  if (any) { playSound('bolt', 0.6, -6); playSound('crack', 0.6, -2); }
+});
 /** Up for the cheap shot: stood or walking about (not sprinting, ramming, lunging, whipping, crashed, waking up). */
 const CHEAP_OK: ReadonlySet<RexState> = new Set(['idle', 'walk', 'turn', 'open', 'chew', 'crouch', 'skid', 'stumble']);
 /** A line out of `pool` it hasn't said yet this fight (all of them said: round again). */
@@ -290,7 +305,8 @@ const hit = (ctx: FrameContext, r: Rex, part: Part, raw: number, o: { meter?: nu
   const e = part.e!;
   const dmg = part.live ? raw * LIVE_SHARE : raw;
   part.hp -= dmg; part.flash = 5; part.lastHit = state.frame;
-  part.meter = Math.min(100, part.meter + Math.min(METER_CAP, raw * METER_PER_DMG) + (o.meter ?? 0));
+  // (stunned off the cheap shot: its charge stays shorted out, the free window's hits all land in full)
+  if (!(r.parts.legs.e && cheapShotStunned(r.parts.legs.e))) part.meter = Math.min(100, part.meter + Math.min(METER_CAP, raw * METER_PER_DMG) + (o.meter ?? 0));
   // (the numbers that went up over it: what it really took)
   if (o.fixNumbers) {
     const k = dmg / raw;
