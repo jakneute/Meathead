@@ -55,7 +55,7 @@ import { makeKindEnemy } from '../../../m1/game/enemies/kinds';
 import { CANVAS_WIDTH, CANVAS_HEIGHT, BULLET_DAMAGE } from '../../../m1/constants';
 import { bossMelee } from '../../upgrades/bossMelee';
 import { takeYell } from '../../upgrades/amulet';
-import { cheapShotGate, crushGroups, crushLines } from '../../upgrades/cheapShot';
+import { cheapShotGate, cheapShotStunned, crushGroups, crushLines } from '../../upgrades/cheapShot';
 import { registerM2Kind } from '../../kinds';
 import { newSpam, spamTick, hitKey, swatOff, type Spam, BOSS_IFRAMES } from '../../bossSpam';
 import { keepForRevisits } from '../../store';
@@ -606,11 +606,14 @@ const counter = (ctx: FrameContext, f: Fight) => {
   // (just done it: the hands come off him, nothing more)
   if (f.total - f.counterAt < PIN_GAP || p.health <= 0 || state.deathTimer > 0 || p.invincibilityTimer > 0) return { said: true };
   f.counterAt = f.total;
-  // (him laid out with his head at Harry's feet; Harry moved over if that'd put him through a wall)
+  // (him laid out with his head at Harry's feet; Harry moved over if that'd put him through a wall. Stunned off the cheap
+  // shot he stays planted: he turns to lay him out on the open side instead)
   f.facing = pmid(state).x >= f.hx ? 1 : -1;
-  const span = PIN_REACH + PIN_HEAD;
+  const span = PIN_REACH + PIN_HEAD, inside = (x: number) => x >= ARENA_L + 60 && x <= ARENA_R - 60;
+  const planted = cheapShotStunned(f.e);
+  if (planted && !inside(f.hx + f.facing * span) && inside(f.hx - f.facing * span)) f.facing = (-f.facing) as 1 | -1;
   const ax = Math.max(ARENA_L + 60, Math.min(ARENA_R - 60, f.hx + f.facing * span));
-  f.hx = ax - f.facing * span;
+  if (!planted) f.hx = ax - f.facing * span;
   f.pin = { t: 0, ax, jolt: 1 };
   f.rounds = []; f.burst = 0; f.moving = false; f.aim = PIN_AIM;
   setAct(f, 'pin');
@@ -1244,7 +1247,7 @@ const takeHits = (ctx: FrameContext, f: Fight) => {
   // (the user's: "i don't want the player to be given more than 5 uninterrupted seconds spamming the same attack on a
   // boss": the same hit landing on him for 4 s on the floor (ducked under his bursts with the ray gun going, a dive-kick
   // chain off his head) and he's off it: a shove off him if he's on him (no hurt), and a leap away to the far side)
-  if (!f.barf && !f.leap && !f.pin && f.hy >= GY - 2 && (f.act === 'walk' || f.act === 'idle') && spamTick(f.spam, state.frame, hitKey(state.player, melee))) {
+  if (!cheapShotStunned(e) && !f.barf && !f.leap && !f.pin && f.hy >= GY - 2 && (f.act === 'walk' || f.act === 'idle') && spamTick(f.spam, state.frame, hitKey(state.player, melee))) {
     if (melee) swatOff(state, f.hx);
     f.burst = 0; f.moveT = 0;
     leapTo(f, floorSpot(state, f, true), GY, 40, 90, 'idle', 1);
@@ -1706,6 +1709,9 @@ const harryPose = (f: Fight): { pose: RamboPose; lean?: number; rot?: number } =
   if (f.entrance > 0) return { pose: 'flex' };
   // (the rifle butt: leaned back on the wind-up, jabbed forward on the hit)
   if (f.butt > 0) return { pose: 'fire', lean: f.butt < BUTT_WIND ? -0.3 : 0.45 };
+  // (the hand armor's cheap shot: his own pose for it the whole stun (the M60 still going, one-handed), over the hurt
+  // flash; not his pin, that's its own business)
+  if (f.mode === 'on' && f.act === 'walk' && !f.pin && cheapShotStunned(f.e)) return { pose: 'cheap', lean: 0.22 + Math.sin(f.total * 0.08) * 0.03 };
   if (f.flash > 0 && (f.act === 'walk' || f.act === 'idle')) return { pose: 'hurt' };
   switch (f.act) {
     case 'walk': return { pose: f.moving ? 'walk' : f.firing ? 'fire' : 'stand' };

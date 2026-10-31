@@ -24,7 +24,10 @@ const INK = '#1A0B06';
 export type RamboPose =
   | 'stand' | 'walk' | 'fire' | 'leap' | 'cling' | 'rant' | 'command' | 'hurt' | 'sick' | 'barf' | 'fall' | 'spin' | 'dead' | 'flex'
   // (the standard death: the M60 emptied straight up at the sky, braced; then hanging off his hands, puffed)
-  | 'skyfire' | 'pant';
+  | 'skyfire' | 'pant'
+  // (the hand armor's cheap shot: knees knocked in, hunched, a fist clamped over his blown-up nuts (the blood coming
+  // through his jeans), the M60 held level one-handed and still going; steam off his head, furious and hurting)
+  | 'cheap';
 export interface RamboLook {
   pose: RamboPose; f: number; facing?: 1 | -1; aim?: number; talking?: boolean;
   /** Airsick (0..1): green in the face and the skin. */
@@ -256,6 +259,10 @@ const legs = (c: Ctx, L: RamboLook, S: Ramp) => {
   } else if (pose === 'skyfire') {
     // (braced wide against it, the knees given a little)
     a = [-5, -40, -9, -21, -12, -2]; b = [5, -40, 10, -21, 13, -2];
+  } else if (pose === 'cheap') {
+    // (the cheap shot: the knees knocked in together, shaking; the feet splayed out under him)
+    const tr = f % 4 < 2 ? 0.6 : -0.6;
+    a = [-5, -40, 1 + tr, -22, -9, -2]; b = [5, -40, 3 - tr, -22, 11, -2];
   } else {
     a = [-5, -40, -6, -21, -7, -2]; b = [5, -40, 6, -21, 8, -2];
   }
@@ -395,6 +402,7 @@ const moodOf = (L: RamboLook): Mood => {
     case 'barf': return 'barf';
     case 'dead': return 'dead';
     case 'flex': return 'grin';
+    case 'cheap': return L.flash ? 'yell' : 'ouch';
     default: return 'mad';
   }
 };
@@ -409,6 +417,8 @@ export const drawRambo = (c: Ctx, x: number, y: number, L: RamboLook) => {
   if (pose === 'fire' && L.flash) c.translate(-1 + (f % 2) * 0.6, (f % 3) * 0.3 - 0.3);
   // (into the sky: the whole of him shaking with it)
   if (pose === 'skyfire' && L.flash) c.translate((f % 2) * 2.4 - 1.2, (f % 3) * 0.8 - 0.8);
+  // (the cheap shot: trembling all over, the recoil on top when the gun's going)
+  if (pose === 'cheap') c.translate((f >> 1) % 2 ? 0.5 : -0.5, L.flash ? (f % 3) * 0.3 - 0.3 : 0);
   const bob = pose === 'walk' ? Math.abs(Math.sin(f * 0.16)) * -1.5 : 0;
   c.translate(0, bob);
   legs(c, L, S);
@@ -426,9 +436,10 @@ export const drawRambo = (c: Ctx, x: number, y: number, L: RamboLook) => {
   else if (pose === 'cling') arm(c, shB[0], shB[1], -10, -112, S, -1, true, 1, false, true);
   else if (pose === 'rant' || pose === 'command') arm(c, shB[0], shB[1], -16, -44, S, 1, true, 1, false, true);
   else if (pose === 'fall' || pose === 'spin' || pose === 'dead') arm(c, shB[0], shB[1], -28, pose === 'dead' ? -66 : -86, S, -1, false, 1, false, true);
+  else if (pose === 'cheap') { crotchBlood(c, f); arm(c, shB[0], shB[1], 1, -36 + ((f >> 1) % 2), S, 1, true, 1, false, true); }
   torso(c, S, f);
   head(c, f, true, !!L.talking, 1, -86, { bandana: true, green: L.green, mood: moodOf(L), slip: !!L.dead, gray: (L.concrete ?? 0) > 0.5 ? (L.concrete! - 0.5) : 0 });
-  if (pose === 'rant' && L.talking) steamOff(c, f, 2, -104);
+  if ((pose === 'rant' && L.talking) || pose === 'cheap') steamOff(c, f, 2, -104);
   // Front arm and the gun
   if (pose === 'skyfire' || pose === 'pant') {
     gunHeld(c, L, S, pivotOf(pose), pose === 'skyfire' ? SKY_AIM : PANT_AIM, shB, shF);
@@ -441,6 +452,16 @@ export const drawRambo = (c: Ctx, x: number, y: number, L: RamboLook) => {
     c.save(); c.translate(pv.x, pv.y); c.rotate(aim); m60(c, !!L.flash, f); c.restore();
     const ca = Math.cos(aim), sa = Math.sin(aim);
     arm(c, shF[0], shF[1], pv.x + 2 * ca - 6 * sa, pv.y + 2 * sa + 6 * ca, S, 1, true, 1, true);
+  } else if (pose === 'cheap') {
+    // (one-handed, the M60 held level where the fight's rounds come out of it (its pivot and aim as he stands: unleaned,
+    // so the muzzle's where muzzleAt says), the arm from his hunched shoulder)
+    const ln = L.lean ?? 0, cl = Math.cos(ln), sl = Math.sin(ln), sy0 = shF[1] + 42;
+    const sx = shF[0] * cl - sy0 * sl, sy = shF[0] * sl + sy0 * cl - 42;
+    c.save(); c.translate(0, -42); c.rotate(-ln); c.translate(0, 42);
+    const pv = pivotOf(pose), ca = Math.cos(aim), sa = Math.sin(aim);
+    c.save(); c.translate(pv.x, pv.y); c.rotate(aim); m60(c, !!L.flash, f); c.restore();
+    arm(c, sx, sy, pv.x + 2 * ca - 6 * sa, pv.y + 2 * sa + 6 * ca, S, 1, true, 1, true);
+    c.restore();
   } else if (pose === 'spin') {
     gunHeld(c, L, S, { x: 6, y: -50 }, 0, shB, shF);
   } else if (pose === 'flex') arm(c, shF[0], shF[1], 26, -86, S, 1, true, 1.15, true);
@@ -455,6 +476,14 @@ export const drawRambo = (c: Ctx, x: number, y: number, L: RamboLook) => {
   if (L.holes) bodyHoles(c, L.holes, f);
   c.restore();
   c.restore();
+};
+
+/** The cheap shot's work (under his fist): the blood coming through the crotch of his jeans, dithered at its edge, a
+ *  drip running off it down the inside of his leg. */
+const crotchBlood = (c: Ctx, f: number) => {
+  ellR(c, 1, -35, 5.6, 4.6, dith(c, '#5A0A0A')); ellR(c, 1, -35.4, 4.4, 3.4, '#7F1D1D'); ellR(c, 0.4, -36, 2.4, 1.6, '#B91C1C');
+  const k = (f % 40) / 40;
+  pxR(c, 2.4, -31, 1, 2 + k * 5, '#7F1D1D'); if (k > 0.6) ellR(c, 2.9, -27 + (k - 0.6) * 30, 0.8, 1.1, '#B91C1C');
 };
 
 void BAND_R; void INK;
