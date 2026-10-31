@@ -19,6 +19,7 @@ import type { FrameContext } from '../../../m1/game/core/context';
 import type { GameState } from '../../../m1/game/core/state';
 import { holdingOff, mid, safeAhead } from '../../../m1/game/enemies/kinds';
 import { hurtPlayer } from '../../../m1/game/bosses/shared';
+import { helmetStopsAt } from '../../upgrades/gear';
 import { playSound } from '../../../m1/game/platform/audio';
 import { pickLine } from '../../../m1/game/platform/speech';
 import { shakeScreen } from '../../../m1/game/core/state';
@@ -104,6 +105,8 @@ export const updateShots = (ctx: FrameContext) => {
     if (s.lob) s.vy += G;
     s.x += s.vx; s.y += s.vy; s.rot += s.kind === 'prop' ? 0.35 : 0.15;
     if (p.health > 0 && s.x + 9 > p.pos.x && s.x - 9 < p.pos.x + p.width && s.y + 9 > p.pos.y && s.y - 9 < p.pos.y + p.height) {
+      // (the helmet: the extras' coffee and food only, not the cast's props or silly string)
+      if ((s.kind === 'coffee' || s.kind === 'food') && p.invincibilityTimer <= 0 && !p.inCutscene && !p.carried && helmetStopsAt(state, s.x, s.y, 9)) { splat(s, 6); return false; }
       if (p.invincibilityTimer <= 0 && !p.inCutscene && !p.carried) {
         const h = SHOT_HURT[s.kind];
         hurtPlayer(ctx, h.dmg, h.src, { x: Math.sign(s.vx || 1) * 4, y: -3 }, 16);

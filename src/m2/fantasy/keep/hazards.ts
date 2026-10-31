@@ -23,6 +23,7 @@ import type { Controls } from '../../../m1/game/platform/input';
 import type { Enemy } from '../../../m1/types';
 import { PLAYER_GRAVITY } from '../../../m1/constants';
 import { hurtPlayer } from '../../../m1/game/bosses/shared';
+import { helmetStopsAt } from '../../upgrades/gear';
 import { playSound } from '../../../m1/game/platform/audio';
 import { pickLine } from '../../../m1/game/platform/speech';
 import { floorTopAt } from '../../../m1/game/core/terrain';
@@ -165,6 +166,10 @@ const updateThrows = (ctx: FrameContext) => {
       if (!from && s.t > 30) { s.vy += 0.3; }
       if (from && s.t > 20 && Math.abs(s.x - mid(from).x) < 22 && Math.abs(s.y - (from.pos.y + 30)) < 40) { s.dead = true; (from as { fanOut?: boolean }).fanOut = false; continue; }
       if (s.t > 170) { s.dead = true; if (from) (from as { fanOut?: boolean }).fanOut = false; continue; }
+    }
+    if (alive(state) && p.invincibilityTimer <= 0 && hits(state, s.x - 7, s.y - 7, 14, 14) && helmetStopsAt(state, s.x, s.y, 7)) {
+      // (off the helmet: spent; a fan doesn't come back to her hand)
+      s.dead = true; if (s.kind === 'fan' && s.from) (s.from as { fanOut?: boolean }).fanOut = false; continue;
     }
     if (alive(state) && p.invincibilityTimer <= 0 && hits(state, s.x - 7, s.y - 7, 14, 14)) {
       hurtPlayer(ctx, DMG[s.kind], SRC[s.kind], { x: Math.sign(s.vx || 1) * 5, y: -4 });

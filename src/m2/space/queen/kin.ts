@@ -15,6 +15,7 @@ import { exemptFromZones } from '../../hazardHit';
 import { playSound } from '../../../m1/game/platform/audio';
 import { shakeScreen } from '../../../m1/game/core/state';
 import { hurtPlayer } from '../../../m1/game/bosses/shared';
+import { helmetStopsAt } from '../../upgrades/gear';
 import { makeKindEnemy } from '../../../m1/game/enemies/kinds';
 import { markMachineGore } from '../../../m1/game/enemies/machineGore';
 import { type Ramp, LAT, GLOSS, SPEC, CHROME, SACR, GUM, TOOTH, GREEN, dith, tube, blob, shapeShade } from './paint';
@@ -75,7 +76,7 @@ export const tickKin = (ctx: FrameContext) => {
     g.x += g.vx; g.y += g.vy; g.vy += 0.35; g.t++;
     if (g.t % 3 === 0) state.particles.push({ pos: { x: g.x, y: g.y }, vel: { x: -g.vx * 0.1, y: 0.5 }, life: 14, color: g.t % 2 ? '#1C1208' : '#84CC16', size: 2 + Math.random() * 2, grav: 0.15 });
     if (p.health > 0 && state.deathTimer <= 0 && p.invincibilityTimer <= 0 && g.x > p.pos.x - 6 && g.x < p.pos.x + p.width + 6 && g.y > p.pos.y && g.y < p.pos.y + p.height) {
-      hurtPlayer(ctx, 10, SPIT, { x: Math.sign(g.vx) * 3, y: -3 }, 10); playSound('splat', 0.6, 4); playSound('rayFizzle', 0.4, 8); return false;
+      if (!helmetStopsAt(state, g.x, g.y, 6)) hurtPlayer(ctx, 10, SPIT, { x: Math.sign(g.vx) * 3, y: -3 }, 10); playSound('splat', 0.6, 4); playSound('rayFizzle', 0.4, 8); return false;
     }
     if (g.y >= GY - 2) {
       playSound('splat', 0.4, 6);

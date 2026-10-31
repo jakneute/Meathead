@@ -19,6 +19,7 @@ import type { FrameContext } from '../../../m1/game/core/context';
 import type { GameState } from '../../../m1/game/core/state';
 import type { Block, Enemy } from '../../../m1/types';
 import { hurtPlayer } from '../../../m1/game/bosses/shared';
+import { helmetStopsAt, helmetStops } from '../../upgrades/gear';
 import { playSound } from '../../../m1/game/platform/audio';
 import { floorTopAt } from '../../../m1/game/core/terrain';
 import { hazardHit, hazardVictims, setHazardZones, boxHits } from '../../hazardHit';
@@ -219,7 +220,7 @@ export const updateThrows = (ctx: FrameContext) => {
       t.x += t.vx; t.vy += 0.02; t.y += t.vy;
       if (t.t % 8 === 0) envSound(state, t.x, 'whoosh', 0.1, 16);
       if (alive(state) && p.invincibilityTimer <= 0 && overlaps(state, t.x - 10, t.y - 5, 20, 10)) {
-        hurtPlayer(ctx, 8, 'm2:ct_clipboard_shot', { x: Math.sign(t.vx || 1) * 6, y: -4 });
+        if (!helmetStops(state, t.x - 10, t.y - 5, 20, 10)) hurtPlayer(ctx, 8, 'm2:ct_clipboard_shot', { x: Math.sign(t.vx || 1) * 6, y: -4 });
         burst(state, t.x, t.y, ['#F8FAFC', '#A16207'], 8); envSound(state, t.x, 'crack', 0.5, 8); t.dead = true; continue;
       }
       const top = floorTopAt(state.blocks, t.x, t.y - 4, 0);
@@ -229,6 +230,10 @@ export const updateThrows = (ctx: FrameContext) => {
     // (lobbed: the money bag, the stink bomb)
     t.vy += t.kind === 'stinkbomb' ? 0.25 : 0.32; t.x += t.vx; t.y += t.vy;
     if (t.kind === 'moneybag' && t.t % 4 === 0) state.particles.push({ pos: { x: t.x, y: t.y }, vel: { x: 0, y: 0.3 }, life: 16, color: '#86EFAC', size: 2 });
+    // (the helmet: the money bag off it, burst; not the stink bomb (it's the gas that gets him))
+    if (t.kind === 'moneybag' && alive(state) && p.invincibilityTimer <= 0 && overlaps(state, t.x - 8, t.y - 8, 16, 16) && helmetStopsAt(state, t.x, t.y, 8)) {
+      burst(state, t.x, t.y, ['#86EFAC', '#4ADE80', '#FDE68A'], 14, 7); t.dead = true; continue;
+    }
     if (alive(state) && p.invincibilityTimer <= 0 && overlaps(state, t.x - 8, t.y - 8, 16, 16)) {
       if (t.kind === 'moneybag') { hurtPlayer(ctx, 9, 'm2:ct_moneybag_shot', { x: Math.sign(t.vx || 1) * 5, y: -4 }); burst(state, t.x, t.y, ['#86EFAC', '#4ADE80', '#FDE68A'], 14, 7); envSound(state, t.x, 'slam', 0.4, 8); }
       else { hurtPlayer(ctx, 8, 'm2:ct_stinkbomb_shot', { x: 0, y: -3 }); s.throws.push({ kind: 'cloud', x: t.x, y: p.pos.y + p.height, vx: 0, vy: 0, t: 0, from: null }); envSound(state, t.x, 'fart', 0.6, 0); }

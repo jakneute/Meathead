@@ -19,6 +19,7 @@ import type { Controls } from '../../../m1/game/platform/input';
 import type { Enemy } from '../../../m1/types';
 import { PLAYER_GRAVITY } from '../../../m1/constants';
 import { hurtPlayer } from '../../../m1/game/bosses/shared';
+import { helmetStopsAt } from '../../upgrades/gear';
 import { playSound } from '../../../m1/game/platform/audio';
 import { pickLine } from '../../../m1/game/platform/speech';
 import { floorTopAt } from '../../../m1/game/core/terrain';
@@ -133,7 +134,7 @@ const updateThrows = (ctx: FrameContext) => {
     if (s.kind === 'arrow' && s.t % 4 === 0) state.particles.push({ pos: { x: s.x - s.vx * 3, y: s.y - s.vy * 3 }, vel: { x: 0, y: -0.3 }, life: 12, color: '#F9A8D4', size: 1.5 });
     const r = R[s.kind];
     if (alive(state) && p.invincibilityTimer <= 0 && hits(state, s.x - r, s.y - r, r * 2, r * 2)) {
-      hurtPlayer(ctx, DMG[s.kind], SRC[s.kind], { x: Math.sign(s.vx || 1) * 5, y: -4 });
+      if (!helmetStopsAt(state, s.x, s.y, r)) hurtPlayer(ctx, DMG[s.kind], SRC[s.kind], { x: Math.sign(s.vx || 1) * 5, y: -4 });
       playSound(s.kind === 'rock' ? 'punch' : 'gunhit', 0.7, 0);
       s.dead = true; continue;
     }

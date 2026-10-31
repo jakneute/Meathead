@@ -11,6 +11,7 @@ import type { FrameContext } from '../../../m1/game/core/context';
 import type { GameState } from '../../../m1/game/core/state';
 import type { Block } from '../../../m1/types';
 import { hurtPlayer } from '../../../m1/game/bosses/shared';
+import { helmetStopsAt, helmetStops } from '../../upgrades/gear';
 import { playSound } from '../../../m1/game/platform/audio';
 import { floorTopAt } from '../../../m1/game/core/terrain';
 import { setHazardZones } from '../../hazardHit';
@@ -150,7 +151,7 @@ export const updateThrows = (ctx: FrameContext) => {
       t.x += t.vx; t.vy += 0.02; t.y += t.vy;
       if (t.t % 8 === 0) envSound(state, t.x, 'whoosh', 0.12, 16);
       if (alive(state) && p.invincibilityTimer <= 0 && overlaps(state, t.x - 11, t.y - 5, 22, 10)) {
-        hurtPlayer(ctx, 9, 'm2:ct_plate_shot', { x: Math.sign(t.vx || 1) * 6, y: -4 });
+        if (!helmetStops(state, t.x - 11, t.y - 5, 22, 10)) hurtPlayer(ctx, 9, 'm2:ct_plate_shot', { x: Math.sign(t.vx || 1) * 6, y: -4 });
         smash(state, t.x, t.y); t.dead = true; continue;
       }
       const wall = state.blocks.some(b => !b.oneWay && b.type !== 'platform' && t.x > b.x && t.x < b.x + b.w && t.y > b.y && t.y < b.y + b.h);
@@ -162,7 +163,7 @@ export const updateThrows = (ctx: FrameContext) => {
     t.vy += 0.3; t.x += t.vx; t.y += t.vy;
     if (t.t % 3 === 0) state.particles.push({ pos: { x: t.x, y: t.y }, vel: { x: 0, y: 0.5 }, life: 12, color: '#7C4A1E', size: 2 });
     if (alive(state) && p.invincibilityTimer <= 0 && overlaps(state, t.x - 7, t.y - 7, 14, 14)) {
-      hurtPlayer(ctx, 8, 'm2:ct_coffee_shot', { x: Math.sign(t.vx || 1) * 4, y: -3 });
+      if (!helmetStopsAt(state, t.x, t.y, 7)) hurtPlayer(ctx, 8, 'm2:ct_coffee_shot', { x: Math.sign(t.vx || 1) * 4, y: -3 });
       playSound('splash', 0.5, 10); t.dead = true; continue;
     }
     const top = t.vy > 0 ? floorTopAt(state.blocks, t.x, t.y - t.vy - 2, 0) : null;

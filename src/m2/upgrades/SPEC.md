@@ -134,6 +134,14 @@ Fairy: pink sequins, glitter crystal, tiara spikes; Cartoon: flat, outlined, a b
   kill.
 - Regular enemies' projectiles that hit his head area are absorbed (no hurt). Not bosses' or sub-bosses' (they only
   get the 25%), not big things (cars). Ducking makes the blocked area bigger (TUNE).
+- AS BUILT (Phase D2, 2026-10-31): helmetStops/helmetStopsAt (gear.ts) now also guard the jungle monkeys' poo and fruit,
+  Spooky's town lobs, tower bouquets and gift-shop globes, Future's square shots, crater soldiers' bolts and the
+  Queen's spitter gobs, Hollywood's coaster plungers, warehouse extras' coffee and food, and havoc looters' loot,
+  Wilderness porcupine quills, Fairy's wheel throws and glen, keep (pins, fans) and square throws (spark, slipper,
+  ball), and Cartoon's kiddie hats and paint, studio plates and coffee, White House clipboards and money bags, big-kid
+  cones, glop and churros (churros run 30 wide: over HELMET_MAX_SHOT) and Itchy cleavers. Left out: traps (temple and
+  cart darts, books), fire (imp fireballs, flames), gas (stink bombs), ground waves and rolling boards, beams and
+  laser dots, ride and set-piece shots (Tragons, dirt bike, heli mechs), the warehouse cast's props and string.
 
 ### AMULET (neck, on his bare chest): the PISS-OFF YELL, passive
 - A piss-off METER: damage he takes fills it, it slowly drains (TUNE: full at ~35 damage, drains ~3.5/s). Full: he

@@ -28,6 +28,7 @@ import type { FrameContext } from '../../../m1/game/core/context';
 import type { GameState } from '../../../m1/game/core/state';
 import type { Block } from '../../../m1/types';
 import { hurtPlayer } from '../../../m1/game/bosses/shared';
+import { helmetStopsAt, helmetStops } from '../../upgrades/gear';
 import { playSound } from '../../../m1/game/platform/audio';
 import { floorTopAt } from '../../../m1/game/core/terrain';
 import { mid } from '../../../m1/game/enemies/kinds';
@@ -251,7 +252,7 @@ const updateThrows = (ctx: FrameContext) => {
       }
       s.x += s.vx;
       if (s.t % 10 === 0) envSound(state, s.x, 'whirl', 0.15, 14);
-      if (alive(state) && p.invincibilityTimer <= 0 && overlaps(state, s.x - 14, s.y - 16, 28, 26)) { hurtPlayer(ctx, 10, 'm2:ct_hat_shot', { x: Math.sign(s.vx || 1) * 6, y: -4 }); playSound('bonk', 0.6, 10); }
+      if (alive(state) && p.invincibilityTimer <= 0 && overlaps(state, s.x - 14, s.y - 16, 28, 26)) { if (helmetStops(state, s.x - 14, s.y - 16, 28, 26)) s.dir = -1; else { hurtPlayer(ctx, 10, 'm2:ct_hat_shot', { x: Math.sign(s.vx || 1) * 6, y: -4 }); playSound('bonk', 0.6, 10); } }
       continue;
     }
     if (s.kind === 'kite') {
@@ -282,7 +283,7 @@ const updateThrows = (ctx: FrameContext) => {
     // (paint: lobbed)
     s.vy += 0.3; s.x += s.vx; s.y += s.vy;
     if (alive(state) && p.invincibilityTimer <= 0 && overlaps(state, s.x - 6, s.y - 6, 12, 12)) {
-      hurtPlayer(ctx, 7, 'm2:ct_paint_shot', { x: Math.sign(s.vx || 1) * 4, y: -3 });
+      if (!helmetStopsAt(state, s.x, s.y, 6)) hurtPlayer(ctx, 7, 'm2:ct_paint_shot', { x: Math.sign(s.vx || 1) * 4, y: -3 });
       playSound('splat', 0.6, 6); s.dead = true; continue;
     }
     const top = s.vy > 0 ? floorTopAt(state.blocks, s.x, s.y - s.vy - 2, 0) : null;

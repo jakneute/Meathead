@@ -25,6 +25,7 @@ import type { Enemy } from '../../../m1/types';
 import { playSound } from '../../../m1/game/platform/audio';
 import { shakeScreen } from '../../../m1/game/core/state';
 import { hurtPlayer } from '../../../m1/game/bosses/shared';
+import { helmetStopsAt } from '../../upgrades/gear';
 import { hazardHit, hazardVictims, boxHits, isSmall, setHazardZones } from '../../hazardHit';
 import { ledge } from '../section';
 import { onScreen } from '../kit';
@@ -465,7 +466,7 @@ export const updateQuills = (ctx: FrameContext) => {
     if (q.t > QUILL_LIFE) return false;
     // (him: in his reach (low, he's under them))
     if (p.health > 0 && !p.inCutscene && p.invincibilityTimer <= 0 && q.x > p.pos.x && q.x < p.pos.x + p.width && q.y > top && q.y < p.pos.y + p.height) {
-      hurtPlayer(ctx, QUILL_DMG, 'm2:fr_needles', { x: Math.sign(q.vx) * 4, y: -3 });
+      if (!helmetStopsAt(state, q.x, q.y, 4)) hurtPlayer(ctx, QUILL_DMG, 'm2:fr_needles', { x: Math.sign(q.vx) * 4, y: -3 });
       playSound('dart', 0.7, 6);
       return false;
     }

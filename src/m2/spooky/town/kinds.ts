@@ -22,6 +22,7 @@ import { safeAhead, holdingOff, mid } from '../../../m1/game/enemies/kinds';
 import { shakeScreen } from '../../../m1/game/core/state';
 import { floorTopAt } from '../../../m1/game/core/terrain';
 import { hurtPlayer } from '../../../m1/game/bosses/shared';
+import { helmetStopsAt } from '../../upgrades/gear';
 import { playSound } from '../../../m1/game/platform/audio';
 import { registerM2Kind, registerHurtLines } from '../../kinds';
 import { lookOf } from '../../adventure/temple/people';
@@ -74,7 +75,7 @@ export const updateLobbed = (ctx: FrameContext) => {
       if (t.kind === 'potion') playSound('splash', 0.4, 2);
     };
     if (p.health > 0 && t.x > p.pos.x + 2 && t.x < p.pos.x + p.width - 2 && t.y > p.pos.y && t.y < p.pos.y + p.height) {
-      if (p.invincibilityTimer <= 0 && !p.noContactHurt) hurtPlayer(ctx, DMG[t.kind], `m2:town_${t.kind}`, { x: Math.sign(t.vx || 1) * 3, y: -4 }, 16);
+      if (p.invincibilityTimer <= 0 && !p.noContactHurt && !helmetStopsAt(state, t.x, t.y, 6)) hurtPlayer(ctx, DMG[t.kind], `m2:town_${t.kind}`, { x: Math.sign(t.vx || 1) * 3, y: -4 }, 16);
       splat(); return false;
     }
     if (state.blocks.some(b => b.type !== 'pit' && !b.oneWay && t.x > b.x && t.x < b.x + b.w && t.y > b.y && t.y < b.y + b.h)) { splat(); return false; }

@@ -14,6 +14,7 @@ import type { FrameContext } from '../../../m1/game/core/context';
 import type { GameState } from '../../../m1/game/core/state';
 import type { EnemyKind } from '../../../m1/types';
 import { hurtPlayer } from '../../../m1/game/bosses/shared';
+import { helmetStopsAt } from '../../upgrades/gear';
 import { playSound } from '../../../m1/game/platform/audio';
 import { pickLine } from '../../../m1/game/platform/speech';
 import { floorTopAt } from '../../../m1/game/core/terrain';
@@ -115,7 +116,7 @@ export const updateThrows = (ctx: FrameContext) => {
     if (s.kind === 'spark' && s.t % 2 === 0) state.particles.push({ pos: { x: s.x, y: s.y }, vel: { x: (Math.random() - 0.5), y: (Math.random() - 0.5) }, life: 12, color: Math.random() < 0.5 ? '#FDE047' : '#F0ABFC', size: 2 });
     const r = R[s.kind];
     if (alive(state) && p.invincibilityTimer <= 0 && hits(state, s.x - r, s.y - r, r * 2, r * 2)) {
-      hurtPlayer(ctx, DMG[s.kind], SRC[s.kind], { x: Math.sign(s.vx || 1) * 5, y: -4 });
+      if (!helmetStopsAt(state, s.x, s.y, r)) hurtPlayer(ctx, DMG[s.kind], SRC[s.kind], { x: Math.sign(s.vx || 1) * 5, y: -4 });
       playSound(s.kind === 'slipper' ? 'glass' : s.kind === 'spark' ? 'ignite' : 'punch', 0.7, 0);
       s.dead = true; continue;
     }

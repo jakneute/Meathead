@@ -19,6 +19,7 @@ import { holdingOff, mid, safeAhead } from '../../../m1/game/enemies/kinds';
 import { shakeScreen } from '../../../m1/game/core/state';
 import { floorTopAt } from '../../../m1/game/core/terrain';
 import { hurtPlayer } from '../../../m1/game/bosses/shared';
+import { helmetStopsAt } from '../../upgrades/gear';
 import { playSound } from '../../../m1/game/platform/audio';
 import { pickLine } from '../../../m1/game/platform/speech';
 import { isShat, isNude } from '../../../m1/game/player/gut';
@@ -72,7 +73,7 @@ export const updateShots = (ctx: FrameContext) => {
       for (let i = 0; i < 8; i++) state.particles.push({ pos: { x: s.x, y: s.y }, vel: { x: (Math.random() - 0.5) * 4, y: -Math.random() * 3 }, life: 18, color: cols[i % cols.length], size: 2 + Math.random() * 2 });
     };
     if (p.health > 0 && s.x > p.pos.x + 2 && s.x < p.pos.x + p.width - 2 && s.y > p.pos.y && s.y < p.pos.y + p.height) {
-      if (p.invincibilityTimer <= 0) hurtPlayer(ctx, DMG[s.kind], SRC[s.kind], { x: Math.sign(s.vx || 1) * 3, y: -4 }, 16);
+      if (p.invincibilityTimer <= 0 && !helmetStopsAt(state, s.x, s.y, 6)) hurtPlayer(ctx, DMG[s.kind], SRC[s.kind], { x: Math.sign(s.vx || 1) * 3, y: -4 }, 16);
       pop(); return false;
     }
     if (state.blocks.some(b => b.type !== 'pit' && !b.oneWay && s.x > b.x && s.x < b.x + b.w && s.y > b.y && s.y < b.y + b.h)) { pop(); return false; }

@@ -22,6 +22,7 @@
 import type { FrameContext } from '../../../m1/game/core/context';
 import type { GameState } from '../../../m1/game/core/state';
 import { hurtPlayer } from '../../../m1/game/bosses/shared';
+import { helmetStopsAt } from '../../upgrades/gear';
 import { playSound } from '../../../m1/game/platform/audio';
 import { shakeScreen } from '../../../m1/game/core/state';
 import { setHazardZones, hazardVictims, hazardHit, hazardKill, boxHits, type Zone } from '../../hazardHit';
@@ -310,7 +311,7 @@ export const updateLobs = (ctx: FrameContext) => {
   const { state } = ctx, hv = hvOf(state), p = state.player;
   hv.lobs = hv.lobs.filter(l => {
     l.vy += 0.35; l.x += l.vx; l.y += l.vy; l.rot += 0.25;
-    if (canHurt(state) && !p.carried && onHim(state, l.x - 10, l.y - 10, 20, 20)) { hurtPlayer(ctx, 9, 'm2:hwh_loot', { x: Math.sign(l.vx) * 6, y: -4 }, 16); playSound(l.kind === 'globe' ? 'glass' : 'thud', 0.8, 4); return false; }
+    if (canHurt(state) && !p.carried && onHim(state, l.x - 10, l.y - 10, 20, 20)) { if (!helmetStopsAt(state, l.x, l.y, 10)) hurtPlayer(ctx, 9, 'm2:hwh_loot', { x: Math.sign(l.vx) * 6, y: -4 }, 16); playSound(l.kind === 'globe' ? 'glass' : 'thud', 0.8, 4); return false; }
     let top: number | null = null;
     for (const b of state.blocks) { if (b.type === 'pit' || l.x < b.x || l.x > b.x + b.w || b.y < l.y - 14) continue; if (top === null || b.y < top) top = b.y; }
     if (top !== null && l.y >= top) {

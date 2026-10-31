@@ -27,6 +27,7 @@
 import type { FrameContext } from '../../../m1/game/core/context';
 import type { GameState } from '../../../m1/game/core/state';
 import { hurtPlayer } from '../../../m1/game/bosses/shared';
+import { helmetStops } from '../../upgrades/gear';
 import { playSound } from '../../../m1/game/platform/audio';
 import { shakeScreen } from '../../../m1/game/core/state';
 import { floorTopAt } from '../../../m1/game/core/terrain';
@@ -432,7 +433,7 @@ const updateThrows = (ctx: FrameContext) => {
     const hit = s.kind === 'cone' ? [16, 20] : s.kind === 'churro' ? [30, 8] : [16, 14];
     if (alive(state) && p.invincibilityTimer <= 0 && overlaps(state, s.x - hit[0] / 2, s.y - hit[1] / 2, hit[0], hit[1])) {
       const src = s.kind === 'cone' ? 'm2:ct_cone_shot' : s.kind === 'churro' ? 'm2:ct_churro_shot' : 'm2:ct_glop_shot';
-      hurtPlayer(ctx, s.kind === 'churro' ? 9 : 8, src, { x: Math.sign(s.vx || 1) * 5, y: -4 });
+      if (!helmetStops(state, s.x - hit[0] / 2, s.y - hit[1] / 2, hit[0], hit[1])) hurtPlayer(ctx, s.kind === 'churro' ? 9 : 8, src, { x: Math.sign(s.vx || 1) * 5, y: -4 });
       playSound(s.kind === 'glop' ? 'splat' : 'bonk', 0.6, s.kind === 'cone' ? 0 : 8);
       if (s.kind === 'glop') splatGlop(state, s.x, s.y);
       s.dead = true; continue;

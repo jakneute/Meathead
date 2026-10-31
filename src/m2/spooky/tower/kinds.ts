@@ -20,6 +20,7 @@ import type { GameState } from '../../../m1/game/core/state';
 import { safeAhead, holdingOff, mid } from '../../../m1/game/enemies/kinds';
 import { shakeScreen } from '../../../m1/game/core/state';
 import { hurtPlayer } from '../../../m1/game/bosses/shared';
+import { helmetStopsAt } from '../../upgrades/gear';
 import { playSound } from '../../../m1/game/platform/audio';
 import { registerM2Kind, registerHurtLines } from '../../kinds';
 import { lookOf } from '../../adventure/temple/people';
@@ -72,7 +73,7 @@ export const updateThrown = (ctx: FrameContext) => {
     b.t++; b.vy += LOB_G; b.x += b.vx; b.y += b.vy; b.rot += 0.25;
     const hit = b.x > p.pos.x - 8 && b.x < p.pos.x + p.width + 8 && b.y > p.pos.y && b.y < p.pos.y + p.height;
     const ground = state.blocks.some(k => !k.oneWay && b.x >= k.x && b.x <= k.x + k.w && b.y >= k.y && b.y <= k.y + 20);
-    if (hit && canHurt(state)) hurtPlayer(ctx, 9, 'm2:tower_bouquet', { x: Math.sign(b.vx) * 4, y: -3 });
+    if (hit && canHurt(state) && !helmetStopsAt(state, b.x, b.y, 8)) hurtPlayer(ctx, 9, 'm2:tower_bouquet', { x: Math.sign(b.vx) * 4, y: -3 });
     if (hit || ground || b.t > 240) {
       // (the petals everywhere)
       for (let j = 0; j < 10; j++) state.particles.push({ pos: { x: b.x, y: b.y }, vel: { x: (Math.random() - 0.5) * 5, y: -1 - Math.random() * 3 }, life: 30, color: j % 2 ? '#4C0519' : '#3F6212', size: 2 + Math.random() * 2, grav: 0.15 });

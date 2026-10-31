@@ -16,6 +16,7 @@ import { GRAVITY } from '../../../m1/constants';
 import { safeAhead, holdingOff, mid } from '../../../m1/game/enemies/kinds';
 import { floorTopAt } from '../../../m1/game/core/terrain';
 import { hurtPlayer } from '../../../m1/game/bosses/shared';
+import { helmetStopsAt } from '../../upgrades/gear';
 import { registerM2Kind, registerHurtLines } from '../../kinds';
 import { jungleOf } from './state';
 import { HURT } from './lines';
@@ -303,7 +304,7 @@ export const updateThrown = (ctx: FrameContext) => {
     const cols = t.kind === 'poo' ? ['#5A3A12', '#3F2A0E', '#7C5A2A'] : t.fruit ? ['#FDE047', '#FEF9C3'] : ['#F97316', '#FDBA74', '#FDE047'];
     // Him
     if (p.health > 0 && t.x > p.pos.x + 4 && t.x < p.pos.x + p.width - 4 && t.y > p.pos.y + 2 && t.y < p.pos.y + p.height) {
-      if (p.invincibilityTimer <= 0 && !p.noContactHurt) {
+      if (p.invincibilityTimer <= 0 && !p.noContactHurt && !helmetStopsAt(state, t.x, t.y, 5)) {
         hurtPlayer(ctx, t.kind === 'poo' ? POO_DAMAGE : FRUIT_DAMAGE, t.kind === 'poo' ? 'm2:monkey_poo' : 'm2:monkey_fruit', { x: Math.sign(t.vx || 1) * 3, y: -4 }, 16);
       }
       splat(cols);

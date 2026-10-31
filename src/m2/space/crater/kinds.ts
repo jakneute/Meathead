@@ -20,6 +20,7 @@ import { registerDeathKind } from '../../../m1/game/player/deathAnim';
 import { playSound } from '../../../m1/game/platform/audio';
 import { say, pickLine } from '../../../m1/game/platform/speech';
 import { hurtPlayer } from '../../../m1/game/bosses/shared';
+import { helmetStopsAt } from '../../upgrades/gear';
 import { inHazard } from '../../hazardHit';
 import { isShat, isNude } from '../../../m1/game/player/gut';
 import { ALIEN } from '../../../m1/game/scenes/alienLook';
@@ -129,7 +130,7 @@ export const tickAliens = (ctx: FrameContext) => {
     const spark = () => { for (let i = 0; i < 6; i++) state.particles.push({ pos: { x: b.x, y: b.y }, vel: { x: -Math.sign(b.vx) * Math.random() * 3, y: (Math.random() - 0.5) * 3 }, life: 14, color: i % 2 ? ALIEN.laser[4] : '#FFFFFF', size: 2 + Math.random() * 2 }); };
     const top = p.pos.y + (p.isDucking || p.isSliding ? 30 : 0);
     if (p.health > 0 && state.deathTimer <= 0 && p.invincibilityTimer <= 0 && b.x > p.pos.x - 4 && b.x < p.pos.x + p.width + 4 && b.y > top && b.y < p.pos.y + p.height) {
-      hurtPlayer(ctx, BOLT_DMG, LASER, { x: Math.sign(b.vx) * 3, y: -2 }, 10);
+      if (!helmetStopsAt(state, b.x, b.y, 5)) hurtPlayer(ctx, BOLT_DMG, LASER, { x: Math.sign(b.vx) * 3, y: -2 }, 10);
       spark(); playSound('gunhit', 0.5, 6); return false;
     }
     // (one of theirs in the way: it goes by them; their gunfire never hurts their own)

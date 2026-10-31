@@ -25,6 +25,7 @@ import { NO_CONTROLS } from '../../../m1/game/platform/input';
 import { playSound } from '../../../m1/game/platform/audio';
 import { pickFreshLine, announce } from '../../../m1/game/platform/speech';
 import { hurtPlayer } from '../../../m1/game/bosses/shared';
+import { helmetStopsAt } from '../../upgrades/gear';
 import { registerDeathKind } from '../../../m1/game/player/deathAnim';
 import { CANVAS_WIDTH, CANVAS_HEIGHT} from '../../../m1/constants';
 import { markBossFight } from '../../bossQuiet';
@@ -154,7 +155,7 @@ const updateThrows = (ctx: FrameContext, w: Wheel, busy: boolean) => {
     if (s.item === 'bouquet' && s.t % 5 === 0) state.particles.push({ pos: { x: s.x, y: s.y }, vel: { x: 0, y: 0.6 }, life: 40, color: '#FB7185', size: 2, grav: 0.04 });
     // (him)
     if (!busy && p.health > 0 && p.invincibilityTimer <= 0 && !p.inCutscene && hitsHim(state, s.x, s.y, 9)) {
-      hurtPlayer(ctx, 10, ITEM_SRC[s.item], { x: Math.sign(s.vx || 1) * 4, y: -4 });
+      if (!helmetStopsAt(state, s.x, s.y, 9)) hurtPlayer(ctx, 10, ITEM_SRC[s.item], { x: Math.sign(s.vx || 1) * 4, y: -4 });
       splash(state, s); s.dead = true; continue;
     }
     // (a rival: in the chest; dazed a while (easier to take), yelping; Piper loves it)

@@ -15,6 +15,7 @@ import { playSound } from '../../../m1/game/platform/audio';
 import { say, pickLine } from '../../../m1/game/platform/speech';
 import { hazardVictims, hazardHit } from '../../hazardHit';
 import { hurtPlayer } from '../../../m1/game/bosses/shared';
+import { helmetStopsAt } from '../../upgrades/gear';
 import { isShat, isNude } from '../../../m1/game/player/gut';
 import { lookOf } from '../../adventure/temple/people';
 import { moodOf, reaction, type Pose } from '../costume';
@@ -90,7 +91,7 @@ export const tickStaff = (ctx: FrameContext) => {
       for (let i = 0; i < 9; i++) state.particles.push({ pos: { x: gl.x, y: gl.y }, vel: { x: (Math.random() - 0.5) * 5, y: -1 - Math.random() * 3 }, life: 26, color: ['#BAE6FD', '#F97316', '#FDE047', '#F8FAFC'][i % 4], size: 2 + Math.random() * 2, grav: 0.3 });
     };
     if (p.health > 0 && state.deathTimer <= 0 && p.invincibilityTimer <= 0 && gl.x > p.pos.x - 4 && gl.x < p.pos.x + p.width + 4 && gl.y > p.pos.y && gl.y < p.pos.y + p.height) {
-      hurtPlayer(ctx, 9, GLOBE, { x: Math.sign(gl.vx) * 3, y: -3 }, 10);
+      if (!helmetStopsAt(state, gl.x, gl.y, 7)) hurtPlayer(ctx, 9, GLOBE, { x: Math.sign(gl.vx) * 3, y: -3 }, 10);
       smash(); return false;
     }
     // (one of the staff in the way of it, once it's well out of the thrower's hand: theirs)

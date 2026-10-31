@@ -36,6 +36,7 @@ import type { FrameContext } from '../../../m1/game/core/context';
 import type { GameState } from '../../../m1/game/core/state';
 import type { Block, Enemy } from '../../../m1/types';
 import { hurtPlayer } from '../../../m1/game/bosses/shared';
+import { helmetStopsAt } from '../../upgrades/gear';
 import { playSound } from '../../../m1/game/platform/audio';
 import { shakeScreen } from '../../../m1/game/core/state';
 import { floorTopAt } from '../../../m1/game/core/terrain';
@@ -570,6 +571,7 @@ const updateThrows = (ctx: FrameContext, zones: Zone[]) => {
     if (s.down) { if (s.kind === 'cleaver' && s.t > 160) s.dead = true; continue; }
     const g = s.kind === 'cleaver' ? 0.12 : 0.35;
     s.vy += g; s.x += s.vx; s.y += s.vy;
+    if (s.kind === 'cleaver' && alive(state) && state.player.invincibilityTimer <= 0 && hitsHim(state, s.x - 10, s.y - 10, 20, 20) && helmetStopsAt(state, s.x, s.y, 10)) { s.dead = true; continue; }
     if (s.kind === 'cleaver' && hurts(ctx, s.x - 10, s.y - 10, 20, 20, 9, 'm2:ct_cleaver_shot', { x: Math.sign(s.vx || 1) * 6, y: -4 })) { s.dead = true; playSound('crunch', 0.5, 8); continue; }
     const top = s.vy > 0 ? floorTopAt(state.blocks, s.x, s.y - s.vy - 2, 0) : null;
     const wall = state.blocks.some(b => !b.oneWay && b.type === 'wall' && s.x > b.x && s.x < b.x + b.w && s.y > b.y + 4 && s.y < b.y + b.h && b.y > GY - 600);

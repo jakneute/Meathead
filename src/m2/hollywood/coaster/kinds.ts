@@ -16,6 +16,7 @@ import type { FrameContext } from '../../../m1/game/core/context';
 import type { GameState } from '../../../m1/game/core/state';
 import { holdingOff, mid, safeAhead } from '../../../m1/game/enemies/kinds';
 import { hurtPlayer } from '../../../m1/game/bosses/shared';
+import { helmetStopsAt } from '../../upgrades/gear';
 import { playSound } from '../../../m1/game/platform/audio';
 import { pickLine } from '../../../m1/game/platform/speech';
 import { registerM2Kind, registerHurtLines } from '../../kinds';
@@ -146,6 +147,7 @@ export const updatePlungers = (ctx: FrameContext) => {
     if (s.stuck > 0) return --s.stuck > 0;
     s.vy += 0.3; s.x += s.vx; s.y += s.vy; s.rot += 0.25;
     if (p.health > 0 && s.x + 9 > p.pos.x && s.x - 9 < p.pos.x + p.width && s.y + 9 > p.pos.y && s.y - 9 < p.pos.y + p.height) {
+      if (p.invincibilityTimer <= 0 && !p.inCutscene && !p.carried && helmetStopsAt(state, s.x, s.y, 9)) return false;
       if (p.invincibilityTimer <= 0 && !p.inCutscene && !p.carried) {
         hurtPlayer(ctx, 8, 'm2:hwc_plunger', { x: Math.sign(s.vx || 1) * 3, y: -2 }, 16);
         state.playerStunTimer = Math.max(state.playerStunTimer, 40);
