@@ -12,8 +12,10 @@
 //                  'frozen'   the cutscene's on with this boss: do nothing at all (no moves, no shots, no timers)
 //                  'stunned'  stunned: take hits (its breather as ever) and die if it's due, nothing else (no attacks)
 //                  null       as normal
-//   cheapShotStunned(e)    stunned now (the fight's stunned look: its own dazed pose, if it has one; the dizzy stars
-//                          over it are drawn here for every boss, drawCheapShotWorld)
+//   cheapShotStunned(e)    stunned now: the fight draws its CHEAP-SHOT STUN pose (hands at the crotch, knees in, the
+//                          wheeze) and lets nothing shove, launch or slide it (it stays planted where it was kicked);
+//                          the dizzy stars over it are drawn here for every boss, drawCheapShotWorld (don't draw more)
+//   cheapShotStunT(e)      frames into the stun (-1 not stunned): the stun pose's loop runs off it
 //   crushGroups(id, {hurt, taunt, attack})   once, at load: which of the fight's own line sets are its hurt, taunt and
 //                          attack lines. After a cheap shot those sets come out of the crushed-nuts pool instead:
 //   crushLines(e, set)     a set of the fight's ({clean, shitty, nude}): the crushed one in its place, or itself
@@ -62,6 +64,8 @@ let gen = 0, deadSeen = false;
 const live = (r: Rec | undefined): r is Rec => !!r && r.gen === gen;
 export const isCrushed = (e: Enemy) => { const r = recs.get(e); return live(r) && r.crushed; };
 export const cheapShotStunned = (e: Enemy) => { const r = recs.get(e); return live(r) && r.stun > 0 && e.health > 0; };
+/** Frames into the stun (0 at its first frame, counting up; -1 not stunned): the fights' stun poses loop off it. */
+export const cheapShotStunT = (e: Enemy) => { const r = recs.get(e); return live(r) && r.stun > 0 && e.health > 0 ? CHEAP_STUN - r.stun : -1; };
 
 /** The one it's being done to right now, and how far in. */
 interface Scene { e: Enemy; id: CrushId; t: number; dir: 1 | -1; fromX: number; toX: number; said: { text: string } | null; look: CloseUpLook }
