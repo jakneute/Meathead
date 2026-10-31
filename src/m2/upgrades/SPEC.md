@@ -177,6 +177,14 @@ its own Meathead, the walk screens' cape points from the front (mostly hidden be
     (they use their dazed/hurt poses; the pundits' 'reel' draws its own stars, doubling the shared ones). Still
     harmless while stunned: Donnie's squirt out of a grab, the Queen's shin bounce, Dad Guy's and the pundits' TOO
     GREASY shove.
+  - AS BUILT (Phase F, 2026-10-31): all 15 custom close-ups, upgrades/closeups/<id>.ts (registered from closeups/index.ts,
+    called once from apply.ts), sharing fleshKit.ts (the five male X-rays), specialKit.ts (Harry, Piper, the demon, the
+    Queen, the rex) and punditKit.ts (the pundits' slapstick), plus closeUp.ts's exported pieces (drawKick: the boot or
+    the sabatons; bakeOnce: still layers painted on first use, never at load). Sin twists: Artie's stuffed sock and #1
+    buckle, Donnie through the fat, Steve's cup and green bile, Tucker's gold coins, Dad Guy's late reaction, Harry's
+    nuts explode, Piper's glitter through the fat, Brathazar's three scaly balls and lava blood, the Queen's panel ripped
+    off, the rex's hatch ("TESTICULAR UNIT - DO NOT KICK"); the pundits each keel over with a gag. Under ~1.4 ms a frame
+    (the fight's frozen while it's up); the first showing paints its layers (a possible small hitch once).
 
 ### HELMET (head)
 - All damage he takes is cut 25%: anything that isn't an instant kill (enemies, bosses, hazards). Instant kills still
