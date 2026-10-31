@@ -27,7 +27,7 @@ import { shakeScreen } from '../../m1/game/core/state';
 import { NO_CONTROLS, type Controls } from '../../m1/game/platform/input';
 import type { Enemy } from '../../m1/types';
 import type { MeleeMove } from '../../m1/game/core/tuning';
-import { kindHead } from '../../m1/game/render/enemies';
+import { kindHead, isHumanoidKind } from '../../m1/game/render/enemies';
 import { isMidBoss } from '../../m1/game/combat/midBoss';
 import { interrupt } from '../../m1/game/enemies/enemies';
 import { playSound } from '../../m1/game/platform/audio';
@@ -46,7 +46,7 @@ import { raged } from '../upgrades/amulet';
 import { lastMelee, stampMelee, clearMelee } from '../upgrades/lastHit';
 import {
   FOLLOW_WINDOW, FOLLOW_REACH, FOLLOW_REACH_CHARGE, FOLLOW_REACH_UP, FOLLOW_HEAL, MISSILE_SPEED, MISSILE_HIT_K,
-  HEAD_KICK_SPEED, HEAD_HIT, HEAD_KICK_REACH, BURIED_MAX, NINJA_FALL, NINJA_DAMAGE, NINJA_METEOR_R, NINJA_METEOR_DMG, NINJA_METEOR_STUN, FLASH_RISE, FLASH_RADIUS, FLASH_DAMAGE,
+  HEAD_KICK_SPEED, HEAD_HIT, HEAD_KICK_REACH, BURIED_MAX, BURIED_FREE, BURIED_DIG, NINJA_FALL, NINJA_DAMAGE, NINJA_METEOR_R, NINJA_METEOR_DMG, NINJA_METEOR_STUN, FLASH_RISE, FLASH_RADIUS, FLASH_DAMAGE,
 } from '../upgrades/tune';
 import { grabKit as K, grabbable, isCritter, handsOnlyFoe, drawEnemyAt, drawPoseSprite as sprite, drawPoseHead as head, type Grab } from './grab';
 import { grabCallout } from './callouts';
@@ -99,6 +99,27 @@ const rot = (x: number, y: number, a: number): P2 => [x * Math.cos(a) - y * Math
 /** Where its head is from its feet, facing right (its own, or a fair guess). */
 const headOf = (e: Enemy) => (e.kind && kindHead(e.kind, e.variant)) || { x: 0, y: -e.height * 0.85, r: Math.max(6, Math.min(12, e.width * 0.2)) };
 
+/** A person goes in feet first, upright; an animal's turned up on end first, head up, hind legs down (the way the grabs
+ *  hold one by the neck, grab.ts drawHeldByNeck: the owner's "account for the correct orientation... it's different for
+ *  humans/animals"). */
+const animal = (e: Enemy) => !isHumanoidKind(e.kind);
+/** An animal's neck, from its feet, facing `face` (just behind its head), and how far down it hangs below it on end. */
+const neckOf = (e: Enemy, face: 1 | -1) => { const hd = headOf(e); return { x: face * (hd.x - hd.r * 0.6), y: hd.y + hd.r * 0.5 }; };
+const hangOf = (e: Enemy) => Math.round(e.width * 0.85);
+/** An animal drawn on end, its neck at (nx, ny), turned `tip` of the way up (0: stood as it stands). */
+const drawOnEnd = (c: Ctx, state: GameState, e: Enemy, nx: number, ny: number, face: 1 | -1, tip: number) => {
+  const nk = neckOf(e, face);
+  c.save(); c.translate(nx, ny); c.rotate(-face * Math.PI / 2 * tip);
+  drawEnemyAt(c, e, state, -nk.x, -nk.y, 0, face);
+  c.restore();
+};
+/** Where a buried one's head is (to kick it, to spurt from its stump): a person's up off its feet; an animal's straight
+ *  up off its neck at the floor. */
+const headSpot = (b: { e: Enemy; x: number; ground: number }, face: 1 | -1) => {
+  const hd = headOf(b.e);
+  return animal(b.e) ? { x: b.x - face * hd.r * 0.5, y: b.ground - hd.r * 1.1 } : { x: b.x + face * hd.x, y: b.ground - hd.r };
+};
+
 /** One the follow-ups can be done to: not a critter, a boss, a sub-boss; one the grabs work on, or with the hand armor,
  *  one they don't. */
 const followable = (e: Enemy) => !isCritter(e) && e.type !== 'boss' && !isMidBoss(e) && e.health > 0 && !e.isBlownAway && !e.innocent
@@ -135,7 +156,8 @@ const calloutAt = (ctx: FrameContext, e: Enemy, x: number, y: number, how: Param
 // ---------------------------------------------------------------------------------------------------------------------
 interface Buried {
   e: Enemy; x: number; ground: number; sink: number; face: 1 | -1;
-  /** 'head': in to the neck (alive, the spin's); 'legs': head first, legs up out of it (the ninja drop's, dead). */
+  /** 'head': in to the neck (alive, the spin's: digging out after BURIED_FREE); 'legs': head first, legs up out of it
+   *  (the ninja drop's, dead). */
   mode: 'head' | 'legs'; born: number; stage: string;
   /** The frame its head was kicked off (then it's a stump, and goes after a while). */
   gone: number | null;
@@ -198,7 +220,7 @@ export const startFollowUp = (ctx: FrameContext, g: Grab) => {
   if (h.move === 'divekick') { g.phase = 'fmissile'; playSound('whoosh', 1, -6); }
   else if (h.move === 'charge') {
     g.phase = 'fspin'; fu.ground = ground; fu.ef.y = ground;
-    const hd = headOf(e); fu.sink = Math.max(0, -hd.y - hd.r);
+    const hd = headOf(e); fu.sink = animal(e) ? hangOf(e) : Math.max(0, -hd.y - hd.r);
     playSound('snort', 0.9, -4);
   } else {
     g.phase = 'fdrop'; fu.vy = -8;
@@ -365,7 +387,7 @@ export const stepFollow = (ctx: FrameContext, g: Grab, controls: Controls): Cont
         }
       } else if (e && g.t > S.CLOSE) fu.spin += 0.3;
       if (e && g.t >= geo.buriedAt) {
-        // In to the neck: stuck there for good, harmless (it's out of the world's list: a head now)
+        // In to the neck: stuck there a good while, harmless (out of the world's list: a head now) till it digs out
         g.held = null;
         e.vel = { x: 0, y: 0 }; e.melee = undefined; e.pauseTimer = 0; e.rotation = 0;
         buried.push({ e, x: fu.ef.x, ground: fu.ground, sink: fu.sink, face: (-d) as 1 | -1, mode: 'head', born: state.frame, stage: String(state.stageId), gone: null });
@@ -552,7 +574,7 @@ const sliced = (ctx: FrameContext, g: Grab, e: Enemy) => {
 /** The kick lands: the head's off, sailing at whoever's that way; what's left a stump in the floor, spurting. */
 const kickHead = (ctx: FrameContext, g: Grab, b: Buried) => {
   const { state, fx } = ctx, p = state.player, fu = g.fu!, e = b.e;
-  const hd = headOf(e), face = faceOf(state, b), hx = b.x + face * hd.x, hy = b.ground - hd.r;
+  const hd = headOf(e), face = faceOf(state, b), hs = headSpot(b, face), hx = hs.x, hy = hs.y;
   const dir = fu.kdir;
   const tgt = foes(state, hx, hy).filter(o => (o.pos.x + o.width / 2 - hx) * dir > 0)
     .sort((a, c) => Math.abs(a.pos.x - hx) - Math.abs(c.pos.x - hx))[0];
@@ -576,6 +598,35 @@ const kickHead = (ctx: FrameContext, g: Grab, b: Buried) => {
   shakeScreen(state, 9, 5);
 };
 
+/** Floors you can see the underside of (a train car's roof: its ceiling inside), by block tag, set by the stage that has
+ *  them: one buried in one hangs out under it (the owner's "you should see their head on top and their body sticking
+ *  below on the ceiling of the train car"). Whatever's drawn over that underside (the car shut) covers it. */
+let seeThrough: ((tag: string) => boolean) | null = null;
+export const setSeeThroughFloor = (fn: (tag: string) => boolean) => { seeThrough = fn; };
+/** The underside of the floor a buried one's in, if it's one you can see the underside of and they come out of it. */
+const undersideOf = (state: GameState, b: Buried) => {
+  if (!seeThrough) return null;
+  const fl = state.blocks.find(k => k.tag && !k.oneWay && b.x >= k.x && b.x <= k.x + k.w && Math.abs(k.y - b.ground) < 6);
+  if (!fl || !seeThrough(fl.tag!) || fl.y + fl.h >= b.ground + b.sink) return null;
+  return fl.y + fl.h;
+};
+
+/** The frame's state, for a head dug out by the trim (outside the tick). */
+let game: GameState | null = null;
+
+/** A head in the ground out of it, alive (no worse for it): popped up out of the dirt, back in the world, a moment to
+ *  get its wits back. */
+const digOut = (state: GameState, b: Buried) => {
+  const e = b.e;
+  if (e.health <= 0 || b.gone !== null || b.mode !== 'head') return;
+  e.pos = { x: b.x - e.width / 2, y: b.ground - e.height };
+  e.vel = { x: 0, y: -6 }; e.rotation = 0; e.isBlownAway = false;
+  e.pauseTimer = Math.max(e.pauseTimer || 0, 30);
+  K.release(state, e);
+  for (let i = 0; i < 16; i++) state.particles.push({ pos: { x: b.x + (Math.random() - 0.5) * 24, y: b.ground - 2 }, vel: { x: (Math.random() - 0.5) * 6, y: -2 - Math.random() * 5 }, life: 28, color: i % 2 ? '#6B4423' : '#78716C', size: 2 + Math.random() * 3, grav: 0.3 });
+  playSound('crunch', 0.8, -4); playSound('thud', 0.6, -6);
+};
+
 /** Which way a buried one's drawn facing: a live head looks at him. */
 const faceOf = (state: GameState, b: Buried) => (b.mode === 'head' && b.gone === null ? ((Math.sign(K.centerX(state) - b.x) || b.face) as 1 | -1) : b.face);
 
@@ -583,7 +634,10 @@ const trimBuried = () => {
   // (too many: the oldest stumps and bodies go first, then the oldest heads)
   while (buried.length > BURIED_MAX) {
     const i = buried.findIndex(b => b.mode === 'legs' || b.gone !== null);
-    buried.splice(i >= 0 ? i : 0, 1);
+    if (i >= 0) { buried.splice(i, 1); continue; }
+    // (all live heads: the oldest one's out early, never just gone)
+    const b = buried.shift()!;
+    if (game) digOut(game, b);
   }
 };
 
@@ -597,17 +651,28 @@ export const followTick = (ctx: FrameContext, g: Grab) => {
   const { state } = ctx;
   stampMelee(state.frame);
   const stage = String(state.stageId);
+  game = state;
   if (buried.length) buried = buried.filter(b => {
     if (b.stage !== stage) return false;
     const age = b.gone !== null ? state.frame - b.gone : state.frame - b.born;
     if (age < 0) return false;
     // (the stump: spurting a while)
     if (b.gone !== null && age < 120 && age % 3 === 0) {
-      const hd = headOf(b.e);
-      state.particles.push(kindGore({ pos: { x: b.x + b.face * hd.x, y: b.ground - 2 }, vel: { x: (Math.random() - 0.5) * 2, y: -3 - Math.random() * 3 * (1 - age / 120) }, life: 26, color: age % 2 ? '#B91C1C' : '#991B1B', size: 2 + Math.random() * 2, grav: 0.3 }, b.e.kind));
+      const hs = headSpot(b, b.face);
+      state.particles.push(kindGore({ pos: { x: hs.x, y: b.ground - 2 }, vel: { x: (Math.random() - 0.5) * 2, y: -3 - Math.random() * 3 * (1 - age / 120) }, life: 26, color: age % 2 ? '#B91C1C' : '#991B1B', size: 2 + Math.random() * 2, grav: 0.3 }, b.e.kind));
     }
     if (b.gone !== null) return age < STUMP_LIFE;
     if (b.mode === 'legs') return age < LEGS_LIFE;
+    // (a head: digging, then out)
+    if (age >= BURIED_FREE) { digOut(state, b); return false; }
+    if (age >= BURIED_FREE - BURIED_DIG) {
+      const k = (age - (BURIED_FREE - BURIED_DIG)) / BURIED_DIG;
+      if (age % Math.max(3, Math.round(10 - k * 7)) === 0) {
+        const side = Math.random() < 0.5 ? -1 : 1;
+        state.particles.push({ pos: { x: b.x + side * (6 + Math.random() * 10), y: b.ground - 2 }, vel: { x: side * (1 + Math.random() * 2.5), y: -2 - Math.random() * 3 }, life: 22, color: Math.random() < 0.5 ? '#6B4423' : '#A8A29E', size: 2 + Math.random() * 2, grav: 0.3 });
+      }
+      if (age % 24 === 0) playSound('crunch', 0.25 + k * 0.4, -8 + k * 4);
+    }
     return true;
   });
   if (heads.length) tickHeads(ctx, stage);
@@ -732,7 +797,12 @@ export const drawFollow = (ctx: Ctx, state: GameState, g: Grab) => {
         ctx.save();
         ctx.beginPath(); ctx.rect(fu.ef.x - 300, fu.ground - 600, 600, 600); ctx.clip();
         ctx.translate(fu.ef.x, 0); ctx.scale(Math.max(0.15, Math.abs(sx)), 1); ctx.translate(-fu.ef.x, 0);
-        drawEnemyAt(ctx, e, state, fu.ef.x, feetY, 0, face);
+        if (animal(e)) {
+          // (an animal: tipped up on end as it's lifted, head up, then drilled in tail first)
+          const tip = g.t <= S.CLOSE ? 0 : Math.min(1, (g.t - S.CLOSE) / S.LIFT), nk = neckOf(e, face);
+          const hangY = fu.ground - hd.r * 0.5 - (fu.sink - geo.yOff);
+          drawOnEnd(ctx, state, e, fu.ef.x + nk.x * (1 - tip), (fu.ground + nk.y) * (1 - tip) + hangY * tip, face, tip);
+        } else drawEnemyAt(ctx, e, state, fu.ef.x, feetY, 0, face);
         ctx.restore();
         // (the hole he's going into)
         ctx.fillStyle = '#3B2614'; ctx.beginPath(); ctx.ellipse(fu.ef.x, fu.ground, e.width * 0.45 + 4, 3.5, 0, 0, Math.PI * 2); ctx.fill();
@@ -812,9 +882,18 @@ export const drawFollowUnder = (c: Ctx, state: GameState) => {
     c.save();
     c.globalAlpha = alpha;
     if (b.gone === null) {
+      // (above the floor; and, a floor you can see under, what comes out the underside of it)
+      const under = undersideOf(state, b);
+      for (const [top, h] of under === null ? [[b.ground - 600, 600]] : [[b.ground - 600, 600], [under, 600]]) {
       c.save();
-      c.beginPath(); c.rect(b.x - 300, b.ground - 600, 600, 600); c.clip();
-      if (b.mode === 'head') drawEnemyAt(c, e, state, b.x, b.ground + b.sink, 0, face);
+      c.beginPath(); c.rect(b.x - 300, top, 600, h); c.clip();
+      if (b.mode === 'head') {
+        // (digging out: shaking, coming up out of it a little)
+        const dig = Math.max(0, (age - (BURIED_FREE - BURIED_DIG)) / BURIED_DIG);
+        const shake = dig > 0 ? Math.round(Math.sin(age * 1.7) * (1 + dig * 2)) : 0;
+        if (animal(e)) drawOnEnd(c, state, e, b.x + shake, b.ground - headOf(e).r * 0.5 - b.sink * dig * 0.45, face, 1);
+        else drawEnemyAt(c, e, state, b.x + shake, b.ground + b.sink * (1 - dig * 0.45), 0, face);
+      }
       else {
         // (legs up: twitching a while; its picture baked the once, put down upside down)
         const bk = b.bake ??= bakeEnemyCut(state, e, face, { circle: false, x0: -e.width / 2 - 24, y0: -e.height - 26, x1: e.width / 2 + 24, y1: 3 });
@@ -822,14 +901,15 @@ export const drawFollowUnder = (c: Ctx, state: GameState) => {
         c.drawImage(bk.cv, bk.x, bk.y, bk.w, bk.h);
       }
       c.restore();
+      }
     } else {
       // (the stump: the neck, cut, red in the middle)
-      const sx = b.x + face * hd.x;
+      const sx = headSpot(b, face).x;
       c.fillStyle = '#7F1D1D'; c.beginPath(); c.ellipse(sx, b.ground - 2, hd.r * 0.55, 2.5, 0, 0, Math.PI * 2); c.fill();
       c.fillStyle = '#DC2626'; c.beginPath(); c.ellipse(sx, b.ground - 2.5, hd.r * 0.3, 1.4, 0, 0, Math.PI * 2); c.fill();
     }
     // (the churned dirt round it)
-    c.fillStyle = '#4A2F17'; c.beginPath(); c.ellipse(b.x + (b.mode === 'head' ? face * hd.x : 0), b.ground, Math.max(10, hd.r * 1.3), 3.5, 0, 0, Math.PI * 2); c.fill();
+    c.fillStyle = '#4A2F17'; c.beginPath(); c.ellipse(b.mode === 'head' ? headSpot(b, face).x : b.x, b.ground, Math.max(10, hd.r * 1.3), 3.5, 0, 0, Math.PI * 2); c.fill();
     c.fillStyle = '#6B4423'; c.fillRect(Math.round(b.x - hd.r * 1.2), Math.round(b.ground - 2), 3, 2); c.fillRect(Math.round(b.x + hd.r), Math.round(b.ground - 3), 2, 2);
     c.restore();
   }

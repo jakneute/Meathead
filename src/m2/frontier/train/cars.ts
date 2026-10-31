@@ -37,6 +37,10 @@ import { inView } from './view';
 import { TUBE_UNCOUPLE, TUBE_MISSED, TRAIN_GAGS, LION_LOOSE } from './lines';
 import { startMaul, lionEscapes } from './lion';
 import { CIRCUS } from './layout';
+import { setSeeThroughFloor } from '../../moves/followups';
+
+// (a car's roof is its ceiling inside: one drilled into it by the pauldrons' spin hangs out under it, seen once he's in)
+setSeeThroughFloor(tag => tag.startsWith('tr-roof-'));
 
 const AWAY = -99999;
 

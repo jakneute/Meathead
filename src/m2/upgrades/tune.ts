@@ -70,6 +70,11 @@ export const MISSILE_SPEED = 25, MISSILE_HIT_K = 1.6;
 export const HEAD_KICK_SPEED = 13, HEAD_HIT = 70;
 /** How near the head he has to be for B to kick it (px from his middle), and how many stuck in the ground at once. */
 export const HEAD_KICK_REACH = 64, BURIED_MAX = 12;
+/** A head in the ground isn't dead (the owner's "the top spin should no longer kill an enemy buried in the ground but
+ *  give them many seconds to dig themselves out. they are otherwise harmless and the 'football' kick will eliminate
+ *  them"): this long in it (frames), the last BURIED_DIG of them digging (shaking, the dirt flying, coming up), then
+ *  out and back at it. */
+export const BURIED_FREE = 600, BURIED_DIG = 120;
 /** Armguards' ninja drop: how hard they come down (px a frame at the most) and what it does (regular enemies: dead). */
 export const NINJA_FALL = 22, NINJA_DAMAGE = 999;
 /** ...and where they land, a meteor going off (the owner's "a localized 'meteor' impact too": the spellbook meteor's
