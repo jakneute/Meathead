@@ -20,7 +20,8 @@ type Ctx = CanvasRenderingContext2D;
 /** How long it's up (frames) and when the boot lands, in its own time. */
 export const CLOSE_LEN = 96, CLOSE_HIT = 18;
 export const PANEL_W = 520, PANEL_H = 280;
-const OPEN = 6, FADE = 12;
+export const OPEN = 6;
+const FADE = 12;
 
 export interface CloseUpLook {
   id: string; kind: string;
@@ -34,12 +35,12 @@ export type CloseUpPaint = (c: Ctx, t: number, look: CloseUpLook) => void;
 
 const X0 = (CANVAS_WIDTH - PANEL_W) / 2, Y0 = Math.round(CANVAS_HEIGHT * 0.45 - PANEL_H / 2);
 /** The middle of the crotch, in the panel. */
-const CX = PANEL_W / 2, CY = 128;
+export const CX = PANEL_W / 2, CY = 128;
 
 // ---- a cheap repeatable random (the blood's the same every time, nothing kept)
-const rnd = (i: number) => { const s = Math.sin(i * 127.1 + 311.7) * 43758.5453; return s - Math.floor(s); };
-const lerp = (a: number, b: number, k: number) => a + (b - a) * k;
-const clamp = (v: number) => Math.max(0, Math.min(1, v));
+export const rnd = (i: number) => { const s = Math.sin(i * 127.1 + 311.7) * 43758.5453; return s - Math.floor(s); };
+export const lerp = (a: number, b: number, k: number) => a + (b - a) * k;
+export const clamp = (v: number) => Math.max(0, Math.min(1, v));
 
 export const drawCloseUp = (c: Ctx, look: CloseUpLook, t: number) => {
   const open = clamp(t / OPEN), fade = clamp((CLOSE_LEN - t) / FADE);
@@ -147,7 +148,7 @@ const robotInside = (g: Ctx, female: boolean) => {
 };
 
 // ---- the moving parts
-const bootAt = (t: number) => {
+export const bootAt = (t: number) => {
   // (up from under, fast, into the crotch; it stays buried)
   const k = clamp((t - OPEN) / (CLOSE_HIT - OPEN));
   return { x: CX - 6, y: lerp(PANEL_H + 90, CY + 54, k * k) };
@@ -160,6 +161,19 @@ const drawBoot = (c: Ctx, x: number, y: number) => {
   c.fillStyle = '#6B4423'; c.fillRect(x - 26, y - 14, 10, 50);
   c.fillStyle = '#111'; c.fillRect(x - 34, y - 30, 68, 8);
   c.fillStyle = '#9CA3AF'; for (let i = 0; i < 4; i++) c.fillRect(x - 6, y + 2 + i * 9, 12, 3);
+};
+
+/** His foot at (x, y) (the toe's top), toe up: the boot, or with the sabatons on, them (armorArt.ts). The custom ones use it. */
+export const drawKick = (c: Ctx, x: number, y: number, t: number) => {
+  if (has('sabatons')) drawSabatonCloseUp(c, x, y, t); else drawBoot(c, x, y);
+};
+
+/** A panel-sized canvas painted once, on first use (the custom close-ups' still layers: no painting at load). */
+const bakes = new Map<string, HTMLCanvasElement>();
+export const bakeOnce = (key: string, paint: (g: Ctx) => void, w = PANEL_W, h = PANEL_H) => {
+  let cv = bakes.get(key);
+  if (!cv) { cv = document.createElement('canvas'); cv.width = w; cv.height = h; paint(cv.getContext('2d')!); bakes.set(key, cv); }
+  return cv;
 };
 
 const xray = (c: Ctx, t: number, look: CloseUpLook) => {
@@ -176,7 +190,7 @@ const xray = (c: Ctx, t: number, look: CloseUpLook) => {
     c.stroke();
   }
   // (with the sabatons on, it's them that goes in: armorArt.ts)
-  if (has('sabatons')) drawSabatonCloseUp(c, b.x, b.y, t); else drawBoot(c, b.x, b.y);
+  drawKick(c, b.x, b.y, t);
   spray(c, hit, look);
   words(c, hit, look);
 };
@@ -235,7 +249,7 @@ const ovaries = (c: Ctx, hit: number, look: CloseUpLook) => {
 };
 
 /** Blood (or oil and sparks) out of it, falling. */
-const spray = (c: Ctx, hit: number, look: CloseUpLook) => {
+export const spray = (c: Ctx, hit: number, look: CloseUpLook) => {
   if (hit < 0) return;
   const y0 = look.female ? 70 : CY + 26, n = 46;
   for (let i = 0; i < n; i++) {
@@ -260,10 +274,10 @@ const spray = (c: Ctx, hit: number, look: CloseUpLook) => {
 };
 
 const WORDS_FLESH = ['CRUNCH!', 'POP!', 'SPLUT!'], WORDS_METAL = ['KRZZT!', 'CLANK!', 'SPROING!'];
-const words = (c: Ctx, hit: number, look: CloseUpLook) => {
+export const words = (c: Ctx, hit: number, look: CloseUpLook, word?: string) => {
   if (hit < 1) return;
   const pool = look.robot ? WORDS_METAL : WORDS_FLESH;
-  const w = pool[Math.floor(rnd(look.kind.length + look.id.length) * pool.length)];
+  const w = word ?? pool[Math.floor(rnd(look.kind.length + look.id.length) * pool.length)];
   const s = Math.min(1, hit / 4) * (1 + Math.max(0, 6 - hit) * 0.06);
   c.save(); c.translate(CX + 120, 70); c.rotate(-0.18); c.scale(s, s);
   c.font = '28px "Press Start 2P"'; c.textAlign = 'center';

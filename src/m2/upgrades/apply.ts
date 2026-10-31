@@ -17,6 +17,7 @@ import { installGear } from './gear';
 import { installArmorArt } from './armorArt';
 import { setScreenOverlay } from '../../m1/game/render/world';
 import { drawCheapShotPanel } from './cheapShot';
+import { installCloseUps } from './closeups';
 import { liveState } from '../cheats';
 import type { WeaponType } from '../../m1/types';
 
@@ -37,6 +38,7 @@ export const installUpgrades = () => {
   installArmorArt();
   // (the hand armor's cheap shot: its close-up, over everything)
   setScreenOverlay(drawCheapShotPanel);
+  installCloseUps();
   // (the power rule: no cell refills through a dive kick or the flash kick either; the engine already holds them through
   // a charge, a slide and an uppercut)
   setPowerHold(p => !!p.isDivekicking || !!p.flashKick);
