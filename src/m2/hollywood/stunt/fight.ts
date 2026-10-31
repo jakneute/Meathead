@@ -50,7 +50,7 @@ import { makeKindEnemy } from '../../../m1/game/enemies/kinds';
 import { CANVAS_WIDTH, CANVAS_HEIGHT, BULLET_DAMAGE } from '../../../m1/constants';
 import { bossMelee } from '../../upgrades/bossMelee';
 import { takeYell } from '../../upgrades/amulet';
-import { cheapShotGate, cheapShotStunned, cheapShotStunT, crushGroups, crushLines } from '../../upgrades/cheapShot';
+import { cheapShotGate, cheapShotStunned, cheapShotStunT, crushGroups, crushLines, registerClearThreats } from '../../upgrades/cheapShot';
 import { registerM2Kind } from '../../kinds';
 import { newSpam, spamTick, hitKey, swatOff, type Spam, BOSS_IFRAMES } from '../../bossSpam';
 import { setStormPick, setStormHit } from '../../weapons/spellbook';
@@ -162,6 +162,23 @@ export interface Fight extends Garage {
 /** The fight going on now (the spellbook's hooks look at it). */
 let live: Fight | null = null;
 let game: GameState | null = null;
+/** The frame's context as the fight last had it (the cheap shot's clear-out has only the state; a car's boom wants fx). */
+let liveCtx: FrameContext | null = null;
+
+// (the hand armor's cheap shot's free window (upgrades/cheapShot.ts), the moment the stun starts: every car of his on
+// the stage goes up in a fireball where it is (red and blue, drifting, climbing, in the air, coming in, backing off), the
+// ones still waiting in their garages stay in; the stage's pyro off. Not his own car-in-hand (a car Meathead's holding or
+// has thrown is his))
+registerClearThreats('steve', () => {
+  const f = live, ctx = liveCtx;
+  if (!f) return;
+  for (const car of f.cars) {
+    if (car.hold) { car.hold = 0; car.mode = 'gone'; continue; }
+    if (car.mode === 'held' || car.mode === 'thrown' || car.mode === 'gone' || car.mode === 'wreck') continue;
+    if (ctx) boom(ctx, f, car); else car.mode = 'gone';
+  }
+  f.pyro = null;
+});
 const pants = (): 'clean' | 'shitty' | 'nude' => (!game ? 'clean' : isNude(game) ? 'nude' : isShat(game) ? 'shitty' : 'clean');
 export const resetFight = () => { live = null; };
 
@@ -429,7 +446,7 @@ const doorOf = (side: 1 | -1, inner = false) => (side > 0 ? DOORS_X[inner ? 2 : 
 
 export const updateFight = (ctx: FrameContext, f: Fight, controls: Controls): Controls => {
   const { state } = ctx;
-  live = f; game = state;
+  live = f; game = state; liveCtx = ctx;
   // (the hand armor's cheap shot (upgrades/cheapShot.ts): Steve himself (never his cars), stood at his end or about on
   // his feet, not on a tow rope or calling one, not lit up by the lightning, not in his entrance; the cutscene freezes the
   // lot, cars and all; then he's stunned: doubled over, not directing traffic (no slaps, no tow, no cars sent; the cars
@@ -717,6 +734,7 @@ const pyro = (ctx: FrameContext, f: Fight) => {
   const m = pmid(state);
   if (!P.hit && Math.abs(m.x - P.x) <= r + 30) {
     P.hit = true;
+    if (cheapShotStunned(f.e)) return;
     const away = (Math.sign(m.x - P.x) || -f.side) as 1 | -1;
     launchHim(ctx, f, away * PYRO_VX, PYRO_VY, 0, 'm2:stunt_pyro');
     ctx.fx.spawnDamageNumber({ x: m.x - 20, y: m.y - 50 }, 'KABOOM!', true, '#F97316');
