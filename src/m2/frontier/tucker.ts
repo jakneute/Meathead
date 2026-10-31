@@ -54,7 +54,9 @@ export type TuckerPose =
   | 'aim'       // the flintlock out at arm's length in the near hand, the far hand cupped behind his ear, listening
   | 'cock'      // the flintlock up by his face, muzzle up, the far thumb hauling the hammer back
   | 'reload'    // the flintlock muzzle up at his belly in the far hand, the near hand ramming the rod down it
-  | 'mauled';   // flat on his back under the cats, thrashing: arms and legs everywhere
+  | 'mauled'    // flat on his back under the cats, thrashing: arms and legs everywhere
+  | 'clutch';   // the hand armor's cheap shot: knees knocked in and sagging, both gloves clamped in under his gut, the
+                // head hung, wobbling, his gold coins dropping out of his vest pockets one by one (`opts.cheapT`)
 
 /** 'manic': the bookkeeper unhinged (the user's model: South Park's Mel Gibson): one eye bulging, the other a pinprick,
  *  a brow up in his cap, a clenched grin of every tooth he's got, the gap and all. */
@@ -92,6 +94,8 @@ export interface TuckerOpts {
   pistol?: boolean;
   /** No head on him (his fight's grizzly: it's in the bear; arena/gore.ts draws the stump). */
   headless?: boolean;
+  /** 'clutch': frames into it (the coins out of his pockets pile up off it; unset, none have dropped yet). */
+  cheapT?: number;
 }
 
 /** How tall he is (feet to the top of his cap), for putting words over him. */
@@ -193,7 +197,7 @@ const FACES: Record<TuckerPose, TuckerFace> = {
   stand: 'smile', talk: 'talk', ticket: 'cheer', tip: 'cheer', sit: 'daze', flat: 'out', furious: 'manic', point: 'angry',
   run: 'manic', cab: 'manic', whistle: 'manic', hurt: 'ow', shove: 'manic', slam: 'manic', press: 'manic',
   pop: 'yell', pounce: 'manic', ride: 'smile', ridepoint: 'manic', impaled: 'out', grope: 'shock',
-  aim: 'manic', cock: 'manic', reload: 'talk', mauled: 'yell',
+  aim: 'manic', cock: 'manic', reload: 'talk', mauled: 'yell', clutch: 'ow',
 };
 /** 'impaled': how far he's tipped forward over the branch (about his chest, where it goes in). */
 export const IMPALED_TILT = 0.22;
@@ -220,9 +224,11 @@ export const drawTucker = (c: Ctx, x: number, feetY: number, facing: number, fra
   if (pose === 'pounce') { c.translate(0, -31); c.rotate(1.15); c.translate(0, 31); }
   // (hung on the branch: tipped forward over it about his chest)
   if (pose === 'impaled') { c.translate(0, -50); c.rotate(IMPALED_TILT); c.translate(0, 50); }
-  const shake = pose === 'furious' ? Math.sin(f * 1.3) * 0.8 : 0;
-  // (rocking on his heels, pleased with himself; bobbing at the run)
-  const b = pose === 'run' ? -Math.abs(Math.sin(f * 0.34)) * 2.4 : pose === 'stand' || pose === 'ticket' ? Math.sin(f * 0.06) * 0.8 - 0.4 : pose === 'talk' ? Math.sin(f * 0.12) * 0.6 : 0;
+  // (the cheap shot: a slow wobble side to side, a tremble over it)
+  const shake = pose === 'furious' ? Math.sin(f * 1.3) * 0.8 : pose === 'clutch' ? Math.sin(f * 0.12) * 1.2 + (f % 4 < 2 ? 0.4 : -0.4) : 0;
+  // (rocking on his heels, pleased with himself; bobbing at the run; sagged down on his knocked knees)
+  const b = pose === 'run' ? -Math.abs(Math.sin(f * 0.34)) * 2.4 : pose === 'stand' || pose === 'ticket' ? Math.sin(f * 0.06) * 0.8 - 0.4 : pose === 'talk' ? Math.sin(f * 0.12) * 0.6
+    : pose === 'clutch' ? 3 + Math.abs(Math.sin(f * 0.12)) * 0.8 : 0;
   c.translate(shake, 0);
   // ---- the coat's tails, behind everything (flying out behind him at the run)
   if (pose !== 'cab' && pose !== 'whistle') drawTails(c, pose, f, b);
@@ -235,9 +241,9 @@ export const drawTucker = (c: Ctx, x: number, feetY: number, facing: number, fra
   drawBody(c, pose, f);
   drawWounds(c, wounds, 'body', f, false, !!opts.onBranch);
   // ---- the head, on his neck
-  const hy = pose === 'sit' ? -71 + Math.sin(f * 0.1) * 1.2 : pose === 'hurt' ? -70 : pose === 'impaled' ? -70 : -72;
-  const hx = pose === 'sit' ? Math.sin(f * 0.1) * 2 : pose === 'hurt' ? -2 : pose === 'run' ? 1.5 : pose === 'impaled' ? 2.5 : pose === 'grope' ? 1.5 : 0.5;
-  const nod = pose === 'impaled' ? 0.5 : pose === 'hurt' ? -0.25 : pose === 'grope' ? -0.2 + Math.sin(f * 0.07) * 0.08 : pose === 'sit' ? Math.sin(f * 0.1) * 0.14 : pose === 'run' ? 0.08 : pose === 'furious' ? Math.sin(f * 1.3) * 0.05 : pose === 'tip' ? 0.08
+  const hy = pose === 'sit' ? -71 + Math.sin(f * 0.1) * 1.2 : pose === 'hurt' ? -70 : pose === 'impaled' ? -70 : pose === 'clutch' ? -70.5 : -72;
+  const hx = pose === 'sit' ? Math.sin(f * 0.1) * 2 : pose === 'hurt' ? -2 : pose === 'run' ? 1.5 : pose === 'impaled' ? 2.5 : pose === 'grope' ? 1.5 : pose === 'clutch' ? 2.5 : 0.5;
+  const nod = pose === 'impaled' ? 0.5 : pose === 'clutch' ? 0.34 + Math.sin(f * 0.12) * 0.05 : pose === 'hurt' ? -0.25 : pose === 'grope' ? -0.2 + Math.sin(f * 0.07) * 0.08 : pose === 'sit' ? Math.sin(f * 0.1) * 0.14 : pose === 'run' ? 0.08 : pose === 'furious' ? Math.sin(f * 1.3) * 0.05 : pose === 'tip' ? 0.08
     : pose === 'aim' ? -0.16 : pose === 'cock' ? -0.1 : pose === 'reload' ? 0.12 : pose === 'mauled' ? Math.sin(f * 0.9) * 0.3 : 0;
   if (!opts.headless) {
     c.save(); c.translate(hx, hy); c.rotate(nod); c.scale(HS, HS);
@@ -256,7 +262,31 @@ export const drawTucker = (c: Ctx, x: number, feetY: number, facing: number, fra
   if (pose === 'ticket') drawPunch(c, far.hx, far.hy, f);
   if (pose === 'furious' || pose === 'cab') steam(c, hx, hy, f);
   if (pose === 'sit') stars(c, hx, hy - 18, f);
+  if (pose === 'clutch') coins(c, opts.cheapT ?? 0, b);
   c.restore();
+};
+
+/** 'clutch': his gold dropping out of his vest pockets, a coin every so often (a spin as it falls, a bounce), and the
+ *  little pile of it at his boots growing (`t` frames in; `b` how far his body's sagged, to fall from the pocket). */
+const COIN_EVERY = 40;
+const coin = (c: Ctx, x: number, y: number, edge: number) => {
+  const w = Math.max(0.5, 1.9 * edge);
+  ell(c, x, y, w + 0.5, 2.4, BRASS[4]); ell(c, x, y, w, 1.9, BRASS[2]);
+  if (w > 1) { ell(c, x - w * 0.25, y - 0.4, w * 0.5, 1, BRASS[1]); px(c, x - w * 0.4, y - 1.2, 0.6, 0.6, BRASS[0]); }
+};
+const coins = (c: Ctx, t: number, b: number) => {
+  const n = Math.min(7, Math.floor(t / COIN_EVERY));
+  // (the pile: flat coins at his feet, stacked a little, a glint)
+  for (let i = 0; i < n; i++) {
+    const x = 9 + ((i * 5) % 9) - 4, y = -b - 1 - Math.floor(i / 3) * 1.2;
+    ell(c, x, y, 2.4, 0.9, BRASS[4]); ell(c, x, y - 0.2, 1.9, 0.6, BRASS[2]); px(c, x - 1, y - 0.6, 0.8, 0.4, BRASS[0]);
+  }
+  // (the one on its way down: out of the near pocket, spinning, a hop on the floor)
+  const k = (t % COIN_EVERY) / 26;
+  if (k <= 1 && n < 7) {
+    const x = 11 + k * 3, y0 = -48, y1 = -b - 2, y = k < 0.8 ? y0 + (y1 - y0) * (k / 0.8) ** 2 : y1 - Math.sin(((k - 0.8) / 0.2) * Math.PI) * 3;
+    coin(c, x, y, Math.abs(Math.cos(t * 0.6)));
+  }
 };
 
 /** His head on its own (off him: the grizzly's), its middle at (x, y), facing right turned `rot` (mirrored for -1);
@@ -313,6 +343,8 @@ const drawLegs = (c: Ctx, pose: TuckerPose, f: number) => {
   else if (pose === 'flat') L = [[-3.5, -31, -3.5, -18, -3.5, -5, -1.4], [3.5, -31, 3.5, -18, 3.5, -5, -1.4]];
   // (mauled: on his back, kicking at them)
   else if (pose === 'mauled') { const k = Math.sin(f * 0.6), k2 = Math.cos(f * 0.5); L = [[-3.5, -31, -3.5 + k * 5, -19, -3.5 + k * 9, -6, -1.4 + k * 0.5], [3.5, -31, 3.5 - k2 * 5, -19, 3.5 - k2 * 9, -6, -1.4 - k2 * 0.5]]; }
+  // (the cheap shot: the knees knocked in together, shaking, the boots splayed out, sagged down on them)
+  else if (pose === 'clutch') { const tr = f % 4 < 2 ? 0.5 : -0.5; L = [[-4, -28, 1 + tr, -17, -7, -5, 0.15], [4, -28, 3 - tr, -17, 9, -5, -0.15]]; }
   // (the reload and the aim: feet planted, braced; the cock the same)
   else if (pose === 'aim' || pose === 'cock' || pose === 'reload') L = [[-5, -31, -6, -18, -7, -5, 0], [5, -31, 6.5, -18, 8, -5, 0]];
   // (astride the bike: thighs along the seat, knees forward, shins down to the pegs)
@@ -497,6 +529,11 @@ const armsFor = (pose: TuckerPose, f: number, aim = 0): [Arm, Arm] => {
       // (the rod rammed down, drawn up, rammed down)
       const r = Math.abs(Math.sin(f * 0.2)) * 9;
       return [{ ...FS, hx: 8, hy: -44, bend: -1, fist: true, grip: true }, { ...NS, hx: 10, hy: -78 + r, bend: -1, fist: true, grip: true }];
+    }
+    case 'clutch': {
+      // (both gloves clamped in under his gut, over the damage; the elbows out back, trembling)
+      const tr = f % 4 < 2 ? 0.5 : 0;
+      return [{ ...FS, hx: 2, hy: -36 + tr, bend: 1, fist: true }, { ...NS, hx: 7, hy: -35 + tr, bend: -1, fist: true }];
     }
     case 'mauled': {
       // (on his back: arms flailing up at them, slapping, shielding his face)

@@ -52,7 +52,7 @@ import { makeKindEnemy } from '../../../m1/game/enemies/kinds';
 import { CANVAS_WIDTH, CANVAS_HEIGHT, BULLET_DAMAGE } from '../../../m1/constants';
 import { bossMelee } from '../../upgrades/bossMelee';
 import { takeYell } from '../../upgrades/amulet';
-import { cheapShotGate, cheapShotStunned, crushGroups, crushLines } from '../../upgrades/cheapShot';
+import { cheapShotGate, cheapShotStunned, cheapShotStunT, crushGroups, crushLines } from '../../upgrades/cheapShot';
 import { registerM2Kind } from '../../kinds';
 import { newSpam, spamTick, hitKey, swatOff, type Spam, BOSS_IFRAMES } from '../../bossSpam';
 import { TOO_BIG_BY_KIND } from '../../lines/weaponLines';
@@ -291,6 +291,8 @@ export const updateFight = (ctx: FrameContext, f: Fight): Controls | null => {
   const cs = cheapShotGate(state, f.e, 'tucker', ok);
   if (cs === 'frozen') { sync(state, f); return null; }
   if (cs === 'stunned' && f.mode === 'on' && f.act !== 'listen' && STAND.has(f.act)) { setAct(f, 'listen'); f.aim = 0.6; }
+  // (planted where he was kicked: no jostle left in him)
+  if (cs === 'stunned') { f.shove = 0; f.bumped = 0; }
   f.t++;
   if (f.iframes > 0) f.iframes--;
   if (f.flash > 0) f.flash--;
@@ -596,7 +598,8 @@ const tickCritters = (ctx: FrameContext, f: Fight) => {
     } }
   // (the critters running through him (the user's): they don't hurt him or stop what he's at, they jostle him along
   // the way they're going, a stumble each, a little off; it makes where he'll be a lot harder to call)
-  if (f.mode === 'on' && f.act !== 'mauled' && f.act !== 'bloody' && f.act !== 'getup') {
+  // (stunned off the cheap shot: they run round him, he's going nowhere)
+  if (f.mode === 'on' && f.act !== 'mauled' && f.act !== 'bloody' && f.act !== 'getup' && !cheapShotStunned(f.e)) {
     for (const e of state.enemies) {
       if (!isCritter(e) || e.health <= 0 || e.isBlownAway || e.pos.y + e.height < GY - 90) continue;
       if (Math.abs(e.pos.x + e.width / 2 - f.tx) > 26 + e.width / 2) continue;
@@ -1266,10 +1269,10 @@ export const endFight = (state: GameState, f: Fight) => {
 // ---------------------------------------------------------------------------------------------------------------
 // Drawing
 
-const tuckerLook = (f: Fight): { pose: TuckerPose; face?: TuckerFace; aim?: number; pan?: boolean; pistol?: boolean } => {
+const tuckerLook = (f: Fight): { pose: TuckerPose; face?: TuckerFace; aim?: number; pan?: boolean; pistol?: boolean; cheapT?: number } => {
   const hurt = f.flash > 0 && f.act !== 'mauled';
-  // (stunned off the cheap shot: bent over hurting, the gun down)
-  if (f.mode === 'on' && STAND.has(f.act) && cheapShotStunned(f.e)) return { pose: 'hurt', face: hurt ? 'ow' : f.talking ? 'talk' : 'daze' };
+  // (stunned off the cheap shot: his own pose for it, the gun put away, the gold falling out of him)
+  if (f.mode === 'on' && STAND.has(f.act) && cheapShotStunned(f.e)) return { pose: 'clutch', face: f.talking ? 'talk' : f.t % 50 < 30 ? 'ow' : 'shock', cheapT: cheapShotStunT(f.e) };
   switch (f.act) {
     case 'listen': return { pose: 'grope', pistol: true, face: hurt ? 'ow' : f.talking ? 'talk' : 'manic' };
     case 'cock': return { pose: 'cock', face: hurt ? 'ow' : 'manic' };
@@ -1444,13 +1447,13 @@ export const drawFightBack = (c: Ctx, state: GameState, f: Fight) => {
     if (blink) c.globalAlpha = 0.65;
     // (jostled by the critters: a stumble, arms out, tipped the way he's being carried and wobbling (not over a shot:
     // the aim's the tell))
-    const stumble = f.bumped > 0 && f.act !== 'aim' && f.act !== 'pan' && f.act !== 'recoil';
+    const stumble = f.bumped > 0 && f.act !== 'aim' && f.act !== 'pan' && f.act !== 'recoil' && look.pose !== 'clutch';
     if (stumble) {
       const tip = Math.max(-0.28, Math.min(0.28, f.shove * 0.07)) + Math.sin(fr * 0.6) * 0.06;
       c.save(); c.translate(f.tx, GY); c.rotate(tip); c.translate(-f.tx, -GY);
       drawTucker(c, f.tx, GY, f.facing, fr, 'hurt', { wounds: woundsOf(f), face: 'shock', talking: f.talking });
       c.restore();
-    } else drawTucker(c, f.tx, GY, f.facing, fr, look.pose, { wounds: woundsOf(f), face: look.face, aim: look.aim, pan: look.pan, pistol: look.pistol, talking: f.talking });
+    } else drawTucker(c, f.tx, GY, f.facing, fr, look.pose, { wounds: woundsOf(f), face: look.face, aim: look.aim, pan: look.pan, pistol: look.pistol, talking: f.talking, cheapT: look.cheapT });
     c.globalAlpha = 1;
     // (sat up dazed: his cap's off, beside him)
     if (look.pose === 'sit') drawTuckerCap(c, f.tx - f.facing * 30, GY - 4, 0.4);
