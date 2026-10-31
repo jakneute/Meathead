@@ -8,6 +8,7 @@ import type { FrameContext } from '../../../m1/game/core/context';
 import type { GameState } from '../../../m1/game/core/state';
 import type { Enemy } from '../../../m1/types';
 import { hurtPlayer } from '../../../m1/game/bosses/shared';
+import { helmetStopsAt } from '../../upgrades/gear';
 import { playSound } from '../../../m1/game/platform/audio';
 import { floorTopAt } from '../../../m1/game/core/terrain';
 import { hazardVictims, hazardHit, boxHits } from '../../hazardHit';
@@ -74,7 +75,10 @@ export const updateShots = (ctx: FrameContext, live: boolean) => {
     if (s.kind === 'cinder' && s.y >= (s.mark ?? GY)) { s.y = s.mark ?? GY; s.dead = 0; }
     // (him)
     const r = R[s.kind];
-    if (p.health > 0 && !p.inCutscene && p.invincibilityTimer <= 0 && p.pos.x < s.x + r && p.pos.x + p.width > s.x - r && p.pos.y < s.y + r && p.pos.y + p.height > s.y - r) {
+    const touching = p.health > 0 && !p.inCutscene && p.invincibilityTimer <= 0 && p.pos.x < s.x + r && p.pos.x + p.width > s.x - r && p.pos.y < s.y + r && p.pos.y + p.height > s.y - r;
+    // (what's thrown at him (not the stack's cinders, not coal rolling along) off his helmet, the upgrade: it's spent)
+    if (touching && s.kind !== 'cinder' && !s.rolling && s.dead === undefined && helmetStopsAt(state, s.x, s.y, r)) s.dead = 0;
+    else if (touching) {
       hurtPlayer(ctx, DMG[s.kind], SRC[s.kind], { x: Math.sign(s.vx || -1) * 5, y: -4 });
       if (s.kind === 'cleaver' || s.kind === 'suitcase') s.dead = 0;
       if (s.kind === 'cinder') s.dead = 20;

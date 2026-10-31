@@ -17,6 +17,7 @@ import { pixelBlob } from '../../intro/art/kit';
 import { signAt, blood } from '../letters';
 import { GORE, splat, drips, guestOf, impaledGuest, skeleton, earHat, souvenirCup, selfieStick, parkMap, ticket } from './remains';
 import { SECTIONS, GY } from '../geometry';
+import { spikeProof } from '../../upgrades/gear';
 import { hurtPlayer } from '../../../m1/game/bosses/shared';
 import { playSound } from '../../../m1/game/platform/audio';
 import { shakeScreen } from '../../../m1/game/core/state';
@@ -81,7 +82,9 @@ export const runRopes = (ctx: FrameContext, controls: Controls): Controls => {
     pitDeath.floor = pit.kind === 'vat' ? surface : GY + pit.depth;
     const bank = cx - pit.a < pit.b - cx ? -1 : 1, out = bank * Math.min(6, 2.5 + Math.min(cx - pit.a, pit.b - cx) / 40);
     if (pit.kind === 'spikes') {
-      if (p.invincibilityTimer <= 0) { playSound('crunch', 1, -4); playSound('splat', 0.7, -2); hurtPlayer(ctx, 20, 'spooky_spikepit', { x: out, y: -14 }); if (p.health > 0) ctx.fx.spawnDamageNumber({ x: cx - 30, y: p.pos.y - 20 }, 'POINTY!', true, '#FCA5A5'); }
+      // (dive kicked down onto it in the sabatons: a stomp off the spikes, nothing in him)
+      if (spikeProof(p)) { p.isDivekicking = false; p.recoiling = false; playSound('stomp', 1, -4); playSound('clang', 0.6, 4); }
+      else if (p.invincibilityTimer <= 0) { playSound('crunch', 1, -4); playSound('splat', 0.7, -2); hurtPlayer(ctx, 20, 'spooky_spikepit', { x: out, y: -14 }); if (p.health > 0) ctx.fx.spawnDamageNumber({ x: cx - 30, y: p.pos.y - 20 }, 'POINTY!', true, '#FCA5A5'); }
       if (p.health > 0) { p.vel.y = -14; if (p.pushbackTimer > 0 || Math.sign(p.vel.x) !== bank) p.vel.x = out; p.isGrounded = false; p.isCharging = false; p.isSliding = false; }
     } else { playSound('splash', 1, -6); playSound('ignite', 0.6, -6); hurtPlayer(ctx, 9999, 'spooky_vat'); }
     for (let k = 0; k < 12; k++) state.particles.push({ pos: { x: cx, y: surface }, vel: { x: (Math.random() - 0.5) * 6, y: -2 - Math.random() * 4 }, life: 30, color: pit.kind === 'vat' ? '#FBBF24' : '#B91C1C', size: 3 + Math.random() * 3, grav: 0.3 });

@@ -28,7 +28,7 @@ import { playSound } from '../../../m1/game/platform/audio';
 import { pickLine, takeFreshLine, silenceAll } from '../../../m1/game/platform/speech';
 import { shakeScreen } from '../../../m1/game/core/state';
 import { floorTopAt } from '../../../m1/game/core/terrain';
-import { buffs } from '../../../m1/game/core/buffs';
+import { walkSpeedK } from '../../../m1/game/core/tuning';
 import { SKIP_AFTER, offerSkip, takeSkip, drawSkipPrompt } from '../../../m1/game/platform/skip';
 import { CANVAS_WIDTH, PLAYER_MOVE_SPEED, topBand } from '../../../m1/constants';
 import type { Controls } from '../../../m1/game/platform/input';
@@ -392,7 +392,7 @@ export const updateFight = (ctx: FrameContext): Controls | null => {
   const n = on.length;
   if (n > 0 && alive) {
     const k = Math.max(0, 1 - n / CRUSH);
-    if (!attacking && p.pushbackTimer <= 0) { const max = PLAYER_MOVE_SPEED * buffs.speed * k; if (Math.abs(p.vel.x) > max) p.vel.x = Math.sign(p.vel.x) * max; }
+    if (!attacking && p.pushbackTimer <= 0) { const max = PLAYER_MOVE_SPEED * walkSpeedK() * k; if (Math.abs(p.vel.x) > max) p.vel.x = Math.sign(p.vel.x) * max; }
     if (p.vel.y < 0 && !attacking) p.vel.y += 0.1 * n;
     // (they hurt, piled on: a little every two-thirds of a second, more the more of them; i-frames don't stop it, it's weight)
     if (n >= CRUSH || state.frame % PILE_EVERY === 0) {

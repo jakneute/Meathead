@@ -6,8 +6,15 @@ import { FINALE_STAGE, FINALE_DAMAGE_TAKEN } from '../../constants';
 /** How hard everything hits him, overall, as the game playing has it (Meathead 2: setHurtScale; Meathead 1: as it is). */
 let hurtScale = 1;
 export const setHurtScale = (k: number) => { hurtScale = k; };
+/** On top of that, whatever he's got on (Meathead 2's helmet): asked each hurt (1: as it is). A hurt this big or more
+ *  is an instant kill, and stays one: his gear doesn't take anything off it. */
+let gearK: () => number = () => 1;
+export const setHurtGear = (fn: (() => number) | null) => { gearK = fn ?? (() => 1); };
+export const INSTANT_KILL_HURT = 999;
+/** Just his gear's share of a hurt (for the few hurts that don't go through hurtTaken). */
+export const gearHurt = (damage: number) => damage * (damage >= INSTANT_KILL_HURT ? 1 : gearK());
 export const hurtTaken = (stageId: string | null | undefined, damage: number) =>
-  (stageId === FINALE_STAGE ? damage * FINALE_DAMAGE_TAKEN : damage) * hurtScale;
+  (stageId === FINALE_STAGE ? damage * FINALE_DAMAGE_TAKEN : damage) * hurtScale * (damage >= INSTANT_KILL_HURT ? 1 : gearK());
 
 /** In the finale he's got the grit to match: hurt, he doesn't get knocked back or knocked out of what he's doing (the
  * alien's laser, the Secret Service's bullets, fists and shields; everything). */

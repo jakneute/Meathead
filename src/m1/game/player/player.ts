@@ -4,7 +4,7 @@
 
 import { notePowerShort } from './powerShort';
 import { shoveSetDistance } from '../core/resist';
-import { powerCells } from '../core/tuning';
+import { powerCells, mods, walkSpeedK } from '../core/tuning';
 import { Enemy, WeaponType, Rect, Block, Player } from '../../types';
 import {
   MAX_AMMO,
@@ -36,7 +36,6 @@ import { getBossDef, getArenaRight } from '../bosses/registry';
 import { getStageLeft } from '../stages';
 import { getFinale } from '../stages/finale/state';
 import { customWeapon, customWeapons } from '../combat/customWeapons';
-import { buffs } from '../core/buffs';
 
 /**
  * Secondary fire (Y on the pad, F on the keyboard), by the weapon in his hands: what it does instead. Only the oil
@@ -332,7 +331,8 @@ const startSpecialMoves = (ctx: FrameContext, input: FrameInput) => {
   if (!locked && (!input.moveUp || only) && !airDive && !player.isCharging && (free || player.power >= 1)) {
     if (!free) player.power -= 1;
     player.isSliding = !only && player.isGrounded && (player.isDucking || input.moveDown) && !player.jetski;
-    player.chargeTimer = player.isSliding ? SLIDE_DURATION : CHARGE_DURATION;
+    // (a game's gear can make either go further: Meathead 2's pauldrons, leg armor)
+    player.chargeTimer = Math.round(player.isSliding ? SLIDE_DURATION * mods().reach('slide') : CHARGE_DURATION * mods().reach('charge'));
     player.isCharging = true;
     player.isUppercutting = false;
     player.isDivekicking = false;
@@ -349,7 +349,7 @@ const startSpecialMoves = (ctx: FrameContext, input: FrameInput) => {
     player.isCharging = false;
     player.isSliding = false;
     player.isDivekicking = false;
-    player.uppercutTimer = UPPERCUT_DURATION;
+    player.uppercutTimer = Math.round(UPPERCUT_DURATION * mods().reach('uppercut'));
     player.uppercutHitIds = [];
     player.moveId = (player.moveId || 0) + 1;
     fx.playGunSound('whoosh', 1, 3);
@@ -359,7 +359,8 @@ const startSpecialMoves = (ctx: FrameContext, input: FrameInput) => {
   if (airDive && (!player.isDivekicking || player.recoiling)) {
     player.isDivekicking = true;
     player.chargeFace = player.facing;
-    player.diveKickSpeedX = (DIVEKICK_SPEED / Math.tan(DIVEKICK_ANGLE * Math.PI / 180)) * player.chargeFace;
+    // (further across, at the same speed down: Meathead 2's sabatons)
+    player.diveKickSpeedX = (DIVEKICK_SPEED / Math.tan(DIVEKICK_ANGLE * Math.PI / 180)) * player.chargeFace * mods().reach('divekick');
     player.isCharging = false;
     player.isSliding = false;
     player.isUppercutting = false;
@@ -490,7 +491,7 @@ const updateHorizontalVelocity = (ctx: FrameContext, movDir: number) => {
   const inOil = isStandingInOil(state);
   // (and out in his oil field: a slick you slide about on, tar that holds your feet)
   const fieldOil = oilUnderfoot(state);
-  const targetVel = movDir * PLAYER_MOVE_SPEED * buffs.speed * (inOil || fieldOil === 'tar' ? OSCAR_OIL_SPEED_MULT : 1);
+  const targetVel = movDir * PLAYER_MOVE_SPEED * walkSpeedK() * (inOil || fieldOil === 'tar' ? OSCAR_OIL_SPEED_MULT : 1);
   const effectiveDir = player.isDucking ? 0 : movDir;
   const bossDef = getBossDef(stageId);
   // A floorless arena's platforms (Tommy's floating boards) aren't terrain blocks, so being grounded there counts as a floor too
@@ -527,6 +528,7 @@ export const updatePlayerPhysics = (ctx: FrameContext, input: FrameInput) => {
 
   if (player.shootCooldown > 0) player.shootCooldown--;
   const wasGrounded = player.isGrounded;
+  player.floating = false;
   // (held where something else has him, a vine: it moves him, not his own legs or gravity)
   if (player.carried) { player.isGrounded = false; }
   else {
@@ -634,6 +636,8 @@ const updateVerticalVelocity = (ctx: FrameContext, input: FrameInput) => {
     // Oil underfoot: your feet slip and you barely get off the ground
     player.jumpHoldTimer = isStandingInOil(ctx.state) || oilUnderfoot(ctx.state) === 'tar' ? Math.round(JUMP_HOLD_FRAMES * OSCAR_OIL_JUMP_MULT) : JUMP_HOLD_FRAMES;
     if (player.skiing) player.jumpHoldTimer = Math.round(JUMP_HOLD_FRAMES * SKI_JUMP_HOLD_MULT);
+    // (on his own legs, good footing: a game's gear can send him higher (Meathead 2's cape))
+    else if (player.jumpHoldTimer === JUMP_HOLD_FRAMES) player.jumpHoldTimer = Math.round(JUMP_HOLD_FRAMES * mods().jumpHold());
     player.squash = -0.5; // stretch on take-off
     ctx.fx.playGunSound('jump');
     // (a puff of dust off the ground he pushed off: unless he's jumping out of the air, off coyote time)
@@ -650,6 +654,10 @@ const updateVerticalVelocity = (ctx: FrameContext, input: FrameInput) => {
   }
 
   if (player.vel.y > PLAYER_TERMINAL_VELOCITY) player.vel.y = PLAYER_TERMINAL_VELOCITY;
+  // Falling with jump held, a game's gear can float him down slowly, steering as he likes (Meathead 2's cape)
+  const floatFall = input.jump && !player.isGrounded && player.vel.y > 0 ? mods().floatFall(player) : null;
+  player.floating = floatFall !== null && player.vel.y >= floatFall;
+  if (floatFall !== null && player.vel.y > floatFall) player.vel.y = Math.max(floatFall, player.vel.y - PLAYER_GRAVITY * 2);
 };
 
 const doorIsMoving = (state: GameState) =>

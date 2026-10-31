@@ -1,0 +1,121 @@
+// What the armor and the cape do (SPEC.md, Phase B), put into the engine's hooks (m1 game/core/tuning.ts setMoveMods,
+// core/resist.ts setHurtGear, bosses/shared.ts setHurtVeto) from apply.ts. Each asks has(piece) live, so the cheats'
+// toggles take on the spot. The numbers are tune.ts's.
+//
+//   SABATONS   the dive kick goes further across; it stomps spiked tops (KindDef.spiky) like any other, and the
+//              dungeon's spike bed doesn't hurt him coming down on it in one (spikeProof, below).
+//   PAULDRONS  the charge goes further; what's pointed at it (KindDef.pointy: spears, horns) is just another body.
+//   LEG ARMOR  the slide goes further; nothing hurts him from in front while he's sliding (shots, swings, anything
+//              that would throw him back the way he came; not instant kills); a regular enemy the slide doesn't kill is
+//              TRIPPED (down LEGS_TRIP_FRAMES, its body harmless meanwhile) and he slides on through it, no bounce off.
+//              A boss or a sub-boss just takes the hit, as ever.
+//   ARMGUARDS  the uppercut goes higher; it lands through a boss's shield (the engine's bossDef.shield).
+//   HELMET     every hurt bar instant kills ×HELMET_HURT; a regular enemy's shot into his head is stopped (not a boss's
+//              or a sub-boss's, not anything big); ducking, the stopped area's bigger. The engine's shots ask it
+//              (stopsShot); Meathead 2's own shot systems ask helmetStops (below) where they're wired in.
+//   CAPE       faster walking (×CAPE_WALK, times any bulk up), higher jumps, and the float: hold jump falling to drift
+//              down, steering (on his own legs only: not swimming, on a vine, a ladder, a ride, skis, a vehicle...).
+
+import type { FrameContext } from '../../m1/game/core/context';
+import type { GameState } from '../../m1/game/core/state';
+import type { Player, Projectile } from '../../m1/types';
+import { setMoveMods, type MeleeMove } from '../../m1/game/core/tuning';
+import { setHurtGear, INSTANT_KILL_HURT } from '../../m1/game/core/resist';
+import { setHurtVeto } from '../../m1/game/bosses/shared';
+import { isMidBossKind } from '../../m1/game/combat/midBoss';
+import { playSound } from '../../m1/game/platform/audio';
+import { has } from './state';
+import {
+  PAULDRONS_REACH, LEGS_REACH, ARMGUARDS_REACH, SABATONS_REACH, LEGS_TRIP_FRAMES,
+  HELMET_HURT, HELMET_HEAD_H, HELMET_HEAD_ABOVE, HELMET_DUCK_HEAD_H, HELMET_MAX_SHOT,
+  CAPE_WALK, CAPE_JUMP_HOLD, CAPE_FLOAT_FALL,
+} from './tune';
+
+const REACH: Record<MeleeMove, [Parameters<typeof has>[0], number]> = {
+  charge: ['pauldrons', PAULDRONS_REACH], slide: ['legs', LEGS_REACH], uppercut: ['armguards', ARMGUARDS_REACH], divekick: ['sabatons', SABATONS_REACH],
+};
+
+/** A dive kick in the sabatons: proof against spikes coming down on them (a stage's spike hazards ask this too). */
+export const spikeProof = (p: Player) => !!p.isDivekicking && has('sabatons');
+
+/** On his own legs, nothing else steering him: where the cape's float can work. */
+const onOwnLegs = (p: Player) =>
+  !p.swimming && !p.carried && !p.skiing && !p.jetski && !p.bike && !p.moto && !p.vine && !p.ladder && !p.cartSeat && !p.logSeat
+  && !p.inCutscene && !p.hiding && !p.airGrab && !p.noSpecials
+  && !p.isCharging && !p.isUppercutting && !p.isDivekicking && !p.recoiling && p.lockTimer <= 0 && p.pushbackTimer <= 0 && p.health > 0;
+
+// ---- the helmet's head
+/** His head, as the helmet covers it (world): standing, the top of his box and a little above; ducking, more of it. */
+const headBox = (p: Player) => p.isDucking || p.isSliding
+  ? { x: p.pos.x, y: p.pos.y + 28, w: p.width, h: HELMET_DUCK_HEAD_H }
+  : { x: p.pos.x, y: p.pos.y - HELMET_HEAD_ABOVE, w: p.width, h: HELMET_HEAD_H + HELMET_HEAD_ABOVE };
+const overlaps = (a: { x: number; y: number; w: number; h: number }, x: number, y: number, w: number, h: number) =>
+  a.x < x + w && a.x + a.w > x && a.y < y + h && a.y + a.h > y;
+
+/** The clank off the helmet (or the leg armor), sparks where it hit; the sound not every frame. */
+let clankAt = -99;
+const clank = (state: GameState, x: number, y: number) => {
+  if (state.frame - clankAt > 6) { clankAt = state.frame; playSound('clang', 0.7, 4 + Math.random() * 3); }
+  for (let i = 0; i < 8; i++) state.particles.push({ pos: { x, y }, vel: { x: (Math.random() - 0.5) * 6, y: -1 - Math.random() * 4 }, life: 14, color: i % 2 ? '#FDE047' : '#FFFFFF', size: 1.5 + Math.random() * 1.5 });
+};
+
+/**
+ * A regular enemy's shot (the box x, y, w, h, world) into his head with the helmet on: true if it's stopped (it's
+ * spent; nothing hurts him; the clank's done). For Meathead 2's own shot systems: ask before hurting him with a shot
+ * from a regular enemy (never a boss's or a sub-boss's, never a hazard's).
+ */
+export const helmetStops = (state: GameState, x: number, y: number, w: number, h: number) => {
+  const p = state.player;
+  if (!has('helmet') || p.health <= 0 || w >= HELMET_MAX_SHOT || h >= HELMET_MAX_SHOT) return false;
+  if (!overlaps(headBox(p), x, y, w, h)) return false;
+  clank(state, x + w / 2, y + h / 2);
+  return true;
+};
+/** The same for a shot as a point and a radius (most of Meathead 2's own shots). */
+export const helmetStopsAt = (state: GameState, x: number, y: number, r: number) => helmetStops(state, x - r, y - r, r * 2, r * 2);
+
+/** Sliding in the leg armor, and this came at him from in front (where it is, or the way it's going). */
+const slideFront = (p: Player, x: number, vx: number) => {
+  if (!p.isSliding || !has('legs')) return false;
+  const mid = p.pos.x + p.width / 2;
+  return (x - mid) * p.chargeFace > 0 || vx * p.chargeFace < -0.5;
+};
+
+/** An engine shot that's reached him: stopped by the leg armor's front on a slide, or by the helmet. */
+const stopsShot = (ctx: FrameContext, s: Projectile) => {
+  const { state } = ctx, p = state.player;
+  if (s.visualOnly) return false;
+  const cx = s.pos.x + s.width / 2, cy = s.pos.y + s.height / 2;
+  if (slideFront(p, cx, s.vel.x)) { clank(state, cx, cy); return true; }
+  // (the helmet: only a regular enemy's (the engine names who fired it), nothing big)
+  if (!s.shooterKind || s.shooterKind === 'alien' || isMidBossKind(s.shooterKind)) return false;
+  return helmetStops(state, s.pos.x, s.pos.y, s.width, s.height);
+};
+
+let installed = false;
+export const installGear = () => {
+  if (installed) return;
+  installed = true;
+  setMoveMods({
+    walk: () => (has('cape') ? CAPE_WALK : 1),
+    jumpHold: () => (has('cape') ? CAPE_JUMP_HOLD : 1),
+    floatFall: p => (has('cape') && onOwnLegs(p) ? CAPE_FLOAT_FALL : null),
+    reach: move => { const [piece, k] = REACH[move]; return has(piece) ? k : 1; },
+    spikeProof,
+    pointProof: p => p.isCharging && !p.isSliding && has('pauldrons'),
+    slideThrough: p => p.isSliding && has('legs'),
+    uppercutPierces: p => p.isUppercutting && has('armguards'),
+    stopsShot,
+    tripFrames: LEGS_TRIP_FRAMES,
+  });
+  setHurtGear(() => (has('helmet') ? HELMET_HURT : 1));
+  // (the leg armor's front: anything that'd throw him back the way he's sliding from (it came at him from in front)
+  // doesn't hurt him; nor knock him about. Not an instant kill)
+  setHurtVeto((ctx, damage, _source, knock) => {
+    const p = ctx.state.player;
+    if (!knock || damage >= INSTANT_KILL_HURT || !p.isSliding || !has('legs')) return false;
+    if (Math.sign(knock.x) !== -p.chargeFace) return false;
+    clank(ctx.state, p.pos.x + p.width / 2 + p.chargeFace * (p.width / 2), p.pos.y + p.height - 18);
+    return true;
+  });
+};

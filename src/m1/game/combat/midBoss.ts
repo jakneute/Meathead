@@ -14,8 +14,10 @@ import { BOULDER_DAMAGE_PER_SPEED, GML_SCALE } from '../../constants';
 const MIDBOSS_KINDS = new Set<string>();
 export const registerMidBossKind = (kind: string) => { MIDBOSS_KINDS.add(kind); };
 
-export const isMidBoss = (e: Enemy) => !!e.hyper || e.kind === 'moose' || e.kind === 'eye' || e.kind === 'doorman' || e.kind === 'junkie' || e.kind === 'amalgam'
-  || (!!e.kind && MIDBOSS_KINDS.has(e.kind));
+export const isMidBoss = (e: Enemy) => !!e.hyper || isMidBossKind(e.kind);
+/** A kind that's a mid-boss (whatever one of them it is). */
+export const isMidBossKind = (kind?: string) => kind === 'moose' || kind === 'eye' || kind === 'doorman' || kind === 'junkie' || kind === 'amalgam'
+  || (!!kind && MIDBOSS_KINDS.has(kind));
 
 /**
  * Per hit on a mid-boss (per pellet for the shotgun, per tick for the flamethrower and the taser):

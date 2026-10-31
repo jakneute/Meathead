@@ -29,6 +29,7 @@ import type { FrameContext } from '../../m1/game/core/context';
 import type { GameState } from '../../m1/game/core/state';
 import type { Enemy, SoundType } from '../../m1/types';
 import { hurtPlayer } from '../../m1/game/bosses/shared';
+import { helmetStopsAt } from '../upgrades/gear';
 import { playSound } from '../../m1/game/platform/audio';
 import { shakeScreen } from '../../m1/game/core/state';
 import { hazardVictims, hazardHit, boxHits } from '../hazardHit';
@@ -92,6 +93,9 @@ export const launchRocket = (state: GameState, x: number, y: number, tx: number,
   playSound('whoosh', 0.6, 10);
 };
 
+/** What a helmet doesn't stop (not a solid thing: a cloud, a sound; or a blast). */
+const HELMET_PASSES = new Set<string>(['rocket', 'smoke', 'tuba', 'aria', 'note']);
+
 /** A burst (a firework's): it hurts him and anybody else in it (a hazard). */
 export const burstAt = (ctx: FrameContext, x: number, y: number, r: number, dmg: number, src: string, col = '#FDE047') => {
   const { state } = ctx, p = state.player, o = streetsOf(state);
@@ -134,6 +138,8 @@ export const updateShots = (ctx: FrameContext) => {
     // Him
     if (p.health > 0 && s.x + r > p.pos.x && s.x - r < p.pos.x + p.width && s.y + r > p.pos.y && s.y - r < p.pos.y + p.height) {
       if (s.kind === 'rocket') { burstAt(ctx, s.x, s.y, 70, DMG.rocket, SHOT_SRC.rocket); return false; }
+      // (off his helmet, the upgrade: anything solid thrown at his head (not a cloud, a song, a blast of a tuba))
+      if (p.invincibilityTimer <= 0 && !p.inCutscene && !HELMET_PASSES.has(s.kind) && helmetStopsAt(state, s.x, s.y, r)) return false;
       if (p.invincibilityTimer <= 0 && !p.inCutscene) {
         const dir = Math.sign(s.vx || 1);
         const push = s.kind === 'tuba' ? 16 : s.kind === 'note' ? 9 : 4;

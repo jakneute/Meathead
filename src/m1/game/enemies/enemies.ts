@@ -38,8 +38,8 @@ import { copMelee, isMeleeCop } from './copMelee';
 import { submerged } from './kinds/victor';
 import { isMidBoss } from '../combat/midBoss';
 import { isBeingTased } from '../combat/statusEffects';
-import { hurtTaken, gritty, shoveSetDistance, wallSplatDeath } from '../core/resist';
-import { powerCells, stompRefund, meleeDamage } from '../core/tuning';
+import { hurtTaken, gritty, shoveSetDistance, wallSplatDeath, gearHurt } from '../core/resist';
+import { powerCells, stompRefund, meleeDamage, mods } from '../core/tuning';
 import { startWallSplat } from './wallSplatDeath';
 import { sweepBody, pushOutOfSolid, type BodyHit } from './bodySweep';
 import { inFinale } from '../combat/finaleBuffs';
@@ -946,7 +946,7 @@ const resolvePlayerContact = (ctx: FrameContext, e: Enemy): boolean => {
       harmlessBounce(ctx, e, 18, -4);
       return true;
     }
-    if (bossDef?.shield?.isUp(e, state)) {
+    if (bossDef?.shield?.isUp(e, state) && !(player.isUppercutting && mods().uppercutPierces(player))) {
       fx.spawnExplosion(player.pos, bossDef.shield.color, 12, 0, 6);
       if (bossDef.shield.sound) fx.playGunSound(bossDef.shield.sound);
       harmlessBounce(ctx, e, PLAYER_PUSHBACK_VEL_X, PLAYER_PUSHBACK_VEL_Y);
@@ -1015,6 +1015,12 @@ const resolvePlayerContact = (ctx: FrameContext, e: Enemy): boolean => {
 
     if (e.health > 0) {
       const mass = getEnemyMass(e);
+      // (a slide in a game's gear that trips them (Meathead 2's leg armor): a regular enemy's taken off its feet, down
+      // a good while, and he slides on through under it; a boss or a sub-boss just takes the hit, as ever)
+      if (player.isSliding && e.type !== 'boss' && !isMidBoss(e) && mods().slideThrough(player)) {
+        tripEnemy(ctx, e);
+        return true;
+      }
       if (e.type !== 'boss') {
         knockBackEnemy(ctx, e, mass, wasFrozen);
       }
@@ -1099,7 +1105,7 @@ const resolvePlayerContact = (ctx: FrameContext, e: Enemy): boolean => {
     ? { x: player.pos.x + 2, y: player.pos.y + (player.height - 26), w: player.width - 4, h: 26 }
     : boundsOf(player);
   // (just bounced off this one: it doesn't get to hurt him for the bump itself; anything else still can)
-  const bouncedOff = state.reboundFrom?.id === e.id && state.frame < state.reboundFrom.until;
+  const bouncedOff = (state.reboundFrom?.id === e.id && state.frame < state.reboundFrom.until) || (e.trippedUntil ?? -1) > state.frame;
   // (frozen solid, it's a block of ice: it doesn't hurt to bump into)
   // (in an air grab, or just after one; shoving a shield along: bumping into them doesn't hurt)
   const contactSafe = !!player.untouchable || state.frame < (player.noContactUntil ?? -1);
@@ -1176,6 +1182,20 @@ const knockBackEnemy = (ctx: FrameContext, e: Enemy, mass: number, wasFrozen: bo
   // (a shoulder charge's shove: into a wall, that's a lot more than a bump)
   if (player.isCharging && !player.isSliding && !player.isUppercutting) e.chargedAt = ctx.state.frame;
   interrupt(e);
+};
+
+/** Tripped by a slide (MoveMods.slideThrough): up off its feet, over him, down a good while (dazed: pauseTimer), and
+ *  out of whatever it was doing. Its body doesn't count as hurting him while it's down. */
+const tripEnemy = (ctx: FrameContext, e: Enemy) => {
+  const { state, fx } = ctx;
+  const p = state.player, t = mods().tripFrames;
+  if (!e.unshakeable) { e.vel.x = p.chargeFace * 1.5; e.vel.y = isAirEnemy(e) ? -2 : -6; }
+  e.pauseTimer = Math.max(e.pauseTimer || 0, t);
+  interrupt(e);
+  e.trippedUntil = state.frame + t;
+  fx.spawnDamageNumber({ x: e.pos.x, y: e.pos.y - 24 }, 'TRIPPED!', true, '#FDE047');
+  fx.playGunSound('thud');
+  shakeScreen(state, 5, 3);
 };
 
 /** What an enemy was winding up to (a lunge, a swing, a shot) is knocked out of it: it has to start over. */
@@ -1299,6 +1319,8 @@ const knifeFirst = (ctx: FrameContext, e: Enemy): boolean => {
   // (the mugger's switchblade; or a kind with something as sharp out in front of it, a spear, horns)
   const pointy = e.kind === 'mugger' ? { source: 'mugger_knife', label: 'STABBED!', damage: KNIFE_DAMAGE } : kindDef(e.kind)?.pointy;
   if (!pointy || !p.isCharging || p.isSliding || e.health <= 0 || e.isBlownAway || isFrozen(e) || (e.pauseTimer || 0) > 0) return false;
+  // (a game's gear he's proof against it in: Meathead 2's pauldrons; it's just another body to him)
+  if (mods().pointProof(p)) return false;
   if (e.hitByMove === p.moveId || !rectsOverlap(getAttackHitbox(ctx), boundsOf(e))) return false;
   const pc = p.pos.x + p.width / 2, ec = e.pos.x + e.width / 2;
   const side = pc < ec ? -1 : 1;
@@ -1308,7 +1330,7 @@ const knifeFirst = (ctx: FrameContext, e: Enemy): boolean => {
   e.hitByMove = p.moveId;
   harmlessBounce(ctx, e, PLAYER_PUSHBACK_VEL_X * 1.4, PLAYER_PUSHBACK_VEL_Y);
   if (p.invincibilityTimer <= 0) {
-    if (!cheats.invincible) p.health -= pointy.damage ?? KNIFE_DAMAGE;
+    if (!cheats.invincible) p.health -= gearHurt(pointy.damage ?? KNIFE_DAMAGE);
     p.invincibilityTimer = PLAYER_INVINCIBILITY_FRAMES; p.hurtTimer = PLAYER_INVINCIBILITY_FRAMES;
     p.isHarmlessPushback = false; p.smugTimer = 0;
     fx.speakVulgarity('hurt', pointy.source);
@@ -1330,6 +1352,8 @@ const spikesUp = (ctx: FrameContext, e: Enemy): boolean => {
   const p = state.player;
   const spiky = kindDef(e.kind)?.spiky;
   if (!spiky || !p.isDivekicking || e.health <= 0 || e.isBlownAway || isFrozen(e) || (e.pauseTimer || 0) > 0) return false;
+  // (a game's gear he's proof against them in: Meathead 2's sabatons; a stomp like any other)
+  if (mods().spikeProof(p)) return false;
   if (e.hitByMove === p.moveId || !rectsOverlap(getAttackHitbox(ctx), boundsOf(e))) return false;
   // (coming down on top of it: his feet over its upper half)
   if (p.pos.y + p.height > e.pos.y + e.height * 0.5) return false;
@@ -1339,7 +1363,7 @@ const spikesUp = (ctx: FrameContext, e: Enemy): boolean => {
   p.vel = { x: away * 4.5, y: -10 };
   p.lockTimer = Math.max(p.lockTimer, 16);
   if (p.invincibilityTimer <= 0) {
-    if (!cheats.invincible) p.health -= spiky.damage ?? KNIFE_DAMAGE;
+    if (!cheats.invincible) p.health -= gearHurt(spiky.damage ?? KNIFE_DAMAGE);
     p.invincibilityTimer = PLAYER_INVINCIBILITY_FRAMES; p.hurtTimer = PLAYER_INVINCIBILITY_FRAMES;
     p.isHarmlessPushback = false; p.smugTimer = 0;
     fx.speakVulgarity('hurt', spiky.source);

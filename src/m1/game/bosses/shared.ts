@@ -197,6 +197,11 @@ export const bossPain = (ctx: FrameContext, boss: Enemy, kind: string, frames: n
   state.screenShakeTimer = Math.max(state.screenShakeTimer, 14);
 };
 
+/** Another game's say over a hurt before it lands (Meathead 2's leg armor: a slide's proof against what's in front of
+ *  it): true and it doesn't (Meathead 1: never set). `knockback` is where it would throw him (from what hurt him). */
+let hurtVeto: ((ctx: FrameContext, damage: number, source: string, knockback?: { x: number; y: number }) => boolean) | null = null;
+export const setHurtVeto = (fn: typeof hurtVeto) => { hurtVeto = fn; };
+
 export const hurtPlayer = (
   ctx: FrameContext, damage: number, source: string,
   knockback?: { x: number; y: number }, pushbackFrames = PLAYER_PUSHBACK_DURATION,
@@ -204,6 +209,7 @@ export const hurtPlayer = (
   const player: Player = ctx.state.player;
   // (mid air grab (Meathead 2): nothing gets him)
   if (player.untouchable) return;
+  if (hurtVeto?.(ctx, damage, source, knockback)) return;
   if (!ctx.cheats.invincible) player.health -= hurtTaken(ctx.stageId, damage);
   // (what hurt him, for the death screen: the killing blow included)
   ctx.state.lastHurt = { source, at: ctx.state.frame };

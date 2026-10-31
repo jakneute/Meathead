@@ -31,6 +31,7 @@ import { inFinale, FINALE_FREEZE_TIME, PITCH_SPEED, PITCH_HOMING, FINALE_SLUDGE_
 import { ROOM_L, ROOM_R, FLOOR } from '../stages/finale/geometry';
 import { ernieQuake } from '../bosses/ernie';
 import { hurtTaken, gritty } from '../core/resist';
+import { mods } from '../core/tuning';
 import { startGunKill, startEnemyDeath } from '../enemies/deaths';
 import { gunDeathMode } from '../enemies/gunDeaths';
 import { spared } from '../enemies/enemies';
@@ -897,6 +898,8 @@ const resolveEnemyProjectileHit = (ctx: FrameContext, p: Projectile): boolean =>
   else if (player.isCharging) { hurtbox.w += 10; hurtbox.h -= 10; }
   else if (player.isUppercutting) { hurtbox.w -= 15; hurtbox.h += 40; hurtbox.y -= 30; hurtbox.x += 7.5; }
   if (!rectsOverlap(boundsOf(p), hurtbox)) return true;
+  // (stopped by what he's got on, a game's gear: Meathead 2's helmet, his leg armor's front on a slide)
+  if (mods().stopsShot(ctx, p)) return false;
 
   // Uppercuts and divekicks slice cleanly through Tommy's vomit
   if (p.isSludge && (player.isUppercutting || player.isDivekicking)) {

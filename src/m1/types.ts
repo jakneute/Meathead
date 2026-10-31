@@ -109,6 +109,8 @@ export interface Player extends Entity {
   coyoteJumpTimer: number;
   jumpBufferTimer: number;
   jumpHoldTimer: number;
+  /** Floating down slowly, jump held (Meathead 2's cape): set each frame it's so. */
+  floating?: boolean;
   /** Down + jump on a jump-through ledge: dropping through it (frames left, and the height of the ledge he's dropping through). */
   dropThroughT?: number;
   dropThroughY?: number;
@@ -458,6 +460,8 @@ export interface Enemy extends Entity {
   shovedAt?: number;
   /** The frame a shoulder charge knocked it back (a wall it's slammed into soon after hurts a lot more). */
   chargedAt?: number;
+  /** Tripped by his slide (Meathead 2's leg armor): down till this frame, and its body doesn't hurt him meanwhile. */
+  trippedUntil?: number;
   /** In the water and can't swim: frames since he went in, and where the surface is. */
   drownT?: number;
   drownSurface?: number;

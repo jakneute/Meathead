@@ -7,6 +7,7 @@ import type { FrameContext } from '../../../m1/game/core/context';
 import type { GameState } from '../../../m1/game/core/state';
 import type { Enemy } from '../../../m1/types';
 import { hurtPlayer } from '../../../m1/game/bosses/shared';
+import { helmetStopsAt } from '../../upgrades/gear';
 import { playSound } from '../../../m1/game/platform/audio';
 import { outOf } from './state';
 
@@ -47,6 +48,8 @@ export const updateShots = (ctx: FrameContext) => {
     s.x += s.vx; s.y += s.vy;
     const r = s.kind === 'blast' ? 10 + Math.min(14, s.t * 0.25) : 10;
     if (p.health > 0 && s.x + r > p.pos.x && s.x - r < p.pos.x + p.width && s.y + r > p.pos.y && s.y - r < p.pos.y + p.height) {
+      // (the foam shield off his helmet, the upgrade: it bounces off back to the hand)
+      if (s.kind === 'shield' && p.invincibilityTimer <= 0 && !p.inCutscene && helmetStopsAt(state, s.x, s.y, r)) { s.back = true; return true; }
       if (p.invincibilityTimer <= 0 && !p.inCutscene) {
         const dir = Math.sign(s.vx || 1);
         if (s.kind === 'lasso') {

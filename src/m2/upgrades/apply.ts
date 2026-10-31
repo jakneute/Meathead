@@ -11,6 +11,7 @@ import { setPlayerMaxHealth, setPowerCells, setStompRefund, setMeleeDamageHook }
 import { setMaxAmmoScale, maxAmmo, MAX_AMMO } from '../../m1/constants';
 import { maxHealth, ammoScale, powerCells, subscribeUpgrades } from './state';
 import { bossMeleeOf } from './bossMelee';
+import { installGear } from './gear';
 import { liveState } from '../cheats';
 import type { WeaponType } from '../../m1/types';
 
@@ -25,6 +26,8 @@ export const installUpgrades = () => {
   setPowerCells(powerCells);
   setMaxAmmoScale(ammoScale);
   setStompRefund(false);
+  // (what the armor and the cape do to his moves, his legs and what hurts him: gear.ts)
+  installGear();
   setMeleeDamageHook((e: Enemy, move, damage) => {
     if (e.type === 'boss') return damage;
     if (e.kind && ENGINE_SUB_BOSSES.has(e.kind)) return bossMeleeOf(move, true);

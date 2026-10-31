@@ -8,6 +8,7 @@ import type { FrameContext } from '../../../m1/game/core/context';
 import type { GameState } from '../../../m1/game/core/state';
 import type { Enemy } from '../../../m1/types';
 import { hurtPlayer } from '../../../m1/game/bosses/shared';
+import { helmetStopsAt } from '../../upgrades/gear';
 import { playSound } from '../../../m1/game/platform/audio';
 import { floorTopAt } from '../../../m1/game/core/terrain';
 import { hazardVictims, hazardHit, boxHits } from '../../hazardHit';
@@ -64,7 +65,10 @@ export const updateThrows = (ctx: FrameContext) => {
     // (him: in flight, or a hot horseshoe underfoot)
     const r = R[s.kind];
     const hot = s.kind === 'horseshoe' && s.rest !== undefined && s.rest < 90;
-    if ((s.rest === undefined || hot) && s.kind !== 'dynamite' && p.health > 0 && !p.inCutscene && p.invincibilityTimer <= 0 && p.pos.x < s.x + r && p.pos.x + p.width > s.x - r && p.pos.y < s.y + r && p.pos.y + p.height > s.y - r) {
+    const touching = s.kind !== 'dynamite' && p.health > 0 && !p.inCutscene && p.invincibilityTimer <= 0 && p.pos.x < s.x + r && p.pos.x + p.width > s.x - r && p.pos.y < s.y + r && p.pos.y + p.height > s.y - r;
+    // (in flight off his helmet, the upgrade: a bottle breaks on it, the rest just drop)
+    if (touching && s.rest === undefined && helmetStopsAt(state, s.x, s.y, r)) { if (s.kind === 'bottle' || s.kind === 'tonic') landed(ctx, s); else s.dead = true; }
+    else if ((s.rest === undefined || hot) && touching) {
       hurtPlayer(ctx, s.rest === undefined ? DMG[s.kind] : 6, SRC[s.kind], { x: Math.sign(s.vx || 1) * 5, y: -4 });
       playSound(s.kind === 'bottle' ? 'glass' : 'punch', 0.7, 0);
       if (s.kind === 'bottle' || s.kind === 'tonic') landed(ctx, s);
