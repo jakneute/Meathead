@@ -55,6 +55,7 @@ export interface HudSkin {
 /** The in-game HUD: health, power cells and the equipped weapon on a steel plate in the corner. */
 const HUD: React.FC<HUDProps> = ({ health, maxHealth, power, currentWeapon, ammo, maxAmmo, weaponName, weaponArt, weaponExtra, ammoLabel, skin, powerCells = POWER_CELLS, powerExtra, cellWidth, alert, alertText, powerAlert }) => {
   const hp = Math.max(0, Math.min(1, health / maxHealth));
+  const tick = Math.round((1700 / Math.max(10, maxHealth)) * 100) / 100;
   const low = hp < 0.35;
   const limited = maxAmmo !== Infinity;
   const ammoPct = limited ? Math.max(0, Math.min(1, ammo / maxAmmo)) : 1;
@@ -80,8 +81,8 @@ const HUD: React.FC<HUDProps> = ({ health, maxHealth, power, currentWeapon, ammo
             <div className={`absolute inset-y-0 left-0 ${low ? 'animate-pulse' : ''}`}
               style={{ width: `${hp * 100}%`, background: skin?.hp ?? 'linear-gradient(180deg, #F87171 0%, #DC2626 45%, #991B1B 100%)' }} />
             <div className="absolute inset-x-0 top-0 h-[2px] bg-white/25" />
-            {/* Segment ticks */}
-            <div className="absolute inset-0" style={{ background: 'repeating-linear-gradient(90deg, transparent 0 16px, rgba(0,0,0,0.55) 16px 17px)' }} />
+            {/* Segment ticks: one every 10 health (17px at 100; more and closer with a bigger max: Meathead 2's upgrades) */}
+            <div className="absolute inset-0" style={{ background: `repeating-linear-gradient(90deg, transparent 0 ${tick - 1}px, rgba(0,0,0,0.55) ${tick - 1}px ${tick}px)` }} />
           </div>
           <span className="relative w-[26px] text-right text-[8px] font-black text-white" style={{ color: skin?.value }}>{Math.ceil(Math.max(0, health))}</span>
         </div>

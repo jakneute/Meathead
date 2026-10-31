@@ -90,7 +90,7 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
   if (p.gut?.remains) { drawBlowout(ctx, p.gut, state.frame); drawRemains(ctx, p.gut.remains, state.frame); return; }
   if ((state.deathTimer > 0 && !p.headless && !p.shownDead) || p.hidden) return;
   const animFrame = state.playerAnimFrame;
-  setGore(1 - p.health / INITIAL_PLAYER_HEALTH);
+  setGore(1 - p.health / (p.maxHealth || INITIAL_PLAYER_HEALTH));
   // (the finale: the hole the alien's laser burned in his jeans, from the cutscene)
   setLegSinge(state.stageId === FINALE_STAGE);
   // (his pants blown off him: naked from the waist down, swinging free; and his jeans and underpants, wherever they went)

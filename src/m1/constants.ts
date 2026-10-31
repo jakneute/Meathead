@@ -218,10 +218,17 @@ export const MAX_AMMO: Record<WeaponType, number> = {
 /** A fresh ammo loadout with every weapon topped up. */
 /** The finale's souped-up guns come at a price: a smaller load each (and the tsunami just five). */
 export const FINALE_AMMO_SCALE = 0.7, FINALE_TSUNAMI_AMMO = 5;
+/** Every weapon's capacity times this, as the game playing has it (Meathead 2's ammo upgrades; Meathead 1: never set). */
+let ammoScaleOf: (() => number) | null = null;
+export const setMaxAmmoScale = (fn: (() => number) | null) => { ammoScaleOf = fn; };
 /** A weapon's full load on a stage (the finale's smaller). */
-export const maxAmmo = (w: WeaponType, stageId?: string | null) =>
-  stageId !== FINALE_STAGE || !Number.isFinite(MAX_AMMO[w]) || MAX_AMMO[w] <= 0 ? MAX_AMMO[w]
-    : w === 'TSUNAMI' ? FINALE_TSUNAMI_AMMO : Math.max(1, Math.round(MAX_AMMO[w] * FINALE_AMMO_SCALE));
+export const maxAmmo = (w: WeaponType, stageId?: string | null) => {
+  const base = MAX_AMMO[w];
+  if (!Number.isFinite(base) || base <= 0) return base;
+  if (stageId === FINALE_STAGE) return w === 'TSUNAMI' ? FINALE_TSUNAMI_AMMO : Math.max(1, Math.round(base * FINALE_AMMO_SCALE));
+  const k = ammoScaleOf?.() ?? 1;
+  return k === 1 ? base : Math.max(1, Math.round(base * k));
+};
 export const createFullAmmo = (stageId?: string | null): Record<WeaponType, number> =>
   Object.fromEntries((Object.keys(MAX_AMMO) as WeaponType[]).map(w => [w, maxAmmo(w, stageId)])) as Record<WeaponType, number>;
 

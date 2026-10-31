@@ -5,7 +5,8 @@ import {
   Player, Enemy, Projectile, Particle, Pickup, DamageNumber, Block, Volcano,
   SteamExplosion, PoopTelegraph, TommyBoard, Vector2, WeaponType, FlameSegment, OilCell, Icicle,
 } from '../../types';
-import { INITIAL_PLAYER_HEALTH, POWER_CELLS, SCREEN_SHAKE_MAX } from '../../constants';
+import { SCREEN_SHAKE_MAX } from '../../constants';
+import { playerMaxHealth, powerCells } from './tuning';
 import { resetLineCooldowns, stopDeathAnnouncer } from '../platform/speech';
 import type { GroundRun } from './terrain';
 import type { Furniture } from '../stages/victor/furniture';
@@ -254,8 +255,8 @@ export const createPlayer = (ammo: Record<WeaponType, number>): Player => ({
   vel: { x: 0, y: 0 },
   width: 44,
   height: 64,
-  health: INITIAL_PLAYER_HEALTH,
-  maxHealth: INITIAL_PLAYER_HEALTH,
+  health: playerMaxHealth(),
+  maxHealth: playerMaxHealth(),
   type: 'player',
   facing: 1,
   isGrounded: false,
@@ -271,7 +272,7 @@ export const createPlayer = (ammo: Record<WeaponType, number>): Player => ({
   chargeFace: 1,
   chargeTimer: 0,
   uppercutTimer: 0,
-  power: POWER_CELLS,
+  power: powerCells(),
   diveKickSpeedX: 0,
   uppercutHitIds: [],
   diveKickHitIds: [],
@@ -548,13 +549,15 @@ export const resetStageState = (s: GameState) => {
 
   const p = s.player;
   resetPlayerCombatState(p);
-  p.health = INITIAL_PLAYER_HEALTH;
+  // (his full health, as the game playing has it: tuning.ts; Meathead 1's is always INITIAL_PLAYER_HEALTH)
+  p.maxHealth = playerMaxHealth();
+  p.health = p.maxHealth;
   p.invincibilityTimer = 0;
   p.isGrounded = false;
   p.coyoteAirTimer = 0;
   p.coyoteJumpTimer = 0;
   p.jumpHoldTimer = 0;
-  p.power = POWER_CELLS;
+  p.power = powerCells();
   p.killSatisfactionTimer = 0;
   p.bossKillSatisfactionTimer = 0;
   p.peeTimer = 0;

@@ -7,7 +7,7 @@ import {
   CANVAS_WIDTH, CANVAS_HEIGHT, BOSS_DOOR_X, GRAVITY, PLAYER_INVINCIBILITY_FRAMES, PLAYER_STUN_INVINCIBILITY,
   PLAYER_PUSHBACK_DURATION, PLAYER_PUSHBACK_VEL_X, PLAYER_PUSHBACK_VEL_Y, BOSS_CHARGE_DAMAGE, enemyMeleeDamage,
   PLAYER_MASS, ENEMY_DAZE_FRAMES, UPPERCUT_LAUNCH_SPEED, UPPERCUT_LAUNCH_X, BOUNCE_FRAMES,
-  GML_SCALE, POWER_CELLS, FROZEN_PUSH_MULTIPLIER, FROZEN_DAMAGE_MULTIPLIER, FROZEN_CHARGE_MULTIPLIER,
+  GML_SCALE, FROZEN_PUSH_MULTIPLIER, FROZEN_DAMAGE_MULTIPLIER, FROZEN_CHARGE_MULTIPLIER,
   FROZEN_WALL_IMPACT_MULTIPLIER, FROZEN_GROUND_IMPACT_MULTIPLIER, FROZEN_ENEMY_IMPACT_DAMAGE, OILED_IMPACT_MULTIPLIER, OILED_LEDGE_DROP,
   DAMAGE_WALL_IMPACT_SCALER, DAMAGE_FALL_SCALER, IMPACT_DAMAGE_THRESHOLD,
   ENEMY_DOMINO_TRANSFER, ENEMY_DOMINO_LOSS, DOMINO_DAMAGE_SCALER,
@@ -39,6 +39,7 @@ import { submerged } from './kinds/victor';
 import { isMidBoss } from '../combat/midBoss';
 import { isBeingTased } from '../combat/statusEffects';
 import { hurtTaken, gritty, shoveSetDistance, wallSplatDeath } from '../core/resist';
+import { powerCells, stompRefund, meleeDamage } from '../core/tuning';
 import { startWallSplat } from './wallSplatDeath';
 import { sweepBody, pushOutOfSolid, type BodyHit } from './bodySweep';
 import { inFinale } from '../combat/finaleBuffs';
@@ -977,6 +978,8 @@ const resolvePlayerContact = (ctx: FrameContext, e: Enemy): boolean => {
     }
     else if (player.isUppercutting) damage = (e.type === 'boss' ? BOSS_UPPERCUT_DAMAGE : enemyMeleeDamage.uppercut);
     else if (player.isDivekicking) damage = (e.type === 'boss' ? BOSS_DIVEKICK_DAMAGE : enemyMeleeDamage.divekick);
+    // (the game playing's own say over it: Meathead 2's armor and its sub-bosses; not a pest's one-hit kill)
+    if (!pest) damage = meleeDamage(e, player, damage);
     // (the bike's bunny hop or slam into a lowrider: that's the car wrecked)
     if (e.kind === 'lowrider' && (player.isUppercutting || player.isDivekicking)) damage = e.health;
     // (a boss his moves barely dent)
@@ -1017,8 +1020,9 @@ const resolvePlayerContact = (ctx: FrameContext, e: Enemy): boolean => {
       }
       if (player.isDivekicking) {
         // Stomp: a satisfying bounce, and you can divekick again mid-bounce. It also
-        // refunds a power cell on the spot (chain them for air combos; not off a head too greasy to stand on)
-        if (!bossDef?.slick) player.power = Math.min(POWER_CELLS, player.power + 1);
+        // refunds a power cell on the spot (chain them for air combos; not off a head too greasy to stand on; not in a
+        // game that has the dive kick free instead: tuning.ts stompRefund)
+        if (!bossDef?.slick && stompRefund()) player.power = Math.min(powerCells(), player.power + 1);
         fx.playGunSound('boing', 0.6);
         player.vel.y *= -0.5;
         player.vel.x *= 0.5;

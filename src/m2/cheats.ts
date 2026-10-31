@@ -9,6 +9,7 @@ import { setTimeOfDayOverride, timeOfDayOverride } from './timeOfDay';
 import { clearSkyCache } from './intro/art/sky';
 import { M2_PUBLIC } from './build';
 import { stepSoundTest, setSoundTest, soundTestLabel } from './music/soundTest';
+import { ARMOR_PIECES, has, setPiece, healthFinds, setHealthFinds, ammoFinds, setAmmoFinds, shards, setShards } from './upgrades/state';
 
 export interface M2Cheats { god: boolean; ammo: boolean; allWeapons: boolean; skip: boolean }
 let cheats: M2Cheats = { god: false, ammo: false, allWeapons: false, skip: false };
@@ -34,6 +35,8 @@ export const subscribeArsenal = (l: () => void) => { const a = subscribeCheats(l
 // His pants, set by hand: on the one GameState the game keeps all session (GameCanvas hands it over)
 let live: GameState | null = null;
 export const setLiveState = (s: GameState) => { live = s; };
+/** That GameState (null: none made yet). */
+export const liveState = () => live;
 export type Pants = 'normal' | 'shitty' | 'naked';
 export const pantsNow = (): Pants => { const st = live?.player.gut?.stage ?? 0; return st === 3 ? 'naked' : st === 2 ? 'shitty' : 'normal'; };
 /** Straight into that state (no grumble, no callout): clean, shitty (the stain, the stink), or blown off (naked, and
@@ -58,9 +61,23 @@ export const todNow = () => { const v = timeOfDayOverride(); return v === null ?
  */
 let panelOpen = false;
 /** The panel's rows, in order, and what's along each. */
-export const CHEAT_ROWS = ['god', 'ammo', 'allWeapons', 'skip', 'pants', 'tod', 'music', 'done'] as const;
+export const CHEAT_ROWS = ['god', 'ammo', 'allWeapons', 'skip', 'pants', 'tod', 'armor', 'hpUp', 'ammoUp', 'shards', 'music', 'done'] as const;
 export type CheatRow = typeof CHEAT_ROWS[number];
-const rowLength = (r: CheatRow) => (r === 'pants' ? 3 : r === 'tod' ? 11 : r === 'music' ? 3 : r === 'done' ? 1 : 2);
+const rowLength = (r: CheatRow) => (r === 'pants' ? 3 : r === 'tod' ? 11 : r === 'armor' ? ARMOR_PIECES.length + 2 : r === 'music' ? 3 : r === 'done' ? 1 : 2);
+
+/** The hidden upgrades (upgrades/state.ts), set by hand: each armor piece on or off, all or none; the counts up or down
+ *  a step (the owner's: "a debug menu that lets me equip each piece from the cheat menu so i can test it out"). */
+export const toggleArmor = (i: number) => {
+  if (i < ARMOR_PIECES.length) { const p = ARMOR_PIECES[i]; setPiece(p, !has(p)); }
+  else ARMOR_PIECES.forEach(p => setPiece(p, i === ARMOR_PIECES.length));
+  ping();
+};
+export const stepUpgrade = (r: 'hpUp' | 'ammoUp' | 'shards', d: number) => {
+  if (r === 'hpUp') setHealthFinds(healthFinds() + d);
+  else if (r === 'ammoUp') setAmmoFinds(ammoFinds() + d);
+  else setShards(shards() + d);
+  ping();
+};
 
 /** The sound test (music/soundTest.ts): back a song, on a song, or off. */
 export const stepMusic = (d: number) => { stepSoundTest(d); ping(); };
@@ -95,6 +112,8 @@ export const activateCheat = () => {
   if (r === 'god' || r === 'ammo' || r === 'allWeapons' || r === 'skip') setCheat(r, c === 0);
   else if (r === 'pants') setPants((['normal', 'shitty', 'naked'] as Pants[])[c]);
   else if (r === 'tod') setTod(c === 0 ? null : c - 1);
+  else if (r === 'armor') toggleArmor(c);
+  else if (r === 'hpUp' || r === 'ammoUp' || r === 'shards') stepUpgrade(r, c === 0 ? -1 : 1);
   else if (r === 'music') { if (c === 2) setSoundTest(null); else stepSoundTest(c === 0 ? -1 : 1); }
   else setCheatPanelOpen(false);
   ping();

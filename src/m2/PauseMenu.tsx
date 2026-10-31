@@ -11,7 +11,8 @@ import { CardRowView, type PauseCard } from './PauseControls';
 import { PLAIN_PAUSE, type PauseSkin } from './hudThemes';
 import { M2_PUBLIC } from './build';
 import { walkBackOn } from './store';
-import { getCheats, setCheat, subscribeCheats, pantsNow, setPants, todNow, setTod, setCheatPanelOpen, cheatPanelOpen, cheatCursor, CHEAT_ROWS, stepMusic, stopMusicTest, soundTestLabel, type Pants } from './cheats';
+import { getCheats, setCheat, subscribeCheats, pantsNow, setPants, todNow, setTod, setCheatPanelOpen, cheatPanelOpen, cheatCursor, CHEAT_ROWS, stepMusic, stopMusicTest, soundTestLabel, toggleArmor, stepUpgrade, type Pants } from './cheats';
+import { ARMOR_PIECES, ARMOR_NAMES, has, healthFinds, ammoFinds, shards, maxHealth, ammoScale, powerCells, subscribeUpgrades, upgradesVersion, MAX_HEALTH_FINDS, MAX_AMMO_FINDS, MAX_SHARDS } from './upgrades/state';
 
 /** The cheats (FOR NOW: out before it ships), mouse only: click to flip them. Not buttons (ENTER and SPACE would set
  *  off whichever was clicked last, along with the menu's own). */
@@ -23,6 +24,7 @@ const Chip: React.FC<{ on: boolean; skin: PauseSkin; onClick: () => void; childr
 
 const CheatPanel: React.FC<{ skin: PauseSkin; onClose: () => void }> = ({ skin, onClose }) => {
   const c = useSyncExternalStore(subscribeCheats, getCheats);
+  useSyncExternalStore(subscribeUpgrades, upgradesVersion);
   const pants = pantsNow(), tod = todNow();
   const [browse, setBrowse] = React.useState(false);
   // (where the pad's cursor is: row by row, CHEAT_ROWS)
@@ -39,7 +41,7 @@ const CheatPanel: React.FC<{ skin: PauseSkin; onClose: () => void }> = ({ skin, 
     <Chip on={!c[k]} at={at(r, 1)} skin={skin} w={40} onClick={() => setCheat(k, false)}>OFF</Chip>
   </>); };
   return (
-    <div className="absolute inset-x-4 top-[56px] bottom-4 z-10 flex flex-col items-center gap-3 px-4 py-3" style={{ ...skin.well, background: 'rgba(0,0,0,0.97)' }}>
+    <div className="absolute inset-x-4 top-[56px] bottom-4 z-10 flex flex-col items-center gap-2 px-4 py-3 overflow-y-auto" style={{ ...skin.well, background: 'rgba(0,0,0,0.97)' }}>
       <div className="text-[10px] font-black tracking-widest" style={{ color: skin.text }}>CHEATS</div>
       {row('GOD MODE', flag('god'))}
       {row('UNLIMITED AMMO', flag('ammo'))}
@@ -51,6 +53,18 @@ const CheatPanel: React.FC<{ skin: PauseSkin; onClose: () => void }> = ({ skin, 
         {Array.from({ length: 10 }, (_, n) => <Chip key={n} on={tod === n} at={at(5, n + 1)} skin={skin} w={18} onClick={() => setTod(n)}>{n}</Chip>)}
       </>)}
       <div className="text-[6px] tracking-wider" style={{ color: skin.muted }}>TIME OF DAY: LANDS CLEARED (0 MORNING, 9 NIGHT). AUTO FOLLOWS THE GAME.</div>
+      {row('ARMOR', <>
+        {ARMOR_PIECES.map((p, i) => <Chip key={p} on={has(p)} at={at(CHEAT_ROWS.indexOf('armor'), i)} skin={skin} w={44} onClick={() => toggleArmor(i)}>{ARMOR_NAMES[p]}</Chip>)}
+        <Chip on={false} at={at(CHEAT_ROWS.indexOf('armor'), ARMOR_PIECES.length)} skin={skin} w={32} onClick={() => toggleArmor(ARMOR_PIECES.length)}>ALL</Chip>
+        <Chip on={false} at={at(CHEAT_ROWS.indexOf('armor'), ARMOR_PIECES.length + 1)} skin={skin} w={32} onClick={() => toggleArmor(ARMOR_PIECES.length + 1)}>NONE</Chip>
+      </>)}
+      {([['hpUp', 'MAX HEALTH', healthFinds(), MAX_HEALTH_FINDS, `${maxHealth()} HP`], ['ammoUp', 'MAX AMMO', ammoFinds(), MAX_AMMO_FINDS, `AMMO x${ammoScale().toFixed(1)}`], ['shards', 'CHARGE SHARDS', shards(), MAX_SHARDS, `${powerCells()} CELLS`]] as const).map(([k, label, n, max, says]) => (
+        <React.Fragment key={k}>{row(label, <>
+          <Chip on={false} at={at(CHEAT_ROWS.indexOf(k), 0)} skin={skin} w={24} onClick={() => stepUpgrade(k, -1)}>-</Chip>
+          <Chip on={false} at={at(CHEAT_ROWS.indexOf(k), 1)} skin={skin} w={24} onClick={() => stepUpgrade(k, 1)}>+</Chip>
+          <div className="self-center text-[7px] font-black tracking-wider" style={{ color: skin.text }}>{n}/{max}: {says}</div>
+        </>)}</React.Fragment>
+      ))}
       {row('SOUND TEST', <>
         <Chip on={false} at={at(CHEAT_ROWS.indexOf('music'), 0)} skin={skin} w={24} onClick={() => stepMusic(-1)}>&lt;</Chip>
         <Chip on={false} at={at(CHEAT_ROWS.indexOf('music'), 1)} skin={skin} w={24} onClick={() => stepMusic(1)}>&gt;</Chip>

@@ -4,13 +4,14 @@
 
 import { notePowerShort } from './powerShort';
 import { shoveSetDistance } from '../core/resist';
+import { powerCells } from '../core/tuning';
 import { Enemy, WeaponType, Rect, Block, Player } from '../../types';
 import {
   MAX_AMMO,
   PLAYER_MOVE_SPEED, PLAYER_ACCEL_BASE, PLAYER_FRICTION_BASE, PLAYER_AIR_FRICTION, CROUCH_SLIDE_FRICTION_MULT,
   ICE_FRICTION_MULTIPLIER, MIN_MOVE_SPEED, PLAYER_GRAVITY, PLAYER_TERMINAL_VELOCITY, PLAYER_JUMP_SPEED,
   JUMP_HOLD_FRAMES, COYOTE_AIR_FRAMES, COYOTE_JUMP_FRAMES, JUMP_BUFFER_FRAMES, LANDING_SHAKE_SPEED,
-  CHARGE_SPEED, CHARGE_DURATION, SLIDE_SPEED, SLIDE_DURATION, POWER_CELLS, POWER_CELL_RECHARGE,
+  CHARGE_SPEED, CHARGE_DURATION, SLIDE_SPEED, SLIDE_DURATION, POWER_CELL_RECHARGE,
   UPPERCUT_SPEED, UPPERCUT_DURATION, DIVEKICK_SPEED, DIVEKICK_ANGLE,
   PLAYER_MASS, RECOIL_FRAMES, GML_SCALE, SPECIAL_HURT_FRAMES, ARENA_LEFT,
   OSCAR_OIL_SPEED_MULT, OSCAR_OIL_JUMP_MULT, SKI_JUMP_SPEED_MULT, SKI_JUMP_HOLD_MULT,
@@ -214,8 +215,11 @@ export const tickPlayerTimers = (ctx: FrameContext, input: FrameInput) => {
   // after a power move in the air until he's touched down again.
   // (in the water counts as touching down: it comes back swimming)
   if (player.swimming) player.powerLocked = false;
-  if (player.power < POWER_CELLS && !player.isCharging && !player.isUppercutting && !player.powerLocked) {
-    player.power = Math.min(POWER_CELLS, player.power + 1 / POWER_CELL_RECHARGE);
+  // (how many he has can change as he goes: Meathead 2's charge shards, tuning.ts)
+  const cells = powerCells();
+  if (player.power > cells) player.power = cells;
+  if (player.power < cells && !player.isCharging && !player.isUppercutting && !player.powerLocked) {
+    player.power = Math.min(cells, player.power + 1 / POWER_CELL_RECHARGE);
   }
   // The filth shield: no time limit; it's down the moment he's hit by anything, or puts the Sludge Barfer away
   if (player.filthShieldTimer && player.filthShieldTimer > 0) {

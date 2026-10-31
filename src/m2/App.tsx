@@ -2,8 +2,10 @@ import React, { useEffect, useRef, useState, useSyncExternalStore } from 'react'
 import { setGlasses } from '../m1/game/render/player/body';
 import GameCanvas from '../m1/components/GameCanvas';
 import HUD from '../m1/components/HUD';
-/** The PWR row's cells, wide (the user's): three of them, fully upgraded, two-thirds of the HUD plate. */
+/** The PWR row's cells, wide (the user's): three of them, fully upgraded, two-thirds of the HUD plate; four (all six
+ *  charge shards: upgrades/state.ts) narrower, in the same width. */
 const M2_CELL_W = 54;
+const cellW = (cells: number) => (cells <= 3 ? M2_CELL_W : Math.floor((M2_CELL_W * 3 + 6 * 2 - 6 * (cells - 1)) / cells));
 import { RAYGUN_ART } from '../m1/components/WeaponIcon';
 import { HAIRBALL_ART, HairballSvg } from './cartoon/whitehouse1/HairballArt';
 import { Prompt } from '../m1/components/ButtonIcons';
@@ -21,6 +23,8 @@ import { installCanvasSafety } from './canvasSafety';
 import { setDropTable } from '../m1/game/core/effects';
 import { M2_GUT_LINES, M2_GUT_DEATH } from './lines/gutLines';
 import { createFullAmmo, maxAmmo, INITIAL_PLAYER_HEALTH, enemyMeleeDamage, WHEEL_COOLDOWN_MS, HUD_CLEAR_Y } from '../m1/constants';
+import { installUpgrades } from './upgrades/apply';
+import { maxHealth as upMaxHealth, powerCells as upPowerCells, subscribeUpgrades, upgradesVersion, resetUpgrades, restoreUpgrades } from './upgrades/state';
 import { getActiveGamepad, isButtonPressed, GP_BUTTONS, getGamepadMovement, menuButtons } from '../m1/game/platform/gamepad';
 import { hasRightStick } from '../m1/game/platform/device';
 import WeaponWheel, { wheelIndexAt } from '../m1/components/WeaponWheel';
@@ -197,6 +201,8 @@ setHurtScale(0.65);
 setShoveSetDistance(true);
 setWallSplatDeath(true);
 setDropTable({ health: 0.06, ammo: 0.05 });
+// (the hidden upgrades: max health, ammo, power cells, the dive kick free, armor on his moves: upgrades/apply.ts)
+installUpgrades();
 registerWeapons();
 // (no arc or ellipse with a radius gone below zero ever throws away the rest of a frame)
 installCanvasSafety();
@@ -248,6 +254,8 @@ const App2: React.FC = () => {
   const devQ = import.meta.env.DEV ? new URLSearchParams(location.search) : null;
   const first = devQ?.has('adv') ? ADV_STAGE : devQ?.has('spooky') ? SPOOKY_STAGE : devQ?.has('space') ? SPACE_STAGE : devQ?.has('hollywood') ? HOLLYWOOD_STAGE : devQ?.has('foreign') ? FOREIGN_STAGE : devQ?.has('frontier') ? FRONTIER_STAGE : devQ?.has('fantasy') ? FANTASY_STAGE : devQ?.has('cartoon') ? CARTOON_STAGE :devQ?.has('hub') ? HUB_STAGE : devQ?.has('pen') ? PEN_STAGE : devQ?.has('intro') ? INTRO_STAGE : GYM_STAGE;
   const [stage, setStage] = useState(first);
+  // (the hidden upgrades changing (the cheats, a find): the HUD's max health, cells and ammo redrawn)
+  useSyncExternalStore(subscribeUpgrades, upgradesVersion);
   // (the glasses: on everywhere but the gym, which hands them to him in its closing)
   useEffect(() => { if (stage !== GYM_STAGE) setGlasses(true); }, [stage]);
   const [status, setStatus] = useState(GameStatus.START);
@@ -263,6 +271,7 @@ const App2: React.FC = () => {
   const startNew = (slot: Slot | null) => {
     if (slot !== null && readFile(slot)) deleteFile(slot);
     setAlphaEndSeen(false);
+    resetUpgrades();
     playOnFile(slot);
     setTitle(false);
   };
@@ -274,6 +283,9 @@ const App2: React.FC = () => {
     restoreBossDeaths(f.deaths);
     restoreFound(f.found ?? {});
     setAlphaEndSeen(!!f.alphaSeen);
+    // (the hidden upgrades: none on a file from before them; and his ammo full to what they make it)
+    restoreUpgrades(f.upgrades);
+    setInitialAmmo(createFullAmmo());
     playOnFile(slot, f.playTimeMs);
     // (all cleared, but quit before the alpha's ending played: it plays now, and on to the title as ever)
     if (f.cleared.length >= ALPHA_LAND_COUNT && !f.alphaSeen) { setAlphaOnly(true); alphaEndOver(); return; }
@@ -673,17 +685,17 @@ const App2: React.FC = () => {
         {status === GameStatus.PLAYING && ui.map === null && !ui.introCutscene && !ui.killCam && (
           ui.heliHud
             // (flying the helicopter: the PWR row's its boost, its rockets beside it; the weapon's its machine gun)
-            ? <HUD health={hud.health} maxHealth={INITIAL_PLAYER_HEALTH} power={ui.heliBoost ?? 0} powerCells={1} powerExtra={ROCKETS_ON ? <HeliRockets charges={ui.heliRockets ?? 0} /> : undefined} currentWeapon="LMG" ammo={Infinity} maxAmmo={Infinity} weaponName="MACHINE GUN" skin={theme?.hud} cellWidth={M2_CELL_W} />
+            ? <HUD health={hud.health} maxHealth={upMaxHealth()} power={ui.heliBoost ?? 0} powerCells={1} powerExtra={ROCKETS_ON ? <HeliRockets charges={ui.heliRockets ?? 0} /> : undefined} currentWeapon="LMG" ammo={Infinity} maxAmmo={Infinity} weaponName="MACHINE GUN" skin={theme?.hud} cellWidth={M2_CELL_W} />
             : ui.bikeHud
             // (on the dirt bike: the PWR row's its boost; no gun, his fists)
-            ? <HUD health={hud.health} maxHealth={INITIAL_PLAYER_HEALTH} power={ui.bikeBoost ?? 0} powerCells={1} currentWeapon={weapon} ammo={Infinity} maxAmmo={Infinity} weaponName="FISTS" weaponArt={<BikeFist />} skin={theme?.hud} cellWidth={M2_CELL_W} />
+            ? <HUD health={hud.health} maxHealth={upMaxHealth()} power={ui.bikeBoost ?? 0} powerCells={1} currentWeapon={weapon} ammo={Infinity} maxAmmo={Infinity} weaponName="FISTS" weaponArt={<BikeFist />} skin={theme?.hud} cellWidth={M2_CELL_W} />
             : ui.noSwitch && ui.pauseControls === 'logride'
             // (in the log ride's log: unarmed, his fists)
-            ? <HUD health={hud.health} maxHealth={INITIAL_PLAYER_HEALTH} power={hud.power} powerAlert={pwrAlert} currentWeapon={weapon} ammo={Infinity} maxAmmo={Infinity} weaponName="FISTS" weaponArt={<BikeFist />} skin={theme?.hud} cellWidth={M2_CELL_W} />
+            ? <HUD health={hud.health} maxHealth={upMaxHealth()} power={hud.power} powerAlert={pwrAlert} powerCells={upPowerCells()} currentWeapon={weapon} ammo={Infinity} maxAmmo={Infinity} weaponName="FISTS" weaponArt={<BikeFist />} skin={theme?.hud} cellWidth={cellW(upPowerCells())} />
             : ui.broomHud
             // (on the broomstick: the PWR row's its boost; the weapon's the laser on the broom's end)
-            ? <HUD health={hud.health} maxHealth={INITIAL_PLAYER_HEALTH} power={ui.broomBoost ?? 0} powerCells={1} currentWeapon={weapon} ammo={Infinity} maxAmmo={Infinity} weaponName="BROOM LASER" weaponArt={<BroomWand />} skin={theme?.hud} cellWidth={M2_CELL_W} />
-            : <HUD health={hud.health} maxHealth={INITIAL_PLAYER_HEALTH} power={hud.power} powerAlert={pwrAlert} currentWeapon={weapon} ammo={hud.ammo[weapon] ?? 0} maxAmmo={maxAmmo(weapon)} weaponName={weapon === 'GUN' && ui.catHud ? 'HAIRBALL' : weapon === 'MALLET' && broke ? 'BROKEN STICK' : weaponName(weapon)} weaponArt={weapon === 'GUN' ? (ui.catHud ? HAIRBALL_ART : RAYGUN_ART) : weapon === 'MALLET' && broke ? BROKEN_STICK_ART : undefined} alert={dryFlash?.key} alertText={dryFlash?.text} weaponExtra={weapon === 'SOUL_SUCKER' ? <GoreBag /> : weapon === 'SPELLBOOK' ? <BulkMeter /> : undefined} ammoLabel={ammoName(weapon) === 'AMMO' ? undefined : ammoName(weapon)} skin={theme?.hud} cellWidth={M2_CELL_W} />
+            ? <HUD health={hud.health} maxHealth={upMaxHealth()} power={ui.broomBoost ?? 0} powerCells={1} currentWeapon={weapon} ammo={Infinity} maxAmmo={Infinity} weaponName="BROOM LASER" weaponArt={<BroomWand />} skin={theme?.hud} cellWidth={M2_CELL_W} />
+            : <HUD health={hud.health} maxHealth={upMaxHealth()} power={hud.power} powerAlert={pwrAlert} powerCells={upPowerCells()} currentWeapon={weapon} ammo={hud.ammo[weapon] ?? 0} maxAmmo={maxAmmo(weapon)} weaponName={weapon === 'GUN' && ui.catHud ? 'HAIRBALL' : weapon === 'MALLET' && broke ? 'BROKEN STICK' : weaponName(weapon)} weaponArt={weapon === 'GUN' ? (ui.catHud ? HAIRBALL_ART : RAYGUN_ART) : weapon === 'MALLET' && broke ? BROKEN_STICK_ART : undefined} alert={dryFlash?.key} alertText={dryFlash?.text} weaponExtra={weapon === 'SOUL_SUCKER' ? <GoreBag /> : weapon === 'SPELLBOOK' ? <BulkMeter /> : undefined} ammoLabel={ammoName(weapon) === 'AMMO' ? undefined : ammoName(weapon)} skin={theme?.hud} cellWidth={cellW(upPowerCells())} />
         )}
         {/* What up does here */}
         {status === GameStatus.PLAYING && ui.map === null && (nearLand || ui.near === STAFF_SLOT || ui.nearExit || ui.nearAmerica) && (
