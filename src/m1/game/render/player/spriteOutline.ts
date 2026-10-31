@@ -18,6 +18,14 @@ let glow: HTMLCanvasElement | null = null;
 let glowUsed = false;
 let out: HTMLCanvasElement | null = null;
 let res = 1;
+/**
+ * A tint laid on as he's drawn, not after (setSpriteTint: Meathead 2's space suit whitening him), so another game's
+ * armor drawn into him stays its own colours: each piece is drawn through armorSeam, which tints what's been drawn so
+ * far and banks it (acc), then banks the piece untinted. endSprite tints what's left and outlines the lot.
+ */
+let live: { tint: string; bare?: number } | null = null;
+let acc: HTMLCanvasElement | null = null;
+let accUsed = false;
 
 const ensure = (canvas: HTMLCanvasElement | null, r: number) => {
   const c = canvas ?? document.createElement('canvas');
@@ -38,6 +46,7 @@ export const beginSprite = (world: CanvasRenderingContext2D): CanvasRenderingCon
   out = ensure(out, res);
   glow = ensure(glow, res);
   glowUsed = false;
+  live = null; accUsed = false;
   const b = body.getContext('2d')!;
   b.setTransform(1, 0, 0, 1, 0, 0);
   b.clearRect(0, 0, body.width, body.height);
@@ -83,6 +92,34 @@ export const glowLayer = (ctx: CanvasRenderingContext2D): CanvasRenderingContext
   return g;
 };
 
+/** Tints him as he's drawn (call straight after beginSprite): what armorSeam draws stays untinted. `bare` as endSprite's. */
+export const setSpriteTint = (tint: string, bare?: number) => { if (body) live = { tint, bare }; };
+
+/** Lays the tint over what's in the body canvas (all of it, or not within `bare` of his eyes). */
+const tintBody = (tint: string, bare?: number) => {
+  const b = body!.getContext('2d')!;
+  b.save(); b.setTransform(1, 0, 0, 1, 0, 0); b.globalCompositeOperation = 'source-atop'; b.fillStyle = tint;
+  if (bare && eyes) { b.beginPath(); b.rect(0, 0, body!.width, body!.height); b.arc(eyes.x, eyes.y, bare * res, 0, Math.PI * 2); b.fill('evenodd'); }
+  else b.fillRect(0, 0, body!.width, body!.height);
+  b.restore();
+};
+/** Moves what's in the body canvas onto the bank (tinted first or not), leaving the body canvas empty. */
+const bank = (tinted: boolean) => {
+  if (!body || !live) return;
+  if (tinted) tintBody(live.tint, live.bare);
+  acc = ensure(acc, res);
+  const a = acc.getContext('2d')!;
+  if (!accUsed) { a.setTransform(1, 0, 0, 1, 0, 0); a.globalCompositeOperation = 'source-over'; a.clearRect(0, 0, acc.width, acc.height); accUsed = true; }
+  a.drawImage(body, 0, 0);
+  const b = body.getContext('2d')!;
+  b.save(); b.setTransform(1, 0, 0, 1, 0, 0); b.clearRect(0, 0, body.width, body.height); b.restore();
+};
+/** Draws a piece of armor into him, kept out of a tint laid on as he's drawn (setSpriteTint); otherwise just draws it. */
+export const armorSeam = (ctx: CanvasRenderingContext2D, draw: () => void) => {
+  if (!live || !body || ctx.canvas !== body) { draw(); return; }
+  bank(true); draw(); bank(false);
+};
+
 /** Outlines what was drawn since beginSprite and draws it into the world with its feet at (x, y). */
 /** `tint`: a colour laid over the body (not the outline), keeping its shading under it (a hazmat suit, say). */
 /**
@@ -96,6 +133,16 @@ export const endSprite = (world: CanvasRenderingContext2D, x: number, y: number,
   o.setTransform(1, 0, 0, 1, 0, 0);
   o.globalCompositeOperation = 'source-over';
   o.clearRect(0, 0, out.width, out.height);
+  // (tinted as he was drawn: the rest tinted, the bank put back under it as the body)
+  if (live) {
+    if (accUsed && acc) {
+      tintBody(live.tint, live.bare);
+      const b = body.getContext('2d')!;
+      b.save(); b.setTransform(1, 0, 0, 1, 0, 0); b.globalCompositeOperation = 'destination-over'; b.drawImage(acc, 0, 0); b.restore();
+      tint = undefined;
+    } else { tint = live.tint; bare = live.bare; }
+    live = null;
+  }
   const d = OUTLINE_PX * res;
   // Outline silhouette first (on its own), then glows behind it, then the body on top
   for (let i = 0; i < 8; i++) {
@@ -111,14 +158,8 @@ export const endSprite = (world: CanvasRenderingContext2D, x: number, y: number,
     o.drawImage(glow, 0, 0);
   }
   o.globalCompositeOperation = 'source-over';
-  if (tint) {
-    // (the body tinted on its own canvas, then over the outline)
-    const b = body.getContext('2d')!;
-    b.save(); b.setTransform(1, 0, 0, 1, 0, 0); b.globalCompositeOperation = 'source-atop'; b.fillStyle = tint;
-    if (bare && eyes) { b.beginPath(); b.rect(0, 0, body.width, body.height); b.arc(eyes.x, eyes.y, bare * res, 0, Math.PI * 2); b.fill('evenodd'); }
-    else b.fillRect(0, 0, body.width, body.height);
-    b.restore();
-  }
+  // (the body tinted on its own canvas, then over the outline)
+  if (tint) tintBody(tint, bare);
   o.drawImage(body, 0, 0);
   world.drawImage(out, x - ORIGIN_X, y - ORIGIN_Y, W, H);
 };

@@ -21,7 +21,7 @@ import { moveFlair } from './moveFlair';
 import { KICK_POSE_FRAMES, LEDGE_DROP_FRAMES, FINALE_STAGE } from '../../../constants';
 import { GameState } from '../../core/state';
 import { GroundRun, runAt, treadYAt, stanceDrop, STANCE } from '../../core/terrain';
-import { beginSprite, endSprite, markEyes, eyesAt } from './spriteOutline';
+import { beginSprite, endSprite, markEyes, eyesAt, setSpriteTint } from './spriteOutline';
 import { drawPlayerShadow } from './shadow';
 import { drawDeathBrows, drawDeathEyes, drawDeathMouth } from './deathFace';
 import { rayGun } from '../../combat/rayGun';
@@ -29,7 +29,7 @@ import { drawRayGunHeld } from '../../../../m2/weapons/rayGunArt';
 import { customWeapon } from '../../combat/customWeapons';
 import { buffs } from '../../core/buffs';
 import { setGore, getGore, smear, drip, drawHeadBlood, drawLeadArmBlood, drawBeatenUp, bloodDark } from './gore';
-import { skinTone, skinShadow, skinHighlight, skinVein, pantsColor, pantsShadow, beltColor, beltBuckle, wristbandColor, backArmShade, stubbleColor, drawTorso, drawBelt, drawArm, drawPantLeg, drawBoot, drawJointedLeg, drawLeg, drawArmTo, drawHead, drawGlasses, drawHeadFlush, setTalking, drawTalkingMouth, setLegSinge, setNude, snesShat, armorOn, setArmorMotion } from './body';
+import { skinTone, skinShadow, skinHighlight, skinVein, pantsColor, pantsShadow, beltColor, beltBuckle, wristbandColor, backArmShade, stubbleColor, drawTorso, drawBelt, drawArm, drawPantLeg, drawBoot, drawJointedLeg, drawLeg, drawArmTo, drawHead, drawGlasses, drawHeadFlush, setTalking, drawTalkingMouth, setLegSinge, setNude, snesShat, armorOn, setArmorMotion, setArmorDome } from './body';
 
 export interface PlayerDrawOptions {
   currentWeapon: WeaponType;
@@ -68,8 +68,13 @@ export const playerTint = (p: Player): string | undefined => {
 };
 /** In a hazmat suit (Tommy's sewer): yellow over all of him, a hood's dark visor over his face. */
 const SUIT_TINT = 'rgba(250, 204, 21, 0.78)';
-/** In a space suit (Meathead 2's Space Needle 2): white over all of him but his face, the fishbowl helmet over that. */
-const SPACE_SUIT_TINT = 'rgba(241, 245, 249, 0.8)';
+/** In a space suit (Meathead 2's Space Needle 2): white over all of him but his face, the fishbowl helmet over that.
+ *  Laid on as he's drawn (setSpriteTint), so another game's armor on him keeps its own colours over the white. */
+export const SPACE_SUIT_TINT = 'rgba(241, 245, 249, 0.8)';
+/** The suit's still on him (not blown off: then just the helmet's left, him naked). */
+export const spaceSuitOn = (p: Player) => !!p.spaceSuit && p.gut?.stage !== 3;
+/** How far round his eyes the suit's white is left off (his face, through the glass). */
+export const SUIT_BARE = 10;
 
 /** Draws Meathead: effects auras, then body layers back-to-front, then the held weapon. */
 /** Held on the knife (Player.stabbed, its stabs): how far he's doubled over (his lean about his feet) and sagged down;
@@ -87,6 +92,7 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
   setTalking(state.playerVulgarityTimer > 0 && !!state.playerLastVulgarity && !p.hidden);
   // (how he's moving, for whatever another game's armor has hanging off him: Meathead 2's cape)
   setArmorMotion(p.vel.x * p.facing, p.vel.y, !!p.floating, p.isGrounded, state.frame);
+  setArmorDome(!!p.spaceSuit);
   // (Meathead 2's cat form: every body part drawn after this is the cat's, the grabs' and the weapons' poses too)
   setCatBody(!!p.catForm);
   // (blown to bits by the third one: the mess, and the heap of him, over the death screen too)
@@ -213,6 +219,7 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
   if (!throwShadow) drawPlayerShadow(world, p, state, anchorX, anchorY, null);
   const sprite = beginSprite(world);
   if (sprite) ctx = sprite;
+  if (sprite && spaceSuitOn(p)) setSpriteTint(SPACE_SUIT_TINT, SUIT_BARE);
   ctx.save();
   if (!sprite) ctx.translate(anchorX, anchorY);
   // (on the jet ski, shooting back: he stays sat facing forward, and just his head and gun arm turn round, below)
@@ -221,7 +228,7 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
   // (headless: stood there a beat, then over backward, onto the ground)
   if (p.headless) { const k = Math.min(1, Math.max(0, (p.headless - 25) / 30)); ctx.translate(0, -k * k * 12); ctx.rotate(-k * k * 1.5); }
   // (in a space suit: the suit on him, unless it's been blown off him (just the helmet left, naked))
-  const suitOn = !!p.spaceSuit && p.gut?.stage !== 3;
+  const suitOn = spaceSuitOn(p);
   const finishBody = () => {
     ctx.restore();
     ctx = world;
@@ -230,7 +237,7 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
     // (in the water, up against a wall or a pipe: whatever he's holding out stops at it, it doesn't poke through)
     const walls = p.swimming ? state.blocks.filter(b => b.type !== 'pit' && !b.oneWay && b.y < anchorY - 4 && b.y + b.h > p.pos.y - 60 && b.x < anchorX + 100 && b.x + b.w > anchorX - 100) : [];
     if (walls.length) { world.save(); world.beginPath(); world.rect(anchorX - 220, anchorY - 320, 440, 420); for (const b of walls) world.rect(b.x, b.y, b.w, b.h); world.clip('evenodd'); }
-    if (sprite) endSprite(world, anchorX, anchorY, playerTint(p), throwShadow ? sil => drawPlayerShadow(world, p, state, anchorX, anchorY, sil) : undefined, suitOn ? 10 : undefined);
+    if (sprite) endSprite(world, anchorX, anchorY, playerTint(p), throwShadow ? sil => drawPlayerShadow(world, p, state, anchorX, anchorY, sil) : undefined, suitOn ? SUIT_BARE : undefined);
     // (a shat space suit: the stain over the suit's white, where his jeans' would be)
     if (suitOn && p.gut?.stage === 2 && !p.swimming) { world.save(); world.translate(anchorX, anchorY); world.scale(p.facing, 1); drawShitPants(world, isDucking ? -16 : -26, isDucking ? 10 : 20); world.restore(); }
     if (walls.length) world.restore();
@@ -1927,7 +1934,7 @@ const shrugK = (p: Player, frame: number) => {
 
 /** A space suit's fishbowl helmet over his head (Player.spaceSuit), its middle by his eyes (x, y), tilted with his head
  *  (`angle`): the glass (a tint, a band of glare across it, a glint), the chrome collar ring at his neck. World space. */
-const drawSpaceHelmet = (c: CanvasRenderingContext2D, x: number, y: number, angle: number, facing: number) => {
+export const drawSpaceHelmet = (c: CanvasRenderingContext2D, x: number, y: number, angle: number, facing: number) => {
   c.save(); c.translate(x, y); c.rotate(angle); c.scale(facing < 0 ? -1 : 1, 1);
   const cx = -2, cy = -3, r = 17;
   // (the collar: a chrome ring round his neck, banded, inked)

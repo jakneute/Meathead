@@ -44,6 +44,24 @@ the helmet on. Every piece shows wherever he's drawn, and matches: the in-game s
 (walkAway/meatheadBack.ts), the walk-aways (front), the hub portal, grabs, deaths, cutscenes, the weapon-get screen.
 Build each piece as its own part every drawing path can turn on.
 
+VISIBILITY RULES (2026-10-31: "make sure the front and back of his jeans can always be seen, that way the shitty pants
+and the nude gags are not obstructed. same for the glasses ... the astronaut suit doesn't conflict ... you should be able
+to see everything"; then "every piece should be visible"). With all 8 on, in every pose and draw path:
+- JEANS FRONT AND BACK: nothing covers his crotch, seat or most of the jeans, in all three pants states (clean, the
+  shitty stain, naked: ass and dick). The cape never reaches below his belt in any mode (hanging, fluttering, streaming
+  as he falls, spread while floating): its points are shortened to the belt line and it's clipped there too
+  (armorArt.ts cape, `hem`); from behind on the walk screens it's split down his spine and stops above the belt. The leg
+  armor is knee and shin only: a small knee cop, the plating starting under it. The amulet's chain stays on his chest.
+  The gloves stay on his fists: a hanging hand rests beside the hip, never over the fly or the seat.
+- GLASSES: the helmet's brim stops above the glasses (sprite: ey - 4.6, the rims start at ey - 3.3), and the glasses
+  are drawn after the helmet in every path (sprite, walk figures, HUD face). Nothing else goes over his eyes.
+- THE ASTRONAUT LOOK (Future Land's Space Needle 2, Player.spaceSuit): not a uniform, just the glass fishbowl and a
+  whitened body. The white is laid on AS HE'S DRAWN (spriteOutline.ts setSpriteTint / armorSeam), so every armor piece
+  keeps its own colours over the white. The Viking helmet sits INSIDE the glass: shrunk to 0.72 about its brim (the brim
+  stays above his glasses) and clipped inside the glass, the horn tips jammed against it (armorArt.ts DOME_FIT /
+  DOME_IN); his face and glasses show through the glass. The grab and pose sprites (grab.ts sprite) do the same,
+  fishbowl included.
+
 Provisional land themes (the owner hasn't assigned lands yet; use these until told): Jungle: khaki, bamboo, leopard,
 tusks; Spooky: bat wings, coffin wood, plastic skulls; Future: chrome XENOSCARE resin, neon; Hollywood: gold statuette
 plating, film reels, a stunt pad; Foreign: flag patches, a Viking horn; Wilderness: rusted railroad iron, a cowbell;

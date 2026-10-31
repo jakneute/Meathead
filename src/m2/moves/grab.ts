@@ -44,9 +44,9 @@ import { impactKill, ceilingSplat } from '../../m1/game/enemies/enemies';
 import { buffs } from '../../m1/game/core/buffs';
 import { playSound } from '../../m1/game/platform/audio';
 import { SPECIAL_HURT_FRAMES } from '../../m1/constants';
-import { beginSprite, endSprite } from '../../m1/game/render/player/spriteOutline';
-import { playerTint } from '../../m1/game/render/player/player';
-import { drawLeg, drawArmTo, drawTorsoFromHips, drawHead, type Mood } from '../../m1/game/render/player/body';
+import { beginSprite, endSprite, eyesAt, setSpriteTint } from '../../m1/game/render/player/spriteOutline';
+import { playerTint, spaceSuitOn, SPACE_SUIT_TINT, SUIT_BARE, drawSpaceHelmet } from '../../m1/game/render/player/player';
+import { drawLeg, drawArmTo, drawTorsoFromHips, drawHead, setArmorDome, type Mood } from '../../m1/game/render/player/body';
 import { drawPlayer } from '../../m1/game/render/player/player';
 import { setCatClaws } from '../../m1/game/render/player/catBody';
 import { btn, pressed, pollM2 } from '../input';
@@ -2019,6 +2019,10 @@ const sprite = (world: Ctx, x: number, y: number, dir: number, paint: (c: Ctx) =
 const spriteAt = (world: Ctx, x: number, y: number, dir: number, paint: (c: Ctx) => void) => {
   const s = beginSprite(world);
   const c = s ?? world;
+  // (in the space suit: whitened as he's drawn, so the armor keeps its colours; his face left bare under the glass)
+  const suit = !!tintOf && spaceSuitOn(tintOf);
+  if (s && suit) setSpriteTint(SPACE_SUIT_TINT, SUIT_BARE);
+  setArmorDome(!!tintOf?.spaceSuit);
   c.save();
   if (!s) c.translate(x, y);
   c.scale(dir, 1);
@@ -2026,7 +2030,10 @@ const spriteAt = (world: Ctx, x: number, y: number, dir: number, paint: (c: Ctx)
   c.restore();
   // (whatever color's on him (a vat's dye, soot, a suit): on every pose drawn this way too: the grabs, the mallet, the
   // spellbook)
-  if (s) endSprite(world, x, y, tintOf ? playerTint(tintOf) : undefined);
+  if (s) endSprite(world, x, y, tintOf ? playerTint(tintOf) : undefined, undefined, suit ? SUIT_BARE : undefined);
+  // (and the suit's fishbowl over his head, as his own sprite has it)
+  const eye = s && tintOf?.spaceSuit ? eyesAt(x, y) : null;
+  if (eye) drawSpaceHelmet(world, eye.x, eye.y, eye.angle, dir);
 };
 /** Him (the player, as the grab last saw him): whose color goes over the poses. */
 let tintOf: GameState['player'] | null = null;
@@ -2453,6 +2460,7 @@ export const drawPulped = (main: Ctx, state: GameState) => {
 
 /** Draws whatever grab's on, in place of him (world space, over everything). */
 export const drawGrab = (ctx: Ctx, state: GameState, g: Grab) => {
+  tintOf = state.player;
   // (the amulet's shockwave and its rage's heat round him: upgrades/amulet.ts)
   drawAmuletFx(ctx, state);
   // (the cheap shot's: the stunned bosses' dizzy stars, the scream over them; him, the engine's own kick)

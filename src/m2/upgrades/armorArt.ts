@@ -24,7 +24,7 @@
 // drawSabatonCloseUp), the walk-in from behind (walkAway/meatheadBack.ts: drawBackArmor).
 
 import { setArmorArt, armorMotion, type ArmorArt } from '../../m1/game/render/player/body';
-import { glowLayer } from '../../m1/game/render/player/spriteOutline';
+import { glowLayer, armorSeam } from '../../m1/game/render/player/spriteOutline';
 import { has } from './state';
 
 type C = CanvasRenderingContext2D;
@@ -299,28 +299,38 @@ const capeFan = (ctx: C, rx: number, ry: number, tips: [number, number][], scall
   ctx.closePath();
 };
 
-const ART: ArmorArt = {
+/** The helmet under the space suit's glass: this big, and cut off this far round the glass's middle (inside its rim). */
+const DOME_FIT = 0.72, DOME_IN = 15.5;
+
+const ART: ArmorArt & Record<string, unknown> = {
   boot(ctx, x, y, w, h, back) {
     if (!has('sabatons')) return;
     const sx = w / 16, sy = h / 8;
-    put(ctx, bake('sab', SAB_W, SAB_H, paintSabaton, back), x - sx, y - 3 * sy, SAB_W * sx, SAB_H * sy);
+    armorSeam(ctx, () => put(ctx, bake('sab', SAB_W, SAB_H, paintSabaton, back), x - sx, y - 3 * sy, SAB_W * sx, SAB_H * sy));
   },
   shin(ctx, hip, knee, foot, back) {
     if (!has('legs')) return;
+    armorSeam(ctx, () => this.shinArt(ctx, hip, knee, foot, back));
+  },
+  shinArt(ctx: C, hip: [number, number], knee: [number, number], foot: [number, number], back: boolean) {
     const dx = foot[0] - knee[0], dy = foot[1] - knee[1], len = Math.hypot(dx, dy);
     ctx.save(); ctx.translate(knee[0], knee[1]); ctx.rotate(Math.atan2(dy, dx) - Math.PI / 2);
-    const y0 = 2.6, y1 = len - 3.4, w = back ? 9.4 : 10.4;
+    // (knee and shin only: the plating starts under the knee cop, the cop's small, so the thigh's jeans show)
+    const y0 = 3.4, y1 = len - 3.4, w = back ? 9.4 : 10.4;
     if (y1 - y0 > 2.5) put(ctx, bake('greave', 10, 14, paintGreave, back), -w / 2, y0, w, y1 - y0);
     ctx.restore();
     // (the knee cop: on the front of the knee, the way it bends)
     const mx = (hip[0] + foot[0]) / 2, my = (hip[1] + foot[1]) / 2, ox = knee[0] - mx, oy = knee[1] - my, ol = Math.hypot(ox, oy);
-    const off = ol > 0.6 ? 1.3 / ol : 0, r = back ? 3.8 : 4.4;
+    const off = ol > 0.6 ? 1.3 / ol : 0, r = back ? 2.8 : 3.3;
     put(ctx, bake('reel', 10, 10, paintReel, back), knee[0] + ox * off - r, knee[1] + oy * off - r, r * 2, r * 2);
   },
   forearm(ctx, ex, ey, wx, wy, back) {
     if (!has('armguards')) return;
     const len = Math.hypot(wx - ex, wy - ey);
     if (len < 3) return;
+    armorSeam(ctx, () => this.forearmArt(ctx, ex, ey, wx, wy, back, len));
+  },
+  forearmArt(ctx: C, ex: number, ey: number, wx: number, wy: number, back: boolean, len: number) {
     ctx.save(); ctx.translate(ex, ey); ctx.rotate(Math.atan2(wy - ey, wx - ex));
     if (!back) {
       // (the neon's glow, behind the outline)
@@ -333,21 +343,38 @@ const ART: ArmorArt = {
   fist(ctx, x, y, r, angle, back) {
     if (!has('hands')) return;
     const k = r / 5;
-    ctx.save(); ctx.translate(x, y); ctx.rotate(angle); ctx.scale(k, k);
-    put(ctx, bake('glove', 16, 16, paintGlove, back), -9.4, -8, 16, 16);
-    ctx.restore();
+    armorSeam(ctx, () => {
+      ctx.save(); ctx.translate(x, y); ctx.rotate(angle); ctx.scale(k, k);
+      put(ctx, bake('glove', 16, 16, paintGlove, back), -9.4, -8, 16, 16);
+      ctx.restore();
+    });
   },
   shoulder(ctx, x, y, r, back) {
     if (!has('pauldrons')) return;
     const k = r / 6;
-    put(ctx, bake('pauldron', 20, 18, paintPauldron, back), x - 9 * k, y - 10 * k - 1, 20 * k, 18 * k);
+    armorSeam(ctx, () => put(ctx, bake('pauldron', 20, 18, paintPauldron, back), x - 9 * k, y - 10 * k - 1, 20 * k, 18 * k));
   },
   helmet(ctx, hx, ey) {
     if (!has('helmet')) return;
-    put(ctx, bake('helmet', 32, 26, paintHelmet), hx - 16, ey - 24, 32, 26);
+    armorSeam(ctx, () => {
+      const img = bake('helmet', 32, 26, paintHelmet);
+      if (!armorMotion.dome) { put(ctx, img, hx - 16, ey - 24, 32, 26); return; }
+      // (under the space suit's glass fishbowl (player.ts drawSpaceHelmet: its middle 2 behind and 3 above his eyes'
+      // middle, 17 round): shrunk to fit inside it, about its brim, so the brim stays above his glasses; whatever'd
+      // touch the glass is cut off at it, the horns jammed up against the inside)
+      ctx.save();
+      ctx.beginPath(); ctx.arc(hx - 2.5, ey - 3, DOME_IN, 0, Math.PI * 2); ctx.clip();
+      const px0 = hx - 0.5, py0 = ey - 4.6;
+      ctx.translate(px0, py0); ctx.scale(DOME_FIT, DOME_FIT); ctx.translate(-px0, -py0);
+      put(ctx, img, hx - 16, ey - 24, 32, 26);
+      ctx.restore();
+    });
   },
   chest(ctx, top, pecY) {
     if (!has('amulet')) return;
+    armorSeam(ctx, () => this.chestArt(ctx, top, pecY));
+  },
+  chestArt(ctx: C, top: number, pecY: number) {
     const f = armorMotion.frame;
     // (the chain: pink sequins from round his neck down to the crystal, between the pecs)
     for (const s of [-1, 1]) {
@@ -367,9 +394,12 @@ const ART: ArmorArt = {
   },
   cape(ctx, top, h) {
     if (!has('cape')) return;
+    armorSeam(ctx, () => this.capeArt(ctx, top, h));
+  },
+  capeArt(ctx: C, top: number, h: number) {
     const m = armorMotion, f = m.frame;
     const run = clamp01(Math.abs(m.fwd) / 7), fall = Math.max(-1, Math.min(1, m.vy / 9));
-    const rx = -11.5, ry = top + 1;
+    const rx = -11.5, ry = top + 1, hem = top + h - 2;
     // (how it hangs: off his back, a little behind him; streaming back with his speed, up as he falls; while he floats,
     // spread wide behind him like a bat's wings)
     let a0: number, spread: number, len: number, ribs = 3, flap: number;
@@ -384,10 +414,16 @@ const ART: ArmorArt = {
     }
     const tips: [number, number][] = [], scallop: [number, number][] = [];
     for (let i = 0; i <= ribs; i++) {
-      const a = a0 + (spread * i) / ribs + flap * (1 + i * 0.5), l = len * (1 - 0.06 * (i % 2)) * (1 + Math.sin(f * 0.3 + i * 1.7) * 0.02 * (1 + run));
+      const a = a0 + (spread * i) / ribs + flap * (1 + i * 0.5);
+      let l = len * (1 - 0.06 * (i % 2)) * (1 + Math.sin(f * 0.3 + i * 1.7) * 0.02 * (1 + run));
+      // (never down past his belt, in any mode: the seat of his jeans (his ass, his shitty seat) always shows)
+      const sa = Math.sin(a);
+      if (sa > 0.05 && ry + sa * l > hem) l = Math.max(4, (hem - ry) / sa);
       tips.push([rx + Math.cos(a) * l, ry + Math.sin(a) * l]);
       if (i > 0) { const am = a - spread / ribs / 2, lm = l * 0.74; scallop.push([rx + Math.cos(am) * lm, ry + Math.sin(am) * lm]); }
     }
+    // (and cut off above the belt, should anything still reach it)
+    ctx.save(); ctx.beginPath(); ctx.rect(rx - 60, ry - 80, 120, hem - (ry - 80)); ctx.clip();
     // (banded: darkest at the hem, a checker on each band's edge; lighter up by the shoulders)
     ctx.fillStyle = WING[0]; capeFan(ctx, rx, ry, tips, scallop, 1); ctx.fill();
     ctx.fillStyle = checker(ctx, WING[1]); capeFan(ctx, rx, ry, tips, scallop, 0.86); ctx.fill();
@@ -403,6 +439,7 @@ const ART: ArmorArt = {
     ctx.beginPath(); for (let i = 1; i < ribs; i++) { ctx.moveTo(rx, ry); ctx.lineTo(tips[i][0], tips[i][1]); } ctx.stroke();
     const tn = tips[ribs];
     ctx.strokeStyle = WING[4]; ctx.beginPath(); ctx.moveTo(rx, ry - 0.4); ctx.lineTo(rx + (tn[0] - rx) * 0.7, ry + (tn[1] - ry) * 0.7 - 0.4); ctx.stroke();
+    ctx.restore();
     // (the coffin-wood collar over his shoulders, the plastic skull clasping it)
     ctx.fillStyle = WOOD[1]; ctx.fillRect(rx - 4, ry - 2, 9, 2.6);
     ctx.fillStyle = WOOD[3]; ctx.fillRect(rx - 4, ry - 2, 9, 0.7);
