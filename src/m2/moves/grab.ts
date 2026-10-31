@@ -158,12 +158,14 @@ const BLOW_BUFFER = 10;
 const BEAT_WINDOW = 150, BULK_WINDOW = 1.5, SHOVE_VX = 9, SHOVE_VY = 7, SHOVE_RECOVER = 16, SHOVE_DAZE = 36;
 /**
  * The line-up (the user: "when a beatdown grab is successful, line everything up and play a short jingle before the
- * smashing happens", "kinda like a fatality sting"): between the catch and the first blow, LINEUP frames (TUNE: 45, 0.75 s)
- * where the two of them snap into the mount (over LINEUP_SNAP), the world round them holds still (no darkening), nothing
- * can hurt him, and the sting plays (music/sting.ts); then the blow window starts (it doesn't tick in here). Blows pressed in
- * its last BLOW_BUFFER frames are kept for the first. LINEUP_HIT: the frame the sting's big hit lands on (a jolt then).
+ * smashing happens", "kinda like a fatality sting"): between the catch and the first blow, LINEUP frames (TUNE: 28, under
+ * half a second; it was 45 and felt like the blows weren't reading: the owner's "there seems to be a delay before it will
+ * read an input") where the two of them snap into the mount (over LINEUP_SNAP), the world round them holds still (no
+ * darkening), nothing can hurt him, and the sting plays (music/sting.ts); then the blow window starts (it doesn't tick in
+ * here). A blow pressed ANY time in it is kept and thrown on the very frame it ends. LINEUP_HIT: the frame the sting's
+ * big hit lands on (a jolt then).
  */
-const LINEUP = 45, LINEUP_SNAP = 8, LINEUP_HIT = 20, LINEUP_STILL_X = 640;
+const LINEUP = 28, LINEUP_SNAP = 8, LINEUP_HIT = 20, LINEUP_STILL_X = 640;
 // The shakedown
 /** Thrown, it takes a modest share of him; slammed, a big one. */
 /** Each throw's animation: how long, and the frame he lets go on. */
@@ -1239,12 +1241,13 @@ const stepGrab = (ctx: FrameContext, g: Grab, controls: Controls): Controls => {
       // kept for the first). No jumping off in here: it's a beat, not a choice.
       holdStill(state);
       if (g.t === LINEUP_HIT) shakeScreen(state, 6, 5);
+      // (a blow pressed any time in here is kept (the latest one) and thrown the frame it's over)
       const ask: Blow | null = press('secondary') || pressed('y') ? 'head' : press('special') || press('charge') ? 'knee' : press('shoot') ? 'punch' : null;
-      if (ask && g.t > LINEUP - BLOW_BUFFER) g.want = { b: ask, t: g.t - LINEUP };
+      if (ask) g.want = { b: ask, t: 0 };
       if (g.t >= LINEUP) {
         const want = g.want;
-        g.phase = 'mount'; g.t = 0; g.nextPunchAt = 1; g.line = null; startBeat(g);
-        g.want = want;
+        g.phase = 'mount'; g.t = 0; g.nextPunchAt = 0; g.line = null; startBeat(g);
+        if (want) { g.want = want; throwBlow(g); }
       }
       return hold();
     }
@@ -1265,11 +1268,7 @@ const stepGrab = (ctx: FrameContext, g: Grab, controls: Controls): Controls => {
       }
       // Time: he's had enough, and shoves him off (not halfway into a blow: that lands first)
       if (g.t >= g.window && (g.blowT < 0 || g.blowT >= BLOWS[g.blow].hit)) { shoveOff(ctx, g); return { ...NO_CONTROLS }; }
-      if (g.want && g.t >= g.nextPunchAt) {
-        g.blow = g.want.b; g.want = null; g.blowT = 0; g.nextPunchAt = g.t + BLOWS[g.blow].gap; g.punchN++;
-        if (g.blow === 'knee') playSound('whoosh', 0.7, -4);
-        else if (g.blow === 'head') playSound('whoosh', 0.8, -9);
-      }
+      if (g.want && g.t >= g.nextPunchAt) throwBlow(g);
       return hold();
     }
 
@@ -1343,6 +1342,14 @@ const bulked = () => buffs.knock > 1;
 
 /** A beatdown under way: its window (bulked, longer), nothing owed or asked for yet. */
 const startBeat = (g: Grab) => { g.blowT = -1; g.want = null; g.healBank = 0; g.window = Math.round(BEAT_WINDOW * (bulked() ? BULK_WINDOW : 1)); };
+
+/** The blow asked for starts now (its swing; the next can't start till its gap's gone by). */
+const throwBlow = (g: Grab) => {
+  if (!g.want) return;
+  g.blow = g.want.b; g.want = null; g.blowT = 0; g.nextPunchAt = g.t + BLOWS[g.blow].gap; g.punchN++;
+  if (g.blow === 'knee') playSound('whoosh', 0.7, -4);
+  else if (g.blow === 'head') playSound('whoosh', 0.8, -9);
+};
 
 /** Into the line-up: where they each were (to ease from), and the sting. */
 const startLineup = (state: GameState, g: Grab, line: NonNullable<Grab['line']>) => {
