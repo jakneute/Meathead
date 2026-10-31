@@ -76,6 +76,13 @@ body.ts's parts throughout (ladder.ts's climb from behind, remains.ts, freefall/
 the boots, arms and glasses-helmet where they use the shared parts), the weapon-get screen and cutscene art that draws
 its own Meathead, the walk screens' cape points from the front (mostly hidden behind his arms).
 
+AS BUILT (the armored moves' look, 2026-10-31: "make sure the visual flourishes of an upgraded charge attack are fancier
+colors too"): with a move's piece, its flourishes (speed lines, afterimages, glow, sparks, rings, dust, the dive kick's
+fire, the hit bursts) take the piece's land colors: the charge leopard gold and jungle green, the slide statuette gold
+and glitter, the uppercut chrome with neon cyan and magenta, the dive kick's fire molten iron to cowbell brass,
+white-hot. Meathead 1's moves ask a hook (m1 render/player/moveFlair.ts, set in upgrades/gear.ts FLAIR); M1 never sets
+it. Colors only, no per-frame pixel work.
+
 ### SABATONS (feet): the dive kick
 - More damage on bosses; the dive kick goes further. Ignores spikes: the spiky enemies that punish a dive kick (KindDef.spiky) and spike hazards.
 - FOLLOW-UP: Y+B (the beatdown chord; R on the keyboard) in or shortly after a dive kick (no hit needed since

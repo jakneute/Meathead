@@ -51,6 +51,8 @@ export interface FireballOpts {
   tail?: number;
   /** Start the ramp this many steps hotter (a white-hot one) or cooler (negative: a guttering one). */
   heat?: number;
+  /** Its own colors, cool to hot, six of them (FIRE_RAMP's shape): an armored dive kick's (moveFlair.ts). */
+  ramp?: readonly string[];
 }
 
 /** The ball itself, painted into `g` (already chunky). */
@@ -62,7 +64,8 @@ const ball = (g: Ctx, x: number, y: number, r: number, f: number, o: FireballOpt
   const heat = Math.round(o.heat ?? 0);
   const layers = 5;
   for (let li = 0; li < layers; li++) {
-    const col = FIRE_RAMP[Math.max(0, Math.min(FIRE_RAMP.length - 1, li + heat))];
+    const R = o.ramp ?? FIRE_RAMP;
+    const col = R[Math.max(0, Math.min(R.length - 1, li + heat))];
     const s = 1 - li * 0.18;
     const lr = r * s * (0.92 + 0.08 * Math.sin(f * 0.7 + seed + li * 1.3));
     // (the hotter layers sit a little forward, so the cool side's the trailing one; sitting still, a little up, the heat

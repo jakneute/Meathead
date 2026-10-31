@@ -15,11 +15,15 @@
 //              (stopsShot); Meathead 2's own shot systems ask helmetStops (below) where they're wired in.
 //   CAPE       faster walking (×CAPE_WALK, times any bulk up), higher jumps, and the float: hold jump falling to drift
 //              down, steering (on his own legs only: not swimming, on a vine, a ladder, a ride, skis, a vehicle...).
+//   THE LOOK   an armored charge move's flourishes (speed lines, afterimages, glow, sparks, rings, dust, the dive kick's
+//              fire, the hit bursts) in its piece's land colors (the owner's "make sure the visual flourishes of an
+//              upgraded charge attack are fancier colors too"): m1 render/player/moveFlair.ts, FLAIR below.
 
 import type { FrameContext } from '../../m1/game/core/context';
 import type { GameState } from '../../m1/game/core/state';
 import type { Player, Projectile } from '../../m1/types';
 import { setMoveMods, type MeleeMove } from '../../m1/game/core/tuning';
+import { setMoveFlair, type MoveFlair } from '../../m1/game/render/player/moveFlair';
 import { setHurtGear, INSTANT_KILL_HURT } from '../../m1/game/core/resist';
 import { setHurtVeto } from '../../m1/game/bosses/shared';
 import { isMidBossKind } from '../../m1/game/combat/midBoss';
@@ -33,6 +37,40 @@ import {
 
 const REACH: Record<MeleeMove, [Parameters<typeof has>[0], number]> = {
   charge: ['pauldrons', PAULDRONS_REACH], slide: ['legs', LEGS_REACH], uppercut: ['armguards', ARMGUARDS_REACH], divekick: ['sabatons', SABATONS_REACH],
+};
+
+/** Each armored move's look, in its piece's provisional land colors (SPEC.md, armorArt.ts). */
+const PLAIN_FIRE = ['#7F1D1D', '#B91C1C', '#EA580C', '#F59E0B', '#FDE047', '#FEF9C3'];
+const FLAIR: Record<MeleeMove, MoveFlair> = {
+  // Pauldrons, Jungle: leopard gold and jungle green, tusk-ivory rings, bamboo dust
+  charge: {
+    lines: ['rgba(238, 198, 118, 0.9)', 'rgba(132, 204, 22, 0.85)'],
+    glow: ['rgba(255, 237, 184, 0.95)', 'rgba(210, 154, 60, 0.55)', 'rgba(101, 163, 13, 0)'],
+    ghost: 'sepia(1) saturate(5) hue-rotate(40deg) brightness(1.15)',
+    sparks: ['#FFEDB8', '#84CC16'], ring: '242, 234, 208', dust: '156, 148, 82', fire: PLAIN_FIRE, burst: '#D29A3C',
+  },
+  // Leg armor, Hollywood: statuette gold, glitter, gold dust
+  slide: {
+    lines: ['#F0C850', '#FFFFFF'],
+    glow: ['rgba(255, 242, 176, 0.95)', 'rgba(240, 200, 80, 0.55)', 'rgba(200, 150, 26, 0)'],
+    ghost: 'sepia(1) saturate(4) brightness(1.3)',
+    sparks: ['#FFF2B0', '#F0C850'], ring: '255, 242, 176', dust: '240, 200, 80', fire: PLAIN_FIRE, burst: '#F0C850',
+  },
+  // Armguards, Future: chrome and neon, cyan and magenta
+  uppercut: {
+    lines: ['rgba(34, 211, 238, 0.9)', 'rgba(232, 121, 249, 0.9)'],
+    glow: ['rgba(255, 255, 255, 0.95)', 'rgba(232, 121, 249, 0.6)', 'rgba(34, 211, 238, 0)'],
+    ghost: 'sepia(1) saturate(6) hue-rotate(250deg) brightness(1.3)',
+    sparks: ['#E0FFFF', '#F0ABFC'], ring: '203, 213, 225', dust: '148, 163, 184', fire: PLAIN_FIRE, burst: '#E879F9',
+  },
+  // Sabatons, Wilderness: molten railroad iron going to cowbell brass, white-hot at the core; iron and gold sparks
+  divekick: {
+    lines: ['rgba(221, 178, 74, 0.85)', 'rgba(201, 119, 63, 0.85)'],
+    glow: ['rgba(248, 224, 138, 0.95)', 'rgba(201, 119, 63, 0.55)', 'rgba(122, 58, 24, 0)'],
+    ghost: 'sepia(1) saturate(3) hue-rotate(5deg) brightness(1.35)',
+    sparks: ['#F8E08A', '#9A9AA8'], ring: '248, 224, 138', dust: '164, 83, 42',
+    fire: ['#4E2410', '#7A3A18', '#A4532A', '#DDB24A', '#F8E08A', '#FFFCF0'], burst: '#DDB24A',
+  },
 };
 
 /** A dive kick in the sabatons: proof against spikes coming down on them (a stage's spike hazards ask this too). */
@@ -108,6 +146,7 @@ export const installGear = () => {
     stopsShot,
     tripFrames: LEGS_TRIP_FRAMES,
   });
+  setMoveFlair(move => (has(REACH[move][0]) ? FLAIR[move] : null));
   setHurtGear(() => (has('helmet') ? HELMET_HURT : 1));
   // (the leg armor's front: anything that'd throw him back the way he's sliding from (it came at him from in front)
   // doesn't hurt him; nor knock him about. Not an instant kill)

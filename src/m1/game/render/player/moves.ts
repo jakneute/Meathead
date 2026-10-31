@@ -7,6 +7,7 @@ const BELT = '#78350F';
 const BUCKLE = '#FACC15';
 
 import { glowLayer } from './spriteOutline';
+import { moveFlair } from './moveFlair';
 import { chunky, ditherFill, drawFireball } from '../fx/fireball';
 import { steppedGlow } from '../pixelArt';
 import { drawLeg, drawArmTo, drawTorsoFromHips, drawHead, drawRamDelt, Mood } from './body';
@@ -394,21 +395,25 @@ export const drawLedgeDrop = (ctx: Ctx, frame: number, k: number) => {
 /** Head down, leading shoulder blazing, legs driving: a battering ram of beef. */
 export const drawShoulderCharge = (ctx: Ctx, frame: number) => {
   frameNow = frame;
+  // (in another game's gear, its colors: moveFlair.ts)
+  const fl = moveFlair('charge');
   // Speed lines streaming past
   ctx.strokeStyle = 'rgba(253, 224, 71, 0.7)';
   ctx.lineWidth = 2;
   for (let s = 0; s < 5; s++) {
     const y = -58 + s * 12;
     const x = -30 - ((frame * 9 + s * 17) % 40);
+    if (fl) ctx.strokeStyle = fl.lines[s % 2];
     ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x - 26 - (s % 2) * 10, y); ctx.stroke();
   }
   // Dust kicked up behind
+  const dust = fl?.dust ?? '190, 175, 150';
   for (let i = 0; i < 4; i++) {
     const d = (frame * 3 + i * 11) % 36;
-    ctx.fillStyle = `rgba(190, 175, 150, ${0.5 - d / 80})`;
+    ctx.fillStyle = `rgba(${dust}, ${0.5 - d / 80})`;
     ctx.beginPath(); ctx.arc(-22 - d, -3 - (i % 2) * 4 - d * 0.1, 4 + d * 0.15, 0, Math.PI * 2); ctx.fill();
   }
-  ghosts(ctx, 2, k => [-k * 15, 0], 'sepia(1) saturate(6) hue-rotate(-25deg) brightness(1.1)', (g, k) => chargeBody(g, frame - k * 3, false));
+  ghosts(ctx, 2, k => [-k * 15, 0], fl?.ghost ?? 'sepia(1) saturate(6) hue-rotate(-25deg) brightness(1.1)', (g, k) => chargeBody(g, frame - k * 3, false));
   chargeBody(ctx, frame, true);
 };
 
@@ -436,12 +441,13 @@ const chargeBody = (ctx: Ctx, frame: number, main: boolean) => {
   // Lead arm braced across the chest under the shoulder
   arm(ctx, [10, -20], [15, -9], [5, -8], false);
   // The shoulder itself: a huge delt, glowing hot
+  const fl = main ? moveFlair('charge') : null;
   if (main) {
     const g = glowLayer(ctx);
     const glow = g.createRadialGradient(14, -22, 2, 14, -22, 26);
-    glow.addColorStop(0, 'rgba(255, 220, 90, 0.9)');
-    glow.addColorStop(0.4, 'rgba(255, 110, 20, 0.45)');
-    glow.addColorStop(1, 'rgba(255, 60, 0, 0)');
+    glow.addColorStop(0, fl?.glow[0] ?? 'rgba(255, 220, 90, 0.9)');
+    glow.addColorStop(0.4, fl?.glow[1] ?? 'rgba(255, 110, 20, 0.45)');
+    glow.addColorStop(1, fl?.glow[2] ?? 'rgba(255, 60, 0, 0)');
     g.fillStyle = glow;
     g.beginPath(); g.arc(14, -22, 26, 0, Math.PI * 2); g.fill();
   }
@@ -452,7 +458,7 @@ const chargeBody = (ctx: Ctx, frame: number, main: boolean) => {
   // Shockwave rings of air bursting off the shoulder, out in front
   for (let k = 0; k < 3; k++) {
     const t = ((frame * 2 + k * 7) % 21) / 21;
-    ctx.strokeStyle = `rgba(255, 255, 255, ${0.75 * (1 - t)})`;
+    ctx.strokeStyle = `rgba(${fl && k % 2 ? fl.ring : '255, 255, 255'}, ${0.75 * (1 - t)})`;
     ctx.lineWidth = 2.5 - t;
     ctx.beginPath();
     ctx.arc(24 + t * 22, -42, 10 + t * 14, -1.1, 1.1);
@@ -515,15 +521,18 @@ const torpedoBody = (ctx: Ctx, frame: number, main: boolean) => {
 /** Rocketing up, fist to the sky wreathed in energy, knee driving, roaring. */
 export const drawUppercut = (ctx: Ctx, frame: number) => {
   frameNow = frame;
+  // (in another game's gear, its colors: moveFlair.ts)
+  const fl = moveFlair('uppercut');
   // Rising streaks below
   ctx.strokeStyle = 'rgba(125, 211, 252, 0.7)';
   ctx.lineWidth = 2;
   for (let s = 0; s < 5; s++) {
     const x = -14 + s * 7;
     const y = 4 + ((frame * 8 + s * 13) % 30);
+    if (fl) ctx.strokeStyle = fl.lines[s % 2];
     ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x, y + 18 + (s % 2) * 8); ctx.stroke();
   }
-  ghosts(ctx, 2, k => [0, k * 16], 'sepia(1) saturate(4) hue-rotate(160deg) brightness(1.3)', g => uppercutBody(g, frame, false));
+  ghosts(ctx, 2, k => [0, k * 16], fl?.ghost ?? 'sepia(1) saturate(4) hue-rotate(160deg) brightness(1.3)', g => uppercutBody(g, frame, false));
   uppercutBody(ctx, frame, true);
 };
 
@@ -545,12 +554,13 @@ const uppercutBody = (ctx: Ctx, frame: number, main: boolean) => {
   ctx.restore();
   // Lead arm straight up
   const fist: [number, number] = [19, -63];
+  const fl = main ? moveFlair('uppercut') : null;
   if (main) {
     const g = glowLayer(ctx);
     const glow = g.createRadialGradient(fist[0], fist[1], 2, fist[0], fist[1], 30);
-    glow.addColorStop(0, 'rgba(255, 255, 255, 0.95)');
-    glow.addColorStop(0.3, 'rgba(56, 189, 248, 0.6)');
-    glow.addColorStop(1, 'rgba(56, 189, 248, 0)');
+    glow.addColorStop(0, fl?.glow[0] ?? 'rgba(255, 255, 255, 0.95)');
+    glow.addColorStop(0.3, fl?.glow[1] ?? 'rgba(56, 189, 248, 0.6)');
+    glow.addColorStop(1, fl?.glow[2] ?? 'rgba(56, 189, 248, 0)');
     g.fillStyle = glow;
     g.beginPath(); g.arc(fist[0], fist[1], 30, 0, Math.PI * 2); g.fill();
   }
@@ -559,7 +569,7 @@ const uppercutBody = (ctx: Ctx, frame: number, main: boolean) => {
     // Energy spiralling around the fist and forearm
     for (let k = 0; k < 3; k++) {
       const a = frame * 0.5 + k * (Math.PI * 2 / 3);
-      ctx.strokeStyle = k % 2 === 0 ? '#7DD3FC' : '#FDE047';
+      ctx.strokeStyle = fl ? fl.lines[k % 2] : k % 2 === 0 ? '#7DD3FC' : '#FDE047';
       ctx.lineWidth = 2.2;
       ctx.beginPath();
       ctx.ellipse(fist[0], fist[1] + 10 + k * 6, 13 - k * 2, 4, 0, a, a + Math.PI * 1.1);
@@ -569,6 +579,7 @@ const uppercutBody = (ctx: Ctx, frame: number, main: boolean) => {
     ctx.fillStyle = '#FFFFFF';
     for (let s = 0; s < 4; s++) {
       const t = ((frame * 3 + s * 9) % 24) / 24;
+      if (fl) ctx.fillStyle = fl.sparks[s % 2];
       ctx.fillRect(fist[0] + Math.sin(s * 2.4) * (6 + t * 16), fist[1] - 6 - t * 18, 2.5, 2.5);
     }
   }
@@ -582,6 +593,8 @@ const uppercutBody = (ctx: Ctx, frame: number, main: boolean) => {
 /** Plummeting heel-first at a steep angle, the boot on fire, trailing flame. */
 export const drawDivekick = (ctx: Ctx, frame: number) => {
   frameNow = frame;
+  // (in another game's gear, its colors: moveFlair.ts; its fire's ramp, cool to hot)
+  const fl = moveFlair('divekick'), fr = fl?.fire;
   ctx.save();
   ctx.translate(0, -30);
   ctx.rotate(0.95); // 55-60 degrees down toward the target
@@ -591,12 +604,12 @@ export const drawDivekick = (ctx: Ctx, frame: number) => {
     for (let k = 0; k < 7; k++) {
       const t = ((frame * 2 + k * 5) % 35) / 35;
       const px = -14 - t * 50, py = Math.sin(frame * 0.4 + k) * 5, rx = 8 + t * 6, ry = 5 + t * 3;
-      g.fillStyle = t > 0.75 ? ditherFill(g, '#B91C1C') : t > 0.5 ? '#B91C1C' : t > 0.25 ? '#EA580C' : '#F59E0B';
+      g.fillStyle = t > 0.75 ? ditherFill(g, fr?.[1] ?? '#B91C1C') : t > 0.5 ? fr?.[1] ?? '#B91C1C' : t > 0.25 ? fr?.[2] ?? '#EA580C' : fr?.[3] ?? '#F59E0B';
       g.beginPath(); g.ellipse(px, py, rx, ry, 0, 0, Math.PI * 2); g.fill();
-      if (t < 0.5) { g.fillStyle = t < 0.25 ? '#FDE047' : '#F59E0B'; g.beginPath(); g.ellipse(px + rx * 0.2, py, rx * 0.5, ry * 0.5, 0, 0, Math.PI * 2); g.fill(); }
+      if (t < 0.5) { g.fillStyle = t < 0.25 ? fr?.[4] ?? '#FDE047' : fr?.[3] ?? '#F59E0B'; g.beginPath(); g.ellipse(px + rx * 0.2, py, rx * 0.5, ry * 0.5, 0, 0, Math.PI * 2); g.fill(); }
     }
   });
-  ghosts(ctx, 2, k => [-k * 16, 0], 'sepia(1) saturate(6) hue-rotate(-15deg) brightness(1.1)', g => diveBody(g, frame, false));
+  ghosts(ctx, 2, k => [-k * 16, 0], fl?.ghost ?? 'sepia(1) saturate(6) hue-rotate(-15deg) brightness(1.1)', g => diveBody(g, frame, false));
   diveBody(ctx, frame, true);
   ctx.restore();
 };
@@ -624,10 +637,17 @@ const diveBody = (ctx: Ctx, frame: number, main: boolean) => {
   leg(ctx, [2, 0], [18, 0], [34, 0], 0, false);
   if (!main) return;
   // The boot's on fire
+  const fl = moveFlair('divekick');
   const g = glowLayer(ctx);
-  steppedGlow(g, 40, 0, 20, '#FF7814', 0.6, 0.1, 4);
+  steppedGlow(g, 40, 0, 20, fl?.fire[3] ?? '#FF7814', 0.6, 0.1, 4);
   // (a ball of it round the boot, streaming back off it the way he's come)
-  drawFireball(ctx, 38, 0, 9, frame, { seed: 7, vx: 1, vy: 0, tail: 2.6, heat: 1 });
+  drawFireball(ctx, 38, 0, 9, frame, { seed: 7, vx: 1, vy: 0, tail: 2.6, heat: 1, ramp: fl?.fire });
+  // (in the gear: sparks off it too)
+  if (fl) for (let s = 0; s < 4; s++) {
+    const t = ((frame * 3 + s * 7) % 18) / 18;
+    ctx.fillStyle = fl.sparks[s % 2];
+    ctx.fillRect(Math.round(30 - t * 30), Math.round(Math.sin(s * 2.1 + frame * 0.3) * (4 + t * 10)), 2, 2);
+  }
 };
 
 // ---------------------------------------------------------------------------

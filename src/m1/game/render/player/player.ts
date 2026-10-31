@@ -17,6 +17,7 @@ import { SLIDE_HOLD, vineGrip, vineLean, VINE_SHOULDER } from '../../combat/muzz
 import { pitchLean, drawPitchLegs, drawPitchArm, drawPitchGloveArm, kegLean, drawKegLegs, drawKegArm, drawKegGloveArm } from './pitch';
 import { PITCH_FRAMES } from '../../combat/finaleBuffs';
 import { sprintLeg, drawShoulderCharge, drawSwimCharge, drawUppercut, drawDivekick, drawJetskiWheelie, drawJetskiLeap, drawJetskiDive, drawStandingKick, drawPedalLegs, drawLedgeDrop, drawGunslinger, drawAxeSwing } from './moves';
+import { moveFlair } from './moveFlair';
 import { KICK_POSE_FRAMES, LEDGE_DROP_FRAMES, FINALE_STAGE } from '../../../constants';
 import { GameState } from '../../core/state';
 import { GroundRun, runAt, treadYAt, stanceDrop, STANCE } from '../../core/terrain';
@@ -1270,8 +1271,8 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
     ctx.strokeRect(fistX - 3, fistY - 6, 11, 7);
     armorLimb(ctx, [6, -46], [6.5, -55], [6.5, -69], [fistX + 2.5, fistY], 7.5, false, 8.5);
 
-    // White/cyan spiraling speed streaks around fist
-    ctx.strokeStyle = '#38BDF8';
+    // White/cyan spiraling speed streaks around fist (in another game's gear, its colors: moveFlair.ts)
+    ctx.strokeStyle = moveFlair('uppercut')?.lines[0] ?? '#38BDF8';
     ctx.lineWidth = 2;
     ctx.beginPath();
     ctx.arc(fistX + 2.5, fistY + 12, 14, 0, Math.PI);
@@ -1694,10 +1695,11 @@ const drawSlideTackle = (ctx: CanvasRenderingContext2D, frame: number, weapon: W
   ctx.translate(0, rattle);
 
   // Dust cloud kicked up behind
+  const dust = moveFlair('slide')?.dust ?? '190, 175, 150';
   for (let i = 0; i < 5; i++) {
     const dx = -30 - ((frame * 3 + i * 13) % 40);
     const r = 5 + ((frame + i * 7) % 6);
-    ctx.fillStyle = `rgba(190, 175, 150, ${0.55 - ((frame * 3 + i * 13) % 40) / 90})`;
+    ctx.fillStyle = `rgba(${dust}, ${0.55 - ((frame * 3 + i * 13) % 40) / 90})`;
     ctx.beginPath();
     ctx.arc(dx, -4 - (i % 2) * 5, r, 0, Math.PI * 2);
     ctx.fill();
@@ -1714,10 +1716,17 @@ const drawSlideTackle = (ctx: CanvasRenderingContext2D, frame: number, weapon: W
   // Lead leg straight out along the floor, steel toe first
   drawLeg(ctx, [-4, -13], [12, -8], [26, -4], -0.05, false);
 
-  // Sparks off the steel toe
+  // Sparks off the steel toe (in another game's gear, its colors and more of them: moveFlair.ts)
+  const fl = moveFlair('slide');
   if (frame % 3 !== 0) {
-    ctx.fillStyle = frame % 2 === 0 ? '#FDE047' : '#FB923C';
-    for (let s = 0; s < 3; s++) ctx.fillRect(38 + ((frame * 5 + s * 7) % 12), -3 - ((frame + s * 3) % 6), 3, 2);
+    ctx.fillStyle = fl ? fl.sparks[frame % 2] : frame % 2 === 0 ? '#FDE047' : '#FB923C';
+    for (let s = 0; s < (fl ? 5 : 3); s++) ctx.fillRect(38 + ((frame * 5 + s * 7) % (fl ? 18 : 12)), -3 - ((frame + s * 3) % (fl ? 9 : 6)), 3, 2);
+  }
+  // (and a streak of glitter laid along the floor behind him)
+  if (fl) for (let s = 0; s < 6; s++) {
+    const d = (frame * 4 + s * 9) % 54;
+    ctx.fillStyle = fl.lines[s % 2];
+    ctx.fillRect(Math.round(-16 - d), Math.round(-2 - (s % 3) * 2 - Math.sin(d * 0.3) * 2), s % 3 ? 2 : 3, 2);
   }
 
   // Torso leaning way back from the hips: the same body as standing, laid back

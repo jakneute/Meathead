@@ -39,7 +39,8 @@ import { submerged } from './kinds/victor';
 import { isMidBoss } from '../combat/midBoss';
 import { isBeingTased } from '../combat/statusEffects';
 import { hurtTaken, gritty, shoveSetDistance, wallSplatDeath, gearHurt } from '../core/resist';
-import { powerCells, stompRefund, meleeDamage, mods } from '../core/tuning';
+import { powerCells, stompRefund, meleeDamage, mods, meleeMoveOf } from '../core/tuning';
+import { moveFlair } from '../render/player/moveFlair';
 import { startWallSplat } from './wallSplatDeath';
 import { sweepBody, pushOutOfSolid, type BodyHit } from './bodySweep';
 import { inFinale } from '../combat/finaleBuffs';
@@ -1005,12 +1006,14 @@ const resolvePlayerContact = (ctx: FrameContext, e: Enemy): boolean => {
     e.hitByMove = player.moveId;
     fx.spawnDamageNumber(e.pos, damage, player.isUppercutting || !!player.isDivekicking || wasFrozen || hasShield);
     fx.playGunSound(wasFrozen ? 'crack' : player.isDivekicking ? 'stomp' : 'punch');
+    // (an armored move in another game's gear: its burst in the piece's colors (render/player/moveFlair.ts; Meathead 1: none)
+    const flMove = meleeMoveOf(player), fl = flMove ? moveFlair(flMove) : null;
 
     if (player.isUppercutting) {
       player.uppercutHitIds.push(e.id);
       shakeScreen(state, 10, 6 * GML_SCALE);
-      fx.spawnExplosion({ x: e.pos.x + e.width / 2, y: e.pos.y + e.height / 2 }, '#FFD700', 15, 0, 12);
-    }
+      fx.spawnExplosion({ x: e.pos.x + e.width / 2, y: e.pos.y + e.height / 2 }, fl?.burst ?? '#FFD700', 15, 0, 12);
+    } else if (fl) fx.spawnExplosion({ x: e.pos.x + e.width / 2, y: e.pos.y + e.height / 2 }, fl.burst, 10, player.facing * 2, 10);
     if (player.isDivekicking) player.diveKickHitIds.push(e.id);
 
     if (e.health > 0) {
