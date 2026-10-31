@@ -126,6 +126,11 @@
  },
  {
   "voice": "announcer",
+  "text": "AIR STRIKE!",
+  "from": "GRAB_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
   "text": "AIRMAILED!",
   "from": "GRAB_CALLOUTS"
  },
@@ -721,6 +726,11 @@
  },
  {
   "voice": "announcer",
+  "text": "DIRECT HIT!",
+  "from": "GRAB_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
   "text": "DISINTEGRATED!",
   "from": "KILL_CALLOUTS"
  },
@@ -891,6 +901,11 @@
  },
  {
   "voice": "announcer",
+  "text": "FIELD GOAL!",
+  "from": "GRAB_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
   "text": "FILLETED!",
   "from": "KILL_CALLOUTS"
  },
@@ -918,6 +933,11 @@
   "voice": "announcer",
   "text": "FLAGGED!",
   "from": "CARTOON"
+ },
+ {
+  "voice": "announcer",
+  "text": "FLASH KICKED!",
+  "from": "GRAB_CALLOUTS"
  },
  {
   "voice": "announcer",
@@ -998,6 +1018,11 @@
   "voice": "announcer",
   "text": "FROSTED!",
   "from": "CARTOON"
+ },
+ {
+  "voice": "announcer",
+  "text": "GARDENED!",
+  "from": "GRAB_CALLOUTS"
  },
  {
   "voice": "announcer",
@@ -1131,6 +1156,11 @@
  },
  {
   "voice": "announcer",
+  "text": "HALVED!",
+  "from": "GRAB_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
   "text": "HAMBURGERED!",
   "from": "GRAB_CALLOUTS"
  },
@@ -1172,6 +1202,11 @@
  {
   "voice": "announcer",
   "text": "HEAD FIRST!",
+  "from": "GRAB_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "HEAD OVER HEELS!",
   "from": "GRAB_CALLOUTS"
  },
  {
@@ -1281,6 +1316,11 @@
  },
  {
   "voice": "announcer",
+  "text": "HUMAN TORPEDO!",
+  "from": "GRAB_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
   "text": "HUNTED!",
   "from": "FANTASY"
  },
@@ -1311,6 +1351,11 @@
  },
  {
   "voice": "announcer",
+  "text": "INCOMING!",
+  "from": "GRAB_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
   "text": "INTERNED!",
   "from": "CARTOON"
  },
@@ -1326,6 +1371,11 @@
  },
  {
   "voice": "announcer",
+  "text": "IT'S GOOD!",
+  "from": "GRAB_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
   "text": "IT'S NOT COMING BACK DOWN!",
   "from": "FOR_AN_ANIMAL"
  },
@@ -1338,6 +1388,11 @@
   "voice": "announcer",
   "text": "KABOOM!",
   "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "KICKOFF!",
+  "from": "GRAB_CALLOUTS"
  },
  {
   "voice": "announcer",
@@ -1576,6 +1631,11 @@
  },
  {
   "voice": "announcer",
+  "text": "MISSILE!",
+  "from": "GRAB_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
   "text": "MOAT-ALITY!",
   "from": "FANTASY"
  },
@@ -1638,6 +1698,11 @@
   "voice": "announcer",
   "text": "NINE LIVES, ZERO LEFT!",
   "from": "CARTOON"
+ },
+ {
+  "voice": "announcer",
+  "text": "NINJA DROP!",
+  "from": "GRAB_CALLOUTS"
  },
  {
   "voice": "announcer",
@@ -1911,6 +1976,11 @@
  },
  {
   "voice": "announcer",
+  "text": "PLANTED!",
+  "from": "GRAB_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
   "text": "PLOWED!",
   "from": "KILL_CALLOUTS"
  },
@@ -1983,6 +2053,11 @@
   "voice": "announcer",
   "text": "PUNCHLINE!",
   "from": "FANTASY"
+ },
+ {
+  "voice": "announcer",
+  "text": "PUNTED!",
+  "from": "GRAB_CALLOUTS"
  },
  {
   "voice": "announcer",
@@ -2226,6 +2301,11 @@
  },
  {
   "voice": "announcer",
+  "text": "SIX FEET UNDER!",
+  "from": "GRAB_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
   "text": "SIZZLE!",
   "from": "SURFACE_CALLOUTS"
  },
@@ -2252,6 +2332,11 @@
  {
   "voice": "announcer",
   "text": "SLAMMED!",
+  "from": "GRAB_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "SLICED!",
   "from": "GRAB_CALLOUTS"
  },
  {
@@ -2326,6 +2411,11 @@
  },
  {
   "voice": "announcer",
+  "text": "SONIC BOOM!",
+  "from": "GRAB_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
   "text": "SOUVENIRED!",
   "from": "GRAB_CALLOUTS"
  },
@@ -2381,6 +2471,11 @@
  },
  {
   "voice": "announcer",
+  "text": "SPLIT IN TWO!",
+  "from": "GRAB_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
   "text": "SPLOOSH!",
   "from": "SURFACE_CALLOUTS"
  },
@@ -2388,6 +2483,11 @@
   "voice": "announcer",
   "text": "SPRINKLED!",
   "from": "CARTOON"
+ },
+ {
+  "voice": "announcer",
+  "text": "SPUN INTO THE DIRT!",
+  "from": "GRAB_CALLOUTS"
  },
  {
   "voice": "announcer",
@@ -2632,6 +2732,16 @@
  {
   "voice": "announcer",
   "text": "TOMBSTONED!",
+  "from": "GRAB_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "TOP SPUN!",
+  "from": "GRAB_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "TOPSOIL!",
   "from": "GRAB_CALLOUTS"
  },
  {
@@ -19441,6 +19551,21 @@
  },
  {
   "voice": "m2.cartoon.dad",
+  "text": "BONK! RIGHT ON THE DANGLER!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.cartoon.dad",
+  "text": "BONK! SMELLY!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.cartoon.dad",
+  "text": "BONK! THAT ONE WAS FOR MY BEER NUTS!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.cartoon.dad",
   "text": "BOY, YOU'RE ON A TRACK. YOU'RE THE ONLY ONE IN THIS FAMILY GOING ANYWHERE.",
   "from": "CARTOON"
  },
@@ -19608,6 +19733,26 @@
   "voice": "m2.cartoon.dad",
   "text": "FINE. I'LL GET IT. YOU'D ONLY SHIT ON IT.",
   "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.dad",
+  "text": "GET AWAY FROM ME, NUDIE!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.cartoon.dad",
+  "text": "GET AWAY FROM ME, STINKY!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.cartoon.dad",
+  "text": "GET OFF MY LAWN! MY COUCH! MY NUTS!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.cartoon.dad",
+  "text": "GET YOUR NAKED ASS OFF MY SET!",
+  "from": "UPGRADES"
  },
  {
   "voice": "m2.cartoon.dad",
@@ -19786,6 +19931,11 @@
  },
  {
   "voice": "m2.cartoon.dad",
+  "text": "I SHIT MYSELF ON PURPOSE! YOU'RE JUST AN AMATEUR!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.cartoon.dad",
   "text": "I SIT. YOU STINK. THAT'S THE WHOLE SHOW. IT RAN SIX WEEKS.",
   "from": "CARTOON"
  },
@@ -19826,6 +19976,21 @@
  },
  {
   "voice": "m2.cartoon.dad",
+  "text": "I'M GONNA KILL YOU! AFTER YOU GO HOME AND WASH!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.cartoon.dad",
+  "text": "I'M GONNA KILL YOU! PUT A ROBE ON FIRST!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.cartoon.dad",
+  "text": "I'M GONNA KILL YOU! RIGHT AFTER A NAP!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.cartoon.dad",
   "text": "I'M OUT OF BREATH AND YOUR DICK'S STILL OUT.",
   "from": "CARTOON"
  },
@@ -19841,6 +20006,21 @@
  },
  {
   "voice": "m2.cartoon.dad",
+  "text": "ICE! AND A BLINDFOLD!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.cartoon.dad",
+  "text": "ICE! AND AIR FRESHENER! AND BEER!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.cartoon.dad",
+  "text": "ICE! BEER! A BAG OF ICE WITH BEER IN IT!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.cartoon.dad",
   "text": "IF I DIE, THE LAST THING I SAW WAS THAT.",
   "from": "CARTOON"
  },
@@ -19848,6 +20028,11 @@
   "voice": "m2.cartoon.dad",
   "text": "IF YOU WANT A BEER DONE RIGHT...",
   "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.dad",
+  "text": "IN MY DAY WE WORE PANTS TO KICK NUTS!",
+  "from": "UPGRADES"
  },
  {
   "voice": "m2.cartoon.dad",
@@ -19941,6 +20126,11 @@
  },
  {
   "voice": "m2.cartoon.dad",
+  "text": "MY BEER NUTS! SOMEBODY GET ME A BAG OF ICE!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.cartoon.dad",
   "text": "MY COUCH! NOT THE COUCH!",
   "from": "CARTOON"
  },
@@ -19963,6 +20153,16 @@
   "voice": "m2.cartoon.dad",
   "text": "MY HEART. MY HEART'S GOING. I SEE MARLENE.",
   "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.dad",
+  "text": "MY NUTS! A NAKED GUY KICKED MY NUTS ON MY OWN COUCH!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.cartoon.dad",
+  "text": "MY NUTS! YOU KICKED ME WITH A SHIT BOOT! ON MY COUCH!",
+  "from": "UPGRADES"
  },
  {
   "voice": "m2.cartoon.dad",
@@ -20086,8 +20286,33 @@
  },
  {
   "voice": "m2.cartoon.dad",
+  "text": "OOOOOH! HONEY! HONEY! THE NUTS!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.cartoon.dad",
+  "text": "OOOOOH! NOW THE COUCH SMELLS LIKE BOTH OF US!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.cartoon.dad",
+  "text": "OOOOOH! YOUR STUFF WAS ON MY RECLINER!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.cartoon.dad",
   "text": "OW! DON'T HIT ME WITH YOUR BALLS OUT!",
   "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.dad",
+  "text": "OW! I CAN'T GET UP! I COULDN'T GET UP BEFORE EITHER!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.cartoon.dad",
+  "text": "OW! I SAT IN WORSE! I'M SITTING IN WORSE RIGHT NOW!",
+  "from": "UPGRADES"
  },
  {
   "voice": "m2.cartoon.dad",
@@ -20106,6 +20331,11 @@
  },
  {
   "voice": "m2.cartoon.dad",
+  "text": "OW! PUT SOME PANTS ON! I'M TRYING TO WATCH TV!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.cartoon.dad",
   "text": "OW! SECOND WORST THING TODAY. SHIT PANTS THERE IS FIRST.",
   "from": "CARTOON"
  },
@@ -20113,6 +20343,11 @@
   "voice": "m2.cartoon.dad",
   "text": "OW! SOMETHING SLAPPED ME. I HOPE IT WAS A HAND.",
   "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.dad",
+  "text": "OW! SON! SOMEBODY! GET ME A COLD ONE FOR MY NUTS!",
+  "from": "UPGRADES"
  },
  {
   "voice": "m2.cartoon.dad",
@@ -20128,6 +20363,16 @@
   "voice": "m2.cartoon.dad",
   "text": "OW! YOU GOT YOUR SHIT ON MY BEER SHIRT!",
   "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.dad",
+  "text": "OW! YOU STINK AND I'M TOO LAZY TO LEAVE!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.cartoon.dad",
+  "text": "OW! YOU'RE NAKED AND I CAN'T EVEN WALK AWAY!",
+  "from": "UPGRADES"
  },
  {
   "voice": "m2.cartoon.dad",
@@ -20203,6 +20448,21 @@
   "voice": "m2.cartoon.dad",
   "text": "SIS! BEER! YOU'RE GROUNDED! FOREVER!",
   "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.dad",
+  "text": "SIT DOWN! FOREVER!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.cartoon.dad",
+  "text": "SIT DOWN! NOT ON MY COUCH!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.cartoon.dad",
+  "text": "SIT DOWN! PUT A TOWEL DOWN FIRST!",
+  "from": "UPGRADES"
  },
  {
   "voice": "m2.cartoon.dad",
@@ -20431,6 +20691,11 @@
  },
  {
   "voice": "m2.cartoon.dad",
+  "text": "WHO NEEDS NUTS? I GOT A COUCH!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.cartoon.dad",
   "text": "WHO PARKED ON MY FAMILY? WAS IT THE NAKED GUY?",
   "from": "CARTOON"
  },
@@ -20458,6 +20723,16 @@
   "voice": "m2.cartoon.dad",
   "text": "YOU AGAIN? MARLENE, LOCK THE DOOR. MARLENE'S DEAD. RIGHT.",
   "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.dad",
+  "text": "YOU KICKED MY NUTS! NOW I REALLY AIN'T GETTING UP!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.cartoon.dad",
+  "text": "YOU SMELL LIKE MY COUCH CUSHIONS! THE BACK ONES!",
+  "from": "UPGRADES"
  },
  {
   "voice": "m2.cartoon.dad",
@@ -20651,6 +20926,11 @@
  },
  {
   "voice": "m2.cartoon.dole",
+  "text": "BOB DOLE DOES NOT SHIT HIMSELF! BOB DOLE!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.cartoon.dole",
   "text": "BOB DOLE DOESN'T WANT TO SEE THAT!",
   "from": "CARTOON"
  },
@@ -20671,6 +20951,11 @@
  },
  {
   "voice": "m2.cartoon.dole",
+  "text": "BOB DOLE IS STILL RUNNING! LIMPING!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.cartoon.dole",
   "text": "BOB DOLE IS THE MOST OPTIMISTIC MAN IN AMERICA!",
   "from": "CARTOON"
  },
@@ -20683,6 +20968,21 @@
   "voice": "m2.cartoon.dole",
   "text": "BOB DOLE MEANT TO DO THAT!",
   "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.dole",
+  "text": "BOB DOLE NEEDS A MINUTE!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.cartoon.dole",
+  "text": "BOB DOLE NEEDS A NOSE CLIP!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.cartoon.dole",
+  "text": "BOB DOLE NEEDS NEW EYES!",
+  "from": "UPGRADES"
  },
  {
   "voice": "m2.cartoon.dole",
@@ -20716,6 +21016,31 @@
  },
  {
   "voice": "m2.cartoon.dole",
+  "text": "BOB DOLE WEARS PANTS! BOB DOLE!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.cartoon.dole",
+  "text": "BOB DOLE WILL GET YOU! AFTER YOU WASH!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.cartoon.dole",
+  "text": "BOB DOLE WILL GET YOU! BOB DOLE!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.cartoon.dole",
+  "text": "BOB DOLE WILL GET YOU! COVER UP!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.cartoon.dole",
+  "text": "BOB DOLE!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.cartoon.dole",
   "text": "BOB DOLE! BOB DOLE! BOB DOLE!",
   "from": "CARTOON"
  },
@@ -20723,6 +21048,16 @@
   "voice": "m2.cartoon.dole",
   "text": "BOB DOLE! NINETY-SIX!",
   "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.dole",
+  "text": "BOB DOLE! NUDIE!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.cartoon.dole",
+  "text": "BOB DOLE! STINKY!",
+  "from": "UPGRADES"
  },
  {
   "voice": "m2.cartoon.dole",
@@ -20746,8 +21081,68 @@
  },
  {
   "voice": "m2.cartoon.dole",
+  "text": "HNNNG! BOB DOLE DID NOT SEE THAT COMING!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.cartoon.dole",
+  "text": "HNNNG! BOB DOLE SAW YOUR JUNK!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.cartoon.dole",
+  "text": "HNNNG! BOB DOLE SMELLS IT!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.cartoon.dole",
+  "text": "OOOOF! A DIRTY FOOT IN BOB DOLE'S NUTS!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.cartoon.dole",
+  "text": "OOOOF! A NAKED MAN KICKED BOB DOLE!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.cartoon.dole",
+  "text": "OOOOF! BOB DOLE'S NUTS! BOB DOLE'S!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.cartoon.dole",
+  "text": "OW! BOB DOLE IS HURT! BOB DOLE!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.cartoon.dole",
+  "text": "OW! BOB DOLE SMELLS YOU!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.cartoon.dole",
+  "text": "OW! BOB DOLE WANTS YOU TO PUT PANTS ON!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.cartoon.dole",
   "text": "PINEAPPLE!",
   "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.dole",
+  "text": "THIS ONE IS FROM BOB DOLE!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.cartoon.dole",
+  "text": "THIS ONE IS FROM BOB DOLE! HOLD YOUR NOSE!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.cartoon.dole",
+  "text": "THIS ONE IS FROM BOB DOLE! PANTS ON!",
+  "from": "UPGRADES"
  },
  {
   "voice": "m2.cartoon.dole",
@@ -20866,8 +21261,28 @@
  },
  {
   "voice": "m2.cartoon.falwell",
+  "text": "CLEANLINESS IS NEXT TO GODLINESS! YOU ARE NEXT TO NOTHING!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.cartoon.falwell",
   "text": "COLLECTION PLATE!",
   "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.falwell",
+  "text": "COLLECTION PLATE! FOR THE SMELL!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.cartoon.falwell",
+  "text": "COLLECTION PLATE! HOLD IT DOWN THERE!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.cartoon.falwell",
+  "text": "COLLECTION! TIME! FOR VENGEANCE!",
+  "from": "UPGRADES"
  },
  {
   "voice": "m2.cartoon.falwell",
@@ -20896,8 +21311,43 @@
  },
  {
   "voice": "m2.cartoon.falwell",
+  "text": "HNNNG! I SAW THE DEVIL! IT WAS DANGLING!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.cartoon.falwell",
+  "text": "HNNNG! SATAN! THAT FOOT WAS SATAN!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.cartoon.falwell",
+  "text": "HNNNG! WASH YOUR SOUL! AND YOUR PANTS!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.cartoon.falwell",
   "text": "I'M PRAYING FOR YOU! AT YOU! I'M PRAYING AT YOU!",
   "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.falwell",
+  "text": "LORD! I DID NOT NEED THOSE! I NEVER USED THEM!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.cartoon.falwell",
+  "text": "LORD! SMITE THE STINKY ONE!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.cartoon.falwell",
+  "text": "LORD! STRIKE ME BLIND! PLEASE!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.cartoon.falwell",
+  "text": "NAKED AND UNREPENTANT! I DECLARE A BOYCOTT!",
+  "from": "UPGRADES"
  },
  {
   "voice": "m2.cartoon.falwell",
@@ -20908,6 +21358,36 @@
   "voice": "m2.cartoon.falwell",
   "text": "NAKEDNESS! IN THE LINCOLN BEDROOM! I'M THE REVEREND JERRY FALWELL, AND THIS IS SODOM!",
   "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.falwell",
+  "text": "OOOOOH! A FILTHY FOOT! A SINFUL FILTHY FOOT!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.cartoon.falwell",
+  "text": "OOOOOH! A NAKED SINNER! IN MY BEDROOM!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.cartoon.falwell",
+  "text": "OOOOOH! THE LORD GIVETH! AND YOU KICKETH!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.cartoon.falwell",
+  "text": "OW! COVER YOUR SHAME, SON!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.cartoon.falwell",
+  "text": "OW! THIS IS PERSECUTION!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.cartoon.falwell",
+  "text": "OW! YOU REEK OF SIN!",
+  "from": "UPGRADES"
  },
  {
   "voice": "m2.cartoon.falwell",
@@ -20941,6 +21421,21 @@
  },
  {
   "voice": "m2.cartoon.falwell",
+  "text": "TAKE THE GOOD BOOK!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.cartoon.falwell",
+  "text": "TAKE THE GOOD BOOK! COVER UP WITH IT!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.cartoon.falwell",
+  "text": "TAKE THE GOOD BOOK! WASH UP AFTER!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.cartoon.falwell",
   "text": "THE GAY AGENDA IS COMING FOR OUR CARTOONS! NOT ON MY WATCH!",
   "from": "CARTOON"
  },
@@ -20953,6 +21448,11 @@
   "voice": "m2.cartoon.falwell",
   "text": "THE MORAL MAJORITY HAS SPOKEN!",
   "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.falwell",
+  "text": "THE MORAL MAJORITY WILL HEAR OF THIS!",
+  "from": "UPGRADES"
  },
  {
   "voice": "m2.cartoon.falwell",
@@ -20973,6 +21473,21 @@
   "voice": "m2.cartoon.falwell",
   "text": "TWO DADDIES? NOT IN THIS HOUSE, KITTY!",
   "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.falwell",
+  "text": "YOU WILL BURN! I'LL BRING MARSHMALLOWS!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.cartoon.falwell",
+  "text": "YOU WILL BURN! LOW! WHERE IT HURTS!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.cartoon.falwell",
+  "text": "YOU WILL BURN! THE SMELL WILL TOO!",
+  "from": "UPGRADES"
  },
  {
   "voice": "m2.cartoon.flea",
@@ -21896,8 +22411,28 @@
  },
  {
   "voice": "m2.cartoon.limbaugh",
+  "text": "HNNNG! SOMEBODY TAKE THIS CALLER OFF THE AIR!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.cartoon.limbaugh",
+  "text": "HNNNG! TALENT ON LOAN FROM NOBODY NOW!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.cartoon.limbaugh",
+  "text": "HNNNG! THAT IS NOT FAMILY RADIO!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.cartoon.limbaugh",
   "text": "HOLD MY CALLS, FOLKS! HOLD MY CALLS!",
   "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.limbaugh",
+  "text": "I AM STILL RIGHT ABOUT EVERYTHING! IN A HIGHER KEY!",
+  "from": "UPGRADES"
  },
  {
   "voice": "m2.cartoon.limbaugh",
@@ -21921,13 +22456,93 @@
  },
  {
   "voice": "m2.cartoon.limbaugh",
+  "text": "MEGA DITTOS! NUDIST!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.cartoon.limbaugh",
+  "text": "MEGA DITTOS! STINKY!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.cartoon.limbaugh",
+  "text": "MY VOICE! AND YOUR SMELL! WE'RE GOING TO COMMERCIAL!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.cartoon.limbaugh",
+  "text": "MY VOICE! I SOUND LIKE A FEMINAZI!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.cartoon.limbaugh",
+  "text": "MY VOICE! MY GOLDEN EIB VOICE! SQUEAKY!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.cartoon.limbaugh",
+  "text": "NAKED! TYPICAL! TYPICAL!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.cartoon.limbaugh",
   "text": "ON THE AIR!",
   "from": "CARTOON"
  },
  {
   "voice": "m2.cartoon.limbaugh",
+  "text": "OOOOF! A DIRTY FOOT! THIS IS LIBERAL BIAS!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.cartoon.limbaugh",
+  "text": "OOOOF! A NAKED HIPPIE KICKED ME!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.cartoon.limbaugh",
+  "text": "OOOOF! DITTOS! NO! NO DITTOS!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.cartoon.limbaugh",
+  "text": "OW! THAT'S GONNA BE THREE HOURS ON THE SHOW!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.cartoon.limbaugh",
+  "text": "OW! YOU CAN SEE THOSE ON THE RADIO!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.cartoon.limbaugh",
+  "text": "OW! YOU SMELL LIKE A CALL-IN SEGMENT!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.cartoon.limbaugh",
   "text": "PUT IT AWAY, KITTY! THIS IS A FAMILY STATION!",
   "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.limbaugh",
+  "text": "PUT IT AWAY! THIS IS A FAMILY SHOW!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.cartoon.limbaugh",
+  "text": "TAKE THAT, CALLER!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.cartoon.limbaugh",
+  "text": "TAKE THAT, NAKED CALLER!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.cartoon.limbaugh",
+  "text": "TAKE THAT, SMELLY CALLER!",
+  "from": "UPGRADES"
  },
  {
   "voice": "m2.cartoon.limbaugh",
@@ -21938,6 +22553,11 @@
   "voice": "m2.cartoon.limbaugh",
   "text": "THE PHONES ARE LIT UP! EVERYBODY SMELLS YOU!",
   "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.limbaugh",
+  "text": "THE STINK IS LIBERAL! I CAN SMELL IT!",
+  "from": "UPGRADES"
  },
  {
   "voice": "m2.cartoon.limbaugh",
@@ -21958,6 +22578,16 @@
   "voice": "m2.cartoon.limbaugh",
   "text": "WHOA! SOMETHING STINKS ACROSS THE FRUITED PLAIN, KITTY! IT'S YOU! RUSH LIMBAUGH HERE!",
   "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.limbaugh",
+  "text": "YOU JUST KICKED THE VOICE OF AMERICA!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.cartoon.limbaugh",
+  "text": "YOU JUST SHIT ON THE VOICE OF AMERICA!",
+  "from": "UPGRADES"
  },
  {
   "voice": "m2.cartoon.lobbyist",
@@ -22301,8 +22931,53 @@
  },
  {
   "voice": "m2.cartoon.newt",
+  "text": "CONTRACT ON THE NUDIST!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.cartoon.newt",
+  "text": "CONTRACT ON THE STINKY ONE!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.cartoon.newt",
+  "text": "CONTRACT ON YOU!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.cartoon.newt",
+  "text": "HNNNG! I SAW HIS LINE ITEMS!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.cartoon.newt",
+  "text": "HNNNG! MY REVOLUTION!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.cartoon.newt",
+  "text": "HNNNG! THAT SMELL! THAT KICK!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.cartoon.newt",
   "text": "I AM NEWT GINGRICH, SPEAKER OF THE HOUSE! AND I HAVE A CONTRACT! WITH AMERICA!",
   "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.newt",
+  "text": "I WILL CUT YOU! I WILL CUT YOUR SMELL!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.cartoon.newt",
+  "text": "I WILL CUT YOU! LIKE A BUDGET!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.cartoon.newt",
+  "text": "I WILL CUT YOU! START WITH WHAT IS OUT!",
+  "from": "UPGRADES"
  },
  {
   "voice": "m2.cartoon.newt",
@@ -22331,6 +23006,21 @@
  },
  {
   "voice": "m2.cartoon.newt",
+  "text": "MY NUTS! A GOVERNMENT SHUTDOWN!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.cartoon.newt",
+  "text": "MY NUTS! AND MY NOSE! BOTH SHUT DOWN!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.cartoon.newt",
+  "text": "MY NUTS! YOUR NUTS! ALL OUT IN THE OPEN!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.cartoon.newt",
   "text": "NEWT GINGRICH HERE! AND THIS CAT IS IN VIOLATION OF MY CONTRACT WITH AMERICA!",
   "from": "CARTOON"
  },
@@ -22351,6 +23041,21 @@
  },
  {
   "voice": "m2.cartoon.newt",
+  "text": "OOOOF! A DIRTY BOOT! SHUT THE GOVERNMENT DOWN!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.cartoon.newt",
+  "text": "OOOOF! A NAKED MAN! IN THE PEOPLE'S HOUSE!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.cartoon.newt",
+  "text": "OOOOF! THAT WAS NOT IN THE CONTRACT WITH AMERICA!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.cartoon.newt",
   "text": "ORDER! ORDER!",
   "from": "CARTOON"
  },
@@ -22358,6 +23063,36 @@
   "voice": "m2.cartoon.newt",
   "text": "ORPHANAGES, KITTY! LIKE IN THE MOVIES!",
   "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.newt",
+  "text": "OW! I DEMAND A RECOUNT OF MY NUTS!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.cartoon.newt",
+  "text": "OW! THAT IS INDECENT EXPOSURE ON FEDERAL PROPERTY!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.cartoon.newt",
+  "text": "OW! YOU SMELL LIKE A COMMITTEE!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.cartoon.newt",
+  "text": "REVOLUTION!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.cartoon.newt",
+  "text": "REVOLUTION! COVER UP!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.cartoon.newt",
+  "text": "REVOLUTION! HOLD YOUR NOSE!",
+  "from": "UPGRADES"
  },
  {
   "voice": "m2.cartoon.newt",
@@ -22373,6 +23108,21 @@
   "voice": "m2.cartoon.newt",
   "text": "SIGN IT!",
   "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.newt",
+  "text": "TEN POINTS! ALL OF THEM PANTS!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.cartoon.newt",
+  "text": "TEN POINTS! ALL OF THEM REVENGE!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.cartoon.newt",
+  "text": "TEN POINTS! ALL OF THEM SOAP!",
+  "from": "UPGRADES"
  },
  {
   "voice": "m2.cartoon.newt",
@@ -22596,6 +23346,36 @@
  },
  {
   "voice": "m2.cartoon.perot",
+  "text": "HERE'S A CHART! COVER UP WITH IT!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.cartoon.perot",
+  "text": "HERE'S A CHART! IT'S ALL BROWN!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.cartoon.perot",
+  "text": "HERE'S A CHART! IT'S ALL PAIN!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.cartoon.perot",
+  "text": "HOO-WEE! I SAW YOUR CHARTS, SON!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.cartoon.perot",
+  "text": "HOO-WEE! RIGHT IN THE DEFICIT!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.cartoon.perot",
+  "text": "HOO-WEE! THAT BOOT WAS DIRTY!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.cartoon.perot",
   "text": "HOWDY, KITTY! SON, YOU'RE SHOWIN' MORE THAN MY PIE CHART! IT'S ME, ROSS PEROT!",
   "from": "CARTOON"
  },
@@ -22603,6 +23383,26 @@
   "voice": "m2.cartoon.perot",
   "text": "HOWDY, KITTY! WHEW! SMELLS LIKE THE NATIONAL DEBT IN HERE! IT'S ME, ROSS PEROT!",
   "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.perot",
+  "text": "I CAN HEAR THE SMELL WITH THESE EARS!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.cartoon.perot",
+  "text": "I'LL BALANCE THIS BUDGET! WITH YOUR CORPSE!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.cartoon.perot",
+  "text": "I'LL BALANCE THIS BUDGET! YOU BALANCE YOUR BOWELS!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.cartoon.perot",
+  "text": "I'LL BALANCE THIS BUDGET! YOU BUY SOME PANTS!",
+  "from": "UPGRADES"
  },
  {
   "voice": "m2.cartoon.perot",
@@ -22626,8 +23426,28 @@
  },
  {
   "voice": "m2.cartoon.perot",
+  "text": "MY EARS STILL WORK! MY NUTS DON'T!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.cartoon.perot",
   "text": "NOW LET ME FINISH! LET ME FINISH!",
   "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.perot",
+  "text": "NOW WAIT A MINUTE! MY NUTS ARE IN THE RED!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.cartoon.perot",
+  "text": "NOW WAIT A MINUTE! THAT IS NOT A PIE CHART!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.cartoon.perot",
+  "text": "NOW WAIT A MINUTE! WIPE FIRST!",
+  "from": "UPGRADES"
  },
  {
   "voice": "m2.cartoon.perot",
@@ -22636,13 +23456,63 @@
  },
  {
   "voice": "m2.cartoon.perot",
+  "text": "OOOF! A GIANT CRUSHING SOUND! AND A GIANT SMELL!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.cartoon.perot",
+  "text": "OOOF! FROM A NAKED FELLA! NOW LOOK HERE!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.cartoon.perot",
+  "text": "OOOF! THAT'S A GIANT CRUSHING SOUND!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.cartoon.perot",
+  "text": "OW! I GOT A CHART FOR THAT! IT GOES DOWN!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.cartoon.perot",
+  "text": "OW! PUT THOSE AWAY! THEY AIN'T ON THE BALLOT!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.cartoon.perot",
+  "text": "OW! THAT'S A GIANT STINKING SOUND!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.cartoon.perot",
   "text": "PIE CHART!",
   "from": "CARTOON"
  },
  {
   "voice": "m2.cartoon.perot",
+  "text": "PIE CHART! EAT IT!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.cartoon.perot",
+  "text": "PIE CHART! NOT THAT PIE!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.cartoon.perot",
+  "text": "PIE CHART! WIPE WITH IT!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.cartoon.perot",
   "text": "SON, PUT IT IN A BLIND TRUST!",
   "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.perot",
+  "text": "THAT RIGHT THERE IS WHY WE NEED REFORM!",
+  "from": "UPGRADES"
  },
  {
   "voice": "m2.cartoon.perot",
@@ -23571,6 +24441,21 @@
  },
  {
   "voice": "m2.demon",
+  "text": "AAAH! A SHITTY BOOT! IN HELL! DAD!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.demon",
+  "text": "AAAH! DON'T TELL MY DAD! DON'T TELL ANYBODY!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.demon",
+  "text": "AAAH! HIS WERE RIGHT THERE! I SAW EVERYTHING!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.demon",
   "text": "DAAAAAD! A NAKED GUY BEAT ME UP! MAKE HIM STOP!",
   "from": "SPOOKY"
  },
@@ -23646,6 +24531,11 @@
  },
  {
   "voice": "m2.demon",
+  "text": "DAD! ARE YOU WATCHING?! DON'T WATCH!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.demon",
   "text": "DAD! ARE YOU WATCHING?! NOT HIS DICK! ME!",
   "from": "SPOOKY"
  },
@@ -23676,6 +24566,11 @@
  },
  {
   "voice": "m2.demon",
+  "text": "DAD! DON'T SMELL THIS!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.demon",
   "text": "DAD! HE HIT ME WITH HIS SHITTY HANDS!",
   "from": "SPOOKY"
  },
@@ -23701,6 +24596,11 @@
  },
  {
   "voice": "m2.demon",
+  "text": "DAD! LOOK AWAY! BOTH OF YOU, LOOK AWAY!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.demon",
   "text": "DAD! WATCH ME KILL THE SHITTY GUY!",
   "from": "SPOOKY"
  },
@@ -23708,6 +24608,36 @@
   "voice": "m2.demon",
   "text": "DON'T LOOK, DAD! I'M LOSING TO A NAKED GUY!",
   "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.demon",
+  "text": "FACE MELTER! NOT THAT FACE!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.demon",
+  "text": "FACE MELTER! NUTS AVENGER!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.demon",
+  "text": "FACE MELTER! PANTS MELTER!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.demon",
+  "text": "FOR DAD! AIM HIGH!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.demon",
+  "text": "FOR DAD! AND MY NUTS!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.demon",
+  "text": "FOR DAD! HOLD YOUR NOSE!",
+  "from": "UPGRADES"
  },
  {
   "voice": "m2.demon",
@@ -23771,6 +24701,26 @@
  },
  {
   "voice": "m2.demon",
+  "text": "I WILL SHRED YOU! ONE OCTAVE HIGHER!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.demon",
+  "text": "I'LL IMPRESS DAD! I'LL KILL THE NUDIST!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.demon",
+  "text": "I'LL IMPRESS DAD! I'LL KILL THE SHITTY ONE!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.demon",
+  "text": "I'LL STILL IMPRESS MY DAD! I'LL DO IT SITTING DOWN!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.demon",
   "text": "MADE YOU JUMP, NERD!",
   "from": "SPOOKY"
  },
@@ -23791,6 +24741,21 @@
  },
  {
   "voice": "m2.demon",
+  "text": "MY UNHOLY NUTS! A NAKED MORTAL! DAD IS GONNA LAUGH AT ME!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.demon",
+  "text": "MY UNHOLY NUTS! AND HE SMELLS WORSE THAN HELL!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.demon",
+  "text": "MY UNHOLY NUTS! DAD! DAAAD!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.demon",
   "text": "NICE DICK, LOSER. DAD, WATCH THIS.",
   "from": "SPOOKY"
  },
@@ -23801,8 +24766,18 @@
  },
  {
   "voice": "m2.demon",
+  "text": "OW! EVEN HELL DOES NOT SMELL THIS BAD!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.demon",
   "text": "OW! HE GOT SHIT ON MY JACKET! DAD!",
   "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.demon",
+  "text": "OW! HIS ARE BIGGER THAN MINE WERE! UNHOLY!",
+  "from": "UPGRADES"
  },
  {
   "voice": "m2.demon",
@@ -23811,8 +24786,18 @@
  },
  {
   "voice": "m2.demon",
+  "text": "OW! I CAN NEVER BREED A LEGION NOW!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.demon",
   "text": "OW! I WASN'T READY! DAD, I WASN'T READY!",
   "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.demon",
+  "text": "OW! I'M GONNA PUKE BRIMSTONE!",
+  "from": "UPGRADES"
  },
  {
   "voice": "m2.demon",
@@ -23826,8 +24811,23 @@
  },
  {
   "voice": "m2.demon",
+  "text": "OW! NAKED AND WINNING! HOW?!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.demon",
   "text": "OW! THAT'S A VINTAGE JACKET AND NOW IT'S GOT SHIT ON IT!",
   "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.demon",
+  "text": "OW! THIS IS NOT METAL! THIS IS SO NOT METAL!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.demon",
+  "text": "PUT IT AWAY! I HAVE NOTHING TO COMPARE IT WITH ANYMORE!",
+  "from": "UPGRADES"
  },
  {
   "voice": "m2.demon",
@@ -23838,6 +24838,21 @@
   "voice": "m2.demon",
   "text": "QUIT SWINGING THAT THING! I'M TRYING TO IMPRESS MY DAD!",
   "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.demon",
+  "text": "SHRED THE NAKED ONE!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.demon",
+  "text": "SHRED THE STINK!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.demon",
+  "text": "SHRED!",
+  "from": "UPGRADES"
  },
  {
   "voice": "m2.demon",
@@ -23856,6 +24871,21 @@
  },
  {
   "voice": "m2.demon",
+  "text": "STOP! DAD SAID MORTALS WERE CLEAN!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.demon",
+  "text": "STOP! I'M TELLING MY MOM!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.demon",
+  "text": "STOP! PUT IT AWAY! DAD MIGHT BE WATCHING!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.demon",
   "text": "THAT'S PUNK ROCK, BITCH!",
   "from": "SPOOKY"
  },
@@ -23868,6 +24898,11 @@
   "voice": "m2.demon",
   "text": "YOU ARE GONNA MAKE MY DAD SO PROUD, NERD.",
   "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.demon",
+  "text": "YOU SMELL LIKE THE NINTH CIRCLE! THE TOILET CIRCLE!",
+  "from": "UPGRADES"
  },
  {
   "voice": "m2.donnie",
@@ -23981,6 +25016,16 @@
  },
  {
   "voice": "m2.donnie",
+  "text": "BITE! HOLD YOUR BREATH, DONNIE!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.donnie",
+  "text": "BITE! KEEP YOUR EYES UP, DONNIE!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.donnie",
   "text": "BLOOD CANNON!",
   "from": "SPOOKY"
  },
@@ -23993,6 +25038,21 @@
   "voice": "m2.donnie",
   "text": "BLOOD CANNON! SOMEBODY HAS TO HOSE YOU DOWN!",
   "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie",
+  "text": "BLOOD! FROM THE CLEAN END!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.donnie",
+  "text": "BLOOD! FROM THE NECK! NOT DOWN THERE!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.donnie",
+  "text": "BLOOD! I NEED BLOOD! I LOST SO MUCH DOWN THERE!",
+  "from": "UPGRADES"
  },
  {
   "voice": "m2.donnie",
@@ -24028,6 +25088,26 @@
   "voice": "m2.donnie",
   "text": "COME TO DONNIE! SHOULDERS ONLY!",
   "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie",
+  "text": "COVER THAT UP! I'M ALREADY SICK TO MY STOMACH!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.donnie",
+  "text": "DINNER TIME! FOR REVENGE!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.donnie",
+  "text": "DINNER TIME! NAKED DINNER!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.donnie",
+  "text": "DINNER TIME! UGH! STILL DINNER TIME!",
+  "from": "UPGRADES"
  },
  {
   "voice": "m2.donnie",
@@ -24093,6 +25173,11 @@
   "voice": "m2.donnie",
   "text": "DRESSED PEOPLE TASTE BETTER!",
   "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie",
+  "text": "EAT THIS! I CAN NO LONGER EAT!",
+  "from": "UPGRADES"
  },
  {
   "voice": "m2.donnie",
@@ -24173,6 +25258,21 @@
   "voice": "m2.donnie",
   "text": "GREASE BEATS SHIT, PAL! I'M LIKE A NONSTICK PAN!",
   "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie",
+  "text": "GURK! I JUST LOST MY APPETITE! I NEVER LOSE MY APPETITE!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.donnie",
+  "text": "GURK! SOMETHING BOUNCED ON MY FACE!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.donnie",
+  "text": "GURK! THAT BOOT TASTED LIKE YOUR PANTS!",
+  "from": "UPGRADES"
  },
  {
   "voice": "m2.donnie",
@@ -24391,6 +25491,26 @@
  },
  {
   "voice": "m2.donnie",
+  "text": "I'LL DRINK YOU DRY! THEN I'LL GET YOU SOME PANTS!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.donnie",
+  "text": "I'LL EAT YOU! I'LL EAT YOUR PANTS LAST! MAYBE NEVER!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.donnie",
+  "text": "I'LL EAT YOUR NUTS! THEY LOOK LIKE COCKTAIL WIENERS!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.donnie",
+  "text": "I'LL EAT YOUR WHOLE FAMILY! STARTING WITH THE BALLS!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.donnie",
   "text": "I'M BURNING! AND THE LAST THING I SEE IS... AAAAGH!",
   "from": "SPOOKY"
  },
@@ -24411,6 +25531,11 @@
  },
  {
   "voice": "m2.donnie",
+  "text": "I'M GONNA DRINK YOU! THROUGH A STRAW! SITTING DOWN! VERY CAREFULLY!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.donnie",
   "text": "I'M PUTTING THIS ON MY LINKEDIN! UNDER SKILLS!",
   "from": "SPOOKY"
  },
@@ -24428,6 +25553,11 @@
   "voice": "m2.donnie",
   "text": "I'M SMOKING! I QUIT IN NINETY-EIGHT! FOR MY HEALTH!",
   "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie",
+  "text": "I'M STILL GONNA DRINK YOU! I'LL HOLD MY NOSE!",
+  "from": "UPGRADES"
  },
  {
   "voice": "m2.donnie",
@@ -24553,6 +25683,36 @@
   "voice": "m2.donnie",
   "text": "MY HEART! MY LUNGS! IT'S IN MY LUNGS!",
   "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie",
+  "text": "MY NUTS ARE IN MY THROAT! I HAVE TO SWALLOW THEM!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.donnie",
+  "text": "MY NUTS ARE IN MY THROAT! YOURS ARE IN MY FACE!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.donnie",
+  "text": "MY NUTS! AND YOUR SHIT BOOT! I THINK I ATE SOME!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.donnie",
+  "text": "MY NUTS! I CAN TASTE THEM! WHY CAN I TASTE THEM?!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.donnie",
+  "text": "MY NUTS! YOU'RE NAKED AND I'M NOT EVEN HUNGRY ANYMORE!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.donnie",
+  "text": "MY STOMACH! MY NUTS! MY NOSE! EVERYTHING HURTS!",
+  "from": "UPGRADES"
  },
  {
   "voice": "m2.donnie",
@@ -24706,6 +25866,21 @@
  },
  {
   "voice": "m2.donnie",
+  "text": "OW! I'M GONNA BARF UP EVERY HOOKER I EVER ATE!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.donnie",
+  "text": "OW! YOU SMELL LIKE A BUFFET'S DUMPSTER!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.donnie",
+  "text": "OW! YOUR NAKED ASS IS NOT ON MY MENU!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.donnie",
   "text": "PASS THE NAPKINS. AND A CLOTHESPIN.",
   "from": "SPOOKY"
  },
@@ -24826,6 +26001,11 @@
  },
  {
   "voice": "m2.donnie",
+  "text": "SATAN GAVE ME POWERS! HE DIDN'T GIVE ME A CUP!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.donnie",
   "text": "SAY HELLO TO MY LITTLE... DON'T SAY LITTLE!",
   "from": "SPOOKY"
  },
@@ -24938,6 +26118,21 @@
   "voice": "m2.donnie",
   "text": "STOP CHASING ME! I CAN HEAR IT SLAPPING!",
   "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie",
+  "text": "STOP! I CAN'T EVEN THINK ABOUT A SNACK!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.donnie",
+  "text": "STOP! I'M GONNA HURL AND YOU'RE GONNA MATCH!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.donnie",
+  "text": "STOP! I'VE LOST MY APPETITE! LOOK AT YOU!",
+  "from": "UPGRADES"
  },
  {
   "voice": "m2.donnie",
@@ -25228,6 +26423,11 @@
   "voice": "m2.donnie",
   "text": "YOU SMELL NORMAL! COME HERE!",
   "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie",
+  "text": "YOU STINK AND I'M NAUSEOUS! BAD COMBO, MEATHEAD!",
+  "from": "UPGRADES"
  },
  {
   "voice": "m2.donnie",
@@ -26586,6 +27786,11 @@
  },
  {
   "voice": "m2.fantasy.piper",
+  "text": "BELLY SLAM! WITH FEELING!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.fantasy.piper",
   "text": "BOLT FOR MOMMA!",
   "from": "FANTASY"
  },
@@ -26621,6 +27826,21 @@
  },
  {
   "voice": "m2.fantasy.piper",
+  "text": "DIE! AND TAKE YOUR SMELL WITH YOU!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.fantasy.piper",
+  "text": "DIE! LIKE A SUITOR SHOULD!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.fantasy.piper",
+  "text": "DIE! WITH YOUR PRIVATES OUT! HUMILIATING!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.fantasy.piper",
   "text": "DON'T COME NEAR ME WITH THAT THING!",
   "from": "FANTASY"
  },
@@ -26648,6 +27868,21 @@
   "voice": "m2.fantasy.piper",
   "text": "EAT FIRE!",
   "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.piper",
+  "text": "EEEEEK! NOBODY WILL EVER DUEL OVER ME NOW!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.fantasy.piper",
+  "text": "EEEEEK! THAT BOOT WAS FILTHY!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.fantasy.piper",
+  "text": "EEEEEK! THAT IS NOT THE WAY A NAKED MAN IS SUPPOSED TO HURT ME!",
+  "from": "UPGRADES"
  },
  {
   "voice": "m2.fantasy.piper",
@@ -26693,6 +27928,21 @@
   "voice": "m2.fantasy.piper",
   "text": "FLATTEN THE SHRIMP!",
   "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.piper",
+  "text": "FOR MY OVARIES!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.fantasy.piper",
+  "text": "FOR MY OVARIES! AND MY RUG!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.fantasy.piper",
+  "text": "FOR MY OVARIES! SQUASH THE NAKED ONE!",
+  "from": "UPGRADES"
  },
  {
   "voice": "m2.fantasy.piper",
@@ -26743,6 +27993,11 @@
   "voice": "m2.fantasy.piper",
   "text": "I NEED READING GLASSES FOR THAT THING.",
   "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.piper",
+  "text": "I WANTED A NAKED MAN! NOT LIKE THIS!",
+  "from": "UPGRADES"
  },
  {
   "voice": "m2.fantasy.piper",
@@ -26886,6 +28141,16 @@
  },
  {
   "voice": "m2.fantasy.piper",
+  "text": "MEN USED TO KILL FOR ME! NOW I GET THE SHITTY ONE!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.fantasy.piper",
+  "text": "MEN WERE SUPPOSED TO DIE FOR ME! YOU WILL!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.fantasy.piper",
   "text": "MMM. A MAN WHO SOILS HIMSELF FOR ME.",
   "from": "FANTASY"
  },
@@ -26901,8 +28166,38 @@
  },
  {
   "voice": "m2.fantasy.piper",
+  "text": "MY OVARIES! AND HE SHIT HIMSELF FIRST! WHAT A DATE!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.fantasy.piper",
+  "text": "MY OVARIES! FROM A NAKED MAN! THIS IS NOT HOW I PICTURED IT!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.fantasy.piper",
+  "text": "MY OVARIES! I WAS SAVING THEM FOR A KNIGHT!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.fantasy.piper",
+  "text": "MY OVARIES! THROUGH ALL THIS?! HOW?!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.fantasy.piper",
   "text": "NAKED ALREADY? WHO SAID YOU WERE GETTING ANYTHING?",
   "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.piper",
+  "text": "NOBODY KICKS A PIXIE IN THE BABY MAKERS!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.fantasy.piper",
+  "text": "NOBODY TOUCHES PIPER! ESPECIALLY NOT DIRTY!",
+  "from": "UPGRADES"
  },
  {
   "voice": "m2.fantasy.piper",
@@ -26971,8 +28266,33 @@
  },
  {
   "voice": "m2.fantasy.piper",
+  "text": "OW! A NAKED MAN AND NOTHING SEXY HAPPENING! HOW?!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.fantasy.piper",
+  "text": "OW! I'M BLEEDING GLITTER AND YOU'RE LEAKING SHIT!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.fantasy.piper",
+  "text": "OW! I'M BLEEDING GLITTER! YOU'RE JUST FLOPPING!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.fantasy.piper",
   "text": "OW! MY FIGURE!",
   "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.piper",
+  "text": "OW! THAT'S IT! NO MORE SUITORS! EVER!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.fantasy.piper",
+  "text": "OW! YOU'RE THE WORST MAN THAT EVER TOUCHED ME! AND THAT'S A LIST!",
+  "from": "UPGRADES"
  },
  {
   "voice": "m2.fantasy.piper",
@@ -27006,6 +28326,16 @@
  },
  {
   "voice": "m2.fantasy.piper",
+  "text": "SIT ON THE NAKED MAN! NOT LIKE THAT!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.fantasy.piper",
+  "text": "SQUASH THE STINK!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.fantasy.piper",
   "text": "SQUISH THE SHIT OUT OF YOU!",
   "from": "FANTASY"
  },
@@ -27021,6 +28351,11 @@
  },
  {
   "voice": "m2.fantasy.piper",
+  "text": "STOP STANDING LIKE THAT! IT'S NOT WORKING ANYMORE!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.fantasy.piper",
   "text": "STOP! I CAN'T EVEN SMELL YOU ANYMORE!",
   "from": "FANTASY"
  },
@@ -27028,6 +28363,21 @@
   "voice": "m2.fantasy.piper",
   "text": "STOP! I'M A SIZE ZERO! THAT'S NOT A REAL SIZE!",
   "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.piper",
+  "text": "STOP! I'M BLEEDING GLITTER!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.fantasy.piper",
+  "text": "STOP! PUT IT AWAY! I'M NOT IN THE MOOD! I'LL NEVER BE IN THE MOOD!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.fantasy.piper",
+  "text": "STOP! YOU SMELL LIKE A TROLL BRIDGE!",
+  "from": "UPGRADES"
  },
  {
   "voice": "m2.fantasy.piper",
@@ -27091,6 +28441,16 @@
  },
  {
   "voice": "m2.fantasy.piper",
+  "text": "YOU RUINED ME! AND MY CARPET!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.fantasy.piper",
+  "text": "YOU RUINED MY LOVE LIFE! I WILL RUIN YOUR EVERYTHING!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.fantasy.piper",
   "text": "YOU SMELL LIKE A TRUCK STOP TOILET AND I'M UGLY?!",
   "from": "FANTASY"
  },
@@ -27108,6 +28468,11 @@
   "voice": "m2.fantasy.piper",
   "text": "YOU'LL DIE IN THOSE PANTS!",
   "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.piper",
+  "text": "YOU'RE NAKED AND I FEEL NOTHING! NOTHING! YOU DID THAT!",
+  "from": "UPGRADES"
  },
  {
   "voice": "m2.fantasy.piper",
@@ -31511,6 +32876,21 @@
  },
  {
   "voice": "m2.foreign.harry",
+  "text": "AAARGH! A NAKED MAN BLEW UP MY JUNK!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.foreign.harry",
+  "text": "AAARGH! WHAT KIND OF SOLDIER SHITS AND KICKS?!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.foreign.harry",
+  "text": "AAARGH! YOU FOREIGN NUT BUSTER!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.foreign.harry",
   "text": "ABOUT DAMN TIME, YOU SLOW BITCH!",
   "from": "FOREIGN"
  },
@@ -31741,6 +33121,21 @@
  },
  {
   "voice": "m2.foreign.harry",
+  "text": "DIE! DIE FOR WHAT YOU DID DOWN THERE!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.foreign.harry",
+  "text": "DIE! DIE NAKED, YOU NUT BUSTER!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.foreign.harry",
+  "text": "DIE! DIE SMELLING!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.foreign.harry",
   "text": "DO NOT FLY THE ROTOR INTO MY MEN! IT TURNS THEM INTO SALSA!",
   "from": "FOREIGN"
  },
@@ -31811,8 +33206,23 @@
  },
  {
   "voice": "m2.foreign.harry",
+  "text": "EAT LEAD, NUT KICKER!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.foreign.harry",
+  "text": "EAT LEAD, SHIT PANTS!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.foreign.harry",
   "text": "EAT LEAD, STINK BOMB!",
   "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.harry",
+  "text": "EAT LEAD! IN THE NUTS!",
+  "from": "UPGRADES"
  },
  {
   "voice": "m2.foreign.harry",
@@ -32201,6 +33611,11 @@
  },
  {
   "voice": "m2.foreign.harry",
+  "text": "I DON'T FEEL PAIN! I FEEL A DRAFT!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.foreign.harry",
   "text": "I DRIVE A TRUCK! A BIG ONE! SIX MILES TO THE GALLON AND I LOVE IT, YOU DIPSHIT!",
   "from": "FOREIGN"
  },
@@ -32276,6 +33691,11 @@
  },
  {
   "voice": "m2.foreign.harry",
+  "text": "I WILL SHOOT YOU FOR EVERY NUT I LOST! TWICE!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.foreign.harry",
   "text": "I'LL MOW YOU DOWN, STINKY! TOP TO BOTTOM!",
   "from": "FOREIGN"
  },
@@ -32288,6 +33708,26 @@
   "voice": "m2.foreign.harry",
   "text": "I'LL SHOOT THE SHIT RIGHT OUT OF YOU! OH. ALREADY OUT.",
   "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.harry",
+  "text": "I'LL SHOOT THOSE NUTS RIGHT OFF YOU! FAIR'S FAIR!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.foreign.harry",
+  "text": "I'LL SHOOT YOU TILL YOUR SHIT HAS HOLES IN IT!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.foreign.harry",
+  "text": "I'M BLEEDING OUT MY PANTS! YOU DON'T EVEN HAVE PANTS!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.foreign.harry",
+  "text": "I'M BLEEDING! YOU'RE LEAKING! THIS IS WAR!",
+  "from": "UPGRADES"
  },
  {
   "voice": "m2.foreign.harry",
@@ -32571,6 +34011,36 @@
  },
  {
   "voice": "m2.foreign.harry",
+  "text": "MY NUTS ARE GONE AND I STILL SMELL YOU!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.foreign.harry",
+  "text": "MY NUTS ARE GONE! YOURS ARE OUT! I HATE THIS!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.foreign.harry",
+  "text": "MY NUTS ARE IN THREE COUNTRIES NOW!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.foreign.harry",
+  "text": "MY NUTS EXPLODED! AND YOU SHIT YOURSELF! NOBODY WINS!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.foreign.harry",
+  "text": "MY NUTS EXPLODED! YOURS ARE JUST HANGING THERE! WAVING!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.foreign.harry",
+  "text": "MY NUTS! THEY EXPLODED! LIKE NAPALM! IN MY PANTS!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.foreign.harry",
   "text": "MY PILLS! I FORGOT MY PILLS! STOP JIGGLING!",
   "from": "FOREIGN"
  },
@@ -32603,6 +34073,21 @@
   "voice": "m2.foreign.harry",
   "text": "NEXT WAVE! AND THIS TIME AIM, YOU JACKASSES!",
   "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.harry",
+  "text": "NO BALLS! NO MERCY! NO PANTS EITHER, I SEE!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.foreign.harry",
+  "text": "NO BALLS! NO MERCY! NO PROBLEM!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.foreign.harry",
+  "text": "NO BALLS! NO MERCY! NO TOILET FOR YOU!",
+  "from": "UPGRADES"
  },
  {
   "voice": "m2.foreign.harry",
@@ -32741,6 +34226,16 @@
  },
  {
   "voice": "m2.foreign.harry",
+  "text": "NUTLESS AND FURIOUS! YOU ARE NAKED AND DEAD!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.foreign.harry",
+  "text": "NUTLESS AND FURIOUS! YOU SMELL LIKE A FOXHOLE!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.foreign.harry",
   "text": "OH GOD. HE'S NAKED AND I'M SPINNING. HERE IT COMES.",
   "from": "FOREIGN"
  },
@@ -32821,6 +34316,16 @@
  },
  {
   "voice": "m2.foreign.harry",
+  "text": "OW! I WILL SHOOT THE SHIT OUT OF YOU! AGAIN!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.foreign.harry",
+  "text": "OW! I'M MAD! I'M SO MAD I'M BLEEDING OUT MY PANTS!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.foreign.harry",
   "text": "OW! MY GOOD PEC!",
   "from": "FOREIGN"
  },
@@ -32833,6 +34338,11 @@
   "voice": "m2.foreign.harry",
   "text": "OW! SOMETHING SLAPPED ME! I HOPE IT WAS A HAND!",
   "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.harry",
+  "text": "OW! STOP SWINGING THOSE AT ME! I HAVE NONE!",
+  "from": "UPGRADES"
  },
  {
   "voice": "m2.foreign.harry",
@@ -32943,6 +34453,21 @@
   "voice": "m2.foreign.harry",
   "text": "RAINING LEAD, DIPSHIT!",
   "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.harry",
+  "text": "RAT TAT TAT! AIM LOW, HARRY!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.foreign.harry",
+  "text": "RAT TAT TAT! FOR MY NUTS!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.foreign.harry",
+  "text": "RAT TAT TAT! RIGHT IN THE STAIN!",
+  "from": "UPGRADES"
  },
  {
   "voice": "m2.foreign.harry",
@@ -33678,6 +35203,11 @@
   "voice": "m2.foreign.harry",
   "text": "YOU STINKING SON OF A BITCH! YOU CROP-DUSTED MY WHOLE PARK!",
   "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.harry",
+  "text": "YOU THINK I'M ANGRY? I'M NUTLESS ANGRY!",
+  "from": "UPGRADES"
  },
  {
   "voice": "m2.foreign.harry",
@@ -40181,6 +41711,11 @@
  },
  {
   "voice": "m2.frontier.tucker",
+  "text": "AIM FOR THE SLAPPING!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.frontier.tucker",
   "text": "ALL ABOARD FOR SAWDUST GULCH! MINING! LOGGING! THESE NEWFANGLED RAILROAD TRACKS GET YOU THERE IN A JIFFY!",
   "from": "FRONTIER"
  },
@@ -40511,6 +42046,11 @@
  },
  {
   "voice": "m2.frontier.tucker",
+  "text": "FOLLOW THE SMELL, TUCKER!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.frontier.tucker",
   "text": "FOLLOW THE STINK, TUCKER! FOLLOW THE STINK!",
   "from": "FRONTIER"
  },
@@ -40746,6 +42286,11 @@
  },
  {
   "voice": "m2.frontier.tucker",
+  "text": "I CAN HEAR 'EM SWINGING! I'M SHOOTING AT THE SOUND!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.frontier.tucker",
   "text": "I CAN HEAR IT FLAPPING! THAT'S A NOISE FEE!",
   "from": "FRONTIER"
  },
@@ -40753,6 +42298,11 @@
   "voice": "m2.frontier.tucker",
   "text": "I CAN HEAR YOU BREATHING! THAT'S A BREATHING FEE!",
   "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.tucker",
+  "text": "I CAN SMELL WHERE YOU ARE! THAT'S FREE TRACKING!",
+  "from": "UPGRADES"
  },
  {
   "voice": "m2.frontier.tucker",
@@ -40866,6 +42416,21 @@
  },
  {
   "voice": "m2.frontier.tucker",
+  "text": "I'LL MOUNT YOUR BALLS OVER MY FIREPLACE!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.frontier.tucker",
+  "text": "I'LL SELL YOUR SHIT PANTS! SOMEBODY'LL BUY 'EM!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.frontier.tucker",
+  "text": "I'LL SKIN YOU AND SELL THE HIDE! I NEED THE MONEY NOW!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.frontier.tucker",
   "text": "I'LL TAKE IT IN CASH! NOT IN WHATEVER THAT IS!",
   "from": "FRONTIER"
  },
@@ -40893,6 +42458,11 @@
   "voice": "m2.frontier.tucker",
   "text": "I'M BILLING... THE DRY... CLEANING...",
   "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.tucker",
+  "text": "I'M BLIND AND BUSTED! I'M STILL RICHER THAN YOU!",
+  "from": "UPGRADES"
  },
  {
   "voice": "m2.frontier.tucker",
@@ -41008,6 +42578,21 @@
   "voice": "m2.frontier.tucker",
   "text": "MY MOTHER'S ASHES WERE IN THAT CAR! THAT'S EXTRA!",
   "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.tucker",
+  "text": "MY NUTS! AND I CAN SMELL WHO DONE IT!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.frontier.tucker",
+  "text": "MY NUTS! I CAN'T SEE BUT I FELT SOMETHING FLOPPY HIT MY LEG!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.frontier.tucker",
+  "text": "MY NUTS! THEM WAS WORTH GOOD MONEY!",
+  "from": "UPGRADES"
  },
  {
   "voice": "m2.frontier.tucker",
@@ -41281,6 +42866,26 @@
  },
  {
   "voice": "m2.frontier.tucker",
+  "text": "OW! HOW MUCH YOU WANT FOR THEM? NAME YOUR PRICE!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.frontier.tucker",
+  "text": "OW! I CAN HEAR YOUR NUTS SLAPPING! SHOWOFF!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.frontier.tucker",
+  "text": "OW! I'LL SELL YOUR PANTS FOR FERTILIZER!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.frontier.tucker",
+  "text": "OW! I'M BILLING YOU FOR THE SMELL TOO!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.frontier.tucker",
   "text": "OW! ITEMIZED!",
   "from": "FRONTIER"
  },
@@ -41288,6 +42893,11 @@
   "voice": "m2.frontier.tucker",
   "text": "OW! NOW I SMELL LIKE YOU!",
   "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.tucker",
+  "text": "OW! THAT'S A LAWSUIT! THAT'S A BIG LAWSUIT!",
+  "from": "UPGRADES"
  },
  {
   "voice": "m2.frontier.tucker",
@@ -41311,8 +42921,18 @@
  },
  {
   "voice": "m2.frontier.tucker",
+  "text": "OW! YOU OWE ME TWO NUTS! PLUS INTEREST!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.frontier.tucker",
   "text": "PAY UP, NAKED!",
   "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.tucker",
+  "text": "PAY UP, SHIT PANTS!",
+  "from": "UPGRADES"
  },
  {
   "voice": "m2.frontier.tucker",
@@ -41323,6 +42943,11 @@
   "voice": "m2.frontier.tucker",
   "text": "PAY UP!",
   "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.tucker",
+  "text": "PAY UP! WITH THEM NUTS!",
+  "from": "UPGRADES"
  },
  {
   "voice": "m2.frontier.tucker",
@@ -41566,6 +43191,36 @@
  },
  {
   "voice": "m2.frontier.tucker",
+  "text": "STOP! I CAN'T SEE! I SURE CAN SMELL!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.frontier.tucker",
+  "text": "STOP! I'LL TAKE YOURS AS PAYMENT!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.frontier.tucker",
+  "text": "STOP! I'M BLIND AND BROKE DOWN THERE!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.frontier.tucker",
+  "text": "TAKE THAT! I'M AIMING AT THE STINK!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.frontier.tucker",
+  "text": "TAKE THAT! RIGHT IN THE FLOPPY SOUND!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.frontier.tucker",
+  "text": "TAKE THAT! THAT ONE WAS EXPENSIVE!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.frontier.tucker",
   "text": "TELL MY ACCOUNTANT... I DIED... IN THE BLACK...",
   "from": "FRONTIER"
  },
@@ -41701,6 +43356,16 @@
  },
  {
   "voice": "m2.frontier.tucker",
+  "text": "THEM NUTS WAS MY RETIREMENT! YOU'RE GONNA PAY!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.frontier.tucker",
+  "text": "THEM'S NICE NUTS YOU GOT! THEY'RE MINE NOW!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.frontier.tucker",
   "text": "THEY TOOK A CHUNK! I'M ADDING IT!",
   "from": "FRONTIER"
  },
@@ -41708,6 +43373,11 @@
   "voice": "m2.frontier.tucker",
   "text": "THIRTY YEARS. NOT ONE UNPAID FARE. NOT ONE!",
   "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.tucker",
+  "text": "THIS SHOT'S ON YOUR TAB!",
+  "from": "UPGRADES"
  },
  {
   "voice": "m2.frontier.tucker",
@@ -41861,6 +43531,21 @@
  },
  {
   "voice": "m2.frontier.tucker",
+  "text": "YEEEOW! I CAN'T SEE YOU BUT I CAN SMELL YOUR PANTS!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.frontier.tucker",
+  "text": "YEEEOW! I HAD THEM APPRAISED!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.frontier.tucker",
+  "text": "YEEEOW! WHAT WAS THAT SLAPPING SOUND?!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.frontier.tucker",
   "text": "YOU CUT MY LINE! YOU RODE EVERYTHING I OWN! FREE! AND BARE-ASSED!",
   "from": "FRONTIER"
  },
@@ -41903,6 +43588,11 @@
   "voice": "m2.frontier.tucker",
   "text": "YOU MADE IT TO THE ENGINE. TWENTY-TWO CARS, BUCK NAKED. I CHARGE BY THE CAR.",
   "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.tucker",
+  "text": "YOU OWE ME TWO NUTS AND A NOSE!",
+  "from": "UPGRADES"
  },
  {
   "voice": "m2.frontier.tucker",
@@ -49296,6 +50986,21 @@
  },
  {
   "voice": "m2.hollywood.steve",
+  "text": "AAAH! DID THE JUMBOTRON GET THAT?! DON'T REPLAY THAT!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.hollywood.steve",
+  "text": "AAAH! DO NOT PUT THAT ON THE REPLAY!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.hollywood.steve",
+  "text": "AAAH! HIS DICK WAS ON THE JUMBOTRON TOO!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.hollywood.steve",
   "text": "ACTION!",
   "from": "HOLLYWOOD"
  },
@@ -49386,6 +51091,11 @@
  },
  {
   "voice": "m2.hollywood.steve",
+  "text": "EVERYBODY GETS A PAIR BUT ME! EVERYBODY!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.hollywood.steve",
   "text": "EYES ON ME! FORGET THE TORNADO GUY! EYES ON ME!",
   "from": "HOLLYWOOD"
  },
@@ -49456,6 +51166,21 @@
  },
  {
   "voice": "m2.hollywood.steve",
+  "text": "GET HIM! AIM FOR THE DANGLY BITS!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.hollywood.steve",
+  "text": "GET HIM! GET HIS NUTS! SAME AS MINE!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.hollywood.steve",
+  "text": "GET HIM! RUN OVER THE STINK!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.hollywood.steve",
   "text": "GET YOUR SHIT OFF MY SUIT!",
   "from": "HOLLYWOOD"
  },
@@ -49521,8 +51246,23 @@
  },
  {
   "voice": "m2.hollywood.steve",
+  "text": "HIT HIM WHERE IT HURTS! I KNOW WHERE!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.hollywood.steve",
   "text": "HIT HIM! AIM LOW! HE'S GOT NO BELT!",
   "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.steve",
+  "text": "HIT HIM! HE HAS WHAT I LOST!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.hollywood.steve",
+  "text": "HIT HIM! HIT HIM IN THE BROWN!",
+  "from": "UPGRADES"
  },
  {
   "voice": "m2.hollywood.steve",
@@ -49568,6 +51308,16 @@
   "voice": "m2.hollywood.steve",
   "text": "I GOT TWO SECONDS! NOBODY GETS MORE THAN STEVE!",
   "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.steve",
+  "text": "I'D KILL FOR WHAT YOU'VE GOT! I KNOW EXACTLY WHAT YOU'VE GOT!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.hollywood.steve",
+  "text": "I'D KILL FOR YOUR FAME! I'D EVEN SHIT MYSELF!",
+  "from": "UPGRADES"
  },
  {
   "voice": "m2.hollywood.steve",
@@ -49711,6 +51461,21 @@
  },
  {
   "voice": "m2.hollywood.steve",
+  "text": "MY NUTS! THE NAKED GUY STILL HAS HIS! IT'S NOT FAIR!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.hollywood.steve",
+  "text": "MY NUTS! THEY WERE THE ONLY PART OF ME THAT WAS NEVER A STUNT DOUBLE!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.hollywood.steve",
+  "text": "MY NUTS! WITH A SHIT BOOT! GET ME A MEDIC! AND A SHOWER!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.hollywood.steve",
   "text": "MY OWN CAR!",
   "from": "HOLLYWOOD"
  },
@@ -49723,6 +51488,11 @@
   "voice": "m2.hollywood.steve",
   "text": "NAKED WRESTLING IS A DIFFERENT SHOW!",
   "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.steve",
+  "text": "NAKED! FAMOUS! INTACT! I HATE YOU SO MUCH!",
+  "from": "UPGRADES"
  },
  {
   "voice": "m2.hollywood.steve",
@@ -49816,8 +51586,23 @@
  },
  {
   "voice": "m2.hollywood.steve",
+  "text": "OW! EVEN YOUR DICK HAS MORE SCREEN TIME THAN ME!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.hollywood.steve",
   "text": "OW! I BLEED, NOBODY CLAPS! YOU SHIT, THEY CLAP!",
   "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.steve",
+  "text": "OW! I'D TRADE MY NUTS FOR YOUR FANS! OH WAIT!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.hollywood.steve",
+  "text": "OW! I'M CALLING MY UNION!",
+  "from": "UPGRADES"
  },
  {
   "voice": "m2.hollywood.steve",
@@ -49831,13 +51616,28 @@
  },
  {
   "voice": "m2.hollywood.steve",
+  "text": "OW! MY VOICE IS TOO HIGH FOR ACTION MOVIES NOW!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.hollywood.steve",
   "text": "OW! SOMETHING SLAPPED ME! I HOPE IT WAS A HAND!",
   "from": "HOLLYWOOD"
  },
  {
   "voice": "m2.hollywood.steve",
+  "text": "OW! THE NAKED GUY GETS A STANDING OVATION?!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.hollywood.steve",
   "text": "OW! YOU DON'T EVEN HAVE A HEADSHOT!",
   "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.steve",
+  "text": "OW! YOU SMELL AND THE CROWD STILL LIKES YOU MORE!",
+  "from": "UPGRADES"
  },
  {
   "voice": "m2.hollywood.steve",
@@ -49868,6 +51668,21 @@
   "voice": "m2.hollywood.steve",
   "text": "RUN DOWN EVERYBODY'S FAVORITE! HE SHIT HIMSELF!",
   "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.steve",
+  "text": "RUN HIM DOWN! FOR MY CAREER! AND MY CROTCH!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.hollywood.steve",
+  "text": "RUN HIM DOWN! HOSE THE CAR AFTER!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.hollywood.steve",
+  "text": "RUN HIM DOWN! TAKE HIS NUTS FOR ME!",
+  "from": "UPGRADES"
  },
  {
   "voice": "m2.hollywood.steve",
@@ -49908,6 +51723,26 @@
   "voice": "m2.hollywood.steve",
   "text": "STAY OVER THERE! YOU'RE DOWNWIND OF THE NACHOS!",
   "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.steve",
+  "text": "STOP SHOWING OFF YOURS! I CAN SEE THEM SWINGING!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.hollywood.steve",
+  "text": "STOP! I WANT MY STUNT DOUBLE! I AM MY STUNT DOUBLE!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.hollywood.steve",
+  "text": "STOP! WHY DO THEY CHEER FOR THE SHITTY GUY?!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.hollywood.steve",
+  "text": "STOP! YOU STILL HAVE YOURS! I'M JEALOUS OF YOUR NUTS!",
+  "from": "UPGRADES"
  },
  {
   "voice": "m2.hollywood.steve",
@@ -49961,8 +51796,18 @@
  },
  {
   "voice": "m2.hollywood.steve",
+  "text": "THEY CHEER FOR SHIT NOW! SHIT IS THE BIG STAR!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.hollywood.steve",
   "text": "THEY'D RATHER WATCH A GUY SHIT HIMSELF THAN WATCH ME DIE.",
   "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.steve",
+  "text": "THEY'LL MAKE A MOVIE ABOUT THIS! I WON'T BE IN IT!",
+  "from": "UPGRADES"
  },
  {
   "voice": "m2.hollywood.steve",
@@ -50048,6 +51893,16 @@
   "voice": "m2.hollywood.steve",
   "text": "YOU SHIT YOURSELF AND THEY STILL LIKE YOU MORE! HOW?!",
   "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.steve",
+  "text": "YOU STOLE MY CROWD! THEN YOU STOLE MY NUTS!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.hollywood.steve",
+  "text": "YOU STOLE MY NUTS AND YOU STILL STINK! HOW DO YOU GET FANS?!",
+  "from": "UPGRADES"
  },
  {
   "voice": "m2.hollywood.steve",
@@ -50896,6 +52751,21 @@
  },
  {
   "voice": "m2.rex",
+  "text": "ANIMATRONIC. ANGRY. EMBARRASSED.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.rex",
+  "text": "ANIMATRONIC. ANGRY. NAUSEOUS.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.rex",
+  "text": "ANIMATRONIC. NOW. ANGRY.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.rex",
   "text": "ATTENTION! A CODE BROWN IN THE T. REX PADDOCK! IT IS YOU!",
   "from": "ADVENTURE"
  },
@@ -50911,8 +52781,38 @@
  },
  {
   "voice": "m2.rex",
+  "text": "BITE. HOLD BREATH.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.rex",
+  "text": "BITE. NOT THERE.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.rex",
+  "text": "BITE. VENGEANCE.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.rex",
   "text": "CHEW SIXTY-SIX TIMES BEFORE SWALLOWING! ONE! TWO!",
   "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.rex",
+  "text": "CHOMP.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.rex",
+  "text": "CHOMP. EYES UP.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.rex",
+  "text": "CHOMP. GAG.",
+  "from": "UPGRADES"
  },
  {
   "voice": "m2.rex",
@@ -50928,6 +52828,21 @@
   "voice": "m2.rex",
   "text": "CORE BREACH! THAT'S WHAT THEY CALL MY TUMMY!",
   "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.rex",
+  "text": "DAMAGE. ODOR. FILTER FAILURE.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.rex",
+  "text": "DAMAGE. PLEASE KEEP CLOTHES ON AT ALL TIMES.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.rex",
+  "text": "DAMAGE. ROAR PITCH. TOO HIGH.",
+  "from": "UPGRADES"
  },
  {
   "voice": "m2.rex",
@@ -50966,6 +52881,11 @@
  },
  {
   "voice": "m2.rex",
+  "text": "DRESS CODE VIOLATION. PENALTY. DEATH.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.rex",
   "text": "ERROR. FRIENDLINESS NOT FOUND. DEFAULTING TO: EAT.",
   "from": "ADVENTURE"
  },
@@ -50988,6 +52908,11 @@
   "voice": "m2.rex",
   "text": "GOODBYE... COVER YOURSELF... FOR THE CHILDREN...",
   "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.rex",
+  "text": "GUEST HYGIENE. UNACCEPTABLE. GUEST WILL BE EATEN.",
+  "from": "UPGRADES"
  },
  {
   "voice": "m2.rex",
@@ -51068,6 +52993,21 @@
   "voice": "m2.rex",
   "text": "LEGS OFFLINE. PLEASE FILE A CLAIM WITH GUEST RELATIONS.",
   "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.rex",
+  "text": "MAINTENANCE. BRING A MOP.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.rex",
+  "text": "MAINTENANCE. BRING A TOWEL.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.rex",
+  "text": "MAINTENANCE. MAINTENANCE. LOWER HATCH.",
+  "from": "UPGRADES"
  },
  {
   "voice": "m2.rex",
@@ -51156,13 +53096,58 @@
  },
  {
   "voice": "m2.rex",
+  "text": "RAAAWR. ERROR. CRUSHED. AND SOILED.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.rex",
+  "text": "RAAAWR. ERROR. GUEST GENITALS. CONTACTED SENSOR.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.rex",
+  "text": "RAAAWR. ERROR. TESTICLE MODULES. CRUSHED.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.rex",
   "text": "RAWR! HI, KIDS! HI, KI- HI, KI- HIIIII...",
   "from": "ADVENTURE"
  },
  {
   "voice": "m2.rex",
+  "text": "RAWR. GAG. RAWR.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.rex",
   "text": "RAWR. RAWR. RAW. RA. LOW BATTERY.",
   "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.rex",
+  "text": "RAWR. SQUEAK. EYES. CLOSED.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.rex",
+  "text": "RAWR. SQUEAK. RAWR.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.rex",
+  "text": "RAWR. YOU WILL BE EXTINCT.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.rex",
+  "text": "RAWR. YOU WILL BE EXTINCT. AND HOSED.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.rex",
+  "text": "RAWR. YOUR NUTS. NEXT.",
+  "from": "UPGRADES"
  },
  {
   "voice": "m2.rex",
@@ -51183,6 +53168,21 @@
   "voice": "m2.rex",
   "text": "SIXTY-SIX MILLION YEARS, AND YOU BROKE ME IN A MINUTE, YOU FAT FUCK.",
   "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.rex",
+  "text": "STOMP. FOR. NUTS.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.rex",
+  "text": "STOMP. ON THE NAKED ONE.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.rex",
+  "text": "STOMP. ON THE STINK.",
+  "from": "UPGRADES"
  },
  {
   "voice": "m2.rex",
@@ -51241,6 +53241,11 @@
  },
  {
   "voice": "m2.rex",
+  "text": "THE DESIGNERS GAVE ME NUTS. YOU TOOK THEM.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.rex",
   "text": "THE LAST THING I EVER SEE. AND IT IS YOUR BALLS.",
   "from": "ADVENTURE"
  },
@@ -51263,6 +53268,21 @@
   "voice": "m2.rex",
   "text": "WARNING! LIVE VOLTAGE! DO NOT LICK THE DINOSAUR!",
   "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.rex",
+  "text": "WARNING. NUT HATCH BREACHED. BY AN UNDRESSED GUEST.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.rex",
+  "text": "WARNING. NUT HATCH BREACHED. FECAL MATTER IN THE GEARS.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.rex",
+  "text": "WARNING. NUT HATCH. BREACHED.",
+  "from": "UPGRADES"
  },
  {
   "voice": "m2.rex",
@@ -51476,6 +53496,11 @@
  },
  {
   "voice": "m2.safari",
+  "text": "COME HERE, STINKY! THE SOPRANO WANTS YOU DEAD!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.safari",
   "text": "COMING UP, THE BACKSIDE OF WATER. MY CLOSER. AND YOUR BACKSIDE IS UPSTAGING IT.",
   "from": "ADVENTURE"
  },
@@ -51501,6 +53526,16 @@
  },
  {
   "voice": "m2.safari",
+  "text": "DIE NAKED! DIE STUPID!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "DIE STINKY! SQUEAK SQUEAK!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.safari",
   "text": "DON'T CLIMB AFTER ME! NOT WITH ME LOOKING DOWN!",
   "from": "ADVENTURE"
  },
@@ -51523,6 +53558,31 @@
   "voice": "m2.safari",
   "text": "DON'T LOOK AT MY HEAD! LOOK AT YOUR PANTS!",
   "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "DON'T STRUT! THEY'RE JUST HANGING THERE TAUNTING ME!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "EAT THIS! IN A HIGH VOICE!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "EEEEEE! IT GOT SHIT IN IT!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "EEEEEE! THAT WAS MY TALENT!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "EEEEEE! YOUR DICK SLAPPED ME TOO!",
+  "from": "UPGRADES"
  },
  {
   "voice": "m2.safari",
@@ -51618,6 +53678,21 @@
   "voice": "m2.safari",
   "text": "FLATTENED! STILL CLEANER THAN YOUR SEAT!",
   "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "FOR MY NUTS, YOU TURD!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "FOR MY NUTS!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "FOR MY NUTS! AIM FOR HIS!",
+  "from": "UPGRADES"
  },
  {
   "voice": "m2.safari",
@@ -51911,6 +53986,11 @@
  },
  {
   "voice": "m2.safari",
+  "text": "I HAVE TO SIT DOWN! I CAN NEVER SIT DOWN AGAIN!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.safari",
   "text": "I KNOW EVERY INCH OF THIS PARK! YOU KNOW THE SNACK BAR!",
   "from": "ADVENTURE"
  },
@@ -51923,6 +54003,11 @@
   "voice": "m2.safari",
   "text": "I LOOK GOOD WITH DARTS. THAT IS A FACT.",
   "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "I LOST MY NUTS! YOU LOST YOUR BOWELS! I'M STILL WINNING!",
+  "from": "UPGRADES"
  },
  {
   "voice": "m2.safari",
@@ -51963,6 +54048,11 @@
   "voice": "m2.safari",
   "text": "I TRACKED A JAGUAR FOR THREE DAYS! YOU'RE LEAVING A TRAIL!",
   "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "I USED TO HAVE A PAIR LIKE THAT! BIGGER! WAY BIGGER!",
+  "from": "UPGRADES"
  },
  {
   "voice": "m2.safari",
@@ -52016,6 +54106,16 @@
  },
  {
   "voice": "m2.safari",
+  "text": "I'LL GUT YOU! YOU'RE ALREADY HALF EMPTY!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "I'LL STILL KILL YOU! I'LL JUST DO IT AN OCTAVE HIGHER!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.safari",
   "text": "I'M A NATURALIST! EAT THE NATURIST!",
   "from": "ADVENTURE"
  },
@@ -52023,6 +54123,11 @@
   "voice": "m2.safari",
   "text": "I'M A NATURALIST! I'M ON YOUR SIDE!",
   "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "I'M A SOPRANO AND YOU'RE A NUDIST! WE'RE BOTH FREAKS!",
+  "from": "UPGRADES"
  },
  {
   "voice": "m2.safari",
@@ -52123,6 +54228,11 @@
   "voice": "m2.safari",
   "text": "I'M PUTTING THAT ON YOUR TAB! AND THE CART CLEANING!",
   "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "I'M TAKING YOURS TO REPLACE MINE!",
+  "from": "UPGRADES"
  },
  {
   "voice": "m2.safari",
@@ -52476,8 +54586,38 @@
  },
  {
   "voice": "m2.safari",
+  "text": "MY NUTS! AND YOUR SHIT BOOT! THEY TOUCHED!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "MY NUTS! KICKED BY A NAKED MAN! IN MY OWN PARK!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "MY NUTS! MY BEAUTIFUL AWARD-WINNING NUTS!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.safari",
   "text": "MY SPECIAL BUSH! NOW IT SMELLS LIKE YOU!",
   "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "MY VOICE! I SOUND LIKE A TOUCAN!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "MY VOICE! I SOUND LIKE YOUR DICK LOOKS! TINY!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "MY VOICE! IT'S UP HERE NOW! AWAY FROM YOUR SMELL!",
+  "from": "UPGRADES"
  },
  {
   "voice": "m2.safari",
@@ -52568,6 +54708,11 @@
   "voice": "m2.safari",
   "text": "NOBODY JUMPS OUT OF MY BOAT! NOBODY! PUT SOME PANTS ON!",
   "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "NOBODY LAUGH! THIS IS A SERIOUS VOICE!",
+  "from": "UPGRADES"
  },
  {
   "voice": "m2.safari",
@@ -52821,6 +54966,11 @@
  },
  {
   "voice": "m2.safari",
+  "text": "OW! NOT THERE! THERE'S NOTHING THERE ANYMORE!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.safari",
   "text": "OW! PRETTIER THAN SHIT-PANTS! STILL!",
   "from": "ADVENTURE"
  },
@@ -52831,8 +54981,18 @@
  },
  {
   "voice": "m2.safari",
+  "text": "OW! STOP! YOURS ARE BOUNCING AND MINE ARE GONE!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.safari",
   "text": "OW! THAT'S A WRITE-UP!",
   "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "OW! YOU SMELL AND I SQUEAK! WHAT A TOUR!",
+  "from": "UPGRADES"
  },
  {
   "voice": "m2.safari",
@@ -52873,6 +55033,11 @@
   "voice": "m2.safari",
   "text": "PUT THAT AWAY! THE GUN TOO!",
   "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "PUT YOUR NUTS AWAY! YOU'RE RUBBING IT IN!",
+  "from": "UPGRADES"
  },
  {
   "voice": "m2.safari",
@@ -52993,6 +55158,11 @@
   "voice": "m2.safari",
   "text": "STOP JUMPING! YOUR BALLS ARE DOING HELICOPTERS!",
   "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "STOP! I'M TOO HIGH PITCHED TO DIE!",
+  "from": "UPGRADES"
  },
  {
   "voice": "m2.safari",
@@ -53186,6 +55356,11 @@
  },
  {
   "voice": "m2.safari",
+  "text": "THE GREATEST HUNTER IN THE PARK! NOW WITH ONE LESS GUN!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.safari",
   "text": "THE HAND IS QUICKER THAN THE FAT ASS!",
   "from": "ADVENTURE"
  },
@@ -53358,6 +55533,11 @@
   "voice": "m2.safari",
   "text": "THIS ISN'T HIDING! IT'S UPWIND!",
   "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "THIS ONE IS FOR MY SET AND MY SACK!",
+  "from": "UPGRADES"
  },
  {
   "voice": "m2.safari",
@@ -53573,6 +55753,11 @@
   "voice": "m2.safari",
   "text": "YOU STAYED... FOR THE END... NAKED... WORST STANDING OVATION... EVER...",
   "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "YOU STILL STINK! I CAN SMELL IT IN MY NEW HIGH VOICE!",
+  "from": "UPGRADES"
  },
  {
   "voice": "m2.safari",
@@ -55836,6 +58021,11 @@
  },
  {
   "voice": "m2.space.queen",
+  "text": "ATTACKER IS LEAKING. ATTACKER IS WINNING.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.space.queen",
   "text": "BACK UP. AIR OUT.",
   "from": "SPACE"
  },
@@ -55886,6 +58076,21 @@
  },
  {
   "voice": "m2.space.queen",
+  "text": "DAMAGE. AND ODOR. MAXIMUM ODOR.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.space.queen",
+  "text": "DAMAGE. DAMAGE. EGG COUNT. ZERO.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.space.queen",
+  "text": "DAMAGE. VISUAL SENSORS. ALSO DAMAGED.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.space.queen",
   "text": "DENT DETECTED. FILING A CLAIM.",
   "from": "SPACE"
  },
@@ -55921,6 +58126,11 @@
  },
  {
   "voice": "m2.space.queen",
+  "text": "ERROR. ERROR. REPRODUCTIVE UNIT. DESTROYED.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.space.queen",
   "text": "ERROR. ERROR. THAT WAS MY SON.",
   "from": "SPACE"
  },
@@ -55931,8 +58141,33 @@
  },
  {
   "voice": "m2.space.queen",
+  "text": "ERROR. REPRODUCTIVE UNIT DESTROYED. ALSO CONTAMINATED.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.space.queen",
+  "text": "ERROR. REPRODUCTIVE UNIT DESTROYED. BY A NUDE MALE. MISSION IRONY DETECTED.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.space.queen",
   "text": "ERROR. YOU THREW MY SON. WITH THOSE HANDS.",
   "from": "SPACE"
+ },
+ {
+  "voice": "m2.space.queen",
+  "text": "EXECUTING. VENGEANCE. AND A TOWEL.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.space.queen",
+  "text": "EXECUTING. VENGEANCE. AND DISINFECTANT.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.space.queen",
+  "text": "EXECUTING. VENGEANCE.EXE.",
+  "from": "UPGRADES"
  },
  {
   "voice": "m2.space.queen",
@@ -56016,6 +58251,21 @@
  },
  {
   "voice": "m2.space.queen",
+  "text": "KRRZZT. OVARIES OFFLINE. HIS ARE ONLINE. UNFAIR.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.space.queen",
+  "text": "KRRZZT. OVARIES OFFLINE. SMELL SENSOR ONLINE. REGRETTABLY.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.space.queen",
+  "text": "KRRZZT. OVARIES. OFFLINE.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.space.queen",
   "text": "LATEX... NOT... FIRE RATED...",
   "from": "SPACE"
  },
@@ -56066,6 +58316,21 @@
  },
  {
   "voice": "m2.space.queen",
+  "text": "MATING RITUAL CANCELED. ON HYGIENE GROUNDS ALONE.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.space.queen",
+  "text": "MATING RITUAL CANCELED. YOU ARE TOO SMALL ANYWAY.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.space.queen",
+  "text": "MATING RITUAL. CANCELED. FUNERAL RITUAL. SCHEDULED.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.space.queen",
   "text": "MOTOR OIL. FINALLY, SOMETHING TO COVER YOU.",
   "from": "SPACE"
  },
@@ -56078,6 +58343,21 @@
   "voice": "m2.space.queen",
   "text": "MY EYES ARE PAINTED ON. I STILL CANNOT LOOK AWAY.",
   "from": "SPACE"
+ },
+ {
+  "voice": "m2.space.queen",
+  "text": "NEW DIRECTIVE. KILL THE NUDE ONE. THEN BLEACH OPTICS.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.space.queen",
+  "text": "NEW DIRECTIVE. KILL THE STINKING ONE.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.space.queen",
+  "text": "NEW DIRECTIVE. NO BREEDING. ONLY KILLING.",
+  "from": "UPGRADES"
  },
  {
   "voice": "m2.space.queen",
@@ -56151,6 +58431,21 @@
  },
  {
   "voice": "m2.space.queen",
+  "text": "PAIN SUBROUTINE. AND GAG SUBROUTINE.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.space.queen",
+  "text": "PAIN SUBROUTINE. STUCK ON.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.space.queen",
+  "text": "PAIN. SUBROUTINE. HIS GENITALS. STILL IN FRAME.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.space.queen",
   "text": "PERSONAL SPACE VIOLATION.",
   "from": "SPACE"
  },
@@ -56196,6 +58491,21 @@
  },
  {
   "voice": "m2.space.queen",
+  "text": "REVENGE MODE.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.space.queen",
+  "text": "REVENGE MODE. EYES. AVERTED.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.space.queen",
+  "text": "REVENGE MODE. NOSE PLUGS ENGAGED.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.space.queen",
   "text": "SECOND SHOW. SAME SAD LITTLE EXHIBIT.",
   "from": "SPACE"
  },
@@ -56238,6 +58548,21 @@
   "voice": "m2.space.queen",
   "text": "SYSTEM REBOOT. OW.",
   "from": "SPACE"
+ },
+ {
+  "voice": "m2.space.queen",
+  "text": "TARGET LOCKED. ON THE BROWN ZONE.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.space.queen",
+  "text": "TARGET LOCKED. ON THE DANGLING PARTS.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.space.queen",
+  "text": "TARGET. LOCKED. ON CROTCH.",
+  "from": "UPGRADES"
  },
  {
   "voice": "m2.space.queen",
@@ -56326,6 +58651,16 @@
  },
  {
   "voice": "m2.space.queen",
+  "text": "WARRANTY VOID. DIGNITY VOID.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.space.queen",
+  "text": "WARRANTY. VOID.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.space.queen",
   "text": "WE ARE... A PEACEFUL... PEOPLE... BZZT...",
   "from": "SPACE"
  },
@@ -56353,6 +58688,21 @@
   "voice": "m2.space.queen",
   "text": "WELCOME BACK. YOUR BLOOD IS STILL ON MY FLOOR.",
   "from": "SPACE"
+ },
+ {
+  "voice": "m2.space.queen",
+  "text": "YOU KICKED MY OVARIES. I WILL KICK YOUR EVERYTHING.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.space.queen",
+  "text": "YOUR DIAPER IS FULL. YOUR LIFE WILL BE EMPTY.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.space.queen",
+  "text": "YOUR GENITALS ARE EXPOSED. RETALIATION. IMMINENT.",
+  "from": "UPGRADES"
  },
  {
   "voice": "m2.space.queen",
@@ -61196,6 +63546,11 @@
  },
  {
   "voice": "meathead",
+  "text": "BALLS DEEP! MY BOOT, I MEAN!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "meathead",
   "text": "BALLS RINSED. GOOD ENOUGH.",
   "from": "M2_GUT_LINES"
  },
@@ -63871,6 +66226,11 @@
  },
  {
   "voice": "meathead",
+  "text": "DIRTY PANTS, DIRTY FIGHTING!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "meathead",
   "text": "DISASTER: THE RIDE. FINALLY SOMETHING HONEST.",
   "from": "HOLLYWOOD"
  },
@@ -64988,6 +67348,11 @@
   "voice": "meathead",
   "text": "FIBER! MY ONLY WEAKNESS!",
   "from": "ADVENTURE"
+ },
+ {
+  "voice": "meathead",
+  "text": "FIELD GOAL!",
+  "from": "UPGRADES"
  },
  {
   "voice": "meathead",
@@ -71051,6 +73416,11 @@
  },
  {
   "voice": "meathead",
+  "text": "I SHIT MYSELF, YOU SHIT YOURS! WE'RE EVEN!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "meathead",
   "text": "I SHOULD HAVE JUMPED!",
   "from": "FOREIGN"
  },
@@ -74636,6 +77006,11 @@
  },
  {
   "voice": "meathead",
+  "text": "LOOK AT ME! THEN LOOK AT YOUR CROTCH! CRY!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "meathead",
   "text": "LOOK WHO READ THE MANUAL. ALL FOUR WORDS OF IT.",
   "from": "m1/game/stages/victor/doorman.ts:540"
  },
@@ -74983,6 +77358,11 @@
   "voice": "meathead",
   "text": "MIND THE GAP, ASSHOLE. THAT'S ME. I'M THE ASSHOLE.",
   "from": "FANTASY"
+ },
+ {
+  "voice": "meathead",
+  "text": "MINE ARE OUT AND STILL ATTACHED! YOURS AREN'T!",
+  "from": "UPGRADES"
  },
  {
   "voice": "meathead",
@@ -76281,6 +78661,11 @@
  },
  {
   "voice": "meathead",
+  "text": "NAKED AND UNDEFEATED!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "meathead",
   "text": "NAKED AND WET. THAT'S HOW YOU BECOME A HOT DOG.",
   "from": "FANTASY"
  },
@@ -77331,6 +79716,11 @@
  },
  {
   "voice": "meathead",
+  "text": "NO RULES! NO REFS! NO NUTS!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "meathead",
   "text": "NO RUN-UP. JUST LEECHES.",
   "from": "FRONTIER"
  },
@@ -78001,6 +80391,11 @@
  },
  {
   "voice": "meathead",
+  "text": "NOTHING BETWEEN MY BOOT AND YOUR NUTS BUT AIR!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "meathead",
   "text": "NOTHING BROKE. NOTHING IMPORTANT.",
   "from": "FRONTIER"
  },
@@ -78138,6 +80533,11 @@
   "voice": "meathead",
   "text": "NOW THIS IS A RIDE. THANKS, TAXPAYERS.",
   "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "NOW WE BOTH NEED NEW PANTS!",
+  "from": "UPGRADES"
  },
  {
   "voice": "meathead",
@@ -80911,6 +83311,11 @@
  },
  {
   "voice": "meathead",
+  "text": "RIGHT IN THE SNACK DRAWER!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "meathead",
   "text": "RIGHT IN THE TAINT!",
   "from": "FOREIGN"
  },
@@ -83106,6 +85511,11 @@
  },
  {
   "voice": "meathead",
+  "text": "SMELL THAT? THAT WAS YOUR FUTURE KIDS!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "meathead",
   "text": "SMELL THAT? THAT'S NEW-CAR SMELL. I SELL IT BY THE GALLON.",
   "from": "m1/game/bosses/oscar.ts:218"
  },
@@ -85298,6 +87708,11 @@
   "voice": "meathead",
   "text": "THAT ONE SQUEEZED A LITTLE OUT.",
   "from": "FANTASY"
+ },
+ {
+  "voice": "meathead",
+  "text": "THAT ONE WAS FOR MY MOM!",
+  "from": "UPGRADES"
  },
  {
   "voice": "meathead",

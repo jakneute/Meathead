@@ -35,6 +35,9 @@
 // kick), fed by upgrades/lastHit.ts (noted from apply.ts's melee hook); the hand armor's beatdown in grab.ts
 // (handsOnlyFoe); the power rule through tuning.ts setPowerHold (apply.ts).
 //
+// THE CHEAP SHOT (Phase D2): upgrades/cheapShot.ts (its README: every boss fight asks cheapShotGate once a frame),
+// closeUp.ts (the close-up; a boss's own: registerCloseUp), crushedLines.ts (the lines after it, voiced via lines.ts).
+//
 // HOOKS LEFT FOR LATER PHASES: the follow-ups, spike/pointy immunity, the armguards' invulnerability bypass, the slide
 // trip, the helmet, the amulet, the cape and the art should each ask has(piece) (or amuletActive()) where they act;
 // nothing here needs to change for them. The move a hit came from: meleeMoveOf(player) (m1 game/core/tuning.ts).

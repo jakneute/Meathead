@@ -128,6 +128,24 @@ Fairy: pink sequins, glitter crystal, tiara spikes; Cartoon: flat, outlined, a b
     wheezing, vengeful, pitiful, to their sin) that replaces their usual taunt/hurt/attack pools until the fight ends
     (they die, or he does: a death resets it, like the once-per-life). Full clean/shitty/naked variants per the
     boss-lines rule. Voiced (npm run voices, m2pack).
+  - AS BUILT (Phase D2, 2026-10-31): upgrades/cheapShot.ts (its README: the gate every boss's update asks, the stun,
+    the line swap), closeUp.ts (the generic close-up: an X-ray panel over the middle of the screen, the still parts baked
+    once; flesh: pelvis and thighs see-through, his boot up into it, balls squashed and burst (ovaries up behind a fat
+    layer for the women), bone cracking, blood; machines: plates, gears, oil and sparks; the pundits: a slapstick face,
+    the eyes crossing, OOOOF; Piper's blood has glitter), crushedLines.ts (450 lines: a scream, hurt, taunt, attack per
+    boss, clean/shitty/nude, in each one's voice; Meathead's quip after). The grab's 'cheap' phase (grab.ts): Y + B,
+    on the ground, within CHEAP_REACH 60 px of their side, ~2.3 s: a step in, the engine's standing kick, the boot lands
+    (their scream cuts in; his quip queued after it), the close-up 96 frames (world.ts setScreenOverlay, from apply.ts),
+    a hop back. Then CHEAP_STUN 300: the fight's own stunned mode where it has one (Artie, Donnie, the Queen, the rex's
+    crash, the demon's stagger), else its AI skipped (Steve, Tucker, Piper, Dad Guy, the pundits); dizzy stars over
+    every one (cheapShot.ts). Harry: stood put, the M60 still going, crushed barks. Grab counters (Artie's knife,
+    Harry's pin) don't fire while stunned. A death forgets it all (a new life: a new cheap shot each). Not on: the
+    Ensemble, the orbit UFO, the wilds station, Steve's cars. The rex is gated on its legs part (the body's too high).
+  - FOR PHASE F: the custom close-ups go in with registerCloseUp(id, paint) (closeUp.ts: paint the panel's insides for
+    frame t of CLOSE_LEN, the boot landing at CLOSE_HIT); none of the fights has a hands-at-crotch stunned pose yet
+    (they use their dazed/hurt poses; the pundits' 'reel' draws its own stars, doubling the shared ones). Still
+    harmless while stunned: Donnie's squirt out of a grab, the Queen's shin bounce, Dad Guy's and the pundits' TOO
+    GREASY shove.
 
 ### HELMET (head)
 - All damage he takes is cut 25%: anything that isn't an instant kill (enemies, bosses, hazards). Instant kills still
