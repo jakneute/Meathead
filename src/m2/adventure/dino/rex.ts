@@ -37,7 +37,7 @@ import { rectsOverlap, boundsOf } from '../../../m1/game/core/utils';
 import { topBand, CANVAS_WIDTH, BOUNCE_FRAMES } from '../../../m1/constants';
 import { subBossMelee } from '../../upgrades/bossMelee';
 import { moveArmored } from '../../upgrades/state';
-import { cheapShotGate, cheapShotStunned, crushGroups, crushLines, crushPool } from '../../upgrades/cheapShot';
+import { cheapShotGate, cheapShotStunned, cheapShotStunT, crushGroups, crushLines, crushPool } from '../../upgrades/cheapShot';
 import { getAdv, solid, box, label, saidOver, meatheadSays, voice, type Said } from '../section';
 import { say, cutVoice, pickLine } from '../../../m1/game/platform/speech';
 import { isShat, isNude } from '../../../m1/game/player/gut';
@@ -578,7 +578,12 @@ export const updateRex = (ctx: FrameContext) => {
   if (cs === 'stunned') {
     // (a short crash after, then back to it)
     r.st = 'crash'; r.t = 0; r.stagger = 20; r.vx = 0;
-    pose(r, 16, 20, 70, 0.7, 0.6, state.frame);
+    // (the cheap shot's stun: hunched right over its kicked-open crotch hatch, the head hung low, the jaw dropped, the
+    // tail drooped to the dirt; the hatch spitting sparks (see drawBody's stun pose))
+    const f = state.frame;
+    pose(r, 28, 12 + Math.sin(f * 0.9) * 2, 78 + Math.sin(f * 0.13) * 4, 0.8 + Math.sin(f * 0.2) * 0.15, 1, f);
+    if (f % 5 === 0 || Math.random() < 0.12) sparks(state, r.x + r.facing * 27, GY - 165 + r.crouch + 76, 3 + Math.floor(Math.random() * 4), Math.random() < 0.5 ? '#FDE047' : '#A5F3FC');
+    if (f % 40 === 0 && near(state, r.x)) playSound('taser', 0.25, -2 + Math.random() * 6);
     placeParts(r);
     return;
   }
@@ -992,7 +997,9 @@ export const drawRex = (c: Ctx, state: GameState) => {
   // The oil it's lying in
   if (r.oil > 0) { c.fillStyle = 'rgba(12, 10, 9, 0.85)'; c.beginPath(); c.ellipse(r.x - r.facing * 40, GY + 2, 40 + r.oil * 140, 4 + r.oil * 4, 0, 0, Math.PI * 2); c.fill(); }
   c.save();
-  c.translate(Math.round(r.x), GY);
+  // (the cheap shot's stun: a juddering tremble through the whole machine)
+  const judder = r.fight === 'on' && r.parts.legs.e && cheapShotStunned(r.parts.legs.e) ? (f % 4 < 2 ? 1 : -1) : 0;
+  c.translate(Math.round(r.x) + judder, GY);
   c.scale(r.facing, 1);
   // (going down, dying: its legs folding out from under it, flat on its belly on the ground: see drawBody)
   drawBody(c, r, f);
@@ -1105,7 +1112,14 @@ const drawBody = (c: Ctx, r: Rex, f: number) => {
   const lw = wear(P.legs), bw = wear(P.body), tw = wear(P.tail);
   const moving = Math.abs(r.vx) > 0.1 && u <= 0;
   const hipY = -82 + r.crouch * 0.5;
+  // (the hand armor's cheap shot: stunned, how long it's been (-1 not): the knock-kneed huddle, see the legs and arm)
+  const stunT = r.fight === 'on' && P.legs.e && u <= 0 ? cheapShotStunT(P.legs.e) : -1, stun = stunT >= 0;
   const legJ = (s: number): LegJ => {
+    if (stun) {
+      // (knock-kneed: both knees jammed in together, knocking; the feet splayed out wide fore and aft under them)
+      const q = Math.sin(f * 1.3) * 1.5 * s;
+      return { H: [-6 + s * 4, hipY + 4], K: [6 + q, -40], A: [-4 + s * 16, -16], T: [18 + s * 16, -6], toe: [1, 0.06] };
+    }
     const k = st * s * 12, knee = P.legs.broken && s > 0 ? 10 : 0;
     // (the foot coming forward is up off the ground)
     const lift = moving ? Math.max(0, Math.cos(r.step) * s) * 7 : 0;
@@ -1200,6 +1214,8 @@ const drawBody = (c: Ctx, r: Rex, f: number) => {
   drawLeg(c, legJ(1), rp(P.legs, SKIN), true, f, lw);
   if (lw >= 2 && u < 0.5) { const m = lerpV(legJ(1).H, legJ(1).K, 0.35); hole(c, m[0] - 13, m[1] - 6, 26, 16, f); }
   if (P.legs.broken) { const m = lerpV(legJ(1).H, legJ(1).K, 0.5); charred(c, m[0] - 20, m[1] - 20, 40, 40, 7); }
+  // (the cheap shot's stun: its crotch hatch kicked open, hanging)
+  if (stun) crotchHatch(c, by, f, stunT);
   // Neck, into the head (off and rolling, dying: a stump, wires out of it)
   const NS = rp(P.body, SKIN);
   if (r.head) {
@@ -1226,11 +1242,47 @@ const drawBody = (c: Ctx, r: Rex, f: number) => {
   }
   // The silly little arm (two fingers, a servo at the elbow), over the chest
   const AS = rp(P.body, mix(SKIN, INK, 0.12)), sw2 = Math.sin(f * 0.07) * 1.5;
-  const sh: V = [50, by + 46], el: V = [60, by + 60 + sw2], hd: V = [72, by + 54 + sw2];
+  // (stunned: reaching down for its crotch, scrabbling, nowhere near long enough)
+  const wig = Math.sin(f * 0.8) * 2;
+  const sh: V = [50, by + 46], el: V = stun ? [58, by + 62] : [60, by + 60 + sw2], hd: V = stun ? [48 + wig, by + 74] : [72, by + 54 + sw2];
   poly(c, limb(sh, el, [[0, 10], [1, 7]]), AS, 0.3);
   poly(c, limb(el, hd, [[0, 7], [1, 5]]), AS, 0.3);
   servo(c, el[0], el[1], 2.6);
-  for (const dy of [-1.5, 2]) plate(c, [hd[0] - 1, hd[1] + dy - 1.5, hd[0] + 6, hd[1] + dy + 2, hd[0] - 1, hd[1] + dy + 1.5], rampFor(CLAWC), 0, undefined, 1);
+  if (stun) for (const dx of [-2, 2]) plate(c, [hd[0] + dx - 1.5, hd[1] - 1, hd[0] + dx + 1.5, hd[1] - 1, hd[0] + dx + wig * 0.4 * Math.sign(dx), hd[1] + 7], rampFor(CLAWC), 0, undefined, 1);
+  else for (const dy of [-1.5, 2]) plate(c, [hd[0] - 1, hd[1] + dy - 1.5, hd[0] + 6, hd[1] + dy + 2, hd[0] - 1, hd[1] + dy + 1.5], rampFor(CLAWC), 0, undefined, 1);
+};
+
+/**
+ * The cheap shot's stun: its crotch hatch (TESTICULAR UNIT - DO NOT KICK, per the close-up) kicked in, down under the
+ * belly ahead of the near thigh: the hole, dark, the two dented chrome units in it, a torn wire; the hatch hanging off
+ * its bottom hinge, swinging (less as it settles), hazard striped, a red X. Its sparks are particles (updateRex).
+ */
+const crotchHatch = (c: Ctx, by: number, f: number, t: number) => {
+  const x = 18, y = by + 70, w = 18, h = 11;
+  c.fillStyle = INK; c.fillRect(x - 1, y - 1, w + 2, h + 2);
+  c.fillStyle = '#0C0A09'; c.fillRect(x, y, w, h);
+  // (the units: chrome balls, banded, one squashed flat by the boot)
+  const CH = ['#F4F6FA', '#C4CCD6', '#8A929C', '#5A626C', '#2E333A'];
+  for (const [bx, ry] of [[x + 5, 3.6], [x + 13, 2.2]] as const) {
+    c.fillStyle = INK; c.beginPath(); c.ellipse(bx, y + h - ry - 1, 4.4, ry + 0.8, 0, 0, Math.PI * 2); c.fill();
+    c.fillStyle = CH[2]; c.beginPath(); c.ellipse(bx, y + h - ry - 1, 3.6, ry, 0, 0, Math.PI * 2); c.fill();
+    c.fillStyle = CH[3]; c.fillRect(Math.round(bx), Math.round(y + h - ry - 1), 3, Math.max(1, Math.round(ry * 0.8)));
+    c.fillStyle = CH[0]; c.fillRect(Math.round(bx - 2), Math.round(y + h - ry * 1.6 - 1), 2, 1);
+  }
+  c.fillStyle = INK; c.fillRect(x + 12, y + h - 4, 3, 1); // (the dent)
+  // (a wire torn loose, hanging out over the edge)
+  c.strokeStyle = '#DC2626'; c.lineWidth = 1.5; c.beginPath(); c.moveTo(x + 2, y + 2); c.quadraticCurveTo(x - 2, y + h + 4, x + 1, y + h + 8 + Math.sin(f * 0.3) * 1.5); c.stroke();
+  // (the hatch, hanging off its hinge along the hole's bottom edge, swinging)
+  const swing = Math.sin(t * 0.22) * (0.1 + 0.3 * Math.max(0, 1 - t / 90)) + 0.12;
+  c.save(); c.translate(x + w / 2, y + h + 1); c.rotate(swing);
+  const HP = rampFor(SKIN);
+  plate(c, [-w / 2, 0, w / 2, 0, w / 2, 12, -w / 2, 12], HP, 0.3, () => {
+    c.fillStyle = '#E8B400'; c.fillRect(-w / 2 + 2, 2, w - 4, 8);
+    for (let k = 0; k < 4; k++) { c.fillStyle = '#1C1A1E'; c.beginPath(); c.moveTo(-w / 2 + 2 + k * 5, 2); c.lineTo(-w / 2 + 4 + k * 5, 2); c.lineTo(-w / 2 + 2 + k * 5, 4); c.closePath(); c.fill(); }
+    c.fillStyle = '#B91C1C'; c.fillRect(-3, 4, 2, 2); c.fillRect(1, 4, 2, 2); c.fillRect(-1, 6, 2, 1); c.fillRect(-3, 7, 2, 2); c.fillRect(1, 7, 2, 2);
+  }, 1);
+  bolts(c, [-w / 2 + 2, 1, w / 2 - 2, 1]);
+  c.restore();
 };
 
 /** The head at (x, y) (its box's corner): skull, jaw (open by r.jaw; hanging off, wrecked), teeth, the eye. */

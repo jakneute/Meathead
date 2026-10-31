@@ -38,6 +38,8 @@ export type ArtiePose =
   | 'stunned' // knocked on his backside, legs out, head lolling
   | 'dodge'   // hanging off a vine overhead by both hands, knees tucked up (the caller draws the vine)
   | 'agitated' // things all over him: flailing, slapping at himself
+  | 'clutch'  // the hand armor's cheap shot, the stuffed sock booted: knock-kneed and hunched over, both hands cupped at
+              // his crotch, the helmet knocked askew, eyes crossed, a squeak; trembling, a slow sway (loops off `frame`)
   // (his standard death: gored by his own rhino. Both folded backward at the waist, the wrong way, his back on the
   // inside of the fold: the caller puts his hip (29 up off his feet) on the horn and turns him)
   | 'skewered' // on the horn, carried: screaming, legs kicking, arms flailing
@@ -182,13 +184,21 @@ export const drawSafariArtie = (c: Ctx, x: number, feetY: number, facing: number
   c.scale(facing < 0 ? -1 : 1, 1);
   // (gored: folded back over at the hip, the wrong way: everything from the belt up turned round it)
   const fold = FOLD[pose] ?? 0;
-  const bend = () => { if (fold) { c.translate(0, -29); c.rotate(fold); c.translate(0, 29); } };
+  // (cheap-shotted: everything over the knees sunk into the knock-kneed crouch and hunched forward over his hands, a
+  // wheeze rocking him)
+  const hunch = pose === 'clutch' ? 0.2 + Math.sin(f * 0.09) * 0.05 : 0;
+  const bend = () => {
+    if (fold) { c.translate(0, -29); c.rotate(fold); c.translate(0, 29); }
+    if (hunch) { c.translate(0, 3 - 29); c.rotate(hunch); c.translate(0, 29); }
+  };
   // (sat down hard: all of him lower, his legs out in front)
   if (pose === 'stunned') c.translate(0, 18);
   // (hanging off the vine: all of him up a bit, so his hands get up to it)
   if (pose === 'dodge') c.translate(0, -6);
   // (ducking in his cart: all of him down low, folded up)
   if (pose === 'duck') c.translate(0, 18);
+  // (cheap-shotted: a juddering tremble, and a slow sway side to side)
+  if (pose === 'clutch') c.translate((f % 4 < 2 ? 0.5 : -0.5) + Math.sin(f * 0.07) * 1.2, 0);
   const b = pose === 'run' ? Math.abs(Math.sin(f * 0.35)) * -2 : pose === 'agitated' ? Math.abs(Math.sin(f * 0.6)) * -3 : Math.sin(f * 0.05 + 4) * 0.7;
   // ---- the blowgun slung across his back (behind all of him), the canteen at his hip
   if (pose !== 'blowgun') {
@@ -210,7 +220,7 @@ export const drawSafariArtie = (c: Ctx, x: number, feetY: number, facing: number
   const hy = pose === 'duck' ? -63.5 : pose === 'hurt' ? -66 : pose === 'stunned' ? -66 + Math.sin(f * 0.12) * 1.5 : -68;
   // (arms straight up over him: his head ducked back out of the way of the near one, which goes on over it)
   const reach = pose === 'dodge' || pose === 'dive';
-  const hx = pose === 'stunned' ? Math.sin(f * 0.12) * 2.5 : reach ? -5 : 0.5;
+  const hx = pose === 'stunned' ? Math.sin(f * 0.12) * 2.5 : reach ? -5 : pose === 'clutch' ? 2 : 0.5;
   const [far, near] = armsFor(pose, f, hx, hy);
   // (arms up over his head go behind it, their hands back on over the helmet after; the hand at his face after it)
   const up = pose === 'dive' || pose === 'dodge' || pose === 'hurt' || pose === 'agitated' || pose === 'duck' || pose === 'bald' || !!fold;
@@ -219,8 +229,8 @@ export const drawSafariArtie = (c: Ctx, x: number, feetY: number, facing: number
   if (!reach) drawArm(c, near, true, d, pose, f);
   drawNeck(c, hx, hy, pose, f, d);
   // (gored: his head flopping about on the horn; after the wall, lolled right over, the helmet knocked askew)
-  const tilt = pose === 'hurt' ? -0.35 : pose === 'stunned' ? 0.5 : pose === 'agitated' ? Math.sin(f * 0.7) * 0.2 : pose === 'broken' ? 0.55 : pose === 'skewered' ? Math.sin(f * 0.5) * 0.15 : 0;
-  const nod = pose === 'stunned' ? Math.sin(f * 0.12) * 0.12 : pose === 'hurt' ? -0.12 : pose === 'dive' ? 0.1 : pose === 'dodge' ? -0.1
+  const tilt = pose === 'hurt' ? -0.35 : pose === 'stunned' ? 0.5 : pose === 'clutch' ? -0.42 : pose === 'agitated' ? Math.sin(f * 0.7) * 0.2 : pose === 'broken' ? 0.55 : pose === 'skewered' ? Math.sin(f * 0.5) * 0.15 : 0;
+  const nod = pose === 'stunned' ? Math.sin(f * 0.12) * 0.12 : pose === 'clutch' ? 0.16 + Math.sin(f * 0.09) * 0.06 : pose === 'hurt' ? -0.12 : pose === 'dive' ? 0.1 : pose === 'dodge' ? -0.1
     : pose === 'skewered' ? -0.3 + Math.sin(f * 0.45) * 0.25 : pose === 'broken' ? -0.45 : 0;
   c.save(); c.translate(hx, hy); c.rotate(nod); c.scale(HS, HS);
   drawHead(c, pose, f, d, tilt);
@@ -257,6 +267,11 @@ const drawLegs = (c: Ctx, pose: ArtiePose, f: number, d: number) => {
   // [hipX, hipY, kneeX, kneeY, ankleX, ankleY, boot angle] for the far leg, then the near one
   let L: number[][];
   if (pose === 'duck') L = [[-2, -27, 11, -37, 7, -26, 0.15], [3, -27, 14, -36, 11, -26, 0.2]];
+  else if (pose === 'clutch') {
+    // (knock-kneed: the knees jammed together, knocking, the feet splayed out wide under them, toes turned in)
+    const q = Math.sin(f * 1.7) * 0.4;
+    L = [[-3, -26, 0.4 + q, -15.5, -6, -5, 0.22], [3, -26, 2 - q, -15, 7.5, -5, -0.18]];
+  }
   else if (pose === 'stunned') L = [[-2, -27, 9, -30, 21, -27, -1.35], [3, -27, 13, -29, 25, -27, -1.45]];
   else if (pose === 'dodge') L = [[-2, -27, 8, -34, 7, -21, 0.15], [3, -27, 11, -33, 11, -20, 0.2]];
   else if (pose === 'run') {
@@ -487,7 +502,8 @@ const cycle = (keys: number[][], t: number) => {
 /** Each pose's arms, solved: [far, near]. (hx, hy): where his head is (the radio, the whistle, the blowgun go to his mouth). */
 const armsFor = (pose: ArtiePose, f: number, hx: number, hy: number): [Arm, Arm] => {
   const hang = pose === 'dodge' || pose === 'dive' || pose === 'duck';
-  const SX = hang ? 9.2 : 10.2, SY = hang ? -55 : -53.5;
+  // (cheap-shotted: the shoulders hunched in and down, so the hands get down to his crotch)
+  const SX = hang ? 9.2 : pose === 'clutch' ? 8 : 10.2, SY = hang ? -55 : pose === 'clutch' ? -50 : -53.5;
   const far = (x: number, y: number, ux: number, uy: number) => solve(-SX, SY, x, y, ux, uy);
   const near = (x: number, y: number, ux: number, uy: number) => solve(SX, SY, x, y, ux, uy);
   // (the far hand on his hip, knuckles in, elbow out behind: how he stands about, yapping)
@@ -533,6 +549,11 @@ const armsFor = (pose: ArtiePose, f: number, hx: number, hy: number): [Arm, Arm]
     }
     case 'blowgun': return [far(mouthX + 7, mouthY + 0.6, 0, 1), near(mouthX + 19, mouthY + 0.6, 0, 1)];
     case 'stunned': return [far(-17, -31, -1, -0.2), near(16, -31, 1, -0.2)];
+    case 'clutch': {
+      // (both hands cupped over the stuffed sock, one over the other, shaking)
+      const j = Math.sin(f * 1.9) * 0.4;
+      return [far(-0.5 + j, -27, -1, 0.1), near(3 - j, -26.5, 1, 0.1)];
+    }
     case 'hurt': return [far(-20, -69, -1, 0.6), near(19, -71, 1, 0.6)];
     case 'skewered': {
       // (hanging down off his shoulders, flailing: grabbing at the air, at the horn, at nothing)
@@ -664,7 +685,7 @@ const drawBlowgun = (c: Ctx, hx: number, hy: number, _f: number) => {
 /** The poses he's yapping in (the mouth runs). */
 const TALKERS = new Set<ArtiePose>(['talk', 'radio', 'angry', 'point', 'agitated', 'grab']);
 
-type Face = 'smug' | 'chat' | 'angry' | 'grit' | 'manic' | 'yelp' | 'dazed' | 'panic' | 'aim' | 'whistle' | 'dead';
+type Face = 'smug' | 'chat' | 'angry' | 'grit' | 'manic' | 'yelp' | 'dazed' | 'panic' | 'aim' | 'whistle' | 'dead' | 'squeak';
 export type ArtieFace = Face;
 const faceOf = (pose: ArtiePose, d: number): Face => {
   if (fx?.face) return fx.face;
@@ -679,6 +700,7 @@ const faceOf = (pose: ArtiePose, d: number): Face => {
     case 'grab': return 'manic';
     case 'hurt': return 'yelp';
     case 'stunned': return 'dazed';
+    case 'clutch': return 'squeak';
     case 'agitated': case 'dodge': case 'duck': return 'panic';
     case 'blowgun': return 'aim';
     case 'whistle': return 'whistle';
@@ -836,6 +858,18 @@ const drawEyes = (c: Ctx, face: Face, f: number, d: number) => {
       line(c, [NEAR_EYE + 2, EYE_Y - 1.4, NEAR_EYE - 1, EYE_Y, NEAR_EYE + 2, EYE_Y + 1.4], 0.9, '#2A1508');
       return;
     case 'whistle': shut(FAR_EYE, 2, -1.2); shut(NEAR_EYE, 2.2, -1.2); return;
+    case 'squeak': {
+      // (bulging and crossed, both pupils in at his nose; now and then screwed shut against it: > <)
+      if (f % 70 < 22) {
+        line(c, [FAR_EYE - 2, EYE_Y - 1.4, FAR_EYE + 1, EYE_Y, FAR_EYE - 2, EYE_Y + 1.4], 0.9, '#2A1508');
+        line(c, [NEAR_EYE + 2, EYE_Y - 1.4, NEAR_EYE - 1, EYE_Y, NEAR_EYE + 2, EYE_Y + 1.4], 0.9, '#2A1508');
+        return;
+      }
+      const s = Math.sin(f * 0.6) * 0.15;
+      eye(c, FAR_EYE, EYE_Y - 0.3, 2.1, 2.6, 0, 1 + s, 0.55, true);
+      eye(c, NEAR_EYE, EYE_Y - 0.3, 2.6, 3, 0, -1.1 - s, 0.55, true);
+      return;
+    }
     case 'dead': {
       // (an X for each eye, over the whites, bloodshot round them)
       for (const [x, w] of [[FAR_EYE, 1.9], [NEAR_EYE, 2.3]] as const) {
@@ -886,7 +920,7 @@ const drawBrows = (c: Ctx, face: Face, f: number, o: number) => {
       px(c, 0.2, by - 0.6, 0.5, 2.4, SKIN[3]); px(c, 1.2, by - 0.2, 0.5, 2, SKIN[3]);
       if (face === 'angry') { line(c, [-7.4, -9.2, -6.6, -8, -7.6, -7], 0.6, '#B91C1C'); } // (a vein going at his temple)
       return;
-    case 'yelp': case 'whistle':
+    case 'yelp': case 'whistle': case 'squeak':
       bar(FAR_EYE - 3, by + 0.6, FAR_EYE + 2.4, by - 1.2); bar(NEAR_EYE + 3.2, by + 0.6, NEAR_EYE - 2.4, by - 1.4);
       return;
     case 'panic': case 'dazed': case 'dead':
@@ -961,6 +995,14 @@ const drawMouth = (c: Ctx, face: Face, f: number, d: number, v: { o: number; w: 
       break;
     }
     case 'yelp': open(0.85 + Math.sin(f * 0.8) * 0.1, 0.4, -0.1); break;
+    case 'squeak': {
+      // (a tight little O, the squeak, wheezing in and out; the buck teeth over it)
+      const w = 0.5 + Math.abs(Math.sin(f * 0.18)) * 0.5;
+      ell(c, MX + 1.6, MY + 1.4, 1.6 + w * 0.4, 1.4 + w * 1.2, lip);
+      ell(c, MX + 1.6, MY + 1.4, 0.9 + w * 0.3, 0.7 + w, dark);
+      buckTeeth(c, MY - 0.4, d, 2.2);
+      break;
+    }
     case 'panic': open(0.75 + Math.sin(f * 0.5) * 0.25, 0); break;
     case 'dazed': {
       // (hanging open, the tongue lolled out the side, drool)
@@ -1016,7 +1058,7 @@ const sweat = (c: Ctx, face: Face, f: number, d: number) => {
   const drop = (x: number, y: number) => { ell(c, x, y, 0.8, 1.2, '#7DD3FC'); px(c, x - 0.3, y - 0.6, 0.4, 0.4, '#F0F9FF'); };
   const t = ((f + 20) % 90) / 90;
   drop(9.4, -6 + t * 9);
-  if (face === 'yelp' || face === 'panic' || face === 'grit' || d > 0.5) {
+  if (face === 'yelp' || face === 'panic' || face === 'grit' || face === 'squeak' || d > 0.5) {
     const k = (f % 26) / 26; drop(-8.6, -6 + k * 8);
     for (const s of [-1, 1]) { const q = ((f + (s > 0 ? 0 : 9)) % 18) / 18; drop(s * (11 + q * 6), -12 - q * 4 + q * q * 8); }
   }

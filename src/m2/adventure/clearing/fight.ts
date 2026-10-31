@@ -312,6 +312,8 @@ const counter = (ctx: FrameContext, f: Fight) => {
 const beaten = (f: Fight) => Math.max(ROOF_SCUFFS, 1 - Math.max(0, f.hp) / HP);
 
 const poseOf = (f: Fight): ArtiePose => {
+  // (the cheap shot's stun: the stuffed sock booted, both hands on it, knees knocking, for the whole of it)
+  if (f.mode === 'stunned' && cheapShotStunned(f.e)) return 'clutch';
   // (hit up his vine, he hangs on: no letting go to clutch himself)
   if (f.flash > 0 && f.mode !== 'stunned' && f.mode !== 'gut' && f.mode !== 'dodge') return 'hurt';
   switch (f.mode) {
@@ -426,6 +428,8 @@ export const updateFight = (ctx: FrameContext, f: Fight, controls: Controls): Co
   const cs = cheapShotGate(state, f.e, 'artie', ok);
   if (cs === 'frozen') { sync(state, f); return controls; }
   if (cs === 'stunned' && f.mode !== 'dead' && f.mode !== 'stunned' && f.mode !== 'knocked' && f.mode !== 'trampled') { to(f, 'stunned'); f.stunLen = CHEAP_STUN; }
+  // (planted where he was kicked, the whole stun: nothing carrying him, no stampede to run him down off a dropped vine)
+  if (cs === 'stunned') { f.vx = 0; f.vy = 0; f.arc = null; f.dropped = false; }
   f.t++;
   if (f.iframes > 0) f.iframes--;
   if (f.flash > 0) f.flash--;
@@ -502,7 +506,8 @@ export const updateFight = (ctx: FrameContext, f: Fight, controls: Controls): Co
       break;
     case 'stunned':
       if (f.t % 40 === 1) playSound('twinkle', 0.4, 6);
-      if (f.t >= f.stunLen) {
+      // (a stun of his own running out under the cheap shot's: he stays put till that's over too)
+      if (f.t >= f.stunLen && !cheapShotStunned(f.e)) {
         f.dropped = false;
         if (!stampedeOver(f.herd)) to(f, 'watch');
         else if (f.after === 'whistle' || f.agitated) whistle(f);
@@ -828,6 +833,8 @@ const feed = (state: GameState, f: Fight) => {
 /** One's got to him. */
 const animalAtArtie = (ctx: FrameContext, f: Fight, a: Animal) => {
   if (f.mode === 'dead' || a.tame) return;
+  // (the cheap shot's stun: planted, nothing moves him)
+  if (cheapShotStunned(f.e)) return;
   // (down off his chewed-through vine, seeing stars: run down, the same as agitated, breather or not)
   if (f.dropped && (f.mode === 'stunned' || f.mode === 'knocked')) { f.dropped = false; flatten(ctx, f, a); return; }
   const free = f.mode === 'watch' || f.mode === 'whistle' || f.mode === 'hop' || f.mode === 'exposed' || f.mode === 'landed';
@@ -979,6 +986,8 @@ const takeHits = (ctx: FrameContext, f: Fight) => {
  *  a jump gets at him there), a kick swatted off (no hurt). */
 const SPAM_OFF: ReadonlySet<Mode> = new Set(['stunned', 'whistle', 'watch', 'exposed', 'landed']);
 const shakeSpam = (state: GameState, f: Fight, melee: boolean) => {
+  // (the cheap shot's stun: he can't go anywhere; the breather paces the hits as it is)
+  if (cheapShotStunned(f.e)) return;
   if (f.mode === 'dodge') { if (melee) swatOff(state, f.x); return; }
   if (!SPAM_OFF.has(f.mode)) return;
   f.dropped = false; f.attacks = 0;
@@ -1436,7 +1445,7 @@ export const drawFightFront = (c: Ctx, state: GameState, f: Fight) => {
   // (snapped: the end of it coming down after him)
   if (f.snap) { const t = f.snap.t, fall = t * t * 0.25; c.save(); c.translate(f.snap.x, f.snap.y + fall); c.rotate(Math.sin(t * 0.3) * 0.2); drawVine(c, 0, -VINE_UP * 0.55, 0, -999, 1); c.restore(); }
   // Stars round his head
-  if (f.mode === 'stunned') for (let i = 0; i < 3; i++) { const a = fr * 0.12 + (i * Math.PI * 2) / 3; star(c, f.x + Math.cos(a) * 18, f.y - 62 + Math.sin(a) * 5, '#FDE047'); }
+  if (f.mode === 'stunned' && !cheapShotStunned(f.e)) for (let i = 0; i < 3; i++) { const a = fr * 0.12 + (i * Math.PI * 2) / 3; star(c, f.x + Math.cos(a) * 18, f.y - 62 + Math.sin(a) * 5, '#FDE047'); }
   // Coiled to lunge: the knife catching the light (twice), and the bush he's in bristling
   if (f.mode === 'coil' && (f.t % 16) < 7) { const s = 1 - Math.abs((f.t % 16) - 3) / 4; glint(c, f.x + f.facing * GLINT_X, f.y - GLINT_Y, 4 + s * 7); }
   // Notes, the whistle
