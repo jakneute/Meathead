@@ -45,7 +45,7 @@ export const EYE_W = '#F5E4DC', EYE_RED = '#E0707A', IRIS = '#7EA4C8', BAG = '#B
 // ---------------------------------------------------------------------------------------------------------------
 // His parts (facing left, in his units, about his feet)
 
-export type DadFace = 'bleary' | 'sip' | 'yell' | 'squint' | 'angry' | 'burp' | 'strain' | 'out' | 'puke' | 'wide';
+export type DadFace = 'bleary' | 'sip' | 'yell' | 'squint' | 'angry' | 'burp' | 'strain' | 'out' | 'puke' | 'wide' | 'wheeze';
 
 /** A can of SWILL LITE (its middle at (x, y), tipped by `ang` (0 upright), crushed 0..1). */
 export const can = (c: Ctx, x: number, y: number, ang: number, crushed = 0, open = true) => {
@@ -71,9 +71,9 @@ const head = (c: Ctx, hx: number, hy: number, face: DadFace, f: number, dir: num
   ell(c, 9.5, 2, 1.6, 3.2, SKIN[3]);
   px(c, 8, -1, 1, 2, HAIR[1]); px(c, 10, -2, 1, 3, HAIR[1]);
   // (the jowls and the double chin, under the skull)
-  shapeTop(c, () => { c.moveTo(-14, 2); c.quadraticCurveTo(-16, 14, -6, 16); c.quadraticCurveTo(4, 18, 9, 9); c.lineTo(8, 0); c.closePath(); }, face === 'strain' || face === 'angry' ? FLUSH : SKIN, 0, 18);
+  shapeTop(c, () => { c.moveTo(-14, 2); c.quadraticCurveTo(-16, 14, -6, 16); c.quadraticCurveTo(4, 18, 9, 9); c.lineTo(8, 0); c.closePath(); }, face === 'strain' || face === 'angry' || face === 'wheeze' ? FLUSH : SKIN, 0, 18);
   // (the skull: bald, a dome, liver spots, a sheen)
-  shape(c, () => c.ellipse(-2, -4, 14, 15, 0, 0, Math.PI * 2), face === 'strain' ? [SKIN[0], mix(SKIN[1], FLUSH[1], 0.4), mix(SKIN[2], FLUSH[2], 0.4), SKIN[3], SKIN[4]] : SKIN, -16, 12);
+  shape(c, () => c.ellipse(-2, -4, 14, 15, 0, 0, Math.PI * 2), face === 'strain' || face === 'wheeze' ? [SKIN[0], mix(SKIN[1], FLUSH[1], 0.4), mix(SKIN[2], FLUSH[2], 0.4), SKIN[3], SKIN[4]] : SKIN, -16, 12);
   for (const [sx, sy, r] of [[-6, -13, 1.6], [2, -15, 1.1], [5, -9, 1.4], [-10, -7, 0.9]] as const) ell(c, sx, sy, r, r * 0.8, SPOT);
   px(c, -9, -16, 4, 1.4, '#FFFFFF'); px(c, -11, -14, 2, 1, '#FFF4EC');
   // (the fringe over the ear, the comb-over: three white strands from over the ear across the dome)
@@ -84,13 +84,20 @@ const head = (c: Ctx, hx: number, hy: number, face: DadFace, f: number, dir: num
   shape(c, () => c.ellipse(4, 1, 3.4, 5.2, 0.1, 0, Math.PI * 2), SKIN, 0.6, 7.4);
   ell(c, 4.4, 1.4, 1.3, 2.8, SKIN[3]); px(c, 4, -1, 2, 1, HAIR[1]);
   // (the brows: grey, wild)
-  const brow = face === 'angry' || face === 'squint' ? 1.6 : face === 'yell' || face === 'strain' ? -0.6 : face === 'wide' ? -1.8 : face === 'puke' ? 1 : 0;
+  const brow = face === 'angry' || face === 'squint' ? 1.6 : face === 'yell' || face === 'strain' ? -0.6 : face === 'wheeze' ? -1.2 : face === 'wide' ? -1.8 : face === 'puke' ? 1 : 0;
   line(c, [-15, -7 + brow * 0.3, -10, -8 + brow], 2, HAIR[3]); line(c, [-6, -8 + brow, -1, -7.5 + brow * 0.2], 2, HAIR[3]);
   line(c, [-14, -8 + brow * 0.3, -10, -9 + brow], 0.8, HAIR[1]); line(c, [-5, -9 + brow, -2, -8.6], 0.8, HAIR[1]);
   // (the eyes: bloodshot, half shut under heavy lids, bags under them)
   const eye = (ex: number, w: number) => {
     ell(c, ex, -2.4, w * 0.62, 1.6, BAG);
     if (face === 'sip' || face === 'out' || face === 'yell' || face === 'strain' || face === 'burp' || face === 'puke') { line(c, [ex - w / 2, -4, ex + w / 2, -3.6], 1, SKIN[4]); if (face === 'burp') { ell(c, ex, -5.4, w / 2.4, 1.2, EYE_W); px(c, ex - 0.6, -6.6, 1.2, 1, IRIS); } return; }
+    // (the wheeze: screwed shut, crow's feet bunched up round them, a tear squeezed out of the near one)
+    if (face === 'wheeze') {
+      line(c, [ex - w / 2 - 0.4, -5.2, ex, -3.6, ex + w / 2 + 0.4, -5], 1.1, SKIN[4]);
+      for (let k = -1; k <= 1; k++) line(c, [ex + w / 2 + 0.6, -4.4 + k * 1.4, ex + w / 2 + 2.4, -4.4 + k * 2.2], 0.5, SKIN[3]);
+      if (ex < -8) { const tt = f % 40; ell(c, ex - 1, -2 + tt * 0.22, 0.8, 1.1, '#CFE8FF'); }
+      return;
+    }
     // (wide: baffled, the lids gone up for once, pinprick pupils)
     if (face === 'wide') { ell(c, ex, -4.4, w / 2 + 0.4, 2.6, EYE_W); px(c, ex - w / 2 + 0.6, -4.6, 1.2, 0.5, EYE_RED); px(c, ex - 1.1, -4.8, 1.2, 1.2, '#1A1A1A'); line(c, [ex - w / 2 - 0.4, -7.2, ex + w / 2 + 0.4, -7.4], 0.7, SKIN[3]); return; }
     const open = face === 'squint' ? 0.8 : face === 'angry' ? 1.6 : 1.3;
@@ -117,6 +124,11 @@ const head = (c: Ctx, hx: number, hy: number, face: DadFace, f: number, dir: num
     ell(c, -8, 3, 4.4, 3, dith(c, '#8FB43A'));
     fill(c, '#5A1020', () => c.ellipse(-12.5, 11.5, 4.6, 5.2, 0, 0, Math.PI * 2)); px(c, -15, 7.4, 5, 1, TEETH);
     ell(c, -13, 11, 3.4, 3.6, '#B8C43A'); ell(c, -14, 10, 1.6, 1.4, '#E2E87A');
+  } else if (face === 'wheeze' && !talking) {
+    // (the wheeze: no sound coming, a long slack O, sucking in, the dentures loose in it; drool off the lip)
+    const h = 3.4 + Math.sin(f * 0.12) * 1.2;
+    fill(c, '#5A1020', () => c.ellipse(-12, 10 + h * 0.5, 2.6, h, 0, 0, Math.PI * 2)); px(c, -13.6, 9.4, 3.2, 0.9, TEETH); ell(c, -12, 10.6 + h, 1.4, 0.7, '#C24A5A');
+    const dt = f % 70; if (dt < 50) line(c, [-10.6, 11 + h, -10.4, 12 + h + dt * 0.12], 0.6, '#E8F4FF');
   } else if (face === 'yell' || face === 'burp' || flap === 2) { fill(c, '#5A1020', () => c.ellipse(-12, 10.5, 3.4, face === 'yell' || face === 'burp' ? 3.6 : 2.4, 0, 0, Math.PI * 2)); px(c, -14, 8, 4, 1, TEETH); ell(c, -12, 12.4, 2, 1, '#C24A5A'); }
   else if (face === 'sip') { ell(c, -13, 9.6, 2.2, 1.8, SKIN[3]); }
   else if (face === 'strain' || face === 'angry') { px(c, -16, 9, 8, 2.4, TEETH); line(c, [-16, 9, -8, 9], 0.6, SKIN[4]); line(c, [-16, 11.4, -8, 11.4], 0.6, SKIN[4]); px(c, -12.6, 9, 0.6, 2.4, SKIN[4]); }
@@ -370,7 +382,11 @@ export const drawDad = (c: Ctx, x: number, feetY: number, pose: DadPose, f: numb
   // (he faces left in his own units; mirrored for the right)
   c.save(); c.translate(Math.round(x), Math.round(feetY)); c.scale(DAD_K * (o.facing === 1 ? -1 : 1), DAD_K);
   const sat = pose === 'sit' || pose === 'sip' || pose === 'call' || pose === 'reach' || pose === 'tv' || pose === 'squint'
-    || pose === 'swat' || pose === 'catch' || pose === 'puke' || pose === 'baffled';
+    || pose === 'swat' || pose === 'catch' || pose === 'puke' || pose === 'baffled' || pose === 'nuts';
+  // (the cheap shot's stun: a slow-witted beat (nothing), it dawns on him (eyes wide), then the pain: slumped down
+  // deeper into the couch, trembling, the knees clamped together, both hands jammed in his crotch, the wheeze)
+  const nuts = pose === 'nuts', dawn = nuts ? (t < 0.07 ? 0 : t < 0.14 ? 0.5 : 1) : 0;
+  const slump = nuts ? Math.min(1, Math.max(0, (t - 0.07) / 0.06)) : 0, quiver = dawn >= 1 ? (f % 4 < 2 ? 0.7 : -0.7) : 0;
   // (getting up: from sat (u 0) to stood (u 1), hands on his knees, rocking twice first)
   const up = pose === 'rise' ? Math.max(0, (t - 0.45) / 0.55) : sat ? 0 : 1;
   const rock = pose === 'rise' && t < 0.45 ? Math.sin(t * 14) * 4 : 0;
@@ -380,26 +396,26 @@ export const drawDad = (c: Ctx, x: number, feetY: number, pose: DadPose, f: numb
   // (stood: the knees bent, everything over them down with it)
   const cr = up < 1 ? 0 : Math.max(0, Math.min(1, o.crouch ?? 0)), dropY = cr * 11;
   // The skeleton: sat (the couch's seat at -30; the knees out past the gut) to stood
-  const hip = [L(8, 0) + rock * 0.3, L(-32, -44) + dropY];
+  const hip = [L(8, 0) + rock * 0.3 - slump * 6, L(-32, -44) + dropY + slump * 3];
   const step = pose === 'shuffle' ? Math.sin(f * 0.2) * 5 : 0;
-  const footN = [L(-38, -6 + step), 0], footF = [L(-29, 8 - step), L(-1, 0)];
+  const footN = [L(-38, -6 + step) + slump * 4, 0], footF = [L(-29, 8 - step) - slump * 3, L(-1, 0)];
   // (the knees from limb.ts, facing left: sat, the fat thighs out level from under the gut, the knees past it, the shins
   // down to the slippers planted under them; stood, all but straight; crouched, they come forward. The bones longer sat: the thigh's seen end on less)
-  const hipN = [hip[0] - 6, hip[1] + 1], hipF = [hip[0] + 6, hip[1]];
+  const spread = 6 - slump * 3.5, hipN = [hip[0] - spread, hip[1] + 1], hipF = [hip[0] + spread, hip[1]];
   const thighL = L(42, 20.4), shinL = L(27.5, 20.4);
   const kneeOf = (h: number[], ft: number[]) => { const k = kneeAt(h[0], h[1], ft[0] + 2, ft[1] - 4, thighL, shinL, -1); return [k[0], k[1]]; };
   const kneeN = kneeOf(hipN, footN), kneeF = kneeOf(hipF, footF);
-  const bx = L(-4, -6) + sway * 0.5 + rock, by = L(-50, -66) + breathe + dropY, brx = 31, bry = L(25, 27);
+  const bx = L(-4, -6) + sway * 0.5 + rock - slump * 3 + quiver, by = L(-50, -66) + breathe + dropY + slump * 4, brx = 31, bry = L(25, 27);
   const lean = pose === 'rise' && t < 0.6 ? 10 * (1 - up) : pose === 'heave' ? 16 + Math.sin(f * 0.3) * 2 : pose === 'drag' ? -6 : pose === 'hammer' ? 7 * Math.min(1, t) : 0;
-  const shN = [L(-20, -22) + sway + rock - lean, L(-76, -96) + breathe + lean * 0.6 + dropY], shF = [L(16, 12) + sway + rock - lean, L(-80, -100) + breathe + lean * 0.6 + dropY];
-  let hx = L(-8, -10) + sway * 1.2 + rock - lean * 1.2, hy = L(-98, -118) + breathe + lean + dropY;
+  const sl = slump * 7, shN = [L(-20, -22) + sway + rock - lean + quiver, L(-76, -96) + breathe + lean * 0.6 + dropY + sl], shF = [L(16, 12) + sway + rock - lean + quiver, L(-80, -100) + breathe + lean * 0.6 + dropY + sl];
+  let hx = L(-8, -10) + sway * 1.2 + rock - lean * 1.2 + quiver - slump * 2, hy = L(-98, -118) + breathe + lean + dropY + slump * 10;
   let tilt = 0, hdir = -1;
   let face: DadFace = o.face ?? 'bleary';
   // The hands, by pose (sat, his far hand planted on the cushion beside him, past the gut where it shows)
   const SEAT_HAND = [34, -42];
   let handN = [L(-14, -24) + sway, L(-50, -78)], handF = [34, -70];
   let canAt: number[] | null = null, canAng = 0;
-  const holding = o.can === undefined ? 'near' : o.can;
+  const holding = nuts ? null : o.can === undefined ? 'near' : o.can;
   switch (pose) {
     case 'sit': handN = [-38 + Math.sin(f * 0.02), -41]; handF = SEAT_HAND.slice(); break;
     case 'sip': handN = [-22, -94]; handF = SEAT_HAND.slice(); tilt = 0.28; face = o.face ?? 'sip'; break;
@@ -420,6 +436,11 @@ export const drawDad = (c: Ctx, x: number, feetY: number, pose: DadPose, f: numb
     case 'catch': handN = [-14, -124]; handF = SEAT_HAND.slice(); tilt = -0.1; face = o.face ?? 'yell'; break;
     case 'puke': hx -= 7; hy += 7; handN = [-8, -56]; handF = SEAT_HAND.slice(); face = 'puke'; break;
     case 'baffled': handN = [hx - 7, hy - 15]; handF = [hx + 9, hy - 17]; face = o.face ?? 'wide'; break;
+    case 'nuts':
+      // (the beat before it lands: the can still up where it was, then both hands jammed down under the gut)
+      if (dawn < 1) { handN = [-38, -41]; handF = SEAT_HAND.slice(); }
+      else { handN = [hip[0] - 9 + (f % 6 < 3 ? 0.6 : 0), hip[1] + 2]; handF = [hip[0] - 1, hip[1] + 3 - (f % 6 < 3 ? 0 : 0.6)]; }
+      tilt = -0.1 * slump; face = o.face ?? (dawn <= 0 ? 'bleary' : dawn < 1 ? 'wide' : 'wheeze'); break;
     case 'drag': handN = [26 + sway, -70]; handF = [34 + sway, -66]; face = o.face ?? 'strain'; break;
     case 'hammer': {
       // (the Donkey Kong hammer: both fists on the handle, up over his head (t 0), slammed down out in front (t 1),
@@ -436,12 +457,25 @@ export const drawDad = (c: Ctx, x: number, feetY: number, pose: DadPose, f: numb
     canAt = pose === 'sip' ? [handN[0] - 3, handN[1] - 2] : pose === 'crush' ? [hx - 15, hy - 5] : [handN[0] - 1, handN[1] - 6];
     canAng = pose === 'sip' ? (o.canFull === false ? 2.4 : 1.85) : pose === 'tv' ? -0.3 : 0;
   } else if (holding === 'far') { canAt = [handF[0] + 1, handF[1] - 6]; canAng = 0.1; }
+  // (the stun: the can dropped from his hand onto the floor in front of the couch, on its side, glugging out a spreading
+  // puddle of SWILL LITE, foam on it)
+  if (nuts) {
+    const k = dawn < 1 ? 0 : Math.min(1, (t - 0.14) / 0.5), cx = -52, cy = -3.6;
+    if (dawn >= 1) {
+      fill(c, '#B88A2A', () => c.ellipse(cx - 6 - k * 6, 0, 4 + k * 16, 1.4 + k * 2, 0, 0, Math.PI * 2));
+      fill(c, '#E2B84A', () => c.ellipse(cx - 7 - k * 6, -0.4, 2.6 + k * 12, 0.8 + k * 1.3, 0, 0, Math.PI * 2));
+      for (let i = 0; i < 4; i++) ell(c, cx - 4 - i * 5 * (0.4 + k), -0.6, 1.2, 0.7, '#FFF8E0');
+      if (k < 1 && f % 6 < 4) px(c, cx - 7.6, cy + 0.4, 1.6, 2.4, '#E2B84A');
+      can(c, cx, cy, Math.PI / 2 + 0.1, 0);
+    }
+  }
   // Drawing, back to front: the far arm, the far leg, the near leg, the belly (sat: the knees over it), the near arm,
-  // the head, the can
-  handF = arm(c, shF, handF, false, pose === 'call');
+  // the head, the can (the stun's far arm comes round in front of the gut with the near one: both hands at it)
+  const farLate = nuts && dawn >= 1;
+  if (!farLate) handF = arm(c, shF, handF, false, pose === 'call');
   if (holding === 'far' && canAt) { can(c, canAt[0], canAt[1], canAng, o.crushed ?? 0); wrap(c, canAt, canAng, handF, (15 - (o.crushed ?? 0) * 9) / 2, (7 + (o.crushed ?? 0) * 2) / 2, false); }
-  leg(c, [hip[0] + 6, hip[1]], kneeF, footF, false);
-  leg(c, [hip[0] - 6, hip[1] + 1], kneeN, footN, true, 0.2);
+  leg(c, hipF, kneeF, footF, false);
+  leg(c, hipN, kneeN, footN, true, 0.2);
   // (the boxers' seat under the belly: the stripes, the fly's gap and its button, the waistband rolled under the gut;
   // the headset's beltpack clipped on it, its wire up his back)
   shape(c, () => c.ellipse(hip[0], hip[1] - 2, 20, 10, 0, 0, Math.PI * 2), BOXER, hip[0] - 20, hip[0] + 20);
@@ -468,7 +502,10 @@ export const drawDad = (c: Ctx, x: number, feetY: number, pose: DadPose, f: numb
   // (the neck rolls)
   shapeTop(c, () => c.ellipse(hx + 4, hy + 15, 13, 6, 0, 0, Math.PI * 2), SKIN, hy + 9, hy + 21);
   line(c, [hx - 6, hy + 16, hx + 10, hy + 17], 0.6, SKIN[3]);
+  if (farLate) handF = arm(c, shF, handF, false, false);
   handN = arm(c, shN, handN, true, pose === 'tv' || pose === 'crush' || pose === 'hammer');
+  // (the stun: the can still in the near hand for the beat before it lands)
+  if (nuts && dawn < 1) { can(c, handN[0] - 1, handN[1] - 6, 0, 0); wrap(c, [handN[0] - 1, handN[1] - 6], 0, handN, 7.5, 3.5, true); }
   head(c, hx, hy, face, f, hdir, tilt, talking);
   if (holding === 'near' && canAt) { can(c, canAt[0], canAt[1], canAng, o.crushed ?? 0); if (pose !== 'crush') wrap(c, canAt, canAng, handN, (15 - (o.crushed ?? 0) * 9) / 2, (7 + (o.crushed ?? 0) * 2) / 2, true); }
   // (crushing it on his forehead: the thumb over the top of it)

@@ -70,7 +70,8 @@ import { CANVAS_WIDTH, CANVAS_HEIGHT, BULLET_DAMAGE } from '../../../m1/constant
 import { bossMelee, bossMeleeOf } from '../../upgrades/bossMelee';
 import { takeYell } from '../../upgrades/amulet';
 import { moveArmored } from '../../upgrades/state';
-import { cheapShotGate, cheapShotStunned, crushGroups, crushLines } from '../../upgrades/cheapShot';
+import { cheapShotGate, cheapShotStunned, cheapShotStunT, crushGroups, crushLines } from '../../upgrades/cheapShot';
+import { CHEAP_STUN } from '../../upgrades/tune';
 import { meleeMoveOf, type MeleeMove } from '../../../m1/game/core/tuning';
 import { registerM2Kind, registerHurtLines } from '../../kinds';
 import { newSpam, spamTick, hitKey, swatOff, type Spam, BOSS_IFRAMES } from '../../bossSpam';
@@ -319,6 +320,9 @@ setStuntCarHook(ctx => {
   // (only in this fight: not if he's gone off to the hub mid-fight and fires it somewhere else)
   if (!f || ctx.state.stageId !== f.stage) return false;
   if (f.mode !== 'on' || f.cars.length || f.act === 'enter') { ctx.state.player.shootCooldown = 20; return true; }
+  // (stunned off the cheap shot, the family all gone: the next car's for his couch, and that'd throw him off it; he's
+  // planted till the stun's over (the user's: "they cannot be moved during this moment"))
+  if (cheapShotStunned(f.e) && !alive(f).length && !f.couch.crushed) { ctx.state.player.shootCooldown = 20; return true; }
   if (f.recharge > 0) { dud(ctx, f); return true; }
   snapClapper(ctx);
   launchCar(ctx.state, f);
@@ -477,7 +481,7 @@ const props = (ctx: FrameContext, f: Fight) => {
   } else c.rot *= 0.8;
   c.squash *= 0.82;
   // (stopped away from its spot, him on it and nothing on: scooted straight back with his heels, a hop at a time)
-  if (!c.crushed && c.vx === 0 && Math.abs(c.x - COUCH_HOME) > 1 && f.seated && (f.act === 'sit' || f.act === 'baffled' || f.act === 'drink' || f.act === 'catch')) {
+  if (!c.crushed && c.vx === 0 && Math.abs(c.x - COUCH_HOME) > 1 && f.seated && !cheapShotStunned(f.e) && (f.act === 'sit' || f.act === 'baffled' || f.act === 'drink' || f.act === 'catch')) {
     if (f.t % 6 < 4) { c.x += Math.sign(COUCH_HOME - c.x) * Math.min(SCOOT, Math.abs(COUCH_HOME - c.x)); if (f.t % 6 === 0) playSound('thud', 0.2, -14); }
   }
   // The fridge: knocked off the wall a way, it creeps back; the wobble dies
@@ -1139,7 +1143,8 @@ const cars = (ctx: FrameContext, f: Fight) => {
     m.alive = false;
     f.flung.push({ x: X(c.bx), y: STAGE_Y - 60, d: c.bd, vx: c.dir * 1.2, vy: -6, t: 0, dir: c.dir, seed: f.kills + 3, stuck: false });
     // (the last of them: the car tumbles on into the couch and crushes it as well, one car less to him)
-    const last = !alive(f).length && !f.couch.crushed;
+    // (not while he's stunned off the cheap shot: it'd throw him off; the couch gets the next car instead)
+    const last = !alive(f).length && !f.couch.crushed && !cheapShotStunned(f.e);
     onKill(ctx, f, who, last);
     if (last) { const cp = proj(E, X(f.couch.x), STAGE_Y - 30, 1); boom(ctx, cp.x, cp.y); crushCouch(ctx, f, c); }
     else f.wrecks.push({ x: c.bx, d: c.bd, dir: c.dir, paint: c.paint, t: 0, onCouch: false });
@@ -1613,8 +1618,9 @@ const poseOf = (f: Fight): { pose: DadPose; t: number; face?: DadFace; can: 'nea
     }
     return { pose: 'stand', t: 0, can: null, rot: 0 };
   }
-  // (stunned off the cheap shot, on his couch: hands on his head, straining)
-  if (f.seated && cheapShotStunned(f.e)) return { pose: 'baffled', t: 0, face: 'strain', can: null, rot: 0 };
+  // (stunned off the cheap shot, on his couch: slumped into it clutching his nuts, the can dropped, a slow-witted beat
+  // before the wheeze (dad.ts 'nuts'))
+  { const st = f.seated ? cheapShotStunT(f.e) : -1; if (st >= 0) return { pose: 'nuts', t: st / CHEAP_STUN, can: null, rot: 0 }; }
   switch (f.act) {
     case 'swat': return { pose: 'swat', t: swatT(f, t), can: null, rot: 0 };
     case 'catch': return { pose: 'catch', t: 0, can: null, rot: 0 };
@@ -1730,7 +1736,7 @@ export const fightItems = (c: Ctx, state: GameState, f: Fight): Item[] => {
         if (blink) c.globalAlpha = 0.65;
         const feet = STAGE_Y - f.y;
         c.save(); c.translate(X(f.x), feet); c.rotate(P.rot);
-        drawDad(c, 0, 0, P.pose, fr, { t: P.t, talking: f.words.has('dad'), face: P.face ?? (f.flash > 0 ? 'strain' : undefined), can: P.can, canFull: false, facing: f.facing, held: heldFor(f, P.pose), crouch: P.crouch });
+        drawDad(c, 0, 0, P.pose, fr, { t: P.t, talking: f.words.has('dad'), face: P.face ?? (f.flash > 0 && P.pose !== 'nuts' ? 'strain' : undefined), can: P.can, canFull: false, facing: f.facing, held: heldFor(f, P.pose), crouch: P.crouch });
         c.restore();
         c.globalAlpha = 1;
       } });

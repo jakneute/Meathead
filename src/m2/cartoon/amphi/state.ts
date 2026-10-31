@@ -26,6 +26,9 @@ export type DadPose = 'sit' | 'sip' | 'call' | 'reach' | 'tv' | 'squint' | 'rise
   // his head); stood: dragging the couch, the Donkey Kong hammer (t: up 0 .. down 1), staggering, lifting the mallet
   // and not, opening the fridge)
   | 'swat' | 'catch' | 'puke' | 'baffled' | 'drag' | 'hammer' | 'stagger' | 'heave' | 'fridge'
+  // (the cheap shot's stun, sat: slumped down into the couch clutching his nuts, knees clamped, the beer dropped; t
+  // how far through the stun (0..1): a slow-witted beat before it dawns on him, then the wheeze)
+  | 'nuts'
   // (his standard death: arms up over his head as the fridge comes down on him)
   | 'cower';
 export interface Show {
