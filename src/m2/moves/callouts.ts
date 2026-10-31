@@ -39,6 +39,13 @@ export const GRAB_CALLOUTS = {
   mallet: { lines: ['BONKED!', 'FLATTENED!', 'TWINKLED!', 'SQUASHED!', 'WHACKED!'], color: '#F472B6' },
   // (the spellbook of the damned's)
   spell: { lines: ['SMITED!', 'HEXED!', 'STRUCK DOWN!', 'CURSED!', 'FRIED!'], color: '#C084FC' },
+  // (the hidden upgrades' follow-ups (followups.ts): the sabatons' missile, the pauldrons' planting and head kick, the
+  // armguards' ninja drop, the leg armor's flash kick)
+  missile: { lines: ['MISSILE!', 'HUMAN TORPEDO!', 'INCOMING!', 'AIR STRIKE!', 'DIRECT HIT!'], color: '#F97316' },
+  planted: { lines: ['PLANTED!', 'BURIED ALIVE!', 'GARDENED!', 'TOPSOIL!', 'SIX FEET UNDER!'], color: '#A3E635' },
+  punted: { lines: ['FIELD GOAL!', 'PUNTED!', "IT'S GOOD!", 'KICKOFF!', 'HEAD OVER HEELS!'], color: '#FDE047' },
+  ninja: { lines: ['NINJA DROP!', 'LAWN DARTED!', 'SPUN INTO THE DIRT!', 'TOP SPUN!', 'HEAD FIRST!'], color: '#60A5FA' },
+  sliced: { lines: ['SLICED!', 'SPLIT IN TWO!', 'HALVED!', 'FLASH KICKED!', 'SONIC BOOM!'], color: '#F0ABFC' },
   gorespray: { lines: ['HOSED DOWN!', 'GORE SHOWER!', 'SPLATTERED!', 'BUDDY BATHED!'], color: '#DC2626' },
 } as const;
 

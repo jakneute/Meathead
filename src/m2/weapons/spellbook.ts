@@ -30,6 +30,7 @@ import { grabCallout } from '../moves/callouts';
 import { BULK_LINES, BULK_FAIL_LINES } from '../lines/weaponLines';
 // (the bulked head stomp's leftovers lie on the floor behind him: drawn with the bulk-up's things)
 import { drawPoseSprite, drawPoseHead, bulkFinishing, drawPulped } from '../moves/grab';
+import { drawFollowUnder } from '../moves/followups';
 import { drawLeg, drawArmTo, drawTorsoFromHips } from '../../m1/game/render/player/body';
 import { setArmor } from '../../m1/game/core/resist';
 import { vineGrip } from '../../m1/game/combat/muzzle';
@@ -990,4 +991,4 @@ const drawHeld = (c: Ctx, frame: number) => {
   c.restore();
 };
 
-export const registerSpellbook = () => registerWeapon('SPELLBOOK', { fire: ctx => fire(ctx), update, draw, drawHeld, tick, drawOverlay, vineArm, drawUnder: (c, state) => { drawPulped(c, state); drawUnderFx(c, state); } });
+export const registerSpellbook = () => registerWeapon('SPELLBOOK', { fire: ctx => fire(ctx), update, draw, drawHeld, tick, drawOverlay, vineArm, drawUnder: (c, state) => { drawPulped(c, state); drawFollowUnder(c, state); drawUnderFx(c, state); } });

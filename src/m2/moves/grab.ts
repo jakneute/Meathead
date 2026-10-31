@@ -22,6 +22,9 @@
 // Swimming, or hanging off a vine, it's only the one-handed kind (no floor to slam anybody into).
 
 import { stepAmulet, amuletShielded, drawAmuletFx } from '../upgrades/amulet';
+import { has } from '../upgrades/state';
+import { HANDS_HEAL } from '../upgrades/tune';
+import { FOLLOW_PHASES, type FollowPhase, type Follow, followIdle, startFollowUp, stepFollow, drawFollow, followTick, followAfter, followUntouchable } from './followups';
 import { walkAwayOn } from '../walkAway';
 import { spawnShielded } from '../spawnSafe';
 import { pickLine } from '../../m1/game/platform/speech';
@@ -205,6 +208,16 @@ const handsOnly = (state: GameState) => !!(state.player.swimming || state.player
 /** One he could get hold of right now, the way he is. */
 const canGrab = (state: GameState, e: Enemy) => isCritter(e) || (grabbable(e) && !handsOnly(state));
 
+/**
+ * A regular enemy the grabs don't work on (an animal far too big, a machine, a person they're no good on): not a boss, not
+ * a sub-boss, not a critter, not one behind or up in something (NOT_PEOPLE), not one bolted down (unshakeable). The hand
+ * armor's beatdown works on these (the shakedown and the air grab never do), and with it every other piece's follow-up.
+ */
+export const handsOnlyFoe = (e: Enemy) => e.type !== 'boss' && !isMidBoss(e) && e.health > 0 && !e.isBlownAway && !!e.kind && !e.innocent
+  && !e.unshakeable && !isCritter(e) && !grabbable(e) && !NOT_PEOPLE.has(e.kind);
+/** One the beatdown could get hold of right now: what any grab could, and with the hand armor, those too. */
+const canBeat = (state: GameState, e: Enemy) => canGrab(state, e) || (!handsOnly(state) && has('hands') && handsOnlyFoe(e));
+
 /** Some bite back just for being picked up (a poison frog in his bare hand, a live eel): its own hurt, its own lines. */
 const grabbedHurts = (ctx: FrameContext, e: Enemy) => {
   const h = m2Kind(e.kind)?.grabHurts, p = ctx.state.player;
@@ -214,7 +227,9 @@ const grabbedHurts = (ctx: FrameContext, e: Enemy) => {
 
 type Phase = 'idle' | 'windup' | 'lunge' | 'whiff' | 'mount' | 'kill' | 'reach' | 'shake' | 'toss' | 'miss' | 'plummet' | 'drop' | 'critter' | 'pitch' | 'smash' | 'stomp' | 'hug'
   // (the air grab: wound up, launched with hands out, the arc down with one in his arms, the impact)
-  | 'awind' | 'alunge' | 'aarc' | 'aland';
+  | 'awind' | 'alunge' | 'aarc' | 'aland'
+  // (the hidden upgrades' follow-ups: followups.ts)
+  | FollowPhase;
 /** The air grab's arc: back held (a backflip), forward held (a dive), nothing (a piledriver straight down). */
 type Arc = 'back' | 'fwd' | 'down';
 /** Which throw: on the way he's facing, back (a suplex), straight up, or slammed down. */
@@ -273,7 +288,7 @@ export interface Grab {
   toss: Toss;
   thrown: Enemy | null;
   /** Bodies he's thrown, still flying: who each has hit already (once each), and how long it's been going. */
-  flying: { e: Enemy; hit: Set<string>; t: number; fall: number; still: number; how: GrabCallout; oneChunk: boolean; impact: number }[];
+  flying: { e: Enemy; hit: Set<string>; t: number; fall: number; still: number; how: GrabCallout; oneChunk: boolean; impact: number; k: number }[];
   /** Which way a critter was pitched. */
   pitch: 'left' | 'right' | 'up' | 'down';
   /** Which way a critter held up is aimed right now (null: no direction held). */
@@ -290,11 +305,13 @@ export interface Grab {
   lastVy: number;
   /** Frames running he's been off the floor in a grab that needs one under him (the beatdown, the shakedown). */
   airT: number;
+  /** The follow-up under way (followups.ts), or null. */
+  fu: Follow | null;
 }
 
 export const createGrab = (state: GameState): Grab => ({
   phase: 'idle', t: 0, dir: 1, held: null, blow: 'punch', blowT: -1, want: null, window: BEAT_WINDOW, healBank: 0, punchN: 0, ammoLeft: 0, nextPunchAt: 0, hp: state.player.health, yHeld: 0, yChord: false, was: { ...NO_CONTROLS }, shaken: new WeakSet(), gate: new Set(), pend: null, clearT: 0, calmed: new Set(), toss: 'forward', thrown: null, flying: [], fall: 0, pitch: 'right', aim: null, queued: null, windHp: 0, pb: 0, bumpT: 0, airSpent: false,
-  airLock: false, diveOk: false, arcJump: true, arc: 'down', ang: 0, avx: 0, avy: 0, hitAt: null, lastVy: 0, airT: 0,
+  airLock: false, diveOk: false, arcJump: true, arc: 'down', ang: 0, avx: 0, avy: 0, hitAt: null, lastVy: 0, airT: 0, fu: null,
 });
 
 const feetY = (state: GameState) => state.player.pos.y + state.player.height;
@@ -421,14 +438,14 @@ const balk = (ctx: FrameContext, e: Enemy) => {
 };
 
 /** The nearest one he could get his hands on, in front of him, within `reach` of his front (`any`: whether he could or not). */
-const inReach = (state: GameState, dir: number, reach: number, any = false) => {
+const inReach = (state: GameState, dir: number, reach: number, any = false, test: (state: GameState, e: Enemy) => boolean = canGrab) => {
   const p = state.player;
   const front = dir > 0 ? p.pos.x + p.width : p.pos.x;
   let best: Enemy | null = null, bestD = Infinity;
   const mid = p.pos.x + p.width / 2;
   for (const e of state.enemies) {
     const critter = isCritter(e);
-    if (any ? e.health <= 0 || e.isBlownAway || e.innocent : !canGrab(state, e)) continue;
+    if (any ? e.health <= 0 || e.isBlownAway || e.innocent : !test(state, e)) continue;
     // (forgiving up and down: somebody just landing from a throw, still bouncing, is in reach; a bird a good way up too)
     const slack = critter ? 60 : 24;
     if (e.pos.y > p.pos.y + p.height + slack || e.pos.y + e.height < p.pos.y - slack) continue;
@@ -616,8 +633,9 @@ const easeOff = (state: GameState, g: Grab) => {
  * `oneChunk`: the floor's already had him (the suplex): coming down again after doesn't hurt, flying into somebody does.
  * `impact`: how much what he hits hurts him (less after a boot).
  */
-const fly = (g: Grab, e: Enemy, how: GrabCallout = 'thrown', oneChunk = false, impact = 1) => {
-  g.flying.push({ e, hit: new Set([e.id]), t: 0, fall: 0, still: 0, how, oneChunk, impact });
+/** `k`: what he does to whoever he hits, times (the sabatons' missile: more than a throw); its cap times it too. */
+const fly = (g: Grab, e: Enemy, how: GrabCallout = 'thrown', oneChunk = false, impact = 1, k = 1) => {
+  g.flying.push({ e, hit: new Set([e.id]), t: 0, fall: 0, still: 0, how, oneChunk, impact, k });
   e.enemyCollisionCooldown = FLY_FRAMES * 2;
 };
 const FLY_FRAMES = 70;
@@ -659,7 +677,7 @@ const flyInto = (ctx: FrameContext, g: Grab) => {
       if (o.pos.x > e.pos.x + e.width || o.pos.x + o.width < e.pos.x || o.pos.y > e.pos.y + e.height || o.pos.y + o.height < e.pos.y) continue;
       fl.hit.add(o.id);
       // (by how heavy the body is and how fast it's going: a bouncer through a wolverine doesn't leave a wolverine)
-      const dmg = Math.round(Math.max(10, Math.min(160, speed * getEnemyMass(e) / 28)) * (o.throwVuln ?? 1));
+      const dmg = Math.round(Math.max(10, Math.min(160 * fl.k, speed * getEnemyMass(e) / 28 * fl.k)) * (o.throwVuln ?? 1));
       o.health -= dmg;
       const dir = Math.sign(e.vel.x) || g.dir;
       fx.spawnDamageNumber(o.pos, dmg, dmg > 30);
@@ -795,7 +813,10 @@ export const updateGrab = (ctx: FrameContext, g: Grab, controls: Controls): Cont
   }
   // (the amulet's meter and yell (upgrades/amulet.ts): every frame, everywhere he plays, before the grab reads untouchable)
   stepAmulet(ctx);
+  // (the follow-ups' own business: who was last hit and how, the heads in the ground, a kicked head flying)
+  followTick(ctx, g);
   const out = stepGrab(ctx, g, controls);
+  followAfter(ctx, g);
   g.lastVy = ctx.state.player.vel.y;
   if (g.phase === 'idle') g.airT = 0;
   locked = g.phase !== 'idle';
@@ -851,16 +872,17 @@ export const updateGrab = (ctx: FrameContext, g: Grab, controls: Controls): Cont
 // the held one being drawn at his hands; ladders, vines and wires already keep off him while grabBusy())
 // ---------------------------------------------------------------------------------------------------------------------
 /** Phases where he's stood on something (or should come down on it): a throw up from under him is cancelled. */
-const PINNED = new Set<Phase>(['windup', 'lunge', 'whiff', 'miss', 'reach', 'mount', 'kill', 'shake', 'toss', 'critter', 'pitch', 'smash', 'stomp', 'hug', 'aland', 'drop', 'plummet', 'aarc']);
+const PINNED = new Set<Phase>(['windup', 'lunge', 'whiff', 'miss', 'reach', 'mount', 'kill', 'shake', 'toss', 'critter', 'pitch', 'smash', 'stomp', 'hug', 'aland', 'drop', 'plummet', 'aarc', 'fspin', 'fkick']);
 /** Both hands on somebody (no doing it swimming). */
-const TWO_HANDED = new Set<Phase>(['mount', 'kill', 'shake', 'toss', 'drop', 'plummet', 'smash', 'stomp', 'hug']);
+const TWO_HANDED = new Set<Phase>(['mount', 'kill', 'shake', 'toss', 'drop', 'plummet', 'smash', 'stomp', 'hug', 'fmissile', 'fspin', 'fdrop']);
 /** Needs the floor under him the whole time. */
-const FLOORED = new Set<Phase>(['mount', 'shake']);
+const FLOORED = new Set<Phase>(['mount', 'shake', 'fspin', 'fkick']);
 const OFF_FLOOR_MAX = 10;
 /** The longest each phase can go on (frames): well past its own end (the beatdown's bulked window is 225), a net only. */
 const PHASE_MAX: Record<Phase, number> = {
   idle: Infinity, windup: 60, lunge: 60, whiff: 90, miss: 90, reach: 60, mount: 420, kill: 60, shake: 150, toss: 90,
   critter: 200, pitch: 60, plummet: 150, drop: 150, smash: 120, stomp: 150, hug: 200, awind: 90, alunge: 90, aarc: 200, aland: 60,
+  fmissile: 90, fspin: 120, fdrop: 150, fflash: 120, fkick: 320,
 };
 /** Stood back down on whatever's just under his feet (a few pixels: a bounce pad lifts him a couple). False: nothing there. */
 const standBack = (state: GameState) => {
@@ -905,7 +927,8 @@ const stepGrab = (ctx: FrameContext, g: Grab, controls: Controls): Controls => {
   // he slammed, still alive, at his feet))
   // (or just back at a checkpoint, still on the spot: spawnSafe.ts's grace)
   // (or the amulet's rage after its yell: upgrades/amulet.ts)
-  p.untouchable = p.airGrab || spawnShielded(state) || amuletShielded();
+  // (or a follow-up up in the air with somebody: followups.ts)
+  p.untouchable = p.airGrab || spawnShielded(state) || amuletShielded() || followUntouchable(g);
   if (wasAir && !p.airGrab) p.noContactUntil = state.frame + AIR_CONTACT_GRACE;
   const press = (k: keyof Controls) => !!controls[k] && !was[k];
   if (state.deathTimer > 0 || p.health <= 0) { if (g.phase !== 'idle') letGo(state, g); return controls; }
@@ -925,6 +948,8 @@ const stepGrab = (ctx: FrameContext, g: Grab, controls: Controls): Controls => {
         for (const k of [...g.gate]) { if (controls[k]) c[k] = false as never; else g.gate.delete(k); }
         controls = c;
       }
+      // (the hidden upgrades' own presses: up + B in a slide (the flash kick), B by a head in the ground (the kick))
+      { const fu = followIdle(ctx, g, controls, press); if (fu) { g.pend = null; g.queued = null; return fu; } }
       let out = controls;
       // Y on its own is a button of its own (secondary fire) on a tap; held, it's half of a grab
       const y = btn('y');
@@ -970,6 +995,8 @@ const stepGrab = (ctx: FrameContext, g: Grab, controls: Controls): Controls => {
       if (g.airLock && (p.isGrounded || handsOnly(state))) g.airLock = false;
       // (whiffed it: the dive kick's still there on the way down, down + B; nothing else)
       if (g.airLock) out = g.diveOk && out.down && !p.isGrounded ? { ...out, charge: false } : { ...out, special: false, charge: false };
+      // (Y + B just after a hit that didn't kill, in that move's armor piece: its follow-up, whatever he's in the middle of)
+      if (g.queued?.want === 'beat' && !handsOnly(state) && startFollowUp(ctx, g)) { g.queued = null; g.pend = null; if (y) g.yChord = true; return { ...NO_CONTROLS }; }
       if (!g.queued || !free) return out;
       const go = g.queued.want; g.queued = null;
       if (touching) { p.pushbackTimer = 0; p.vel.x = 0; }
@@ -1080,7 +1107,7 @@ const stepGrab = (ctx: FrameContext, g: Grab, controls: Controls): Controls => {
       // Swept, not stepped: the first body anywhere along this frame's stretch of it stops him there, right up against
       // it (at this speed he'd otherwise go clean through one between frames); one he can't grab, and he's stopped dead
       const hit = lungeHits(state, g.dir);
-      if (hit && !canGrab(state, hit)) {
+      if (hit && !canBeat(state, hit)) {
         placeAt(state, g.dir > 0 ? hit.pos.x - p.width : hit.pos.x + hit.width, p.pos.x);
         g.phase = 'whiff'; g.t = 0; playSound('thud', 0.8, -4); shakeScreen(state, 4, 3);
         if (tooBigAnimal(hit) && balk(ctx, hit)) { end(state, g); return { ...NO_CONTROLS }; }
@@ -1094,7 +1121,7 @@ const stepGrab = (ctx: FrameContext, g: Grab, controls: Controls): Controls => {
       }
       else placeAt(state, g.dir > 0 ? hit.pos.x - p.width + 6 : hit.pos.x + hit.width - 6, p.pos.x);
       if (p.isGrounded) stepUp(state);
-      const e = hit ?? inReach(state, g.dir, LUNGE_REACH);
+      const e = hit ?? inReach(state, g.dir, LUNGE_REACH, false, canBeat);
       if (e && isCritter(e)) return grabCritter(ctx, g, e, hold);
       if (e) {
         // Down he goes, Meathead on top of him (in the air, the two of them plummet first)
@@ -1261,6 +1288,9 @@ const stepGrab = (ctx: FrameContext, g: Grab, controls: Controls): Controls => {
       if (g.t >= TOSS[g.toss].len) end(state, g);
       return hold();
     }
+    default:
+      if (FOLLOW_PHASES.has(g.phase)) return stepFollow(ctx, g, controls);
+      return controls;
   }
 };
 
@@ -1283,7 +1313,8 @@ const landBlow = (ctx: FrameContext, g: Grab, e: Enemy) => {
   e.health -= dmg;
   // (healing by the blow's own damage, unbulked: the same a second whichever he's throwing)
   if (!e.noHeal) {
-    g.healBank += B.dmg * HEAL_PER_DMG * (e.healK ?? 1);
+    // (the hand armor: every blow heals more)
+    g.healBank += B.dmg * HEAL_PER_DMG * (e.healK ?? 1) * (has('hands') ? HANDS_HEAL : 1);
     const h = Math.floor(g.healBank); g.healBank -= h;
     if (h > 0) { p.health = Math.min(p.maxHealth, p.health + h); g.hp = p.health; }
   }
@@ -2355,6 +2386,7 @@ export const drawGrab = (ctx: Ctx, state: GameState, g: Grab) => {
   const p = state.player, f = state.frame;
   p.hidden = true;
   const x = centerX(state), y = feetY(state);
+  if (FOLLOW_PHASES.has(g.phase)) { drawFollow(ctx, state, g); return; }
   switch (g.phase) {
     case 'awind': {
       // Coiled (hanging there, in the air), shaking with it, steam off him, and the warning
@@ -2595,4 +2627,9 @@ export const drawGrab = (ctx: Ctx, state: GameState, g: Grab) => {
       return;
     }
   }
+};
+
+/** The grabs' own workings, for the follow-ups (followups.ts): grabs of their own, out of the hidden upgrades. */
+export const grabKit = {
+  take, release, end, letGo, fly, healOf, placeAt, clearTo, wallBetween, ceilingOver, slamShock, asPose, flier, handsOnly, feetY, centerX,
 };

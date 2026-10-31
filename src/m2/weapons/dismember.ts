@@ -13,7 +13,7 @@ import { kindGore } from '../../m1/game/enemies/kindBlood';
 
 type Ctx = CanvasRenderingContext2D;
 /** A piece's shape, in the enemy's own picture (feet at the origin, facing right): a circle (its head) or a box. */
-type Cut = { circle: true; x: number; y: number; r: number } | { circle: false; x0: number; y0: number; x1: number; y1: number };
+export type Cut = { circle: true; x: number; y: number; r: number } | { circle: false; x0: number; y0: number; x1: number; y1: number };
 interface Piece { e: Enemy; face: 1 | -1; cut: Cut; cx: number; cy: number; x: number; y: number; vx: number; vy: number; rot: number; vr: number; t: number; down: boolean; bounced: boolean }
 
 const LIE = 480, FADE = 60, MAX_PIECES = 90, G = 0.55;
@@ -72,6 +72,31 @@ export const dismember = (state: GameState, e: Enemy, dir: number, force = 1) =>
   if (pieces.length > MAX_PIECES) pieces.splice(0, pieces.length - MAX_PIECES);
 };
 
+/**
+ * Sliced in half top to bottom, down the forehead (the leg armor's flash kick: upgrades/followups.ts): the two halves
+ * stood where it was, then falling apart either way, turning outward, bleeding from the cut, and lying there a while
+ * like any other piece. A person's cut through the middle of the head; an animal's through the middle of it.
+ */
+export const sliceInHalf = (state: GameState, e: Enemy) => {
+  const face = (kindFacing(e, state) >= 0 ? 1 : -1) as 1 | -1;
+  const fx = e.pos.x + e.width / 2, fy = e.pos.y + e.height;
+  e.vel = { x: 0, y: 0 }; e.pose = undefined; e.melee = undefined;
+  e.frozeAt = state.frame; e.frozenTimer = 1e9;
+  const hd = e.kind ? KIND_HEAD[e.kind] : undefined;
+  const at = isHumanoidKind(e.kind) && hd ? hd.x : 0, wide = e.width / 2 + 24, top = -e.height - 26;
+  for (const side of [-1, 1] as const) {
+    // (in its own picture, facing right: the half on this side of the cut; `side` is which way it falls on screen)
+    const lside = side * face;
+    const cut: Cut = lside < 0 ? { circle: false, x0: -wide, y0: top, x1: at, y1: 3 } : { circle: false, x0: at, y0: top, x1: wide, y1: 3 };
+    const lx = ((cut.x0 + cut.x1) / 2), ly = (cut.y0 + cut.y1) / 2;
+    pieces.push({
+      e, face, cut, cx: lx, cy: ly, x: fx + lx * face, y: fy + ly,
+      vx: side * (1.2 + Math.random() * 1.2), vy: -2.5 - Math.random() * 1.5, rot: 0, vr: side * (0.05 + Math.random() * 0.03), t: 0, down: false, bounced: false,
+    });
+  }
+  if (pieces.length > MAX_PIECES) pieces.splice(0, pieces.length - MAX_PIECES);
+};
+
 /** Each frame: flying, bleeding; down, a bounce, lying there; and gone. */
 export const tickDismember = (state: GameState) => {
   if (!pieces.length) return;
@@ -104,24 +129,31 @@ export const tickDismember = (state: GameState) => {
  *  clipped (a stunt car flattening a crowd: dozens of them at once, the user's slowdown). */
 const PIECE_RES = 2;
 const baked = new WeakMap<Piece, { cv: HTMLCanvasElement; x: number; y: number; w: number; h: number }>();
-const bakePiece = (p: Piece, state: GameState) => {
-  let b = baked.get(p);
-  if (b) return b;
-  const cut = p.cut;
+/** One piece of an enemy's picture (`cut`, in its own coordinates: feet at the origin, facing right; mirrored to `face`)
+ *  painted the once into a canvas of its own. Put it down with drawImage(cv, x, y, w, h), its origin at the enemy's
+ *  feet; turned however (the stamp cache can't take a turned transform: bake, then draw turned). Also the hidden
+ *  upgrades' follow-ups' (a kicked-off head: upgrades/followups.ts). */
+export type BakedCut = { cv: HTMLCanvasElement; x: number; y: number; w: number; h: number };
+export const bakeEnemyCut = (state: GameState, e: Enemy, face: 1 | -1, cut: Cut): BakedCut => {
   let x: number, y: number, w: number, h: number;
-  if ('x0' in cut) { const a = cut.x0 * p.face, e = cut.x1 * p.face; x = Math.min(a, e); y = cut.y0; w = Math.abs(e - a); h = cut.y1 - cut.y0; }
-  else { x = cut.x * p.face - cut.r; y = cut.y - cut.r; w = h = cut.r * 2; }
+  if ('x0' in cut) { const a = cut.x0 * face, b = cut.x1 * face; x = Math.min(a, b); y = cut.y0; w = Math.abs(b - a); h = cut.y1 - cut.y0; }
+  else { x = cut.x * face - cut.r; y = cut.y - cut.r; w = h = cut.r * 2; }
   x = Math.floor(x) - 2; y = Math.floor(y) - 2; w = Math.ceil(w) + 4; h = Math.ceil(h) + 4;
   const cv = document.createElement('canvas'); cv.width = Math.max(1, w * PIECE_RES); cv.height = Math.max(1, h * PIECE_RES);
   const g = cv.getContext('2d')!;
   g.imageSmoothingEnabled = false; g.scale(PIECE_RES, PIECE_RES); g.translate(-x, -y);
   // (cut out of the picture: in its own coordinates, mirrored the way it faces)
   g.beginPath();
-  if ('x0' in cut) { const a = cut.x0 * p.face, e = cut.x1 * p.face; g.rect(Math.min(a, e), cut.y0, Math.abs(e - a), cut.y1 - cut.y0); }
-  else g.arc(cut.x * p.face, cut.y, cut.r, 0, Math.PI * 2);
+  if ('x0' in cut) { const a = cut.x0 * face, b = cut.x1 * face; g.rect(Math.min(a, b), cut.y0, Math.abs(b - a), cut.y1 - cut.y0); }
+  else g.arc(cut.x * face, cut.y, cut.r, 0, Math.PI * 2);
   g.clip();
-  drawEnemyAt(g, p.e, state, 0, 0, 0, p.face);
-  b = { cv, x, y, w, h };
+  drawEnemyAt(g, e, state, 0, 0, 0, face);
+  return { cv, x, y, w, h };
+};
+const bakePiece = (p: Piece, state: GameState) => {
+  let b = baked.get(p);
+  if (b) return b;
+  b = bakeEnemyCut(state, p.e, p.face, p.cut);
   baked.set(p, b);
   return b;
 };

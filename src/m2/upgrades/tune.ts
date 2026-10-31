@@ -50,3 +50,26 @@ export const YELL_COOLDOWN = 600;
 export const YELL_EDGE = 24;
 /** The meter this full (a share) and his face on the sprite goes angry. */
 export const AMULET_ANGRY_AT = 0.4;
+
+// ---- the follow-ups (moves/followups.ts; SPEC "Follow-ups, generally" and each piece's)
+/** How long after a non-fatal hit (dive kick, charge, uppercut) Y + B still makes the follow-up (frames). */
+export const FOLLOW_WINDOW = 30;
+/** How far off he can be from the one he hit and still get to it: across (a charge's push sends them further), up/down. */
+export const FOLLOW_REACH = 130, FOLLOW_REACH_CHARGE = 190, FOLLOW_REACH_UP = 170;
+/** Health back for a follow-up (the air grab's 12; times the enemy's healK, nothing off noHeal). */
+export const FOLLOW_HEAL = 12;
+/** Sabatons' missile: how fast he's hurled (px a frame; the shakedown's throw is 17), and what he does to whoever he
+ *  hits, times a thrown body's own (mass × speed; its cap of 160 times it too). */
+export const MISSILE_SPEED = 25, MISSILE_HIT_K = 1.6;
+/** Pauldrons: a head kicked off out of the ground: its speed across, what it does to whoever it hits. */
+export const HEAD_KICK_SPEED = 13, HEAD_HIT = 70;
+/** How near the head he has to be for B to kick it (px from his middle), and how many stuck in the ground at once. */
+export const HEAD_KICK_REACH = 64, BURIED_MAX = 12;
+/** Armguards' ninja drop: how hard they come down (px a frame at the most) and what it does (regular enemies: dead). */
+export const NINJA_FALL = 22, NINJA_DAMAGE = 999;
+/** Leg armor's flash kick: its rise, a share of the uppercut's (SPEC: "about half"), the circle it hits in (px from his
+ *  middle), what it does to a regular enemy (the uppercut's 150; bosses: the armored share through bossMelee). */
+export const FLASH_RISE = 0.5, FLASH_RADIUS = 100, FLASH_DAMAGE = 150;
+// ---- hand armor
+/** Every beatdown blow heals this many times more with the hand armor. */
+export const HANDS_HEAL = 1.6;
