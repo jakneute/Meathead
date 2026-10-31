@@ -69,6 +69,16 @@ Fairy: pink sequins, glitter crystal, tiara spikes; Cartoon: flat, outlined, a b
 - More damage on bosses; the slide goes further. Ignores damage from the front while sliding.
 - A non-fatal slide TRIPS / STUNS any enemy and DOESN'T STOP HIM (no bounce-off; he slides on through). Bosses can't
   be tripped (they just take the damage). NO follow-up grab: it's a keep-away tool.
+- THE FLASH KICK (2026-10-31: "pressing up+b during a slide tackle will do a [Guile] like flip kick"): not a hit-confirm
+  like the other follow-ups: Up+B at any point DURING a slide (the leg armor's longer slide gives room for it) launches
+  Guile's flash kick, a backflip with the leg sweeping up in an arc. Costs ONE power cell; can't start with less.
+  - It connects: a BIG CIRCULAR AOE around him, HEAVY damage (TUNE: 150 on regular enemies, like the uppercut; on
+    bosses/sub-bosses the armored share, 75 / 105, through bossMelee).
+  - Anyone it kills is SLICED IN HALF VERTICALLY, down the forehead, the two halves falling apart, gore. Regular enemies
+    and sub-bosses' minions; bosses die their fight's own way (no new boss deaths). Critters too.
+  - Works on grab-immune enemies (it's not a grab).
+- POWER RULE (general, with the flash kick): power cells DON'T RECHARGE while a charge move (charge, slide, uppercut,
+  dive kick, and the flash kick) is under way ("energy doesn't recharge in the middle of charge moves").
 
 ### ARMGUARDS (forearms): the uppercut
 - More damage on bosses; the uppercut goes higher/further. Hits enemies otherwise invulnerable to it.
