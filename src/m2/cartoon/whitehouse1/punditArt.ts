@@ -12,7 +12,9 @@
 //            (gilt edges, a ribbon) in one hand, a little oak pulpit under the other arm (set down and the Bible
 //            thumped on it: the tell); a finger up to heaven when he preaches at the cat
 // Reeling (his last words): spinning, stars round his head. The bits his costume's flung off in out of his puff, and
-// what he throws.
+// what he throws. NUT-SHOT (the hand armor's cheap shot's stun, upgrades/cheapShot.ts: its shared stars are over him,
+// so none of his own): a 90s cartoon nut shot, eyes crossed, both hands at the crotch, knees knocked together, doubled
+// over and trembling, a silent wheeze, a sweat bead; Perot's ears droop and quiver, Falwell cups his Bible over it.
 
 import type { Ctx } from '../kit';
 import { INK, mix } from '../kit';
@@ -122,8 +124,9 @@ const shoe = (c: Ctx, x: number, y: number, w = 11) => {
 /** (the show's other people are painted the same way: Chelsea, the animator's hand) */
 export { part as toonPart, partTop as toonTop, flat as toonFlat, limb as toonLimb, rp as toonRamp, type Rp };
 
-type Pose = 'stand' | 'talk' | 'tell' | 'throw' | 'air' | 'glide' | 'reel' | 'land';
-const poseOf = (q: Pundit, s: SimView, reel: number): Pose => {
+type Pose = 'stand' | 'talk' | 'tell' | 'throw' | 'air' | 'glide' | 'reel' | 'land' | 'nut';
+const poseOf = (q: Pundit, s: SimView, reel: number, stun = -1): Pose => {
+  if (stun >= 0) return 'nut';
   if (reel > 0) return 'reel';
   if (s.air) return s.vy > 0 && q.id === 'perot' ? 'glide' : 'air';
   if (q.act === 'wind' || q.act === 'second') return 'tell';
@@ -169,6 +172,38 @@ const pulpit = (c: Ctx, x: number, y: number, a: number) => {
 /** Stars spinning round a reeling head. */
 const dizzy = (c: Ctx, y: number, r: number, f: number) => { for (let i = 0; i < 4; i++) { const a = f * 0.22 + (i / 4) * Math.PI * 2; star(c, Math.cos(a) * r, y + Math.sin(a) * 6, 5, i % 2 ? '#FDE047' : '#FFFFFF'); } };
 
+// ---- the nut shot (the cheap shot's stun)
+/** Knock-kneed legs: hips (±hw at hipY) in to the knees clamped together, out to the feet planted apart. */
+const nutLegs = (c: Ctx, hw: number, hipY: number, footW: number, w: number, r: Rp, shoeW: number, f: number) => {
+  const kq = f % 4 < 2 ? 0.5 : -0.5, kY = hipY * 0.48;
+  for (const s of [-1, 1]) {
+    const kx = s * 1.5 + kq, fx = s * footW;
+    limb(c, s * hw, hipY, kx, kY, w, r, w * 0.92, 0);
+    limb(c, kx, kY, fx, -4, w * 0.92, r, w * 0.85, 0);
+    shoe(c, fx - (s < 0 ? 2 : 4), 0, shoeW);
+  }
+};
+/** Crossed eyes (each pupil turned in to the nose) in their whites at ex (rx, ry). */
+const crossed = (c: Ctx, hx: number, hy: number, exs: readonly number[], rx: number, ry: number, white = true) => {
+  exs.forEach((ex, i) => {
+    if (white) flat(c, () => c.ellipse(hx + ex, hy - 3, rx, ry, 0, 0, Math.PI * 2), '#FFFFFF', 1.6);
+    const inward = i === 0 ? 1 : -1;
+    c.fillStyle = INK; c.beginPath(); c.arc(hx + ex + inward * rx * 0.5, hy - 2.4, Math.min(rx, ry) * 0.48, 0, Math.PI * 2); c.fill();
+  });
+};
+/** The silent wheeze: a long O, in and out. */
+const wheeze = (c: Ctx, x: number, y: number, f: number, w = 3.6) => {
+  const h = 6 + Math.sin(f * 0.2) * 2;
+  flat(c, () => c.ellipse(x, y + h / 2, w, h / 2 + 0.6, 0, 0, Math.PI * 2), '#5A0E14', 1.8);
+  px(c, x - w * 0.5, y + h - 0.6, w, 1.2, '#C8344A');
+};
+/** A sweat bead running down from (x, y), and the worry lines flicked off him. */
+const sweat = (c: Ctx, x: number, y: number, f: number) => {
+  const t = f % 46, yy = y + t * 0.35;
+  flat(c, () => { c.moveTo(x, yy - 4); c.quadraticCurveTo(x + 2.6, yy, x, yy + 1.6); c.quadraticCurveTo(x - 2.6, yy, x, yy - 4); c.closePath(); }, '#BFE6FF', 1);
+  px(c, x - 0.8, yy - 1.4, 1, 1, '#FFFFFF');
+};
+
 // ---------------------------------------------------------------------------------------------------------------
 // Perot
 
@@ -192,6 +227,11 @@ const perotHead = (c: Ctx, hx: number, hy: number, pose: Pose, f: number, flap =
   if (pose === 'reel') {
     c.strokeStyle = INK; c.lineWidth = 2.2;
     for (const ex of [-6, 7]) { c.beginPath(); c.moveTo(hx + ex - 3, hy - 6); c.lineTo(hx + ex + 3, hy); c.moveTo(hx + ex + 3, hy - 6); c.lineTo(hx + ex - 3, hy); c.stroke(); }
+  } else if (pose === 'nut') {
+    // (the nut shot: the beady eyes bugged and crossed, the brows shot up in the middle)
+    crossed(c, hx, hy, [-6, 7], 3.8, 4.4);
+    flat(c, () => { c.moveTo(hx - 11, hy - 9); c.lineTo(hx - 2, hy - 14); c.lineTo(hx - 2, hy - 12); c.lineTo(hx - 10, hy - 8); c.closePath(); }, '#6B7280', 1);
+    flat(c, () => { c.moveTo(hx + 3, hy - 14); c.lineTo(hx + 12, hy - 9); c.lineTo(hx + 11, hy - 8); c.lineTo(hx + 3, hy - 12); c.closePath(); }, '#6B7280', 1);
   } else {
     // (beady eyes, white, a glint; the brows arched up, sly)
     for (const ex of [-6, 7]) { flat(c, () => c.ellipse(hx + ex, hy - 3, 3.4, 3.8, 0, 0, Math.PI * 2), '#FFFFFF', 1.6); px(c, hx + ex - 2, hy - 1, 4, 1, '#D6D6E4'); c.fillStyle = INK; c.beginPath(); c.arc(hx + ex + 1, hy - 3, 1.7, 0, Math.PI * 2); c.fill(); px(c, hx + ex + 1, hy - 4.5, 1, 1, '#FFFFFF'); }
@@ -203,6 +243,7 @@ const perotHead = (c: Ctx, hx: number, hy: number, pose: Pose, f: number, flap =
   part(c, () => c.ellipse(hx + 12, hy + 3, 5.5, 4.4, 0.2, 0, Math.PI * 2), ['#FFD2C0', '#F2B08E', '#E08A72', '#C06A58'], hx + 6, hx + 18, 2);
   px(c, hx + 10, hy + 1, 2, 1, '#FFFFFF');
   // (the mouth: a grin full of teeth; talking it flaps; the tell, a gleeful O; the dimples)
+  if (pose === 'nut') { wheeze(c, hx + 2, hy + 8, f, 4); sweat(c, hx - 10, hy - 14, f); return; }
   const open = pose === 'talk' ? [3, 7, 4, 8][(f >> 2) % 4] : pose === 'tell' || pose === 'reel' ? 7 : pose === 'throw' ? 6 : 4;
   flat(c, () => c.roundRect(hx - 9, hy + 8, 20, open + 2, 4), '#5A0E14', 2);
   px(c, hx - 6, hy + 8 + open - 1, 14, 2, '#C8344A');
@@ -210,8 +251,30 @@ const perotHead = (c: Ctx, hx: number, hy: number, pose: Pose, f: number, flap =
   c.fillStyle = INK; for (let k = -4; k <= 6; k += 3.4) c.fillRect(hx + k, hy + 9, 0.8, Math.min(3, open));
   c.strokeStyle = SKIN[3]; c.lineWidth = 1; c.beginPath(); c.arc(hx - 11, hy + 10, 2, -0.5, 1.4); c.arc(hx + 13, hy + 10, 2, 1.7, 3.6); c.stroke();
 };
-const paintPerot = (c: Ctx, q: Pundit, s: SimView, f: number, reel: number) => {
-  const pose = poseOf(q, s, reel);
+/** Perot nut-shot: knock-kneed, doubled over, both hands at it, the pointer dropped, the ears drooped and quivering. */
+const perotNut = (c: Ctx, f: number) => {
+  // (the pointer stick, dropped on the floor behind him)
+  c.lineCap = 'round'; c.strokeStyle = INK; c.lineWidth = 3.4; c.beginPath(); c.moveTo(-34, -2); c.lineTo(-8, -1); c.stroke(); c.strokeStyle = '#D6A86A'; c.lineWidth = 1.6; c.stroke(); c.lineCap = 'butt';
+  flat(c, () => c.arc(-35, -2, 1.8, 0, Math.PI * 2), '#1A1A22', 1);
+  nutLegs(c, 3, -30, 7, 6.5, GRAY, 11, f);
+  c.save(); c.translate(0, -30); c.rotate(0.16); c.translate(0, 33);
+  limb(c, -6, -56, -2, -32, 6, [GRAY[1], GRAY[2], GRAY[3], mix(GRAY[3], INK, 0.3)]); hand(c, -2, -32);
+  part(c, () => { c.moveTo(-10, -30); c.lineTo(-12, -58); c.quadraticCurveTo(0, -62, 12, -58); c.lineTo(10, -30); c.closePath(); }, GRAY, -12, 12, 2.4);
+  flat(c, () => { c.moveTo(-4, -60); c.lineTo(5, -60); c.lineTo(0.5, -44); c.closePath(); }, SHIRT[1], 1.2);
+  flat(c, () => { c.moveTo(-1.5, -58); c.lineTo(2.5, -58); c.lineTo(3, -42); c.lineTo(0.5, -39); c.lineTo(-2, -42); c.closePath(); }, BLUE[1], 1.2);
+  px(c, -2, -50, 6, 1.5, '#E8C860');
+  flat(c, () => { c.moveTo(-5, -60); c.lineTo(-9, -54); c.lineTo(-2, -46); c.closePath(); }, GRAY[0], 1);
+  flat(c, () => { c.moveTo(6, -60); c.lineTo(10, -54); c.lineTo(3, -46); c.closePath(); }, GRAY[2], 1);
+  for (const by of [-42, -36]) for (const bx of [-5, 5]) { flat(c, () => c.arc(bx, by, 1.2, 0, Math.PI * 2), '#2A2A36', 0.6); }
+  px(c, -10, -36, 20, 2, GRAY[3]);
+  // (the head sunk forward, the ears drooped right down, a quiver through them)
+  perotHead(c, 4, -77, 'nut', f, 0.6 + (f % 6 < 3 ? 0.06 : -0.06));
+  limb(c, 6, -56, 4, -31, 6, GRAY); hand(c, 4, -31);
+  c.restore();
+};
+const paintPerot = (c: Ctx, q: Pundit, s: SimView, f: number, reel: number, stun = -1) => {
+  const pose = poseOf(q, s, reel, stun);
+  if (pose === 'nut') { perotNut(c, f); return; }
   const flap = pose === 'glide' ? Math.sin(f * 0.9) * 0.55 : pose === 'air' ? -0.2 : 0;
   // (legs: skinny gray trouser legs, creased, shiny black shoes)
   const air = pose === 'air' || pose === 'glide';
@@ -260,6 +323,19 @@ const falwellHead = (c: Ctx, hx: number, hy: number, pose: Pose, f: number) => {
   c.strokeStyle = '#9CA2B0'; c.lineWidth = 1; for (let k = 0; k < 4; k++) { c.beginPath(); c.moveTo(hx - 12 + k * 6, hy - 22); c.quadraticCurveTo(hx - 2 + k * 6, hy - 26, hx + 4 + k * 4, hy - 18); c.stroke(); }
   px(c, hx - 6, hy - 25, 8, 1.5, '#FFFFFF');
   // (the square glasses, the eyes behind them; X'd out reeling)
+  if (pose === 'nut') {
+    // (the nut shot: the glasses knocked askew down his nose, the eyes crossed behind them, the brows up, the wheeze)
+    c.save(); c.translate(hx + 2, hy - 1); c.rotate(-0.2); c.translate(-hx - 2, -hy + 1);
+    for (const ex of [-5, 8]) flat(c, () => c.roundRect(hx + ex - 5, hy - 5, 10, 8, 2), 'rgba(219, 234, 254, 0.9)', 2);
+    crossed(c, hx, hy + 1, [-5, 8], 3, 3, false);
+    c.strokeStyle = INK; c.lineWidth = 1.6; c.beginPath(); c.moveTo(hx, hy - 2); c.lineTo(hx + 3, hy - 2); c.stroke();
+    c.restore();
+    flat(c, () => { c.moveTo(hx - 10, hy - 9); c.lineTo(hx - 1, hy - 14); c.lineTo(hx - 1, hy - 12); c.lineTo(hx - 9, hy - 8); c.closePath(); }, '#9CA2B0', 0.8);
+    flat(c, () => { c.moveTo(hx + 4, hy - 14); c.lineTo(hx + 13, hy - 9); c.lineTo(hx + 12, hy - 8); c.lineTo(hx + 4, hy - 12); c.closePath(); }, '#9CA2B0', 0.8);
+    part(c, () => c.ellipse(hx + 9, hy + 3, 4.5, 3.6, 0, 0, Math.PI * 2), ['#FFD2C0', '#EDA88E', '#D88A72', '#B86A58'], hx + 4, hx + 14, 1.8);
+    wheeze(c, hx + 4, hy + 9, f, 3.4); sweat(c, hx - 12, hy - 16, f);
+    return;
+  }
   for (const ex of [-5, 8]) {
     flat(c, () => c.roundRect(hx + ex - 5, hy - 7, 10, 8, 2), 'rgba(219, 234, 254, 0.9)', 2);
     if (pose === 'reel') { c.strokeStyle = INK; c.lineWidth = 1.6; c.beginPath(); c.moveTo(hx + ex - 2.5, hy - 5); c.lineTo(hx + ex + 2.5, hy - 1); c.moveTo(hx + ex + 2.5, hy - 5); c.lineTo(hx + ex - 2.5, hy - 1); c.stroke(); }
@@ -275,8 +351,32 @@ const falwellHead = (c: Ctx, hx: number, hy: number, pose: Pose, f: number) => {
   if (open > 0) { flat(c, () => c.ellipse(hx + 4, hy + 11, 7, open / 2 + 1, 0, 0, Math.PI * 2), '#5A0E14', 1.8); px(c, hx - 1, hy + 9, 10, 1.6, '#FFFFFF'); px(c, hx + 1, hy + 11 + open / 2 - 1, 6, 1.4, '#C8344A'); }
   else { c.strokeStyle = INK; c.lineWidth = 2; c.beginPath(); c.arc(hx + 4, hy + 15, 5, Math.PI * 1.15, Math.PI * 1.85); c.stroke(); }
 };
-const paintFalwell = (c: Ctx, q: Pundit, s: SimView, f: number, reel: number) => {
-  const pose = poseOf(q, s, reel);
+/** Falwell nut-shot: knock-kneed, doubled over, his Bible cupped over it in both hands (protection, late), the pulpit
+ *  dropped behind him. */
+const falwellNut = (c: Ctx, f: number) => {
+  pulpit(c, -30, 0, -1.4);
+  nutLegs(c, 4, -32, 8, 10, NAVY_S, 14, f);
+  c.save(); c.translate(0, -32); c.rotate(0.15); c.translate(0, 35);
+  limb(c, -8, -66, -3, -36, 9, [NAVY_S[1], NAVY_S[2], NAVY_S[3], '#080C18']);
+  const body = () => { c.moveTo(-15, -30); c.quadraticCurveTo(-22, -52, -14, -70); c.quadraticCurveTo(0, -76, 14, -70); c.quadraticCurveTo(24, -50, 16, -30); c.closePath(); };
+  part(c, body, NAVY_S, -22, 24, 2.6);
+  flat(c, () => { c.moveTo(-8, -68); c.lineTo(9, -68); c.quadraticCurveTo(14, -48, 8, -36); c.lineTo(-6, -36); c.quadraticCurveTo(-12, -50, -8, -68); c.closePath(); }, '#2E3A56', 1.2);
+  for (const by of [-60, -52, -44]) flat(c, () => c.arc(1, by, 1.1, 0, Math.PI * 2), '#C8A030', 0.6);
+  flat(c, () => { c.moveTo(-5, -72); c.lineTo(6, -72); c.lineTo(0.5, -52); c.closePath(); }, SHIRT[1], 1.4);
+  flat(c, () => { c.moveTo(-2, -70); c.lineTo(3, -70); c.lineTo(4, -50); c.lineTo(0.5, -46); c.lineTo(-3, -50); c.closePath(); }, RED[1], 1.2);
+  c.strokeStyle = '#E8C040'; c.lineWidth = 1; c.beginPath(); c.moveTo(-6, -44); c.quadraticCurveTo(2, -38, 10, -44); c.stroke();
+  px(c, -12, -64, 2, 6, '#FACC15'); px(c, -14, -62, 6, 2, '#FACC15');
+  falwellHead(c, 4, -85, 'nut', f);
+  // (the Bible held over his crotch, both hands on it, shaking)
+  const sh = f % 4 < 2 ? 0.6 : -0.6;
+  bible(c, 2 + sh, -30, 1.45, 0.85);
+  hand(c, -3 + sh, -36, 4.4, SKIN_F);
+  limb(c, 8, -66, 6 + sh, -26, 9, NAVY_S); hand(c, 6 + sh, -26, 4.4, SKIN_F);
+  c.restore();
+};
+const paintFalwell = (c: Ctx, q: Pundit, s: SimView, f: number, reel: number, stun = -1) => {
+  const pose = poseOf(q, s, reel, stun);
+  if (pose === 'nut') { falwellNut(c, f); return; }
   // (legs: stout navy trouser legs, black shoes)
   const lA = pose === 'air' ? [-7, -10] : [-7, 0], lB = pose === 'air' ? [9, -14] : [8, 0];
   for (const [lx, ly] of [lA, lB]) { limb(c, lx * 0.5, -32, lx, ly - 4, 10, NAVY_S, 8.5, -0.1); shoe(c, lx, ly, 14); }
@@ -310,14 +410,16 @@ const paintFalwell = (c: Ctx, q: Pundit, s: SimView, f: number, reel: number) =>
 };
 
 /** A pundit, feet at the origin (facing right) in the fight; in the world (`world`: at his sim's feet, turned his way). */
-export const drawPundit = (c: Ctx, id: PunditId, q: Pundit, s: SimView, f: number, reel: number, _k: number, world = false) => {
+export const drawPundit = (c: Ctx, id: PunditId, q: Pundit, s: SimView, f: number, reel: number, _k: number, world = false, stun = -1) => {
   c.save();
   if (world) { c.translate(Math.round(s.x), Math.round(s.y)); c.scale(s.facing, 1); }
   // (a ground shadow under him, dithered, when he's on his feet)
   if (!s.air && world) { c.fillStyle = dith(c, INK); c.beginPath(); c.ellipse(2, 0, 20, 3, 0, 0, Math.PI * 2); c.fill(); }
-  if (reel > 0) { c.translate(0, -50); c.rotate(Math.sin(f * 0.5) * 0.3 * reel); c.translate(0, 50); }
+  if (reel > 0 && stun < 0) { c.translate(0, -50); c.rotate(Math.sin(f * 0.5) * 0.3 * reel); c.translate(0, 50); }
+  // (nut-shot: trembling, a slow sway from the knees; the first frames a jolt up off the floor)
+  if (stun >= 0) { c.translate(f % 4 < 2 ? 0.8 : -0.8, stun < 8 ? -Math.sin((stun / 8) * Math.PI) * 6 : 0); c.rotate(Math.sin(f * 0.06) * 0.03); }
   if (q.flash > 0) c.filter = 'brightness(1.8)';
-  if (id === 'perot') paintPerot(c, q, s, f, reel); else paintFalwell(c, q, s, f, reel);
+  if (id === 'perot') paintPerot(c, q, s, f, reel, stun); else paintFalwell(c, q, s, f, reel, stun);
   c.restore();
 };
 

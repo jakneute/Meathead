@@ -32,7 +32,7 @@ import { makeKindEnemy } from '../../../m1/game/enemies/kinds';
 import { floorTopAt } from '../../../m1/game/core/terrain';
 import { registerM2Kind } from '../../kinds';
 import type { ByPants } from '../talk';
-import { cheapShotGate, cheapShotStunned, crushGroups, crushLines, crushPool } from '../../upgrades/cheapShot';
+import { cheapShotGate, cheapShotStunT, crushGroups, crushLines, crushPool } from '../../upgrades/cheapShot';
 import { markBossFight } from '../../bossQuiet';
 import { speak, meatheadSays, byPants, solid, ledge, hands, box, label } from '../section';
 import { topBand } from '../../../m1/constants';
@@ -117,7 +117,8 @@ for (const id of ORDER) {
     gender: 'm', humanoid: true, grab: 'none', midBoss: true, head: { x: 4, y: -S.h + 22, r: 18 },
     // (he moves himself (pundits.ts's sim); nothing knocks him about)
     ai: () => true,
-    draw: (c, e, f, state) => { e.pauseTimer = 0; const q = pOf(state, id); if (q.phase === 'on') drawPundit(c, id, q, simOf(q), f, cheapShotStunned(e) ? 0.35 : 0, 0); },
+    // (stunned off the cheap shot: his nut-shot pose (punditArt.ts), the shared stars over him (cheapShot.ts), none of his own)
+    draw: (c, e, f, state) => { e.pauseTimer = 0; const q = pOf(state, id); if (q.phase === 'on') drawPundit(c, id, q, simOf(q), f, 0, 0, false, cheapShotStunT(e)); },
     onGrab: greased,
   });
 }
@@ -384,6 +385,8 @@ export const updatePundits = (ctx: FrameContext, controls: Controls): Controls =
     if (dealt > 0) { q.hp -= dealt; q.flash = 6; playSound('punch', 0.25, 10); }
     if (q.hp <= 0) { die(ctx, q); continue; }
     if (cs === 'stunned') {
+      // (planted where he was kicked (the user's: "they cannot be moved during this moment"): no drift; gravity only)
+      if (!s.air) s.vx = 0;
       moveSim(state, q, s, S);
       e.pos.x = s.x - S.w / 2; e.pos.y = s.y - S.h; e.vel.x = s.vx; e.vel.y = s.vy; e.facing = s.facing;
       updateThrows(ctx, q, S);
