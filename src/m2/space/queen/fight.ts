@@ -63,7 +63,7 @@ import { registerDeathKind } from '../../../m1/game/player/deathAnim';
 import { BULLET_DAMAGE, CANVAS_WIDTH, CANVAS_HEIGHT, HUD_CLEAR_Y } from '../../../m1/constants';
 import { bossMelee } from '../../upgrades/bossMelee';
 import { takeYell } from '../../upgrades/amulet';
-import { cheapShotGate, cheapShotStunned, crushGroups, crushLines } from '../../upgrades/cheapShot';
+import { cheapShotGate, cheapShotStunned, crushGroups, crushLines, registerClearThreats } from '../../upgrades/cheapShot';
 import { CHEAP_STUN } from '../../upgrades/tune';
 import { registerM2Kind, registerHurtLines } from '../../kinds';
 import { newSpam, spamTick, hitKey, type Spam, BOSS_IFRAMES } from '../../bossSpam';
@@ -81,7 +81,7 @@ import type { Light } from '../../../m1/game/render/lighting';
 import { drawQueen, queenHead, type QueenPose } from './art';
 import { REACH_T, REACH_GRAB, WIND_T, THROW_FROM, SPRAY_AIM, sprayNozzle, shakeNozzle } from '../../../m1/game/render/player/extinguisher';
 import { onMeteorBlast } from '../../weapons/spellbook';
-import { BITER, SPITTER, CHARGER, KIN, isKin, kinAge, spawnKin, destroyKin, tickKin, drawKinShots, drawSac, resetKin } from './kin';
+import { BITER, SPITTER, CHARGER, KIN, isKin, kinAge, spawnKin, destroyKin, tickKin, drawKinShots, drawSac, resetKin, clearKinShots } from './kin';
 import * as L from './lines';
 import { setDropTable } from '../../../m1/game/core/effects';
 import { since } from '../../frames';
@@ -526,7 +526,9 @@ const intro = (ctx: FrameContext, f: Fight): Controls => {
 const phase = (f: Fight) => (f.hp > (HP * 2) / 3 ? 1 : f.hp > HP / 3 ? 2 : 3);
 const to = (f: Fight, m: Mode) => { f.mode = m; f.t = 0; f.ph = null; };
 const pmid = (state: GameState) => ({ x: state.player.pos.x + state.player.width / 2, y: state.player.pos.y + state.player.height / 2 });
-const canHurt = (state: GameState) => state.player.health > 0 && state.deathTimer <= 0 && state.player.invincibilityTimer <= 0 && !state.player.inCutscene;
+const canHurt = (state: GameState) => state.player.health > 0 && state.deathTimer <= 0 && state.player.invincibilityTimer <= 0 && !state.player.inCutscene
+  // (the hand armor's cheap shot's free window: nothing of hers touches him while she's stunned)
+  && !(live?.e && cheapShotStunned(live.e));
 const kinAbout = (state: GameState) => state.enemies.filter(e => isKin(e) && e.health > 0 && !e.isBlownAway);
 
 export const updateFight = (ctx: FrameContext, f: Fight, controls: Controls): Controls => {
@@ -540,7 +542,7 @@ export const updateFight = (ctx: FrameContext, f: Fight, controls: Controls): Co
     if (cs === 'stunned' && f.mode !== 'dead' && f.mode !== 'stun') { to(f, 'stun'); f.stunT = CHEAP_STUN; f.linger = 0; f.ext = 0; }
   }
   f.total++;
-  live = f;
+  live = f; liveCtx = ctx;
   // (her brood never drops anything (the user's: "no ammo drops. nothing"): whatever a kill's just thrown down in here
   // is gone again; the boss-door refill's out on the landing, kept)
   const kept = (id: string) => id === 'queen-health' || id === 'queen-ammo';
@@ -829,6 +831,7 @@ const broodOut = (state: GameState, f: Fight, x: number, y: number, dir: 1 | -1)
 const tickCan = (ctx: FrameContext, f: Fight, ph: number) => {
   const { state } = ctx, p = state.player;
   if (!f.can) {
+    if (f.e && cheapShotStunned(f.e)) return;
     if (!DROP_EVERY[ph] || f.ops.mode !== 'on' || ++f.canT < DROP_EVERY[ph]) return;
     f.canT = Math.floor(Math.random() * 120);
     f.can = { x: Math.max(ARENA_L + 60, Math.min(ARENA_R - 60, pmid(state).x)), t: 0 };
@@ -1301,6 +1304,34 @@ export const drawBurstFlash = (c: Ctx, f: Fight) => {
 
 /** The fight that's on (for the meteor's say). */
 let live: Fight | null = null;
+/** The frame's context as she last had it (the cheap shot's clear-out has only the state; her kin's scrapping wants fx). */
+let liveCtx: FrameContext | null = null;
+
+// (the hand armor's cheap shot's free window (upgrades/cheapShot.ts), the moment the stun starts: every one of her brood
+// smashed to scrap where it stands, the sacs on the floor burst, the oil in the air and on the floor fizzled away, the
+// booth's spotlight called off, her pool round her draining (the keep-off gone: he walks right up to her))
+registerClearThreats('queen', state => {
+  const f = live;
+  if (!f) return;
+  for (const k of state.enemies.filter(isKin)) {
+    if (liveCtx) destroyKin({ ...liveCtx, state }, k);
+    else state.enemies = state.enemies.filter(o => o !== k);
+  }
+  clearKinShots(state);
+  for (const s of f.sacs) for (let i = 0; i < 10; i++) state.particles.push({ pos: { x: s.x, y: s.y - 10 }, vel: { x: (Math.random() - 0.5) * 6, y: -1.5 - Math.random() * 4 }, life: 30, color: i % 3 === 0 ? ALIEN.slime : i % 3 === 1 ? '#C9C2A8' : '#8B0000', size: 2 + Math.random() * 3, grav: 0.3 });
+  if (f.sacs.length) playSound('splat', 1, -4);
+  f.sacs = []; f.litter = [];
+  for (const d of f.drops) for (let i = 0; i < 4; i++) state.particles.push({ pos: { x: d.x, y: d.y }, vel: { x: (Math.random() - 0.5) * 4, y: -1 - Math.random() * 2 }, life: 16, color: ['#0A0604', '#A3E635'][i % 2], size: 2 + Math.random() * 2, grav: 0.3 });
+  f.drops = []; f.barf = [];
+  for (const s of f.slicks) for (let i = 0; i < 4; i++) state.particles.push({ pos: { x: s.x1 + Math.random() * (s.x2 - s.x1), y: GY - 6 }, vel: { x: (Math.random() - 0.5) * 0.6, y: -0.9 - Math.random() * 0.5 }, life: 36, color: 'rgba(190, 242, 100, 0.35)', size: 6 + Math.random() * 6 });
+  f.slicks = []; clearOil(state);
+  if (f.can) {
+    for (let i = 0; i < 8; i++) state.particles.push({ pos: { x: f.can.x, y: GY - 8 }, vel: { x: (Math.random() - 0.5) * 3, y: -1 }, life: 20, color: '#7F1D1D', size: 2 });
+    f.can = null;
+  }
+  if (f.pool) f.pool.going = true;
+  playSound('rayFizzle', 0.8, -4);
+});
 onMeteorBlast((ctx, at) => {
   const f = live, { state } = ctx;
   if (!f || f.mode === 'intro' || f.mode === 'wait' || f.mode === 'dead') return;

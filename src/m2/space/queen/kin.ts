@@ -70,6 +70,12 @@ export const destroyKin = (ctx: FrameContext, e: Enemy) => {
 interface Gob { x: number; y: number; vx: number; vy: number; t: number }
 let gobs: Gob[] = [];
 export const resetKin = () => { gobs = []; };
+/** The hand armor's cheap shot's free window: the spitters' oil in the air, gone in a sizzle where it is. */
+export const clearKinShots = (state: GameState) => {
+  for (const g of gobs) for (let i = 0; i < 6; i++) state.particles.push({ pos: { x: g.x, y: g.y }, vel: { x: (Math.random() - 0.5) * 4, y: -1 - Math.random() * 2 }, life: 18, color: ['#0A0604', '#3F2E12', '#A3E635'][i % 3], size: 2 + Math.random() * 3, grav: 0.3 });
+  if (gobs.length) playSound('rayFizzle', 0.5, 8);
+  gobs = [];
+};
 export const tickKin = (ctx: FrameContext) => {
   const { state } = ctx, p = state.player;
   gobs = gobs.filter(g => {
