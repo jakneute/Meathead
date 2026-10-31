@@ -31,6 +31,10 @@
 // THE AMULET (Phase C): amulet.ts (the meter, the yell, the rage after it; its README there), AmuletHud.tsx and
 // amuletFace.ts (the HUD's face and meter), lines.ts (the yell's line, recorded in its own echoing voice).
 //
+// THE FOLLOW-UPS (Phase D1): moves/followups.ts (the missile, the ground spin and head kick, the ninja drop, the flash
+// kick), fed by upgrades/lastHit.ts (noted from apply.ts's melee hook); the hand armor's beatdown in grab.ts
+// (handsOnlyFoe); the power rule through tuning.ts setPowerHold (apply.ts).
+//
 // HOOKS LEFT FOR LATER PHASES: the follow-ups, spike/pointy immunity, the armguards' invulnerability bypass, the slide
 // trip, the helmet, the amulet, the cape and the art should each ask has(piece) (or amuletActive()) where they act;
 // nothing here needs to change for them. The move a hit came from: meleeMoveOf(player) (m1 game/core/tuning.ts).

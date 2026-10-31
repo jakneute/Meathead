@@ -55,6 +55,9 @@ Fairy: pink sequins, glitter crystal, tiara spikes; Cartoon: flat, outlined, a b
   upside down, grabs the enemy by the shoulders, flips around (swinging them up and over) and hurls them straight
   ahead at high speed: the enemy is a MISSILE into whatever's ahead. Weight counts (melee collateral: mass × speed),
   more potent than the shakedown's throw. Works on enemies in the air too; gravity arcs the throw down. No steering.
+- AS BUILT (Phase D1, 2026-10-31: moves/followups.ts): flipped over onto them (8 frames), swung round (12), let go
+  straight ahead at MISSILE_SPEED 25 (the throw's 17), a body thrown with its collateral ×MISSILE_HIT_K 1.6 (cap 256);
+  `dropping`, so a flyer falls too. Nothing hurts him through it (like the air grab). Heals FOLLOW_HEAL.
 
 ### PAULDRONS (shoulders): the shoulder charge
 - More damage on bosses; the charge goes further. Ignores what punishes a charge: horned beasts, spear enemies (KindDef.pointy).
@@ -64,6 +67,11 @@ Fairy: pink sequins, glitter crystal, tiara spikes; Cartoon: flat, outlined, a b
 - THE HEAD KICK: B near a head sticking out of the ground: he kicks the head off like a football, a projectile into
   other enemies. If his side would kick it at nobody, he walks round to the other side and points at the enemies
   first, then kicks.
+- AS BUILT (Phase D1): the reach is FOLLOW_REACH_CHARGE 190 px; he steps in, lifts, and drills them down to the neck
+  (their kind's head height); the head's out of the enemy list (it counts as gone), looks at him, and stays for the
+  stage (12 at most). B on its own within HEAD_KICK_REACH 64 of one: the kick, aimed in an arc at the nearest enemy that
+  way (HEAD_HIT 70 to whoever it hits, a bounce off them); the stump spurts and goes after 6 s. The head itself is
+  baked once out of their picture and drawn turned. Callouts PLANTED / FIELD GOAL.
 
 ### LEG ARMOR (knees and shins): the slide tackle
 - More damage on bosses; the slide goes further. Ignores damage from the front while sliding.
@@ -81,16 +89,29 @@ Fairy: pink sequins, glitter crystal, tiara spikes; Cartoon: flat, outlined, a b
   - Works on grab-immune enemies (it's not a grab).
 - POWER RULE (general, with the flash kick): power cells DON'T RECHARGE while a charge move (charge, slide, uppercut,
   dive kick, and the flash kick) is under way ("energy doesn't recharge in the middle of charge moves").
+- AS BUILT (Phase D1): the flash kick: up + B in a slide (B's held through a slide, so up pressed with it counts, or B
+  pressed with up held). To the engine and every boss fight it's an uppercut (their own detection, untouched), rising
+  at its own pace to about half the uppercut's height (FLASH_RISE), counted as the SLIDE's move (tuning.ts meleeMoveOf
+  reads `player.flashKick`), so bosses and sub-bosses get the leg armor's doubled share through bossMelee / subBossMelee.
+  Regular enemies and critters are its own: everyone in FLASH_RADIUS 100 px takes FLASH_DAMAGE 150, once; a kill is
+  weapons/dismember.ts sliceInHalf (two baked halves falling apart). No heal (not a grab). The power rule: tuning.ts
+  setPowerHold (Meathead 2: a dive kick or the flash kick; the engine already held the charge, slide and uppercut).
 
 ### ARMGUARDS (forearms): the uppercut
 - More damage on bosses; the uppercut goes higher/further. Hits enemies otherwise invulnerable to it.
 - FOLLOW-UP: the NINJA DROP (Ryu Hayabusa's Izuna Drop): up with them, upside down, driven head-first into the
   ground spinning like a top: a near-guaranteed kill.
+- AS BUILT (Phase D1): 12 frames on up with them (them upside down under him, him crouched on their soles), then down
+  (to NINJA_FALL 22 a frame) spinning, head first into the floor: NINJA_DAMAGE (a regular enemy's dead), left legs up
+  out of the floor twitching (9 s), the slam's shock round it, him hopping off. Nothing hurts him through it.
 
 ### HAND ARMOR (hands): the beatdown
 - Beatdown works on regular enemies otherwise immune to grabs (the shakedown and air grab stay locked on them for
   good; the air grab is a mobility move, unaffected). Every beatdown hit heals more.
 - With it, every other piece's follow-up works on grab-immune enemies too (without it, none do).
+- AS BUILT (Phase D1, first part): grab.ts handsOnlyFoe (a regular enemy the grabs don't work on: not a boss, sub-boss,
+  critter, one behind something, or one bolted down (unshakeable)): the beatdown's lunge takes it; every blow heals
+  ×HANDS_HEAL 1.6. The cheap shot is Phase D2.
 - THE CHEAP SHOT: Y+B on a land boss or sub-boss (not the Ensemble Cast; not machines: the orbit UFO, the wilds
   station, Steve's cars): a mini cutscene (no input, no HUD): he grabs them and kicks them in the balls/ovaries, then
   an animated close-up of the demolition, then back to the fight with the boss STUNNED 300 frames (5 s: four of the
@@ -147,6 +168,11 @@ Fairy: pink sequins, glitter crystal, tiara spikes; Cartoon: flat, outlined, a b
 ## Follow-ups, generally
 - The window after the hit: ~30 frames (TUNE). Follow-ups heal like the other grabs. Not on critters (Y+B on a critter
   is still the critter grab). Not on grab-immune enemies without the hand armor.
+- AS BUILT (Phase D1): the last of his moves to land is noted from the engine's melee hook (upgrades/lastHit.ts);
+  Y + B (or the beatdown key) within FOLLOW_WINDOW 30 frames of a hit that didn't kill, in that move's piece, near
+  enough (FOLLOW_REACH 130 across, 170 up/down; the charge's 190), and the follow-up starts there and then, whatever
+  he's in the middle of (a bounce, a recoil). Never on a boss or a sub-boss (the Ensemble's actors included). Each
+  heals FOLLOW_HEAL 12 (×healK). The slide has no follow-up (its trip is the keep-away; the flash kick is up + B).
 
 ## CON-FUCK-TIOUS (not now)
 Meathead's old gym buddy (CON-FUCK-TIOUS is only Meathead's name for him): plays the wise old dojo master, actually a
