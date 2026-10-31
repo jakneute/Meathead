@@ -32,7 +32,7 @@ import { makeKindEnemy } from '../../../m1/game/enemies/kinds';
 import { floorTopAt } from '../../../m1/game/core/terrain';
 import { registerM2Kind } from '../../kinds';
 import type { ByPants } from '../talk';
-import { cheapShotGate, cheapShotStunT, crushGroups, crushLines, crushPool } from '../../upgrades/cheapShot';
+import { cheapShotGate, cheapShotStunT, registerClearThreats, crushGroups, crushLines, crushPool } from '../../upgrades/cheapShot';
 import { markBossFight } from '../../bossQuiet';
 import { speak, meatheadSays, byPants, solid, ledge, hands, box, label } from '../section';
 import { topBand } from '../../../m1/constants';
@@ -450,3 +450,18 @@ export const drawPunditBar = (c: CanvasRenderingContext2D, state: GameState) => 
 export const punditScene = (state: GameState) => ORDER.some(id => pOf(state, id).phase === 'intro');
 export const punditSkipShown = (state: GameState) => ORDER.some(id => { const q = pOf(state, id); return q.phase === 'intro' && q.t > SKIP_AFTER; });
 export type { Block };
+
+// ---------------------------------------------------------------------------------------------------------------
+// The cheap shot's clear-out (the user's: "initiating a stun will destroy/kill any active threats like cars/critters
+// from the battle"; "it's basically a 'free' window that blocks obstructions too"): the moment his stun starts,
+// whatever he's thrown that's still in the air bursts where it is; a throw he was winding up is dropped (after the
+// stun he rests his usual beat before the next). Nothing new while stunned (the stunned branch never thinks or
+// tosses), his contact's off (the stun's harmless), and he's got no guard or blocker to drop; the rooms' own hazards
+// are the level's, left be.
+for (const id of ORDER) registerClearThreats(id, (state) => {
+  const q = pOf(state, id);
+  if (q.phase !== 'on') return;
+  for (const t of q.throws) breakUp(state, t);
+  q.throws = [];
+  if (q.act === 'wind' || q.act === 'second' || q.act === 'after') { const S = SPECS[id]; q.act = 'idle'; q.actT = 0; q.nextAct = Math.round(S.rest[1] + (S.rest[0] - S.rest[1]) * (q.hp / q.max)); }
+});
