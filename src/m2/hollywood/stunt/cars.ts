@@ -20,6 +20,7 @@
 // throw it; at Steve, it's a big hit (fight.ts). The spellbook's storm in here: METEORS for the red cars (blown up),
 // COMETS for the blue (stopped dead in the air, frozen, shattered): fight.ts picks.
 
+import { armoredNow } from '../../../m1/game/core/resist';
 import type { FrameContext } from '../../../m1/game/core/context';
 import type { GameState } from '../../../m1/game/core/state';
 import type { Enemy, EnemyKind, Block } from '../../../m1/types';
@@ -202,8 +203,8 @@ export const launchHim = (ctx: FrameContext, g: Garage, vx: number, vy: number, 
   const hurt = dmg > 0 && p.invincibilityTimer <= 0 && !p.noContactHurt;
   if (hurt) hurtPlayer(ctx, dmg, source, { x: vx, y: vy }, 10);
   if (p.health <= 0) return;
-  // (in the middle of a grab, he's armored: hurt, not knocked about)
-  if (grabBusy()) return;
+  // (in the middle of a grab, he's armored: hurt, not knocked about; so too in the amulet's rage (armoredNow))
+  if (grabBusy() || armoredNow()) return;
   p.isCharging = false; p.isSliding = false; p.isUppercutting = false; p.isDivekicking = false; p.isDucking = false;
   p.vel.x = vx; p.vel.y = vy; p.isGrounded = false; p.pos.y -= 3; p.jumpHoldTimer = 0;
   p.pushbackTimer = Math.max(p.pushbackTimer, 6);

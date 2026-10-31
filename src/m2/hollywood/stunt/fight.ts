@@ -49,6 +49,7 @@ import { isShat, isNude } from '../../../m1/game/player/gut';
 import { makeKindEnemy } from '../../../m1/game/enemies/kinds';
 import { CANVAS_WIDTH, CANVAS_HEIGHT, BULLET_DAMAGE } from '../../../m1/constants';
 import { bossMelee } from '../../upgrades/bossMelee';
+import { takeYell } from '../../upgrades/amulet';
 import { registerM2Kind } from '../../kinds';
 import { newSpam, spamTick, hitKey, swatOff, type Spam, BOSS_IFRAMES } from '../../bossSpam';
 import { setStormPick, setStormHit } from '../../weapons/spellbook';
@@ -615,10 +616,12 @@ const takeHits = (ctx: FrameContext, f: Fight) => {
   const { state } = ctx, e = f.e;
   const dealt = Math.max(0, BIG - e.health);
   e.health = BIG; e.maxHealth = BIG;
+  // (the amulet's yell: its own share, not read as a shot (upgrades/amulet.ts))
+  const yell = takeYell(e, state.frame);
   const melee = e.hitByMove !== f.moveSeen;
   f.moveSeen = e.hitByMove;
   if (dealt <= 0 || !state.enemies.includes(e) || f.iframes > 0) return;
-  const plain = plainHit(state, melee);
+  const plain = yell > 0 ? yell : plainHit(state, melee);
   // (anything else but the book: a share; and him thinking out loud about the book, now and then)
   // (no hint at a weapon he hasn't got (the user's))
   if (plain === null && state.player.availableWeapons.includes('SPELLBOOK') && state.player.currentWeapon !== 'SPELLBOOK' && !f.zappedOnce && (++f.wrongN === 2 || f.wrongN % 5 === 0) && f.total - f.hintAt > HINT_GAP) {

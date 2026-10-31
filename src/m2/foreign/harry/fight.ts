@@ -54,6 +54,7 @@ import { isShat, isNude } from '../../../m1/game/player/gut';
 import { makeKindEnemy } from '../../../m1/game/enemies/kinds';
 import { CANVAS_WIDTH, CANVAS_HEIGHT, BULLET_DAMAGE } from '../../../m1/constants';
 import { bossMelee } from '../../upgrades/bossMelee';
+import { takeYell } from '../../upgrades/amulet';
 import { registerM2Kind } from '../../kinds';
 import { newSpam, spamTick, hitKey, swatOff, type Spam, BOSS_IFRAMES } from '../../bossSpam';
 import { keepForRevisits } from '../../store';
@@ -1196,13 +1197,15 @@ const takeHits = (ctx: FrameContext, f: Fight) => {
   const { state } = ctx, e = f.e;
   const dealt = Math.max(0, BIG - e.health);
   e.health = BIG; e.maxHealth = BIG;
+  // (the amulet's yell: its own share, not read as a shot (upgrades/amulet.ts))
+  const yell = takeYell(e, state.frame);
   const melee = e.hitByMove !== f.moveSeen;
   f.moveSeen = e.hitByMove;
   if (dealt <= 0 || !state.enemies.includes(e) || f.iframes > 0) return;
   // (up in her crown at the controls: behind the glass, nothing gets him (the user's: "helicopter harry shouldn't be
   // hurtable when he's piloting the statue"))
   if (f.act === 'crown') { if (f.total % 6 === 0) playSound('clink', 0.5, 6); return; }
-  const plain = plainHit(state, melee);
+  const plain = yell > 0 ? yell : plainHit(state, melee);
   // (no hint at a weapon he hasn't got (the user's))
   if (plain === null && state.player.availableWeapons.includes('CROSSBOW') && state.player.currentWeapon !== 'CROSSBOW' && f.barfs === 0 && (++f.wrongN === 2 || f.wrongN % 5 === 0) && f.total - f.hintAt > HINT_GAP) {
     f.hintAt = f.total; meatheadSays(state, pick(L.MH_HINT), false);

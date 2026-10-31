@@ -68,6 +68,7 @@ import { hurtPlayer } from '../../../m1/game/bosses/shared';
 import { makeKindEnemy } from '../../../m1/game/enemies/kinds';
 import { CANVAS_WIDTH, CANVAS_HEIGHT, BULLET_DAMAGE } from '../../../m1/constants';
 import { bossMelee, bossMeleeOf } from '../../upgrades/bossMelee';
+import { takeYell } from '../../upgrades/amulet';
 import { moveArmored } from '../../upgrades/state';
 import { meleeMoveOf, type MeleeMove } from '../../../m1/game/core/tuning';
 import { registerM2Kind, registerHurtLines } from '../../kinds';
@@ -1213,6 +1214,8 @@ const takeHits = (ctx: FrameContext, f: Fight) => {
   const { state } = ctx, e = f.e;
   const dealt = Math.max(0, BIG - e.health);
   e.health = BIG; e.maxHealth = BIG;
+  // (the amulet's yell: its own share, not read as a shot (upgrades/amulet.ts))
+  const yell = takeYell(e, state.frame);
   const melee = e.hitByMove !== f.moveSeen;
   f.moveSeen = e.hitByMove;
   // (off it (winded, waddling back, baffled, up with no couch), a dive kick's batted off him too, with whatever's to
@@ -1242,7 +1245,7 @@ const takeHits = (ctx: FrameContext, f: Fight) => {
   if (!melee && f.seated && !f.couch.crushed && spamTick(f.spam, state.frame, hitKey(state.player, melee)) && !f.errand) f.callAt = Math.min(f.callAt, f.t);
   // (one of the family in the way of his move: it eats it)
   { const who = melee ? famBetween(state, f) : undefined; if (who) { const pr = pRect(state); eaten(state, f, (pr.x0 + pr.x1) / 2 + state.player.facing * 20, pr.y0 + 30, who); return; } }
-  const plain = plainHit(state, melee);
+  const plain = yell > 0 ? yell : plainHit(state, melee);
   // (no hint at a weapon he hasn't got (the user's))
   if (plain === null && state.player.availableWeapons.includes('STUNT_CAR') && state.player.currentWeapon !== 'STUNT_CAR' && f.kills === 0 && (++f.wrongN === 2 || f.wrongN % 5 === 0) && f.t - f.hintAt > HINT_GAP) {
     f.hintAt = f.t; meathead(state, L.MH_HINT);

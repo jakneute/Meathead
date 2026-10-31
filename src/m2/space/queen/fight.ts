@@ -62,6 +62,7 @@ import { makeKindEnemy } from '../../../m1/game/enemies/kinds';
 import { registerDeathKind } from '../../../m1/game/player/deathAnim';
 import { BULLET_DAMAGE, CANVAS_WIDTH, CANVAS_HEIGHT, HUD_CLEAR_Y } from '../../../m1/constants';
 import { bossMelee } from '../../upgrades/bossMelee';
+import { takeYell } from '../../upgrades/amulet';
 import { registerM2Kind, registerHurtLines } from '../../kinds';
 import { newSpam, spamTick, hitKey, type Spam, BOSS_IFRAMES } from '../../bossSpam';
 import { takeBites } from '../../weapons/spawner';
@@ -979,6 +980,8 @@ const takeHits = (ctx: FrameContext, f: Fight) => {
   const bites = takeBites(e);
   const dealt = Math.max(0, BIG - e.health);
   e.health = BIG; e.maxHealth = BIG;
+  // (the amulet's yell: its own share, not read as a shot (upgrades/amulet.ts))
+  const yell = takeYell(e, state.frame);
   const melee = e.hitByMove !== f.moveSeen;
   f.moveSeen = e.hitByMove;
   // (a dive kick onto her: she's slick with her motor oil and it burns (the user's: "the alien gives auto contact
@@ -1004,7 +1007,7 @@ const takeHits = (ctx: FrameContext, f: Fight) => {
   if (hit <= 0.5 || (f.iframes > 0 && !smash)) return;
   // (a straight hit of the mallet's own, reported by it: not just anything that hurts her while he's holding it)
   const mallet = !!mh;
-  const dmg = smash ? MALLET_SMASH : melee ? bossMelee(p)
+  const dmg = smash ? MALLET_SMASH : yell > 0 ? yell : melee ? bossMelee(p)
     : p.currentWeapon === 'GUN' ? BULLET_DAMAGE : mallet ? Math.min(hit, MALLET_HIT) : Math.max(1, hit * SHARE);
   const before = f.hp;
   f.hp -= dmg; f.iframes = IFRAMES;

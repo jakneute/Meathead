@@ -7,7 +7,7 @@
 //   ammoFinds()    0..5     each +10% ammo, every weapon    setAmmoFinds(n)
 //   shards()       0..6     every 3 a power cell (2..4)     setShards(n)
 //   has(piece)     the 8 armor pieces (ARMOR_PIECES)        setPiece(piece, on)
-//   amuletOn()     the amulet's piss-off yell switched on (pause menu toggle, a later phase; on by default)
+//   amuletOn()     the amulet's piss-off yell switched on (the pause menu's AMULET ON / OFF; on by default)
 //                                                           setAmuletOn(on)
 //   amuletActive() has the amulet AND it's switched on: what the yell's code should ask.
 //   subscribeUpgrades(fn) / upgradesVersion()   for React (useSyncExternalStore) or anything else that redraws.
@@ -27,6 +27,9 @@
 // HOW IT'S WIRED (apply.ts, run once from App.tsx): the engine's hooks (m1 game/core/tuning.ts, constants
 // setMaxAmmoScale) read these, so max health, respawns, pickups, ammo refills, the power cells and the HUD all follow.
 // Changing the state mid-run (the cheats) also tops the live player's numbers into line (apply.ts).
+//
+// THE AMULET (Phase C): amulet.ts (the meter, the yell, the rage after it; its README there), AmuletHud.tsx and
+// amuletFace.ts (the HUD's face and meter), lines.ts (the yell's line, recorded in its own echoing voice).
 //
 // HOOKS LEFT FOR LATER PHASES: the follow-ups, spike/pointy immunity, the armguards' invulnerability bypass, the slide
 // trip, the helmet, the amulet, the cape and the art should each ask has(piece) (or amuletActive()) where they act;

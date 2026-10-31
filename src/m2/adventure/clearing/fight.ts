@@ -61,6 +61,7 @@ import { body as drawMeatheadBody } from '../../../m1/game/render/player/deathAn
 import { stabLean, STAB_WOUND } from '../../../m1/game/render/player/player';
 import { CANVAS_WIDTH, CANVAS_HEIGHT, BULLET_DAMAGE } from '../../../m1/constants';
 import { bossMelee } from '../../upgrades/bossMelee';
+import { takeYell } from '../../upgrades/amulet';
 import { registerM2Kind, registerHurtLines } from '../../kinds';
 import { newSpam, spamTick, hitKey, swatOff, type Spam, BOSS_IFRAMES } from '../../bossSpam';
 import { aliensOn, brushOff, popAliensIn, setSpawnerBaits, takeBites, type SpawnerBait } from '../../weapons/spawner';
@@ -926,6 +927,8 @@ const takeHits = (ctx: FrameContext, f: Fight) => {
   const bites = takeBites(e);
   const dealt = Math.max(0, BIG - e.health);
   e.health = BIG; e.maxHealth = BIG;
+  // (the amulet's yell: its own share, not read as a shot (upgrades/amulet.ts))
+  const yell = takeYell(e, state.frame);
   // (a charge move landed on him: the engine marks him with the move; a shot doesn't)
   const melee = e.hitByMove !== f.moveSeen;
   f.moveSeen = e.hitByMove;
@@ -943,7 +946,7 @@ const takeHits = (ctx: FrameContext, f: Fight) => {
     // (the ray gun a shot 25; his four moves 37.5 each, 75 with the move's armor piece (upgrades/bossMelee.ts);
     // his weakness's own shots in full; any other special weapon, a fraction)
     const p = state.player;
-    const dmg = melee ? bossMelee(p)
+    const dmg = yell > 0 ? yell : melee ? bossMelee(p)
       : p.currentWeapon === 'GUN' ? BULLET_DAMAGE : p.currentWeapon === 'SPAWNER' ? hit : Math.max(1, hit * SHARE);
     f.hp -= dmg; f.iframes = IFRAMES; f.flash = 10;
     if (f.hp <= 0) { f.byWeakness = aliensOn(e) > 0; return; }

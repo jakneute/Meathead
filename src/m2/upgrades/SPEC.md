@@ -119,6 +119,12 @@ Fairy: pink sequins, glitter crystal, tiara spikes; Cartoon: flat, outlined, a b
   weapon row's ammo bar is long, share that row): a DOOM-STYLE FACE (Meathead, glasses on) and a small upright meter
   beside it whose color shifts as it fills. The face's HURT (bloodier as his health drops) and ANGER (the meter) are
   separate layers. Shown once he has the amulet.
+- AS BUILT (Phase C, 2026-10-31): amulet.ts, AmuletHud.tsx, amuletFace.ts; numbers in tune.ts. The meter counts what
+  actually comes off his health (after the ×0.65 soft hits and the helmet). The yell: 15 off everything on screen;
+  regular enemies it doesn't kill are knocked a step and stunned 1.5 s; bosses and sub-bosses take it through their
+  own fights (the land bosses read it with takeYell, inside their 75-frame breather as ever). The voice is its own
+  (cast.json m2.yell, fx 'echo'). The pause menu's AMULET ON / OFF sits on its own row under the buttons. In the cheats'
+  god mode (nothing comes off him) each fresh hurt counts 8, so it can still be tried out.
 
 ### CAPE (back)
 - "cape should somewhat increase general movement speed, jump height and add a float ability" (2026-10-31): somewhat

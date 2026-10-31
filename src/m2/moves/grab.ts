@@ -21,6 +21,7 @@
 // pitched; the big ones and the bosses can't be got hold of (the lunge stops dead against them, the hands close on air).
 // Swimming, or hanging off a vine, it's only the one-handed kind (no floor to slam anybody into).
 
+import { stepAmulet, amuletShielded, drawAmuletFx } from '../upgrades/amulet';
 import { walkAwayOn } from '../walkAway';
 import { spawnShielded } from '../spawnSafe';
 import { pickLine } from '../../m1/game/platform/speech';
@@ -792,6 +793,8 @@ export const updateGrab = (ctx: FrameContext, g: Grab, controls: Controls): Cont
     g.phase = 'idle'; g.t = 0; locked = false; busy = false; holding = null; ctx.state.player.hidden = false;
     return controls;
   }
+  // (the amulet's meter and yell (upgrades/amulet.ts): every frame, everywhere he plays, before the grab reads untouchable)
+  stepAmulet(ctx);
   const out = stepGrab(ctx, g, controls);
   g.lastVy = ctx.state.player.vel.y;
   if (g.phase === 'idle') g.airT = 0;
@@ -901,7 +904,8 @@ const stepGrab = (ctx: FrameContext, g: Grab, controls: Controls): Controls => {
   // (the whole air grab: nothing hurts him; and a moment after it, bumping into whoever's there doesn't either (the one
   // he slammed, still alive, at his feet))
   // (or just back at a checkpoint, still on the spot: spawnSafe.ts's grace)
-  p.untouchable = p.airGrab || spawnShielded(state);
+  // (or the amulet's rage after its yell: upgrades/amulet.ts)
+  p.untouchable = p.airGrab || spawnShielded(state) || amuletShielded();
   if (wasAir && !p.airGrab) p.noContactUntil = state.frame + AIR_CONTACT_GRACE;
   const press = (k: keyof Controls) => !!controls[k] && !was[k];
   if (state.deathTimer > 0 || p.health <= 0) { if (g.phase !== 'idle') letGo(state, g); return controls; }
@@ -2345,6 +2349,8 @@ export const drawPulped = (main: Ctx, state: GameState) => {
 
 /** Draws whatever grab's on, in place of him (world space, over everything). */
 export const drawGrab = (ctx: Ctx, state: GameState, g: Grab) => {
+  // (the amulet's shockwave and its rage's heat round him: upgrades/amulet.ts)
+  drawAmuletFx(ctx, state);
   if (g.phase === 'idle' || state.deathTimer > 0) return;
   const p = state.player, f = state.frame;
   p.hidden = true;

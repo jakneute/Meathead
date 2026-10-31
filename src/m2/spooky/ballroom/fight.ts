@@ -54,6 +54,7 @@ import { isShat, isNude } from '../../../m1/game/player/gut';
 import { makeKindEnemy } from '../../../m1/game/enemies/kinds';
 import { CANVAS_WIDTH, CANVAS_HEIGHT, BULLET_DAMAGE } from '../../../m1/constants';
 import { bossMelee } from '../../upgrades/bossMelee';
+import { takeYell } from '../../upgrades/amulet';
 import { registerM2Kind, registerHurtLines } from '../../kinds';
 import { newSpam, spamTick, hitKey, type Spam, BOSS_IFRAMES } from '../../bossSpam';
 import { setSouvenirPick, setSouvenirHit, souvenirMaxHit } from '../../weapons/souvenir';
@@ -806,6 +807,8 @@ const takeHits = (ctx: FrameContext, f: Fight) => {
   const { state } = ctx, e = f.e;
   const dealt = Math.max(0, BIG - e.health);
   e.health = BIG; e.maxHealth = BIG;
+  // (the amulet's yell: its own share, not read as a shot (upgrades/amulet.ts))
+  const yell = takeYell(e, state.frame);
   const melee = e.hitByMove !== f.moveSeen;
   f.moveSeen = e.hitByMove;
   const sv = f.souvenir; f.souvenir = null;
@@ -857,7 +860,7 @@ const takeHits = (ctx: FrameContext, f: Fight) => {
   if (f.iframes > 0) return;
   // (the ray gun and his own moves in full; any other special weapon a land boss mostly shrugs off; the lesser souvenirs
   // least of all)
-  let dmg = sv ? Math.max(1, dealt * SOUV_SHARE) : plainHit(state, melee) ?? Math.max(1, dealt * SHARE);
+  let dmg = yell > 0 ? yell : sv ? Math.max(1, dealt * SOUV_SHARE) : plainHit(state, melee) ?? Math.max(1, dealt * SHARE);
   // (a lesser souvenir never finishes him: a souvenir kill on him is the Redeemer's, always)
   if (sv && f.hp - dmg <= 0) dmg = Math.max(0, f.hp - 1);
   // (a souvenir that isn't the one: Meathead thinking out loud that something in the bag must work; the first time,

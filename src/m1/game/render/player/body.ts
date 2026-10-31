@@ -438,6 +438,17 @@ export const drawTalkingMouth = (ctx: Ctx, hx: number, my: number, frame: number
  */
 let glasses = false;
 export const setGlasses = (on: boolean) => { glasses = on; };
+
+/** Another game's flush of blood up his face (Meathead 2's amulet: redder as he gets pissed off), 0..1, asked as his
+ *  head's drawn; drawn over his face, under the glasses (Meathead 1: never set). */
+let flushOf: (() => number) | null = null;
+export const setHeadFlush = (fn: (() => number) | null) => { flushOf = fn; };
+export const drawHeadFlush = (ctx: Ctx, hx: number, hy: number) => {
+  const k = flushOf?.() ?? 0;
+  if (k <= 0.01) return;
+  ctx.fillStyle = `rgba(220, 38, 38, ${(0.42 * Math.min(1, k)).toFixed(3)})`;
+  ctx.beginPath(); ctx.roundRect(hx - 10, hy - 11, 20, 19, [3, 3, 3, 3]); ctx.fill();
+};
 export const glassesOn = () => glasses;
 
 /**
@@ -568,6 +579,7 @@ export const drawHead = (ctx: Ctx, hx: number, hy: number, mood: Mood, frame: nu
     ctx.fillStyle = '#FFFFFF'; ctx.fillRect(hx - 5, my + 0.5, 10, 2);
     ctx.fillStyle = '#18181B'; ctx.fillRect(hx - 2, my + 0.5, 0.8, 2); ctx.fillRect(hx + 1, my + 0.5, 0.8, 2);
   }
+  drawHeadFlush(ctx, hx, hy);
   drawGlasses(ctx, hx, ey);
   drawHeadBlood(ctx, hx, hy, frame);
   drawBeatenUp(ctx, hx, hy, frame);

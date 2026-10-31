@@ -59,6 +59,7 @@ import { makeKindEnemy } from '../../../m1/game/enemies/kinds';
 import { registerDeathKind, type MeatheadDeathKind } from '../../../m1/game/player/deathAnim';
 import { CANVAS_WIDTH, CANVAS_HEIGHT, BULLET_DAMAGE } from '../../../m1/constants';
 import { bossMelee } from '../../upgrades/bossMelee';
+import { takeYell } from '../../upgrades/amulet';
 import { setErect } from '../../../m1/game/render/player/body';
 import { registerM2Kind, registerHurtLines } from '../../kinds';
 import { newSpam, spamTick, hitKey, swatOff, type Spam, BOSS_IFRAMES } from '../../bossSpam';
@@ -1024,13 +1025,15 @@ const takeHits = (ctx: FrameContext, f: Fight) => {
   const { state } = ctx, e = f.e;
   const dealt = Math.max(0, BIG - e.health);
   e.health = BIG; e.maxHealth = BIG;
+  // (the amulet's yell: its own share, not read as a shot (upgrades/amulet.ts))
+  const yell = takeYell(e, state.frame);
   const melee = e.hitByMove !== f.moveSeen;
   f.moveSeen = e.hitByMove;
   if (dealt <= 0 || !state.enemies.includes(e) || f.mode !== 'on') return;
   const p = state.player;
   // (the flintlock: a hole, breather or no)
   // (not while she's off round the room (the user's: "you cannot pop her as she bounces around"))
-  if (!melee && p.currentWeapon === 'FLINTLOCK') { if (f.act !== 'bounce') hole(ctx, f); return; }
+  if (!melee && !yell && p.currentWeapon === 'FLINTLOCK') { if (f.act !== 'bounce') hole(ctx, f); return; }
   // (a dive kick on her: she's a balloon, and he's bounced right off her, flung off to the side, boing (the user's:
   // "piper bounces you too"): no stomping chain on her head; no hurt)
   if (melee && p.isDivekicking) { swatOff(state, f.x, 9, -10); playSound('boing', 0.8, -2 + Math.random() * 4); playSound('squish', 0.4, 4); }
@@ -1041,7 +1044,7 @@ const takeHits = (ctx: FrameContext, f: Fight) => {
     if (f.act === 'walk' || f.act === 'sit') startMove(state, f);
   }
   if (f.iframes > 0) return;
-  const plain = plainHit(state, melee);
+  const plain = yell > 0 ? yell : plainHit(state, melee);
   // (him thinking out loud about the flintlock, now and then; never about a weapon he hasn't got)
   if (p.availableWeapons.includes('FLINTLOCK') && !f.holes.length && (++f.wrongN === 2 || f.wrongN % 5 === 0) && f.total - f.hintAt > HINT_GAP && quiet(f, state)) {
     f.hintAt = f.total; hisLine(state, L.MH_HINT);

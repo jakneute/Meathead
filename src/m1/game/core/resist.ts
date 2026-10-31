@@ -38,3 +38,5 @@ let armored = false;
  *  never takes another's away. */
 const holders = new Set<string>();
 export const setArmor = (on: boolean, who = 'grab') => { if (on) holders.add(who); else holders.delete(who); armored = holders.size > 0; };
+/** Armored right now (anyone's): for a game's own launches and shoves to ask before throwing him about. */
+export const armoredNow = () => armored;

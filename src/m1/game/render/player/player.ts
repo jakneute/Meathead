@@ -28,7 +28,7 @@ import { drawRayGunHeld } from '../../../../m2/weapons/rayGunArt';
 import { customWeapon } from '../../combat/customWeapons';
 import { buffs } from '../../core/buffs';
 import { setGore, getGore, smear, drip, drawHeadBlood, drawLeadArmBlood, drawBeatenUp, bloodDark } from './gore';
-import { skinTone, skinShadow, skinHighlight, skinVein, pantsColor, pantsShadow, beltColor, beltBuckle, wristbandColor, backArmShade, stubbleColor, drawTorso, drawBelt, drawArm, drawPantLeg, drawBoot, drawJointedLeg, drawLeg, drawArmTo, drawHead, drawGlasses, setTalking, drawTalkingMouth, setLegSinge, setNude, snesShat } from './body';
+import { skinTone, skinShadow, skinHighlight, skinVein, pantsColor, pantsShadow, beltColor, beltBuckle, wristbandColor, backArmShade, stubbleColor, drawTorso, drawBelt, drawArm, drawPantLeg, drawBoot, drawJointedLeg, drawLeg, drawArmTo, drawHead, drawGlasses, drawHeadFlush, setTalking, drawTalkingMouth, setLegSinge, setNude, snesShat } from './body';
 
 export interface PlayerDrawOptions {
   currentWeapon: WeaponType;
@@ -1189,6 +1189,7 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
     ctx.fillRect(headX - 9.5, headY + 2, 1, 4);
     ctx.fillRect(headX + 8.5, headY + 2, 1, 4);
   }
+  drawHeadFlush(ctx, headX, headY);
   drawGlasses(ctx, headX, eyeY);
   drawHeadBlood(ctx, headX, headY, animFrame);
   if (!isRelieving) drawBeatenUp(ctx, headX, headY, animFrame);

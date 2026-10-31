@@ -51,6 +51,7 @@ import { hurtPlayer } from '../../../m1/game/bosses/shared';
 import { makeKindEnemy } from '../../../m1/game/enemies/kinds';
 import { CANVAS_WIDTH, CANVAS_HEIGHT, BULLET_DAMAGE } from '../../../m1/constants';
 import { bossMelee } from '../../upgrades/bossMelee';
+import { takeYell } from '../../upgrades/amulet';
 import { registerM2Kind } from '../../kinds';
 import { newSpam, spamTick, hitKey, swatOff, type Spam, BOSS_IFRAMES } from '../../bossSpam';
 import { TOO_BIG_BY_KIND } from '../../lines/weaponLines';
@@ -832,6 +833,8 @@ const takeHits = (ctx: FrameContext, f: Fight) => {
   const { state } = ctx, e = f.e;
   const dealt = Math.max(0, BIG - e.health);
   e.health = BIG; e.maxHealth = BIG;
+  // (the amulet's yell: its own share, not read as a shot (upgrades/amulet.ts))
+  const yell = takeYell(e, state.frame);
   const melee = e.hitByMove !== f.moveSeen;
   f.moveSeen = e.hitByMove;
   if (dealt <= 0 || !state.enemies.includes(e)) return;
@@ -839,7 +842,7 @@ const takeHits = (ctx: FrameContext, f: Fight) => {
   hear(f, pmid(state).x, pmid(state).y, ERR.hit);
   // (the cats on him: nothing else gets a look in)
   if (f.act === 'mauled' || f.iframes > 0) return;
-  const plain = plainHit(state, melee);
+  const plain = yell > 0 ? yell : plainHit(state, melee);
   // (no hint at a weapon he hasn't got (the user's))
   if (plain === null && state.player.availableWeapons.includes('SOUL_SUCKER') && state.player.currentWeapon !== 'SOUL_SUCKER' && (++f.wrongN === 2 || f.wrongN % 5 === 0) && f.t - f.hintAt > HINT_GAP) {
     f.hintAt = f.t; mhSays(state, L.MH_HINT, false);
