@@ -24,7 +24,8 @@ import { setDropTable } from '../m1/game/core/effects';
 import { M2_GUT_LINES, M2_GUT_DEATH } from './lines/gutLines';
 import { createFullAmmo, maxAmmo, INITIAL_PLAYER_HEALTH, enemyMeleeDamage, WHEEL_COOLDOWN_MS, HUD_CLEAR_Y } from '../m1/constants';
 import { installUpgrades } from './upgrades/apply';
-import { maxHealth as upMaxHealth, powerCells as upPowerCells, subscribeUpgrades, upgradesVersion, resetUpgrades, restoreUpgrades } from './upgrades/state';
+import AmuletHud, { amuletOwned, AMULET_AMMO_BAR } from './upgrades/AmuletHud';
+import { maxHealth as upMaxHealth, powerCells as upPowerCells, subscribeUpgrades, upgradesVersion, resetUpgrades, restoreUpgrades, has as upHas, amuletOn, setAmuletOn } from './upgrades/state';
 import { getActiveGamepad, isButtonPressed, GP_BUTTONS, getGamepadMovement, menuButtons } from '../m1/game/platform/gamepad';
 import { hasRightStick } from '../m1/game/platform/device';
 import WeaponWheel, { wheelIndexAt } from '../m1/components/WeaponWheel';
@@ -378,9 +379,13 @@ const App2: React.FC = () => {
   /** (RESUME, MAP, OPTIONS, then SKIP INTRO / BACK TO HUB where there's one) */
   /** (the cheats build only, the user's: SKIP INTRO / SKIP TO HUB in America USA) */
   const canIntroSkip = () => live.current.stage === INTRO_STAGE && !M2_PUBLIC;
-  const lastPause = () => (canIntroSkip() || canGymSkip() || canHub() ? arsenal().length + 4 : arsenal().length + 3);
-  /** (QUIT, to the title: the last of the buttons) */
-  const quitIndex = () => lastPause();
+  /** (the amulet owned: AMULET ON / OFF, on a row of its own under the buttons, after QUIT) */
+  const canAmulet = () => upHas('amulet');
+  const lastPause = () => (canIntroSkip() || canGymSkip() || canHub() ? arsenal().length + 4 : arsenal().length + 3) + (canAmulet() ? 1 : 0);
+  const amuletIndex = () => (canAmulet() ? lastPause() : -1);
+  const flipAmulet = () => setAmuletOn(!amuletOn());
+  /** (QUIT, to the title: the last of the buttons along the bottom) */
+  const quitIndex = () => lastPause() - (canAmulet() ? 1 : 0);
   /** The options screen (OPTIONS in the pause menu): while it's up, it takes every key and button; and a moment after
    *  it's shut (the press that shut it isn't one for the pause menu too). */
   const [optionsOpen, setOptionsOpen] = useState(false);
@@ -441,6 +446,8 @@ const App2: React.FC = () => {
     const n = arsenal().length;
     // (a controls card up in place of the weapons: just the buttons along the bottom, left and right)
     if (getUi().noSwitch && getUi().pauseControls) { if (i < n) return n; if (dx > 0) return Math.min(lastPause(), i + 1); if (dx < 0 && i > n) return i - 1; return i; }
+    // (the amulet's row under the buttons: down onto it from any of them, up off it to QUIT)
+    if (i >= n && canAmulet()) { if (i === amuletIndex() && dy < 0) return quitIndex(); if (i !== amuletIndex() && dy > 0) return amuletIndex(); }
     if (i >= n) { if (dx > 0) return Math.min(lastPause(), i + 1); if (dx < 0 && i > n) return i - 1; return dy < 0 ? Math.min(n - 1, Math.floor((n - 1) / 3) * 3) : i; }
     if (dy > 0) return i + 3 < n ? i + 3 : n;
     if (dy < 0) return i - 3 >= 0 ? i - 3 : i;
@@ -450,7 +457,7 @@ const App2: React.FC = () => {
   pauseSelRef.current = pauseSel;
   const confirmPause = () => {
     const i = pauseSelRef.current, n = arsenal().length;
-    if (i === quitIndex()) askQuit(); else if (i === n + 3) { if (canHub()) askHub(); else if (canGymSkip()) skipGym(); else if (canIntroSkip()) skipIntro(); } else if (i === n + 2) openOptions(); else if (i === n + 1) openMap(); else if (i >= n) resume(); else equip(i);
+    if (i === amuletIndex()) flipAmulet(); else if (i === quitIndex()) askQuit(); else if (i === n + 3) { if (canHub()) askHub(); else if (canGymSkip()) skipGym(); else if (canIntroSkip()) skipIntro(); } else if (i === n + 2) openOptions(); else if (i === n + 1) openMap(); else if (i >= n) resume(); else equip(i);
   };
 
   // Weapons: the shoulder buttons, the right stick's wheel, the number keys, the mouse wheel; START or ESC pauses
@@ -662,6 +669,9 @@ const App2: React.FC = () => {
   const zone = devZone ?? (stage === HUB_STAGE ? 'hub' : stage === PEN_STAGE ? 'staff' : stage === INTRO_STAGE || stage === GYM_STAGE || landOfStage(stage) ? ui.zone : undefined);
   const theme = zone ? THEMES[zone] : undefined;
 
+  // (the amulet, owned: its face and meter at the end of the weapon row, the ammo bar shorter to make room)
+  const amuSide = amuletOwned() ? <AmuletHud health={hud.health} maxHealth={upMaxHealth()} /> : undefined;
+  const amuBar = amuSide ? AMULET_AMMO_BAR : undefined;
   return (
     <div className="relative w-screen h-screen flex items-center justify-center bg-black overflow-hidden">
       <div className="relative shrink-0 border-4 border-gray-800 bg-[#121212] overflow-hidden" style={{ width: 800, height: 600, boxSizing: 'content-box', transform: `scale(${scale})` }}>
@@ -685,17 +695,17 @@ const App2: React.FC = () => {
         {status === GameStatus.PLAYING && ui.map === null && !ui.introCutscene && !ui.killCam && (
           ui.heliHud
             // (flying the helicopter: the PWR row's its boost, its rockets beside it; the weapon's its machine gun)
-            ? <HUD health={hud.health} maxHealth={upMaxHealth()} power={ui.heliBoost ?? 0} powerCells={1} powerExtra={ROCKETS_ON ? <HeliRockets charges={ui.heliRockets ?? 0} /> : undefined} currentWeapon="LMG" ammo={Infinity} maxAmmo={Infinity} weaponName="MACHINE GUN" skin={theme?.hud} cellWidth={M2_CELL_W} />
+            ? <HUD health={hud.health} maxHealth={upMaxHealth()} weaponSide={amuSide} ammoBarWidth={amuBar} power={ui.heliBoost ?? 0} powerCells={1} powerExtra={ROCKETS_ON ? <HeliRockets charges={ui.heliRockets ?? 0} /> : undefined} currentWeapon="LMG" ammo={Infinity} maxAmmo={Infinity} weaponName="MACHINE GUN" skin={theme?.hud} cellWidth={M2_CELL_W} />
             : ui.bikeHud
             // (on the dirt bike: the PWR row's its boost; no gun, his fists)
-            ? <HUD health={hud.health} maxHealth={upMaxHealth()} power={ui.bikeBoost ?? 0} powerCells={1} currentWeapon={weapon} ammo={Infinity} maxAmmo={Infinity} weaponName="FISTS" weaponArt={<BikeFist />} skin={theme?.hud} cellWidth={M2_CELL_W} />
+            ? <HUD health={hud.health} maxHealth={upMaxHealth()} weaponSide={amuSide} ammoBarWidth={amuBar} power={ui.bikeBoost ?? 0} powerCells={1} currentWeapon={weapon} ammo={Infinity} maxAmmo={Infinity} weaponName="FISTS" weaponArt={<BikeFist />} skin={theme?.hud} cellWidth={M2_CELL_W} />
             : ui.noSwitch && ui.pauseControls === 'logride'
             // (in the log ride's log: unarmed, his fists)
-            ? <HUD health={hud.health} maxHealth={upMaxHealth()} power={hud.power} powerAlert={pwrAlert} powerCells={upPowerCells()} currentWeapon={weapon} ammo={Infinity} maxAmmo={Infinity} weaponName="FISTS" weaponArt={<BikeFist />} skin={theme?.hud} cellWidth={cellW(upPowerCells())} />
+            ? <HUD health={hud.health} maxHealth={upMaxHealth()} weaponSide={amuSide} ammoBarWidth={amuBar} power={hud.power} powerAlert={pwrAlert} powerCells={upPowerCells()} currentWeapon={weapon} ammo={Infinity} maxAmmo={Infinity} weaponName="FISTS" weaponArt={<BikeFist />} skin={theme?.hud} cellWidth={cellW(upPowerCells())} />
             : ui.broomHud
             // (on the broomstick: the PWR row's its boost; the weapon's the laser on the broom's end)
-            ? <HUD health={hud.health} maxHealth={upMaxHealth()} power={ui.broomBoost ?? 0} powerCells={1} currentWeapon={weapon} ammo={Infinity} maxAmmo={Infinity} weaponName="BROOM LASER" weaponArt={<BroomWand />} skin={theme?.hud} cellWidth={M2_CELL_W} />
-            : <HUD health={hud.health} maxHealth={upMaxHealth()} power={hud.power} powerAlert={pwrAlert} powerCells={upPowerCells()} currentWeapon={weapon} ammo={hud.ammo[weapon] ?? 0} maxAmmo={maxAmmo(weapon)} weaponName={weapon === 'GUN' && ui.catHud ? 'HAIRBALL' : weapon === 'MALLET' && broke ? 'BROKEN STICK' : weaponName(weapon)} weaponArt={weapon === 'GUN' ? (ui.catHud ? HAIRBALL_ART : RAYGUN_ART) : weapon === 'MALLET' && broke ? BROKEN_STICK_ART : undefined} alert={dryFlash?.key} alertText={dryFlash?.text} weaponExtra={weapon === 'SOUL_SUCKER' ? <GoreBag /> : weapon === 'SPELLBOOK' ? <BulkMeter /> : undefined} ammoLabel={ammoName(weapon) === 'AMMO' ? undefined : ammoName(weapon)} skin={theme?.hud} cellWidth={cellW(upPowerCells())} />
+            ? <HUD health={hud.health} maxHealth={upMaxHealth()} weaponSide={amuSide} ammoBarWidth={amuBar} power={ui.broomBoost ?? 0} powerCells={1} currentWeapon={weapon} ammo={Infinity} maxAmmo={Infinity} weaponName="BROOM LASER" weaponArt={<BroomWand />} skin={theme?.hud} cellWidth={M2_CELL_W} />
+            : <HUD health={hud.health} maxHealth={upMaxHealth()} weaponSide={amuSide} ammoBarWidth={amuBar} power={hud.power} powerAlert={pwrAlert} powerCells={upPowerCells()} currentWeapon={weapon} ammo={hud.ammo[weapon] ?? 0} maxAmmo={maxAmmo(weapon)} weaponName={weapon === 'GUN' && ui.catHud ? 'HAIRBALL' : weapon === 'MALLET' && broke ? 'BROKEN STICK' : weaponName(weapon)} weaponArt={weapon === 'GUN' ? (ui.catHud ? HAIRBALL_ART : RAYGUN_ART) : weapon === 'MALLET' && broke ? BROKEN_STICK_ART : undefined} alert={dryFlash?.key} alertText={dryFlash?.text} weaponExtra={weapon === 'SOUL_SUCKER' ? <GoreBag /> : weapon === 'SPELLBOOK' ? <BulkMeter /> : undefined} ammoLabel={ammoName(weapon) === 'AMMO' ? undefined : ammoName(weapon)} skin={theme?.hud} cellWidth={cellW(upPowerCells())} />
         )}
         {/* What up does here */}
         {status === GameStatus.PLAYING && ui.map === null && (nearLand || ui.near === STAFF_SLOT || ui.nearExit || ui.nearAmerica) && (
@@ -891,7 +901,7 @@ const App2: React.FC = () => {
           <PauseMenu weapons={arsenal()} current={weapon} ammo={hud.ammo} selected={pauseSel} locked={!!ui.noSwitch} card={card} cat={!!ui.catHud}
             onPick={i => { setPauseSel(i); equip(i); }} onResume={resume} onMap={() => { setPauseSel(arsenal().length + 1); openMap(); }} mapOff={stage === GYM_STAGE} onOptions={() => { setPauseSel(arsenal().length + 2); openOptions(); }} onSkip={stage === INTRO_STAGE && !M2_PUBLIC ? skipIntro : stage === GYM_STAGE && !M2_PUBLIC ? skipGym : undefined} skipLabel={stage === GYM_STAGE ? 'SKIP STAGE' : undefined}
             onHub={landOfStage(stage) || stage === PEN_STAGE ? askHub : undefined} hubAsk={hubAsk} onHubAnswer={answerHub} onHubPick={a => setHubAsk(a)} skin={theme?.pause}
-            onQuit={() => { setPauseSel(quitIndex()); askQuit(); }} quitAt={quitIndex()} asking={asking} onFile={activeSlot() !== null} />
+            onQuit={() => { setPauseSel(quitIndex()); askQuit(); }} quitAt={quitIndex()} amuletAt={amuletIndex()} amuletOn={amuletOn()} onAmulet={() => { setPauseSel(amuletIndex()); flipAmulet(); }} asking={asking} onFile={activeSlot() !== null} />
         )}
         {/* The park map (SELECT, TAB / M, MAP in the pause menu): where he is, roughly, on the brochure's map */}
         {status === GameStatus.PAUSED && mapFrom && (

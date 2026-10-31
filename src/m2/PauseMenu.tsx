@@ -188,6 +188,10 @@ interface Props {
   card?: PauseCard | null;
   /** He's the cat (the cartoon White House): the ray gun's the HAIRBALL, here as on the HUD. */
   cat?: boolean;
+  /** The amulet owned: AMULET ON / OFF (its piss-off yell), picked out as `amuletAt` (just before QUIT); -1 none. */
+  amuletAt?: number;
+  amuletOn?: boolean;
+  onAmulet?: () => void;
 }
 
 /** The ray gun as the cat has it. */
@@ -197,7 +201,7 @@ const HAIRBALL_INFO = {
   description: 'Hork. A wet wad of fur and spit, hacked up at whoever. Never runs dry. Nobody wants to touch it, least of all the guy it hits.',
 };
 
-const PauseMenu: React.FC<Props> = ({ weapons, current, ammo, selected, onPick, onResume, onMap, onOptions, onSkip, skipLabel, skin = PLAIN_PAUSE, locked = false, onHub, hubAsk = null, onHubAnswer, onHubPick, card = null, onQuit, quitAt = -1, asking = 'hub', onFile = false, cat = false, mapOff = false }) => {
+const PauseMenu: React.FC<Props> = ({ weapons, current, ammo, selected, onPick, onResume, onMap, onOptions, onSkip, skipLabel, skin = PLAIN_PAUSE, locked = false, onHub, hubAsk = null, onHubAnswer, onHubPick, card = null, onQuit, quitAt = -1, asking = 'hub', onFile = false, cat = false, mapOff = false, amuletAt = -1, amuletOn = true, onAmulet }) => {
   const onQuitBtn = selected === quitAt;
   const shown = selected < weapons.length ? weapons[selected] : current;
   const info = cat && shown === 'GUN' ? HAIRBALL_INFO : M2_WEAPON_INFO[shown];
@@ -327,6 +331,13 @@ const PauseMenu: React.FC<Props> = ({ weapons, current, ammo, selected, onPick, 
           {onHub && <MenuBtn on={onSkipBtn} onClick={onHub} cls={btnCls} bg="linear-gradient(180deg, #B91C1C, #7F1D1D)" edge="#450A0A" icon="«">BACK TO HUB</MenuBtn>}
           {onQuit && <MenuBtn on={onQuitBtn} onClick={onQuit} cls={btnCls} bg="linear-gradient(180deg, #52525B, #27272A)" edge="#09090B" icon="✕">QUIT</MenuBtn>}
         </div>
+        {/* The amulet, owned: its yell switched on or off (a row of its own, under the buttons) */}
+        {amuletAt >= 0 && onAmulet && (
+          <div className="flex gap-2 mt-2" style={{ animation: 'pm-fade 0.25s ease-out 0.34s both' }}>
+            <MenuBtn on={selected === amuletAt} onClick={onAmulet} cls="pl-5 pr-2 text-[8px] whitespace-nowrap" bg={amuletOn ? 'linear-gradient(180deg, #C2410C, #7C2D12)' : 'linear-gradient(180deg, #52525B, #3F3F46)'} edge={amuletOn ? '#431407' : '#27272A'} icon="✪">{amuletOn ? 'AMULET: ON' : 'AMULET: OFF'}</MenuBtn>
+            <span className="self-center text-[6px] font-black tracking-wider max-w-[200px] leading-[9px]" style={{ color: skin.muted }}>{amuletOn ? 'TAKE ENOUGH HITS AND HE SCREAMS EVERYBODY OFF HIM.' : 'NO SCREAMING. HE KEEPS IT IN.'}</span>
+          </div>
+        )}
         <div className="mt-3 flex items-center gap-4 text-[6px] tracking-wider px-2 py-1 bg-black/60 text-zinc-400" style={{ boxShadow: PIXEL_BEVEL }}>
           <Prompt pad={['START', 'BACK']} kb={['ESC']} mouse="right" label="RESUME" size={15} />
           <Prompt pad={['SELECT']} kb={['@map']} label="MAP" size={15} />

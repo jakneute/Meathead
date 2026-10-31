@@ -17,6 +17,10 @@ interface HUDProps {
   weaponArt?: React.ReactNode;
   /** Something of the weapon's own, under its ammo (Meathead 2's soul sucker: its gore bag). */
   weaponExtra?: React.ReactNode;
+  /** Something at the right end of the weapon row (Meathead 2's amulet: the face and its meter). */
+  weaponSide?: React.ReactNode;
+  /** The ammo bar's width (px; 100 as it is): shorter to share the row with weaponSide. */
+  ammoBarWidth?: number;
   /** What its ammo's called, if not ammo (Meathead 2's spellbook: MANA), shown by the bar. */
   ammoLabel?: string;
   maxAmmo: number;
@@ -53,7 +57,7 @@ export interface HudSkin {
 }
 
 /** The in-game HUD: health, power cells and the equipped weapon on a steel plate in the corner. */
-const HUD: React.FC<HUDProps> = ({ health, maxHealth, power, currentWeapon, ammo, maxAmmo, weaponName, weaponArt, weaponExtra, ammoLabel, skin, powerCells = POWER_CELLS, powerExtra, cellWidth, alert, alertText, powerAlert }) => {
+const HUD: React.FC<HUDProps> = ({ health, maxHealth, power, currentWeapon, ammo, maxAmmo, weaponName, weaponArt, weaponExtra, weaponSide, ammoBarWidth = 100, ammoLabel, skin, powerCells = POWER_CELLS, powerExtra, cellWidth, alert, alertText, powerAlert }) => {
   const hp = Math.max(0, Math.min(1, health / maxHealth));
   const tick = Math.round((1700 / Math.max(10, maxHealth)) * 100) / 100;
   const low = hp < 0.35;
@@ -115,7 +119,7 @@ const HUD: React.FC<HUDProps> = ({ health, maxHealth, power, currentWeapon, ammo
             <span className="text-[8px] font-black text-yellow-300 uppercase whitespace-nowrap" style={{ color: skin?.name }}>{weaponName ?? getWeaponInfo(currentWeapon).name}</span>
             <div className="flex items-center gap-2">
               {ammoLabel && <span className="text-[6px] font-black text-violet-300 -mr-1">{ammoLabel}</span>}
-              <div className="w-[100px] h-[6px] bg-black border border-zinc-900" style={skin?.track}>
+              <div className="h-[6px] bg-black border border-zinc-900" style={{ width: ammoBarWidth, ...skin?.track }}>
                 <div className="h-full" style={{
                   width: `${ammoPct * 100}%`,
                   background: !limited ? 'repeating-linear-gradient(90deg, #22C55E 0 4px, #15803D 4px 8px)' : ammoPct > 0.3 ? 'linear-gradient(180deg, #FDE047, #CA8A04)' : 'linear-gradient(180deg, #F87171, #B91C1C)',
@@ -125,6 +129,7 @@ const HUD: React.FC<HUDProps> = ({ health, maxHealth, power, currentWeapon, ammo
             </div>
             {weaponExtra}
           </div>
+          {weaponSide && <div className="ml-auto flex items-center">{weaponSide}</div>}
         </div>
       </div>
     </div>
