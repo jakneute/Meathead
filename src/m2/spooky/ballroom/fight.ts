@@ -55,7 +55,7 @@ import { makeKindEnemy } from '../../../m1/game/enemies/kinds';
 import { CANVAS_WIDTH, CANVAS_HEIGHT, BULLET_DAMAGE } from '../../../m1/constants';
 import { bossMelee } from '../../upgrades/bossMelee';
 import { takeYell } from '../../upgrades/amulet';
-import { cheapShotGate, crushGroups, crushLines } from '../../upgrades/cheapShot';
+import { cheapShotGate, cheapShotStunned, crushGroups, crushLines } from '../../upgrades/cheapShot';
 import { CHEAP_STUN } from '../../upgrades/tune';
 import { registerM2Kind, registerHurtLines } from '../../kinds';
 import { newSpam, spamTick, hitKey, type Spam, BOSS_IFRAMES } from '../../bossSpam';
@@ -321,7 +321,8 @@ const greased = (ctx: FrameContext, f: Fight) => {
   p.isCharging = false; p.isDivekicking = false; p.isUppercutting = false;
   p.vel = { x: dir * 7, y: -5 };
   p.lockTimer = Math.max(p.lockTimer, 22); p.recoiling = true; p.slipT = 22;
-  f.vx -= dir * 5;
+  // (stunned off the cheap shot: he squirts out, but he's going nowhere)
+  if (!cheapShotStunned(f.e)) f.vx -= dir * 5;
   playSound('squish', 0.9, -2); playSound('oil', 0.8, 2);
   const hx = p.pos.x + p.width / 2 - dir * 14, hy = p.pos.y + p.height * 0.4;
   for (let i = 0; i < 16; i++) state.particles.push({ pos: { x: hx + (Math.random() - 0.5) * 10, y: hy + (Math.random() - 0.5) * 20 }, vel: { x: (Math.random() - 0.5) * 6, y: -1 - Math.random() * 4 }, life: 26 + Math.random() * 14, color: ['#FDE68A', '#FACC15', '#A16207'][i % 3], size: 2 + Math.random() * 3, grav: 0.3 });
@@ -471,6 +472,8 @@ export const updateFight = (ctx: FrameContext, f: Fight, controls: Controls): Co
   const cs = cheapShotGate(state, f.e, 'donnie', ok);
   if (cs === 'frozen') { sync(state, f); return controls; }
   if (cs === 'stunned' && f.mode !== 'dead' && f.mode !== 'stunned') { stun(state, f); f.stunT = CHEAP_STUN; }
+  // (planted where he was kicked, the whole stun: nothing carrying him)
+  if (cs === 'stunned') f.vx = 0;
   f.total++;
   pitTick(state, f.pit, f.circle);
   if (f.mode === 'intro') { const out = intro(ctx, f); sync(state, f); return out; }
@@ -650,7 +653,8 @@ export const updateFight = (ctx: FrameContext, f: Fight, controls: Controls): Co
       if (f.y < GY) { f.vy += 0.6; f.y = Math.min(GY, f.y + f.vy); if (f.y >= GY) { playSound('thud', 1, -4); shakeScreen(state, 8, 4); } }
       if (f.t % 6 === 0) state.particles.push({ pos: { x: f.x + (Math.random() - 0.5) * 24, y: f.y - 40 - Math.random() * 30 }, vel: { x: (Math.random() - 0.5), y: -1.2 }, life: 30, color: 'rgba(200, 200, 200, 0.5)', size: 5, grav: -0.02 });
       if (f.t % 40 === 1) playSound('twinkle', 0.4, 6);
-      if (f.t >= f.stunT) { to(f, 'rise'); f.vy = -3; }
+      // (a Redeemer stun running out under the cheap shot's: he stays down till that's over too)
+      if (f.t >= f.stunT && !cheapShotStunned(f.e)) { to(f, 'rise'); f.vy = -3; }
       break;
     case 'dead': dying(ctx, f); out = hands(); break;
   }
@@ -1261,6 +1265,8 @@ const beaten = (f: Fight) => Math.max(0, 1 - Math.max(0, f.hp) / HP);
 const LOOK = (f: Fight) => ({ wig: !f.wigOff, cape: true, fangs: !f.powered, powered: f.powered, bloat: steps(f), snack: f.mode === 'intro' && !f.powered ? 'drumstick' as const : null });
 
 const poseOf = (f: Fight): DonniePose => {
+  // (the cheap shot's stun: both hands gone under the gut, knees knocked, wheezing, for the whole of it)
+  if (f.mode === 'stunned' && cheapShotStunned(f.e)) return 'clutch';
   if (f.flash > 0 && f.mode !== 'drain' && f.mode !== 'stunned') return 'hurt';
   // (the burp coming up: both hands on his gut)
   if (f.burpT > 0 && f.burpT < BURP_T - 6 && (f.mode === 'hover' || f.mode === 'rise' || f.mode === 'flinch' || (f.mode === 'spew' && f.t <= SPEW_AIM))) return 'stuffed';
@@ -1386,7 +1392,7 @@ export const drawFightFront = (c: Ctx, state: GameState, f: Fight) => {
     // (the stream out of his mouth)
     if (f.mode === 'spew' && f.t > SPEW_AIM && (f.t - SPEW_AIM) % (BURST_ON + BURST_OFF) < BURST_ON) { const mx = f.x + f.facing * 14, my = f.y - 74; for (let i = 0; i < 5; i++) { box(c, mx + f.facing * i * 5 - 4, my - 3 + Math.sin(fr + i) * 2, 9, 7, '#1A0B06'); box(c, mx + f.facing * i * 5 - 3, my - 2 + Math.sin(fr + i) * 2, 7, 5, i % 2 ? '#B91C1C' : '#DC2626'); } }
     // (stunned: the little statue's halo of stars over him)
-    if (f.mode === 'stunned') for (let i = 0; i < 4; i++) { const a = fr * 0.12 + i * 1.57; box(c, f.x + Math.cos(a) * 22 - 2, f.y - 80 + Math.sin(a) * 5 - 2, 4, 4, i % 2 ? '#FDE047' : '#ECFCCB'); }
+    if (f.mode === 'stunned' && !cheapShotStunned(f.e)) for (let i = 0; i < 4; i++) { const a = fr * 0.12 + i * 1.57; box(c, f.x + Math.cos(a) * 22 - 2, f.y - 80 + Math.sin(a) * 5 - 2, 4, 4, i % 2 ? '#FDE047' : '#ECFCCB'); }
   }
   // The grab's tell: where he'll come down on (following Meathead's feet, then locked: a ring on the floor closing in)
   if (f.mode === 'aim' && f.mark) {
