@@ -104,7 +104,7 @@ const leg = (c: Ctx, side: number, step: number, bob: number, p: Pose) => {
   if (side > 0) box(c, bx + bw - 1, by, 1, bh - 2, p.rim);
   // (the armor on it: upgrades/walkArmor.ts)
   walkShin(c, lx, hipY + (bootTop - hipY) * 0.55, bootTop, side, true);
-  walkBoot(c, bx, by, bw, bh, side, true);
+  walkBoot(c, bx, by, bw, bh, side, true, p.t);
 };
 
 let turnLayer: HTMLCanvasElement | null = null;
@@ -159,7 +159,7 @@ const forearms = (c: Ctx, p: Pose, arms: Arm[], ty: number, S: string[], redrawA
       flesh(c, a.mass, r, a.side > 0 ? p.rim : undefined, foreRegion(a), foreLines(a, r, false));
     }
     wristband(c, a, BAND);
-    walkForearm(c, a.E, a.W);
+    walkForearm(c, a.E, a.W, p.t);
   }
 };
 

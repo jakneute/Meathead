@@ -38,9 +38,11 @@ export const setArmorArt = (a: ArmorArt | null) => { armorArt = a; };
 /** The armor, if any's to be drawn now (not on the cat). */
 export const armorOn = (): ArmorArt | null => (armorArt && !catBodyOn() ? armorArt : null);
 /** How he's moving, for what hangs off him (the cape): set as his sprite's drawn (renderer), read by the armor's art. */
-export const armorMotion = { fwd: 0, vy: 0, floating: false, grounded: true, frame: 0, dome: false };
+export const armorMotion = { fwd: 0, vy: 0, floating: false, grounded: true, frame: 0, dome: false, jolt: 0 };
 /** Under a space suit's glass fishbowl (Meathead 2's Space Needle 2): the helmet's fitted inside it. */
 export const setArmorDome = (on: boolean) => { armorMotion.dome = on; };
+/** How hard he's just been jolted, 0..1 (a landing's squash, a dive kick): what dangles off him clanks. */
+export const setArmorJolt = (k: number) => { armorMotion.jolt = Math.max(0, Math.min(1, k)); };
 export const setArmorMotion = (fwd: number, vy: number, floating: boolean, grounded: boolean, frame: number) => {
   armorMotion.fwd = fwd; armorMotion.vy = vy; armorMotion.floating = floating; armorMotion.grounded = grounded; armorMotion.frame = frame;
 };

@@ -186,29 +186,38 @@ const paintHurt = (c: C, lv: number) => {
   dither(c, 6, 22, 12, 1, BLOOD.md);
 };
 
-/** The helmet (the armor's, armorArt.ts: a Viking helmet, Foreign Land's), over the face, under the hurt: a steel dome
- *  over his flat-top, its brim above his brows (the glasses always show), short horns out each side, a flag patch. */
-const STEEL = ['#1A1F2A', '#363D4D', '#5E6779', '#97A1B4', '#DCE2EC'];
-const IVORY = ['#A89A76', '#D8CCA8', '#F2EAD0', '#FFFCF0'];
+/** The helmet (the armor's, armorArt.ts: a souvenir-shop Viking helmet, Foreign Land's), over the face, under the hurt:
+ *  a silver plastic dome over his flat-top, its brim above his brows (the glasses always show), short plastic horns out
+ *  each side, a flag patch, a beer can each side, a bendy straw from the red one down outside his glasses' arm and in
+ *  under them to the corner of his mouth (never across the glasses). */
+const PLASTIC = ['#4B5563', '#9CA3AF', '#C9CED6', '#E5E7EB', '#FFFFFF'];
+const HORN = ['#B08A2E', '#E3C25A', '#F7E08E', '#FFF6CC'];
 const paintHelmet = (c: C) => {
-  // (the horns: from the brim's ends, curving up and out to the corners)
+  // (the horns: plastic, from the dome's sides, up and out to the corners, a shine on each)
   for (const s of [-1, 1]) {
-    const x0 = s < 0 ? 0 : 21;
-    rect(c, x0 + (s < 0 ? 1 : 0), 4, 2, 4, IVORY[1]); rect(c, x0 + (s < 0 ? 0 : 1), 1, 2, 3, IVORY[2]); px(c, s < 0 ? 0 : 23, 0, IVORY[3]);
-    rect(c, x0 + (s < 0 ? 1 : 0), 7, 2, 1, IVORY[0]);
+    const x = (v: number) => (s < 0 ? v : 23 - v);
+    rect(c, Math.min(x(1), x(2)), 3, 2, 3, HORN[1]); rect(c, Math.min(x(0), x(1)), 1, 2, 2, HORN[2]); px(c, x(0), 0, HORN[3]);
+    px(c, x(1), 2, '#FFFFFF'); px(c, x(2), 5, HORN[0]);
   }
-  // (the dome: banded from the lit upper left)
-  rect(c, 4, 0, 16, 7, STEEL[2]); rect(c, 3, 2, 18, 5, STEEL[2]); rect(c, 5, -1, 14, 1, STEEL[2]);
-  rect(c, 4, 1, 5, 4, STEEL[3]); rect(c, 5, 0, 4, 1, STEEL[4]); px(c, 4, 1, STEEL[4]);
-  dither(c, 9, 1, 2, 4, STEEL[3]);
-  rect(c, 16, 1, 4, 6, STEEL[1]); rect(c, 20, 3, 1, 4, STEEL[1]); dither(c, 15, 1, 1, 6, STEEL[1]);
-  // (the band over the top, riveted)
-  rect(c, 11, 0, 2, 7, STEEL[3]); px(c, 11, 0, STEEL[4]); px(c, 12, 2, '#F8FAFC'); px(c, 12, 5, '#F8FAFC');
-  // (the brim: a heavier band, rivets along it)
-  rect(c, 2, 6, 20, 2, STEEL[1]); rect(c, 2, 6, 20, 1, STEEL[3]);
-  for (let x = 4; x < 21; x += 3) px(c, x, 6, '#F1F5F9');
+  // (the dome: silver plastic, flat bands from the lit upper left, a hard shine)
+  rect(c, 4, 0, 16, 7, PLASTIC[2]); rect(c, 3, 2, 18, 5, PLASTIC[2]);
+  rect(c, 4, 1, 6, 4, PLASTIC[3]); rect(c, 5, 0, 4, 1, PLASTIC[4]); px(c, 5, 1, PLASTIC[4]); px(c, 6, 1, PLASTIC[4]);
+  dither(c, 10, 1, 2, 4, PLASTIC[3]);
+  rect(c, 16, 1, 4, 6, PLASTIC[1]); rect(c, 20, 3, 1, 4, PLASTIC[1]); dither(c, 15, 1, 1, 6, PLASTIC[1]);
+  // (the moulded band over the top)
+  rect(c, 11, 0, 2, 7, PLASTIC[3]); px(c, 12, 2, '#FFFFFF'); px(c, 12, 5, '#FFFFFF');
+  // (the brim)
+  rect(c, 2, 6, 20, 2, PLASTIC[1]); rect(c, 2, 6, 20, 1, PLASTIC[3]);
   // (the flag patch: a Nordic cross)
   rect(c, 5, 2, 4, 3, '#C8102E'); rect(c, 6, 2, 1, 3, '#F8FAFC'); rect(c, 5, 3, 4, 1, '#F8FAFC');
+  // (the beer cans off the brim's ends: blue on his right (the picture's left), red on his left; silver tops, black holders)
+  for (const [x0, mid, dark] of [[0, '#3B82F6', '#1E40AF'], [21, '#DC2626', '#991B1B']] as const) {
+    rect(c, x0, 6, 3, 1, '#E5E7EB'); rect(c, x0, 7, 3, 2, mid); px(c, x0 + 2, 7, dark); px(c, x0 + 2, 8, dark); rect(c, x0, 9, 3, 2, '#18181B');
+  }
+  // (the straw: out of the red can's top, down outside the glasses' arm (x 20..21 at y 11) at x 23, in under the glasses
+  // (their bottom rim's y 15) at y 17..19 to the corner of his mouth; red and white)
+  const straw: [number, number][] = [[22, 5], [23, 6], [23, 7], [23, 8], [23, 9], [23, 10], [23, 11], [23, 12], [23, 13], [23, 14], [23, 15], [23, 16], [22, 17], [21, 18], [20, 18], [19, 19], [18, 19], [17, 19], [16, 19]];
+  straw.forEach(([x, y], i) => px(c, x, y, i % 2 ? '#EF4444' : '#FFFFFF'));
 };
 
 // ---- the caches

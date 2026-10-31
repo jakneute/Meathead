@@ -29,7 +29,7 @@ import { drawRayGunHeld } from '../../../../m2/weapons/rayGunArt';
 import { customWeapon } from '../../combat/customWeapons';
 import { buffs } from '../../core/buffs';
 import { setGore, getGore, smear, drip, drawHeadBlood, drawLeadArmBlood, drawBeatenUp, bloodDark } from './gore';
-import { skinTone, skinShadow, skinHighlight, skinVein, pantsColor, pantsShadow, beltColor, beltBuckle, wristbandColor, backArmShade, stubbleColor, drawTorso, drawBelt, drawArm, drawPantLeg, drawBoot, drawJointedLeg, drawLeg, drawArmTo, drawHead, drawGlasses, drawHeadFlush, setTalking, drawTalkingMouth, setLegSinge, setNude, snesShat, armorOn, setArmorMotion, setArmorDome } from './body';
+import { skinTone, skinShadow, skinHighlight, skinVein, pantsColor, pantsShadow, beltColor, beltBuckle, wristbandColor, backArmShade, stubbleColor, drawTorso, drawBelt, drawArm, drawPantLeg, drawBoot, drawJointedLeg, drawLeg, drawArmTo, drawHead, drawGlasses, drawHeadFlush, setTalking, drawTalkingMouth, setLegSinge, setNude, snesShat, armorOn, setArmorMotion, setArmorDome, setArmorJolt } from './body';
 
 export interface PlayerDrawOptions {
   currentWeapon: WeaponType;
@@ -93,6 +93,7 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
   // (how he's moving, for whatever another game's armor has hanging off him: Meathead 2's cape)
   setArmorMotion(p.vel.x * p.facing, p.vel.y, !!p.floating, p.isGrounded, state.frame);
   setArmorDome(!!p.spaceSuit);
+  setArmorJolt(p.isDivekicking ? 1 : p.squash || 0);
   // (Meathead 2's cat form: every body part drawn after this is the cat's, the grabs' and the weapons' poses too)
   setCatBody(!!p.catForm);
   // (blown to bits by the third one: the mess, and the heap of him, over the death screen too)

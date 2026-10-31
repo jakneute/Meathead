@@ -90,7 +90,7 @@ const leg = (c: Ctx, side: number, p: BackPose, bob: number) => {
   if (side > 0) box(c, bx + bw - 1, by, 1, bh - 3, p.rim);
   // (the armor on it: upgrades/walkArmor.ts)
   walkShin(c, lx, ky, bootTop, side, false);
-  walkBoot(c, bx, by, bw, bh, side, false);
+  walkBoot(c, bx, by, bw, bh, side, false, p.t);
 };
 
 /** An arm hanging at his side from behind: the rear delt, the triceps, the point of the elbow, the forearm; one mass
@@ -103,7 +103,7 @@ const arm = (c: Ctx, side: number, p: BackPose, ty: number, swing: number): [num
   const a = armOf([side * 44, -128 + ty], [fx, fy], [side * 50, -99 + ty], side);
   flesh(c, a.mass, S, p.rim, undefined, cc => { upperLines(a, S, true)(cc); foreLines(a, S, true)(cc); });
   wristband(c, a, BAND);
-  walkForearm(c, a.E, a.W);
+  walkForearm(c, a.E, a.W, p.t);
   return [fx, fy];
 };
 
@@ -252,7 +252,7 @@ export const drawMeatheadBack = (c: Ctx, x: number, y: number, p: BackPose) => {
     }
   }
   // (the cape: split bat wings down his back, stopping above his belt; upgrades/walkArmor.ts)
-  walkCapeBack(c, bob, step);
+  walkCapeBack(c, bob, step, p.t);
   // His weapon, in his left fist, hanging down by his thigh, muzzle to the ground, tipped out a little; drawn over his
   // legs and his back, under his arm and fist (the playtest: drawn behind him, most of it was hidden behind his leg).
   // Where his fist comes to (arm(): its swing a third of his stride's, the other way)

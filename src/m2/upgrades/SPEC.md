@@ -57,7 +57,7 @@ to see everything"; then "every piece should be visible"). With all 8 on, in eve
   are drawn after the helmet in every path (sprite, walk figures, HUD face). Nothing else goes over his eyes.
 - THE ASTRONAUT LOOK (Future Land's Space Needle 2, Player.spaceSuit): not a uniform, just the glass fishbowl and a
   whitened body. The white is laid on AS HE'S DRAWN (spriteOutline.ts setSpriteTint / armorSeam), so every armor piece
-  keeps its own colours over the white. The Viking helmet sits INSIDE the glass: shrunk to 0.72 about its brim (the brim
+  keeps its own colors over the white. The Viking helmet sits INSIDE the glass: shrunk to 0.72 about its brim (the brim
   stays above his glasses) and clipped inside the glass, the horn tips jammed against it (armorArt.ts DOME_FIT /
   DOME_IN); his face and glasses show through the glass. The grab and pose sprites (grab.ts sprite) do the same,
   fishbowl included.
@@ -70,14 +70,22 @@ Fairy: pink sequins, glitter crystal, tiara spikes; Cartoon: flat, outlined, a b
 PROVISIONAL THEME PER PIECE (Phase E, 2026-10-31; change freely once the owner assigns lands):
 | Piece | Land | Look |
 |---|---|---|
-| SABATONS | Wilderness | rusted railroad iron, riveted lames, an iron sole, a cowbell on the near ankle |
-| PAULDRONS | Jungle | leopard-print caps on a bamboo rim, a tusk up off each |
-| LEG ARMOR | Hollywood | a gold film-reel knee cop, gold statuette plating down the shin, a black stunt-pad strap |
-| ARMGUARDS | Future | chrome XENOSCARE resin bracers, ribbed, a glowing neon strip |
-| HAND ARMOR | Cartoon | the big white cartoon glove: flat, outlined, three stitches, a rolled cuff |
-| HELMET | Foreign | a Viking helmet, horns, a Nordic flag patch (the brim stops above his glasses) |
-| AMULET | Fairy | a pink glitter crystal under tiara spikes, on a chain of pink sequins |
-| CAPE | Spooky | a short bat-wing cape: scalloped, ribbed, blood-red lining, coffin-wood collar, plastic skull clasp |
+| SABATONS | Wilderness | cowboy boots of rusty railroad iron: pointed iron toe, stacked heel, rivets, a spur, a cowbell on the near ankle that clanks on landings and dive kicks (visual only, no sound) |
+| PAULDRONS | Jungle | two coconut halves strapped on (hairy shell, white meat round the rim), leopard-print trim, a plastic tusk glued on |
+| LEG ARMOR | Hollywood | gold award statuettes duct-taped down his shins (silver tape), film reels for knee pads |
+| ARMGUARDS | Future | chrome bracers with a red LED strip scrolling BEEF |
+| HAND ARMOR | Cartoon | giant white four-finger cartoon gloves: outlined, three stitches, a rolled cuff |
+| HELMET | Foreign | a souvenir-shop Viking helmet: plastic horns, a flag patch, a beer can in a holder each side, a bendy straw to his mouth that goes round his glasses, never across them |
+| AMULET | Fairy | a pink plastic princess-kit heart jewel in a gold plastic setting, on a sequin chain |
+| CAPE | Spooky | a cheap Halloween-store vampire cape: shiny black polyester still creased in squares from the package, red lining, a tall collar, the price tag flapping; short (stops above the belt) |
+
+ART PASS (2026-10-31: "do another art pass on those accessories and make them funny and distinct"; "meathead should
+look like a mismatched fool when fully decked out"): the versions above. Fully decked out he's a joke on purpose:
+clashing colors and materials side by side (rust, coconut brown, gold and grey tape, chrome and red LEDs, cartoon white,
+silver and yellow souvenir plastic with red and blue cans, pink plastic, cheap black polyester), sizes a little off (the
+gloves too big, the helmet a touch crooked), nothing coordinated. DON'T harmonize the palette across pieces. Each still
+reads at sprite size, and the jeans and glasses rules above still hold. The LED text, the bell's swing and the price tag
+are baked strips only slid or turned per frame; the straw is one stroke.
 
 AS BUILT (Phase E, the art): upgrades/armorArt.ts (its header has the lot). Meathead 1's body parts (m1
 render/player/body.ts: drawBoot, drawLeg / drawJointedLeg, drawArm, drawRamDelt, drawGlasses, drawTorso) call an
