@@ -10,6 +10,11 @@
 // cross, water; the face goes gray; the mouth goes from a little O to every tooth).
 
 import { type Ctx, type Ramp, rampOf, rampMix, shape, shapeTop, ell, px, line, limb, fill, dith } from './paint';
+import { armorParts, withArmor } from '../../upgrades/armorArt';
+import { has } from '../../upgrades/state';
+
+/** The close-up's leg is this many of its units to a sprite unit (44 across: the sprite's leg armor is 10.4). */
+const KICK_K = 44 / 10.4;
 
 export type GuardPose = 'stand' | 'stop' | 'hit' | 'keel' | 'down';
 export const GUARD_H = 96;
@@ -309,16 +314,30 @@ const guardBody = (c: Ctx, S: Ramp, f: number, grind: number, leg: KickLeg, sick
   if (leg === 'bare') for (let i = 0; i < 30; i++) line(c, [-230 + i * 7.6, -14 + (i * 11) % 26, -226 + i * 7.6, -16 + (i * 11) % 26], 0.6, '#5A3A22');
   else { line(c, [-240, -8, 0, -6], 0.8, cloth[0]); px(c, -30, -22, 30, 44, cloth[2]); px(c, -30, -22, 3, 44, cloth[3]); }
   if (leg === 'shat') { ell(c, -150, 6, 40, 16, 'rgba(110,70,20,0.75)'); ell(c, -170, 12, 20, 8, 'rgba(80,50,12,0.8)'); }
+  // (the leg armor, if he has it: the sprite's film-reel knee pad and the gold statuette duct-taped down the shin, scaled
+  // up to this leg (44 across: the sprite's is 10.4), inked like the rest of the shot; a clean gap above the cuff)
+  withArmor({ ink: 0.22, motion: { frame: f, jolt: grind * 0.7 } }, () => {
+    c.save(); c.scale(KICK_K, KICK_K);
+    armorParts.shin(c, [-280 / KICK_K, 20 / KICK_K], [-150 / KICK_K, 0], [-14 / KICK_K, 0], false);
+    c.restore();
+  });
   c.restore();
-  // (the combat boot: the shaft, the laces crossing, the thick lugged sole, the steel toe shining, pressed in)
   c.save(); c.translate(ankle[0], ankle[1]); c.rotate(-0.36 + tw);
-  shape(c, () => { c.moveTo(-8, -26); c.lineTo(30, -26); c.quadraticCurveTo(64, -24, 74, -6); c.lineTo(76, 14); c.lineTo(-8, 14); c.closePath(); }, BOOT, -8, 76, 0.8);
-  for (let i = 0; i < 4; i++) { line(c, [4 + i * 8, -24, 10 + i * 8, -12], 1.2, '#C8C8C8'); line(c, [10 + i * 8, -24, 4 + i * 8, -12], 1.2, '#A8A8A8'); }
-  shape(c, () => c.rect(-10, 14, 90, 10), ['#4A4A4A', '#2A2A2A', '#1A1A1A', '#0E0E0E', '#000000'], -10, 80, 0.6);
-  for (let i = 0; i < 9; i++) px(c, -6 + i * 10, 22, 5, 3, '#000000');
-  shape(c, () => { c.moveTo(48, -20); c.quadraticCurveTo(70, -18, 76, -4); c.lineTo(76, 12); c.lineTo(50, 12); c.closePath(); }, ['#F0F4FA', '#B8C2D0', '#8A96A8', '#5A6676', '#1A2230'], 48, 76, 0.6);
-  px(c, 56, -14, 10, 2, '#FFFFFF');
-  c.restore();
+  if (has('sabatons')) {
+    // (the sabatons in place of the combat boot: the sprite's rusty railroad-iron cowboy boot over the boot's own box,
+    // the pointed iron toe dug in, the cowbell off the ankle clanking with the grind)
+    withArmor({ ink: 0.22, motion: { frame: f, jolt: grind * 0.7 } }, () => armorParts.boot(c, -8, -26, 84, 48, false));
+    c.restore();
+  } else {
+    // (the combat boot: the shaft, the laces crossing, the thick lugged sole, the steel toe shining, pressed in)
+    shape(c, () => { c.moveTo(-8, -26); c.lineTo(30, -26); c.quadraticCurveTo(64, -24, 74, -6); c.lineTo(76, 14); c.lineTo(-8, 14); c.closePath(); }, BOOT, -8, 76, 0.8);
+    for (let i = 0; i < 4; i++) { line(c, [4 + i * 8, -24, 10 + i * 8, -12], 1.2, '#C8C8C8'); line(c, [10 + i * 8, -24, 4 + i * 8, -12], 1.2, '#A8A8A8'); }
+    shape(c, () => c.rect(-10, 14, 90, 10), ['#4A4A4A', '#2A2A2A', '#1A1A1A', '#0E0E0E', '#000000'], -10, 80, 0.6);
+    for (let i = 0; i < 9; i++) px(c, -6 + i * 10, 22, 5, 3, '#000000');
+    shape(c, () => { c.moveTo(48, -20); c.quadraticCurveTo(70, -18, 76, -4); c.lineTo(76, 12); c.lineTo(50, 12); c.closePath(); }, ['#F0F4FA', '#B8C2D0', '#8A96A8', '#5A6676', '#1A2230'], 48, 76, 0.6);
+    px(c, 56, -14, 10, 2, '#FFFFFF');
+    c.restore();
+  }
   // (the cloth bunched and creased round the toe, stress lines out of it, sweat flying)
   for (let i = 0; i < 7; i++) { const a = -1.4 + i * 0.45 + tw, r0 = 14, r1 = 26 + (i % 2) * 8; line(c, [toe[0] + Math.cos(a) * r0, toe[1] + Math.sin(a) * r0 * 0.8, toe[0] + Math.cos(a) * r1, toe[1] + Math.sin(a) * r1 * 0.8], 1.1, PANTS[4]); }
   if (grind > 0) for (let i = 0; i < 4; i++) { const a = -2.4 + i * 0.5, r = 40 + ((f * 2 + i * 9) % 18); line(c, [toe[0] + Math.cos(a) * r, toe[1] + Math.sin(a) * r, toe[0] + Math.cos(a) * (r + 9), toe[1] + Math.sin(a) * (r + 9)], 2, '#FDE047'); }

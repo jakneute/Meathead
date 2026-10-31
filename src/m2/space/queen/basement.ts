@@ -66,6 +66,7 @@ import { stamp, setStampHold } from '../../../m1/game/render/stamp';
 import { GY } from '../geometry';
 import { BASE_L, BASE_R, DOOR_X, BF, CATWALK_Y, CEIL_B, STAIRS_A, STAIRS_B, LAND_X, stairsY } from './geo';
 import { drawQueen } from './art';
+import { FLAT } from '../../upgrades/walkArmor';
 import { bandedGradient } from '../../../m1/game/render/pixelArt';
 import { inBossFight } from '../../bossQuiet';
 import { type Ramp, dith } from './paint';
@@ -1216,6 +1217,9 @@ const drawHead = (c: Ctx, x: number, y: number, r: number, dir: 1 | -1) => {
   box(c, -8, -5, 7, 2, '#18181B'); box(c, 2, -5, 7, 2, '#18181B');
   for (const ex of [-6, 4]) { box(c, ex, -2, 1, 1, '#18181B'); box(c, ex + 2, -2, 1, 1, '#18181B'); box(c, ex + 1, -1, 1, 1, '#18181B'); box(c, ex, 0, 1, 1, '#18181B'); box(c, ex + 2, 0, 1, 1, '#18181B'); }
   box(c, -4, 4, 9, 4, '#450A0A'); box(c, -2, 7, 4, 2, '#F472B6');
+  // (the souvenir Viking helmet, if he had it, still on: the walk screens' front-on one, its brim stopped above the
+  // glasses, the straws down outside his ears into the corners of his slack mouth)
+  FLAT.helmet(c, 0, -18.6, 22, true);
   // (his glasses, still on, smashed: knocked crooked, the lenses webbed with cracks, one rim snapped open)
   c.save(); c.rotate(-0.12);
   for (const rx of [-9, 1]) {

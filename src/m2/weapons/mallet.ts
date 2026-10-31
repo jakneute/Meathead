@@ -49,6 +49,8 @@ import { bloodOf, bloodCtxOf } from '../../m1/game/enemies/kindBlood';
 import { since } from '../frames';
 import { struckAt } from './strikes';
 import { emptyCue } from './dry';
+import { FLAT } from '../upgrades/walkArmor';
+import { has } from '../upgrades/state';
 
 type Ctx = CanvasRenderingContext2D;
 const INK = '#1A0B06';
@@ -1053,7 +1055,8 @@ const drawSpinHead = (c: Ctx, hx: number, hy: number, back: boolean) => {
   box(c, hx - 9, hy - 9, 18, 18, INK); box(c, hx - 8, hy - 8, 16, 16, '#E0AC69'); box(c, hx - 8, hy + 4, 16, 4, '#C68B45'); box(c, hx - 6, hy - 6, 4, 3, '#F5D0A9');
   // (the flat-top: square across, a shine on it)
   box(c, hx - 9, hy - 15, 18, 8, INK); box(c, hx - 8, hy - 14, 16, 6, '#18181B'); box(c, hx - 7, hy - 14, 12, 1, '#3F3F46');
-  if (back) { box(c, hx - 8, hy - 8, 16, 10, '#18181B'); box(c, hx - 10, hy - 3, 2, 5, '#C68B45'); box(c, hx + 8, hy - 3, 2, 5, '#C68B45'); box(c, hx - 6, hy + 2, 12, 1, '#C68B45'); return; }
+  if (back) { box(c, hx - 8, hy - 8, 16, 10, '#18181B'); box(c, hx - 10, hy - 3, 2, 5, '#C68B45'); box(c, hx + 8, hy - 3, 2, 5, '#C68B45'); box(c, hx - 6, hy + 2, 12, 1, '#C68B45'); spinHelmet(c, hx, hy, false); return; }
+  spinHelmet(c, hx, hy, true);
   box(c, hx + 4, hy - 7, 1, 3, '#EF4444');
   // (brows down hard, the glasses, a glint)
   box(c, hx - 7, hy - 6, 6, 2, INK); box(c, hx + 1, hy - 6, 6, 2, INK);
@@ -1063,9 +1066,18 @@ const drawSpinHead = (c: Ctx, hx: number, hy: number, back: boolean) => {
   // (the grimace: teeth gritted, wide)
   box(c, hx - 6, hy + 2, 12, 5, INK); box(c, hx - 5, hy + 3, 10, 3, '#F8FAFC'); for (let i = -3; i <= 3; i += 2) box(c, hx + i, hy + 3, 1, 3, '#78716C'); box(c, hx - 5, hy + 4, 10, 1, '#A8A29E');
 };
-/** A fist, a boot, an arm going by. */
-const drawFist = (c: Ctx, x: number, y: number, s: number) => { box(c, x - 5, y - 4, 10, 9, INK); box(c, x - 4, y - 3, 8, 7, '#E0AC69'); box(c, x - 4, y - 3, 8, 2, '#F5D0A9'); for (let i = 0; i < 3; i++) box(c, x - 3 + i * 3, y - 1, 1, 2, '#C68B45'); box(c, x - s * 7, y - 3, 3, 7, '#09090B'); };
-const drawBoot = (c: Ctx, x: number, y: number, s: number) => { box(c, x - 6, y - 5, 12, 7, INK); box(c, x - 5, y - 4, 10, 4, '#18181B'); box(c, x + (s > 0 ? 2 : -5), y - 4, 3, 2, '#94A3B8'); box(c, x - 5, y, 10, 1, '#3F3F46'); box(c, x - 3, y - 8, 6, 4, '#1E3A8A'); };
+/** The souvenir Viking helmet on the spinning head, if he has it (the walk screens' front- or back-on one, scaled to this
+ *  18-wide head): its brim stops above his brows and glasses. */
+const spinHelmet = (c: Ctx, hx: number, hy: number, front: boolean) => FLAT.helmet(c, hx, hy - 16.8, 18, front);
+/** A fist, a boot, an arm going by (in the cartoon glove, the iron cowboy boots, if he has them). */
+const drawFist = (c: Ctx, x: number, y: number, s: number) => {
+  box(c, x - 5, y - 4, 10, 9, INK); box(c, x - 4, y - 3, 8, 7, '#E0AC69'); box(c, x - 4, y - 3, 8, 2, '#F5D0A9'); for (let i = 0; i < 3; i++) box(c, x - 3 + i * 3, y - 1, 1, 2, '#C68B45'); box(c, x - s * 7, y - 3, 3, 7, '#09090B');
+  if (has('hands')) { c.save(); c.translate(x, y); c.scale(s, 1); FLAT.fist(c, 0, 0, 4, 0); c.restore(); }
+};
+const drawBoot = (c: Ctx, x: number, y: number, s: number) => {
+  box(c, x - 6, y - 5, 12, 7, INK); box(c, x - 5, y - 4, 10, 4, '#18181B'); box(c, x + (s > 0 ? 2 : -5), y - 4, 3, 2, '#94A3B8'); box(c, x - 5, y, 10, 1, '#3F3F46'); box(c, x - 3, y - 8, 6, 4, '#1E3A8A');
+  FLAT.boot(c, x - 6, y - 5, 12, 7, s, true, 0);
+};
 const drawArmSmear = (c: Ctx, x: number, y: number, s: number) => { box(c, x - 14, y - 3, 28, 7, INK); box(c, x - 13, y - 2, 26, 5, '#E0AC69'); box(c, x - 13, y - 2, 26, 1, '#F5D0A9'); box(c, x - 13, y + 2, 26, 1, '#C68B45'); box(c, x + s * 9, y - 2, 4, 5, '#09090B'); };
 
 /** A bit of him through the blur: three copies trailing back the way it's going round, the oldest faintest. */

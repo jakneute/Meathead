@@ -13,7 +13,7 @@
 
 import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../../m1/constants';
 import { has } from './state';
-import { drawSabatonCloseUp } from './armorArt';
+import { drawSabatonCloseUp, armorParts } from './armorArt';
 
 type Ctx = CanvasRenderingContext2D;
 
@@ -163,10 +163,19 @@ const drawBoot = (c: Ctx, x: number, y: number) => {
   c.fillStyle = '#9CA3AF'; for (let i = 0; i < 4; i++) c.fillRect(x - 6, y + 2 + i * 9, 12, 3);
 };
 
-/** His foot at (x, y) (the toe's top), toe up: the boot, or with the sabatons on, them (armorArt.ts). The custom ones use it. */
+/** His foot at (x, y) (the toe's top), toe up: the boot, or with the sabatons on, them (armorArt.ts); with the leg armor
+ *  on, the gold statuette duct-taped down the jeans below it, head toward the knee, the film-reel pad on the knee (the
+ *  sprite's, 60 across like the jeans here, a clean gap under the boot and its cowbell). The custom ones use it. */
 export const drawKick = (c: Ctx, x: number, y: number, t: number) => {
   if (has('sabatons')) drawSabatonCloseUp(c, x, y, t); else drawBoot(c, x, y);
+  if (has('legs')) {
+    c.save(); c.translate(x, y); c.scale(KICK_K, KICK_K);
+    armorParts.shin(c, [0, 220 / KICK_K], [0, 126 / KICK_K], [0, 34 / KICK_K], false);
+    c.restore();
+  }
 };
+/** The close-up's jeans are 60 across: this many panel px to a sprite unit (the sprite's leg armor is 10.4 across). */
+const KICK_K = 60 / 10.4;
 
 /** A panel-sized canvas painted once, on first use (the custom close-ups' still layers: no painting at load). */
 const bakes = new Map<string, HTMLCanvasElement>();

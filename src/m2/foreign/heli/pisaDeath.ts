@@ -11,6 +11,8 @@ import type { MeatheadDeath } from '../../../m1/game/player/deathAnim';
 import { registerDeathAnim, registerDeathKind } from '../../../m1/game/player/deathAnim';
 import { registerDeathDraw, body } from '../../../m1/game/render/player/deathAnim';
 import { skinTone, skinShadow, skinHighlight } from '../../../m1/game/render/player/body';
+import { FLAT } from '../../upgrades/walkArmor';
+import { has } from '../../upgrades/state';
 import { playSound } from '../../../m1/game/platform/audio';
 import { shakeScreen } from '../../../m1/game/core/state';
 import { heliOf } from './state';
@@ -140,13 +142,20 @@ export const drawPancakeFront = (c: Ctx, state: GameState, seat: number) => {
     c.fillStyle = INK; c.fillRect(-6, -14, 12, 15); c.fillStyle = '#1E3A8A'; c.fillRect(-5, -13, 10, 13); c.fillStyle = '#3B5BB5'; c.fillRect(-5, -13, 3, 13);
     c.fillStyle = INK; c.fillRect(-5, -L - 2, 10, L - 10);
     c.fillStyle = skinTone; c.fillRect(-4, -L - 1, 8, L - 12); c.fillStyle = skinHighlight; c.fillRect(-4, -L - 1, 2, L - 12); c.fillStyle = skinShadow; c.fillRect(2, -L - 1, 2, L - 12);
+    // (the armguard on the forearm, if he has it: chrome, BEEF lit on it, short of the wrist)
+    if (L > 18) FLAT.forearm(c, [0, -12], [0, -L + 2], 10, t);
     if (up > 0.6) {
       const fy = -L - 10;
-      c.fillStyle = INK; c.fillRect(-8, fy - 1, 16, 12); c.fillStyle = skinTone; c.fillRect(-7, fy, 14, 10); c.fillStyle = skinShadow; c.fillRect(-7, fy + 7, 14, 3);
+      // (in the giant white cartoon glove, if he has it: flat white, one flat shade, inked, the rolled cuff; the finger
+      // up out of it all the same)
+      const glove = has('hands'), SK = glove ? '#FAFAFA' : skinTone, SH = glove ? '#D4D4D8' : skinShadow, HL = glove ? '#FFFFFF' : skinHighlight;
+      const gw = glove ? 2 : 0;
+      c.fillStyle = INK; c.fillRect(-8 - gw, fy - 1 - gw, 16 + gw * 2, 12 + gw); c.fillStyle = SK; c.fillRect(-7 - gw, fy - gw, 14 + gw * 2, 10 + gw); c.fillStyle = SH; c.fillRect(-7 - gw, fy + 7, 14 + gw * 2, 3);
       c.fillStyle = INK; for (const kx of [-4, 0, 4]) c.fillRect(kx, fy + 2, 1, 5);
+      if (glove) { c.fillStyle = INK; c.fillRect(-9, fy + 10, 18, 5); c.fillStyle = SK; c.fillRect(-8, fy + 11, 16, 3); c.fillStyle = SH; c.fillRect(-8, fy + 13, 16, 1); }
       // (the finger: up while it's held, curled back down as it flops)
       const fl = t < FLOP ? 13 : 13 * (1 - flop);
-      if (fl > 1) { c.fillStyle = INK; c.fillRect(-2, fy - fl - 1, 6, fl + 1); c.fillStyle = skinTone; c.fillRect(-1, fy - fl, 4, fl); c.fillStyle = skinHighlight; c.fillRect(-1, fy - fl, 1, fl); }
+      if (fl > 1) { c.fillStyle = INK; c.fillRect(-2 - gw / 2, fy - fl - 1 - gw, 6 + gw, fl + 1 + gw); c.fillStyle = SK; c.fillRect(-1 - gw / 2, fy - fl - gw, 4 + gw, fl + gw); c.fillStyle = HL; c.fillRect(-1 - gw / 2, fy - fl - gw, 1, fl + gw); }
     }
   }
   c.restore();
