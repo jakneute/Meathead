@@ -62,6 +62,8 @@ import { stabLean, STAB_WOUND } from '../../../m1/game/render/player/player';
 import { CANVAS_WIDTH, CANVAS_HEIGHT, BULLET_DAMAGE } from '../../../m1/constants';
 import { bossMelee } from '../../upgrades/bossMelee';
 import { takeYell } from '../../upgrades/amulet';
+import { cheapShotGate, cheapShotStunned, crushGroups, crushLines } from '../../upgrades/cheapShot';
+import { CHEAP_STUN } from '../../upgrades/tune';
 import { registerM2Kind, registerHurtLines } from '../../kinds';
 import { newSpam, spamTick, hitKey, swatOff, type Spam, BOSS_IFRAMES } from '../../bossSpam';
 import { aliensOn, brushOff, popAliensIn, setSpawnerBaits, takeBites, type SpawnerBait } from '../../weapons/spawner';
@@ -289,6 +291,8 @@ const counter = (ctx: FrameContext, f: Fight) => {
   if (f.mode === 'dead' || f.mode === 'gut' || f.eaten) return { said: true };
   // (up his vine, flying, flattened, or too busy slapping at the litter: just can't get hold of him)
   if (!COUNTERS.has(f.mode) || f.agitated || f.y < GY - 4) return;
+  // (stunned off the cheap shot: no knife, he's holding something else)
+  if (cheapShotStunned(f.e)) return;
   // (just done it: the hands come off him, nothing more)
   if (state.frame - f.counterAt < COUNTER_GAP || p.health <= 0 || state.deathTimer > 0 || p.invincibilityTimer > 0) return { said: true };
   f.counterAt = state.frame;
@@ -331,6 +335,8 @@ const OUT: ReadonlySet<Mode> = new Set(['reach', 'gut', 'aim', 'coil', 'lunge', 
 /** Up out of a bush: a charge move there knocks him out of it. */
 const IN_BUSH: ReadonlySet<Mode> = new Set(['rise', 'reach', 'gut', 'aim', 'coil', 'exposed']);
 /** In his bush (up out of it), not off out of it on a lunge (gutting him out in the open). */
+/** Out in the open but not to be got at for the cheap shot (flying, gutting him, dying). */
+const CHEAP_NO: ReadonlySet<Mode> = new Set(['dead', 'knocked', 'trampled', 'lunge', 'hop', 'divein', 'gut', 'dodge', 'intro']);
 const inBush = (f: Fight) => IN_BUSH.has(f.mode) && !f.lunged;
 const isOut = (f: Fight) => OUT.has(f.mode) || (f.mode === 'rise' && f.t >= 16);
 
@@ -340,8 +346,14 @@ const isOut = (f: Fight) => OUT.has(f.mode) || (f.mode === 'rise' && f.t >= 16);
 /** The game he's in (for the state of Meathead's pants: what Artie says goes by it, as he says it). */
 let game: GameState | null = null;
 const pants = (): L.Dressed => (!game ? 'clean' : isNude(game) ? 'nude' : isShat(game) ? 'shitty' : 'clean');
+// (after the hand armor's cheap shot, these come out of his crushed-nuts lines: upgrades/cheapShot.ts)
+crushGroups('artie', {
+  hurt: [L.ARTIE_KNOCKED, L.ARTIE_TRAMPLED, L.ARTIE_VINE_SNAP, L.ARTIE_BUSH],
+  taunt: [L.ARTIE_CUPS, L.ARTIE_LURE, L.ARTIE_AGITATED, L.ARTIE_PERCH, L.ARTIE_DODGE, L.ARTIE_NO_BUSHES, L.ARTIE_PEP],
+  attack: [L.ARTIE_GRAB, L.ARTIE_DART, L.ARTIE_LUNGE, L.ARTIE_WHISTLE, L.ARTIE_COUNTER],
+});
 const bark = (f: Fight, lines: L.ByPants) => {
-  const text = pick(lines[pants()]);
+  const text = pick(crushLines(f.e, lines)[pants()]);
   say(text, voice('m2.safari'), 'casual', {
     always: true,
     onShow: spoken => { f.said = text; if (!spoken) setTimeout(() => { if (f.said === text) f.said = null; }, Math.max(1600, text.length * 65)); },
@@ -408,6 +420,12 @@ const faceHim = (state: GameState, f: Fight) => { f.facing = px(state) < f.x ? -
 export const updateFight = (ctx: FrameContext, f: Fight, controls: Controls): Controls => {
   const { state } = ctx;
   live = f; game = state;
+  // (the hand armor's cheap shot (upgrades/cheapShot.ts): he can be got at out in the open on the ground; the cutscene
+  // freezes the lot; then he's stunned, his own way (stars, stood there, open), for the length of it)
+  const ok = isOut(f) && !inBush(f) && f.y >= GY - 2 && !f.cam && !CHEAP_NO.has(f.mode);
+  const cs = cheapShotGate(state, f.e, 'artie', ok);
+  if (cs === 'frozen') { sync(state, f); return controls; }
+  if (cs === 'stunned' && f.mode !== 'dead' && f.mode !== 'stunned' && f.mode !== 'knocked' && f.mode !== 'trampled') { to(f, 'stunned'); f.stunLen = CHEAP_STUN; }
   f.t++;
   if (f.iframes > 0) f.iframes--;
   if (f.flash > 0) f.flash--;

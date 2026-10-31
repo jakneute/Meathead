@@ -241,7 +241,8 @@ const STAR_COLS = ['#FDE047', '#FFFFFF', '#F472B6', '#FDE047'];
 export const drawCheapShotWorld = (c: Ctx, state: GameState) => {
   const f = state.frame;
   for (const r of recs.values()) {
-    if (!live(r) || r.stun <= 0 || r.e.health <= 0) continue;
+    // (its fight still asking (dead, the fights stop: their own health's their own, not the enemy's), still in play)
+    if (!live(r) || r.stun <= 0 || r.e.health <= 0 || state.frame - r.seen > 2 || !state.enemies.includes(r.e)) continue;
     const e = r.e, x = midX(e), y = e.pos.y - 8;
     // (a ring of stars round over the head, the near ones bigger; sweat flying off)
     const n = 4, rx = Math.max(16, Math.min(34, e.width * 0.45));
