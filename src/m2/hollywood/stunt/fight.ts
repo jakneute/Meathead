@@ -50,7 +50,7 @@ import { makeKindEnemy } from '../../../m1/game/enemies/kinds';
 import { CANVAS_WIDTH, CANVAS_HEIGHT, BULLET_DAMAGE } from '../../../m1/constants';
 import { bossMelee } from '../../upgrades/bossMelee';
 import { takeYell } from '../../upgrades/amulet';
-import { cheapShotGate, cheapShotStunned, crushGroups, crushLines } from '../../upgrades/cheapShot';
+import { cheapShotGate, cheapShotStunned, cheapShotStunT, crushGroups, crushLines } from '../../upgrades/cheapShot';
 import { registerM2Kind } from '../../kinds';
 import { newSpam, spamTick, hitKey, swatOff, type Spam, BOSS_IFRAMES } from '../../bossSpam';
 import { setStormPick, setStormHit } from '../../weapons/spellbook';
@@ -482,7 +482,7 @@ const CHEAP_ACTS: ReadonlySet<Act> = new Set<Act>(['idle', 'wave', 'flail', 'sli
  *  runs its course. Back to it after through his hurt beat. */
 const dazed = (f: Fight) => {
   f.actT++;
-  f.sz += (0 - f.sz) * 0.2;
+  // (planted where he was kicked: no easing back to his lane either)
   if (f.zapT > 0) { if (f.act !== 'zapped') setAct(f, 'zapped'); if (--f.zapT === 0) setAct(f, 'smoking'); return; }
   if (f.act !== 'hurt' && f.act !== 'smoking') setAct(f, 'hurt');
   else if (f.act === 'hurt') f.actT = 0;
@@ -1143,6 +1143,9 @@ export const deathNeed = (f: Fight): Box | null => {
 // Drawing
 
 const poseOf = (f: Fight): StevePose => {
+  // (the hand armor's cheap shot: his own pose for it the whole stun, over the hurt flash and the smoking too; only the
+  // lightning's jolt on him shows over it)
+  if (f.mode === 'on' && f.act !== 'zapped' && cheapShotStunned(f.e)) return 'cheap';
   if (f.flash > 0 && f.act !== 'zapped' && f.act !== 'towed') return 'hurt';
   switch (f.act) {
     case 'wave': case 'call': return 'wave';
@@ -1228,7 +1231,8 @@ const drawHim = (c: Ctx, f: Fight, fr: number) => {
   const blink = f.iframes > 0 && Math.floor(fr / 3) % 2 === 0;
   if (blink) c.globalAlpha = 0.6;
   const hop = f.act === 'slip' ? Math.sin(Math.min(1, f.actT / 30) * Math.PI) * 34 : 0;
-  drawSteve(c, f.sx, GY + f.sz * ZK - hop, f.facing, poseOf(f), fr, look);
+  const pose = poseOf(f);
+  drawSteve(c, f.sx, GY + f.sz * ZK - hop, f.facing, pose, fr, pose === 'cheap' ? { ...look, cheapT: cheapShotStunT(f.e) } : look);
   c.globalAlpha = 1;
   // (zapped: the current crawling over him)
   if (f.act === 'zapped') for (let i = 0; i < 3; i++) {

@@ -36,7 +36,10 @@ import { elbow, knee, reachTo } from '../../art/limb';
 
 export type StevePose =
   | 'idle' | 'thumb' | 'wave' | 'angry' | 'flail' | 'slip' | 'hurt' | 'zapped' | 'smoking' | 'towed' | 'getup'
-  | 'sidestep' | 'struck' | 'tumble' | 'hoop' | 'down' | 'charred' | 'stagger' | 'brace' | 'drape' | 'plant' | 'heap';
+  | 'sidestep' | 'struck' | 'tumble' | 'hoop' | 'down' | 'charred' | 'stagger' | 'brace' | 'drape' | 'plant' | 'heap'
+  /** The hand armor's cheap shot: knees knocked in, hunched over, both hands cupped over the damage, shaking, wheezing,
+   *  crying under the aviators; his cracked cup dropped out of his jumpsuit leg at his feet. */
+  | 'cheap';
 
 export interface SteveLook {
   /** How singed (0..1: the lightning's left its mark). */
@@ -61,6 +64,8 @@ export interface SteveLook {
   briefsBurn?: number;
   /** Split open on the pavement (his standard death, the user's: "an open head wound at the top of his mullet"). */
   headWound?: boolean;
+  /** 'cheap': frames into the stun (the cup's drop out of his leg plays off it; unset, it's lying there already). */
+  cheapT?: number;
 }
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -183,7 +188,7 @@ const UPPER = 12.4, FORE = 12.2, REACH = UPPER + FORE - 0.3;
 const HEAD_X = 2.5, HEAD_Y = -91.4;
 
 type Hand = 'fist' | 'thumb' | 'open' | 'claw' | 'flag' | 'hip' | 'grip' | 'back' | 'knee';
-type Mood = 'smug' | 'grin' | 'shout' | 'mad' | 'scared' | 'zap' | 'ouch' | 'cough' | 'strain' | 'dead' | 'cool';
+type Mood = 'smug' | 'grin' | 'shout' | 'mad' | 'scared' | 'zap' | 'ouch' | 'cough' | 'strain' | 'dead' | 'cool' | 'wheeze';
 interface Arm { sx: number; sy: number; ex: number; ey: number; hx: number; hy: number }
 /** A leg: hip, knee, ankle (x, y each), the boot's turn. */
 type LegP = [number, number, number, number, number, number, number];
@@ -302,6 +307,14 @@ const rig = (pose: StevePose, f: number, L: SteveLook): Rig => {
     case 'brace':
       // (putting his neck brace straight for the crowd, both hands to it, chin up: composure)
       return { legs: stand(2), drop: 2, lean: -0.04, bob: 0, far: far(-3, -77, -1, 0.4), near: near(9, -78, 1, 0.4), fk: 'grip', nk: 'grip', head: [0, -1, -0.2], mood: 'strain' };
+    case 'cheap': {
+      // (the cheap shot: knees knocked in together, the boots splayed, hunched right over, both hands cupped over the
+      //  damage; the whole of him shaking, a slow sway on top, the head hung, wheezing)
+      const drop = 6, lean = 0.36 + Math.sin(f * 0.05) * 0.04, tr = f % 4 < 2 ? 0.5 : -0.5;
+      const legs: [LegP, LegP] = [lk(-4, 5 + tr, -19, -6, ANKLE, -0.15, drop), lk(4, 8 - tr, -18, 14, ANKLE, 0.15, drop)];
+      const [fx, fy] = toUpper(5, -29, drop, lean), [nx, ny] = toUpper(8, -28 + tr, drop, lean);
+      return { legs, drop, lean, bob: Math.abs(Math.sin(f * 0.11)) * 0.8, far: armTo(SH_FAR[0], SH_FAR[1], fx, fy), near: armTo(SH_NEAR[0], SH_NEAR[1], nx, ny), fk: 'knee', nk: 'knee', head: [2, 2, 0.3 + tr * 0.06], mood: 'wheeze' };
+    }
     case 'tumble': case 'struck':
       return { legs: [lk(-4, -14, -26, -20, -12, -0.8), lk(4, 15, -30, 23, -19, 0.6)], drop: 0, lean: 0, bob: 0, far: far(-20, -88, -1, 0.3), near: near(24, -86, 1, 0.3), fk: 'open', nk: 'open', head: [0, 0, 0], mood: pose === 'struck' ? 'ouch' : 'scared' };
     case 'hoop': {
@@ -956,7 +969,7 @@ const drawHead = (c: Ctx, mood: Mood, f: number, d: number, L: SteveLook, pose: 
   // ---- the eyes (off the aviators, or once the lens is gone)
   if (L.noShades || d >= 0.65) eye(c, 8.2, -0.6, mood, d);
   // ---- the brows: thick, gray coming through
-  const brow = mood === 'mad' || mood === 'strain' ? [4.6, -6.8, 11, -4.6] : mood === 'scared' || mood === 'zap' || mood === 'ouch' ? [4.6, -5.2, 11, -7.4] : [4.6, -5.8, 11, -5.6];
+  const brow = mood === 'mad' || mood === 'strain' ? [4.6, -6.8, 11, -4.6] : mood === 'scared' || mood === 'zap' || mood === 'ouch' || mood === 'wheeze' ? [4.6, -5.2, 11, -7.4] : [4.6, -5.8, 11, -5.6];
   line(c, brow, 1.8, P.stache[3]); line(c, [brow[0], brow[1] - 0.4, brow[2], brow[3] - 0.4], 0.6, P.gray[1]);
   // ---- the aviators
   if (!L.noShades) aviators(c, f, d);
@@ -966,6 +979,12 @@ const drawHead = (c: Ctx, mood: Mood, f: number, d: number, L: SteveLook, pose: 
   if (MODE === 'normal') for (const [gx, gy] of [[9, 5.2], [11.6, 5.4], [12.6, 8.6], [7.8, 9.4], [13, 6]]) px(c, gx, gy, 0.6, 0.6, P.gray[1]);
   // ---- the mouth
   mouth(c, mood, f, d);
+  // (the cheap shot: tears out from under the aviators, streaming down his cheek, a drop off his jaw now and then)
+  if (mood === 'wheeze' && N) {
+    line(c, [7.4, 2.6, 6.8, 6, 7.2, 10.4], 0.8, '#7DD3FC'); line(c, [7.6, 2.6, 7, 5.6], 0.4, '#E0F2FE');
+    line(c, [10.2, 2.8, 10.8, 4.6], 0.7, '#7DD3FC');
+    const k = (f % 30) / 30; ell(c, 7.2, 11 + k * 9, 0.6, 0.9, '#BAE6FD');
+  }
   // (idle: a toothpick, going)
   if (pose === 'idle') { const a = Math.sin(f * 0.15) * 0.25; line(c, [11.2, 8.2, 11.2 + Math.cos(-0.3 + a) * 4.6, 8.2 + Math.sin(-0.3 + a) * 4.6], 1.4, '#7A5A2E'); line(c, [11.2, 8.2, 11.2 + Math.cos(-0.3 + a) * 4.6, 8.2 + Math.sin(-0.3 + a) * 4.6], 0.6, '#E8C590'); }
   // ---- beaten
@@ -1005,10 +1024,12 @@ const lens = (c: Ctx, p: (c: Ctx) => void, x0: number, x1: number, crack: boolea
 
 const eye = (c: Ctx, x: number, y: number, mood: Mood, d: number) => {
   if (mood === 'dead') { line(c, [x - 1.4, y - 1, x + 1.4, y + 1], 0.7, P.skin[4]); line(c, [x - 1.4, y + 1, x + 1.4, y - 1], 0.7, P.skin[4]); return; }
-  const wide = mood === 'scared' || mood === 'zap' ? 1.4 : mood === 'mad' || mood === 'strain' || mood === 'ouch' ? 0.7 : 1;
+  const wide = mood === 'scared' || mood === 'zap' || mood === 'wheeze' ? 1.4 : mood === 'mad' || mood === 'strain' || mood === 'ouch' ? 0.7 : 1;
   ell(c, x, y, 1.9, 1.3 * wide, '#F5F1E6');
   if (d >= 0.5 && MODE === 'normal') px(c, x - 1.5, y - 0.1, 1, 0.4, '#DC2626');
-  px(c, x + 0.3, y - 0.7 * wide, 1, 1.4 * wide, '#41657A'); px(c, x + 0.6, y - 0.3, 0.5, 0.6, '#0A0A0A');
+  // (wheezing: the eye crossed in toward his nose, up)
+  const cx = mood === 'wheeze' ? 1 : 0;
+  px(c, x + 0.3 + cx, y - 0.7 * wide - cx * 0.4, 1, 1.4 * wide, '#41657A'); px(c, x + 0.6 + cx, y - 0.3 - cx * 0.4, 0.5, 0.6, '#0A0A0A');
   line(c, [x - 2, y - 1.3 * wide, x + 2, y - 1.5 * wide], 0.8, P.skin[4]);
   line(c, [x - 1.6, y + 1.6, x + 1.2, y + 2], 0.5, P.skin[3]);
 };
@@ -1045,6 +1066,11 @@ const mouth = (c: Ctx, mood: Mood, f: number, d: number) => {
       px(c, 9.2, 8.1, 2.6, 0.7, TEETH);
       break;
     case 'cough': ell(c, 10.6, 8.6, 1.4, 1.2 + (f % 10 < 5 ? 0.4 : 0), ink); break;
+    case 'wheeze':
+      // (the silent wheeze: the jaw dropped, an O, gasping wider and back; the gold tooth in it, spit strung)
+      ell(c, 10.4, 9, 1.4, 1.7 + (f % 24 < 12 ? 0.5 : 0), ink); px(c, 9.4, 7.3, 2, 0.5, TEETH); px(c, 10.2, 7.3, 0.6, 0.5, GOLD[1]);
+      line(c, [9.6, 7.8, 9.8, 10.2], 0.3, 'rgba(240, 249, 255, 0.7)');
+      break;
     case 'dead':
       ell(c, 10.2, 8.4, 1.4, 0.9, ink);
       fill(c, MODE === 'char' ? '#57534E' : '#E11D48', () => c.ellipse(11.4, 10, 1.2, 1.8, -0.3, 0, Math.PI * 2)); line(c, [11.2, 9, 11.6, 11], 0.4, '#9F1239');
@@ -1067,6 +1093,18 @@ const headGore = (c: Ctx, f: number, d: number) => {
 
 const aftermath = (c: Ctx, pose: StevePose, f: number, L: SteveLook, R: Rig) => {
   switch (pose) {
+    case 'cheap': {
+      // (his athletic cup, a fat lot of good it did: dropped out of his jumpsuit leg, a hop on the floor, split down the
+      //  middle, a piece of it off beside it)
+      const t = L.cheapT ?? 99, y = t < 12 ? -26 + t * t * 0.18 : t < 20 ? -Math.sin(((t - 12) / 8) * Math.PI) * 4 : 0;
+      const x = t < 12 ? 9 : 9 + Math.min(8, t - 12) * 0.5;
+      ell(c, x, y - 2.2, 4.4, 2.8, '#57534E');
+      ell(c, x, y - 2.4, 3.8, 2.3, '#E7E5E4'); ell(c, x - 1, y - 3.2, 2, 1, '#FFFFFF');
+      ell(c, x, y - 1, 3.6, 0.8, '#A8A29E');
+      line(c, [x - 0.4, y - 4.6, x + 0.6, y - 2.6, x - 0.2, y - 0.6], 0.5, '#292524');
+      if (t >= 20) { ell(c, x + 6, -0.9, 1.6, 0.9, '#57534E'); ell(c, x + 6, -1.1, 1.2, 0.6, '#D6D3D1'); }
+      break;
+    }
     case 'slip': {
       // (squirted out: drops of baby oil flung off him, amber, glinting; the shine on him)
       for (let i = 0; i < 10; i++) {
