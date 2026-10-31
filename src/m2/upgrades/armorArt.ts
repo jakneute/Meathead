@@ -121,21 +121,22 @@ const bake = (key: string, w: number, h: number, paint: (c: C, back: boolean) =>
 const SAB_W = 22, SAB_H = 17, SAB_OX = 4, SAB_OY = 8;
 const paintSabaton = (c: C, back: boolean) => {
   const X = SAB_OX, Y = SAB_OY;
-  // (the foot: from the shaft's front down a slope to a pointed toe, a flat sole under it)
-  const top = (x: number) => (x < X + 7 ? Y + 0.8 : Y + 0.8 + (x - X - 7) * 0.42);
+  // (the boot keeps inside its own rect (nothing up his shin, so it never sits over the leg armor): the shaft round his
+  // ankle across the back of its top, the foot from its front down a slope to a pointed toe, a flat sole under it)
+  const top = (x: number) => (x < X + 7 ? Y + 0.2 : Y + 2 + (x - X - 7) * 0.3);
   const foot = (x: number, y: number) => x > X && x < X + 16.8 && y > top(x) && y < Y + 6.2 && !(x > X + 14 && y < top(x) + (x - X - 14) * 0.6);
   shade(c, X, Y, 17, 7, foot, (x, y) => 0.95 - ((y - top(x)) / Math.max(1, Y + 6.2 - top(x))) * 0.7, RUST);
   // (the iron toe cap: a darker plate over the point, a lit rim)
   shade(c, X + 11, Y + 1, 7, 6, (x, y) => foot(x, y) && x > X + 11.5, (x, y) => 0.85 - (y - Y - 2) * 0.12 - (x - X - 12) * 0.03, IRON);
   for (let x = X + 12; x < X + 16; x++) px(c, x, Math.ceil(top(x)), IRON[4]);
-  // (the shaft: up his ankle, a V notch cut in its top front, the pull strap's loop)
-  const shaft = (x: number, y: number) => x > X && x < X + 7.6 && y > Y - 3.6 && y < Y + 1.6 && !(y < Y - 2.2 && Math.abs(x - X - 5.4) < (Y - 2.2 - y) * 0.8 + 0.2);
-  shade(c, X, Y - 6, 8, 8, shaft, (x) => 0.9 - (x - X) * 0.08, RUST);
-  rect(c, X, Y - 3.6, 2.4, 0.8, RUST[4]); rect(c, X + 6.6, Y - 3.6, 1, 0.8, RUST[3]);
-  rect(c, X + 1, Y - 5, 1.4, 1.6, RUST[0]); rect(c, X + 1.3, Y - 4.7, 0.8, 1, RUST[3]);
-  // (rivets down the shaft's seams and along the welt, lit on top; the pitting)
-  for (const [rx, ry] of [[X + 1, Y - 2.4], [X + 1, Y], [X + 6, Y - 1.6], [X + 9, Y + 4.4], [X + 12, Y + 4.6], [X + 3, Y + 4.4]] as const) { px(c, rx, ry, '#F2B27A'); px(c, rx, ry + 1, RUST[0]); }
-  for (const [rx, ry] of [[X + 3, Y - 1], [X + 4, Y + 2], [X + 8, Y + 3], [X + 10, Y + 2], [X + 5, Y - 1]] as const) px(c, rx, ry, (rx + ry) % 2 ? '#D9772E' : RUST[1]);
+  // (the shaft's top: a lit rim, a V notch cut in its front, the pull strap's tab; its seam down the back)
+  rect(c, X + 0.2, Y + 0.2, 6.8, 0.7, RUST[4]);
+  c.fillStyle = RUST[0]; c.beginPath(); c.moveTo(X + 4.2, Y + 0.2); c.lineTo(X + 5.4, Y + 1.8); c.lineTo(X + 6.6, Y + 0.2); c.closePath(); c.fill();
+  rect(c, X + 1, Y + 0.2, 1.2, 1.4, RUST[0]); rect(c, X + 1.2, Y + 0.4, 0.7, 0.9, RUST[3]);
+  for (let y = Y + 1; y < Y + 5; y++) px(c, X + 7, y, RUST[1]);
+  // (rivets down the shaft's seam and along the welt, lit on top; the pitting)
+  for (const [rx, ry] of [[X + 2.6, Y + 2], [X + 6, Y + 2.6], [X + 9, Y + 4.4], [X + 12, Y + 4.6], [X + 3, Y + 4.4]] as const) { px(c, rx, ry, '#F2B27A'); px(c, rx, ry + 1, RUST[0]); }
+  for (const [rx, ry] of [[X + 4, Y + 2], [X + 8, Y + 3], [X + 10, Y + 3], [X + 5, Y + 4]] as const) px(c, rx, ry, (rx + ry) % 2 ? '#D9772E' : RUST[1]);
   // (the stacked heel under the back, taller than the sole; the sole's lit edge)
   shade(c, X, Y + 6, 4, 3, (x, y) => x > X + 0.2 && x < X + 3.8 - (y - Y - 6) * 0.4 && y > Y + 6 && y < Y + 8.6, (_x, y) => (y < Y + 7 ? 0.7 : 0.3), IRON);
   rect(c, X + 4, Y + 6, 13, 1.2, IRON[1]); rect(c, X + 4, Y + 6, 13, 0.5, IRON[3]);
@@ -185,13 +186,17 @@ const paintReel = (c: C) => {
 // ARMGUARDS (Future): 14 x 10 along the forearm (+x elbow to wrist, centred on y = 5); chrome in stark bands, a dark LED
 // window down it (x 2..12, y 2.5..7.5) the scrolling text's slid through each frame.
 const LED_X0 = 2, LED_W = 10, LED_Y0 = 2.5, LED_H = 5;
-const paintBracer = (c: C) => {
+const paintBracer = (c: C) => paintBracerOf(c, true);
+/** ...without the LED slot (the walk screens: the whole word goes on it as a panel of its own). */
+const paintBracerPlain = (c: C) => paintBracerOf(c, false);
+const paintBracerOf = (c: C, slot: boolean) => {
   const hw = (x: number) => 4.8 - 0.8 * (x / 14);
   const inside = (x: number, y: number) => x > 0.4 && x < 13.6 && Math.abs(y - 5) < hw(x) && !((x < 1.2 || x > 12.8) && Math.abs(y - 5) > hw(x) - 1.2);
   shade(c, 0, 0, 14, 10, inside, (x, y) => {
     const v = (y - 5) / hw(x);
     return v < -0.6 ? 0.98 : v < -0.2 ? 0.62 : v < 0.18 ? 0.2 : v < 0.6 ? 0.5 : 0.28;
   }, CHROME);
+  if (!slot) return;
   // (the LED window, recessed: a black slot, a lit lip under it)
   rect(c, LED_X0 - 0.4, LED_Y0 - 0.4, LED_W + 0.8, LED_H + 0.8, '#020617');
   rect(c, LED_X0 - 0.4, LED_Y0 + LED_H + 0.4, LED_W + 0.8, 0.4, CHROME[4]);
@@ -219,6 +224,24 @@ const paintBracerGlow = (c: C) => {
   g.addColorStop(0, 'rgba(255, 59, 59, 0.45)'); g.addColorStop(1, 'rgba(255, 59, 59, 0)');
   c.fillStyle = g; c.fillRect(0, 0, 14, 8);
 };
+/** The whole word BEEF on a dark LED panel, 17 x 7 (two frames of a chase: a sparkle moving along the lit LEDs), for
+ *  the walk screens, where a hanging forearm's wide enough to show it whole and upright. */
+const paintLedWord = (c: C, phase: number) => {
+  rect(c, 0, 0, 17, 7, '#020617');
+  ['B', 'E', 'E', 'F'].forEach((ch, i) => {
+    const g = LED_FONT[ch];
+    for (let y = 0; y < 5; y++) for (let x = 0; x < 3; x++) {
+      const on = g[y][x] === '1';
+      px(c, 1 + i * 4 + x, 1 + y, on ? ((x + y + i + phase) % 4 === 0 ? '#FFD0D0' : '#FF3B3B') : '#3A0A0A');
+    }
+  });
+};
+/** Draws the whole word upright on screen, its middle at (x, y), `k` px to an LED. */
+export const drawLedWord = (ctx: C, x: number, y: number, k: number, frame: number) => {
+  const ph = Math.floor(frame / 8) % 2;
+  const img = bake('ledw' + ph, 17, 7, c => paintLedWord(c, ph * 2));
+  if (img) ctx.drawImage(img, x - 8.5 * k, y - 3.5 * k, 17 * k, 7 * k);
+};
 /** Slides the LED text through the window: (x, y, w, h) where the window is drawn, in the current frame; turned so it
  *  reads upright and left to right on screen whichever way the arm points or he faces. */
 export const drawLed = (ctx: C, x: number, y: number, w: number, h: number, frame: number) => {
@@ -228,7 +251,8 @@ export const drawLed = (ctx: C, x: number, y: number, w: number, h: number, fram
   let sx = 1, sy = 1;
   if (m.a * m.d - m.b * m.c < 0) sy = -1;
   if (m.a * sx < 0) { sx = -sx; sy = -sy; }
-  const off = Math.floor(frame / 5) % LED_RUN, shown = Math.min(LED_RUN, Math.round(LED_W * 1.0));
+  // (as many columns as fit with square LEDs: the letters keep their shape, only so many show at once)
+  const off = Math.floor(frame / 6) % LED_RUN, shown = Math.max(4, Math.min(LED_RUN, Math.round(w / (h / 5))));
   ctx.save(); ctx.translate(x + w / 2, y + h / 2); ctx.scale(sx, sy);
   ctx.drawImage(img, off * BAKE, 0, shown * BAKE, 5 * BAKE, -w / 2, -h / 2, w, h);
   ctx.restore();
@@ -239,6 +263,11 @@ export const drawLed = (ctx: C, x: number, y: number, w: number, h: number, fram
 // four-finger cartoon glove balled up, flat white, one flat shade, a heavy black outline, three stitches across the back,
 // a rolled cuff at the wrist.
 const GLOVE = 18;
+/** Where the glove's picture starts, from the fist's middle (fist units): its cuff's back edge (x 2.2) just past the wrist
+ *  (the fist's middle is 4.5 past it), so it never sits over the armguard. */
+const GLOVE_AT = -6.3;
+/** The cuff's back edge in the glove's picture (the walk screens line it up past the wrist too). */
+export const GLOVE_BACK = 2.2;
 const paintGlove = (c: C) => {
   const fingers: [number, number][] = [[15.2, 4.4], [16, 7.6], [16, 10.8], [15.2, 13.8]];
   // (the outline first, a size up all round: the cartoon's black line)
@@ -246,7 +275,7 @@ const paintGlove = (c: C) => {
   c.beginPath(); c.arc(10, 9, 7, 0, Math.PI * 2); c.fill();
   for (const [fx, fy] of fingers) { c.beginPath(); c.arc(fx, fy, 2.6, 0, Math.PI * 2); c.fill(); }
   c.beginPath(); c.arc(9, 2.6, 2.6, 0, Math.PI * 2); c.fill();
-  c.beginPath(); c.roundRect(0.4, 2.4, 5.4, 13.2, 1.8); c.fill();
+  c.beginPath(); c.roundRect(2.2, 2.6, 4.6, 12.8, 1.8); c.fill();
   // (the hand, the curled fingers along its front, the thumb over the top)
   c.fillStyle = '#FAFAFA'; c.beginPath(); c.arc(10, 9, 6, 0, Math.PI * 2); c.fill();
   for (const [fx, fy] of fingers) { c.beginPath(); c.arc(fx, fy, 1.7, 0, Math.PI * 2); c.fill(); }
@@ -255,8 +284,8 @@ const paintGlove = (c: C) => {
   c.fillStyle = '#D4D4D8'; c.beginPath(); c.arc(10, 9, 6, Math.PI * 0.12, Math.PI * 0.88); c.arc(10, 7.2, 5.4, Math.PI * 0.85, Math.PI * 0.15, true); c.fill();
   c.fillStyle = '#0A0A0A'; for (const fy of [6, 9.2, 12.4]) c.fillRect(13.6, fy - 0.3, 2.4, 0.6);
   // (the cuff, rolled, flaring out over the wrist)
-  c.fillStyle = '#FAFAFA'; c.beginPath(); c.roundRect(1.3, 3.3, 3.6, 11.4, 1.3); c.fill();
-  c.fillStyle = '#D4D4D8'; c.fillRect(1.3, 11, 3.6, 3.4); c.fillStyle = '#0A0A0A'; c.fillRect(3.5, 3.8, 0.7, 10.4);
+  c.fillStyle = '#FAFAFA'; c.beginPath(); c.roundRect(3, 3.4, 3, 11.2, 1.2); c.fill();
+  c.fillStyle = '#D4D4D8'; c.fillRect(3, 11, 3, 3.4); c.fillStyle = '#0A0A0A'; c.fillRect(5, 3.8, 0.6, 10.2);
   // (the three stitches across the back of it)
   c.fillStyle = '#18181B'; for (const sy of [6.4, 9, 11.6]) c.fillRect(7.4, sy - 0.35, 3.8, 0.7);
   // (the cartoon shine)
@@ -428,18 +457,20 @@ export const drawBell = (ctx: C, x: number, y: number, s: number, a: number, jol
 const drawSabaton = (ctx: C, x: number, y: number, w: number, h: number, back: boolean) => {
   const sx = w / 16, sy = h / 8;
   put(ctx, bake('sab', SAB_W, SAB_H, paintSabaton, back), x - SAB_OX * sx, y - SAB_OY * sy, SAB_W * sx, SAB_H * sy);
-  if (!back) drawBell(ctx, x + 6.6 * sx, y - 3.2 * sy, Math.min(sx, sy), bellSwing(), armorMotion.jolt, armorMotion.frame);
+  if (!back) drawBell(ctx, x + 6.4 * sx, y + 0.6 * sy, Math.min(sx, sy) * 0.85, bellSwing(), armorMotion.jolt, armorMotion.frame);
 };
 const drawShin = (ctx: C, hip: [number, number], knee: [number, number], foot: [number, number], back: boolean) => {
   const dx = foot[0] - knee[0], dy = foot[1] - knee[1], len = Math.hypot(dx, dy);
   ctx.save(); ctx.translate(knee[0], knee[1]); ctx.rotate(Math.atan2(dy, dx) - Math.PI / 2);
-  // (knee and shin only: the statuette starts under the knee pad, the pad's small, so the thigh's jeans show)
-  const y0 = 3.2, y1 = len - 2.6, w = back ? 7.6 : 8.6;
+  // (knee and shin: from just above the knee down to well clear of the boot's top (the boot keeps inside its own rect,
+  // a little above the ankle at most), the full width of the leg; nothing up the thigh past the knee pad, so the
+  // jeans' seat and crotch show)
+  const y0 = -1.2, y1 = len - 5.2, w = back ? 9.2 : 10.4;
   if (y1 - y0 > 2.5) put(ctx, bake('statue', 10, 16, paintStatue, back), -w / 2, y0, w, (y1 - y0) * 16 / 15);
   ctx.restore();
   // (the reel knee pad: on the front of the knee, the way it bends)
   const mx = (hip[0] + foot[0]) / 2, my = (hip[1] + foot[1]) / 2, ox = knee[0] - mx, oy = knee[1] - my, ol = Math.hypot(ox, oy);
-  const off = ol > 0.6 ? 1.3 / ol : 0, r = back ? 2.9 : 3.4;
+  const off = ol > 0.6 ? 1.3 / ol : 0, r = back ? 3.3 : 3.9;
   put(ctx, bake('reel', 10, 10, paintReel, back), knee[0] + ox * off - r, knee[1] + oy * off - r, r * 2, r * 2);
 };
 const drawBracer = (ctx: C, ex: number, ey: number, wx: number, wy: number, back: boolean, len: number) => {
@@ -449,7 +480,8 @@ const drawBracer = (ctx: C, ex: number, ey: number, wx: number, wy: number, back
     const g = glowLayer(ctx);
     if (g !== ctx) { g.save(); g.setTransform(ctx.getTransform()); put(g, bake('bracerGlow', 14, 8, paintBracerGlow), -2, -6, len + 6, 12); g.restore(); }
   }
-  const bx = len * 0.12, bw = len * 0.96, bh = 10.4, ux = bw / 14, uy = bh / 10;
+  // (from a touch above the elbow (well under the pauldron) to just short of the wrist: the glove starts past the wrist)
+  const bx = -2.5, bw = len + 1.3, bh = 11.6, ux = bw / 14, uy = bh / 10;
   put(ctx, bake('bracer', 14, 10, paintBracer, back), bx, -bh / 2, bw, bh);
   if (!back) drawLed(ctx, bx + LED_X0 * ux, -bh / 2 + LED_Y0 * uy, LED_W * ux, LED_H * uy, armorMotion.frame);
   ctx.restore();
@@ -566,7 +598,7 @@ const ART: ArmorArt = {
     const k = r / 5;
     armorSeam(ctx, () => {
       ctx.save(); ctx.translate(x, y); ctx.rotate(angle); ctx.scale(k, k);
-      put(ctx, bake('glove', GLOVE, GLOVE, paintGlove, back), -10.4, -9, GLOVE, GLOVE);
+      put(ctx, bake('glove', GLOVE, GLOVE, paintGlove, back), GLOVE_AT, -9, GLOVE, GLOVE);
       ctx.restore();
     });
   },
@@ -581,9 +613,9 @@ const ART: ArmorArt = {
 };
 
 /** The baked pieces, for the bigger pictures of him (walkArmor.ts: the walk screens): each painted once. */
-export type Stamp = 'sab' | 'statue' | 'reel' | 'bracer' | 'glove' | 'pauldron' | 'helmet' | 'amulet' | 'skull' | 'bell' | 'tag';
+export type Stamp = 'sab' | 'statue' | 'reel' | 'bracer' | 'bracerPlain' | 'glove' | 'pauldron' | 'helmet' | 'amulet' | 'skull' | 'bell' | 'tag';
 const STAMPS: Record<Stamp, [number, number, (c: C, back: boolean) => void]> = {
-  sab: [SAB_W, SAB_H, paintSabaton], statue: [10, 16, paintStatue], reel: [10, 10, paintReel], bracer: [14, 10, paintBracer], glove: [GLOVE, GLOVE, paintGlove],
+  sab: [SAB_W, SAB_H, paintSabaton], statue: [10, 16, paintStatue], reel: [10, 10, paintReel], bracer: [14, 10, paintBracer], bracerPlain: [14, 10, paintBracerPlain], glove: [GLOVE, GLOVE, paintGlove],
   pauldron: [20, 18, paintPauldron], helmet: [HELM_W, HELM_H, paintHelmet], amulet: [10, 12, paintAmulet], skull: [6, 6, paintSkull], bell: [6, 7, paintBell], tag: [6, 9, paintTag],
 };
 export const armorStamp = (s: Stamp, back = false) => { const [w, h, paint] = STAMPS[s]; return bake(s, w, h, paint, back); };

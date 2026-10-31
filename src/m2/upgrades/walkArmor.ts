@@ -11,7 +11,7 @@
 
 import { type Ctx, INK, box, poly, stipple } from '../walkAway/kit';
 import { has } from './state';
-import { armorStamp, drawLed, RUST, IRON, CAPE, PLASTIC, HORN, CAN_RED, CAN_BLUE, LED_X0, LED_W, LED_Y0, LED_H } from './armorArt';
+import { armorStamp, drawLedWord, GLOVE_BACK, RUST, IRON, CAPE, PLASTIC, HORN, CAN_RED, CAN_BLUE } from './armorArt';
 
 type P2 = [number, number];
 /** The sprite's stamps drawn this much bigger here. */
@@ -30,12 +30,12 @@ const stamp = (c: Ctx, img: HTMLCanvasElement | null, x: number, y: number, w: n
  *  the outside; the cowbell off the ankle on the screen's right. */
 export const walkBoot = (c: Ctx, bx: number, by: number, bw: number, bh: number, side: number, front: boolean, t = 0) => {
   if (!has('sabatons')) return;
-  const sx = bx + 3, sw = bw - 6, top = by - 6;
+  const sx = bx + 3, sw = bw - 6, top = by;
   // (the shaft, a V notch in the middle of its top, the pull straps' loops each side)
   poly(c, [[sx, top], [sx + sw / 2 - 3, top], [sx + sw / 2, top + 4], [sx + sw / 2 + 3, top], [sx + sw, top], [sx + sw + 1, by + 4], [sx - 1, by + 4]], RUST[2]);
   box(c, sx, top + 1, 3, by + 3 - top, RUST[3]); box(c, sx + sw - 3, top + 1, 3, by + 3 - top, RUST[1]);
-  box(c, sx + 1, top - 3, 3, 4, INK); box(c, sx + sw - 4, top - 3, 3, 4, INK); box(c, sx + 2, top - 2, 1, 2, RUST[4]);
-  for (const ry of [top + 4, top + 8]) { box(c, sx + 2, ry, 1, 1, '#F2B27A'); box(c, sx + sw - 3, ry, 1, 1, '#F2B27A'); }
+  box(c, sx + 1, top, 3, 3, INK); box(c, sx + sw - 4, top, 3, 3, INK); box(c, sx + 2, top + 1, 1, 1, RUST[4]);
+  box(c, sx + 2, top + 4, 1, 1, '#F2B27A'); box(c, sx + sw - 3, top + 4, 1, 1, '#F2B27A');
   // (the foot: rust, banded, lit along its top)
   c.fillStyle = INK; c.beginPath(); c.roundRect(bx - 2, by + 2, bw + 4, bh - 1, 3); c.fill();
   box(c, bx - 1, by + 3, bw + 2, bh - 3, RUST[2]);
@@ -68,13 +68,14 @@ export const walkBoot = (c: Ctx, bx: number, by: number, bw: number, bh: number,
  *  Nothing up his thigh. */
 export const walkShin = (c: Ctx, lx: number, ky: number, bootTop: number, side: number, front: boolean) => {
   if (!has('legs')) return;
-  const top = ky + (front ? 6 : 4), bot = bootTop - 5, h = bot - top;
+  // (from just above the knee to a clean gap above the boot (the boot keeps inside its own box))
+  const top = ky - 2, bot = bootTop - 3, h = bot - top;
   if (front) {
-    if (h > 4) stamp(c, armorStamp('statue'), lx - 1, top + h / 2, 15, h);
-    stamp(c, armorStamp('reel'), lx - 1, ky + 1, 12, 12);
+    if (h > 4) stamp(c, armorStamp('statue'), lx - 1, top + h / 2, 18, h);
+    stamp(c, armorStamp('reel'), lx - 1, ky + 1, 15, 15);
   } else if (h > 4) {
-    for (const s of [-1, 1]) box(c, lx + s * 8 - 1, top + 2, 2, h - 4, s === side ? '#F0C850' : '#C8961A');
-    for (const ty of [top + h * 0.2, top + h * 0.62]) { box(c, lx - 9, ty, 18, 4, '#9CA3AF'); box(c, lx - 9, ty, 18, 1, '#E5E7EB'); box(c, lx - 9, ty + 3, 18, 1, '#6B7280'); }
+    for (const s of [-1, 1]) box(c, lx + s * 9 - 1, top + 2, 2, h - 4, s === side ? '#F0C850' : '#C8961A');
+    for (const ty of [top + h * 0.15, top + h * 0.6]) { box(c, lx - 9, ty, 18, 4, '#9CA3AF'); box(c, lx - 9, ty, 18, 1, '#E5E7EB'); box(c, lx - 9, ty + 3, 18, 1, '#6B7280'); }
   }
 };
 
@@ -84,23 +85,28 @@ export const walkShoulder = (c: Ctx, x: number, y: number, side: number) => {
   stamp(c, armorStamp('pauldron', false), x + side * 2, y - 2, 20 * K, 18 * K, 0, side < 0);
 };
 
-/** An armguard along the forearm (elbow to wrist), its LEDs scrolling BEEF (`t` the screen's frame). */
+/** An armguard along the forearm, from a little up the upper arm (well under the pauldron) to just short of the wrist
+ *  (the glove starts past it), the whole word BEEF lit across it, upright (`t` the screen's frame). */
 export const walkForearm = (c: Ctx, E: P2, W: P2, t = 0) => {
   if (!has('armguards')) return;
   const dx = W[0] - E[0], dy = W[1] - E[1], len = Math.hypot(dx, dy);
   if (len < 4) return;
+  const bx = -6, bw = len - 1 - bx, bh = 24;
   c.save(); c.translate(E[0], E[1]); c.rotate(Math.atan2(dy, dx));
-  const img = armorStamp('bracer'), bx = len * 0.16, bw = len * 0.92, bh = 19, ux = bw / 14, uy = bh / 10;
+  const img = armorStamp('bracerPlain');
   if (img) c.drawImage(img, bx, -bh / 2, bw, bh);
-  drawLed(c, bx + LED_X0 * ux, -bh / 2 + LED_Y0 * uy, LED_W * ux, LED_H * uy, t);
   c.restore();
+  // (the LED panel: the whole word, upright on screen, in the bracer's middle)
+  const m = (bx + bw / 2) / len;
+  drawLedWord(c, Math.round(E[0] + dx * m), Math.round(E[1] + dy * m), 1, t);
 };
 
 /** The big white glove over a fist (its middle; `r` the fist's size), pointing `a` (down, hanging). */
 export const walkFist = (c: Ctx, x: number, y: number, r = 7, a = Math.PI / 2) => {
   if (!has('hands')) return;
-  const s = (18 * r) / 5;
-  stamp(c, armorStamp('glove'), x - Math.cos(a) * s / 18, y - Math.sin(a) * s / 18, s, s, a);
+  // (its cuff's back edge 5 px down from the fist's middle toward the wrist (6 back): clear of the armguard)
+  const s = (18 * r) / 5, u = s / 18, off = (9 - GLOVE_BACK) * u - 5;
+  stamp(c, armorStamp('glove'), x + Math.cos(a) * off, y + Math.sin(a) * off, s, s, a);
 };
 
 // ---- the helmet, from the front or behind: painted once (picture px), a souvenir-shop Viking helmet: the silver

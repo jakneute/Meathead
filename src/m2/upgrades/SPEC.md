@@ -51,8 +51,19 @@ to see everything"; then "every piece should be visible"). With all 8 on, in eve
   shitty stain, naked: ass and dick). The cape never reaches below his belt in any mode (hanging, fluttering, streaming
   as he falls, spread while floating): its points are shortened to the belt line and it's clipped there too
   (armorArt.ts cape, `hem`); from behind on the walk screens it's split down his spine and stops above the belt. The leg
-  armor is knee and shin only: a small knee cop, the plating starting under it. The amulet's chain stays on his chest.
+  armor is knee and shin only (no higher than just above the knee). The amulet's chain stays on his chest.
   The gloves stay on his fists: a hanging hand rests beside the hip, never over the fly or the seat.
+- NO PIECE ON TOP OF ANOTHER (2026-10-31: "i'd like the leg guards and the arm guards to be a bit bigger and
+  unobstructed by the hand feet upgrades ... i want to be able to see 'beef' on the arm guards completely during the walk
+  in without being obstructed by the gloves ... no two parts to sit too much on top of each other"; "the main models
+  should line up too"). Small clean gaps between pieces, the same on the sprite and the walk figures:
+  - ARMGUARDS cover the forearm from a little above the elbow (well under the pauldron's trim) to just short of the
+    wrist. The GLOVE starts past the wrist (its cuff's back edge: armorArt.ts GLOVE_AT / GLOVE_BACK), never over it.
+  - On the walk figures the whole word BEEF is lit, upright, on a panel in the bracer's middle (drawLedWord); on the
+    sprite it scrolls through the bracer's slot with square LEDs (drawLed), as much as fits.
+  - LEG GUARDS: the film-reel knee pad over the knee and the taped statuette from just above the knee down the whole
+    shin, the leg's full width, stopping a clean gap above the boot. The SABATONS keep inside the boot's own rect (no
+    shaft up the shin), the cowbell hangs on the boot.
 - GLASSES: the helmet's brim stops above the glasses (sprite: ey - 4.6, the rims start at ey - 3.3), and the glasses
   are drawn after the helmet in every path (sprite, walk figures, HUD face). Nothing else goes over his eyes.
 - THE ASTRONAUT LOOK (Future Land's Space Needle 2, Player.spaceSuit): not a uniform, just the glass fishbowl and a
