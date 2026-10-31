@@ -21,6 +21,13 @@
 // Meathead's on the left in all of them (the camera's own side: he's left-handed, and a mirrored picture would make him
 // a righty). Speech in the box only while it's being said.
 //
+// Meathead wears whatever armor he owns (upgrades/state.ts has(piece), live), the sprite's own pieces drawn on his limbs
+// here at the picture's size, inked like everything else in it (wearing() below): the coconut pauldrons, the BEEF
+// bracers, the cartoon gloves on his fists, the Viking helmet over his flat-top (its brim above his glasses, the straw
+// round the outside of them to his mouth), the princess jewel between his pecs, the vampire cape's points behind his
+// shoulders and its collar behind his neck (never down past his belt), and, when he's lifted off his feet, the
+// statuettes on his shins and the iron cowboy boots. His jeans' front and seat (the stain, his bare ass) always show.
+//
 // The suitors' heads are Ren & Stimpy gross-ups (suitorGross.ts: the picture's painted at the screen's resolution under
 // its 2x so they keep every pixel), the beating showing on them as it goes: the tussle's beats won bruise him (a welt,
 // a nosebleed, a black eye), a kill starts him there and the smash's three hits break his nose, swell his eyes shut,
@@ -44,6 +51,8 @@ import { closeupYell } from './kills';
 import type { KillKind } from './lines';
 import type { Wheel, Closeup } from './state';
 import { drawSuitorGross, warmSuitorGross, type GrossFace, type GrossWant } from './suitorGross';
+import { armorParts, withArmor } from '../../upgrades/armorArt';
+import { FLAT } from '../../upgrades/walkArmor';
 
 type P = [number, number];
 type Pants = 'clean' | 'shitty' | 'nude';
@@ -175,6 +184,10 @@ const xf = (F: Fig, p: P, part: 0 | 1 | 2): P => {
 };
 const headOf = (F: Fig) => xf(F, [2, -52], 2);
 
+/** Draws Meathead's armor pieces the picture's way: inked, on the picture's clock, standing still (nothing streams). */
+let armorFrame = 0;
+const wearing = (fn: () => void) => withArmor({ ink: 1, motion: { frame: armorFrame, fwd: 0, vy: 0, grounded: true, floating: false, jolt: 0 } }, fn);
+
 const SHOULDER: [P, P] = [[9, -31], [-9, -33]];
 const drawArm = (g: Ctx, F: Fig, near: boolean) => {
   const R = skinOf(F.who), s = F.sc ?? 1, seg = 17 * s;
@@ -191,6 +204,18 @@ const drawArm = (g: Ctx, F: Fig, near: boolean) => {
   limb(g, sh, el, w * s, R); limb(g, el, h, (w - 1.5) * s, R);
   orb(g, h[0], h[1], 4.6 * s, 4.2 * s, R);
   box(g, h[0] - 2 * s, h[1] - 1, 4 * s, 1, R[0]);
+  if (!F.who.mh) return;
+  // (his armor: the bracer from the elbow to short of the wrist, the coconut over the shoulder, the glove on the fist;
+  // the far arm's in his shadow)
+  const fx = h[0] - el[0], fy = h[1] - el[1], fl = Math.hypot(fx, fy) || 1, back = !near;
+  const wr: P = [h[0] - (fx / fl) * 4.4 * s, h[1] - (fy / fl) * 4.4 * s];
+  wearing(() => {
+    armorParts.forearm(g, el[0], el[1], wr[0], wr[1], back);
+    // (the near coconut on the corner of his shoulder, out past where the arm hangs from: the torso's wider than the
+    // arms' roots in this chest-on view; the far one's on the torso, paintTorso)
+    if (near) { const at = xf(F, [19, -36], 1); g.save(); g.translate(at[0], at[1]); g.rotate(F.rot + F.lean); armorParts.shoulder(g, 0, 0, 7 * s, false); g.restore(); }
+    armorParts.fist(g, h[0], h[1], 4.6 * s, Math.atan2(fy, fx), back);
+  });
 };
 
 const legColOf = (who: Who): string[] => {
@@ -210,6 +235,8 @@ const paintLegs = (g: Ctx, F: Fig, k: number) => {
     limb(g, hip, knee, 11, R); limb(g, knee, foot, 10, R);
     if (nude) orb(g, foot[0] + 2, foot[1] + 1, 5, 3, MSK);
     else { box(g, foot[0] - 5, foot[1] - 3, 12, 7, INK); box(g, foot[0] - 4, foot[1] - 2, 10, 5, F.who.mh ? '#27272A' : '#3A2A1A'); box(g, foot[0] - 3, foot[1] - 2, 5, 1, F.who.mh ? '#52525B' : '#6A4A2A'); }
+    // (his armor: the statuette down the shin, the reel on the knee, the iron cowboy boot (on a bare foot too))
+    if (F.who.mh) wearing(() => { armorParts.shin(g, hip, knee, foot, s < 0); armorParts.boot(g, foot[0] - 5, foot[1] - 3, 13, 7, s < 0); });
   }
   // (the seat of his pants, behind: the shitty stain; naked, his ass)
   if (F.who.mh && F.who.pants === 'shitty') { ell(g, -12, 6, 7, 8, INK); ell(g, -12, 6, 6, 7, POOP[2]); ell(g, -13, 4, 3, 3, POOP[3]); box(g, -14, 13, 2, 4, POOP[2]); }
@@ -221,10 +248,17 @@ const paintLegs = (g: Ctx, F: Fig, k: number) => {
 const paintTorso = (g: Ctx, F: Fig) => {
   const R = skinOf(F.who), who = F.who;
   if (who.mh) {
+    // (the cape's points flaring out behind his shoulders, stopping above his belt)
+    FLAT.capeFront(g, 0, -38, 26, -8, 'behind', armorFrame);
     slab(g, poly([-24, -34, -10, -41, 10, -41, 24, -34, 22, -20, 16, 2, -16, 2, -22, -20])(g), R, -12, -34);
     // (pecs, abs, the line down the middle)
     box(g, -14, -25, 12, 2, R[0]); box(g, 2, -25, 13, 2, R[0]); box(g, 0, -33, 1, 9, R[0]); box(g, -12, -31, 6, 2, R[4]); box(g, 4, -31, 5, 1, R[3]);
     for (let k = 0; k < 3; k++) { box(g, -7, -19 + k * 6, 6, 1, R[0]); box(g, 2, -19 + k * 6, 6, 1, R[0]); box(g, -6, -18 + k * 6, 3, 2, R[3]); }
+    // (the cape's tall collar behind his neck, the skull at his throat; the princess jewel on its chain between his pecs)
+    FLAT.capeFront(g, 0, -38, 26, -8, 'collar', armorFrame);
+    FLAT.amulet(g, 0, -41, 0.9, true, armorFrame);
+    // (the far coconut on the far corner of his shoulders, its tusk out that way, in his shadow)
+    wearing(() => { g.save(); g.translate(-19, -36); g.scale(-1, 1); armorParts.shoulder(g, 0, 0, 7, true); g.restore(); });
     // (the waist: belt and jeans, stained; or nothing on)
     if (who.pants === 'nude') { box(g, -15, 0, 30, 6, R[2]); box(g, -8, -2, 2, 6, R[0]); box(g, 7, -2, 2, 6, R[0]); box(g, -2, 3, 6, 3, '#18181B'); }
     else {
@@ -339,6 +373,11 @@ const paintHead = (g: Ctx, F: Fig, f: number) => {
     for (let x = -10; x < 10; x += 2) box(g, x, -20, 1, 1, MHAIR[3]);
     box(g, -12, -11, 3, 8, INK); box(g, -11, -10, 2, 6, MHAIR[1]);
     box(g, -4, -8, 1, 1, '#B04A3A'); box(g, -3, -7, 1, 2, '#B04A3A'); box(g, -4, -5, 1, 1, '#B04A3A');
+    // (the Viking helmet over his flat-top, a size up from the sprite's: its brim above his glasses, the straw down past
+    // their front edge and the end of his nose and in to the corner of his mouth)
+    g.save(); g.translate(0.5, ey); g.scale(1.2, 1.2);
+    withArmor({ ink: 1, motion: { frame: armorFrame }, straw: () => [[13.4, -4.4], [13.4, 3.4], [9.6, 8.4]] }, () => armorParts.helmet(g, 0, 0));
+    g.restore();
     // (his glasses: the arm back to his ear, the two thick rims round his eyes, the brow bar heavier, the bridge; the
     // glass a cold tint with a glint)
     box(g, -9, ey - 2, 9, 2, INK); box(g, -8, ey - 2, 6, 1, '#3F3F46');
@@ -727,6 +766,7 @@ const blit = (c: Ctx, sx: number, sy: number, open: number, shake: number, t: nu
 export const drawCloseups = (c: Ctx, state: GameState, w: Wheel) => {
   if (typeof document === 'undefined') return;
   const f = state.frame;
+  armorFrame = f;
   if (!warmed) { warmed = true; warmSuitorGross(ROSTER.flatMap(s => tussleWants(s.look))); }
   if (w.qte) {
     const q = w.qte, i = q.i;

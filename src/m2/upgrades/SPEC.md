@@ -108,10 +108,20 @@ pixels, ramps, banded with a checker on each edge) and drawn stretched and turne
 frame. Nothing caches his sprite, so no cache key needed the pieces. Also: the walk screens (upgrades/walkArmor.ts, in
 walkAway/meathead.ts from the front and meatheadBack.ts from behind: the walk-aways, the walk-ins, the hub portal;
 from behind the cape's split down his spine and stops above his belt), the HUD face's helmet (amuletFace.ts
-helmetFace), the cheap shot's close-up boot (drawSabatonCloseUp). NOT YET: the poses with their own bodies that don't use
-body.ts's parts throughout (ladder.ts's climb from behind, remains.ts, freefall/throne/copter/tragon partly: they get
-the boots, arms and glasses-helmet where they use the shared parts), the weapon-get screen and cutscene art that draws
-its own Meathead, the walk screens' cape points from the front (mostly hidden behind his arms).
+helmetFace), the cheap shot's close-up boot (drawSabatonCloseUp).
+THE SPECIAL DRAWINGS (2026-10-31: "do you account for the 'beatdown' closeups for the fairy wheel as well, based on
+what combination of armor pieces you may have?"): every bespoke drawing of him after he can own armor wears whatever
+he owns, live. The kit: armorArt.ts armorParts (the side-view pieces from limb positions, any size, finer bakes for
+bigger drawings made lazily per size) and withArmor (an ink line for inked art, the straw's path for a face of the
+drawing's own, the cape's motion and clock); walkArmor.ts FLAT (the front and back pieces from anchors, any size);
+body.ts ArmorArt.flat for Meathead 1's poses. Covered: the Fairy Wheel close-ups (closeup.ts: the tussle, the five
+kills, thrown out; kills.ts draws him with body.ts's parts), the broomstick ride and fall (broom/art.ts, broomPose.ts),
+the Road Rash dirt bike (dirtbike/art.ts), the ladder climb from behind, remains, deaths, throne, copter, tragon, seat
+punch and paddle poses (m1 render/player/), the Queen's severed head (queen/basement.ts), the guard kick close-up
+(amphi/guard.ts), the mallet tornado's glimpses (weapons/mallet.ts), the Pisa finger (heli/pisaDeath.ts), the cheap
+shot's leg (closeUp.ts). The hub portal and the launch draw his sprite. Left: the mallet tornado's torso smear (a
+blur); the bike's cached frames hold the LEDs, cape and bell still. Never: the title, the intro and gym, Meathead 1's
+weapon-get and face-off screens, the cat.
 
 AS BUILT (the armored moves' look, 2026-10-31: "make sure the visual flourishes of an upgraded charge attack are fancier
 colors too"): with a move's piece, its flourishes (speed lines, afterimages, glow, sparks, rings, dust, the dive kick's
