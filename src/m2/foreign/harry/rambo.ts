@@ -25,8 +25,8 @@ export type RamboPose =
   | 'stand' | 'walk' | 'fire' | 'leap' | 'cling' | 'rant' | 'command' | 'hurt' | 'sick' | 'barf' | 'fall' | 'spin' | 'dead' | 'flex'
   // (the standard death: the M60 emptied straight up at the sky, braced; then hanging off his hands, puffed)
   | 'skyfire' | 'pant'
-  // (the hand armor's cheap shot: knees knocked in, hunched, a fist clamped over his blown-up nuts (the blood coming
-  // through his jeans), the M60 held level one-handed and still going; steam off his head, furious and hurting)
+  // (the hand armor's cheap shot: knees knocked in, hunched, both fists clamped over his blown-up nuts (the blood
+  // coming through his jeans), the M60 let go, hanging slack off its sling at his side; steam off his head, hurting)
   | 'cheap';
 export interface RamboLook {
   pose: RamboPose; f: number; facing?: 1 | -1; aim?: number; talking?: boolean;
@@ -402,7 +402,7 @@ const moodOf = (L: RamboLook): Mood => {
     case 'barf': return 'barf';
     case 'dead': return 'dead';
     case 'flex': return 'grin';
-    case 'cheap': return L.flash ? 'yell' : 'ouch';
+    case 'cheap': return 'ouch';
     default: return 'mad';
   }
 };
@@ -417,8 +417,8 @@ export const drawRambo = (c: Ctx, x: number, y: number, L: RamboLook) => {
   if (pose === 'fire' && L.flash) c.translate(-1 + (f % 2) * 0.6, (f % 3) * 0.3 - 0.3);
   // (into the sky: the whole of him shaking with it)
   if (pose === 'skyfire' && L.flash) c.translate((f % 2) * 2.4 - 1.2, (f % 3) * 0.8 - 0.8);
-  // (the cheap shot: trembling all over, the recoil on top when the gun's going)
-  if (pose === 'cheap') c.translate((f >> 1) % 2 ? 0.5 : -0.5, L.flash ? (f % 3) * 0.3 - 0.3 : 0);
+  // (the cheap shot: trembling all over)
+  if (pose === 'cheap') c.translate((f >> 1) % 2 ? 0.5 : -0.5, 0);
   const bob = pose === 'walk' ? Math.abs(Math.sin(f * 0.16)) * -1.5 : 0;
   c.translate(0, bob);
   legs(c, L, S);
@@ -453,15 +453,12 @@ export const drawRambo = (c: Ctx, x: number, y: number, L: RamboLook) => {
     const ca = Math.cos(aim), sa = Math.sin(aim);
     arm(c, shF[0], shF[1], pv.x + 2 * ca - 6 * sa, pv.y + 2 * sa + 6 * ca, S, 1, true, 1, true);
   } else if (pose === 'cheap') {
-    // (one-handed, the M60 held level where the fight's rounds come out of it (its pivot and aim as he stands: unleaned,
-    // so the muzzle's where muzzleAt says), the arm from his hunched shoulder)
-    const ln = L.lean ?? 0, cl = Math.cos(ln), sl = Math.sin(ln), sy0 = shF[1] + 42;
-    const sx = shF[0] * cl - sy0 * sl, sy = shF[0] * sl + sy0 * cl - 42;
-    c.save(); c.translate(0, -42); c.rotate(-ln); c.translate(0, 42);
-    const pv = pivotOf(pose), ca = Math.cos(aim), sa = Math.sin(aim);
-    c.save(); c.translate(pv.x, pv.y); c.rotate(aim); m60(c, !!L.flash, f); c.restore();
-    arm(c, sx, sy, pv.x + 2 * ca - 6 * sa, pv.y + 2 * sa + 6 * ca, S, 1, true, 1, true);
-    c.restore();
+    // (the M60 let go: hanging slack off its sling at his side, muzzle down, swinging a little; the strap up over his
+    // shoulder; the front fist down on the damage with the other)
+    const sw = Math.sin(f * 0.09) * 0.06;
+    lineR(c, [shF[0] - 2, shF[1] + 2, 9, -50], 1.6, LEATHER_R[4]); lineR(c, [shF[0] - 2, shF[1] + 2, 9, -50], 0.8, LEATHER_R[1]);
+    c.save(); c.translate(10, -54); c.rotate(1.3 + sw); m60(c, false, f); c.restore();
+    arm(c, shF[0], shF[1], 6, -36 + ((f >> 1) % 2), S, 1, true, 1, true);
   } else if (pose === 'spin') {
     gunHeld(c, L, S, { x: 6, y: -50 }, 0, shB, shF);
   } else if (pose === 'flex') arm(c, shF[0], shF[1], 26, -86, S, 1, true, 1.15, true);

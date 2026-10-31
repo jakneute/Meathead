@@ -55,7 +55,7 @@ import { makeKindEnemy } from '../../../m1/game/enemies/kinds';
 import { CANVAS_WIDTH, CANVAS_HEIGHT, BULLET_DAMAGE } from '../../../m1/constants';
 import { bossMelee } from '../../upgrades/bossMelee';
 import { takeYell } from '../../upgrades/amulet';
-import { cheapShotGate, cheapShotStunned, crushGroups, crushLines } from '../../upgrades/cheapShot';
+import { cheapShotGate, cheapShotStunned, crushGroups, crushLines, registerClearThreats } from '../../upgrades/cheapShot';
 import { registerM2Kind } from '../../kinds';
 import { newSpam, spamTick, hitKey, swatOff, type Spam, BOSS_IFRAMES } from '../../bossSpam';
 import { keepForRevisits } from '../../store';
@@ -214,6 +214,23 @@ export interface Fight {
 /** The fight going on now (the crossbow's hook looks at it). */
 let live: Fight | null = null;
 let game: GameState | null = null;
+
+// (the hand armor's cheap shot's free window (upgrades/cheapShot.ts), the moment the stun starts: his rounds in the air
+// gone in a spark where they are; her torch arm's swing called off (back up it goes, no slam); no fakes or doubles left
+// in it)
+registerClearThreats('harry', state => {
+  const f = live;
+  if (!f) return;
+  for (const r of f.rounds) spark(state, r.x, r.y, '#FDE047');
+  f.rounds = []; f.burst = 0; f.firing = false; f.burstT = Math.max(f.burstT, 40);
+  callOffArm(f);
+});
+/** Her arm's swing called off (the cheap shot's stun): wound up, feinting or coming down, it goes back up instead. */
+const callOffArm = (f: Fight) => {
+  const a = f.arm;
+  a.fake = null; a.redo = false;
+  if (a.st === 'wind' || a.st === 'feint' || a.st === 'drop') { a.st = 'yank'; a.t = 0; a.from = { x: a.fx, y: a.fy }; a.hit = true; f.lib.shake = 0; }
+};
 const pants = (): 'clean' | 'shitty' | 'nude' => (!game ? 'clean' : isNude(game) ? 'nude' : isShat(game) ? 'shitty' : 'clean');
 export const resetFight = () => { live = null; };
 /** His gross-up's length in the intro (frames): the first go only (a retry has no intro). */
@@ -521,15 +538,13 @@ const startMove = (ctx: FrameContext, f: Fight, mv: Move) => {
   leapTo(f, wx, GY - CLING_H, f.crumbled ? 36 : 46, 90, 'cling');
 };
 
-/** Stunned off the cheap shot: stood where he is, turned on him, bursts out of the M60 as ever (a bark now and then:
- *  the crushed pool's, crushGroups); no walking, no leaps, no butt. */
+/** Stunned off the cheap shot: stood where he is, doubled over, turned on him; the M60 let go (nothing fired: its burst
+ *  clock held where it was, picked up again after), no walking, no leaps, no butt; her arm's swing kept called off. */
 const crushedStand = (state: GameState, f: Fight) => {
   if (f.act !== 'walk') { setAct(f, 'walk'); f.move = 'walk'; }
-  f.firing = false; f.moving = false;
+  f.firing = false; f.moving = false; f.burst = 0;
   f.facing = pmid(state).x < f.hx ? -1 : 1;
-  const was = f.burst;
-  gunBursts(state, f);
-  if (was === 0 && f.burst > 0 && Math.random() < 0.4) bark(f, L.HARRY_FIRE);
+  callOffArm(f);
 };
 
 const harry = (ctx: FrameContext, f: Fight) => {
@@ -599,21 +614,19 @@ const counter = (ctx: FrameContext, f: Fight) => {
   const { state } = ctx, p = state.player;
   if (f.mode !== 'on' || f.entrance > 0) return;
   if (f.pin) return { said: true };
-  // (stunned off the cheap shot, he still counters: the one grab he gives up is the cheap shot itself, the owner's
-  // "harry is grabbable once. when you destroy his nuts. after that he counters")
+  // (stunned off the cheap shot: no counter till he's himself again, the owner's "harry won't counter until he's active
+  // once more"; grabs go clean through him meanwhile (grab.ts))
+  if (cheapShotStunned(f.e)) return;
   // (up a wall, in her crown, mid leap, puking: just can't get hold of him)
   if (f.barf || f.leap || f.hy < GY - 2 || !COUNTERS.has(f.act)) return;
   // (just done it: the hands come off him, nothing more)
   if (f.total - f.counterAt < PIN_GAP || p.health <= 0 || state.deathTimer > 0 || p.invincibilityTimer > 0) return { said: true };
   f.counterAt = f.total;
-  // (him laid out with his head at Harry's feet; Harry moved over if that'd put him through a wall. Stunned off the cheap
-  // shot he stays planted: he turns to lay him out on the open side instead)
+  // (him laid out with his head at Harry's feet; Harry moved over if that'd put him through a wall)
   f.facing = pmid(state).x >= f.hx ? 1 : -1;
-  const span = PIN_REACH + PIN_HEAD, inside = (x: number) => x >= ARENA_L + 60 && x <= ARENA_R - 60;
-  const planted = cheapShotStunned(f.e);
-  if (planted && !inside(f.hx + f.facing * span) && inside(f.hx - f.facing * span)) f.facing = (-f.facing) as 1 | -1;
+  const span = PIN_REACH + PIN_HEAD;
   const ax = Math.max(ARENA_L + 60, Math.min(ARENA_R - 60, f.hx + f.facing * span));
-  if (!planted) f.hx = ax - f.facing * span;
+  f.hx = ax - f.facing * span;
   f.pin = { t: 0, ax, jolt: 1 };
   f.rounds = []; f.burst = 0; f.moving = false; f.aim = PIN_AIM;
   setAct(f, 'pin');
@@ -1709,8 +1722,8 @@ const harryPose = (f: Fight): { pose: RamboPose; lean?: number; rot?: number } =
   if (f.entrance > 0) return { pose: 'flex' };
   // (the rifle butt: leaned back on the wind-up, jabbed forward on the hit)
   if (f.butt > 0) return { pose: 'fire', lean: f.butt < BUTT_WIND ? -0.3 : 0.45 };
-  // (the hand armor's cheap shot: his own pose for it the whole stun (the M60 still going, one-handed), over the hurt
-  // flash; not his pin, that's its own business)
+  // (the hand armor's cheap shot: his own pose for it the whole stun (both fists on it, the M60 let go), over the hurt
+  // flash)
   if (f.mode === 'on' && f.act === 'walk' && !f.pin && cheapShotStunned(f.e)) return { pose: 'cheap', lean: 0.22 + Math.sin(f.total * 0.08) * 0.03 };
   if (f.flash > 0 && (f.act === 'walk' || f.act === 'idle')) return { pose: 'hurt' };
   switch (f.act) {
