@@ -67,6 +67,10 @@ export const HEAD_KICK_SPEED = 13, HEAD_HIT = 70;
 export const HEAD_KICK_REACH = 64, BURIED_MAX = 12;
 /** Armguards' ninja drop: how hard they come down (px a frame at the most) and what it does (regular enemies: dead). */
 export const NINJA_FALL = 22, NINJA_DAMAGE = 999;
+/** ...and where they land, a meteor going off (the owner's "a localized 'meteor' impact too": the spellbook meteor's
+ *  look): everybody else in this circle (px from the landing; regular enemies only) takes up to this much, by how near,
+ *  the ones it doesn't kill knocked away and stunned this long (frames). */
+export const NINJA_METEOR_R = 110, NINJA_METEOR_DMG = 60, NINJA_METEOR_STUN = 60;
 /** Leg armor's flash kick: its rise, a share of the uppercut's (SPEC: "about half"), the circle it hits in (px from his
  *  middle), what it does to a regular enemy (the uppercut's 150; bosses: the armored share through bossMelee). */
 export const FLASH_RISE = 0.5, FLASH_RADIUS = 100, FLASH_DAMAGE = 150;

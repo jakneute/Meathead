@@ -45,12 +45,13 @@ import { has, type ArmorPiece } from '../upgrades/state';
 import { lastMelee, stampMelee, clearMelee } from '../upgrades/lastHit';
 import {
   FOLLOW_WINDOW, FOLLOW_REACH, FOLLOW_REACH_CHARGE, FOLLOW_REACH_UP, FOLLOW_HEAL, MISSILE_SPEED, MISSILE_HIT_K,
-  HEAD_KICK_SPEED, HEAD_HIT, HEAD_KICK_REACH, BURIED_MAX, NINJA_FALL, NINJA_DAMAGE, FLASH_RISE, FLASH_RADIUS, FLASH_DAMAGE,
+  HEAD_KICK_SPEED, HEAD_HIT, HEAD_KICK_REACH, BURIED_MAX, NINJA_FALL, NINJA_DAMAGE, NINJA_METEOR_R, NINJA_METEOR_DMG, NINJA_METEOR_STUN, FLASH_RISE, FLASH_RADIUS, FLASH_DAMAGE,
 } from '../upgrades/tune';
 import { grabKit as K, grabbable, isCritter, handsOnlyFoe, drawEnemyAt, drawPoseSprite as sprite, drawPoseHead as head, type Grab } from './grab';
 import { grabCallout } from './callouts';
 import { m2Kill } from './killLines';
 import { sliceInHalf, bakeEnemyCut, type BakedCut, type Cut } from '../weapons/dismember';
+import { meteorLooks } from '../weapons/spellbook';
 
 type Ctx = CanvasRenderingContext2D;
 
@@ -463,6 +464,9 @@ const ninjaImpact = (ctx: FrameContext, g: Grab, e: Enemy, floor: number): Contr
   fx.spawnDeathShower({ x, y: floor - 6 }, 0, 1.4);
   for (let i = 0; i < 16; i++) state.particles.push({ pos: { x: x + (Math.random() - 0.5) * 20, y: floor - 2 }, vel: { x: (Math.random() - 0.5) * 9, y: -1 - Math.random() * 5 }, life: 28, color: i % 3 ? '#6B4423' : '#A8A29E', size: 2 + Math.random() * 3, grav: 0.3 });
   K.slamShock(ctx, e, x, floor);
+  // (and a meteor going off where they went in: its look, and a blast of its own round it)
+  meteorLooks(ctx, { x, y: floor - 6 });
+  ninjaMeteor(ctx, e, x, floor - 6);
   calloutAt(ctx, e, x, floor - e.height, 'ninja');
   fx.speakVulgarity(m2Kill('airgrab_kill'));
   fx.spawnPickup({ x: x - 10, y: floor - 30 });
@@ -473,6 +477,32 @@ const ninjaImpact = (ctx: FrameContext, g: Grab, e: Enemy, floor: number): Contr
   p.pos.y = floor - (e.height - sink) - p.height; p.vel = { x: 0, y: -8 }; p.isGrounded = false;
   g.hitAt = { x, y: floor }; g.phase = 'aland'; g.t = 0; g.fu = null;
   return { ...NO_CONTROLS };
+};
+
+/** The ninja drop's meteor (the owner's "a localized 'meteor' impact too"): everybody else close round where they went
+ *  in (regular enemies: not a boss, a sub-boss, an innocent) takes up to NINJA_METEOR_DMG by how near; killed, blown
+ *  away with a callout; living, knocked away and stunned. On top of the slam's own shock. */
+const ninjaMeteor = (ctx: FrameContext, buriedOne: Enemy, x: number, y: number) => {
+  const { state, fx } = ctx;
+  for (const e of [...state.enemies]) {
+    if (e === buriedOne || e.type === 'boss' || isMidBoss(e) || e.health <= 0 || e.isBlownAway || e.innocent) continue;
+    const m = emid(e), d = Math.hypot(m.x - x, m.y - y) - Math.min(e.width, e.height) / 2;
+    if (d > NINJA_METEOR_R) continue;
+    const k = Math.max(0.25, 1 - Math.max(0, d) / NINJA_METEOR_R), dmg = Math.round(NINJA_METEOR_DMG * k);
+    const away = Math.sign(m.x - x) || 1;
+    e.health -= dmg;
+    fx.spawnDamageNumber(e.pos, dmg, true);
+    if (e.health <= 0) {
+      e.health = 0; e.isBlownAway = true;
+      e.vel = { x: away * (6 + 6 * k), y: -6 - 5 * k };
+      fx.spawnKillCallout(e, grabCallout('ninja'));
+      fx.spawnPickup(e.pos);
+      continue;
+    }
+    if (!e.unshakeable) e.vel = { x: away * (3 + 5 * k), y: -3 - 4 * k };
+    e.pauseTimer = Math.max(e.pauseTimer || 0, NINJA_METEOR_STUN);
+    interrupt(e);
+  }
 };
 
 /** The flash kick's circle: everyone in it (not a boss or a sub-boss: they're the uppercut's) takes it once. */

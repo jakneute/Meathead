@@ -271,11 +271,10 @@ export const onMeteorBlast = (fn: (ctx: FrameContext, at: { x: number; y: number
 // (dev: the headless checks set one off by hand)
 if (import.meta.env?.DEV && typeof window !== 'undefined') (window as unknown as { __meteorHooks?: unknown }).__meteorHooks = meteorHooks;
 
-/** The meteor going up: a blast, everybody in it hurt by how near, and whoever lives through it left burning. */
-const meteorBlast = (ctx: FrameContext, at: { x: number; y: number }, three: Enemy[] = []) => {
+/** The meteor's look, and only its look (no damage, no stage's say, no rune circle): the rings, the flash, the debris,
+ *  the scorch, the smoke and embers, the crater in the floor. Also the armguards' ninja drop's landing (followups.ts). */
+export const meteorLooks = (ctx: FrameContext, at: { x: number; y: number }) => {
   const { state, fx } = ctx;
-  for (const h of meteorHooks) h(ctx, at);
-  struckAt(at.x - METEOR.radius, at.y - METEOR.radius, at.x + METEOR.radius, at.y + METEOR.radius, METEOR.dmg);
   playSound('boom'); playSound('crash', 0.7, -6); shakeScreen(state, 22, 12);
   fx.spawnExplosion(at, '#F97316', 44, 0, 26); fx.spawnExplosion(at, '#FDE047', 28, 0, 18); fx.spawnExplosion(at, '#FFFFFF', 10, 0, 10); fx.spawnExplosion(at, '#57534E', 22, 0, 22);
   ring(at.x, at.y, METEOR.radius * 1.4, '253, 186, 116', 20); ring(at.x, at.y, METEOR.radius * 0.8, '255, 255, 255', 10);
@@ -286,13 +285,22 @@ const meteorBlast = (ctx: FrameContext, at: { x: number; y: number }, three: Ene
   for (let i = 0; i < 14; i++) state.particles.push({ pos: { x: at.x + (Math.random() - 0.5) * 40, y: at.y }, vel: { x: (Math.random() - 0.5) * 3, y: -2 - Math.random() * 4 }, life: 50 + Math.random() * 30, color: i % 2 ? '#FDE047' : '#FB923C', size: 2 });
   scorch(state, at.x, at.y + 8, 14);
   // (the flourish: a stepped flare, its rune circle gone out, a crater in the floor under it and dust rolling off along it)
-  flare(at.x, at.y, FIRE, 64, 18); unmark('meteor', at);
+  flare(at.x, at.y, FIRE, 64, 18);
   const fl = floorBelow(state, at.x, at.y);
   if (fl !== null) {
     if (craters.length >= 6) craters.shift();
     craters.push({ x: at.x, y: fl, t: 0, r: 40 + lr() * 10, seed: lr() * 100 });
     for (let i = 0; i < 10; i++) { const s = i % 2 ? 1 : -1; state.particles.push({ pos: { x: at.x + s * lr() * 20, y: fl - 4 }, vel: { x: s * (2 + lr() * 4), y: -0.3 - lr() * 0.9 }, life: 30 + lr() * 18, color: i % 3 ? 'rgba(168, 162, 158, 0.55)' : 'rgba(120, 113, 108, 0.6)', size: 6 + lr() * 6 }); }
   }
+};
+
+/** The meteor going up: a blast, everybody in it hurt by how near, and whoever lives through it left burning. */
+const meteorBlast = (ctx: FrameContext, at: { x: number; y: number }, three: Enemy[] = []) => {
+  const { state } = ctx;
+  for (const h of meteorHooks) h(ctx, at);
+  struckAt(at.x - METEOR.radius, at.y - METEOR.radius, at.x + METEOR.radius, at.y + METEOR.radius, METEOR.dmg);
+  meteorLooks(ctx, at);
+  unmark('meteor', at);
   for (const e of [...state.enemies]) {
     if (!alive(e)) continue;
     const d = Math.hypot(mid(e).x - at.x, mid(e).y - at.y);
