@@ -21,7 +21,7 @@
 // pitched; the big ones and the bosses can't be got hold of (the lunge stops dead against them, the hands close on air).
 // Swimming, or hanging off a vine, it's only the one-handed kind (no floor to slam anybody into).
 
-import { stepAmulet, amuletShielded, drawAmuletFx } from '../upgrades/amulet';
+import { stepAmulet, amuletShielded, drawAmuletFx, raged } from '../upgrades/amulet';
 import { has } from '../upgrades/state';
 import { HANDS_HEAL } from '../upgrades/tune';
 import { FOLLOW_PHASES, type FollowPhase, type Follow, followIdle, startFollowUp, stepFollow, drawFollow, followTick, followAfter, followUntouchable } from './followups';
@@ -680,7 +680,7 @@ const flyInto = (ctx: FrameContext, g: Grab) => {
       if (o.pos.x > e.pos.x + e.width || o.pos.x + o.width < e.pos.x || o.pos.y > e.pos.y + e.height || o.pos.y + o.height < e.pos.y) continue;
       fl.hit.add(o.id);
       // (by how heavy the body is and how fast it's going: a bouncer through a wolverine doesn't leave a wolverine)
-      const dmg = Math.round(Math.max(10, Math.min(160 * fl.k, speed * getEnemyMass(e) / 28 * fl.k)) * (o.throwVuln ?? 1));
+      const dmg = raged(Math.round(Math.max(10, Math.min(160 * fl.k, speed * getEnemyMass(e) / 28 * fl.k)) * (o.throwVuln ?? 1)));
       o.health -= dmg;
       const dir = Math.sign(e.vel.x) || g.dir;
       fx.spawnDamageNumber(o.pos, dmg, dmg > 30);
@@ -724,7 +724,7 @@ const wallSplat = (ctx: FrameContext, e: Enemy) => {
   const dir = Math.sign(vx);
   e.pos.x = dir > 0 ? wall.x - e.width : wall.x + wall.w;
   if (Math.abs(vx) < WALL_SPLAT_SPEED) { e.vel.x = 0; return true; }
-  const dmg = Math.round(Math.max(30, e.maxHealth * Math.min(1, WALL_SHARE + WALL_SHARE_PER_SPEED * Math.abs(vx))));
+  const dmg = raged(Math.round(Math.max(30, e.maxHealth * Math.min(1, WALL_SHARE + WALL_SHARE_PER_SPEED * Math.abs(vx)))));
   const at = { x: dir > 0 ? wall.x : wall.x + wall.w, y: e.pos.y + e.height / 2 };
   playSound('splat'); playSound('thud', 1.2, -5); shakeScreen(state, 10, 6);
   fx.spawnExplosion(at, '#8B0000', 14, -dir * 4, 10);
@@ -753,7 +753,7 @@ const ceilingBonk = (ctx: FrameContext, e: Enemy) => {
   if (!ceil) return false;
   e.pos.y = ceil.y + ceil.h;
   if (-vy < WALL_SPLAT_SPEED) { e.vel.y = 0.5; return true; }
-  const dmg = Math.round(Math.max(30, e.maxHealth * Math.min(1, WALL_SHARE + WALL_SHARE_PER_SPEED * -vy)));
+  const dmg = raged(Math.round(Math.max(30, e.maxHealth * Math.min(1, WALL_SHARE + WALL_SHARE_PER_SPEED * -vy))));
   playSound('splat'); playSound('thud', 1.2, -5); shakeScreen(state, 10, 6);
   e.health -= dmg;
   if (e.health <= 0) { e.health = 0; e.vel = { x: 0, y: 0 }; ceilingSplat(ctx, e, e.pos.y); fx.speakVulgarity(m2Kill('throw_kill')); return true; }
@@ -783,7 +783,8 @@ const catchOnFloor = (state: GameState, e: Enemy) => {
 /** The one he's thrown, hurt by what he's hit; a hit that finishes him sends him on his way, the grab's kill. */
 const hurtThrown = (ctx: FrameContext, fl: { e: Enemy; how: GrabCallout }, dmg: number) => {
   const { fx } = ctx, e = fl.e;
-  dmg = Math.round(dmg * (e.throwVuln ?? 1));
+  // (the amulet's rage: harder (amulet.ts raged), like everything his grabs do)
+  dmg = raged(Math.round(dmg * (e.throwVuln ?? 1)));
   e.health -= dmg;
   if (e.health > 0) { fx.spawnDamageNumber(e.pos, dmg, dmg > 30); return; }
   fx.blowAwayEnemy(e, { x: e.vel.x * 0.6, y: Math.min(-4, e.vel.y) }, m2Kill('throw_kill'), Math.sign(e.vel.x) || 1);
@@ -1190,7 +1191,7 @@ const stepGrab = (ctx: FrameContext, g: Grab, controls: Controls): Controls => {
       shakeScreen(state, 10, 7); playSound('slam');
       if (g.phase === 'drop') { g.phase = 'shake'; g.t = 0; return hold(); }
       // A beatdown's: he's driven into the floor under Meathead, by how fast they came down; it might be all it takes
-      const dmg = Math.round(e.maxHealth * PLUMMET_SHARE * Math.min(1, g.fall / PLUMMET_MAX)) + 6;
+      const dmg = raged(Math.round(e.maxHealth * PLUMMET_SHARE * Math.min(1, g.fall / PLUMMET_MAX)) + 6);
       e.health -= dmg;
       playSound('crunch', 1, -3);
       for (let i = 0; i < 10; i++) state.particles.push({ pos: { x: centerX(state), y: feetY(state) - 4 }, vel: { x: (Math.random() - 0.5) * 8, y: -1 - Math.random() * 3 }, life: 24, color: i % 2 ? '#8B0000' : '#A8A29E', size: 2 + Math.random() * 3 });
@@ -1315,10 +1316,10 @@ const BLOW_AT: Record<Blow, { x: number; y: number }> = { punch: { x: 46, y: -9 
 /** Each blow's kill callout (not bulked up: bulked, it's the blow's finisher's). */
 const BLOW_CALLOUT: Record<Blow, GrabCallout> = { punch: 'beatdown', knee: 'kneed', head: 'headbutt' };
 
-/** The blow lands: its damage (bulked, BULK_HIT times), its healing, its blood, its sound; the kill, or the finisher. */
+/** The blow lands: its damage (bulked, BULK_HIT times; raging, the amulet's RAGE_DAMAGE_K times too), its healing, its blood, its sound; the kill, or the finisher. */
 const landBlow = (ctx: FrameContext, g: Grab, e: Enemy) => {
   const { state, fx } = ctx, p = state.player, B = BLOWS[g.blow], big = bulked();
-  const dmg = Math.round(B.dmg * (big ? BULK_HIT : 1));
+  const dmg = raged(Math.round(B.dmg * (big ? BULK_HIT : 1)));
   e.health -= dmg;
   // (healing by the blow's own damage, unbulked: the same a second whichever he's throwing)
   if (!e.noHeal) {
@@ -1437,7 +1438,7 @@ const stompHim = (ctx: FrameContext, g: Grab, first: boolean) => {
     const c = pulped.find(q => q.e === e); if (c) c.crater = 2;
     playSound('stomp', 1.3, -9); playSound('slam', 0.9, -4); playSound('splat', 1.2, -6);
     shakeScreen(state, 18, 10);
-    aftershock(ctx, g, at.x, g.hitAt.y, 30);
+    aftershock(ctx, g, at.x, g.hitAt.y, raged(30));
     for (let i = 0; i < 5; i++) {
       const a = -Math.PI / 2 + (Math.random() - 0.5) * 2.6, sp = 5 + Math.random() * 5, size = 5 + Math.random() * 4;
       state.projectiles.push({
@@ -1545,7 +1546,7 @@ const slamShock = (ctx: FrameContext, e: Enemy, x: number, floorY: number) => {
     const d = Math.abs(o.pos.x + o.width / 2 - x), k = 1 - d / SLAM_REACH;
     if (k <= 0) continue;
     any = true;
-    const dmg = Math.round(Math.max(6, Math.min(150, m * 0.4 * k + 6)));
+    const dmg = raged(Math.round(Math.max(6, Math.min(150, m * 0.4 * k + 6))));
     o.health -= dmg;
     const away = Math.sign(o.pos.x + o.width / 2 - x) || 1, push = Math.max(0.4, Math.min(2, m / getEnemyMass(o)));
     fx.spawnDamageNumber(o.pos, dmg, dmg > 30);
@@ -1587,7 +1588,7 @@ const crushUnder = (ctx: FrameContext, e: Enemy, dir: number) => {
     if (o === e || o.health <= 0 || o.isBlownAway || o.type === 'boss' || o.innocent) continue;
     if (o.pos.x > e.pos.x + e.width + 10 || o.pos.x + o.width < e.pos.x - 10 || o.pos.y > e.pos.y + e.height || o.pos.y + o.height < e.pos.y) continue;
     hit.push(o.id);
-    const dmg = Math.round(Math.max(20, Math.min(180, m * 0.45)));
+    const dmg = raged(Math.round(Math.max(20, Math.min(180, m * 0.45))));
     o.health -= dmg;
     fx.spawnDamageNumber(o.pos, dmg, true);
     fx.spawnExplosion({ x: o.pos.x + o.width / 2, y: o.pos.y + o.height / 2 }, '#8B0000', 12, 0, 10);
@@ -1662,7 +1663,7 @@ const letFly = (ctx: FrameContext, g: Grab, e: Enemy) => {
     // (laid down clear of him, in front: overlapping him, the engine would have him bounce off the body)
     e.pos = { x: centerX(state) + g.dir * (p.width / 2 + e.width / 2 + 6) - e.width / 2, y: feetY(state) - e.height };
     e.vel = { x: 0, y: 0 };
-    const dmg = Math.max(20, Math.round(e.maxHealth * SLAM_SHARE));
+    const dmg = raged(Math.max(20, Math.round(e.maxHealth * SLAM_SHARE)));
     e.health -= dmg;
     release(state, e);
     playSound('slam'); playSound('crunch', 0.8); shakeScreen(state, 12, 7);
@@ -1682,7 +1683,7 @@ const letFly = (ctx: FrameContext, g: Grab, e: Enemy) => {
     // (thrown about as far as a forward throw, the other way; lighter ones further)
     const w = heft(e);
     e.vel = { x: dir * THROW_SPEED * w, y: -6 };
-    const dmg = Math.max(14, Math.round(e.maxHealth * SUPLEX_SHARE));
+    const dmg = raged(Math.max(14, Math.round(e.maxHealth * SUPLEX_SHARE)));
     e.health -= dmg;
     release(state, e);
     playSound('slam'); playSound('crunch', 0.9, -2); shakeScreen(state, 10, 6);
@@ -1708,7 +1709,7 @@ const letFly = (ctx: FrameContext, g: Grab, e: Enemy) => {
   const how: GrabCallout = g.toss === 'up' ? 'launched' : 'thrown';
   // (the boot: it hurts, a bit, there and then; the rest's what he hits after)
   if (g.toss === 'forward') {
-    const boot = Math.max(5, Math.round(e.maxHealth * BOOT_SHARE));
+    const boot = raged(Math.max(5, Math.round(e.maxHealth * BOOT_SHARE)));
     e.health -= boot;
     playSound('punch', 1.1, -4);
     if (e.health <= 0) { fx.blowAwayEnemy(e, v, m2Kill('throw_kill'), dir); e.meleeFlung = true; fx.spawnKillCallout(e, grabCallout(how)); return; }
@@ -1844,7 +1845,7 @@ const airImpact = (ctx: FrameContext, g: Grab, where: 'floor' | 'wall' | 'ceilin
   g.held = null; g.hitAt = at;
   release(state, e);
   const k = where === 'floor' ? Math.max(A.MIN_K, Math.min(1, g.fall / A.ARC_MAX_FALL)) : A.SPLAT_K;
-  const dmg = Math.round((e.maxHealth * A.DAMAGE_SHARE * k + A.DAMAGE_FLAT) * buffs.knock);
+  const dmg = raged(Math.round((e.maxHealth * A.DAMAGE_SHARE * k + A.DAMAGE_FLAT) * buffs.knock));
   e.health -= dmg;
   if (!e.noHeal) {
     p.health = Math.min(p.maxHealth, p.health + healOf(e, A.HEAL)); g.hp = p.health;

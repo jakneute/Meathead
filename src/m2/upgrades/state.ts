@@ -29,7 +29,10 @@
 // Changing the state mid-run (the cheats) also tops the live player's numbers into line (apply.ts).
 //
 // THE AMULET (Phase C): amulet.ts (the meter, the yell, the rage after it; its README there), AmuletHud.tsx and
-// amuletFace.ts (the HUD's face and meter), lines.ts (the yell's line, recorded in its own echoing voice).
+// amuletFace.ts (the HUD's face and meter), lines.ts (the yell's line, recorded in its own echoing voice). Through the
+// rage after the yell his charge moves and grabs hit harder (not his weapons): amulet.ts rageDamageK() / raged(n),
+// tune.ts RAGE_DAMAGE_K (×1.5, times the bulk up's own), asked in bossMelee.ts, apply.ts's melee hook, moves/grab.ts
+// and moves/followups.ts.
 //
 // THE FOLLOW-UPS (Phase D1): moves/followups.ts (the missile, the ground spin and head kick, the ninja drop, the flash
 // kick), fed by upgrades/lastHit.ts (noted from apply.ts's melee hook); the hand armor's beatdown in grab.ts

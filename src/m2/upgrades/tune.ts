@@ -46,6 +46,11 @@ export const YELL_STUN = 90;
 export const YELL_SHIELD = 180;
 /** Then this long before the meter can fill again (frames; SPEC's ~10 s). */
 export const YELL_COOLDOWN = 600;
+/** Through the rage (the YELL_SHIELD stretch), his charge moves and his grabs hit this many times harder: the four moves,
+ *  the flash kick, the follow-ups, every grab's slam, throw and beatdown blow; regular enemies, sub-bosses and bosses
+ *  (each fight's breather as ever: the amount, not the rate). Not his weapons. Under the bulk up's own (its knock ×2.2,
+ *  its beatdown blows ×2.5), and the two multiply: bulked and raging, a beatdown blow's 2.5 × 1.5 = 3.75. */
+export const RAGE_DAMAGE_K = 1.5;
 /** Past the screen's edges, still "on screen" for the yell (px). */
 export const YELL_EDGE = 24;
 /** The meter this full (a share) and his face on the sprite goes angry. */

@@ -12,9 +12,13 @@
 //   takeYell(e, frame)     the land bosses' fights (each fight.ts takeHits): the yell's share, in place of reading the
 //                          health it took as a weapon's shot (their breather as ever)
 //   subscribeAmulet / amuletSnap   the HUD's meter and face (AmuletHud.tsx)
+//   rageDamageK() / raged(n)       through the rage his charge moves and grabs hit harder (RAGE_DAMAGE_K, ×1.5; times
+//                          the bulk up's own): bossMelee.ts (the bosses' and sub-bosses' normalized hits), apply.ts's
+//                          melee hook (the engine's hits on everything else), moves/grab.ts (every grab's damage),
+//                          moves/followups.ts. Not his weapons (the owner's "all charge/grabs that is, like bulk up")
 //
 // The numbers (TUNE) are tune.ts's: AMULET_FULL (35 damage, as it comes off his health: after the soft hits and the
-// helmet), AMULET_DRAIN (3.5 a second), YELL_DAMAGE, YELL_STUN, YELL_SHIELD (3 s), YELL_COOLDOWN (10 s).
+// helmet), AMULET_DRAIN (3.5 a second), YELL_DAMAGE, YELL_STUN, YELL_SHIELD (3 s), YELL_COOLDOWN (10 s), RAGE_DAMAGE_K (×1.5).
 
 import type { FrameContext } from '../../m1/game/core/context';
 import type { GameState } from '../../m1/game/core/state';
@@ -31,7 +35,7 @@ import { setHeadFlush } from '../../m1/game/render/player/body';
 import { hazardKill } from '../hazardHit';
 import { amuletActive } from './state';
 import { YELL_LINE } from './lines';
-import { AMULET_FULL, AMULET_DRAIN, YELL_DAMAGE, YELL_STUN, YELL_SHIELD, YELL_COOLDOWN, YELL_EDGE, AMULET_ANGRY_AT } from './tune';
+import { AMULET_FULL, AMULET_DRAIN, YELL_DAMAGE, YELL_STUN, YELL_SHIELD, YELL_COOLDOWN, YELL_EDGE, AMULET_ANGRY_AT, RAGE_DAMAGE_K } from './tune';
 
 type Phase = 'fill' | 'rage' | 'cool';
 /** His voice, through the canyon (tools/voices/cast.json m2.yell). */
@@ -86,6 +90,11 @@ const publish = () => {
 
 /** Invulnerable just now (the rage after the yell). */
 export const amuletShielded = () => a.phase === 'rage' && a.t > 0;
+/** His charge moves and grabs through the rage: RAGE_DAMAGE_K, else 1 (bossMelee.ts, apply.ts's melee hook,
+ *  moves/grab.ts, moves/followups.ts). Multiplies with the bulk up's own. Never his weapons. */
+export const rageDamageK = () => (amuletActive() && amuletShielded() ? RAGE_DAMAGE_K : 1);
+/** A charge move's or a grab's damage, raged if he's raging (whole numbers, as the damage numbers show). */
+export const raged = (n: number) => { const k = rageDamageK(); return k === 1 ? n : Math.round(n * k); };
 /** How pissed off he is (0..1): the meter, and all the way through the rage. */
 export const amuletAnger = () => (!amuletActive() ? 0 : a.phase === 'rage' ? 1 : a.phase === 'fill' ? a.meter / AMULET_FULL : 0);
 

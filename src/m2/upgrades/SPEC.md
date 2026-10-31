@@ -166,9 +166,22 @@ Fairy: pink sequins, glitter crystal, tiara spikes; Cartoon: flat, outlined, a b
   screams an echoey "FUCK OFF" (voiced, with an echo): it hits EVERY ACTIVE ENEMY on screen: regular enemies stunned,
   mild damage to everything (bosses too). Then he's invulnerable a while (TUNE: ~3 s, maybe longer) and nothing knocks
   him back meanwhile (no launches, no shoves: Steve's cars). Then ~10 s before it can fill again.
-- IDEA, NOT SETTLED (2026-10-31: "the amulets mercy invincibilty could also make you invincible and give you a
-  temporary damage boost to your attacks as well. maybe. something to consider"): the post-yell window might also
-  boost his attacks' damage a while. Not built.
+- THE RAGE HITS HARDER (2026-10-31: "all attacks get a damage boost during meathead's 'fuck off' invincibility. not as
+  much as 'bulk up', but a good boost. you can be 'bulked up' and 'pissed off' and your melee attacks will really be
+  devastating", then "all charge/grabs that is, like bulk up"): through the post-yell invulnerable stretch his CHARGE
+  MOVES and GRABS hit harder: the charge, slide, uppercut, dive kick, flash kick, the follow-ups, and every grab's slam,
+  suplex, throw, splat and beatdown blow; on regular enemies, sub-bosses and bosses. NOT his weapons (the ray gun and
+  the special weapons as ever). TUNE: ×1.5 (tune.ts RAGE_DAMAGE_K). Under the bulk up's own (its knock ×2.2, its
+  beatdown blows ×2.5), and the two multiply: bulked and raging, a beatdown blow's ×3.75. Bosses keep their 75-frame
+  breather: the amount's bigger, not the rate.
+  AS BUILT: amulet.ts rageDamageK() / raged(n). Bosses and sub-bosses: bossMelee.ts (a land boss's 37.5 a move → 56.25,
+  75 → 112.5 with the piece; a sub-boss's 52.5 → 78.75, 105 → 157.5). Everything the engine's moves hit (regular
+  enemies, the engine's bosses, the ensemble, the machines): apply.ts's melee hook. The grabs: moves/grab.ts (each
+  damage it deals, the aftershocks, slam shocks and crushes included). The follow-ups: moves/followups.ts (the meteor,
+  the flash kick, the kicked head; the missile through grab.ts's thrown-body hits; the ninja drop kills anyway).
+  Misses: the hand armor's cheap shot (a stun, no damage), the ensemble's shake-off chip when he charges one off him,
+  and the bodies his charges fling into others (the engine's collateral, mass × speed: like the bulk up's, it grows
+  with how hard they fly, not this). No separate visual tell: the red rage aura round him is it.
 - Toggle on/off in the PAUSE MENU (shown once he has it).
 - Shown: his in-game face gets angrier as it fills. On the HUD (top-left panel, without making the HUD bigger: the
   weapon row's ammo bar is long, share that row): a DOOM-STYLE FACE (Meathead, glasses on) and a small upright meter

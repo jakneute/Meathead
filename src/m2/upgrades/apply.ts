@@ -12,6 +12,7 @@ import { noteMelee } from './lastHit';
 import { setMaxAmmoScale, maxAmmo, MAX_AMMO } from '../../m1/constants';
 import { maxHealth, ammoScale, powerCells, subscribeUpgrades } from './state';
 import { bossMeleeOf } from './bossMelee';
+import { raged } from './amulet';
 import { installGear } from './gear';
 import { setScreenOverlay } from '../../m1/game/render/world';
 import { drawCheapShotPanel } from './cheapShot';
@@ -39,10 +40,12 @@ export const installUpgrades = () => {
   setMeleeDamageHook((e: Enemy, move, damage) => {
     // (which move landed on whom, for the armor's follow-ups: moves/followups.ts)
     noteMelee(e, move);
-    if (e.type === 'boss') return damage;
+    // (the pundits: the normalized sub-boss hit, the amulet's rage already in it)
     if (e.kind && ENGINE_SUB_BOSSES.has(e.kind)) return bossMeleeOf(move, true);
-    // (everything else, regular enemies, the land bosses' fights, the ensemble, the machines: as it is)
-    return damage;
+    // (everything else, regular enemies, the engine's bosses, the land bosses' fights, the ensemble, the machines: as it
+    // is, harder through the amulet's rage (amulet.ts raged; the land bosses' own fights get theirs through
+    // bossMelee, not this number))
+    return raged(damage);
   });
   // (changed mid-run, the cheats: his numbers brought into line on the spot; more room's handed to him filled)
   let was = { hp: maxHealth(), k: ammoScale() };

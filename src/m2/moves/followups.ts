@@ -42,6 +42,7 @@ import { viewRectOf, inView } from '../../m1/game/render/viewCull';
 import { elbow, knee, reachTo, type P2 } from '../art/limb';
 import { since } from '../frames';
 import { has, type ArmorPiece } from '../upgrades/state';
+import { raged } from '../upgrades/amulet';
 import { lastMelee, stampMelee, clearMelee } from '../upgrades/lastHit';
 import {
   FOLLOW_WINDOW, FOLLOW_REACH, FOLLOW_REACH_CHARGE, FOLLOW_REACH_UP, FOLLOW_HEAL, MISSILE_SPEED, MISSILE_HIT_K,
@@ -488,7 +489,7 @@ const ninjaMeteor = (ctx: FrameContext, buriedOne: Enemy, x: number, y: number) 
     if (e === buriedOne || e.type === 'boss' || isMidBoss(e) || e.health <= 0 || e.isBlownAway || e.innocent) continue;
     const m = emid(e), d = Math.hypot(m.x - x, m.y - y) - Math.min(e.width, e.height) / 2;
     if (d > NINJA_METEOR_R) continue;
-    const k = Math.max(0.25, 1 - Math.max(0, d) / NINJA_METEOR_R), dmg = Math.round(NINJA_METEOR_DMG * k);
+    const k = Math.max(0.25, 1 - Math.max(0, d) / NINJA_METEOR_R), dmg = raged(Math.round(NINJA_METEOR_DMG * k));
     const away = Math.sign(m.x - x) || 1;
     e.health -= dmg;
     fx.spawnDamageNumber(e.pos, dmg, true);
@@ -514,9 +515,10 @@ const flashCircle = (ctx: FrameContext, g: Grab) => {
     const nx = Math.max(e.pos.x, Math.min(cx, e.pos.x + e.width)), ny = Math.max(e.pos.y, Math.min(cy, e.pos.y + e.height));
     if ((nx - cx) ** 2 + (ny - cy) ** 2 > R2) continue;
     fu.hits.add(e);
-    e.health -= FLASH_DAMAGE;
+    const dmg = raged(FLASH_DAMAGE);
+    e.health -= dmg;
     e.hitByMove = p.moveId;
-    fx.spawnDamageNumber(e.pos, FLASH_DAMAGE, true);
+    fx.spawnDamageNumber(e.pos, dmg, true);
     playSound('punch', 1.1, -2);
     if (e.health <= 0) { sliced(ctx, g, e); continue; }
     const away = Math.sign(e.pos.x + e.width / 2 - cx) || g.dir;
@@ -628,7 +630,7 @@ const tickHeads = (ctx: FrameContext, stage: string) => {
       const nx = Math.max(o.pos.x, Math.min(h.x, o.pos.x + o.width)), ny = Math.max(o.pos.y, Math.min(h.y, o.pos.y + o.height));
       if ((nx - h.x) ** 2 + (ny - h.y) ** 2 > h.r * h.r) continue;
       h.hit.add(o);
-      const dir = Math.sign(h.vx) || 1, dmg = Math.round(HEAD_HIT * (o.throwVuln ?? 1));
+      const dir = Math.sign(h.vx) || 1, dmg = raged(Math.round(HEAD_HIT * (o.throwVuln ?? 1)));
       o.health -= dmg;
       fx.spawnDamageNumber(o.pos, dmg, true);
       fx.spawnExplosion({ x: nx, y: ny }, '#8B0000', 8, dir * 2, 8);
