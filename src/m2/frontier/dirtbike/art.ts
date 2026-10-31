@@ -24,6 +24,9 @@ import { signText, signW, type Look as Letters } from '../../signLetters';
 import { pine, clump, rampOf, NEEDLE, BARK, OAK, GRASS, DIRT, STEEL, PLANK } from '../wilds/paint';
 import { ASPEN, GOLD, POLE, firOf, spruceOf } from '../woods/paint';
 import { SPR, FOG_HAZE, type SprKind } from './road';
+import { FLAT } from '../../upgrades/walkArmor';
+import { armorParts, withArmor } from '../../upgrades/armorArt';
+import { has, ARMOR_PIECES } from '../../upgrades/state';
 
 type Ctx = CanvasRenderingContext2D;
 export const INK = '#140C06';
@@ -1065,6 +1068,22 @@ const SK = ['#4A2410', '#7A4220', '#A86630', '#E0AC69', '#EEC48E', '#F8DCB4'];
 const JE = ['#0A1028', '#13204A', '#1E3A8A', '#2C50AA', '#4468C0', '#6A8AD4'];
 const HAIR = '#18181B';
 const BUM = ['#B8805A', '#D8A07A', '#EEC4A0', '#F8DCC0'];
+// His armor on him here (upgrades/walkArmor.ts FLAT: the walk screens' back-on pieces, the same baked stamps, scaled to
+// him; armorParts' side-on helmet when his head swings round in profile), each while he owns it, baked into his frames
+// (the pieces he owns are in their keys): the helmet sat up a touch so its brim stops above his glasses, the cape split
+// down his spine and stopping above his belt (the seat, the stain, his bare ass always show), the leg armor knee and
+// shin only, the gloves on his fists.
+/** Which pieces he owns, as bits (his frames' keys). */
+const armorBits = () => { let m = 0; ARMOR_PIECES.forEach((q, i) => { if (has(q)) m |= 1 << i; }); return m; };
+/** The glove over a fist (its middle, its size, the way it points): the walk glove scaled down whole. */
+const mhGlove = (c: Ctx, x: number, y: number, r: number, a: number) => { c.save(); c.translate(x, y); c.scale(r / 7, r / 7); FLAT.fist(c, 0, 0, 7, a); c.restore(); };
+/** The leg armor down a shin from the knee (kx, ky) to the boot's top (fx, fy) (`front`: seen from the front). */
+const mhShin = (c: Ctx, kx: number, ky: number, fx: number, fy: number, legW: number, side: number, front: boolean) => {
+  const len = Math.hypot(fx - kx, fy - ky);
+  c.save(); c.translate(kx, ky); c.rotate(Math.atan2(fy - ky, fx - kx) - Math.PI / 2);
+  FLAT.shin(c, 0, legW, 0, len, side, front);
+  c.restore();
+};
 export interface MhPose {
   lean: number; spin: number;
   /** Punching (-1 left, 1 right, 0 not) and the punch's frame (PUNCH_WIND to cock it, then the blow, PUNCH_LEN in all). */
@@ -1155,6 +1174,11 @@ const mhArm = (c: Ctx, side: number, hx: number, hy: number, blood: number, big 
   ell(c, hx, hy, r, r * 0.95, SK[3]); ell(c, hx - r * 0.25, hy - r * 0.3, r * 0.55, r * 0.45, SK[5]);
   box(c, hx - r * 0.7, hy + 1, r * 1.4, 1.4, SK[1]); box(c, hx - r * 0.6, hy - r * 0.2, 1, r * 0.6, SK[2]); box(c, hx + r * 0.1, hy - r * 0.2, 1, r * 0.6, SK[2]);
   if (blood > 0.3) box(c, hx - 2, hy - 2, 3, 2, '#B91C1C');
+  // (the armor: the bracer along the forearm, the coconut on the deltoid, the glove on the fist)
+  const fl = Math.hypot(hx - ex, hy - ey) || 1, ux = (hx - ex) / fl, uy = (hy - ey) / fl;
+  FLAT.forearm(c, [ex, ey], [hx - ux * r, hy - uy * r], big ? 7 : 6, 0);
+  FLAT.shoulder(c, sx, sy, side, 6);
+  mhGlove(c, hx, hy, r, Math.atan2(uy, ux));
 };
 
 /** His head: from behind (the flat-top, the ears, the thick neck), or swung round to `turn` toward sd in profile: the
@@ -1173,6 +1197,8 @@ const mhHead = (c: Ctx, turn: number, sd: number, blood: number, fq: number) => 
     // (his glasses from behind: the arms over the tops of his ears, hooked down behind them)
     box(c, -13, -89, 4, 1.4, INK); box(c, -13, -88, 1, 3, INK); box(c, 9, -89, 4, 1.4, INK); box(c, 12, -88, 1, 3, INK);
     box(c, -12, -89, 2, 0.5, '#52525B'); box(c, 10, -89, 2, 0.5, '#52525B');
+    // (the helmet from behind, its brim above his glasses' arms; the straws round the sides of his head)
+    FLAT.helmet(c, 0, -90.6 - 17 * (20 / 28), 20, false);
   } else {
     c.save(); c.translate(sd * 2, 0); c.scale(sd, 1);
     // (the skull side on, the face to +x; the ear back toward us, the flat-top over it)
@@ -1190,6 +1216,9 @@ const mhHead = (c: Ctx, turn: number, sd: number, blood: number, fq: number) => 
     box(c, 7.5, -85, 0.6, 3, '#9CA3AF'); box(c, 9.8, -85, 0.6, 3, '#9CA3AF');
     box(c, 12, -85.5, 1.4, 3.8, '#7F1D1D');
     if (blood > 0.5) box(c, 11, -87, 1.6, 4 + (fq % 3), '#B91C1C');
+    // (the helmet side on, under the glasses: its brim stops above them; the straw round the front of the glasses and
+    // past his nose to the corner of his mouth)
+    withArmor({ straw: (hx, ey) => [[hx + 15, ey - 3], [hx + 15, ey + 4], [hx + 12.6, ey + 5.6]] }, () => armorParts.helmet(c, 0, -89.4));
     // (his glasses side on: the arm back to his ear, the thick rim round the eye, the brow bar heavier, the glass tinted;
     // cracked as he's beaten up, the way the game's are)
     box(c, -7, -91.2, 11, 1.4, INK); box(c, -6, -91.2, 8, 0.5, '#3F3F46');
@@ -1222,6 +1251,8 @@ const paintMeathead = (c: Ctx, p: MhPose, fq: number, lean: number) => {
   }
   // (torn through at the knees, the skin under them skinned raw)
   if (b > 0.55) for (const sx of [-1, 1]) { box(c, sx * 16 - 2.5, -32, 5, 4, p.nude ? '#C2413A' : SK[3]); box(c, sx * 16 - 1.5, -31, 3, 2, '#B91C1C'); box(c, sx * 16 - 3, -33, 6, 1, '#E8E8F0'); }
+  // (the armor: the leg armor from the knees down the backs of his shins, the boots)
+  for (const s of [-1, 1]) { mhShin(c, s * 16, -29, s * 15, -20, 7, s, false); FLAT.boot(c, s * 15 - 4, -20, 8, 6, s, false, 0); }
   // (the seat of his jeans (or his bare backside), the belt)
   if (p.nude) {
     ell(c, -5.5, -43, 6.5, 5.6, BUM[2]); ell(c, 5.5, -43, 6.5, 5.6, BUM[1]); ell(c, -7, -45, 3, 2.2, BUM[3]); box(c, -0.5, -47, 1, 7, '#8A5A3A');
@@ -1266,6 +1297,9 @@ const paintMeathead = (c: Ctx, p: MhPose, fq: number, lean: number) => {
     for (let i = 0; i < 3; i++) { const d = (fq * 2 + i * 9) % 14; box(c, -8 + i * 7, -52 + d, 1.6, 2, '#B91C1C'); }
     ell(c, 0, -61, 7, 5, '#A04040');
   }
+  // (the cape down his back, split at the spine, above his belt; the amulet's chain round the back of his neck)
+  FLAT.capeBack(c, 0, -71, 19, -52, 0);
+  FLAT.amulet(c, 0, -73.5, 1.7, false, 0);
   // (his arms: to the bars, or the punch, or the parry's flourish)
   if (pr) {
     if (pr.w === 'chain' && pr.t >= 8 && pr.t < 34) { mhArm(c, -1, -4, -100, b); mhArm(c, 1, 4, -100, b); }
@@ -1298,7 +1332,7 @@ export const drawMeathead = (c: Ctx, p: MhPose, x: number, y: number, s: number,
   const b = st === 0 ? 0 : BLOOD_AT[st - 1] + 0.001;
   const fq = st >= 6 || p.shat ? (f >> 3) % 6 : 0;
   const pr = p.parry;
-  const key = `m|${lean}|${Math.floor(p.spin) & 1}|${p.punch}${p.punch ? p.pt : 0}|${pr ? pr.w + pr.t + pr.side : ''}|${p.shat ? 1 : 0}${p.nude ? 1 : 0}${p.bike}|${st}|${fq}|${kq}`;
+  const key = `m|${lean}|${Math.floor(p.spin) & 1}|${p.punch}${p.punch ? p.pt : 0}|${pr ? pr.w + pr.t + pr.side : ''}|${p.shat ? 1 : 0}${p.nude ? 1 : 0}${p.bike}|${st}|${fq}|${kq}|${armorBits()}`;
   const sp = frame(key, kq, -76, -132, 152, 138, g => paintMeathead(g, { ...p, blood: b }, fq, lean));
   blit(c, sp, x, y, s);
 };
@@ -1306,18 +1340,29 @@ export const drawMeathead = (c: Ctx, p: MhPose, x: number, y: number, s: number,
 /** Him and his bike apart (the bail): him tumbling (`rot`), the bike cartwheeling. */
 export const drawMhTumble = (c: Ctx, x: number, y: number, s: number, rot: number, nude: boolean, shat: boolean) => {
   const kq = bucketOf(s), rq = turnStep(rot);
-  const sp = frame(`mt|${rq.toFixed(2)}|${nude ? 1 : 0}${shat ? 1 : 0}|${kq}`, kq, -44, -48, 88, 88, g => {
+  const sp = frame(`mt|${rq.toFixed(2)}|${nude ? 1 : 0}${shat ? 1 : 0}|${kq}|${armorBits()}`, kq, -54, -56, 108, 108, g => {
     g.rotate(rq);
     const L = nude ? SK : JE;
+    // (his armor, from the front: the cape's points out behind him first)
+    FLAT.capeFront(g, 0, -16, 14, 1, 'behind', 0);
     box(g, -12, -16, 24, 18, SK[3]); box(g, -12, -16, 5, 18, SK[4]); box(g, 7, -16, 5, 18, SK[2]); box(g, -1, -15, 2, 16, SK[2]);
     box(g, -12, 2, 24, 9, nude ? BUM[2] : JE[3]); box(g, -12, 2, 24, 2, nude ? BUM[3] : JE[4]);
     if (!nude) box(g, -13, 1, 26, 3, '#5A2A0C');
     if (shat && !nude) ell(g, 0, 7, 6, 3, '#6A4418');
     line(g, L[2], 7, [-6, 10, -14, 24]); line(g, L[2], 7, [6, 10, 16, 20]); line(g, L[4], 2, [-7, 10, -15, 23]);
     box(g, -18, 23, 8, 5, '#1A120C'); box(g, 13, 18, 8, 5, '#1A120C');
+    mhShin(g, -10, 17, -13.6, 23, 6, -1, true); mhShin(g, 11, 15, 15, 18.5, 6, 1, true);
+    FLAT.boot(g, -18, 23, 8, 5, -1, true, 0); FLAT.boot(g, 13, 18, 8, 5, 1, true, 0);
+    FLAT.capeFront(g, 0, -16, 14, 1, 'collar', 0);
+    FLAT.amulet(g, 0, -16, 0.9, true, 0);
     line(g, SK[2], 6, [-12, -12, -24, -22]); line(g, SK[2], 6, [12, -12, 24, -4]); line(g, SK[4], 2, [-12, -13, -23, -23]);
+    FLAT.forearm(g, [-18, -17], [-22.5, -20.7], 5.4, 0); FLAT.forearm(g, [18, -8], [22.4, -5.2], 5.4, 0);
+    mhGlove(g, -24.5, -22.5, 3.2, Math.atan2(-10, -12)); mhGlove(g, 24.5, -3.6, 3.2, Math.atan2(8, 12));
+    FLAT.shoulder(g, -12, -12, -1, 4.6); FLAT.shoulder(g, 12, -12, 1, 4.6);
     box(g, -8, -33, 16, 17, SK[3]); box(g, -8, -33, 4, 17, SK[4]); box(g, -9, -35, 18, 6, HAIR); box(g, -9, -35, 18, 1, '#52525B');
     box(g, -4, -25, 3, 2, INK); box(g, 2, -25, 3, 2, INK); box(g, -3, -21, 7, 3, '#5A0A0A'); box(g, -2, -21, 5, 1, '#F4F4F4');
+    // (the helmet, its brim above his glasses, the straws down outside them to his mouth)
+    FLAT.helmet(g, 0, -28.2 - 17 * (18 / 28), 18, true);
     // (his glasses, knocked crooked on the way down: the rims round his eyes, the bridge, a streak on the glass)
     g.save(); g.translate(0, -24.5); g.rotate(0.18);
     for (const rx of [-6, 1]) { box(g, rx, -3, 6, 1.6, INK); box(g, rx, -1.4, 1, 3.4, INK); box(g, rx + 5, -1.4, 1, 3.4, INK); box(g, rx, 2, 6, 1, INK); box(g, rx + 1, -1, 1, 1, '#F8FAFC'); }

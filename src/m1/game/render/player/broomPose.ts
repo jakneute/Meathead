@@ -7,6 +7,7 @@
 
 import type { Player } from '../../../types';
 import { drawFig } from './tragonPose';
+import { armorMotion } from './body';
 import type { LadderPants } from './ladder';
 
 type Ctx = CanvasRenderingContext2D;
@@ -18,12 +19,16 @@ export const BROOM_SHAFT = 4;
 export const drawBroomRidePose = (ctx: Ctx, q: Pose, frame: number, pants: LadderPants, hurt: boolean) => {
   const S = BROOM_SHAFT, k = Math.max(0, Math.min(1, q.lean)), bob = Math.sin(frame * 0.15) * 0.6;
   const hip: [number, number] = [0, S - 7 + bob];
-  drawFig(ctx, {
+  // (what hangs off his armor (Meathead 2's cape) streams back with the flight, harder as he tucks and shoots off;
+  // put back after: the runway moves him without his own speed)
+  const was = { ...armorMotion };
+  armorMotion.fwd = 3 + k * 6; armorMotion.vy = 0; armorMotion.floating = false; armorMotion.grounded = false;
+  try { drawFig(ctx, {
     hip, lean: 0.35 + k * 0.45,
     fN: [24 + k * 4, S - 1], fF: [19 + k * 4, S - 1],
     tN: [-7, S + 16], tF: [-10, S + 14], kneeFwd: true,
     mood: hurt ? 'yell' : 'grit', eyes: hurt ? 'shut' : k > 0.6 ? 'wide' : undefined, headBack: hurt ? 0.3 : 0, white: true,
-  }, frame, pants);
+  }, frame, pants); } finally { Object.assign(armorMotion, was); }
   if (!pants.nude) return;
   // (naked: the balls hung either side of the shaft, the boner along it, pointing the way he's flying)
   const cx = hip[0] + 5, cy = S - 3 + bob;

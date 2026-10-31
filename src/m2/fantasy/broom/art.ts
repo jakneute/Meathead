@@ -14,6 +14,7 @@ import { drawSuitor, type SuitorLook } from '../suitors';
 import { drawBroom } from '../keep/runway';
 import { INK } from '../kit';
 import { drawMipped } from './sprites';
+import { FLAT } from '../../upgrades/walkArmor';
 
 type Ctx = CanvasRenderingContext2D;
 
@@ -24,6 +25,27 @@ const line = (c: Ctx, col: string, w: number, p: number[]) => { c.strokeStyle = 
 
 // ---------------------------------------------------------------------------------------------------------------
 // Him, from behind
+
+// His armor on these (upgrades/walkArmor.ts FLAT: the walk screens' back-on pieces, the same baked stamps, scaled to
+// him here; each shown while he owns it): the helmet sat up a touch so its brim stops above his glasses' arms, the cape
+// split down his spine and stopping above his belt (the seat or his bare ass always shows), the leg armor knee and shin
+// only, the gloves on his fists on the grips.
+/** The glove over a fist (its middle, its size, the way it points): the walk glove scaled down whole. */
+const glove = (c: Ctx, x: number, y: number, r: number, a: number) => { c.save(); c.translate(x, y); c.scale(r / 7, r / 7); FLAT.fist(c, 0, 0, 7, a); c.restore(); };
+/** The leg armor down a shin from the knee (kx, ky) to the boot's top (fx, fy), seen from behind (`front`: toward us). */
+const shinAlong = (c: Ctx, kx: number, ky: number, fx: number, fy: number, legW: number, side: number, front: boolean) => {
+  const len = Math.hypot(fx - kx, fy - ky);
+  c.save(); c.translate(kx, ky); c.rotate(Math.atan2(fy - ky, fx - kx) - Math.PI / 2);
+  FLAT.shin(c, 0, legW, 0, len, side, front);
+  c.restore();
+};
+/** The helmet from behind and a little above (squashed for the look down on it), its brim's bottom at `brimY`. */
+const helmetBehind = (c: Ctx, brimY: number, headW: number, squash: number) => {
+  const s = headW / 28;
+  c.save(); c.translate(0, brimY); c.scale(1, squash); c.translate(0, -brimY);
+  FLAT.helmet(c, 0, brimY - 17 * s, headW, false);
+  c.restore();
+};
 
 const SK = ['#4A2410', '#7A4220', '#A86630', '#E0AC69', '#EEC48E', '#F8DCB4'];
 const JE = ['#0A1028', '#13204A', '#1E3A8A', '#2C50AA', '#4468C0', '#6A8AD4'];
@@ -103,6 +125,10 @@ export const drawMeatheadBroom = (c: Ctx, x: number, y: number, k: number, L: Mh
       for (let n = -1; n <= 1; n++) box(c, fx + n * 1.2 - 0.3, fy + 1, 0.6, 1.4, SK[1]);
       box(c, fx - 2, fy - 1, 4, 1, SK[2]);
     }
+    // (the armguard along the forearm, the glove round the grip)
+    const fl = Math.hypot(fx - ex, fy - ey) || 1;
+    FLAT.forearm(c, [ex, ey], [fx - ((fx - ex) / fl) * 3.4, fy - ((fy - ey) / fl) * 3.4], 6, L.f);
+    if (s < 0.6) glove(c, fx, fy, 3.6, Math.atan2(fy - ey, fx - ex));
   }
   // HIS HEAD: the neck (sat up), the ears
   box(c, -5, hy + 3, 10, sY - hy, SK[2]); box(c, -5, hy + 3, 3, sY - hy, SK[3]); box(c, -3, hy + 5 + s * 2, 6, 1, SK[1]);
@@ -119,6 +145,8 @@ export const drawMeatheadBroom = (c: Ctx, x: number, y: number, k: number, L: Mh
   box(c, -6.4, top + ft - 1, 12.8, 1, HAIR[3]); box(c, -6.4, top, 2, ft, HAIR[3]); box(c, 4.4, top, 2, ft, HAIR[1]);
   for (let i = 0; i < 3; i++) box(c, -3 + i * 2.6, top + 1 + (i % 2), 1, 1, HAIR[3]);
   box(c, -5, hairB - 0.5, 10, 1, HAIR[0]);
+  // (the helmet, its brim above his glasses' arms)
+  helmetBehind(c, hy - 1.6, 17, 0.75);
   // (his glasses from behind: the arms over the tops of his ears)
   for (const d of [-1, 1]) { box(c, d < 0 ? -10.6 : 7, hy - 1, 3.6, 1.2, INK); box(c, d < 0 ? -10.6 : 9.6, hy - 0.2, 1, 2.4, INK); box(c, d < 0 ? -10 : 7.6, hy - 1, 2, 0.4, '#52525B'); }
   // (boosting, the wind whipping tufts off the sides)
@@ -135,7 +163,11 @@ export const drawMeatheadBroom = (c: Ctx, x: number, y: number, k: number, L: Mh
   const bl = 2.4 + s * 1.2;
   ell(c, -8, sY + 3.5, 5, bl, SK[5]); ell(c, 7.5, sY + 3.5, 4.6, bl * 0.95, SK[4]); ell(c, -9, sY + 3.5 + bl, 3, 0.8, SK[2]); ell(c, 8, sY + 3.5 + bl, 3, 0.8, SK[2]);
   poly(c, SK[4], [-7, sY, 7, sY, 4, sY - 2.5, -4, sY - 2.5]); box(c, -4, sY - 2.5, 3, 1, SK[5]);
+  // (the cape down his back, split at the spine, above his belt; the amulet's chain round the back of his neck)
+  FLAT.capeBack(c, 0, sY - 1, 19, wY - 3, L.f);
+  FLAT.amulet(c, 0, sY - 1.5, 1.2, false, L.f);
   for (const d of [-1, 1]) { ell(c, d * 19, sY + 2.5, 4.6, 3.8, INK); ell(c, d * 19, sY + 2.5, 3.8, 3, d < 0 ? SK[4] : SK[3]); ell(c, d * 19 - 1, sY + 1.6, 2, 1.4, d < 0 ? SK[5] : SK[4]); }
+  for (const d of [-1, 1]) FLAT.shoulder(c, d * 19.5, sY + 2, d, 4.2);
   // HIS LEGS, bent astride it: the thighs from his hips forward and out to his knees (up the screen, by his belly), the
   // shins back and in to his boots, tucked back by the binding near us, their soles at us
   const Lg = L.nude ? SK : JE;
@@ -154,12 +186,14 @@ export const drawMeatheadBroom = (c: Ctx, x: number, y: number, k: number, L: Mh
     line(c, d < 0 ? Lg[4] : Lg[3], 2.4, [d * (kx - 2), ky + 1, fx - d * 2, fy - 2]);
     line(c, Lg[1], 1.4, [d * (kx + 3), ky + 2, fx + d * 3.5, fy - 2]);
     if (!L.nude) { line(c, STITCH, 0.6, [d * (kx + 2), ky + 1, fx + d * 3, fy - 3]); for (let w = 0; w < 3; w++) line(c, JE[1], 0.8, [d * (kx - 3), ky + 4 + w * 3, d * (kx - 0.5), ky + 5 + w * 3]); box(c, fx - 4, fy - 4, 8, 2, JE[1]); }
+    shinAlong(c, d * kx, ky, fx, fy - 3, 8, d, false);
     // (the boot from behind: the shaft's leather in steps, the pull tab, the heel and the sole at us)
     box(c, fx - 5, fy - 3, 10, 10, INK);
     box(c, fx - 4, fy - 2, 8, 8, BOOT[2]); box(c, fx - 4, fy - 2, 2, 8, BOOT[4]); box(c, fx + 2, fy - 2, 2, 8, BOOT[1]);
     box(c, fx - 1, fy - 3, 2, 2, BOOT[5]);
     box(c, fx - 4, fy + 3, 8, 3, BOOT[3]); box(c, fx - 4, fy + 3, 8, 1, BOOT[5]); box(c, fx - 3, fy + 5, 6, 1, BOOT[0]);
     for (let n = -3; n < 4; n += 2) box(c, fx + n, fy + 4, 1, 1, BOOT[1]);
+    FLAT.boot(c, fx - 5, fy - 3, 10, 10, d, false, L.f);
   }
   // HIS ASS on the shaft, nearest us and biggest: two cheeks lit from the upper left in steps; the jeans' seat (its
   // seam, the back pockets and their stitching, the belt) or bare (the crack, the balls hanging over the shaft); the stain
@@ -213,11 +247,22 @@ export const drawMeatheadFall = (c: Ctx, x: number, y: number, k: number, rot: n
   line(c, INK, 9, [-5, 6, -14, 22]); line(c, INK, 9, [5, 6, 16, 18]);
   line(c, L[2], 7, [-5, 6, -14, 22]); line(c, L[3], 7, [5, 6, 16, 18]); line(c, L[4], 2, [-4, 5, -12, 19]);
   box(c, -17, 20, 7, 6, BOOT[1]); box(c, 13, 16, 7, 6, BOOT[1]);
+  // (his armor, from behind: the leg armor down the shins, the boots)
+  shinAlong(c, -9.5, 14, -13.5, 21, 7, -1, false); shinAlong(c, 10.5, 12, 15.5, 17, 7, 1, false);
+  FLAT.boot(c, -17, 20, 7, 6, -1, false, 0); FLAT.boot(c, 13, 16, 7, 6, 1, false, 0);
   box(c, -13, -17, 26, 22, INK); box(c, -12, -16, 24, 20, SK[3]); box(c, -12, -16, 6, 20, SK[4]); box(c, 7, -16, 5, 20, SK[2]); box(c, -1, -14, 2, 16, SK[2]);
   if (!nude) { box(c, -12, 2, 24, 4, L[3]); box(c, -12, 2, 24, 1, '#5A2A0C'); }
+  // (the cape down his back, above his belt; the amulet's chain round his neck)
+  FLAT.capeBack(c, 0, -16, 14, 1, 0);
+  FLAT.amulet(c, 0, -16.5, 1, false, 0);
   line(c, INK, 8, [-12, -12, -26, -24]); line(c, INK, 8, [12, -12, 24, -2]);
   line(c, SK[4], 6, [-12, -12, -26, -24]); line(c, SK[3], 6, [12, -12, 24, -2]);
+  // (the armguards, the gloves on the ends of his arms, the coconuts on his shoulders)
+  FLAT.forearm(c, [-19, -18], [-24.5, -22.7], 6, 0); FLAT.forearm(c, [18, -7], [22.6, -3.2], 6, 0);
+  glove(c, -26, -24, 3.4, Math.atan2(-12, -14)); glove(c, 24, -2, 3.4, Math.atan2(10, 12));
+  FLAT.shoulder(c, -12, -12, -1, 4.6); FLAT.shoulder(c, 12, -12, 1, 4.6);
   ell(c, 0, -24, 9, 10, INK); ell(c, 0, -24, 8, 9, SK[3]); ell(c, 0, -27, 8, 6, HAIR[1]); box(c, -4, -31, 3, 1, HAIR[3]);
+  helmetBehind(c, -22, 17, 1);
   c.restore();
 };
 
