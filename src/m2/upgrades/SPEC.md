@@ -141,3 +141,7 @@ Fairy: pink sequins, glitter crystal, tiara spikes; Cartoon: flat, outlined, a b
 Meathead's old gym buddy (CON-FUCK-TIOUS is only Meathead's name for him): plays the wise old dojo master, actually a
 dirty fighter selling cheap gear; Meathead looks up to him like the father he never had. He's in a secluded spot in each
 land, practicing that land's move; meeting him gives the piece. NOT in the levels yet; build him after the rest.
+- HIS DOJO (future, 2026-10-31: "when you find con-fuck-tious at least once, he will bolt on his own dojo to the top of
+  the employee break room. here you can follow his guided tutorial on the new moves again that he will give"): after
+  the first meeting, a cheap bolted-on dojo appears on top of the employee break room (the hub's staff room). In it he
+  replays his guided tutorials for every move/piece he's given so far, on request.
