@@ -222,6 +222,8 @@ const drawWorldAt = (ctx: CanvasRenderingContext2D, state: GameState, view: Worl
   if (layout?.drawHud) fenced(ctx, 'drawHud', () => layout.drawHud!(ctx, state));
   // (a boss's meter up top, as the mid-bosses get: not a bar over his head)
   drawBossHud(ctx, state, stageId);
+  // (another game's own, in screen space over the lot: Meathead 2's cheap-shot close-up)
+  if (screenOverlay) fenced(ctx, 'screenOverlay', () => screenOverlay!(ctx, state));
 
   // Screen space: the stage's weather over the level (not inside the boss arenas)
   if (state.camera.x < ARENA_LEFT - CANVAS_WIDTH / 2 && !(layout?.drawBackdropFront && fenced(ctx, 'drawBackdropFront', () => layout.drawBackdropFront!(ctx, state)))) drawBackdropFront(ctx, stageId, state.camera.x, state.camera.y, state.frame || 0);
@@ -1599,6 +1601,9 @@ const drawVictoryText = (ctx: CanvasRenderingContext2D, text: string) => {
 };
 
 /** A game's own death message in place of this one (Meathead 2's bleeding letters), or null for this. */
+/** Another game's screen-space drawing over the world and the stage's HUD things (Meathead 2: the cheap shot's close-up). */
+let screenOverlay: ((ctx: CanvasRenderingContext2D, state: GameState) => void) | null = null;
+export const setScreenOverlay = (fn: typeof screenOverlay) => { screenOverlay = fn; };
 let deathDrawer: ((ctx: CanvasRenderingContext2D, state: GameState, text: string) => void) | null = null;
 export const setDeathMessageDrawer = (fn: typeof deathDrawer) => { deathDrawer = fn; };
 

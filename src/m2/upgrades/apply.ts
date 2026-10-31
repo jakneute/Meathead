@@ -13,6 +13,8 @@ import { setMaxAmmoScale, maxAmmo, MAX_AMMO } from '../../m1/constants';
 import { maxHealth, ammoScale, powerCells, subscribeUpgrades } from './state';
 import { bossMeleeOf } from './bossMelee';
 import { installGear } from './gear';
+import { setScreenOverlay } from '../../m1/game/render/world';
+import { drawCheapShotPanel } from './cheapShot';
 import { liveState } from '../cheats';
 import type { WeaponType } from '../../m1/types';
 
@@ -29,6 +31,8 @@ export const installUpgrades = () => {
   setStompRefund(false);
   // (what the armor and the cape do to his moves, his legs and what hurts him: gear.ts)
   installGear();
+  // (the hand armor's cheap shot: its close-up, over everything)
+  setScreenOverlay(drawCheapShotPanel);
   // (the power rule: no cell refills through a dive kick or the flash kick either; the engine already holds them through
   // a charge, a slide and an uppercut)
   setPowerHold(p => !!p.isDivekicking || !!p.flashKick);

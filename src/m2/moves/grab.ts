@@ -25,6 +25,7 @@ import { stepAmulet, amuletShielded, drawAmuletFx } from '../upgrades/amulet';
 import { has } from '../upgrades/state';
 import { HANDS_HEAL } from '../upgrades/tune';
 import { FOLLOW_PHASES, type FollowPhase, type Follow, followIdle, startFollowUp, stepFollow, drawFollow, followTick, followAfter, followUntouchable } from './followups';
+import { cheapShotStart, cheapShotStep, cheapShotTick, drawCheapShotWorld } from '../upgrades/cheapShot';
 import { walkAwayOn } from '../walkAway';
 import { spawnShielded } from '../spawnSafe';
 import { pickLine } from '../../m1/game/platform/speech';
@@ -229,7 +230,9 @@ type Phase = 'idle' | 'windup' | 'lunge' | 'whiff' | 'mount' | 'kill' | 'reach' 
   // (the air grab: wound up, launched with hands out, the arc down with one in his arms, the impact)
   | 'awind' | 'alunge' | 'aarc' | 'aland'
   // (the hidden upgrades' follow-ups: followups.ts)
-  | FollowPhase;
+  | FollowPhase
+  // (the hand armor's cheap shot on a boss: upgrades/cheapShot.ts)
+  | 'cheap';
 /** The air grab's arc: back held (a backflip), forward held (a dive), nothing (a piledriver straight down). */
 type Arc = 'back' | 'fwd' | 'down';
 /** Which throw: on the way he's facing, back (a suplex), straight up, or slammed down. */
@@ -813,6 +816,8 @@ export const updateGrab = (ctx: FrameContext, g: Grab, controls: Controls): Cont
   }
   // (the amulet's meter and yell (upgrades/amulet.ts): every frame, everywhere he plays, before the grab reads untouchable)
   stepAmulet(ctx);
+  // (the cheap shot's: a death forgets which bosses have had it, and their stuns)
+  cheapShotTick(ctx.state, g.phase === 'cheap');
   // (the follow-ups' own business: who was last hit and how, the heads in the ground, a kicked head flying)
   followTick(ctx, g);
   const out = stepGrab(ctx, g, controls);
@@ -882,7 +887,7 @@ const OFF_FLOOR_MAX = 10;
 const PHASE_MAX: Record<Phase, number> = {
   idle: Infinity, windup: 60, lunge: 60, whiff: 90, miss: 90, reach: 60, mount: 420, kill: 60, shake: 150, toss: 90,
   critter: 200, pitch: 60, plummet: 150, drop: 150, smash: 120, stomp: 150, hug: 200, awind: 90, alunge: 90, aarc: 200, aland: 60,
-  fmissile: 90, fspin: 120, fdrop: 150, fflash: 120, fkick: 320,
+  fmissile: 90, fspin: 120, fdrop: 150, fflash: 120, fkick: 320, cheap: 240,
 };
 /** Stood back down on whatever's just under his feet (a few pixels: a bounce pad lifts him a couple). False: nothing there. */
 const standBack = (state: GameState) => {
@@ -928,7 +933,8 @@ const stepGrab = (ctx: FrameContext, g: Grab, controls: Controls): Controls => {
   // (or just back at a checkpoint, still on the spot: spawnSafe.ts's grace)
   // (or the amulet's rage after its yell: upgrades/amulet.ts)
   // (or a follow-up up in the air with somebody: followups.ts)
-  p.untouchable = p.airGrab || spawnShielded(state) || amuletShielded() || followUntouchable(g);
+  // (or the cheap shot's cutscene: upgrades/cheapShot.ts)
+  p.untouchable = p.airGrab || spawnShielded(state) || amuletShielded() || followUntouchable(g) || g.phase === 'cheap';
   if (wasAir && !p.airGrab) p.noContactUntil = state.frame + AIR_CONTACT_GRACE;
   const press = (k: keyof Controls) => !!controls[k] && !was[k];
   if (state.deathTimer > 0 || p.health <= 0) { if (g.phase !== 'idle') letGo(state, g); return controls; }
@@ -997,6 +1003,8 @@ const stepGrab = (ctx: FrameContext, g: Grab, controls: Controls): Controls => {
       if (g.airLock) out = g.diveOk && out.down && !p.isGrounded ? { ...out, charge: false } : { ...out, special: false, charge: false };
       // (Y + B just after a hit that didn't kill, in that move's armor piece: its follow-up, whatever he's in the middle of)
       if (g.queued?.want === 'beat' && !handsOnly(state) && startFollowUp(ctx, g)) { g.queued = null; g.pend = null; if (y) g.yChord = true; return { ...NO_CONTROLS }; }
+      // (Y + B right by a boss, with the hand armor: the cheap shot, once a life (upgrades/cheapShot.ts))
+      if (g.queued?.want === 'beat' && !handsOnly(state) && free && cheapShotStart(ctx)) { g.queued = null; g.pend = null; if (y) g.yChord = true; g.phase = 'cheap'; g.t = 0; return { ...NO_CONTROLS }; }
       if (!g.queued || !free) return out;
       const go = g.queued.want; g.queued = null;
       if (touching) { p.pushbackTimer = 0; p.vel.x = 0; }
@@ -1290,6 +1298,7 @@ const stepGrab = (ctx: FrameContext, g: Grab, controls: Controls): Controls => {
     }
     default:
       if (FOLLOW_PHASES.has(g.phase)) return stepFollow(ctx, g, controls);
+      if (g.phase === 'cheap') { const out = cheapShotStep(ctx); if (!out) { end(state, g); return { ...NO_CONTROLS }; } return out; }
       return controls;
   }
 };
@@ -2382,7 +2391,9 @@ export const drawPulped = (main: Ctx, state: GameState) => {
 export const drawGrab = (ctx: Ctx, state: GameState, g: Grab) => {
   // (the amulet's shockwave and its rage's heat round him: upgrades/amulet.ts)
   drawAmuletFx(ctx, state);
-  if (g.phase === 'idle' || state.deathTimer > 0) return;
+  // (the cheap shot's: the stunned bosses' dizzy stars, the scream over them; him, the engine's own kick)
+  drawCheapShotWorld(ctx, state);
+  if (g.phase === 'idle' || g.phase === 'cheap' || state.deathTimer > 0) return;
   const p = state.player, f = state.frame;
   p.hidden = true;
   const x = centerX(state), y = feetY(state);

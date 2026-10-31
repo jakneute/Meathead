@@ -73,3 +73,7 @@ export const FLASH_RISE = 0.5, FLASH_RADIUS = 100, FLASH_DAMAGE = 150;
 // ---- hand armor
 /** Every beatdown blow heals this many times more with the hand armor. */
 export const HANDS_HEAL = 1.6;
+/** The cheap shot (cheapShot.ts): how long the boss is stunned after it (frames; SPEC's 5 s: four 75-frame breathers). */
+export const CHEAP_STUN = 300;
+/** How near he has to be: across, from his middle to their near side (px); up/down, how far their boxes can miss. */
+export const CHEAP_REACH = 60, CHEAP_REACH_UP = 10;
