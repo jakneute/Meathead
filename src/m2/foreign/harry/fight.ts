@@ -55,7 +55,7 @@ import { makeKindEnemy } from '../../../m1/game/enemies/kinds';
 import { CANVAS_WIDTH, CANVAS_HEIGHT, BULLET_DAMAGE } from '../../../m1/constants';
 import { bossMelee } from '../../upgrades/bossMelee';
 import { takeYell } from '../../upgrades/amulet';
-import { cheapShotGate, cheapShotStunned, crushGroups, crushLines } from '../../upgrades/cheapShot';
+import { cheapShotGate, crushGroups, crushLines } from '../../upgrades/cheapShot';
 import { registerM2Kind } from '../../kinds';
 import { newSpam, spamTick, hitKey, swatOff, type Spam, BOSS_IFRAMES } from '../../bossSpam';
 import { keepForRevisits } from '../../store';
@@ -599,8 +599,8 @@ const counter = (ctx: FrameContext, f: Fight) => {
   const { state } = ctx, p = state.player;
   if (f.mode !== 'on' || f.entrance > 0) return;
   if (f.pin) return { said: true };
-  // (stunned off the cheap shot: no pinning him, he's holding something else)
-  if (cheapShotStunned(f.e)) return;
+  // (stunned off the cheap shot, he still counters: the one grab he gives up is the cheap shot itself, the owner's
+  // "harry is grabbable once. when you destroy his nuts. after that he counters")
   // (up a wall, in her crown, mid leap, puking: just can't get hold of him)
   if (f.barf || f.leap || f.hy < GY - 2 || !COUNTERS.has(f.act)) return;
   // (just done it: the hands come off him, nothing more)
