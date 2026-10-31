@@ -60,7 +60,7 @@ import { registerDeathKind, type MeatheadDeathKind } from '../../../m1/game/play
 import { CANVAS_WIDTH, CANVAS_HEIGHT, BULLET_DAMAGE } from '../../../m1/constants';
 import { bossMelee } from '../../upgrades/bossMelee';
 import { takeYell } from '../../upgrades/amulet';
-import { cheapShotGate, cheapShotStunned, cheapShotStunT, crushGroups, crushLines, crushPool } from '../../upgrades/cheapShot';
+import { cheapShotGate, cheapShotStunned, cheapShotStunT, registerClearThreats, crushGroups, crushLines, crushPool } from '../../upgrades/cheapShot';
 import { setErect } from '../../../m1/game/render/player/body';
 import { registerM2Kind, registerHurtLines } from '../../kinds';
 import { newSpam, spamTick, hitKey, swatOff, type Spam, BOSS_IFRAMES } from '../../bossSpam';
@@ -197,6 +197,8 @@ export const introSeen = (state: GameState) => bossIntroSeen(state, 'piper');
 /** Counted as seen (a fresh start at her checkpoint: the world as a run there left it). */
 export const markIntroSeen = (state: GameState) => markBossIntroSeen(state, 'piper');
 let game: GameState | null = null;
+/** The fight going on (the cheap shot's clear-out reaches it here). */
+let liveF: Fight | null = null;
 const pants = (): Pants => (!game ? 'clean' : isNude(game) ? 'nude' : isShat(game) ? 'shitty' : 'clean');
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -423,7 +425,7 @@ const attacking = (state: GameState) => { const p = state.player; return p.isCha
 
 export const updateFight = (ctx: FrameContext, f: Fight, controls: Controls): Controls => {
   const { state } = ctx;
-  game = state;
+  game = state; liveF = f;
   // (the hand armor's cheap shot (upgrades/cheapShot.ts): got at on the floor, her own two feet, in the room (not up for
   // a slam or coming down, not on the furniture, not off round the room); the cutscene freezes the lot; then she's
   // stunned: stood there hurting, no waddle, no belly bumps, no slam, no throws; hits as ever)
@@ -862,7 +864,10 @@ const hazPhase = (h: Hazard) => {
 
 const tickHazards = (ctx: FrameContext, f: Fight) => {
   const { state } = ctx, p = state.player, m = pmid(state);
+  // (the cheap shot's free window: the mains held quiet (the clear-out knocked them back to it), nothing on)
+  const held = cheapShotStunned(f.e);
   for (const h of f.hazards) {
+    if (held) continue;
     const was = hazPhase(h).s;
     // (never all three at once: due to start its tell while the other two are both telling or on, it holds, quiet)
     const busy = f.hazards.filter(o => o !== h && hazPhase(o).s !== 'quiet').length;
@@ -900,6 +905,7 @@ const tickHazards = (ctx: FrameContext, f: Fight) => {
   }
   // (the fire balls' burning patches)
   for (const q of f.patches) {
+    if (held) { q.t = 0; continue; }
     q.t--;
     if (q.t > 0 && f.mode === 'on' && canHurtHim(state) && overlaps(state, q.x - 40, GY - 26, q.x + 40, GY)) hurtPlayer(ctx, FIREBALL_DMG * 0.7, L.SRC.fireball, { x: (Math.sign(m.x - q.x) || 1) * 6, y: -6 });
   }
@@ -1054,7 +1060,7 @@ const takeHits = (ctx: FrameContext, f: Fight) => {
   if (!melee && !yell && p.currentWeapon === 'FLINTLOCK') { if (f.act !== 'bounce') hole(ctx, f); return; }
   // (a dive kick on her: she's a balloon, and he's bounced right off her, flung off to the side, boing (the user's:
   // "piper bounces you too"): no stomping chain on her head; no hurt)
-  if (melee && p.isDivekicking) { swatOff(state, f.x, 9, -10); playSound('boing', 0.8, -2 + Math.random() * 4); playSound('squish', 0.4, 4); }
+  if (melee && p.isDivekicking && !cheapShotStunned(e)) { swatOff(state, f.x, 9, -10); playSound('boing', 0.8, -2 + Math.random() * 4); playSound('squish', 0.4, 4); }
   // (the user's: "i don't want the player to be given more than 5 uninterrupted seconds spamming the same attack on a
   // boss": the same hit landing for 4 s (the ray gun held on her from one spot) and she's off somewhere now, stay or no)
   else if (f.act !== 'bounce' && f.act !== 'flop' && f.act !== 'getup' && !airborne(f) && !cheapShotStunned(e) && spamTick(f.spam, state.frame, hitKey(p, melee))) {
@@ -1839,3 +1845,39 @@ export const roomBits = (f: Fight | null) => ({ stage: f?.stage ?? 0, chandelier
   piperX: !f || (f.death?.how === 'cork' && f.death.step === 'gone') ? null : f.death?.how === 'cork' ? f.death.x : f.x,
   piperY: !f ? GY : f.death?.how === 'cork' ? Math.min(GY, f.death.y) : f.y,
   reflect: f ? (c: Ctx, fr: number) => drawHer(c, f, fr) : null });
+
+// ---------------------------------------------------------------------------------------------------------------
+// The cheap shot's clear-out (the user's: "initiating a stun will destroy/kill any active threats like cars/critters
+// from the battle"; "it's basically a 'free' window that blocks obstructions too"): the moment her stun starts, her
+// throws in the air burst, the burning patches go out in smoke, the ceiling bits coming down crumble to dust, a falling
+// (or swinging) chandelier smashes where it hangs, and the mains choke off back to quiet in a burst of steam (they stay
+// torn loose, held quiet for the stun: tickHazards); him knocked down or frozen, he's up and thawed
+registerClearThreats('piper', (state) => {
+  const f = liveF;
+  if (!f || f.mode !== 'on') return;
+  const puff = (x: number, y: number, n: number, cols: string[], spread = 6) => { for (let k = 0; k < n; k++) state.particles.push({ pos: { x, y }, vel: { x: (Math.random() - 0.5) * spread, y: -1 - Math.random() * 3 }, life: 26 + Math.random() * 14, color: cols[k % cols.length], size: 3 + Math.random() * 4, grav: 0.12 }); };
+  for (const s of f.shots) puff(s.x, s.y, 10, s.kind === 'fire' ? ['#F97316', '#FDE047', '#57534E'] : s.kind === 'ice' ? ['#E0F2FE', '#FFFFFF', '#BAE6FD'] : ['#A5F3FC', '#FFFFFF']);
+  if (f.shots.length) playSound('poof', 0.7, 4);
+  f.shots = [];
+  for (const q of f.patches) puff(q.x, GY - 6, 12, ['rgba(87, 83, 78, 0.8)', 'rgba(168, 162, 158, 0.7)'], 3);
+  if (f.patches.length) playSound('oil', 0.5, -4);
+  f.patches = [];
+  for (const d of f.debris) if (d.t >= DEBRIS_WARN || d.y > CEIL_Y + 12) puff(d.x, d.y - d.size / 2, 12, ['#F6EADA', '#D8C8B8', 'rgba(240, 232, 224, 0.9)'], 7);
+  if (f.debris.length) playSound('crash', 0.4, 6);
+  f.debris = [];
+  if (f.chand) {
+    const C = f.chand;
+    playSound('glass', 1, -2);
+    for (let k = 0; k < 22; k++) state.particles.push({ pos: { x: C.x, y: C.y }, vel: { x: (Math.random() - 0.5) * 9, y: -2 - Math.random() * 4 }, life: 40, color: k % 3 ? '#E0F2FE' : '#FDE047', size: 2 + Math.random() * 2, grav: 0.35 });
+    f.chandDown = C.i; f.chand = null;
+  }
+  for (const h of f.hazards) {
+    const ph = hazPhase(h).s;
+    if (ph !== 'quiet') { puff(h.x, GY - 40, 14, ['rgba(244, 244, 248, 0.85)', 'rgba(184, 182, 200, 0.75)'], 5); playSound('suck', 0.6, -6); }
+    // (back to the start of its quiet: a gap's worth of grace after the stun before its tell)
+    const [q, tl, on] = HAZ[h.kind], cyc = q + tl + on;
+    h.t = Math.floor(h.t / cyc) * cyc + (ph === 'quiet' ? h.t % cyc : 0); h.hit = false;
+  }
+  f.stun = 0;
+  if (f.ice) { f.ice = null; f.thawT = 15; f.thawedAt = f.total; setUi({ iceMash: null }); playSound('glass', 0.7, 2); }
+});
