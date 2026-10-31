@@ -7,7 +7,7 @@
 // art (logride/art.ts drawLog), from what's recorded here as it's drawn (paddleShown), so it reads in front of the log.
 
 import type { Player } from '../../../types';
-import { drawArmTo } from './body';
+import { drawArmTo, armorOn } from './body';
 import { elbow } from '../../../../m2/art/limb';
 
 type Ctx = CanvasRenderingContext2D;
@@ -114,6 +114,9 @@ export const drawPaddleFront = (ctx: Ctx, q: Paddle) => {
   // (the far hand round the grip, seen over it)
   ctx.fillStyle = '#C68B45'; ctx.beginPath(); ctx.arc(pp.top[0], pp.top[1], 4.5, 0, Math.PI * 2); ctx.fill();
   ctx.fillStyle = '#A87038'; ctx.fillRect(pp.top[0] - 3, pp.top[1] + 1, 6, 1);
+  // (another game's glove back on it, over the grip)
+  const ar = armorOn();
+  if (ar) { const el = elbow(BACK_SHOULDER[0], BACK_SHOULDER[1], pp.top[0], pp.top[1], UPPER, FORE, 1); ar.fist(ctx, pp.top[0], pp.top[1], 4.5, Math.atan2(pp.top[1] - el[1], pp.top[0] - el[0]), true); }
   drawArmTo(ctx, FRONT_SHOULDER, elbow(FRONT_SHOULDER[0], FRONT_SHOULDER[1], pp.low[0], pp.low[1], UPPER, FORE, 1), pp.low, false, 5);
 };
 

@@ -5,7 +5,7 @@
 // back down into the seat. The lead arm is the near one (in a cutscene it's his left: the sprite just mirrors).
 // Elbows bend the way elbows bend (the same two-bone rule as Meathead 2's art/limb.ts: facing +x in his local frame).
 
-import { drawArmTo, skinShadow, wristbandColor } from './body';
+import { drawArmTo, skinShadow, wristbandColor, armorOn } from './body';
 
 type Ctx = CanvasRenderingContext2D;
 type P = [number, number];
@@ -42,6 +42,8 @@ const elbowOf = (s: P, h: P): [P, P] => {
 export const drawSeatPunchBackArm = (ctx: Ctx) => {
   drawArmTo(ctx, [-6, -40], [-2, -29], [10, -27], true);
   ctx.fillStyle = skinShadow; ctx.beginPath(); ctx.arc(10, -27, 4.5, 0, Math.PI * 2); ctx.fill();
+  // (another game's glove back on it)
+  armorOn()?.fist(ctx, 10, -27, 4.5, Math.atan2(2, 12), true);
 };
 
 /** The lead arm through it. `rot`: how his body's turned (the frame this is drawn in), so the throw goes out level. */
@@ -72,4 +74,11 @@ export const drawSeatPunchArm = (ctx: Ctx, v: number, rot: number) => {
   ctx.fillStyle = wristbandColor; ctx.fillRect(-11, -4.5, 4, 9);
   ctx.fillStyle = skinShadow; for (let k = 0; k < 3; k++) ctx.fillRect(3.5, -4 + k * 3, 2, 1.2);
   ctx.restore();
+  // (another game's armguard and glove back over the wristband and the knuckles)
+  const ar = armorOn();
+  if (ar) {
+    const r = big ? 7 : 5.5, reach = r - 0.5, ca = Math.cos(a), sa = Math.sin(a);
+    ar.forearm(ctx, el[0], el[1], hand[0] - ca * reach, hand[1] - sa * reach, false);
+    ar.fist(ctx, hand[0], hand[1], r, a, false);
+  }
 };

@@ -3,7 +3,7 @@
 // abs still showing), his ribs, a rope of gut, his head on top (X'd out, tongue out), and on the very top of the heap,
 // his dick and balls. All of it brown with what did it, and red, and steaming. World space.
 
-import { glassesOn } from './body';
+import { glassesOn, armorOn } from './body';
 import { skinTone, skinShadow, skinHighlight, bootColor, bootToe } from './body';
 
 type Ctx = CanvasRenderingContext2D;
@@ -11,8 +11,15 @@ const INK = '#1A0B06';
 /** The bits a touch bigger than life, so the heap reads for what it is. */
 const S = 1.35;
 const BLOOD = '#991B1B', BLOOD_DK = '#5B0B0B', SHIT = '#5C3A16', SHIT_LT = '#7A4E22';
+/** Another game's armor (body.ts armorOn: Meathead 2's) still on the bits, the sprite's pieces drawn `k` the size (the
+ *  bits are thinner than his limbs) about the part's own frame. */
+const worn = (c: Ctx, k: number, fn: (a: NonNullable<ReturnType<typeof armorOn>>) => void) => {
+  const a = armorOn();
+  if (!a) return;
+  c.save(); c.scale(k, k); fn(a); c.restore();
+};
 
-interface Part { kind: 'leg' | 'arm' | 'torso' | 'ribs' | 'gut' | 'head' | 'dick' | 'chunk'; dx: number; dy: number; rot: number; flip: number; T: number; arc: number; spin: number }
+interface Part { kind: 'leg' | 'arm' | 'torso' | 'ribs' | 'gut' | 'head' | 'dick' | 'chunk' | 'cape'; dx: number; dy: number; rot: number; flip: number; T: number; arc: number; spin: number }
 /** Each bit: where it lands in the heap (from the middle of it, up off the floor), how it lies, how long it's up. */
 const PARTS: Part[] = [
   { kind: 'leg', dx: -12, dy: 3, rot: -0.1, flip: 1, T: 44, arc: 70, spin: 0.3 },
@@ -24,6 +31,8 @@ const PARTS: Part[] = [
   { kind: 'gut', dx: -6, dy: 13, rot: 0.1, flip: 1, T: 50, arc: 60, spin: 0.25 },
   { kind: 'chunk', dx: 20, dy: 2, rot: 0.4, flip: 1, T: 38, arc: 50, spin: 0.6 },
   { kind: 'chunk', dx: -21, dy: 2, rot: -0.3, flip: -1, T: 42, arc: 56, spin: -0.6 },
+  // (another game's cape, torn off him, flopped over the heap)
+  { kind: 'cape', dx: 9, dy: 15, rot: -0.5, flip: 1, T: 66, arc: 150, spin: -0.2 },
   { kind: 'head', dx: 2, dy: 19, rot: -0.35, flip: 1, T: 70, arc: 160, spin: 0.3 },
   { kind: 'dick', dx: -3, dy: 27, rot: 0.25, flip: 1, T: 84, arc: 190, spin: 0.55 },
 ];
@@ -40,6 +49,8 @@ const leg = (c: Ctx) => {
   c.fillStyle = INK; c.fillRect(0, -6, 11, 11);
   c.fillStyle = bootColor; c.fillRect(1, -5, 9, 9); c.fillStyle = '#3F3F46'; c.fillRect(1, -5, 9, 1); c.fillStyle = bootToe; c.fillRect(8, 1, 2, 3);
   c.fillStyle = '#52525B'; c.fillRect(2, -3, 5, 1); c.fillRect(2, -1, 5, 1);
+  // (the armor still on it: the knee pad and the statuette taped down the shin, the iron boot, its bell)
+  worn(c, 0.7, a => { a.shin(c, [-24, -0.7], [-15, -0.7], [5, -0.7], false); a.boot(c, 1, -3, 14, 8, false); });
 };
 const arm = (c: Ctx) => {
   // (the arm, torn off at the shoulder, the fist still balled up)
@@ -50,15 +61,18 @@ const arm = (c: Ctx) => {
   c.fillStyle = skinShadow; for (let k = 0; k < 3; k++) c.fillRect(10, -2.5 + k * 2, 2, 1);
   c.fillStyle = BLOOD; c.beginPath(); c.moveTo(-12, -4); c.lineTo(-14, -1); c.lineTo(-12, 1); c.lineTo(-14, 4); c.lineTo(-10, 4); c.lineTo(-10, -4); c.fill();
   c.fillStyle = '#F1EFEA'; c.fillRect(-14, -1, 2, 2);
+  // (the armor still on it: the coconut on what's left of the shoulder, the bracer, the glove on the fist)
+  worn(c, 0.6, a => { a.forearm(c, -4, 0, 2, 0, false); a.shoulder(c, -18, 1, 6, false); a.fist(c, 13.3, 0, 7.5, 0, false); });
 };
 const torso = (c: Ctx) => {
-  // (a hunk of his middle: the abs, a nipple, torn all round)
+  // (a hunk of his middle: the abs, a nipple, torn all round; the jewel still on the front of it)
   c.fillStyle = INK; c.beginPath(); c.ellipse(0, 0, 13, 8, 0, 0, Math.PI * 2); c.fill();
   c.fillStyle = skinTone; c.beginPath(); c.ellipse(0, -0.5, 12, 7, 0, 0, Math.PI * 2); c.fill();
   c.fillStyle = skinShadow; c.fillRect(-1, -6, 1, 11); c.fillRect(-7, -2, 14, 1); c.fillRect(-7, 2, 14, 1);
   c.fillStyle = skinHighlight; c.fillRect(-6, -5, 4, 2); c.fillRect(2, -5, 4, 2);
   c.fillStyle = '#C06A5A'; c.fillRect(-8, -4, 2, 2);
   c.fillStyle = BLOOD; for (const [x, y, w] of [[-13, -1, 3], [10, -2, 3], [-4, 6, 8], [4, -8, 5]]) c.fillRect(x, y, w, 2);
+  worn(c, 0.6, a => a.chest(c, -9, -10));
 };
 const ribs = (c: Ctx) => {
   c.fillStyle = BLOOD_DK; c.beginPath(); c.ellipse(0, 1, 10, 5, 0, 0, Math.PI * 2); c.fill();
@@ -80,6 +94,8 @@ const head = (c: Ctx) => {
   c.strokeStyle = INK; c.lineWidth = 1.2;
   for (const ex of [-4, 3]) { c.beginPath(); c.moveTo(ex - 1.8, -3); c.lineTo(ex + 1.8, 0.5); c.moveTo(ex + 1.8, -3); c.lineTo(ex - 1.8, 0.5); c.stroke(); }
   c.fillStyle = INK; c.fillRect(-4, 3, 8, 3); c.fillStyle = '#E36A7A'; c.fillRect(1, 4, 3, 4); c.fillStyle = '#B8455A'; c.fillRect(2, 5, 1, 2);
+  // (the helmet still on, knocked crooked; the glasses over it as ever)
+  worn(c, 0.8, a => { c.rotate(-0.25); a.helmet(c, 0, -2.5); });
   if (glassesOn()) {
     // (Meathead 2's glasses, still on him, blown crooked: the lenses webbed, the bridge snapped)
     c.save(); c.rotate(0.15);
@@ -108,7 +124,9 @@ const chunk = (c: Ctx) => {
   c.fillStyle = BLOOD; c.beginPath(); c.ellipse(0, -0.5, 5, 3, 0, 0, Math.PI * 2); c.fill();
   c.fillStyle = '#C0392B'; c.fillRect(-3, -2, 3, 1); c.fillStyle = '#F1EFEA'; c.fillRect(2, -1, 2, 2);
 };
-const DRAW: Record<Part['kind'], (c: Ctx) => void> = { leg, arm, torso, ribs, gut: gutRope, head, dick, chunk };
+/** Another game's cape, off his back: the collar end at the middle, the fan of it flopped out from there. */
+const cape = (c: Ctx) => worn(c, 0.8, a => a.cape(c, -12, 26));
+const DRAW: Record<Part['kind'], (c: Ctx) => void> = { leg, arm, torso, ribs, gut: gutRope, head, dick, chunk, cape };
 
 /** The heap (x the middle of it, y the floor), `t` frames since he went. */
 export const drawRemains = (c: Ctx, r: { x: number; y: number; dir: number; at: number }, frame: number) => {
@@ -118,6 +136,7 @@ export const drawRemains = (c: Ctx, r: { x: number; y: number; dir: number; at: 
   c.fillStyle = BLOOD_DK; c.beginPath(); c.ellipse(r.x, r.y - 0.5, 10 + spread * 26, 2 + spread * 3.5, 0, 0, Math.PI * 2); c.fill();
   c.fillStyle = SHIT; c.beginPath(); c.ellipse(r.x - r.dir * 6, r.y - 0.5, 6 + spread * 16, 1.5 + spread * 2.5, 0, 0, Math.PI * 2); c.fill();
   for (const p of PARTS) {
+    if (p.kind === 'cape' && !armorOn()) continue;
     const k = Math.min(1, t / p.T), landed = t >= p.T;
     // (up out of him, tumbling, and down onto the heap; a little bounce where it lands)
     const sx = r.x, sy = r.y - 34;
@@ -129,7 +148,7 @@ export const drawRemains = (c: Ctx, r: { x: number; y: number; dir: number; at: 
     c.save(); c.translate(Math.round(x), Math.round(y)); c.rotate(rot); c.scale(p.flip * r.dir * S, S);
     DRAW[p.kind](c);
     // (brown and red over it, once it's down)
-    if (landed) { c.fillStyle = 'rgba(92, 58, 22, 0.55)'; c.fillRect(-4, -2, 5, 2); c.fillStyle = 'rgba(153, 27, 27, 0.45)'; c.fillRect(2, 1, 4, 2); }
+    if (landed && p.kind !== 'cape') { c.fillStyle = 'rgba(92, 58, 22, 0.55)'; c.fillRect(-4, -2, 5, 2); c.fillStyle = 'rgba(153, 27, 27, 0.45)'; c.fillRect(2, 1, 4, 2); }
     c.restore();
   }
   // (steam off it, and the flies arriving)

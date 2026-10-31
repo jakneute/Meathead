@@ -9,7 +9,7 @@
 // Bare legs (pants down) whatever he's wearing; the jeans bunched at his ankles (shat: brown in them; naked: no jeans).
 
 import type { Player } from '../../../types';
-import { drawArmTo, drawTorso, drawHead, drawGlasses, drawBoot, skinTone, skinShadow, skinHighlight, skinVein, isTalkingNow, type Mood } from './body';
+import { drawArmTo, drawTorso, drawHead, drawGlasses, drawBoot, skinTone, skinShadow, skinHighlight, skinVein, isTalkingNow, armorOn, type Mood } from './body';
 import type { LadderPants } from './ladder';
 
 type Ctx = CanvasRenderingContext2D;
@@ -64,6 +64,8 @@ export const drawThronePose = (ctx: Ctx, q: Throne, frame: number, pants: Ladder
   // (the far arm, the far leg)
   drawArmTo(ctx, sB, elbow(sB, fB, true), fB, true);
   bare(ctx, [0, -39], [15, -39], 9, true); bare(ctx, [15, -39], [17, -9], 8, true);
+  // (another game's leg armor on his bare shins: the knee pad, the statuette down the shin, his thighs left bare)
+  armorOn()?.shin(ctx, [0, -39], [15, -39], [17, -8], true);
   drawBoot(ctx, 13, -8, 12, 7, false);
   // (his bare ass on the seat, hanging over the back of it)
   ctx.fillStyle = skinTone; ctx.beginPath(); ctx.ellipse(-3, -37, 10, 6.5, 0, 0, Math.PI * 2); ctx.fill();
@@ -72,6 +74,7 @@ export const drawThronePose = (ctx: Ctx, q: Throne, frame: number, pants: Ladder
   // (the near leg)
   bare(ctx, [3, -37], [19, -37], 10, false); bare(ctx, [19, -37], [21, -8], 9, false);
   ctx.fillStyle = skinTone; ctx.beginPath(); ctx.arc(19, -37, 5, 0, Math.PI * 2); ctx.fill();
+  armorOn()?.shin(ctx, [3, -37], [19, -37], [21, -8], false);
   drawBoot(ctx, 16, -8, 14, 8, true);
   // (the jeans round his boots, the belt hanging off them; shat in: brown in the waistband)
   if (!pants.nude) {

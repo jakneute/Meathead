@@ -11,7 +11,7 @@
 //   a foot on a rung and the near knee up on the next (here), the gun arm out level (the vine's).
 
 import type { Player } from '../../../types';
-import { drawArmTo, drawLeg, drawPantLeg, pantsColor, pantsShadow, skinTone, skinShadow, skinHighlight, beltColor, bootColor, glassesOn } from './body';
+import { drawArmTo, drawLeg, drawPantLeg, pantsColor, pantsShadow, skinTone, skinShadow, skinHighlight, beltColor, bootColor, glassesOn, armorOn } from './body';
 
 type Ctx = CanvasRenderingContext2D;
 type Ladder = NonNullable<Player['ladder']>;
@@ -92,7 +92,7 @@ const seg = (ctx: Ctx, ax: number, ay: number, bx: number, by: number, w: number
  * ladder, away from us: the thigh foreshortened, the calf under it); the boot from behind, its sole showing when it's
  * up off its rung.
  */
-const backLeg = (ctx: Ctx, side: number, fx: number, fy: number, pants: LadderPants, lifted: number, hx = side * 6, hy = -22, kneeOut = 0) => {
+const backLeg = (ctx: Ctx, side: number, fx: number, fy: number, pants: LadderPants, lifted: number, hx = side * 6, hy = -22, kneeOut = 0, frame = 0) => {
   const kx = (hx + fx) / 2 + side * (1.5 + kneeOut), ky = Math.min((hy + fy) / 2 + 2, fy - 6);
   const col = side < 0 ? pantsShadow : pantsColor;
   seg(ctx, kx, ky, fx, fy, 9, col);
@@ -113,6 +113,11 @@ const backLeg = (ctx: Ctx, side: number, fx: number, fy: number, pants: LadderPa
     ctx.fillStyle = '#52525B'; ctx.fillRect(fx - 5.5, fy + 4, 11, sh);
     ctx.fillStyle = '#18181B'; for (let k = 0; k < sh; k += 2) ctx.fillRect(fx - 4.5, fy + 4 + k, 9, 1);
   }
+  // (another game's armor, from behind: the tape and the statuette's edges down the calf, the boot's heel and spur;
+  // the cowbell off the screen's right one)
+  const fa = armorOn()?.flat;
+  // (the leg's foreshortened from here: the tape from the back of the knee, so it reads)
+  if (fa) { fa.shin(ctx, (kx + fx) / 2, 10, ky - 3, fy - 4, side, false); fa.boot(ctx, fx - 5.5, fy - 4, 11, 8, side, false, frame); }
 };
 
 /** His seat and the belt from behind: the back pockets, the seam; shitty; or bare (white as the rest of him isn't), and the lot hanging down. */
@@ -208,6 +213,8 @@ const backOfHead = (ctx: Ctx, hy0: number) => {
   ctx.fillStyle = HAIR; ctx.fillRect(-10, hy - 16, 20, 5); ctx.fillRect(-11, hy - 14, 22, 6);
   ctx.fillStyle = HAIR_LIT; ctx.fillRect(-8, hy - 15, 14, 1);
   ctx.fillStyle = '#52525B'; for (let i = 0; i < 7; i++) ctx.fillRect(-9 + i * 3, hy - 17, 1, 1);
+  // (another game's helmet from behind, under the glasses' arms: they always show)
+  armorOn()?.flat?.helmet(ctx, 0, hy - 16, 20, false);
   // (Meathead 2's glasses: their arms over the tops of his ears, hooked down behind them)
   if (glassesOn()) for (const s of [-1, 1]) {
     const x = s < 0 ? -13.5 : 9.5;
@@ -215,6 +222,18 @@ const backOfHead = (ctx: Ctx, hy0: number) => {
     ctx.fillStyle = '#52525B'; ctx.fillRect(x + 0.6, hy - 7, 2.8, 0.4);
   }
 };
+
+/** An arm seen from behind: with another game's armor on, the -x one's drawn mirrored, so its pieces (the pauldron's
+ *  tusk, the bracer, the glove) face out its own side, as they do from behind. */
+const backArm = (ctx: Ctx, side: number, sh: [number, number], el: [number, number], fist: [number, number], lit: boolean) => {
+  if (side > 0 || !armorOn()) { drawArmTo(ctx, sh, el, fist, !lit, 5.5); return; }
+  ctx.save(); ctx.scale(-1, 1); drawArmTo(ctx, [-sh[0], sh[1]], [-el[0], el[1]], [-fist[0], fist[1]], !lit, 5.5); ctx.restore();
+};
+
+/** Another game's armor on his back: the cape split down his spine, stopping above his belt (the seat always shows). */
+const capeOnBack = (ctx: Ctx, frame: number) => armorOn()?.flat?.capeBack(ctx, 0, -48, 16, -29, frame);
+/** ...and the amulet's chain round the back of his neck. */
+const chainOnNeck = (ctx: Ctx, neckY: number, frame: number) => armorOn()?.flat?.amulet(ctx, 0, neckY, 1, false, frame);
 
 /**
  * Climbing or sliding down a ladder, seen from behind. `weapon` draws what's in his hand as it's drawn held stood up
@@ -239,26 +258,28 @@ export const drawLadderClimb = (ctx: Ctx, l: Ladder, frame: number, pants: Ladde
   const lift = still ? 0 : Math.max(-1, Math.min(1, (hB.y - hA.y) / 16));
   const sway = still ? 0 : Math.sin((l.up / l.rung) * Math.PI);
   // Legs (the -x one in shadow), the seat and belt over their tops
-  backLeg(ctx, -1, slide ? -9 : -6, fAy, pants, still ? 0 : Math.max(0, (-fAy - 4) / 11));
-  backLeg(ctx, 1, slide ? 9 : 6, fBy, pants, slide ? 0 : mount ? 0.8 : Math.max(0, (-fBy - 4) / 11));
+  backLeg(ctx, -1, slide ? -9 : -6, fAy, pants, still ? 0 : Math.max(0, (-fAy - 4) / 11), undefined, undefined, undefined, frame);
+  backLeg(ctx, 1, slide ? 9 : 6, fBy, pants, slide ? 0 : mount ? 0.8 : Math.max(0, (-fBy - 4) / 11), undefined, undefined, undefined, frame);
   seat(ctx, pants, frame, sway);
   // (bent over the top: his head down under the line of his shoulders, behind his back)
   // (bent over the top: his head down under the line of his shoulders, behind his back; drawn unsquashed, crisp)
   if (mount) { ctx.restore(); backOfHead(ctx, -55 + (-56 * sq + 3 + 55) * bend); ctx.save(); ctx.scale(1, sq); }
   back(ctx, lift);
+  capeOnBack(ctx, frame);
+  if (mount) chainOnNeck(ctx, -47, frame);
   // Arms: up to the rungs (or down on the lip), the elbows out; the gun up along the rail in the +x fist
   const arm = (side: number, h: { y: number; reach: number }, lit: boolean) => {
     const sh: [number, number] = [side * 14, -47];
     const fist: [number, number] = [side * (mount ? 17 : 13) + side * h.reach * 3, h.y];
     const el: [number, number] = [(sh[0] + fist[0]) / 2 + side * 7, (sh[1] + fist[1]) / 2 + 2];
-    drawArmTo(ctx, sh, el, fist, !lit, 5.5);
+    backArm(ctx, side, sh, el, fist, lit);
     return fist;
   };
   const fa = arm(-1, hA, false);
   ctx.save(); ctx.translate((mount ? 17 : 13) + hB.reach * 3, hB.y); ctx.rotate(-Math.PI / 2); ctx.translate(-1, -4); weapon(ctx); ctx.restore();
   const fb = arm(1, hB, true);
   // (his head between his arms, over them: they're out beside it)
-  if (!mount) backOfHead(ctx, -55);
+  if (!mount) { backOfHead(ctx, -55); chainOnNeck(ctx, -46, frame); }
   if (slide) { smoke(ctx, fa[0], fa[1], frame); smoke(ctx, fb[0], fb[1], frame + 7); }
   if (mount) ctx.restore();
 };
@@ -277,7 +298,7 @@ const reachArm = (ctx: Ctx, side: number, sh: [number, number], fist: [number, n
   if (nx * side < 0) { nx = -nx; ny = -ny; }
   // (bent a lot, it's mostly forward, toward the wall, away from us: the elbow down more than out)
   const el: [number, number] = [(sh[0] + fist[0]) / 2 + nx * out * 0.45, (sh[1] + fist[1]) / 2 + ny * out * 0.45 + out * 0.55 + 1];
-  drawArmTo(ctx, sh, el, fist, !lit, 5.5);
+  backArm(ctx, side, sh, el, fist, lit);
 };
 
 /**
@@ -296,8 +317,8 @@ export const drawOverheadPull = (ctx: Ctx, l: OverheadPull, frame: number, pants
   const hipX = -lean * load * 4 + shake, tilt = lean * load * 0.14 - lean * jolt * 0.05;
   // Legs: the one away from the pull stepped out wide and braced, the other under him; the knees out as he sinks
   const toes = Math.max(0, hold * (1 - load) - 0.3);
-  backLeg(ctx, -1, -7 - 6 * load * (lean >= 0 ? 1 : 0.3), -3.5, pants, toes, hipX - 6, -22 + sink, 3 * load);
-  backLeg(ctx, 1, 7 + 6 * load * (lean < 0 ? 1 : 0.3), -3.5, pants, toes, hipX + 6, -22 + sink, 3 * load);
+  backLeg(ctx, -1, -7 - 6 * load * (lean >= 0 ? 1 : 0.3), -3.5, pants, toes, hipX - 6, -22 + sink, 3 * load, frame);
+  backLeg(ctx, 1, 7 + 6 * load * (lean < 0 ? 1 : 0.3), -3.5, pants, toes, hipX + 6, -22 + sink, 3 * load, frame);
   // The rest of him: down with his hips, leant over about them
   ctx.save();
   ctx.translate(hipX, sink); ctx.translate(0, -24); ctx.rotate(tilt); ctx.translate(0, 24);
@@ -317,10 +338,12 @@ export const drawOverheadPull = (ctx: Ctx, l: OverheadPull, frame: number, pants
   if (across(-1, fl)) reachArm(ctx, -1, [-14, -47], fl, false);
   if (across(1, fr)) reachArm(ctx, 1, [14, -47], fr, true);
   back(ctx, lean * load * 0.8);
+  capeOnBack(ctx, frame);
   if (!across(-1, fl)) reachArm(ctx, -1, [-14, -47], fl, false);
   if (!across(1, fr)) reachArm(ctx, 1, [14, -47], fr, true);
   // (his head between his arms, sunk down between his shoulders with the effort)
   backOfHead(ctx, -55 + Math.round(load * 2));
+  chainOnNeck(ctx, -46 + Math.round(load * 2), frame);
   ctx.restore();
 };
 

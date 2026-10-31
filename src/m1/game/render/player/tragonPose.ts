@@ -15,7 +15,7 @@
 // Hurt: the head snapped back, eyes shut. Pants as ever: jeans; shat (the stain on the seat); naked (bare legs).
 
 import type { Player } from '../../../types';
-import { drawArmTo, drawTorso, drawHead, drawGlasses, drawBoot, drawLeg, drawBelt, skinTone, skinShadow, skinHighlight, type Mood } from './body';
+import { drawArmTo, drawTorso, drawHead, drawGlasses, drawBoot, drawLeg, drawBelt, skinTone, skinShadow, skinHighlight, armorOn, type Mood } from './body';
 import type { LadderPants } from './ladder';
 
 type Ctx = CanvasRenderingContext2D;
@@ -50,6 +50,8 @@ const bare = (ctx: Ctx, a: Pt, b: Pt, w: number, far: boolean) => {
 const leg = (ctx: Ctx, hip: Pt, kn: Pt, foot: Pt, toe: number, far: boolean, pants: LadderPants) => {
   if (!pants.nude) { drawLeg(ctx, hip, kn, foot, toe, far); return; }
   bare(ctx, hip, kn, far ? 9 : 10, far); bare(ctx, kn, foot, far ? 8 : 9, far);
+  // (another game's leg armor on the bare shin, as on his jeans)
+  armorOn()?.shin(ctx, hip, kn, foot, far);
   ctx.save(); ctx.translate(foot[0], foot[1]); ctx.rotate(toe); drawBoot(ctx, -5, -4.5, 15, 8, !far); ctx.restore();
 };
 

@@ -1,7 +1,7 @@
 import type { GameState } from '../../core/state';
 import type { WeaponType } from '../../../types';
 import { drawPlayer } from './player';
-import { pantsColor, bootColor } from './body';
+import { pantsColor, bootColor, armorOn } from './body';
 import type { DeathFace } from './deathFace';
 import { wall as fallWall, strata as fallStrata } from './fallCams';
 import { bandedGradient, hazeBands } from '../pixelArt';
@@ -249,6 +249,12 @@ export const drawMeatheadDeath = (ctx: Ctx, state: GameState, weapon: WeaponType
         ctx.save(); ctx.translate(x + side * 5, y - mh + 8); ctx.rotate(side * (0.18 + (side > 0 ? kick : -kick)));
         ctx.fillStyle = pantsColor; ctx.fillRect(-4, -26, 8, 26);
         ctx.fillStyle = bootColor; ctx.fillRect(-5, -34, side > 0 ? 12 : 10, 9);
+        // (another game's armor on them, kicking upside down: the leg armor on the shins, the boots soles up)
+        const ar = armorOn();
+        if (ar) {
+          ctx.save(); ctx.scale(0.8, 0.8); ar.shin(ctx, [0, 0], [0, -11], [0, -32], side < 0); ctx.restore();
+          ctx.save(); ctx.translate(0, -59); ctx.scale(1, -1); ar.boot(ctx, -5, -34, side > 0 ? 12 : 10, 9, side < 0); ctx.restore();
+        }
         ctx.restore();
       }
       const base = d.snow ? '#F1F5F9' : '#78716C', shade = d.snow ? '#CBD5E1' : '#57534E', fleck = d.snow ? '#FFFFFF' : '#A8A29E';
@@ -306,6 +312,9 @@ export const drawMeatheadDeath = (ctx: Ctx, state: GameState, weapon: WeaponType
       // Knocked clean out of his boots: them, stood where he was; him, end over end up and off the top of the screen
       ctx.fillStyle = bootColor; ctx.fillRect(x - 12, y - 8, 10, 8); ctx.fillRect(x + 2, y - 8, 10, 8);
       ctx.fillStyle = '#3F3F46'; ctx.fillRect(x - 12, y - 8, 10, 2); ctx.fillRect(x + 2, y - 8, 10, 2);
+      // (another game's iron boots stood there too, the cowbell still swinging; the rest of the armor goes with him)
+      const ar = armorOn();
+      if (ar) { ctx.save(); ctx.translate(x, 0); ctx.scale(facing, 1); ar.boot(ctx, -12, y - 8, 10, 8, true); ar.boot(ctx, 2, y - 8, 10, 8, false); ctx.restore(); }
       const vx = -facing * 9, bx = x + vx * t, by = y - 20 * t + 0.32 * t * t;
       if (t < ROADKILL_TWINKLE) {
         about(ctx, bx, by - 32, -facing * t * 0.45);
