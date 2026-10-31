@@ -1335,6 +1335,8 @@ export const drawIntroCloseup = (c: Ctx, f: Fight, fr: number) => {
 const poseOf = (f: Fight): QueenPose => {
   if (f.mode === 'dead') return f.deathT < 140 ? 'stunned' : 'dead';
   if (f.mode === 'intro' || f.mode === 'wait') return f.step === 'drop' ? 'roar' : f.step === 'shake' ? 'hurt' : f.step === 'bonk' ? 'stunned' : f.step === 'mode' || f.step === 'beam' ? 'wake' : 'idle';
+  // (the hand armor's cheap shot: her own pose for it the whole stun, over the hurt flash too)
+  if (f.mode === 'stun' && f.e && cheapShotStunned(f.e)) return 'cheap';
   if (f.flash > 0) return 'hurt';
   if (f.entrance > 0) return 'roar';
   if (f.mode === 'birth') return f.ph === 'push' ? 'birth' : 'idle';
