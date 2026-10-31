@@ -48,6 +48,7 @@ import { rectsOverlap, boundsOf } from '../../../m1/game/core/utils';
 import { getAttackHitbox, recoilOff } from '../../../m1/game/player/player';
 import { BOUNCE_FRAMES } from '../../../m1/constants';
 import { subBossMelee } from '../../upgrades/bossMelee';
+import { cheapShotGate, crushGroups, crushLines } from '../../upgrades/cheapShot';
 import { isShat, isNude } from '../../../m1/game/player/gut';
 import { topBand, CANVAS_WIDTH } from '../../../m1/constants';
 import { solid, box, label, saidOver, meatheadSays, voice, type Said } from '../section';
@@ -153,6 +154,10 @@ export interface Demon {
 }
 export const demonOf = (state: GameState) => hellOf(state).demon;
 
+// (after the hand armor's cheap shot, these come out of his crushed-nuts lines: upgrades/cheapShot.ts)
+crushGroups('demon', { hurt: [DEMON_HURT], taunt: [DEMON_CHATTER, DEMON_FEINT], attack: [DEMON_HIT] });
+/** Up for the cheap shot: on the floor, roused, not off it in a leap or head down in the rush (or beaten). */
+const CHEAP_NO = new Set<St>(['rise', 'feint', 'air', 'rush', 'beaten', 'sink']);
 const dressed = (state: GameState): Dressed => (isNude(state) ? 'nude' : isShat(state) ? 'shitty' : 'clean');
 const fresh = (d: Demon, pool: readonly string[]) => {
   let left = pool.filter(l => !d.used.includes(l));
@@ -161,7 +166,8 @@ const fresh = (d: Demon, pool: readonly string[]) => {
 };
 /** He says something (`wait`: in turn; otherwise only if nobody's talking). Whether it'll be said. */
 export const demonSays = (state: GameState, d: Demon, pool: ByPants | readonly string[], wait: boolean, onDone?: () => void) => {
-  const lines = Array.isArray(pool) ? pool as readonly string[] : (pool as ByPants)[dressed(state)];
+  const set = crushLines(d.e, pool);
+  const lines = Array.isArray(set) ? set as readonly string[] : (set as ByPants)[dressed(state)];
   const text = fresh(d, lines), s: Said = { text };
   let done = false;
   const end = () => { if (d.said === s) d.said = null; if (!done) { done = true; onDone?.(); } };
@@ -400,7 +406,11 @@ export const updateDemon = (ctx: FrameContext) => {
     Object.assign(d, gone()); return;
   }
   const p = state.player, f = state.frame;
+  // (the hand armor's cheap shot (upgrades/cheapShot.ts): the cutscene freezes him; then he's stunned: his stagger,
+  // no attacks, no telegraphs, no chatter (what's already up, his pillars and shockwaves, runs out), hits as ever)
+  const cs = d.e && d.fight === 'on' ? cheapShotGate(state, d.e, 'demon', d.y >= GY && !CHEAP_NO.has(d.st)) : null;
   if (d.fight === 'on') markBossFight(state, 'demon');
+  if (cs === 'frozen') { place(d); return; }
   if (d.flash > 0) d.flash--;
   // What's come out of his pool since last frame
   const e = d.e;
@@ -442,6 +452,13 @@ export const updateDemon = (ctx: FrameContext) => {
       const away = p.pos.x + p.width / 2 < w.x + w.w / 2 ? -1 : 1;
       hurtPlayer(ctx, FIRE_WALL_DMG, state.frame - d.bouncedAt < 90 ? FIRE_BOUNCE : 'fire', { x: away * 9, y: -8 });
     }
+  }
+  if (cs === 'stunned') {
+    // (stood there staggered; stagger's run out, so it's back to walking the frame the stun's over)
+    d.st = 'stagger'; d.t = STAGGER_FRAMES; d.vx = 0; d.vy = 0; d.hurtSince = 0;
+    hazards(ctx, d);
+    place(d);
+    return;
   }
   think(ctx, d);
   hazards(ctx, d);

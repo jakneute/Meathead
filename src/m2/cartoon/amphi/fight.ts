@@ -70,6 +70,7 @@ import { CANVAS_WIDTH, CANVAS_HEIGHT, BULLET_DAMAGE } from '../../../m1/constant
 import { bossMelee, bossMeleeOf } from '../../upgrades/bossMelee';
 import { takeYell } from '../../upgrades/amulet';
 import { moveArmored } from '../../upgrades/state';
+import { cheapShotGate, cheapShotStunned, crushGroups, crushLines } from '../../upgrades/cheapShot';
 import { meleeMoveOf, type MeleeMove } from '../../../m1/game/core/tuning';
 import { registerM2Kind, registerHurtLines } from '../../kinds';
 import { newSpam, spamTick, hitKey, swatOff, type Spam, BOSS_IFRAMES } from '../../bossSpam';
@@ -342,10 +343,16 @@ const dud = (ctx: FrameContext, f: Fight) => {
 // Saying things (one at a time; the words only while they're said)
 
 const quiet = () => !isTalking();
+// (after the hand armor's cheap shot, these come out of his crushed-nuts lines: upgrades/cheapShot.ts)
+crushGroups('dad', {
+  hurt: [L.DAD_HURT, L.DAD_BONK, L.DAD_TIRED, L.DAD_LOW, L.DAD_PATHETIC, L.DAD_HEAVY],
+  taunt: [L.DAD_TAUNT, L.DAD_GRABBED, L.DAD_MISS],
+  attack: [L.DAD_SWAT, L.DAD_RAGE, L.DAD_PUKE],
+});
 /** He says one of these (waits its turn). */
 const dadSays = (f: Fight, state: GameState, pool: ByPants, onDone?: () => void) => {
   const tok = token;
-  speak(L.VOICES.dad, pick(byPants(state, pool)), s => { if (tok !== token) return; if (s) f.words.set('dad', s.text); else f.words.delete('dad'); }, true, () => { if (tok === token) onDone?.(); });
+  speak(L.VOICES.dad, pick(byPants(state, crushLines(f.e, pool))), s => { if (tok !== token) return; if (s) f.words.set('dad', s.text); else f.words.delete('dad'); }, true, () => { if (tok === token) onDone?.(); });
 };
 /** A bark: dropped if anybody's talking. */
 const bark = (f: Fight, state: GameState, pool: ByPants) => { if (quiet()) dadSays(f, state, pool); };
@@ -399,6 +406,8 @@ export const startFight = (state: GameState, retry: boolean): Fight => {
 const setAct = (f: Fight, a: Act) => { if (a === 'sit' && f.owed && !f.sad) { f.owed = false; a = 'baffled'; } f.act = a; f.actT = 0; };
 /** His counters (a puke, or the hammer through to back on the couch): a kill in one doesn't cut it short. */
 const COUNTER_ACTS = new Set<Act>(['pukeWind', 'puke', 'rise', 'rage', 'tired', 'return']);
+/** Sat on his couch and to be got at for the cheap shot (not mid-swat, puking, up in the rage, or a car scene on). */
+const CHEAP_ACTS = new Set<Act>(['sit', 'catch', 'drink', 'baffled']);
 const seatX = (f: Fight) => f.couch.x + SEAT_DX;
 /** The world rectangle of something (section x, world y). */
 type R = { x0: number; x1: number; y0: number; y1: number };
@@ -409,6 +418,13 @@ const hurtable = (state: GameState) => { const p = state.player; return p.health
 export const updateFight = (ctx: FrameContext, f: Fight, controls: Controls): Controls => {
   const { state } = ctx;
   live = f;
+  // (the hand armor's cheap shot (upgrades/cheapShot.ts): he can be got at sat on his couch, still, between swats; the
+  // cutscene freezes the lot; then he's stunned: no swats, no batting away, no beer orders (a run on's called off), no
+  // puke, no hammer; hits land as ever)
+  const ok = f.mode === 'on' && f.seated && !f.couch.crushed && f.couch.vx === 0 && f.y <= 0 && !f.cars.length && CHEAP_ACTS.has(f.act);
+  const cs = cheapShotGate(state, f.e, 'dad', ok);
+  if (cs === 'frozen') { sync(state, f); return controls; }
+  const stunned = cs === 'stunned' && f.mode === 'on';
   f.t++;
   if (f.iframes > 0) f.iframes--;
   if (f.flash > 0) f.flash--;
@@ -423,16 +439,18 @@ export const updateFight = (ctx: FrameContext, f: Fight, controls: Controls): Co
   props(ctx, f);
   if (f.mode === 'dead') return dying(ctx, f);
   { const p = state.player, mv = meleeMoveOf(p); if (mv) f.lastMove = { id: p.moveId ?? 0, move: mv }; }
-  batAway(ctx, f);
+  if (!stunned) batAway(ctx, f);
   takeHits(ctx, f);
   if (f.hp <= 0) { die(ctx, f, 'fridge'); return dying(ctx, f); }
-  dad(ctx, f);
+  // (stunned: sat there, nothing of his own; thrown off his couch by a car meanwhile, his sad flailing's harmless)
+  if (!stunned || (f.sad && !f.seated)) dad(ctx, f);
+  else if (f.seated) f.x = seatX(f);
   errand(ctx, f);
   family(ctx, f);
   blockShots(ctx, f);
   bottles(ctx, f);
   cars(ctx, f);
-  chatter(ctx, f);
+  if (!stunned) chatter(ctx, f);
   if (f.hp < HP * 0.25 && !f.lowSaid && quiet()) { f.lowSaid = true; dadSays(f, state, L.DAD_LOW); }
   sync(state, f);
   return controls;
@@ -956,7 +974,7 @@ const errand = (ctx: FrameContext, f: Fight) => {
   if (!m.alive) { f.errand = null; return; }
   er.t++;
   // (his business elsewhere (up off the couch, puking): the run's off, home it goes)
-  if (er.step !== 'back' && (!f.seated || f.couch.crushed || f.act === 'pukeWind' || f.act === 'puke' || f.act === 'rise')) { er.step = 'back'; er.t = 0; }
+  if (er.step !== 'back' && (!f.seated || f.couch.crushed || f.act === 'pukeWind' || f.act === 'puke' || f.act === 'rise' || cheapShotStunned(f.e))) { er.step = 'back'; er.t = 0; }
   // (a rush: flat out, sparking at the wheels, a whine)
   const walk = (to: { x: number; d: number }) => {
     m.stepT++;
@@ -1062,7 +1080,7 @@ const bottles = (ctx: FrameContext, f: Fight) => {
       if (b.kind === 'head') { playSound('bonk', 1, 4); bark(f, state, L.DAD_BONK); laughTrack(state, 0.7); f.flash = 6; }
       else if (Math.random() < 0.35) bark(f, state, L.DAD_MISS);
       // (the one he should've caught, smashed instead: there's always another)
-      if (b.kind === 'catch' && f.errand) { f.errand.left = Math.max(1, f.errand.left + 1); if (f.errand.step === 'back' && f.seated && !f.couch.crushed) { f.errand.step = 'toss'; f.errand.t = 0; } }
+      if (b.kind === 'catch' && f.errand) { f.errand.left = Math.max(1, f.errand.left + 1); if (f.errand.step === 'back' && f.seated && !f.couch.crushed && !cheapShotStunned(f.e)) { f.errand.step = 'toss'; f.errand.t = 0; } }
     }
     b.t = -1;
   }
@@ -1279,6 +1297,8 @@ const die = (ctx: FrameContext, f: Fight, how: 'fridge' | 'flat', car?: Car) => 
   token++; silenceAll(); state.playerVulgarityTimer = 0;
   f.mode = 'dead'; f.words.clear();
   state.enemies = state.enemies.filter(o => o !== f.e);
+  // (out of it: no cheap-shot stars left over him through his death)
+  f.e.health = 0;
   state.damageNumbers = [];
   f.errand = null; f.bottles = []; f.drops = []; f.cars = []; f.couch.vx = 0; f.fridge.open = 0;
   p.inCutscene = true;
@@ -1593,6 +1613,8 @@ const poseOf = (f: Fight): { pose: DadPose; t: number; face?: DadFace; can: 'nea
     }
     return { pose: 'stand', t: 0, can: null, rot: 0 };
   }
+  // (stunned off the cheap shot, on his couch: hands on his head, straining)
+  if (f.seated && cheapShotStunned(f.e)) return { pose: 'baffled', t: 0, face: 'strain', can: null, rot: 0 };
   switch (f.act) {
     case 'swat': return { pose: 'swat', t: swatT(f, t), can: null, rot: 0 };
     case 'catch': return { pose: 'catch', t: 0, can: null, rot: 0 };

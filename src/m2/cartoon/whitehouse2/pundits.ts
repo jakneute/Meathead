@@ -34,6 +34,8 @@ import { SKIP_AFTER, offerSkip, takeSkip } from '../../../m1/game/platform/skip'
 import { makeKindEnemy } from '../../../m1/game/enemies/kinds';
 import { floorTopAt } from '../../../m1/game/core/terrain';
 import { registerM2Kind } from '../../kinds';
+import type { ByPants } from '../talk';
+import { cheapShotGate, cheapShotStunned, crushGroups, crushLines, crushPool } from '../../upgrades/cheapShot';
 import { markBossFight } from '../../bossQuiet';
 import { speak, meatheadSays, byPants, solid, ledge, hands, box, label } from '../section';
 import { topBand } from '../../../m1/constants';
@@ -86,6 +88,13 @@ const SPECS: Record<PunditId, Spec> = {
 };
 const ORDER: PunditId[] = ['limbaugh', 'dole', 'newt'];
 const BIG = 100000;
+
+// (after the hand armor's cheap shot, his taunts and throw barks and his flop's come out of his crushed-nuts lines
+// (upgrades/cheapShot.ts); the plain lists get one set each, the same list for every pants, for the swap)
+const flat = (a: string[]): ByPants => ({ clean: a, shitty: a, nude: a });
+const TOSS = Object.fromEntries(ORDER.map(id => [id, flat(SPECS[id].lines.toss)])) as Record<PunditId, ByPants>;
+const FLOP = Object.fromEntries(ORDER.map(id => [id, flat(SPECS[id].lines.flop)])) as Record<PunditId, ByPants>;
+for (const id of ORDER) crushGroups(id, { hurt: [FLOP[id]], taunt: [SPECS[id].lines.taunt], attack: [TOSS[id]] });
 const G = 0.6;
 
 const pOf = (state: GameState, id: PunditId) => wh2Of(state)[id];
@@ -121,7 +130,7 @@ for (const id of ORDER) {
     kind: S.kind, stats: { w: S.w, h: S.h, hp: BIG, contact: S.heavy ? 11 : 9, mass: S.heavy ? 420 : 280 },
     gender: 'm', humanoid: true, grab: 'none', midBoss: true, head: { x: 4, y: -S.h + 24, r: 18 },
     ai: () => true,
-    draw: (c, e, f, state) => { e.pauseTimer = 0; const q = pOf(state, id); if (q.phase === 'on') drawPundit2(c, id, q, simOf2(q), f, 0); },
+    draw: (c, e, f, state) => { e.pauseTimer = 0; const q = pOf(state, id); if (q.phase === 'on') drawPundit2(c, id, q, simOf2(q), f, cheapShotStunned(e) ? 0.35 : 0); },
     onGrab: greased,
   });
 }
@@ -134,7 +143,7 @@ const say = (q: Pundit, text: string, after?: () => void, queue = true) => { spe
 const bark = (state: GameState, q: Pundit, pool: string[]) => {
   if (state.frame - q.barkAt < 300 || !quiet()) return;
   q.barkAt = state.frame;
-  say(q, pickLine(pool), undefined, false);
+  say(q, pickLine(crushPool(q.e, pool)), undefined, false);
 };
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -198,7 +207,7 @@ const think = (state: GameState, q: Pundit, s: Sim, S: Spec) => {
   }
   if (r < 0.74) {
     q.act = 'wind'; q.actT = 0; s.kind = S.throws[s.tossN++ % S.throws.length]; s.wind = S.heavy ? 32 : 26;
-    if (Math.random() < 0.4) bark(state, q, S.lines.toss);
+    if (Math.random() < 0.4) bark(state, q, byPants(state, crushLines(q.e, TOSS[q.id])));
     return;
   }
   const dx = px - s.x, want = Math.abs(dx) < 180 ? -Math.sign(dx) : Math.sign(dx);
@@ -211,7 +220,7 @@ const think = (state: GameState, q: Pundit, s: Sim, S: Spec) => {
 };
 const flop = (state: GameState, q: Pundit, S: Spec) => {
   q.act = 'flop'; q.actT = 0; q.throws = q.throws.filter(t => t.kind !== 'mic');
-  bark(state, q, S.lines.flop);
+  bark(state, q, byPants(state, crushLines(q.e, FLOP[q.id])));
   if (q.id === 'dole') { playSound('thud', 0.8, -4); playSound('crash', 0.4, 8); }
   else if (q.id === 'newt') playSound('screams', 0.3, 12);
   else playSound('thud', 0.6, -10);
@@ -332,7 +341,8 @@ const begin = (state: GameState, q: Pundit) => {
 const die = (ctx: FrameContext, q: Pundit) => {
   const { state } = ctx, S = SPECS[q.id];
   q.phase = 'dying'; q.t = 0; q.throws = [];
-  if (q.e) { const e = q.e; state.enemies = state.enemies.filter(o => o !== e); q.e = null; }
+  // (its health to nothing as it goes: no cheap-shot stars left over where it stood)
+  if (q.e) { const e = q.e; state.enemies = state.enemies.filter(o => o !== e); e.health = 0; q.e = null; }
   silenceAll();
   playSound('hurt', 0.9, -4); playSound('boing', 0.8, -10);
   ctx.fx.announceKill(S.call);
@@ -389,10 +399,20 @@ export const updatePundits2 = (ctx: FrameContext, controls: Controls): Controls 
     // ON: his health off the engine's (the hits), his sim, his moves
     const e = q.e;
     if (!e || !state.enemies.includes(e)) { if (q.hp > 0) spawn(state, q); continue; }
+    // (the hand armor's cheap shot (upgrades/cheapShot.ts): he can be got at stood on a floor or a ledge; the cutscene
+    // freezes him; then he's stunned: no hops, no throws (the ones in the air fly on), reeling on the spot)
+    const cs = cheapShotGate(state, e, id, !s.air);
+    if (cs === 'frozen') { e.pos.x = s.x - S.w / 2; e.pos.y = s.y - S.h; e.vel.x = 0; e.vel.y = 0; continue; }
     const dealt = Math.max(0, BIG - e.health);
     e.health = BIG; e.maxHealth = BIG; e.frozenTimer = 0; e.isTased = false; e.isOiled = false; e.pauseTimer = 0; e.isBlownAway = false;
     if (dealt > 0) { q.hp -= dealt; q.flash = 6; playSound('punch', 0.25, 10); }
     if (q.hp <= 0) { die(ctx, q); continue; }
+    if (cs === 'stunned') {
+      moveSim(state, q, s, S);
+      e.pos.x = s.x - S.w / 2; e.pos.y = s.y - S.h; e.vel.x = s.vx; e.vel.y = s.vy; e.facing = s.facing;
+      updateThrows(ctx, q, S);
+      continue;
+    }
     const px = p.pos.x + p.width / 2;
     if (!s.air && q.act !== 'hop' && q.act !== 'flop') s.facing = px < s.x ? -1 : 1;
     q.actT++;

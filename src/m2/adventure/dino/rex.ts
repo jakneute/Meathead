@@ -37,6 +37,7 @@ import { rectsOverlap, boundsOf } from '../../../m1/game/core/utils';
 import { topBand, CANVAS_WIDTH, BOUNCE_FRAMES } from '../../../m1/constants';
 import { subBossMelee } from '../../upgrades/bossMelee';
 import { moveArmored } from '../../upgrades/state';
+import { cheapShotGate, cheapShotStunned, crushGroups, crushLines, crushPool } from '../../upgrades/cheapShot';
 import { getAdv, solid, box, label, saidOver, meatheadSays, voice, type Said } from '../section';
 import { say, cutVoice, pickLine } from '../../../m1/game/platform/speech';
 import { isShat, isNude } from '../../../m1/game/player/gut';
@@ -141,6 +142,19 @@ const dinoMode = (state: GameState) => {
 // anyone's talking, the big moments (a part wrecked, its last words) wait their turn.
 
 const dressed = (state: GameState): Dressed => (isNude(state) ? 'nude' : isShat(state) ? 'shitty' : 'clean');
+// (after the hand armor's cheap shot, these come out of its crushed-nuts lines (upgrades/cheapShot.ts); the plain lists
+// (not by his pants) get a set each, the same list for every pants, for the swap)
+const FLAT = new Map<readonly string[], Record<Dressed, readonly string[]>>();
+const flat = (a: readonly string[]) => { const f = { clean: a, shitty: a, nude: a }; FLAT.set(a, f); return f; };
+crushGroups('rex', {
+  hurt: [REX_CRASHED, REX_LIVE, ...Object.values(REX_WRECKED)].map(flat),
+  taunt: [REX_SEES_WHOLE, REX_SEES_BROKEN, ...REX_CHATTER.map(flat)],
+  attack: [REX_BIT],
+});
+/** The part the cheap shot goes by (its legs: the one down where he can reach from the floor). */
+const cheapE = (r: Rex) => r.parts.legs.e;
+/** Up for the cheap shot: stood or walking about (not sprinting, ramming, lunging, whipping, crashed, waking up). */
+const CHEAP_OK: ReadonlySet<RexState> = new Set(['idle', 'walk', 'turn', 'open', 'chew', 'crouch', 'skid', 'stumble']);
 /** A line out of `pool` it hasn't said yet this fight (all of them said: round again). */
 const fresh = (r: Rex, pool: readonly string[]) => {
   let left = pool.filter(l => !r.used.includes(l));
@@ -149,7 +163,8 @@ const fresh = (r: Rex, pool: readonly string[]) => {
 };
 /** It says something: `wait`, it waits its turn if anyone's talking; otherwise it's not said at all. Whether it will be. */
 const rexSays = (state: GameState, r: Rex, pool: readonly string[], wait: boolean) => {
-  const text = fresh(r, pool), s: Said = { text };
+  const f = FLAT.get(pool);
+  const text = fresh(r, f ? crushLines(cheapE(r), f)[dressed(state)] : crushPool(cheapE(r), pool)), s: Said = { text };
   const ok = say(text, voice('m2.rex'), wait ? 'queue' : 'casual', {
     always: true,
     // (not recorded yet: up a while, then down)
@@ -402,7 +417,8 @@ const partTouch = (ctx: FrameContext, e: Enemy): boolean => {
   if (!rectsOverlap(getAttackHitbox(ctx), boundsOf(e))) return true;
   // (an uppercut in the armguards goes into a live part all the same, no shock (the upgrades: it hits what's otherwise
   // shut to it); a live part's share of it, as a shot's)
-  if (part.live && !(p.isUppercutting && moveArmored('uppercut'))) {
+  // (stunned off the cheap shot: nothing live shocks him off it)
+  if (part.live && !(p.isUppercutting && moveArmored('uppercut')) && !cheapShotStunned(cheapE(r) ?? e)) {
     // (just shocked off it: no second go, nothing in it either way; the move's over and he's off it)
     if (state.frame < r.shockGrace) {
       const dir = Math.sign(p.pos.x + p.width / 2 - r.x) || -r.facing;
@@ -503,7 +519,14 @@ export const updateRex = (ctx: FrameContext) => {
   if (!r || r.fight === 'gone') return;
   // (started past the temple fence: the checkpoint's only known once the stage is built, so it's put down here)
   if (r.fight === 'wait' && state.checkpoint >= REX_GONE_CP) retire(state, r);
+  // (the hand armor's cheap shot (upgrades/cheapShot.ts), by its legs: up for it stood or walking about, its legs whole and
+  // not live; the cutscene freezes it; then it's stunned: head down, stood there (its crash pose), no stomps, bites,
+  // sprints or whips, its parts taking hits as ever)
+  const ce = r.fight === 'on' ? cheapE(r) : null;
+  const mode = dinoMode(state);
+  const cs = ce ? cheapShotGate(state, ce, 'rex', mode.hostile && !mode.held && !r.parts.legs.broken && !r.parts.legs.live && CHEAP_OK.has(r.st)) : null;
   if (r.fight === 'on') markBossFight(state, 'trex');
+  if (cs === 'frozen') { placeParts(r); return; }
   const p = state.player;
   // What's come out of each part since last frame
   for (const id of PARTS) {
@@ -550,6 +573,13 @@ export const updateRex = (ctx: FrameContext) => {
     placeParts(r);
     // (till then there's nothing there to hit: shots and moves go clean through it)
     if (r.fight === 'wait') for (const id of PARTS) { const e = r.parts[id].e; if (e) e.pos.y = -100000; }
+    return;
+  }
+  if (cs === 'stunned') {
+    // (a short crash after, then back to it)
+    r.st = 'crash'; r.t = 0; r.stagger = 20; r.vx = 0;
+    pose(r, 16, 20, 70, 0.7, 0.6, state.frame);
+    placeParts(r);
     return;
   }
   think(ctx, r);
