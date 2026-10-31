@@ -5,6 +5,7 @@
 
 import { type Ctx, INK, box, lump, poly, mix, stipple } from './kit';
 import { type Arm, armOf, flesh, foreLines, foreRegion, legOf, upperLines, wristband } from './flesh';
+import { walkBoot, walkShin, walkShoulder, walkForearm, walkFist, walkHelmet, walkAmulet, walkCapeBehind, walkCapeCollar } from '../upgrades/walkArmor';
 
 export const SKIN = ['#6E3F1C', '#A0662E', '#C68B45', '#E0AC69', '#F5D0A9'];
 export const GREEN = ['#3A4A12', '#5C6E1E', '#7E9434', '#A8BC5A', '#D2E08A'];
@@ -101,6 +102,9 @@ const leg = (c: Ctx, side: number, step: number, bob: number, p: Pose) => {
   box(c, bx + bw / 2 - 5, by + bh - 7, 3, 1, BOOT[4]);
   box(c, bx - 1, by + bh - 1, bw + 2, 2, INK);
   if (side > 0) box(c, bx + bw - 1, by, 1, bh - 2, p.rim);
+  // (the armor on it: upgrades/walkArmor.ts)
+  walkShin(c, lx, hipY + (bootTop - hipY) * 0.55, bootTop, side, true);
+  walkBoot(c, bx, by, bw, bh, side, true);
 };
 
 let turnLayer: HTMLCanvasElement | null = null;
@@ -155,6 +159,7 @@ const forearms = (c: Ctx, p: Pose, arms: Arm[], ty: number, S: string[], redrawA
       flesh(c, a.mass, r, a.side > 0 ? p.rim : undefined, foreRegion(a), foreLines(a, r, false));
     }
     wristband(c, a, BAND);
+    walkForearm(c, a.E, a.W);
   }
 };
 
@@ -162,6 +167,7 @@ const forearms = (c: Ctx, p: Pose, arms: Arm[], ty: number, S: string[], redrawA
 const fistAt = (c: Ctx, x: number, y: number, R: string[], rx = 7, ry = 7) => {
   lump(c, x, y, rx, ry, R);
   box(c, x - 5, y - 2, 10, 1, R[1]); box(c, x - 4, y + 1, 8, 1, R[1]); box(c, x - 5, y - 4, 2, 1, R[4]);
+  walkFist(c, x, y, rx);
 };
 
 /** The weapon with his hands on it: his forearms to the grips, the toy in its frame, his fists over it. */
@@ -241,6 +247,8 @@ export const drawMeatheadFront = (c: Ctx, x: number, y: number, p: Pose, grip: [
   // His shadow under him (stippled)
   c.fillStyle = stipple(c, '#000000'); c.beginPath(); c.ellipse(0, 0, 40, 6, 0, 0, Math.PI * 2); c.fill();
   c.fillStyle = 'rgba(0,0,0,0.35)'; c.beginPath(); c.ellipse(0, 0, 30, 4, 0, 0, Math.PI * 2); c.fill();
+  // (the cape's points, behind all of him)
+  walkCapeBehind(c, bob, step);
   // Legs: the lifted one first (it's behind)
   const order = Math.sin(step) > 0 ? [1, -1] : [-1, 1];
   // (the hips between them: the seat of the jeans, the fly)
@@ -316,6 +324,9 @@ export const drawMeatheadFront = (c: Ctx, x: number, y: number, p: Pose, grip: [
   }
   box(c, -1, -113 + ty, 2, 28, S[0]);
   for (const side of [-1, 1]) for (let i = 0; i < 3; i++) box(c, side * (20 + i) - (side > 0 ? 3 : 0), -116 + i * 9 + ty, 3, 1, S[1]);
+  // (the amulet on his bare chest; the cape's collar)
+  walkCapeCollar(c, ty);
+  walkAmulet(c, ty, true, p.t);
   // Arms: each one mass (flesh.ts), shoulder to wrist: the deltoid's cap, the biceps and triceps tapering to the elbow,
   // the forearm swelling under it and tapering to the wrist; the veins. The forearms drawn again later where they're
   // over his face or the toy (forearms())
@@ -324,6 +335,7 @@ export const drawMeatheadFront = (c: Ctx, x: number, y: number, p: Pose, grip: [
     const r = armRamp(a.side, S);
     flesh(c, a.mass, r, a.side > 0 ? p.rim : undefined, undefined, cc => { upperLines(a, r, false)(cc); foreLines(a, r, false)(cc); });
   }
+  for (const a of arms) walkShoulder(c, a.S[0], a.S[1], a.side);
   // The neck: a stump, the cords down it, his jaw's shadow over it
   const hy = ty + p.headY;
   poly(c, [[-12, -140 + ty], [12, -140 + ty], [11, -152 + hy], [-11, -152 + hy]], S[2]);
@@ -343,6 +355,7 @@ export const drawMeatheadFront = (c: Ctx, x: number, y: number, p: Pose, grip: [
   box(c, -14, -185 + hy, 28, 4, HAIR[3]);
   for (let i = 0; i < 12; i++) box(c, -13 + i * 2.3, -185 + hy + (i % 2), 1, 2, HAIR[4]);
   box(c, -14, -175 + hy, 3, 4, stipple(c, HAIR[2]) as never); box(c, 11, -175 + hy, 3, 4, stipple(c, HAIR[2]) as never);
+  walkHelmet(c, hy, true);
   // The face
   const eyeY = -165 + hy, mouthY = -155 + hy;
   // (the brows: a scowl, always)

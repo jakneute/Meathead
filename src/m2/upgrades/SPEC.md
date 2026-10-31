@@ -49,6 +49,33 @@ tusks; Spooky: bat wings, coffin wood, plastic skulls; Future: chrome XENOSCARE 
 plating, film reels, a stunt pad; Foreign: flag patches, a Viking horn; Wilderness: rusted railroad iron, a cowbell;
 Fairy: pink sequins, glitter crystal, tiara spikes; Cartoon: flat, outlined, a big white glove.
 
+PROVISIONAL THEME PER PIECE (Phase E, 2026-10-31; change freely once the owner assigns lands):
+| Piece | Land | Look |
+|---|---|---|
+| SABATONS | Wilderness | rusted railroad iron, riveted lames, an iron sole, a cowbell on the near ankle |
+| PAULDRONS | Jungle | leopard-print caps on a bamboo rim, a tusk up off each |
+| LEG ARMOR | Hollywood | a gold film-reel knee cop, gold statuette plating down the shin, a black stunt-pad strap |
+| ARMGUARDS | Future | chrome XENOSCARE resin bracers, ribbed, a glowing neon strip |
+| HAND ARMOR | Cartoon | the big white cartoon glove: flat, outlined, three stitches, a rolled cuff |
+| HELMET | Foreign | a Viking helmet, horns, a Nordic flag patch (the brim stops above his glasses) |
+| AMULET | Fairy | a pink glitter crystal under tiara spikes, on a chain of pink sequins |
+| CAPE | Spooky | a short bat-wing cape: scalloped, ribbed, blood-red lining, coffin-wood collar, plastic skull clasp |
+
+AS BUILT (Phase E, the art): upgrades/armorArt.ts (its header has the lot). Meathead 1's body parts (m1
+render/player/body.ts: drawBoot, drawLeg / drawJointedLeg, drawArm, drawRamDelt, drawGlasses, drawTorso) call an
+ArmorArt hook (setArmorArt; Meathead 1 never sets it, the cat form never wears it), so every pose built from them wears
+the pieces: the sprite in every pose, the charge / uppercut / dive kick / slide, the grabs, the follow-ups (figure()), the
+boss deaths that draw him with those parts. player.ts calls the same hook on its own hand-drawn limbs and legs, and
+feeds the cape his motion (setArmorMotion: speed, falling, Player.floating). The rigid pieces are baked once (unit
+pixels, ramps, banded with a checker on each edge) and drawn stretched and turned; the cape is a few banded paths a
+frame. Nothing caches his sprite, so no cache key needed the pieces. Also: the walk screens (upgrades/walkArmor.ts, in
+walkAway/meathead.ts from the front and meatheadBack.ts from behind: the walk-aways, the walk-ins, the hub portal;
+from behind the cape's split down his spine and stops above his belt), the HUD face's helmet (amuletFace.ts
+helmetFace), the cheap shot's close-up boot (drawSabatonCloseUp). NOT YET: the poses with their own bodies that don't use
+body.ts's parts throughout (ladder.ts's climb from behind, remains.ts, freefall/throne/copter/tragon partly: they get
+the boots, arms and glasses-helmet where they use the shared parts), the weapon-get screen and cutscene art that draws
+its own Meathead, the walk screens' cape points from the front (mostly hidden behind his arms).
+
 ### SABATONS (feet): the dive kick
 - More damage on bosses; the dive kick goes further. Ignores spikes: the spiky enemies that punish a dive kick (KindDef.spiky) and spike hazards.
 - HIT-CONFIRM FOLLOW-UP: Y+B (the beatdown chord; R on the keyboard) shortly after a non-fatal dive-kick hit: he flips

@@ -7,7 +7,7 @@
 import React, { useSyncExternalStore } from 'react';
 import { subscribeAmulet, amuletSnap } from './amulet';
 import { has, amuletOn, subscribeUpgrades, upgradesVersion } from './state';
-import { angerFace, hurtFace, angerLevel, hurtLevel, FACE_W, FACE_H } from './amuletFace';
+import { angerFace, hurtFace, helmetFace, angerLevel, hurtLevel, FACE_W, FACE_H } from './amuletFace';
 
 /** The ammo bar's width when the amulet's sharing the row (HUD.tsx's ammoBarWidth; 100 otherwise). */
 export const AMULET_AMMO_BAR = 58;
@@ -40,6 +40,7 @@ const AmuletHud: React.FC<{ health: number; maxHealth: number }> = ({ health, ma
       <style>{CSS}</style>
       <div className="relative border-2 border-zinc-700" style={{ width: FACE_W + 4, height: FACE_H + 4, background: s.phase === 'rage' && on ? 'radial-gradient(circle, rgba(239,68,68,0.45) 0%, rgba(0,0,0,0.7) 80%)' : 'radial-gradient(circle, rgba(250,204,21,0.12) 0%, rgba(0,0,0,0.65) 80%)' }}>
         <img src={angerFace(anger)} width={FACE_W} height={FACE_H} alt="" className="absolute left-[0px] top-[0px]" style={{ imageRendering: 'pixelated' }} draggable={false} />
+        {has('helmet') && <img src={helmetFace()} width={FACE_W} height={FACE_H} alt="" className="absolute left-[0px] top-[0px]" style={{ imageRendering: 'pixelated' }} draggable={false} />}
         {top && <img src={top} width={FACE_W} height={FACE_H} alt="" className="absolute left-[0px] top-[0px]" style={{ imageRendering: 'pixelated' }} draggable={false} />}
       </div>
       <div className="relative w-[7px] bg-black border border-zinc-900" style={{ height: METER_H, boxShadow: 'inset 0 0 0 1px #3F3F46' }}>

@@ -186,6 +186,31 @@ const paintHurt = (c: C, lv: number) => {
   dither(c, 6, 22, 12, 1, BLOOD.md);
 };
 
+/** The helmet (the armor's, armorArt.ts: a Viking helmet, Foreign Land's), over the face, under the hurt: a steel dome
+ *  over his flat-top, its brim above his brows (the glasses always show), short horns out each side, a flag patch. */
+const STEEL = ['#1A1F2A', '#363D4D', '#5E6779', '#97A1B4', '#DCE2EC'];
+const IVORY = ['#A89A76', '#D8CCA8', '#F2EAD0', '#FFFCF0'];
+const paintHelmet = (c: C) => {
+  // (the horns: from the brim's ends, curving up and out to the corners)
+  for (const s of [-1, 1]) {
+    const x0 = s < 0 ? 0 : 21;
+    rect(c, x0 + (s < 0 ? 1 : 0), 4, 2, 4, IVORY[1]); rect(c, x0 + (s < 0 ? 0 : 1), 1, 2, 3, IVORY[2]); px(c, s < 0 ? 0 : 23, 0, IVORY[3]);
+    rect(c, x0 + (s < 0 ? 1 : 0), 7, 2, 1, IVORY[0]);
+  }
+  // (the dome: banded from the lit upper left)
+  rect(c, 4, 0, 16, 7, STEEL[2]); rect(c, 3, 2, 18, 5, STEEL[2]); rect(c, 5, -1, 14, 1, STEEL[2]);
+  rect(c, 4, 1, 5, 4, STEEL[3]); rect(c, 5, 0, 4, 1, STEEL[4]); px(c, 4, 1, STEEL[4]);
+  dither(c, 9, 1, 2, 4, STEEL[3]);
+  rect(c, 16, 1, 4, 6, STEEL[1]); rect(c, 20, 3, 1, 4, STEEL[1]); dither(c, 15, 1, 1, 6, STEEL[1]);
+  // (the band over the top, riveted)
+  rect(c, 11, 0, 2, 7, STEEL[3]); px(c, 11, 0, STEEL[4]); px(c, 12, 2, '#F8FAFC'); px(c, 12, 5, '#F8FAFC');
+  // (the brim: a heavier band, rivets along it)
+  rect(c, 2, 6, 20, 2, STEEL[1]); rect(c, 2, 6, 20, 1, STEEL[3]);
+  for (let x = 4; x < 21; x += 3) px(c, x, 6, '#F1F5F9');
+  // (the flag patch: a Nordic cross)
+  rect(c, 5, 2, 4, 3, '#C8102E'); rect(c, 6, 2, 1, 3, '#F8FAFC'); rect(c, 5, 3, 4, 1, '#F8FAFC');
+};
+
 // ---- the caches
 const cache = new Map<string, string>();
 const paint = (key: string, fn: (c: C) => void) => {
@@ -205,6 +230,9 @@ const paint = (key: string, fn: (c: C) => void) => {
 export const angerFace = (lv: number) => paint(`a${lv}`, c => paintAnger(c, lv));
 /** The hurt over it at a level (0..4; 0 is nothing: ''). */
 export const hurtFace = (lv: number) => (lv <= 0 ? '' : paint(`h${lv}`, c => paintHurt(c, lv)));
+
+/** The helmet over the face (the armor's: shown while he has it). */
+export const helmetFace = () => paint('helmet', paintHelmet);
 
 /** The anger level for the meter (0..1; the rage, 1). */
 export const angerLevel = (k: number) => (k >= 0.999 ? 4 : k >= 0.7 ? 3 : k >= 0.4 ? 2 : k >= 0.15 ? 1 : 0);

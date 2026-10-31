@@ -12,6 +12,7 @@
 import { type Ctx, INK, box, lump, poly, mix, stipple, hash } from './kit';
 import { SKIN, JEANS, BOOT, BELT, GOLD, HAIR, BAND } from './meathead';
 import { armOf, flesh, foreLines, legOf, upperLines, wristband } from './flesh';
+import { walkBoot, walkShin, walkShoulder, walkForearm, walkFist, walkHelmet, walkAmulet, walkCapeBack } from '../upgrades/walkArmor';
 
 /** Where the sun never gets (under his jeans). */
 const PALE = ['#A2704C', '#C9946A', '#E4B890', '#F3D0AC', '#FFE8CE'];
@@ -87,6 +88,9 @@ const leg = (c: Ctx, side: number, p: BackPose, bob: number) => {
     for (let k = 1; k < sh; k += 2) box(c, bx + 2, by + bh + k, bw - 4, 1, '#121214');
   } else box(c, bx - 1, by + bh - 1, bw + 2, 2, INK);
   if (side > 0) box(c, bx + bw - 1, by, 1, bh - 3, p.rim);
+  // (the armor on it: upgrades/walkArmor.ts)
+  walkShin(c, lx, ky, bootTop, side, false);
+  walkBoot(c, bx, by, bw, bh, side, false);
 };
 
 /** An arm hanging at his side from behind: the rear delt, the triceps, the point of the elbow, the forearm; one mass
@@ -99,6 +103,7 @@ const arm = (c: Ctx, side: number, p: BackPose, ty: number, swing: number): [num
   const a = armOf([side * 44, -128 + ty], [fx, fy], [side * 50, -99 + ty], side);
   flesh(c, a.mass, S, p.rim, undefined, cc => { upperLines(a, S, true)(cc); foreLines(a, S, true)(cc); });
   wristband(c, a, BAND);
+  walkForearm(c, a.E, a.W);
   return [fx, fy];
 };
 
@@ -106,6 +111,7 @@ const arm = (c: Ctx, side: number, p: BackPose, ty: number, swing: number): [num
 const fist = (c: Ctx, x: number, y: number) => {
   lump(c, x, y, 6, 7, SKIN);
   box(c, x - 4, y - 4, 8, 1, SKIN[3]); box(c, x - 4, y + 2, 8, 1, SKIN[1]); box(c, x - 4, y + 4, 7, 1, SKIN[1]);
+  walkFist(c, x, y, 6.5);
 };
 
 export const drawMeatheadBack = (c: Ctx, x: number, y: number, p: BackPose) => {
@@ -245,6 +251,8 @@ export const drawMeatheadBack = (c: Ctx, x: number, y: number, p: BackPose) => {
       c.fillStyle = stipple(c, PALE[2]); c.fillRect(-26, by + 14, 52, 2);
     }
   }
+  // (the cape: split bat wings down his back, stopping above his belt; upgrades/walkArmor.ts)
+  walkCapeBack(c, bob, step);
   // His weapon, in his left fist, hanging down by his thigh, muzzle to the ground, tipped out a little; drawn over his
   // legs and his back, under his arm and fist (the playtest: drawn behind him, most of it was hidden behind his leg).
   // Where his fist comes to (arm(): its swing a third of his stride's, the other way)
@@ -260,11 +268,13 @@ export const drawMeatheadBack = (c: Ctx, x: number, y: number, p: BackPose) => {
   const [lx, ly] = arm(c, -1, p, ty, -sw * 0.35);
   const [rx, ry] = arm(c, 1, p, ty, sw);
   fist(c, lx, ly); fist(c, rx, ry);
+  walkShoulder(c, -44, -128 + ty, -1); walkShoulder(c, 44, -128 + ty, 1);
   // The neck: a stump, the rolls at the bottom of his skull
   const hy = ty;
   poly(c, [[-13, -140 + ty], [13, -140 + ty], [12, -152 + hy], [-12, -152 + hy]], S[2]);
   box(c, -12, -150 + hy, 4, 9, S[3]); box(c, 8, -150 + hy, 4, 9, S[1]);
   box(c, -1, -150 + hy, 2, 8, S[1]);
+  walkAmulet(c, ty, false, p.t);
   // The back of his head: shaved up the back and sides (stubble, dithered), the ears sticking out
   const head = [[-13, -174 + hy], [13, -174 + hy], [14, -160 + hy], [12, -151 + hy], [-12, -151 + hy], [-14, -160 + hy]];
   lump(c, -15, -163 + hy, 3, 4, S); lump(c, 15, -163 + hy, 3, 4, [S[0], S[1], S[1], S[2], S[2]]);
@@ -286,6 +296,7 @@ export const drawMeatheadBack = (c: Ctx, x: number, y: number, p: BackPose) => {
   for (let i = 0; i < 12; i++) box(c, -13 + i * 2.3, -183 + hy + (i % 2) * 4, 1, 3, HAIR[3]);
   box(c, -14, -175 + hy, 28, 2, HAIR[1]);
   box(c, -15, -185 + hy, 1, 12, p.rim); box(c, 14, -185 + hy, 1, 12, p.rim);
+  walkHelmet(c, hy, false);
   // (his glasses, from behind: the arms over the tops of his ears, hooked down behind them, a glint off each)
   for (const side of [-1, 1]) {
     const ax = side < 0 ? -18 : 13;
