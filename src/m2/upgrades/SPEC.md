@@ -148,12 +148,24 @@ its own Meathead, the walk screens' cape points from the front (mostly hidden be
     her robot ovaries. The rex: a crotch hatch, robot balls (the designers are silly people). The 5 White House
     pundits (Perot, Falwell, Limbaugh, Dole, Newt; cartoon projection): a 90s slapstick nut shot instead (eyes
     cross, the wheeze, hands to the crotch, knees together, keels over).
-  - Harry: his nuts explode, and he still shoots Meathead for the grab after, with new taunts.
+  - Harry: his nuts explode, and he still shoots Meathead for the grab after (once the stun's over), with new taunts.
+  - THE STUN (2026-10-31: "give them all 'stun' poses/animations. they cannot be moved during this moment"): every one
+    gets its own stun pose for the whole 300 frames (hands at the crotch, knees together, hunched, trembling, the
+    wheeze, to the character), and nothing shoves, launches, slides or relocates them meanwhile. A FREE WINDOW
+    ("initiating a stun will destroy/kill any active threats like cars/critters from the battle"; "it's basically a
+    'free' window that blocks obstructions too"): the moment it starts, everything the fight has going at him (cars,
+    critters, minions, shots, zones, pillars) is destroyed with a poof, a blast or gore; nothing new spawns till it's
+    over; guards and blockers between him and the boss drop. Harry doesn't fire through it. The arena's own terrain
+    stays.
   - Build it first as ONE generic version every boss uses, then each custom one.
   - BOSS GRAB RULES (2026-10-31): Y+B on a boss is NEVER a beatdown, only the cheap shot ("initiate grab when close,
     watch special animation"), once per life while their sex organs exist. Further grab attempts after it work as
-    before (each boss's harmless reaction; Harry's pin-and-M60 counter, even stunned: "harry is grabbable once. when
-    you destroy his nuts. after that he counters"). Air grabs and shakedowns on bosses stay ineffective.
+    before (each boss's harmless reaction; Harry's pin-and-M60 counter: "harry is grabbable once. when you destroy his
+    nuts. after that he counters"). Air grabs and shakedowns on bosses stay ineffective.
+  - WHILE STUNNED, GRABS PHASE THROUGH (2026-10-31: "attempted grabs during the stun phase go through all of them.
+    harry won't counter until he's active once more. trying to grab again when stunned will phase through"): any grab
+    at a cheap-shot-stunned boss (the lunge, the shakedown, the air grab) passes clean through it, no balk, no
+    harmless reaction, no counter. Harry counters again once the stun's over.
   - AFTER IT, NEW LINES for the rest of that fight (2026-10-31: "if you crush a boss's balls/ovaries, they get new lines
     for the remainder of the fight"): every boss and sub-boss it works on gets a crushed-nuts line set (squeaky,
     wheezing, vengeful, pitiful, to their sin) that replaces their usual taunt/hurt/attack pools until the fight ends
@@ -174,10 +186,20 @@ its own Meathead, the walk screens' cape points from the front (mostly hidden be
     Ensemble, the orbit UFO, the wilds station, Steve's cars. The rex is gated on its legs part (the body's too high).
   - FOR PHASE F: the custom close-ups go in with registerCloseUp(id, paint) (closeUp.ts: paint the panel's insides for
     frame t of CLOSE_LEN, the boot landing at CLOSE_HIT); none of the fights has a hands-at-crotch stunned pose yet
-    (they use their dazed/hurt poses; the pundits' 'reel' draws its own stars, doubling the shared ones). Still
-    harmless while stunned: Donnie's squirt out of a grab, the Queen's shin bounce, Dad Guy's and the pundits' TOO
-    GREASY shove.
-  - AS BUILT (Phase F, 2026-10-31): all 15 custom close-ups, upgrades/closeups/<id>.ts (registered from closeups/index.ts,
+    (they used their dazed/hurt poses then; see the stun poses' AS BUILT below).
+  - AS BUILT (stun poses, 2026-10-31): cheapShotStunT(e) (frames into the stun) drives each fight's own stun pose:
+    Artie's 'clutch' (river/artie.ts, helmet askew, squeak), the rex's knock-kneed crouch with the hatch flapping open
+    and sparks (dino/rex.ts), Brathazar's clutch with the guitar dropped flat on the floor (hell/demon.ts; it was stuck
+    out across Meathead), Donnie's hands-under-the-gut 'clutch' (spooky/donnie.ts), the Queen's 'cheap' (panel ripped
+    off, sparking wires, glitching face; queen/sprite.ts), Steve's 'cheap' (his cup drops out and splits; stunt/steve.ts),
+    Harry's clutch (foreign/harry/rambo.ts), Tucker's 'clutch' (coins dropping out of his vest; frontier/tucker.ts),
+    Piper's 'clutch' (on her knees, wings drooping, glitter; fantasy/piper.ts), Dad Guy's seated 'nuts' (the late
+    reaction, the can spilling SWILL LITE; amphi/dad.ts), the pundits' 90s 'nut' pose with a gag each (whitehouse1/2
+    punditArt.ts). The only stars are cheapShot.ts's shared ones (the fights' own are off while it lasts). No-move:
+    each fight's knock/jostle/dodge/bounce paths gated on cheapShotStunned. Free window: registerClearThreats (each
+    fight's wipe-out, run as the stun starts; the engine's enemy shots in the air go too), each fight's spawners
+    paused while stunned; grab.ts skips stunned bosses in every grab's reach.
+- AS BUILT (Phase F, 2026-10-31): all 15 custom close-ups, upgrades/closeups/<id>.ts (registered from closeups/index.ts,
     called once from apply.ts), sharing fleshKit.ts (the five male X-rays), specialKit.ts (Harry, Piper, the demon, the
     Queen, the rex) and punditKit.ts (the pundits' slapstick), plus closeUp.ts's exported pieces (drawKick: the boot or
     the sabatons; bakeOnce: still layers painted on first use, never at load). Sin twists: Artie's stuffed sock and #1
