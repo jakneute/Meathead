@@ -63,6 +63,8 @@ import { registerDeathKind } from '../../../m1/game/player/deathAnim';
 import { BULLET_DAMAGE, CANVAS_WIDTH, CANVAS_HEIGHT, HUD_CLEAR_Y } from '../../../m1/constants';
 import { bossMelee } from '../../upgrades/bossMelee';
 import { takeYell } from '../../upgrades/amulet';
+import { cheapShotGate, cheapShotStunned, crushGroups, crushLines } from '../../upgrades/cheapShot';
+import { CHEAP_STUN } from '../../upgrades/tune';
 import { registerM2Kind, registerHurtLines } from '../../kinds';
 import { newSpam, spamTick, hitKey, type Spam, BOSS_IFRAMES } from '../../bossSpam';
 import { takeBites } from '../../weapons/spawner';
@@ -321,8 +323,15 @@ const boothSays = (state: GameState, f: Fight, lines: L.ByPants, onDone?: () => 
   const tok = f.token;
   speak('m2.space.alien', pick(lines[dressed(state)]), x => { if (tok === f.token) f.boothSaid = x?.text ?? null; }, true, () => { if (tok === f.token) onDone?.(); });
 };
+// (after the hand armor's cheap shot, these come out of her crushed-ovaries lines: upgrades/cheapShot.ts)
+crushGroups('queen', {
+  hurt: [L.QUEEN_STUN],
+  taunt: [L.QUEEN_TAUNT],
+  attack: [L.QUEEN_BIRTH, L.QUEEN_LEAP, L.QUEEN_FLAIL],
+});
 const bark = (state: GameState, f: Fight, lines: L.ByPants, who: 'queen' | 'booth' = 'queen') => {
   if (!quiet(f)) return;
+  lines = crushLines(f.e, lines);
   const left = lines[dressed(state)].filter(t => !f.barked.has(t));
   if (!left.length) return;
   const text = pick(left);
@@ -522,6 +531,14 @@ const kinAbout = (state: GameState) => state.enemies.filter(e => isKin(e) && e.h
 
 export const updateFight = (ctx: FrameContext, f: Fight, controls: Controls): Controls => {
   const { state } = ctx;
+  // (the hand armor's cheap shot (upgrades/cheapShot.ts): her on the floor, stood there (not leaping, skittering or the
+  // flail's arms going), not in her entrance; the cutscene freezes the lot; then she's stunned, her own way, the length of it)
+  if (f.e) {
+    const ok = (f.mode === 'idle' || f.mode === 'birth' || f.mode === 'stun' || (f.mode === 'flail' && f.ph === 'tell')) && f.y === 0 && f.entrance <= 0;
+    const cs = cheapShotGate(state, f.e, 'queen', ok);
+    if (cs === 'frozen') { live = f; sync(f); return controls; }
+    if (cs === 'stunned' && f.mode !== 'dead' && f.mode !== 'stun') { to(f, 'stun'); f.stunT = CHEAP_STUN; f.linger = 0; f.ext = 0; }
+  }
   f.total++;
   live = f;
   // (her brood never drops anything (the user's: "no ammo drops. nothing"): whatever a kill's just thrown down in here
@@ -558,7 +575,7 @@ export const updateFight = (ctx: FrameContext, f: Fight, controls: Controls): Co
   const toward = (pm.x < f.x ? -1 : 1) as 1 | -1;
   // (her body: run into her, or her into him, and it hurts (the user's: she does contact damage); her body rides up with
   // her leaps and hops, so under her in the air he's clear)
-  if (f.mode !== 'dead' && canHurt(state)) {
+  if (f.mode !== 'dead' && canHurt(state) && !(f.e && cheapShotStunned(f.e))) {
     const bx0 = f.x - TOUCH_W / 2, bx1 = f.x + TOUCH_W / 2, by1 = GY - f.y, by0 = by1 - TOUCH_H;
     if (p.pos.x < bx1 && p.pos.x + p.width > bx0 && p.pos.y < by1 && p.pos.y + p.height > by0) {
       hurtPlayer(ctx, TOUCH_DMG, FLAIL, { x: toward * 9, y: -6 }, 14); playSound('punch', 0.8, -4);
@@ -641,7 +658,7 @@ export const updateFight = (ctx: FrameContext, f: Fight, controls: Controls): Co
       f.ext *= 0.9;
       if (f.t % 6 === 0) state.particles.push({ pos: { x: f.x + (Math.random() - 0.5) * 60, y: GY - 120 - Math.random() * 120 }, vel: { x: (Math.random() - 0.5) * 3, y: -1.5 }, life: 20, color: Math.random() < 0.5 ? '#FDE047' : '#FFFFFF', size: 2 });
       if (f.t % 30 === 1) playSound('twinkle', 0.5, 4);
-      if (f.t >= f.stunT) to(f, 'idle');
+      if (f.t >= f.stunT && !(f.e && cheapShotStunned(f.e))) to(f, 'idle');
       break;
     case 'dead': dying(ctx, f); break;
   }

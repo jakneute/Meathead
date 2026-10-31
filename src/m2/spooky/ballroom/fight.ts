@@ -55,6 +55,8 @@ import { makeKindEnemy } from '../../../m1/game/enemies/kinds';
 import { CANVAS_WIDTH, CANVAS_HEIGHT, BULLET_DAMAGE } from '../../../m1/constants';
 import { bossMelee } from '../../upgrades/bossMelee';
 import { takeYell } from '../../upgrades/amulet';
+import { cheapShotGate, crushGroups, crushLines } from '../../upgrades/cheapShot';
+import { CHEAP_STUN } from '../../upgrades/tune';
 import { registerM2Kind, registerHurtLines } from '../../kinds';
 import { newSpam, spamTick, hitKey, type Spam, BOSS_IFRAMES } from '../../bossSpam';
 import { setSouvenirPick, setSouvenirHit, souvenirMaxHit } from '../../weapons/souvenir';
@@ -337,9 +339,15 @@ const greased = (ctx: FrameContext, f: Fight) => {
 /** A bark: dropped if somebody's talking. */
 /** Nobody in the fight saying anything just now (Donnie, Satan, a guest): one voice at a time, text only while said. */
 const quiet = (f: Fight) => !f.said && !f.satanSaid && !f.beatOn && !f.guests.some(g => g.said);
-const bark = (f: Fight, lines: L.ByPants) => { if (quiet(f)) sayBark(f, pick(lines[pants()])); };
+// (after the hand armor's cheap shot, these come out of his crushed-nuts lines: upgrades/cheapShot.ts)
+crushGroups('donnie', {
+  hurt: [L.DONNIE_HURT, L.DONNIE_ESCAPED],
+  taunt: [L.DONNIE_TAUNT, L.DONNIE_GORGE, L.DONNIE_TEMPTED, L.DONNIE_GREASED],
+  attack: [L.DONNIE_DIVE, L.DONNIE_DRAIN, L.DONNIE_SNATCH, L.DONNIE_SPEW],
+});
+const bark = (f: Fight, lines: L.ByPants) => { if (quiet(f)) sayBark(f, pick(crushLines(f.e, lines)[pants()])); };
 /** A bark only if one of them's not been said lately (one that comes round a lot: never the same twice in a while). */
-const barkFresh = (f: Fight, lines: L.ByPants) => { if (!quiet(f)) return; const t = pickFreshLine(lines[pants()]); if (t) sayBark(f, t); };
+const barkFresh = (f: Fight, lines: L.ByPants) => { if (!quiet(f)) return; const t = pickFreshLine(crushLines(f.e, lines)[pants()]); if (t) sayBark(f, t); };
 const sayBark = (f: Fight, text: string) => {
   say(text, voice('m2.donnie'), 'casual', {
     always: true,
@@ -451,9 +459,18 @@ const pmid = (state: GameState) => ({ x: state.player.pos.x + state.player.width
 const faceHim = (state: GameState, f: Fight) => { f.facing = pmid(state).x < f.x ? -1 : 1; };
 const canHurtHim = (state: GameState) => { const p = state.player; return p.health > 0 && state.deathTimer <= 0; };
 
+/** Low enough to be got at for the cheap shot, out in the open (not diving, draining, hunting or sucking a guest). */
+const CHEAP_OK: ReadonlySet<Mode> = new Set<Mode>(['hover', 'winded', 'rise', 'flinch', 'shoo', 'stunned']);
 export const updateFight = (ctx: FrameContext, f: Fight, controls: Controls): Controls => {
   const { state } = ctx;
   live = f; game = state;
+  // (the hand armor's cheap shot (upgrades/cheapShot.ts): only with him down where he can be got at (winded on the floor,
+  // the bottom of a swoop, down off the Redeemer), never with hold of Meathead or a guest, nor in a dive; the cutscene
+  // freezes the lot; then he's down on his backside, his own stunned way, for the length of it)
+  const ok = CHEAP_OK.has(f.mode) && f.y >= GY - 40 && !f.held && !f.prey && !f.cam;
+  const cs = cheapShotGate(state, f.e, 'donnie', ok);
+  if (cs === 'frozen') { sync(state, f); return controls; }
+  if (cs === 'stunned' && f.mode !== 'dead' && f.mode !== 'stunned') { stun(state, f); f.stunT = CHEAP_STUN; }
   f.total++;
   pitTick(state, f.pit, f.circle);
   if (f.mode === 'intro') { const out = intro(ctx, f); sync(state, f); return out; }

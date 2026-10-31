@@ -50,6 +50,7 @@ import { makeKindEnemy } from '../../../m1/game/enemies/kinds';
 import { CANVAS_WIDTH, CANVAS_HEIGHT, BULLET_DAMAGE } from '../../../m1/constants';
 import { bossMelee } from '../../upgrades/bossMelee';
 import { takeYell } from '../../upgrades/amulet';
+import { cheapShotGate, cheapShotStunned, crushGroups, crushLines } from '../../upgrades/cheapShot';
 import { registerM2Kind } from '../../kinds';
 import { newSpam, spamTick, hitKey, swatOff, type Spam, BOSS_IFRAMES } from '../../bossSpam';
 import { setStormPick, setStormHit } from '../../weapons/spellbook';
@@ -219,11 +220,17 @@ const steveSays = (f: Fight, text: string, onDone?: () => void) => {
   const tok = token;
   speak(L.STEVE_VOICE, text, s => { if (tok === token) f.said = s?.text ?? null; }, true, () => { if (tok === token) onDone?.(); });
 };
-const steveLine = (f: Fight, lines: L.ByPants, onDone?: () => void) => steveSays(f, pick(lines[pants()]), onDone);
+// (after the hand armor's cheap shot, these come out of his crushed-nuts lines: upgrades/cheapShot.ts)
+crushGroups('steve', {
+  hurt: [L.STEVE_HURT, L.STEVE_CAR_HIT, L.STEVE_LOW],
+  taunt: [L.STEVE_TAUNT, L.STEVE_SLIP],
+  attack: [L.STEVE_SEND, L.STEVE_RAMP, L.STEVE_TOO_CLOSE, L.STEVE_FLAIL, L.STEVE_TOW],
+});
+const steveLine = (f: Fight, lines: L.ByPants, onDone?: () => void) => steveSays(f, pick(crushLines(f.e, lines)[pants()]), onDone);
 /** A bark: dropped if somebody's talking. */
 const bark = (f: Fight, lines: L.ByPants) => {
   if (!quiet(f)) return;
-  const text = pick(lines[pants()]);
+  const text = pick(crushLines(f.e, lines)[pants()]);
   say(text, voice(L.STEVE_VOICE), 'casual', {
     always: true,
     onShow: spoken => { f.said = text; if (!spoken) setTimeout(() => { if (f.said === text) f.said = null; }, Math.max(1600, text.length * 65)); },
@@ -423,6 +430,14 @@ const doorOf = (side: 1 | -1, inner = false) => (side > 0 ? DOORS_X[inner ? 2 : 
 export const updateFight = (ctx: FrameContext, f: Fight, controls: Controls): Controls => {
   const { state } = ctx;
   live = f; game = state;
+  // (the hand armor's cheap shot (upgrades/cheapShot.ts): Steve himself (never his cars), stood at his end or about on
+  // his feet, not on a tow rope or calling one, not lit up by the lightning, not in his entrance; the cutscene freezes the
+  // lot, cars and all; then he's stunned: doubled over, not directing traffic (no slaps, no tow, no cars sent; the cars
+  // already out carry on), hit as ever)
+  const ok = f.mode === 'on' && f.entrance <= 0 && f.zapT <= 0 && !f.tow && CHEAP_ACTS.has(f.act) && !f.cam;
+  const cs = cheapShotGate(state, f.e, 'steve', ok);
+  if (cs === 'frozen') { sync(state, f); return controls; }
+  const stunned = cs === 'stunned';
   f.total++;
   f.hype = Math.max(0, f.hype - 0.006);
   for (const [x, t] of f.fire) if (t <= 1) f.fire.delete(x); else f.fire.set(x, t - 1);
@@ -433,7 +448,7 @@ export const updateFight = (ctx: FrameContext, f: Fight, controls: Controls): Co
   tickLaunch(ctx, f);
   if (f.mode === 'dead') { updateCars(ctx, f); return dying(ctx, f); }
   takeHits(ctx, f);
-  watchGrab(ctx, f);
+  if (!stunned) watchGrab(ctx, f);
   // (dev only: the book's bolt on him, the last of him; tools/bossdeaths records his weakness death off it)
   if (import.meta.env.DEV && devBolt) { devBolt = false; f.hp = Math.min(f.hp, 1); struck(ctx, f, 'bolt'); if ((f.mode as string) === 'dead') return hands(); }
   if (f.hp <= 0) { die(ctx, f, false); return hands(); }
@@ -451,14 +466,26 @@ export const updateFight = (ctx: FrameContext, f: Fight, controls: Controls): Co
     return controls;
   }
   f.hot = phase(f) >= 3;
-  steve(ctx, f);
+  if (stunned) dazed(f); else steve(ctx, f);
   pyro(ctx, f);
-  spawn(ctx, f);
+  if (!stunned) spawn(ctx, f);
   updateRamps(state, f, pmid(state).x);
   updateCars(ctx, f);
   if (f.mode === 'on' && f.hp < HP * 0.25 && !f.lowSaid && quiet(f)) { f.lowSaid = true; steveLine(f, L.STEVE_LOW); }
   sync(state, f);
   return controls;
+};
+
+/** On his feet, about, to be got at for the cheap shot. */
+const CHEAP_ACTS: ReadonlySet<Act> = new Set<Act>(['idle', 'wave', 'flail', 'slip', 'hurt', 'smoking', 'getup', 'scramble', 'angry']);
+/** Stunned off the cheap shot: doubled over where he stands (his hurt look), nothing else; the lightning on him still
+ *  runs its course. Back to it after through his hurt beat. */
+const dazed = (f: Fight) => {
+  f.actT++;
+  f.sz += (0 - f.sz) * 0.2;
+  if (f.zapT > 0) { if (f.act !== 'zapped') setAct(f, 'zapped'); if (--f.zapT === 0) setAct(f, 'smoking'); return; }
+  if (f.act !== 'hurt' && f.act !== 'smoking') setAct(f, 'hurt');
+  else if (f.act === 'hurt') f.actT = 0;
 };
 
 /** Steve himself: at his end directing traffic, and whatever's being done to him. */
@@ -631,7 +658,7 @@ const takeHits = (ctx: FrameContext, f: Fight) => {
   // (the user's: "i don't want the player to be given more than 5 uninterrupted seconds spamming the same attack on a
   // boss": the same hit landing on him for 4 s. On top of him (a dive-kick chain, the charge): his arms going, a shove
   // off him (no hurt) and the tow called there and then; shot at from down the stage: a car at him now)
-  if (f.zapT <= 0 && f.act !== 'zapped' && f.act !== 'smoking' && f.act !== 'yank' && f.act !== 'towed' && f.act !== 'call' && spamTick(f.spam, state.frame, hitKey(state.player, melee))) {
+  if (!cheapShotStunned(e) && f.zapT <= 0 && f.act !== 'zapped' && f.act !== 'smoking' && f.act !== 'yank' && f.act !== 'towed' && f.act !== 'call' && spamTick(f.spam, state.frame, hitKey(state.player, melee))) {
     const m = pmid(state);
     if (melee || Math.abs(m.x - f.sx) < TOW_NEAR) {
       swatOff(state, f.sx);
