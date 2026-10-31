@@ -16,6 +16,11 @@
 //                          wheeze) and lets nothing shove, launch or slide it (it stays planted where it was kicked);
 //                          the dizzy stars over it are drawn here for every boss, drawCheapShotWorld (don't draw more)
 //   cheapShotStunT(e)      frames into the stun (-1 not stunned): the stun pose's loop runs off it
+//   registerClearThreats(id, fn)   once, at load: fn(state, e) runs the moment the stun starts and destroys everything
+//                          the fight has going (cars, critters, shots, zones; with a poof, a blast, gore), never the
+//                          arena's own terrain. The stun's a FREE WINDOW: the fight spawns nothing new while
+//                          cheapShotStunned, drops its guards/shields so he can get at the boss, and grabs at it phase
+//                          clean through (grab.ts); the engine's enemy shots in the air go too (here)
 //   crushGroups(id, {hurt, taunt, attack})   once, at load: which of the fight's own line sets are its hurt, taunt and
 //                          attack lines. After a cheap shot those sets come out of the crushed-nuts pool instead:
 //   crushLines(e, set)     a set of the fight's ({clean, shitty, nude}): the crushed one in its place, or itself
@@ -108,6 +113,14 @@ export const crushPool = <T>(e: Enemy | null | undefined, arr: T): T => {
   const m = mapped.get(arr as unknown as object);
   return m && m.dressed ? (CRUSHED[recs.get(e)!.id][m.group][m.dressed] as unknown as T) : arr;
 };
+
+// ---- the free window: the moment the stun starts, the fight clears out what it had going (cars, critters, shots,
+// zones, pillars: its own threats, never the arena's terrain), and spawns none while it lasts (each fight's own
+// spawners ask cheapShotStunned)
+type ClearThreats = (state: GameState, e: Enemy) => void;
+const clearers = new Map<CrushId, ClearThreats>();
+/** Once, at load: what the fight does to wipe its threats out (a poof, an explosion, gore) the moment a stun starts. */
+export const registerClearThreats = (id: CrushId, fn: ClearThreats) => { clearers.set(id, fn); };
 
 // ---- a boss's own close-up (Phase F), else the generic one
 const closeUps = new Map<CrushId, CloseUpPaint>();
@@ -216,7 +229,12 @@ const finish = (state: GameState, stun: boolean) => {
   p.inCutscene = false; p.untouchable = false; p.kickPose = 0;
   if (!s) return;
   const r = recs.get(s.e);
-  if (stun && live(r) && s.e.health > 0) { r.wasHarmless = s.e.harmless; r.stun = CHEAP_STUN; }
+  if (stun && live(r) && s.e.health > 0) {
+    r.wasHarmless = s.e.harmless; r.stun = CHEAP_STUN;
+    // (the free window: everything the fight had going at him, gone; and the boss's own shots in the air)
+    clearers.get(s.id)?.(state, s.e);
+    state.projectiles = state.projectiles.filter(q => q.owner !== 'enemy');
+  }
 };
 
 /** Every frame (grab.ts updateGrab; `inPhase`: the grab's in its 'cheap' phase): a death forgets the lot. */

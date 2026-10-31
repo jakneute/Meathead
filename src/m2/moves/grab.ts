@@ -25,7 +25,7 @@ import { stepAmulet, amuletShielded, drawAmuletFx, raged } from '../upgrades/amu
 import { has } from '../upgrades/state';
 import { HANDS_HEAL } from '../upgrades/tune';
 import { FOLLOW_PHASES, type FollowPhase, type Follow, followIdle, startFollowUp, stepFollow, drawFollow, followTick, followAfter, followUntouchable } from './followups';
-import { cheapShotStart, cheapShotStep, cheapShotTick, drawCheapShotWorld } from '../upgrades/cheapShot';
+import { cheapShotStart, cheapShotStep, cheapShotTick, drawCheapShotWorld, cheapShotStunned } from '../upgrades/cheapShot';
 import { walkAwayOn } from '../walkAway';
 import { spawnShielded } from '../spawnSafe';
 import { pickLine } from '../../m1/game/platform/speech';
@@ -460,6 +460,8 @@ const inReach = (state: GameState, dir: number, reach: number, any = false, test
   const mid = p.pos.x + p.width / 2;
   for (const e of state.enemies) {
     const critter = isCritter(e);
+    // (a boss stunned off the cheap shot: the hands go clean through it, nobody there)
+    if (cheapShotStunned(e)) continue;
     if (any ? e.health <= 0 || e.isBlownAway || e.innocent : !test(state, e)) continue;
     // (forgiving up and down: somebody just landing from a throw, still bouncing, is in reach; a bird a good way up too)
     const slack = critter ? 60 : 24;
@@ -485,7 +487,7 @@ const lungeHits = (state: GameState, dir: number) => {
   const mid = p.pos.x + p.width / 2;
   let best: Enemy | null = null, bestD = Infinity;
   for (const e of state.enemies) {
-    if (e.health <= 0 || e.isBlownAway || e.innocent) continue;
+    if (e.health <= 0 || e.isBlownAway || e.innocent || cheapShotStunned(e)) continue;
     const slack = isCritter(e) ? 60 : 12;
     if (e.pos.y > p.pos.y + p.height + slack || e.pos.y + e.height < p.pos.y - slack) continue;
     // (anything whose near side is in the stretch, or that he's already partly into, ahead of his middle)
@@ -511,7 +513,7 @@ const PRE_GRAB = new Set<Phase>(['windup', 'lunge', 'reach', 'whiff', 'miss', 'a
 const keepClear = (state: GameState, g: Grab) => {
   const p = state.player, cx = centerX(state), half = p.width / 2 + CLEAR_GAP;
   for (const e of state.enemies) {
-    if (e === g.held || e === g.thrown || e.health <= 0 || e.isBlownAway || e.type === 'boss') continue;
+    if (e === g.held || e === g.thrown || e.health <= 0 || e.isBlownAway || e.type === 'boss' || cheapShotStunned(e)) continue;
     // (one of the mob going in for a hit, or over the top of him: its own business, see mobbing)
     const m = mobs.get(e);
     if (m && (m.step === 'strike' || m.step === 'cross')) continue;
@@ -1784,7 +1786,7 @@ const airReach = (state: GameState, dir: number) => {
   const top = p.pos.y - A.REACH_UP, bottom = feetY(state) + A.REACH_DOWN;
   let best: Enemy | null = null, bestD = Infinity;
   for (const e of state.enemies) {
-    if (e.health <= 0 || e.isBlownAway || e.innocent) continue;
+    if (e.health <= 0 || e.isBlownAway || e.innocent || cheapShotStunned(e)) continue;
     if (e.pos.x > b || e.pos.x + e.width < a || e.pos.y > bottom || e.pos.y + e.height < top) continue;
     if (!clearTo(state, e)) continue;
     const d = Math.abs(e.pos.x + e.width / 2 - mid) + Math.abs(e.pos.y + e.height / 2 - (p.pos.y + p.height / 2)) * 0.5;
