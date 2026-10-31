@@ -41,7 +41,7 @@ def main():
         print(f'{j}.gif  {len(p)} frames  {len(p) * STEP / 1000:.1f} s  {os.path.getsize(path) / 1e6:.2f} MB')
     if PICKS:
         return
-    jobs = sorted(f[:-4] for f in os.listdir(DEST) if re.match(r'\d\d-.*\.gif$', f))
+    jobs = sorted(f[:-4] for f in os.listdir(DEST) if re.match(r'\d\d-.*\.gif$', f) and not f.startswith('00-'))
     allp, durs = [], []
     t = card(['MEATHEAD 2', 'THE CHEAP SHOT', f'{len(jobs)} BOSSES, ONE BOOT'], (288, 216), title=True)
     allp += to_p([t], palette_of([t], 1)); durs.append(2500)
