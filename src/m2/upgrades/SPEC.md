@@ -102,6 +102,11 @@ Fairy: pink sequins, glitter crystal, tiara spikes; Cartoon: flat, outlined, a b
     cross, the wheeze, hands to the crotch, knees together, keels over).
   - Harry: his nuts explode, and he still shoots Meathead for the grab after, with new taunts.
   - Build it first as ONE generic version every boss uses, then each custom one.
+  - AFTER IT, NEW LINES for the rest of that fight (2026-10-31: "if you crush a boss's balls/ovaries, they get new lines
+    for the remainder of the fight"): every boss and sub-boss it works on gets a crushed-nuts line set (squeaky,
+    wheezing, vengeful, pitiful, to their sin) that replaces their usual taunt/hurt/attack pools until the fight ends
+    (they die, or he does: a death resets it, like the once-per-life). Full clean/shitty/naked variants per the
+    boss-lines rule. Voiced (npm run voices, m2pack).
 
 ### HELMET (head)
 - All damage he takes is cut 25%: anything that isn't an instant kill (enemies, bosses, hazards). Instant kills still
