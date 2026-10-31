@@ -52,7 +52,7 @@ import { makeKindEnemy } from '../../../m1/game/enemies/kinds';
 import { CANVAS_WIDTH, CANVAS_HEIGHT, BULLET_DAMAGE } from '../../../m1/constants';
 import { bossMelee } from '../../upgrades/bossMelee';
 import { takeYell } from '../../upgrades/amulet';
-import { cheapShotGate, cheapShotStunned, cheapShotStunT, crushGroups, crushLines } from '../../upgrades/cheapShot';
+import { cheapShotGate, cheapShotStunned, cheapShotStunT, crushGroups, crushLines, registerClearThreats } from '../../upgrades/cheapShot';
 import { registerM2Kind } from '../../kinds';
 import { newSpam, spamTick, hitKey, swatOff, type Spam, BOSS_IFRAMES } from '../../bossSpam';
 import { TOO_BIG_BY_KIND } from '../../lines/weaponLines';
@@ -185,6 +185,31 @@ export interface Fight {
 /** The fight going on now (the soul sucker's hook looks at it). */
 let live: Fight | null = null;
 let game: GameState | null = null;
+/** The frame's context as the fight last had it (the cheap shot's clear-out has only the state; a critter's death wants fx). */
+let liveCtx: FrameContext | null = null;
+
+// (the hand armor's cheap shot's free window (upgrades/cheapShot.ts), the moment the stun starts: every critter still
+// running about blown away dead (the engine's death: the blood, the body), the ones still to come called off, the bees
+// swatted out of the air in a puff, his balls in the air gone in a puff of smoke. Not the mountain lions: they're his
+// weakness's, never a threat to Meathead (and none are about when a cheap shot can be had))
+registerClearThreats('tucker', state => {
+  const f = live, ctx = liveCtx;
+  if (!f) return;
+  for (const e of state.enemies) {
+    if (!isCritter(e) || e.health <= 0 || e.isBlownAway) continue;
+    const cx = e.pos.x + e.width / 2, cy = e.pos.y + e.height / 2;
+    for (let i = 0; i < 8; i++) state.particles.push({ pos: { x: cx, y: cy }, vel: { x: (Math.random() - 0.5) * 6, y: -1 - Math.random() * 4 }, life: 30, color: i % 3 ? '#B91C1C' : '#7F1D1D', size: 2 + Math.random() * 3, grav: 0.3 });
+    e.health = 0;
+    if (ctx) ctx.fx.blowAwayEnemy(e, { x: (Math.random() - 0.5) * 8, y: -6 - Math.random() * 3 }, null as never, (e.facing ?? 1) as 1 | -1);
+  }
+  if (!ctx) state.enemies = state.enemies.filter(e => !isCritter(e) || !!e.isBlownAway);
+  f.queue = []; f.rustle = null;
+  for (const s of f.swarms) if (!s.gone) for (let i = 0; i < 10; i++) state.particles.push({ pos: { x: s.x, y: s.y }, vel: { x: (Math.random() - 0.5) * 5, y: (Math.random() - 0.5) * 5 }, life: 24, color: i % 2 ? '#FACC15' : '#1C1917', size: 2, grav: 0.2 });
+  f.swarms = [];
+  for (const s of f.shots) f.smoke.push({ x: s.x, y: s.y, t: 0 });
+  f.shots = [];
+  playSound('splat', 0.8, -2);
+});
 let token = 0;
 export const resetFight = () => { live = null; token++; };
 /** Dev only (tools/perf): the next frame, him showered (the lions called); 'kill': at 1 HP first, so it's the kill. */
@@ -282,7 +307,7 @@ const setAct = (f: Fight, a: Act) => { f.act = a; f.actT = 0; };
 /** A frame of it (Meathead's free while it's on: null; a death's a cutscene: what it scripts him to do). */
 export const updateFight = (ctx: FrameContext, f: Fight): Controls | null => {
   const { state } = ctx;
-  live = f; game = state;
+  live = f; game = state; liveCtx = ctx;
   // (the hand armor's cheap shot (upgrades/cheapShot.ts): got at stood on the ground, on screen, his own routine (not
   // running, not showered or under the cats, not shoved about by a stampede); the cutscene freezes the lot; then he's
   // stunned: the gun down, nothing aimed or fired (so no stampedes off him), stood there hurting; hits as ever)
