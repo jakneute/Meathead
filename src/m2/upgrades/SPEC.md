@@ -123,6 +123,10 @@ Fairy: pink sequins, glitter crystal, tiara spikes; Cartoon: flat, outlined, a b
     cross, the wheeze, hands to the crotch, knees together, keels over).
   - Harry: his nuts explode, and he still shoots Meathead for the grab after, with new taunts.
   - Build it first as ONE generic version every boss uses, then each custom one.
+  - BOSS GRAB RULES (2026-10-31): Y+B on a boss is NEVER a beatdown, only the cheap shot ("initiate grab when close,
+    watch special animation"), once per life while their sex organs exist. Further grab attempts after it work as
+    before (each boss's harmless reaction; Harry's pin-and-M60 counter, even stunned: "harry is grabbable once. when
+    you destroy his nuts. after that he counters"). Air grabs and shakedowns on bosses stay ineffective.
   - AFTER IT, NEW LINES for the rest of that fight (2026-10-31: "if you crush a boss's balls/ovaries, they get new lines
     for the remainder of the fight"): every boss and sub-boss it works on gets a crushed-nuts line set (squeaky,
     wheezing, vengeful, pitiful, to their sin) that replaces their usual taunt/hurt/attack pools until the fight ends
