@@ -9,6 +9,40 @@ import { catBodyOn, catArm, catLeg, catHead, catTorso } from './catBody';
 
 type Ctx = CanvasRenderingContext2D;
 
+/**
+ * Another game's armor on him (Meathead 2's hidden upgrades: src/m2/upgrades/armorArt.ts), each piece its own part,
+ * drawn by the body parts here as they're drawn (so every pose built from them wears it: the sprite, the moves, the
+ * grabs, the follow-ups, the deaths). Meathead 1 never sets it; the cat form never wears it. Each is drawn in the frame
+ * the part's drawn in, facing +x; `back` is the far limb (in his shadow).
+ */
+export interface ArmorArt {
+  /** Over a boot (its rect: the toe at x + w). */
+  boot(ctx: Ctx, x: number, y: number, w: number, h: number, back: boolean): void;
+  /** Over the knee and down the shin (hip, knee, ankle: the thigh's left bare). */
+  shin(ctx: Ctx, hip: [number, number], knee: [number, number], foot: [number, number], back: boolean): void;
+  /** Along the forearm, elbow to wrist. */
+  forearm(ctx: Ctx, ex: number, ey: number, wx: number, wy: number, back: boolean): void;
+  /** Over the fist (centre, radius, the way the forearm points). */
+  fist(ctx: Ctx, x: number, y: number, r: number, angle: number, back: boolean): void;
+  /** Over the shoulder (the deltoid's middle, its size: 6 an ordinary one). */
+  shoulder(ctx: Ctx, x: number, y: number, r: number, back: boolean): void;
+  /** On his head (as the glasses are drawn: hx the head's middle, ey the eyes' line). */
+  helmet(ctx: Ctx, hx: number, ey: number): void;
+  /** On his bare chest (the torso's frame: its top, the pecs'). */
+  chest(ctx: Ctx, torsoTop: number, pecY: number): void;
+  /** Off his back, behind the torso (the torso's frame: its top and height). */
+  cape(ctx: Ctx, torsoTop: number, torsoHeight: number): void;
+}
+let armorArt: ArmorArt | null = null;
+export const setArmorArt = (a: ArmorArt | null) => { armorArt = a; };
+/** The armor, if any's to be drawn now (not on the cat). */
+export const armorOn = (): ArmorArt | null => (armorArt && !catBodyOn() ? armorArt : null);
+/** How he's moving, for what hangs off him (the cape): set as his sprite's drawn (renderer), read by the armor's art. */
+export const armorMotion = { fwd: 0, vy: 0, floating: false, grounded: true, frame: 0 };
+export const setArmorMotion = (fwd: number, vy: number, floating: boolean, grounded: boolean, frame: number) => {
+  armorMotion.fwd = fwd; armorMotion.vy = vy; armorMotion.floating = floating; armorMotion.grounded = grounded; armorMotion.frame = frame;
+};
+
 export const skinTone = '#E0AC69';
 export const skinShadow = '#C68B45';
 export const skinHighlight = '#F5D0A9';
@@ -63,6 +97,7 @@ export const stubbleColor = 'rgba(60, 30, 10, 0.35)';
  * lit across the top and shadowed under, the traps rising behind his neck. `top` is the top of it, `pecY` the pecs'.
  */
 export const drawTorso = (ctx: Ctx, torsoTop: number, torsoHeight: number, pecY: number, isDucking = false) => {
+  armorOn()?.cape(ctx, torsoTop, torsoHeight);
   // Torso Base: lit from the front, shadowed round the back, lats flaring out
   const torsoShade = ctx.createLinearGradient(-14, 0, 14, 0);
   torsoShade.addColorStop(0, skinShadow);
@@ -142,6 +177,7 @@ export const drawTorso = (ctx: Ctx, torsoTop: number, torsoHeight: number, pecY:
   // In the finale he's still got the President's medal on: the blue ribbon round his neck (under his chin), the
   // medal on his chest between the pecs, a white star on gold
   if (singed) drawMedalOn(ctx, torsoTop, pecY);
+  armorOn()?.chest(ctx, torsoTop, pecY);
 };
 
 /** The Presidential Medal of Freedom, as he wears it in the finale (torso frame). */
@@ -234,6 +270,9 @@ export const drawArm = (ctx: Ctx, sx: number, sy: number, ex: number, ey: number
   ctx.fillStyle = wristbandColor; ctx.fillRect(-2.5, -5, 5, 10);
   ctx.fillStyle = '#E5E7EB'; ctx.fillRect(-1, -3, 2, 2); ctx.fillRect(-1, 1, 2, 2);
   ctx.restore();
+  // (armor: along the forearm, over the shoulder)
+  const armor = armorOn(), backArm = skin !== skinTone;
+  if (armor) { armor.forearm(ctx, ex, ey, wx, wy, backArm); armor.shoulder(ctx, sx, sy, 6, backArm); }
   // Fist
   const reach = fistR - 0.5;
   const hx = fistX ?? wx + (fx / fl) * reach, hy = fistX !== undefined ? wy : wy + (fy / fl) * reach;
@@ -244,6 +283,7 @@ export const drawArm = (ctx: Ctx, sx: number, sy: number, ex: number, ey: number
   const ka = Math.atan2(fy, fx), kx = Math.cos(ka), ky = Math.sin(ka);
   ctx.fillStyle = shade;
   for (let k = -1; k <= 1; k++) ctx.fillRect(hx + kx * fistR * 0.55 - ky * k * fistR * 0.45 - 0.4, hy + ky * fistR * 0.55 + kx * k * fistR * 0.45 - 0.4, 0.9, 0.9);
+  armor?.fist(ctx, hx, hy, fistR, ka, backArm);
 };
 
 /** The alien's ray gun went through his jeans at the shin in the ending's cutscene: in the finale, the hole's there
@@ -356,6 +396,7 @@ export const drawBoot = (ctx: Ctx, x: number, y: number, w: number, h: number, s
     ctx.fillStyle = '#E2E8F0';
     ctx.fillRect(x + w - 4.5, y + 1.6, 2, 1.2);
   }
+  armorOn()?.boot(ctx, x, y, w, h, !steelToe);
 };
 
 /** A leg bent at the knee: thigh from the hip, then the shin (angles from straight down; negative = forward). */
@@ -370,6 +411,8 @@ export const drawJointedLeg = (ctx: Ctx, hipX: number, hipY: number, thighAngle:
   ctx.fillStyle = color;
   ctx.beginPath(); ctx.arc(0, 0, w / 2, 0, Math.PI * 2); ctx.fill();
   drawPantLeg(ctx, -w / 2 + 0.5, 0, w - 1, 10, color, false, near ? 0.45 : undefined);
+  // (armor on the knee and shin: the hip's back up the thigh, in this frame)
+  armorOn()?.shin(ctx, [-11 * Math.sin(kneeBend), -11 * Math.cos(kneeBend)], [0, 0], [0, 10], !near);
   drawBoot(ctx, -w / 2, 9, w + 4, 7, near);
   ctx.restore();
 };
@@ -403,6 +446,7 @@ export const drawLeg = (ctx: Ctx, hip: [number, number], knee: [number, number],
   ctx.fillStyle = color; ctx.beginPath(); ctx.arc(knee[0], knee[1], w / 2 - 0.5, 0, Math.PI * 2); ctx.fill();
   // (the knee's lit edge)
   ctx.fillStyle = 'rgba(255, 255, 255, 0.12)'; ctx.beginPath(); ctx.arc(knee[0], knee[1], w / 2 - 1, -Math.PI * 0.9, -Math.PI * 0.4); ctx.lineTo(knee[0], knee[1]); ctx.fill();
+  armorOn()?.shin(ctx, hip, knee, foot, back);
   ctx.save(); ctx.translate(foot[0], foot[1]); ctx.rotate(toeAngle);
   drawBoot(ctx, -5, -4.5, 15, 8, !back);
   ctx.restore();
@@ -457,6 +501,8 @@ export const glassesOn = () => glasses;
  * his ear, a cold tint on the glass, a streak of light up its left, the sheen along the rims' tops.
  */
 export const drawGlasses = (ctx: Ctx, hx: number, ey: number) => {
+  // (another game's helmet: on his head, under the glasses, which always show)
+  armorOn()?.helmet(ctx, hx, ey);
   if (!glasses) return;
   const dmg = glassesDamage();
   const rims: [number, number][] = [[hx - 9, 8], [hx - 0.5, 8.5]];
@@ -603,4 +649,5 @@ export const drawRamDelt = (ctx: Ctx, x: number, y: number, r: number) => {
   ctx.fillStyle = 'rgba(255, 255, 255, 0.55)'; ctx.fillRect(x + r * 0.3, y - r * 0.45, 1.5, 1);
   // (the striations down the front of it)
   ctx.fillStyle = skinShadow; for (let k = 0; k < 3; k++) ctx.fillRect(x - r * 0.4 + k * r * 0.3, y + r * 0.05, 0.8, r * 0.35);
+  armorOn()?.shoulder(ctx, x, y, r, false);
 };

@@ -28,7 +28,7 @@ import { drawRayGunHeld } from '../../../../m2/weapons/rayGunArt';
 import { customWeapon } from '../../combat/customWeapons';
 import { buffs } from '../../core/buffs';
 import { setGore, getGore, smear, drip, drawHeadBlood, drawLeadArmBlood, drawBeatenUp, bloodDark } from './gore';
-import { skinTone, skinShadow, skinHighlight, skinVein, pantsColor, pantsShadow, beltColor, beltBuckle, wristbandColor, backArmShade, stubbleColor, drawTorso, drawBelt, drawArm, drawPantLeg, drawBoot, drawJointedLeg, drawLeg, drawArmTo, drawHead, drawGlasses, drawHeadFlush, setTalking, drawTalkingMouth, setLegSinge, setNude, snesShat } from './body';
+import { skinTone, skinShadow, skinHighlight, skinVein, pantsColor, pantsShadow, beltColor, beltBuckle, wristbandColor, backArmShade, stubbleColor, drawTorso, drawBelt, drawArm, drawPantLeg, drawBoot, drawJointedLeg, drawLeg, drawArmTo, drawHead, drawGlasses, drawHeadFlush, setTalking, drawTalkingMouth, setLegSinge, setNude, snesShat, armorOn, setArmorMotion } from './body';
 
 export interface PlayerDrawOptions {
   currentWeapon: WeaponType;
@@ -84,6 +84,8 @@ export const STAB_WOUND = { x: 13, y: -34 };
 export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: GameState, { currentWeapon, showFilthShield, invincibilityEnabled, footTap = 0, surf = false, castShadow = false, hold }: PlayerDrawOptions) => {
   // (talking, in whatever pose: the heads drawn for the moves work their jaws too)
   setTalking(state.playerVulgarityTimer > 0 && !!state.playerLastVulgarity && !p.hidden);
+  // (how he's moving, for whatever another game's armor has hanging off him: Meathead 2's cape)
+  setArmorMotion(p.vel.x * p.facing, p.vel.y, !!p.floating, p.isGrounded, state.frame);
   // (Meathead 2's cat form: every body part drawn after this is the cat's, the grabs' and the weapons' poses too)
   setCatBody(!!p.catForm);
   // (blown to bits by the third one: the mess, and the heap of him, over the death screen too)
@@ -549,6 +551,7 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
     ctx.save(); ctx.translate(-11, -30); ctx.rotate(Math.PI * 0.92);
     ctx.fillRect(0, -4, 26, 8); ctx.fillStyle = wristbandColor; ctx.fillRect(20, -4.5, 4, 9);
     ctx.fillStyle = skinShadow; ctx.beginPath(); ctx.arc(28, 0, 5, 0, Math.PI * 2); ctx.fill();
+    armorLimb(ctx, [0, 0], [12, 0], [22, 0], [28, 0], 5, true);
     ctx.restore();
   } else if (isDivekicking) {
     // Tucked back defensively for aerodynamic dive
@@ -563,6 +566,7 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
     ctx.beginPath();
     ctx.arc(-28, -32, 5, 0, Math.PI * 2);
     ctx.fill();
+    armorLimb(ctx, [-14, -36], [-15, -32.5], [-25, -32.5], [-28, -32], 5, true);
   } else if (isUppercutting) {
     // Off-hand tucked defensively near chest / ribs
     ctx.fillStyle = skinShadow;
@@ -576,6 +580,7 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
     ctx.beginPath();
     ctx.arc(-8, -18, 5, 0, Math.PI * 2); // Clenched fist
     ctx.fill();
+    armorLimb(ctx, [-8, -35], [-8.5, -31], [-8.5, -21], [-8, -18], 5, true);
   } else if (isCharging) {
     // Trailing backward for aerodynamic speed
     ctx.fillStyle = skinShadow;
@@ -589,28 +594,29 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
     ctx.beginPath();
     ctx.arc(-30, -34, 5, 0, Math.PI * 2); // Fist
     ctx.fill();
+    armorLimb(ctx, [-14, -38], [-16, -34], [-26, -34], [-30, -34], 5, true);
   } else if (lounging && !logSeated && p.seatPunch !== undefined) {
     // (the haymaker: braced on the seat in front)
     drawSeatPunchBackArm(ctx);
   } else if (lounging && isDucking) {
     // Ducked: hunched right over, both hands gripping the front of the cart, head down
     drawReachingArm(ctx, -6, -40, 6, -30, 18, -28, skinShadow);
-    ctx.fillStyle = skinShadow; ctx.beginPath(); ctx.arc(18, -28, 4.5, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = skinShadow; ctx.beginPath(); ctx.arc(18, -28, 4.5, 0, Math.PI * 2); ctx.fill(); armorOn()?.fist(ctx, 18, -28, 4.5, 0.17, true);
   } else if (logSeated && p.logPaddle) {
     // Across him to the paddle's grip
     drawPaddleBackArm(ctx, p.logPaddle);
   } else if (logSeated) {
     // Down at his side, gripping the log's rim
     drawReachingArm(ctx, -6, -40, -12, -32, -9, -24, skinShadow);
-    ctx.fillStyle = skinShadow; ctx.beginPath(); ctx.arc(-9, -24, 4.5, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = skinShadow; ctx.beginPath(); ctx.arc(-9, -24, 4.5, 0, Math.PI * 2); ctx.fill(); armorOn()?.fist(ctx, -9, -24, 4.5, 1.21, true);
   } else if (lounging) {
     // Draped back over the back of the cart, open, the hand resting on the top of it
     drawReachingArm(ctx, -8, -42, -22, -48, -18, -60, skinShadow);
-    ctx.fillStyle = skinShadow; ctx.beginPath(); ctx.arc(-18, -60, 4.5, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = skinShadow; ctx.beginPath(); ctx.arc(-18, -60, 4.5, 0, Math.PI * 2); ctx.fill(); armorOn()?.fist(ctx, -18, -60, 4.5, -1.25, true);
   } else if (isSeated) {
     // Reaching forward to the handlebars
     drawReachingArm(ctx, -6, -40, 6, -35, 21, -40, skinShadow);
-    ctx.fillStyle = skinShadow; ctx.beginPath(); ctx.arc(20, -40, 4.5, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = skinShadow; ctx.beginPath(); ctx.arc(20, -40, 4.5, 0, Math.PI * 2); ctx.fill(); armorOn()?.fist(ctx, 20, -40, 4.5, -0.34, true);
   } else if (p.stabbed) {
     // Held on the knife (or gutted): the hand clamped over the hole in his belly, blood out between the fingers (shoved
     // up into it, stuffing them back in)
@@ -633,6 +639,7 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
     ctx.beginPath();
     ctx.arc(-26, -42, 5, 0, Math.PI * 2);
     ctx.fill();
+    armorLimb(ctx, [-16, -36], [-15, -38], [-23, -41], [-26, -42], 5, true);
   } else if (pitchK >= 0) {
     // Pitching: the glove arm (over the torso, below)
     freeArm = () => (p.throwKeg ? drawKegGloveArm : drawPitchGloveArm)(ctx, pitchK);
@@ -779,6 +786,7 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
     thigh(-1, pantsShadow, sb, lb); drawBoot(ctx, -20 + sb, -6 - lb, 14, 6, false);
     thigh(1, pantsColor, sf, lf); drawBoot(ctx, 6 + sf, -6 - lf, 15, 6, true);
     ctx.fillStyle = '#27272A'; ctx.beginPath(); ctx.ellipse(17 + sf, -9.5 - lf, 3, 2.5, 0.3, 0, Math.PI * 2); ctx.fill();
+    armorOn()?.shin(ctx, [7, -10], [17 + sf, -9.5 - lf], [15 + sf, -3 - lf], false);
   } else if (isDucking) {
     // Deep martial-arts power squat: boots flat on floor level (y = -6 to 0), thighs flared outward
     // Back thigh
@@ -809,6 +817,7 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
     // Knee pad on the front thigh
     ctx.fillStyle = '#27272A';
     ctx.beginPath(); ctx.ellipse(17, -9.5, 3, 2.5, 0.3, 0, Math.PI * 2); ctx.fill();
+    armorOn()?.shin(ctx, [7, -10], [17, -9.5], [15, -3], false);
   } else if (isSwimming) {
     // Kicking: a fast flutter kick when he's swimming somewhere, a slow scissor treading water
     const k = Math.sin(animFrame * (swimMoving ? 0.45 : 0.18));
@@ -826,8 +835,10 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
   } else if (isHurt) {
     // Staggered backwards
     drawPantLeg(ctx, -14, -20, 10, 16, pantsShadow);
+    armorOn()?.shin(ctx, [-9, -20], [-9, -12], [-9, -2], true);
     drawBoot(ctx, -16, -4, 13, 6, false);
     drawPantLeg(ctx, 2, -22, 10, 18, pantsColor, true, 0.74);
+    armorOn()?.shin(ctx, [7, -22], [7, -13], [7, -2], false);
     drawBoot(ctx, 3, -4, 13, 6, true);
   } else if (isWalking && slopeLegs) {
     // Up or down a slope or stairs: each foot planted on the ground under it, then lifted and swung through to the
@@ -887,8 +898,10 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
   } else {
     // Idle grounded solid stance
     drawPantLeg(ctx, -10, -22, 10, 16, pantsShadow);
+    armorOn()?.shin(ctx, [-5, -22], [-5, -14], [-5, -4], true);
     drawBoot(ctx, -11, -6, 12, 7, false);
     drawPantLeg(ctx, 2, -22, 10, 16, pantsColor, true, 0.72);
+    armorOn()?.shin(ctx, [7, -22], [7, -14], [7, -4], false);
     // (the front boot tipping up on its heel when he's tapping his foot)
     ctx.save(); ctx.translate(2, 0); ctx.rotate(-footTap * 0.4); ctx.translate(-2, 0);
     drawBoot(ctx, 2, -6, 14, 7, true);
@@ -1209,6 +1222,7 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
     ctx.fillRect(0, -4.5, 28, 9); ctx.fillStyle = wristbandColor; ctx.fillRect(22, -5, 4, 10);
     ctx.fillStyle = skinTone; ctx.beginPath(); ctx.arc(31, 0, 5.5, 0, Math.PI * 2); ctx.fill();
     ctx.fillRect(30, -11, 3, 7); ctx.fillRect(34, 3, 6, 3); // thumb up, little finger out
+    armorLimb(ctx, [0, 0], [12, 0], [23, 0], [31, 0], 5.5, false, 7.5);
     ctx.restore();
   } else if (isDivekicking) {
     // Lead arm tucked tight across chest for aerodynamic dive
@@ -1219,6 +1233,7 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
     ctx.fillRect(-8, -42, 4, 8);
     ctx.fillStyle = skinTone;
     ctx.beginPath(); ctx.arc(-11, -38, 5.5, 0, Math.PI * 2); ctx.fill();
+    armorLimb(ctx, [4, -40], [3, -38], [-7, -38], [-11, -38], 5.5, false, 8);
   } else if (isUppercutting) {
     // DRAGON PUNCH / SHORYUKEN UPPERCUT POSE!
     // Lead arm launched straight up to the sky
@@ -1253,6 +1268,7 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
     ctx.lineWidth = 1.2;
     // Knuckles facing forward
     ctx.strokeRect(fistX - 3, fistY - 6, 11, 7);
+    armorLimb(ctx, [6, -46], [6.5, -55], [6.5, -69], [fistX + 2.5, fistY], 7.5, false, 8.5);
 
     // White/cyan spiraling speed streaks around fist
     ctx.strokeStyle = '#38BDF8';
@@ -1270,6 +1286,7 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
     ctx.fillStyle = skinTone; ctx.beginPath(); ctx.ellipse(ramX, ramY, 8.5, 7.5, 0.3, 0, Math.PI * 2); ctx.fill();
     ctx.fillStyle = skinShadow; ctx.beginPath(); ctx.ellipse(ramX - 1, ramY + 5, 6, 1.6, 0.3, 0, Math.PI * 2); ctx.fill();
     ctx.fillStyle = skinHighlight; ctx.beginPath(); ctx.ellipse(ramX + 2.5, ramY - 3, 3.5, 2, 0.3, 0, Math.PI * 2); ctx.fill();
+    armorOn()?.shoulder(ctx, ramX, ramY, 8.5, false);
   } else if (logSeated && p.logPaddle) {
     // Paddling: the paddle down the log's near side, his near hand low on it (and noted, for the ride's art to draw its
     // lower part again over the log's near side)
@@ -1281,11 +1298,11 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
   } else if (lounging && isDucking && !logSeated) {
     // Ducked in the cart: hunched over, gripping the front of it white-knuckled
     drawReachingArm(ctx, 8, -42, 18, -32, 26, -26, skinTone);
-    ctx.fillStyle = skinTone; ctx.beginPath(); ctx.arc(26, -26, 5, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = skinTone; ctx.beginPath(); ctx.arc(26, -26, 5, 0, Math.PI * 2); ctx.fill(); armorOn()?.fist(ctx, 26, -26, 5, 0.64, false);
   } else if (lounging && !logSeated) {
     // Sat back in the cart, nothing in his hand: the arm along the front of it, the hand over the side
     drawReachingArm(ctx, 8, -42, 20, -34, 30, -32, skinTone);
-    ctx.fillStyle = skinTone; ctx.beginPath(); ctx.arc(30, -32, 5, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = skinTone; ctx.beginPath(); ctx.arc(30, -32, 5, 0, Math.PI * 2); ctx.fill(); armorOn()?.fist(ctx, 30, -32, 5, 0.20, false);
   } else if (isHurt) {
     // Lead arm knocked back, hanging loose
     drawArm(ctx, 13, -45, 10, -33, 8, -23, skinTone, skinShadow, skinHighlight);
@@ -1661,6 +1678,7 @@ const drawSlopeLeg = (ctx: CanvasRenderingContext2D, hipX: number, footX: number
   seg(kx, ky, ax, ay, SHIN + 2, w, false, back ? undefined : 0.45);
   ctx.fillStyle = color; ctx.beginPath(); ctx.arc(kx, ky, w / 2, 0, Math.PI * 2); ctx.fill();
   seg(hx, hy, kx, ky, THIGH + 1, tw, !back);
+  armorOn()?.shin(ctx, [hx, hy], [kx, ky], [ax, ay + ANKLE], back);
   // (the boot: on the ground at the sole; one he's reaching down for the ground with, up on its toe)
   const toe = Math.min(0.7, Math.max(0, d - THIGH - SHIN) * 0.14);
   ctx.save(); ctx.translate(ax, ay); ctx.rotate(angle - bodyRot + toe); ctx.translate(0, ANKLE);
@@ -1871,6 +1889,19 @@ const drawReachingArm = (ctx: CanvasRenderingContext2D, sx: number, sy: number, 
   ctx.lineTo(hx - 3 - (dx / len) * 1, hy - 2 - (dy / len) * 1);
   ctx.stroke();
   ctx.restore();
+  armorLimb(ctx, [sx, sy], [ex, ey], [hx - 3, hy - 2], null, 4.5, skin !== skinTone);
+};
+
+/**
+ * Another game's armor (body.ts armorOn: Meathead 2's) on one of the limbs drawn by hand here: along the forearm (elbow
+ * to wrist), over the shoulder (`shR` its size), over the fist (radius `r`, pointing the way the forearm does).
+ */
+const armorLimb = (ctx: CanvasRenderingContext2D, sh: [number, number] | null, el: [number, number] | null, wr: [number, number] | null, fist: [number, number] | null, r: number, back: boolean, shR = 6) => {
+  const a = armorOn();
+  if (!a) return;
+  if (el && wr) a.forearm(ctx, el[0], el[1], wr[0], wr[1], back);
+  if (sh) a.shoulder(ctx, sh[0], sh[1], shR, back);
+  if (fist) a.fist(ctx, fist[0], fist[1], r, el && wr ? Math.atan2(wr[1] - el[1], wr[0] - el[0]) : 0, back);
 };
 
 /** Out of boulders: his throwing hand's empty. */

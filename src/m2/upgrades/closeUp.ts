@@ -12,6 +12,8 @@
 // bits (the boot, the balls, the blood, the words) are drawn each frame, a handful of shapes.
 
 import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../../m1/constants';
+import { has } from './state';
+import { drawSabatonCloseUp } from './armorArt';
 
 type Ctx = CanvasRenderingContext2D;
 
@@ -173,7 +175,8 @@ const xray = (c: Ctx, t: number, look: CloseUpLook) => {
     for (let i = 0; i < n; i++) { const a = -Math.PI / 2 + (rnd(i) - 0.5) * 2.4; c.moveTo(CX, 90); c.lineTo(CX + Math.cos(a) * 30, 90 + Math.sin(a) * 18); c.lineTo(CX + Math.cos(a + 0.4) * 52, 90 + Math.sin(a + 0.4) * 30); }
     c.stroke();
   }
-  drawBoot(c, b.x, b.y);
+  // (with the sabatons on, it's them that goes in: armorArt.ts)
+  if (has('sabatons')) drawSabatonCloseUp(c, b.x, b.y, t); else drawBoot(c, b.x, b.y);
   spray(c, hit, look);
   words(c, hit, look);
 };
