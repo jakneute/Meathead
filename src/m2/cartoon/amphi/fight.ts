@@ -67,7 +67,9 @@ import { SKIP_AFTER, offerSkip, takeSkip, drawSkipPrompt } from '../../../m1/gam
 import { hurtPlayer } from '../../../m1/game/bosses/shared';
 import { makeKindEnemy } from '../../../m1/game/enemies/kinds';
 import { CANVAS_WIDTH, CANVAS_HEIGHT, BULLET_DAMAGE } from '../../../m1/constants';
-import { bossMelee } from '../../upgrades/bossMelee';
+import { bossMelee, bossMeleeOf } from '../../upgrades/bossMelee';
+import { moveArmored } from '../../upgrades/state';
+import { meleeMoveOf, type MeleeMove } from '../../../m1/game/core/tuning';
 import { registerM2Kind, registerHurtLines } from '../../kinds';
 import { newSpam, spamTick, hitKey, swatOff, type Spam, BOSS_IFRAMES } from '../../bossSpam';
 import { setStuntCarHook, snapClapper } from '../../weapons/stuntCar';
@@ -223,6 +225,9 @@ export interface Fight {
   mode: 'on' | 'dead'; t: number; stage: string;
   hp: number; iframes: number; flash: number;
   e: Enemy; moveSeen: number | undefined;
+  /** The move he's in (or was last in) and its id (the hits come in after he's out of it); the last one his armor's
+   *  put through into him (once a move). */
+  lastMove?: { id: number; move: MeleeMove }; armorMove?: number;
   /** The same hit landing on him over and over (bossSpam.ts). */
   spam: Spam;
   /** Him: what he's at, its clock; where (section x, feet's height off the deck), which way he faces, on the couch. */
@@ -416,6 +421,7 @@ export const updateFight = (ctx: FrameContext, f: Fight, controls: Controls): Co
   view(state, f);
   props(ctx, f);
   if (f.mode === 'dead') return dying(ctx, f);
+  { const p = state.player, mv = meleeMoveOf(p); if (mv) f.lastMove = { id: p.moveId ?? 0, move: mv }; }
   batAway(ctx, f);
   takeHits(ctx, f);
   if (f.hp <= 0) { die(ctx, f, 'fridge'); return dying(ctx, f); }
@@ -783,7 +789,10 @@ const batAway = (ctx: FrameContext, f: Fight) => {
   const cx = X(f.x), feet = STAGE_Y - f.y;
   if (!hits(pRect(state), { x0: cx - 36, x1: cx + 36, y0: feet - DAD_SIT_H - 18, y1: feet })) return;
   const dir = p.pos.x + p.width / 2 < cx ? -1 : 1;
+  const move = meleeMoveOf(p);
   p.isCharging = false; p.isSliding = false; p.isDivekicking = false; p.isUppercutting = false;
+  // (in that move's armor piece, it goes in all the same, batted away or not (the upgrades: SPEC.md's Dad Guy))
+  armorLand(ctx, f, move);
   if (hurtable(state)) hurtPlayer(ctx, SWAT_DMG, hurtSrc(state, 'm2:ct_dad_swat'), { x: dir * 11, y: -8 });
   else { p.vel = { x: dir * 11, y: -8 }; p.pushbackTimer = Math.max(p.pushbackTimer, 14); }
   p.isGrounded = false;
@@ -792,8 +801,30 @@ const batAway = (ctx: FrameContext, f: Fight) => {
   // (the swing itself, if he's not mid-swing already: it's spent, it won't hurt)
   if (f.act === 'sit') { f.swatWind = SWAT_FAST; f.swatHit = true; setAct(f, 'swat'); }
 };
+/**
+ * The upgrades (SPEC.md): he still knocks Meathead back off a charge move, but in that move's armor piece the move
+ * hurts him anyway: batted away on the couch, hammered in the rage, the dive kick swatted off, in his breather. The
+ * normalized hit with the piece (bossMeleeOf: 75), once a move. Up off his crushed couch (sad) it's the plain hits, as
+ * ever: nothing here.
+ */
+const armorLand = (ctx: FrameContext, f: Fight, move: MeleeMove | null | undefined) => {
+  const { state } = ctx, p = state.player;
+  if (!move || !moveArmored(move) || f.mode !== 'on' || f.sad || f.hp <= 0) return;
+  const id = p.moveId ?? 0;
+  if (f.armorMove === id) return;
+  f.armorMove = id;
+  const dmg = bossMeleeOf(move);
+  f.hp -= dmg; f.iframes = IFRAMES; f.flash = 8;
+  const cx = X(f.x), feet = STAGE_Y - f.y;
+  for (let i = 0; i < 6; i++) state.particles.push({ pos: { x: cx, y: feet - 60 }, vel: { x: (Math.random() - 0.5) * 4, y: -1 - Math.random() * 3 }, life: 18, color: '#B91C1C', size: 2 + Math.random() * 2, grav: 0.3 });
+  playSound('punch', 0.9, -2);
+  ctx.fx.spawnDamageNumber({ x: cx - 10, y: feet - DAD_H - 10 }, Math.round(dmg), true);
+  if (f.hp > 0 && Math.random() < 0.25) bark(f, state, L.DAD_HURT);
+};
 const hammered = (ctx: FrameContext, f: Fight) => {
   const { state } = ctx;
+  // (a move into him in that move's armor piece goes in, hammered for it or not)
+  armorLand(ctx, f, meleeMoveOf(state.player));
   if (!hurtable(state)) return;
   const p = state.player, dir = p.pos.x + p.width / 2 < X(f.x) ? -1 : 1;
   p.isCharging = false; p.isDivekicking = false; p.isUppercutting = false;
@@ -1187,13 +1218,20 @@ const takeHits = (ctx: FrameContext, f: Fight) => {
   // (off it (winded, waddling back, baffled, up with no couch), a dive kick's batted off him too, with whatever's to
   // hand (the user's: "dad guy automatically counters it"; "the swat won't hurt"): it doesn't land, no stomping chain,
   // in his breather or out of it)
+  // (the move that hit him, as he was doing it: he may be out of it by now)
+  const move = melee && f.lastMove?.id === e.hitByMove ? f.lastMove.move : undefined;
   if (melee && dealt > 0 && state.player.isDivekicking && !f.seated && f.act !== 'rage' && f.act !== 'rise' && state.enemies.includes(e)) {
+    armorLand(ctx, f, 'divekick');
     swatOff(state, X(f.x), 11, -8);
     playSound('bonk', 1, -2);
     ctx.fx.spawnDamageNumber({ x: state.player.pos.x, y: state.player.pos.y - 24 }, 'BATTED!', true, '#FDE047');
     return;
   }
-  if (dealt <= 0 || !state.enemies.includes(e) || f.iframes > 0) return;
+  if (dealt <= 0 || !state.enemies.includes(e)) return;
+  // (a move in its armor piece: in his breather, in the rage, on the couch, it goes in all the same)
+  const shut = f.iframes > 0 || (melee && (f.act === 'rage' || f.act === 'rise')) || (melee && f.seated && !f.couch.crushed && f.act !== 'puke');
+  if (shut && melee && !f.sad) armorLand(ctx, f, move);
+  if (f.iframes > 0) return;
   // (in the rage nothing lands but what's fired at him (the moves get him hammered: touch above))
   if (melee && (f.act === 'rage' || f.act === 'rise')) return;
   // (on his couch, no move lands either: he bats every one away (batAway)); but puking he can't, and they do

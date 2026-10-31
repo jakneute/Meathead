@@ -400,7 +400,9 @@ const partTouch = (ctx: FrameContext, e: Enemy): boolean => {
   // (a sub-boss has no breather: only the same move can't land twice)
   if (e.hitByMove === p.moveId) return true;
   if (!rectsOverlap(getAttackHitbox(ctx), boundsOf(e))) return true;
-  if (part.live) {
+  // (an uppercut in the armguards goes into a live part all the same, no shock (the upgrades: it hits what's otherwise
+  // shut to it); a live part's share of it, as a shot's)
+  if (part.live && !(p.isUppercutting && moveArmored('uppercut'))) {
     // (just shocked off it: no second go, nothing in it either way; the move's over and he's off it)
     if (state.frame < r.shockGrace) {
       const dir = Math.sign(p.pos.x + p.width / 2 - r.x) || -r.facing;
