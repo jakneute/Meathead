@@ -13,8 +13,10 @@ import { kindGore } from '../../m1/game/enemies/kindBlood';
 
 type Ctx = CanvasRenderingContext2D;
 /** A piece's shape, in the enemy's own picture (feet at the origin, facing right): a circle (its head) or a box. */
-export type Cut = { circle: true; x: number; y: number; r: number } | { circle: false; x0: number; y0: number; x1: number; y1: number };
-interface Piece { e: Enemy; face: 1 | -1; cut: Cut; cx: number; cy: number; x: number; y: number; vx: number; vy: number; rot: number; vr: number; t: number; down: boolean; bounced: boolean }
+/** A box's `poly`, if it has one, is the shape cut out of it (the same coordinates; the box just bounds it): an animal
+ *  sliced nose to tail on a slant. */
+export type Cut = { circle: true; x: number; y: number; r: number } | { circle: false; x0: number; y0: number; x1: number; y1: number; poly?: [number, number][] };
+interface Piece { e: Enemy; face: 1 | -1; cut: Cut; cx: number; cy: number; x: number; y: number; vx: number; vy: number; rot: number; vr: number; t: number; down: boolean; bounced: boolean; bake?: BakedCut }
 
 const LIE = 480, FADE = 60, MAX_PIECES = 90, G = 0.55;
 let pieces: Piece[] = [];
@@ -73,9 +75,12 @@ export const dismember = (state: GameState, e: Enemy, dir: number, force = 1) =>
 };
 
 /**
- * Sliced in half top to bottom, down the forehead (the leg armor's flash kick: upgrades/followups.ts): the two halves
- * stood where it was, then falling apart either way, turning outward, bleeding from the cut, and lying there a while
- * like any other piece. A person's cut through the middle of the head; an animal's through the middle of it.
+ * Sliced in half (the leg armor's flash kick: upgrades/followups.ts): the two halves stood where it was, then falling
+ * apart, bleeding from the cut, and lying there a while like any other piece. A person: top to bottom, down the
+ * forehead, the halves falling apart either way and turning outward. An animal: the same idea along its long axis
+ * (the owner's "it's different for humans/animals"): nose to tail through the head, on the slant from its head down to
+ * its rump, the top half sliding off its back and the bottom half slumping where it stood. An animal's halves are
+ * painted the once there and then, as it looked alive (its dead picture's lying down, or belly up: no good to cut).
  */
 export const sliceInHalf = (state: GameState, e: Enemy) => {
   const face = (kindFacing(e, state) >= 0 ? 1 : -1) as 1 | -1;
@@ -83,7 +88,28 @@ export const sliceInHalf = (state: GameState, e: Enemy) => {
   e.vel = { x: 0, y: 0 }; e.pose = undefined; e.melee = undefined;
   e.frozeAt = state.frame; e.frozenTimer = 1e9;
   const hd = e.kind ? KIND_HEAD[e.kind] : undefined;
-  const at = isHumanoidKind(e.kind) && hd ? hd.x : 0, wide = e.width / 2 + 24, top = -e.height - 26;
+  const wide = e.width / 2 + 24, top = -e.height - 26;
+  if (!isHumanoidKind(e.kind)) {
+    // (the line: through the middle of its head and its rump, half its height up its back end)
+    const h = hd ?? { x: e.width * 0.35, y: -e.height * 0.75, r: 6 };
+    const tx = -e.width / 2, ty = -e.height * 0.5, k = (h.y - ty) / ((h.x - tx) || 1);
+    const yL = ty + k * (-wide - tx), yR = ty + k * (wide - tx);
+    const upper: Cut = { circle: false, x0: -wide, y0: top, x1: wide, y1: Math.max(yL, yR), poly: [[-wide, top], [wide, top], [wide, yR], [-wide, yL]] };
+    const lower: Cut = { circle: false, x0: -wide, y0: Math.min(yL, yR), x1: wide, y1: 3, poly: [[-wide, yL], [wide, yR], [wide, 3], [-wide, 3]] };
+    for (const [cut, upperHalf] of [[upper, true], [lower, false]] as const) {
+      const lx = (cut.x0 + cut.x1) / 2, ly = (cut.y0 + cut.y1) / 2;
+      pieces.push({
+        e, face, cut, cx: lx, cy: ly, x: fx + lx * face, y: fy + ly,
+        // (the top half off backward over its rump, tipping; the bottom half just slumps)
+        vx: upperHalf ? -face * (1 + Math.random() * 1.2) : face * 0.3, vy: upperHalf ? -3 - Math.random() * 1.5 : -0.8,
+        rot: 0, vr: upperHalf ? -face * (0.05 + Math.random() * 0.03) : face * 0.015, t: 0, down: false, bounced: false,
+        bake: bakeEnemyCutAlive(state, e, face, cut),
+      });
+    }
+    if (pieces.length > MAX_PIECES) pieces.splice(0, pieces.length - MAX_PIECES);
+    return;
+  }
+  const at = hd ? hd.x : 0;
   for (const side of [-1, 1] as const) {
     // (in its own picture, facing right: the half on this side of the cut; `side` is which way it falls on screen)
     const lside = side * face;
@@ -144,14 +170,22 @@ export const bakeEnemyCut = (state: GameState, e: Enemy, face: 1 | -1, cut: Cut)
   g.imageSmoothingEnabled = false; g.scale(PIECE_RES, PIECE_RES); g.translate(-x, -y);
   // (cut out of the picture: in its own coordinates, mirrored the way it faces)
   g.beginPath();
-  if ('x0' in cut) { const a = cut.x0 * face, b = cut.x1 * face; g.rect(Math.min(a, b), cut.y0, Math.abs(b - a), cut.y1 - cut.y0); }
+  if ('x0' in cut && cut.poly) cut.poly.forEach(([px, py], i) => (i ? g.lineTo(px * face, py) : g.moveTo(px * face, py)));
+  else if ('x0' in cut) { const a = cut.x0 * face, b = cut.x1 * face; g.rect(Math.min(a, b), cut.y0, Math.abs(b - a), cut.y1 - cut.y0); }
   else g.arc(cut.x * face, cut.y, cut.r, 0, Math.PI * 2);
   g.clip();
   drawEnemyAt(g, e, state, 0, 0, 0, face);
   return { cv, x, y, w, h };
 };
+/** The same, as it looked alive (hurt: flinching, eyes screwed shut), whatever it is now: an animal's dead picture is
+ *  lying down or belly up, so a cut by where its parts stand (its head, its long axis) needs this one. */
+export const bakeEnemyCutAlive = (state: GameState, e: Enemy, face: 1 | -1, cut: Cut): BakedCut => {
+  const hp = e.health, fl = e.hitFlash, blown = e.isBlownAway;
+  e.health = Math.max(1, hp); e.hitFlash = 6; e.isBlownAway = false;
+  try { return bakeEnemyCut(state, e, face, cut); } finally { e.health = hp; e.hitFlash = fl; e.isBlownAway = blown; }
+};
 const bakePiece = (p: Piece, state: GameState) => {
-  let b = baked.get(p);
+  let b = p.bake ?? baked.get(p);
   if (b) return b;
   b = bakeEnemyCut(state, p.e, p.face, p.cut);
   baked.set(p, b);

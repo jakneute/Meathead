@@ -15,7 +15,14 @@
 //             in an arc, about half the uppercut's height. Everything round him in a big circle takes 150 (bosses and
 //             sub-bosses: it's an uppercut to them, the engine's and their fights' own, counted as the slide's piece:
 //             tuning.ts meleeMoveOf, bossMelee's armored share); whatever it kills is sliced in half down the forehead
-//             (weapons/dismember.ts sliceInHalf: the halves baked once, drawn turned).
+//             (weapons/dismember.ts sliceInHalf: the halves baked once, drawn turned); an animal nose to tail through
+//             the head, its top half sliding off its bottom.
+//
+// People and animals go different ways (the owner's "account for the correct orientation, like we did with shakedowns
+// and beatdowns"; grab.ts's way: a person upright or flat, an animal on end by the scruff or rolled legs up): the
+// missile takes an animal by the scruff, its body trailing round the swing; the spin drills one in on end, rump first;
+// the ninja drop drives one down on end head first and leaves it on its back, four legs up, kicking; the head kick
+// punts its head (cut out of it as it looked alive, on end the way it was stuck).
 //
 // The follow-ups need that move's piece; on a grab-immune regular enemy, the hand armor too; never a critter (Y + B on
 // one is still the critter grab), a boss or a sub-boss. Each heals like the other grabs (FOLLOW_HEAL). The window, the
@@ -51,7 +58,7 @@ import {
 import { grabKit as K, grabbable, isCritter, handsOnlyFoe, drawEnemyAt, drawPoseSprite as sprite, drawPoseHead as head, type Grab } from './grab';
 import { grabCallout } from './callouts';
 import { m2Kill } from './killLines';
-import { sliceInHalf, bakeEnemyCut, type BakedCut, type Cut } from '../weapons/dismember';
+import { sliceInHalf, bakeEnemyCut, bakeEnemyCutAlive, type BakedCut, type Cut } from '../weapons/dismember';
 import { meteorLooks } from '../weapons/spellbook';
 
 type Ctx = CanvasRenderingContext2D;
@@ -106,13 +113,20 @@ const animal = (e: Enemy) => !isHumanoidKind(e.kind);
 /** An animal's neck, from its feet, facing `face` (just behind its head), and how far down it hangs below it on end. */
 const neckOf = (e: Enemy, face: 1 | -1) => { const hd = headOf(e); return { x: face * (hd.x - hd.r * 0.6), y: hd.y + hd.r * 0.5 }; };
 const hangOf = (e: Enemy) => Math.round(e.width * 0.85);
-/** An animal drawn on end, its neck at (nx, ny), turned `tip` of the way up (0: stood as it stands). */
-const drawOnEnd = (c: Ctx, state: GameState, e: Enemy, nx: number, ny: number, face: 1 | -1, tip: number) => {
+/** An animal drawn on end, its neck at (nx, ny), turned `tip` of the way up (0: stood as it stands), and then turned
+ *  `turn` more about its neck (the missile's swing; the ninja drop's PI: on end head down, rump up). `how`: held by
+ *  the scruff (the drawers that pose for it do). */
+const drawOnEnd = (c: Ctx, state: GameState, e: Enemy, nx: number, ny: number, face: 1 | -1, tip: number, turn = 0, how?: 'neck') => {
   const nk = neckOf(e, face);
-  c.save(); c.translate(nx, ny); c.rotate(-face * Math.PI / 2 * tip);
-  drawEnemyAt(c, e, state, -nk.x, -nk.y, 0, face);
+  c.save(); c.translate(nx, ny); c.rotate(-face * Math.PI / 2 * tip + turn);
+  drawEnemyAt(c, e, state, -nk.x, -nk.y, 0, face, how);
   c.restore();
 };
+/** How far below his feet the ninja drop's one reaches, held upside down under him: a person's height; an animal on end
+ *  head down: its body up against his soles, its head hanging below its neck. */
+const dropLen = (e: Enemy) => (animal(e) ? hangOf(e) + headOf(e).r * 1.6 : e.height);
+/** How far an animal's in the floor on its back after the ninja drop (its back in the dirt, four legs up). */
+const BACK_SINK = 0.22;
 /** Where a buried one's head is (to kick it, to spurt from its stump): a person's up off its feet; an animal's straight
  *  up off its neck at the floor. */
 const headSpot = (b: { e: Enemy; x: number; ground: number }, face: 1 | -1) => {
@@ -216,6 +230,8 @@ export const startFollowUp = (ctx: FrameContext, g: Grab) => {
   K.take(state, e); g.held = e; e.facing = (-d) as 1 | -1; e.vel = { x: 0, y: 0 }; e.melee = undefined; e.rotation = 0;
   const fu = newFollow();
   fu.c0 = pm; fu.ef = { x: em.x, y: e.pos.y + e.height }; fu.sh = { x: em.x, y: e.pos.y + e.height * 0.18 };
+  // (an animal's taken by the scruff of its neck, the way the grabs hold one: grab.ts drawHeldByNeck)
+  if (animal(e)) { const nk = neckOf(e, (-d) as 1 | -1); fu.sh = { x: fu.ef.x + nk.x, y: fu.ef.y + nk.y }; }
   g.fu = fu;
   if (h.move === 'divekick') { g.phase = 'fmissile'; playSound('whoosh', 1, -6); }
   else if (h.move === 'charge') {
@@ -226,7 +242,7 @@ export const startFollowUp = (ctx: FrameContext, g: Grab) => {
     g.phase = 'fdrop'; fu.vy = -8;
     // (room under him for them, upside down, before the floor)
     const fy = K.feetY(state), floor = floorTopAt(state.blocks, pm.x, fy, 2);
-    if (floor !== null && fy + e.height + 6 > floor) p.pos.y -= fy + e.height + 6 - floor;
+    if (floor !== null && fy + dropLen(e) + 6 > floor) p.pos.y -= fy + dropLen(e) + 6 - floor;
     playSound('whoosh', 1.1, -2); playSound('jump', 0.8, -4);
   }
   p.vel = { x: 0, y: 0 };
@@ -409,7 +425,7 @@ export const stepFollow = (ctx: FrameContext, g: Grab, controls: Controls): Cont
       if (fu.vy < 0 && K.ceilingOver(state, fu.vy - 2)) fu.vy = 0;
       fu.spin += 0.25 + Math.min(0.5, g.t * 0.012);
       if (g.t % 6 === 0 && g.t > N_RISE) playSound('whoosh', 0.6, 4 + Math.min(8, g.t / 8));
-      const fy = K.feetY(state), headY = fy + e.height, cx = K.centerX(state);
+      const fy = K.feetY(state), headY = fy + dropLen(e), cx = K.centerX(state);
       if (g.t > N_RISE) {
         const floor = floorTopAt(state.blocks, cx, headY - 2, 4);
         if (floor !== null && headY + fu.vy >= floor) return ninjaImpact(ctx, g, e, floor);
@@ -475,9 +491,12 @@ const ninjaImpact = (ctx: FrameContext, g: Grab, e: Enemy, floor: number): Contr
   const { state, fx } = ctx, p = state.player, x = K.centerX(state);
   e.health -= Math.max(NINJA_DAMAGE, e.health);
   e.health = Math.min(0, e.health); e.isBlownAway = true; e.vel = { x: 0, y: 0 };
-  const sink = Math.round(e.height * 0.3);
+  // (a person: head first, legs up out of it; an animal: on its back in the dirt, four legs up, painted as it looked
+  // alive and put down upside down: its dead picture's lying down already, or belly up)
+  const beast = animal(e), sink = Math.round(e.height * (beast ? BACK_SINK : 0.3)), face = (-g.dir) as 1 | -1;
   g.held = null;
-  buried.push({ e, x, ground: floor, sink, face: (-g.dir) as 1 | -1, mode: 'legs', born: state.frame, stage: String(state.stageId), gone: null });
+  buried.push({ e, x, ground: floor, sink, face, mode: 'legs', born: state.frame, stage: String(state.stageId), gone: null,
+    bake: beast ? bakeEnemyCutAlive(state, e, face, legsCut(e)) : undefined });
   trimBuried();
   heal(ctx, g, e);
   const scrap = isMachineKind(e.kind);
@@ -501,6 +520,9 @@ const ninjaImpact = (ctx: FrameContext, g: Grab, e: Enemy, floor: number): Contr
   g.hitAt = { x, y: floor }; g.phase = 'aland'; g.t = 0; g.fu = null;
   return { ...NO_CONTROLS };
 };
+
+/** The picture a body legs up is put down from: the whole of it, room round it. */
+const legsCut = (e: Enemy): Cut => ({ circle: false, x0: -e.width / 2 - 24, y0: -e.height - 26, x1: e.width / 2 + 24, y1: 3 });
 
 /** The ninja drop's meteor (the owner's "a localized 'meteor' impact too"): everybody else close round where they went
  *  in (regular enemies: not a boss, a sub-boss, an innocent) takes up to NINJA_METEOR_DMG by how near; killed, blown
@@ -584,7 +606,10 @@ const kickHead = (ctx: FrameContext, g: Grab, b: Buried) => {
     const dx = Math.abs(tgt.pos.x + tgt.width / 2 - hx), dy = tgt.pos.y + tgt.height * 0.4 - hy, T = Math.max(8, dx / HEAD_KICK_SPEED);
     vy = Math.max(-15, Math.min(-2, (dy - 0.5 * HEAD_G * T * T) / T));
   }
-  heads.push({ e, x: hx, y: hy, vx, vy, rot: 0, vr: dir * 0.35, r: hd.r, face, cut: { circle: true, x: hd.x, y: hd.y, r: hd.r * 1.35 }, cx: hd.x, cy: hd.y, bake: null, t: 0, down: false, bounces: 0, hit: new Set(), stage: b.stage });
+  // (its head cut out of its picture: an animal's painted there and then as it looked alive, its head where it stands
+  // (its dead picture's lying down, or belly up), and it comes off turned the way it was stuck in the ground, on end)
+  const cut: Cut = { circle: true, x: hd.x, y: hd.y, r: hd.r * 1.35 }, beast = animal(e);
+  heads.push({ e, x: hx, y: hy, vx, vy, rot: beast ? -face * Math.PI / 2 : 0, vr: dir * 0.35, r: hd.r, face, cut, cx: hd.x, cy: hd.y, bake: beast ? bakeEnemyCutAlive(state, e, face, cut) : null, t: 0, down: false, bounces: 0, hit: new Set(), stage: b.stage });
   if (heads.length > 8) heads.splice(0, heads.length - 8);
   b.gone = state.frame;
   e.health = 0; e.isBlownAway = true;
@@ -776,8 +801,13 @@ export const drawFollow = (ctx: Ctx, state: GameState, g: Grab) => {
       if (g.t <= rel) {
         const geo = missileGeo(g);
         if (e) {
-          if (g.t < M.GRIP) drawEnemyAt(ctx, e, state, fu.ef.x, fu.ef.y, 0, (-d) as 1 | -1);
-          else drawEnemyAt(ctx, e, state, geo.feet.x, geo.feet.y, d * geo.a, (-d) as 1 | -1, 'neck');
+          const face = (-d) as 1 | -1;
+          if (g.t < M.GRIP) drawEnemyAt(ctx, e, state, fu.ef.x, fu.ef.y, 0, face);
+          else if (animal(e)) {
+            // (an animal: by the scruff, tipped up on end as he takes it, its body trailing from his hands round the swing)
+            const tip = Math.min(1, (g.t - M.GRIP) / 4), nk = neckOf(e, face);
+            drawOnEnd(ctx, state, e, fu.ef.x + nk.x + (geo.hand.x - fu.ef.x - nk.x) * tip, fu.ef.y + nk.y + (geo.hand.y - fu.ef.y - nk.y) * tip, face, tip, d * geo.a * tip, 'neck');
+          } else drawEnemyAt(ctx, e, state, geo.feet.x, geo.feet.y, d * geo.a, face, 'neck');
         }
         // (swung round: streaks along where it's going)
         if (g.t > M.GRIP) { ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)'; ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(geo.C.x, geo.C.y, 46, -Math.PI / 2 + d * (geo.r - 0.9), -Math.PI / 2 + d * geo.r, d < 0); ctx.stroke(); }
@@ -821,7 +851,11 @@ export const drawFollow = (ctx: Ctx, state: GameState, g: Grab) => {
       const s = Math.cos(fu.spin), dd = (s >= 0 ? d : -d) as 1 | -1;
       ctx.save();
       ctx.translate(x, 0); ctx.scale(Math.max(0.2, Math.abs(s)), 1); ctx.translate(-x, 0);
-      if (e) drawEnemyAt(ctx, e, state, x + dd * 3, y + 2, Math.PI, (-dd) as 1 | -1, 'neck');
+      if (e) {
+        // (a person upside down, his feet to Meathead's soles; an animal on end head down, its rump to them)
+        if (animal(e)) drawOnEnd(ctx, state, e, x + dd * 3, y + 2 + hangOf(e), (-dd) as 1 | -1, 1, Math.PI, 'neck');
+        else drawEnemyAt(ctx, e, state, x + dd * 3, y + 2, Math.PI, (-dd) as 1 | -1, 'neck');
+      }
       const lean = 0.35, hipY = -15;
       sprite(ctx, x, y, dd, c => figure(c, f, { hipY, lean, feet: [[-9, 0], [9, 0]], hands: [toTorso(lean, hipY, 4, -2), toTorso(lean, hipY, 10, -2)], mood: 'roar', look: 0.3 }));
       ctx.restore();
@@ -896,8 +930,10 @@ export const drawFollowUnder = (c: Ctx, state: GameState) => {
       }
       else {
         // (legs up: twitching a while; its picture baked the once, put down upside down)
-        const bk = b.bake ??= bakeEnemyCut(state, e, face, { circle: false, x0: -e.width / 2 - 24, y0: -e.height - 26, x1: e.width / 2 + 24, y1: 3 });
-        c.translate(b.x, b.ground - (e.height - b.sink)); c.rotate(Math.PI + (age < 150 ? Math.sin(age * 0.9) * 0.06 * (1 - age / 150) : 0));
+        const bk = b.bake ??= bakeEnemyCut(state, e, face, legsCut(e));
+        // (an animal on its back: its legs kicking, a fit of it every so often, a little less each time)
+        const fit = animal(e) && age % 70 < 14 ? Math.max(0, 1 - age / LEGS_LIFE) : 0, kick = fit ? Math.round(Math.sin(age * 2.3) * 1.5 * fit) : 0;
+        c.translate(b.x, b.ground - (e.height - b.sink) + kick); c.rotate(Math.PI + (age < 150 ? Math.sin(age * 0.9) * 0.06 * (1 - age / 150) : 0) + Math.sin(age * 1.9) * 0.05 * fit);
         c.drawImage(bk.cv, bk.x, bk.y, bk.w, bk.h);
       }
       c.restore();

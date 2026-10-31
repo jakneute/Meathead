@@ -241,6 +241,15 @@ its own Meathead, the walk screens' cape points from the front (mostly hidden be
 ## Follow-ups, generally
 - The window after the hit: ~30 frames (TUNE). Follow-ups heal like the other grabs. Not on critters (Y+B on a critter
   is still the critter grab). Not on grab-immune enemies without the hand armor.
+- PEOPLE AND ANIMALS (2026-10-31: "for any of the new grabs, be sure to account for the correct orientation, like we did
+  with shakedowns and beatdowns"; "new grabs do work on mid sized animals though... any animal you can beatdown or
+  shakedown"; "new grabs don't work on critters too"): they work on exactly what the beatdown and shakedown do
+  (followable: grabbable() people and mid animals, plus grab-immune ones with the hand armor; never a critter). An
+  animal goes the grabs' animal way: the missile holds it by the scruff, body trailing; the spin drills it in on end,
+  rump first, head out; the head kick punts its own head (baked as it looked alive, turned on end); the ninja drop
+  drives it down on end head first, then leaves it on its back in the dirt, four legs up, kicking in fits; the flash
+  kick slices it nose to tail through the head (dismember.ts sliceInHalf: a slanted cut, head to rump), the top half
+  sliding off the bottom.
 - AS BUILT (Phase D1): the last of his moves to land is noted from the engine's melee hook (upgrades/lastHit.ts);
   Y + B (or the beatdown key) within FOLLOW_WINDOW 30 frames of a hit that didn't kill, in that move's piece, near
   enough (FOLLOW_REACH 130 across, 170 up/down; the charge's 190), and the follow-up starts there and then, whatever
