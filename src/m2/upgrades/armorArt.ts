@@ -34,6 +34,7 @@
 import { setArmorArt, armorMotion, type ArmorArt } from '../../m1/game/render/player/body';
 import { glowLayer, armorSeam } from '../../m1/game/render/player/spriteOutline';
 import { has } from './state';
+import { FLAT } from './walkArmor';
 
 type C = CanvasRenderingContext2D;
 type Ramp = readonly string[];
@@ -56,18 +57,22 @@ const clamp01 = (v: number) => (v < 0 ? 0 : v > 1 ? 1 : v);
 const rect = (c: C, x: number, y: number, w: number, h: number, col: string) => { c.fillStyle = col; c.fillRect(x, y, w, h); };
 const px = (c: C, x: number, y: number, col: string) => rect(c, x, y, 1, 1, col);
 
+/** The bake's detail: shade() paints this many pixels to a unit (2 or 4 for the bigger pictures of him: the close-ups get
+ *  finer bands and dither, not the sprite's stretched). Set by bake() while it paints. */
+let SUB = 1;
 /**
- * Paints a shape a unit pixel at a time (bake time only): `inside(x, y)` the pixel's in it, `lit(x, y)` 0..1 how lit it
- * is; the ramp's bands from dark to light, a checker dither along each band's edge (the SNES's stepped shading).
+ * Paints a shape a unit pixel at a time (bake time only; SUB pixels to a unit at the finer details): `inside(x, y)` the
+ * pixel's in it, `lit(x, y)` 0..1 how lit it is; the ramp's bands from dark to light, a checker dither along each band's
+ * edge (the SNES's stepped shading).
  */
 const shade = (c: C, x0: number, y0: number, w: number, h: number, inside: (x: number, y: number) => boolean, lit: (x: number, y: number) => number, ramp: Ramp) => {
-  const n = ramp.length - 1;
-  for (let j = 0; j < h; j++) for (let i = 0; i < w; i++) {
-    const x = x0 + i + 0.5, y = y0 + j + 0.5;
+  const n = ramp.length - 1, d = 1 / SUB, ox = Math.floor(x0 * SUB), oy = Math.floor(y0 * SUB);
+  for (let j = 0; j < h * SUB; j++) for (let i = 0; i < w * SUB; i++) {
+    const x = x0 + (i + 0.5) * d, y = y0 + (j + 0.5) * d;
     if (!inside(x, y)) continue;
     const v = clamp01(lit(x, y)) * n, lo = Math.floor(v), fr = v - lo;
-    const k = Math.min(n, fr > 0.72 ? lo + 1 : fr > 0.42 && ((x0 + i + y0 + j) & 1) ? lo + 1 : lo);
-    px(c, x0 + i, y0 + j, ramp[k]);
+    const k = Math.min(n, fr > 0.72 ? lo + 1 : fr > 0.42 && ((ox + i + oy + j) & 1) ? lo + 1 : lo);
+    c.fillStyle = ramp[k]; c.fillRect(x0 + i * d, y0 + j * d, d, d);
   }
 };
 /** How lit a point on a dome is (the light from the upper left, toward us). */
@@ -91,27 +96,72 @@ const curveShape = (a: [number, number], b: [number, number], d: [number, number
   return { inside: (x: number, y: number) => near(x, y).best <= 0, lit: (x: number, y: number) => 0.55 - 0.45 * near(x, y).side };
 };
 
-// ---- the baked pieces: each painted once (unit pixels, BAKE canvas pixels to a unit), a far-side copy in shadow
+// ---- the baked pieces: each painted once (unit pixels, BAKE canvas pixels to a unit), a far-side copy in shadow; for the
+// bigger pictures of him a finer copy (`lvl` 2 or 4: twice or four times the pixels, the bands and dither painted that
+// much finer), and for the inked pictures (the Fairy Wheel's close-ups) a copy with an ink line round it (`ink` units
+// thick). Each made the first time it's wanted (lazily: nothing painted at load), then kept.
 const BAKE = 4;
+const INK_COL = '#0A0A0A';
 const baked = new Map<string, HTMLCanvasElement | null>();
-const bake = (key: string, w: number, h: number, paint: (c: C, back: boolean) => void, back = false): HTMLCanvasElement | null => {
-  const id = back ? key + ':b' : key;
+const bake = (key: string, w: number, h: number, paint: (c: C, back: boolean) => void, back = false, lvl = 1, ink = 0): HTMLCanvasElement | null => {
+  const id = `${key}${back ? ':b' : ''}${lvl > 1 ? '@' + lvl : ''}${ink ? '~' + ink : ''}`;
   const have = baked.get(id);
   if (have !== undefined) return have;
   let cv: HTMLCanvasElement | null = null;
   if (typeof document !== 'undefined') {
-    cv = document.createElement('canvas');
-    cv.width = w * BAKE; cv.height = h * BAKE;
-    const c = cv.getContext('2d');
-    if (c) {
-      c.scale(BAKE, BAKE);
-      paint(c, back);
-      // (the far one: in his shadow)
-      if (back) { c.globalCompositeOperation = 'source-atop'; c.fillStyle = 'rgba(24, 12, 30, 0.36)'; c.fillRect(0, 0, w, h); }
-    } else cv = null;
+    const B = BAKE * lvl;
+    if (ink) {
+      // (the plain one, its silhouette in ink stamped round it `ink` units out, the plain one over that)
+      const base = bake(key, w, h, paint, back, lvl, 0);
+      if (base) {
+        const P = Math.round(ink * B), sil = document.createElement('canvas');
+        sil.width = base.width + 2 * P; sil.height = base.height + 2 * P;
+        const s = sil.getContext('2d');
+        cv = document.createElement('canvas'); cv.width = sil.width; cv.height = sil.height;
+        const c = cv.getContext('2d');
+        if (s && c) {
+          for (let k = 0; k < 16; k++) { const a = (k / 16) * Math.PI * 2; s.drawImage(base, P + Math.round(Math.cos(a) * P), P + Math.round(Math.sin(a) * P)); }
+          s.globalCompositeOperation = 'source-in'; s.fillStyle = INK_COL; s.fillRect(0, 0, sil.width, sil.height);
+          c.drawImage(sil, 0, 0); c.drawImage(base, P, P);
+        } else cv = null;
+      }
+    } else {
+      cv = document.createElement('canvas');
+      cv.width = Math.ceil(w * B); cv.height = Math.ceil(h * B);
+      const c = cv.getContext('2d');
+      if (c) {
+        c.scale(B, B);
+        SUB = lvl;
+        try { paint(c, back); } finally { SUB = 1; }
+        // (the far one: in his shadow)
+        if (back) { c.globalCompositeOperation = 'source-atop'; c.fillStyle = 'rgba(24, 12, 30, 0.36)'; c.fillRect(0, 0, w, h); }
+      } else cv = null;
+    }
   }
   baked.set(id, cv);
   return cv;
+};
+
+/** How the pieces are drawn just now (withArmor sets it for a drawing of its own): an ink line round each (units; 0 none),
+ *  the detail (0: worked out from how big it's drawn), the straw's path on from the helmet's near can (null: the
+ *  sprite's own, round the front of his glasses). */
+type StrawPath = (hx: number, ey: number) => [number, number][];
+const style: { ink: number; level: number; straw: StrawPath | null } = { ink: 0, level: 0, straw: null };
+/** The detail for a piece drawn `upx` canvas units to a unit at the canvas's transform now: 1 (the sprite's) up to about
+ *  4.5 screen pixels to a unit, then 2, then 4 past 9. */
+const levelFor = (ctx: C, upx: number) => {
+  if (style.level) return style.level;
+  const m = ctx.getTransform(), s = Math.sqrt(Math.abs(m.a * m.d - m.b * m.c)) * upx;
+  return s > 9 ? 4 : s > 4.5 ? 2 : 1;
+};
+/** A baked piece (`w` x `h` units, painted by `paint`) drawn into the rect (x, y, dw, dh): at the detail its size wants,
+ *  inked if the drawing's inked (the ink round it, outside the rect). */
+const piece = (ctx: C, key: string, w: number, h: number, paint: (c: C, back: boolean) => void, back: boolean, x: number, y: number, dw: number, dh: number) => {
+  const ink = style.ink, img = bake(key, w, h, paint, back, levelFor(ctx, Math.max(Math.abs(dw / w), Math.abs(dh / h))), ink);
+  if (!img) return;
+  if (!ink) { ctx.drawImage(img, x, y, dw, dh); return; }
+  const ux = (dw / w) * ink, uy = (dh / h) * ink;
+  ctx.drawImage(img, x - ux, y - uy, dw + 2 * ux, dh + 2 * uy);
 };
 
 // ---------------------------------------------------------------------------------------------------------------------
@@ -362,14 +412,19 @@ const paintHelmet = (c: C) => {
  *  its middle, ey the eyes' line; the near can's top at (sx, sy)). Never over the glasses: down past their front edge
  *  (hx + 8) at hx + 11, in under them (ey + 3.1) only below ey + 3.5. */
 const helmetStraw = (ctx: C, hx: number, ey: number, sx: number, sy: number) => {
+  // (a drawing with a face of its own says where it goes on from the can (withArmor's straw), its bend at the second
+  // to last point; else round the front of the sprite's glasses)
+  const own = style.straw?.(hx, ey);
+  const pts: [number, number][] = own ? [[sx, sy], ...own] : [[sx, sy], [hx + 11, ey - 4.5], [hx + 11, ey + 3.5], [hx + 6, ey + 7.6]];
   ctx.save();
   ctx.lineCap = 'round'; ctx.lineJoin = 'round';
-  const path = () => { ctx.beginPath(); ctx.moveTo(sx, sy); ctx.lineTo(hx + 11, ey - 4.5); ctx.lineTo(hx + 11, ey + 3.5); ctx.lineTo(hx + 6, ey + 7.6); };
-  ctx.strokeStyle = '#0A0A0A'; ctx.lineWidth = 1.7; path(); ctx.stroke();
+  const path = () => { ctx.beginPath(); pts.forEach(([x, y], i) => (i ? ctx.lineTo(x, y) : ctx.moveTo(x, y))); };
+  ctx.strokeStyle = '#0A0A0A'; ctx.lineWidth = 1.7 + style.ink; path(); ctx.stroke();
   ctx.strokeStyle = '#FFFFFF'; ctx.lineWidth = 1.05; path(); ctx.stroke();
   ctx.strokeStyle = '#EF4444'; ctx.setLineDash([1, 1.1]); path(); ctx.stroke(); ctx.setLineDash([]);
   // (the bendy bit's ridges, at the bend)
-  ctx.fillStyle = '#9CA3AF'; ctx.fillRect(hx + 10.4, ey + 2.6, 1.3, 0.4); ctx.fillRect(hx + 10, ey + 3.6, 1.3, 0.4);
+  const [bx, by] = pts[pts.length - 2];
+  ctx.fillStyle = '#9CA3AF'; ctx.fillRect(bx - 0.6, by - 0.9, 1.3, 0.4); ctx.fillRect(bx - 1, by + 0.1, 1.3, 0.4);
   ctx.restore();
 };
 
@@ -445,7 +500,7 @@ const bellSwing = () => {
 /** The cowbell hung at (x, y) (its strap's top), `s` units to a bell pixel; the clank lines when it's swinging hard. */
 export const drawBell = (ctx: C, x: number, y: number, s: number, a: number, jolt: number, frame: number) => {
   ctx.save(); ctx.translate(x, y); ctx.rotate(a);
-  put(ctx, bake('bell', 6, 7, paintBell), -3 * s, 0, 6 * s, 7 * s);
+  piece(ctx, 'bell', 6, 7, paintBell, false, -3 * s, 0, 6 * s, 7 * s);
   ctx.restore();
   if (jolt > 0.25 && frame % 4 < 2) {
     ctx.fillStyle = '#FFFFFF';
@@ -456,7 +511,7 @@ export const drawBell = (ctx: C, x: number, y: number, s: number, a: number, jol
 
 const drawSabaton = (ctx: C, x: number, y: number, w: number, h: number, back: boolean) => {
   const sx = w / 16, sy = h / 8;
-  put(ctx, bake('sab', SAB_W, SAB_H, paintSabaton, back), x - SAB_OX * sx, y - SAB_OY * sy, SAB_W * sx, SAB_H * sy);
+  piece(ctx, 'sab', SAB_W, SAB_H, paintSabaton, back, x - SAB_OX * sx, y - SAB_OY * sy, SAB_W * sx, SAB_H * sy);
   if (!back) drawBell(ctx, x + 6.4 * sx, y + 0.6 * sy, Math.min(sx, sy) * 0.85, bellSwing(), armorMotion.jolt, armorMotion.frame);
 };
 const drawShin = (ctx: C, hip: [number, number], knee: [number, number], foot: [number, number], back: boolean) => {
@@ -466,12 +521,12 @@ const drawShin = (ctx: C, hip: [number, number], knee: [number, number], foot: [
   // a little above the ankle at most), the full width of the leg; nothing up the thigh past the knee pad, so the
   // jeans' seat and crotch show)
   const y0 = -1.2, y1 = len - 5.2, w = back ? 9.2 : 10.4;
-  if (y1 - y0 > 2.5) put(ctx, bake('statue', 10, 16, paintStatue, back), -w / 2, y0, w, (y1 - y0) * 16 / 15);
+  if (y1 - y0 > 2.5) piece(ctx, 'statue', 10, 16, paintStatue, back, -w / 2, y0, w, (y1 - y0) * 16 / 15);
   ctx.restore();
   // (the reel knee pad: on the front of the knee, the way it bends)
   const mx = (hip[0] + foot[0]) / 2, my = (hip[1] + foot[1]) / 2, ox = knee[0] - mx, oy = knee[1] - my, ol = Math.hypot(ox, oy);
   const off = ol > 0.6 ? 1.3 / ol : 0, r = back ? 3.3 : 3.9;
-  put(ctx, bake('reel', 10, 10, paintReel, back), knee[0] + ox * off - r, knee[1] + oy * off - r, r * 2, r * 2);
+  piece(ctx, 'reel', 10, 10, paintReel, back, knee[0] + ox * off - r, knee[1] + oy * off - r, r * 2, r * 2);
 };
 const drawBracer = (ctx: C, ex: number, ey: number, wx: number, wy: number, back: boolean, len: number) => {
   ctx.save(); ctx.translate(ex, ey); ctx.rotate(Math.atan2(wy - ey, wx - ex));
@@ -482,7 +537,7 @@ const drawBracer = (ctx: C, ex: number, ey: number, wx: number, wy: number, back
   }
   // (from a touch above the elbow (well under the pauldron) to just short of the wrist: the glove starts past the wrist)
   const bx = -2.5, bw = len + 1.3, bh = 11.6, ux = bw / 14, uy = bh / 10;
-  put(ctx, bake('bracer', 14, 10, paintBracer, back), bx, -bh / 2, bw, bh);
+  piece(ctx, 'bracer', 14, 10, paintBracer, back, bx, -bh / 2, bw, bh);
   if (!back) drawLed(ctx, bx + LED_X0 * ux, -bh / 2 + LED_Y0 * uy, LED_W * ux, LED_H * uy, armorMotion.frame);
   ctx.restore();
 };
@@ -496,7 +551,7 @@ const drawAmulet = (ctx: C, top: number, pecY: number) => {
       ctx.fillRect(cx - 0.6, cy - 0.6, 1.2, 1.2);
     }
   }
-  put(ctx, bake('amulet', 10, 12, paintAmulet), -4.6, pecY - 0.4, 9.2, 11);
+  piece(ctx, 'amulet', 10, 12, paintAmulet, false, -4.6, pecY - 0.4, 9.2, 11);
   // (the glitter: a twinkle now and then, moving round the jewel)
   const tw = f % 46;
   if (tw < 8) {
@@ -532,7 +587,9 @@ const drawCape = (ctx: C, top: number, h: number) => {
   ctx.save();
   // (and cut off above the belt, should anything still reach it)
   ctx.beginPath(); ctx.rect(rx - 60, ry - 80, 120, hem - (ry - 80)); ctx.clip();
-  // (cheap shiny polyester: banded black, a sheen band across it; a checker on each band's edge)
+  // (cheap shiny polyester: banded black, a sheen band across it; a checker on each band's edge; inked round, in an
+  // inked picture)
+  if (style.ink) { ctx.strokeStyle = INK_COL; ctx.lineWidth = style.ink * 2; ctx.lineJoin = 'round'; capeFan(ctx, rx, ry, tips, scallop, 1); ctx.stroke(); }
   ctx.fillStyle = CAPE[0]; capeFan(ctx, rx, ry, tips, scallop, 1); ctx.fill();
   ctx.fillStyle = checker(ctx, CAPE[1]); capeFan(ctx, rx, ry, tips, scallop, 0.9); ctx.fill();
   ctx.fillStyle = CAPE[1]; capeFan(ctx, rx, ry, tips, scallop, 0.82); ctx.fill();
@@ -551,13 +608,13 @@ const drawCape = (ctx: C, top: number, h: number) => {
   // (the price tag, flapping off the outermost point on its string)
   const tn = tips[ribs], ta = Math.sin(f * (0.25 + run * 0.3)) * (0.35 + run * 0.5) + 0.3 + run * 0.6 + Math.max(0, fall) * 1.2;
   ctx.save(); ctx.translate(tn[0], Math.min(tn[1], hem - 5)); ctx.rotate(ta);
-  put(ctx, bake('tag', 6, 9, paintTag), -1.5, 0, 3, 4.5);
+  piece(ctx, 'tag', 6, 9, paintTag, false, -1.5, 0, 3, 4.5);
   ctx.restore();
   // (the tall collar, red inside, standing up behind his head; the plastic skull clasping it)
   ctx.fillStyle = '#0A0A0A'; ctx.beginPath(); ctx.moveTo(rx - 3.5, ry); ctx.lineTo(rx - 5.5, ry - 10); ctx.lineTo(rx + 3, ry - 5); ctx.lineTo(rx + 4, ry); ctx.closePath(); ctx.fill();
   ctx.fillStyle = '#B91C1C'; ctx.beginPath(); ctx.moveTo(rx - 2.5, ry - 0.5); ctx.lineTo(rx - 4.4, ry - 8.4); ctx.lineTo(rx + 2.4, ry - 4.6); ctx.lineTo(rx + 3, ry - 0.5); ctx.closePath(); ctx.fill();
   ctx.fillStyle = '#F87171'; ctx.fillRect(rx - 4, ry - 7.6, 0.6, 3);
-  put(ctx, bake('skull', 6, 6, paintSkull), rx - 2.4, ry - 3.4, 4.6, 4.6);
+  piece(ctx, 'skull', 6, 6, paintSkull, false, rx - 2.4, ry - 3.4, 4.6, 4.6);
 };
 
 /** The helmet under the space suit's glass: this big, and cut off this far round the glass's middle (inside its rim). */
@@ -567,7 +624,6 @@ const HELM_TILT = -0.06;
 /** The near can's top in the helmet's picture (where the straw comes out). */
 const CAN_TOP: [number, number] = [HELM_MX + 15, 11.4];
 const drawHelmet = (ctx: C, hx: number, ey: number) => {
-  const img = bake('helmet', HELM_W, HELM_H, paintHelmet);
   const px0 = hx - 0.5, py0 = ey - 4.6;
   const k = armorMotion.dome ? DOME_FIT : 1;
   // (the near can's top, where it lands with the shrink and the tilt)
@@ -580,12 +636,13 @@ const drawHelmet = (ctx: C, hx: number, ey: number) => {
   // glass is cut off at it, the horns jammed up against the inside)
   if (armorMotion.dome) { ctx.beginPath(); ctx.arc(hx - 2.5, ey - 3, DOME_IN, 0, Math.PI * 2); ctx.clip(); }
   ctx.translate(px0, py0); ctx.rotate(HELM_TILT); ctx.scale(k, k); ctx.translate(-px0, -py0);
-  put(ctx, img, hx - HELM_MX, ey - 24, HELM_W, HELM_H);
+  piece(ctx, 'helmet', HELM_W, HELM_H, paintHelmet, false, hx - HELM_MX, ey - 24, HELM_W, HELM_H);
   ctx.restore();
   helmetStraw(ctx, hx, ey, sx, sy);
 };
 
 const ART: ArmorArt = {
+  flat: undefined,
   boot(ctx, x, y, w, h, back) { if (has('sabatons')) armorSeam(ctx, () => drawSabaton(ctx, x, y, w, h, back)); },
   shin(ctx, hip, knee, foot, back) { if (has('legs')) armorSeam(ctx, () => drawShin(ctx, hip, knee, foot, back)); },
   forearm(ctx, ex, ey, wx, wy, back) {
@@ -598,18 +655,37 @@ const ART: ArmorArt = {
     const k = r / 5;
     armorSeam(ctx, () => {
       ctx.save(); ctx.translate(x, y); ctx.rotate(angle); ctx.scale(k, k);
-      put(ctx, bake('glove', GLOVE, GLOVE, paintGlove, back), GLOVE_AT, -9, GLOVE, GLOVE);
+      piece(ctx, 'glove', GLOVE, GLOVE, paintGlove, back, GLOVE_AT, -9, GLOVE, GLOVE);
       ctx.restore();
     });
   },
   shoulder(ctx, x, y, r, back) {
     if (!has('pauldrons')) return;
     const k = r / 6;
-    armorSeam(ctx, () => put(ctx, bake('pauldron', 20, 18, paintPauldron, back), x - 9 * k, y - 10 * k - 1, 20 * k, 18 * k));
+    armorSeam(ctx, () => piece(ctx, 'pauldron', 20, 18, paintPauldron, back, x - 9 * k, y - 10 * k - 1, 20 * k, 18 * k));
   },
   helmet(ctx, hx, ey) { if (has('helmet')) armorSeam(ctx, () => drawHelmet(ctx, hx, ey)); },
   chest(ctx, top, pecY) { if (has('amulet')) armorSeam(ctx, () => drawAmulet(ctx, top, pecY)); },
   cape(ctx, top, h) { if (has('cape')) armorSeam(ctx, () => drawCape(ctx, top, h)); },
+};
+
+/** The pieces, each drawn only while has(piece), from where his limbs are (the hook's frames: a boot's rect, hip / knee /
+ *  ankle, elbow / wrist, a fist's middle / size / the way it points, a deltoid's middle / size, the head's middle / the
+ *  eyes' line, the torso's top / the pecs' line, the torso's top / height), in sprite units facing +x: transform the
+ *  canvas for any bigger, turned or mirrored drawing of him (the finer bake for its size comes by itself). The front and
+ *  back views: `flat` (walkArmor.ts). For Meathead 2's own drawings; Meathead 1's reach them through body.ts armorOn(). */
+export const armorParts = ART;
+/** Draws `fn` with the pieces drawn its way: `ink` an ink line round each (units: the close-ups' inked look), `level` a
+ *  fixed detail, `straw` the helmet straw's path on from its can (a face of the drawing's own: round the outside of ITS
+ *  glasses to ITS mouth), `motion` how he's moving for what hangs off him (the cape, the bell, the LEDs' and glitter's
+ *  frame), for a drawing whose own clock and motion aren't the sprite's. All put back after. */
+export const withArmor = (o: { ink?: number; level?: number; straw?: StrawPath; motion?: Partial<typeof armorMotion> }, fn: () => void) => {
+  const was = { ...style }, mWas = { ...armorMotion };
+  if (o.ink !== undefined) style.ink = o.ink;
+  if (o.level !== undefined) style.level = o.level;
+  if (o.straw) style.straw = o.straw;
+  if (o.motion) Object.assign(armorMotion, o.motion);
+  try { fn(); } finally { Object.assign(style, was); Object.assign(armorMotion, mWas); }
 };
 
 /** The baked pieces, for the bigger pictures of him (walkArmor.ts: the walk screens): each painted once. */
@@ -626,6 +702,7 @@ let installed = false;
 export const installArmorArt = () => {
   if (installed) return;
   installed = true;
+  ART.flat = FLAT;
   setArmorArt(ART);
 };
 

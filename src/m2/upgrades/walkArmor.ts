@@ -10,6 +10,7 @@
 // down outside his ears and in under the glasses.
 
 import { type Ctx, INK, box, poly, stipple } from '../walkAway/kit';
+import type { FlatArmor } from '../../m1/game/render/player/body';
 import { has } from './state';
 import { armorStamp, drawLedWord, GLOVE_BACK, RUST, IRON, CAPE, PLASTIC, HORN, CAN_RED, CAN_BLUE } from './armorArt';
 
@@ -275,3 +276,60 @@ export const walkCapeCollar = (c: Ctx, ty: number) => {
   stamp(c, armorStamp('skull'), 0, -141 + ty, 11, 11);
 };
 
+
+// ---------------------------------------------------------------------------------------------------------------------
+// The same front and back pieces on any other drawing of him seen front- or back-on (the ladder's climb from behind,
+// the broom from behind, the close-ups' chest-on figures, the portal...): each placed from anchors on that drawing and
+// scaled to it (the walk figure's are 2.3x the sprite's), drawn only while has(piece). body.ts ArmorArt.flat for
+// Meathead 1's poses (armorOn()?.flat), FLAT here for Meathead 2's.
+type C2 = CanvasRenderingContext2D;
+const at = (c: C2, x: number, y: number, sx: number, sy: number, fn: () => void) => { c.save(); c.translate(x, y); c.scale(sx, sy); fn(); c.restore(); };
+export const FLAT: FlatArmor = {
+  helmet(c, cx, topY, headW, front) {
+    // (the walk head: 28 wide, the flat-top's top at -186)
+    if (!has('helmet')) return;
+    const s = headW / 28;
+    at(c, cx, topY + 186 * s, s, s, () => walkHelmet(c, 0, front));
+  },
+  capeBack(c, cx, shoulderY, halfW, beltY, frame) {
+    // (the walk cape from behind: from its shoulders' line at -142, 44 out each side, to above the belt at -94)
+    if (!has('cape')) return;
+    const sx = halfW / 44, sy = Math.max(0.2, (beltY - shoulderY) / 48);
+    at(c, cx, shoulderY + 142 * sy, sx, sy, () => walkCapeBack(c, 0, frame * 0.12, frame));
+  },
+  capeFront(c, cx, shoulderY, halfW, beltY, layer, frame) {
+    if (!has('cape')) return;
+    const sx = halfW / 44, sy = Math.max(0.2, (beltY - shoulderY) / 48);
+    at(c, cx, shoulderY + 142 * sy, sx, sy, () => (layer === 'behind' ? walkCapeBehind(c, 0, frame * 0.12) : walkCapeCollar(c, 0)));
+  },
+  amulet(c, cx, neckY, s, front, frame) {
+    // (the walk chain from the neck's base at -146)
+    if (!has('amulet')) return;
+    const k = s / K;
+    at(c, cx, neckY + 146 * k, k, k, () => walkAmulet(c, 0, front, frame));
+  },
+  shoulder(c, x, y, side, r) {
+    if (!has('pauldrons')) return;
+    const k = r / (6 * K);
+    at(c, x, y, k, k, () => walkShoulder(c, 0, 0, side));
+  },
+  forearm(c, e, w, width, frame) {
+    // (the walk forearm: about 18 across)
+    if (!has('armguards')) return;
+    const k = width / 18;
+    at(c, e[0], e[1], k, k, () => walkForearm(c, [0, 0], [(w[0] - e[0]) / k, (w[1] - e[1]) / k], frame));
+  },
+  fist(c, x, y, r, a) { walkFist(c, x, y, r, a); },
+  boot(c, x, y, w, h, side, front, frame) {
+    // (the walk boot: 22 x 15)
+    if (!has('sabatons')) return;
+    const k = w / 22;
+    at(c, x, y, k, k, () => walkBoot(c, 0, 0, 22, h / k, side, front, frame));
+  },
+  shin(c, lx, legW, kneeY, bootTop, side, front) {
+    // (the walk leg: about 20 across)
+    if (!has('legs')) return;
+    const k = legW / 20;
+    at(c, lx, kneeY, k, k, () => walkShin(c, 0, 0, (bootTop - kneeY) / k, side, front));
+  },
+};

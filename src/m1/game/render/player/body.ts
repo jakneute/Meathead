@@ -32,6 +32,31 @@ export interface ArmorArt {
   chest(ctx: Ctx, torsoTop: number, pecY: number): void;
   /** Off his back, behind the torso (the torso's frame: its top and height). */
   cape(ctx: Ctx, torsoTop: number, torsoHeight: number): void;
+  /** The same pieces seen front- or back-on (the poses drawn that way: the ladder's climb from behind...). */
+  flat?: FlatArmor;
+}
+/** The armor on a drawing of him seen front- or back-on, each piece from anchors on it, any size; `front`: facing us. */
+export interface FlatArmor {
+  /** On a head: its middle x, the top of his hair, the head's width. */
+  helmet(ctx: Ctx, cx: number, topY: number, headW: number, front: boolean): void;
+  /** The cape from behind, split down his spine: the shoulders' line and half their span, down to above his belt. */
+  capeBack(ctx: Ctx, cx: number, shoulderY: number, halfW: number, beltY: number, frame: number): void;
+  /** The cape from the front: 'behind' its points flaring out past his sides (drawn before him), 'collar' its tall collar
+   *  behind his neck and the skull at his throat (after his torso). */
+  capeFront(ctx: Ctx, cx: number, shoulderY: number, halfW: number, beltY: number, layer: 'behind' | 'collar', frame: number): void;
+  /** The amulet front-on (the chain from the neck's base, the jewel between the pecs) or its chain round the back of his
+   *  neck; `s` its size (1 the sprite's). */
+  amulet(ctx: Ctx, cx: number, neckY: number, s: number, front: boolean, frame: number): void;
+  /** A pauldron on a deltoid seen front- or back-on (`side` -1 the screen's left; `r` the deltoid's size, 6 the sprite's). */
+  shoulder(ctx: Ctx, x: number, y: number, side: number, r: number): void;
+  /** An armguard along a forearm (elbow, wrist, the forearm's width), the word BEEF lit upright across it. */
+  forearm(ctx: Ctx, elbow: [number, number], wrist: [number, number], width: number, frame: number): void;
+  /** A glove over a fist (its middle, its size, the way it points). */
+  fist(ctx: Ctx, x: number, y: number, r: number, angle: number): void;
+  /** A boot seen front- or back-on (its box; `side` the screen's: the bell hangs off the right one). */
+  boot(ctx: Ctx, x: number, y: number, w: number, h: number, side: number, front: boolean, frame: number): void;
+  /** The leg armor on a leg seen front- or back-on (its middle x, its width, the knee's y, the boot's top). */
+  shin(ctx: Ctx, lx: number, legW: number, kneeY: number, bootTop: number, side: number, front: boolean): void;
 }
 let armorArt: ArmorArt | null = null;
 export const setArmorArt = (a: ArmorArt | null) => { armorArt = a; };
