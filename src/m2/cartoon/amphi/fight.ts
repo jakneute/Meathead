@@ -70,7 +70,7 @@ import { CANVAS_WIDTH, CANVAS_HEIGHT, BULLET_DAMAGE } from '../../../m1/constant
 import { bossMelee, bossMeleeOf } from '../../upgrades/bossMelee';
 import { takeYell } from '../../upgrades/amulet';
 import { moveArmored } from '../../upgrades/state';
-import { cheapShotGate, cheapShotStunned, cheapShotStunT, crushGroups, crushLines } from '../../upgrades/cheapShot';
+import { cheapShotGate, cheapShotStunned, cheapShotStunT, registerClearThreats, crushGroups, crushLines } from '../../upgrades/cheapShot';
 import { CHEAP_STUN } from '../../upgrades/tune';
 import { meleeMoveOf, type MeleeMove } from '../../../m1/game/core/tuning';
 import { registerM2Kind, registerHurtLines } from '../../kinds';
@@ -893,7 +893,8 @@ const famRect = (state: GameState, m: Fam): R => {
  *  to it or to him; now and then, his gripe about it (MH_BLOCKED, the user's line first among them). */
 const blockShots = (ctx: FrameContext, f: Fight) => {
   const { state } = ctx;
-  if (f.mode !== 'on') return;
+  // (stunned off the cheap shot: a free window, the family eat nothing, shots and moves go clean through to him)
+  if (f.mode !== 'on' || cheapShotStunned(f.e)) return;
   const ids = MEMBERS.filter(id => f.family[id].alive && f.errand?.who !== id), rects = ids.map(id => famRect(state, f.family[id]));
   if (!rects.length) return;
   // (they can't be pushed, flung or grabbed (the user's): a charge, a slide, a dive kick into one stops dead and
@@ -1255,19 +1256,21 @@ const takeHits = (ctx: FrameContext, f: Fight) => {
   }
   if (dealt <= 0 || !state.enemies.includes(e)) return;
   // (a move in its armor piece: in his breather, in the rage, on the couch, it goes in all the same)
-  const shut = f.iframes > 0 || (melee && (f.act === 'rage' || f.act === 'rise')) || (melee && f.seated && !f.couch.crushed && f.act !== 'puke');
+  // (stunned off the cheap shot: no batting away, the moves land on him on his couch, through his breather as ever)
+  const stunned = cheapShotStunned(e);
+  const shut = f.iframes > 0 || (melee && (f.act === 'rage' || f.act === 'rise')) || (melee && f.seated && !f.couch.crushed && f.act !== 'puke' && !stunned);
   if (shut && melee && !f.sad) armorLand(ctx, f, move);
   if (f.iframes > 0) return;
   // (in the rage nothing lands but what's fired at him (the moves get him hammered: touch above))
   if (melee && (f.act === 'rage' || f.act === 'rise')) return;
   // (on his couch, no move lands either: he bats every one away (batAway)); but puking he can't, and they do
-  if (melee && f.seated && !f.couch.crushed && f.act !== 'puke') return;
+  if (melee && f.seated && !f.couch.crushed && f.act !== 'puke' && !stunned) return;
   // (the user's: "i don't want the player to be given more than 5 uninterrupted seconds spamming the same attack on a
   // boss": shots getting past the family onto him on his couch for 4 s and he yells for a beer there and then: the
   // armful comes down all over the set, a couple of bottles about where he's stood)
   if (!melee && f.seated && !f.couch.crushed && spamTick(f.spam, state.frame, hitKey(state.player, melee)) && !f.errand) f.callAt = Math.min(f.callAt, f.t);
   // (one of the family in the way of his move: it eats it)
-  { const who = melee ? famBetween(state, f) : undefined; if (who) { const pr = pRect(state); eaten(state, f, (pr.x0 + pr.x1) / 2 + state.player.facing * 20, pr.y0 + 30, who); return; } }
+  { const who = melee && !stunned ? famBetween(state, f) : undefined; if (who) { const pr = pRect(state); eaten(state, f, (pr.x0 + pr.x1) / 2 + state.player.facing * 20, pr.y0 + 30, who); return; } }
   const plain = yell > 0 ? yell : plainHit(state, melee);
   // (no hint at a weapon he hasn't got (the user's))
   if (plain === null && state.player.availableWeapons.includes('STUNT_CAR') && state.player.currentWeapon !== 'STUNT_CAR' && f.kills === 0 && (++f.wrongN === 2 || f.wrongN % 5 === 0) && f.t - f.hintAt > HINT_GAP) {
@@ -1836,3 +1839,21 @@ export const drawFightHud = (c: Ctx, state: GameState, f: Fight, band: { x1: num
     label(c, r >= 1 ? 'ACTION!' : 'NEXT TAKE', bx + bw / 2, 76, r >= 1 ? '#FDE047' : '#D4D4D8', 6);
   }
 };
+
+// ---------------------------------------------------------------------------------------------------------------
+// The cheap shot's clear-out (the user's: "initiating a stun will destroy/kill any active threats like cars/critters
+// from the battle"; "it's basically a 'free' window that blocks obstructions too"): the moment his stun starts, every
+// beer in the air smashes where it is and his puke in the air splats; the run's already called off (errand), nothing
+// new comes (no calls, no puke, no swats while stunned), and the family eat nothing for the stun (blockShots, takeHits).
+// The stunt cars are his own (they never hurt him) and the couch is Dad's: both left be.
+registerClearThreats('dad', (state) => {
+  const f = live;
+  if (!f || f.mode !== 'on') return;
+  const E = eyeOf(state);
+  for (const b of f.bottles) { const q = bottleAt(b), at = proj(E, X(q.x), q.y, q.d); smash(state, at.x, at.y); }
+  f.bottles = [];
+  for (const d of f.drops) for (let i = 0; i < 5; i++) state.particles.push({ pos: { x: d.x, y: d.y }, vel: { x: (Math.random() - 0.5) * 4, y: -Math.random() * 3 }, life: 20, color: ['#8A9A1E', '#B8C43A', '#E2E87A'][i % 3], size: 2 + Math.random() * 2, grav: 0.3 });
+  if (f.drops.length) playSound('splat', 0.7, 4);
+  f.drops = [];
+  if (f.errand && f.errand.step !== 'back') { f.errand.step = 'back'; f.errand.t = 0; }
+});
