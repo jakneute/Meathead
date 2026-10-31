@@ -55,6 +55,7 @@ import { makeKindEnemy } from '../../../m1/game/enemies/kinds';
 import { CANVAS_WIDTH, CANVAS_HEIGHT, BULLET_DAMAGE } from '../../../m1/constants';
 import { bossMelee } from '../../upgrades/bossMelee';
 import { takeYell } from '../../upgrades/amulet';
+import { cheapShotGate, cheapShotStunned, crushGroups, crushLines } from '../../upgrades/cheapShot';
 import { registerM2Kind } from '../../kinds';
 import { newSpam, spamTick, hitKey, swatOff, type Spam, BOSS_IFRAMES } from '../../bossSpam';
 import { keepForRevisits } from '../../store';
@@ -257,11 +258,17 @@ const harrySays = (f: Fight, text: string | null, onDone?: () => void) => {
   harrySaid.add(text);
   speak(L.HARRY, text, s => { if (tok === token) f.said = s?.text ?? null; }, true, () => { if (tok === token) onDone?.(); });
 };
-const harryLine = (f: Fight, lines: L.ByPants, onDone?: () => void) => harrySays(f, harryPick(harryPool(lines, pants())), onDone);
+// (after the hand armor's cheap shot, these come out of his crushed-nuts lines: upgrades/cheapShot.ts)
+crushGroups('harry', {
+  hurt: [L.HARRY_HURT, L.HARRY_LOW],
+  taunt: [L.HARRY_TAUNT, L.HARRY_GLOAT, L.HARRY_ENRAGED, L.HARRY_UNSTUCK, L.HARRY_FAKE, ...L.HARRY_STUCK],
+  attack: [L.HARRY_FIRE, L.HARRY_CROWN, L.HARRY_CLING_DOWN, L.HARRY_CLING_UP, L.HARRY_BUTT, L.HARRY_COUNTER],
+});
+const harryLine = (f: Fight, lines: L.ByPants, onDone?: () => void) => harrySays(f, harryPick(harryPool(crushLines(f.e, lines), pants())), onDone);
 /** A bark: dropped if somebody's talking. */
 const bark = (f: Fight, lines: L.ByPants) => {
   if (!quiet(f)) return;
-  const text = harryPick(harryPool(lines, pants()));
+  const text = harryPick(harryPool(crushLines(f.e, lines), pants()));
   if (text === null) return;
   harrySaid.add(text);
   say(text, voice(L.HARRY), 'casual', {
@@ -422,6 +429,14 @@ const fistBox = (f: Fight) => (f.arm.block ? { x0: f.arm.block.x, x1: f.arm.bloc
 export const updateFight = (ctx: FrameContext, f: Fight, controls: Controls): Controls => {
   const { state } = ctx;
   live = f; game = state;
+  // (the hand armor's cheap shot (upgrades/cheapShot.ts): got at on the floor, on his feet, out in the open; the cutscene
+  // freezes the lot; then he's stunned his own way (the SPEC's: his nuts explode and he still shoots him for the grab
+  // after): stood where he is, no walking, no crown, no walls, no smash called, but the M60 still going at him)
+  const ok = f.mode === 'on' && f.entrance <= 0 && !f.pin && !f.leap && !f.barf && !f.cam && f.crumble < 0 && f.butt === 0
+    && f.hy >= GY - 2 && (f.act === 'walk' || f.act === 'idle' || f.act === 'await');
+  const cs = cheapShotGate(state, f.e, 'harry', ok);
+  if (cs === 'frozen') { sync(state, f); return controls; }
+  const stunned = cs === 'stunned' && f.mode === 'on';
   f.total++;
   updateChunks(f);
   if (f.mode === 'intro') { const out = intro(ctx, f); sync(state, f); return out; }
@@ -437,7 +452,7 @@ export const updateFight = (ctx: FrameContext, f: Fight, controls: Controls): Co
   f.green += ((f.sickOn ? 1 : Math.min(1, f.sick / SICK_AT) * 0.6) - f.green) * 0.08;
   if (!f.barf || f.barf.stage !== 'pour') f.concrete = Math.max(0, f.concrete - 0.0025);
   // (sick: as soon as he's somewhere it can start from)
-  if (!f.sickOn && f.sick >= SICK_AT && !f.leap && f.arm.st !== 'drop' && f.crumble < 0) startBarf(state, f);
+  if (!stunned && !f.sickOn && f.sick >= SICK_AT && !f.leap && f.arm.st !== 'drop' && f.crumble < 0) startBarf(state, f);
   // (his entrance on a retry: flexing, a taunt, nothing fired, her arm at rest; Meathead's free to move)
   if (f.entrance > 0) {
     f.entrance--; f.act = 'idle'; f.firing = false; f.moving = false; f.rounds = [];
@@ -447,8 +462,8 @@ export const updateFight = (ctx: FrameContext, f: Fight, controls: Controls): Co
   }
   // (the counter: him pinned, the gun in his face; her arm carries on)
   if (f.pin) { const out = pinning(ctx, f); statue(ctx, f); sync(state, f); return out; }
-  if (f.barf) barfing(ctx, f); else harry(ctx, f);
-  rifleButt(ctx, f);
+  if (stunned && !f.barf) crushedStand(state, f);
+  else { if (f.barf) barfing(ctx, f); else harry(ctx, f); rifleButt(ctx, f); }
   // (her concrete's just killed him: the death's begun)
   if (f.mode !== 'on') return hands();
   statue(ctx, f);
@@ -504,6 +519,17 @@ const startMove = (ctx: FrameContext, f: Fight, mv: Move) => {
   const wx = side < 0 ? ARENA_L + CLING_IN : ARENA_R - CLING_IN;
   f.cling = { side, kind, a0: 0, a1: 0, t: 0, fired: false };
   leapTo(f, wx, GY - CLING_H, f.crumbled ? 36 : 46, 90, 'cling');
+};
+
+/** Stunned off the cheap shot: stood where he is, turned on him, bursts out of the M60 as ever (a bark now and then:
+ *  the crushed pool's, crushGroups); no walking, no leaps, no butt. */
+const crushedStand = (state: GameState, f: Fight) => {
+  if (f.act !== 'walk') { setAct(f, 'walk'); f.move = 'walk'; }
+  f.firing = false; f.moving = false;
+  f.facing = pmid(state).x < f.hx ? -1 : 1;
+  const was = f.burst;
+  gunBursts(state, f);
+  if (was === 0 && f.burst > 0 && Math.random() < 0.4) bark(f, L.HARRY_FIRE);
 };
 
 const harry = (ctx: FrameContext, f: Fight) => {
@@ -573,6 +599,8 @@ const counter = (ctx: FrameContext, f: Fight) => {
   const { state } = ctx, p = state.player;
   if (f.mode !== 'on' || f.entrance > 0) return;
   if (f.pin) return { said: true };
+  // (stunned off the cheap shot: no pinning him, he's holding something else)
+  if (cheapShotStunned(f.e)) return;
   // (up a wall, in her crown, mid leap, puking: just can't get hold of him)
   if (f.barf || f.leap || f.hy < GY - 2 || !COUNTERS.has(f.act)) return;
   // (just done it: the hands come off him, nothing more)

@@ -60,6 +60,7 @@ import { registerDeathKind, type MeatheadDeathKind } from '../../../m1/game/play
 import { CANVAS_WIDTH, CANVAS_HEIGHT, BULLET_DAMAGE } from '../../../m1/constants';
 import { bossMelee } from '../../upgrades/bossMelee';
 import { takeYell } from '../../upgrades/amulet';
+import { cheapShotGate, cheapShotStunned, crushGroups, crushLines, crushPool } from '../../upgrades/cheapShot';
 import { setErect } from '../../../m1/game/render/player/body';
 import { registerM2Kind, registerHurtLines } from '../../kinds';
 import { newSpam, spamTick, hitKey, swatOff, type Spam, BOSS_IFRAMES } from '../../bossSpam';
@@ -232,13 +233,19 @@ const herSays = (f: Fight, text: string, onDone?: () => void) => {
   });
 };
 /** A scripted line of hers (a beat waits on it): one she hasn't said this life (piperLines.ts), else pickLine. */
-const herLine = (f: Fight, lines: ByPants, onDone?: () => void) => herSays(f, piperMust(lines[pants()]), onDone);
+// (after the hand armor's cheap shot, these come out of her crushed-ovaries lines: upgrades/cheapShot.ts)
+crushGroups('piper', {
+  hurt: [L.PIPER_HURT, L.PIPER_LOW],
+  taunt: [L.PIPER_TAUNT],
+  attack: [L.PIPER_LEAP],
+});
+const herLine = (f: Fight, lines: ByPants, onDone?: () => void) => herSays(f, piperMust(crushLines(f.e, lines)[pants()]), onDone);
 /** A now-and-then line of hers: nothing if she's said them all this life (and whatever waited on it goes straight on). */
-const herMaybe = (f: Fight, lines: ByPants, onDone?: () => void) => { const t = piperLine(lines[pants()]); if (t) herSays(f, t, onDone); else onDone?.(); };
+const herMaybe = (f: Fight, lines: ByPants, onDone?: () => void) => { const t = piperLine(crushLines(f.e, lines)[pants()]); if (t) herSays(f, t, onDone); else onDone?.(); };
 /** A bark of hers: dropped if anybody's talking, or if she's said every one of them this life. */
 const bark = (f: Fight, state: GameState, pool: readonly string[]) => {
   if (!quiet(f, state)) return;
-  const text = piperLine(pool);
+  const text = piperLine(crushPool(f.e, pool));
   if (!text) return;
   say(text, voice(L.PIPER_VOICE), 'casual', {
     always: true,
@@ -407,6 +414,8 @@ const intro = (ctx: FrameContext, f: Fight, controls: Controls): Controls => {
 const phase = (f: Fight) => (f.hp > HP * 0.66 ? 1 : f.hp > HP * 0.33 ? 2 : 3);
 const walkLen = (f: Fight) => { const [a, b] = WALK_T[phase(f)]; return a + Math.floor(Math.random() * (b - a)); };
 const setAct = (f: Fight, a: Act, len = 0) => { f.act = a; f.actT = 0; f.actLen = len; };
+/** On the floor, on her feet, in the room (the cheap shot can get at her). */
+const FLOORED: ReadonlySet<Act> = new Set(['walk', 'sit', 'rip', 'throw', 'crouch']);
 const airborne = (f: Fight) => f.act === 'rise' || f.act === 'hang' || f.act === 'lock' || f.act === 'fall';
 const canHurtHim = (state: GameState) => { const p = state.player; return p.health > 0 && !p.inCutscene && (p.invincibilityTimer ?? 0) <= 0 && !p.untouchable; };
 const overlaps = (state: GameState, x0: number, y0: number, x1: number, y1: number) => { const p = state.player; return p.pos.x < x1 && p.pos.x + p.width > x0 && p.pos.y < y1 && p.pos.y + p.height > y0; };
@@ -415,6 +424,14 @@ const attacking = (state: GameState) => { const p = state.player; return p.isCha
 export const updateFight = (ctx: FrameContext, f: Fight, controls: Controls): Controls => {
   const { state } = ctx;
   game = state;
+  // (the hand armor's cheap shot (upgrades/cheapShot.ts): got at on the floor, her own two feet, in the room (not up for
+  // a slam or coming down, not on the furniture, not off round the room); the cutscene freezes the lot; then she's
+  // stunned: stood there hurting, no waddle, no belly bumps, no slam, no throws; hits as ever)
+  const ok = f.mode === 'on' && !f.cam && f.entrance <= 0 && FLOORED.has(f.act) && f.y >= GY - 2 && state.enemies.includes(f.e);
+  const cs = cheapShotGate(state, f.e, 'piper', ok);
+  if (cs === 'frozen') { sync(state, f); return controls; }
+  if (cs === 'stunned' && f.mode === 'on' && FLOORED.has(f.act) && f.act !== 'walk') { f.rip = null; f.y = GY; setAct(f, 'walk', walkLen(f)); }
+  const stunned = cs === 'stunned' && f.mode === 'on';
   f.total++;
   if (f.mode === 'intro') { const out = intro(ctx, f, controls); sync(state, f); return out; }
   if (f.mode === 'on') f.fightT++;
@@ -427,9 +444,10 @@ export const updateFight = (ctx: FrameContext, f: Fight, controls: Controls): Co
   if (f.mode === 'dead') { setUi({ iceMash: null }); return dying(ctx, f); }
   takeHits(ctx, f);
   if (f.mode !== 'on') { setUi({ iceMash: null }); return { ...NO_CONTROLS }; }
-  ai(ctx, f);
+  // (stunned: her moves skipped; a pop's ride round the room and its flop and getting up go on as ever)
+  if (!stunned || f.act === 'bounce' || f.act === 'flop' || f.act === 'getup') ai(ctx, f);
   if (f.mode !== 'on') return { ...NO_CONTROLS };
-  contact(ctx, f);
+  if (!stunned) contact(ctx, f);
   talk(ctx, f);
   sync(state, f);
   tickRangeZoom(state, f);
@@ -1039,7 +1057,7 @@ const takeHits = (ctx: FrameContext, f: Fight) => {
   if (melee && p.isDivekicking) { swatOff(state, f.x, 9, -10); playSound('boing', 0.8, -2 + Math.random() * 4); playSound('squish', 0.4, 4); }
   // (the user's: "i don't want the player to be given more than 5 uninterrupted seconds spamming the same attack on a
   // boss": the same hit landing for 4 s (the ray gun held on her from one spot) and she's off somewhere now, stay or no)
-  else if (f.act !== 'bounce' && f.act !== 'flop' && f.act !== 'getup' && !airborne(f) && spamTick(f.spam, state.frame, hitKey(p, melee))) {
+  else if (f.act !== 'bounce' && f.act !== 'flop' && f.act !== 'getup' && !airborne(f) && !cheapShotStunned(e) && spamTick(f.spam, state.frame, hitKey(p, melee))) {
     f.stay = 999;
     if (f.act === 'walk' || f.act === 'sit') startMove(state, f);
   }
@@ -1398,6 +1416,8 @@ const poseOf = (f: Fight): { pose: PiperPose; sx: number; sy: number; face?: Pip
     return { pose: 'lounge', sx: 1, sy: 1 };
   }
   if (f.flash > 0 && f.act !== 'bounce') return { pose: 'hurt', sx: 1, sy: 1 };
+  // (stunned off the cheap shot: reeling)
+  if (f.mode === 'on' && f.act === 'walk' && cheapShotStunned(f.e)) return { pose: 'hurt', sx: 1, sy: 1, face: 'shock' };
   switch (f.act) {
     case 'crouch': { const k = Math.min(1, f.actT / 12); return { pose: 'enraged', sx: 1 + 0.12 * k, sy: 1 - 0.16 * k }; }
     case 'rise': case 'hop': return { pose: 'enraged', sx: 0.92, sy: 1.08 };

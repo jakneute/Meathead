@@ -52,6 +52,7 @@ import { makeKindEnemy } from '../../../m1/game/enemies/kinds';
 import { CANVAS_WIDTH, CANVAS_HEIGHT, BULLET_DAMAGE } from '../../../m1/constants';
 import { bossMelee } from '../../upgrades/bossMelee';
 import { takeYell } from '../../upgrades/amulet';
+import { cheapShotGate, cheapShotStunned, crushGroups, crushLines } from '../../upgrades/cheapShot';
 import { registerM2Kind } from '../../kinds';
 import { newSpam, spamTick, hitKey, swatOff, type Spam, BOSS_IFRAMES } from '../../bossSpam';
 import { TOO_BIG_BY_KIND } from '../../lines/weaponLines';
@@ -221,19 +222,25 @@ onGlobHit((ctx, e) => {
 // Saying things (one at a time; words only while said)
 
 const pants = (lines: ByPants) => pickLine(game ? byPants(game, lines) : lines.clean);
+// (after the hand armor's cheap shot, these come out of his crushed-nuts lines: upgrades/cheapShot.ts)
+crushGroups('tucker', {
+  hurt: [L.TF_HURT, L.TF_LOW],
+  taunt: [L.TF_TAUNT, L.TF_HEAR, L.TF_HIT, L.TF_RELOAD, L.TF_BEES, L.TF_STAMPEDE],
+  attack: [L.TF_FIRE],
+});
 const tok = (fn: () => void) => { const t = token; return () => { if (t === token) fn(); }; };
 /** He says one (waited on: `done` after). */
 const tuckerSays = (f: Fight, lines: ByPants, done?: () => void) => {
   const t = token;
   f.talking = true;
-  speak(TUCKER_VOICE, pants(lines), s => { if (t !== token) return; f.said = s?.text ?? null; if (!s) f.talking = false; }, true, () => { if (t === token) { f.talking = false; done?.(); } });
+  speak(TUCKER_VOICE, pants(crushLines(f.e, lines)), s => { if (t !== token) return; f.said = s?.text ?? null; if (!s) f.talking = false; }, true, () => { if (t === token) { f.talking = false; done?.(); } });
 };
 /** A bark: dropped if he's talking already. */
 const bark = (f: Fight, lines: ByPants) => {
   if (f.said || f.talking) return;
   const t = token;
   f.talking = true;
-  speak(TUCKER_VOICE, pants(lines), s => { if (t !== token) return; f.said = s?.text ?? null; if (!s) f.talking = false; }, false, () => { if (t === token) f.talking = false; });
+  speak(TUCKER_VOICE, pants(crushLines(f.e, lines)), s => { if (t !== token) return; f.said = s?.text ?? null; if (!s) f.talking = false; }, false, () => { if (t === token) f.talking = false; });
 };
 const mhSays = (state: GameState, lines: ByPants, after = true, done?: () => void) => meatheadSays(state, pants(lines), after, done ? tok(done) : undefined);
 
@@ -276,6 +283,14 @@ const setAct = (f: Fight, a: Act) => { f.act = a; f.actT = 0; };
 export const updateFight = (ctx: FrameContext, f: Fight): Controls | null => {
   const { state } = ctx;
   live = f; game = state;
+  // (the hand armor's cheap shot (upgrades/cheapShot.ts): got at stood on the ground, on screen, his own routine (not
+  // running, not showered or under the cats, not shoved about by a stampede); the cutscene freezes the lot; then he's
+  // stunned: the gun down, nothing aimed or fired (so no stampedes off him), stood there hurting; hits as ever)
+  const ok = f.mode === 'on' && !f.cam && !f.death && STAND.has(f.act) && f.bumped === 0 && !f.shove && !f.queue.length && !f.lions.length && !lionsWaiting
+    && inView(state, f.tx, 40);
+  const cs = cheapShotGate(state, f.e, 'tucker', ok);
+  if (cs === 'frozen') { sync(state, f); return null; }
+  if (cs === 'stunned' && f.mode === 'on' && f.act !== 'listen' && STAND.has(f.act)) { setAct(f, 'listen'); f.aim = 0.6; }
   f.t++;
   if (f.iframes > 0) f.iframes--;
   if (f.flash > 0) f.flash--;
@@ -299,12 +314,16 @@ export const updateFight = (ctx: FrameContext, f: Fight): Controls | null => {
   takeHits(ctx, f);
   if (f.hp <= 0) { die(ctx, f, false); sync(state, f); return hands(); }
   listen(state, f);
-  tucker(ctx, f);
+  // (stunned: his routine skipped (no aim, no shot); the cats' business, if it's on, goes on as ever)
+  if (!cheapShotStunned(f.e) || f.act === 'bloody' || f.act === 'mauled' || f.act === 'getup') tucker(ctx, f);
   talk(state, f);
   camera(state, f);
   sync(state, f);
   return null;
 };
+
+/** His own routine, stood on the ground (the cheap shot can get at him in it). */
+const STAND: ReadonlySet<Act> = new Set(['listen', 'cock', 'aim', 'pan', 'recoil', 'reload']);
 
 /** Held in the arena: never out of it, whatever sends him flying. */
 export const holdIn = (state: GameState) => {
@@ -850,7 +869,8 @@ const takeHits = (ctx: FrameContext, f: Fight) => {
   const dmg = plain ?? Math.max(1, dealt * SHARE);
   f.hp -= dmg; f.iframes = IFRAMES; f.flash = 8;
   // (stomped on or bashed up close: he bolts, blind, away from it (no standing there to be dive kicked again and again))
-  if (melee && f.hp > 0 && (f.act === 'listen' || f.act === 'cock' || f.act === 'aim' || f.act === 'pan' || f.act === 'recoil' || f.act === 'reload')) {
+  const stunned = cheapShotStunned(e);
+  if (melee && f.hp > 0 && !stunned && (f.act === 'listen' || f.act === 'cock' || f.act === 'aim' || f.act === 'pan' || f.act === 'recoil' || f.act === 'reload')) {
     setAct(f, 'run');
     f.runDir = (pmid(state).x < f.tx ? 1 : -1) as 1 | -1;
     f.runN = 50 + Math.round(Math.random() * 40);
@@ -859,7 +879,7 @@ const takeHits = (ctx: FrameContext, f: Fight) => {
   // (the user's: "i don't want the player to be given more than 5 uninterrupted seconds spamming the same attack on a
   // boss": the same hit landing for 4 s. Shot at from one spot (he hears every shot, near enough): the gun up at it now,
   // or off the hip if he's running; chased down and kicked on his run: shoved off him (no hurt) and away the other way)
-  if (f.hp > 0 && f.act !== 'bloody' && f.act !== 'getup' && spamTick(f.spam, state.frame, hitKey(state.player, melee))) {
+  if (f.hp > 0 && !stunned && f.act !== 'bloody' && f.act !== 'getup' && spamTick(f.spam, state.frame, hitKey(state.player, melee))) {
     if (melee) {
       swatOff(state, f.tx);
       setAct(f, 'run'); f.runDir = (pmid(state).x < f.tx ? 1 : -1) as 1 | -1; f.runN = 60 + Math.round(Math.random() * 40); f.runFire = 30; f.runShot = 0;
@@ -1248,6 +1268,8 @@ export const endFight = (state: GameState, f: Fight) => {
 
 const tuckerLook = (f: Fight): { pose: TuckerPose; face?: TuckerFace; aim?: number; pan?: boolean; pistol?: boolean } => {
   const hurt = f.flash > 0 && f.act !== 'mauled';
+  // (stunned off the cheap shot: bent over hurting, the gun down)
+  if (f.mode === 'on' && STAND.has(f.act) && cheapShotStunned(f.e)) return { pose: 'hurt', face: hurt ? 'ow' : f.talking ? 'talk' : 'daze' };
   switch (f.act) {
     case 'listen': return { pose: 'grope', pistol: true, face: hurt ? 'ow' : f.talking ? 'talk' : 'manic' };
     case 'cock': return { pose: 'cock', face: hurt ? 'ow' : 'manic' };
