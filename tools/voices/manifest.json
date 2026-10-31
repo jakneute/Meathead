@@ -65486,6 +65486,11 @@
  },
  {
   "voice": "meathead",
+  "text": "COLD NOSE! COLD NOSE!",
+  "from": "HUB"
+ },
+ {
+  "voice": "meathead",
   "text": "COLD ONE'S ON ME, DAD.",
   "from": "CARTOON"
  },
@@ -66371,6 +66376,11 @@
  },
  {
   "voice": "meathead",
+  "text": "DON'T LICK THAT!",
+  "from": "HUB"
+ },
+ {
+  "voice": "meathead",
   "text": "DON'T LOOK DOWN. DON'T SQUEEZE.",
   "from": "CARTOON"
  },
@@ -66548,6 +66558,11 @@
   "voice": "meathead",
   "text": "DOWN WE GO, FUCKFACE!",
   "from": "M2_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "DOWN, BOY!",
+  "from": "HUB"
  },
  {
   "voice": "meathead",
@@ -68716,6 +68731,11 @@
  },
  {
   "voice": "meathead",
+  "text": "GET YOUR FACE OUT OF MY ASS!",
+  "from": "HUB"
+ },
+ {
+  "voice": "meathead",
   "text": "GET YOUR FANNY PACK OFF ME!",
   "from": "HOLLYWOOD"
  },
@@ -69378,6 +69398,11 @@
   "voice": "meathead",
   "text": "GREAT. I'M A DIFFERENT COLOR. THAT'S NOT GONNA WASH OUT.",
   "from": "FOREIGN"
+ },
+ {
+  "voice": "meathead",
+  "text": "GREAT. NOW HE LIKES ME.",
+  "from": "HUB"
  },
  {
   "voice": "meathead",
@@ -75876,6 +75901,11 @@
  },
  {
   "voice": "meathead",
+  "text": "IT'S NOT PEANUT BUTTER, DUMBASS!",
+  "from": "HUB"
+ },
+ {
+  "voice": "meathead",
   "text": "IT'S ON A SPRING AND IT STILL GOT ME!",
   "from": "SPACE"
  },
@@ -80231,6 +80261,11 @@
  },
  {
   "voice": "meathead",
+  "text": "NOT THE BALLS!",
+  "from": "HUB"
+ },
+ {
+  "voice": "meathead",
   "text": "NOT THE BEES!",
   "from": "FRONTIER"
  },
@@ -82813,6 +82848,16 @@
   "voice": "meathead",
   "text": "QUIT RUNNING INTO HIM, DUMBASS. SHOOT HIM.",
   "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
+  "text": "QUIT SNIFFING MY ASS!",
+  "from": "HUB"
+ },
+ {
+  "voice": "meathead",
+  "text": "QUIT SNIFFING MY CROTCH!",
+  "from": "HUB"
  },
  {
   "voice": "meathead",
@@ -88283,6 +88328,11 @@
   "voice": "meathead",
   "text": "THAT'S NOT A CAP GUN!",
   "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
+  "text": "THAT'S NOT A CHEW TOY!",
+  "from": "HUB"
  },
  {
   "voice": "meathead",
@@ -93826,6 +93876,11 @@
  },
  {
   "voice": "meathead",
+  "text": "WHO BROUGHT A DOG TO WORK?",
+  "from": "HUB"
+ },
+ {
+  "voice": "meathead",
   "text": "WHO BUILDS A BRIDGE THAT LOW?!",
   "from": "FRONTIER"
  },
@@ -95338,6 +95393,11 @@
   "voice": "meathead",
   "text": "YOU'RE LACKING SUBSTANCE",
   "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "YOU'RE NOT A GOOD BOY. YOU'RE PRACTICE.",
+  "from": "HUB"
  },
  {
   "voice": "meathead",

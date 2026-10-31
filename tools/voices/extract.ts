@@ -35,7 +35,7 @@ import { FRONTIER_VOICE_LINES } from '../../src/m2/frontier/voices';
 import { FANTASY_VOICE_LINES } from '../../src/m2/fantasy/voices';
 import { CARTOON_VOICE_LINES } from '../../src/m2/cartoon/voices';
 import { VOICE_LINES as GYM_VOICE_LINES } from '../../src/m2/intro/gym/lines';
-import { AMERICA_DENY } from '../../src/m2/lines/hubLines';
+import { AMERICA_DENY, PEN_DOG_JUMP } from '../../src/m2/lines/hubLines';
 import { UPGRADE_VOICE_LINES } from '../../src/m2/upgrades/lines';
 import { fitsHappyLand } from '../../src/m2/lines/consistency';
 
@@ -145,6 +145,7 @@ for (const byVoice of CARTOON_VOICE_LINES) for (const [v, lines] of Object.entri
 // (the Iron Pit, the opening: by voice)
 for (const [v, lines] of Object.entries(GYM_VOICE_LINES)) for (const t of lines) add(v, t, 'GYM');
 for (const t of allStrings(AMERICA_DENY)) add('meathead', t, 'HUB');
+for (const t of allStrings(PEN_DOG_JUMP)) add('meathead', t, 'HUB');
 // (the hidden upgrades: the amulet's yell)
 for (const [v, lines] of Object.entries(UPGRADE_VOICE_LINES)) for (const t of lines) add(v, t, 'UPGRADES');
 for (const t of allStrings([introLines.GUEST_HURRY, introLines.GUEST_CUT, introLines.GUEST_HIT, introLines.GUEST_REACT, introLines.GUEST_REACT_NOW])) { add('m2.guest', t, 'INTRO'); add('m2.guest2', t, 'INTRO'); }

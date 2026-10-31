@@ -5,7 +5,11 @@
 // baseboard, the pigeons down through the hole in the ceiling). Nobody in here fights back: they don't shoot, swing
 // or bump him, they just mope about (and get out of his way when he comes at them); and he can't be hurt in here
 // anyway (App.tsx). The door back to the hub is at the near end. And ladders to try (moves/ladders.ts): one up to a
-// high shelf, one up to nothing (to shoot from).
+// high shelf, one up to nothing (to shoot from). And a few mid-sized animals to try the grabs on (animals.ts: the
+// owner's "spawn in mid sized animals in the break room too for practice" / "like golden retrievers, lol"): a couple of
+// golden retrievers that bound over and jump up at him, and a wolf and a jaguar got out of their lands that run off
+// like the staff; topped up on their own clock, a while after one's gone. The room's shut at both ends, so they never
+// leave it or follow him out.
 
 import type { StageLayout } from '../../m1/game/stages/index';
 import type { GameState } from '../../m1/game/core/state';
@@ -21,6 +25,11 @@ import { PEN_STAFF_KINDS, penMoving } from './staff';
 import { beingSucked } from '../weapons/soulSucker';
 import { drawPenBackdrop, drawPenBack, drawPenShelf } from './art';
 import { updateLadders, drawLadders, type LadderDef } from '../moves/ladders';
+import { PEN_ANIMALS, PEN_RETRIEVER, PEN_WOLF, PEN_JAGUAR, penJumping } from './animals';
+import { say, MEATHEAD_VOICE, pickLine } from '../../m1/game/platform/speech';
+import { isShat, isNude } from '../../m1/game/player/gut';
+import { playSound } from '../../m1/game/platform/audio';
+import { PEN_DOG_JUMP } from '../lines/hubLines';
 
 export const PEN_STAGE = 'M2 Staff Pen';
 export const X0 = -40000, LEN = 2700;
@@ -41,13 +50,18 @@ const AT_ONCE = 5, RESPAWN = 70;
 /** The vermin: always this many of each about, topped up on their own clock. */
 const RAT = 'm2:pen_rat' as EnemyKind, PIGEON = 'm2:pen_pigeon' as EnemyKind;
 const RATS = 3, PIGEONS = 3, VERMIN_RESPAWN = 150;
+/** The animals: always this many of each about (the retrievers, the wolf, the jaguar), topped up one at a time, a
+ *  while after one's gone. */
+const ANIMAL_COUNT: Record<string, number> = { [PEN_RETRIEVER]: 2, [PEN_WOLF]: 1, [PEN_JAGUAR]: 1 };
+const ANIMAL_RESPAWN = 300;
+const isAnimal = (k: string) => PEN_ANIMALS.includes(k);
 /** Where the rats come out (the holes in the baseboard: art.ts draws them there), and where the pigeons come down. */
 export const RAT_HOLES = [X0 + 500, X0 + 1822];
 export const PIGEON_HOLE = { x: X0 + 1910, y: CEIL_Y + 14 };
 /** The seeds the staff are drawn from (who's in the uniform): a pool, so their stamps get used again. */
 const SEEDS = 23;
 
-interface Pen { grab: Grab; next: number; cooldown: number; vermin: number; upWas: boolean }
+interface Pen { grab: Grab; next: number; cooldown: number; vermin: number; animals: number; upWas: boolean }
 const getPen = (state: GameState) => state.stage as Pen | null;
 
 const practiceReady = (state: GameState, e: Enemy) => {
@@ -61,6 +75,11 @@ const send = (state: GameState, pen: Pen, x = X0 + LEN - 120 - Math.random() * 2
   const e = makeKindEnemy(ROSTER[n % ROSTER.length], x, GROUND_Y);
   // (who's in it: a step through the pool each time)
   e.variant = (n * 7 + Math.floor(n / ROSTER.length) * 5) % SEEDS;
+  practiceReady(state, e);
+};
+const sendAnimal = (state: GameState, kind: string, x: number) => {
+  const e = makeKindEnemy(kind as EnemyKind, x, GROUND_Y);
+  e.variant = Math.floor(Math.random() * 6);
   practiceReady(state, e);
 };
 const sendRat = (state: GameState, x?: number) => practiceReady(state, makeKindEnemy(RAT, x ?? RAT_HOLES[Math.floor(Math.random() * RAT_HOLES.length)], GROUND_Y));
@@ -100,7 +119,7 @@ export const penLayout: StageLayout = {
     state.blocks.push({ x: X0 - WALL, y: -3000, w: WALL, h: 3600, type: 'wall', hidden: true, tag: 'pen-l' }, { x: X0 + LEN, y: -3000, w: WALL, h: 3600, type: 'wall', hidden: true, tag: 'pen-r' });
     state.blocks.push({ x: X0 - WALL, y: -3000, w: LEN + WALL * 2, h: 3000 + CEIL_Y, type: 'wall', hidden: true, tag: 'pen-ceiling' });
     state.blocks.push({ x: SHELF.x, y: SHELF.y, w: SHELF.w, h: 16, type: 'platform', oneWay: true, hidden: true, tag: 'pen-shelf' } as never);
-    const pen: Pen = { grab: createGrab(state), next: Math.floor(Math.random() * ROSTER.length), cooldown: 0, vermin: VERMIN_RESPAWN, upWas: false };
+    const pen: Pen = { grab: createGrab(state), next: Math.floor(Math.random() * ROSTER.length), cooldown: 0, vermin: VERMIN_RESPAWN, animals: ANIMAL_RESPAWN, upWas: false };
     state.stage = pen;
     state.cameraMinX = X0 - WALL;
     state.cameraMaxX = X0 + LEN + WALL - CANVAS_WIDTH;
@@ -108,6 +127,10 @@ export const penLayout: StageLayout = {
     for (let i = 0; i < AT_ONCE; i++) send(state, pen, X0 + 380 + i * 230);
     for (let i = 0; i < RATS; i++) sendRat(state, X0 + 300 + Math.random() * (LEN - 400));
     for (let i = 0; i < PIGEONS; i++) sendPigeon(state, X0 + 300 + i * 260 + Math.random() * 120, GROUND_Y - 90 - Math.random() * 120);
+    // (the animals spread down the room too, a retriever nearest the door: it's coming to say hello)
+    let ax = X0 + 520;
+    for (const [kind, n] of Object.entries(ANIMAL_COUNT)) for (let i = 0; i < n; i++) { sendAnimal(state, kind, ax); ax += 420 + Math.random() * 120; }
+    lastDogLine = -9999;
   },
   update: (ctx, controls) => {
     const { state } = ctx;
@@ -119,6 +142,7 @@ export const penLayout: StageLayout = {
     if (!pen) return controls;
     const out = updateGrab(ctx, pen.grab, updateLadders(ctx, LADDERS, controls));
     practice(state);
+    dogs(state);
     // Nothing in here hurts him: not a bump, not anything (the invincibility cheat keeps his health; this keeps the
     // knock and the flinch off him too)
     state.player.noContactHurt = true;
@@ -127,11 +151,16 @@ export const penLayout: StageLayout = {
     // A few at a time, always
     const live = state.enemies.filter(e => e.health > 0 && !e.isBlownAway), held = pen.grab.held;
     const count = (pred: (k: string) => boolean) => live.filter(e => pred(e.kind ?? '')).length + (held && pred(held.kind ?? '') && !live.includes(held) ? 1 : 0);
-    if (count(k => k !== RAT && k !== PIGEON) < AT_ONCE && --pen.cooldown <= 0) { send(state, pen, arrivalX(state)); pen.cooldown = RESPAWN; }
+    if (count(k => k !== RAT && k !== PIGEON && !isAnimal(k)) < AT_ONCE && --pen.cooldown <= 0) { send(state, pen, arrivalX(state)); pen.cooldown = RESPAWN; }
     if (--pen.vermin <= 0) {
       pen.vermin = VERMIN_RESPAWN;
       if (count(k => k === RAT) < RATS) sendRat(state);
       else if (count(k => k === PIGEON) < PIGEONS) sendPigeon(state);
+    }
+    if (--pen.animals <= 0) {
+      pen.animals = ANIMAL_RESPAWN;
+      const short = Object.entries(ANIMAL_COUNT).find(([kind, n]) => count(k => k === kind) < n);
+      if (short) sendAnimal(state, short[0], arrivalX(state));
     }
     // The way back: its door at the room's left end, up at it to go (the user's: "exiting the break room should require
     // pressing up on the door"); the end wall stops him walking on past it. Not while he's got someone in his hands.
@@ -183,6 +212,7 @@ const flyPigeon = (state: GameState, e: Enemy, px: number, py: number) => {
 };
 const practice = (state: GameState) => {
   const p = state.player, px = p.pos.x + p.width / 2;
+  penDogs.clear();
   // (anything one of them let fly before they came in here, gone)
   state.projectiles = state.projectiles.filter(pr => pr.owner !== 'enemy');
   for (const e of state.enemies) {
@@ -200,6 +230,8 @@ const practice = (state: GameState) => {
     if ((e.pauseTimer || 0) > 2 || Math.abs(e.vel.y) > 0.5) continue;
     e.pauseTimer = 2;
     if (e.kind === PIGEON && !e.dropping) { flyPigeon(state, e, px, p.pos.y + p.height / 2); continue; }
+    // (the retrievers have their own ideas: dogs(), below)
+    if (e.kind === PEN_RETRIEVER) { penDogs.add(e); continue; }
     const quick = e.kind === RAT || e.kind === PIGEON;
     let w = wander.get(e);
     if (!w) { w = { to: e.pos.x + e.width / 2, rest: quick ? 10 : 90 + Math.floor(Math.random() * 120) }; wander.set(e, w); }
@@ -220,4 +252,69 @@ const practice = (state: GameState) => {
     // (a hair of speed, for which way they're going: not enough to slide them)
     e.vel.x = dir * 0.01;
   }
+};
+
+/**
+ * The golden retrievers: no running off from him. They bound over to him from wherever they are, jump up at him (no
+ * harm in it: nothing in here hurts him), drop back down, mill round his feet a bit wagging, and go again; now and then
+ * a fit of the zoomies off down the room and back. Anybody knocked about is left to it, like the rest (practice()).
+ */
+const DOG_TROT = 2.2, DOG_BOUND = 3.4, DOG_ZOOM = 5, DOG_JUMP_AT = 46;
+interface Dog { cd: number; zoom: number; to: number; jumpT: number; jdir: 1 | -1 }
+const dogMemo = new WeakMap<Enemy, Dog>();
+/** The retrievers practice() left to dogs() this frame (up and about, nobody's knocked them about). */
+const penDogs = new Set<Enemy>();
+/** When he last said something about one jumping on him (not every time: the owner's "talk less"). */
+let lastDogLine = -9999;
+const DOG_LINE_GAP = 600;
+const dogs = (state: GameState) => {
+  const p = state.player, px = p.pos.x + p.width / 2;
+  for (const e of state.enemies) {
+    if (e.kind !== PEN_RETRIEVER) continue;
+    let d = dogMemo.get(e);
+    if (!d) { d = { cd: 60 + Math.floor(Math.random() * 60), zoom: 0, to: 0, jumpT: 0, jdir: 1 }; dogMemo.set(e, d); }
+    // (up in the air from a jump of its own: down when it's down)
+    if (penJumping.has(e)) {
+      d.jumpT++;
+      if (e.health <= 0 || e.isBlownAway || (e.pauseTimer || 0) > 2 || (d.jumpT > 4 && e.vel.y === 0)) penJumping.delete(e);
+      // (carried along by hand, not by its speed: a body going sideways while it's knocked about hurts whoever it runs
+      // into, the engine's mass x speed)
+      else { e.pauseTimer = 2; e.pos.x = Math.max(X0 + 10, Math.min(X0 + LEN - e.width - 10, e.pos.x + d.jdir * 1.2)); continue; }
+    }
+    if (!penDogs.has(e)) continue;
+    const ex = e.pos.x + e.width / 2, dx = px - ex, dir = (Math.sign(dx) || 1) as 1 | -1;
+    let speed = 0, way = dir;
+    if (d.cd > 0) d.cd--;
+    if (d.zoom > 0) {
+      // (the zoomies: flat out to the spot and back to him)
+      d.zoom--;
+      const zx = d.to - ex;
+      if (Math.abs(zx) < 10) d.to = px; else { way = (Math.sign(zx) || 1) as 1 | -1; speed = DOG_ZOOM; }
+    } else if (Math.abs(dx) > 300) speed = DOG_TROT;
+    // (come down right on top of him: a step back off him, so it's not stood hidden behind him)
+    else if (d.cd > 0 && Math.abs(dx) < 40) { way = (-dir) as 1 | -1; speed = DOG_TROT; }
+    else if (Math.abs(dx) > DOG_JUMP_AT) speed = d.cd > 0 && Math.abs(dx) < 110 ? 0 : DOG_BOUND;
+    else if (d.cd <= 0 && p.health > 0) {
+      // Up at him, front paws out
+      e.facing = dir; e.vel = { x: dir * 0.01, y: -6 }; e.pauseTimer = 2;
+      penJumping.add(e); d.jumpT = 0; d.jdir = dir; d.cd = 90 + Math.floor(Math.random() * 110);
+      playSound('snort', 0.55, 11); playSound('snort', 0.45, 13);
+      if (Math.random() < 0.06) { d.zoom = 150; d.to = Math.max(X0 + EDGE, Math.min(X0 + LEN - EDGE, ex - dir * (400 + Math.random() * 300))); }
+      if (state.frame - lastDogLine > DOG_LINE_GAP && Math.random() < 0.4) { lastDogLine = state.frame; dogLine(state); }
+      continue;
+    }
+    e.facing = way;
+    if (!speed) { e.vel.x = 0; continue; }
+    penMoving.add(e);
+    e.pos.x = Math.max(X0 + 10, Math.min(X0 + LEN - e.width - 10, e.pos.x + way * speed));
+    e.vel.x = way * 0.01;
+  }
+};
+/** Him, about one jumping up on him (in clean pants, shitty ones, or none). */
+const dogLine = (state: GameState) => {
+  const text = pickLine(PEN_DOG_JUMP[isNude(state) ? 'nude' : isShat(state) ? 'shitty' : 'clean']);
+  say(text, MEATHEAD_VOICE, 'casual', {
+    onShow: () => { state.playerLastVulgarity = text; state.playerVulgarityTimer = 180; },
+    onHide: () => { if (state.playerLastVulgarity === text) state.playerVulgarityTimer = 0; },
+  });
 };
