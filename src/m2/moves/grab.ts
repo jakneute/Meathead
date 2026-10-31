@@ -88,12 +88,14 @@ export const AIR_GRAB = {
   ARC_POP: 7,
   /** The arc's own pull down, each frame (on top of the engine's gravity), and the fastest they fall. */
   ARC_GRAV: 0.45, ARC_MAX_FALL: 20,
-  /** Sideways speed of each arc: back held (backflip), forward held (dive), nothing held (piledriver). */
-  ARC_BACK_VX: 6, ARC_FWD_VX: 9, ARC_DOWN_VX: 0.5,
+  /** Sideways speed: a direction held (the dive, facing it: left or right, flipping round any time), nothing held (the
+   *  piledriver, upside down, hardly drifting). No lock-in: the owner's "remove the ability to 'lock in' a direction and
+   *  allow the player to flip around and guide where you want to land". */
+  ARC_FWD_VX: 9, ARC_DOWN_VX: 0.5,
   /** How fast the sideways speed follows the stick (0..1, a share of the gap each frame). */
   ARC_STEER: 0.2,
-  /** Where each arc turns them to (headfirst straight down is PI; the dive stays well short of upside down). */
-  BACK_ANGLE: Math.PI, FWD_ANGLE: 1.15, DOWN_ANGLE: Math.PI,
+  /** Where each pose turns them to (headfirst straight down is PI; the dive stays well short of upside down). */
+  FWD_ANGLE: 1.15, DOWN_ANGLE: Math.PI,
   /** How fast they turn toward it (radians a frame). */
   SPIN: 0.24,
   /** Going at least this fast into a wall or ceiling, the impact happens there (slower, they just stop against it). */
@@ -244,8 +246,8 @@ type Phase = 'idle' | 'windup' | 'lunge' | 'whiff' | 'lineup' | 'mount' | 'kill'
   | FollowPhase
   // (the hand armor's cheap shot on a boss: upgrades/cheapShot.ts)
   | 'cheap';
-/** The air grab's arc: back held (a backflip), forward held (a dive), nothing (a piledriver straight down). */
-type Arc = 'back' | 'fwd' | 'down';
+/** The air grab's arc right now: a direction held (a dive, facing it), nothing (a piledriver straight down). */
+type Arc = 'fwd' | 'down';
 /** Which throw: on the way he's facing, back (a suplex), straight up, or slammed down. */
 type Toss = 'forward' | 'back' | 'up' | 'down';
 
@@ -1819,7 +1821,7 @@ const ceilingOver = (state: GameState, vy: number) => {
     && p.pos.x + 4 < b.x + b.w && p.pos.x + p.width - 4 > b.x && b.y + b.h <= p.pos.y + 2 && b.y + b.h > p.pos.y + vy) ?? null;
 };
 
-/** The arc down together: steered back (a backflip), forward (a dive) or not at all (a piledriver), till something stops it. */
+/** The arc down together: steered left or right any time (a dive that way) or not at all (a piledriver), till something stops it. */
 const airArc = (ctx: FrameContext, g: Grab, controls: Controls): Controls => {
   const { state } = ctx, p = state.player;
   p.power = 0; p.vel.x = 0; p.jumpHoldTimer = 0;
@@ -1844,12 +1846,18 @@ const airArc = (ctx: FrameContext, g: Grab, controls: Controls): Controls => {
     playSound('whoosh', 0.8, 2);
     return { ...controls, special: false, charge: false };
   }
-  const back = g.dir > 0 ? controls.left : controls.right, fwd = g.dir > 0 ? controls.right : controls.left;
-  // (a flip or a dive, once it's picked, is it: no changing his mind mid-air; from the plain piledriver he can still pick one)
-  if (g.arc !== 'back' && g.arc !== 'fwd') g.arc = back ? 'back' : fwd ? 'fwd' : 'down';
-  const tvx = g.arc === 'back' ? -g.dir * A.ARC_BACK_VX : g.arc === 'fwd' ? g.dir * A.ARC_FWD_VX : g.dir * A.ARC_DOWN_VX;
+  // Steered live, never locked in: a direction held, he faces it (flipping round, the one he's got swung round with him)
+  // and dives that way; let go, he tips over into the piledriver, upside down, hardly drifting. Either pose, either way.
+  const steer = controls.left && !controls.right ? -1 : controls.right && !controls.left ? 1 : 0;
+  if (steer && steer !== g.dir) {
+    // (mirrored: the same pose the other way round, not spun through it)
+    g.dir = steer; g.ang = -g.ang; p.facing = steer;
+    if (g.held) g.held.facing = (-steer) as 1 | -1;
+  }
+  g.arc = steer ? 'fwd' : 'down';
+  const tvx = g.arc === 'fwd' ? g.dir * A.ARC_FWD_VX : g.dir * A.ARC_DOWN_VX;
   g.avx += (tvx - g.avx) * A.ARC_STEER;
-  const tang = g.dir * (g.arc === 'back' ? -A.BACK_ANGLE : g.arc === 'fwd' ? A.FWD_ANGLE : A.DOWN_ANGLE);
+  const tang = g.dir * (g.arc === 'fwd' ? A.FWD_ANGLE : A.DOWN_ANGLE);
   g.ang += Math.max(-A.SPIN, Math.min(A.SPIN, tang - g.ang));
   // Down on the floor (coming down): the impact
   if (p.isGrounded && g.t > 1 && g.avy >= 0) return airImpact(ctx, g, 'floor');
@@ -1880,7 +1888,7 @@ const airArc = (ctx: FrameContext, g: Grab, controls: Controls): Controls => {
 const airImpact = (ctx: FrameContext, g: Grab, where: 'floor' | 'wall' | 'ceiling', block?: { x: number; y?: number; w: number; h?: number }): Controls => {
   const { state, fx } = ctx, p = state.player, e = g.held!;
   const { mid } = arcHold(state, g, e);
-  const how: GrabCallout = g.arc === 'back' ? 'backdrop' : g.arc === 'fwd' ? 'spear' : 'piledriver';
+  const how: GrabCallout = g.arc === 'fwd' ? 'spear' : 'piledriver';
   const s = Math.sign(g.avx) || g.dir;
   // (where he ends up: on the floor under where he was, against the wall, under the ceiling)
   let at: { x: number; y: number };
@@ -2271,7 +2279,7 @@ const airLungePose = (c: Ctx, f: number, k: number) => {
 
 /**
  * The air grab's hold through the arc: both arms locked round him, out in front. `ext` 0: knees tucked up (the
- * backflip, the piledriver); 1: legs out straight behind (the dive).
+ * piledriver, nothing held); 1: legs out straight behind (the dive, a direction held).
  */
 const hugPose = (c: Ctx, f: number, ext: number) => {
   const l = (a: number, b: number) => a + (b - a) * ext;
