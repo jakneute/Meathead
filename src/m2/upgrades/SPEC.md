@@ -78,7 +78,8 @@ its own Meathead, the walk screens' cape points from the front (mostly hidden be
 
 ### SABATONS (feet): the dive kick
 - More damage on bosses; the dive kick goes further. Ignores spikes: the spiky enemies that punish a dive kick (KindDef.spiky) and spike hazards.
-- HIT-CONFIRM FOLLOW-UP: Y+B (the beatdown chord; R on the keyboard) shortly after a non-fatal dive-kick hit: he flips
+- FOLLOW-UP: Y+B (the beatdown chord; R on the keyboard) in or shortly after a dive kick (no hit needed since
+  2026-10-31: see "Follow-ups, generally"): he flips
   upside down, grabs the enemy by the shoulders, flips around (swinging them up and over) and hurls them straight
   ahead at high speed: the enemy is a MISSILE into whatever's ahead. Weight counts (melee collateral: mass × speed),
   more potent than the shakedown's throw. Works on enemies in the air too; gravity arcs the throw down. No steering.
@@ -88,7 +89,7 @@ its own Meathead, the walk screens' cape points from the front (mostly hidden be
 
 ### PAULDRONS (shoulders): the shoulder charge
 - More damage on bosses; the charge goes further. Ignores what punishes a charge: horned beasts, spear enemies (KindDef.pointy).
-- FOLLOW-UP: Y+B after a non-fatal charge hit: he grabs them and SPINS THEM INTO THE GROUND, stuck for good with just
+- FOLLOW-UP: Y+B in or just after a charge (no hit needed): he grabs them and SPINS THEM INTO THE GROUND, stuck for good with just
   their head out: harmless. Only on an enemy standing on the ground. The charge pushes them back, so the follow-up's
   reach is wide.
 - THE HEAD KICK: B near a head sticking out of the ground: he kicks the head off like a football, a projectile into
@@ -96,7 +97,8 @@ its own Meathead, the walk screens' cape points from the front (mostly hidden be
   first, then kicks.
 - AS BUILT (Phase D1): the reach is FOLLOW_REACH_CHARGE 190 px; he steps in, lifts, and drills them down to the neck
   (their kind's head height); the head's out of the enemy list (it counts as gone), looks at him, and stays for the
-  stage (12 at most). B on its own within HEAD_KICK_REACH 64 of one: the kick, aimed in an arc at the nearest enemy that
+  stage (12 at most). B on its own within HEAD_KICK_REACH 64 of one (a B button prompt hangs over the head whenever he
+  can kick it: the owner's "show a B button prompt show on screen when ready for a field goal kick"; WorldPrompt.tsx): the kick, aimed in an arc at the nearest enemy that
   way (HEAD_HIT 70 to whoever it hits, a bounce off them); the stump spurts and goes after 6 s. The head itself is
   baked once out of their picture and drawn turned. Callouts PLANTED / FIELD GOAL.
 
@@ -269,7 +271,7 @@ its own Meathead, the walk screens' cape points from the front (mostly hidden be
   i-frames (and a cheap shot may come of it). Without the piece, no damage, as now.
 
 ## Follow-ups, generally
-- The window after the hit: ~30 frames (TUNE). Follow-ups heal like the other grabs. Not on critters (Y+B on a critter
+- The window: during the move and ~24 frames after it (TUNE; it was ~30 after a hit). Follow-ups heal like the other grabs. Not on critters (Y+B on a critter
   is still the critter grab). Not on grab-immune enemies without the hand armor.
 - PEOPLE AND ANIMALS (2026-10-31: "for any of the new grabs, be sure to account for the correct orientation, like we did
   with shakedowns and beatdowns"; "new grabs do work on mid sized animals though... any animal you can beatdown or
@@ -280,11 +282,23 @@ its own Meathead, the walk screens' cape points from the front (mostly hidden be
   drives it down on end head first, then leaves it on its back in the dirt, four legs up, kicking in fits; the flash
   kick slices it nose to tail through the head (dismember.ts sliceInHalf: a slanted cut, head to rump), the top half
   sliding off the bottom.
-- AS BUILT (Phase D1): the last of his moves to land is noted from the engine's melee hook (upgrades/lastHit.ts);
-  Y + B (or the beatdown key) within FOLLOW_WINDOW 30 frames of a hit that didn't kill, in that move's piece, near
-  enough (FOLLOW_REACH 130 across, 170 up/down; the charge's 190), and the follow-up starts there and then, whatever
-  he's in the middle of (a bounce, a recoil). Never on a boss or a sub-boss (the Ensemble's actors included). Each
-  heals FOLLOW_HEAL 12 (×healK). The slide has no follow-up (its trip is the keep-away; the flash kick is up + B).
+- NO HIT NEEDED (2026-10-31: "make the special 'followup grabs' more noticeable and not require a hit confirmation but
+  rather just within a quick window of doing the charge->grab", "but give the new 'special grabs' a wide berth, wider
+  than what appears"): Y+B during the move or within a short window after it grabs the nearest followable enemy in a
+  generous reach. Same eligibility as before. A visible and audible cue while it's on offer; a punchy start.
+- AS BUILT (Phase D1, reworked 2026-10-31): moves/followups.ts notes the last frame he was in a dive kick, charge (not
+  a slide) or uppercut (not the flash kick). Y + B (or the beatdown key) during it or within FOLLOW_WINDOW 24 frames of
+  it ending, in that move's piece, takes the nearest followable enemy whose near edge is within FOLLOW_REACH 200 px
+  across (the charge's FOLLOW_REACH_CHARGE 260) and FOLLOW_REACH_UP 200 up/down of his middle (one behind him counts
+  80 px further; the one the move hit, if any, comes first; the spin's only one stood on the floor; nothing solid in
+  between), and the follow-up starts there and then, whatever he's in the middle of. The ninja drop dashes over to one
+  that's off a way first (5 frames). THE CUE while one's on offer: corner brackets and a glint on the target flickering
+  in the piece's colors (sabatons cowbell gold on rust, pauldrons leopard on jungle green, armguards neon cyan and
+  magenta), the piece on him twinkling, a Y + B prompt over the target (WorldPrompt.tsx, the real buttons), a twinkle
+  sound as it comes on. THE START: rings bursting off him and them and a streak between, a spray of the piece's colors,
+  a jolt, a bang, its name (MISSILE! / PLANTED! / NINJA DROP!). Never on a boss or a sub-boss (the Ensemble's actors
+  included); a Y + B next to a boss inside the window takes a regular enemy in reach over the cheap shot. Each heals
+  FOLLOW_HEAL 12 (×healK). The slide has no follow-up (its trip is the keep-away; the flash kick is up + B).
 
 ## CON-FUCK-TIOUS (not now)
 Meathead's old gym buddy (CON-FUCK-TIOUS is only Meathead's name for him): plays the wise old dojo master, actually a

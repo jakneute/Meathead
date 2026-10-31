@@ -123,6 +123,7 @@ import { pauseCard } from './PauseControls';
 import QtePanel from './fantasy/wheel/QtePanel';
 import IcePanel from './fantasy/bedroom/IcePanel';
 import TragonMarks from './fantasy/tragons/TragonMarks';
+import WorldPrompt from './WorldPrompt';
 import { registerKillLines, m2Kill } from './moves/killLines';
 import { cleanLines } from './lines/clean';
 import { registerGrabCallouts } from './moves/callouts';
@@ -782,6 +783,8 @@ const App2: React.FC = () => {
         )}
         {/* Fairy Land's Truelling Tragons: over each dragon he's not on, the button that hops him there */}
         {status === GameStatus.PLAYING && ui.map === null && !ui.introCutscene && ui.tragonMarks && <TragonMarks marks={ui.tragonMarks} />}
+        {/* B over a head he can kick, Y + B over an armor follow-up's target (moves/followups.ts) */}
+        {status === GameStatus.PLAYING && ui.map === null && !ui.introCutscene && <WorldPrompt />}
         {/* Fairy Land's Truelling Tragons: hopping cars, the first ride (till he's hopped once) */}
         {status === GameStatus.PLAYING && ui.map === null && !ui.introCutscene && ui.tragonTips && !ui.tragonHold && (
           // (a storybook shingle: a navy field banded down, a gilt edge, inked)

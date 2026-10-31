@@ -24,7 +24,7 @@
 import { stepAmulet, amuletShielded, drawAmuletFx, raged } from '../upgrades/amulet';
 import { has } from '../upgrades/state';
 import { HANDS_HEAL } from '../upgrades/tune';
-import { FOLLOW_PHASES, type FollowPhase, type Follow, followIdle, startFollowUp, stepFollow, drawFollow, followTick, followAfter, followUntouchable } from './followups';
+import { FOLLOW_PHASES, type FollowPhase, type Follow, followIdle, startFollowUp, stepFollow, drawFollow, followTick, followAfter, followUntouchable, drawFollowCue } from './followups';
 import { cheapShotStart, cheapShotStep, cheapShotTick, drawCheapShotWorld, cheapShotStunned } from '../upgrades/cheapShot';
 import { walkAwayOn } from '../walkAway';
 import { spawnShielded } from '../spawnSafe';
@@ -2457,6 +2457,8 @@ export const drawGrab = (ctx: Ctx, state: GameState, g: Grab) => {
   drawAmuletFx(ctx, state);
   // (the cheap shot's: the stunned bosses' dizzy stars, the scream over them; him, the engine's own kick)
   drawCheapShotWorld(ctx, state);
+  // (the follow-ups' cue and start burst, the B / Y + B prompts over the world: followups.ts)
+  drawFollowCue(ctx, state, g);
   if (g.phase === 'idle' || g.phase === 'cheap' || state.deathTimer > 0) return;
   const p = state.player, f = state.frame;
   p.hidden = true;

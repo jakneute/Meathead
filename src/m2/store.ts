@@ -98,6 +98,11 @@ export const requestCarHop = (dir: 'up' | 'down') => { carHop = dir; };
 export const takeCarHop = () => { const d = carHop; carHop = null; return d; };
 /** (Truelling Tragons) Where each lane's hop button sits on screen (game px), updated every frame by the ride. */
 export const tragonMarkAt: { x: number; y: number }[] = [{ x: 0, y: 0 }, { x: 0, y: 0 }, { x: 0, y: 0 }];
+/** A button prompt hanging over something in the world (WorldPrompt.tsx reads it on its own frame loop, no re-render):
+ *  'kick' (B, by a head in the ground: moves/followups.ts), 'follow' (Y + B, an armor follow-up on offer), or none;
+ *  where on screen (game px); when it was last set (performance.now(): gone stale, it's hidden, so a pause or a stretch
+ *  that doesn't draw the grabs never leaves one hanging). */
+export const worldPrompt: { kind: 'kick' | 'follow' | null; x: number; y: number; at: number } = { kind: null, x: 0, y: 0, at: 0 };
 
 /** A QTE's button: the face buttons by position, or left / right. */
 export type QteKey = 'A' | 'B' | 'X' | 'Y' | 'LEFT' | 'RIGHT';

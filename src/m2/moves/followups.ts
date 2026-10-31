@@ -1,14 +1,14 @@
 // The hidden upgrades' FOLLOW-UPS (upgrades/SPEC.md: the sabatons, pauldrons, armguards, leg armor; "Follow-ups,
 // generally"), run as grabs of their own inside the grab system (grab.ts hands its phases here).
 //
-//   SABATONS  the MISSILE: Y + B just after a dive kick that didn't kill: he flips upside down over them, takes them by
-//             the shoulders, flips on round swinging them up and over, and hurls them straight ahead, fast (gravity arcs
-//             it down; no steering). Whoever they hit takes their weight and speed, more than a thrown body's.
-//   PAULDRONS the GROUND SPIN: Y + B after a charge that didn't kill, on one standing on the ground (the charge pushed
-//             them back: the reach is wide): spun down into the ground till only the head's out, stuck for good,
-//             harmless. THE HEAD KICK: B by a head in the ground kicks it off like a football into the nearest enemy
-//             that way; nobody that way but somebody the other way, he walks round it, points at them, then kicks.
-//   ARMGUARDS the NINJA DROP: Y + B after an uppercut that didn't kill: on up with them, them upside down under him,
+//   SABATONS  the MISSILE: Y + B in or just after a dive kick (no hit needed): he flips upside down over them, takes
+//             them by the shoulders, flips on round swinging them up and over, and hurls them straight ahead, fast
+//             (gravity arcs it down; no steering). Whoever they hit takes their weight and speed, more than a throw's.
+//   PAULDRONS the GROUND SPIN: Y + B in or just after a charge, on one standing on the ground (the reach is wide):
+//             spun down into the ground till only the head's out, stuck a good while (it digs out), harmless.
+//             THE HEAD KICK: B by a head in the ground (a B prompt over it) kicks it off like a football into the
+//             nearest enemy that way; nobody that way but somebody the other way, he walks round it, points, kicks.
+//   ARMGUARDS the NINJA DROP: Y + B in or just after an uppercut: on up with them, them upside down under him,
 //             then down, spinning like a top, head first into the ground (regular enemies: dead, legs up out of it).
 //   LEG ARMOR the FLASH KICK: up + B any time in a slide (not a follow-up to a hit: B's held through a slide, so up's
 //             pressed with it, or B pressed with up held): one power cell (none, no kick), a backflip with the leg up
@@ -27,6 +27,12 @@
 // The follow-ups need that move's piece; on a grab-immune regular enemy, the hand armor too; never a critter (Y + B on
 // one is still the critter grab), a boss or a sub-boss. Each heals like the other grabs (FOLLOW_HEAL). The window, the
 // reach and the rest: upgrades/tune.ts.
+//
+// NO HIT NEEDED (the owner's "not require a hit confirmation but rather just within a quick window of doing the
+// charge->grab", "give the new 'special grabs' a wide berth, wider than what appears"): Y + B while he's in the move or
+// within FOLLOW_WINDOW frames of it ending takes the nearest one it works on in a reach bigger than it looks (the one
+// the move hit, if it's still in reach). While it's on offer, the one it'd take glints in the piece's colors, the
+// piece on him twinkles, a Y + B prompt hangs over it and a twinkle sounds; the follow-up starts with a burst.
 
 import type { FrameContext } from '../../m1/game/core/context';
 import type { GameState } from '../../m1/game/core/state';
@@ -40,7 +46,7 @@ import { interrupt } from '../../m1/game/enemies/enemies';
 import { playSound } from '../../m1/game/platform/audio';
 import { floorTopAt } from '../../m1/game/core/terrain';
 import { notePowerShort } from '../../m1/game/player/powerShort';
-import { UPPERCUT_SPEED, UPPERCUT_DURATION, PLAYER_GRAVITY, CANVAS_HEIGHT } from '../../m1/constants';
+import { UPPERCUT_SPEED, UPPERCUT_DURATION, PLAYER_GRAVITY, CANVAS_HEIGHT, CANVAS_WIDTH, HUD_CLEAR_Y } from '../../m1/constants';
 import { isMachineKind } from '../../m1/game/enemies/kinds';
 import { markMachineGore } from '../../m1/game/enemies/machineGore';
 import { markKindGore, kindGore } from '../../m1/game/enemies/kindBlood';
@@ -51,6 +57,7 @@ import { since } from '../frames';
 import { has, type ArmorPiece } from '../upgrades/state';
 import { raged } from '../upgrades/amulet';
 import { lastMelee, stampMelee, clearMelee } from '../upgrades/lastHit';
+import { worldPrompt } from '../store';
 import {
   FOLLOW_WINDOW, FOLLOW_REACH, FOLLOW_REACH_CHARGE, FOLLOW_REACH_UP, FOLLOW_HEAL, MISSILE_SPEED, MISSILE_HIT_K,
   HEAD_KICK_SPEED, HEAD_HIT, HEAD_KICK_REACH, BURIED_MAX, BURIED_FREE, BURIED_DIG, NINJA_FALL, NINJA_DAMAGE, NINJA_METEOR_R, NINJA_METEOR_DMG, NINJA_METEOR_STUN, FLASH_RISE, FLASH_RADIUS, FLASH_DAMAGE,
@@ -187,7 +194,66 @@ let heads: Head[] = [];
 const HEAD_G = 0.45, HEAD_LIE = 420, HEAD_FADE = 40;
 
 /** All of it gone (a new game, the stage's own reset). */
-export const stopFollowUps = () => { buried = []; heads = []; clearMelee(); };
+export const stopFollowUps = () => { buried = []; heads = []; clearMelee(); lastMove = null; ready = null; burst = null; };
+
+// ---------------------------------------------------------------------------------------------------------------------
+// The window: the last of the three moves he was in, and who a Y + B would take now
+// ---------------------------------------------------------------------------------------------------------------------
+type FollowMove = 'divekick' | 'charge' | 'uppercut';
+/** The last of his three follow-up moves he was in, and the last frame he was in it (the window counts on from there). */
+let lastMove: { move: FollowMove; at: number } | null = null;
+/** Who a Y + B would take right now (the cue's), and by which move's follow-up. */
+let ready: { e: Enemy; move: FollowMove } | null = null;
+/** The follow-up's start burst: where, when, the colors. */
+let burst: { x: number; y: number; ex: number; ey: number; at: number; cols: readonly [string, string, string]; stage: string } | null = null;
+/** One a bit behind him counts as this much further off (one in front's the one he means). */
+const BEHIND = 80;
+/** Each piece's colors (its land look: armorArt.ts): the bright, the main, the deep. */
+const FOLLOW_COLS: Record<FollowMove, readonly [string, string, string]> = {
+  divekick: ['#FFF2B0', '#F0C850', '#A4532A'], // sabatons: cowbell gold on rusted iron
+  charge: ['#FFEDB8', '#EEC676', '#65A30D'], // pauldrons: leopard on jungle green
+  uppercut: ['#E0FFFF', '#22D3EE', '#E879F9'], // armguards: chrome, neon cyan and magenta
+};
+const FOLLOW_NAME: Record<FollowMove, string> = { divekick: 'MISSILE!', charge: 'PLANTED!', uppercut: 'NINJA DROP!' };
+
+/** Which of the three he's in this frame (the flash kick's an uppercut to the engine: not one of these). */
+const moveNow = (state: GameState): FollowMove | null => {
+  const p = state.player;
+  if (p.flashKick || p.swimming) return null;
+  return p.isDivekicking ? 'divekick' : p.isUppercutting ? 'uppercut' : p.isCharging && !p.isSliding ? 'charge' : null;
+};
+
+/** The one that move's follow-up would take: the nearest it works on in the (generous) reach, one in front before one
+ *  behind, the one the move hit if it's still there; a charge's only one stood on the floor; nothing in between. */
+const followTarget = (state: GameState, move: FollowMove): Enemy | null => {
+  const p = state.player, pm = pmid(state), h = lastMelee();
+  const pref = h && h.move === move ? h.e : null;
+  const across = move === 'charge' ? FOLLOW_REACH_CHARGE : FOLLOW_REACH;
+  let best: Enemy | null = null, bestD = Infinity;
+  for (const e of state.enemies) {
+    if (!followable(e)) continue;
+    const em = emid(e), dx = em.x - pm.x, dy = em.y - pm.y;
+    // (to their near edge, not their middle: bigger than it looks)
+    if (Math.abs(dx) > across + e.width / 2 || Math.abs(dy) > FOLLOW_REACH_UP + e.height / 2) continue;
+    const d = Math.hypot(dx, dy) + (Math.sign(dx) === -p.facing ? BEHIND : 0) - (e === pref ? 1e4 : 0);
+    if (d >= bestD) continue;
+    if (move === 'charge' && standing(state, e) === null) continue;
+    if (!K.clearTo(state, e)) continue;
+    best = e; bestD = d;
+  }
+  return best;
+};
+
+/** Y + B would start a follow-up now: in the window, in the piece, someone it works on in reach. */
+const followReady = (state: GameState): { e: Enemy; move: FollowMove } | null => {
+  const p = state.player;
+  if (!lastMove || since(state.frame, lastMove.at) > FOLLOW_WINDOW) return null;
+  if (p.inCutscene || p.noSpecials || K.handsOnly(state) || p.health <= 0) return null;
+  const piece = PIECE[lastMove.move];
+  if (!piece || !has(piece)) return null;
+  const e = followTarget(state, lastMove.move);
+  return e ? { e, move: lastMove.move } : null;
+};
 
 /** A head out of the ground he can kick from where he is (his feet on its floor, near enough). */
 const headNear = (state: GameState) => {
@@ -210,20 +276,18 @@ const foes = (state: GameState, x: number, y: number) => state.enemies.filter(o 
 // ---------------------------------------------------------------------------------------------------------------------
 
 /**
- * Y + B with a hit just landed that didn't kill (the grab's idle, whatever he's in the middle of): that move's
- * follow-up, if he's its piece and it's one it works on, near enough. True: it's on.
+ * Y + B in one of his three moves or just after it (the grab's idle, whatever he's in the middle of): that move's
+ * follow-up on the nearest one it works on in reach, if he's its piece. No hit needed. True: it's on.
  */
 export const startFollowUp = (ctx: FrameContext, g: Grab) => {
-  const { state } = ctx, p = state.player, h = lastMelee();
-  if (!h || h.at === null || since(state.frame, h.at) > FOLLOW_WINDOW) return false;
-  const piece = PIECE[h.move], e = h.e;
-  if (!piece || !has(piece) || !followable(e) || !state.enemies.includes(e)) return false;
-  const pm = pmid(state), em = emid(e);
-  if (Math.abs(em.x - pm.x) > (h.move === 'charge' ? FOLLOW_REACH_CHARGE : FOLLOW_REACH) || Math.abs(em.y - pm.y) > FOLLOW_REACH_UP) return false;
-  if (!K.clearTo(state, e)) return false;
-  const ground = h.move === 'charge' ? standing(state, e) : 0;
+  const { state } = ctx, p = state.player;
+  const r = followReady(state);
+  if (!r) return false;
+  const { e, move } = r;
+  const ground = move === 'charge' ? standing(state, e) : 0;
   if (ground === null) return false;
-  clearMelee();
+  clearMelee(); lastMove = null; ready = null;
+  const pm = pmid(state), em = emid(e);
   stopMoves(state);
   const d = (Math.sign(em.x - pm.x) || p.facing) as 1 | -1;
   g.dir = d; p.facing = d; g.t = 0;
@@ -233,20 +297,40 @@ export const startFollowUp = (ctx: FrameContext, g: Grab) => {
   // (an animal's taken by the scruff of its neck, the way the grabs hold one: grab.ts drawHeldByNeck)
   if (animal(e)) { const nk = neckOf(e, (-d) as 1 | -1); fu.sh = { x: fu.ef.x + nk.x, y: fu.ef.y + nk.y }; }
   g.fu = fu;
-  if (h.move === 'divekick') { g.phase = 'fmissile'; playSound('whoosh', 1, -6); }
-  else if (h.move === 'charge') {
+  if (move === 'divekick') { g.phase = 'fmissile'; playSound('whoosh', 1, -6); }
+  else if (move === 'charge') {
     g.phase = 'fspin'; fu.ground = ground; fu.ef.y = ground;
     const hd = headOf(e); fu.sink = animal(e) ? hangOf(e) : Math.max(0, -hd.y - hd.r);
     playSound('snort', 0.9, -4);
   } else {
+    // (off a way from them: a dash over to them first (N_DASH, in the step), then up with them)
     g.phase = 'fdrop'; fu.vy = -8;
-    // (room under him for them, upside down, before the floor)
-    const fy = K.feetY(state), floor = floorTopAt(state.blocks, pm.x, fy, 2);
-    if (floor !== null && fy + dropLen(e) + 6 > floor) p.pos.y -= fy + dropLen(e) + 6 - floor;
+    fu.sink = Math.abs(em.x - pm.x) < 24 ? 1 : 0;
+    if (fu.sink) dropRoom(state, e);
     playSound('whoosh', 1.1, -2); playSound('jump', 0.8, -4);
   }
   p.vel = { x: 0, y: 0 };
+  kickoff(ctx, move, pm, em);
   return true;
+};
+
+/** The ninja drop: room under him for them, upside down, before the floor. */
+const dropRoom = (state: GameState, e: Enemy) => {
+  const p = state.player, fy = K.feetY(state), floor = floorTopAt(state.blocks, K.centerX(state), fy, 2);
+  if (floor !== null && fy + dropLen(e) + 6 > floor) p.pos.y -= fy + dropLen(e) + 6 - floor;
+};
+
+/** A follow-up kicking in: a burst of the piece's colors off him and them, the jolt, a bang, its name. */
+const kickoff = (ctx: FrameContext, move: FollowMove, pm: { x: number; y: number }, em: { x: number; y: number }) => {
+  const { state, fx } = ctx, cols = FOLLOW_COLS[move];
+  burst = { x: pm.x, y: pm.y, ex: em.x, ey: em.y, at: state.frame, cols, stage: String(state.stageId) };
+  shakeScreen(state, 8, 6);
+  playSound('slam', 0.8, 6); playSound('twinkle', 1, -6);
+  for (let i = 0; i < 18; i++) {
+    const a = (i / 18) * Math.PI * 2, v = 3 + Math.random() * 4;
+    state.particles.push({ pos: { x: pm.x, y: pm.y }, vel: { x: Math.cos(a) * v, y: Math.sin(a) * v }, life: 18 + Math.random() * 8, color: cols[i % 3], size: 2 + Math.random() * 3 });
+  }
+  fx.spawnDamageNumber({ x: pm.x - 30, y: pm.y - 60 }, FOLLOW_NAME[move], true, cols[1]);
 };
 
 /** Rise of the flash kick's own speed off the floor: a share of the uppercut's (its speed less gravity, its frames). */
@@ -327,8 +411,8 @@ const spinGeo = (g: Grab) => {
   return { yOff, buriedAt: b };
 };
 
-/** The ninja drop's rise (frames), before it comes down. */
-const N_RISE = 12;
+/** The ninja drop's rise (frames), before it comes down; the dash over to them first, if they're off a way. */
+const N_RISE = 12, N_DASH = 5;
 /** The flash kick's frames the circle's out, and the longest it can go before it's called off (he's not down). */
 const F_ACTIVE: [number, number] = [2, 16], F_MAX = 80, F_FLIP = 22;
 /** The head kick's frames: walking (the most), pointing, the kick landing, done. */
@@ -421,6 +505,13 @@ export const stepFollow = (ctx: FrameContext, g: Grab, controls: Controls): Cont
       const e = g.held;
       if (!e) { K.end(state, g); return { ...NO_CONTROLS }; }
       p.vel.x = 0;
+      // (off a way from them: over to them first, at a dash, hanging there; then the room made under him, and up)
+      if (!fu.sink) {
+        K.placeAt(state, fu.c0.x + (fu.ef.x - fu.c0.x) * ease(g.t / N_DASH) - p.width / 2, p.pos.x);
+        p.vel.y = 0; p.isGrounded = false;
+        if (g.t >= N_DASH) { dropRoom(state, e); fu.sink = 1; g.t = 0; }
+        return { ...NO_CONTROLS };
+      }
       fu.vy = g.t <= N_RISE ? -8 * (1 - g.t / N_RISE) : Math.min(NINJA_FALL, fu.vy + 1.3);
       if (fu.vy < 0 && K.ceilingOver(state, fu.vy - 2)) fu.vy = 0;
       fu.spin += 0.25 + Math.min(0.5, g.t * 0.012);
@@ -672,9 +763,14 @@ const trimBuried = () => {
 
 /** Before the grab's step: the last hit stamped, the heads in the ground and the flying ones kept up. */
 export const followTick = (ctx: FrameContext, g: Grab) => {
-  void g;
   const { state } = ctx;
   stampMelee(state.frame);
+  // (the window: the last frame he was in one of the three; and who a Y + B would take now, a twinkle as it comes on)
+  const mv = moveNow(state);
+  if (mv) lastMove = { move: mv, at: state.frame };
+  const had = ready;
+  ready = g.phase === 'idle' ? followReady(state) : null;
+  if (ready && !had) playSound('twinkle', 0.7, 8);
   const stage = String(state.stageId);
   game = state;
   if (buried.length) buried = buried.filter(b => {
@@ -846,6 +942,13 @@ export const drawFollow = (ctx: Ctx, state: GameState, g: Grab) => {
     }
     case 'fdrop': {
       const e = g.held;
+      if (!fu.sink) {
+        // (the dash over to them: them still stood there, him streaking at them)
+        if (e) drawEnemyAt(ctx, e, state, fu.ef.x, fu.ef.y, 0, (-d) as 1 | -1);
+        for (let i = 0; i < 4; i++) { ctx.fillStyle = `rgba(255, 255, 255, ${(0.55 - i * 0.1).toFixed(2)})`; ctx.fillRect(x - d * (30 + i * 14) - (d < 0 ? 0 : 22), y - 40 + i * 8, 22, 2); }
+        sprite(ctx, x, y, d, c => figure(c, f, { feet: [[-12, -4], [10, -10]], hands: [[14, -34], [24, -30]], mood: 'roar', lean: 0.3 }));
+        return;
+      }
       // (coming down: air streaming up past them)
       if (g.t > N_RISE) for (let i = 0; i < 5; i++) { const sx = x - 30 + i * 15, sy = y - 60 - ((f * 11 + i * 23) % 70); ctx.fillStyle = 'rgba(255, 255, 255, 0.45)'; ctx.fillRect(sx, sy, 2, 20); }
       const s = Math.cos(fu.spin), dd = (s >= 0 ? d : -d) as 1 | -1;
@@ -899,6 +1002,78 @@ export const drawFollow = (ctx: Ctx, state: GameState, g: Grab) => {
       return;
     }
   }
+};
+
+/** B on its own would kick a head out of the ground now (followIdle's own test): the head, or null. */
+const kickReady = (state: GameState) => {
+  const p = state.player;
+  if (p.inCutscene || p.noSpecials || K.handsOnly(state) || p.health <= 0 || !p.isGrounded || p.isCharging || p.isUppercutting
+    || p.isDivekicking || p.lockTimer > 0 || (p.pushbackTimer ?? 0) > 0) return null;
+  return headNear(state);
+};
+
+/** The piece on him that glints while a follow-up's on offer, from his feet facing right: the sabatons at his boots, the
+ *  pauldrons at his shoulder, the armguards at his forearm. */
+const GLINT_AT: Record<FollowMove, [number, number]> = { divekick: [5, -4], charge: [6, -50], uppercut: [14, -32] };
+/** A four-point glint, pixel-stepped. */
+const glint = (c: Ctx, x: number, y: number, r: number, col: string) => {
+  x = Math.round(x); y = Math.round(y);
+  c.fillStyle = col;
+  c.fillRect(x - r, y - 1, r * 2, 2); c.fillRect(x - 1, y - r, 2, r * 2); c.fillRect(x - 2, y - 2, 4, 4);
+};
+
+/** The prompt over the world (App's WorldPrompt reads it): which, and where on the screen (game px) off the canvas's own
+ *  transform (a zoomed fight's too), kept under the HUD band and on screen. */
+const setPrompt = (c: Ctx, pr: { kind: 'kick' | 'follow'; x: number; y: number } | null) => {
+  if (!pr || typeof c.getTransform !== 'function' || !c.canvas) { worldPrompt.kind = null; return; }
+  const m = c.getTransform(), sx = CANVAS_WIDTH / c.canvas.width, sy = CANVAS_HEIGHT / c.canvas.height;
+  worldPrompt.x = Math.max(40, Math.min(CANVAS_WIDTH - 40, (m.a * pr.x + m.c * pr.y + m.e) * sx));
+  worldPrompt.y = Math.max(HUD_CLEAR_Y + 30, Math.min(CANVAS_HEIGHT - 24, (m.b * pr.x + m.d * pr.y + m.f) * sy));
+  worldPrompt.kind = pr.kind; worldPrompt.at = performance.now();
+};
+
+/**
+ * Over everything, every frame (grab.ts drawGrab, first): a follow-up on offer (brackets and a glint on the one it'd
+ * take in the piece's colors, the piece on him twinkling, the Y + B prompt over them), else a head he could kick (the B
+ * prompt over it: the owner's "when near a planted enemy, show a B button prompt"); and a follow-up's start burst.
+ */
+export const drawFollowCue = (c: Ctx, state: GameState, g: Grab) => {
+  const f = state.frame, p = state.player;
+  let prompt: { kind: 'kick' | 'follow'; x: number; y: number } | null = null;
+  if (burst && (burst.stage !== String(state.stageId) || since(f, burst.at) > 14)) burst = null;
+  if (burst) {
+    const t = since(f, burst.at), k = t / 14;
+    c.save();
+    c.globalAlpha = Math.max(0, 1 - k);
+    for (const [bx, by, r0] of [[burst.x, burst.y, 12], [burst.ex, burst.ey, 8]]) {
+      c.strokeStyle = burst.cols[0]; c.lineWidth = 4; c.beginPath(); c.arc(bx, by, r0 + 56 * k, 0, Math.PI * 2); c.stroke();
+      c.strokeStyle = burst.cols[2]; c.lineWidth = 2; c.beginPath(); c.arc(bx, by, Math.max(1, r0 + 56 * k - 6), 0, Math.PI * 2); c.stroke();
+    }
+    // (a streak of it from him to them, the first frames)
+    if (t < 5) { c.strokeStyle = burst.cols[1]; c.lineWidth = 3; c.beginPath(); c.moveTo(burst.x, burst.y); c.lineTo(burst.ex, burst.ey); c.stroke(); }
+    c.restore();
+  }
+  if (g.phase === 'idle' && !p.inCutscene && state.deathTimer <= 0) {
+    if (ready && state.enemies.includes(ready.e)) {
+      const e = ready.e, cols = FOLLOW_COLS[ready.move], on = f % 6 < 3;
+      // (brackets at its corners, flickering)
+      const x0 = Math.round(e.pos.x - 6), y0 = Math.round(e.pos.y - 6), x1 = Math.round(e.pos.x + e.width + 6), y1 = Math.round(e.pos.y + e.height + 6), L = 9;
+      c.fillStyle = on ? cols[0] : cols[1];
+      for (const [cx, cy, sx, sy] of [[x0, y0, 1, 1], [x1, y0, -1, 1], [x0, y1, 1, -1], [x1, y1, -1, -1]]) {
+        c.fillRect(sx > 0 ? cx : cx - L, sy > 0 ? cy : cy - 2, L, 2);
+        c.fillRect(sx > 0 ? cx : cx - 2, sy > 0 ? cy : cy - L, 2, L);
+      }
+      glint(c, e.pos.x + e.width / 2, e.pos.y - 12, on ? 7 : 5, cols[0]);
+      // (the piece on him, twinkling)
+      const [gx, gy] = GLINT_AT[ready.move];
+      glint(c, K.centerX(state) + p.facing * gx, K.feetY(state) + gy, on ? 6 : 4, on ? '#FFFFFF' : cols[0]);
+      prompt = { kind: 'follow', x: e.pos.x + e.width / 2, y: e.pos.y - 24 };
+    } else {
+      const b = kickReady(state);
+      if (b) { const hs = headSpot(b, faceOf(state, b)); prompt = { kind: 'kick', x: hs.x, y: hs.y - headOf(b.e).r - 10 }; }
+    }
+  }
+  setPrompt(c, prompt);
 };
 
 /** The heads in the ground, the stumps, the bodies legs up out of it, and kicked heads flying or lying (behind him:

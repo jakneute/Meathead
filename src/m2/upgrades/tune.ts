@@ -57,10 +57,13 @@ export const YELL_EDGE = 24;
 export const AMULET_ANGRY_AT = 0.4;
 
 // ---- the follow-ups (moves/followups.ts; SPEC "Follow-ups, generally" and each piece's)
-/** How long after a non-fatal hit (dive kick, charge, uppercut) Y + B still makes the follow-up (frames). */
-export const FOLLOW_WINDOW = 30;
-/** How far off he can be from the one he hit and still get to it: across (a charge's push sends them further), up/down. */
-export const FOLLOW_REACH = 130, FOLLOW_REACH_CHARGE = 190, FOLLOW_REACH_UP = 170;
+/** No hit needed (the owner's "not require a hit confirmation but rather just within a quick window of doing the
+ *  charge->grab"): Y + B any time in the move (dive kick, charge, uppercut) or this many frames after it ends. */
+export const FOLLOW_WINDOW = 24;
+/** How far off one can be and still get taken ("give the new 'special grabs' a wide berth, wider than what appears"):
+ *  across, from his middle to their near edge (the charge's wider), up/down the same way. Was 130 / 190 / 170 to their
+ *  middle, after a hit. */
+export const FOLLOW_REACH = 200, FOLLOW_REACH_CHARGE = 260, FOLLOW_REACH_UP = 200;
 /** Health back for a follow-up (the air grab's 12; times the enemy's healK, nothing off noHeal). */
 export const FOLLOW_HEAL = 12;
 /** Sabatons' missile: how fast he's hurled (px a frame; the shakedown's throw is 17), and what he does to whoever he
