@@ -46,7 +46,8 @@ import { say, cutVoice, pickLine } from '../../../m1/game/platform/speech';
 import { hurtPlayer } from '../../../m1/game/bosses/shared';
 import { rectsOverlap, boundsOf } from '../../../m1/game/core/utils';
 import { getAttackHitbox, recoilOff } from '../../../m1/game/player/player';
-import { POWER_CELLS, BOUNCE_FRAMES } from '../../../m1/constants';
+import { BOUNCE_FRAMES } from '../../../m1/constants';
+import { subBossMelee } from '../../upgrades/bossMelee';
 import { isShat, isNude } from '../../../m1/game/player/gut';
 import { topBand, CANVAS_WIDTH } from '../../../m1/constants';
 import { solid, box, label, saidOver, meatheadSays, voice, type Said } from '../section';
@@ -95,8 +96,8 @@ const FLOOR_L = BACK_X + WALL_W + 20, FLOOR_R = ARENA_OUT - 20;
 // (eased about a fifth (the user's: somewhat less): was crush 44, wave 24, airbody 22, sweep 34, rush 40, pillar 32,
 // breath 34, swing 22, upswing 22, smash 46, bump 14)
 const DMG = { crush: 34, wave: 19, airbody: 17, sweep: 27, rush: 31, pillar: 25, breath: 27, swing: 17, upswing: 17, smash: 36, bump: 11 };
-/** His moves on him (his own say, not the engine's: see demonTouch). */
-const MELEE = { charge: 34, slide: 22, uppercut: 110, divekick: 60 };
+/** His moves on him (his own say, not the engine's: see demonTouch): a sub-boss's normalized hit (upgrades/bossMelee.ts:
+ *  52.5 each, 105 with the move's armor piece; were charge 34, slide 22, uppercut 110, dive kick 60). */
 /** Wind-ups (frames; ×0.8 under 40%). */
 const WIND = { crouch: 40, sweep: 46, rush: 56, point: 34, glow: 56, inhale: 52, combo: 26 };
 /** Recoveries: how long he's open after each (frames). */
@@ -250,21 +251,20 @@ const demonTouch = (ctx: FrameContext, e: Enemy): boolean => {
   if (e.hitByMove === p.moveId) return true;
   if (!rectsOverlap(getAttackHitbox(ctx), boundsOf(e))) return true;
   const up = !!p.isUppercutting, dk = !!p.isDivekicking, slide = !up && !dk && !!p.isSliding;
-  const dmg = up ? MELEE.uppercut : dk ? MELEE.divekick : slide ? MELEE.slide : MELEE.charge;
+  const dmg = subBossMelee(p);
   e.hitByMove = p.moveId; e.hitCooldown = 0;
   if (up) p.uppercutHitIds.push(e.id);
   if (dk) p.diveKickHitIds.push(e.id);
   const pc = p.pos.x + p.width / 2, dir = Math.sign(d.x - pc) || 1;
   const at = { x: d.x - dir * W * 0.4, y: dk ? d.y - H + 10 : up ? d.y - H * 0.6 : slide ? d.y - 20 : d.y - H * 0.45 };
   hurt(ctx, d, dmg);
-  ctx.fx.spawnDamageNumber({ x: at.x - 10, y: at.y - 20 }, dmg, up || dk);
+  ctx.fx.spawnDamageNumber({ x: at.x - 10, y: at.y - 20 }, Math.round(dmg), up || dk);
   ctx.fx.playGunSound(dk ? 'stomp' : 'punch');
   spurt(state, at.x, at.y, up ? 16 : 8, -dir);
   if (d.fight !== 'on') return true;
   if (up) { shakeScreen(state, 10, 6); ctx.fx.spawnExplosion(at, '#FFD700', 15, 0, 12); playSound('crunch', 0.8, -6); }
   if (dk) {
-    // (the stomp: the bounce and the power back, as off anything; chains of them are the game's own, never capped)
-    p.power = Math.min(POWER_CELLS, p.power + 1);
+    // (the stomp: the bounce (no power back: the dive kick's free in Meathead 2); chains of them are the game's own)
     ctx.fx.playGunSound('boing', 0.6);
     p.vel.y = -STOMP_LAUNCH; p.vel.x *= 0.5; p.isGrounded = false;
     p.lockTimer = BOUNCE_FRAMES; p.recoiling = true;

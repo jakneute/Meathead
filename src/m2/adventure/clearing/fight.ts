@@ -59,7 +59,8 @@ import { makeKindEnemy } from '../../../m1/game/enemies/kinds';
 import { registerDeathKind, type MeatheadDeath } from '../../../m1/game/player/deathAnim';
 import { body as drawMeatheadBody } from '../../../m1/game/render/player/deathAnim';
 import { stabLean, STAB_WOUND } from '../../../m1/game/render/player/player';
-import { CANVAS_WIDTH, CANVAS_HEIGHT, BULLET_DAMAGE, BOSS_CHARGE_DAMAGE, BOSS_UPPERCUT_DAMAGE } from '../../../m1/constants';
+import { CANVAS_WIDTH, CANVAS_HEIGHT, BULLET_DAMAGE } from '../../../m1/constants';
+import { bossMelee } from '../../upgrades/bossMelee';
 import { registerM2Kind, registerHurtLines } from '../../kinds';
 import { newSpam, spamTick, hitKey, swatOff, type Spam, BOSS_IFRAMES } from '../../bossSpam';
 import { aliensOn, brushOff, popAliensIn, setSpawnerBaits, takeBites, type SpawnerBait } from '../../weapons/spawner';
@@ -939,10 +940,10 @@ const takeHits = (ctx: FrameContext, f: Fight) => {
   if (f.iframes <= 0) {
     // (his weakness's own shots in full; anything else, a land boss shrugs most of it off)
     // (the ray gun and his own moves in full; any other special weapon a land boss mostly shrugs off)
-    // (the ray gun and his moves, Meathead 1's way: a shot 25, the charge and slide 35, the uppercut and dive kick 50;
+    // (the ray gun a shot 25; his four moves 37.5 each, 75 with the move's armor piece (upgrades/bossMelee.ts);
     // his weakness's own shots in full; any other special weapon, a fraction)
     const p = state.player;
-    const dmg = melee ? (p.isUppercutting || p.isDivekicking ? BOSS_UPPERCUT_DAMAGE : BOSS_CHARGE_DAMAGE)
+    const dmg = melee ? bossMelee(p)
       : p.currentWeapon === 'GUN' ? BULLET_DAMAGE : p.currentWeapon === 'SPAWNER' ? hit : Math.max(1, hit * SHARE);
     f.hp -= dmg; f.iframes = IFRAMES; f.flash = 10;
     if (f.hp <= 0) { f.byWeakness = aliensOn(e) > 0; return; }

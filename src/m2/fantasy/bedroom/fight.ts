@@ -57,7 +57,8 @@ import { hurtPlayer } from '../../../m1/game/bosses/shared';
 import { isShat, isNude } from '../../../m1/game/player/gut';
 import { makeKindEnemy } from '../../../m1/game/enemies/kinds';
 import { registerDeathKind, type MeatheadDeathKind } from '../../../m1/game/player/deathAnim';
-import { CANVAS_WIDTH, CANVAS_HEIGHT, BULLET_DAMAGE, BOSS_CHARGE_DAMAGE, BOSS_UPPERCUT_DAMAGE } from '../../../m1/constants';
+import { CANVAS_WIDTH, CANVAS_HEIGHT, BULLET_DAMAGE } from '../../../m1/constants';
+import { bossMelee } from '../../upgrades/bossMelee';
 import { setErect } from '../../../m1/game/render/player/body';
 import { registerM2Kind, registerHurtLines } from '../../kinds';
 import { newSpam, spamTick, hitKey, swatOff, type Spam, BOSS_IFRAMES } from '../../bossSpam';
@@ -1015,7 +1016,7 @@ const contact = (ctx: FrameContext, f: Fight) => {
 
 const plainHit = (state: GameState, melee: boolean): number | null => {
   const p = state.player;
-  if (melee) return p.isUppercutting || p.isDivekicking ? BOSS_UPPERCUT_DAMAGE : BOSS_CHARGE_DAMAGE;
+  if (melee) return bossMelee(p);
   return p.currentWeapon === 'GUN' ? BULLET_DAMAGE : null;
 };
 

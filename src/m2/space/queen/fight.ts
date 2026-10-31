@@ -25,7 +25,7 @@
 //   THE FLAIL     him in close too long (her reach, about a second and a half): a twitch and a spark (the tell), then all
 //                 four arms going at once, a wide heavy hit that knocks him back. Backing off resets it.
 //   HURTING HER   a main boss's rules: 666, the 60-frame breather after each hit; the ray gun and his moves Meathead 1's
-//                 way (a shot 25; charge and slide 35; uppercut and dive kick 50); any other special weapon 25%. Her
+//                 way (a shot 25; his four moves 37.5, 75 with the armor: bossMelee); any other special weapon 25%. Her
 //                 weakness is the MALLET (in full). And:
 //                   - one of her own (or anybody) thrown into her: it's destroyed, and she's hurt;
 //                   - one of her own BATTED back into her with the mallet: the big one (not a finisher: eight-odd of them
@@ -60,7 +60,8 @@ import { hurtPlayer } from '../../../m1/game/bosses/shared';
 import { isShat, isNude } from '../../../m1/game/player/gut';
 import { makeKindEnemy } from '../../../m1/game/enemies/kinds';
 import { registerDeathKind } from '../../../m1/game/player/deathAnim';
-import { BULLET_DAMAGE, BOSS_CHARGE_DAMAGE, BOSS_UPPERCUT_DAMAGE, CANVAS_WIDTH, CANVAS_HEIGHT, HUD_CLEAR_Y } from '../../../m1/constants';
+import { BULLET_DAMAGE, CANVAS_WIDTH, CANVAS_HEIGHT, HUD_CLEAR_Y } from '../../../m1/constants';
+import { bossMelee } from '../../upgrades/bossMelee';
 import { registerM2Kind, registerHurtLines } from '../../kinds';
 import { newSpam, spamTick, hitKey, type Spam, BOSS_IFRAMES } from '../../bossSpam';
 import { takeBites } from '../../weapons/spawner';
@@ -1003,7 +1004,7 @@ const takeHits = (ctx: FrameContext, f: Fight) => {
   if (hit <= 0.5 || (f.iframes > 0 && !smash)) return;
   // (a straight hit of the mallet's own, reported by it: not just anything that hurts her while he's holding it)
   const mallet = !!mh;
-  const dmg = smash ? MALLET_SMASH : melee ? (p.isUppercutting || p.isDivekicking ? BOSS_UPPERCUT_DAMAGE : BOSS_CHARGE_DAMAGE)
+  const dmg = smash ? MALLET_SMASH : melee ? bossMelee(p)
     : p.currentWeapon === 'GUN' ? BULLET_DAMAGE : mallet ? Math.min(hit, MALLET_HIT) : Math.max(1, hit * SHARE);
   const before = f.hp;
   f.hp -= dmg; f.iframes = IFRAMES;

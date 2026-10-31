@@ -52,7 +52,8 @@ import { SKIP_AFTER, offerSkip, takeSkip, drawSkipPrompt } from '../../../m1/gam
 import { hurtPlayer } from '../../../m1/game/bosses/shared';
 import { isShat, isNude } from '../../../m1/game/player/gut';
 import { makeKindEnemy } from '../../../m1/game/enemies/kinds';
-import { CANVAS_WIDTH, CANVAS_HEIGHT, BULLET_DAMAGE, BOSS_CHARGE_DAMAGE, BOSS_UPPERCUT_DAMAGE } from '../../../m1/constants';
+import { CANVAS_WIDTH, CANVAS_HEIGHT, BULLET_DAMAGE } from '../../../m1/constants';
+import { bossMelee } from '../../upgrades/bossMelee';
 import { registerM2Kind } from '../../kinds';
 import { newSpam, spamTick, hitKey, swatOff, type Spam, BOSS_IFRAMES } from '../../bossSpam';
 import { keepForRevisits } from '../../store';
@@ -1187,7 +1188,7 @@ const barfing = (ctx: FrameContext, f: Fight) => {
 
 const plainHit = (state: GameState, melee: boolean): number | null => {
   const p = state.player;
-  if (melee) return p.isUppercutting || p.isDivekicking ? BOSS_UPPERCUT_DAMAGE : BOSS_CHARGE_DAMAGE;
+  if (melee) return bossMelee(p);
   return p.currentWeapon === 'GUN' ? BULLET_DAMAGE : null;
 };
 

@@ -49,7 +49,8 @@ import { silenceAll, pickLine } from '../../../m1/game/platform/speech';
 import { SKIP_AFTER, offerSkip, takeSkip, drawSkipPrompt } from '../../../m1/game/platform/skip';
 import { hurtPlayer } from '../../../m1/game/bosses/shared';
 import { makeKindEnemy } from '../../../m1/game/enemies/kinds';
-import { CANVAS_WIDTH, CANVAS_HEIGHT, BULLET_DAMAGE, BOSS_CHARGE_DAMAGE, BOSS_UPPERCUT_DAMAGE } from '../../../m1/constants';
+import { CANVAS_WIDTH, CANVAS_HEIGHT, BULLET_DAMAGE } from '../../../m1/constants';
+import { bossMelee } from '../../upgrades/bossMelee';
 import { registerM2Kind } from '../../kinds';
 import { newSpam, spamTick, hitKey, swatOff, type Spam, BOSS_IFRAMES } from '../../bossSpam';
 import { TOO_BIG_BY_KIND } from '../../lines/weaponLines';
@@ -824,7 +825,7 @@ const leave = (state: GameState, l: Lion) => {
 // ---- hits on him
 const plainHit = (state: GameState, melee: boolean): number | null => {
   const p = state.player;
-  if (melee) return p.isUppercutting || p.isDivekicking ? BOSS_UPPERCUT_DAMAGE : BOSS_CHARGE_DAMAGE;
+  if (melee) return bossMelee(p);
   return p.currentWeapon === 'GUN' ? BULLET_DAMAGE : null;
 };
 const takeHits = (ctx: FrameContext, f: Fight) => {

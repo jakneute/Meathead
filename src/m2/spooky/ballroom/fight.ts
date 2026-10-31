@@ -52,7 +52,8 @@ import { bossIntroSeen, markBossIntroSeen } from '../../bossIntro';
 import { hurtPlayer } from '../../../m1/game/bosses/shared';
 import { isShat, isNude } from '../../../m1/game/player/gut';
 import { makeKindEnemy } from '../../../m1/game/enemies/kinds';
-import { CANVAS_WIDTH, CANVAS_HEIGHT, BULLET_DAMAGE, BOSS_CHARGE_DAMAGE, BOSS_UPPERCUT_DAMAGE } from '../../../m1/constants';
+import { CANVAS_WIDTH, CANVAS_HEIGHT, BULLET_DAMAGE } from '../../../m1/constants';
+import { bossMelee } from '../../upgrades/bossMelee';
 import { registerM2Kind, registerHurtLines } from '../../kinds';
 import { newSpam, spamTick, hitKey, type Spam, BOSS_IFRAMES } from '../../bossSpam';
 import { setSouvenirPick, setSouvenirHit, souvenirMaxHit } from '../../weapons/souvenir';
@@ -869,11 +870,11 @@ const takeHits = (ctx: FrameContext, f: Fight) => {
   if (f.hp > 0 && Math.random() < 0.12) bark(f, L.DONNIE_HURT);
 };
 
-/** The ray gun and his own moves: what they do to any boss, Meathead 1's way (a shot 25; the charge and slide 35; the
- *  uppercut and dive kick 50). Null: a special weapon. */
+/** The ray gun and his own moves: what they do to any boss, a shot 25; his four moves 37.5 each, 75 with the move's
+ *  armor piece (upgrades/bossMelee.ts). Null: a special weapon. */
 const plainHit = (state: GameState, melee: boolean): number | null => {
   const p = state.player;
-  if (melee) return p.isUppercutting || p.isDivekicking ? BOSS_UPPERCUT_DAMAGE : BOSS_CHARGE_DAMAGE;
+  if (melee) return bossMelee(p);
   return p.currentWeapon === 'GUN' ? BULLET_DAMAGE : null;
 };
 

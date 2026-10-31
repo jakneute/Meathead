@@ -66,7 +66,8 @@ import { pickLine, silenceAll, isTalking } from '../../../m1/game/platform/speec
 import { SKIP_AFTER, offerSkip, takeSkip, drawSkipPrompt } from '../../../m1/game/platform/skip';
 import { hurtPlayer } from '../../../m1/game/bosses/shared';
 import { makeKindEnemy } from '../../../m1/game/enemies/kinds';
-import { CANVAS_WIDTH, CANVAS_HEIGHT, BULLET_DAMAGE, BOSS_CHARGE_DAMAGE, BOSS_UPPERCUT_DAMAGE } from '../../../m1/constants';
+import { CANVAS_WIDTH, CANVAS_HEIGHT, BULLET_DAMAGE } from '../../../m1/constants';
+import { bossMelee } from '../../upgrades/bossMelee';
 import { registerM2Kind, registerHurtLines } from '../../kinds';
 import { newSpam, spamTick, hitKey, swatOff, type Spam, BOSS_IFRAMES } from '../../bossSpam';
 import { setStuntCarHook, snapClapper } from '../../weapons/stuntCar';
@@ -1174,7 +1175,7 @@ const chatter = (ctx: FrameContext, f: Fight) => {
 /** Nothing left but him: the family all flattened, the couch crushed, him up flailing (any hit's the last). */
 const plainHit = (state: GameState, melee: boolean): number | null => {
   const p = state.player;
-  if (melee) return p.isUppercutting || p.isDivekicking ? BOSS_UPPERCUT_DAMAGE : BOSS_CHARGE_DAMAGE;
+  if (melee) return bossMelee(p);
   return p.currentWeapon === 'GUN' ? BULLET_DAMAGE : null;
 };
 const takeHits = (ctx: FrameContext, f: Fight) => {
