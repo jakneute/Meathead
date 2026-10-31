@@ -72,6 +72,8 @@ Fairy: pink sequins, glitter crystal, tiara spikes; Cartoon: flat, outlined, a b
 - THE FLASH KICK (2026-10-31: "pressing up+b during a slide tackle will do a [Guile] like flip kick"): not a hit-confirm
   like the other follow-ups: Up+B at any point DURING a slide (the leg armor's longer slide gives room for it) launches
   Guile's flash kick, a backflip with the leg sweeping up in an arc. Costs ONE power cell; can't start with less.
+  It rises LESS than the uppercut ("flash kick doesn't get as much vertical thrust as an uppercut"): a short hop up,
+  TUNE about half the uppercut's height; the reach is the circle, not the height.
   - It connects: a BIG CIRCULAR AOE around him, HEAVY damage (TUNE: 150 on regular enemies, like the uppercut; on
     bosses/sub-bosses the armored share, 75 / 105, through bossMelee).
   - Anyone it kills is SLICED IN HALF VERTICALLY, down the forehead, the two halves falling apart, gore. Regular enemies
