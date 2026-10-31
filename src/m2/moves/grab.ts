@@ -29,6 +29,7 @@ import { cheapShotStart, cheapShotStep, cheapShotTick, drawCheapShotWorld } from
 import { walkAwayOn } from '../walkAway';
 import { spawnShielded } from '../spawnSafe';
 import { pickLine } from '../../m1/game/platform/speech';
+import { playBeatSting } from '../music/sting';
 import type { FrameContext } from '../../m1/game/core/context';
 import type { GameState } from '../../m1/game/core/state';
 import { shakeScreen } from '../../m1/game/core/state';
@@ -155,6 +156,14 @@ const BLOW_BUFFER = 10;
  * The shove: him knocked back and up off him, a moment before he's his own again; the other dazed a moment.
  */
 const BEAT_WINDOW = 150, BULK_WINDOW = 1.5, SHOVE_VX = 9, SHOVE_VY = 7, SHOVE_RECOVER = 16, SHOVE_DAZE = 36;
+/**
+ * The line-up (the user: "when a beatdown grab is successful, line everything up and play a short jingle before the
+ * smashing happens", "kinda like a fatality sting"): between the catch and the first blow, LINEUP frames (TUNE: 45, 0.75 s)
+ * where the two of them snap into the mount (over LINEUP_SNAP), the world dims round them and holds still, nothing can
+ * hurt him, and the sting plays (music/sting.ts); then the blow window starts (it doesn't tick in here). Blows pressed in
+ * its last BLOW_BUFFER frames are kept for the first. LINEUP_HIT: the frame the sting's big hit lands on (a jolt then).
+ */
+const LINEUP = 45, LINEUP_SNAP = 8, LINEUP_HIT = 20, LINEUP_DIM = 0.55, LINEUP_STILL_X = 640;
 // The shakedown
 /** Thrown, it takes a modest share of him; slammed, a big one. */
 /** Each throw's animation: how long, and the frame he lets go on. */
@@ -226,7 +235,7 @@ const grabbedHurts = (ctx: FrameContext, e: Enemy) => {
   hurtPlayer(ctx, h.dmg, e.kind!, { x: 0, y: 0 }, 0);
 };
 
-type Phase = 'idle' | 'windup' | 'lunge' | 'whiff' | 'mount' | 'kill' | 'reach' | 'shake' | 'toss' | 'miss' | 'plummet' | 'drop' | 'critter' | 'pitch' | 'smash' | 'stomp' | 'hug'
+type Phase = 'idle' | 'windup' | 'lunge' | 'whiff' | 'lineup' | 'mount' | 'kill' | 'reach' | 'shake' | 'toss' | 'miss' | 'plummet' | 'drop' | 'critter' | 'pitch' | 'smash' | 'stomp' | 'hug'
   // (the air grab: wound up, launched with hands out, the arc down with one in his arms, the impact)
   | 'awind' | 'alunge' | 'aarc' | 'aland'
   // (the hidden upgrades' follow-ups: followups.ts)
@@ -310,11 +319,14 @@ export interface Grab {
   airT: number;
   /** The follow-up under way (followups.ts), or null. */
   fu: Follow | null;
+  /** The line-up's start (drawn only, eased away over LINEUP_SNAP): his own offset from where he's put (x), the held
+   *  one's feet from his (ex, ey), and whether the held one's already lying pinned (down from a plummet). */
+  line: { mx: number; ex: number; ey: number; pinned: boolean } | null;
 }
 
 export const createGrab = (state: GameState): Grab => ({
   phase: 'idle', t: 0, dir: 1, held: null, blow: 'punch', blowT: -1, want: null, window: BEAT_WINDOW, healBank: 0, punchN: 0, ammoLeft: 0, nextPunchAt: 0, hp: state.player.health, yHeld: 0, yChord: false, was: { ...NO_CONTROLS }, shaken: new WeakSet(), gate: new Set(), pend: null, clearT: 0, calmed: new Set(), toss: 'forward', thrown: null, flying: [], fall: 0, pitch: 'right', aim: null, queued: null, windHp: 0, pb: 0, bumpT: 0, airSpent: false,
-  airLock: false, diveOk: false, arcJump: true, arc: 'down', ang: 0, avx: 0, avy: 0, hitAt: null, lastVy: 0, airT: 0, fu: null,
+  airLock: false, diveOk: false, arcJump: true, arc: 'down', ang: 0, avx: 0, avy: 0, hitAt: null, lastVy: 0, airT: 0, fu: null, line: null,
 });
 
 const feetY = (state: GameState) => state.player.pos.y + state.player.height;
@@ -412,7 +424,7 @@ const end = (state: GameState, g: Grab) => {
 const letGo = (state: GameState, g: Grab, toss = false) => {
   const e = g.held;
   // (one already finished, mid-finisher: nothing to put back)
-  if (e && e.health > 0) putBack(state, e, g.phase === 'mount' ? centerX(state) + g.dir * 18 : centerX(state) + g.dir * 30);
+  if (e && e.health > 0) putBack(state, e, g.phase === 'mount' || g.phase === 'lineup' ? centerX(state) + g.dir * 18 : centerX(state) + g.dir * 30);
   // (jumped off a beatdown: he's sent up in the air again)
   if (e && e.health > 0 && toss) { e.vel = { x: g.dir * 2, y: -10 }; e.pauseTimer = Math.max(e.pauseTimer || 0, 40); }
   end(state, g);
@@ -878,15 +890,15 @@ export const updateGrab = (ctx: FrameContext, g: Grab, controls: Controls): Cont
 // the held one being drawn at his hands; ladders, vines and wires already keep off him while grabBusy())
 // ---------------------------------------------------------------------------------------------------------------------
 /** Phases where he's stood on something (or should come down on it): a throw up from under him is cancelled. */
-const PINNED = new Set<Phase>(['windup', 'lunge', 'whiff', 'miss', 'reach', 'mount', 'kill', 'shake', 'toss', 'critter', 'pitch', 'smash', 'stomp', 'hug', 'aland', 'drop', 'plummet', 'aarc', 'fspin', 'fkick']);
+const PINNED = new Set<Phase>(['windup', 'lunge', 'whiff', 'miss', 'reach', 'lineup', 'mount', 'kill', 'shake', 'toss', 'critter', 'pitch', 'smash', 'stomp', 'hug', 'aland', 'drop', 'plummet', 'aarc', 'fspin', 'fkick']);
 /** Both hands on somebody (no doing it swimming). */
-const TWO_HANDED = new Set<Phase>(['mount', 'kill', 'shake', 'toss', 'drop', 'plummet', 'smash', 'stomp', 'hug', 'fmissile', 'fspin', 'fdrop']);
+const TWO_HANDED = new Set<Phase>(['lineup', 'mount', 'kill', 'shake', 'toss', 'drop', 'plummet', 'smash', 'stomp', 'hug', 'fmissile', 'fspin', 'fdrop']);
 /** Needs the floor under him the whole time. */
-const FLOORED = new Set<Phase>(['mount', 'shake', 'fspin', 'fkick']);
+const FLOORED = new Set<Phase>(['lineup', 'mount', 'shake', 'fspin', 'fkick']);
 const OFF_FLOOR_MAX = 10;
 /** The longest each phase can go on (frames): well past its own end (the beatdown's bulked window is 225), a net only. */
 const PHASE_MAX: Record<Phase, number> = {
-  idle: Infinity, windup: 60, lunge: 60, whiff: 90, miss: 90, reach: 60, mount: 420, kill: 60, shake: 150, toss: 90,
+  idle: Infinity, windup: 60, lunge: 60, whiff: 90, miss: 90, reach: 60, lineup: 90, mount: 420, kill: 60, shake: 150, toss: 90,
   critter: 200, pitch: 60, plummet: 150, drop: 150, smash: 120, stomp: 150, hug: 200, awind: 90, alunge: 90, aarc: 200, aland: 60,
   fmissile: 90, fspin: 120, fdrop: 150, fflash: 120, fkick: 320, cheap: 240,
 };
@@ -935,7 +947,7 @@ const stepGrab = (ctx: FrameContext, g: Grab, controls: Controls): Controls => {
   // (or the amulet's rage after its yell: upgrades/amulet.ts)
   // (or a follow-up up in the air with somebody: followups.ts)
   // (or the cheap shot's cutscene: upgrades/cheapShot.ts)
-  p.untouchable = p.airGrab || spawnShielded(state) || amuletShielded() || followUntouchable(g) || g.phase === 'cheap';
+  p.untouchable = p.airGrab || spawnShielded(state) || amuletShielded() || followUntouchable(g) || g.phase === 'cheap' || g.phase === 'lineup';
   if (wasAir && !p.airGrab) p.noContactUntil = state.frame + AIR_CONTACT_GRACE;
   const press = (k: keyof Controls) => !!controls[k] && !was[k];
   if (state.deathTimer > 0 || p.health <= 0) { if (g.phase !== 'idle') letGo(state, g); return controls; }
@@ -1134,10 +1146,13 @@ const stepGrab = (ctx: FrameContext, g: Grab, controls: Controls): Controls => {
       if (e && isCritter(e)) return grabCritter(ctx, g, e, hold);
       if (e) {
         // Down he goes, Meathead on top of him (in the air, the two of them plummet first)
-        g.phase = p.isGrounded ? 'mount' : 'plummet'; g.t = 0; g.held = e; take(state, e); g.fall = 0;
+        // (on the ground: the line-up first, then the blows; up in the air, the plummet's landing starts it)
+        const fromX = centerX(state), eFeet = { x: e.pos.x + e.width / 2, y: e.pos.y + e.height };
+        g.phase = p.isGrounded ? 'lineup' : 'plummet'; g.t = 0; g.held = e; take(state, e); g.fall = 0;
         g.nextPunchAt = 4; startBeat(g);
         placeAt(state, e.pos.x + e.width / 2 - p.width / 2, p.pos.x);
         e.facing = (-g.dir) as 1 | -1;
+        if (g.phase === 'lineup') startLineup(state, g, { mx: fromX - centerX(state), ex: eFeet.x - centerX(state), ey: eFeet.y - feetY(state), pinned: false });
         playSound('slam'); playSound('punch', 1.2, -3);
         shakeScreen(state, 8, 5);
         return hold();
@@ -1204,7 +1219,8 @@ const stepGrab = (ctx: FrameContext, g: Grab, controls: Controls): Controls => {
         return hold();
       }
       fx.spawnDamageNumber({ x: centerX(state), y: p.pos.y - 10 }, dmg, true);
-      g.phase = 'mount'; g.t = 0; g.nextPunchAt = 4; startBeat(g);
+      g.phase = 'lineup'; g.t = 0; g.nextPunchAt = 4; startBeat(g);
+      startLineup(state, g, { mx: 0, ex: 0, ey: 0, pinned: true });
       return hold();
     }
 
@@ -1215,6 +1231,21 @@ const stepGrab = (ctx: FrameContext, g: Grab, controls: Controls): Controls => {
       if (!p.isGrounded) { g.airSpent = true; end(state, g); return controls; }
       if (g.t >= (g.phase === 'whiff' ? WHIFF : GRAB_MISS)) end(state, g);
       return hold();
+
+    case 'lineup': {
+      // Everything in place, still: the world held off him, the sting; the blows after (one asked for near the end is
+      // kept for the first). No jumping off in here: it's a beat, not a choice.
+      holdStill(state);
+      if (g.t === LINEUP_HIT) shakeScreen(state, 6, 5);
+      const ask: Blow | null = press('secondary') || pressed('y') ? 'head' : press('special') || press('charge') ? 'knee' : press('shoot') ? 'punch' : null;
+      if (ask && g.t > LINEUP - BLOW_BUFFER) g.want = { b: ask, t: g.t - LINEUP };
+      if (g.t >= LINEUP) {
+        const want = g.want;
+        g.phase = 'mount'; g.t = 0; g.nextPunchAt = 1; g.line = null; startBeat(g);
+        g.want = want;
+      }
+      return hold();
+    }
 
     case 'mount': {
       const e = g.held!;
@@ -1310,6 +1341,21 @@ const bulked = () => buffs.knock > 1;
 
 /** A beatdown under way: its window (bulked, longer), nothing owed or asked for yet. */
 const startBeat = (g: Grab) => { g.blowT = -1; g.want = null; g.healBank = 0; g.window = Math.round(BEAT_WINDOW * (bulked() ? BULK_WINDOW : 1)); };
+
+/** Into the line-up: where they each were (to ease from), and the sting. */
+const startLineup = (state: GameState, g: Grab, line: NonNullable<Grab['line']>) => {
+  g.line = line;
+  holdStill(state);
+  playBeatSting();
+};
+/** The line-up's stillness: everybody about (bosses aside) holds where they are a frame at a time. */
+const holdStill = (state: GameState) => {
+  const cx = centerX(state);
+  for (const e of state.enemies) {
+    if (e.type === 'boss' || isMidBoss(e) || e.health <= 0 || e.isBlownAway || Math.abs(e.pos.x + e.width / 2 - cx) > LINEUP_STILL_X) continue;
+    e.pauseTimer = Math.max(e.pauseTimer || 0, 2);
+  }
+};
 
 /** Where each blow lands, from his middle along the floor (facing right): a punch and a headbutt in the face, a knee in the gut. */
 const BLOW_AT: Record<Blow, { x: number; y: number }> = { punch: { x: 46, y: -9 }, knee: { x: 16, y: -12 }, head: { x: 40, y: -10 } };
@@ -2550,6 +2596,41 @@ export const drawGrab = (ctx: Ctx, state: GameState, g: Grab) => {
         ctx.fillStyle = '#FFFFFF'; for (let i = 0; i < 16; i++) { const a = i * Math.PI / 8; ctx.fillRect(Math.round(bx + Math.cos(a) * 34) - 3, Math.round(by + Math.sin(a) * 34) - 3, 6, 6); }
         ctx.fillStyle = '#FDE047'; ctx.fillRect(bx - 9, by - 9, 18, 18);
       }
+      return;
+    }
+    case 'lineup': {
+      // The line-up: a white pop on the catch, the world going dark round the two of them (stepped rings: SNES), the two
+      // of them easing into the mount; a dull red throb on the sting's big hit; then still, him trembling to go
+      const L = g.line, e = g.held;
+      const s = Math.min(1, g.t / LINEUP_SNAP), ease = 1 - (1 - s) ** 3;
+      const a = LINEUP_DIM * Math.max(0, Math.min(1, g.t / 5, (LINEUP - g.t) / 6));
+      const cy = y - 30;
+      if (a > 0.01) {
+        const grad = ctx.createRadialGradient(x, cy, 0, x, cy, 240);
+        const band = (k: number) => `rgba(0, 0, 0, ${(a * k).toFixed(3)})`;
+        grad.addColorStop(0, band(0)); grad.addColorStop(0.42, band(0));
+        grad.addColorStop(0.42, band(0.35)); grad.addColorStop(0.66, band(0.35));
+        grad.addColorStop(0.66, band(0.7)); grad.addColorStop(0.88, band(0.7));
+        grad.addColorStop(0.88, band(1)); grad.addColorStop(1, band(1));
+        ctx.fillStyle = grad; ctx.fillRect(x - 3000, cy - 3000, 6000, 6000);
+      }
+      if (g.t < 3) { ctx.fillStyle = `rgba(255, 255, 255, ${(0.35 * (1 - g.t / 3)).toFixed(3)})`; ctx.fillRect(x - 3000, cy - 3000, 6000, 6000); }
+      const throb = g.t - LINEUP_HIT;
+      if (throb >= 0 && throb < 6) { ctx.fillStyle = `rgba(110, 0, 0, ${(0.22 * (1 - throb / 6)).toFixed(3)})`; ctx.fillRect(x - 3000, cy - 3000, 6000, 6000); }
+      if (e) {
+        if (!L || L.pinned || ease >= 1) drawPinned(ctx, e, state, x, y, g.dir, throb >= 0 && throb < 3 ? 1 : 0, 0);
+        else {
+          // (from where he was caught, stood up, down onto his back: a person laid flat, an animal rolled over)
+          const person = isHumanoidKind(e.kind), face = (-g.dir) as 1 | -1;
+          const tx = person ? x - g.dir * e.height * 0.45 : x + g.dir * 6, ty = person ? y - 5 : y - e.height - 2, ta = person ? g.dir * Math.PI / 2 : Math.PI;
+          drawEnemyAt(ctx, e, state, lerp2(x + L.ex, tx, ease), lerp2(y + L.ey, ty, ease), lerp2(0, ta, ease), face, ease < 0.5 ? 'neck' : 'pinned');
+        }
+      }
+      const shiver = g.t > LINEUP - 12 ? (f % 2 ? 1 : -1) : 0;
+      const mx = L ? L.mx * (1 - ease) : 0, hop = L && !L.pinned ? -8 * Math.sin(Math.PI * s) : 0;
+      if (p.catForm) setCatClaws(true);
+      sprite(ctx, x + mx + shiver, y + hop, g.dir, c => mountPose(c, f, 0.1));
+      setCatClaws(false);
       return;
     }
     case 'mount':
