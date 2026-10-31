@@ -4,7 +4,7 @@
 
 import { notePowerShort } from './powerShort';
 import { shoveSetDistance } from '../core/resist';
-import { powerCells, mods, walkSpeedK } from '../core/tuning';
+import { powerCells, mods, walkSpeedK, powerHeld } from '../core/tuning';
 import { Enemy, WeaponType, Rect, Block, Player } from '../../types';
 import {
   MAX_AMMO,
@@ -217,7 +217,7 @@ export const tickPlayerTimers = (ctx: FrameContext, input: FrameInput) => {
   // (how many he has can change as he goes: Meathead 2's charge shards, tuning.ts)
   const cells = powerCells();
   if (player.power > cells) player.power = cells;
-  if (player.power < cells && !player.isCharging && !player.isUppercutting && !player.powerLocked) {
+  if (player.power < cells && !player.isCharging && !player.isUppercutting && !player.powerLocked && !powerHeld(player)) {
     player.power = Math.min(cells, player.power + 1 / POWER_CELL_RECHARGE);
   }
   // The filth shield: no time limit; it's down the moment he's hit by anything, or puts the Sludge Barfer away

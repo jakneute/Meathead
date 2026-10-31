@@ -21,11 +21,18 @@ let stompRefunds = true;
 export const setStompRefund = (on: boolean) => { stompRefunds = on; };
 export const stompRefund = () => stompRefunds;
 
+/** Power cells held from refilling while this is true (Meathead 1: never; the engine already holds them through a
+ *  charge, a slide and an uppercut). Meathead 2's: through a dive kick and the flash kick too. */
+let powerHold: ((p: Player) => boolean) | null = null;
+export const setPowerHold = (fn: typeof powerHold) => { powerHold = fn; };
+export const powerHeld = (p: Player) => !!powerHold?.(p);
+
 /** His four moves, as the damage hooks name them. */
 export type MeleeMove = 'charge' | 'slide' | 'uppercut' | 'divekick';
 /** Which of them he's doing (null: none). */
 export const meleeMoveOf = (p: Player): MeleeMove | null =>
-  p.isUppercutting ? 'uppercut' : p.isDivekicking ? 'divekick' : p.isCharging ? (p.isSliding ? 'slide' : 'charge') : null;
+  // (Meathead 2's flash kick, out of a slide, is the slide's piece's move: it counts as the slide)
+  p.flashKick ? 'slide' : p.isUppercutting ? 'uppercut' : p.isDivekicking ? 'divekick' : p.isCharging ? (p.isSliding ? 'slide' : 'charge') : null;
 
 /** A move of his landing on an enemy, after the engine's picked the number: what it really does (Meathead 1: as it is).
  *  Not asked for a one-hit kill on a pest. */

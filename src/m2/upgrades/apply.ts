@@ -7,7 +7,8 @@
 // fight.ts's plain hit: bossMelee), and the rex and the hell demon land his moves on themselves (subBossMelee).
 
 import type { Enemy } from '../../m1/types';
-import { setPlayerMaxHealth, setPowerCells, setStompRefund, setMeleeDamageHook } from '../../m1/game/core/tuning';
+import { setPlayerMaxHealth, setPowerCells, setStompRefund, setMeleeDamageHook, setPowerHold } from '../../m1/game/core/tuning';
+import { noteMelee } from './lastHit';
 import { setMaxAmmoScale, maxAmmo, MAX_AMMO } from '../../m1/constants';
 import { maxHealth, ammoScale, powerCells, subscribeUpgrades } from './state';
 import { bossMeleeOf } from './bossMelee';
@@ -28,7 +29,12 @@ export const installUpgrades = () => {
   setStompRefund(false);
   // (what the armor and the cape do to his moves, his legs and what hurts him: gear.ts)
   installGear();
+  // (the power rule: no cell refills through a dive kick or the flash kick either; the engine already holds them through
+  // a charge, a slide and an uppercut)
+  setPowerHold(p => !!p.isDivekicking || !!p.flashKick);
   setMeleeDamageHook((e: Enemy, move, damage) => {
+    // (which move landed on whom, for the armor's follow-ups: moves/followups.ts)
+    noteMelee(e, move);
     if (e.type === 'boss') return damage;
     if (e.kind && ENGINE_SUB_BOSSES.has(e.kind)) return bossMeleeOf(move, true);
     // (everything else, regular enemies, the land bosses' fights, the ensemble, the machines: as it is)

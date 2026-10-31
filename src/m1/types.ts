@@ -127,6 +127,8 @@ export interface Player extends Entity {
   uppercutTimer: number;
   /** This uppercut goes up faster than the usual (launched off something: Meathead 2's vines), till it ends. */
   uppercutBoost?: number;
+  /** Meathead 2's flash kick (the leg armor's) under way: his moves' hooks read it as the slide's (tuning.ts meleeMoveOf). */
+  flashKick?: boolean;
   /** Special-move power, 0..POWER_CELLS: each charge, slide or uppercut spends a whole cell. */
   power: number;
   /** A power move finished in the air: no refilling until he touches down. */
