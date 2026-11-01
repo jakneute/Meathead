@@ -1657,12 +1657,14 @@ export const endFight = (state: GameState, f: Fight) => {
 };
 export const killedByWeakness = (f: Fight) => !!f.death && f.death.how !== 'spin';
 
-/** The enemy, where he is (in the crown: just the window's worth of him). */
+/** The enemy, where he is (in the crown: nowhere anything can reach, the owner's "make sure harry cannot be attacked when
+ *  he's operating the statue of liberty. there should be no collision there in his command booth in the statue's
+ *  crown": no shot stops on the glass, no move bounces off it, nothing grabs him; he's drawn up there all the same). */
 const sync = (state: GameState, f: Fight) => {
   const e = f.e;
   if (f.act === 'crown' && !f.leap) {
-    e.width = WINDOW.x1 - WINDOW.x0 - 10; e.height = WINDOW.y1 - WINDOW.y0;
-    e.pos.x = WINDOW.x0 + 5; e.pos.y = WINDOW.y0;
+    e.width = 4; e.height = 4;
+    e.pos.x = MID - 2; e.pos.y = -6000;
   } else {
     e.width = 44 * f.scale; e.height = 96 * f.scale;
     e.pos.x = f.hx - e.width / 2; e.pos.y = f.hy - e.height - 2;
