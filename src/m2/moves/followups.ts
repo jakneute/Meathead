@@ -419,6 +419,9 @@ const spinGeo = (g: Grab) => {
 const N_RISE = 12, N_DASH = 5;
 /** Its drift across, steered (px a frame), and nothing held (on forward, an arc). */
 const N_STEER = 4.5, N_DRIFT = 2;
+/** How fast the drop picks up speed coming down (px a frame, a frame; was 1.3: slowed so it reads, the owner's "slow
+ *  down the izuna drop animation a bit so it's clearer what is happening ... like on the way down"). */
+const N_FALL_ACC = 0.75;
 /** The flash kick's frames the circle's out, and the longest it can go before it's called off (he's not down). */
 const F_ACTIVE: [number, number] = [2, 16], F_MAX = 80, F_FLIP = 22;
 /** The head kick's frames: walking (the most), pointing, the kick landing, done. */
@@ -514,13 +517,13 @@ export const stepFollow = (ctx: FrameContext, g: Grab, controls: Controls): Cont
         if (g.t >= N_DASH) { dropRoom(state, e); fu.sink = 1; g.t = 0; }
         return { ...NO_CONTROLS };
       }
-      fu.vy = g.t <= N_RISE ? -8 * (1 - g.t / N_RISE) : Math.min(NINJA_FALL, fu.vy + 1.3);
+      fu.vy = g.t <= N_RISE ? -8 * (1 - g.t / N_RISE) : Math.min(NINJA_FALL, fu.vy + N_FALL_ACC);
       // (steered: forward or back with left / right, the whole way; nothing held, it arcs on the way he's facing)
       const steer = controls.left && !controls.right ? -1 : controls.right && !controls.left ? 1 : 0;
       fu.vx += ((steer ? steer * N_STEER : d * N_DRIFT) - fu.vx) * 0.18;
       K.placeAt(state, p.pos.x + fu.vx, p.pos.x);
       if (fu.vy < 0 && K.ceilingOver(state, fu.vy - 2)) fu.vy = 0;
-      fu.spin += 0.25 + Math.min(0.5, g.t * 0.012);
+      fu.spin += 0.16 + Math.min(0.24, g.t * 0.006);
       if (g.t % 6 === 0 && g.t > N_RISE) playSound('whoosh', 0.6, 4 + Math.min(8, g.t / 8));
       const fy = K.feetY(state), headY = fy + dropLen(e), cx = K.centerX(state);
       if (g.t > N_RISE) {

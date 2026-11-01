@@ -98,8 +98,8 @@ export const HEAD_KICK_REACH = 64, BURIED_MAX = 12;
  *  out and back at it. */
 export const BURIED_FREE = 600, BURIED_DIG = 120;
 /** Armguards' ninja drop: how hard they come down (px a frame at the most) and what it does: most regular enemies dead,
- *  the tankiest live through it (the owner: "the ninja drop can be non-fatal to some tankier enemies"). Was 999. */
-export const NINJA_FALL = 22, NINJA_DAMAGE = 200;
+ *  the tankiest live through it (the owner: "the ninja drop can be non-fatal to some tankier enemies"). Was 999. Falling at most 15 (was 22: slowed so it reads). */
+export const NINJA_FALL = 15, NINJA_DAMAGE = 200;
 /** ...and where they land, a meteor going off (the owner's "a localized 'meteor' impact too": the spellbook meteor's
  *  look): everybody else in this circle (px from the landing; regular enemies only) takes up to this much, by how near,
  *  the ones it doesn't kill knocked away and stunned this long (frames). */
