@@ -63,6 +63,9 @@ const a = {
   hurtWas: 0,
   /** A trap's hurt holds the meter from draining till this frame. */
   holdTill: -1,
+  /** The stage it was last stepped in, and the frame (a load starts it over). */
+  stage: '',
+  frameWas: 0,
   /** The shockwave: where it went off (world), how many frames ago. */
   ring: null as null | { x: number; y: number; t: number },
 };
@@ -190,7 +193,12 @@ const foeHit = (state: GameState) => {
 /** Each frame (moves/grab.ts updateGrab). */
 export const stepAmulet = (ctx: FrameContext) => {
   const { state } = ctx, p = state.player;
-  if (state !== a.st) { reset(); a.st = state; a.hp = p.health; a.push = p.pushbackTimer; }
+  // (a new stage, however he got there (a door, the hub, a respawn, a warp, a fresh load): the meter empty, no rage, no
+  // cooldown; the owner's "meathead's piss-off-o-meter is always zero with no cooldowns when exiting or entering a
+  // stage through any means". A stage's load starts the frame count over)
+  const stage = String(state.stageId);
+  if (state !== a.st || stage !== a.stage || state.frame < a.frameWas) { reset(); a.st = state; a.stage = stage; a.hp = p.health; a.push = p.pushbackTimer; a.hurtWas = p.hurtTimer; }
+  a.frameWas = state.frame;
   if (a.ring && ++a.ring.t > 40) a.ring = null;
   const lost = a.hp > 0 && p.health < a.hp ? a.hp - p.health : 0;
   let took = 0;
