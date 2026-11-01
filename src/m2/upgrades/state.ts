@@ -60,6 +60,8 @@ export const ARMOR_NAMES: Record<ArmorPiece, string> = {
 /** The four pieces that bring a follow-up (the boots' missile, the pads' bonk, the shins' flash kick, the bracers'
  *  ninja drop); the other four don't. */
 export const FOLLOW_PIECES: readonly ArmorPiece[] = ['sabatons', 'pauldrons', 'legs', 'armguards'];
+/** ...of those, the three that are grabs (Y + B: the missile, the bonk, the ninja drop); the shins' flash kick isn't one. */
+export const GRAB_FOLLOW_PIECES: readonly ArmorPiece[] = ['sabatons', 'pauldrons', 'armguards'];
 /** The plain part each is (the dev-only cheat panel's little chips). */
 export const ARMOR_SHORT: Record<ArmorPiece, string> = {
   sabatons: 'BOOTS', pauldrons: 'PADS', legs: 'SHINS', armguards: 'BRACERS', hands: 'GLOVES', helmet: 'HELMET', amulet: 'AMULET', cape: 'CAPE',

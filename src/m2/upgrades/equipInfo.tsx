@@ -5,7 +5,7 @@
 
 import React from 'react';
 import type { PadKey } from '../../m1/components/ButtonIcons';
-import { ARMOR_PIECES, ARMOR_NAMES, has, FOLLOW_PIECES, type ArmorPiece } from './state';
+import { ARMOR_PIECES, ARMOR_NAMES, has, GRAB_FOLLOW_PIECES, type ArmorPiece } from './state';
 import { armorStamp, type Stamp } from './armorArt';
 import { walkCapeBack } from './walkArmor';
 import { CHEAP_STUN, YELL_SHIELD, HELMET_HURT } from './tune';
@@ -105,13 +105,13 @@ export const EQUIP_ENTRIES: EquipEntry[] = [
   { id: 'ammo', name: 'MAX AMMO', hint: '', what: 'EVERY ONE YOU FIND: +10% AMMO IN EVERY WEAPON.' },
   { id: 'shards', name: 'CHARGE SHARDS', hint: '', what: 'EVERY 3 YOU FIND MAKE ANOTHER POWER CELL.' },
 ];
-// (the gloves' follow-up line only once he's got a follow-up to use (the boots, the shoulder pads, the shins or the
-// bracers: the four follow-up pieces): the owner's "don't mention follow ups in the description for the gloves unless
+// (the gloves' follow-up line only once he's got a grab follow-up to use (the boots, the shoulder pads or the bracers;
+// the shins' flash kick isn't a grab, so the gloves do nothing for it): the owner's "don't mention follow ups in the description for the gloves unless
 // the player has learned at least one of them". Read as it's shown)
 {
   const hands = EQUIP_ENTRIES.find(e => e.id === 'hands')!, base = hands.what;
   Object.defineProperty(hands, 'what', {
-    get: () => (FOLLOW_PIECES.some(has) ? base.replace('BEFORE.', 'BEFORE, AND YOUR FOLLOW-UPS WORK ON THEM TOO.') : base),
+    get: () => (GRAB_FOLLOW_PIECES.some(has) ? base.replace('BEFORE.', 'BEFORE, AND YOUR FOLLOW-UPS WORK ON THEM TOO.') : base),
   });
 }
 /** The grid's slots, and how many across. */
