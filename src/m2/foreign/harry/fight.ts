@@ -55,7 +55,7 @@ import { makeKindEnemy } from '../../../m1/game/enemies/kinds';
 import { CANVAS_WIDTH, CANVAS_HEIGHT, BULLET_DAMAGE } from '../../../m1/constants';
 import { bossMelee } from '../../upgrades/bossMelee';
 import { takeYell } from '../../upgrades/amulet';
-import { cheapShotGate, cheapShotStunned, crushGroups, crushLines, registerClearThreats } from '../../upgrades/cheapShot';
+import { cheapShotGate, cheapShotStunned, crushGroups, crushLines, registerClearThreats, endCheapStun } from '../../upgrades/cheapShot';
 import { registerM2Kind } from '../../kinds';
 import { newSpam, spamTick, hitKey, swatOff, type Spam, BOSS_IFRAMES } from '../../bossSpam';
 import { keepForRevisits } from '../../store';
@@ -1283,6 +1283,8 @@ const die = (ctx: FrameContext, f: Fight, how: How) => {
   const weak = how !== 'spin';
   const { state } = ctx, p = state.player;
   if (f.mode === 'dead') return;
+  // (crushed and still stunned: the stun's over the moment he dies (upgrades/cheapShot.ts); his death plays as ever)
+  endCheapStun(f.e);
   // (dead with him pinned: let go, Meathead back on his feet)
   if (f.pin) unpin(state, f, false);
   token++;

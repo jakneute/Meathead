@@ -55,7 +55,7 @@ import { makeKindEnemy } from '../../../m1/game/enemies/kinds';
 import { CANVAS_WIDTH, CANVAS_HEIGHT, BULLET_DAMAGE } from '../../../m1/constants';
 import { bossMelee } from '../../upgrades/bossMelee';
 import { takeYell } from '../../upgrades/amulet';
-import { cheapShotGate, cheapShotStunned, crushGroups, crushLines, registerClearThreats } from '../../upgrades/cheapShot';
+import { cheapShotGate, cheapShotStunned, crushGroups, crushLines, registerClearThreats, endCheapStun } from '../../upgrades/cheapShot';
 import { CHEAP_STUN } from '../../upgrades/tune';
 import { registerM2Kind, registerHurtLines } from '../../kinds';
 import { newSpam, spamTick, hitKey, type Spam, BOSS_IFRAMES } from '../../bossSpam';
@@ -959,6 +959,8 @@ const stun = (state: GameState, f: Fight) => {
 
 const die = (ctx: FrameContext, f: Fight, redeemer = false) => {
   const { state } = ctx, e = f.e;
+  // (crushed and still stunned: the stun's over the moment he dies (upgrades/cheapShot.ts); his death plays as ever)
+  endCheapStun(e);
   token++;
   to(f, 'dead');
   f.drops = []; f.dive = null; f.burpT = 0;

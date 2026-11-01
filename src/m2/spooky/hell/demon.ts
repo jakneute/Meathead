@@ -48,7 +48,7 @@ import { rectsOverlap, boundsOf } from '../../../m1/game/core/utils';
 import { getAttackHitbox, recoilOff } from '../../../m1/game/player/player';
 import { BOUNCE_FRAMES } from '../../../m1/constants';
 import { subBossMelee } from '../../upgrades/bossMelee';
-import { cheapShotGate, cheapShotStunT, crushGroups, crushLines, registerClearThreats } from '../../upgrades/cheapShot';
+import { cheapShotGate, cheapShotStunT, crushGroups, crushLines, registerClearThreats, endCheapStun } from '../../upgrades/cheapShot';
 import { isShat, isNude } from '../../../m1/game/player/gut';
 import { topBand, CANVAS_WIDTH } from '../../../m1/constants';
 import { solid, box, label, saidOver, meatheadSays, voice, type Said } from '../section';
@@ -378,6 +378,8 @@ export const demonDeathNeed = (state: GameState): Box | null => {
 
 /** Beaten (satan.ts takes it from here): he drops the guitar and sits down; the fire walls are out. */
 const beaten = (ctx: FrameContext, d: Demon) => {
+  // (crushed and still stunned: the stun's over the moment he's beaten (upgrades/cheapShot.ts))
+  endCheapStun(d.e);
   d.fight = 'beaten'; d.st = 'beaten'; d.t = 0; d.vx = 0; d.hp = 0; d.flash = 0; d.pillars = []; d.waves = [];
   // (from the killing blow on, his: nothing gets a hit in on him before the scene's started)
   { const p = ctx.state.player; p.inCutscene = true; p.invincibilityTimer = Math.max(p.invincibilityTimer, 30); }

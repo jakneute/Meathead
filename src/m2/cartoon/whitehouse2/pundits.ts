@@ -35,7 +35,7 @@ import { makeKindEnemy } from '../../../m1/game/enemies/kinds';
 import { floorTopAt } from '../../../m1/game/core/terrain';
 import { registerM2Kind } from '../../kinds';
 import type { ByPants } from '../talk';
-import { cheapShotGate, cheapShotStunT, registerClearThreats, crushGroups, crushLines, crushPool } from '../../upgrades/cheapShot';
+import { cheapShotGate, cheapShotStunT, registerClearThreats, crushGroups, crushLines, crushPool, endCheapStun } from '../../upgrades/cheapShot';
 import { markBossFight } from '../../bossQuiet';
 import { speak, meatheadSays, byPants, solid, ledge, hands, box, label } from '../section';
 import { topBand } from '../../../m1/constants';
@@ -341,6 +341,8 @@ const begin = (state: GameState, q: Pundit) => {
 };
 const die = (ctx: FrameContext, q: Pundit) => {
   const { state } = ctx, S = SPECS[q.id];
+  // (crushed and still stunned: the stun's over the moment he dies (upgrades/cheapShot.ts))
+  endCheapStun(q.e);
   q.phase = 'dying'; q.t = 0; q.throws = [];
   // (its health to nothing as it goes: no cheap-shot stars left over where it stood)
   if (q.e) { const e = q.e; state.enemies = state.enemies.filter(o => o !== e); e.health = 0; q.e = null; }

@@ -52,7 +52,7 @@ import { makeKindEnemy } from '../../../m1/game/enemies/kinds';
 import { CANVAS_WIDTH, CANVAS_HEIGHT, BULLET_DAMAGE } from '../../../m1/constants';
 import { bossMelee } from '../../upgrades/bossMelee';
 import { takeYell } from '../../upgrades/amulet';
-import { cheapShotGate, cheapShotStunned, cheapShotStunT, crushGroups, crushLines, registerClearThreats } from '../../upgrades/cheapShot';
+import { cheapShotGate, cheapShotStunned, cheapShotStunT, crushGroups, crushLines, registerClearThreats, endCheapStun } from '../../upgrades/cheapShot';
 import { registerM2Kind } from '../../kinds';
 import { newSpam, spamTick, hitKey, swatOff, type Spam, BOSS_IFRAMES } from '../../bossSpam';
 import { TOO_BIG_BY_KIND } from '../../lines/weaponLines';
@@ -952,6 +952,8 @@ const sync = (state: GameState, f: Fight) => {
 const die = (ctx: FrameContext, f: Fight, lions: boolean) => {
   const { state } = ctx, p = state.player;
   if (f.mode === 'dead') return;
+  // (crushed and still stunned: the stun's over the moment he dies (upgrades/cheapShot.ts); his death plays as ever)
+  endCheapStun(f.e);
   token++;
   silenceAll();
   f.mode = 'dead'; f.said = null; f.talking = false;

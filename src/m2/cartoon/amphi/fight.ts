@@ -70,7 +70,7 @@ import { CANVAS_WIDTH, CANVAS_HEIGHT, BULLET_DAMAGE } from '../../../m1/constant
 import { bossMelee, bossMeleeOf } from '../../upgrades/bossMelee';
 import { takeYell } from '../../upgrades/amulet';
 import { moveArmored } from '../../upgrades/state';
-import { cheapShotGate, cheapShotStunned, cheapShotStunT, registerClearThreats, crushGroups, crushLines } from '../../upgrades/cheapShot';
+import { cheapShotGate, cheapShotStunned, cheapShotStunT, registerClearThreats, crushGroups, crushLines, endCheapStun } from '../../upgrades/cheapShot';
 import { CHEAP_STUN } from '../../upgrades/tune';
 import { meleeMoveOf, type MeleeMove } from '../../../m1/game/core/tuning';
 import { registerM2Kind, registerHurtLines } from '../../kinds';
@@ -1302,6 +1302,8 @@ const sync = (state: GameState, f: Fight) => {
 const die = (ctx: FrameContext, f: Fight, how: 'fridge' | 'flat', car?: Car) => {
   const { state } = ctx, p = state.player;
   if (f.mode === 'dead') return;
+  // (crushed and still stunned: the stun's over the moment he dies (upgrades/cheapShot.ts))
+  endCheapStun(f.e);
   token++; silenceAll(); state.playerVulgarityTimer = 0;
   f.mode = 'dead'; f.words.clear();
   state.enemies = state.enemies.filter(o => o !== f.e);

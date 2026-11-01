@@ -63,7 +63,7 @@ import { registerDeathKind } from '../../../m1/game/player/deathAnim';
 import { BULLET_DAMAGE, CANVAS_WIDTH, CANVAS_HEIGHT, HUD_CLEAR_Y } from '../../../m1/constants';
 import { bossMelee } from '../../upgrades/bossMelee';
 import { takeYell } from '../../upgrades/amulet';
-import { cheapShotGate, cheapShotStunned, crushGroups, crushLines, registerClearThreats } from '../../upgrades/cheapShot';
+import { cheapShotGate, cheapShotStunned, crushGroups, crushLines, registerClearThreats, endCheapStun } from '../../upgrades/cheapShot';
 import { CHEAP_STUN } from '../../upgrades/tune';
 import { registerM2Kind, registerHurtLines } from '../../kinds';
 import { newSpam, spamTick, hitKey, type Spam, BOSS_IFRAMES } from '../../bossSpam';
@@ -1129,6 +1129,8 @@ const sync = (f: Fight) => {
 
 const die = (ctx: FrameContext, f: Fight) => {
   const { state } = ctx;
+  // (crushed and still stunned: the stun's over the moment she dies (upgrades/cheapShot.ts); her death plays as ever)
+  endCheapStun(f.e);
   f.token++;
   to(f, 'dead'); f.deathT = 0; f.drops = []; f.sacs = []; f.litter = []; f.barf = []; f.y = 0; f.can = null; if (f.pool) f.pool.going = true;
   // (the spitters' gobs still in the air: gone with her, none landing in her death)

@@ -16,6 +16,8 @@
 //                          wheeze) and lets nothing shove, launch or slide it (it stays planted where it was kicked);
 //                          the dizzy stars over it are drawn here for every boss, drawCheapShotWorld (don't draw more)
 //   cheapShotStunT(e)      frames into the stun (-1 not stunned): the stun pose's loop runs off it
+//   endCheapStun(e)        first thing in its death: the stun's over then and there (the gate only ends it early on
+//                          the enemy's own health, and most fights keep theirs on the fight)
 //   registerClearThreats(id, fn)   once, at load: fn(state, e) runs the moment the stun starts and destroys everything
 //                          the fight has going (cars, critters, shots, zones; with a poof, a blast, gore), never the
 //                          arena's own terrain. The stun's a FREE WINDOW: the fight spawns nothing new while
@@ -92,6 +94,11 @@ export const cheapShotGate = (state: GameState, e: Enemy, id: CrushId, ok: boole
   return null;
 };
 const endStun = (r: Rec) => { r.stun = 0; r.e.harmless = r.wasHarmless; };
+/** A boss's death has begun (each fight's die(), first thing): its stun's over right now, whatever its enemy's health
+ *  says (most fights keep their real HP on the fight, the enemy's pinned high): no stun pose, no 'stunned' from the
+ *  gate, no stars, its harmless flag as it was, so nothing in its death is held back as part of the free window. Its
+ *  crushed lines stay. (The owner's "make sure all deaths don't lose elements, the nutless bosses".) */
+export const endCheapStun = (e: Enemy | null | undefined) => { const r = e ? recs.get(e) : undefined; if (r && r.stun > 0) endStun(r); };
 
 // ---- the lines (crushedLines.ts): the fight's own sets, swapped once it's crushed
 interface Mapped { id: CrushId; group: CrushGroup; dressed?: Dressed }

@@ -62,7 +62,7 @@ import { stabLean, STAB_WOUND } from '../../../m1/game/render/player/player';
 import { CANVAS_WIDTH, CANVAS_HEIGHT, BULLET_DAMAGE } from '../../../m1/constants';
 import { bossMelee } from '../../upgrades/bossMelee';
 import { takeYell } from '../../upgrades/amulet';
-import { cheapShotGate, cheapShotStunned, crushGroups, crushLines, registerClearThreats } from '../../upgrades/cheapShot';
+import { cheapShotGate, cheapShotStunned, crushGroups, crushLines, registerClearThreats, endCheapStun } from '../../upgrades/cheapShot';
 import { CHEAP_STUN } from '../../upgrades/tune';
 import { registerM2Kind, registerHurtLines } from '../../kinds';
 import { newSpam, spamTick, hitKey, swatOff, type Spam, BOSS_IFRAMES } from '../../bossSpam';
@@ -1040,6 +1040,8 @@ const chewBushes = (ctx: FrameContext, f: Fight) => {
 const die = (ctx: FrameContext, f: Fight) => {
   const { state } = ctx, e = f.e;
   const eaten = f.byWeakness || aliensOn(e) > 0;
+  // (crushed and still stunned: the stun's over the moment he dies (upgrades/cheapShot.ts); his death plays as ever)
+  endCheapStun(e);
   to(f, 'dead');
   f.poison = 0;
   // (the darts in the air: gone, a puff each)

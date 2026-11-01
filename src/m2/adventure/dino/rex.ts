@@ -37,7 +37,7 @@ import { rectsOverlap, boundsOf } from '../../../m1/game/core/utils';
 import { topBand, CANVAS_WIDTH, BOUNCE_FRAMES } from '../../../m1/constants';
 import { subBossMelee } from '../../upgrades/bossMelee';
 import { moveArmored } from '../../upgrades/state';
-import { cheapShotGate, cheapShotStunned, cheapShotStunT, registerClearThreats, crushGroups, crushLines, crushPool } from '../../upgrades/cheapShot';
+import { cheapShotGate, cheapShotStunned, cheapShotStunT, registerClearThreats, crushGroups, crushLines, crushPool, endCheapStun } from '../../upgrades/cheapShot';
 import { getAdv, solid, box, label, saidOver, meatheadSays, voice, type Said } from '../section';
 import { say, cutVoice, pickLine } from '../../../m1/game/platform/speech';
 import { isShat, isNude } from '../../../m1/game/player/gut';
@@ -501,6 +501,8 @@ const startFight = (state: GameState, r: Rex) => {
 };
 
 const die = (ctx: FrameContext, r: Rex) => {
+  // (crushed and still stunned: the stun's over the moment it dies (upgrades/cheapShot.ts))
+  endCheapStun(cheapE(r));
   r.fight = 'dying'; r.st = 'dying'; r.t = 0; r.dieT = 0; r.vx = 0;
   for (const id of PARTS) { const e = r.parts[id].e; if (e) { e.health = 0; e.seen = true; } r.parts[id].e = null; }
   if (r.lock) r.lock.x = -1e7;

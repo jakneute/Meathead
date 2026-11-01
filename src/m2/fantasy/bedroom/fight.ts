@@ -60,7 +60,7 @@ import { registerDeathKind, type MeatheadDeathKind } from '../../../m1/game/play
 import { CANVAS_WIDTH, CANVAS_HEIGHT, BULLET_DAMAGE } from '../../../m1/constants';
 import { bossMelee } from '../../upgrades/bossMelee';
 import { takeYell } from '../../upgrades/amulet';
-import { cheapShotGate, cheapShotStunned, cheapShotStunT, registerClearThreats, crushGroups, crushLines, crushPool } from '../../upgrades/cheapShot';
+import { cheapShotGate, cheapShotStunned, cheapShotStunT, registerClearThreats, crushGroups, crushLines, crushPool, endCheapStun } from '../../upgrades/cheapShot';
 import { setErect } from '../../../m1/game/render/player/body';
 import { registerM2Kind, registerHurtLines } from '../../kinds';
 import { newSpam, spamTick, hitKey, swatOff, type Spam, BOSS_IFRAMES } from '../../bossSpam';
@@ -1177,6 +1177,9 @@ const talk = (ctx: FrameContext, f: Fight) => {
 const die = (ctx: FrameContext, f: Fight, weak: boolean) => {
   const { state } = ctx, p = state.player;
   if (f.mode === 'dead') return;
+  // (crushed and still stunned: the stun's over the moment she dies (upgrades/cheapShot.ts); her room's hazards, her
+  // death, all as ever)
+  endCheapStun(f.e);
   token++; silenceAll();
   f.mode = 'dead';
   state.enemies = state.enemies.filter(o => o !== f.e);
