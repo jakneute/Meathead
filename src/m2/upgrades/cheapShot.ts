@@ -42,6 +42,7 @@ import { KICK_POSE_FRAMES } from '../../m1/constants';
 import { playSound } from '../../m1/game/platform/audio';
 import { say, pickLine, MEATHEAD_VOICE, ANNOUNCER_VOICE } from '../../m1/game/platform/speech';
 import { GRAB_CALLOUTS } from '../moves/callouts';
+import { setVoiceRateHook } from '../../m1/game/platform/voiceclips';
 import { isNude, isShat } from '../../m1/game/player/gut';
 import { saidOver } from '../adventure/section';
 import { has } from './state';
@@ -71,6 +72,13 @@ let gen = 0, deadSeen = false;
 
 const live = (r: Rec | undefined): r is Rec => !!r && r.gen === gen;
 export const isCrushed = (e: Enemy) => { const r = recs.get(e); return live(r) && r.crushed; };
+/** A crushed boss's voice: higher for the rest of the fight (the owner: "a nutless (or ovaryless) boss should speak in a
+ *  somewhat higher pitch too"); about two semitones, read as each of its lines starts. */
+const CRUSHED_RATE = 1.12;
+setVoiceRateHook(voice => {
+  for (const r of recs.values()) if (live(r) && r.crushed && CRUSHED[r.id].voice === voice) return CRUSHED_RATE;
+  return 1;
+});
 export const cheapShotStunned = (e: Enemy) => { const r = recs.get(e); return live(r) && r.stun > 0 && e.health > 0; };
 /** Frames into the stun (0 at its first frame, counting up; -1 not stunned): the fights' stun poses loop off it. */
 export const cheapShotStunT = (e: Enemy) => { const r = recs.get(e); return live(r) && r.stun > 0 && e.health > 0 ? CHEAP_STUN - r.stun : -1; };

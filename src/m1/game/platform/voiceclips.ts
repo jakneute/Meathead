@@ -206,6 +206,10 @@ export interface ClipHandle { stop: () => void }
 
 /** What's playing right now, and the speed each is meant to go at (so they can all be held, and let go again). */
 const live = new Map<AudioBufferSourceNode, number>();
+/** Another game's say on a voice's speed (and so its pitch), times (Meathead 2: a boss with its nuts crushed talks
+ *  higher). 1: as recorded. Read as each line starts. */
+let rateHook: ((voice: string) => number) | null = null;
+export const setVoiceRateHook = (fn: typeof rateHook) => { rateHook = fn; };
 let held = false;
 /**
  * Every recorded line playing is held where it is (the game's paused), or let go to carry on from there. Done by
@@ -229,7 +233,8 @@ export const playClip = (voice: string, text: string, opts: { radio?: boolean; o
   if (!pack.clips[key]) return null;
   let ctx: AudioContext;
   try { ctx = getAudioContext(); } catch { return null; }
-  const spec = pack.voices[voice] ?? { rate: 1, gain: 1, fx: '' };
+  const base = pack.voices[voice] ?? { rate: 1, gain: 1, fx: '' };
+  const spec = rateHook ? { ...base, rate: base.rate * rateHook(voice) } : base;
   let stopped = false, src: AudioBufferSourceNode | null = null, post: GainNode | null = null, ended = false;
   const end = () => { if (ended) return; ended = true; opts.onEnd?.(); };
   decode(ctx, key).then(audio => {
