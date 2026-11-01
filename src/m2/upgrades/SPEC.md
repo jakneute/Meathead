@@ -143,9 +143,11 @@ it. Colors only, no per-frame pixel work.
 
 ### PAULDRONS (shoulders): the shoulder charge
 - More damage on bosses; the charge goes further. Ignores what punishes a charge: horned beasts, spear enemies (KindDef.pointy).
-- FOLLOW-UP: Y+B in or just after a charge (no hit needed): he grabs them and SPINS THEM INTO THE GROUND, stuck for good with just
-  their head out: harmless. Only on an enemy standing on the ground. The charge pushes them back, so the follow-up's
-  reach is wide.
+- FOLLOW-UP: Y+B in or just after a charge (no hit needed): he steps up to them, raises both fists overhead and BONKS
+  them on the top of the head, driving them INTO THE GROUND LIKE A RAIL SPIKE (the owner, 2026-10-31; it used to be a
+  spin), just their head out: harmless, digging out after BURIED_FREE. Only on an enemy standing on the ground (the
+  charge itself works in the air; the follow-up doesn't take a flyer or one in the air). The charge pushes them back,
+  so the follow-up's reach is wide.
 - THE HEAD KICK: B near a head sticking out of the ground: he kicks the head off like a football, a projectile into
   other enemies. If his side would kick it at nobody, he walks round to the other side and points at the enemies
   first, then kicks.

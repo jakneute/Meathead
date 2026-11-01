@@ -4,8 +4,10 @@
 //   SABATONS  the MISSILE: Y + B in or just after a dive kick (no hit needed): he flips upside down over them, takes
 //             them by the shoulders, flips on round swinging them up and over, and hurls them straight ahead, fast
 //             (gravity arcs it down; no steering). Whoever they hit takes their weight and speed, more than a throw's.
-//   PAULDRONS the GROUND SPIN: Y + B in or just after a charge, on one standing on the ground (the reach is wide):
-//             spun down into the ground till only the head's out, stuck a good while (it digs out), harmless.
+//   PAULDRONS PLANTED: Y + B in or just after a charge, on one standing on the ground (the reach is wide): up against
+//             them, both fists raised overhead, and one BONK on the top of the head drives them into the ground like a
+//             rail spike till only the head's out (the owner's "an overhead 'bonk' with his fist that sends them into
+//             the ground like a rail spike"), stuck a good while (it digs out), harmless.
 //             THE HEAD KICK: B by a head in the ground (a B prompt over it) kicks it off like a football into the
 //             nearest enemy that way; nobody that way but somebody the other way, he walks round it, points, kicks.
 //   ARMGUARDS the NINJA DROP: Y + B in or just after an uppercut: on up with them, them upside down under him,
@@ -404,12 +406,14 @@ const missileGeo = (g: Grab) => {
   return { C, r, hand, feet, a };
 };
 
-/** The spin's frames: in to them, up off the floor, spun down into it, then a moment dusting off. */
-const S = { CLOSE: 6, LIFT: 8, DRILL: 30, HOLD: 14 };
+/** The bonk's frames: in to them, both fists wound up overhead, the bonk driving them in (fast: a spike), then a moment
+ *  stood over the head. */
+const S = { CLOSE: 6, WIND: 12, DRIVE: 4, HOLD: 20 };
 const spinGeo = (g: Grab) => {
-  const fu = g.fu!, t = g.t, a = S.CLOSE + S.LIFT, b = a + S.DRILL;
-  const yOff = t < S.CLOSE ? 0 : t < a ? -14 * ease((t - S.CLOSE) / S.LIFT) : t < b ? -14 + (fu.sink + 14) * Math.pow((t - a) / S.DRILL, 1.4) : fu.sink;
-  return { yOff, buriedAt: b };
+  const fu = g.fu!, t = g.t, a = S.CLOSE + S.WIND, b = a + S.DRIVE;
+  // (wound up: them squashed a hair as it's coming; then in, all at once)
+  const yOff = t < a ? 0 : t < b ? fu.sink * Math.pow((t - a) / S.DRIVE, 0.6) : fu.sink;
+  return { yOff, hitAt: a, buriedAt: b };
 };
 
 /** The ninja drop's rise (frames), before it comes down; the dash over to them first, if they're off a way. */
@@ -477,16 +481,15 @@ export const stepFollow = (ctx: FrameContext, g: Grab, controls: Controls): Cont
         // (on their floor: a charge in the air comes down to it)
         p.pos.y = fu.ground - p.height; p.vel.y = 0; p.isGrounded = true;
       }
-      if (g.t === S.CLOSE) { playSound('punch', 0.8, -2); playSound('whoosh', 0.8, -8); }
-      if (e && g.t > S.CLOSE + S.LIFT && g.t < geo.buriedAt) {
-        // Spun down into it: the floor churned up either side, a grinding as he goes
-        fu.spin += 0.55;
-        if (g.t % 5 === 0) playSound('crunch', 0.5, -6 - (g.t % 3));
-        for (let i = 0; i < 2; i++) {
-          const side = Math.random() < 0.5 ? -1 : 1;
-          state.particles.push({ pos: { x: fu.ef.x + side * e.width * 0.4, y: fu.ground - 2 }, vel: { x: side * (1 + Math.random() * 3), y: -2 - Math.random() * 4 }, life: 22, color: Math.random() < 0.5 ? '#6B4423' : '#A8A29E', size: 2 + Math.random() * 3, grav: 0.3 });
+      if (g.t === S.CLOSE) playSound('whoosh', 0.7, -10);
+      if (e && g.t === geo.hitAt) {
+        // BONK: on the top of the head, and in they go, the floor bursting up either side
+        playSound('punch', 1.2, -8); playSound('slam', 1, -4); shakeScreen(state, 12, 7);
+        for (let i = 0; i < 18; i++) {
+          const side = i % 2 ? -1 : 1;
+          state.particles.push({ pos: { x: fu.ef.x + side * e.width * 0.35, y: fu.ground - 2 }, vel: { x: side * (1.5 + Math.random() * 4), y: -2 - Math.random() * 5 }, life: 24, color: Math.random() < 0.5 ? '#6B4423' : '#A8A29E', size: 2 + Math.random() * 3, grav: 0.3 });
         }
-      } else if (e && g.t > S.CLOSE) fu.spin += 0.3;
+      }
       if (e && g.t >= geo.buriedAt) {
         // In to the neck: stuck there a good while, harmless (out of the world's list: a head now) till it digs out
         g.held = null;
@@ -495,7 +498,7 @@ export const stepFollow = (ctx: FrameContext, g: Grab, controls: Controls): Cont
         trimBuried();
         heal(ctx, g, e);
         calloutAt(ctx, e, fu.ef.x, fu.ground - 30, 'planted');
-        playSound('thud', 1, -6); playSound('slam', 0.7, -2); shakeScreen(state, 8, 5);
+        playSound('thud', 1, -6);
         for (let i = 0; i < 12; i++) state.particles.push({ pos: { x: fu.ef.x + (Math.random() - 0.5) * 30, y: fu.ground - 2 }, vel: { x: (Math.random() - 0.5) * 5, y: -1 - Math.random() * 3 }, life: 26, color: i % 2 ? '#6B4423' : '#78716C', size: 2 + Math.random() * 3, grav: 0.25 });
       }
       if (g.t >= geo.buriedAt + S.HOLD) K.end(state, g);
@@ -956,27 +959,51 @@ export const drawFollow = (ctx: Ctx, state: GameState, g: Grab) => {
     case 'fspin': {
       const e = g.held, geo = spinGeo(g);
       let handAt: P2 = [24, -50];
+      const face = (-d) as 1 | -1, struck = g.t >= geo.hitAt;
       if (e) {
-        const hd = headOf(e), sx = Math.cos(fu.spin), face = ((sx >= 0 ? -d : d)) as 1 | -1;
-        const feetY = fu.ground + geo.yOff;
+        const hd = headOf(e), feetY = fu.ground + geo.yOff;
         ctx.save();
         ctx.beginPath(); ctx.rect(fu.ef.x - 300, fu.ground - 600, 600, 600); ctx.clip();
-        ctx.translate(fu.ef.x, 0); ctx.scale(Math.max(0.15, Math.abs(sx)), 1); ctx.translate(-fu.ef.x, 0);
+        // (a hair squashed as the fists come down, the moment before)
+        const sq = !struck && g.t > geo.hitAt - 3 ? 0.92 : 1;
+        ctx.translate(fu.ef.x, feetY); ctx.scale(2 - sq, sq); ctx.translate(-fu.ef.x, -feetY);
         if (animal(e)) {
-          // (an animal: tipped up on end as it's lifted, head up, then drilled in tail first)
-          const tip = g.t <= S.CLOSE ? 0 : Math.min(1, (g.t - S.CLOSE) / S.LIFT), nk = neckOf(e, face);
+          // (an animal: tipped up on end, head up, as he winds up; then spiked in tail first)
+          const tip = g.t <= S.CLOSE ? 0 : Math.min(1, (g.t - S.CLOSE) / (S.WIND * 0.6)), nk = neckOf(e, face);
           const hangY = fu.ground - hd.r * 0.5 - (fu.sink - geo.yOff);
           drawOnEnd(ctx, state, e, fu.ef.x + nk.x * (1 - tip), (fu.ground + nk.y) * (1 - tip) + hangY * tip, face, tip);
         } else drawEnemyAt(ctx, e, state, fu.ef.x, feetY, 0, face);
         ctx.restore();
         // (the hole he's going into)
         ctx.fillStyle = '#3B2614'; ctx.beginPath(); ctx.ellipse(fu.ef.x, fu.ground, e.width * 0.45 + 4, 3.5, 0, 0, Math.PI * 2); ctx.fill();
-        handAt = [d * (fu.ef.x - x), feetY + hd.y - hd.r * 0.5 - y];
+        // (the top of the head, where the fists land; an animal's, up on end)
+        const top = animal(e) ? fu.ground - hd.r * 2 - (fu.sink - geo.yOff) : feetY + hd.y - hd.r;
+        handAt = [d * (fu.ef.x - x), top - y];
+        // (the bonk: a burst of white off the head, a few frames)
+        if (struck && g.t < geo.hitAt + 6) {
+          const k = (g.t - geo.hitAt) / 6, bx = fu.ef.x, by = Math.min(top, fu.ground - 6);
+          ctx.strokeStyle = `rgba(255, 255, 255, ${(0.9 * (1 - k)).toFixed(2)})`; ctx.lineWidth = 2;
+          for (let i = 0; i < 8; i++) { const a2 = (i / 8) * Math.PI * 2, r0 = 6 + k * 10, r1 = 12 + k * 18; ctx.beginPath(); ctx.moveTo(bx + Math.cos(a2) * r0, by + Math.sin(a2) * r0 * 0.6); ctx.lineTo(bx + Math.cos(a2) * r1, by + Math.sin(a2) * r1 * 0.6); ctx.stroke(); }
+        }
       }
-      const press = g.t > S.CLOSE, lean = press ? Math.max(0.15, Math.min(0.95, 0.25 + (handAt[1] + 46) / 50)) : 0.1, hipY = press ? -21 : -24;
-      const h0 = toTorso(lean, hipY, handAt[0] - 4, handAt[1]), h1 = toTorso(lean, hipY, handAt[0] + 4, handAt[1] + 1);
-      const jig = press && e ? (f % 2 ? 1 : -1) : 0;
-      sprite(ctx, x + jig, y, d, c => figure(c, f, { hipY, lean, feet: [[-15, 0], [14, 0]], hands: [h0, h1], mood: press && e ? 'roar' : 'grit', look: 0.2 }));
+      // Him: walking in, then both fists clasped and raised high overhead (arched back), then down on the head and
+      // following it into the ground, bent over it
+      const a = geo.hitAt, w = Math.max(0, Math.min(1, (g.t - S.CLOSE) / (S.WIND - 2)));
+      let lean: number, hipY: number, hands: [P2, P2], mood: 'roar' | 'grit';
+      if (!struck) {
+        lean = 0.1 - 0.25 * w; hipY = -24;
+        const hx = 10 - 8 * w, hy = -42 - 36 * w;
+        hands = [toTorso(lean, hipY, hx - 3, hy), toTorso(lean, hipY, hx + 3, hy - 1)];
+        mood = w > 0.3 ? 'roar' : 'grit';
+      } else {
+        const k = Math.min(1, (g.t - a + 1) / 2);
+        lean = 0.2 + 0.5 * k; hipY = -22 + 3 * k;
+        const hx = handAt[0], hy = Math.max(handAt[1], -36);
+        hands = [toTorso(lean, hipY, hx - 3, hy), toTorso(lean, hipY, hx + 3, hy + 1)];
+        mood = 'roar';
+      }
+      const jig = struck && g.t < a + 4 ? (f % 2 ? 1 : -1) : 0;
+      sprite(ctx, x + jig, y, d, c => figure(c, f, { hipY, lean, feet: [[-15, 0], [14, 0]], hands, mood, look: struck ? 0.35 : -0.2 }));
       return;
     }
     case 'fdrop': {
