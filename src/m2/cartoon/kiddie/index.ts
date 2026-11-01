@@ -25,7 +25,7 @@ import { drawKiddieBackdrop, drawKiddieBack, drawPitHeaps, kiddieLamps } from '.
 import { ARRIVE, REVISIT, GAGS } from './lines';
 import './kinds';
 import { buildHidden, updateHidden, inCave, overTrolleyPit, drawHiddenHud, CAVE } from './hidden';
-import { drawHoleBack, drawCaveBackdrop, drawCaveBack, drawCaveFront } from './hiddenArt';
+import { drawHoleBack, drawCaveBackdrop, drawCaveBack, drawCaveFront, caveLighting } from './hiddenArt';
 import { CANVAS_WIDTH } from '../../../m1/constants';
 
 const { x0, x1 } = SECTIONS.kiddie;
@@ -78,7 +78,7 @@ export const kiddie: CartoonSection = {
     return controls;
   },
   drawBackdrop: (c, state) => {
-    if (inCave(state)) { drawCaveBackdrop(c); return true; }
+    if (inCave(state)) { drawCaveBackdrop(c, state); return true; }
     return drawKiddieBackdrop(c, state);
   },
   drawBack: (c, state) => {
@@ -102,5 +102,7 @@ export const kiddie: CartoonSection = {
   cameraX: (state) => (inCave(state) ? { min: CAVE.a - 40, max: CAVE.b + 40 - CANVAS_WIDTH } : { min: x0, max: x1 - CANVAS_WIDTH }),
   drawHud: (c, state) => drawHiddenHud(c, state),
   outdoors: (state) => (inCave(state) ? 0 : 1),
+  // (down in the cave: its own dark and lights (hiddenArt.ts); up in the square, the time of day's as ever)
+  lighting: (state, base) => (inCave(state) ? caveLighting(state) : base ?? null),
   lamps: (state) => kiddieLamps(state),
 };

@@ -146,8 +146,16 @@ const gloveCanvas = () => {
   for (let i = 0; i < 3; i++) ball(b, gx - 22 + i * 21, gy - 18, 12, 14, GLOVE, { mat: M_OTHER, line: true, lw: 1.4 });
   // (the thumb across the front)
   ball(b, gx + 2, gy + 10, 22, 11, GLOVE, { mat: M_OTHER, line: true, lw: 1.4, flat: 0.7 });
-  // (scuffs: it's been used)
+  // (the creases: deep between the fingers, folds across each finger's knuckle, wrinkles over the thumb's bend)
+  for (let i = 0; i < 2; i++) path(b, [gx - 12 + i * 21, gy - 30, gx - 11 + i * 21, gy - 18, gx - 12 + i * 21, gy - 8], GLOVE[4], 2, undefined, M_OTHER);
+  for (let i = 0; i < 3; i++) { path(b, [gx - 28 + i * 21, gy - 14, gx - 22 + i * 21, gy - 12, gx - 16 + i * 21, gy - 14], GLOVE[3], 1, undefined, M_OTHER); path(b, [gx - 27 + i * 21, gy - 23, gx - 22 + i * 21, gy - 25], GLOVE[3], 1, undefined, M_OTHER); }
+  for (let k = 0; k < 3; k++) path(b, [gx - 14 + k * 6, gy + 4, gx - 12 + k * 6, gy + 8], GLOVE[3], 1, undefined, M_OTHER);
+  path(b, [gx - 20, gy + 18, gx, gy + 21, gx + 20, gy + 17], GLOVE[3], 1, undefined, M_OTHER);
+  // (scuffs: it's been used; somebody's blood flecked across the knuckles, dried brown in the creases)
   tint(b, gx + 18, gy - 4, 8, 6, hexU('#C8B89A'), 0.35, M_OTHER); tint(b, gx - 26, gy + 16, 6, 4, hexU('#A89A86'), 0.3, M_OTHER);
+  tint(b, gx - 2, gy - 22, 12, 6, hexU('#C8B49A'), 0.3, M_OTHER);
+  for (const [x, y, r] of [[-16, -26, 2], [-9, -28, 1], [4, -24, 1.4], [14, -29, 1], [22, -20, 1.6], [-24, -16, 1]] as const) { ball(b, gx + x, gy + y, r, r, BLOOD.slice(1), { mat: M_OTHER }); plot(b, gx + x + 1, gy + y + r + 1, BLOOD[3]); }
+  for (let i = 0; i < 2; i++) path(b, [gx - 12 + i * 21, gy - 22, gx - 11 + i * 21, gy - 16], BLOOD[4], 1, undefined, M_OTHER);
   plot(b, gx - 28, gy - 26, WHITE); plot(b, gx - 27, gy - 26, WHITE); plot(b, gx - 28, gy - 25, WHITE);
   const cv = toCanvas(b);
   if (!cv) { gloveCv = null; return null; }
