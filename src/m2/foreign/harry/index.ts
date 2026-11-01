@@ -30,7 +30,7 @@ import {
   type Fight, startFight, updateFight, fightOver, endFight, resetFight, drawStatue, drawFightBack, drawFightFront, drawFightHud,
   drawWaiting, introSeen, killCamTick, killCamZoom, killedByWeakness, drawLeftovers, deathNeed, MEMO_CRUMBLED, MEMO_DEATH,
 } from './fight';
-import { frameDeath } from '../../deathFrame';
+import { frameDeath, type Zoom } from '../../deathFrame';
 
 /** The fight's one screen: as far as a camera taking his death in may go. */
 const SHOT = { x0: VIEW_X, y0: sy(0), x1: VIEW_X + CANVAS_WIDTH, y1: sy(CANVAS_HEIGHT) };
@@ -51,6 +51,33 @@ interface Harry {
 const harryOf = (state: GameState) => foreignState<Harry>(state, 'harry', () => ({ fight: 'wait', wonAt: 0, f: null, walls: [], victory: null, walk: null, gate: 'up', gateT: 0, gateBlock: null }));
 /** The kick: when his boot lands (the gate starts over), and when it's down flat. */
 const KICK_HIT = 10, KICK_DONE = 34;
+
+/** Out at the crash site, the gate still up: the camera in close on him, its right edge short of the arena's inside (the
+ *  owner's "at the helicopter crash site, it zooms in and you cannot see the inside of the fight arena"); the gate
+ *  kicked in, it pans and widens out to the plain view (the arena's one screen) over ZOOM_OUT frames. */
+const SITE_SCALE = 1.3, ZOOM_OUT = 50;
+const siteK = { frame: -1, k: 1 };
+const siteZoom = (state: GameState): Zoom | null => {
+  const s = harryOf(state), cam = state.camera;
+  if (isLandCleared('foreign') || state.stageMemo[GATE_MEMO] === '1' && s.gate === 'down' && siteK.k <= 0) { siteK.k = 0; return null; }
+  // (stepped once a frame, however often it's asked)
+  if (siteK.frame !== state.frame) {
+    siteK.frame = state.frame;
+    const open = s.gate === 'down' || (s.gate === 'kick' && s.gateT >= KICK_HIT);
+    siteK.k = open ? Math.max(0, siteK.k - 1 / ZOOM_OUT) : 1;
+  }
+  if (siteK.k <= 0) return null;
+  const p = state.player, w = CANVAS_WIDTH / SITE_SCALE, h = CANVAS_HEIGHT / SITE_SCALE;
+  // (in close: on him, kept to the site, never past the gate's tower into the arena)
+  const zx = Math.max(cam.x, Math.min(cam.x + CANVAS_WIDTH - w, ARENA_L - w, p.pos.x + p.width / 2 - w * 0.45)), zy = cam.y + CANVAS_HEIGHT - h - 30;
+  // (eased out to the plain view: the camera's own box)
+  const e = siteK.k * siteK.k * (3 - 2 * siteK.k);
+  const bx0 = cam.x + (zx - cam.x) * e, by0 = cam.y + (zy - cam.y) * e, bw = CANVAS_WIDTH + (w - CANVAS_WIDTH) * e;
+  let sc = CANVAS_WIDTH / bw;
+  if (Math.abs(sc - 1) < 1e-4) return null;
+  sc = Math.max(1.0001, sc);
+  return { scale: sc, x: bx0, y: by0, shiftX: cam.x - bx0, shiftY: cam.y - by0 };
+};
 /** The gate's been kicked in this run (state.stageMemo: kept across his deaths, the checkpoint world state): back at
  *  the checkpoint it's lying down flat, and he walks back in through it. */
 const GATE_MEMO = 'foreign-harry-gate';
@@ -139,7 +166,13 @@ export const harry: ForeignSection = {
     }
     return controls;
   },
-  cameraX: (state) => (harryOf(state).fight === 'wait' ? { min: x0, max: VIEW_X } : { min: VIEW_X, max: VIEW_X }),
+  // (out at the site with the gate up: the camera kept short of the arena's inside too (siteZoom); in, it's the one screen)
+  cameraX: (state) => {
+    const s = harryOf(state);
+    if (s.fight !== 'wait') return { min: VIEW_X, max: VIEW_X };
+    const shut = !isLandCleared('foreign') && (s.gate === 'up' || (s.gate === 'kick' && s.gateT < KICK_HIT));
+    return { min: x0, max: shut ? Math.max(x0, ARENA_L - CANVAS_WIDTH) : VIEW_X };
+  },
   cameraRow: () => CAM_ROW,
   drawBackdrop: (c, state) => drawSky(c, state),
   drawBack: (c, state) => {
@@ -164,7 +197,7 @@ export const harry: ForeignSection = {
     if (s.victory) drawVictory(c, s.victory);
     if (s.walk) drawWalkAway(c, s.walk);
   },
-  zoom: (state) => { const f = harryOf(state).f; return f ? frameDeath(state, f, killCamZoom(state, f), deathNeed(f), SHOT) : null; },
+  zoom: (state) => { const f = harryOf(state).f; return f ? frameDeath(state, f, killCamZoom(state, f), deathNeed(f), SHOT) : siteZoom(state); },
   holdTick: (ctx) => { const f = harryOf(ctx.state).f; return f ? killCamTick(f) : false; },
   outdoors: () => 1,
   // (her torch's gold flame glows, wherever it is: held up, or planted in the floor)
