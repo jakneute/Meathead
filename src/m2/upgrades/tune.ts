@@ -53,8 +53,9 @@ export const AMULET_DRAIN = 3.5 / 60;
 export const YELL_DAMAGE = 15;
 /** How long a regular enemy it doesn't kill is stunned (frames). */
 export const YELL_STUN = 90;
-/** After it: invulnerable this long, nothing knocking him about (frames; SPEC's ~3 s). */
-export const YELL_SHIELD = 180;
+/** After it: invulnerable this long, nothing knocking him about, his charge moves and grabs harder (frames; was SPEC's
+ *  3 s, the owner: "give the player about 2 more seconds of 'fuck off' hyper mode"). */
+export const YELL_SHIELD = 300;
 /** Then this long before the meter can fill again (frames; was SPEC's 10 s, the owner: "reduce the length of time you
  *  need to wait before another 'fuck off' can happen a bit"). */
 export const YELL_COOLDOWN = 420;
