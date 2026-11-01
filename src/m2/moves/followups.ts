@@ -11,7 +11,8 @@
 //   ARMGUARDS the NINJA DROP: Y + B in or just after an uppercut: on up with them, them upside down under him,
 //             then down, spinning like a top, head first into the ground (regular enemies: dead, legs up out of it).
 //   LEG ARMOR the FLASH KICK: up + B any time in a slide (not a follow-up to a hit: B's held through a slide, so up's
-//             pressed with it, or B pressed with up held): one power cell (none, no kick), a backflip with the leg up
+//             pressed with it, or B pressed with up held): free (no power cell: the owner's "make the flash kick not require a
+//             meter"), a backflip with the leg up
 //             in an arc, about half the uppercut's height. Everything round him in a big circle takes 150 (bosses and
 //             sub-bosses: it's an uppercut to them, the engine's and their fights' own, counted as the slide's piece:
 //             tuning.ts meleeMoveOf, bossMelee's armored share); whatever it kills is sliced in half down the forehead
@@ -45,7 +46,6 @@ import { isMidBoss } from '../../m1/game/combat/midBoss';
 import { interrupt } from '../../m1/game/enemies/enemies';
 import { playSound } from '../../m1/game/platform/audio';
 import { floorTopAt } from '../../m1/game/core/terrain';
-import { notePowerShort } from '../../m1/game/player/powerShort';
 import { UPPERCUT_SPEED, UPPERCUT_DURATION, PLAYER_GRAVITY, CANVAS_HEIGHT, CANVAS_WIDTH, HUD_CLEAR_Y } from '../../m1/constants';
 import { isMachineKind } from '../../m1/game/enemies/kinds';
 import { markMachineGore } from '../../m1/game/enemies/machineGore';
@@ -348,10 +348,6 @@ export const followIdle = (ctx: FrameContext, g: Grab, controls: Controls, press
   if (p.inCutscene || p.noSpecials || K.handsOnly(state)) return null;
   // The flash kick: B's held through a slide, so up pressed with it does it, or B pressed with up held
   if (p.isSliding && has('legs') && controls.up && controls.special && (press('up') || press('special'))) {
-    if (!ctx.cheats.infinitePower) {
-      if (p.power < 1) { notePowerShort(); return null; }
-      p.power -= 1;
-    }
     stopMoves(state);
     const fu = newFollow();
     fu.vy = -flashLaunch(); fu.c0 = pmid(state);
