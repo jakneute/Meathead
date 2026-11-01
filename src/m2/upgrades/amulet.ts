@@ -186,7 +186,12 @@ const yell = (ctx: FrameContext) => {
 /** The hurt just now was an enemy's own doing (the owner's "attacks from an enemy fill it up"), not a trap's: its body or
  *  its shot (the engine marks those), anything in a boss's or a sub-boss's fight, or a hurt named for an enemy that's
  *  about (a kind's own attack). */
+/** A hurt that's coming is a trap's, whatever fight he's in (the owner's "crashing into obstacles like cows counts as a
+ *  'trap'": the bike's bails and wrecks, the broom flown into a tower): called just before it. */
+let trapAt = -99;
+export const markTrapHurt = (state: GameState) => { trapAt = state.frame; };
 const foeHit = (state: GameState) => {
+  if (trapAt >= state.frame - 2 && trapAt <= state.frame) return false;
   if ((state.foeHurtAt ?? -99) >= state.frame - 2) return true;
   // (a boss's or a sub-boss's fight, anything in it: the fight's own gear is the boss's attack, not a trap (the owner:
   // "getting hit by a car on the steve fight should fill the fuck off meter ... those aren't considered environmental

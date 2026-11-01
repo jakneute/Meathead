@@ -52,7 +52,7 @@ import { ROSTER_MEMO } from '../keep/state';
 import type { SuitorLook } from '../suitors';
 import { hash } from '../kit';
 import { timeOfDay } from '../../timeOfDay';
-import { onYell } from '../../upgrades/amulet';
+import { onYell, markTrapHurt } from '../../upgrades/amulet';
 import {
   W, H, HORIZON, FOCAL, CAM_BACK, CAM_UP, WALL_R, MIN_ALT, MAX_ALT, MOAT, CASTLE_U, WINDOW, SOLIDS, TOWERS, FLAGS, BALLOONS, TREES,
   CASTLE_K, CASTLE_CX, CASTLE_CY, TOWER_PX, view, setView, project, seen, solidAt, radiusAt, topOf, balloonAt,
@@ -766,7 +766,7 @@ export const updateFight = (ctx: FrameContext, controls: Controls): Controls => 
       f.x = s.x + (ex / e) * rr; f.z = s.z + (ez / e) * rr;
       f.yaw = Math.atan2(ex, ez); f.yawRate = 0; f.speed *= 0.4; f.shake = Math.max(f.shake, 12);
       playSound('thud', 0.8, -4); sparks(f, f.x, f.z, f.alt + 40, ['#DCD2EC', '#9484B4', '#FFFFFF'], 10);
-      hurtHim(ctx, f, DMG.tower, SRC.tower);
+      markTrapHurt(ctx.state); hurtHim(ctx, f, DMG.tower, SRC.tower);
     }
     for (const b of BALLOONS) {
       const q = balloonAt(b, state.frame), ex = f.x - q.x, ez = f.z - q.z, ea = f.alt + 30 - (q.alt + 60), e = Math.hypot(ex, ez, ea);

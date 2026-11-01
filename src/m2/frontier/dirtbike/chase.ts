@@ -42,7 +42,7 @@ import {
 import { drawSpr, drawTeenRider, drawTeenBody, drawTeenSprawl, drawLid, drawTeenDangle, drawEndo, drawMeathead, drawMhTumble, drawBikeTumble, drawTuckerRider, drawWeapon, digits, teenLookOf, parryHand, PUNCH_WIND, PUNCH_LEN, ART, type Weapon, type TeenLook, type RiderPose, type MhPose } from './art';
 import { signText, signW, type Look as Letters } from '../../signLetters';
 import { HURT, MH_START, MH_AGAIN, MH_KNOCKOFF, MH_PARRY, MH_END, MH_ADULTS, TEEN_TAUNT, TEEN_AGE, TEEN_AGE_FIRST, TEEN_DOWN, TEEN_PARRIED, TUCKER_RAISE, TUCKER_LEDGER, TUCKER_FLEE } from './lines';
-import { onYell } from '../../upgrades/amulet';
+import { onYell, markTrapHurt } from '../../upgrades/amulet';
 
 for (const [source, l] of Object.entries(HURT)) registerHurtLines(source, l.hurt, l.death);
 
@@ -572,6 +572,7 @@ const bail = (ctx: FrameContext, c: Chase, src: string, sp: Spr | null) => {
   const { state } = ctx;
   if (c.phase !== 'ride' || c.inv > 0) return;
   if (sp) killAnimal(c, sp, c.z);
+  markTrapHurt(ctx.state);
   hurtPlayer(ctx, BAIL_DMG, src, { x: 0, y: 0 });
   c.phase = 'bail'; c.bail = { t: 0 }; c.punch = null; c.parry = null; c.shake = 16;
   c.loose.push({ kind: 'mh', z: c.z + 40, x: c.x, h: 60, vz: c.speed * 0.9, vx: c.vx, vh: 14, t: 0, rot: 0 });
@@ -746,7 +747,7 @@ const hisLoose = (ctx: FrameContext, c: Chase, oldZ: number) => {
     if (lying && Math.abs(l.z - c.z) < 90 && dx < 0.26 && c.h < 40) { gib(c, l, BODY_V); continue; }
     if (l.kind === 'ramp' && crossed && dx < 0.3 && c.h < 40) { gib(c, l, RAMP_V); c.pops.push({ text: 'WHEEE!', t: 0, col: '#86EFAC', y: 120 }); continue; }
     if (l.kind === 'wreck' && l.vz > 15 && Math.abs(l.z - c.z) < 120 && dx < 0.2 && c.h < 60 && c.inv <= 0) {
-      hurtPlayer(ctx, WRECK_DMG, 'm2:fr_bikewreck', { x: 0, y: 0 }); c.inv = 50; c.shake = 8; c.vx += (c.x < l.x ? -1 : 1) * 0.03; l.vz = 0;
+      markTrapHurt(ctx.state); hurtPlayer(ctx, WRECK_DMG, 'm2:fr_bikewreck', { x: 0, y: 0 }); c.inv = 50; c.shake = 8; c.vx += (c.x < l.x ? -1 : 1) * 0.03; l.vz = 0;
       playSound('clang', 0.7);
       if (ctx.state.player.health <= 0) die(ctx.state, c);
     }
