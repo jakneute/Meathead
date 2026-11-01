@@ -143,6 +143,9 @@ export const installGear = () => {
     pointProof: p => p.isCharging && !p.isSliding && has('pauldrons'),
     slideThrough: p => p.isSliding && has('legs'),
     uppercutPierces: p => p.isUppercutting && has('armguards'),
+    // (not the armor's: every uppercut in Meathead 2. The owner: "if you uppercut a grounded enemy that is non-fatal,
+    // you go up along with the enemy", the ninja drop there to follow it up with)
+    uppercutCarries: p => p.isUppercutting,
     stopsShot,
     tripFrames: LEGS_TRIP_FRAMES,
   });

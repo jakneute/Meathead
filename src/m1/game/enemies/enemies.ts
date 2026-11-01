@@ -1024,9 +1024,13 @@ const resolvePlayerContact = (ctx: FrameContext, e: Enemy): boolean => {
         tripEnemy(ctx, e);
         return true;
       }
+      // (one stood on the ground an uppercut launches, in a game that has him go up with it (Meathead 2): no bounce off,
+      // the uppercut carries on up alongside it, and its body doesn't hurt him on the way)
+      const carried = player.isUppercutting && e.type !== 'boss' && !isMidBoss(e) && !isAirEnemy(e) && Math.abs(e.vel.y) < 1 && !e.unshakeable && mods().uppercutCarries(player);
       if (e.type !== 'boss') {
         knockBackEnemy(ctx, e, mass, wasFrozen);
       }
+      if (carried) { state.reboundFrom = { id: e.id, until: state.frame + UPPERCUT_CARRY_GRACE }; return true; }
       if (player.isDivekicking) {
         // Stomp: a satisfying bounce, and you can divekick again mid-bounce. It also
         // refunds a power cell on the spot (chain them for air combos; not off a head too greasy to stand on; not in a
@@ -1189,6 +1193,9 @@ const knockBackEnemy = (ctx: FrameContext, e: Enemy, mass: number, wasFrozen: bo
 
 /** Tripped by a slide (MoveMods.slideThrough): up off its feet, over him, down a good while (dazed: pauseTimer), and
  *  out of whatever it was doing. Its body doesn't count as hurting him while it's down. */
+/** An uppercut that carries on up with one (MoveMods.uppercutCarries): its body can't hurt him this long. */
+const UPPERCUT_CARRY_GRACE = 60;
+
 const tripEnemy = (ctx: FrameContext, e: Enemy) => {
   const { state, fx } = ctx;
   const p = state.player, t = mods().tripFrames;

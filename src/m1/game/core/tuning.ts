@@ -64,6 +64,9 @@ export interface MoveMods {
   slideThrough: (p: Player) => boolean;
   /** This uppercut lands on what's otherwise shut to it (a boss's shield). */
   uppercutPierces: (p: Player) => boolean;
+  /** An uppercut that doesn't kill a regular enemy off the ground goes on up with it (launched together) instead of
+   *  bouncing off it. */
+  uppercutCarries: (p: Player) => boolean;
   /** An enemy's shot that's reached him, before it hurts: true if his gear stops it (it's spent, he isn't hurt). */
   stopsShot: (ctx: FrameContext, shot: Projectile) => boolean;
   /** A trip off a slide (slideThrough): how long the enemy's down. */
@@ -71,7 +74,7 @@ export interface MoveMods {
 }
 const MOVE_MODS_NONE: MoveMods = {
   walk: () => 1, jumpHold: () => 1, floatFall: () => null, reach: () => 1,
-  spikeProof: () => false, pointProof: () => false, slideThrough: () => false, uppercutPierces: () => false,
+  spikeProof: () => false, pointProof: () => false, slideThrough: () => false, uppercutPierces: () => false, uppercutCarries: () => false,
   stopsShot: () => false, tripFrames: 0,
 };
 let moveMods: MoveMods = MOVE_MODS_NONE;

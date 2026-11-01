@@ -771,6 +771,9 @@ export const followTick = (ctx: FrameContext, g: Grab) => {
   // (the window: the last frame he was in one of the three; and who a Y + B would take now, a twinkle as it comes on)
   const mv = moveNow(state);
   if (mv) lastMove = { move: mv, at: state.frame };
+  // (and on through the bounce off whoever it hit: the owner's "so they can be initiated during the recoil of the
+  // attack as well"; the window counts on from the end of that)
+  else if (lastMove && (state.player.recoiling || state.player.slideRecoil) && since(state.frame, lastMove.at) <= FOLLOW_WINDOW) lastMove.at = state.frame;
   const had = ready;
   ready = g.phase === 'idle' ? followReady(state) : null;
   if (ready && !had) playSound('twinkle', 0.7, 8);
