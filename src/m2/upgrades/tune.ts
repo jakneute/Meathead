@@ -78,8 +78,6 @@ export const FOLLOW_WINDOW = 24;
  *  across, from his middle to their near edge (the charge's wider), up/down the same way. Was 130 / 190 / 170 to their
  *  middle, after a hit. */
 export const FOLLOW_REACH = 200, FOLLOW_REACH_CHARGE = 260, FOLLOW_REACH_UP = 200;
-/** Health back for a follow-up (the air grab's 12; times the enemy's healK, nothing off noHeal). */
-export const FOLLOW_HEAL = 12;
 /** Sabatons' missile: how fast he's hurled (px a frame; the shakedown's throw is 17), and what he does to whoever he
  *  hits, times a thrown body's own (mass × speed; its cap of 160 times it too). */
 export const MISSILE_SPEED = 25, MISSILE_HIT_K = 1.6;

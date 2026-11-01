@@ -30,7 +30,7 @@
 // punts its head (cut out of it as it looked alive, on end the way it was stuck).
 //
 // The follow-ups need that move's piece; on a grab-immune regular enemy, the hand armor too; never a critter (Y + B on
-// one is still the critter grab), a boss or a sub-boss. Each heals like the other grabs (FOLLOW_HEAL). The window, the
+// one is still the critter grab), a boss or a sub-boss. None of them heals (the owner: "followup grabs shouldn't heal. they are meant for big damage mainly"). The window, the
 // reach and the rest: upgrades/tune.ts.
 //
 // NO HIT NEEDED (the owner's "not require a hit confirmation but rather just within a quick window of doing the
@@ -63,7 +63,7 @@ import { raged } from '../upgrades/amulet';
 import { lastMelee, stampMelee, clearMelee } from '../upgrades/lastHit';
 import { worldPrompt } from '../store';
 import {
-  FOLLOW_WINDOW, FOLLOW_REACH, FOLLOW_REACH_CHARGE, FOLLOW_REACH_UP, FOLLOW_HEAL, MISSILE_SPEED, MISSILE_HIT_K,
+  FOLLOW_WINDOW, FOLLOW_REACH, FOLLOW_REACH_CHARGE, FOLLOW_REACH_UP, MISSILE_SPEED, MISSILE_HIT_K,
   HEAD_KICK_SPEED, HEAD_HIT, HEAD_KICK_REACH, BURIED_MAX, BURIED_FREE, BURIED_DIG, NINJA_FALL, NINJA_DAMAGE, NINJA_METEOR_R, NINJA_METEOR_DMG, NINJA_METEOR_STUN, FLASH_RISE, FLASH_RADIUS, FLASH_DAMAGE,
 } from '../upgrades/tune';
 import { grabKit as K, grabbable, isCritter, handsOnlyFoe, drawEnemyAt, drawPoseSprite as sprite, drawPoseHead as head, type Grab } from './grab';
@@ -164,14 +164,6 @@ const stopMoves = (state: GameState) => {
   const p = state.player;
   p.isCharging = false; p.isSliding = false; p.isUppercutting = false; p.isDivekicking = false; p.uppercutBoost = undefined;
   p.recoiling = false; p.lockTimer = 0; p.pushbackTimer = 0; p.isHarmlessPushback = false; p.slideRecoil = false; p.isDucking = false;
-};
-
-/** Health back, like the other grabs (by the one he's got, nothing off what gives nothing). */
-const heal = (ctx: FrameContext, g: Grab, e: Enemy) => {
-  if (e.noHeal) return;
-  const p = ctx.state.player, n = K.healOf(e, FOLLOW_HEAL);
-  p.health = Math.min(p.maxHealth, p.health + n); g.hp = p.health;
-  ctx.fx.spawnDamageNumber({ x: K.centerX(ctx.state), y: p.pos.y - 20 }, `+${n} HP`, true, '#4ADE80');
 };
 
 /** A kill's callout where it is now (it's out of the enemy list by then). */
@@ -469,7 +461,6 @@ export const stepFollow = (ctx: FrameContext, g: Grab, controls: Controls): Cont
           g.held = null;
           K.release(state, e);
           K.fly(g, e, 'missile', false, 1, MISSILE_HIT_K);
-          heal(ctx, g, e);
           playSound('whoosh', 1.4, -8); playSound('slam', 0.6, 4); shakeScreen(state, 8, 5);
           for (let i = 0; i < 10; i++) state.particles.push({ pos: { x: geo.hand.x, y: geo.hand.y }, vel: { x: -d * (1 + Math.random() * 3), y: (Math.random() - 0.5) * 3 }, life: 16, color: 'rgba(255, 255, 255, 0.6)', size: 3 + Math.random() * 3 });
         }
@@ -503,7 +494,6 @@ export const stepFollow = (ctx: FrameContext, g: Grab, controls: Controls): Cont
         e.vel = { x: 0, y: 0 }; e.melee = undefined; e.pauseTimer = 0; e.rotation = 0;
         buried.push({ e, x: fu.ef.x, ground: fu.ground, sink: fu.sink, face: (-d) as 1 | -1, mode: 'head', born: state.frame, stage: String(state.stageId), gone: null });
         trimBuried();
-        heal(ctx, g, e);
         calloutAt(ctx, e, fu.ef.x, fu.ground - 30, 'planted');
         playSound('thud', 1, -6);
         for (let i = 0; i < 12; i++) state.particles.push({ pos: { x: fu.ef.x + (Math.random() - 0.5) * 30, y: fu.ground - 2 }, vel: { x: (Math.random() - 0.5) * 5, y: -1 - Math.random() * 3 }, life: 26, color: i % 2 ? '#6B4423' : '#78716C', size: 2 + Math.random() * 3, grav: 0.25 });
@@ -607,7 +597,6 @@ const ninjaImpact = (ctx: FrameContext, g: Grab, e: Enemy, floor: number): Contr
   buried.push({ e, x, ground: floor, sink, face, mode: 'legs', born: state.frame, stage: String(state.stageId), gone: null,
     bake: beast ? bakeEnemyCutAlive(state, e, face, legsCut(e)) : undefined });
   trimBuried();
-  heal(ctx, g, e);
   const scrap = isMachineKind(e.kind);
   if (scrap) markMachineGore(state, x - 80, floor - 80, 160, 120, 30);
   markKindGore(state, e.kind, x - 80, floor - 80, 160, 120, 30);
@@ -643,7 +632,6 @@ const ninjaSurvived = (ctx: FrameContext, g: Grab, e: Enemy, floor: number, dmg:
   e.vel = { x: g.dir * NINJA_BOUNCE_X, y: -NINJA_BOUNCE_Y };
   e.pauseTimer = Math.max(e.pauseTimer || 0, NINJA_SURVIVE_STUN); e.chargedAt = state.frame;
   fx.spawnDamageNumber(e.pos, dmg, true);
-  heal(ctx, g, e);
   fx.spawnExplosion({ x, y: floor - 4 }, '#8B0000', 12, 0, 10);
   for (let i = 0; i < 16; i++) state.particles.push({ pos: { x: x + (Math.random() - 0.5) * 20, y: floor - 2 }, vel: { x: (Math.random() - 0.5) * 9, y: -1 - Math.random() * 5 }, life: 28, color: i % 3 ? '#6B4423' : '#A8A29E', size: 2 + Math.random() * 3, grav: 0.3 });
   K.slamShock(ctx, e, x, floor);

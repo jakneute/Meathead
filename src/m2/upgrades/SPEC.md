@@ -139,7 +139,7 @@ it. Colors only, no per-frame pixel work.
   more potent than the shakedown's throw. Works on enemies in the air too; gravity arcs the throw down. No steering.
 - AS BUILT (Phase D1, 2026-10-31: moves/followups.ts): flipped over onto them (8 frames), swung round (12), let go
   straight ahead at MISSILE_SPEED 25 (the throw's 17), a body thrown with its collateral ×MISSILE_HIT_K 1.6 (cap 256);
-  `dropping`, so a flyer falls too. Nothing hurts him through it (like the air grab). Heals FOLLOW_HEAL.
+  `dropping`, so a flyer falls too. Nothing hurts him through it (like the air grab). No heal (follow-ups never heal: 2026-10-31).
 
 ### PAULDRONS (shoulders): the shoulder charge
 - More damage on bosses; the charge goes further. Ignores what punishes a charge: horned beasts, spear enemies (KindDef.pointy).
@@ -327,7 +327,7 @@ it. Colors only, no per-frame pixel work.
   i-frames (and a cheap shot may come of it). Without the piece, no damage, as now.
 
 ## Follow-ups, generally
-- The window: during the move and ~24 frames after it (TUNE; it was ~30 after a hit). Follow-ups heal like the other grabs. Not on critters (Y+B on a critter
+- The window: during the move and ~24 frames after it (TUNE; it was ~30 after a hit). Follow-ups DON'T HEAL (the owner, 2026-10-31: "followup grabs shouldn't heal. they are meant for big damage mainly"; the standard beatdowns and air throws still do). Not on critters (Y+B on a critter
   is still the critter grab). Not on grab-immune enemies without the hand armor.
 - PEOPLE AND ANIMALS (2026-10-31: "for any of the new grabs, be sure to account for the correct orientation, like we did
   with shakedowns and beatdowns"; "new grabs do work on mid sized animals though... any animal you can beatdown or
@@ -354,7 +354,7 @@ it. Colors only, no per-frame pixel work.
   sound as it comes on. THE START: rings bursting off him and them and a streak between, a spray of the piece's colors,
   a jolt, a bang, its name (MISSILE! / PLANTED! / NINJA DROP!). Never on a boss or a sub-boss (the Ensemble's actors
   included); a Y + B next to a boss inside the window takes a regular enemy in reach over the cheap shot. Each heals
-  FOLLOW_HEAL 12 (×healK). The slide has no follow-up (its trip is the keep-away; the flash kick is up + B).
+  No heal. The slide has no follow-up (its trip is the keep-away; the flash kick is up + B).
 
 ## CON-FUCK-TIOUS (not now)
 Meathead's old gym buddy (CON-FUCK-TIOUS is only Meathead's name for him): plays the wise old dojo master, actually a
