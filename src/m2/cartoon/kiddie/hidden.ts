@@ -317,7 +317,7 @@ const runTrial = (ctx: FrameContext, h: Hidden) => {
 /** The kick's beats: the step in, the boot's up (it lands), him free again. */
 const KICK_IN = 14, KICK_HIT = KICK_IN + 8, KICK_END = KICK_HIT + 34;
 /** Where his middle stands from Ben's for it (the kick's foot reaches ~40 ahead). */
-const KICK_OFF = 40;
+const KICK_OFF = 50;
 const runKick = (state: GameState, h: Hidden) => {
   const p = state.player, t = ++h.kickT;
   p.inCutscene = true; p.vel.x = 0; p.facing = h.kickDir;
