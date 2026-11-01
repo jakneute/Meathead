@@ -42,6 +42,7 @@ import {
 import { drawSpr, drawTeenRider, drawTeenBody, drawTeenSprawl, drawLid, drawTeenDangle, drawEndo, drawMeathead, drawMhTumble, drawBikeTumble, drawTuckerRider, drawWeapon, digits, teenLookOf, parryHand, PUNCH_WIND, PUNCH_LEN, ART, type Weapon, type TeenLook, type RiderPose, type MhPose } from './art';
 import { signText, signW, type Look as Letters } from '../../signLetters';
 import { HURT, MH_START, MH_AGAIN, MH_KNOCKOFF, MH_PARRY, MH_END, MH_ADULTS, TEEN_TAUNT, TEEN_AGE, TEEN_AGE_FIRST, TEEN_DOWN, TEEN_PARRIED, TUCKER_RAISE, TUCKER_LEDGER, TUCKER_FLEE } from './lines';
+import { onYell } from '../../upgrades/amulet';
 
 for (const [source, l] of Object.entries(HURT)) registerHurtLines(source, l.hurt, l.death);
 
@@ -252,6 +253,18 @@ const knockOff = (state: GameState, c: Chase, t: Teen, side: number, quip: boole
   if (rnd() < 0.5) speak(t.k.voice, pickLine(byPants(state, TEEN_DOWN)), s => { c.yelp = s; }, false, quipNow ? mh : undefined);
   else if (quipNow) mh();
 };
+
+// The amulet's yell (upgrades/amulet.ts), on the bike: every kid in his fight lane (alongside, in punching reach, either
+// side) wipes out (the owner's "for the teens, any actively in your fight lane wipe out"); the pack further off rides on
+onYell(ctx => {
+  const c = chaseOf(ctx.state);
+  if (c.phase !== 'ride') return;
+  for (const t of c.teens) {
+    if (!t.alive) continue;
+    const dz = t.z - c.z, sep = t.x - c.x;
+    if (Math.abs(dz) <= 220 && Math.abs(sep) <= 0.9) knockOff(ctx.state, c, t, Math.sign(sep) || 1, false);
+  }
+});
 
 /** Something in the road or by it in this segment that a rider at x hits (tall ones; low ones when not in the air). */
 const hitIn = (c: Chase, i: number, x: number, h: number, pad: number): Spr | null => {

@@ -52,6 +52,7 @@ import { ROSTER_MEMO } from '../keep/state';
 import type { SuitorLook } from '../suitors';
 import { hash } from '../kit';
 import { timeOfDay } from '../../timeOfDay';
+import { onYell } from '../../upgrades/amulet';
 import {
   W, H, HORIZON, FOCAL, CAM_BACK, CAM_UP, WALL_R, MIN_ALT, MAX_ALT, MOAT, CASTLE_U, WINDOW, SOLIDS, TOWERS, FLAGS, BALLOONS, TREES,
   CASTLE_K, CASTLE_CX, CASTLE_CY, TOWER_PX, view, setView, project, seen, solidAt, radiusAt, topOf, balloonAt,
@@ -371,6 +372,22 @@ const hitFlyer = (state: GameState, f: Fight, fl: Flyer, n: number, by: number, 
   if (fl.mode === 'aim' || fl.mode === 'wind') { if (rnd() < 0.25) { fl.mode = 'fly'; fl.cool = 40; } }
   if (fl.hp <= 0) killFlyer(state, f, fl, by);
 };
+
+// The amulet's yell (upgrades/amulet.ts), on the broom: only the suitors near him take it (the owner's "for the broom
+// sequence, it shouldn't affect everyone but any who may be near you"): hurt, sprayed, blown back away from him
+const YELL_R = 650, YELL_DMG = 6, YELL_SHOVE = 26;
+onYell(ctx => {
+  const f = fightOf(ctx.state);
+  if (f.phase !== 'fly') return;
+  for (const fl of f.flyers) {
+    if (!fl.alive) continue;
+    const dx = fl.x - f.x, dz = fl.z - f.z, da = fl.alt - f.alt, d = Math.hypot(dx, dz, da);
+    if (d > YELL_R) continue;
+    const n = d || 1, push = YELL_SHOVE * (1 - d / YELL_R * 0.5);
+    hitFlyer(ctx.state, f, fl, YELL_DMG, -1, { vx: (dx / n) * 20, vz: (dz / n) * 20, valt: (da / n) * 20 });
+    fl.x += (dx / n) * push * 6; fl.z += (dz / n) * push * 6;
+  }
+});
 
 const killFlyer = (state: GameState, f: Fight, fl: Flyer, by: number) => {
   fl.alive = false; fl.mode = 'fly';

@@ -149,6 +149,11 @@ const hit = (ctx: FrameContext, e: Enemy, cx: number) => {
   fx.spawnDamageNumber({ x: e.pos.x, y: e.pos.y - 20 }, YELL_DAMAGE, false);
 };
 
+/** The modes that take the screen over with their own foes (the Road Rash chase, the broom deathmatch): their say over
+ *  what the yell does to those (state.enemies isn't them), called as it goes off. */
+const yellHooks: ((ctx: FrameContext) => void)[] = [];
+export const onYell = (fn: (ctx: FrameContext) => void) => { yellHooks.push(fn); };
+
 const yell = (ctx: FrameContext) => {
   const { state } = ctx, p = state.player;
   const cx = p.pos.x + p.width / 2, cy = p.pos.y + p.height * 0.3;
@@ -170,6 +175,7 @@ const yell = (ctx: FrameContext) => {
     if (e.health <= 0 || e.isBlownAway || e.innocent || !onScreen(state, e)) continue;
     hit(ctx, e, cx);
   }
+  for (const fn of yellHooks) fn(ctx);
   // (spit and steam off him)
   for (let i = 0; i < 18; i++) {
     const ang = (i / 18) * Math.PI * 2;
