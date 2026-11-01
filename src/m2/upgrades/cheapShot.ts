@@ -38,7 +38,8 @@ import { NO_CONTROLS, type Controls } from '../../m1/game/platform/input';
 import type { Enemy } from '../../m1/types';
 import { KICK_POSE_FRAMES } from '../../m1/constants';
 import { playSound } from '../../m1/game/platform/audio';
-import { say, pickLine, MEATHEAD_VOICE } from '../../m1/game/platform/speech';
+import { say, pickLine, MEATHEAD_VOICE, ANNOUNCER_VOICE } from '../../m1/game/platform/speech';
+import { GRAB_CALLOUTS } from '../moves/callouts';
 import { isNude, isShat } from '../../m1/game/player/gut';
 import { saidOver } from '../adventure/section';
 import { has } from './state';
@@ -130,7 +131,12 @@ export const registerCloseUp = (id: CrushId, paint: CloseUpPaint) => { closeUps.
 // The cutscene
 
 /** Its beats (frames): stepping in and taking hold; the boot lands; the close-up; a hop back off them; done. */
-const T_HOLD = 10, T_HIT = T_HOLD + 10, T_PANEL_END = T_HIT + CLOSE_LEN, T_END = T_PANEL_END + 22;
+/** Slowed so it reads (the owner: "somewhat slow down the nut crunching so the player knows what they did. it seems to
+ *  go a bit too fast"): the step in and the kick, and the close-up played at 1 / PANEL_SLOW speed (was 10, 10, 96). */
+const PANEL_SLOW = 1.5, PANEL_T = Math.round(CLOSE_LEN * PANEL_SLOW);
+const T_HOLD = 16, T_HIT = T_HOLD + 14, T_PANEL_END = T_HIT + PANEL_T, T_END = T_PANEL_END + 26;
+/** The close-up's own frame, `t` frames into it (held frames, not fractions: the painters count whole frames). */
+const panelT = (t: number) => Math.min(CLOSE_LEN - 1, Math.floor(t / PANEL_SLOW));
 /** Where his middle stands from their near side (the kick's foot reaches ~40 ahead of it). */
 const STAND_OFF = 30;
 
@@ -204,6 +210,17 @@ export const cheapShotStep = (ctx: FrameContext): Controls | null => {
       onShow: spoken => { if (scene === s) s.said = said; if (!spoken) setTimeout(() => { if (s.said === said) s.said = null; }, Math.max(1600, scream.length * 65)); },
       onHide: () => { if (s.said === said) s.said = null; },
     });
+    // (the announcer calls it, after the scream, before him: the owner's "make sure the announcer announces the nut
+    // crunch (or ovary crunch) when it happens"; its words up over them as it's said)
+    const call = pickLine(GRAB_CALLOUTS[c.robot ? 'circuitcrunch' : c.female ? 'ovarycrunch' : 'nutcrunch'].lines);
+    const callColor = GRAB_CALLOUTS[c.robot ? 'circuitcrunch' : c.female ? 'ovarycrunch' : 'nutcrunch'].color;
+    say(call, ANNOUNCER_VOICE, 'queue', {
+      always: true,
+      onShow: () => {
+        state.damageNumbers.push({ id: `crunch-${state.frame}`, text: call, pos: { x: midX(s.e), y: s.e.pos.y - 16 }, vel: { x: 0, y: -1.2 }, life: 110, maxLife: 110, isCritical: true, isCallout: true, color: callColor });
+      },
+      onHide: () => {},
+    });
     const mine = pickLine(MEATHEAD_CHEAP[d]);
     say(mine, MEATHEAD_VOICE, 'queue', {
       always: true,
@@ -214,7 +231,7 @@ export const cheapShotStep = (ctx: FrameContext): Controls | null => {
       onHide: () => { if (state.playerLastVulgarity === mine) state.playerVulgarityTimer = 0; },
     });
   }
-  if (t > T_HIT && t < T_PANEL_END && t - T_HIT === CLOSE_HIT) { playSound('crunch', 1, -14); playSound('splat', 0.9, -10); }
+  if (t > T_HIT && t < T_PANEL_END && panelT(t - T_HIT) === CLOSE_HIT && panelT(t - T_HIT - 1) !== CLOSE_HIT) { playSound('crunch', 1, -14); playSound('splat', 0.9, -10); }
   // (out of the close-up: a hop back off them)
   if (t === T_PANEL_END) { p.vel.y = -5; p.isGrounded = false; playSound('jump', 0.5, 4); }
   if (t > T_PANEL_END) p.pos.x -= s.dir * 2.6;
@@ -285,5 +302,5 @@ const star = (c: Ctx, x: number, y: number, r: number, col: string) => {
 export const drawCheapShotPanel = (c: Ctx, _state: GameState) => {
   const s = scene;
   if (!s || s.t < T_HIT || s.t >= T_PANEL_END) return;
-  drawCloseUp(c, s.look, s.t - T_HIT);
+  drawCloseUp(c, s.look, panelT(s.t - T_HIT));
 };

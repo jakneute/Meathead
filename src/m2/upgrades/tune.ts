@@ -113,4 +113,6 @@ export const HANDS_HEAL = 1.6;
 /** The cheap shot (cheapShot.ts): how long the boss is stunned after it (frames; SPEC's 5 s: four 75-frame breathers). */
 export const CHEAP_STUN = 300;
 /** How near he has to be: across, from his middle to their near side (px); up/down, how far their boxes can miss. */
-export const CHEAP_REACH = 60, CHEAP_REACH_UP = 10;
+export const CHEAP_REACH = 110, CHEAP_REACH_UP = 10;
+// (was 60: shorter than the grab's own reach, so a Y + B a step off a boss went to the plain grab instead: Harry's
+// counter, the first try, and only a second try closer got the cheap shot)

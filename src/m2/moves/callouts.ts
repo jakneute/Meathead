@@ -47,6 +47,10 @@ export const GRAB_CALLOUTS = {
   ninja: { lines: ['NINJA DROP!', 'LAWN DARTED!', 'SPUN INTO THE DIRT!', 'TOP SPUN!', 'HEAD FIRST!'], color: '#60A5FA' },
   sliced: { lines: ['SLICED!', 'SPLIT IN TWO!', 'HALVED!', 'FLASH KICKED!', 'SONIC BOOM!'], color: '#F0ABFC' },
   gorespray: { lines: ['HOSED DOWN!', 'GORE SHOWER!', 'SPLATTERED!', 'BUDDY BATHED!'], color: '#DC2626' },
+  // (the hand armor's cheap shot on a boss: by what it had down there (upgrades/cheapShot.ts))
+  nutcrunch: { lines: ['NUT CRUNCH!', 'NUTS CRUSHED!', 'BALLS BUSTED!', 'SACK ATTACK!', 'FAMILY JEWELS: GONE!'], color: '#FACC15' },
+  ovarycrunch: { lines: ['OVARY CRUNCH!', 'OVARIES CRUSHED!', 'LOW BLOW!', 'NO GRANDKIDS!', 'UTERUS ABUSE!'], color: '#F472B6' },
+  circuitcrunch: { lines: ['CIRCUIT CRUNCH!', 'MOTHERBOARD MASHED!', 'LOW BLOW!', 'SHORT CIRCUITED!', 'NO WARRANTY!'], color: '#22D3EE' },
 } as const;
 
 export type GrabCallout = keyof typeof GRAB_CALLOUTS;
