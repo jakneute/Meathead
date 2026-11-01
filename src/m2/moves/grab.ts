@@ -88,10 +88,13 @@ export const AIR_GRAB = {
   ARC_POP: 7,
   /** The arc's own pull down, each frame (on top of the engine's gravity), and the fastest they fall. */
   ARC_GRAV: 0.45, ARC_MAX_FALL: 20,
-  /** Sideways speed: a direction held (the dive, facing it: left or right, flipping round any time), nothing held (the
-   *  piledriver, upside down, hardly drifting). No lock-in: the owner's "remove the ability to 'lock in' a direction and
+  /** Sideways speed: forward held (the dive), nothing held (the piledriver, upside down, hardly drifting). No lock-in: the owner's "remove the ability to 'lock in' a direction and
    *  allow the player to flip around and guide where you want to land". */
   ARC_FWD_VX: 9, ARC_DOWN_VX: 0.5,
+  /** Back held (away from the way he faces): the piledriver pose, carried backward (the owner: "make sure the air grab
+   *  move can go either forwards or backwards depending on your facing and directional changes" / "meathead's backward
+   *  pose is similar to the izuna drop but doesn't corkscrew"). */
+  ARC_BACK_VX: 7,
   /** How fast the sideways speed follows the stick (0..1, a share of the gap each frame). */
   ARC_STEER: 0.2,
   /** Where each pose turns them to (headfirst straight down is PI; the dive stays well short of upside down). */
@@ -1859,16 +1862,12 @@ const airArc = (ctx: FrameContext, g: Grab, controls: Controls): Controls => {
     playSound('whoosh', 0.8, 2);
     return { ...controls, special: false, charge: false };
   }
-  // Steered live, never locked in: a direction held, he faces it (flipping round, the one he's got swung round with him)
-  // and dives that way; let go, he tips over into the piledriver, upside down, hardly drifting. Either pose, either way.
+  // Steered live, never locked in, flipping between the two poses: forward held (the way he faces), the dive, carried
+  // forward; back held, the piledriver (upside down, the Izuna drop without the corkscrew), carried backward; nothing
+  // held, the piledriver, hardly drifting. He never turns round: forward and back are his.
   const steer = controls.left && !controls.right ? -1 : controls.right && !controls.left ? 1 : 0;
-  if (steer && steer !== g.dir) {
-    // (mirrored: the same pose the other way round, not spun through it)
-    g.dir = steer; g.ang = -g.ang; p.facing = steer;
-    if (g.held) g.held.facing = (-steer) as 1 | -1;
-  }
-  g.arc = steer ? 'fwd' : 'down';
-  const tvx = g.arc === 'fwd' ? g.dir * A.ARC_FWD_VX : g.dir * A.ARC_DOWN_VX;
+  g.arc = steer === g.dir ? 'fwd' : 'down';
+  const tvx = g.arc === 'fwd' ? g.dir * A.ARC_FWD_VX : steer ? steer * A.ARC_BACK_VX : g.dir * A.ARC_DOWN_VX;
   g.avx += (tvx - g.avx) * A.ARC_STEER;
   const tang = g.dir * (g.arc === 'fwd' ? A.FWD_ANGLE : A.DOWN_ANGLE);
   g.ang += Math.max(-A.SPIN, Math.min(A.SPIN, tang - g.ang));
