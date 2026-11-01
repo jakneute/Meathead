@@ -27,6 +27,7 @@ import { shakeScreen } from '../../m1/game/core/state';
 import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../../m1/constants';
 import { setArmor } from '../../m1/game/core/resist';
 import { isMidBoss } from '../../m1/game/combat/midBoss';
+import { inBossFight } from '../bossQuiet';
 import { pushEnemy } from '../../m1/game/combat/knockback';
 import { interrupt } from '../../m1/game/enemies/enemies';
 import { playSound } from '../../m1/game/platform/audio';
@@ -178,6 +179,10 @@ const yell = (ctx: FrameContext) => {
  *  about (a kind's own attack). */
 const foeHit = (state: GameState) => {
   if ((state.foeHurtAt ?? -99) >= state.frame - 2) return true;
+  // (a boss's or a sub-boss's fight, anything in it: the fight's own gear is the boss's attack, not a trap (the owner:
+  // "getting hit by a car on the steve fight should fill the fuck off meter ... those aren't considered environmental
+  // traps, even if they technically are"); every fight marks itself (bossQuiet.ts), whatever its boss is to the engine)
+  if (inBossFight(state)) return true;
   const src = state.lastHurt && state.lastHurt.at >= state.frame - 2 ? state.lastHurt.source : '';
   return state.enemies.some(e => e.health > 0 && !e.isBlownAway && (e.type === 'boss' || isMidBoss(e) || (!!src && !!e.kind && src.includes(e.kind))));
 };
