@@ -51,9 +51,15 @@ import type { MeleeMove } from '../../m1/game/core/tuning';
 
 export const ARMOR_PIECES = ['sabatons', 'pauldrons', 'legs', 'armguards', 'hands', 'helmet', 'amulet', 'cape'] as const;
 export type ArmorPiece = typeof ARMOR_PIECES[number];
-/** What each is called on screen (the cheat panel; anywhere later). */
+/** What each is called on screen: the junk's own name (the owner: "instead of calling it something generic like 'hand
+ *  armor' give it an interesting name, same for all armor pieces"). The equipment tab, the YOU GOT card. */
 export const ARMOR_NAMES: Record<ArmorPiece, string> = {
-  sabatons: 'SABATONS', pauldrons: 'PAULDRONS', legs: 'LEG ARMOR', armguards: 'ARMGUARDS', hands: 'HAND ARMOR', helmet: 'HELMET', amulet: 'AMULET', cape: 'CAPE',
+  sabatons: 'COWBELL CLODHOPPERS', pauldrons: 'COCO-NUTS', legs: 'TROPHY SHIN-DIGS', armguards: 'BEEF BRACERS',
+  hands: 'MASCOT MITTS', helmet: 'KEGGER HELMET', amulet: 'PISS-OFF PENDANT', cape: 'CLEARANCE CAPE',
+};
+/** The plain part each is (the dev-only cheat panel's little chips). */
+export const ARMOR_SHORT: Record<ArmorPiece, string> = {
+  sabatons: 'BOOTS', pauldrons: 'PADS', legs: 'SHINS', armguards: 'BRACERS', hands: 'GLOVES', helmet: 'HELMET', amulet: 'AMULET', cape: 'CAPE',
 };
 
 export const MAX_HEALTH_FINDS = 5, MAX_AMMO_FINDS = 5, MAX_SHARDS = 6;
