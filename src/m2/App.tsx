@@ -462,24 +462,28 @@ const App2: React.FC = () => {
   // (stuck with what he's got, for now: the mine cart)
   const equip = (i: number) => { if (arsenal()[i] && !noSwitching()) setWeapon(arsenal()[i]); };
   /** In the pause menu: the arsenal's a grid three across, RESUME under it. */
-  const movePause = (dx: number, dy: number) => setPauseSel(i => {
-    const n = arsenal().length;
-    // (the EQUIPMENT tab: its grid four across (EQUIP_COLS), the buttons along the bottom under it)
+  const movePause = (dx: number, dy: number) => {
+    // (the EQUIPMENT tab: its grid four across (EQUIP_COLS), the buttons along the bottom under it. Worked out here, once,
+    // not inside a state updater: React runs those twice in development, and the cursor jumped two slots a press)
     if (pauseTabRef.current === 'equipment') {
-      const k = equipSelRef.current;
+      const i = pauseSelRef.current, n = arsenal().length, k = equipSelRef.current;
+      const goSlot = (to: number) => { equipSelRef.current = to; setEquipSel(to); };
+      const goSel = (to: number) => { pauseSelRef.current = to; setPauseSel(to); };
       if (i < n) {
-        let to = k;
-        if (dy > 0) { if (k + EQUIP_COLS < EQUIP_SLOTS) to = k + EQUIP_COLS; else return n; }
-        else if (dy < 0) to = k - EQUIP_COLS >= 0 ? k - EQUIP_COLS : k;
-        else to = Math.max(0, Math.min(EQUIP_SLOTS - 1, k + dx));
-        if (to !== k) { equipSelRef.current = to; setEquipSel(to); }
-        return i;
+        if (dy > 0) { if (k + EQUIP_COLS < EQUIP_SLOTS) goSlot(k + EQUIP_COLS); else goSel(n); }
+        else if (dy < 0) { if (k - EQUIP_COLS >= 0) goSlot(k - EQUIP_COLS); }
+        else goSlot(Math.max(0, Math.min(EQUIP_SLOTS - 1, k + dx)));
+        return;
       }
-      if (dx > 0) return Math.min(lastPause(), i + 1);
-      if (dx < 0 && i > n) return i - 1;
-      if (dy < 0) { const to = Math.floor((EQUIP_SLOTS - 1) / EQUIP_COLS) * EQUIP_COLS; equipSelRef.current = to; setEquipSel(to); return 0; }
-      return i;
+      if (dx > 0) goSel(Math.min(lastPause(), i + 1));
+      else if (dx < 0 && i > n) goSel(i - 1);
+      else if (dy < 0) { goSlot(Math.floor((EQUIP_SLOTS - 1) / EQUIP_COLS) * EQUIP_COLS); goSel(0); }
+      return;
     }
+    movePauseArsenal(dx, dy);
+  };
+  const movePauseArsenal = (dx: number, dy: number) => setPauseSel(i => {
+    const n = arsenal().length;
     // (a controls card up in place of the weapons: just the buttons along the bottom, left and right)
     if (getUi().noSwitch && getUi().pauseControls) { if (i < n) return n; if (dx > 0) return Math.min(lastPause(), i + 1); if (dx < 0 && i > n) return i - 1; return i; }
     if (i >= n) { if (dx > 0) return Math.min(lastPause(), i + 1); if (dx < 0 && i > n) return i - 1; return dy < 0 ? Math.min(n - 1, Math.floor((n - 1) / 3) * 3) : i; }
