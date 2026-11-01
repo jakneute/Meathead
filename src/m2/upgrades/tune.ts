@@ -55,8 +55,9 @@ export const YELL_DAMAGE = 15;
 export const YELL_STUN = 90;
 /** After it: invulnerable this long, nothing knocking him about (frames; SPEC's ~3 s). */
 export const YELL_SHIELD = 180;
-/** Then this long before the meter can fill again (frames; SPEC's ~10 s). */
-export const YELL_COOLDOWN = 600;
+/** Then this long before the meter can fill again (frames; was SPEC's 10 s, the owner: "reduce the length of time you
+ *  need to wait before another 'fuck off' can happen a bit"). */
+export const YELL_COOLDOWN = 420;
 /** Through the rage (the YELL_SHIELD stretch), his charge moves and his grabs hit this many times harder: the four moves,
  *  the flash kick, the follow-ups, every grab's slam, throw and beatdown blow; regular enemies, sub-bosses and bosses
  *  (each fight's breather as ever: the amount, not the rate). Not his weapons. Under the bulk up's own (its knock ×2.2,
