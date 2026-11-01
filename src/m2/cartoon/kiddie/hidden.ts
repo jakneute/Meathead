@@ -12,14 +12,15 @@
 //     and he falls through into the cave (instead of the pit's bounce); anywhere else in the pit is as ever.
 //   THE CAVE: a big hole under the park (world: under the square's far end, well under the ground's blocks). He drops
 //     in through the shaft onto a heap of balls that came down with the light. CON-FUCK-TIOUS is down here, at his
-//     wooden dummy in the giant white cartoon gloves.
-//   THE MEETUP (the first time: a cutscene, SKIP >> for all of it, bubbles): Meathead's hero worship; Ben's gross-up,
-//     the gloves on him and a beatdown flurry at the camera (gross.ts), his dry aside at the name and his fake-wise
-//     riddle; Meathead wants the gloves; Ben sells them and sets the trial.
-//   THE TRIAL (in play; invented, the owner's "fill in the unspecified"): TAKE THE PEBBLE FROM MY HAND. A grab at it
-//     (the beatdown's Y + B, its prompt up beside him) and Ben whips it away: twice, a dry line each, a hint after the
-//     second ("...think about low"). The third grab goes low: right in Ben's nuts (the cheap shot, foreshadowed, never
-//     said). Can't get stuck: three grabs near him, whatever happens.
+//     heavy bag in the giant white cartoon gloves.
+//   THE MEETUP (a cutscene, SKIP >> for all of it, bubbles; confucktious/meetup.ts's script): if it's the first time he's
+//     met Ben anywhere, the long intro (who Ben is, what he's for: junk armor hidden in every land); if he's met him in
+//     another land, the short one. Either way Ben's gross-up, the gloves on him and a beatdown flurry at the camera
+//     (gross.ts); Meathead wants the gloves; Ben sells them and sets the trial.
+//   THE TRIAL (in play; invented, the owner's "fill in the unspecified"): TAKE THE SHAKER OUT OF MY HAND (his protein
+//     shaker). A grab at it (the beatdown's Y + B, its prompt up beside him) and Ben whips it away: twice, a dry line
+//     each, a hint after the second ("...think about low"). The third grab goes low: right in Ben's nuts (the cheap
+//     shot, foreshadowed, never said). Can't get stuck: three grabs near him, whatever happens.
 //   THE GIFT (a cutscene, skippable): the gloves are his (setPiece('hands'), saved there and then); Ben's tease (the
 //     owner's line), Meathead's enamored line (the owner's). Then the YOU GOT card (PieceGotCard.tsx: what it is, what
 //     it does, the buttons, the surprise kept a surprise), PRESS ANY BUTTON.
@@ -49,10 +50,10 @@ import { registerM2Kind, registerKindCallouts } from '../../kinds';
 import { grabLocked, grabHolding } from '../../moves/grab';
 import { setUi } from '../../store';
 import { saveProgress } from '../../save';
-import { has, setPiece } from '../../upgrades/state';
+import { has, setPiece, setBenMet } from '../../upgrades/state';
 import { makeCannon, updateCannon, cannonBusy, cannonCeilingX, type Cannon } from '../../upgrades/returnCannon';
-import { MEET, NAME, RIDDLE, NUDGE, BYE_MEATHEAD, BYE_BEN, PIECE_LINES, benSays, drawBenGross, drawBenGrossBack, warmBenGross, type BenPose, type BenTalk } from '../../upgrades/confucktious';
-import { teleport, meatheadSays, byPants, solid, landVisit, saidOver } from '../section';
+import { NUDGE, BYE_MEATHEAD, BYE_BEN, PIECE_LINES, benSays, drawBenGross, drawBenGrossBack, warmBenGross, meetupScript, startScript, tickScript, skipScript, type BenPose, type BenTalk, type Script } from '../../upgrades/confucktious';
+import { teleport, meatheadSays, byPants, pantsOf, solid, landVisit, saidOver } from '../section';
 import { GY } from '../geometry';
 import { drawMascot } from './kindArt';
 import { KILL_CALLS } from './lines';
@@ -67,8 +68,8 @@ export const HOLE_X = X((HOLE.a + HOLE.b) / 2);
 const PIT3 = PITS[2];
 /** The cave (world): its ends, its floor, its ceiling; under the square's far end, well under the ground's blocks. */
 export const CAVE = { a: X(12100), b: X(13300), floor: GY + 2600, ceil: GY + 2600 - 430 };
-/** Where he comes down (the shaft), where Ben stands, his wooden dummy, where the practice one turns up, the cannon. */
-export const SHAFT_X = CAVE.a + 150, CANNON_X = CAVE.a + 380, BEN_X = CAVE.a + 700, WOOD_X = BEN_X + 52, PRACTICE_X = CAVE.a + 960;
+/** Where he comes down (the shaft), where Ben stands, his heavy bag, where the practice one turns up, the cannon. */
+export const SHAFT_X = CAVE.a + 150, CANNON_X = CAVE.a + 380, BEN_X = CAVE.a + 700, BAG_X = BEN_X + 52, PRACTICE_X = CAVE.a + 960;
 /** Out of the pit's opening, on to safe ground past the trolley's end station (nobody there, nothing running). */
 const EXIT = { x: HOLE_X, y: GY + 18 }, DEST = { x: X(12330), y: GY };
 
@@ -110,8 +111,8 @@ export interface Hidden {
   /** The cutscene's clock (all of it), its current beat, and a token (bumped on a skip: a line's done-callback from
    *  before it does nothing). */
   all: number; beat: number; token: number;
-  /** His gross-up up. */
-  gross: boolean; grossT: number;
+  /** The meetup's script (its gross-up: script.gross). */
+  script: Script | null;
   ben: BenTalk & { pose: BenPose; facing: 1 | -1; poseT: number; piece: 'hands' | null };
   /** The trial: grabs at the pebble so far, the grab's lock last frame, when the nut shot landed. */
   tries: number; lockWas: boolean; nutsAt: number;
@@ -128,7 +129,7 @@ export const hiddenOf = (state: GameState): Hidden => {
   const key = (state.stage ?? state) as object;
   let h = stores.get(key);
   if (!h) stores.set(key, h = {
-    phase: 'out', all: 0, beat: 0, token: 0, gross: false, grossT: 0,
+    phase: 'out', all: 0, beat: 0, token: 0, script: null,
     ben: { said: null, pose: 'flurry', facing: 1, poseT: 0, piece: 'hands' },
     tries: 0, lockWas: false, nutsAt: -1, cardT: 0, practice: null, respawn: 30, goodSaid: false, nudgeAt: 0,
     cannon: makeCannon(CANNON_X, CAVE.floor, EXIT, DEST), was: {},
@@ -223,39 +224,34 @@ export const updateHidden = (ctx: FrameContext, controls: Controls): Controls =>
 const setPose = (h: Hidden, pose: BenPose) => { if (h.ben.pose !== pose) { h.ben.pose = pose; h.ben.poseT = 0; } };
 const freeze = (state: GameState) => { const p = state.player; p.inCutscene = true; p.vel.x = 0; state.projectiles = state.projectiles.filter(q => q.owner !== 'player'); };
 
-// ---- the meetup
+// ---- the meetup (the first meeting's long intro, or a later one's short one: meetup.ts)
 const startMeet = (state: GameState, h: Hidden) => {
-  h.phase = 'meet'; h.all = 0; h.beat = 0; h.gross = false; h.token++;
+  h.phase = 'meet'; h.all = 0; h.token++;
   metVisit = landVisit();
+  h.script = startScript(meetupScript(pantsOf(state), PIECE_LINES.hands));
   freeze(state);
   setPose(h, 'flurry'); h.ben.facing = 1;
 };
 const runMeet = (state: GameState, h: Hidden): Controls => {
-  const p = state.player;
+  const p = state.player, s = h.script!;
   freeze(state); h.all++;
   p.facing = BEN_X > p.pos.x + p.width / 2 ? 1 : -1;
-  if (h.all > SKIP_AFTER) { offerSkip(); if (takeSkip()) { silenceAll(); h.token++; h.gross = false; startTrial(state, h); return { ...NO_CONTROLS }; } }
-  const L = PIECE_LINES.hands;
-  switch (h.beat) {
-    // (a beat of him at his wooden dummy; Meathead sees him)
-    case 0: if (h.all > 40) { h.beat = 100; const tok = h.token; meatheadSays(state, pickLine(byPants(state, MEET)), true, () => { if (h.token === tok) h.beat = 1; }); } break;
-    // (he turns: the gross-up, the gloves on and going; the aside; the riddle)
-    case 1: h.beat = 101; setPose(h, 'stand'); h.ben.facing = -1; h.gross = true; h.grossT = 0;
-      { const tok = h.token; benSays(h.ben, pickLine(NAME), () => { if (h.token === tok) benSays(h.ben, pickLine(byPants(state, RIDDLE)), () => { if (h.token === tok) h.beat = 2; }); }); }
-      break;
-    case 2: if (h.grossT > 150) { h.gross = false; h.beat = 102; const tok = h.token; meatheadSays(state, pickLine(byPants(state, L.ask)), true, () => { if (h.token === tok) h.beat = 3; }); } break;
-    case 3: { h.beat = 103; const tok = h.token; benSays(h.ben, L.sell[0], () => { if (h.token === tok) { setPose(h, 'pebble'); benSays(h.ben, L.trial[0], () => { if (h.token === tok) h.beat = 4; }); } }); break; }
-    case 4: startTrial(state, h); break;
+  const end = () => { setBenMet(true); saveProgress(); h.script = null; startTrial(state, h); };
+  if (h.all > SKIP_AFTER) { offerSkip(); if (takeSkip()) { silenceAll(); skipScript(s); h.ben.said = null; end(); return { ...NO_CONTROLS }; } }
+  // (a beat of him at his heavy bag first; then he turns to Meathead for the lot)
+  if (h.all > 40) {
+    tickScript(state, s, h.ben);
+    if (s.i > 0 || s.waiting) { setPose(h, s.pose); h.ben.facing = -1; }
+    if (s.done) end();
   }
-  if (h.gross) h.grossT++;
   return { ...NO_CONTROLS };
 };
 
 // ---- the trial
 const startTrial = (state: GameState, h: Hidden) => {
-  h.phase = 'trial'; h.tries = 0; h.nutsAt = -1; h.gross = false;
+  h.phase = 'trial'; h.tries = 0; h.nutsAt = -1;
   state.player.inCutscene = false;
-  setPose(h, 'pebble'); h.ben.facing = -1; h.lockWas = grabLocked();
+  setPose(h, 'offer'); h.ben.facing = -1; h.lockWas = grabLocked();
 };
 const runTrial = (ctx: FrameContext, h: Hidden) => {
   const { state } = ctx, p = state.player, L = PIECE_LINES.hands;
@@ -275,8 +271,8 @@ const runTrial = (ctx: FrameContext, h: Hidden) => {
     return;
   }
   // (back to holding it out once he's whipped it away)
-  if (h.ben.pose === 'yank' && h.ben.poseT > 40) setPose(h, 'pebble');
-  setUi({ beatPrompt: dx < 170 && p.health > 0 ? 'TAKE THE PEBBLE' : null });
+  if (h.ben.pose === 'yank' && h.ben.poseT > 40) setPose(h, 'offer');
+  setUi({ beatPrompt: dx < 170 && p.health > 0 ? 'TAKE THE SHAKER' : null });
   if (!started || dx > 150) return;
   h.tries++;
   if (h.tries < 3) {
@@ -325,7 +321,7 @@ const runGift = (state: GameState, h: Hidden): Controls => {
 // ---- after: practice, the nudges
 const runDone = (state: GameState, h: Hidden) => {
   const p = state.player, cx = p.pos.x + p.width / 2, L = PIECE_LINES.hands;
-  // (Ben: at his wooden dummy when he's off; arms folded, watching, when he's close)
+  // (Ben: at his heavy bag when he's off; arms folded, watching, when he's close)
   const close = Math.abs(cx - BEN_X) < 200;
   if (close) { setPose(h, 'fold'); h.ben.facing = cx < BEN_X ? -1 : 1; }
   else { setPose(h, 'flurry'); h.ben.facing = 1; }
@@ -357,9 +353,10 @@ const runDone = (state: GameState, h: Hidden) => {
 export const drawHiddenHud = (c: CanvasRenderingContext2D, state: GameState) => {
   if (!inCave(state)) return;
   const h = hiddenOf(state);
-  if (h.gross && h.phase === 'meet') {
+  const sc = h.phase === 'meet' ? h.script : null;
+  if (sc?.gross) {
     drawBenGrossBack(c, CANVAS_WIDTH, CANVAS_HEIGHT);
-    drawBenGross(c, CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2 - 10, 0.9 + 0.1 * Math.min(1, h.grossT / 10), state.frame, 'hands', !!h.ben.said);
+    drawBenGross(c, CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2 - 10, 0.9 + 0.1 * Math.min(1, sc.grossT / 10), state.frame, 'hands', !!h.ben.said);
     // (his words over it, in a bubble: it's a skippable scene)
     if (h.ben.said) saidOver(c, h.ben.said.text, CANVAS_WIDTH / 2 + 60, 120);
   }

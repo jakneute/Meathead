@@ -6,6 +6,8 @@
 //   art.ts     him in the world (drawBen: the poses, holding the piece he's about to give, or bare-handed after)
 //   gross.ts   his gross-up (drawBenGross: the face for every land, each piece's prop and animation over it; PROPS)
 //   talk.ts    him saying something (benSays: his words over his head only while they're said)
+//   meetup.ts  the meetup's script: the FIRST meeting's long intro (any land) or a LATER one's short one, then the
+//              land's piece (meetupScript, tickScript); which off the save's benMet()
 //
 // Also shared: the return cannon (upgrades/returnCannon.ts) and the YOU GOT card (upgrades/PieceGotCard.tsx, put up
 // through ui.gotPiece).
@@ -14,3 +16,4 @@ export * from './lines';
 export * from './art';
 export * from './gross';
 export * from './talk';
+export * from './meetup';

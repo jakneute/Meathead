@@ -2,128 +2,124 @@
 // you. he's doing an animation related to the item you will get"; the standing rule: grotesque Ren & Stimpy close-ups,
 // grossKit.ts). One face for every land; each armor piece brings its own prop and its own animation (PROPS below).
 //
-// The face: the old man huge in frame. A bald dome mottled with liver spots and a few long stray hairs, forehead
-// wrinkles in deep stepped creases, white tufts over huge ears (hair out of them, wax), the topknot; brows like two
-// white waterfalls drooping past his eyes; the eyes slitted and bloodshot, bags under them, crow's feet; a broad nose
-// shining with grease, nostril hairs; the long thin white mustache hanging down past his chin either side, a wisp of
-// goatee; the smirk, crooked yellow teeth, a gold one, a toothpick; a mole with a hair in it; the gi's white lapels.
-// Painted once (the stamp per mouth: shut, talking), the props baked once each; the live bits (the props' moves, a bead
-// of sweat, the toothpick wagging) drawn over each frame.
+// The face (the owner: "just a buff generic japanese american man... like an older mentor"; "an american gym rat from
+// 'whereever, usa'"): a Japanese American gym rat in his fifties or sixties, huge in frame. A square head on a neck as
+// wide as it, roped with veins; traps sloping out to the edges of the screen, the cut-off tank top's straps biting into
+// them, gray chest hair out of its scoop; a gray buzz cut, a heavy furrowed brow (a scar through one eyebrow), narrow
+// bloodshot eyes with bags under them; a nose broken more than once (the bump, the bend, the nostrils flared); a
+// cauliflower ear; a short gray goatee and a gray shadow over the jaw; the smirk, a gold tooth; sweat on his scalp,
+// pores, grease. Painted once (a stamp per mouth: shut, talking); the props baked once each; the live bits (the props'
+// moves, a bead of sweat, the toothpick wagging) drawn over each frame.
 //
 // THE PIECES' PROPS (add one per piece as the lands get their meetups):
 //   hands: the giant white four-finger cartoon gloves, on him: a beatdown flurry at the camera, left, right, left,
 //          the motion lines, a jolt each time one lands.
 
 import {
-  type Ctx, type Buf, GH, R, hexU, WHITE, newBuf, setSeed, rnd, matAt, plot, seg, path, ball, tint, poly, bead, eyeball, teeth, skinPost, stubble, hairs, stamps, drawGrossStamp, grossBackdrop, toCanvas, M_SKIN, M_HAIR, M_MOUTH, M_OTHER, M_CLOTH, SCLERA_R, MOUTH, HAIRLINE, TONGUE,
+  type Ctx, type Buf, GH, R, hexU, WHITE, newBuf, setSeed, rnd, matAt, plot, seg, path, ball, tint, poly, bead, eyeball, teeth, skinPost, stubble, hairs, vein, stamps, drawGrossStamp, grossBackdrop, toCanvas, M_SKIN, M_HAIR, M_MOUTH, M_OTHER, M_CLOTH, SCLERA_R, MOUTH, TONGUE, VEIN_B, BLOOD,
 } from '../../grossKit';
 import type { ArmorPiece } from '../state';
 
 const FX = 150, FY = 92;
 
-const SKIN = R('#FFE6C8', '#F6CFA4', '#E6B482', '#D09866', '#B47A4C', '#8E5A34', '#643C20', '#3A200E');
-const SPOT = hexU('#8E5A34');
-const WHITE_HAIR = R('#FFFFFF', '#EEEEF4', '#D4D2DE', '#B0AEBE', '#86849A', '#4A4858');
-const IRIS = R('#B88A5A', '#94683C', '#704A24', '#523214', '#341E08', '#180C02');
-const LIP = R('#E8A88C', '#D08A70', '#B46C56', '#94523E', '#6E3828', '#3E1A10');
-const GI = R('#FFFFFF', '#F2F0F6', '#DAD8E4', '#B8B6C8', '#8C8AA0', '#4A485A');
+const SKIN = R('#FCE0BE', '#EEC496', '#DCA674', '#C48858', '#A66C42', '#82502E', '#5A341C', '#341A0A');
+const GRAY = R('#F2F2F6', '#D2D2DA', '#AEAEBA', '#8A8A98', '#646474', '#3A3A48');
+const IRIS = R('#9A7048', '#7A522E', '#5A381A', '#40240C', '#281404', '#140800');
+const LIP = R('#E2A080', '#C88264', '#AC6650', '#8C4C3A', '#683226', '#3A1610');
+const TANK = R('#C8C8D0', '#A8A8B4', '#8A8A98', '#6C6C7C', '#50505E', '#2A2A36');
 const GLOVE = R('#FFFFFF', '#F6F6FA', '#E2E2EC', '#C6C6D6', '#9C9CB4', '#2A2438');
 
 type Key = 'a' | 'b';
 
 function* build(key: Key): Generator<void, Buf> {
-  setSeed(4242);
+  setSeed(4243);
   const b = newBuf();
   yield;
-  // ---- the gi's lapels (crossed, white, frayed), a vee of old saggy chest and white chest hair
-  poly(b, [FX - 140, GH, FX + 130, GH, FX + 96, 168, FX + 10, 186, FX - 100, 166], GI, M_CLOTH, { tilt: 0.3 });
-  poly(b, [FX - 40, GH, FX + 30, GH, FX + 6, 182], SKIN.slice(1), M_SKIN, { line: true });
-  for (let k = 0; k < 40; k++) { const x = FX - 16 + rnd() * 32, y = 190 + rnd() * 12; if (matAt(b, x, y) === M_SKIN) seg(b, x, y, x + (rnd() - 0.5) * 3, y - 3, WHITE_HAIR[k % 3]); }
-  for (let k = 0; k < 8; k++) path(b, [FX - 120 + k * 4, 170 + k * 3, FX - 40 + k * 3, 200], GI[3], 1, undefined, M_CLOTH);
-  yield;
-  // ---- the ears: huge, the lobes long, hair out of the holes
+  // ---- the traps and shoulders, out to the edges; the tank top's straps; its scoop and the gray chest hair
+  poly(b, [-10, GH, 282, GH, 282, 168, FX + 70, 140, FX + 40, 128, FX - 40, 128, FX - 70, 140, -10, 168], SKIN.slice(1), M_SKIN, { tilt: 0.25 });
   for (const s of [-1, 1]) {
-    ball(b, FX + s * 74, 104, 15, 26, SKIN, { mat: M_SKIN, line: true, lw: 1.4 });
-    ball(b, FX + s * 74, 104, 7, 15, SKIN.slice(2), { mat: M_SKIN, flat: 0.5 });
-    hairs(b, 9, () => [FX + s * 72 + (rnd() - 0.5) * 6, 100 + rnd() * 10], 7, s > 0 ? -0.4 : Math.PI + 0.4, WHITE_HAIR[1], M_SKIN, 0.8);
-    tint(b, FX + s * 74, 112, 3, 4, hexU('#C89A2A'), 0.6, M_SKIN);
+    poly(b, [FX + s * 60, 142, FX + s * 84, 150, FX + s * 74, GH, FX + s * 48, GH], TANK, M_CLOTH, { tilt: -0.2 * s });
+    // (the strap biting into the meat either side of it)
+    path(b, [FX + s * 58, 144, FX + s * 46, GH], SKIN[5], 1, undefined, M_SKIN); path(b, [FX + s * 86, 152, FX + s * 76, GH], SKIN[5], 1, undefined, M_SKIN);
+  }
+  poly(b, [FX - 48, GH, FX + 48, GH, FX + 54, 196, FX - 54, 196], TANK, M_CLOTH, { tilt: 0 });
+  for (let k = 0; k < 70; k++) { const x = FX - 34 + rnd() * 68, y = 176 + rnd() * 20; if (matAt(b, x, y) === M_SKIN) seg(b, x, y, x + (rnd() - 0.5) * 4, y - 3, GRAY[(k % 3) + 1]); }
+  yield;
+  // ---- the neck: as wide as his head, the cords down it, a vein up each side
+  ball(b, FX, 150, 56, 40, SKIN, { mat: M_SKIN, line: (dx) => Math.abs(dx) > 0.8, flat: 0.8 });
+  for (const s of [-1, 1]) { path(b, [FX + s * 30, 128, FX + s * 40, 160, FX + s * 50, 186], SKIN[5], 2, undefined, M_SKIN); vein(b, [FX + s * 44, 124, FX + s * 48, 142, FX + s * 44, 160, FX + s * 48, 176], VEIN_B, 2); }
+  yield;
+  // ---- the ears: the near one a cauliflower (lumps on lumps), the far one just big
+  ball(b, FX - 64, 98, 13, 20, SKIN, { mat: M_SKIN, line: true, lw: 1.4 });
+  ball(b, FX - 64, 98, 6, 11, SKIN.slice(2), { mat: M_SKIN, flat: 0.5 });
+  for (const [dx, dy, r] of [[-4, -10, 7], [2, -2, 6], [-3, 6, 7], [2, 12, 5]] as const) ball(b, FX + 64 + dx, 98 + dy, r, r * 0.9, SKIN, { mat: M_SKIN, line: true, lw: 1.1 });
+  yield;
+  // ---- the head: square, the jaw wide and heavy
+  ball(b, FX, FY - 6, 58, 66, SKIN, { mat: M_SKIN, line: true, lw: 1.6, flat: 0.9 });
+  ball(b, FX, 132, 56, 36, SKIN, { mat: M_SKIN, line: (_dx, dy) => dy > 0.1, lw: 1.6, flat: 0.8 });
+  yield;
+  // ---- the buzz cut: gray stubble over the top, the hairline square across the forehead
+  const hairline = (x: number) => 40 + Math.abs(x - FX) * 0.05 + (Math.abs(x - FX) > 46 ? (Math.abs(x - FX) - 46) * 1.4 : 0);
+  for (let y = 0; y < 90; y++) for (let x = FX - 60; x <= FX + 60; x++) {
+    if (matAt(b, x, y) !== M_SKIN || y > hairline(x)) continue;
+    const h = rnd();
+    if (h < 0.55) plot(b, x, y, GRAY[h < 0.2 ? 2 : h < 0.4 ? 3 : 4], M_HAIR);
   }
   yield;
-  // ---- the head: a tall bald dome over a long face
-  ball(b, FX, FY, 66, 82, SKIN, { mat: M_SKIN, line: true, lw: 1.6 });
+  // ---- the brow: a heavy ridge, furrows up between the eyes and across the forehead, short gray brows, a scar
+  ball(b, FX, 70, 52, 11, SKIN, { mat: M_SKIN, flat: 0.6, lit: 1.05 });
+  for (const s of [-1, 1]) hairs(b, 60, () => [FX + s * (10 + rnd() * 30), 66 + rnd() * 5], 4, s > 0 ? -0.2 : Math.PI + 0.2, GRAY[3], undefined, 0.5);
+  for (let k = -1; k <= 1; k++) path(b, [FX + k * 4, 56, FX + k * 5, 66, FX + k * 3, 74], SKIN[6], 1, undefined, M_SKIN);
+  for (let k = 0; k < 3; k++) path(b, [FX - 30, 46 + k * 6, FX, 44 + k * 6, FX + 30, 46 + k * 6], SKIN[5], 1, undefined, M_SKIN);
+  seg(b, FX - 26, 60, FX - 20, 76, SKIN[1], 2); seg(b, FX - 27, 60, FX - 21, 76, SKIN[6], 1);
   yield;
-  // (forehead wrinkles: deep, stepped, five of them)
-  for (let k = 0; k < 5; k++) {
-    const y = 40 + k * 8, w = 40 - Math.abs(k - 2) * 4;
-    const pts: number[] = []; for (let x = -w; x <= w; x += 6) pts.push(FX + x, y + Math.sin(x * 0.12 + k) * 2 + (x * x) / 900);
-    path(b, pts, SKIN[6], 1, undefined, M_SKIN); path(b, pts.map((v, i) => (i % 2 ? v + 1 : v)), SKIN[1], 1, undefined, M_SKIN);
-  }
-  // (liver spots on the dome; a few long stray hairs off it)
-  for (let k = 0; k < 16; k++) { const x = FX - 44 + rnd() * 88, y = 14 + rnd() * 30; if (matAt(b, x, y) === M_SKIN) tint(b, x, y, 2 + rnd() * 4, 2 + rnd() * 3, SPOT, 0.55, M_SKIN, 0.6); }
-  for (let k = 0; k < 4; k++) { const x = FX - 30 + k * 18; path(b, [x, 14 + k * 2, x + 6, 2, x + 14, -2], WHITE_HAIR[2], 1); }
-  // (the topknot, up behind the dome)
-  ball(b, FX + 34, 8, 12, 9, WHITE_HAIR, { mat: M_HAIR, line: true });
-  seg(b, FX + 28, 16, FX + 40, 16, HAIRLINE, 2);
-  yield;
-  // ---- the side tufts, white and wiry, over the ears
-  for (const s of [-1, 1]) for (let k = 0; k < 60; k++) {
-    const x = FX + s * (54 + rnd() * 14), y = 66 + rnd() * 30;
-    seg(b, x, y, x + s * (4 + rnd() * 6), y - 3 + rnd() * 8, WHITE_HAIR[k % 4], 1, M_HAIR);
-  }
-  yield;
-  // ---- the eyes: slits, bloodshot, bags, crow's feet; the left a hair wider (the dry look)
+  // ---- the eyes: narrow, bloodshot, bags under them, crow's feet
   for (const s of [-1, 1]) {
-    const ex = FX + s * 27, ey = 88, open = s < 0 ? 4.5 : 3.2;
-    eyeball(b, ex, ey, { rx: 12, ry: 8, sclera: SCLERA_R, iris: IRIS, ir: 5, idx: s * 1, pr: 2, veins: 10, top: (x) => ey - open + Math.abs(x - ex) * 0.12, bot: (x) => ey + open - Math.abs(x - ex) * 0.08, lid: SKIN.slice(1) });
-    // (the bags, three deep)
-    for (let k = 0; k < 3; k++) path(b, [ex - 12, ey + 7 + k * 4, ex, ey + 10 + k * 5, ex + 12, ey + 7 + k * 4], SKIN[5 + (k % 2)], 1, undefined, M_SKIN);
-    tint(b, ex, ey + 12, 12, 6, hexU('#7A4A6A'), 0.25, M_SKIN);
-    // (crow's feet)
-    for (let k = -1; k <= 1; k++) path(b, [ex + s * 14, ey + k * 2, ex + s * 24, ey + k * 7 - 1], SKIN[6], 1, undefined, M_SKIN);
+    const ex = FX + s * 26, ey = 84;
+    eyeball(b, ex, ey, { rx: 11, ry: 7, sclera: SCLERA_R, iris: IRIS, ir: 5, idx: -s, pr: 2.4, veins: 12, top: (x) => ey - 3.4 + Math.abs(x - ex) * 0.1, bot: (x) => ey + 3 - Math.abs(x - ex) * 0.06, lid: SKIN.slice(1) });
+    for (let k = 0; k < 2; k++) path(b, [ex - 11, ey + 6 + k * 4, ex, ey + 9 + k * 5, ex + 11, ey + 6 + k * 4], SKIN[5 + k], 1, undefined, M_SKIN);
+    tint(b, ex, ey + 10, 11, 5, hexU('#6A3A5A'), 0.22, M_SKIN);
+    for (let k = -1; k <= 1; k++) path(b, [ex + s * 13, ey + k * 2, ex + s * 22, ey + k * 6], SKIN[6], 1, undefined, M_SKIN);
   }
   yield;
-  // ---- the brows: two white waterfalls, out and down past the eyes
-  for (const s of [-1, 1]) for (let k = 0; k < 140; k++) {
-    const t = rnd(), x0 = FX + s * (8 + t * 30), y0 = 72 - t * 4;
-    const len = 10 + t * 26 + rnd() * 6;
-    path(b, [x0, y0, x0 + s * len * 0.5, y0 + len * 0.2, x0 + s * len * 0.8, y0 + len * 0.7], WHITE_HAIR[k % 5], 1);
-  }
+  // ---- the nose: broken, the bridge bent off to one side with a bump on it, the tip fat, the nostrils flared
+  path(b, [FX - 2, 84, FX + 4, 96, FX + 2, 104], SKIN[5], 3, undefined, M_SKIN);
+  ball(b, FX + 4, 96, 6, 5, SKIN, { mat: M_SKIN, lit: 1.1 });
+  ball(b, FX + 3, 114, 19, 14, SKIN, { mat: M_SKIN, line: (_dx, dy) => dy > 0, lit: 1.08 });
+  for (const s of [-1, 1]) { ball(b, FX + 3 + s * 10, 121, 5.4, 3.6, R('#3A1A0E', '#2A1008', '#1A0804', '#0A0200'), { mat: M_OTHER }); hairs(b, 4, () => [FX + 3 + s * 10 + (rnd() - 0.5) * 4, 123], 4, Math.PI / 2, GRAY[2], undefined, 0.8); }
+  plot(b, FX - 3, 106, WHITE); plot(b, FX - 2, 106, WHITE); plot(b, FX - 3, 107, WHITE);
   yield;
-  // ---- the nose: broad, shining, the nostrils dark, hairs out of them
-  ball(b, FX, 120, 20, 16, SKIN, { mat: M_SKIN, line: (_dx, dy) => dy > -0.1, lit: 1.08 });
-  ball(b, FX - 2, 100, 9, 18, SKIN, { mat: M_SKIN, flat: 0.6 });
-  for (const s of [-1, 1]) { ball(b, FX + s * 9, 127, 5, 3.4, R('#3A1A0E', '#2A1008', '#1A0804', '#0A0200'), { mat: M_OTHER }); hairs(b, 6, () => [FX + s * 9 + (rnd() - 0.5) * 4, 129], 5, Math.PI / 2, WHITE_HAIR[2], undefined, 0.8); }
-  plot(b, FX - 6, 112, WHITE); plot(b, FX - 5, 112, WHITE); plot(b, FX - 6, 113, WHITE);
-  yield;
-  // ---- the mouth: the smirk off to one side (talking: open)
+  // ---- the mouth: the smirk off to one side (talking: open), a gold tooth
   const open = key === 'b';
-  const cx = FX + 6, cy = 148, mw = 26, mh = open ? 10 : 3;
-  const top = (x: number) => cy - mh * 0.4 - (x - cx) * 0.12 + Math.abs(x - cx) * 0.04;
+  const cx = FX + 5, cy = 144, mw = 24, mh = open ? 9 : 3;
+  const top = (x: number) => cy - mh * 0.4 - (x - cx) * 0.12;
   const bot = (x: number) => cy + mh * (1 - ((x - cx) / mw) ** 2) - (x - cx) * 0.12;
   for (let x = cx - mw; x <= cx + mw; x++) for (let y = Math.floor(top(x)) - 3; y <= bot(x) + 3; y++) {
     if (y < top(x) - 2.5 || y > bot(x) + 2.5) continue;
-    plot(b, x, y, y < top(x) || y > bot(x) ? LIP[y < top(x) ? 3 : 2] : MOUTH[Math.min(4, Math.round(((y - top(x)) / Math.max(1, bot(x) - top(x))) * 4))], y < top(x) || y > bot(x) ? M_OTHER : M_MOUTH);
+    const lip = y < top(x) || y > bot(x);
+    plot(b, x, y, lip ? LIP[y < top(x) ? 3 : 2] : MOUTH[Math.min(4, Math.round(((y - top(x)) / Math.max(1, bot(x) - top(x))) * 4))], lip ? M_OTHER : M_MOUTH);
   }
-  teeth(b, cx - mw + 4, cx + mw - 4, (x) => top(x) + 0.5, 1, open ? 6 : 3, { tw: 5, gaps: [3], gold: [5], rot: [1, 7] });
-  if (open) { teeth(b, cx - mw + 8, cx + mw - 8, (x) => bot(x) - 0.5, -1, 4, { tw: 5, gaps: [1, 4] }); ball(b, cx + 4, cy + mh - 3, 10, 4, TONGUE, { only: (x, y) => matAt(b, x, y) === M_MOUTH }); }
+  teeth(b, cx - mw + 4, cx + mw - 4, (x) => top(x) + 0.5, 1, open ? 6 : 3, { tw: 5, gold: [6], rot: [2] });
+  if (open) { teeth(b, cx - mw + 8, cx + mw - 8, (x) => bot(x) - 0.5, -1, 4, { tw: 5, gaps: [2] }); ball(b, cx + 4, cy + mh - 3, 10, 4, TONGUE, { only: (x, y) => matAt(b, x, y) === M_MOUTH }); }
   yield;
-  // ---- the mustache: thin, white, out from under the nose and down past his chin either side, a wisp of goatee
-  for (const s of [-1, 1]) for (let k = 0; k < 26; k++) {
-    const o = (rnd() - 0.5) * 3;
-    path(b, [FX + s * 6, 136 + o, FX + s * 30, 140 + o, FX + s * 38 + o, 160, FX + s * 40 + o, 186, FX + s * 38 + o, 202], WHITE_HAIR[k % 4], 1);
+  // ---- the goatee: short, gray, dense round the mouth and down the chin; a gray shadow over the rest of the jaw
+  for (let k = 0; k < 900; k++) {
+    const a = rnd() * Math.PI * 2, r = rnd();
+    const x = cx + Math.cos(a) * (mw + 8) * r * 1.05, y = cy + 6 + Math.sin(a) * 26 * r;
+    if (y < cy - 8 && Math.abs(x - cx) < mw - 4) continue;
+    if (matAt(b, x, y) !== M_SKIN) continue;
+    seg(b, x, y, x + (rnd() - 0.5) * 2, y + 2, GRAY[1 + (k % 3)], 1, M_HAIR);
   }
-  for (let k = 0; k < 18; k++) { const o = (rnd() - 0.5) * 6; path(b, [FX + 4 + o, 166, FX + 6 + o * 1.3, 182, FX + 4 + o * 1.6, 196], WHITE_HAIR[k % 4], 1); }
+  stubble(b, (x, y) => (y > 112 ? 1 - Math.abs(x - FX) / 70 : 0), GRAY[4], 0.4);
   yield;
-  // ---- the mole on his cheek, the hair out of it; stubble gray along the jaw; the pores and the grease
-  ball(b, FX - 46, 134, 4, 3.6, R('#9A6A4A', '#7A4A2E', '#5A3018', '#3A1A0A', '#1A0802'), { mat: M_OTHER, line: true });
-  path(b, [FX - 46, 132, FX - 50, 122, FX - 47, 114], WHITE_HAIR[1]);
-  stubble(b, (x, y) => (y > 150 ? 1 - Math.abs(x - FX) / 90 : 0), SKIN[6], 0.35);
-  skinPost(b, SKIN[7], (x, y) => (((x - FX) / 24) ** 2 + ((y - 118) / 18) ** 2 < 1 ? 0.2 : 0.05), { blackheads: (x, y) => ((x - FX) / 22) ** 2 + ((y - 118) / 16) ** 2 < 1, shine: 0.2 });
+  // ---- the pores (thick on the nose), blackheads, grease; a vein up his temple; a shaving nick
+  skinPost(b, SKIN[7], (x, y) => (((x - FX - 3) / 22) ** 2 + ((y - 112) / 16) ** 2 < 1 ? 0.22 : 0.06), { blackheads: (x, y) => ((x - FX - 3) / 20) ** 2 + ((y - 112) / 14) ** 2 < 1, shine: 0.22 });
+  vein(b, [FX + 44, 50, FX + 48, 62, FX + 44, 74], VEIN_B, 2);
+  seg(b, FX + 34, 160, FX + 38, 158, BLOOD[2]); plot(b, FX + 37, 161, BLOOD[3]);
   yield;
-  // ---- sweat on the dome
-  for (let k = 0; k < 7; k++) { const x = FX - 40 + rnd() * 80, y = 26 + rnd() * 26; if (matAt(b, x, y) === M_SKIN) bead(b, x, y, 1.4 + rnd() * 1.4, SKIN); }
-  // (age: a warm wash low down, the cheeks ruddy)
-  for (const s of [-1, 1]) tint(b, FX + s * 40, 120, 16, 12, hexU('#D85A4A'), 0.18, M_SKIN);
+  // ---- sweat on the scalp and the brow; the cheeks ruddy from the last set
+  for (let k = 0; k < 10; k++) { const x = FX - 44 + rnd() * 88, y = 20 + rnd() * 44; if (matAt(b, x, y) === M_SKIN || matAt(b, x, y) === M_HAIR) bead(b, x, y, 1.4 + rnd() * 1.4, SKIN); }
+  for (const s of [-1, 1]) tint(b, FX + s * 40, 116, 16, 12, hexU('#D85A4A'), 0.2, M_SKIN);
   return b;
 }
 
@@ -206,7 +202,7 @@ export const drawBenGross = (c: Ctx, cx: number, cy: number, zoom: number, f: nu
     prop?.draw(c, f);
   });
 };
-/** Behind him: a dojo's dim lamplight, in bands. */
+/** Behind him: a basement gym's dim bulb, in bands. */
 export const drawBenGrossBack = (c: Ctx, W: number, H: number) => grossBackdrop(c, W, H, ['#1A1208', '#2A1C0C', '#3E2A12', '#56391A', '#704A22']);
 /** Paint him ahead (a few ms per idle moment) when his meetup's coming up. */
 export const warmBenGross = () => { face.warm(); for (const p of Object.values(PROPS)) p?.warm?.(); };

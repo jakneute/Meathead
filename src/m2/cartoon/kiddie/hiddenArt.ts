@@ -5,8 +5,9 @@
 //     there" from the track, easy to miss from the ground. Painted once (the stamp cache); only the motes move.
 //   THE CAVE under the park: packed earth in banded strata, roots down through the ceiling, lost balls stuck in the
 //     walls; the shaft he fell down, its light on a heap of balls that came down with him; a second ragged hole where
-//     the cannon punches him out; CON-FUCK-TIOUS's dojo: a tatami mat, his wooden dummy, a cot, a hot plate and a cup
-//     of noodles, a scroll (NO RULES), his cardboard sign (BEN'S HOLE. NO SOLICITING.), and the last kid found in 1997
+//     the cannon punches him out; CON-FUCK-TIOUS's gym-bro hideout: a rubber mat, his heavy bag on a chain, a rusty
+//     squat rack and its bench, plates, protein tubs, a NO PAIN NO GAIN poster, a cot, a hot plate and a cup of
+//     noodles, his cardboard sign (BEN'S HOLE. NO SOLICITING.), and the last kid found in 1997
 //     (a skeleton in a windbreaker, still holding his Game Boy). The floor's lit along its top (it's stood on). Painted
 //     once in three chunks; Ben, the cannon, the motes live over it.
 
@@ -19,7 +20,7 @@ import { drawBen, benHeadY } from '../../upgrades/confucktious';
 import { saidOver } from '../section';
 import { GY } from '../geometry';
 import { HOLE } from './layout';
-import { CAVE, SHAFT_X, BEN_X, WOOD_X, HOLE_X, hiddenOf, cannonHoleX } from './hidden';
+import { CAVE, SHAFT_X, BEN_X, BAG_X, HOLE_X, hiddenOf, cannonHoleX } from './hidden';
 
 type Ctx = CanvasRenderingContext2D;
 const INK = '#1A1028';
@@ -133,41 +134,51 @@ const paintCave = (g: Ctx, holeX: number) => {
     }
   }
   g.fillStyle = 'rgba(255,244,196,0.12)'; g.beginPath(); g.ellipse(sx, 0, 120, 14, 0, 0, Math.PI * 2); g.fill();
-  // ---- the dojo
-  // (the scroll on the wall: NO RULES)
-  const scX = BEN_X - CAVE.a - 10;
-  box(g, scX - 28, -330, 56, 8, INK); box(g, scX - 27, -329, 54, 6, '#8A5A2E');
-  box(g, scX - 22, -322, 44, 120, INK); box(g, scX - 21, -321, 42, 118, '#F2E6C8'); box(g, scX - 21, -321, 4, 118, '#FFF8E4'); box(g, scX + 15, -321, 6, 118, '#D8C8A2');
-  box(g, scX - 26, -204, 52, 8, INK); box(g, scX - 25, -203, 50, 6, '#8A5A2E');
-  if (fontReady()) { g.font = '8px "Press Start 2P"'; g.textAlign = 'center'; g.fillStyle = '#2A1810'; for (const [i, t] of ['N', 'O', '', 'R', 'U', 'L', 'E', 'S'].entries()) g.fillText(t, scX, -300 + i * 12); g.textAlign = 'left'; }
+  // ---- his hideout: a gym-bro's basement (all set dressing, dimmed: none of it's stood on)
+  // (a bodybuilding poster taped to the dirt, curling, torn: NO PAIN NO GAIN)
+  const poX = BEN_X - CAVE.a - 20;
+  box(g, poX - 30, -300, 60, 84, '#14101A'); box(g, poX - 29, -299, 58, 82, '#6A5A4A'); box(g, poX - 27, -297, 54, 50, '#7A4A3A');
+  ell(g, poX, -272, 8, 9, '#5A3020'); poly(g, [[poX - 22, -252], [poX + 22, -252], [poX + 14, -262], [poX - 14, -262]], '#5A3020');
+  poly(g, [[poX + 29, -217], [poX + 29, -232], [poX + 16, -217]], '#2A1E24');
+  box(g, poX - 32, -302, 10, 4, '#9A9480'); box(g, poX + 22, -302, 10, 4, '#9A9480');
+  if (fontReady()) { g.font = '7px "Press Start 2P"'; g.textAlign = 'center'; g.fillStyle = '#C8B89A'; g.fillText('NO PAIN', poX, -236); g.fillText('NO GAIN', poX - 2, -224); g.textAlign = 'left'; }
+  // (the rusty squat rack, its bar loaded with mismatched plates; the bench under it, its vinyl split and taped)
+  const rk = 470;
+  for (const ux of [rk, rk + 90]) { box(g, ux - 4, -156, 8, 156, '#14101A'); box(g, ux - 3, -155, 6, 155, '#5A3A2A'); box(g, ux - 3, -155, 2, 155, '#7A5236'); for (let y = -150; y < -10; y += 12) box(g, ux - 1, y, 2, 2, '#14101A'); }
+  box(g, rk - 34, -124, 158, 5, '#14101A'); box(g, rk - 33, -123, 156, 3, '#6A6A72');
+  for (const [px, r, col] of [[rk - 24, 22, '#2A2A30'], [rk - 14, 16, '#5A2A2A'], [rk + 104, 22, '#2A2A30'], [rk + 114, 14, '#3A3A5A']] as const) { box(g, px - 4, -122 - r, 8, r * 2, '#14101A'); box(g, px - 3, -121 - r, 6, r * 2 - 2, col); }
+  box(g, rk + 6, -34, 78, 10, '#14101A'); box(g, rk + 7, -33, 76, 8, '#3A1A1E'); box(g, rk + 30, -33, 14, 8, '#6A6A60');
+  box(g, rk + 14, -24, 5, 24, '#14101A'); box(g, rk + 70, -24, 5, 24, '#14101A');
+  // (a stack of plates on the floor by it)
+  for (let i = 0; i < 4; i++) { box(g, 590 - 16 + i, -8 - i * 6, 34 - i * 2, 6, '#14101A'); box(g, 591 - 16 + i, -7 - i * 6, 32 - i * 2, 4, ['#2A2A30', '#3A3A44', '#2A2A30', '#4A2A2A'][i]); }
+  // (protein tubs, one tipped over, the scoop out)
+  for (const [tx, col] of [[812, '#3A3A6A'], [834, '#5A2A2A']] as const) { box(g, tx - 9, -30, 18, 30, '#14101A'); box(g, tx - 8, -29, 16, 28, col); box(g, tx - 8, -22, 16, 8, '#A8A090'); box(g, tx - 9, -33, 18, 4, '#14101A'); }
+  ell(g, 856, -8, 14, 8, '#14101A'); ell(g, 856, -8, 13, 7, '#2A4A3A'); box(g, 864, -6, 10, 2, '#C8C0B0');
   // (his cardboard sign, leaned on the wall)
-  const sgX = 1020;
+  const sgX = 1060;
   poly(g, [[sgX - 40, -10], [sgX + 40, -12], [sgX + 44, -66], [sgX - 36, -70]], INK);
   poly(g, [[sgX - 38, -12], [sgX + 38, -14], [sgX + 42, -64], [sgX - 34, -68]], '#C8A070');
   box(g, sgX - 30, -50, 64, 1, '#A07E52');
   if (fontReady()) { g.font = '7px "Press Start 2P"'; g.textAlign = 'center'; g.fillStyle = '#2A1810'; g.fillText("BEN'S HOLE.", sgX + 3, -48); g.fillText('NO', sgX + 3, -36); g.fillText('SOLICITING.', sgX + 3, -26); g.textAlign = 'left'; }
   // (the last kid found, 1997: a skeleton sat against the wall in a teal-and-purple windbreaker, his Game Boy)
-  const kx = 1120;
+  const kx = 1140;
   box(g, kx - 10, -30, 22, 22, INK); box(g, kx - 9, -29, 10, 20, '#14B8A6'); box(g, kx + 1, -29, 10, 20, '#7C3AED'); box(g, kx - 9, -22, 20, 3, '#F472B6');
   ell(g, kx + 1, -40, 9, 9, INK); ell(g, kx + 1, -40, 8, 8, '#E8E0CC'); box(g, kx - 3, -42, 3, 3, INK); box(g, kx + 3, -42, 3, 3, INK); box(g, kx, -37, 2, 2, INK); for (let i = 0; i < 4; i++) box(g, kx - 3 + i * 2, -34, 1, 2, INK);
   box(g, kx + 12, -14, 14, 4, INK); box(g, kx + 12, -13, 14, 2, '#E8E0CC'); box(g, kx - 18, -13, 10, 3, '#E8E0CC');
   box(g, kx + 10, -26, 9, 13, INK); box(g, kx + 11, -25, 7, 11, '#B8B4A8'); box(g, kx + 12, -24, 5, 4, '#7A9A3A');
   // (the cot and its pillow; the hot plate and the noodles)
   box(g, 880, -22, 90, 6, INK); box(g, 881, -21, 88, 4, '#4A5A3A'); box(g, 884, -16, 3, 16, INK); box(g, 962, -16, 3, 16, INK); ell(g, 892, -26, 10, 5, INK); ell(g, 892, -26, 9, 4, '#E8E4F0');
-  box(g, 520, -14, 26, 10, INK); box(g, 521, -13, 24, 8, '#6A6A74'); ell(g, 533, -14, 8, 2, '#E2465E');
-  box(g, 527, -28, 13, 14, INK); box(g, 528, -27, 11, 12, '#F8F4EC'); box(g, 528, -24, 11, 3, '#DC2626'); box(g, 536, -36, 1, 10, '#E8D49A'); box(g, 538, -36, 1, 10, '#E8D49A');
-  // (the tatami mat under him)
+  box(g, 990, -14, 26, 10, INK); box(g, 991, -13, 24, 8, '#6A6A74'); ell(g, 1003, -14, 8, 2, '#E2465E');
+  box(g, 997, -28, 13, 14, INK); box(g, 998, -27, 11, 12, '#F8F4EC'); box(g, 998, -24, 11, 3, '#DC2626'); box(g, 1006, -36, 1, 10, '#E8D49A'); box(g, 1008, -36, 1, 10, '#E8D49A');
+  // (a rubber gym mat under him, scuffed)
   const mx = BEN_X - CAVE.a;
-  box(g, mx - 110, -6, 220, 7, INK); box(g, mx - 109, -5, 218, 5, '#C8B26A'); box(g, mx - 109, -5, 218, 1, '#E8D48A');
-  for (let x = mx - 105; x < mx + 108; x += 6) box(g, x, -4, 1, 3, '#A8924A');
-  box(g, mx - 109, -5, 4, 5, '#2A4A2A'); box(g, mx + 105, -5, 4, 5, '#2A4A2A');
-  // (his wooden dummy: a post on a stand, three arms and a leg sticking out, worn pale where he hits it)
-  const wx = WOOD_X - CAVE.a;
-  box(g, wx - 9, -96, 18, 92, INK); box(g, wx - 8, -95, 16, 90, '#8A5A2E'); box(g, wx - 8, -95, 4, 90, '#B07A44'); box(g, wx + 4, -95, 4, 90, '#6A4220');
-  box(g, wx - 4, -80, 8, 20, '#C89A64');
-  for (const [ay, dx] of [[-80, -1], [-74, -1], [-58, -1]] as const) { box(g, wx + dx * 30, ay - 3, 30, 7, INK); box(g, wx + dx * 29, ay - 2, 28, 5, '#9A6A38'); }
-  box(g, wx - 26, -32, 26, 6, INK); box(g, wx - 25, -31, 24, 4, '#9A6A38');
-  box(g, wx - 20, -6, 40, 6, INK); box(g, wx - 19, -5, 38, 4, '#6A4220');
+  box(g, mx - 110, -6, 220, 7, INK); box(g, mx - 109, -5, 218, 5, '#2A2A30'); box(g, mx - 109, -5, 218, 1, '#4A4A52');
+  for (let x = mx - 104; x < mx + 108; x += 36) box(g, x, -4, 1, 4, '#16161C');
+  // (his heavy bag, on a chain off the ceiling: red vinyl gone brown, duct-taped round the middle)
+  const wx = BAG_X - CAVE.a;
+  for (let y = -H + 10; y < -118; y += 6) { box(g, wx - 2, y, 4, 4, '#14101A'); box(g, wx - 1, y + 1, 2, 2, '#6A6A72'); }
+  box(g, wx - 15, -120, 30, 92, INK); box(g, wx - 14, -119, 28, 90, '#5A1E1E'); box(g, wx - 14, -119, 6, 90, '#7A2A26'); box(g, wx + 7, -119, 7, 90, '#3E1414');
+  box(g, wx - 14, -82, 28, 12, '#9A9A9E'); box(g, wx - 14, -82, 28, 2, '#C8C8CC'); box(g, wx - 14, -119, 28, 4, '#2A0E0E');
   // ---- the floor: packed earth, lit along its top (it's stood on)
   box(g, -60, 0, W + 120, 160, '#2E1C26');
   for (let i = 0; i < 4; i++) { box(g, -60, 10 + i * 30, W + 120, 30, ['#3A2430', '#321E2A', '#2A1824', '#22141E'][i]); checker(g, -60, 9 + i * 30, W + 120, 2, ['#3A2430', '#321E2A', '#2A1824', '#22141E'][i], i % 2, 2); }
@@ -205,5 +216,5 @@ export const drawCaveBack = (c: Ctx, state: GameState) => {
 export const drawCaveFront = (c: Ctx, state: GameState) => {
   const h = hiddenOf(state);
   // (his words over his head, only while they're said; not while his gross-up's got them)
-  if (h.ben.said && !(h.gross && h.phase === 'meet')) saidOver(c, h.ben.said.text, BEN_X, benHeadY(CAVE.floor - 4), '#FFFFFF', 220);
+  if (h.ben.said && !(h.phase === 'meet' && h.script?.gross)) saidOver(c, h.ben.said.text, BEN_X, benHeadY(CAVE.floor - 4), '#FFFFFF', 220);
 };

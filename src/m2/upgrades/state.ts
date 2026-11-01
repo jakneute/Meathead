@@ -10,6 +10,7 @@
 //   amuletOn()     the amulet's piss-off yell switched on (the pause menu's AMULET ON / OFF; on by default)
 //                                                           setAmuletOn(on)
 //   amuletActive() has the amulet AND it's switched on: what the yell's code should ask.
+//   benMet()       he's met CON-FUCK-TIOUS (any land): later meetups get the short intro    setBenMet(on)
 //   subscribeUpgrades(fn) / upgradesVersion()   for React (useSyncExternalStore) or anything else that redraws.
 //   resetUpgrades()   all zero (a new game).
 //   snapshotUpgrades() / restoreUpgrades(raw)   for the save file (save.ts): restore cleans whatever it's handed,
@@ -62,8 +63,8 @@ const BASE_HEALTH = 100, BASE_CELLS = 2, SHARDS_PER_CELL = 3;
 /** An armor piece's boost to its move on regular enemies. */
 export const ARMOR_DAMAGE_K = 1.5;
 
-interface Upgrades { health: number; ammo: number; shards: number; armor: Set<ArmorPiece>; amulet: boolean }
-let u: Upgrades = { health: 0, ammo: 0, shards: 0, armor: new Set(), amulet: true };
+interface Upgrades { health: number; ammo: number; shards: number; armor: Set<ArmorPiece>; amulet: boolean; benMet: boolean }
+let u: Upgrades = { health: 0, ammo: 0, shards: 0, armor: new Set(), amulet: true, benMet: false };
 
 // ---- who's listening
 let version = 0;
@@ -83,6 +84,8 @@ export const has = (piece: ArmorPiece) => u.armor.has(piece);
 export const ownedPieces = () => ARMOR_PIECES.filter(p => u.armor.has(p));
 export const amuletOn = () => u.amulet;
 export const amuletActive = () => u.armor.has('amulet') && u.amulet;
+/** He's met CON-FUCK-TIOUS (in any land): the first meeting's long intro is done with, later ones get the short one. */
+export const benMet = () => u.benMet;
 
 // ---- setting (the cheats; the finds, later)
 export const setHealthFinds = (n: number) => { const v = clampInt(n, MAX_HEALTH_FINDS); if (v !== u.health) { u.health = v; changed(); } };
@@ -94,7 +97,8 @@ export const setPiece = (piece: ArmorPiece, on: boolean) => {
   changed();
 };
 export const setAmuletOn = (on: boolean) => { if (u.amulet !== on) { u.amulet = on; changed(); } };
-export const resetUpgrades = () => { u = { health: 0, ammo: 0, shards: 0, armor: new Set(), amulet: true }; changed(); };
+export const setBenMet = (on: boolean) => { if (u.benMet !== on) { u.benMet = on; changed(); } };
+export const resetUpgrades = () => { u = { health: 0, ammo: 0, shards: 0, armor: new Set(), amulet: true, benMet: false }; changed(); };
 
 // ---- the numbers
 export const maxHealth = () => Math.round(BASE_HEALTH * (1 + HEALTH_STEP * u.health));
@@ -107,16 +111,16 @@ export const moveArmored = (move: MeleeMove) => u.armor.has(PIECE_FOR[move]);
 export const armorDamageK = (move: MeleeMove) => (moveArmored(move) ? ARMOR_DAMAGE_K : 1);
 
 // ---- the save file (save.ts)
-export interface UpgradesSave { health: number; ammo: number; shards: number; armor: ArmorPiece[]; amulet: boolean }
-export const snapshotUpgrades = (): UpgradesSave => ({ health: u.health, ammo: u.ammo, shards: u.shards, armor: ownedPieces(), amulet: u.amulet });
+export interface UpgradesSave { health: number; ammo: number; shards: number; armor: ArmorPiece[]; amulet: boolean; benMet?: boolean }
+export const snapshotUpgrades = (): UpgradesSave => ({ health: u.health, ammo: u.ammo, shards: u.shards, armor: ownedPieces(), amulet: u.amulet, benMet: u.benMet });
 /** Whatever was in the file, kept to what makes sense (nothing, or nonsense: zero upgrades). */
 export const cleanUpgrades = (raw: unknown): UpgradesSave => {
   const o = raw && typeof raw === 'object' ? raw as Record<string, unknown> : {};
   const armor = Array.isArray(o.armor) ? ARMOR_PIECES.filter(p => (o.armor as unknown[]).includes(p)) : [];
-  return { health: clampInt(o.health, MAX_HEALTH_FINDS), ammo: clampInt(o.ammo, MAX_AMMO_FINDS), shards: clampInt(o.shards, MAX_SHARDS), armor, amulet: o.amulet !== false };
+  return { health: clampInt(o.health, MAX_HEALTH_FINDS), ammo: clampInt(o.ammo, MAX_AMMO_FINDS), shards: clampInt(o.shards, MAX_SHARDS), armor, amulet: o.amulet !== false, benMet: o.benMet === true };
 };
 export const restoreUpgrades = (raw: unknown) => {
   const s = cleanUpgrades(raw);
-  u = { health: s.health, ammo: s.ammo, shards: s.shards, armor: new Set(s.armor), amulet: s.amulet };
+  u = { health: s.health, ammo: s.ammo, shards: s.shards, armor: new Set(s.armor), amulet: s.amulet, benMet: !!s.benMet };
   changed();
 };

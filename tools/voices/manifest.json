@@ -18526,22 +18526,17 @@
  },
  {
   "voice": "m2.ben",
-  "text": "A NAKED MAN HAS NO POCKETS. AND NO SHAME. COVER THAT.",
-  "from": "UPGRADES"
- },
- {
-  "voice": "m2.ben",
-  "text": "A WISE MAN KNOWS WHEN TO LEAVE. GET IN THE CANNON.",
-  "from": "UPGRADES"
- },
- {
-  "voice": "m2.ben",
-  "text": "A WISE MAN SMELLS THE STUDENT BEFORE HE SEES HIM.",
+  "text": "AGAIN WITH THE PANTS. FINE. COME HERE.",
   "from": "UPGRADES"
  },
  {
   "voice": "m2.ben",
   "text": "AGAIN. LIKE YOU MEAN IT.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.ben",
+  "text": "BACK FOR MORE. GOOD. THE BAR MISSED YOU.",
   "from": "UPGRADES"
  },
  {
@@ -18561,7 +18556,27 @@
  },
  {
   "voice": "m2.ben",
-  "text": "GET IN THE CANNON. AND KEEP THAT AWAY FROM MY MAT.",
+  "text": "DON'T MAKE IT WEIRD. AND IT'S BEN.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.ben",
+  "text": "EVERY PIECE MAKES ONE OF YOUR MOVES NASTIER. ONE IN EVERY LAND. FIND ME, PASS MY TEST, IT IS YOURS.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.ben",
+  "text": "FOUND ME AGAIN. I SMELLED YOU COMING.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.ben",
+  "text": "FOUND ME AGAIN. STILL NAKED. STILL PROUD OF YOU.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.ben",
+  "text": "GET IN THE CANNON. AND KEEP THAT OFF MY BENCH.",
   "from": "UPGRADES"
  },
  {
@@ -18576,12 +18591,22 @@
  },
  {
   "voice": "m2.ben",
+  "text": "HE WHO SKIPS LEG DAY FALLS DOWN HOLES.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.ben",
+  "text": "I'VE BEEN STEALING JUNK FROM EVERY LAND IN THIS DUMP AND BOLTING IT INTO ARMOR. CHEAP. DIRTY. WORKS.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.ben",
   "text": "IT'S BEN.",
   "from": "UPGRADES"
  },
  {
   "voice": "m2.ben",
-  "text": "MY NAME IS BEN.",
+  "text": "MY NAME IS BEN. IT'S ON MY LOCKER.",
   "from": "UPGRADES"
  },
  {
@@ -18591,17 +18616,27 @@
  },
  {
   "voice": "m2.ben",
+  "text": "NAKED IN MY GYM. AT LEAST WIPE DOWN THE BENCH AFTER.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.ben",
+  "text": "NO PAIN, NO GAIN. NO BOWEL CONTROL EITHER, I SEE.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.ben",
   "text": "NOPE.",
   "from": "UPGRADES"
  },
  {
   "voice": "m2.ben",
-  "text": "OH. OH GOD. THE STUDENT... HAS LEARNED.",
+  "text": "OH. OH GOD. THAT... IS THE LESSON.",
   "from": "UPGRADES"
  },
  {
   "voice": "m2.ben",
-  "text": "PASS MY TRIAL AND THEY'RE YOURS. TAKE THE PEBBLE FROM MY HAND, GRASSHOPPER.",
+  "text": "PASS MY TEST AND THEY'RE YOURS. TAKE THE SHAKER OUT OF MY HAND.",
   "from": "UPGRADES"
  },
  {
@@ -18611,7 +18646,17 @@
  },
  {
   "voice": "m2.ben",
+  "text": "REST BETWEEN SETS. NOT FOREVER. GET IN THE CANNON.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.ben",
   "text": "RIGHT IN THE... YOU PASS. YOU FUCKING PASS.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.ben",
+  "text": "SUGOI. THAT'S ALL THE JAPANESE MY GRANDPA LEFT ME.",
   "from": "UPGRADES"
  },
  {
@@ -18621,7 +18666,12 @@
  },
  {
   "voice": "m2.ben",
-  "text": "THE CANNON, GRASSHOPPER. I HAVE THINGS TO DO.",
+  "text": "THE BAR DOES NOT LIFT ITSELF. ALSO, YOU FELL IN MY HOLE.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.ben",
+  "text": "THE CANNON, MEATHEAD. I GOT A NAP SCHEDULED.",
   "from": "UPGRADES"
  },
  {
@@ -18631,12 +18681,7 @@
  },
  {
   "voice": "m2.ben",
-  "text": "THE CANNON. PLEASE. THE SMELL IS IN THE MAT NOW.",
-  "from": "UPGRADES"
- },
- {
-  "voice": "m2.ben",
-  "text": "THE FOOL LOOKS UP. THE MASTER LIVES DOWN. RENT IS CHEAP.",
+  "text": "THE CANNON. PLEASE. THE SMELL IS IN THE BENCH NOW.",
   "from": "UPGRADES"
  },
  {
@@ -18651,32 +18696,17 @@
  },
  {
   "voice": "m2.ben",
-  "text": "THE PEBBLE IS PATIENT. I AM NOT.",
+  "text": "THE SHAKER IS PATIENT. I AM NOT.",
   "from": "UPGRADES"
  },
  {
   "voice": "m2.ben",
-  "text": "THE RIVER CARRIES MANY THINGS. SO DO YOUR PANTS.",
+  "text": "THE SQUAT REVEALS ALL. YOURS REVEALED TOO MUCH.",
   "from": "UPGRADES"
  },
  {
   "voice": "m2.ben",
-  "text": "THE STUDENT ARRIVES WHEN HE TRIPS. NICE TRIP.",
-  "from": "UPGRADES"
- },
- {
-  "voice": "m2.ben",
-  "text": "THE STUDENT COMES TO THE MASTER WITH NOTHING. NOTHING AT ALL. JESUS.",
-  "from": "UPGRADES"
- },
- {
-  "voice": "m2.ben",
-  "text": "THE STUDENT RETURNS. HIS PANTS ARRIVE FIRST.",
-  "from": "UPGRADES"
- },
- {
-  "voice": "m2.ben",
-  "text": "THE STUDENT RETURNS. THE MASTER WAS NAPPING.",
+  "text": "THE STRONGEST MAN NEEDS NO PANTS. THE SMART ONE WEARS THEM ANYWAY.",
   "from": "UPGRADES"
  },
  {
@@ -18696,6 +18726,21 @@
  },
  {
   "voice": "m2.ben",
+  "text": "TWENTY YEARS I SPOTTED YOU AT THE IRON PIT. YOU THINK I'D LET YOU DO THIS PARK ALONE?",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.ben",
+  "text": "YOU AGAIN. I WAS MID-NAP.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.ben",
+  "text": "YOU AGAIN. PUT A TOWEL ON THAT.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.ben",
   "text": "YOU AGAIN. STILL NO PANTS. STILL NO SECOND PAIR.",
   "from": "UPGRADES"
  },
@@ -18707,6 +18752,16 @@
  {
   "voice": "m2.ben",
   "text": "YOU CAME BACK. AND YOU BROUGHT THAT.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.ben",
+  "text": "YOU CAME BACK. YOUR PANTS GOT HERE FIRST.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.ben",
+  "text": "YOU FOUND ME AGAIN. ATTA BOY.",
   "from": "UPGRADES"
  },
  {
@@ -63376,6 +63431,21 @@
  },
  {
   "voice": "meathead",
+  "text": "ARMOR! CON-FUCK-TIOUS, YOU'RE THE DAD I NEVER HAD.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "meathead",
+  "text": "ARMOR! DOES IT COME WITH PANTS?",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "meathead",
+  "text": "ARMOR! FINALLY, SOMETHING TO WEAR!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "meathead",
   "text": "ARMOR'S NOT ENOUGH, LITTLE GUY!",
   "from": "ENEMY_KILL_LINES"
  },
@@ -65916,12 +65986,37 @@
  },
  {
   "voice": "meathead",
+  "text": "CON-FUCK-TIOUS! DON'T MIND THE SMELL.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "meathead",
+  "text": "CON-FUCK-TIOUS! I KNEW YOU WERE HERE!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "meathead",
   "text": "CON-FUCK-TIOUS! I LOST MY PANTS. AND MY WAY.",
   "from": "UPGRADES"
  },
  {
   "voice": "meathead",
+  "text": "CON-FUCK-TIOUS! I LOST THE PANTS AGAIN.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "meathead",
+  "text": "CON-FUCK-TIOUS! I SHAT MYSELF LOOKING FOR YOU.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "meathead",
   "text": "CON-FUCK-TIOUS! I SHAT MYSELF, BUT LIKE A WARRIOR.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "meathead",
+  "text": "CON-FUCK-TIOUS! I'M STILL NAKED!",
   "from": "UPGRADES"
  },
  {
@@ -65932,6 +66027,11 @@
  {
   "voice": "meathead",
   "text": "CON-FUCK-TIOUS! IT'S OKAY, YOU'VE SEEN IT IN THE GYM SHOWERS.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "meathead",
+  "text": "CON-FUCK-TIOUS! YOU'RE EVERYWHERE!",
   "from": "UPGRADES"
  },
  {
@@ -72086,7 +72186,7 @@
  },
  {
   "voice": "meathead",
-  "text": "HOLY SHIT! CON-FUCK-TIOUS! MY MASTER!",
+  "text": "HOLY SHIT! CON-FUCK-TIOUS! MY SPOTTER!",
   "from": "UPGRADES"
  },
  {
@@ -73946,17 +74046,17 @@
  },
  {
   "voice": "meathead",
-  "text": "I WAS GOING FOR THE PEBBLE.",
+  "text": "I WAS GOING FOR THE SHAKER.",
   "from": "UPGRADES"
  },
  {
   "voice": "meathead",
-  "text": "I WAS GOING FOR THE PEBBLE. I SWEAR ON MY PANTS.",
+  "text": "I WAS GOING FOR THE SHAKER. I SWEAR ON MY PANTS.",
   "from": "UPGRADES"
  },
  {
   "voice": "meathead",
-  "text": "I WAS GOING FOR THE PEBBLE. MINE ARE OUT TOO, SO WE'RE EVEN.",
+  "text": "I WAS GOING FOR THE SHAKER. MINE ARE OUT TOO, SO WE'RE EVEN.",
   "from": "UPGRADES"
  },
  {
@@ -93777,6 +93877,21 @@
  {
   "voice": "meathead",
   "text": "WHAT ARE THOSE? ARE THOSE MICKEY HANDS?",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "meathead",
+  "text": "WHAT ARE YOU DOING HERE? DON'T LOOK DOWN.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "meathead",
+  "text": "WHAT ARE YOU DOING HERE? DON'T SMELL ME.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "meathead",
+  "text": "WHAT ARE YOU DOING IN A THEME PARK? YOU HATE FUN.",
   "from": "UPGRADES"
  },
  {
