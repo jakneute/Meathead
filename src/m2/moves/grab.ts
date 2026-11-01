@@ -25,7 +25,7 @@ import { stepAmulet, amuletShielded, drawAmuletFx, raged } from '../upgrades/amu
 import { has } from '../upgrades/state';
 import { HANDS_HEAL, MISSILE_CRUISE } from '../upgrades/tune';
 import { FOLLOW_PHASES, type FollowPhase, type Follow, followIdle, startFollowUp, followArmed, stepFollow, drawFollow, followTick, followAfter, followUntouchable, drawFollowCue } from './followups';
-import { cheapShotStart, cheapShotStep, cheapShotTick, drawCheapShotWorld, cheapShotStunned, cheapShotPending } from '../upgrades/cheapShot';
+import { cheapShotStart, cheapShotStep, cheapShotTick, drawCheapShotWorld, cheapShotStunned, cheapShotPending, cheapShotOnContact } from '../upgrades/cheapShot';
 import { walkAwayOn } from '../walkAway';
 import { spawnShielded } from '../spawnSafe';
 import { pickLine } from '../../m1/game/platform/speech';
@@ -1153,6 +1153,11 @@ const stepGrab = (ctx: FrameContext, g: Grab, controls: Controls): Controls => {
       // Swept, not stepped: the first body anywhere along this frame's stretch of it stops him there, right up against
       // it (at this speed he'd otherwise go clean through one between frames); one he can't grab, and he's stopped dead
       const hit = lungeHits(state, g.dir);
+      // (a boss it lands on whose cheap shot he's still got coming: that, whatever the boss is doing)
+      if (hit && (hit.type === 'boss' || isMidBoss(hit)) && cheapShotOnContact(ctx, hit)) {
+        g.pend = null; g.queued = null; g.phase = 'cheap'; g.t = 0;
+        return { ...NO_CONTROLS };
+      }
       if (hit && !canBeat(state, hit)) {
         placeAt(state, g.dir > 0 ? hit.pos.x - p.width : hit.pos.x + hit.width, p.pos.x);
         g.phase = 'whiff'; g.t = 0; playSound('thud', 0.8, -4); shakeScreen(state, 4, 3);

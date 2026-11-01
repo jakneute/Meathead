@@ -192,6 +192,22 @@ export const cheapShotStart = (ctx: FrameContext) => {
   if (!has('hands') || scene || state.deathTimer > 0 || p.health <= 0 || !p.isGrounded) return false;
   const r = target(state);
   if (!r) return false;
+  return begin(state, r);
+};
+
+/** The grab's lunge has landed on this boss (grab.ts): if its cheap shot's still his, it's on, there and then, whatever
+ *  the boss is up to (its breather, a move the fight wouldn't offer it in): the owner's "if the lunge successfully
+ *  connects, i frames or not, the boss and meathead pin to the ground automatically and the animation plays". */
+export const cheapShotOnContact = (ctx: FrameContext, e: Enemy) => {
+  const { state } = ctx, p = state.player;
+  if (!has('hands') || scene || state.deathTimer > 0 || p.health <= 0) return false;
+  const r = recs.get(e);
+  if (!live(r) || r.crushed || crushedIds.has(r.id) || state.frame - r.seen > 2 || e.health <= 0 || e.isBlownAway) return false;
+  return begin(state, r);
+};
+
+const begin = (state: GameState, r: Rec) => {
+  const p = state.player;
   const e = r.e, cx = p.pos.x + p.width / 2;
   const dir = (midX(e) >= cx ? 1 : -1) as 1 | -1;
   const near = dir > 0 ? e.pos.x : e.pos.x + e.width;
