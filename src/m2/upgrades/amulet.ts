@@ -35,7 +35,7 @@ import { setHeadFlush } from '../../m1/game/render/player/body';
 import { hazardKill } from '../hazardHit';
 import { amuletActive } from './state';
 import { YELL_LINE } from './lines';
-import { AMULET_FULL, AMULET_DRAIN, AMULET_HIT, YELL_DAMAGE, YELL_STUN, YELL_SHIELD, YELL_COOLDOWN, YELL_EDGE, AMULET_ANGRY_AT, RAGE_DAMAGE_K } from './tune';
+import { AMULET_FULL, AMULET_DRAIN, AMULET_HIT, AMULET_KNOCK_K, AMULET_KNOCK_MAX, YELL_DAMAGE, YELL_STUN, YELL_SHIELD, YELL_COOLDOWN, YELL_EDGE, AMULET_ANGRY_AT, RAGE_DAMAGE_K } from './tune';
 
 type Phase = 'fill' | 'rage' | 'cool';
 /** His voice, through the canyon (tools/voices/cast.json m2.yell). */
@@ -170,7 +170,11 @@ export const stepAmulet = (ctx: FrameContext) => {
   if (ctx.cheats.invincible && p.hurtTimer >= PLAYER_INVINCIBILITY_FRAMES - 1 && a.hurtWas < p.hurtTimer) took += GOD_HIT;
   // (a fresh hurt, whatever it took: being hit at all is what pisses him off, more than how hard (the owner's "a single
   // small hit won't fill it up much less than a single big hit"); a burn's tick or a drip off him isn't one)
-  if (p.hurtTimer > a.hurtWas + 1 && (took > 0 || ctx.cheats.invincible)) took += AMULET_HIT;
+  // (and knocked about, more again, the harder the more: the owner's "the more it knocks back, the faster he gets
+  // pissed off"; how fast it's sent him, sideways and up)
+  if (p.hurtTimer > a.hurtWas + 1 && (took > 0 || ctx.cheats.invincible)) {
+    took += AMULET_HIT + Math.min(AMULET_KNOCK_MAX, Math.hypot(p.vel.x, Math.min(0, p.vel.y)) * AMULET_KNOCK_K);
+  }
   a.hurtWas = p.hurtTimer;
   a.hp = p.health;
   // (dead, dying: it's all off; back at a checkpoint it starts empty)
@@ -186,7 +190,8 @@ export const stepAmulet = (ctx: FrameContext) => {
   }
   switch (a.phase) {
     case 'fill': {
-      a.meter = Math.max(0, Math.min(AMULET_FULL, a.meter - AMULET_DRAIN + took));
+      // (a cutscene: held where it is, no draining (the owner's "the meter freezes during cutscenes. should not drain"))
+      a.meter = Math.max(0, Math.min(AMULET_FULL, a.meter - (p.inCutscene ? 0 : AMULET_DRAIN) + took));
       if (a.meter >= AMULET_FULL && !p.inCutscene) yell(ctx);
       break;
     }
@@ -200,12 +205,13 @@ export const stepAmulet = (ctx: FrameContext) => {
         p.pushbackTimer = 0; p.vel.x = 0; if (p.vel.y < 0) p.vel.y = 0;
         if (p.freefall?.style === 'flail') p.freefall = undefined;
       }
-      if (--a.t <= 0) { endRage(); a.phase = 'cool'; a.t = YELL_COOLDOWN; }
+      // (the rage and the cooldown hold through a cutscene too)
+      if (!p.inCutscene && --a.t <= 0) { endRage(); a.phase = 'cool'; a.t = YELL_COOLDOWN; }
       break;
     }
     case 'cool': {
       a.meter = 0;
-      if (--a.t <= 0) a.phase = 'fill';
+      if (!p.inCutscene && --a.t <= 0) a.phase = 'fill';
       break;
     }
   }

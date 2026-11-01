@@ -39,6 +39,9 @@ export const AMULET_FULL = 35;
 /** On top, every hit he takes adds this much, however little it took (the owner: "getting hit in general is weighed
  *  more ... big hits still fill it up faster"): a small hit (~3) fills about a third of it, a big one (~15) about two thirds. */
 export const AMULET_HIT = 9;
+/** ...and the harder it knocks him back, the more again: his speed off it (px a frame) times this, up to the most.
+ *  A plain bump (7 across, 4 up, ≈8) adds 8 (two of them and he yells); a goat's butt ≈14; a big launch fills it alone. */
+export const AMULET_KNOCK_K = 1, AMULET_KNOCK_MAX = 26;
 /** How fast it drains on its own (damage's worth a frame): SPEC's ~3.5 a second (full to empty in 10 s). */
 export const AMULET_DRAIN = 3.5 / 60;
 /** What the yell does to everything on the screen (regular enemies, sub-bosses, bosses: each fight's breather as ever). */
