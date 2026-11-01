@@ -10,8 +10,10 @@
 //             the ground like a rail spike"), stuck a good while (it digs out), harmless.
 //             THE HEAD KICK: B by a head in the ground (a B prompt over it) kicks it off like a football into the
 //             nearest enemy that way; nobody that way but somebody the other way, he walks round it, points, kicks.
-//   ARMGUARDS the NINJA DROP: Y + B in or just after an uppercut: on up with them, them upside down under him,
-//             then down, spinning like a top, head first into the ground (regular enemies: dead, legs up out of it).
+//   ARMGUARDS the NINJA DROP: Y + B in or just after an uppercut: an Izuna drop (the owner: "make the uppercut followup
+//             look more like ryu hayabusa, like a fancy wrestling move"): on up with them in a full flip, them upside
+//             down under him, then down, corkscrewing, head first into the ground; steered forward or back on the way
+//             (left / right; nothing held, it arcs on forward) (regular enemies: dead, legs up out of it).
 //   LEG ARMOR the FLASH KICK: up + B any time in a slide (not a follow-up to a hit: B's held through a slide, so up's
 //             pressed with it, or B pressed with up held): free (no power cell: the owner's "make the flash kick not require a
 //             meter"), a backflip with the leg up
@@ -87,6 +89,8 @@ export interface Follow {
   /** His own up/down speed (the drop, the flash kick), and the spin (the spin, the drop). */
   vy: number;
   spin: number;
+  /** The ninja drop's drift across (px a frame): steered forward or back. */
+  vx: number;
   /** The flash kick: who it's had; a line said yet. */
   hits: Set<Enemy>;
   said: boolean;
@@ -99,7 +103,7 @@ export interface Follow {
   st: number;
 }
 const newFollow = (): Follow => ({
-  c0: { x: 0, y: 0 }, ef: { x: 0, y: 0 }, sh: { x: 0, y: 0 }, ground: 0, sink: 0, vy: 0, spin: 0, hits: new Set(), said: false,
+  c0: { x: 0, y: 0 }, ef: { x: 0, y: 0 }, sh: { x: 0, y: 0 }, ground: 0, sink: 0, vy: 0, spin: 0, vx: 0, hits: new Set(), said: false,
   bur: null, kdir: 1, walkTo: 0, around: false, step: 'walk', st: 0,
 });
 
@@ -420,6 +424,8 @@ const spinGeo = (g: Grab) => {
 
 /** The ninja drop's rise (frames), before it comes down; the dash over to them first, if they're off a way. */
 const N_RISE = 12, N_DASH = 5;
+/** Its drift across, steered (px a frame), and nothing held (on forward, an arc). */
+const N_STEER = 4.5, N_DRIFT = 2;
 /** The flash kick's frames the circle's out, and the longest it can go before it's called off (he's not down). */
 const F_ACTIVE: [number, number] = [2, 16], F_MAX = 80, F_FLIP = 22;
 /** The head kick's frames: walking (the most), pointing, the kick landing, done. */
@@ -442,7 +448,6 @@ const clearFlash = (state: GameState) => {
 };
 
 export const stepFollow = (ctx: FrameContext, g: Grab, controls: Controls): Controls => {
-  void controls;
   const { state } = ctx, p = state.player, fu = g.fu;
   if (!fu) { K.end(state, g); return { ...NO_CONTROLS }; }
   const d = g.dir;
@@ -519,6 +524,10 @@ export const stepFollow = (ctx: FrameContext, g: Grab, controls: Controls): Cont
         return { ...NO_CONTROLS };
       }
       fu.vy = g.t <= N_RISE ? -8 * (1 - g.t / N_RISE) : Math.min(NINJA_FALL, fu.vy + 1.3);
+      // (steered: forward or back with left / right, the whole way; nothing held, it arcs on the way he's facing)
+      const steer = controls.left && !controls.right ? -1 : controls.right && !controls.left ? 1 : 0;
+      fu.vx += ((steer ? steer * N_STEER : d * N_DRIFT) - fu.vx) * 0.18;
+      K.placeAt(state, p.pos.x + fu.vx, p.pos.x);
       if (fu.vy < 0 && K.ceilingOver(state, fu.vy - 2)) fu.vy = 0;
       fu.spin += 0.25 + Math.min(0.5, g.t * 0.012);
       if (g.t % 6 === 0 && g.t > N_RISE) playSound('whoosh', 0.6, 4 + Math.min(8, g.t / 8));
@@ -1017,18 +1026,46 @@ export const drawFollow = (ctx: Ctx, state: GameState, g: Grab) => {
         sprite(ctx, x, y, d, c => figure(c, f, { feet: [[-12, -4], [10, -10]], hands: [[14, -34], [24, -30]], mood: 'roar', lean: 0.3 }));
         return;
       }
-      // (coming down: air streaming up past them)
-      if (g.t > N_RISE) for (let i = 0; i < 5; i++) { const sx = x - 30 + i * 15, sy = y - 60 - ((f * 11 + i * 23) % 70); ctx.fillStyle = 'rgba(255, 255, 255, 0.45)'; ctx.fillRect(sx, sy, 2, 20); }
-      const s = Math.cos(fu.spin), dd = (s >= 0 ? d : -d) as 1 | -1;
-      ctx.save();
-      ctx.translate(x, 0); ctx.scale(Math.max(0.2, Math.abs(s)), 1); ctx.translate(-x, 0);
-      if (e) {
-        // (a person upside down, his feet to Meathead's soles; an animal on end head down, its rump to them)
-        if (animal(e)) drawOnEnd(ctx, state, e, x + dd * 3, y + 2 + hangOf(e), (-dd) as 1 | -1, 1, Math.PI, 'neck');
-        else drawEnemyAt(ctx, e, state, x + dd * 3, y + 2, Math.PI, (-dd) as 1 | -1, 'neck');
+      const falling = g.t > N_RISE, eh = e ? (animal(e) ? hangOf(e) + 10 : e.height) : 40;
+      // (coming down: air streaming up past them, and a corkscrew of wind wrapped round the pair)
+      if (falling) {
+        for (let i = 0; i < 5; i++) { const sx = x - 30 + i * 15, sy = y - 60 - ((f * 11 + i * 23) % 70); ctx.fillStyle = 'rgba(255, 255, 255, 0.45)'; ctx.fillRect(sx, sy, 2, 20); }
+        const cols = FOLLOW_COLS.uppercut;
+        for (let k = 0; k < 2; k++) {
+          ctx.strokeStyle = cols[k]; ctx.lineWidth = 2;
+          ctx.beginPath();
+          for (let j = 0; j <= 24; j++) {
+            const yy = y - 50 + (j / 24) * (eh + 60), a2 = fu.spin * 1.5 + j * 0.55 + k * Math.PI, rx = 26 + j * 0.4;
+            const px = x + Math.cos(a2) * rx, py = yy + Math.sin(a2) * 3;
+            if (j) ctx.lineTo(px, py); else ctx.moveTo(px, py);
+          }
+          ctx.stroke();
+        }
       }
-      const lean = 0.35, hipY = -15;
-      sprite(ctx, x, y, dd, c => figure(c, f, { hipY, lean, feet: [[-9, 0], [9, 0]], hands: [toTorso(lean, hipY, 4, -2), toTorso(lean, hipY, 10, -2)], mood: 'roar', look: 0.3 }));
+      // (the pair: going up, one full flip together about where they meet; coming down, the corkscrew)
+      const flip = falling ? 0 : 2 * Math.PI * ease(g.t / N_RISE) * d;
+      const s = falling ? Math.cos(fu.spin) : 1, dd = (s >= 0 ? d : -d) as 1 | -1;
+      const pair = (c: Ctx) => {
+        if (e) {
+          // (a person upside down, his feet to Meathead's soles; an animal on end head down, its rump to them)
+          if (animal(e)) drawOnEnd(c, state, e, x + dd * 3, y + 2 + hangOf(e), (-dd) as 1 | -1, 1, Math.PI, 'neck');
+          else drawEnemyAt(c, e, state, x + dd * 3, y + 2, Math.PI, (-dd) as 1 | -1, 'neck');
+        }
+        const lean = 0.35, hipY = -15;
+        sprite(c, x, y, dd, cc => figure(cc, f, { hipY, lean, feet: [[-9, 0], [9, 0]], hands: [toTorso(lean, hipY, 4, -2), toTorso(lean, hipY, 10, -2)], mood: 'roar', look: 0.3 }));
+      };
+      // (an afterimage or two trailing up behind on the way down)
+      if (falling && fu.vy > 6) for (let k = 2; k >= 1; k--) {
+        ctx.save(); ctx.globalAlpha = 0.18 * (3 - k);
+        ctx.translate(-fu.vx * k * 2, -fu.vy * k * 1.4);
+        ctx.translate(x, 0); ctx.scale(Math.max(0.2, Math.abs(Math.cos(fu.spin - k * 0.5))), 1); ctx.translate(-x, 0);
+        pair(ctx);
+        ctx.restore();
+      }
+      ctx.save();
+      if (flip) { ctx.translate(x, y); ctx.rotate(flip); ctx.translate(-x, -y); }
+      ctx.translate(x, 0); ctx.scale(Math.max(0.2, Math.abs(s)), 1); ctx.translate(-x, 0);
+      pair(ctx);
       ctx.restore();
       return;
     }
