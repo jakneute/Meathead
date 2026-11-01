@@ -37,7 +37,9 @@ const WorldPrompt: React.FC = () => {
         <Prompt pad={['B']} kb={['@special']} size={16} label="KICK" />
       </div>
       <div ref={follow} className={`${box} border-[#22D3EE]`} style={{ display: 'none' }}>
-        <ChordPrompt pad={['Y', 'B']} join="+" kb={['@beatdown']} size={16} label="" />
+        {/* (B then Y: the B that started the move held, the thumb rolled onto Y; on the keys, the beatdown key as the charge
+            move's button's held, the owner's "press R as you hold down RMB for a charge move") */}
+        <ChordPrompt pad={['B', 'Y']} join=">" kb={['@special', '@beatdown']} size={16} label="" />
       </div>
     </>
   );

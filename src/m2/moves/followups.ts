@@ -255,6 +255,9 @@ const followReady = (state: GameState): { e: Enemy; move: FollowMove } | null =>
   return e ? { e, move: lastMove.move } : null;
 };
 
+/** A follow-up's there for the taking right now (grab.ts: on a pad, Y onto a B still held counts as Y + B). */
+export const followArmed = (state: GameState) => followReady(state) !== null;
+
 /** A head out of the ground he can kick from where he is (his feet on its floor, near enough). */
 const headNear = (state: GameState) => {
   const p = state.player, cx = K.centerX(state), fy = K.feetY(state), stage = String(state.stageId);

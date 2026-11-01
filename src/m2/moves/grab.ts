@@ -23,8 +23,8 @@
 
 import { stepAmulet, amuletShielded, drawAmuletFx, raged } from '../upgrades/amulet';
 import { has } from '../upgrades/state';
-import { HANDS_HEAL } from '../upgrades/tune';
-import { FOLLOW_PHASES, type FollowPhase, type Follow, followIdle, startFollowUp, stepFollow, drawFollow, followTick, followAfter, followUntouchable, drawFollowCue } from './followups';
+import { HANDS_HEAL, MISSILE_CRUISE } from '../upgrades/tune';
+import { FOLLOW_PHASES, type FollowPhase, type Follow, followIdle, startFollowUp, followArmed, stepFollow, drawFollow, followTick, followAfter, followUntouchable, drawFollowCue } from './followups';
 import { cheapShotStart, cheapShotStep, cheapShotTick, drawCheapShotWorld, cheapShotStunned } from '../upgrades/cheapShot';
 import { walkAwayOn } from '../walkAway';
 import { spawnShielded } from '../spawnSafe';
@@ -304,7 +304,7 @@ export interface Grab {
   toss: Toss;
   thrown: Enemy | null;
   /** Bodies he's thrown, still flying: who each has hit already (once each), and how long it's been going. */
-  flying: { e: Enemy; hit: Set<string>; t: number; fall: number; still: number; how: GrabCallout; oneChunk: boolean; impact: number; k: number }[];
+  flying: { e: Enemy; hit: Set<string>; t: number; fall: number; still: number; how: GrabCallout; oneChunk: boolean; impact: number; k: number; mv?: number }[];
   /** Which way a critter was pitched. */
   pitch: 'left' | 'right' | 'up' | 'down';
   /** Which way a critter held up is aimed right now (null: no direction held). */
@@ -675,6 +675,12 @@ const flyInto = (ctx: FrameContext, g: Grab) => {
     if (e.isBlownAway || e.health <= 0) { e.enemyCollisionCooldown = 0; return false; }
     // Into a wall: splatted on it, hard (killed, he slides down it)
     if (wallSplat(ctx, e) || ceilingBonk(ctx, e)) { e.enemyCollisionCooldown = 0; return !e.isBlownAway && e.health > 0; }
+    // (the sabatons' missile: dead level and full speed for a stretch, like a missile, before it drops like any throw;
+    // each body it goes through takes some of its speed)
+    if (fl.how === 'missile' && fl.t <= MISSILE_CRUISE) {
+      fl.mv ??= Math.abs(e.vel.x);
+      e.vel.x = (Math.sign(e.vel.x) || g.dir) * fl.mv; e.vel.y = 0;
+    }
     catchOnFloor(state, e);
     // Coming down: the floor's what hurts him, by how hard he hits it
     if (fl.fall > 2 && e.vel.y <= 0.5 && !fl.oneChunk) {
@@ -716,7 +722,7 @@ const flyInto = (ctx: FrameContext, g: Grab) => {
       }
       // (and the one thrown takes it too, and loses some of his way)
       hurtThrown(ctx, fl, Math.round(dmg * 0.6 * fl.impact));
-      e.vel.x *= 0.75;
+      e.vel.x *= 0.75; if (fl.mv) fl.mv *= 0.75;
       if (e.health <= 0) break;
     }
     return true;
@@ -997,6 +1003,9 @@ const stepGrab = (ctx: FrameContext, g: Grab, controls: Controls): Controls => {
       // Y first (or both on the one frame), then B or X
       if (!want && y && pressed('b')) want = 'beat';
       if (!want && y && pressed('x')) want = 'shake';
+      // (the owner's "roll their thumb to the Y button as the b button is still held. you don't have to let go": a
+      // follow-up there for the taking, Y onto the B that started the move, held all along, is Y + B. The pad only)
+      if (!want && pressed('y') && btn('b') && followArmed(state)) want = 'beat';
       if (y) {
         g.yHeld++;
         out = { ...out, special: false, shoot: false, secondary: false };

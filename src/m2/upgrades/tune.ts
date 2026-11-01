@@ -25,10 +25,10 @@ export const HELMET_DUCK_HEAD_H = 26;
 export const HELMET_MAX_SHOT = 30;
 
 // ---- cape
-/** His walking speed, times (multiplies with the spellbook's bulk up, 1.6: bulked with the cape ≈ 1.8). */
-export const CAPE_WALK = 1.12;
-/** A held jump's rising frames, times: 15 → 18, about +15% height (145 px → 166). */
-export const CAPE_JUMP_HOLD = 1.2;
+/** His walking speed, times (multiplies with the spellbook's bulk up, 1.6: bulked with the cape ≈ 1.9; under the bulk up on its own). */
+export const CAPE_WALK = 1.2;
+/** A held jump's rising frames, times: 15 → 20, about +25% height. */
+export const CAPE_JUMP_HOLD = 1.33;
 /** The float: the fastest he falls holding jump (px a frame; plain falling tops out at 20). */
 export const CAPE_FLOAT_FALL = 2.2;
 
@@ -69,6 +69,9 @@ export const FOLLOW_HEAL = 12;
 /** Sabatons' missile: how fast he's hurled (px a frame; the shakedown's throw is 17), and what he does to whoever he
  *  hits, times a thrown body's own (mass × speed; its cap of 160 times it too). */
 export const MISSILE_SPEED = 25, MISSILE_HIT_K = 1.6;
+/** ...and how long it flies dead level at that speed before it drops like any throw (frames; 20 ≈ 500 px). It used to
+ *  drop straight away, landing a body length or two off (the owner: "doesn't seem to launch foes very far"). */
+export const MISSILE_CRUISE = 20;
 /** Pauldrons: a head kicked off out of the ground: its speed across, what it does to whoever it hits. */
 export const HEAD_KICK_SPEED = 13, HEAD_HIT = 70;
 /** How near the head he has to be for B to kick it (px from his middle), and how many stuck in the ground at once. */
