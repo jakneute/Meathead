@@ -25,7 +25,7 @@ import { stepAmulet, amuletShielded, drawAmuletFx, raged } from '../upgrades/amu
 import { has } from '../upgrades/state';
 import { HANDS_HEAL, MISSILE_CRUISE } from '../upgrades/tune';
 import { FOLLOW_PHASES, type FollowPhase, type Follow, followIdle, startFollowUp, followArmed, stepFollow, drawFollow, followTick, followAfter, followUntouchable, drawFollowCue } from './followups';
-import { cheapShotStart, cheapShotStep, cheapShotTick, drawCheapShotWorld, cheapShotStunned } from '../upgrades/cheapShot';
+import { cheapShotStart, cheapShotStep, cheapShotTick, drawCheapShotWorld, cheapShotStunned, cheapShotPending } from '../upgrades/cheapShot';
 import { walkAwayOn } from '../walkAway';
 import { spawnShielded } from '../spawnSafe';
 import { pickLine } from '../../m1/game/platform/speech';
@@ -454,6 +454,9 @@ const tooBig = (state: GameState, e: Enemy) => {
 /** Hands on one that can't be had: its own reaction if it has one (a boss's: see M2Kind's onGrab), else he says so.
  *  True: the grab's over there and then. */
 const balk = (ctx: FrameContext, e: Enemy) => {
+  // (a boss whose cheap shot he's still got coming (the hand armor, not had this life): no counter, no line; the hands
+  // just miss (the cheap shot itself goes first whenever it can: updateGrab))
+  if (cheapShotPending(ctx.state, e)) return false;
   const r = m2Kind(e.kind)?.onGrab?.(ctx, e) || undefined;
   if (!r?.said) tooBig(ctx.state, e);
   return !!r?.free;

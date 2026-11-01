@@ -68,10 +68,17 @@ interface Rec {
 }
 const recs = new Map<Enemy, Rec>();
 /** His lives: up one each time he dies (crushed, stuns, the once a life: all off). */
-let gen = 0, deadSeen = false;
+let gen = 0, deadSeen = false, frameWas = 0;
 
 const live = (r: Rec | undefined): r is Rec => !!r && r.gen === gen;
 export const isCrushed = (e: Enemy) => { const r = recs.get(e); return live(r) && r.crushed; };
+/** This boss's cheap shot is still his to have (the hand armor on him, the boss's fight asking, not had yet this life):
+ *  its fight's grab counter holds off (the owner's "he should only do it if you don't have a valid means of destroying
+ *  his nuts"; grab.ts balk). */
+export const cheapShotPending = (state: GameState, e: Enemy) => {
+  const r = recs.get(e);
+  return has('hands') && live(r) && !r.crushed && state.frame - r.seen <= 2;
+};
 /** A crushed boss's voice: higher for the rest of the fight (the owner: "a nutless (or ovaryless) boss should speak in a
  *  somewhat higher pitch too" / "i'd prefer a pitch change with no noticeable speed change"); about two semitones, its
  *  speed as recorded, read as each of its lines starts. */
@@ -274,8 +281,13 @@ const finish = (state: GameState, stun: boolean) => {
 export const cheapShotTick = (state: GameState, inPhase: boolean) => {
   // (the grab let go of it some other way (its net, the water): over, clean)
   if (scene && !inPhase) finish(state, false);
-  if (state.deathTimer > 0) {
-    if (!deadSeen) {
+  // (a death, however it's seen: the death timer running, him at no health, or the frame count started over by a
+  // respawn or a stage load (the grabs aren't stepped while he's dead, so the death itself can go unseen here). Every
+  // boss uncrushed, its voice back down (the owner's "his pitch should revert on death"), the cheap shot there again)
+  const fresh = state.frame < frameWas;
+  frameWas = state.frame;
+  if (state.deathTimer > 0 || state.player.health <= 0 || fresh) {
+    if (!deadSeen || fresh) {
       deadSeen = true; gen++;
       for (const r of recs.values()) if (r.stun > 0) endStun(r);
       if (scene) finish(state, false);
