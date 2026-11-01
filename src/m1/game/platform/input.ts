@@ -14,6 +14,9 @@ export interface Controls {
   secondary?: boolean;
   /** Shift on the keyboard: the shoulder charge and nothing else (no slide, uppercut or dive kick, whatever direction's held). */
   charge?: boolean;
+  /** Up held as itself (W, the stick), even under the slide / dive kick key that overrides `up` (Meathead 2's flash
+   *  kick: C + W in a slide). */
+  upHeld?: boolean;
 }
 
 /** What the player last touched: for button prompts (a gamepad's B, or the mouse's right button). */
@@ -121,6 +124,7 @@ export const readControls = (kb: KeyboardMouseState): Controls => {
     charge: k('charge'),
     shoot: padShoot || (fireKeys ? kb.mouseDown || kb.isDown(...fireKeys) : k('fire')),
     secondary: padFlame || k('secondary'),
+    upHeld: heldUp,
   };
 };
 

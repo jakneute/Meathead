@@ -347,7 +347,9 @@ export const followIdle = (ctx: FrameContext, g: Grab, controls: Controls, press
   const { state } = ctx, p = state.player;
   if (p.inCutscene || p.noSpecials || K.handsOnly(state)) return null;
   // The flash kick: B's held through a slide, so up pressed with it does it, or B pressed with up held
-  if (p.isSliding && has('legs') && controls.up && controls.special && (press('up') || press('special'))) {
+  // (on the keys, the slide key (C) overrides up: W held with it counts too, C + W)
+  const up = controls.up || !!controls.upHeld;
+  if (p.isSliding && has('legs') && up && controls.special && (press('up') || press('upHeld') || press('special'))) {
     stopMoves(state);
     const fu = newFollow();
     fu.vy = -flashLaunch(); fu.c0 = pmid(state);

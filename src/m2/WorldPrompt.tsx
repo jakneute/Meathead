@@ -38,7 +38,8 @@ const WorldPrompt: React.FC = () => {
       </div>
       <div ref={follow} className={`${box} border-[#22D3EE]`} style={{ display: 'none' }}>
         {/* (B then Y: the B that started the move held, the thumb rolled onto Y; on the keys, the beatdown key as the charge
-            move's button's held, the owner's "press R as you hold down RMB for a charge move") */}
+            move's button's held, the owner's "press R as you hold down RMB for a charge move". The secondary fire key and the
+            charge hotkeys work too, unadvertised: "tutorial prompts will say RMB, but allow those as secondary commands") */}
         <ChordPrompt pad={['B', 'Y']} join=">" kb={['@special', '@beatdown']} size={16} label="" />
       </div>
     </>

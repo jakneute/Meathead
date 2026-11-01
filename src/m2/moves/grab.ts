@@ -1006,6 +1006,10 @@ const stepGrab = (ctx: FrameContext, g: Grab, controls: Controls): Controls => {
       // (the owner's "roll their thumb to the Y button as the b button is still held. you don't have to let go": a
       // follow-up there for the taking, Y onto the B that started the move, held all along, is Y + B. The pad only)
       if (!want && pressed('y') && btn('b') && followArmed(state)) want = 'beat';
+      // (and on the keys, the secondary fire key (F) does as well as the beatdown key (R) for one: the owner's "R or F
+      // will be acceptable buttons to press for followup moves", the charge move held on its own key, the mouse's or a
+      // hotkey's. The shot it'd have been doesn't go)
+      if (!want && !y && press('secondary') && followArmed(state)) { want = 'beat'; out = { ...out, secondary: false }; g.gate.add('secondary'); }
       if (y) {
         g.yHeld++;
         out = { ...out, special: false, shoot: false, secondary: false };
