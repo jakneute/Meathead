@@ -77,7 +77,11 @@ export const FOLLOW_WINDOW = 24;
 /** How far off one can be and still get taken ("give the new 'special grabs' a wide berth, wider than what appears"):
  *  across, from his middle to their near edge (the charge's wider), up/down the same way. Was 130 / 190 / 170 to their
  *  middle, after a hit. */
-export const FOLLOW_REACH = 200, FOLLOW_REACH_CHARGE = 260, FOLLOW_REACH_UP = 200;
+export const FOLLOW_REACH = 140, FOLLOW_REACH_CHARGE = 190, FOLLOW_REACH_UP = 150;
+/** One behind him (the way he isn't going) only this near (px from his middle to their near edge): no flying back
+ *  across the screen for one (the owner: "sometimes it feels like i teleport too far from my position to get them,
+ *  often away from the way i'm going"; the reaches were 200 / 260 / 200). */
+export const FOLLOW_REACH_BEHIND = 50;
 /** Sabatons' missile: how fast he's hurled (px a frame; the shakedown's throw is 17), and what he does to whoever he
  *  hits, times a thrown body's own (mass × speed; its cap of 160 times it too). */
 export const MISSILE_SPEED = 25, MISSILE_HIT_K = 1.6;

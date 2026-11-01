@@ -63,7 +63,7 @@ import { raged } from '../upgrades/amulet';
 import { lastMelee, stampMelee, clearMelee } from '../upgrades/lastHit';
 import { worldPrompt } from '../store';
 import {
-  FOLLOW_WINDOW, FOLLOW_REACH, FOLLOW_REACH_CHARGE, FOLLOW_REACH_UP, MISSILE_SPEED, MISSILE_HIT_K,
+  FOLLOW_WINDOW, FOLLOW_REACH, FOLLOW_REACH_CHARGE, FOLLOW_REACH_UP, FOLLOW_REACH_BEHIND, MISSILE_SPEED, MISSILE_HIT_K,
   HEAD_KICK_SPEED, HEAD_HIT, HEAD_KICK_REACH, BURIED_MAX, BURIED_FREE, BURIED_DIG, NINJA_FALL, NINJA_DAMAGE, NINJA_METEOR_R, NINJA_METEOR_DMG, NINJA_METEOR_STUN, FLASH_RISE, FLASH_RADIUS, FLASH_DAMAGE,
 } from '../upgrades/tune';
 import { grabKit as K, grabbable, isCritter, handsOnlyFoe, drawEnemyAt, drawPoseSprite as sprite, drawPoseHead as head, type Grab } from './grab';
@@ -233,6 +233,7 @@ const followTarget = (state: GameState, move: FollowMove): Enemy | null => {
     const em = emid(e), dx = em.x - pm.x, dy = em.y - pm.y;
     // (to their near edge, not their middle: bigger than it looks)
     if (Math.abs(dx) > across + e.width / 2 || Math.abs(dy) > FOLLOW_REACH_UP + e.height / 2) continue;
+    if (Math.sign(dx) === -p.facing && Math.abs(dx) > FOLLOW_REACH_BEHIND + e.width / 2) continue;
     const d = Math.hypot(dx, dy) + (Math.sign(dx) === -p.facing ? BEHIND : 0) - (e === pref ? 1e4 : 0);
     if (d >= bestD) continue;
     if (move === 'charge' && standing(state, e) === null) continue;
