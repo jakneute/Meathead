@@ -47,8 +47,9 @@ export const AMULET_KNOCK_K = 0.8, AMULET_KNOCK_MAX = 22;
 /** Only enemies' attacks fill it: a trap's hurt (or a burn's tick) adds nothing, but holds it from draining this long
  *  (frames; the owner: "traps don't fill up the piss off meter but can freeze it from any decay"). */
 export const AMULET_TRAP_HOLD = 180;
-/** How fast it drains on its own (damage's worth a frame): SPEC's ~3.5 a second (full to empty in 10 s). */
-export const AMULET_DRAIN = 3.5 / 60;
+/** How fast it drains on its own (damage's worth a frame): 2.8 a second, full to empty in 12.5 s (was SPEC's 3.5, 10 s;
+ *  the owner: "slightly reduce the rate of decay"). */
+export const AMULET_DRAIN = 2.8 / 60;
 /** What the yell does to everything on the screen (regular enemies, sub-bosses, bosses: each fight's breather as ever). */
 export const YELL_DAMAGE = 15;
 /** How long a regular enemy it doesn't kill is stunned (frames). */
