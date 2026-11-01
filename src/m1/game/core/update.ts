@@ -598,7 +598,11 @@ const updatePlaying = (ctx: FrameContext, controls: Controls): boolean => {
 
   const enemies = state.enemies;
   updateGapGrace(state);
+  // (anything that comes off him while the enemies have their turn (bodies, bites, a kind's own attack, however it's
+  // done) was an enemy's doing: Meathead 2's piss-off meter counts it (state.foeHurtAt); a trap's isn't)
+  const hpBefore = state.player.health, hurtBefore = state.player.hurtTimer;
   state.enemies = enemies.filter(e => updateEnemy(ctx, e, enemies));
+  if (state.player.health < hpBefore || state.player.hurtTimer > hurtBefore) state.foeHurtAt = state.frame;
   separateEnemies(state);
   // Note: projectiles spawned while this filter runs (shrapnel, ice shards) are not kept.
   // Projectiles spawned while these update (ice shards, splashes) are appended to the same
