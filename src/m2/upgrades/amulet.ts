@@ -35,7 +35,7 @@ import { setHeadFlush } from '../../m1/game/render/player/body';
 import { hazardKill } from '../hazardHit';
 import { amuletActive } from './state';
 import { YELL_LINE } from './lines';
-import { AMULET_FULL, AMULET_DRAIN, YELL_DAMAGE, YELL_STUN, YELL_SHIELD, YELL_COOLDOWN, YELL_EDGE, AMULET_ANGRY_AT, RAGE_DAMAGE_K } from './tune';
+import { AMULET_FULL, AMULET_DRAIN, AMULET_HIT, YELL_DAMAGE, YELL_STUN, YELL_SHIELD, YELL_COOLDOWN, YELL_EDGE, AMULET_ANGRY_AT, RAGE_DAMAGE_K } from './tune';
 
 type Phase = 'fill' | 'rage' | 'cool';
 /** His voice, through the canyon (tools/voices/cast.json m2.yell). */
@@ -168,6 +168,9 @@ export const stepAmulet = (ctx: FrameContext) => {
   let took = a.hp > 0 && p.health < a.hp ? a.hp - p.health : 0;
   // (the cheats' god mode: nothing comes off him, so a fresh hurt counts as a middling hit, for trying it out)
   if (ctx.cheats.invincible && p.hurtTimer >= PLAYER_INVINCIBILITY_FRAMES - 1 && a.hurtWas < p.hurtTimer) took += GOD_HIT;
+  // (a fresh hurt, whatever it took: being hit at all is what pisses him off, more than how hard (the owner's "a single
+  // small hit won't fill it up much less than a single big hit"); a burn's tick or a drip off him isn't one)
+  if (p.hurtTimer > a.hurtWas + 1 && (took > 0 || ctx.cheats.invincible)) took += AMULET_HIT;
   a.hurtWas = p.hurtTimer;
   a.hp = p.health;
   // (dead, dying: it's all off; back at a checkpoint it starts empty)

@@ -36,6 +36,9 @@ export const CAPE_FLOAT_FALL = 2.2;
 /** Damage he takes to fill the meter: what actually comes off his health, after every cut (Meathead 2's soft hits
  *  ×0.65, the helmet's ×0.75). SPEC's "full at ~35 damage". */
 export const AMULET_FULL = 35;
+/** On top, every hit he takes adds this much, however little it took (the owner: "getting hit in general is weighed
+ *  more ... big hits still fill it up faster"): a small hit (~3) fills about a third of it, a big one (~15) about two thirds. */
+export const AMULET_HIT = 9;
 /** How fast it drains on its own (damage's worth a frame): SPEC's ~3.5 a second (full to empty in 10 s). */
 export const AMULET_DRAIN = 3.5 / 60;
 /** What the yell does to everything on the screen (regular enemies, sub-bosses, bosses: each fight's breather as ever). */
