@@ -69,6 +69,8 @@ export const HOLE_X = X((HOLE.a + HOLE.b) / 2);
 const PIT3 = PITS[2];
 /** The cave (world): its ends, its floor, its ceiling; under the square's far end, well under the ground's blocks. */
 export const CAVE = { a: X(12100), b: X(13300), floor: GY + 2600, ceil: GY + 2600 - 430 };
+/** The YOU GOT card's least time up before it can be closed (frames). */
+const CARD_HOLD = 90;
 /** Where he comes down (the shaft), where Ben stands, his heavy bag, where the practice one turns up, the cannon. */
 export const SHAFT_X = CAVE.a + 150, CANNON_X = CAVE.a + 380, BEN_X = CAVE.a + 700, BAG_X = BEN_X + 52, PRACTICE_X = CAVE.a + 960;
 /** Out of the pit's opening, on to safe ground past the trolley's end station (nobody there, nothing running). */
@@ -123,6 +125,8 @@ export interface Hidden {
   shaker: { x: number; y: number; vx: number; vy: number } | null;
   /** The card's up since. */
   cardT: number;
+  /** The card's buffer's over and every button's been let go: a press closes it. */
+  cardArmed: boolean;
   practice: Enemy | null; respawn: number; goodSaid: boolean;
   nudgeAt: number;
   cannon: Cannon;
@@ -136,7 +140,7 @@ export const hiddenOf = (state: GameState): Hidden => {
   if (!h) stores.set(key, h = {
     phase: 'out', all: 0, beat: 0, token: 0, script: null,
     ben: { said: null, pose: 'flurry', facing: 1, poseT: 0, piece: 'hands' },
-    tries: 0, lockWas: false, nutsAt: -1, kickT: -1, kickDir: 1, kickFrom: 0, shaker: null, cardT: 0, practice: null, respawn: 30, goodSaid: false, nudgeAt: 0,
+    tries: 0, lockWas: false, nutsAt: -1, kickT: -1, kickDir: 1, kickFrom: 0, shaker: null, cardT: 0, cardArmed: false, practice: null, respawn: 30, goodSaid: false, nudgeAt: 0,
     cannon: makeCannon(CANNON_X, CAVE.floor, EXIT, DEST), was: {},
   });
   return h;
@@ -204,9 +208,14 @@ export const updateHidden = (ctx: FrameContext, controls: Controls): Controls =>
     case 'card': {
       p.inCutscene = true; p.vel.x = 0;
       h.cardT++;
-      setUi({ gotPiece: 'hands' });
-      if (h.cardT > 50 && anyPress) {
-        h.phase = 'done'; p.inCutscene = false; setUi({ gotPiece: null });
+      // (a buffer before it'll close (the owner: "give a buffer before input can be accepted ... so the player doesn't
+      // accidentally close it if they mash buttons"): CARD_HOLD frames, then every button let go once, and only then a
+      // fresh press closes it; its PRESS ANY BUTTON shows only once it's armed)
+      const held = !!(controls.jump || controls.shoot || controls.special || controls.secondary || controls.charge);
+      if (!h.cardArmed && h.cardT > CARD_HOLD && !held) h.cardArmed = true;
+      setUi({ gotPiece: 'hands', gotPieceReady: h.cardArmed });
+      if (h.cardArmed && anyPress) {
+        h.phase = 'done'; p.inCutscene = false; setUi({ gotPiece: null, gotPieceReady: false });
         h.respawn = 20; h.nudgeAt = state.frame + 2400;
         setPose(h, 'fold');
         setTimeout(() => { if (hiddenOf(state) === h) benSays(h.ben, PIECE_LINES.hands.practice[0]); }, 500);
@@ -357,7 +366,7 @@ const runGift = (state: GameState, h: Hidden): Controls => {
   freeze(state); h.all++;
   p.facing = BEN_X > p.pos.x + p.width / 2 ? 1 : -1;
   h.ben.facing = p.facing === 1 ? -1 : 1;
-  const toCard = () => { h.ben.piece = null; setPose(h, 'fold'); h.phase = 'card'; h.cardT = 0; };
+  const toCard = () => { h.ben.piece = null; setPose(h, 'fold'); h.phase = 'card'; h.cardT = 0; h.cardArmed = false; };
   if (h.all > SKIP_AFTER) { offerSkip(); if (takeSkip()) { silenceAll(); h.token++; h.ben.said = null; toCard(); return { ...NO_CONTROLS }; } }
   const tok = h.token;
   switch (h.beat) {

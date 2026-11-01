@@ -22,7 +22,7 @@ const SURPRISE: Partial<Record<ArmorPiece, { match: (c: EquipControl) => boolean
   },
 };
 
-const PieceGotCard: React.FC<{ piece: ArmorPiece }> = ({ piece }) => {
+const PieceGotCard: React.FC<{ piece: ArmorPiece; ready: boolean }> = ({ piece, ready }) => {
   const e = EQUIP_ENTRIES.find(x => x.id === piece);
   if (!e) return null;
   const icon = equipIcon(piece);
@@ -43,7 +43,8 @@ const PieceGotCard: React.FC<{ piece: ArmorPiece }> = ({ piece }) => {
             {controls.map((k, i) => <ChordPrompt key={i} pad={k.pad} join={k.join ?? '+'} kb={k.kb} mouse={k.mouse} label={k.label} size={14} />)}
           </div>
         )}
-        <div className="text-[7px] text-zinc-500 mt-[6px] animate-pulse">PRESS ANY BUTTON</div>
+        {/* (only once the land's buffer is over: mashing through the gift doesn't shut it unread) */}
+        <div className="text-[7px] text-zinc-500 mt-[6px] animate-pulse" style={{ visibility: ready ? 'visible' : 'hidden' }}>PRESS ANY BUTTON</div>
       </div>
     </div>
   );

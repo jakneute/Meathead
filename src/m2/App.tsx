@@ -772,7 +772,7 @@ const App2: React.FC = () => {
           </div>
         )}
         {/* A hidden armor piece just given (CON-FUCK-TIOUS): what it is, what it does, its buttons (shown in his cutscene too) */}
-        {status === GameStatus.PLAYING && ui.gotPiece && <PieceGotCard piece={ui.gotPiece} />}
+        {status === GameStatus.PLAYING && ui.gotPiece && <PieceGotCard piece={ui.gotPiece} ready={!!ui.gotPieceReady} />}
         {/* A beatdown to do here (CON-FUCK-TIOUS's pebble) */}
         {status === GameStatus.PLAYING && ui.map === null && !ui.introCutscene && ui.beatPrompt && !ui.upPrompt && (
           <div className="absolute left-1/2 -translate-x-1/2 top-[132px] z-30 px-3 py-2 text-[9px] text-white bg-black/75 border-2 border-zinc-600">

@@ -89,6 +89,8 @@ export interface M2Ui {
   /** (a hidden armor find: CON-FUCK-TIOUS's gift) The card for the piece he's just got: what it is, what it does, the
    *  buttons (upgrades/PieceGotCard.tsx); null: none. Set by the land each frame it's up. */
   gotPiece?: import('./upgrades/state').ArmorPiece | null;
+  /** Its buffer's over: the card's PRESS ANY BUTTON shows (a press closes it). */
+  gotPieceReady?: boolean;
   /** A beatdown chord prompt (Y + B, the beatdown key) with this label (CON-FUCK-TIOUS's pebble); null: none. */
   beatPrompt?: string | null;
 }
