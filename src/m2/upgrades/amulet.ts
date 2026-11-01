@@ -24,7 +24,7 @@ import type { FrameContext } from '../../m1/game/core/context';
 import type { GameState } from '../../m1/game/core/state';
 import type { Enemy } from '../../m1/types';
 import { shakeScreen } from '../../m1/game/core/state';
-import { CANVAS_WIDTH, CANVAS_HEIGHT, PLAYER_INVINCIBILITY_FRAMES } from '../../m1/constants';
+import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../../m1/constants';
 import { setArmor } from '../../m1/game/core/resist';
 import { isMidBoss } from '../../m1/game/combat/midBoss';
 import { pushEnemy } from '../../m1/game/combat/knockback';
@@ -35,7 +35,7 @@ import { setHeadFlush } from '../../m1/game/render/player/body';
 import { hazardKill } from '../hazardHit';
 import { amuletActive } from './state';
 import { YELL_LINE } from './lines';
-import { AMULET_FULL, AMULET_DRAIN, AMULET_HIT, AMULET_KNOCK_K, AMULET_KNOCK_MAX, YELL_DAMAGE, YELL_STUN, YELL_SHIELD, YELL_COOLDOWN, YELL_EDGE, AMULET_ANGRY_AT, RAGE_DAMAGE_K } from './tune';
+import { AMULET_FULL, AMULET_DRAIN, AMULET_HIT, AMULET_TRAP_HOLD, AMULET_KNOCK_K, AMULET_KNOCK_MAX, YELL_DAMAGE, YELL_STUN, YELL_SHIELD, YELL_COOLDOWN, YELL_EDGE, AMULET_ANGRY_AT, RAGE_DAMAGE_K } from './tune';
 
 type Phase = 'fill' | 'rage' | 'cool';
 /** His voice, through the canyon (tools/voices/cast.json m2.yell). */
@@ -60,6 +60,8 @@ const a = {
   push: 0,
   /** His hurt timer the frame before (god mode's stand-in for what he took). */
   hurtWas: 0,
+  /** A trap's hurt holds the meter from draining till this frame. */
+  holdTill: -1,
   /** The shockwave: where it went off (world), how many frames ago. */
   ring: null as null | { x: number; y: number; t: number },
 };
@@ -104,7 +106,7 @@ setHeadFlush(() => { const k = amuletAnger(); return k <= AMULET_ANGRY_AT ? 0 : 
 const endRage = () => { setArmor(false, 'amulet'); };
 const reset = () => {
   if (a.phase === 'rage') endRage();
-  a.phase = 'fill'; a.meter = 0; a.t = 0; a.ring = null;
+  a.phase = 'fill'; a.meter = 0; a.t = 0; a.ring = null; a.holdTill = -1;
 };
 
 /** On the screen (or just off it): the view as drawn, else the camera's. */
@@ -160,20 +162,33 @@ const yell = (ctx: FrameContext) => {
   }
 };
 
+/** The hurt just now was an enemy's own doing (the owner's "attacks from an enemy fill it up"), not a trap's: its body or
+ *  its shot (the engine marks those), anything in a boss's or a sub-boss's fight, or a hurt named for an enemy that's
+ *  about (a kind's own attack). */
+const foeHit = (state: GameState) => {
+  if ((state.foeHurtAt ?? -99) >= state.frame - 2) return true;
+  const src = state.lastHurt && state.lastHurt.at >= state.frame - 2 ? state.lastHurt.source : '';
+  return state.enemies.some(e => e.health > 0 && !e.isBlownAway && (e.type === 'boss' || isMidBoss(e) || (!!src && !!e.kind && src.includes(e.kind))));
+};
+
 /** Each frame (moves/grab.ts updateGrab). */
 export const stepAmulet = (ctx: FrameContext) => {
   const { state } = ctx, p = state.player;
   if (state !== a.st) { reset(); a.st = state; a.hp = p.health; a.push = p.pushbackTimer; }
   if (a.ring && ++a.ring.t > 40) a.ring = null;
-  let took = a.hp > 0 && p.health < a.hp ? a.hp - p.health : 0;
-  // (the cheats' god mode: nothing comes off him, so a fresh hurt counts as a middling hit, for trying it out)
-  if (ctx.cheats.invincible && p.hurtTimer >= PLAYER_INVINCIBILITY_FRAMES - 1 && a.hurtWas < p.hurtTimer) took += GOD_HIT;
-  // (a fresh hurt, whatever it took: being hit at all is what pisses him off, more than how hard (the owner's "a single
-  // small hit won't fill it up much less than a single big hit"); a burn's tick or a drip off him isn't one)
-  // (and knocked about, more again, the harder the more: the owner's "the more it knocks back, the faster he gets
-  // pissed off"; how fast it's sent him, sideways and up)
-  if (p.hurtTimer > a.hurtWas + 1 && (took > 0 || ctx.cheats.invincible)) {
-    took += AMULET_HIT + Math.min(AMULET_KNOCK_MAX, Math.hypot(p.vel.x, Math.min(0, p.vel.y)) * AMULET_KNOCK_K);
+  const lost = a.hp > 0 && p.health < a.hp ? a.hp - p.health : 0;
+  let took = 0;
+  const fresh = p.hurtTimer > a.hurtWas + 1 && (lost > 0 || ctx.cheats.invincible);
+  if (fresh && foeHit(state)) {
+    // An enemy's attack: what it took (the cheats' god mode: nothing comes off him, so a middling hit, for trying it
+    // out); and being hit at all is what pisses him off, more than how hard (the owner's "a single small hit won't fill
+    // it up much less than a single big hit"); and knocked about, more again, the harder the more (the owner's "the more
+    // it knocks back, the faster he gets pissed off"; how fast it's sent him, sideways and up)
+    took = (ctx.cheats.invincible ? GOD_HIT : lost) + AMULET_HIT + Math.min(AMULET_KNOCK_MAX, Math.hypot(p.vel.x, Math.min(0, p.vel.y)) * AMULET_KNOCK_K);
+  } else if (lost > 0 || fresh) {
+    // A trap (or a burn's tick, a drip off him): nothing in, but the meter's held from draining a while (the owner's
+    // "traps don't fill up the piss off meter but can freeze it from any decay")
+    a.holdTill = state.frame + AMULET_TRAP_HOLD;
   }
   a.hurtWas = p.hurtTimer;
   a.hp = p.health;
@@ -191,7 +206,7 @@ export const stepAmulet = (ctx: FrameContext) => {
   switch (a.phase) {
     case 'fill': {
       // (a cutscene: held where it is, no draining (the owner's "the meter freezes during cutscenes. should not drain"))
-      a.meter = Math.max(0, Math.min(AMULET_FULL, a.meter - (p.inCutscene ? 0 : AMULET_DRAIN) + took));
+      a.meter = Math.max(0, Math.min(AMULET_FULL, a.meter - (p.inCutscene || state.frame < a.holdTill ? 0 : AMULET_DRAIN) + took));
       if (a.meter >= AMULET_FULL && !p.inCutscene) yell(ctx);
       break;
     }

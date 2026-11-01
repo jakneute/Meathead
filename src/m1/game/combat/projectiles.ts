@@ -909,7 +909,7 @@ const resolveEnemyProjectileHit = (ctx: FrameContext, p: Projectile): boolean =>
 
   if (!cheats.invincible) {
     player.health -= hurtTaken(stageId, p.damage / 2);
-    state.lastHurt = { source: getProjectileHurtSource(p, stageId), at: state.frame };
+    state.lastHurt = { source: getProjectileHurtSource(p, stageId), at: state.frame }; state.foeHurtAt = state.frame;
     // (a bullet that's killed him: through his forehead, see player/deathAnim)
     if (player.health <= 0 && isEnemyBullet(p)) state.shotDead = { frame: state.frame, dir: Math.sign(p.vel.x) || (player.pos.x + player.width / 2 < p.pos.x ? -1 : 1) };
     if (player.health > 0) {

@@ -578,11 +578,14 @@ export const stepFollow = (ctx: FrameContext, g: Grab, controls: Controls): Cont
   return { ...NO_CONTROLS };
 };
 
-/** Driven in head first: dead (a regular enemy: NINJA_DAMAGE), legs up out of the floor, the shock through it. */
+/** Driven in head first: NINJA_DAMAGE, the shock through the floor, the meteor. Killed, legs up out of the floor; a tanky
+ *  one it doesn't kill (the owner's "the ninja drop can be non-fatal to some tankier enemies") is let go of there, on
+ *  its feet, seeing stars. */
 const ninjaImpact = (ctx: FrameContext, g: Grab, e: Enemy, floor: number): Controls => {
   const { state, fx } = ctx, p = state.player, x = K.centerX(state);
-  e.health -= Math.max(NINJA_DAMAGE, e.health);
-  e.health = Math.min(0, e.health); e.isBlownAway = true; e.vel = { x: 0, y: 0 };
+  const dmg = raged(NINJA_DAMAGE);
+  if (e.health > dmg) return ninjaSurvived(ctx, g, e, floor, dmg);
+  e.health = Math.min(0, e.health - dmg); e.isBlownAway = true; e.vel = { x: 0, y: 0 };
   // (a person: head first, legs up out of it; an animal: on its back in the dirt, four legs up, painted as it looked
   // alive and put down upside down: its dead picture's lying down already, or belly up)
   const beast = animal(e), sink = Math.round(e.height * (beast ? BACK_SINK : 0.3)), face = (-g.dir) as 1 | -1;
@@ -612,6 +615,38 @@ const ninjaImpact = (ctx: FrameContext, g: Grab, e: Enemy, floor: number): Contr
   g.hitAt = { x, y: floor }; g.phase = 'aland'; g.t = 0; g.fu = null;
   return { ...NO_CONTROLS };
 };
+
+/** The ninja drop on one too tough for it: slammed head first into the floor and bounced back up off it (the owner's
+ *  "otherwise they bounce back"), not stuck in it; hurt and dazed a while, the shock and the meteor all the same; him
+ *  hopping off it. */
+const ninjaSurvived = (ctx: FrameContext, g: Grab, e: Enemy, floor: number, dmg: number): Controls => {
+  const { state, fx } = ctx, p = state.player, x = K.centerX(state);
+  e.health -= dmg;
+  g.held = null;
+  e.rotation = 0;
+  e.pos = { x: x - e.width / 2, y: floor - e.height - 2 };
+  K.release(state, e);
+  e.vel = { x: g.dir * NINJA_BOUNCE_X, y: -NINJA_BOUNCE_Y };
+  e.pauseTimer = Math.max(e.pauseTimer || 0, NINJA_SURVIVE_STUN); e.chargedAt = state.frame;
+  fx.spawnDamageNumber(e.pos, dmg, true);
+  heal(ctx, g, e);
+  fx.spawnExplosion({ x, y: floor - 4 }, '#8B0000', 12, 0, 10);
+  for (let i = 0; i < 16; i++) state.particles.push({ pos: { x: x + (Math.random() - 0.5) * 20, y: floor - 2 }, vel: { x: (Math.random() - 0.5) * 9, y: -1 - Math.random() * 5 }, life: 28, color: i % 3 ? '#6B4423' : '#A8A29E', size: 2 + Math.random() * 3, grav: 0.3 });
+  K.slamShock(ctx, e, x, floor);
+  meteorLooks(ctx, { x, y: floor - 6 });
+  ninjaMeteor(ctx, e, x, floor - 6);
+  playSound('slam', 1.1, -4); playSound('crunch', 1, -2);
+  shakeScreen(state, 14, 8);
+  // Him: up off its head with a hop, its body no harm to him on the way down
+  p.pos.y = floor - e.height - p.height; p.vel = { x: -g.dir * 2.5, y: -8 }; p.isGrounded = false;
+  p.noContactUntil = state.frame + NINJA_SURVIVE_GRACE;
+  g.hitAt = { x, y: floor }; g.phase = 'aland'; g.t = 0; g.fu = null;
+  return { ...NO_CONTROLS };
+};
+/** How long one that lived through it is dazed, and how long its body can't hurt him as he comes off it (frames). */
+const NINJA_SURVIVE_STUN = 90, NINJA_SURVIVE_GRACE = 45;
+/** Its bounce back up off the floor: along the way he was facing, and up (px a frame). */
+const NINJA_BOUNCE_X = 3, NINJA_BOUNCE_Y = 11;
 
 /** The picture a body legs up is put down from: the whole of it, room round it. */
 const legsCut = (e: Enemy): Cut => ({ circle: false, x0: -e.width / 2 - 24, y0: -e.height - 26, x1: e.width / 2 + 24, y1: 3 });

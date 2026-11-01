@@ -42,6 +42,9 @@ export const AMULET_HIT = 9;
 /** ...and the harder it knocks him back, the more again: his speed off it (px a frame) times this, up to the most.
  *  A plain bump (7 across, 4 up, ≈8) adds 8 (two of them and he yells); a goat's butt ≈14; a big launch fills it alone. */
 export const AMULET_KNOCK_K = 1, AMULET_KNOCK_MAX = 26;
+/** Only enemies' attacks fill it: a trap's hurt (or a burn's tick) adds nothing, but holds it from draining this long
+ *  (frames; the owner: "traps don't fill up the piss off meter but can freeze it from any decay"). */
+export const AMULET_TRAP_HOLD = 180;
 /** How fast it drains on its own (damage's worth a frame): SPEC's ~3.5 a second (full to empty in 10 s). */
 export const AMULET_DRAIN = 3.5 / 60;
 /** What the yell does to everything on the screen (regular enemies, sub-bosses, bosses: each fight's breather as ever). */
@@ -87,8 +90,9 @@ export const HEAD_KICK_REACH = 64, BURIED_MAX = 12;
  *  them"): this long in it (frames), the last BURIED_DIG of them digging (shaking, the dirt flying, coming up), then
  *  out and back at it. */
 export const BURIED_FREE = 600, BURIED_DIG = 120;
-/** Armguards' ninja drop: how hard they come down (px a frame at the most) and what it does (regular enemies: dead). */
-export const NINJA_FALL = 22, NINJA_DAMAGE = 999;
+/** Armguards' ninja drop: how hard they come down (px a frame at the most) and what it does: most regular enemies dead,
+ *  the tankiest live through it (the owner: "the ninja drop can be non-fatal to some tankier enemies"). Was 999. */
+export const NINJA_FALL = 22, NINJA_DAMAGE = 200;
 /** ...and where they land, a meteor going off (the owner's "a localized 'meteor' impact too": the spellbook meteor's
  *  look): everybody else in this circle (px from the landing; regular enemies only) takes up to this much, by how near,
  *  the ones it doesn't kill knocked away and stunned this long (frames). */

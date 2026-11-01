@@ -1119,7 +1119,7 @@ const resolvePlayerContact = (ctx: FrameContext, e: Enemy): boolean => {
   if (!e.harmless && !isAttacking && !bouncedOff && !isFrozen(e) && !player.noContactHurt && !contactSafe && player.invincibilityTimer <= 0 && rectsOverlap(hurtbox, boundsOf(e))) {
     // (a boss's own weight behind it; anything else just a bump)
     if (!cheats.invincible) player.health -= hurtTaken(stageId, kindContactDamage(e) ?? (e.type === 'boss' ? stageDef?.contact?.damage : undefined) ?? 5.5);
-    state.lastHurt = { source: getContactHurtSource(ctx, e), at: state.frame };
+    state.lastHurt = { source: getContactHurtSource(ctx, e), at: state.frame }; state.foeHurtAt = state.frame;
     // (a bird that's got him on its attack, its dive or its swoop, not just bumped into him: if that's killed him, it
     // has his eyes; see player/deathAnim)
     if (player.health <= 0 && BIRDS.has(e.kind ?? '') && (e.aiState === 'dive' || e.aiState === 'swoop')) state.pluckedBy = { id: e.id, frame: state.frame };
