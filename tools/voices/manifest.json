@@ -231,6 +231,11 @@
  },
  {
   "voice": "announcer",
+  "text": "BALLS BUSTED!",
+  "from": "GRAB_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
   "text": "BARFED ON!",
   "from": "KILL_CALLOUTS"
  },
@@ -518,6 +523,11 @@
   "voice": "announcer",
   "text": "CIRCLED BACK!",
   "from": "CARTOON"
+ },
+ {
+  "voice": "announcer",
+  "text": "CIRCUIT CRUNCH!",
+  "from": "GRAB_CALLOUTS"
  },
  {
   "voice": "announcer",
@@ -883,6 +893,11 @@
   "voice": "announcer",
   "text": "FALWELL FALLS!",
   "from": "CARTOON"
+ },
+ {
+  "voice": "announcer",
+  "text": "FAMILY JEWELS: GONE!",
+  "from": "GRAB_CALLOUTS"
  },
  {
   "voice": "announcer",
@@ -1656,6 +1671,11 @@
  },
  {
   "voice": "announcer",
+  "text": "MOTHERBOARD MASHED!",
+  "from": "GRAB_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
   "text": "MOUNTED!",
   "from": "FRONTIER"
  },
@@ -1721,6 +1741,11 @@
  },
  {
   "voice": "announcer",
+  "text": "NO GRANDKIDS!",
+  "from": "GRAB_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
   "text": "NO JOKE!",
   "from": "FANTASY"
  },
@@ -1761,6 +1786,11 @@
  },
  {
   "voice": "announcer",
+  "text": "NO WARRANTY!",
+  "from": "GRAB_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
   "text": "NOT YET!",
   "from": "m1/game/stages/gym/runtime.ts:298"
  },
@@ -1773,6 +1803,16 @@
   "voice": "announcer",
   "text": "NUMBER DOWN!",
   "from": "CARTOON"
+ },
+ {
+  "voice": "announcer",
+  "text": "NUT CRUNCH!",
+  "from": "GRAB_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "NUTS CRUSHED!",
+  "from": "GRAB_CALLOUTS"
  },
  {
   "voice": "announcer",
@@ -1883,6 +1923,16 @@
   "voice": "announcer",
   "text": "OUT OF THE PARK!",
   "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "OVARIES CRUSHED!",
+  "from": "GRAB_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "OVARY CRUNCH!",
+  "from": "GRAB_CALLOUTS"
  },
  {
   "voice": "announcer",
@@ -2141,6 +2191,11 @@
  },
  {
   "voice": "announcer",
+  "text": "SACK ATTACK!",
+  "from": "GRAB_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
   "text": "SAND IN EVERY CRACK!",
   "from": "SURFACE_CALLOUTS"
  },
@@ -2248,6 +2303,11 @@
   "voice": "announcer",
   "text": "SHORT CIRCUIT!",
   "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "SHORT CIRCUITED!",
+  "from": "GRAB_CALLOUTS"
  },
  {
   "voice": "announcer",
@@ -2853,6 +2913,11 @@
   "voice": "announcer",
   "text": "UPPERCUT KNOCKOUT!",
   "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "UTERUS ABUSE!",
+  "from": "GRAB_CALLOUTS"
  },
  {
   "voice": "announcer",
