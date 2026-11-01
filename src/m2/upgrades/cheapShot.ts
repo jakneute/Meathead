@@ -68,23 +68,27 @@ interface Rec {
 }
 const recs = new Map<Enemy, Rec>();
 /** His lives: up one each time he dies (crushed, stuns, the once a life: all off). */
-let gen = 0, deadSeen = false, frameWas = 0;
+let gen = 0, deadSeen = false, frameWas = 0, stageWas = '';
 
 const live = (r: Rec | undefined): r is Rec => !!r && r.gen === gen;
-export const isCrushed = (e: Enemy) => { const r = recs.get(e); return live(r) && r.crushed; };
+/** The bosses had this life, by fight (not by enemy: a fight that makes its boss afresh, or hands it back to the world,
+ *  doesn't get a second one; the owner's "make sure i can only do it once per fight, resetting on death or leaving a
+ *  level or if the fight ends"). Cleared with each new life and each new stage (cheapShotTick). */
+const crushedIds = new Set<CrushId>();
+export const isCrushed = (e: Enemy) => { const r = recs.get(e); return live(r) && (r.crushed || crushedIds.has(r.id)); };
 /** This boss's cheap shot is still his to have (the hand armor on him, the boss's fight asking, not had yet this life):
  *  its fight's grab counter holds off (the owner's "he should only do it if you don't have a valid means of destroying
  *  his nuts"; grab.ts balk). */
 export const cheapShotPending = (state: GameState, e: Enemy) => {
   const r = recs.get(e);
-  return has('hands') && live(r) && !r.crushed && state.frame - r.seen <= 2;
+  return has('hands') && live(r) && !r.crushed && !crushedIds.has(r.id) && state.frame - r.seen <= 2;
 };
 /** A crushed boss's voice: higher for the rest of the fight (the owner: "a nutless (or ovaryless) boss should speak in a
  *  somewhat higher pitch too" / "i'd prefer a pitch change with no noticeable speed change"); about two semitones, its
  *  speed as recorded, read as each of its lines starts. */
 const CRUSHED_PITCH = 1.12;
 setVoicePitchHook(voice => {
-  for (const r of recs.values()) if (live(r) && r.crushed && CRUSHED[r.id].voice === voice) return CRUSHED_PITCH;
+  for (const id of crushedIds) if (CRUSHED[id].voice === voice) return CRUSHED_PITCH;
   return 1;
 });
 export const cheapShotStunned = (e: Enemy) => { const r = recs.get(e); return live(r) && r.stun > 0 && e.health > 0; };
@@ -98,7 +102,7 @@ export const cheapShotOn = () => !!scene;
 
 export const cheapShotGate = (state: GameState, e: Enemy, id: CrushId, ok: boolean): 'frozen' | 'stunned' | null => {
   let r = recs.get(e);
-  if (!r || r.gen !== gen) { r = { e, id, seen: 0, ok: false, gen, crushed: false, stun: 0, wasHarmless: undefined }; recs.set(e, r); }
+  if (!r || r.gen !== gen) { r = { e, id, seen: 0, ok: false, gen, crushed: crushedIds.has(id), stun: 0, wasHarmless: undefined }; recs.set(e, r); }
   r.seen = state.frame; r.ok = ok;
   if (scene && scene.e === e) return 'frozen';
   if (r.stun > 0) {
@@ -171,7 +175,7 @@ const target = (state: GameState): Rec | null => {
   const p = state.player, cx = p.pos.x + p.width / 2;
   let best: Rec | null = null, bd = Infinity;
   for (const r of recs.values()) {
-    if (!live(r) || r.crushed || !r.ok || state.frame - r.seen > 2) continue;
+    if (!live(r) || r.crushed || crushedIds.has(r.id) || !r.ok || state.frame - r.seen > 2) continue;
     const e = r.e;
     if (e.health <= 0 || e.isBlownAway || !state.enemies.includes(e)) continue;
     const dx = cx < e.pos.x ? e.pos.x - cx : cx > e.pos.x + e.width ? cx - (e.pos.x + e.width) : 0;
@@ -194,7 +198,7 @@ export const cheapShotStart = (ctx: FrameContext) => {
   // (never further than he is, nor through them: only ever a step in)
   let toX = near - dir * STAND_OFF;
   if (dir > 0 ? toX < cx : toX > cx) toX = cx;
-  r.crushed = true;
+  r.crushed = true; crushedIds.add(r.id);
   const k = e.kind ?? '';
   scene = { e, id: r.id, t: 0, dir, fromX: cx, toX, said: null, look: lookOf(r.id, k) };
   p.isCharging = false; p.isSliding = false; p.isUppercutting = false; p.isDivekicking = false; p.uppercutBoost = undefined;
@@ -284,11 +288,11 @@ export const cheapShotTick = (state: GameState, inPhase: boolean) => {
   // (a death, however it's seen: the death timer running, him at no health, or the frame count started over by a
   // respawn or a stage load (the grabs aren't stepped while he's dead, so the death itself can go unseen here). Every
   // boss uncrushed, its voice back down (the owner's "his pitch should revert on death"), the cheap shot there again)
-  const fresh = state.frame < frameWas;
-  frameWas = state.frame;
+  const stage = String(state.stageId), fresh = state.frame < frameWas || stage !== stageWas;
+  frameWas = state.frame; stageWas = stage;
   if (state.deathTimer > 0 || state.player.health <= 0 || fresh) {
     if (!deadSeen || fresh) {
-      deadSeen = true; gen++;
+      deadSeen = true; gen++; crushedIds.clear();
       for (const r of recs.values()) if (r.stun > 0) endStun(r);
       if (scene) finish(state, false);
     }
@@ -298,7 +302,7 @@ export const cheapShotTick = (state: GameState, inPhase: boolean) => {
 };
 
 /** The cheats' reset, a new game: everything forgotten. */
-export const resetCheapShot = () => { recs.clear(); scene = null; gen++; };
+export const resetCheapShot = () => { recs.clear(); crushedIds.clear(); scene = null; gen++; };
 
 // ---------------------------------------------------------------------------------------------------------------------
 // Drawing
