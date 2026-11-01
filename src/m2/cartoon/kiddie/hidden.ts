@@ -50,7 +50,7 @@ import { registerM2Kind, registerKindCallouts } from '../../kinds';
 import { grabLocked, grabHolding } from '../../moves/grab';
 import { setUi } from '../../store';
 import { saveProgress } from '../../save';
-import { has, setPiece, setBenMet } from '../../upgrades/state';
+import { has, setPiece, setBenMet, benGave, setBenGave } from '../../upgrades/state';
 import { makeCannon, updateCannon, cannonBusy, cannonCeilingX, type Cannon } from '../../upgrades/returnCannon';
 import { NUDGE, BYE_MEATHEAD, BYE_BEN, PIECE_LINES, benSays, drawBenGross, drawBenGrossBack, warmBenGross, meetupScript, startScript, tickScript, skipScript, type BenPose, type BenTalk, type Script } from '../../upgrades/confucktious';
 import { teleport, meatheadSays, byPants, pantsOf, solid, landVisit, saidOver } from '../section';
@@ -178,7 +178,7 @@ export const updateHidden = (ctx: FrameContext, controls: Controls): Controls =>
   h.was = { ...controls };
   // Down, and on his feet: what's on
   if (h.phase === 'out' && p.isGrounded && p.health > 0) {
-    if (has('hands')) { h.phase = 'done'; h.ben.piece = null; h.respawn = 40; h.nudgeAt = state.frame + 900; setPose(h, 'fold'); benSays(h.ben, pickLine(byPants(state, PIECE_LINES.hands.idle))); }
+    if (benGave('hands')) { h.phase = 'done'; h.ben.piece = null; h.respawn = 40; h.nudgeAt = state.frame + 900; setPose(h, 'fold'); benSays(h.ben, pickLine(byPants(state, PIECE_LINES.hands.idle))); }
     else if (metVisit === landVisit()) startTrial(state, h);
     else startMeet(state, h);
   }
@@ -204,8 +204,9 @@ export const updateHidden = (ctx: FrameContext, controls: Controls): Controls =>
   }
   if (h.phase !== 'card') setUi({ gotPiece: null });
   if (h.phase !== 'trial') setUi({ beatPrompt: null });
-  // The cannon (any time he's down here and not in a scene)
-  if (h.phase === 'trial' || h.phase === 'done' || h.phase === 'out' || cannonBusy(h.cannon)) {
+  // The cannon: only once the trial's cleared (the owner: "the canon shouldn't be accidentally enterable until you clear
+  // the challenge"): no getting in, no prompt, before
+  if (h.phase === 'done' || h.phase === 'out' || cannonBusy(h.cannon)) {
     out = updateCannon(ctx, h.cannon, out, {
       onBoard: (st) => {
         if (h.practice) { st.enemies = st.enemies.filter(e => e !== h.practice); h.practice = null; }
@@ -293,7 +294,7 @@ const runTrial = (ctx: FrameContext, h: Hidden) => {
 const startGift = (state: GameState, h: Hidden) => {
   h.phase = 'gift'; h.all = 0; h.beat = 0; h.token++;
   // (his for good, there and then: a skip, a death, a quit can't lose them)
-  setPiece('hands', true); saveProgress();
+  setPiece('hands', true); setBenGave('hands'); saveProgress();
   freeze(state);
   setPose(h, 'give');
 };
