@@ -61,6 +61,11 @@ The owner isn't a programmer. They test the built HTML files directly and descri
 - **Art:**
   - SNES look: color ramps, banded gradients, dithering.
   - Portraits are grotesque Ren & Stimpy gross-ups.
+  - Every figure's elbows and knees come from `src/m2/art/limb.ts` (elbow/knee by facing). Never hand-place joint
+    points: they end up bending backward.
+  - Any new or changed character (NPC, enemy, boss, Meathead pose): render every pose to a contact sheet PNG in the
+    scratchpad and look at it before calling the job done (arms attached, joints bending the right way, held things
+    in a hand). Put this check in every agent brief that draws a figure.
   - Things you can stand on have a lit top edge; background look-alikes are dimmed.
   - No volcanoes in new art.
 - **Performance:**
