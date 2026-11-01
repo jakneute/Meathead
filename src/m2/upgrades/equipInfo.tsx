@@ -44,6 +44,7 @@ const ARMOR_INFO: Record<ArmorPiece, Omit<EquipEntry, 'id' | 'name'>> = {
     junk: 'HALF COCONUTS FOR SHOULDER PADS, FAKE LEOPARD TRIM, A PLASTIC TUSK GLUED ON. GIFT SHOP CHIC.',
     what: 'LONGER SHOULDER CHARGE, TWICE AS HARD ON BOSSES. HORNS AND SPEARS DON\'T STOP IT.',
     controls: [
+      { pad: ['B'], kb: ['@special'], label: 'SHOULDER CHARGE' },
       { ...FOLLOW, label: 'DURING A CHARGE: PLANTED (HEAD IN THE DIRT)' },
       { pad: ['B'], kb: ['@special'], label: 'BY A PLANTED HEAD: FIELD GOAL' },
     ],
@@ -53,7 +54,8 @@ const ARMOR_INFO: Record<ArmorPiece, Omit<EquipEntry, 'id' | 'name'>> = {
     junk: 'TWO KNOCKOFF GOLD AWARD STATUETTES DUCT-TAPED TO YOUR SHINS. FILM REELS FOR KNEE PADS.',
     what: 'LONGER SLIDE, TWICE AS HARD ON BOSSES, NO HITS FROM THE FRONT. TRIPS GUYS AND KEEPS GOING.',
     controls: [
-      { pad: ['DPAD_UP', 'B'], join: '+', kb: ['@up', '@special'], label: 'DURING A SLIDE: FLASH KICK (FREE)' },
+      { pad: ['DPAD_DOWN', 'B'], join: '+', kb: ['@down', '@special'], label: 'SLIDE TACKLE' },
+      { pad: ['DPAD_UP'], kb: ['@up'], label: 'PRESS AS YOU HOLD THE SLIDE: FLASH KICK (FREE)' },
     ],
   },
   armguards: {
@@ -61,13 +63,14 @@ const ARMOR_INFO: Record<ArmorPiece, Omit<EquipEntry, 'id' | 'name'>> = {
     junk: 'CHROME ROBOT BRACERS WITH A SCROLLING LED THAT SAYS "BEEF". BATTERIES NOT INCLUDED. IT WORKS ANYWAY.',
     what: 'HIGHER UPPERCUT, TWICE AS HARD ON BOSSES. HITS GUYS IT USED TO BOUNCE OFF.',
     controls: [
+      { pad: ['DPAD_UP', 'B'], join: '+', kb: ['@up', '@special'], label: 'UPPERCUT' },
       { ...FOLLOW, label: 'DURING AN UPPERCUT: NINJA DROP' },
     ],
   },
   hands: {
     hint: 'SOMETHING FOR YOUR HANDS.',
     junk: 'GIANT WHITE CARTOON GLOVES, FOUR FINGERS EACH. SOME MASCOT IS WALKING AROUND BARE-HANDED.',
-    what: 'BEATDOWNS HEAL MORE AND WORK ON GUYS YOU CAN\'T GRAB. SO DO THE FOLLOW-UPS.',
+    what: 'NOW YOU CAN BEAT DOWN REGULAR GUYS YOU COULDN\'T GRAB BEFORE, AND THE FOLLOW-UPS WORK ON THEM TOO. BEATDOWNS HEAL MORE.',
     controls: [
       { pad: ['Y', 'B'], join: '+', kb: ['@beatdown'], label: 'BEATDOWN' },
       { pad: ['Y', 'B'], join: '+', kb: ['@beatdown'], label: `RIGHT NEXT TO A BOSS: CHEAP SHOT (${secs(CHEAP_STUN)} SEC STUN, ONCE A LIFE)` },
@@ -76,7 +79,7 @@ const ARMOR_INFO: Record<ArmorPiece, Omit<EquipEntry, 'id' | 'name'>> = {
   helmet: {
     hint: 'SOMETHING FOR YOUR HEAD.',
     junk: 'A SOUVENIR VIKING HELMET WITH TWO BEER CANS ON IT AND A STRAW DOWN TO YOUR MOUTH. THE CANS ARE EMPTY.',
-    what: `YOU TAKE ${Math.round((1 - HELMET_HURT) * 100)}% LESS DAMAGE. JUNK ENEMIES THROW AT YOUR HEAD BOUNCES OFF. BOSSES' DOESN'T.`,
+    what: `YOU TAKE ${Math.round((1 - HELMET_HURT) * 100)}% LESS DAMAGE. ANYTHING REGULAR ENEMIES SHOOT OR THROW AT YOUR HEAD BOUNCES OFF. BOSS ATTACKS STILL GET THROUGH.`,
     controls: [
       { pad: ['DPAD_DOWN'], kb: ['@down'], label: 'DUCK: MORE OF YOU COVERED' },
     ],
@@ -89,7 +92,7 @@ const ARMOR_INFO: Record<ArmorPiece, Omit<EquipEntry, 'id' | 'name'>> = {
   cape: {
     hint: 'SOMETHING FOR YOUR BACK.',
     junk: 'A HALLOWEEN STORE VAMPIRE CAPE, STILL CREASED FROM THE BAG. THE PRICE TAG\'S STILL ON IT.',
-    what: 'YOU WALK FASTER AND JUMP HIGHER.',
+    what: 'MORE SPEED: YOU MOVE FASTER, EVEN FASTER BULKED UP. MORE JUMP HEIGHT: YOU JUMP HIGHER. AND YOU CAN FLOAT.',
     controls: [
       { pad: ['A'], kb: ['@jump'], label: 'HOLD IN THE AIR: FLOAT' },
     ],
