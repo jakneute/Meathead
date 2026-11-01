@@ -29,7 +29,8 @@ import { maxHealth as upMaxHealth, powerCells as upPowerCells, subscribeUpgrades
 import { getActiveGamepad, isButtonPressed, GP_BUTTONS, getGamepadMovement, menuButtons } from '../m1/game/platform/gamepad';
 import { hasRightStick } from '../m1/game/platform/device';
 import WeaponWheel, { wheelIndexAt } from '../m1/components/WeaponWheel';
-import PauseMenu from './PauseMenu';
+import PauseMenu, { type PauseTab } from './PauseMenu';
+import { EQUIP_ENTRIES, EQUIP_SLOTS, EQUIP_COLS } from './upgrades/equipInfo';
 import { portalArrivalPending } from './portalArrival';
 import { THEMES, PLAIN_PAUSE } from './hudThemes';
 import GoreBag from './GoreBag';
@@ -73,7 +74,7 @@ import FpsMeter from './FpsMeter';
 import { clearSkyCache } from './intro/art/sky';
 import { landLeft } from './landCaches';
 import { canSkip, requestSkip } from '../m1/game/platform/skip';
-import { getAudioContext, playMenuBack } from '../m1/game/platform/audio';
+import { getAudioContext, playMenuBack, playMenuOk } from '../m1/game/platform/audio';
 import { STAFF_SLOT, AMERICA_SLOT, landAt } from './hub/lands';
 import { getUi, subscribeUi, onTravel, setUi, goTo, takeBossKill, setStartCheckpoint, requestCarHop, restoreClearedLands, restoreKept, restoreBossDeaths, restoreFound, isLandCleared, isLandComplete, setAlphaEndSeen, ALPHA_LAND_COUNT } from './store';
 import { alphaEndOver } from './alphaEnd';
@@ -380,13 +381,31 @@ const App2: React.FC = () => {
   /** (RESUME, MAP, OPTIONS, then SKIP INTRO / BACK TO HUB where there's one) */
   /** (the cheats build only, the user's: SKIP INTRO / SKIP TO HUB in America USA) */
   const canIntroSkip = () => live.current.stage === INTRO_STAGE && !M2_PUBLIC;
-  /** (the amulet owned: AMULET ON / OFF, on a row of its own under the buttons, after QUIT) */
-  const canAmulet = () => upHas('amulet');
-  const lastPause = () => (canIntroSkip() || canGymSkip() || canHub() ? arsenal().length + 4 : arsenal().length + 3) + (canAmulet() ? 1 : 0);
-  const amuletIndex = () => (canAmulet() ? lastPause() : -1);
+  const lastPause = () => (canIntroSkip() || canGymSkip() || canHub() ? arsenal().length + 4 : arsenal().length + 3);
+  /** (the amulet owned: AMULET ON / OFF, on its entry in the EQUIPMENT tab) */
   const flipAmulet = () => setAmuletOn(!amuletOn());
   /** (QUIT, to the title: the last of the buttons along the bottom) */
-  const quitIndex = () => lastPause() - (canAmulet() ? 1 : 0);
+  const quitIndex = () => lastPause();
+  /** The pause menu's tabs (the owner's "click on or press LB/RB to flip between arsenal and equipment"): the ARSENAL
+   *  (or a stretch's controls card), or the EQUIPMENT (the hidden upgrades, EQUIP_ENTRIES). In the EQUIPMENT tab,
+   *  `pauseSel` under the arsenal's length means the cursor's in its grid, on slot `equipSel`; the buttons along the
+   *  bottom are as ever. */
+  const [pauseTab, setPauseTab] = useState<PauseTab>('arsenal');
+  const pauseTabRef = useRef(pauseTab);
+  pauseTabRef.current = pauseTab;
+  const [equipSel, setEquipSel] = useState(0);
+  const equipSelRef = useRef(equipSel);
+  equipSelRef.current = equipSel;
+  const showTab = (t: PauseTab) => {
+    if (t === pauseTabRef.current) return;
+    pauseTabRef.current = t;
+    setPauseTab(t);
+    playMenuOk();
+    const n = arsenal().length;
+    // (into the equipment: the cursor into its grid, where it was last; back to the arsenal from its grid: the weapon
+    // he's holding (or RESUME, where there's no picking one); on the buttons, it stays there)
+    setPauseSel(i => (i >= n && t === 'arsenal' ? i : t === 'equipment' ? 0 : noSwitching() ? n : Math.max(0, arsenal().indexOf(live.current.weapon))));
+  };
   /** The options screen (OPTIONS in the pause menu): while it's up, it takes every key and button; and a moment after
    *  it's shut (the press that shut it isn't one for the pause menu too). */
   const [optionsOpen, setOptionsOpen] = useState(false);
@@ -436,7 +455,7 @@ const App2: React.FC = () => {
     // (not his to play (a cutscene before its skip's offered, VICTORY, dying): START does nothing, no pause menu (the user's:
     // a button masher's START in the skip's buffer isn't punished with a pause either))
     if (st === GameStatus.PLAYING && (getUi().noPause || getUi().introCutscene)) return;
-    if (st === GameStatus.PLAYING) { setPauseSel(noSwitching() ? arsenal().length : Math.max(0, arsenal().indexOf(live.current.weapon))); setStatus(GameStatus.PAUSED); }
+    if (st === GameStatus.PLAYING) { pauseTabRef.current = 'arsenal'; setPauseTab('arsenal'); setPauseSel(noSwitching() ? arsenal().length : Math.max(0, arsenal().indexOf(live.current.weapon))); setStatus(GameStatus.PAUSED); }
     else if (st === GameStatus.PAUSED) setStatus(GameStatus.PLAYING);
   };
   const resume = () => { if (live.current.status === GameStatus.PAUSED) setStatus(GameStatus.PLAYING); };
@@ -445,10 +464,24 @@ const App2: React.FC = () => {
   /** In the pause menu: the arsenal's a grid three across, RESUME under it. */
   const movePause = (dx: number, dy: number) => setPauseSel(i => {
     const n = arsenal().length;
+    // (the EQUIPMENT tab: its grid four across (EQUIP_COLS), the buttons along the bottom under it)
+    if (pauseTabRef.current === 'equipment') {
+      const k = equipSelRef.current;
+      if (i < n) {
+        let to = k;
+        if (dy > 0) { if (k + EQUIP_COLS < EQUIP_SLOTS) to = k + EQUIP_COLS; else return n; }
+        else if (dy < 0) to = k - EQUIP_COLS >= 0 ? k - EQUIP_COLS : k;
+        else to = Math.max(0, Math.min(EQUIP_SLOTS - 1, k + dx));
+        if (to !== k) { equipSelRef.current = to; setEquipSel(to); }
+        return i;
+      }
+      if (dx > 0) return Math.min(lastPause(), i + 1);
+      if (dx < 0 && i > n) return i - 1;
+      if (dy < 0) { const to = Math.floor((EQUIP_SLOTS - 1) / EQUIP_COLS) * EQUIP_COLS; equipSelRef.current = to; setEquipSel(to); return 0; }
+      return i;
+    }
     // (a controls card up in place of the weapons: just the buttons along the bottom, left and right)
     if (getUi().noSwitch && getUi().pauseControls) { if (i < n) return n; if (dx > 0) return Math.min(lastPause(), i + 1); if (dx < 0 && i > n) return i - 1; return i; }
-    // (the amulet's row under the buttons: down onto it from any of them, up off it to QUIT)
-    if (i >= n && canAmulet()) { if (i === amuletIndex() && dy < 0) return quitIndex(); if (i !== amuletIndex() && dy > 0) return amuletIndex(); }
     if (i >= n) { if (dx > 0) return Math.min(lastPause(), i + 1); if (dx < 0 && i > n) return i - 1; return dy < 0 ? Math.min(n - 1, Math.floor((n - 1) / 3) * 3) : i; }
     if (dy > 0) return i + 3 < n ? i + 3 : n;
     if (dy < 0) return i - 3 >= 0 ? i - 3 : i;
@@ -458,7 +491,9 @@ const App2: React.FC = () => {
   pauseSelRef.current = pauseSel;
   const confirmPause = () => {
     const i = pauseSelRef.current, n = arsenal().length;
-    if (i === amuletIndex()) flipAmulet(); else if (i === quitIndex()) askQuit(); else if (i === n + 3) { if (canHub()) askHub(); else if (canGymSkip()) skipGym(); else if (canIntroSkip()) skipIntro(); } else if (i === n + 2) openOptions(); else if (i === n + 1) openMap(); else if (i >= n) resume(); else equip(i);
+    // (the EQUIPMENT tab's grid: only the amulet's entry does anything (its ON / OFF), once he's got it)
+    if (pauseTabRef.current === 'equipment' && i < n) { if (EQUIP_ENTRIES[equipSelRef.current]?.id === 'amulet' && upHas('amulet')) flipAmulet(); return; }
+    if (i === quitIndex()) askQuit(); else if (i === n + 3) { if (canHub()) askHub(); else if (canGymSkip()) skipGym(); else if (canIntroSkip()) skipIntro(); } else if (i === n + 2) openOptions(); else if (i === n + 1) openMap(); else if (i >= n) resume(); else equip(i);
   };
 
   // Weapons: the shoulder buttons, the right stick's wheel, the number keys, the mouse wheel; START or ESC pauses
@@ -481,6 +516,8 @@ const App2: React.FC = () => {
     /** The previous / next weapon buttons (the wheel's notches, keys, mouse buttons, wherever they're bound); on
      *  Truelling Tragons, they hop him between cars: previous the car above, next the one below. */
     const bump = (d: number) => {
+      // (in the pause menu: the tabs)
+      if (paused()) { if (hubAskRef.current === null) showTab(d < 0 ? 'arsenal' : 'equipment'); return; }
       if (getUi().carHops) { if (playing()) requestCarHop(d > 0 ? 'down' : 'up'); return; }
       cycle(d);
     };
@@ -516,8 +553,11 @@ const App2: React.FC = () => {
       if (e.code === 'Escape' && playing() && getUi().map !== null) return;
       if (e.code === 'Escape' || e.code === 'KeyP') { togglePause(); return; }
       const digit = /^Digit([1-9])$/.exec(e.code);
-      if (digit && (playing() || paused())) { const i = +digit[1] - 1; equip(i); if (paused() && i < arsenal().length && !noSwitching()) setPauseSel(i); return; }
+      if (digit && (playing() || paused())) { const i = +digit[1] - 1; equip(i); if (paused() && i < arsenal().length && !noSwitching()) { if (pauseTabRef.current !== 'arsenal') showTab('arsenal'); setPauseSel(i); } return; }
       if (!paused()) return;
+      // (Q / E: the pause menu's tabs)
+      if (e.code === 'KeyQ') { showTab('arsenal'); return; }
+      if (e.code === 'KeyE') { showTab('equipment'); return; }
       if (e.code === 'ArrowLeft' || e.code === 'KeyA') movePause(-1, 0);
       else if (e.code === 'ArrowRight' || e.code === 'KeyD') movePause(1, 0);
       else if (e.code === 'ArrowUp' || e.code === 'KeyW') movePause(0, -1);
@@ -582,8 +622,9 @@ const App2: React.FC = () => {
         // (Truelling Tragons: RB the car above, LB the car below)
         if (playing() && getUi().carHops) { if (just('lb')) requestCarHop('down'); if (just('rb')) requestCarHop('up'); }
         else {
-          if ((playing() || paused()) && just('lb')) cycle(-1);
-          if ((playing() || paused()) && just('rb')) cycle(1);
+          // (in the pause menu, LB / RB flip its tabs)
+          if (paused()) { if (just('lb')) showTab('arsenal'); if (just('rb')) showTab('equipment'); }
+          else if (playing()) { if (just('lb')) cycle(-1); if (just('rb')) cycle(1); }
         }
         if (just('start')) togglePause();
         // (SELECT: the park map; in a scene that can be skipped it skips it, as it always has)
@@ -904,7 +945,8 @@ const App2: React.FC = () => {
           <PauseMenu weapons={arsenal()} current={weapon} ammo={hud.ammo} selected={pauseSel} locked={!!ui.noSwitch} card={card} cat={!!ui.catHud}
             onPick={i => { setPauseSel(i); equip(i); }} onResume={resume} onMap={() => { setPauseSel(arsenal().length + 1); openMap(); }} mapOff={stage === GYM_STAGE} onOptions={() => { setPauseSel(arsenal().length + 2); openOptions(); }} onSkip={stage === INTRO_STAGE && !M2_PUBLIC ? skipIntro : stage === GYM_STAGE && !M2_PUBLIC ? skipGym : undefined} skipLabel={stage === GYM_STAGE ? 'SKIP STAGE' : undefined}
             onHub={landOfStage(stage) || stage === PEN_STAGE ? askHub : undefined} hubAsk={hubAsk} onHubAnswer={answerHub} onHubPick={a => setHubAsk(a)} skin={theme?.pause}
-            onQuit={() => { setPauseSel(quitIndex()); askQuit(); }} quitAt={quitIndex()} amuletAt={amuletIndex()} amuletOn={amuletOn()} onAmulet={() => { setPauseSel(amuletIndex()); flipAmulet(); }} asking={asking} onFile={activeSlot() !== null} />
+            onQuit={() => { setPauseSel(quitIndex()); askQuit(); }} quitAt={quitIndex()} amuletOn={amuletOn()} onAmulet={flipAmulet}
+            tab={pauseTab} onTab={showTab} equipSel={equipSel} onEquipPick={k => { equipSelRef.current = k; setEquipSel(k); setPauseSel(0); }} asking={asking} onFile={activeSlot() !== null} />
         )}
         {/* The park map (SELECT, TAB / M, MAP in the pause menu): where he is, roughly, on the brochure's map */}
         {status === GameStatus.PAUSED && mapFrom && (

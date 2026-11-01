@@ -12,7 +12,8 @@ import { PLAIN_PAUSE, type PauseSkin } from './hudThemes';
 import { M2_PUBLIC } from './build';
 import { walkBackOn } from './store';
 import { getCheats, setCheat, subscribeCheats, pantsNow, setPants, todNow, setTod, setCheatPanelOpen, cheatPanelOpen, cheatCursor, CHEAT_ROWS, stepMusic, stopMusicTest, soundTestLabel, toggleArmor, stepUpgrade, type Pants } from './cheats';
-import { ARMOR_PIECES, ARMOR_NAMES, has, healthFinds, ammoFinds, shards, maxHealth, ammoScale, powerCells, subscribeUpgrades, upgradesVersion, MAX_HEALTH_FINDS, MAX_AMMO_FINDS, MAX_SHARDS } from './upgrades/state';
+import { ARMOR_PIECES, ARMOR_NAMES, has, healthFinds, ammoFinds, shards, maxHealth, ammoScale, powerCells, subscribeUpgrades, upgradesVersion, MAX_HEALTH_FINDS, MAX_AMMO_FINDS, MAX_SHARDS, type ArmorPiece } from './upgrades/state';
+import { EQUIP_ENTRIES, equipIcon, FindIcon, type EquipEntry } from './upgrades/equipInfo';
 
 /** The cheats (FOR NOW: out before it ships), mouse only: click to flip them. Not buttons (ENTER and SPACE would set
  *  off whichever was clicked last, along with the menu's own). */
@@ -143,6 +144,84 @@ const MenuBtn: React.FC<{ on: boolean; onClick: () => void; cls: string; bg: str
   </button>
 );
 
+/** An equipment slot's look: an owned piece's baked icon, a find's icon, or a locked "?". */
+const EquipArt: React.FC<{ e: EquipEntry; size: number }> = ({ e, size }) => {
+  if (e.id === 'health' || e.id === 'ammo' || e.id === 'shards') return <FindIcon id={e.id} size={Math.round(size * 0.7)} dim={findCount(e.id)[0] === 0} />;
+  const url = has(e.id) ? equipIcon(e.id) : null;
+  if (url) return <img src={url} width={size} height={size} alt="" draggable={false} style={{ imageRendering: 'pixelated' }} />;
+  return <span className="font-black text-zinc-500" style={{ fontSize: Math.round(size * 0.6), lineHeight: 1, textShadow: '2px 2px 0 #000' }}>?</span>;
+};
+const findCount = (id: 'health' | 'ammo' | 'shards'): [number, number, string] =>
+  id === 'health' ? [healthFinds(), MAX_HEALTH_FINDS, `${maxHealth()} MAX HEALTH`]
+    : id === 'ammo' ? [ammoFinds(), MAX_AMMO_FINDS, `AMMO x${ammoScale().toFixed(1)}`]
+    : [shards(), MAX_SHARDS, `${powerCells()} POWER CELLS`];
+const isArmor = (id: EquipEntry['id']): id is ArmorPiece => (ARMOR_PIECES as readonly string[]).includes(id);
+
+/** The EQUIPMENT tab: the 8 armor pieces and the three finds in a grid, the one picked out up close with what it does
+ *  and how it's worked (the amulet's ON / OFF on its own entry). `at` the slot picked out, -1 when the cursor's on the
+ *  buttons along the bottom (the last one looked at stays up close). */
+const EquipmentView: React.FC<{ skin: PauseSkin; at: number; onPick: (k: number) => void; amuletOn: boolean; onAmulet?: () => void }> = ({ skin, at, onPick, amuletOn, onAmulet }) => {
+  const [last, setLast] = React.useState(Math.max(0, at));
+  useEffect(() => { if (at >= 0) setLast(at); }, [at]);
+  const e = EQUIP_ENTRIES[at >= 0 ? at : last];
+  const owned = isArmor(e.id) ? has(e.id) : true;
+  const count = isArmor(e.id) ? null : findCount(e.id);
+  return (
+    <div className="flex gap-4 w-full items-start">
+      <div className="flex flex-col items-center">
+        <SectionHead skin={skin}>EQUIPMENT</SectionHead>
+        <div className="grid grid-cols-4 gap-[8px] p-2" style={skin.well}>
+          {EQUIP_ENTRIES.map((x, i) => {
+            const on = at === i, mine = isArmor(x.id) ? has(x.id) : findCount(x.id)[0] > 0;
+            const n = isArmor(x.id) ? null : findCount(x.id);
+            return (
+              <button key={x.id} onClick={() => onPick(i)}
+                className={`relative w-[54px] h-[54px] flex items-center justify-center border-2 transition-transform duration-150 ${on ? 'scale-110 border-white z-[1]' : 'border-zinc-600 hover:scale-105'} ${mine ? '' : 'opacity-50'}`}
+                style={{ background: on ? skin.slotOn : skin.slot, boxShadow: on ? `0 0 12px rgba(250,204,21,0.6), 2px 2px 0 #000, ${PIXEL_BEVEL}` : `2px 2px 0 rgba(0,0,0,0.6), ${PIXEL_BEVEL}`, animation: `pm-slot-in 0.26s ease-out ${0.18 + i * 0.03}s backwards` }}>
+                <Notches />
+                {on && <span className="absolute inset-0 overflow-hidden pointer-events-none"><Shine period={2} /></span>}
+                {on && <SlotCursor />}
+                <span className="flex" style={on ? { animation: 'pm-bob 1.1s ease-in-out infinite' } : undefined}><EquipArt e={x} size={40} /></span>
+                {n && <span className="absolute right-[3px] bottom-[1px] text-[7px] font-black text-white" style={{ textShadow: '1px 1px 0 #000, -1px 0 0 #000' }}>{n[0]}/{n[1]}</span>}
+                {x.id === 'amulet' && mine && !amuletOn && <span className="absolute left-[2px] top-[1px] text-[6px] font-black text-red-400" style={{ textShadow: '1px 1px 0 #000' }}>OFF</span>}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* The one picked out, up close */}
+      <div className="flex-1 flex flex-col items-center text-center pt-5" style={{ animation: 'pm-fade 0.3s ease-out 0.22s both' }}>
+        <div className="relative w-[104px] h-[104px] flex items-center justify-center mb-2 border-2 border-zinc-700 overflow-hidden"
+          style={{ backgroundImage: `radial-gradient(circle, rgba(255,255,255,0.14) 1px, transparent 1.5px), radial-gradient(circle, rgba(255,255,255,0.1) 0%, rgba(0,0,0,0.6) 70%)`, backgroundSize: '12px 12px, auto', borderColor: skin.accent, boxShadow: `${PIXEL_BEVEL}, 0 0 0 2px #000, 3px 3px 0 2px rgba(0,0,0,0.45)`, animation: 'pm-drift 6s linear infinite' }}>
+          <span key={e.id} className="flex" style={{ animation: 'pm-pop 0.22s ease-out' }}>
+            <span className="flex" style={{ animation: 'pm-float 2.4s ease-in-out infinite' }}><EquipArt e={e} size={84} /></span>
+          </span>
+          <span className="absolute inset-0 pointer-events-none" style={{ background: 'repeating-linear-gradient(180deg, rgba(0,0,0,0.18) 0 1px, transparent 1px 3px)' }} />
+          <span className="absolute inset-0 overflow-hidden pointer-events-none"><Shine period={3.4} delay={0.8} /></span>
+        </div>
+        <div className="text-[11px] font-black uppercase leading-tight mb-1" style={{ color: skin.text, textShadow: '1px 1px 0 rgba(0,0,0,0.35)' }}>{owned ? e.name : '???'}</div>
+        {count && <div className="text-[7px] font-black uppercase tracking-wider mb-2" style={{ color: skin.accent }}>{count[0]} / {count[1]} FOUND: {count[2]}</div>}
+        {!count && <div className="text-[7px] font-black uppercase tracking-wider mb-2" style={{ color: owned ? skin.accent : skin.muted }}>{owned ? '[ WORN ]' : 'NOT FOUND YET'}</div>}
+        <div className="text-[7px] leading-[11px] uppercase font-bold mb-1" style={{ color: skin.text }}>{owned ? e.what : `${e.hint} IT'S HIDDEN OUT THERE SOMEWHERE.`}</div>
+        {owned && e.controls?.length ? (
+          <div className="mt-1 w-full flex flex-col items-start gap-[3px] px-2 py-1 bg-black/60 border border-zinc-700 text-[6px] font-black text-zinc-200 tracking-wider text-left" style={{ boxShadow: `${PIXEL_BEVEL}, 2px 2px 0 rgba(0,0,0,0.5)` }}>
+            {e.controls.map((k, i) => <ChordPrompt key={i} pad={k.pad} join={k.join ?? '+'} kb={k.kb} mouse={k.mouse} label={k.label} size={12} />)}
+          </div>
+        ) : null}
+        {/* (the amulet: its yell switched on or off, right here) */}
+        {e.id === 'amulet' && owned && onAmulet && (
+          <div className="mt-2 flex flex-col items-center gap-1">
+            <MenuBtn on={at >= 0} onClick={onAmulet} cls="pl-5 pr-2 text-[8px] whitespace-nowrap" bg={amuletOn ? 'linear-gradient(180deg, #C2410C, #7C2D12)' : 'linear-gradient(180deg, #52525B, #3F3F46)'} edge={amuletOn ? '#431407' : '#27272A'} icon="✪">{amuletOn ? 'AMULET: ON' : 'AMULET: OFF'}</MenuBtn>
+            <span className="text-[6px] font-black tracking-wider" style={{ color: skin.muted }}>{amuletOn ? 'TAKE ENOUGH HITS AND HE SCREAMS EVERYBODY OFF HIM.' : 'NO SCREAMING. HE KEEPS IT IN.'}</span>
+            <Prompt pad={['OK']} kb={['ENTER']} mouse="left" label="SWITCH IT" size={12} className="text-[6px] text-zinc-400" />
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
 // Meathead 2's pause menu: the arsenal (each weapon with how much is left in it), the one picked out up close with its
 // name, where it came from and what it does, and RESUME. Looks the way Meathead 1's does. Moved round with the D-pad or
 // stick (or the arrow keys), picked with the confirm button (or ENTER, or a click); the weapon picked is the one he's
@@ -188,11 +267,17 @@ interface Props {
   card?: PauseCard | null;
   /** He's the cat (the cartoon White House): the ray gun's the HAIRBALL, here as on the HUD. */
   cat?: boolean;
-  /** The amulet owned: AMULET ON / OFF (its piss-off yell), picked out as `amuletAt` (just before QUIT); -1 none. */
-  amuletAt?: number;
+  /** The amulet's piss-off yell switched on (AMULET: ON / OFF, on the amulet's entry in the EQUIPMENT tab). */
   amuletOn?: boolean;
   onAmulet?: () => void;
+  /** Which tab's up: the ARSENAL (or the controls card, where there's one) or the EQUIPMENT (the hidden upgrades). */
+  tab?: PauseTab;
+  onTab?: (t: PauseTab) => void;
+  /** In the EQUIPMENT tab, while the cursor's in its grid (`selected` under weapons.length): which slot (EQUIP_ENTRIES). */
+  equipSel?: number;
+  onEquipPick?: (k: number) => void;
 }
+export type PauseTab = 'arsenal' | 'equipment';
 
 /** The ray gun as the cat has it. */
 const HAIRBALL_INFO = {
@@ -201,7 +286,9 @@ const HAIRBALL_INFO = {
   description: 'Hork. A wet wad of fur and spit, hacked up at whoever. Never runs dry. Nobody wants to touch it, least of all the guy it hits.',
 };
 
-const PauseMenu: React.FC<Props> = ({ weapons, current, ammo, selected, onPick, onResume, onMap, onOptions, onSkip, skipLabel, skin = PLAIN_PAUSE, locked = false, onHub, hubAsk = null, onHubAnswer, onHubPick, card = null, onQuit, quitAt = -1, asking = 'hub', onFile = false, cat = false, mapOff = false, amuletAt = -1, amuletOn = true, onAmulet }) => {
+const PauseMenu: React.FC<Props> = ({ weapons, current, ammo, selected, onPick, onResume, onMap, onOptions, onSkip, skipLabel, skin = PLAIN_PAUSE, locked = false, onHub, hubAsk = null, onHubAnswer, onHubPick, card = null, onQuit, quitAt = -1, asking = 'hub', onFile = false, cat = false, mapOff = false, amuletOn = true, onAmulet, tab = 'arsenal', onTab, equipSel = 0, onEquipPick }) => {
+  useSyncExternalStore(subscribeUpgrades, upgradesVersion);
+  const equipping = tab === 'equipment';
   const onQuitBtn = selected === quitAt;
   const shown = selected < weapons.length ? weapons[selected] : current;
   const info = cat && shown === 'GUN' ? HAIRBALL_INFO : M2_WEAPON_INFO[shown];
@@ -261,7 +348,25 @@ const PauseMenu: React.FC<Props> = ({ weapons, current, ammo, selected, onPick, 
         <h2 className={`mt-1 ${skin.sub ? 'mb-1' : 'mb-3'} ${skin.title.length > 12 ? 'text-2xl' : 'text-3xl'} font-black italic tracking-widest whitespace-nowrap`} style={{ ...skin.titleStyle, animation: 'pm-stamp 0.34s cubic-bezier(0.3, 1.4, 0.5, 1) 0.16s both' }}>{skin.title}</h2>
         {skin.sub && <div className="mb-3 text-[7px] font-black tracking-wider" style={{ color: skin.muted, textShadow: '1px 1px 0 rgba(0,0,0,0.5)', animation: 'pm-fade 0.25s ease-out 0.35s both' }}>{skin.sub}</div>}
 
-        {card ? (
+        {/* The tabs: ARSENAL (or the stretch's CONTROLS) and EQUIPMENT; LB / RB (Q / E), or a click */}
+        <div className="flex items-center gap-2 mb-3" style={{ animation: 'pm-fade 0.25s ease-out 0.2s both' }}>
+          <Prompt pad={['LB']} kb={['Q']} size={14} />
+          {([['arsenal', card ? 'CONTROLS' : 'ARSENAL'], ['equipment', 'EQUIPMENT']] as const).map(([t, label]) => {
+            const on = tab === t;
+            return (
+              <div key={t} role="button" onClick={() => onTab?.(t)} onMouseDown={e => e.preventDefault()}
+                className={`relative cursor-pointer select-none px-4 py-[5px] text-[9px] font-black tracking-widest border-2 transition-transform ${on ? '-translate-y-[1px]' : 'opacity-70 hover:opacity-100'}`}
+                style={{ background: on ? skin.slotOn : skin.slot, color: on ? '#000' : skin.text, borderColor: on ? '#FFFFFF' : '#52525B', boxShadow: on ? `0 0 10px rgba(250,204,21,0.5), 2px 2px 0 #000, ${PIXEL_BEVEL}` : `2px 2px 0 rgba(0,0,0,0.6), ${PIXEL_BEVEL}`, textShadow: on ? 'none' : '1px 1px 0 #000' }}>
+                <Notches />{label}
+              </div>
+            );
+          })}
+          <Prompt pad={['RB']} kb={['E']} size={14} />
+        </div>
+
+        {equipping ? (
+          <EquipmentView skin={skin} at={selected < weapons.length ? equipSel : -1} onPick={k => onEquipPick?.(k)} amuletOn={amuletOn} onAmulet={onAmulet} />
+        ) : card ? (
           // A stretch with its own controls (no weapon switching there): its controls, in place of the weapons
           <div className="flex flex-col items-center w-full" style={{ animation: 'pm-pop 0.28s ease-out 0.2s both' }}>
             <SectionHead skin={skin}>CONTROLS</SectionHead>
@@ -331,17 +436,11 @@ const PauseMenu: React.FC<Props> = ({ weapons, current, ammo, selected, onPick, 
           {onHub && <MenuBtn on={onSkipBtn} onClick={onHub} cls={btnCls} bg="linear-gradient(180deg, #B91C1C, #7F1D1D)" edge="#450A0A" icon="«">BACK TO HUB</MenuBtn>}
           {onQuit && <MenuBtn on={onQuitBtn} onClick={onQuit} cls={btnCls} bg="linear-gradient(180deg, #52525B, #27272A)" edge="#09090B" icon="✕">QUIT</MenuBtn>}
         </div>
-        {/* The amulet, owned: its yell switched on or off (a row of its own, under the buttons) */}
-        {amuletAt >= 0 && onAmulet && (
-          <div className="flex gap-2 mt-2" style={{ animation: 'pm-fade 0.25s ease-out 0.34s both' }}>
-            <MenuBtn on={selected === amuletAt} onClick={onAmulet} cls="pl-5 pr-2 text-[8px] whitespace-nowrap" bg={amuletOn ? 'linear-gradient(180deg, #C2410C, #7C2D12)' : 'linear-gradient(180deg, #52525B, #3F3F46)'} edge={amuletOn ? '#431407' : '#27272A'} icon="✪">{amuletOn ? 'AMULET: ON' : 'AMULET: OFF'}</MenuBtn>
-            <span className="self-center text-[6px] font-black tracking-wider max-w-[200px] leading-[9px]" style={{ color: skin.muted }}>{amuletOn ? 'TAKE ENOUGH HITS AND HE SCREAMS EVERYBODY OFF HIM.' : 'NO SCREAMING. HE KEEPS IT IN.'}</span>
-          </div>
-        )}
         <div className="mt-3 flex items-center gap-4 text-[6px] tracking-wider px-2 py-1 bg-black/60 text-zinc-400" style={{ boxShadow: PIXEL_BEVEL }}>
           <Prompt pad={['START', 'BACK']} kb={['ESC']} mouse="right" label="RESUME" size={15} />
           <Prompt pad={['SELECT']} kb={['@map']} label="MAP" size={15} />
-          {card ? <Prompt pad={['DPAD', 'OK']} kb={['ENTER']} mouse="left" label="SELECT" size={15} />
+          {equipping ? <Prompt pad={['DPAD', 'OK']} kb={['ENTER']} mouse="left" label="SELECT" size={15} />
+            : card ? <Prompt pad={['DPAD', 'OK']} kb={['ENTER']} mouse="left" label="SELECT" size={15} />
             : locked ? <span className="text-red-400 font-black">WEAPON SWITCHING LOCKED</span>
             : <Prompt pad={['DPAD', 'OK']} kb={['1-9']} mouse="left" label="EQUIP" size={15} />}
           {!M2_PUBLIC && <Prompt pad={['X']} mouse="left" label="CHEATS" size={15} />}
