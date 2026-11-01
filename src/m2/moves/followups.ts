@@ -203,7 +203,7 @@ export const stopFollowUps = () => { buried = []; heads = []; clearMelee(); last
 // ---------------------------------------------------------------------------------------------------------------------
 type FollowMove = 'divekick' | 'charge' | 'uppercut';
 /** The last of his three follow-up moves he was in, and the last frame he was in it (the window counts on from there). */
-let lastMove: { move: FollowMove; at: number } | null = null;
+let lastMove: { move: FollowMove; at: number; face: 1 | -1 } | null = null;
 /** Who a Y + B would take right now (the cue's), and by which move's follow-up. */
 let ready: { e: Enemy; move: FollowMove } | null = null;
 /** The follow-up's start burst: where, when, the colors. */
@@ -288,13 +288,15 @@ export const startFollowUp = (ctx: FrameContext, g: Grab) => {
   const { state } = ctx, p = state.player;
   const r = followReady(state);
   if (!r) return false;
-  const { e, move } = r;
+  const { e, move } = r, moveFace = lastMove?.face ?? p.facing;
   const ground = move === 'charge' ? standing(state, e) : 0;
   if (ground === null) return false;
   clearMelee(); lastMove = null; ready = null;
   const pm = pmid(state), em = emid(e);
   stopMoves(state);
-  const d = (Math.sign(em.x - pm.x) || p.facing) as 1 | -1;
+  // (the missile: thrown the way he was facing in the dive kick (the owner: "they fly in the same direction meathead is
+  // facing when the hit connects"), wherever the stomp's bounce has left him; the others: toward them)
+  const d = move === 'divekick' ? moveFace : (Math.sign(em.x - pm.x) || p.facing) as 1 | -1;
   g.dir = d; p.facing = d; g.t = 0;
   K.take(state, e); g.held = e; e.facing = (-d) as 1 | -1; e.vel = { x: 0, y: 0 }; e.melee = undefined; e.rotation = 0;
   const fu = newFollow();
@@ -806,7 +808,7 @@ export const followTick = (ctx: FrameContext, g: Grab) => {
   stampMelee(state.frame);
   // (the window: the last frame he was in one of the three; and who a Y + B would take now, a twinkle as it comes on)
   const mv = moveNow(state);
-  if (mv) lastMove = { move: mv, at: state.frame };
+  if (mv) lastMove = { move: mv, at: state.frame, face: state.player.facing };
   // (and on through the bounce off whoever it hit: the owner's "so they can be initiated during the recoil of the
   // attack as well"; the window counts on from the end of that)
   else if (lastMove && (state.player.recoiling || state.player.slideRecoil) && since(state.frame, lastMove.at) <= FOLLOW_WINDOW) lastMove.at = state.frame;
