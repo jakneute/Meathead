@@ -86,6 +86,11 @@ export interface M2Ui {
    *  stretch, cleared as it ends; only counted while noSwitch is on). The pause menu shows its controls in place of the
    *  weapons (PauseControls.tsx), and once its own controls card has gone a prompt says so (App.tsx). */
   pauseControls?: PauseCardId | null;
+  /** (a hidden armor find: CON-FUCK-TIOUS's gift) The card for the piece he's just got: what it is, what it does, the
+   *  buttons (upgrades/PieceGotCard.tsx); null: none. Set by the land each frame it's up. */
+  gotPiece?: import('./upgrades/state').ArmorPiece | null;
+  /** A beatdown chord prompt (Y + B, the beatdown key) with this label (CON-FUCK-TIOUS's pebble); null: none. */
+  beatPrompt?: string | null;
 }
 
 /** The stretches with a pause-menu controls card (PauseControls.tsx). */

@@ -13,7 +13,12 @@ starting number to be adjusted by feel in play.
 | Armor | 8 | one piece per land, each a big buff to an existing move (below) |
 
 - Permanent: saved with the save file (src/m2/save.ts, src/m2/store.ts), across lands and deaths.
-- Where they're hidden, and which land gives which armor piece: NOT DECIDED. Don't place anything in the levels yet.
+- Where they're hidden: being placed land by land, as the owner hands over each spot. Placed so far:
+  - CARTOON LAND, the HAND ARMOR (2026-11-01): in the cave under the Sky-High Trolley's ball pit (Sillyville Square):
+    drop through the track into the lit opening in the balls. CON-FUCK-TIOUS, his pebble trial, the practice mascot,
+    the return cannon to the trolley line's end: cartoon/kiddie/hidden.ts. His shared pieces (lines, art, gross-up,
+    talk): upgrades/confucktious/. The return cannon (every far-flung find's): upgrades/returnCannon.ts. The YOU GOT
+    card: upgrades/PieceGotCard.tsx (ui.gotPiece).
 - THE TEST TOOL: in the cheats build's CHEATS panel (src/m2/cheats.ts and its panel), a toggle per armor piece and
   steppers for the health / ammo / shard counts. ("i just want a debug menu that lets me equip each piece from the
   cheat menu so i can test it out.") The cheat panel is dev-only, mouse-only access is fine.

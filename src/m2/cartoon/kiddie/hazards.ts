@@ -43,7 +43,7 @@ import { signText } from '../../signLetters';
 import { lookOf } from '../../adventure/temple/people';
 import { kiddieOf, shut } from './state';
 import { onTower } from '../sway';
-import { CAROUSEL, SPINNER, TRAIN, TROLLEY, PITS, SIGNS, X, Y } from './layout';
+import { CAROUSEL, SPINNER, TRAIN, TROLLEY, PITS, SIGNS, HOLE, X, Y } from './layout';
 import { GY } from '../geometry';
 
 const alive = (state: GameState) => state.player.health > 0 && !state.player.inCutscene;
@@ -702,7 +702,7 @@ export const drawHazardsFront = (c: Ctx, state: GameState) => {
   for (const [a, b] of PITS) {
     const l = Math.max(X(a) + 6, state.camera.x - 20), r = Math.min(X(b) - 4, state.camera.x + 820);
     if (r <= l) continue;
-    for (let x = l - ((l - X(a) - 6) % 13); x < r; x += 13) { const col = BALLS[Math.abs(Math.floor(x / 13)) % BALLS.length]; ballR(c, x, GY + 14, 6.5, ramp6(hour(col))); }
+    for (let x = l - ((l - X(a) - 6) % 13); x < r; x += 13) { if (x > X(HOLE.a) && x < X(HOLE.b)) continue; const col = BALLS[Math.abs(Math.floor(x / 13)) % BALLS.length]; ballR(c, x, GY + 14, 6.5, ramp6(hour(col))); }
   }
   // What's thrown
   for (const s of k.throws) {

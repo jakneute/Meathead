@@ -24,6 +24,9 @@ import { drawPitBounce } from '../pitBounce';
 import { drawKiddieBackdrop, drawKiddieBack, drawPitHeaps, kiddieLamps } from './art';
 import { ARRIVE, REVISIT, GAGS } from './lines';
 import './kinds';
+import { buildHidden, updateHidden, inCave, overTrolleyPit, drawHiddenHud, CAVE } from './hidden';
+import { drawHoleBack, drawCaveBackdrop, drawCaveBack, drawCaveFront } from './hiddenArt';
+import { CANVAS_WIDTH } from '../../../m1/constants';
 
 const { x0, x1 } = SECTIONS.kiddie;
 export { KIDDIE_DONE_MEMO };
@@ -49,11 +52,15 @@ export const kiddie: CartoonSection = {
     // (where the ball pits spit him back out, till he's stood somewhere: his checkpoint)
     const cp = CHECKPOINTS.find(c => c.cp === state.checkpoint) ?? CHECKPOINTS[0];
     k.safe = { x: cp.x, y: cp.y };
+    // (the hidden armor's cave under the trolley's pit: hidden.ts)
+    buildHidden(state);
   },
   update: (ctx, controls) => {
     const { state } = ctx, p = state.player, k = kiddieOf(state);
     updateTowers(ctx, k.towers);
-    noteSafe(state);
+    if (!inCave(state)) noteSafe(state);
+    // (the hidden armor: the pit's opening (before the pit's bounce gets him), the cave, CON-FUCK-TIOUS, the cannon)
+    controls = updateHidden(ctx, controls);
     updateHazards(ctx);
     const rx = p.pos.x + p.width / 2 - x0;
     // What he's got to say about it (once each a visit)
@@ -70,20 +77,30 @@ export const kiddie: CartoonSection = {
     if (runExits(state, [{ x0: door - 30, x1: door + 40, yTop: GY - 40, yBot: GY + 2, to: DOORS.studio.start }])) state.stageMemo[KIDDIE_DONE_MEMO] = '1';
     return controls;
   },
-  drawBackdrop: (c, state) => drawKiddieBackdrop(c, state),
+  drawBackdrop: (c, state) => {
+    if (inCave(state)) { drawCaveBackdrop(c); return true; }
+    return drawKiddieBackdrop(c, state);
+  },
   drawBack: (c, state) => {
+    if (inCave(state)) { drawCaveBack(c, state); return; }
     drawKiddieBack(c, state);
     drawHazardsBack(c, state);
     drawTowers(c, state, kiddieOf(state).towers);
     drawPitHeaps(c, state);
+    drawHoleBack(c, state);
   },
   drawFront: (c, state) => {
+    if (inCave(state)) { drawCaveFront(c, state); return; }
     drawHazardsFront(c, state);
     drawPitBounce(c, state);
     // (the cast's barks, over their heads)
     for (const [e, s] of kiddieOf(state).barks) if (e.health > 0) saidOver(c, s.text, mid(e).x, e.pos.y - 14, '#FDE68A', 220);
   },
-  cameraRow: () => 500,
-  outdoors: () => 1,
+  // (up on the trolley's track over its pit: eased down so the balls (and the opening) are in view)
+  cameraRow: (state) => (!inCave(state) && overTrolleyPit(state) ? 340 : 500),
+  // (the cave: its own walls; the square: the section's own (its x1 is the studio's door side))
+  cameraX: (state) => (inCave(state) ? { min: CAVE.a - 40, max: CAVE.b + 40 - CANVAS_WIDTH } : { min: x0, max: x1 - CANVAS_WIDTH }),
+  drawHud: (c, state) => drawHiddenHud(c, state),
+  outdoors: (state) => (inCave(state) ? 0 : 1),
   lamps: (state) => kiddieLamps(state),
 };

@@ -36,6 +36,9 @@ export const Y = (h: number) => GY - h;
 
 /** The ball pits (no ground: fall in and he's spat back out, hurt): [from, to]. */
 export const PITS: [number, number][] = [[2700, 2960], [6700, 7900], [10520, 12000]];
+/** The opening in the third (the trolley's) pit's balls, light shining down into it: drop in and he's in the cave
+ *  under the park, CON-FUCK-TIOUS and the hand armor (hidden.ts). [from, to]. */
+export const HOLE = { a: 11112, b: 11188 };
 /** Ground: [from, to] at the ground line (between: the pits). */
 export const GROUND: [number, number][] = [[-200, 2700], [2960, 6700], [7900, 10520], [12000, 14200]];
 

@@ -120,6 +120,7 @@ import { askCardBack } from './parkmap/fastTravel';
 import { prewarmParkMap } from './parkmap/render';
 import CheckpointPicker from '../m1/components/CheckpointPicker';
 import ChordPrompt from './ChordPrompt';
+import PieceGotCard from './upgrades/PieceGotCard';
 import { pauseCard } from './PauseControls';
 import QtePanel from './fantasy/wheel/QtePanel';
 import IcePanel from './fantasy/bedroom/IcePanel';
@@ -768,6 +769,14 @@ const App2: React.FC = () => {
           <div className="absolute left-1/2 -translate-x-1/2 z-30 flex flex-col items-start gap-[4px] px-3 py-2 text-[8px] font-black tracking-wider text-zinc-100 bg-black/60 border-2 border-zinc-600 pointer-events-none" style={{ top: `${HUD_CLEAR_Y + 8}px` }}>
             <div className="self-center text-[9px] text-[#FDE047] mb-[2px]">{weaponName(weapon)}</div>
             {M2_WEAPON_INFO[weapon]!.controls.map((k, i) => <ChordPrompt key={i} pad={k.pad} join={k.join ?? '+'} kb={k.kb} mouse={k.mouse} label={k.label} size={14} />)}
+          </div>
+        )}
+        {/* A hidden armor piece just given (CON-FUCK-TIOUS): what it is, what it does, its buttons (shown in his cutscene too) */}
+        {status === GameStatus.PLAYING && ui.gotPiece && <PieceGotCard piece={ui.gotPiece} />}
+        {/* A beatdown to do here (CON-FUCK-TIOUS's pebble) */}
+        {status === GameStatus.PLAYING && ui.map === null && !ui.introCutscene && ui.beatPrompt && !ui.upPrompt && (
+          <div className="absolute left-1/2 -translate-x-1/2 top-[132px] z-30 px-3 py-2 text-[9px] text-white bg-black/75 border-2 border-zinc-600">
+            <ChordPrompt pad={['Y', 'B']} join="+" kb={['@beatdown']} label={ui.beatPrompt} size={14} />
           </div>
         )}
         {/* What up does here, in a land (a lever to pull) */}
