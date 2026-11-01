@@ -92,7 +92,7 @@ const ARMOR_INFO: Record<ArmorPiece, Omit<EquipEntry, 'id' | 'name'>> = {
   cape: {
     hint: 'SOMETHING FOR YOUR BACK.',
     junk: 'A HALLOWEEN STORE VAMPIRE CAPE, STILL CREASED FROM THE BAG. THE PRICE TAG\'S STILL ON IT.',
-    what: 'MORE SPEED: YOU MOVE FASTER, EVEN FASTER BULKED UP. MORE JUMP HEIGHT: YOU JUMP HIGHER. AND YOU CAN FLOAT.',
+    what: 'YOU RUN FASTER AND JUMP HIGHER, AND YOU CAN FLOAT DOWN SLOWLY.',
     controls: [
       { pad: ['A'], kb: ['@jump'], label: 'HOLD IN THE AIR: FLOAT' },
     ],
