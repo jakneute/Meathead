@@ -206,10 +206,58 @@ export interface ClipHandle { stop: () => void }
 
 /** What's playing right now, and the speed each is meant to go at (so they can all be held, and let go again). */
 const live = new Map<AudioBufferSourceNode, number>();
-/** Another game's say on a voice's speed (and so its pitch), times (Meathead 2: a boss with its nuts crushed talks
+/** Another game's say on a voice's pitch, times, its speed left alone (Meathead 2: a boss with its nuts crushed talks
  *  higher). 1: as recorded. Read as each line starts. */
-let rateHook: ((voice: string) => number) | null = null;
-export const setVoiceRateHook = (fn: typeof rateHook) => { rateHook = fn; };
+let pitchHook: ((voice: string) => number) | null = null;
+export const setVoicePitchHook = (fn: typeof pitchHook) => { pitchHook = fn; };
+
+/** A clip pitched by `f` at the same length: stretched `f` times longer (WSOLA: 30 ms Hann frames at half overlap, each
+ *  slid up to 8 ms to line up with what came before, so it doesn't warble), then read back `f` times as fast. Worked out
+ *  once a clip (a few ms) and kept: nothing done per frame. */
+const pitched = new Map<string, AudioBuffer>();
+const stretchUp = (inp: Float32Array, sr: number, f: number): Float32Array => {
+  const n = inp.length, L = Math.max(64, Math.round(sr * 0.03)), Hs = L >> 1, Ha = Hs / f, tol = Math.round(sr * 0.008);
+  const w = new Float32Array(L);
+  for (let i = 0; i < L; i++) w[i] = 0.5 - 0.5 * Math.cos((2 * Math.PI * i) / L);
+  const m = Math.ceil(n * f) + L, st = new Float32Array(m);
+  let prev = 0;
+  for (let k = 0; ; k++) {
+    const outAt = k * Hs, nom = Math.round(k * Ha);
+    if (outAt >= m - L || nom >= n) break;
+    let best = nom;
+    if (k > 0) {
+      const nat = prev + Hs;
+      let bc = -Infinity;
+      for (let d = -tol; d <= tol; d += 2) {
+        const c0 = nom + d;
+        if (c0 < 0 || c0 + L >= n || nat + L >= n) continue;
+        let c = 0;
+        for (let i = 0; i < L; i += 4) c += inp[c0 + i] * inp[nat + i];
+        if (c > bc) { bc = c; best = c0; }
+      }
+    }
+    prev = best;
+    for (let i = 0; i < L; i++) { const at = best + i; if (at < n) st[outAt + i] += w[i] * inp[at]; }
+  }
+  const out = new Float32Array(n);
+  for (let i = 0; i < n; i++) { const at = i * f, k = Math.floor(at), fr = at - k; out[i] = k + 1 < m ? st[k] * (1 - fr) + st[k + 1] * fr : 0; }
+  return out;
+};
+const pitchShift = (ctx: AudioContext, buf: AudioBuffer, f: number): AudioBuffer => {
+  const out = ctx.createBuffer(buf.numberOfChannels, buf.length, buf.sampleRate);
+  for (let ch = 0; ch < buf.numberOfChannels; ch++) out.getChannelData(ch).set(stretchUp(buf.getChannelData(ch), buf.sampleRate, f));
+  return out;
+};
+const pitchedClip = (ctx: AudioContext, key: string, audio: AudioBuffer, f: number) => {
+  const id = `${key}@${f}`;
+  let b = pitched.get(id);
+  if (!b) {
+    b = pitchShift(ctx, audio, f);
+    if (pitched.size > 48) pitched.delete(pitched.keys().next().value as string);
+    pitched.set(id, b);
+  }
+  return b;
+};
 let held = false;
 /**
  * Every recorded line playing is held where it is (the game's paused), or let go to carry on from there. Done by
@@ -233,12 +281,13 @@ export const playClip = (voice: string, text: string, opts: { radio?: boolean; o
   if (!pack.clips[key]) return null;
   let ctx: AudioContext;
   try { ctx = getAudioContext(); } catch { return null; }
-  const base = pack.voices[voice] ?? { rate: 1, gain: 1, fx: '' };
-  const spec = rateHook ? { ...base, rate: base.rate * rateHook(voice) } : base;
+  const spec = pack.voices[voice] ?? { rate: 1, gain: 1, fx: '' };
+  const pitch = pitchHook ? pitchHook(voice) : 1;
   let stopped = false, src: AudioBufferSourceNode | null = null, post: GainNode | null = null, ended = false;
   const end = () => { if (ended) return; ended = true; opts.onEnd?.(); };
-  decode(ctx, key).then(audio => {
-    if (stopped || !audio) { end(); return; }
+  decode(ctx, key).then(raw => {
+    if (stopped || !raw) { end(); return; }
+    const audio = pitch !== 1 ? pitchedClip(ctx, key, raw, pitch) : raw;
     src = ctx.createBufferSource();
     src.buffer = audio;
     src.playbackRate.value = held ? 0 : spec.rate;
