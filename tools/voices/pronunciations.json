@@ -82,6 +82,7 @@
     { "in": "BZZT", "say": "BZZZT", "word": true },
     { "in": "STUNTMAN", "say": "STUNT MAN" },
     { "in": "STUNTMEN", "say": "STUNT MEN" },
-    { "in": "STUNTWOMAN", "say": "STUNT WOMAN" }
+    { "in": "STUNTWOMAN", "say": "STUNT WOMAN" },
+    { "in": "CON-FUCK-TIOUS", "say": "CON-FUCK-SHUS" }
   ]
 }

@@ -10,7 +10,7 @@
 // he's given it (`piece` null: bare hands). Limbs from art/limb.ts (elbows and knees bend the right way).
 
 import { stamp } from '../../../m1/game/render/stamp';
-import { elbow, knee } from '../../art/limb';
+import { elbow, elbowFront, knee } from '../../art/limb';
 import type { ArmorPiece } from '../state';
 
 type Ctx = CanvasRenderingContext2D;
@@ -62,14 +62,15 @@ const shaker = (g: Ctx, x: number, y: number) => {
 
 /** Where his hands go in each pose (local, facing +x: [front hand, back hand]), how far he's hunched, how far he leans. */
 const HANDS: Record<Exclude<BenPose, 'flurry'>, { f: [number, number]; b: [number, number]; drop?: number; lean?: number }> = {
-  stand: { f: [14, -38], b: [-8, -37] },
-  offer: { f: [30, -48], b: [-8, -37] },
-  yank: { f: [8, -94], b: [-8, -37] },
-  nuts: { f: [7, -27], b: [3, -26], drop: 7, lean: 7 },
-  give: { f: [28, -46], b: [24, -44] },
-  fold: { f: [-2, -54], b: [12, -53] },
+  stand: { f: [22, -36], b: [-15, -36] },
+  offer: { f: [38, -50], b: [-15, -36] },
+  yank: { f: [22, -92], b: [-15, -36] },
+  nuts: { f: [12, -27], b: [4, -26], drop: 7, lean: 7 },
+  give: { f: [38, -48], b: [32, -46] },
+  // (hands on his hips, elbows out: the coach watching)
+  fold: { f: [16, -38], b: [-9, -38] },
 };
-const FLURRY: [number, number][][] = [[[34, -60], [10, -52]], [[13, -52], [33, -58]], [[30, -66], [15, -50]]];
+const FLURRY: [number, number][][] = [[[42, -60], [16, -50]], [[24, -50], [38, -58]], [[41, -64], [16, -50]]];
 
 const paintBen = (g: Ctx, pose: BenPose, frame: number, piece: ArmorPiece | null) => {
   const hp = pose === 'flurry' ? { f: FLURRY[frame % 3][0], b: FLURRY[frame % 3][1], drop: 0, lean: 2 } : HANDS[pose];
@@ -84,8 +85,24 @@ const paintBen = (g: Ctx, pose: BenPose, frame: number, piece: ArmorPiece | null
     box(g, fx - 7, -9, 16, 9, INK); box(g, fx - 6, -8, 14, 7, SHOE[2]); box(g, fx - 6, -8, 14, 1, SHOE[3]); box(g, fx - 6, -2, 14, 2, SHOE[0]);
     box(g, fx - 3, -6, 8, 2, '#DC2626'); box(g, fx - 5, -8, 2, 3, SHOE[1]);
   }
+  // ---- an arm: shoulder to elbow to hand (art/limb.ts: the elbow bends the right way for the facing), a thick upper
+  // arm and forearm, the hand on the end of it (a fist, or the glove). The back one's drawn first, behind his body.
+  const sx = 2 + lean, sy = -66 + drop;
+  const arm = (h: [number, number], back: boolean) => {
+    // (three-quarter on: the front shoulder at his chest's front edge, the back one at its back edge; standing square on
+    // (hands at his sides, on his hips, at his crotch) the elbows go out away from him, in side-on moves (a punch, a
+    // reach, overhead) they bend the side-on way)
+    const s: [number, number] = [sx + (back ? -12 : 16), sy + 6];
+    const square = pose === 'stand' || pose === 'fold' || pose === 'nuts';
+    const e = square ? elbowFront(s[0], s[1], h[0], h[1], 15, 14, back ? -1 : 1) : elbow(s[0], s[1], h[0], h[1], 15, 14, 1);
+    const R = back ? SKIN.map((_c, i) => SKIN[Math.max(0, i - 1)]) : SKIN;
+    bone(g, s, e, back ? 11 : 13, R); bone(g, e, h, back ? 8 : 10, R);
+    if (gloved) glove(g, h[0], h[1], back ? 0.9 : 1, pose === 'offer' && !back);
+    else fist(g, h[0], h[1]);
+  };
+  arm(hp.b, true);
   // ---- the body: a barrel chest, a bit of a gut; the cut-off tank top (arm holes cut to his hips), the belt
-  const sx = 2 + lean, sy = -66 + drop, top = sy - 1;
+  const top = sy - 1;
   // (the torso's skin under the tank top's big arm holes)
   poly(g, [[-15 + lean * 0.4, hipY + 2], [17 + lean * 0.4, hipY + 2], [20 + lean, top + 4], [-14 + lean, top]], INK);
   poly(g, [[-14 + lean * 0.4, hipY + 1], [16 + lean * 0.4, hipY + 1], [19 + lean, top + 5], [-13 + lean, top + 1]], SKIN[2]);
@@ -104,18 +121,6 @@ const paintBen = (g: Ctx, pose: BenPose, frame: number, piece: ArmorPiece | null
   box(g, -15 + lean * 0.4, hipY - 4, 33, 9, INK); box(g, -14 + lean * 0.4, hipY - 3, 31, 7, BELT[2]); box(g, -14 + lean * 0.4, hipY - 3, 31, 1, BELT[4]); box(g, -14 + lean * 0.4, hipY + 3, 31, 1, BELT[0]);
   box(g, 10 + lean * 0.4, hipY - 4, 7, 9, INK); box(g, 11 + lean * 0.4, hipY - 3, 5, 7, '#C8C8D0'); box(g, 12 + lean * 0.4, hipY - 2, 3, 5, BELT[1]);
   for (let i = 0; i < 3; i++) box(g, -10 + lean * 0.4 + i * 6, hipY - 1, 1, 3, BELT[1]);
-  // ---- an arm: a huge upper arm (the bicep's bulge), a thick forearm
-  const arm = (h: [number, number], back: boolean) => {
-    const s: [number, number] = [sx + (back ? -9 : 7), sy + 5], e = elbow(s[0], s[1], h[0], h[1], 15, 14, 1);
-    const R = back ? SKIN.map((_c, i) => SKIN[Math.max(0, i - 1)]) : SKIN;
-    bone(g, s, e, back ? 11 : 12, R); bone(g, e, h, back ? 9 : 10, R);
-    // (the bicep: a bulge on the front of the upper arm)
-    const mx = (s[0] + e[0]) / 2, my = (s[1] + e[1]) / 2;
-    ell(g, mx + 1, my + 1, 6.5, 5, INK); ell(g, mx + 1, my + 1, 5.5, 4, R[2]); ell(g, mx, my, 3, 2, R[4]);
-    if (gloved) glove(g, h[0], h[1], back ? 0.9 : 1, pose === 'offer' && !back);
-    else fist(g, h[0], h[1]);
-  };
-  arm(hp.b, true);
   // ---- the traps and the neck: a slope from the shoulders straight up into the head
   const hx = 5 + lean * 1.2, hy = -78 + drop;
   poly(g, [[sx - 13, sy + 5], [sx + 15, sy + 6], [hx + 8, hy + 9], [hx - 7, hy + 9]], INK);

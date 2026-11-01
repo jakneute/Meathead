@@ -45,9 +45,10 @@ import { shakeScreen } from '../../../m1/game/core/state';
 import { pickLine, silenceAll } from '../../../m1/game/platform/speech';
 import { SKIP_AFTER, offerSkip, takeSkip, drawSkipPrompt } from '../../../m1/game/platform/skip';
 import { makeKindEnemy, mid } from '../../../m1/game/enemies/kinds';
-import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../../../m1/constants';
+import { CANVAS_WIDTH, CANVAS_HEIGHT, KICK_POSE_FRAMES } from '../../../m1/constants';
 import { registerM2Kind, registerKindCallouts } from '../../kinds';
 import { grabLocked, grabHolding } from '../../moves/grab';
+import { pollM2, pressed as m2Pressed, btn as m2Btn } from '../../input';
 import { setUi } from '../../store';
 import { saveProgress } from '../../save';
 import { has, setPiece, setBenMet, benGave, setBenGave } from '../../upgrades/state';
@@ -116,6 +117,10 @@ export interface Hidden {
   ben: BenTalk & { pose: BenPose; facing: 1 | -1; poseT: number; piece: 'hands' | null };
   /** The trial: grabs at the pebble so far, the grab's lock last frame, when the nut shot landed. */
   tries: number; lockWas: boolean; nutsAt: number;
+  /** The third try: Meathead's nut kick (frames in, -1 not on; the side he kicks from); the shaker dropped out of
+   *  Ben's hand (falling, then lying there). */
+  kickT: number; kickDir: 1 | -1; kickFrom: number;
+  shaker: { x: number; y: number; vx: number; vy: number } | null;
   /** The card's up since. */
   cardT: number;
   practice: Enemy | null; respawn: number; goodSaid: boolean;
@@ -131,13 +136,15 @@ export const hiddenOf = (state: GameState): Hidden => {
   if (!h) stores.set(key, h = {
     phase: 'out', all: 0, beat: 0, token: 0, script: null,
     ben: { said: null, pose: 'flurry', facing: 1, poseT: 0, piece: 'hands' },
-    tries: 0, lockWas: false, nutsAt: -1, cardT: 0, practice: null, respawn: 30, goodSaid: false, nudgeAt: 0,
+    tries: 0, lockWas: false, nutsAt: -1, kickT: -1, kickDir: 1, kickFrom: 0, shaker: null, cardT: 0, practice: null, respawn: 30, goodSaid: false, nudgeAt: 0,
     cannon: makeCannon(CANNON_X, CAVE.floor, EXIT, DEST), was: {},
   });
   return h;
 };
 /** The meetup's run this visit (a death after it, back down: straight to the trial). */
 let metVisit = -1;
+/** The cave's turned off contact hurts (and turns them back on as he leaves). */
+let setNoContact = false;
 
 /** Where the cannon's shot punches up through the ceiling (the art's hole). */
 export const cannonHoleX = (state: GameState) => cannonCeilingX(hiddenOf(state).cannon, CAVE.ceil);
@@ -166,6 +173,8 @@ export const updateHidden = (ctx: FrameContext, controls: Controls): Controls =>
     h.phase = 'out';
   }
   if (!inCave(state)) {
+    // (out of the cave: bumping into things hurts again)
+    if (setNoContact) { p.noContactHurt = false; setNoContact = false; }
     // (out of the cave: the practice one's gone with him)
     if (h.practice) { state.enemies = state.enemies.filter(e => e !== h.practice); h.practice = null; }
     h.ben.said = null;
@@ -173,6 +182,11 @@ export const updateHidden = (ctx: FrameContext, controls: Controls): Controls =>
     return updateCannon(ctx, h.cannon, controls);
   }
   h.ben.poseT++;
+  // (a practice room: nothing down here hurts him, the practice one least of all; the owner: "make sure test enemies
+  // cannot hurt you". Its contact damage is nothing already, but a bump still counts as a hurt in the engine: the
+  // flinch, the knockback, the i-frames)
+  p.noContactHurt = true; setNoContact = true;
+  updateShaker(h);
   const pressed = (k: keyof Controls) => !!controls[k] && !h.was[k];
   const anyPress = pressed('jump') || pressed('shoot') || pressed('special') || pressed('secondary') || pressed('charge');
   h.was = { ...controls };
@@ -271,9 +285,26 @@ const runTrial = (ctx: FrameContext, h: Hidden) => {
     if (state.frame - h.nutsAt > 900 && h.phase === 'trial') startGift(state, h);
     return;
   }
+  // The third try: a nut kick (the owner: "for the third grab attempt, just make meathead do the nut kick and make it
+  // look more natural"): a step in, the boot up between his legs (the engine's kick pose, as the cheap shot's), Ben
+  // doubled over, the shaker out of his hand
+  if (h.kickT >= 0) { runKick(state, h); return; }
   // (back to holding it out once he's whipped it away)
   if (h.ben.pose === 'yank' && h.ben.poseT > 40) setPose(h, 'offer');
   setUi({ beatPrompt: dx < 170 && p.health > 0 ? 'TAKE THE SHAKER' : null });
+  // (the third: caught before the grab gets it (it's polled here first this frame), and a kick instead)
+  if (h.tries === 2 && dx < 150 && p.isGrounded && p.health > 0 && !lock) {
+    pollM2(state.frame);
+    const beat = m2Pressed('beatKey') || (m2Btn('y') && m2Pressed('b')) || (m2Pressed('y') && m2Btn('b'));
+    if (beat) {
+      h.tries = 3; h.kickT = 0; h.kickDir = cx < BEN_X ? 1 : -1; h.kickFrom = cx;
+      p.inCutscene = true; p.vel.x = 0; p.facing = h.kickDir;
+      silenceAll(); h.ben.said = null;
+      playSound('whoosh', 0.6, -4);
+      setUi({ beatPrompt: null });
+      return;
+    }
+  }
   if (!started || dx > 150) return;
   h.tries++;
   if (h.tries < 3) {
@@ -281,13 +312,36 @@ const runTrial = (ctx: FrameContext, h: Hidden) => {
     playSound('whoosh', 0.8, 6);
     silenceAll(); h.ben.said = null;
     benSays(h.ben, pickLine(L.miss), h.tries === 2 ? () => { if (hiddenOf(state) === h && h.nutsAt < 0) benSays(h.ben, L.hint[0]); } : undefined);
-  } else {
-    // (the third goes low)
-    setPose(h, 'nuts'); h.nutsAt = state.frame;
-    silenceAll(); h.ben.said = null;
-    playSound('punch', 1, -8); playSound('crunch', 0.6, 6); playSound('twinkle', 0.7, 12); shakeScreen(state, 7, 5);
-    state.particles.push({ pos: { x: BEN_X + h.ben.facing * 20, y: CAVE.floor - 60 }, vel: { x: h.ben.facing * 2, y: -4 }, life: 50, color: '#8E8E9A', size: 5, grav: 0.4 } as typeof state.particles[number]);
   }
+};
+/** The kick's beats: the step in, the boot's up (it lands), him free again. */
+const KICK_IN = 14, KICK_HIT = KICK_IN + 8, KICK_END = KICK_HIT + 34;
+/** Where his middle stands from Ben's for it (the kick's foot reaches ~40 ahead). */
+const KICK_OFF = 40;
+const runKick = (state: GameState, h: Hidden) => {
+  const p = state.player, t = ++h.kickT;
+  p.inCutscene = true; p.vel.x = 0; p.facing = h.kickDir;
+  state.playerStunTimer = Math.max(state.playerStunTimer, 2);
+  setUi({ beatPrompt: null });
+  // (a step in to him, easing to a stop)
+  const toX = BEN_X - h.kickDir * KICK_OFF;
+  if (t <= KICK_IN) { const k = t / KICK_IN; p.pos.x = h.kickFrom + (toX - h.kickFrom) * (k * (2 - k)) - p.width / 2; }
+  if (t === KICK_IN) { p.kickPose = KICK_POSE_FRAMES; playSound('whoosh', 0.9, -6); }
+  if ((p.kickPose ?? 0) > 0 && t > KICK_IN) p.kickPose!--;
+  if (t === KICK_HIT) {
+    // (it lands: doubled over, eyes crossed, the shaker out of his hand)
+    setPose(h, 'nuts');
+    playSound('punch', 1, -8); playSound('crunch', 0.7, 4); playSound('twinkle', 0.7, 12); shakeScreen(state, 8, 5);
+    h.shaker = { x: BEN_X + h.ben.facing * 22, y: CAVE.floor - 64, vx: -h.kickDir * 1.6, vy: -4 };
+  }
+  if (t >= KICK_END) { h.kickT = -1; p.inCutscene = false; p.kickPose = 0; h.nutsAt = state.frame; }
+};
+/** The dropped shaker: down it falls, a bounce, and it lies there. */
+const updateShaker = (h: Hidden) => {
+  const s = h.shaker;
+  if (!s || (s.vy === 0 && s.vx === 0)) return;
+  s.vy += 0.45; s.x += s.vx; s.y += s.vy;
+  if (s.y >= CAVE.floor - 2) { s.y = CAVE.floor - 2; if (Math.abs(s.vy) > 2) { s.vy = -s.vy * 0.35; s.vx *= 0.5; playSound('clink', 0.4, 4); } else { s.vy = 0; s.vx = 0; } }
 };
 
 // ---- the gift

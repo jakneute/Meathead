@@ -212,6 +212,15 @@ export const drawCaveBack = (c: Ctx, state: GameState) => {
   drawCannon(c, h.cannon);
   const b = h.ben;
   drawBen(c, BEN_X, CAVE.floor - 4, b.facing, b.pose, Math.floor(b.poseT / 5), b.piece);
+  // (his shaker, knocked out of his hand by the kick: tumbling, then lying on its side)
+  const sk = h.shaker;
+  if (sk) {
+    const down = sk.vx === 0 && sk.vy === 0;
+    c.save(); c.translate(Math.round(sk.x), Math.round(sk.y)); c.rotate(down ? Math.PI / 2 : state.frame * 0.3);
+    c.fillStyle = '#1A1028'; c.fillRect(-5, -16, 10, 18); c.fillStyle = '#2563EB'; c.fillRect(-4, -15, 8, 14); c.fillStyle = '#BFDBFE'; c.fillRect(-4, -15, 2, 14);
+    c.fillStyle = '#F8FAFC'; c.fillRect(-4, -10, 8, 3); c.fillStyle = '#111827'; c.fillRect(-3, -19, 6, 4);
+    c.restore();
+  }
 };
 export const drawCaveFront = (c: Ctx, state: GameState) => {
   const h = hiddenOf(state);
