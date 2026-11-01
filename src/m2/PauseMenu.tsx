@@ -203,6 +203,8 @@ const EquipmentView: React.FC<{ skin: PauseSkin; at: number; onPick: (k: number)
         <div className="text-[11px] font-black uppercase leading-tight mb-1" style={{ color: skin.text, textShadow: '1px 1px 0 rgba(0,0,0,0.35)' }}>{owned ? e.name : '???'}</div>
         {count && <div className="text-[7px] font-black uppercase tracking-wider mb-2" style={{ color: skin.accent }}>{count[0]} / {count[1]} FOUND: {count[2]}</div>}
         {!count && <div className="text-[7px] font-black uppercase tracking-wider mb-2" style={{ color: owned ? skin.accent : skin.muted }}>{owned ? '[ WORN ]' : 'NOT FOUND YET'}</div>}
+        {/* (an armor piece: what the junk is, then what it does for him) */}
+        {owned && e.junk && <div className="text-[7px] leading-[11px] uppercase font-bold italic mb-1" style={{ color: skin.muted }}>{e.junk}</div>}
         <div className="text-[7px] leading-[11px] uppercase font-bold mb-1" style={{ color: skin.text }}>{owned ? e.what : `${e.hint} IT'S HIDDEN OUT THERE SOMEWHERE.`}</div>
         {owned && e.controls?.length ? (
           <div className="mt-1 w-full flex flex-col items-start gap-[3px] px-2 py-1 bg-black/60 border border-zinc-700 text-[6px] font-black text-zinc-200 tracking-wider text-left" style={{ boxShadow: `${PIXEL_BEVEL}, 2px 2px 0 rgba(0,0,0,0.5)` }}>

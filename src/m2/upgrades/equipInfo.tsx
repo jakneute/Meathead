@@ -18,6 +18,8 @@ export interface EquipEntry {
   name: string;
   /** Not found yet: all that's said about it. */
   hint: string;
+  /** What the junk itself is (an armor piece: the cheap bric-a-brac he's got on; a line or two). */
+  junk?: string;
   /** What it does (2-3 short lines' worth). */
   what: string;
   controls?: EquipControl[];
@@ -30,7 +32,8 @@ const FOLLOW = { pad: ['B', 'Y'] as PadKey[], join: '>' as const, kb: ['@special
 const ARMOR_INFO: Record<ArmorPiece, Omit<EquipEntry, 'id' | 'name'>> = {
   sabatons: {
     hint: 'SOMETHING FOR YOUR FEET.',
-    what: 'RUSTY IRON COWBOY BOOTS. LONGER DIVE KICK, TWICE AS HARD ON BOSSES. SPIKES CAN\'T TOUCH YOU.',
+    junk: 'COWBOY BOOTS BOLTED TOGETHER OUT OF RAILROAD IRON, WITH A COWBELL STRAPPED ON. CLANK, CLANK, DONG.',
+    what: 'LONGER DIVE KICK, TWICE AS HARD ON BOSSES. SPIKES CAN\'T TOUCH YOU.',
     controls: [
       { pad: ['DPAD_DOWN', 'B'], join: '+', kb: ['@down', '@special'], label: 'IN THE AIR: DIVE KICK' },
       { ...FOLLOW, label: 'DURING A DIVE KICK: MISSILE (THROW HIM)' },
@@ -38,7 +41,8 @@ const ARMOR_INFO: Record<ArmorPiece, Omit<EquipEntry, 'id' | 'name'>> = {
   },
   pauldrons: {
     hint: 'SOMETHING FOR YOUR SHOULDERS.',
-    what: 'COCONUT SHOULDER PADS. LONGER SHOULDER CHARGE, TWICE AS HARD ON BOSSES. HORNS AND SPEARS DON\'T STOP IT.',
+    junk: 'HALF COCONUTS FOR SHOULDER PADS, FAKE LEOPARD TRIM, A PLASTIC TUSK GLUED ON. GIFT SHOP CHIC.',
+    what: 'LONGER SHOULDER CHARGE, TWICE AS HARD ON BOSSES. HORNS AND SPEARS DON\'T STOP IT.',
     controls: [
       { ...FOLLOW, label: 'DURING A CHARGE: PLANTED (HEAD IN THE DIRT)' },
       { pad: ['B'], kb: ['@special'], label: 'BY A PLANTED HEAD: FIELD GOAL' },
@@ -46,21 +50,24 @@ const ARMOR_INFO: Record<ArmorPiece, Omit<EquipEntry, 'id' | 'name'>> = {
   },
   legs: {
     hint: 'SOMETHING FOR YOUR SHINS.',
-    what: 'GOLD STATUETTES TAPED TO YOUR SHINS. LONGER SLIDE, TWICE AS HARD ON BOSSES, NO HITS FROM THE FRONT. TRIPS GUYS AND KEEPS GOING.',
+    junk: 'TWO KNOCKOFF GOLD AWARD STATUETTES DUCT-TAPED TO YOUR SHINS. FILM REELS FOR KNEE PADS.',
+    what: 'LONGER SLIDE, TWICE AS HARD ON BOSSES, NO HITS FROM THE FRONT. TRIPS GUYS AND KEEPS GOING.',
     controls: [
       { pad: ['DPAD_UP', 'B'], join: '+', kb: ['@up', '@special'], label: 'DURING A SLIDE: FLASH KICK (FREE)' },
     ],
   },
   armguards: {
     hint: 'SOMETHING FOR YOUR FOREARMS.',
-    what: 'CHROME LED BRACERS. HIGHER UPPERCUT, TWICE AS HARD ON BOSSES. HITS GUYS IT USED TO BOUNCE OFF.',
+    junk: 'CHROME ROBOT BRACERS WITH A SCROLLING LED THAT SAYS "BEEF". BATTERIES NOT INCLUDED. IT WORKS ANYWAY.',
+    what: 'HIGHER UPPERCUT, TWICE AS HARD ON BOSSES. HITS GUYS IT USED TO BOUNCE OFF.',
     controls: [
       { ...FOLLOW, label: 'DURING AN UPPERCUT: NINJA DROP' },
     ],
   },
   hands: {
     hint: 'SOMETHING FOR YOUR HANDS.',
-    what: 'GIANT CARTOON GLOVES. BEATDOWNS HEAL MORE AND WORK ON GUYS YOU CAN\'T GRAB. SO DO THE FOLLOW-UPS.',
+    junk: 'GIANT WHITE CARTOON GLOVES, FOUR FINGERS EACH. SOME MASCOT IS WALKING AROUND BARE-HANDED.',
+    what: 'BEATDOWNS HEAL MORE AND WORK ON GUYS YOU CAN\'T GRAB. SO DO THE FOLLOW-UPS.',
     controls: [
       { pad: ['Y', 'B'], join: '+', kb: ['@beatdown'], label: 'BEATDOWN' },
       { pad: ['Y', 'B'], join: '+', kb: ['@beatdown'], label: `RIGHT NEXT TO A BOSS: CHEAP SHOT (${secs(CHEAP_STUN)} SEC STUN, ONCE A LIFE)` },
@@ -68,18 +75,21 @@ const ARMOR_INFO: Record<ArmorPiece, Omit<EquipEntry, 'id' | 'name'>> = {
   },
   helmet: {
     hint: 'SOMETHING FOR YOUR HEAD.',
-    what: `A SOUVENIR VIKING HELMET. YOU TAKE ${Math.round((1 - HELMET_HURT) * 100)}% LESS DAMAGE. JUNK ENEMIES THROW AT YOUR HEAD BOUNCES OFF. BOSSES' DOESN'T.`,
+    junk: 'A SOUVENIR VIKING HELMET WITH TWO BEER CANS ON IT AND A STRAW DOWN TO YOUR MOUTH. THE CANS ARE EMPTY.',
+    what: `YOU TAKE ${Math.round((1 - HELMET_HURT) * 100)}% LESS DAMAGE. JUNK ENEMIES THROW AT YOUR HEAD BOUNCES OFF. BOSSES' DOESN'T.`,
     controls: [
       { pad: ['DPAD_DOWN'], kb: ['@down'], label: 'DUCK: MORE OF YOU COVERED' },
     ],
   },
   amulet: {
     hint: 'SOMETHING TO WEAR AROUND YOUR NECK.',
-    what: `A PINK PRINCESS JEWEL. GET BEAT ON ENOUGH AND YOU SCREAM "FUCK OFF": IT HURTS EVERYTHING ON SCREEN. THEN ${secs(YELL_SHIELD)} SEC INVINCIBLE, CHARGES AND GRABS HIT HARDER. TRAPS DON'T COUNT.`,
+    junk: 'A BIG PINK PLASTIC PRINCESS JEWEL ON A STRING. FOR AGES 4 AND UP. IT LOOKS GREAT ON YOU.',
+    what: `GET BEAT ON ENOUGH AND YOU SCREAM "FUCK OFF": IT HURTS EVERYTHING ON SCREEN. THEN ${secs(YELL_SHIELD)} SEC INVINCIBLE, CHARGES AND GRABS HIT HARDER. TRAPS DON'T COUNT.`,
   },
   cape: {
     hint: 'SOMETHING FOR YOUR BACK.',
-    what: 'A CHEAP VAMPIRE CAPE, STILL CREASED FROM THE BAG. YOU WALK FASTER AND JUMP HIGHER.',
+    junk: 'A HALLOWEEN STORE VAMPIRE CAPE, STILL CREASED FROM THE BAG. THE PRICE TAG\'S STILL ON IT.',
+    what: 'YOU WALK FASTER AND JUMP HIGHER.',
     controls: [
       { pad: ['A'], kb: ['@jump'], label: 'HOLD IN THE AIR: FLOAT' },
     ],
