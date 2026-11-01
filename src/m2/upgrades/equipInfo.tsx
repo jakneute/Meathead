@@ -5,7 +5,7 @@
 
 import React from 'react';
 import type { PadKey } from '../../m1/components/ButtonIcons';
-import { ARMOR_PIECES, ARMOR_NAMES, type ArmorPiece } from './state';
+import { ARMOR_PIECES, ARMOR_NAMES, has, FOLLOW_PIECES, type ArmorPiece } from './state';
 import { armorStamp, type Stamp } from './armorArt';
 import { walkCapeBack } from './walkArmor';
 import { CHEAP_STUN, YELL_SHIELD, HELMET_HURT } from './tune';
@@ -70,7 +70,7 @@ const ARMOR_INFO: Record<ArmorPiece, Omit<EquipEntry, 'id' | 'name'>> = {
   hands: {
     hint: 'SOMETHING FOR YOUR HANDS.',
     junk: 'GIANT WHITE CARTOON GLOVES, FOUR FINGERS EACH. SOME MASCOT IS WALKING AROUND BARE-HANDED.',
-    what: 'NOW YOU CAN BEAT DOWN REGULAR GUYS YOU COULDN\'T GRAB BEFORE, AND THE FOLLOW-UPS WORK ON THEM TOO. BEATDOWNS HEAL MORE.',
+    what: 'NOW YOU CAN BEAT DOWN REGULAR GUYS YOU COULDN\'T GRAB BEFORE. BEATDOWNS HEAL MORE.',
     controls: [
       { pad: ['Y', 'B'], join: '+', kb: ['@beatdown'], label: 'BEATDOWN' },
       { pad: ['Y', 'B'], join: '+', kb: ['@beatdown'], label: `RIGHT NEXT TO A BOSS: CHEAP SHOT (${secs(CHEAP_STUN)} SEC STUN, ONCE A LIFE)` },
@@ -105,6 +105,15 @@ export const EQUIP_ENTRIES: EquipEntry[] = [
   { id: 'ammo', name: 'MAX AMMO', hint: '', what: 'EVERY ONE YOU FIND: +10% AMMO IN EVERY WEAPON.' },
   { id: 'shards', name: 'CHARGE SHARDS', hint: '', what: 'EVERY 3 YOU FIND MAKE ANOTHER POWER CELL.' },
 ];
+// (the gloves' follow-up line only once he's got a follow-up to use (the boots, the shoulder pads, the shins or the
+// bracers: the four follow-up pieces): the owner's "don't mention follow ups in the description for the gloves unless
+// the player has learned at least one of them". Read as it's shown)
+{
+  const hands = EQUIP_ENTRIES.find(e => e.id === 'hands')!, base = hands.what;
+  Object.defineProperty(hands, 'what', {
+    get: () => (FOLLOW_PIECES.some(has) ? base.replace('BEFORE.', 'BEFORE, AND YOUR FOLLOW-UPS WORK ON THEM TOO.') : base),
+  });
+}
 /** The grid's slots, and how many across. */
 export const EQUIP_SLOTS = EQUIP_ENTRIES.length, EQUIP_COLS = 4;
 
