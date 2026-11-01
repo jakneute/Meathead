@@ -94,6 +94,17 @@ const publish = () => {
 export const amuletShielded = () => a.phase === 'rage' && a.t > 0;
 /** His charge moves and grabs through the rage: RAGE_DAMAGE_K, else 1 (bossMelee.ts, apply.ts's melee hook,
  *  moves/grab.ts, moves/followups.ts). Multiplies with the bulk up's own. Never his weapons. */
+/** Through the rage, his colors cycling like a star's invincibility (the owner's "he will be blinking colors, like the
+ *  super mario invincibility"): a new one every few frames, slowing in its last second as it runs out. */
+const STAR = ['rgba(239, 68, 68, 0.6)', 'rgba(250, 204, 21, 0.6)', 'rgba(74, 222, 128, 0.6)', 'rgba(34, 211, 238, 0.6)', 'rgba(96, 165, 250, 0.6)', 'rgba(232, 121, 249, 0.6)'];
+export const rageFlash = (): string | undefined => {
+  if (!amuletActive() || !amuletShielded()) return undefined;
+  const step = a.t < 60 ? 6 : 3;
+  // (the last second: every other step plain, a flicker as it wears off)
+  const n = Math.floor(a.t / step);
+  if (a.t < 60 && n % 2) return undefined;
+  return STAR[n % STAR.length];
+};
 export const rageDamageK = () => (amuletActive() && amuletShielded() ? RAGE_DAMAGE_K : 1);
 /** A charge move's or a grab's damage, raged if he's raging (whole numbers, as the damage numbers show). */
 export const raged = (n: number) => { const k = rageDamageK(); return k === 1 ? n : Math.round(n * k); };

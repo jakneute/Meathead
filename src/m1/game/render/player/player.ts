@@ -56,7 +56,12 @@ const SOOT_FADE = 120;
 const DYE_FADE = 180;
 /** The color over all of him, if any (whoever draws him, wherever: his own sprite, a grab's poses): a suit, soot, a
  *  vat's dye fading out over its last few seconds. */
+/** Another game's flashing over him (Meathead 2's amulet rage: the colors cycling, a star's invincibility), or nothing. */
+let flashTint: ((p: Player) => string | undefined) | null = null;
+export const setFlashTint = (fn: typeof flashTint) => { flashTint = fn; };
 export const playerTint = (p: Player): string | undefined => {
+  const flash = flashTint?.(p);
+  if (flash) return flash;
   if (p.spaceSuit && p.gut?.stage !== 3) return SPACE_SUIT_TINT;
   if (p.suit) return SUIT_TINT;
   const soot = p.sootTimer && p.sootTimer > 0 ? Math.min(1, p.sootTimer / SOOT_FADE) : 0;

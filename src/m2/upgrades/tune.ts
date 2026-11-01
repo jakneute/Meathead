@@ -37,11 +37,13 @@ export const CAPE_FLOAT_FALL = 2.2;
  *  ×0.65, the helmet's ×0.75). SPEC's "full at ~35 damage". */
 export const AMULET_FULL = 35;
 /** On top, every hit he takes adds this much, however little it took (the owner: "getting hit in general is weighed
- *  more ... big hits still fill it up faster"): a small hit (~3) fills about a third of it, a big one (~15) about two thirds. */
-export const AMULET_HIT = 9;
+ *  more ... big hits still fill it up faster"): a small hit (~3) fills under a third of it, a big one (~15) about 60%. (Was 9; the owner: "just slightly reduce
+ *  how quickly it currently fills up".) */
+export const AMULET_HIT = 7;
 /** ...and the harder it knocks him back, the more again: his speed off it (px a frame) times this, up to the most.
- *  A plain bump (7 across, 4 up, ≈8) adds 8 (two of them and he yells); a goat's butt ≈14; a big launch fills it alone. */
-export const AMULET_KNOCK_K = 1, AMULET_KNOCK_MAX = 26;
+ *  A plain bump (7 across, 4 up, ≈8) adds ≈6.5 (two bumps nearly fill it, three do); a goat's butt ≈12; a big launch
+ *  near enough fills it alone. (Was 1 / 26.) */
+export const AMULET_KNOCK_K = 0.8, AMULET_KNOCK_MAX = 22;
 /** Only enemies' attacks fill it: a trap's hurt (or a burn's tick) adds nothing, but holds it from draining this long
  *  (frames; the owner: "traps don't fill up the piss off meter but can freeze it from any decay"). */
 export const AMULET_TRAP_HOLD = 180;

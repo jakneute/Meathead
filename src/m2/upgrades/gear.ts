@@ -24,6 +24,8 @@ import type { GameState } from '../../m1/game/core/state';
 import type { Player, Projectile } from '../../m1/types';
 import { setMoveMods, type MeleeMove } from '../../m1/game/core/tuning';
 import { setMoveFlair, type MoveFlair } from '../../m1/game/render/player/moveFlair';
+import { setFlashTint } from '../../m1/game/render/player/player';
+import { rageFlash } from './amulet';
 import { setHurtGear, INSTANT_KILL_HURT } from '../../m1/game/core/resist';
 import { setHurtVeto } from '../../m1/game/bosses/shared';
 import { isMidBossKind } from '../../m1/game/combat/midBoss';
@@ -150,6 +152,7 @@ export const installGear = () => {
     tripFrames: LEGS_TRIP_FRAMES,
   });
   setMoveFlair(move => (has(REACH[move][0]) ? FLAIR[move] : null));
+  setFlashTint(() => rageFlash());
   setHurtGear(() => (has('helmet') ? HELMET_HURT : 1));
   // (the leg armor's front: anything that'd throw him back the way he's sliding from (it came at him from in front)
   // doesn't hurt him; nor knock him about. Not an instant kill)
