@@ -10,6 +10,10 @@ export const ARMGUARDS_REACH = 1.25;
 /** Sabatons: the dive kick's reach across (same speed down, a shallower line), times. */
 export const SABATONS_REACH = 1.25;
 
+/** Each charge-move piece: its move's hit on a boss or a sub-boss, times (regular enemies: nothing extra). 50% more (the
+ *  owner, 2026-10-31: "the damage boost should be 50 percent, not twice as much"; it was ×2). */
+export const ARMOR_BOSS_K = 1.5;
+
 // ---- leg armor
 /** A slide that trips a regular enemy: how long it's down (frames; the engine's plain daze off a hit is 40). */
 export const LEGS_TRIP_FRAMES = 80;

@@ -37,6 +37,7 @@ import { rectsOverlap, boundsOf } from '../../../m1/game/core/utils';
 import { topBand, CANVAS_WIDTH, BOUNCE_FRAMES } from '../../../m1/constants';
 import { subBossMelee } from '../../upgrades/bossMelee';
 import { moveArmored } from '../../upgrades/state';
+import { ARMOR_BOSS_K } from '../../upgrades/tune';
 import { cheapShotGate, cheapShotStunned, cheapShotStunT, registerClearThreats, crushGroups, crushLines, crushPool, endCheapStun } from '../../upgrades/cheapShot';
 import { getAdv, solid, box, label, saidOver, meatheadSays, voice, type Said } from '../section';
 import { say, cutVoice, pickLine } from '../../../m1/game/platform/speech';
@@ -463,7 +464,7 @@ const partTouch = (ctx: FrameContext, e: Enemy): boolean => {
       if (Math.random() < 0.6) rexSays(state, r, REX_CRASHED, false);
     } else if (r.st !== 'crash' && r.st !== 'intro') { r.st = 'stumble'; r.t = 0; }
   }
-  const took = hit(ctx, r, part, slidLegs ? SLIDE_LEG_DAMAGE * (moveArmored('slide') ? 2 : 1) : subBossMelee(p), { meter: slidLegs ? SLIDE_LEG_METER : 0 });
+  const took = hit(ctx, r, part, slidLegs ? SLIDE_LEG_DAMAGE * (moveArmored('slide') ? ARMOR_BOSS_K : 1) : subBossMelee(p), { meter: slidLegs ? SLIDE_LEG_METER : 0 });
   ctx.fx.spawnDamageNumber({ x: c.x - 10, y: c.y - 20 }, Math.round(took), true);
   ctx.fx.playGunSound(dk ? 'stomp' : 'punch');
   // (wrecked by it, or the last of it: it's blown him off already, see wreck)

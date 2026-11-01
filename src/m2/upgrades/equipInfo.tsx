@@ -33,7 +33,7 @@ const ARMOR_INFO: Record<ArmorPiece, Omit<EquipEntry, 'id' | 'name'>> = {
   sabatons: {
     hint: 'SOMETHING FOR YOUR FEET.',
     junk: 'COWBOY BOOTS BOLTED TOGETHER OUT OF RAILROAD IRON, WITH A COWBELL STRAPPED ON. CLANK, CLANK, DONG.',
-    what: 'LONGER DIVE KICK, TWICE AS HARD ON BOSSES. SPIKES CAN\'T TOUCH YOU.',
+    what: 'LONGER DIVE KICK, AND IT DOES MORE DAMAGE THAN BEFORE TO BOSSES. SPIKES CAN\'T TOUCH YOU.',
     controls: [
       { pad: ['DPAD_DOWN', 'B'], join: '+', kb: ['@down', '@special'], label: 'IN THE AIR: DIVE KICK' },
       { ...FOLLOW, label: 'DURING A DIVE KICK: MISSILE (THROW HIM)' },
@@ -42,7 +42,7 @@ const ARMOR_INFO: Record<ArmorPiece, Omit<EquipEntry, 'id' | 'name'>> = {
   pauldrons: {
     hint: 'SOMETHING FOR YOUR SHOULDERS.',
     junk: 'HALF COCONUTS FOR SHOULDER PADS, FAKE LEOPARD TRIM, A PLASTIC TUSK GLUED ON. GIFT SHOP CHIC.',
-    what: 'LONGER SHOULDER CHARGE, TWICE AS HARD ON BOSSES. HORNS AND SPEARS DON\'T STOP IT.',
+    what: 'LONGER SHOULDER CHARGE, AND IT DOES MORE DAMAGE THAN BEFORE TO BOSSES. HORNS AND SPEARS DON\'T STOP IT.',
     controls: [
       { pad: ['B'], kb: ['@special'], label: 'SHOULDER CHARGE' },
       { ...FOLLOW, label: 'DURING A CHARGE: PLANTED (HEAD IN THE DIRT)' },
@@ -52,7 +52,7 @@ const ARMOR_INFO: Record<ArmorPiece, Omit<EquipEntry, 'id' | 'name'>> = {
   legs: {
     hint: 'SOMETHING FOR YOUR SHINS.',
     junk: 'TWO KNOCKOFF GOLD AWARD STATUETTES DUCT-TAPED TO YOUR SHINS. FILM REELS FOR KNEE PADS.',
-    what: 'LONGER SLIDE, TWICE AS HARD ON BOSSES, NO HITS FROM THE FRONT. TRIPS GUYS AND KEEPS GOING.',
+    what: 'LONGER SLIDE, AND IT DOES MORE DAMAGE THAN BEFORE TO BOSSES. NO HITS FROM THE FRONT. TRIPS GUYS AND KEEPS GOING.',
     controls: [
       { pad: ['DPAD_DOWN', 'B'], join: '+', kb: ['@down', '@special'], label: 'SLIDE TACKLE' },
       { pad: ['DPAD_UP'], kb: ['@up'], label: 'PRESS AS YOU HOLD THE SLIDE: FLASH KICK (FREE)' },
@@ -61,7 +61,7 @@ const ARMOR_INFO: Record<ArmorPiece, Omit<EquipEntry, 'id' | 'name'>> = {
   armguards: {
     hint: 'SOMETHING FOR YOUR FOREARMS.',
     junk: 'CHROME ROBOT BRACERS WITH A SCROLLING LED THAT SAYS "BEEF". BATTERIES NOT INCLUDED. IT WORKS ANYWAY.',
-    what: 'HIGHER UPPERCUT, TWICE AS HARD ON BOSSES. HITS GUYS IT USED TO BOUNCE OFF.',
+    what: 'HIGHER UPPERCUT, AND IT DOES MORE DAMAGE THAN BEFORE TO BOSSES. HITS GUYS IT USED TO BOUNCE OFF.',
     controls: [
       { pad: ['DPAD_UP', 'B'], join: '+', kb: ['@up', '@special'], label: 'UPPERCUT' },
       { ...FOLLOW, label: 'DURING AN UPPERCUT: NINJA DROP' },

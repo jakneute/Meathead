@@ -24,12 +24,12 @@ starting number to be adjusted by feel in play.
   kick refunding. it's just generally free to use"). Meathead 2 only (M1 shares the engine: gate it).
 - CHARGE MOVES ON BOSSES: all four (charge, slide, uppercut, dive kick) are normalized: each counts as 150 against a
   boss, times the non-weakness share: 25% on a land boss (37.5), 35% on a sub-boss (52.5). With that move's armor
-  piece the share doubles: 50% (75) / 70% (105). Regular enemies keep their damage tables (ENEMY_CHARGE 20, SLIDE 20,
+  piece it's 50% more (ARMOR_BOSS_K ×1.5, 2026-10-31; it was doubled): 56.25 / 78.75. Regular enemies keep their damage tables (ENEMY_CHARGE 20, SLIDE 20,
   UPPERCUT 150, DIVEKICK 150) UNCHANGED, piece or not ("upgraded charge moves should only do extra damage to bosses",
   2026-10-31). ("normalize charge and slide damage to
   bosses... for regular enemies, those damage tables are fine.") Each land boss's fight.ts computes melee damage
   itself (BOSS_CHARGE_DAMAGE / BOSS_UPPERCUT_DAMAGE): change it there, per fight, via one shared helper.
-- An armor piece's extra damage is FOR BOSSES ONLY (land bosses and sub-bosses: the doubled share above). Regular
+- An armor piece's extra damage is FOR BOSSES ONLY (land bosses and sub-bosses: the 50% more above). Regular
   enemies take the same as without it. (Replaces the earlier "flat +50% overall".)
 - EACH CHARGE-MOVE PIECE ALSO MAKES ITS MOVE GO SOMEWHAT FURTHER (sabatons: the dive kick; pauldrons: the charge; leg
   armor: the slide; armguards: the uppercut). TUNE: about +25% distance/height.
