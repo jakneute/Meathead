@@ -20291,6 +20291,11 @@
  },
  {
   "voice": "m2.cartoon.chelsea",
+  "text": "GOOD KITTY. GOOD KITTY. GOOD KITTY. GOOD KITTY.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.chelsea",
   "text": "HE WENT POOF! WHERE DO THEY GO, SOCKS?",
   "from": "CARTOON"
  },
@@ -20301,7 +20306,12 @@
  },
  {
   "voice": "m2.cartoon.chelsea",
-  "text": "HI AGAIN, SOCKS! IT'S A RERUN! THE MEAN MEN ARE BACK FOR SYNDICATION!",
+  "text": "HI AGAIN, SOCKS! THE NETWORK SAYS THE SHOW MUST GO ON! I SAID NO! THEY SAID UNION SCALE! HI, SOCKS!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.chelsea",
+  "text": "HI, SOCKS! IT'S A... RERUN! THE MEAN MEN ARE BACK! THE GUYS WHO PLAYED THEM LAST TIME ARE... IN BAGS!",
   "from": "CARTOON"
  },
  {
@@ -20316,7 +20326,17 @@
  },
  {
   "voice": "m2.cartoon.chelsea",
+  "text": "I CAN'T LOOK! I LOOKED LAST TIME! I CAN'T LOOK!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.chelsea",
   "text": "I CAN'T LOOK! TELL ME WHEN IT'S OVER!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.chelsea",
+  "text": "I'M HIDING, SOCKS! I'VE BEEN HIDING SINCE LAST WEEK!",
   "from": "CARTOON"
  },
  {
@@ -20327,6 +20347,11 @@
  {
   "voice": "m2.cartoon.chelsea",
   "text": "IF WE SAVE THE WHITE HOUSE, WE GET ICE CREAM, SOCKS!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.chelsea",
+  "text": "IT'S JUST YOU AND ME, SOCKS! AND MY THERAPIST! SHE'S NOT HERE! WE HAVE TO STOP THEM!",
   "from": "CARTOON"
  },
  {
@@ -20367,6 +20392,11 @@
  {
   "voice": "m2.cartoon.chelsea",
   "text": "MOM'S GONNA KILL US, SOCKS! THAT'S THE PRESIDENTIAL RUG!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.chelsea",
+  "text": "NO! NOT AGAIN! I MEAN... GET UP, SOCKS!",
   "from": "CARTOON"
  },
  {
@@ -20416,7 +20446,17 @@
  },
  {
   "voice": "m2.cartoon.chelsea",
+  "text": "SOCKS IS HURT! EVERYBODY STAY CALM! I AM CALM!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.chelsea",
   "text": "SOCKS WINS AGAIN!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.chelsea",
+  "text": "SOCKS WINS! I HAVE TO GO THROW UP! SOCKS WINS!",
   "from": "CARTOON"
  },
  {
@@ -20446,7 +20486,17 @@
  },
  {
   "voice": "m2.cartoon.chelsea",
+  "text": "SOCKS, PUT IT AWAY! I'VE SEEN ENOUGH MEAT IN HERE FOR ONE LIFETIME!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.chelsea",
   "text": "SOCKS, PUT SOMETHING ON! THE PRESS IS WATCHING!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.chelsea",
+  "text": "SOCKS, SMELL IS A TRIGGER FOR ME! KEEP MOVING!",
   "from": "CARTOON"
  },
  {
@@ -20466,12 +20516,22 @@
  },
  {
   "voice": "m2.cartoon.chelsea",
+  "text": "SOCKS, WHERE ARE YOUR PANTS? LAST TIME I SAW A MAN'S INSIDES! THIS IS FINE! LET'S GO!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.chelsea",
   "text": "SOCKS, WHERE ARE YOUR PANTS? NEVER MIND! WE HAVE TO STOP THE MEAN MEN!",
   "from": "CARTOON"
  },
  {
   "voice": "m2.cartoon.chelsea",
   "text": "SOCKS, YOU SMELL LIKE THE PRESS ROOM!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.chelsea",
+  "text": "SOCKS, YOU STINK! LAST TIME A MAN STANK LIKE THAT, HE WAS DEAD! THIS WAY!",
   "from": "CARTOON"
  },
  {
@@ -20496,6 +20556,11 @@
  },
  {
   "voice": "m2.cartoon.chelsea",
+  "text": "SOCKS! ARE YOU OKAY? PLEASE BE OKAY! I CANNOT DO ANOTHER FUNERAL!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.chelsea",
   "text": "SOCKS! DID YOU HAVE AN ACCIDENT?!",
   "from": "CARTOON"
  },
@@ -20506,17 +20571,22 @@
  },
  {
   "voice": "m2.cartoon.chelsea",
+  "text": "SOCKS! I'M SMILING! I'M SMILING BECAUSE IT'S IN MY CONTRACT!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.chelsea",
+  "text": "SOCKS! SOCKS! I STILL HEAR THE SCREAMING! THIS WAY!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.chelsea",
   "text": "SOCKS! SOCKS! SOCKS! SOCKS!",
   "from": "CARTOON"
  },
  {
   "voice": "m2.cartoon.chelsea",
   "text": "SOCKS! THE MEAN MEN ARE TOUCHING DAD'S SAXOPHONE!",
-  "from": "CARTOON"
- },
- {
-  "voice": "m2.cartoon.chelsea",
-  "text": "SOCKS! THE NETWORK IS SHOWING IT AGAIN! THE MEAN MEN GOT PAID AGAIN! WE HAVE TO STOP THEM AGAIN!",
   "from": "CARTOON"
  },
  {
@@ -20536,6 +20606,11 @@
  },
  {
   "voice": "m2.cartoon.chelsea",
+  "text": "SOCKS! THIS WAY! PLEASE DON'T KILL ANYBODY! I MEAN, GO GET THEM!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.chelsea",
   "text": "SOCKS! WHERE DID YOUR PANTS GO?",
   "from": "CARTOON"
  },
@@ -20546,7 +20621,22 @@
  },
  {
   "voice": "m2.cartoon.chelsea",
+  "text": "SOCKS! YOUR PANTS! I MEAN, THE MEAN MEN! THIS WAY!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.chelsea",
+  "text": "SOMEBODY MADE A STINKY! LAST TIME IT WAS THE GUY YOU TORE IN HALF! WE HAVE TO STOP THEM!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.chelsea",
   "text": "TAKE THAT, MEAN MAN!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.chelsea",
+  "text": "TAKE THAT, MEAN MAN! I'M SO SORRY! TAKE THAT!",
   "from": "CARTOON"
  },
  {
@@ -20656,6 +20746,11 @@
  },
  {
   "voice": "m2.cartoon.chelsea",
+  "text": "THIS IS WORSE THAN THE PRESS CORPS! THE PRESS CORPS NEVER BLED ON ME!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.chelsea",
   "text": "UM. SOCKS? WHY ARE THE WALLS WOBBLY?",
   "from": "CARTOON"
  },
@@ -20682,6 +20777,11 @@
  {
   "voice": "m2.cartoon.chelsea",
   "text": "YAY, SOCKS!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.chelsea",
+  "text": "YAY, SOCKS! HE'S... HE'S IN PIECES. YAY!",
   "from": "CARTOON"
  },
  {
@@ -39246,6 +39346,11 @@
  },
  {
   "voice": "m2.foreign.mech_bigben",
+  "text": "BACK AGAIN! NEW CLOCK! SAME NAKED WANKER!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.mech_bigben",
   "text": "BLOODY HELL! ME GEARS!",
   "from": "FOREIGN"
  },
@@ -39261,7 +39366,17 @@
  },
  {
   "voice": "m2.foreign.mech_bigben",
+  "text": "REBUILT, YOU WANKER! AND YOU STILL SMELL LIKE THE TUBE!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.mech_bigben",
   "text": "RIGHT, THEN! I'M BIG BEN! IT'S HALF PAST YOUR DEATH, INNIT!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.mech_bigben",
+  "text": "RIGHT! NEW GEARS, INNIT! TIME FOR PAYBACK!",
   "from": "FOREIGN"
  },
  {
@@ -39296,7 +39411,22 @@
  },
  {
   "voice": "m2.foreign.mech_colosseum",
+  "text": "REBUILT FOR THE REMATCH! THE CROWD WANTS THE NAKED ONE DEAD!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.mech_colosseum",
   "text": "RELEASE THE LIONS! THE LIONS ARE IN ME! IT IS VERY CROWDED!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.mech_colosseum",
+  "text": "RESTORED! STILL MISSING HALF MY WALLS! ON PURPOSE! REVENGE!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.mech_colosseum",
+  "text": "THEY REBUILT ME! THE LIONS STILL WILL NOT EAT YOU!",
   "from": "FOREIGN"
  },
  {
@@ -39331,6 +39461,11 @@
  },
  {
   "voice": "m2.foreign.mech_eiffel",
+  "text": "I AM BACK, AMERICAN. NEW RIVETS. OLD GRUDGE.",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.mech_eiffel",
   "text": "I SURRENDER! I SURRENDER!",
   "from": "FOREIGN"
  },
@@ -39341,7 +39476,17 @@
  },
  {
   "voice": "m2.foreign.mech_eiffel",
+  "text": "REBUILT AND READY. STILL NAKED? HON HON. NOT FOR LONG.",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.mech_eiffel",
   "text": "SACRE BLEU! MY RIVETS!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.mech_eiffel",
+  "text": "THEY REBUILT ME. YOU STILL SMELL LIKE A FRENCH TOILET.",
   "from": "FOREIGN"
  },
  {
@@ -39352,6 +39497,16 @@
  {
   "voice": "m2.foreign.mech_moai",
   "text": "...OW.",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.mech_moai",
+  "text": "BACK. NEW BODY. STARE.",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.mech_moai",
+  "text": "BACK. YOU STILL NAKED. ME TOO. DO NOT LOOK.",
   "from": "FOREIGN"
  },
  {
@@ -39371,6 +39526,11 @@
  },
  {
   "voice": "m2.foreign.mech_moai",
+  "text": "REBUILT. STILL SMELL YOU. STARE HARDER.",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.mech_moai",
   "text": "STARE.",
   "from": "FOREIGN"
  },
@@ -39382,6 +39542,11 @@
  {
   "voice": "m2.foreign.mech_opera",
   "text": "EVERYBODY THINKS I'M A BUNCH OF BOATS! I'M A BUILDING, MATE!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.mech_opera",
+  "text": "G'DAY AGAIN, MATE! NEW SAILS! SAME TRAGEDY! YOURS!",
   "from": "FOREIGN"
  },
  {
@@ -39401,12 +39566,22 @@
  },
  {
   "voice": "m2.foreign.mech_opera",
+  "text": "REBUILT, MATE! AND YOU'RE STILL SHOWING EVERYTHING!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.mech_opera",
   "text": "THE FAT LADY'S SINGING, MATE! SHE'S ME!",
   "from": "FOREIGN"
  },
  {
   "voice": "m2.foreign.mech_opera",
   "text": "THE SHOW... IS... CANCELED, MATE.",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.mech_opera",
+  "text": "THEY GLUED ME BACK TOGETHER, MATE! YOU STILL STINK!",
   "from": "FOREIGN"
  },
  {
@@ -39441,6 +39616,16 @@
  },
  {
   "voice": "m2.foreign.mech_pisa",
+  "text": "I'M BACK! NEW MARBLE! YOU'RE STILL NAKED! I'M STILL HUNG!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.mech_pisa",
+  "text": "I'M BACK! THEY TRIED TO STRAIGHTEN ME! I SAID NO! IMMUNE!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.mech_pisa",
   "text": "I'M THE GREATEST TOWER IN THE WORLD! I DON'T EVEN NEED TO STAND STRAIGHT!",
   "from": "FOREIGN"
  },
@@ -39457,6 +39642,11 @@
  {
   "voice": "m2.foreign.mech_pisa",
   "text": "OKAY. I FELL OVER. I STILL WIN. IMMUNE.",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.mech_pisa",
+  "text": "REBUILT AND STILL IMMUNE! UNLIKE YOUR PANTS!",
   "from": "FOREIGN"
  },
  {
@@ -39491,6 +39681,11 @@
  },
  {
   "voice": "m2.foreign.mech_pyramid",
+  "text": "FOUR THOUSAND YEARS, THEN YOU. THEY REBUILT ME IN A WEEK. REVENGE.",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.mech_pyramid",
   "text": "I AM A TRIANGLE. TRIANGLES ARE THE STRONGEST SHAPE.",
   "from": "FOREIGN"
  },
@@ -39512,6 +39707,16 @@
  {
   "voice": "m2.foreign.mech_pyramid",
   "text": "MY EYE SEES ALL. IT SEES YOU. IT SEES YOUR PANTS.",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.mech_pyramid",
+  "text": "REBUILT. MY EYE SEES ALL OF YOU. TOO MUCH OF YOU.",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.mech_pyramid",
+  "text": "RESTORED. I STILL SEE YOUR PANTS. I STILL WEEP.",
   "from": "FOREIGN"
  },
  {
@@ -39546,12 +39751,27 @@
  },
  {
   "voice": "m2.foreign.mech_redeemer",
+  "text": "NEW ARMS. STILL NO HUG FOR THE NAKED MAN. DEATH, THOUGH.",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.mech_redeemer",
   "text": "NOBODY EVER HUGS ME BACK.",
   "from": "FOREIGN"
  },
  {
   "voice": "m2.foreign.mech_redeemer",
   "text": "OW. MY ARMS. MY OLD ARMS.",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.mech_redeemer",
+  "text": "RESTORED. I FORGIVE MANY THINGS. NOT THAT SMELL.",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.mech_redeemer",
+  "text": "THEY PUT MY ARMS BACK ON. I WILL USE THEM ON YOU.",
   "from": "FOREIGN"
  },
  {
@@ -39577,6 +39797,21 @@
  {
   "voice": "m2.foreign.mech_taj",
   "text": "MY MINARETS ARE NOT DECORATIVE. NOT ANYMORE.",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.mech_taj",
+  "text": "NEWLY RESTORED. YOU ARE STILL DEFILING MY LAWN.",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.mech_taj",
+  "text": "RESTORED. SYMMETRICAL AGAIN. NOW YOU WILL BE TWO HALVES.",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.mech_taj",
+  "text": "THEY REBUILT ME. SHOES OFF. PANTS TOO. OH. TOO LATE.",
   "from": "FOREIGN"
  },
  {
@@ -48686,6 +48921,21 @@
  },
  {
   "voice": "m2.guest",
+  "text": "AGAIN?! IS HE IN THE SEQUEL?!",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.guest",
+  "text": "AGAIN?! SAME MOVIE, SAME SMELL!",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.guest",
+  "text": "AGAIN?! THEY NEVER MOVED THE SHOOT?!",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.guest",
   "text": "BACK OF THE LINE, MEATHEAD!",
   "from": "INTRO"
  },
@@ -49891,6 +50141,21 @@
  },
  {
   "voice": "m2.guest",
+  "text": "THEY'RE STILL FILMING IN THERE! AND HE'S STILL SHITTING!",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.guest",
+  "text": "THEY'RE STILL FILMING IN THERE! AND THE NAKED GUY'S BACK!",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.guest",
+  "text": "THEY'RE STILL FILMING IN THERE?!",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.guest",
   "text": "THIS IS LONGER THAN LAST TIME!",
   "from": "SPOOKY"
  },
@@ -50113,6 +50378,21 @@
   "voice": "m2.guest2",
   "text": "AAAAAH!",
   "from": "SPACE"
+ },
+ {
+  "voice": "m2.guest2",
+  "text": "AGAIN?! IS HE IN THE SEQUEL?!",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.guest2",
+  "text": "AGAIN?! SAME MOVIE, SAME SMELL!",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.guest2",
+  "text": "AGAIN?! THEY NEVER MOVED THE SHOOT?!",
+  "from": "HOLLYWOOD"
  },
  {
   "voice": "m2.guest2",
@@ -51327,6 +51607,21 @@
  {
   "voice": "m2.guest2",
   "text": "THEY'RE SHOOTING IT IN A THEME PARK! CHEAP BASTARDS!",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.guest2",
+  "text": "THEY'RE STILL FILMING IN THERE! AND HE'S STILL SHITTING!",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.guest2",
+  "text": "THEY'RE STILL FILMING IN THERE! AND THE NAKED GUY'S BACK!",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.guest2",
+  "text": "THEY'RE STILL FILMING IN THERE?!",
   "from": "HOLLYWOOD"
  },
  {
@@ -52936,6 +53231,21 @@
  },
  {
   "voice": "m2.hollywood.director",
+  "text": "CUT! I'M THE NEW DIRECTOR! NOBODY SAID HE'D BE NAKED!",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.director",
+  "text": "CUT! I'M THE NEW DIRECTOR! THEY WARNED ME ABOUT THE SMELL!",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.director",
+  "text": "CUT! I'M THE NEW DIRECTOR! WE JUST REBUILT THAT ROOF!",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.director",
   "text": "CUT! THAT ROOF COST FOUR HUNDRED GRAND!",
   "from": "HOLLYWOOD"
  },
@@ -52947,6 +53257,21 @@
  {
   "voice": "m2.hollywood.director",
   "text": "CUT! WHO THE FUCK IS THAT? AND WHAT IS THAT SMELL?",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.director",
+  "text": "CUT! YOU AGAIN?! ON MY BRAND NEW SET?!",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.director",
+  "text": "CUT! YOU AGAIN?! THEY SAID YOU'D AT LEAST BE DRESSED!",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.director",
+  "text": "CUT! YOU AGAIN?! THEY WARNED ME ABOUT YOU!",
   "from": "HOLLYWOOD"
  },
  {
@@ -53007,6 +53332,21 @@
  {
   "voice": "m2.hollywood.director",
   "text": "REVENGERS: END-OF-THE-WORLD'S-DAY! THIRTY STARS! YOU KNOW THIS! EVERYBODY KNOWS THIS!",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.director",
+  "text": "THE NEW WALLS! HE SHIT AND THE NEW WALLS FELL DOWN!",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.director",
+  "text": "THE NEW WALLS! NOW THE WHOLE PARK SEES HIS DICK AND MY MOVIE!",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.director",
+  "text": "THE NEW WALLS! WE JUST PUT UP THE NEW WALLS!",
   "from": "HOLLYWOOD"
  },
  {
@@ -53241,6 +53581,11 @@
  },
  {
   "voice": "m2.hollywood.disaster",
+  "text": "HERE'S EVERY DISASTER AT ONCE. AGAIN.",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.disaster",
   "text": "HERE'S EVERYTHING.",
   "from": "HOLLYWOOD"
  },
@@ -53272,6 +53617,11 @@
  {
   "voice": "m2.hollywood.disaster",
   "text": "THE EFFECTS IN THIS ROOM WERE TESTED BY STUNTMAN STEVE. HE IS COLD NOW.",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.disaster",
+  "text": "WELCOME BACK TO DISASTER: THE RIDE. THE REAL DISASTERS LEVER HAS BEEN FIXED. AND LABELED. IN BIGGER LETTERS.",
   "from": "HOLLYWOOD"
  },
  {
@@ -54286,7 +54636,7 @@
  },
  {
   "voice": "m2.hollywood.pa",
-  "text": "ATTENTION. EVERY DISASTER IS HAPPENING AT ONCE. STUNTMAN STEVE'S SHOW IS CANCELED. HE'S DEAD. NO REFUNDS.",
+  "text": "ATTENTION. EVERY DISASTER IS HAPPENING AT ONCE. AGAIN. SOMEBODY PULLED THE NEW LEVER. STUNTMAN STEVE'S SHOW IS CANCELED. HE'S DEAD.",
   "from": "HOLLYWOOD"
  },
  {
@@ -54306,7 +54656,22 @@
  },
  {
   "voice": "m2.hollywood.pa",
+  "text": "ATTENTION. THE DISASTERS ARE BACK. SO IS THE MAN WITH THE PANTS. WE REBUILT FOR NOTHING.",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.pa",
+  "text": "ATTENTION. THE DISASTERS ARE BACK. SO IS THE NAKED MAN. THE INSURANCE COMPANY HAS STOPPED TAKING OUR CALLS.",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.pa",
   "text": "ATTENTION. THE PARK IS ON FIRE, UNDERWATER AND IN A TORNADO. IT IS STILL NOT AS BAD AS THE SCRIPT LEAK.",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.pa",
+  "text": "ATTENTION. THE REBUILT DISASTER: THE RIDE IS EXPERIENCING REAL DISASTERS. EVERY DISASTER AT ONCE. AGAIN.",
   "from": "HOLLYWOOD"
  },
  {
@@ -54871,7 +55236,17 @@
  },
  {
   "voice": "m2.hollywood.producer",
+  "text": "I'M THE NEW PRODUCER. THE LAST ONE GOT HIT BY A TOILET. NO PHONES.",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.producer",
   "text": "IF YOU TELL YOUR FRIENDS OR FAMILY WHAT YOU'RE WORKING ON, I'LL SEND AN ASSASSIN TO YOUR HOME.",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.producer",
+  "text": "NEW PRODUCER. SAME RULES. AND NOBODY LOOKS AT THE ROOF.",
   "from": "HOLLYWOOD"
  },
  {
@@ -56677,6 +57052,11 @@
  {
   "voice": "m2.hollywood.thrones",
   "text": "TWO CLOGS. ONE IN THE BOWL. ONE IN HIS PANTS. BOTH MINE TO CLEAN.",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.thrones",
+  "text": "WELCOME BACK TO THRONES OF THE STARS. THE EXPERIMENTAL TRACK HAS BEEN REPAIRED. THE WAREHOUSE WALL HAS BEEN REPLACED WITH A CHEAPER ONE.",
   "from": "HOLLYWOOD"
  },
  {

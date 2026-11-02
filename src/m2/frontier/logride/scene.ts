@@ -125,7 +125,8 @@ export const updateScene = (ctx: FrameContext): Controls | null => {
       break;
     case 'engage':
       // (a revisit: her, at the console, fed up with him)
-      if (s.t === 1) say(state, s, bossGone('frontier') ? 'op' : 'tucker', bossGone('frontier') ? OP_REVENGE : TUCKER_ENGAGE, () => next(s, 'press'));
+      if (s.t === 1 && bossGone('frontier')) say(state, s, 'op', OP_REVENGE, () => next(s, 'press'));
+      else if (s.t === 1) say(state, s, 'tucker', TUCKER_ENGAGE, () => next(s, 'press'));
       break;
     case 'press':
       // (the button: slammed; the klaxon; BUZZSAW MODE; the saws coming on all down the line; the PA says so)
