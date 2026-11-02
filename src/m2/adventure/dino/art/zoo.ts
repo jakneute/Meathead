@@ -204,7 +204,8 @@ const bleacherFront = (c: Ctx, bx: number) => {
 /** The crowds' rails (in front of them): pipe, on posts, dim (not something to stand on). [x from, x to] */
 const RAILS: [number, number][] = [[D + 1050, D + 1215], [D + 3940, D + 4080], [D + 4160, D + 4230], [D + 4770, D + 4885], [D + 5245, D + 5420], [D + 5700, D + 5775], [D + 8665, D + 8735], [D + 8770, D + 8850]];
 const RAIL_D = 0.84;
-const SPEAKERS = [D + 1460, D + 2440, D + 3920, D + 5640, D + 8550, D + 9320];
+// (the meadow's speaker stood right through the park sign: it's on past it, between the first boardwalk's legs)
+const SPEAKERS = [D + 1690, D + 2440, D + 3920, D + 5640, D + 8550, D + 9320];
 const SIGN_D = 0.86;
 
 export const drawZooNear = (c: Ctx, state: GameState) => {
@@ -217,12 +218,13 @@ export const drawZooNear = (c: Ctx, state: GameState) => {
   atD(c, eye, RAIL_D, () => { for (const [a, b] of RAILS) if (seen(state, eye, a, b, RAIL_D)) rail(c, a, b); });
   // The signs, the speakers
   atD(c, eye, SIGN_D, () => {
-    if (seen(state, eye, D + 1440, D + 1600, SIGN_D)) parkSign(c);
+    if (seen(state, eye, D + 1425, D + 1555, SIGN_D)) parkSign(c);
     if (seen(state, eye, D + 5470, D + 5610, SIGN_D)) showsBoard(c);
-    if (seen(state, eye, D + 8880, D + 9020, SIGN_D)) tapSign(c);
+    if (seen(state, eye, D + 8884, D + 9004, SIGN_D)) tapSign(c);
     for (const x of SPEAKERS) if (seen(state, eye, x - 20, x + 20, SIGN_D)) speaker(c, x);
   });
-  atD(c, eye, 0.74, () => { for (const x of [D + 1880, D + 2240]) if (seen(state, eye, x, x + 76, 0.74)) feedSign(c, x); });
+  // (each between a boardwalk's legs, seen square on: a leg stood through the far one's words)
+  atD(c, eye, 0.74, () => { for (const x of [D + 1869, D + 2255]) if (seen(state, eye, x, x + 76, 0.74)) feedSign(c, x); });
 };
 
 const gallery = (c: Ctx, state: GameState, eye: Eye, fled: boolean) => {
@@ -258,9 +260,10 @@ const rail = (c: Ctx, a: number, b: number) => {
   for (const y of [GY - 40, GY - 22]) { box(c, a - 1, y, b - a + 4, 3, '#3A4048'); box(c, a - 1, y + 3, b - a + 4, 1, '#22262C'); }
 };
 
-/** The park's monument sign, low on the path into the meadow. */
+/** The park's monument sign, low on the path into the meadow (between the booth and the first boardwalk's legs: it
+ *  was wider, its end behind a leg). */
 const parkSign = (c: Ctx) => {
-  const x = D + 1440, w = 160;
+  const x = D + 1425, w = 130;
   stamp(c, 'dzoo-parksign', x - 6, GY - 84, w + 12, 84, g => {
     slab(g, x + 10, GY - 20, w - 20, 20, '#7A7262');
     sign(g, x, GY - 76, w, 50, '#7C2D12', '', '#000', 6, '#4A3A2A');
@@ -280,9 +283,9 @@ const showsBoard = (c: Ctx) => {
     rowsT.forEach(([a, b], i) => { signAt(g, a, x + 6, GY - 99 + i * 10, 5, print(5, '#1A0B06'), 'left'); signAt(g, b, x + w - 6, GY - 99 + i * 10, 5, print(5, '#B91C1C'), 'right'); });
   });
 };
-/** By the way out of the paddock. */
+/** By the way out of the paddock (narrower, clear of the crates by the tree). */
 const tapSign = (c: Ctx) => {
-  const x = D + 8880, w = 140;
+  const x = D + 8884, w = 120;
   stamp(c, 'dzoo-tap', x - 6, GY - 70, w + 12, 70, g => {
     box(g, x + w / 2 - 2, GY - 30, 4, 30, '#3A3A3A');
     sign(g, x, GY - 64, w, 34, '#FDE047', '', '#000', 6);

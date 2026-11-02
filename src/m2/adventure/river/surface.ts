@@ -96,7 +96,8 @@ const BANK_SIGNS: { x: number; paint: (g: Ctx, x: number) => void }[] = [
     box(g, x - 35, top + 49, 70, 13, INK); box(g, x - 34, top + 50, 68, 11, '#F4C820'); signAt(g, 'HIPPO XING', x, top + 59, 5, enamel(5, '#1A1A1A'));
   } },
   { x: BOAT.stop + 140, paint: (g, x) => bankSign(g, x, 104, 34, '#D8B878', '#6A3A1A', [['LAST GAS', '#5A1A0A', 6], ['400 MILES BACK', '#5A1A0A', 5]]) },
-  { x: FALLS.x - 190, paint: (g, x) => bankSign(g, x, 132, 38, '#2E4A2A', '#6A4A2A', [['THE BACKSIDE', '#F0D890', 6], ['OF WATER  >>', '#F0D890', 6]], 46) },
+  // (by the falls, past GERALD: it stood right over him, his rock in front of its legs)
+  { x: FALLS.x - 65, paint: (g, x) => bankSign(g, x, 132, 38, '#2E4A2A', '#6A4A2A', [['THE BACKSIDE', '#F0D890', 6], ['OF WATER  >>', '#F0D890', 6]], 46) },
 ];
 
 const paintBank = (g: Ctx, a: number, b: number) => {
@@ -354,9 +355,9 @@ const drawShow = (c: Ctx, state: GameState, eye: Eye) => {
     placard(c, R(2710), 'DAVE', WS - 2);
     c.restore();
   }
-  if (seen(state, R(3120), R(3320))) {
+  if (seen(state, R(3070), R(3270))) {
     atDepth(c, eye, BANK_S);
-    const gx = R(3200);
+    const gx = R(3150);
     gerald(c, gx);
     placard(c, gx + 64, 'GERALD', WS - 2);
     c.restore();

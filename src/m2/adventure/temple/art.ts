@@ -731,9 +731,11 @@ const paintProp = (g: Ctx, p: Prop) => {
       // (hung from the truss on chains, way up: the crew's own sign)
       // (its chains, up out of sight, are drawn over the stamp: drawProps)
       sign(g, x - 10, GY - 470, 280, 28, '#5A1A0C', 'TEMPLE OF THE JAGUAR', '#F2C14E', 10, '#7A5224', gilt({ sx: 2, sy: 2 }, '#2A0A04', 5));
-      sign(g, x + 10, GY - 424, 240, 30, '#E7E2D2', 'CAST AND CREW ONLY', '#1A0B06', 7, '#6B7280', enamel({ sx: 1, sy: 2 }, '#1A0B06'));
-      signAt(g, 'NO FLASH PHOTOGRAPHY OF THE MAGIC', x + 130, GY - 400, 6, print(6, '#B91C1C'));
-      for (const cx of [x + 30, x + 230]) for (let y = GY - 438; y < GY - 428; y += 4) box(g, cx, y, 2, 3, '#4A4A4E');
+      // (the crew's board under it: tall enough for both its lines (the small print ran over CAST AND CREW ONLY))
+      sign(g, x + 10, GY - 428, 240, 40, '#E7E2D2', '', '#1A0B06', 7, '#6B7280');
+      signAt(g, 'CAST AND CREW ONLY', x + 130, GY - 413, 7, enamel({ sx: 1, sy: 2 }, '#1A0B06'));
+      signAt(g, 'NO FLASH PHOTOGRAPHY OF THE MAGIC', x + 130, GY - 398, 6, print(6, '#B91C1C'));
+      for (const cx of [x + 30, x + 230]) for (let y = GY - 438; y < GY - 432; y += 4) box(g, cx, y, 2, 3, '#4A4A4E');
       break;
     }
     case 'break': {
@@ -908,14 +910,17 @@ const drawCatapult = (c: Ctx, eye: Eye, state: GameState, tp: Temple) => {
   const tip = [X - 4 + Math.cos(-Math.PI / 2 + ang) * 60, GY - 94 + Math.sin(-Math.PI / 2 + ang) * 60];
   c.strokeStyle = '#C9B38A'; c.lineWidth = 1; c.beginPath(); c.moveTo(X + 62, GY - 64); c.lineTo(tip[0], tip[1]); c.stroke();
   // (the pile of them: real ones; the placard says so, and somebody's added to it)
+  // (the placard's stake, down behind the pile to the floor)
+  box(c, X + 149, GY - 62, 6, 62, '#1A0B06'); box(c, X + 150, GY - 62, 4, 62, WOOD); box(c, X + 150, GY - 62, 1, 62, '#A87A4A');
   for (let i = 0; i < 6; i++) {
     const bx = X + 120 + (i % 3) * 22 + (i > 2 ? 11 : 0), by = GY - 12 - (i > 2 ? 20 : 0);
     if (i < 5) drawBoulder(c, bx, by, 12, i * 1.7);
   }
-  slab(c, X + 112, GY - 96, 80, 34, '#E7E2D2', { edge: 2 });
-  signAt(c, 'BOULDERS', X + 152, GY - 82, 6, print(6, '#1A0B06'));
-  signAt(c, '(REAL)', X + 152, GY - 72, 6, print(6, '#B91C1C'));
-  box(c, X + 116, GY - 62, 72, 9, TAPE_W); text(c, 'INSURANCE SAID FOAM', X + 152, GY - 55, '#1E3A8A', 4, 'center', null);
+  // (propped on the pile, its foot in among the top ones: it was floating over them, the tape's words past its ends)
+  slab(c, X + 112, GY - 92, 80, 34, '#E7E2D2', { edge: 2 });
+  signAt(c, 'BOULDERS', X + 152, GY - 78, 6, print(6, '#1A0B06'));
+  signAt(c, '(REAL)', X + 152, GY - 68, 6, print(6, '#B91C1C'));
+  box(c, X + 120, GY - 58, 64, 17, TAPE_W); text(c, 'INSURANCE', X + 152, GY - 51, '#1E3A8A', 4, 'center', null); text(c, 'SAID FOAM', X + 152, GY - 44, '#1E3A8A', 4, 'center', null);
   // (stenciled on the frame's back upright: what it is)
   inDepth(c, eye, 0.95, () => sign(c, X - 70, GY - 230, 140, 16, '#2A2A2E', 'THE ROLLING BOULDER', '#E8C130', 6, '#4A4E56', stencil(6, '#E8C130')));
   inDepth(c, eye, 0.95, () => { box(c, X - 60, GY - 210, 2, 116, '#3A3A3E'); box(c, X + 58, GY - 210, 2, 176, '#3A3A3E'); });

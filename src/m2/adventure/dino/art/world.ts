@@ -588,13 +588,21 @@ const booth = (c: Ctx, state: GameState, eye: Eye, f: number, look: DinoLook) =>
 // ---------------------------------------------------------------------------------------------------------------
 // The meadow
 
+/** The meadow sign's middle: the gap between the high boardwalk's last leg and the low one's first. */
+const MEADOW_SIGN_X = D + 2100;
 const meadowSign = (c: Ctx, state: GameState, eye: Eye) => {
-  // (a carved wooden sign on two log posts, standing on the meadow's back edge; hay bales by it)
-  atDepth(c, eye, 0.86, () => stamp(c, 'dmeadow-sign', D + 1920, GY - 150, 240, 150, g => {
-    for (const px of [D + 1940, D + 2100]) pole(g, px, GY - 130, 10, 130, '#6A4A2A');
-    sign(g, D + 1930, GY - 140, 190, 30, '#8A5A2A', 'TRICERATOPS MEADOW', '#F2DC9A', 8, '#5A3A1A', routed({ sx: 1, sy: 2 }, '#F2DC9A', '#3A2410'));
-    sign(g, D + 1937, GY - 98, 176, 16, '#E8DCB8', 'PLEASE STAY ON THE BOARDWALK', '#5A3A1A', 5, '#5A3A1A', carved(5, '#5A3A1A', '#FFF4DC'));
-    for (const [hx, hy] of [[D + 1925, GY - 26], [D + 2080, GY - 26], [D + 2100, GY - 50]] as const) {
+  // (a carved wooden sign on two log posts, standing on the meadow's back edge; hay bales by it. In the gap between the
+  // high boardwalk and the last one, on two lines: it was wider than the gap, the boardwalk's legs through its words.)
+  const mx = MEADOW_SIGN_X;
+  atDepth(c, eye, 0.86, () => stamp(c, 'dmeadow-sign2', mx - 80, GY - 162, 170, 162, g => {
+    for (const px of [mx - 40, mx + 30]) pole(g, px, GY - 150, 10, 150, '#6A4A2A');
+    sign(g, mx - 52, GY - 156, 104, 44, '#8A5A2A', '', '#F2DC9A', 8, '#5A3A1A');
+    signAt(g, 'TRICERATOPS', mx, GY - 140, 8, routed({ sx: 1, sy: 2 }, '#F2DC9A', '#3A2410'));
+    signAt(g, 'MEADOW', mx, GY - 124, 8, routed({ sx: 1, sy: 2 }, '#F2DC9A', '#3A2410'));
+    sign(g, mx - 46, GY - 102, 92, 24, '#E8DCB8', '', '#5A3A1A', 5, '#5A3A1A');
+    signAt(g, 'PLEASE STAY ON', mx, GY - 94, 5, carved(5, '#5A3A1A', '#FFF4DC'));
+    signAt(g, 'THE BOARDWALK', mx, GY - 85, 5, carved(5, '#5A3A1A', '#FFF4DC'));
+    for (const [hx, hy] of [[mx - 74, GY - 26], [mx + 24, GY - 26], [mx + 32, GY - 50]] as const) {
       slab(g, hx, hy, 44, 26, '#D8B860', { ink: true }); for (let k = 0; k < 5; k++) box(g, hx + 4 + k * 8, hy + 4, 2, 18, '#B8963A'); box(g, hx + 2, hy + 12, 40, 2, '#8A6A2A');
     }
   }));

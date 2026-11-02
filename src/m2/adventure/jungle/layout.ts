@@ -92,15 +92,16 @@ export const PICKUPS: [number, number, 'small_health' | 'small_ammo'][] = [
  *  the way out. */
 export type SignStyle = 'gate' | 'wood' | 'monkey' | 'warn' | 'scenic' | 'jaguar' | 'legal' | 'exit';
 /** Signs: [x, height of what it stands on, the words, a second line, what it's like]. */
+// (each clear of the ravines' lips and of the painted flat behind the jaguar crossing)
 export const SIGNS: [number, number, string, string, SignStyle][] = [
   [260, 0, 'JUNGLE LAND', 'A REAL JUNGLE!', 'gate'],
   [760, 0, 'MIND THE GAP', 'GRAB A VINE', 'wood'],
-  [1280, 0, 'DO NOT FEED THE MONKEYS', 'THEY ARE FED', 'monkey'],
-  [3420, 0, 'DANGER: RAVINE', 'VINES ARE NOT A RIDE', 'warn'],
+  [1310, 0, 'DO NOT FEED THE MONKEYS', 'THEY ARE FED', 'monkey'],
+  [3390, 0, 'DANGER: RAVINE', 'VINES ARE NOT A RIDE', 'warn'],
   [5130, 0, 'SCENIC OVERLOOK', 'THAT WAY (UP)', 'scenic'],
   [6880, 460, 'SCENIC OVERLOOK', 'NO RAILING. ENJOY!', 'scenic'],
-  [7980, 0, 'JAGUAR CROSSING', 'DO NOT PET', 'jaguar'],
-  [9720, 0, 'LAST VINES', 'HAPPY LAND IS NOT LIABLE', 'legal'],
+  [8200, 0, 'JAGUAR CROSSING', 'DO NOT PET', 'jaguar'],
+  [9700, 0, 'LAST VINES', 'HAPPY LAND IS NOT LIABLE', 'legal'],
   [11640, 0, 'JUNGLE CRUISE', 'THIS WAY >', 'exit'],
 ];
 

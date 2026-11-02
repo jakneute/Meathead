@@ -632,7 +632,8 @@ const drawFork = (c: Ctx, eye: Eye, cart: Cart) => {
     c.restore();
   });
   inDepth(c, eye, 0.93, () => {
-    postSign(c, FORK_X + 120, GY, 50, 150, 'FRIENDLY GUESTS', '#14532D', '#BBF7D0', 6, 'right');
+    // (FRIENDLY GUESTS short of where the siding's ramp climbs: its end and arrow were behind the ramp's rails)
+    postSign(c, FORK_X + 60, GY, 50, 150, 'FRIENDLY GUESTS', '#14532D', '#BBF7D0', 6, 'right');
     postSign(c, FORK_X + 330, GY, 190, 170, 'UNFRIENDLY GUESTS', '#450A0A', '#FCA5A5', 6, 'up');
   });
 };
