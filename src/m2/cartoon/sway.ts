@@ -97,12 +97,12 @@ export const updateTowers = (ctx: FrameContext, list: Tower[]) => {
     if (t.ang < lo || t.ang > hi) {
       t.ang = Math.max(lo, Math.min(hi, t.ang));
       // (it hits its limit: a bounce off it, a groan)
-      if (!t.banged && Math.abs(t.vel) > 0.006) envSound(state, before.x, 'thud', 0.35, -14);
+      if (!t.banged && Math.abs(t.vel) > 0.006) envSound(state, before.x, 'thud', 0.35, -14, before.y);
       t.vel = -t.vel * 0.3; t.banged = true;
     } else if (Math.abs(t.ang) < L * 0.8) t.banged = false;
     // (its creaks: one as it goes through each fifth of its lean)
     const bucket = Math.round((t.ang / L) * 5);
-    if (bucket !== t.creak) { if (Math.abs(t.vel) > 0.004) envSound(state, before.x, bucket === 0 ? 'whoosh' : 'rumble', 0.22, 14 - Math.abs(bucket) * 3); t.creak = bucket; }
+    if (bucket !== t.creak) { if (Math.abs(t.vel) > 0.004) envSound(state, before.x, bucket === 0 ? 'whoosh' : 'rumble', 0.22, 14 - Math.abs(bucket) * 3, before.y); t.creak = bucket; }
     const top = towerTop(d, t.ang);
     // (on it: carried with the lid)
     if (on) { p.pos.x += top.x - before.x; p.pos.y += top.y - before.y; }

@@ -129,9 +129,9 @@ export const updateCivilians = (ctx: FrameContext, ev: HazEvents) => {
       fa.x += fa.vx; fa.y += fa.vy; fa.vy += 0.45; fa.rot += 0.28 * Math.sign(fa.vx || -1);
       if (fa.vy > 0 && fa.y >= GY) {
         const l = lavaAt(fa.x);
-        if (l) { Object.assign(fa, { how: 'burned', phase: 1, sink: 10, surf: Y(Math.min(l.hl, l.hr)) + LAVA_DOWN, y: Y(Math.min(l.hl, l.hr)) + LAVA_DOWN, t: 0 }); envSound(state, fa.x, 'ignite', 0.8, -2); continue; }
+        if (l) { Object.assign(fa, { how: 'burned', phase: 1, sink: 10, surf: Y(Math.min(l.hl, l.hr)) + LAVA_DOWN, y: Y(Math.min(l.hl, l.hr)) + LAVA_DOWN, t: 0 }); envSound(state, fa.x, 'ignite', 0.8, -2, fa.y); continue; }
         fa.y = GY; fa.landed = true; fa.vy = 0; fa.vx *= 0.45;
-        envSound(state, fa.x, 'thud', 0.7, -4);
+        envSound(state, fa.x, 'thud', 0.7, -4, fa.y);
       }
     } else if (fa.how === 'flung') { fa.x += fa.vx; fa.vx *= 0.88; }
     else if (fa.how === 'burned') {
@@ -204,7 +204,7 @@ export const updateCivilians = (ctx: FrameContext, ev: HazEvents) => {
       const p = civAt(cv, f);
       if (!onScreen(cv, p.x)) continue;
       const l = LAVA.find(q => q.hl === 0 && p.x - X(q.b) >= 0 && p.x - X(q.b) < 190);
-      if (l) { const fa = fresh('burned', p.x, GY, 1); fa.vx = -2.8; cs.fate.set(cv.id, fa); envSound(state, p.x, 'screams', 0.45, 4); continue; }
+      if (l) { const fa = fresh('burned', p.x, GY, 1); fa.vx = -2.8; cs.fate.set(cv.id, fa); envSound(state, p.x, 'screams', 0.45, 4, p.y); continue; }
       if (!sheet && Math.random() < 0.6) {
         sheet = true;
         // (from just off the right of the screen, at their depth)
@@ -263,6 +263,6 @@ export const updateCivilians = (ctx: FrameContext, ev: HazEvents) => {
     const [px, py] = fromDepth(state, p.x, GY - 40, cv.d);
     hv.debris.push({ x: px, y: py, vx: 0, vy: 0, rot: 0, w: 18, h: 40, col: '#F6DCC8', orbit: 70, ang: 0, r: 60, t: 0, guest: true, gk: cv.k });
     doom(ctx, cs, cv, fresh('taken', p.x, GY, 1), fa ? null : 'SUCKED UP!', '#FCA5A5', 'whirl');
-    if (!fa) envSound(state, p.x, 'screams', 0.5, 2);
+    if (!fa) envSound(state, p.x, 'screams', 0.5, 2, p.y);
   }
 };

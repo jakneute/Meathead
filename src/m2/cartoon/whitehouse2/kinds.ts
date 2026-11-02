@@ -113,13 +113,13 @@ const spindoc = (ctx: FrameContext, e: Enemy) => {
     case 'wind':
       // (turning on the spot, faster and faster: the tell)
       e.vel.x = 0;
-      if (e.aiTimer! % 8 === 0) envSound(state, mid(e).x, 'whoosh', 0.2 + e.aiTimer! * 0.008, 4 + e.aiTimer! * 0.3);
+      if (e.aiTimer! % 8 === 0) envSound(state, mid(e).x, 'whoosh', 0.2 + e.aiTimer! * 0.008, 4 + e.aiTimer! * 0.3, mid(e).y);
       if (e.aiTimer! > 36) { e.facing = dirTo(e, pm.x); k.bounced = false; setState(e, 'spin'); bark(state, e, vo, SPIN_GO, 0.5); playSound('whirl', 0.6, 4); }
       break;
     case 'spin': {
       // (the whirlwind across the floor: hurts him; bounces back off a wall once; gives out dizzy)
       e.vel.x = e.facing! * SPIN_SPEED;
-      if (e.aiTimer! % 10 === 0) envSound(state, mid(e).x, 'whirl', 0.25, 6);
+      if (e.aiTimer! % 10 === 0) envSound(state, mid(e).x, 'whirl', 0.25, 6, mid(e).y);
       if (e.aiTimer! % 3 === 0) state.particles.push({ pos: { x: mid(e).x - e.facing! * 16, y: e.pos.y + e.height - 4 }, vel: { x: -e.facing! * 1.5, y: -0.8 }, life: 16, color: '#E5E7EB', size: 3 });
       if (strike(ctx, e, 18, 11, 'm2:ct_spindoc', 9, -6)) playSound('slam', 0.6, 4);
       // (the other mean men in his way get spun too)
@@ -154,7 +154,7 @@ const WAVE_SPEED = 3.3;
 const dittoBlast = (state: GameState, e: Enemy) => {
   const s = wh2Of(state);
   s.waves.push({ x: mid(e).x + e.facing! * 24, y: e.pos.y + e.height - 26, vx: e.facing! * WAVE_SPEED, t: 0, from: e });
-  envSound(state, mid(e).x, 'alarm', 0.25, 10); envSound(state, mid(e).x, 'rumble', 0.3, 12);
+  envSound(state, mid(e).x, 'alarm', 0.25, 10, mid(e).y); envSound(state, mid(e).x, 'rumble', 0.3, 12, mid(e).y);
 };
 const ditto = (ctx: FrameContext, e: Enemy) => {
   const { state } = ctx, pm = mid(state.player);
@@ -173,7 +173,7 @@ const ditto = (ctx: FrameContext, e: Enemy) => {
     case 'tune':
       // (the antenna up, the dial cranked: the tell)
       e.vel.x = 0; e.facing = dirTo(e, pm.x);
-      if (e.aiTimer! % 6 === 0) envSound(state, mid(e).x, 'beep', 0.15, 16 + (e.aiTimer! % 12));
+      if (e.aiTimer! % 6 === 0) envSound(state, mid(e).x, 'beep', 0.15, 16 + (e.aiTimer! % 12), mid(e).y);
       if (e.aiTimer! > 32) { dittoBlast(state, e); bark(state, e, vo, DITTO_BLAST, 0.35); setState(e, 'blast');
         // (any other dittohead near enough hears it: dittos)
         for (const o of state.enemies) if (o !== e && o.kind === 'm2:ct_ditto' && o.health > 0 && o.aiState === 'near' && Math.abs(mid(o).x - mid(e).x) < 420) { setState(o, 'tune'); o.aiTimer = 10; }
@@ -198,7 +198,7 @@ export const updateWaves = (ctx: FrameContext) => {
   const { state } = ctx, s = wh2Of(state), p = state.player;
   for (const w of s.waves) {
     w.t++; w.x += w.vx;
-    if (w.t % 14 === 0) envSound(state, w.x, 'rumble', 0.12, 18);
+    if (w.t % 14 === 0) envSound(state, w.x, 'rumble', 0.12, 18, w.y);
     if (p.health > 0 && !p.inCutscene && p.invincibilityTimer <= 0 && p.pos.x < w.x + 14 && p.pos.x + p.width > w.x - 14 && p.pos.y < w.y + 22 && p.pos.y + p.height > w.y - 22) {
       hurtPlayer(ctx, 8, 'm2:ct_wave_shot', { x: Math.sign(w.vx) * 6, y: -5 }); w.dead = true; continue;
     }

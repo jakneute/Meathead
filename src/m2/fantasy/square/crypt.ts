@@ -23,6 +23,7 @@ import type { Controls } from '../../../m1/game/platform/input';
 import { hurtPlayer } from '../../../m1/game/bosses/shared';
 import { pickLine } from '../../../m1/game/platform/speech';
 import { playSound } from '../../../m1/game/platform/audio';
+import { worldSound } from '../../onScreen';
 import { makeStairs, updateStairs, drawStairs, stairEnd, type Stair, type StairDef } from '../stairs';
 import { updateLadders, drawLadders, type LadderDef } from '../../moves/ladders';
 import { layOwn, ledge, solid, meatheadSays, byPants } from '../section';
@@ -130,7 +131,7 @@ export const updateCrypt = (ctx: FrameContext, controls: Controls): { out: Contr
     const b = axeAt(f, a);
     if (alive(state) && p.invincibilityTimer <= 0 && hits(state, b.x - BLADE_R, b.y - BLADE_R * 0.6, BLADE_R * 2, BLADE_R * 1.4)) hurtPlayer(ctx, 12, 'm2:fa_axe', { x: (cx < b.x ? -1 : 1) * 5, y: -4 });
     // (the swoosh as it passes the bottom of its swing, near him)
-    if (Math.abs(b.t) < 0.05 && Math.abs(b.x - cx) < 500 && Math.abs(b.y - p.pos.y) < 400 && f % 4 === 0) playSound('whoosh', 0.25, -6);
+    if (Math.abs(b.t) < 0.05 && f % 4 === 0) worldSound(state, 'whoosh', 0.25, -6, b.x - BLADE_R, b.y - BLADE_R, BLADE_R * 2, BLADE_R * 2);
   }
   // (the dragon head: smoke and a glow, then fire across D3 to its left)
   const d = dragonPhase(f), mx = X(DRAGON.x) - 22, my = Y(DRAGON.h);

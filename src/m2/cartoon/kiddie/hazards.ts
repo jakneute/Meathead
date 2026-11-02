@@ -251,7 +251,7 @@ const updateThrows = (ctx: FrameContext) => {
         if (d < 14 || s.t > 240) { s.dead = true; continue; }
       }
       s.x += s.vx;
-      if (s.t % 10 === 0) envSound(state, s.x, 'whirl', 0.15, 14);
+      if (s.t % 10 === 0) envSound(state, s.x, 'whirl', 0.15, 14, s.y);
       if (alive(state) && p.invincibilityTimer <= 0 && overlaps(state, s.x - 14, s.y - 16, 28, 26)) { if (helmetStops(state, s.x - 14, s.y - 16, 28, 26)) s.dir = -1; else { hurtPlayer(ctx, 10, 'm2:ct_hat_shot', { x: Math.sign(s.vx || 1) * 6, y: -4 }); playSound('bonk', 0.6, 10); } }
       continue;
     }
@@ -290,7 +290,7 @@ const updateThrows = (ctx: FrameContext) => {
     const wall = state.blocks.some(b => !b.oneWay && b.type !== 'platform' && b.type !== 'pit' && s.x > b.x && s.x < b.x + b.w && s.y > b.y + 4 && s.y < b.y + b.h);
     if ((top !== null && s.y >= top) || wall || s.t > 160) {
       s.dead = true;
-      envSound(state, s.x, 'splat', 0.4, 8);
+      envSound(state, s.x, 'splat', 0.4, 8, s.y);
       if (top !== null && !wall) k.throws.push({ kind: 'splat', x: s.x, y: top, vx: 0, vy: 0, t: 0, from: s.from, phase: String((s.x | 0) % 5) });
     }
   }

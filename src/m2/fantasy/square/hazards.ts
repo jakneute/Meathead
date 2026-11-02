@@ -52,17 +52,17 @@ export const updateHazards = (ctx: FrameContext) => {
   const zones = [];
   for (const s of sq.snows) {
     const t = (state.frame + s.phase) % PERIOD;
-    if (s.state === 'idle' && t >= IDLE && t < IDLE + TELL) { s.state = 'tell'; s.t = 0; envSound(state, s.x, 'rumble', 0.3, 12); }
+    if (s.state === 'idle' && t >= IDLE && t < IDLE + TELL) { s.state = 'tell'; s.t = 0; envSound(state, s.x, 'rumble', 0.3, 12, s.y); }
     s.t++;
     if (s.state === 'tell') {
       if (s.t % 3 === 0) state.particles.push({ pos: { x: s.x + (Math.random() - 0.5) * SLAB_W, y: Y(s.eave) + 4 }, vel: { x: 0, y: 1 + Math.random() }, life: 26, color: '#F4F8FF', size: 2 });
-      if (s.t >= TELL) { s.state = 'fall'; s.t = 0; s.y = Y(s.eave); s.vy = 0; envSound(state, s.x, 'whoosh', 0.5, -8); }
+      if (s.t >= TELL) { s.state = 'fall'; s.t = 0; s.y = Y(s.eave); s.vy = 0; envSound(state, s.x, 'whoosh', 0.5, -8, s.y); }
     } else if (s.state === 'fall') {
       s.vy += 0.8; s.y += s.vy;
       const top = s.y - SLAB_H;
       if (alive(state) && p.invincibilityTimer <= 0 && hits(state, s.x - SLAB_W / 2, top, SLAB_W, SLAB_H)) hurtPlayer(ctx, 14, 'm2:fa_snow', { x: (mid(p).x < s.x ? -1 : 1) * 3, y: 2 });
       for (const e of hazardVictims(state)) if (boxHits(e, s.x - SLAB_W / 2, top, SLAB_W, SLAB_H)) hazardHit(ctx, e, 70, s.x, 'SNOWED IN!', { knock: 4 });
-      if (s.y >= GY) { s.y = GY; s.state = 'heap'; s.t = 0; envSound(state, s.x, 'thud', 0.8, -10); for (let i = 0; i < 14; i++) state.particles.push({ pos: { x: s.x + (Math.random() - 0.5) * SLAB_W, y: GY - 6 }, vel: { x: (Math.random() - 0.5) * 5, y: -1 - Math.random() * 3 }, life: 24, color: i % 2 ? '#FFFFFF' : '#DCE4F2', size: 3 }); }
+      if (s.y >= GY) { s.y = GY; s.state = 'heap'; s.t = 0; envSound(state, s.x, 'thud', 0.8, -10, s.y); for (let i = 0; i < 14; i++) state.particles.push({ pos: { x: s.x + (Math.random() - 0.5) * SLAB_W, y: GY - 6 }, vel: { x: (Math.random() - 0.5) * 5, y: -1 - Math.random() * 3 }, life: 24, color: i % 2 ? '#FFFFFF' : '#DCE4F2', size: 3 }); }
     } else if (s.state === 'heap' && s.t > 70) s.state = 'idle';
     if (s.state === 'tell' || s.state === 'fall') zones.push({ x0: s.x - SLAB_W / 2 - 6, x1: s.x + SLAB_W / 2 + 6, y0: Y(s.eave), y1: GY });
   }
@@ -123,9 +123,9 @@ export const updateThrows = (ctx: FrameContext) => {
     const top = s.vy > 0 ? floorTopAt(state.blocks, s.x, s.y - s.vy - 2, 0) : null;
     const wall = state.blocks.some(b => !b.oneWay && b.type !== 'platform' && b.type !== 'pit' && s.x > b.x && s.x < b.x + b.w && s.y > b.y + 4 && s.y < b.y + b.h);
     if ((top !== null && s.y >= top) || wall || s.t > 160) {
-      if (s.kind === 'ball' && !wall && top !== null && s.bounces < 2) { s.y = top; s.vy = -Math.abs(s.vy) * 0.6; s.vx *= 0.8; s.bounces++; envSound(state, s.x, 'boing', 0.3, 8); continue; }
+      if (s.kind === 'ball' && !wall && top !== null && s.bounces < 2) { s.y = top; s.vy = -Math.abs(s.vy) * 0.6; s.vx *= 0.8; s.bounces++; envSound(state, s.x, 'boing', 0.3, 8, s.y); continue; }
       s.dead = true;
-      if (s.kind === 'slipper') { envSound(state, s.x, 'glass', 0.6, 4); for (let i = 0; i < 6; i++) state.particles.push({ pos: { x: s.x, y: s.y - 2 }, vel: { x: (Math.random() - 0.5) * 4, y: -1 - Math.random() * 2 }, life: 18, color: '#CFF4FF', size: 2 }); }
+      if (s.kind === 'slipper') { envSound(state, s.x, 'glass', 0.6, 4, s.y); for (let i = 0; i < 6; i++) state.particles.push({ pos: { x: s.x, y: s.y - 2 }, vel: { x: (Math.random() - 0.5) * 4, y: -1 - Math.random() * 2 }, life: 18, color: '#CFF4FF', size: 2 }); }
       if (s.kind === 'spark') for (let i = 0; i < 8; i++) state.particles.push({ pos: { x: s.x, y: s.y - 2 }, vel: { x: (Math.random() - 0.5) * 4, y: -1 - Math.random() * 2 }, life: 14, color: i % 2 ? '#FDE047' : '#F0ABFC', size: 2 });
     }
   }

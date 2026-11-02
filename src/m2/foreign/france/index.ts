@@ -19,7 +19,7 @@ import { layOwn, solid, ledge, foreignState } from '../section';
 import { SECTIONS, GY } from '../geometry';
 import { spawnCast } from '../cast';
 import { pavilionTalk } from '../pavilion';
-import { playSound } from '../../../m1/game/platform/audio';
+import { worldSound } from '../../onScreen';
 import { makeMover, moveMover, type Mover } from '../movers';
 import { type Ctx, type View, viewIn, promenade, postBoard, hungBoard, swag, LOOKS, onScreen, FACADE_D } from '../kit';
 import { TALK } from './lines';
@@ -139,13 +139,13 @@ export const france: ForeignSection = {
     for (const [rx, h, type] of PICKUPS) state.pickups.push({ id: `fr-${rx}`, pos: { x: X(rx) - 10, y: Y(h) - 24 }, vel: { x: 0, y: 0 }, width: 20, height: 20, type, life: 1e9 });
   },
   update: (ctx, controls) => {
-    const { state } = ctx, f = state.frame, fr = fraOf(state), p = state.player;
+    const { state } = ctx, f = state.frame, fr = fraOf(state);
     pavilionTalk(state, 'fr', x0, GY, TALK);
     updateLouvre(ctx);
     updateMimeWalls(ctx);
     if (fr.lift) moveMover(state, fr.lift, X(LIFT.a), Y(liftH(f)));
     const cyc = (LIFT.wait + LIFT.run) * 2, t = f % cyc;
-    if ((t === LIFT.wait || t === LIFT.wait * 2 + LIFT.run) && Math.abs(p.pos.x - X(LIFT.a)) < 700) playSound('ding', 0.5, 4);
+    if (t === LIFT.wait || t === LIFT.wait * 2 + LIFT.run) worldSound(state, 'ding', 0.5, 4, X(LIFT.a), Y(liftH(f)) - 40, 80, 40);
     return controls;
   },
   drawBack: (c, state) => {

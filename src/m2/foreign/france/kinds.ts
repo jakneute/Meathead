@@ -17,6 +17,7 @@ import type { GameState } from '../../../m1/game/core/state';
 import type { Block, Enemy } from '../../../m1/types';
 import { mid } from '../../../m1/game/enemies/kinds';
 import { playSound } from '../../../m1/game/platform/audio';
+import { worldSound } from '../../onScreen';
 import { castKind, meleeHit, setState, type Costume, type Ctx, INK, px, part, partTop, ball, limb, dk, lt } from '../cast';
 import { shootFlat } from '../shots';
 import { registerHurts } from '../pavilion';
@@ -293,7 +294,7 @@ castKind({
     if ((st === 'idle' || st === 'approach') && ctx.state.frame % BEAT === 0) { e.vel.x = 0; setState(e, 'tell'); return true; }
     return false;
   },
-  strike: (ctx, e) => { if (meleeHit(ctx, e, 78, 10, 'm2:fl_cancan', 12)) playSound('punch', 0.7, 8); if (Math.abs(mid(ctx.state.player).x - mid(e).x) < 700) playSound('whoosh', 0.25, 12); },
+  strike: (ctx, e) => { if (meleeHit(ctx, e, 78, 10, 'm2:fl_cancan', 12)) playSound('punch', 0.7, 8); worldSound(ctx.state, 'whoosh', 0.25, 12, e.pos.x, e.pos.y, e.width, e.height); },
   drawExtra: (c, e) => drawKick(c, e),
 });
 

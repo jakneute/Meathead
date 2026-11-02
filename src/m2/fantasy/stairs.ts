@@ -119,9 +119,9 @@ export const updateStairs = (ctx: FrameContext, list: Stair[]) => {
     // (its sounds: the creak and the twinkle as the tell starts, the groan of the swing, the thunk of it docking)
     if (phase !== s.lastPhase) {
       const mid = endAt(d, s.ang);
-      if (phase === 'tell') { envSound(state, mid.x, 'rumble', 0.32, 10); envSound(state, mid.x, 'twinkle', 0.28, 4); }
-      else if (phase === 'swing') envSound(state, mid.x, 'rumble', 0.45, -2);
-      else if (s.lastPhase === 'swing') envSound(state, mid.x, 'thud', 0.45, -8);
+      if (phase === 'tell') { envSound(state, mid.x, 'rumble', 0.32, 10, mid.y); envSound(state, mid.x, 'twinkle', 0.28, 4, mid.y); }
+      else if (phase === 'swing') envSound(state, mid.x, 'rumble', 0.45, -2, mid.y);
+      else if (s.lastPhase === 'swing') envSound(state, mid.x, 'thud', 0.45, -8, mid.y);
       s.lastPhase = phase;
     }
     const cx0 = p.pos.x + p.width / 2, feet0 = p.pos.y + p.height;

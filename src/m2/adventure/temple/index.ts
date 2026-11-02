@@ -87,7 +87,7 @@ const runCatapult = (ctx: FrameContext, tp: Temple) => {
     b.x += b.vx;
     if (!b.rolling) {
       b.vy += 0.32; b.y += b.vy;
-      if (b.y + b.r >= GY) { b.y = GY - b.r; b.rolling = true; b.vy = 0; if (heard(state, b.x)) { playSound('thud', 0.8, -8); shakeScreen(state, 5, 3); } }
+      if (b.y + b.r >= GY) { b.y = GY - b.r; b.rolling = true; b.vy = 0; if (heard(state, b.x, undefined, b.y)) { playSound('thud', 0.8, -8); shakeScreen(state, 5, 3); } }
     } else b.vx = Math.max(-7, b.vx * 0.995);
     if (canHurt(state) && hits(pBox(state), b.x - b.r, b.y - b.r, b.r * 2, b.r * 2)) {
       hurtPlayer(ctx, 14, 'temple_boulder', { x: -5, y: -5 });
@@ -101,7 +101,7 @@ const runCatapult = (ctx: FrameContext, tp: Temple) => {
     // (into the back of the flats at the near end: it smashes)
     if (b.x < T + 230 || b.t > 500) {
       for (let i = 0; i < 12; i++) state.particles.push({ pos: { x: b.x, y: b.y }, vel: { x: (Math.random() - 0.3) * 5, y: -2 - Math.random() * 4 }, life: 40, color: i % 2 ? '#78716C' : '#A8A29E', size: 3 + Math.random() * 4, grav: 0.3, chunk: true });
-      if (heard(state, b.x)) playSound('crumble', 0.6);
+      if (heard(state, b.x, undefined, b.y)) playSound('crumble', 0.6);
       return false;
     }
     return true;

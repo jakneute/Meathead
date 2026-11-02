@@ -19,6 +19,7 @@ import type { Block, Enemy } from '../../../m1/types';
 import { shakeScreen } from '../../../m1/game/core/state';
 import { hurtPlayer } from '../../../m1/game/bosses/shared';
 import { playSound } from '../../../m1/game/platform/audio';
+import { worldSound } from '../../onScreen';
 import { pushEnemy } from '../../../m1/game/combat/knockback';
 import { CANVAS_WIDTH } from '../../../m1/constants';
 import { setHazardZones, hazardVictims, hazardHit, hazardKill, boxHits, type Zone } from '../../hazardHit';
@@ -162,14 +163,14 @@ export const updateGear = (ctx: FrameContext, g: Gear): GearEvents => {
       } else pd.on = 0;
     } else {
       const t = padPhase(state, pd);
-      if (near(pd.x) && (t === PAD.period - 48 || t === PAD.period - 32 || t === PAD.period - 16)) playSound('beep', 0.4, t === PAD.period - 16 ? 8 : 2);
+      if (t === PAD.period - 48 || t === PAD.period - 32 || t === PAD.period - 16) worldSound(state, 'beep', 0.4, t === PAD.period - 16 ? 8 : 2, pd.x, pd.y - 20, pd.w, 20);
       fire = t === 0;
       // (about to go: nobody walks onto it)
       if (t > PAD.period - 60) zones.push({ x0: pd.x - 6, x1: pd.x + pd.w + 6, y0: pd.y - 200, y1: pd.y + 2, ground: true });
     }
     if (fire) {
       pd.on = 0; pd.cd = PAD.cool; pd.fired = state.frame;
-      if (near(pd.x)) { playSound('boom', 0.45, 6); playSound('whoosh', 0.8, -6); shakeScreen(state, 4, 2); }
+      if (near(pd.x)) { worldSound(state, 'boom', 0.45, 6, pd.x, pd.y - 20, pd.w, 20); worldSound(state, 'whoosh', 0.8, -6, pd.x, pd.y - 20, pd.w, 20); shakeScreen(state, 4, 2); }
       if (onIt) { launch(state, pd.power ?? PAD.power); ev.padFired = true; }
       for (const e of foes) if (e.enemyType !== 'flyer' && eOn(e, pd.x - 4, pd.w + 8, pd.y)) { pushEnemy(e, (Math.random() - 0.5) * 4, -17, 50); if (once(state, e, 10)) hazardHit(ctx, e, 20, pd.x + pd.w / 2, 'BLAST OFF!', { color: '#FDE68A', knock: 1 }); }
     }
@@ -183,8 +184,8 @@ export const updateGear = (ctx: FrameContext, g: Gear): GearEvents => {
     const wasOut = m.out;
     m.out = m.t < run;
     m.x = m.a - m.len + m.t * m.v;
-    if (!wasOut && m.out && near(m.a)) playSound('ding', 0.4, 3);
-    if (m.t === m.period - 70 && near(m.a)) playSound('horn', 0.5, 4);
+    if (!wasOut && m.out) worldSound(state, 'ding', 0.4, 3, m.a, m.y - MONO_H, 40, MONO_H);
+    if (m.t === m.period - 70) worldSound(state, 'horn', 0.5, 4, m.a, m.y - MONO_H, 40, MONO_H);
     const roofY = m.y - MONO_H;
     // (the roof: a ledge only where it's out of the sheds)
     const rx = Math.max(m.x + 10, m.a), rw = Math.min(m.x + m.len - 10, m.b) - rx;

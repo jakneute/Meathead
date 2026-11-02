@@ -15,6 +15,7 @@ import type { FrameContext } from '../../../m1/game/core/context';
 import type { GameState } from '../../../m1/game/core/state';
 import { hurtPlayer } from '../../../m1/game/bosses/shared';
 import { playSound } from '../../../m1/game/platform/audio';
+import { worldSound } from '../../onScreen';
 import { pickLine } from '../../../m1/game/platform/speech';
 import { shakeScreen } from '../../../m1/game/core/state';
 import { registerHurtLines } from '../../kinds';
@@ -89,8 +90,8 @@ const stepSaw = (state: GameState, s: Saw, logRx: number) => {
       s.k = down; s.t = c;
       s.cx = X(s.x) + (c >= 90 && c < 120 ? Math.sin(c * 2.1) * 2 : 0);
       s.cy = wy - 200 + down * 190;
-      if (c === 120 && Math.abs(near) < 700) playSound('whoosh', 0.6, -4);
-      if (c === 130 && Math.abs(near) < 700) { playSound('slam', 0.7, -2); playSound('splash', 0.6, 0); }
+      if (c === 120) worldSound(state, 'whoosh', 0.6, -4, s.cx - s.r, s.cy - s.r, s.r * 2, s.r * 2);
+      if (c === 130 && worldSound(state, 'slam', 0.7, -2, s.cx - s.r, s.cy - s.r, s.r * 2, s.r * 2)) worldSound(state, 'splash', 0.6, 0, s.cx - s.r, s.cy - s.r, s.r * 2, s.r * 2);
       return down > 0.05;
     }
     case 'rail': {
@@ -134,7 +135,7 @@ export const updateHazards = (ctx: FrameContext) => {
     const cuts = stepSaw(state, s, L.rx) && !s.jam;
     if (s.jam) s.jam++;
     // (a hum as it comes on screen)
-    if (!s.jam && Math.abs(s.cx - (state.camera.x + 400)) < 420 && state.frame % 26 === (s.x % 26)) playSound('grind', 0.12, s.type === 'drop' ? -8 : -2);
+    if (!s.jam && state.frame % 26 === (s.x % 26)) worldSound(state, 'grind', 0.12, s.type === 'drop' ? -8 : -2, s.cx - s.r, s.cy - s.r, s.r * 2, s.r * 2);
     if (!cuts) continue;
     zones.push({ x0: s.cx - s.r, x1: s.cx + s.r, y0: s.cy - s.r, y1: s.cy + s.r });
     // (the ducks' saws hit as far as their teeth are drawn: down to the duck line, never lower)
@@ -215,9 +216,9 @@ export const updateHazards = (ctx: FrameContext) => {
   for (const [gx, ph] of GUSHERS) {
     const c = (state.frame + ph) % 160, pour = c >= 115 && c < 150;
     // (the tell, a good second before it goes: a rumble in the pipe, glugging, a dribble that thickens, its lamp)
-    if ((c === 50 || c === 80 || c === 100) && Math.abs(X(gx) - state.camera.x - 400) < 560) playSound('glug', 0.5 + (c - 50) / 120, -6);
-    if (c === 60 && Math.abs(X(gx) - state.camera.x - 400) < 560) playSound('rumble', 0.35, -4);
-    if (c === 115 && Math.abs(X(gx) - state.camera.x - 400) < 500) playSound('gush', 0.8, -4);
+    if (c === 50 || c === 80 || c === 100) worldSound(state, 'glug', 0.5 + (c - 50) / 120, -6, X(gx));
+    if (c === 60) worldSound(state, 'rumble', 0.35, -4, X(gx));
+    if (c === 115) worldSound(state, 'gush', 0.8, -4, X(gx));
     if (!pour) continue;
     const gx0 = X(gx) - 22, gx1 = X(gx) + 22, top = waterY(gx) - 220;
     zones.push({ x0: gx0, x1: gx1, y0: top, y1: waterY(gx) });

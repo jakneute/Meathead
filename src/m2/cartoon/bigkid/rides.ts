@@ -132,7 +132,7 @@ const updateCouch = (ctx: FrameContext, zones: Zone[]) => {
       if (Math.sign(d) !== r.dir && Math.abs(d) > 10) { r.phase = 'turn'; r.t = 0; r.v = 0; break; }
       r.v = Math.min(1.5, r.v + 0.05); r.x += r.dir * r.v;
       if (Math.abs(d) < 8) { r.phase = 'idle'; r.t = 0; r.v = 0; }
-      if (r.t % 50 === 0) envSound(state, r.x, 'engine', 0.15, 10);
+      if (r.t % 50 === 0) envSound(state, r.x, 'engine', 0.15, 10, Y(r.y));
       break;
     }
     case 'idle':
@@ -140,21 +140,21 @@ const updateCouch = (ctx: FrameContext, zones: Zone[]) => {
       break;
     case 'turn': case 'turnTell':
       // (a three-point turn, quick: the couch swings round)
-      if (r.t === 1) envSound(state, r.x, 'engine', 0.2, 6);
+      if (r.t === 1) envSound(state, r.x, 'engine', 0.2, 6, Y(r.y));
       if (r.t >= 26) { r.dir = (r.dir * -1) as 1 | -1; r.phase = r.phase === 'turnTell' ? 'tell' : 'roam'; r.t = 0; }
       break;
     case 'tell':
       // (headlights flashing, the horn twice, revving: then it goes)
       r.dir = (px < r.x ? -1 : 1) as 1 | -1;
-      if (r.t === 1 || r.t === 24) envSound(state, r.x, 'truckhorn', 0.55, 4);
-      if (r.t % 8 === 0) envSound(state, r.x, 'engine', 0.3, 8 + r.t / 6);
+      if (r.t === 1 || r.t === 24) envSound(state, r.x, 'truckhorn', 0.55, 4, Y(r.y));
+      if (r.t % 8 === 0) envSound(state, r.x, 'engine', 0.3, 8 + r.t / 6, Y(r.y));
       if (r.t === 2 && sneer && state.frame - bigkidOf(state).sneerAt > 900) sneer(state);
-      if (r.t >= 52) { r.phase = 'charge'; r.t = 0; r.target = r.x; envSound(state, r.x, 'carroar', 0.5, 0); }
+      if (r.t >= 52) { r.phase = 'charge'; r.t = 0; r.target = r.x; envSound(state, r.x, 'carroar', 0.5, 0, Y(r.y)); }
       break;
     case 'charge':
       r.v = Math.min(7.6, r.v + 0.45); r.x += r.dir * r.v;
       if (r.t % 4 === 0 && onScreen(state, r.x - 100, r.x + 100)) dust(state, r.x - r.dir * COUCH_L / 2, GY, 2);
-      if (r.x <= r.lo || r.x >= r.hi || Math.abs(r.x - r.target) > 820) { r.x = clamp(r.x, r.lo, r.hi); r.phase = 'brake'; r.t = 0; envSound(state, r.x, 'crash', 0.25, 14); }
+      if (r.x <= r.lo || r.x >= r.hi || Math.abs(r.x - r.target) > 820) { r.x = clamp(r.x, r.lo, r.hi); r.phase = 'brake'; r.t = 0; envSound(state, r.x, 'crash', 0.25, 14, Y(r.y)); }
       break;
     case 'brake':
       r.v *= 0.86; r.x = clamp(r.x + r.dir * r.v, r.lo, r.hi);
@@ -200,8 +200,8 @@ const updateBumpers = (ctx: FrameContext, zones: Zone[]) => {
         break;
       case 'tell':
         r.dir = (goal < r.x ? -1 : 1) as 1 | -1;
-        if (r.t % 9 === 0) envSound(state, r.x, 'beep', 0.35, 10);
-        if (r.t >= 36) { r.phase = 'charge'; r.t = 0; envSound(state, r.x, 'engine', 0.35, 14); }
+        if (r.t % 9 === 0) envSound(state, r.x, 'beep', 0.35, 10, Y(r.y));
+        if (r.t >= 36) { r.phase = 'charge'; r.t = 0; envSound(state, r.x, 'engine', 0.35, 14, Y(r.y)); }
         break;
       case 'charge':
         r.v = Math.min(6.6, r.v + 0.5); r.x += r.dir * r.v;
@@ -239,7 +239,7 @@ const updateBumpers = (ctx: FrameContext, zones: Zone[]) => {
     if (Math.abs(a.x - b.x) < CAR_L - 6) {
       const s = a.x < b.x ? -1 : 1;
       a.x += s * 3; b.x -= s * 3;
-      if (a.phase === 'charge' || b.phase === 'charge') { sparks(state, (a.x + b.x) / 2, Y(26)); envSound(state, a.x, 'clang', 0.5, 4); }
+      if (a.phase === 'charge' || b.phase === 'charge') { sparks(state, (a.x + b.x) / 2, Y(26)); envSound(state, a.x, 'clang', 0.5, 4, Y(a.y)); }
       for (const r of [a, b]) if (r.phase === 'charge' || r.phase === 'roam') { r.phase = 'bounce'; r.t = 0; r.v = 2; r.dir = (r === a ? -s : s) as 1 | -1; }
     }
   }
@@ -272,15 +272,15 @@ const updateWhirl = (ctx: FrameContext, zones: Zone[]) => {
       break;
     case 'tell':
       // (the clown's eyes spin, the calliope honks, it shudders on its casters: the tell)
-      if (r.t % 10 === 0) envSound(state, r.x, 'ding', 0.4, 6 + (r.t / 10) * 3);
-      if (r.t === 1) envSound(state, r.x, 'horn', 0.45, 12);
+      if (r.t % 10 === 0) envSound(state, r.x, 'ding', 0.4, 6 + (r.t / 10) * 3, Y(r.y));
+      if (r.t === 1) envSound(state, r.x, 'horn', 0.45, 12, Y(r.y));
       if (r.t === 2 && sneer && state.frame - bigkidOf(state).sneerAt > 900) sneer(state);
-      if (r.t >= 44) { r.phase = 'lurch'; r.t = 0; r.target = clamp(px, r.lo, r.hi); r.dir = (r.target < r.x ? -1 : 1) as 1 | -1; envSound(state, r.x, 'rumble', 0.45, 0); }
+      if (r.t >= 44) { r.phase = 'lurch'; r.t = 0; r.target = clamp(px, r.lo, r.hi); r.dir = (r.target < r.x ? -1 : 1) as 1 | -1; envSound(state, r.x, 'rumble', 0.45, 0, Y(r.y)); }
       break;
     case 'lurch':
       r.v = Math.min(2.8, r.v + 0.12); r.x += r.dir * r.v;
       if (r.t % 6 === 0 && onScreen(state, r.x - 200, r.x + 200)) dust(state, r.x, GY, 2);
-      if ((r.target - r.x) * r.dir <= 0 || r.x <= r.lo || r.x >= r.hi || r.t > 170) { r.x = clamp(r.x, r.lo, r.hi); r.v = 0; r.phase = 'spin'; r.t = 0; r.sic = 0; envSound(state, r.x, 'thud', 0.4, -4); }
+      if ((r.target - r.x) * r.dir <= 0 || r.x <= r.lo || r.x >= r.hi || r.t > 170) { r.x = clamp(r.x, r.lo, r.hi); r.v = 0; r.phase = 'spin'; r.t = 0; r.sic = 0; envSound(state, r.x, 'thud', 0.4, -4, Y(r.y)); }
       break;
   }
   for (const car of whirlCars(r)) {
@@ -304,21 +304,21 @@ const updatePod = (ctx: FrameContext, zones: Zone[]) => {
       break;
     case 'tell':
       // (it crouches on its legs, hissing, the beacon going round: the tell)
-      if (r.t === 1) envSound(state, r.x, 'whoosh', 0.45, -10);
-      if (r.t % 14 === 0) envSound(state, r.x, 'ding', 0.25, 16);
+      if (r.t === 1) envSound(state, r.x, 'whoosh', 0.45, -10, Y(r.y));
+      if (r.t % 14 === 0) envSound(state, r.x, 'ding', 0.25, 16, Y(r.y));
       if (r.t === 2 && sneer && state.frame - bigkidOf(state).sneerAt > 900) sneer(state);
       if (r.t % 4 === 0 && onScreen(state, r.x - 100, r.x + 100)) state.particles.push({ pos: { x: r.x + (Math.random() - 0.5) * POD_W, y: GY - 20 }, vel: { x: (Math.random() - 0.5) * 2, y: -1.2 }, life: 24, color: '#F1F5F9', size: 5 });
       if (r.t >= 46) {
         const tx = clamp(px, r.lo, r.hi), T = (2 * 11.5) / POD_G;
         r.vy = 11.5; r.v = (tx - r.x) / T; r.target = tx; r.phase = 'air'; r.t = 0; r.dir = (tx < r.x ? -1 : 1) as 1 | -1;
-        envSound(state, r.x, 'boom', 0.4, 10); envSound(state, r.x, 'whoosh', 0.6, 4);
+        envSound(state, r.x, 'boom', 0.4, 10, Y(r.y)); envSound(state, r.x, 'whoosh', 0.6, 4, Y(r.y));
       }
       break;
     case 'air':
       r.x += r.v; r.y += r.vy; r.vy -= POD_G;
       if (r.y <= 0) {
         r.y = 0; r.vy = 0; r.phase = 'land'; r.t = 0;
-        envSound(state, r.x, 'slam', 0.9, -8); shakeScreen(state, 8, 4); dust(state, r.x, GY, 14);
+        envSound(state, r.x, 'slam', 0.9, -8, Y(r.y)); shakeScreen(state, 8, 4); dust(state, r.x, GY, 14);
       }
       break;
     case 'land':
@@ -344,8 +344,8 @@ export const boardAt = (f: number) => {
 const updateBoard = (ctx: FrameContext, zones: Zone[]) => {
   const { state } = ctx, f = state.frame, b = boardAt(f), prev = boardAt(f - 1);
   // (the coping clanks at each end of the swing; a roar through the bottom)
-  if (Math.sign(b.v) !== Math.sign(prev.v)) envSound(state, b.x, 'clang', 0.45, 6);
-  if (Math.abs(b.x - X((PIPE.a + PIPE.b) / 2)) < 4) envSound(state, b.x, 'whoosh', 0.4, -4);
+  if (Math.sign(b.v) !== Math.sign(prev.v)) envSound(state, b.x, 'clang', 0.45, 6, b.y);
+  if (Math.abs(b.x - X((PIPE.a + PIPE.b) / 2)) < 4) envSound(state, b.x, 'whoosh', 0.4, -4, b.y);
   const bx = b.x - BOARD_L / 2 + 6, by = b.y - BOARD_H;
   rideHurts(ctx, bx, by, BOARD_L - 12, BOARD_H, 13, 'm2:ct_board', { x: Math.sign(b.v || 1) * 9, y: -8 });
   rideHitsCast(ctx, bx, by, BOARD_L - 12, BOARD_H, 60, b.x - Math.sign(b.v || 1) * 40, 'BOARDED!');
@@ -421,10 +421,10 @@ const updateThrows = (ctx: FrameContext) => {
       s.x += s.vx; s.vx *= s.down ? 0.8 : 0.988;
       if (Math.abs(s.vx) < 0.6 && !s.down) { s.down = true; s.vx = 0; }
       const wall = state.blocks.some(b => !b.oneWay && b.type === 'wall' && s.x > b.x && s.x < b.x + b.w && s.y - 8 > b.y && s.y - 8 < b.y + b.h);
-      if (wall) { s.vx = -s.vx * 0.5; s.x += s.vx * 2; envSound(state, s.x, 'clang', 0.3, 10); }
+      if (wall) { s.vx = -s.vx * 0.5; s.x += s.vx * 2; envSound(state, s.x, 'clang', 0.3, 10, s.y); }
       if (!s.down && alive(state) && p.invincibilityTimer <= 0 && overlaps(state, s.x - 24, s.y - 14, 48, 14)) { hurtPlayer(ctx, 10, 'm2:ct_board_shot', { x: Math.sign(s.vx || 1) * 6, y: -6 }); playSound('bonk', 0.6, 4); }
       if (s.down && s.t > 900) s.dead = true;
-      if (!s.down && s.t % 8 === 0) envSound(state, s.x, 'whirl', 0.12, 20);
+      if (!s.down && s.t % 8 === 0) envSound(state, s.x, 'whirl', 0.12, 20, s.y);
       continue;
     }
     if (s.down) { if (s.t > 240) s.dead = true; continue; }
@@ -441,13 +441,13 @@ const updateThrows = (ctx: FrameContext) => {
     const top = s.vy > 0 ? floorTopAt(state.blocks, s.x, s.y - s.vy - 2, 0) : null;
     const wall = state.blocks.some(b => !b.oneWay && b.type !== 'platform' && b.type !== 'pit' && s.x > b.x && s.x < b.x + b.w && s.y > b.y + 4 && s.y < b.y + b.h);
     if ((top !== null && s.y >= top) || wall || s.t > 200 || s.y > GY + 300) {
-      if (s.kind === 'cone' && top !== null && !wall) { s.down = true; s.y = top; s.t = 0; envSound(state, s.x, 'clink', 0.4, -6); continue; }
+      if (s.kind === 'cone' && top !== null && !wall) { s.down = true; s.y = top; s.t = 0; envSound(state, s.x, 'clink', 0.4, -6, s.y); continue; }
       s.dead = true;
       if (s.kind === 'glop') {
-        envSound(state, s.x, 'splat', 0.5, -4); splatGlop(state, s.x, top ?? s.y);
+        envSound(state, s.x, 'splat', 0.5, -4, s.y); splatGlop(state, s.x, top ?? s.y);
         // (a puddle where it lands on the street (not on a lid, a ledge or a ride))
         if (top !== null && Math.abs(top - GY) < 3 && !wall) k.throws.push({ kind: 'puddle', x: s.x, y: top, vx: 0, vy: 0, t: 0, from: s.from });
-      } else if (s.kind === 'churro') { envSound(state, s.x, 'thud', 0.3, 12); for (let i = 0; i < 6; i++) state.particles.push({ pos: { x: s.x, y: s.y }, vel: { x: (Math.random() - 0.5) * 3, y: -Math.random() * 2 }, life: 20, color: '#E7B676', size: 2 }); }
+      } else if (s.kind === 'churro') { envSound(state, s.x, 'thud', 0.3, 12, s.y); for (let i = 0; i < 6; i++) state.particles.push({ pos: { x: s.x, y: s.y }, vel: { x: (Math.random() - 0.5) * 3, y: -Math.random() * 2 }, life: 20, color: '#E7B676', size: 2 }); }
     }
   }
   k.throws = k.throws.filter(s => !s.dead);

@@ -97,7 +97,7 @@ const updateChandelier = (state: GameState) => {
   if (on) { p.pos.x += at.x - c.x; p.pos.y += at.y - c.y; }
   // (the crystals tinkling at the ends of its swing)
   const prev = chandelierAt(state.frame - 1).a, prev2 = chandelierAt(state.frame - 2).a;
-  if ((at.a - prev) * (prev - prev2) < 0) envSound(state, at.x, 'tinkle', 0.25, 10);
+  if ((at.a - prev) * (prev - prev2) < 0) envSound(state, at.x, 'tinkle', 0.25, 10, at.y);
   c.x = at.x; c.y = at.y; c.b.x = at.x - CHANDELIER.w / 2; c.b.y = at.y;
 };
 export const ridingChandelier = (state: GameState) => whOf(state).chand.on && onChandelier(state);
@@ -139,12 +139,12 @@ const updateBalls = (ctx: FrameContext) => {
     b.vy += 0.6; b.y += b.vy;
     if (b.y >= fl) {
       // (it thumps down each step: a little bounce off the tread)
-      if (b.vy > 2.2) { envSound(state, b.x, 'thud', Math.min(0.35, b.vy * 0.06), 6); b.vy = -b.vy * 0.32; } else b.vy = 0;
+      if (b.vy > 2.2) { envSound(state, b.x, 'thud', Math.min(0.35, b.vy * 0.06), 6, b.y); b.vy = -b.vy * 0.32; } else b.vy = 0;
       b.y = fl;
     }
-    if (b.t % 16 === 0 && !onStairs) envSound(state, b.x, 'rumble', 0.12, 12);
+    if (b.t % 16 === 0 && !onStairs) envSound(state, b.x, 'rumble', 0.12, 12, b.y);
     // (into the grate at the bottom: gone)
-    if (rbx > BALL_GRATE[0] && rbx < BALL_GRATE[1] && rbx < STAIRS.a) { b.dead = true; envSound(state, b.x, 'clang', 0.5, -2); continue; }
+    if (rbx > BALL_GRATE[0] && rbx < BALL_GRATE[1] && rbx < STAIRS.a) { b.dead = true; envSound(state, b.x, 'clang', 0.5, -2, b.y); continue; }
     if (alive(state) && p.invincibilityTimer <= 0 && overlaps(state, b.x - BALL_R + 3, b.y - BALL_R + 3, BALL_R * 2 - 6, BALL_R * 2 - 6)) {
       hurtPlayer(ctx, 12, 'm2:ct_bowling', { x: Math.sign(b.vx) * 5, y: -7 });
       playSound('thud', 0.9, -6);
@@ -218,13 +218,13 @@ export const updateThrows = (ctx: FrameContext) => {
     if (t.kind === 'clipboard') {
       // (flat, spinning, straight at him)
       t.x += t.vx; t.vy += 0.02; t.y += t.vy;
-      if (t.t % 8 === 0) envSound(state, t.x, 'whoosh', 0.1, 16);
+      if (t.t % 8 === 0) envSound(state, t.x, 'whoosh', 0.1, 16, t.y);
       if (alive(state) && p.invincibilityTimer <= 0 && overlaps(state, t.x - 10, t.y - 5, 20, 10)) {
         if (!helmetStops(state, t.x - 10, t.y - 5, 20, 10)) hurtPlayer(ctx, 8, 'm2:ct_clipboard_shot', { x: Math.sign(t.vx || 1) * 6, y: -4 });
-        burst(state, t.x, t.y, ['#F8FAFC', '#A16207'], 8); envSound(state, t.x, 'crack', 0.5, 8); t.dead = true; continue;
+        burst(state, t.x, t.y, ['#F8FAFC', '#A16207'], 8); envSound(state, t.x, 'crack', 0.5, 8, t.y); t.dead = true; continue;
       }
       const top = floorTopAt(state.blocks, t.x, t.y - 4, 0);
-      if (wallAt(state, t.x, t.y) || (top !== null && t.y >= top) || t.t > 150) { burst(state, t.x, t.y, ['#F8FAFC', '#A16207'], 8); envSound(state, t.x, 'crack', 0.4, 10); t.dead = true; }
+      if (wallAt(state, t.x, t.y) || (top !== null && t.y >= top) || t.t > 150) { burst(state, t.x, t.y, ['#F8FAFC', '#A16207'], 8); envSound(state, t.x, 'crack', 0.4, 10, t.y); t.dead = true; }
       continue;
     }
     // (lobbed: the money bag, the stink bomb)
@@ -235,16 +235,16 @@ export const updateThrows = (ctx: FrameContext) => {
       burst(state, t.x, t.y, ['#86EFAC', '#4ADE80', '#FDE68A'], 14, 7); t.dead = true; continue;
     }
     if (alive(state) && p.invincibilityTimer <= 0 && overlaps(state, t.x - 8, t.y - 8, 16, 16)) {
-      if (t.kind === 'moneybag') { hurtPlayer(ctx, 9, 'm2:ct_moneybag_shot', { x: Math.sign(t.vx || 1) * 5, y: -4 }); burst(state, t.x, t.y, ['#86EFAC', '#4ADE80', '#FDE68A'], 14, 7); envSound(state, t.x, 'slam', 0.4, 8); }
-      else { hurtPlayer(ctx, 8, 'm2:ct_stinkbomb_shot', { x: 0, y: -3 }); s.throws.push({ kind: 'cloud', x: t.x, y: p.pos.y + p.height, vx: 0, vy: 0, t: 0, from: null }); envSound(state, t.x, 'fart', 0.6, 0); }
+      if (t.kind === 'moneybag') { hurtPlayer(ctx, 9, 'm2:ct_moneybag_shot', { x: Math.sign(t.vx || 1) * 5, y: -4 }); burst(state, t.x, t.y, ['#86EFAC', '#4ADE80', '#FDE68A'], 14, 7); envSound(state, t.x, 'slam', 0.4, 8, t.y); }
+      else { hurtPlayer(ctx, 8, 'm2:ct_stinkbomb_shot', { x: 0, y: -3 }); s.throws.push({ kind: 'cloud', x: t.x, y: p.pos.y + p.height, vx: 0, vy: 0, t: 0, from: null }); envSound(state, t.x, 'fart', 0.6, 0, t.y); }
       t.dead = true; continue;
     }
     const top = t.vy > 0 ? floorTopAt(state.blocks, t.x, t.y - t.vy - 2, 0) : null;
     if ((top !== null && t.y >= top) || wallAt(state, t.x, t.y) || t.t > 200) {
       t.dead = true;
       const fy = top ?? t.y;
-      if (t.kind === 'moneybag') { burst(state, t.x, fy - 4, ['#86EFAC', '#4ADE80', '#FDE68A'], 14, 7); envSound(state, t.x, 'slam', 0.3, 10); s.throws.push({ kind: 'bills', x: t.x, y: fy, vx: 0, vy: 0, t: 0, from: null }); }
-      else { envSound(state, t.x, 'fart', 0.6, -2); s.throws.push({ kind: 'cloud', x: t.x, y: fy, vx: 0, vy: 0, t: 0, from: null }); }
+      if (t.kind === 'moneybag') { burst(state, t.x, fy - 4, ['#86EFAC', '#4ADE80', '#FDE68A'], 14, 7); envSound(state, t.x, 'slam', 0.3, 10, t.y); s.throws.push({ kind: 'bills', x: t.x, y: fy, vx: 0, vy: 0, t: 0, from: null }); }
+      else { envSound(state, t.x, 'fart', 0.6, -2, t.y); s.throws.push({ kind: 'cloud', x: t.x, y: fy, vx: 0, vy: 0, t: 0, from: null }); }
     }
   }
   s.throws = s.throws.filter(t => !t.dead);

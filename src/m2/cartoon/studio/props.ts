@@ -65,8 +65,8 @@ export const updateMovers = (state: GameState, list: Mover[]) => {
     m.on = on;
     if (on) { p.pos.x += at.x - m.x; p.pos.y += at.y - m.y; }
     // (the crane's whir going up and down; the cels' trolleys clacking at the ends)
-    if (m.d.id === 'crane' && Math.abs(at.y - m.y) > 0.2 && state.frame % 24 === 0) envSound(state, at.x, 'engine', 0.12, 20);
-    { const prev = moverAt(m.d, state.frame - 1).k; if ((at.k === 1 && prev < 1) || (at.k === 0 && prev > 0)) envSound(state, at.x, m.d.id === 'crane' ? 'clang' : 'clink', 0.2, 8); }
+    if (m.d.id === 'crane' && Math.abs(at.y - m.y) > 0.2 && state.frame % 24 === 0) envSound(state, at.x, 'engine', 0.12, 20, at.y);
+    { const prev = moverAt(m.d, state.frame - 1).k; if ((at.k === 1 && prev < 1) || (at.k === 0 && prev > 0)) envSound(state, at.x, m.d.id === 'crane' ? 'clang' : 'clink', 0.2, 8, at.y); }
     m.x = at.x; m.y = at.y;
     m.b.x = at.x - m.d.w / 2; m.b.y = at.y; m.b.w = m.d.w;
   }
@@ -149,7 +149,7 @@ export const updateThrows = (ctx: FrameContext) => {
     if (t.kind === 'plate') {
       // (flat and spinning, straight at him, dipping a little)
       t.x += t.vx; t.vy += 0.02; t.y += t.vy;
-      if (t.t % 8 === 0) envSound(state, t.x, 'whoosh', 0.12, 16);
+      if (t.t % 8 === 0) envSound(state, t.x, 'whoosh', 0.12, 16, t.y);
       if (alive(state) && p.invincibilityTimer <= 0 && overlaps(state, t.x - 11, t.y - 5, 22, 10)) {
         if (!helmetStops(state, t.x - 11, t.y - 5, 22, 10)) hurtPlayer(ctx, 9, 'm2:ct_plate_shot', { x: Math.sign(t.vx || 1) * 6, y: -4 });
         smash(state, t.x, t.y); t.dead = true; continue;
@@ -170,7 +170,7 @@ export const updateThrows = (ctx: FrameContext) => {
     const wall = state.blocks.some(b => !b.oneWay && b.type !== 'platform' && t.x > b.x && t.x < b.x + b.w && t.y > b.y + 4 && t.y < b.y + b.h);
     if ((top !== null && t.y >= top) || wall || t.t > 160) {
       t.dead = true;
-      envSound(state, t.x, 'splash', 0.35, 12);
+      envSound(state, t.x, 'splash', 0.35, 12, t.y);
       for (let i = 0; i < 6; i++) state.particles.push({ pos: { x: t.x, y: (top ?? t.y) - 2 }, vel: { x: (Math.random() - 0.5) * 3, y: -1.5 - Math.random() * 2 }, life: 18, color: '#8B5A2B', size: 2 });
       if (top !== null && !wall) s.throws.push({ kind: 'puddle', x: t.x, y: top, vx: 0, vy: 0, t: 0, from: t.from });
     }

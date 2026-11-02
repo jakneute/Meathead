@@ -24,6 +24,7 @@ import type { GameState } from '../../../m1/game/core/state';
 import { safeAhead, holdingOff, mid } from '../../../m1/game/enemies/kinds';
 import { hurtPlayer } from '../../../m1/game/bosses/shared';
 import { playSound } from '../../../m1/game/platform/audio';
+import { worldSound } from '../../onScreen';
 import { pickLine } from '../../../m1/game/platform/speech';
 import { registerM2Kind, registerHurtLines, registerKindCallouts } from '../../kinds';
 import { lookOf } from '../../adventure/temple/people';
@@ -250,7 +251,7 @@ const blimp = (ctx: FrameContext, e: Enemy) => {
       e.vel.x = Math.max(-1.6, Math.min(1.6, dx * 0.02));
       e.pos.y += Math.max(-1.2, Math.min(1.2, dy * 0.03)) + bob;
       e.facing = dx < 0 ? -1 : 1;
-      if (state.frame % 30 === 0) playSound('engine', 0.08, 24);
+      if (state.frame % 30 === 0) worldSound(state, 'engine', 0.08, 24, e.pos.x, e.pos.y, e.width, e.height);
       if (e.aiTimer! > 120 && Math.abs(dx) < 60) { setState(e, 'hatch'); e.vel.x = 0; }
       break;
     }

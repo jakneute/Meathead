@@ -20,6 +20,7 @@ import type { FrameContext } from '../../../m1/game/core/context';
 import type { GameState } from '../../../m1/game/core/state';
 import type { WaterBody } from '../../../m1/game/stages/index';
 import { playSound } from '../../../m1/game/platform/audio';
+import { worldSound } from '../../onScreen';
 import { heard } from '../../bossQuiet';
 import { shakeScreen } from '../../../m1/game/core/state';
 import { hurtPlayer } from '../../../m1/game/bosses/shared';
@@ -233,8 +234,8 @@ export const updateRide = (ctx: FrameContext) => {
   } else {
     const d = r.goal - r.x, sp = 3.4;
     r.x += Math.abs(d) < sp ? d : Math.sign(d) * sp;
-    if (state.frame % 7 === 0) playSound('clink', 0.3, -12);
-    if (r.x === r.goal) { r.at = r.goal === RIDE.a ? 'a' : 'b'; r.hitCd = on ? 1 : 0; playSound('thud', 0.6, -6); }
+    if (state.frame % 7 === 0) worldSound(state, 'clink', 0.3, -12, r.x, FY - 34, RIDE.w, 34);
+    if (r.x === r.goal) { r.at = r.goal === RIDE.a ? 'a' : 'b'; r.hitCd = on ? 1 : 0; worldSound(state, 'thud', 0.6, -6, r.x, FY - 34, RIDE.w, 34); }
   }
   moveMover(state, r.m, r.x, FY - 34);
   // (the low beams: his head into one, it clouts him: stood up (or hopping) it is; ducked, it's well under)
@@ -301,7 +302,7 @@ export const updateMill = (ctx: FrameContext) => {
     const front = v > 0 ? L.x + L.len : L.x;
     if (Math.abs(front - SAW.x) < SAW.r * 0.5) {
       L.cut = 1; moveMover(state, L.m, L.x, beltY - 28, true);
-      if (heard(state, SAW.x)) playSound('grind', 0.9, 4);
+      if (heard(state, SAW.x, undefined, SAW.y)) playSound('grind', 0.9, 4);
       for (let n = 0; n < 24; n++) state.particles.push({ pos: { x: SAW.x, y: beltY - 20 }, vel: { x: (Math.random() - 0.5) * 6, y: -2 - Math.random() * 5 }, life: 40, color: n % 2 ? '#E8C890' : '#C8A070', size: 2 + Math.random() * 2 });
     }
   }

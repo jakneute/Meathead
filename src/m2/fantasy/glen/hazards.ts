@@ -107,12 +107,12 @@ export const updateHazards = (ctx: FrameContext, controls: Controls) => {
     zones.push({ x0: X(px) - reach, x1: X(px) + reach, y0: top, y1: Y(ph) + len + BOB_R + 6 });
     if (alive(state) && p.invincibilityTimer <= 0 && hits(state, c.x - BOB_R, c.y - BOB_R + 4, BOB_R * 2, BOB_R * 2 - 4)) {
       hurtPlayer(ctx, 13, 'm2:fa_cauldron', { x: c.dir * 9, y: -5 });
-      envSound(state, c.x, 'clang', 0.9, -8);
+      envSound(state, c.x, 'clang', 0.9, -8, c.y);
     }
-    for (const e of hazardVictims(state)) if (boxHits(e, c.x - BOB_R, c.y - BOB_R, BOB_R * 2, BOB_R * 2)) { tear(ctx, e, 55, c.x - c.dir * 40, 'COOKED!', 12); envSound(state, c.x, 'clang', 0.8, -6); }
+    for (const e of hazardVictims(state)) if (boxHits(e, c.x - BOB_R, c.y - BOB_R, BOB_R * 2, BOB_R * 2)) { tear(ctx, e, 55, c.x - c.dir * 40, 'COOKED!', 12); envSound(state, c.x, 'clang', 0.8, -6, c.y); }
     // (the brew slopping over the rim at the end of a swing; a creak at the top of it)
     if (Math.abs(c.a) > amp * 0.96 && f % 4 === 0) state.particles.push({ pos: { x: c.x + c.dir * 10, y: c.y - 12 }, vel: { x: -c.dir * 1.5, y: -1 }, life: 20, color: '#4ADE80', size: 3 });
-    if (Math.abs(c.a) > amp * 0.99 && f % 20 === 0) envSound(state, c.x, 'rumble', 0.2, 14);
+    if (Math.abs(c.a) > amp * 0.99 && f % 20 === 0) envSound(state, c.x, 'rumble', 0.2, 14, c.y);
   }
   setHazardZones(state, 'fa-glen', zones);
   updateThrows(ctx);
@@ -141,10 +141,10 @@ const updateThrows = (ctx: FrameContext) => {
     const top = s.vy > 0 ? floorTopAt(state.blocks, s.x, s.y - s.vy - 2, 0) : null;
     const wall = state.blocks.some(b => !b.oneWay && b.type !== 'platform' && b.type !== 'pit' && s.x > b.x && s.x < b.x + b.w && s.y > b.y + 4 && s.y < b.y + b.h);
     if ((top !== null && s.y >= top) || wall || s.t > 150) {
-      if (s.kind === 'rock' && !wall && top !== null && s.bounces < 1) { s.y = top; s.vy = -Math.abs(s.vy) * 0.45; s.vx *= 0.7; s.bounces++; envSound(state, s.x, 'thud', 0.4, 10); continue; }
+      if (s.kind === 'rock' && !wall && top !== null && s.bounces < 1) { s.y = top; s.vy = -Math.abs(s.vy) * 0.45; s.vx *= 0.7; s.bounces++; envSound(state, s.x, 'thud', 0.4, 10, s.y); continue; }
       s.dead = true;
-      if (s.kind === 'arrow') { envSound(state, s.x, 'clink', 0.35, 12); for (let i = 0; i < 4; i++) state.particles.push({ pos: { x: s.x, y: s.y }, vel: { x: (Math.random() - 0.5) * 3, y: -Math.random() * 2 }, life: 14, color: i % 2 ? '#F472B6' : '#FEF3C7', size: 2 }); }
-      if (s.kind === 'bolt') { envSound(state, s.x, 'clink', 0.4, 8); for (let i = 0; i < 4; i++) state.particles.push({ pos: { x: s.x, y: s.y }, vel: { x: (Math.random() - 0.5) * 3, y: -Math.random() * 2 }, life: 12, color: '#A8A29E', size: 2 }); }
+      if (s.kind === 'arrow') { envSound(state, s.x, 'clink', 0.35, 12, s.y); for (let i = 0; i < 4; i++) state.particles.push({ pos: { x: s.x, y: s.y }, vel: { x: (Math.random() - 0.5) * 3, y: -Math.random() * 2 }, life: 14, color: i % 2 ? '#F472B6' : '#FEF3C7', size: 2 }); }
+      if (s.kind === 'bolt') { envSound(state, s.x, 'clink', 0.4, 8, s.y); for (let i = 0; i < 4; i++) state.particles.push({ pos: { x: s.x, y: s.y }, vel: { x: (Math.random() - 0.5) * 3, y: -Math.random() * 2 }, life: 12, color: '#A8A29E', size: 2 }); }
       if (s.kind === 'rock') for (let i = 0; i < 5; i++) state.particles.push({ pos: { x: s.x, y: s.y - 2 }, vel: { x: (Math.random() - 0.5) * 3, y: -1 - Math.random() * 2 }, life: 14, color: '#A78BFA', size: 2 });
     }
   }

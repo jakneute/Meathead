@@ -194,13 +194,13 @@ const updateAnvils = (ctx: FrameContext, zones: Zone[]) => {
     const top = Y(GANTRY.h);
     if (a.phase === 'tell') {
       a.y = top; a.vy = 0;
-      if (c % 6 === 0) envSound(state, a.x, 'click', 0.3, 6);
+      if (c % 6 === 0) envSound(state, a.x, 'click', 0.3, 6, a.y);
       zones.push({ x0: a.x - AW, x1: a.x + AW, y0: top, y1: GY });
     } else if (a.phase === 'fall') {
       const u = c - A_TELL + 1;
       a.y = top + (GY - top) * (u / A_FALL) ** 2;
-      if (u === 1) envSound(state, a.x, 'whoosh', 0.35, 8);
-      if (u % 3 === 0) envSound(state, a.x, 'ding', 0.16, 26 - u * 0.8);
+      if (u === 1) envSound(state, a.x, 'whoosh', 0.35, 8, a.y);
+      if (u % 3 === 0) envSound(state, a.x, 'ding', 0.16, 26 - u * 0.8, a.y);
       hurts(ctx, a.x - AW / 2, a.y - AH, AW, AH, 16, 'm2:ct_anvil', { x: (px < a.x ? -1 : 1) * 4, y: -3 });
       hitsCast(ctx, a.x - AW / 2, a.y - AH, AW, AH, 999, a.x, 'ANVILED!', { kill: true });
       zones.push({ x0: a.x - AW, x1: a.x + AW, y0: top, y1: GY });
@@ -213,14 +213,14 @@ const updateAnvils = (ctx: FrameContext, zones: Zone[]) => {
       if (a.b) { dropBlock(state, a.b); a.b = undefined; }
       const u = (c - A_TELL - A_FALL - A_DOWN) / A_LIFT;
       a.y = GY - (GY - top) * u * u;
-      if (c % 5 === 0) envSound(state, a.x, 'click', 0.2, -2);
+      if (c % 5 === 0) envSound(state, a.x, 'click', 0.2, -2, a.y);
     } else { a.y = top; if (a.b) { dropBlock(state, a.b); a.b = undefined; } }
   }
   k.anvils = k.anvils.filter(a => a.phase !== 'gone');
 };
 const landAnvil = (ctx: FrameContext, a: Anvil) => {
   const { state } = ctx;
-  envSound(state, a.x, 'slam', 0.9, -10); envSound(state, a.x, 'clang', 0.6, -12);
+  envSound(state, a.x, 'slam', 0.9, -10, a.y); envSound(state, a.x, 'clang', 0.6, -12, a.y);
   if (onScreen(state, a.x - 60, a.x + 60)) shakeScreen(state, 7, 4);
   dust(state, a.x, a.land ?? GY, 12);
   hurts(ctx, a.x - AW / 2 - 4, (a.land ?? GY) - AH - 6, AW + 8, AH + 6, 16, 'm2:ct_anvil', { x: (pmid(state) < a.x ? -1 : 1) * 6, y: -4 });
@@ -239,12 +239,12 @@ const updateHostAnvil = (ctx: FrameContext, a: Anvil, zones: Zone[]) => {
     // (the shadow follows him a beat, then stops where he was: then it comes)
     if (a.t < (a.lock ?? 40)) a.x += clamp(pmid(state) - a.x, -6, 6);
     a.land = inPit(a.x) ? null : groundUnder(state, a.x, Y(420));
-    if (a.t === 1) envSound(state, a.x, 'whoosh', 0.3, 14);
+    if (a.t === 1) envSound(state, a.x, 'whoosh', 0.3, 14, a.y);
     if (a.t >= (a.lock ?? 40) + 14) { a.phase = 'fall'; a.t = 0; a.vy = 6; }
     zones.push({ x0: a.x - AW, x1: a.x + AW, y0: GY - 800, y1: GY });
   } else if (a.phase === 'fall') {
     a.vy += 1.25; a.y += a.vy;
-    if (a.t % 3 === 0) envSound(state, a.x, 'ding', 0.16, 26 - a.t * 0.8);
+    if (a.t % 3 === 0) envSound(state, a.x, 'ding', 0.16, 26 - a.t * 0.8, a.y);
     hurts(ctx, a.x - AW / 2, a.y - AH, AW, AH, 16, 'm2:ct_anvil', { x: (pmid(state) < a.x ? -1 : 1) * 4, y: -3 });
     hitsCast(ctx, a.x - AW / 2, a.y - AH, AW, AH, 999, a.x, 'ANVILED!', { kill: true });
     zones.push({ x0: a.x - AW, x1: a.x + AW, y0: GY - 800, y1: GY });
@@ -433,10 +433,10 @@ const updateDrops = (ctx: FrameContext, zones: Zone[]) => {
       if (alive(state) && Math.abs(px - d.x) < d.w / 2 + 110 && feet > Y(110)) { d.phase = 'fray'; d.t = 0; onDrop?.(state, d.id); }
     } else if (d.phase === 'fray') {
       // (the rope's strands snapping, it jiggling on what's left, its shadow on the path: the tell)
-      if (d.t === 1 || d.t === 12 || d.t === 22) envSound(state, d.x, 'crack', 0.6, 8 + d.t / 4);
-      if (d.t % 4 === 0) envSound(state, d.x, 'click', 0.15, 12);
+      if (d.t === 1 || d.t === 12 || d.t === 22) envSound(state, d.x, 'crack', 0.6, 8 + d.t / 4, d.y);
+      if (d.t % 4 === 0) envSound(state, d.x, 'click', 0.15, 12, d.y);
       zones.push({ x0: d.x - d.w, x1: d.x + d.w, y0: d.y, y1: GY });
-      if (d.t >= 30) { d.phase = 'fall'; d.t = 0; d.vy = 4; envSound(state, d.x, 'whoosh', 0.6, -2); }
+      if (d.t >= 30) { d.phase = 'fall'; d.t = 0; d.vy = 4; envSound(state, d.x, 'whoosh', 0.6, -2, d.y); }
     } else if (d.phase === 'fall') {
       d.vy += 1.2; d.y = Math.min(GY, d.y + d.vy);
       const src = d.id === 'safe' ? 'm2:ct_safe' : 'm2:ct_piano';
@@ -449,9 +449,9 @@ const updateDrops = (ctx: FrameContext, zones: Zone[]) => {
         dust(state, d.x, GY, 16, '#E7D3A8', d.w);
         if (d.id === 'piano') {
           // (the chord it makes going to pieces, the keys everywhere)
-          envSound(state, d.x, 'crash', 1, -6); for (const n of [0, 3, 7, 11, -5]) envSound(state, d.x, 'ding', 0.35, n);
+          envSound(state, d.x, 'crash', 1, -6, d.y); for (const n of [0, 3, 7, 11, -5]) envSound(state, d.x, 'ding', 0.35, n, d.y);
           for (let i = 0; i < 18; i++) state.particles.push({ pos: { x: d.x + (Math.random() - 0.5) * d.w, y: GY - 30 }, vel: { x: (Math.random() - 0.5) * 9, y: -3 - Math.random() * 6 }, life: 50, color: i % 3 ? '#FFFFFF' : '#18181B', size: 4, grav: 0.35 } as typeof state.particles[number]);
-        } else { envSound(state, d.x, 'slam', 1, -16); envSound(state, d.x, 'clang', 0.8, -10); }
+        } else { envSound(state, d.x, 'slam', 1, -16, d.y); envSound(state, d.x, 'clang', 0.8, -10, d.y); }
       }
     } else if (d.phase === 'down') {
       const tag = `ct-${d.id}`;
@@ -506,7 +506,7 @@ const updateBalls = (ctx: FrameContext, zones: Zone[]) => {
     hitsCast(ctx, b.x - BALL_R, b.y - BALL_R, BALL_R * 2, BALL_R * 2, 70, b.x - b.vx * 4, 'CANNONBALLED!', { knock: 14 });
     zones.push({ x0: Math.min(b.x, b.x + b.vx * 50) - BALL_R, x1: Math.max(b.x, b.x + b.vx * 50) + BALL_R, y0: b.y - BALL_R - 4, y1: b.y + BALL_R + 4 });
     if (b.t > 4 && ballHitsWall(state, b.x, b.y)) {
-      b.dead = true; envSound(state, b.x, 'clang', 0.7, -6); envSound(state, b.x, 'thud', 0.5, -4);
+      b.dead = true; envSound(state, b.x, 'clang', 0.7, -6, b.y); envSound(state, b.x, 'thud', 0.5, -4, b.y);
       for (let i = 0; i < 8; i++) state.particles.push({ pos: { x: b.x, y: b.y }, vel: { x: (Math.random() - 0.5) * 4, y: -Math.random() * 3 }, life: 26, color: 'rgba(210,205,198,0.7)', size: 6 });
     }
     if (b.t > 260) b.dead = true;
@@ -534,7 +534,7 @@ const updateFuses = (ctx: FrameContext, zones: Zone[]) => {
       case 'burn': {
         f.s = Math.min(f.len, f.s + 2.4);
         const sp = fusePoint(f, f.s);
-        if (f.t % 6 === 0) envSound(state, sp.x, 'click', 0.22, 22);
+        if (f.t % 6 === 0) envSound(state, sp.x, 'click', 0.22, 22, sp.y);
         if (f.t % 2 === 0 && onScreen(state, sp.x - 20, sp.x + 20)) sparks(state, sp.x, sp.y, 2);
         zones.push({ x0: tx - d.radius - 30, x1: tx + d.radius + 30, y0: ty - d.radius, y1: GY + 4 });
         if (f.s >= f.len) {
@@ -564,7 +564,7 @@ const updateThrows = (ctx: FrameContext, zones: Zone[]) => {
     s.t++;
     if (s.kind === 'dynamite') {
       s.fuse = (s.fuse ?? 90) - 1;
-      if (s.t % 7 === 0) envSound(state, s.x, 'click', 0.18, 22);
+      if (s.t % 7 === 0) envSound(state, s.x, 'click', 0.18, 22, s.y);
       zones.push({ x0: s.x - 80, x1: s.x + 80, y0: s.y - 80, y1: s.y + 20 });
       if (s.fuse <= 0) { s.dead = true; blast(ctx, s.x, s.y - 8, 72, 'm2:ct_boom_shot', 14); continue; }
     }
@@ -576,11 +576,11 @@ const updateThrows = (ctx: FrameContext, zones: Zone[]) => {
     const top = s.vy > 0 ? floorTopAt(state.blocks, s.x, s.y - s.vy - 2, 0) : null;
     const wall = state.blocks.some(b => !b.oneWay && b.type === 'wall' && s.x > b.x && s.x < b.x + b.w && s.y > b.y + 4 && s.y < b.y + b.h && b.y > GY - 600);
     if ((top !== null && s.y >= top) || wall) {
-      if (s.kind === 'cleaver') { s.down = true; s.t = 0; s.y = top ?? s.y; envSound(state, s.x, 'clink', 0.5, -2); continue; }
+      if (s.kind === 'cleaver') { s.down = true; s.t = 0; s.y = top ?? s.y; envSound(state, s.x, 'clink', 0.5, -2, s.y); continue; }
       if (s.kind === 'dynamite') {
         if (wall) { s.vx = -s.vx * 0.4; s.x += s.vx * 2; continue; }
         s.y = top!;
-        if (Math.abs(s.vy) > 3) { s.vy = -s.vy * 0.3; s.vx *= 0.5; envSound(state, s.x, 'thud', 0.3, 12); }
+        if (Math.abs(s.vy) > 3) { s.vy = -s.vy * 0.3; s.vx *= 0.5; envSound(state, s.x, 'thud', 0.3, 12, s.y); }
         else { s.vy = 0; s.vx = 0; s.down = true; }
         continue;
       }
@@ -588,7 +588,7 @@ const updateThrows = (ctx: FrameContext, zones: Zone[]) => {
       s.dead = true;
       if (top !== null && !wall && !k.towers.some(t => Math.abs(t.b.y - top) < 2 && s.x > t.b.x && s.x < t.b.x + t.b.w) && k.holes.filter(h => !h.sky).length < 4) {
         k.holes.push({ x: s.x, y: top, w: 84, t: 0, life: 420 });
-        envSound(state, s.x, 'whoosh', 0.4, -10); playSound('poof', 0.3, -8);
+        envSound(state, s.x, 'whoosh', 0.4, -10, s.y); playSound('poof', 0.3, -8);
       }
       continue;
     }

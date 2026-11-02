@@ -171,21 +171,21 @@ const updateGlobe = (ctx: FrameContext, real: boolean) => {
   if (real) return false;
   g.t++;
   if (g.st === 'stand') {
-    if (alive(state) && cx > X(GLOBE.trigger) && cx < X(MAP_STEP.a) && Math.abs(p.pos.y + p.height - GY) < 120) { g.st = 'tell'; g.t = 0; envSound(state, g.x, 'rumble', 0.6, -6); started = true; }
+    if (alive(state) && cx > X(GLOBE.trigger) && cx < X(MAP_STEP.a) && Math.abs(p.pos.y + p.height - GY) < 120) { g.st = 'tell'; g.t = 0; envSound(state, g.x, 'rumble', 0.6, -6, g.y); started = true; }
     return started;
   }
   if (g.st === 'tell') {
     // (wobbling on the stand, creaking: the tell)
-    if (g.t % 6 === 0) envSound(state, g.x, 'clink', 0.3, (g.t % 12) ? -2 : 2);
+    if (g.t % 6 === 0) envSound(state, g.x, 'clink', 0.3, (g.t % 12) ? -2 : 2, g.y);
     if (g.t > 34) { g.st = 'roll'; g.t = 0; g.vx = 1.2; g.vy = -2; playSound('thud', 0.8, -10); }
     return false;
   }
   // Rolling: off the stand, bouncing down, after him faster and faster
   g.vx = Math.min(GLOBE.max, g.vx + 0.045);
   g.vy += 0.6; g.x += g.vx; g.y += g.vy;
-  if (g.y > GLOBE_FLOOR - GLOBE.r) { if (g.vy > 3) { envSound(state, g.x, 'slam', 0.5, -8); shake(state); } g.y = GLOBE_FLOOR - GLOBE.r; g.vy = g.vy > 3 ? -g.vy * 0.35 : 0; }
+  if (g.y > GLOBE_FLOOR - GLOBE.r) { if (g.vy > 3) { envSound(state, g.x, 'slam', 0.5, -8, g.y); shake(state); } g.y = GLOBE_FLOOR - GLOBE.r; g.vy = g.vy > 3 ? -g.vy * 0.35 : 0; }
   g.spin += g.vx / GLOBE.r;
-  if (g.t % 18 === 0) envSound(state, g.x, 'rumble', 0.35, -4);
+  if (g.t % 18 === 0) envSound(state, g.x, 'rumble', 0.35, -4, g.y);
   setHazardZones(state, 'ct-wh2-globe', [{ x0: g.x - GLOBE.r - 40, x1: g.x + GLOBE.r + 120, y0: g.y - GLOBE.r, y1: GY + 2, ground: true }]);
   // (it gets him: flattened, flung on ahead of it)
   const gx = g.x - GLOBE.r + 8, gy = g.y - GLOBE.r + 8, gw = GLOBE.r * 2 - 16;

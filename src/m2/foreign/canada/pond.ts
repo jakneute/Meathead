@@ -97,7 +97,7 @@ export const updatePond = (ctx: FrameContext) => {
     zones.push({ x0: pn.b.x - 6, x1: pn.b.x + PANEL_W + 6, y0: GY - 80, y1: GY + ICE_POND.bed, ground: true });
     if (pn.brokeAt >= 0) {
       // (frozen over again in a while, once nobody's in the hole)
-      if (f - pn.brokeAt > REFREEZE) { pn.b.y = GY; pn.crack = 0; pn.brokeAt = -1; if (near && heard(state, pn.b.x)) playSound('crack', 0.3, 20); }
+      if (f - pn.brokeAt > REFREEZE) { pn.b.y = GY; pn.crack = 0; pn.brokeAt = -1; if (near && heard(state, pn.b.x, undefined, pn.b.y)) playSound('crack', 0.3, 20); }
       continue;
     }
     const onHim = standsOn(pn.b, p.pos.x, p.width, p.pos.y + p.height, p.isGrounded);
