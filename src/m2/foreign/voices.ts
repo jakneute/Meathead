@@ -14,5 +14,6 @@ import { VOICE_LINES as uk } from './uk/lines';
 import { VOICE_LINES as canada } from './canada/lines';
 import { VOICE_LINES as heli } from './heli/lines';
 import { VOICE_LINES as harry } from './harry/lines';
+import { VOICE_LINES as revisitPa } from './revisitPa';
 
-export const FOREIGN_VOICE_LINES: Record<string, string[]>[] = [land, mexico, norway, china, germany, italy, japan, morocco, france, uk, canada, heli, harry];
+export const FOREIGN_VOICE_LINES: Record<string, string[]>[] = [land, mexico, norway, china, germany, italy, japan, morocco, france, uk, canada, heli, harry, revisitPa];

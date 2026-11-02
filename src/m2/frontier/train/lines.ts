@@ -275,9 +275,15 @@ export const CUT_GONE: ByPants = {
 };
 /** The robbers ride up (nobody aboard worth robbing). */
 export const ROBBERS_GONE: ByPants = {
-  clean: ["TRAIN ROBBERS. THE GUY WITH THE MONEY'S DEAD."],
+  clean: ["ROBBERS AGAIN. WORD GOT OUT NOBODY'S DRIVING.", "TRAIN ROBBERS. THE GUY WITH THE MONEY'S DEAD."],
   shitty: ['ROBBERS. ROB THE PANTS. I DARE YOU.'],
   nude: ['ROBBERS. NO POCKETS, NO MONEY, NO PANTS.'],
+};
+/** The lion's cage again (the circus sent a new one). */
+export const LION_CAGE_GONE: ByPants = {
+  clean: ['THE CIRCUS SENT A NEW LION. SAME FEZ.', 'ANOTHER LION. THE LAST ONE QUIT.'],
+  shitty: ['NEW LION. IT ALREADY HEARD ABOUT MY PANTS.', 'REPLACEMENT LION. IT SMELLS ME. IT LIKES IT.'],
+  nude: ['NEW LION. SAME FEZ. STILL STARING AT MY DICK.', 'A NEW LION. EYES UP, CAT. AGAIN.'],
 };
 /** The park's recorded voice, at the end of the line coming up. */
 export const FAILSAFE: ByPants = {
@@ -394,7 +400,7 @@ export const HURT: HurtTable = {
 export const VOICE_LINES: Record<string, string[]> = {
   meathead: [
     ...allOf(BOARDED), ...Object.values(TRAIN_GAGS).flatMap(allOf), ...allOf(KILL_SEEN), ...allOf(SHOT_LINE), ...allOf(DRIVER_LINE), ...allOf(REVISIT),
-    ...allOf(BOARDED_GONE), ...allOf(CUT_GONE), ...allOf(ROBBERS_GONE), ...allOf(MH_FAILSAFE),
+    ...allOf(BOARDED_GONE), ...allOf(CUT_GONE), ...allOf(ROBBERS_GONE), ...allOf(MH_FAILSAFE), ...allOf(LION_CAGE_GONE),
     ...allOf(MH_COMEBACK), ...allOf(MH_RAYGUN), ...allOf(LION_CAGE), ...allOf(LION_LOOSE), ...allOf(IM_OKAY),
     ...allOf(PEN_SPOTTED), ...allOf(PEN_BREAK), ...allOf(PEN_GOT),
     ...Object.values(HURT).flatMap(h => h.hurt),

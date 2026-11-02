@@ -37,7 +37,8 @@ import { trainOf, type Maul } from './state';
 import { carXNow } from './where';
 import { viewOf, inView, inDrawn } from './view';
 import { type Ctx, box, checker, mix, hash, INK, N, boards, lip, stillAt, BRASS, RED, VARNISH, HAY } from './paint';
-import { LION_CAGE, IM_OKAY, HURT, PEN_SPOTTED } from './lines';
+import { LION_CAGE, IM_OKAY, HURT, PEN_SPOTTED, LION_CAGE_GONE } from './lines';
+import { bossGone } from '../../emptyArena';
 import { drawPenInside, penDmg, penOpen } from './pen';
 import { drawCircusLion, type LionPose } from './lionArt';
 
@@ -173,7 +174,7 @@ export const updateCage = (ctx: FrameContext) => {
   if (--cg.roarCd <= 0 && near && seen && !p.inCutscene) { cg.roar = 54; cg.roarCd = 170 + Math.floor(Math.random() * 90); playSound('roar', 0.5, -3); }
   // (his line about it: once he's off the caboose (the boarding's said), with it on screen)
   // (...and then the ammo in there with it, the find's tell)
-  if (!tr.said.lionCage && tr.phase === 'ride' && seen && cx > CAR_X[1] && p.health > 0 && !p.inCutscene) { tr.said.lionCage = true; meatheadSays(state, pickLine(byPants(state, LION_CAGE)), true, () => { if (!penOpen(tr) && !tr.lion) meatheadSays(state, pickLine(byPants(state, PEN_SPOTTED))); }); }
+  if (!tr.said.lionCage && tr.phase === 'ride' && seen && cx > CAR_X[1] && p.health > 0 && !p.inCutscene) { tr.said.lionCage = true; meatheadSays(state, pickLine(byPants(state, bossGone('frontier') ? LION_CAGE_GONE : LION_CAGE)), true, () => { if (!penOpen(tr) && !tr.lion) meatheadSays(state, pickLine(byPants(state, PEN_SPOTTED))); }); }
 };
 
 /** Its car's blown (cars.ts derail): the lion leaps out of the fire, lands on the near bank and is off back down the

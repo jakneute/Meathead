@@ -9,6 +9,8 @@ import { streetsOf, paSay, gag, once } from './state';
 import { byPants } from './cast';
 import type { PavilionTalk, HurtTable, DayPart } from './talk';
 import { timeOfDay } from '../timeOfDay';
+import { bossGone } from '../emptyArena';
+import { REVISIT_PA } from './revisitPa';
 export { pavilionVoices, type Gag, type PavilionTalk, type HurtTable } from './talk';
 
 export const pavilionTalk = (state: GameState, key: string, x0: number, gy: number, t: PavilionTalk) => {
@@ -18,7 +20,8 @@ export const pavilionTalk = (state: GameState, key: string, x0: number, gy: numb
   if (rx > 60 && rx < 1400) once(state, `${key}-pa`, () => {
     const go = () => { if (!o.said[`${key}-arrive`]) { o.said[`${key}-arrive`] = true; o.saidAt = state.frame; meatheadSays(state, pickLine(t.arrive), true); } };
     if (o.paBusy) { go(); return; }
-    paSay(state, pickLine(byPants(state, t.pa)), go);
+    // (a revisit: the hello gives the pavilion's set piece its reason for going again (revisitPa.ts))
+    paSay(state, pickLine(byPants(state, bossGone('foreign') && REVISIT_PA[key] ? REVISIT_PA[key] : t.pa)), go);
   });
   for (const g of t.gags) {
     if (rx < g.from || rx > g.to) continue;
