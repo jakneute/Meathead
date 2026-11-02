@@ -15,8 +15,8 @@ import { bossMeleeOf } from './bossMelee';
 import { raged } from './amulet';
 import { installGear } from './gear';
 import { installArmorArt } from './armorArt';
-import { setScreenOverlay } from '../../m1/game/render/world';
-import { drawCheapShotPanel } from './cheapShot';
+import { setScreenOverlay, setUnderEnemies } from '../../m1/game/render/world';
+import { drawCheapShotPanel, drawCheapShotFloor } from './cheapShot';
 import { installCloseUps } from './closeups';
 import { liveState } from '../cheats';
 import type { WeaponType } from '../../m1/types';
@@ -38,6 +38,8 @@ export const installUpgrades = () => {
   installArmorArt();
   // (the hand armor's cheap shot: its close-up, over everything)
   setScreenOverlay(drawCheapShotPanel);
+  // (and what it tore out, lying on the floor under everyone after)
+  setUnderEnemies(drawCheapShotFloor);
   installCloseUps();
   // (the power rule: no cell refills through a dive kick or the flash kick either; the engine already holds them through
   // a charge, a slide and an uppercut)

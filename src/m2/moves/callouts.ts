@@ -51,6 +51,10 @@ export const GRAB_CALLOUTS = {
   nutcrunch: { lines: ['NUT CRUNCH!', 'NUTS CRUSHED!', 'BALLS BUSTED!', 'SACK ATTACK!', 'FAMILY JEWELS: GONE!'], color: '#FACC15' },
   ovarycrunch: { lines: ['OVARY CRUNCH!', 'OVARIES CRUSHED!', 'LOW BLOW!', 'NO GRANDKIDS!', 'UTERUS ABUSE!'], color: '#F472B6' },
   circuitcrunch: { lines: ['CIRCUIT CRUNCH!', 'MOTHERBOARD MASHED!', 'LOW BLOW!', 'SHORT CIRCUITED!', 'NO WARRANTY!'], color: '#22D3EE' },
+  // (the same, torn out by hand: every boss but the pundits, who still get the boot)
+  nutrip: { lines: ['NUTS RIPPED!', 'BALLS YANKED!', 'SACK SNATCHED!', 'FAMILY JEWELS: GONE!', 'TORN CLEAN OFF!'], color: '#FACC15' },
+  ovaryrip: { lines: ['OVARIES RIPPED!', 'OVARY YANK!', 'NO GRANDKIDS!', 'UTERUS ABUSE!', 'TORN CLEAN OUT!'], color: '#F472B6' },
+  circuitrip: { lines: ['CIRCUITS RIPPED!', 'MOTHERBOARD YANKED!', 'SHORT CIRCUITED!', 'NO WARRANTY!', 'UNPLUGGED!'], color: '#22D3EE' },
 } as const;
 
 export type GrabCallout = keyof typeof GRAB_CALLOUTS;

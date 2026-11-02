@@ -236,6 +236,11 @@
  },
  {
   "voice": "announcer",
+  "text": "BALLS YANKED!",
+  "from": "GRAB_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
   "text": "BARFED ON!",
   "from": "KILL_CALLOUTS"
  },
@@ -527,6 +532,11 @@
  {
   "voice": "announcer",
   "text": "CIRCUIT CRUNCH!",
+  "from": "GRAB_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "CIRCUITS RIPPED!",
   "from": "GRAB_CALLOUTS"
  },
  {
@@ -1676,6 +1686,11 @@
  },
  {
   "voice": "announcer",
+  "text": "MOTHERBOARD YANKED!",
+  "from": "GRAB_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
   "text": "MOUNTED!",
   "from": "FRONTIER"
  },
@@ -1816,6 +1831,11 @@
  },
  {
   "voice": "announcer",
+  "text": "NUTS RIPPED!",
+  "from": "GRAB_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
   "text": "NUTTED!",
   "from": "GRAB_CALLOUTS"
  },
@@ -1931,7 +1951,17 @@
  },
  {
   "voice": "announcer",
+  "text": "OVARIES RIPPED!",
+  "from": "GRAB_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
   "text": "OVARY CRUNCH!",
+  "from": "GRAB_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "OVARY YANK!",
   "from": "GRAB_CALLOUTS"
  },
  {
@@ -2197,6 +2227,11 @@
  {
   "voice": "announcer",
   "text": "SACK ATTACK!",
+  "from": "GRAB_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "SACK SNATCHED!",
   "from": "GRAB_CALLOUTS"
  },
  {
@@ -2816,6 +2851,16 @@
  },
  {
   "voice": "announcer",
+  "text": "TORN CLEAN OFF!",
+  "from": "GRAB_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "TORN CLEAN OUT!",
+  "from": "GRAB_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
   "text": "TORPEDOED!",
   "from": "KILL_CALLOUTS"
  },
@@ -2893,6 +2938,11 @@
   "voice": "announcer",
   "text": "UNPAID!",
   "from": "CARTOON"
+ },
+ {
+  "voice": "announcer",
+  "text": "UNPLUGGED!",
+  "from": "GRAB_CALLOUTS"
  },
  {
   "voice": "announcer",
@@ -21606,7 +21656,7 @@
  },
  {
   "voice": "m2.cartoon.dad",
-  "text": "IN MY DAY WE WORE PANTS TO KICK NUTS!",
+  "text": "IN MY DAY WE WORE PANTS TO RIP NUTS OFF!",
   "from": "UPGRADES"
  },
  {
@@ -21731,12 +21781,12 @@
  },
  {
   "voice": "m2.cartoon.dad",
-  "text": "MY NUTS! A NAKED GUY KICKED MY NUTS ON MY OWN COUCH!",
+  "text": "MY NUTS! A NAKED GUY TORE MY NUTS OFF ON MY OWN COUCH!",
   "from": "UPGRADES"
  },
  {
   "voice": "m2.cartoon.dad",
-  "text": "MY NUTS! YOU KICKED ME WITH A SHIT BOOT! ON MY COUCH!",
+  "text": "MY NUTS! YOU TORE THEM OFF WITH A SHIT HAND! ON MY COUCH!",
   "from": "UPGRADES"
  },
  {
@@ -22301,11 +22351,6 @@
  },
  {
   "voice": "m2.cartoon.dad",
-  "text": "YOU KICKED MY NUTS! NOW I REALLY AIN'T GETTING UP!",
-  "from": "UPGRADES"
- },
- {
-  "voice": "m2.cartoon.dad",
   "text": "YOU SMELL LIKE MY COUCH CUSHIONS! THE BACK ONES!",
   "from": "UPGRADES"
  },
@@ -22323,6 +22368,11 @@
   "voice": "m2.cartoon.dad",
   "text": "YOU THROW LIKE YOUR MOTHER!",
   "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.dad",
+  "text": "YOU TORE MY NUTS OFF! NOW I REALLY AIN'T GETTING UP!",
+  "from": "UPGRADES"
  },
  {
   "voice": "m2.cartoon.dad",
@@ -26016,7 +26066,7 @@
  },
  {
   "voice": "m2.demon",
-  "text": "AAAH! A SHITTY BOOT! IN HELL! DAD!",
+  "text": "AAAH! A SHITTY HAND! IN HELL! DAD!",
   "from": "UPGRADES"
  },
  {
@@ -26846,7 +26896,7 @@
  },
  {
   "voice": "m2.donnie",
-  "text": "GURK! THAT BOOT TASTED LIKE YOUR PANTS!",
+  "text": "GURK! THAT HAND SMELLED LIKE YOUR PANTS!",
   "from": "UPGRADES"
  },
  {
@@ -27271,12 +27321,12 @@
  },
  {
   "voice": "m2.donnie",
-  "text": "MY NUTS! AND YOUR SHIT BOOT! I THINK I ATE SOME!",
+  "text": "MY NUTS! I CAN TASTE THEM! WHY CAN I TASTE THEM?!",
   "from": "UPGRADES"
  },
  {
   "voice": "m2.donnie",
-  "text": "MY NUTS! I CAN TASTE THEM! WHY CAN I TASTE THEM?!",
+  "text": "MY NUTS! IN YOUR SHIT HAND! I THINK I ATE SOME!",
   "from": "UPGRADES"
  },
  {
@@ -29451,7 +29501,7 @@
  },
  {
   "voice": "m2.fantasy.piper",
-  "text": "EEEEEK! THAT BOOT WAS FILTHY!",
+  "text": "EEEEEK! THAT HAND WAS FILTHY!",
   "from": "UPGRADES"
  },
  {
@@ -29766,7 +29816,7 @@
  },
  {
   "voice": "m2.fantasy.piper",
-  "text": "NOBODY KICKS A PIXIE IN THE BABY MAKERS!",
+  "text": "NOBODY RIPS OUT A PIXIE'S BABY MAKERS!",
   "from": "UPGRADES"
  },
  {
@@ -34706,12 +34756,12 @@
  },
  {
   "voice": "m2.foreign.harry",
-  "text": "AAARGH! A NAKED MAN BLEW UP MY JUNK!",
+  "text": "AAARGH! A NAKED MAN TORE OFF MY JUNK!",
   "from": "UPGRADES"
  },
  {
   "voice": "m2.foreign.harry",
-  "text": "AAARGH! WHAT KIND OF SOLDIER SHITS AND KICKS?!",
+  "text": "AAARGH! WHAT KIND OF SOLDIER SHITS AND RIPS?!",
   "from": "UPGRADES"
  },
  {
@@ -35036,7 +35086,7 @@
  },
  {
   "voice": "m2.foreign.harry",
-  "text": "EAT LEAD, NUT KICKER!",
+  "text": "EAT LEAD, NUT RIPPER!",
   "from": "UPGRADES"
  },
  {
@@ -35846,6 +35896,11 @@
  },
  {
   "voice": "m2.foreign.harry",
+  "text": "MY NUTS ARE GONE! YOURS ARE JUST HANGING THERE! WAVING!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.foreign.harry",
   "text": "MY NUTS ARE GONE! YOURS ARE OUT! I HATE THIS!",
   "from": "UPGRADES"
  },
@@ -35856,17 +35911,12 @@
  },
  {
   "voice": "m2.foreign.harry",
-  "text": "MY NUTS EXPLODED! AND YOU SHIT YOURSELF! NOBODY WINS!",
+  "text": "MY NUTS ARE IN YOUR HAND! AND YOU SHIT YOURSELF! NOBODY WINS!",
   "from": "UPGRADES"
  },
  {
   "voice": "m2.foreign.harry",
-  "text": "MY NUTS EXPLODED! YOURS ARE JUST HANGING THERE! WAVING!",
-  "from": "UPGRADES"
- },
- {
-  "voice": "m2.foreign.harry",
-  "text": "MY NUTS! THEY EXPLODED! LIKE NAPALM! IN MY PANTS!",
+  "text": "MY NUTS! RIPPED OUT! LIKE NAPALM! IN MY PANTS!",
   "from": "UPGRADES"
  },
  {
@@ -53786,7 +53836,7 @@
  },
  {
   "voice": "m2.hollywood.steve",
-  "text": "MY NUTS! WITH A SHIT BOOT! GET ME A MEDIC! AND A SHOWER!",
+  "text": "MY NUTS! WITH A SHIT HAND! GET ME A MEDIC! AND A SHOWER!",
   "from": "UPGRADES"
  },
  {
@@ -55491,17 +55541,17 @@
  },
  {
   "voice": "m2.rex",
-  "text": "RAAAWR. ERROR. CRUSHED. AND SOILED.",
-  "from": "UPGRADES"
- },
- {
-  "voice": "m2.rex",
   "text": "RAAAWR. ERROR. GUEST GENITALS. CONTACTED SENSOR.",
   "from": "UPGRADES"
  },
  {
   "voice": "m2.rex",
-  "text": "RAAAWR. ERROR. TESTICLE MODULES. CRUSHED.",
+  "text": "RAAAWR. ERROR. REMOVED. AND SOILED.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.rex",
+  "text": "RAAAWR. ERROR. TESTICLE MODULES. REMOVED.",
   "from": "UPGRADES"
  },
  {
@@ -57246,17 +57296,17 @@
  },
  {
   "voice": "m2.safari",
-  "text": "MY NUTS! AND YOUR SHIT BOOT! THEY TOUCHED!",
-  "from": "UPGRADES"
- },
- {
-  "voice": "m2.safari",
-  "text": "MY NUTS! KICKED BY A NAKED MAN! IN MY OWN PARK!",
+  "text": "MY NUTS! IN YOUR SHIT HAND! THEY TOUCHED!",
   "from": "UPGRADES"
  },
  {
   "voice": "m2.safari",
   "text": "MY NUTS! MY BEAUTIFUL AWARD-WINNING NUTS!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "MY NUTS! TORN OFF BY A NAKED MAN! IN MY OWN PARK!",
   "from": "UPGRADES"
  },
  {
@@ -61716,7 +61766,7 @@
  },
  {
   "voice": "m2.space.queen",
-  "text": "YOU KICKED MY OVARIES. I WILL KICK YOUR EVERYTHING.",
+  "text": "YOU TORE OUT MY OVARIES. I WILL TEAR OUT YOUR EVERYTHING.",
   "from": "UPGRADES"
  },
  {
@@ -71721,6 +71771,11 @@
  },
  {
   "voice": "meathead",
+  "text": "FINDERS KEEPERS!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "meathead",
   "text": "FINE MOTOR SKILLS. I DID NOT SIGN UP FOR FINE MOTOR SKILLS.",
   "from": "SPACE"
  },
@@ -78071,6 +78126,11 @@
  },
  {
   "voice": "meathead",
+  "text": "I SHIT MYSELF, YOU LOST YOURS! WE'RE EVEN!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "meathead",
   "text": "I SHIT MYSELF, YOU SHIT YOURS! WE'RE EVEN!",
   "from": "UPGRADES"
  },
@@ -78573,6 +78633,11 @@
   "voice": "meathead",
   "text": "I'LL TAKE THE BIKE. AND THE GUN. YOU WON'T WANT THE SEAT BACK.",
   "from": "m1/game/stages/oscar/bunker.ts:505"
+ },
+ {
+  "voice": "meathead",
+  "text": "I'LL TAKE THESE!",
+  "from": "UPGRADES"
  },
  {
   "voice": "meathead",
@@ -83426,6 +83491,11 @@
  },
  {
   "voice": "meathead",
+  "text": "MY HANDS WERE ALREADY DIRTY!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "meathead",
   "text": "MY HANDS. I CAN'T FEEL MY HANDS.",
   "from": "FANTASY"
  },
@@ -83878,6 +83948,11 @@
   "voice": "meathead",
   "text": "NAKED AND FALLIIIING!",
   "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
+  "text": "NAKED AND HOLDING YOUR NUTS!",
+  "from": "UPGRADES"
  },
  {
   "voice": "meathead",
@@ -91653,6 +91728,11 @@
   "voice": "meathead",
   "text": "SOUP'S ON. NOBODY EAT IT.",
   "from": "FINALE_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "SOUVENIR!",
+  "from": "UPGRADES"
  },
  {
   "voice": "meathead",

@@ -1,9 +1,9 @@
 // THE CHEAP SHOT's lines (cheapShot.ts; SPEC.md's hand armor, "AFTER IT, NEW LINES"): the owner's "if you crush a
 // boss's balls/ovaries, they get new lines for the remainder of the fight." Each boss and sub-boss it works on: the
-// scream as the boot lands, then its hurt, taunt and attack lines swapped for these till the fight's over (they die, or
-// he does). Squeaky, wheezing, vengeful, pitiful, played to the sin. Every set in clean / shitty / nude: the boss
-// reacting to the state Meathead's in. Each in the boss's own voice (tools/voices/cast.json); recorded off
-// CRUSHED_VOICE_LINES (upgrades/lines.ts puts them in UPGRADE_VOICE_LINES: extract.ts and m2pack.ts read that).
+// scream as they're torn out (the pundits: as the boot lands), then its hurt, taunt and attack lines swapped for these
+// till the fight's over (they die, or he does). Squeaky, wheezing, vengeful, pitiful, played to the sin. Every set in
+// clean / shitty / nude: the boss reacting to the state Meathead's in. Each in the boss's own voice
+// (tools/voices/cast.json); recorded off CRUSHED_VOICE_LINES (upgrades/lines.ts puts them in UPGRADE_VOICE_LINES: extract.ts and m2pack.ts read that).
 
 export type Dressed = 'clean' | 'shitty' | 'nude';
 export type CrushPants = Record<Dressed, readonly string[]>;
@@ -22,11 +22,18 @@ export interface CrushSet {
   hurt: CrushPants; taunt: CrushPants; attack: CrushPants;
 }
 
-/** Meathead's, after the boot (waiting till their scream's done). */
+/** Meathead's, after the boot (waiting till their scream's done): the pundits'. */
 export const MEATHEAD_CHEAP: CrushPants = {
   clean: ['RIGHT IN THE SNACK DRAWER!', 'THAT ONE WAS FOR MY MOM!', 'BALLS DEEP! MY BOOT, I MEAN!', 'FIELD GOAL!', 'NO RULES! NO REFS! NO NUTS!'],
   shitty: ["I SHIT MYSELF, YOU SHIT YOURS! WE'RE EVEN!", 'NOW WE BOTH NEED NEW PANTS!', 'DIRTY PANTS, DIRTY FIGHTING!', 'SMELL THAT? THAT WAS YOUR FUTURE KIDS!'],
   nude: ["MINE ARE OUT AND STILL ATTACHED! YOURS AREN'T!", "NOTHING BETWEEN MY BOOT AND YOUR NUTS BUT AIR!", 'NAKED AND UNDEFEATED!', "LOOK AT ME! THEN LOOK AT YOUR CROTCH! CRY!"],
+};
+
+/** His, the rip's (every boss but the pundits, who get the boot and MEATHEAD_CHEAP): after their scream, the trophy up. */
+export const MEATHEAD_RIP: CrushPants = {
+  clean: ['SOUVENIR!', "I'LL TAKE THESE!", 'THAT ONE WAS FOR MY MOM!', 'NO RULES! NO REFS! NO NUTS!', 'FINDERS KEEPERS!'],
+  shitty: ['MY HANDS WERE ALREADY DIRTY!', "I SHIT MYSELF, YOU LOST YOURS! WE'RE EVEN!", 'DIRTY PANTS, DIRTY FIGHTING!', 'SMELL THAT? THAT WAS YOUR FUTURE KIDS!'],
+  nude: ["MINE ARE OUT AND STILL ATTACHED! YOURS AREN'T!", 'NAKED AND HOLDING YOUR NUTS!', 'NAKED AND UNDEFEATED!', "LOOK AT ME! THEN LOOK AT YOUR CROTCH! CRY!"],
 };
 
 const set = (voice: string, flags: Partial<Pick<CrushSet, 'female' | 'robot' | 'slapstick' | 'glitter'>>, lines: Pick<CrushSet, 'scream' | 'hurt' | 'taunt' | 'attack'>): CrushSet =>
@@ -37,8 +44,8 @@ export const CRUSHED: Record<CrushId, CrushSet> = {
   artie: set('m2.safari', {}, {
     scream: {
       clean: ['MY NUTS! MY BEAUTIFUL AWARD-WINNING NUTS!', 'EEEEEE! THAT WAS MY TALENT!'],
-      shitty: ['MY NUTS! AND YOUR SHIT BOOT! THEY TOUCHED!', 'EEEEEE! IT GOT SHIT IN IT!'],
-      nude: ['MY NUTS! KICKED BY A NAKED MAN! IN MY OWN PARK!', "EEEEEE! YOUR DICK SLAPPED ME TOO!"],
+      shitty: ['MY NUTS! IN YOUR SHIT HAND! THEY TOUCHED!', 'EEEEEE! IT GOT SHIT IN IT!'],
+      nude: ['MY NUTS! TORN OFF BY A NAKED MAN! IN MY OWN PARK!', "EEEEEE! YOUR DICK SLAPPED ME TOO!"],
     },
     hurt: {
       clean: ["OW! NOT THERE! THERE'S NOTHING THERE ANYMORE!", 'I HAVE TO SIT DOWN! I CAN NEVER SIT DOWN AGAIN!', 'MY VOICE! I SOUND LIKE A TOUCAN!'],
@@ -60,7 +67,7 @@ export const CRUSHED: Record<CrushId, CrushSet> = {
   donnie: set('m2.donnie', {}, {
     scream: {
       clean: ['MY NUTS! I CAN TASTE THEM! WHY CAN I TASTE THEM?!', 'GURK! I JUST LOST MY APPETITE! I NEVER LOSE MY APPETITE!'],
-      shitty: ['MY NUTS! AND YOUR SHIT BOOT! I THINK I ATE SOME!', 'GURK! THAT BOOT TASTED LIKE YOUR PANTS!'],
+      shitty: ['MY NUTS! IN YOUR SHIT HAND! I THINK I ATE SOME!', 'GURK! THAT HAND SMELLED LIKE YOUR PANTS!'],
       nude: ["MY NUTS! YOU'RE NAKED AND I'M NOT EVEN HUNGRY ANYMORE!", 'GURK! SOMETHING BOUNCED ON MY FACE!'],
     },
     hurt: {
@@ -92,7 +99,7 @@ export const CRUSHED: Record<CrushId, CrushSet> = {
       nude: ['DAMAGE. VISUAL SENSORS. ALSO DAMAGED.', 'PAIN. SUBROUTINE. HIS GENITALS. STILL IN FRAME.', 'WARRANTY VOID. DIGNITY VOID.'],
     },
     taunt: {
-      clean: ['NEW DIRECTIVE. NO BREEDING. ONLY KILLING.', 'MATING RITUAL. CANCELED. FUNERAL RITUAL. SCHEDULED.', 'YOU KICKED MY OVARIES. I WILL KICK YOUR EVERYTHING.'],
+      clean: ['NEW DIRECTIVE. NO BREEDING. ONLY KILLING.', 'MATING RITUAL. CANCELED. FUNERAL RITUAL. SCHEDULED.', 'YOU TORE OUT MY OVARIES. I WILL TEAR OUT YOUR EVERYTHING.'],
       shitty: ['NEW DIRECTIVE. KILL THE STINKING ONE.', 'MATING RITUAL CANCELED. ON HYGIENE GROUNDS ALONE.', 'YOUR DIAPER IS FULL. YOUR LIFE WILL BE EMPTY.'],
       nude: ['NEW DIRECTIVE. KILL THE NUDE ONE. THEN BLEACH OPTICS.', 'MATING RITUAL CANCELED. YOU ARE TOO SMALL ANYWAY.', 'YOUR GENITALS ARE EXPOSED. RETALIATION. IMMINENT.'],
     },
@@ -106,7 +113,7 @@ export const CRUSHED: Record<CrushId, CrushSet> = {
   steve: set('m2.hollywood.steve', {}, {
     scream: {
       clean: ['MY NUTS! THEY WERE THE ONLY PART OF ME THAT WAS NEVER A STUNT DOUBLE!', 'AAAH! DID THE JUMBOTRON GET THAT?! DON\'T REPLAY THAT!'],
-      shitty: ['MY NUTS! WITH A SHIT BOOT! GET ME A MEDIC! AND A SHOWER!', 'AAAH! DO NOT PUT THAT ON THE REPLAY!'],
+      shitty: ['MY NUTS! WITH A SHIT HAND! GET ME A MEDIC! AND A SHOWER!', 'AAAH! DO NOT PUT THAT ON THE REPLAY!'],
       nude: ['MY NUTS! THE NAKED GUY STILL HAS HIS! IT\'S NOT FAIR!', 'AAAH! HIS DICK WAS ON THE JUMBOTRON TOO!'],
     },
     hurt: {
@@ -128,9 +135,9 @@ export const CRUSHED: Record<CrushId, CrushSet> = {
   // ---- HELICOPTER HARRY (wrath): the M60, the rage; his nuts exploded and now he's angrier than ever, still shooting
   harry: set('m2.foreign.harry', {}, {
     scream: {
-      clean: ['MY NUTS! THEY EXPLODED! LIKE NAPALM! IN MY PANTS!', 'AAARGH! YOU FOREIGN NUT BUSTER!'],
-      shitty: ['MY NUTS EXPLODED! AND YOU SHIT YOURSELF! NOBODY WINS!', 'AAARGH! WHAT KIND OF SOLDIER SHITS AND KICKS?!'],
-      nude: ['MY NUTS EXPLODED! YOURS ARE JUST HANGING THERE! WAVING!', 'AAARGH! A NAKED MAN BLEW UP MY JUNK!'],
+      clean: ['MY NUTS! RIPPED OUT! LIKE NAPALM! IN MY PANTS!', 'AAARGH! YOU FOREIGN NUT BUSTER!'],
+      shitty: ['MY NUTS ARE IN YOUR HAND! AND YOU SHIT YOURSELF! NOBODY WINS!', 'AAARGH! WHAT KIND OF SOLDIER SHITS AND RIPS?!'],
+      nude: ['MY NUTS ARE GONE! YOURS ARE JUST HANGING THERE! WAVING!', 'AAARGH! A NAKED MAN TORE OFF MY JUNK!'],
     },
     hurt: {
       clean: ['I DON\'T FEEL PAIN! I FEEL A DRAFT!', "OW! I'M MAD! I'M SO MAD I'M BLEEDING OUT MY PANTS!", 'MY NUTS ARE IN THREE COUNTRIES NOW!'],
@@ -143,7 +150,7 @@ export const CRUSHED: Record<CrushId, CrushSet> = {
       nude: ["I'LL SHOOT THOSE NUTS RIGHT OFF YOU! FAIR'S FAIR!", 'NUTLESS AND FURIOUS! YOU ARE NAKED AND DEAD!', 'NO BALLS! NO MERCY! NO PANTS EITHER, I SEE!'],
     },
     attack: {
-      clean: ['EAT LEAD, NUT KICKER!', 'RAT TAT TAT! FOR MY NUTS!', 'DIE! DIE FOR WHAT YOU DID DOWN THERE!'],
+      clean: ['EAT LEAD, NUT RIPPER!', 'RAT TAT TAT! FOR MY NUTS!', 'DIE! DIE FOR WHAT YOU DID DOWN THERE!'],
       shitty: ['EAT LEAD, SHIT PANTS!', 'RAT TAT TAT! RIGHT IN THE STAIN!', 'DIE! DIE SMELLING!'],
       nude: ['EAT LEAD! IN THE NUTS!', 'RAT TAT TAT! AIM LOW, HARRY!', 'DIE! DIE NAKED, YOU NUT BUSTER!'],
     },
@@ -175,7 +182,7 @@ export const CRUSHED: Record<CrushId, CrushSet> = {
   piper: set('m2.fantasy.piper', { female: true, glitter: true }, {
     scream: {
       clean: ['MY OVARIES! THROUGH ALL THIS?! HOW?!', 'EEEEEK! NOBODY WILL EVER DUEL OVER ME NOW!'],
-      shitty: ['MY OVARIES! AND HE SHIT HIMSELF FIRST! WHAT A DATE!', 'EEEEEK! THAT BOOT WAS FILTHY!'],
+      shitty: ['MY OVARIES! AND HE SHIT HIMSELF FIRST! WHAT A DATE!', 'EEEEEK! THAT HAND WAS FILTHY!'],
       nude: ['MY OVARIES! FROM A NAKED MAN! THIS IS NOT HOW I PICTURED IT!', 'EEEEEK! THAT IS NOT THE WAY A NAKED MAN IS SUPPOSED TO HURT ME!'],
     },
     hurt: {
@@ -184,7 +191,7 @@ export const CRUSHED: Record<CrushId, CrushSet> = {
       nude: ["OW! A NAKED MAN AND NOTHING SEXY HAPPENING! HOW?!", "STOP! PUT IT AWAY! I'M NOT IN THE MOOD! I'LL NEVER BE IN THE MOOD!", "OW! I'M BLEEDING GLITTER! YOU'RE JUST FLOPPING!"],
     },
     taunt: {
-      clean: ['MEN WERE SUPPOSED TO DIE FOR ME! YOU WILL!', 'YOU RUINED MY LOVE LIFE! I WILL RUIN YOUR EVERYTHING!', 'NOBODY KICKS A PIXIE IN THE BABY MAKERS!'],
+      clean: ['MEN WERE SUPPOSED TO DIE FOR ME! YOU WILL!', 'YOU RUINED MY LOVE LIFE! I WILL RUIN YOUR EVERYTHING!', "NOBODY RIPS OUT A PIXIE'S BABY MAKERS!"],
       shitty: ['MEN USED TO KILL FOR ME! NOW I GET THE SHITTY ONE!', 'YOU RUINED ME! AND MY CARPET!', 'NOBODY TOUCHES PIPER! ESPECIALLY NOT DIRTY!'],
       nude: ["YOU'RE NAKED AND I FEEL NOTHING! NOTHING! YOU DID THAT!", "STOP STANDING LIKE THAT! IT'S NOT WORKING ANYMORE!", 'I WANTED A NAKED MAN! NOT LIKE THIS!'],
     },
@@ -198,8 +205,8 @@ export const CRUSHED: Record<CrushId, CrushSet> = {
   dad: set('m2.cartoon.dad', {}, {
     scream: {
       clean: ['MY BEER NUTS! SOMEBODY GET ME A BAG OF ICE!', 'OOOOOH! HONEY! HONEY! THE NUTS!'],
-      shitty: ['MY NUTS! YOU KICKED ME WITH A SHIT BOOT! ON MY COUCH!', 'OOOOOH! NOW THE COUCH SMELLS LIKE BOTH OF US!'],
-      nude: ['MY NUTS! A NAKED GUY KICKED MY NUTS ON MY OWN COUCH!', 'OOOOOH! YOUR STUFF WAS ON MY RECLINER!'],
+      shitty: ['MY NUTS! YOU TORE THEM OFF WITH A SHIT HAND! ON MY COUCH!', 'OOOOOH! NOW THE COUCH SMELLS LIKE BOTH OF US!'],
+      nude: ['MY NUTS! A NAKED GUY TORE MY NUTS OFF ON MY OWN COUCH!', 'OOOOOH! YOUR STUFF WAS ON MY RECLINER!'],
     },
     hurt: {
       clean: ["OW! I CAN'T GET UP! I COULDN'T GET UP BEFORE EITHER!", 'ICE! BEER! A BAG OF ICE WITH BEER IN IT!', "OW! SON! SOMEBODY! GET ME A COLD ONE FOR MY NUTS!"],
@@ -207,9 +214,9 @@ export const CRUSHED: Record<CrushId, CrushSet> = {
       nude: ["OW! PUT SOME PANTS ON! I'M TRYING TO WATCH TV!", 'ICE! AND A BLINDFOLD!', "OW! YOU'RE NAKED AND I CAN'T EVEN WALK AWAY!"],
     },
     taunt: {
-      clean: ["YOU KICKED MY NUTS! NOW I REALLY AIN'T GETTING UP!", "WHO NEEDS NUTS? I GOT A COUCH!", "I'M GONNA KILL YOU! RIGHT AFTER A NAP!"],
+      clean: ["YOU TORE MY NUTS OFF! NOW I REALLY AIN'T GETTING UP!", "WHO NEEDS NUTS? I GOT A COUCH!", "I'M GONNA KILL YOU! RIGHT AFTER A NAP!"],
       shitty: ["YOU SMELL LIKE MY COUCH CUSHIONS! THE BACK ONES!", "I SHIT MYSELF ON PURPOSE! YOU'RE JUST AN AMATEUR!", "I'M GONNA KILL YOU! AFTER YOU GO HOME AND WASH!"],
-      nude: ["GET YOUR NAKED ASS OFF MY SET!", "IN MY DAY WE WORE PANTS TO KICK NUTS!", "I'M GONNA KILL YOU! PUT A ROBE ON FIRST!"],
+      nude: ["GET YOUR NAKED ASS OFF MY SET!", "IN MY DAY WE WORE PANTS TO RIP NUTS OFF!", "I'M GONNA KILL YOU! PUT A ROBE ON FIRST!"],
     },
     attack: {
       clean: ['SIT DOWN! FOREVER!', 'BONK! THAT ONE WAS FOR MY BEER NUTS!', 'GET OFF MY LAWN! MY COUCH! MY NUTS!'],
@@ -220,8 +227,8 @@ export const CRUSHED: Record<CrushId, CrushSet> = {
   // ---- THE REX (the animatronic): a crotch hatch, robot balls; the designers were silly people
   rex: set('m2.rex', { robot: true }, {
     scream: {
-      clean: ['WARNING. NUT HATCH. BREACHED.', 'RAAAWR. ERROR. TESTICLE MODULES. CRUSHED.'],
-      shitty: ['WARNING. NUT HATCH BREACHED. FECAL MATTER IN THE GEARS.', 'RAAAWR. ERROR. CRUSHED. AND SOILED.'],
+      clean: ['WARNING. NUT HATCH. BREACHED.', 'RAAAWR. ERROR. TESTICLE MODULES. REMOVED.'],
+      shitty: ['WARNING. NUT HATCH BREACHED. FECAL MATTER IN THE GEARS.', 'RAAAWR. ERROR. REMOVED. AND SOILED.'],
       nude: ['WARNING. NUT HATCH BREACHED. BY AN UNDRESSED GUEST.', 'RAAAWR. ERROR. GUEST GENITALS. CONTACTED SENSOR.'],
     },
     hurt: {
@@ -244,7 +251,7 @@ export const CRUSHED: Record<CrushId, CrushSet> = {
   demon: set('m2.demon', {}, {
     scream: {
       clean: ['MY UNHOLY NUTS! DAD! DAAAD!', 'AAAH! DON\'T TELL MY DAD! DON\'T TELL ANYBODY!'],
-      shitty: ['MY UNHOLY NUTS! AND HE SMELLS WORSE THAN HELL!', 'AAAH! A SHITTY BOOT! IN HELL! DAD!'],
+      shitty: ['MY UNHOLY NUTS! AND HE SMELLS WORSE THAN HELL!', 'AAAH! A SHITTY HAND! IN HELL! DAD!'],
       nude: ['MY UNHOLY NUTS! A NAKED MORTAL! DAD IS GONNA LAUGH AT ME!', 'AAAH! HIS WERE RIGHT THERE! I SAW EVERYTHING!'],
     },
     hurt: {
@@ -380,7 +387,7 @@ export const CRUSHED: Record<CrushId, CrushSet> = {
 export const CRUSHED_VOICE_LINES: Record<string, string[]> = (() => {
   const out: Record<string, string[]> = { meathead: [] };
   const all = (p: CrushPants) => [...p.clean, ...p.shitty, ...p.nude];
-  out.meathead.push(...all(MEATHEAD_CHEAP));
+  out.meathead.push(...all(MEATHEAD_CHEAP), ...all(MEATHEAD_RIP).filter(l => !all(MEATHEAD_CHEAP).includes(l)));
   for (const s of Object.values(CRUSHED)) (out[s.voice] ??= []).push(...all(s.scream), ...all(s.hurt), ...all(s.taunt), ...all(s.attack));
   return out;
 })();
