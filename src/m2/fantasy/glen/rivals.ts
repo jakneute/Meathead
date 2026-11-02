@@ -9,7 +9,8 @@ import type { FrameContext } from '../../../m1/game/core/context';
 import type { GameState } from '../../../m1/game/core/state';
 import { playSound } from '../../../m1/game/platform/audio';
 import { pickLine } from '../../../m1/game/platform/speech';
-import { piperMust } from '../piperLines';
+import { paMust, gone, gonePants } from '../piperLines';
+import { GLEN_RIVAL_R, GLEN_RETORT_R } from '../revisitLines';
 import { speak, meatheadSays, byPants, saidOver } from '../section';
 import { PIPER_PA_VOICE } from '../talk';
 import { drawSuitor, SUITOR_H, type SuitorLook } from '../suitors';
@@ -54,11 +55,11 @@ export const updateRivals = (ctx: FrameContext) => {
       if (g.queue !== 'talk') return;
       if (i < RIVALS.length) {
         const r = RIVALS[i], R = g.rivals[i];
-        speak(r.look.voice, pickLine(byPants(state, RIVAL_SAY[r.id])), s => { R.said = s; }, true, () => say(i + 1));
+        speak(r.look.voice, pickLine(byPants(state, gone(RIVAL_SAY[r.id], GLEN_RIVAL_R[r.id]))), s => { R.said = s; }, true, () => say(i + 1));
         return;
       }
-      if (i === RIVALS.length) { meatheadSays(state, pickLine(byPants(state, RETORT)), true, () => say(i + 1)); return; }
-      piperSays(g, piperMust(PIPER_GLEN.queue), state, RIDE_HORN(), () => { if (g.queue === 'talk') { g.queue = 'in'; g.queueT = 0; } });
+      if (i === RIVALS.length) { meatheadSays(state, pickLine(byPants(state, gonePants(RETORT, GLEN_RETORT_R))), true, () => say(i + 1)); return; }
+      piperSays(g, paMust(PIPER_GLEN.queue), state, RIDE_HORN(), () => { if (g.queue === 'talk') { g.queue = 'in'; g.queueT = 0; } });
     };
     say(0);
   }

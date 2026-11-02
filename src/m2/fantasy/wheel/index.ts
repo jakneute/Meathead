@@ -35,8 +35,9 @@ import type { Grab } from '../../moves/grab';
 import type { FantasySection } from '../section';
 import { layOwn, ledge, endWalls, endExits, runExits, meatheadSays, speak, saidOver, byPants, getFantasy } from '../section';
 import { PIPER_PA_VOICE } from '../talk';
-import { piperLine } from '../piperLines';
+import { piperLine, paLine, gone, gonePants } from '../piperLines';
 import { HORNY } from '../lines';
+import { HORNY_R, WHEEL_KILLED_R, WHEEL_CLEAR_R, WHEEL_OWN_R, AT_HIM_R, AT_RIVAL_R, QTE_WIN_R } from '../revisitLines';
 import { box, INK } from '../kit';
 import { GY } from '../geometry';
 import { X, Y, x0, x1, HUB, R, N, HANG, OMEGA, FLOOR_W, GATE_L, GATE_R, TRIGGER, FALL_HURT, CHECKPOINTS, ROSTER } from './layout';
@@ -95,7 +96,7 @@ const placeCarts = (state: GameState, w: Wheel, carry: boolean) => {
 // ---------------------------------------------------------------------------------------------------------------
 // Talk
 
-const piperSays = (w: Wheel, pool: string[]) => { const line = piperLine(pool); if (line) speak(PIPER_PA_VOICE, line, s => { w.piper = s; }, true); };
+const piperSays = (w: Wheel, pool: string[]) => { const line = paLine(pool); if (line) speak(PIPER_PA_VOICE, line, s => { w.piper = s; }, true); };
 const bark = (state: GameState, w: Wheel, i: number, pool: string[], force = false) => {
   if (!force && state.frame - w.lastBark < 180) return;
   const line = pickFreshLine(pool);
@@ -141,7 +142,7 @@ const updateSuitors = (ctx: FrameContext, w: Wheel, busy: boolean) => {
       L.at = pick(rivals);
     }
     L.item = pick(ROSTER[i].items); L.wind = 30;
-    if (Math.random() < 0.4) bark(state, w, i, L.at === 'him' ? (Math.random() < 0.3 ? OWN[ROSTER[i].id] : byPants(state, AT_HIM)) : AT_RIVAL);
+    if (Math.random() < 0.4) bark(state, w, i, L.at === 'him' ? (Math.random() < 0.3 ? gone(OWN[ROSTER[i].id], WHEEL_OWN_R[ROSTER[i].id]) : byPants(state, gonePants(AT_HIM, AT_HIM_R))) : gone(AT_RIVAL, AT_RIVAL_R));
   }
 };
 
@@ -291,7 +292,7 @@ export const wheel: FantasySection = {
         announce(call, 0.7);
         p.killSatisfactionTimer = 60;
         if (Math.random() < 0.8) piperSays(w, byPants(state, PIPER_KILL));
-        if (Math.random() < 0.6) mhAfter(state, byPants(state, Math.random() < 0.5 ? KILLED : HORNY));
+        if (Math.random() < 0.6) mhAfter(state, byPants(state, Math.random() < 0.5 ? gonePants(KILLED, WHEEL_KILLED_R) : gonePants(HORNY, HORNY_R)));
       }
       out = { ...NO_CONTROLS };
     } else if (w.qte) {
@@ -315,7 +316,7 @@ export const wheel: FantasySection = {
         w.qte = null;
         w.cu = { kind: 'thrown', i: q.i, how: 'throw', t: 0, dur: THROWN_DUR };
         p.inCutscene = true;
-        bark(state, w, q.i, byPants(state, QTE_WIN), true);
+        bark(state, w, q.i, byPants(state, gonePants(QTE_WIN, QTE_WIN_R)), true);
       }
       out = { ...NO_CONTROLS };
     } else {
@@ -392,7 +393,7 @@ export const wheel: FantasySection = {
       state.stageMemo[WHEEL_MEMO] = '1';
       playSound('clang', 1, -6); playSound('twinkle', 0.9, 4);
       piperSays(w, byPants(state, PIPER_DONE));
-      mhAfter(state, byPants(state, Math.random() < 0.5 ? ALL_DEAD : HORNY));
+      mhAfter(state, byPants(state, Math.random() < 0.5 ? gonePants(ALL_DEAD, WHEEL_CLEAR_R) : gonePants(HORNY, HORNY_R)));
       state.checkpoint = Math.max(state.checkpoint, 11);
     }
     // (glitter off the rim, near him)

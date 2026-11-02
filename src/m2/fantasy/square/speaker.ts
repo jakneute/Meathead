@@ -22,8 +22,9 @@ import { SKIP_AFTER, offerSkip, takeSkip, drawSkipPrompt } from '../../../m1/gam
 import { hands, meatheadSays, speak, saidOver, teleport, byPants, type Said } from '../section';
 import { DOORS } from '../geometry';
 import { PIPER_PA_VOICE } from '../talk';
-import { piperMust, piperLine } from '../piperLines';
+import { piperMust, piperLine, piperGone, gonePants } from '../piperLines';
 import { HORNY } from '../lines';
+import { HORNY_R, BRAXTON_R, GUNNAR_R, TREMAINE_R, BAND_REPLY, BAND_LAST } from '../revisitLines';
 import { SUITORS, drawSuitor, SUITOR_H, type SuitorPose } from '../suitors';
 import { box, onScreen, INK, still, postR, ballR, snowCap, rampH, lit, IRON, GOLD, SNOW, type Ctx } from '../kit';
 import { signText } from '../../signLetters';
@@ -63,7 +64,7 @@ const finish = (state: GameState, s: Scene, skipped: boolean) => {
   state.cameraOverride = null;
   teleport(state, DOORS.wheel.start.x, DOORS.wheel.start.y);
   // (about Piper: once a life, the user's)
-  { const l = piperLine(byPants(state, HORNY)); if (l) meatheadSays(state, l, true); }
+  { const l = piperLine(byPants(state, gonePants(HORNY, HORNY_R))); if (l) meatheadSays(state, l, true); }
 };
 
 export const updateSpeaker = (ctx: FrameContext, controls: Controls): Controls => {
@@ -105,10 +106,24 @@ export const updateSpeaker = (ctx: FrameContext, controls: Controls): Controls =
       return hands();
     case 'talk': {
       p.vel.x = 0; p.facing = 1;
-      if (s.t === 16) playSound('ding', 0.8, 7);
-      if (s.t === 30) playSound('ding', 0.8, 0);
+      // (Piper's dead on this save (the owner's revisit brief): no PA, no chime; the suitors at the bandstand are out
+      // for revenge for her, not to win her, and he answers them)
+      const dead = piperGone();
+      if (s.t === 16 && !dead) playSound('ding', 0.8, 7);
+      if (s.t === 30 && !dead) playSound('ding', 0.8, 0);
       if (s.t === 56 && s.line === 0) s.line = 1;
       const next = () => { s.line = -1; };
+      if (dead) {
+        switch (s.line) {
+          case 1: next(); voiceLine(state, s, 'braxton', pickLine(byPants(state, BRAXTON_R)), 2); break;
+          case 2: next(); voiceLine(state, s, 'gunnar', pickLine(byPants(state, GUNNAR_R)), 3); break;
+          case 3: next(); meatheadSays(state, pickLine(byPants(state, BAND_REPLY)), true, () => { s.line = 4; }); break;
+          case 4: next(); voiceLine(state, s, 'tremaine', pickLine(byPants(state, TREMAINE_R)), 5); break;
+          case 5: next(); meatheadSays(state, pickLine(byPants(state, BAND_LAST)), true, () => { s.line = 6; }); break;
+          case 6: next(); s.step = 'fade'; s.t = 0; break;
+        }
+        return hands();
+      }
       switch (s.line) {
         case 1: next(); voiceLine(state, s,'piper', piperMust(PIPER_HELLO), 2); break;
         case 2: next(); voiceLine(state, s,'piper', piperMust(PIPER_NAME), 3); break;

@@ -19,7 +19,8 @@ import { CANVAS_WIDTH, CANVAS_HEIGHT, HUD_CLEAR_Y } from '../../../m1/constants'
 import { setUi, takeCarHop, tragonMarkAt } from '../../store';
 import { speak, meatheadSays, byPants, solid } from '../section';
 import { PIPER_PA_VOICE, type ByPants } from '../talk';
-import { piperLine, piperMust } from '../piperLines';
+import { paLine, paMust, gone, gonePants } from '../piperLines';
+import { TRAGONS_ARRIVE_R, SPIEL_BACK } from '../revisitLines';
 import { RIVALS } from '../glen/rivals';
 import {
   GY, TL, LOCK, S0X, GATE_X, END_S, EXIT_X, AWAY, LANES, LANE_NAME, LANE_COL, SCRIPT, RIDE_CPS, UNLOAD_CP, DONE_MEMO,
@@ -187,7 +188,7 @@ const breakTrack = (state: GameState, ev: Extract<Ev, { k: 'gap' | 'safe' }>, si
   // (no spiel naming the track: the warnings on screen tell it (the user's: "remove the announcer on the ride calling
   // out the obstacles"))
   if (once(t, 'firstGap')) mSay(state, FIRST_GAP, false);
-  if (once(t, 'piperGap')) paSay(state, 'piper', piperLine(PIPER_T.gap));
+  if (once(t, 'piperGap')) paSay(state, 'piper', paLine(PIPER_T.gap));
 };
 
 /** A train runs off a broken end: over it goes. On it (or just up off it), he goes with it: that track's own death. */
@@ -232,7 +233,7 @@ const putSpin = (state: GameState, ev: Extract<Ev, { k: 'spin' }>, i: number, si
   playSound('alert', 0.5, 4);
   // (no spiel naming the track(s): the warnings on screen tell it (the user's); him, if it's his; Piper the first time)
   if (lanes.includes(his)) mSay(state, ev.kind === 'braid' ? BRAID : LOOP_SEE);
-  if (once(t, 'piperLoop')) paSay(state, 'piper', piperLine(PIPER_T.loop));
+  if (once(t, 'piperLoop')) paSay(state, 'piper', paLine(PIPER_T.loop));
 };
 
 /** Thrown off a loop (let go): off the rail the way the car was going, arms and legs going, all the way down. */
@@ -446,7 +447,7 @@ export const updateRide = (ctx: FrameContext, controls: Controls): Controls => {
   if (t.phase === 'load') {
     const rx = p.pos.x + p.width / 2;
     if (rx > S0X - 700 && once(t, 'load')) mSay(state, LOAD);
-    if (rx > S0X - 300 && once(t, 'station')) paSay(state, 'spiel', pickFreshLine(SPIEL.board));
+    if (rx > S0X - 300 && once(t, 'station')) paSay(state, 'spiel', pickFreshLine(gone(SPIEL.board, SPIEL_BACK)));
     t.boardT = pOn ? t.boardT + 1 : 0;
     if (t.boardT > 24 && alive) {
       t.phase = 'dispatch'; t.goT = 0; gate.y = AWAY;
@@ -501,9 +502,9 @@ export const updateRide = (ctx: FrameContext, controls: Controls): Controls => {
       else if (ev.k === 'duck' || ev.k === 'jump' || ev.k === 'mover') spawnWave(t, ev.k, ev.at);
       else if (ev.k === 'breath') { t.breath = { from: [], at: f, to: hisLane(t), hit: false }; }
       else if (ev.k === 'say') {
-        if (ev.what === 'piper') paSay(state, 'piper', piperLine(PIPER_T.start));
-        else if (ev.what === 'piperMid') paSay(state, 'piper', piperLine(PIPER_T.mid));
-        else if (ev.what === 'piperLate') paSay(state, 'piper', piperLine(PIPER_T.late));
+        if (ev.what === 'piper') paSay(state, 'piper', paLine(PIPER_T.start));
+        else if (ev.what === 'piperMid') paSay(state, 'piper', paLine(PIPER_T.mid));
+        else if (ev.what === 'piperLate') paSay(state, 'piper', paLine(PIPER_T.late));
         // (the near miss: the dragons' mouths glowing tell it; no spiel calling it out (the user's), just him)
         else if (ev.what === 'near') mSay(state, NEAR);
         else paSay(state, 'spiel', pickFreshLine(SPIEL[ev.what]));
@@ -788,8 +789,8 @@ const arrive = (state: GameState) => {
     const r = RIVALS[i];
     speak(RIVAL_VOICES[r.id], pickLine(byPants(state, RIVAL_UNLOAD[r.id])), s => { t.unload.talk[r.id] = s; }, true, () => next(i + 1));
   };
-  paSay(state, 'spiel', pickFreshLine(SPIEL.unload), () => paSay(state, 'piper', piperMust(PIPER_T.end), () => {
-    const line = pickFreshLine(byPants(state, ARRIVE));
+  paSay(state, 'spiel', pickFreshLine(SPIEL.unload), () => paSay(state, 'piper', paMust(PIPER_T.end), () => {
+    const line = pickFreshLine(byPants(state, gonePants(ARRIVE, TRAGONS_ARRIVE_R)));
     if (line && state.player.health > 0) meatheadSays(state, line, true, () => next(0)); else next(0);
   }));
 };

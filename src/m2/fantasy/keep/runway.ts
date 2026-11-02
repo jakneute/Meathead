@@ -19,7 +19,9 @@ import type { Block } from '../../../m1/types';
 import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../../../m1/constants';
 import { playSound } from '../../../m1/game/platform/audio';
 import { pickLine, silenceAll } from '../../../m1/game/platform/speech';
-import { piperMust } from '../piperLines';
+import { piperMust, piperGone, gonePants } from '../piperLines';
+import { SHOP_R, RUNWAY_RAFAEL_R, RUNWAY_FINAL_R, RUNWAY_RULES_R, RUNWAY_GO_R, MOUNT_R } from '../revisitLines';
+import type { ByPants } from '../talk';
 import { SKIP_AFTER, offerSkip, takeSkip, drawSkipPrompt } from '../../../m1/game/platform/skip';
 import { hands, meatheadSays, speak, saidOver, teleport, byPants } from '../section';
 import { DOORS } from '../geometry';
@@ -61,7 +63,7 @@ export const updateBoutique = (state: GameState) => {
   if (!who.length) { k.shop.step = 'done'; meatheadSays(state, pickLine(byPants(state, GAGS.boutique)), true); return; }
   // (each in turn, never over each other; then him)
   const say = (i: number) => {
-    if (i < who.length) { const id = who[i]; speak(LOOK[id].voice, pickLine(byPants(state, SHOP_SAY[id])), s => { k.shop.said = s; k.shop.who = s ? id : null; }, true, () => say(i + 1)); return; }
+    if (i < who.length) { const id = who[i]; speak(LOOK[id].voice, pickLine(byPants(state, gonePants(SHOP_SAY[id], id === 'hank' ? undefined : SHOP_R[id]))), s => { k.shop.said = s; k.shop.who = s ? id : null; }, true, () => say(i + 1)); return; }
     meatheadSays(state, pickLine(byPants(state, SHOP_RETORT)), true, () => { k.shop.step = 'done'; });
   };
   say(0);
@@ -195,10 +197,10 @@ const piperSays = (k: Keep, text: string | null, then: () => void) => {
   k.scene.who = 'piper';
   speak(PIPER_PA_VOICE, text, x => { k.scene.said = x; }, true, () => { k.scene.said = null; k.scene.who = null; then(); });
 };
-const suitorSays = (state: GameState, k: Keep, id: string, then: () => void) => {
+const suitorSays = (state: GameState, k: Keep, id: string, then: () => void, text?: string) => {
   const fl = k.scene.flyers.find(f => f.id === id);
   k.scene.who = id;
-  speak(LOOK[id].voice, pickLine(byPants(state, RUNWAY_SAY[id as RivalId | FastId])), x => { if (fl) fl.said = x; }, true, () => { if (fl) fl.said = null; k.scene.who = null; then(); });
+  speak(LOOK[id].voice, text ?? pickLine(byPants(state, gonePants(RUNWAY_SAY[id as RivalId | FastId], id === 'rafael' ? RUNWAY_RAFAEL_R : undefined))), x => { if (fl) fl.said = x; }, true, () => { if (fl) fl.said = null; k.scene.who = null; then(); });
 };
 
 /** The scene's over (run through, or skipped): on to the broomstick deathmatch. */
@@ -280,14 +282,17 @@ export const updateRunway = (ctx: FrameContext, controls: Controls): Controls =>
       return hands();
     case 'talk': {
       if (!s.mounted) { p.vel.x = 0; p.facing = 1; }
-      if (s.t === 16) playSound('ding', 0.8, 7);
-      if (s.t === 30) playSound('ding', 0.8, 0);
+      // (the PA's chime: not with her dead)
+      if (s.t === 16 && !piperGone()) playSound('ding', 0.8, 7);
+      if (s.t === 30 && !piperGone()) playSound('ding', 0.8, 0);
       if (s.t === 56 && s.line === 0) s.line = 1;
       const next = () => { s.line = -1; };
       const after = (n: number) => () => { s.line = n; };
       const nT = s.talkers.length;
-      if (s.line === 1) { next(); piperSays(k, piperMust(PIPER_FINAL), after(2)); }
-      else if (s.line === 2) { next(); piperSays(k, piperMust(PIPER_RULES), after(3)); }
+      // (Piper's dead on this save (the owner's revisit brief): no PA; Dmitri says it instead, for revenge)
+      const dead = piperGone(), dmitri = (pool: ByPants, then: () => void) => suitorSays(state, k, 'dmitri', then, pickLine(byPants(state, pool)));
+      if (s.line === 1) { next(); if (dead) dmitri(RUNWAY_FINAL_R, after(2)); else piperSays(k, piperMust(PIPER_FINAL), after(2)); }
+      else if (s.line === 2) { next(); if (dead) dmitri(RUNWAY_RULES_R, after(3)); else piperSays(k, piperMust(PIPER_RULES), after(3)); }
       else if (s.line >= 3 && s.line < 3 + nT) { const i = s.line - 3; next(); suitorSays(state, k, s.talkers[i], after(4 + i)); }
       else if (s.line === 3 + nT) {
         // (the hop onto the spare broom)
@@ -300,12 +305,14 @@ export const updateRunway = (ctx: FrameContext, controls: Controls): Controls =>
           p.vel.x = 0; p.vel.y = 0;
           if (s.t === 1) playSound('whoosh', 0.6, 4);
           if (k01 >= 1) {
-            s.mounted = true; s.lift = 30; s.hearts = 120; playSound('boing', 0.8, -6);
+            s.mounted = true; s.lift = 30;
+            // (aroused on it: not with her dead)
+            if (!piperGone()) { s.hearts = 120; playSound('boing', 0.8, -6); }
             s.line = -1;
-            meatheadSays(state, pickLine(byPants(state, MOUNT)), true, () => { s.line = 101; });
+            meatheadSays(state, pickLine(byPants(state, gonePants(MOUNT, MOUNT_R))), true, () => { s.line = 101; });
           }
         } else s.line = 101;
-      } else if (s.line === 101) { next(); piperSays(k, piperMust(PIPER_GO), () => { s.step = 'launch'; s.t = 0; }); }
+      } else if (s.line === 101) { next(); const go = () => { s.step = 'launch'; s.t = 0; }; if (dead) dmitri(RUNWAY_GO_R, go); else piperSays(k, piperMust(PIPER_GO), go); }
       return hands();
     }
     case 'launch': {

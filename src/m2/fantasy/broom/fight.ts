@@ -45,7 +45,8 @@ import { setUi } from '../../store';
 import { meatheadSays, speak, saidOver, byPants, landVisit, teleport, fantasyState, type Said } from '../section';
 import { DOORS } from '../geometry';
 import { PIPER_PA_VOICE } from '../talk';
-import { piperLine, piperMust } from '../piperLines';
+import { piperLine, paLine, paMust, piperGone, gone, gonePants } from '../piperLines';
+import { BROOM_R, BROOM_RAFAEL_R, BROOM_RIVAL_R } from '../revisitLines';
 import { RIVALS } from '../glen/rivals';
 import { FASTPASS } from '../keep/runway';
 import { ROSTER_MEMO } from '../keep/state';
@@ -262,7 +263,7 @@ export const startFight = (state: GameState) => {
   setUi({ noSwitch: true, pauseControls: 'broom', broomHud: true, broomBoost: 1, broomTips: f.tips > 0 });
   if (!k.said) {
     k.said = true;
-    piperSays(f, piperLine(PIPER_START), () => meatheadSays(state, pickLine(byPants(state, MH_START)), true));
+    piperSays(f, paLine(PIPER_START), () => meatheadSays(state, pickLine(byPants(state, gonePants(MH_START, BROOM_R.start))), true));
   } else if (rnd() < 0.4) setTimeout(() => meatheadSays(state, pickLine(byPants(state, MH_AGAIN)), false), 700);
 };
 
@@ -402,12 +403,12 @@ const killFlyer = (state: GameState, f: Fight, fl: Flyer, by: number) => {
   firework(f, (rnd() - 0.5) * 1400, (rnd() - 0.5) * 1400, 2100 + rnd() * 500);
   const now = Date.now();
   if (by < 0) {
-    if (now - f.piperAt > 7000 && rnd() < 0.6) piperSays(f, piperLine(PIPER_KILL));
-    else if (now - f.quipAt > 6000 && rnd() < 0.6) { f.quipAt = now; const l = piperLine(byPants(state, MH_KILL)); if (l) meatheadSays(state, l, true); }
-  } else if (now - f.piperAt > 7000 && rnd() < 0.5) piperSays(f, piperLine(PIPER_INFIGHT), () => { if (rnd() < 0.5) { const l = piperLine(byPants(state, MH_INFIGHT)); if (l) meatheadSays(state, l, true); } });
+    if (!piperGone() && now - f.piperAt > 7000 && rnd() < 0.6) piperSays(f, paLine(PIPER_KILL));
+    else if (now - f.quipAt > 6000 && rnd() < 0.6) { f.quipAt = now; const l = piperLine(byPants(state, gonePants(MH_KILL, BROOM_R.kill))); if (l) meatheadSays(state, l, true); }
+  } else if (now - f.piperAt > 7000 && rnd() < 0.5) piperSays(f, paLine(PIPER_INFIGHT), () => { if (rnd() < 0.5) { const l = piperLine(byPants(state, MH_INFIGHT)); if (l) meatheadSays(state, l, true); } });
   // (two left in her sky: him and one)
   const k = keptOf();
-  if (!k.last && k.late && f.flyers.filter(o => o.alive && o.in).length === 1) { k.last = true; piperSays(f, piperLine(PIPER_LAST), () => meatheadSays(state, pickLine(byPants(state, MH_LAST)), true)); }
+  if (!k.last && k.late && f.flyers.filter(o => o.alive && o.in).length === 1) { k.last = true; piperSays(f, paLine(PIPER_LAST), () => meatheadSays(state, pickLine(byPants(state, gonePants(MH_LAST, BROOM_R.last))), true)); }
 };
 
 /** Down he goes: spinning, screaming, shitting; into the wall he was by, or the lawn (or the moat's mud). */
@@ -605,7 +606,7 @@ const updateFlyer = (ctx: FrameContext, f: Fight, fl: Flyer) => {
   const now = Date.now();
   if (now - f.tauntAt > 7000 && has && dist < 1500 && fl.mode === 'fly' && rnd() < 0.01) {
     f.tauntAt = now;
-    const line = fl.target < 0 ? pickLine(byPants(state, TAUNT[st.id])) : pickLine(RIVAL[st.id]);
+    const line = fl.target < 0 ? pickLine(byPants(state, gonePants(TAUNT[st.id], st.id === 'rafael' ? BROOM_RAFAEL_R : undefined))) : pickLine(gone(RIVAL[st.id], BROOM_RIVAL_R[st.id as 'blake' | 'rafael' | 'hank']));
     speak(st.look.voice, line, x => { fl.said = x; }, false);
   }
 };
@@ -754,7 +755,7 @@ export const updateFight = (ctx: FrameContext, controls: Controls): Controls => 
       const now = Date.now();
       if (now - f.quipAt > 45000) {
         f.quipAt = now;
-        if (rnd() < 0.5) piperSays(f, piperLine(PIPER_WALL)); else { const l = piperLine(byPants(state, MH_WALL)); if (l) meatheadSays(state, l, true); }
+        if (!piperGone() && rnd() < 0.5) piperSays(f, paLine(PIPER_WALL)); else { const l = piperLine(byPants(state, gonePants(MH_WALL, BROOM_R.wall))); if (l) meatheadSays(state, l, true); }
       }
     }
     if (r > WALL_R - 300 && f.t % 3 === 0) sparks(f, f.x + Math.sin(f.yaw) * 160, f.z + Math.cos(f.yaw) * 160, f.alt + 40, ['#F472B6', '#FFE4F2', '#FFFFFF'], 3);
@@ -837,7 +838,7 @@ export const updateFight = (ctx: FrameContext, controls: Controls): Controls => 
     }
     if (state.checkpoint < 51) state.checkpoint = 51;
     pop(f, 'LATE ENTRIES!', '#F9A8D4');
-    piperSays(f, piperLine(PIPER_LATE), () => meatheadSays(state, pickLine(byPants(state, MH_LATE)), true));
+    piperSays(f, paLine(PIPER_LATE), () => meatheadSays(state, pickLine(byPants(state, gonePants(MH_LATE, BROOM_R.late))), true));
   }
   // ---- all dead (down and still): her window
   if (flying && k.late && f.flyers.every(o => !o.alive && o.gone)) startWin(state, f);
@@ -863,9 +864,9 @@ const startWin = (state: GameState, f: Fight) => {
   f.hold = 0; f.locked = -1; f.uturn = 0; f.inv = 0;
   f.shots = [];
   setUi({ broomHud: false, broomTips: false });
-  piperSays(f, piperMust(PIPER_WIN), () => {
-    if (isNude(state)) { playSound('boing', 0.9, -6); f.win.said = true; }
-    meatheadSays(state, pickLine(byPants(state, MH_WIN)), true, () => { f.win.step = 'go'; });
+  piperSays(f, paMust(PIPER_WIN), () => {
+    if (isNude(state) && !piperGone()) { playSound('boing', 0.9, -6); f.win.said = true; }
+    meatheadSays(state, pickLine(byPants(state, gonePants(MH_WIN, BROOM_R.win))), true, () => { f.win.step = 'go'; });
   });
 };
 const tickWin = (state: GameState, f: Fight) => {
@@ -879,7 +880,7 @@ const tickWin = (state: GameState, f: Fight) => {
     const a = Math.atan2(f.x, f.z), side = WINDOW.side;
     f.parts.push({ x: Math.cos(a) * side + (rnd() - 0.5) * 60, z: -Math.sin(a) * side + (rnd() - 0.5) * 60, alt: WINDOW.alt + (rnd() - 0.3) * 80, vx: (rnd() - 0.5) * 3, vz: (rnd() - 0.5) * 3, valt: -1 - rnd() * 2, g: 0.05, life: 90, col: rnd() < 0.5 ? '#F472B6' : '#DC2626', size: 10 });
   }
-  if (isNude(state) && w.t % 9 === 0 && w.t < 200) f.parts.push({ x: f.x, z: f.z, alt: f.alt + 90, vx: (rnd() - 0.5) * 2, vz: (rnd() - 0.5) * 2, valt: 2.4, g: -0.01, life: 40, col: rnd() < 0.5 ? '#F472B6' : '#FB7185', size: 10 });
+  if (isNude(state) && !piperGone() && w.t % 9 === 0 && w.t < 200) f.parts.push({ x: f.x, z: f.z, alt: f.alt + 90, vx: (rnd() - 0.5) * 2, vz: (rnd() - 0.5) * 2, valt: 2.4, g: -0.01, life: 40, col: rnd() < 0.5 ? '#F472B6' : '#FB7185', size: 10 });
   // THE VICTORY LAP (on autopilot): round and round the castle, spiraling in and up past the towers' tops, the bloody
   // grounds under him, the camera swung out behind him looking in at it; laps done and the talking over, he breaks off
   // at the top and turns in for her window (then the cut and the zoom)

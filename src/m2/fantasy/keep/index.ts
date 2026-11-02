@@ -16,12 +16,13 @@
 // scene to DOORS.broom.start (one-way); a revisit (the scene done) walks off the right end on to the broomsticks.
 
 import { pickLine } from '../../../m1/game/platform/speech';
-import { piperLine } from '../piperLines';
+import { piperLine, paLine, gonePants } from '../piperLines';
 import type { EnemyKind } from '../../../m1/types';
 import { makeKindEnemy, mid } from '../../../m1/game/enemies/kinds';
 import type { FantasySection } from '../section';
 import { layOwn, ledge, solid, meatheadSays, byPants, endWalls, endExits, runExits, saidOver, speak } from '../section';
 import { HORNY } from '../lines';
+import { HORNY_R, KEEP_ARRIVE_R, KEEP_GAGS_R } from '../revisitLines';
 import { PIPER_PA_VOICE } from '../talk';
 import { makeStairs, updateStairs, drawStairs } from '../stairs';
 import { squareOf } from '../square/state';
@@ -73,18 +74,18 @@ export const keep: FantasySection = {
     if (rx > RUNWAY - 1500) primeGround(); else prewarmGround();
     const free = !p.inCutscene && p.health > 0;
     const once = (key: string, pool: string[], after = false) => { if (!k.said[key] && free) { k.said[key] = true; meatheadSays(state, pickLine(pool), after); } };
-    if (state.checkpoint === 40 && rx < 500 && state.frame > 40) once('arrive', byPants(state, ARRIVE));
-    for (const [g, at] of GAG_AT) if (rx > at && rx < at + 400) once(g, byPants(state, GAGS[g as keyof typeof GAGS]));
+    if (state.checkpoint === 40 && rx < 500 && state.frame > 40) once('arrive', byPants(state, gonePants(ARRIVE, KEEP_ARRIVE_R)));
+    for (const [g, at] of GAG_AT) if (rx > at && rx < at + 400) once(g, byPants(state, gonePants(GAGS[g as keyof typeof GAGS], KEEP_GAGS_R[g as keyof typeof KEEP_GAGS_R])));
     // (about Piper: once a life each, the user's; none left, he says nothing)
-    HORNY_AT.forEach((at, i) => { if (rx > at && rx < at + 500 && !k.said[`horny${i}`] && free) { k.said[`horny${i}`] = true; const l = piperLine(byPants(state, HORNY)); if (l) meatheadSays(state, l, true); } });
+    HORNY_AT.forEach((at, i) => { if (rx > at && rx < at + 500 && !k.said[`horny${i}`] && free) { k.said[`horny${i}`] = true; const l = piperLine(byPants(state, gonePants(HORNY, HORNY_R))); if (l) meatheadSays(state, l, true); } });
     // Piper over the PA as he passes each horn (once each); now and then he's got something to say back
     for (const [at, h, key] of PA_AT) {
       if (k.said[`pa-${key}`] || !free || rx < at - 200 || rx > at + 500) continue;
       k.said[`pa-${key}`] = true;
-      const line = piperLine(PIPER_KEEP[key]);
+      const line = paLine(PIPER_KEEP[key]);
       if (!line) continue;
       k.piperX = X(at); k.piperY = Y(h);
-      speak(PIPER_PA_VOICE, line, s => { k.piper = s; }, true, () => { if (Math.random() < 0.5 && p.health > 0 && !p.inCutscene) { const l = piperLine(byPants(state, HORNY)); if (l) meatheadSays(state, l, true); } });
+      speak(PIPER_PA_VOICE, line, s => { k.piper = s; }, true, () => { if (Math.random() < 0.5 && p.health > 0 && !p.inCutscene) { const l = piperLine(byPants(state, gonePants(HORNY, HORNY_R))); if (l) meatheadSays(state, l, true); } });
     }
     // (the ways: back to the ride's exit off the left end; on a revisit (the brooms flown), on off the right end)
     runExits(state, endExits('keep', { right: runwayDone(state) }));

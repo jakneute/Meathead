@@ -11,12 +11,13 @@
 // (DOORS.tragons.start).
 
 import { pickLine } from '../../../m1/game/platform/speech';
-import { piperLine } from '../piperLines';
+import { piperLine, paLine, gonePants } from '../piperLines';
 import type { EnemyKind } from '../../../m1/types';
 import { makeKindEnemy, mid } from '../../../m1/game/enemies/kinds';
 import type { FantasySection } from '../section';
 import { layOwn, ledge, solid, meatheadSays, byPants, endWalls, endExits, runExits, saidOver } from '../section';
 import { HORNY } from '../lines';
+import { HORNY_R, GLEN_ARRIVE_R, GLEN_GAGS_R } from '../revisitLines';
 import { SECTIONS, GY } from '../geometry';
 import { makeStairs, updateStairs, drawStairs, onStair } from '../stairs';
 import { squareOf } from '../square/state';
@@ -59,19 +60,19 @@ export const glen: FantasySection = {
     const free = !p.inCutscene && p.health > 0;
     // What he's got to say about it (once each)
     const once = (k: string, pool: string[], after = false) => { if (!g.said[k] && free) { g.said[k] = true; meatheadSays(state, pickLine(pool), after); } };
-    if (state.checkpoint === 20 && rx < 600 && state.frame > 40) once('arrive', byPants(state, ARRIVE));
-    for (const [k, at] of GAG_AT) if (rx > at && rx < at + 400) once(k, byPants(state, GAGS[k as keyof typeof GAGS]));
+    if (state.checkpoint === 20 && rx < 600 && state.frame > 40) once('arrive', byPants(state, gonePants(ARRIVE, GLEN_ARRIVE_R)));
+    for (const [k, at] of GAG_AT) if (rx > at && rx < at + 400) once(k, byPants(state, gonePants(GAGS[k as keyof typeof GAGS], GLEN_GAGS_R[k as keyof typeof GLEN_GAGS_R])));
     if (onStair(state, g.stairs[RIDE_STAIR]) && g.stairs[RIDE_STAIR].moving) once('ride', byPants(state, GAGS.ride));
     // (thinking with his dick, now and then)
     // (about Piper: once a life each, the user's; none left, he says nothing)
-    HORNY_AT.forEach((at, i) => { if (rx > at && rx < at + 500 && !g.said[`horny${i}`] && free) { g.said[`horny${i}`] = true; const l = piperLine(byPants(state, HORNY)); if (l) meatheadSays(state, l, true); } });
+    HORNY_AT.forEach((at, i) => { if (rx > at && rx < at + 500 && !g.said[`horny${i}`] && free) { g.said[`horny${i}`] = true; const l = piperLine(byPants(state, gonePants(HORNY, HORNY_R))); if (l) meatheadSays(state, l, true); } });
     // Piper over the PA as he passes each horn (once each); now and then he's got something to say back
     for (const [at, k] of PA_AT) {
       if (g.said[`pa-${k}`] || !free || rx < at - 200 || rx > at + 500) continue;
       g.said[`pa-${k}`] = true;
       // (already said this life: she says nothing, and he's nothing to answer)
-      const line = piperLine(PIPER_GLEN[k]);
-      if (line) piperSays(g, line, state, X(at), () => { if (Math.random() < 0.5 && p.health > 0) { const l = piperLine(byPants(state, HORNY)); if (l) meatheadSays(state, l, true); } });
+      const line = paLine(PIPER_GLEN[k]);
+      if (line) piperSays(g, line, state, X(at), () => { if (Math.random() < 0.5 && p.health > 0) { const l = piperLine(byPants(state, gonePants(HORNY, HORNY_R))); if (l) meatheadSays(state, l, true); } });
     }
     // (the ways: back to the wheel off the left end, on to the ride through its door off the right)
     runExits(state, endExits('glen'));

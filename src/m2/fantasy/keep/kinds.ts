@@ -27,6 +27,8 @@ import { lookOf } from '../../adventure/temple/people';
 import { speak, byPants } from '../section';
 import type { ByPants } from '../talk';
 import { keepOf, type KThrow } from './state';
+import { gonePants } from '../piperLines';
+import { COURTIER_R } from '../revisitLines';
 import { HURT, KILL_CALLS, KEEP_VOICES, GUARD_BARK, JESTER_BARK, COURTIER_BARK } from './lines';
 import { drawGuard, drawJester, drawCourtier } from './kindArt';
 
@@ -200,13 +202,13 @@ const courtier = (ctx: FrameContext, e: Courtier) => {
   switch (e.aiState) {
     default:
       e.vel.x = 0;
-      if (sees(state, e, 600, 280) && e.aiTimer! > 20) { setState(e, 'near'); spotted(state, e, vo, COURTIER_BARK, 0.5); }
+      if (sees(state, e, 600, 280) && e.aiTimer! > 20) { setState(e, 'near'); spotted(state, e, vo, gonePants(COURTIER_BARK, COURTIER_R), 0.5); }
       break;
     case 'near': {
       const dx = Math.abs(pm.x - mid(e).x);
       if (dx < 52 && level(state, e)) { setState(e, 'slapWind'); e.vel.x = 0; break; }
       keepAt(ctx, e, 190, 360, 1.3);
-      if (!e.fanOut && e.aiTimer! > 60 && dx < 440 && level(state, e, 120)) { setState(e, 'flutter'); e.vel.x = 0; playSound('whirl', 0.35, 14); bark(state, e, vo, COURTIER_BARK, 0.35); }
+      if (!e.fanOut && e.aiTimer! > 60 && dx < 440 && level(state, e, 120)) { setState(e, 'flutter'); e.vel.x = 0; playSound('whirl', 0.35, 14); bark(state, e, vo, gonePants(COURTIER_BARK, COURTIER_R), 0.35); }
       break;
     }
     case 'flutter':

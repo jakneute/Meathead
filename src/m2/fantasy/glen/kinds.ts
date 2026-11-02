@@ -38,6 +38,8 @@ import { lookOf } from '../../adventure/temple/people';
 import { speak, byPants } from '../section';
 import type { ByPants } from '../talk';
 import { glenOf, type GThrow } from './state';
+import { gonePants } from '../piperLines';
+import { CUPID_R } from '../revisitLines';
 import { HURT, KILL_CALLS, GLEN_VOICES, HUNTSMAN_VOICES, HUNTSMAN_BARK, CUPID_BARK, GINGER_BARK, DWARF_BARK, UNICORN_BARK } from './lines';
 import { drawHuntsman, drawCupid, drawGinger, drawDwarf, drawUnicorn } from './kindArt';
 
@@ -179,13 +181,13 @@ const cupid = (ctx: FrameContext, e: Enemy) => {
       const tx = hx + chase + Math.sin(t) * 150, ty = hy + Math.sin(t * 2.3) * 18;
       e.vel.x = (tx - e.pos.x) * 0.04; e.vel.y = (ty - e.pos.y) * 0.05;
       e.facing = Math.abs(pm.x - m.x) < 500 ? dirTo(e, pm.x) : (e.vel.x < 0 ? -1 : 1);
-      if (e.aiState !== 'hunt' && sees(state, e, 520, 520)) { setState(e, 'hunt'); spotted(state, e, vo, CUPID_BARK, 0.5); }
+      if (e.aiState !== 'hunt' && sees(state, e, 520, 520)) { setState(e, 'hunt'); spotted(state, e, vo, gonePants(CUPID_BARK, CUPID_R), 0.5); }
       if (e.aiState === 'hunt' && e.aiTimer! > 90 && sees(state, e, 460, 520)) {
         // (close and over him, every other time: the swoop; else the bow)
         const close = Math.abs(pm.x - m.x) < 240 && pm.y > m.y + 40;
         if (close && (k.shots ?? 0) % 2 === 1) { setState(e, 'rear'); playSound('whoosh', 0.4, 10); }
         else { setState(e, 'draw'); playSound('clink', 0.35, 8); }
-        bark(state, e, vo, CUPID_BARK, 0.3);
+        bark(state, e, vo, gonePants(CUPID_BARK, CUPID_R), 0.3);
       }
       break;
     }

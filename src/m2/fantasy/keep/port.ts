@@ -20,6 +20,7 @@ import { bendFloor } from '../../intro/art/kit';
 import { tilePattern } from '../../../m1/game/render/pixelArt';
 import { type Ctx, type View, INK, box, mix, hash, at, still, stillAt, seen, polyF, lit, gilt, dimmed, SNOW, LIP } from '../kit';
 import { signText } from '../../signLetters';
+import { piperGone } from '../piperLines';
 import { X, Y, GY, RUNWAY, DECK } from './layout';
 import { STAND_D, HOOP_D, PALE, ROOF, PINK, DECK as PLANK, GOLD, IRON, TIMBER, R, RC, cone, guest } from './paint';
 import { Q, clipAt, onScreenV, run } from './view';
@@ -105,6 +106,8 @@ const paintScoreboard = (g: Ctx, done: boolean) => {
   for (const px of [-bw / 2 + 30, bw / 2 - 34]) { box(g, px - 3, 0, 8, 60, INK); box(g, px - 2, 0, 6, 60, Ir[3]); }
   const bulb = (s: string, y: number, col: string) => signText(g, s, 0, y, { sx: 2, sy: 2, gap: 1, fill: [mix(col, '#FFFFFF', 0.5), col, col, mix(col, '#000000', 0.25)], dither: true, shadow: '#000000' });
   if (done) { bulb('NO FLIGHTS', -54, '#F87171'); bulb('TODAY', -24, '#F87171'); }
+  // (Piper's dead on this save: no prize, just him; the owner's "revenge for killing piper")
+  else if (piperGone()) { bulb('REVENGE MATCH', -66, '#FDE68A'); signText(g, 'NO PRIZE. NO WINDOW.', 0, -38, gilt(1)); signText(g, 'JUST THE PIXIE KILLER', 0, -22, gilt(1)); box(g, -60, -14, 120, 1, '#5A4A7A'); signText(g, 'FOR PIPER', 0, -5, { sx: 1, sy: 1, gap: 1, fill: ['#FFD0E8', '#F49AC8', '#F49AC8', '#C0609A'] }); }
   else { bulb('FINAL TRIAL', -66, '#FDE68A'); signText(g, 'LAST MAN FLYING GETS', 0, -38, gilt(1)); signText(g, 'THE HIGHEST WINDOW', 0, -22, gilt(1)); box(g, -60, -14, 120, 1, '#5A4A7A'); signText(g, 'BROOMSTICK DEATHMATCH', 0, -5, { sx: 1, sy: 1, gap: 1, fill: ['#FFD0E8', '#F49AC8', '#F49AC8', '#C8508E'], dither: true }); }
 };
 
@@ -240,7 +243,7 @@ export const drawPort = (c: Ctx, state: GameState, v: View, done: boolean, layer
         polyF(c, [[sx, sy], [ex, ey], [(sx + ex) / 2 + sw, (sy + ey) / 2 + 9]], col);
       }
     }
-    if (seen(v, X(SCORE) - 170, X(SCORE) + 170, STAND_D, 40)) stillAt(c, v, STAND_D, `kp-score-${done ? 'done' : 'on'}`, X(SCORE), Y(STAND_H + 150), -170, -150, 340, 220, g => paintScoreboard(g, done));
+    if (seen(v, X(SCORE) - 170, X(SCORE) + 170, STAND_D, 40)) stillAt(c, v, STAND_D, `kp-score-${done ? 'done' : 'on'}${!done && piperGone() ? '-gone' : ''}`, X(SCORE), Y(STAND_H + 150), -170, -150, 340, 220, g => paintScoreboard(g, done));
     deckBack(c, v);
     HOOPS.forEach(([rx, h], i) => { if (seen(v, X(rx) - 40, X(rx) + 40, HOOP_D, 40)) stillAt(c, v, HOOP_D, `kp-hoop-${i}`, X(rx), GY, -34, -h - 40, 68, h + 44, g => paintHoop(g, h)); });
   } else if (layer === 'ground') {

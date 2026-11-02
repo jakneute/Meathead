@@ -23,6 +23,8 @@ import { buildHazards, updateHazards, drawHazardsBack, drawHazardsFront } from '
 import { drawSquareBackdrop, drawSquareBack, drawSquareSnow, squareLamps } from './art';
 import { updateSpeaker, drawSpeakerBack, drawSpeakerFront, drawSpeakerHud, speakerDone } from './speaker';
 import { ARRIVE, REVISIT, GAGS } from './lines';
+import { piperGone } from '../piperLines';
+import { SQUARE_BACK } from '../revisitLines';
 import { buildCrypt, updateCrypt, drawCryptBack, drawCryptMid } from './crypt';
 import './kinds';
 
@@ -61,7 +63,7 @@ export const square: FantasySection = {
     const rx = p.pos.x + p.width / 2 - x0;
     // What he's got to say about it (once each)
     const once = (k: string, pool: string[]) => { if (!sq.said[k] && !p.inCutscene && p.health > 0) { sq.said[k] = true; meatheadSays(state, pickLine(pool), false); } };
-    if (state.checkpoint === 0 && rx < 500 && state.frame > 40) once('arrive', byPants(state, speakerDone(state) ? REVISIT : ARRIVE));
+    if (state.checkpoint === 0 && rx < 500 && state.frame > 40) once('arrive', byPants(state, piperGone() ? SQUARE_BACK : speakerDone(state) ? REVISIT : ARRIVE));
     for (const [k, at] of GAG_AT) if (rx > at && rx < at + 400) once(k, byPants(state, GAGS[k as keyof typeof GAGS]));
     // (charged into PLATFORM 7 5/8: it's a wall)
     if (p.hurtForm === 'charge' && Math.abs(rx - (PILLAR.a + PILLAR.b) / 2) < 90) once('wall', byPants(state, GAGS.wall));

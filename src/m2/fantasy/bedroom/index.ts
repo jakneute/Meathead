@@ -42,6 +42,8 @@ import {
   killCamTick, killCamZoom, deathNeed, rangeZoom, roomBits, keepErect, drawRemains,
 } from './fight';
 import { MH_HALL } from './lines';
+import { EMPTY_ROOM } from '../revisitLines';
+import { leaveEmptyArena } from '../../emptyArena';
 
 /** How she died (for a revisit's look): `cork:<x>` or `balloon:<x>` in state.stageMemo. */
 export const PIPER_END_MEMO = 'fa-piper-end';
@@ -56,6 +58,8 @@ interface Bedroom {
 }
 const bedroomOf = (state: GameState) => fantasyState<Bedroom>(state, 'bedroom', () => ({ fight: 'wait', wonAt: 0, f: null, walls: [], victory: null, walk: null }));
 
+/** His line in her empty room (a revisit), picked once. */
+const emptyLine = new WeakMap<GameState, string>();
 /** His line in the hall: once a visit. */
 let hallVisit = -1;
 
@@ -113,7 +117,16 @@ export const bedroom: FantasySection = {
     if (s.fight === 'wait') {
       // (no way back out to the broomsticks: he came in through the window, one-way (the user's rule); the hall's left
       // end is a wall)
-      if (cleared) return controls;
+      if (cleared) {
+        // (Piper's dead on this save: in to her empty room, his line, back to the hub (the owner's revisit brief))
+        if (p.health > 0 && (p.inCutscene || p.isGrounded) && pmidX(state) > ARENA_L + 40) {
+          let line = emptyLine.get(state);
+          if (!line) { line = pickLine(byPants(state, EMPTY_ROOM)); emptyLine.set(state, line); }
+          leaveEmptyArena(state, line);
+          return hands();
+        }
+        return controls;
+      }
       // (a fresh start at her checkpoint (the checkpoint-skip cheat: set after the build): the world as a run there left
       // it, her door kicked in and the intro seen; he walks in and she's waiting)
       if (state.checkpoint >= CP_FIGHT && !introSeen(state)) { markIntroSeen(state); state.blocks = state.blocks.filter(b => b.tag !== 'pp-door'); }

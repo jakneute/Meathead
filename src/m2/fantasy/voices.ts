@@ -10,5 +10,6 @@ import { VOICE_LINES as tragons } from './tragons/lines';
 import { VOICE_LINES as keep } from './keep/lines';
 import { VOICE_LINES as broom } from './broom/lines';
 import { VOICE_LINES as bedroom } from './bedroom/lines';
+import { VOICE_LINES as revisit } from './revisitLines';
 
-export const FANTASY_VOICE_LINES: Record<string, string[]>[] = [land, square, wheel, glen, tragons, keep, broom, bedroom];
+export const FANTASY_VOICE_LINES: Record<string, string[]>[] = [land, square, wheel, glen, tragons, keep, broom, bedroom, revisit];

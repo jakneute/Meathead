@@ -17,6 +17,7 @@ import { mix } from '../../m1/game/render/backdrops/core';
 import { stamp } from '../../m1/game/render/stamp';
 import { timeOfDay, farTint, type TimeOfDay } from '../timeOfDay';
 import { SECTIONS, type FantasyId } from './geometry';
+import { isLandCleared } from '../store';
 
 type Ctx = CanvasRenderingContext2D;
 
@@ -192,17 +193,19 @@ export const drawCastleAt = (c: Ctx, sx: number, sy: number, k: number, f: numbe
   const tod = timeOfDay();
   c.save(); c.translate(sx, sy); c.scale(k, k);
   stamp(c, `fa-castle-${tod.key}`, -180, -470, 360, 476, g => paintCastle(g, tod));
-  // (Piper's window: glowing pink, breathing; little sparkles drifting round the top spire)
-  const w = PIPER_WINDOW, glow = 0.18 + 0.1 * Math.sin(f * 0.05) + tod.lamps * 0.2;
-  c.globalAlpha = Math.min(0.6, glow); c.fillStyle = '#FF8AC8';
-  c.beginPath(); c.arc(w.x, w.y - 2, 16, 0, Math.PI * 2); c.fill();
-  c.globalAlpha = 1;
-  for (let i = 0; i < 6; i++) {
-    const a = f * 0.02 + i * 1.05, r = 26 + (i % 3) * 8;
-    const x = w.x + Math.cos(a) * r, y = w.y - 60 + Math.sin(a * 1.3) * 34;
-    const tw = (f + i * 13) % 40 < 20;
-    c.fillStyle = tw ? '#FFF6C8' : '#FFC8E8';
-    c.fillRect(Math.round(x), Math.round(y) - 1, 1, 3); c.fillRect(Math.round(x) - 1, Math.round(y), 3, 1);
+  // (Piper's window: glowing pink, breathing; little sparkles drifting round the top spire. Dark once she's dead.)
+  if (!isLandCleared('fantasy')) {
+    const w = PIPER_WINDOW, glow = 0.18 + 0.1 * Math.sin(f * 0.05) + tod.lamps * 0.2;
+    c.globalAlpha = Math.min(0.6, glow); c.fillStyle = '#FF8AC8';
+    c.beginPath(); c.arc(w.x, w.y - 2, 16, 0, Math.PI * 2); c.fill();
+    c.globalAlpha = 1;
+    for (let i = 0; i < 6; i++) {
+      const a = f * 0.02 + i * 1.05, r = 26 + (i % 3) * 8;
+      const x = w.x + Math.cos(a) * r, y = w.y - 60 + Math.sin(a * 1.3) * 34;
+      const tw = (f + i * 13) % 40 < 20;
+      c.fillStyle = tw ? '#FFF6C8' : '#FFC8E8';
+      c.fillRect(Math.round(x), Math.round(y) - 1, 1, 3); c.fillRect(Math.round(x) - 1, Math.round(y), 3, 1);
+    }
   }
   c.restore();
 };

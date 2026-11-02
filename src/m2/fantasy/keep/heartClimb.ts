@@ -28,6 +28,8 @@ import { PALE, R, standSlab } from './paint';
 import { X, Y, GY } from './layout';
 import { keepOf } from './state';
 import { HEART_GOT } from './lines';
+import { gonePants } from '../piperLines';
+import { HEART_GOT_R } from '../revisitLines';
 import { healthWon, awardHealth, openHealthCard, tickHealthCard } from '../../upgrades/healthAward';
 
 const STONE = '#9A8EB4', LIP = '#F6E7C0';
@@ -70,7 +72,7 @@ export const updateClimb = (ctx: FrameContext): boolean => {
     for (const e of state.enemies) e.pauseTimer = Math.max(e.pauseTimer ?? 0, 2);
     if (!tickHealthCard(k.heartCard, state.frame)) return true;
     k.heartCard = null; p.inCutscene = false;
-    meatheadSays(state, pickLine(byPants(state, HEART_GOT)));
+    meatheadSays(state, pickLine(byPants(state, gonePants(HEART_GOT, HEART_GOT_R))));
     return false;
   }
   if (!k.heart || p.health <= 0 || p.inCutscene) return false;
