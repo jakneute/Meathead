@@ -20,7 +20,8 @@ import { SECTIONS, SECTION_ORDER, type SectionId } from './geometry';
 import { getAdv, type Adv, type Section } from './section';
 import { jungle } from './jungle';
 import { queue } from './queue';
-import { river } from './river';
+import { river as riverBase } from './river';
+import { withBenLair } from './river/benLairSection';
 import { dino } from './dino';
 import { temple } from './temple';
 import { cart } from './cart';
@@ -33,6 +34,8 @@ export const ADV_STAGE = 'M2 Adventure Land';
 // (what's only wanted here, let go once he's gone: landCaches.ts)
 onLandLeft(ADV_STAGE, () => clearOrbitSprites());
 
+// (the river with CON-FUCK-TIOUS's lair up its third maintenance shaft: river/benLairSection.ts)
+const river = withBenLair(riverBase);
 const ALL: Record<SectionId, Section> = { jungle, queue, river, dino, temple, cart, roof, clearing };
 const sectionAt = (x: number): Section => {
   for (const id of SECTION_ORDER) { const s = ALL[id]; if (x >= s.x0 && x < s.x1) return s; }

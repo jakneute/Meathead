@@ -11,6 +11,8 @@
 //                                                           setAmuletOn(on)
 //   amuletActive() has the amulet AND it's switched on: what the yell's code should ask.
 //   benMet()       he's met CON-FUCK-TIOUS (any land): later meetups get the short intro    setBenMet(on)
+//   followArt()    Ben's taught him THE HIDDEN ART OF FOLLOW-UPS (with his first follow-up piece, any land): later
+//                  follow-up pieces just bring it up                                         setFollowArt(on)
 //   subscribeUpgrades(fn) / upgradesVersion()   for React (useSyncExternalStore) or anything else that redraws.
 //   resetUpgrades()   all zero (a new game).
 //   snapshotUpgrades() / restoreUpgrades(raw)   for the save file (save.ts): restore cleans whatever it's handed,
@@ -74,8 +76,8 @@ const BASE_HEALTH = 100, BASE_CELLS = 2, SHARDS_PER_CELL = 3;
 /** An armor piece's boost to its move on regular enemies. */
 export const ARMOR_DAMAGE_K = 1.5;
 
-interface Upgrades { health: number; ammo: number; shards: number; armor: Set<ArmorPiece>; amulet: boolean; benMet: boolean; benGave: Set<ArmorPiece> }
-let u: Upgrades = { health: 0, ammo: 0, shards: 0, armor: new Set(), amulet: true, benMet: false, benGave: new Set() };
+interface Upgrades { health: number; ammo: number; shards: number; armor: Set<ArmorPiece>; amulet: boolean; benMet: boolean; benGave: Set<ArmorPiece>; followArt: boolean }
+let u: Upgrades = { health: 0, ammo: 0, shards: 0, armor: new Set(), amulet: true, benMet: false, benGave: new Set(), followArt: false };
 
 // ---- who's listening
 let version = 0;
@@ -101,6 +103,10 @@ export const benMet = () => u.benMet;
  *  plays till then (the owner gave himself every piece and found Ben with nothing to say). */
 export const benGave = (piece: ArmorPiece) => u.benGave.has(piece);
 export const setBenGave = (piece: ArmorPiece) => { if (!u.benGave.has(piece)) { u.benGave.add(piece); changed(); } };
+/** Ben's taught THE HIDDEN ART OF FOLLOW-UPS (the first follow-up piece he hands over, whichever land): the big beat's
+ *  done with, later follow-up pieces just bring it up again. */
+export const followArt = () => u.followArt;
+export const setFollowArt = (on: boolean) => { if (u.followArt !== on) { u.followArt = on; changed(); } };
 
 // ---- setting (the cheats; the finds, later)
 export const setHealthFinds = (n: number) => { const v = clampInt(n, MAX_HEALTH_FINDS); if (v !== u.health) { u.health = v; changed(); } };
@@ -113,7 +119,7 @@ export const setPiece = (piece: ArmorPiece, on: boolean) => {
 };
 export const setAmuletOn = (on: boolean) => { if (u.amulet !== on) { u.amulet = on; changed(); } };
 export const setBenMet = (on: boolean) => { if (u.benMet !== on) { u.benMet = on; changed(); } };
-export const resetUpgrades = () => { u = { health: 0, ammo: 0, shards: 0, armor: new Set(), amulet: true, benMet: false, benGave: new Set() }; changed(); };
+export const resetUpgrades = () => { u = { health: 0, ammo: 0, shards: 0, armor: new Set(), amulet: true, benMet: false, benGave: new Set(), followArt: false }; changed(); };
 
 // ---- the numbers
 export const maxHealth = () => Math.round(BASE_HEALTH * (1 + HEALTH_STEP * u.health));
@@ -126,18 +132,18 @@ export const moveArmored = (move: MeleeMove) => u.armor.has(PIECE_FOR[move]);
 export const armorDamageK = (move: MeleeMove) => (moveArmored(move) ? ARMOR_DAMAGE_K : 1);
 
 // ---- the save file (save.ts)
-export interface UpgradesSave { health: number; ammo: number; shards: number; armor: ArmorPiece[]; amulet: boolean; benMet?: boolean; benGave?: ArmorPiece[] }
-export const snapshotUpgrades = (): UpgradesSave => ({ health: u.health, ammo: u.ammo, shards: u.shards, armor: ownedPieces(), amulet: u.amulet, benMet: u.benMet, benGave: ARMOR_PIECES.filter(p => u.benGave.has(p)) });
+export interface UpgradesSave { health: number; ammo: number; shards: number; armor: ArmorPiece[]; amulet: boolean; benMet?: boolean; benGave?: ArmorPiece[]; followArt?: boolean }
+export const snapshotUpgrades = (): UpgradesSave => ({ health: u.health, ammo: u.ammo, shards: u.shards, armor: ownedPieces(), amulet: u.amulet, benMet: u.benMet, benGave: ARMOR_PIECES.filter(p => u.benGave.has(p)), followArt: u.followArt });
 /** Whatever was in the file, kept to what makes sense (nothing, or nonsense: zero upgrades). */
 export const cleanUpgrades = (raw: unknown): UpgradesSave => {
   const o = raw && typeof raw === 'object' ? raw as Record<string, unknown> : {};
   const armor = Array.isArray(o.armor) ? ARMOR_PIECES.filter(p => (o.armor as unknown[]).includes(p)) : [];
   // (a save from before Ben's own record: every piece he had was his to give, so counted as given)
   const gave = Array.isArray(o.benGave) ? ARMOR_PIECES.filter(p => (o.benGave as unknown[]).includes(p)) : armor;
-  return { health: clampInt(o.health, MAX_HEALTH_FINDS), ammo: clampInt(o.ammo, MAX_AMMO_FINDS), shards: clampInt(o.shards, MAX_SHARDS), armor, amulet: o.amulet !== false, benMet: o.benMet === true, benGave: gave };
+  return { health: clampInt(o.health, MAX_HEALTH_FINDS), ammo: clampInt(o.ammo, MAX_AMMO_FINDS), shards: clampInt(o.shards, MAX_SHARDS), armor, amulet: o.amulet !== false, benMet: o.benMet === true, benGave: gave, followArt: o.followArt === true };
 };
 export const restoreUpgrades = (raw: unknown) => {
   const s = cleanUpgrades(raw);
-  u = { health: s.health, ammo: s.ammo, shards: s.shards, armor: new Set(s.armor), amulet: s.amulet, benMet: !!s.benMet, benGave: new Set(s.benGave ?? []) };
+  u = { health: s.health, ammo: s.ammo, shards: s.shards, armor: new Set(s.armor), amulet: s.amulet, benMet: !!s.benMet, benGave: new Set(s.benGave ?? []), followArt: !!s.followArt };
   changed();
 };

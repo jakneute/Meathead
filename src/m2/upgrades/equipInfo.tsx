@@ -27,7 +27,7 @@ export interface EquipEntry {
 
 const secs = (frames: number) => Math.round(frames / 60);
 /** A follow-up: the charge move's B held, then Y (on the keys, the beatdown key as its button's held). */
-const FOLLOW = { pad: ['B', 'Y'] as PadKey[], join: '>' as const, kb: ['@special', '@beatdown'] };
+export const FOLLOW = { pad: ['B', 'Y'] as PadKey[], join: '>' as const, kb: ['@special', '@beatdown'] };
 
 const ARMOR_INFO: Record<ArmorPiece, Omit<EquipEntry, 'id' | 'name'>> = {
   sabatons: {

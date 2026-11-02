@@ -34,7 +34,7 @@ export const meetupScript = (pants: Pants, piece: PieceLines, first = !benMet())
     { who: 'mh', text: p(AGAIN_MH) },
     { who: 'ben', text: pickLine(NAME) },
   ];
-  return [...intro, { who: 'mh', text: p(piece.ask) }, { who: 'ben', text: piece.sell[0] }, { who: 'ben', text: piece.trial[0], pose: 'offer' }];
+  return [...intro, { who: 'mh', text: p(piece.ask) }, { who: 'ben', text: piece.sell[0] }, { who: 'ben', text: piece.trial[0], pose: piece.trialPose ?? 'offer' }];
 };
 
 /** The gross-up's least time up (frames), however quick its lines. */

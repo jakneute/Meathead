@@ -18536,6 +18536,11 @@
  },
  {
   "voice": "m2.ben",
+  "text": "ANOTHER ONE FOR THE HIDDEN ART. HOLD THE CHARGE, TAP GRAB. SAME AS ALWAYS.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.ben",
   "text": "BACK FOR MORE. GOOD. THE BAR MISSED YOU.",
   "from": "UPGRADES"
  },
@@ -18556,7 +18561,17 @@
  },
  {
   "voice": "m2.ben",
+  "text": "DON'T LEAN ON IT. HIT IT.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.ben",
   "text": "DON'T MAKE IT WEIRD. AND IT'S BEN.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.ben",
+  "text": "DURING THE CHARGE, THE BOUNCE BACK, OR RIGHT AFTER. THAT IS THE WHOLE ART.",
   "from": "UPGRADES"
  },
  {
@@ -18586,6 +18601,16 @@
  },
  {
   "voice": "m2.ben",
+  "text": "GOOD. MY KIDNEY MOVED. AGAIN.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.ben",
+  "text": "GOOD. MY SPLEEN SAYS GOOD. YOU PASS.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.ben",
   "text": "GOOD. NOW DO THAT TO SOMEBODY WHO DESERVES IT.",
   "from": "UPGRADES"
  },
@@ -18596,12 +18621,37 @@
  },
  {
   "voice": "m2.ben",
+  "text": "HIT A BOSS WITH THAT SHOULDER. THEY'LL FEEL IT IN THEIR TEETH.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.ben",
+  "text": "I GREW UP BEHIND A BOWLING ALLEY. NO IDEA WHAT YOU JUST SAID.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.ben",
+  "text": "I SAID SHOULDER, NOT SNUGGLE.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.ben",
   "text": "I'VE BEEN STEALING JUNK FROM EVERY LAND IN THIS DUMP AND BOLTING IT INTO ARMOR. CHEAP. DIRTY. WORKS.",
   "from": "UPGRADES"
  },
  {
   "voice": "m2.ben",
   "text": "IT'S BEN.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.ben",
+  "text": "KNOCK ME ON MY ASS AND THEY'RE YOURS. SHOULDER FIRST. I'LL HOLD THE SLED.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.ben",
+  "text": "MY MOTHER PUSHES HARDER. SHE USES A WALKER.",
   "from": "UPGRADES"
  },
  {
@@ -18631,7 +18681,27 @@
  },
  {
   "voice": "m2.ben",
+  "text": "NOT ON BOSSES. NOT ON SUB BOSSES. NOT ON LITTLE CRITTERS. THOSE YOU JUST THROW. AND ONE PIECE OUT THERE DOESN'T USE THE GRAB AT ALL.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.ben",
+  "text": "NOW THE REAL SECRET. THE HIDDEN ART OF FOLLOW-UPS.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.ben",
   "text": "OH. OH GOD. THAT... IS THE LESSON.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.ben",
+  "text": "OH. THERE IT IS. YOU PASS. I NEED A MINUTE.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.ben",
+  "text": "OOF. AGAIN.",
   "from": "UPGRADES"
  },
  {
@@ -18641,7 +18711,22 @@
  },
  {
   "voice": "m2.ben",
+  "text": "PLANTED LIKE A TOMATO. GOOD.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.ben",
   "text": "PRACTICE ON THE FAT ONE. THEY DON'T RUN OUT. WHEN YOU'RE DONE, GET IN THE CANNON.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.ben",
+  "text": "PRACTICE ON THE TOUR GUIDE. PLANT HIM, THEN KICK HIS HEAD THROUGH THE UPRIGHTS. THE PARK'S GOT PLENTY. THEN THE CANNON.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.ben",
+  "text": "RAIL SPIKE. BEAUTIFUL.",
   "from": "UPGRADES"
  },
  {
@@ -18656,6 +18741,11 @@
  },
  {
   "voice": "m2.ben",
+  "text": "START A CHARGE. KEEP HOLDING IT. TAP GRAB. YOU DON'T EVEN HAVE TO HIT THE GUY.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.ben",
   "text": "SUGOI. THAT'S ALL THE JAPANESE MY GRANDPA LEFT ME.",
   "from": "UPGRADES"
  },
@@ -18666,7 +18756,22 @@
  },
  {
   "voice": "m2.ben",
+  "text": "TAKE THE COCO-NUTS. YOUR SHOULDER'S A TRUCK NOW. HORNS AND SPEARS DON'T STOP A TRUCK.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.ben",
+  "text": "THAT WAS A HUG.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.ben",
   "text": "THE BAR DOES NOT LIFT ITSELF. ALSO, YOU FELL IN MY HOLE.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.ben",
+  "text": "THE BULL DOES NOT KNOCK. THE BULL COMES THROUGH THE DOOR. SHOULDER CHARGE, MEATHEAD.",
   "from": "UPGRADES"
  },
  {
@@ -18731,12 +18836,37 @@
  },
  {
   "voice": "m2.ben",
+  "text": "TWO COCONUT HALVES. GIFT SHOP LEOPARD. A TUSK OFF A FAKE ELEPHANT. YOU HIT A GUY, HE STAYS HIT.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.ben",
+  "text": "YOSHI. GRANDPA SAID THAT. MOSTLY TO THE LAWNMOWER.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.ben",
+  "text": "YOU AGAIN. I ONLY HAD THE TWO COCONUTS.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.ben",
+  "text": "YOU AGAIN. I WAS MID-NAP IN THE HAMMOCK.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.ben",
   "text": "YOU AGAIN. I WAS MID-NAP.",
   "from": "UPGRADES"
  },
  {
   "voice": "m2.ben",
   "text": "YOU AGAIN. PUT A TOWEL ON THAT.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.ben",
+  "text": "YOU AGAIN. STILL NO PANTS. STILL NO MORE COCONUTS.",
   "from": "UPGRADES"
  },
  {
@@ -18756,7 +18886,22 @@
  },
  {
   "voice": "m2.ben",
+  "text": "YOU CAME BACK. THE SHAFT SMELLS LIKE YOU NOW.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.ben",
   "text": "YOU CAME BACK. YOUR PANTS GOT HERE FIRST.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.ben",
+  "text": "YOU CLIMBED ALL THE WAY UP HERE IN THOSE?",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.ben",
+  "text": "YOU CLIMBED UP THAT SHAFT NAKED. THE FISH SAW EVERYTHING.",
   "from": "UPGRADES"
  },
  {
@@ -18767,6 +18912,11 @@
  {
   "voice": "m2.ben",
   "text": "YOU GRAB LIKE A GUY ON A FIRST DATE.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.ben",
+  "text": "YOU PUSH LIKE A GUY HOLDING A DOOR.",
   "from": "UPGRADES"
  },
  {
@@ -63926,6 +64076,11 @@
  },
  {
   "voice": "meathead",
+  "text": "ARE THOSE COCONUTS? ON YOUR SHOULDERS?",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "meathead",
   "text": "ARE YOU EATING INTO THE MIC? CHEW WITH YOUR MOUTH CLOSED, FATSO.",
   "from": "SPOOKY"
  },
@@ -66356,8 +66511,28 @@
  },
  {
   "voice": "meathead",
+  "text": "COCONUT SHOULDER PADS! I'D TRADE YOU MY PANTS. NOBODY WANTS MY PANTS.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "meathead",
+  "text": "COCONUT SHOULDER PADS. I THINK I'M GONNA CRY.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "meathead",
+  "text": "COCONUTS! FINALLY SOMETHING ON ME THAT SMELLS NICE.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "meathead",
   "text": "COCONUTS! I GOT COCONUTS IN MY TEETH!",
   "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "COCONUTS! THEN I WOULD HAVE FOUR!",
+  "from": "UPGRADES"
  },
  {
   "voice": "meathead",
@@ -67021,6 +67196,21 @@
  },
  {
   "voice": "meathead",
+  "text": "DATTEBAYO! HIDDEN ART NO JUTSU! I KNOW JAPANESE FROM CARTOONS.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "meathead",
+  "text": "DATTEBAYO! HIDDEN ART NO SHARTSU! I KNOW JAPANESE FROM CARTOONS.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "meathead",
+  "text": "DATTEBAYO! NAKED NO JUTSU! I KNOW JAPANESE FROM CARTOONS.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "meathead",
   "text": "DAYCARE'S CLOSED.",
   "from": "m1/game/stages/hector/daycare.ts:80"
  },
@@ -67128,6 +67318,11 @@
   "voice": "meathead",
   "text": "DID HE JUST CALL HIS DAD?",
   "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
+  "text": "DID I HURT YOU? I DID IT LIKE YOU SHOWED ME.",
+  "from": "UPGRADES"
  },
  {
   "voice": "meathead",
@@ -75073,6 +75268,21 @@
   "voice": "meathead",
   "text": "I'M GONNA PUNCH THIS WHOLE BLOCK! THE WHOLE BLOCK!",
   "from": "m1/game/stages/tommy/escape.ts:227"
+ },
+ {
+  "voice": "meathead",
+  "text": "I'M GONNA SHOULDER EVERYBODY. EVEN PEOPLE I LIKE.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "meathead",
+  "text": "I'M GONNA SHOULDER EVERYBODY. NAKED. THEY'LL NEVER RECOVER.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "meathead",
+  "text": "I'M GONNA SHOULDER EVERYBODY. THEY'LL SMELL ME COMING. TOO LATE.",
+  "from": "UPGRADES"
  },
  {
   "voice": "meathead",
@@ -85941,6 +86151,11 @@
  },
  {
   "voice": "meathead",
+  "text": "SHOULDER PADS! I'VE GOT NOTHING ELSE ON. IT'S A START.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "meathead",
   "text": "SHOULDER PRESS TO THE JAW",
   "from": "VULGARITIES"
  },
@@ -87088,6 +87303,16 @@
   "voice": "meathead",
   "text": "SORRY, PAL. YOUR NUTS, MY PANTS. WE BOTH LOST.",
   "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "SORRY. MY EVERYTHING WAS FLAPPING THE WHOLE TIME.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "meathead",
+  "text": "SORRY. SOME OF MY PANTS GOT ON YOUR SLED.",
+  "from": "UPGRADES"
  },
  {
   "voice": "meathead",
@@ -90673,6 +90898,21 @@
   "voice": "meathead",
   "text": "THE HELMET HAS POINTS!",
   "from": "FOREIGN"
+ },
+ {
+  "voice": "meathead",
+  "text": "THE HIDDEN ART! I HAVE NOTHING TO HIDE IT IN!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "meathead",
+  "text": "THE HIDDEN ART! I KNEW THERE WAS ONE! WHAT IS IT?",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "meathead",
+  "text": "THE HIDDEN ART! I WON'T TELL ANYBODY. NOBODY COMES NEAR ME ANYWAY.",
+  "from": "UPGRADES"
  },
  {
   "voice": "meathead",

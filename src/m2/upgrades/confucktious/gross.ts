@@ -14,6 +14,8 @@
 // THE PIECES' PROPS (add one per piece as the lands get their meetups):
 //   hands: the giant white four-finger cartoon gloves, on him: a beatdown flurry at the camera, left, right, left,
 //          the motion lines, a jolt each time one lands.
+//   pauldrons: the COCO-NUTS strapped on his traps: he shoulder-barges the camera, one shoulder then the other, the
+//          coconut looming up at the lens, the motion lines, a jolt as it lands.
 
 import {
   type Ctx, type Buf, GH, R, hexU, WHITE, newBuf, setSeed, rnd, matAt, plot, seg, path, ball, tint, poly, bead, eyeball, teeth, skinPost, stubble, hairs, vein, stamps, drawGrossStamp, grossBackdrop, toCanvas, M_SKIN, M_HAIR, M_MOUTH, M_OTHER, M_CLOTH, SCLERA_R, MOUTH, TONGUE, VEIN_B, BLOOD,
@@ -28,6 +30,12 @@ const IRIS = R('#9A7048', '#7A522E', '#5A381A', '#40240C', '#281404', '#140800')
 const LIP = R('#E2A080', '#C88264', '#AC6650', '#8C4C3A', '#683226', '#3A1610');
 const TANK = R('#C8C8D0', '#A8A8B4', '#8A8A98', '#6C6C7C', '#50505E', '#2A2A36');
 const GLOVE = R('#FFFFFF', '#F6F6FA', '#E2E2EC', '#C6C6D6', '#9C9CB4', '#2A2438');
+/** The coconut's husk, its white meat, the leopard trim, the plastic tusk, the strap. */
+const COCO = R('#A8784A', '#8A5C34', '#6E4424', '#523018', '#3A200E', '#1E0E04');
+const MEAT = R('#FFFFFF', '#FAF6EA', '#ECE4CE', '#D6CAAA', '#A89A78', '#4A3E26');
+const LEO = R('#FCE6A8', '#F0CC78', '#DCAE52', '#BC8C36', '#8A6020', '#3A2408');
+const TUSK = R('#FFFFFF', '#F4F4F8', '#E0E0E8', '#C4C4D0', '#9A9AA8', '#3A3A48');
+const STRAP = R('#9A6A3A', '#7A4E26', '#5E3A1A', '#442810', '#2C1808', '#140A02');
 
 type Key = 'a' | 'b';
 
@@ -167,11 +175,68 @@ const gloveCanvas = () => {
   return out;
 };
 
+/** A COCO-NUT (the pauldron), its shell to the camera: the hairy husk's dome (its three eyes), the white meat round
+ *  its rim, the gift-shop leopard trim strapped under it, the plastic tusk glued up off its top (the glue's blob), the
+ *  leather strap down off it; painted into a buffer of its own: the canvas, and the box it's in. */
+const PAD_W = 104, PAD_H = 96;
+let padCv: HTMLCanvasElement | null | undefined;
+const padCanvas = () => {
+  if (padCv !== undefined) return padCv;
+  setSeed(9119);
+  const b = newBuf();
+  const cx = 50, cy = 56;
+  // (the strap down off it behind, its stitching)
+  poly(b, [cx - 30, cy + 8, cx - 18, cy + 8, cx - 22, PAD_H, cx - 36, PAD_H], STRAP, M_CLOTH, { line: true, tilt: 0.3 });
+  for (let y = cy + 12; y < PAD_H - 2; y += 4) plot(b, cx - 27 + (y - cy) * -0.15, y, STRAP[0], M_CLOTH);
+  // (the husk: a dome, hair over it)
+  ball(b, cx, cy, 40, 36, COCO, { mat: M_OTHER, line: true, lw: 1.8, only: (_x, y) => y < cy + 6, flat: 0.85 });
+  for (let k = 0; k < 520; k++) {
+    const a = Math.PI + rnd() * Math.PI, r = Math.sqrt(rnd()) * 0.95, x = cx + Math.cos(a) * 40 * r, y = cy + Math.sin(a) * 36 * r;
+    if (matAt(b, x, y) !== M_OTHER || y > cy + 3) continue;
+    const ang = a + (rnd() - 0.5) * 1.2, l = 2 + rnd() * 3;
+    seg(b, x, y, x + Math.cos(ang) * l, y + Math.sin(ang) * l, COCO[rnd() < 0.3 ? 0 : rnd() < 0.5 ? 3 : 4], 1, M_OTHER);
+  }
+  // (the fibres frayed out past its outline, the three eyes up its crown)
+  hairs(b, 40, () => { const a = Math.PI * (1.05 + rnd() * 0.9); return [cx + Math.cos(a) * 39, cy + Math.sin(a) * 35]; }, 4, -Math.PI / 2, COCO[2], undefined, 1.2);
+  for (const [ex, ey] of [[-6, -26], [4, -28], [-1, -19]] as const) { ball(b, cx + ex, cy + ey, 3.2, 2.6, R('#2A1608', '#180A02', '#0A0400', '#000000'), { mat: M_OTHER }); plot(b, cx + ex - 1, cy + ey - 1, COCO[1]); }
+  // (the white meat round the rim, a brown skin line through it)
+  ball(b, cx, cy + 6, 41, 6, MEAT, { mat: M_OTHER, line: true, lw: 1.2, flat: 0.6 });
+  path(b, [cx - 38, cy + 6, cx, cy + 8, cx + 38, cy + 6], COCO[3], 1, undefined, M_OTHER);
+  // (the leopard trim under it: tan fake fur, the spots, a band)
+  poly(b, [cx - 40, cy + 9, cx + 40, cy + 9, cx + 37, cy + 20, cx - 37, cy + 20], LEO, M_CLOTH, { line: true, tilt: 0 });
+  for (let k = 0; k < 16; k++) {
+    const x = cx - 34 + k * 4.4 + (k % 2) * 1.5, y = cy + 12 + (k % 3) * 2.4;
+    ball(b, x, y, 2.2, 1.6, R('#3A2408', '#2A1804', '#1A0E02', '#0A0400'), { mat: M_CLOTH });
+    plot(b, x + 1, y, LEO[3]);
+  }
+  for (let k = 0; k < 60; k++) { const x = cx - 38 + rnd() * 76; seg(b, x, cy + 20, x + (rnd() - 0.5) * 2, cy + 22.5, LEO[2], 1, M_CLOTH); }
+  // (the plastic tusk, glued up off the top: curving up and out, thick at the root, its mould seam, a shine)
+  for (let i = 0; i <= 14; i++) {
+    const t = i / 14, x = cx + 14 + t * 30 - t * t * 6, y = cy - 22 - t * 26 - t * t * 10, r = 6.5 * (1 - t) + 1.2;
+    ball(b, x, y, r, r, TUSK, { mat: M_OTHER, line: true, lw: 1 });
+  }
+  path(b, [cx + 18, cy - 26, cx + 30, cy - 38, cx + 38, cy - 50], TUSK[0], 1, undefined, M_OTHER);
+  // (the glue: a clear blob at the tusk's root, a string of it)
+  tint(b, cx + 15, cy - 21, 9, 5, hexU('#E8F4FF'), 0.55, M_OTHER);
+  plot(b, cx + 11, cy - 23, WHITE); plot(b, cx + 12, cy - 23, WHITE); seg(b, cx + 20, cy - 18, cx + 22, cy - 12, hexU('#D8ECFA'));
+  // (the price sticker it still has on)
+  ball(b, cx - 20, cy - 8, 6, 4, R('#FF9A3A', '#F07A1A', '#C85A0A', '#8A3A04', '#3A1400'), { mat: M_OTHER, line: true, lw: 1 });
+  seg(b, cx - 23, cy - 8, cx - 17, cy - 8, hexU('#3A1400'));
+  const cv = toCanvas(b);
+  if (!cv) { padCv = null; return null; }
+  const out = document.createElement('canvas'); out.width = PAD_W; out.height = PAD_H;
+  out.getContext('2d')!.drawImage(cv, 0, 0, PAD_W, PAD_H, 0, 0, PAD_W, PAD_H);
+  padCv = out;
+  return out;
+};
+
 type Draw = (c: Ctx, f: number) => void;
 /** A piece's prop, drawn in the buffer's own pixels over the face (and a jolt for the screen when it lands). */
 interface Prop { draw: Draw; jolt: (f: number) => number; /** Bake its art now (ahead of the close-up). */ warm?: () => void }
 
 const FLURRY = 11;
+/** A shoulder barge's frames (out at the lens and back, a beat, the other shoulder). */
+const BARGE = 26;
 const PROPS: Partial<Record<ArmorPiece, Prop>> = {
   hands: {
     // (a beatdown flurry at the camera: each fist in turn out at the lens, bigger as it comes, then back)
@@ -192,6 +257,26 @@ const PROPS: Partial<Record<ArmorPiece, Prop>> = {
     },
     jolt: (f) => ((f % FLURRY) === Math.floor(FLURRY / 2) ? 3 : 0),
     warm: () => { gloveCanvas(); },
+  },
+  pauldrons: {
+    // (a shoulder barge at the camera: one padded shoulder looms up at the lens, then back, then the other)
+    draw: (c, f) => {
+      const cv = padCanvas();
+      if (!cv) return;
+      const n = Math.floor(f / BARGE), u = (f % BARGE) / BARGE, out = u < 0.55 ? Math.sin((u / 0.55) * Math.PI) : 0;
+      for (const side of [0, 1]) {
+        const active = n % 2 === side, k = active ? out : 0;
+        const rx = side ? 236 : 44, ry = side ? 150 : 148;
+        const x = rx + (FX + (side ? 30 : -30) - rx) * k * 0.5, y = ry + (FY + 70 - ry) * k * 0.4, s = 0.95 + k * 0.85;
+        c.save(); c.translate(x, y); if (side) c.scale(-1, 1);
+        c.drawImage(cv, -PAD_W * s / 2, -PAD_H * s / 2, PAD_W * s, PAD_H * s);
+        c.restore();
+        // (the motion lines off the one coming at the lens)
+        if (active && out > 0.35) { c.fillStyle = 'rgba(255,240,210,0.7)'; for (let i = 0; i < 4; i++) c.fillRect(Math.round(x + (side ? 44 : -70) + i * 2), Math.round(y - 34 + i * 20), 26, 2); }
+      }
+    },
+    jolt: (f) => ((f % BARGE) === Math.round(BARGE * 0.27) ? 4 : 0),
+    warm: () => { padCanvas(); },
   },
 };
 

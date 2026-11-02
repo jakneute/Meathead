@@ -170,7 +170,8 @@ export const updateCannon = (ctx: FrameContext, cn: Cannon, controls: Controls, 
       p.vel.x = Math.max(-30, Math.min(30, want - cx));
       if (Math.abs(want - cx) > 0.5) p.facing = want > cx ? 1 : -1;
       if (cn.t % 3 === 0 && cn.t < cn.T - 10) state.particles.push({ pos: { x: cx, y: feet - 10 }, vel: { x: 0, y: 0.5 }, life: 20, color: '#E2E0EA', size: 4 });
-      if ((p.isGrounded && p.vel.y >= 0 && cn.t > 4) || cn.t > cn.T + 120) {
+      // (down on his feet; or into water, if that's where the arc comes down)
+      if ((p.isGrounded && p.vel.y >= 0 && cn.t > 4) || (p.swimming && cn.t > 2) || cn.t > cn.T + 120) {
         cn.phase = 'rest'; cn.t = 0; cn.ang = 0; p.vel.x = 0;
         playSound('land', 0.8, -4); shakeScreen(state, 4, 3);
         hooks.onLand?.(state);
@@ -196,6 +197,14 @@ export const CIRCUS: CannonLook = {
   band: ['#6A4A06', '#A6760E', '#D8A818', '#F6D23A', '#FCE880', '#FFF8C8'],
   wood: ['#0E2A5A', '#18408A', '#2A5CBC', '#4A80DE', '#86AEF0', '#C6DCFC'],
   star: '#FDE047',
+};
+/** Jungle Land's (CON-FUCK-TIOUS's lair up the maintenance shaft): a park-maintenance olive drab barrel, rusty hazard
+ *  yellow bands, on a carriage of old crate planks. */
+export const JUNGLE: CannonLook = {
+  barrel: ['#1E2410', '#323C1A', '#4A5826', '#627434', '#86984E', '#B8C47E'],
+  band: ['#4A2A0A', '#7A4A12', '#B07A1C', '#DCA62A', '#F2CC5A', '#FFF0A8'],
+  wood: ['#2A1A0C', '#4A3018', '#6A4826', '#8A6236', '#AE8452', '#D4B07C'],
+  star: '#E8C030',
 };
 const INK = '#1A1028';
 const barrels = new Map<CannonLook, HTMLCanvasElement | null>();

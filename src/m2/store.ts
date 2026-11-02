@@ -93,6 +93,9 @@ export interface M2Ui {
   gotPieceReady?: boolean;
   /** A beatdown chord prompt (Y + B, the beatdown key) with this label (CON-FUCK-TIOUS's pebble); null: none. */
   beatPrompt?: string | null;
+  /** Button lines to show, each its buttons and a label (CON-FUCK-TIOUS teaching: the trial's charge, the hidden art of
+   *  follow-ups); null: none. Shown in his scenes too (it's the lesson, not the HUD). */
+  chordTips?: import('./upgrades/equipInfo').EquipControl[] | null;
 }
 
 /** The stretches with a pause-menu controls card (PauseControls.tsx). */

@@ -23,12 +23,14 @@ import { stamp } from '../../../m1/game/render/stamp';
 import { elbow, elbowFront, knee, reachTo } from '../../art/limb';
 import { shapeR, tubeR, pxR, lineR, ellR, dith, mixHex, type Ramp } from '../../foreign/heli/harryArt';
 import type { ArmorPiece } from '../state';
+import { armorStamp } from '../armorArt';
 
 type Ctx = CanvasRenderingContext2D;
 
 /** What he's doing. 'flurry' is three frames (pass `frame`); the rest hold still. 'offer': holding something out (the
- *  trial's thing); 'yank': whipping it up out of reach. */
-export type BenPose = 'stand' | 'flurry' | 'offer' | 'yank' | 'nuts' | 'give' | 'fold';
+ *  trial's thing); 'yank': whipping it up out of reach; 'brace': dug in behind something, both hands on it, leaning in
+ *  (Jungle Land's tackling sled). */
+export type BenPose = 'stand' | 'flurry' | 'offer' | 'yank' | 'nuts' | 'give' | 'fold' | 'brace';
 
 // ---------------------------------------------------------------------------------------------------------------
 // Materials (lit, base, shade, deep, line)
@@ -139,6 +141,8 @@ const HANDS: Record<Exclude<BenPose, 'flurry'>, { f: [number, number]; b: [numbe
   give: { f: [38, -48], b: [32, -46] },
   // (hands on his hips, elbows out: the coach watching)
   fold: { f: [16, -40], b: [-9, -40] },
+  // (dug in behind the sled: both hands on its pad, shoulders down into it)
+  brace: { f: [36, -50], b: [31, -47], drop: 5, lean: 7 },
 };
 const FLURRY: [number, number][][] = [[[42, -62], [16, -52]], [[24, -52], [38, -60]], [[41, -66], [16, -52]]];
 
@@ -396,13 +400,26 @@ const paintBen = (g: Ctx, pose: BenPose, frame: number, piece: ArmorPiece | null
   const sx = 2 + lean, sy = -68 + drop;
   const square = pose === 'stand' || pose === 'fold' || pose === 'nuts';
   arm(g, [sx - 11, sy + 8], hp.b, square, true, S, gloved, false);
+  // (the COCO-NUTS, on him till they're given: the far one over the back delt, under his body)
+  const pads = piece === 'pauldrons';
+  if (pads) pauldron(g, sx - 11, sy + 8, true);
   torso(g, hipY, sy, lean, S, mirror);
   const hx = 3 + lean * 1.2, hy = -84 + drop;
   traps(g, sx, sy, hx, hy, S);
   head(g, hx, hy, S, winded);
   const hf = arm(g, [sx + 13, sy + 9], hp.f, square, false, S, gloved, pose === 'offer');
-  if (pose === 'offer') shaker(g, hf[0] + 1, hf[1] - 6);
-  if (pose === 'yank') shaker(g, hf[0], hf[1] - 6);
+  if (pads) pauldron(g, sx + 13, sy + 9, false);
+  // (the shaker's the hand armor's trial: nobody else's)
+  if (!pads && pose === 'offer') shaker(g, hf[0] + 1, hf[1] - 6);
+  if (!pads && pose === 'yank') shaker(g, hf[0], hf[1] - 6);
+};
+
+/** A coconut pauldron strapped over a delt (the armor's own baked piece, armorArt.ts, sized up to his shoulders). */
+const pauldron = (g: Ctx, x: number, y: number, far: boolean) => {
+  const cv = armorStamp('pauldron', far);
+  if (!cv) return;
+  const k = 0.95;
+  g.drawImage(cv, x - 9 * k - 2, y - 10 * k - 9, 20 * k, 18 * k);
 };
 
 /** Him, feet at (x, y), facing `facing`. `frame`: the flurry's (0..2). `piece`: what he's still holding (null: given). */

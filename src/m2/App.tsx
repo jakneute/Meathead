@@ -779,6 +779,12 @@ const App2: React.FC = () => {
             <ChordPrompt pad={['Y', 'B']} join="+" kb={['@beatdown']} label={ui.beatPrompt} size={14} />
           </div>
         )}
+        {/* The buttons CON-FUCK-TIOUS is teaching (the trial's charge, the hidden art of follow-ups): shown in his scenes too */}
+        {status === GameStatus.PLAYING && ui.map === null && !ui.gotPiece && !!ui.chordTips?.length && !ui.upPrompt && (
+          <div className="absolute left-1/2 -translate-x-1/2 top-[132px] z-30 flex flex-col items-start gap-[5px] px-3 py-2 text-[9px] text-white bg-black/75 border-2 border-zinc-600">
+            {ui.chordTips.map((k, i) => <ChordPrompt key={i} pad={k.pad} join={k.join ?? '+'} kb={k.kb} mouse={k.mouse} label={k.label} size={14} />)}
+          </div>
+        )}
         {/* What up does here, in a land (a lever to pull) */}
         {status === GameStatus.PLAYING && ui.map === null && !ui.introCutscene && ui.upPrompt && (
           <div className="absolute left-1/2 -translate-x-1/2 top-[132px] z-30 px-3 py-2 text-[9px] text-white bg-black/75 border-2 border-zinc-600">

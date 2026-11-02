@@ -22,7 +22,12 @@
 //     armor from every land, one piece hidden in each, find him, pass his test).
 //   LATER (any land after that): AGAIN (the gross-up), AGAIN_MH, NAME: short.
 //   Then the land's piece (PIECE_LINES): ask, sell, the trial; the gift and the tease after it.
-// All land-agnostic but PIECE_LINES (each armor piece's own set). Only the hand armor's is written so far.
+// All land-agnostic but PIECE_LINES (each armor piece's own set): the hand armor's (Cartoon Land) and the pauldrons'
+// (Jungle Land) so far.
+//
+// THE HIDDEN ART OF FOLLOW-UPS (the owner, 2026-11-01): the first follow-up piece he's given (whichever land), Ben
+// teaches him how follow-ups work as a bigger beat (ART_*); every follow-up piece after that, he just brings it up
+// (ART_AGAIN). The flash kick (the shins) is the one follow-up that isn't a grab: Ben only hints at it.
 
 /** Clean, shat, naked: a pool for each. */
 export interface ByPants { clean: string[]; shitty: string[]; nude: string[] }
@@ -120,9 +125,13 @@ export interface PieceLines {
   good: string[];
   /** Ben, back again after he's given it (a revisit). */
   idle: ByPants;
+  /** Ben, a try at the trial that got somewhere but isn't done (in order). */
+  more?: string[];
+  /** His pose for the trial's set (default 'offer': holding the thing out). */
+  trialPose?: 'offer' | 'brace';
 }
 
-export const PIECE_LINES: { hands: PieceLines } = {
+export const PIECE_LINES: { hands: PieceLines; pauldrons: PieceLines } = {
   hands: {
     ask: {
       clean: ['WHAT ARE THOSE? ARE THOSE MICKEY HANDS?', 'WHOA. GIANT CARTOON HANDS. I NEED THOSE.'],
@@ -154,12 +163,75 @@ export const PIECE_LINES: { hands: PieceLines } = {
       nude: ['NAKED AGAIN. THIS HOLE IS NOT A NUDE BEACH.', 'YOU AGAIN. STILL NO PANTS. STILL NO SECOND PAIR.'],
     },
   },
+  // Jungle Land: the COCO-NUTS, up the third maintenance shaft over the river. The trial: knock him on his ass, shoulder
+  // first, through his tackling sled (three shoulder charges).
+  pauldrons: {
+    ask: {
+      clean: ['ARE THOSE COCONUTS? ON YOUR SHOULDERS?', "COCONUT SHOULDER PADS. I THINK I'M GONNA CRY."],
+      shitty: ['COCONUTS! FINALLY SOMETHING ON ME THAT SMELLS NICE.', "COCONUT SHOULDER PADS! I'D TRADE YOU MY PANTS. NOBODY WANTS MY PANTS."],
+      nude: ["SHOULDER PADS! I'VE GOT NOTHING ELSE ON. IT'S A START.", 'COCONUTS! THEN I WOULD HAVE FOUR!'],
+    },
+    sell: ['TWO COCONUT HALVES. GIFT SHOP LEOPARD. A TUSK OFF A FAKE ELEPHANT. YOU HIT A GUY, HE STAYS HIT.'],
+    trial: ["KNOCK ME ON MY ASS AND THEY'RE YOURS. SHOULDER FIRST. I'LL HOLD THE SLED."],
+    trialPose: 'brace',
+    more: ['OOF. AGAIN.', 'GOOD. MY KIDNEY MOVED. AGAIN.'],
+    miss: ['THAT WAS A HUG.', "DON'T LEAN ON IT. HIT IT.", 'I SAID SHOULDER, NOT SNUGGLE.', 'MY MOTHER PUSHES HARDER. SHE USES A WALKER.', 'YOU PUSH LIKE A GUY HOLDING A DOOR.'],
+    hint: ['THE BULL DOES NOT KNOCK. THE BULL COMES THROUGH THE DOOR. SHOULDER CHARGE, MEATHEAD.'],
+    pass: ['OH. THERE IT IS. YOU PASS. I NEED A MINUTE.', 'GOOD. MY SPLEEN SAYS GOOD. YOU PASS.'],
+    passed: {
+      clean: ['DID I HURT YOU? I DID IT LIKE YOU SHOWED ME.'],
+      shitty: ['SORRY. SOME OF MY PANTS GOT ON YOUR SLED.'],
+      nude: ['SORRY. MY EVERYTHING WAS FLAPPING THE WHOLE TIME.'],
+    },
+    gift: ["TAKE THE COCO-NUTS. YOUR SHOULDER'S A TRUCK NOW. HORNS AND SPEARS DON'T STOP A TRUCK."],
+    tease: ["HIT A BOSS WITH THAT SHOULDER. THEY'LL FEEL IT IN THEIR TEETH."],
+    enamored: {
+      clean: ["I'M GONNA SHOULDER EVERYBODY. EVEN PEOPLE I LIKE."],
+      shitty: ["I'M GONNA SHOULDER EVERYBODY. THEY'LL SMELL ME COMING. TOO LATE."],
+      nude: ["I'M GONNA SHOULDER EVERYBODY. NAKED. THEY'LL NEVER RECOVER."],
+    },
+    practice: ["PRACTICE ON THE TOUR GUIDE. PLANT HIM, THEN KICK HIS HEAD THROUGH THE UPRIGHTS. THE PARK'S GOT PLENTY. THEN THE CANNON."],
+    good: ['RAIL SPIKE. BEAUTIFUL.', 'PLANTED LIKE A TOMATO. GOOD.', 'YOSHI. GRANDPA SAID THAT. MOSTLY TO THE LAWNMOWER.'],
+    idle: {
+      clean: ['YOU AGAIN. I ONLY HAD THE TWO COCONUTS.', 'YOU AGAIN. I WAS MID-NAP IN THE HAMMOCK.'],
+      shitty: ['YOU CLIMBED ALL THE WAY UP HERE IN THOSE?', 'YOU CAME BACK. THE SHAFT SMELLS LIKE YOU NOW.'],
+      nude: ['YOU CLIMBED UP THAT SHAFT NAKED. THE FISH SAW EVERYTHING.', 'YOU AGAIN. STILL NO PANTS. STILL NO MORE COCONUTS.'],
+    },
+  },
 };
 
-const pieceBen = (p: PieceLines) => [...p.sell, ...p.trial, ...p.miss, ...p.hint, ...p.pass, ...p.gift, ...p.tease, ...p.practice, ...p.good, ...all(p.idle)];
+// ---------------------------------------------------------------------------------------------------------------
+// The hidden art of follow-ups (the first follow-up piece: the big beat, in order; later ones: ART_AGAIN)
+
+/** Ben, the gross-up: here comes the secret. */
+export const ART_OPEN = ['NOW THE REAL SECRET. THE HIDDEN ART OF FOLLOW-UPS.'];
+/** Meathead, thrilled. */
+export const ART_MH: ByPants = {
+  clean: ['THE HIDDEN ART! I KNEW THERE WAS ONE! WHAT IS IT?'],
+  shitty: ["THE HIDDEN ART! I WON'T TELL ANYBODY. NOBODY COMES NEAR ME ANYWAY."],
+  nude: ['THE HIDDEN ART! I HAVE NOTHING TO HIDE IT IN!'],
+};
+/** Ben, how it goes (the buttons on screen while he says it). */
+export const ART_HOW = [
+  "START A CHARGE. KEEP HOLDING IT. TAP GRAB. YOU DON'T EVEN HAVE TO HIT THE GUY.",
+  'DURING THE CHARGE, THE BOUNCE BACK, OR RIGHT AFTER. THAT IS THE WHOLE ART.',
+  "NOT ON BOSSES. NOT ON SUB BOSSES. NOT ON LITTLE CRITTERS. THOSE YOU JUST THROW. AND ONE PIECE OUT THERE DOESN'T USE THE GRAB AT ALL.",
+];
+/** Meathead's Japanese, from cartoons (the joke's on him: weeb nonsense). */
+export const ART_WEEB: ByPants = {
+  clean: ['DATTEBAYO! HIDDEN ART NO JUTSU! I KNOW JAPANESE FROM CARTOONS.'],
+  shitty: ['DATTEBAYO! HIDDEN ART NO SHARTSU! I KNOW JAPANESE FROM CARTOONS.'],
+  nude: ['DATTEBAYO! NAKED NO JUTSU! I KNOW JAPANESE FROM CARTOONS.'],
+};
+/** Ben, lost (English only: three words from his grandpa is all he's got). */
+export const ART_HUH = ['I GREW UP BEHIND A BOWLING ALLEY. NO IDEA WHAT YOU JUST SAID.'];
+/** Ben, a later follow-up piece: it's the art again. */
+export const ART_AGAIN = ['ANOTHER ONE FOR THE HIDDEN ART. HOLD THE CHARGE, TAP GRAB. SAME AS ALWAYS.'];
+
+const pieceBen = (p: PieceLines) => [...p.sell, ...p.trial, ...p.miss, ...p.hint, ...p.pass, ...p.gift, ...p.tease, ...p.practice, ...p.good, ...all(p.idle), ...(p.more ?? [])];
 const pieceMeathead = (p: PieceLines) => [...all(p.ask), ...all(p.passed), ...all(p.enamored)];
 
 export const BEN_VOICE_LINES: Record<string, string[]> = {
-  [BEN_VOICE]: [...NAME, ...all(RIDDLE), ...PURPOSE, ...FIRST_ASIDE, ...all(AGAIN), ...all(NUDGE), ...BYE_BEN, ...Object.values(PIECE_LINES).flatMap(pieceBen)],
-  meathead: [...all(MEET), ...all(FIRST_WHY), ...all(FIRST_REACT), ...all(AGAIN_MH), ...BYE_MEATHEAD, ...Object.values(PIECE_LINES).flatMap(pieceMeathead)],
+  [BEN_VOICE]: [...NAME, ...all(RIDDLE), ...PURPOSE, ...FIRST_ASIDE, ...all(AGAIN), ...all(NUDGE), ...BYE_BEN, ...ART_OPEN, ...ART_HOW, ...ART_HUH, ...ART_AGAIN, ...Object.values(PIECE_LINES).flatMap(pieceBen)],
+  meathead: [...all(MEET), ...all(FIRST_WHY), ...all(FIRST_REACT), ...all(AGAIN_MH), ...BYE_MEATHEAD, ...all(ART_MH), ...all(ART_WEEB), ...Object.values(PIECE_LINES).flatMap(pieceMeathead)],
 };
