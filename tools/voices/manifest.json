@@ -18756,7 +18756,7 @@
  },
  {
   "voice": "m2.ben",
-  "text": "EVERY PIECE MAKES ONE OF YOUR MOVES NASTIER. ONE IN EVERY LAND. FIND ME, PASS MY TEST, IT IS YOURS.",
+  "text": "EVERY PIECE GIVES YOU AN EDGE. A NASTIER MOVE, A THICKER HIDE, A DIRTY NEW TRICK. ONE IN EVERY LAND. FIND ME, PASS MY TEST, IT IS YOURS.",
   "from": "UPGRADES"
  },
  {
@@ -58157,11 +58157,6 @@
  {
   "voice": "m2.pa",
   "text": "NACHO CHEESE IS NOW LEGALLY CHEESE. GOD BLESS.",
-  "from": "INTRO"
- },
- {
-  "voice": "m2.pa",
-  "text": "NEW FEATURES IN THE MAIN GAME TOO, PROBABLY. STAY TUNED!",
   "from": "INTRO"
  },
  {
