@@ -16,6 +16,7 @@
 
 import { GY } from '../geometry';
 import { X, GIFT, RIDE_DOORS, BREAK } from './layout';
+import { bossGone } from '../../emptyArena';
 import {
   type Ctx, type View, INK, box, checker, mix, hash, poly, at, atDepth, still, seen, signText, signW, timeOfDay,
   FRONT_D, PLY, BRASS, STEEL, CONCRETE, STEVE, ramp6, dimmed, rampH, glassOf, lit, slab, ball, board, deco, bulbs, paint, plain,
@@ -521,7 +522,22 @@ export const drawRideMarquee = (c: Ctx, v: View, f: number) => {
   atDepth(c, v.eye, FRONT_D, () => {
     signText(c, 'DISASTER:', rx + 120, GY - RIDE.h + 62, bulbs(3, 3, '#F97316', f % 40 < 30));
     signText(c, 'THE RIDE', rx + 120, GY - RIDE.h + 100, gate({ sx: 3, sy: 3 }, '#FDE047', '#7C2D12'));
+    // (a revisit, Steve dead: rebuilt since the last time it all went real; the vinyl banner roped up across the front
+    // between the murals over the doors, its grommets tied off to anchors in the concrete)
+    if (bossGone('hollywood')) still(c, 'lot-ride-rebuilt2', rx + 100, GY - RIDE.h + 200, -112, -18, 224, 40, paintRebuilt);
   });
+};
+/** GRAND RE-OPENING! NOW REBUILT! (the banner, its middle at 0, 0). */
+const paintRebuilt = (g: Ctx) => {
+  // (the ropes up to the anchors, either end)
+  for (const sd of [-1, 1]) { box(g, sd * 106 - 2, -16, 4, 4, INK); box(g, sd * 105 - 1, -15, 2, 2, '#A8A29E'); g.strokeStyle = '#E7E5E4'; g.lineWidth = 1; g.beginPath(); g.moveTo(sd * 105, -14); g.lineTo(sd * 97, -8); g.stroke(); }
+  box(g, -101, -11, 202, 30, INK);
+  box(g, -100, -10, 200, 28, '#B91C1C'); box(g, -100, -10, 200, 2, '#EF4444'); box(g, -100, 15, 200, 3, '#7F1D1D');
+  // (the vinyl's sag: banded darker down the middle)
+  checker(g, -50, 9, 100, 6, '#991B1B', 0, 2);
+  for (const x of [-96, 92]) { box(g, x, -7, 4, 4, '#FDE68A'); box(g, x + 1, -6, 2, 2, INK); }
+  signText(g, 'GRAND RE-OPENING!', 0, 1, plain(1, 1, '#FDE047', '#450A0A'));
+  signText(g, 'NOW REBUILT!', 0, 12, plain(1, 1, '#FFFFFF', '#450A0A'));
 };
 export const rideGlow = (v: View) => at(v.eye, X(RIDE_DOORS) + 120, GY - RIDE.h + 70, FRONT_D);
 

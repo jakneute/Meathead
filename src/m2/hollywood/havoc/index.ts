@@ -36,7 +36,7 @@ import type { HollywoodSection } from '../section';
 import { layOwn, solid, endWalls, endExits, runExits, meatheadSays, speak } from '../section';
 import { byPants } from '../blvd/kinds';
 import { paSay } from '../blvd';
-import { LOOP, REAL } from '../disaster/lines';
+import { LOOP, REAL, REAL_ALL_BACK } from '../disaster/lines';
 import {
   x0, x1, X, Y, R, GY, RUNS, BUILDINGS, ENEMIES, PICKUPS, CHECKPOINTS, WIRES, groundH, FLOOD_AT, CLIMB, SHAFTS, COVERS,
   REFILL, WIND, QUAKE, HAIL, LAVA, CHASE_AT, TORNADO_FORM,
@@ -173,7 +173,7 @@ export const havoc: HollywoodSection = {
       if (ch.inCover && oncePer(state, 'inCover')) meatheadSays(state, pick(L.GAG.inCover), true);
       if (ch.ripped && once(state, 'rip')) meatheadSays(state, pick(L.GAG.rip), true);
       if (rx > 15800 && once(state, 'pa-steve-2')) paSay(state, (bossGone('hollywood') ? L.PA_STEVE_HAVOC_DEAD : L.PA_STEVE_HAVOC)[1]);
-      if (rx > WIND[1][0] && once(state, 'everything')) narrate(state, REAL.all, () => meatheadSays(state, pick(L.GAG.everything), true));
+      if (rx > WIND[1][0] && once(state, 'everything')) narrate(state, bossGone('hollywood') ? REAL_ALL_BACK : REAL.all, () => meatheadSays(state, pick(L.GAG.everything), true));
       if (ev.hail && rx > HAIL[0][0] && once(state, 'hail')) narrate(state, L.NARR_HAVOC.hail);
       if (rx > REFILL - 220 && once(state, 'refill')) meatheadSays(state, pick(L.GAG.refill), true);
       // (the first surge: the narrator, then him, in turn; after that just him, if nobody's talking)

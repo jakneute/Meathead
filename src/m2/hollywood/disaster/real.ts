@@ -23,7 +23,8 @@ import { X, Y, R, GY, FX, SCREEN, THEATER, FAR_WALL, BOOTH, CAT_R, COW_AT } from
 import { dzOf, type Dz } from './state';
 import { narrate } from './show';
 import { fromDepth, EFX_D, SCREEN_D } from './paint';
-import { LEVER, REAL, REAL_AFTER, SLEEPER, SLEEPER_LEVER, SLEEPER_WAKE } from './lines';
+import { LEVER, REAL, REAL_AFTER, SLEEPER, SLEEPER_LEVER, SLEEPER_WAKE, REAL_ALL_BACK } from './lines';
+import { bossGone } from '../../emptyArena';
 
 /** The wide shot: about this world point, pulled back. */
 export const WIDE = { x: X(4400), y: GY - 330, scale: 0.42 };
@@ -74,7 +75,7 @@ const STEPS: Step[] = [
   { who: 'narr', line: () => REAL.blizzard, min: 110, start: () => { playSound('ice', 0.9, -6); playSound('whoosh', 0.6, 8); } },
   { who: 'narr', line: () => REAL.flood, min: 130, start: () => { playSound('glass', 1, -6); playSound('tsunami', 0.9, -2); } },
   {
-    who: 'narr', line: () => REAL.all, min: 170,
+    who: 'narr', line: () => (bossGone('hollywood') ? REAL_ALL_BACK : REAL.all), min: 170,
     start: ({ state }) => { playSound('rumble', 1, -16); playSound('crack', 1, -8); state.player.vel.y = -6; },
   },
   { who: 'sleeper', line: () => SLEEPER_WAKE, min: 20 },

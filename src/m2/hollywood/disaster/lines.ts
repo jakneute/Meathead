@@ -156,6 +156,9 @@ export const PA_STEVE = ['STUNTMAN STEVE CONSULTED ON DISASTER: THE RIDE! HE ASK
 export const PA_STEVE_DEAD = ["STUNTMAN STEVE CONSULTED ON DISASTER: THE RIDE! HIS SHOW IS CANCELED, BECAUSE HE'S DEAD! THIS TORNADO IS IN HIS HONOR!"];
 /** The ride's welcome on a revisit: why the real disasters go again. */
 export const NARR_WELCOME_BACK = 'WELCOME BACK TO DISASTER: THE RIDE. THE REAL DISASTERS LEVER HAS BEEN FIXED. AND LABELED. IN BIGGER LETTERS.';
+/** A revisit: the ride rebuilt, and it all going real again (the owner's: "every disaster at once. again."). */
+export const REAL_ALL_BACK = "HERE'S EVERY DISASTER AT ONCE. AGAIN.";
+export const PA_REAL_BACK = ['ATTENTION. THE REBUILT DISASTER: THE RIDE IS EXPERIENCING REAL DISASTERS. EVERY DISASTER AT ONCE. AGAIN.'];
 export const NARR_STEVE_DEAD = 'THE EFFECTS IN THIS ROOM WERE TESTED BY STUNTMAN STEVE. HE IS COLD NOW.';
 /** In place of HOST_TAPE's Steve line. */
 export const HOST_STEVE_DEAD = "AFTER THE SHOW, HONOR STUNTMAN STEVE'S LEGACY! HE WAS MY FRIEND! I MET HIM ONCE!";
@@ -195,12 +198,12 @@ export const VOICE_LINES: Record<string, string[]> = {
   ],
   death: Object.values(HURT).flatMap(h => h.death),
   [HOST]: [...HOST_TAPE, HOST_STEVE_DEAD],
-  [NARR]: [...NARR_WELCOME, ...LOOP.flat(), ...NARR_STEVE, NARR_STEVE_DEAD, NARR_WELCOME_BACK, ...Object.values(REAL)],
+  [NARR]: [...NARR_WELCOME, ...LOOP.flat(), ...NARR_STEVE, NARR_STEVE_DEAD, NARR_WELCOME_BACK, REAL_ALL_BACK, ...Object.values(REAL)],
   [GUEST_VOICES.m]: [...pools(QUEUE_OUTRAGE), ...UNDERWHELMED, ...OVERREACT, ...pools(GUEST_HIM), ...SINGED],
   [GUEST_VOICES.f]: [...pools(QUEUE_OUTRAGE), ...UNDERWHELMED, ...OVERREACT, ...pools(GUEST_HIM), ...SINGED],
   [STAFF_VOICES.usher]: pools(USHER_BARK), [STAFF_VOICES.usherf]: pools(USHER_BARK),
   [STAFF_VOICES.tech]: pools(TECH_BARK), [STAFF_VOICES.techf]: pools(TECH_BARK),
   [STAFF_VOICES.twisty]: pools(TWISTY_BARK), [STAFF_VOICES.twistyf]: pools(TWISTY_BARK),
   [SLEEPER]: [...pools(SLEEPER_MUMBLE), SLEEPER_LEVER, SLEEPER_WAKE],
-  [PA_VOICE]: [...pools(PA_RIDE), ...PA_LEAK_RIDE, ...PA_STEVE, ...PA_STEVE_DEAD, ...PA_REAL],
+  [PA_VOICE]: [...pools(PA_RIDE), ...PA_LEAK_RIDE, ...PA_STEVE, ...PA_STEVE_DEAD, ...PA_REAL, ...PA_REAL_BACK],
 };

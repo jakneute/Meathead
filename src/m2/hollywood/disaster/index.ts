@@ -174,7 +174,7 @@ export const disaster: HollywoodSection = {
     const busy = () => !!o.pa || o.paBusy || isTalking();
     // The lobby: the PA, him, Steve; the queue
     if (rx < LOBBY.b) {
-      if (state.frame > 50 && !o.said.pa) { o.said.pa = true; paSay(state, real ? L.PA_REAL[0] : pick(byPants(state, L.PA_RIDE)), () => { if (!real && once(state, 'arrive')) meatheadSays(state, pick(L.ARRIVE), true); }); }
+      if (state.frame > 50 && !o.said.pa) { o.said.pa = true; paSay(state, real ? (bossGone('hollywood') ? L.PA_REAL_BACK : L.PA_REAL)[0] : pick(byPants(state, L.PA_RIDE)), () => { if (!real && once(state, 'arrive')) meatheadSays(state, pick(L.ARRIVE), true); }); }
       if (rx > 650 && !o.said.paLeak && !busy()) { o.said.paLeak = true; paSay(state, pickLine(L.PA_LEAK_RIDE)); }
       if (rx > 1300 && !o.said.paSteve && !busy()) { o.said.paSteve = true; paSay(state, (bossGone('hollywood') ? L.PA_STEVE_DEAD : L.PA_STEVE)[0]); }
       queueBits(state, o);
