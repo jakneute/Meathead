@@ -29,6 +29,7 @@ import { hurtIn, hitCastIn, newShout, shout, drawShout, placePickups, type Shout
 import { type Ctx, type View, postBoard, hungBoard, LOOKS, onScreen } from '../kit';
 import { drawTrack, drawGantry, drawWalkway, drawCanopy, drawDepartureBoard, drawFujiSteps, drawPortal, drawTrainArt } from './art';
 import { V, STATION } from './lines';
+import { knockPlantedIn } from '../../moves/followups';
 
 const { x0, x1 } = SECTIONS.japan;
 const X = (rx: number) => x0 + rx, Y = (h: number) => GY - h;
@@ -147,6 +148,7 @@ export const updateStation = (ctx: FrameContext): Controls | null => {
   if (b <= a) return null;
   if (!s.hit.has(p) && hurtIn(ctx, a, Y(TRAIN.h), b - a, TRAIN.h, 18, 'm2:fl_bullet_train', { x: 16, y: -12 }, 40)) { s.hit.add(p); playSound('crash', 0.9, -2); shakeScreen(state, 8, 6); }
   hitCastIn(ctx, a, Y(TRAIN.h), b - a, TRAIN.h, 999, a - 200, 'SHINKANSEN!', '#F8FAFC', s.hit, true);
+  knockPlantedIn(ctx, a, Y(TRAIN.h), b - a, GY - Y(TRAIN.h), a - 200, 'SHINKANSEN!');
   return null;
 };
 

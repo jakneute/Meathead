@@ -36,6 +36,7 @@ import { onScreen, viewOf } from './view';
 import { townOf } from './state';
 import { WATERS, PINES, CAVEINS, CHUTES, CART_RUN, RIDE, BEAMS, BEAM_GAP, HEAD_UP, HEAD_DUCKED, BELTS, SAW, MILL_DECK, COVER, CHASM, FY, CEIL_Y, X, Y } from './layout';
 import { CARTS, RIDE_CART } from './lines';
+import { knockPlantedIn } from '../../moves/followups';
 
 const AWAY = -99999;
 
@@ -209,6 +210,7 @@ export const updateMine = (ctx: FrameContext) => {
     if (r.t % 8 === 0) playSound('clink', 0.4, -10);
     // (him; the cast; a TNT crate in its way)
     if (p.health > 0 && p.invincibilityTimer <= 0 && !p.inCutscene && cx > r.x - 6 && cx < r.x + 76 && feet > FY - 36) { hurtPlayer(ctx, 18, 'm2:fr_minecart', { x: -9, y: -6 }); playSound('slam', 0.9, -4); }
+    knockPlantedIn(ctx, r.x, FY - 36, 70, 36, r.x + 70);
     for (const e of hazardVictims(state)) if (boxHits(e, r.x, FY - 36, 70, 36)) hazardHit(ctx, e, 60, r.x + 70, 'RUN OVER!', { knock: 12 });
     for (const cr of tw.crates) if (cr.health > 0 && boxHits(cr, r.x, FY - 36, 70, 36)) { cr.health = 0; }
     if (r.x <= CART_RUN.a) { r.dead = 1; playSound('crash', 1, -6); shakeScreen(state, 8, 4); for (let n = 0; n < 14; n++) state.particles.push({ pos: { x: CART_RUN.a + 20, y: FY - 20 }, vel: { x: Math.random() * 5, y: -2 - Math.random() * 4 }, life: 30, color: n % 2 ? '#57534E' : '#CA8A04', size: 3 + Math.random() * 3 }); }

@@ -72,6 +72,7 @@ import { updatePlunge, startPlunge, plungeOf, drawPlungeWorld, drawPlungeHud } f
 import { upStart } from '../../upZone';
 import { FLOOD_SOURCE, drawFloodCam } from './flood';
 import { inPlay } from '../../moves/grab';
+import { knockPlantedIn } from '../../moves/followups';
 
 const narr = L.NARRATOR;
 
@@ -258,6 +259,7 @@ const riding = (ctx: FrameContext, co: Coaster): Controls => {
     x = pt.x; y = pt.y; a = pt.a; roll = pt.roll; d = pt.d;
     // Anybody on the track's run down (the station's gate staff, if he left them alive); nobody walks out in front of it
     const cars = carsOn(tr, Math.min(r.s, tr.len)), front = cars[0];
+    for (const k of cars) knockPlantedIn(ctx, k.x - 34, k.y - 92, 68, 92, k.x - Math.cos(k.a) * 40, 'NEXT STOP!');
     for (const e of hazardVictims(state)) for (const k of cars) if (boxHits(e, k.x - 34, k.y - 92, 68, 92)) {
       hazardKill(ctx, e, k.x - Math.cos(k.a) * 40, 'NEXT STOP!', { fling: { x: Math.cos(k.a) * 14, y: -12 }, sound: 'crunch' });
       shakeScreen(state, 6, 3);

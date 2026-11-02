@@ -43,7 +43,7 @@ import type { FrameContext } from '../../m1/game/core/context';
 import type { GameState } from '../../m1/game/core/state';
 import { shakeScreen } from '../../m1/game/core/state';
 import { NO_CONTROLS, type Controls } from '../../m1/game/platform/input';
-import type { Enemy } from '../../m1/types';
+import type { Block, Enemy } from '../../m1/types';
 import type { MeleeMove } from '../../m1/game/core/tuning';
 import { kindHead, isHumanoidKind } from '../../m1/game/render/enemies';
 import { isMidBoss } from '../../m1/game/combat/midBoss';
@@ -71,6 +71,7 @@ import { grabCallout } from './callouts';
 import { m2Kill } from './killLines';
 import { sliceInHalf, bakeEnemyCut, bakeEnemyCutAlive, type BakedCut, type Cut } from '../weapons/dismember';
 import { meteorLooks } from '../weapons/spellbook';
+import { zoneCountsIn, hazardKill } from '../hazardHit';
 
 type Ctx = CanvasRenderingContext2D;
 
@@ -182,6 +183,10 @@ interface Buried {
   gone: number | null;
   /** Legs up, dead: its picture painted the once (drawn turned: the stamp cache won't take a turn). */
   bake?: BakedCut;
+  /** What it's planted in (the owner's "if you plant a guy on a moving platform, he moves with it": the bus's roof, a
+   *  lift, a car), and where that was last frame; the hazards on it as it went in (one come onto it since knocks it
+   *  loose: a train, the bus's front). Set by plantAt. */
+  on?: Block | null; onX?: number; onY?: number; base?: Map<string, { n: number; cx: number }>;
 }
 let buried: Buried[] = [];
 /** How long a stump, or a body legs up, stays (frames), and fades out over. */
@@ -190,6 +195,131 @@ const STUMP_LIFE = 360, LEGS_LIFE = 540, BURIED_FADE = 40;
 interface Head { e: Enemy; x: number; y: number; vx: number; vy: number; rot: number; vr: number; r: number; face: 1 | -1; cut: Cut; cx: number; cy: number; bake: BakedCut | null; t: number; down: boolean; bounces: number; hit: Set<Enemy>; stage: string }
 let heads: Head[] = [];
 const HEAD_G = 0.45, HEAD_LIE = 420, HEAD_FADE = 40;
+
+// ---- Planted bodies and what they're planted in: one rule for all of them (feet first to the neck, head first legs up,
+// an animal on its back, a stump). The owner's "if you plant a guy on a moving platform, he moves with it"; "make sure
+// their bodies quickly move away though if they get planted in the ground part of the stage"; "planting them feet first
+// or leg first should follow the same logic".
+
+/** The floor a body's planted in: the nearest top at its ground, over it (a one-way ledge too: the bus's roof). */
+const carrierAt = (state: GameState, x: number, ground: number): Block | null => {
+  let best: Block | null = null, bd = 6;
+  for (const k of state.blocks) {
+    if (k.type === 'pit' || k.type === 'door' || x < k.x || x > k.x + k.w) continue;
+    const d = Math.abs(k.y - ground);
+    if (d < bd) { bd = d; best = k; }
+  }
+  return best;
+};
+/** The bit of it out of the floor (what a hazard come along would hit). */
+const plantBox = (b: Buried) => {
+  const e = b.e, top = b.mode === 'legs' && b.gone === null ? b.ground - Math.max(8, e.height - b.sink) : b.ground - headOf(e).r * 2 - 4;
+  const w = Math.max(12, e.width * 0.6);
+  return { x: b.x - w / 2, y: top, w, h: Math.max(4, b.ground - 1 - top) };
+};
+const zc = new Map<string, { n: number; cx: number }>();
+/** A new one in the ground: what it's in, and the hazards already on it (those don't count as coming onto it). */
+const plantAt = (state: GameState, b: Buried): Buried => {
+  const k = carrierAt(state, b.x, b.ground);
+  b.on = k; b.onX = k?.x ?? 0; b.onY = k?.y ?? 0;
+  const q = plantBox(b), base = new Map<string, { n: number; cx: number }>();
+  // (its middle against what it's in: one riding along with it hasn't moved onto it)
+  for (const [o, v] of zoneCountsIn(state, q.x, q.y, q.w, q.h, zc)) base.set(o, { n: v.n, cx: v.cx - (k?.x ?? 0) });
+  b.base = base;
+  return b;
+};
+/** Near enough the screen that it's seen going (off it, things just stop being tracked). */
+const nearView = (state: GameState, x: number, y: number) =>
+  x > state.camera.x - 300 && x < state.camera.x + CANVAS_WIDTH + 300 && y > state.camera.y - 300 && y < state.camera.y + CANVAS_HEIGHT + 300;
+
+/** Out of the ground, flung (a train, the bus, a hazard come onto it; the floor gone from under it): a live head's a kill
+ *  (it's run over); a body legs up goes tumbling, dead as it was; a stump goes to bits. The caller drops it from the
+ *  list. */
+const knockLoose = (ctx: FrameContext, b: Buried, vel: { x: number; y: number }, call: string) => {
+  const { state, fx } = ctx, e = b.e, dir = Math.sign(vel.x) || 1;
+  const hs = headSpot(b, b.face);
+  markKindGore(state, e.kind, b.x - 50, b.ground - 70, 100, 80, 14);
+  for (let i = 0; i < 16; i++) state.particles.push(kindGore({ pos: { x: b.x + (Math.random() - 0.5) * 16, y: b.ground - 6 - Math.random() * 20 }, vel: { x: dir * (1 + Math.random() * 5), y: -2 - Math.random() * 5 }, life: 30, color: i % 2 ? '#B91C1C' : '#7F1D1D', size: 2 + Math.random() * 3, grav: 0.3 }, e.kind));
+  for (let i = 0; i < 8; i++) state.particles.push({ pos: { x: b.x + (Math.random() - 0.5) * 20, y: b.ground - 2 }, vel: { x: (Math.random() - 0.5) * 6, y: -1 - Math.random() * 4 }, life: 22, color: i % 2 ? '#6B4423' : '#78716C', size: 2 + Math.random() * 2, grav: 0.3 });
+  playSound('splat', 1, -2); playSound('crunch', 0.8, -4);
+  // (a stump: its head's off already (a thing of its own); the rest goes to bits)
+  if (b.gone !== null) { fx.spawnDeathShower({ x: hs.x, y: b.ground - 10 }, dir, 1); return; }
+  e.rotation = b.mode === 'legs' ? Math.PI : 0;
+  e.pos = { x: b.x - e.width / 2, y: b.ground - e.height - 4 };
+  e.melee = undefined; e.meleeFlung = false; e.pauseTimer = 0;
+  if (b.mode === 'head' && e.health > 0) {
+    // (alive in it to the neck: that's a kill now, the usual one)
+    e.isBlownAway = false;
+    K.release(state, e);
+    hazardKill(ctx, e, b.x - dir * 40, call, { fling: vel, sound: 'splat' });
+    return;
+  }
+  // (dead already, legs up: back in the world as a body, flying; no second kill)
+  e.health = Math.min(0, e.health); e.isBlownAway = true; e.vel = { ...vel };
+  K.release(state, e);
+  fx.spawnDeathShower(e.pos, dir, 1.2);
+  fx.spawnDamageNumber({ x: b.x - 20, y: b.ground - e.height - 20 }, call, true, '#FCA5A5');
+};
+
+/** Each frame: carried with what it's in; knocked loose if a hazard's come onto it, or that's gone from under it. True:
+ *  it's out (drop it). */
+const carry = (ctx: FrameContext, b: Buried): boolean => {
+  const { state } = ctx, k = b.on;
+  if (k) {
+    const dx = k.x - (b.onX ?? k.x), dy = k.y - (b.onY ?? k.y);
+    // (gone from the world, or jumped off somewhere (taken away): out from under it)
+    const gone = Math.abs(dx) > 80 || Math.abs(dy) > 80 || (state.frame % 15 === 0 && !state.blocks.includes(k));
+    if (gone) {
+      b.on = null;
+      if (nearView(state, b.x, b.ground)) { knockLoose(ctx, b, { x: (dx < 0 ? -1 : 1) * 4, y: -5 }, 'UPROOTED!'); return true; }
+    } else if (dx || dy) { b.x += dx; b.ground += dy; b.onX = k.x; b.onY = k.y; }
+  }
+  // (a hazard come onto it since it went in (more of its zones on it, or the one there then moved: the bus come on
+  // through): knocked out of the ground, away from it)
+  const q = plantBox(b);
+  for (const [o, v] of zoneCountsIn(state, q.x, q.y, q.w, q.h, zc)) {
+    const was = b.base?.get(o);
+    if (was && v.n <= was.n && Math.abs(v.cx - (b.on?.x ?? 0) - was.cx) < 40) continue;
+    const away = Math.sign(b.x - v.cx) || 1;
+    knockLoose(ctx, b, { x: away * 10, y: -9 }, 'UPROOTED!');
+    return true;
+  }
+  return false;
+};
+
+/** A vehicle on rails (a train, a tram, a cart, the bus) at this box this frame: whatever's planted in its way is
+ *  knocked out of the ground and flung away from `fromX` (its back: the way it's going). Cheap with nobody planted. */
+export const knockPlantedIn = (ctx: FrameContext, x: number, y: number, w: number, h: number, fromX: number, call = 'RUN OVER!') => {
+  if (!buried.length) return;
+  const stage = String(ctx.state.stageId);
+  buried = buried.filter(b => {
+    if (b.stage !== stage) return true;
+    const q = plantBox(b);
+    if (q.x + q.w <= x || q.x >= x + w || q.y + q.h <= y || q.y >= y + h) return true;
+    const away = Math.sign(b.x - fromX) || 1;
+    knockLoose(ctx, b, { x: away * 12, y: -10 }, call);
+    return false;
+  });
+};
+
+/** A stage whose ground goes by (the Wilderness train: the train stands still, the world moves): every body planted in
+ *  the band `y0`..`y1` between `x0` and `x1` is knocked out of it and flung back with the ground (`vx`: its speed, px a
+ *  frame; heads lying there go by with it, and off the back gone). */
+export const plantedOnMovingGround = (ctx: FrameContext, x0: number, x1: number, y0: number, y1: number, vx: number, cullX: number) => {
+  if (buried.length) {
+    const stage = String(ctx.state.stageId);
+    buried = buried.filter(b => {
+      if (b.stage !== stage || b.x < x0 || b.x > x1 || b.ground < y0 || b.ground > y1) return true;
+      knockLoose(ctx, b, { x: vx * 1.4, y: -7 }, 'RUN OVER!');
+      return false;
+    });
+  }
+  if (heads.length) heads = heads.filter(h => {
+    if (!h.down || h.x < x0 || h.x > x1 || h.y < y0 - 30 || h.y > y1) return true;
+    h.x += vx;
+    return h.x > cullX;
+  });
+};
 
 /** All of it gone (a new game, the stage's own reset). */
 export const stopFollowUps = () => { buried = []; heads = []; clearMelee(); lastMove = null; ready = null; burst = null; };
@@ -496,7 +626,7 @@ export const stepFollow = (ctx: FrameContext, g: Grab, controls: Controls): Cont
         // In to the neck: stuck there a good while, harmless (out of the world's list: a head now) till it digs out
         g.held = null;
         e.vel = { x: 0, y: 0 }; e.melee = undefined; e.pauseTimer = 0; e.rotation = 0;
-        buried.push({ e, x: fu.ef.x, ground: fu.ground, sink: fu.sink, face: (-d) as 1 | -1, mode: 'head', born: state.frame, stage: String(state.stageId), gone: null });
+        buried.push(plantAt(state, { e, x: fu.ef.x, ground: fu.ground, sink: fu.sink, face: (-d) as 1 | -1, mode: 'head', born: state.frame, stage: String(state.stageId), gone: null }));
         trimBuried();
         calloutAt(ctx, e, fu.ef.x, fu.ground - 30, 'planted');
         playSound('thud', 1, -6);
@@ -598,8 +728,8 @@ const ninjaImpact = (ctx: FrameContext, g: Grab, e: Enemy, floor: number): Contr
   // alive and put down upside down: its dead picture's lying down already, or belly up)
   const beast = animal(e), sink = Math.round(e.height * (beast ? BACK_SINK : 0.3)), face = (-g.dir) as 1 | -1;
   g.held = null;
-  buried.push({ e, x, ground: floor, sink, face, mode: 'legs', born: state.frame, stage: String(state.stageId), gone: null,
-    bake: beast ? bakeEnemyCutAlive(state, e, face, legsCut(e)) : undefined });
+  buried.push(plantAt(state, { e, x, ground: floor, sink, face, mode: 'legs', born: state.frame, stage: String(state.stageId), gone: null,
+    bake: beast ? bakeEnemyCutAlive(state, e, face, legsCut(e)) : undefined }));
   trimBuried();
   const scrap = isMachineKind(e.kind);
   if (scrap) markMachineGore(state, x - 80, floor - 80, 160, 120, 30);
@@ -820,6 +950,8 @@ export const followTick = (ctx: FrameContext, g: Grab) => {
   game = state;
   if (buried.length) buried = buried.filter(b => {
     if (b.stage !== stage) return false;
+    // (on something that moves: carried with it; knocked loose by a hazard come onto it, or it pulled out from under)
+    if (carry(ctx, b)) return false;
     const age = b.gone !== null ? state.frame - b.gone : state.frame - b.born;
     if (age < 0) return false;
     // (the stump: spurting a while)

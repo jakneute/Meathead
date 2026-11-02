@@ -22,6 +22,7 @@ import { hazardVictims, hazardHit, hazardKill, boxHits, setHazardZones, type Zon
 import { registerHurtLines } from '../../kinds';
 import { OBS, CUES, CUE_XS, type Ob, trackY, railLine, lightsOn } from './layout';
 import * as L from './lines';
+import { knockPlantedIn } from '../../moves/followups';
 
 registerHurtLines('ride_satellite', L.HURT_SATELLITE, L.DEATH_SATELLITE);
 registerHurtLines('ride_butler', L.HURT_BUTLER, L.DEATH_BUTLER);
@@ -188,6 +189,7 @@ export const runTricks = (ctx: FrameContext, tr: Tricks, s: SledView, first: (ki
   for (const b of tr.bits) { b.vy += 0.4; b.x += b.vx; b.y += b.vy; b.rot += 0.2; }
   tr.bits = tr.bits.filter(b => b.y < s.y + 700).slice(-80);
   // The sled itself: anybody on the track in front of it, run down
+  knockPlantedIn(ctx, s.x + 20, s.y - 60, 80, 56, s.x - 40);
   for (const e of hazardVictims(state, { innocents: true })) {
     if (!boxHits(e, s.x + 20, s.y - 60, 80, 56)) continue;
     hazardKill(ctx, e, s.x - 40, 'RUN OVER!', { fling: { x: 9, y: -12 } });

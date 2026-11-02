@@ -37,6 +37,7 @@ import { TALK } from './lines';
 import { TOWER_CHECKPOINTS, buildTower, updateTower, drawTowerBack, drawTowerFront, towerLamps } from './clocktower';
 import { updateHeart, drawDeep } from './heartFind';
 import './kinds';
+import { knockPlantedIn } from '../../moves/followups';
 
 const { x0, x1 } = SECTIONS.uk;
 const X = (rx: number) => x0 + rx, Y = (h: number) => GY - h;
@@ -180,6 +181,7 @@ export const uk: ForeignSection = {
         hurtPlayer(ctx, 14, 'm2:fl_bus', { x: b.dir * 14, y: -8 }, 30);
         playSound('slam', 0.9, -6);
       }
+      knockPlantedIn(ctx, zx, zy, zw, GY - zy, fx - b.dir * 20);
       for (const e of hazardVictims(state)) if (boxHits(e, zx, zy, zw, GY - zy)) hazardHit(ctx, e, 60, fx - b.dir * 20, 'RUN OVER!', { color: '#DC2626' });
     }
     // The bridge: the bell, then the halves lift (whoever's on them goes in the river), down again

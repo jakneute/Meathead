@@ -17,6 +17,7 @@ import { guest } from './paint';
 import { stamp, mix, steppedGlow, bandedGradient } from '../../intro/art/kit';
 import { timeOfDay, farTint, hourMix } from '../../timeOfDay';
 import { signText } from '../../signLetters';
+import { knockPlantedIn } from '../../moves/followups';
 
 type Ctx = CanvasRenderingContext2D;
 
@@ -57,6 +58,7 @@ export const updateTram = (ctx: FrameContext, tr: Tram, owner: string): TramEven
       hurtPlayer(ctx, 16, 'm2:hw_tram', { x: -10, y: -9 }, 26);
       shakeScreen(state, 9, 4); playSound('truckhorn', 0.7, 4);
     }
+    if (bodyR > bodyL) knockPlantedIn(ctx, bodyL, roofY + 6, bodyR - bodyL, d.h - 6, nx + d.len, "TOUR'S OVER!");
     for (const e of hazardVictims(state)) if (e.enemyType !== 'flyer' && boxHits(e, bodyL, roofY + 6, bodyR - bodyL, d.h - 6))
       hazardKill(ctx, e, nx + d.len, 'TOUR\'S OVER!', { fling: { x: -13, y: -10 }, sound: 'crunch' });
   }

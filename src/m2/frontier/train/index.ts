@@ -47,6 +47,7 @@ import { ZOOM } from './view';
 import { tubeSay, drawTube } from './tube';
 import { warmTuckerPip, stepTuckerPip, drawTuckerPip } from './tuckerPip';
 import { updateDynamite } from './dynamite';
+import { driftGround } from './groundDrift';
 import { BOARDED, TUBE_BOARD, TUBE_LEDGER, TRAIN_GAGS, REVISIT, BOARDED_GONE } from './lines';
 import { bossGone } from '../../emptyArena';
 import { updateCage, updateMaul, drawMaul, drawEscape, trainOff } from './lion';
@@ -164,6 +165,8 @@ export const train: FrontierSection = {
     if (updatePen(ctx)) return hands();
     stepWrecks(state);
     updateTracks(ctx, CAR_X[0] - 600, CAR_X[ENGINE] + CARS[ENGINE].len);
+    // (what's down on the tracks goes by with them: the splats, the bodies, the planted)
+    driftGround(ctx, x0, x1, tr.v);
     // ---- what's said: the ledger now and then; the firsts
     if (tr.phase === 'ride' && p.health > 0 && !p.inCutscene) {
       if (++tr.ledgerT > 1500 && !tr.tubeBusy && !tr.cut && cx < CAR_X[ENGINE - 1] - 40) { tr.ledgerT = 0; tubeSay(state, TUBE_LEDGER, undefined, false); }

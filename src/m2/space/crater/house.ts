@@ -37,6 +37,7 @@ import { PRESHOW, TRAMS, CEIL, HOUSE_DOOR, HALLS } from './layout';
 import { liveBolts } from './kinds';
 import * as L from './lines';
 import { bossGone } from '../../emptyArena';
+import { knockPlantedIn } from '../../moves/followups';
 
 type Ctx = CanvasRenderingContext2D;
 const pick = pickLine;
@@ -201,6 +202,7 @@ const tickTrams = (ctx: FrameContext, h: House) => {
       playSound('crash', 0.7, -2); shakeScreen(state, 8, 4);
     }
     // (one of them on it: theirs)
+    knockPlantedIn(ctx, l, GY - TRAM_H, r - l, TRAM_H, l);
     for (const e of hazardVictims(state)) {
       if (e.pos.x + e.width > l && e.pos.x < r && e.pos.y + e.height > GY - TRAM_H && e.pos.y < GY && (e.hazardHitAt ?? -99) < state.frame - 30) {
         e.hazardHitAt = state.frame;

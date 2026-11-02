@@ -28,6 +28,7 @@ import { inBossFight } from '../../bossQuiet';
 import { overLava, IMP_FIRE } from './kinds';
 import { HURT_LAVA, DEATH_LAVA, HURT_JET, DEATH_JET, HURT_CAR, DEATH_CAR, MH_CAR } from './lines';
 import { signText, candle, print } from '../letters';
+import { knockPlantedIn } from '../../moves/followups';
 
 type Ctx = PCtx;
 const pick = pickLine;
@@ -189,6 +190,7 @@ const updateCars = (ctx: FrameContext, h: Hell) => {
   h.flying = FLUNG.map((F, i) => ({ i, x0: car.x, y0: GY - 40, x1: car.x + F.dx, t: 0 }));
   const feet = p.pos.y + p.height;
   // (whoever's under it: flat)
+  knockPlantedIn(ctx, car.x - CAR_W / 2 - 10, GY - CAR_H - 10, CAR_W + 20, CAR_H + 10, car.x, 'FLATTENED!');
   for (const e of hazardVictims(state)) if (Math.abs(e.pos.x + e.width / 2 - car.x) < CAR_W / 2 + 10 && e.pos.y + e.height > GY - CAR_H - 10) hazardKill(ctx, e, car.x, 'FLATTENED!', { fling: { x: Math.sign(e.pos.x + e.width / 2 - car.x || 1) * 6, y: -4 }, sound: 'splat' });
   // (a ton of elevator: under it, he's flat, whatever. Blinking from a hit or not; only a cutscene's hold spares him)
   if (p.health > 0 && Math.abs(cx - car.x) < CAR_W / 2 + 16 && feet > GY - CAR_H - 10 && !p.inCutscene) {

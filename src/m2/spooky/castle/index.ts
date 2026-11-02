@@ -47,6 +47,7 @@ import {
 } from './layout';
 import * as L from './lines';
 import { worldSound } from '../../onScreen';
+import { knockPlantedIn } from '../../moves/followups';
 
 /** The ladders: the library's, and between floors (layout.ts). */
 const LADDERS: LadderDef[] = LADDER_DEFS;
@@ -229,7 +230,8 @@ const runTrain = (ctx: FrameContext, cs: Castle, zones: Zone[]) => {
   if (tr.x < TRAIN.a) { tr.x = TRAIN.a; tr.dir = 1; worldSound(state, 'ding', 0.4, 6, tr.x, ty, TRAIN.w, TRAIN.h); }
   if (++tr.bell % 50 === 0) worldSound(state, 'ding', 0.25, 12, tr.x, ty, TRAIN.w, TRAIN.h);
   if (canHurt(state) && hits(pBox(state), tr.x, GY - TRAIN.h, TRAIN.w, TRAIN.h)) hurtPlayer(ctx, 14, 'spooky_train', { x: tr.dir * 7, y: -6 });
-  // (whoever's knocked onto the track: run down)
+  // (whoever's knocked onto the track: run down; anybody planted in it, out of the floor and flung)
+  knockPlantedIn(ctx, tr.x, GY - TRAIN.h + dyAt(tr.x), TRAIN.w, TRAIN.h, tr.x + TRAIN.w / 2 - tr.dir * 40, 'ROADKILL!');
   for (const e of hazardVictims(state)) if (hits(eBox(e), tr.x, GY - TRAIN.h, TRAIN.w, TRAIN.h) && e.pos.y + e.height - dyAt(e.pos.x) > GY - TRAIN.h - 6) {
     if (hazardHit(ctx, e, 45, tr.x + TRAIN.w / 2 - tr.dir * 40, 'ROADKILL!', { knock: 10 })) worldSound(state, 'ding', 0.5, 6, tr.x, ty, TRAIN.w, TRAIN.h);
   }

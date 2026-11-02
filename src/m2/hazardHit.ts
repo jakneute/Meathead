@@ -42,6 +42,19 @@ export const hazardOwnersIn = (state: GameState, x: number, y: number, w: number
   return out;
 };
 const overlaps = (z: Zone, x: number, y: number, w: number, h: number) => x + w > z.x0 && x < z.x1 && y + h > z.y0 && y < z.y1;
+/** How many of each owner's live zones overlap a box, into `out` (cleared first), and the middle of the last one each
+ *  (a body planted in the ground: a hazard come onto it knocks it loose, away from it: followups.ts). */
+export const zoneCountsIn = (state: GameState, x: number, y: number, w: number, h: number, out: Map<string, { n: number; cx: number }>) => {
+  out.clear();
+  for (const [owner, z] of zones) {
+    if (Math.abs(state.frame - z.at) > 3) continue;
+    for (const q of z.list) if (overlaps(q, x, y, w, h)) {
+      const o = out.get(owner);
+      if (o) { o.n++; o.cx = (q.x0 + q.x1) / 2; } else out.set(owner, { n: 1, cx: (q.x0 + q.x1) / 2 });
+    }
+  }
+  return out;
+};
 /** Would `e` at (x, y) be in a hazard's way? */
 export const inHazard = (state: GameState, e: Enemy, x = e.pos.x, y = e.pos.y) => live(state, e).some(z => overlaps(z, x, y, e.width, e.height));
 
