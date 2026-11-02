@@ -13,8 +13,8 @@
 // accept / B back). Accepted, the cabinet's screen fills the whole screen (a CRT: the bezel, scanlines): the title,
 // the controls card (the real buttons, live: ui.chordTips; the explain screens' buffer), CHOOSE YOUR MONSTER (the kid
 // picks too), VS, then the rounds (sim.ts), END THEM and the winner's ending (fatal.ts). Meathead wins: the kid's
-// sore, and the CHARGE SHARD (once a save: the find kept in the save, like the plunge's) with its card (the buffer:
-// CARD_HOLD frames, every button let go, a fresh press). The kid wins: his ending on Meathead's fighter, the kid
+// sore, and the CHARGE SHARD (once a save: upgrades/shardAward.ts, the find kept in the save) with its card (the
+// explain screens' buffer, there). The kid wins: his ending on Meathead's fighter, the kid
 // gloats, CONTINUE? (the ask again: a rematch, free, as many as he likes; every one he wins makes the kid sloppier).
 //
 // While it's on: Meathead's held (inCutscene: no HUD, no pausing into the world), can't be hurt, everything near him
@@ -29,18 +29,16 @@ import { CANVAS_WIDTH } from '../../../../m1/constants';
 import { playSound } from '../../../../m1/game/platform/audio';
 import { say, pickLine, isTalking, MEATHEAD_VOICE, type Voice } from '../../../../m1/game/platform/speech';
 import { isShat, isNude } from '../../../../m1/game/player/gut';
-import { setUi, markCollectibleFound, allFound } from '../../../store';
-import { saveProgress } from '../../../save';
+import { setUi } from '../../../store';
 import { pollM2, btn, pressed as menuPressed } from '../../../input';
-import { shards, setShards, powerCells, MAX_SHARDS } from '../../../upgrades/state';
+import { shardWon, awardShard, openShardCard, tickShardCard, closeShardCard, type ShardCard } from '../../../upgrades/shardAward';
 import { openAsk, tickAsk, closeAsk, type Ask } from '../../../minigameConfirm';
-import { drawShardGem } from '../../../hollywood/coaster/plunge';
 import { meatheadSays, speak, saidOver, type Said } from '../../section';
 import { X, Y } from '../layout';
 import { ROSTER, type CharId } from './data';
 import { newMatch, resetRound, step, tickFx, think, newBrain, NO_INPUT, type Match, type Brain, type Input } from './sim';
 import { startFatal, tickFatal, type Fatal } from './fatal';
-import { screenBuf, present, drawBoot, drawControls, drawSelect, drawVs, drawFight, warmScreens, txt, type SelectView } from './screen';
+import { screenBuf, present, drawBoot, drawControls, drawSelect, drawVs, drawFight, warmScreens, type SelectView } from './screen';
 import { drawCabinet, drawKid2, type KidPose } from './kid';
 import * as L from './lines';
 
@@ -51,7 +49,7 @@ type Rp = 'intro' | 'fight' | 'ko';
 /** Where they are (x from the town's start): the cabinet, the kid at its right side, playing. */
 export const CAB_RX = 8540, KID_RX = 8566;
 export const SHARD_LAND = 'spooky', SHARD_ID = 'shard-mash';
-const TALK_RANGE = 46, FREEZE_RANGE = 1000, CARD_HOLD = 90, CONTROLS_HOLD = 90;
+const TALK_RANGE = 46, FREEZE_RANGE = 1000, CONTROLS_HOLD = 90;
 
 interface Mash {
   phase: Phase; t: number; ask: Ask | null; upLatch: boolean;
@@ -63,7 +61,7 @@ interface Mash {
   fatal: Fatal | null; winner: 0 | 1;
   /** The cabinet's next step's waiting on a line said (or skipped). */
   ready: boolean;
-  kidPose: KidPose; kidWins: number; cardArmed: boolean; anyPrev: boolean; held: Set<Enemy>;
+  kidPose: KidPose; kidWins: number; cardArmed: boolean; card: ShardCard | null; anyPrev: boolean; held: Set<Enemy>;
   menuPrev: { l: boolean; r: boolean; u: boolean; d: boolean; p: boolean };
   ticker: number;
 }
@@ -76,14 +74,14 @@ const mashOf = (state: GameState): Mash => {
       phase: 'off', t: 0, ask: null, upLatch: true, kidSaid: null, said: null,
       sel: { cur: 0, kid: 3, picked: false, kidPicked: false, t: 0 }, p1: 'drac', kid: 'monster',
       m: null, br: newBrain(), wins: [0, 0], round: 0, rp: 'intro', rt: 0, banner: null, fatal: null, winner: 0, ready: true,
-      kidPose: 'play0', kidWins: 0, cardArmed: false, anyPrev: true, held: new Set(), menuPrev: { l: true, r: true, u: true, d: true, p: true }, ticker: 0,
+      kidPose: 'play0', kidWins: 0, cardArmed: false, card: null, anyPrev: true, held: new Set(), menuPrev: { l: true, r: true, u: true, d: true, p: true }, ticker: 0,
     };
     ALL.set(state, ms);
   }
   return ms;
 };
 
-const won = () => !!allFound()[SHARD_LAND]?.includes(SHARD_ID);
+const won = () => shardWon(SHARD_LAND, SHARD_ID);
 const pants = <T,>(state: GameState, b: { clean: T; shitty: T; nude: T }) => (isNude(state) ? b.nude : isShat(state) ? b.shitty : b.clean);
 const CRT: Phase[] = ['boot', 'controls', 'select', 'vs', 'fight', 'fatal', 'result', 'rematch', 'card', 'out'];
 /** The music's (cues.ts): the land's theme as a cheap arcade loop while the cabinet's up. */
@@ -131,6 +129,7 @@ const end = (state: GameState, ms: Mash) => {
   ms.held.clear();
   p.inCutscene = false; p.vel.x = 0;
   if (ms.ask) closeAsk();
+  if (ms.card) { closeShardCard(); ms.card = null; }
   setUi({ chordTips: null });
   ms.phase = 'off'; ms.t = 0; ms.ask = null; ms.m = null; ms.fatal = null; ms.banner = null; ms.said = null; ms.upLatch = true;
   ms.kidPose = 'play0';
@@ -246,11 +245,9 @@ export const updateMash = (ctx: FrameContext, controls: Controls): Controls | nu
       }
       if (ms.t > 70 && ms.ready) {
         if (ms.winner === 1) { ms.ask = openAsk('CONTINUE?', 'A REMATCH WITH THE KID. FREE. AS MANY AS YOU LIKE.'); toPhase(ms, 'rematch'); }
-        else if (!won()) {
-          // THE SHARD: his for good, saved there and then
-          markCollectibleFound(SHARD_LAND, SHARD_ID); setShards(shards() + 1); saveProgress();
-          playSound('powerup', 0.8); toPhase(ms, 'card'); ms.cardArmed = false;
-        } else toPhase(ms, 'out');
+        // THE SHARD (once a save: his for good, saved there and then; upgrades/shardAward.ts), its card
+        else if (awardShard(SHARD_LAND, SHARD_ID)) { ms.card = openShardCard(); toPhase(ms, 'card'); }
+        else toPhase(ms, 'out');
       }
       break;
     }
@@ -262,8 +259,7 @@ export const updateMash = (ctx: FrameContext, controls: Controls): Controls | nu
       break;
     }
     case 'card':
-      if (!ms.cardArmed && ms.t > CARD_HOLD && !anyHeld) ms.cardArmed = true;
-      if (ms.cardArmed && anyPress) { playSound('menuok', 0.6); toPhase(ms, 'out'); }
+      if (tickShardCard(ms.card!, state.frame)) { ms.card = null; ms.anyPrev = true; toPhase(ms, 'out'); }
       break;
     case 'out':
       if (ms.t > 24 && !anyHeld) { end(state, ms); ms.kidPose = 'play0'; }
@@ -417,7 +413,6 @@ export const drawMashHud = (c: Ctx, state: GameState) => {
     if (k >= 1) { b.fillStyle = `rgba(255,255,255,${Math.max(0, 1 - (ms.t - 18) / 8)})`; b.fillRect(0, 129, 360, 2); }
   }
   present(c, 0, ms.said);
-  if (ms.phase === 'card') drawCard(c, state.frame, ms.cardArmed);
 };
 
 const INVIS_TICKER = ['THE INVISIBLE MAN IS IN THIS FIGHT. TRUST US.', 'SPRITE BUDGET FOR THIS CHARACTER: $0', 'HE IS DOING A MOVE RIGHT NOW. PROBABLY.', 'IF YOU CAN SEE HIM, CALL THE OPERATOR.', 'REALISM IS OUR #1 PRIORITY.', 'PLEASE IMAGINE A VERY COOL MAN.'];
@@ -425,27 +420,6 @@ const tickerOf = (ms: Mash, f: number) => {
   if (ms.phase !== 'fight' || !ms.m) return null;
   if (ms.p1 !== 'invis' && ms.kid !== 'invis') return null;
   return INVIS_TICKER[Math.floor(f / 360) % INVIS_TICKER.length];
-};
-
-/** The card: YOU GOT A CHARGE SHARD, how many of how many, what's next; PRESS ANY BUTTON once it's armed. */
-const drawCard = (c: Ctx, f: number, armed: boolean) => {
-  const w = 460, h = 220, x = (CANVAS_WIDTH - w) / 2, y = 190;
-  c.fillStyle = '#1C1014'; c.fillRect(x - 4, y - 4, w + 8, h + 8);
-  c.fillStyle = '#C08414'; c.fillRect(x - 3, y - 3, w + 6, h + 6);
-  c.fillStyle = '#1C1014'; c.fillRect(x - 1, y - 1, w + 2, h + 2);
-  const B = ['#1E1B4B', '#1A1740', '#161334', '#110F28'];
-  for (let k = 0; k < 4; k++) { c.fillStyle = B[k]; c.fillRect(x, y + (h * k) / 4, w, h / 4 + 1); }
-  const n = shards(), toNext = 3 - (n % 3), cells = powerCells();
-  txt(c, 'THE KID COUGHED UP', CANVAS_WIDTH / 2, y + 26, 9, '#FDE047');
-  txt(c, 'A CHARGE SHARD!', CANVAS_WIDTH / 2, y + 52, 16, '#FFFFFF', '#7F1D1D');
-  drawShardGem(c, x + 58, y + 120, 1.4, f);
-  drawShardGem(c, x + w - 58, y + 120, 1.4, f + 40);
-  txt(c, `CHARGE SHARDS: ${n} / ${MAX_SHARDS}`, CANVAS_WIDTH / 2, y + 96, 9, '#FDE047');
-  const next = n >= MAX_SHARDS ? 'EVERY SHARD FOUND!' : n % 3 === 0 ? `A NEW POWER CELL! ${cells} CELLS NOW` : `${toNext} MORE TO THE NEXT POWER CELL`;
-  txt(c, next, CANVAS_WIDTH / 2, y + 122, 8, '#E4E4E7');
-  txt(c, 'EVERY 3 YOU FIND MAKE', CANVAS_WIDTH / 2, y + 146, 7, '#A1A1AA');
-  txt(c, 'ANOTHER POWER CELL', CANVAS_WIDTH / 2, y + 160, 7, '#A1A1AA');
-  if (armed && f % 40 < 28) txt(c, 'PRESS ANY BUTTON', CANVAS_WIDTH / 2, y + h - 18, 8, '#D4D4D8');
 };
 
 /** Stop the lot (the stage going away under it). */
