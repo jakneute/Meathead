@@ -75,8 +75,10 @@ const L = PIECE_LINES.armguards;
 
 /** The cannon (under the hatch's east side: straight up out of it), Ben's spot, the sparring alien's. */
 export const CANNON_X = HATCH.b - 40, BEN_X = LAIR.a + 450, SPAR_X = LAIR.a + 640;
-/** The floor grate by where he landed that the cannon puts him up out of (and down on again). */
-export const GRATE_X = LAND_X + 150;
+/** The floor grate the cannon puts him up out of (and down on again): right where he landed falling in, the stalker
+ *  section's starting point (the owner: "the cannon in future land should launch you to the starting point of the
+ *  stalker section"). */
+export const GRATE_X = LAND_X;
 /** The YOU GOT card's least time up before it can be closed (frames). */
 const CARD_HOLD = 90;
 /** The meetup's run this visit; his line down the hatch said this visit (state.stageMemo). */
