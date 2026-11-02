@@ -428,10 +428,15 @@ const paintBen = (g: Ctx, pose: BenPose, frame: number, piece: ArmorPiece | null
   head(g, hx, hy, S, winded);
   // (the KEGGER HELMET, on him till it's given: Foreign Lands)
   if (piece === 'helmet') kegHelmet(g, hx, hy);
+  // (the PISS-OFF PENDANT, round his neck till he hands it out: Fairy Land)
+  const pend = piece === 'amulet';
+  if (pend && pose !== 'offer' && pose !== 'give') pendant(g, [[hx - 6, hy + 12], [hx + 9, hy + 13]], sx + 2, sy + 12);
   const hf = arm(g, [sx + 13, sy + 9], hp.f, square, false, S, gloved, pose === 'offer');
   if (pads) pauldron(g, sx + 13, sy + 9, false);
   // (the shaker's the hand armor's trial: nobody else's)
-  const shakes = !pads && piece !== 'helmet' && piece !== 'cape' && !trophy;
+  const shakes = !pads && piece !== 'helmet' && piece !== 'cape' && !trophy && !pend;
+  // (held out on its chain, dangling off his fist)
+  if (pend && (pose === 'offer' || pose === 'give')) pendant(g, [[hf[0] + 1, hf[1] + 1]], hf[0] + 1, hf[1] + 13);
   if (shakes && pose === 'offer') shaker(g, hf[0] + 1, hf[1] - 6);
   if (shakes && pose === 'yank') shaker(g, hf[0], hf[1] - 6);
 };
@@ -482,6 +487,14 @@ const benCape = (g: Ctx, sx: number, sy: number, hx: number, hy: number) => {
   // (the price tag on its plastic barb off the back point)
   lineR(g, [hx - 18, hy - 5, hx - 21, hy + 3], 0.6, '#E5E7EB');
   pxR(g, hx - 25, hy + 2, 7, 9, '#2A2A36'); pxR(g, hx - 24, hy + 3, 5, 7, '#F4F4F0'); pxR(g, hx - 24, hy + 6, 5, 1.6, '#F07A1A'); pxR(g, hx - 23, hy + 9, 3, 1, '#DC2626');
+};
+
+/** The PISS-OFF PENDANT (the armor's own baked piece, armorArt.ts): its sequin chain from each point in `from` down to
+ *  the jewel, hung with its top at (x, y). */
+const pendant = (g: Ctx, from: [number, number][], x: number, y: number) => {
+  const cv = armorStamp('amulet');
+  for (const [ax, ay] of from) for (let i = 0; i <= 6; i++) { const t = i / 6; pxR(g, ax + (x - ax) * t - 0.6, ay + (y + 1 - ay) * t - 0.6, 1.2, 1.2, i % 2 ? '#F9A8D4' : '#E5E7EB'); }
+  if (cv) g.drawImage(cv, x - 5, y, 10, 12);
 };
 
 /** A coconut pauldron strapped over a delt (the armor's own baked piece, armorArt.ts, sized up to his shoulders). */

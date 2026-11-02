@@ -222,6 +222,14 @@ export const HOLLYWOOD: CannonLook = {
   wood: ['#4A0A0E', '#741018', '#A01C24', '#C8323A', '#E8666C', '#F8A8AA'],
   star: '#FACC15',
 };
+/** Fairy Land's (CON-FUCK-TIOUS's machine room under the dragon's lair): the princess parade's confetti cannon, a pink
+ *  barrel with gold bands on a lavender carriage; white stars. */
+export const FAIRY: CannonLook = {
+  barrel: ['#4A0A2C', '#7A1446', '#B02466', '#DA4A8A', '#F284B4', '#FCC4DC'],
+  band: ['#5A3A04', '#8A5E08', '#C08A10', '#EAB516', '#FAD43A', '#FFF08A'],
+  wood: ['#2A1A4A', '#3E2A6E', '#5A44A0', '#7A66C4', '#A494E0', '#D2C8F6'],
+  star: '#FFFFFF',
+};
 const INK = '#1A1028';
 const barrels = new Map<CannonLook, HTMLCanvasElement | null>();
 /** The barrel, standing up, its pivot at (BW / 2, BH - 10): baked once a look. */

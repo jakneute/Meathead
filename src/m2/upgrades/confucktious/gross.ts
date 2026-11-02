@@ -24,6 +24,9 @@
 //          tall stiff collar up either side of his head, the red lining, a ribbon bow under his chin): he sweeps the front
 //          of it up across his face in his fist like a movie vampire (the eyes over it), holds it, drops it; the price
 //          tag dangles off the collar on its barb and the sweep flings it flapping across his face.
+//   amulet: the PISS-OFF PENDANT dangled off its sequin chain from his fist beside his face, swinging slow like a
+//          hypnotist's watch; then he LOSES IT (the face 'c': flushed, eyes bulging, veins out, screaming at the lens),
+//          the fist shaking, the jewel thrashing about, steam out of his ears; and back to dangling it.
 
 import {
   type Ctx, type Buf, GW, GH, R, hexU, WHITE, newBuf, setSeed, rnd, matAt, plot, seg, path, ball, tint, poly, bead, eyeball, teeth, skinPost, stubble, hairs, vein, stamps, drawGrossStamp, grossBackdrop, toCanvas, M_SKIN, M_HAIR, M_MOUTH, M_OTHER, M_CLOTH, M_METAL, SCLERA_R, MOUTH, TONGUE, VEIN_B, BLOOD, GOLD,
@@ -45,34 +48,39 @@ const LEO = R('#FCE6A8', '#F0CC78', '#DCAE52', '#BC8C36', '#8A6020', '#3A2408');
 const TUSK = R('#FFFFFF', '#F4F4F8', '#E0E0E8', '#C4C4D0', '#9A9AA8', '#3A3A48');
 const STRAP = R('#9A6A3A', '#7A4E26', '#5E3A1A', '#442810', '#2C1808', '#140A02');
 
-type Key = 'a' | 'b';
+/** 'a' the smirk shut, 'b' talking, 'c' LOSING IT (the PISS-OFF PENDANT's tantrum: flushed purple-red, the eyes bulging,
+ *  pinprick pupils, veins up the forehead and the temples, the mouth wide open screaming). */
+type Key = 'a' | 'b' | 'c';
+/** His skin, losing it: flushed purple-red. */
+const SKIN_MAD = R('#FCC6B2', '#F2A28C', '#E07E6C', '#C85E52', '#A8423E', '#80282C', '#58161C', '#300A0E');
 
 function* build(key: Key): Generator<void, Buf> {
   setSeed(4243);
   const b = newBuf();
+  const mad = key === 'c', S = mad ? SKIN_MAD : SKIN;
   yield;
   // ---- the traps and shoulders, out to the edges; the tank top's straps; its scoop and the gray chest hair
-  poly(b, [-10, GH, 282, GH, 282, 168, FX + 70, 140, FX + 40, 128, FX - 40, 128, FX - 70, 140, -10, 168], SKIN.slice(1), M_SKIN, { tilt: 0.25 });
+  poly(b, [-10, GH, 282, GH, 282, 168, FX + 70, 140, FX + 40, 128, FX - 40, 128, FX - 70, 140, -10, 168], S.slice(1), M_SKIN, { tilt: 0.25 });
   for (const s of [-1, 1]) {
     poly(b, [FX + s * 60, 142, FX + s * 84, 150, FX + s * 74, GH, FX + s * 48, GH], TANK, M_CLOTH, { tilt: -0.2 * s });
     // (the strap biting into the meat either side of it)
-    path(b, [FX + s * 58, 144, FX + s * 46, GH], SKIN[5], 1, undefined, M_SKIN); path(b, [FX + s * 86, 152, FX + s * 76, GH], SKIN[5], 1, undefined, M_SKIN);
+    path(b, [FX + s * 58, 144, FX + s * 46, GH], S[5], 1, undefined, M_SKIN); path(b, [FX + s * 86, 152, FX + s * 76, GH], S[5], 1, undefined, M_SKIN);
   }
   poly(b, [FX - 48, GH, FX + 48, GH, FX + 54, 196, FX - 54, 196], TANK, M_CLOTH, { tilt: 0 });
   for (let k = 0; k < 70; k++) { const x = FX - 34 + rnd() * 68, y = 176 + rnd() * 20; if (matAt(b, x, y) === M_SKIN) seg(b, x, y, x + (rnd() - 0.5) * 4, y - 3, GRAY[(k % 3) + 1]); }
   yield;
   // ---- the neck: as wide as his head, the cords down it, a vein up each side
-  ball(b, FX, 150, 56, 40, SKIN, { mat: M_SKIN, line: (dx) => Math.abs(dx) > 0.8, flat: 0.8 });
-  for (const s of [-1, 1]) { path(b, [FX + s * 30, 128, FX + s * 40, 160, FX + s * 50, 186], SKIN[5], 2, undefined, M_SKIN); vein(b, [FX + s * 44, 124, FX + s * 48, 142, FX + s * 44, 160, FX + s * 48, 176], VEIN_B, 2); }
+  ball(b, FX, 150, 56, 40, S, { mat: M_SKIN, line: (dx) => Math.abs(dx) > 0.8, flat: 0.8 });
+  for (const s of [-1, 1]) { path(b, [FX + s * 30, 128, FX + s * 40, 160, FX + s * 50, 186], S[5], 2, undefined, M_SKIN); vein(b, [FX + s * 44, 124, FX + s * 48, 142, FX + s * 44, 160, FX + s * 48, 176], VEIN_B, 2); }
   yield;
   // ---- the ears: the near one a cauliflower (lumps on lumps), the far one just big
-  ball(b, FX - 64, 98, 13, 20, SKIN, { mat: M_SKIN, line: true, lw: 1.4 });
-  ball(b, FX - 64, 98, 6, 11, SKIN.slice(2), { mat: M_SKIN, flat: 0.5 });
-  for (const [dx, dy, r] of [[-4, -10, 7], [2, -2, 6], [-3, 6, 7], [2, 12, 5]] as const) ball(b, FX + 64 + dx, 98 + dy, r, r * 0.9, SKIN, { mat: M_SKIN, line: true, lw: 1.1 });
+  ball(b, FX - 64, 98, 13, 20, S, { mat: M_SKIN, line: true, lw: 1.4 });
+  ball(b, FX - 64, 98, 6, 11, S.slice(2), { mat: M_SKIN, flat: 0.5 });
+  for (const [dx, dy, r] of [[-4, -10, 7], [2, -2, 6], [-3, 6, 7], [2, 12, 5]] as const) ball(b, FX + 64 + dx, 98 + dy, r, r * 0.9, S, { mat: M_SKIN, line: true, lw: 1.1 });
   yield;
   // ---- the head: square, the jaw wide and heavy
-  ball(b, FX, FY - 6, 58, 66, SKIN, { mat: M_SKIN, line: true, lw: 1.6, flat: 0.9 });
-  ball(b, FX, 132, 56, 36, SKIN, { mat: M_SKIN, line: (_dx, dy) => dy > 0.1, lw: 1.6, flat: 0.8 });
+  ball(b, FX, FY - 6, 58, 66, S, { mat: M_SKIN, line: true, lw: 1.6, flat: 0.9 });
+  ball(b, FX, 132, 56, 36, S, { mat: M_SKIN, line: (_dx, dy) => dy > 0.1, lw: 1.6, flat: 0.8 });
   yield;
   // ---- the buzz cut: gray stubble over the top, the hairline square across the forehead
   const hairline = (x: number) => 40 + Math.abs(x - FX) * 0.05 + (Math.abs(x - FX) > 46 ? (Math.abs(x - FX) - 46) * 1.4 : 0);
@@ -83,39 +91,50 @@ function* build(key: Key): Generator<void, Buf> {
   }
   yield;
   // ---- the brow: a heavy ridge, furrows up between the eyes and across the forehead, short gray brows, a scar
-  ball(b, FX, 70, 52, 11, SKIN, { mat: M_SKIN, flat: 0.6, lit: 1.05 });
+  ball(b, FX, 70, 52, 11, S, { mat: M_SKIN, flat: 0.6, lit: 1.05 });
   for (const s of [-1, 1]) hairs(b, 60, () => [FX + s * (10 + rnd() * 30), 66 + rnd() * 5], 4, s > 0 ? -0.2 : Math.PI + 0.2, GRAY[3], undefined, 0.5);
-  for (let k = -1; k <= 1; k++) path(b, [FX + k * 4, 56, FX + k * 5, 66, FX + k * 3, 74], SKIN[6], 1, undefined, M_SKIN);
-  for (let k = 0; k < 3; k++) path(b, [FX - 30, 46 + k * 6, FX, 44 + k * 6, FX + 30, 46 + k * 6], SKIN[5], 1, undefined, M_SKIN);
-  seg(b, FX - 26, 60, FX - 20, 76, SKIN[1], 2); seg(b, FX - 27, 60, FX - 21, 76, SKIN[6], 1);
+  for (let k = -1; k <= 1; k++) path(b, [FX + k * 4, 56, FX + k * 5, 66, FX + k * 3, 74], S[6], 1, undefined, M_SKIN);
+  for (let k = 0; k < 3; k++) path(b, [FX - 30, 46 + k * 6, FX, 44 + k * 6, FX + 30, 46 + k * 6], S[5], 1, undefined, M_SKIN);
+  seg(b, FX - 26, 60, FX - 20, 76, S[1], 2); seg(b, FX - 27, 60, FX - 21, 76, S[6], 1);
+  // (losing it: the brow knotted down hard, deep creases up between the eyes)
+  if (mad) for (let k = -1; k <= 1; k += 2) { path(b, [FX + k * 3, 50, FX + k * 6, 64, FX + k * 12, 74], S[7], 2, undefined, M_SKIN); path(b, [FX + k * 14, 70, FX + k * 26, 74, FX + k * 38, 70], S[6], 2, undefined, M_SKIN); }
   yield;
   // ---- the eyes: narrow, bloodshot, bags under them, crow's feet
   for (const s of [-1, 1]) {
     const ex = FX + s * 26, ey = 84;
-    eyeball(b, ex, ey, { rx: 11, ry: 7, sclera: SCLERA_R, iris: IRIS, ir: 5, idx: -s, pr: 2.4, veins: 12, top: (x) => ey - 3.4 + Math.abs(x - ex) * 0.1, bot: (x) => ey + 3 - Math.abs(x - ex) * 0.06, lid: SKIN.slice(1) });
-    for (let k = 0; k < 2; k++) path(b, [ex - 11, ey + 6 + k * 4, ex, ey + 9 + k * 5, ex + 11, ey + 6 + k * 4], SKIN[5 + k], 1, undefined, M_SKIN);
+    if (mad) eyeball(b, ex, ey, { rx: 13, ry: 11, sclera: SCLERA_R, iris: IRIS, ir: 3.4, idx: 0, pr: 1, veins: 30, lid: S.slice(1) });
+    else eyeball(b, ex, ey, { rx: 11, ry: 7, sclera: SCLERA_R, iris: IRIS, ir: 5, idx: -s, pr: 2.4, veins: 12, top: (x) => ey - 3.4 + Math.abs(x - ex) * 0.1, bot: (x) => ey + 3 - Math.abs(x - ex) * 0.06, lid: S.slice(1) });
+    for (let k = 0; k < 2; k++) path(b, [ex - 11, ey + 6 + k * 4, ex, ey + 9 + k * 5, ex + 11, ey + 6 + k * 4], S[5 + k], 1, undefined, M_SKIN);
     tint(b, ex, ey + 10, 11, 5, hexU('#6A3A5A'), 0.22, M_SKIN);
-    for (let k = -1; k <= 1; k++) path(b, [ex + s * 13, ey + k * 2, ex + s * 22, ey + k * 6], SKIN[6], 1, undefined, M_SKIN);
+    for (let k = -1; k <= 1; k++) path(b, [ex + s * 13, ey + k * 2, ex + s * 22, ey + k * 6], S[6], 1, undefined, M_SKIN);
   }
   yield;
   // ---- the nose: broken, the bridge bent off to one side with a bump on it, the tip fat, the nostrils flared
-  path(b, [FX - 2, 84, FX + 4, 96, FX + 2, 104], SKIN[5], 3, undefined, M_SKIN);
-  ball(b, FX + 4, 96, 6, 5, SKIN, { mat: M_SKIN, lit: 1.1 });
-  ball(b, FX + 3, 114, 19, 14, SKIN, { mat: M_SKIN, line: (_dx, dy) => dy > 0, lit: 1.08 });
+  path(b, [FX - 2, 84, FX + 4, 96, FX + 2, 104], S[5], 3, undefined, M_SKIN);
+  ball(b, FX + 4, 96, 6, 5, S, { mat: M_SKIN, lit: 1.1 });
+  ball(b, FX + 3, 114, 19, 14, S, { mat: M_SKIN, line: (_dx, dy) => dy > 0, lit: 1.08 });
   for (const s of [-1, 1]) { ball(b, FX + 3 + s * 10, 121, 5.4, 3.6, R('#3A1A0E', '#2A1008', '#1A0804', '#0A0200'), { mat: M_OTHER }); hairs(b, 4, () => [FX + 3 + s * 10 + (rnd() - 0.5) * 4, 123], 4, Math.PI / 2, GRAY[2], undefined, 0.8); }
   plot(b, FX - 3, 106, WHITE); plot(b, FX - 2, 106, WHITE); plot(b, FX - 3, 107, WHITE);
   yield;
   // ---- the mouth: the smirk off to one side (talking: open), a gold tooth
   const open = key === 'b';
-  const cx = FX + 5, cy = 144, mw = 24, mh = open ? 9 : 3;
-  const top = (x: number) => cy - mh * 0.4 - (x - cx) * 0.12;
-  const bot = (x: number) => cy + mh * (1 - ((x - cx) / mw) ** 2) - (x - cx) * 0.12;
+  const cx = FX + 5, cy = mad ? 140 : 144, mw = mad ? 30 : 24, mh = mad ? 30 : open ? 9 : 3;
+  // (screaming: the top lip pulled up off the teeth in a square, the jaw dropped as far as it goes)
+  const top = mad ? (x: number) => cy - 6 + ((x - cx) / mw) ** 4 * 6 : (x: number) => cy - mh * 0.4 - (x - cx) * 0.12;
+  const bot = mad ? (x: number) => cy + mh * (1 - ((x - cx) / mw) ** 2) ** 0.6 : (x: number) => cy + mh * (1 - ((x - cx) / mw) ** 2) - (x - cx) * 0.12;
   for (let x = cx - mw; x <= cx + mw; x++) for (let y = Math.floor(top(x)) - 3; y <= bot(x) + 3; y++) {
     if (y < top(x) - 2.5 || y > bot(x) + 2.5) continue;
     const lip = y < top(x) || y > bot(x);
     plot(b, x, y, lip ? LIP[y < top(x) ? 3 : 2] : MOUTH[Math.min(4, Math.round(((y - top(x)) / Math.max(1, bot(x) - top(x))) * 4))], lip ? M_OTHER : M_MOUTH);
   }
-  teeth(b, cx - mw + 4, cx + mw - 4, (x) => top(x) + 0.5, 1, open ? 6 : 3, { tw: 5, gold: [6], rot: [2] });
+  teeth(b, cx - mw + 4, cx + mw - 4, (x) => top(x) + 0.5, 1, mad ? 7 : open ? 6 : 3, { tw: 5, gold: [6], rot: [2] });
+  if (mad) {
+    // (the bottom row, the tongue back in the throat, the dangly thing, spit strung between the rows)
+    teeth(b, cx - mw + 9, cx + mw - 9, (x) => bot(x) - 0.5, -1, 5, { tw: 5, gaps: [3] });
+    ball(b, cx, cy + mh - 8, 16, 7, TONGUE, { only: (x, y) => matAt(b, x, y) === M_MOUTH });
+    ball(b, cx - 2, cy + 6, 3, 5, TONGUE, { only: (x, y) => matAt(b, x, y) === M_MOUTH });
+    for (const [sx, k] of [[-14, 0.6], [6, 0.9], [18, 0.5]] as const) seg(b, cx + sx, top(cx + sx) + 6, cx + sx + 2, top(cx + sx) + 6 + mh * k, hexU('#F4F8FF'), 1, M_MOUTH, M_MOUTH);
+  }
   if (open) { teeth(b, cx - mw + 8, cx + mw - 8, (x) => bot(x) - 0.5, -1, 4, { tw: 5, gaps: [2] }); ball(b, cx + 4, cy + mh - 3, 10, 4, TONGUE, { only: (x, y) => matAt(b, x, y) === M_MOUTH }); }
   yield;
   // ---- the goatee: short, gray, dense round the mouth and down the chin; a gray shadow over the rest of the jaw
@@ -123,23 +142,32 @@ function* build(key: Key): Generator<void, Buf> {
     const a = rnd() * Math.PI * 2, r = rnd();
     const x = cx + Math.cos(a) * (mw + 8) * r * 1.05, y = cy + 6 + Math.sin(a) * 26 * r;
     if (y < cy - 8 && Math.abs(x - cx) < mw - 4) continue;
+    if (mad && matAt(b, x, y) === M_MOUTH) continue;
     if (matAt(b, x, y) !== M_SKIN) continue;
     seg(b, x, y, x + (rnd() - 0.5) * 2, y + 2, GRAY[1 + (k % 3)], 1, M_HAIR);
   }
   stubble(b, (x, y) => (y > 112 ? 1 - Math.abs(x - FX) / 70 : 0), GRAY[4], 0.4);
   yield;
   // ---- the pores (thick on the nose), blackheads, grease; a vein up his temple; a shaving nick
-  skinPost(b, SKIN[7], (x, y) => (((x - FX - 3) / 22) ** 2 + ((y - 112) / 16) ** 2 < 1 ? 0.22 : 0.06), { blackheads: (x, y) => ((x - FX - 3) / 20) ** 2 + ((y - 112) / 14) ** 2 < 1, shine: 0.22 });
+  skinPost(b, S[7], (x, y) => (((x - FX - 3) / 22) ** 2 + ((y - 112) / 16) ** 2 < 1 ? 0.22 : 0.06), { blackheads: (x, y) => ((x - FX - 3) / 20) ** 2 + ((y - 112) / 14) ** 2 < 1, shine: 0.22 });
   vein(b, [FX + 44, 50, FX + 48, 62, FX + 44, 74], VEIN_B, 2);
+  if (mad) {
+    // (losing it: a fat vein forked up the middle of the forehead, one up each temple, the neck's cords roped out)
+    vein(b, [FX - 4, 66, FX - 2, 54, FX - 8, 44, FX - 6, 32], VEIN_B, 3); vein(b, [FX - 2, 54, FX + 6, 46, FX + 8, 36], VEIN_B, 2);
+    vein(b, [FX - 46, 48, FX - 50, 60, FX - 46, 74], VEIN_B, 3);
+    for (const s of [-1, 1]) vein(b, [FX + s * 34, 170, FX + s * 30, 182, FX + s * 36, 196], VEIN_B, 3);
+  }
   seg(b, FX + 34, 160, FX + 38, 158, BLOOD[2]); plot(b, FX + 37, 161, BLOOD[3]);
   yield;
   // ---- sweat on the scalp and the brow; the cheeks ruddy from the last set
-  for (let k = 0; k < 10; k++) { const x = FX - 44 + rnd() * 88, y = 20 + rnd() * 44; if (matAt(b, x, y) === M_SKIN || matAt(b, x, y) === M_HAIR) bead(b, x, y, 1.4 + rnd() * 1.4, SKIN); }
+  for (let k = 0; k < 10; k++) { const x = FX - 44 + rnd() * 88, y = 20 + rnd() * 44; if (matAt(b, x, y) === M_SKIN || matAt(b, x, y) === M_HAIR) bead(b, x, y, 1.4 + rnd() * 1.4, S); }
   for (const s of [-1, 1]) tint(b, FX + s * 40, 116, 16, 12, hexU('#D85A4A'), 0.2, M_SKIN);
   return b;
 }
 
 const face = stamps<Key>(build, ['a', 'b']);
+/** ...and losing it (the PISS-OFF PENDANT's tantrum), painted ahead only with the props. */
+const faceMad = stamps<Key>(build, ['c']);
 
 // ---------------------------------------------------------------------------------------------------------------
 // The pieces' props (baked once each into a canvas of their own)
@@ -532,9 +560,88 @@ const SPEECH = 84, FLASH = 34;
 /** The kick's swing (0..1 up, back), and its leg's angle (radians off straight up, + toward his left of the screen). */
 const kickU = (f: number) => { const t = f % (SPEECH + FLASH) - SPEECH; return t < 0 ? -1 : t / FLASH; };
 
+/** THE PISS-OFF PENDANT (Fairy Land): the gift shop's princess jewel, a hot pink plastic heart, faceted, in a yellow
+ *  plastic heart setting with three little tiara points up off it, a paper tag off the side (4+); painted hanging off
+ *  its bail (the bail at PEND_X, 6), drawn turned as it swings. His fist, up beside his face with its forearm down off
+ *  the bottom of the screen, the sequin chain pinched in it. */
+const PEND_W = 62, PEND_H = 62, PEND_X = 30;
+const PINK = R('#FFE4F2', '#FF9ACB', '#F4609E', '#D93A80', '#A81E5C', '#4A0828');
+const PINK_HI = R('#FFF4FA', '#FFC6E2', '#FF9ACB', '#F4609E', '#D93A80', '#A81E5C');
+const YPLAST = R('#FFF8C0', '#FDE047', '#FACC15', '#CA8A04', '#8A5A00', '#3A2400');
+const PAPER = R('#FFFFFF', '#F4F2EA', '#DEDACC', '#BEB8A6', '#8E8A7A', '#3A3830');
+/** A heart's outline points about (x, y), w wide, its point down. */
+const heartPts = (x: number, y: number, w: number) => {
+  const out: number[] = [], k = w / 34;
+  for (let i = 0; i < 40; i++) { const t = (i / 40) * Math.PI * 2; out.push(x + 16 * Math.sin(t) ** 3 * k, y - (13 * Math.cos(t) - 5 * Math.cos(2 * t) - 2 * Math.cos(3 * t) - Math.cos(4 * t)) * k); }
+  return out;
+};
+let pendCv: HTMLCanvasElement | null | undefined;
+const pendCanvas = () => {
+  if (pendCv !== undefined) return pendCv;
+  setSeed(6161);
+  const b = newBuf();
+  const x = PEND_X, y = 34;
+  // (the bail: a yellow plastic ring the chain goes through)
+  ball(b, x, 6, 4, 4, YPLAST, { mat: M_OTHER, line: true, lw: 1 }); ball(b, x, 6, 1.6, 1.6, R('#3A2400', '#2A1800', '#1A0E00', '#000000'), { mat: M_OTHER });
+  // (the tiara points up off the setting's top, a pink dot on each)
+  for (const [dx, h] of [[-9, 8], [0, 12], [9, 8]] as const) { poly(b, [x + dx - 3, 19, x + dx + 3, 19, x + dx, 19 - h], YPLAST, M_OTHER, { line: true, tilt: 0.3 }); ball(b, x + dx, 19 - h + 3, 1.5, 1.5, PINK, { mat: M_OTHER }); }
+  // (the setting: a fat yellow plastic heart, the mould seam round it)
+  poly(b, heartPts(x, y, 48), YPLAST, M_OTHER, { line: true, tilt: 0.5 });
+  const seam = heartPts(x, y + 0.5, 42);
+  path(b, [...seam, seam[0], seam[1]], YPLAST[3], 1, undefined, M_OTHER);
+  // (the jewel: hot pink, cut in facets: a table up top, the crown's facets fanning off it, the pavilion's down to the point)
+  poly(b, heartPts(x, y + 1, 36), PINK, M_METAL, { line: true, tilt: 0.7 });
+  const tbl = heartPts(x - 1, y - 2, 16);
+  poly(b, tbl, PINK_HI, M_METAL, { tilt: 0.4 });
+  for (let i = 0; i < 40; i += 5) seg(b, tbl[i * 2], tbl[i * 2 + 1], x - 1 + (tbl[i * 2] - x + 1) * 2.1, y - 2 + (tbl[i * 2 + 1] - y + 2) * 2.1, PINK[4], 1, M_METAL, M_METAL);
+  seg(b, x - 12, y + 6, x, y + 18, PINK[4], 1, M_METAL, M_METAL); seg(b, x + 12, y + 6, x, y + 18, PINK[4], 1, M_METAL, M_METAL);
+  // (the shine: a big hard white glint up its left lobe, a sparkle)
+  for (const [dx, dy] of [[-10, -6], [-9, -6], [-10, -5], [-8, -7], [-11, -4], [-9, -5]] as const) plot(b, x + dx, y + dy, WHITE);
+  plot(b, x + 7, y + 6, PINK[0]); plot(b, x + 8, y + 5, PINK[0]);
+  // (the paper tag on a thread off the setting's right lobe: 4+)
+  seg(b, x + 18, y - 6, x + 24, y + 2, PAPER[3], 1, M_CLOTH);
+  poly(b, [x + 21, y + 2, x + 30, y + 2, x + 30, y + 13, x + 21, y + 13], PAPER, M_CLOTH, { line: true, tilt: 0 });
+  const ink = hexU('#C81E50');
+  for (const [dx, dy] of [[0, 0], [0, 1], [0, 2], [1, 2], [2, 2], [2, 0], [2, 1], [2, 3], [2, 4], [5, 1], [5, 2], [5, 3], [4, 2], [6, 2]] as const) plot(b, x + 22 + dx, y + 5 + dy, ink, M_CLOTH, M_CLOTH);
+  const cv = toCanvas(b);
+  if (!cv) { pendCv = null; return null; }
+  const out = document.createElement('canvas'); out.width = PEND_W; out.height = PEND_H;
+  out.getContext('2d')!.drawImage(cv, 0, 0, PEND_W, PEND_H, 0, 0, PEND_W, PEND_H);
+  pendCv = out;
+  return out;
+};
+const FIST_W = 64, FIST_H = 200;
+let fistCv: HTMLCanvasElement | null | undefined;
+const fistCanvas = () => {
+  if (fistCv !== undefined) return fistCv;
+  setSeed(6162);
+  const b = newBuf();
+  const x = 32;
+  // (the forearm down off the bottom: hairy, a vein roped up it)
+  poly(b, [x - 18, 34, x + 16, 34, x + 26, FIST_H + 2, x - 14, FIST_H + 2], SKIN.slice(1), M_SKIN, { line: true, tilt: 0.5 });
+  vein(b, [x - 6, 50, x + 2, 90, x - 2, 130, x + 6, 170], VEIN_B, 2);
+  for (let k = 0; k < 50; k++) { const hx = x - 12 + rnd() * 30, hy = 44 + rnd() * 150; if (matAt(b, hx, hy) === M_SKIN) seg(b, hx, hy, hx - 1.5, hy - 2.5, GRAY[2 + (k % 3)], 1, M_SKIN, M_SKIN); }
+  // (the fist, its knuckles to the camera, the thumb over the curled fingers pinching the chain)
+  ball(b, x, 24, 20, 15, SKIN, { mat: M_SKIN, line: true, lw: 1.4, flat: 0.8 });
+  for (let k = 0; k < 4; k++) { ball(b, x - 13 + k * 8.6, 13, 5, 4.4, SKIN, { mat: M_SKIN, line: true, lw: 1 }); plot(b, x - 14 + k * 8.6, 11, SKIN[0]); }
+  for (let k = 0; k < 3; k++) path(b, [x - 9 + k * 8.6, 16, x - 9 + k * 8.6, 26], SKIN[6], 1, undefined, M_SKIN);
+  ball(b, x - 4, 32, 12, 6, SKIN, { mat: M_SKIN, line: true, lw: 1.1, flat: 0.7 });
+  // (the scraped knuckles)
+  for (let k = 0; k < 4; k++) tint(b, x - 13 + k * 8.6, 11, 2.5, 2, hexU('#C84A3A'), 0.35, M_SKIN);
+  const cv = toCanvas(b);
+  if (!cv) { fistCv = null; return null; }
+  const out = document.createElement('canvas'); out.width = FIST_W; out.height = FIST_H;
+  out.getContext('2d')!.drawImage(cv, 0, 0, FIST_W, FIST_H, 0, 0, FIST_W, FIST_H);
+  fistCv = out;
+  return out;
+};
+/** The pendant's cycle (frames): dangled beside his face, swinging slow like a hypnotist's watch; then he loses it. */
+const DANGLE = 120, TANTRUM = 76;
+const tantrum = (f: number) => { const t = f % (DANGLE + TANTRUM) - DANGLE; return t < 0 ? -1 : t / TANTRUM; };
+
 type Draw = (c: Ctx, f: number) => void;
 /** A piece's prop, drawn in the buffer's own pixels over the face (and a jolt for the screen when it lands). */
-interface Prop { draw: Draw; jolt: (f: number) => number; /** Bake its art now (ahead of the close-up). */ warm?: () => void; /** The whole face pushed at the lens (a headbutt): times the zoom. */ zoom?: (f: number) => number }
+interface Prop { draw: Draw; jolt: (f: number) => number; /** Bake its art now (ahead of the close-up). */ warm?: () => void; /** The whole face pushed at the lens (a headbutt): times the zoom. */ zoom?: (f: number) => number; /** His face losing it just now (the tantrum's: flushed, bulging, screaming). */ mad?: (f: number) => boolean }
 
 const FLURRY = 11;
 /** A shoulder barge's frames (out at the lens and back, a beat, the other shoulder). */
@@ -678,13 +785,54 @@ const PROPS: Partial<Record<ArmorPiece, Prop>> = {
     zoom: (f) => { const u = kickU(f); return u < 0 ? 1 : 1 - 0.08 * Math.sin(u * Math.PI); },
     warm: () => { awardCanvas(); kickCanvas(); },
   },
+  amulet: {
+    // (dangled beside his face off the sequin chain, swinging slow, a twinkle running round the jewel; then he loses it:
+    // the face goes (mad), the fist shakes, the jewel thrashes about on its chain, steam out of his ears, the scream at
+    // the lens)
+    draw: (c, f) => {
+      const pc = pendCanvas(), fc = fistCanvas();
+      if (!pc || !fc) return;
+      const u = tantrum(f), t = f % (DANGLE + TANTRUM);
+      const up = Math.min(1, t / 14);
+      const shake = u >= 0 ? Math.round(Math.sin(f * 2.3) * 4) : 0;
+      const fx = 238 + shake, fy = Math.round(200 - up * 186 + (u >= 0 ? Math.cos(f * 1.7) * 3 : Math.sin(f * 0.1) * 1.5));
+      // (the swing: slow and even; in the tantrum, thrashing)
+      const a = u < 0 ? Math.sin(f * 0.075) * 0.32 : Math.sin(f * 0.62) * 0.6 * Math.min(1, u * 6);
+      const L = 50, bx = fx - 2, by = fy + 34, jx = bx + Math.sin(a) * L, jy = by + Math.cos(a) * L;
+      // (the forearm in off the bottom right, the fist up beside his face)
+      c.save(); c.translate(fx, fy + 24); c.rotate(-0.32); c.drawImage(fc, -FIST_W / 2, -24); c.restore();
+      // (the chain: pink and silver sequins down to the bail)
+      for (let k = 0; k <= 14; k++) { const q = k / 14, sx = bx + (jx - bx) * q - Math.sin(q * Math.PI) * (u < 0 ? 1.5 : 4) * Math.sign(a), sy = by + (jy - by) * q; c.fillStyle = k % 2 ? '#F9A8D4' : '#E5E7EB'; c.fillRect(Math.round(sx) - 1, Math.round(sy) - 1, 2, 2); }
+      c.save(); c.translate(Math.round(jx), Math.round(jy)); c.rotate(-a); c.drawImage(pc, -PEND_X, -6); c.restore();
+      // (the twinkle round the jewel)
+      const tw = f % 40;
+      if (tw < 10 && u < 0) {
+        const s = tw < 5 ? tw / 5 : (10 - tw) / 5, n = Math.floor(f / 40), gx = jx - 8 + ((n * 7) % 16), gy = jy + 22 + ((n * 5) % 10);
+        c.fillStyle = '#FFFFFF'; c.fillRect(Math.round(gx) - 1, Math.round(gy - 5 * s), 2, Math.round(10 * s) + 1); c.fillRect(Math.round(gx - 5 * s), Math.round(gy) - 1, Math.round(10 * s) + 1, 2);
+      }
+      if (u >= 0) {
+        // (steam out of both ears, puffing up; the shake lines off his head)
+        for (let i = 0; i < 8; i++) {
+          const q = (f * 0.05 + i / 8) % 1, side = i % 2 ? 1 : -1, px = FX + side * (70 + q * 22) + Math.sin(f * 0.3 + i) * 3, py = 96 - q * 76, r = Math.round(4 + q * 9);
+          c.fillStyle = `rgba(240,240,244,${(0.85 * (1 - q)).toFixed(2)})`; c.fillRect(Math.round(px - r / 2), Math.round(py - r / 2), r, r);
+        }
+        c.fillStyle = 'rgba(255,255,255,0.8)';
+        for (let i = 0; i < 3; i++) for (const side of [-1, 1]) c.fillRect(Math.round(FX + side * (80 + i * 8)), Math.round(26 + i * 10 + (f % 4 < 2 ? 1 : -1)), 2, 9);
+      }
+    },
+    jolt: (f) => (tantrum(f) >= 0 ? (f % 6 < 3 ? 3 : 1) : 0),
+    zoom: (f) => { const u = tantrum(f); return u < 0 ? 1 : 1 + 0.22 * Math.sin((Math.min(1, u * 4) * Math.PI) / 2) * (u > 0.85 ? (1 - u) / 0.15 : 1); },
+    mad: (f) => tantrum(f) >= 0,
+    warm: () => { pendCanvas(); fistCanvas(); faceMad.warm(); },
+  },
 };
 
 /** His gross-up: (cx, cy) where the middle of his face goes on the screen, `zoom` 1 at the hold; `piece` the one he's
  *  holding (its prop and animation over him), `talking` his mouth going. */
 export const drawBenGross = (c: Ctx, cx: number, cy: number, zoom: number, f: number, piece: ArmorPiece | null, talking: boolean) => {
-  const s = face(talking && f % 12 < 6 ? 'b' : 'a');
   const prop = piece ? PROPS[piece] : undefined;
+  // (losing it: the screaming face, once it's painted (not stalled for there and then))
+  const s = prop?.mad?.(f) && faceMad.ready('c') ? faceMad('c') : face(talking && f % 12 < 6 ? 'b' : 'a');
   drawGrossStamp(c, s.img, cx, cy, FX, FY, zoom * (prop?.zoom?.(f) ?? 1), f, prop?.jolt(f) ?? 0, (box) => {
     // (the toothpick, wagging at the corner of the smirk)
     const w = Math.sin(f * 0.18) * 3;

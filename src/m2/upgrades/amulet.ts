@@ -96,6 +96,10 @@ const publish = () => {
 
 /** Invulnerable just now (the rage after the yell). */
 export const amuletShielded = () => a.phase === 'rage' && a.t > 0;
+/** A soft hit that takes nothing off him but pisses him off all the same (CON-FUCK-TIOUS's inflatable knights in Fairy
+ *  Land's lair: practice): into the meter as an enemy's hit of `n` would be (the hit's own share on top); the yell goes
+ *  off on its own next frame if that fills it. Only while it's filling (the amulet on, no rage or cooldown going). */
+export const feedAmulet = (n: number) => { if (amuletActive() && a.phase === 'fill') a.meter = Math.min(AMULET_FULL, a.meter + n + AMULET_HIT); };
 /** His charge moves and grabs through the rage: RAGE_DAMAGE_K, else 1 (bossMelee.ts, apply.ts's melee hook,
  *  moves/grab.ts, moves/followups.ts). Multiplies with the bulk up's own. Never his weapons. */
 /** Through the rage, his colors cycling like a star's invincibility (the owner's "he will be blinking colors, like the

@@ -137,7 +137,7 @@ export interface PieceLines {
   trialPose?: 'offer' | 'brace' | 'fold';
 }
 
-export const PIECE_LINES: { hands: PieceLines; pauldrons: PieceLines; helmet: PieceLines; cape: PieceLines; legs: PieceLines } = {
+export const PIECE_LINES: { hands: PieceLines; pauldrons: PieceLines; helmet: PieceLines; cape: PieceLines; legs: PieceLines; amulet: PieceLines } = {
   hands: {
     ask: {
       clean: ['WHAT ARE THOSE? ARE THOSE MICKEY HANDS?', 'WHOA. GIANT CARTOON HANDS. I NEED THOSE.'],
@@ -307,7 +307,61 @@ export const PIECE_LINES: { hands: PieceLines; pauldrons: PieceLines; helmet: Pi
       nude: ['YOU CLIMBED UP HERE NAKED. THE WHOLE STUDIO SAW.', 'YOU AGAIN. NAKED IN A WATER TANK. CALL IT A SPONGE BATH.'],
     },
   },
+  // Fairy Land: the PISS-OFF PENDANT, in the dragon's lair's old machine room down the service tunnel off the mine shaft.
+  // The trial: three inflatable gift shop knights bop him till the pendant's had enough (he's not to hit back), and the
+  // yell pops the lot.
+  amulet: {
+    ask: {
+      clean: ["IS THAT A PRINCESS NECKLACE? IT'S BEAUTIFUL.", "A BIG PINK JEWEL. I'VE NEVER WANTED ANYTHING THIS BAD."],
+      shitty: ['A PINK JEWEL! PEOPLE WILL LOOK AT MY NECK INSTEAD!', 'GIVE ME THAT. IT DRAWS THE EYE UP. AWAY FROM THE SITUATION.'],
+      nude: ["A NECKLACE! NOW I'M WEARING SOMETHING!", 'JEWELRY! NAKED WITH JEWELRY IS A LOOK. RIGHT?'],
+    },
+    sell: ['FOR AGES FOUR AND UP. YOU TAKE ENOUGH SHIT, YOU SCREAM, AND EVERYBODY ON SCREEN EATS IT.'],
+    trial: ["THREE KNIGHTS. DON'T HIT THEM. LET THEM PISS YOU OFF. THEN LET IT OUT."],
+    more: ["THAT'S IT. LET IT BUILD.", 'GOOD. YOUR FACE IS DOING THE THING.'],
+    miss: ["YOU POPPED IT. THEY PISS YOU OFF. NOT THE OTHER WAY AROUND.", "DON'T HIT BACK. TAKE IT. LIKE A MARRIAGE.", 'HANDS DOWN. LET THE KNIGHT WORK.', "YOU HIT IT. THAT'S THE ONE THING I SAID.", 'STOP PUNCHING THE TOYS.'],
+    hint: ["THE PENDANT DOESN'T CARE WHAT YOU DISH OUT. IT CARES WHAT YOU TAKE. STAND THERE. GET BOPPED."],
+    pass: ['THERE IT IS. MY EARS ARE BLEEDING. YOU PASS.', 'MOST BEAUTIFUL THING I EVER HEARD. YOU PASS.'],
+    passed: {
+      clean: ['I FEEL GREAT. I FEEL LIKE I JUST GOT DIVORCED.'],
+      shitty: ['I SCREAMED SO HARD SOMETHING ELSE CAME OUT.'],
+      nude: ['I SCREAMED SO HARD MY DICK WENT INSIDE.'],
+    },
+    gift: ['KEEP IT. FOR AGES FOUR AND UP. YOU BARELY QUALIFY.'],
+    tease: ["WORKS ON BOSSES. NOTHING TOUCHES YOU FOR A WHILE AFTER. THERE'S AN OFF SWITCH IN YOUR PAUSE MENU. FOR FUNERALS."],
+    enamored: {
+      clean: ["I'VE BEEN THIS ANGRY MY WHOLE LIFE. NOW IT'S A WEAPON."],
+      shitty: ["I'VE BEEN PISSED OFF ALL DAY. NOW IT PAYS."],
+      nude: ['NAKED AND SCREAMING. MY TWO BEST TALENTS.'],
+    },
+    practice: ['THE KNIGHTS BLOW BACK UP. GET MAD AT THEM ALL DAY. THEN THE CANNON.'],
+    good: ['LOUDER THAN MY EX. GOOD.', 'THE DRAGON UPSTAIRS HEARD THAT. THE FAKE ONE.', 'URUSAI. GRANDPA YELLED IT AT US KIDS. PRETTY SURE IT MEANS SHUT UP.'],
+    idle: {
+      clean: ["YOU AGAIN. THE GIFT SHOP HAD ONE PENDANT. YOU'RE WEARING IT.", "YOU AGAIN. I WAS NAPPING IN THE DRAGON'S MOUTH."],
+      shitty: ['YOU CAME DOWN HERE IN THOSE? IT ALREADY SMELLS LIKE PROPANE.', "YOU AGAIN. THE DRAGON SMELLS BETTER THAN YOU, AND IT'S ROTTING."],
+      nude: ['YOU AGAIN. NAKED IN A SERVICE TUNNEL. THE UNION WILL HEAR ABOUT THIS.', 'YOU AGAIN. STILL NO PANTS. STILL ONE PENDANT.'],
+    },
+  },
 };
+
+// ---------------------------------------------------------------------------------------------------------------
+// Fairy Land: the dragon's lair's old machine room (fantasy/glen/benLair.ts)
+
+/** Meathead, in through the hole in the mine shaft's wall the first time this go at the land. */
+export const MH_TUNNEL: ByPants = {
+  clean: ["A SECRET TUNNEL UNDER THE MEADOW. THE UNICORNS DON'T KNOW."],
+  shitty: ['A HOLE IN THE WALL. FINALLY, SOMEWHERE TO CHANGE.'],
+  nude: ["A TUNNEL. IT'S COLD DOWN HERE. EVERYTHING'S SHRINKING."],
+};
+/** Meathead's cartoon Japanese, after the gift (the joke's on him), and Ben, lost. */
+export const AMULET_WEEB: ByPants = {
+  clean: ['OMAE WA MOU... PISSED OFF! I KNOW JAPANESE FROM CARTOONS.'],
+  shitty: ['OMAE WA MOU... SHAT DESU! I KNOW JAPANESE FROM CARTOONS.'],
+  nude: ['OMAE WA MOU... NAKED DESU! I KNOW JAPANESE FROM CARTOONS.'],
+};
+export const AMULET_HUH = ["NO IDEA. GRANDPA ONLY TAUGHT ME THE WORD FOR SOY SAUCE. AND I FORGOT IT."];
+/** Getting into the cannon: Ben, where it goes (after Meathead's MH_CANNON_ASK). */
+export const BEN_CANNON_FY = ["THE DRAGON'S LAIR. UPSTAIRS. MIND THE GUY IN THE SUIT.", "UP. THE DRAGON'S LAIR. DON'T LAND IN THE THORNS."];
 
 // ---------------------------------------------------------------------------------------------------------------
 // Hollywood Land: the HAPPYWOOD WATER TOWER (lot/benTower.ts)
@@ -385,6 +439,6 @@ const pieceBen = (p: PieceLines) => [...p.sell, ...p.trial, ...p.miss, ...p.hint
 const pieceMeathead = (p: PieceLines) => [...all(p.ask), ...all(p.passed), ...all(p.enamored)];
 
 export const BEN_VOICE_LINES: Record<string, string[]> = {
-  [BEN_VOICE]: [...NAME, ...all(RIDDLE), ...PURPOSE, ...FIRST_ASIDE, ...all(AGAIN), ...all(NUDGE), ...all(NUDGE_OUT), ...BYE_BEN, ...ART_OPEN, ...ART_HOW, ...ART_HUH, ...ART_AGAIN, ...ART_FLASH, ...ART_AGAIN_FLASH, ...Object.values(PIECE_LINES).flatMap(pieceBen), ...LEGS_CURTAIN, ...all(NUDGE_HW), ...BEN_CANNON],
-  meathead: [...all(MEET), ...all(FIRST_WHY), ...all(FIRST_REACT), ...all(AGAIN_MH), ...BYE_MEATHEAD, ...all(ART_MH), ...all(ART_WEEB), ...Object.values(PIECE_LINES).flatMap(pieceMeathead), ...all(MH_PASSAGE), ...all(MH_HATCH), ...MH_CANNON_ASK, ...MH_FALL, ...all(MH_LANDED)],
+  [BEN_VOICE]: [...NAME, ...all(RIDDLE), ...PURPOSE, ...FIRST_ASIDE, ...all(AGAIN), ...all(NUDGE), ...all(NUDGE_OUT), ...BYE_BEN, ...ART_OPEN, ...ART_HOW, ...ART_HUH, ...ART_AGAIN, ...ART_FLASH, ...ART_AGAIN_FLASH, ...Object.values(PIECE_LINES).flatMap(pieceBen), ...LEGS_CURTAIN, ...all(NUDGE_HW), ...BEN_CANNON, ...AMULET_HUH, ...BEN_CANNON_FY],
+  meathead: [...all(MEET), ...all(FIRST_WHY), ...all(FIRST_REACT), ...all(AGAIN_MH), ...BYE_MEATHEAD, ...all(ART_MH), ...all(ART_WEEB), ...Object.values(PIECE_LINES).flatMap(pieceMeathead), ...all(MH_PASSAGE), ...all(MH_HATCH), ...MH_CANNON_ASK, ...MH_FALL, ...all(MH_LANDED), ...all(MH_TUNNEL), ...all(AMULET_WEEB)],
 };

@@ -22,6 +22,11 @@ const SURPRISE: Partial<Record<ArmorPiece, { match: (c: EquipControl) => boolean
   },
 };
 
+/** A line under a piece's controls that the EQUIPMENT tab says another way (the amulet's switch is on its entry there). */
+const NOTE: Partial<Record<ArmorPiece, string>> = {
+  amulet: 'SWITCH IT ON OR OFF IN THE PAUSE MENU: EQUIPMENT, ON THE PENDANT.',
+};
+
 const PieceGotCard: React.FC<{ piece: ArmorPiece; ready: boolean }> = ({ piece, ready }) => {
   const e = EQUIP_ENTRIES.find(x => x.id === piece);
   if (!e) return null;
@@ -43,6 +48,7 @@ const PieceGotCard: React.FC<{ piece: ArmorPiece; ready: boolean }> = ({ piece, 
             {controls.map((k, i) => <ChordPrompt key={i} pad={k.pad} join={k.join ?? '+'} kb={k.kb} mouse={k.mouse} label={k.label} size={14} />)}
           </div>
         )}
+        {NOTE[piece] && <div className="text-[7px] leading-[12px] text-center text-[#FDE047] mt-[4px]">{NOTE[piece]}</div>}
         {/* (only once the land's buffer is over: mashing through the gift doesn't shut it unread) */}
         <div className="text-[7px] text-zinc-500 mt-[6px] animate-pulse" style={{ visibility: ready ? 'visible' : 'hidden' }}>PRESS ANY BUTTON</div>
       </div>

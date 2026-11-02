@@ -26,7 +26,8 @@ import { clearPiperLines } from './piperLines';
 import { MONUMENT_AT } from './monument';
 import { square } from './square';
 import { wheel } from './wheel';
-import { glen } from './glen';
+import { glen as glenBase } from './glen';
+import { withBenLair } from './glen/benLairSection';
 import { tragons } from './tragons';
 import { keep } from './keep';
 import { broom, tickShatter, drawShatter } from './broom';
@@ -43,6 +44,8 @@ export const FANTASY_STAGE = 'M2 Fairy Land';
 // checkpoint (fast travel), its floor's drawn on the first frame, and painting it all again there was a long stall)
 onLandLeft(FANTASY_STAGE, () => { clearBanded(); clearDragonSprites(); });
 
+// (the glen with CON-FUCK-TIOUS's lair under its dragon's lair: glen/benLairSection.ts)
+const glen = withBenLair(glenBase);
 const ALL: Record<FantasyId, FantasySection> = { square, wheel, glen, tragons, keep, broom, bedroom };
 const sectionAt = (x: number): FantasySection => {
   for (const id of SECTION_ORDER) { const s = ALL[id]; if (x >= s.x0 && x < s.x1) return s; }
