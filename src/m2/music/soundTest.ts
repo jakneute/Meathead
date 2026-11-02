@@ -5,7 +5,8 @@
 // listed once: a song filed under more than one cue (the red mist under the ceiling's, the Road Rash chase under the
 // teenagers', the pundits' one march under each of the five), and an arrangement that's note for note another of its
 // song's (`main: {}` beside `jungle: {}`: listed under the other's name). The portal walk's and the walk-away's songs
-// aren't in it (HIDDEN). Whatever it's playing wins over the game's own cue (cues.ts), unmuffled.
+// aren't in it (HIDDEN). Each land's minigames' songs and stings come last in its folder. Whatever it's playing wins over
+// the game's own cue (cues.ts), unmuffled.
 
 import { SONGS } from './songs/index';
 import { LANDS } from '../hub/lands';
@@ -21,14 +22,14 @@ export const isFolder = (it: Item): it is Folder => 'items' in it;
 /** The folders, and the cues in each, in order (a cue in none of them lands in OTHER). */
 const FILED: { name: string; keys: string[] }[] = [
   { name: 'GENERAL', keys: ['title', 'hub', 'staff', 'intro', 'gym', 'jingle:victory', 'jingle:death'] },
-  { name: 'JUNGLE LAND', keys: ['land:adventure', 'seq:river', 'seq:mine-cart', 'seq:temple-collapse', 'boss:trex', 'boss:safari-artie'] },
-  { name: 'SPOOKY LAND', keys: ['land:spooky', 'seq:ceiling', 'seq:clock-tower', 'seq:satan', 'boss:demon', 'boss:donnie-dracula'] },
-  { name: 'FUTURE LAND', keys: ['land:space', 'seq:space-train', 'boss:ufo', 'seq:stalker', 'boss:space-queen'] },
-  { name: 'HOLLYWOOD LAND', keys: ['land:hollywood', 'seq:coaster', 'boss:ensemble-cast', 'seq:disaster-ride', 'seq:havoc', 'boss:stuntman-steve'] },
+  { name: 'JUNGLE LAND', keys: ['land:adventure', 'seq:river', 'seq:mine-cart', 'seq:temple-collapse', 'boss:trex', 'boss:safari-artie', 'game:hack', 'game:hack-granted'] },
+  { name: 'SPOOKY LAND', keys: ['land:spooky', 'seq:ceiling', 'seq:clock-tower', 'seq:satan', 'boss:demon', 'boss:donnie-dracula', 'game:mash-select', 'game:mash-fight', 'game:mash-win', 'game:mash-lose'] },
+  { name: 'FUTURE LAND', keys: ['land:space', 'seq:space-train', 'boss:ufo', 'seq:stalker', 'boss:space-queen', 'game:lockpick', 'game:lockpick-open'] },
+  { name: 'HOLLYWOOD LAND', keys: ['land:hollywood', 'seq:coaster', 'boss:ensemble-cast', 'seq:disaster-ride', 'seq:havoc', 'boss:stuntman-steve', 'game:plunge', 'game:plunge-win'] },
   { name: 'FOREIGN LANDS', keys: ['land:foreign', 'seq:heli', 'boss:heli-gauntlet', 'boss:helicopter-harry'] },
-  { name: 'WILDERNESS LAND', keys: ['land:frontier', 'seq:train', 'seq:brawl', 'seq:duel', 'seq:draw', 'seq:log-ride', 'seq:road-rash', 'boss:tucker'] },
+  { name: 'WILDERNESS LAND', keys: ['land:frontier', 'seq:train', 'seq:brawl', 'seq:duel', 'seq:draw', 'seq:log-ride', 'seq:road-rash', 'boss:tucker', 'game:gallery', 'game:gallery-end'] },
   { name: 'FAIRY LAND', keys: ['land:fantasy', 'boss:fairy-wheel', 'seq:tragons', 'boss:broomsticks', 'boss:piper'] },
-  { name: 'CARTOON LAND', keys: ['land:cartoon', 'boss:perot', 'boss:stupid-dad'] },
+  { name: 'CARTOON LAND', keys: ['land:cartoon', 'boss:perot', 'boss:stupid-dad', 'game:bumper', 'game:bumper-win', 'game:bumper-lose'] },
 ];
 /** Left out of it altogether, wherever they're filed: the portal walk's and the walk-away's songs (the user's: "remove
  *  the heading in and walk it off songs from the sound test"). */

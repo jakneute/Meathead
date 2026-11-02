@@ -27,6 +27,10 @@ import { LAND_FANTASY, SEQ_TRAGONS } from './fantasy';
 import { BOSS_FAIRY_WHEEL, BOSS_BROOMSTICKS, BOSS_PIPER } from './fantasyBosses';
 import { LAND_CARTOON } from './cartoon';
 import { BOSS_PUNDITS, BOSS_STUPID_DAD } from './cartoonBosses';
+import {
+  GAME_HACK, GAME_HACK_GRANTED, GAME_LOCKPICK, GAME_LOCKPICK_OPEN, GAME_MASH_SELECT, GAME_MASH_FIGHT, GAME_MASH_WIN, GAME_MASH_LOSE,
+  GAME_PLUNGE, GAME_PLUNGE_WIN, GAME_GALLERY, GAME_GALLERY_END, GAME_BUMPER, GAME_BUMPER_WIN, GAME_BUMPER_LOSE,
+} from './games';
 
 export const SONGS: Record<string, Song> = {
   title: TITLE,
@@ -102,4 +106,20 @@ export const SONGS: Record<string, Song> = {
   'boss:dole': BOSS_PUNDITS,
   'boss:newt': BOSS_PUNDITS,
   'boss:stupid-dad': BOSS_STUPID_DAD,
+  // (the minigames: a song each while it's on, a sting on a win or a loss: games.ts, cues.ts gameCand)
+  'game:hack': GAME_HACK,
+  'game:hack-granted': GAME_HACK_GRANTED,
+  'game:lockpick': GAME_LOCKPICK,
+  'game:lockpick-open': GAME_LOCKPICK_OPEN,
+  'game:mash-select': GAME_MASH_SELECT,
+  'game:mash-fight': GAME_MASH_FIGHT,
+  'game:mash-win': GAME_MASH_WIN,
+  'game:mash-lose': GAME_MASH_LOSE,
+  'game:plunge': GAME_PLUNGE,
+  'game:plunge-win': GAME_PLUNGE_WIN,
+  'game:gallery': GAME_GALLERY,
+  'game:gallery-end': GAME_GALLERY_END,
+  'game:bumper': GAME_BUMPER,
+  'game:bumper-win': GAME_BUMPER_WIN,
+  'game:bumper-lose': GAME_BUMPER_LOSE,
 };
