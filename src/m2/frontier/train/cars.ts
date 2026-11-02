@@ -37,6 +37,7 @@ import { inView } from './view';
 import { TUBE_UNCOUPLE, TUBE_MISSED, TRAIN_GAGS, LION_LOOSE } from './lines';
 import { startMaul, lionEscapes } from './lion';
 import { CIRCUS } from './layout';
+import { penOpen } from './pen';
 import { setSeeThroughFloor } from '../../moves/followups';
 
 // (a car's roof is its ceiling inside: one drilled into it by the pauldrons' spin hangs out under it, seen once he's in)
@@ -237,7 +238,8 @@ const derail = (ctx: FrameContext, tr: Train, k: number) => {
     tr.wrecks.push({ x, y: 0, vx: cut.v, rot: 0, tip: 0, kind: CARS[i].kind, len: CARS[i].len, t: -(k - i) * 8, seed: i * 7 + 3, circus: i === CIRCUS });
   }
   // (the circus car's gone up: the lion out of the fire and away (lion.ts); seen go, off screen or not)
-  const freed = CIRCUS >= tr.rear && CIRCUS <= k;
+  // (not if he's shot it open already: the lion's out on the train, or gone)
+  const freed = CIRCUS >= tr.rear && CIRCUS <= k && !penOpen(tr);
   if (freed) lionEscapes(state, CAR_X[CIRCUS] + cut.off + CARS[CIRCUS].len / 2);
   const onIt = cx < edge && p.health > 0 && !p.inCutscene && p.pos.y + p.height < GY - 4;
   playSound('boom', 1, -8); playSound('crash', 1, -12); playSound('crunch', 1, -6); playSound('clang', 0.8, -14);

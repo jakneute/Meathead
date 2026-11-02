@@ -49,6 +49,7 @@ import { warmTuckerPip, stepTuckerPip, drawTuckerPip } from './tuckerPip';
 import { updateDynamite } from './dynamite';
 import { BOARDED, TUBE_BOARD, TUBE_LEDGER, TRAIN_GAGS, REVISIT } from './lines';
 import { updateCage, updateMaul, drawMaul, drawEscape, trainOff } from './lion';
+import { updatePen, drawPenFront, setPen } from './pen';
 
 const { x0, x1 } = SECTIONS.train;
 // (back into the train from the town: the tender's front end)
@@ -82,6 +83,8 @@ export const train: FrontierSection = {
     endWalls(state, 'train');
     tr.rear = 0;
     buildCars(state, tr);
+    // (the lion's cage: the max ammo find in it taken on this save already? (pen.ts))
+    setPen(tr);
     if (!crashed(state)) spawnCast(state);
     for (const [ci, rx, type] of PICKUPS) state.pickups.push({ id: `train-${ci}-${rx}`, pos: { x: CAR_X[ci] + rx - 10, y: DECK - 24 }, vel: { x: 0, y: 0 }, width: 20, height: 20, type, life: 1e9 });
   },
@@ -118,6 +121,8 @@ export const train: FrontierSection = {
     tr.v += (want - tr.v) * 0.02;
     if (Math.abs(want - tr.v) < 0.02) tr.v = want;
     tr.dist += tr.v;
+    // (the max ammo find's card, while it's up: him held, the train rolling on (pen.ts))
+    if (tr.pen.card) return updatePen(ctx) ? hands() : controls;
     let out = controls;
     // ---- the run for the caboose (from the station)
     const rearX = CAR_X[tr.rear];
@@ -155,6 +160,7 @@ export const train: FrontierSection = {
     updateShots(ctx, tr.phase === 'ride');
     updateRooms(ctx);
     updateCage(ctx);
+    if (updatePen(ctx)) return hands();
     stepWrecks(state);
     updateTracks(ctx, CAR_X[0] - 600, CAR_X[ENGINE] + CARS[ENGINE].len);
     // ---- what's said: the ledger now and then; the firsts
@@ -193,6 +199,7 @@ export const train: FrontierSection = {
     const off = trainOff(state);
     c.save(); c.translate(off, 0);
     drawCarsFront(c, state);
+    drawPenFront(c, state);
     c.restore();
     drawPassersFront(c, state);
     c.save(); c.translate(off, 0);

@@ -6,9 +6,10 @@
 // THE DISPLAY: the first flatcar's load (layout.ts CIRCUS) is a circus cage wagon (red and gold, sunburst wheels, CIRCUS
 // on its header, MAN-EATER and DO NOT FEED on the bars) with the lion in it: a maned circus lion in a little red fez and a
 // studded collar, pacing; with him near it follows him along under the bars and roars up at him (he stands on the cage's
-// roof crossing the car: the logs' height). Tucker cuts that car loose (the first cut): it blows, and the lion leaps out
-// of the fire and off down the bank, THE LION'S LOOSE! Back at the end of the line (a revisit) the cage is there again,
-// bent open, empty, ESCAPED.
+// roof crossing the car: the logs' height). The max ammo find stands in the straw in there with it: shoot the bars open
+// and the lion's loose on the train, a big cat to fight (pen.ts). Left shut, a later cut takes the car (no longer the first:
+// the owner's, "make sure decoupling doesn't happen right at the circus lion train"): it blows, and the lion leaps out of
+// the fire and off down the bank, THE LION'S LOOSE! Taken, the cage is bent open, empty, ESCAPED, every pass after.
 //
 // THE TRACKS (Dale's fall off the truck, Meathead 1, convoy.ts): down on the ties while the train's moving (off the back
 // of what's left of it, once cars have been cut loose) is a cutscene from the first frame of it (no controls, no HUD,
@@ -36,7 +37,8 @@ import { trainOf, type Maul } from './state';
 import { carXNow } from './where';
 import { viewOf, inView, inDrawn } from './view';
 import { type Ctx, box, checker, mix, hash, INK, N, boards, lip, stillAt, BRASS, RED, VARNISH, HAY } from './paint';
-import { LION_CAGE, IM_OKAY, HURT } from './lines';
+import { LION_CAGE, IM_OKAY, HURT, PEN_SPOTTED } from './lines';
+import { drawPenInside, penDmg, penOpen } from './pen';
 import { drawCircusLion, type LionPose } from './lionArt';
 
 const GORE = PARTICLE_PALETTES.GORE;
@@ -69,7 +71,13 @@ const paintCageBack = (g: Ctx, len: number) => {
   box(g, a + w * 0.7, FLOOR - 4, 14, 3, '#E8E0CC'); box(g, a + w * 0.7 - 2, FLOOR - 5, 3, 5, '#F4ECD8'); box(g, a + w * 0.7 + 13, FLOOR - 5, 3, 5, '#F4ECD8');
 };
 
-const paintCageFront = (g: Ctx, len: number, open: boolean) => {
+/** A bar bowed out sideways by `amt` at its middle (shot at, or broken open). */
+const bentBar = (g: Ctx, x: number, amt: number) => {
+  g.strokeStyle = INK; g.lineWidth = 5; g.beginPath(); g.moveTo(x + 1.5, HEAD_B); g.quadraticCurveTo(x + 1.5 + amt, (HEAD_B + FLOOR) / 2, x + 1.5, FLOOR); g.stroke();
+  g.strokeStyle = N(BRASS)[3]; g.lineWidth = 3; g.stroke(); g.strokeStyle = N(BRASS)[5]; g.lineWidth = 1; g.stroke();
+};
+
+const paintCageFront = (g: Ctx, len: number, open: boolean, dmg = 0) => {
   const a = END, w = len - 2 * END, R = N(RED), B = N(BRASS);
   // (the sunburst wheels under it, on the deck)
   for (const wx of [a + 44, a + 104, a + w - 104, a + w - 44]) {
@@ -86,13 +94,16 @@ const paintCageFront = (g: Ctx, len: number, open: boolean) => {
   const bars: number[] = [];
   for (let x = a + 16; x < a + w - 14; x += 15) bars.push(x);
   const midI = Math.floor(bars.length / 2);
+  // (shot at (pen.ts, `dmg` 1..3): the middle ones bowing out more and more, the shot marks bright on them)
   bars.forEach((x, i) => {
-    const bent = open && Math.abs(i - midI) <= 1 && i !== midI;
+    const off = i - midI;
+    const bent = open && Math.abs(off) <= 1 && i !== midI;
     if (open && i === midI) return;
-    if (bent) {
-      const dir = i < midI ? -1 : 1;
-      g.strokeStyle = INK; g.lineWidth = 5; g.beginPath(); g.moveTo(x, HEAD_B); g.quadraticCurveTo(x + dir * 22, (HEAD_B + FLOOR) / 2, x, FLOOR); g.stroke();
-      g.strokeStyle = B[3]; g.lineWidth = 3; g.stroke(); g.strokeStyle = B[5]; g.lineWidth = 1; g.stroke();
+    if (bent) { bentBar(g, x, (off < 0 ? -1 : 1) * 22); return; }
+    if (!open && dmg > 0 && Math.abs(off) <= (dmg >= 3 ? 2 : 1)) {
+      const amt = off === 0 ? (dmg % 2 ? 1 : -1) * dmg * 2.5 : Math.sign(off) * Math.max(2, dmg * 5 - (Math.abs(off) - 1) * 7);
+      bentBar(g, x, amt);
+      for (let k = 0; k < dmg + 1; k++) box(g, x + 1 + amt * 0.5 * Math.sin(((k + 1) / (dmg + 2)) * Math.PI), HEAD_B + ((k + 1) * (FLOOR - HEAD_B)) / (dmg + 2) + hash(i * 3 + k) * 6 - 3, 2, 2, '#FFF8D8');
       return;
     }
     box(g, x - 1, HEAD_B, 5, FLOOR - HEAD_B, INK); box(g, x, HEAD_B, 3, FLOOR - HEAD_B, B[3]); box(g, x, HEAD_B, 1, FLOOR - HEAD_B, B[5]); box(g, x + 2, HEAD_B, 1, FLOOR - HEAD_B, B[1]);
@@ -130,8 +141,12 @@ export const drawCage = (c: Ctx, state: GameState, x: number, len: number, mode:
     c.save(); c.beginPath(); c.rect(x + END + 6, GY + HEAD_B - 2, len - 2 * END - 12, FLOOR - HEAD_B + 16); c.clip();
     drawCircusLion(c, x + cg.rx, GY + FLOOR, cg.facing, t, pose, { s: 0.9, k: Math.floor((54 - cg.roar) / 9) });
     c.restore();
+    // (the max ammo find standing in the straw up by the bars, in front of the lion (never lost behind it) (pen.ts))
+    drawPenInside(c, state, x, len);
   }
-  stillAt(c, `tr-cage-front-${len}-${mode}`, x, GY, END - 8, TP - 4, len - 2 * END + 16, Dk - TP + 8, g => paintCageFront(g, len, mode === 'open'));
+  // (shot at: dented by the hits so far, and shuddering off the last one)
+  const tr = trainOf(state), dmg = mode === 'live' ? penDmg(tr) : 0, jit = mode === 'live' && tr.pen.jit > 0 ? (tr.pen.jit % 4 < 2 ? 1 : -1) : 0;
+  stillAt(c, `tr-cage-front-${len}-${mode}-${dmg}`, x + jit, GY, END - 8, TP - 4, len - 2 * END + 16, Dk - TP + 8, g => paintCageFront(g, len, mode === 'open', dmg));
 };
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -143,7 +158,8 @@ export const updateCage = (ctx: FrameContext) => {
   const { state } = ctx, tr = trainOf(state), p = state.player, cg = tr.cage;
   const cx = p.pos.x + p.width / 2;
   updateEscape(state);
-  if (CIRCUS < 0 || tr.cars[CIRCUS]?.gone || tr.phase === 'still' || tr.lion) return;
+  // (out of it (shot open for the ammo, pen.ts; or the find's been taken): nobody in there)
+  if (CIRCUS < 0 || tr.cars[CIRCUS]?.gone || penOpen(tr) || tr.lion) return;
   cg.t++;
   const x = carXNow(tr, CIRCUS), len = CARS[CIRCUS].len, lo = END + 80, hi = len - END - 80;
   const near = p.health > 0 && Math.abs(cx - (x + len / 2)) < len / 2 + 260;
@@ -156,7 +172,8 @@ export const updateCage = (ctx: FrameContext) => {
   const seen = inView(state, x + END, x + len - END, 0);
   if (--cg.roarCd <= 0 && near && seen && !p.inCutscene) { cg.roar = 54; cg.roarCd = 170 + Math.floor(Math.random() * 90); playSound('roar', 0.5, -3); }
   // (his line about it: once he's off the caboose (the boarding's said), with it on screen)
-  if (!tr.said.lionCage && tr.phase === 'ride' && seen && cx > CAR_X[1] && p.health > 0 && !p.inCutscene) { tr.said.lionCage = true; meatheadSays(state, pickLine(byPants(state, LION_CAGE))); }
+  // (...and then the ammo in there with it, the find's tell)
+  if (!tr.said.lionCage && tr.phase === 'ride' && seen && cx > CAR_X[1] && p.health > 0 && !p.inCutscene) { tr.said.lionCage = true; meatheadSays(state, pickLine(byPants(state, LION_CAGE)), true, () => { if (!penOpen(tr) && !tr.lion) meatheadSays(state, pickLine(byPants(state, PEN_SPOTTED))); }); }
 };
 
 /** Its car's blown (cars.ts derail): the lion leaps out of the fire, lands on the near bank and is off back down the

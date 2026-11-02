@@ -217,6 +217,23 @@ export const LION_LOOSE: ByPants = {
   shitty: ["THE LION'S LOOSE. GOOD THING I'M ON THE TRAIN.", 'THE LION GOT OUT. IT WANTS NOTHING TO DO WITH ME.'],
   nude: ["THE LION'S LOOSE. GOOD THING I'M NOT DOWN THERE NAKED.", 'THE LION GOT OUT. KEEP YOUR HAT ON, CAT.'],
 };
+/** The max ammo find in the lion's cage (pen.ts): spotted (after his line about the lion), the cage shot open (the lion
+ *  loose), and his once the card's shut. */
+export const PEN_SPOTTED: ByPants = {
+  clean: ['AMMO. IN THE LION CAGE. GREAT.', "THE CAT'S SITTING ON AMMO."],
+  shitty: ['AMMO IN THE CAGE. WORTH SHITTING OVER.', "THE LION'S GOT AMMO. I'VE GOT SHIT."],
+  nude: ["AMMO IN THE CAGE. I'M NAKED. I NEED IT MORE.", "THAT CAT'S GOT MORE GEAR THAN ME."],
+};
+export const PEN_BREAK: ByPants = {
+  clean: ['HERE KITTY KITTY.', 'HERE KITTY. COME GET SOME.'],
+  shitty: ['HERE KITTY. SMELL THAT? THAT\'S FEAR.', 'HERE KITTY. I ALREADY SHAT, SO.'],
+  nude: ['HERE KITTY. NOT THAT KITTY.', 'HERE KITTY. EYES UP HERE.'],
+};
+export const PEN_GOT: ByPants = {
+  clean: ['MORE AMMO. THE CIRCUS OWES ME.', 'BIGGER MAGS. CIRCUS PRICES.'],
+  shitty: ['MORE AMMO. STILL SHITTY PANTS.', 'MORE AMMO. THE PANTS STAY LOADED TOO.'],
+  nude: ['MORE AMMO. NOWHERE TO PUT IT.', 'MORE AMMO. NO POCKETS. NO PROBLEM.'],
+};
 /** Off the train onto the tracks: he's lain there twitching, he's up, and he's fine (the lion's coming). */
 export const IM_OKAY: ByPants = {
   clean: ["I'M OKAY!", "I'M OKAY. I'M FUCKING OKAY.", 'NOTHING BROKE. NOTHING IMPORTANT.'],
@@ -268,6 +285,11 @@ export const HURT: HurtTable = {
   'm2:fr_lion': {
     hurt: ['A LION! WHY IS THERE A LION?!', "IT'S WEARING A FEZ! GET IT OFF ME!", 'NOT THE FACE! NOT MY FACE!'],
     death: ['MAULED BY A CIRCUS LION', "HE WAS OKAY. THEN HE WASN'T.", 'LUNCH FOR THE LION'],
+  },
+  // (the lion he shot out of its cage for the ammo (pen.ts), on the train with him)
+  'm2:fr_circuslion': {
+    hurt: ['THE LION BIT MY ASS!', 'BAD KITTY! BAD KITTY!', 'IT CLAWED MY NIPPLE!'],
+    death: ['FREED A LION. FED A LION.', 'THE LION ATE THE CLOWN', 'MAULED BY A CIRCUS LION'],
   },
   'm2:fr_bridge': {
     hurt: ['BRIDGE! FACE!', 'LOW BRIDGE! I DIDN\'T DUCK!', 'WHO BUILDS A BRIDGE THAT LOW?!'],
@@ -339,6 +361,7 @@ export const VOICE_LINES: Record<string, string[]> = {
   meathead: [
     ...allOf(BOARDED), ...Object.values(TRAIN_GAGS).flatMap(allOf), ...allOf(KILL_SEEN), ...allOf(SHOT_LINE), ...allOf(DRIVER_LINE), ...allOf(REVISIT),
     ...allOf(MH_COMEBACK), ...allOf(MH_RAYGUN), ...allOf(LION_CAGE), ...allOf(LION_LOOSE), ...allOf(IM_OKAY),
+    ...allOf(PEN_SPOTTED), ...allOf(PEN_BREAK), ...allOf(PEN_GOT),
     ...Object.values(HURT).flatMap(h => h.hurt),
   ],
   death: Object.values(HURT).flatMap(h => h.death),

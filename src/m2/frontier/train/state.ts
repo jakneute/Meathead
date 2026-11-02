@@ -12,6 +12,7 @@ import { frontierState } from '../section';
 import type { CarKind } from './layout';
 import type { TubeMood, TuckerPip } from './tuckerPip';
 import type { Dyn } from './dynamite';
+import type { AmmoCard } from '../../upgrades/ammoAward';
 
 export interface Car { i: number; blocks: Block[]; gone: boolean }
 
@@ -100,6 +101,10 @@ export interface Train {
   escape: { x: number; y: number; vx: number; vy: number; t: number } | null;
   /** Off the train onto the tracks: the lion scene (lion.ts). */
   lion: Maul | null;
+  /** The lion's cage as a pen with the max ammo find in it (pen.ts): the hits it's taken, broken open (the lion loose),
+   *  the find taken (this save: the cage stays open and empty), the shudder off the last hit; the canister knocked out
+   *  of it (x along the car, world y, its flight; null: still in the cage, or gone); the card, while it's up. */
+  pen: { hits: number; broke: boolean; taken: boolean; jit: number; can: { rx: number; y: number; vx: number; vy: number; t: number; down: boolean } | null; card: AmmoCard | null };
 }
 
 /** Off the train onto the tracks (the user's: Meathead 1's fall off Dale's truck): he tumbles along the ties as the
@@ -120,4 +125,5 @@ export const trainOf = (state: GameState) => frontierState<Train>(state, 'train'
   dark: 0, grade: 0, tilt: 0, climb: 0, soak: 0, roarT: 0, stash: [],
   introT: 0, hopT: 0, tube: null, tubeBusy: false, tubeMood: 'petty', pip: null, dyn: [], ledgerT: 0, said: {}, cinderT: 0, hitCd: 0, shudder: 0,
   cage: { rx: 260, facing: 1, walk: false, roar: 0, roarCd: 90, t: 0 }, escape: null, lion: null,
+  pen: { hits: 0, broke: false, taken: false, jit: 0, can: null, card: null },
 }));

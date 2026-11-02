@@ -1,7 +1,7 @@
 // The train, laid out: its cars from the caboose (left) to the engine (right), what's in and on each, where Tucker cuts
 // cars loose, the checkpoints, and what comes by (low bridges, water towers, tunnels, the waterfalls, the grades, the
 // robbers riding up), each set off by where he is along the train. Teach, then escalate: every hazard alone first (the
-// first uncoupling on an empty flatcar, the first low bridge over an empty boxcar, the first tunnel while he's inside,
+// first low bridge, then the first uncoupling, both by the empty boxcar; the first tunnel while he's inside,
 // the first waterfall with a dining car to duck into, the first robber alone, the first water tower over a coach), then
 // together (a cut with a brakeman on it, a cut with a bridge coming, a quick cut in a tunnel, the long waterfall over
 // the open cars; tunnels and grades longer, steeper and closer together toward the front; the stack's cinders over the
@@ -58,10 +58,13 @@ const C = (kind: CarKind, len: number, more: Partial<CarDef> = {}): CarDef => ({
 
 export const CARS: CarDef[] = [
   /* 0 */ C('caboose', 440, { cp: [10, 'THE CABOOSE'] }),
-  /* 1 */ C('boxcar', 520),
+  // (the first cut's on the boxcar now, not the lion's car (the owner, 2026-11-01: "make sure decoupling doesn't happen
+  // right at the circus lion train"): the cage stays on, with room and footing to shoot it open for the ammo in it and
+  // fight the lion (pen.ts); a later cut (car 7's) takes it, if he's left it shut)
+  /* 1 */ C('boxcar', 520, { cut: { at: 0.55, tell: 120 } }),
   // (the user's: the circus lion's cage rides on the first flat, right away, so the lion on the tracks (lion.ts) doesn't
-  // come from nowhere: Tucker cuts this car loose, it blows, and the lion gets out)
-  /* 2 */ C('flat', 520, { cut: { at: 0.3, tell: 120 }, circus: true }),
+  // come from nowhere)
+  /* 2 */ C('flat', 520, { circus: true }),
   /* 3 */ C('coach', 620, { cp: [11, 'THE COACHES'], foes: [['passenger', 170, 'in'], ['porter', 300, 'in'], ['passenger', 440, 'in']] }),
   /* 4 */ C('hopper', 460, { foes: [['brakeman', 260, 'top']] }),
   /* 5 */ C('baggage', 620, { cp: [12, 'THE BAGGAGE CAR'], foes: [['porter', 300, 'in']] }),
@@ -155,7 +158,8 @@ export const CHECKPOINTS = CARS.flatMap((c, i) => (c.cp ? [{ name: c.cp[1], cp: 
 export type EventKind = 'bridge' | 'tower' | 'tunnel' | 'robbers' | 'falls' | 'hill';
 export interface TrainEvent { at: [number, number]; kind: EventKind; len?: number; n?: number; amp?: number }
 export const EVENTS: TrainEvent[] = [
-  { at: [1, 0.05], kind: 'bridge' },
+  // (the first low bridge, set off over the caboose so it's been and gone before the boxcar's cut)
+  { at: [0, 0.6], kind: 'bridge' },
   { at: [3, 0.3], kind: 'hill', len: 2600, amp: 0.03 },
   { at: [5, 0.1], kind: 'tunnel', len: 1400 },
   { at: [6, 0.5], kind: 'hill', len: 2400, amp: -0.042 },

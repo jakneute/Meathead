@@ -22,6 +22,7 @@ import { FG_GROUND } from './kinds';
 import type { Train } from './state';
 import { WR, windows, WIN_T, WIN_H, truck, drawBase, drawExt, drawInt, drawTop, drawCarLive, drawLamp, drawWreckCar } from './carArt';
 import { drawCage, trainOff } from './lion';
+import { penOpen } from './pen';
 import { drawDynamite } from './dynamite';
 
 export { drawScenery } from './far';
@@ -134,7 +135,7 @@ export const drawCarsBack = (c: Ctx, state: GameState) => {
     const open = ENTERABLE.includes(d.kind) && veil[i] < 1;
     if (ENTERABLE.includes(d.kind)) {
       if (open) { drawInt(c, d.kind, d.len, x); for (const [lx, ly] of lamps(i, x, f)) drawLamp(c, lx, ly, f); }
-    } else if (d.circus) drawCage(c, state, x, d.len, tr.phase === 'still' ? 'open' : 'live');
+    } else if (d.circus) drawCage(c, state, x, d.len, penOpen(tr) ? 'open' : 'live');
     else drawTop(c, d.kind, d.len, x);
     drawCarLive(c, d.kind, d.len, x, f, open);
     drawDynamite(c, state, i, x);
