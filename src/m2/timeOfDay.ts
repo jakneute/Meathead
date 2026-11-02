@@ -16,7 +16,7 @@
 import { mix, noteBadColor } from '../m1/game/render/backdrops/core';
 import { bandedGradient } from '../m1/game/render/pixelArt';
 import type { Light, SceneLight } from '../m1/game/render/lighting';
-import { landsCleared } from './store';
+import { landsCleared, LAND_FINDS, LAND_COLLECTIBLES, findsGot } from './store';
 import { noteSun } from './sunFlare';
 
 type Ctx = CanvasRenderingContext2D;
@@ -52,8 +52,15 @@ export const setTimeOfDayOverride = (landsCleared: number | null) => {
 };
 /** The hand-set hour, as lands cleared (null: following the real progress). */
 export const timeOfDayOverride = () => (override === null ? null : override * LAND_COUNT);
-/** How far through the day it is: 0 the morning he walks in, 1 night (every land cleared). */
-export const dayProgress = () => override ?? Math.max(0, Math.min(1, landsCleared() / LAND_COUNT));
+// (the owner's: the hour is the bosses beaten, 0..8, and one more once every one of the 24 hidden finds is his; that
+// last one's only worked out as he comes into the hub, so the 24th find doesn't turn the sky there and then)
+let findsHour = 0;
+/** (App.tsx, arriving at the hub) All 24 finds his: the day goes on an hour. */
+export const refreshFindsHour = () => {
+  findsHour = Object.keys(LAND_FINDS).every(l => findsGot(l).length >= LAND_COLLECTIBLES[l]) ? 1 : 0;
+};
+/** How far through the day it is: 0 the morning he walks in, 1 the last hour (every boss beaten and every find). */
+export const dayProgress = () => override ?? Math.max(0, Math.min(1, (landsCleared() + findsHour) / LAND_COUNT));
 
 // ---------------------------------------------------------------------------------------------------------------
 // The hours (keyframes): by lands cleared

@@ -88,6 +88,7 @@ import { setFrameHook } from '../m1/game/core/update';
 import { isKillCam } from '../m1/game/player/deathAnim';
 import { disableM1Music } from '../m1/game/music';
 import { setMusicState, setMusicStage, setMusicPaused, setMusicTitle } from './music/cues';
+import { refreshFindsHour } from './timeOfDay';
 
 // (Meathead 2's own music: music/cues.ts; Meathead 1's never starts)
 disableM1Music();
@@ -306,6 +307,7 @@ const App2: React.FC = () => {
     if (f.cleared.length >= ALPHA_LAND_COUNT && !f.alphaSeen) { setAlphaOnly(true); alphaEndOver(); return; }
     // (onto the hub, where Meathead 1's goes onto the map: in off America USA's street)
     setHubStart(AMERICA_SLOT);
+    refreshFindsHour();
     pending.current = HUB_STAGE;
     setTitle(false);
   };
@@ -375,6 +377,8 @@ const App2: React.FC = () => {
       // (back at the hub where he left it: the staff door, the land's portal, or America USA's way in)
       const landSlot = (id: string) => SPOTS.findIndex(s => s.kind === 'land' && LANDS[s.land].id === id);
       const from = landOfStage(stage);
+      // (the hour: the 24 finds' bonus worked out as he comes into the hub, not the moment the last one's found)
+      if (to === HUB_STAGE) refreshFindsHour();
       if (to === HUB_STAGE) setHubStart(stage === PEN_STAGE ? STAFF_SLOT : from ? landSlot(from) : AMERICA_SLOT);
       // (back from a land, its boss beaten or BACK TO HUB: out of its portal he comes; not from the break room or the way in)
       setHubExit(to === HUB_STAGE && stage !== PEN_STAGE && !!from);
