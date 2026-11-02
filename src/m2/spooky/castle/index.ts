@@ -46,6 +46,7 @@ import {
   BOOKCASES, BOOK_EVERY, BOOK_TELL, TRAIN, WARDROBES, HORNS_WORLD, CAST, PICKUPS, BALLPIT, DY, dyAt, ceilOf, LADDER_DEFS, type Castle,
 } from './layout';
 import * as L from './lines';
+import { worldSound } from '../../onScreen';
 
 /** The ladders: the library's, and between floors (layout.ts). */
 const LADDERS: LadderDef[] = LADDER_DEFS;
@@ -185,12 +186,13 @@ const runStoves = (ctx: FrameContext, cs: Castle, zones: Zone[]) => {
   STOVES.forEach(([x], i) => {
     const ph = stovePhase(cs.stoveT, i);
     const k = (cs.stoveT + i * 100) % STOVE_CYCLE;
-    if (k === STOVE_CYCLE - STOVE_FIRE && Math.abs(cx - x) < 900) { playSound('ignite', 0.8, -4); playSound('flame', 0.4, -6); }
+    // (heard only with the stove on screen or near it: not from Ben's loft overhead, nor a room off (onScreen.ts))
+    if (k === STOVE_CYCLE - STOVE_FIRE && worldSound(state, 'ignite', 0.8, -4, x, STOVE_TOP - FIRE_H + DY.kitchen, STOVES[i][1], GY - STOVE_TOP + FIRE_H)) worldSound(state, 'flame', 0.4, -6, x, STOVE_TOP - FIRE_H + DY.kitchen, STOVES[i][1], GY - STOVE_TOP + FIRE_H);
     // (the burners: the cast keep off them, flaring or not; up in the flames, cooked)
     for (const [bx, bw] of BURNERS) zones.push(world(x + bx, STOVE_TOP - FIRE_H, bw, FIRE_H));
     if (ph === 'fire') for (const e of hazardVictims(state)) {
       const burner = BURNERS.find(([bx, bw]) => hits(eBox(e), x + bx, STOVE_TOP - FIRE_H, bw, FIRE_H));
-      if (burner) { hazardHit(ctx, e, 40, x + burner[0] + burner[1] / 2, 'SEARED!', { color: '#FDBA74' }); playSound('ignite', 0.6, -2); }
+      if (burner) { hazardHit(ctx, e, 40, x + burner[0] + burner[1] / 2, 'SEARED!', { color: '#FDBA74' }); worldSound(state, 'ignite', 0.6, -2, e.pos.x, e.pos.y, e.width, e.height); }
     }
     if (ph !== 'fire' || !canHurt(state)) return;
     for (const [bx, bw] of BURNERS) if (hits(pBox(state), x + bx, STOVE_TOP - FIRE_H, bw, FIRE_H)) { hurtPlayer(ctx, 12, 'spooky_stove', { x: cx < x + bx + bw / 2 ? -5 : 5, y: -7 }); return; }
@@ -221,13 +223,15 @@ const runTrain = (ctx: FrameContext, cs: Castle, zones: Zone[]) => {
   zones.push(world(TRAIN.a, GY - TRAIN.h, TRAIN.b + TRAIN.w - TRAIN.a, TRAIN.h));
   if (Math.abs(cx - (TRAIN.a + TRAIN.b) / 2) > 1400) return;
   tr.x += tr.dir * TRAIN.speed;
-  if (tr.x > TRAIN.b) { tr.x = TRAIN.b; tr.dir = -1; playSound('ding', 0.4, 6); }
-  if (tr.x < TRAIN.a) { tr.x = TRAIN.a; tr.dir = 1; playSound('ding', 0.4, 6); }
-  if (++tr.bell % 50 === 0 && Math.abs(cx - tr.x) < 600) playSound('ding', 0.25, 12);
+  // (its bell heard only with the train on screen (onScreen.ts))
+  const ty = GY - TRAIN.h + dyAt(tr.x);
+  if (tr.x > TRAIN.b) { tr.x = TRAIN.b; tr.dir = -1; worldSound(state, 'ding', 0.4, 6, tr.x, ty, TRAIN.w, TRAIN.h); }
+  if (tr.x < TRAIN.a) { tr.x = TRAIN.a; tr.dir = 1; worldSound(state, 'ding', 0.4, 6, tr.x, ty, TRAIN.w, TRAIN.h); }
+  if (++tr.bell % 50 === 0) worldSound(state, 'ding', 0.25, 12, tr.x, ty, TRAIN.w, TRAIN.h);
   if (canHurt(state) && hits(pBox(state), tr.x, GY - TRAIN.h, TRAIN.w, TRAIN.h)) hurtPlayer(ctx, 14, 'spooky_train', { x: tr.dir * 7, y: -6 });
   // (whoever's knocked onto the track: run down)
   for (const e of hazardVictims(state)) if (hits(eBox(e), tr.x, GY - TRAIN.h, TRAIN.w, TRAIN.h) && e.pos.y + e.height - dyAt(e.pos.x) > GY - TRAIN.h - 6) {
-    if (hazardHit(ctx, e, 45, tr.x + TRAIN.w / 2 - tr.dir * 40, 'ROADKILL!', { knock: 10 })) playSound('ding', 0.5, 6);
+    if (hazardHit(ctx, e, 45, tr.x + TRAIN.w / 2 - tr.dir * 40, 'ROADKILL!', { knock: 10 })) worldSound(state, 'ding', 0.5, 6, tr.x, ty, TRAIN.w, TRAIN.h);
   }
 };
 

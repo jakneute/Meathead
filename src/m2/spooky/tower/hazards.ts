@@ -8,6 +8,7 @@ import type { FrameContext } from '../../../m1/game/core/context';
 import type { GameState } from '../../../m1/game/core/state';
 import { hurtPlayer } from '../../../m1/game/bosses/shared';
 import { playSound } from '../../../m1/game/platform/audio';
+import { worldSound } from '../../onScreen';
 import { floorTopAt } from '../../../m1/game/core/terrain';
 import { registerHurtLines } from '../../kinds';
 import { isMidBoss } from '../../../m1/game/combat/midBoss';
@@ -162,9 +163,9 @@ const runPendulums = (ctx: FrameContext, crashed: boolean) => {
     for (const e of vs) if (Math.abs(e.pos.x - b.x) < 120 && eTouches(e, b.x, b.y, BLADE_R)) worksKill(ctx, e, b.x, 'CHOPPED!');
     // (the whoosh as it comes through the bottom of its swing, when he's near enough to hear it: and the creak at the top)
     const ph = ((state.frame / b.period) + p.phase) % 0.5;
-    const near = Math.abs(b.x - pcx) < 600 && Math.abs(b.y - pl.pos.y) < 300;
-    if (near && ph < 1 / b.period) playSound('whoosh', 0.4, -6);
-    if (near && Math.abs(ph - 0.25) < 0.5 / b.period) playSound('click', 0.2, -10);
+    // (heard by how far it is off the screen, up or down as much as across: onScreen.ts)
+    if (ph < 1 / b.period) worldSound(state, 'whoosh', 0.4, -6, b.x - BLADE_R, b.y - BLADE_R, BLADE_R * 2, BLADE_R * 2);
+    if (Math.abs(ph - 0.25) < 0.5 / b.period) worldSound(state, 'click', 0.2, -10, b.x - BLADE_R, b.y - BLADE_R, BLADE_R * 2, BLADE_R * 2);
     if (canHurt(state) && touches(state, b.x, b.y, BLADE_R)) {
       hurtPlayer(ctx, 14, 'tower_pendulum', { x: (pcx < b.x ? -1 : 1) * 8, y: -6 });
       playSound('crunch', 0.6, 2);

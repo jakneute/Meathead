@@ -25,6 +25,7 @@ import { GY } from '../geometry';
 import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../../../m1/constants';
 import { makeKindEnemy } from '../../../m1/game/enemies/kinds';
 import { playSound } from '../../../m1/game/platform/audio';
+import { worldSound } from '../../onScreen';
 import { say, pickLine } from '../../../m1/game/platform/speech';
 import { hurtPlayer } from '../../../m1/game/bosses/shared';
 import { shakeScreen } from '../../../m1/game/core/state';
@@ -185,7 +186,7 @@ const tickBarrels = (ctx: FrameContext, sh: Shop) => {
   for (const b of sh.barrels) {
     if (b.dead) { b.dead++; continue; }
     b.x += b.vx; b.spin += b.vx / BARREL_R;
-    if (state.frame % 8 === 0) playSound('land', 0.25, -6);
+    if (state.frame % 8 === 0) worldSound(state, 'land', 0.25, -6, b.x - BARREL_R, GY - BARREL_R * 2, BARREL_R * 2, BARREL_R * 2);
     const left = b.x - BARREL_R, right = b.x + BARREL_R;
     // (into one of the tipped racks: it bursts on it)
     const hit = sh.racks.find(r => r.block && right > r.block.x && left < r.block.x + r.block.w);
@@ -242,7 +243,7 @@ const tickDonnie = (state: GameState, sh: Shop) => {
   if (d.mode !== 'wait') { d.x += gap < 120 ? RUN * 1.6 : d.mode === 'run' ? RUN : JOG; d.facing = 1; } else d.facing = -1;
   if (spot && d.x > at(spot.rel)) d.x = at(spot.rel);
   // (past the buffet's slushie machine: he can't run past food; one grabbed on the way, a slurp on it)
-  if (!d.slushie && d.x >= SLUSH_X) { d.slushie = true; if (Math.abs(gap) < 700) { playSound('slurp', 0.6, 2); playSound('pickup', 0.2, -6); } }
+  if (!d.slushie && d.x >= SLUSH_X) { d.slushie = true; if (worldSound(state, 'slurp', 0.6, 2, d.x)) worldSound(state, 'pickup', 0.2, -6, d.x); }
   // (over his shoulder, now and then: one voice at a time)
   if (state.frame >= d.barkAt && d.x < G.BALL_DOOR - 500 && !sh.said && !staffTalking()) {
     d.barkAt = state.frame + 480 + Math.floor(Math.random() * 240);

@@ -21,6 +21,7 @@ import { shakeScreen } from '../../../m1/game/core/state';
 import { profileYAt } from '../../../m1/game/core/terrain';
 import { hurtPlayer } from '../../../m1/game/bosses/shared';
 import { playSound } from '../../../m1/game/platform/audio';
+import { worldSound } from '../../onScreen';
 import { CANVAS_WIDTH } from '../../../m1/constants';
 import { GY } from '../geometry';
 import { townOf, type Rides } from './state';
@@ -121,14 +122,14 @@ export const updateRides = (ctx: FrameContext) => {
     if (front && runsInto(state, s.x - 25, Y(s.h), 50, 22) && p.pos.x + p.width / 2 > s.x) hit(ctx, 6, 'm2:town_carousel', 6, -5);
     if (front) for (const e of foes) if (eIn(e, s.x - 25, Y(s.h), 50, 22) && e.pos.x + e.width / 2 > s.x) rideHit(ctx, e, 45, s.x, 'BATTED!');
   });
-  if (f % 90 === 0 && near(X(CAROUSEL.x))) playSound('ding', 0.15, 5);
+  if (f % 90 === 0) worldSound(state, 'ding', 0.15, 5, X(CAROUSEL.x));
 
   // The train
   const tr = r.train;
   tr.t++;
   if (tr.mode === 'wait') {
-    if (tr.t === TRAIN_HORN && near(tr.x)) playSound('horn', 0.35, 6);
-    if (tr.t > TRAIN_WAIT) { tr.mode = 'go'; tr.t = 0; if (near(tr.x)) playSound('ding', 0.4, 3); }
+    if (tr.t === TRAIN_HORN) worldSound(state, 'horn', 0.35, 6, tr.x);
+    if (tr.t > TRAIN_WAIT) { tr.mode = 'go'; tr.t = 0; worldSound(state, 'ding', 0.4, 3, tr.x); }
     move(state, tr.roof, tr.x, Y(48));
   } else {
     const to = tr.dir > 0 ? X(TRAIN.b) : X(TRAIN.a);
@@ -140,7 +141,7 @@ export const updateRides = (ctx: FrameContext) => {
     if (runsInto(state, nose, Y(46), 18, 46) && (tr.dir > 0 ? p.pos.x + p.width / 2 > nose : p.pos.x + p.width / 2 < nose + 18)) hit(ctx, 7, 'm2:town_train', tr.dir * 8, -6);
     // (anybody else on the track: run down, flat)
     for (const e of foes) if (eIn(e, nose - 6, Y(46), 30, 46)) rideHit(ctx, e, 0, nose + 9 - tr.dir * 30, 'RUN OVER!', { kill: true, up: 8 });
-    if (tr.x === to) { tr.mode = 'wait'; tr.t = 0; tr.dir = (tr.dir > 0 ? -1 : 1); if (near(tr.x)) playSound('ding', 0.4, 3); }
+    if (tr.x === to) { tr.mode = 'wait'; tr.t = 0; tr.dir = (tr.dir > 0 ? -1 : 1); worldSound(state, 'ding', 0.4, 3, tr.x); }
   }
 
   // The drop tower
@@ -149,7 +150,7 @@ export const updateRides = (ctx: FrameContext) => {
   if (d.mode === 'rest' && d.t > DROP_REST) { d.mode = 'up'; d.t = 0; }
   else if (d.mode === 'up') { d.h = Math.min(DROP.hi, d.h + DROP_UP); if (d.h >= DROP.hi) { d.mode = 'hold'; d.t = 0; } }
   else if (d.mode === 'hold') {
-    if (d.t % 12 === 1 && near(X(DROP.x))) playSound('click', 0.4, 2);
+    if (d.t % 12 === 1) worldSound(state, 'click', 0.4, 2, X(DROP.x) - DROP.w / 2, Y(d.h), DROP.w, 16);
     if (d.t > DROP_HOLD) { d.mode = 'drop'; d.t = 0; }
   } else if (d.mode === 'drop') {
     const was = d.h;
@@ -160,7 +161,7 @@ export const updateRides = (ctx: FrameContext) => {
     for (const e of foes) if (eIn(e, rx, Y(was), DROP.w, was - d.h + 16)) rideHit(ctx, e, 0, X(DROP.x), 'SQUASHED!', { kill: true, up: 4 });
     if (d.h <= DROP.lo) {
       d.mode = 'rest'; d.t = 0;
-      if (near(X(DROP.x))) { playSound('slam', 0.7); shakeScreen(state, 10, standingOn(state, d.ring) ? 6 : 3); }
+      if (near(X(DROP.x))) { worldSound(state, 'slam', 0.7, 0, X(DROP.x) - DROP.w / 2, Y(d.h), DROP.w, 16); shakeScreen(state, 10, standingOn(state, d.ring) ? 6 : 3); }
     }
   }
   const shake = d.mode === 'hold' ? (f % 4 < 2 ? 1 : -1) : 0;

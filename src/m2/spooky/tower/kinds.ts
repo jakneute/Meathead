@@ -22,6 +22,7 @@ import { shakeScreen } from '../../../m1/game/core/state';
 import { hurtPlayer } from '../../../m1/game/bosses/shared';
 import { helmetStopsAt } from '../../upgrades/gear';
 import { playSound } from '../../../m1/game/platform/audio';
+import { worldSound } from '../../onScreen';
 import { registerM2Kind, registerHurtLines } from '../../kinds';
 import { lookOf } from '../../adventure/temple/people';
 import { moodOf, reaction, type Pose, type Mood } from '../costume';
@@ -230,7 +231,7 @@ const ringerAI = (ctx: FrameContext, e: Enemy): boolean => {
       if (Math.abs(e.pos.x - home) > 150 || !safeAhead(ctx, e, e.facing) || inDanger(e, e.pos.x + e.facing * 8)) e.facing = (e.pos.x > home ? -1 : 1) as 1 | -1;
       if (inDanger(e, e.pos.x + e.facing * 8)) { e.vel.x = 0; break; }
       e.vel.x = e.facing * 0.8;
-      if (state.frame % 40 === 0 && Math.abs(dx) < 700 && Math.abs(p.y - m.y) < 200) playSound('click', 0.2, -10);
+      if (state.frame % 40 === 0) worldSound(state, 'click', 0.2, -10, e.pos.x, e.pos.y, e.width, e.height);
       if (sees(state, e, 150, 90) && dx * e.facing > -30) setState(e, 'raise');
       else if (sees(state, e, 150, 90)) { e.facing = dirTo(e, p.x); setState(e, 'raise'); }
       break;

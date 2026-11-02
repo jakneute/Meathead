@@ -9,6 +9,7 @@ import type { GameState } from '../../../m1/game/core/state';
 import type { Rect } from '../../../m1/types';
 import { shakeScreen } from '../../../m1/game/core/state';
 import { playSound } from '../../../m1/game/platform/audio';
+import { worldSound } from '../../onScreen';
 import { hurtPlayer } from '../../../m1/game/bosses/shared';
 import { rectsOverlap, boundsOf } from '../../../m1/game/core/utils';
 import { floorTopAt } from '../../../m1/game/core/terrain';
@@ -85,7 +86,7 @@ export const updateHazards = (ctx: FrameContext, h: Hell) => {
     if (c.gone > 0) {
       c.gone++;
       const over = rectsOverlap(boundsOf(p), { x: c.x, y: c.y - 4, w: c.w, h: 20 });
-      if (c.gone > BACK && !over) { c.gone = 0; c.shake = 0; c.b.x = c.x; if (near(state, c.x)) playSound('crunch', 0.3, 6); }
+      if (c.gone > BACK && !over) { c.gone = 0; c.shake = 0; c.b.x = c.x; worldSound(state, 'crunch', 0.3, 6, c.x, c.y, c.w, 20); }
     } else if (c.shake > 0) {
       c.shake++;
       if (c.shake % 6 === 0 && near(state, c.x)) state.particles.push({ pos: { x: c.x + Math.random() * c.w, y: c.y + 14 }, vel: { x: 0, y: 1 }, life: 30, color: '#57534E', size: 3, grav: 0.3 });
@@ -102,9 +103,9 @@ export const updateHazards = (ctx: FrameContext, h: Hell) => {
   for (const [x, base, off] of JETS) {
     const ph = jetPhase(f, off);
     if (!near(state, x, 300) || inBossFight(state)) continue;
-    if (ph === WARN) playSound('rumble', 0.25, 6);
+    if (ph === WARN) worldSound(state, 'rumble', 0.25, 6, x - 20, base - 160, 40, 160);
     if (ph > WARN && ph < BLAST && ph % 6 === 0) state.particles.push({ pos: { x: x + (Math.random() - 0.5) * 16, y: base - 4 }, vel: { x: (Math.random() - 0.5) * 0.6, y: -1.2 - Math.random() }, life: 30, color: 'rgba(87, 83, 78, 0.6)', size: 5 + Math.random() * 4 });
-    if (ph === BLAST) { playSound('flame', 0.7); playSound('ignite', 0.6, -4); }
+    if (ph === BLAST && worldSound(state, 'flame', 0.7, 0, x - 20, base - 160, 40, 160)) worldSound(state, 'ignite', 0.6, -4, x - 20, base - 160, 40, 160);
     // (anybody else in it: torched)
     if (ph >= BLAST) for (const e of hazardVictims(state)) if (boxHits(e, x - 18, base - 16 - JET_H, 36, JET_H + 16)) {
       if (hazardHit(ctx, e, 45, x, 'TORCHED!', { color: '#FDBA74', knock: 7 })) playSound('ignite', 0.7, -2);
@@ -132,7 +133,7 @@ export const updateHazards = (ctx: FrameContext, h: Hell) => {
 };
 
 const burst = (state: GameState, x: number, y: number) => {
-  if (near(state, x)) playSound('ignite', 0.4, 4);
+  worldSound(state, 'ignite', 0.4, 4, x, y);
   for (let i = 0; i < 10; i++) state.particles.push({ pos: { x, y }, vel: { x: (Math.random() - 0.5) * 5, y: -1 - Math.random() * 3 }, life: 18, color: i % 2 ? '#F97316' : '#FDE047', size: 2 + Math.random() * 3 });
 };
 

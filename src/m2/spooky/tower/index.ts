@@ -42,6 +42,7 @@ import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../../../m1/constants';
 import { makeKindEnemy, kindDef } from '../../../m1/game/enemies/kinds';
 import { hurtPlayer } from '../../../m1/game/bosses/shared';
 import { playSound } from '../../../m1/game/platform/audio';
+import { worldSound } from '../../onScreen';
 import { shakeScreen } from '../../../m1/game/core/state';
 import { silenceAll, isTalking } from '../../../m1/game/platform/speech';
 import { startFreefall, stepFreefall, drawFallDark } from '../freefall';
@@ -371,7 +372,7 @@ const runLift = (state: GameState) => {
   b.y = ny;
   if (on) p.pos.y += dy;
   // (the chain ratcheting as it goes, when he's by it)
-  if (state.frame % 12 === 0 && Math.abs(p.pos.y - ny) < 500 && Math.abs(p.pos.x - b.x) < 600) playSound('click', 0.15, -12);
+  if (state.frame % 12 === 0) worldSound(state, 'click', 0.15, -12, b.x, b.y, b.w, 20);
 };
 const runRotten = (state: GameState, t: Tower) => {
   if (t.crashed) return;

@@ -6,11 +6,12 @@
 //                   neither run nor make a sound: they check inBossFight. What belongs to the fight's own design is
 //                   the fight's, and never checks it.
 //   heard           a hazard's sound only plays when where it is is on the screen or just off it (never far-off gear
-//                   ticking away somewhere he can't see); envSound does both checks at once.
+//                   ticking away somewhere he can't see); envSound does both checks at once, and fades the sound out
+//                   just past the screen's edge (onScreen.ts). Pass the height where it's known: a floor away is far.
 
 import type { GameState } from '../m1/game/core/state';
 import { playSound } from '../m1/game/platform/audio';
-import { CANVAS_WIDTH } from '../m1/constants';
+import { offScreenBy, worldSound, midY } from './onScreen';
 
 type SoundType = Parameters<typeof playSound>[0];
 
@@ -39,16 +40,19 @@ export const inBossFight = (state: GameState) => {
 /** Which fight's on (the name it marked itself with), or null (none on, or it didn't say). */
 export const bossFightName = (state: GameState) => (inBossFight(state) ? MARKED.get(state)?.name ?? null : null);
 
-/** Where it is, on the screen or just off it (`margin` past either edge). */
-export const heard = (state: GameState, x: number, margin = 240) =>
-  x > state.camera.x - margin && x < state.camera.x + CANVAS_WIDTH + margin;
+/** Where it is, on the screen or just off it (`margin` past either edge). Give `y` and a floor up or down counts too
+ *  (onScreen.ts: the true 2D distance off the screen); without it, only how far off to the side. */
+export const heard = (state: GameState, x: number, margin = 240, y?: number) =>
+  offScreenBy(state, x, y ?? midY(state)) <= margin;
 
-/** Somewhere along `a`..`b` (a stretch: a rain cloud, a gust's reach, a beam), on the screen or just off it. */
-export const heardSpan = (state: GameState, a: number, b: number, margin = 240) =>
-  Math.max(a, b) > state.camera.x - margin && Math.min(a, b) < state.camera.x + CANVAS_WIDTH + margin;
+/** Somewhere along `a`..`b` (a stretch: a rain cloud, a gust's reach, a beam), on the screen or just off it. `y`/`h`:
+ *  its height (top, and how tall), so a stretch a floor away isn't heard. */
+export const heardSpan = (state: GameState, a: number, b: number, margin = 240, y?: number, h = 0) =>
+  offScreenBy(state, Math.min(a, b), y ?? midY(state), Math.abs(b - a), y === undefined ? 0 : h) <= margin;
 
-/** A latent environmental sound from `x`: only near the screen, never during a boss or sub-boss fight. */
-export const envSound = (state: GameState, x: number, type: SoundType, vol?: number, pitch?: number) => {
-  if (inBossFight(state) || !heard(state, x)) return;
-  playSound(type, vol, pitch);
+/** A latent environmental sound from `x` (and `y`, where it's known: a floor away is far): full on screen, fading out
+ *  just past its edge (onScreen.ts), silent further off; never during a boss or sub-boss fight. */
+export const envSound = (state: GameState, x: number, type: SoundType, vol = 1, pitch = 0, y?: number) => {
+  if (inBossFight(state)) return;
+  worldSound(state, type, vol, pitch, x, y);
 };

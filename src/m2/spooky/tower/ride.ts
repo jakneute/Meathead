@@ -135,7 +135,7 @@ export const runRide = (state: GameState, r: Ride, crashed: boolean, ev: RideEve
   for (const c of [...r.cars]) {
     c.t++;
     // (its noise heard only from on the screen or just off it: bossQuiet.ts)
-    const near = heard(state, c.x) && Math.abs(state.player.pos.y - c.y) < 700;
+    const near = heard(state, c.x, undefined, c.y) && Math.abs(state.player.pos.y - c.y) < 700;
     switch (c.phase) {
       case 'under':
         // (along the tunnel under the bay to the foot of the lift; up it once the platform's free)
