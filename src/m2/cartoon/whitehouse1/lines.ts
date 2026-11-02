@@ -13,6 +13,7 @@
 // THE MEAN MEN: the show's henchmen (goons, lobbyists, pollsters), on the clock.
 
 import { allOf, type ByPants, type HurtTable } from '../talk';
+import { STOCK_VOICE } from './giftShopLines';
 
 export const CHELSEA = 'm2.cartoon.chelsea';
 export const PEROT = 'm2.cartoon.perot';
@@ -423,8 +424,10 @@ export const VOICE_LINES: Record<string, string[]> = {
     ...Object.values(GAGS).flatMap(allOf), ...meatPundit(PEROT_LINES), ...meatPundit(FALWELL_LINES), ...TOO_GREASY,
     ...allOf(SHOW_MOCK), ...allOf(KILL_QUIP),
     ...Object.values(HURT).flatMap(h => h.hurt),
+    // (the gift shop stockroom's: giftShopLines.ts)
+    ...STOCK_VOICE.meathead,
   ],
-  death: Object.values(HURT).flatMap(h => h.death),
+  death: [...Object.values(HURT).flatMap(h => h.death), ...STOCK_VOICE.death],
   announcer: [...new Set(Object.values(KILL_CALLS).flatMap(k => Object.values(k).flat())), PEROT_DOWN, FALWELL_DOWN],
   [CHELSEA]: [
     ...CHELSEA_INTRO, ...allOf(CHELSEA_INTRO2), ...allOf(NAG), ...Object.values(HINT).flat(), ...OUCH, ...PEROT_COMING, ...FALWELL_COMING,

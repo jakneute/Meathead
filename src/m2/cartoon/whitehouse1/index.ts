@@ -50,6 +50,9 @@ import { drawPerotBody, drawFalwellBody, drawDeadActor } from '../whitehouse2/bo
 import { STAGE_WH1, BODY_LINES } from '../whitehouse2/lines';
 import { PIANO, CHAIRS, RISER, PODIUM, SIDEBOARD, BED, BENCH, TABLE, ARBOR, PEROT_ARENA, FALWELL_ARENA, BALCONY_EDGE, F2, CEIL2, floorAt } from './layout';
 import { clearWhLines, whMust } from './onceLines';
+import { buildGiftShop, updateGiftShop, inStock, STOCK, STOCK_W, STOCK_ROW } from './giftShop';
+import { drawGiftShopOutside, drawStockBackdrop, drawStockBack, drawStockFront, stockLighting } from './giftShopArt';
+import { PORCH, PORCH_SLAB } from './layout';
 import './kinds';
 import './catDeath';
 
@@ -142,6 +145,9 @@ export const whitehouse1: CartoonSection = {
     for (const [a, b, top] of SOLIDS) solid(state, X(a), Y(top), b - a, Math.min(GY + 40 - Y(top), top + 40), { hidden: true, tag: `wh1-solid-${a}` });
     for (const [a, b, h] of LEDGES) ledge(state, X(a), Y(h), b - a, { hidden: true });
     layCeilings(state);
+    // (the Truman Balcony over the porch: a slab, the porch open under it (the gift shop's door: giftShop.ts))
+    solid(state, X(PORCH.a), Y(F2), PORCH.b - PORCH.a, PORCH_SLAB, { hidden: true, tag: 'wh1-porch-slab' });
+    buildGiftShop(state);
     const s = whOf(state);
     s.towers = makeTowers(state, [TOPIARY]);
     makeChandelier(state);
@@ -162,6 +168,9 @@ export const whitehouse1: CartoonSection = {
   update: (ctx, controls) => {
     const { state } = ctx, p = state.player, s = whOf(state);
     const up = projectionUp(state);
+    // (the gift shop's door, its stockroom, the cannon out: giftShop.ts; first, the towers lean before he moves)
+    controls = updateGiftShop(ctx, controls);
+    const stock = inStock(state);
     if (!up) return updateReal(state, controls);
     // (a mean man's actor killed: his body lies there once the screen's down)
     for (const [e, ix] of castOf.get(state.stage as object) ?? []) if (e.health <= 0) markDead(state, DEAD1_MEMO, ix, { x: e.pos.x + e.width / 2, y: e.pos.y + e.height });
@@ -180,14 +189,15 @@ export const whitehouse1: CartoonSection = {
     updateHazards(ctx);
     let out = up ? updateTransform(ctx, controls) : controls;
     out = updatePundits(ctx, out);
-    if (up) updateChelsea(state);
+    // (not while he's down in the gift shop's stockroom: she's not one for gift shops)
+    if (up && !stock) updateChelsea(state);
     updatePuffs(state);
     purgeCartoonGore(state);
     // What he's got to say (once each a visit)
     const rx = p.pos.x + p.width / 2 - x0, alive = !p.inCutscene && p.health > 0;
     const once = (key: string, pool: string[]) => { if (alive && saidOnce(key)) meatheadSays(state, whMust(pool), false); };
     if (p.catForm && p.currentWeapon === 'GUN' && p.shootCooldown === GUN_COOLDOWN) once('wh-hairball', byPants(state, GAGS.hairball));
-    for (const [key, a, bb] of GAG_AT) if (rx > a && rx < bb) once(`wh-${key}`, byPants(state, GAGS[key as keyof typeof GAGS]));
+    if (!stock) for (const [key, a, bb] of GAG_AT) if (rx > a && rx < bb) once(`wh-${key}`, byPants(state, GAGS[key as keyof typeof GAGS]));
     if (ridingChandelier(state)) once('wh-chandelier', byPants(state, GAGS.chandelier));
     void ridingTower;
     // The ways: back out the entrance hall's left end (to the studio, in front of the screen); on at the West
@@ -196,15 +206,21 @@ export const whitehouse1: CartoonSection = {
     runExits(state, [{ x0: x1 - 60, x1, yTop: GY - 40, yBot: GY + 2, to: DOORS.whitehouse2.start }]);
     return out;
   },
-  drawBackdrop: (c, state) => (projectionUp(state) ? drawWhBackdrop(c, state) : drawStageBackdrop(c, state)),
+  drawBackdrop: (c, state) => {
+    if (inStock(state)) { drawStockBackdrop(c); return true; }
+    return projectionUp(state) ? drawWhBackdrop(c, state) : drawStageBackdrop(c, state);
+  },
   drawBack: (c, state) => {
-    if (!projectionUp(state)) { drawReal1(c, state); return; }
+    if (inStock(state)) { drawStockBack(c, state); return; }
+    if (!projectionUp(state)) { drawReal1(c, state); drawGiftShopOutside(c, state); return; }
     drawWhBack(c, state);
+    drawGiftShopOutside(c, state);
     drawTowers(c, state, whOf(state).towers);
     drawPunditsWorld(c, state);
     if (projectionUp(state)) drawChelsea(c, state);
   },
   drawFront: (c, state) => {
+    if (inStock(state)) { drawStockFront(c, state); return; }
     if (!projectionUp(state)) {
       // (the empty front row; the screen heaped over the stage's lip, all along)
       drawSeats(c, state, x0 - 200, x1 + 200);
@@ -230,13 +246,16 @@ export const whitehouse1: CartoonSection = {
       if (punditSkipShown(state)) drawSkipPrompt(c, CANVAS_WIDTH);
     }
   },
-  outdoors: (state) => (projectionUp(state) && roomAt(state.player.pos.x + state.player.width / 2 - x0).outdoors ? 1 : 0),
+  outdoors: (state) => (!inStock(state) && projectionUp(state) && roomAt(state.player.pos.x + state.player.width / 2 - x0).outdoors ? 1 : 0),
   // (the real stage's work lights once the screen's down; else, outdoors, the time of day's; indoors none)
   lighting: (state) => {
+    if (inStock(state)) return stockLighting(state);
     if (!projectionUp(state)) return realLight(state, stageLights(state, x0 - 200, x1 + 200));
     return roomAt(state.player.pos.x + state.player.width / 2 - x0).outdoors ? todLight([], 1) : null;
   },
-  cameraX: (state) => fightCam(state),
+  cameraX: (state) => (inStock(state) ? { min: STOCK.a - 60, max: STOCK.a + STOCK_W + 60 - CANVAS_WIDTH } : fightCam(state)),
+  // (down in the gift shop's stockroom: kept higher on screen, so the chute's dark under the lids is in view)
+  cameraRow: (state) => (inStock(state) ? STOCK_ROW : undefined),
 };
 
 /** Part one, the screen down: no cat, no hazards, no Chelsea; his lines at what he left; the ways out. */

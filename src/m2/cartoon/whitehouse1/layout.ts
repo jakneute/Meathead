@@ -22,7 +22,9 @@
 //   9350   THE WEST SITTING HALL, the fan window; out onto THE TRUMAN BALCONY (9950).
 //   10300  THE ROSE GARDEN (cp 26): down off the balcony; THE SPRINKLERS, THE ROSE BUSHES (thorns); the mean men; a
 //          topiary STACK-TOWER (the land's own mechanic) back up to the balcony off the arbor and the bench; the West
-//          Colonnade at the far end: on to part two (the right end).
+//          Colonnade at the far end: on to part two (the right end). Under the balcony, THE PORCH and its GIFT SHOP door
+//          (an arrow sign on the lawn points back at it): down into the gift shop's stockroom, the hidden max health
+//          find (giftShop.ts).
 
 import { SECTIONS, GY } from '../geometry';
 import type { TowerDef } from '../sway';
@@ -64,9 +66,13 @@ export const roomAt = (rx: number) => ROOMS.find(r => rx >= r.a && rx < r.b) ?? 
 export const STAIRS = { a: 6600, b: 7400, steps: 22 };
 /** Where the second floor ends at the balcony's edge (the drop into the garden). */
 export const BALCONY_EDGE = 10300;
-/** The floor: [from, to, height from, height to] (the stairs a slope with treads). */
+/** THE PORCH under the Truman Balcony (the gift shop's way in, giftShop.ts): open from the garden at ground level, the
+ *  balcony's slab over it (PORCH_SLAB thick: the drawn band along its top). */
+export const PORCH = { a: 9950, b: BALCONY_EDGE }, PORCH_SLAB = 36;
+/** The floor: [from, to, height from, height to] (the stairs a slope with treads). The second floor's run stops at the
+ *  porch (the balcony over it is a slab: index.ts). */
 export const GROUND: [number, number, number, number][] = [
-  [-200, STAIRS.a, 0, 0], [STAIRS.a, STAIRS.b, 0, F2], [STAIRS.b, BALCONY_EDGE, F2, F2], [BALCONY_EDGE, 12200, 0, 0],
+  [-200, STAIRS.a, 0, 0], [STAIRS.a, STAIRS.b, 0, F2], [STAIRS.b, PORCH.a, F2, F2], [PORCH.a, 12200, 0, 0],
 ];
 /** The floor's height at x. */
 export const floorAt = (rx: number) => (rx < STAIRS.a ? 0 : rx < STAIRS.b ? ((rx - STAIRS.a) / (STAIRS.b - STAIRS.a)) * F2 : rx < BALCONY_EDGE ? F2 : 0);
