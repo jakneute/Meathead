@@ -26,9 +26,11 @@
 //   THE PRACTICE: the cape isn't a weapon: the candles relight a few seconds after each's snuffed, so the room's a float
 //     course to fool about on; Ben's line the first time he gets the far one after the gift.
 //   THE CANNON (upgrades/returnCannon.ts, SPOOKY look): only once the trial's passed (Ben nudges him to it). It rests
-//     pointing up, fires him up the loft's old chimney, and he comes flying out of a little servants' hatch high in the
-//     master bedroom's wall, by the door, down onto the floor at the bedroom's start (past THE MASTER BEDROOM checkpoint's
-//     x, short of where the brides come out of the first wardrobe).
+//     pointing up, swings over to the right (the owner, 2026-11-02: "the canon in spooky land's ben fires to the right,
+//     meathead flies to the right and stops in the bedroom, not out a door"), and fires him up and right out of the
+//     loft's old flue in the roof; he comes crashing down through the library's ceiling at its far right end (the broken
+//     boards stay broken), shoots on right through the doorway into the master bedroom and stops on its floor at the start
+//     (past THE MASTER BEDROOM checkpoint's x, short of where the brides come out of the first wardrobe).
 //   ONCE GOT: Ben's idle line, the candles, the cannon; the cape isn't given again (benGave: cheats don't skip it).
 //
 // What outlives a death: what he's got (the save) and the meetup having run this visit (state.stageMemo).
@@ -43,7 +45,7 @@ import { shakeScreen } from '../../../m1/game/core/state';
 import { pickLine, silenceAll } from '../../../m1/game/platform/speech';
 import { SKIP_AFTER, offerSkip, takeSkip } from '../../../m1/game/platform/skip';
 import { isNude, isShat } from '../../../m1/game/player/gut';
-import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../../../m1/constants';
+import { CANVAS_WIDTH, CANVAS_HEIGHT, PLAYER_GRAVITY, PLAYER_TERMINAL_VELOCITY } from '../../../m1/constants';
 import { setUi } from '../../store';
 import { saveProgress } from '../../save';
 import { has, setPiece, setBenMet, benGave, setBenGave } from '../../upgrades/state';
@@ -72,9 +74,11 @@ export const LOFT = { a: PART_L - 900, b: PART_L, h: 440 };
 export const LA = LOFT.a;
 /** The way up: [x, top, w], the third gallery's left end up (the two wall shelves, the bookcase's top board). */
 export const PATH: [number, number, number][] = [[LIB + 500, GY - 625, 120], [LIB + 280, GY - 730, 120], [PART_R, F, 180]];
-/** In the loft (from its left wall): the cannon, the chimney over it, the coffin bench (its top), the tall bookcase (its
+/** In the loft (from its left wall): the cannon, the flue in the roof its shot goes out by (up and to the right of it), the coffin bench (its top), the tall bookcase (its
  *  top), the pillar, the candle wheel, where Ben stands, his chaise, the rose window. */
-export const CANNON_LX = 100, CHIMNEY = { a: 62, b: 138 };
+export const CANNON_LX = 100, CHIMNEY = { a: 276, b: 400 };
+/** The barrel's lean for the shot (off straight up, to the right): out through CHIMNEY. */
+const AIM = 0.5;
 export const COFFIN = { a: 170, b: 310, top: 50 };
 export const SHELF = { a: 760, b: 860, top: 160 };
 export const PILLAR_LX = 440, WHEEL_LX = 240;
@@ -86,9 +90,12 @@ const CANDLES0: Omit<Candle, 'lit' | 'outAt'>[] = [{ lx: 828, h: 190, kind: 'hig
 const FLAME_HW = 9, FLAME_HH = 12;
 /** Snuffed, it's back this long after (once the trial's done: practice). */
 const RELIGHT = 240;
-/** The servants' hatch in the master bedroom's wall the cannon shoots him out of; where he comes down. */
-export const HATCH = { x: ROOMS[4].a + 185, y: GY - 700 - 360 };
-const LAND_X = ROOMS[4].a + 166;
+/** Where the shot comes down through the library's ceiling (its far right end, short of the doorway into the bedroom;
+ *  his feet just under it); where he comes down on the bedroom's floor; how fast he's falling out of the hole. */
+export const HOLE = { x: ROOMS[4].a - 230, y: GY - 950 };
+const LAND_X = ROOMS[4].a + 166, HOLE_VY = 3;
+/** The hole's been made (this visit: it stays). */
+export const HOLE_MEMO = 'm2:benSpookyHole';
 /** The YOU GOT card's least time up before it can be closed (frames). */
 const CARD_HOLD = 90;
 /** The meetup's run this visit; his passage line said this visit (state.stageMemo). */
@@ -132,8 +139,12 @@ export interface Loft {
   goodSaid: boolean; nudgeAt: number;
   /** How far the loft's dark has lifted (0 hidden, 1 shown). */
   reveal: number;
-  /** When he burst out of the bedroom's hatch (its flap swinging). */
+  /** When he burst down through the library's ceiling (the boards swinging). */
   hatchAt: number;
+  /** The roof's flue shut (solid) over the loft: open only while he's shot out of it. */
+  flueShut: boolean;
+  /** Frames the shot's been held going up to get him clear out of the roof. */
+  upHold: number;
   cannon: Cannon;
   was: Partial<Controls>;
   /** It set the HUD's prompts (so it clears them going out, and only then). */
@@ -149,12 +160,36 @@ export const loftOf = (state: GameState): Loft => {
     candles: CANDLES0.map(c => ({ ...c, lit: true, outAt: 0 })),
     snuffed: 0, misses: 0, offShelf: false, passAt: -1,
     cardT: 0, cardArmed: false, goodSaid: false, nudgeAt: 0, reveal: 0, hatchAt: -999,
-    // (up the chimney; out of the hatch high in the bedroom's wall, down by the door)
-    cannon: makeCannon(LA + CANNON_LX, F, { x: HATCH.x, y: HATCH.y + 34 }, { x: LAND_X, y: GY - 700 }),
-    was: {}, ui: false,
+    cannon: aimCannon(),
+    was: {}, ui: false, flueShut: true, upHold: 0,
   });
   return h;
 };
+/** Up and right out of the roof's flue; down through the library's ceiling at its right end, falling, on right through
+ *  the doorway and down on the bedroom's floor (its lean and its arc set here, not by the stock straight-up shot). */
+const aimCannon = (): Cannon => {
+  const cn = makeCannon(LA + CANNON_LX, F, { x: HOLE.x, y: HOLE.y + 70 }, { x: LAND_X, y: GY - 700 });
+  cn.want = AIM; cn.vy0 = HOLE_VY;
+  let y = cn.exit.y, vy = HOLE_VY, t = 0;
+  while (t < 600) { vy = Math.min(PLAYER_TERMINAL_VELOCITY, vy + PLAYER_GRAVITY); y += vy; t++; if (vy > 0 && y >= cn.dest.y) break; }
+  cn.T = t;
+  return cn;
+};
+/** The cannon's frame: the roof's flue opened just while he's shot out of it, the shot held on till he's clear of it. */
+const runCannon = (ctx: FrameContext, h: Loft, controls: Controls): Controls => {
+  const { state } = ctx;
+  const out = updateCannon(ctx, h.cannon, controls, cannonHooks(h));
+  const cn = h.cannon;
+  if (cn.phase !== 'up') h.upHold = 0;
+  else if (cn.t >= 16 && feetY(state) > F - LOFT.h - 70 && h.upHold++ < 30) cn.t = 16;
+  const shut = cn.phase !== 'up';
+  if (shut !== h.flueShut) {
+    h.flueShut = shut;
+    if (shut) flue(state); else state.blocks = state.blocks.filter(b => b.tag !== 'sp-loft-flue');
+  }
+  return out;
+};
+const flue = (state: GameState) => solid(state, LA + CHIMNEY.a, F - LOFT.h - 60, CHIMNEY.b - CHIMNEY.a, 60, { hidden: true, tag: 'sp-loft-flue' });
 /** The cape lent for the trial (taken back if it's not finished). */
 let lent = false;
 const lend = () => { if (!has('cape')) { setPiece('cape', true); lent = true; } };
@@ -191,6 +226,7 @@ export const buildLoft = (state: GameState) => {
   solid(state, LA - 60, top - 60, 60, F - top + 60, { hidden: true, tag: 'sp-loft' });
   solid(state, LA, top - 60, CHIMNEY.a, 60, { hidden: true, tag: 'sp-loft' });
   solid(state, LA + CHIMNEY.b, top - 60, LOFT.b - LA - CHIMNEY.b, 60, { hidden: true, tag: 'sp-loft' });
+  flue(state);
   // (the stone wall's kitchen face up from the passage to the loft's ceiling: the loft's right wall)
   solid(state, PART_L - 20, top - 60, 20 + HW, PASS_TOP - top + 60, { hidden: true, tag: 'sp-loft' });
   for (const [x, y, w] of PATH) ledge(state, x, y, w, { hidden: true, tag: 'sp-loftway' });
@@ -219,7 +255,7 @@ export const updateLoft = (ctx: FrameContext, controls: Controls): Controls => {
     if (h.phase === 'trial') unlend();
     if (h.ben.said && !secret) h.ben.said = null;
     if (h.ui) { h.ui = false; setUi({ gotPiece: null, gotPieceReady: false, chordTips: null }); }
-    return updateCannon(ctx, h.cannon, controls, cannonHooks(h));
+    return runCannon(ctx, h, controls);
   }
   h.ui = true;
   h.ben.poseT++;
@@ -265,7 +301,7 @@ export const updateLoft = (ctx: FrameContext, controls: Controls): Controls => {
   if (h.phase !== 'card') setUi({ gotPiece: null });
   setUi({ chordTips: tips });
   // The cannon: only once the trial's passed
-  if (h.phase === 'done' || cannonBusy(h.cannon)) out = updateCannon(ctx, h.cannon, out, cannonHooks(h));
+  if (h.phase === 'done' || cannonBusy(h.cannon)) out = runCannon(ctx, h, out);
   return out;
 };
 
@@ -290,11 +326,11 @@ const cannonHooks = (h: Loft) => ({
     silenceAll(); h.ben.said = null; setUi({ chordTips: null });
     meatheadSays(st, pickLine(BYE_MEATHEAD), true, () => { if (loftOf(st) === h) benSays(h.ben, pickLine(BYE_BEN)); });
   },
-  onExit: (st: GameState, x: number, y: number) => {
-    // (out of the bedroom's hatch: it bangs open, dust and old laundry lint with him)
-    h.hatchAt = st.frame;
-    for (let i = 0; i < 24; i++) st.particles.push({ pos: { x: x - 14 + Math.random() * 28, y: y - 50 + Math.random() * 30 }, vel: { x: (Math.random() - 0.5) * 4, y: -1 - Math.random() * 3 }, life: 40, color: i % 3 ? '#A8A29E' : '#E7E5E4', size: 2 + Math.random() * 4 });
-    playSound('slam', 0.8, -2); playSound('crumble', 0.5, 4); shakeScreen(st, 5, 4);
+  onExit: (st: GameState, x: number) => {
+    // (down through the library's ceiling: the boards burst, plaster and splinters raining after him)
+    h.hatchAt = st.frame; st.stageMemo[HOLE_MEMO] = '1';
+    for (let i = 0; i < 28; i++) st.particles.push({ pos: { x: x - 24 + Math.random() * 48, y: HOLE.y + Math.random() * 10 }, vel: { x: 1 + Math.random() * 5, y: 1 + Math.random() * 3 }, life: 40, color: i % 4 === 0 ? '#6A4826' : i % 3 ? '#A8A29E' : '#E7E5E4', size: 2 + Math.random() * 4 });
+    playSound('crash', 0.8, -2); playSound('crumble', 0.5, 4); shakeScreen(st, 6, 4);
   },
 });
 

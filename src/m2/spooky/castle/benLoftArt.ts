@@ -17,13 +17,13 @@ import type { GameState } from '../../../m1/game/core/state';
 import type { SceneLight, Light } from '../../../m1/game/render/lighting';
 import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../../../m1/constants';
 import { INK, box, pole, rampOf, mix, checker, bandedGradient, hazeBands, brickPattern, stamp, hash } from '../../intro/art/kit';
-import { signAt, gothic, print } from '../letters';
+import { signAt, gothic, print, fit } from '../letters';
 import { drawCannon, SPOOKY } from '../../upgrades/returnCannon';
 import { drawBen, benHeadY, drawBenGross, drawBenGrossBack } from '../../upgrades/confucktious';
 import { drawSkipPrompt, SKIP_AFTER } from '../../../m1/game/platform/skip';
 import { saidOver } from '../section';
 import {
-  LA, LOFT, F, PASS_TOP, PART_L, PART_R, PATH, COFFIN, SHELF, PILLAR_LX, WHEEL_LX, CHIMNEY, CANNON_LX, HATCH,
+  LA, LOFT, F, PASS_TOP, PART_L, PART_R, PATH, COFFIN, SHELF, PILLAR_LX, WHEEL_LX, CHIMNEY, CANNON_LX, HOLE, HOLE_MEMO,
   loftOf, benAt, inLoft, loftView,
 } from './benLoft';
 
@@ -121,7 +121,7 @@ const paintWall = (g: Ctx) => {
   g.fillStyle = INK; g.beginPath(); g.arc(wx, wy, 12, 0, Math.PI * 2); g.fill(); g.fillStyle = STONE[3]; g.beginPath(); g.arc(wx, wy, 10, 0, Math.PI * 2); g.fill();
   box(g, wx - 4, wy - 4, 8, 8, '#B8D4F4'); box(g, wx - 4, wy - 4, 3, 3, '#FFFFFF');
   web(g, wx + wr + 4, wy - wr + 6, 22, -1, 1);
-  // (the ceiling beam, its struts and braces; the chimney's flue up through it over the cannon)
+  // (the ceiling beam, its struts and braces; the old flue up through it, up and right of the cannon: where it shoots)
   box(g, -40, -H - 4, W + 80, 30, INK); box(g, -40, -H - 2, W + 80, 26, OAK[1]); box(g, -40, -H - 2, W + 80, 3, OAK[3]); box(g, -40, -H + 20, W + 80, 3, OAK[0]);
   for (let x = 30; x < W; x += 150) {
     pole(g, x, -H + 24, 14, 50, OAK[1]);
@@ -248,7 +248,7 @@ const paintGym = (g: Ctx) => {
     box(g, 828 - 8, t - 6, 16, 6, INK); box(g, 828 - 7, t - 5, 14, 4, BRASS[2]); box(g, 828 - 7, t - 5, 14, 1, BRASS[4]);
     candleWax(g, 828, t - 22, 16);
     pile(g, a + 30, t, 2, 77, 0.05); }
-  // ---- the cannon's hearth: the old fireplace's stone apron under the flue
+  // ---- the cannon's hearth: the old fireplace's stone apron it stands on
   { box(g, CANNON_LX - 56, -6, 112, 6, INK); box(g, CANNON_LX - 55, -5, 110, 5, STONE[2]); box(g, CANNON_LX - 55, -5, 110, 1, STONE[3]); }
 };
 
@@ -291,6 +291,17 @@ const paintFalseShelf = (g: Ctx) => {
   box(g, 60, t + 26, 7, 20, INK); box(g, 61, t + 25, 6, 20, '#7A1A1A'); box(g, 61, t + 25, 1, 20, '#9A3A3A');
   box(g, w - 3, t + 6, 2, -t - 10, '#E8A050'); box(g, w - 2, t + 6, 1, -t - 10, '#FFE0A0');
   web(g, 0, t, 16, 1, 1, 'rgba(220,220,230,0.4)');
+  // (the card nailed across its bottom shelf at eye height, in marker, protesting too much (the owner, 2026-11-02: "make
+  // the hidden bookcase have a sign that tries to divert attention how there is nothing there, when there is obviously
+  // something there"): fresh white card on old dusty wood: the first thing seen)
+  // (left of the middle: the wall's near edge comes over the shelf's right end from the library side)
+  g.save(); g.translate(52, -26); g.rotate(-0.05);
+  box(g, -46, -22, 92, 44, INK); box(g, -45, -21, 90, 42, '#ECE6D6'); box(g, -45, -21, 90, 2, '#FFFFFF'); box(g, -45, 20, 90, 1, '#C8BEA8');
+  for (const nx of [-41, 38]) { box(g, nx, -19, 3, 3, INK); box(g, nx, -19, 2, 1, '#C8C8C0'); }
+  signAt(g, 'NOTHING', 0, -12, 7, print(7, '#141010'));
+  signAt(g, 'BACK HERE.', 0, -2, 7, print(7, '#141010'));
+  signAt(g, 'NOT A DOOR.', 0, 12, 7, fit('NOT A DOOR.', print(7, '#B01818'), 84));
+  g.restore();
 };
 
 /** One of the old wall shelves up the library's dark top left (on iron brackets; cobwebbed; its lip only dimly lit: up
@@ -304,19 +315,26 @@ const paintWayShelf = (g: Ctx, w: number, top: boolean, seed: number) => {
   web(g, w - 2, top ? 12 : 14, 22, -1, 1, 'rgba(220,220,230,0.35)');
 };
 
-/** The bedroom's servants' hatch (on its back wall, by the door): a little oak door in a stone surround, iron strapped;
- *  banged open for a moment as he comes flying out of it. */
-const paintHatch = (g: Ctx, open: boolean) => {
-  const S2 = STONE.map(c => dimc(c, 0.15));
-  box(g, -30, -78, 60, 82, INK); box(g, -28, -76, 56, 78, S2[2]); box(g, -28, -76, 56, 3, S2[3]); box(g, -28, -2, 56, 4, S2[0]);
-  box(g, -22, -70, 44, 70, '#050304');
-  if (open) {
-    box(g, -26, -70, 10, 70, INK); box(g, -25, -69, 8, 68, OAK[2]); box(g, -25, -69, 2, 68, OAK[3]);
-  } else {
-    box(g, -22, -70, 44, 70, OAK[1]); for (let k = 0; k < 4; k++) box(g, -22 + k * 11, -70, 1, 70, OAK[0]);
-    for (const y of [-60, -16]) { box(g, -22, y, 44, 5, INK); box(g, -22, y + 1, 44, 3, IRON[2]); box(g, -22, y + 1, 44, 1, IRON[4]); }
-    box(g, 12, -40, 5, 6, INK); box(g, 13, -39, 3, 4, BRASS[3]);
-  }
+/** The hole the cannon's shot punches down through the library's ceiling at its right end: a ragged black gap through
+ *  the plaster and the lath, broken boards hanging down out of it (swung wide a moment as he comes through), plaster
+ *  crumbs on its edges. (0, 0): the ceiling's underside at the hole's middle. */
+const paintHole = (g: Ctx, swung: boolean) => {
+  const P = ['#5A524C', '#7A7068', '#9A9088', '#BAB0A6'];
+  // (the gap: jagged, darker going up into the roof)
+  g.fillStyle = INK; g.beginPath(); g.moveTo(-40, 0); g.lineTo(-34, -14); g.lineTo(-22, -10); g.lineTo(-14, -22); g.lineTo(2, -16); g.lineTo(14, -24); g.lineTo(28, -12); g.lineTo(40, -16); g.lineTo(44, 0); g.lineTo(34, 6); g.lineTo(18, 3); g.lineTo(4, 8); g.lineTo(-10, 3); g.lineTo(-26, 7); g.closePath(); g.fill();
+  g.fillStyle = '#050304'; g.beginPath(); g.moveTo(-32, 0); g.lineTo(-26, -8); g.lineTo(-12, -14); g.lineTo(14, -16); g.lineTo(34, -6); g.lineTo(34, 2); g.lineTo(4, 4); g.lineTo(-24, 3); g.closePath(); g.fill();
+  // (the broken lath across it, the plaster's torn lip)
+  for (const [x, w] of [[-30, 20], [6, 26]] as const) { box(g, x, -6, w, 3, INK); box(g, x, -5, w, 1, '#6A4826'); }
+  for (let k = -36; k < 40; k += 9) { box(g, k, 2 + ((k * 7) & 3), 5, 2, P[(k + 40) % 4]); box(g, k, 2 + ((k * 7) & 3), 5, 1, P[3]); }
+  // (the boards hanging down off it: on their nails, swung out as he comes through)
+  const board = (x: number, len: number, a: number) => {
+    g.save(); g.translate(x, 2); g.rotate(a);
+    box(g, -5, 0, 10, len, INK); box(g, -4, 0, 8, len - 1, OAK[2]); box(g, -4, 0, 2, len - 1, OAK[3]); box(g, 2, 0, 2, len - 1, OAK[1]);
+    g.fillStyle = INK; g.beginPath(); g.moveTo(-5, len); g.lineTo(-1, len + 7); g.lineTo(2, len + 2); g.lineTo(5, len + 6); g.lineTo(5, len); g.closePath(); g.fill();
+    box(g, -2, 3, 3, 3, IRON[4]);
+    g.restore();
+  };
+  board(-24, 34, swung ? -1.1 : -0.25); board(24, 28, swung ? 1.0 : 0.3);
 };
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -344,10 +362,10 @@ export const drawLoftBack = (c: Ctx, state: GameState) => {
       c.fillStyle = `rgba(230,210,180,${(0.55 * (1 - u)).toFixed(2)})`; c.fillRect(Math.round(x), Math.round(y), 2, 2);
     }
   }
-  // The bedroom's hatch (banged open a moment as he comes out of it)
-  if (seen(state, HATCH.x - 40, HATCH.x + 40, HATCH.y - 60, HATCH.y + 60)) {
-    const open = f - h.hatchAt < 50;
-    c.save(); c.translate(HATCH.x, HATCH.y + 34); stamp(c, `sp-hatch-${open}`, -32, -80, 64, 86, g => paintHatch(g, open)); c.restore();
+  // The hole down through the library's ceiling, once the cannon's put him through it (its boards swung wide a moment)
+  if (state.stageMemo[HOLE_MEMO] && seen(state, HOLE.x - 60, HOLE.x + 60, HOLE.y - 40, HOLE.y + 60)) {
+    const swung = f - h.hatchAt < 24;
+    c.save(); c.translate(HOLE.x, HOLE.y); stamp(c, `sp-hole-${swung}`, -60, -30, 120, 80, g => paintHole(g, swung)); c.restore();
   }
   // The loft
   if (!seen(state, LA - 40, LOFT.b, F - H - 60, F + 40)) return;
