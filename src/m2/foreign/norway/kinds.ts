@@ -62,7 +62,7 @@ const axe = (g: CanvasRenderingContext2D, x: number, y: number, up: boolean) => 
   g.restore();
 };
 
-const VIKING_COSTUME: Costume = {
+export const VIKING_COSTUME: Costume = {
   id: 'viking', top: s => pick(s, 2, TUNIC), legs: s => pick(s, 4, ['#57534E', '#78716C', '#44403C']), shoe: 'boot', shoeCol: '#3F2A14', stripe: '#A8977C',
   over: (g, B) => furVest(g, B),
   hat: (g, B, F) => hornHelmet(g, B, F.seed), hairToo: true,

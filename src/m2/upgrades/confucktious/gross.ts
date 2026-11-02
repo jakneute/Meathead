@@ -16,9 +16,13 @@
 //          the motion lines, a jolt each time one lands.
 //   pauldrons: the COCO-NUTS strapped on his traps: he shoulder-barges the camera, one shoulder then the other, the
 //          coconut looming up at the lens, the motion lines, a jolt as it lands.
+//   helmet: the KEGGER HELMET on his head (the silver plastic dome, the gold plastic horns, the flag patch, a beer can
+//          in a foam holder each side, the bendy straw from the near one down outside his cheek into the corner of his
+//          mouth): he chugs through the straw (the beer going up it in gulps), then HEADBUTTS the camera (the whole face
+//          lunging at the lens, the BONK's stars off the dome), and chugs again.
 
 import {
-  type Ctx, type Buf, GH, R, hexU, WHITE, newBuf, setSeed, rnd, matAt, plot, seg, path, ball, tint, poly, bead, eyeball, teeth, skinPost, stubble, hairs, vein, stamps, drawGrossStamp, grossBackdrop, toCanvas, M_SKIN, M_HAIR, M_MOUTH, M_OTHER, M_CLOTH, SCLERA_R, MOUTH, TONGUE, VEIN_B, BLOOD,
+  type Ctx, type Buf, GH, R, hexU, WHITE, newBuf, setSeed, rnd, matAt, plot, seg, path, ball, tint, poly, bead, eyeball, teeth, skinPost, stubble, hairs, vein, stamps, drawGrossStamp, grossBackdrop, toCanvas, M_SKIN, M_HAIR, M_MOUTH, M_OTHER, M_CLOTH, M_METAL, SCLERA_R, MOUTH, TONGUE, VEIN_B, BLOOD,
 } from '../../grossKit';
 import type { ArmorPiece } from '../state';
 
@@ -230,9 +234,97 @@ const padCanvas = () => {
   return out;
 };
 
+/** The KEGGER HELMET on his head, painted in the face's own buffer coordinates (a buffer of its own: drawn straight over
+ *  the face): the far horn and its can behind, the dome and its band, the brim on his hairline (clear of his brow), the
+ *  flag patch, the near horn and its can, the straw down from the near can (his left) outside the cheek to the corner of
+ *  his mouth. */
+const HPLAST = R('#FFFFFF', '#E8EAEE', '#CDD1D8', '#A6ACB6', '#7C838E', '#2E3440');
+const HHORN = R('#FFF6CC', '#F7E08E', '#E3C25A', '#C29A3A', '#8A6420', '#3A2A08');
+const HCANR = R('#F87171', '#DC2626', '#B91C1C', '#991B1B', '#6E1414', '#2A0404');
+const HCANB = R('#BFDBFE', '#60A5FA', '#2563EB', '#1D4ED8', '#12307A', '#081436');
+const HFOAM = R('#4A4A52', '#34343A', '#26262C', '#1A1A1E', '#0E0E12', '#000000');
+const HALU = R('#FFFFFF', '#E4E4EA', '#BCBCC6', '#8E8E9A', '#5E5E6A', '#22222A');
+const HSTRIPE = R('#FFFFFF', '#FFFFFF', '#F2F2F2', '#E0E0E0', '#C8C8C8', '#6A6A6A');
+const HFLAG = R('#F04A5E', '#D81E3A', '#C8102E', '#A80C26', '#7A081A', '#3A040C');
+const HSTICK = R('#FFE08A', '#FFC93A', '#E8A010', '#B87A04', '#7A5000', '#3A2400');
+const HBLUE = hexU('#1D4ED8');
+/** The straw's points (buffer), the can's top to his mouth's corner. */
+const STRAW: [number, number][] = [[FX - 84, 70], [FX - 88, 56], [FX - 92, 64], [FX - 84, 104], [FX - 62, 136], [FX - 24, 146]];
+let helmCv: HTMLCanvasElement | null | undefined;
+const helmCanvas = () => {
+  if (helmCv !== undefined) return helmCv;
+  setSeed(5150);
+  const b = newBuf();
+  // (a horn: out of the dome's side, curving out and up to a point; a mould seam; its plastic ring at the root)
+  const horn = (s: number) => {
+    // (one smooth shape: its outer and inner edges off the curve, the tip a point; shaded across, a shine down it)
+    const N = 18, out: number[] = [], inn: number[] = [];
+    const at = (t: number) => [FX + s * (52 + t * 46 + t * t * 8), 42 - t * 10 - t * t * 32] as const;
+    for (let i = 0; i <= N; i++) {
+      const t = i / N, [x, y] = at(t), [x2, y2] = at(Math.min(1, t + 0.02)), [x1, y1] = at(Math.max(0, t - 0.02));
+      const dx = x2 - x1, dy = y2 - y1, l = Math.hypot(dx, dy) || 1, nx = -dy / l, ny = dx / l, r = 10 * (1 - t) ** 0.9 + 0.6;
+      out.push(x + nx * r, y + ny * r); inn.unshift(x - nx * r, y - ny * r);
+    }
+    poly(b, [...out, ...inn], HHORN, M_OTHER, { line: true, tilt: -s * 0.9 });
+    for (let i = 2; i < N - 2; i++) { const t = i / N, [x, y] = at(t), [x2] = at(t + 0.05); plot(b, x + (x2 > x ? -2 : 2) * (1 - t), y - 3 * (1 - t), WHITE, M_OTHER); }
+    // (the ridges moulded round its root, the plastic collar it's glued into)
+    for (let k = 1; k < 4; k++) { const [x, y] = at(k * 0.08); seg(b, x - 7, y - 4 * s * 0, x + 7, y + 2, HHORN[4], 1, M_OTHER, M_OTHER); }
+    ball(b, FX + s * 54, 44, 8, 6, HPLAST.slice(2), { mat: M_OTHER, line: true, lw: 1 });
+  };
+  // (a can in its foam holder, hung off the brim's strap by the ear)
+  const can = (s: number, ramp: number[]) => {
+    const x = FX + s * 82;
+    seg(b, x - s * 4, 66, FX + s * 66, 52, HFOAM[3], 3, M_CLOTH);
+    poly(b, [x - 11, 66, x + 11, 66, x + 11, 104, x - 11, 104], ramp, M_METAL, { line: true, tilt: s * 0.6 });
+    ball(b, x, 66, 11, 3.4, HALU, { mat: M_METAL, line: true, lw: 1 });
+    plot(b, x - 3, 65, WHITE); seg(b, x - 1, 66, x + 4, 66, HALU[4]);
+    poly(b, [x - 11, 80, x + 11, 80, x + 11, 84, x - 11, 84], HSTRIPE, M_METAL, { line: false, tilt: 0 });
+    poly(b, [x - 13, 88, x + 13, 88, x + 13, 108, x - 13, 108], HFOAM, M_CLOTH, { line: true, tilt: 0.2 });
+    for (let k = 0; k < 40; k++) plot(b, x - 12 + rnd() * 24, 89 + rnd() * 18, HFOAM[rnd() < 0.5 ? 0 : 3], M_CLOTH, M_CLOTH);
+  };
+  horn(1); can(1, HCANB);
+  // (the dome: silver plastic over his scalp, flat-lit, a hard white shine; the moulded band over its top, fake rivets)
+  ball(b, FX, 52, 66, 48, HPLAST, { mat: M_OTHER, line: true, lw: 1.6, only: (_x, y) => y < 52, flat: 0.75 });
+  poly(b, [FX - 7, 6, FX + 7, 6, FX + 8, 52, FX - 8, 52], HPLAST.slice(1), M_OTHER, { line: true, tilt: 0.6 });
+  for (let y = 12; y < 50; y += 8) { ball(b, FX, y, 2, 2, HPLAST, { mat: M_OTHER, line: true, lw: 0.8 }); plot(b, FX - 1, y - 1, WHITE); }
+  for (let k = 0; k < 14; k++) seg(b, FX - 40 + k, 18 - k * 0.3, FX - 28 + k, 14 - k * 0.3, WHITE, 1, M_OTHER, M_OTHER);
+  // (the brim on his hairline, its stitched edge, scuffs)
+  poly(b, [FX - 70, 44, FX + 70, 44, FX + 72, 58, FX - 72, 58], HPLAST, M_OTHER, { line: true, tilt: 0 });
+  for (let x = FX - 64; x < FX + 64; x += 6) plot(b, x, 51, WHITE, M_OTHER);
+  for (let k = 0; k < 10; k++) { const x = FX - 60 + rnd() * 120, y = 46 + rnd() * 10; seg(b, x, y, x + 3, y, HPLAST[4], 1, M_OTHER, M_OTHER); }
+  // (the flag patch, stitched on crooked: a Nordic cross, red, white, blue)
+  const fx0 = FX - 44, fy0 = 22;
+  poly(b, [fx0, fy0 + 2, fx0 + 26, fy0, fx0 + 27, fy0 + 17, fx0 + 1, fy0 + 19], HSTRIPE, M_CLOTH, { line: true, tilt: 0 });
+  poly(b, [fx0 + 2, fy0 + 3, fx0 + 25, fy0 + 1.5, fx0 + 25.5, fy0 + 15.5, fx0 + 2.5, fy0 + 17], HFLAG, M_CLOTH, { line: false, tilt: 0 });
+  for (let y = fy0 + 1; y < fy0 + 18; y++) { plot(b, fx0 + 9, y, WHITE, M_CLOTH, M_CLOTH); plot(b, fx0 + 10, y, HBLUE, M_CLOTH, M_CLOTH); plot(b, fx0 + 11, y, HBLUE, M_CLOTH, M_CLOTH); plot(b, fx0 + 12, y, WHITE, M_CLOTH, M_CLOTH); }
+  for (let x = fx0 + 1; x < fx0 + 27; x++) { const y = fy0 + 8 - (x - fx0) * 0.07; plot(b, x, y, WHITE, M_CLOTH, M_CLOTH); plot(b, x, y + 1, HBLUE, M_CLOTH, M_CLOTH); plot(b, x, y + 2, HBLUE, M_CLOTH, M_CLOTH); plot(b, x, y + 3, WHITE, M_CLOTH, M_CLOTH); }
+  for (let k = 0; k < 9; k++) { plot(b, fx0 + k * 3, fy0 + 1 - k * 0.07, HPLAST[4], M_CLOTH); plot(b, fx0 + 1 + k * 3, fy0 + 19 - k * 0.07, HPLAST[4], M_CLOTH); }
+  // (the price sticker still on the brim)
+  ball(b, FX + 40, 50, 7, 4, HSTICK, { mat: M_OTHER, line: true, lw: 1 });
+  seg(b, FX + 36, 50, FX + 44, 50, HSTICK[5]);
+  horn(-1); can(-1, HCANR);
+  // (the straw: white, the red stripe winding down it, the bendy bit's ridges at the bend; outside his cheek)
+  for (let i = 1; i < STRAW.length; i++) { const [x0, y0] = STRAW[i - 1], [x1, y1] = STRAW[i]; seg(b, x0, y0, x1, y1, hexU('#2A1A1A'), 4, M_OTHER); }
+  for (let i = 1; i < STRAW.length; i++) {
+    const [x0, y0] = STRAW[i - 1], [x1, y1] = STRAW[i], n = Math.ceil(Math.hypot(x1 - x0, y1 - y0));
+    for (let k = 0; k <= n; k++) { const x = x0 + ((x1 - x0) * k) / n, y = y0 + ((y1 - y0) * k) / n; const red = Math.floor((k + i * 7) / 3) % 2 === 0; seg(b, x, y, x + 0.5, y + 0.5, red ? hexU('#EF4444') : WHITE, 2, M_OTHER); }
+  }
+  for (let k = 0; k < 4; k++) seg(b, FX - 91 + k * 0.6, 58 + k * 2, FX - 87 + k * 0.6, 58 + k * 2, hexU('#9CA3AF'), 1, M_OTHER);
+  helmCv = toCanvas(b);
+  return helmCv;
+};
+/** The chug's gulps up the straw, then the headbutt (frames): a cycle of CHUG then BUTT. */
+const CHUG = 84, BUTT = 30;
+/** Where along the straw (0 the can, 1 his mouth) a gulp is, `u` 0..1. */
+const strawAt = (u: number): [number, number] => {
+  const segs = STRAW.length - 1, t = Math.min(segs - 1e-6, u * segs), i = Math.floor(t), k = t - i;
+  const [x0, y0] = STRAW[i], [x1, y1] = STRAW[i + 1];
+  return [x0 + (x1 - x0) * k, y0 + (y1 - y0) * k];
+};
+
 type Draw = (c: Ctx, f: number) => void;
 /** A piece's prop, drawn in the buffer's own pixels over the face (and a jolt for the screen when it lands). */
-interface Prop { draw: Draw; jolt: (f: number) => number; /** Bake its art now (ahead of the close-up). */ warm?: () => void }
+interface Prop { draw: Draw; jolt: (f: number) => number; /** Bake its art now (ahead of the close-up). */ warm?: () => void; /** The whole face pushed at the lens (a headbutt): times the zoom. */ zoom?: (f: number) => number }
 
 const FLURRY = 11;
 /** A shoulder barge's frames (out at the lens and back, a beat, the other shoulder). */
@@ -278,6 +370,48 @@ const PROPS: Partial<Record<ArmorPiece, Prop>> = {
     jolt: (f) => ((f % BARGE) === Math.round(BARGE * 0.27) ? 4 : 0),
     warm: () => { padCanvas(); },
   },
+  helmet: {
+    // (chugging through the straw, gulp by gulp up it, the near can going empty; then the headbutt at the lens (the
+    // whole face lunging: zoom), the BONK's stars off the dome)
+    draw: (c, f) => {
+      const cv = helmCanvas();
+      if (!cv) return;
+      c.drawImage(cv, 0, 0);
+      const t = f % (CHUG + BUTT);
+      if (t < CHUG) {
+        // (the gulps: amber slugs riding up the straw, a bubble behind each)
+        for (let g = 0; g < 3; g++) {
+          const u = ((t / CHUG) * 2.2 + g * 0.33) % 1, [x, y] = strawAt(u);
+          c.fillStyle = '#E8A21A'; c.fillRect(Math.round(x) - 1, Math.round(y) - 1, 3, 3);
+          c.fillStyle = '#FFE08A'; c.fillRect(Math.round(x) - 1, Math.round(y) - 1, 1, 1);
+          const [bx, by] = strawAt(Math.max(0, u - 0.04));
+          c.fillStyle = '#FFFFFF'; c.fillRect(Math.round(bx), Math.round(by), 1, 1);
+        }
+        // (the can crumpling in on the last gulps)
+        if (t > CHUG - 16) { c.fillStyle = '#5A0A0A'; c.fillRect(FX - 87, 74, 6, 9); c.fillStyle = '#EF4444'; c.fillRect(FX - 86, 75, 2, 2); }
+      } else {
+        // (the BONK: lines and stars off the dome as it lands)
+        const k = (t - CHUG) / BUTT;
+        if (k > 0.25 && k < 0.7) {
+          c.fillStyle = '#FFFFFF';
+          for (let i = 0; i < 8; i++) {
+            const side = i < 4 ? 1 : -1, a = (0.04 + (i % 4) * 0.08) * Math.PI, r0 = 70 + k * 24, r1 = r0 + 14;
+            for (let s = 0; s < 7; s++) { const r = r0 + ((r1 - r0) * s) / 6; c.fillRect(Math.round(FX + side * Math.cos(a) * r * 1.4), Math.round(56 - Math.sin(a) * r), 2, 2); }
+          }
+          c.fillStyle = '#FDE047';
+          for (const [sx, sy] of [[FX - 104, 14], [FX + 100, 10], [FX - 64, 2], [FX + 58, 0]] as const) { c.fillRect(sx - 1, sy + 4, 3, 9); c.fillRect(sx - 4, sy + 7, 9, 3); c.fillStyle = '#FFFFFF'; c.fillRect(sx, sy + 7, 1, 1); c.fillStyle = '#FDE047'; }
+        }
+      }
+    },
+    jolt: (f) => ((f % (CHUG + BUTT)) === CHUG + Math.round(BUTT * 0.3) ? 6 : 0),
+    zoom: (f) => {
+      const t = f % (CHUG + BUTT);
+      if (t < CHUG) return 1;
+      const k = (t - CHUG) / BUTT;
+      return 1 + 0.32 * (k < 0.3 ? Math.sin(((k / 0.3) * Math.PI) / 2) : Math.cos((((k - 0.3) / 0.7) * Math.PI) / 2));
+    },
+    warm: () => { helmCanvas(); },
+  },
 };
 
 /** His gross-up: (cx, cy) where the middle of his face goes on the screen, `zoom` 1 at the hold; `piece` the one he's
@@ -285,7 +419,7 @@ const PROPS: Partial<Record<ArmorPiece, Prop>> = {
 export const drawBenGross = (c: Ctx, cx: number, cy: number, zoom: number, f: number, piece: ArmorPiece | null, talking: boolean) => {
   const s = face(talking && f % 12 < 6 ? 'b' : 'a');
   const prop = piece ? PROPS[piece] : undefined;
-  drawGrossStamp(c, s.img, cx, cy, FX, FY, zoom, f, prop?.jolt(f) ?? 0, (box) => {
+  drawGrossStamp(c, s.img, cx, cy, FX, FY, zoom * (prop?.zoom?.(f) ?? 1), f, prop?.jolt(f) ?? 0, (box) => {
     // (the toothpick, wagging at the corner of the smirk)
     const w = Math.sin(f * 0.18) * 3;
     for (let i = 0; i < 18; i++) box(FX + 30 + i, 146 - i * 0.4 + (w * i) / 18, 2, 2, i < 2 ? '#B89A5A' : '#EAD8A4');

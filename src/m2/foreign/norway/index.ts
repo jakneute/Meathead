@@ -15,6 +15,7 @@ import type { GameState } from '../../../m1/game/core/state';
 import type { ForeignSection } from '../section';
 import { layOwn, solid, ledge, foreignState } from '../section';
 import { SECTIONS, GY } from '../geometry';
+import { CANVAS_WIDTH } from '../../../m1/constants';
 import { spawnCast } from '../cast';
 import { pavilionTalk } from '../pavilion';
 import { hurtPlayer } from '../../../m1/game/bosses/shared';
@@ -30,6 +31,8 @@ import { drawHouse, trollFace, drawBooth, drawHousing, drawShip, drawChurch, typ
 import { TALK } from './lines';
 import './kinds';
 import { TOLL_FROM, TOLL_CHECKPOINTS, RIVER, tollRuns, buildToll, updateToll, tollWater, drawTollBack, drawTollFront, tollLamps } from './toll';
+import { trackCast, buildValhalla, updateValhalla, inHall, drawHallHud, HALL } from './valhalla';
+import { drawValhallaBack, drawValhallaFront, hallLighting, hallView } from './valhallaArt';
 
 const { x0, x1 } = SECTIONS.norway;
 const X = (rx: number) => x0 + rx, Y = (h: number) => GY - h;
@@ -124,6 +127,8 @@ export const norway: ForeignSection = {
   id: 'norway', x0, x1,
   checkpoints: NORWAY_CHECKPOINTS,
   build: (state) => {
+    // (everyone this build puts down is counted for the doorman under the bridge: valhalla.ts)
+    const n0 = state.enemies.length;
     layOwn(state, [...runsAround(x0, X(TOLL_FROM), [POOL]), ...tollRuns()]);
     buildToll(state);
     poolSteps(state, POOL);
@@ -135,12 +140,17 @@ export const norway: ForeignSection = {
     n.ship = makeMover(state, shipX(state.frame), deckY(state.frame, shipX(state.frame)), SHIP.w, 'no-ship');
     spawnCast(state, ENEMIES, X, Y);
     // (a viking aboard: put on the deck wherever the ship is now)
+    const nShip = state.enemies.length;
     if (n.ship) spawnCast(state, [['m2:fl_viking', n.ship.x - x0 + 140, 0]], X, () => n.ship!.y);
+    trackCast(state, state.enemies.slice(n0), state.enemies[nShip] ?? null);
+    buildValhalla(state);
     for (const [rx, h, type] of PICKUPS) state.pickups.push({ id: `no-${rx}`, pos: { x: X(rx) - 10, y: Y(h) - 24 }, vel: { x: 0, y: 0 }, width: 20, height: 20, type, life: 1e9 });
   },
   update: (ctx, controls) => {
     const { state } = ctx, p = state.player, n = norOf(state), f = state.frame;
-    pavilionTalk(state, 'no', x0, GY, TALK);
+    // (the doorman, the halls, Ben's hall under the bridge: valhalla.ts, first: it can take the controls)
+    controls = updateValhalla(ctx, controls);
+    if (!inHall(state)) pavilionTalk(state, 'no', x0, GY, TALK);
     updateToll(ctx);
     poolZones(state, 'no-fjord', [POOL]);
     // The longship, across and back, riding the swell
@@ -196,6 +206,7 @@ export const norway: ForeignSection = {
     if (onScreen(v, X(1880), X(2000))) postBoard(c, X(1930), GY, ['THE FJORD', '(WAVE POOL)', 'NO LIFEGUARD ON DUTY'], LOOKS.norway(1), '#1E3A8A', undefined, 130);
     if (onScreen(v, X(2820), X(2920))) postBoard(c, X(2860), GY, ['STAVE CHURCH', 'NO STAVES INSIDE'], LOOKS.norway(1), '#3F2A14', undefined, 110);
     drawTollBack(c, v, state);
+    drawValhallaBack(c, state);
     for (const [fx, cols] of [[X(80), ['#BA0C2F', '#F8FAFC', '#00205B', '#F8FAFC', '#BA0C2F']], [X(5580),['#BA0C2F', '#F8FAFC', '#00205B', '#F8FAFC', '#BA0C2F']]] as const) if (onScreen(v, fx - 20, fx + 60)) flagPole(c, fx, GY, 200, [...cols], f);
     void WHITE;
   },
@@ -203,8 +214,14 @@ export const norway: ForeignSection = {
     const v = viewIn(state), f = state.frame;
     drawPoolFront(c, v, POOL, f, x => waveH(f, x));
     drawTollFront(c, v, state);
+    drawValhallaFront(c, state);
   },
-  outdoors: () => 1,
+  drawHud: (c, state) => drawHallHud(c, state),
+  // (down in the hall under the bridge: its own dark and lamps, the camera kept to it, his feet low on the screen)
+  lighting: (state, base) => (hallView(state) ? hallLighting(state) : base ?? null),
+  cameraRow: (state) => (inHall(state) ? 470 : undefined),
+  cameraX: (state) => (inHall(state) ? { min: X(HALL.a) - 30, max: X(HALL.b) + 30 - CANVAS_WIDTH } : undefined),
+  outdoors: (state) => (hallView(state) ? 0 : 1),
   lamps: (state) => {
     const v = viewIn(state), out: Light[] = [];
     if (onScreen(v, X(2900), X(3500))) out.push({ x: X(3200), y: Y(60), r: 160, a: 0.45, color: '#FDE68A' });

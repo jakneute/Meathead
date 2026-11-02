@@ -181,10 +181,11 @@ export const foreignLayout: StageLayout = {
   holdTick: (ctx) => current(ctx.state).holdTick?.(ctx) ?? false,
   lighting: (state) => {
     const sec = current(state);
-    if (sec.lighting) return sec.lighting(state);
     const out = sec.outdoors?.(state) ?? 0;
     // (the lamps of every section on screen: a pavilion's lanterns don't go out the moment he steps into the next)
-    return out > 0 ? todLight(near(state).flatMap(id => ALL[id].lamps?.(state) ?? []), out) : null;
+    const base = out > 0 ? todLight(near(state).flatMap(id => ALL[id].lamps?.(state) ?? []), out) : null;
+    // (a section's own lighting gets that to build on, or hand back: Norway's, the hall under its bridge)
+    return sec.lighting ? sec.lighting(state, base) : base;
   },
   cameraRow: (state) => current(state).cameraRow?.(state),
   cylinder: (state) => current(state).cylinder?.(state) ?? null,

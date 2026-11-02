@@ -191,6 +191,7 @@
   "m2.foreign.shieldviking": { "voice": "am_michael", "speed": 1.05, "rate": 0.96 },
   "m2.foreign.shieldvikingf": { "voice": "af_sarah", "speed": 1.05, "rate": 0.98 },
   "m2.foreign.lutefisk": { "voice": "af_heart", "speed": 1.05, "rate": 1.04 },
+  "m2.foreign.doorman": { "voice": [["am_onyx", 0.6], ["am_michael", 0.4]], "speed": 0.92, "rate": 0.9, "gain": 1.15, "fx": "mask" },
   "m2.foreign.kungfu": { "voice": "am_adam", "speed": 1.15, "rate": 1.04, "gain": 1.1 },
   "m2.foreign.kungfuf": { "voice": "af_nova", "speed": 1.15, "rate": 1.06, "gain": 1.1 },
   "m2.foreign.dragon": { "voice": "am_santa", "speed": 1.1, "rate": 1.0 },

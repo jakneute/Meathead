@@ -41,7 +41,7 @@ export const BEN_VOICE = 'm2.ben';
 
 /** Meathead, first sight of him. */
 export const MEET: ByPants = {
-  clean: ['CON-FUCK-TIOUS! IN A HOLE! UNDER A BALL PIT!', 'HOLY SHIT! CON-FUCK-TIOUS! MY SPOTTER!'],
+  clean: ['CON-FUCK-TIOUS! IN A SECRET HIDEOUT! LIKE BATMAN!', 'HOLY SHIT! CON-FUCK-TIOUS! MY SPOTTER!'],
   shitty: ["CON-FUCK-TIOUS! DON'T LOOK AT MY PANTS. LOOK AT MY EYES.", 'CON-FUCK-TIOUS! I SHAT MYSELF, BUT LIKE A WARRIOR.'],
   nude: ["CON-FUCK-TIOUS! IT'S OKAY, YOU'VE SEEN IT IN THE GYM SHOWERS.", 'CON-FUCK-TIOUS! I LOST MY PANTS. AND MY WAY.'],
 };
@@ -49,7 +49,7 @@ export const MEET: ByPants = {
 export const NAME = ["IT'S BEN.", "BEN. IT'S BEN.", "MY NAME IS BEN. IT'S ON MY LOCKER."];
 /** Ben, the fake-riddle act for Meathead's benefit, gym-bro style (the gross-up's line). */
 export const RIDDLE: ByPants = {
-  clean: ['THE BAR DOES NOT LIFT ITSELF. ALSO, YOU FELL IN MY HOLE.', 'HE WHO SKIPS LEG DAY FALLS DOWN HOLES.'],
+  clean: ['THE BAR DOES NOT LIFT ITSELF. ALSO, YOU FOUND MY HOLE.', 'HE WHO SKIPS LEG DAY NEVER FINDS MY HOLE.'],
   shitty: ['THE SQUAT REVEALS ALL. YOURS REVEALED TOO MUCH.', 'NO PAIN, NO GAIN. NO BOWEL CONTROL EITHER, I SEE.'],
   nude: ['THE STRONGEST MAN NEEDS NO PANTS. THE SMART ONE WEARS THEM ANYWAY.', 'NAKED IN MY GYM. AT LEAST WIPE DOWN THE BENCH AFTER.'],
 };
@@ -91,6 +91,12 @@ export const NUDGE: ByPants = {
   shitty: ['THE CANNON. PLEASE. THE SMELL IS IN THE BENCH NOW.', 'GET IN THE CANNON. TAKE YOUR PANTS WITH YOU.'],
   nude: ['GET IN THE CANNON. AND KEEP THAT OFF MY BENCH.', 'THE CANNON. GO. BE NAKED SOMEWHERE ELSE.'],
 };
+/** Ben, done teaching, where there's no cannon (Foreign Lands: out the way he came in). */
+export const NUDGE_OUT: ByPants = {
+  clean: ['REST BETWEEN SETS. NOT FOREVER. THE DOOR, MEATHEAD.', "THE DOOR'S WHERE YOU LEFT IT. I GOT A NAP SCHEDULED."],
+  shitty: ['THE DOOR. PLEASE. THE SMELL IS IN THE MATS NOW.', 'OUT THE DOOR. TAKE YOUR PANTS WITH YOU.'],
+  nude: ['OUT THE DOOR. AND KEEP THAT OFF MY THRONE.', 'THE DOOR. GO. BE NAKED SOMEWHERE ELSE.'],
+};
 /** Getting into the cannon: Meathead's goodbye, then Ben's. */
 export const BYE_MEATHEAD = ['BYE, CON-FUCK-TIOUS!', 'LATER, CON-FUCK-TIOUS! I LOVE YOU!'];
 export const BYE_BEN = ['BEN. GOODBYE.', 'TRY NOT TO DIE STUPID.'];
@@ -128,10 +134,10 @@ export interface PieceLines {
   /** Ben, a try at the trial that got somewhere but isn't done (in order). */
   more?: string[];
   /** His pose for the trial's set (default 'offer': holding the thing out). */
-  trialPose?: 'offer' | 'brace';
+  trialPose?: 'offer' | 'brace' | 'fold';
 }
 
-export const PIECE_LINES: { hands: PieceLines; pauldrons: PieceLines } = {
+export const PIECE_LINES: { hands: PieceLines; pauldrons: PieceLines; helmet: PieceLines } = {
   hands: {
     ask: {
       clean: ['WHAT ARE THOSE? ARE THOSE MICKEY HANDS?', 'WHOA. GIANT CARTOON HANDS. I NEED THOSE.'],
@@ -198,7 +204,44 @@ export const PIECE_LINES: { hands: PieceLines; pauldrons: PieceLines } = {
       nude: ['YOU CLIMBED UP THAT SHAFT NAKED. THE FISH SAW EVERYTHING.', 'YOU AGAIN. STILL NO PANTS. STILL NO MORE COCONUTS.'],
     },
   },
+  helmet: {
+    ask: {
+      clean: ['IS THAT A BEER HELMET? WITH HORNS? IT LOOKS LIKE MY WHOLE PERSONALITY.', 'A VIKING HELMET THAT HOLDS BEER. I THINK I JUST GOT HARD.'],
+      shitty: ['A BEER HELMET! I NEED A DRINK. I JUST LOST A LOT OF FLUIDS.', 'GIVE ME THAT. IT GOES ON MY HEAD. FAR AWAY FROM MY PANTS.'],
+      nude: ["A HELMET! NOW I'M ONLY NAKED FROM THE EYEBROWS DOWN!", 'A HELMET! FINALLY SOMETHING TO COVER! WRONG HEAD, BUT STILL!'],
+    },
+    sell: ['GIFT SHOP HELMET. TWO CANS, ONE STRAW, HORNS HOT-GLUED ON. WHATEVER THEY THROW AT YOUR HEAD BOUNCES OFF.'],
+    trial: ["HEADBUTT THE KEG THREE TIMES AND IT'S YOURS. JUMP UNDER IT, HEAD FIRST. DON'T THINK. THINKING IS WHAT HURTS."],
+    trialPose: 'fold',
+    more: ['ONE. YOUR SKULL IS THICKER THAN I REMEMBERED.', 'TWO. I HEARD SOMETHING RATTLE. KEEP GOING.'],
+    miss: ['WITH YOUR HEAD.', "THAT WASN'T YOUR HEAD.", 'HEAD. THE THING YOUR GLASSES SIT ON.', "YOU DON'T SHOOT A KEG. YOU'RE NOT A COWARD.", 'SKULL, MEATHEAD. THE BONE ONE.'],
+    hint: ['THE KEG DOES NOT COME DOWN TO YOU. YOU GO UP TO THE KEG. JUMP UNDER IT. HEAD FIRST.'],
+    pass: ['THERE IT GOES. FREE BEER AND A CONCUSSION. YOU PASS.', 'IT POPPED. YOUR HEAD WON. YOU PASS.'],
+    passed: {
+      clean: ['I SEE THREE OF YOU. ALL THREE ARE PROUD OF ME.'],
+      shitty: ['MY HEAD IS RINGING. MY PANTS ARE... ALSO DOING SOMETHING.'],
+      nude: ['I HIT IT SO HARD MY DICK FELT IT.'],
+    },
+    gift: ['TAKE THE KEGGER HELMET. THE STRAW GOES AROUND THE GLASSES. NOT THROUGH THEM. I TRIED.'],
+    tease: ["DUCK AND IT COVERS MORE OF YOU. BOSSES, THOUGH, THEIR SHIT STILL GETS THROUGH. IT JUST HURTS LESS."],
+    enamored: {
+      clean: ['I CAN DRINK AND GET HIT IN THE HEAD AT THE SAME TIME. THAT IS MY WHOLE WEEKEND.'],
+      shitty: ['A HAT THAT HOLDS BEER. NOW I NEED PANTS THAT HOLD... THE OTHER THING.'],
+      nude: ['NAKED, BUT HELMETED. LIKE A REAL VIKING.'],
+    },
+    practice: ["PRACTICE ON THE INTERN. HE THROWS FOAM AXES AT YOUR HEAD. HE KEEPS COMING BACK. HE'S GOT NOWHERE ELSE TO BE. THEN OUT THE DOOR."],
+    good: ['BONK. BEAUTIFUL.', 'IT BOUNCES. LIKE YOUR RENT CHECKS.', 'GANBATTE. GRANDPA YELLED THAT AT THE TV. BOWLING, MOSTLY.'],
+    idle: {
+      clean: ['YOU AGAIN. THE GIFT SHOP ONLY HAD THE ONE HELMET.', 'YOU AGAIN. I WAS NAPPING IN THE BOAT.'],
+      shitty: ['YOU CAME BACK. THE FOG MACHINE CAN ONLY HIDE SO MUCH.', 'YOU AGAIN. VALHALLA HAS A NO SHIT POLICY. LITERALLY.'],
+      nude: ['YOU AGAIN. NAKED IN VALHALLA. VERY TRADITIONAL, ACTUALLY.', 'YOU AGAIN. STILL NO PANTS. STILL ONE HELMET.'],
+    },
+  },
 };
+
+// ---------------------------------------------------------------------------------------------------------------
+// Foreign Lands: the KEGGER HELMET, in the HALLS OF VALHALLA under Norway's troll toll bridge (the doorman raises it).
+// The trial: three headbutts on the keg hung from the ceiling (jump under it, head first).
 
 // ---------------------------------------------------------------------------------------------------------------
 // The hidden art of follow-ups (the first follow-up piece: the big beat, in order; later ones: ART_AGAIN)
@@ -232,6 +275,6 @@ const pieceBen = (p: PieceLines) => [...p.sell, ...p.trial, ...p.miss, ...p.hint
 const pieceMeathead = (p: PieceLines) => [...all(p.ask), ...all(p.passed), ...all(p.enamored)];
 
 export const BEN_VOICE_LINES: Record<string, string[]> = {
-  [BEN_VOICE]: [...NAME, ...all(RIDDLE), ...PURPOSE, ...FIRST_ASIDE, ...all(AGAIN), ...all(NUDGE), ...BYE_BEN, ...ART_OPEN, ...ART_HOW, ...ART_HUH, ...ART_AGAIN, ...Object.values(PIECE_LINES).flatMap(pieceBen)],
+  [BEN_VOICE]: [...NAME, ...all(RIDDLE), ...PURPOSE, ...FIRST_ASIDE, ...all(AGAIN), ...all(NUDGE), ...all(NUDGE_OUT), ...BYE_BEN, ...ART_OPEN, ...ART_HOW, ...ART_HUH, ...ART_AGAIN, ...Object.values(PIECE_LINES).flatMap(pieceBen)],
   meathead: [...all(MEET), ...all(FIRST_WHY), ...all(FIRST_REACT), ...all(AGAIN_MH), ...BYE_MEATHEAD, ...all(ART_MH), ...all(ART_WEEB), ...Object.values(PIECE_LINES).flatMap(pieceMeathead)],
 };

@@ -407,11 +407,30 @@ const paintBen = (g: Ctx, pose: BenPose, frame: number, piece: ArmorPiece | null
   const hx = 3 + lean * 1.2, hy = -84 + drop;
   traps(g, sx, sy, hx, hy, S);
   head(g, hx, hy, S, winded);
+  // (the KEGGER HELMET, on him till it's given: Foreign Lands)
+  if (piece === 'helmet') kegHelmet(g, hx, hy);
   const hf = arm(g, [sx + 13, sy + 9], hp.f, square, false, S, gloved, pose === 'offer');
   if (pads) pauldron(g, sx + 13, sy + 9, false);
   // (the shaker's the hand armor's trial: nobody else's)
-  if (!pads && pose === 'offer') shaker(g, hf[0] + 1, hf[1] - 6);
-  if (!pads && pose === 'yank') shaker(g, hf[0], hf[1] - 6);
+  const shakes = !pads && piece !== 'helmet';
+  if (shakes && pose === 'offer') shaker(g, hf[0] + 1, hf[1] - 6);
+  if (shakes && pose === 'yank') shaker(g, hf[0], hf[1] - 6);
+};
+
+/** The KEGGER HELMET on his head (the armor's own baked piece, armorArt.ts: its brim on his hairline), and its bendy
+ *  straw from the near can down past his cheek into the corner of his mouth (no glasses on him to go round). */
+const kegHelmet = (g: Ctx, hx: number, hy: number) => {
+  const cv = armorStamp('helmet');
+  if (!cv) return;
+  // (the picture: 36 x 26, its middle at x 18, its brim's foot at y 19.4; his hairline's at hy - 8.4)
+  const k = 1.02, left = hx + 1 - 18 * k, top = hy - 8.4 - 19.4 * k;
+  g.drawImage(cv, left, top, 36 * k, 26 * k);
+  // (the straw: out of the near can's top, down outside his cheek, the bend, in at the smirk's corner)
+  const sx = left + 33 * k, sy = top + 11.4 * k;
+  const pts = [sx, sy, hx + 16.6, hy - 2, hx + 16, hy + 5.6, hx + 12.8, hy + 8.4];
+  lineR(g, pts, 1.9, '#0A0A0A'); lineR(g, pts, 1.1, WHITE);
+  g.setLineDash([1, 1.1]); lineR(g, pts, 1.1, '#EF4444', 'butt'); g.setLineDash([]);
+  pxR(g, hx + 15.4, hy + 4.6, 1.4, 0.5, '#9CA3AF'); pxR(g, hx + 15.2, hy + 5.6, 1.4, 0.5, '#9CA3AF');
 };
 
 /** A coconut pauldron strapped over a delt (the armor's own baked piece, armorArt.ts, sized up to his shoulders). */

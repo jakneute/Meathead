@@ -1,6 +1,6 @@
 // What's said in Norway (the PA's hello, his lines, the cast's barks, what hurts him here), by voice.
 
-import { pavilionVoices, type ByPants, type PavilionTalk, type HurtTable } from '../talk';
+import { pavilionVoices, allOf, type ByPants, type PavilionTalk, type HurtTable } from '../talk';
 
 export const V = {
   viking: { m: 'm2.foreign.viking', f: 'm2.foreign.vikingf' },
@@ -104,4 +104,67 @@ export const HURT: HurtTable = {
   },
 };
 
-export const VOICE_LINES = pavilionVoices(TALK, HURT, [[V.viking, VIKING], [V.shield, SHIELD], [{ m: V.lutefisk.m, f: V.lutefisk.f }, LUTEFISK], [{ m: V.viking.m, f: V.viking.m }, TOLL]], { meathead: PAID_GAG });
+// ---------------------------------------------------------------------------------------------------------------
+// THE DOORMAN (valhalla.ts): a park guy in a cheaper troll suit down under the bridge's right end, who wants the blood
+// of every Norwegian cosplayer before he'll raise the HALLS OF VALHALLA (CON-FUCK-TIOUS's hideout under the bridge).
+// Bored, by the book, muffled through a foam head. His voice: cast.json's m2.foreign.doorman.
+
+export const DOORMAN_VOICE = 'm2.foreign.doorman';
+/** The first time he's talked to: what he wants. */
+export const DOOR_DEMAND: ByPants = {
+  clean: [
+    'HALT. TO ENTER THE HALLS OF VALHALLA, BRING ME THE BLOOD OF EVERY NORWEGIAN COSPLAYER. EVERY ONE. MANAGEMENT IS VERY CLEAR.',
+    'HALT, MORTAL. THE HALLS OF VALHALLA OPEN FOR THE BLOOD OF EVERY NORWEGIAN COSPLAYER. I JUST WORK THE DOOR.',
+  ],
+  shitty: [
+    "HALT. THE HALLS OF VALHALLA WANT THE BLOOD OF EVERY NORWEGIAN COSPLAYER. NOT WHATEVER'S COMING OUT OF YOUR PANTS.",
+    'HALT, MORTAL. BRING ME THE BLOOD OF EVERY NORWEGIAN COSPLAYER. AND STAND DOWNWIND OF ME WHILE YOU DO IT.',
+  ],
+  nude: [
+    'HALT. THE HALLS OF VALHALLA WANT THE BLOOD OF EVERY NORWEGIAN COSPLAYER. THEY HAVE NOT ASKED FOR THAT. PUT IT AWAY.',
+    "HALT, MORTAL. BRING ME THE BLOOD OF EVERY NORWEGIAN COSPLAYER. THERE'S NO DRESS CODE. CLEARLY.",
+  ],
+};
+/** Meathead, told. */
+export const DOOR_DEMAND_MH: ByPants = {
+  clean: ['KILL EVERY VIKING IN NORWAY? I WAS GONNA DO THAT FOR FREE.', 'ALL OF THEM? EVEN THE FISH LADY? FINE. ESPECIALLY THE FISH LADY.'],
+  shitty: ["BLOOD? SURE. I'M ALREADY LEAKING EVERYTHING ELSE.", "ALL OF THEM. GOT IT. THEY'LL SMELL ME COMING."],
+  nude: ['ALL OF THEM? NAKED? LIKE A BERSERKER? HELL YES.', "EVERY VIKING IN NORWAY. I'LL GO AS I AM."],
+};
+/** Talked to before they're all dead: still thirsty (then how many are left: DOOR_COUNT). */
+export const DOOR_LEFT: ByPants = {
+  clean: ['THE HALLS ARE STILL THIRSTY.', "NOT YET. SOME OF THEM ARE STILL BREATHING. I CAN HEAR THEM VAPING.", "NO BLOOD, NO VALHALLA. I DON'T MAKE THE RULES. ODIN DOES. ODIN IS GARY FROM HR."],
+  shitty: ["NOT YET. AND YOU CAN'T COME IN SMELLING LIKE THAT EITHER. BUT MOSTLY THE BLOOD THING.", 'THE HALLS WANT BLOOD. YOU KEEP BRINGING ME... THAT.', 'STILL THIRSTY. THE HALLS. NOT ME. I LOST MY APPETITE WHEN YOU WALKED UP.'],
+  nude: ['NOT YET. AND THE HALLS HAVE SEEN ENOUGH OF YOU ALREADY.', 'MORE BLOOD. LESS DICK.', "STILL THIRSTY. GO. AND DON'T SLIP. NOT IN THAT OUTFIT."],
+};
+const NUM = ['ZERO', 'ONE', 'TWO', 'THREE', 'FOUR', 'FIVE', 'SIX', 'SEVEN', 'EIGHT', 'NINE', 'TEN', 'ELEVEN', 'TWELVE', 'THIRTEEN', 'FOURTEEN', 'FIFTEEN', 'SIXTEEN', 'SEVENTEEN', 'EIGHTEEN', 'NINETEEN', 'TWENTY'];
+/** How many are left (n, from 1): the count after DOOR_LEFT. Past twenty, the last one. */
+export const DOOR_COUNT: string[] = [
+  'ONE COSPLAYER STILL BREATHING. ONE. FIND HIM.',
+  ...NUM.slice(2).map(w => `${w} COSPLAYERS STILL BREATHING.`),
+  'MORE THAN TWENTY STILL BREATHING. I STOPPED COUNTING.',
+];
+export const doorCount = (n: number) => DOOR_COUNT[Math.max(0, Math.min(DOOR_COUNT.length - 1, n - 1))];
+/** All dead, talked to: he raises the halls. */
+export const DOOR_RAISE: ByPants = {
+  clean: ["THE BLOOD IS PAID. RISE, HALLS OF VALHALLA! ...IT'S ON A HYDRAULIC LIFT. GIVE IT A SECOND.", "ALL OF THEM? JESUS. OKAY. RISE, HALLS OF VALHALLA! ...THERE'S A BUTTON."],
+  shitty: ['THE BLOOD IS PAID. RISE, HALLS OF VALHALLA! WIPE YOUR FEET. AND EVERYTHING ELSE.', 'ALL OF THEM. IN THOSE PANTS. RISE, HALLS OF VALHALLA! THE FOG MACHINE IS FOR YOU.'],
+  nude: ['THE BLOOD IS PAID. RISE, HALLS OF VALHALLA! ...COME ON. IT STICKS IN THE COLD. LIKE YOU.', 'ALL OF THEM, NAKED. RESPECT. RISE, HALLS OF VALHALLA!'],
+};
+/** Meathead, at the halls coming up out of the river. */
+export const DOOR_RAISE_MH: ByPants = {
+  clean: ['VALHALLA! IT LOOKS LIKE A HAUNTED HOUSE AT A CHURCH CARNIVAL!', 'VALHALLA! IT CAME UP OUT OF THE RIVER! LIKE A VIKING SUBMARINE!'],
+  shitty: ['VALHALLA! I HOPE THEY HAVE A BATHROOM IN THERE!', 'VALHALLA! WARRIORS DIE AND GO THERE! I ONLY HALF DIED!'],
+  nude: ['VALHALLA! I HOPE THERE IS A COAT CHECK! FOR MY COAT! WHICH I DO NOT HAVE!', 'VALHALLA! I CAME DRESSED FOR IT!'],
+};
+/** Talked to once it's up: in you go. */
+export const DOOR_OPEN: ByPants = {
+  clean: ["IN YOU GO. THE GUY IN THERE BROUGHT HIS OWN PROTEIN POWDER. HE WON'T LEAVE.", 'ENTER, WORTHY ONE. MIND THE FOG MACHINE. IT BITES.', "IT'S OPEN. GO. MY SHIFT'S ALMOST OVER."],
+  shitty: ['GO ON IN. THE FOG MACHINE WILL COVER THE SMELL. MOSTLY.', 'IN. GO IN. THE HALLS ACCEPT ALL WARRIORS. EVEN THE MOIST ONES.', "IT'S OPEN. BREATHE THROUGH YOUR MOUTH IN THERE. I MEAN FOR THEM."],
+  nude: ['IN YOU GO. NAKED IN VALHALLA. VERY TRADITIONAL, ACTUALLY.', 'ENTER, WORTHY ONE. COVER THAT WITH A SHIELD OR SOMETHING.', "IT'S OPEN. GO. I'VE SEEN ENOUGH VIKING FOR ONE DAY."],
+};
+
+export const VOICE_LINES = pavilionVoices(TALK, HURT, [[V.viking, VIKING], [V.shield, SHIELD], [{ m: V.lutefisk.m, f: V.lutefisk.f }, LUTEFISK], [{ m: V.viking.m, f: V.viking.m }, TOLL], [{ m: DOORMAN_VOICE, f: DOORMAN_VOICE }, DOOR_DEMAND], [{ m: DOORMAN_VOICE, f: DOORMAN_VOICE }, DOOR_LEFT], [{ m: DOORMAN_VOICE, f: DOORMAN_VOICE }, DOOR_RAISE], [{ m: DOORMAN_VOICE, f: DOORMAN_VOICE }, DOOR_OPEN]], {
+  meathead: [...PAID_GAG, ...allOf(DOOR_DEMAND_MH), ...allOf(DOOR_RAISE_MH)],
+  [DOORMAN_VOICE]: DOOR_COUNT,
+});
