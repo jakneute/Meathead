@@ -1,4 +1,4 @@
-// SPAZ & STINKY'S BUMPER BASH CHALLENGE: a minigame at Giggles' ticket booth (the owner's, 2026-11-01: "another
+// SPAZ & STINKY'S BUMPER BASH CHALLENGE: a minigame at its ticket booth just right of the rink (the owner's, 2026-11-01: "another
 // minigame in cartoon land: bumper cars. there's a guy who offers you a bumper car challenge at the ticket booth. 'kill
 // everyone, win a prize'. it's overhead and it controls are tank controls and finnicky, like real bumper cars. tank
 // controls. you can press B to boost. you gotta run into and kill all the other bumper cars in the arena in the time
@@ -8,7 +8,7 @@
 // skinner and heavier pepole. male and female, with different weight values and how much they bounce/take damage";
 // and for every minigame: "a sub-menu to press A to accept and B to go back").
 //
-//   THE CARNY       by the booth (bumperArt.ts drawCarny), his bark as Meathead comes up (the owner's line), UP to talk
+//   THE CARNY       in his booth (art.ts bumperBooth*), waving him down (bumperArt.ts drawCarny), his bark as Meathead comes up (the owner's line), UP to talk
 //                   (the real prompt). The offer (pants variants), Meathead's take, then the box (minigameConfirm.ts:
 //                   A accept, B back, buffered). Won before: he's sore, and it's for fun (no second shard).
 //   THE CARD        the controls (BumperCard.tsx), the first go each visit, buffered like every explain screen.
@@ -48,18 +48,24 @@ import { awardShard, shardWon, openShardCard, tickShardCard, closeShardCard, typ
 import { pollM2, btn, pressed } from '../../input';
 import { byPants, meatheadSays, speak, saidOver, landVisit, type Said } from '../section';
 import { GY } from '../geometry';
-import { X } from './layout';
+import { X, BOOTH } from './layout';
+import { bumperBoothBack, bumperBoothFront } from './art';
 import {
   W, H, RINK, R, PODIUM, CAR_W, CAR_H, arenaCanvas, gridCanvas, carCanvas, hulkCanvas, drawFig, drawPeel, drawCarny, drawCarnyTop,
   type Look, type Build,
 } from './bumperArt';
 import {
-  CARNY_VOICE, CARNY_HOOK, CARNY_OFFER, CARNY_SORE, CARNY_DECLINE, CARNY_LOSE, CARNY_WIN, CARNY_PRIZE, CARNY_WIN_AGAIN,
+  CARNY_VOICE, CARNY_HOOK, CARNY_CALL, CARNY_OFFER, CARNY_SORE, CARNY_DECLINE, CARNY_LOSE, CARNY_WIN, CARNY_PRIZE, CARNY_WIN_AGAIN,
   MH_OFFERED, MH_START, MH_KILL, MH_OVERKILL, MH_RAMMED, MH_LOSE, MH_WIN, OVERKILL_CALL,
 } from './bumperLines';
 
-/** Where the carny stands (world): by Giggles' ticket booth's left side. */
-export const CARNY_X = X(7020);
+/** Where the carny stands (world): in the bumper bash's own ticket booth, just right of the rink (the owner's,
+ *  2026-11-02: "the bumper car man should be closer to the bumper cars themselves. just to the right. he waves you
+ *  down, trying to get your attention."). */
+export const CARNY_X = X(BOOTH.x);
+/** Waving him down: while he's this near (and, once he's played this visit, only this near); a call-out at most this
+ *  often (frames), only while he's this near. */
+const WAVE_FAR = 700, WAVE_PLAYED = 300, CALL_EVERY = 1500, CALL_NEAR = 520;
 /** The shard's id in the save (store.ts collectibles, Cartoon Land's). */
 const SHARD_LAND = 'cartoon', SHARD_ID = 'shard-bumper';
 /** The round: how long, how many. */
@@ -119,6 +125,8 @@ interface Bumper {
   rammedAt: number; buzzAt: number; lineAt: number; tick: number;
   /** B pressed fresh this frame. */
   boostPress: boolean;
+  /** The carny flagging him down (bumper.ts sets it, the booth draws it); when he last called out. */
+  waving: boolean; callAt: number;
 }
 const stores = new WeakMap<object, Bumper>();
 const bumperOf = (state: GameState): Bumper => {
@@ -128,11 +136,12 @@ const bumperOf = (state: GameState): Bumper => {
     phase: 'off', t: 0, token: 0, ask: null, shard: null, cardT: 0, cardArmed: false,
     cars: [], flings: [], parts: [], pops: [], clock: 0, shake: 0, replay: false,
     carny: null, mh: null, prompted: false, wasUp: false, was: {}, rammedAt: -9999, buzzAt: 0, lineAt: -9999, tick: 0, boostPress: false,
+    waving: false, callAt: -99999,
   });
   return b;
 };
-/** The carny's bark said this visit; the controls card shown this visit. */
-let hookVisit = -1, cardVisit = -1;
+/** The carny's bark said this visit; the controls card shown this visit; played it this visit. */
+let hookVisit = -1, cardVisit = -1, playedVisit = -1;
 /** The UI flags this left up (cleared when it's off). */
 let uiUp = false;
 
@@ -199,13 +208,19 @@ export const updateBumper = (ctx: FrameContext, controls: Controls): Controls | 
     const cx = p.pos.x + p.width / 2, d = Math.abs(cx - CARNY_X);
     const free = !p.inCutscene && p.health > 0 && state.deathTimer <= 0;
     // (his bark as Meathead comes up: the owner's line, once a visit)
-    if (free && hookVisit !== landVisit() && d < 330) { hookVisit = landVisit(); speak(CARNY_VOICE, CARNY_HOOK, s => { b.carny = s; }, false); }
+    if (free && hookVisit !== landVisit() && d < 330) { hookVisit = landVisit(); b.callAt = b.tick; speak(CARNY_VOICE, CARNY_HOOK, s => { b.carny = s; }, false); }
+    // (flagging him down: arms over his head, till he comes over; now and then a shout, never over anybody)
+    b.waving = free && d >= 72 && d < (playedVisit === landVisit() ? WAVE_PLAYED : WAVE_FAR);
+    if (b.waving && !b.carny && d < CALL_NEAR && hookVisit === landVisit() && b.tick - b.callAt > CALL_EVERY) {
+      b.callAt = b.tick; speak(CARNY_VOICE, pickLine(byPants(state, CARNY_CALL)), s => { b.carny = s; }, false);
+    }
     const near = free && d < 72 && p.isGrounded;
     if (near) { if (!b.prompted || getUi().upPrompt !== 'BUMPER CARS') setUi({ upPrompt: 'BUMPER CARS' }); b.prompted = true; }
     else if (b.prompted) { setUi({ upPrompt: null }); b.prompted = false; }
     const go = near && upNow && !b.wasUp;
     b.wasUp = upNow;
     if (!go) return null;
+    b.waving = false;
     startOffer(state, b);
     return hands();
   }
@@ -228,7 +243,7 @@ export const updateBumper = (ctx: FrameContext, controls: Controls): Controls | 
       hold(state, b, false);
       const r = tickAsk(b.ask!, state.frame);
       if (r === 'accept') {
-        b.ask = null;
+        b.ask = null; playedVisit = landVisit();
         if (cardVisit !== landVisit()) { cardVisit = landVisit(); b.phase = 'card'; b.t = 0; b.cardT = 0; b.cardArmed = false; setupRound(b); setUi({ bumperCard: { ready: false } }); }
         else startRound(b);
       } else if (r === 'back') {
@@ -607,20 +622,25 @@ const tickParts = (b: Bumper) => {
 // ---------------------------------------------------------------------------------------------------------------
 // Drawing: the carny at the booth (the section's back and front), the rink over everything (its drawHud)
 
-/** At the booth, behind him (the section's drawBack). */
+/** In his booth, behind him (the section's drawBack): the booth's inside, the carny (waving him down, or not), the
+ *  booth's front over his legs. */
 export const drawBumperWorld = (c: CanvasRenderingContext2D, state: GameState) => {
   const b = bumperOf(state);
   if (inRink(b)) return;
   const cam = state.camera.x;
-  if (CARNY_X < cam - 120 || CARNY_X > cam + W + 120) return;
+  if (CARNY_X < cam - 160 || CARNY_X > cam + W + 160) return;
   const p = state.player, dir: 1 | -1 = p.pos.x + p.width / 2 < CARNY_X ? -1 : 1;
-  drawCarny(c, CARNY_X, GY, dir, !!b.carny, state.frame);
+  bumperBoothBack(c, state);
+  // (up on a step inside, so he's in the window from the belt up: the wave reads over the sill)
+  drawCarny(c, CARNY_X, GY - 22, dir, !!b.carny, state.frame, b.phase === 'off' && b.waving);
+  bumperBoothFront(c, state);
 };
 /** His words over him (the section's drawFront). */
 export const drawBumperWorldFront = (c: CanvasRenderingContext2D, state: GameState) => {
   const b = bumperOf(state);
   if (inRink(b) || !b.carny) return;
-  saidOver(c, b.carny.text, CARNY_X, GY - 118, '#FDE68A', 220);
+  // (over the booth's marquee)
+  saidOver(c, b.carny.text, CARNY_X, GY - 296, '#FDE68A', 220);
 };
 
 const outlined = (c: CanvasRenderingContext2D, text: string, x: number, y: number, size: number, fill: string, ink = '#1A1028', lw = 4) => {

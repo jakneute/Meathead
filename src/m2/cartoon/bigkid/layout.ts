@@ -67,6 +67,9 @@ export const PIPE_RUNS: [number, number, number, number][] = (() => {
 /** The bumper rink: its floor (between its rails), the rails (low walls with a standable top: [from, to]). */
 export const RINK = { a: 5100, b: 6200, rail: 40 };
 export const RAILS: [number, number][] = [[RINK.a - 40, RINK.a], [RINK.b, RINK.b + 40]];
+/** The bumper bash's ticket booth, just right of the rink (clear of its far rail, 6240, and the canopy's post; short of
+ *  the memorial's wall, 6420): its middle, its half-width. The carny stands in it (bumper.ts), behind the play plane. */
+export const BOOTH = { x: 6345, hw: 54 };
 /** Solid things (walls with a standable top, lit along it): [from, to, top height]. */
 export const SOLIDS_BASE: [number, number, number][] = [...RAILS.map(([a, b]) => [a, b, RINK.rail] as [number, number, number])];
 

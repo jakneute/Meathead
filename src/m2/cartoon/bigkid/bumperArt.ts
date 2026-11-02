@@ -16,7 +16,7 @@
 //   THE DRIVERS    flung (front-on, flailing, screaming: two frames), flattened (a Looney Tunes pancake: spread-eagle,
 //                  eyes spun, tongue out, edges crinkled), and run over after (OVERKILL: tread marks across, the eyes
 //                  popped out on springs)
-//   THE CARNY      at Giggles' ticket booth (side view, the land's people drawer: a heavy man in a candy-striped vest,
+//   THE CARNY      in the bumper bash's booth (side view, the land's people drawer: a heavy man in a candy-striped vest,
 //                  a straw boater, a cigar, sleeve garters); and from above at his podium by the rink
 //
 // Looney Tunes violence: nobody bleeds in here; they flatten, they crinkle, their eyes pop out.
@@ -469,11 +469,13 @@ export const CARNY_SEED = 12;
 const VEST_A = '#DC2626', VEST_B = '#F8FAFC', UNDERSHIRT = '#EDE6D2', SLACKS = '#27272A';
 const paintCarny = (g: Ctx, F: Frame) => {
   const B = bodyOf(F.seed, F.pose, F.fr, false), L = B.L;
-  const talk = F.pose === 'tell';
+  const wave = F.v.startsWith('wave'), talk = F.pose === 'tell' || F.v === 'wavet';
   legs(g, B, { col: SLACKS, shoe: 'pointy', shoeCol: '#18181B' });
-  // (the far hand on his hip; the near one thumbing back at the booth, or out with a fistful of tickets, talking)
-  const far: [number, number] = [-B.w / 2 + 2, B.hipY - 2];
-  const near: [number, number] = talk ? [B.w / 2 + 16, B.shY - 4 + (F.fr % 2) * 3] : [B.w / 2 + 6, B.shY + 16];
+  // (the far hand on his hip; the near one thumbing back at the booth, or out with a fistful of tickets, talking;
+  // waving him down: both hands up over his head, swung side to side out of step (the elbows by limb.ts, in arm()))
+  const W4 = WAVE_HANDS[F.fr % 4];
+  const far: [number, number] = wave ? [-B.w / 2 + W4[0], B.shY + W4[1]] : [-B.w / 2 + 2, B.hipY - 2];
+  const near: [number, number] = wave ? [B.w / 2 + W4[2], B.shY + W4[3]] : talk ? [B.w / 2 + 16, B.shY - 4 + (F.fr % 2) * 3] : [B.w / 2 + 6, B.shY + 16];
   arm(g, B, -1, far[0], far[1], { sleeve: UNDERSHIRT, hand: L.skin, len: 0.35 });
   const path = torso(g, B, UNDERSHIRT);
   // (the vest: candy stripes, buttoned over the belly, gaping at the bottom)
@@ -486,7 +488,7 @@ const paintCarny = (g: Ctx, F: Frame) => {
   // (a belt under the belly, the pants hiked)
   part(g, () => g.rect(-B.hipW / 2 - 1, B.hipY - 2, B.hipW + 2, 3), '#3F2A1A', -B.hipW / 2 - 1, B.hipY - 2, B.hipW + 2, 3, 0.8);
   headShape(g, B, L.skin);
-  faceOn(g, B, { skin: L.skin, eyes: talk ? 'smug' : 'tired', mouth: talk ? 'talk' : 'smirk', md: F.md, blink: F.blink, noseCol: '#E07A6A' });
+  faceOn(g, B, { skin: L.skin, eyes: talk || wave ? 'smug' : 'tired', mouth: talk ? 'talk' : 'smirk', md: F.md, blink: F.blink, noseCol: '#E07A6A' });
   // (stubble, a pencil mustache, the cigar in the corner of his mouth with its ember)
   for (let k = 0; k < 9; k++) px(g, B.hx - 2 + (k % 5) * 2.2, B.hy + 5 + Math.floor(k / 5) * 2, 1, 1, dk(L.skin, 0.3));
   px(g, B.hx + 2, B.hy + 4, 7, 1.4, '#2A1A10');
@@ -501,15 +503,20 @@ const paintCarny = (g: Ctx, F: Frame) => {
   arm(g, B, 1, near[0], near[1], { sleeve: UNDERSHIRT, hand: L.skin, len: 0.35 });
   // (the sleeve garter round his near arm)
   px(g, B.w / 2 - 6, B.shY + 7, 6, 2, '#16A34A');
+  // (waving: the open palms, fingers spread)
+  if (wave) for (const [hx, hy] of [far, near]) for (let k = 0; k < 4; k++) { const a = -Math.PI / 2 + (k - 1.5) * 0.42; g.strokeStyle = INK; g.lineWidth = 3; g.beginPath(); g.moveTo(hx, hy); g.lineTo(hx + Math.cos(a) * 6.5, hy + Math.sin(a) * 6.5); g.stroke(); g.strokeStyle = L.skin; g.lineWidth = 1.4; g.stroke(); }
   // (talking: the fistful of tickets fanned out)
-  if (talk) for (let k = 0; k < 3; k++) { g.save(); g.translate(near[0] + 2, near[1] - 2); g.rotate(-0.5 + k * 0.4); part(g, () => g.rect(0, -2, 9, 4), k % 2 ? '#FDE047' : '#F472B6', 0, -2, 9, 4, 0.6); g.restore(); }
+  else if (talk) for (let k = 0; k < 3; k++) { g.save(); g.translate(near[0] + 2, near[1] - 2); g.rotate(-0.5 + k * 0.4); part(g, () => g.rect(0, -2, 9, 4), k % 2 ? '#FDE047' : '#F472B6', 0, -2, 9, 4, 0.6); g.restore(); }
 };
-const CARNY_BOX: [number, number, number, number] = [-60, -110, 130, 116];
-/** The carny at (x, feet y), facing `dir`, talking or not. */
-export const drawCarny = (c: Ctx, x: number, y: number, dir: 1 | -1, talking: boolean, f: number) => {
-  const pose: Pose = talking ? 'tell' : 'stand';
-  const F = frameOf(CARNY_SEED, talking ? Math.floor(f / 8) : f, pose, 'ok', 0, false, '');
-  const Fr: Frame = talking ? { ...F, fr: Math.floor(f / 8) % 2 } : F;
+/** The wave's four frames, from the shoulders' line (far hand x off the far shoulder, y; near hand x off the near
+ *  shoulder, y): both up over the hat, swung out of step, wide each way. */
+const WAVE_HANDS: [number, number, number, number][] = [[-12, -30, 14, -32], [-4, -38, 6, -40], [4, -40, -2, -38], [-4, -38, 6, -40]];
+const CARNY_BOX: [number, number, number, number] = [-60, -130, 130, 136];
+/** The carny at (x, feet y), facing `dir`, talking or not; `waving`: flagging him down (talking too, if he's calling). */
+export const drawCarny = (c: Ctx, x: number, y: number, dir: 1 | -1, talking: boolean, f: number, waving = false) => {
+  const pose: Pose = waving ? 'stand' : talking ? 'tell' : 'stand';
+  const F = frameOf(CARNY_SEED, talking ? Math.floor(f / 8) : f, pose, 'ok', 0, false, waving ? (talking ? 'wavet' : 'wave') : '');
+  const Fr: Frame = waving ? { ...F, fr: Math.floor(f / 7) % 4, blink: false } : talking ? { ...F, fr: Math.floor(f / 8) % 2 } : F;
   c.save(); c.translate(x, y); if (dir < 0) c.scale(-1, 1);
   putFrame(c, 'ct-carny', Fr, CARNY_BOX, g => paintCarny(g, Fr));
   c.restore();

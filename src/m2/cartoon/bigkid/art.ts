@@ -51,7 +51,7 @@ import { drawBigkidFar } from './far';
 import { drawAlley, drawFronts, drawPavement, drawFurniture, backLamps, PIT_D, PIPE_D, RINK_D } from './backs';
 import {
   PITS, GROUND, PIPE, PIPE_RUNS, RINK, RAILS, DRUMS, STANDS, NEWSSTAND, SHELTER, SHACK, COUCH, WHIRL, POD, MEMORIAL, BILLBOARD, GATE,
-  SIGNS, TOWERS, IN_PIT, X, Y,
+  SIGNS, TOWERS, IN_PIT, BOOTH, X, Y,
 } from './layout';
 
 export const drawBigkidBackdrop = (c: Ctx, state: GameState) => { drawBigkidFar(c, state); return true; };
@@ -1070,6 +1070,125 @@ const nearGround = (c: Ctx, state: GameState, v: View) => {
 };
 
 // ---------------------------------------------------------------------------------------------------------------
+// THE BUMPER BASH'S TICKET BOOTH (just right of the rink: the carny stands in it, bumper.ts). Built to pull the eye
+// (the owner's, 2026-11-02: "make sure the ticket booth he stands in draws the player's attention as well"): candy-
+// striped red and white, gold twisted posts, a hot-pink fascia (TICKETS, flashing), a teal and yellow striped tent
+// roof peaked to a gold ball (no flat top: nothing on it reads as somewhere to stand), and the BUMPER BASH marquee up
+// on two struts over the roof, ringed in bulbs that chase. Painted once for the hour; each frame only the lit bulbs
+// and the TICKETS flash go over it. The window's sill is an inset, shaded, not lit (it's no ledge).
+
+const BB = { win: 44, sill: 52, winTop: 150, fascia: 182, apex: 224, mq0: 232, mq1: 270 };
+/** The bulbs (x off the booth's middle, height): round the marquee, along the fascia's foot. */
+const BOOTH_BULBS: [number, number][] = (() => {
+  const out: [number, number][] = [];
+  for (let k = 0; k <= 12; k++) out.push([-60 + k * 10, BB.mq0 + 1]);
+  for (let k = 1; k < 4; k++) out.push([62, BB.mq0 + 1 + k * 9]);
+  for (let k = 12; k >= 0; k--) { const x = -60 + k * 10; out.push([x, BB.mq1 - 1 + Math.round(6 * (1 - (x / 62) ** 2))]); }
+  for (let k = 3; k > 0; k--) out.push([-62, BB.mq0 + 1 + k * 9]);
+  for (let k = 0; k <= 11; k++) out.push([-55 + k * 10, BB.winTop + 3]);
+  return out;
+})();
+const marqueePath = (g: Ctx, inset = 0) => {
+  const a = -62 + inset, b = 62 - inset;
+  g.moveTo(a, Y(BB.mq0 + inset)); g.lineTo(a, Y(BB.mq1 - inset)); g.quadraticCurveTo(0, Y(BB.mq1 + 12 - inset), b, Y(BB.mq1 - inset)); g.lineTo(b, Y(BB.mq0 + inset)); g.closePath();
+};
+
+/** Behind the carny: the booth's sides going back, the inside (a dark back wall, the prizes hung up, a ticket roll). */
+export const bumperBoothBack = (c: Ctx, state: GameState) => {
+  const v = viewOf(state), bx = X(BOOTH.x), hw = BOOTH.hw;
+  if (!onV(v, bx - hw - 40, bx + hw + 40)) return;
+  const Rd = NR('#DC2626');
+  sideBack(c, v.eye, bx - hw, -1, Y(BB.fascia), GY, 1, SET_D, Rd, 3);
+  sideBack(c, v.eye, bx + hw, 1, Y(BB.fascia), GY, 1, SET_D, Rd, 3);
+  still(c, 'bk-bbooth-in', bx, 0, -hw, Y(BB.winTop + 2), hw * 2, BB.winTop - BB.sill + 6, g => {
+    const W = BB.win, Pl = NR('#4C1D95');
+    bandsDown(g, () => g.rect(-W, Y(BB.winTop), W * 2, BB.winTop - BB.sill + 4), -W, Y(BB.winTop), W * 2, BB.winTop - BB.sill + 4, [Pl[0], Pl[1], Pl[1], Pl[2], Pl[1]]);
+    checker(g, -W, Y(BB.winTop) + 12, W * 2, 2, Pl[0], 0, 1);
+    // (the prizes hung along the top: lumpy plush bears in loud colors, on a wire)
+    box(g, -W, Y(BB.winTop - 8), W * 2, 1, hour('#A1A1AA'));
+    ([['#F472B6', -34], ['#22D3EE', -16], ['#A3E635', 16], ['#FDE047', 34]] as [string, number][]).forEach(([col, px]) => {
+      const R = NR(col), py = Y(BB.winTop - 20);
+      ballR(g, px, py, 7, R); ballR(g, px - 5, py - 6, 2.6, R); ballR(g, px + 5, py - 6, 2.6, R);
+      box(g, px - 3, py - 1, 2, 2, INK); box(g, px + 2, py - 1, 2, 2, INK); box(g, px - 1, py + 3, 3, 1, INK);
+    });
+    // (the ticket roll on the side wall: red tickets curling off it)
+    ballR(g, W - 12, Y(BB.sill + 34), 7, NR('#F5F5F4'));
+    box(g, W - 14, Y(BB.sill + 28), 5, 22, INK); box(g, W - 13, Y(BB.sill + 28), 3, 21, NR('#EF4444')[3]);
+  });
+};
+/** Over the carny: the lower wall, the posts, the fascia, the roof, the marquee; the chasing bulbs. */
+export const bumperBoothFront = (c: Ctx, state: GameState) => {
+  const v = viewOf(state), bx = X(BOOTH.x), hw = BOOTH.hw, f = state.frame;
+  if (!onV(v, bx - hw - 40, bx + hw + 40)) return;
+  still(c, 'bk-bbooth', bx, 0, -72, Y(BB.mq1 + 22), 144, BB.mq1 + 26, g => {
+    const Rd = NR('#DC2626'), Wt = NR('#F8FAFC'), Gd = NR('#EAB308'), Pk = NR('#EC4899'), Te = NR('#14B8A6'), Yl = NR('#FDE047'), St = NR('#71717A');
+    const W = BB.win;
+    // (the lower wall: candy stripes, each lit down its left, darker toward the foot; inked)
+    box(g, -hw - 2, Y(BB.sill + 2), hw * 2 + 4, BB.sill + 2, INK);
+    for (let x = -hw, i = 0; x < hw; x += 12, i++) {
+      const R = i % 2 ? Wt : Rd, w = Math.min(12, hw - x);
+      bandsDown(g, () => g.rect(x, Y(BB.sill), w, BB.sill), x, Y(BB.sill), w, BB.sill, [R[4], R[3], R[3], R[2], R[2], R[1]]);
+      box(g, x, Y(BB.sill), 2, BB.sill, R[5]); box(g, x + w - 2, Y(BB.sill), 2, BB.sill, R[1]);
+    }
+    // (an ADMIT ONE ticket painted big on it)
+    g.save(); g.translate(0, Y(26)); g.rotate(-0.08);
+    box(g, -34, -11, 68, 22, INK); box(g, -32, -9, 64, 18, Yl[3]); box(g, -32, -9, 64, 3, Yl[5]); box(g, -32, 6, 64, 3, Yl[1]);
+    for (const sx of [-34, 33]) for (let k = -7; k < 8; k += 5) box(g, sx, k, 1, 3, INK);
+    signText(g, 'ADMIT ONE', 0, 4, { sx: 1, sy: 1, bold: true, fill: hour('#B91C1C'), gap: 0 });
+    g.restore();
+    // (the sill: an inset in shade, no lit edge)
+    box(g, -W - 2, Y(BB.sill + 4), W * 2 + 4, 6, INK); box(g, -W, Y(BB.sill + 3), W * 2, 2, Rd[0]);
+    // (the posts either side of the window: gold, twisted)
+    for (const px of [-hw, W]) {
+      box(g, px - 1, Y(BB.winTop), hw - W + 2, BB.winTop - BB.sill, INK);
+      for (let y = Y(BB.winTop); y < Y(BB.sill); y += 8) { box(g, px + 1, y, hw - W - 2, 4, Gd[4]); box(g, px + 1, y + 4, hw - W - 2, 4, Gd[2]); box(g, px + 1, y, 2, 4, Gd[5]); }
+    }
+    // (the fascia: hot pink, banded, the bulb sockets along its foot; TICKETS across it, dim (it flashes, below))
+    box(g, -60, Y(BB.fascia + 2), 120, BB.fascia - BB.winTop + 4, INK);
+    bandsDown(g, () => g.rect(-58, Y(BB.fascia), 116, BB.fascia - BB.winTop), -58, Y(BB.fascia), 116, BB.fascia - BB.winTop, [Pk[4], Pk[3], Pk[3], Pk[2], Pk[1]]);
+    signText(g, 'TICKETS', 0, Y(BB.winTop + 8), { sx: 1, sy: 2, bold: true, fill: [Wt[3], Wt[2]], ink: INK });
+    // (the tent roof: wedges up to the peak, teal and yellow, each lit down one side; the scalloped valance; the ball)
+    const n = 6;
+    g.fillStyle = INK; g.beginPath(); g.moveTo(-66, Y(BB.fascia - 2)); g.lineTo(0, Y(BB.apex + 3)); g.lineTo(66, Y(BB.fascia - 2)); g.closePath(); g.fill();
+    for (let k = 0; k < n; k++) {
+      const a = -63 + (126 * k) / n, b = -63 + (126 * (k + 1)) / n, R = k % 2 ? Yl : Te;
+      polyF(g, [[a, Y(BB.fascia)], [0, Y(BB.apex)], [b, Y(BB.fascia)]], R[3]);
+      polyF(g, [[a, Y(BB.fascia)], [0, Y(BB.apex)], [a + (b - a) * 0.35, Y(BB.fascia)]], R[k < n / 2 ? 4 : 2]);
+    }
+    for (let k = 0; k < n; k++) {
+      const a = -63 + (126 * k) / n, w = 126 / n, R = k % 2 ? Yl : Te;
+      g.fillStyle = INK; g.beginPath(); g.ellipse(a + w / 2, Y(BB.fascia), w / 2 + 1, 6, 0, 0, Math.PI); g.fill();
+      g.fillStyle = R[3]; g.beginPath(); g.ellipse(a + w / 2, Y(BB.fascia), w / 2 - 0.5, 4.5, 0, 0, Math.PI); g.fill();
+      box(g, a + 2, Y(BB.fascia), w - 4, 1, R[5]);
+    }
+    // (the marquee's struts up off the roof; the marquee: an arched board, gold banded, a red bevel, BUMPER BASH)
+    for (const sx of [-32, 28]) { box(g, sx - 1, Y(BB.mq0 + 2), 6, 30, INK); box(g, sx, Y(BB.mq0 + 2), 4, 29, St[3]); box(g, sx, Y(BB.mq0 + 2), 1, 29, St[5]); }
+    ballR(g, 0, Y(BB.apex + 3), 5, Gd);
+    g.beginPath(); marqueePath(g, -3); g.fillStyle = INK; g.fill();
+    g.beginPath(); marqueePath(g, 0); g.fillStyle = Gd[3]; g.fill();
+    const Pu = NR('#6D28D9');
+    bandsDown(g, () => marqueePath(g, 4), -58, Y(BB.mq1 + 8), 116, BB.mq1 - BB.mq0 + 4, [Pu[3], Pu[2], Pu[2], Pu[1], Pu[1], Pu[0]]);
+    signText(g, 'BUMPER BASH', 0, Y(BB.mq0 + 7), { sx: 1, sy: 2, bold: true, slant: 1, fill: ['#FFFFFF', Yl[4], Yl[3], Gd[3]], dither: true, ink: INK, shadow: '#1E0B3A', drop: 1 });
+    signText(g, "SPAZ & STINKY'S", 0, Y(BB.mq0 + 29), { sx: 1, sy: 1, bold: true, fill: hour('#F9A8D4'), ink: INK, gap: 0 });
+    // (the bulbs, unlit: sockets and dull glass)
+    for (const [x, h] of BOOTH_BULBS) { box(g, x - 2, Y(h) - 2, 4, 4, INK); box(g, x - 1, Y(h) - 1, 2, 2, hour('#A16207')); }
+  });
+  // (lit: every third bulb, chasing round; TICKETS flashing on and off)
+  const step = Math.floor(f / 5);
+  for (let i = 0; i < BOOTH_BULBS.length; i++) {
+    if ((i + step) % 3) continue;
+    const [x, h] = BOOTH_BULBS[i];
+    box(c, bx + x - 2, Y(h) - 2, 4, 4, '#FDE047'); box(c, bx + x - 1, Y(h) - 1, 2, 2, '#FFFFFF');
+  }
+  if ((f >> 4) % 2 === 0) still(c, 'bk-bbooth-tix', bx, 0, -40, Y(BB.winTop + 24), 80, 22, g => signText(g, 'TICKETS', 0, Y(BB.winTop + 8), { sx: 1, sy: 2, bold: true, fill: ['#FFFFFF', '#FEF08A'], ink: INK }));
+};
+/** The booth's marquee light after dark (bigkidLamps). */
+const boothLamp = (state: GameState): Light | null => {
+  const bx = X(BOOTH.x);
+  return bx > state.camera.x - 400 && bx < state.camera.x + 1200 ? { x: bx, y: Y(220), r: 160, a: 0.45, color: '#FDE68A' } : null;
+};
+
+// ---------------------------------------------------------------------------------------------------------------
 
 export const drawBigkidBack = (c: Ctx, state: GameState, dollTalking: boolean) => {
   const v = viewOf(state), f = state.frame;
@@ -1107,6 +1226,7 @@ export const bigkidLamps = (state: GameState): Light[] => {
   for (const gx of [X(420), X((GATE.a + GATE.b) / 2) - 50]) if (gx > state.camera.x - 400 && gx < state.camera.x + 1200) out.push({ x: gx, y: Y(320), r: 220, a: 0.5, color: '#F0ABFC' });
   const bb = X(BILLBOARD); if (bb > state.camera.x - 300 && bb < state.camera.x + 1100) out.push({ x: bb, y: Y(300), r: 200, a: 0.4, color: '#FFF0C8' });
   const rk = X((RINK.a + RINK.b) / 2); if (rk > state.camera.x - 700 && rk < state.camera.x + 1500) out.push({ x: rk, y: Y(300), r: 300, a: 0.35, color: '#C4B5FD' });
+  const bl = boothLamp(state); if (bl) out.push(bl);
   return out;
 };
 void GRASS;

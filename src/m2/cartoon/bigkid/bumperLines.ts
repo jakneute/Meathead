@@ -1,4 +1,4 @@
-// SPAZ & STINKY'S BUMPER BASH CHALLENGE: every line of it (the carny at Giggles' ticket booth, Meathead, the
+// SPAZ & STINKY'S BUMPER BASH CHALLENGE: every line of it (the carny in his booth by the rink, Meathead, the
 // announcer). The owner's: "there's a guy who offers you a bumper car challenge at the ticket booth. 'kill everyone, win
 // a prize'." In the owner's voice: blunt, short, vulgar; clean / shitty / naked pools. Pure data (tools/voices bundles
 // it in node): bigkid/lines.ts puts it in the zone's VOICE_LINES.
@@ -11,6 +11,12 @@ export const CARNY_VOICE = 'm2.cartoon.churro';
 /** The owner's line: his bark as Meathead walks up (once a visit), and the end of every offer. */
 export const CARNY_HOOK = 'KILL EVERYONE, WIN A PRIZE.';
 
+/** Waving him down from the booth (now and then, while he's in sight and hasn't come over: never back to back). */
+export const CARNY_CALL: ByPants = {
+  clean: ['HEY! BEEFCAKE! OVER HERE!', 'YO, MUSCLES! WANNA KILL SOME PEOPLE?', 'HEY! YOU! FREE MURDER! OVER HERE!'],
+  shitty: ['HEY, SHITPANTS! OVER HERE! BRING A TOWEL!', 'YO! YOU! THE ONE THAT STINKS! C\'MERE!'],
+  nude: ['HEY, NAKED GUY! OVER HERE! EYES UP, EVERYBODY!', 'YO, NUDIE! COME PARK YOUR BARE ASS IN A CAR!'],
+};
 /** Talked to (UP): the offer. */
 export const CARNY_OFFER: ByPants = {
   clean: [
@@ -123,6 +129,6 @@ const all = (...r: ByPants[]) => r.flatMap(allOf);
 /** By voice, for bigkid/lines.ts's VOICE_LINES. */
 export const BUMPER_VOICE_LINES: Record<string, string[]> = {
   meathead: all(MH_OFFERED, MH_START, MH_KILL, MH_OVERKILL, MH_RAMMED, MH_LOSE, MH_WIN),
-  [CARNY_VOICE]: [CARNY_HOOK, ...all(CARNY_OFFER, CARNY_SORE, CARNY_DECLINE, CARNY_LOSE, CARNY_WIN, CARNY_WIN_AGAIN), ...CARNY_PRIZE],
+  [CARNY_VOICE]: [CARNY_HOOK, ...all(CARNY_CALL, CARNY_OFFER, CARNY_SORE, CARNY_DECLINE, CARNY_LOSE, CARNY_WIN, CARNY_WIN_AGAIN), ...CARNY_PRIZE],
   announcer: [OVERKILL_CALL],
 };

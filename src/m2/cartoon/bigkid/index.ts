@@ -71,7 +71,7 @@ export const bigkid: CartoonSection = {
   },
   update: (ctx, controls) => {
     const { state } = ctx, p = state.player, k = bigkidOf(state);
-    // (the bumper-car challenge at Giggles' booth: while it's on, the zone holds still and it has the buttons)
+    // (the bumper-car challenge at its booth by the rink: while it's on, the zone holds still and it has the buttons)
     const bumping = updateBumper(ctx, controls);
     if (bumping) return bumping;
     updateTowers(ctx, k.towers);
