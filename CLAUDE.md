@@ -68,6 +68,8 @@ The owner isn't a programmer. They test the built HTML files directly and descri
     in a hand). Put this check in every agent brief that draws a figure.
   - Things you can stand on have a lit top edge; background look-alikes are dimmed.
   - No volcanoes in new art.
+  - Signs: readable and held up; never clipping into walls or props, never hanging off a ledge, and drawn at the
+    depth of the ground they stand on.
 - **Performance:**
   - Locked 60 fps on a weak PC.
   - Paint art once (the stamp cache, baked canvases). No per-frame pixel work.
