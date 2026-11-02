@@ -302,6 +302,12 @@ export const knockPlantedIn = (ctx: FrameContext, x: number, y: number, w: numbe
   });
 };
 
+/** A floor that's moved (carryDecals.ts: the bus's roof, a mover, a lift): the kicked heads lying on its top along with
+ *  it. */
+export const carryLyingHeads = (x: number, top: number, w: number, dx: number, dy: number) => {
+  for (const h of heads) if (h.down && h.x >= x && h.x <= x + w && Math.abs(h.y + h.r - top) <= 5) { h.x += dx; h.y += dy; }
+};
+
 /** A stage whose ground goes by (the Wilderness train: the train stands still, the world moves): every body planted in
  *  the band `y0`..`y1` between `x0` and `x1` is knocked out of it and flung back with the ground (`vx`: its speed, px a
  *  frame; heads lying there go by with it, and off the back gone). */

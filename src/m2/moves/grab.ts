@@ -25,6 +25,7 @@ import { stepAmulet, amuletShielded, drawAmuletFx, raged } from '../upgrades/amu
 import { has } from '../upgrades/state';
 import { HANDS_HEAL, MISSILE_CRUISE } from '../upgrades/tune';
 import { FOLLOW_PHASES, type FollowPhase, type Follow, followIdle, startFollowUp, followArmed, stepFollow, drawFollow, followTick, followAfter, followUntouchable, drawFollowCue } from './followups';
+import { carryDecals } from '../carryDecals';
 import { cheapShotStart, cheapShotStep, cheapShotTick, drawCheapShotWorld, cheapShotStunned, cheapShotPending, cheapShotOnContact } from '../upgrades/cheapShot';
 import { walkAwayOn } from '../walkAway';
 import { spawnShielded } from '../spawnSafe';
@@ -852,6 +853,8 @@ export const updateGrab = (ctx: FrameContext, g: Grab, controls: Controls): Cont
   cheapShotTick(ctx.state, g.phase === 'cheap');
   // (the follow-ups' own business: who was last hit and how, the heads in the ground, a kicked head flying)
   followTick(ctx, g);
+  // (what lies on a thing that moves goes with it: carryDecals.ts)
+  carryDecals(ctx.state);
   const out = stepGrab(ctx, g, controls);
   followAfter(ctx, g);
   g.lastVy = ctx.state.player.vel.y;
