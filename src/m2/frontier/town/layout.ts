@@ -247,12 +247,14 @@ export const SIGNS: [number, number, string[], boolean?][] = [
   [8100, 0, ['MILL POND', 'FELLING DEMO: STAND CLEAR'], true],
   [10800, 0, ['LUMBER YARD', 'HARD HATS (DECORATIVE)']],
   [11080, 0, ['MOTHER LODE MINE', 'GUIDED TOURS EVERY 20 MIN']],
-  [11930, FLOOR_H, ['RUNAWAY CARTS', 'BRAKES LAST CHECKED 1879'], true],
+  // (clear of the lamp-lit shaft column: its board's end ran into it)
+  [11965, FLOOR_H, ['RUNAWAY CARTS', 'BRAKES LAST CHECKED 1879'], true],
   // (the gas pocket's two on its short floor between the trestle's chasm and the flooded shaft: three lines each so
   // both fit on it, neither hanging off its edge (art.ts keeps them on it))
   [12740, FLOOR_H, ['FIREDAMP', 'NO OPEN FLAMES.', 'NO GUNS.'], true],
   [12935, FLOOR_H, ['FLOODED', 'LONG SWIM.', 'NO AIR POCKETS.'], true],
-  [14740, 0, ['TIMBER TUMBLE', 'THE LONG LOG RIDE. LINE STARTS HERE']],
+  // (narrower, just past the velvet rope: it ran back over the mine exit's leg and stood in front of 90 MIN)
+  [14805, 0, ['TIMBER TUMBLE', 'THE LONG LOG RIDE.', 'LINE STARTS HERE']],
 ];
 
 export const CHECKPOINTS = [

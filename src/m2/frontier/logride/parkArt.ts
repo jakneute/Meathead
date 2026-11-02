@@ -229,7 +229,8 @@ export const drawStation = (c: Ctx, state: GameState) => {
     const q = queueLayer.getContext('2d')!; q.imageSmoothingEnabled = false; q.translate(-(X(QA) - 30), -ltop); queueRows(q);
   }
   if (queueLayer && onScreen(state, X(QA) - 30, X(QB) + 30)) c.drawImage(queueLayer, X(QA) - 30, ltop);
-  parkSign(c, X(40), GY - 26, ['15 MIN', 'FROM HERE'], { seed: 15, tall: 96 });
+  // (along the back row: at 40 it stood right behind TIMBER TUMBLE's board)
+  parkSign(c, X(-170), GY - 26, ['15 MIN', 'FROM HERE'], { seed: 15, tall: 96 });
   parkSign(c, X(250), GY, ['NEXT LOG', 'ALMOST THERE'], { seed: 1, tall: 112 });
   // ---- the platform (to stand on: its lit lip), its face down to the trough
   const pa = X(-300), pb = X(PLATFORM_END);

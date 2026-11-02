@@ -82,7 +82,8 @@ const drawQueueFront = (c: Ctx, state: GameState, v: TownView) => {
   c.strokeStyle = INK; c.lineWidth = 5; c.beginPath(); for (let x = a - 60; x < a - 30; x += 30) { c.moveTo(x + 2, GY - 32); c.quadraticCurveTo(x + 17, GY - 22, x + 32, GY - 32); } c.stroke();
   c.strokeStyle = '#991B1B'; c.lineWidth = 3; c.stroke();
   // ---- WAIT FROM HERE, all the way along (the park's planks, each up on its posts on its row's deck)
-  parkSign(c, a + 40, GY, ['90 MIN', 'WAIT FROM HERE'], { seed: 90, tall: 118 });
+  // (along from the line's mouth: TIMBER TUMBLE's sign stands at the mouth, and the two stood over each other)
+  parkSign(c, a + 245, GY, ['90 MIN', 'WAIT FROM HERE'], { seed: 90, tall: 118 });
   parkSign(c, a + 380, GY - 26, ['75 MIN', 'FROM HERE'], { seed: 75, tall: 110 });
   parkSign(c, b - 80, GY - 52, ['60 MIN', 'FROM HERE'], { seed: 60, tall: 102 });
   parkSign(c, a + 260, GY - 78, ['45 MIN', 'HANG IN THERE'], { seed: 45, tall: 96 });

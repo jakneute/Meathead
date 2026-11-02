@@ -265,7 +265,8 @@ export const SIGNS: [number, number, string[], boolean?][] = [
   // (planted in the river past the bank: the bank's too short for it, and it hung off both ends)
   [15600, 0, ['LONG RIVER', 'GET OFF BEFORE THE FALLS'], true],
   [17700, 40, ['WELL DONE', 'NOT EVERYBODY GETS OFF']],
-  [18900, 0, ['STATION', '1/4 MILE >']],
+  // (out from under the ledge at 18780: its board was tucked right up under the ledge's foot)
+  [18690, 0, ['STATION', '1/4 MILE >']],
 ];
 
 /** The station (station.ts): the platform's deck, the gate where Tucker stands, the depot, the train's spot. */
