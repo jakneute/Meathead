@@ -207,6 +207,8 @@ const hold = (state: GameState, b: Bumper, rink: boolean) => {
 const release = (state: GameState, b: Bumper) => {
   const p = state.player;
   p.inCutscene = false; p.hidden = false; p.carried = false; p.noSpecials = false;
+  // (a moment's grace, put back out by the booth: nothing roaming the zone gets a free hit on him as he's let go)
+  p.invincibilityTimer = Math.max(p.invincibilityTimer, 90); p.noContactUntil = state.frame + 90;
   b.phase = 'off'; b.t = 0; b.mh = null;
   if (b.ask) { closeAsk(); b.ask = null; }
   if (b.shard) { closeShardCard(); b.shard = null; }
