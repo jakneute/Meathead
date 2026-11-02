@@ -92,19 +92,32 @@ const storeOf = (state: GameState): Store => {
 export const onWire = (state: GameState) => !!state.stage && storeOf(state).hold.on >= 0;
 /** How many times he's ridden one this life (the sections' lines). */
 export const wireRides = (state: GameState) => (state.stage ? storeOf(state).hold.rides : 0);
+/** Which wire he's on (its place in the land's list, hollywoodWires), -1 none. */
+export const wireOn = (state: GameState) => (state.stage ? storeOf(state).hold.on : -1);
+/** How far along its track a wire's trolley is (0 at `from` (or `beyond`, on a track run on past it), 1 at `to`). */
+export const wireU = (state: GameState, i: number) => (state.stage ? storeOf(state).runs[i]?.u ?? 0 : 0);
 
 // ---------------------------------------------------------------------------------------------------------------
 // The geometry of one
 
-interface Geo { ax: number; ay: number; bx: number; by: number; rigY: number; dist: number }
+/** (u 0 is the track's far end: `beyond` if it has one, else `from`. `uh` is where it parks, `from` (0 without a
+ *  `beyond`), and `hy` the harness's height there.) */
+interface Geo { ax: number; ay: number; bx: number; by: number; rigY: number; dist: number; uh: number; hy: number }
 const geoOf = (state: GameState, w: StuntWire): Geo => {
   const p = state.player, feetToHand = p.height - HAND_DY;
-  const ax = w.from.x, ay = w.from.y, bx = w.to.x, by = w.to.y - feetToHand - 2;
-  const rigY = w.rigY ?? Math.min(ay, by) - 150;
-  return { ax, ay, bx, by, rigY, dist: Math.max(1, Math.abs(bx - ax)) };
+  const bx = w.to.x, by = w.to.y - feetToHand - 2;
+  const ax = w.beyond ? w.beyond.x : w.from.x, ay = w.beyond ? w.beyond.y - feetToHand - 2 : w.from.y;
+  const uh = w.beyond ? (w.from.x - ax) / (bx - ax) : 0, hy = w.from.y;
+  const rigY = w.rigY ?? Math.min(ay, by, hy) - 150;
+  return { ax, ay, bx, by, rigY, dist: Math.max(1, Math.abs(bx - ax)), uh, hy };
 };
-/** The cable's own length at u (between the two ends' heights). */
-const baseLen = (g: Geo, u: number) => (g.ay - g.rigY) + ((g.by - g.rigY) - (g.ay - g.rigY)) * u;
+/** The cable's own length at u (between the ends' heights; through `from`'s on a track run on past it). */
+const baseLen = (g: Geo, u: number) => {
+  const la = g.ay - g.rigY, lh = g.hy - g.rigY, lb = g.by - g.rigY;
+  return u < g.uh ? la + (lh - la) * (u / g.uh) : lh + (lb - lh) * ((u - g.uh) / (1 - g.uh));
+};
+/** Where a rig nobody's on stops: the ends, and where it parks on a track run on past `from`. */
+const stopsOf = (g: Geo) => (g.uh > 0 ? [0, g.uh, 1] : [0, 1]);
 /** The trolley (on the track) and the cable's length, at u, reeled in or out by ext. */
 const trolley = (g: Geo, u: number, ext = 0) => ({ x: g.ax + (g.bx - g.ax) * u, len: Math.max(MIN_LEN, baseLen(g, u) + ext) });
 const handAt = (g: Geo, r: Run) => { const t = trolley(g, r.u, r.ext); return { x: t.x + Math.sin(r.th) * t.len, y: g.rigY + Math.cos(r.th) * t.len, tx: t.x, len: t.len }; };
@@ -172,7 +185,7 @@ const roomAbove = (state: GameState, dir: number) => {
  *  the engine as a shoulder charge, which does the hitting). */
 export const updateWires = (ctx: FrameContext, wires: StuntWire[], c: Controls): Controls => {
   const { state } = ctx, p = state.player, s = storeOf(state), h = s.hold;
-  while (s.runs.length < wires.length) s.runs.push({ u: 0, v: 0, th: 0, om: 0, ext: 0, wait: 0, idle: 999 });
+  while (s.runs.length < wires.length) { const w0 = wires[s.runs.length]; s.runs.push({ u: w0.beyond ? geoOf(state, w0).uh : 0, v: 0, th: 0, om: 0, ext: 0, wait: 0, idle: 999 }); }
   if (!wires.length && h.on < 0) return c;
   // (in the middle of any grab (the air grab too): he goes on past them, no catching hold)
   if ((p.airGrab || grabBusy()) && h.on < 0) return c;
@@ -204,11 +217,26 @@ export const updateWires = (ctx: FrameContext, wires: StuntWire[], c: Controls):
       r.om -= ((r.v - v0) * 0.6) / Math.max(90, trolley(g, r.u, r.ext).len);
       return;
     }
-    // (moving with nobody on it (let go of mid-run, or running back): on to the end it's going to)
+    // (moving with nobody on it (let go of mid-run, or running back): on to the next stop it's going to (an end; on a
+    // track run on past `from`, where it parks too))
     if (r.v !== 0) {
-      const d = Math.sign(r.v);
-      r.u = Math.max(0, Math.min(1, r.u + (d * RETURN) / g.dist)); r.v = d * RETURN;
-      if (r.u <= 0 || r.u >= 1) r.v = 0;
+      const d = Math.sign(r.v), st = stopsOf(g);
+      const goal = d > 0 ? st.find(q => q > r.u + 1e-6) ?? 1 : [...st].reverse().find(q => q < r.u - 1e-6) ?? 0;
+      const nu = r.u + (d * RETURN) / g.dist;
+      if (d > 0 ? nu >= goal : nu <= goal) { r.u = goal; r.v = 0; } else { r.u = nu; r.v = d * RETURN; }
+      return;
+    }
+    if (g.uh > 0) {
+      // (a track run on past `from`: stopped short of a stop, on to the nearest; parked, to whichever stop he's stood
+      // nearest a while, the far end (`beyond`) only when he's up by it: it's never left out of his reach)
+      const st = stopsOf(g), xAt = (u: number) => g.ax + (g.bx - g.ax) * u;
+      if (!st.some(q => Math.abs(r.u - q) < 1e-6)) {
+        if (r.idle > 30) { const n = st.reduce((a, q) => (Math.abs(q - r.u) < Math.abs(a - r.u) ? q : a)); r.v = (n < r.u ? -1 : 1) * RETURN; }
+        return;
+      }
+      const by = !!w.beyond && Math.abs(cx - g.ax) < 200 && Math.abs(p.pos.y + p.height - w.beyond.y) < 60;
+      const goal = (by ? st : st.slice(1)).reduce((a, q) => (Math.abs(cx - xAt(q)) < Math.abs(cx - xAt(a)) ? q : a));
+      if (r.idle > 90 && p.isGrounded && Math.abs(goal - r.u) > 1e-6 && Math.abs(cx - xAt(goal)) + 40 < Math.abs(cx - xAt(r.u))) r.v = (goal > r.u ? 1 : -1) * RETURN;
       return;
     }
     // (stopped short of an end (he jumped off it there as it stopped): on to the nearer end)
@@ -374,6 +402,9 @@ export const drawWires = (c: Ctx, state: GameState, wires: StuntWire[]) => {
     const g = geoOf(state, w), r = s.runs[i] ?? { u: 0, v: 0, th: 0, om: 0, ext: 0, wait: 0, idle: 0 };
     const lo = Math.min(g.ax, g.bx) - 40, hi = Math.max(g.ax, g.bx) + 40;
     if (hi < cam - 200 || lo > cam + 1000) return;
+    // (nor if it's all well above or below the screen: the water tower's rigs stack up over one another)
+    const camY = state.camera.y;
+    if (g.rigY - (w.chain ?? 700) - 30 > camY + 640 || Math.max(g.ay, g.by, g.hy) + 280 < camY - 40) return;
     const ridden = s.hold.on === i, S = STEELR, Y = w.off ? OFF : YEL;
     // The track: a box truss (two chords, diagonals between), hung off chains going up out of sight
     const ty = g.rigY - 10, a = Math.max(lo, cam - 60), b = Math.min(hi, cam + 860);
@@ -385,7 +416,7 @@ export const drawWires = (c: Ctx, state: GameState, wires: StuntWire[]) => {
     for (let x = Math.ceil((a - lo) / 48) * 48 + lo; x < b; x += 48) { px(c, x - 1, ty - 4, 3, 12, INK); px(c, x, ty - 4, 1, 12, S[4]); }
     for (const x of [lo + 10, hi - 10, ...(hi - lo > 700 ? [(lo + hi) / 2] : [])]) {
       if (x < cam - 40 || x > cam + 840) continue;
-      for (let y = ty - 10; y > ty - 700; y -= 6) { px(c, x - 2, y, 4, 4, INK); px(c, x - 1, y + 1, 2, 2, (y / 6) % 2 ? S[4] : S[2]); }
+      for (let y = ty - 10; y > ty - (w.chain ?? 700); y -= 6) { px(c, x - 2, y, 4, 4, INK); px(c, x - 1, y + 1, 2, 2, (y / 6) % 2 ? S[4] : S[2]); }
     }
     // (end stops: a block each end, hazard-striped bumpers)
     for (const x of [lo, hi - 10]) { px(c, x - 1, ty - 11, 12, 24, INK); px(c, x, ty - 10, 10, 22, '#2A2A30'); for (let k = 0; k < 4; k++) px(c, x + 1, ty - 8 + k * 5, 8, 2, k % 2 ? '#1A1418' : '#FACC15'); }

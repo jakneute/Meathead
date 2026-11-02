@@ -15,8 +15,8 @@
 //   3000   CHECKPOINT. THE FLASH FLOOD tank, sunk across the street: three stunt wires in a chain over it (jump from
 //          one to the next), and the dump tank's surge every so often, knocking him off a low one. Fall in (it's
 //          tourist pee): it stings, and he's flung back out onto the nearer bank, gagging. Centurion extras on the far side (don't charge the spear).
-//   4700   CHECKPOINT. THE WESTERN TOWN: cowboy extras (the lasso), a centurion; the WATER TOWER, a camera dolly (a
-//          shuttle wire: it runs on its own) up to its tank (a small ammo); MAIN STREET COLLAPSE, a pit, over it on
+//   4700   CHECKPOINT. THE WESTERN TOWN: cowboy extras (the lasso), a centurion; the HAPPYWOOD WATER TOWER straddling the
+//          street, hundreds of feet up (CON-FUCK-TIOUS up in its tank: benTower.ts); MAIN STREET COLLAPSE, a pit, over it on
 //          another shuttle, the old stunt show's fall tower in the middle of it with two extras stood on it in his
 //          way (charge the cowboy off; reel up over the centurion's spear).
 //   6550   CHECKPOINT. THE FAKE SUBURB: the same house six times, no backs; behind them, a foundation pit: a wire out
@@ -40,7 +40,8 @@ export const BREAK = { x: R(LOT_WALL_BREAK.x), a: R(LOT_WALL_BREAK.hole.x0), b: 
 export const LOT_BOARDED_MEMO = 'hw-lot-boarded';
 export const RAIN = { a: 1600, b: 2800, period: 330, tell: 230, zap: 290, zapEnd: 310 } as const;
 export const TANK = { a: 3300, b: 4200, depth: 160, period: 420, warn: 330, surge: 360, surgeEnd: 400, surgeH: 130 } as const;
-export const TOWER = { x: 5400, w: 170, h: 300 } as const;
+/** The HAPPYWOOD WATER TOWER's scaffold (its inside's left edge, how wide, how high its tank's top is): benTower.ts. */
+export const TOWER = { x: 5060, w: 800, h: 3200 } as const;
 export const PIT1 = { a: 6050, b: 6450 } as const;
 export const PIT2 = { a: 7000, b: 7700 } as const;
 /** In MAIN STREET COLLAPSE: the old stunt show's fall tower, its top `drop` under the street, two extras stood on it
@@ -65,7 +66,6 @@ export const LEDGES: [number, number, number, LedgeWhat][] = [
   [1700, 120, 140, 'escape'], [1740, 240, 120, 'escape'],
   [2200, 120, 140, 'escape'], [2240, 240, 120, 'escape'],
   [2620, 120, 140, 'escape'],
-  [TOWER.x, TOWER.h, TOWER.w, 'tower'],
   [4880, 110, 160, 'porch'], [6700, 110, 150, 'porch'],
   [8420, 130, 140, 'shelf'],
   [CRANE.a, CRANE.h, CRANE.b - CRANE.a, 'crane'],
@@ -77,8 +77,6 @@ export const WIRES: StuntWire[] = [
   { from: { x: X(3200), y: Y(0) - HANDS }, to: { x: X(3540), y: Y(0) }, rigY: Y(330) },
   { from: { x: X(3650), y: Y(0) - HANDS - 20 }, to: { x: X(3930), y: Y(0) }, rigY: Y(340) },
   { from: { x: X(4040), y: Y(0) - HANDS - 20 }, to: { x: X(4330), y: Y(0) }, rigY: Y(340) },
-  // the water tower's camera dolly: up to the tank, on its own loop
-  { from: { x: X(5150), y: Y(0) - HANDS }, to: { x: X(TOWER.x + 60), y: Y(TOWER.h) }, rigY: Y(TOWER.h + 170), shuttle: true, speed: 5 },
   // over MAIN STREET COLLAPSE, on its own loop
   { from: { x: X(5960), y: Y(0) - HANDS }, to: { x: X(6540), y: Y(0) }, rigY: Y(330), shuttle: true, speed: 6 },
   // the foundation pit: a rig out to its end stop under the crane's platform (charge there: the swoop up onto it), then
@@ -100,7 +98,7 @@ export const ENEMIES: [LotKind, number, number][] = [
   ['m2:hw_legionary', 4290, 0], ['m2:hw_legionary', 4450, 0],
   // the western town (past the checkpoint's reach): a cowboy alone (the lasso); then a cowboy and a centurion shoulder to
   // shoulder (charge the cowboy into him), a security cart behind them down Main Street (it runs them down too; the
-  // camera dolly up the water tower out of its way)
+  // water tower's first rig up out of its way)
   ['m2:hw_cowboy', 5130, 0], ['m2:hw_cowboy', 5620, 0], ['m2:hw_legionary', 5680, 0], ['m2:hw_cart', 5900, 0],
   // in the collapse, on the fall tower in the shuttle's way: a cowboy, a centurion
   ['m2:hw_cowboy', FALL_TOWER.a + 22, -FALL_TOWER.drop], ['m2:hw_legionary', FALL_TOWER.a + 70, -FALL_TOWER.drop],
@@ -115,7 +113,6 @@ export const ENEMIES: [LotKind, number, number][] = [
 
 export const PICKUPS: [number, number, 'small_health' | 'small_ammo'][] = [
   [1800, 240, 'small_health'],
-  [TOWER.x + 85, TOWER.h, 'small_ammo'],
   [4960, 110, 'small_health'],
   [8490, 130, 'small_ammo'],
 ];

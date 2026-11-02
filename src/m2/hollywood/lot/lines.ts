@@ -41,7 +41,7 @@ export const GAG_LINES: Record<'merch' | 'gate' | 'newyork' | 'rain' | 'flood' |
   ],
   tower: [
     'A WATER TOWER. SOMETHING SHINY UP TOP. MINE.',
-    "A CAMERA DOLLY UP A TOWER. I'M RIDING IT. SUE ME.",
+    "THAT WATER TOWER GOES UP FOREVER. STUNT RIGS ALL THE WAY. I'M IN.",
   ],
   pit: [
     'MAIN STREET COLLAPSE. STUNT SHOW CLOSED 1991. THE HOLE STAYED OPEN.',

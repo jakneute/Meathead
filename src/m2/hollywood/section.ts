@@ -41,6 +41,12 @@ export interface StuntWire {
   /** A rig on its own loop (a camera dolly): it never parks, it runs back and forth between the ends by itself; grab
    *  it as it comes and it takes him the way it's going. (The wire code: hollywood/wires.ts.) */
   shuttle?: boolean;
+  /** The track runs on past `from`, the other way from `to`, out to here (world; his feet, on letting go at that end):
+   *  the harness still parks at `from`, and only goes out to this end ridden there (or with him stood up by it). */
+  beyond?: { x: number; y: number };
+  /** How far up its track's chains go (px; left out: 700, up out of sight). The water tower's rigs hang just under the
+   *  next deck. */
+  chain?: number;
 }
 // (Wires are matched frame to frame by their place in a section's list: keep the list's order steady, and switch one
 // `off` rather than leaving it out.)

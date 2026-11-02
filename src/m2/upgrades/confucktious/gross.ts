@@ -26,7 +26,7 @@
 //          tag dangles off the collar on its barb and the sweep flings it flapping across his face.
 
 import {
-  type Ctx, type Buf, GW, GH, R, hexU, WHITE, newBuf, setSeed, rnd, matAt, plot, seg, path, ball, tint, poly, bead, eyeball, teeth, skinPost, stubble, hairs, vein, stamps, drawGrossStamp, grossBackdrop, toCanvas, M_SKIN, M_HAIR, M_MOUTH, M_OTHER, M_CLOTH, M_METAL, SCLERA_R, MOUTH, TONGUE, VEIN_B, BLOOD,
+  type Ctx, type Buf, GW, GH, R, hexU, WHITE, newBuf, setSeed, rnd, matAt, plot, seg, path, ball, tint, poly, bead, eyeball, teeth, skinPost, stubble, hairs, vein, stamps, drawGrossStamp, grossBackdrop, toCanvas, M_SKIN, M_HAIR, M_MOUTH, M_OTHER, M_CLOTH, M_METAL, SCLERA_R, MOUTH, TONGUE, VEIN_B, BLOOD, GOLD,
 } from '../../grossKit';
 import type { ArmorPiece } from '../state';
 
@@ -218,18 +218,19 @@ const padCanvas = () => {
     plot(b, x + 1, y, LEO[3]);
   }
   for (let k = 0; k < 60; k++) { const x = cx - 38 + rnd() * 76; seg(b, x, cy + 20, x + (rnd() - 0.5) * 2, cy + 22.5, LEO[2], 1, M_CLOTH); }
-  // (the plastic tusk, glued up off the top: curving up and out, thick at the root, its mould seam, a shine)
+  // (the plastic tusk, glued up off the top: curving up and OUT, away from his face (this pad's the screen's left one:
+  // out is left), thick at the root, its mould seam, a shine)
   for (let i = 0; i <= 14; i++) {
-    const t = i / 14, x = cx + 14 + t * 30 - t * t * 6, y = cy - 22 - t * 26 - t * t * 10, r = 6.5 * (1 - t) + 1.2;
+    const t = i / 14, x = cx - 14 - t * 30 + t * t * 6, y = cy - 22 - t * 26 - t * t * 10, r = 6.5 * (1 - t) + 1.2;
     ball(b, x, y, r, r, TUSK, { mat: M_OTHER, line: true, lw: 1 });
   }
-  path(b, [cx + 18, cy - 26, cx + 30, cy - 38, cx + 38, cy - 50], TUSK[0], 1, undefined, M_OTHER);
+  path(b, [cx - 18, cy - 26, cx - 30, cy - 38, cx - 38, cy - 50], TUSK[0], 1, undefined, M_OTHER);
   // (the glue: a clear blob at the tusk's root, a string of it)
-  tint(b, cx + 15, cy - 21, 9, 5, hexU('#E8F4FF'), 0.55, M_OTHER);
-  plot(b, cx + 11, cy - 23, WHITE); plot(b, cx + 12, cy - 23, WHITE); seg(b, cx + 20, cy - 18, cx + 22, cy - 12, hexU('#D8ECFA'));
+  tint(b, cx - 15, cy - 21, 9, 5, hexU('#E8F4FF'), 0.55, M_OTHER);
+  plot(b, cx - 11, cy - 23, WHITE); plot(b, cx - 12, cy - 23, WHITE); seg(b, cx - 20, cy - 18, cx - 22, cy - 12, hexU('#D8ECFA'));
   // (the price sticker it still has on)
-  ball(b, cx - 20, cy - 8, 6, 4, R('#FF9A3A', '#F07A1A', '#C85A0A', '#8A3A04', '#3A1400'), { mat: M_OTHER, line: true, lw: 1 });
-  seg(b, cx - 23, cy - 8, cx - 17, cy - 8, hexU('#3A1400'));
+  ball(b, cx + 20, cy - 8, 6, 4, R('#FF9A3A', '#F07A1A', '#C85A0A', '#8A3A04', '#3A1400'), { mat: M_OTHER, line: true, lw: 1 });
+  seg(b, cx + 17, cy - 8, cx + 23, cy - 8, hexU('#3A1400'));
   const cv = toCanvas(b);
   if (!cv) { padCv = null; return null; }
   const out = document.createElement('canvas'); out.width = PAD_W; out.height = PAD_H;
@@ -439,6 +440,98 @@ const swirlUp = (f: number) => {
   return 0;
 };
 
+/** THE TROPHY SHIN-DIGS (Hollywood Land): AWARD, one of the knockoff gold statuettes, torn off his shin with the duct tape
+ *  still flapping off it, up in his fist for the acceptance speech (the forearm down off the screen); KICK, his own leg
+ *  (gray fleece, the other statuette taped down the shin, the film reel on the knee, the white high-top) for the flash
+ *  kick, painted pointing straight up from the hip at its foot (drawn turned as it swings up across the screen). */
+const AWARD_W = 64, AWARD_H = 170;
+const SWEATS = R('#B4B4C2', '#9494A2', '#787886', '#5C5C6A', '#42424F', '#1C1C26');
+const SHOEW = R('#FFFFFF', '#F2F2F8', '#DADAE4', '#B4B4C4', '#8A8A9C', '#2E2E3A');
+const TAPE = R('#F4F4F8', '#D8DAE0', '#B4B8C0', '#8E929C', '#686C76', '#2E3038');
+/** The little gold man (head up, arms down his front, feet on a black base), its middle at x, head's top at y, `s` its
+ *  size, into the buffer. */
+const goldMan = (b: Buf, x: number, y: number, s: number) => {
+  // (the base: black, a gold plate on it)
+  poly(b, [x - 13 * s, y + 66 * s, x + 13 * s, y + 66 * s, x + 14 * s, y + 80 * s, x - 14 * s, y + 80 * s], R('#5A5A66', '#3A3A44', '#26262E', '#18181E', '#0E0E12', '#000000'), M_METAL, { line: true, tilt: 0.4 });
+  poly(b, [x - 8 * s, y + 70 * s, x + 8 * s, y + 70 * s, x + 8 * s, y + 76 * s, x - 8 * s, y + 76 * s], GOLD.slice(1), M_METAL, { line: true, tilt: 0 });
+  for (let k = 0; k < 4; k++) seg(b, x - 6 * s + k * 4 * s, y + 73 * s, x - 4 * s + k * 4 * s, y + 73 * s, GOLD[5], 1, M_METAL, M_METAL);
+  // (the body: shoulders, tapering down to the feet; the arms folded down the front, the sword-ish thing they hold)
+  poly(b, [x - 11 * s, y + 20 * s, x + 11 * s, y + 20 * s, x + 9 * s, y + 34 * s, x + 6 * s, y + 52 * s, x + 4 * s, y + 66 * s, x - 4 * s, y + 66 * s, x - 6 * s, y + 52 * s, x - 9 * s, y + 34 * s], GOLD, M_METAL, { line: true, tilt: 0.5 });
+  path(b, [x - 9 * s, y + 24 * s, x - 3 * s, y + 38 * s, x + 3 * s, y + 38 * s, x + 9 * s, y + 24 * s], GOLD[4], 1, undefined, M_METAL);
+  seg(b, x, y + 36 * s, x, y + 64 * s, GOLD[4], 1, M_METAL, M_METAL); seg(b, x - 1, y + 38 * s, x - 1, y + 62 * s, GOLD[0], 1, M_METAL, M_METAL);
+  path(b, [x - 3 * s, y + 52 * s, x, y + 54 * s, x + 3 * s, y + 52 * s], GOLD[5], 1, undefined, M_METAL);
+  // (the neck, the bald round head, a shine on it)
+  ball(b, x, y + 18 * s, 4 * s, 3 * s, GOLD, { mat: M_METAL });
+  ball(b, x, y + 9 * s, 8 * s, 9 * s, GOLD, { mat: M_METAL, line: true, lw: 1.2 });
+  plot(b, x - 3 * s, y + 4 * s, WHITE); plot(b, x - 2 * s, y + 4 * s, WHITE); plot(b, x - 3 * s, y + 5 * s, WHITE);
+  for (let k = 0; k < 6; k++) plot(b, x - 6 * s + k * 0.4, y + 24 * s + k * 6 * s, GOLD[0], M_METAL, M_METAL);
+};
+let awardCv: HTMLCanvasElement | null | undefined;
+const awardCanvas = () => {
+  if (awardCv !== undefined) return awardCv;
+  setSeed(7070);
+  const b = newBuf();
+  const x = 32;
+  goldMan(b, x, 4, 1);
+  // (the duct tape round it, torn off his shin: two strips, their ends flapping off ragged)
+  for (const [ty, l] of [[28, 1], [56, -1]] as const) {
+    poly(b, [x - 12, ty, x + 12, ty - 2, x + 12, ty + 6, x - 12, ty + 8], TAPE, M_CLOTH, { line: true, tilt: 0 });
+    poly(b, [x + 12 * l, ty - 2 + (l < 0 ? 2 : 0), x + 26 * l, ty + 8, x + 22 * l, ty + 14, x + 11 * l, ty + 6], TAPE, M_CLOTH, { line: true, tilt: 0.4 * l });
+    for (let k = 0; k < 6; k++) plot(b, x - 10 + k * 4, ty + 2, TAPE[0], M_CLOTH, M_CLOTH);
+  }
+  // (his fist round the base, the forearm down off the bottom; gray hair on it, a vein)
+  poly(b, [x - 18, 96, x + 18, 96, x + 30, AWARD_H + 2, x - 12, AWARD_H + 2], SKIN.slice(1), M_SKIN, { line: true, tilt: 0.5 });
+  ball(b, x, 88, 19, 13, SKIN, { mat: M_SKIN, line: true, lw: 1.4, flat: 0.8 });
+  for (let k = 0; k < 4; k++) { ball(b, x - 13 + k * 8.6, 79, 5, 4.4, SKIN, { mat: M_SKIN, line: true, lw: 1 }); plot(b, x - 14 + k * 8.6, 77, SKIN[0]); }
+  for (let k = 0; k < 3; k++) path(b, [x - 9 + k * 8.6, 82, x - 9 + k * 8.6, 90], SKIN[6], 1, undefined, M_SKIN);
+  vein(b, [x - 4, 104, x + 2, 124, x + 8, 150], VEIN_B, 2);
+  for (let k = 0; k < 40; k++) { const hx = x - 12 + rnd() * 34, hy = 100 + rnd() * 66; if (matAt(b, hx, hy) === M_SKIN) seg(b, hx, hy, hx - 1.5, hy - 2.5, GRAY[2 + (k % 3)], 1, M_SKIN, M_SKIN); }
+  const cv = toCanvas(b);
+  if (!cv) { awardCv = null; return null; }
+  const out = document.createElement('canvas'); out.width = AWARD_W; out.height = AWARD_H;
+  out.getContext('2d')!.drawImage(cv, 0, 0, AWARD_W, AWARD_H, 0, 0, AWARD_W, AWARD_H);
+  awardCv = out;
+  return out;
+};
+const KICK_W = 76, KICK_H = 200;
+let kickCv: HTMLCanvasElement | null | undefined;
+const kickCanvas = () => {
+  if (kickCv !== undefined) return kickCv;
+  setSeed(7071);
+  const b = newBuf();
+  const x = 38;
+  // (the thigh and the shin: baggy fleece, the knee at 110, a crease off it, the ribbed cuff gathered at the ankle)
+  poly(b, [x - 26, KICK_H, x + 24, KICK_H, x + 20, 112, x - 20, 108], SWEATS, M_CLOTH, { line: true, tilt: 0.3 });
+  poly(b, [x - 20, 112, x + 20, 112, x + 16, 40, x - 16, 40], SWEATS, M_CLOTH, { line: true, tilt: 0.3 });
+  for (const yy of [150, 128, 70]) path(b, [x - 18, yy, x - 4, yy + 4, x + 8, yy], SWEATS[4], 1, undefined, M_CLOTH);
+  poly(b, [x - 17, 42, x + 17, 42, x + 17, 32, x - 17, 32], SWEATS, M_CLOTH, { line: true, tilt: 0 });
+  for (let k = 0; k < 8; k++) seg(b, x - 14 + k * 4, 33, x - 14 + k * 4, 41, SWEATS[4], 1, M_CLOTH, M_CLOTH);
+  // (the film reel on the knee)
+  ball(b, x, 108, 15, 15, R('#F4F6FA', '#D4DAE2', '#A8B0BC', '#7A828E', '#4A505C', '#1A1C22'), { mat: M_METAL, line: true, lw: 1.4 });
+  ball(b, x, 108, 9, 9, R('#3A3A44', '#26262E', '#18181E', '#0E0E12', '#050508', '#000000'), { mat: M_METAL });
+  ball(b, x, 108, 3, 3, R('#D4DAE2', '#A8B0BC', '#7A828E', '#4A505C', '#2A2E36', '#101216'), { mat: M_METAL });
+  for (let k = 0; k < 3; k++) { const a = -Math.PI / 2 + k * (Math.PI * 2 / 3); ball(b, x + Math.cos(a) * 12, 108 + Math.sin(a) * 12, 2, 2, R('#5A606C', '#3A3E48', '#22262E', '#14161C', '#0A0C10', '#000000'), { mat: M_METAL }); }
+  // (the statuette down the front of the shin, upside down to it (its head at the knee), taped on)
+  goldMan(b, x, 50, 0.62);
+  for (const ty of [62, 84]) { poly(b, [x - 18, ty, x + 18, ty - 1, x + 18, ty + 5, x - 18, ty + 6], TAPE, M_CLOTH, { line: true, tilt: 0 }); for (let k = 0; k < 7; k++) plot(b, x - 16 + k * 5, ty + 2, TAPE[0], M_CLOTH, M_CLOTH); }
+  // (the white high-top on the end: the sole, the toe up, the laces, the red stripe)
+  poly(b, [x - 15, 34, x + 15, 34, x + 16, 12, x + 30, 4, x + 30, -2 + 6, x - 15, 6], SHOEW, M_OTHER, { line: true, tilt: 0.4 });
+  poly(b, [x - 17, 8, x + 32, 2, x + 33, 8, x - 17, 13], R('#EEEEF4', '#C8C8D4', '#A0A0B0', '#78788A', '#4A4A5A', '#1E1E28'), M_OTHER, { line: true, tilt: 0 });
+  path(b, [x - 12, 26, x + 4, 22, x + 14, 14], hexU('#D23030'), 2, undefined, M_OTHER);
+  for (let k = 0; k < 4; k++) seg(b, x + 2 + k * 3, 30 - k * 4, x + 8 + k * 3, 28 - k * 4, SHOEW[4], 1, M_OTHER, M_OTHER);
+  const cv = toCanvas(b);
+  if (!cv) { kickCv = null; return null; }
+  const out = document.createElement('canvas'); out.width = KICK_W; out.height = KICK_H;
+  out.getContext('2d')!.drawImage(cv, 0, 0, KICK_W, KICK_H, 0, 0, KICK_W, KICK_H);
+  kickCv = out;
+  return out;
+};
+/** The shin-digs' cycle (frames): the speech (the award up beside his face, bobbing), then the flash kick (the leg up
+ *  across the screen and back down). */
+const SPEECH = 84, FLASH = 34;
+/** The kick's swing (0..1 up, back), and its leg's angle (radians off straight up, + toward his left of the screen). */
+const kickU = (f: number) => { const t = f % (SPEECH + FLASH) - SPEECH; return t < 0 ? -1 : t / FLASH; };
+
 type Draw = (c: Ctx, f: number) => void;
 /** A piece's prop, drawn in the buffer's own pixels over the face (and a jolt for the screen when it lands). */
 interface Prop { draw: Draw; jolt: (f: number) => number; /** Bake its art now (ahead of the close-up). */ warm?: () => void; /** The whole face pushed at the lens (a headbutt): times the zoom. */ zoom?: (f: number) => number }
@@ -475,7 +568,8 @@ const PROPS: Partial<Record<ArmorPiece, Prop>> = {
       const n = Math.floor(f / BARGE), u = (f % BARGE) / BARGE, out = u < 0.55 ? Math.sin((u / 0.55) * Math.PI) : 0;
       for (const side of [0, 1]) {
         const active = n % 2 === side, k = active ? out : 0;
-        const rx = side ? 236 : 44, ry = side ? 150 : 148;
+        // (sat down on his traps, out at the screen's edges: shoulder pads, not up his jaw)
+        const rx = side ? 242 : 38, ry = side ? 182 : 180;
         const x = rx + (FX + (side ? 30 : -30) - rx) * k * 0.5, y = ry + (FY + 70 - ry) * k * 0.4, s = 0.95 + k * 0.85;
         c.save(); c.translate(x, y); if (side) c.scale(-1, 1);
         c.drawImage(cv, -PAD_W * s / 2, -PAD_H * s / 2, PAD_W * s, PAD_H * s);
@@ -551,6 +645,38 @@ const PROPS: Partial<Record<ArmorPiece, Prop>> = {
     jolt: (f) => ((f % SWIRL) === SW_DOWN + SW_UP - 2 ? 4 : 0),
     zoom: (f) => { const t = f % SWIRL - SW_DOWN; return t >= 0 && t < 24 ? 1 + 0.06 * Math.sin((t / 24) * Math.PI) : 1; },
     warm: () => { capeCanvas(); swirlCanvas(); tagCanvas(); },
+  },
+  legs: {
+    // (the acceptance speech: the award up in his fist beside his face, bobbing with the words, a glint running up it;
+    // then the flash kick: the award dropped, his own leg (the other statuette taped down its shin) swung up across the
+    // screen in an arc and back down, the arc's motion lines behind the foot)
+    draw: (c, f) => {
+      const aw = awardCanvas(), kc = kickCanvas();
+      if (!aw || !kc) return;
+      const u = kickU(f);
+      if (u < 0) {
+        const t = f % (SPEECH + FLASH), up = Math.min(1, t / 12), bob = Math.sin(f * 0.22) * 2;
+        const ax = 218, ay = Math.round(200 - up * 150 + bob);
+        c.drawImage(aw, ax - AWARD_W / 2, ay);
+        // (the glint running up the gold)
+        const g = (f % 60) / 60;
+        if (g < 0.5) { const gy = ay + 76 - g * 2 * 70; c.fillStyle = 'rgba(255,255,240,0.9)'; c.fillRect(ax - 6, Math.round(gy), 2, 2); c.fillRect(ax - 7, Math.round(gy) + 1, 4, 1); }
+        if (t > 14 && t < 40) { c.fillStyle = '#FFF8C8'; for (const [sx, sy] of [[ax + 22, ay + 2], [ax - 24, ay + 14]] as const) { c.fillRect(sx - 1, sy - 4, 2, 9); c.fillRect(sx - 4, sy - 1, 9, 2); } }
+      } else {
+        // (pivot at his hip, off the bottom of the screen; from down at his far side, up over, and back)
+        const swing = u < 0.55 ? Math.sin((u / 0.55) * Math.PI / 2) : Math.cos(((u - 0.55) / 0.45) * Math.PI / 2);
+        const ang = -1.9 + swing * 2.5, px0 = FX + 30, py0 = GH + 70;
+        // (the motion lines along the foot's arc behind it)
+        if (u < 0.6) {
+          c.fillStyle = 'rgba(255,255,255,0.75)';
+          for (let k = 1; k < 7; k++) { const a = ang - k * 0.09, r = KICK_H - 6; c.fillRect(Math.round(px0 + Math.sin(a) * r) - 1, Math.round(py0 - Math.cos(a) * r) - 1, 3, 3); }
+        }
+        c.save(); c.translate(px0, py0); c.rotate(ang); c.drawImage(kc, -KICK_W / 2, -KICK_H); c.restore();
+      }
+    },
+    jolt: (f) => (Math.abs(kickU(f) - 0.55) < 0.02 ? 6 : 0),
+    zoom: (f) => { const u = kickU(f); return u < 0 ? 1 : 1 - 0.08 * Math.sin(u * Math.PI); },
+    warm: () => { awardCanvas(); kickCanvas(); },
   },
 };
 

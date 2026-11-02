@@ -26,6 +26,7 @@ import { blvd } from './blvd';
 import { coaster } from './coaster';
 import { warehouse } from './warehouse';
 import { lot } from './lot';
+import { withBenTower } from './lot/benTowerSection';
 import { disaster } from './disaster';
 import { havoc } from './havoc';
 import { stunt } from './stunt';
@@ -34,7 +35,8 @@ export { HOLLYWOOD_VOICE_LINES } from './voices';
 
 export const HOLLYWOOD_STAGE = 'M2 Hollywood Land';
 
-const ALL: Record<HollywoodId, HollywoodSection> = { blvd, coaster, warehouse, lot, disaster, havoc, stunt };
+// (the lot with the HAPPYWOOD WATER TOWER and CON-FUCK-TIOUS up in its tank: lot/benTowerSection.ts)
+const ALL: Record<HollywoodId, HollywoodSection> = { blvd, coaster, warehouse, lot: withBenTower(lot), disaster, havoc, stunt };
 const sectionAt = (x: number): HollywoodSection => {
   for (const id of SECTION_ORDER) { const s = ALL[id]; if (x >= s.x0 && x < s.x1) return s; }
   // (between sections, or off the end of one: the nearest)

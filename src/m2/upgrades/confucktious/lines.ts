@@ -137,7 +137,7 @@ export interface PieceLines {
   trialPose?: 'offer' | 'brace' | 'fold';
 }
 
-export const PIECE_LINES: { hands: PieceLines; pauldrons: PieceLines; helmet: PieceLines; cape: PieceLines } = {
+export const PIECE_LINES: { hands: PieceLines; pauldrons: PieceLines; helmet: PieceLines; cape: PieceLines; legs: PieceLines } = {
   hands: {
     ask: {
       clean: ['WHAT ARE THOSE? ARE THOSE MICKEY HANDS?', 'WHOA. GIANT CARTOON HANDS. I NEED THOSE.'],
@@ -272,6 +272,70 @@ export const PIECE_LINES: { hands: PieceLines; pauldrons: PieceLines; helmet: Pi
       nude: ['YOU AGAIN. NAKED IN A LIBRARY. SHH.', 'YOU AGAIN. CAPE ON, PANTS OFF. YOU LOOK LIKE A FLASHER.'],
     },
   },
+  // Hollywood Land: the TROPHY SHIN-DIGS, in the drained tank on top of the HAPPYWOOD WATER TOWER. The trial: slide under
+  // his stage curtain, then flash kick his three sandbags down.
+  legs: {
+    ask: {
+      clean: ['ARE THOSE GOLD AWARDS? DUCT-TAPED TO YOUR SHINS?', 'TWO LITTLE GOLD NAKED GUYS ON YOUR LEGS. I NEED THAT.'],
+      shitty: ["GOLD SHIN GUARDS! THE SHIT CAN'T REACH THAT HIGH. USUALLY.", 'GIVE ME THOSE. MY SHINS ARE THE ONLY CLEAN PART LEFT.'],
+      nude: ["TWO GOLD NAKED GUYS. NOW THERE'S THREE OF US.", "SHIN ARMOR! IT DOESN'T COVER ANYTHING IMPORTANT. I'LL TAKE IT."],
+    },
+    sell: ["I'D LIKE TO THANK THE GIFT SHOP. FAKE AWARDS, DUCT TAPE, FILM REELS FOR KNEES. YOU SLIDE FURTHER AND YOU TRIP EVERYBODY."],
+    trial: ['SLIDE UNDER MY CURTAIN. THEN FLASH KICK MY THREE SANDBAGS. HOLD THE SLIDE, PUSH UP.'],
+    trialPose: 'fold',
+    more: ['ONE. THE ACADEMY IS MOVED.', 'TWO. YOU KICK LIKE A STUNTMAN WITH NO INSURANCE. ONE MORE.'],
+    miss: ['THAT WAS A JUMP. FLASH KICK. SLIDE, THEN UP.', "YOU DON'T TOUCH A SANDBAG. YOU MURDER IT.", 'UP WHILE YOU SLIDE. NOT AFTER. NOT BEFORE. WHILE.', 'CUT. AGAIN.', "THAT'S NOT A FLASH KICK. THAT'S A HOP."],
+    hint: ['THE BAR GOES UNDER THE CHIN. THE MAN GOES UNDER THE CURTAIN. SLIDE. THEN PUSH UP MID-SLIDE.'],
+    pass: ["THAT'S A WRAP. YOU PASS. I'M GETTING CHOKED UP.", 'AND THE AWARD GOES TO... THE IDIOT. YOU PASS.'],
+    passed: {
+      clean: ["I'D LIKE TO THANK MY MOM. AND YOU, CON-FUCK-TIOUS."],
+      shitty: ["I'D LIKE TO THANK MY PANTS. THEY HELD. MOSTLY."],
+      nude: ["I'D LIKE TO THANK NOBODY. I'M NAKED ON STAGE."],
+    },
+    gift: ['TAKE THE TROPHY SHIN-DIGS. TWO GOLD MEN ON YOUR SHINS. MORE THAN YOUR DAD EVER GAVE YOU.'],
+    tease: ['SLIDE INTO A BOSS WITH THOSE ON. HE FEELS IT. ANYBODY ELSE JUST GOES ASS OVER HEAD.'],
+    enamored: {
+      clean: ["I'M GONNA SLIDE EVERYWHERE. THE GROCERY STORE. CHURCH."],
+      shitty: ["I'M GONNA SLIDE EVERYWHERE. I'LL LEAVE A TRAIL. LIKE A SNAIL."],
+      nude: ["I'M GONNA SLIDE EVERYWHERE. NAKED. IT'S GONNA BURN. WORTH IT."],
+    },
+    practice: ['PRACTICE ON MY STUNT DOUBLE. TRIP HIM, KICK HIM IN HALF. THE UNION SENDS ANOTHER ONE. THEN THE CANNON.'],
+    good: ['CUT! PRINT IT! BEAUTIFUL.', 'IN HALF. LIKE A SANDWICH. GOOD.', 'ARIGATO. GRANDPA SAID IT TO THE MAILMAN. NOBODY ELSE.'],
+    idle: {
+      clean: ['YOU AGAIN. THE GIFT SHOP HAD TWO AWARDS. YOU GOT BOTH.', 'YOU AGAIN. YOU CLIMBED ALL THAT FOR A HELLO?'],
+      shitty: ['YOU CLIMBED A WATER TOWER IN THOSE PANTS. THE TOWN DRINKS THIS.', 'YOU AGAIN. THE TANK ECHOES. SO DOES THE SMELL.'],
+      nude: ['YOU CLIMBED UP HERE NAKED. THE WHOLE STUDIO SAW.', 'YOU AGAIN. NAKED IN A WATER TANK. CALL IT A SPONGE BATH.'],
+    },
+  },
+};
+
+// ---------------------------------------------------------------------------------------------------------------
+// Hollywood Land: the HAPPYWOOD WATER TOWER (lot/benTower.ts)
+
+/** Ben, the trial: he walked into the curtain instead of sliding under it. */
+export const LEGS_CURTAIN = ["UNDER IT. YOU'RE NOT A STAGEHAND.", 'THE CURTAIN DOES NOT GO UP FOR YOU. SLIDE.', 'YOU WALKED INTO A CURTAIN. IN FRONT OF EVERYBODY.'];
+/** Meathead, the first time a rig hatch opens over him this go at the land. */
+export const MH_HATCH: ByPants = {
+  clean: ['THE HATCH OPENS WHEN I RIDE UP. THE TOWER WANTS ME.'],
+  shitty: ["THE HATCH OPENS FOR ME. FIRST DOOR ALL DAY THAT DIDN'T SLAM IN MY FACE."],
+  nude: ['THE HATCH OPENS. NICE BREEZE UP HERE. EVERYWHERE.'],
+};
+/** Ben, done teaching: the cannon (it only goes to the bottom of the tower: the owner's "just cause"). */
+export const NUDGE_HW: ByPants = {
+  clean: ["GET IN THE CANNON. IT GOES TO THE BOTTOM. I DON'T MAKE THE RULES.", "THE CANNON, MEATHEAD. BOTTOM OF THE TOWER. JUST 'CAUSE."],
+  shitty: ['THE CANNON. PLEASE. THE TANK HOLDS SMELLS.', 'GET IN THE CANNON. THE TOWN DRINKS FROM THIS TANK.'],
+  nude: ['THE CANNON. GO BE NAKED AT THE BOTTOM.', 'GET IN THE CANNON. AND GET OFF MY RAFT.'],
+};
+/** Getting into the cannon: Meathead asks, Ben answers. */
+export const MH_CANNON_ASK = ['WHERE DOES THIS ONE GO?', "WHERE'S THIS ONE SHOOT ME?"];
+export const BEN_CANNON = ["THE BOTTOM OF THE TOWER. JUST 'CAUSE.", "BACK TO THE BOTTOM. DON'T ASK."];
+/** Meathead, coming down past the whole tower. */
+export const MH_FALL = ['THE BOTTOM?! WHY THE BOTTOM?!', 'ALL THE WAY DOWN?! I JUST CLIMBED THIS!'];
+/** Meathead, down on the street at its foot. */
+export const MH_LANDED: ByPants = {
+  clean: ['ALL THAT CLIMBING. FOR THAT.'],
+  shitty: ['I SHIT A LITTLE ON THE WAY DOWN. A LITTLE MORE.'],
+  nude: ['I LANDED NAKED IN A COWBOY TOWN. YEE-HAW.'],
 };
 
 /** Spooky Land: Meathead through the false shelf into the passage, the first time this go at the land. */
@@ -312,11 +376,15 @@ export const ART_WEEB: ByPants = {
 export const ART_HUH = ['I GREW UP BEHIND A BOWLING ALLEY. NO IDEA WHAT YOU JUST SAID.'];
 /** Ben, a later follow-up piece: it's the art again. */
 export const ART_AGAIN = ['ANOTHER ONE FOR THE HIDDEN ART. HOLD THE CHARGE, TAP GRAB. SAME AS ALWAYS.'];
+/** Ben, the shins (the flash kick: the one follow-up that isn't a grab): with the big beat (after ART_HOW)... */
+export const ART_FLASH = ['THESE ARE THE ODD ONES. NO GRAB. HOLD THE SLIDE AND PUSH UP. THE FLASH KICK. FREE. EVERYBODY AROUND YOU GETS IT.'];
+/** ...or, the art already taught, instead of ART_AGAIN. */
+export const ART_AGAIN_FLASH = ['ANOTHER ONE FOR THE HIDDEN ART. EXCEPT THIS ONE CHEATS. NO GRAB. HOLD THE SLIDE, PUSH UP.'];
 
 const pieceBen = (p: PieceLines) => [...p.sell, ...p.trial, ...p.miss, ...p.hint, ...p.pass, ...p.gift, ...p.tease, ...p.practice, ...p.good, ...all(p.idle), ...(p.more ?? [])];
 const pieceMeathead = (p: PieceLines) => [...all(p.ask), ...all(p.passed), ...all(p.enamored)];
 
 export const BEN_VOICE_LINES: Record<string, string[]> = {
-  [BEN_VOICE]: [...NAME, ...all(RIDDLE), ...PURPOSE, ...FIRST_ASIDE, ...all(AGAIN), ...all(NUDGE), ...all(NUDGE_OUT), ...BYE_BEN, ...ART_OPEN, ...ART_HOW, ...ART_HUH, ...ART_AGAIN, ...Object.values(PIECE_LINES).flatMap(pieceBen)],
-  meathead: [...all(MEET), ...all(FIRST_WHY), ...all(FIRST_REACT), ...all(AGAIN_MH), ...BYE_MEATHEAD, ...all(ART_MH), ...all(ART_WEEB), ...Object.values(PIECE_LINES).flatMap(pieceMeathead), ...all(MH_PASSAGE)],
+  [BEN_VOICE]: [...NAME, ...all(RIDDLE), ...PURPOSE, ...FIRST_ASIDE, ...all(AGAIN), ...all(NUDGE), ...all(NUDGE_OUT), ...BYE_BEN, ...ART_OPEN, ...ART_HOW, ...ART_HUH, ...ART_AGAIN, ...ART_FLASH, ...ART_AGAIN_FLASH, ...Object.values(PIECE_LINES).flatMap(pieceBen), ...LEGS_CURTAIN, ...all(NUDGE_HW), ...BEN_CANNON],
+  meathead: [...all(MEET), ...all(FIRST_WHY), ...all(FIRST_REACT), ...all(AGAIN_MH), ...BYE_MEATHEAD, ...all(ART_MH), ...all(ART_WEEB), ...Object.values(PIECE_LINES).flatMap(pieceMeathead), ...all(MH_PASSAGE), ...all(MH_HATCH), ...MH_CANNON_ASK, ...MH_FALL, ...all(MH_LANDED)],
 };

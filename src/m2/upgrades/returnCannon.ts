@@ -214,6 +214,14 @@ export const SPOOKY: CannonLook = {
   wood: ['#1A0C08', '#2E1810', '#46261A', '#5E3626', '#7E4E3A', '#A8745C'],
   star: '#E8E2D0',
 };
+/** Hollywood Land's (CON-FUCK-TIOUS's tank up the water tower): the old stunt show's human cannonball, a chrome barrel
+ *  with gold bands on a red carriage; Steve-yellow stars. */
+export const HOLLYWOOD: CannonLook = {
+  barrel: ['#2A2E36', '#4A505C', '#7A828E', '#A8B0BC', '#D4DAE2', '#FFFFFF'],
+  band: ['#5A3A04', '#8A5E08', '#C08A10', '#EAB516', '#FAD43A', '#FFF08A'],
+  wood: ['#4A0A0E', '#741018', '#A01C24', '#C8323A', '#E8666C', '#F8A8AA'],
+  star: '#FACC15',
+};
 const INK = '#1A1028';
 const barrels = new Map<CannonLook, HTMLCanvasElement | null>();
 /** The barrel, standing up, its pivot at (BW / 2, BH - 10): baked once a look. */
