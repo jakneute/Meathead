@@ -56,6 +56,7 @@ import { registerM2Kind } from '../../kinds';
 import { setUi } from '../../store';
 import { awardShard, shardWon as wonShard, openShardCard, tickShardCard, closeShardCard, type ShardCard } from '../../upgrades/shardAward';
 import { openAsk, tickAsk, closeAsk, type Ask } from '../../minigameConfirm';
+import { minigamePausable } from '../../minigamePause';
 import { reaction, moodOf, frameOf, type Pose } from '../../spooky/costume';
 import { meatheadSays, speak, byPants, saidOver, label, box, ledge, type Said } from '../section';
 import type { ByPants } from '../talk';
@@ -396,6 +397,8 @@ export const updateGallery = (ctx: FrameContext, controls: Controls, out: Contro
     }
     case 'fadeIn': case 'play': case 'over': case 'fadeOut':
       runGallery(state, g, controls);
+      // (first person, START pauses it, the pause menu showing its controls: minigamePause.ts)
+      if (galleryOn(state)) minigamePausable(state, 'gallery');
       return { ...NO_CONTROLS };
     case 'beat': {
       p.inCutscene = true; p.vel.x = 0;

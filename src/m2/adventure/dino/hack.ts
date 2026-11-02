@@ -36,6 +36,7 @@ import { getUi, setUi } from '../../store';
 import { openAsk, tickAsk, closeAsk, type Ask } from '../../minigameConfirm';
 import { awardShard, shardWon, openShardCard, tickShardCard, closeShardCard, type ShardCard } from '../../upgrades/shardAward';
 import { pollM2, pressed } from '../../input';
+import { minigamePausable, gamePaused } from '../../minigamePause';
 import { ledge, meatheadSays, speak, type Said } from '../section';
 import { box, text, INK } from './art/kit';
 import type { ByPants } from './lines';
@@ -93,7 +94,8 @@ const gameCanvas = () => {
   return best as HTMLCanvasElement | null;
 };
 if (typeof window !== 'undefined') window.addEventListener('mousedown', e => {
-  if (e.button !== 0) return;
+  // (a click on the pause menu isn't one on a wheel: minigamePause.ts)
+  if (e.button !== 0 || gamePaused()) return;
   const cv = gameCanvas();
   if (!cv) return;
   const r = cv.getBoundingClientRect();
@@ -196,7 +198,7 @@ export const updateHack = (ctx: FrameContext, controls: Controls): Controls | nu
       setUi({ chordTips: [
         { pad: ['DPAD', 'LSTICK'], join: '/', kb: ['@left', '@right'], label: 'PICK A WHEEL' },
         { pad: ['DPAD_UP', 'DPAD_DOWN'], join: '/', kb: ['@up', '@down'], mouse: 'left', label: 'TURN IT' },
-        { pad: ['BACK'], join: '/', kb: ['ESC'], label: 'QUIT' },
+        { pad: ['BACK'], join: '/', kb: ['BKSP'], label: 'QUIT' },
       ] });
       if (ev === 'solved') {
         h.phase = 'granted'; h.t = 0;
@@ -265,6 +267,9 @@ export const updateHack = (ctx: FrameContext, controls: Controls): Controls | nu
       break;
     }
   }
+  // (on the terminal, START pauses it (ESC on the keys: BACKSPACE quits), the pause menu showing its controls:
+  // minigamePause.ts; not on the ask, the shard's card or the cut)
+  if (h.phase === 'boot' || h.phase === 'play' || h.phase === 'granted') minigamePausable(state, 'hack');
   return hands();
 };
 

@@ -33,6 +33,7 @@ import { setUi } from '../../../store';
 import { pollM2, btn, pressed as menuPressed } from '../../../input';
 import { shardWon, awardShard, openShardCard, tickShardCard, closeShardCard, type ShardCard } from '../../../upgrades/shardAward';
 import { openAsk, tickAsk, closeAsk, type Ask } from '../../../minigameConfirm';
+import { minigamePausable } from '../../../minigamePause';
 import { meatheadSays, speak, saidOver, type Said } from '../../section';
 import { X, Y } from '../layout';
 import { ROSTER, type CharId } from './data';
@@ -83,6 +84,7 @@ const mashOf = (state: GameState): Mash => {
 
 const won = () => shardWon(SHARD_LAND, SHARD_ID);
 const pants = <T,>(state: GameState, b: { clean: T; shitty: T; nude: T }) => (isNude(state) ? b.nude : isShat(state) ? b.shitty : b.clean);
+const PAUSABLE: Phase[] = ['boot', 'select', 'vs', 'fight', 'fatal', 'result'];
 const CRT: Phase[] = ['boot', 'controls', 'select', 'vs', 'fight', 'fatal', 'result', 'rematch', 'card', 'out'];
 /** The music's (cues.ts): the land's theme as a cheap arcade loop while the cabinet's up. */
 export const mashMusic = (state: GameState): string | null => { const ms = ALL.get(state); return ms && CRT.includes(ms.phase) ? 'arcade' : null; };
@@ -267,6 +269,9 @@ export const updateMash = (ctx: FrameContext, controls: Controls): Controls | nu
       break;
   }
   if (ms.banner) ms.banner.t++;
+  // (on the cabinet, START pauses it, the pause menu showing its controls: minigamePause.ts; not on the asks, its
+  // controls screen or the shard's card)
+  if (PAUSABLE.includes(ms.phase)) minigamePausable(state, 'mash');
   return { ...NO_CONTROLS };
 };
 

@@ -34,7 +34,11 @@ export interface M2Buttons {
 }
 const NONE: M2Buttons = { a: false, b: false, x: false, y: false, beatKey: false, shakeKey: false, airKey: false, ok: false, back: false };
 
-let now: M2Buttons = NONE, was: M2Buttons = NONE, polledAt = -1;
+let now: M2Buttons = NONE, was: M2Buttons = NONE, polledAt = -1, holdPresses = false;
+
+/** Back from the pause menu (App.tsx): whatever's held at the next read isn't a press (the button that resumed it, the
+ *  pause menu's back), only one let go and pressed again is (minigamePause.ts). */
+export const holdM2Presses = () => { holdPresses = true; };
 
 /** Any of an action's keys (or mouse buttons) held right now. */
 export const boundHeld = (a: KeyAction) => keysFor(a).some(c => held.has(c));
@@ -54,6 +58,7 @@ export const pollM2 = (frame: number) => {
     ok: (!!menu && p(menu.ok)) || k('enter') || k('space'),
     back: (!!menu && p(menu.back)) || k('escape') || k('backspace'),
   };
+  if (holdPresses) { holdPresses = false; was = now; }
 };
 export const btn = (b: keyof M2Buttons) => now[b];
 /** A key held right now (by its code, lowercase: 'keyf'). */

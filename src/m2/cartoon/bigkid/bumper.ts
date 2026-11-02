@@ -43,6 +43,7 @@ import { playSound } from '../../../m1/game/platform/audio';
 import { pickLine, silenceAll, announce } from '../../../m1/game/platform/speech';
 import { getUi, setUi } from '../../store';
 import { openAsk, tickAsk, closeAsk, type Ask } from '../../minigameConfirm';
+import { minigamePausable } from '../../minigamePause';
 import { awardShard, shardWon, openShardCard, tickShardCard, closeShardCard, type ShardCard } from '../../upgrades/shardAward';
 import { pollM2, btn, pressed } from '../../input';
 import { byPants, meatheadSays, speak, saidOver, landVisit, type Said } from '../section';
@@ -306,6 +307,8 @@ export const updateBumper = (ctx: FrameContext, controls: Controls): Controls | 
       break;
     }
   }
+  // (in the rink, START pauses it, the pause menu showing its controls: minigamePause.ts; not on its card or the asks)
+  if (b.phase === 'count' || b.phase === 'play' || b.phase === 'won' || b.phase === 'lost') minigamePausable(state, 'bumper');
   return hands();
 };
 

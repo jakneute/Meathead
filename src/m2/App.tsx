@@ -99,7 +99,9 @@ const noSwitching = () => !!getUi().noSwitch || !!getUi().locked;
 setFrameHook(state => {
   const p = state.player;
   const still = !!p.inCutscene || victoryOn(state.frame) || state.deathTimer > 0 || p.health <= 0;
-  setUi({ locked: still || !!p.hidden || !!p.leverPull || !!p.freefall || portalArrivalPending(), noPause: still, killCam: isKillCam(state) });
+  // (a minigame that can be paused just now (minigamePause.ts): a cutscene to the engine, but START pauses it)
+  const minigame = !!syncMinigame(state) && state.deathTimer <= 0 && p.health > 0;
+  setUi({ locked: still || !!p.hidden || !!p.leverPull || !!p.freefall || portalArrivalPending(), noPause: still && !minigame, killCam: isKillCam(state) });
 });
 import { victoryOn } from './victory';
 import { soundTestOpen } from './music/soundTest';
@@ -125,6 +127,9 @@ import ShardGotCard from './upgrades/ShardGotCard';
 import BumperCard from './cartoon/bigkid/BumperCard';
 import MinigameAsk from './MinigameAsk';
 import { pauseCard } from './PauseControls';
+import { syncMinigame, liveMinigame, setGamePaused } from './minigamePause';
+import { holdM2Presses } from './input';
+import { pauseSpeech } from '../m1/game/platform/speech';
 import QtePanel from './fantasy/wheel/QtePanel';
 import IcePanel from './fantasy/bedroom/IcePanel';
 import TragonMarks from './fantasy/tragons/TragonMarks';
@@ -314,6 +319,16 @@ const App2: React.FC = () => {
   // (the music follows where he is, and goes muffled while it's paused)
   useEffect(() => { setMusicStage(stage); }, [stage]);
   useEffect(() => { setMusicPaused(status === GameStatus.PAUSED); }, [status]);
+  // (paused in a minigame (minigamePause.ts): its voices held too; back from any pause, Meathead 2's own buttons held
+  // from the menu aren't presses, as the engine's aren't)
+  const wasPaused = useRef(false);
+  useEffect(() => {
+    const on = status === GameStatus.PAUSED;
+    setGamePaused(on);
+    pauseSpeech(on && !!liveMinigame());
+    if (wasPaused.current && !on) holdM2Presses();
+    wasPaused.current = on;
+  }, [status]);
   const pending = useRef<string | null>(first);
   const [fade, setFade] = useState(false);
   const [weapon, setWeapon] = useState<WeaponType>('GUN');
@@ -378,7 +393,8 @@ const App2: React.FC = () => {
   const live = useRef({ status, weapon, stage });
   live.current = { status, weapon, stage };
   /** (after RESUME: SKIP INTRO in the intro; BACK TO HUB out in a land, or the break room) */
-  const canHub = () => !!landOfStage(live.current.stage) || live.current.stage === PEN_STAGE;
+  // (not mid-minigame (minigamePause.ts): it'd be left half-run under him)
+  const canHub = () => (!!landOfStage(live.current.stage) || live.current.stage === PEN_STAGE) && !liveMinigame();
   /** (the cheats build only: SKIP STAGE in the gym, to its closing cutscene) */
   const canGymSkip = () => live.current.stage === GYM_STAGE && !M2_PUBLIC;
   const skipGym = () => { setStatus(GameStatus.PLAYING); requestGymSkip(); };
@@ -489,7 +505,7 @@ const App2: React.FC = () => {
   const movePauseArsenal = (dx: number, dy: number) => setPauseSel(i => {
     const n = arsenal().length;
     // (a controls card up in place of the weapons: just the buttons along the bottom, left and right)
-    if (getUi().noSwitch && getUi().pauseControls) { if (i < n) return n; if (dx > 0) return Math.min(lastPause(), i + 1); if (dx < 0 && i > n) return i - 1; return i; }
+    if ((getUi().noSwitch && getUi().pauseControls) || liveMinigame()) { if (i < n) return n; if (dx > 0) return Math.min(lastPause(), i + 1); if (dx < 0 && i > n) return i - 1; return i; }
     if (i >= n) { if (dx > 0) return Math.min(lastPause(), i + 1); if (dx < 0 && i > n) return i - 1; return dy < 0 ? Math.min(n - 1, Math.floor((n - 1) / 3) * 3) : i; }
     if (dy > 0) return i + 3 < n ? i + 3 : n;
     if (dy < 0) return i - 3 >= 0 ? i - 3 : i;
@@ -696,7 +712,9 @@ const App2: React.FC = () => {
 
   // (a stretch with its own controls and no weapon switching: its controls card, for the pause menu)
   const cardId = ui.noSwitch ? ui.pauseControls ?? null : null;
-  const card = cardId ? pauseCard(cardId, ninPad, joyPad) : null;
+  // (paused in a minigame: its controls instead (minigamePause.ts))
+  const minigameId = status === GameStatus.PAUSED ? liveMinigame() : null;
+  const card = minigameId ? pauseCard(minigameId, ninPad, joyPad) : cardId ? pauseCard(cardId, ninPad, joyPad) : null;
   // (and once its own controls card has gone, a few seconds of PAUSE FOR CONTROLS: once a visit to it, the user's)
   const tipsUp = !!(ui.heliTips || ui.bikeTips || ui.broomTips || ui.tragonTips || ui.tragonHold || ui.logTip);
   const [pausePrompt, setPausePrompt] = useState(false);
@@ -968,9 +986,9 @@ const App2: React.FC = () => {
         })()}
         {wheelAt !== null && status === GameStatus.PLAYING && !noSwitching() && <WeaponWheel weapons={arsenal()} index={wheelAt} current={weapon} nameOf={w => (w === 'GUN' && ui.catHud ? 'HAIRBALL' : weaponName(w))} Art={ui.catHud ? CatWeaponArt : M2WeaponArt} />}
         {status === GameStatus.PAUSED && !mapFrom && (
-          <PauseMenu weapons={arsenal()} current={weapon} ammo={hud.ammo} selected={pauseSel} locked={!!ui.noSwitch} card={card} cat={!!ui.catHud}
+          <PauseMenu weapons={arsenal()} current={weapon} ammo={hud.ammo} selected={pauseSel} locked={!!ui.noSwitch || !!minigameId} card={card} cat={!!ui.catHud}
             onPick={i => { setPauseSel(i); equip(i); }} onResume={resume} onMap={() => { setPauseSel(arsenal().length + 1); openMap(); }} mapOff={stage === GYM_STAGE} onOptions={() => { setPauseSel(arsenal().length + 2); openOptions(); }} onSkip={stage === INTRO_STAGE && !M2_PUBLIC ? skipIntro : stage === GYM_STAGE && !M2_PUBLIC ? skipGym : undefined} skipLabel={stage === GYM_STAGE ? 'SKIP STAGE' : undefined}
-            onHub={landOfStage(stage) || stage === PEN_STAGE ? askHub : undefined} hubAsk={hubAsk} onHubAnswer={answerHub} onHubPick={a => setHubAsk(a)} skin={theme?.pause}
+            onHub={(landOfStage(stage) || stage === PEN_STAGE) && !minigameId ? askHub : undefined} hubAsk={hubAsk} onHubAnswer={answerHub} onHubPick={a => setHubAsk(a)} skin={theme?.pause}
             onQuit={() => { setPauseSel(quitIndex()); askQuit(); }} quitAt={quitIndex()} amuletOn={amuletOn()} onAmulet={flipAmulet}
             tab={pauseTab} onTab={showTab} equipSel={equipSel} onEquipPick={k => { equipSelRef.current = k; setEquipSel(k); setPauseSel(0); }} asking={asking} onFile={activeSlot() !== null} />
         )}

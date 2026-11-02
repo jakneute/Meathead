@@ -4,6 +4,7 @@ import { Prompt } from '../m1/components/ButtonIcons';
 import ChordPrompt from './ChordPrompt';
 import { ROCKETS_ON } from './foreign/heli/copter';
 import type { PauseCardId } from './store';
+import type { MinigameId } from './minigamePause';
 
 // The pause menu's CONTROLS CARD (the user's): a stretch with its own controls and no weapon switching (the dirt bike,
 // the helicopter, the mine cart, the dragons, the broomstick, the star sled, the orbit) says which it is
@@ -24,7 +25,7 @@ const UD = (label: string) => one(label, ['DPAD_UP', 'DPAD_DOWN'], ['@up', '@dow
 
 /** Each stretch's card. `nin`: on a Nintendo pad (the broom's boost and brake swap there); `joycon`: one Joy-Con on
  *  its own (no triggers: the broom's LT and RT left off). */
-export const pauseCard = (id: PauseCardId, nin: boolean, joycon: boolean): PauseCard => {
+export const pauseCard = (id: PauseCardId | MinigameId, nin: boolean, joycon: boolean): PauseCard => {
   switch (id) {
     // (frontier/dirtbike/chase.ts: X hits left, B hits right, A jumps, left / right steer, up boosts, down brakes)
     case 'bike': return { title: 'THE DIRT BIKE', rows: [
@@ -88,6 +89,55 @@ export const pauseCard = (id: PauseCardId, nin: boolean, joycon: boolean): Pause
     case 'orbit': return { title: 'SPACE', rows: [
       { label: 'FLY', parts: [DIRS] },
       one('RAY GUN', ['X'], ['@fire'], true),
+    ] };
+
+    // THE MINIGAMES (minigamePause.ts: paused in one, its controls here)
+    // (hollywood/coaster/plunge.ts: JUMP for all of it, a round at a time)
+    case 'plunge': return { title: 'TEST YOUR PLUNGE', rows: [
+      one('THE TURD LINE: RAISE THE BAR (LET GO: IT SINKS)', ['A'], ['@jump'], true),
+      one('ON THE NOSE: PRESS IN THE SWEET SPOT', ['A'], ['@jump']),
+      one('MASH IT: MASH PAST THE LINE', ['A'], ['@jump']),
+    ] };
+    // (cartoon/bigkid/bumper.ts: tank controls; B (special or charge) boosts once its meter's full)
+    case 'bumper': return { title: 'BUMPER BASH', rows: [
+      LR('TURN THE CAR'),
+      one('GAS', ['DPAD_UP'], ['@up']),
+      one('REVERSE', ['DPAD_DOWN'], ['@down']),
+      one("BOOST (WHEN THE METER'S FULL)", ['B'], ['@special', '@charge']),
+    ] };
+    // (frontier/town/gallery.ts: the stick, the d-pad or the arrows move the cursor, the mouse puts it where it is; X,
+    // RT or fire (the left mouse button) zaps, held a steady zap)
+    case 'gallery': return { title: "DEAD-EYE DOOLEY'S SHOOTIN' GALLERY", rows: [
+      { label: 'AIM (OR JUST MOVE THE MOUSE)', parts: [{ pad: ['LSTICK', 'DPAD'], kb: ['@up', '@down', '@left', '@right'] }] },
+      { label: 'FIRE', parts: [{ pad: ['X', 'RT'], kb: ['@fire'], mouse: 'left' }] },
+    ] };
+    // (spooky/town/mash: X punch, Y kick, B special, down / up + B the other two, up or A jumps, away blocks; select:
+    // A or punch picks, back backs out)
+    case 'mash': return { title: 'MONSTER MASH', rows: [
+      LR('WALK'),
+      one('JUMP', ['A', 'DPAD_UP'], ['@jump', '@up']),
+      one('CROUCH', ['DPAD_DOWN'], ['@down']),
+      one('PUNCH', ['X'], ['@@fire']),
+      one('KICK', ['Y'], ['@secondary']),
+      one('SPECIAL', ['B'], ['@special']),
+      { label: 'DOWN SPECIAL', parts: [{ pad: ['DPAD_DOWN', 'B'], kb: ['@downSpecial'], join: '+' }] },
+      { label: 'UP SPECIAL', parts: [{ pad: ['DPAD_UP', 'B'], kb: ['@uppercut'], join: '+' }] },
+      one('BLOCK (AWAY FROM HIM; LOW: DOWN TOO)', ['DPAD_LEFT'], ['@left'], true),
+    ] };
+    // (adventure/dino/hack.ts + hackPuzzle.ts: left / right pick a wheel, up / down or confirm turn it, a click on a
+    // wheel's top or bottom half turns it, back quits (ESC pauses now: BACKSPACE quits on the keys))
+    case 'hack': return { title: 'THE PADDOCK GATE HACK', rows: [
+      { label: 'PICK A WHEEL', parts: [{ pad: ['DPAD_LEFT', 'DPAD_RIGHT'], kb: ['@left', '@right'] }] },
+      UD('TURN IT'),
+      { label: 'TURN IT (CLICK ITS TOP OR BOTTOM)', parts: [{ pad: ['A'], kb: ['@jump', 'ENTER'], mouse: 'left' }] },
+      one('QUIT', ['BACK'], ['BKSP']),
+    ] };
+    // (space/drag/area51.ts: left / right move the pick, A pushes a pin up, X sets it at the top, B gives up)
+    case 'lockpick': return { title: 'THE LOCK', rows: [
+      LR('MOVE THE PICK'),
+      one('PUSH IT UP', ['A'], ['@jump']),
+      one('SET IT AT THE TOP', ['X'], ['@fire']),
+      one('GIVE UP', ['B'], ['@special']),
     ] };
   }
 };

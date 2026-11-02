@@ -38,6 +38,7 @@ import { setUi, markCollectibleFound } from '../../store';
 import { saveProgress } from '../../save';
 import { shards, setShards, powerCells, MAX_SHARDS } from '../../upgrades/state';
 import { openAsk, tickAsk, closeAsk, type Ask } from '../../minigameConfirm';
+import { minigamePausable } from '../../minigamePause';
 import { meatheadSays, speak, saidOver, box, type Said } from '../section';
 import { byPants } from '../blvd/kinds';
 import { throneAt, plunged, PLUNGED_MEMO, SHARD_LAND, SHARD_ID } from './thrones';
@@ -257,6 +258,8 @@ export const updatePlunge = (ctx: FrameContext, co: Coaster, controls: Controls,
   if (pg.meter >= 1 && pg.phase !== 'win' && pg.phase !== 'card' && pg.phase !== 'intro') { pg.phase = 'win'; pg.t = 0; pg.flash = null; }
   // (the one button, shown up top live while a round's on)
   const tipOn = pg.phase === 'title' || pg.phase === 'line' || pg.phase === 'tap' || pg.phase === 'mash';
+  // (START pauses it, the pause menu showing its controls: minigamePause.ts; not on the ask or the shard's card)
+  if (tipOn || pg.phase === 'intro' || pg.phase === 'win') minigamePausable(state, 'plunge');
   setUi({ chordTips: tipOn ? [{ pad: ['A'], kb: ['@jump'], label: pg.phase === 'title' ? TIPS[pg.game] : TIPS[pg.phase as Game] }] : null });
   return { ...NO_CONTROLS };
 };
