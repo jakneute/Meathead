@@ -50,6 +50,7 @@ import { drawLeg, drawArmTo, drawTorsoFromHips, drawHead, setArmorDome, type Moo
 import { drawPlayer } from '../../m1/game/render/player/player';
 import { setCatClaws } from '../../m1/game/render/player/catBody';
 import { btn, pressed, pollM2 } from '../input';
+import { controlsHeldOff } from '../../m1/game/core/heldOff';
 import { setUi } from '../store';
 import { grabCallout, type GrabCallout } from './callouts';
 import { m2Kill } from './killLines';
@@ -979,6 +980,8 @@ const stepGrab = (ctx: FrameContext, g: Grab, controls: Controls): Controls => {
       // (in a cutscene (the walk-away, a scene): the buttons are read for nothing here, and a held-back X or B is dropped,
       // never let through late as a shot or a charge (the user's: X fired the gun in the walk-away))
       if (state.player.inCutscene || walkAwayOn()) { g.pend = null; return controls; }
+      // (a card just closed by a button still held: no grab off it either till the buttons are let go: m1 heldOff.ts)
+      if (controlsHeldOff()) { g.pend = null; return controls; }
       // (whatever was being pressed as the grab ended, still held: nothing till it's let go)
       if (g.gate.size) {
         const c = { ...controls };

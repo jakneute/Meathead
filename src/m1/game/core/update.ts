@@ -44,6 +44,7 @@ import { landOnFloor } from './splatSurface';
 import { scrapMachineGore } from '../enemies/machineGore';
 import { tintKindGore } from '../enemies/kindBlood';
 import { purgeCartoonGore } from './cartoonKills';
+import { applyHeldOff } from './heldOff';
 
 const INTRO_JUMP_START = 80;
 const INTRO_JUMP_FRAMES = 60;
@@ -575,7 +576,8 @@ const updatePlaying = (ctx: FrameContext, controls: Controls): boolean => {
   state.playerAnimFrame++;
   const formBeforeHits = getSpecialForm(player);
   const healthBeforeHits = player.health;
-  const input = gateControls(ctx, controls);
+  // (a card just closed by a button still held: nothing till it's let go: heldOff.ts)
+  const input = gateControls(ctx, applyHeldOff(controls));
   tickPlayerTimers(ctx, input);
   updateTaser(ctx, input);
 

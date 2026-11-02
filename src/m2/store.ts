@@ -1,6 +1,8 @@
 // What the game loop tells the React side (the map card, the prompts, where to go next): a little shared state, and
 // a way to hear about it changing.
 
+import { holdControlsTillRelease } from '../m1/game/core/heldOff';
+
 export interface M2Ui {
   /** The hub spot he's standing at (a land's path, or the staff door), or null. */
   near: number | null;
@@ -149,10 +151,14 @@ const listeners = new Set<() => void>();
 let travel: ((dest: string) => void) | null = null;
 
 export const getUi = () => ui;
+/** The announcing cards (closed by a press). */
+const CARD_KEYS: (keyof M2Ui)[] = ['gotPiece', 'gotShard', 'gotHealth', 'gotAmmo', 'bumperCard', 'minigameCard', 'minigameAsk', 'introTicket'];
 export const setUi = (patch: Partial<M2Ui>) => {
   let changed = false;
   for (const k of Object.keys(patch) as (keyof M2Ui)[]) if (ui[k] !== patch[k]) { changed = true; break; }
   if (!changed) return;
+  // (a card that announces something taken down: the button that closed it doesn't go on to act: m1 heldOff.ts)
+  if (CARD_KEYS.some(k => k in patch && patch[k] == null && ui[k] != null)) holdControlsTillRelease();
   ui = { ...ui, ...patch };
   listeners.forEach(l => l());
 };
