@@ -16,8 +16,12 @@ import type { ArtId } from './art';
 export const W = 360, H = 260, FLOOR = 226, WALL_L = 14, WALL_R = W - 14;
 const GRAV = 0.28;
 
-export interface Input { l: boolean; r: boolean; u: boolean; d: boolean; p: boolean; k: boolean; s: boolean }
-export const NO_INPUT: Input = { l: false, r: false, u: false, d: false, p: false, k: false, s: false };
+/** u jumps (up, up-forward, up-back), t throws (A), s the specials (B: neutral, toward him, down). */
+export interface Input { l: boolean; r: boolean; u: boolean; d: boolean; p: boolean; k: boolean; s: boolean; t: boolean }
+export const NO_INPUT: Input = { l: false, r: false, u: false, d: false, p: false, k: false, s: false, t: false };
+/** The special bar (the owner's: "put in a similar 'charge' bar for special moves too so you cannot spam them"): a
+ *  special needs it full and empties it; it fills in METER_FILL frames (a bit quicker taking hits). Throws don't use it. */
+export const METER_FULL = 100, METER_FILL = 250;
 
 export interface Act { id: MoveId; m: Move; t: number; hit: boolean; caught: boolean; done: boolean; landed?: boolean }
 export interface Fighter {
@@ -29,8 +33,12 @@ export interface Fighter {
   knock: boolean; down: number; getup: number; held: number; inv: number; push: number;
   squat: number; jvx: number; blocking: boolean; walkT: number; moving: number;
   form: 'jekyll' | 'hyde'; hidden: boolean;
-  in: Input; prev: Input; specAt: number; upAt: number; downAt: number;
+  in: Input; prev: Input; specAt: number; upAt: number; downAt: number; fwdAt: number;
+  /** The special bar (0..METER_FULL). */
+  meter: number;
   ko: boolean; dazed: boolean; win: boolean;
+  /** The second player's colors (a mirror match). */
+  alt: boolean;
   /** For the AI: how many times it's been hit this round. */
   hits: number;
 }
@@ -59,22 +67,24 @@ const blank = (ch: CharId, side: 0 | 1): Fighter => ({
   hp: 100, shown: 100, air: false, crouch: false, airT: 0, airAttacked: false, act: null,
   stun: 0, stunKind: null, blockLow: false, knock: false, down: 0, getup: 0, held: 0, inv: 0, push: 0,
   squat: 0, jvx: 0, blocking: false, walkT: 0, moving: 0, form: 'jekyll', hidden: false,
-  in: { ...NO_INPUT }, prev: { ...NO_INPUT }, specAt: -99, upAt: -99, downAt: -99,
-  ko: false, dazed: false, win: false, hits: 0,
+  in: { ...NO_INPUT }, prev: { ...NO_INPUT }, specAt: -99, upAt: -99, downAt: -99, fwdAt: -99, meter: 40,
+  ko: false, dazed: false, win: false, hits: 0, alt: false,
 });
-export const newMatch = (a: CharId, b: CharId): Match => ({ f: [blank(a, 0), blank(b, 1)], shots: [], drops: [], fx: [], gore: [], stop: 0, frame: 0, shake: 0, live: false, ev: [] });
+const pair = (a: CharId, b: CharId): [Fighter, Fighter] => { const p = blank(a, 0), q = blank(b, 1); q.alt = a === b; return [p, q]; };
+export const newMatch = (a: CharId, b: CharId): Match => ({ f: pair(a, b), shots: [], drops: [], fx: [], gore: [], stop: 0, frame: 0, shake: 0, live: false, ev: [] });
 /** A new round: both back to their corners, full health (Jekyll's back to himself). */
 export const resetRound = (m: Match) => {
-  m.f = [blank(m.f[0].ch, 0), blank(m.f[1].ch, 1)];
+  m.f = pair(m.f[0].ch, m.f[1].ch);
   m.shots = []; m.drops = []; m.fx = []; m.gore = []; m.stop = 0; m.live = false;
 };
 
 /** The move as he does it now (Hyde's harder and slower). */
 export const moveOf = (f: Fighter, id: MoveId): Move => { const m = CHARS[f.ch].moves[id]; return f.ch === 'jekyll' && f.form === 'hyde' ? hydeMove(m) : m; };
-export const artOf = (f: Fighter): ArtId => (f.ch === 'jekyll' ? f.form : f.ch);
+export const artOf = (f: Fighter): ArtId => { const b = f.ch === 'jekyll' ? f.form : f.ch; return f.alt && b !== 'invis' ? `${b}~alt` : b; };
 const walkOf = (f: Fighter) => CHARS[f.ch].walk * (f.ch === 'jekyll' && f.form === 'hyde' ? 0.8 : 1);
 const tallOf = (f: Fighter) => CHARS[f.ch].tall * (f.ch === 'jekyll' && f.form === 'hyde' ? 1.1 : 1);
 
+export const isSpecial = (id: MoveId) => id === 'sn' || id === 'sf' || id === 'sd';
 const free = (f: Fighter) => !f.act && f.stun === 0 && !f.knock && f.down === 0 && f.getup === 0 && f.held === 0 && !f.ko && !f.dazed && !f.win;
 const pressed = (f: Fighter, k: keyof Input) => f.in[k] && !f.prev[k];
 /** Holding away from the other one. */
@@ -102,7 +112,7 @@ const start = (m: Match, f: Fighter, id: MoveId) => {
   const mv = moveOf(f, id);
   f.act = { id, m: mv, t: 0, hit: false, caught: false, done: false };
   f.blocking = false;
-  if (id === 'sn' || id === 'sd' || id === 'su') m.ev.push({ e: 'special', who: f.side, id });
+  if (isSpecial(id)) { m.ev.push({ e: 'special', who: f.side, id }); f.meter = 0; }
   if (mv.kind === 'warp') { f.hidden = true; fx(m, mv.warp === 'above' ? 'mist' : 'puff', f.x, f.h + 30, 26); sfx(m, 'whoosh', 0.5, -6); }
   if (mv.inv) f.inv = mv.inv;
 };
@@ -155,7 +165,9 @@ const fighter = (m: Match, f: Fighter) => {
   if (f.inv > 0) f.inv--;
   if (f.in.u) f.upAt = m.frame;
   if (f.in.d) f.downAt = m.frame;
+  if (f.face === 1 ? f.in.r && !f.in.l : f.in.l && !f.in.r) f.fwdAt = m.frame;
   if (pressed(f, 's')) f.specAt = m.frame;
+  if (m.live && !f.ko) f.meter = Math.min(METER_FULL, f.meter + METER_FULL / METER_FILL);
   // HELD (in a grab: the grabber moves him)
   if (f.held > 0) { f.held--; return; }
   // KNOCKED FLYING, THEN DOWN, THEN UP
@@ -187,22 +199,25 @@ const fighter = (m: Match, f: Fighter) => {
   if (f.air) {
     f.airT++;
     f.vy += GRAV; f.h -= f.vy; f.x += f.vx;
-    // (the up special, a moment into the jump: the jump's taken back, it's the special)
-    if (f.specAt === m.frame - 2 && f.airT <= 6 && !f.airAttacked) { const id = special(f, m.frame); if (id === 'su') { f.air = false; f.h = 0; f.vx = 0; f.vy = 0; f.face = o.x >= f.x ? 1 : -1; start(m, f, id); return; } }
     if (!f.airAttacked && (pressed(f, 'p') || pressed(f, 'k'))) { f.airAttacked = true; start(m, f, pressed(f, 'p') ? 'jp' : 'jk'); return; }
     if (f.h <= 0) land(m, f);
     return;
   }
   if (f.squat > 0) {
-    // (the squat before a jump: an up+B in it is the up special instead)
-    if (f.specAt >= m.frame - 2 && f.specAt <= m.frame) { f.squat = 0; f.face = o.x >= f.x ? 1 : -1; start(m, f, 'su'); return; }
+    // (the squat before a jump: up+B is no up special (there's none): it's the neutral one, if the bar's full)
+    if (f.specAt >= m.frame - 2 && f.specAt <= m.frame && f.meter >= METER_FULL) { f.squat = 0; f.face = o.x >= f.x ? 1 : -1; start(m, f, 'sn'); return; }
     if (--f.squat === 0) { f.air = true; f.airT = 0; f.airAttacked = false; f.vy = CHARS[f.ch].jumpVy; f.vx = f.jvx; f.h = 0.1; sfx(m, 'jump', 0.3, 4); fx(m, 'puff', f.x, 0, 12); }
     return;
   }
   f.crouch = f.in.d;
-  // (a special waits two frames for the direction with it: up or down held any time just before or after)
-  if (f.specAt === m.frame - 2) { start(m, f, special(f, m.frame)); return; }
-  if (f.specAt > m.frame - 2) { if (f.in.u && !f.in.d) { start(m, f, 'su'); return; } }
+  // (a special waits two frames for the direction with it: down or toward him held any time just before or after; only
+  // on a full bar: an empty one, nothing but a dud click)
+  if (f.specAt === m.frame - 2) {
+    if (f.meter >= METER_FULL) { start(m, f, special(f, m.frame)); return; }
+    sfx(m, 'cursor', 0.3, -8);
+  }
+  // THE THROW: A, right up close (whiffed, a long recovery)
+  if (pressed(f, 't')) { start(m, f, 'th'); return; }
   if (pressed(f, 'p')) { start(m, f, f.crouch ? 'cp' : 'sp'); return; }
   if (pressed(f, 'k')) { start(m, f, f.crouch ? 'ck' : 'sk'); return; }
   if (f.in.u && !f.in.d && f.specAt < m.frame - 6) {
@@ -221,8 +236,8 @@ const fighter = (m: Match, f: Fighter) => {
 };
 
 const special = (f: Fighter, frame: number): MoveId => {
-  const down = f.downAt >= frame - 6, up = f.upAt >= frame - 6;
-  return down && !f.in.u ? 'sd' : up ? 'su' : 'sn';
+  const down = f.downAt >= frame - 6, fwd = f.fwdAt >= frame - 6;
+  return down && !f.in.u ? 'sd' : fwd ? 'sf' : 'sn';
 };
 
 const land = (m: Match, f: Fighter) => {
@@ -288,8 +303,9 @@ const moving = (m: Match, f: Fighter, o: Fighter) => {
   }
   // (the grab: caught if he's right there, on his feet)
   if (live && mv.kind === 'grab' && !a.caught && !a.done) {
-    const d = Math.abs(o.x - f.x) - CHARS[o.ch].hw;
-    if (d <= mv.grab!.range && !o.air && !o.knock && o.down === 0 && o.getup === 0 && o.inv === 0 && !o.ko && !o.act?.m.inv) {
+    const g = mv.grab!, d = Math.abs(o.x - f.x) - CHARS[o.ch].hw - (g.over ? CHARS[f.ch].hw : 0);
+    // (a throw: not on somebody reeling from a hit or a block, or it'd loop)
+    if (d <= g.range && !o.air && !o.knock && o.down === 0 && o.getup === 0 && o.inv === 0 && !o.ko && !o.act?.m.inv && !(g.over && o.stun > 0)) {
       a.caught = true; a.t = 0; o.held = mv.grab!.anim + 2; o.act = null; o.stun = 0; o.blocking = false; o.crouch = false;
       o.face = f.face === 1 ? -1 : 1;
       sfx(m, 'crunch', 0.6);
@@ -302,7 +318,13 @@ const grabbing = (m: Match, f: Fighter, o: Fighter) => {
   const a = f.act!, g = a.m.grab!;
   a.t++;
   const k = a.t / g.anim;
-  if (g.lift) {
+  if (g.over) {
+    // (the throw: pulled in, heaved up over his head, down on the far side)
+    const u = Math.max(0, (k - 0.25) / 0.75);
+    o.x = f.x + f.face * (12 - 40 * u); o.h = Math.sin(Math.PI * u) * 46;
+    o.face = (u < 0.5 ? -f.face : f.face) as 1 | -1;
+    if (a.t === Math.round(g.anim * 0.25)) sfx(m, 'whoosh', 0.6, -4);
+  } else if (g.lift) {
     // (the monster: hoisted over his head, then hurled)
     const up = Math.min(1, k * 2.5);
     o.x = f.x + f.face * (14 - up * 14); o.h = up * 46;
@@ -317,7 +339,10 @@ const grabbing = (m: Match, f: Fighter, o: Fighter) => {
     const dmg = Math.round(a.m.dmg * DMG[f.side]); o.hp = Math.max(0, o.hp - dmg); o.hits++;
     if (g.heal) f.hp = Math.min(100, f.hp + g.heal);
     m.ev.push({ e: 'hit', who: o.side, level: 'mid', blocked: false, dmg });
-    knockDown(m, o, f.face, g.throwX ?? 2.2, g.lift ? -2 : -3);
+    if (g.over) {
+      o.x = Math.max(WALL_L + CHARS[o.ch].hw, Math.min(WALL_R - CHARS[o.ch].hw, f.x - f.face * 28)); o.h = 2;
+      knockDown(m, o, -f.face, 1.2, -1.6); m.shake = 7; sfx(m, 'slam', 0.8, -4); fx(m, 'dust', o.x, 0, 18, -f.face); blood(m, o.x, 10, 5, -f.face, 0.8);
+    } else knockDown(m, o, f.face, g.throwX ?? 2.2, g.lift ? -2 : -3);
     if (g.lift) { o.h = 46; m.shake = 10; sfx(m, 'slam', 0.8, -6); blood(m, o.x, 30, 10, f.face, 1.2); }
     m.stop = 8;
   }
@@ -355,7 +380,7 @@ const strike = (m: Match, att: Fighter | null, d: Fighter, mv0: Move, dir: numbe
     if (d.hp <= 0) knockDown(m, d, dir);
     return true;
   }
-  d.hp = Math.max(0, d.hp - mv.dmg); d.hits++;
+  d.hp = Math.max(0, d.hp - mv.dmg); d.hits++; d.meter = Math.min(METER_FULL, d.meter + 5);
   d.act = null; d.squat = 0; d.blocking = false; d.hidden = false;
   fx(m, 'hit', x, h, 12, dir); sfx(m, mv.dmg >= 10 ? 'crunch' : 'punch', 0.7, mv.dmg >= 10 ? -4 : 2);
   blood(m, x, h, mv.dmg >= 10 ? 8 : 3, dir, mv.dmg >= 10 ? 1.2 : 0.8);
@@ -377,7 +402,7 @@ const hits = (m: Match) => {
     if (o.down > 0 || o.getup > 0 || o.held > 0 || (o.knock && o.ko)) continue;
     if (!overlap(hb, hurt(o))) continue;
     const cx = (Math.max(hb[0], hurt(o)[0]) + Math.min(hb[1], hurt(o)[1])) / 2, ch = (Math.max(hb[2], hurt(o)[2]) + Math.min(hb[3], hurt(o)[3])) / 2;
-    if (strike(m, f, o, a.m, f.face, cx, ch, a.id === 'sn' || a.id === 'sd' || a.id === 'su')) a.hit = true;
+    if (strike(m, f, o, a.m, f.face, cx, ch, isSpecial(a.id))) a.hit = true;
   }
 };
 
@@ -418,14 +443,20 @@ export const poseOf = (f: Fighter, frame: number): PoseId => {
   if (f.knock) return 'air';
   if (f.down > 0 || (f.ko && !f.knock)) return 'down';
   if (f.getup > 0) return 'crouch';
-  if (f.held > 0) return 'hit';
+  if (f.held > 0) return f.h > 6 ? 'air' : 'hit';
   if (f.win) return 'win';
   if (f.dazed) return frame % 40 < 20 ? 'hit' : 'idle1';
   if (f.stunKind === 'hit') return f.crouch ? 'chit' : 'hit';
   if (f.stunKind === 'block' || f.blocking) return f.crouch ? 'cblock' : 'block';
   const a = f.act;
   if (a) {
-    const mv = a.m, special = a.id === 'sn' || a.id === 'sd' || a.id === 'su';
+    const mv = a.m, special = isSpecial(a.id);
+    // (the throw: the reach, the heave over his head, the slam behind him)
+    if (a.id === 'th') {
+      if (a.caught) { const k = a.t / (mv.grab?.anim ?? 36); return k < 0.25 ? 'th0' : k < 0.6 ? 'th1' : 'th2'; }
+      if (a.done) return a.t <= mv.start + mv.active + Math.floor(mv.rec / 2) ? 'th2' : 'idle0';
+      return a.t <= mv.start ? 'idle0' : a.t <= mv.start + mv.active + Math.floor(mv.rec / 2) ? 'th0' : 'idle0';
+    }
     if (a.caught) return mv.pose;
     if (a.t <= mv.start) return special ? (mv.kind === 'warp' ? 'crouch' : mv.kind === 'transform' ? 'sd' : 'wind') : a.id === 'cp' || a.id === 'ck' ? 'crouch' : a.id === 'jp' || a.id === 'jk' ? 'jump' : 'idle0';
     if (a.t <= mv.start + mv.active + Math.floor(mv.rec / 2)) return mv.pose;
@@ -444,8 +475,8 @@ export const poseOf = (f: Fighter, frame: number): PoseId => {
 // he guesses high or low, so lows and overheads get him); never reads you. `rust` (0..1) is how cocky he's got
 // (every rematch he's won makes him sloppier).
 
-export interface Brain { plan: 'walk' | 'mash' | 'back' | 'hop' | 'wait' | 'zone' | 'block'; t: number; tap: number; low: boolean; seen: unknown; jumpin: boolean; rust: number; lastZone: number }
-export const newBrain = (rust = 0): Brain => ({ plan: 'wait', t: 30, tap: 0, low: false, seen: null, jumpin: false, rust, lastZone: 0 });
+export interface Brain { plan: 'walk' | 'mash' | 'back' | 'hop' | 'wait' | 'zone' | 'block'; t: number; tap: number; low: boolean; seen: unknown; jumpin: boolean; rust: number; lastZone: number; lastThrow: number }
+export const newBrain = (rust = 0): Brain => ({ plan: 'wait', t: 30, tap: 0, low: false, seen: null, jumpin: false, rust, lastZone: 0, lastThrow: 0 });
 
 export const think = (m: Match, br: Brain): Input => {
   const me = m.f[1], you = m.f[0], out: Input = { ...NO_INPUT };
@@ -463,13 +494,14 @@ export const think = (m: Match, br: Brain): Input => {
   if (br.plan === 'block') { go(-toward); out.d = br.low; if (br.t <= 0) { br.plan = 'wait'; br.t = 10; } return out; }
   if (br.t <= 0) {
     const r = Math.random();
-    if (dist > 140) br.plan = m.frame - br.lastZone > 110 && r < 0.45 ? 'zone' : r < 0.85 ? 'walk' : 'hop';
-    else if (dist > 50) br.plan = r < 0.55 ? 'walk' : r < 0.75 ? 'hop' : r < 0.88 ? 'zone' : 'wait';
+    const full = me.meter >= METER_FULL;
+    if (dist > 140) br.plan = full && m.frame - br.lastZone > 110 && r < 0.45 ? 'zone' : r < 0.85 ? 'walk' : 'hop';
+    else if (dist > 50) br.plan = r < 0.55 ? 'walk' : r < 0.75 ? 'hop' : full && r < 0.88 ? 'zone' : 'wait';
     else br.plan = r < 0.65 ? 'mash' : r < 0.8 ? 'back' : r < 0.92 ? 'hop' : 'wait';
     br.t = br.plan === 'mash' ? 36 + Math.floor(Math.random() * 20) : br.plan === 'zone' ? 20 : 20 + Math.floor(Math.random() * 30);
     br.jumpin = false;
-    // (his pet move, out of nowhere, whether it makes sense or not)
-    if (Math.random() < 0.12) { br.plan = 'wait'; out.s = true; if (Math.random() < 0.5) out.d = true; else out.u = true; br.t = 30; return out; }
+    // (a special out of nowhere, whether it makes sense or not: only on a full bar; neutral, toward you or down)
+    if (full && Math.random() < 0.16) { br.plan = 'wait'; out.s = true; const q = Math.random(); if (q < 0.35) out.d = true; else if (q < 0.7) go(toward); br.t = 30; return out; }
   }
   br.tap++;
   switch (br.plan) {
@@ -488,6 +520,8 @@ export const think = (m: Match, br: Brain): Input => {
       if (dist > 50) go(toward);
       if (br.tap % (10 + Math.floor(br.rust * 6)) === 0) { if (Math.random() < 0.6) out.p = true; else out.k = true; }
       if (br.tap % 60 < 14) out.d = true;
+      // (up close, now and then, a throw: not every time, never twice in a row quick)
+      if (dist < CHARS[me.ch].hw + CHARS[you.ch].hw + 8 && you.stun === 0 && m.frame - br.lastThrow > 150 && Math.random() < 0.025 + br.rust * 0.01) { out.t = true; out.p = false; out.k = false; out.d = false; br.lastThrow = m.frame; }
       break;
   }
   return out;

@@ -2,7 +2,7 @@
 // The kid (KID: a smug little arcade rat), Meathead, and the cabinet's own cheap announcer (MASH: a tinny voice out of a
 // busted speaker). Everything the kid or Meathead says about Meathead comes in clean / shitty / naked pools.
 
-import { CHARS, ROSTER } from './data';
+import { CHARS, ROSTER, type CharId } from './data';
 
 export const KID = 'm2.spooky.mashkid';
 export const MASH = 'm2.spooky.mashvoice';
@@ -27,6 +27,30 @@ export const KID_CHALLENGE: ByPants = {
   clean: ['HEY, MEATBALL. YOU PLAY MONSTER MASH? BEAT ME AND YOU GET MY GLOWY ROCK.', 'YOU LOOK LIKE YOU SUCK AT VIDEO GAMES. ONE GAME. MY GLOWY ROCK SAYS YOU LOSE.'],
   shitty: ['DUDE, YOU SHIT YOURSELF. I CAN SMELL IT FROM HERE. ONE GAME FOR MY GLOWY ROCK.', 'MY MOM SAYS DON\'T TALK TO GUYS WHO POOPED THEIR PANTS. ONE GAME. FOR MY GLOWY ROCK.'],
   nude: ['WHY ARE YOU NAKED IN AN ARCADE? GROSS. ONE GAME. YOU WIN, YOU GET MY GLOWY ROCK.', 'MISTER, YOUR BUTT IS OUT. ONE GAME FOR MY GLOWY ROCK. STAND FAR AWAY.'],
+};
+/** Flagging Meathead down as he comes up (rare: CALL_EVERY apart, never over anybody). */
+export const KID_CALL: ByPants = {
+  clean: ['HEY! MUSCLES! YOU PLAY MONSTER MASH?', 'YO, MEATBALL! OVER HERE! I GOT A GLOWY ROCK!', 'HEY, OLD GUY! COME GET YOUR BUTT KICKED!'],
+  shitty: ['HEY, POOPY PANTS! COME LOSE AT MONSTER MASH!', 'YO, STINKY! OVER HERE! STAND DOWNWIND!'],
+  nude: ["HEY, NAKED GUY! OVER HERE! DON'T TOUCH THE STICK!", 'YO, BUTT MAN! COME PLAY! STAND BACK A LITTLE!'],
+};
+/** Meathead walked off and the kid's gone off the screen behind him (never played, quit, or lost): calling after him. */
+export const KID_LEAVE: ByPants = {
+  clean: ['WHERE ARE YOU GOING? COME BACK!', 'HEY! GET BACK HERE, CHICKEN!', 'FINE! WALK AWAY! LOSER!'],
+  shitty: ['WHERE ARE YOU GOING? TO CHANGE? COME BACK!', 'HEY! COME BACK! LEAVE THE SMELL THOUGH!'],
+  nude: ['WHERE ARE YOU GOING, NAKED GUY? COME BACK!', 'HEY! COME BACK! BUTT FIRST IS FINE!'],
+};
+/** The same, sore: Meathead beat him last. */
+export const KID_LEAVE_WON: ByPants = {
+  clean: ['YEAH, RUN! YOU GOT LUCKY!', 'COME BACK! I WANT A REMATCH!'],
+  shitty: ['GO ON! TAKE YOUR STINK AND MY ROCK!', 'COME BACK! THAT WIN SMELLED FAKE!'],
+  nude: ['GO ON! WIN NAKED SOMEWHERE ELSE!', 'COME BACK! I DEMAND A REMATCH, NUDIE!'],
+};
+/** The same, after his rock's gone. */
+export const KID_CALL_AGAIN: ByPants = {
+  clean: ['HEY, CHEATER! REMATCH!', 'YO! I PRACTICED! GET OVER HERE!'],
+  shitty: ['HEY, STINKY CHEATER! REMATCH!', 'YO, POOP GUY! I PRACTICED!'],
+  nude: ['HEY, NAKED CHEATER! REMATCH!', 'YO, NUDIE! I PRACTICED! PANTS OPTIONAL!'],
 };
 /** UP to him after his rock's gone. */
 export const KID_AGAIN: ByPants = {
@@ -101,9 +125,99 @@ export const MH_MATCH_WON: ByPants = {
   nude: ['BEATEN BY A NAKED MAN. TELL YOUR THERAPIST.', 'NAKED. VICTORIOUS. HOME BY SIX.'],
 };
 
+// ---- Trash talk in the bouts (the owner's: "make sure meathead and the kid trash talk during the fight too and they
+// mock their character choices, each"; "and of course special lines if it happens to be a mirror match"). Spaced out
+// (index.ts BANTER_GAP), never over anybody, on the cabinet's strip only while said.
+
+/** The kid on Meathead's pick. */
+export const KID_MOCK: Record<CharId, ByPants> = {
+  drac: {
+    clean: ['DRACULA? HE SLEEPS IN A BOX. LIKE YOUR CAREER.', 'DRACULA IS FOR GIRLS WHO WEAR BLACK LIPSTICK.'],
+    shitty: ['DRACULA HATES GARLIC. HE HATES YOUR SMELL WORSE.'],
+    nude: ['DRACULA HAS A CAPE. BORROW IT. PLEASE.'],
+  },
+  monster: {
+    clean: ['THE MONSTER? YOU BOTH WALK LIKE YOU POOPED.', 'YOU PICKED THE ONE WITH NO BRAIN. MAKES SENSE.'],
+    shitty: ['YOU AND THE MONSTER BOTH SMELL LIKE A DEAD GUY.'],
+    nude: ['EVEN THE MONSTER WEARS PANTS, MISTER.'],
+  },
+  mummy: {
+    clean: ['THE MUMMY? HE IS JUST A GUY IN TOILET PAPER.', 'THE MUMMY IS SLOW. LIKE YOU.'],
+    shitty: ["YOU NEED THE MUMMY'S TOILET PAPER MORE THAN HE DOES."],
+    nude: ['THE MUMMY IS ALL WRAPPED UP. YOU SHOULD TRY IT.'],
+  },
+  jekyll: {
+    clean: ['JEKYLL NEEDS A POTION TO BE COOL. SAME AS YOU.', 'MY DAD PICKS JEKYLL. MY DAD IS BAD.'],
+    shitty: ['HE DRINKS A POTION. YOU DRANK BAD CHILI.'],
+    nude: ['EVEN JEKYLL KEEPS HIS PANTS ON WHEN HE CHANGES.'],
+  },
+  invis: {
+    clean: ["YOU PICKED THE INVISIBLE GUY SO I CAN'T SEE YOU LOSE.", 'NOBODY PICKS HIM. LITERALLY NOBODY.'],
+    shitty: ['SMART. NOBODY CAN SEE HIS POOP EITHER.'],
+    nude: ['A NAKED INVISIBLE GUY. YOU HAVE A TYPE.'],
+  },
+  phantom: {
+    clean: ['THE PHANTOM HIDES HIS FACE. YOU SHOULD TOO.', 'THE OPERA GUY? WHAT A NERD.'],
+    shitty: ["HE WEARS A MASK SO HE CAN'T SMELL YOU."],
+    nude: ['HE COVERS HALF HIS FACE. COVER HALF YOUR BUTT.'],
+  },
+  quasi: {
+    clean: ['QUASIMODO? YOU PICKED THE UGLY ONE. MIRROR MUCH?', 'HE RINGS BELLS. YOU RING NOTHING.'],
+    shitty: ['HE HAS A HUMP. YOU HAVE A LUMP. IN YOUR PANTS.'],
+    nude: ["QUASIMODO IS UGLY BUT AT LEAST HE'S DRESSED."],
+  },
+};
+/** Meathead on the kid's pick (the kid never picks the Invisible Man). */
+export const MH_MOCK: Partial<Record<CharId, string[]>> = {
+  drac: ['DRACULA. A GROWN MAN WHO BITES. LIKE YOUR LITTLE BROTHER.', 'NICE CAPE, KID. DOES YOUR MOM IRON IT?'],
+  monster: ['YOU PICKED A GUY SEWN TOGETHER FROM LOSERS. RELATABLE.', 'FRANKENSTEIN. BIG, DUMB, GREEN. YOUR DREAM DAD.'],
+  mummy: ["A GUY MADE OF TOILET PAPER. I'M GONNA WIPE WITH HIM.", 'YOU PICKED A DEAD GUY. HE HAS MORE MOVES THAN YOU.'],
+  jekyll: ['JEKYLL AND HYDE. TWO GUYS. BOTH LOSING.', 'A DOCTOR. YOUR MOM WOULD BE SO PROUD. FOR ONCE.'],
+  phantom: ['THE OPERA GUY. WHAT ARE YOU, A THEATER KID?', 'HALF A MASK. HALF A FIGHTER. HALF A KID.'],
+  quasi: ['QUASIMODO. YOU PICKED THE ONE THAT LOOKS LIKE YOU.', 'THE HUNCHBACK. SIT UP STRAIGHT, KID. BOTH OF YOU.'],
+};
+/** A mirror match: the kid. */
+export const KID_MIRROR: ByPants = {
+  clean: ['COPYCAT! I PICKED HIM FIRST!', "YOU CAN'T PICK THE SAME GUY. IT'S A RULE. MY RULE."],
+  shitty: ['YOU PICKED MY GUY AND MADE HIM SMELL.', "MINE'S THE ONE THAT DIDN'T POOP."],
+  nude: ["MINE'S THE ONE WITH PANTS ON.", 'COPYCAT. A NAKED COPYCAT.'],
+};
+export const KID_MIRROR_BY: Partial<Record<CharId, string[]>> = {
+  drac: ['TWO DRACULAS. MINE IS THE COOL ONE.'],
+  monster: ["MY MONSTER IS SEWN BETTER THAN YOUR MONSTER."],
+  mummy: ['TWO MUMMIES. YOURS IS THE ONE THAT SMELLS LIKE A BUTT.'],
+  jekyll: ['TWO JEKYLLS. THAT IS FOUR GUYS. YOU ARE ALL FOUR LOSERS.'],
+  phantom: ['TWO PHANTOMS. YOURS IS THE UGLY HALF.'],
+  quasi: ['TWO QUASIMODOS. WHICH ONE IS UGLIER? YOURS.'],
+};
+/** A mirror match: Meathead. */
+export const MH_MIRROR = ['THE SAME GUY. NOW WE FIND OUT WHO IS GOOD.', 'QUIT COPYING ME. I PICKED HIM IN MY HEART FIRST.', "MINE'S THE REAL ONE. YOURS IS A KNOCKOFF."];
+export const MH_MIRROR_BY: Partial<Record<CharId, string[]>> = {
+  drac: ['TWO DRACULAS. ONE OF US SUCKS. IT IS YOU.'],
+  monster: ['TWO MONSTERS. MINE HAS THE BETTER DEAD GUYS IN HIM.'],
+  mummy: ['TWO MUMMIES. A TOILET PAPER FIGHT.'],
+  jekyll: ['ME, YOU, JEKYLL, HYDE, JEKYLL, HYDE. CROWDED.'],
+  phantom: ['TWO PHANTOMS. HALF A FACE EACH. ONE WHOLE LOSER.'],
+  quasi: ['TWO HUNCHBACKS. WE LOOK LIKE A FAMILY REUNION.'],
+};
+/** He hurt Meathead bad (a big hit, a throw, a special): the kid. */
+export const KID_TAUNT: ByPants = {
+  clean: ['EAT IT, GRANDPA!', 'DID THAT HURT? IT LOOKED LIKE IT HURT.', 'GET GOOD, OLD MAN!'],
+  shitty: ['HIT YOU SO HARD YOU POOPED. OH WAIT. ALREADY DID.', 'THAT ONE KNOCKED THE SMELL LOOSE.'],
+  nude: ['RIGHT IN YOUR NAKED FACE!', 'THAT ONE WAS FOR YOUR BUTT BEING OUT.'],
+};
+/** Meathead hurt him bad. */
+export const MH_TAUNT = ['SIT DOWN, BRACES.', 'GO CRY TO YOUR MOM.', 'THAT IS A GROWN-MAN COMBO.', 'CRY INTO YOUR SLUSHIE.'];
+/** Low on health, each of them. */
+export const KID_LOW = ['NO NO NO NO NO.', 'MY STICK IS STICKY! NOT FAIR!'];
+export const MH_LOW = ['I AM LOSING TO A FOURTH GRADER.', "OKAY. OKAY. NOW I'M TRYING."];
+
 const all = (b: ByPants) => [...b.clean, ...b.shitty, ...b.nude];
+const each = <T,>(r: Partial<Record<CharId, T>>) => Object.values(r) as T[];
 export const VOICE_LINES: Record<string, string[]> = {
   [MASH]: [A_TITLE, A_SELECT, A_INVIS, ...A_ROUND, A_FIGHT, A_KO, A_END, A_FATAL, A_FLAWLESS, ...Object.values(A_WINS), ...Object.values(A_CALL)],
-  [KID]: [...all(KID_CHALLENGE), ...all(KID_AGAIN), ...all(KID_CHICKEN), ...KID_PICK, ...KID_INVIS, ...all(KID_ROUND_WON), ...all(KID_ROUND_LOST), ...all(KID_GLOAT), ...KID_QUIT, ...all(KID_SORE), ...KID_SORE_AGAIN],
-  meathead: [...all(MH_TAKE), ...all(MH_ROUND_WON), ...all(MH_ROUND_LOST), ...all(MH_MATCH_LOST), ...all(MH_MATCH_WON)],
+  [KID]: [...all(KID_CALL), ...all(KID_CALL_AGAIN), ...all(KID_LEAVE), ...all(KID_LEAVE_WON), ...all(KID_CHALLENGE), ...all(KID_AGAIN), ...all(KID_CHICKEN), ...KID_PICK, ...KID_INVIS, ...all(KID_ROUND_WON), ...all(KID_ROUND_LOST), ...all(KID_GLOAT), ...KID_QUIT, ...all(KID_SORE), ...KID_SORE_AGAIN,
+    ...each(KID_MOCK).flatMap(all), ...all(KID_MIRROR), ...each(KID_MIRROR_BY).flat(), ...all(KID_TAUNT), ...KID_LOW],
+  meathead: [...all(MH_TAKE), ...all(MH_ROUND_WON), ...all(MH_ROUND_LOST), ...all(MH_MATCH_LOST), ...all(MH_MATCH_WON),
+    ...each(MH_MOCK).flat(), ...MH_MIRROR, ...each(MH_MIRROR_BY).flat(), ...MH_TAUNT, ...MH_LOW],
 };

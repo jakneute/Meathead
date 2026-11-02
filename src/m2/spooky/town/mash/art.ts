@@ -14,7 +14,43 @@ import type { CharId, PoseId } from './data';
 type Ctx = CanvasRenderingContext2D;
 export const INK = '#0B0710';
 export type SkinId = Exclude<CharId, 'invis'> | 'hyde';
-export type ArtId = SkinId | 'invis';
+/** A fighter's art; `~alt`: his second-player colors (a mirror match: the owner's "mirror matches should discolor the
+ *  other one differently"). */
+export type AltId = `${SkinId}~alt`;
+export type ArtId = SkinId | 'invis' | AltId;
+export const artBase = (id: ArtId): SkinId | 'invis' => (id.endsWith('~alt') ? id.slice(0, -4) : id) as SkinId | 'invis';
+/** The same art in another form (Jekyll to Hyde and back), keeping the alt colors. */
+export const swapForm = (id: ArtId, to: SkinId): ArtId => (id.endsWith('~alt') ? `${to}~alt` : to);
+/** Each monster's alt colors: a hue turn (degrees) of everything with any color in it (ink, black, white, gray kept). */
+const ALT_HUE: Record<string, number> = { drac: 200, monster: 150, mummy: 190, jekyll: 120, hyde: 120, phantom: 130, quasi: 210, invis: 0 };
+/** The mostly-black ones (Dracula, the Phantom) get their suits tinted too, so the alt reads at a glance. */
+const ALT_TINT: Record<string, [number, number, number]> = { drac: [40, 70, 170], phantom: [30, 120, 60] };
+const hueTurn = (src: HTMLCanvasElement, deg: number, tint?: [number, number, number]) => {
+  const [cv, g] = mk(src.width, src.height);
+  g.drawImage(src, 0, 0);
+  const d = g.getImageData(0, 0, cv.width, cv.height), a = d.data;
+  const cos = Math.cos(deg * Math.PI / 180), sin = Math.sin(deg * Math.PI / 180);
+  // (a hue rotation matrix, luminance kept; only on pixels with some saturation)
+  const m = [
+    0.213 + cos * 0.787 - sin * 0.213, 0.715 - cos * 0.715 - sin * 0.715, 0.072 - cos * 0.072 + sin * 0.928,
+    0.213 - cos * 0.213 + sin * 0.143, 0.715 + cos * 0.285 + sin * 0.140, 0.072 - cos * 0.072 - sin * 0.283,
+    0.213 - cos * 0.213 - sin * 0.787, 0.715 - cos * 0.715 + sin * 0.715, 0.072 + cos * 0.928 + sin * 0.072,
+  ];
+  for (let i = 0; i < a.length; i += 4) {
+    if (!a[i + 3]) continue;
+    const r = a[i], gg = a[i + 1], b = a[i + 2], mx = Math.max(r, gg, b), mn = Math.min(r, gg, b);
+    if (mx - mn < 22) {
+      // (a gray: tinted, if this one's are, past the ink)
+      if (tint && mx > 24 && mx < 200) { const k = 0.4; a[i] = r + (tint[0] * mx / 255 * 1.6 - r) * k; a[i + 1] = gg + (tint[1] * mx / 255 * 1.6 - gg) * k; a[i + 2] = b + (tint[2] * mx / 255 * 1.6 - b) * k; }
+      continue;
+    }
+    a[i] = Math.max(0, Math.min(255, m[0] * r + m[1] * gg + m[2] * b));
+    a[i + 1] = Math.max(0, Math.min(255, m[3] * r + m[4] * gg + m[5] * b));
+    a[i + 2] = Math.max(0, Math.min(255, m[6] * r + m[7] * gg + m[8] * b));
+  }
+  g.putImageData(d, 0, 0);
+  return cv;
+};
 
 const mk = (w: number, h: number) => {
   const cv = document.createElement('canvas'); cv.width = w; cv.height = h;
@@ -205,6 +241,11 @@ const BASE: Record<PoseId, J> = {
   sd: { ...CROUCH, fh: [18, -2], bh: [10, -2] },
   su: { ...STAND, hip: [0, -32], neck: [4, -52], fh: [10, -72], bh: [-6, -38], ff: [6, -4], bf: [-6, 0] },
   win: { ...STAND, fh: [7, -68], bh: [-6, -66] },
+  // THE THROW (A): the grab (both hands out on him, leaning in), the heave (over his head, leaning back), the slam
+  // (bent over backward, the hands down behind him where he's thrown)
+  th0: { ...STAND, hip: [1, -29], neck: [6, -48], fh: [20, -42], bh: [17, -40], ff: [10, 0], bf: [-8, 0] },
+  th1: { ...STAND, hip: [-1, -30], neck: [-3, -50], fh: [2, -71], bh: [-3, -69], ff: [8, 0], bf: [-9, 0] },
+  th2: { ...STAND, hip: [-2, -28], neck: [-10, -45], fh: [-21, -38], bh: [-24, -34], ff: [9, 0], bf: [-8, 0] },
 };
 
 /** Each fighter's specials (and a stance or two of his own). */
@@ -406,13 +447,20 @@ const EMPTY = (() => { let e: Sprite | null = null; return () => (e ??= { cv: mk
 
 /** A fighter's pose, painted once (the Invisible Man: nothing, every time). */
 export const pose = (id: ArtId, p: PoseId): Sprite => {
-  if (id === 'invis') return EMPTY();
+  if (artBase(id) === 'invis') return EMPTY();
   const key = `${id}:${p}`;
   let sp = poses.get(key);
+  if (!sp && id.endsWith('~alt')) {
+    // (the alt colors: the plain pose, its hues turned, painted once)
+    const base = artBase(id) as SkinId, b = pose(base, p);
+    sp = { ...b, cv: hueTurn(b.cv, ALT_HUE[base], ALT_TINT[base]) };
+    poses.set(key, sp);
+  }
   if (!sp) {
+    const id0 = id as SkinId;
     const [cv, g] = mk(CW, CH);
     g.translate(OX, OY);
-    const m = drawFigure(g, id, p);
+    const m = drawFigure(g, id0, p);
     harden(cv);
     const to = (q: P2): P2 => [q[0] + OX, q[1] + OY];
     sp = { cv, ox: OX, oy: OY, meta: { head: to(m.head), neck: to(m.neck), hip: to(m.hip), fh: to(m.fh), bh: to(m.bh), ff: to(m.ff) } };
@@ -547,10 +595,16 @@ const PORTRAITS: Record<CharId, (c: Ctx) => void> = {
     px(c, 12, 47, 1, 4, '#9AB0B8'); px(c, 13, 50, 1, 2, '#9AB0B8');
   },
 };
-const portraits = new Map<CharId, HTMLCanvasElement>();
-export const portrait = (id: CharId) => {
-  let cv = portraits.get(id);
-  if (!cv) { const [p, g] = mk(PW, PH); PORTRAITS[id](g); portraits.set(id, p); cv = p; }
+const portraits = new Map<string, HTMLCanvasElement>();
+/** A select-screen portrait (`alt`: the mirror match's second-player colors). */
+export const portrait = (id: CharId, alt = false) => {
+  const key = alt ? `${id}~alt` : id;
+  let cv = portraits.get(key);
+  if (!cv) {
+    if (alt) cv = hueTurn(portrait(id), ALT_HUE[id], ALT_TINT[id]);
+    else { const [p, g] = mk(PW, PH); PORTRAITS[id](g); cv = p; }
+    portraits.set(key, cv);
+  }
   return cv;
 };
 

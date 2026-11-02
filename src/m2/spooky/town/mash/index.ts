@@ -41,7 +41,7 @@ import { ROSTER, type CharId } from './data';
 import { newMatch, resetRound, step, tickFx, think, newBrain, NO_INPUT, type Match, type Brain, type Input } from './sim';
 import { startFatal, tickFatal, type Fatal } from './fatal';
 import { screenBuf, present, drawBoot, drawControls, drawSelect, drawVs, drawFight, warmScreens, type SelectView } from './screen';
-import { drawCabinet, drawKid2, type KidPose } from './kid';
+import { drawCabinet, drawKid2, drawArcadeSign, type KidPose } from './kid';
 import * as L from './lines';
 
 type Ctx = CanvasRenderingContext2D;
@@ -49,9 +49,19 @@ type Phase = 'off' | 'talk' | 'ask' | 'leave' | 'boot' | 'controls' | 'select' |
 type Rp = 'intro' | 'fight' | 'ko';
 
 /** Where they are (x from the town's start): the cabinet, the kid at its right side, playing. */
-export const CAB_RX = 8540, KID_RX = 8566;
+export const CAB_RX = 8547, KID_RX = 8588;
 export const SHARD_LAND = 'spooky', SHARD_ID = 'shard-mash';
 const TALK_RANGE = 46, FREEZE_RANGE = 1000, CONTROLS_HOLD = 90;
+/** Flagging him down (the bumper carny's way, cartoon/bigkid/bumper.ts): waving while he's this near (once he's played
+ *  this run, only this near); a shout at most this often, only this near, never over anybody. */
+const WAVE_FAR = 560, WAVE_PLAYED = 240, CALL_NEAR = 380, CALL_EVERY = 1500;
+/** The title screen goes on by itself after this long (the owner's: "it should go there automatically shortly"). */
+const BOOT_HOLD = 130;
+/** The select screen: the kid's box wanders, then he locks his pick in this long after it opens (his own clock, not
+ *  when Meathead picks). */
+const KID_LOCK = 300;
+/** The roof's underside (the Grand Arcade's, layout.ts SOLIDS), the ARCADE sign hung off it. */
+const ROOF_BASE = 138, SIGN_FOOT = 106;
 
 interface Mash {
   phase: Phase; t: number; ask: Ask | null; upLatch: boolean;
@@ -66,6 +76,12 @@ interface Mash {
   kidPose: KidPose; kidWins: number; cardArmed: boolean; card: ShardCard | null; anyPrev: boolean; held: Set<Enemy>;
   menuPrev: { l: boolean; r: boolean; u: boolean; d: boolean; p: boolean };
   ticker: number;
+  /** The kid's own wave and shouts; whether Meathead's played him this run; the kid's clock on the select screen. */
+  waving: boolean; callAt: number; played: boolean; kidT: number; kidNext: number;
+  /** The bouts' trash talk: when the last was; who's said their low-health line this round; the picks mocked yet. */
+  banterAt: number; lowSaid: [boolean, boolean]; mocked: [boolean, boolean];
+  /** Calling after him when he walks off (armed once he's been near; once a leaving); how the last match went. */
+  leaveArmed: boolean; lastWon: boolean;
 }
 const ALL = new WeakMap<GameState, Mash>();
 let seenControls = false;
@@ -77,6 +93,8 @@ const mashOf = (state: GameState): Mash => {
       sel: { cur: 0, kid: 3, picked: false, kidPicked: false, t: 0 }, p1: 'drac', kid: 'monster',
       m: null, br: newBrain(), wins: [0, 0], round: 0, rp: 'intro', rt: 0, banner: null, fatal: null, winner: 0, ready: true,
       kidPose: 'play0', kidWins: 0, cardArmed: false, card: null, anyPrev: true, held: new Set(), menuPrev: { l: true, r: true, u: true, d: true, p: true }, ticker: 0,
+      waving: false, callAt: -99999, played: false, kidT: 0, kidNext: 0,
+      banterAt: 0, lowSaid: [false, false], mocked: [false, false], leaveArmed: false, lastWon: false,
     };
     ALL.set(state, ms);
   }
@@ -122,6 +140,53 @@ const talk = (ms: Mash, who: 'kid' | 'meathead' | 'mash', text: string, onDone?:
   });
   if (!shown) setTimeout(done, 0);
 };
+/** Trash talk in a bout: only when nobody's talking (dropped, not queued: never over anybody, never stacked up), and
+ *  BANTER_GAP apart. On the cabinet's strip only while it's said. */
+const BANTER_GAP = 420;
+const banter = (ms: Mash, frame: number, who: 'kid' | 'meathead', text: string) => {
+  if (isTalking() || frame - ms.banterAt < BANTER_GAP) return;
+  ms.banterAt = frame;
+  const s = { who: NAME[who], text, col: COL[who] };
+  say(text, who === 'meathead' ? MEATHEAD_VOICE : VOICE.kid, 'casual', {
+    always: true,
+    onShow: spoken => { ms.said = s; if (!spoken) setTimeout(() => { if (ms.said === s) ms.said = null; }, Math.max(1500, text.length * 65)); },
+    onHide: () => { if (ms.said === s) ms.said = null; }, onDropped: () => { if (ms.said === s) ms.said = null; },
+  });
+};
+/** One of them mocking the other's pick (a mirror match: the copycat lines). */
+const mockPick = (state: GameState, ms: Mash, who: 'kid' | 'meathead') => {
+  const mirror = ms.p1 === ms.kid;
+  if (who === 'kid') {
+    const pool = mirror ? [...pants(state, L.KID_MIRROR), ...(L.KID_MIRROR_BY[ms.kid] ?? [])] : pants(state, L.KID_MOCK[ms.p1]);
+    banter(ms, state.frame, 'kid', pickLine(pool));
+  } else {
+    const pool = mirror ? [...L.MH_MIRROR, ...(L.MH_MIRROR_BY[ms.kid] ?? [])] : L.MH_MOCK[ms.kid] ?? L.MH_TAUNT;
+    banter(ms, state.frame, 'meathead', pickLine(pool));
+  }
+};
+/** The bout's events, talked over: a big hit (a throw, a special), low health, the picks mocked early on. */
+const trash = (state: GameState, ms: Mash) => {
+  const m = ms.m!, f = state.frame;
+  // (the picks: the kid's dig a few seconds into the first round, Meathead's into the second; or whoever's first)
+  if (ms.rt === 150 && !ms.mocked[ms.round === 1 ? 1 : 0]) { const who = ms.round === 1 ? 'kid' : 'meathead'; const before = ms.banterAt; mockPick(state, ms, who); if (ms.banterAt !== before) ms.mocked[who === 'kid' ? 1 : 0] = true; }
+  for (const e of m.ev) {
+    if (e.e === 'hit' && !e.blocked && e.dmg >= 10) {
+      // (who=0: Meathead got hurt, the kid crows; who=1, the other way; sometimes a dig at the pick instead)
+      if (Math.random() < 0.5) continue;
+      const who = e.who === 0 ? 'kid' : 'meathead';
+      if (!ms.mocked[who === 'kid' ? 1 : 0] && Math.random() < 0.5) { const before = ms.banterAt; mockPick(state, ms, who); if (ms.banterAt !== before) ms.mocked[who === 'kid' ? 1 : 0] = true; }
+      else banter(ms, f, who, pickLine(who === 'kid' ? pants(state, L.KID_TAUNT) : L.MH_TAUNT));
+    }
+  }
+  for (const side of [0, 1] as const) {
+    if (!ms.lowSaid[side] && m.f[side].hp > 0 && m.f[side].hp < 25) {
+      const before = ms.banterAt;
+      banter(ms, f, side === 0 ? 'meathead' : 'kid', pickLine(side === 0 ? L.MH_LOW : L.KID_LOW));
+      if (ms.banterAt !== before) ms.lowSaid[side] = true;
+    }
+  }
+};
+
 /** The next step when this line's over. */
 const thenReady = (ms: Mash) => { ms.ready = false; return () => { ms.ready = true; }; };
 
@@ -154,28 +219,30 @@ const toPhase = (ms: Mash, ph: Phase) => { ms.phase = ph; ms.t = 0; };
 
 const startMatch = (ms: Mash) => {
   ms.m = newMatch(ms.p1, ms.kid); ms.br = newBrain(Math.min(0.6, ms.kidWins * 0.15));
-  ms.wins = [0, 0]; ms.round = 0; ms.fatal = null;
+  ms.wins = [0, 0]; ms.round = 0; ms.fatal = null; ms.mocked = [false, false]; ms.banterAt = 0;
   startRound(ms);
 };
 const startRound = (ms: Mash) => {
-  resetRound(ms.m!); ms.round++; ms.rp = 'intro'; ms.rt = 0; ms.ready = false; ms.banner = null;
+  resetRound(ms.m!); ms.round++; ms.rp = 'intro'; ms.rt = 0; ms.ready = false; ms.banner = null; ms.lowSaid = [false, false];
   // (wait for anybody still talking, then ROUND N; FIGHT! once that's said)
 };
 
-/** A frame's input for the fight, off the game's controls (X punch, Y kick, B special; up or A jumps). */
-const inputOf = (c: Controls): Input => ({ l: c.left, r: c.right, u: c.up || c.jump, d: c.down, p: c.shoot, k: !!c.secondary, s: c.special });
+/** A frame's input for the fight, off the game's controls (the owner's: "make A button (space) the throw button": up
+ *  jumps, A throws, X punch, Y kick, B the specials). */
+const inputOf = (c: Controls): Input => ({ l: c.left, r: c.right, u: c.up, d: c.down, p: c.shoot, k: !!c.secondary, s: c.special, t: c.jump });
 
 const CONTROLS_TIPS = [
-  { pad: ['DPAD_LEFT', 'DPAD_RIGHT'], join: '/' as const, kb: ['@left', '@right'], label: 'WALK' },
-  // (A jumps too: the owner's "make A jump in the fighting game")
-  { pad: ['A', 'DPAD_UP'], join: '/' as const, kb: ['@jump', '@up'], label: 'JUMP' },
-  { pad: ['DPAD_DOWN'], kb: ['@down'], label: 'CROUCH' },
+  // (the owner's, 2026-11-02: "make A button (space) the throw button ... special moves are neutral B, forward B and
+  // down B. no Up B": so up jumps (up-forward, up-back), A throws, B's three specials on a full bar)
+  { pad: ['DPAD_LEFT', 'DPAD_RIGHT'], join: '/' as const, kb: ['@left', '@right'], label: 'WALK (AWAY FROM HIM: BLOCK)' },
+  { pad: ['DPAD_UP'], kb: ['@up'], label: 'JUMP (WITH LEFT / RIGHT: THAT WAY)' },
+  { pad: ['DPAD_DOWN'], kb: ['@down'], label: 'CROUCH (AND AWAY: BLOCK LOW)' },
   { pad: ['X'], kb: ['@@fire'], label: 'PUNCH' },
   { pad: ['Y'], kb: ['@secondary'], label: 'KICK' },
-  { pad: ['B'], kb: ['@special'], label: 'SPECIAL' },
-  { pad: ['DPAD_DOWN', 'B'], join: '+' as const, kb: ['@downSpecial'], label: 'DOWN SPECIAL' },
-  { pad: ['DPAD_UP', 'B'], join: '+' as const, kb: ['@uppercut'], label: 'UP SPECIAL' },
-  { pad: ['DPAD_LEFT'], kb: ['@left'], label: 'HOLD AWAY FROM HIM: BLOCK' },
+  { pad: ['A'], kb: ['@jump'], label: 'THROW (UP CLOSE)' },
+  { pad: ['B'], kb: ['@special'], label: 'SPECIAL (FULL BAR ONLY)' },
+  { pad: ['DPAD_RIGHT', 'B'], join: '+' as const, kb: ['@right', '@special'], label: 'FORWARD SPECIAL (TOWARD HIM)' },
+  { pad: ['DPAD_DOWN', 'B'], join: '+' as const, kb: ['@down', '@special'], label: 'DOWN SPECIAL' },
 ] as const;
 
 /** Each frame in the town: the controls to pass on while it's on, or null (it's off: UP by the kid starts it). */
@@ -186,13 +253,30 @@ export const updateMash = (ctx: FrameContext, controls: Controls): Controls | nu
   if (upIn) ms.upLatch = true;
   if (ms.phase === 'off') {
     // (by the kid, free, on his feet: UP to talk to him)
-    const cx = p.pos.x + p.width / 2;
+    const cx = p.pos.x + p.width / 2, d = Math.abs(cx - X(KID_RX));
+    const free = !p.inCutscene && p.health > 0 && state.deathTimer <= 0;
+    // (the kid trying to get his attention: arms over his head, hopping on his crate; now and then a shout, rarely,
+    // never over anybody (casual: dropped if somebody's talking), its words up only while it's said)
+    ms.waving = free && d >= TALK_RANGE && d < (ms.played ? WAVE_PLAYED : WAVE_FAR);
+    if (ms.waving && !ms.played && !ms.kidSaid && d < CALL_NEAR && state.frame - ms.callAt > CALL_EVERY) {
+      ms.callAt = state.frame;
+      speak(L.KID, pickLine(pants(state, won() ? L.KID_CALL_AGAIN : L.KID_CALL)), s => { ms.kidSaid = s; }, false);
+    }
+    // (he walks off and the kid's gone off the screen: the kid calls after him, once a leaving; the owner's "the guy
+    // will call you out if you leave the screen ... 'where are you going? come back'". Sore if Meathead just beat him)
+    if (d < 280) ms.leaveArmed = true;
+    const kx = X(KID_RX) - state.camera.x;
+    if (ms.leaveArmed && free && (kx < -24 || kx > CANVAS_WIDTH + 24)) {
+      ms.leaveArmed = false;
+      if (!ms.kidSaid) speak(L.KID, pickLine(pants(state, ms.lastWon ? L.KID_LEAVE_WON : L.KID_LEAVE)), s => { ms.kidSaid = s; }, false);
+    }
     if (Math.abs(cx - X(KID_RX)) < TALK_RANGE && p.isGrounded && !p.inCutscene && p.health > 0 && Math.abs(p.pos.y + p.height - Y(0)) < 8) {
       setUi({ upPrompt: 'TALK' });
       if (upIn) { setUi({ upPrompt: null }); startTalk(state, ms); return { ...NO_CONTROLS }; }
     }
-    if (ms.kidPose !== 'play0' && ms.kidPose !== 'play1') ms.kidPose = 'play0';
-    ms.kidPose = Math.floor(state.frame / 9) % 2 ? 'play1' : 'play0';
+    const f = state.frame;
+    if (ms.waving) ms.kidPose = ms.kidSaid ? (Math.floor(f / 10) % 2 ? 'beckon1' : 'beckon0') : f % 96 < 16 ? 'hop' : Math.floor(f / 8) % 2 ? 'wave1' : 'wave0';
+    else ms.kidPose = Math.floor(f / 9) % 2 ? 'play1' : 'play0';
     return null;
   }
   p.inCutscene = true; p.vel.x = 0;
@@ -213,7 +297,7 @@ export const updateMash = (ctx: FrameContext, controls: Controls): Controls | nu
         ms.ask = null; toPhase(ms, 'leave'); ms.kidPose = 'smug';
         speak(L.KID, pickLine(pants(state, L.KID_CHICKEN)), s => { ms.kidSaid = s; }, true);
       } else if (r === 'accept') {
-        ms.ask = null; toPhase(ms, 'boot'); warmScreens();
+        ms.ask = null; ms.played = true; ms.waving = false; toPhase(ms, 'boot'); warmScreens();
         playSound('powerup', 0.5, 6); talk(ms, 'mash', L.A_TITLE);
       }
       break;
@@ -223,7 +307,8 @@ export const updateMash = (ctx: FrameContext, controls: Controls): Controls | nu
       if (!anyHeld || ms.t > 40) end(state, ms);
       break;
     case 'boot':
-      if (ms.t > 100 && (anyPress || ms.t > 220)) {
+      // (no PRESS START: it goes on by itself; START pauses it, like every minigame)
+      if (ms.t > BOOT_HOLD) {
         if (!seenControls) { toPhase(ms, 'controls'); ms.cardArmed = false; }
         else toSelect(ms);
       }
@@ -252,6 +337,7 @@ export const updateMash = (ctx: FrameContext, controls: Controls): Controls | nu
     }
     case 'result': {
       tickFx(ms.m!);
+      if (ms.t === 1) ms.lastWon = ms.winner === 0;
       if (ms.t === 1 && ms.winner === 1) ms.kidPose = 'cheer';
       if (ms.t === 1 && ms.winner === 0) ms.kidPose = 'sulk';
       if (ms.t === 60) {
@@ -316,23 +402,32 @@ const startTalk = (state: GameState, ms: Mash) => {
 const toSelect = (ms: Mash) => {
   toPhase(ms, 'select');
   ms.sel = { cur: ROSTER.indexOf(ms.p1), kid: ROSTER.indexOf(ms.kid), picked: false, kidPicked: false, t: 0 };
+  ms.kidT = 0; ms.kidNext = 24;
   ms.menuPrev = { l: true, r: true, u: true, d: true, p: true };
   ms.banner = null; ms.said = null;
   talk(ms, 'mash', L.A_SELECT);
 };
 
-/** CHOOSE YOUR MONSTER: the stick moves the box (a row of four over three), A / punch picks, B backs out. */
+/** CHOOSE YOUR MONSTER: the stick moves the box (a row of four over three), A / punch picks, B backs out. The kid's box
+ *  wanders the roster on his own clock (hovering, hesitating, moving on) and locks in KID_LOCK after the screen opens,
+ *  whenever Meathead picks: at random, never the Invisible Man. Both in (and the calls said): VS. */
+const KID_PETS = ROSTER.filter(id => id !== 'invis');
+/** The box's neighbor: 0 left, 1 right, 2 the other row. */
+const near = (cur: number, dir: number) => {
+  const row = cur < 4 ? 0 : 1, col = row ? cur - 4 : cur;
+  if (dir === 0) return row ? 4 + (col + 2) % 3 : (col + 3) % 4;
+  if (dir === 1) return row ? 4 + (col + 1) % 3 : (col + 1) % 4;
+  return row ? Math.min(3, col) : 4 + Math.min(2, col);
+};
 const select = (state: GameState, ms: Mash, c: Controls) => {
-  const s = ms.sel; s.t++;
+  const s = ms.sel; s.t++; ms.kidT++;
   const edge = (k: 'l' | 'r' | 'u' | 'd' | 'p', now: boolean) => { const was = ms.menuPrev[k]; ms.menuPrev[k] = now; return now && !was; };
   const L_ = edge('l', c.left), R_ = edge('r', c.right), U_ = edge('u', c.up), D_ = edge('d', c.down), P_ = edge('p', c.shoot);
   if (!s.picked) {
-    const row = s.cur < 4 ? 0 : 1, col = row ? s.cur - 4 : s.cur;
     let n = s.cur;
-    if (L_) n = row ? 4 + (col + 2) % 3 : (col + 3) % 4;
-    if (R_) n = row ? 4 + (col + 1) % 3 : (col + 1) % 4;
-    if (U_ && row) n = Math.min(3, col);
-    if (D_ && !row) n = 4 + Math.min(2, col);
+    if (L_) n = near(s.cur, 0);
+    if (R_) n = near(s.cur, 1);
+    if ((U_ && s.cur >= 4) || (D_ && s.cur < 4)) n = near(s.cur, 2);
     if (n !== s.cur) { s.cur = n; playSound('cursor', 0.5); }
     if (menuPressed('ok') || P_) {
       s.picked = true; ms.p1 = ROSTER[s.cur]; playSound('menuok', 0.7);
@@ -340,16 +435,21 @@ const select = (state: GameState, ms: Mash, c: Controls) => {
       if (ms.p1 === 'invis') { talk(ms, 'mash', L.A_INVIS); talk(ms, 'kid', pickLine(L.KID_INVIS)); }
       s.t = 0;
     } else if (menuPressed('back')) { playSound('menuback', 0.6); toPhase(ms, 'out'); return; }
-  } else if (!s.kidPicked) {
-    // (the kid's box darting about, then on his pet pick)
-    if (s.t % 6 === 0 && s.t < 48) { s.kid = Math.floor(Math.random() * ROSTER.length); playSound('cursor', 0.3, 4); }
-    if (s.t === 54) {
-      const pets: CharId[] = ['monster', 'drac', 'quasi', 'mummy', 'phantom', 'jekyll'];
-      ms.kid = pets[Math.floor(Math.random() * pets.length)]; s.kid = ROSTER.indexOf(ms.kid); s.kidPicked = true;
-      playSound('menuok', 0.6, -3); talk(ms, 'mash', L.A_CALL[ms.kid]); talk(ms, 'kid', pickLine(L.KID_PICK), thenReady(ms));
-      s.t = 0;
+  }
+  // (the kid, on his own clock: a step to a neighbor, now and then a jump across, or a long hover)
+  if (!s.kidPicked) {
+    if (ms.kidT >= ms.kidNext && ms.kidT < KID_LOCK - 8) {
+      const r = Math.random();
+      s.kid = r < 0.2 ? Math.floor(Math.random() * ROSTER.length) : near(s.kid, r < 0.5 ? 0 : r < 0.8 ? 1 : 2);
+      ms.kidNext = ms.kidT + (Math.random() < 0.25 ? 40 + Math.random() * 30 : 10 + Math.random() * 18);
+      playSound('cursor', 0.3, 4);
     }
-  } else if (ms.ready && s.t > 40) { toPhase(ms, 'vs'); ms.said = null; }
+    if (ms.kidT >= KID_LOCK) {
+      ms.kid = KID_PETS[Math.floor(Math.random() * KID_PETS.length)]; s.kid = ROSTER.indexOf(ms.kid); s.kidPicked = true;
+      playSound('menuok', 0.6, -3); talk(ms, 'mash', L.A_CALL[ms.kid]); talk(ms, 'kid', pickLine(L.KID_PICK), thenReady(ms));
+    }
+  }
+  if (s.picked && s.kidPicked && ms.ready && s.t > 40 && ms.kidT > KID_LOCK + 40 && !isTalking()) { toPhase(ms, 'vs'); ms.said = null; }
   void state;
 };
 
@@ -372,6 +472,7 @@ const fight = (state: GameState, ms: Mash, c: Controls) => {
   } else if (ms.rp === 'fight') {
     if (ms.rt > 40 && ms.banner?.big === 'FIGHT!') ms.banner = null;
     step(m, inputOf(c), think(m, ms.br));
+    trash(state, ms);
     for (const e of m.ev) if (e.e === 'ko') {
       ms.rp = 'ko'; ms.rt = 0; m.live = false; ms.winner = (1 - e.loser) as 0 | 1;
       ms.banner = { big: 'K.O.', small: 'YOU ARE DEFEAT', col: '#F87171', t: 0 };
@@ -415,22 +516,29 @@ const inView = (state: GameState) => { const cx = X(CAB_RX), x0 = state.camera.x
 /** The cabinet in the world (the town's back pass: behind him). */
 export const drawMashWorld = (c: Ctx, state: GameState) => {
   if (!inView(state)) return;
-  drawCabinet(c, X(CAB_RX), Y(0), state.frame, mashOf(state).phase !== 'off');
-};
-/** The kid (the front pass: a step nearer us than Meathead, so he's never lost behind him at the cabinet). */
-export const drawMashFront = (c: Ctx, state: GameState) => {
-  if (!inView(state)) return;
   const ms = mashOf(state), f = state.frame;
-  // (playing, he faces the cabinet; talking, smug at Meathead; after, cheering or sulking)
-  const p = state.player, face = ms.kidPose === 'play0' || ms.kidPose === 'play1' ? -1 : (p.pos.x + p.width / 2 >= X(KID_RX) ? 1 : -1);
-  drawKid2(c, X(KID_RX), Y(0), face, ms.kidPose, f);
+  drawArcadeSign(c, X(CAB_RX), Y(ROOF_BASE), Y(SIGN_FOOT), f);
+  drawCabinet(c, X(CAB_RX), Y(0), f, ms.phase !== 'off');
+  // (the kid: behind Meathead, the owner's "make sure the kid is behind meathead in side scrolling form". Playing, he
+  // faces the cabinet; otherwise he's at Meathead: smug, cheering, sulking, or flagging him down)
+  const p = state.player, playing = ms.kidPose === 'play0' || ms.kidPose === 'play1';
+  const face = playing ? -1 : (p.pos.x + p.width / 2 >= X(KID_RX) ? 1 : -1);
+  const lift = ms.kidPose === 'hop' ? Math.round(Math.sin(((f % 96) / 16) * Math.PI) * 6) : 0;
+  drawKid2(c, X(KID_RX), Y(0), face, ms.kidPose, f, lift);
 };
+/** (Nothing in the front pass now: the kid's behind Meathead, drawn with the cabinet.) */
+export const drawMashFront = (_c: Ctx, _state: GameState) => {};
+/** The cabinet's screen and the kid's colors, lit (the town's lamps). */
+export const mashLamps = () => [
+  { x: X(CAB_RX), y: Y(52), r: 90, a: 0.5, color: '#A78BFA' },
+  { x: X(KID_RX), y: Y(34), r: 56, a: 0.45, color: '#FDBA74' },
+];
 
 /** Over everything: the kid's words in the world; the cabinet's screen, whole screen, while it's up. */
 export const drawMashHud = (c: Ctx, state: GameState) => {
   const ms = ALL.get(state);
   if (!ms) return;
-  if (ms.kidSaid) saidOver(c, ms.kidSaid.text, X(KID_RX) - state.camera.x, Y(0) - 60 - state.camera.y, '#BFDBFE', 220);
+  if (ms.kidSaid) saidOver(c, ms.kidSaid.text, X(KID_RX) - state.camera.x, Y(0) - 78 - state.camera.y, '#BFDBFE', 220);
   if (!CRT.includes(ms.phase)) return;
   const [, b] = screenBuf();
   switch (ms.phase) {

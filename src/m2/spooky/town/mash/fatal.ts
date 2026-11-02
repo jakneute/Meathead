@@ -12,7 +12,7 @@
 //
 // The Invisible Man losing: there's nothing to take apart. The blood still comes out of nowhere; the game says so.
 
-import { pose, flat, wrapped, cut, copyOf, blit, px, INK, type ArtId } from './art';
+import { pose, flat, wrapped, cut, copyOf, blit, px, INK, artBase, swapForm, type ArtId } from './art';
 import type { PoseId } from './data';
 import { FLOOR, blood, artOf, type Match, type Fighter } from './sim';
 
@@ -129,8 +129,8 @@ export const tickFatal = (m: Match, ft: Fatal) => {
       break;
     }
     case 'jekyll': {
-      if (t === 32 && ft.wArt === 'jekyll') { ft.wPose = 'sd'; sfx(m, 'glug', 0.8); }
-      if (t === 62 && ft.wArt === 'jekyll') { ft.wArt = 'hyde'; m.fx.push({ kind: 'flash', x: ft.wx, h: 34, t: 0, life: 24, dir: 1 }); sfx(m, 'roar', 0.9, -4); m.shake = 8; }
+      if (t === 32 && artBase(ft.wArt) === 'jekyll') { ft.wPose = 'sd'; sfx(m, 'glug', 0.8); }
+      if (t === 62 && artBase(ft.wArt) === 'jekyll') { ft.wArt = swapForm(ft.wArt, 'hyde'); m.fx.push({ kind: 'flash', x: ft.wx, h: 34, t: 0, life: 24, dir: 1 }); sfx(m, 'roar', 0.9, -4); m.shake = 8; }
       if (t === 74) { ft.lPose = 'down'; ft.body = copyOf(pose(artOf(l), 'down').cv); sfx(m, 'thud', 0.6); }
       if (t >= 84 && t < 200) {
         const k = t - 84, n = Math.floor(k / 20);
@@ -147,7 +147,7 @@ export const tickFatal = (m: Match, ft: Fatal) => {
         }
       }
       if (t === 200) { ft.wPose = 'idle0'; ft.wh = 0; ft.wx = l.x - ft.dir * 30; }
-      if (t === 214) { ft.wArt = 'jekyll'; m.fx.push({ kind: 'flash', x: ft.wx, h: 34, t: 0, life: 24, dir: 1 }); sfx(m, 'ding', 0.7, 6); ft.wPose = 'hit'; }
+      if (t === 214) { ft.wArt = swapForm(ft.wArt, 'jekyll'); m.fx.push({ kind: 'flash', x: ft.wx, h: 34, t: 0, life: 24, dir: 1 }); sfx(m, 'ding', 0.7, 6); ft.wPose = 'hit'; }
       if (t === 224) ft.caption = 'OH DEAR';
       break;
     }

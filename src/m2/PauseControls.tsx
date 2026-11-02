@@ -111,17 +111,18 @@ export const pauseCard = (id: PauseCardId | MinigameId, nin: boolean, joycon: bo
       { label: 'AIM (OR JUST MOVE THE MOUSE)', parts: [{ pad: ['LSTICK', 'DPAD'], kb: ['@up', '@down', '@left', '@right'] }] },
       { label: 'FIRE', parts: [{ pad: ['X', 'RT'], kb: ['@fire'], mouse: 'left' }] },
     ] };
-    // (spooky/town/mash: X punch, Y kick, B special, down / up + B the other two, up or A jumps, away blocks; select:
-    // A or punch picks, back backs out)
+    // (spooky/town/mash: X punch, Y kick, A throws (up close), B the specials (neutral, toward him, down; a full bar
+    // each), up jumps, away blocks; select: A or punch picks, back backs out)
     case 'mash': return { title: 'MONSTER MASH', rows: [
       LR('WALK'),
-      one('JUMP', ['A', 'DPAD_UP'], ['@jump', '@up']),
+      one('JUMP (WITH LEFT / RIGHT: THAT WAY)', ['DPAD_UP'], ['@up']),
       one('CROUCH', ['DPAD_DOWN'], ['@down']),
       one('PUNCH', ['X'], ['@@fire']),
       one('KICK', ['Y'], ['@secondary']),
-      one('SPECIAL', ['B'], ['@special']),
-      { label: 'DOWN SPECIAL', parts: [{ pad: ['DPAD_DOWN', 'B'], kb: ['@downSpecial'], join: '+' }] },
-      { label: 'UP SPECIAL', parts: [{ pad: ['DPAD_UP', 'B'], kb: ['@uppercut'], join: '+' }] },
+      one('THROW (UP CLOSE)', ['A'], ['@jump']),
+      one('SPECIAL (FULL BAR ONLY)', ['B'], ['@special']),
+      { label: 'FORWARD SPECIAL (TOWARD HIM)', parts: [{ pad: ['DPAD_RIGHT', 'B'], kb: ['@right', '@special'], join: '+' }] },
+      { label: 'DOWN SPECIAL', parts: [{ pad: ['DPAD_DOWN', 'B'], kb: ['@down', '@special'], join: '+' }] },
       one('BLOCK (AWAY FROM HIM; LOW: DOWN TOO)', ['DPAD_LEFT'], ['@left'], true),
     ] };
     // (adventure/dino/hack.ts + hackPuzzle.ts: left / right pick a wheel, up / down or confirm turn it, a click on a

@@ -20846,7 +20846,27 @@
  },
  {
   "voice": "m2.cartoon.churro",
+  "text": "COME BACK! I ALREADY PUT A TOWEL DOWN!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.churro",
+  "text": "COME BACK! I GOT A PRIZE AND NOBODY TO GIVE IT TO!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.churro",
+  "text": "COME BACK! I SEEN WORSE! NOT MUCH WORSE!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.churro",
   "text": "CONGRATULATIONS. NOW GET YOUR BARE ASS OFF MY SEAT.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.churro",
+  "text": "FINE! WALK! NINE YEARS NOBODY WINS AND YOU DON'T EVEN TRY!",
   "from": "CARTOON"
  },
  {
@@ -20857,6 +20877,21 @@
  {
   "voice": "m2.cartoon.churro",
   "text": "GET AWAY! PEOPLE WILL THINK IT WAS THE CHURROS!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.churro",
+  "text": "GO ON! GET OUTTA HERE! AND STAY GONE!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.churro",
+  "text": "GO ON! TAKE THE SMELL WITH YOU!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.churro",
+  "text": "GO ON! TAKE YOUR BARE ASS SOMEWHERE ELSE!",
   "from": "CARTOON"
  },
  {
@@ -20891,6 +20926,16 @@
  },
  {
   "voice": "m2.cartoon.churro",
+  "text": "HEY, NUDIE! COME BACK! YOUR ASS IS WAVING GOODBYE!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.churro",
+  "text": "HEY, SHITPANTS! COME BACK! I DON'T CARE ABOUT THE SMELL!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.churro",
   "text": "HEY, SHITPANTS! OVER HERE! BRING A TOWEL!",
   "from": "CARTOON"
  },
@@ -20901,7 +20946,22 @@
  },
  {
   "voice": "m2.cartoon.churro",
+  "text": "HEY! COME BACK! THE CARS AIN'T GONNA KILL THEMSELVES!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.churro",
   "text": "HEY! YOU! FREE MURDER! OVER HERE!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.churro",
+  "text": "KEEP WALKING, NUDIE! I'M HOSING DOWN YOUR SEAT!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.churro",
+  "text": "KEEP WALKING, SHITPANTS! I'M BURNING CAR SIX!",
   "from": "CARTOON"
  },
  {
@@ -21026,6 +21086,11 @@
  },
  {
   "voice": "m2.cartoon.churro",
+  "text": "THAT'S RIGHT, KEEP WALKING! DON'T COME BACK!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.churro",
   "text": "THAT'S WHAT THEY ALL SAY.",
   "from": "CARTOON"
  },
@@ -21071,12 +21136,57 @@
  },
  {
   "voice": "m2.cartoon.churro",
+  "text": "WALK AWAY, CHAMP. I GOT TWELVE FORMS AND SIX BODIES.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.churro",
   "text": "WHAT? NOBODY WINS THIS. THE CARS ARE RIGGED. I RIGGED THEM.",
   "from": "CARTOON"
  },
  {
   "voice": "m2.cartoon.churro",
+  "text": "WHERE ARE YOU GOING? COME BACK!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.churro",
+  "text": "WHERE ARE YOU GOING? COME BACK! NOT THAT CLOSE!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.churro",
+  "text": "WHERE ARE YOU GOING? COME BACK! THE SEATS ARE HOSEABLE!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.churro",
+  "text": "WHERE YOU GOING, BEEFCAKE? THE MURDER'S BACK HERE!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.churro",
+  "text": "WHERE YOU GOING? THE TOILETS ARE THE OTHER WAY! COME BACK!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.churro",
+  "text": "WHERE YOU GOING? THERE'S NO NUDE BEACH THAT WAY! COME BACK!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.churro",
+  "text": "YEAH, RUN AWAY! JIGGLE ON OUTTA HERE!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.churro",
   "text": "YEAH, YEAH. YOU'RE VERY GOOD AT MURDER. NO PRIZE.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.churro",
+  "text": "YEAH, YOU BETTER RUN! MY BOSS IS COMING!",
   "from": "CARTOON"
  },
  {
@@ -21117,6 +21227,11 @@
  {
   "voice": "m2.cartoon.churro",
   "text": "YOU WON AGAIN. THE CAR LOST AGAIN. GET OUT.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.churro",
+  "text": "YOU WON AND YOU STINK! GET OUTTA HERE!",
   "from": "CARTOON"
  },
  {
@@ -42001,7 +42116,67 @@
  },
  {
   "voice": "m2.frontier.dooley",
+  "text": "COME BACK HERE, YOU DUCK MURDERER!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.dooley",
+  "text": "COME BACK HERE, YOU NAKED DUCK MURDERER!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.dooley",
   "text": "COME BACK WHEN YOU GROW A PAIR.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.dooley",
+  "text": "COME BACK, CHAMP! FIFTY SECONDS! THAT IS ALL I ASK!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.dooley",
+  "text": "COME BACK, MISTER! YOU CAN BORROW MY APRON!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.dooley",
+  "text": "COME BACK! I WILL HOLD MY BREATH!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.dooley",
+  "text": "COME BACK! PUT THE DUCKS BACK! PUT THEM BACK!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.dooley",
+  "text": "COME BACK! THE DUCKS DO NOT HAVE NOSES!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.dooley",
+  "text": "COME BACK! THE DUCKS GET LONELY!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.dooley",
+  "text": "COME BACK! YOUR SMELL IS THE ONLY THING LEFT IN MY BOOTH!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.dooley",
+  "text": "DO NOT LEAVE ME ALONE WITH THE NOTHING!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.dooley",
+  "text": "DO NOT WALK AWAY FROM A SURE THING, PAL!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.dooley",
+  "text": "DO NOT WALK AWAY! IT JIGGLES WHEN YOU WALK AWAY!",
   "from": "FRONTIER"
  },
  {
@@ -42037,6 +42212,21 @@
  {
   "voice": "m2.frontier.dooley",
   "text": "GONE FOREVER! DO YOU KNOW WHAT THAT DOES TO A MAN?",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.dooley",
+  "text": "HEY, NAKED MAN! COME BACK! WE GOT A PRIZE SHELF!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.dooley",
+  "text": "HEY, STINKY! COME BACK! EVERYBODY IS A WINNER! EVEN YOU!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.dooley",
+  "text": "HEY! BIG FELLA! THE DUCKS ARE BACK HERE!",
   "from": "FRONTIER"
  },
  {
@@ -42322,6 +42512,31 @@
  {
   "voice": "m2.frontier.dooley",
   "text": "WHAT IS THAT? WHAT IS BEHIND THE WALL?",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.dooley",
+  "text": "WHERE ARE YOU GOING? COME BACK! EVERYBODY IS A WINNER!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.dooley",
+  "text": "WHERE ARE YOU GOING? COME BACK! I CAN SEE YOUR WHOLE BACKSIDE!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.dooley",
+  "text": "WHERE ARE YOU GOING? COME BACK! STAY DOWNWIND, BUT COME BACK!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.dooley",
+  "text": "WHERE ARE YOU GOING? WHERE DID THE DUCKS GO? WHERE DOES ANYTHING GO?",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.dooley",
+  "text": "WHERE ARE YOU GOING? YOU CANNOT ERASE A MAN AND LEAVE!",
   "from": "FRONTIER"
  },
  {
@@ -65571,6 +65786,11 @@
  },
  {
   "voice": "m2.spooky.mashkid",
+  "text": "A NAKED INVISIBLE GUY. YOU HAVE A TYPE.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.spooky.mashkid",
   "text": "BACK FOR MORE? NO PRIZE THIS TIME. JUST SHAME.",
   "from": "SPOOKY"
  },
@@ -65596,12 +65816,82 @@
  },
  {
   "voice": "m2.spooky.mashkid",
+  "text": "COME BACK! I DEMAND A REMATCH, NUDIE!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.spooky.mashkid",
+  "text": "COME BACK! I WANT A REMATCH!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.spooky.mashkid",
+  "text": "COME BACK! THAT WIN SMELLED FAKE!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.spooky.mashkid",
+  "text": "COPYCAT! I PICKED HIM FIRST!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.spooky.mashkid",
+  "text": "COPYCAT. A NAKED COPYCAT.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.spooky.mashkid",
+  "text": "DID THAT HURT? IT LOOKED LIKE IT HURT.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.spooky.mashkid",
   "text": "DID YOU EVEN PRESS A BUTTON?",
   "from": "SPOOKY"
  },
  {
   "voice": "m2.spooky.mashkid",
+  "text": "DRACULA HAS A CAPE. BORROW IT. PLEASE.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.spooky.mashkid",
+  "text": "DRACULA HATES GARLIC. HE HATES YOUR SMELL WORSE.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.spooky.mashkid",
+  "text": "DRACULA IS FOR GIRLS WHO WEAR BLACK LIPSTICK.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.spooky.mashkid",
+  "text": "DRACULA? HE SLEEPS IN A BOX. LIKE YOUR CAREER.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.spooky.mashkid",
   "text": "DUDE, YOU SHIT YOURSELF. I CAN SMELL IT FROM HERE. ONE GAME FOR MY GLOWY ROCK.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.spooky.mashkid",
+  "text": "EAT IT, GRANDPA!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.spooky.mashkid",
+  "text": "EVEN JEKYLL KEEPS HIS PANTS ON WHEN HE CHANGES.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.spooky.mashkid",
+  "text": "EVEN THE MONSTER WEARS PANTS, MISTER.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.spooky.mashkid",
+  "text": "FINE! WALK AWAY! LOSER!",
   "from": "SPOOKY"
  },
  {
@@ -65612,6 +65902,11 @@
  {
   "voice": "m2.spooky.mashkid",
   "text": "FINE. TAKE THE ROCK. YOU STILL SMELL LIKE A BUTT.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.spooky.mashkid",
+  "text": "GET GOOD, OLD MAN!",
   "from": "SPOOKY"
  },
  {
@@ -65631,12 +65926,102 @@
  },
  {
   "voice": "m2.spooky.mashkid",
+  "text": "GO ON! TAKE YOUR STINK AND MY ROCK!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.spooky.mashkid",
+  "text": "GO ON! WIN NAKED SOMEWHERE ELSE!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.spooky.mashkid",
   "text": "HA! YOU SUCK. WANNA GO AGAIN, LOSER?",
   "from": "SPOOKY"
  },
  {
   "voice": "m2.spooky.mashkid",
+  "text": "HE COVERS HALF HIS FACE. COVER HALF YOUR BUTT.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.spooky.mashkid",
+  "text": "HE DRINKS A POTION. YOU DRANK BAD CHILI.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.spooky.mashkid",
+  "text": "HE HAS A HUMP. YOU HAVE A LUMP. IN YOUR PANTS.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.spooky.mashkid",
+  "text": "HE RINGS BELLS. YOU RING NOTHING.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.spooky.mashkid",
+  "text": "HE WEARS A MASK SO HE CAN'T SMELL YOU.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.spooky.mashkid",
+  "text": "HEY, CHEATER! REMATCH!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.spooky.mashkid",
   "text": "HEY, MEATBALL. YOU PLAY MONSTER MASH? BEAT ME AND YOU GET MY GLOWY ROCK.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.spooky.mashkid",
+  "text": "HEY, NAKED CHEATER! REMATCH!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.spooky.mashkid",
+  "text": "HEY, NAKED GUY! OVER HERE! DON'T TOUCH THE STICK!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.spooky.mashkid",
+  "text": "HEY, OLD GUY! COME GET YOUR BUTT KICKED!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.spooky.mashkid",
+  "text": "HEY, POOPY PANTS! COME LOSE AT MONSTER MASH!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.spooky.mashkid",
+  "text": "HEY, STINKY CHEATER! REMATCH!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.spooky.mashkid",
+  "text": "HEY! COME BACK! BUTT FIRST IS FINE!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.spooky.mashkid",
+  "text": "HEY! COME BACK! LEAVE THE SMELL THOUGH!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.spooky.mashkid",
+  "text": "HEY! GET BACK HERE, CHICKEN!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.spooky.mashkid",
+  "text": "HEY! MUSCLES! YOU PLAY MONSTER MASH?",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.spooky.mashkid",
+  "text": "HIT YOU SO HARD YOU POOPED. OH WAIT. ALREADY DID.",
   "from": "SPOOKY"
  },
  {
@@ -65661,6 +66046,21 @@
  },
  {
   "voice": "m2.spooky.mashkid",
+  "text": "JEKYLL NEEDS A POTION TO BE COOL. SAME AS YOU.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.spooky.mashkid",
+  "text": "MINE'S THE ONE THAT DIDN'T POOP.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.spooky.mashkid",
+  "text": "MINE'S THE ONE WITH PANTS ON.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.spooky.mashkid",
   "text": "MISTER, YOUR BUTT IS OUT. ONE GAME FOR MY GLOWY ROCK. STAND FAR AWAY.",
   "from": "SPOOKY"
  },
@@ -65671,7 +66071,22 @@
  },
  {
   "voice": "m2.spooky.mashkid",
+  "text": "MY DAD PICKS JEKYLL. MY DAD IS BAD.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.spooky.mashkid",
   "text": "MY MOM SAYS DON'T TALK TO GUYS WHO POOPED THEIR PANTS. ONE GAME. FOR MY GLOWY ROCK.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.spooky.mashkid",
+  "text": "MY MONSTER IS SEWN BETTER THAN YOUR MONSTER.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.spooky.mashkid",
+  "text": "MY STICK IS STICKY! NOT FAIR!",
   "from": "SPOOKY"
  },
  {
@@ -65706,6 +66121,16 @@
  },
  {
   "voice": "m2.spooky.mashkid",
+  "text": "NO NO NO NO NO.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.spooky.mashkid",
+  "text": "NOBODY PICKS HIM. LITERALLY NOBODY.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.spooky.mashkid",
   "text": "OWNED. AND YOU STINK.",
   "from": "SPOOKY"
  },
@@ -65716,7 +66141,27 @@
  },
  {
   "voice": "m2.spooky.mashkid",
+  "text": "QUASIMODO IS UGLY BUT AT LEAST HE'S DRESSED.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.spooky.mashkid",
+  "text": "QUASIMODO? YOU PICKED THE UGLY ONE. MIRROR MUCH?",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.spooky.mashkid",
   "text": "QUITTER! I'M PUTTING YOUR INITIALS AS POOPY.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.spooky.mashkid",
+  "text": "RIGHT IN YOUR NAKED FACE!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.spooky.mashkid",
+  "text": "SMART. NOBODY CAN SEE HIS POOP EITHER.",
   "from": "SPOOKY"
  },
  {
@@ -65731,12 +66176,52 @@
  },
  {
   "voice": "m2.spooky.mashkid",
+  "text": "THAT ONE KNOCKED THE SMELL LOOSE.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.spooky.mashkid",
+  "text": "THAT ONE WAS FOR YOUR BUTT BEING OUT.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.spooky.mashkid",
   "text": "THAT WAS SO SAD. AGAIN? I'LL USE ONE HAND.",
   "from": "SPOOKY"
  },
  {
   "voice": "m2.spooky.mashkid",
   "text": "THE INVISIBLE GUY? HE DOESN'T EVEN HAVE A GUY.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.spooky.mashkid",
+  "text": "THE MONSTER? YOU BOTH WALK LIKE YOU POOPED.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.spooky.mashkid",
+  "text": "THE MUMMY IS ALL WRAPPED UP. YOU SHOULD TRY IT.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.spooky.mashkid",
+  "text": "THE MUMMY IS SLOW. LIKE YOU.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.spooky.mashkid",
+  "text": "THE MUMMY? HE IS JUST A GUY IN TOILET PAPER.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.spooky.mashkid",
+  "text": "THE OPERA GUY? WHAT A NERD.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.spooky.mashkid",
+  "text": "THE PHANTOM HIDES HIS FACE. YOU SHOULD TOO.",
   "from": "SPOOKY"
  },
  {
@@ -65756,6 +66241,31 @@
  },
  {
   "voice": "m2.spooky.mashkid",
+  "text": "TWO DRACULAS. MINE IS THE COOL ONE.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.spooky.mashkid",
+  "text": "TWO JEKYLLS. THAT IS FOUR GUYS. YOU ARE ALL FOUR LOSERS.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.spooky.mashkid",
+  "text": "TWO MUMMIES. YOURS IS THE ONE THAT SMELLS LIKE A BUTT.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.spooky.mashkid",
+  "text": "TWO PHANTOMS. YOURS IS THE UGLY HALF.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.spooky.mashkid",
+  "text": "TWO QUASIMODOS. WHICH ONE IS UGLIER? YOURS.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.spooky.mashkid",
   "text": "WATCH THIS. I KNOW ALL THE CODES.",
   "from": "SPOOKY"
  },
@@ -65766,12 +66276,72 @@
  },
  {
   "voice": "m2.spooky.mashkid",
+  "text": "WHERE ARE YOU GOING, NAKED GUY? COME BACK!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.spooky.mashkid",
+  "text": "WHERE ARE YOU GOING? COME BACK!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.spooky.mashkid",
+  "text": "WHERE ARE YOU GOING? TO CHANGE? COME BACK!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.spooky.mashkid",
   "text": "WHY ARE YOU NAKED IN AN ARCADE? GROSS. ONE GAME. YOU WIN, YOU GET MY GLOWY ROCK.",
   "from": "SPOOKY"
  },
  {
   "voice": "m2.spooky.mashkid",
+  "text": "YEAH, RUN! YOU GOT LUCKY!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.spooky.mashkid",
+  "text": "YO, BUTT MAN! COME PLAY! STAND BACK A LITTLE!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.spooky.mashkid",
+  "text": "YO, MEATBALL! OVER HERE! I GOT A GLOWY ROCK!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.spooky.mashkid",
+  "text": "YO, NUDIE! I PRACTICED! PANTS OPTIONAL!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.spooky.mashkid",
+  "text": "YO, POOP GUY! I PRACTICED!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.spooky.mashkid",
+  "text": "YO, STINKY! OVER HERE! STAND DOWNWIND!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.spooky.mashkid",
+  "text": "YO! I PRACTICED! GET OVER HERE!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.spooky.mashkid",
   "text": "YOU AGAIN. YOU SMELL WORSE. NO PRIZE.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.spooky.mashkid",
+  "text": "YOU AND THE MONSTER BOTH SMELL LIKE A DEAD GUY.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.spooky.mashkid",
+  "text": "YOU CAN'T PICK THE SAME GUY. IT'S A RULE. MY RULE.",
   "from": "SPOOKY"
  },
  {
@@ -65801,7 +66371,27 @@
  },
  {
   "voice": "m2.spooky.mashkid",
+  "text": "YOU NEED THE MUMMY'S TOILET PAPER MORE THAN HE DOES.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.spooky.mashkid",
+  "text": "YOU PICKED MY GUY AND MADE HIM SMELL.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.spooky.mashkid",
   "text": "YOU PICKED NOBODY. LITERALLY NOBODY.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.spooky.mashkid",
+  "text": "YOU PICKED THE INVISIBLE GUY SO I CAN'T SEE YOU LOSE.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.spooky.mashkid",
+  "text": "YOU PICKED THE ONE WITH NO BRAIN. MAKES SENSE.",
   "from": "SPOOKY"
  },
  {
@@ -67021,6 +67611,11 @@
  },
  {
   "voice": "meathead",
+  "text": "A DOCTOR. YOUR MOM WOULD BE SO PROUD. FOR ONCE.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
   "text": "A DONUT TO THE FACE!",
   "from": "HOLLYWOOD"
  },
@@ -67553,6 +68148,11 @@
   "voice": "meathead",
   "text": "A GUY FELL ON ME! FROM THE SKY!",
   "from": "FOREIGN"
+ },
+ {
+  "voice": "meathead",
+  "text": "A GUY MADE OF TOILET PAPER. I'M GONNA WIPE WITH HIM.",
+  "from": "SPOOKY"
  },
  {
   "voice": "meathead",
@@ -73371,6 +73971,11 @@
  },
  {
   "voice": "meathead",
+  "text": "CRY INTO YOUR SLUSHIE.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
   "text": "CRYO RIFLE! MY PECS ARE FREEZER BURNED!",
   "from": "HAZARD_HURT"
  },
@@ -74218,6 +74823,11 @@
   "voice": "meathead",
   "text": "DOWN, THEN UP. WHO DESIGNED THIS? A MOUNTAIN?",
   "from": "FOREIGN"
+ },
+ {
+  "voice": "meathead",
+  "text": "DRACULA. A GROWN MAN WHO BITES. LIKE YOUR LITTLE BROTHER.",
+  "from": "SPOOKY"
  },
  {
   "voice": "meathead",
@@ -75811,6 +76421,11 @@
  },
  {
   "voice": "meathead",
+  "text": "FRANKENSTEIN. BIG, DUMB, GREEN. YOUR DREAM DAD.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
   "text": "FREE BALLING IT. UNDEFEATED.",
   "from": "SPOOKY"
  },
@@ -77001,6 +77616,11 @@
  },
  {
   "voice": "meathead",
+  "text": "GO CRY TO YOUR MOM.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
   "text": "GO FASTER, YOU STUPID CART!",
   "from": "ADVENTURE"
  },
@@ -77568,6 +78188,11 @@
   "voice": "meathead",
   "text": "HALF A CAR! WHERE'S THE OTHER HALF?!",
   "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "HALF A MASK. HALF A FIGHTER. HALF A KID.",
+  "from": "SPOOKY"
  },
  {
   "voice": "meathead",
@@ -80393,6 +81018,11 @@
   "voice": "meathead",
   "text": "I AM COOKING! WHY DO I SMELL DELICIOUS?!",
   "from": "m1/game/stages/finale/killCam.ts:175"
+ },
+ {
+  "voice": "meathead",
+  "text": "I AM LOSING TO A FOURTH GRADER.",
+  "from": "SPOOKY"
  },
  {
   "voice": "meathead",
@@ -84816,6 +85446,11 @@
  },
  {
   "voice": "meathead",
+  "text": "JEKYLL AND HYDE. TWO GUYS. BOTH LOSING.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
   "text": "JELLY ON MY ASS. JUST ADDING TO IT.",
   "from": "CARTOON"
  },
@@ -86141,6 +86776,11 @@
  },
  {
   "voice": "meathead",
+  "text": "ME, YOU, JEKYLL, HYDE, JEKYLL, HYDE. CROWDED.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
   "text": "MEAN MAN DOWN. CUT TO A CEREAL COMMERCIAL.",
   "from": "CARTOON"
  },
@@ -86243,6 +86883,11 @@
   "voice": "meathead",
   "text": "MINE.",
   "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "meathead",
+  "text": "MINE'S THE REAL ONE. YOURS IS A KNOCKOFF.",
+  "from": "SPOOKY"
  },
  {
   "voice": "meathead",
@@ -88383,6 +89028,11 @@
   "voice": "meathead",
   "text": "NICE BOARD. NOW YOU'RE WEARING IT.",
   "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
+  "text": "NICE CAPE, KID. DOES YOUR MOM IRON IT?",
+  "from": "SPOOKY"
  },
  {
   "voice": "meathead",
@@ -90611,6 +91261,11 @@
  },
  {
   "voice": "meathead",
+  "text": "OKAY. OKAY. NOW I'M TRYING.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
   "text": "OKAY. OKAY. THINK. WHERE WOULD A TOMMY BE?",
   "from": "m1/game/stages/tommy/escape.ts:227"
  },
@@ -92551,6 +93206,11 @@
  },
  {
   "voice": "meathead",
+  "text": "QUASIMODO. YOU PICKED THE ONE THAT LOOKS LIKE YOU.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
   "text": "QUICK DRAW. NO HOLSTER NEEDED.",
   "from": "FRONTIER"
  },
@@ -92603,6 +93263,11 @@
   "voice": "meathead",
   "text": "QUIT BOSSING A GUY WHO SHIT HIMSELF.",
   "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "QUIT COPYING ME. I PICKED HIM IN MY HEART FIRST.",
+  "from": "SPOOKY"
  },
  {
   "voice": "meathead",
@@ -95351,6 +96016,11 @@
  },
  {
   "voice": "meathead",
+  "text": "SIT DOWN, BRACES.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
   "text": "SIT DOWN, DRAMA CLUB!",
   "from": "ADVENTURE"
  },
@@ -97866,6 +98536,11 @@
  },
  {
   "voice": "meathead",
+  "text": "THAT IS A GROWN-MAN COMBO.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
   "text": "THAT IS ALL OF THEM. KEEPING THE BIKE.",
   "from": "FRONTIER"
  },
@@ -100101,6 +100776,11 @@
  },
  {
   "voice": "meathead",
+  "text": "THE HUNCHBACK. SIT UP STRAIGHT, KID. BOTH OF YOU.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
   "text": "THE HUNTSMAN'S GOT A HEFTY SWING!",
   "from": "FANTASY"
  },
@@ -100468,6 +101148,11 @@
   "voice": "meathead",
   "text": "THE ONE GUY WHO WATCHED IT DREW A MUSTACHE ON HIM.",
   "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "THE OPERA GUY. WHAT ARE YOU, A THEATER KID?",
+  "from": "SPOOKY"
  },
  {
   "voice": "meathead",
@@ -100888,6 +101573,11 @@
   "voice": "meathead",
   "text": "THE SALAD BITES BACK!",
   "from": "ADVENTURE"
+ },
+ {
+  "voice": "meathead",
+  "text": "THE SAME GUY. NOW WE FIND OUT WHO IS GOOD.",
+  "from": "SPOOKY"
  },
  {
   "voice": "meathead",
@@ -103426,8 +104116,18 @@
  },
  {
   "voice": "meathead",
+  "text": "TWO DRACULAS. ONE OF US SUCKS. IT IS YOU.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
   "text": "TWO GOLD NAKED GUYS. NOW THERE'S THREE OF US.",
   "from": "UPGRADES"
+ },
+ {
+  "voice": "meathead",
+  "text": "TWO HUNCHBACKS. WE LOOK LIKE A FAMILY REUNION.",
+  "from": "SPOOKY"
  },
  {
   "voice": "meathead",
@@ -103466,7 +104166,22 @@
  },
  {
   "voice": "meathead",
+  "text": "TWO MONSTERS. MINE HAS THE BETTER DEAD GUYS IN HIM.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
   "text": "TWO MORE. MAYBE ONE. I LOST COUNT.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
+  "text": "TWO MUMMIES. A TOILET PAPER FIGHT.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
+  "text": "TWO PHANTOMS. HALF A FACE EACH. ONE WHOLE LOSER.",
   "from": "SPOOKY"
  },
  {
@@ -106188,6 +106903,16 @@
   "voice": "meathead",
   "text": "YOU OWE ME TWENTY BUCKS.",
   "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
+  "text": "YOU PICKED A DEAD GUY. HE HAS MORE MOVES THAN YOU.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
+  "text": "YOU PICKED A GUY SEWN TOGETHER FROM LOSERS. RELATABLE.",
+  "from": "SPOOKY"
  },
  {
   "voice": "meathead",

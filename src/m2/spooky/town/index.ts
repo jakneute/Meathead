@@ -26,7 +26,7 @@ import { updateLadders, drawLadders, type LadderDef } from '../../moves/ladders'
 import { drawTownBackdrop, drawTownBack, townLamps } from './art';
 import { ARRIVE, ELEVATOR_SEEN, ELEVATOR_AGAIN, STAIRS as STAIRS_LINES, RIDE_LINES, PONY_LAUNCHED, TRAIN_RIDE, PUMPKINS_SEEN, PIT_SEEN, FALL_SCREAM } from './lines';
 import { playSound } from '../../../m1/game/platform/audio';
-import { updateMash, drawMashWorld, drawMashFront, drawMashHud } from './mash';
+import { updateMash, drawMashWorld, drawMashFront, drawMashHud, mashLamps } from './mash';
 
 const { x0, x1 } = SECTIONS.town;
 /** The town's ladders (layout.ts), as the ladders want them: each up to the ledge it's for, stepped off onto it. */
@@ -105,5 +105,5 @@ export const town: SpookySection = {
     return 550 - 220 * Math.max(0, Math.min(1, 1 - d / 700));
   },
   outdoors: () => 1,
-  lamps: () => townLamps(),
+  lamps: () => [...townLamps(), ...mashLamps()],
 };

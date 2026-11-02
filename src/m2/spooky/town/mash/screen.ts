@@ -5,7 +5,7 @@
 
 import { pose, portrait, blit, px, INK, PW, PH } from './art';
 import { CHARS, ROSTER, specialNames, type CharId } from './data';
-import { W, H, FLOOR, poseOf, artOf, type Match, type Fighter } from './sim';
+import { W, H, FLOOR, METER_FULL, poseOf, artOf, type Match, type Fighter } from './sim';
 import { drawFatal, type Fatal } from './fatal';
 
 type Ctx = CanvasRenderingContext2D;
@@ -154,7 +154,8 @@ export const present = (c: Ctx, flicker = 0, said: { who: string; text: string; 
 export const drawBoot = (t: number) => {
   const [, c] = screenBuf();
   c.drawImage(titleScreen(), 0, 0);
-  if (t % 50 < 34) txt(c, t > 60 ? 'PRESS START' : 'INSERT COIN', W / 2, 206, 8, '#FDE047', '#7F1D1D');
+  // (no PRESS START: the owner's, it goes on by itself shortly; the coin's in)
+  if (t % 50 < 34) txt(c, t > 50 ? 'GET READY!' : 'COIN ACCEPTED', W / 2, 206, 8, '#FDE047', '#7F1D1D');
   txt(c, 'CREDIT 1', W - 40, 254, 6, '#E4E4E7');
   // (the tube warming up: a white line opening out)
   if (t < 20) { c.fillStyle = '#000'; c.fillRect(0, 0, W, H); const k = t / 20; px(c, 0, H / 2 - k * H / 2, W, Math.max(2, k * H), `rgba(255,255,255,${1 - k})`); }
@@ -170,8 +171,9 @@ export const drawControls = (armed: boolean, t: number) => {
   txt(c, 'MID: BLOCK HIGH OR LOW', W / 2, 168, 6, '#E4E4E7');
   txt(c, 'LOW: BLOCK CROUCHING', W / 2, 180, 6, '#60A5FA');
   txt(c, 'OVERHEAD (JUMP-INS): BLOCK STANDING', W / 2, 192, 6, '#F87171');
-  txt(c, 'GRABS: CANNOT BE BLOCKED. SORRY.', W / 2, 204, 6, '#A1A1AA');
-  txt(c, 'BEST 2 OF 3 ROUNDS. NO TIME LIMIT.', W / 2, 220, 6, '#86EFAC');
+  txt(c, 'THROWS AND GRABS: NO BLOCKING THEM. SORRY.', W / 2, 204, 6, '#A1A1AA');
+  txt(c, 'SPECIALS NEED A FULL BAR', W / 2, 212, 6, '#22D3EE');
+  txt(c, 'BEST 2 OF 3 ROUNDS. NO TIME LIMIT.', W / 2, 224, 6, '#86EFAC');
   if (armed && t % 40 < 28) txt(c, 'PRESS ANY BUTTON', W / 2, 242, 6, '#D4D4D8');
 };
 
@@ -197,17 +199,18 @@ export const drawSelect = (v: SelectView) => {
   txt(c, ch.name, W / 2, 152, 8, '#FFFFFF', '#3B0764');
   wrap(c, ch.bio, 6, 220).forEach((l, i) => txt(c, l, W / 2, 166 + i * 9, 6, '#C4B5FD'));
   const sp = specialNames(id);
-  txt(c, `B ${sp[0]}`, W / 2, 196, 6, '#FDE047'); txt(c, `DOWN+B ${sp[1]}`, W / 2, 206, 6, '#FDE047'); txt(c, `UP+B ${sp[2]}`, W / 2, 216, 6, '#FDE047');
+  txt(c, `B ${sp[0]}`, W / 2, 196, 6, '#FDE047'); txt(c, `FORWARD+B ${sp[1]}`, W / 2, 206, 6, '#FDE047'); txt(c, `DOWN+B ${sp[2]}`, W / 2, 216, 6, '#FDE047');
   if (id === 'invis') txt(c, 'SPRITE NOT INCLUDED', W / 2, 232, 6, '#F87171');
   // (both fighters standing at the sides; the Invisible Man's spot: an empty floor, a sign)
-  const stand = (cid: CharId, x: number, face: number, picked: boolean) => {
+  const stand = (cid: CharId, x: number, face: number, picked: boolean, alt = false) => {
     px(c, x - 26, 238, 52, 4, '#0A0418');
     if (cid === 'invis') { txt(c, '(HERE)', x, 220, 6, '#71717A'); return; }
-    const s = pose(cid === 'jekyll' ? 'jekyll' : cid, picked ? 'win' : Math.floor(v.t / 24) % 2 ? 'idle1' : 'idle0');
+    const s = pose(alt ? `${cid}~alt` : cid, picked ? 'win' : Math.floor(v.t / 24) % 2 ? 'idle1' : 'idle0');
     blit(c, s.cv, s.ox, s.oy, x, 240, face);
   };
   stand(id, 38, 1, v.picked);
-  stand(ROSTER[v.kid], W - 38, -1, v.kidPicked);
+  // (the same one as Meathead's: the kid's in the second player's colors)
+  stand(ROSTER[v.kid], W - 38, -1, v.kidPicked, ROSTER[v.kid] === id && ROSTER[v.kid] !== 'invis');
   txt(c, 'MEATHEAD', 38, 252, 6, '#FCA5A5'); txt(c, 'KID', W - 38, 252, 6, '#93C5FD');
 };
 
@@ -218,7 +221,7 @@ export const drawVs = (a: CharId, b: CharId, t: number) => {
   for (let y = 0; y < H; y += 3) px(c, 0, y, W, 1, 'rgba(0,0,0,0.25)');
   const k = Math.min(1, t / 14), s = 2;
   c.drawImage(portrait(a), -PW * s + (60 + PW * s) * k, 50, PW * s, PH * s);
-  c.drawImage(portrait(b), W - (60 + PW * s) * k, 110, PW * s, PH * s);
+  c.drawImage(portrait(b, a === b), W - (60 + PW * s) * k, 110, PW * s, PH * s);
   txt(c, CHARS[a].short, 40 + PW, 168 + 0, 8, '#FCA5A5', '#000', 'center');
   txt(c, CHARS[b].short, W - 40 - PW, 236, 8, '#93C5FD', '#000', 'center');
   if (t > 14) { const z = Math.max(1, 3 - (t - 14) / 4); c.save(); c.translate(W / 2, 140); c.scale(z, z); txt(c, 'VS', 0, 8, 24, '#FDE047', '#7F1D1D'); c.restore(); }
@@ -278,7 +281,7 @@ const fighter = (c: Ctx, m: Match, f: Fighter) => {
   blit(c, s.cv, s.ox, s.oy, f.x, FLOOR - f.h, f.face, 1, 1, 0, f.getup > 0 && m.frame % 4 < 2 ? 0.6 : 1);
   if (flash) { c.globalCompositeOperation = 'lighter'; blit(c, s.cv, s.ox, s.oy, f.x, FLOOR - f.h, f.face, 1, 1, 0, 0.35); c.globalCompositeOperation = 'source-over'; }
   // (the monster's charge: lightning crawling over him)
-  if (f.ch === 'monster' && f.act?.id === 'sn' && f.act.t > 4) for (let k = 0; k < 3; k++) zig(c, f.x + (Math.random() - 0.5) * 20, FLOOR - f.h - 70, f.x + (Math.random() - 0.5) * 24, FLOOR - f.h - 10, '#A5F3FC');
+  if (f.ch === 'monster' && f.act?.id === 'sf' && f.act.t > 4) for (let k = 0; k < 3; k++) zig(c, f.x + (Math.random() - 0.5) * 20, FLOOR - f.h - 70, f.x + (Math.random() - 0.5) * 24, FLOOR - f.h - 10, '#A5F3FC');
 };
 
 const zig = (c: Ctx, x0: number, y0: number, x1: number, y1: number, col: string) => {
@@ -304,6 +307,14 @@ const shot = (c: Ctx, kind: string, x: number, y: number, vx: number, f: number)
       const a = f * 0.4; c.save(); c.translate(x, y); c.rotate(Math.round(a * 4) / 4);
       c.fillStyle = INK; c.beginPath(); c.arc(0, 1, 5, 0, Math.PI * 2); c.fill(); c.fillStyle = '#3AB83A'; c.beginPath(); c.arc(0, 1, 4, 0, Math.PI * 2); c.fill();
       px(c, -1, -6, 3, 4, '#D8D0C0'); px(c, -1, -1, 2, 2, '#B8FFB0'); c.restore();
+      break;
+    }
+    case 'bolt': {
+      // (the monster's neck bolt, shot off him: a spinning steel bolt, lightning crawling off it)
+      const sp = Math.floor(f / 3) % 2;
+      px(c, x - 7, y - 2, 14, 5, INK); px(c, x - 6, y - 1, 12, 3, '#9A9AA4'); px(c, x - 6, y - 1, 12, 1, '#D4D4DC');
+      px(c, x + d * 5 - 2, y - 4, 4, 9, INK); px(c, x + d * 5 - 1, y - 3, 2, 7, sp ? '#D4D4DC' : '#6A6A74');
+      zig(c, x - d * 6, y, x - d * 22, y + (sp ? -6 : 6), '#A5F3FC'); zig(c, x - d * 4, y - 2, x - d * 18, y - 10, '#E0F2FE');
       break;
     }
     case 'brick': px(c, x - 6, y - 4, 12, 8, INK); px(c, x - 5, y - 3, 10, 6, '#A0402A'); px(c, x - 5, y - 3, 10, 1, '#D86A4A'); px(c, x - 1, y - 3, 1, 3, '#6A2010'); break;
@@ -367,8 +378,15 @@ const hud = (c: Ctx, m: Match, v: FightView) => {
     px(c, right ? x + w - sh : x, y, sh, 8, '#F8F8F8');
     const col = f.hp > 50 ? ['#CA8A04', '#FDE047'] : f.hp > 25 ? ['#C2410C', '#FB923C'] : ['#991B1B', '#EF4444'];
     px(c, right ? x + w - hp : x, y, hp, 8, col[0]); px(c, right ? x + w - hp : x, y, hp, 3, col[1]);
-    txt(c, CHARS[f.ch].short, right ? x + w : x, y + 20, 6, '#FFFFFF', '#000', right ? 'right' : 'left');
-    for (let i = 0; i < 2; i++) { const px0 = right ? x + w - 8 - i * 10 : x + i * 10; px(c, px0, y + 24, 7, 7, INK); px(c, px0 + 1, y + 25, 5, 5, v.wins[f.side] > i ? '#FDE047' : '#3F3F46'); }
+    // (the special bar under it: fills, banded cyan; full, it flashes white-cyan with SP lit)
+    const mw = 96, my = y + 11, mx = right ? x + w - mw : x, k = Math.max(0, Math.min(1, f.meter / METER_FULL)), full = k >= 1;
+    px(c, mx - 1, my - 1, mw + 2, 6, INK); px(c, mx, my, mw, 4, '#0C1A2E');
+    const fw = Math.round(mw * k), fx0 = right ? mx + mw - fw : mx;
+    if (fw > 0) { const lit = full && m.frame % 20 < 10; px(c, fx0, my, fw, 4, lit ? '#A5F3FC' : full ? '#22D3EE' : '#0E7490'); px(c, fx0, my, fw, 1, lit ? '#FFFFFF' : full ? '#CFFAFE' : '#22D3EE'); }
+    for (let q = 1; q < 4; q++) px(c, mx + Math.round(mw * q / 4), my, 1, 4, INK);
+    txt(c, 'SP', right ? mx - 4 : mx + mw + 4, my + 5, 6, full ? '#A5F3FC' : '#3F6A7A', '#000', right ? 'right' : 'left');
+    txt(c, CHARS[f.ch].short, right ? x + w : x, y + 26, 6, '#FFFFFF', '#000', right ? 'right' : 'left');
+    for (let i = 0; i < 2; i++) { const px0 = right ? x + w - 8 - i * 10 : x + i * 10; px(c, px0, y + 30, 7, 7, INK); px(c, px0 + 1, y + 31, 5, 5, v.wins[f.side] > i ? '#FDE047' : '#3F3F46'); }
   };
   bar(m.f[0], 12, false); bar(m.f[1], W - 162, true);
   txt(c, '1P', 12, 7, 6, '#FCA5A5', '#000', 'left'); txt(c, 'KID', W - 12, 7, 6, '#93C5FD', '#000', 'right');
