@@ -37,7 +37,8 @@ import { drawDinoWorld, dinoLamps } from './art/world';
 import { drawBoothCut } from './art/booth';
 import { drawZooFar, drawZooNear } from './art/zoo';
 import { updateGuests, drawGuestsSaid } from './guests';
-import { MEATHEAD_LANDED, MEATHEAD_RED_EYES, MAINT_OBLIVIOUS, DINO_FRIENDLY, MEATHEAD_DOOR } from './lines';
+import { MEATHEAD_LANDED, MEATHEAD_RED_EYES, MAINT_OBLIVIOUS, MAINT_RESET, DINO_FRIENDLY, MEATHEAD_DOOR } from './lines';
+import { bossGone } from '../../emptyArena';
 // (the paddock gate hack up the tall tree on the last stretch: a charge shard's minigame)
 import { buildHack, updateHack, drawHackWorld, drawHackHud } from './hack';
 
@@ -163,7 +164,8 @@ const runPebble = (ctx: FrameContext, d: Dino): Controls => {
   // (he doesn't look up; he says what he was going to say anyway: once Meathead's done with his)
   if (pb.clicked && !pb.maintAsked && (pb.landedSaid || pb.t > 400) && pb.pt > PEBBLE_HIT + 20) {
     pb.maintAsked = true;
-    speak('m2.maint', pick(MAINT_OBLIVIOUS), s => { pb.maintSaid = s; }, true, () => { pb.maintDone = true; });
+    // (back after Artie's dead: they'd set it back to friendly since)
+    speak('m2.maint', pick(bossGone('adventure') ? MAINT_RESET : MAINT_OBLIVIOUS), s => { pb.maintSaid = s; }, true, () => { pb.maintDone = true; });
   }
   if (pb.clicked && pb.pt === PEBBLE_HIT + 30) playSound('alarm', 0.35, -6);
   if (pb.closedAt < 0 && ((pb.maintDone && pb.pt > PEBBLE_HIT + 60) || pb.pt > PEBBLE_HIT + 420)) pb.closedAt = pb.t;

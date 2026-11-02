@@ -4,6 +4,12 @@
 export const MEATHEAD_LANDED = ["OW. MY TAILBONE'S IN MY THROAT.", 'NAILED THE LANDING. WITH MY FACE.', 'SMELLS LIKE LIZARD ASS IN HERE.'];
 /** ...and the raptors' eyes going red. */
 export const MEATHEAD_RED_EYES = ['...NICE LIZARDS.', 'RED EYES. LIKE MY DAD ON PAYDAY.', "YOU WANNA GO? LET'S GO, GECKOS."];
+/** ...back after Artie's dead: they'd set it back to FRIENDLY since (the pebble flips it again). */
+export const MAINT_RESET = [
+  'THEY MADE ME SET IT BACK TO FRIENDLY. TWELVE FORMS. NEVER AGAIN.',
+  'FRIENDLY MODE, LIKE THE MEMO SAID. NOTHING CAN HAPPEN TWICE.',
+  'THE SWITCH IS ON FRIENDLY. I TAPED IT. I AM A PROFESSIONAL.',
+];
 /** The maintenance man in his booth, not noticing the switch his window just let a pebble in to flip. */
 export const MAINT_OBLIVIOUS = [
   'TWELVE YEARS IN THIS BOOTH. NOTHING HAS EVER HAPPENED.',
@@ -30,6 +36,12 @@ export const HURT_REX = ['IT STEPPED ON ALL OF ME!', 'IT TOOK A BITE OF MY LOVE 
 export const DEATH_REX = ['T-REKT', 'A FAT SNACK', 'CLOSER THAN IT APPEARED'];
 
 /** The T. rex paddock's sub-boss (rex.ts). Walking into the paddock, it waking up. */
+/** ...back after Artie's dead (it's fixed up and back on: the sub-bosses come back). */
+export const MEATHEAD_REX_BACK: Record<'clean' | 'shitty' | 'nude', string[]> = {
+  clean: ['YOU AGAIN? THEY FIXED YOU BEFORE THEY FIXED THE BOAT?', 'BACK FROM THE SCRAPYARD. ROUND TWO, LIZARD.'],
+  shitty: ['YOU AGAIN? I ALREADY SHIT MYSELF FOR YOU ONCE.', 'BACK FROM THE SCRAPYARD. SMELL THAT? THAT IS FEAR. AND SHIT.'],
+  nude: ['YOU AGAIN? I LOST MY PANTS SINCE. EYES UP HERE.', 'BACK FROM THE SCRAPYARD. ME TOO. NAKED, THOUGH.'],
+};
 export const MEATHEAD_REX_INTRO = ['OH, GOOD. THE BIG ONE. LIKE MY EX-WIFE.', "THAT'S TWO MILLION BUCKS OF SCRAP. LET'S GO.", 'NICE T-REX. ...IT IS NOT A NICE T-REX.'];
 /** Its bite. */
 export const HURT_REX_BITE = ["IT'S CHEWING ME LIKE GUM!", 'I AM NOT ON THE MENU!', 'REAL TEETH! IN A KIDS RIDE!', 'GET YOUR TEETH OFF MY ASS!'];
@@ -277,9 +289,9 @@ export const GUEST_REX: ByPants = {
 const GUEST_LINES = [GUEST_SEE.show, GUEST_SEE.doubt, GUEST_KILL.show, GUEST_KILL.doubt, GUEST_HURT, GUEST_REX].flatMap(allPants);
 
 export const VOICE_LINES: Record<string, string[]> = {
-  meathead: [...MEATHEAD_LANDED, ...MEATHEAD_RED_EYES, ...MEATHEAD_DOOR, ...HURT_RAPTOR, ...HURT_TRIKE, ...HURT_HORNS, ...HURT_PTERO, ...HURT_REX, ...MEATHEAD_REX_INTRO, ...HURT_REX_BITE, ...HURT_REX_SPRINT, ...HURT_REX_TAIL, ...HURT_REX_SHOCK],
+  meathead: [...MEATHEAD_LANDED, ...MEATHEAD_RED_EYES, ...MEATHEAD_DOOR, ...HURT_RAPTOR, ...HURT_TRIKE, ...HURT_HORNS, ...HURT_PTERO, ...HURT_REX, ...MEATHEAD_REX_INTRO, ...Object.values(MEATHEAD_REX_BACK).flat(), ...HURT_REX_BITE, ...HURT_REX_SPRINT, ...HURT_REX_TAIL, ...HURT_REX_SHOCK],
   death: [...DEATH_RAPTOR, ...DEATH_TRIKE, ...DEATH_HORNS, ...DEATH_PTERO, ...DEATH_REX, ...DEATH_REX_BITE, ...DEATH_REX_SPRINT, ...DEATH_REX_TAIL, ...DEATH_REX_SHOCK],
-  'm2.maint': [...MAINT_OBLIVIOUS],
+  'm2.maint': [...MAINT_OBLIVIOUS, ...MAINT_RESET],
   'm2.rex': REX_LINES,
   'm2.guest': GUEST_LINES,
   'm2.guest2': GUEST_LINES,

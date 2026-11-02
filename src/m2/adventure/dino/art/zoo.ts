@@ -17,6 +17,7 @@ import { D } from '../layout';
 import { signAt, enamel, print, dino } from '../../letters';
 import { GUESTS, GALLERY, BLEACHERS, guestsFled, guestMood, massacred, type DinoGuest } from '../guests';
 import { drawSafariArtie } from '../../river/artie';
+import { bossGone } from '../../../emptyArena';
 
 const atD = (c: Ctx, eye: Eye, d: number, paint: () => void) => {
   c.save(); c.translate(eye.x, eye.y); c.scale(d, d); c.translate(-eye.x, -eye.y); paint(); c.restore();
@@ -151,7 +152,8 @@ export const drawZooFar = (c: Ctx, state: GameState) => {
   const eye = eyeOf(state), f = state.frame || 0, fled = guestsFled(state), gone = massacred(state);
   const far = GUESTS.filter(g => g.zone === 'far' && seen(state, eye, g.x - 40, g.x + 40, g.d));
   const stands = BLEACHERS.xs.filter(bx => seen(state, eye, bx - 20, bx + BLEACHERS.w + 20, BLEACHERS.d, 120));
-  const artie = seen(state, eye, ARTIE_PATH[0] - 40, ARTIE_PATH[1] + 40, ARTIE_D);
+  // (back after he's dead: nobody on the far path)
+  const artie = !bossGone('adventure') && seen(state, eye, ARTIE_PATH[0] - 40, ARTIE_PATH[1] + 40, ARTIE_D);
   if (!far.length && !stands.length && !artie) return;
   drawDimmed(c, 0.3, '18, 26, 20', l => {
     if (artie) atD(l, eye, ARTIE_D, () => artieFar(l, f));

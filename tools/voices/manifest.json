@@ -18686,6 +18686,11 @@
  },
  {
   "voice": "m2.ben",
+  "text": "BACK WHERE YOU FELL IN. NOBODY DOWN THERE NOW. YOU SAW TO THAT.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "m2.ben",
   "text": "BEAUTIFUL. LIKE WATCHING A BEAR OPEN A COOLER.",
   "from": "UPGRADES"
  },
@@ -20296,6 +20301,11 @@
  },
  {
   "voice": "m2.cartoon.chelsea",
+  "text": "HI AGAIN, SOCKS! IT'S A RERUN! THE MEAN MEN ARE BACK FOR SYNDICATION!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.chelsea",
   "text": "HI, SOCKS! MOM AND DAD ARE AT A UN SUMMIT, AND MEAN MEN HAVE INVADED THE WHITE HOUSE!",
   "from": "CARTOON"
  },
@@ -20502,6 +20512,11 @@
  {
   "voice": "m2.cartoon.chelsea",
   "text": "SOCKS! THE MEAN MEN ARE TOUCHING DAD'S SAXOPHONE!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.chelsea",
+  "text": "SOCKS! THE NETWORK IS SHOWING IT AGAIN! THE MEAN MEN GOT PAID AGAIN! WE HAVE TO STOP THEM AGAIN!",
   "from": "CARTOON"
  },
  {
@@ -22581,6 +22596,11 @@
  },
  {
   "voice": "m2.cartoon.dole",
+  "text": "BOB DOLE CAME BACK FOR THIS SMELL? BOB DOLE IS SAD.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.dole",
   "text": "BOB DOLE CAN SEE THE CAT DICK! BOB DOLE WANTS IT TO STOP BOUNCING!",
   "from": "CARTOON"
  },
@@ -22596,7 +22616,27 @@
  },
  {
   "voice": "m2.cartoon.dole",
+  "text": "BOB DOLE GOT RENEWED. BOB DOLE IS HAPPY ABOUT IT. BOB DOLE IS NOT HAPPY.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.dole",
   "text": "BOB DOLE IS A BRIDGE TO A BETTER TIME, KITTY!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.dole",
+  "text": "BOB DOLE IS BACK. BOB DOLE IS RUNNING AGAIN. BOB DOLE ALWAYS RUNS AGAIN.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.dole",
+  "text": "BOB DOLE IS BACK. THE CAT STILL SMELLS. BOB DOLE NOTICED.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.dole",
+  "text": "BOB DOLE IS BACK. THE CAT'S STILL NAKED. BOB DOLE IS NOT LOOKING.",
   "from": "CARTOON"
  },
  {
@@ -22607,6 +22647,11 @@
  {
   "voice": "m2.cartoon.dole",
   "text": "BOB DOLE IS OKAY!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.dole",
+  "text": "BOB DOLE IS RUNNING AGAIN. AWAY FROM THAT.",
   "from": "CARTOON"
  },
  {
@@ -22986,6 +23031,21 @@
  },
  {
   "voice": "m2.cartoon.falwell",
+  "text": "I AM RISEN, AND YOU ARE STILL NAKED. REPENT. COVER IT.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.falwell",
+  "text": "I AM RISEN, DEVIL CAT! IT WAS IN MY CONTRACT!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.falwell",
+  "text": "I AM RISEN. YOU STILL STINK OF SODOM, KITTY.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.falwell",
   "text": "I'M PRAYING FOR YOU! AT YOU! I'M PRAYING AT YOU!",
   "from": "CARTOON"
  },
@@ -23071,6 +23131,11 @@
  },
  {
   "voice": "m2.cartoon.falwell",
+  "text": "RESURRECTED FOR THIS? HE STILL SMELLS LIKE SIN.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.falwell",
   "text": "SECULAR HUMANISM! IN THE WHITE HOUSE!",
   "from": "CARTOON"
  },
@@ -23102,6 +23167,16 @@
  {
   "voice": "m2.cartoon.falwell",
   "text": "THE GOOD BOOK!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.falwell",
+  "text": "THE LORD BROUGHT ME BACK. PUT YOUR SIN AWAY.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.falwell",
+  "text": "THE LORD RAISED ME ON THE THIRD DAY. THE NETWORK RAISED ME ON THE SECOND.",
   "from": "CARTOON"
  },
  {
@@ -24021,6 +24096,16 @@
  },
  {
   "voice": "m2.cartoon.limbaugh",
+  "text": "BACK ON THE AIR, AND IT SMELLS LIKE A LIBERAL IN HERE.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.limbaugh",
+  "text": "BACK ON THE AIR. AND THE CAT'S STILL NAKED. ON THE TAXPAYER'S DIME.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.limbaugh",
   "text": "DEAD AIR! DEAD AIR! THE NAKED CAT WINS!",
   "from": "CARTOON"
  },
@@ -24093,6 +24178,11 @@
   "voice": "m2.cartoon.limbaugh",
   "text": "I AM STILL RIGHT ABOUT EVERYTHING! IN A HIGHER KEY!",
   "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.cartoon.limbaugh",
+  "text": "I'M BACK. ON A HIGHER WATTAGE. DITTOS.",
+  "from": "CARTOON"
  },
  {
   "voice": "m2.cartoon.limbaugh",
@@ -24191,6 +24281,11 @@
  },
  {
   "voice": "m2.cartoon.limbaugh",
+  "text": "SYNDICATED AGAIN. YOU STILL SHIT YOURSELF, KITTY. TYPICAL.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.limbaugh",
   "text": "TAKE THAT, CALLER!",
   "from": "UPGRADES"
  },
@@ -24237,6 +24332,16 @@
  {
   "voice": "m2.cartoon.limbaugh",
   "text": "WHOA! SOMETHING STINKS ACROSS THE FRUITED PLAIN, KITTY! IT'S YOU! RUSH LIMBAUGH HERE!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.limbaugh",
+  "text": "YOU CAN'T CANCEL ME, KITTY. I'M ON SIX HUNDRED STATIONS.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.limbaugh",
+  "text": "YOU CANCELED ME NAKED. NOW I'M BACK. NOW YOU'RE STILL NAKED.",
   "from": "CARTOON"
  },
  {
@@ -24606,6 +24711,11 @@
  },
  {
   "voice": "m2.cartoon.newt",
+  "text": "CONTRACT WITH AMERICA. PART TWO. YOU SIGNED NOTHING.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.newt",
   "text": "HNNNG! I SAW HIS LINE ITEMS!",
   "from": "UPGRADES"
  },
@@ -24622,6 +24732,11 @@
  {
   "voice": "m2.cartoon.newt",
   "text": "I AM NEWT GINGRICH, SPEAKER OF THE HOUSE! AND I HAVE A CONTRACT! WITH AMERICA!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.newt",
+  "text": "I CAME BACK AND YOU STILL SMELL LIKE A WELFARE OFFICE.",
   "from": "CARTOON"
  },
  {
@@ -24741,6 +24856,16 @@
  },
  {
   "voice": "m2.cartoon.newt",
+  "text": "PART TWO, KITTY. STILL NAKED. STILL A DISGRACE.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.newt",
+  "text": "PART TWO. AND THE CAT STILL SHITS ON THE CARPET.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.newt",
   "text": "REVOLUTION!",
   "from": "UPGRADES"
  },
@@ -24811,7 +24936,17 @@
  },
  {
   "voice": "m2.cartoon.newt",
+  "text": "THE REPUBLICAN REVOLUTION IS BACK. IN RERUNS. STILL A REVOLUTION.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.newt",
   "text": "THE REPUBLICAN REVOLUTION IS HERE, KITTY!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.newt",
+  "text": "THE REVOLUTION IS BACK. YOUR PANTS ARE NOT.",
   "from": "CARTOON"
  },
  {
@@ -24986,6 +25121,16 @@
  },
  {
   "voice": "m2.cartoon.perot",
+  "text": "BACK FROM THE DEAD, AND YOUR PECKER IS STILL OUT, KITTY.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.perot",
+  "text": "BACK IN THE RACE. YOU STILL SHIT YOURSELF. SOME THINGS DON'T CHANGE.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.perot",
   "text": "CHART THIS!",
   "from": "CARTOON"
  },
@@ -25067,6 +25212,21 @@
  {
   "voice": "m2.cartoon.perot",
   "text": "I'M ALL EARS, KITTY! NOT ALL EYES! PUT IT AWAY!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.perot",
+  "text": "I'M BACK IN. I DROPPED OUT, I GOT BACK IN. THAT'S MY THING, KITTY.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.perot",
+  "text": "I'M BACK IN. THE CAT'S STILL NAKED. IT'S A CAT. STILL WEIRD.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.perot",
+  "text": "I'M BACK, AND THE KITTY STILL SMELLS LIKE A FEEDLOT.",
   "from": "CARTOON"
  },
  {
@@ -25212,6 +25372,11 @@
  {
   "voice": "m2.cartoon.perot",
   "text": "WHEW! THAT SMELL IS GOIN' SOUTH OF THE BORDER, SON!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.perot",
+  "text": "YOU HEAR THAT SUCKING SOUND? IT'S ME, BACK FROM THE DEAD. RERUNS PAY.",
   "from": "CARTOON"
  },
  {
@@ -26556,7 +26721,52 @@
  },
  {
   "voice": "m2.demon",
+  "text": "THIS TIME I'M NOT TELLING DAD. I'M FINISHING IT.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.demon",
+  "text": "THIS TIME I'M NOT TELLING DAD. I'M NOT TELLING ANYONE ABOUT THAT.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.demon",
+  "text": "THIS TIME I'M NOT TELLING DAD. YOU SMELL TOO BAD TO TELL.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.demon",
+  "text": "YOU AGAIN?! DAD SAID I CAN'T CRY THIS TIME!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.demon",
+  "text": "YOU AGAIN?! STILL NAKED! DAD, MAKE HIM STOP!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.demon",
+  "text": "YOU AGAIN?! STILL SHITTY! DAD, IT IS STILL SHITTY!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.demon",
   "text": "YOU ARE GONNA MAKE MY DAD SO PROUD, NERD.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.demon",
+  "text": "YOU KILLED THE COUNT AND YOU STILL CAN'T WIPE?! DAD, WATCH!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.demon",
+  "text": "YOU KILLED THE COUNT NAKED?! DAD, WATCH ME DO BETTER!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.demon",
+  "text": "YOU KILLED THE FAT COUNT? DAD! IF I KILL HIM, I GET HIS JOB!",
   "from": "SPOOKY"
  },
  {
@@ -29006,6 +29216,11 @@
  },
  {
   "voice": "m2.fantasy.courtier",
+  "text": "BACK, PEASANT! WE ARE IN MOURNING!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.courtier",
   "text": "BACK, PEASANT! YOU COST THIRTY TWO DOLLARS!",
   "from": "FANTASY"
  },
@@ -29021,12 +29236,22 @@
  },
  {
   "voice": "m2.fantasy.courtier",
+  "text": "MURDERER! THE GREAT PIXIE IS DEAD!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.courtier",
   "text": "MY EYES! COVER IT!",
   "from": "FANTASY"
  },
  {
   "voice": "m2.fantasy.courtier",
   "text": "PEASANT! YOU SOILED YOURSELF!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.courtier",
+  "text": "SHE WAS LARGE. SHE WAS LOVED. YOU KILLED HER.",
   "from": "FANTASY"
  },
  {
@@ -29041,6 +29266,11 @@
  },
  {
   "voice": "m2.fantasy.courtierf",
+  "text": "BACK, PEASANT! WE ARE IN MOURNING!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.courtierf",
   "text": "BACK, PEASANT! YOU COST THIRTY TWO DOLLARS!",
   "from": "FANTASY"
  },
@@ -29056,12 +29286,22 @@
  },
  {
   "voice": "m2.fantasy.courtierf",
+  "text": "MURDERER! THE GREAT PIXIE IS DEAD!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.courtierf",
   "text": "MY EYES! COVER IT!",
   "from": "FANTASY"
  },
  {
   "voice": "m2.fantasy.courtierf",
   "text": "PEASANT! YOU SOILED YOURSELF!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.courtierf",
+  "text": "SHE WAS LARGE. SHE WAS LOVED. YOU KILLED HER.",
   "from": "FANTASY"
  },
  {
@@ -29091,7 +29331,17 @@
  },
  {
   "voice": "m2.fantasy.cupid",
+  "text": "MY BOSS IS DEAD AND I'M STILL IN THE DIAPER.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.cupid",
   "text": "NAKED? THAT'S MY BIT!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.cupid",
+  "text": "PIPER DIED OWING ME. HOLD STILL.",
   "from": "FANTASY"
  },
  {
@@ -29126,7 +29376,17 @@
  },
  {
   "voice": "m2.fantasy.cupidf",
+  "text": "MY BOSS IS DEAD AND I'M STILL IN THE DIAPER.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.cupidf",
   "text": "NAKED? THAT'S MY BIT!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.cupidf",
+  "text": "PIPER DIED OWING ME. HOLD STILL.",
   "from": "FANTASY"
  },
  {
@@ -30641,6 +30901,11 @@
  },
  {
   "voice": "m2.fantasy.suitor_blake",
+  "text": "BRO. YOU KILLED HER NAKED. PANTS. PLEASE.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_blake",
   "text": "BRO. YOU SHAT ON A DRAGON.",
   "from": "FANTASY"
  },
@@ -30681,6 +30946,11 @@
  },
  {
   "voice": "m2.fantasy.suitor_blake",
+  "text": "MOVE, BRO! HE'S MINE!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_blake",
   "text": "MOVE, BRO! SHE'S MINE!",
   "from": "FANTASY"
  },
@@ -30691,12 +30961,22 @@
  },
  {
   "voice": "m2.fantasy.suitor_blake",
+  "text": "NO PRIZE, BRO. JUST PAYBACK.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_blake",
   "text": "NOT LIKE THIS, BROOO!",
   "from": "FANTASY"
  },
  {
   "voice": "m2.fantasy.suitor_blake",
   "text": "OUT OF MY SKY, BRO!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_blake",
+  "text": "OUT OF MY SKY, BRO! I AVENGE HER!",
   "from": "FANTASY"
  },
  {
@@ -30721,12 +31001,32 @@
  },
  {
   "voice": "m2.fantasy.suitor_blake",
+  "text": "SHE DIED SMELLING YOU, BRO. CRUEL.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_blake",
   "text": "SHE WANTS A MAN. NOT A HUGGIES.",
   "from": "FANTASY"
  },
  {
   "voice": "m2.fantasy.suitor_blake",
+  "text": "THE FACE MASK IS FOR HER FUNERAL, BRO. AND MY BACK ACNE.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_blake",
   "text": "THE FACE MASK IS FOR HER, BRO. AND MY BACK ACNE.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_blake",
+  "text": "THE NAKED PIXIE KILLER. BRO. WOW.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_blake",
+  "text": "THE PIXIE KILLER SHIT HIMSELF AGAIN, BRO.",
   "from": "FANTASY"
  },
  {
@@ -30742,6 +31042,11 @@
  {
   "voice": "m2.fantasy.suitor_blake",
   "text": "THIS SHAKE HAS CREATINE AND YOUR DEATH IN IT, BRO.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_blake",
+  "text": "YOU KILLED PIPER, BRO. YOU'RE NOT GETTING OFF THIS RIDE.",
   "from": "FANTASY"
  },
  {
@@ -30791,6 +31096,16 @@
  },
  {
   "voice": "m2.fantasy.suitor_braxton",
+  "text": "BACK OFF! I AVENGE HER!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_braxton",
+  "text": "BRO. THE PIXIE KILLER SHIT HIMSELF.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_braxton",
   "text": "BULLETS? FROM A GUY WHO SHAT HIMSELF?",
   "from": "FANTASY"
  },
@@ -30806,7 +31121,32 @@
  },
  {
   "voice": "m2.fantasy.suitor_braxton",
+  "text": "DIE NAKED, PIXIE KILLER!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_braxton",
+  "text": "DIE, SHIT PANTS! FOR PIPER!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_braxton",
   "text": "EAT IT, PRETTY BOY!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_braxton",
+  "text": "FLY, PIXIE KILLER!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_braxton",
+  "text": "FOR PIPER! TAKE YOUR SMELL WITH YOU!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_braxton",
+  "text": "FOR PIPER! TAKE YOUR TINY DICK WITH YOU!",
   "from": "FANTASY"
  },
  {
@@ -30836,7 +31176,27 @@
  },
  {
   "voice": "m2.fantasy.suitor_braxton",
+  "text": "HE KILLED HER WITH THAT OUT? BRO.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_braxton",
+  "text": "HE KILLED PIPER AND HE SMELLS LIKE THAT? DOUBLE MURDER, BRO.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_braxton",
+  "text": "HE'S MINE TO KILL, BRO!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_braxton",
   "text": "I JERK OFF TO MY OWN FLEX VIDEOS. FOR PIPER.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_braxton",
+  "text": "I OILED UP FOR PIPER. NOW I OIL UP FOR YOUR FUNERAL.",
   "from": "FANTASY"
  },
  {
@@ -30866,6 +31226,11 @@
  },
  {
   "voice": "m2.fantasy.suitor_braxton",
+  "text": "MURDERER!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_braxton",
   "text": "MY FACE!",
   "from": "FANTASY"
  },
@@ -30891,6 +31256,11 @@
  },
  {
   "voice": "m2.fantasy.suitor_braxton",
+  "text": "NO MORE TRIALS, BRO. JUST HIM. DEAD.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_braxton",
   "text": "NOT THE FACE!",
   "from": "FANTASY"
  },
@@ -30901,12 +31271,32 @@
  },
  {
   "voice": "m2.fantasy.suitor_braxton",
+  "text": "OUT OF MY WAY! HE KILLED PIPER!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_braxton",
   "text": "OW! MY PECS!",
   "from": "FANTASY"
  },
  {
   "voice": "m2.fantasy.suitor_braxton",
+  "text": "PIXIE KILLER SMELLS LIKE A GREYHOUND SHITTER!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_braxton",
+  "text": "PIXIE KILLER!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_braxton",
   "text": "PUT ME DOWN! PUT ME DOWN!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_braxton",
+  "text": "PUT SOME PANTS ON AND DIE!",
   "from": "FANTASY"
  },
  {
@@ -30951,12 +31341,37 @@
  },
  {
   "voice": "m2.fantasy.suitor_braxton",
+  "text": "THAT ONE IS FOR PIPER!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_braxton",
+  "text": "THAT WAS FOR PIPER!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_braxton",
+  "text": "THAT'S HIM, BRO. HE KILLED PIPER.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_braxton",
+  "text": "THE GUY WHO KILLED PIPER IS NAKED, BRO.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_braxton",
   "text": "THERE ARE KIDS ON THIS WHEEL, YOU PERVERT!",
   "from": "FANTASY"
  },
  {
   "voice": "m2.fantasy.suitor_braxton",
   "text": "THIS CART IS FOR ME AND MY BOOTY!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_braxton",
+  "text": "THIS ONE IS FOR PIPER!",
   "from": "FANTASY"
  },
  {
@@ -31046,6 +31461,11 @@
  },
  {
   "voice": "m2.fantasy.suitor_chad",
+  "text": "BACK OFF! I AVENGE HER!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_chad",
   "text": "BULLETS? FROM A GUY WHO SHAT HIMSELF?",
   "from": "FANTASY"
  },
@@ -31061,7 +31481,32 @@
  },
  {
   "voice": "m2.fantasy.suitor_chad",
+  "text": "DIE NAKED, PIXIE KILLER!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_chad",
+  "text": "DIE, SHIT PANTS! FOR PIPER!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_chad",
   "text": "EAT IT, PRETTY BOY!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_chad",
+  "text": "FLY, PIXIE KILLER!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_chad",
+  "text": "FOR PIPER! TAKE YOUR SMELL WITH YOU!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_chad",
+  "text": "FOR PIPER! TAKE YOUR TINY DICK WITH YOU!",
   "from": "FANTASY"
  },
  {
@@ -31091,6 +31536,11 @@
  },
  {
   "voice": "m2.fantasy.suitor_chad",
+  "text": "HE'S MINE TO KILL, BRO!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_chad",
   "text": "I SHOULD'VE DONE CARDIO!",
   "from": "FANTASY"
  },
@@ -31107,6 +31557,11 @@
  {
   "voice": "m2.fantasy.suitor_chad",
   "text": "MMMPH! MY HAIR!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_chad",
+  "text": "MURDERER!",
   "from": "FANTASY"
  },
  {
@@ -31151,6 +31606,11 @@
  },
  {
   "voice": "m2.fantasy.suitor_chad",
+  "text": "OUT OF MY WAY! HE KILLED PIPER!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_chad",
   "text": "OW! MY PECS!",
   "from": "FANTASY"
  },
@@ -31161,12 +31621,32 @@
  },
  {
   "voice": "m2.fantasy.suitor_chad",
+  "text": "PIXIE KILLER SMELLS LIKE A GREYHOUND SHITTER!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_chad",
+  "text": "PIXIE KILLER!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_chad",
   "text": "PUT ME DOWN! PUT ME DOWN!",
   "from": "FANTASY"
  },
  {
   "voice": "m2.fantasy.suitor_chad",
+  "text": "PUT SOME PANTS ON AND DIE!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_chad",
   "text": "PUT SOME PANTS ON!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_chad",
+  "text": "SHE NEVER SAW MY GUNS, BRO. YOU'LL FEEL THEM.",
   "from": "FANTASY"
  },
  {
@@ -31201,12 +31681,27 @@
  },
  {
   "voice": "m2.fantasy.suitor_chad",
+  "text": "THAT ONE IS FOR PIPER!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_chad",
+  "text": "THAT WAS FOR PIPER!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_chad",
   "text": "THERE ARE KIDS ON THIS WHEEL, YOU PERVERT!",
   "from": "FANTASY"
  },
  {
   "voice": "m2.fantasy.suitor_chad",
   "text": "THIS CART IS FOR ME AND MY BOOTY!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_chad",
+  "text": "THIS IS FOR PIPER, BRO.",
   "from": "FANTASY"
  },
  {
@@ -31326,6 +31821,11 @@
  },
  {
   "voice": "m2.fantasy.suitor_derek",
+  "text": "BACK OFF! I AVENGE HER!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_derek",
   "text": "BULLETS? FROM A GUY WHO SHAT HIMSELF?",
   "from": "FANTASY"
  },
@@ -31341,7 +31841,32 @@
  },
  {
   "voice": "m2.fantasy.suitor_derek",
+  "text": "DIE NAKED, PIXIE KILLER!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_derek",
+  "text": "DIE, SHIT PANTS! FOR PIPER!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_derek",
   "text": "EAT IT, PRETTY BOY!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_derek",
+  "text": "FLY, PIXIE KILLER!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_derek",
+  "text": "FOR PIPER! TAKE YOUR SMELL WITH YOU!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_derek",
+  "text": "FOR PIPER! TAKE YOUR TINY DICK WITH YOU!",
   "from": "FANTASY"
  },
  {
@@ -31371,6 +31896,11 @@
  },
  {
   "voice": "m2.fantasy.suitor_derek",
+  "text": "HE'S MINE TO KILL, BRO!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_derek",
   "text": "I SHOULD'VE DONE CARDIO!",
   "from": "FANTASY"
  },
@@ -31386,12 +31916,22 @@
  },
  {
   "voice": "m2.fantasy.suitor_derek",
+  "text": "M'LADY PIPER, I AVENGE THEE.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_derek",
   "text": "M'LADY PIPER. I HAVE NINE FAIRE PASSES.",
   "from": "FANTASY"
  },
  {
   "voice": "m2.fantasy.suitor_derek",
   "text": "MMMPH! MY HAIR!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_derek",
+  "text": "MURDERER!",
   "from": "FANTASY"
  },
  {
@@ -31426,6 +31966,11 @@
  },
  {
   "voice": "m2.fantasy.suitor_derek",
+  "text": "NINE FAIRE PASSES. ALL FOR HER. YOU DIE.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_derek",
   "text": "NOT THE FACE!",
   "from": "FANTASY"
  },
@@ -31436,12 +31981,32 @@
  },
  {
   "voice": "m2.fantasy.suitor_derek",
+  "text": "OUT OF MY WAY! HE KILLED PIPER!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_derek",
   "text": "OW! MY PECS!",
   "from": "FANTASY"
  },
  {
   "voice": "m2.fantasy.suitor_derek",
+  "text": "PIXIE KILLER SMELLS LIKE A GREYHOUND SHITTER!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_derek",
+  "text": "PIXIE KILLER!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_derek",
   "text": "PUT ME DOWN! PUT ME DOWN!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_derek",
+  "text": "PUT SOME PANTS ON AND DIE!",
   "from": "FANTASY"
  },
  {
@@ -31477,6 +32042,16 @@
  {
   "voice": "m2.fantasy.suitor_derek",
   "text": "TAKE YOUR TINY DICK WITH YOU!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_derek",
+  "text": "THAT ONE IS FOR PIPER!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_derek",
+  "text": "THAT WAS FOR PIPER!",
   "from": "FANTASY"
  },
  {
@@ -31521,6 +32096,36 @@
  },
  {
   "voice": "m2.fantasy.suitor_dmitri",
+  "text": "FLY. AND BREAK HIS NECK.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_dmitri",
+  "text": "FOR PIPER! FLY UPWIND!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_dmitri",
+  "text": "FOR PIPER! KILL HIM!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_dmitri",
+  "text": "FOR PIPER! KILL THE PEANUT!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_dmitri",
+  "text": "GO! DO NOT LOOK DOWN AT HIM!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_dmitri",
+  "text": "GO! KILL THE STINKY ONE!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_dmitri",
   "text": "I INJECT HORSE TESTOSTERONE. YOU INJECT CHEETOS.",
   "from": "FANTASY"
  },
@@ -31556,6 +32161,36 @@
  },
  {
   "voice": "m2.fantasy.suitor_dmitri",
+  "text": "NEW RULES. LAST MAN FLYING IS NOT YOU.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_dmitri",
+  "text": "NO WINDOW. NO PRIZE. IN THE SKY, WE ALL KILL YOU.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_dmitri",
+  "text": "ONE RULE. THE NAKED ONE DIES.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_dmitri",
+  "text": "ONE RULE. THE SMELLY ONE DIES.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_dmitri",
+  "text": "PIPER IS DEAD. EVERYBODY KNOWS WHO DID IT.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_dmitri",
+  "text": "PIPER IS DEAD. YOU ARE NAKED. BOTH ARE SAD.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_dmitri",
   "text": "SAVE IT FOR THE SKY, LOSER.",
   "from": "FANTASY"
  },
@@ -31566,7 +32201,22 @@
  },
  {
   "voice": "m2.fantasy.suitor_dmitri",
+  "text": "THE PIXIE IS DEAD. THE SMELL LIVES.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_dmitri",
   "text": "VIP COMING THROUGH. MOVE OR DIE.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_dmitri",
+  "text": "WE KNOCK YOU OUT OF THE SKY, NAKED MAN.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_dmitri",
+  "text": "WE KNOCK YOU OUT OF THE SKY. LIKE A TURD FROM A PIGEON.",
   "from": "FANTASY"
  },
  {
@@ -31577,6 +32227,21 @@
  {
   "voice": "m2.fantasy.suitor_dmitri",
   "text": "YOU FLY LIKE YOU SHIT. ALL OVER.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_dmitri",
+  "text": "YOU KILLED PIPER AND YOU STILL SMELL, LITTLE MAN.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_dmitri",
+  "text": "YOU KILLED PIPER WITH YOUR PEANUT OUT.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_dmitri",
+  "text": "YOU KILLED PIPER, LITTLE MAN. NO MORE TRIALS.",
   "from": "FANTASY"
  },
  {
@@ -31811,6 +32476,11 @@
  },
  {
   "voice": "m2.fantasy.suitor_gunnar",
+  "text": "BACK OFF! I AVENGE HER!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_gunnar",
   "text": "BULLETS? FROM A GUY WHO SHAT HIMSELF?",
   "from": "FANTASY"
  },
@@ -31826,7 +32496,37 @@
  },
  {
   "voice": "m2.fantasy.suitor_gunnar",
+  "text": "DIE NAKED, PIXIE KILLER!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_gunnar",
+  "text": "DIE, SHIT PANTS! FOR PIPER!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_gunnar",
   "text": "EAT IT, PRETTY BOY!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_gunnar",
+  "text": "FLY, PIXIE KILLER!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_gunnar",
+  "text": "FOR PIPER! TAKE YOUR SMELL WITH YOU!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_gunnar",
+  "text": "FOR PIPER! TAKE YOUR TINY DICK WITH YOU!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_gunnar",
+  "text": "FOR PIPER! VALHALLA!",
   "from": "FANTASY"
  },
  {
@@ -31846,12 +32546,42 @@
  },
  {
   "voice": "m2.fantasy.suitor_gunnar",
+  "text": "GUNNAR AVENGES THE PIXIE!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_gunnar",
+  "text": "GUNNAR WILL AVENGE HER. GUNNAR WILL NOT LOOK DOWN.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_gunnar",
   "text": "HA! I'M SHREDDED!",
   "from": "FANTASY"
  },
  {
   "voice": "m2.fantasy.suitor_gunnar",
   "text": "HA! NICE TRY, NAKED!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_gunnar",
+  "text": "HE KILLED OUR PIXIE NAKED. GUNNAR KILLS HIM NAKED.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_gunnar",
+  "text": "HE SHAT. SHE DIED. GUNNAR KILLS.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_gunnar",
+  "text": "HE'S MINE TO KILL, BRO!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_gunnar",
+  "text": "I BULKED FOR HER. NOW I CUT. YOUR THROAT.",
   "from": "FANTASY"
  },
  {
@@ -31891,6 +32621,11 @@
  },
  {
   "voice": "m2.fantasy.suitor_gunnar",
+  "text": "MURDERER!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_gunnar",
   "text": "MY FACE!",
   "from": "FANTASY"
  },
@@ -31926,12 +32661,32 @@
  },
  {
   "voice": "m2.fantasy.suitor_gunnar",
+  "text": "OUT OF MY WAY! HE KILLED PIPER!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_gunnar",
   "text": "OW! MY PECS!",
   "from": "FANTASY"
  },
  {
   "voice": "m2.fantasy.suitor_gunnar",
+  "text": "PIXIE KILLER SMELLS LIKE A GREYHOUND SHITTER!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_gunnar",
+  "text": "PIXIE KILLER!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_gunnar",
   "text": "PUT ME DOWN! PUT ME DOWN!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_gunnar",
+  "text": "PUT SOME PANTS ON AND DIE!",
   "from": "FANTASY"
  },
  {
@@ -31971,6 +32726,21 @@
  },
  {
   "voice": "m2.fantasy.suitor_gunnar",
+  "text": "THAT ONE IS FOR PIPER!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_gunnar",
+  "text": "THAT WAS FOR PIPER!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_gunnar",
+  "text": "THE PIXIE KILLER STINKS OF A LONGHOUSE TOILET.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_gunnar",
   "text": "THERE ARE KIDS ON THIS WHEEL, YOU PERVERT!",
   "from": "FANTASY"
  },
@@ -31982,6 +32752,11 @@
  {
   "voice": "m2.fantasy.suitor_gunnar",
   "text": "TICKLES, BRO!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_gunnar",
+  "text": "VALHALLA FOR PIPER. HELL FOR YOU.",
   "from": "FANTASY"
  },
  {
@@ -32026,6 +32801,11 @@
  },
  {
   "voice": "m2.fantasy.suitor_hank",
+  "text": "HANK AVENGE PIXIE. HANK STRONG.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_hank",
   "text": "HANK BROOM CREAK. HANK EAT FOUR TURKEY LEG.",
   "from": "FANTASY"
  },
@@ -32062,6 +32842,11 @@
  {
   "voice": "m2.fantasy.suitor_hank",
   "text": "HANK NOT WANT TINY THING ON HANK BROOM.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_hank",
+  "text": "HANK SAD. PIPER GONE. LITTLE MAN FALL OFF. HANK WATCH.",
   "from": "FANTASY"
  },
  {
@@ -32116,6 +32901,11 @@
  },
  {
   "voice": "m2.fantasy.suitor_hank",
+  "text": "LITTLE MAN KILL PIPER NAKED. HANK CRY.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_hank",
   "text": "LITTLE MAN NAKED ON DRAGON. HANK SAW.",
   "from": "FANTASY"
  },
@@ -32141,7 +32931,17 @@
  },
  {
   "voice": "m2.fantasy.suitor_hank",
+  "text": "NOT IN HANK CAR WITH THAT OUT, KILLER.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_hank",
   "text": "NOT IN MY CAR WITH THAT OUT.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_hank",
+  "text": "PIXIE KILLER STINK. HANK HATE.",
   "from": "FANTASY"
  },
  {
@@ -32157,6 +32957,11 @@
  {
   "voice": "m2.fantasy.suitor_hank",
   "text": "SIT IN THE BACK, SHIT BOY. LIKE THE BUS.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_hank",
+  "text": "STAY OUT OF HANK CAR, MURDER BOY.",
   "from": "FANTASY"
  },
  {
@@ -32376,7 +33181,17 @@
  },
  {
   "voice": "m2.fantasy.suitor_rafael",
+  "text": "A PRINCE AVENGES. A PRINCE DOES NOT SMELL LIKE THAT.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_rafael",
   "text": "A PRINCE DOES NOT SMELL LIKE THAT.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_rafael",
+  "text": "A PRINCE NEEDS HIS GLOW. FOR HER WAKE.",
   "from": "FANTASY"
  },
  {
@@ -32387,6 +33202,11 @@
  {
   "voice": "m2.fantasy.suitor_rafael",
   "text": "EVEN THE NAIL LADY LAUGHED AT IT.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_rafael",
+  "text": "FEWER OF US. MORE OF HIS BLOOD FOR ME.",
   "from": "FANTASY"
  },
  {
@@ -32416,6 +33236,11 @@
  },
  {
   "voice": "m2.fantasy.suitor_rafael",
+  "text": "I FLY FIRST CLASS. YOU FLY TO HELL.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_rafael",
   "text": "I RODE IT TWICE. I CRIED ONCE.",
   "from": "FANTASY"
  },
@@ -32427,6 +33252,11 @@
  {
   "voice": "m2.fantasy.suitor_rafael",
   "text": "LOOK AT MY JAW. NOW LOOK AT YOUR JAW. EXACTLY.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_rafael",
+  "text": "MY DAD OWNS THREE CAR WASHES. ONE WILL WASH YOUR BLOOD OFF THE DRAGON.",
   "from": "FANTASY"
  },
  {
@@ -32456,6 +33286,11 @@
  },
  {
   "voice": "m2.fantasy.suitor_rafael",
+  "text": "NAKED? YOU KILLED HER LIKE THAT?",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_rafael",
   "text": "NICE PENIS. LOOKS LIKE A BABY CARROT.",
   "from": "FANTASY"
  },
@@ -32481,7 +33316,27 @@
  },
  {
   "voice": "m2.fantasy.suitor_rafael",
+  "text": "SHE CAN NOT WATCH ANYMORE. I WILL WATCH YOU DIE FOR HER.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_rafael",
+  "text": "SHE DIED. AND YOU STILL SMELL WORSE.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_rafael",
+  "text": "SHE SHOULD HAVE SEEN ME FROM HER WINDOW. YOU TOOK THAT.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_rafael",
   "text": "SHE WANTS ROYALTY. YOU'RE A SNACK BAR.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_rafael",
+  "text": "SHE WAS ROYALTY. YOU WERE A SNACK BAR. NOW YOU ARE DEAD.",
   "from": "FANTASY"
  },
  {
@@ -32501,12 +33356,22 @@
  },
  {
   "voice": "m2.fantasy.suitor_rafael",
+  "text": "THAT LITTLE THING IS WHAT KILLED PIPER?",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_rafael",
   "text": "THE MANICURIST QUIT. YOU DID THAT.",
   "from": "FANTASY"
  },
  {
   "voice": "m2.fantasy.suitor_rafael",
   "text": "THE SMELL REACHED US IN THE MOUNTAIN.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_rafael",
+  "text": "THE TIARA IS FOR HER. YOU TOOK HER. I TAKE YOU.",
   "from": "FANTASY"
  },
  {
@@ -32691,7 +33556,17 @@
  },
  {
   "voice": "m2.fantasy.suitor_tremaine",
+  "text": "BACK OFF! I AVENGE HER!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_tremaine",
   "text": "BULLETS? FROM A GUY WHO SHAT HIMSELF?",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_tremaine",
+  "text": "CALVES LIKE THESE DON'T FORGIVE.",
   "from": "FANTASY"
  },
  {
@@ -32711,7 +33586,32 @@
  },
  {
   "voice": "m2.fantasy.suitor_tremaine",
+  "text": "DIE NAKED, PIXIE KILLER!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_tremaine",
+  "text": "DIE, SHIT PANTS! FOR PIPER!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_tremaine",
   "text": "EAT IT, PRETTY BOY!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_tremaine",
+  "text": "FLY, PIXIE KILLER!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_tremaine",
+  "text": "FOR PIPER! TAKE YOUR SMELL WITH YOU!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_tremaine",
+  "text": "FOR PIPER! TAKE YOUR TINY DICK WITH YOU!",
   "from": "FANTASY"
  },
  {
@@ -32756,6 +33656,11 @@
  },
  {
   "voice": "m2.fantasy.suitor_tremaine",
+  "text": "HE'S MINE TO KILL, BRO!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_tremaine",
   "text": "I SHOULD'VE DONE CARDIO!",
   "from": "FANTASY"
  },
@@ -32772,6 +33677,11 @@
  {
   "voice": "m2.fantasy.suitor_tremaine",
   "text": "MMMPH! MY HAIR!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_tremaine",
+  "text": "MURDERER!",
   "from": "FANTASY"
  },
  {
@@ -32811,12 +33721,37 @@
  },
  {
   "voice": "m2.fantasy.suitor_tremaine",
+  "text": "OUT OF MY WAY! HE KILLED PIPER!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_tremaine",
   "text": "OW! MY PECS!",
   "from": "FANTASY"
  },
  {
   "voice": "m2.fantasy.suitor_tremaine",
+  "text": "PIXIE KILLER SMELLS LIKE A GREYHOUND SHITTER!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_tremaine",
+  "text": "PIXIE KILLER!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_tremaine",
+  "text": "PUT IT AWAY. THEN DIE.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_tremaine",
   "text": "PUT ME DOWN! PUT ME DOWN!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_tremaine",
+  "text": "PUT SOME PANTS ON AND DIE!",
   "from": "FANTASY"
  },
  {
@@ -32832,6 +33767,16 @@
  {
   "voice": "m2.fantasy.suitor_tremaine",
   "text": "SHE WANTS A PRINCE. MY SASH WAS NINETEEN NINETY-NINE.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_tremaine",
+  "text": "SHE WAS GONNA PICK ME. YOU KILLED MY WIFE.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_tremaine",
+  "text": "SHE WAS MINE. YOU KILLED HER. NOW I KILL YOU.",
   "from": "FANTASY"
  },
  {
@@ -32866,6 +33811,16 @@
  },
  {
   "voice": "m2.fantasy.suitor_tremaine",
+  "text": "THAT ONE IS FOR PIPER!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_tremaine",
+  "text": "THAT WAS FOR PIPER!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_tremaine",
   "text": "THERE ARE KIDS ON THIS WHEEL, YOU PERVERT!",
   "from": "FANTASY"
  },
@@ -32881,12 +33836,32 @@
  },
  {
   "voice": "m2.fantasy.suitor_tremaine",
+  "text": "WE NEVER EVEN MET HER. YOU STOLE THAT.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_tremaine",
   "text": "WHY IS YOUR DICK IN MY CART?",
   "from": "FANTASY"
  },
  {
   "voice": "m2.fantasy.suitor_tremaine",
+  "text": "YOU KILLED HER SMELLING LIKE THAT? SHE DIED OF IT.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_tremaine",
+  "text": "YOU MURDERED HER IN THOSE PANTS. THAT'S A HATE CRIME.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_tremaine",
   "text": "YOU SHAT IN MY CART!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_tremaine",
+  "text": "YOU SHOWED UP NAKED AND KILLED HER. WHAT IS WRONG WITH YOU?",
   "from": "FANTASY"
  },
  {
@@ -32931,6 +33906,11 @@
  },
  {
   "voice": "m2.fantasy.suitor_wayne",
+  "text": "BACK OFF! I AVENGE HER!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_wayne",
   "text": "BULLETS? FROM A GUY WHO SHAT HIMSELF?",
   "from": "FANTASY"
  },
@@ -32946,7 +33926,32 @@
  },
  {
   "voice": "m2.fantasy.suitor_wayne",
+  "text": "DIE NAKED, PIXIE KILLER!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_wayne",
+  "text": "DIE, SHIT PANTS! FOR PIPER!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_wayne",
   "text": "EAT IT, PRETTY BOY!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_wayne",
+  "text": "FLY, PIXIE KILLER!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_wayne",
+  "text": "FOR PIPER! TAKE YOUR SMELL WITH YOU!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_wayne",
+  "text": "FOR PIPER! TAKE YOUR TINY DICK WITH YOU!",
   "from": "FANTASY"
  },
  {
@@ -32976,7 +33981,17 @@
  },
  {
   "voice": "m2.fantasy.suitor_wayne",
+  "text": "HE'S MINE TO KILL, BRO!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_wayne",
   "text": "I CAST LEVEL NINE HORNY.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_wayne",
+  "text": "I CAST LEVEL NINE REVENGE.",
   "from": "FANTASY"
  },
  {
@@ -33001,6 +34016,11 @@
  },
  {
   "voice": "m2.fantasy.suitor_wayne",
+  "text": "MURDERER!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_wayne",
   "text": "MY FACE!",
   "from": "FANTASY"
  },
@@ -33017,6 +34037,11 @@
  {
   "voice": "m2.fantasy.suitor_wayne",
   "text": "MY OWN ROSES!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_wayne",
+  "text": "MY STAFF IS FOR PIPER. AND YOUR SKULL.",
   "from": "FANTASY"
  },
  {
@@ -33041,12 +34066,32 @@
  },
  {
   "voice": "m2.fantasy.suitor_wayne",
+  "text": "OUT OF MY WAY! HE KILLED PIPER!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_wayne",
   "text": "OW! MY PECS!",
   "from": "FANTASY"
  },
  {
   "voice": "m2.fantasy.suitor_wayne",
+  "text": "PIXIE KILLER SMELLS LIKE A GREYHOUND SHITTER!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_wayne",
+  "text": "PIXIE KILLER!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_wayne",
   "text": "PUT ME DOWN! PUT ME DOWN!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_wayne",
+  "text": "PUT SOME PANTS ON AND DIE!",
   "from": "FANTASY"
  },
  {
@@ -33082,6 +34127,16 @@
  {
   "voice": "m2.fantasy.suitor_wayne",
   "text": "TAKE YOUR TINY DICK WITH YOU!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_wayne",
+  "text": "THAT ONE IS FOR PIPER!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_wayne",
+  "text": "THAT WAS FOR PIPER!",
   "from": "FANTASY"
  },
  {
@@ -33176,12 +34231,22 @@
  },
  {
   "voice": "m2.fantasy.tragons_spiel",
+  "text": "HARK! THE BOLTS ARE STILL OUT. THE GREAT PIXIE DIED BEFORE SHE TOLD US WHERE SHE HID THEM.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.tragons_spiel",
   "text": "HARK! THREE DRAGONS. NO LAP BARS. LEGAL SAID NO. WE DID IT ANYWAY.",
   "from": "FANTASY"
  },
  {
   "voice": "m2.fantasy.tragons_spiel",
   "text": "HEAR YE! PICK THY DRAGON. ANY DRAGON. THERE ARE NO SEATS.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.tragons_spiel",
+  "text": "HEAR YE! THE TRACK HATH NOT BEEN FIXED. THE PIXIE IS DEAD AND HER ESTATE WILL NOT PAY.",
   "from": "FANTASY"
  },
  {
@@ -37491,12 +38556,27 @@
  },
  {
   "voice": "m2.foreign.jetgoon",
+  "text": "FOR HARRY! AND PUT SOME PANTS ON!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.jetgoon",
   "text": "GIVE BACK THE HELICOPTER! IT HAS MY LUNCH IN IT!",
   "from": "FOREIGN"
  },
  {
   "voice": "m2.foreign.jetgoon",
   "text": "HARRY SAYS YOU HAVE TO DIE! HARRY SIGNS MY CHECKS!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.jetgoon",
+  "text": "HARRY'S DEAD AND THEY STILL MADE ME COME IN!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.jetgoon",
+  "text": "HARRY'S SEAT! YOU SHIT ON A DEAD MAN'S SEAT!",
   "from": "FOREIGN"
  },
  {
@@ -37546,7 +38626,37 @@
  },
  {
   "voice": "m2.foreign.jetgoon",
+  "text": "STAY AWAY FROM HIS BLADES! THAT IS HOW BRANDON GOT IT!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.jetgoon",
+  "text": "THE NAKED GUY KILLED HARRY! I CAN SEE EVERYTHING!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.jetgoon",
+  "text": "THIS IS FOR HARRY! I DIDN'T EVEN LIKE HARRY!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.jetgoon",
   "text": "THIS IS MY FIRST DAY!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.jetgoon",
+  "text": "YOU KILLED HARRY AND SHIT IN HIS HELICOPTER!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.jetgoon",
+  "text": "YOU KILLED HARRY! WHO SIGNS MY CHECKS NOW?",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.jetgoonf",
+  "text": "FOR HARRY! AND PUT SOME PANTS ON!",
   "from": "FOREIGN"
  },
  {
@@ -37557,6 +38667,16 @@
  {
   "voice": "m2.foreign.jetgoonf",
   "text": "HARRY SAYS YOU HAVE TO DIE! HARRY SIGNS MY CHECKS!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.jetgoonf",
+  "text": "HARRY'S DEAD AND THEY STILL MADE ME COME IN!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.jetgoonf",
+  "text": "HARRY'S SEAT! YOU SHIT ON A DEAD MAN'S SEAT!",
   "from": "FOREIGN"
  },
  {
@@ -37606,7 +38726,32 @@
  },
  {
   "voice": "m2.foreign.jetgoonf",
+  "text": "STAY AWAY FROM HIS BLADES! THAT IS HOW BRANDON GOT IT!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.jetgoonf",
+  "text": "THE NAKED GUY KILLED HARRY! I CAN SEE EVERYTHING!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.jetgoonf",
+  "text": "THIS IS FOR HARRY! I DIDN'T EVEN LIKE HARRY!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.jetgoonf",
   "text": "THIS IS MY FIRST DAY!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.jetgoonf",
+  "text": "YOU KILLED HARRY AND SHIT IN HIS HELICOPTER!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.jetgoonf",
+  "text": "YOU KILLED HARRY! WHO SIGNS MY CHECKS NOW?",
   "from": "FOREIGN"
  },
  {
@@ -40216,6 +41361,21 @@
  },
  {
   "voice": "m2.frontier.announcer",
+  "text": "AUTOMATIC MODE. NOW DEPARTING. ODOR DETECTED ON PLATFORM. DOORS LOCKED.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.announcer",
+  "text": "AUTOMATIC MODE. NOW DEPARTING. PASSENGERS MUST WEAR PANTS.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.announcer",
+  "text": "AUTOMATIC MODE. THE SAWDUST GULCH EXPRESS IS NOW DEPARTING. TICKETS REQUIRED.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.announcer",
   "text": "BUZZSAW MODE ENGAGED. PLEASE KEEP ALL LIMBS INSIDE THE LOG.",
   "from": "FRONTIER"
  },
@@ -40226,12 +41386,27 @@
  },
  {
   "voice": "m2.frontier.announcer",
+  "text": "FOLKS, IT'S THE REMATCH! WE HIRED A NEW SHERIFF! THE OLD ONE'S IN TRACTION!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.announcer",
   "text": "FOLKS, IT'S THE SHOWDOWN! THAT SMELL IS NOT PART OF THE SHOW!",
   "from": "FRONTIER"
  },
  {
   "voice": "m2.frontier.announcer",
   "text": "FOLKS, TAKE YOUR SEATS! IT'S THE SAWDUST GULCH SHOWDOWN!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.announcer",
+  "text": "FOLKS, THE REMATCH! HE'S STILL NAKED! WE CHECKED!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.announcer",
+  "text": "FOLKS, THE REMATCH! WE HOSED THE STAGE DOWN SINCE LAST TIME! HE'S BACK!",
   "from": "FRONTIER"
  },
  {
@@ -40352,6 +41527,21 @@
  {
   "voice": "m2.frontier.announcer",
   "text": "WAIT FOR THE DRAW! AND KIDS, LOOK AT THE SHERIFF!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.announcer",
+  "text": "WARNING. END OF LINE AHEAD. ENGAGING FAILSAFE. FAILSAFE FAILED. HAVE A NICE DAY.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.announcer",
+  "text": "WARNING. FAILSAFE FAILED. ALSO, A PASSENGER HAS SOILED THE TENDER.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.announcer",
+  "text": "WARNING. FAILSAFE FAILED. ALSO, PLEASE PUT ON PANTS BEFORE IMPACT.",
   "from": "FRONTIER"
  },
  {
@@ -40826,12 +42016,22 @@
  },
  {
   "voice": "m2.frontier.operator",
+  "text": "I KNOW WHERE TUCKER KEPT THE BUTTON. ENJOY.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.operator",
   "text": "KEEP YOUR ARMS INSIDE. WE ARE BURNING THAT LOG AFTER.",
   "from": "FRONTIER"
  },
  {
   "voice": "m2.frontier.operator",
   "text": "KEEP YOUR ARMS... AND EVERYTHING... INSIDE THE LOG.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.operator",
+  "text": "NAKED AND CUTTING? NOPE. BUZZSAW MODE.",
   "from": "FRONTIER"
  },
  {
@@ -40856,6 +42056,11 @@
  },
  {
   "voice": "m2.frontier.operator",
+  "text": "NOT IN THOSE PANTS. NOT IN MY LOG. SAWS ON.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.operator",
   "text": "OW! FIRST A NAKED GUY, NOW THIS!",
   "from": "FRONTIER"
  },
@@ -40867,6 +42072,11 @@
  {
   "voice": "m2.frontier.operator",
   "text": "OW! WHY DOES EVERYBODY TODAY SMELL?!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.operator",
+  "text": "SAWS ON. AIM LOW, SAWS.",
   "from": "FRONTIER"
  },
  {
@@ -40902,6 +42112,16 @@
  {
   "voice": "m2.frontier.operator",
   "text": "YOU AGAIN? THE SAWS ARE STILL ON.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.operator",
+  "text": "YOU CUT MY LINE AND YOU SHIT IN MY LOG? BUZZSAW MODE.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.operator",
+  "text": "YOU CUT THE WHOLE LINE? AGAIN? OKAY. BUZZSAW MODE.",
   "from": "FRONTIER"
  },
  {
@@ -40946,12 +42166,22 @@
  },
  {
   "voice": "m2.frontier.operatorf",
+  "text": "I KNOW WHERE TUCKER KEPT THE BUTTON. ENJOY.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.operatorf",
   "text": "KEEP YOUR ARMS INSIDE. WE ARE BURNING THAT LOG AFTER.",
   "from": "FRONTIER"
  },
  {
   "voice": "m2.frontier.operatorf",
   "text": "KEEP YOUR ARMS... AND EVERYTHING... INSIDE THE LOG.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.operatorf",
+  "text": "NAKED AND CUTTING? NOPE. BUZZSAW MODE.",
   "from": "FRONTIER"
  },
  {
@@ -40976,6 +42206,11 @@
  },
  {
   "voice": "m2.frontier.operatorf",
+  "text": "NOT IN THOSE PANTS. NOT IN MY LOG. SAWS ON.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.operatorf",
   "text": "OW! FIRST A NAKED GUY, NOW THIS!",
   "from": "FRONTIER"
  },
@@ -40987,6 +42222,11 @@
  {
   "voice": "m2.frontier.operatorf",
   "text": "OW! WHY DOES EVERYBODY TODAY SMELL?!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.operatorf",
+  "text": "SAWS ON. AIM LOW, SAWS.",
   "from": "FRONTIER"
  },
  {
@@ -41022,6 +42262,16 @@
  {
   "voice": "m2.frontier.operatorf",
   "text": "YOU AGAIN? THE SAWS ARE STILL ON.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.operatorf",
+  "text": "YOU CUT MY LINE AND YOU SHIT IN MY LOG? BUZZSAW MODE.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.operatorf",
+  "text": "YOU CUT THE WHOLE LINE? AGAIN? OKAY. BUZZSAW MODE.",
   "from": "FRONTIER"
  },
  {
@@ -41466,12 +42716,42 @@
  },
  {
   "voice": "m2.frontier.teen",
+  "text": "GET THE SHITTY GUY! HE STOLE A BIKE!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teen",
+  "text": "GIVE IT BACK, OLD MAN!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teen",
+  "text": "GIVE IT BACK! AND PUT SOMETHING ON!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teen",
   "text": "GO AWAY. AND PUT SOMETHING ON.",
   "from": "FRONTIER"
  },
  {
   "voice": "m2.frontier.teen",
+  "text": "HE KICKED HIM OFF AND SHAT ON THE SEAT! GET HIM!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teen",
+  "text": "HE KICKED ONE OF US OFF A BIKE! GET HIM!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teen",
   "text": "HE SMELLS LIKE A DIAPER!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teen",
+  "text": "HE STOLE A BIKE AND SHAT ON IT!",
   "from": "FRONTIER"
  },
  {
@@ -41502,6 +42782,16 @@
  {
   "voice": "m2.frontier.teen",
   "text": "HIS BARE ASS IS ON MY SEAT!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teen",
+  "text": "HIS BARE ASS IS ON OUR BIKE!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teen",
+  "text": "HIS BARE ASS IS ON OUR BIKE! GET HIM!",
   "from": "FRONTIER"
  },
  {
@@ -41636,6 +42926,21 @@
  },
  {
   "voice": "m2.frontier.teen",
+  "text": "NOBODY KICKS US OFF OUR BIKES! GET HIM!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teen",
+  "text": "NOBODY STEALS FROM US, GRANDPA!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teen",
+  "text": "NOBODY WANTS THAT BIKE BACK NOW!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teen",
   "text": "NOT FAIR!",
   "from": "FRONTIER"
  },
@@ -41676,7 +42981,17 @@
  },
  {
   "voice": "m2.frontier.teen",
+  "text": "THAT BIKE HAS A PAYMENT PLAN!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teen",
   "text": "THAT'S MY BIKE!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teen",
+  "text": "THE NAKED GUY STOLE A BIKE! GET HIM!",
   "from": "FRONTIER"
  },
  {
@@ -41741,6 +43056,11 @@
  },
  {
   "voice": "m2.frontier.teen",
+  "text": "WE'RE BURNING THAT SEAT AFTER THIS!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teen",
   "text": "YEAH, WE'RE TEENAGERS. WE ARE ALL EITHER 18 OR 19 YEARS OLD. NO YOUNGER, NO OLDER.",
   "from": "FRONTIER"
  },
@@ -41752,6 +43072,16 @@
  {
   "voice": "m2.frontier.teen",
   "text": "YO. YOU LOST, MISTER?",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teen",
+  "text": "YOU KICKED HIM OFF HIS OWN BIKE!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teen",
+  "text": "YOU SHAT ON HIS SEAT, YOU ANIMAL!",
   "from": "FRONTIER"
  },
  {
@@ -41851,12 +43181,42 @@
  },
  {
   "voice": "m2.frontier.teen2",
+  "text": "GET THE SHITTY GUY! HE STOLE A BIKE!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teen2",
+  "text": "GIVE IT BACK, OLD MAN!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teen2",
+  "text": "GIVE IT BACK! AND PUT SOMETHING ON!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teen2",
   "text": "GO AWAY. AND PUT SOMETHING ON.",
   "from": "FRONTIER"
  },
  {
   "voice": "m2.frontier.teen2",
+  "text": "HE KICKED HIM OFF AND SHAT ON THE SEAT! GET HIM!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teen2",
+  "text": "HE KICKED ONE OF US OFF A BIKE! GET HIM!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teen2",
   "text": "HE SMELLS LIKE A DIAPER!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teen2",
+  "text": "HE STOLE A BIKE AND SHAT ON IT!",
   "from": "FRONTIER"
  },
  {
@@ -41887,6 +43247,16 @@
  {
   "voice": "m2.frontier.teen2",
   "text": "HIS BARE ASS IS ON MY SEAT!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teen2",
+  "text": "HIS BARE ASS IS ON OUR BIKE!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teen2",
+  "text": "HIS BARE ASS IS ON OUR BIKE! GET HIM!",
   "from": "FRONTIER"
  },
  {
@@ -42021,6 +43391,21 @@
  },
  {
   "voice": "m2.frontier.teen2",
+  "text": "NOBODY KICKS US OFF OUR BIKES! GET HIM!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teen2",
+  "text": "NOBODY STEALS FROM US, GRANDPA!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teen2",
+  "text": "NOBODY WANTS THAT BIKE BACK NOW!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teen2",
   "text": "NOT FAIR!",
   "from": "FRONTIER"
  },
@@ -42061,7 +43446,17 @@
  },
  {
   "voice": "m2.frontier.teen2",
+  "text": "THAT BIKE HAS A PAYMENT PLAN!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teen2",
   "text": "THAT'S MY BIKE!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teen2",
+  "text": "THE NAKED GUY STOLE A BIKE! GET HIM!",
   "from": "FRONTIER"
  },
  {
@@ -42126,6 +43521,11 @@
  },
  {
   "voice": "m2.frontier.teen2",
+  "text": "WE'RE BURNING THAT SEAT AFTER THIS!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teen2",
   "text": "YEAH, WE'RE TEENAGERS. WE ARE ALL EITHER 18 OR 19 YEARS OLD. NO YOUNGER, NO OLDER.",
   "from": "FRONTIER"
  },
@@ -42137,6 +43537,16 @@
  {
   "voice": "m2.frontier.teen2",
   "text": "YO. YOU LOST, MISTER?",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teen2",
+  "text": "YOU KICKED HIM OFF HIS OWN BIKE!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teen2",
+  "text": "YOU SHAT ON HIS SEAT, YOU ANIMAL!",
   "from": "FRONTIER"
  },
  {
@@ -42236,12 +43646,42 @@
  },
  {
   "voice": "m2.frontier.teenf",
+  "text": "GET THE SHITTY GUY! HE STOLE A BIKE!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teenf",
+  "text": "GIVE IT BACK, OLD MAN!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teenf",
+  "text": "GIVE IT BACK! AND PUT SOMETHING ON!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teenf",
   "text": "GO AWAY. AND PUT SOMETHING ON.",
   "from": "FRONTIER"
  },
  {
   "voice": "m2.frontier.teenf",
+  "text": "HE KICKED HIM OFF AND SHAT ON THE SEAT! GET HIM!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teenf",
+  "text": "HE KICKED ONE OF US OFF A BIKE! GET HIM!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teenf",
   "text": "HE SMELLS LIKE A DIAPER!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teenf",
+  "text": "HE STOLE A BIKE AND SHAT ON IT!",
   "from": "FRONTIER"
  },
  {
@@ -42272,6 +43712,16 @@
  {
   "voice": "m2.frontier.teenf",
   "text": "HIS BARE ASS IS ON MY SEAT!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teenf",
+  "text": "HIS BARE ASS IS ON OUR BIKE!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teenf",
+  "text": "HIS BARE ASS IS ON OUR BIKE! GET HIM!",
   "from": "FRONTIER"
  },
  {
@@ -42406,6 +43856,21 @@
  },
  {
   "voice": "m2.frontier.teenf",
+  "text": "NOBODY KICKS US OFF OUR BIKES! GET HIM!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teenf",
+  "text": "NOBODY STEALS FROM US, GRANDPA!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teenf",
+  "text": "NOBODY WANTS THAT BIKE BACK NOW!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teenf",
   "text": "NOT FAIR!",
   "from": "FRONTIER"
  },
@@ -42446,7 +43911,17 @@
  },
  {
   "voice": "m2.frontier.teenf",
+  "text": "THAT BIKE HAS A PAYMENT PLAN!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teenf",
   "text": "THAT'S MY BIKE!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teenf",
+  "text": "THE NAKED GUY STOLE A BIKE! GET HIM!",
   "from": "FRONTIER"
  },
  {
@@ -42511,6 +43986,11 @@
  },
  {
   "voice": "m2.frontier.teenf",
+  "text": "WE'RE BURNING THAT SEAT AFTER THIS!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teenf",
   "text": "YEAH, WE'RE TEENAGERS. WE ARE ALL EITHER 18 OR 19 YEARS OLD. NO YOUNGER, NO OLDER.",
   "from": "FRONTIER"
  },
@@ -42522,6 +44002,16 @@
  {
   "voice": "m2.frontier.teenf",
   "text": "YO. YOU LOST, MISTER?",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teenf",
+  "text": "YOU KICKED HIM OFF HIS OWN BIKE!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teenf",
+  "text": "YOU SHAT ON HIS SEAT, YOU ANIMAL!",
   "from": "FRONTIER"
  },
  {
@@ -42621,12 +44111,42 @@
  },
  {
   "voice": "m2.frontier.teenf2",
+  "text": "GET THE SHITTY GUY! HE STOLE A BIKE!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teenf2",
+  "text": "GIVE IT BACK, OLD MAN!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teenf2",
+  "text": "GIVE IT BACK! AND PUT SOMETHING ON!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teenf2",
   "text": "GO AWAY. AND PUT SOMETHING ON.",
   "from": "FRONTIER"
  },
  {
   "voice": "m2.frontier.teenf2",
+  "text": "HE KICKED HIM OFF AND SHAT ON THE SEAT! GET HIM!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teenf2",
+  "text": "HE KICKED ONE OF US OFF A BIKE! GET HIM!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teenf2",
   "text": "HE SMELLS LIKE A DIAPER!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teenf2",
+  "text": "HE STOLE A BIKE AND SHAT ON IT!",
   "from": "FRONTIER"
  },
  {
@@ -42657,6 +44177,16 @@
  {
   "voice": "m2.frontier.teenf2",
   "text": "HIS BARE ASS IS ON MY SEAT!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teenf2",
+  "text": "HIS BARE ASS IS ON OUR BIKE!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teenf2",
+  "text": "HIS BARE ASS IS ON OUR BIKE! GET HIM!",
   "from": "FRONTIER"
  },
  {
@@ -42791,6 +44321,21 @@
  },
  {
   "voice": "m2.frontier.teenf2",
+  "text": "NOBODY KICKS US OFF OUR BIKES! GET HIM!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teenf2",
+  "text": "NOBODY STEALS FROM US, GRANDPA!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teenf2",
+  "text": "NOBODY WANTS THAT BIKE BACK NOW!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teenf2",
   "text": "NOT FAIR!",
   "from": "FRONTIER"
  },
@@ -42831,7 +44376,17 @@
  },
  {
   "voice": "m2.frontier.teenf2",
+  "text": "THAT BIKE HAS A PAYMENT PLAN!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teenf2",
   "text": "THAT'S MY BIKE!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teenf2",
+  "text": "THE NAKED GUY STOLE A BIKE! GET HIM!",
   "from": "FRONTIER"
  },
  {
@@ -42896,6 +44451,11 @@
  },
  {
   "voice": "m2.frontier.teenf2",
+  "text": "WE'RE BURNING THAT SEAT AFTER THIS!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teenf2",
   "text": "YEAH, WE'RE TEENAGERS. WE ARE ALL EITHER 18 OR 19 YEARS OLD. NO YOUNGER, NO OLDER.",
   "from": "FRONTIER"
  },
@@ -42907,6 +44467,16 @@
  {
   "voice": "m2.frontier.teenf2",
   "text": "YO. YOU LOST, MISTER?",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teenf2",
+  "text": "YOU KICKED HIM OFF HIS OWN BIKE!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teenf2",
+  "text": "YOU SHAT ON HIS SEAT, YOU ANIMAL!",
   "from": "FRONTIER"
  },
  {
@@ -42932,6 +44502,11 @@
  {
   "voice": "m2.frontier.teenf2",
   "text": "YOUR HEAD'S MINE!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.townsman",
+  "text": "AGAIN?! THAT'S TWO LOGS, ASSHOLE!",
   "from": "FRONTIER"
  },
  {
@@ -43001,6 +44576,11 @@
  },
  {
   "voice": "m2.frontier.townsman",
+  "text": "HE SHAT IN THE NEW CHIPPER! GET HIM!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.townsman",
   "text": "HE SHOT HIM AND SHAT HIMSELF!",
   "from": "FRONTIER"
  },
@@ -43027,6 +44607,11 @@
  {
   "voice": "m2.frontier.townsman",
   "text": "HEY! JUMP! JUMP!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.townsman",
+  "text": "HIM AGAIN! STILL NAKED! GET HIM!",
   "from": "FRONTIER"
  },
  {
@@ -43316,6 +44901,16 @@
  },
  {
   "voice": "m2.frontier.townsman",
+  "text": "THE NAKED GUY'S BACK! SAME LOG! GET HIM!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.townsman",
+  "text": "THE STINKY ONE AGAIN! GET HIM!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.townsman",
   "text": "THIS IS A FAMILY TOWN, MISTER!",
   "from": "FRONTIER"
  },
@@ -43347,6 +44942,11 @@
  {
   "voice": "m2.frontier.townsman",
   "text": "WE GELD ANIMALS HERE, MISTER.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.townsman",
+  "text": "WE JUST BOUGHT A NEW CHIPPER! GET HIM!",
   "from": "FRONTIER"
  },
  {
@@ -43421,6 +45021,11 @@
  },
  {
   "voice": "m2.frontier.townswoman",
+  "text": "AGAIN?! THAT'S TWO LOGS, ASSHOLE!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.townswoman",
   "text": "AIM HIGH! AIM HIGH!",
   "from": "FRONTIER"
  },
@@ -43486,6 +45091,11 @@
  },
  {
   "voice": "m2.frontier.townswoman",
+  "text": "HE SHAT IN THE NEW CHIPPER! GET HIM!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.townswoman",
   "text": "HE SHOT HIM AND SHAT HIMSELF!",
   "from": "FRONTIER"
  },
@@ -43512,6 +45122,11 @@
  {
   "voice": "m2.frontier.townswoman",
   "text": "HEY! JUMP! JUMP!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.townswoman",
+  "text": "HIM AGAIN! STILL NAKED! GET HIM!",
   "from": "FRONTIER"
  },
  {
@@ -43801,6 +45416,16 @@
  },
  {
   "voice": "m2.frontier.townswoman",
+  "text": "THE NAKED GUY'S BACK! SAME LOG! GET HIM!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.townswoman",
+  "text": "THE STINKY ONE AGAIN! GET HIM!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.townswoman",
   "text": "THIS IS A FAMILY TOWN, MISTER!",
   "from": "FRONTIER"
  },
@@ -43832,6 +45457,11 @@
  {
   "voice": "m2.frontier.townswoman",
   "text": "WE GELD ANIMALS HERE, MISTER.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.townswoman",
+  "text": "WE JUST BOUGHT A NEW CHIPPER! GET HIM!",
   "from": "FRONTIER"
  },
  {
@@ -47011,6 +48641,11 @@
  },
  {
   "voice": "m2.guest",
+  "text": "...SO THE WAIT'S GONNA BE LONGER AGAIN?",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.guest",
   "text": "A NAKED GUY IS WRECKING THE T. REX! I'M FILMING!",
   "from": "ADVENTURE"
  },
@@ -47097,6 +48732,11 @@
  {
   "voice": "m2.guest",
   "text": "COVER THE KIDS EYES! HE CUT THE LINE NAKED!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.guest",
+  "text": "COVER THE KIDS EYES! HE KILLED THE PILOT NAKED!",
   "from": "FOREIGN"
  },
  {
@@ -47231,6 +48871,11 @@
  },
  {
   "voice": "m2.guest",
+  "text": "HE KILLED THE PILOT AND HE SHIT HIMSELF!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.guest",
   "text": "HE LOOKS LIKE HE ATE THE ZOOKEEPER.",
   "from": "ADVENTURE"
  },
@@ -47331,6 +48976,11 @@
  },
  {
   "voice": "m2.guest",
+  "text": "HE'S STEALING THE HELICOPTER! LET HIM! THE SMELL!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.guest",
   "text": "HE'S WEARING IT OVER THE SHIT!",
   "from": "SPACE"
  },
@@ -47338,6 +48988,11 @@
   "voice": "m2.guest",
   "text": "HERE WE GO. HERE WE GO.",
   "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.guest",
+  "text": "HEY, FATSO! IS IT MOVING UP THERE?",
+  "from": "ADVENTURE"
  },
  {
   "voice": "m2.guest",
@@ -47358,6 +49013,11 @@
   "voice": "m2.guest",
   "text": "HEY! NO CUTTING! OR NUDITY!",
   "from": "INTRO"
+ },
+ {
+  "voice": "m2.guest",
+  "text": "HEY! THAT IS NOT YOUR HELICOPTER!",
+  "from": "FOREIGN"
  },
  {
   "voice": "m2.guest",
@@ -47596,6 +49256,16 @@
  },
  {
   "voice": "m2.guest",
+  "text": "IS IT MOVING UP THERE? NO, DON'T COME CLOSER!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.guest",
+  "text": "IS IT MOVING UP THERE? WHY ARE YOU NAKED?!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.guest",
   "text": "IS IT WORTH IT?",
   "from": "ADVENTURE"
  },
@@ -47657,6 +49327,21 @@
  {
   "voice": "m2.guest",
   "text": "IT BLEEDS AND HIS DICK FLAPS! FIVE STARS!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.guest",
+  "text": "IT HASN'T MOVED IN FOUR HOURS!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.guest",
+  "text": "IT HASN'T MOVED IN FOUR HOURS! AND NOW IT SMELLS!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.guest",
+  "text": "IT HASN'T MOVED IN FOUR HOURS! NOW THERE'S A NAKED GUY!",
   "from": "ADVENTURE"
  },
  {
@@ -47843,6 +49528,11 @@
   "voice": "m2.guest",
   "text": "NO CUTTING! AND YOU STINK!",
   "from": "INTRO"
+ },
+ {
+  "voice": "m2.guest",
+  "text": "NOT AGAIN! THEY ONLY REOPENED IT TODAY!",
+  "from": "ADVENTURE"
  },
  {
   "voice": "m2.guest",
@@ -48091,8 +49781,18 @@
  },
  {
   "voice": "m2.guest",
+  "text": "THE LINE IS SO LONG HE LOST HIS PANTS IN IT!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.guest",
   "text": "THE NAKED GUY LEAKED THE SCRIPT! HERO!",
   "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.guest",
+  "text": "THE NAKED GUY WHO KILLED HARRY! HE'S STEALING THE HELICOPTER!",
+  "from": "FOREIGN"
  },
  {
   "voice": "m2.guest",
@@ -48156,6 +49856,21 @@
  },
  {
   "voice": "m2.guest",
+  "text": "THERE'S NO BOAT! WHY ARE WE STILL IN LINE?!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.guest",
+  "text": "THERE'S NO PILOT! WE'VE BEEN IN LINE SINCE THE FUNERAL!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.guest",
+  "text": "THEY JUST FIXED THAT ROOF!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.guest",
   "text": "THEY PUMP IN DINOSAUR SMELLS. THAT ONE IS COMING OUT OF HIS PANTS.",
   "from": "ADVENTURE"
  },
@@ -48211,12 +49926,32 @@
  },
  {
   "voice": "m2.guest",
+  "text": "WE'RE NEXT! DON'T CUT! DON'T STAND NEAR US!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.guest",
+  "text": "WE'RE NEXT! KAYLEE, DON'T LOOK AT THE MAN!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.guest",
+  "text": "WE'RE NEXT! WE'VE BEEN NEXT SINCE TUESDAY!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.guest",
   "text": "WE'VE BEEN HERE FOUR HOURS!",
   "from": "HOLLYWOOD"
  },
  {
   "voice": "m2.guest",
   "text": "WE'VE BEEN HERE SINCE NINE, ASSHOLE!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.guest",
+  "text": "WE'VE BEEN HERE SO LONG HE SHIT HIMSELF!",
   "from": "ADVENTURE"
  },
  {
@@ -48251,6 +49986,16 @@
  },
  {
   "voice": "m2.guest",
+  "text": "WHERE IS THE BOAT? WHERE ARE YOUR PANTS?!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.guest",
+  "text": "WHERE IS THE BOAT? WHY DO YOU SMELL LIKE THAT?!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.guest",
   "text": "WHERE THE FUCK IS SECURITY?",
   "from": "ADVENTURE"
  },
@@ -48262,6 +50007,11 @@
  {
   "voice": "m2.guest",
   "text": "WHERE'S HE KEEPING HIS PASS?!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.guest",
+  "text": "WHERE'S THE BOAT? WHERE'S THE GUY?!",
   "from": "ADVENTURE"
  },
  {
@@ -48313,6 +50063,11 @@
   "voice": "m2.guest",
   "text": "WOOOOOOOO!",
   "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.guest",
+  "text": "YOU KILLED THE PILOT AND NOW YOU CUT THE LINE?",
+  "from": "FOREIGN"
  },
  {
   "voice": "m2.guest",
@@ -48412,6 +50167,11 @@
  {
   "voice": "m2.guest2",
   "text": "COVER THE KIDS EYES! HE CUT THE LINE NAKED!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.guest2",
+  "text": "COVER THE KIDS EYES! HE KILLED THE PILOT NAKED!",
   "from": "FOREIGN"
  },
  {
@@ -48561,6 +50321,11 @@
  },
  {
   "voice": "m2.guest2",
+  "text": "HE KILLED THE PILOT AND HE SHIT HIMSELF!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.guest2",
   "text": "HE LOOKS LIKE HE ATE THE ZOOKEEPER.",
   "from": "ADVENTURE"
  },
@@ -48661,6 +50426,11 @@
  },
  {
   "voice": "m2.guest2",
+  "text": "HE'S STEALING THE HELICOPTER! LET HIM! THE SMELL!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.guest2",
   "text": "HE'S WEARING IT OVER THE SHIT!",
   "from": "SPACE"
  },
@@ -48668,6 +50438,11 @@
   "voice": "m2.guest2",
   "text": "HERE WE GO. HERE WE GO.",
   "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.guest2",
+  "text": "HEY, FATSO! IS IT MOVING UP THERE?",
+  "from": "ADVENTURE"
  },
  {
   "voice": "m2.guest2",
@@ -48688,6 +50463,11 @@
   "voice": "m2.guest2",
   "text": "HEY! NO CUTTING! OR NUDITY!",
   "from": "INTRO"
+ },
+ {
+  "voice": "m2.guest2",
+  "text": "HEY! THAT IS NOT YOUR HELICOPTER!",
+  "from": "FOREIGN"
  },
  {
   "voice": "m2.guest2",
@@ -48936,6 +50716,16 @@
  },
  {
   "voice": "m2.guest2",
+  "text": "IS IT MOVING UP THERE? NO, DON'T COME CLOSER!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.guest2",
+  "text": "IS IT MOVING UP THERE? WHY ARE YOU NAKED?!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.guest2",
   "text": "IS THAT A DINOSAUR EGG? OH GOD, NO IT ISN'T.",
   "from": "ADVENTURE"
  },
@@ -48991,6 +50781,21 @@
  },
  {
   "voice": "m2.guest2",
+  "text": "IT HASN'T MOVED IN FOUR HOURS!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.guest2",
+  "text": "IT HASN'T MOVED IN FOUR HOURS! AND NOW IT SMELLS!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.guest2",
+  "text": "IT HASN'T MOVED IN FOUR HOURS! NOW THERE'S A NAKED GUY!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.guest2",
   "text": "IT KNOCKED MORE SHIT OUT OF HIM!",
   "from": "ADVENTURE"
  },
@@ -49038,6 +50843,21 @@
   "voice": "m2.guest2",
   "text": "IT'S THE REVENGERS! AND A MAN WHO SHIT HIMSELF!",
   "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.guest2",
+  "text": "IT'S THE SAME FAT GUY! IN THE SAME MINE CART!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.guest2",
+  "text": "IT'S THE SAME GUY! AND NOW HE'S NAKED!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.guest2",
+  "text": "IT'S THE SAME GUY! HE SHIT HIMSELF AGAIN!",
+  "from": "ADVENTURE"
  },
  {
   "voice": "m2.guest2",
@@ -49406,8 +51226,18 @@
  },
  {
   "voice": "m2.guest2",
+  "text": "THE LINE IS SO LONG HE LOST HIS PANTS IN IT!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.guest2",
   "text": "THE NAKED GUY LEAKED THE SCRIPT! HERO!",
   "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.guest2",
+  "text": "THE NAKED GUY WHO KILLED HARRY! HE'S STEALING THE HELICOPTER!",
+  "from": "FOREIGN"
  },
  {
   "voice": "m2.guest2",
@@ -49463,6 +51293,16 @@
   "voice": "m2.guest2",
   "text": "THERE'S A NAKED MAN IN THE DINOSAUR TANK!",
   "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.guest2",
+  "text": "THERE'S NO BOAT! WHY ARE WE STILL IN LINE?!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.guest2",
+  "text": "THERE'S NO PILOT! WE'VE BEEN IN LINE SINCE THE FUNERAL!",
+  "from": "FOREIGN"
  },
  {
   "voice": "m2.guest2",
@@ -49526,12 +51366,32 @@
  },
  {
   "voice": "m2.guest2",
+  "text": "WE'RE NEXT! DON'T CUT! DON'T STAND NEAR US!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.guest2",
+  "text": "WE'RE NEXT! KAYLEE, DON'T LOOK AT THE MAN!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.guest2",
+  "text": "WE'RE NEXT! WE'VE BEEN NEXT SINCE TUESDAY!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.guest2",
   "text": "WE'VE BEEN HERE FOUR HOURS!",
   "from": "HOLLYWOOD"
  },
  {
   "voice": "m2.guest2",
   "text": "WE'VE BEEN HERE SINCE NINE, ASSHOLE!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.guest2",
+  "text": "WE'VE BEEN HERE SO LONG HE SHIT HIMSELF!",
   "from": "ADVENTURE"
  },
  {
@@ -49566,6 +51426,16 @@
  },
  {
   "voice": "m2.guest2",
+  "text": "WHERE IS THE BOAT? WHERE ARE YOUR PANTS?!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.guest2",
+  "text": "WHERE IS THE BOAT? WHY DO YOU SMELL LIKE THAT?!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.guest2",
   "text": "WHERE THE FUCK IS SECURITY?",
   "from": "ADVENTURE"
  },
@@ -49577,6 +51447,11 @@
  {
   "voice": "m2.guest2",
   "text": "WHERE'S HE KEEPING HIS PASS?!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.guest2",
+  "text": "WHERE'S THE BOAT? WHERE'S THE GUY?!",
   "from": "ADVENTURE"
  },
  {
@@ -49623,6 +51498,11 @@
   "voice": "m2.guest2",
   "text": "WOOOOOOOO!",
   "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.guest2",
+  "text": "YOU KILLED THE PILOT AND NOW YOU CUT THE LINE?",
+  "from": "FOREIGN"
  },
  {
   "voice": "m2.guest2",
@@ -50731,6 +52611,11 @@
  },
  {
   "voice": "m2.hollywood.ad",
+  "text": "FOR THE LAST TIME: STUNTMAN STEVE IS DEAD. STOP CALLING THE OFFICE. SEND FLOWERS.",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.ad",
   "text": "FOR THE LAST TIME: STUNTMAN STEVE IS NOT ON THIS PRODUCTION. STOP CALLING THE OFFICE.",
   "from": "HOLLYWOOD"
  },
@@ -51386,6 +53271,11 @@
  },
  {
   "voice": "m2.hollywood.disaster",
+  "text": "THE EFFECTS IN THIS ROOM WERE TESTED BY STUNTMAN STEVE. HE IS COLD NOW.",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.disaster",
   "text": "WELCOME TO DISASTER: THE RIDE. PLEASE STAND BEHIND THE RAIL. NATURE IS COMING.",
   "from": "HOLLYWOOD"
  },
@@ -51536,12 +53426,42 @@
  },
  {
   "voice": "m2.hollywood.exec",
+  "text": "OH NO! NOT AGAIN! THE NEW SCRIPT GOT LEAKED!",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.exec",
+  "text": "OH NO. THE NEW SCRIPT GOT LEAKED!",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.exec",
   "text": "THE CAST WE CAN REPLACE! CGI! AI! WE OWN THEIR FACES! THE SCRIPT WAS THE ONLY COPY!",
   "from": "HOLLYWOOD"
  },
  {
   "voice": "m2.hollywood.exec",
+  "text": "THE DOUBLES HAD DOUBLES! THE SCRIPT DID NOT! WHO PUTS IT BACK IN THE SAME CASE?!",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.exec",
+  "text": "THE DOUBLES. ALL OF THEM. THE REAL ONES ARE IN THEIR TRAILERS, CRYING.",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.exec",
   "text": "THE SCRIPT! THAT'S MY BONUS!",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.exec",
+  "text": "THOSE WERE STUNT DOUBLES! WHO CARES! OH NO, THE NEW SCRIPT GOT LEAKED! THE ONLY COPY! AGAIN!",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.exec",
+  "text": "YEAH, THE WHOLE CAST AGAIN. RELAX. THOSE WERE THEIR STUNT DOUBLES.",
   "from": "HOLLYWOOD"
  },
  {
@@ -52021,6 +53941,11 @@
  },
  {
   "voice": "m2.hollywood.host",
+  "text": "AFTER THE SHOW, HONOR STUNTMAN STEVE'S LEGACY! HE WAS MY FRIEND! I MET HIM ONCE!",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.host",
   "text": "AFTER THE SHOW, SEE STUNTMAN STEVE! HE'S MY FRIEND! I MET HIM ONCE!",
   "from": "HOLLYWOOD"
  },
@@ -52361,6 +54286,11 @@
  },
  {
   "voice": "m2.hollywood.pa",
+  "text": "ATTENTION. EVERY DISASTER IS HAPPENING AT ONCE. STUNTMAN STEVE'S SHOW IS CANCELED. HE'S DEAD. NO REFUNDS.",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.pa",
   "text": "ATTENTION. EVERY DISASTER IS HAPPENING AT ONCE. STUNTMAN STEVE'S SHOW IS STILL ON. NO REFUNDS.",
   "from": "HOLLYWOOD"
  },
@@ -52456,6 +54386,11 @@
  },
  {
   "voice": "m2.hollywood.pa",
+  "text": "HAPPYWOOD HONORS STUNTMAN STEVE. HE WAS IN A FILM. YOU CAN SEE HIS ELBOW. FOREVER, NOW.",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.pa",
   "text": "IF YOU ARE HOLDING A PAGE OF THE REVENGERS SCRIPT, PLEASE EAT IT.",
   "from": "HOLLYWOOD"
  },
@@ -52496,6 +54431,11 @@
  },
  {
   "voice": "m2.hollywood.pa",
+  "text": "IN LIEU OF FLOWERS, STUNTMAN STEVE'S FAMILY ASKS THAT YOU STEP OUT OF THE WAY OF A SLOW CAR. IN HIS HONOR.",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.pa",
   "text": "LADIES AND GENTLEMEN... THE HUMAN LIGHTNING ROD! HOLD YOUR APPLAUSE. HE'S DEAD.",
   "from": "HOLLYWOOD"
  },
@@ -52512,6 +54452,11 @@
  {
   "voice": "m2.hollywood.pa",
   "text": "NOW ENTERING: DISASTER: THE RIDE! THE FURY OF NATURE! SIMULATED!",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.pa",
+  "text": "REMINDER: STUNTMAN STEVE'S STUPENDOUS STUNTERY IS CANCELED. BECAUSE HE'S DEAD. THE STAGE IS STILL THERE. MOSTLY.",
   "from": "HOLLYWOOD"
  },
  {
@@ -52556,12 +54501,27 @@
  },
  {
   "voice": "m2.hollywood.pa",
+  "text": "STUNTMAN STEVE CONSULTED ON DISASTER: THE RIDE! HIS SHOW IS CANCELED, BECAUSE HE'S DEAD! THIS TORNADO IS IN HIS HONOR!",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.pa",
   "text": "STUNTMAN STEVE SURVIVED A TORNADO! IN A MOVIE! FOR TWO SECONDS!",
   "from": "HOLLYWOOD"
  },
  {
   "voice": "m2.hollywood.pa",
+  "text": "STUNTMAN STEVE SURVIVED A TORNADO! IN A MOVIE! IN HIS HONOR, HAPPYWOOD HAS PROVIDED A REAL ONE!",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.pa",
   "text": "STUNTMAN STEVE TESTED THIS RIDE! HE DOES NOT HAVE A THRONE! HE'S FINE WITH THAT! HE'S TOTALLY FINE!",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.pa",
+  "text": "STUNTMAN STEVE TESTED THIS RIDE! HE'S DEAD NOW! UNRELATED! TOTALLY UNRELATED!",
   "from": "HOLLYWOOD"
  },
  {
@@ -52601,12 +54561,27 @@
  },
  {
   "voice": "m2.hollywood.pa",
+  "text": "STUNTMAN STEVE! NINETEEN EIGHTY-SIX TO NOW! A MOMENT OF SILENCE. THAT WAS LONGER THAN HIS FILM CAREER.",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.pa",
   "text": "STUNTMAN STEVE! NINETEEN EIGHTY-SIX! THE ONE WHERE THE CAR GOES BY! THAT WAS NEAR HIM!",
   "from": "HOLLYWOOD"
  },
  {
   "voice": "m2.hollywood.pa",
   "text": "STUNTMAN STEVE! WATCH HIM STEP OUT OF THE WAY OF A SLOW CAR! LIVE! PARKING NOT VALIDATED!",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.pa",
+  "text": "STUNTMAN STEVE'S STUPENDOUS STUNTERY HAS BEEN CANCELED. BECAUSE HE'S DEAD. PLEASE STOP ASKING.",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.pa",
+  "text": "STUNTMAN STEVE'S STUPENDOUS STUNTERY IS CANCELED, BECAUSE HE'S DEAD. HAPPYWOOD HONORS HIS LEGACY WITH THIS ANNOUNCEMENT.",
   "from": "HOLLYWOOD"
  },
  {
@@ -52661,6 +54636,21 @@
  },
  {
   "voice": "m2.hollywood.pa",
+  "text": "WELCOME BACK TO HAPPYWOOD BOULEVARD. SECURITY HAS YOUR PICTURE, SIR. IT'S UP NEXT TO STEVE'S.",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.pa",
+  "text": "WELCOME BACK TO HAPPYWOOD BOULEVARD. WE KNOW IT'S YOU, SIR. WE CAN SMELL IT FROM THE BOOTH.",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.pa",
+  "text": "WELCOME BACK TO HAPPYWOOD BOULEVARD. WE KNOW IT'S YOU, SIR. WE RECOGNIZE IT.",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.pa",
   "text": "WELCOME TO HAPPYWOOD BOULEVARD. SIR, THE CASTING COUCH IS INDOORS.",
   "from": "HOLLYWOOD"
  },
@@ -52677,6 +54667,11 @@
  {
   "voice": "m2.hollywood.pa",
   "text": "WELCOME TO THE HAPPYWOOD BACKLOT! WHERE THE MAGIC HAPPENED! ONCE!",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.pa",
+  "text": "WHILE YOU WAIT: STUNTMAN STEVE'S STUPENDOUS STUNTERY IS CANCELED. HE'S DEAD. ENJOY THE TOILETS.",
   "from": "HOLLYWOOD"
  },
  {
@@ -54666,6 +56661,11 @@
  },
  {
   "voice": "m2.hollywood.thrones",
+  "text": "THIS RIDE WAS TESTED BY STUNTMAN STEVE. HE IS DOING MUCH WORSE NOW.",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.thrones",
   "text": "THIS THRONE WILL NOW RETURN TO THE STATION. THANK YOU FOR SITTING WHERE THE STARS SAT.",
   "from": "HOLLYWOOD"
  },
@@ -54851,6 +56851,11 @@
  },
  {
   "voice": "m2.maint",
+  "text": "FRIENDLY MODE, LIKE THE MEMO SAID. NOTHING CAN HAPPEN TWICE.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.maint",
   "text": "I SHIT ON THE CLOCK. THAT'S ME GETTING PAID TO SHIT.",
   "from": "ADVENTURE"
  },
@@ -54861,7 +56866,42 @@
  },
  {
   "voice": "m2.maint",
+  "text": "THE SWITCH IS ON FRIENDLY. I TAPED IT. I AM A PROFESSIONAL.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.maint",
+  "text": "THEY MADE ME SET IT BACK TO FRIENDLY. TWELVE FORMS. NEVER AGAIN.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.maint",
   "text": "TWELVE YEARS IN THIS BOOTH. NOTHING HAS EVER HAPPENED.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.operator",
+  "text": "ARTIE'S DEAD AND YOU SMELL WORSE THAN HIM.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.operator",
+  "text": "ARTIE'S DEAD. I GOT HIS SKIPPER OF THE YEAR PLAQUE.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.operator",
+  "text": "ATTENTION, JUNIOR GUIDES! ARTIE'S KILLER IS BACK! AND NAKED! AIM HIGH!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.operator",
+  "text": "ATTENTION, JUNIOR GUIDES! ARTIE'S KILLER IS BACK! FOLLOW THE SMELL!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.operator",
+  "text": "ATTENTION, JUNIOR GUIDES! THAT'S THE FAT GUY WHO KILLED ARTIE! GET HIM!",
   "from": "ADVENTURE"
  },
  {
@@ -54937,6 +56977,61 @@
  {
   "voice": "m2.operator",
   "text": "I'M ON MY TEN. DO WHATEVER THE FUCK YOU WANT.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.operator",
+  "text": "JUNIOR GUIDES! ARTIE WAS A DICK, BUT HE WAS OUR DICK! GET HIM!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.operator",
+  "text": "JUNIOR GUIDES! FOR ARTIE! AIM UPWIND!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.operator",
+  "text": "JUNIOR GUIDES! FOR ARTIE! DON'T LOOK AT IT!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.operator",
+  "text": "JUNIOR GUIDES! HE KILLED ARTIE AND HE SHIT HIMSELF! WHACK HIM!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.operator",
+  "text": "JUNIOR GUIDES! HE KILLED ARTIE WITH THAT THING OUT! WHACK HIM!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.operator",
+  "text": "JUNIOR GUIDES! HE KILLED THE SKIPPER OF THE YEAR! WHACK HIM!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.operator",
+  "text": "NO BOATS TODAY. KEEP WAITING. IT'S POLICY.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.operator",
+  "text": "NO BOATS. NO PANTS EITHER, I GUESS. KEEP WAITING.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.operator",
+  "text": "NO BOATS. THE LINE STAYS. THE SMELL IS FREE.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.operator",
+  "text": "NO SKIPPER, NO BOATS. I'M ON BREAK FOREVER.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.operator",
+  "text": "NO SKIPPER, NO PANTS. I'M ON BREAK.",
   "from": "ADVENTURE"
  },
  {
@@ -54976,6 +57071,21 @@
  },
  {
   "voice": "m2.operator",
+  "text": "SKIPPER'S DEAD, MA'AM. THE LINE IS STILL OPEN.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.operator",
+  "text": "SKIPPER'S DEAD. THAT GUY DID IT. THEN HE SHIT HIMSELF.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.operator",
+  "text": "SKIPPER'S DEAD. THE NAKED GUY DID IT. NOT MY PROBLEM.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.operator",
   "text": "THEY DON'T PAY ME ENOUGH TO STOP YOU.",
   "from": "ADVENTURE"
  },
@@ -54985,8 +57095,43 @@
   "from": "ADVENTURE"
  },
  {
+  "voice": "m2.operator",
+  "text": "YOU AGAIN? I'M STILL ON BREAK.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.operator",
+  "text": "YOU AGAIN. NOW YOU'RE NAKED. I'M STILL ON BREAK.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.operator",
+  "text": "YOU AGAIN. STILL SHITTY. STILL ON BREAK.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.operator",
+  "text": "YOU KILLED ARTIE AND YOU SHIT YOURSELF. BIG DAY.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.operator",
+  "text": "YOU KILLED ARTIE. THANKS. PUT YOUR DICK AWAY.",
+  "from": "ADVENTURE"
+ },
+ {
   "voice": "m2.operator2",
   "text": "...YOU KNOW WHAT? ENGAGE THE ACTUAL DANGEROUS TRACK.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.operator2",
+  "text": "ARTIE'S DEAD AND YOU SMELL WORSE THAN HIM.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.operator2",
+  "text": "ARTIE'S DEAD. I GOT HIS SKIPPER OF THE YEAR PLAQUE.",
   "from": "ADVENTURE"
  },
  {
@@ -55066,6 +57211,31 @@
  },
  {
   "voice": "m2.operator2",
+  "text": "NO BOATS TODAY. KEEP WAITING. IT'S POLICY.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.operator2",
+  "text": "NO BOATS. NO PANTS EITHER, I GUESS. KEEP WAITING.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.operator2",
+  "text": "NO BOATS. THE LINE STAYS. THE SMELL IS FREE.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.operator2",
+  "text": "NO SKIPPER, NO BOATS. I'M ON BREAK FOREVER.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.operator2",
+  "text": "NO SKIPPER, NO PANTS. I'M ON BREAK.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.operator2",
   "text": "NOPE. GO AHEAD. KEEP WALKING.",
   "from": "ADVENTURE"
  },
@@ -55086,12 +57256,52 @@
  },
  {
   "voice": "m2.operator2",
+  "text": "SKIPPER'S DEAD, MA'AM. THE LINE IS STILL OPEN.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.operator2",
+  "text": "SKIPPER'S DEAD. THAT GUY DID IT. THEN HE SHIT HIMSELF.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.operator2",
+  "text": "SKIPPER'S DEAD. THE NAKED GUY DID IT. NOT MY PROBLEM.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.operator2",
   "text": "THEY DON'T PAY ME ENOUGH TO STOP YOU.",
   "from": "ADVENTURE"
  },
  {
   "voice": "m2.operator2",
   "text": "WHERE'S HE KEEPING IT? NOT MY PROBLEM.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.operator2",
+  "text": "YOU AGAIN? I'M STILL ON BREAK.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.operator2",
+  "text": "YOU AGAIN. NOW YOU'RE NAKED. I'M STILL ON BREAK.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.operator2",
+  "text": "YOU AGAIN. STILL SHITTY. STILL ON BREAK.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.operator2",
+  "text": "YOU KILLED ARTIE AND YOU SHIT YOURSELF. BIG DAY.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.operator2",
+  "text": "YOU KILLED ARTIE. THANKS. PUT YOUR DICK AWAY.",
   "from": "ADVENTURE"
  },
  {
@@ -59086,6 +61296,11 @@
  },
  {
   "voice": "m2.satan",
+  "text": "MEATHEAD. AGAIN. YOU KILLED MY BEST CUSTOMER UPSTAIRS. YOUR SOUL WILL BE MINE. JUST NOT TODAY.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.satan",
   "text": "MEATHEAD. ONE OF THESE DAYS YOUR SOUL WILL BE MINE FOREVER. THAT TIME IS NOT NOW.",
   "from": "SPOOKY"
  },
@@ -59366,6 +61581,21 @@
  },
  {
   "voice": "m2.space.alien",
+  "text": "HE'S BACK! HE KILLED THE QUEEN AND SHIT HIMSELF DOING IT!",
+  "from": "SPACE"
+ },
+ {
+  "voice": "m2.space.alien",
+  "text": "HE'S BACK! THE GUY WHO KILLED THE QUEEN!",
+  "from": "SPACE"
+ },
+ {
+  "voice": "m2.space.alien",
+  "text": "HE'S BACK! THE NAKED GUY WHO KILLED THE QUEEN!",
+  "from": "SPACE"
+ },
+ {
+  "voice": "m2.space.alien",
   "text": "HER BRAIN IS A COMMODORE SIXTY-FOUR. EASY. KILL HIM, YOUR MAJESTY.",
   "from": "SPACE"
  },
@@ -59557,6 +61787,11 @@
  {
   "voice": "m2.space.alien",
   "text": "NO PANTS. THE MATING DANCE HAS BEGUN. RECORD EVERYTHING.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "m2.space.alien",
+  "text": "NO QUEEN THIS TIME. JUST A LOT OF LITTLE ONES.",
   "from": "SPACE"
  },
  {
@@ -59811,6 +62046,11 @@
  },
  {
   "voice": "m2.space.alien",
+  "text": "THIS ONE IS FOR HER MAJESTY. SHE WAS A ROBOT, BUT STILL.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "m2.space.alien",
   "text": "THIS RIDE SAYS WE ABDUCT NAKED HUMANS. NOBODY WANTS YOU.",
   "from": "SPACE"
  },
@@ -59981,6 +62221,21 @@
  },
  {
   "voice": "m2.space.alien",
+  "text": "YOU AGAIN?! THE BODY SHOP JUST GOT YOUR SMELL OUT OF THE SHIP!",
+  "from": "SPACE"
+ },
+ {
+  "voice": "m2.space.alien",
+  "text": "YOU AGAIN?! WE JUST GOT THE SHIP BACK FROM THE BODY SHOP!",
+  "from": "SPACE"
+ },
+ {
+  "voice": "m2.space.alien",
+  "text": "YOU AGAIN?! WE JUST GOT THE SHIP FIXED! AND YOU STILL HAVE NO PANTS!",
+  "from": "SPACE"
+ },
+ {
+  "voice": "m2.space.alien",
   "text": "YOU BLEW UP OUR SHIP AND IT STILL SMELLS BETTER THAN YOU!",
   "from": "SPACE"
  },
@@ -59992,6 +62247,11 @@
  {
   "voice": "m2.space.alien",
   "text": "YOU BLEW UP OUR SHIP! WE JUST HAD IT DETAILED!",
+  "from": "SPACE"
+ },
+ {
+  "voice": "m2.space.alien",
+  "text": "YOU BROKE THE QUEEN. FINE. WE'LL DRIVE THE LITTLE ONES.",
   "from": "SPACE"
  },
  {
@@ -60091,6 +62351,21 @@
  },
  {
   "voice": "m2.space.alienf",
+  "text": "HE'S BACK! HE KILLED THE QUEEN AND SHIT HIMSELF DOING IT!",
+  "from": "SPACE"
+ },
+ {
+  "voice": "m2.space.alienf",
+  "text": "HE'S BACK! THE GUY WHO KILLED THE QUEEN!",
+  "from": "SPACE"
+ },
+ {
+  "voice": "m2.space.alienf",
+  "text": "HE'S BACK! THE NAKED GUY WHO KILLED THE QUEEN!",
+  "from": "SPACE"
+ },
+ {
+  "voice": "m2.space.alienf",
   "text": "HIDE IN THE SPACESHIP RIDE! IT CAN'T SMELL WORSE!",
   "from": "SPACE"
  },
@@ -60177,6 +62452,11 @@
  {
   "voice": "m2.space.alienf",
   "text": "MY WHOLE CREW IS DEAD! THEY DIED LOOKING AT YOUR DICK!",
+  "from": "SPACE"
+ },
+ {
+  "voice": "m2.space.alienf",
+  "text": "NO QUEEN THIS TIME. JUST A LOT OF LITTLE ONES.",
   "from": "SPACE"
  },
  {
@@ -60301,6 +62581,11 @@
  },
  {
   "voice": "m2.space.alienf",
+  "text": "THIS ONE IS FOR HER MAJESTY. SHE WAS A ROBOT, BUT STILL.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "m2.space.alienf",
   "text": "THIS RIDE SAYS WE ABDUCT PEOPLE NAKED! WE DIDN'T DO YOU!",
   "from": "SPACE"
  },
@@ -60381,6 +62666,21 @@
  },
  {
   "voice": "m2.space.alienf",
+  "text": "YOU AGAIN?! THE BODY SHOP JUST GOT YOUR SMELL OUT OF THE SHIP!",
+  "from": "SPACE"
+ },
+ {
+  "voice": "m2.space.alienf",
+  "text": "YOU AGAIN?! WE JUST GOT THE SHIP BACK FROM THE BODY SHOP!",
+  "from": "SPACE"
+ },
+ {
+  "voice": "m2.space.alienf",
+  "text": "YOU AGAIN?! WE JUST GOT THE SHIP FIXED! AND YOU STILL HAVE NO PANTS!",
+  "from": "SPACE"
+ },
+ {
+  "voice": "m2.space.alienf",
   "text": "YOU BLEW UP OUR SHIP AND IT STILL SMELLS BETTER THAN YOU!",
   "from": "SPACE"
  },
@@ -60392,6 +62692,11 @@
  {
   "voice": "m2.space.alienf",
   "text": "YOU BLEW UP OUR SHIP! WE JUST HAD IT DETAILED!",
+  "from": "SPACE"
+ },
+ {
+  "voice": "m2.space.alienf",
+  "text": "YOU BROKE THE QUEEN. FINE. WE'LL DRIVE THE LITTLE ONES.",
   "from": "SPACE"
  },
  {
@@ -61016,6 +63321,11 @@
  },
  {
   "voice": "m2.space.needle",
+  "text": "WELCOME BACK TO SPACE NEEDLE TWO. THE DECK WINDOW HAS BEEN REPLACED. WITH THE SAME GLASS. IT WAS ON SALE.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "m2.space.needle",
   "text": "WELCOME TO OUTER SPACE. THE GIFT CART IS TO YOUR LEFT.",
   "from": "SPACE"
  },
@@ -61042,6 +63352,21 @@
  {
   "voice": "m2.space.op",
   "text": "DON'T TOUCH THE BIG GREEN ONE.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "m2.space.op",
+  "text": "OH GOD, IT'S YOU. WE JUST GOT YOUR SMELL OUT OF THE NEW SLEDS.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "m2.space.op",
+  "text": "OH GOD, IT'S YOU. WE REBUILT THE WHOLE RIDE. NEW SLEDS. PLEASE DON'T.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "m2.space.op",
+  "text": "OH GOD, IT'S YOU. WE REBUILT THE WHOLE RIDE. THE INSURANCE GUY SAW YOUR PICTURE. HE CRIED.",
   "from": "SPACE"
  },
  {
@@ -61946,6 +64271,11 @@
  },
  {
   "voice": "m2.space.ridepa",
+  "text": "THE INCIDENT HAS BEEN BANNED FROM THE PARK. PLEASE KEEP YOUR HANDS INSIDE THE STAR SLED.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "m2.space.ridepa",
   "text": "THE OFFICE OF 2010 IS ONE HUNDRED PERCENT PAPERLESS!",
   "from": "SPACE"
  },
@@ -61962,6 +64292,11 @@
  {
   "voice": "m2.space.ridepa",
   "text": "TRAFFIC? NOT IN 2010! EVERY CAR FLIES, AND NONE OF THEM CRASH.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "m2.space.ridepa",
+  "text": "WELCOME ABOARD THE ALL NEW VOYAGE TO 2010! REBUILT AFTER AN INCIDENT! PRESENTED BY PROGRESSCO.",
   "from": "SPACE"
  },
  {
@@ -62002,6 +64337,21 @@
  {
   "voice": "m2.space.saucer",
   "text": "HOLD STILL. I'M DRIVING WITH MY KNEES. THE GIRLS ARE ZOOMING IN.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "m2.space.saucer",
+  "text": "I GOT THE SAUCER FIXED. THE GIRLS WANTED A REMATCH. SOME OF THEM WANTED MORE.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "m2.space.saucer",
+  "text": "I GOT THE SAUCER FIXED. THE INSURANCE WAS IN ZORBLAX'S NAME. HE PAID FOR THIS.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "m2.space.saucer",
+  "text": "I GOT THE SAUCER FIXED. THE MECHANIC ASKED WHY IT SMELLED LIKE THAT. IT WAS YOU.",
   "from": "SPACE"
  },
  {
@@ -62135,6 +64485,21 @@
   "from": "SPACE"
  },
  {
+  "voice": "m2.space.saucer",
+  "text": "ZORBLAX'S WIFE AGAIN. YOU'RE BACK, ASSHOLE. I KNEW YOU'D BE BACK.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "m2.space.saucer",
+  "text": "ZORBLAX'S WIFE AGAIN. YOU'RE BACK. AND YOU SHIT YOURSELF AGAIN.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "m2.space.saucer",
+  "text": "ZORBLAX'S WIFE AGAIN. YOU'RE BACK. STILL JUST THE HELMET.",
+  "from": "SPACE"
+ },
+ {
   "voice": "m2.space.xeno",
   "text": "GREETINGS, CREW. YOU HAVE BEEN CHOSEN. BY BUYING A TICKET. ANY RESEMBLANCE TO A MOVIE IS A COINCIDENCE.",
   "from": "SPACE"
@@ -62165,6 +64530,11 @@
   "from": "SPACE"
  },
  {
+  "voice": "m2.space.xeno",
+  "text": "YOU HAVE ARRIVED. THE QUEEN IS OUT OF SERVICE. A GUEST BROKE HER. EXIT TO YOUR RIGHT.",
+  "from": "SPACE"
+ },
+ {
   "voice": "m2.space.zpilot",
   "text": "COOKING HIM. LIKE ZORBLAX LIKED.",
   "from": "SPACE"
@@ -62486,7 +64856,52 @@
  },
  {
   "voice": "m2.spooky.clerk",
+  "text": "THE COUNT'S DEAD AND YOU STILL SMELL WORSE!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.spooky.clerk",
+  "text": "THE COUNT'S DEAD! COVER YOUR BALLS OUT OF RESPECT!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.spooky.clerk",
+  "text": "THE COUNT'S DEAD! EVERYTHING MUST GO! INCLUDING YOU!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.spooky.clerk",
   "text": "WELCOME TO THE GIFT SHOP OF THE DAMNED! DIE!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.spooky.clerk",
+  "text": "YOU AGAIN! CLEANUP ON EVERY AISLE! AGAIN!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.spooky.clerk",
+  "text": "YOU AGAIN! STILL NAKED! THE TOTE BAGS ARE HALF OFF!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.spooky.clerk",
+  "text": "YOU AGAIN?! WE'RE CLOSED FOR THE FUNERAL!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.spooky.clerk",
+  "text": "YOU KILLED THE COUNT! GOOD! HE ATE ALL THE FUDGE!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.spooky.clerk",
+  "text": "YOU KILLED THE COUNT! NOW YOU'RE SHITTING IN HIS SHOP!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.spooky.clerk",
+  "text": "YOU KILLED THE COUNT! PUT ON A MEMORIAL TEE!",
   "from": "SPOOKY"
  },
  {
@@ -62531,7 +64946,52 @@
  },
  {
   "voice": "m2.spooky.clerkf",
+  "text": "THE COUNT'S DEAD AND YOU STILL SMELL WORSE!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.spooky.clerkf",
+  "text": "THE COUNT'S DEAD! COVER YOUR BALLS OUT OF RESPECT!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.spooky.clerkf",
+  "text": "THE COUNT'S DEAD! EVERYTHING MUST GO! INCLUDING YOU!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.spooky.clerkf",
   "text": "WELCOME TO THE GIFT SHOP OF THE DAMNED! DIE!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.spooky.clerkf",
+  "text": "YOU AGAIN! CLEANUP ON EVERY AISLE! AGAIN!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.spooky.clerkf",
+  "text": "YOU AGAIN! STILL NAKED! THE TOTE BAGS ARE HALF OFF!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.spooky.clerkf",
+  "text": "YOU AGAIN?! WE'RE CLOSED FOR THE FUNERAL!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.spooky.clerkf",
+  "text": "YOU KILLED THE COUNT! GOOD! HE ATE ALL THE FUDGE!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.spooky.clerkf",
+  "text": "YOU KILLED THE COUNT! NOW YOU'RE SHITTING IN HIS SHOP!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.spooky.clerkf",
+  "text": "YOU KILLED THE COUNT! PUT ON A MEMORIAL TEE!",
   "from": "SPOOKY"
  },
  {
@@ -63321,6 +65781,11 @@
  },
  {
   "voice": "meathead",
+  "text": "A BIG STICK BETWEEN MY LEGS. TIME TO HIT GUYS WITH IT.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "meathead",
   "text": "A BIG STICK BETWEEN MY LEGS. TWO, ACTUALLY.",
   "from": "FANTASY"
  },
@@ -63338,6 +65803,11 @@
   "voice": "meathead",
   "text": "A BIGGER HEART. I WISH IT WAS SOMETHING ELSE.",
   "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "A BIGGER HEART. MORE THAN PIPER HAD.",
+  "from": "FANTASY"
  },
  {
   "voice": "meathead",
@@ -63936,6 +66406,11 @@
  },
  {
   "voice": "meathead",
+  "text": "A DEEP DARK HOLE. LIKE PIPER'S GRAVE. BUT BIGGER.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "meathead",
   "text": "A DEEP DARK HOLE. PIPER, I SEE WHAT YOU DID.",
   "from": "FANTASY"
  },
@@ -64012,6 +66487,11 @@
  {
   "voice": "meathead",
   "text": "A DRAWBRIDGE. MINE IS ALREADY UP.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "meathead",
+  "text": "A DRAWBRIDGE. NOBODY TO LET ME IN. I LET MYSELF.",
   "from": "FANTASY"
  },
  {
@@ -64461,6 +66941,16 @@
  },
  {
   "voice": "meathead",
+  "text": "A GREASE STAIN AND MY SHITTY PANTS. NOW THAT IS A BUFFET.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
+  "text": "A GREASE STAIN. I'M NOT SITTING ON THAT NAKED.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
   "text": "A GREEN PIT. THEY'LL ADD THE SCARY PART IN POST.",
   "from": "HOLLYWOOD"
  },
@@ -64901,6 +67391,11 @@
  },
  {
   "voice": "meathead",
+  "text": "A MAGIC WALL. SHE DIED AND IT STAYED ON.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "meathead",
   "text": "A MAGIC WALL. SHE DOESN'T WANT ME LEAVING.",
   "from": "FANTASY"
  },
@@ -65078,6 +67573,11 @@
   "voice": "meathead",
   "text": "A NAKED MAN AND NOBODY LOOKS UP. THAT'S HOW BAD THIS SHOW IS.",
   "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "A NAKED MAN FELL OUT OF A TORNADO AND NOBODY'S HERE TO SEE IT. I'M OUT.",
+  "from": "HOLLYWOOD"
  },
  {
   "voice": "meathead",
@@ -66006,6 +68506,11 @@
  },
  {
   "voice": "meathead",
+  "text": "A TRAIN THAT DRIVES ITSELF. WHAT COULD GO WRONG.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
   "text": "A TRAIN THAT GOES FOUR MILES AN HOUR. I CAN WALK FASTER.",
   "from": "CARTOON"
  },
@@ -66196,6 +68701,11 @@
  },
  {
   "voice": "meathead",
+  "text": "A WARM HOLE. AND NOTHING TRYING TO EAT ME ON THE WAY.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "meathead",
   "text": "A WARM HOLE. DON'T SAY IT.",
   "from": "UPGRADES"
  },
@@ -66203,6 +68713,16 @@
   "voice": "meathead",
   "text": "A WARM HOLE. FINALLY, SOMEWHERE SHE CAN'T SMELL ME.",
   "from": "UPGRADES"
+ },
+ {
+  "voice": "meathead",
+  "text": "A WARM HOLE. NOBODY LEFT DOWN HERE TO SMELL ME.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "meathead",
+  "text": "A WARM HOLE. NOTHING CHASING MY BARE ASS IN.",
+  "from": "SPACE"
  },
  {
   "voice": "meathead",
@@ -66441,6 +68961,11 @@
  },
  {
   "voice": "meathead",
+  "text": "ADD THE DAD. I KILLED HIM NAKED.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
   "text": "ADDICTED TO DEATH",
   "from": "VULGARITIES"
  },
@@ -66541,6 +69066,16 @@
  },
  {
   "voice": "meathead",
+  "text": "ALL DEAD. NOBODY TO IMPRESS. STILL NAKED.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "meathead",
+  "text": "ALL DEAD. THE WINDOW AGAIN. I KNOW THE WAY.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "meathead",
   "text": "ALL FLAB AND GREASE! NO HANDLES!",
   "from": "SPOOKY"
  },
@@ -66596,6 +69131,11 @@
  },
  {
   "voice": "meathead",
+  "text": "ALL THAT REVENGE. ALL THAT DEAD.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "meathead",
   "text": "ALL THE PAINT CAME OFF. THE SHIT STAYED.",
   "from": "CARTOON"
  },
@@ -66623,6 +69163,21 @@
   "voice": "meathead",
   "text": "ALL THIS OVER A MOVIE? I DON'T EVEN HAVE NETFLIX.",
   "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "meathead",
+  "text": "ALL THIS OVER ONE BIKE?",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
+  "text": "ALL THIS OVER ONE BIKE? I AM NAKED ON IT.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
+  "text": "ALL THIS OVER ONE SEAT I RUINED?",
+  "from": "FRONTIER"
  },
  {
   "voice": "meathead",
@@ -66667,6 +69222,11 @@
  {
   "voice": "meathead",
   "text": "ALL WINTER WITH A DEAD LADY. LONGER THAN MY MARRIAGE.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
+  "text": "ALL YOU CAN EAT, COUNT. NOW YOU ARE A SCORCH MARK.",
   "from": "SPOOKY"
  },
  {
@@ -67131,6 +69691,11 @@
  },
  {
   "voice": "meathead",
+  "text": "AUTOMATIC CAR DUMPING. NAKED. GREAT.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
   "text": "AVALANCHE ZONE. IN HOLLYWOOD. NEXT TO A PALM TREE.",
   "from": "HOLLYWOOD"
  },
@@ -67138,6 +69703,21 @@
   "voice": "meathead",
   "text": "AVALANCHE! SNOW IN MY CRACK!",
   "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "meathead",
+  "text": "AVENGE HER? SHE WAS FATTER THAN MY SHIT. AND MY SHIT IS HUGE.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "meathead",
+  "text": "AVENGE HER? YOU NEVER EVEN SAW HER. LUCKY.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "meathead",
+  "text": "AVENGE HER. I DARE YOU. I REEK.",
+  "from": "FANTASY"
  },
  {
   "voice": "meathead",
@@ -67176,6 +69756,16 @@
  },
  {
   "voice": "meathead",
+  "text": "BACK AT HER GATE. LOAD IN MY PANTS. NOBODY TO DELIVER IT.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "meathead",
+  "text": "BACK AT THE PIXIE PALACE. THE PIXIE IS IN A BAG.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "meathead",
   "text": "BACK DOOR IS LOCKED. FRONT DOOR IT IS. OR VIOLENCE.",
   "from": "FRONTIER"
  },
@@ -67183,6 +69773,26 @@
   "voice": "meathead",
   "text": "BACK FOR SECONDS. I ATE TACO BELL FOR THIS.",
   "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "meathead",
+  "text": "BACK FROM THE DEAD TO SEE MY BALLS AGAIN. SICK.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "BACK FROM THE SCRAPYARD. ME TOO. NAKED, THOUGH.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "meathead",
+  "text": "BACK FROM THE SCRAPYARD. ROUND TWO, LIZARD.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "meathead",
+  "text": "BACK FROM THE SCRAPYARD. SMELL THAT? THAT IS FEAR. AND SHIT.",
+  "from": "ADVENTURE"
  },
  {
   "voice": "meathead",
@@ -67202,6 +69812,11 @@
  {
   "voice": "meathead",
   "text": "BACK IN NERD TOWN. NERDS STILL HERE.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "meathead",
+  "text": "BACK IN NERD TOWN. PIPER'S DEAD. MY PANTS AREN'T DOING GREAT EITHER.",
   "from": "FANTASY"
  },
  {
@@ -67246,6 +69861,11 @@
  },
  {
   "voice": "meathead",
+  "text": "BACK IN THE WOODS. NO BONER THIS TIME.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "meathead",
   "text": "BACK IN YOUR CELL!",
   "from": "ENEMY_KILL_LINES"
  },
@@ -67253,6 +69873,11 @@
   "voice": "meathead",
   "text": "BACK IN YOUR HOT TUB, GOLDFISH!",
   "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "BACK NAKED. NO PIPER TO SAVE IT FOR.",
+  "from": "FANTASY"
  },
  {
   "voice": "meathead",
@@ -67316,6 +69941,11 @@
  },
  {
   "voice": "meathead",
+  "text": "BACK TO HIS STAGE. NAKED. NO DAD TO SEE IT.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
   "text": "BACK TO MEAT COLOR. THAT'S HOW PAINT WORKS, RIGHT?",
   "from": "CARTOON"
  },
@@ -67338,6 +69968,11 @@
   "voice": "meathead",
   "text": "BACK TO THE PARK, FEATHERBRAIN!",
   "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "BACK TO THE STAGE. NO DAD. JUST MY SMELL.",
+  "from": "CARTOON"
  },
  {
   "voice": "meathead",
@@ -67368,6 +70003,11 @@
   "voice": "meathead",
   "text": "BACK. NAKED. EVEN THE COUCH LOOKS EMBARRASSED.",
   "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "BACK. NAKED. NO PIPER TO RUIN IT.",
+  "from": "FANTASY"
  },
  {
   "voice": "meathead",
@@ -67541,6 +70181,11 @@
  },
  {
   "voice": "meathead",
+  "text": "BARE ASS ON A BROOMSTICK. SPLINTERS. NOT WORTH IT.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "meathead",
   "text": "BARE ASS ON A BROOMSTICK. SPLINTERS. WORTH IT.",
   "from": "FANTASY"
  },
@@ -67563,6 +70208,11 @@
   "voice": "meathead",
   "text": "BARE ASS ON COLD JELLY. MY BALLS WENT UP INSIDE ME.",
   "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "BARE ASS ON THE HEMP. MINE.",
+  "from": "FOREIGN"
  },
  {
   "voice": "meathead",
@@ -67967,6 +70617,11 @@
  {
   "voice": "meathead",
   "text": "BIKE CHAIN! MY FACE!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
+  "text": "BIKE STAYS STOLEN.",
   "from": "FRONTIER"
  },
  {
@@ -68726,6 +71381,11 @@
  },
  {
   "voice": "meathead",
+  "text": "BURNT TO A CRISP. NAKED IN HIS ASHES. GOOD NIGHT.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
   "text": "BURY ME IN THE SQUAT RACK",
   "from": "VULGARITIES"
  },
@@ -68777,6 +71437,11 @@
  {
   "voice": "meathead",
   "text": "BUZZSAW! IN MY MEAT!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
+  "text": "BUZZSAWS AND NO PANTS. GREAT.",
   "from": "FRONTIER"
  },
  {
@@ -68967,6 +71632,31 @@
  {
   "voice": "meathead",
   "text": "CANCELED. AGAIN. NO SEASON TWO.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "CANCELED. BY A NAKED GUY. PUT THAT ON A POSTER.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "CANCELED. HE DIED ON HIS ASS. LIKE HE LIVED.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "CANCELED. HIS LAST SHOW HAD A NAKED GUY IN IT.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "CANCELED. I CANCELED HIM. THEN I SHIT MYSELF.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "CANCELED. I DID THAT. WITH MY HANDS.",
   "from": "CARTOON"
  },
  {
@@ -69436,6 +72126,11 @@
  },
  {
   "voice": "meathead",
+  "text": "CLIMBING A TOWER IN SHIT PANTS. FOR NOTHING.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "meathead",
   "text": "CLIMBING A TOWER IN SHIT PANTS. FOR PUSSY.",
   "from": "FANTASY"
  },
@@ -69661,6 +72356,31 @@
  },
  {
   "voice": "meathead",
+  "text": "COME AVENGE HER. MY DICK WILL WATCH.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "meathead",
+  "text": "COME AVENGE HER. ONE AT A TIME OR ALL AT ONCE.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "meathead",
+  "text": "COME GET ME. FOLLOW THE SMELL.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "meathead",
+  "text": "COME GET THE SEAT. IT IS ALL YOURS NOW.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
+  "text": "COME GET YOUR BIKE BACK, ZIT FACES.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
   "text": "COME GET YOUR TWENTY BUCKS, ZIT FACES.",
   "from": "FRONTIER"
  },
@@ -69706,7 +72426,17 @@
  },
  {
   "voice": "meathead",
+  "text": "COME ON, PUNKS. IT IS ALL HANGING OUT.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
   "text": "COME ON, PUNKS. NOTHING BETWEEN ME AND THIS SEAT.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
+  "text": "COME ON, PUNKS. THE SEAT IS STILL WARM.",
   "from": "FRONTIER"
  },
  {
@@ -69718,6 +72448,11 @@
   "voice": "meathead",
   "text": "COME ON, YOU LITTLE BITCH.",
   "from": "SPACE"
+ },
+ {
+  "voice": "meathead",
+  "text": "COME ON. AVENGE HER. MY DICK IS OUT. SO ARE MY FISTS.",
+  "from": "FANTASY"
  },
  {
   "voice": "meathead",
@@ -69961,6 +72696,11 @@
  },
  {
   "voice": "meathead",
+  "text": "CRASHED AGAIN. SHAT AGAIN. TRADITION.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
   "text": "CRATES OF RAY GUNS. I ALREADY GOT ONE. I WANT ALL OF THEM.",
   "from": "SPACE"
  },
@@ -70116,6 +72856,16 @@
  },
  {
   "voice": "meathead",
+  "text": "DAD GUY LIVE? DAD GUY DEAD. SAW IT NAKED.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "DAD GUY LIVE. DAD GUY DEAD. MY PANTS ALSO DEAD.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
   "text": "DAD GUY LIVE. FOLLOWING THIS? POOR BASTARD.",
   "from": "CARTOON"
  },
@@ -70131,6 +72881,16 @@
  },
  {
   "voice": "meathead",
+  "text": "DAD GUY LIVE. HE IS DEAD. I AM NAKED. FAIR TRADE.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "DAD GUY LIVE. HE IS NOT. I CHECKED.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
   "text": "DAD GUY LIVE. HE'D SMELL ME FROM THE STAGE.",
   "from": "CARTOON"
  },
@@ -70142,6 +72902,11 @@
  {
   "voice": "meathead",
   "text": "DAD GUY LIVE. I'LL SIT IN THE FRONT ROW. THEY'LL MOVE.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "DAD GUY LIVE. NOPE. DEAD. I SMELL WORSE THAN HIM NOW.",
   "from": "CARTOON"
  },
  {
@@ -70162,6 +72927,16 @@
  {
   "voice": "meathead",
   "text": "DAD GUY. AT LEAST HE WEARS UNDERWEAR.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "DAD GUY. CANCELED. I WAS NAKED FOR IT.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "DAD GUY. CANCELED. LIKE HIS HEART.",
   "from": "CARTOON"
  },
  {
@@ -70386,6 +73161,11 @@
  },
  {
   "voice": "meathead",
+  "text": "DIDN'T I POOF YOU ALREADY?",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
   "text": "DIE ASSHOLE",
   "from": "VULGARITIES"
  },
@@ -70397,6 +73177,11 @@
  {
   "voice": "meathead",
   "text": "DIED SMELLING ME. RESPECT.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "meathead",
+  "text": "DIED SMELLING ME. TELL PIPER HI.",
   "from": "FANTASY"
  },
  {
@@ -70477,6 +73262,21 @@
  {
   "voice": "meathead",
   "text": "DISCO'S DEAD! IT FELL ON ME!",
+  "from": "SPACE"
+ },
+ {
+  "voice": "meathead",
+  "text": "DISCO'S DEAD. SHE'S DEAD. I'M NAKED ON A DANCE FLOOR. TIME TO GO.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "meathead",
+  "text": "DISCO'S DEAD. SHE'S DEAD. MY PANTS ARE DEAD. LET'S GO.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "meathead",
+  "text": "DISCO'S DEAD. SO IS SHE. MY WORK HERE IS DONE.",
   "from": "SPACE"
  },
  {
@@ -70732,6 +73532,21 @@
  {
   "voice": "meathead",
   "text": "DON'T. I'M EMPTY.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
+  "text": "DONE. MY DICK'S WINDBURNED FOR NOTHING.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "meathead",
+  "text": "DONE. THE BIKE SMELLS LIKE ME NOW.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
+  "text": "DONE. THE SEAT IS STUCK TO MY ASS.",
   "from": "FRONTIER"
  },
  {
@@ -71161,7 +73976,17 @@
  },
  {
   "voice": "meathead",
+  "text": "EMPTY COUCH. I COULD SIT. I WOULD RUIN IT.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
   "text": "EMPTY DECK. SMELLS LIKE VICTORY. VICTORY SMELLS LIKE SHIT.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "meathead",
+  "text": "EMPTY ROOM. LIMP DICK. LET'S GO.",
   "from": "FANTASY"
  },
  {
@@ -71186,8 +74011,58 @@
  },
  {
   "voice": "meathead",
+  "text": "EMPTY STAGE. NAKED. NO AUDIENCE. WASTE.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "EMPTY STAGE. NOBODY CLAPPING FOR STEVE NOW. NOBODY FOR ME EITHER. I'M OUT.",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "meathead",
+  "text": "EMPTY STAGE. STEVE WOULD BE JEALOUS OF THAT LANDING. EVEN THE SMELL.",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "meathead",
+  "text": "EMPTY STAGE. STEVE'S DEAD AND I'M STILL THE BETTER ACT. NAKED.",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "meathead",
+  "text": "EMPTY STAND. SHE IS DEAD AND I STILL SHIT MYSELF.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "meathead",
+  "text": "EMPTY STAND. SHE'S DEAD, I'M NAKED. WE BOTH LOST SOMETHING.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "meathead",
+  "text": "EMPTY STAND. YEAH. THAT WAS ME.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "meathead",
+  "text": "EMPTY. ALL THAT FOR A FAT LADY. I'M OUT.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "meathead",
+  "text": "EMPTY. HE'D HAVE SCREAMED ABOUT MY PANTS.",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "meathead",
   "text": "EMPTY. I COULD STREAK THE STAGE. I ALREADY DID.",
   "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "EMPTY. NOBODY LEFT TO SCREAM AT MY DICK.",
+  "from": "FOREIGN"
  },
  {
   "voice": "meathead",
@@ -71686,6 +74561,11 @@
  },
  {
   "voice": "meathead",
+  "text": "FELL OUT OF A TORNADO AND LANDED IN MY OWN SHIT. AGAIN. NOBODY SAW. GOOD.",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "meathead",
   "text": "FENCE POST TO THE NUTS!",
   "from": "FRONTIER"
  },
@@ -71816,6 +74696,11 @@
  },
  {
   "voice": "meathead",
+  "text": "FINE. COME SMELL ME UP CLOSE.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
   "text": "FINE. HAND TO HAND. DICK TO DICK.",
   "from": "FANTASY"
  },
@@ -71852,6 +74737,11 @@
  {
   "voice": "meathead",
   "text": "FINE. THE RAY GUN. THE OTHER GUN STAYS OUT TOO.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
+  "text": "FINE. THE SAWS. THE PANTS ARE ALREADY RUINED.",
   "from": "FRONTIER"
  },
  {
@@ -72366,6 +75256,16 @@
  },
  {
   "voice": "meathead",
+  "text": "FREE RIDE. LOADED PANTS.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
+  "text": "FREE RIDE. NAKED. TUCKER'D HAVE A STROKE.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
   "text": "FREE RIDE. SPLINTERS INCLUDED.",
   "from": "FRONTIER"
  },
@@ -72378,6 +75278,11 @@
   "voice": "meathead",
   "text": "FREE SAMPLES. NO REFUNDS. NO SHIT.",
   "from": "FOREIGN"
+ },
+ {
+  "voice": "meathead",
+  "text": "FREE SHITTY BIKE. COME GET IT.",
+  "from": "FRONTIER"
  },
  {
   "voice": "meathead",
@@ -72531,6 +75436,11 @@
  },
  {
   "voice": "meathead",
+  "text": "FUCK THE BOAT. I SWIM.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "meathead",
   "text": "FUCK THE WEIGHTS... I'M OUT",
   "from": "VULGARITIES"
  },
@@ -72638,6 +75548,11 @@
   "voice": "meathead",
   "text": "FULL MAST. FULL SPEED. HER WINDOW.",
   "from": "FANTASY"
+ },
+ {
+  "voice": "meathead",
+  "text": "FULL SET NOW. THE DAD TOO. HATS OFF. PANTS OFF.",
+  "from": "CARTOON"
  },
  {
   "voice": "meathead",
@@ -73531,6 +76446,16 @@
  },
  {
   "voice": "meathead",
+  "text": "GO SEE HER. SHE SAVED YOU A SEAT. ALL OF THEM.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "meathead",
+  "text": "GO SEE HER. SHE SAVED YOU A SPOT.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "meathead",
   "text": "GO SPY ON YOUR MOM!",
   "from": "ENEMY_KILL_LINES"
  },
@@ -73737,6 +76662,11 @@
  {
   "voice": "meathead",
   "text": "GOT THE CABOOSE. MY BALLS ARE FREEZING.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
+  "text": "GOT THE CABOOSE. NOBODY DRIVING. FREE RIDE.",
   "from": "FRONTIER"
  },
  {
@@ -74231,6 +77161,11 @@
  },
  {
   "voice": "meathead",
+  "text": "HE AVENGED NOTHING. HE SMELLED EVERYTHING.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "meathead",
   "text": "HE BARFED FIRE ON ME! THAT'S NOT EVEN A MOVE!",
   "from": "HAZARD_HURT"
  },
@@ -74378,6 +77313,11 @@
   "voice": "meathead",
   "text": "HE DIED IN THE SHIT FOG.",
   "from": "FANTASY"
+ },
+ {
+  "voice": "meathead",
+  "text": "HE DIED LIKE HE LIVED. SITTING DOWN.",
+  "from": "CARTOON"
  },
  {
   "voice": "meathead",
@@ -75056,6 +77996,11 @@
  },
  {
   "voice": "meathead",
+  "text": "HE SMELLED BETTER COOKED. ME, NOT SO MUCH.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
   "text": "HE SMELLS LIKE BUD LIGHT AND AXE!",
   "from": "FANTASY"
  },
@@ -75696,12 +78641,32 @@
  },
  {
   "voice": "meathead",
+  "text": "HEMP SEAT. GOOD LUCK, HEMP.",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "meathead",
+  "text": "HER BED. NAKED. ALONE. NOT THE PLAN.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "meathead",
   "text": "HER BEDROOM DOOR. I SHOULD'VE BROUGHT A CONDOM. OR SIX.",
   "from": "FANTASY"
  },
  {
   "voice": "meathead",
   "text": "HER BELLY! LIKE A TRUCK!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "meathead",
+  "text": "HER CASTLE AGAIN. I STILL SMELL WORSE THAN HER BEDROOM.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "meathead",
+  "text": "HER CASTLE. NOBODY HOME. I MADE SURE.",
   "from": "FANTASY"
  },
  {
@@ -75726,6 +78691,16 @@
  },
  {
   "voice": "meathead",
+  "text": "HER ROOM. I LEFT MORE SHIT HERE THAN SHE DID.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "meathead",
+  "text": "HER ROOM. STILL SMELLS LIKE HAM AND PERFUME.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "meathead",
   "text": "HER WHOLE HOUSE IS SHITTING ON ME!",
   "from": "FANTASY"
  },
@@ -75747,6 +78722,11 @@
  {
   "voice": "meathead",
   "text": "HER WINDOW. HOPE SHE'S GOT A BIDET.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "meathead",
+  "text": "HER WINDOW. NO PIPER. STILL NO BIDET.",
   "from": "FANTASY"
  },
  {
@@ -75996,6 +78976,26 @@
  },
  {
   "voice": "meathead",
+  "text": "HIS COFFIN. NOBODY HOME. I COULD NAP IN IT NAKED.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
+  "text": "HIS COFFIN'S EMPTY. HE'D CHARGE ME TO SMELL IT.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
+  "text": "HIS COUCH. STILL ASS-SHAPED. NOTHING HERE.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "HIS CUTOUT'S STARING AT MY DICK. JEALOUS TO THE END.",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "meathead",
   "text": "HIS EARS ARE BIGGER THAN MY DICK. CARTOON DICK. STILL.",
   "from": "CARTOON"
  },
@@ -76013,6 +79013,11 @@
   "voice": "meathead",
   "text": "HIS EARS SLAPPED ME LIKE A WET TOWEL!",
   "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "HIS FACE IS EVERYWHERE. GOOD THING IT CAN'T SMELL.",
+  "from": "HOLLYWOOD"
  },
  {
   "voice": "meathead",
@@ -76038,6 +79043,11 @@
   "voice": "meathead",
   "text": "HIS NOSE IS A BALLSACK. SOMEBODY GOT FIRED FOR THAT.",
   "from": "FOREIGN"
+ },
+ {
+  "voice": "meathead",
+  "text": "HIS POSTER GOT CANCELED. MY PANTS DID TOO.",
+  "from": "CARTOON"
  },
  {
   "voice": "meathead",
@@ -76222,6 +79232,11 @@
  {
   "voice": "meathead",
   "text": "HOGSMEAT AGAIN. STILL FOURTEEN BUCKS A BUTTER.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "meathead",
+  "text": "HOGSMEAT AGAIN. THE PIXIE'S DEAD. BUTTER'S STILL FOURTEEN BUCKS.",
   "from": "FANTASY"
  },
  {
@@ -76857,6 +79872,11 @@
  {
   "voice": "meathead",
   "text": "I CAME FOR PUSSY AND GOT A WHALE SHOW.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "meathead",
+  "text": "I CAME HERE FOR PUSSY. I LEFT A BODY.",
   "from": "FANTASY"
  },
  {
@@ -78001,6 +81021,11 @@
  },
  {
   "voice": "meathead",
+  "text": "I POOFED YOU ONCE. I SHIT MYSELF TWICE. WE'RE EVEN.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
   "text": "I RAN INTO HER FLAG!",
   "from": "CARTOON"
  },
@@ -78068,6 +81093,11 @@
   "voice": "meathead",
   "text": "I SAW A MOVIE ABOUT THIS. I GOT THIS.",
   "from": "ADVENTURE"
+ },
+ {
+  "voice": "meathead",
+  "text": "I SAW HER NAKED. I MEAN I WAS NAKED. SHE WAS WORSE.",
+  "from": "FANTASY"
  },
  {
   "voice": "meathead",
@@ -78461,6 +81491,11 @@
  },
  {
   "voice": "meathead",
+  "text": "I WON. I'M COMING IN HOT. AND BROWN. TO AN EMPTY ROOM.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "meathead",
   "text": "I WON. YOU CAN KEEP THE SEAT.",
   "from": "CARTOON"
  },
@@ -78627,6 +81662,11 @@
  {
   "voice": "meathead",
   "text": "I'LL SHIT IN YOUR CAR. TERRITORY.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "meathead",
+  "text": "I'LL SHIT IN YOUR DRAGON. THEN I'LL KILL YOU.",
   "from": "FANTASY"
  },
  {
@@ -79791,6 +82831,11 @@
  },
  {
   "voice": "meathead",
+  "text": "INTO THE WOODS. MY PANTS LEAD THE WAY.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "meathead",
   "text": "INVOLUNTARY MUSCLE CONTRACTIONS! FUCK YOU BARRY!",
   "from": "HAZARD_HURT"
  },
@@ -80021,6 +83066,16 @@
  },
  {
   "voice": "meathead",
+  "text": "IT CUT THE CAR LOOSE BY ITSELF.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
+  "text": "IT CUT THE CAR LOOSE BY ITSELF. MY ASS FELT IT.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
   "text": "IT DIDN'T DO SHIT.",
   "from": "SPACE"
  },
@@ -80073,6 +83128,11 @@
   "voice": "meathead",
   "text": "IT DOESN'T GO UP. NOTHING ON ME DOES EITHER. IT'S COLD.",
   "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "IT DUMPED A CAR ON ITS OWN. I NEARLY SHAT. AGAIN.",
+  "from": "FRONTIER"
  },
  {
   "voice": "meathead",
@@ -80231,6 +83291,11 @@
  },
  {
   "voice": "meathead",
+  "text": "IT LEFT WITHOUT ME. EVEN THE TRAIN CAN SMELL ME.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
   "text": "IT LOST ITS HEAD!",
   "from": "FOR_AN_ANIMAL"
  },
@@ -80282,6 +83347,11 @@
  {
   "voice": "meathead",
   "text": "IT SAT ON MY FACE! IT SMELLS LIKE CAT ASS!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
+  "text": "IT SAW ME NAKED AND LEFT. FAIR.",
   "from": "FRONTIER"
  },
  {
@@ -81416,6 +84486,11 @@
  },
  {
   "voice": "meathead",
+  "text": "KILLED BY A NAKED GUY. TWICE IN ONE PARK.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "meathead",
   "text": "KILLED HIM NAKED. STILL HARD.",
   "from": "FANTASY"
  },
@@ -81581,6 +84656,16 @@
  },
  {
   "voice": "meathead",
+  "text": "LAST MAN FLYING GETS NOTHING. I FLY ANYWAY.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "meathead",
+  "text": "LAST MAN FLYING. NOBODY'S WAITING. I'M GOING IN ANYWAY.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "meathead",
   "text": "LAST MAN FLYING. PIPER, I'M COMING IN.",
   "from": "FANTASY"
  },
@@ -81602,6 +84687,11 @@
  {
   "voice": "meathead",
   "text": "LAST ONE OFF ALIVE GETS PIPER. THAT'S ME. I'M TOO DUMB TO LET GO.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "meathead",
+  "text": "LAST ONE. PIPER, HERE COMES COMPANY.",
   "from": "FANTASY"
  },
  {
@@ -81678,6 +84768,11 @@
   "voice": "meathead",
   "text": "LEAD! IN ME!",
   "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
+  "text": "LEAKED IT AGAIN. I STILL DON'T READ.",
+  "from": "HOLLYWOOD"
  },
  {
   "voice": "meathead",
@@ -81758,6 +84853,16 @@
   "voice": "meathead",
   "text": "LEGALLY DISTINCT MY ASS. THAT'S THE THING FROM THE MOVIE.",
   "from": "SPACE"
+ },
+ {
+  "voice": "meathead",
+  "text": "LEGS HANGING. ME NAKED UNDER THEM. NOBODY WINS.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
+  "text": "LEGS STILL HANGING. NOBODY'S COMING FOR YOU, DORKULA.",
+  "from": "SPOOKY"
  },
  {
   "voice": "meathead",
@@ -81938,6 +85043,16 @@
   "voice": "meathead",
   "text": "LIMITED TIME OFFER! THIS DEAL EXPIRES WHEN YOU DO!",
   "from": "m1/game/bosses/oscar.ts:218"
+ },
+ {
+  "voice": "meathead",
+  "text": "LINE UP, LOSERS. SAME AS LAST TIME.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "meathead",
+  "text": "LINE UP. I'M NAKED AND I'M NOT SCARED.",
+  "from": "FANTASY"
  },
  {
   "voice": "meathead",
@@ -82742,6 +85857,16 @@
  {
   "voice": "meathead",
   "text": "MORE MOVING STAIRS. HER BEDROOM BETTER BE WORTH IT.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "meathead",
+  "text": "MORE MOVING STAIRS. TO A DEAD FAT LADY.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "meathead",
+  "text": "MORE OF THEM? HOW MANY GUYS WANTED THAT LADY?",
   "from": "FANTASY"
  },
  {
@@ -84026,6 +87151,11 @@
  },
  {
   "voice": "meathead",
+  "text": "NAKED AT HER GATE. SHE CAN NOT SEE IT. SHE IS DEAD.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "meathead",
   "text": "NAKED BUMPER CARS. MY NUTS WOULD BE THE BUMPER.",
   "from": "CARTOON"
  },
@@ -84141,12 +87271,22 @@
  },
  {
   "voice": "meathead",
+  "text": "NAKED IN A TRAIN WRECK. AGAIN.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
   "text": "NAKED IN AN EMPTY STUDIO. I COULD DRAW SOMETHING. ON MYSELF.",
   "from": "CARTOON"
  },
  {
   "voice": "meathead",
   "text": "NAKED IN FAIRY LAND. FIRST TIME FOR EVERYTHING. FOR THEM.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "meathead",
+  "text": "NAKED IN FAIRY LAND. NOBODY LEFT TO PIPE.",
   "from": "FANTASY"
  },
  {
@@ -84198,6 +87338,11 @@
   "voice": "meathead",
   "text": "NAKED IN THE ROSE GARDEN. WATCH THE THORNS.",
   "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "NAKED IN THE WOODS. NOBODY TO GET HARD FOR.",
+  "from": "FANTASY"
  },
  {
   "voice": "meathead",
@@ -84276,6 +87421,11 @@
  },
  {
   "voice": "meathead",
+  "text": "NAKED ON YOUR BUDDY'S BIKE. COME GET IT.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
   "text": "NAKED OVER A STOVE. TUCK IT OR FRY IT.",
   "from": "CARTOON"
  },
@@ -84323,6 +87473,11 @@
   "voice": "meathead",
   "text": "NAKED. A CAT. CHASING LOBBYISTS. RATINGS GOLD.",
   "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "NAKED. FULL SPEED. AN EMPTY BEDROOM.",
+  "from": "FANTASY"
  },
  {
   "voice": "meathead",
@@ -84441,6 +87596,11 @@
  },
  {
   "voice": "meathead",
+  "text": "NERD TOWN. FULL FRONTAL. NO PIXIE.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "meathead",
   "text": "NERD TOWN. SMELLS LIKE BUTTER AND MY ASS.",
   "from": "FANTASY"
  },
@@ -84471,6 +87631,11 @@
  },
  {
   "voice": "meathead",
+  "text": "NEW BAR. SAME NAKED GUY.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
   "text": "NEW BELT!",
   "from": "ENEMY_KILL_LINES"
  },
@@ -84496,8 +87661,38 @@
  },
  {
   "voice": "meathead",
+  "text": "NEW FLOOR. FIRST NAKED GUY THROUGH IT.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
+  "text": "NEW FLOOR. NOW IT HAS SHIT ON IT.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
+  "text": "NEW FLOOR. SAME FAT GUY.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
   "text": "NEW GUYS. THEY JUST FLEW INTO MY FART CLOUD.",
   "from": "FANTASY"
+ },
+ {
+  "voice": "meathead",
+  "text": "NEW LANDMARKS. SAME GRUDGE. STILL NO PANTS.",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "meathead",
+  "text": "NEW STOOLS. NEW MIRROR. SAME ASSHOLES.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
+  "text": "NEW STOOLS. THEY WILL NEED NEWER ONES.",
+  "from": "FRONTIER"
  },
  {
   "voice": "meathead",
@@ -84851,8 +88046,73 @@
  },
  {
   "voice": "meathead",
+  "text": "NO ARTIE. I LEFT HIM A LITTLE SOMETHING. IN MY PANTS.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "meathead",
+  "text": "NO ARTIE. NO SET. FINALLY, SOME QUIET.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "meathead",
+  "text": "NO ARTIE. NOBODY TO WRITE ME UP FOR MY BALLS.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "meathead",
+  "text": "NO ARTIE. TEN OUT OF TEN.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "meathead",
+  "text": "NO ARTIE. TEN OUT OF TEN. I SHAT A LITTLE.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "meathead",
+  "text": "NO ARTIE. TEN OUT OF TEN. NAKED IS THE WAY TO RIDE.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "meathead",
   "text": "NO AUTOGRAPHS! I DON'T EVEN KNOW WHO YOU ARE!",
   "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "NO BOAT. CANNONBALL.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "meathead",
+  "text": "NO BOAT. SKINNY DIPPING.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "meathead",
+  "text": "NO BOAT. TIME TO WASH MY ASS.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "meathead",
+  "text": "NO BONER. JUST HABIT. THE WINDOW.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "meathead",
+  "text": "NO BONER. NO WINDOW. JUST MURDER.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "meathead",
+  "text": "NO BOUNTY? YOU ASSHOLES DO THIS FOR FREE?",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
+  "text": "NO BOUNTY. YOU ARE DOING THIS FOR FREE, DIPSHITS.",
+  "from": "FRONTIER"
  },
  {
   "voice": "meathead",
@@ -84921,13 +88181,53 @@
  },
  {
   "voice": "meathead",
+  "text": "NO CONDUCTOR. NO CLEANING FEE. BYE.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
+  "text": "NO CONDUCTOR. NO FARE. NO PANTS. I AM OUT.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
+  "text": "NO CONDUCTOR. STILL NO FREE RIDE.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
   "text": "NO COUCH. YOUR ASS HAS NOWHERE TO HIDE. LIKE MINE.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "NO DAD. NO BEER. NO PANTS. HOME.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "NO DAD. NO SHOW. NO BEER. FUCK THIS.",
   "from": "CARTOON"
  },
  {
   "voice": "meathead",
   "text": "NO DEPTH ON THAT SQUAT",
   "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "NO DRACULA ON THE SPEAKERS. NOBODY CHEWING INTO A MIC. NICE.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
+  "text": "NO DRACULA. NOBODY TO SEE MY DICK IN HIS FOYER.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
+  "text": "NO DRACULA. NOBODY TO TELL ME I SMELL. I SMELL.",
+  "from": "SPOOKY"
  },
  {
   "voice": "meathead",
@@ -84956,6 +88256,11 @@
  },
  {
   "voice": "meathead",
+  "text": "NO FUEL. NO PANTS. NO PARACHUTE.",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "meathead",
   "text": "NO GRAVITY. MY BALLS ARE JUST FLOATING IN THERE.",
   "from": "SPACE"
  },
@@ -84968,6 +88273,16 @@
   "voice": "meathead",
   "text": "NO GUNS. MY ASS IS DOING THE SHOOTING.",
   "from": "FANTASY"
+ },
+ {
+  "voice": "meathead",
+  "text": "NO HARRY. NO RAGE. JUST MY BALLS IN THE WIND.",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "meathead",
+  "text": "NO HIPPIE. NO LINE. MINE.",
+  "from": "FOREIGN"
  },
  {
   "voice": "meathead",
@@ -85046,8 +88361,18 @@
  },
  {
   "voice": "meathead",
+  "text": "NO MORE SHOWS. I CLOSED IT. IN SHITTY PANTS.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
   "text": "NO MORE SQUAWKING!",
   "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "NO MORE TRIALS. JUST GUYS WHO WANT ME DEAD.",
+  "from": "FANTASY"
  },
  {
   "voice": "meathead",
@@ -85068,6 +88393,11 @@
   "voice": "meathead",
   "text": "NO PANTS ON THE CAT. THE NETWORK'S GONNA LOVE THAT.",
   "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "NO PANTS TO GET WET. IN WE GO.",
+  "from": "ADVENTURE"
  },
  {
   "voice": "meathead",
@@ -85102,6 +88432,41 @@
  {
   "voice": "meathead",
   "text": "NO PANTS. SAVES TIME WITH PIPER.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "meathead",
+  "text": "NO PILOT. I'LL DRIVE. SORRY ABOUT THE SEAT.",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "meathead",
+  "text": "NO PILOT. NO PANTS. NO PROBLEM.",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "meathead",
+  "text": "NO PIPER ON THE SPEAKERS. PEACE AND QUIET.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "meathead",
+  "text": "NO PIPER PURRING. JUST MY ASS GURGLING.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "meathead",
+  "text": "NO PIPER, NO PRIZE. JUST SHIT AND TREES.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "meathead",
+  "text": "NO PIPER. JUST ME AND MY LOAD.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "meathead",
+  "text": "NO PIPER. THIS BONER HAS NO DESTINATION.",
   "from": "FANTASY"
  },
  {
@@ -85168,6 +88533,11 @@
   "voice": "meathead",
   "text": "NO SHOOTING DOWN HERE. SHE'LL HEAR THAT.",
   "from": "SPACE"
+ },
+ {
+  "voice": "meathead",
+  "text": "NO SHOW TODAY. STEVE'S STILL DEAD. BEST STUNT HE EVER PULLED.",
+  "from": "HOLLYWOOD"
  },
  {
   "voice": "meathead",
@@ -85267,6 +88637,21 @@
  {
   "voice": "meathead",
   "text": "NO TRAIN. JUST A BELL. I'M RINGING IT.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
+  "text": "NO TUCKER. NO FARE. I AM OUT.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
+  "text": "NO TUCKER. NO TICKET. HE'D HATE THIS.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
+  "text": "NO TUCKER. STILL HAVE TO CHASE THE DAMN THING NAKED.",
   "from": "FRONTIER"
  },
  {
@@ -85371,6 +88756,11 @@
  },
  {
   "voice": "meathead",
+  "text": "NOBODY DRIVING. NOBODY TO SEE MY ASS.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
   "text": "NOBODY EAT THAT JELLY. EVER.",
   "from": "CARTOON"
  },
@@ -85391,8 +88781,43 @@
  },
  {
   "voice": "meathead",
+  "text": "NOBODY HERE TO BILL ME. FREE RIDE.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
+  "text": "NOBODY HERE TO FINE ME FOR DECENCY. BYE.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
+  "text": "NOBODY HERE TO GET MAD AT THE SMELL.",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "meathead",
   "text": "NOBODY HERE. GOOD. NOBODY TO SMELL ME.",
   "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "NOBODY HOME. GOOD. NOBODY TO SEE MY DICK.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "meathead",
+  "text": "NOBODY HOME. I SENT HER TO THE SCRAPYARD.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "meathead",
+  "text": "NOBODY HOME. JUST HIS STAINS. AND NOW MINE.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "NOBODY HOME. JUST ME AND MY LOADED PANTS.",
+  "from": "SPACE"
  },
  {
   "voice": "meathead",
@@ -85406,8 +88831,23 @@
  },
  {
   "voice": "meathead",
+  "text": "NOBODY LEFT TO CHARGE ME FOR THE SMELL. I AM OUT.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
+  "text": "NOBODY LEFT TO LAUGH AT YOUR JOKES, ARTIE. NOBODY DID ANYWAY.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "meathead",
   "text": "NOBODY LEFT TO SEE MY DICK. THEIR LOSS. NOT REALLY.",
   "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "NOBODY LEFT TO SEE THIS. YOUR LOSS, ARTIE.",
+  "from": "ADVENTURE"
  },
  {
   "voice": "meathead",
@@ -85416,8 +88856,18 @@
  },
  {
   "voice": "meathead",
+  "text": "NOBODY LEFT TO YELL AT ME. KIND OF MISS IT.",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "meathead",
   "text": "NOBODY MOVE. ESPECIALLY ME.",
   "from": "SPACE"
+ },
+ {
+  "voice": "meathead",
+  "text": "NOBODY ON THE REMOTE. THEY JUST WANT MY DICK.",
+  "from": "FOREIGN"
  },
  {
   "voice": "meathead",
@@ -85466,8 +88916,33 @@
  },
  {
   "voice": "meathead",
+  "text": "NOBODY TO SMELL ME BUT THE BUGS. LATER, ARTIE.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "meathead",
   "text": "NOBODY WATCHED THIS. NOBODY'S SMELLING IT EITHER.",
   "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "NOBODY WOKE THEM UP. THEY SMELLED ME.",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "meathead",
+  "text": "NOBODY YELLING AT ME THIS TIME. BEST RIDE IN THE PARK.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "meathead",
+  "text": "NOBODY YELLING. JUST WARM PANTS. BEST RIDE IN THE PARK.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "meathead",
+  "text": "NOBODY YELLING. JUST WIND ON MY BALLS. BEST RIDE IN THE PARK.",
+  "from": "ADVENTURE"
  },
  {
   "voice": "meathead",
@@ -85481,6 +88956,11 @@
  },
  {
   "voice": "meathead",
+  "text": "NOBODY'S EVEN DRIVING IT.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
   "text": "NOBODY'S EVEN LOOKING UP. I'M NAKED. THAT'S HOW TIRED THEY ARE.",
   "from": "CARTOON"
  },
@@ -85488,6 +88968,16 @@
   "voice": "meathead",
   "text": "NOBODY'S LOOKING AT MY DICK NOW.",
   "from": "ADVENTURE"
+ },
+ {
+  "voice": "meathead",
+  "text": "NOBODY'S USING IT.",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "meathead",
+  "text": "NOBODY'S WATCHING FROM THE WINDOW. KILL 'EM ANYWAY.",
+  "from": "FANTASY"
  },
  {
   "voice": "meathead",
@@ -85567,6 +89057,21 @@
  {
   "voice": "meathead",
   "text": "NOT AGAIN! NOT THE PANTS!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
+  "text": "NOT AGAIN.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
+  "text": "NOT AGAIN. I HAD ONE CLEAN SPOT LEFT.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
+  "text": "NOT AGAIN. NAKED, AGAIN.",
   "from": "FRONTIER"
  },
  {
@@ -85876,6 +89381,21 @@
  },
  {
   "voice": "meathead",
+  "text": "NOTHING DOWN HERE BUT RATS. AND ME. THE BIGGEST RAT.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "meathead",
+  "text": "NOTHING DOWN HERE BUT RATS. AND THEY SMELL ME.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "meathead",
+  "text": "NOTHING DOWN HERE BUT RATS. KEEP THEM AWAY FROM MY NUTS.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "meathead",
   "text": "NOTHING ELSE IN THERE. I CHECKED.",
   "from": "SPACE"
  },
@@ -85886,6 +89406,11 @@
  },
  {
   "voice": "meathead",
+  "text": "NOTHING HERE. THE MATTRESS IS STILL BENT. I'M OUT.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "meathead",
   "text": "NOTHING I OWN COULD DENT IT. A PAPERCLIP OPENED IT. AMERICA.",
   "from": "SPACE"
  },
@@ -85893,6 +89418,11 @@
   "voice": "meathead",
   "text": "NOTHING IN HERE BUT FARTS!",
   "from": "EMPTY_BAG_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "NOTHING LEFT BUT A GREASE STAIN. SMELLS LIKE A FRY BASKET.",
+  "from": "SPOOKY"
  },
  {
   "voice": "meathead",
@@ -85962,6 +89492,11 @@
  {
   "voice": "meathead",
   "text": "NOW I'VE GOT SHIT AND HEPATITIS!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "NOW IT'S THE WHOLE FAMILY. YOU'RE WELCOME.",
   "from": "CARTOON"
  },
  {
@@ -86336,6 +89871,11 @@
  },
  {
   "voice": "meathead",
+  "text": "OH, FUCK. THE WIDOW.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "meathead",
   "text": "OH, GOOD. THE BIG ONE. LIKE MY EX-WIFE.",
   "from": "ADVENTURE"
  },
@@ -86461,6 +90001,11 @@
  },
  {
   "voice": "meathead",
+  "text": "OKAY. I EARNED THAT.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
   "text": "OKAY. KILLING MOVIE PEOPLE. FINE.",
   "from": "HOLLYWOOD"
  },
@@ -86513,6 +90058,11 @@
   "voice": "meathead",
   "text": "OMAE WA MOU... SHAT DESU! I KNOW JAPANESE FROM CARTOONS.",
   "from": "UPGRADES"
+ },
+ {
+  "voice": "meathead",
+  "text": "ON THE TRAIN. NOBODY LEFT TO BILL ME FOR THE SMELL.",
+  "from": "FRONTIER"
  },
  {
   "voice": "meathead",
@@ -86576,7 +90126,22 @@
  },
  {
   "voice": "meathead",
+  "text": "ONE LEFT. THEN A WET WIPE.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "meathead",
   "text": "ONE LEFT. THEN A WET WIPE. THEN PIPER.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "meathead",
+  "text": "ONE LEFT. THEN NOTHING. THEN HOME.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "meathead",
+  "text": "ONE LEFT. THEN PANTS. MAYBE.",
   "from": "FANTASY"
  },
  {
@@ -86612,6 +90177,11 @@
  {
   "voice": "meathead",
   "text": "ONE MORE FOR THE ROAD.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "ONE MORE NAME FOR THE PLAQUE. ONE MORE STAIN FOR MY PANTS.",
   "from": "CARTOON"
  },
  {
@@ -86781,8 +90351,28 @@
  },
  {
   "voice": "meathead",
+  "text": "OUT OF FRYER OIL. OF COURSE IT'S OUT OF FRYER OIL.",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "meathead",
   "text": "OUT OF FUEL! THE CURTAINS AREN'T!",
   "from": "FINALE_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "OUT OF FUEL. AT LEAST THE SEAT CAN BURN.",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "meathead",
+  "text": "OUT OF GAS. GOING DOWN NAKED.",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "meathead",
+  "text": "OUT OF GAS. ME TOO. OH WAIT, NO.",
+  "from": "FOREIGN"
  },
  {
   "voice": "meathead",
@@ -87911,6 +91501,16 @@
  },
  {
   "voice": "meathead",
+  "text": "PIPER'S DEAD. MY DICK STILL WEARS BLACK.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "meathead",
+  "text": "PIPER'S GONE. THE SHIT STAYED.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "meathead",
   "text": "PIRANHA! ON MY ASS!",
   "from": "ADVENTURE"
  },
@@ -88361,8 +91961,38 @@
  },
  {
   "voice": "meathead",
+  "text": "QUIET DOWN HERE NOW. JUST A NAKED GUY IN A BASEMENT. NORMAL.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "meathead",
+  "text": "QUIET DOWN HERE NOW. NO ROBOT BITCH IN THE PIPES.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "meathead",
+  "text": "QUIET DOWN HERE NOW. NOTHING TO SHIT MYSELF OVER. TOO LATE.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "meathead",
   "text": "QUIET, YOU MEATHEAD. SHE CAN HEAR THAT.",
   "from": "SPACE"
+ },
+ {
+  "voice": "meathead",
+  "text": "QUIET. JUST ME AND MY PANTS. AND THE SMELL.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
+  "text": "QUIET. NOBODY ON THE SPEAKERS TO SAY I'M NAKED.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
+  "text": "QUIET. THE FAT COUNT FINALLY STOPPED EATING.",
+  "from": "SPOOKY"
  },
  {
   "voice": "meathead",
@@ -88771,6 +92401,11 @@
  },
  {
   "voice": "meathead",
+  "text": "RESERVED FOR TUCKER. HE WOULD WANT A REFUND.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
   "text": "RESERVED FOR TUCKER. NOBODY HOME.",
   "from": "FRONTIER"
  },
@@ -88808,6 +92443,11 @@
   "voice": "meathead",
   "text": "RETURN TO SENDERRR!",
   "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "REVENGE DENIED.",
+  "from": "FANTASY"
  },
  {
   "voice": "meathead",
@@ -88862,6 +92502,11 @@
  {
   "voice": "meathead",
   "text": "RIDE'S OVER. I'M STILL HARD. FEAR BONER.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "meathead",
+  "text": "RIDE'S OVER. NO BONER. NO REASON.",
   "from": "FANTASY"
  },
  {
@@ -89066,6 +92711,16 @@
  },
  {
   "voice": "meathead",
+  "text": "ROBBERS. NO POCKETS, NO MONEY, NO PANTS.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
+  "text": "ROBBERS. ROB THE PANTS. I DARE YOU.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
   "text": "ROBOT ARMS THAT SAY BEEF. THAT IS MY NAME NOW.",
   "from": "UPGRADES"
  },
@@ -89241,7 +92896,17 @@
  },
  {
   "voice": "meathead",
+  "text": "ROSES. FOR HER GRAVE. NO.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "meathead",
   "text": "ROSES. THEY SMELL BETTER THAN ME.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "meathead",
+  "text": "ROSES. THORNY ONES. PIPER GOT NONE.",
   "from": "FANTASY"
  },
  {
@@ -89491,8 +93156,58 @@
  },
  {
   "voice": "meathead",
+  "text": "SAME CRASH. MY BALLS HIT THE DASH.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
+  "text": "SAME CRASH. NO SEATBELT. NO PANTS.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
+  "text": "SAME CRASH. SAME PANTS.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
+  "text": "SAME DRAIN. HOLD ON TO YOUR BALLS, MEATHEAD.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "meathead",
+  "text": "SAME DRAIN. NOBODY FIXED IT. NOBODY CLEANED ME EITHER.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "meathead",
+  "text": "SAME DRAIN. THEY FIXED THE ROOF FIRST? REALLY?",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "meathead",
+  "text": "SAME GULCH. SAME CRASH.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
   "text": "SAME HOLE. SAME SHITTY MOVIE.",
   "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "meathead",
+  "text": "SAME SPIKES. EVERYTHING DANGLING. GREAT.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
+  "text": "SAME SPIKES. HURRY UP, I GOTTA SHIT. AGAIN.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
+  "text": "SAME SPIKES. NEW BLOOD. MINE, PROBABLY.",
+  "from": "SPOOKY"
  },
  {
   "voice": "meathead",
@@ -89503,6 +93218,16 @@
   "voice": "meathead",
   "text": "SAME WOBBLY STACKS. NOW THEY'RE SHOOTING AT ME. UPGRADE.",
   "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "SAME WRECK. FRESH LOAD.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
+  "text": "SAME WRECK. NO CONDUCTOR. NEW PAINT, THOUGH.",
+  "from": "FRONTIER"
  },
  {
   "voice": "meathead",
@@ -89591,6 +93316,11 @@
  },
  {
   "voice": "meathead",
+  "text": "SAWS ON. TUCK IT IN. NOTHING TO TUCK IT IN.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
   "text": "SAWS! THIS RIDE GOT BETTER.",
   "from": "FRONTIER"
  },
@@ -89598,6 +93328,16 @@
   "voice": "meathead",
   "text": "SAWS. GOOD THING I ALREADY SHAT.",
   "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
+  "text": "SAWS. I SHAT. WE ARE EVEN.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
+  "text": "SAY HI TO PIPER. TELL HER NOTHING CHANGED DOWN HERE.",
+  "from": "FANTASY"
  },
  {
   "voice": "meathead",
@@ -89703,6 +93443,11 @@
   "voice": "meathead",
   "text": "SECURITY! THAT'S NOT HOW YOU CHECK A BADGE!",
   "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "SEE DAD GUY LIVE. NOT ANYMORE.",
+  "from": "CARTOON"
  },
  {
   "voice": "meathead",
@@ -89981,6 +93726,11 @@
  },
  {
   "voice": "meathead",
+  "text": "SHE MADE MY DICK GO SOFT. FROM THE DOOR. YOU DODGED A WHALE.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "meathead",
   "text": "SHE NEEDS A PRICK. THE FLINTLOCK. NOT MINE.",
   "from": "FANTASY"
  },
@@ -90013,6 +93763,11 @@
   "voice": "meathead",
   "text": "SHE REALLY LOVED THAT ASSHOLE.",
   "from": "FOREIGN"
+ },
+ {
+  "voice": "meathead",
+  "text": "SHE SAW THIS AND SHE DIED. YOU'RE NEXT.",
+  "from": "FANTASY"
  },
  {
   "voice": "meathead",
@@ -90098,6 +93853,26 @@
   "voice": "meathead",
   "text": "SHE TURNED AROUND!",
   "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
+  "text": "SHE WANTED MEN TO BLEED FOR HER. NOW THEY BLEED FOR HER CORPSE.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "meathead",
+  "text": "SHE WANTED TO BE FOUGHT OVER. NOBODY CAME.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "meathead",
+  "text": "SHE WAS A VOICE AND FOUR HUNDRED POUNDS. YOU WANT TO DIE FOR THAT?",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "meathead",
+  "text": "SHE WASN'T A PIXIE. SHE WAS A BUFFET WITH A VOICE.",
+  "from": "FANTASY"
  },
  {
   "voice": "meathead",
@@ -91081,6 +94856,21 @@
  },
  {
   "voice": "meathead",
+  "text": "SKIPPER OF THE YEAR. AND I'M NAKED ON HIS GRAVE.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "meathead",
+  "text": "SKIPPER OF THE YEAR. DEAD OF THE YEAR.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "meathead",
+  "text": "SKIPPER OF THE YEAR. NOW HE'S MULCH.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "meathead",
   "text": "SKIPPING LEG DAY IS A SIN",
   "from": "VULGARITIES"
  },
@@ -91198,6 +94988,11 @@
   "voice": "meathead",
   "text": "SMELL THAT ON THE WAY DOWN.",
   "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
+  "text": "SMELL THAT? THAT IS WHAT HAPPENED TO PIPER.",
+  "from": "FANTASY"
  },
  {
   "voice": "meathead",
@@ -92206,7 +96001,47 @@
  },
  {
   "voice": "meathead",
+  "text": "STEVE TESTED THIS RIDE. I TESTED HIM, NAKED. HE FAILED.",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "meathead",
+  "text": "STEVE TESTED THIS RIDE. I TESTED HIM. HE FAILED. I SHIT MYSELF. WE BOTH LOST.",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "meathead",
+  "text": "STEVE TESTED THIS RIDE. THEN I TESTED HIM. HE FAILED.",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "meathead",
+  "text": "STEVE WOULD BE JEALOUS. NOBODY'S EVER SHIT HIMSELF FOR HIM.",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "meathead",
+  "text": "STEVE. DEAD, AND HE STILL LOOKS BETTER THAN MY PANTS.",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "meathead",
+  "text": "STEVE. DEAD, AND I'M THE ONE WITH NOTHING ON.",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "meathead",
+  "text": "STEVE. TWO SECONDS IN A MOVIE AND ONE SECOND WITH ME.",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "meathead",
   "text": "STEVE'S HEADSHOT ON THE BOARD. NOBODY'S CALLED HIM SINCE 1986.",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "meathead",
+  "text": "STEVE'S STILL IN THE YELLOW SUIT. I'M IN NOTHING. I WIN.",
   "from": "HOLLYWOOD"
  },
  {
@@ -92236,8 +96071,28 @@
  },
  {
   "voice": "meathead",
+  "text": "STILL ALIVE. NOBODY TO PUT ON SOMETHING SLUTTY.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "meathead",
   "text": "STILL ALIVE. PIPER, PUT ON SOMETHING SLUTTY.",
   "from": "FANTASY"
+ },
+ {
+  "voice": "meathead",
+  "text": "STILL DEAD. NOBODY EVEN SWEPT HER UP. I'M OUT.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "meathead",
+  "text": "STILL DEAD. NOBODY TO DANCE WITH NAKED. I'M OUT.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "meathead",
+  "text": "STILL DEAD. STILL SMELLS. SOME OF THAT'S ME. I'M OUT.",
+  "from": "SPACE"
  },
  {
   "voice": "meathead",
@@ -92321,8 +96176,23 @@
  },
  {
   "voice": "meathead",
+  "text": "STILL HANGING. THE FLOOR SMELLS LIKE HIM. AND ME.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
   "text": "STILL HERE. BARELY.",
   "from": "FANTASY"
+ },
+ {
+  "voice": "meathead",
+  "text": "STILL IN LINE. FOR A DEAD GUY'S BOAT. I'M THE SMART ONE.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "meathead",
+  "text": "STILL IN LINE. FOR A DEAD GUY'S BOAT. SUCKERS.",
+  "from": "ADVENTURE"
  },
  {
   "voice": "meathead",
@@ -92358,6 +96228,21 @@
   "voice": "meathead",
   "text": "STILL RESETTING. I'M STANDING HERE NAKED.",
   "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "STILL STUCK UP THERE. ONE BUFFET TOO MANY, COUNT.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
+  "text": "STILL STUCK. AT LEAST HE DIED WITH HIS PANTS ON.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
+  "text": "STILL STUCK. HE SHIT THE FLOOR. I SHIT MY PANTS. EVEN.",
+  "from": "SPOOKY"
  },
  {
   "voice": "meathead",
@@ -92692,6 +96577,11 @@
  {
   "voice": "meathead",
   "text": "STUNTMAN STEVE. EXTRA CRISPY.",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "meathead",
+  "text": "STUNTMAN STEVE. STILL DEAD. STILL SMILING.",
   "from": "HOLLYWOOD"
  },
  {
@@ -93368,6 +97258,21 @@
   "voice": "meathead",
   "text": "THAT ICICLE CHIPPED MY QUADRICEPS!",
   "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "THAT IS ALL OF THEM. KEEPING THE BIKE.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
+  "text": "THAT IS ALL OF THEM. NAKED AND UNBEATEN.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
+  "text": "THAT IS ALL OF THEM. TRUST ME, YOU DO NOT WANT THIS SEAT.",
+  "from": "FRONTIER"
  },
  {
   "voice": "meathead",
@@ -94286,6 +98191,11 @@
  },
  {
   "voice": "meathead",
+  "text": "THE AMPHITHEATER. NOBODY ON STAGE. I MADE SURE.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
   "text": "THE ANIME KID HIT ME WITH A FOAM SWORD!",
   "from": "FOREIGN"
  },
@@ -94548,6 +98458,11 @@
   "voice": "meathead",
   "text": "THE BRIDE'S GOT A RIGHT HOOK!",
   "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
+  "text": "THE BRIDGE IS DOWN. SO IS PIPER.",
+  "from": "FANTASY"
  },
  {
   "voice": "meathead",
@@ -94966,6 +98881,11 @@
  },
  {
   "voice": "meathead",
+  "text": "THE DAD JOINED THEM. I HELPED. I SMELL.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
   "text": "THE DARK ICE IS THIN. THE SIGN DOESN'T SAY KEEP OFF. IT SAYS SORRY.",
   "from": "FOREIGN"
  },
@@ -95073,6 +98993,21 @@
   "voice": "meathead",
   "text": "THE DRAGON'S LIVE! MY FEET!",
   "from": "FANTASY"
+ },
+ {
+  "voice": "meathead",
+  "text": "THE DRAIN AGAIN. AT LEAST IT TAKES THE SHIT WITH ME.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "meathead",
+  "text": "THE DRAIN AGAIN. NOBODY FIXED THE FUCKING DRAIN.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "meathead",
+  "text": "THE DRAIN AGAIN. NOTHING LEFT ON ME FOR IT TO SUCK OFF.",
+  "from": "ADVENTURE"
  },
  {
   "voice": "meathead",
@@ -95511,6 +99446,16 @@
  },
  {
   "voice": "meathead",
+  "text": "THE HIPPIE'S DEAD AND THE BUILDINGS STILL HOLD A GRUDGE.",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "meathead",
+  "text": "THE HIPPIE'S STILL DEAD. HIS TEMPER TOO.",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "meathead",
   "text": "THE HIPSTER?! GET YOUR OWN RAMP!",
   "from": "m1/game/stages/ernie/jetski.ts:488"
  },
@@ -95653,6 +99598,21 @@
   "voice": "meathead",
   "text": "THE LIGHTS ARE ON. THE GUY ON THE TAPE SHUT UP. BEST VERSION.",
   "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "THE LINE'S LONGER. NO BOAT. AND I SHIT MYSELF.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "meathead",
+  "text": "THE LINE'S LONGER. NO BOAT. NO PANTS. NO PROBLEM.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "meathead",
+  "text": "THE LINE'S LONGER. THERE'S NO FUCKING BOAT.",
+  "from": "ADVENTURE"
  },
  {
   "voice": "meathead",
@@ -95906,6 +99866,11 @@
  },
  {
   "voice": "meathead",
+  "text": "THE OPERATOR TURNED ON THE SAWS. RESPECT.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
   "text": "THE OVAL OFFICE. EVEN I KNOW THIS ONE.",
   "from": "CARTOON"
  },
@@ -96086,6 +100051,11 @@
  },
  {
   "voice": "meathead",
+  "text": "THE PROPS AGAIN. AT LEAST THE BIG ONE IS SCRAP.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "meathead",
   "text": "THE PUDDLE'S LIVE!",
   "from": "FANTASY"
  },
@@ -96198,6 +100168,11 @@
   "voice": "meathead",
   "text": "THE RIVER ENDS IN A WOODCHIPPER?!",
   "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
+  "text": "THE RIVER NEEDS THIS MORE THAN I DO.",
+  "from": "ADVENTURE"
  },
  {
   "voice": "meathead",
@@ -96736,6 +100711,16 @@
  },
  {
   "voice": "meathead",
+  "text": "THE TRAIN CUT ME LOOSE. NOBODY EVEN DID IT.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
+  "text": "THE TRAIN DUMPS CARS NOW. TUCKER TAUGHT IT THAT.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
   "text": "THE TRAIN SHOT ME OUT OF THE HOLE!",
   "from": "FOREIGN"
  },
@@ -97013,6 +100998,11 @@
   "voice": "meathead",
   "text": "THE WOODS SPIT ME OUT IN THE PARKING LOT.",
   "from": "INTRO"
+ },
+ {
+  "voice": "meathead",
+  "text": "THE WOODS. FULL OF GUYS WHO MISS A FAT LADY.",
+  "from": "FANTASY"
  },
  {
   "voice": "meathead",
@@ -97396,6 +101386,11 @@
  },
  {
   "voice": "meathead",
+  "text": "THEY FIXED THE BAR. I'LL RUIN IT AGAIN.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
   "text": "THEY FIXED THE STOP. AND SENT ME THE BILL.",
   "from": "FRONTIER"
  },
@@ -97426,6 +101421,11 @@
  },
  {
   "voice": "meathead",
+  "text": "THEY JUST REBUILT THAT STOP. CRASHED IT AGAIN.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
   "text": "THEY KEEP SENDING 'EM DOWN!",
   "from": "SPOOKY"
  },
@@ -97442,6 +101442,11 @@
  {
   "voice": "meathead",
   "text": "THEY MADE A TALK RADIO GUY A CARTOON VILLAIN. FOR WHAT KIDS?",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "THEY NEED A NEW PLAQUE. THE DAD MADE IT.",
   "from": "CARTOON"
  },
  {
@@ -97476,6 +101481,56 @@
  },
  {
   "voice": "meathead",
+  "text": "THEY REBUILT EVERY LANDMARK. AND NOBODY UNPLUGGED THE REMOTE.",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "meathead",
+  "text": "THEY REBUILT THE BAR. ROUND TWO.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
+  "text": "THEY REBUILT THE FLOOR. I BROKE IT WITH MY BARE ASS.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
+  "text": "THEY REBUILT THE FLOOR. I REBROKE IT.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
+  "text": "THEY REBUILT THE FLOOR. I REBROKE IT. AND MY PANTS.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
+  "text": "THEY REBUILT THE SALOON. NOBODY BUILT ME PANTS.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
+  "text": "THEY REBUILT THEM. THEY STILL WANT ME DEAD. I ALREADY SHAT.",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "meathead",
+  "text": "THEY RESET THE CEILING. NOTHING BETWEEN THE SPIKES AND MY ASS.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
+  "text": "THEY RESET THE CEILING. OF COURSE THEY RESET THE CEILING.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
+  "text": "THEY RESET THE CEILING. THEY DID NOT RESET MY PANTS.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
   "text": "THEY SAY BEEF! THEY KNOW ME!",
   "from": "UPGRADES"
  },
@@ -97506,8 +101561,23 @@
  },
  {
   "voice": "meathead",
+  "text": "THEY WANT REVENGE. THEY GET GRAVITY.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "meathead",
+  "text": "THEY WANT REVENGE. THEY GET MY SMELL AT A HUNDRED MILES AN HOUR.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "meathead",
   "text": "THEY WENT FOR THE TAINT!",
   "from": "ADVENTURE"
+ },
+ {
+  "voice": "meathead",
+  "text": "THEY WERE STUNT DOUBLES? THEY DIED LIKE STARS.",
+  "from": "HOLLYWOOD"
  },
  {
   "voice": "meathead",
@@ -97628,6 +101698,16 @@
   "voice": "meathead",
   "text": "THEY'RE STILL HOSING THE LAST ROBOT OFF THE BUMPER.",
   "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "THEY'RE STILL IN LINE. FOR A DEAD GUY'S BOAT.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "meathead",
+  "text": "THEY'RE STILL PUTTING HIS FACE UP. HE'D LOVE THAT. THE PRICK.",
+  "from": "HOLLYWOOD"
  },
  {
   "voice": "meathead",
@@ -98451,6 +102531,11 @@
  },
  {
   "voice": "meathead",
+  "text": "TRAIN ROBBERS. THE GUY WITH THE MONEY'S DEAD.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
   "text": "TRAIN TO FAILURE",
   "from": "VULGARITIES"
  },
@@ -98512,6 +102597,11 @@
  {
   "voice": "meathead",
   "text": "TRIAL ONE. NOW WHERE'S MY PUSSY?",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "meathead",
+  "text": "TRIAL OVER. NO TRIAL. JUST ME. AND THIS.",
   "from": "FANTASY"
  },
  {
@@ -98587,6 +102677,21 @@
  {
   "voice": "meathead",
   "text": "TUCKER ON A STICK. FAIR FOOD.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
+  "text": "TUCKER'S COFFIN. EMPTY. COLD. LIKE MY BALLS.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
+  "text": "TUCKER'S COFFIN. EMPTY. I COULD PUT THESE PANTS IN IT.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
+  "text": "TUCKER'S COFFIN. STILL EMPTY. THE WOODS ATE HIM.",
   "from": "FRONTIER"
  },
  {
@@ -98911,6 +103016,11 @@
  },
  {
   "voice": "meathead",
+  "text": "UP ON THE WALL. I CAN SEE HER TOWER. NOBODY HOME.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "meathead",
   "text": "UP ON THE WALL. THE WIND'S CARRYING MY SMELL TO ORLANDO.",
   "from": "FANTASY"
  },
@@ -98937,6 +103047,11 @@
  {
   "voice": "meathead",
   "text": "UP THE TOWER. IT IS NOT THE ONLY THING UP.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "meathead",
+  "text": "UP THE TOWER. NO SEX AT THE TOP. JUST A MESS.",
   "from": "FANTASY"
  },
  {
@@ -99721,6 +103836,11 @@
  },
  {
   "voice": "meathead",
+  "text": "WHAT'S THAT NOISE? OH. GAS.",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "meathead",
   "text": "WHAT'S THE FIVE DAY, WEATHER GUY?",
   "from": "CARTOON"
  },
@@ -99776,6 +103896,16 @@
  },
  {
   "voice": "meathead",
+  "text": "WHEEL'S CLEAR. NAKED AND UNDEFEATED.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "meathead",
+  "text": "WHEEL'S CLEAR. NO PRIZE THIS TIME. JUST BODIES.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "meathead",
   "text": "WHEEL'S CLEAR. PIPER, I'M COMING.",
   "from": "FANTASY"
  },
@@ -99787,6 +103917,11 @@
  {
   "voice": "meathead",
   "text": "WHEEL'S CLEAR. THE BONER LIVES.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "meathead",
+  "text": "WHEEL'S CLEAR. THEY DIED FOR A FAT CHICK AND A SMELL.",
   "from": "FANTASY"
  },
  {
@@ -101171,6 +105306,31 @@
  },
  {
   "voice": "meathead",
+  "text": "YOU AGAIN? FINE. I KILL YOU IN RERUNS TOO.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "YOU AGAIN? I ALREADY SHIT MYSELF FOR YOU ONCE.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "meathead",
+  "text": "YOU AGAIN? I LOST MY PANTS SINCE. EYES UP HERE.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "meathead",
+  "text": "YOU AGAIN? THEY FIXED YOU BEFORE THEY FIXED THE BOAT?",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "meathead",
+  "text": "YOU AGAIN. ME NAKED AGAIN. LET'S GO.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
   "text": "YOU AIR-HEADED PIECE OF SHIT!",
   "from": "HURT"
  },
@@ -101208,6 +105368,11 @@
   "voice": "meathead",
   "text": "YOU CALL THIS HEAT? I'VE HAD HOTTER SHOWERS!",
   "from": "HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "YOU CAME BACK FOR THIS SMELL? BRAVE.",
+  "from": "CARTOON"
  },
  {
   "voice": "meathead",
@@ -101323,6 +105488,11 @@
   "voice": "meathead",
   "text": "YOU HIT ME WITH A GOLF CART?!",
   "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "meathead",
+  "text": "YOU HORNY IDIOTS NEVER SAW HER. I DID. I SHIT MYSELF.",
+  "from": "FANTASY"
  },
  {
   "voice": "meathead",
@@ -101508,6 +105678,11 @@
   "voice": "meathead",
   "text": "YOU WANNA GO? LET'S GO, GECKOS.",
   "from": "ADVENTURE"
+ },
+ {
+  "voice": "meathead",
+  "text": "YOU WANT REVENGE FOR THAT? SHE WAS FOUR HUNDRED POUNDS OF CATFISH.",
+  "from": "FANTASY"
  },
  {
   "voice": "meathead",

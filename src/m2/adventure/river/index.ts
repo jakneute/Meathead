@@ -14,6 +14,7 @@
 // aquatic dinosaur tank with the guests behind its glass, and the storm drain's intake: it pulls, then it has him,
 // and he comes out over the raptor pen (the dino section's start, falling: `dinoArrival` set for it).
 
+import { bossGone } from '../../emptyArena';
 import type { GameState } from '../../../m1/game/core/state';
 import type { FrameContext } from '../../../m1/game/core/context';
 import type { Enemy } from '../../../m1/types';
@@ -37,7 +38,7 @@ import {
 import {
   ARTIE_WELCOME, BROTHER, BROTHER_ARTIE, ARTIE_TOUR, ARTIE_GAS, ARTIE_RADIO, ARTIE_STUCK, MEATHEAD_STUCK, ARTIE_ALONE,
   ARTIE_LEFT, ARTIE_LECTURE, ARTIE_BACK, ARTIE_LEFT_STUCK, ARTIE_HELP, ARTIE_ASK, ARTIE_BACK_STUCK,
-  MEATHEAD_JUMP, MEATHEAD_UNDER, MEATHEAD_AIR, GUESTS_SEE, GUESTS_KILL, type Dressed, type ByPants,
+  MEATHEAD_JUMP, MEATHEAD_UNDER, MEATHEAD_DRAIN_BACK, MEATHEAD_AIR, GUESTS_SEE, GUESTS_KILL, type Dressed, type ByPants,
 } from './lines';
 import { drawRiverBackdrop, drawRiverBack, drawRiverFront, COUGHS } from './draw';
 import { startPip, pipLine, stepPip, drawPip, dropPip, type ArtiePip } from './artiePip';
@@ -141,6 +142,8 @@ export const artieAt = (rv: River) => ({ x: rv.boat.x + 200, y: BOAT.deck });
 const runsFrom = (pts: [number, number][]): GroundRun[] => pts.slice(1).map(([bx, by], i) => ({ x1: R(pts[i][0]), y1: pts[i][1], x2: R(bx), y2: by, surface: 'riverbed' }));
 
 const build = (state: GameState) => {
+  // (back after Artie's dead: no boat, no skipper; he goes in off the dock (the owner's: "you just jump to the water"))
+  boatRide.on = !bossGone('adventure');
   const rv = getRiver(state);
   // The dock (dry land), then the river bed (its blocks tagged: the camera leaves it alone till he's under)
   lay(state, [{ x1: x0, y1: GY, x2: R(DOCK), y2: GY, surface: 'dock' }]);
@@ -550,7 +553,7 @@ export const river: Section = {
     updateDrain(ctx, rv);
     updateStain(ctx, rv);
     // Saying things the once each, swimming past them
-    if (p.swimming) for (const [x, k] of CALLOUTS) if (rx > x && !rv.said.has(k)) { rv.said.add(k); if (rv.talk.q.length < 2) rv.talk.q.push(mh(MEATHEAD_UNDER[k])); }
+    if (p.swimming) for (const [x, k] of CALLOUTS) if (rx > x && !rv.said.has(k)) { rv.said.add(k); if (rv.talk.q.length < 2) rv.talk.q.push(mh(k === 'drain' && bossGone('adventure') ? pick(MEATHEAD_DRAIN_BACK[dressed(state)]) : MEATHEAD_UNDER[k])); }
     stepTalk(state, rv.talk);
     if (rv.rage && !stepPip(state, rv.rage, { x: rv.boat.x + 200, y: BOAT.deck - ARTIE_H - 8 })) rv.rage = undefined;
     return rv.suck > 0 ? ({}) as typeof controls : controls;

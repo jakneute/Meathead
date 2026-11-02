@@ -25,6 +25,7 @@
 import type { GameState } from '../../../m1/game/core/state';
 import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../../../m1/constants';
 import { timeOfDay, drawTodSky, farTint, cloudTint, skyAt } from '../../timeOfDay';
+import { bossGone } from '../../emptyArena';
 import { INK, box, checker, mix, hash, pixelBlob, pole, ball, text, stamp, bandedGradient, bendFloor, tilePattern } from '../../intro/art/kit';
 import { drawGuest as drawParkGuest } from '../../frontier/town/people';
 import { STONE, MOSS, PLY, SHELL, FOAM, DARK, stoneWall, vineDown, plaque, glyph } from './stone';
@@ -543,7 +544,7 @@ const sides = (c: Ctx, e: Eye) => {
 /** The roof's top (the bit he stands on): each tile its own (lit tread going back, its front the top course); gone, the
  * hole: the shell's broken edge, the framing in the dark, the dark. */
 const roofTop = (c: Ctx, e: Eye, r: RoofLook, f: number) => {
-  const n = r.tiles.length;
+  const n = r.tiles.length, fixed = bossGone('adventure');
   const look = e.y < RY - 1;
   for (let i = 0; i < n; i++) {
     const t = r.tiles[i], x = ROOF_L + i * TILE;
@@ -571,6 +572,16 @@ const roofTop = (c: Ctx, e: Eye, r: RoofLook, f: number) => {
     box(c, x + j, RY, TILE, 26, i % 2 ? STONE[4] : mix(STONE[4], STONE[3], 0.5));
     box(c, x + j, RY + 24, TILE, 2, STONE[1]); box(c, x + j + TILE - 1, RY, 1, 26, STONE[1]);
     box(c, x + j, RY - 2, TILE, 2, STONE[6]); box(c, x + j, RY, TILE, 1, '#FFF4D6');
+    // (back after Artie's dead: they fixed it (the owner's: "they fixed the roof, now it collapsed again"): fresh cement
+    // patched into most of the top course, trowel lines in it, the odd bit of caution tape still stuck on)
+    if (fixed) {
+      if (i % 3 !== 1) {
+        box(c, x + j + 2, RY + 4, TILE - 4, 18, i % 2 ? '#B8B4AC' : '#C4C0B6');
+        box(c, x + j + 2, RY + 4, TILE - 4, 1, '#D8D4CA'); box(c, x + j + 2, RY + 21, TILE - 4, 1, '#8C887F');
+        box(c, x + j + 5, RY + 10, TILE - 12, 1, '#9C988F'); box(c, x + j + 4, RY + 16, TILE - 14, 1, '#9C988F');
+      }
+      if (i % 4 === 2) for (let k = 0; k + 4 <= TILE - 4; k += 4) box(c, x + j + 2 + k, RY + 12, 4, 3, (k >> 2) % 2 ? '#1C1917' : '#FACC15');
+    }
     if (t.shake) { c.strokeStyle = STONE[0]; c.lineWidth = 1; c.beginPath(); c.moveTo(x + 5, RY + 1); c.lineTo(x + 9, RY + 8); c.lineTo(x + 6, RY + 14); c.lineTo(x + 11, RY + 24); c.stroke(); }
   }
 };

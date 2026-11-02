@@ -43,11 +43,51 @@ export const OPERATOR_DOCK: Record<Dressed, string[]> = {
   nude: ['EXTRA FAST PASS. ARTIE, YOU GOT A NAKED ONE.'],
 };
 
+// ---- Back after Artie's dead (the owner's: "there's no boat or 'active attendand' on duty, the line is still really
+// long and people complain about the line not moving"). No operator at the dock; he just goes in off the end of it.
+
+/** Meathead at the wait-time signs, back (one of these). */
+export const MEATHEAD_SIGNS_BACK: Record<Dressed, string[]> = {
+  clean: ["THE LINE'S LONGER. THERE'S NO FUCKING BOAT.", "THEY'RE STILL IN LINE. FOR A DEAD GUY'S BOAT."],
+  shitty: ["THE LINE'S LONGER. NO BOAT. AND I SHIT MYSELF.", "STILL IN LINE. FOR A DEAD GUY'S BOAT. SUCKERS."],
+  nude: ["THE LINE'S LONGER. NO BOAT. NO PANTS. NO PROBLEM.", "STILL IN LINE. FOR A DEAD GUY'S BOAT. I'M THE SMART ONE."],
+};
+/** Somebody in line, out back, as he goes by: it hasn't moved. */
+export const GUEST_STUCK: Record<Dressed, string[]> = {
+  clean: ["IT HASN'T MOVED IN FOUR HOURS!", "THERE'S NO BOAT! WHY ARE WE STILL IN LINE?!", 'HEY, FATSO! IS IT MOVING UP THERE?'],
+  shitty: ["IT HASN'T MOVED IN FOUR HOURS! AND NOW IT SMELLS!", "WE'VE BEEN HERE SO LONG HE SHIT HIMSELF!", "IS IT MOVING UP THERE? NO, DON'T COME CLOSER!"],
+  nude: ["IT HASN'T MOVED IN FOUR HOURS! NOW THERE'S A NAKED GUY!", 'THE LINE IS SO LONG HE LOST HIS PANTS IN IT!', 'IS IT MOVING UP THERE? WHY ARE YOU NAKED?!'],
+};
+/** A staffer, explaining it to them. */
+export const STAFF_EXCUSE_BACK: Record<Dressed, string[]> = {
+  clean: ["SKIPPER'S DEAD, MA'AM. THE LINE IS STILL OPEN.", "NO BOATS TODAY. KEEP WAITING. IT'S POLICY."],
+  shitty: ["SKIPPER'S DEAD. THAT GUY DID IT. THEN HE SHIT HIMSELF.", 'NO BOATS. THE LINE STAYS. THE SMELL IS FREE.'],
+  nude: ["SKIPPER'S DEAD. THE NAKED GUY DID IT. NOT MY PROBLEM.", 'NO BOATS. NO PANTS EITHER, I GUESS. KEEP WAITING.'],
+};
+/** A staffer on break, as he goes by again. */
+export const STAFF_IDLE_BACK: Record<Dressed, string[]> = {
+  clean: ["YOU AGAIN? I'M STILL ON BREAK.", "ARTIE'S DEAD. I GOT HIS SKIPPER OF THE YEAR PLAQUE.", "NO SKIPPER, NO BOATS. I'M ON BREAK FOREVER."],
+  shitty: ['YOU AGAIN. STILL SHITTY. STILL ON BREAK.', 'YOU KILLED ARTIE AND YOU SHIT YOURSELF. BIG DAY.', "ARTIE'S DEAD AND YOU SMELL WORSE THAN HIM."],
+  nude: ["YOU AGAIN. NOW YOU'RE NAKED. I'M STILL ON BREAK.", 'YOU KILLED ARTIE. THANKS. PUT YOUR DICK AWAY.', "NO SKIPPER, NO PANTS. I'M ON BREAK."],
+};
+/** The front of the line at the dock: next since forever. */
+export const GUEST_FRONT_BACK: Record<Dressed, string[]> = {
+  clean: ["WE'RE NEXT! WE'VE BEEN NEXT SINCE TUESDAY!", "WHERE'S THE BOAT? WHERE'S THE GUY?!"],
+  shitty: ["WE'RE NEXT! DON'T CUT! DON'T STAND NEAR US!", 'WHERE IS THE BOAT? WHY DO YOU SMELL LIKE THAT?!'],
+  nude: ["WE'RE NEXT! KAYLEE, DON'T LOOK AT THE MAN!", 'WHERE IS THE BOAT? WHERE ARE YOUR PANTS?!'],
+};
+/** Meathead at the end of the dock: no boat, in he goes. */
+export const MEATHEAD_DOCK_BACK: Record<Dressed, string[]> = {
+  clean: ['NO BOAT. CANNONBALL.', 'FUCK THE BOAT. I SWIM.'],
+  shitty: ['NO BOAT. TIME TO WASH MY ASS.', 'THE RIVER NEEDS THIS MORE THAN I DO.'],
+  nude: ['NO BOAT. SKINNY DIPPING.', 'NO PANTS TO GET WET. IN WE GO.'],
+};
+
 const flat = (r: Record<string, string[]>) => Object.values(r).flat();
 export const VOICE_LINES: Record<string, string[]> = {
-  meathead: [...MEATHEAD_SIGNS, MEATHEAD_BACK],
-  'm2.guest': [...flat(GUEST_CUT), ...flat(GUEST_FRONT)],
-  'm2.guest2': [...flat(GUEST_CUT), ...flat(GUEST_FRONT)],
-  'm2.operator': [...flat(STAFF_EXCUSE), ...flat(STAFF_IDLE), ...STAFF_HIT, ...flat(OPERATOR_DOCK)],
-  'm2.operator2': [...flat(STAFF_EXCUSE), ...flat(STAFF_IDLE), ...STAFF_HIT, ...flat(OPERATOR_DOCK)],
+  meathead: [...MEATHEAD_SIGNS, MEATHEAD_BACK, ...flat(MEATHEAD_SIGNS_BACK), ...flat(MEATHEAD_DOCK_BACK)],
+  'm2.guest': [...flat(GUEST_CUT), ...flat(GUEST_FRONT), ...flat(GUEST_STUCK), ...flat(GUEST_FRONT_BACK)],
+  'm2.guest2': [...flat(GUEST_CUT), ...flat(GUEST_FRONT), ...flat(GUEST_STUCK), ...flat(GUEST_FRONT_BACK)],
+  'm2.operator': [...flat(STAFF_EXCUSE), ...flat(STAFF_IDLE), ...STAFF_HIT, ...flat(OPERATOR_DOCK), ...flat(STAFF_EXCUSE_BACK), ...flat(STAFF_IDLE_BACK)],
+  'm2.operator2': [...flat(STAFF_EXCUSE), ...flat(STAFF_IDLE), ...STAFF_HIT, ...flat(OPERATOR_DOCK), ...flat(STAFF_EXCUSE_BACK), ...flat(STAFF_IDLE_BACK)],
 };

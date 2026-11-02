@@ -13,6 +13,7 @@ import { bendFloor, BEND, sign, steppedGlow, ball } from '../../intro/art/kit';
 import { SECTIONS, GY } from '../geometry';
 import { drawGuest, guestAt, drawGuestsDimmed, type Guest } from './crowd';
 import { drawLaunch } from '../river/boat';
+import { bossGone } from '../../emptyArena';
 import {
   type Ctx, type Eye, INK, rampOf, box, checker, hash, mix, dark, lite, stamp, tilePattern,
   eyeOf, P, quad, seg, atDepth, bamboo, bambooRail, lash, logPost, logBeam, thatchRoof, fringe, stencil, box3d, drawJungleBackdrop,
@@ -185,7 +186,9 @@ const drawFloor = (c: Ctx, eye: Eye) => {
 const drawFarWall = (c: Ctx, eye: Eye, f: number) => {
   atDepth(c, eye, WALL_S);
   const a = R(HALL.a), b = R(HALL.b), top = EAVE_Y - 10, wall = '#3A2A1A';
-  stamp(c, 'q-farwall', a, top, b - a, GY - top, g => {
+  // (back after Artie's dead: the chalkboard says so)
+  const gone = bossGone('adventure');
+  stamp(c, gone ? 'q-farwall-gone' : 'q-farwall', a, top, b - a, GY - top, g => {
     // (woven mat panels between bamboo uprights: the weave in two tones, stepped darker up under the roof)
     const mat = rampOf('#6A5032');
     box(g, a, top, b - a, GY - top, wall);
@@ -276,8 +279,8 @@ const drawFarWall = (c: Ctx, eye: Eye, f: number) => {
       box(g, cx, cy, cw, ch, '#1E2E26'); for (let k = 0; k < 14; k++) box(g, cx + hash(k * 5) * (cw - 10), cy + hash(k * 9) * (ch - 4), 8, 1, '#2E3E36');
       signAt(g, "TODAY'S", cx + cw / 2, cy + 11, 5, print(5, '#E8E8E0'));
       signAt(g, 'SKIPPER:', cx + cw / 2, cy + 20, 5, print(5, '#E8E8E0'));
-      signAt(g, 'ARTIE', cx + cw / 2, cy + 31, 5, print(5, '#F8E070'));
-      signAt(g, 'BOATS: 1/9', cx + cw / 2, cy + 46, 5, print(5, '#F0A0A0'));
+      signAt(g, gone ? 'NOBODY' : 'ARTIE', cx + cw / 2, cy + 31, 5, print(5, '#F8E070'));
+      signAt(g, gone ? 'BOATS: 0/9' : 'BOATS: 1/9', cx + cw / 2, cy + 46, 5, print(5, '#F0A0A0'));
       box(g, cx + 6, cy + ch + 1, 10, 2, '#E8E8E0');
     }
     // (a shelf of junk: a lantern, a radio, a croc skull, rope; oars crossed and a life ring on the wall)
@@ -737,14 +740,16 @@ const dockWater = (c: Ctx, eye: Eye, f: number) => {
     };
     water(GY, wtop, mix(wcol, '#BFE6F0', 0.1));
     for (let k = 0; k < 6; k++) box(c, R(1904 + ((k * 37 + f * 0.5) % 180)), GY + 10 + (k % 3) * 8, 12, 1, 'rgba(230, 248, 255, 0.5)');
-    drawLaunch(c, R(1904), GY + 24, f, { rock: Math.round(Math.sin(f * 0.05) * 1) });
+    // (the boat waiting: none, back after Artie's dead)
+    const boat = !bossGone('adventure');
+    if (boat) drawLaunch(c, R(1904), GY + 24, f, { rock: Math.round(Math.sin(f * 0.05) * 1) });
     water(wtop, wtop + 400, dark(wcol, 0.2));
     for (let x = 1900; x < 2200; x += 16) box(c, R(x), wtop - 1 + Math.round(Math.sin(x * 0.05 + f * 0.08)), 10, 2, 'rgba(220, 245, 255, 0.8)');
     // (the dock's end: its pilings, its edge)
     const pr2 = rampOf('#6A4A2A');
     for (const px of [1880, 1896]) { box(c, R(px) - 1, GY - 6, 10, 70, INK); box(c, R(px), GY - 6, 8, 70, pr2[2]); box(c, R(px), GY - 6, 3, 70, pr2[3]); box(c, R(px), GY - 6, 8, 2, pr2[4]); }
     // (a rope from the piling to the boat's bow cleat)
-    c.strokeStyle = rampOf('#D8C08A')[1]; c.lineWidth = 2; c.beginPath(); c.moveTo(R(1900), GY - 2); c.quadraticCurveTo(R(1904), GY + 26, R(1914), GY + 22); c.stroke();
+    if (boat) { c.strokeStyle = rampOf('#D8C08A')[1]; c.lineWidth = 2; c.beginPath(); c.moveTo(R(1900), GY - 2); c.quadraticCurveTo(R(1904), GY + 26, R(1914), GY + 22); c.stroke(); }
   }
 };
 

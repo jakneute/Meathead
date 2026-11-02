@@ -4,6 +4,10 @@
 // (it's the extra fast pass, they tell the people in line through the fence; whatever he looks like). Down the back to
 // the loading dock, past the family at the front of the line, onto their boat (the river: Safari Artie's).
 //
+// Back after Artie's dead (bossGone): the line's as long as ever and it isn't moving (no boat, no operator at the
+// dock: they complain about it through the fence instead of about him cutting); the staff say why; off the end of the
+// dock he goes in the water (the river: no boat, river/index.ts boatRide).
+//
 // Left to right (relative to x0):
 //   0..440     the plaza: the entrance, the signs, the line behind its rails; crates up to the staff fence
 //   440..1480  out back: dumpsters, pallets, an AC unit, the staff on break; the line through the chain-link behind
@@ -21,7 +25,9 @@ import { talk, stepTalk, pick, type Talk } from './talk';
 import { guestAt, type Guest } from './crowd';
 import { drawQueueBackdrop, drawQueueBack, drawQueueLanterns, queueLamps, type QueueSpots } from './art';
 import { staffDoing, staffTalking, staffLook, type StaffDoing } from './staff';
-import { MEATHEAD_SIGNS, MEATHEAD_BACK, GUEST_CUT, STAFF_EXCUSE, STAFF_IDLE, STAFF_HIT, GUEST_FRONT, OPERATOR_DOCK, type Dressed } from './lines';
+import { MEATHEAD_SIGNS, MEATHEAD_BACK, GUEST_CUT, STAFF_EXCUSE, STAFF_IDLE, STAFF_HIT, GUEST_FRONT, OPERATOR_DOCK, type Dressed,
+  MEATHEAD_SIGNS_BACK, GUEST_STUCK, STAFF_EXCUSE_BACK, STAFF_IDLE_BACK, GUEST_FRONT_BACK, MEATHEAD_DOCK_BACK } from './lines';
+import { bossGone } from '../../emptyArena';
 
 const { x0, x1 } = SECTIONS.queue;
 const R = (x: number) => x0 + x;
@@ -79,7 +85,8 @@ export const queue: Section = {
     solid(state, R(AC.x), GY - AC.h, AC.w, AC.h, { hidden: true });
     ledge(state, R(PALLETS.x), GY - PALLETS.y, PALLETS.w, { hidden: true });
     for (const [x, doing, facing] of STAFF) addStaff(state, q, x, doing, facing);
-    addStaff(state, q, OPERATOR_X, 'stand', -1);
+    // (the operator at the dock: nobody on duty, back after Artie's dead)
+    if (!bossGone('adventure')) addStaff(state, q, OPERATOR_X, 'stand', -1);
     // (the line: packed along the plaza behind the rails, along the fence out back, and the family at the front)
     for (let i = 0; i < 9; i++) q.plaza.push(guestAt(i, R(160 + i * 30), GY - 26, i % 3 ? 1 : -1, 0.8));
     for (let i = 0; i < 22; i++) q.back.push(guestAt(i + 9, R(480 + i * 46 + (i % 2) * 8), GY - 40, i % 4 === 1 ? -1 : 1, 0.78));
@@ -89,10 +96,14 @@ export const queue: Section = {
     const { state } = ctx, p = state.player;
     const q = getQ(state);
     const px = p.pos.x + p.width / 2, rx = px - x0;
-    const d = dressed(state);
+    const d = dressed(state), back = bossGone('adventure');
     stepTalk(state, q.talk);
     // At the signs: three hours, the extra fast pass longer still. Fuck that.
-    if (!q.signs && rx > 210 && rx < 600) { q.signs = true; for (const t of MEATHEAD_SIGNS) q.talk.q.push({ voice: 'meathead', text: t }); }
+    if (!q.signs && rx > 210 && rx < 600) {
+      q.signs = true;
+      if (back) q.talk.q.push({ voice: 'meathead', text: pick(MEATHEAD_SIGNS_BACK[d]) });
+      else for (const t of MEATHEAD_SIGNS) q.talk.q.push({ voice: 'meathead', text: t });
+    }
     // Over the fence: the back way
     if (!q.over && rx > FENCE.x + 60 && rx < 900) { q.over = true; q.talk.q.push({ voice: 'meathead', text: MEATHEAD_BACK }); }
     // The line sees him through the chain-link; a staffer explains
@@ -100,9 +111,9 @@ export const queue: Section = {
       if (q.cuts[i] || Math.abs(rx - x) > 80) return;
       q.cuts[i] = true;
       if (q.talk.q.length > 2) return;
-      guestSays(q, nearest(q.back, px), pick(GUEST_CUT[d]));
+      guestSays(q, nearest(q.back, px), pick((back ? GUEST_STUCK : GUEST_CUT)[d]));
       const s = q.staff.filter(s => s.e.health > 0 && s.e.pos.x - x0 < 1500);
-      if (s.length) staffSays(q, nearest(s.map(s => ({ ...s, x: s.e.pos.x })), px), pick(STAFF_EXCUSE[d]));
+      if (s.length) staffSays(q, nearest(s.map(s => ({ ...s, x: s.e.pos.x })), px), pick((back ? STAFF_EXCUSE_BACK : STAFF_EXCUSE)[d]));
     });
     // The staff: a word as he goes by (once each); hit, they take it
     for (const s of q.staff) {
@@ -110,14 +121,18 @@ export const queue: Section = {
       if (s.e.health < s.hp && !s.hit) { s.hit = true; staffSays(q, s, pick(STAFF_HIT)); }
       s.hp = s.e.health;
       const sx = s.e.pos.x + s.e.width / 2;
-      if (!s.idle && Math.abs(sx - px) < 110 && sx - x0 < 1500 && !q.talk.busy && !q.talk.q.length) { s.idle = true; staffSays(q, s, pick(STAFF_IDLE[d])); }
+      if (!s.idle && Math.abs(sx - px) < 110 && sx - x0 < 1500 && !q.talk.busy && !q.talk.q.length) { s.idle = true; staffSays(q, s, pick((back ? STAFF_IDLE_BACK : STAFF_IDLE)[d])); }
     }
     // The dock: the front of the line, the operator
     if (!q.dock && rx > 1530 && rx < 1700) {
       q.dock = true;
-      q.talk.q.push({ voice: q.front[1].voice, text: pick(GUEST_FRONT[d]), set: t => { q.front[1].said = t; } });
-      const op = q.staff[q.staff.length - 1];
-      if (op.e.health > 0) staffSays(q, op, pick(OPERATOR_DOCK[d]));
+      q.talk.q.push({ voice: q.front[1].voice, text: pick((back ? GUEST_FRONT_BACK : GUEST_FRONT)[d]), set: t => { q.front[1].said = t; } });
+      // (back: nobody at the dock, no boat; he'll swim)
+      if (back) q.talk.q.push({ voice: 'meathead', text: pick(MEATHEAD_DOCK_BACK[d]) });
+      else {
+        const op = q.staff[q.staff.length - 1];
+        if (op.e.health > 0) staffSays(q, op, pick(OPERATOR_DOCK[d]));
+      }
     }
     // Onto the boat: the river. (And back the way he came: the jungle's end.)
     if (rx > BOARD_AT) teleport(state, SECTIONS.river.x0 + 150, GY);

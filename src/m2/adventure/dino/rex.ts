@@ -42,6 +42,7 @@ import { cheapShotGate, cheapShotStunned, cheapShotStunT, registerClearThreats, 
 import { getAdv, solid, box, label, saidOver, meatheadSays, voice, type Said } from '../section';
 import { say, cutVoice, pickLine } from '../../../m1/game/platform/speech';
 import { isShat, isNude } from '../../../m1/game/player/gut';
+import { bossGone } from '../../emptyArena';
 import { GY } from '../geometry';
 import { plate, servo } from './art/robots';
 import { rampOf, mix, checker } from '../../intro/art/kit';
@@ -49,7 +50,7 @@ import { markBossFight } from '../../bossQuiet';
 import { eyeOf, prism } from './art/kit';
 import {
   HURT_REX, DEATH_REX, HURT_REX_BITE, DEATH_REX_BITE, HURT_REX_SPRINT, DEATH_REX_SPRINT, HURT_REX_TAIL, DEATH_REX_TAIL,
-  HURT_REX_SHOCK, DEATH_REX_SHOCK, MEATHEAD_REX_INTRO, REX_INTRO, REX_CHATTER, REX_SEES_WHOLE, REX_SEES_BROKEN, REX_WRECKED,
+  HURT_REX_SHOCK, DEATH_REX_SHOCK, MEATHEAD_REX_INTRO, MEATHEAD_REX_BACK, REX_INTRO, REX_CHATTER, REX_SEES_WHOLE, REX_SEES_BROKEN, REX_WRECKED,
   REX_LIVE, REX_BIT, REX_CRASHED, REX_DYING, type Dressed,
 } from './lines';
 import { signAt, enamel, stencil } from '../letters';
@@ -495,7 +496,8 @@ const startFight = (state: GameState, r: Rex) => {
   const p = state.player;
   if (p.pos.x < r.inX + 20) p.pos.x = r.inX + 22;
   r.facing = state.player.pos.x + state.player.width / 2 < r.x ? -1 : 1;
-  meatheadSays(state, pick(MEATHEAD_REX_INTRO), true);
+  // (back after Artie's dead: it's been fixed up, and he's seen it before)
+  meatheadSays(state, pick(bossGone('adventure') ? MEATHEAD_REX_BACK[dressed(state)] : MEATHEAD_REX_INTRO), true);
   // (and it wakes up doing the bit)
   rexSays(state, r, REX_INTRO[dressed(state)], true);
   r.talkAt = state.frame + 720;

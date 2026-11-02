@@ -29,6 +29,33 @@ export const ARTIE_SENDS: Record<Dressed, string[]> = {
     'JUNIOR GUIDES! A NAKED MAN WALKED OUT ON YOUR SKIPPER! AVENGE ME!',
   ],
 };
+/** Back after Artie's dead: one of his junior guides on the camp's loudspeaker, sending the rest after him anyway (the
+ *  owner's: "the junior guides come after you as petty revenge"). */
+export const GUIDE_REVENGE: Record<Dressed, string[]> = {
+  clean: [
+    "ATTENTION, JUNIOR GUIDES! THAT'S THE FAT GUY WHO KILLED ARTIE! GET HIM!",
+    'JUNIOR GUIDES! HE KILLED THE SKIPPER OF THE YEAR! WHACK HIM!',
+    'JUNIOR GUIDES! ARTIE WAS A DICK, BUT HE WAS OUR DICK! GET HIM!',
+  ],
+  shitty: [
+    "ATTENTION, JUNIOR GUIDES! ARTIE'S KILLER IS BACK! FOLLOW THE SMELL!",
+    'JUNIOR GUIDES! HE KILLED ARTIE AND HE SHIT HIMSELF! WHACK HIM!',
+    'JUNIOR GUIDES! FOR ARTIE! AIM UPWIND!',
+  ],
+  nude: [
+    "ATTENTION, JUNIOR GUIDES! ARTIE'S KILLER IS BACK! AND NAKED! AIM HIGH!",
+    'JUNIOR GUIDES! HE KILLED ARTIE WITH THAT THING OUT! WHACK HIM!',
+    "JUNIOR GUIDES! FOR ARTIE! DON'T LOOK AT IT!",
+  ],
+};
+/** The junior guide's voice on the loudspeaker. */
+export const GUIDE_PA_VOICE = 'm2.operator';
+/** Meathead, into Artie's empty hunting ground (then back to the hub). */
+export const MEATHEAD_EMPTY: Record<Dressed, string[]> = {
+  clean: ['SKIPPER OF THE YEAR. DEAD OF THE YEAR.', 'NO ARTIE. NO SET. FINALLY, SOME QUIET.', 'NOBODY LEFT TO LAUGH AT YOUR JOKES, ARTIE. NOBODY DID ANYWAY.'],
+  shitty: ["SKIPPER OF THE YEAR. NOW HE'S MULCH.", 'NO ARTIE. I LEFT HIM A LITTLE SOMETHING. IN MY PANTS.', 'NOBODY TO SMELL ME BUT THE BUGS. LATER, ARTIE.'],
+  nude: ["SKIPPER OF THE YEAR. AND I'M NAKED ON HIS GRAVE.", 'NO ARTIE. NOBODY TO WRITE ME UP FOR MY BALLS.', 'NOBODY LEFT TO SEE THIS. YOUR LOSS, ARTIE.'],
+};
 /** Meathead, back at him. */
 export const MEATHEAD_ARTIE = ['YOU KNOW YOUR BROTHER DIED LIKE THIS.', 'YOUR SET SUCKS, ARTIE.', "I'M GONNA SHOVE THAT HAT UP YOUR ASS, BRIM FIRST."];
 
@@ -220,7 +247,7 @@ const all = (r: ByPants) => [...r.clean, ...r.shitty, ...r.nude];
 
 export const VOICE_LINES: Record<string, string[]> = {
   meathead: [
-    ...MEATHEAD_KICK, ...MEATHEAD_ARTIE, ...all(MEATHEAD_GORED), ...MEATHEAD_EATEN,
+    ...MEATHEAD_KICK, ...MEATHEAD_ARTIE, ...all(MEATHEAD_GORED), ...MEATHEAD_EATEN, ...all(MEATHEAD_EMPTY),
     ...HURT_KNIFE, ...HURT_COUNTER, ...HURT_BLOWDART, ...HURT_POISON, ...HURT_RHINO, ...HURT_HIPPO, ...HURT_ELEPHANT,
   ],
   death: [...DEATH_KNIFE, ...DEATH_COUNTER, ...DEATH_BLOWDART, ...DEATH_POISON, ...DEATH_RHINO, ...DEATH_HIPPO, ...DEATH_ELEPHANT],
@@ -231,4 +258,5 @@ export const VOICE_LINES: Record<string, string[]> = {
       ARTIE_VINE_SNAP, ARTIE_TRAMPLED, ARTIE_BUSH, ARTIE_NO_BUSHES, ARTIE_LAST_WHISTLE, ARTIE_DIES, ARTIE_EATEN, ARTIE_EATEN_MORE, ARTIE_BONES,
     ].flatMap(all),
   ],
+  [GUIDE_PA_VOICE]: all(GUIDE_REVENGE),
 };

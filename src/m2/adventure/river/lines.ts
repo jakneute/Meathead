@@ -228,6 +228,12 @@ export const MEATHEAD_UNDER = {
   drain: "WHY'S THE WATER PULLING?",
   sucked: 'OH NO. NO NO NO NO NO.',
 };
+/** ...the drain, back after Artie's dead (it pulls him in again: nobody fixed it). */
+export const MEATHEAD_DRAIN_BACK: ByPants = {
+  clean: ['THE DRAIN AGAIN. NOBODY FIXED THE FUCKING DRAIN.', 'SAME DRAIN. THEY FIXED THE ROOF FIRST? REALLY?'],
+  shitty: ['THE DRAIN AGAIN. AT LEAST IT TAKES THE SHIT WITH ME.', 'SAME DRAIN. NOBODY FIXED IT. NOBODY CLEANED ME EITHER.'],
+  nude: ['THE DRAIN AGAIN. NOTHING LEFT ON ME FOR IT TO SUCK OFF.', 'SAME DRAIN. HOLD ON TO YOUR BALLS, MEATHEAD.'],
+};
 /** Low on air (once per breath held). */
 export const MEATHEAD_AIR = ['NEED AIR.', 'LUNGS. BURNING.', 'AIR. NOT FARTS. AIR.'];
 
@@ -269,7 +275,7 @@ export const VOICE_LINES: Record<string, string[]> = {
   'm2.safari': [ARTIE_WELCOME, BROTHER_ARTIE, ARTIE_TOUR, ARTIE_GAS, ARTIE_RADIO, ARTIE_STUCK, ARTIE_JUMPED, ARTIE_ALONE,
     ...ARTIE_LEFT.slice(1), ...ARTIE_LECTURE, ...ARTIE_BACK, ARTIE_LEFT_STUCK, ARTIE_HELP, ARTIE_ASK, ARTIE_BACK_STUCK].flatMap(flat),
   meathead: [
-    BROTHER.meathead1, BROTHER.meathead2, BROTHER.meathead3, BROTHER.meathead4, ...MEATHEAD_STUCK, ...MEATHEAD_JUMP,
+    BROTHER.meathead1, BROTHER.meathead2, BROTHER.meathead3, BROTHER.meathead4, ...MEATHEAD_STUCK, ...MEATHEAD_JUMP, ...flat(MEATHEAD_DRAIN_BACK),
     ...Object.values(MEATHEAD_UNDER), ...MEATHEAD_AIR, ...Object.values(HURT).flatMap(h => h.hurt),
   ],
   death: Object.values(HURT).flatMap(h => h.death),

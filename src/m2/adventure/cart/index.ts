@@ -18,6 +18,7 @@ import type { Section, Said } from '../section';
 import { lay, speak, meatheadSays, saidOver, hands, getAdv, sectionState } from '../section';
 import { GY } from '../geometry';
 import { HOLE_X as ROOF_HOLE_X } from '../roof';
+import { bossGone } from '../../emptyArena';
 import {
   x0, x1, X, RUNS, RAMP_X, RAMP_R, RAMP_Y, RAIL_TOP, BEAMS, SCANNER_X, CHASE_X, SLOW_TO, FORK_CAM_X, OUTRO_X, SINK,
   trackY, runAt, slopeAt, artieTrackY,
@@ -55,8 +56,8 @@ const pick = pickLine;
 const dressed = (state: GameState): Dressed => (isNude(state) ? 'nude' : isShat(state) ? 'shitty' : 'clean');
 /** A pool of lines, three ways: whatever Meathead's wearing as it's said. */
 const byPants = <T,>(state: GameState, r: Record<Dressed, T>): T => r[dressed(state)];
-/** First time through (return trips will differ: no Artie, say). One flag per set piece. */
-const firstVisit = (_state: GameState) => true;
+/** Artie after him: not once he's dead (the owner's: "artie doesn't chase you in the mine cart"). The ride's the same. */
+const firstVisit = (_state: GameState) => !bossGone('adventure');
 
 /** The cart's lean on the ride: along the track under it; in the air, nosing with its climb or fall. */
 const rideRot = (cart: Cart) => (cart.air ? Math.max(-0.3, Math.min(0.3, cart.vy * 0.03)) : slopeAt(cart.x) ?? 0);

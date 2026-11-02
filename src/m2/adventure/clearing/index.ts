@@ -5,6 +5,10 @@
 // Then the fight (fight.ts: his bushes, his hidden-ball game, his mating whistle and its stampede, stampede.ts). The
 // fence goes up behind him for it and comes down after. Beaten, back to the hub.
 //
+// Back after he's dead (bossGone): the trees are still down (it's open), his blind's empty, one of his junior guides
+// is on the camp's loudspeaker sending the rest after him anyway (petty revenge), and in past the trees, where the
+// fight was, Meathead has his say and he's off back to the hub (emptyArena.ts).
+//
 // The look: art.ts (the strip's own things), orbit.ts (round the temple, past the strip) and tower.ts (Artie's blind,
 // out on the loop till the view's round to it, then on the strip).
 
@@ -27,7 +31,8 @@ import { SKIP_AFTER, offerSkip, takeSkip } from '../../../m1/game/platform/skip'
 import { shakeScreen } from '../../../m1/game/core/state';
 import { isShat, isNude } from '../../../m1/game/player/gut';
 import { CANVAS_WIDTH, CANVAS_HEIGHT, KICK_POSE_FRAMES, topBand } from '../../../m1/constants';
-import { type Dressed, MEATHEAD_KICK, ARTIE_FOUND, ARTIE_SENDS, MEATHEAD_ARTIE } from './lines';
+import { type Dressed, MEATHEAD_KICK, ARTIE_FOUND, ARTIE_SENDS, MEATHEAD_ARTIE, GUIDE_REVENGE, GUIDE_PA_VOICE, MEATHEAD_EMPTY } from './lines';
+import { bossGone, leaveEmptyArena } from '../../emptyArena';
 import { x0, x1, TREE_X, TREE_H, TEMPLE_X, BLIND_X, ARENA_L, ARENA_R, PICKUP_X } from './arena';
 import { drawOrbitBackdrop, ORBIT_WRAP } from './orbit';
 import { type BlindLook, blindOrbitItem, drawBlindOnStrip, blindWordsAt } from './tower';
@@ -46,8 +51,8 @@ const ARTIE_CLOSE_T = 110;
 
 const pick = pickLine;
 const dressed = (state: GameState): Dressed => (isNude(state) ? 'nude' : isShat(state) ? 'shitty' : 'clean');
-/** First time through (a return trip will differ). One flag per set piece. */
-const firstVisit = (_state: GameState) => true;
+/** First time through: the trees still up (back after Artie's dead, they're down: kicked down, they stay down). */
+const firstVisit = (_state: GameState) => !bossGone('adventure');
 /** The checkpoint this visit started at (state.stageMemo: the first time the clearing runs this visit). */
 const START_MEMO = 'adv-clearing-start';
 /** The rock on the way in. */
@@ -87,6 +92,8 @@ interface Clearing {
   saidAt: 'blind' | 'speaker';
   /** The gross-up of him, found out (the kick's: frames in; -1 not up). */
   close: number;
+  /** Back after he's dead: what Meathead says in the empty arena (picked once). */
+  emptyLine?: string;
 }
 const getClearing = (state: GameState) => sectionState<Clearing>(state, 'clearing', () => ({
   init: false, domino: firstVisit(state), kicked: false, scene: null, t: 0, token: 0,
@@ -185,10 +192,10 @@ const runBooms = (ctx: FrameContext, cl: Clearing) => {
   for (const b of due) b.go(ctx);
 };
 
-const artieSays = (state: GameState, cl: Clearing, text: string, onDone?: () => void, at: Clearing['saidAt'] = 'blind') => {
+const artieSays = (state: GameState, cl: Clearing, text: string, onDone?: () => void, at: Clearing['saidAt'] = 'blind', voiceId = 'm2.safari') => {
   const tok = cl.token;
   cl.said = { text }; cl.saidAt = at;
-  speak('m2.safari', text, s => { if (cl.token === tok) cl.said = s; }, true, () => { if (cl.token === tok) onDone?.(); });
+  speak(voiceId, text, s => { if (cl.token === tok) cl.said = s; }, true, () => { if (cl.token === tok) onDone?.(); });
 };
 
 /** All down (the last one up against the temple), and the temple's side knocked about. */
@@ -319,13 +326,23 @@ const run = (ctx: FrameContext, controls: Controls): Controls => {
       if (cl.callT > 50 || cx > x0 + 240) {
         cl.call = 'saying';
         const tok = cl.token;
-        artieSays(state, cl, pick(ARTIE_SENDS[dressed(state)]), () => { if (cl.token === tok) { cl.said = null; sendGuides(state, cl); } }, 'speaker');
+        const sent = () => { if (cl.token === tok) { cl.said = null; sendGuides(state, cl); } };
+        // (back after he's dead: one of his junior guides on it instead, sending them anyway)
+        if (bossGone('adventure')) artieSays(state, cl, pick(GUIDE_REVENGE[dressed(state)]), sent, 'speaker', GUIDE_PA_VOICE);
+        else artieSays(state, cl, pick(ARTIE_SENDS[dressed(state)]), sent, 'speaker');
       }
     }
     guidesOut(state, cl);
     // (the tree's only kicked once they're all dead: the ones in the spiked helmets)
     const guidesDone = cl.call !== 'no' && cl.call !== 'saying' ? cl.out >= GUIDE_SPOTS().length && liveGuides(state).length === 0 : state.checkpoint >= 71;
     if (cl.domino && guidesDone && cx > TREE_X[0] - 60 && p.isGrounded) { cl.scene = 'kick'; cl.t = 0; cl.nextLine = 0; return kick(ctx, cl); }
+    // (back after he's dead: in where the fight was, his say, and back to the hub; any guides still about go off, as
+    // they would going into the fight: nobody gets at him while he's held)
+    if (bossGone('adventure') && cx > ARENA_L + 60) {
+      if (cl.emptyLine === undefined) { cl.emptyLine = pick(MEATHEAD_EMPTY[dressed(state)]); popGuides(state, cl); }
+      leaveEmptyArena(state, cl.emptyLine);
+      return hands();
+    }
     // (in past the fallen trees, up to his blind: down he comes out of it, and it's on)
     if (!cl.domino && cx > ARENA_L + 60) startFight(state, cl);
   } else if (cl.fight === 'on') {
@@ -439,7 +456,7 @@ const PA_POLES: [number, number][] = [[x0 + 1330, 230], [x0 + 2160, 250], [x0 + 
 const blindLook = (state: GameState, cl: Clearing): BlindLook => {
   const hidden = cl.fight === 'wait' && cl.domino && cl.trees[5].a <= 0.5;
   let artie: BlindLook['artie'] = null;
-  if (cl.fight === 'wait' && !hidden) artie = cl.said?.text ? 'talk' : 'angry';
+  if (cl.fight === 'wait' && !hidden && !bossGone('adventure')) artie = cl.said?.text ? 'talk' : 'angry';
   else if (cl.fight === 'on' && cl.f && artieInBlind(cl.f)) artie = cl.f.said ? 'talk' : artieEntrance(cl.f) ? 'point' : 'angry';
   return { hidden, artie, frame: state.frame };
 };

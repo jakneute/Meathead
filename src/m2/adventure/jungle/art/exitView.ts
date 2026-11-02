@@ -16,6 +16,7 @@ import { crown, palm } from '../../farArt';
 import { signAt, signW, carved as carvedLook, print } from '../../letters';
 import { SIGNS, X, Y } from '../layout';
 import { atDepth } from './ground';
+import { bossGone } from '../../../emptyArena';
 import { type Ctx, type View, INK, box, mix, hash, poly, clump, rampOf, LEAF } from './paint';
 
 const GY = GROUND_Y;
@@ -193,7 +194,9 @@ const launchShadow = (g: Ctx, a: number, b: number, wl: number, W0: string, Wd: 
 // ---------------------------------------------------------------------------------------------------------------
 // The scene (painted once an hour)
 
-const paintScene = (g: Ctx, tod: TimeOfDay) => {
+/** `gone`: back after Artie's dead: no skipper on the dock, no launch tied up at it, none going by (the owner's: "there's
+ *  no boat or 'active attendand' on duty"). */
+const paintScene = (g: Ctx, tod: TimeOfDay, gone: boolean) => {
   const T: Tint = col => mix(farTint(col, 0.85, tod), skyAt(0.9, tod), 0.16);
   const TF: Tint = col => mix(farTint(col, 0.7, tod), skyAt(0.85, tod), 0.42);
   const R = (col: string) => rampOf(col).map(T);
@@ -317,12 +320,14 @@ const paintScene = (g: Ctx, tod: TimeOfDay) => {
     for (let x = da + 14; x + 40 < db; x += 40) { g.strokeStyle = ink; g.lineWidth = 3; g.beginPath(); g.moveTo(x + 2, deck - 23); g.quadraticCurveTo(x + 22, deck - 15, x + 42, deck - 23); g.stroke(); g.strokeStyle = RP[3]; g.lineWidth = 1; g.beginPath(); g.moveTo(x + 2, deck - 24); g.quadraticCurveTo(x + 22, deck - 16, x + 42, deck - 24); g.stroke(); }
     // (a skipper: khaki, the pith helmet, an arm up)
     const sx = da + 172;
+    if (!gone) {
     box(g, sx - 5, deck - 31, 11, 31, ink);
     box(g, sx - 4, deck - 10, 3, 10, T('#8A7A50')); box(g, sx + 1, deck - 10, 3, 10, T('#8A7A50'));
     box(g, sx - 4, deck - 22, 9, 12, T('#C8B07A')); box(g, sx - 4, deck - 22, 2, 12, T('#E0CC98'));
     box(g, sx - 3, deck - 29, 7, 7, T('#A86B43'));
     box(g, sx - 6, deck - 30, 13, 2, T('#E8DCB8')); box(g, sx - 3, deck - 34, 7, 4, T('#F4ECD0')); box(g, sx - 3, deck - 34, 2, 4, T('#FFFFFF'));
     box(g, sx + 5, deck - 36, 3, 2, ink); box(g, sx + 5, deck - 34, 2, 14, ink); box(g, sx + 6, deck - 35, 1, 13, T('#A86B43'));
+    }
   }
   // The lookout on its stilts, by the dock's end: braced, its deck and rail, the thatch cone, a lookout, the pennant
   {
@@ -339,9 +344,11 @@ const paintScene = (g: Ctx, tod: TimeOfDay) => {
     for (let k = 0; k < 12; k += 2) box(g, lx + 2 + k, ld - 93 + k * 0.4, 2, Math.max(1, 8 - k * 0.6), k % 4 ? T('#F4F0E8') : T('#D8402A'));
   }
   // A launch tied up at the dock, guests aboard; her reflection
-  launchShadow(g, da + 10, da + 150, W + 8, WR[1], WR[0], T);
-  launch(g, da + 10, W + 8, 130, 1, '7', 3, T);
-  for (const rx of [da + 26, da + 124]) { g.strokeStyle = RP[2]; g.lineWidth = 1; g.beginPath(); g.moveTo(rx, deck + 3); g.lineTo(rx + 4, W - 6); g.stroke(); }
+  if (!gone) {
+    launchShadow(g, da + 10, da + 150, W + 8, WR[1], WR[0], T);
+    launch(g, da + 10, W + 8, 130, 1, '7', 3, T);
+    for (const rx of [da + 26, da + 124]) { g.strokeStyle = RP[2]; g.lineWidth = 1; g.beginPath(); g.moveTo(rx, deck + 3); g.lineTo(rx + 4, W - 6); g.stroke(); }
+  }
   // The boathouse's broken reflection
   for (let y = W + 10, i = 0; y < W + 40; y += 3, i++) { const j = Math.round(Math.sin(i * 2.3) * 3); box(g, ba - 20 + j + i * 3, y, bb - ba + 40 - i * 6, 1, mix(TH[1], WR[1], 0.5 + i * 0.04)); }
   // Bunting across: a line strung over it all, flags lit up their left halves
@@ -392,10 +399,10 @@ export const drawExitView = (c: Ctx, v: View) => {
   // (culled by where it lands on the screen at its depth, its whole stamp's span)
   const sa = v.eye.x + (x0 - 160 - v.eye.x) * D, sb = v.eye.x + (x1 + 160 - v.eye.x) * D;
   if (sb < v.v0 || sa > v.v1) return;
-  const tod = timeOfDay();
+  const tod = timeOfDay(), gone = bossGone('adventure');
   atDepth(c, v.eye, D, () => {
-    stamp(c, `jg-exitview2-${tod.key}`, x0 - 160, TOP - 140, x1 - x0 + 320, GY - TOP + 260, g => paintScene(g, tod));
-    passing(c, v.f, tod);
+    stamp(c, `jg-exitview2-${tod.key}${gone ? '-gone' : ''}`, x0 - 160, TOP - 140, x1 - x0 + 320, GY - TOP + 260, g => paintScene(g, tod, gone));
+    if (!gone) passing(c, v.f, tod);
     stamp(c, `jg-exitframe-${tod.key}`, x0 - 160, TOP - 140, x1 - x0 + 320, GY - TOP + 260, g => paintFrame(g, tod));
   });
 };

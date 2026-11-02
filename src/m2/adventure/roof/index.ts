@@ -28,9 +28,10 @@ import { isShat, isNude } from '../../../m1/game/player/gut';
 import { CANVAS_WIDTH, CANVAS_HEIGHT, topBand } from '../../../m1/constants';
 import { registerHurtLines } from '../../kinds';
 import { drawSafariArtie } from '../river/artie';
+import { bossGone } from '../../emptyArena';
 import { drawPlayer } from '../../../m1/game/render/player/player';
 import {
-  type Dressed, ARTIE_LANDED, MEATHEAD_LANDED, ARTIE_CHUTE, GUEST_GASP, GUEST2_HIM, MEATHEAD_TO_LINE, GUEST_AFTER, HURT_ROOF, DEATH_ROOF,
+  type Dressed, ARTIE_LANDED, MEATHEAD_LANDED, MEATHEAD_LANDED_ALONE, ARTIE_CHUTE, GUEST_GASP, GUEST2_HIM, MEATHEAD_TO_LINE, GUEST_AFTER, GUEST_GASP_BACK, GUEST2_HIM_BACK, GUEST_AFTER_BACK, HURT_ROOF, DEATH_ROOF,
 } from './lines';
 
 registerHurtLines('roof_collapse', HURT_ROOF, DEATH_ROOF);
@@ -39,6 +40,9 @@ const pick = pickLine;
 const dressed = (state: GameState): Dressed => (isNude(state) ? 'nude' : isShat(state) ? 'shitty' : 'clean');
 /** First time through (a return trip will differ: the temple on fire, say). One flag per set piece. */
 const firstVisit = (_state: GameState) => true;
+/** Artie up through the roof after him: not once he's dead. He comes up alone, has his say, and it comes down the same
+ *  (the owner's: "the roof still collapses"). */
+const artieAbout = () => !bossGone('adventure');
 
 /** Off the edge: the hops down the steps (the landing spots: each tier's ledge, then the ground), frames a hop. */
 const HOPS = [
@@ -222,13 +226,20 @@ const arrive = (ctx: FrameContext, r: Roof): Controls => {
   if (ec.on) { ec.vy += 0.5; ec.y += ec.vy; if (ec.y > RY + 200) { ec.on = false; playSound('crash', 0.7, -6); } }
   // Artie, up after him; down on his back on the far side (the left, against the wall)
   const a = r.artie;
-  if (t === 34) { a.on = true; playSound('whoosh', 0.8); }
+  if (t === 34 && artieAbout()) { a.on = true; playSound('whoosh', 0.8); }
+  if (t === 34 && !artieAbout()) a.gone = true;
   if (a.on && !a.landed && !a.falling) {
     a.vy += 0.5; a.x += a.vx; a.y += a.vy;
     a.x = Math.max(a.x, ROOF_L + 14);
     if (a.vy > 0 && a.y >= RY && a.x < HOLE_X - HOLE_W / 2 - 10) { a.y = RY; a.landed = true; playSound('thud', 1, -6); playSound('crunch', 0.6); }
   }
   // Their say, then the left of the roof goes (Artie off it first)
+  // (back after he's dead: just him, his say, and the left of it goes)
+  if (m.landed && !artieAbout() && r.step === 0 && t > 100) {
+    r.step = 1;
+    const tok = r.token;
+    meatheadSays(state, pick(MEATHEAD_LANDED_ALONE[dressed(state)]), true, () => { if (r.token === tok && r.step === 1) r.step = 2; });
+  }
   if (m.landed && a.landed && r.step === 0 && t > 100) {
     r.step = 1;
     someoneSays(r, 'artie', 'm2.safari', pick(ARTIE_LANDED[dressed(state)]), () => {
@@ -256,7 +267,7 @@ const arrive = (ctx: FrameContext, r: Roof): Controls => {
       }
     }
     const leftGone = r.tiles.every((tl, k) => ROOF_L + k * TILE + TILE > HOLE_X - HOLE_W / 2 + TILE || tl.gone);
-    if ((r.step === 5 || t > 1100) && (a.gone || a.chute > 0) && leftGone) endArrival(state, r, false);
+    if ((r.step === 5 || !artieAbout() || t > 1100) && (a.gone || a.chute > 0) && leftGone) endArrival(state, r, false);
   }
   return hands();
 };
@@ -411,12 +422,14 @@ const zoomOut = (ctx: FrameContext, r: Roof): Controls => {
   // The line, him, the line
   if (t === 50 && r.step === 0) {
     r.step = 1;
-    someoneSays(r, 'f', 'm2.guest', pick(GUEST_GASP), () => {
-      someoneSays(r, 'm', 'm2.guest2', GUEST2_HIM[dressed(state)], () => {
+    // (back after Artie's dead: they'd only just fixed it)
+    const back = !artieAbout();
+    someoneSays(r, 'f', 'm2.guest', pick(back ? GUEST_GASP_BACK : GUEST_GASP), () => {
+      someoneSays(r, 'm', 'm2.guest2', (back ? GUEST2_HIM_BACK : GUEST2_HIM)[dressed(state)], () => {
         const tok = r.token;
         meatheadSays(state, pick(MEATHEAD_TO_LINE), true, () => {
           if (r.token !== tok) return;
-          someoneSays(r, 'f', 'm2.guest', GUEST_AFTER[0], () => { r.step = 8; });
+          someoneSays(r, 'f', 'm2.guest', (back ? GUEST_AFTER_BACK : GUEST_AFTER)[0], () => { r.step = 8; });
         });
       });
     });
