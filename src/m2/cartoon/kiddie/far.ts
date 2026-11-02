@@ -20,6 +20,7 @@ import { drawTodSky, timeOfDay, farTint, skyAt, hourMix, cloudTint, type TimeOfD
 import { snap2, wave, mist } from '../../adventure/farArt';
 import { signText, type Look } from '../../signLetters';
 import { box, mix, hash, checker, stamp, INK, type Ctx } from '../kit';
+import { dadGone, goneKey, canceledSlap } from '../canceled';
 import { MONUMENT_AT, drawMonument } from '../monument';
 import { SECTIONS } from '../geometry';
 import { farSpooky, farHollywood } from '../glimpse';
@@ -38,7 +39,7 @@ const SKY = ['#3C98E8', '#58AEF0', '#82C4F4', '#B0DAF6', '#EAD6F2', '#FFC4DC'];
 const fontReady = () => typeof document !== 'undefined' && !!document.fonts?.check('8px "Press Start 2P"');
 /** A tile `tw` wide (painted once for the hour), slid along by `off`, its top at y. */
 const tile = (c: Ctx, key: string, off: number, y: number, h: number, tw: number, paint: (g: Ctx) => void) => {
-  const tod = timeOfDay(), k = `ct-ki-${key}-${tod.key}-${fontReady() ? 'f' : 'n'}`;
+  const tod = timeOfDay(), k = `ct-ki-${key}-${tod.key}-${fontReady() ? 'f' : 'n'}${goneKey()}`;
   for (let x = -(((off % tw) + tw) % tw); x < W; x += tw) { c.save(); c.translate(Math.round(x), Math.round(y)); stamp(c, k, 0, 0, tw, h, paint); c.restore(); }
 };
 /** A far layer's color for the hour: toward dusk and night, then into the sky's haze by `k`. */
@@ -286,6 +287,8 @@ const paintPark = (g: Ctx, tod: TimeOfDay) => {
     signText(g, 'DAD GUY', 1655, PG - 118, { sx: 2, sy: 2, bold: true, fill: [T('#FF6A6A'), T('#C8283E')], ink: T(INK) });
     signText(g, "AMERICA'S NEW", 1655, PG - 98, tiny(T('#2A1A4A')));
     signText(g, 'FAVORITE FAMILY!', 1655, PG - 88, tiny(T('#2A1A4A')));
+    // (DAD GUY's dead on this save: CANCELED slapped across him)
+    if (dadGone()) canceledSlap(g, 1630, PG - 105, 240, 2, -0.28, T);
   });
   // ---- a gift shop's striped onion dome, flags
   { const gx = 1830, gt = PG - 70;

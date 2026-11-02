@@ -22,6 +22,7 @@ import { drawTodSky, timeOfDay, farTint, skyAt, hourMix, cloudTint, type TimeOfD
 import { snap2, wave, mist } from '../../adventure/farArt';
 import { signText, type Look } from '../../signLetters';
 import { box, mix, hash, checker, stamp, INK, type Ctx } from '../kit';
+import { dadGone, goneKey, canceledSlap } from '../canceled';
 import { MONUMENT_AT, drawMonument } from '../monument';
 import { SECTIONS } from '../geometry';
 import { farSpooky, farHollywood } from '../glimpse';
@@ -41,7 +42,7 @@ const fontReady = () => typeof document !== 'undefined' && !!document.fonts?.che
 const fk = () => (fontReady() ? 'f' : 'n');
 /** A tile `tw` wide (painted once for the hour), slid along by `off`, its top at y. */
 const tile = (c: Ctx, key: string, off: number, y: number, h: number, tw: number, paint: (g: Ctx) => void) => {
-  const tod = timeOfDay(), k = `ct-pkf-${key}-${tod.key}-${fk()}`;
+  const tod = timeOfDay(), k = `ct-pkf-${key}-${tod.key}-${fk()}${goneKey()}`;
   for (let x = -(((off % tw) + tw) % tw); x < W; x += tw) { c.save(); c.translate(Math.round(x), Math.round(y)); stamp(c, k, 0, 0, tw, h, paint); c.restore(); }
 };
 /** A far layer's color for the hour: toward dusk and night, then into the sky's haze by `k`. */
@@ -252,6 +253,8 @@ const paintPark = (g: Ctx, tod: TimeOfDay) => {
     box(g, bx + 56, by + 26, 9, 16, T(INK)); box(g, bx + 57, by + 27, 7, 14, T('#D8D8E8')); box(g, bx + 57, by + 31, 7, 4, T('#C8283E'));
     signText(g, 'DAD GUY', bx + 120, by + 24, { sx: 2, sy: 2, bold: true, fill: [T('#FFFFFF'), T('#FDE047')], ink: T(INK) });
     signText(g, 'LIVE! TODAY', bx + 120, by + 44, tiny(T('#FFFFFF'))); signText(g, 'BEER GARDEN OPEN', bx + 120, by + 56, tiny(T('#FDE047')));
+    // (DAD GUY's dead on this save: CANCELED slapped across him)
+    if (dadGone()) { g.save(); g.beginPath(); g.rect(bx, by, bw, bh); g.clip(); canceledSlap(g, bx + bw / 2, by + bh / 2, bw + 80, 2, -0.28, T); g.restore(); }
     box(g, bx - 4, by + bh + 2, bw + 8, 2, S);
     if (lamps) for (const lx of [bx + 30, bx + 90, bx + 150]) { box(g, lx - 3, by + bh + 4, 6, 3, '#FFF0C0'); } }
   // ---- the knockoff's own gate tower far back (the KILL-O-RAMA's pylon), a light tower, a gift dome

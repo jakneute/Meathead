@@ -54,10 +54,14 @@ import { drawAmphiBack, amphiLamps } from './art';
 import { drawAmphiFar } from './far';
 import { DAD_K, DAD_H, DAD_SIT_H } from './dad';
 import { guardHeadAt } from './guard';
-import { ARRIVE, REVISIT, GAGS, GUARD_GROAN, GUARD_LATER, VOICES } from './lines';
+import { ARRIVE, REVISIT, GAGS, GUARD_GROAN, GUARD_LATER, VOICES, EMPTY_STAGE } from './lines';
+import { leaveEmptyArena } from '../../emptyArena';
 import { CANVAS_WIDTH, CANVAS_HEIGHT, topBand } from '../../../m1/constants';
 
 export { GUARD_DOWN };
+
+/** His line on the empty stage (picked once a visit's state). */
+const emptyLine = new WeakMap<GameState, string>();
 
 const pmidX = (state: GameState) => state.player.pos.x + state.player.width / 2;
 
@@ -182,6 +186,13 @@ export const amphi: CartoonSection = {
     // Up to the guard: the boss door
     if (s.guard === 'up' && p.health > 0 && !p.inCutscene && p.isGrounded && rx > KICK_AT - 14) { startKick(state, s); return updateKick(ctx, s); }
     if (s.guard === 'down') groan(state, s, cleared);
+    // (DAD GUY's dead on this save: up onto his empty stage, his line, and back to the hub (the owner's revisit brief))
+    if (cleared && s.guard === 'down' && p.health > 0 && (p.inCutscene || p.isGrounded) && rx > DECK_A + 70) {
+      let line = emptyLine.get(state);
+      if (!line) { line = pickLine(byPants(state, EMPTY_STAGE)); emptyLine.set(state, line); }
+      leaveEmptyArena(state, line);
+      return hands();
+    }
     // Up onto the stage: DAD GUY (the first time this visit, the intro; a retry, straight on)
     if (!cleared && s.guard === 'down' && p.health > 0 && p.isGrounded && rx > DECK_A + 70) {
       markBossFight(state, 'stupid-dad', { l: X(ARENA.a), r: X(ARENA.b) });

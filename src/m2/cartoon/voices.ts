@@ -10,5 +10,6 @@ import { VOICE_LINES as whitehouse2 } from './whitehouse2/lines';
 import { VOICE_LINES as bigkid } from './bigkid/lines';
 import { VOICE_LINES as itchy } from './itchy/lines';
 import { VOICE_LINES as amphi } from './amphi/lines';
+import { VOICE_LINES as revisit } from './revisitLines';
 
-export const CARTOON_VOICE_LINES: Record<string, string[]>[] = [land, kiddie, studio, whitehouse1, whitehouse2, bigkid, itchy, amphi];
+export const CARTOON_VOICE_LINES: Record<string, string[]>[] = [land, kiddie, studio, whitehouse1, whitehouse2, bigkid, itchy, amphi, revisit];

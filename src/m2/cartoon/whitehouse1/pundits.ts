@@ -20,6 +20,8 @@
 
 import type { FrameContext } from '../../../m1/game/core/context';
 import type { GameState } from '../../../m1/game/core/state';
+import { dadGone } from '../canceled';
+import { PUNDIT_BACK, BACK_REPLY } from '../revisitLines';
 import type { Controls } from '../../../m1/game/platform/input';
 import type { Block, Enemy, EnemyKind } from '../../../m1/types';
 import { shakeScreen } from '../../../m1/game/core/state';
@@ -364,8 +366,8 @@ export const updatePundits = (ctx: FrameContext, controls: Controls): Controls =
       if (q.t > SKIP_AFTER) { offerSkip(); if (takeSkip()) { silenceAll(); q.said = null; begin(state, q); out = hands(); continue; } }
       const next = (k: number) => () => { q.introStep = k; };
       if (q.introStep === 0 && q.t === 8) { q.introStep = -1; chelseaSays(state, pickLine(S.coming), next(1)); }
-      if (q.introStep === 1 && !s.air) { q.introStep = -1; say(state, q, pickLine(byPants(state, S.lines.intro)), next(2)); }
-      if (q.introStep === 2) { q.introStep = -1; meatheadSays(state, whMust(byPants(state, S.lines.reply)), true, next(3)); }
+      if (q.introStep === 1 && !s.air) { q.introStep = -1; say(state, q, pickLine(byPants(state, dadGone() ? PUNDIT_BACK[q.id] : S.lines.intro)), next(2)); }
+      if (q.introStep === 2) { q.introStep = -1; meatheadSays(state, dadGone() ? pickLine(byPants(state, BACK_REPLY)) : whMust(byPants(state, S.lines.reply)), true, next(3)); }
       if (q.introStep === 3 || q.t > 1500) begin(state, q);
       out = hands();
       continue;

@@ -25,6 +25,7 @@ import type { Light } from '../../../m1/game/render/lighting';
 import { signText } from '../../signLetters';
 import { lookOf } from '../../adventure/temple/people';
 import { type Ctx, type View, INK, box, mix, hash, checker, at, stillAt, seen, polyF, sideBack, lit, dimmed, FRONT_D, BACK_D, ballR, postR, eggR } from '../kit';
+import { dadGone, goneKey, canceledSlap } from '../canceled';
 import { GY } from '../geometry';
 import { X, CANYON, HOLES, MERCH, KILLORAMA, EXIT_GATE } from './layout';
 import { catHead, mouseHead, mallet } from './kindArt';
@@ -467,6 +468,8 @@ const paintFurn = (g: Ctx, kind: Furn, seed: number) => {
       box(g, -32, -136, 64, 118, ink); box(g, -30, -134, 60, 114, T3[3]);
       pkPosterArt(g, -24, -128, seed % 4);
       box(g, -26, -62, 52, 38, D('#5EB4F4')); box(g, -26, -62, 52, 8, D('#FDE047')); signText(g, 'DAD GUY', 0, -56, small(D('#B01C22'))); g.fillStyle = D('#F4B8A0'); g.beginPath(); g.arc(-8, -40, 7, 0, Math.PI * 2); g.fill(); box(g, -18, -34, 20, 8, D('#F8FAFC')); box(g, 6, -48, 5, 10, D('#DC2626'));
+      // (DAD GUY's dead on this save: CANCELED pasted across his bill)
+      if (dadGone()) canceledSlap(g, 0, -43, 64, 1, -0.3, D);
       polyF(g, [[-36, -136], [0, -150], [36, -136]], ink); polyF(g, [[-33, -137], [0, -147], [33, -137]], D('#B01C22'));
       break;
     }
@@ -486,7 +489,7 @@ export const drawFurniture = (c: Ctx, v: View) => {
   for (const it of FURN) {
     const bx = FURN_BOX[it.kind], x = X(it.x);
     if (!seen(v, x + bx[0], x + bx[0] + bx[2], FURN_D, 40)) continue;
-    stillAt(c, v, FURN_D, `pk-furn-${it.kind}-${it.seed}-${lit() ? 1 : 0}`, x, GY, bx[0], bx[1], bx[2], bx[3], g => paintFurn(g, it.kind, it.seed));
+    stillAt(c, v, FURN_D, `pk-furn-${it.kind}-${it.seed}-${lit() ? 1 : 0}${it.kind === 'kiosk' ? goneKey() : ''}`, x, GY, bx[0], bx[1], bx[2], bx[3], g => paintFurn(g, it.kind, it.seed));
   }
 };
 /** The street's lights after dark (the fronts' windows and grills, the sno-cone cart). */

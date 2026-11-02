@@ -26,6 +26,7 @@ import {
   FRONT_D, BACK_D, eggR, ballR, postR, candyStroke,
 } from '../kit';
 import { GY } from '../geometry';
+import { dadGone, goneKey, canceledSlap } from '../canceled';
 import { X, PITS, PIPE, RINK } from './layout';
 
 /** Where the furniture stands (its feet), how far back the pits' and the pipe's back rims are, the rink's back fence. */
@@ -87,6 +88,8 @@ const miniPoster = (g: Ctx, x: number, y: number, look: number) => {
   box(g, x, y + 31, 28, 7, D('#1E3A8A')); box(g, x + 3, y + 2, 22, 5, D('#FDE047'));
   if (look === 2) { g.save(); g.translate(x + 14, y + 19); g.rotate(-0.5); box(g, -18, -3, 36, 6, D('#DC2626')); g.restore(); }
   if (look === 3) { g.fillStyle = D(mix(P, '#F0E8D8', 0.6)); g.beginPath(); g.moveTo(x + 28, y); g.lineTo(x + 14, y); g.lineTo(x + 28, y + 16); g.closePath(); g.fill(); }
+  // (DAD GUY's dead on this save: a CANCELED bill pasted across it, out over the wall either side)
+  if (dadGone()) canceledSlap(g, x + 14, y + 18, 62, 1, -0.42, D);
 };
 const paintFront = (g: Ctx, f: Front) => {
   const w = f.w, h = f.h, R = DR(wallOf(f)), B = DR(bandOf(f)), ink = D(INK);
@@ -235,7 +238,7 @@ export const drawFronts = (c: Ctx, v: View) => {
     sideBack(c, v.eye, a, -1, top, GY, FRONT_D, BACK_D, R, 3);
     sideBack(c, v.eye, b, 1, top, GY, FRONT_D, BACK_D, R, 3);
   }
-  for (const f of vis) stillAt(c, v, FRONT_D, `bk-front-${f.seed}-${lit() ? 1 : 0}`, X(f.x), GY, -14, -f.h - 70, f.w + 28, f.h + 74, g => paintFront(g, f));
+  for (const f of vis) stillAt(c, v, FRONT_D, `bk-front-${f.seed}-${lit() ? 1 : 0}${goneKey()}`, X(f.x), GY, -14, -f.h - 70, f.w + 28, f.h + 74, g => paintFront(g, f));
 };
 
 // ---------------------------------------------------------------------------------------------------------------

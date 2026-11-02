@@ -12,6 +12,8 @@
 // Her state's per stage (rebuilt with it on a death); what she's said outlives a death for the visit (hints once each).
 
 import type { GameState } from '../../../m1/game/core/state';
+import { dadGone } from '../canceled';
+import { NAG_R, OUCH_R, CHEER_R, COWER_R } from '../revisitLines';
 import { isTalking, pickFreshLine } from '../../../m1/game/platform/speech';
 import { playSound } from '../../../m1/game/platform/audio';
 import { speak, meatheadSays, byPants, saidOver, landVisit, type Said } from '../section';
@@ -189,7 +191,7 @@ export const updateChelsea = (state: GameState, w: ChelseaWorld = PART_ONE) => {
   // What she's got to say
   const free = p.health > 0 && !p.inCutscene && !isTalking() && !c.said;
   // (he's hurt: now and then)
-  if (p.health < c.lastHp - 7 && p.health > 0 && state.frame - c.ouchAt > 1200 && Math.random() < 0.35 && !isTalking()) { const l = whLine(OUCH); if (l) { c.ouchAt = state.frame; chelseaSays(state, l, undefined, false); } }
+  if (p.health < c.lastHp - 7 && p.health > 0 && state.frame - c.ouchAt > 1200 && Math.random() < 0.35 && !isTalking()) { const l = whLine(dadGone() ? OUCH_R : OUCH); if (l) { c.ouchAt = state.frame; chelseaSays(state, l, undefined, false); } }
   c.lastHp = p.health;
   if (!free) return;
   // (the first time he gets to each thing: her hint)
@@ -197,7 +199,7 @@ export const updateChelsea = (state: GameState, w: ChelseaWorld = PART_ONE) => {
   // (every so often, a nag; never the same twice in a life; and every time, he tells her to shut up)
   if (state.frame > c.nagAt && !world.hush?.(px)) {
     c.nagAt = state.frame + NAG_EVERY[0] + Math.floor(Math.random() * (NAG_EVERY[1] - NAG_EVERY[0]));
-    const nag = whLine(byPants(state, NAG));
+    const nag = whLine(byPants(state, dadGone() ? NAG_R : NAG));
     if (!nag) return;
     chelseaSays(state, nag, () => shutHerUp(state));
   }
@@ -230,12 +232,12 @@ const banter = (state: GameState, c: Chelsea, fighting: boolean) => {
     puffSeen.add(e);
     if (!free || f - c.talkAt < 360) continue;
     const r = Math.random();
-    if (r < 0.32) { const l = whLine(CHEER); if (l) { c.talkAt = f; chelseaSays(state, l, undefined, false); } }
+    if (r < 0.32) { const l = whLine(dadGone() ? CHEER_R : CHEER); if (l) { c.talkAt = f; chelseaSays(state, l, undefined, false); } }
     else if (r < 0.55) { const l = whLine(byPants(state, KILL_QUIP)); if (l) { c.talkAt = f; meatheadSays(state, l, false); } }
   }
   if (!free) return;
   if (fighting) {
-    if (f - c.talkAt > 780 && Math.random() < 0.005) { const l = whLine(COWER); if (l) { c.talkAt = f; chelseaSays(state, l, undefined, false); } }
+    if (f - c.talkAt > 780 && Math.random() < 0.005) { const l = whLine(dadGone() ? COWER_R : COWER); if (l) { c.talkAt = f; chelseaSays(state, l, undefined, false); } }
     return;
   }
   // (his go at the show: every half minute or so, out of the way of her nags)

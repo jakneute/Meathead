@@ -38,6 +38,7 @@ import { drawGuard, type GuardPose } from './guard';
 import type { StageLook } from './show';
 import { drawRim, BANK_Y } from './rim';
 import { boxSides, drumTop } from '../kit';
+import { dadGone, goneKey, canceledSlap } from '../canceled';
 import { drawShell, drawFlown, drawBanner, drawSetWall, drawSwingDoor, drawLaughHorn, drawTV, drawRug } from './stage';
 import {
   box, mix, hash, checker, hour, dimmed, INK, NR, DR, r6, CONC, ALU, DECK, STEEL, BRASS, RED, NAVY, PURP, AWNG, GRASS,
@@ -197,7 +198,7 @@ const MQ = { w: 344, h: 200, top: TOP_Y - 336 };
 const marquee = (c: Ctx, f: number) => {
   const cx = X(MARQUEE), { w, h, top } = MQ;
   c.save(); c.translate(cx, 0);
-  stamp(c, key('marquee2'), -w / 2 - 24, top - 24, w + 48, TOP_Y - top + 28, g => {
+  stamp(c, key(`marquee2${goneKey()}`), -w / 2 - 24, top - 24, w + 48, TOP_Y - top + 28, g => {
     const T = (col: string) => hour(col, 0.1), S = NR(STEEL), Pp = NR(PURP), Nv = NR(NAVY);
     // (the posts: steel, blue and yellow barber stripes peeling, rust at the feet, the base plates bolted down)
     for (const s of [-1, 1]) {
@@ -226,6 +227,8 @@ const marquee = (c: Ctx, f: number) => {
     signText(g, 'HONK AZORIA!', 60, top + 146, { sx: 1, sy: 2, bold: true, fill: [T('#FFFFFF'), T('#FDE047')], dither: true, ink: T(INK), shadow: T('#3B0764'), drop: 1 });
     box(g, -w / 2, top + h - 30, w, 26, Nv[3]); box(g, -w / 2, top + h - 30, w, 2, Nv[5]); box(g, -w / 2, top + h - 6, w, 2, Nv[1]);
     signText(g, 'SHOWS AT 11, 1, 3, 5 AND 7', 0, top + h - 12, { sx: 1, sy: 1, bold: true, fill: T('#FDE047'), ink: T(INK) });
+    // (he's dead on this save: CANCELED slapped across the board)
+    if (dadGone()) { g.save(); g.beginPath(); g.rect(-w / 2, top, w, h); g.clip(); canceledSlap(g, 0, top + h / 2 - 4, w + 160, 4, -0.3, T); g.restore(); }
     // (the vinyl banner zip-tied on under it, a corner come loose and curling)
     g.fillStyle = INK; g.beginPath(); g.moveTo(-122, top + h + 10); g.lineTo(122, top + h + 10); g.lineTo(122, top + h + 30); g.lineTo(110, top + h + 38); g.lineTo(-122, top + h + 34); g.closePath(); g.fill();
     g.fillStyle = T('#F4F4F0'); g.beginPath(); g.moveTo(-120, top + h + 12); g.lineTo(120, top + h + 12); g.lineTo(120, top + h + 28); g.lineTo(109, top + h + 35); g.lineTo(-120, top + h + 32); g.closePath(); g.fill();

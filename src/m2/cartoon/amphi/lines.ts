@@ -525,9 +525,17 @@ export const HURT: HurtTable = Object.fromEntries(Object.entries(HURT_BY).flatMa
 ]));
 
 const all = (b: ByPants) => allOf(b);
+/** Up on the empty stage after DAD GUY's dead: his line, then back to the hub (the owner's revisit brief). Sloth: the
+ *  couch he never got off. */
+export const EMPTY_STAGE: ByPants = {
+  clean: ['NO DAD. NO SHOW. NO BEER. FUCK THIS.', 'HIS COUCH. STILL ASS-SHAPED. NOTHING HERE.', 'HE DIED LIKE HE LIVED. SITTING DOWN.'],
+  shitty: ['EMPTY COUCH. I COULD SIT. I WOULD RUIN IT.', 'NOBODY HOME. JUST HIS STAINS. AND NOW MINE.'],
+  nude: ['EMPTY STAGE. NAKED. NO AUDIENCE. WASTE.', 'NO DAD. NO BEER. NO PANTS. HOME.'],
+};
+
 export const VOICE_LINES: Record<string, string[]> = {
   meathead: [
-    ...[ARRIVE, REVISIT, ...Object.values(GAGS), MH_KICKED, MH_SEES, MH_ON].flatMap(all),
+    ...[ARRIVE, REVISIT, EMPTY_STAGE, ...Object.values(GAGS), MH_KICKED, MH_SEES, MH_ON].flatMap(all),
     ...[MH_HINT, MH_TOO_GREASY, MH_PUKE, MH_RAGE, MH_BUNDY, MH_KILL, MH_COUCH, MH_DUD, MH_WON_WEAK, MH_WON, MH_BLOCKED, ...Object.values(MH_BLOCKED_BY)].flatMap(all),
     ...Object.values(HURT_BY).flatMap(by => Object.values(by).flatMap(h => h.hurt)),
   ],

@@ -27,7 +27,8 @@ import { bigkidOf, saidOnce } from './state';
 import { makeRides, updateRides, noteSafe, inPuddle, onSneer, COUCH_DONE_MEMO } from './rides';
 import { drawRidesBack, drawRidesFront } from './rideArt';
 import { drawBigkidBackdrop, drawBigkidBack, drawGlopHeaps, bigkidLamps } from './art';
-import { ARRIVE, REVISIT, GAGS, LOWRIDE, DOLL_LINES, CAST_VOICES } from './lines';
+import { ARRIVE, REVISIT, GAGS, GONE_GAGS, LOWRIDE, DOLL_LINES, CAST_VOICES } from './lines';
+import { dadGone } from '../canceled';
 import './kinds';
 import { updateBumper, drawBumper, drawBumperWorld, drawBumperWorldFront } from './bumper';
 
@@ -93,7 +94,8 @@ export const bigkid: CartoonSection = {
     for (const [key, at] of GAG_AT) {
       if (rx < at || rx > at + 400) continue;
       if (key === 'couch') once(revisit ? 'broke' : 'couch', byPants(state, GAGS[revisit ? 'broke' : 'couch']));
-      else once(key, byPants(state, GAGS[key as keyof typeof GAGS]));
+      // (DAD GUY dead on this save: what's about him goes with it)
+      else once(key, byPants(state, (dadGone() && GONE_GAGS[key as keyof typeof GAGS]) || GAGS[key as keyof typeof GAGS]));
     }
     // (on a tower as it first leans)
     const t = ridingTower(state, k.towers);

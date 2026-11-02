@@ -221,9 +221,16 @@ export const KILL_CALLS: Record<string, Record<string, string[]>> = {
   'm2:ct_stagehand': { charge: ['STRUCK!'], uppercut: ['FLOWN OUT!'], divekick: ['TAPED DOWN!'] },
 };
 const pools = (b: ByPants) => allOf(b);
+/** DAD GUY's dead on this save: on to his empty amphitheater. */
+export const GONE_EXIT: ByPants = {
+  clean: ['DAD GUY LIVE. HE IS NOT. I CHECKED.', 'THE AMPHITHEATER. NOBODY ON STAGE. I MADE SURE.'],
+  shitty: ['DAD GUY LIVE. NOPE. DEAD. I SMELL WORSE THAN HIM NOW.', 'BACK TO THE STAGE. NO DAD. JUST MY SMELL.'],
+  nude: ['DAD GUY LIVE. HE IS DEAD. I AM NAKED. FAIR TRADE.', 'BACK TO HIS STAGE. NAKED. NO DAD TO SEE IT.'],
+};
+
 export const VOICE_LINES: Record<string, string[]> = {
   meathead: [
-    ...[ARRIVE, REVISIT, ...Object.values(GAGS)].flatMap(allOf),
+    ...[ARRIVE, REVISIT, GONE_EXIT, ...Object.values(GAGS)].flatMap(allOf),
     ...Object.values(HURT).flatMap(h => h.hurt),
   ],
   death: Object.values(HURT).flatMap(h => h.death),

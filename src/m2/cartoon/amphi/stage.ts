@@ -19,6 +19,7 @@ import { pixelBlob } from '../../../m1/game/render/pixelArt';
 import { timeOfDay } from '../../timeOfDay';
 import { dadArt } from '../bigkid/art';
 import { X, STAGE_Y, SHELL, SET, KITCHEN } from './layout';
+import { dadGone, goneKey, canceledSlap } from '../canceled';
 import {
   box, mix, hash, checker, hour, INK, NR, NC, r6, SHELLC, SHELLB, PRIMER, CONC, STEEL, BRASS, RED, NAVY, WALLP, PANELS, PLY,
   SHOWL, tiny, stencil, paneling, rail, baseboard, drape, peel, streaks, rustRun, bulb, deadBulb, type Ctx,
@@ -135,7 +136,7 @@ export const drawFlown = (c: Ctx, rx: number, n: number, bar: number) => {
 export const drawBanner = (c: Ctx, f: number, applause: boolean) => {
   const mid = (SET.a + SET.b) / 2, bx = X(mid), by = STAGE_Y - 300, S = NR(STEEL);
   for (const s of [-1, 1]) for (let y = STAGE_Y - shellH(mid + s * 160) + 8; y < by + 2; y += 6) { box(c, bx + s * 160 - 1, y, 3, 4, S[1]); box(c, bx + s * 160, y + 1, 1, 2, S[4]); }
-  stamp(c, key('banner2'), bx - 196, by - 8, 392, 92, g => {
+  stamp(c, key(`banner2${goneKey()}`), bx - 196, by - 8, 392, 92, g => {
     const R = NR(RED), w = 364, h = 72, l = bx - w / 2;
     const sheet = () => { g.beginPath(); g.moveTo(l, by); g.lineTo(l + w, by); g.lineTo(l + w, by + h - 10); g.lineTo(l + w - 14, by + h - 2); g.lineTo(l + w - 22, by + h + 6); g.lineTo(l + w - 30, by + h); g.quadraticCurveTo(bx, by + h + 6, l, by + h); g.closePath(); };
     g.fillStyle = INK; g.save(); g.translate(0, 0); sheet(); g.lineWidth = 4; g.strokeStyle = INK; g.stroke(); g.restore();
@@ -150,6 +151,8 @@ export const drawBanner = (c: Ctx, f: number, applause: boolean) => {
     signText(g, 'DAD GUY', bx - 40, by + 44, SHOWL(3));
     signText(g, 'LIVE!', bx + 120, by + 44, { sx: 3, sy: 3, bold: true, slant: 1, fill: ['#FFFFFF', '#FDE68A'], dither: true, ink: INK, shadow: '#3B0764', drop: 2 });
     signText(g, 'PRESENTED BY SWILL LITE', bx, by + 62, tiny(mix('#FDE68A', R[3], 0.3)));
+    // (he's dead on this save: a CANCELED bill pasted across it)
+    if (dadGone()) { g.save(); sheet(); g.clip(); canceledSlap(g, bx, by + 34, w + 60, 3, -0.12); g.restore(); }
   });
   // (the APPLAUSE box: steel, riveted, the red glass lit while the laughs play)
   const ay = STAGE_Y - 216;

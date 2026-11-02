@@ -240,9 +240,29 @@ export const KILL_CALLS: Record<string, Record<string, string[]>> = {
 };
 
 const pools = (b: ByPants) => allOf(b);
+/** DAD GUY's dead on this save (the owner's revisit brief: his posters all CANCELED now): the gags about him, swapped
+ *  for these. He killed him; he knows exactly who Dad Guy is now. */
+export const GONE_GAGS: Partial<Record<keyof typeof GAGS, ByPants>> = {
+  posters: {
+    clean: ['CANCELED. I DID THAT. WITH MY HANDS.', 'DAD GUY. CANCELED. LIKE HIS HEART.'],
+    shitty: ['CANCELED. I CANCELED HIM. THEN I SHIT MYSELF.', 'HIS POSTER GOT CANCELED. MY PANTS DID TOO.'],
+    nude: ['CANCELED. BY A NAKED GUY. PUT THAT ON A POSTER.', 'DAD GUY. CANCELED. I WAS NAKED FOR IT.'],
+  },
+  memorial: {
+    clean: ['THEY NEED A NEW PLAQUE. THE DAD MADE IT.', "NOW IT'S THE WHOLE FAMILY. YOU'RE WELCOME."],
+    shitty: ['ONE MORE NAME FOR THE PLAQUE. ONE MORE STAIN FOR MY PANTS.', 'THE DAD JOINED THEM. I HELPED. I SMELL.'],
+    nude: ['ADD THE DAD. I KILLED HIM NAKED.', 'FULL SET NOW. THE DAD TOO. HATS OFF. PANTS OFF.'],
+  },
+  billboard: {
+    clean: ['SEE DAD GUY LIVE. NOT ANYMORE.', 'CANCELED. HE DIED ON HIS ASS. LIKE HE LIVED.'],
+    shitty: ['NO MORE SHOWS. I CLOSED IT. IN SHITTY PANTS.', 'DAD GUY LIVE. DAD GUY DEAD. MY PANTS ALSO DEAD.'],
+    nude: ['DAD GUY LIVE? DAD GUY DEAD. SAW IT NAKED.', 'CANCELED. HIS LAST SHOW HAD A NAKED GUY IN IT.'],
+  },
+};
+
 export const VOICE_LINES: Record<string, string[]> = {
   meathead: [
-    ...[ARRIVE, REVISIT, LOWRIDE, ...Object.values(GAGS)].flatMap(allOf),
+    ...[ARRIVE, REVISIT, LOWRIDE, ...Object.values(GAGS), ...Object.values(GONE_GAGS) as ByPants[]].flatMap(allOf),
     ...Object.values(HURT).flatMap(h => h.hurt),
     ...BUMPER.meathead,
   ],

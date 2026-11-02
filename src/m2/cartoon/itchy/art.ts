@@ -32,6 +32,7 @@ import {
   type Ctx, type View, INK, box, mix, hash, checker, hour, dimmed, lit, viewOf, at, still, stillAt, polyF, sideBack, topBack, boxSides, ballR, eggR, postR,
   bandsDown, shadeAcross, LIP as LIPR,
 } from '../kit';
+import { dadGone, goneKey, canceledSlap } from '../canceled';
 import { GY } from '../geometry';
 import { dadArt, poster } from '../bigkid/art';
 import { GROUND, CANYON, HOLES, ROCKS, SET_STEPS, RACK, KILLORAMA, MERCH, EXIT_GATE, SIGNS, FUSES, LAWN, TOWERS, X, Y } from './layout';
@@ -760,7 +761,7 @@ const exitGate = (c: Ctx, v: View) => {
   const cx = X(EXIT_GATE), w = 300, top = Y(330), Bl = DC('#1E3A8A');
   for (const s of [-1, 1]) { sideBack(c, v.eye, cx + s * w / 2 - 20, -1, top, GY, 1, SET_D, Bl, 3); sideBack(c, v.eye, cx + s * w / 2 + 20, 1, top, GY, 1, SET_D, Bl, 3); }
   topBack(c, v.eye, cx - w / 2 - 30, cx + w / 2 + 30, top - 110, 1, SET_D, DC('#7C3AED'), 2);
-  still(c, 'pk-exitgate2', cx, 0, -w / 2 - 40, top - 124, w + 80, GY - top + 128, g => {
+  still(c, `pk-exitgate2${goneKey()}`, cx, 0, -w / 2 - 40, top - 124, w + 80, GY - top + 128, g => {
     const ink = dimmed(INK), M = DR(MUSTARD), P = DC('#7C3AED');
     for (const s of [-1, 1]) {
       const px = s * w / 2;
@@ -775,6 +776,8 @@ const exitGate = (c: Ctx, v: View) => {
     signText(g, 'DAD GUY', 50, top - 80, { sx: 2, sy: 2, bold: true, slant: 1, fill: [dimmed('#FFFFFF'), dimmed('#FDE047'), dimmed('#F59E0B')], ink, shadow: dimmed('#3B0764'), drop: 2 });
     signText(g, 'LIVE!', 50, top - 50, { sx: 3, sy: 3, bold: true, slant: 1, fill: [dimmed('#FFFFFF'), dimmed('#FB7185'), dimmed('#DC2626')], ink, shadow: dimmed('#3B0764'), drop: 2 });
     signText(g, 'THE AMPHITHEATER >', 50, top - 16, small(dimmed('#A3E635'), ink));
+    // (DAD GUY's dead on this save: CANCELED slapped across the board)
+    if (dadGone()) { g.save(); g.beginPath(); g.rect(-w / 2 - 27, top - 107, w + 54, 106); g.clip(); canceledSlap(g, 0, top - 56, w + 140, 4, -0.22, dimmed); g.restore(); }
   });
 };
 

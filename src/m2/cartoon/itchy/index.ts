@@ -29,7 +29,8 @@ import { makeHazards, updateHazards, noteSafe, onDropped } from './hazards';
 import { drawHazardsBack, drawHazardsFront } from './hazardArt';
 import { drawItchyBackdrop, drawItchyBack, drawItchySigns, itchyLamps } from './art';
 import { primeAmphiFar } from '../amphi/far';
-import { ARRIVE, REVISIT, GAGS } from './lines';
+import { ARRIVE, REVISIT, GAGS, GONE_EXIT } from './lines';
+import { dadGone } from '../canceled';
 import { drawItchyDeathCam } from './deaths';
 import { tickHurtGag, drawHurtGag } from '../../hurtGags';
 import './kinds';
@@ -83,7 +84,7 @@ export const itchy: CartoonSection = {
     const revisit = !!state.stageMemo[ITCHY_DONE];
     // (in out of the big-kid zone, his line as he went is still going: this one waits its turn)
     if (rx > 120 && rx < 700) once('arrive', byPants(state, revisit ? REVISIT : ARRIVE), true);
-    for (const [key, at] of GAG_AT) if (rx >= at && rx <= at + 400) once(key, byPants(state, GAGS[key as keyof typeof GAGS]));
+    for (const [key, at] of GAG_AT) if (rx >= at && rx <= at + 400) once(key, byPants(state, key === 'exit' && dadGone() ? GONE_EXIT : GAGS[key as keyof typeof GAGS]));
     // (on a tower as it first leans)
     const t = ridingTower(state, k.towers);
     if (t && Math.abs(t.ang) > 0.12) once('tower', byPants(state, GAGS.tower));

@@ -14,6 +14,8 @@
 
 import type { FrameContext } from '../../../m1/game/core/context';
 import type { GameState } from '../../../m1/game/core/state';
+import { dadGone } from '../canceled';
+import { CHELSEA_RERUN, CHELSEA_INTRO2_R } from '../revisitLines';
 import type { Controls } from '../../../m1/game/platform/input';
 import type { WeaponType } from '../../../m1/types';
 import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../../../m1/constants';
@@ -102,8 +104,8 @@ export const updateTransform = (ctx: FrameContext, controls: Controls): Controls
       // (she runs in from the far side, stops by him, briefs him; he tells her to shut up)
       const there = chelseaTo(state, sc.x + 90, 5);
       if (there) { setChelseaPose(state, sc.line >= 3 && sc.line < 5 ? 'wag' : 'stand'); }
-      if (sc.line === 2 && there) { sc.line = -1; chelseaSays(state, CHELSEA_INTRO[0], () => { sc.line = 3; }); }
-      if (sc.line === 3) { sc.line = -1; chelseaSays(state, pickLine(byPants(state, CHELSEA_INTRO2)), () => { sc.line = 4; }); }
+      if (sc.line === 2 && there) { sc.line = -1; chelseaSays(state, dadGone() ? pickLine(CHELSEA_RERUN) : CHELSEA_INTRO[0], () => { sc.line = 3; }); }
+      if (sc.line === 3) { sc.line = -1; chelseaSays(state, pickLine(byPants(state, dadGone() ? CHELSEA_INTRO2_R : CHELSEA_INTRO2)), () => { sc.line = 4; }); }
       if (sc.line === 4) { sc.line = -1; meatheadSays(state, pickLine(byPants(state, SHUT_UP_FIRST)), true, () => { sc.line = 5; }); }
       if (sc.line === 5 || sc.t > 1400) { for (const e of state.enemies) e.puppet = false; finish(state, sc, false); }
       break;

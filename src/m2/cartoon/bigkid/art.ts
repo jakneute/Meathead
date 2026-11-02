@@ -46,6 +46,7 @@ import {
   ballR, eggR, ramp6, rampH, shadeAcross, bandsDown, postR, LIP, STEEL, BRASS, GRASS,
 } from '../kit';
 import { GY } from '../geometry';
+import { dadGone, goneKey, canceledSlap } from '../canceled';
 import { drawDadSign } from '../amphi/dad';
 import { drawBigkidFar } from './far';
 import { drawAlley, drawFronts, drawPavement, drawFurniture, backLamps, PIT_D, PIPE_D, RINK_D } from './backs';
@@ -191,7 +192,7 @@ export type PosterLook = 'fresh' | 'faded' | 'peel' | 'graffiti' | 'canceled' | 
 export const PW = 104, PH = 140;
 export const poster = (c: Ctx, x: number, y: number, look: PosterLook, dim = false) => {
   c.save(); c.translate(Math.round(x), Math.round(y));
-  stamp(c, key(`poster2-${look}-${dim ? 1 : 0}`), -PW / 2 - 8, -PH - 8, PW + 16, PH + 16, g => {
+  stamp(c, key(`poster2-${look}-${dim ? 1 : 0}${goneKey()}`), -PW / 2 - 8, -PH - 8, PW + 16, PH + 16, g => {
     const fade = look === 'fresh' ? 0.18 : look === 'live' ? 0.12 : look === 'faded' ? 0.55 : 0.42, paper = '#F5F0E1';
     const T = (col: string) => { const m = mix(col, paper, fade); return dim ? dimmed(m) : hour(m, 0.1); };
     const top = -PH, torn = look === 'peel' || look === 'canceled';
@@ -231,7 +232,9 @@ export const poster = (c: Ctx, x: number, y: number, look: PosterLook, dim = fal
     for (let k = 0; k < 5; k++) { const bx2 = -PW / 2 + 10 + hash(k * 3.3 + fade) * (PW - 20), by2 = top + 10 + hash(k * 5.1) * (PH - 20); g.fillStyle = 'rgba(255,255,255,0.3)'; g.beginPath(); g.ellipse(bx2, by2, 4, 2, 0, 0, Math.PI * 2); g.fill(); g.fillStyle = 'rgba(26,16,40,0.18)'; g.fillRect(bx2 - 3, by2 + 2, 6, 1); }
     if (look === 'faded') { g.fillStyle = 'rgba(245,240,225,0.25)'; g.fillRect(-PW / 2, top, PW, PH * 0.5); checker(g, -PW / 2, top + PH * 0.5, PW, 2, 'rgba(245,240,225,0.25)', 0, 1); }
     if (look === 'graffiti') signText(g, 'SUCKS', 6, top + 92, { sx: 2, sy: 2, bold: true, slant: 1, fill: '#DC2626', drip: { col: '#B91C1C', rate: 0.6, len: 8 }, seed: 7 });
-    if (look === 'canceled') { g.save(); g.translate(0, top + 70); g.rotate(-0.42); box(g, -70, -9, 140, 18, INK); box(g, -68, -7, 136, 14, '#DC2626'); box(g, -68, -7, 136, 2, '#F87171'); box(g, -68, 5, 136, 2, '#991B1B'); signText(g, 'CANCELED', 0, 4, { sx: 1, sy: 1, bold: true, fill: '#FFFFFF' }); g.restore(); }
+    if (look === 'canceled' && !dadGone()) { g.save(); g.translate(0, top + 70); g.rotate(-0.42); box(g, -70, -9, 140, 18, INK); box(g, -68, -7, 136, 14, '#DC2626'); box(g, -68, -7, 136, 2, '#F87171'); box(g, -68, 5, 136, 2, '#991B1B'); signText(g, 'CANCELED', 0, 4, { sx: 1, sy: 1, bold: true, fill: '#FFFFFF' }); g.restore(); }
+    // (DAD GUY's dead on this save: a big CANCELED pasted across every one of him; the owner's revisit brief)
+    if (dadGone()) canceledSlap(g, 0, top + 76, 190, 2, -0.48, col => (dim ? dimmed(col) : hour(col, 0.1)));
     g.restore();
     // (the edge; the torn corner curled back over, the strip's raw edge)
     g.beginPath(); sheet(); g.strokeStyle = INK; g.lineWidth = 1.5; g.lineJoin = 'round'; g.stroke();
@@ -970,7 +973,7 @@ const halfpipe = (c: Ctx, v: View) => {
  *  and lamps (on after dark). */
 const billboard = (c: Ctx) => {
   const x = X(BILLBOARD), w = 360, h = 180, top = Y(380);
-  still(c, `bk-billboard-${lit() ? 1 : 0}`, x, 0, -w / 2 - 14, top - 14, w + 28, GY - top + 16, g => {
+  still(c, `bk-billboard-${lit() ? 1 : 0}${goneKey()}`, x, 0, -w / 2 - 14, top - 14, w + 28, GY - top + 16, g => {
     const ink = dimmed(INK), Pu = DR('#7C3AED'), Lg = DR('#57534E');
     for (const lx of [-w / 3, w / 3]) {
       box(g, lx - 8, top + h, 16, GY - top - h, ink); box(g, lx - 6, top + h, 4, GY - top - h, Lg[3]); box(g, lx + 2, top + h, 4, GY - top - h, Lg[3]);
@@ -988,6 +991,8 @@ const billboard = (c: Ctx) => {
     signText(g, 'AS SEEN (AND HEARD) ON TV!', 70, top + 112, { sx: 1, sy: 1, fill: dimmed('#FDE047') });
     signText(g, 'THE AMPHITHEATER. SHOWS DAILY.', 70, top + 126, { sx: 1, sy: 1, fill: dimmed('#FDE047') });
     signText(g, 'THIS WAY >', 70, top + 150, { sx: 1, sy: 2, bold: true, fill: dimmed('#A3E635'), ink });
+    // (DAD GUY's dead: CANCELED slapped across the board)
+    if (dadGone()) { g.save(); g.beginPath(); g.rect(-w / 2, top, w, h); g.clip(); canceledSlap(g, 0, top + h / 2, w + 120, 4, -0.28, dimmed); g.restore(); }
     // (the catwalk under it, its rail, the lamps reaching up over the face)
     box(g, -w / 2 - 6, top + h + 6, w + 12, 5, ink); box(g, -w / 2 - 4, top + h + 7, w + 8, 2, Lg[4]);
     for (let k = -w / 2; k <= w / 2; k += 30) box(g, k, top + h + 11, 2, 8, ink);
