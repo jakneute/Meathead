@@ -271,6 +271,55 @@ export const MECH_TALK: Record<MechId, MechTalk> = {
     die: ['...OW.'],
   },
 };
+/** A revisit: each landmark up again, rebuilt and out for revenge (the owner's: "we got rebuilt and we're out for
+ *  revenge"), in place of its intro (by his pants). */
+export const MECH_BACK: Record<MechId, ByPants> = {
+  eiffel: {
+    clean: ['I AM BACK, AMERICAN. NEW RIVETS. OLD GRUDGE.'],
+    shitty: ['THEY REBUILT ME. YOU STILL SMELL LIKE A FRENCH TOILET.'],
+    nude: ['REBUILT AND READY. STILL NAKED? HON HON. NOT FOR LONG.'],
+  },
+  opera: {
+    clean: ["G'DAY AGAIN, MATE! NEW SAILS! SAME TRAGEDY! YOURS!"],
+    shitty: ["THEY GLUED ME BACK TOGETHER, MATE! YOU STILL STINK!"],
+    nude: ["REBUILT, MATE! AND YOU'RE STILL SHOWING EVERYTHING!"],
+  },
+  redeemer: {
+    clean: ['THEY PUT MY ARMS BACK ON. I WILL USE THEM ON YOU.'],
+    shitty: ['RESTORED. I FORGIVE MANY THINGS. NOT THAT SMELL.'],
+    nude: ['NEW ARMS. STILL NO HUG FOR THE NAKED MAN. DEATH, THOUGH.'],
+  },
+  pisa: {
+    clean: ["I'M BACK! THEY TRIED TO STRAIGHTEN ME! I SAID NO! IMMUNE!"],
+    shitty: ["REBUILT AND STILL IMMUNE! UNLIKE YOUR PANTS!"],
+    nude: ["I'M BACK! NEW MARBLE! YOU'RE STILL NAKED! I'M STILL HUNG!"],
+  },
+  taj: {
+    clean: ['RESTORED. SYMMETRICAL AGAIN. NOW YOU WILL BE TWO HALVES.'],
+    shitty: ['THEY REBUILT ME. SHOES OFF. PANTS TOO. OH. TOO LATE.'],
+    nude: ['NEWLY RESTORED. YOU ARE STILL DEFILING MY LAWN.'],
+  },
+  bigben: {
+    clean: ["RIGHT! NEW GEARS, INNIT! TIME FOR PAYBACK!"],
+    shitty: ["REBUILT, YOU WANKER! AND YOU STILL SMELL LIKE THE TUBE!"],
+    nude: ["BACK AGAIN! NEW CLOCK! SAME NAKED WANKER!"],
+  },
+  colosseum: {
+    clean: ['RESTORED! STILL MISSING HALF MY WALLS! ON PURPOSE! REVENGE!'],
+    shitty: ['THEY REBUILT ME! THE LIONS STILL WILL NOT EAT YOU!'],
+    nude: ['REBUILT FOR THE REMATCH! THE CROWD WANTS THE NAKED ONE DEAD!'],
+  },
+  pyramid: {
+    clean: ['FOUR THOUSAND YEARS, THEN YOU. THEY REBUILT ME IN A WEEK. REVENGE.'],
+    shitty: ['RESTORED. I STILL SEE YOUR PANTS. I STILL WEEP.'],
+    nude: ['REBUILT. MY EYE SEES ALL OF YOU. TOO MUCH OF YOU.'],
+  },
+  moai: {
+    clean: ['BACK. NEW BODY. STARE.'],
+    shitty: ['REBUILT. STILL SMELL YOU. STARE HARDER.'],
+    nude: ['BACK. YOU STILL NAKED. ME TOO. DO NOT LOOK.'],
+  },
+};
 /** The Leaning Tower's fall: as it goes, missing him, and on him. */
 export const PISA_FALL = ['UH OH. UH OH. UH OH, NO.', 'WHOA. WHOA. WHOA. WHOOOOAAA!'];
 export const PISA_MISSED = ['...I MEANT TO DO THAT.', 'OKAY. I FELL OVER. I STILL WIN. IMMUNE.'];
@@ -381,6 +430,7 @@ export const VOICE_LINES = pavilionVoices({ pa: { clean: [], shitty: [], nude: [
   ],
   ...Object.fromEntries(Object.entries(MECH_TALK).map(([id, t]) => [MECH_VOICE[id as MechId], [
     ...t.intro, ...t.taunt, ...t.hurt, ...t.die, ...(id === 'pisa' ? [...PISA_FALL, ...PISA_MISSED, ...PISA_GOT_HIM] : []),
+    ...pants(MECH_BACK[id as MechId]),
   ].filter(l => l !== '...')])),
   [GUEST.m]: [...QUEUE_SHOUT, ...QUEUE_SHOUT_SHAT, ...QUEUE_SHOUT_NUDE, ...pants(QUEUE_GONE)],
   [GUEST.f]: [...QUEUE_SHOUT, ...QUEUE_SHOUT_SHAT, ...QUEUE_SHOUT_NUDE, ...pants(QUEUE_GONE)],

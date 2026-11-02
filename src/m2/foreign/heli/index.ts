@@ -720,6 +720,8 @@ export const heli: ForeignSection = {
       label(c, MECH_NAME[m.id], band.mid, 46, '#FDE68A', 7);
       if (m.id === 'pisa' && m.hp > 0) label(c, 'IMMUNE', band.mid, 29, (state.frame >> 3) % 2 ? '#FFFFFF' : '#BFDBFE', 7);
       label(c, (h.cur + 1) + ' OF ' + MECHS.length, band.x2 - 40, 60, '#A1A1AA', 6);
+      // (a revisit: rebuilt, and back for revenge)
+      if (h.noHarry) label(c, 'NEWLY RESTORED!', band.x1 + 70, 60, '#86EFAC', 6);
     }
   },
   outdoors: () => 1,

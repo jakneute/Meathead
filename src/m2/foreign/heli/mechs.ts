@@ -22,7 +22,8 @@ import { meatheadSays } from '../section';
 import { heliOf, type Mech, type ShotLook, type Beam, type Drop, type Minion, type Heli } from './state';
 import { BASE, LEG, CAMX, CY, W, H, Z, fx, toScreen } from './geo';
 import { ringY, mechStep, lionStain } from './park';
-import { MECHS, MECH_TALK, HARRY_LOST, HARRY_SEND, MH_KILL, PISA_FALL, PISA_MISSED, PISA_GOT_HIM, MH_PISA_MISSED, type MechId } from './lines';
+import { MECHS, MECH_TALK, MECH_BACK, HARRY_LOST, HARRY_SEND, MH_KILL, PISA_FALL, PISA_MISSED, PISA_GOT_HIM, MH_PISA_MISSED, type MechId } from './lines';
+import { byPants } from '../cast';
 import { harrySays, mechSays, harryFrom, harryPick } from './talk';
 
 export interface Rect { x: number; y: number; w: number; h: number }
@@ -333,7 +334,9 @@ export const startMech = (state: GameState, i: number) => {
   playSound('rumble', 0.8, -8);
   harrySays(state, harryFrom(state, HARRY_SEND[m.id]), true, () => {
     const intro = MECH_TALK[m.id].intro;
-    if (m.id === 'moai') mechSays(state, 'moai', intro[0], true, () => mechSays(state, 'moai', intro[1], true));
+    // (a revisit: rebuilt, and out for revenge)
+    if (h.noHarry) mechSays(state, m.id, pickLine(byPants(state, MECH_BACK[m.id])), true);
+    else if (m.id === 'moai') mechSays(state, 'moai', intro[0], true, () => mechSays(state, 'moai', intro[1], true));
     else mechSays(state, m.id, pickLine(intro), true);
   });
 };
