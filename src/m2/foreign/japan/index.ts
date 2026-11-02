@@ -147,7 +147,8 @@ export const japan: ForeignSection = {
   update: (ctx, controls) => {
     const { state } = ctx, p = state.player, f = state.frame;
     pavilionTalk(state, 'jp', x0, GY, TALK);
-    updateStation(ctx);
+    const held = updateStation(ctx);
+    if (held) return held;
     poolZones(state, 'jp-pond', [POND]);
     // The koi: the bubbles, then out and over in an arc; it hits whoever's in the way (him, the cast)
     const k = koiAt(f), near = Math.abs(p.pos.x - (POND.a + POND.b) / 2) < 800;
@@ -205,7 +206,7 @@ export const japan: ForeignSection = {
     for (const [a, b, h] of LANTERNS) if (onScreen(v, X(a), X(b))) out.push({ x: X((a + b) / 2), y: Y(h) + 20, r: 110, a: 0.45, color: '#FDE68A' });
     if (onScreen(v, X(1240), X(1660))) out.push({ x: X(1450), y: Y(120), r: 220, a: 0.45, color: '#E0F2FE' });
     for (const lx of [3160, 3220]) if (onScreen(v, X(lx), X(lx))) out.push({ x: X(lx), y: GY - 94, r: 90, a: 0.4, color: '#FEF3C7' });
-    out.push(...stationLamps(v, state.frame));
+    out.push(...stationLamps(v, state));
     return out;
   },
 };

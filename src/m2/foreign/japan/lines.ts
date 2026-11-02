@@ -110,8 +110,21 @@ export const HURT: HurtTable = {
     hurt: ['THE BULLET TRAIN! RIGHT IN MY EVERYTHING!', 'HIT BY A TRAIN! A FAST ONE!', "IT DIDN'T EVEN SLOW DOWN!"],
     death: ['HIT BY THE BULLET TRAIN', 'RIGHT ON TIME'],
   },
+  // (still standing in the left tunnel's mouth when the train comes through: gateFind.ts, station.ts)
+  'm2:fl_train_blast': {
+    hurt: ['THE TRAIN SHOT ME OUT OF THE HOLE!', 'WRONG HOLE! WRONG FUCKING HOLE!', 'THE BULLET TRAIN! I WAS THE BULLET!'],
+    death: ['BLASTED OUT BY THE BULLET TRAIN', 'STOOD IN THE TRAIN TUNNEL'],
+  },
+};
+
+/** The MAX AMMO find in the left tunnel's mouth (gateFind.ts), once its card's shut (and the train's coming). */
+export const AMMO_FIND: ByPants = {
+  clean: ['MORE AMMO. NOW GET OUT OF THE TRAIN HOLE.', 'BIGGER MAGS IN EVERY GUN. NOW RUN.'],
+  shitty: ['MORE AMMO. AND MORE IN MY PANTS. RUN.', 'BIGGER MAGS. I LEFT SOMETHING IN THE TUNNEL.'],
+  nude: ['MORE AMMO. NO POCKETS. RUN ANYWAY.', 'BIGGER MAGS. MY ASS IS OUT. MOVE.'],
 };
 
 export const VOICE_LINES = pavilionVoices(TALK, HURT, [[V.ninja, NINJA], [V.sumo, SUMO], [V.samurai, SAMURAI], [V.cosplay, COSPLAY], [{ m: V.cosplay.f, f: V.cosplay.f }, STATION]], {
   [V.cosplay.m]: SCREAM, [V.cosplay.f]: SCREAM,
+  meathead: [...AMMO_FIND.clean, ...AMMO_FIND.shitty, ...AMMO_FIND.nude],
 });

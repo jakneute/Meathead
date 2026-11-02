@@ -7,10 +7,18 @@
 // and the platform walkway in the middle (all higher than the train's roof), the station roof over the walkway, the
 // departure board over that (a small ammo). Ninjas blink onto the walkways with him, a sumo stomps him off them. Over
 // the right-hand Fuji and on to Morocco.
+//
+// THE LEFT GATE (gateFind.ts: the MAX AMMO find): the left tunnel's shutter rolls up as the bells start (not at their
+// end, like the right one) and comes down behind the train's tail; open, its mouth is walkable, and the find lies in
+// it. Still in the mouth when the train comes through, it blasts him out onto the track (`m2:fl_train_blast`).
 
 import type { Light } from '../../../m1/game/render/lighting';
 import type { FrameContext } from '../../../m1/game/core/context';
 import type { GameState } from '../../../m1/game/core/state';
+import type { Block } from '../../../m1/types';
+import { type Controls, NO_CONTROLS } from '../../../m1/game/platform/input';
+import { hurtPlayer } from '../../../m1/game/bosses/shared';
+import { type GateFind, newGateFind, tickGateCard, grabGateFind, drawGateFind } from './gateFind';
 import { solid, ledge, foreignState } from '../section';
 import { SECTIONS, GY } from '../geometry';
 import { spawnCast, byPants } from '../cast';
@@ -40,6 +48,12 @@ const REFUGES: [number, number, number][] = [[4040, 4140, 140], [4300, 4620, 140
 /** The train: its roof, its length, its speed; one every EVERY frames, WARN of bells first. */
 const TRAIN = { h: 110, len: 1500, v: 30 } as const;
 const EVERY = 430, WARN = 105;
+/** The left gate: its mouth (the tunnel's last 80 px, in the first Fuji's foot, as high as the portal's opening); its
+ *  shutter up over LEFT_UP frames from the first bell, walkable once its foot's over his head (WALK_OPEN), down over
+ *  LEFT_DOWN frames once the train's tail is out (pass frame TAIL_OUT); the find in it (rx) and the blast's damage. */
+const GATE = { a: 3880, b: LANE.a, h: TRAIN.h + 10 } as const;
+const LEFT_UP = 24, LEFT_DOWN = 8, WALK_OPEN = 0.56, TAIL_OUT = Math.ceil(TRAIN.len / TRAIN.v);
+const FIND_RX = 3918, BLAST = 36;
 
 const ENEMIES: [string, number, number][] = [
   // (THE BULLET TRAIN's checkpoint's spot left clear) a ninja waiting on the first Fuji's top
@@ -70,31 +84,70 @@ const trainAt = (f: number) => {
   return { st: 'gone' as const, n, nose: 0, t: 0 };
 };
 
-interface Station { said: Shout; hit: Set<object>; n: number }
-const stationOf = (state: GameState) => foreignState<Station>(state, 'japan-station' as 'japan', () => ({ said: newShout(), hit: new Set(), n: -1 }));
+/** The left gate's shutter (0 shut .. 1 up). */
+const leftOpen = (tr: ReturnType<typeof trainAt>) =>
+  tr.st === 'warn' ? Math.min(1, tr.t / LEFT_UP) : tr.st === 'pass' ? (tr.t < TAIL_OUT ? 1 : Math.max(0, 1 - (tr.t - TAIL_OUT) / LEFT_DOWN)) : 0;
+
+/** `lag`: the frames the train's clock was held (the find's card up), so its schedule just waits. */
+interface Station { said: Shout; hit: Set<object>; n: number; lag: number; gate: Block | null; find: GateFind }
+const stationOf = (state: GameState) => foreignState<Station>(state, 'japan-station' as 'japan', () => ({ said: newShout(), hit: new Set(), n: -1, lag: 0, gate: null, find: newGateFind() }));
+/** The train's clock. */
+const clock = (state: GameState) => state.frame - stationOf(state).lag;
 
 export const buildStation = (state: GameState) => {
-  for (const [a, b, h] of [...FUJI_L, ...FUJI_R]) solid(state, X(a), Y(h), b - a, h, { hidden: true, tag: 'jp-fuji' });
+  for (const [a, b, h] of [...FUJI_L, ...FUJI_R]) {
+    // (the first Fuji's last step: the left gate's mouth under it, its shutter a wall of its own, moved off while open)
+    if (a === GATE.a) { solid(state, X(a), Y(h), b - a, h - GATE.h, { hidden: true, tag: 'jp-fuji' }); solid(state, X(a), Y(GATE.h), b - a, GATE.h, { hidden: true, tag: 'jp-gate' }); continue; }
+    solid(state, X(a), Y(h), b - a, h, { hidden: true, tag: 'jp-fuji' });
+  }
   for (const [a, b, h] of REFUGES) ledge(state, X(a), Y(h), b - a, { hidden: true, tag: 'jp-refuge' });
   spawnCast(state, ENEMIES, X, Y);
   placePickups(state, 'jp', X, Y, [[4460, 410, 'small_ammo'], [4090, 140, 'small_health']]);
 };
 
-export const updateStation = (ctx: FrameContext) => {
-  const { state } = ctx, p = state.player, f = state.frame, s = stationOf(state);
+/** A frame of the station: the controls to use while the find's card holds him (the train's clock held too), else null. */
+export const updateStation = (ctx: FrameContext): Controls | null => {
+  const { state } = ctx, p = state.player, s = stationOf(state);
+  const held = tickGateCard(state, s.find);
+  if (held) { s.lag++; return held; }
+  const f = clock(state);
   const near = p.pos.x > X(3400) && p.pos.x < X(5400);
   const tr = trainAt(f);
   if (tr.n !== s.n) { s.n = tr.n; s.hit.clear(); }
+  // The left gate: walkable while its shutter's up over his head; coming down on him (never, the train sees to that,
+  // but never shut in) puts him back out on the track
+  const open = leftOpen(tr), walk = open >= WALK_OPEN;
+  s.gate ??= state.blocks.find(b => b.tag === 'jp-gate') ?? null;
+  if (s.gate) {
+    if (walk) s.gate.y = GY + 4000;
+    else {
+      if (s.gate.y !== Y(GATE.h) && p.pos.x < X(GATE.b) && p.pos.x + p.width > X(GATE.a) && p.pos.y + p.height > Y(GATE.h)) p.pos.x = X(GATE.b);
+      s.gate.y = Y(GATE.h);
+    }
+  }
+  const inGate = p.pos.x < X(GATE.b) - 8 && p.pos.x + p.width > X(GATE.a) && p.pos.y + p.height > Y(GATE.h) && p.health > 0;
+  if (walk && grabGateFind(ctx, s.find, X(FIND_RX), GY)) { s.lag++; return { ...NO_CONTROLS }; }
+  // Still in the mouth when the train comes through: it blasts him out, onto the track
+  if (inGate && tr.st === 'pass' && tr.t < TAIL_OUT && !s.hit.has(p) && !p.inCutscene) {
+    s.hit.add(p);
+    if (p.invincibilityTimer <= 0 && !p.carried) hurtPlayer(ctx, BLAST, 'm2:fl_train_blast', { x: 18, y: -13 }, 50);
+    else p.vel = { x: 18, y: -13 };
+    playSound('crash', 1, -6); playSound('truckhorn', 0.9, 14); shakeScreen(state, 12, 10);
+    for (let k = 0; k < 16; k++) state.particles.push({ pos: { x: X(GATE.b), y: GY - 20 - Math.random() * 60 }, vel: { x: 4 + Math.random() * 8, y: (Math.random() - 0.7) * 5 }, life: 26, color: k % 2 ? '#A8A29E' : '#E7E5E4', size: 3 + Math.random() * 3 });
+  }
   if (tr.st !== 'gone') setHazardZones(state, 'jp-train', [{ x0: X(LANE.a), x1: X(LANE.b), y0: Y(TRAIN.h), y1: GY + 4, ground: true }]);
   if (tr.st === 'warn' && near && tr.t % 20 === 0) playSound('ding', 0.45, tr.t % 40 ? 4 : 0);
   if (tr.st === 'warn' && tr.t === 0 && near) shout(state, s.said, V.cosplay.f, byPants(state, STATION), X(4460), Y(410) - 70, 0.4);
-  if (tr.st !== 'pass') return;
+  if (tr.st !== 'pass') return null;
   if (tr.t === 0 && near) { playSound('truckhorn', 0.9, 14); playSound('rumble', 0.9, -4); }
   if (near && tr.t % 6 === 0) shakeScreen(state, 3, 2);
   const a = Math.max(X(LANE.a), tr.nose - TRAIN.len), b = Math.min(X(LANE.b), tr.nose);
-  if (b <= a) return;
+  // (the cast in the left gate's mouth go with it too)
+  if (tr.nose - TRAIN.len < X(LANE.a)) hitCastIn(ctx, X(GATE.a), Y(TRAIN.h), GATE.b - GATE.a, TRAIN.h, 999, X(GATE.a) - 200, 'SHINKANSEN!', '#F8FAFC', s.hit, true);
+  if (b <= a) return null;
   if (!s.hit.has(p) && hurtIn(ctx, a, Y(TRAIN.h), b - a, TRAIN.h, 18, 'm2:fl_bullet_train', { x: 16, y: -12 }, 40)) { s.hit.add(p); playSound('crash', 0.9, -2); shakeScreen(state, 8, 6); }
   hitCastIn(ctx, a, Y(TRAIN.h), b - a, TRAIN.h, 999, a - 200, 'SHINKANSEN!', '#F8FAFC', s.hit, true);
+  return null;
 };
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -105,7 +158,7 @@ const shutterUp = (tr: ReturnType<typeof trainAt>) => (tr.st === 'warn' ? Math.m
 
 export const drawStationBack = (c: Ctx, v: View, state: GameState) => {
   if (!onScreen(v, X(STATION_FROM), x1)) return;
-  const f = state.frame, tr = trainAt(f), warn = tr.st === 'warn';
+  const f = state.frame, tr = trainAt(clock(state)), warn = tr.st === 'warn';
   // (the track across the station floor)
   if (onScreen(v, X(LANE.a), X(LANE.b))) drawTrack(c, v, X(LANE.a), X(LANE.b));
   // (the gantries at each end (their signals), the walkway, the station canopy over it, the departure board over that)
@@ -120,7 +173,12 @@ export const drawStationBack = (c: Ctx, v: View, state: GameState) => {
   // (the Fujis, their portals on the track side)
   const open = shutterUp(tr);
   drawFujiSteps(c, v, [...FUJI_L, ...FUJI_R].map(([a, b, h]) => ({ a: X(a), b: X(b), top: Y(h) })));
-  if (onScreen(v, X(LANE.a) - 100, X(LANE.a))) drawPortal(c, X(LANE.a) - 84, Y(TRAIN.h + 10), open, warn, f);
+  // (the left one rolls up early: the find in its mouth, under the shutter)
+  if (onScreen(v, X(LANE.a) - 100, X(LANE.a))) {
+    const lo = leftOpen(tr);
+    drawPortal(c, X(LANE.a) - 84, Y(GATE.h), lo, warn, f);
+    drawGateFind(c, stationOf(state).find, X(FIND_RX), GY, Y(GATE.h) + Math.round(GATE.h * (1 - lo)), f);
+  }
   if (onScreen(v, X(LANE.b), X(LANE.b) + 100)) drawPortal(c, X(LANE.b), Y(TRAIN.h + 10), open, warn, f);
   // (the signs: held up, nothing over them)
   if (onScreen(v, X(3620), X(3700))) postBoard(c, X(3650), GY, ['SHINKANSEN', 'BULLET TRAIN', '(DOES NOT STOP)'], LOOKS.japan(1), '#F8FAFC', undefined, 150);
@@ -129,13 +187,13 @@ export const drawStationBack = (c: Ctx, v: View, state: GameState) => {
 };
 
 export const drawStationFront = (c: Ctx, v: View, state: GameState) => {
-  const tr = trainAt(state.frame);
+  const tr = trainAt(clock(state));
   if (tr.st === 'pass' && onScreen(v, X(LANE.a), X(LANE.b))) drawTrainArt(c, tr.nose, TRAIN.len, Y(TRAIN.h), TRAIN.h, X(LANE.a) - 84, X(LANE.b) + 84, state.frame);
   drawShout(c, stationOf(state).said);
 };
 
-export const stationLamps = (v: View, f: number): Light[] => {
-  const tr = trainAt(f);
+export const stationLamps = (v: View, state: GameState): Light[] => {
+  const f = state.frame, tr = trainAt(clock(state));
   if (!onScreen(v, X(LANE.a), X(LANE.b)) || tr.st !== 'warn' || (f >> 3) % 2) return [];
   return [{ x: X(4090), y: Y(170), r: 110, a: 0.6, color: '#EF4444' }, { x: X(4850), y: Y(170), r: 110, a: 0.6, color: '#EF4444' }];
 };
