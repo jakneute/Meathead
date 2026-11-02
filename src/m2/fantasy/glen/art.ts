@@ -464,11 +464,12 @@ export const drawGlenBack = (c: Ctx, state: GameState, piperX: number | null) =>
   drawProps(c, v);
   drawNearGround(c, state, v);
   drawSetsNear(c, state, v, piperX); // (the gorges' faces, the solids, the cottage, the ride's front, the shelves, the PA horns)
-  // (the signs, on their posts)
+  // (the signs, on their posts; UNICORN MEADOW's set back off the gorge's edge: at +80 its post stood out over the drop,
+  // the owner's "the sign's post is in midair")
   const signs: [number, string[], object?][] = [
     [470, ['THE ENCHANTED GLEN', 'MIND THE MUSHROOMS']], [1580, ['TOADSTOOL HOLLOW']], [2620, ['THE BRIAR PATCH', 'PLEASE STAY ON THE PATH']],
     [4080, ['THE STORYBOOK BRIDGE', 'CLOSED FOR REFURBISHMENT'], { warn: true }], [5420, ["THE WITCH'S COTTAGE", 'DO NOT EAT THE HOUSE']],
-    [7540, ['THE DWARF MINE', 'HARD HATS REQUIRED']], [GAP2.b + 80, ['UNICORN MEADOW', 'NO RIDING THE UNICORNS']],
+    [7540, ['THE DWARF MINE', 'HARD HATS REQUIRED']], [GAP2.b + 240, ['UNICORN MEADOW', 'NO RIDING THE UNICORNS']],
     [11120, ["THE DRAGON'S LAIR", 'THE BONES ARE FIBERGLASS']], [13250, ['WAIT TIME', '3 SUITORS'], { board: '#3B0764' }],
   ];
   for (const [x, words, o] of signs) if (onScreen(state, X(x) - 160, X(x) + 160)) storySign(c, X(x), GY, words, o as { warn?: boolean });
