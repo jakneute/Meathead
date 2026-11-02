@@ -1,16 +1,18 @@
 // The cheap shot's own close-up for HELICOPTER HARRY (wrath). His faded jeans, the peace-sign buckle, the gray happy trail
-// over a tanned gut, a bandolier of M60 brass; through the X-ray, the pelvis and the nuts. The boot lands, they squash,
-// and then the wrath gets into them: they swell up red-hot, veins glowing, steam hissing off... and they BLOW UP (a
-// banded fireball, a shockwave ring, gore and denim and brass for shrapnel, the pelvis cracked open). After: a scorched
-// crater in his crotch, embers, smoke, the boot blown back down and sooted.
+// over a tanned gut, a bandolier of M60 brass; through the X-ray, the pelvis and the nuts. His glove clamps on them and
+// WRENCHES (ripKit.ts), and the wrath gets into them as he pulls: they stretch down red-hot, veins glowing, steam
+// hissing off, the bone cracking... and they tear out with a BANG (the rage venting out of the hole: a banded fireball,
+// a shockwave ring, gore and denim and brass for shrapnel, the pelvis cracked open). After: a scorched crater in his
+// crotch, embers, smoke, and the sack held up in his fist, still glowing, sizzling the glove.
 //
 // Still layers baked once (closeUp.ts bakeOnce): the jeans and belly, the X-ray, the sack (cool and red-hot), the
 // fireball, the crater, the shrapnel sheet. Per frame: those stamped, scaled and turned, plus a few dozen little shapes.
 
-import { type CloseUpPaint, PANEL_W, PANEL_H, CX, CLOSE_HIT, bakeOnce, bootAt, drawKick, rnd, clamp } from '../closeUp';
+import { type CloseUpPaint, PANEL_W, PANEL_H, CX, bakeOnce, rnd, clamp } from '../closeUp';
+import { GRIP, RIP, handAt, drawHand, drawTether, drawSnapped, effort, ripShake, ripFlash, gloveGore } from './ripKit';
 import {
   type Ramp, INK, orb, shade, domeLit, inEllipse, bands, banded, clipTo, stroke, dith, vein, hairs, sweatBeads, scanlines,
-  xrayWindow, winPath, tag, shake, flash, sheet, debris, drops, runs, sparks, smoke, bigWord,
+  xrayWindow, winPath, tag, sheet, debris, drops, runs, sparks, smoke, bigWord,
 } from './specialKit';
 
 type Ctx = CanvasRenderingContext2D;
@@ -29,7 +31,6 @@ const BLOOD: Ramp = ['#5A0A0A', '#B91C1C', '#F87171'];
 
 const WX = CX, WY = 140, WRX = 150, WRY = 96;
 /** Frames after the boot lands that they blow. */
-const BOOM = 12;
 
 const thigh = (g: Ctx, s: number) => () => {
   g.moveTo(CX + s * 6, 34); g.lineTo(CX + s * 300, 34); g.lineTo(CX + s * 300, PANEL_H + 4); g.lineTo(CX + s * 74, PANEL_H + 4);
@@ -205,71 +206,78 @@ const gore = () => sheet('harry-gore', 8, 30, (g, i) => {
 });
 
 export const closeUp: CloseUpPaint = (c, t) => {
-  const hit = t - CLOSE_HIT, e = hit - BOOM;
+  const rip = t - RIP, h = handAt(t, CX, 166, { pull: 50 });
   c.save();
   c.fillStyle = INK; c.fillRect(0, 0, PANEL_W, PANEL_H);
-  shake(c, hit, 10, 10); shake(c, e, 18, 18);
-  if (hit >= 3 && e < 0) c.translate((hit % 2 ? 1 : -1) * 2, 0);
+  ripShake(c, t, 18);
   c.drawImage(body(), 0, 0);
   c.drawImage(xray(), 0, 0);
-  // (the pelvis cracking from the front, then blown wide)
-  if (hit >= 2) {
-    const n = Math.min(7, 1 + Math.floor(hit / 2)), reach = e >= 0 ? 1.6 : 1;
+  // (the pelvis cracking with the strain, then blown wide)
+  const ck = t - GRIP - 8;
+  if (ck >= 0) {
+    const n = Math.min(7, 1 + Math.floor(ck / 3)), reach = rip >= 0 ? 1.6 : 1;
     c.beginPath();
     for (let i = 0; i < n; i++) { const a = -Math.PI / 2 + (rnd(i + 3) - 0.5) * 3; c.moveTo(CX, 122); c.lineTo(CX + Math.cos(a) * 34 * reach, 122 + Math.sin(a) * 22 * reach); c.lineTo(CX + Math.cos(a + 0.4) * 64 * reach, 122 + Math.sin(a + 0.4) * 38 * reach); }
     c.strokeStyle = '#000'; c.lineWidth = 3; c.stroke();
-    if (hit >= 6) { c.strokeStyle = '#F97316'; c.lineWidth = 1; c.stroke(); }
+    if (ck >= 6) { c.strokeStyle = '#F97316'; c.lineWidth = 1; c.stroke(); }
   }
-  const b = bootAt(t);
-  if (e < 0) {
-    // (the sack: hangs, squashes flat, then swells up red-hot)
-    let sx = 1 + Math.sin(t * 0.5) * 0.03, sy = 1, y = 154, hot = 0;
-    if (hit >= 0 && hit < 3) { const q = hit / 3; sx = 1 + 0.5 * q; sy = 1 - 0.45 * q; y = 154 - 16 * q; }
-    else if (hit >= 3) { const k = clamp((hit - 3) / 8); sx = 1.5 + k * 0.45 + Math.sin(hit * 1.9) * 0.07 * k; sy = 0.55 + k * 0.8 + Math.cos(hit * 1.9) * 0.05 * k; y = 138 - k * 14; hot = k; }
-    if (hot > 0) { c.fillStyle = `rgba(255,90,20,${(0.3 * hot).toFixed(2)})`; c.beginPath(); c.ellipse(CX, y, 90 * sx, 64 * sy, 0, 0, Math.PI * 2); c.fill(); }
-    c.save(); c.translate(CX, y); c.scale(sx, sy);
-    c.drawImage(sack(), -72, -56);
-    if (hot > 0) { c.globalAlpha = hot; c.drawImage(sackHot(), -72, -56); c.globalAlpha = 1; }
+  if (rip < 0) {
+    // (the sack: hangs; clamped and dragged down long, and the wrath gets into it as he pulls: red-hot, veins glowing,
+    // steam hissing off it)
+    const hot = h.shut ? clamp(h.strain * 1.3) : 0;
+    const sx = h.shut ? 1 - 0.2 * h.strain + Math.sin(t * 1.9) * 0.04 * hot : 1 + Math.sin(t * 0.5) * 0.03;
+    const sy = h.shut ? Math.max(1, (h.y + 10 - 100) / 70) : 1, x = h.shut ? CX + (h.x - CX) * 0.5 : CX;
+    if (hot > 0) { c.fillStyle = `rgba(255,90,20,${(0.3 * hot).toFixed(2)})`; c.beginPath(); c.ellipse(x, 100 + 54 * sy, 90 * sx, 64 * sy, 0, 0, Math.PI * 2); c.fill(); }
+    if (h.shut) drawTether(c, t, CX, 108, h.x, h.y - 40, h.strain, ['#2A0A06', hot > 0.5 ? HOT[2] : SACK[2], hot > 0.5 ? HOT[4] : SACK[4]], 2, 10, 18);
+    c.save(); c.translate(x, 100); c.scale(sx, sy);
+    c.drawImage(sack(), -72, 0);
+    if (hot > 0) { c.globalAlpha = hot; c.drawImage(sackHot(), -72, 0); c.globalAlpha = 1; }
     c.restore();
-    smoke(c, hit - 4, CX, y - 40 * sy, 6, 21, { steam: true, rise: 2.6, every: 2, life: 22, alpha: 0.7, grow: 0.04 });
+    smoke(c, t - GRIP - 6, x, 110, 6, 21, { steam: true, rise: 2.6, every: 2, life: 22, alpha: 0.7, grow: 0.04 });
   } else {
     c.drawImage(crater(), CX - 110, 150 - 76);
-    // (the edge glowing, flickering)
     for (let i = 0; i < 8; i++) { if ((t + i * 3) % 5 < 2) continue; const a = rnd(i * 9.3) * Math.PI * 2; c.fillStyle = i % 2 ? '#FDE047' : '#FB923C'; c.fillRect(CX + Math.cos(a) * 90, 150 + Math.sin(a) * 58, 4, 3); }
-    runs(c, e - 8, [[CX - 50, 186], [CX - 20, 196], [CX + 14, 198], [CX + 46, 188], [CX - 70, 170], [CX + 72, 172]], BLOOD, 90, 2.2, 6);
+    drawSnapped(c, rip, CX, 104, ['#2A0A06', HOT[2], HOT[4]], BLOOD[1], 2, 9, 36, 18);
+    runs(c, rip - 6, [[CX - 50, 186], [CX - 20, 196], [CX + 14, 198], [CX + 46, 188], [CX - 70, 170], [CX + 72, 172]], BLOOD, 90, 2.2, 6);
   }
-  // (his boot; blown back down after, sooted, a lick of flame on it)
-  const dy = e >= 0 ? Math.min(56, e * 14) - Math.max(0, e - 30) * 0.4 : 0;
-  drawKick(c, b.x, b.y + dy, t);
-  if (e >= 0) {
-    c.fillStyle = 'rgba(20,10,4,0.55)'; c.beginPath(); c.ellipse(b.x, b.y + dy - 12, 34, 20, 0, 0, Math.PI * 2); c.fill();
-    if (e < 40) for (let i = 0; i < 4; i++) { const h = 10 + ((t * 3 + i * 7) % 12); c.fillStyle = i % 2 ? '#F97316' : '#FDE047'; c.beginPath(); c.moveTo(b.x - 24 + i * 14, b.y + dy - 20); c.lineTo(b.x - 18 + i * 14, b.y + dy - 20 - h); c.lineTo(b.x - 12 + i * 14, b.y + dy - 20); c.fill(); }
-    smoke(c, e - 4, CX, 130, 14, 33, { rise: 1.6, every: 4, life: 60, alpha: 0.85, grow: 0.03 });
-    // (the fireball: up fast, rolling, burning out into the smoke)
-    if (e < 24) {
-      const s = e < 5 ? 0.35 + e * 0.22 : 1.45 + (e - 5) * 0.03, al = e < 10 ? 1 : Math.max(0, 1 - (e - 10) / 14);
+  // (held up after: the sack in his fist, still glowing, cooling to char, smoking, sizzling his glove)
+  if (h.held) {
+    const cool = clamp(rip / 40);
+    c.save(); c.translate(h.x, h.y - 4); c.rotate(h.rot); c.scale(0.62, 0.62);
+    c.drawImage(sack(), -72, -96);
+    c.globalAlpha = 1 - cool * 0.7; c.drawImage(sackHot(), -72, -96); c.globalAlpha = 1;
+    c.fillStyle = `rgba(20,10,4,${(cool * 0.5).toFixed(2)})`; c.beginPath(); c.ellipse(0, -44, 60, 40, 0, 0, Math.PI * 2); c.fill();
+    c.restore();
+    smoke(c, rip, h.x, h.y - 40, 6, 13, { steam: rip < 20, rise: 1.8, every: 4, life: 26, alpha: 0.6 });
+  }
+  drawHand(c, h, t);
+  gloveGore(c, h, ['#1C1410', BLOOD[1], '#3A2A20']);
+  if (h.held && rip < 30) { c.save(); c.translate((t % 2) * 2, 0); bigWord(c, rip, 'TSSSS!', h.x + 60, h.y + 30, 10, '#F97316', '#000', 0.1); c.restore(); }
+  // (the tear: the wrath vented out of the hole: the fireball up out of him, the shockwave, gore and denim and brass)
+  if (rip >= 0) {
+    smoke(c, rip - 4, CX, 130, 14, 33, { rise: 1.6, every: 4, life: 60, alpha: 0.85, grow: 0.03 });
+    if (rip < 24) {
+      const s = rip < 5 ? 0.35 + rip * 0.22 : 1.45 + (rip - 5) * 0.03, al = rip < 10 ? 1 : Math.max(0, 1 - (rip - 10) / 14);
       c.globalAlpha = al;
-      c.save(); c.translate(CX, 140 - e * 1.6); c.rotate(e * 0.04); c.scale(s, s * 0.85); c.drawImage(fireball(), -90, -90); c.restore();
-      c.save(); c.translate(CX + 20, 120 - e * 2.2); c.rotate(2 - e * 0.05); c.scale(s * 0.7, s * 0.6); c.drawImage(fireball(), -90, -90); c.restore();
+      c.save(); c.translate(CX, 140 - rip * 1.6); c.rotate(rip * 0.04); c.scale(s, s * 0.85); c.drawImage(fireball(), -90, -90); c.restore();
+      c.save(); c.translate(CX + 20, 120 - rip * 2.2); c.rotate(2 - rip * 0.05); c.scale(s * 0.7, s * 0.6); c.drawImage(fireball(), -90, -90); c.restore();
       c.globalAlpha = 1;
     }
-    // (the shockwave ring)
-    if (e < 14) {
-      const rx = 30 + e * 26;
-      c.strokeStyle = `rgba(255,240,200,${(1 - e / 14).toFixed(2)})`; c.lineWidth = Math.max(1, 10 - e * 0.7);
+    if (rip < 14) {
+      const rx = 30 + rip * 26;
+      c.strokeStyle = `rgba(255,240,200,${(1 - rip / 14).toFixed(2)})`; c.lineWidth = Math.max(1, 10 - rip * 0.7);
       c.beginPath(); c.ellipse(CX, 150, rx, rx * 0.45, 0, 0, Math.PI * 2); c.stroke();
-      c.strokeStyle = `rgba(249,115,22,${(0.8 - e / 18).toFixed(2)})`; c.lineWidth = 3;
+      c.strokeStyle = `rgba(249,115,22,${(0.8 - rip / 18).toFixed(2)})`; c.lineWidth = 3;
       c.beginPath(); c.ellipse(CX, 150, rx * 0.8, rx * 0.36, 0, 0, Math.PI * 2); c.stroke();
     }
-    debris(c, gore(), 30, e, CX, 145, { seed: 7, ang: -Math.PI / 2, spread: Math.PI * 2, v0: 5, v1: 15, grav: 0.42, delay: 3, scale: 1.3, spin: 0.5 });
-    drops(c, e, CX, 145, 44, 3, BLOOD, { spread: Math.PI * 2, v0: 4, v1: 14, delay: 4 });
-    sparks(c, e, CX, 145, 26, 5, 22, ['#FDE047', '#F97316', '#FFFFFF'], 11);
+    debris(c, gore(), 30, rip, CX, 145, { seed: 7, ang: -Math.PI / 2, spread: Math.PI * 2, v0: 5, v1: 15, grav: 0.42, delay: 3, scale: 1.3, spin: 0.5 });
+    drops(c, rip, CX, 145, 50, 3, BLOOD, { spread: Math.PI * 2, v0: 4, v1: 14, delay: 6 });
+    sparks(c, rip, CX, 145, 26, 5, 22, ['#FDE047', '#F97316', '#FFFFFF'], 11);
   }
   c.restore();
-  // (the word: the hiss as they cook, then the bang)
-  if (hit >= 2 && e < 0) { c.save(); c.translate((hit % 2) * 3, 0); bigWord(c, hit - 2, 'SSSSSS...', CX + 150, 92, 14, '#F97316', '#000', -0.08); c.restore(); }
-  bigWord(c, e, 'KA-BOOOM!', CX + 100, 64, 30, '#FB923C');
-  flash(c, hit, '255,255,255', 3);
-  flash(c, e, '255,200,120', 5);
-  if (e > 22) tag(c, 'WRATH: NUTS DETONATED', 12, 268, '#FCA5A5');
+  effort(c, t);
+  if (t >= GRIP + 6 && rip < 0) { c.save(); c.translate((t % 2) * 3, 0); bigWord(c, t - GRIP - 6, 'SSSSSS...', CX + 150, 92, 14, '#F97316', '#000', -0.08); c.restore(); }
+  bigWord(c, rip, 'KA-BOOOM!', CX + 100, 64, 30, '#FB923C');
+  ripFlash(c, t, '255,200,120', PANEL_W, PANEL_H);
+  if (rip > 22) tag(c, 'WRATH: NUTS TORN OUT', 12, 268, '#FCA5A5');
 };

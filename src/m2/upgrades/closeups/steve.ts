@@ -1,8 +1,9 @@
 // The cheap shot's own close-up for Stuntman Steve (Phase F; envy): the faded yellow stunt jumpsuit, red racing stripes
 // down the seams (white pinstripes), the black knee pads with their logo half peeled, the tooled belt and the big gold S
 // buckle under the gut. Through the lens: his blue briefs, and a stuntman's protective cup, white plastic, taped up from
-// forty years of falls, SAFETY FIRST on it. The boot cracks the cup, then shatters it (the shards flying), then finds the
-// rest. And he's green with envy right through: bile in the blood, bile floating on the pool.
+// forty years of falls, SAFETY FIRST on it. His glove clamps on cup and all and wrenches (fleshKit.ts runFlesh: the
+// rip): the cup cracks and shatters as the rest tears out (the shards flying). And he's green with envy right through:
+// bile in the blood, bile floating on the pool.
 
 import type { CloseUpPaint } from '../closeUp';
 import { CX, PANEL_W, PANEL_H, bakeOnce, rnd } from '../closeUp';
@@ -83,7 +84,7 @@ const cupCracked = () => bakeOnce('steve-cupX', g => {
 
 export const closeUp: CloseUpPaint = (c, t, look) => runFlesh(c, t, look, {
   id: 'steve', scene, over, skin: SKIN, hair: HAIR, sacScale: 0.95, sacY: 156,
-  burstAt: 7, word: 'CRACK!', caption: 'GREEN WITH ENVY', captionCol: BILE[1],
+  word: 'CRACK!', caption: 'GREEN WITH ENVY', captionCol: BILE[1],
   bloodCols: [BLOOD[1], BILE[1], BLOOD[2], BILE[2], BLOOD[3]],
   burstCols: [BILE[1], '#F7A1BC', BLOOD[2], BILE[2]],
   pool: [BLOOD[3], BILE[2], BILE[0]],
@@ -91,8 +92,8 @@ export const closeUp: CloseUpPaint = (c, t, look) => runFlesh(c, t, look, {
     // (the cup: on the hit it cracks and rides up on the toe; two frames on it goes to shards)
     const cx = CX - 60;
     if (hit < 0) { c.drawImage(cup(), cx, 112 + Math.sin(t * 0.25) * 1.5); return; }
-    if (hit < 3) { c.drawImage(cupCracked(), cx, Math.min(112, toe - 26 - 86)); return; }
-    const k = hit - 3, cy = Math.min(112, toe - 26 - 86);
+    if (hit < 3) { c.drawImage(cupCracked(), cx, 52 + hit * 10); return; }
+    const k = hit - 3, cy = 72;
     for (let i = 0; i < 12; i++) {
       const a = -Math.PI / 2 + (rnd(i * 3.1 + 7) - 0.5) * 3.6, v = 5 + rnd(i * 1.3) * 8;
       const x = cx + 60 + Math.cos(a) * v * k, y = cy + 50 + Math.sin(a) * v * k + 0.4 * k * k;

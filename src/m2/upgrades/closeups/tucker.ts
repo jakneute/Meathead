@@ -1,8 +1,8 @@
 // The cheap shot's own close-up for Tucker the conductor (Phase F; greed): gray pinstriped trousers, the navy frock
 // coat's tails either side (gold piping, brass buttons), the burgundy vest's points and the brass watch chain swagged
 // across. Through the lens, what he keeps down there besides the obvious: a fat leather money pouch on a drawstring,
-// stuffed with gold. The boot bursts the lot: gold coins spray out spinning with the blood and ring down into the pool,
-// the chain snaps and his pocket watch swings loose. KA-CHING.
+// stuffed with gold. His glove tears the lot out (fleshKit.ts runFlesh: the rip): gold coins spray out spinning with
+// the blood and ring down into the pool, the chain snaps and his pocket watch swings loose. KA-CHING.
 
 import type { CloseUpPaint } from '../closeUp';
 import { CX, PANEL_W, PANEL_H, bakeOnce, rnd } from '../closeUp';
@@ -96,16 +96,16 @@ export const closeUp: CloseUpPaint = (c, t, look) => runFlesh(c, t, look, {
       const st = Math.floor(rnd(i * 5.5) * 6), kk = k - st;
       if (kk < 0) continue;
       const a = -Math.PI / 2 + (rnd(i * 2.2 + 1) - 0.5) * 3.2, v = 4 + rnd(i * 3.7) * 8;
-      let x = CX + 50 + Math.cos(a) * v * kk, y = toe - 60 + Math.sin(a) * v * kk + 0.4 * kk * kk;
+      let x = CX + 50 + Math.cos(a) * v * kk, y = 104 + Math.sin(a) * v * kk + 0.4 * kk * kk;
       const floor = PANEL_H - 12 - (i % 4) * 5;
       let spin = kk * (0.4 + rnd(i) * 0.5);
-      if (y > floor) { const B = v * Math.sin(a), C = toe - 60 - floor, tl = (-B + Math.sqrt(Math.max(0, B * B - 1.6 * C))) / 0.8; y = floor; x = CX + 50 + Math.cos(a) * v * tl; spin = 0; }
+      if (y > floor) { const B = v * Math.sin(a), C = 104 - floor, tl = (-B + Math.sqrt(Math.max(0, B * B - 1.6 * C))) / 0.8; y = floor; x = CX + 50 + Math.cos(a) * v * tl; spin = 0; }
       if (x < -10 || x > PANEL_W + 10) continue;
       coin(c, x, y, spin);
     }
     // (the pouch's empty rag, flapping)
-    c.fillStyle = WALNUT[3]; c.beginPath(); c.moveTo(CX + 30, toe - 40); c.quadraticCurveTo(CX + 70 + Math.sin(hit * 0.4) * 6, toe - 50, CX + 66, toe - 10); c.lineTo(CX + 30, toe - 22); c.fill();
-    c.fillStyle = WALNUT[1]; c.fillRect(CX + 40, toe - 36, 18, 4);
+    c.fillStyle = WALNUT[3]; c.beginPath(); c.moveTo(CX + 30, 124); c.quadraticCurveTo(CX + 70 + Math.sin(hit * 0.4) * 6, 114, CX + 66, 154); c.lineTo(CX + 30, 142); c.fill();
+    c.fillStyle = WALNUT[1]; c.fillRect(CX + 40, 128, 18, 4);
   },
   overBoot: (c, t, hit) => {
     // (the watch chain: swagged across, then snapped on the hit, the watch swinging down on its end, then dropping)

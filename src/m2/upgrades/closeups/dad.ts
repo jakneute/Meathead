@@ -1,8 +1,8 @@
 // The cheap shot's own close-up for Dad Guy (Phase F; sloth): sat on his orange couch, striped boxers with the fly
 // gaping, liver-spotted varicose old legs, a hairy gut hanging out under the stained tank top, cheese-puff crumbs on it
-// and a can of SWILL LITE parked on top. Through the lens the gut's a stomach full of sloshing beer. The boot lands and
-// squashes him flat and... nothing. Too lazy to react. The cracks creep, the dots tick by, and a second and a half later
-// it finally gets through to him: the burst, the shake, the beer going over, crumbs flying. "...OW."
+// and a can of SWILL LITE parked on top. Through the lens the gut's a stomach full of sloshing beer. His glove tears
+// them clean out (fleshKit.ts runFlesh: the rip) and... nothing. Too lazy to react. The dots tick by, and a beat later
+// it finally gets through to him: the gush, the shake, the beer going over, crumbs flying. "...OW."
 
 import type { CloseUpPaint } from '../closeUp';
 import { CX, PANEL_W, PANEL_H, bakeOnce, rnd, clamp } from '../closeUp';
@@ -20,7 +20,7 @@ const PUFF = '#F97316';
 const HAIR = '#C4C4C4'; // (gone white)
 const TAU = Math.PI * 2;
 /** How long before it gets through to him. */
-const LAG = 34;
+const LAG = 20;
 
 const scene = () => bakeOnce('dad-scene', g => {
   // (the couch under him: the cushions, their seams, a stain)
@@ -76,7 +76,7 @@ const can = () => bakeOnce('dad-can', g => {
 
 export const closeUp: CloseUpPaint = (c, t, look) => runFlesh(c, t, look, {
   id: 'dad', scene, skin: SKIN, hair: HAIR, sacScale: 1.15, sacY: 160,
-  burstAt: LAG, shakeAt: LAG, shakeAmp: 16, word: '...OW.', wordAt: LAG + 2,
+  gushAt: LAG, shakeAt: LAG, shakeAmp: 16, word: '...OW.', wordAt: LAG + 2,
   caption: 'DELAYED REACTION', captionAt: LAG + 18,
   bloodCols: [BLOOD[1], BLOOD[2], BEER[1], BLOOD[3]],
   pool: [BLOOD[3], BLOOD[2], BEER[0]],

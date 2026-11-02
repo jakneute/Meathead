@@ -2,15 +2,17 @@
 // scutes, molded rubber hide in panels (stripes, rivets, glued seams, a scuffed spot down to the steel), hydraulic rams.
 // In the middle a SERVICE HATCH. It swings open (the back of the door says THANK YOU FOR NOT KICKING), and out on a
 // spring-loaded piston drop the chrome robot balls on their bracket, a stenciled plate (TESTICULAR UNIT, DO NOT KICK, a
-// smiley, PT# 69-420) and a little amber light on top, bobbing. The designers are silly people. Then the boot: the
-// chrome dents flat, the springs let go, gears and bolts and the plate fly, oil sprays, sparks, the warning beacons
-// flash red. WARRANTY VOID.
+// smiley, PT# 69-420) and a little amber light on top, bobbing. The designers are silly people. Then his glove clamps on
+// them and WRENCHES (ripKit.ts): the piston dragged out of its sleeve, the springs and the wiring straining, the light
+// gone red, sparks off the mount, till it all tears off: the springs let go, gears and bolts fly, oil gushes, the
+// warning beacons flash red; the chrome pair held up in his fist on the piston's stub. WARRANTY VOID.
 //
 // Still layers baked once (closeUp.ts bakeOnce); per frame the stamps plus a few dozen shapes.
 
-import { type CloseUpPaint, PANEL_W, PANEL_H, CX, CLOSE_HIT, bakeOnce, bootAt, drawKick, rnd, clamp } from '../closeUp';
+import { type CloseUpPaint, PANEL_W, PANEL_H, CX, bakeOnce, clamp } from '../closeUp';
+import { GRIP, RIP, handAt, drawHand, drawTether, drawSnapped, effort, ripShake, ripFlash, gloveGore } from './ripKit';
 import {
-  type Ramp, INK, orb, shade, inEllipse, domeLit, bands, banded, clipTo, stroke, dith, scanlines, tag, shake, flash, sheet,
+  type Ramp, INK, orb, shade, inEllipse, domeLit, bands, banded, clipTo, stroke, dith, scanlines, tag, sheet,
   stampCell, debris, drops, runs, sparks, smoke, bigWord,
 } from './specialKit';
 
@@ -150,28 +152,37 @@ const spring = (c: Ctx, x: number, y0: number, y1: number, w = 10) => {
 };
 
 export const closeUp: CloseUpPaint = (c, t) => {
-  const hit = t - CLOSE_HIT;
+  const rip = t - RIP, top = HY - HH / 2 + 26;
+  const h = handAt(t, CX, top + 36 + 74, { from: 9, pull: 40 });
   c.save();
   c.fillStyle = INK; c.fillRect(0, 0, PANEL_W, PANEL_H);
-  shake(c, hit, 12, 12);
+  ripShake(c, t, 14);
   c.drawImage(body(), 0, 0);
-  // (the balls out on their piston and springs, bobbing; smashed flat and the springs gone)
+  // (the balls out on their piston and springs, bobbing; clamped and dragged down, the piston stretched out of its
+  // sleeve, the springs straining, sparks off the mount; torn off the end of it)
   const u = t - DROP;
-  if (u >= 0) {
-    const len = hit < 0 ? 36 * (1 - Math.exp(-u * 0.45) * Math.cos(u * 1.1)) : hit < 3 ? 36 - hit * 10 : 6;
-    const top = HY - HH / 2 + 26, by = top + len;
+  if (u >= 0 && rip < 0) {
+    const len = h.shut ? Math.max(36, h.y - 74 - top) : 36 * (1 - Math.exp(-u * 0.45) * Math.cos(u * 1.1));
+    const by = top + len;
     c.fillStyle = INK; c.fillRect(CX - 7, top - 2, 14, len + 4);
     c.fillStyle = CHROME[3]; c.fillRect(CX - 5, top, 10, len); c.fillStyle = CHROME[4]; c.fillRect(CX - 4, top, 2, len);
-    if (hit < 4) { spring(c, CX - 34, top - 6, by); spring(c, CX + 34, top - 6, by); }
-    const tilt = hit < 0 ? Math.sin(u * 0.6) * 0.06 * Math.exp(-u * 0.15) : hit < 3 ? 0 : 0.18;
-    c.save(); c.translate(CX, by); c.rotate(tilt); c.drawImage(hit < 2 ? balls() : smashedBalls(), -70, -4); c.restore();
+    spring(c, CX - 34, top - 6, by); spring(c, CX + 34, top - 6, by);
+    if (h.shut) { sparks(c, (t - GRIP) % 6, CX, top, 3 + Math.round(h.strain * 9), t, 6); drawTether(c, t, CX, top - 4, h.x, h.y - 30, h.strain, ['#1E1B16', '#EF4444', '#FCA5A5'], 3, 3, 40); }
+    const tilt = h.shut ? h.rot : Math.sin(u * 0.6) * 0.06 * Math.exp(-u * 0.15);
+    c.save(); c.translate(h.shut ? h.x : CX, by); c.rotate(tilt); c.drawImage(balls(), -70, -4); c.restore();
     // (its amber light: blinking happily, then red and frantic)
-    const on = hit < 0 ? (t >> 2) % 2 === 0 : t % 2 === 0;
-    c.fillStyle = INK; c.fillRect(CX - 6, by - 10, 12, 8);
-    c.fillStyle = on ? (hit < 0 ? '#FBBF24' : '#EF4444') : '#57534E'; c.fillRect(CX - 4, by - 9, 8, 6);
-    if (on) { c.fillStyle = hit < 0 ? 'rgba(251,191,36,0.35)' : 'rgba(239,68,68,0.4)'; c.beginPath(); c.arc(CX, by - 6, 14, 0, Math.PI * 2); c.fill(); }
+    const on = h.shut ? t % 2 === 0 : (t >> 2) % 2 === 0, lx = h.shut ? h.x : CX;
+    c.fillStyle = INK; c.fillRect(lx - 6, by - 10, 12, 8);
+    c.fillStyle = on ? (h.shut ? '#EF4444' : '#FBBF24') : '#57534E'; c.fillRect(lx - 4, by - 9, 8, 6);
+    if (on) { c.fillStyle = h.shut ? 'rgba(239,68,68,0.4)' : 'rgba(251,191,36,0.35)'; c.beginPath(); c.arc(lx, by - 6, 14, 0, Math.PI * 2); c.fill(); }
   }
-  if (hit >= 6) runs(c, hit - 6, [[CX - 50, 176], [CX - 20, 180], [CX + 16, 180], [CX + 46, 176]], OIL_RUN, 80, 2.2, 5);
+  if (rip >= 0) {
+    // (the snapped stub of the piston and the torn wiring, whipping, sparking; the oil after)
+    drawSnapped(c, rip, CX, top - 2, [INK, CHROME[3], CHROME[4]], OIL[1], 1, 10, 30);
+    drawSnapped(c, rip, CX, top - 4, ['#1E1B16', '#EF4444', '#FCA5A5'], OIL[1], 3, 3, 26, 40);
+    if (rip % 5 < 2) sparks(c, rip % 5, CX, top + 24, 6, rip, 6);
+    runs(c, rip, [[CX - 50, 176], [CX - 20, 180], [CX + 16, 180], [CX + 46, 176]], OIL_RUN, 80, 2.4, 5);
+  }
   // (the door: swings open on its hinge, a bounce at the end; its back shows once it's past square)
   const k = clamp((t - OPEN0) / (OPEN1 - OPEN0)), ang = k * k * (3 - 2 * k) * Math.PI * 0.88 + (t > OPEN1 ? Math.sin((t - OPEN1) * 0.8) * 0.08 * Math.exp(-(t - OPEN1) * 0.25) : 0);
   const co = Math.cos(ang), sk = Math.sin(ang) * 0.18;
@@ -179,18 +190,28 @@ export const closeUp: CloseUpPaint = (c, t) => {
   if (co >= 0) { c.transform(Math.max(0.02, co), -sk, 0, 1, 0, 0); c.drawImage(door(), 0, -HH / 2); }
   else { c.transform(-co, sk, 0, 1, 0, 0); c.drawImage(doorBack(), -HW, -HH / 2); }
   c.restore();
-  // (his boot)
-  const b = bootAt(t);
-  drawKick(c, b.x, b.y, t);
-  if (hit >= 0) {
-    // (the springs letting go, the junk, the oil, the sparks)
-    if (hit >= 3) for (const s of [-1, 1]) { const v = hit - 3; stampCell(c, junk(), 1, CX + s * (34 + v * 9), 110 - v * 12 + 0.45 * v * v, v * 0.5 * s, 2); }
-    debris(c, junk(), 24, hit, CX, 150, { seed: 5, ang: -Math.PI / 2, spread: 3.6, v0: 4, v1: 12, grav: 0.4, delay: 4, scale: 1.2, spin: 0.6 });
-    stampCell(c, junk(), 7, CX + hit * 6, 128 - hit * 9 + 0.32 * hit * hit, hit * 0.4, 2.2);
-    drops(c, hit, CX, 146, 34, 13, OIL, { spread: 3.2, v0: 3, v1: 11, delay: 6 });
-    sparks(c, hit, CX, 146, 28, 7, 18, ['#FDE047', '#FFFFFF', '#FB923C'], 10);
-    if (hit > 20 && (t % 7 === 0 || t % 11 === 0)) sparks(c, t % 7, CX + (rnd(t) - 0.5) * 80, 140, 6, t, 6);
-    smoke(c, hit - 8, CX, 120, 9, 71, { rise: 1.2, every: 6, life: 56, alpha: 0.6 });
+  // (held up after: the chrome pair in his fist, the piston's torn stub up out of it, the light flashing red)
+  if (h.held) {
+    c.save(); c.translate(h.x, h.y - 10); c.rotate(h.rot); c.scale(0.7, 0.7);
+    c.fillStyle = INK; c.fillRect(-7, -64, 14, 50); c.fillStyle = CHROME[3]; c.fillRect(-5, -62, 10, 48);
+    c.fillStyle = '#FACC15'; c.fillRect(-7, -68, 14, 6);
+    c.drawImage(smashedBalls(), -70, -18);
+    if (t % 2 === 0) { c.fillStyle = '#EF4444'; c.fillRect(-4, -26, 8, 6); }
+    c.restore();
+  }
+  drawHand(c, h, t);
+  gloveGore(c, h, [OIL[0], OIL[1], '#1A1A1A']);
+  if (h.held) drops(c, rip % 24, h.x, h.y + 10, 6, 7 + (rip >> 3), OIL, { spread: 0.8, ang: Math.PI / 2, v0: 1, v1: 3, delay: 10 });
+  if (rip >= 0) {
+    // (the springs letting go, the junk, the oil gushing out of the hatch, the sparks)
+    for (const s of [-1, 1]) { const v = rip; stampCell(c, junk(), 1, CX + s * (34 + v * 9), 110 - v * 12 + 0.45 * v * v, v * 0.5 * s, 2); }
+    debris(c, junk(), 24, rip, CX, 140, { seed: 5, ang: -Math.PI / 2, spread: 3.6, v0: 4, v1: 12, grav: 0.4, delay: 4, scale: 1.2, spin: 0.6 });
+    stampCell(c, junk(), 7, CX + rip * 6, 128 - rip * 9 + 0.32 * rip * rip, rip * 0.4, 2.2);
+    drops(c, rip, CX, 130, 48, 13, OIL, { spread: 3.2, v0: 3, v1: 13, delay: 8, size: 1.2 });
+    sparks(c, rip, CX, 130, 32, 7, 18, ['#FDE047', '#FFFFFF', '#FB923C'], 11);
+    smoke(c, rip - 8, CX, 120, 9, 71, { rise: 1.2, every: 6, life: 56, alpha: 0.6 });
+  }
+  if (t >= GRIP) {
     // (the warning beacons on the hide: red, turning)
     for (const [x, y] of [[40, 24], [PANEL_W - 40, 24]] as const) {
       const a = t * 0.5 + x;
@@ -200,8 +221,9 @@ export const closeUp: CloseUpPaint = (c, t) => {
     }
   }
   c.restore();
-  if (hit >= 0 && (t >> 2) % 2) { c.fillStyle = 'rgba(220,38,38,0.14)'; c.fillRect(0, 0, PANEL_W, PANEL_H); }
-  bigWord(c, hit - 1, 'SPROIIING!', CX + 120, 64, 24, '#FDE047', '#1E1A14');
-  flash(c, hit, '255,255,255', 3);
-  if (hit > 30) tag(c, 'WARRANTY VOID', 12, 268, '#FDE047');
+  if (rip >= 0 && (t >> 2) % 2) { c.fillStyle = 'rgba(220,38,38,0.14)'; c.fillRect(0, 0, PANEL_W, PANEL_H); }
+  effort(c, t);
+  bigWord(c, rip - 1, 'SPROIIING!', CX + 120, 64, 24, '#FDE047', '#1E1A14');
+  ripFlash(c, t, '255,200,60', PANEL_W, PANEL_H);
+  if (rip > 20) tag(c, 'WARRANTY VOID', 12, 268, '#FDE047');
 };

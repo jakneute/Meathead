@@ -1,7 +1,8 @@
 // The cheap shot's own close-up for Safari Artie (Phase F; pride): his baggy khaki cargo shorts and sunburned knees
 // round the lens, the belt and the big gold "#1 SKIPPER" buckle he bought himself, and inside, the vanity: a rolled-up
-// tube sock (his own red-and-green-striped) stuffed down the front of tiny little balls. The boot blows the sock out
-// first, then the real ones go flat and pop, the bone cracks and the buckle splits in two: HUMBLED!
+// tube sock (his own red-and-green-striped) stuffed down the front of tiny little balls. His glove clamps on the lot
+// and wrenches it out (fleshKit.ts runFlesh: the rip): the sock blows out first, the bone cracks, the buckle splits in
+// two, and the tiny real ones come out held up in his fist: HUMBLED!
 
 import type { CloseUpPaint } from '../closeUp';
 import { CX, PANEL_W, PANEL_H, bakeOnce, clamp } from '../closeUp';

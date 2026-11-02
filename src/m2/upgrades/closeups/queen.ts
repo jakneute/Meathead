@@ -1,15 +1,18 @@
 // The cheap shot's own close-up for THE QUEEN (LEGALLY DISTINCT) (the robot). Her glossy black latex ribs over the hips,
 // chrome ball joints, pistons, red hydraulic hoses with zip ties, a torn spot showing the yellow foam; over her crotch a
 // bolted ACCESS PANEL. His big white cartoon glove (the hand armor) comes in, grabs its edge and RIPS it off (the bolts
-// popping, sparks off the torn wires, the panel spinning away), showing the egg bay: two glowing green robot ovaries in
-// chrome cradles, copper coils, the BROOD UNIT. Then the boot: green glass, gears, springs and bolts everywhere, oil
-// spraying, arcs crackling across the bay, the whole picture flickering as she shorts out. ERROR: NO HEIRS.
+// popping, sparks off the torn wires, the panel flung spinning away), showing the egg bay: two glowing green robot
+// ovaries in chrome cradles, copper coils, the BROOD UNIT. Then the hand plunges in, clamps both in its fist and
+// WRENCHES (ripKit.ts): the brood hoses and the wiring dragged taut, sparks off the sockets, arcs, till they tear out of
+// the cradles: oil gushing, gears and springs and bolts everywhere, the torn hoses whipping, the whole picture
+// flickering as she shorts out; the pair held up in his fist, still flickering, dripping oil. ERROR: NO HEIRS.
 //
 // Still layers baked once (closeUp.ts bakeOnce); per frame the stamps plus a few dozen shapes.
 
-import { type CloseUpPaint, PANEL_W, PANEL_H, CX, CLOSE_HIT, bakeOnce, bootAt, drawKick, rnd, clamp, lerp } from '../closeUp';
+import { type CloseUpPaint, PANEL_W, PANEL_H, CX, bakeOnce, rnd, clamp, lerp } from '../closeUp';
+import { GRIP, RIP, handAt, drawHand, drawTether, drawSnapped, effort, ripShake, ripFlash, gloveGore } from './ripKit';
 import {
-  type Ramp, INK, orb, bands, banded, clipTo, stroke, dith, scanlines, tag, shake, flash, sheet, stampCell, debris, drops, runs,
+  type Ramp, INK, orb, bands, banded, clipTo, stroke, dith, scanlines, tag, flash, sheet, stampCell, debris, drops, runs,
   sparks, smoke, bigWord,
 } from './specialKit';
 
@@ -33,7 +36,7 @@ const BAY_X = CX, BAY_Y = 140, BAY_W = 200, BAY_H = 146;
 const OV: readonly [number, number][] = [[CX - 32, 152], [CX + 32, 152]];
 /** The plate's six bolts (from its middle) and when each pops. */
 const BOLTS: readonly [number, number][] = [[-84, -58], [84, -58], [-84, 58], [84, 58], [0, -64], [0, 64]];
-const RIP = 10;
+const PLATE = 10;
 
 const octo = (g: Ctx, cx: number, cy: number, w: number, h: number, ch: number) => () => {
   const x0 = cx - w / 2, y0 = cy - h / 2, x1 = cx + w / 2, y1 = cy + h / 2;
@@ -168,63 +171,87 @@ const arc = (c: Ctx, x0: number, y0: number, x1: number, y1: number, seed: numbe
 };
 
 export const closeUp: CloseUpPaint = (c, t) => {
-  const hit = t - CLOSE_HIT;
+  const rip = t - RIP, h = handAt(t, CX, 164, { from: PLATE + 1, pull: 50 });
   c.save();
   c.fillStyle = INK; c.fillRect(0, 0, PANEL_W, PANEL_H);
-  shake(c, hit, 12, 12);
-  if (t >= RIP - 2 && t < RIP + 2) c.translate((t % 2 ? 2 : -2), 0);
+  ripShake(c, t, 14);
+  if (t >= PLATE - 2 && t < PLATE + 2) c.translate((t % 2 ? 2 : -2), 0);
   c.drawImage(body(), 0, 0);
-  // (the ovaries: glowing, pulsing; smashed to a flicker)
-  const alive = hit < 0 ? 1 : hit < 6 ? (t % 2 ? 0.8 : 0.2) : 0;
-  if (alive > 0) { c.fillStyle = `rgba(155,242,94,${(0.22 * alive + Math.sin(t * 0.5) * 0.06).toFixed(2)})`; for (const [x, y] of OV) { c.beginPath(); c.ellipse(x, y, 36, 34, 0, 0, Math.PI * 2); c.fill(); } }
-  for (let i = 0; i < 2; i++) {
-    const [x, y] = OV[i];
-    if (hit < 2) { const sq = hit < 0 ? 0 : hit / 2; c.save(); c.translate(x + (i ? 1 : -1) * sq * 6, y - sq * 6); c.scale(1 + sq * 0.3, 1 - sq * 0.5); c.drawImage(ovary(), -26, -26); c.restore(); }
-    else { stampCell(c, junk(), 3, x - 6, y + 10, 0.5 + i, 1.3); stampCell(c, junk(), 4, x + 8, y + 12, 2 + i, 1.1); }
+  // (the ovaries: glowing, pulsing in their cradles; clamped in his fist and dragged out of them, flickering)
+  if (rip < 0) {
+    const glow = h.shut ? (t % 2 ? 0.9 : 0.3) : 1;
+    c.fillStyle = `rgba(155,242,94,${(0.22 * glow + Math.sin(t * 0.5) * 0.06).toFixed(2)})`; for (const [x, y] of OV) { c.beginPath(); c.ellipse(x, y, 36, 34, 0, 0, Math.PI * 2); c.fill(); }
+    // (the brood unit's hoses, dragged taut down to his fist; sparks off the sockets, more the harder he pulls)
+    if (h.shut) {
+      drawTether(c, t, BAY_X, BAY_Y - 30, h.x, h.y - 18, h.strain, [INK, CHROME[2], CHROME[4]], 2, 10, 30);
+      drawTether(c, t, BAY_X, BAY_Y + 30, h.x, h.y - 8, h.strain, ['#3A0A0A', '#EF4444', '#FCA5A5'], 3, 4, 50);
+      sparks(c, (t - GRIP) % 7, BAY_X - 32, 150, 4 + Math.round(h.strain * 8), t, 7);
+      sparks(c, (t - GRIP + 3) % 7, BAY_X + 32, 150, 4 + Math.round(h.strain * 8), t + 5, 7);
+      if (h.strain > 0.45 && t % 3 === 0) arc(c, BAY_X - 60, 110, h.x, h.y - 10, t * 13);
+    }
+    for (let i = 0; i < 2; i++) {
+      const [x, y] = OV[i], s = i ? 1 : -1;
+      const ox = h.shut ? lerp(x, h.x + s * 18, clamp(h.strain * 3)) : x, oy = h.shut ? Math.max(y, h.y - 16) : y;
+      c.drawImage(ovary(), ox - 26, oy - 26);
+    }
+  } else {
+    // (the cradles empty, the torn hoses whipping, sparking, oil pumping out of the bay)
+    drawSnapped(c, rip, BAY_X, BAY_Y - 26, [INK, CHROME[2], CHROME[4]], OIL[1], 2, 9, 40, 28);
+    drawSnapped(c, rip, BAY_X, BAY_Y + 30, ['#3A0A0A', '#EF4444', '#FCA5A5'], OIL[1], 3, 4, 30, 44);
+    runs(c, rip, [[CX - 60, 206], [CX - 26, 212], [CX + 10, 212], [CX + 48, 208], [CX + 80, 196]], OIL_RUN, 70, 2.4, 6);
   }
-  if (hit >= 6) runs(c, hit - 6, [[CX - 60, 206], [CX - 26, 212], [CX + 10, 212], [CX + 48, 208], [CX + 80, 196]], OIL_RUN, 70, 2, 6);
-  // (the panel: bolted on, strained, ripped off and spinning away)
-  if (t < RIP + 9) {
+  // (the panel: bolted on, strained, ripped off and flung spinning away)
+  if (t < PLATE + 9) {
     let px = BAY_X, py = BAY_Y, rot = 0, sc = 1;
-    if (t >= RIP - 3 && t < RIP) { px += (t % 2 ? 2 : -2); rot = -0.03 * (t - RIP + 3); }
-    else if (t >= RIP) { const u = t - RIP; px = BAY_X + u * 28 + u * u * 2; py = BAY_Y - u * 20; rot = -0.12 - u * 0.28; sc = 1 + u * 0.05; }
+    if (t >= PLATE - 3 && t < PLATE) { px += (t % 2 ? 2 : -2); rot = -0.03 * (t - PLATE + 3); }
+    else if (t >= PLATE) { const u = t - PLATE; px = BAY_X + u * 28 + u * u * 2; py = BAY_Y - u * 20; rot = -0.12 - u * 0.28; sc = 1 + u * 0.05; }
     c.save(); c.translate(px, py); c.rotate(rot); c.scale(sc, sc);
     c.drawImage(plate(), -104, -78);
-    // (the bolts still in it go dark where they've popped)
-    for (let i = 0; i < BOLTS.length; i++) if (t >= RIP - 3 + i * 0.6) { c.fillStyle = INK; c.fillRect(BOLTS[i][0] - 4, BOLTS[i][1] - 4, 8, 8); }
+    for (let i = 0; i < BOLTS.length; i++) if (t >= PLATE - 3 + i * 0.6) { c.fillStyle = INK; c.fillRect(BOLTS[i][0] - 4, BOLTS[i][1] - 4, 8, 8); }
     c.restore();
-    // (the glove: comes in, grips the bottom corner, yanks with it)
-    const cx = 90, cy = 64, gx0 = px + (Math.cos(rot) * cx - Math.sin(rot) * cy) * sc, gy0 = py + (Math.sin(rot) * cx + Math.cos(rot) * cy) * sc;
-    const k = clamp(t / (RIP - 4)), gx = t < RIP - 4 ? lerp(PANEL_W + 80, gx0, k * (2 - k)) : gx0, gy = t < RIP - 4 ? lerp(PANEL_H + 110, gy0, k * (2 - k)) : gy0;
-    c.drawImage(glove(), gx - 22, gy - 22);
+    // (the glove: comes in, grips the bottom corner, tears it off and lets it fly)
+    if (t <= PLATE) {
+      const cx = 90, cy = 64, gx0 = px + (Math.cos(rot) * cx - Math.sin(rot) * cy) * sc, gy0 = py + (Math.sin(rot) * cx + Math.cos(rot) * cy) * sc;
+      const k = clamp(t / (PLATE - 4)), gx = t < PLATE - 4 ? lerp(PANEL_W + 80, gx0, k * (2 - k)) : gx0, gy = t < PLATE - 4 ? lerp(PANEL_H + 110, gy0, k * (2 - k)) : gy0;
+      c.drawImage(glove(), gx - 22, gy - 22);
+    }
   }
-  // (the bolts popping out, spinning off)
   for (let i = 0; i < BOLTS.length; i++) {
-    const u = t - (RIP - 3 + i * 0.6);
+    const u = t - (PLATE - 3 + i * 0.6);
     if (u < 0 || u > 30) continue;
     const a = Math.atan2(BOLTS[i][1], BOLTS[i][0]) - 0.4 + rnd(i) * 0.8;
     stampCell(c, junk(), 2, BAY_X + BOLTS[i][0] + Math.cos(a) * u * 7, BAY_Y + BOLTS[i][1] + Math.sin(a) * u * 7 - u * 3 + 0.4 * u * u, u * 0.7, 0.9);
     sparks(c, u, BAY_X + BOLTS[i][0], BAY_Y + BOLTS[i][1], 4, i * 9, 6);
   }
-  sparks(c, t - RIP, BAY_X + 70, BAY_Y + 50, 12, 99, 10);
-  // (his boot)
-  const b = bootAt(t);
-  drawKick(c, b.x, b.y, t);
-  // (the smash: green glass, gears, springs, bolts, chips; oil sprayed; sparks)
-  if (hit >= 0) {
-    debris(c, junk(), 28, hit, CX, 150, { seed: 21, ang: -Math.PI / 2, spread: 3.6, v0: 4, v1: 13, grav: 0.38, delay: 4, scale: 1.2, spin: 0.6 });
-    drops(c, hit, CX, 150, 40, 9, OIL, { spread: 3.4, v0: 3, v1: 12, delay: 6 });
-    sparks(c, hit, CX, 150, 30, 3, 18, ['#FDE047', '#FFFFFF', '#A3E635'], 10);
-    smoke(c, hit - 10, CX, 130, 10, 61, { rise: 1.3, every: 6, life: 60, alpha: 0.6 });
-    // (arcs across the bay, fewer as she dies)
-    const nArc = hit < 20 ? 3 : hit < 50 ? (t % 3 === 0 ? 1 : 0) : (t % 9 === 0 ? 1 : 0);
+  sparks(c, t - PLATE, BAY_X + 70, BAY_Y + 50, 12, 99, 10);
+  // (held up after: both of them in his fist, still flickering green, the torn hoses hanging off, dripping oil)
+  if (h.held) {
+    const on = rip < 30 ? (t % 3 ? 0.7 : 0.15) : (t % 7 ? 0 : 0.4);
+    if (on) { c.fillStyle = `rgba(155,242,94,${on * 0.35})`; c.beginPath(); c.ellipse(h.x, h.y - 20, 56, 40, 0, 0, Math.PI * 2); c.fill(); }
+    for (const s of [-1, 1]) { stroke(c, () => { c.moveTo(h.x + s * 10, h.y - 30); c.quadraticCurveTo(h.x + s * 30, h.y - 70, h.x + s * 22 + Math.sin(rip * 0.4) * 6, h.y - 84); }, CHROME[2], 5); }
+    c.save(); c.translate(h.x, h.y - 18); c.rotate(h.rot);
+    c.drawImage(ovary(), -42, -34); c.drawImage(ovary(), -10, -36);
+    c.restore();
+  }
+  drawHand(c, h, t);
+  gloveGore(c, h, [OIL[0], OIL[1], '#1A1A1A']);
+  if (h.held) drops(c, rip % 24, h.x, h.y + 10, 6, 3 + (rip >> 3), OIL, { spread: 0.8, ang: Math.PI / 2, v0: 1, v1: 3, delay: 10 });
+  // (the tear: gears, springs, bolts, chips; oil gushing; sparks fountaining; arcs across the empty bay)
+  if (rip >= 0) {
+    debris(c, junk(), 26, rip, CX, 150, { seed: 21, ang: -Math.PI / 2, spread: 3.6, v0: 4, v1: 13, grav: 0.38, delay: 4, scale: 1.2, spin: 0.6, first: 0, cells: 3 });
+    debris(c, junk(), 10, rip, CX, 150, { seed: 23, ang: -Math.PI / 2, spread: 3, v0: 4, v1: 11, grav: 0.38, delay: 3, scale: 1.1, first: 5, cells: 3 });
+    drops(c, rip, CX, 150, 56, 9, OIL, { spread: 3.4, v0: 4, v1: 14, delay: 8, size: 1.2 });
+    sparks(c, rip, CX, 150, 36, 3, 20, ['#FDE047', '#FFFFFF', '#A3E635'], 11);
+    smoke(c, rip - 6, CX, 130, 10, 61, { rise: 1.3, every: 6, life: 60, alpha: 0.6 });
+    const nArc = rip < 16 ? 3 : rip < 36 ? (t % 3 === 0 ? 1 : 0) : (t % 9 === 0 ? 1 : 0);
     for (let i = 0; i < nArc; i++) arc(c, CX + (rnd(t * 3 + i) - 0.5) * 120, 90 + rnd(t * 5 + i) * 30, CX + (rnd(t * 7 + i) - 0.5) * 180, 150 + rnd(t * 11 + i) * 50, t * 17 + i * 5);
   }
   c.restore();
   // (the short-circuit flicker over the lot)
-  if (hit >= 0 && hit < 50 && rnd(t * 7.7) < 0.35) { c.fillStyle = `rgba(0,0,0,${(0.55 - hit * 0.008).toFixed(2)})`; c.fillRect(0, 0, PANEL_W, PANEL_H); }
-  bigWord(c, hit - 1, 'KRZZZT!', CX + 130, 64, 28, '#FDE047', '#0B1A04');
-  flash(c, hit, '228,255,200', 3);
-  if (t >= RIP && t < RIP + 2) flash(c, t - RIP, '255,255,255', 2);
-  if (hit > 34) tag(c, (t >> 3) % 2 ? 'ERROR: NO HEIRS' : 'ERROR: NO HEIRS_', 12, 268, '#A3E635');
+  if (rip >= 0 && rip < 40 && rnd(t * 7.7) < 0.35) { c.fillStyle = `rgba(0,0,0,${(0.55 - rip * 0.01).toFixed(2)})`; c.fillRect(0, 0, PANEL_W, PANEL_H); }
+  effort(c, t);
+  bigWord(c, rip - 1, 'KRZZZT!', CX + 130, 64, 28, '#FDE047', '#0B1A04');
+  flash(c, t - PLATE, '255,255,255', 2);
+  ripFlash(c, t, '228,255,200', PANEL_W, PANEL_H);
+  if (rip > 20) tag(c, (t >> 3) % 2 ? 'ERROR: NO HEIRS' : 'ERROR: NO HEIRS_', 12, 268, '#A3E635');
 };

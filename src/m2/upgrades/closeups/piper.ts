@@ -1,16 +1,18 @@
 // The cheap shot's own close-up for PIPER THE PIXIE (lust). Her hot-pink sequined gown straining over the belly rolls, the
 // slit up her thigh (cellulite, stretch marks, a red lace garter with a heart charm), her too-small gossamer wings at the
 // top corners buzzing. Through the X-ray: the ovaries up in her pelvis, little hearts coming off them, and between them
-// and the boot, LAYERS OF FAT (banded, lobed, a pink membrane between each). The boot lands and plows up through the fat
-// (the layers jiggling, rippling out, globs flying), reaches them, and they POP: blood full of GLITTER, hearts and her
-// wand's gold stars in the spray. The garter snaps off, the wings droop; blood and glitter run down after.
+// and his hand, LAYERS OF FAT (banded, lobed, a pink membrane between each). His arm plows up through the fat (the
+// layers jiggling, bulging round it, globs flying), the glove clamps both ovaries together and WRENCHES them down
+// through it all (ripKit.ts), the tubes stretched taut, till they tear out: blood full of GLITTER, hearts and her wand's
+// gold stars in the gush. The garter snaps off, the wings droop; the pair held up in his fist, still glittering.
 //
 // Still layers baked once (closeUp.ts bakeOnce); per frame the fat is stamped in strips (each shifted: the jiggle).
 
-import { type CloseUpPaint, PANEL_W, PANEL_H, CX, CLOSE_HIT, bakeOnce, bootAt, drawKick, rnd, clamp, lerp } from '../closeUp';
+import { type CloseUpPaint, PANEL_W, PANEL_H, CX, OPEN, bakeOnce, rnd, clamp, lerp } from '../closeUp';
+import { GRIP, RIP, handAt, drawHand, drawTether, drawSnapped, effort, ripShake, ripFlash, gloveGore } from './ripKit';
 import {
   type Ramp, INK, orb, bands, banded, clipTo, stroke, dith, vein, sweatBeads, scanlines, xrayWindow, winPath, tag,
-  shake, flash, sheet, stampCell, debris, drops, runs, bigWord,
+  sheet, stampCell, debris, drops, runs, bigWord,
 } from './specialKit';
 
 type Ctx = CanvasRenderingContext2D;
@@ -30,8 +32,6 @@ const BLOOD: Ramp = ['#5A0A1A', '#C0163A', '#FB7185'];
 const WX = CX, WY = 126, WRX = 150, WRY = 104;
 /** The fat's strip, the ovaries, the garter. */
 const FAT_Y0 = 92, FAT_Y1 = 240, OV_Y = 64, OV_DX = 46, GX = CX + 214, GY = 212;
-/** Frames after the boot lands that it reaches them. */
-const POP = 9;
 
 const split = (g: Ctx) => () => {
   g.moveTo(CX + 172, 62); g.quadraticCurveTo(CX + 148, 180, CX + 166, PANEL_H + 4); g.lineTo(PANEL_W + 4, PANEL_H + 4); g.lineTo(PANEL_W + 4, 84); g.quadraticCurveTo(CX + 220, 74, CX + 172, 62);
@@ -200,71 +200,81 @@ const glitter = (c: Ctx, t: number, x0: number, y0: number, n: number, seed: num
 };
 
 export const closeUp: CloseUpPaint = (c, t) => {
-  const hit = t - CLOSE_HIT, p = hit - POP;
+  const rip = t - RIP, h = handAt(t, CX, OV_Y + 8, { pull: 96, showY: 184 });
   c.save();
   c.fillStyle = INK; c.fillRect(0, 0, PANEL_W, PANEL_H);
-  shake(c, hit, 8, 8); shake(c, p, 12, 14);
+  ripShake(c, t, 14);
   c.drawImage(body(), 0, 0);
   // (the garter: on her thigh, then snapped off and flying)
-  if (p < 0) c.drawImage(garter(), GX - 50, GY - 16);
-  else if (p < 40) { c.save(); c.translate(GX + p * 5, GY - p * 9 + 0.35 * p * p); c.rotate(p * 0.35); c.drawImage(garter(), -50, -16); c.restore(); }
-  // (the wings: buzzing like mad, then drooped)
+  if (rip < 0) c.drawImage(garter(), GX - 50, GY - 16);
+  else if (rip < 40) { c.save(); c.translate(GX + rip * 5, GY - rip * 9 + 0.35 * rip * rip); c.rotate(rip * 0.35); c.drawImage(garter(), -50, -16); c.restore(); }
+  // (the wings: buzzing like mad, frantic as he pulls, then drooped)
   for (const s of [-1, 1]) {
-    const droop = p < 0 ? 0 : Math.min(0.9, p * 0.06), flap = p < 0 ? 0.75 + Math.abs(Math.sin(t * 1.3)) * 0.3 : 0.9;
+    const droop = rip < 0 ? 0 : Math.min(0.9, rip * 0.06), flap = rip < 0 ? 0.75 + Math.abs(Math.sin(t * (h.shut ? 2.6 : 1.3))) * 0.3 : 0.9;
     c.save(); c.translate(s < 0 ? -24 : PANEL_W + 24, 8); c.scale(s < 0 ? 1 : -1, 1); c.rotate(0.15 + droop); c.scale(1, flap); c.drawImage(wing(), -10, -40); c.restore();
   }
   c.drawImage(xray(), 0, 0);
-  // (the ovaries: little hearts coming off them; squeezed as the boot comes; popped)
-  const k = clamp(hit / POP);
+  // (the fat: in strips, each shoved over a little: the jiggle running through it as his arm plows up through it, and
+  // every yank, and the tear)
+  const reach = t >= OPEN && t < GRIP + 4 ? 9 : 0;
+  const amp = reach + (h.shut && rip < 0 ? h.jerk * 7 : 0) + (rip < 0 ? 0 : 12 * Math.exp(-rip / 10));
   c.save(); c.beginPath(); c.ellipse(WX, WY, WRX, WRY, 0, 0, Math.PI * 2); c.clip();
-  for (const s of [-1, 1]) {
-    const x = CX + s * (OV_DX + (hit >= 0 ? k * 8 : 0)) + (hit >= 0 && p < 0 ? (hit % 2 ? 1 : -1) * 2 : 0);
-    if (p < 0) {
-      c.save(); c.translate(x, OV_Y); c.scale(1 - k * 0.25, 1 + k * 0.35); c.drawImage(ovary(), -22, -18); c.restore();
-      if (hit < 4) for (let i = 0; i < 3; i++) { const u = (t * 1.2 + i * 17 + (s > 0 ? 8 : 0)) % 50; c.globalAlpha = 1 - u / 50; stampCell(c, bits(), 5, x + Math.sin(u * 0.2 + i) * 6, OV_Y - 10 - u, 0, 0.55); c.globalAlpha = 1; }
-    } else {
-      // (what's left: shreds hanging off the tube)
-      stampCell(c, bits(), 0, x, OV_Y + 4 + Math.min(10, p), 0.4 * s, 0.9);
+  // (the ovaries: little hearts coming off them; clamped together in his fist and dragged down through the fat, the
+  // tubes stretched taut; then only the torn shreds left hanging off the tubes)
+  const ovaries = () => {
+    if (h.shut) drawTether(c, t, CX, OV_Y - 18, h.x, h.y - 30, h.strain, [PINK[0], PINK[2], PINK[3]], 2, 6, OV_DX + 10);
+    for (const s of [-1, 1]) {
+      const k = h.shut ? clamp(h.strain * 4 + 0.3) : 0;
+      const x = lerp(CX + s * OV_DX, h.x + s * 16, k), y = h.shut ? Math.max(OV_Y, h.y - 28) : OV_Y;
+      c.save(); c.translate(x, y); c.scale(1 - k * 0.2, 1 + k * 0.3); c.drawImage(ovary(), -22, -18); c.restore();
+      if (!h.shut) for (let i = 0; i < 3; i++) { const u = (t * 1.2 + i * 17 + (s > 0 ? 8 : 0)) % 50; c.globalAlpha = 1 - u / 50; stampCell(c, bits(), 5, x + Math.sin(u * 0.2 + i) * 6, OV_Y - 10 - u, 0, 0.55); c.globalAlpha = 1; }
     }
+  };
+  if (rip < 0) {
+    if (!h.shut) ovaries();
+  } else {
+    drawSnapped(c, rip, CX, OV_Y - 18, [PINK[0], PINK[2], PINK[3]], BLOOD[1], 2, 6, 30, OV_DX + 10);
   }
-  // (the fat: in strips, each shoved over a little: the jiggle running through it, big on the hit, again on the pop)
-  const amp = (hit < 0 ? 0 : 10 * Math.exp(-hit / 14)) + (p < 0 ? 0 : 8 * Math.exp(-p / 10));
   const fc = fat();
   for (let y = FAT_Y0 - 30; y < PANEL_H; y += 10) {
     const dx = amp * Math.sin(y * 0.09 - t * 0.9);
     c.drawImage(fc, WX - WRX, y, WRX * 2, 10, WX - WRX + dx, y, WRX * 2, 10);
   }
-  // (the dent rippling out from the toe through the layers)
-  const b = bootAt(t), by = hit < 0 ? b.y : lerp(182, 102, 1 - (1 - k) * (1 - k));
-  if (hit >= 0 && hit < 26) for (let r = 0; r < 3; r++) {
-    const rr = (hit - r * 4);
-    if (rr < 0) continue;
-    c.strokeStyle = `rgba(255,244,196,${Math.max(0, 0.7 - rr * 0.03).toFixed(2)})`; c.lineWidth = 3;
-    c.beginPath(); c.ellipse(b.x, by - 26, 40 + rr * 8, 12 + rr * 3, 0, Math.PI, Math.PI * 2); c.stroke();
+  // (the hole his arm's torn through the fat: the layers bulging round it, a ripple off each yank)
+  if (t >= OPEN + 4 && h.y < PANEL_H + 40) {
+    const hy = Math.max(FAT_Y0, h.y + 40);
+    for (const s of [-1, 1]) { c.fillStyle = FAT[2]; c.beginPath(); c.ellipse(h.x + s * 46, hy, 16, 26, s * 0.4, 0, Math.PI * 2); c.fill(); c.fillStyle = FAT[4]; c.fillRect(h.x + s * 46 - 6, hy - 18, 5, 4); c.strokeStyle = FAT[0]; c.lineWidth = 2; c.stroke(); }
+    if (h.jerk > 0.3 || t < GRIP) { c.strokeStyle = 'rgba(255,244,196,0.5)'; c.lineWidth = 3; c.beginPath(); c.ellipse(h.x, hy, 60 + h.jerk * 30, 14 + h.jerk * 6, 0, Math.PI, Math.PI * 2); c.stroke(); }
   }
+  // (once he's got them, dragged down through the fat with his fist, in front of it)
+  if (rip < 0 && h.shut) ovaries();
   c.restore();
   // (blood and glitter running down the inside after)
-  runs(c, p - 4, [[CX - 60, 80], [CX - 30, 92], [CX + 30, 92], [CX + 62, 80], [CX - 90, 100], [CX + 96, 104]], BLOOD, 150, 3, 6);
-  if (p > 6) for (let i = 0; i < 10; i++) { const y = 90 + ((t * 2 + i * 23) % 150), x = CX - 90 + i * 20; if ((t + i) % 4 < 2) { c.fillStyle = i % 2 ? '#FDE047' : '#F0ABFC'; c.fillRect(x - 2, y, 5, 1); c.fillRect(x, y - 2, 1, 5); } }
-  // (his boot, plowing up through her)
-  drawKick(c, b.x, by, t);
-  // (the fat bulging out round the toe as it goes, globs thrown off)
-  if (hit >= 0 && p < 6) {
-    for (const s of [-1, 1]) { c.fillStyle = FAT[2]; c.beginPath(); c.ellipse(b.x + s * 40, by - 14, 14, 20, s * 0.4, 0, Math.PI * 2); c.fill(); c.fillStyle = FAT[4]; c.fillRect(b.x + s * 40 - 6, by - 28, 5, 4); c.strokeStyle = FAT[0]; c.lineWidth = 2; c.stroke(); }
+  runs(c, rip - 4, [[CX - 60, 80], [CX - 30, 92], [CX + 30, 92], [CX + 62, 80], [CX - 90, 100], [CX + 96, 104]], BLOOD, 150, 3, 6);
+  if (rip > 6) for (let i = 0; i < 10; i++) { const y = 90 + ((t * 2 + i * 23) % 150), x = CX - 90 + i * 20; if ((t + i) % 4 < 2) { c.fillStyle = i % 2 ? '#FDE047' : '#F0ABFC'; c.fillRect(x - 2, y, 5, 1); c.fillRect(x, y - 2, 1, 5); } }
+  // (held up after: the pair in his fist, glittering, a heart or two still coming off them, dripping)
+  if (h.held) {
+    c.save(); c.translate(h.x, h.y - 16); c.rotate(h.rot);
+    c.drawImage(ovary(), -40, -26); c.drawImage(ovary(), -4, -28);
+    c.restore();
+    glitter(c, rip % 20, h.x, h.y - 20, 8, 40 + (rip >> 2));
   }
-  debris(c, bits(), 10, hit, b.x, by - 20, { seed: 41, ang: -Math.PI / 2, spread: 2.6, v0: 3, v1: 7, grav: 0.5, delay: 8, first: 2, cells: 2, scale: 1 });
-  // (the pop: blood with glitter in it, hearts, stars, bits of her)
+  drawHand(c, h, t);
+  gloveGore(c, h, [BLOOD[1], '#F472B6', FAT[2]]);
+  if (h.held) drops(c, rip % 24, h.x, h.y + 10, 6, 4 + (rip >> 3), BLOOD, { spread: 0.8, ang: Math.PI / 2, v0: 1, v1: 3, delay: 10 });
+  // (fat globs thrown off his arm going in)
+  debris(c, bits(), 10, t - OPEN - 4, h.x, Math.max(FAT_Y0, h.y + 30), { seed: 41, ang: -Math.PI / 2, spread: 2.6, v0: 3, v1: 7, grav: 0.5, delay: 8, first: 2, cells: 2, scale: 1 });
+  // (the tear: a gush of blood with glitter in it, hearts, stars, bits of her, fat flying)
   for (const s of [-1, 1]) {
-    drops(c, p, CX + s * OV_DX, OV_Y, 26, 11 + s, BLOOD, { spread: 3.6, v0: 3, v1: 11 });
-    glitter(c, p, CX + s * OV_DX, OV_Y, 30, 21 + s);
+    drops(c, rip, CX + s * OV_DX * 0.5, OV_Y + 30, 30, 11 + s, BLOOD, { spread: 3.6, v0: 3, v1: 12 });
+    glitter(c, rip, CX + s * OV_DX * 0.5, OV_Y + 30, 34, 21 + s);
   }
-  debris(c, bits(), 24, p, CX, OV_Y + 6, { seed: 13, ang: -Math.PI / 2, spread: 3.8, v0: 3, v1: 11, grav: 0.3, delay: 4, scale: 1.2, first: 0, cells: 7 });
-  // (broken hearts floating up out of it after)
-  if (p > 10) for (let i = 0; i < 4; i++) { const u = (p - 10 + i * 14) % 56; c.globalAlpha = 1 - u / 56; stampCell(c, bits(), 7, CX - 120 + i * 80, 120 - u * 1.4, Math.sin(u * 0.2) * 0.3, 1.2); c.globalAlpha = 1; }
+  debris(c, bits(), 26, rip, CX, OV_Y + 40, { seed: 13, ang: -Math.PI / 2, spread: 3.8, v0: 3, v1: 11, grav: 0.3, delay: 4, scale: 1.2, first: 0, cells: 7 });
+  if (rip > 8) for (let i = 0; i < 4; i++) { const u = (rip - 8 + i * 14) % 56; c.globalAlpha = 1 - u / 56; stampCell(c, bits(), 7, CX - 120 + i * 80, 120 - u * 1.4, Math.sin(u * 0.2) * 0.3, 1.2); c.globalAlpha = 1; }
   c.restore();
-  if (hit >= 1 && p < 0) bigWord(c, hit - 1, 'SQUELCH...', CX + 140, 150, 12, FAT[3], '#3A2A04', 0.1);
-  bigWord(c, p, 'POP! POP!', CX + 110, 62, 26, '#F472B6', '#3A0620');
-  flash(c, hit, '255,255,255', 3);
-  flash(c, p, '255,182,222', 4);
-  if (p > 24) tag(c, 'LUST: OUT OF ORDER', 12, 268, '#F9A8D4');
+  effort(c, t);
+  if (t >= OPEN + 4 && t < GRIP + 6) bigWord(c, t - OPEN - 4, 'SQUELCH...', CX + 140, 150, 12, FAT[3], '#3A2A04', 0.1);
+  bigWord(c, rip, 'POP! POP!', CX + 110, 62, 26, '#F472B6', '#3A0620');
+  ripFlash(c, t, '255,182,222', PANEL_W, PANEL_H);
+  if (rip > 20) tag(c, 'LUST: OUT OF ORDER', 12, 268, '#F9A8D4');
 };

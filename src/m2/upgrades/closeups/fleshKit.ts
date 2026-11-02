@@ -5,7 +5,8 @@
 // its own hooks. Everything still is painted once (closeUp.ts bakeOnce, on first use); a frame is a few drawImages and a
 // hundred-odd rects.
 
-import { PANEL_W, PANEL_H, CLOSE_HIT, OPEN, CX, CY, rnd, lerp, clamp, bakeOnce, drawKick, words } from '../closeUp';
+import { PANEL_W, PANEL_H, CLOSE_HIT, OPEN, CX, CY, rnd, lerp, clamp, bakeOnce, words } from '../closeUp';
+import { type Hand, GRIP, RIP, handAt, strainOf, drawHand, drawTether, drawTent, effort, ripShake, gloveGore } from './ripKit';
 import type { CloseUpLook } from '../closeUp';
 
 export type Ctx = CanvasRenderingContext2D;
@@ -407,59 +408,115 @@ export const caption = (c: Ctx, text: string, col = '#FDE68A') => {
 };
 
 // =====================================================================================================================
-// The run: the standard order of a frame, with each boss's hooks
+// The run: the standard order of a frame, with each boss's hooks. THE RIP (ripKit.ts; the owner's "he just tears them
+// out"): his glove comes up and clamps on the sac (GRIP), wrenches it down in jerks, the sac and its cords stretching
+// long, the bone cracking with the strain, till it tears free (RIP) in a gush; the torn flaps and snapped cords left
+// hanging, the bag (and what's in it) held up in his fist, bloody, shaken.
 
 export interface FleshRun {
   id: string;
   /** The still scene: backdrop, the clothed body, the lens. */
   scene: () => HTMLCanvasElement;
-  /** A still layer over the boot (a gut, a belt). */
+  /** A still layer over the hand (a gut, a belt). */
   over?: () => HTMLCanvasElement;
   skin: Ramp; hair: string;
   sacScale?: number; sacY?: number;
-  /** Frames after the hit the sac pops (default 5) and the shake lands (default 0). */
-  burstAt?: number; shakeAt?: number; shakeAmp?: number;
+  /** Frames after the tear the blood comes (default 0: there and then; a lazy one's late) and the shake lands. */
+  gushAt?: number; shakeAt?: number; shakeAmp?: number;
   word: string; wordAt?: number;
   caption?: string; captionAt?: number; captionCol?: string;
   bloodCols?: readonly string[]; burstCols?: readonly string[]; pool?: string[];
-  /** Hooks: after the scene (behind the sac), after the sac/cracks (behind the boot), after the boot (and `over`), last. */
-  behind?: (c: Ctx, t: number, hit: number, toe: number) => void;
-  front?: (c: Ctx, t: number, hit: number, toe: number) => void;
-  overBoot?: (c: Ctx, t: number, hit: number, toe: number) => void;
-  top?: (c: Ctx, t: number, hit: number, toe: number) => void;
-  /** Where the toe lands, and how far it's driven in. */
-  toeHit?: number; toeDeep?: number;
+  /** Hooks, `rip` frames since it tore free (< 0 before), `hand` the fist's y while it's in there (off the panel
+   *  after): after the scene (behind the sac), after the sac (behind the hand), after the hand (and `over`), last. */
+  behind?: (c: Ctx, t: number, rip: number, hand: number) => void;
+  front?: (c: Ctx, t: number, rip: number, hand: number) => void;
+  overBoot?: (c: Ctx, t: number, rip: number, hand: number) => void;
+  top?: (c: Ctx, t: number, rip: number, hand: number) => void;
 }
 
+/** The sac between the bone and his fist: hanging, swaying; clamped, then dragged down long and thin by it, bruising
+ *  as it goes. */
+const drawSacPulled = (c: Ctx, t: number, h: Hand, sac: HTMLCanvasElement, bruise: HTMLCanvasElement, scale: number, y: number) => {
+  const h0 = 80 * scale, w0 = 100 * scale;
+  const restTop = y - h0 * 0.48;
+  const bot = Math.max(restTop + h0, h.shut ? h.y + 12 : 0);
+  const top = restTop + (bot - restTop - h0) * 0.18;
+  const hh = bot - top, w = w0 * Math.sqrt(h0 / hh) * (h.shut ? 0.92 : 1);
+  const x = CX - w / 2 + (h.shut ? (h.x - CX) * 0.4 : Math.sin(t * 0.25) * 2);
+  c.drawImage(sac, x, top, w, hh * 86 / 80);
+  if (h.strain > 0) { c.globalAlpha = clamp(h.strain * 1.3); c.drawImage(bruise, x, top, w, hh * 86 / 80); c.globalAlpha = 1; }
+};
+
+/** What's held up after: the torn bag, its two in it, dripping, the cords hanging off it. */
+const trophy = (key: string, skin: Ramp, hair: string) => bakeOnce(`${key}-trophy`, g => {
+  g.drawImage(bakeSac(`${key}-sacB`, skin, hair, true), 0, 6);
+  // (the torn top: ragged, red; the cords hanging)
+  g.fillStyle = BLOOD[3];
+  g.beginPath(); g.moveTo(16, 26); for (let i = 0; i <= 8; i++) g.lineTo(16 + i * 8.5, 18 + (i % 2) * 9); g.lineTo(84, 30); g.closePath(); g.fill();
+  g.fillStyle = BLOOD[1]; for (let i = 0; i < 6; i++) g.fillRect(20 + i * 11, 22 + (i % 2) * 4, 6, 4);
+  for (const s of [-1, 1]) { g.strokeStyle = MEAT[4]; g.lineWidth = 6; g.beginPath(); g.moveTo(50 + s * 12, 24); g.quadraticCurveTo(50 + s * 24, 8, 50 + s * 18, 0); g.stroke(); g.strokeStyle = MEAT[2]; g.lineWidth = 3; g.stroke(); }
+  // (blood smeared down it)
+  g.globalCompositeOperation = 'source-atop';
+  g.fillStyle = 'rgba(185,28,28,0.45)'; for (let i = 0; i < 5; i++) g.fillRect(14 + i * 16, 20, 8, 30 + rnd(i * 3) * 40);
+  g.globalCompositeOperation = 'source-over';
+}, 100, 96);
+
+/** Drops falling off what he's holding up. */
+const drawBloodDrips = (c: Ctx, k: number, x: number, y: number) => {
+  for (let i = 0; i < 6; i++) {
+    const u = (k * 3 + i * 13) % 44, dx = (rnd(i * 4.1) - 0.5) * 50;
+    c.fillStyle = BLOOD[3]; c.fillRect(Math.round(x + dx) - 1, Math.round(y + 20 + u * 2.4) - 1, 6, 7);
+    c.fillStyle = BLOOD[1]; c.fillRect(Math.round(x + dx), Math.round(y + 20 + u * 2.4), 4, 5);
+  }
+};
+
 export const runFlesh = (c: Ctx, t: number, look: CloseUpLook, r: FleshRun) => {
-  const hit = t - CLOSE_HIT;
-  const burstAt = r.burstAt ?? 5, shakeAt = r.shakeAt ?? 0, amp = r.shakeAmp ?? 12;
+  const rip = t - RIP;
+  const shakeAt = r.shakeAt ?? 0, amp = r.shakeAmp ?? 12;
   const scale = r.sacScale ?? 1, sacY = r.sacY ?? SAC_Y;
-  const toe = kickY(t, r.toeHit ?? sacY + 80 * scale * 0.52 + 18, r.toeDeep ?? BONE_Y + 34);
+  const h = handAt(t, CX, sacY + 80 * scale * 0.4, { pull: 48 });
+  const hook = h.held ? PANEL_H + 60 : h.y;
   c.save();
-  // (the zoom: creeping in as the boot comes, snapping in on the hit, easing back)
-  const z = hit < 0 ? 1 + 0.06 * clamp(t / CLOSE_HIT) ** 2 : 1.12 - 0.07 * clamp(hit / 30);
+  // (the zoom: creeping in as he reaches, pushing in as he strains, snapping on the tear, easing back)
+  const z = t < GRIP ? 1 + 0.05 * clamp(t / GRIP) ** 2 : rip < 0 ? 1.05 + 0.06 * strainOf(t) : 1.14 - 0.08 * clamp(rip / 30);
   c.translate(ZX, ZY); c.scale(z, z); c.translate(-ZX, -ZY);
-  const sh = hit - shakeAt;
+  if (rip < 0) ripShake(c, t, amp);
+  const sh = rip - shakeAt;
   if (sh >= 0 && sh < 12) c.translate((sh % 2 ? 1 : -1) * amp * (1 - sh / 12), (sh % 3 - 1) * amp * 0.3 * (1 - sh / 12));
-  // (the twitching, after)
-  const tw = hit > 24 && (hit * 7) % 23 < 2 ? (hit % 2 ? 2 : -2) : 0;
-  c.drawImage(r.scene(), tw, 0);
-  r.behind?.(c, t, hit, toe);
-  if (hit < burstAt) drawSac(c, t, toe, bakeSac(`${r.id}-sac`, r.skin, r.hair), bakeSac(`${r.id}-sacB`, r.skin, r.hair, true), scale, sacY);
-  drawCracks(c, hit - 2, r.id.length * 7);
-  if (hit >= burstAt) drawBurst(c, hit - burstAt, toe, r.skin, r.id.length * 3, r.burstCols);
-  r.front?.(c, t, hit, toe);
-  drawKick(c, CX - 4, toe, t);
-  if (r.over) c.drawImage(r.over(), tw, 0);
-  r.overBoot?.(c, t, hit, toe);
-  drawBlood(c, hit - burstAt, CX, toe - 26, { seed: r.id.length * 11, cols: r.bloodCols, pool: r.pool });
-  r.top?.(c, t, hit, toe);
+  // (the twitching, after; the body jerked toward him with each yank before)
+  const tw = rip > 14 && (rip * 7) % 23 < 2 ? (rip % 2 ? 2 : -2) : 0;
+  const jy = rip < 0 ? h.jerk * h.strain * 5 : 0;
+  c.drawImage(r.scene(), tw, jy);
+  r.behind?.(c, t, rip, hook);
+  // (the bone cracking with the strain, and on through the tear)
+  drawCracks(c, t - (GRIP + 18), r.id.length * 7);
+  // (the sac: hanging behind whatever's in front of it (a sock, a cup, an apron); once he's got it, dragged out from
+  // under it all, long, the cords and the skin stretched down to his fist)
+  const sac = () => drawSacPulled(c, t, h, bakeSac(`${r.id}-sac`, r.skin, r.hair), bakeSac(`${r.id}-sacB`, r.skin, r.hair, true), scale, sacY + jy);
+  if (rip < 0 && !h.shut) sac();
+  if (rip >= 0) drawBurst(c, rip, BONE_Y + 46, r.skin, r.id.length * 3, r.burstCols);
+  r.front?.(c, t, rip, hook);
+  if (rip < 0 && h.shut) {
+    drawTent(c, CX, BONE_Y + 6 + jy, h.x, h.y, h.strain, r.skin[2], r.skin[4], 60 * scale);
+    sac();
+    drawTether(c, t, CX, BONE_Y - 4 + jy, h.x, h.y - 30, h.strain, [MEAT[4], MEAT[2], MEAT[0]], 2, 8, 14);
+  }
+  if (h.held) { c.save(); c.translate(h.x, h.y - 8); c.rotate(h.rot * 1.5 + Math.sin(rip * 0.5) * 0.1); c.drawImage(trophy(r.id, r.skin, r.hair), -50, -80); c.restore(); }
+  drawHand(c, h, t);
+  gloveGore(c, h, [BLOOD[2], BLOOD[1], BLOOD[3]]);
+  if (r.over) c.drawImage(r.over(), tw, jy);
+  r.overBoot?.(c, t, rip, hook);
+  drawBlood(c, rip - (r.gushAt ?? 0), CX, BONE_Y + 22, { seed: r.id.length * 11, cols: r.bloodCols, pool: r.pool });
+  // (and off the trophy, raining down as he shakes it)
+  if (h.held) drawBloodDrips(c, rip, h.x, h.y - 20);
+  r.top?.(c, t, rip, hook);
   c.restore();
+  effort(c, t);
   const wa = r.wordAt ?? 1;
-  if (hit >= wa) words(c, hit - wa + 1, look, r.word);
-  if (r.caption && hit >= (r.captionAt ?? 30)) caption(c, r.caption, r.captionCol);
-  // (the hit's flash: white, then red)
+  if (rip >= wa) words(c, rip - wa + 1, look, r.word);
+  if (r.caption && rip >= (r.captionAt ?? 24)) caption(c, r.caption, r.captionCol);
+  // (the grab's squish: a quick white; the tear's flash: white, then red)
+  if (t >= GRIP && t < GRIP + 2) { c.fillStyle = 'rgba(255,255,255,0.35)'; c.fillRect(0, 0, PANEL_W, PANEL_H); }
   if (sh >= 0 && sh < 2) { c.fillStyle = `rgba(255,255,255,${sh ? 0.35 : 0.75})`; c.fillRect(0, 0, PANEL_W, PANEL_H); }
   else if (sh >= 2 && sh < 5) { c.fillStyle = 'rgba(220,0,0,0.22)'; c.fillRect(0, 0, PANEL_W, PANEL_H); }
 };

@@ -2,15 +2,17 @@
 // His cut red scaly gut with a black hair trail, a studded belt with a steel skull buckle, ripped jeans (red showing
 // through the holes, white threads, safety pins, a patch), a wallet chain, his tail curled round with its spiked collar.
 // Through a hellish X-ray: a charred, spurred pelvis and his forked sack: THREE balls, bone thorns, a steel ring through
-// it. The boot lands: they squash, burst in black lava-blood full of embers, the pelvis cracks with lava in the cracks;
-// gore, thorns, studs and the ring fly; black smoke. Then the bit for him: DAD WAS WATCHING.
+// it. His glove clamps on it and WRENCHES (ripKit.ts): the sack dragged down long, lava weeping out of the splitting
+// scales, the pelvis cracking with lava in the cracks, till it tears off: black lava-blood full of embers gushing, gore,
+// thorns and studs flying, black smoke; the sack held up smoking in his fist. Then the bit for him: DAD WAS WATCHING.
 //
 // Still layers baked once (closeUp.ts bakeOnce); per frame the stamps plus a few dozen shapes.
 
-import { type CloseUpPaint, PANEL_W, PANEL_H, CX, CLOSE_HIT, bakeOnce, bootAt, drawKick, rnd, clamp } from '../closeUp';
+import { type CloseUpPaint, PANEL_W, PANEL_H, CX, bakeOnce, rnd, clamp } from '../closeUp';
+import { GRIP, RIP, handAt, drawHand, drawTether, drawSnapped, effort, ripShake, ripFlash, gloveGore } from './ripKit';
 import {
   type Ramp, INK, orb, bands, banded, clipTo, stroke, vein, hairs, sweatBeads, scanlines, xrayWindow, winPath, tag,
-  shake, flash, sheet, stampCell, debris, drops, runs, sparks, smoke, bigWord,
+  sheet, stampCell, debris, drops, runs, sparks, smoke, bigWord,
 } from './specialKit';
 
 type Ctx = CanvasRenderingContext2D;
@@ -28,7 +30,6 @@ const LAVA_RUN: Ramp = ['#000000', '#2A0A04', '#F97316'];
 
 const WX = CX, WY = 146, WRX = 150, WRY = 98;
 /** Frames after the boot lands that they burst. */
-const BURST = 5;
 
 const thigh = (g: Ctx, s: number) => () => {
   g.moveTo(CX + s * 6, 40); g.lineTo(CX + s * 300, 40); g.lineTo(CX + s * 300, PANEL_H + 4); g.lineTo(CX + s * 74, PANEL_H + 4);
@@ -163,50 +164,57 @@ const gore = () => sheet('demon-gore', 8, 30, (g, i) => {
 });
 
 export const closeUp: CloseUpPaint = (c, t) => {
-  const hit = t - CLOSE_HIT, e = hit - BURST;
+  const rip = t - RIP, h = handAt(t, CX, 180, { pull: 50 });
   c.save();
   c.fillStyle = INK; c.fillRect(0, 0, PANEL_W, PANEL_H);
-  shake(c, hit, 12, 14);
+  ripShake(c, t, 16);
   c.drawImage(body(), 0, 0);
   c.drawImage(xray(), 0, 0);
-  // (the pelvis cracking open, lava glowing in the cracks)
-  if (hit >= 1) {
-    const n = Math.min(8, 1 + Math.floor(hit / 2));
+  // (the pelvis cracking open with the strain, lava glowing in the cracks)
+  const ck = t - GRIP - 10;
+  if (ck >= 1) {
+    const n = Math.min(8, 1 + Math.floor(ck / 3));
     c.beginPath();
     for (let i = 0; i < n; i++) { const a = -Math.PI / 2 + (rnd(i + 11) - 0.5) * 3.1; c.moveTo(CX, 132); c.lineTo(CX + Math.cos(a) * 36, 132 + Math.sin(a) * 26); c.lineTo(CX + Math.cos(a + 0.35) * 70, 132 + Math.sin(a + 0.35) * 46); c.lineTo(CX + Math.cos(a + 0.1) * 100, 132 + Math.sin(a + 0.1) * 62); }
     c.strokeStyle = '#000'; c.lineWidth = 4; c.stroke();
     c.strokeStyle = (t >> 1) % 2 ? '#FB923C' : '#FDE047'; c.lineWidth = 1.5; c.stroke();
   }
-  const b = bootAt(t);
-  if (e < 0) {
-    let sx = 1 + Math.sin(t * 0.45) * 0.03, sy = 1, y = 160;
-    if (hit >= 0) { const q = clamp(hit / 3); sx = 1 + 0.55 * q + (hit % 2) * 0.05; sy = 1 - 0.5 * q; y = 160 - 18 * q; }
-    c.save(); c.translate(CX, y); c.scale(sx, sy); c.drawImage(sack(), -85, -60); c.restore();
+  if (rip < 0) {
+    // (the sack: hanging, breathing; clamped, then dragged down long, the scales splitting, lava weeping out)
+    const sx = h.shut ? 1 - 0.22 * h.strain : 1 + Math.sin(t * 0.45) * 0.03;
+    const sy = h.shut ? Math.max(1, (h.y - 100) / 80) : 1, x = h.shut ? CX + (h.x - CX) * 0.5 : CX;
+    if (h.shut) drawTether(c, t, CX, 104, h.x, h.y - 40, h.strain, [INK, SKIN[2], SKIN[4]], 2, 12, 20);
+    c.save(); c.translate(x, 100); c.scale(sx, sy); c.drawImage(sack(), -85, 0); c.restore();
+    if (h.strain > 0.3) runs(c, (t - GRIP) * 0.6, [[x - 30, 130], [x + 26, 136], [x - 4, 150]], LAVA_RUN, 60, 2, 4);
   } else {
-    // (what's left: a torn stump hanging, the ring dangling off a strip of it)
-    stampCell(c, gore(), 2, CX - 6, 150, 0.3, 2.2);
-    const sw = Math.sin(e * 0.25) * 0.4 * Math.exp(-e / 40);
-    c.strokeStyle = SKIN[2]; c.lineWidth = 4; c.beginPath(); c.moveTo(CX + 4, 150); c.lineTo(CX + 4 + Math.sin(sw) * 26, 150 + Math.cos(sw) * 26); c.stroke();
-    stampCell(c, gore(), 6, CX + 4 + Math.sin(sw) * 34, 150 + Math.cos(sw) * 34, 0, 1.3);
-    runs(c, e - 2, [[CX - 40, 168], [CX - 14, 176], [CX + 18, 178], [CX + 44, 166], [CX - 64, 150], [CX + 70, 152]], LAVA_RUN, 110, 2.4, 6);
+    // (what's left: a torn stump, the cords whipping, black lava-blood pumping out)
+    stampCell(c, gore(), 2, CX - 6, 118, 0.3, 2.2);
+    drawSnapped(c, rip, CX, 106, [INK, SKIN[2], SKIN[4]], LAVA[1], 2, 10, 40, 20);
+    runs(c, rip - 2, [[CX - 40, 128], [CX - 14, 136], [CX + 18, 138], [CX + 44, 126], [CX - 64, 120], [CX + 70, 122]], LAVA_RUN, 120, 2.6, 6);
   }
-  drawKick(c, b.x, b.y, t);
-  // (the burst: black lava-blood with embers in it, gore and thorns, black smoke after)
-  if (e >= 0) {
-    smoke(c, e - 6, CX, 140, 12, 51, { rise: 1.4, every: 5, life: 60, alpha: 0.8 });
-    drops(c, e, CX, 150, 50, 31, LAVA, { spread: 3.4, v0: 4, v1: 13, delay: 6, size: 1.1 });
-    sparks(c, e, CX, 150, 30, 17, 26, ['#FDE047', '#F97316', '#FB923C'], 8);
-    debris(c, gore(), 22, e, CX, 150, { seed: 77, ang: -Math.PI / 2, spread: 3.6, v0: 4, v1: 12, grav: 0.4, delay: 3, scale: 1.3 });
-    // (embers drifting up for the rest of it)
-    for (let i = 0; i < 14; i++) { const u = (e * 1.5 + i * 19) % 120; const x = CX - 140 + rnd(i * 3.3) * 280 + Math.sin(u * 0.1 + i) * 8, y = 240 - u * 1.8; c.fillStyle = (t + i) % 6 < 3 ? '#FDE047' : '#F97316'; c.fillRect(x, y, 3, 3); }
+  // (held up after: the forked sack in his fist, smoking, embers dropping off it)
+  if (h.held) {
+    c.save(); c.translate(h.x, h.y - 6); c.rotate(h.rot); c.scale(0.62, 0.62); c.drawImage(sack(), -85, -110); c.restore();
+    smoke(c, rip, h.x, h.y - 50, 5, 9, { rise: 1.4, every: 6, life: 30, alpha: 0.6 });
+  }
+  drawHand(c, h, t);
+  gloveGore(c, h, [LAVA[0], LAVA[1], '#7E1610']);
+  if (h.held) drops(c, rip % 24, h.x, h.y + 10, 6, 5 + (rip >> 3), LAVA, { spread: 0.8, ang: Math.PI / 2, v0: 1, v1: 3, delay: 10 });
+  // (the tear: black lava-blood with embers in it, gore and thorns, black smoke after)
+  if (rip >= 0) {
+    smoke(c, rip - 4, CX, 120, 12, 51, { rise: 1.4, every: 5, life: 60, alpha: 0.8 });
+    drops(c, rip, CX, 120, 60, 31, LAVA, { spread: 3.4, v0: 4, v1: 14, delay: 8, size: 1.2 });
+    sparks(c, rip, CX, 120, 34, 17, 26, ['#FDE047', '#F97316', '#FB923C'], 9);
+    debris(c, gore(), 22, rip, CX, 120, { seed: 77, ang: -Math.PI / 2, spread: 3.6, v0: 4, v1: 12, grav: 0.4, delay: 3, scale: 1.3 });
+    for (let i = 0; i < 14; i++) { const u = (rip * 1.5 + i * 19) % 120; const x = CX - 140 + rnd(i * 3.3) * 280 + Math.sin(u * 0.1 + i) * 8, y = 240 - u * 1.8; c.fillStyle = (t + i) % 6 < 3 ? '#FDE047' : '#F97316'; c.fillRect(x, y, 3, 3); }
   }
   c.restore();
-  bigWord(c, hit - 1, 'SKRUNCH!', CX + 120, 70, 28, '#F97316', '#1A0202');
-  flash(c, hit, '255,255,255', 3);
-  flash(c, e, '255,140,40', 4);
+  effort(c, t);
+  bigWord(c, rip - 1, 'SKRUNCH!', CX + 120, 70, 28, '#F97316', '#1A0202');
+  ripFlash(c, t, '255,140,40', PANEL_W, PANEL_H);
   // (the bit for him: his dad saw it)
-  if (e > 30) {
-    const k = clamp((e - 30) / 6);
+  if (rip > 24) {
+    const k = clamp((rip - 24) / 6);
     c.globalAlpha = k; tag(c, 'DAD WAS WATCHING', 12, 268, '#FCA5A5', 9); c.globalAlpha = 1;
   }
 };

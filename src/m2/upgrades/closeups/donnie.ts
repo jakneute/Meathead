@@ -1,8 +1,9 @@
 // The cheap shot's own close-up for Donnie Dracula (Phase F; gluttony): shiny polyester tux trousers with their satin
 // stripes, the red cummerbund lost under a gut straining a ruffled tux shirt (buttons gapping, belly hair through the
-// gaps). Through the lens the gut's nothing but FAT, banded yellow, and a fat apron hangs down over the balls: the boot
-// has to sink up through it (the fat dents round the toe and ripples out in waves, the gut wobbles for seconds) before
-// it finds anything to crush. Fat globs in the blood; the chicken leg he was working on drops out of his hand.
+// gaps). Through the lens the gut's nothing but FAT, banded yellow, and a fat apron hangs down over the balls: his
+// hand has to shove up under it (the fat dents round it and ripples out in waves, the gut wobbles for seconds) before
+// it finds anything to tear out (fleshKit.ts runFlesh: the rip). Fat globs in the blood; the chicken leg he was working
+// on drops out of his hand.
 
 import type { CloseUpPaint } from '../closeUp';
 import { CX, PANEL_W, PANEL_H, bakeOnce, rnd } from '../closeUp';
@@ -87,7 +88,7 @@ const drumstick = () => bakeOnce('donnie-drum', g => {
 
 export const closeUp: CloseUpPaint = (c, t, look) => runFlesh(c, t, look, {
   id: 'donnie', scene, skin: SKIN, hair: HAIR, sacScale: 1.05, sacY: 158,
-  burstAt: 8, shakeAmp: 9, word: 'SQUELCH!', caption: 'THROUGH THE FAT',
+  shakeAmp: 9, word: 'SQUELCH!', caption: 'THROUGH THE FAT',
   bloodCols: [BLOOD[1], BLOOD[2], FAT[1], BLOOD[3], FAT[0]],
   burstCols: [FAT[1], '#F7A1BC', BLOOD[2], FAT[2]],
   front: (c, t, hit, toe) => {
