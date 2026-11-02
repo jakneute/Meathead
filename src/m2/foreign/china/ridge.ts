@@ -145,7 +145,8 @@ export const drawRidgeBack = (c: Ctx, v: View, state: GameState) => {
   if (onScreen(v, X(4910), X(5070))) postBoard(c, X(4990), Y(860), ['THE SECOND RIDGE', '(THE FIRST ONE', 'WAS PRACTICE)'], LOOKS.china(1), '#991B1B', undefined, 110);
   if (onScreen(v, X(BEACON.a), X(BEACON.b))) hungBoard(c, X((BEACON.a + BEACON.b) / 2), Y(BEACON_TOP) + 4, Y(BEACON_TOP) + 40, ['BEACON TOWER', 'HIGHEST POINT IN OHIO'], LOOKS.china(1), '#991B1B');
   if (onScreen(v, X(7300), X(7600))) postBoard(c, X(7440), GY, ['LEAVING CHINA', 'NEXT: GERMANY (EUROPE)'], LOOKS.china(1), '#991B1B', undefined, 100);
-  if (onScreen(v, X(6510), X(6760))) hungBoard(c, X(6640), Y(1260) + 10, Y(1260) + 60, ['UNDER REPAIR', 'SINCE 1987'], LOOKS.china(1), '#1C1917');
+  // (on two posts on the scaffold's top deck: it hung on chains off nothing, over the deck)
+  if (onScreen(v, X(6510), X(6760))) postBoard(c, X(6640), Y(1120), ['UNDER REPAIR', 'SINCE 1987'], LOOKS.china(1), '#1C1917', undefined, 74);
 };
 
 /** The shells in the air (from the rack to their marks), drawn over everything. */

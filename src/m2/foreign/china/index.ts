@@ -170,7 +170,8 @@ export const china: ForeignSection = {
     drawMarket(c, v);
     // (the gate tower: climbed inside, its door at the bottom)
     drawTower(c, v, GATE, 480, X, Y);
-    if (onScreen(v, X(860), X(940))) postBoard(c, X(800), GY, ['THE GREAT WALL', 'BUILT TO KEEP OUT', 'THE MONGOOSE'], LOOKS.china(1), LACQUER, undefined, 120);
+    // (drawn whenever it's on screen: its cull was off to its right, so it popped in at the screen's edge)
+    if (onScreen(v, X(720), X(880))) postBoard(c, X(800), GY, ['THE GREAT WALL', 'BUILT TO KEEP OUT', 'THE MONGOOSE'], LOOKS.china(1), LACQUER, undefined, 120);
     drawWall(c, v, RUNS, () => drawStrings(c, v));
     drawTower(c, v, TOWER1, 960, X, Y);
     drawTower(c, v, TOWER2, 1040, X, Y);
@@ -183,7 +184,7 @@ export const china: ForeignSection = {
     // (signs: held up, never anything over them)
     if (onScreen(v, X(1960), X(2240))) hungBoard(c, X(2100), Y(960) + 4, Y(960) + 40, ['WATCHTOWER', 'NO WATCHING'], LOOKS.china(1), LACQUER);
     if (onScreen(v, X(3320), X(3480))) wallBoard(c, 3400, ['DRAGON DANCE', 'TODAY: ALL DAY'], LACQUER, 100);
-    if (onScreen(v, X(4040), X(4200))) wallBoard(c, 4120, ['SUMMIT', 'GIFT SHOP CLOSED'], LACQUER, 90);
+    if (onScreen(v, X(4040), X(4200))) wallBoard(c, 4120, ['SUMMIT', 'GIFT SHOP', 'CLOSED'], LACQUER, 96);
     if (onScreen(v, X(20), X(120))) { flagPole(c, X(30), GY, 200, ['#DE2910', '#DE2910', '#DE2910'], f); flagStars(c, X(30), GY, 200, f); }
   },
   outdoors: () => 1,

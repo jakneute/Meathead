@@ -186,7 +186,8 @@ export const japan: ForeignSection = {
     if (onScreen(v, X(3150), X(3250))) for (const lx of [3160, 3220]) lanternPost(c, X(lx), GY);
     // (signs)
     { const [a, b] = TORII[0]; if (onScreen(v, X(a), X(b))) hungBoard(c, X((a + b) / 2), Y(KASAGI) + 22, Y(KASAGI) + 40, ['JAPAN', 'A TASTE OF ASIA (CHINA)'], LOOKS.japan(1), '#F8FAFC'); }
-    if (onScreen(v, X(720), X(780))) postBoard(c, X(740), GY, ['KOI POND', 'DO NOT FEED', 'THE ROBOT'], LOOKS.japan(1), '#F8FAFC', undefined, 120);
+    // (its far post stood on the pond's edge)
+    if (onScreen(v, X(660), X(800))) postBoard(c, X(727), GY, ['KOI POND', 'DO NOT FEED', 'THE ROBOT'], LOOKS.japan(1), '#F8FAFC', undefined, 120);
     // (VENDING ALLEY at the alley's way in, between the pond and the first machine; the pagoda's in the gap between the
     // last machine and the pagoda, under its eave: the two stood over each other there, the pagoda's half behind a
     // machine)

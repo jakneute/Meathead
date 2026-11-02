@@ -207,9 +207,9 @@ export const uk: ForeignSection = {
     drawTeaCart(c, v, X(CART.a), X(CART.b), Y(CART.h), ['YE OLDE TEA', 'EST. 2009']);
     drawBridge(c, v, f);
     // (signs)
-    if (onScreen(v, X(200), X(420))) postBoard(c, X(310), GY, ['UNITED KINGDOM', 'ENGLAND / BRITAIN / LONDON', '(SAME PLACE)'], LOOKS.uk(1), '#991B1B', undefined, 140);
+    if (onScreen(v, X(200), X(420))) postBoard(c, X(304), GY, ['UNITED KINGDOM', 'ENGLAND / BRITAIN / LONDON', '(SAME PLACE)'], LOOKS.uk(1), '#991B1B', undefined, 140);
     if (onScreen(v, X(SHELTER.a), X(SHELTER.b))) hungBoard(c, X((SHELTER.a + SHELTER.b) / 2), Y(SHELTER.h), Y(SHELTER.h) + 24, ['BUS STOP', 'MIND THE GAP'], LOOKS.uk(1), '#991B1B');
-    if (onScreen(v, X(2360), X(2440))) postBoard(c, X(2400), GY, ['TOWER BRIDGE', '(LONDON BRIDGE)', '(SAME BRIDGE)'], LOOKS.uk(1), '#1E3A8A', undefined, 150);
+    if (onScreen(v, X(2320), X(2480))) postBoard(c, X(2400), GY, ['TOWER BRIDGE', '(LONDON BRIDGE)', '(SAME BRIDGE)'], LOOKS.uk(1), '#1E3A8A', undefined, 150);
     drawTowerBack(c, v, state);
     if (onScreen(v, X(-60), X(60))) drawJack(c, X(20), GY, 200, f);
   },

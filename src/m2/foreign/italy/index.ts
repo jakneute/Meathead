@@ -195,9 +195,12 @@ export const italy: ForeignSection = {
     drawTower(c, v, f);
     // (signs)
     if (onScreen(v, X(100), X(320))) postBoard(c, X(200), GY, ['ITALY', 'BIRTHPLACE OF THE TACO'], LOOKS.italy(2), '#14532D');
-    if (onScreen(v, X(900), X(1000))) postBoard(c, X(900), GY, ['PONTE CLOSED', 'FOR REPAIRS', 'TAKE A GONDOLA $40'], LOOKS.italy(1), '#1E3A8A', undefined, 120);
-    if (onScreen(v, X(2240), X(2300))) postBoard(c, X(2270), GY, ['GRAND CANAL TWO', 'NO SWIMMING (EVER)'], LOOKS.italy(1), '#1E3A8A', undefined, 100);
-    if (onScreen(v, X(3120), X(3180))) postBoard(c, X(3140), GY, ['THE CAMPANILE', 'OF PIZZA', 'NOW 100% UPRIGHT'], LOOKS.italy(1), '#7F1D1D', undefined, 110);
+    // (between the oven and the bridge's stub: its board ran into the stub, its far post on the stub's foot)
+    if (onScreen(v, X(810), X(950))) postBoard(c, X(880), GY, ['PONTE CLOSED', 'FOR REPAIRS', 'TAKE A GONDOLA', '$40'], LOOKS.italy(1), '#1E3A8A', undefined, 120);
+    // (its far post stood out over the canal: both on the quay now)
+    if (onScreen(v, X(2160), X(2300))) postBoard(c, X(2230), GY, ['GRAND CANAL TWO', 'NO SWIMMING', '(EVER)'], LOOKS.italy(1), '#1E3A8A', undefined, 104);
+    // (up on the tower's first balcony: on the quay its near post stood over the canal and its board ran into the tower)
+    if (onScreen(v, X(3180), X(3330))) postBoard(c, X(3262), Y(TOWER[0][2]), ['THE CAMPANILE', 'OF PIZZA', 'NOW 100% UPRIGHT'], LOOKS.italy(1), '#7F1D1D', undefined, 62);
     drawOvenBack(c, v, state);
     if (onScreen(v, X(20), X(120))) flagPole(c, X(40), GY, 200, ['#009246', '#F8FAFC', '#CE2B37'], f, true);
   },

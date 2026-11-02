@@ -118,8 +118,9 @@ export const drawLouvreBack = (c: Ctx, v: View, state: GameState) => {
   for (const [a, b, h] of BALCONIES) ironBalcony(c, v, X(a), X(b), Y(h));
   // (signs: held up, nothing over them)
   if (onScreen(v, X(3780), X(3940))) postBoard(c, X(3860), GY, ['LE LOUVRE', '(GIFT SHOP)', 'MONA LISA: TOP', 'ACTUAL SIZE* *SMALLER'], LOOKS.france(1), '#14532D', undefined, 140);
-  if (onScreen(v, X(4700), X(4740))) postBoard(c, X(4700), GY, ['LA SEINE', '(A PUDDLE)'], LOOKS.france(1), '#1E3A8A', undefined, 100);
-  if (onScreen(v, X(5310), X(5470))) postBoard(c, X(5380), GY, ['LEAVING FRANCE', 'AU REVOIR (HELLO)'], LOOKS.france(1), '#14532D', undefined, 160);
+  if (onScreen(v, X(4640), X(4760))) postBoard(c, X(4700), GY, ['LA SEINE', '(A PUDDLE)'], LOOKS.france(1), '#1E3A8A', undefined, 100);
+  // (narrower, clear of the UK's flagpole: the pole ran up through its end)
+  if (onScreen(v, X(5290), X(5430))) postBoard(c, X(5350), GY, ['LEAVING FRANCE', 'AU REVOIR', '(HELLO)'], LOOKS.france(1), '#14532D', undefined, 160);
 };
 
 export const drawLouvreFront = (c: Ctx, v: View, state: GameState) => {

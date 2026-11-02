@@ -171,9 +171,10 @@ export const morocco: ForeignSection = {
     // (brass lanterns strung over the alleys)
     for (const [a, b] of [[700, 860], [1020, 1180], [1340, 1500]] as const) if (onScreen(v, X(a), X(b))) lanternString(c, X(a), Y(330), X(b), Y(330), 20, 40);
     // (signs: held up, nothing over them)
-    if (onScreen(v, X(100), X(320))) postBoard(c, X(180), GY, ['MOROCCO', 'THE MIDDLE EAST', '(IN AFRICA)'], LOOKS.morocco(2), TILEBLUE, undefined, 130);
+    // (narrower, between the flagpole and the gate: its board ran across the gate's tower)
+    if (onScreen(v, X(40), X(220))) postBoard(c, X(140), GY, ['MOROCCO', 'THE MIDDLE', 'EAST', '(IN AFRICA)'], LOOKS.morocco(2), TILEBLUE, undefined, 104);
     if (onScreen(v, X(540), X(680))) postBoard(c, X(610), Y(140), ['THE SOUK', '(SOUP)'], LOOKS.morocco(1), '#7F1D1D', undefined, 90);
-    if (onScreen(v, X(1640), X(1740))) postBoard(c, X(1690), GY, ['TOWER GIFT SHOP', 'ELEVATOR', 'OUT OF ORDER'], LOOKS.morocco(1), TILEGREEN, undefined, 120);
+    if (onScreen(v, X(1600), X(1750))) postBoard(c, X(1680), GY, ['TOWER GIFT SHOP', 'ELEVATOR', 'OUT OF ORDER'], LOOKS.morocco(1), TILEGREEN, undefined, 120);
     if (onScreen(v, X(2160), X(2300))) postBoard(c, X(2230), GY, ['THE TANNERY', 'DO NOT SWIM', 'IN THE DYE'], LOOKS.morocco(1), '#7C2D12', undefined, 120);
     if (onScreen(v, X(TENT.a), X(TENT.b))) hungBoard(c, X((TENT.a + TENT.b) / 2), Y(TENT.h) + 30, Y(TENT.h) + 56, ['HOOKAH LOUNGE', 'APPLE. ONLY APPLE.'], LOOKS.morocco(1), TILEBLUE);
     if (onScreen(v, X(SPICE.a), X(SPICE.b))) postBoard(c, X((SPICE.a + SPICE.b) / 2), Y(SPICE.h), ['SPICES', 'MILD (ALL OF THEM)'], LOOKS.morocco(1), '#7C2D12', undefined, 44);

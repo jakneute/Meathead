@@ -173,10 +173,11 @@ export const france: ForeignSection = {
     if (onScreen(v, X(100), X(320))) postBoard(c, X(190), GY, ['FRANCE', 'OOH LA LA ZONE'], LOOKS.france(2), '#14532D');
     { const [a, b, h] = AWNINGS[0]; if (onScreen(v, X(a), X(b))) hungBoard(c, X((a + b) / 2), Y(h) + 50, Y(h) + 76, ['CAFE', 'NO SUBSTITUTIONS'], LOOKS.france(1), '#14532D'); }
     { const [a, b, h] = AWNINGS[1]; if (onScreen(v, X(a), X(b))) hungBoard(c, X((a + b) / 2), Y(h) + 50, Y(h) + 76, ['BISTRO', 'FRENCH FRIES (BELGIAN)'], LOOKS.france(1), '#7F1D1D'); }
-    if (onScreen(v, X(STAGE.a) - 120, X(STAGE.a))) postBoard(c, X(STAGE.a) - 60, GY, ['LE CABARET', '(NOT THAT KIND)'], LOOKS.france(1), '#1C1917', undefined, 130);
+    // (narrower, between the bistro's awning and the stage: its board ran into the stage's gilt frame)
+    if (onScreen(v, X(STAGE.a) - 140, X(STAGE.a))) postBoard(c, X(STAGE.a) - 66, GY, ['LE CABARET', '(NOT THAT', 'KIND)'], LOOKS.france(1), '#1C1917', undefined, 130);
     if (onScreen(v, X(1460), X(1600))) postBoard(c, X(1530), GY, ['ARC DE TRIOMPHE', 'ACTUAL SIZE*', '*BIGGER'], LOOKS.france(1), '#1C1917', undefined, 130);
     if (onScreen(v, X(LIFT.a), X(LIFT.a + LIFT.w))) hungBoard(c, X(LIFT.a + LIFT.w / 2), Y(LIFT.hi) - 60, Y(LIFT.hi) - 30, ['SERVICE LIFT', '(ASCENSEUR)'], LOOKS.france(1), '#1C1917');
-    { const [a, b, h] = STALLS[1]; if (onScreen(v, X(a) - 60, X(b))) postBoard(c, X(a) - 50, GY, ['MONA LISA', 'COPY OF A COPY'], LOOKS.france(1), '#78350F', undefined, 110); void b; void h; }
+    { const [a, b, h] = STALLS[1]; if (onScreen(v, X(a) - 140, X(b))) postBoard(c, X(a) - 70, GY, ['MONA LISA', 'COPY OF A COPY'], LOOKS.france(1), '#78350F', undefined, 110); void b; void h; }
     drawLouvreBack(c, v, state);
     if (onScreen(v, X(20), X(120))) drawFrFlag(c, X(40), f);
   },

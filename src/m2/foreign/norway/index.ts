@@ -201,10 +201,13 @@ export const norway: ForeignSection = {
     if (state.stage) { const n = norOf(state); if (n.ship) drawShip(c, v, n.ship.x, n.ship.y, SHIP.w, f); }
     drawStaveChurch(c, v);
     // (the signs: on posts, hung, never anything over them)
-    if (onScreen(v, X(100), X(320))) postBoard(c, X(200), GY, ['NORWAY', 'CAPITAL OF SWEDEN'], LOOKS.norway(2), '#7F1D1D');
-    if (onScreen(v, X(PLANK.a), X(PLANK.b))) postBoard(c, X(1010), GY, ['TROLL BRIDGE', 'TOLL: $5'], LOOKS.norway(1), '#3F6212', undefined, 80);
-    if (onScreen(v, X(1880), X(2000))) postBoard(c, X(1930), GY, ['THE FJORD', '(WAVE POOL)', 'NO LIFEGUARD ON DUTY'], LOOKS.norway(1), '#1E3A8A', undefined, 130);
-    if (onScreen(v, X(2820), X(2920))) postBoard(c, X(2860), GY, ['STAVE CHURCH', 'NO STAVES INSIDE'], LOOKS.norway(1), '#3F2A14', undefined, 110);
+    if (onScreen(v, X(80), X(300))) postBoard(c, X(190), GY, ['NORWAY', 'CAPITAL OF SWEDEN'], LOOKS.norway(2), '#7F1D1D');
+    // (drawn whenever it's on screen: it was only while the plank was, so it popped in at the screen's edge)
+    if (onScreen(v, X(940), X(1080))) postBoard(c, X(1010), GY, ['TROLL BRIDGE', 'TOLL: $5'], LOOKS.norway(1), '#3F6212', undefined, 80);
+    // (its far post stood right on the fjord's edge)
+    if (onScreen(v, X(1840), X(1980))) postBoard(c, X(1908), GY, ['THE FJORD', '(WAVE POOL)', 'NO LIFEGUARD ON DUTY'], LOOKS.norway(1), '#1E3A8A', undefined, 130);
+    // (its near post stood on the quay's edge over the longship: in, clear of the water and the church)
+    if (onScreen(v, X(2800), X(2960))) postBoard(c, X(2878), GY, ['STAVE CHURCH', 'NO STAVES INSIDE'], LOOKS.norway(1), '#3F2A14', undefined, 110);
     drawTollBack(c, v, state);
     drawValhallaBack(c, state);
     for (const [fx, cols] of [[X(80), ['#BA0C2F', '#F8FAFC', '#00205B', '#F8FAFC', '#BA0C2F']], [X(5580),['#BA0C2F', '#F8FAFC', '#00205B', '#F8FAFC', '#BA0C2F']]] as const) if (onScreen(v, fx - 20, fx + 60)) flagPole(c, fx, GY, 200, [...cols], f);

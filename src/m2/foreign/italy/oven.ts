@@ -160,7 +160,8 @@ export const drawOvenBack = (c: Ctx, v: View, state: GameState) => {
   for (const [a, b, h] of [[5250, 5300, 330], [5450, 5500, 450]] as const) if (onScreen(v, X(a) - 40, X(b) + 40)) laundry(c, X(a) - 30, Y(h), X(b) + 30, Y(h), 5, a);
   // (signs: held up, nothing over them)
   if (onScreen(v, X(4090), X(4300))) postBoard(c, X(4090), GY, ['IL FORNO', "WORLD'S LONGEST", 'PIZZA OVEN'], LOOKS.italy(1), '#7F1D1D', undefined, 220);
-  if (onScreen(v, X(5700), X(5860))) postBoard(c, X(5785), GY, ['LEAVING ITALY', 'ARRIVEDERCI (BYE)'], LOOKS.italy(1), '#14532D', undefined, 100);
+  // (narrower, clear of Japan's flagpole: the pole ran up through its end)
+  if (onScreen(v, X(5700), X(5860))) postBoard(c, X(5778), GY, ['LEAVING ITALY', 'ARRIVEDERCI', '(BYE)'], LOOKS.italy(1), '#14532D', undefined, 100);
 };
 
 export const drawOvenFront = (c: Ctx, v: View, state: GameState) => {

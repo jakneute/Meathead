@@ -153,10 +153,13 @@ export const drawBreweryBack = (c: Ctx, v: View, state: GameState) => {
   // (the hop loft and the drying racks: planks, the hops hung under them)
   for (const [a, b, h] of LOFT) if (onScreen(v, X(a), X(b))) { ledge3(c, v, X(a), Y(h), b - a, '#78716C', 10, 'plank'); hops(c, X(a), X(b), Y(h) + 10); }
   // (the signs: held up, nothing over them)
-  if (onScreen(v, X(3960), X(4100))) postBoard(c, X(3990), GY, ['KEG RAMP', 'WATCH FOR KEGS', '(THEY WATCH FOR YOU)'], LOOKS.germany(1), '#7F1D1D', undefined, 160);
+  // (both posts on the flat, either side of the bales: its far post stood on the ramp's slope)
+  if (onScreen(v, X(3840), X(4010))) postBoard(c, X(3925), GY, ['KEG RAMP', 'WATCH FOR KEGS', '(THEY WATCH', 'FOR YOU)'], LOOKS.germany(1), '#7F1D1D', undefined, 160);
   if (onScreen(v, X(BALES.a), X(BALES.b))) hungBoard(c, X((BALES.a + BALES.b) / 2), Y(BALES.h), Y(BALES.h) + 24, ['KEG CATCHER'], LOOKS.germany(1), '#14532D');
-  if (onScreen(v, X(4700), X(4860))) postBoard(c, X(4840), Y(RAMP.h), ['BRAUHAUS', 'BEER: BUD LIGHT'], LOOKS.germany(1), '#1C1917', undefined, 100);
-  if (onScreen(v, X(5420), X(5600))) postBoard(c, X(5510), GY, ['LEAVING GERMANY', 'AUF WIEDERSEHEN', '(GOODBYE IN DUTCH)'], LOOKS.germany(1), '#1C1917', undefined, 120);
+  // (out on the open wall: it stood over the keg dock's door and stairs)
+  if (onScreen(v, X(4820), X(4960))) postBoard(c, X(4892), Y(RAMP.h), ['BRAUHAUS', 'BEER: BUD LIGHT'], LOOKS.germany(1), '#1C1917', undefined, 100);
+  // (its near post stood on the stairs' foot)
+  if (onScreen(v, X(5460), X(5630))) postBoard(c, X(5556), GY, ['LEAVING GERMANY', 'AUF WIEDERSEHEN', '(GOODBYE IN DUTCH)'], LOOKS.germany(1), '#1C1917', undefined, 120);
 };
 
 export const drawBreweryFront = (c: Ctx, v: View, state: GameState) => {

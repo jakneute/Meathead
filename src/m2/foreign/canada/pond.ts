@@ -136,9 +136,11 @@ export const drawPondBack = (c: Ctx, v: View, state: GameState) => {
   drawShack(c, v, X(SHACK.a), X(SHACK.b), Y(SHACK.h), Y(HILL.h), f);
   if (onScreen(v, X(SHACK.a), X(SHACK.b))) hungBoard(c, X((SHACK.a + SHACK.b) / 2), Y(SHACK.h) + 20, Y(SHACK.h) + 46, ['SUGAR SHACK', 'SYRUP: $40'], LOOKS.canada(1), '#7C2D12');
   // (signs: held up, nothing over them)
-  if (onScreen(v, X(3620), X(3760))) postBoard(c, X(3680), GY, ['THE FROZEN POND', 'REFRIGERATED', 'SORRY ABOUT THE ICE'], LOOKS.canada(1), '#1E3A8A', undefined, 150);
+  // (narrower, both posts on the paving: its far post stood on the pond's edge)
+  if (onScreen(v, X(3590), X(3750))) postBoard(c, X(3672), GY, ['THE FROZEN POND', 'REFRIGERATED', 'SORRY ABOUT', 'THE ICE'], LOOKS.canada(1), '#1E3A8A', undefined, 150);
   if (onScreen(v, X(4460), X(4560))) postBoard(c, X(4500), GY, ['TOBOGGAN HILL', 'TOBOGGANS: SOLD OUT'], LOOKS.canada(1), '#14532D', undefined, 110);
-  if (onScreen(v, X(5300), X(5460))) postBoard(c, X(5380), GY, ['LEAVING CANADA', 'SORRY', '(FOR EVERYTHING)'], LOOKS.canada(1), '#7F1D1D', undefined, 120);
+  // (its near post stood on the toboggan hill's foot)
+  if (onScreen(v, X(5340), X(5500))) postBoard(c, X(5420), GY, ['LEAVING CANADA', 'SORRY', '(FOR EVERYTHING)'], LOOKS.canada(1), '#7F1D1D', undefined, 120);
 };
 
 export const drawPondFront = (c: Ctx, v: View, state: GameState) => {

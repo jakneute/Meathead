@@ -181,7 +181,7 @@ export const drawStationBack = (c: Ctx, v: View, state: GameState) => {
   }
   if (onScreen(v, X(LANE.b), X(LANE.b) + 100)) drawPortal(c, X(LANE.b), Y(TRAIN.h + 10), open, warn, f);
   // (the signs: held up, nothing over them)
-  if (onScreen(v, X(3620), X(3700))) postBoard(c, X(3650), GY, ['SHINKANSEN', 'BULLET TRAIN', '(DOES NOT STOP)'], LOOKS.japan(1), '#F8FAFC', undefined, 150);
+  if (onScreen(v, X(3560), X(3720))) postBoard(c, X(3640), GY, ['SHINKANSEN', 'BULLET TRAIN', '(DOES NOT STOP)'], LOOKS.japan(1), '#F8FAFC', undefined, 150);
   if (onScreen(v, X(4300), X(4620))) hungBoard(c, X(4460), Y(280) + 12, Y(280) + 46, ['PLEASE STAND BEHIND', 'THE YELLOW LINE'], LOOKS.japan(1), '#F8FAFC');
   if (onScreen(v, X(5260), X(5400))) postBoard(c, X(5330), GY, ['LEAVING JAPAN', 'SAYONARA (THANK YOU)'], LOOKS.japan(1), '#F8FAFC', undefined, 100);
 };

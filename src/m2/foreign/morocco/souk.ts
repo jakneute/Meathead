@@ -169,11 +169,12 @@ export const drawSoukBack = (c: Ctx, v: View, state: GameState) => {
   // (the corral: its gatepost (a hop), the rails, its broken gate, the ride's sign)
   if (onScreen(v, X(5100), X(5400))) {
     drawCorral(c, v, X(FENCE.a), X(FENCE.b), Y(FENCE.h), X(5380));
-    postBoard(c, X(5300), GY, ['CAMEL RIDES', 'GATE BROKEN', 'CAMELS: ALSO BROKEN'], LOOKS.morocco(1), '#1D4ED8', undefined, 150);
+    postBoard(c, X(5300), GY, ['CAMEL RIDES', 'GATE BROKEN', 'CAMELS:', 'ALSO BROKEN'], LOOKS.morocco(1), '#1D4ED8', undefined, 150);
   }
   // (signs: held up, nothing over them; THE SOUK's is over its gate)
   if (onScreen(v, X(4660), X(4800))) postBoard(c, X(4730), Y(450), ['TEA TERRACE', 'SWEET TEA (SOUTHERN)'], LOOKS.morocco(1), '#15803D', undefined, 62);
-  if (onScreen(v, X(5320), X(5480))) postBoard(c, X(5390), GY, ['LEAVING MOROCCO', 'SHUKRAN (CHEERS)'], LOOKS.morocco(1), '#1D4ED8', undefined, 100);
+  // (both narrower: the two boards overlapped, this one's far post on France's flagpole)
+  if (onScreen(v, X(5320), X(5460))) postBoard(c, X(5385), GY, ['LEAVING', 'MOROCCO', 'SHUKRAN', '(CHEERS)'], LOOKS.morocco(1), '#1D4ED8', undefined, 100);
 };
 
 export const drawSoukFront = (c: Ctx, v: View, state: GameState) => {

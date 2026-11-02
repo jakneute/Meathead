@@ -206,11 +206,12 @@ export const germany: ForeignSection = {
     drawWheel(c, v, gerOf(state), f);
     // (signs)
     if (onScreen(v, X(100), X(320))) postBoard(c, X(200), GY, ['GERMANY', 'OKTOBERFEST: ALL YEAR'], LOOKS.germany(2), '#1C1917');
-    if (onScreen(v, X(400), X(500))) postBoard(c, X(450), GY, ['BIERGARTEN', 'NO OUTSIDE BIER'], LOOKS.germany(1), '#14532D', undefined, 90);
+    if (onScreen(v, X(380), X(520))) postBoard(c, X(450), GY, ['BIERGARTEN', 'NO OUTSIDE BIER'], LOOKS.germany(1), '#14532D', undefined, 90);
     if (onScreen(v, X(1340), X(1480))) hungBoard(c, X(1410), Y(100) - 6, Y(100) + 30, ['PRETZELS', 'GERMAN FRENCH FRIES'], LOOKS.germany(1), '#78350F');
     if (onScreen(v, X(1520), X(1650))) hungBoard(c, X(1585), Y(130) - 6, Y(130) + 30, ['WURST', 'THE WURST IN TOWN'], LOOKS.germany(1), '#7F1D1D');
     if (onScreen(v, X(1760), X(1960))) postBoard(c, X(1860), GY, ["WORLD'S BIGGEST", 'CUCKOO CLOCK', 'SWISS MADE'], LOOKS.germany(1), '#3F2A14', undefined, 130);
-    if (onScreen(v, X(2560), X(2700))) postBoard(c, X(2620), GY, ['CASTLE CLOSED', 'USE THE CLOCK'], LOOKS.germany(1), '#7F1D1D', undefined, 80);
+    // (clear of the castle's door)
+    if (onScreen(v, X(2540), X(2680))) postBoard(c, X(2604), GY, ['CASTLE CLOSED', 'USE THE CLOCK'], LOOKS.germany(1), '#7F1D1D', undefined, 80);
     drawBreweryBack(c, v, state);
     if (onScreen(v, X(20), X(120))) flagPole(c, X(40), GY, 200, ['#000000', '#DD0000', '#FFCE00'], f);
   },

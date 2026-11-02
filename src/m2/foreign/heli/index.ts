@@ -774,7 +774,7 @@ const drawPad = (c: CanvasRenderingContext2D, state: GameState, h: Heli) => {
     line(0);
   });
   if (onScreen(v, X(QUEUE_A - 120), X(QUEUE_A + 120))) postBoard(c, X(QUEUE_A - 40), GY, h.over ? ['HELICOPTER RIDES ACROSS THE WORLD', 'CLOSED', '(HELICOPTER MISSING)'] : ['HELICOPTER RIDES ACROSS THE WORLD', 'WAIT TIME: 3 HOURS', 'TOLERANCE: MANDATORY'], LOOKS.land(1), '#1E3A8A', undefined, 150);
-  if (onScreen(v, X(CP_PAD - 100), X(CP_PAD + 100)) && !h.over) postBoard(c, X(CP_PAD + 40), GY, ['SEE THE WHOLE WORLD', '(BIGGER)'], LOOKS.land(1), '#7F1D1D', undefined, 100);
+  if (onScreen(v, X(CP_PAD - 100), X(CP_PAD + 100)) && !h.over) postBoard(c, X(CP_PAD - 72), GY, ['SEE THE WHOLE WORLD', '(BIGGER)'], LOOKS.land(1), '#7F1D1D', undefined, 100);
 };
 /** A guest in the queue (set back, dimmed: scenery), painted once for the hour: who they are by seed (lookOf: the
  *  voice they yell in matches), stepped and inked; fed up, shifting their weight. */

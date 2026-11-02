@@ -244,7 +244,7 @@ export const drawCliffBack = (c: Ctx, v: View, state: GameState) => {
   }
   // (the signs: held up, nothing over them)
   if (onScreen(v, X(4300), X(4500))) postBoard(c, X(4380), GY, ['LA QUEBRADA', 'CLIFF DIVERS', 'SHOWS EVERY 6 SECONDS'], LOOKS.mexico(1), '#0F766E', undefined, 120);
-  if (onScreen(v, X(5300), X(5340))) postBoard(c, X(5300), GY, ['DIVE POOL', 'DEPTH: 6 FT', 'NO DIVING'], LOOKS.mexico(1), '#1E3A8A', undefined, 100);
+  if (onScreen(v, X(5220), X(5380))) postBoard(c, X(5292), GY, ['DIVE POOL', 'DEPTH: 6 FT', 'NO DIVING'], LOOKS.mexico(1), '#1E3A8A', undefined, 100);
   if (onScreen(v, X(STAND.a), X(STAND.b))) hungBoard(c, (X(STAND.a) + X(STAND.b)) / 2, Y(STAND.h) - 58, Y(STAND.h) - 30, ['TEQUILA', '(APPLE JUICE)'], LOOKS.mexico(1), '#7C2D12');
   if (onScreen(v, X(6050), X(6200))) postBoard(c, X(6120), GY, ['LEAVING MEXICO', 'NEXT: NORWAY'], LOOKS.mexico(1), '#7C2D12', undefined, 100);
   // (the diver up top on the platform in the tell)
