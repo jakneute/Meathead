@@ -95,7 +95,8 @@ export const PICKUPS: [number, number, 'small_health' | 'small_ammo'][] = [
 
 /** The horn speakers (the PA): [x, height]. And the googie lamps (lit after dark). */
 export const SPEAKERS: [number, number][] = [[470, 190], [2330, 190], [4000, 190], [6000, 300], [8318, 190], [9620, 190]];
-export const LAMPS = [120, 1000, 1900, 2800, 3650, 4600, 5470, 7500, 8545, 9235, 9965];
+// (the one by THE ELECTRIC SIDEWALK stood on its post, its arm across the board's corner: moved back off it)
+export const LAMPS = [120, 1000, 1900, 2800, 3560, 4600, 5470, 7500, 8545, 9235, 9965];
 
 export const CHECKPOINTS = [
   { name: 'FUTURELAND SQUARE', cp: 0, x: X(150), y: GY },

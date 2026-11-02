@@ -72,7 +72,9 @@ const BLOCKS: Block[] = [
 ];
 
 const signs = (c: Ctx, state: GameState) => {
-  drawBigSign(c, state, 'd-trench', X(T1.a - 150), 120, 'FUTURELAND UNDERGROUND', 'OPEN TRENCH. CAST MEMBERS ONLY.', '#FACC15', '#18181B', false, 'enamel2');
+  // (on two lines, its posts both on the street short of the trench: its right post stood out over the trench, its
+  // left one against the lamp; clear of the PA horn's pole too)
+  drawBigSign(c, state, 'd-trench2', X(T1.a - 145), 120, 'FUTURELAND\nUNDERGROUND', 'OPEN TRENCH.\nCAST MEMBERS ONLY.', '#FACC15', '#18181B', false, 'enamel2');
   drawBigSign(c, state, 'd-lagoon', X(1880), 150, 'THE LAGOON OF TOMORROW', 'DRAINED 1971. SUBMARINES ON THE BOTTOM.', '#0C1E3A', '#5EEAD4', true, 'neon2');
   drawBigSign(c, state, 'd-mover', X(4300), 290, 'THE PEOPLE MOVER (EXPRESS RETURN)', 'WALK FASTER, CITIZEN!', undefined, undefined, true, 'chrome2');
   drawBigSign(c, state, 'd-plaza', X(5850), 150, 'SPACE NEEDLE 2', 'TO SPACE AND BEYOND! 62 MILES UP!', '#7F1D1D', undefined, false, 'marquee');

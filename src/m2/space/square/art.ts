@@ -87,7 +87,8 @@ const gags = (c: Ctx2, state: GameState) => {
   drawBigSign(c, state, 'zap', X(3820), 140, 'THE ELECTRIC SIDEWALK', 'SAFE AS MILK! DO NOT STAND ON IT WHEN IT BUZZES.', '#1E0B2E', '#7DF9FF', false, 'neon2');
   drawBigSign(c, state, 'zap2', X(9100), 280, 'THE ELECTRIC SIDEWALK', 'NOW TWICE AS ELECTRIC!', '#1E0B2E', '#FF6AD5', true, 'neon2');
   drawBigSign(c, state, 'pad', X(4880), 150, 'FEEL THE THRUST!', 'PHOTO OP. STAND ON THE GRILLE. SMILE.', '#7F1D1D', undefined, false, 'marquee');
-  drawBigSign(c, state, 'pit', X(6350), 120, 'FUTURE SITE OF TOMORROW', 'COMING 1964', '#F8FAFC', '#1D4ED8', false, 'enamel2');
+  // (on three lines, between the monorail's leg and the pit's lip: on one, its right post stood out over the pit)
+  drawBigSign(c, state, 'pit2', X(6408), 130, 'FUTURE\nSITE OF\nTOMORROW', 'COMING 1964', '#F8FAFC', '#1D4ED8', false, 'enamel2');
   drawBigSign(c, state, 'queue', X(9440), 120, 'LINE STARTS HERE', '90 MINUTES FROM THIS POINT', '#4C1D95', undefined, false, 'marquee');
   drawBigSign(c, state, 'plaza', X(8440), 200, 'THE ATOM PLAZA', 'THE FUTURE IS SPLITTING!', undefined, undefined, true, 'chrome2');
 };
