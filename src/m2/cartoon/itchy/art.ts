@@ -55,10 +55,10 @@ const onV = (v: View, a: number, b: number, pad = 60) => b > v.cam.x - pad && a 
 // The show's sign: a cream board with a ragged, dripping red rim, on two bandaged posts; a cleaver stuck in its top
 // corner, a mallet leaning on a post. The first line big and red, the rest small. Painted once for the hour.
 
-export const pkSign = (c: Ctx, x: number, feetY: number, lines: string[], board = '#B91C1C') => {
+export const pkSign = (c: Ctx, x: number, feetY: number, lines: string[], board = '#B91C1C', tall = 112) => {
   const looks = lines.map((_, i) => (i ? small(i === lines.length - 1 && lines.length > 2 ? ['#FFF0A8', '#FACC15'] : ['#FFFFFF', '#FDE7E7']) : pkLetters(1, lines.join('').length)));
-  const w = Math.max(120, ...lines.map((l, i) => signW(l, looks[i]) + 40)), h = lines.length * 14 + 20, tall = 112;
-  still(c, `pksign2-${lines.join('|')}-${board}`, x, feetY, -w / 2 - 36, -tall - h - 30, w + 72, tall + h + 36, g => {
+  const w = Math.max(120, ...lines.map((l, i) => signW(l, looks[i]) + 40)), h = lines.length * 14 + 20;
+  still(c, `pksign2-${lines.join('|')}-${board}-${tall}`, x, feetY, -w / 2 - 36, -tall - h - 30, w + 72, tall + h + 36, g => {
     const B = NC(board), C = NR(CREAM), Wd = NR(PLY), Bn = NR(BONE), ink = INK;
     // (the posts: wood in steps, bandaged round, a bloody bandage on one; a heap of dirt at each foot)
     for (const s of [-1, 1]) {
@@ -855,7 +855,7 @@ export const drawItchyBack = (c: Ctx, state: GameState, revisit: boolean) => {
 };
 /** The signs: last of everything behind him (nothing of the machinery's ever over one). */
 export const drawItchySigns = (c: Ctx, state: GameState) => {
-  for (const [x, h, lines, board] of SIGNS) if (onScreen(state, X(x) - 200, X(x) + 200)) pkSign(c, X(x), Y(h), lines, board);
+  for (const [x, h, lines, board, tall] of SIGNS) if (onScreen(state, X(x) - 200, X(x) + 200)) pkSign(c, X(x), Y(h), lines, board, tall);
 };
 
 export const itchyLamps = (state: GameState): Light[] => {

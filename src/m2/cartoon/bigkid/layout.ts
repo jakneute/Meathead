@@ -169,8 +169,10 @@ export const GAG_AT: [string, number][] = [['posters', 600], ['graffiti', 960], 
 /** The zone's signs: [x, feet height, lines, board color]. */
 export const SIGNS: [number, number, string[], string][] = [
   [1160, 0, ['COUCH DUDES', "CRUISIN' COUCH", 'IT DRIVES ITSELF!'], '#7C3AED'],
-  [3470, 0, ['THE GLOP PIT', 'NO LIFEGUARD ON DUTY. EVER.'], '#16A34A'],
-  [4990, 0, ["SPAZ & STINKY'S", 'BUMPER BASH', 'ALL CRASH! ALL DAY!'], '#DB2777'],
+  // (between the gift shack (to 3330) and the first drum (from 3560): its board ran into the drum)
+  [3445, 0, ['THE GLOP PIT', 'NO LIFEGUARD', 'ON DUTY. EVER.'], '#16A34A'],
+  // (clear of the bumper rink's canopy pole)
+  [4970, 0, ["SPAZ & STINKY'S", 'BUMPER BASH', 'ALL CRASH! ALL DAY!'], '#DB2777'],
   [7130, 0, ["GIGGLES THE CLOWN'S", 'HURL-A-WHIRL', 'IT GOES WHERE IT WANTS!'], '#EA580C'],
   [8560, 0, ["DETECTIVE DRAKE'S", 'MOTION MADNESS', 'FEEL EVERY BUMP!'], '#0E7490'],
   [9170, 0, ['THE GLOP PIT, PART 2', 'NOW WITH MORE GLOP'], '#16A34A'],

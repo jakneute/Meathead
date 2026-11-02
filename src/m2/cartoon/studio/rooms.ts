@@ -920,7 +920,9 @@ export const backKey = (id: string) => (id === 'lobby' ? timeOfDay().key : '');
 // The signs: each room's placard on its brass stand; the lobby's marquee
 
 /** Where each room's placard stands (from its start): clear of what's on the path and what's behind it. */
-const PLACARD_AT: Partial<Record<string, number>> = { camera: 460, premiere: 30 };
+// (the premiere's in past the camera room's end (its board straddled the rooms' join, nearly touching the camera's);
+// the camera's a little further from the crate)
+const PLACARD_AT: Partial<Record<string, number>> = { camera: 480, premiere: 100 };
 export const placardX = (r: Room) => X(r.a + (PLACARD_AT[r.id] ?? 150));
 /** A film-frame placard on a brass stand (its foot at the path's back edge): the room's number and name. */
 export const paintPlacard = (g: Ctx, r: Room) => {

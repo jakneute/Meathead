@@ -184,12 +184,18 @@ export const GAG_AT: [string, number][] = [['sign', 300], ['anvil', 760], ['rake
 export const MERCH = { a: 2420, b: 2740, tv: 2600 };
 export const EXIT_GATE = 9930;
 /** The signs: [x, feet height, lines, board color]. */
-export const SIGNS: [number, number, string[], string][] = [
-  [300, 0, ['PUNCHY & KICKY', 'AS SEEN ON DAD GUY!', 'THEY FIGHT! THEY BITE!'], '#B91C1C'],
-  [740, 0, ['ANVIL ALLEY', 'GENERIC-CO PROUDLY DROPS'], '#1F2937'],
+export const SIGNS: [number, number, string[], string, number?][] = [
+  // (both inside the gate, between its bone columns: the first's board ran across the left one, ANVIL ALLEY's across
+  // the gantry's leg)
+  [320, 0, ['PUNCHY & KICKY', 'AS SEEN ON DAD GUY!', 'THEY FIGHT! THEY BITE!'], '#B91C1C'],
+  [530, 0, ['ANVIL ALLEY', 'GENERIC-CO', 'PROUDLY DROPS'], '#1F2937'],
   [1690, 0, ['KEEP OFF THE GRASS', 'BY ORDER OF PUNCHY'], '#15803D'],
-  [4270, 0, ['THE GENERIC-CO DOCK', 'QUALITY. ALLEGEDLY.'], '#92400E'],
+  // (between the castle's tower and the first crate: it ran across the tower)
+  [4320, 0, ['THE DOCK', 'GENERIC-CO', 'QUALITY.', 'ALLEGEDLY.'], '#92400E'],
   [5480, 0, ["PUNCHY'S BIG TOP", 'SEE THE CANNON!', 'BE THE CANNONBALL!'], '#B91C1C'],
-  [7240, 0, ['THE PAINTED CANYON', "AS SEEN IN 'MOUSE MESA'"], '#C2410C'],
-  [8660, 0, ['STAGE 9', 'PUNCHY & KICKY LIVE!', 'TAPING TODAY'], '#1F2937'],
+  // (between the bunker and the canyon's rock: it ran across the bunker's front)
+  [7285, 0, ['THE PAINTED', 'CANYON', 'AS SEEN IN', "'MOUSE MESA'"], '#C2410C'],
+  // (narrow and up high, its posts in the gap between the rock and the lift: its board stood over the lift, so the
+  // cannon rising on it came up behind the board)
+  [8575, 0, ['STAGE 9', 'P&K LIVE!', 'TAPING', 'TODAY'], '#1F2937', 200],
 ];

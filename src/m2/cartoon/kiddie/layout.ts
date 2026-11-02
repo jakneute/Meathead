@@ -170,7 +170,10 @@ export const GAG_AT: [string, number][] = [['height', 760], ['pit', 2420], ['car
 /** The signs: [x, feet height, lines, board, tall]. */
 export const SIGNS: [number, number, string[], string?, number?][] = [
   [520, 0, ['CARTOON LAND', 'SILLYVILLE SQUARE', 'RIDES FOR THE LITTLE ONES'], '#7C3AED', 150],
-  [2400, 0, ['BOTTOMLESS BALL PIT', 'LAST KID FOUND: 1997'], '#BE123C', 130],
+  // (on a taller pole: its board clears the toadstool cap under its left end)
+  [2400, 0, ['BOTTOMLESS BALL PIT', 'LAST KID FOUND: 1997'], '#BE123C', 150],
   [6470, 0, ['BOTTOMLESS BALL PIT', 'PLEASE DO NOT FEED THE PIT'], '#BE123C', 130],
-  [12300, 0, ['THIS WAY TO THE MAGIC', 'OF HOW CARTOONS ARE MADE >'], '#0EA5E9', 120],
+  // (past the trolley's end station, short of the painter's balcony: at 12300 its board ran across the station's legs
+  // and tower; three lines, so it fits the gap)
+  [12440, 0, ['THIS WAY TO', 'THE MAGIC OF HOW', 'CARTOONS ARE MADE >'], '#0EA5E9', 120],
 ];
