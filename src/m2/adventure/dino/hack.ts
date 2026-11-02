@@ -14,11 +14,16 @@
 //                 reads the buttons). The CRT warms up, the boot text types out (a press skips it), then the puzzle
 //                 (hackPuzzle.ts: swap it there; the first pass is a tumbler cipher). Its buttons shown up top (real,
 //                 live). BACK quits (no penalty: try again whenever). Solved: ACCESS GRANTED.
-//   THE SHARD     back in the world: the panel blows (smashed, sparking, for good), the CHARGE SHARD pops out of its
-//                 coin return into his hands, his line; the shared card (upgrades/shardAward.ts: once a save, buffered).
-//   THE MASSACRE  then the cut (hackMassacre.ts): the feeding show's grandstand, the holding gates opening, the robots
-//                 out and into the audience. The PA: PLEASE REMAIN SEATED. No input, no HUD; SKIP >> skips the lot
-//                 (the cut and his line after). Back on him up the tree: his line (a bubble), then control.
+//   THE MASSACRE  straight from ACCESS GRANTED, the cut (hackMassacre.ts): the feeding show's grandstand, the holding
+//                 gates opening, the robots out and into the audience. The PA: PLEASE REMAIN SEATED. The screamers
+//                 one at a time, a bubble over each (the owner, 2026-11-02: "they scream things like 'oh god, why? why
+//                 would anyone release all these dinosaurs? all this life. lost. is it worth it.'"), each one got by
+//                 the raptor waiting on them once they're done.
+//   THE PULL      then the cut to him at the panel (hackPull.ts: "meathead who pulls the shard he now gets out of the
+//                 fuse box that was hidden after solving the puzzle. he goes 'worth it'"): the keypad dropped open, the
+//                 shard the fuse behind it; he yanks it, the panel dies; WORTH IT. (a bubble). Then the shared card
+//                 (upgrades/shardAward.ts: once a save, buffered), then back in the world, control.
+//                 The massacre and the pull are one cutscene: no input, no HUD; SKIP >> skips the lot (to the card).
 //
 // Kept: the shard in the save (Jungle Land's finds: 'shard-hack'); the panel dead and the grandstand a mess (art/zoo.ts:
 // guests.ts massacred()) from then on, this run (stageMemo) and on any later visit (the find).
@@ -29,7 +34,8 @@ import type { Controls } from '../../../m1/game/platform/input';
 import { NO_CONTROLS } from '../../../m1/game/platform/input';
 import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../../../m1/constants';
 import { playSound } from '../../../m1/game/platform/audio';
-import { pickLine, silenceAll } from '../../../m1/game/platform/speech';
+import { pickLine, silenceAll, say, MEATHEAD_VOICE } from '../../../m1/game/platform/speech';
+import { drawBubbleRows } from '../../../m1/game/render/speechStyle';
 import { SKIP_AFTER, offerSkip, takeSkip, drawSkipPrompt } from '../../../m1/game/platform/skip';
 import { isShat, isNude } from '../../../m1/game/player/gut';
 import { getUi, setUi } from '../../store';
@@ -42,32 +48,39 @@ import { box, text, INK } from './art/kit';
 import type { ByPants } from './lines';
 import { MASSACRE_MEMO } from './guests';
 import { newPuzzle, type HackPuzzle, type PuzzleIn } from './hackPuzzle';
-import { HACK_LEDGES, PANEL_X, PANEL_DECK, panelSlot, drawHackTree, drawShardGem, drawTerminal, bootLength } from './hackArt';
-import { makeMassacre, stepMassacre, drawMassacre, massacreDone, OPEN_AT, type Massacre } from './hackMassacre';
-import { MH_PANEL, MH_QUIT, MH_SHARD, MH_AFTER, PA_SEATED, PA_MORE, PA_VOICE } from './hackLines';
+import { HACK_LEDGES, PANEL_X, PANEL_DECK, drawHackTree, drawTerminal, bootLength } from './hackArt';
+import { makeMassacre, stepMassacre, drawMassacre, startTalk, doom, speakerDown, speakerHead, SPEAKER_WOMAN, OPEN_AT, FIRST_OUT, type Massacre } from './hackMassacre';
+import { makePull, stepPull, drawPull, PULL_UP, type Pull } from './hackPull';
+import { MH_PANEL, MH_QUIT, MH_WORTH, PA_SEATED, PA_MORE, PA_VOICE, GUEST_F, GUEST_M, GUEST_WHY, GUEST_LOST, GUEST_WORTH, GUEST_MORE_F, GUEST_MORE_M } from './hackLines';
 
 /** The shard's id in the save (Jungle Land's finds). */
 export const SHARD_LAND = 'adventure', SHARD_ID = 'shard-hack';
-/** Frames: the CRT warming up, ACCESS GRANTED up, the shard's flight, the cut's fades. */
-const WARM = 24, GRANTED_T = 110, POP_FLY = 44, FADE = 14;
+/** Frames: the CRT warming up, ACCESS GRANTED up, the cuts' fades, the gap between one line and the next. */
+const WARM = 24, GRANTED_T = 110, FADE = 14, GAP = 12;
 
-type Phase = 'off' | 'line' | 'ask' | 'boot' | 'play' | 'granted' | 'pop' | 'card' | 'cut' | 'react';
+/** A line in the massacre: the PA's, or screamer `who`'s (hackMassacre.ts: in the order they speak). */
+interface Beat { who: 'pa' | number; text: string; at: number }
+
+type Phase = 'off' | 'line' | 'ask' | 'boot' | 'play' | 'granted' | 'cut' | 'pull' | 'card' | 'out';
 interface Hack {
   phase: Phase; t: number; token: number;
-  ask: Ask | null; card: ShardCard | null; puzzle: HackPuzzle | null; m: Massacre | null;
+  ask: Ask | null; card: ShardCard | null; puzzle: HackPuzzle | null; m: Massacre | null; pull: Pull | null;
   prompted: boolean; wasUp: boolean; was: Partial<Controls>; rep: Record<'left' | 'right' | 'up' | 'down', number>;
-  /** The PA in the cut: what it's saying, its two lines said. */
-  pa: Said | null; paStep: number;
-  /** The shard flying out of the panel (where it is), landed; his line after it done; when the panel blew. */
-  sx: number; sy: number; landed: boolean; lineDone: boolean; sparkAt: number; endAt: number;
+  /** The massacre's lines, the one up next, one being said; when the last one ended (the cut's clock). */
+  beats: Beat[]; beat: number; busy: boolean; lastEnd: number;
+  /** What's being said: the PA's words, a screamer's (and who), his. */
+  pa: Said | null; gs: { i: number; text: string } | null; ms: Said | null;
+  /** His line in the pull: said, done. When the panel blew; when the cut's ending. */
+  mhSaid: boolean; lineDone: boolean; sparkAt: number; endAt: number;
 }
 const stores = new WeakMap<object, Hack>();
 const hackOf = (state: GameState): Hack => {
   const key = (state.stage ?? state) as object;
   let h = stores.get(key);
   if (!h) stores.set(key, h = {
-    phase: 'off', t: 0, token: 0, ask: null, card: null, puzzle: null, m: null, prompted: false, wasUp: false, was: {},
-    rep: { left: 0, right: 0, up: 0, down: 0 }, pa: null, paStep: 0, sx: 0, sy: 0, landed: false, lineDone: false, sparkAt: -999, endAt: -1,
+    phase: 'off', t: 0, token: 0, ask: null, card: null, puzzle: null, m: null, pull: null, prompted: false, wasUp: false, was: {},
+    rep: { left: 0, right: 0, up: 0, down: 0 }, beats: [], beat: 0, busy: false, lastEnd: 0, pa: null, gs: null, ms: null,
+    mhSaid: false, lineDone: false, sparkAt: -999, endAt: -1,
   });
   return h;
 };
@@ -114,7 +127,8 @@ const hold = (state: GameState) => {
 const release = (state: GameState, h: Hack) => {
   const p = state.player;
   p.inCutscene = false;
-  h.phase = 'off'; h.t = 0; h.puzzle = null; h.m = null; h.pa = null; h.token++;
+  h.phase = 'off'; h.t = 0; h.puzzle = null; h.m = null; h.pull = null; h.pa = null; h.gs = null; h.ms = null; h.token++;
+  p.facing = PANEL_X < p.pos.x + p.width / 2 ? -1 : 1;
   if (h.ask) { closeAsk(); h.ask = null; }
   if (h.card) { closeShardCard(); h.card = null; }
   setUi({ hudOff: false, chordTips: null }); uiUp = false;
@@ -210,35 +224,8 @@ export const updateHack = (ctx: FrameContext, controls: Controls): Controls | nu
     }
     case 'granted': {
       hold(state);
-      if (h.t >= GRANTED_T) {
-        // Back in the world: the panel blows, the shard pops out of its coin return
-        h.phase = 'pop'; h.t = 0; h.sparkAt = state.frame;
-        const s = panelSlot(); h.sx = s.x; h.sy = s.y; h.landed = false; h.lineDone = false;
-        playSound('boom', 0.6, 6); playSound('glass', 0.6); playSound('taser', 0.5);
-        for (let i = 0; i < 20; i++) state.particles.push({ pos: { x: PANEL_X - 6 + Math.random() * 12, y: PANEL_DECK - 70 }, vel: { x: (Math.random() - 0.5) * 6, y: -2 - Math.random() * 4 }, life: 20 + Math.random() * 20, color: i % 2 ? '#FDE047' : '#FFFFFF', size: 2, grav: 0.25 });
-      }
-      break;
-    }
-    case 'pop': {
-      hold(state);
-      const s = panelSlot(), u = Math.min(1, h.t / POP_FLY);
-      const hx = p.pos.x + p.width / 2, hy = p.pos.y + p.height * 0.45;
-      h.sx = s.x + (hx - s.x) * u; h.sy = s.y + (hy - s.y) * u - Math.sin(Math.PI * u) * 60;
-      if (h.t === 2) playSound('twinkle', 0.7);
-      if (u >= 1 && !h.landed) {
-        h.landed = true; playSound('pickup', 0.8);
-        const tok = h.token;
-        meatheadSays(state, pickLine(byPants(state, MH_SHARD)), true, () => { if (h.token === tok) h.lineDone = true; });
-      }
-      if (h.landed && (h.lineDone || h.t > POP_FLY + 300)) {
-        if (awardShard(SHARD_LAND, SHARD_ID)) { h.card = openShardCard(); h.phase = 'card'; h.t = 0; }
-        else startCut(h);
-      }
-      break;
-    }
-    case 'card': {
-      hold(state);
-      if (h.card && tickShardCard(h.card, state.frame)) { h.card = null; startCut(h); }
+      // Straight into the massacre
+      if (h.t >= GRANTED_T) startCut(h);
       break;
     }
     case 'cut': {
@@ -246,24 +233,56 @@ export const updateHack = (ctx: FrameContext, controls: Controls): Controls | nu
       const m = h.m!;
       stepMassacre(m);
       if (h.t > SKIP_AFTER) offerSkip();
-      if (h.t > SKIP_AFTER && takeSkip()) { silenceAll(); release(state, h); break; }
-      // The PA: the owner's line as the gates go, then one more once that's done
-      const tok = h.token;
-      if (h.paStep === 0 && m.t >= OPEN_AT + 16) { h.paStep = 1; speak(PA_VOICE, PA_SEATED, s => { h.pa = s; }, true, () => { if (h.token === tok) h.paStep = 2; }); }
-      if (h.paStep === 2 && m.t >= 260) { h.paStep = 3; speak(PA_VOICE, pickLine(PA_MORE), s => { h.pa = s; }, true, () => { if (h.token === tok) h.paStep = 4; }); }
-      if (h.endAt < 0 && ((massacreDone(m) && h.paStep >= 4) || h.t > 1500)) h.endAt = h.t;
-      if (h.endAt >= 0 && h.t >= h.endAt + FADE + 20) {
-        h.phase = 'react'; h.t = 0; h.m = null; h.pa = null; h.endAt = -1;
-        p.facing = -1;
+      if (h.t > SKIP_AFTER && takeSkip()) { skipAll(state, h); break; }
+      // The lines, one at a time, each after the last's done (no talk-over)
+      const tok = h.token, bt = h.beats[h.beat];
+      if (bt && !h.busy && m.t >= bt.at && m.t >= h.lastEnd + GAP) {
+        h.busy = true; h.beat++;
+        const done = () => { if (h.token !== tok) return; h.busy = false; if (h.m) h.lastEnd = h.m.t; };
+        if (bt.who === 'pa') speak(PA_VOICE, bt.text, s => { h.pa = s; }, true, done);
+        else {
+          const i = bt.who;
+          startTalk(m, i);
+          speak(SPEAKER_WOMAN[i] ? GUEST_F : GUEST_M, bt.text, s => { h.gs = s ? { i, text: s.text } : null; }, true, () => { if (h.token === tok && h.m) doom(h.m, i); done(); });
+        }
+      }
+      // (the last one said and got: a beat on it, then out)
+      const last = h.beats.length - 1, lastWho = h.beats[last].who;
+      const allSaid = h.beat > last && !h.busy;
+      if (h.endAt < 0 && ((allSaid && (typeof lastWho !== 'number' || speakerDown(m, lastWho)) && m.t >= h.lastEnd + 40) || (allSaid && m.t >= h.lastEnd + 150) || h.t > 2700)) h.endAt = h.t;
+      if (h.endAt >= 0 && h.t >= h.endAt + FADE + 6) {
+        silenceAll();
+        h.phase = 'pull'; h.t = 0; h.m = null; h.pa = null; h.gs = null; h.endAt = -1;
+        h.pull = makePull(); h.mhSaid = false; h.lineDone = false;
       }
       break;
     }
-    case 'react': {
+    case 'pull': {
       hold(state);
       offerSkip();
-      if (takeSkip()) { silenceAll(); release(state, h); break; }
-      if (h.t === FADE) { const tok = h.token; meatheadSays(state, pickLine(byPants(state, MH_AFTER)), true, () => { if (h.token === tok) h.endAt = -2; }); }
-      if (h.endAt === -2 || h.t > 500) { h.endAt = -1; release(state, h); }
+      if (takeSkip()) { skipAll(state, h); break; }
+      const pl = h.pull!;
+      if (stepPull(pl) === 'yank') {
+        h.sparkAt = state.frame;
+        playSound('boom', 0.5, 8); playSound('glass', 0.5, 4); playSound('taser', 0.6); playSound('pickup', 0.8);
+      }
+      const tok = h.token;
+      if (!h.mhSaid && pl.t >= PULL_UP + 10) {
+        h.mhSaid = true;
+        mhSay(pickLine(byPants(state, MH_WORTH)), s => { h.ms = s; }, () => { if (h.token === tok) h.lineDone = true; });
+      }
+      if (h.mhSaid && (h.lineDone || pl.t > PULL_UP + 420) && h.endAt < 0) h.endAt = h.t;
+      if (h.endAt >= 0 && h.t >= h.endAt + 20) { h.endAt = -1; toCard(state, h); }
+      break;
+    }
+    case 'card': {
+      hold(state);
+      if (!h.card || tickShardCard(h.card, state.frame)) { h.card = null; h.phase = 'out'; h.t = 0; }
+      break;
+    }
+    case 'out': {
+      hold(state);
+      if (!h.pull || h.t >= FADE) release(state, h);
       break;
     }
   }
@@ -286,7 +305,41 @@ const toAsk = (h: Hack) => {
   h.ask = openAsk('HACK THE PANEL?', 'DECODE THE GATE PASSWORD. WHAT COULD GO WRONG?');
 };
 const startCut = (h: Hack) => {
-  h.phase = 'cut'; h.t = 0; h.m = makeMassacre(); h.paStep = 0; h.pa = null; h.endAt = -1;
+  h.phase = 'cut'; h.t = 0; h.m = makeMassacre(); h.pa = null; h.gs = null; h.endAt = -1;
+  h.beat = 0; h.busy = false; h.lastEnd = 0;
+  // (the owner's three in order, the last the setup for his WORTH IT.; one more of each between, the PA's second)
+  h.beats = [
+    { who: 'pa', text: PA_SEATED, at: OPEN_AT + 16 },
+    { who: 0, text: GUEST_WHY, at: FIRST_OUT + 40 },
+    { who: 1, text: pickLine(GUEST_MORE_M), at: 0 },
+    { who: 'pa', text: pickLine(PA_MORE), at: 0 },
+    { who: 2, text: pickLine(GUEST_MORE_F), at: 0 },
+    { who: 3, text: GUEST_LOST, at: 0 },
+    { who: 4, text: GUEST_WORTH, at: 0 },
+  ];
+};
+/** The shard's card (once a save), or straight on. */
+const toCard = (state: GameState, h: Hack) => {
+  if (awardShard(SHARD_LAND, SHARD_ID)) { h.card = openShardCard(); h.phase = 'card'; h.t = 0; }
+  else { h.phase = 'out'; h.t = 0; }
+  void state;
+};
+/** SKIP >>: the lot (the massacre and the pull), on to the card. */
+const skipAll = (state: GameState, h: Hack) => {
+  silenceAll();
+  h.token++; h.m = null; h.pull = null; h.pa = null; h.gs = null; h.ms = null; h.endAt = -1;
+  toCard(state, h);
+};
+/** His line in the pull, in his voice: `set` gets what's shown (null when it's done: drawn in a bubble, full screen). */
+const mhSay = (text: string, set: (s: Said | null) => void, onDone: () => void) => {
+  const s = { text };
+  const shown = say(text, MEATHEAD_VOICE, 'queue', {
+    always: true,
+    onShow: spoken => { set(s); if (!spoken) setTimeout(() => { set(null); onDone(); }, Math.max(1800, text.length * 70)); },
+    onHide: () => { set(null); onDone(); },
+    onDropped: () => { set(null); onDone(); },
+  });
+  if (!shown) setTimeout(onDone, 0);
 };
 
 const fresh = (h: Hack, c: Controls, k: keyof Controls) => !!c[k] && !h.was[k];
@@ -306,7 +359,6 @@ export const drawHackWorld = (c: CanvasRenderingContext2D, state: GameState) => 
   const h = hackOf(state), f = state.frame || 0;
   const dead = panelDead(state) && !(h.phase === 'boot' || h.phase === 'play' || h.phase === 'granted');
   drawHackTree(c, state, f, { dead, using: h.phase !== 'off', sparkAt: h.sparkAt });
-  if (h.phase === 'pop' && !h.landed) drawShardGem(c, h.sx, h.sy, 1, f);
 };
 
 export const drawHackHud = (c: CanvasRenderingContext2D, state: GameState) => {
@@ -317,14 +369,34 @@ export const drawHackHud = (c: CanvasRenderingContext2D, state: GameState) => {
   }
   if (h.phase === 'cut' && h.m) {
     drawMassacre(c, h.m, f);
-    // (the PA's words, up top, from a horn, only while it's saying them)
+    // (the PA's words, up top, from a horn; a screamer's in a bubble over them: each only while it's said)
     if (h.pa) paCaption(c, h.pa.text);
+    if (h.gs) { const [x, y] = speakerHead(h.m, h.gs.i); bubble(c, h.gs.text, x, y); }
     // (in from black, out to it)
     const k = h.t < FADE ? 1 - h.t / FADE : h.endAt >= 0 ? Math.min(1, (h.t - h.endAt) / FADE) : 0;
     if (k > 0) { c.fillStyle = `rgba(0, 0, 0, ${k.toFixed(2)})`; c.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT); }
   }
-  if (h.phase === 'react' && h.t < FADE) { c.fillStyle = `rgba(0, 0, 0, ${(1 - h.t / FADE).toFixed(2)})`; c.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT); }
-  if ((h.phase === 'cut' && h.t > SKIP_AFTER) || h.phase === 'react') drawSkipPrompt(c, CANVAS_WIDTH);
+  if (h.pull && (h.phase === 'pull' || h.phase === 'card' || h.phase === 'out')) {
+    const at = drawPull(c, h.pull, f, { nude: isNude(state), shat: isShat(state), talking: !!h.ms });
+    if (h.ms && h.phase === 'pull') bubble(c, h.ms.text, at.head[0], at.head[1], at.mouth[0]);
+    const k = h.phase === 'pull' && h.t < FADE ? 1 - h.t / FADE : h.phase === 'out' ? Math.min(1, h.t / FADE) : 0;
+    if (k > 0) { c.fillStyle = `rgba(0, 0, 0, ${k.toFixed(2)})`; c.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT); }
+  }
+  if ((h.phase === 'cut' && h.t > SKIP_AFTER) || h.phase === 'pull') drawSkipPrompt(c, CANVAS_WIDTH);
+};
+
+/** A speech bubble, full screen (a skippable cutscene's): its tail down to (tip, y), kept whole on screen. */
+const bubble = (c: CanvasRenderingContext2D, s: string, x: number, y: number, tip = x) => {
+  const font = '8px "Press Start 2P"';
+  c.font = font;
+  const words = s.split(' '), rows: string[] = [];
+  let cur = '';
+  for (const w of words) { const tt = cur ? `${cur} ${w}` : w; if (c.measureText(tt).width > 300 && cur) { rows.push(cur); cur = w; } else cur = tt; }
+  if (cur) rows.push(cur);
+  const half = Math.max(...rows.map(r => c.measureText(r).width)) / 2 + 12;
+  const bx = Math.max(half + 6, Math.min(CANVAS_WIDTH - half - 6, x));
+  const by = Math.max((rows.length - 1) * 12 + 22, y - 12);
+  drawBubbleRows(c, rows, bx, by, tip, 12, font);
 };
 
 const paCaption = (c: CanvasRenderingContext2D, s: string) => {

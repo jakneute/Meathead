@@ -47261,6 +47261,11 @@
  },
  {
   "voice": "m2.guest",
+  "text": "IS IT WORTH IT?",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.guest",
   "text": "IS THAT A DINOSAUR EGG? OH GOD, NO IT ISN'T.",
   "from": "ADVENTURE"
  },
@@ -47456,6 +47461,11 @@
  },
  {
   "voice": "m2.guest",
+  "text": "MY HUSBAND! THAT WAS MY HUSBAND'S LEG!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.guest",
   "text": "MY KID ASKED WHAT THAT WAS! I SAID A SAD LITTLE HOT DOG!",
   "from": "HOLLYWOOD"
  },
@@ -47528,6 +47538,11 @@
   "voice": "m2.guest",
   "text": "OH GOD, THE SMELL! LET HIM GO! LET HIM GO FIRST!",
   "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.guest",
+  "text": "OH GOD, WHY? WHY WOULD ANYONE RELEASE ALL THESE DINOSAURS?",
+  "from": "ADVENTURE"
  },
  {
   "voice": "m2.guest",
@@ -47652,6 +47667,11 @@
  {
   "voice": "m2.guest",
   "text": "TAKE IT. TAKE THE BOAT.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.guest",
+  "text": "TELL MY KIDS THE CHURROS WERE STALE!",
   "from": "ADVENTURE"
  },
  {
@@ -47846,6 +47866,11 @@
  },
  {
   "voice": "m2.guest",
+  "text": "WE HAD FAST PASSES! WE HAD FAST PASSES!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.guest",
   "text": "WE WAITED NINETY MINUTES, YOU FAT FUCK!",
   "from": "ADVENTURE"
  },
@@ -47902,6 +47927,11 @@
  {
   "voice": "m2.guest",
   "text": "WHERE'S HE KEEPING HIS PASS?!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.guest",
+  "text": "WHO OPENS THE GATES ON PURPOSE? WHO DOES THAT?",
   "from": "ADVENTURE"
  },
  {
@@ -47993,6 +48023,11 @@
   "voice": "m2.guest2",
   "text": "AAAAAH!",
   "from": "SPACE"
+ },
+ {
+  "voice": "m2.guest2",
+  "text": "ALL THIS LIFE. LOST.",
+  "from": "ADVENTURE"
  },
  {
   "voice": "m2.guest2",
@@ -48448,6 +48483,11 @@
   "voice": "m2.guest2",
   "text": "I JUST CAME FOR THE BUFFET!",
   "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.guest2",
+  "text": "I JUST WANTED TO WATCH IT EAT A GOAT!",
+  "from": "ADVENTURE"
  },
  {
   "voice": "m2.guest2",
@@ -49011,6 +49051,11 @@
  },
  {
   "voice": "m2.guest2",
+  "text": "THE BROCHURE SAID FAMILY FRIENDLY!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.guest2",
   "text": "THE CAVEMAN'S HUNG LIKE A GERBIL. VERY HISTORICAL.",
   "from": "ADVENTURE"
  },
@@ -49101,6 +49146,11 @@
  },
  {
   "voice": "m2.guest2",
+  "text": "THEY'RE NOT EVEN REAL! WHY DOES IT HURT SO MUCH?",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.guest2",
   "text": "THEY'RE SHOOTING IT IN A THEME PARK! CHEAP BASTARDS!",
   "from": "HOLLYWOOD"
  },
@@ -49128,6 +49178,11 @@
   "voice": "m2.guest2",
   "text": "WE CAME FOR THE AIR CONDITIONING.",
   "from": "SPACE"
+ },
+ {
+  "voice": "m2.guest2",
+  "text": "WE PAID NINETY DOLLARS A HEAD FOR THIS! A HEAD!",
+  "from": "ADVENTURE"
  },
  {
   "voice": "m2.guest2",
@@ -73211,11 +73266,6 @@
  },
  {
   "voice": "meathead",
-  "text": "GOOD NEWS: NOBODY SAW ME NAKED. NOBODY'S LEFT.",
-  "from": "ADVENTURE"
- },
- {
-  "voice": "meathead",
   "text": "GOOD THING I KEEP A STANDBY. THIS IS GOING ON MY PODCAST.",
   "from": "m1/game/stages/ernie/jetski.ts:142"
  },
@@ -76246,11 +76296,6 @@
  },
  {
   "voice": "meathead",
-  "text": "HUH. THAT'S ON WHOEVER WROTE THE PASSWORD.",
-  "from": "ADVENTURE"
- },
- {
-  "voice": "meathead",
   "text": "HUH. WHERE'D THAT HIPSTER LAND? HE WAS RIGHT BEHIND ME.",
   "from": "m1/game/stages/ernie/runtime.ts:26"
  },
@@ -78696,11 +78741,6 @@
  },
  {
   "voice": "meathead",
-  "text": "I'M NOT THE WORST THING THEY SAW TODAY.",
-  "from": "ADVENTURE"
- },
- {
-  "voice": "meathead",
   "text": "I'M NOT TIPPING THE BOAT GUY.",
   "from": "FOREIGN"
  },
@@ -79721,21 +79761,6 @@
  },
  {
   "voice": "meathead",
-  "text": "IT PAYS OUT? SWEET.",
-  "from": "ADVENTURE"
- },
- {
-  "voice": "meathead",
-  "text": "IT PAYS OUT. FINALLY SOMETHING GOOD CAME OUT OF ME.",
-  "from": "ADVENTURE"
- },
- {
-  "voice": "meathead",
-  "text": "IT PAYS OUT. HOLD THIS, BUTTCHEEKS.",
-  "from": "ADVENTURE"
- },
- {
-  "voice": "meathead",
   "text": "IT PECKED ME! THE CLOCK PECKED ME!",
   "from": "SPOOKY"
  },
@@ -80643,21 +80668,6 @@
   "voice": "meathead",
   "text": "ITCHY! ITCHY! ITCHY!",
   "from": "FRONTIER"
- },
- {
-  "voice": "meathead",
-  "text": "JACKPOT.",
-  "from": "ADVENTURE"
- },
- {
-  "voice": "meathead",
-  "text": "JACKPOT. LIKE MY PANTS.",
-  "from": "ADVENTURE"
- },
- {
-  "voice": "meathead",
-  "text": "JACKPOT. NO POCKETS. I KNOW WHERE IT GOES.",
-  "from": "ADVENTURE"
  },
  {
   "voice": "meathead",
@@ -84957,11 +84967,6 @@
  {
   "voice": "meathead",
   "text": "NOBODY'S LOOKING AT MY DICK NOW.",
-  "from": "ADVENTURE"
- },
- {
-  "voice": "meathead",
-  "text": "NOBODY'S LOOKING AT MY PANTS NOW.",
   "from": "ADVENTURE"
  },
  {
@@ -90996,11 +91001,6 @@
  },
  {
   "voice": "meathead",
-  "text": "SOMEBODY DOWN THERE SHIT WORSE THAN ME.",
-  "from": "ADVENTURE"
- },
- {
-  "voice": "meathead",
   "text": "SOMEBODY DROPPED A PAPERCLIP RIGHT BY THE SECRET DOOR. THANKS, GOVERNMENT.",
   "from": "SPACE"
  },
@@ -96781,11 +96781,6 @@
  },
  {
   "voice": "meathead",
-  "text": "THEY DID SAY REMAIN SEATED.",
-  "from": "ADVENTURE"
- },
- {
-  "voice": "meathead",
   "text": "THEY DIDN'T GO POOF. I DID. IN MY PANTS.",
   "from": "CARTOON"
  },
@@ -100472,11 +100467,11 @@
  {
   "voice": "meathead",
   "text": "WORTH IT.",
-  "from": "m1/game/stages/barry/power.ts:279"
+  "from": "ADVENTURE"
  },
  {
   "voice": "meathead",
-  "text": "WORTH IT. SHINY ROCK.",
+  "text": "WORTH IT. ...I SHIT MYSELF, BUT WORTH IT.",
   "from": "ADVENTURE"
  },
  {

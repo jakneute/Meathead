@@ -15,18 +15,33 @@ export const MH_QUIT: ByPants = {
   shitty: ['FUCK COMPUTERS. AND MY PANTS.', "I'LL COME BACK WITH A HAMMER. AND A WIPE."],
   nude: ['FUCK COMPUTERS. I GOT NO POCKETS FOR THIS.', "I'LL COME BACK WITH A HAMMER. AND PANTS."],
 };
-/** The shard, out of the panel's coin return. */
-export const MH_SHARD: ByPants = {
-  clean: ['JACKPOT.', 'IT PAYS OUT? SWEET.'],
-  shitty: ['JACKPOT. LIKE MY PANTS.', 'IT PAYS OUT. FINALLY SOMETHING GOOD CAME OUT OF ME.'],
-  nude: ['JACKPOT. NO POCKETS. I KNOW WHERE IT GOES.', 'IT PAYS OUT. HOLD THIS, BUTTCHEEKS.'],
+/** The cut back to him at the panel after the massacre: the shard pulled out of the fuse box (the owner: "he goes
+ *  'worth it'"). */
+export const MH_WORTH: ByPants = {
+  clean: ['WORTH IT.'],
+  shitty: ['WORTH IT. ...I SHIT MYSELF, BUT WORTH IT.'],
+  nude: ['WORTH IT.'],
 };
-/** After the massacre (back on him up the tree). */
-export const MH_AFTER: ByPants = {
-  clean: ["HUH. THAT'S ON WHOEVER WROTE THE PASSWORD.", 'THEY DID SAY REMAIN SEATED.', 'WORTH IT. SHINY ROCK.'],
-  shitty: ['SOMEBODY DOWN THERE SHIT WORSE THAN ME.', "NOBODY'S LOOKING AT MY PANTS NOW."],
-  nude: ["GOOD NEWS: NOBODY SAW ME NAKED. NOBODY'S LEFT.", "I'M NOT THE WORST THING THEY SAW TODAY."],
-};
+
+/** The guests in the massacre, screaming one at a time (the owner: "they scream things like 'oh god, why? why would
+ *  anyone release all these dinosaurs? all this life. lost. is it worth it.'"). Woman's voice, man's voice. The
+ *  owner's three are fixed, in order (the last the setup for his "worth it"); a couple more from the rest go between. */
+export const GUEST_F = 'm2.guest', GUEST_M = 'm2.guest2';
+export const GUEST_WHY = 'OH GOD, WHY? WHY WOULD ANYONE RELEASE ALL THESE DINOSAURS?';
+export const GUEST_LOST = 'ALL THIS LIFE. LOST.';
+export const GUEST_WORTH = 'IS IT WORTH IT?';
+export const GUEST_MORE_F = [
+  "MY HUSBAND! THAT WAS MY HUSBAND'S LEG!",
+  'WHO OPENS THE GATES ON PURPOSE? WHO DOES THAT?',
+  'TELL MY KIDS THE CHURROS WERE STALE!',
+  'WE HAD FAST PASSES! WE HAD FAST PASSES!',
+];
+export const GUEST_MORE_M = [
+  "THEY'RE NOT EVEN REAL! WHY DOES IT HURT SO MUCH?",
+  'I JUST WANTED TO WATCH IT EAT A GOAT!',
+  'WE PAID NINETY DOLLARS A HEAD FOR THIS! A HEAD!',
+  'THE BROCHURE SAID FAMILY FRIENDLY!',
+];
 
 /** The park's PA in the massacre: first the owner's line, then one of the rest. */
 export const PA_SEATED = 'PLEASE REMAIN SEATED.';
@@ -39,6 +54,8 @@ export const PA_VOICE = 'm2.pa';
 
 const flat = (b: ByPants) => [...b.clean, ...b.shitty, ...b.nude];
 export const HACK_VOICE_LINES: Record<string, string[]> = {
-  meathead: [...flat(MH_PANEL), ...flat(MH_QUIT), ...flat(MH_SHARD), ...flat(MH_AFTER)],
+  meathead: [...flat(MH_PANEL), ...flat(MH_QUIT), ...flat(MH_WORTH)],
   [PA_VOICE]: [PA_SEATED, ...PA_MORE],
+  [GUEST_F]: [GUEST_WHY, GUEST_WORTH, ...GUEST_MORE_F],
+  [GUEST_M]: [GUEST_LOST, ...GUEST_MORE_M],
 };

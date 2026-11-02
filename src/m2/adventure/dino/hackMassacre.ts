@@ -8,6 +8,12 @@
 // floor from a height. A few get up and run off the end of the stands (something comes back over: an arm). The PA:
 // PLEASE REMAIN SEATED.
 //
+// The screamers (the owner, 2026-11-02: "tons of guests getting mauled by animatronic dinosaurs. they scream things like
+// 'oh god, why? why would anyone release all these dinosaurs? all this life. lost. is it worth it.'"): five guests held
+// back from the first wave, men and women. hack.ts has each up in turn (startTalk: on their feet, arms up, a bubble over
+// them); the raptor that's theirs comes out of the gate as they start and waits at the foot of their row, crouched,
+// till they're done (doom), then it's on them.
+//
 // Painted at 400 x 300 and drawn 2x (chunky). The set (sky, tree line, the holding building, the floor, the stands) is
 // stamped once; the people and robots are the game's own stamps (temple/people.ts, art/robots.ts), each pose painted once;
 // the doors, the beacons, the blood and the bits are a few boxes each, live.
@@ -36,15 +42,17 @@ const PS = 0.42, RS = 0.47, TS = 0.5, PTS = 0.5;
 /** When things happen (frames into the cut). */
 export const ALARM_AT = 20, OPEN_AT = 40, OPEN_T = 60, FIRST_OUT = 84;
 
-type Fate = 'raptor' | 'trike' | 'ptero' | 'run';
+type Fate = 'raptor' | 'trike' | 'ptero' | 'run' | 'speak';
 interface Guest {
   seed: number; row: number; sx: number; sy: number; x: number; y: number;
   fate: Fate; state: 'sit' | 'run' | 'fly' | 'carried' | 'fall' | 'dead' | 'flat' | 'gone';
   vx: number; vy: number; at: number; heap: number;
+  /** A screamer: up on their feet saying their line; done saying it (the raptor waiting on them goes). */
+  talk: boolean; doomed: boolean;
 }
 interface Bot {
   kind: 'raptor' | 'trike' | 'ptero'; at: number; x: number; y: number; vx: number; vy: number;
-  phase: 'wait' | 'run' | 'leap' | 'maul' | 'charge' | 'swoop' | 'carry' | 'gone';
+  phase: 'wait' | 'run' | 'stalk' | 'leap' | 'maul' | 'charge' | 'swoop' | 'carry' | 'gone';
   t: number; prey: Guest | null; lx: number; ly: number;
 }
 interface Bit { x: number; y: number; vx: number; vy: number; life: number; size: number; col: string; kind: 'blood' | 'arm' | 'leg' | 'head'; skin: string; cloth: string; rest: boolean }
@@ -52,7 +60,11 @@ interface Splat { x: number; y: number; r: number }
 export interface Massacre {
   t: number; guests: Guest[]; bots: Bot[]; bits: Bit[]; splats: Splat[];
   open: number; sndAt: number; screamAt: number; kills: number;
+  /** The screamers, in the order they speak (SPEAKER_WOMAN: the voices hack.ts gives them). */
+  speakers: Guest[];
 }
+/** The screamers' voices, in turn: a woman (true), a man, a woman, a man, a woman. */
+export const SPEAKER_WOMAN = [true, false, true, false, true];
 
 const rnd = (n: number) => hash(n * 1.618 + 0.37);
 
@@ -62,7 +74,7 @@ export const makeMassacre = (): Massacre => {
   ROWS.forEach((r, row) => {
     for (let x = r.x0 + 12; x < W - 4; x += GAP) {
       const seed = 9100 + n * 41;
-      guests.push({ seed, row, sx: x + (rnd(n) - 0.5) * 4, sy: r.y, x: 0, y: 0, fate: 'raptor', state: 'sit', vx: 0, vy: 0, at: 0, heap: n % 3 });
+      guests.push({ seed, row, sx: x + (rnd(n) - 0.5) * 4, sy: r.y, x: 0, y: 0, fate: 'raptor', state: 'sit', vx: 0, vy: 0, at: 0, heap: n % 3, talk: false, doomed: false });
       n++;
     }
   });
@@ -70,18 +82,51 @@ export const makeMassacre = (): Massacre => {
   // Their fates: the front row's middle to the trikes, two off the top to the pterodactyls, a few runners, the rest
   // to the raptors (each its own, spread out in time, nearest first)
   guests.filter(g => g.row === 0).forEach((g, i) => { if (i >= 1 && i % 2 === 1) g.fate = 'trike'; });
-  guests.filter(g => g.row === 4).slice(0, 2).forEach(g => { g.fate = 'ptero'; });
+  guests.filter(g => g.row === 4).slice(0, 3).forEach(g => { g.fate = 'ptero'; });
   [guests.find(g => g.row === 3 && g.fate === 'raptor'), guests.filter(g => g.row === 1).pop(), guests.filter(g => g.row === 2).pop()].forEach((g, i) => { if (g) { g.fate = 'run'; g.at = 96 + i * 22; } });
+  // The screamers: from the middle rows, a woman or a man as their turn's voice is, spread out along the stands
+  const speakers: Guest[] = [];
+  for (const woman of SPEAKER_WOMAN) {
+    const pool = guests.filter(g => g.fate === 'raptor' && g.row >= 1 && g.row <= 3);
+    const match = pool.filter(g => lookOf(g.seed).woman === woman);
+    const from = match.length ? match : pool;
+    const far = (g: Guest) => speakers.length ? Math.min(...speakers.map(o => Math.abs(o.sx - g.sx) + Math.abs(o.row - g.row) * 18)) : 200 - Math.abs(g.sx - 290);
+    const g = from.sort((a, b) => far(b) - far(a))[0];
+    if (g) { g.fate = 'speak'; speakers.push(g); }
+  }
   const bots: Bot[] = [];
   const preyR = guests.filter(g => g.fate === 'raptor').sort((a, b) => (a.sx - a.row * 30) - (b.sx - b.row * 30));
-  preyR.forEach((g, i) => bots.push({ kind: 'raptor', at: FIRST_OUT + i * 9 + Math.floor(rnd(i + 50) * 5), x: 0, y: 0, vx: 0, vy: 0, phase: 'wait', t: 0, prey: g, lx: 0, ly: 0 }));
-  for (const at of [FIRST_OUT + 24, FIRST_OUT + 120]) bots.push({ kind: 'trike', at, x: 0, y: 0, vx: 0, vy: 0, phase: 'wait', t: 0, prey: null, lx: 0, ly: 0 });
-  guests.filter(g => g.fate === 'ptero').forEach((g, i) => bots.push({ kind: 'ptero', at: FIRST_OUT + 50 + i * 70, x: 0, y: 0, vx: 0, vy: 0, phase: 'wait', t: 0, prey: g, lx: 0, ly: 0 }));
-  return { t: 0, guests, bots, bits: [], splats: [], open: 0, sndAt: -99, screamAt: -99, kills: 0 };
+  preyR.forEach((g, i) => bots.push({ kind: 'raptor', at: FIRST_OUT + i * 28 + Math.floor(rnd(i + 50) * 12), x: 0, y: 0, vx: 0, vy: 0, phase: 'wait', t: 0, prey: g, lx: 0, ly: 0 }));
+  // (each screamer's own raptor: out of the gate when they start (startTalk))
+  speakers.forEach(g => bots.push({ kind: 'raptor', at: Infinity, x: 0, y: 0, vx: 0, vy: 0, phase: 'wait', t: 0, prey: g, lx: 0, ly: 0 }));
+  for (const at of [FIRST_OUT + 24, FIRST_OUT + 120, FIRST_OUT + 300, FIRST_OUT + 470, FIRST_OUT + 650]) bots.push({ kind: 'trike', at, x: 0, y: 0, vx: 0, vy: 0, phase: 'wait', t: 0, prey: null, lx: 0, ly: 0 });
+  guests.filter(g => g.fate === 'ptero').forEach((g, i) => bots.push({ kind: 'ptero', at: FIRST_OUT + 50 + i * 120, x: 0, y: 0, vx: 0, vy: 0, phase: 'wait', t: 0, prey: g, lx: 0, ly: 0 }));
+  return { t: 0, guests, bots, bits: [], splats: [], open: 0, sndAt: -99, screamAt: -99, kills: 0, speakers };
 };
 
-/** Everybody's done for (the cut can end once its lines are said). */
-export const massacreDone = (m: Massacre) => m.t > 300 && m.guests.every(g => g.state !== 'sit' && g.state !== 'run' && g.state !== 'fly' && g.state !== 'carried' && g.state !== 'fall') && m.bots.every(b => b.kind !== 'ptero' || b.phase === 'gone');
+/** Screamer i up on their feet, saying their line (their raptor out of the gate for them). */
+export const startTalk = (m: Massacre, i: number) => {
+  const g = m.speakers[i];
+  if (!g || g.state !== 'sit') return;
+  g.talk = true;
+  const b = m.bots.find(bb => bb.prey === g && bb.phase === 'wait');
+  if (b) b.at = m.t;
+};
+/** ...done: their raptor's on them (now, or the moment it gets there). */
+export const doom = (m: Massacre, i: number) => {
+  const g = m.speakers[i];
+  if (!g) return;
+  g.doomed = true;
+  const b = m.bots.find(bb => bb.prey === g && bb.phase === 'wait');
+  if (b) b.at = m.t;
+};
+/** Screamer i got (their raptor's landed on them). */
+export const speakerDown = (m: Massacre, i: number) => !m.speakers[i] || m.speakers[i].state === 'dead';
+/** Over screamer i's head, in the screen's px (the scene's drawn 2x): where their bubble's tail goes. */
+export const speakerHead = (m: Massacre, i: number): [number, number] => {
+  const g = m.speakers[i];
+  return g ? [g.x * S, (g.y - 46) * S] : [CANVAS_WIDTH / 2, 200];
+};
 
 // ---------------------------------------------------------------------------------------------------------------
 // A frame of it
@@ -164,12 +209,16 @@ const stepBot = (m: Massacre, b: Bot) => {
       const sp = 3.4;
       if (d < sp + 1 || (g.state !== 'sit' && g.state !== 'run')) {
         if (g.state !== 'sit') { b.phase = 'maul'; b.prey = null; b.t = 0; return; }
+        // (a screamer still at it: crouched at the foot of their row, waiting on them)
+        if (g.fate === 'speak' && !g.doomed) { b.phase = 'stalk'; b.t = 0; playSound('chitter', 0.35, 4); return; }
         b.phase = 'leap'; b.t = 0; b.lx = b.x; b.ly = b.y; playSound('whoosh', 0.35, 6);
       } else { b.x += (dx / d) * sp; b.y += (dy / d) * sp; }
+    } else if (b.phase === 'stalk') {
+      if (g.doomed) { b.phase = 'leap'; b.t = 0; b.lx = b.x; b.ly = b.y; playSound('whoosh', 0.45, 6); playSound('roar', 0.5, 6); }
     } else if (b.phase === 'leap') {
       const u = Math.min(1, b.t / 18);
       b.x = b.lx + (g.sx - 4 - b.lx) * u; b.y = b.ly + (g.sy - b.ly) * u - Math.sin(Math.PI * u) * (26 + g.row * 6);
-      if (u >= 1) { b.phase = 'maul'; b.t = 0; g.state = 'dead'; m.kills++; gore(m, g.sx, g.sy - 10, 18, g); }
+      if (u >= 1) { b.phase = 'maul'; b.t = 0; g.state = 'dead'; g.talk = false; m.kills++; gore(m, g.sx, g.sy - 10, g.fate === 'speak' ? 30 : 18, g); }
     } else if (b.phase === 'maul') {
       // (chewing: blood off its jaws now and then)
       if (b.t % 14 === 0 && b.t < 240) {
@@ -248,7 +297,7 @@ export const drawMassacre = (c: Ctx, m: Massacre, f: number) => {
     for (const b of m.bots) if (b.kind === 'raptor' && (b.phase === 'leap' || b.phase === 'maul') && b.prey && b.prey.row === row) bot(c, b, f);
   }
   // In front of it all: the floor's runners up close, the trikes along the front, the flyers, the bits in the air
-  for (const b of m.bots) if ((b.phase === 'run' || b.phase === 'charge') && b.y >= ROWS[0].y + 6) bot(c, b, f);
+  for (const b of m.bots) if ((b.phase === 'run' || b.phase === 'charge' || b.phase === 'stalk') && b.y >= ROWS[0].y + 6) bot(c, b, f);
   for (const g of m.guests) if (g.state === 'fly' || g.state === 'carried' || g.state === 'fall') person(c, g.seed, g.x, g.y, 'fly', 'scared', f);
   for (const b of m.bots) if (b.kind === 'ptero' && (b.phase === 'swoop' || b.phase === 'carry')) bot(c, b, f);
   for (const p of m.bits) bit(c, p, f);
@@ -257,15 +306,17 @@ export const drawMassacre = (c: Ctx, m: Massacre, f: number) => {
 
 const rowOf = (b: Bot) => { let best = 0; ROWS.forEach((r, i) => { if (Math.abs(r.y - b.y) < Math.abs(ROWS[best].y - b.y)) best = i; }); return best; };
 
-const person = (c: Ctx, seed: number, x: number, y: number, pose: 'sit' | 'walk' | 'fly', mood: 'happy' | 'scared', f: number) => {
-  const fr = pose === 'walk' ? Math.floor(f / 5) % 4 : 0;
+const person = (c: Ctx, seed: number, x: number, y: number, pose: 'sit' | 'walk' | 'fly' | 'cheer', mood: 'happy' | 'scared', f: number) => {
+  // (a screamer: on their feet, arms up and waving, mouth going)
+  const fr = pose === 'walk' ? Math.floor(f / 5) % 4 : pose === 'cheer' ? Math.floor(f / 6) % 2 : 0;
   c.save(); c.translate(Math.round(x), Math.round(y)); c.scale(-PS, PS);
-  stamp(c, `hk-p-${seed}-${pose}-${mood}-${fr}`, -40, -110, 80, 124, g => { drawPerson(g, { seed, outfit: 'guest', pose, f: fr * 6, mood, shorts: seed % 2 === 0 }); });
+  stamp(c, `hk-p-${seed}-${pose}-${mood}-${fr}`, -40, -110, 80, 124, g => { drawPerson(g, { seed, outfit: 'guest', pose, f: pose === 'cheer' ? fr * 10 : fr * 6, mood, talking: pose === 'cheer', shorts: seed % 2 === 0 }); });
   c.restore();
 };
 
 const guest = (c: Ctx, g: Guest, t: number, f: number) => {
-  if (g.state === 'sit') {
+  if (g.state === 'sit' && g.talk) person(c, g.seed, g.x, g.y, 'cheer', 'scared', f);
+  else if (g.state === 'sit') {
     // (watching the show, then not: up out of their seats a hop now and then when it starts)
     const scared = t >= FIRST_OUT - 6, hop = scared && ((f + g.seed) % 40) < 4 ? -2 : 0;
     person(c, g.seed, g.x, g.y - 4 + hop, 'sit', scared ? 'scared' : 'happy', f);
@@ -284,6 +335,7 @@ const bot = (c: Ctx, b: Bot, f: number) => {
     c.scale(RS, RS);
     if (b.phase === 'run') drawRaptorPosed(c, 'run', Math.floor((f + b.at) / 3) % 6, f);
     else if (b.phase === 'leap') drawRaptorPosed(c, 'pounce', b.t < 9 ? 0 : 1, f);
+    else if (b.phase === 'stalk') drawRaptorPosed(c, 'crouch', 0, f);
     else drawRaptorPosed(c, 'crouch', ((f + b.at) >> 3) % 2, f);
     // (blood on its snout once it's been at somebody)
     if (b.phase === 'maul') { const [mx, my] = raptorMouthAt('crouch', ((f + b.at) >> 3) % 2); box(c, mx - 6, my - 3, 10, 6, 'rgba(185, 28, 28, 0.85)'); }
