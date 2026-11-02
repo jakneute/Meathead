@@ -49,7 +49,7 @@ import type { Enemy, EnemyKind, Block } from '../../../m1/types';
 import { NO_CONTROLS, getLastInputDevice } from '../../../m1/game/platform/input';
 import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../../../m1/constants';
 import { playSound } from '../../../m1/game/platform/audio';
-import { pickLine, isTalking, say, cutVoice, MEATHEAD_VOICE } from '../../../m1/game/platform/speech';
+import { pickLine, isTalking, say, cutVoice, silenceAll, MEATHEAD_VOICE } from '../../../m1/game/platform/speech';
 import { getActiveGamepad, getGamepadMovement } from '../../../m1/game/platform/gamepad';
 import { makeKindEnemy } from '../../../m1/game/enemies/kinds';
 import { registerM2Kind } from '../../kinds';
@@ -399,7 +399,7 @@ export const updateGallery = (ctx: FrameContext, controls: Controls, out: Contro
     case 'fadeIn': case 'play': case 'over': case 'fadeOut':
       runGallery(state, g, controls);
       // (first person, START pauses it, the pause menu showing its controls: minigamePause.ts)
-      if (galleryOn(state)) minigamePausable(state, 'gallery');
+      if (galleryOn(state)) minigamePausable(state, 'gallery', quitGallery);
       return { ...NO_CONTROLS };
     case 'beat': {
       p.inCutscene = true; p.vel.x = 0;
@@ -442,6 +442,24 @@ export const updateGallery = (ctx: FrameContext, controls: Controls, out: Contro
     }
     default: return out;
   }
+};
+
+/** QUIT MINIGAME (the pause menu: minigamePause.ts): out of first person, back in the street where he took it on, the
+ *  gallery as it was before this go (nothing he zapped counts: no panic, no shard), Dooley back behind the counter,
+ *  sore as when it's turned down. */
+const quitGallery = (state: GameState) => {
+  const g = gal(state);
+  if (!g || !galleryOn(state)) return;
+  silenceAll(); g.talk = null; g.mh = null; g.bolt = null; g.bits = [];
+  const memo = state.stageMemo[GALLERY_MEMO];
+  g.gone = memo !== undefined ? Math.max(0, Math.min(1, Number(memo) || 0)) : 0;
+  g.lvl = lvlOf(g.gone);
+  const p = state.player;
+  p.pos.x = g.from.x; p.pos.y = g.from.y; p.vel.x = 0; p.vel.y = 0;
+  setUi({ chordTips: null });
+  g.phase = 'idle'; g.t = 0; g.upLatch = true;
+  releaseWorld(state);
+  dooley(g, state, DOOLEY_DECLINED);
 };
 
 const toPanic = (state: GameState, g: Gallery) => {

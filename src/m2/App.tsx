@@ -130,7 +130,7 @@ import BumperCard from './cartoon/bigkid/BumperCard';
 import MinigameAsk from './MinigameAsk';
 import MinigameCard from './MinigameCard';
 import { pauseCard } from './PauseControls';
-import { syncMinigame, liveMinigame, setGamePaused } from './minigamePause';
+import { syncMinigame, liveMinigame, setGamePaused, quitMinigame } from './minigamePause';
 import { holdM2Presses } from './input';
 import { pauseSpeech } from '../m1/game/platform/speech';
 import QtePanel from './fantasy/wheel/QtePanel';
@@ -398,13 +398,16 @@ const App2: React.FC = () => {
   /** (after RESUME: SKIP INTRO in the intro; BACK TO HUB out in a land, or the break room) */
   // (not mid-minigame (minigamePause.ts): it'd be left half-run under him)
   const canHub = () => (!!landOfStage(live.current.stage) || live.current.stage === PEN_STAGE) && !liveMinigame();
+  /** (mid-minigame, in BACK TO HUB's place: QUIT MINIGAME, the owner's "if the user wants to back out for whatever
+   *  reason" (minigamePause.ts quitMinigame)) */
+  const canQuitGame = () => !!liveMinigame();
   /** (the cheats build only: SKIP STAGE in the gym, to its closing cutscene) */
   const canGymSkip = () => live.current.stage === GYM_STAGE && !M2_PUBLIC;
   const skipGym = () => { setStatus(GameStatus.PLAYING); requestGymSkip(); };
   /** (RESUME, MAP, OPTIONS, then SKIP INTRO / BACK TO HUB where there's one) */
   /** (the cheats build only, the user's: SKIP INTRO / SKIP TO HUB in America USA) */
   const canIntroSkip = () => live.current.stage === INTRO_STAGE && !M2_PUBLIC;
-  const lastPause = () => (canIntroSkip() || canGymSkip() || canHub() ? arsenal().length + 4 : arsenal().length + 3);
+  const lastPause = () => (canIntroSkip() || canGymSkip() || canHub() || canQuitGame() ? arsenal().length + 4 : arsenal().length + 3);
   /** (the amulet owned: AMULET ON / OFF, on its entry in the EQUIPMENT tab) */
   const flipAmulet = () => setAmuletOn(!amuletOn());
   /** (QUIT, to the title: the last of the buttons along the bottom) */
@@ -443,13 +446,22 @@ const App2: React.FC = () => {
   const [hubAsk, setHubAsk] = useState<0 | 1 | null>(null);
   const hubAskRef = useRef(hubAsk);
   hubAskRef.current = hubAsk;
-  /** Which question that is: BACK TO HUB, or QUIT (to the title). */
-  const [asking, setAsking] = useState<'hub' | 'quit'>('hub');
+  /** Which question that is: BACK TO HUB, QUIT (to the title), or QUIT MINIGAME. */
+  const [asking, setAsking] = useState<'hub' | 'quit' | 'minigame'>('hub');
   const askingRef = useRef(asking);
   askingRef.current = asking;
   const askHub = () => { setAsking('hub'); setHubAsk(0); };
   const askQuit = () => { setAsking('quit'); setHubAsk(0); };
-  const answerHub = (yes: boolean) => { setHubAsk(null); if (!yes) return; if (askingRef.current === 'quit') { quitToTitle(); return; } setStatus(GameStatus.PLAYING); goTo('hub'); };
+  const askMinigame = () => { setAsking('minigame'); setHubAsk(0); };
+  const answerHub = (yes: boolean) => {
+    setHubAsk(null);
+    if (!yes) return;
+    if (askingRef.current === 'quit') { quitToTitle(); return; }
+    // (out of the minigame on the first frame back in play; the YES held off the game till it's let go
+    // (GameCanvas.tsx, input.ts holdM2Presses))
+    if (askingRef.current === 'minigame') { quitMinigame(); setStatus(GameStatus.PLAYING); return; }
+    setStatus(GameStatus.PLAYING); goTo('hub');
+  };
   /** The park map (parkmap/): SELECT on a pad, the map keys (TAB, M), MAP in the pause menu. Out of play it pauses the
    *  game and shutting it plays on; out of the pause menu, shutting it goes back to the menu. Never in a cutscene, or
    *  over the hub's portal card. */
@@ -520,7 +532,7 @@ const App2: React.FC = () => {
     const i = pauseSelRef.current, n = arsenal().length;
     // (the EQUIPMENT tab's grid: only the amulet's entry does anything (its ON / OFF), once he's got it)
     if (pauseTabRef.current === 'equipment' && i < n) { if (EQUIP_ENTRIES[equipSelRef.current]?.id === 'amulet' && upHas('amulet')) flipAmulet(); return; }
-    if (i === quitIndex()) askQuit(); else if (i === n + 3) { if (canHub()) askHub(); else if (canGymSkip()) skipGym(); else if (canIntroSkip()) skipIntro(); } else if (i === n + 2) openOptions(); else if (i === n + 1) openMap(); else if (i >= n) resume(); else equip(i);
+    if (i === quitIndex()) askQuit(); else if (i === n + 3) { if (canQuitGame()) askMinigame(); else if (canHub()) askHub(); else if (canGymSkip()) skipGym(); else if (canIntroSkip()) skipIntro(); } else if (i === n + 2) openOptions(); else if (i === n + 1) openMap(); else if (i >= n) resume(); else equip(i);
   };
 
   // Weapons: the shoulder buttons, the right stick's wheel, the number keys, the mouse wheel; START or ESC pauses
@@ -996,7 +1008,7 @@ const App2: React.FC = () => {
         {status === GameStatus.PAUSED && !mapFrom && (
           <PauseMenu weapons={arsenal()} current={weapon} ammo={hud.ammo} selected={pauseSel} locked={!!ui.noSwitch || !!minigameId} card={card} cat={!!ui.catHud}
             onPick={i => { setPauseSel(i); equip(i); }} onResume={resume} onMap={() => { setPauseSel(arsenal().length + 1); openMap(); }} mapOff={stage === GYM_STAGE} onOptions={() => { setPauseSel(arsenal().length + 2); openOptions(); }} onSkip={stage === INTRO_STAGE && !M2_PUBLIC ? skipIntro : stage === GYM_STAGE && !M2_PUBLIC ? skipGym : undefined} skipLabel={stage === GYM_STAGE ? 'SKIP STAGE' : undefined}
-            onHub={(landOfStage(stage) || stage === PEN_STAGE) && !minigameId ? askHub : undefined} hubAsk={hubAsk} onHubAnswer={answerHub} onHubPick={a => setHubAsk(a)} skin={theme?.pause}
+            onHub={minigameId ? () => { setPauseSel(arsenal().length + 3); askMinigame(); } : (landOfStage(stage) || stage === PEN_STAGE) ? askHub : undefined} hubLabel={minigameId ? 'QUIT MINIGAME' : undefined} hubAsk={hubAsk} onHubAnswer={answerHub} onHubPick={a => setHubAsk(a)} skin={theme?.pause}
             onQuit={() => { setPauseSel(quitIndex()); askQuit(); }} quitAt={quitIndex()} amuletOn={amuletOn()} onAmulet={flipAmulet}
             tab={pauseTab} onTab={showTab} equipSel={equipSel} onEquipPick={k => { equipSelRef.current = k; setEquipSel(k); setPauseSel(0); }} asking={asking} onFile={activeSlot() !== null} />
         )}

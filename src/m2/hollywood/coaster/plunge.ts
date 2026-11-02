@@ -33,7 +33,7 @@ import { NO_CONTROLS } from '../../../m1/game/platform/input';
 import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../../../m1/constants';
 import { playSound } from '../../../m1/game/platform/audio';
 import { shakeScreen } from '../../../m1/game/core/state';
-import { pickLine, isTalking } from '../../../m1/game/platform/speech';
+import { pickLine, isTalking, silenceAll } from '../../../m1/game/platform/speech';
 import { setUi, markCollectibleFound } from '../../store';
 import { saveProgress } from '../../save';
 import { shards, setShards, powerCells, MAX_SHARDS } from '../../upgrades/state';
@@ -43,7 +43,7 @@ import type { GameCue } from '../../music/moments';
 import { meatheadSays, speak, saidOver, box, type Said } from '../section';
 import { byPants } from '../blvd/kinds';
 import { throneAt, plunged, PLUNGED_MEMO, SHARD_LAND, SHARD_ID } from './thrones';
-import type { Coaster } from './state';
+import { coasterOf, type Coaster } from './state';
 import * as L from './lines';
 
 type Ctx = CanvasRenderingContext2D;
@@ -99,7 +99,7 @@ export const startPlunge = (state: GameState, co: Coaster) => {
   const p = state.player;
   p.inCutscene = true;
   ALL.set(co, {
-    phase: 'ask', t: 0, total: 0, meter: 0, game: 'line', ask: openAsk('TEST YOUR PLUNGE?', "THE GODFATHER'S CLOG HAS BEEN IN THERE SINCE 1994. PLUNGE IT CLEAR TO USE IT. NO DYING, NO QUITTING ONCE IT STARTS."),
+    phase: 'ask', t: 0, total: 0, meter: 0, game: 'line', ask: openAsk('TEST YOUR PLUNGE?', "THE GODFATHER'S CLOG HAS BEEN IN THERE SINCE 1994. PLUNGE IT CLEAR TO USE IT. NO DYING."),
     prev: true, anyPrev: true, from: { x: p.pos.x, y: p.pos.y },
     bar: 0, vb: 0, turd: 0.5, target: 0.5, retarget: 0, ease: 0.04, on: false,
     mark: 0, dir: 1, speed: TAP_SPEED, spot: 0.5, taps: 0, tapT: 0, marks: [],
@@ -267,9 +267,25 @@ export const updatePlunge = (ctx: FrameContext, co: Coaster, controls: Controls,
   // (the one button, shown up top live while a round's on)
   const tipOn = pg.phase === 'title' || pg.phase === 'line' || pg.phase === 'tap' || pg.phase === 'mash';
   // (START pauses it, the pause menu showing its controls: minigamePause.ts; not on the ask or the shard's card)
-  if (tipOn || pg.phase === 'intro' || pg.phase === 'win') minigamePausable(state, 'plunge');
+  if (tipOn || pg.phase === 'intro' || pg.phase === 'win') minigamePausable(state, 'plunge', quitPlunge);
   setUi({ chordTips: tipOn ? [{ pad: ['A'], kb: ['@jump'], label: pg.phase === 'title' ? TIPS[pg.game] : TIPS[pg.phase as Game] }] : null });
   return { ...NO_CONTROLS };
+};
+
+/** QUIT MINIGAME (the pause menu: minigamePause.ts): off the plinth, back where he stood, the clog still in there (try
+ *  again whenever). Quit on the win (the clog's blown, the shard's his already: saved at its first frame): it ends as
+ *  the card would, the shard kept. */
+const quitPlunge = (state: GameState) => {
+  const co = coasterOf(state), pg = ALL.get(co);
+  if (!pg) return;
+  silenceAll();
+  if (pg.phase === 'win' || pg.phase === 'card') { end(state, co); return; }
+  const p = state.player;
+  p.carried = false; p.spriteScaleY = undefined; p.isGrounded = true; p.vel.x = 0; p.vel.y = 0;
+  p.pos.x = pg.from.x; p.pos.y = pg.from.y;
+  setUi({ chordTips: null });
+  // (held till the button's let go, as the ask's back is)
+  pg.phase = 'leave'; pg.t = 0; pg.boom = null; pg.flash = null;
 };
 
 /** Stop the lot (the stage going away under it). */

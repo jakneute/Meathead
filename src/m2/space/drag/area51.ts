@@ -301,7 +301,7 @@ export const updateA51 = (ctx: FrameContext, controls: Controls): Controls => {
       hold(state);
       // (START pauses it, the lock's controls on the pause card (minigamePause.ts, PauseControls.tsx 'lockpick'); its
       // timers are game frames, so a pause doesn't eat them)
-      minigamePausable(state, 'lockpick');
+      minigamePausable(state, 'lockpick', quitLock);
       const k = a.lock!;
       // (his grumble now and then: never over anybody)
       if (k.t >= a.grumbleAt && !isTalking()) { a.grumbleAt = k.t + 620 + Math.floor(Math.random() * 360); meatheadSays(state, pickLine(byPants(state, L.MH_GRUMBLE)), false); }
@@ -313,7 +313,7 @@ export const updateA51 = (ctx: FrameContext, controls: Controls): Controls => {
     }
     case 'won': {
       hold(state);
-      minigamePausable(state, 'lockpick');
+      minigamePausable(state, 'lockpick', quitLock);
       a.t++;
       const k = a.lock!;
       k.turn = Math.min(1, a.t / 40);
@@ -346,6 +346,17 @@ export const updateA51 = (ctx: FrameContext, controls: Controls): Controls => {
     }
   }
   return controls;
+};
+
+/** QUIT MINIGAME (the pause menu: minigamePause.ts): as B's GIVE UP goes, his line, held a beat till the button's let
+ *  go, then free at the door, still locked (quit as the plug turns, too: it never opened). */
+const quitLock = (state: GameState) => {
+  const a = of(state);
+  if (!a || (a.phase !== 'play' && a.phase !== 'won')) return;
+  silenceAll(); a.pa = null;
+  a.phase = 'leave'; a.t = 0;
+  setUi({ chordTips: null, minigameCard: null });
+  meatheadSays(state, pickLine(L.MH_QUIT), true);
 };
 
 const toAsk = (a: A51) => {

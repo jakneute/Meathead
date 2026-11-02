@@ -295,8 +295,20 @@ export const updateHack = (ctx: FrameContext, controls: Controls): Controls | nu
   }
   // (on the terminal, START pauses it (ESC on the keys: BACKSPACE quits), the pause menu showing its controls:
   // minigamePause.ts; not on the ask, the shard's card or the cut)
-  if (h.phase === 'boot' || h.phase === 'play' || h.phase === 'granted') minigamePausable(state, 'hack');
+  if (h.phase === 'boot' || h.phase === 'play' || h.phase === 'granted') minigamePausable(state, 'hack', quitHack);
   return hands();
+};
+
+/** QUIT MINIGAME (the pause menu: minigamePause.ts): as BACK on the terminal goes, his line, free on the deck by the
+ *  panel. Quit on ACCESS GRANTED, before the gates go: not hacked after all (the panel live, try again whenever). */
+const quitHack = (state: GameState) => {
+  const h = hackOf(state);
+  if (h.phase !== 'boot' && h.phase !== 'play' && h.phase !== 'granted') return;
+  silenceAll();
+  if (h.phase === 'granted') delete state.stageMemo[MASSACRE_MEMO];
+  click = null;
+  release(state, h);
+  meatheadSays(state, pickLine(byPants(state, MH_QUIT)), false);
 };
 
 const startLine = (state: GameState, h: Hack) => {

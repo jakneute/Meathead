@@ -358,8 +358,20 @@ export const updateBumper = (ctx: FrameContext, controls: Controls): Controls | 
     }
   }
   // (in the rink, START pauses it, the pause menu showing its controls: minigamePause.ts; not on its card or the asks)
-  if (b.phase === 'count' || b.phase === 'play' || b.phase === 'won' || b.phase === 'lost') minigamePausable(state, 'bumper');
+  if (b.phase === 'count' || b.phase === 'play' || b.phase === 'won' || b.phase === 'lost') minigamePausable(state, 'bumper', quitBumper);
   return hands();
+};
+
+/** QUIT MINIGAME (the pause menu: minigamePause.ts): out of the rink as a loss's "no" goes, stood by the carny, no
+ *  prize (the shard's only ever given at the payout), his sore-loser line. */
+const quitBumper = (state: GameState) => {
+  const b = bumperOf(state);
+  if (b.phase !== 'count' && b.phase !== 'play' && b.phase !== 'won' && b.phase !== 'lost') return;
+  silenceAll(); b.carny = null;
+  b.token++;
+  outOfRink(state, b);
+  release(state, b);
+  meatheadSays(state, pickLine(byPants(state, MH_LOSE)), false);
 };
 
 const startOffer = (state: GameState, b: Bumper) => {

@@ -27,7 +27,7 @@ import type { Enemy, SoundType } from '../../../../m1/types';
 import { NO_CONTROLS } from '../../../../m1/game/platform/input';
 import { CANVAS_WIDTH } from '../../../../m1/constants';
 import { playSound } from '../../../../m1/game/platform/audio';
-import { say, pickLine, isTalking, MEATHEAD_VOICE, type Voice } from '../../../../m1/game/platform/speech';
+import { say, pickLine, isTalking, silenceAll, MEATHEAD_VOICE, type Voice } from '../../../../m1/game/platform/speech';
 import { isShat, isNude } from '../../../../m1/game/player/gut';
 import { setUi } from '../../../store';
 import { pollM2, btn, pressed as menuPressed } from '../../../input';
@@ -284,8 +284,23 @@ export const updateMash = (ctx: FrameContext, controls: Controls): Controls | nu
   if (ms.banner) ms.banner.t++;
   // (on the cabinet, START pauses it, the pause menu showing its controls: minigamePause.ts; not on the asks, its
   // controls screen or the shard's card)
-  if (PAUSABLE.includes(ms.phase)) minigamePausable(state, 'mash');
+  if (PAUSABLE.includes(ms.phase)) minigamePausable(state, 'mash', quitMash);
   return { ...NO_CONTROLS };
+};
+
+/** QUIT MINIGAME (the pause menu: minigamePause.ts): the match dropped as a CONTINUE?'s no goes (the kid calls him a
+ *  quitter), the tube switching off, then him let go at the cabinet (once the button's up). No rock: it's only ever
+ *  handed over after a won match's lines. */
+const quitMash = (state: GameState) => {
+  const ms = ALL.get(state);
+  if (!ms || !PAUSABLE.includes(ms.phase)) return;
+  silenceAll();
+  if (ms.ask) { closeAsk(); ms.ask = null; }
+  setUi({ chordTips: null });
+  ms.said = null; ms.kidSaid = null; ms.banner = null; ms.ready = true; ms.anyPrev = true;
+  ms.kidPose = 'smug';
+  speak(L.KID, pickLine(L.KID_QUIT), s => { ms.kidSaid = s; }, true);
+  toPhase(ms, 'out');
 };
 
 const startTalk = (state: GameState, ms: Mash) => {

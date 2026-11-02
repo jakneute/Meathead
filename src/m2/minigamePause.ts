@@ -9,9 +9,15 @@
 //
 // from its update. App.tsx's frame hook (syncMinigame) reads it straight after the land's update: marked this frame,
 // START (or ESC / P) opens the pause menu after all, the menu showing that minigame's controls (PauseControls.tsx
-// pauseCard, by the same id) in place of the weapons, weapon switching off, no BACK TO HUB (QUIT still reloads the
-// page, clean). Not marked: a cutscene as ever. Nothing to clear: a minigame that ends, or a death, or leaving, just
-// stops marking it.
+// pauseCard, by the same id) in place of the weapons, weapon switching off, and QUIT MINIGAME where BACK TO HUB goes
+// (the owner's: "pausing a minigame should replace the 'back to hub' option to 'quit minigame' if the user wants to back
+// out for whatever reason"). Not marked: a cutscene as ever. Nothing to clear: a minigame that ends, or a death, or
+// leaving, just stops marking it.
+//
+// QUIT MINIGAME (asked first, ARE YOU SURE?): YES resumes, and the first frame back the `quit` handed in with the mark
+// runs (App.tsx's frame hook, syncMinigame: the minigame's had that one frame, its buttons still held off). It backs
+// out clean: its screens and asks and tips down, the voices cut, him let go (or let go once the button's up) by
+// wherever he started it, no prize, no win; its music goes as its phase does.
 //
 // Paused, the land's update doesn't run at all (stepGame: a paused game is frozen), so the minigame's own frame
 // counters stop with it; the voices are held too (speech.ts pauseSpeech, App.tsx). Resumed, the buttons held from the
@@ -28,15 +34,42 @@ import type { GameState } from '../m1/game/core/state';
 /** The minigames with a pause-menu controls card (PauseControls.tsx pauseCard). */
 export type MinigameId = 'plunge' | 'bumper' | 'gallery' | 'mash' | 'hack' | 'lockpick';
 
-let markId: MinigameId | null = null, markFrame = -1;
-let live: MinigameId | null = null;
-let paused = false;
+/** How a minigame backs out (QUIT MINIGAME): called with the state it was marked with, the first frame after the pause. */
+export type MinigameQuit = (state: GameState) => void;
 
-/** This frame, the minigame `id` is on and can be paused (call it every frame it can be, from its update). */
-export const minigamePausable = (state: GameState, id: MinigameId) => { markId = id; markFrame = state.frame; };
+let markId: MinigameId | null = null, markFrame = -1, markQuit: MinigameQuit | null = null, markState: GameState | null = null;
+let live: MinigameId | null = null, liveQuit: MinigameQuit | null = null, liveState: GameState | null = null;
+let paused = false;
+/** QUIT MINIGAME said yes to: run on the next frame played. */
+let pendingQuit: { quit: MinigameQuit; state: GameState } | null = null;
+
+/** This frame, the minigame `id` is on and can be paused (call it every frame it can be, from its update); `quit`
+ *  backs out of it (QUIT MINIGAME in the pause menu: a module-level function, not a fresh closure a frame). */
+export const minigamePausable = (state: GameState, id: MinigameId, quit: MinigameQuit) => { markId = id; markFrame = state.frame; markQuit = quit; markState = state; };
 
 /** (App.tsx's frame hook, after the land's update) Which minigame's pausable this frame, or null. */
-export const syncMinigame = (state: GameState): MinigameId | null => { live = markFrame === state.frame ? markId : null; markId = null; return live; };
+export const syncMinigame = (state: GameState): MinigameId | null => {
+  // (QUIT MINIGAME said yes to: done on the first frame back in play, so its lines start with the voices running)
+  if (pendingQuit) {
+    const q = pendingQuit;
+    pendingQuit = null;
+    markId = null; markQuit = null; markState = null; live = null; liveQuit = null; liveState = null;
+    q.quit(q.state);
+    return null;
+  }
+  const on = markFrame === state.frame ? markId : null;
+  live = on; liveQuit = on ? markQuit : null; liveState = on ? markState : null;
+  markId = null; markQuit = null; markState = null;
+  return live;
+};
+
+/** (App.tsx: QUIT MINIGAME's YES, paused) Back out of the live minigame, on the next frame played (the menu resumes
+ *  straight after). True if there's one to quit. */
+export const quitMinigame = (): boolean => {
+  if (!liveQuit || !liveState) return false;
+  pendingQuit = { quit: liveQuit, state: liveState };
+  return true;
+};
 
 /** The minigame that's pausable (as of the last frame played: it holds through a pause), or null. */
 export const liveMinigame = () => live;

@@ -254,6 +254,8 @@ interface Props {
   locked?: boolean;
   /** Out in a land (or the break room): BACK TO HUB (picked out as weapons.length + 3), asked first. */
   onHub?: () => void;
+  /** That button's words, if not BACK TO HUB (mid-minigame: QUIT MINIGAME, asked the same way). */
+  hubLabel?: string;
   /** ARE YOU SURE? up: which answer's picked out (0 NO, 1 YES), or null. */
   hubAsk?: 0 | 1 | null;
   onHubAnswer?: (yes: boolean) => void;
@@ -261,7 +263,7 @@ interface Props {
   /** QUIT (to the title), picked out as the last button; asked first (`asking` says which question's up). */
   onQuit?: () => void;
   quitAt?: number;
-  asking?: 'hub' | 'quit';
+  asking?: 'hub' | 'quit' | 'minigame';
   /** Playing on a save file (what QUIT loses is only what's since its last save) or with NO SAVE (the lot). */
   onFile?: boolean;
   /** A stretch with its own controls and no weapon switching (the dirt bike, the broom...): its controls card, shown
@@ -288,7 +290,7 @@ const HAIRBALL_INFO = {
   description: 'Hork. A wet wad of fur and spit, hacked up at whoever. Never runs dry. Nobody wants to touch it, least of all the guy it hits.',
 };
 
-const PauseMenu: React.FC<Props> = ({ weapons, current, ammo, selected, onPick, onResume, onMap, onOptions, onSkip, skipLabel, skin = PLAIN_PAUSE, locked = false, onHub, hubAsk = null, onHubAnswer, onHubPick, card = null, onQuit, quitAt = -1, asking = 'hub', onFile = false, cat = false, mapOff = false, amuletOn = true, onAmulet, tab = 'arsenal', onTab, equipSel = 0, onEquipPick }) => {
+const PauseMenu: React.FC<Props> = ({ weapons, current, ammo, selected, onPick, onResume, onMap, onOptions, onSkip, skipLabel, skin = PLAIN_PAUSE, locked = false, onHub, hubLabel, hubAsk = null, onHubAnswer, onHubPick, card = null, onQuit, quitAt = -1, asking = 'hub', onFile = false, cat = false, mapOff = false, amuletOn = true, onAmulet, tab = 'arsenal', onTab, equipSel = 0, onEquipPick }) => {
   useSyncExternalStore(subscribeUpgrades, upgradesVersion);
   const equipping = tab === 'equipment';
   const onQuitBtn = selected === quitAt;
@@ -330,8 +332,8 @@ const PauseMenu: React.FC<Props> = ({ weapons, current, ammo, selected, onPick, 
         {hubAsk !== null && (
           <div className="absolute inset-0 z-[20] flex items-center justify-center bg-black/70" onClick={e => e.stopPropagation()} onContextMenu={e => e.preventDefault()}>
             <div className="flex flex-col items-center gap-3 px-6 py-4 border-4 border-red-600 bg-zinc-950 shadow-[4px_4px_0_#000]" style={{ animation: 'pm-pop 0.2s ease-out' }}>
-              <div className="text-[12px] font-black tracking-widest text-yellow-300">{asking === 'quit' ? 'QUIT TO TITLE?' : 'BACK TO THE HUB?'}</div>
-              <div className="text-[7px] font-black tracking-wider text-zinc-300">{asking === 'quit' ? (onFile ? "YOU'LL LOSE WHAT YOU'VE DONE SINCE THE LAST SAVE." : 'NO SAVE FILE: YOU LOSE EVERY LAND, EVERY WEAPON.') : "YOU'LL LOSE YOUR PLACE IN THIS LAND."}</div>
+              <div className="text-[12px] font-black tracking-widest text-yellow-300">{asking === 'quit' ? 'QUIT TO TITLE?' : asking === 'minigame' ? 'QUIT MINIGAME?' : 'BACK TO THE HUB?'}</div>
+              <div className="text-[7px] font-black tracking-wider text-zinc-300">{asking === 'quit' ? (onFile ? "YOU'LL LOSE WHAT YOU'VE DONE SINCE THE LAST SAVE." : 'NO SAVE FILE: YOU LOSE EVERY LAND, EVERY WEAPON.') : asking === 'minigame' ? 'NO PRIZE. YOU CAN TRY AGAIN ANY TIME.' : "YOU'LL LOSE YOUR PLACE IN THIS LAND."}</div>
               <div className="flex gap-3">
                 {(['NO', 'YES'] as const).map((t, k) => (
                   <button key={t} onMouseEnter={() => onHubPick?.(k as 0 | 1)} onClick={() => onHubAnswer?.(k === 1)}
@@ -435,7 +437,7 @@ const PauseMenu: React.FC<Props> = ({ weapons, current, ammo, selected, onPick, 
           <MenuBtn on={onMapBtn} onClick={onMap} cls={btnCls} bg={mapOff ? 'linear-gradient(180deg, #52525B, #3F3F46)' : 'linear-gradient(180deg, #0E7490, #155E75)'} edge={mapOff ? '#27272A' : '#083344'} icon="✦">MAP</MenuBtn>
           <MenuBtn on={onOptionsBtn} onClick={onOptions} cls={btnCls} bg="linear-gradient(180deg, #3F6212, #365314)" edge="#1A2E05" icon="⚙">OPTIONS</MenuBtn>
           {onSkip && <MenuBtn on={onSkipBtn} onClick={onSkip} cls={btnCls} bg="linear-gradient(180deg, #2563EB, #1E3A8A)" edge="#172554" icon="»">{skipLabel ?? (walkBackOn() ? 'SKIP TO HUB' : 'SKIP INTRO')}</MenuBtn>}
-          {onHub && <MenuBtn on={onSkipBtn} onClick={onHub} cls={btnCls} bg="linear-gradient(180deg, #B91C1C, #7F1D1D)" edge="#450A0A" icon="«">BACK TO HUB</MenuBtn>}
+          {onHub && <MenuBtn on={onSkipBtn} onClick={onHub} cls={btnCls} bg="linear-gradient(180deg, #B91C1C, #7F1D1D)" edge="#450A0A" icon="«">{hubLabel ?? 'BACK TO HUB'}</MenuBtn>}
           {onQuit && <MenuBtn on={onQuitBtn} onClick={onQuit} cls={btnCls} bg="linear-gradient(180deg, #52525B, #27272A)" edge="#09090B" icon="✕">QUIT</MenuBtn>}
         </div>
         <div className="mt-3 flex items-center gap-4 text-[6px] tracking-wider px-2 py-1 bg-black/60 text-zinc-400" style={{ boxShadow: PIXEL_BEVEL }}>
