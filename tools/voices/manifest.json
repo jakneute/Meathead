@@ -20816,6 +20816,21 @@
  },
  {
   "voice": "m2.cartoon.churro",
+  "text": "BACK FOR MORE, NUDIE? KILL EVERYONE, WIN A PRIZE.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.churro",
+  "text": "BACK FOR MORE? I JUST WIPED THE SEAT. KILL EVERYONE, WIN A PRIZE.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.churro",
+  "text": "BACK FOR MORE? SAME DEAL. KILL EVERYONE, WIN A PRIZE.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.churro",
   "text": "BUMPER CAR CHALLENGE. KILL EVERYONE, WIN A PRIZE.",
   "from": "CARTOON"
  },
@@ -20926,6 +20941,21 @@
  },
  {
   "voice": "m2.cartoon.churro",
+  "text": "NO PRIZE THIS TIME, BIG GUY. YOU ALREADY CLEANED ME OUT. WANNA GO AGAIN ANYWAY?",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.churro",
+  "text": "NO PRIZE THIS TIME, NUDIE. YOU ALREADY CLEANED ME OUT. WANNA GO AGAIN ANYWAY?",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.churro",
+  "text": "NO PRIZE THIS TIME, STINKY. YOU ALREADY GOT IT. WANNA GO AGAIN ANYWAY?",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.churro",
   "text": "NO PRIZE. AND YOU LEFT A STAIN IN CAR SIX. GO ON.",
   "from": "CARTOON"
  },
@@ -20986,6 +21016,11 @@
  },
  {
   "voice": "m2.cartoon.churro",
+  "text": "STILL NAKED. STILL LOSING. KILL EVERYONE, WIN A PRIZE.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.churro",
   "text": "SURE. THE TEACUPS ARE THAT WAY.",
   "from": "CARTOON"
  },
@@ -20996,37 +21031,37 @@
  },
  {
   "voice": "m2.cartoon.churro",
-  "text": "TIME! AND NOW CAR SIX SMELLS. TRY AGAIN?",
+  "text": "TIME! AND NOW CAR SIX SMELLS.",
   "from": "CARTOON"
  },
  {
   "voice": "m2.cartoon.churro",
-  "text": "TIME! PUT SOMETHING ON AND TRY AGAIN?",
+  "text": "TIME! NOW GO PUT SOMETHING ON.",
   "from": "CARTOON"
  },
  {
   "voice": "m2.cartoon.churro",
-  "text": "TIME! THAT'S WHY NOBODY WINS. TRY AGAIN?",
+  "text": "TIME! THAT'S WHY NOBODY WINS.",
   "from": "CARTOON"
  },
  {
   "voice": "m2.cartoon.churro",
-  "text": "TIME! THE HOUSE ALWAYS WINS. TRY AGAIN?",
+  "text": "TIME! THE HOUSE ALWAYS WINS.",
   "from": "CARTOON"
  },
  {
   "voice": "m2.cartoon.churro",
-  "text": "TIME! YOU LOST AND YOU'RE NAKED. ROUGH DAY. TRY AGAIN?",
+  "text": "TIME! YOU LOST AND YOU'RE NAKED. ROUGH DAY.",
   "from": "CARTOON"
  },
  {
   "voice": "m2.cartoon.churro",
-  "text": "TIME! YOU STUNK UP THE CAR FOR NOTHING. TRY AGAIN?",
+  "text": "TIME! YOU STUNK UP THE CAR FOR NOTHING.",
   "from": "CARTOON"
  },
  {
   "voice": "m2.cartoon.churro",
-  "text": "TIME'S UP, CHAMP. TRY AGAIN?",
+  "text": "TIME'S UP, CHAMP. GET OUT OF MY CAR.",
   "from": "CARTOON"
  },
  {
@@ -21057,6 +21092,16 @@
  {
   "voice": "m2.cartoon.churro",
   "text": "YO! YOU! THE ONE THAT STINKS! C'MERE!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.churro",
+  "text": "YOU AGAIN? THE CLOCK DIDN'T GET ANY SLOWER. KILL EVERYONE, WIN A PRIZE.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.churro",
+  "text": "YOU AGAIN. STILL STINKING. KILL EVERYONE, WIN A PRIZE.",
   "from": "CARTOON"
  },
  {

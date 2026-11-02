@@ -30,11 +30,15 @@
 //                   and drops flat on the rink floor. Run the pancake over: OVERKILL (not needed to win).
 //   THE OTHERS      each on its own whim (think): they go after anyone, him or each other, in bursts, lose interest,
 //                   overshoot, weave, swerve off, stop dead, wander; now and then line up, rev (the tell: shaking,
-//                   beeping, exhaust) and lunge.
-//   THE END         won or lost, the cars stop dead (runFrozen); his line or the carny's; then the box: again or not
-//                   (PLAY AGAIN? / TRY AGAIN?). No after a win: back out at the booth, the carny sore; the first win,
-//                   the prize: a CHARGE SHARD (upgrades/shardAward.ts: one a save, the card buffered; again after the
-//                   first win: the card, then the round, for fun). No after a loss: back out.
+//                   beeping, exhaust) and lunge. The dead are anybody's: they shove the hulks about and run over
+//                   the flattened drivers (shoved, rolled, squashed: the owner's "other bodies and cars can get ran
+//                   over by living cpu opponents"), though only he ever hurts a living one.
+//   THE END         won or lost, the cars stop dead (runFrozen); his line or the carny's; then he's back out at the
+//                   booth, every way it ends (the owner's, 2026-11-02: "make it so i have to physically talk to the
+//                   booth man ... by pressing up to speak to him after exiting out of the minigame any way"). A win: the
+//                   carny sore; the first win, the prize: a CHARGE SHARD (upgrades/shardAward.ts: one a save, the card
+//                   buffered), and closing its card starts nothing. Again: UP at the booth, the carny's warning first
+//                   once he's won (no prize, go again anyway?), or "back for more?" after a loss; then the box.
 //
 // Nothing here outlives a death but the shard (in the save). He can't die in here anyway.
 
@@ -59,7 +63,7 @@ import {
   type Look, type Build,
 } from './bumperArt';
 import {
-  CARNY_VOICE, CARNY_HOOK, CARNY_CALL, CARNY_OFFER, CARNY_SORE, CARNY_DECLINE, CARNY_LOSE, CARNY_WIN, CARNY_PRIZE, CARNY_WIN_AGAIN,
+  CARNY_VOICE, CARNY_HOOK, CARNY_CALL, CARNY_OFFER, CARNY_BACK, CARNY_SORE, CARNY_DECLINE, CARNY_LOSE, CARNY_WIN, CARNY_PRIZE, CARNY_WIN_AGAIN,
   MH_OFFERED, MH_START, MH_KILL, MH_OVERKILL, MH_RAMMED, MH_LOSE, MH_WIN, OVERKILL_CALL,
 } from './bumperLines';
 
@@ -130,11 +134,15 @@ interface Car {
   credit: number;
 }
 type FlingPhase = 'up' | 'smack' | 'peel' | 'drop' | 'flat';
-interface Fling { look: Look; sx: number; sy: number; fx: number; fy: number; t: number; over: boolean; rot: number; dir: number; px: number; py: number }
+interface Fling {
+  look: Look; sx: number; sy: number; fx: number; fy: number; t: number; over: boolean; rot: number; dir: number; px: number; py: number;
+  /** Flat on the floor: how many times a car's gone over it (squashed after a couple), the last tick one did. */
+  runs: number; runAt: number;
+}
 interface Part { x: number; y: number; vx: number; vy: number; life: number; max: number; col: string; size: number; kind: 'spark' | 'smoke' | 'fire' | 'star' | 'dust' }
 interface Pop { text: string; x: number; y: number; t: number; col: string }
 
-type Phase = 'off' | 'offer' | 'ask' | 'decline' | 'card' | 'count' | 'play' | 'won' | 'lost' | 'retry' | 'payout' | 'award';
+type Phase = 'off' | 'offer' | 'ask' | 'decline' | 'card' | 'count' | 'play' | 'won' | 'lost' | 'payout' | 'award';
 interface Bumper {
   phase: Phase; t: number; token: number;
   ask: Ask | null; shard: ShardCard | null; cardT: number; cardArmed: boolean;
@@ -144,10 +152,8 @@ interface Bumper {
   carny: Said | null; mh: Said | null;
   prompted: boolean; wasUp: boolean; was: Partial<Controls>;
   rammedAt: number; buzzAt: number; lineAt: number; tick: number;
-  /** The TRY AGAIN? box is after a win (no: the payout) rather than a loss (no: back out). */
-  askWon: boolean;
-  /** Took the box's yes after his first win: the prize card first, then the round. */
-  againAfterAward: boolean;
+  /** Lost (or quit) a round and not won since: the carny's "back for more?" next time. */
+  lost: boolean;
   /** B pressed fresh this frame. */
   boostPress: boolean;
   /** The carny flagging him down (bumper.ts sets it, the booth draws it); when he last called out. */
@@ -161,7 +167,7 @@ const bumperOf = (state: GameState): Bumper => {
     phase: 'off', t: 0, token: 0, ask: null, shard: null, cardT: 0, cardArmed: false,
     cars: [], flings: [], parts: [], pops: [], clock: 0, shake: 0, replay: false,
     carny: null, mh: null, prompted: false, wasUp: false, was: {}, rammedAt: -9999, buzzAt: 0, lineAt: -9999, tick: 0, boostPress: false,
-    waving: false, callAt: -99999, askWon: false, againAfterAward: false,
+    waving: false, callAt: -99999, lost: false,
   });
   return b;
 };
@@ -170,8 +176,8 @@ let hookVisit = -1, cardVisit = -1, playedVisit = -1;
 /** The UI flags this left up (cleared when it's off). */
 let uiUp = false;
 
-const inRink = (b: Bumper) => b.phase === 'card' || b.phase === 'count' || b.phase === 'play' || b.phase === 'won' || b.phase === 'lost' || b.phase === 'retry';
-/** The music's (cues.ts): the rink's own song from its card through the try-again box (the ask's the land's); a sting
+const inRink = (b: Bumper) => b.phase === 'card' || b.phase === 'count' || b.phase === 'play' || b.phase === 'won' || b.phase === 'lost';
+/** The music's (cues.ts): the rink's own song from its card till he's back out (the ask's the land's); a sting
  *  on a win (every car dead) or a loss (the clock out), then the song again under the lines. */
 export const bumperMusic = (state: GameState): GameCue | null => {
   const b = bumperOf(state);
@@ -315,34 +321,16 @@ export const updateBumper = (ctx: FrameContext, controls: Controls): Controls | 
       hold(state, b, true);
       runFrozen(state, b);
       if (b.t === 1) { playSound('ding', 0.9, 0); playSound('powerup', 0.6, 4); b.shake = 0; }
-      if (b.t === 40) mhSays(b, pickLine(byPants(state, MH_WIN)), true, () => { if (b.phase === 'won') b.t = Math.max(b.t, 9000); });
-      if (b.t > 9000 || b.t > 520) toRetry(b, true);
+      if (b.t === 40) mhSays(b, pickLine(byPants(state, MH_WIN)), true, () => { if (b.phase === 'won') toPayout(state, b); });
+      if (b.t > 520) toPayout(state, b);
       break;
     }
     case 'lost': {
       hold(state, b, true);
       runFrozen(state, b);
       if (b.t === 1) { playSound('truckhorn', 0.8, 0); silenceAll(); b.mh = null; b.carny = null; }
-      if (b.t === 50) { const tok = b.token; carnySays(b, pickLine(byPants(state, CARNY_LOSE)), () => { if (b.token === tok && b.phase === 'lost') toRetry(b, false); }); }
-      if (b.t > 700) toRetry(b, false);
-      break;
-    }
-    case 'retry': {
-      hold(state, b, true);
-      runFrozen(state, b);
-      const r = tickAsk(b.ask!, state.frame);
-      if (r === 'accept') {
-        b.ask = null;
-        // (again after his first win: the prize is his first (the card), then the round, for fun now)
-        if (b.askWon && !b.replay && awardShard(SHARD_LAND, SHARD_ID)) { b.replay = true; b.againAfterAward = true; b.token++; b.mh = null; toAward(b); }
-        else { if (b.askWon) b.replay = shardWon(SHARD_LAND, SHARD_ID); startRound(b); }
-      } else if (r === 'back' && b.askWon) { b.ask = null; toPayout(state, b); }
-      else if (r === 'back') {
-        b.ask = null; b.token++;
-        outOfRink(state, b);
-        release(state, b);
-        meatheadSays(state, pickLine(byPants(state, MH_LOSE)), false);
-      }
+      if (b.t === 50) { const tok = b.token; carnySays(b, pickLine(byPants(state, CARNY_LOSE)), () => { if (b.token === tok && b.phase === 'lost') backOut(state, b); }); }
+      if (b.t > 700) backOut(state, b);
       break;
     }
     case 'payout': {
@@ -353,7 +341,8 @@ export const updateBumper = (ctx: FrameContext, controls: Controls): Controls | 
     }
     case 'award': {
       hold(state, b, false);
-      if (b.shard && tickShardCard(b.shard, state.frame)) { b.shard = null; if (b.againAfterAward) { b.againAfterAward = false; startRound(b); } else release(state, b); }
+      // (the A that closes it starts nothing: he's let go, and playing again is UP at the booth)
+      if (b.shard && tickShardCard(b.shard, state.frame)) { b.shard = null; release(state, b); }
       break;
     }
   }
@@ -362,13 +351,17 @@ export const updateBumper = (ctx: FrameContext, controls: Controls): Controls | 
   return hands();
 };
 
-/** QUIT MINIGAME (the pause menu: minigamePause.ts): out of the rink as a loss's "no" goes, stood by the carny, no
- *  prize (the shard's only ever given at the payout), his sore-loser line. */
+/** QUIT MINIGAME (the pause menu: minigamePause.ts): out of the rink as a loss goes, stood by the carny, no prize (the
+ *  shard's only ever given at the payout), his sore-loser line. */
 const quitBumper = (state: GameState) => {
   const b = bumperOf(state);
   if (b.phase !== 'count' && b.phase !== 'play' && b.phase !== 'won' && b.phase !== 'lost') return;
   silenceAll(); b.carny = null;
-  b.token++;
+  backOut(state, b);
+};
+/** Lost (the clock, or he quit): back out by the booth, let go, his sore-loser line. Again's UP at the booth. */
+const backOut = (state: GameState, b: Bumper) => {
+  b.token++; b.lost = true;
   outOfRink(state, b);
   release(state, b);
   meatheadSays(state, pickLine(byPants(state, MH_LOSE)), false);
@@ -382,9 +375,11 @@ const startOffer = (state: GameState, b: Bumper) => {
   hold(state, b, false);
   p.facing = CARNY_X < p.pos.x + p.width / 2 ? -1 : 1;
   const tok = b.token;
-  carnySays(b, pickLine(byPants(state, b.replay ? CARNY_SORE : CARNY_OFFER)), () => {
+  // (won already: his warning, no prize this time; lost last time: back for more?; else the offer)
+  const back = !b.replay && b.lost;
+  carnySays(b, pickLine(byPants(state, b.replay ? CARNY_SORE : back ? CARNY_BACK : CARNY_OFFER)), () => {
     if (b.token !== tok || b.phase !== 'offer') return;
-    if (b.replay) toAsk(b);
+    if (b.replay || back) toAsk(b);
     else meatheadSays(state, pickLine(byPants(state, MH_OFFERED)), true, () => { if (b.token === tok && b.phase === 'offer') toAsk(b); });
   });
 };
@@ -394,15 +389,9 @@ const toAsk = (b: Bumper) => {
     ? 'NO PRIZE THIS TIME. KILL EVERYONE ANYWAY?'
     : `KILL ALL ${RIVALS} CARS IN ${ROUND_SECS} SECONDS. WIN A PRIZE.`);
 };
-/** The frozen beat over, won or lost: his pick, go again or not (the owner's: "then you choose to try again or not"). */
-const toRetry = (b: Bumper, won: boolean) => {
-  b.phase = 'retry'; b.t = 0; b.askWon = won;
-  b.ask = won
-    ? openAsk('PLAY AGAIN?', b.replay ? 'ANOTHER ROUND, JUST FOR FUN.' : 'GRAB YOUR PRIZE, THEN ANOTHER ROUND JUST FOR FUN.')
-    : openAsk('TRY AGAIN?', 'NO PENALTY. THE CLOCK STARTS OVER.');
-};
+/** Won: the frozen beat over, back out at the booth, the carny's sore words (and the first time, the prize). */
 const toPayout = (state: GameState, b: Bumper) => {
-  b.token++; b.phase = 'payout'; b.t = 0;
+  b.token++; b.phase = 'payout'; b.t = 0; b.lost = false;
   outOfRink(state, b);
   hold(state, b, false);
   const tok = b.token;
@@ -624,7 +613,7 @@ const kill = (state: GameState, b: Bumper, c: Car, by: Car, boosted: boolean) =>
   for (let i = 0; i < 12; i++) addPart(b, c.x + (rnd() - 0.5) * 20, c.y + (rnd() - 0.5) * 20, (rnd() - 0.5) * 1.5, -0.6 - rnd(), 50 + rnd() * 30, '#2A2630', 8 + rnd() * 6, 'smoke');
   // (where they'll come down flat: out on the floor, clear of the rail)
   const fx = clamp(c.x + (rnd() - 0.5) * 260, RINK.x0 + 70, RINK.x1 - 70), fy = clamp(c.y + (rnd() - 0.5) * 200, RINK.y0 + 70, RINK.y1 - 70);
-  b.flings.push({ look: c.look, sx: c.x, sy: c.y, fx, fy, t: 0, over: false, rot: (rnd() - 0.5) * 1.2, dir: rnd() < 0.5 ? -1 : 1, px: c.x, py: c.y });
+  b.flings.push({ look: c.look, sx: c.x, sy: c.y, fx, fy, t: 0, over: false, rot: (rnd() - 0.5) * 1.2, dir: rnd() < 0.5 ? -1 : 1, px: c.x, py: c.y, runs: 0, runAt: -99 });
   if (by.me && b.tick - b.lineAt > 180 && rnd() < (boosted ? 0.7 : 0.4)) mhSays(b, pickLine(byPants(state, MH_KILL)), false);
 };
 
@@ -704,6 +693,24 @@ const tickFlings = (state: GameState, b: Bumper) => {
       for (let i = 0; i < 10; i++) { const a = rnd() * Math.PI * 2; addPart(b, f.fx, f.fy, Math.cos(a) * 3, Math.sin(a) * 3, 24, i % 2 ? '#FDE047' : '#FFFFFF', 3, 'star'); }
       if (b.tick - b.lineAt > 200 && rnd() < 0.5) mhSays(b, pickLine(byPants(state, MH_OVERKILL)), false);
     }
+    if (ph === 'flat' && b.phase === 'play') runOver(b, f);
+  }
+};
+/** A flattened driver under any live car going at a fair clip (his or theirs): shoved along with it, rolled over,
+ *  bled on the floor; a couple of goes and they're squashed. Nobody's hurt by it (they're dead already). */
+const runOver = (b: Bumper, f: Fling) => {
+  if (b.tick - f.runAt < 18) return;
+  for (const c of b.cars) {
+    if (c.dead) continue;
+    if (Math.hypot(c.vx, c.vy) < 1.1 || Math.hypot(c.x - f.fx, c.y - f.fy) >= R + 8) continue;
+    f.runAt = b.tick; f.runs++;
+    f.fx = clamp(f.fx + c.vx * 5, RINK.x0 + 40, RINK.x1 - 40); f.fy = clamp(f.fy + c.vy * 5, RINK.y0 + 40, RINK.y1 - 40);
+    f.rot = wrap(f.rot + (rnd() < 0.5 ? -1 : 1) * (0.6 + rnd() * 1.2));
+    playSound('squish', 0.7, -4 + rnd() * 8); playSound('crunch', 0.5, -2 + rnd() * 6);
+    for (let i = 0; i < 10; i++) { const a = rnd() * Math.PI * 2, s = 0.5 + rnd() * 2.5; addPart(b, f.fx, f.fy, Math.cos(a) * s + c.vx * 0.3, Math.sin(a) * s + c.vy * 0.3, 20 + rnd() * 16, i % 3 ? '#B91C1C' : '#7F1D1D', 2 + rnd() * 3, 'dust'); }
+    // (the car rides up over it: a jolt)
+    c.vx *= 0.9; c.vy *= 0.9; c.av += (rnd() - 0.5) * 0.04;
+    return;
   }
 };
 
@@ -762,7 +769,7 @@ export const drawBumper = (c: CanvasRenderingContext2D, state: GameState) => {
   // (the flattened ones on the floor first: the cars drive over them)
   for (const f of b.flings) if (flingPhase(f) === 'flat') {
     c.fillStyle = 'rgba(10,6,16,0.3)'; c.beginPath(); c.ellipse(f.fx + 3, f.fy + 4, 30, 24, 0, 0, Math.PI * 2); c.fill();
-    drawFig(c, f.look, f.over ? 'over' : 'flat', f.fx, f.fy, 0.95, f.rot);
+    drawFig(c, f.look, f.over || f.runs >= 2 ? 'over' : 'flat', f.fx, f.fy, 0.95, f.rot);
   }
   // (the cars and the hulks: their shadows, then each turned, the poles up to the grid)
   for (const car of b.cars) { c.fillStyle = 'rgba(8,4,14,0.4)'; c.beginPath(); c.ellipse(car.x + 4, car.y + 6, 31, 25, 0, 0, Math.PI * 2); c.fill(); }
@@ -808,7 +815,7 @@ export const drawBumper = (c: CanvasRenderingContext2D, state: GameState) => {
   if (b.phase === 'count') { const n = Math.floor(b.t / 40); stamp(n < 3 ? String(3 - n) : 'BUMP!', b.t % 40, n < 3 ? '#FDE047' : '#F472B6'); }
   if (b.phase === 'play' && b.t < 30) stamp('BUMP!', b.t + 40, '#F472B6');
   if (b.phase === 'won') stamp("EVERYBODY'S DEAD!", b.t, '#86EFAC');
-  if (b.phase === 'lost' || b.phase === 'retry') stamp('TIME!', b.phase === 'retry' ? 30 : b.t, '#F87171');
+  if (b.phase === 'lost') stamp('TIME!', b.t, '#F87171');
 };
 
 const drawFling = (c: CanvasRenderingContext2D, f: Fling) => {

@@ -33,18 +33,36 @@ export const CARNY_OFFER: ByPants = {
     'TUCK IT UNDER THE WHEEL, PAL. KILL EVERYONE, WIN A PRIZE.',
   ],
 };
-/** Talked to again after he's won it (no second prize): sore about it, but it's a game, go on. */
+/** Talked to again after a loss (or a quit), not won yet: back for more? */
+export const CARNY_BACK: ByPants = {
+  clean: [
+    'BACK FOR MORE? SAME DEAL. KILL EVERYONE, WIN A PRIZE.',
+    "YOU AGAIN? THE CLOCK DIDN'T GET ANY SLOWER. KILL EVERYONE, WIN A PRIZE.",
+  ],
+  shitty: [
+    'BACK FOR MORE? I JUST WIPED THE SEAT. KILL EVERYONE, WIN A PRIZE.',
+    'YOU AGAIN. STILL STINKING. KILL EVERYONE, WIN A PRIZE.',
+  ],
+  nude: [
+    'BACK FOR MORE, NUDIE? KILL EVERYONE, WIN A PRIZE.',
+    'STILL NAKED. STILL LOSING. KILL EVERYONE, WIN A PRIZE.',
+  ],
+};
+/** Talked to again after he's won it (no second prize): the warning, sore about it, but it's a game, go again. */
 export const CARNY_SORE: ByPants = {
   clean: [
+    'NO PRIZE THIS TIME, BIG GUY. YOU ALREADY CLEANED ME OUT. WANNA GO AGAIN ANYWAY?',
     'YOU AGAIN. THERE WAS ONE PRIZE. YOU TOOK IT. PLAY FOR FREE, ASSHOLE.',
     'NO MORE PRIZES. MY BOSS DOCKED MY PAY FOR THE LAST ONE.',
     'NINE YEARS NOBODY WINS. THEN YOU. GO ON. RIDE FOR NOTHING.',
   ],
   shitty: [
+    'NO PRIZE THIS TIME, STINKY. YOU ALREADY GOT IT. WANNA GO AGAIN ANYWAY?',
     'NO PRIZE. AND YOU LEFT A STAIN IN CAR SIX. GO ON.',
     "YOU WON. YOU ALSO SHAT IN MY CAR. WE'RE EVEN. RIDE FOR FREE.",
   ],
   nude: [
+    'NO PRIZE THIS TIME, NUDIE. YOU ALREADY CLEANED ME OUT. WANNA GO AGAIN ANYWAY?',
     "NO PRIZE. I'M STILL SCRUBBING THE SEAT YOUR BALLS WERE ON.",
     'NO MORE PRIZES, NUDIST. RIDE FOR FREE. KEEP IT IN THE CAR.',
   ],
@@ -55,11 +73,11 @@ export const CARNY_DECLINE: ByPants = {
   shitty: ["GOOD. YOU'D RUIN THE UPHOLSTERY.", 'PROBABLY SMART. THE SEATS DON\'T COME OUT.'],
   nude: ['PROBABLY BEST. THE SEATS ARE VINYL.', "GOOD. NOBODY WANTS TO SIT WHERE YOU'VE SAT."],
 };
-/** Time's up: the clock beat him. (Then the TRY AGAIN? box.) */
+/** Time's up: the clock beat him. (Then he's back out at the booth: again's his to ask for.) */
 export const CARNY_LOSE: ByPants = {
-  clean: ["TIME! THAT'S WHY NOBODY WINS. TRY AGAIN?", 'TIME! THE HOUSE ALWAYS WINS. TRY AGAIN?', "TIME'S UP, CHAMP. TRY AGAIN?"],
-  shitty: ['TIME! YOU STUNK UP THE CAR FOR NOTHING. TRY AGAIN?', 'TIME! AND NOW CAR SIX SMELLS. TRY AGAIN?'],
-  nude: ["TIME! YOU LOST AND YOU'RE NAKED. ROUGH DAY. TRY AGAIN?", 'TIME! PUT SOMETHING ON AND TRY AGAIN?'],
+  clean: ["TIME! THAT'S WHY NOBODY WINS.", 'TIME! THE HOUSE ALWAYS WINS.', "TIME'S UP, CHAMP. GET OUT OF MY CAR."],
+  shitty: ['TIME! YOU STUNK UP THE CAR FOR NOTHING.', 'TIME! AND NOW CAR SIX SMELLS.'],
+  nude: ["TIME! YOU LOST AND YOU'RE NAKED. ROUGH DAY.", 'TIME! NOW GO PUT SOMETHING ON.'],
 };
 /** He won the first time: the carny's face falls. Sore. */
 export const CARNY_WIN: ByPants = {
@@ -129,6 +147,6 @@ const all = (...r: ByPants[]) => r.flatMap(allOf);
 /** By voice, for bigkid/lines.ts's VOICE_LINES. */
 export const BUMPER_VOICE_LINES: Record<string, string[]> = {
   meathead: all(MH_OFFERED, MH_START, MH_KILL, MH_OVERKILL, MH_RAMMED, MH_LOSE, MH_WIN),
-  [CARNY_VOICE]: [CARNY_HOOK, ...all(CARNY_CALL, CARNY_OFFER, CARNY_SORE, CARNY_DECLINE, CARNY_LOSE, CARNY_WIN, CARNY_WIN_AGAIN), ...CARNY_PRIZE],
+  [CARNY_VOICE]: [CARNY_HOOK, ...all(CARNY_CALL, CARNY_OFFER, CARNY_BACK, CARNY_SORE, CARNY_DECLINE, CARNY_LOSE, CARNY_WIN, CARNY_WIN_AGAIN), ...CARNY_PRIZE],
   announcer: [OVERKILL_CALL],
 };

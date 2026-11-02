@@ -489,7 +489,9 @@ const App2: React.FC = () => {
     if (st === GameStatus.PLAYING && canSkip()) { requestSkip(); return; }
     // (not his to play (a cutscene before its skip's offered, VICTORY, dying): START does nothing, no pause menu (the user's:
     // a button masher's START in the skip's buffer isn't punished with a pause either))
-    if (st === GameStatus.PLAYING && (getUi().noPause || getUi().introCutscene)) return;
+    // (every land sets introCutscene off player.inCutscene, and a minigame runs as a cutscene to the engine: one that's
+    // marked itself pausable this frame (minigamePause.ts) is let through, or START never paused any of them)
+    if (st === GameStatus.PLAYING && (getUi().noPause || (getUi().introCutscene && !liveMinigame()))) return;
     if (st === GameStatus.PLAYING) { pauseTabRef.current = 'arsenal'; setPauseTab('arsenal'); setPauseSel(noSwitching() ? arsenal().length : Math.max(0, arsenal().indexOf(live.current.weapon))); setStatus(GameStatus.PAUSED); }
     else if (st === GameStatus.PAUSED) setStatus(GameStatus.PLAYING);
   };
