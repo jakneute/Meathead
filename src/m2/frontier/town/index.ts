@@ -43,6 +43,7 @@ import { buildScenes, updateScenes, drawScenesFront, drawScenesHud, spawnTown, w
 import { drawTownBackdrop, drawTownBack, drawWaterFront, townLamps } from './art';
 import { updateZoom, zoomOf, spill } from './view';
 import { drawMineVeil } from './mine';
+import { buildGallery, updateGallery, drawGalleryWorld, drawGalleryWords, drawGalleryHud } from './gallery';
 import { makeKindEnemy } from '../../../m1/game/enemies/kinds';
 import type { EnemyKind } from '../../../m1/types';
 
@@ -63,6 +64,8 @@ export const town: FrontierSection = {
     tw.crates = CRATES.map(([rx, h]) => { const e = makeKindEnemy('m2:fr_tntcrate' as EnemyKind, X(rx), Y(h)); state.enemies.push(e); return e; });
     for (const [kind, rx, h, pine] of CAST) { const e = spawnTown(state, kind, rx, h); if (pine !== undefined) givePine(e, pine); }
     buildScenes(state);
+    // (DEAD-EYE DOOLEY'S SHOOTIN' GALLERY, before the saloon: gallery.ts)
+    buildGallery(state);
     for (const [rx, h, type] of PICKUPS) state.pickups.push({ id: `town-${rx}`, pos: { x: X(rx) - 10, y: Y(h) - 24 }, vel: { x: 0, y: 0 }, width: 20, height: 20, type, life: 1e9 });
   },
   update: (ctx, controls) => {
@@ -71,6 +74,7 @@ export const town: FrontierSection = {
     updateZoom(state);
     state.viewIsScreen = true;
     let out = updateScenes(ctx, controls);
+    out = updateGallery(ctx, controls, out);
     out = updateLogs(ctx, out);
     updateThrows(ctx);
     updateBlasts(ctx);
@@ -104,6 +108,7 @@ export const town: FrontierSection = {
     drawLadder(c, state);
     drawHazardsBack(c, state);
     drawLogs(c, state);
+    drawGalleryWorld(c, state);
   },
   drawFront: (c, state) => {
     drawWaterFront(c, state);
@@ -113,8 +118,9 @@ export const town: FrontierSection = {
     // (the ground's face over the underground while he's up top: everything down there, the miners too, behind it)
     drawMineVeil(c, state);
     drawScenesFront(c, state);
+    drawGalleryWords(c, state);
   },
-  drawHud: (c, state) => drawScenesHud(c, state),
+  drawHud: (c, state) => { drawScenesHud(c, state); drawGalleryHud(c, state); },
   outdoors: (state) => {
     const p = state.player, cx = p.pos.x + p.width / 2, feet = p.pos.y + p.height;
     return inMine(cx, feet) || inSaloon(cx, feet) ? 0 : 1;

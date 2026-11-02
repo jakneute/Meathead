@@ -99,7 +99,7 @@ const W_A2_TWIN = harm(WM_A2, [CMAJ, CMAJ, CMAJ, scale('c', 'minor'), CMAJ, scal
 const W_HORN_IN = ['o3 g4. o4 c8 g2', 'o4 a4. g8 f2', 'o4 e4. g8 o5 c2', 'o4 b2 g4 r4'];
 const W_HORN_B = ['o4 c1', 'o4 c1', 'o4 a2 f2', 'o4 b1', 'o4 b-1', 'o4 b-2 a-2', 'o4 a1', 'o4 g1'];
 const CLIP = '(woodblock)8. (woodblocklo)16 (woodblock)8. (woodblocklo)16 (woodblock)8. (woodblocklo)16 (woodblock)8. (woodblocklo)16';
-const ONLY_TUNE = ['train', 'town', 'gulch', 'saloon', 'mill', 'mine', 'logride', 'sewer', 'river', 'woods', 'dirtbike', 'arena', 'cutscene'];
+const ONLY_TUNE = ['train', 'town', 'gulch', 'gallery', 'saloon', 'mill', 'mine', 'logride', 'sewer', 'river', 'woods', 'dirtbike', 'arena', 'cutscene'];
 const W_DRIPS = W_ALL.map((b, i) => (i % 2 ? 'r1' : pat([g1(b)], "2'8 r8 r2 0''16 r16 r8", 60)[0]));
 
 export const LAND_FRONTIER: Song = {
@@ -131,7 +131,7 @@ export const LAND_FRONTIER: Song = {
       inst: 'timpani', tr: -1, pan: 0.1, rev: 0.32, vol: 0.55,
       mml: join(['_v90 o2 c4 r2.', 'o2 c4 r2.', 'o2 c4 r4 g4 r4', troll('o2 g')], ['_v100 o2 c4 r2.'], rest(6), [troll('o2 g')], ['o2 c4 r2.'], rest(6), [troll('o2 g')], ['o2 f4 r2.'], rest(3), ['o2 e-4 r2.', 'r1', 'o2 f4 r2.', troll('o2 g')], ['o2 a4 r2.'], rest(6), [troll('o2 g')]),
     },
-    piano: { inst: 'piano', tr: -1, pan: -0.2, rev: 0.18, vol: 0.55, only: ['town', 'gulch', 'saloon'], mml: join(['q5 _v95'], pat(W_ALL, 'B8 X8 28 X8', 36, 60)) },
+    piano: { inst: 'piano', tr: -1, pan: -0.2, rev: 0.18, vol: 0.55, only: ['town', 'gulch', 'gallery', 'saloon'], mml: join(['q5 _v95'], pat(W_ALL, 'B8 X8 28 X8', 36, 60)) },
     accordion: { inst: 'accordion', tr: -1, pan: -0.25, rev: 0.2, vol: 0.45, only: ['mill'], mml: join(['q4 _v90'], pat(W_ALL, 'r8 X8', 55)) },
     drone: { inst: 'cello', tr: -1, pan: -0.1, rev: 0.45, vol: 0.45, only: ['mine', 'sewer', 'arena', 'hush', 'river'], mml: join(['q8 _v80'], pat(W_ALL, 'R1', 36)) },
     drips: { inst: 'harp', tr: -1, pan: 0.35, rev: 0.6, dly: 0.35, vol: 0.4, only: ['mine', 'sewer'], mml: join(['_v80'], W_DRIPS) },
@@ -144,6 +144,9 @@ export const LAND_FRONTIER: Song = {
     train: { solo: ['tune', 'steel', 'bass', 'clip', 'pad'], vol: { tune: 0.75, clip: 0.8, steel: 0.9, bass: 0.7 }, rev: { tune: 0.4 }, level: 0.75 },
     town: { solo: ['tune', 'piano', 'banjo', 'bass', 'kit', 'clip', 'horns', 'gtr'], inst: { tune: 'violin' }, vol: { tune: 0.85, banjo: 1.2, clip: 0.6, horns: 0.8, gtr: 0.8 } },
     gulch: { solo: ['tune', 'piano', 'banjo', 'bass', 'kit', 'clip', 'horns', 'gtr'], inst: { tune: 'violin' }, vol: { tune: 0.85, banjo: 1.2, clip: 0.6, horns: 0.8, gtr: 0.8 } },
+    // (DEAD-EYE DOOLEY'S SHOOTIN' GALLERY, first person: the tune tinny on a calliope over a music-box stride and the
+    // woodblock, thin and bright, like it's coming out of the booth's own little speaker)
+    gallery: { solo: ['tune', 'piano', 'clip'], inst: { tune: 'calliope', piano: 'musicbox' }, vol: { tune: 0.8, piano: 1.2, clip: 0.7 }, rev: { tune: 0.1, piano: 0.1 }, lowpass: 5200, level: 0.8 },
     saloon: { solo: ['tune', 'piano'], inst: { tune: 'piano' }, vol: { tune: 0.8, piano: 1.1 }, rev: { tune: 0.15, piano: 0.15 }, level: 0.85 },
     mill: { solo: ['tune', 'accordion', 'banjo', 'bass', 'gtr', 'punk'], inst: { tune: 'accordion' }, vol: { tune: 0.85, banjo: 1.2 } },
     mine: { solo: ['tune', 'drone', 'drips'], vol: { tune: 0.6, drone: 1.1 }, rev: { tune: 0.65 }, lowpass: 4500, level: 0.65 },

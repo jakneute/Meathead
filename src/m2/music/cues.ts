@@ -57,6 +57,7 @@ import { hvOf, FLUNG_MEMO } from '../hollywood/havoc/state';
 import { WIND, QUAKE, CLIMB, DOWNHILL, CHASE_AT, x0 as HV_X0 } from '../hollywood/havoc/layout';
 import { realDisastersOn } from '../hollywood/section';
 import { townOf } from '../frontier/town/state';
+import { galleryOn } from '../frontier/town/gallery';
 import { trainOf } from '../frontier/train/state';
 import { playerRoom } from '../frontier/train/where';
 import { engineStep } from '../frontier/train/engine';
@@ -236,7 +237,8 @@ const piperArr = (s: GameState) => {
  *  scene, the crash); Timber Tumble by where the log is (the platform, the ride, the chain lift, the giant saw, the
  *  sewer, the real river, the sluice into the chipper); the clearing after it is the woods. */
 const frontierArrs = (s: GameState, sec: string): string[] => {
-  if (sec === 'town') return [getUi().zone ?? 'gulch'];
+  // (Dooley's shooting gallery, first person: its own tinny take)
+  if (sec === 'town') return [galleryOn(s) ? 'gallery' : getUi().zone ?? 'gulch'];
   if (sec === 'train') {
     const tr = trainOf(s);
     if (tr.phase === 'intro') return ['run'];
