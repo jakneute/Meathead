@@ -34,6 +34,7 @@ import { pollM2, btn, pressed as menuPressed } from '../../../input';
 import { shardWon, awardShard, openShardCard, tickShardCard, closeShardCard, type ShardCard } from '../../../upgrades/shardAward';
 import { openAsk, tickAsk, closeAsk, type Ask } from '../../../minigameConfirm';
 import { minigamePausable } from '../../../minigamePause';
+import type { GameCue } from '../../../music/moments';
 import { meatheadSays, speak, saidOver, type Said } from '../../section';
 import { X, Y } from '../layout';
 import { ROSTER, type CharId } from './data';
@@ -86,8 +87,20 @@ const won = () => shardWon(SHARD_LAND, SHARD_ID);
 const pants = <T,>(state: GameState, b: { clean: T; shitty: T; nude: T }) => (isNude(state) ? b.nude : isShat(state) ? b.shitty : b.clean);
 const PAUSABLE: Phase[] = ['boot', 'select', 'vs', 'fight', 'fatal', 'result'];
 const CRT: Phase[] = ['boot', 'controls', 'select', 'vs', 'fight', 'fatal', 'result', 'rematch', 'card', 'out'];
-/** The music's (cues.ts): the land's theme as a cheap arcade loop while the cabinet's up. */
-export const mashMusic = (state: GameState): string | null => { const ms = ALL.get(state); return ms && CRT.includes(ms.phase) ? 'arcade' : null; };
+/** The music's (cues.ts; the owner's: "monster mash should have 2 tracks: character selection and fighting"): the
+ *  cabinet's menus (the boot, the controls, CHOOSE YOUR MONSTER, CONTINUE?) on the select song, the bouts on the fight
+ *  song, the match's sting (won or lost) then the select song under the lines; the ask, the card and the screen going
+ *  off the land's. */
+const SELECT_PH: Phase[] = ['boot', 'controls', 'select', 'rematch'];
+const FIGHT_PH: Phase[] = ['vs', 'fight', 'fatal'];
+export const mashMusic = (state: GameState): GameCue | null => {
+  const ms = ALL.get(state);
+  if (!ms) return null;
+  if (SELECT_PH.includes(ms.phase)) return { song: 'game:mash-select' };
+  if (FIGHT_PH.includes(ms.phase)) return { song: 'game:mash-fight' };
+  if (ms.phase === 'result') return { song: 'game:mash-select', sting: ms.winner === 0 ? 'game:mash-win' : 'game:mash-lose' };
+  return null;
+};
 /** It's on (the town holds its own business). */
 export const mashOn = (state: GameState) => (ALL.get(state)?.phase ?? 'off') !== 'off';
 

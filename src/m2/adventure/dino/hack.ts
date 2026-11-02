@@ -43,6 +43,7 @@ import { openAsk, tickAsk, closeAsk, type Ask } from '../../minigameConfirm';
 import { awardShard, shardWon, openShardCard, tickShardCard, closeShardCard, type ShardCard } from '../../upgrades/shardAward';
 import { pollM2, pressed } from '../../input';
 import { minigamePausable, gamePaused } from '../../minigamePause';
+import type { GameCue } from '../../music/moments';
 import { ledge, meatheadSays, speak, type Said } from '../section';
 import { box, text, INK } from './art/kit';
 import type { ByPants } from './lines';
@@ -90,6 +91,12 @@ let uiUp = false;
 export const panelDead = (state: GameState) => !!state.stageMemo[MASSACRE_MEMO] || shardWon(SHARD_LAND, SHARD_ID);
 /** Something of it's on (the dino park holds its own goings-on). */
 export const hackOn = (state: GameState) => hackOf(state).phase !== 'off';
+/** The music's (cues.ts): the terminal's own song from the boot (the ask's the land's), ACCESS GRANTED's sting (its ring
+ *  carrying into the massacre's cut, the land's after). */
+export const hackMusic = (state: GameState): GameCue | null => {
+  const ph = hackOf(state).phase;
+  return ph === 'boot' || ph === 'play' ? { song: 'game:hack' } : ph === 'granted' ? { song: null, sting: 'game:hack-granted' } : null;
+};
 
 const byPants = (state: GameState, b: ByPants) => (isNude(state) ? b.nude : isShat(state) ? b.shitty : b.clean);
 const hands = (): Controls => ({ ...NO_CONTROLS });

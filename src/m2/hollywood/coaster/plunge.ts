@@ -39,6 +39,7 @@ import { saveProgress } from '../../save';
 import { shards, setShards, powerCells, MAX_SHARDS } from '../../upgrades/state';
 import { openAsk, tickAsk, closeAsk, type Ask } from '../../minigameConfirm';
 import { minigamePausable } from '../../minigamePause';
+import type { GameCue } from '../../music/moments';
 import { meatheadSays, speak, saidOver, box, type Said } from '../section';
 import { byPants } from '../blvd/kinds';
 import { throneAt, plunged, PLUNGED_MEMO, SHARD_LAND, SHARD_ID } from './thrones';
@@ -83,6 +84,13 @@ interface Plunge {
 }
 const ALL = new WeakMap<Coaster, Plunge>();
 export const plungeOf = (co: Coaster) => ALL.get(co) ?? null;
+/** The music's (cues.ts): its own song from TEST YOUR PLUNGE! through the rounds (the ask's the land's), the sting as the
+ *  clog blows (ringing on under the shard's card). */
+export const plungeMusic = (co: Coaster): GameCue | null => {
+  const ph = ALL.get(co)?.phase;
+  if (!ph || ph === 'ask' || ph === 'leave' || ph === 'card') return null;
+  return ph === 'win' ? { song: null, sting: 'game:plunge-win' } : { song: 'game:plunge' };
+};
 /** The Godfather's look (shrine.ts paintToilet): 2 plunged, 1 being plunged (he's got the plunger), 0 as ever. */
 export const plungeLook = (state: GameState, co: Coaster) => { if (plunged(state)) return 2; const ph = ALL.get(co)?.phase; return ph && ph !== 'ask' && ph !== 'leave' ? 1 : 0; };
 

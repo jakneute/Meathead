@@ -16,6 +16,8 @@
 //   'jingle:victory'         the VICTORY stamp; 'jingle:death' his death
 //   'walkaway[:<boss>]'      the walk away from the wreck with the new weapon
 //   'portal[:<land>]'        the walk into a land's portal
+//   'game:<name>'            a minigame's own song while it's on, and its stings ('game:<name>-win' and so on):
+//                            gameCand, each minigame's music function (GAME_MUSIC below)
 //
 // Ducked under speech, muffled when paused or under water, quieter in a cutscene (unless the song has a 'cutscene'
 // arrangement), off with the music volume at zero (the options).
@@ -57,7 +59,7 @@ import { hvOf, FLUNG_MEMO } from '../hollywood/havoc/state';
 import { WIND, QUAKE, CLIMB, DOWNHILL, CHASE_AT, x0 as HV_X0 } from '../hollywood/havoc/layout';
 import { realDisastersOn } from '../hollywood/section';
 import { townOf } from '../frontier/town/state';
-import { galleryOn } from '../frontier/town/gallery';
+import { galleryMusic } from '../frontier/town/gallery';
 import { trainOf } from '../frontier/train/state';
 import { playerRoom } from '../frontier/train/where';
 import { engineStep } from '../frontier/train/engine';
@@ -79,6 +81,10 @@ import { wh2Of } from '../cartoon/whitehouse2/state';
 import { stupidDadMusic } from '../cartoon/amphi/index';
 import { bumperMusic } from '../cartoon/bigkid/bumper';
 import { mashMusic } from '../spooky/town/mash';
+import { hackMusic } from '../adventure/dino/hack';
+import { a51Music } from '../space/drag/area51';
+import { plungeMusic } from '../hollywood/coaster/plunge';
+import type { GameCue } from './moments';
 
 export type { Cue };
 
@@ -238,8 +244,7 @@ const piperArr = (s: GameState) => {
  *  scene, the crash); Timber Tumble by where the log is (the platform, the ride, the chain lift, the giant saw, the
  *  sewer, the real river, the sluice into the chipper); the clearing after it is the woods. */
 const frontierArrs = (s: GameState, sec: string): string[] => {
-  // (Dooley's shooting gallery, first person: its own tinny take)
-  if (sec === 'town') return [galleryOn(s) ? 'gallery' : getUi().zone ?? 'gulch'];
+  if (sec === 'town') return [getUi().zone ?? 'gulch'];
   if (sec === 'train') {
     const tr = trainOf(s);
     if (tr.phase === 'intro') return ['run'];
@@ -344,8 +349,6 @@ const FINALE_ARR: Record<string, string> = {
   look: 'real', actress: 'real', answer: 'real',
 };
 const cartoonMoment = (s: GameState, sec: string): Cand | null => {
-  // (the bumper-car challenge's rink: the land's song as a fairground loop)
-  if (sec === 'bigkid') { const arr = bumperMusic(s); if (arr) return { song: 'land:cartoon', arrs: [arr] }; }
   if (sec === 'whitehouse1') {
     const st = whOf(s).scene?.step;
     if (st === 'draw' || st === 'look' || st === 'chelsea') return { song: 'land:cartoon', arrs: ['whitehouse1'] };
@@ -416,8 +419,6 @@ const SATAN_ARR: Record<string, string> = { whine: 'whine', sink: 'whine', leave
  *  coming down: the run), and Satan's finale. */
 const spookyMoment = (s: GameState, sec: string): Cand | null => {
   const own = spookyOwn(s);
-  // (MONSTER MASH's cabinet up: the land's song as a cheap arcade loop)
-  if (sec === 'town') { const arr = mashMusic(s); if (arr) return { song: 'land:spooky', arrs: [arr] }; }
   if (sec === 'dungeon') {
     const room = own.dungeon?.room;
     if (room === 'armed' || room === 'down') return { song: 'seq:ceiling', arrs: [room === 'armed' ? 'ceiling' : 'chase'] };
@@ -453,6 +454,41 @@ const stalkerArr = (s: GameState) => {
   if (h.chase) return 'panic';
   if (h.finale || ['hunt', 'crouch', 'leap', 'ambush', 'kill'].includes(h.mode ?? '')) return 'hunt';
   return h.mode !== 'away' || h.rattle || h.fg ? 'near' : 'dark';
+};
+
+/** The minigames, by land and section: what each wants on (its own music function: GameCue). Its songs are made in
+ *  idle time as he arrives in its land (warmLand). */
+const GAME_MUSIC: Record<string, (s: GameState) => GameCue | null> = {
+  'adventure:dino': hackMusic,
+  'spooky:town': mashMusic,
+  'space:drag': a51Music,
+  'hollywood:coaster': s => plungeMusic(coasterOf(s)),
+  'frontier:town': galleryMusic,
+  'cartoon:bigkid': bumperMusic,
+};
+const GAME_SONGS: Record<string, string[]> = {
+  adventure: ['game:hack', 'game:hack-granted'], spooky: ['game:mash-select', 'game:mash-fight', 'game:mash-win', 'game:mash-lose'],
+  space: ['game:lockpick', 'game:lockpick-open'], hollywood: ['game:plunge', 'game:plunge-win'], frontier: ['game:gallery', 'game:gallery-end'],
+  cartoon: ['game:bumper', 'game:bumper-win', 'game:bumper-lose'],
+};
+/** The sting that's on (or last was): which, when it's done, when it was last asked for. */
+let sting: { id: string; until: number; seen: number } | null = null;
+/** A minigame's music, as a candidate (null: none, the land's): its song; a sting on a win or a loss, played once and
+ *  rung out to its end, even once the game's over (the land's music waits for it); after it, the game's song again if
+ *  it asks for one. A sting not asked for a moment (he's gone, a death) starts fresh the next time. */
+const gameCand = (c: GameCue | null): Cand | null => {
+  const now = performance.now();
+  if (sting && now - sting.seen > 1500) sting = null;
+  if (c?.sting && SONGS[c.sting]) {
+    if (sting?.id !== c.sting) { const g = SONGS[c.sting]; sting = { id: c.sting, until: now + ((g.length ?? 8) * 60000) / g.bpm + 200, seen: now }; }
+    sting.seen = now;
+    if (now < sting.until) return { song: sting.id };
+    return c.song ? { song: c.song } : null;
+  }
+  // (the game's song back on (a try-again): straight in; the game over: the sting rings to its end first)
+  if (sting && !c?.song && now < sting.until) { sting.seen = now; return { song: sting.id }; }
+  sting = null;
+  return c?.song ? { song: c.song } : null;
 };
 
 /** How near a spot round the plaza he has to be for the waltz to take its colors (spots are HUB.slot apart). */
@@ -500,6 +536,9 @@ const gameWants = (s: GameState | null): Want => {
   const sec = sectionOf(s) ?? '';
   // (a set piece's own arrangement of the theme first, if it has one: the river's 'underwater')
   const theme: Cand = { song: `land:${land}`, arrs: [...seqArrs(s, land, sec), sec, 'main'] };
+  // A minigame: its own song, its stings (at full, though he's held as in a cutscene)
+  const game = gameCand(GAME_MUSIC[`${land}:${sec}`]?.(s) ?? null);
+  if (game) return { cands: [game, theme], cutscene: false };
   // A boss or sub-boss
   const named = bossFightName(s);
   const boss = named ?? (inBossFight(s) || WHOLE_SECTION_FIGHTS.has(`${land}:${sec}`) ? SECTION_BOSS[`${land}:${sec}`] : undefined);
@@ -535,6 +574,7 @@ const warmLand = (land: string | null) => {
   if (land === 'spooky') ids.push('seq:ceiling', 'seq:satan');
   if (land === 'frontier') ids.push('seq:brawl', 'seq:duel', 'seq:draw', 'seq:road-rash');
   if (land === 'cartoon') ids.push('boss:perot');
+  ids.push(...(GAME_SONGS[land] ?? []));
   for (const id of ids) if (SONGS[id]) prewarm(SONGS[id]);
 };
 
@@ -544,7 +584,9 @@ const apply = () => {
   let cue: Cue | null = null, quiet = false;
   if (test) { cue = test; lastWasTest = true; }
   else if (paused && !lastWasTest) {
-    // (paused: whatever was on stays on, muffled; the moments it follows aren't ticking)
+    // (paused: whatever was on stays on, muffled; the moments it follows aren't ticking; a minigame's sting isn't
+    // forgotten for it)
+    if (sting) sting.seen = performance.now();
     setMix(isTalking(), true, false);
     return;
   } else {

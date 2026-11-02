@@ -47,6 +47,7 @@ import { pickLine, silenceAll, announce } from '../../../m1/game/platform/speech
 import { getUi, setUi } from '../../store';
 import { openAsk, tickAsk, closeAsk, type Ask } from '../../minigameConfirm';
 import { minigamePausable } from '../../minigamePause';
+import type { GameCue } from '../../music/moments';
 import { awardShard, shardWon, openShardCard, tickShardCard, closeShardCard, type ShardCard } from '../../upgrades/shardAward';
 import { pollM2, btn, pressed } from '../../input';
 import { byPants, meatheadSays, speak, saidOver, landVisit, type Said } from '../section';
@@ -170,8 +171,13 @@ let hookVisit = -1, cardVisit = -1, playedVisit = -1;
 let uiUp = false;
 
 const inRink = (b: Bumper) => b.phase === 'card' || b.phase === 'count' || b.phase === 'play' || b.phase === 'won' || b.phase === 'lost' || b.phase === 'retry';
-/** For the music (music/cues.ts): Cartoon Land's song's arrangement while the rink's up, or null. */
-export const bumperMusic = (state: GameState): string | null => (inRink(bumperOf(state)) ? 'kiddie' : null);
+/** The music's (cues.ts): the rink's own song from its card through the try-again box (the ask's the land's); a sting
+ *  on a win (every car dead) or a loss (the clock out), then the song again under the lines. */
+export const bumperMusic = (state: GameState): GameCue | null => {
+  const b = bumperOf(state);
+  if (!inRink(b)) return null;
+  return b.phase === 'won' ? { song: 'game:bumper', sting: 'game:bumper-win' } : b.phase === 'lost' ? { song: 'game:bumper', sting: 'game:bumper-lose' } : { song: 'game:bumper' };
+};
 /** Something's on (the rest of the zone holds still). */
 export const bumperOn = (state: GameState) => bumperOf(state).phase !== 'off';
 

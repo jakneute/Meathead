@@ -57,6 +57,7 @@ import { setUi } from '../../store';
 import { awardShard, shardWon as wonShard, openShardCard, tickShardCard, closeShardCard, type ShardCard } from '../../upgrades/shardAward';
 import { openAsk, tickAsk, closeAsk, type Ask } from '../../minigameConfirm';
 import { minigamePausable } from '../../minigamePause';
+import type { GameCue } from '../../music/moments';
 import { reaction, moodOf, frameOf, type Pose } from '../../spooky/costume';
 import { meatheadSays, speak, byPants, saidOver, label, box, ledge, type Said } from '../section';
 import type { ByPants } from '../talk';
@@ -588,7 +589,12 @@ const aimAngle = (g: Gallery) => Math.max(-1.95, Math.min(-0.08, Math.atan2(g.cu
 // ---------------------------------------------------------------------------------------------------------------
 // Drawing: in the world
 
-/** Is the gallery up (first person) or fading? (the music's 'gallery'; the world's not to be seen) */
+/** The music's (cues.ts): the gallery's own song while it's up (the ask's the land's), the sting when the time's up. */
+export const galleryMusic = (state: GameState): GameCue | null => {
+  const ph = gal(state)?.phase;
+  return ph === 'fadeIn' || ph === 'play' ? { song: 'game:gallery' } : ph === 'over' || ph === 'fadeOut' ? { song: null, sting: 'game:gallery-end' } : null;
+};
+/** Is the gallery up (first person) or fading? (the world's not to be seen) */
 export const galleryOn = (state: GameState) => { const g = gal(state); return !!g && (g.phase === 'fadeIn' || g.phase === 'play' || g.phase === 'over' || g.phase === 'fadeOut'); };
 
 /** The booth's back, Dooley behind the counter (or out front in the beat), the counter. */

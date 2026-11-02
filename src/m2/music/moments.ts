@@ -19,3 +19,8 @@ export const momentOn = (kind: MomentKind, within = 350) => {
   if (hiddenAt !== null) return hiddenAt - m.t < within ? m : null;
   return performance.now() - m.t < within ? m : null;
 };
+
+/** What a minigame wants on (its music function's answer, read by cues.ts gameCand): its own song (`song`; null: none
+ *  of its own, the land's), and on a win or a loss its sting (`sting`: played once, rung out to its end even once
+ *  the game's moved on; then `song` again, if it's still on). */
+export interface GameCue { song: string | null; sting?: string }

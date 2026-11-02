@@ -42,6 +42,7 @@ import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../../../m1/constants';
 import { setUi } from '../../store';
 import { openAsk, tickAsk, closeAsk, type Ask } from '../../minigameConfirm';
 import { minigamePausable } from '../../minigamePause';
+import type { GameCue } from '../../music/moments';
 import { awardShard, shardWon, openShardCard, tickShardCard, closeShardCard, type ShardCard } from '../../upgrades/shardAward';
 import type { EquipControl } from '../../upgrades/equipInfo';
 import { meatheadSays, speak, saidOver, teleport, type Said } from '../section';
@@ -542,3 +543,8 @@ export const drawA51Hud = (c: Ctx, state: GameState) => {
 /** Taken down (the stage going away under it). */
 export const dropA51 = (state: GameState) => { const a = of(state); if (a?.ask) { closeAsk(); a.ask = null; } if (a?.shardCard) { closeShardCard(); a.shardCard = null; } setUi({ minigameCard: null, chordTips: null }); };
 export const a51Open = (state: GameState) => isOpen(state);
+/** The music's (cues.ts): the lock's own song from its controls card (the ask's the land's), the sting as it turns. */
+export const a51Music = (state: GameState): GameCue | null => {
+  const ph = of(state)?.phase;
+  return ph === 'card' || ph === 'play' ? { song: 'game:lockpick' } : ph === 'won' ? { song: null, sting: 'game:lockpick-open' } : null;
+};
