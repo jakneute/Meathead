@@ -66,7 +66,8 @@ import { drawPlunger } from './kindArt';
 import { drawCoasterBackdrop, drawCoasterBack, drawTrain, drawFlyingTrain, drawTrackPass, carsOn, carsParked, coasterLamps, SINK, rollScale, type CarAt } from './art';
 import { cview } from './paint';
 import * as L from './lines';
-import { updateThrones, drawThroneFront, inCase, throneState, throneHere } from './thrones';
+import { updateThrones, drawThroneFront, inCase, throneState, throneHere, plungeHere } from './thrones';
+import { updatePlunge, startPlunge, plungeOf, drawPlungeWorld, drawPlungeHud } from './plunge';
 import { FLOOD_SOURCE, drawFloodCam } from './flood';
 import { inPlay } from '../../moves/grab';
 
@@ -624,12 +625,20 @@ export const coaster: HollywoodSection = {
     if (co.ride.on) return riding(ctx, co);
     setHazardZones(state, 'hwc-train', []);
     if (p.health <= 0) { co.pull = null; setUi({ holdDownPrompt: null }); return controls; }
+    // (TEST YOUR PLUNGE, at the Godfather's Clog (plunge.ts): its ask, the game, the card; nothing else while it's up)
+    const plunging = updatePlunge(ctx, co, controls, line => paSay(state, narr, line));
+    if (plunging) return plunging;
     const hauling = pulling(state, co);
     if (hauling) return hauling;
     // (the star toilets: crouched by one, or sat on one (thrones.ts); HOLD down's prompt by one, its stop cleared)
     const sat = updateThrones(ctx, co, controls, line => paSay(state, narr, line));
     setUi({ holdDownPrompt: throneHere(state, co) ? 'SHIT ON IT' : null });
     if (sat) return sat;
+    // (UP by the Godfather's Clog, its stop cleared, not plunged yet: PLUNGE IT, the ask first)
+    if (plungeHere(state, co)) {
+      setUi({ upPrompt: 'PLUNGE IT' });
+      if (upIn) { setUi({ upPrompt: null }); startPlunge(state, co); return { ...controls, up: false, jump: false }; }
+    }
     const pl = placeOf(state);
     if (pl === 'station') queueBits(state, co);
     if (pl !== null && pl !== 'station') { runStop(state, co, pl, ctx); stairs(state, co, pl, upIn); }
@@ -677,13 +686,14 @@ export const coaster: HollywoodSection = {
       }
     }
     drawThroneFront(c, state, co);
+    drawPlungeWorld(c, state, co);
     // (the walker, flying)
     if (co.walker) { const w = co.walker; c.save(); c.translate(w.x, w.y); c.rotate(w.rot); drawPerson(c, { seed: 3321, outfit: 'maint', f, pose: 'fly', mood: 'shocked' }); c.restore(); }
     // Who's saying what: the staff over their heads, a guest, the sleeper, the PA (not while riding: that's the HUD's)
     for (const e of state.enemies) { const s = co.barks.get(e); if (s && e.health > 0) saidOver(c, s.text, e.pos.x + e.width / 2, e.pos.y - 18, '#DDD6FE', 220); }
     if (co.guestSaid) { const g = co.guests[co.guestSaid.i]; saidOver(c, co.guestSaid.s.text, X(g.rx), Y(queueH(g.rx)) - 92, '#FBCFE8', 220); }
     if (co.sleeper) saidOver(c, co.sleeper.text, X(BOOTH.cab + 100), Y(BOOTH.h) - 150, '#BAE6FD', 220);
-    if (co.pa && !r.on) {
+    if (co.pa && !r.on && !plungeOf(co)) {
       if (co.paFrom === 'horn') saidOver(c, co.pa.text, X(220), GY - 320, '#FDE047', 300);
       else { const pl = placeOf(state) ?? 'station', pk = parkAt(pl); saidOver(c, co.pa.text, pk.x - 20, pk.y - 120, '#FDE68A', 300); }
     }
@@ -692,6 +702,7 @@ export const coaster: HollywoodSection = {
     // (the breach's news shot, over everything: his death, and everyone's)
     if (drawFloodCam(c, state)) return;
     const co = coasterOf(state), r = co.ride;
+    if (drawPlungeHud(c, state, co, co.pa)) return;
     if (!r.on) return;
     // (the PA's words, riding: low on the screen, whole)
     if (co.pa) saidOver(c, co.pa.text, CANVAS_WIDTH / 2, CANVAS_HEIGHT - 40, '#FDE68A', 560);

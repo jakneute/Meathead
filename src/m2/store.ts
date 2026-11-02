@@ -96,6 +96,14 @@ export interface M2Ui {
   /** Button lines to show, each its buttons and a label (CON-FUCK-TIOUS teaching: the trial's charge, the hidden art of
    *  follow-ups); null: none. Shown in his scenes too (it's the lesson, not the HUD). */
   chordTips?: import('./upgrades/equipInfo').EquipControl[] | null;
+  /** A minigame asking first (minigameConfirm.ts): its name, a line, the buttons shown once it takes an answer. */
+  minigameAsk?: { title: string; text: string; ready: boolean } | null;
+  /** A charge shard just won (upgrades/shardAward.ts, ShardGotCard.tsx): the card's up; `ready` once its buffer's over. */
+  gotShard?: { ready: boolean } | null;
+  /** A full-screen minigame's on (Cartoon Land's bumper cars): the HUD's put away for it. */
+  hudOff?: boolean;
+  /** Cartoon Land's bumper cars: its controls card (bigkid/BumperCard.tsx); `ready` once its buffer's over. */
+  bumperCard?: { ready: boolean } | null;
 }
 
 /** The stretches with a pause-menu controls card (PauseControls.tsx). */

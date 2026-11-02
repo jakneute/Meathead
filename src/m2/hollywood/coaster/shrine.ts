@@ -20,7 +20,8 @@ import { velvetRopePaint } from '../blvd/props';
 import { X, Y, STOPS, BOOTH, BOOTH_LEVER, FUMES, LAUNCHED_MEMO, LEVER_MEMO, CLEARED_MEMO, CASE_HP } from './layout';
 import { throwAngle } from '../lever';
 import type { Coaster } from './state';
-import { throneState, caseLift, drawThroneMess } from './thrones';
+import { throneState, caseLift, drawThroneMess, plunged } from './thrones';
+import { plungeLook } from './plunge';
 import { WALL_D } from './set';
 
 
@@ -40,7 +41,9 @@ const dribble = (g: Ctx, M: string[], x: number, y0: number, y1: number) => {
   ellF(g, x + 1, y1, 2.4, 2, INK); ellF(g, x + 1, y1, 1.5, 1.2, M[2]); box(g, x, y1 - 1, 1, 1, M[5]);
 };
 
-export const paintToilet = (g: Ctx, i: number) => {
+/** look (the Godfather's only): 0 as ever (clogged, the plunger stuck in it), 1 being plunged (he's got the plunger),
+ *  2 plunged (plunge.ts: clear water, the horse's head flushed up out of it onto the plinth). */
+export const paintToilet = (g: Ctx, i: number, look = 0) => {
   const R = ramp6(hour(BODY[i])), C = (i === 0 ? BRASS : CHROME).map(c => hour(c));
   // (its shadow on the plinth)
   g.fillStyle = 'rgba(24, 14, 20, 0.32)'; g.beginPath(); g.ellipse(4, 0, 26, 2.4, 0, 0, Math.PI * 2); g.fill();
@@ -149,11 +152,29 @@ export const paintToilet = (g: Ctx, i: number) => {
     // plunger stuck in it to the cup, a wad of paper, floaters, a horse's head come up out of it; it's run over the
     // seat and down the bowl into a puddle at its foot. An orange and a cannoli on the lid, a rose across the seat.
     const M = ramp6(hour('#5E5628')), Pp = POO.map(cc => hour(cc));
+    if (look === 2) {
+      // (PLUNGED: clear water at last (a brown ring left round it), splashed down the bowl, a puddle at its foot; the
+      // horse's head blown out of it, lying on the plinth by its foot)
+      dribble(g, M, 5, -28, -22); dribble(g, M, 27, -28, -15);
+      ellF(g, 24, -0.6, 12, 2.4, INK); ellF(g, 24, -0.9, 11, 1.6, M[2]); box(g, 19, -2, 5, 1, M[4]);
+      ellF(g, 16, -30.6, 11, 1.2, hour('#9EC2B4')); box(g, 10, -31, 6, 1, hour('#DDF2EA'));
+      g.strokeStyle = hour('#6A5222'); g.lineWidth = 1; g.beginPath(); g.ellipse(16, -30.8, 11.5, 1.5, 0, Math.PI, Math.PI * 2); g.stroke();
+      const Hh = ramp6(hour('#6B3F1F'));
+      g.save(); g.translate(8, 31);
+      const head = () => { g.beginPath(); g.moveTo(26, -31); g.lineTo(26, -39); g.lineTo(27, -44); g.lineTo(28.5, -41); g.lineTo(30, -41); g.quadraticCurveTo(34, -39, 35, -36); g.lineTo(34.5, -34); g.lineTo(31, -34); g.lineTo(30, -31); g.closePath(); };
+      head(); g.strokeStyle = INK; g.lineWidth = 2; g.stroke(); g.fillStyle = Hh[3]; g.fill();
+      g.save(); head(); g.clip(); box(g, 26, -44, 2, 14, Hh[1]); box(g, 28, -41, 3, 2, Hh[4]); box(g, 31, -38, 4, 1, Hh[4]); box(g, 30, -40, 1, 1, hour('#F4F0E6')); box(g, 31, -39, 2, 1, hour('#F4F0E6')); g.restore();
+      box(g, 29, -38, 1, 1, INK); box(g, 29, -39, 1, 1, '#FFFFFF'); box(g, 34, -36, 1, 1, INK);
+      box(g, 26, -32, 5, 1, hour('#991B1B'));
+      g.restore();
+    } else {
     dribble(g, M, 5, -28, -22); dribble(g, M, 27, -28, -13); dribble(g, M, 20, -28, -19);
     ellF(g, 24, -0.6, 10, 2.2, INK); ellF(g, 24, -0.9, 9, 1.4, M[2]); box(g, 19, -2, 4, 1, M[4]); box(g, 27, -1, 2, 1, M[5]);
     ellF(g, 16, -31.6, 13.6, 3.4, INK); ellF(g, 16, -31.6, 12.6, 2.6, M[2]); ellF(g, 14, -32.4, 9, 1.4, M[3]);
     checker(g, 6, -33, 20, 1, M[4], 0, 1); box(g, 7, -34, 5, 1, M[5]);
-    // (the plunger: its handle (wood, grain, a hang hole at the top), the red cup down in it, ridged, lit)
+    // (the plunger: its handle (wood, grain, a hang hole at the top), the red cup down in it, ridged, lit; not while
+    // he's got it)
+    if (look === 0) {
     g.save(); g.translate(14, -30); g.rotate(0.32);
     const W = ramp6(hour('#A16207')), Rb = ramp6(hour('#B91C1C'));
     box(g, -3, -48, 6, 46, INK); box(g, -2, -47, 4, 44, W[3]); box(g, -2, -47, 1, 44, W[5]); box(g, 1, -47, 1, 44, W[1]);
@@ -165,6 +186,7 @@ export const paintToilet = (g: Ctx, i: number) => {
     box(g, -6, -6, 3, 1, Rb[5]); box(g, -7, -4, 1, 1, Rb[4]);
     box(g, -8, -2, 16, 1, Rb[1]); box(g, 4, -6, 4, 1, Rb[1]);
     g.restore();
+    }
     // (the murk's near lip back over the cup's foot)
     ellF(g, 16, -30.4, 12.4, 1.6, M[2]); box(g, 8, -30, 4, 1, M[4]);
     // (the wad of paper, sodden)
@@ -183,6 +205,7 @@ export const paintToilet = (g: Ctx, i: number) => {
     g.restore();
     box(g, 29, -38, 1, 1, INK); box(g, 29, -39, 1, 1, '#FFFFFF'); box(g, 34, -36, 1, 1, INK);
     ellF(g, 28.5, -31, 4, 1.4, INK); ellF(g, 28.5, -31.2, 3.2, 0.8, M[2]); box(g, 27, -31, 2, 1, hour('#991B1B')); box(g, 30, -31, 1, 1, hour('#DC2626'));
+    }
     // (the rose across the back of the seat: stem, a thorn, a leaf, the bloom)
     g.strokeStyle = INK; g.lineWidth = 3; g.beginPath(); g.moveTo(-6, -33); g.lineTo(4, -36); g.stroke();
     g.strokeStyle = hour('#15803D'); g.lineWidth = 1.4; g.beginPath(); g.moveTo(-6, -33); g.lineTo(4, -36); g.stroke();
@@ -211,7 +234,7 @@ export const paintToilet = (g: Ctx, i: number) => {
     box(g, -18, -80, 2, 1, hour('#D8B4FE'));
   }
 };
-const toilet = (c: Ctx, i: number, x: number, y: number) => still(c, `hwc-toilet-${i}`, x, y, -36, -100, 80, 104, g => paintToilet(g, i));
+const toilet = (c: Ctx, i: number, x: number, y: number, look = 0) => still(c, `hwc-toilet-${i}-${look}`, x, y, -36, -100, 80, 104, g => paintToilet(g, i, look));
 
 // ---------------------------------------------------------------------------------------------------------------
 // The plinths
@@ -343,8 +366,8 @@ export const drawShrine = (c: Ctx, v: CView, state: GameState, i: number, co: Co
     sideBack(c, eye, sx, -1, top, dy, 1, 0.965, M, 2);
     sideBack(c, eye, sx + sw, 1, top, dy, 1, 0.965, M, 2);
     still(c, `hwc-plinth-${sw}-${s.shrine.h}`, sx, top, -2, -2, sw + 4, s.shrine.h + 3, g => paintPlinth(g, sw, s.shrine.h));
-    if (!gone) toilet(c, i, mx - 6, top);
-    if (i === 1 && !gone) for (let k = 0; k < 7; k++) { const a = f * 0.13 + k * 0.9; box(c, mx + 8 + Math.cos(a * 1.3) * (18 + k * 3), top - 46 + Math.sin(a) * 14, 2, 2, INK); }
+    if (!gone) toilet(c, i, mx - 6, top, i === 1 ? plungeLook(state, co) : 0);
+    if (i === 1 && !gone && !plunged(state)) for (let k = 0; k < 7; k++) { const a = f * 0.13 + k * 0.9; box(c, mx + 8 + Math.cos(a * 1.3) * (18 + k * 3), top - 46 + Math.sin(a) * 14, 2, 2, INK); }
   } else {
     // THE ROCK GOD'S: the base; the case on it (rattling before it vents: index.ts's fumes); the toilet inside, glowing
     const cyc = co.fumeT % FUMES.every, tell = cyc >= FUMES.every - FUMES.vent - FUMES.tell && cyc < FUMES.every - FUMES.vent;

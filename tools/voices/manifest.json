@@ -2736,6 +2736,11 @@
  },
  {
   "voice": "announcer",
+  "text": "TEST YOUR PLUNGE!",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "announcer",
   "text": "THAT'S A WRAP!",
   "from": "GRAB_CALLOUTS"
  },
@@ -18561,12 +18566,22 @@
  },
  {
   "voice": "m2.ben",
+  "text": "BONK. BEAUTIFUL.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.ben",
   "text": "DON'T LEAN ON IT. HIT IT.",
   "from": "UPGRADES"
  },
  {
   "voice": "m2.ben",
   "text": "DON'T MAKE IT WEIRD. AND IT'S BEN.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.ben",
+  "text": "DUCK AND IT COVERS MORE OF YOU. BOSSES, THOUGH, THEIR SHIT STILL GETS THROUGH. IT JUST HURTS LESS.",
   "from": "UPGRADES"
  },
  {
@@ -18591,12 +18606,22 @@
  },
  {
   "voice": "m2.ben",
+  "text": "GANBATTE. GRANDPA YELLED THAT AT THE TV. BOWLING, MOSTLY.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.ben",
   "text": "GET IN THE CANNON. AND KEEP THAT OFF MY BENCH.",
   "from": "UPGRADES"
  },
  {
   "voice": "m2.ben",
   "text": "GET IN THE CANNON. TAKE YOUR PANTS WITH YOU.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.ben",
+  "text": "GIFT SHOP HELMET. TWO CANS, ONE STRAW, HORNS HOT-GLUED ON. WHATEVER THEY THROW AT YOUR HEAD BOUNCES OFF.",
   "from": "UPGRADES"
  },
  {
@@ -18616,7 +18641,17 @@
  },
  {
   "voice": "m2.ben",
-  "text": "HE WHO SKIPS LEG DAY FALLS DOWN HOLES.",
+  "text": "HE WHO SKIPS LEG DAY NEVER FINDS MY HOLE.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.ben",
+  "text": "HEAD. THE THING YOUR GLASSES SIT ON.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.ben",
+  "text": "HEADBUTT THE KEG THREE TIMES AND IT'S YOURS. JUMP UNDER IT, HEAD FIRST. DON'T THINK. THINKING IS WHAT HURTS.",
   "from": "UPGRADES"
  },
  {
@@ -18637,6 +18672,16 @@
  {
   "voice": "m2.ben",
   "text": "I'VE BEEN STEALING JUNK FROM EVERY LAND IN THIS DUMP AND BOLTING IT INTO ARMOR. CHEAP. DIRTY. WORKS.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.ben",
+  "text": "IT BOUNCES. LIKE YOUR RENT CHECKS.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.ben",
+  "text": "IT POPPED. YOUR HEAD WON. YOU PASS.",
   "from": "UPGRADES"
  },
  {
@@ -18701,7 +18746,22 @@
  },
  {
   "voice": "m2.ben",
+  "text": "ONE. YOUR SKULL IS THICKER THAN I REMEMBERED.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.ben",
   "text": "OOF. AGAIN.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.ben",
+  "text": "OUT THE DOOR. AND KEEP THAT OFF MY THRONE.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.ben",
+  "text": "OUT THE DOOR. TAKE YOUR PANTS WITH YOU.",
   "from": "UPGRADES"
  },
  {
@@ -18721,6 +18781,11 @@
  },
  {
   "voice": "m2.ben",
+  "text": "PRACTICE ON THE INTERN. HE THROWS FOAM AXES AT YOUR HEAD. HE KEEPS COMING BACK. HE'S GOT NOWHERE ELSE TO BE. THEN OUT THE DOOR.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.ben",
   "text": "PRACTICE ON THE TOUR GUIDE. PLANT HIM, THEN KICK HIS HEAD THROUGH THE UPRIGHTS. THE PARK'S GOT PLENTY. THEN THE CANNON.",
   "from": "UPGRADES"
  },
@@ -18736,7 +18801,17 @@
  },
  {
   "voice": "m2.ben",
+  "text": "REST BETWEEN SETS. NOT FOREVER. THE DOOR, MEATHEAD.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.ben",
   "text": "RIGHT IN THE... YOU PASS. YOU FUCKING PASS.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.ben",
+  "text": "SKULL, MEATHEAD. THE BONE ONE.",
   "from": "UPGRADES"
  },
  {
@@ -18761,12 +18836,22 @@
  },
  {
   "voice": "m2.ben",
+  "text": "TAKE THE KEGGER HELMET. THE STRAW GOES AROUND THE GLASSES. NOT THROUGH THEM. I TRIED.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.ben",
   "text": "THAT WAS A HUG.",
   "from": "UPGRADES"
  },
  {
   "voice": "m2.ben",
-  "text": "THE BAR DOES NOT LIFT ITSELF. ALSO, YOU FELL IN MY HOLE.",
+  "text": "THAT WASN'T YOUR HEAD.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.ben",
+  "text": "THE BAR DOES NOT LIFT ITSELF. ALSO, YOU FOUND MY HOLE.",
   "from": "UPGRADES"
  },
  {
@@ -18791,12 +18876,32 @@
  },
  {
   "voice": "m2.ben",
+  "text": "THE DOOR. GO. BE NAKED SOMEWHERE ELSE.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.ben",
+  "text": "THE DOOR. PLEASE. THE SMELL IS IN THE MATS NOW.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.ben",
+  "text": "THE DOOR'S WHERE YOU LEFT IT. I GOT A NAP SCHEDULED.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.ben",
   "text": "THE HAND THAT CANNOT REACH HIGH... SHOULD THINK ABOUT LOW.",
   "from": "UPGRADES"
  },
  {
   "voice": "m2.ben",
   "text": "THE HANDS OF A CARTOON. THE FISTS OF A GOD. I STOLE THEM OFF A GUY IN A DOG SUIT.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.ben",
+  "text": "THE KEG DOES NOT COME DOWN TO YOU. YOU GO UP TO THE KEG. JUMP UNDER IT. HEAD FIRST.",
   "from": "UPGRADES"
  },
  {
@@ -18812,6 +18917,11 @@
  {
   "voice": "m2.ben",
   "text": "THE STRONGEST MAN NEEDS NO PANTS. THE SMART ONE WEARS THEM ANYWAY.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.ben",
+  "text": "THERE IT GOES. FREE BEER AND A CONCUSSION. YOU PASS.",
   "from": "UPGRADES"
  },
  {
@@ -18841,6 +18951,16 @@
  },
  {
   "voice": "m2.ben",
+  "text": "TWO. I HEARD SOMETHING RATTLE. KEEP GOING.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.ben",
+  "text": "WITH YOUR HEAD.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.ben",
   "text": "YOSHI. GRANDPA SAID THAT. MOSTLY TO THE LAWNMOWER.",
   "from": "UPGRADES"
  },
@@ -18861,6 +18981,16 @@
  },
  {
   "voice": "m2.ben",
+  "text": "YOU AGAIN. I WAS NAPPING IN THE BOAT.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.ben",
+  "text": "YOU AGAIN. NAKED IN VALHALLA. VERY TRADITIONAL, ACTUALLY.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.ben",
   "text": "YOU AGAIN. PUT A TOWEL ON THAT.",
   "from": "UPGRADES"
  },
@@ -18876,12 +19006,32 @@
  },
  {
   "voice": "m2.ben",
+  "text": "YOU AGAIN. STILL NO PANTS. STILL ONE HELMET.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.ben",
+  "text": "YOU AGAIN. THE GIFT SHOP ONLY HAD THE ONE HELMET.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.ben",
   "text": "YOU AGAIN. THE GLOVES DON'T COME IN A SECOND PAIR.",
   "from": "UPGRADES"
  },
  {
   "voice": "m2.ben",
+  "text": "YOU AGAIN. VALHALLA HAS A NO SHIT POLICY. LITERALLY.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.ben",
   "text": "YOU CAME BACK. AND YOU BROUGHT THAT.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.ben",
+  "text": "YOU CAME BACK. THE FOG MACHINE CAN ONLY HIDE SO MUCH.",
   "from": "UPGRADES"
  },
  {
@@ -18902,6 +19052,11 @@
  {
   "voice": "m2.ben",
   "text": "YOU CLIMBED UP THAT SHAFT NAKED. THE FISH SAW EVERYTHING.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.ben",
+  "text": "YOU DON'T SHOOT A KEG. YOU'RE NOT A COWARD.",
   "from": "UPGRADES"
  },
  {
@@ -32992,6 +33147,261 @@
  {
   "voice": "m2.foreign.cosplayf",
   "text": "ULTRA... MEGA... BEAM... OF THE HEART!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.doorman",
+  "text": "ALL OF THEM, NAKED. RESPECT. RISE, HALLS OF VALHALLA!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.doorman",
+  "text": "ALL OF THEM? JESUS. OKAY. RISE, HALLS OF VALHALLA! ...THERE'S A BUTTON.",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.doorman",
+  "text": "ALL OF THEM. IN THOSE PANTS. RISE, HALLS OF VALHALLA! THE FOG MACHINE IS FOR YOU.",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.doorman",
+  "text": "EIGHT COSPLAYERS STILL BREATHING.",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.doorman",
+  "text": "EIGHTEEN COSPLAYERS STILL BREATHING.",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.doorman",
+  "text": "ELEVEN COSPLAYERS STILL BREATHING.",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.doorman",
+  "text": "ENTER, WORTHY ONE. COVER THAT WITH A SHIELD OR SOMETHING.",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.doorman",
+  "text": "ENTER, WORTHY ONE. MIND THE FOG MACHINE. IT BITES.",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.doorman",
+  "text": "FIFTEEN COSPLAYERS STILL BREATHING.",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.doorman",
+  "text": "FIVE COSPLAYERS STILL BREATHING.",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.doorman",
+  "text": "FOUR COSPLAYERS STILL BREATHING.",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.doorman",
+  "text": "FOURTEEN COSPLAYERS STILL BREATHING.",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.doorman",
+  "text": "GO ON IN. THE FOG MACHINE WILL COVER THE SMELL. MOSTLY.",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.doorman",
+  "text": "HALT, MORTAL. BRING ME THE BLOOD OF EVERY NORWEGIAN COSPLAYER. AND STAND DOWNWIND OF ME WHILE YOU DO IT.",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.doorman",
+  "text": "HALT, MORTAL. BRING ME THE BLOOD OF EVERY NORWEGIAN COSPLAYER. THERE'S NO DRESS CODE. CLEARLY.",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.doorman",
+  "text": "HALT, MORTAL. THE HALLS OF VALHALLA OPEN FOR THE BLOOD OF EVERY NORWEGIAN COSPLAYER. I JUST WORK THE DOOR.",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.doorman",
+  "text": "HALT. THE HALLS OF VALHALLA WANT THE BLOOD OF EVERY NORWEGIAN COSPLAYER. NOT WHATEVER'S COMING OUT OF YOUR PANTS.",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.doorman",
+  "text": "HALT. THE HALLS OF VALHALLA WANT THE BLOOD OF EVERY NORWEGIAN COSPLAYER. THEY HAVE NOT ASKED FOR THAT. PUT IT AWAY.",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.doorman",
+  "text": "HALT. TO ENTER THE HALLS OF VALHALLA, BRING ME THE BLOOD OF EVERY NORWEGIAN COSPLAYER. EVERY ONE. MANAGEMENT IS VERY CLEAR.",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.doorman",
+  "text": "IN YOU GO. NAKED IN VALHALLA. VERY TRADITIONAL, ACTUALLY.",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.doorman",
+  "text": "IN YOU GO. THE GUY IN THERE BROUGHT HIS OWN PROTEIN POWDER. HE WON'T LEAVE.",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.doorman",
+  "text": "IN. GO IN. THE HALLS ACCEPT ALL WARRIORS. EVEN THE MOIST ONES.",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.doorman",
+  "text": "IT'S OPEN. BREATHE THROUGH YOUR MOUTH IN THERE. I MEAN FOR THEM.",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.doorman",
+  "text": "IT'S OPEN. GO. I'VE SEEN ENOUGH VIKING FOR ONE DAY.",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.doorman",
+  "text": "IT'S OPEN. GO. MY SHIFT'S ALMOST OVER.",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.doorman",
+  "text": "MORE BLOOD. LESS DICK.",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.doorman",
+  "text": "MORE THAN TWENTY STILL BREATHING. I STOPPED COUNTING.",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.doorman",
+  "text": "NINE COSPLAYERS STILL BREATHING.",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.doorman",
+  "text": "NINETEEN COSPLAYERS STILL BREATHING.",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.doorman",
+  "text": "NO BLOOD, NO VALHALLA. I DON'T MAKE THE RULES. ODIN DOES. ODIN IS GARY FROM HR.",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.doorman",
+  "text": "NOT YET. AND THE HALLS HAVE SEEN ENOUGH OF YOU ALREADY.",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.doorman",
+  "text": "NOT YET. AND YOU CAN'T COME IN SMELLING LIKE THAT EITHER. BUT MOSTLY THE BLOOD THING.",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.doorman",
+  "text": "NOT YET. SOME OF THEM ARE STILL BREATHING. I CAN HEAR THEM VAPING.",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.doorman",
+  "text": "ONE COSPLAYER STILL BREATHING. ONE. FIND HIM.",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.doorman",
+  "text": "SEVEN COSPLAYERS STILL BREATHING.",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.doorman",
+  "text": "SEVENTEEN COSPLAYERS STILL BREATHING.",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.doorman",
+  "text": "SIX COSPLAYERS STILL BREATHING.",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.doorman",
+  "text": "SIXTEEN COSPLAYERS STILL BREATHING.",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.doorman",
+  "text": "STILL THIRSTY. GO. AND DON'T SLIP. NOT IN THAT OUTFIT.",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.doorman",
+  "text": "STILL THIRSTY. THE HALLS. NOT ME. I LOST MY APPETITE WHEN YOU WALKED UP.",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.doorman",
+  "text": "TEN COSPLAYERS STILL BREATHING.",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.doorman",
+  "text": "THE BLOOD IS PAID. RISE, HALLS OF VALHALLA! ...COME ON. IT STICKS IN THE COLD. LIKE YOU.",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.doorman",
+  "text": "THE BLOOD IS PAID. RISE, HALLS OF VALHALLA! ...IT'S ON A HYDRAULIC LIFT. GIVE IT A SECOND.",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.doorman",
+  "text": "THE BLOOD IS PAID. RISE, HALLS OF VALHALLA! WIPE YOUR FEET. AND EVERYTHING ELSE.",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.doorman",
+  "text": "THE HALLS ARE STILL THIRSTY.",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.doorman",
+  "text": "THE HALLS WANT BLOOD. YOU KEEP BRINGING ME... THAT.",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.doorman",
+  "text": "THIRTEEN COSPLAYERS STILL BREATHING.",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.doorman",
+  "text": "THREE COSPLAYERS STILL BREATHING.",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.doorman",
+  "text": "TWELVE COSPLAYERS STILL BREATHING.",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.doorman",
+  "text": "TWENTY COSPLAYERS STILL BREATHING.",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.doorman",
+  "text": "TWO COSPLAYERS STILL BREATHING.",
   "from": "FOREIGN"
  },
  {
@@ -52546,6 +52956,11 @@
  },
  {
   "voice": "m2.hollywood.thrones",
+  "text": "A NAKED MAN IS PLUNGING A RELIC. I WILL BE WIPING HIM OFF IT TOO.",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.thrones",
   "text": "AGAIN. HE IS DOING IT AGAIN. HE HAS NO SHAME.",
   "from": "HOLLYWOOD"
  },
@@ -52621,6 +53036,26 @@
  },
  {
   "voice": "m2.hollywood.thrones",
+  "text": "I HAVE A DEGREE IN FILM. I AM GOING TO BE MOPPING.",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.thrones",
+  "text": "I WILL NOW BE CLEANING THE GODFATHER'S CLOG. WITH MY HANDS. THANK YOU.",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.thrones",
+  "text": "IT IS JUST A TOILET NOW. A TOILET I HAVE TO SCRUB. I HATE YOU.",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.thrones",
+  "text": "IT IS ON THE CEILING. IT IS ON THE CEILING. I HAVE ONE MOP.",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.thrones",
   "text": "MORE ATTENDANTS TO THE PLATFORM, PLEASE.",
   "from": "HOLLYWOOD"
  },
@@ -52636,7 +53071,17 @@
  },
  {
   "voice": "m2.hollywood.thrones",
-  "text": "SIR. MARLOWE BRANDOE'S CLOG IS STILL IN THERE. DO NOT ADD TO IT.",
+  "text": "SINCE 1994 IT WAITED. NOW IT IS ON EVERYTHING. AND I HAVE THE ONLY KEY TO THE MOP CLOSET.",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.thrones",
+  "text": "SIR. I JUST CLEANED THAT. ON MY KNEES. DO NOT.",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.thrones",
+  "text": "SIR. PUT DOWN THE PLUNGER. THAT CLOG IS PROTECTED.",
   "from": "HOLLYWOOD"
  },
  {
@@ -52646,7 +53091,17 @@
  },
  {
   "voice": "m2.hollywood.thrones",
+  "text": "SIR. THAT CLOG IS IN THE NATIONAL REGISTRY. SIR.",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.thrones",
   "text": "SIR. THAT IS DINO SINATRELLI'S TOILET. SIR. YOUR PANTS.",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.thrones",
+  "text": "SIR. YOUR THINGS ARE DANGLING IN THE BOWL. I HAVE TO TOUCH THAT BOWL.",
   "from": "HOLLYWOOD"
  },
  {
@@ -52691,7 +53146,22 @@
  },
  {
   "voice": "m2.hollywood.thrones",
+  "text": "TWO CLOGS. ONE IN THE BOWL. ONE IN HIS PANTS. BOTH MINE TO CLEAN.",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.thrones",
   "text": "WELCOME TO THRONES OF THE STARS. KEEP YOUR HANDS, FEET AND OPINIONS INSIDE THE THRONE.",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.thrones",
+  "text": "YOU HAVE SHIT YOURSELF AND YOU ARE PLUNGING. I CAN SMELL IT THROUGH THE SPEAKERS.",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.thrones",
+  "text": "YOU KILLED THE JANITORS. WHO DO YOU THINK IS CLEANING THAT. ME. IT IS ME.",
   "from": "HOLLYWOOD"
  },
  {
@@ -60821,6 +61291,11 @@
  },
  {
   "voice": "meathead",
+  "text": "A BEER HELMET! I NEED A DRINK. I JUST LOST A LOT OF FLUIDS.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "meathead",
   "text": "A BEER. THAT'S GOING STRAIGHT THROUGH ME. LIKE EVERYTHING.",
   "from": "CARTOON"
  },
@@ -61901,6 +62376,11 @@
  },
  {
   "voice": "meathead",
+  "text": "A HAT THAT HOLDS BEER. NOW I NEED PANTS THAT HOLD... THE OTHER THING.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "meathead",
   "text": "A HAT! TO THE FACE!",
   "from": "CARTOON"
  },
@@ -61913,6 +62393,16 @@
   "voice": "meathead",
   "text": "A HAUNTED TOWN WITH A STARBUCKS. THE GHOSTS ORDER VENTIS.",
   "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
+  "text": "A HELMET! FINALLY SOMETHING TO COVER! WRONG HEAD, BUT STILL!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "meathead",
+  "text": "A HELMET! NOW I'M ONLY NAKED FROM THE EYEBROWS DOWN!",
+  "from": "UPGRADES"
  },
  {
   "voice": "meathead",
@@ -63391,6 +63881,11 @@
  },
  {
   "voice": "meathead",
+  "text": "A VIKING HELMET THAT HOLDS BEER. I THINK I JUST GOT HARD.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "meathead",
   "text": "A VIKING SHIP. MADE IN TAIWAN.",
   "from": "FOREIGN"
  },
@@ -63768,6 +64263,21 @@
   "voice": "meathead",
   "text": "ALL OF IT AT ONCE. LIKE A BUFFET OF DEATH.",
   "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "meathead",
+  "text": "ALL OF THEM? EVEN THE FISH LADY? FINE. ESPECIALLY THE FISH LADY.",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "meathead",
+  "text": "ALL OF THEM? NAKED? LIKE A BERSERKER? HELL YES.",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "meathead",
+  "text": "ALL OF THEM. GOT IT. THEY'LL SMELL ME COMING.",
+  "from": "FOREIGN"
  },
  {
   "voice": "meathead",
@@ -65091,6 +65601,11 @@
  },
  {
   "voice": "meathead",
+  "text": "BLOOD? SURE. I'M ALREADY LEAKING EVERYTHING ELSE.",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "meathead",
   "text": "BLOW A HOLE IN HER. THE OLD PISTOL. NOT THE OTHER ONE.",
   "from": "FANTASY"
  },
@@ -65911,6 +66426,11 @@
  },
  {
   "voice": "meathead",
+  "text": "CAN'T GO. IT'S CLOGGED WITH 1994.",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "meathead",
   "text": "CAN'T HEAR YOU OVER MY CALVES.",
   "from": "m1/game/stages/tommy/bike.ts:35"
  },
@@ -66436,8 +66956,18 @@
  },
  {
   "voice": "meathead",
+  "text": "CLOGGED SOLID. SOMEBODY HAND ME A PLUNGER. OH WAIT.",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "meathead",
   "text": "CLOGGED!",
   "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "CLOGGED. LIKE MY JEANS. ONE THING AT A TIME.",
+  "from": "HOLLYWOOD"
  },
  {
   "voice": "meathead",
@@ -66666,6 +67196,11 @@
  },
  {
   "voice": "meathead",
+  "text": "COME ON, MARLOWE! LET GO!",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "meathead",
   "text": "COME ON, OLD MAN. WE BOTH SMELL.",
   "from": "CARTOON"
  },
@@ -66766,7 +67301,7 @@
  },
  {
   "voice": "meathead",
-  "text": "CON-FUCK-TIOUS! IN A HOLE! UNDER A BALL PIT!",
+  "text": "CON-FUCK-TIOUS! IN A SECRET HIDEOUT! LIKE BATMAN!",
   "from": "UPGRADES"
  },
  {
@@ -68216,6 +68751,11 @@
  },
  {
   "voice": "meathead",
+  "text": "EVERY VIKING IN NORWAY. I'LL GO AS I AM.",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "meathead",
   "text": "EVERY. SINGLE. TIME.",
   "from": "FRONTIER"
  },
@@ -69201,6 +69741,11 @@
  },
  {
   "voice": "meathead",
+  "text": "FRESH START FOR THE GODFATHER. HERE COMES MINE.",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "meathead",
   "text": "FRIED DOUGH TO THE FACE!",
   "from": "CARTOON"
  },
@@ -70118,6 +70663,11 @@
   "voice": "meathead",
   "text": "GIVE ME THAT NAPKIN. IT'S BIG ENOUGH TO COVER IT.",
   "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "GIVE ME THAT. IT GOES ON MY HEAD. FAR AWAY FROM MY PANTS.",
+  "from": "UPGRADES"
  },
  {
   "voice": "meathead",
@@ -72866,6 +73416,21 @@
  },
  {
   "voice": "meathead",
+  "text": "HNNG! BREATHE IN, YOU BASTARD!",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "meathead",
+  "text": "HNNG! EVERYTHING'S SWINGING!",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "meathead",
+  "text": "HNNG! MY PANTS ARE SQUISHING IN RHYTHM!",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "meathead",
   "text": "HNNNG. IT'S CROWNING.",
   "from": "HOLLYWOOD"
  },
@@ -73501,6 +74066,11 @@
  },
  {
   "voice": "meathead",
+  "text": "I CAN DRINK AND GET HIT IN THE HEAD AT THE SAME TIME. THAT IS MY WHOLE WEEKEND.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "meathead",
   "text": "I CAN FEEL IT SOAKING INTO MY PUMP!",
   "from": "HAZARD_HURT"
  },
@@ -74071,6 +74641,11 @@
  },
  {
   "voice": "meathead",
+  "text": "I FELT IT MOVE!",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "meathead",
   "text": "I FLEW INTO A TOWER!",
   "from": "FANTASY"
  },
@@ -74248,6 +74823,11 @@
   "voice": "meathead",
   "text": "I HIT IT AS HARD AS I COULD! IT HIT BACK HARDER!",
   "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "I HIT IT SO HARD MY DICK FELT IT.",
+  "from": "UPGRADES"
  },
  {
   "voice": "meathead",
@@ -74601,6 +75181,11 @@
  },
  {
   "voice": "meathead",
+  "text": "I SEE THREE OF YOU. ALL THREE ARE PROUD OF ME.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "meathead",
   "text": "I SEE YOU TOO, PERVERT.",
   "from": "SPOOKY"
  },
@@ -74793,6 +75378,16 @@
   "voice": "meathead",
   "text": "I THOUGHT THEY ALL WENT POOF. GUESS I'M A MURDERER. AGAIN.",
   "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "I UNCLOGGED IT. I EARNED THIS SEAT.",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "meathead",
+  "text": "I UNCLOGGED THE GODFATHER! MAKE ME AN OFFER!",
+  "from": "HOLLYWOOD"
  },
  {
   "voice": "meathead",
@@ -76056,6 +76651,11 @@
  },
  {
   "voice": "meathead",
+  "text": "IS THAT A BEER HELMET? WITH HORNS? IT LOOKS LIKE MY WHOLE PERSONALITY.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "meathead",
   "text": "IS THAT A PEASHOOTER, YOU WEAK LITTLE SHIT?!",
   "from": "HAZARD_HURT"
  },
@@ -76831,11 +77431,6 @@
  },
  {
   "voice": "meathead",
-  "text": "IT'S ALREADY CLOGGED. WHAT'S ONE MORE.",
-  "from": "HOLLYWOOD"
- },
- {
-  "voice": "meathead",
   "text": "IT'S AN ELEVATOR. I'VE BEEN IN AN ELEVATOR.",
   "from": "SPACE"
  },
@@ -76866,8 +77461,33 @@
  },
  {
   "voice": "meathead",
+  "text": "IT'S CLEAR! I GOT GODFATHER ALL OVER MY BARE ASS!",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "meathead",
+  "text": "IT'S CLEAR! NOW I CAN CLOG IT RIGHT!",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "meathead",
+  "text": "IT'S CLEAR! NOW MY PANTS ARE THE CLOG!",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "meathead",
   "text": "IT'S CLOGGED WITH GUYS!",
   "from": "FULL_BAG_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "IT'S CLOGGED. GIMME THAT PLUNGER.",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "meathead",
+  "text": "IT'S CLOGGED. GOOD THING I'M ALREADY NAKED.",
+  "from": "HOLLYWOOD"
  },
  {
   "voice": "meathead",
@@ -76928,6 +77548,11 @@
   "voice": "meathead",
   "text": "IT'S FULL OF DUDE!",
   "from": "FULL_BAG_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "IT'S FULL. THE GODFATHER'S STILL IN THERE.",
+  "from": "HOLLYWOOD"
  },
  {
   "voice": "meathead",
@@ -77518,6 +78143,11 @@
   "voice": "meathead",
   "text": "KILL ARROW. I DIDN'T EVEN NEED A SIGN.",
   "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
+  "text": "KILL EVERY VIKING IN NORWAY? I WAS GONNA DO THAT FOR FREE.",
+  "from": "FOREIGN"
  },
  {
   "voice": "meathead",
@@ -79136,6 +79766,11 @@
  },
  {
   "voice": "meathead",
+  "text": "MY BALLS ARE SLAPPING THE TANK!",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "meathead",
   "text": "MY BALLS ARE SWINGING MORE THAN THIS CEL.",
   "from": "CARTOON"
  },
@@ -79486,6 +80121,11 @@
  },
  {
   "voice": "meathead",
+  "text": "MY HEAD IS RINGING. MY PANTS ARE... ALSO DOING SOMETHING.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "meathead",
   "text": "MY HEAD! I NEED THAT!",
   "from": "SPACE"
  },
@@ -79648,6 +80288,11 @@
   "voice": "meathead",
   "text": "MY NUTS ARE SLAPPING MY CHIN!",
   "from": "FANTASY"
+ },
+ {
+  "voice": "meathead",
+  "text": "MY PANTS ARE ALREADY FULL. THIS ONE'S NEXT.",
+  "from": "HOLLYWOOD"
  },
  {
   "voice": "meathead",
@@ -80198,6 +80843,11 @@
   "voice": "meathead",
   "text": "NAKED, BROKE, AND HOLDING A CLAPPERBOARD. ACTION, MOTHERFUCKER.",
   "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "NAKED, BUT HELMETED. LIKE A REAL VIKING.",
+  "from": "UPGRADES"
  },
  {
   "voice": "meathead",
@@ -80918,6 +81568,11 @@
   "voice": "meathead",
   "text": "NO PANTS ON THE CAT. THE NETWORK'S GONNA LOVE THAT.",
   "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "NO PANTS TO RUIN. LET'S PLUNGE.",
+  "from": "HOLLYWOOD"
  },
  {
   "voice": "meathead",
@@ -83608,6 +84263,11 @@
   "voice": "meathead",
   "text": "PLUMB THIS!",
   "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "PLUNGE! SQUISH! PLUNGE! SQUISH!",
+  "from": "HOLLYWOOD"
  },
  {
   "voice": "meathead",
@@ -86546,6 +87206,11 @@
  },
  {
   "voice": "meathead",
+  "text": "SINCE 1994! GONE! I'M A PLUMBING LEGEND!",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "meathead",
   "text": "SINGLE RIDER.",
   "from": "SPACE"
  },
@@ -86583,11 +87248,6 @@
   "voice": "meathead",
   "text": "SIT. STAY. PLAY DEAD.",
   "from": "ENEMY_KILL_LINES"
- },
- {
-  "voice": "meathead",
-  "text": "SITTING ON THE GODFATHER'S CLOG. HOLD MY BEER.",
-  "from": "HOLLYWOOD"
  },
  {
   "voice": "meathead",
@@ -87598,6 +88258,11 @@
   "voice": "meathead",
   "text": "STAIRS. MY ASS IS GONNA FEEL THIS TOMORROW.",
   "from": "FOREIGN"
+ },
+ {
+  "voice": "meathead",
+  "text": "STAND BACK. I'VE UNCLOGGED WORSE AT MY UNCLE'S.",
+  "from": "HOLLYWOOD"
  },
  {
   "voice": "meathead",
@@ -94071,6 +94736,11 @@
  },
  {
   "voice": "meathead",
+  "text": "UNCLOGGED! AND IT SPLASHED MY DICK! WORTH IT!",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "meathead",
   "text": "UNDER A PORCH ROOF! THAT'S THE ONLY PLACE HE CAN'T HIT ME!",
   "from": "m1/game/stages/dale/town.ts:394"
  },
@@ -94257,6 +94927,36 @@
  {
   "voice": "meathead",
   "text": "USED BOOKS. IN FRENCH. I DON'T READ IN ENGLISH.",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "meathead",
+  "text": "VALHALLA! I CAME DRESSED FOR IT!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "meathead",
+  "text": "VALHALLA! I HOPE THERE IS A COAT CHECK! FOR MY COAT! WHICH I DO NOT HAVE!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "meathead",
+  "text": "VALHALLA! I HOPE THEY HAVE A BATHROOM IN THERE!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "meathead",
+  "text": "VALHALLA! IT CAME UP OUT OF THE RIVER! LIKE A VIKING SUBMARINE!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "meathead",
+  "text": "VALHALLA! IT LOOKS LIKE A HAUNTED HOUSE AT A CHURCH CARNIVAL!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "meathead",
+  "text": "VALHALLA! WARRIORS DIE AND GO THERE! I ONLY HALF DIED!",
   "from": "FOREIGN"
  },
  {

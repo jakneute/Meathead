@@ -81,7 +81,7 @@ export const BENT = ["THE TRACK'S STILL BENT. THEY JUST LEFT IT.", "NOBODY FIXED
 /** The star toilets (thrones.ts; HOLD down by one, its stop cleared): sitting down on each (clean; his own in it). */
 export const THRONE_SIT = [
   ['MOVE OVER, DINO. MY TURN.', 'START SPREADING THE NEWS.'],
-  ["SITTING ON THE GODFATHER'S CLOG. HOLD MY BEER.", "IT'S ALREADY CLOGGED. WHAT'S ONE MORE."],
+  ["I UNCLOGGED IT. I EARNED THIS SEAT.", "FRESH START FOR THE GODFATHER. HERE COMES MINE."],
   ['OPEN THE CASE. PANTS DOWN. FOR SCIENCE.', "IT'S GLOWING. IT'S WARM. I'M GOING."],
 ];
 export const THRONE_SIT_AGAIN = ['ROUND TWO.', "IT'S STILL WARM. THAT'S MINE.", 'BACK FOR SECONDS. I ATE TACO BELL FOR THIS.'];
@@ -100,6 +100,24 @@ export const THRONE_UHOH = ['UH OH.', "THAT GURGLE WASN'T ME.", "OH NO. IT'S PUS
 export const THRONE_BLOW = ['OH SHIIIIIT!', 'NOT LIKE THIIIIS!'];
 /** Crouched by the Rock God's (in its case: he won't, it'd kill him). */
 export const THRONE_NOPE = ["NOT THAT ONE. THAT ONE'S STILL ALIVE.", "I'M NOT SITTING ON THAT. IT'S GLOWING.", 'NOPE. THAT SEAT HAS A SKULL ON IT.'];
+/** THE GODFATHER'S CLOG (plunge.ts): holding down by it before it's plunged (it's clogged: no going); TEST YOUR PLUNGE
+ *  starting (up by it); grunting through it; it blown clear (proud). */
+export const PLUNGE_CLOGGED = ["CAN'T GO. IT'S CLOGGED WITH 1994.", "IT'S FULL. THE GODFATHER'S STILL IN THERE.", "CLOGGED SOLID. SOMEBODY HAND ME A PLUNGER. OH WAIT."];
+export const PLUNGE_START: ByPants = {
+  clean: ["IT'S CLOGGED. GIMME THAT PLUNGER.", "STAND BACK. I'VE UNCLOGGED WORSE AT MY UNCLE'S."],
+  shitty: ["CLOGGED. LIKE MY JEANS. ONE THING AT A TIME.", "MY PANTS ARE ALREADY FULL. THIS ONE'S NEXT."],
+  nude: ["IT'S CLOGGED. GOOD THING I'M ALREADY NAKED.", "NO PANTS TO RUIN. LET'S PLUNGE."],
+};
+export const PLUNGE_GRUNT: ByPants = {
+  clean: ["HNNG! BREATHE IN, YOU BASTARD!", "COME ON, MARLOWE! LET GO!", "I FELT IT MOVE!"],
+  shitty: ["PLUNGE! SQUISH! PLUNGE! SQUISH!", "HNNG! MY PANTS ARE SQUISHING IN RHYTHM!"],
+  nude: ["HNNG! EVERYTHING'S SWINGING!", "MY BALLS ARE SLAPPING THE TANK!"],
+};
+export const PLUNGE_WIN: ByPants = {
+  clean: ["I UNCLOGGED THE GODFATHER! MAKE ME AN OFFER!", "SINCE 1994! GONE! I'M A PLUMBING LEGEND!"],
+  shitty: ["IT'S CLEAR! NOW I CAN CLOG IT RIGHT!", "IT'S CLEAR! NOW MY PANTS ARE THE CLOG!"],
+  nude: ["IT'S CLEAR! I GOT GODFATHER ALL OVER MY BARE ASS!", "UNCLOGGED! AND IT SPLASHED MY DICK! WORTH IT!"],
+};
 /** Its case shot to pieces: the sludge everywhere (his last words). */
 export const CASE_BREAK = ['UH OH. 1973 IS LOOSE.', "OH NO. THAT'S A LOT OF ROCK STAR."];
 /** The breach's news shot (flood.ts): the helicopter's reporter, what happened, then the last of it. */
@@ -186,12 +204,26 @@ export const SPIEL_BENT = ['EXPERIMENTAL MODE IS STILL ENGAGED. WE HAVE NOT FOUN
 /** The star toilets: him sat on one (each); on his own; clogged; the blowout coming. */
 export const SPIEL_THRONE_SIT = [
   ["SIR. THAT IS DINO SINATRELLI'S TOILET. SIR. YOUR PANTS."],
-  ["SIR. MARLOWE BRANDOE'S CLOG IS STILL IN THERE. DO NOT ADD TO IT."],
+  ["SIR. I JUST CLEANED THAT. ON MY KNEES. DO NOT."],
   ['SIR. THAT CASE IS NOT TO BE OPENED. SIR. THE CASE IS FOR US.'],
 ];
 export const SPIEL_THRONE_AGAIN = ['HE IS BACK ON IT.', 'AGAIN. HE IS DOING IT AGAIN. HE HAS NO SHAME.'];
 export const SPIEL_THRONE_CLOG = ['THE RELIC HAS BEEN ADDED TO. THE RELIC IS RUINED.', 'THAT IS NOT A STAR. THAT IS A NOBODY. HE ATE CORN.'];
 export const SPIEL_THRONE_UHOH = ['THE THRONE IS MAKING A NOISE IT SHOULD NOT MAKE.', 'PLEASE STAND CLEAR OF THE THRONE. ALL OF YOU. NOW.'];
+
+/** TEST YOUR PLUNGE's title, boomed by the game's announcer (MORTAL KOMBAT's TEST YOUR MIGHT: the owner's "make sure an
+ *  announcer says 'test your plunge'"). */
+export const ANNOUNCE_PLUNGE = 'TEST YOUR PLUNGE!';
+/** THE GODFATHER'S CLOG being plunged (plunge.ts): starting; during (he'll be the one cleaning it: the staff are dead);
+ *  it blown clear, all over everything; after. */
+export const SPIEL_PLUNGE_START = ['SIR. PUT DOWN THE PLUNGER. THAT CLOG IS PROTECTED.', 'SIR. THAT CLOG IS IN THE NATIONAL REGISTRY. SIR.'];
+export const SPIEL_PLUNGE_DURING: ByPants = {
+  clean: ['YOU KILLED THE JANITORS. WHO DO YOU THINK IS CLEANING THAT. ME. IT IS ME.', 'I HAVE A DEGREE IN FILM. I AM GOING TO BE MOPPING.'],
+  shitty: ['YOU HAVE SHIT YOURSELF AND YOU ARE PLUNGING. I CAN SMELL IT THROUGH THE SPEAKERS.', 'TWO CLOGS. ONE IN THE BOWL. ONE IN HIS PANTS. BOTH MINE TO CLEAN.'],
+  nude: ['A NAKED MAN IS PLUNGING A RELIC. I WILL BE WIPING HIM OFF IT TOO.', 'SIR. YOUR THINGS ARE DANGLING IN THE BOWL. I HAVE TO TOUCH THAT BOWL.'],
+};
+export const SPIEL_PLUNGE_WIN = ['IT IS ON THE CEILING. IT IS ON THE CEILING. I HAVE ONE MOP.', 'SINCE 1994 IT WAITED. NOW IT IS ON EVERYTHING. AND I HAVE THE ONLY KEY TO THE MOP CLOSET.'];
+export const SPIEL_PLUNGE_AFTER = ["I WILL NOW BE CLEANING THE GODFATHER'S CLOG. WITH MY HANDS. THANK YOU.", 'IT IS JUST A TOILET NOW. A TOILET I HAVE TO SCRUB. I HATE YOU.'];
 
 /** The park's PA (the boulevard's trailer voice) in the queue: Stuntman Steve. */
 export const PA_STEVE_QUEUE = [
@@ -255,6 +287,7 @@ export const VOICE_LINES: Record<string, string[]> = {
     ...STAFF_OUT, ...CLEARED, ...LOCKED, ...WALKER, ...BOOTH, ...LEVER_LOCKED, ...LEVER_FIRST, NORMAL_FINE, ...LEVER, ...LAUNCH, ...RIDE_BACK, ...BENT,
     ...THRONE_SIT.flat(), ...THRONE_SIT_AGAIN, ...THRONE_CASE, ...THRONE_STRAIN, ...THRONE_PLOP, ...THRONE_CLOG, ...THRONE_STAND,
     ...THRONE_DONE, ...THRONE_UHOH, ...THRONE_BLOW, ...THRONE_NOPE, ...CASE_BREAK,
+    ...PLUNGE_CLOGGED, ...pools(PLUNGE_START), ...pools(PLUNGE_GRUNT), ...pools(PLUNGE_WIN),
     ...Object.values(HURT).flatMap(h => h.hurt),
   ],
   death: [...Object.values(HURT).flatMap(h => h.death), ...FLOOD_DEATH],
@@ -269,7 +302,9 @@ export const VOICE_LINES: Record<string, string[]> = {
     ...SPIEL_STATION, ...SPIEL_LIFT, ...SPIEL_INSANE, ...SPIEL_TOILET.flat(), ...pools(SPIEL_STAFF), ...SPIEL_MORE, ...SPIEL_CLEAR,
     ...SPIEL_BACK, ...SPIEL_EXPERIMENTAL, ...SPIEL_FLIGHT, ...SPIEL_BENT,
     ...SPIEL_THRONE_SIT.flat(), ...SPIEL_THRONE_AGAIN, ...SPIEL_THRONE_CLOG, ...SPIEL_THRONE_UHOH,
+    ...SPIEL_PLUNGE_START, ...pools(SPIEL_PLUNGE_DURING), ...SPIEL_PLUNGE_WIN, ...SPIEL_PLUNGE_AFTER,
   ],
   [PA_VOICE]: PA_STEVE_QUEUE,
+  announcer: [ANNOUNCE_PLUNGE],
   [SLEEPER]: [...pools(SLEEPER_MUMBLE), ...SLEEPER_LEVER],
 };

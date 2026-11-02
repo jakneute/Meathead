@@ -13,6 +13,8 @@
 // state.stageMemo (THRONE_MEMO), like the stops' staff. Stop 3's, the Rock God's in its hazmat case, he won't sit on
 // (the user's: "make sure you cannot shit on it; it's harmful"): crouched by it he says no. Its case can be shot to
 // pieces instead (index.ts caseShots): the sludge everywhere, the toilet gone (EXPLODED), and it never vents again.
+// Stop 2's, THE GODFATHER'S CLOG, is clogged till it's PLUNGED (plunge.ts: UP by it, TEST YOUR PLUNGE, a charge shard):
+// before that, holding down by it only gets his "it's clogged" line; after, it's a toilet like the Chairman's.
 
 import type { GameState } from '../../../m1/game/core/state';
 import type { FrameContext } from '../../../m1/game/core/context';
@@ -28,6 +30,7 @@ import { shakeScreen } from '../../../m1/game/core/state';
 import { hurtPlayer } from '../../../m1/game/bosses/shared';
 import { onWire } from '../wires';
 import { X, Y, STOPS, CLEARED_MEMO } from './layout';
+import { allFound } from '../../store';
 import type { Coaster, Sitting } from './state';
 import * as L from './lines';
 
@@ -37,6 +40,16 @@ export type ThroneState = 'clean' | 'shitty' | 'exploded';
 export const THRONE_MEMO = (i: number) => `hollywood-coaster-throne${i}`;
 export const throneState = (state: GameState, i: number): ThroneState => (state.stageMemo[THRONE_MEMO(i)] as ThroneState | undefined) ?? 'clean';
 export const THRONE_SOURCE = 'm2:hwc_throne';
+/** THE GODFATHER'S CLOG (stop 2's) plunged (plunge.ts: TEST YOUR PLUNGE won): only then can he shit on it. Kept in the
+ *  stage memo (across deaths), and for good in the save through the find it awards (the charge shard: store.ts's
+ *  collectibles, SHARD_LAND / SHARD_ID): on a later visit it's still plunged. */
+export const PLUNGED_MEMO = 'hollywood-coaster-plunged';
+export const SHARD_LAND = 'hollywood', SHARD_ID = 'shard-plunge';
+export const plunged = (state: GameState) => {
+  if (state.stageMemo[PLUNGED_MEMO]) return true;
+  if (allFound()[SHARD_LAND]?.includes(SHARD_ID)) { state.stageMemo[PLUNGED_MEMO] = '1'; return true; }
+  return false;
+};
 
 /** Frames: crouch held to sit; the hop on; to clog it (a clean one); to the blowout from clogging it (or from sitting
  *  on a SHITTY one); the UH OH's warning before it; the blowout to the bang. */
@@ -82,8 +95,10 @@ const throneBy = (state: GameState) => {
   }
   return -1;
 };
-/** HOLD down's prompt is up (by one he can sit on, not sat on it yet). */
-export const throneHere = (state: GameState, co: Coaster) => !co.sit && throneBy(state) >= 0;
+/** HOLD down's prompt is up (by one he can sit on, not sat on it yet: the Godfather's only once it's plunged). */
+export const throneHere = (state: GameState, co: Coaster) => { if (co.sit) return false; const by = throneBy(state); return by >= 0 && (by !== 1 || plunged(state)); };
+/** UP's PLUNGE IT prompt is up: by the Godfather's Clog, its staff dead, not plunged yet (plunge.ts). */
+export const plungeHere = (state: GameState, co: Coaster) => !co.sit && throneBy(state) === 1 && !plunged(state);
 
 /** Each frame, off the train: the crouch by a toilet, and him on one. Controls to pass on (none while he's sat). */
 export const updateThrones = (ctx: FrameContext, co: Coaster, controls: Controls, pa: (line: string) => void): Controls | null => {
@@ -95,6 +110,11 @@ export const updateThrones = (ctx: FrameContext, co: Coaster, controls: Controls
   if (by < 0 && controls.down && p.isGrounded && throneState(state, 2) !== 'exploded' && state.frame - co.nopeAt > 600) {
     const g = throneAt(2), cx = p.pos.x + p.width / 2, feet = p.pos.y + p.height;
     if (Math.abs(cx - g.mx) <= g.sw / 2 + 70 && feet >= g.top - 8 && feet <= g.deck + 8) { co.nopeAt = state.frame; meatheadSays(state, pickLine(L.THRONE_NOPE), false); }
+  }
+  // (crouched by the Godfather's before it's plunged: it's clogged, no going (UP plunges it: plunge.ts))
+  if (by === 1 && !plunged(state)) {
+    if (state.frame - co.nopeAt > 600) { co.nopeAt = state.frame; meatheadSays(state, pickLine(L.PLUNGE_CLOGGED), false); }
+    co.squat = { i: -1, t: 0 }; return null;
   }
   if (by < 0) { co.squat = { i: -1, t: 0 }; return null; }
   if (co.squat.i !== by) co.squat = { i: by, t: 0 };
