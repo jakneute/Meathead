@@ -1946,6 +1946,11 @@
  },
  {
   "voice": "announcer",
+  "text": "OVERKILL!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "announcer",
   "text": "OWL BE DAMNED!",
   "from": "FANTASY"
  },
@@ -19901,6 +19906,16 @@
  },
  {
   "voice": "m2.cartoon.churro",
+  "text": "A NAKED GUY WON. I QUIT. AFTER I GIVE YOU THIS.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.churro",
+  "text": "BUMPER CAR CHALLENGE. KILL EVERYONE, WIN A PRIZE.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.churro",
   "text": "CHURROS! TWO FOR FIVE! OR ONE IN YOUR EYE!",
   "from": "CARTOON"
  },
@@ -19911,7 +19926,57 @@
  },
  {
   "voice": "m2.cartoon.churro",
+  "text": "CONGRATULATIONS. NOW GET YOUR BARE ASS OFF MY SEAT.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.churro",
+  "text": "FINE. HERE. A CHARGE SHARD. DON'T ASK ME WHAT IT DOES.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.churro",
   "text": "GET AWAY! PEOPLE WILL THINK IT WAS THE CHURROS!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.churro",
+  "text": "GOOD. NOBODY WANTS TO SIT WHERE YOU'VE SAT.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.churro",
+  "text": "GOOD. YOU'D RUIN THE UPHOLSTERY.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.churro",
+  "text": "GREAT. MORE FORMS. GET OUT OF MY CAR.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.churro",
+  "text": "GREAT. YOU KILLED EVERYONE. NOW I GOTTA FILL OUT TWELVE FORMS.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.churro",
+  "text": "HERE. A CHARGE SHARD. IT'S ALL WE GOT. I WAS GONNA PAWN IT.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.churro",
+  "text": "KILL EVERYONE, WIN A PRIZE.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.churro",
+  "text": "NINE YEARS NOBODY WINS. THEN YOU. GO ON. RIDE FOR NOTHING.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.churro",
+  "text": "NINE YEARS. AND THE GUY WHO WINS SHAT HIMSELF.",
   "from": "CARTOON"
  },
  {
@@ -19921,12 +19986,167 @@
  },
  {
   "voice": "m2.cartoon.churro",
+  "text": "NO MORE PRIZES, NUDIST. RIDE FOR FREE. KEEP IT IN THE CAR.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.churro",
+  "text": "NO MORE PRIZES. MY BOSS DOCKED MY PAY FOR THE LAST ONE.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.churro",
+  "text": "NO PANTS, NO PROBLEM. KILL EVERYONE, WIN A PRIZE.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.churro",
+  "text": "NO PRIZE. AND YOU LEFT A STAIN IN CAR SIX. GO ON.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.churro",
+  "text": "NO PRIZE. I'M STILL SCRUBBING THE SEAT YOUR BALLS WERE ON.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.churro",
+  "text": "NO PRIZE. JUST THE SMELL. THAT'S MINE NOW.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.churro",
+  "text": "NO PRIZE. PUT IT AWAY AND GET OUT.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.churro",
   "text": "NO SHIRT, NO SHOES, NO PANTS, NO CHURRO, NO WAY.",
   "from": "CARTOON"
  },
  {
   "voice": "m2.cartoon.churro",
+  "text": "NOBODY'S WON IN NINE YEARS. KILL EVERYONE, WIN A PRIZE.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.churro",
+  "text": "PROBABLY BEST. THE SEATS ARE VINYL.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.churro",
+  "text": "PROBABLY SMART. THE SEATS DON'T COME OUT.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.churro",
+  "text": "PUSSY.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.churro",
   "text": "SIR, I SELL LONG THINGS WITH SUGAR ON. DON'T COMPARE.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.churro",
+  "text": "SIT ON A TOWEL. I'M SERIOUS. KILL EVERYONE, WIN A PRIZE.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.churro",
+  "text": "STEP RIGHT UP, BEEFCAKE. KILL EVERYONE, WIN A PRIZE.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.churro",
+  "text": "SURE. THE TEACUPS ARE THAT WAY.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.churro",
+  "text": "THAT'S WHAT THEY ALL SAY.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.churro",
+  "text": "TIME! AND NOW CAR SIX SMELLS. TRY AGAIN?",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.churro",
+  "text": "TIME! PUT SOMETHING ON AND TRY AGAIN?",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.churro",
+  "text": "TIME! THAT'S WHY NOBODY WINS. TRY AGAIN?",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.churro",
+  "text": "TIME! THE HOUSE ALWAYS WINS. TRY AGAIN?",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.churro",
+  "text": "TIME! YOU LOST AND YOU'RE NAKED. ROUGH DAY. TRY AGAIN?",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.churro",
+  "text": "TIME! YOU STUNK UP THE CAR FOR NOTHING. TRY AGAIN?",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.churro",
+  "text": "TIME'S UP, CHAMP. TRY AGAIN?",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.churro",
+  "text": "TUCK IT UNDER THE WHEEL, PAL. KILL EVERYONE, WIN A PRIZE.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.churro",
+  "text": "WHAT? NOBODY WINS THIS. THE CARS ARE RIGGED. I RIGGED THEM.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.churro",
+  "text": "YEAH, YEAH. YOU'RE VERY GOOD AT MURDER. NO PRIZE.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.churro",
+  "text": "YOU AGAIN. THERE WAS ONE PRIZE. YOU TOOK IT. PLAY FOR FREE, ASSHOLE.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.churro",
+  "text": "YOU SMELL LIKE A PORTA-POTTY FIRE. KILL EVERYONE, WIN A PRIZE.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.churro",
+  "text": "YOU WON AGAIN. THE CAR LOST AGAIN. GET OUT.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.churro",
+  "text": "YOU WON. DON'T STAND UP. PLEASE DON'T STAND UP.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.churro",
+  "text": "YOU WON. TAKE THE PRIZE AND GET YOUR ASS OUT OF MY CAR.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.churro",
+  "text": "YOU WON. YOU ALSO SHAT IN MY CAR. WE'RE EVEN. RIDE FOR FREE.",
   "from": "CARTOON"
  },
  {
@@ -63246,6 +63466,11 @@
  },
  {
   "voice": "meathead",
+  "text": "A RIDE WITH A BODY COUNT? NOW YOU'RE TALKING.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
   "text": "A RIG? LIKE A SQUAT RIG? ...HOW MANY PLATES?",
   "from": "OSCAR_LINES"
  },
@@ -64498,6 +64723,11 @@
   "voice": "meathead",
   "text": "AND STAY DEAD.",
   "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
+  "text": "AND STAY DOWN.",
+  "from": "CARTOON"
  },
  {
   "voice": "meathead",
@@ -66176,12 +66406,27 @@
  },
  {
   "voice": "meathead",
+  "text": "BUMPED OFF!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
   "text": "BUMPED! BY A PUSSY RIDE!",
   "from": "CARTOON"
  },
  {
   "voice": "meathead",
   "text": "BUMPER CAR! IN THE SHINS!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "BUMPER CARS DON'T GO HIGH. BUT THEY GO INTO PEOPLE.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "BUMPER CARS. NOW THAT'S A RIDE.",
   "from": "CARTOON"
  },
  {
@@ -68066,6 +68311,11 @@
  },
  {
   "voice": "meathead",
+  "text": "DON'T HIT ME! IT SLOSHES!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
   "text": "DON'T KILL MY VIBE BRO",
   "from": "VULGARITIES"
  },
@@ -68436,6 +68686,11 @@
  },
  {
   "voice": "meathead",
+  "text": "EASY! IT GOES UP MY BACK!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
   "text": "EASY. NO BIG MOVES DOWN HERE.",
   "from": "SPACE"
  },
@@ -68641,6 +68896,11 @@
  },
  {
   "voice": "meathead",
+  "text": "ENJOY THE RIDE, PUSSY!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
   "text": "ENJOY THE TRIP",
   "from": "VULGARITIES"
  },
@@ -68761,7 +69021,27 @@
  },
  {
   "voice": "meathead",
+  "text": "EVERYBODY STAY DOWNWIND.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
   "text": "EVERYBODY WENT HOME. EXCEPT THE GUYS DOING ALL THE WORK.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "EVERYBODY'S DEAD. AND I STILL SMELL WORSE.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "EVERYBODY'S DEAD. GIMME MY PRIZE.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "EVERYBODY'S DEAD. NOBODY SAW NOTHING.",
   "from": "CARTOON"
  },
  {
@@ -69496,8 +69776,18 @@
  },
  {
   "voice": "meathead",
+  "text": "FLY AWAY FROM THE SMELL!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
   "text": "FLY AWAY! OH, YOU CAN'T!",
   "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "FLY, NAKED-HATER!",
+  "from": "CARTOON"
  },
  {
   "voice": "meathead",
@@ -70032,6 +70322,11 @@
  {
   "voice": "meathead",
   "text": "GENERIC-CO. ONE CRATE OF PANTS, PLEASE.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "GENTLEMEN, START YOUR PUSSY CARS.",
   "from": "CARTOON"
  },
  {
@@ -73076,6 +73371,11 @@
  },
  {
   "voice": "meathead",
+  "text": "HEY! MY NECK!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
   "text": "HEY! PUT ME DOWN! I'M NOT DONE!",
   "from": "m1/game/stages/oscar/swirly.ts:103"
  },
@@ -75406,6 +75706,11 @@
  },
  {
   "voice": "meathead",
+  "text": "I WAS DISTRACTED. BY MY PANTS.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
   "text": "I WAS GOING FOR THE SHAKER.",
   "from": "UPGRADES"
  },
@@ -75461,8 +75766,18 @@
  },
  {
   "voice": "meathead",
+  "text": "I WON NAKED. PUT THAT ON THE SIGN.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
   "text": "I WON. I'M COMING IN HOT. AND BROWN.",
   "from": "FANTASY"
+ },
+ {
+  "voice": "meathead",
+  "text": "I WON. YOU CAN KEEP THE SEAT.",
+  "from": "CARTOON"
  },
  {
   "voice": "meathead",
@@ -75528,6 +75843,11 @@
   "voice": "meathead",
   "text": "I'LL CRAM THAT SLUDGE RIGHT BACK DOWN YOUR GULLET!",
   "from": "HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "I'LL DRIVE NAKED. THE SEAT'S YOUR PROBLEM.",
+  "from": "CARTOON"
  },
  {
   "voice": "meathead",
@@ -75598,6 +75918,11 @@
   "voice": "meathead",
   "text": "I'LL SHOVE THAT MAGMA WHERE THE SIGN DON'T SHINE!",
   "from": "HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "I'LL SIT IN IT. YOU HOSE IT OUT.",
+  "from": "CARTOON"
  },
  {
   "voice": "meathead",
@@ -77266,6 +77591,11 @@
  },
  {
   "voice": "meathead",
+  "text": "IT WAS THE DRAFT. I COULDN'T STEER WITH THE DRAFT.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
   "text": "IT WEIGHS MORE THAN THE BELL!",
   "from": "TOO_BIG_LINES"
  },
@@ -78186,6 +78516,16 @@
  },
  {
   "voice": "meathead",
+  "text": "KILLING AND A PRIZE? FINALLY A RIDE WITH A POINT.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "KILLING TAKES MY MIND OFF THE PANTS.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
   "text": "KISS THE CONCRETE, DICKHEAD!",
   "from": "M2_KILL_LINES"
  },
@@ -78568,6 +78908,11 @@
   "voice": "meathead",
   "text": "LET ME TALK TO MY MANAGER. ...HE SAYS PLEASE LEAVE THE SHOWROOM.",
   "from": "m1/game/bosses/oscar.ts:218"
+ },
+ {
+  "voice": "meathead",
+  "text": "LET'S DO THIS BEFORE IT SOAKS THROUGH.",
+  "from": "CARTOON"
  },
  {
   "voice": "meathead",
@@ -79761,6 +80106,16 @@
  },
  {
   "voice": "meathead",
+  "text": "MY BALLS ARE IN THE WIND, AND YOU'RE IN THE AIR!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "MY BALLS ARE ON THE VINYL. LET'S GO.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
   "text": "MY BALLS ARE RINGING!",
   "from": "SPOOKY"
  },
@@ -79793,6 +80148,11 @@
   "voice": "meathead",
   "text": "MY BALLS HIT THE WATER FIRST. NEVER AGAIN.",
   "from": "FOREIGN"
+ },
+ {
+  "voice": "meathead",
+  "text": "MY BALLS STUCK TO THE SEAT. I DEMAND A RECOUNT.",
+  "from": "CARTOON"
  },
  {
   "voice": "meathead",
@@ -80291,6 +80651,11 @@
  },
  {
   "voice": "meathead",
+  "text": "MY NUTS HIT THE WHEEL!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
   "text": "MY PANTS ARE ALREADY FULL. THIS ONE'S NEXT.",
   "from": "HOLLYWOOD"
  },
@@ -80548,6 +80913,11 @@
   "voice": "meathead",
   "text": "NAKED AND FALLIIIING!",
   "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
+  "text": "NAKED AND IN A BUMPER CAR. MOM WOULD BE SO PROUD.",
+  "from": "CARTOON"
  },
  {
   "voice": "meathead",
@@ -81058,6 +81428,16 @@
   "voice": "meathead",
   "text": "NEXT!",
   "from": "GENERIC_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "NEXT! EYES UP HERE!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "NEXT! HOLD YOUR NOSE!",
+  "from": "CARTOON"
  },
  {
   "voice": "meathead",
@@ -81743,6 +82123,11 @@
   "voice": "meathead",
   "text": "NO TRACK! THERE GOES MORE SHIT!",
   "from": "FANTASY"
+ },
+ {
+  "voice": "meathead",
+  "text": "NO TRACK. NO HILL. JUST VICTIMS.",
+  "from": "CARTOON"
  },
  {
   "voice": "meathead",
@@ -82471,6 +82856,11 @@
  },
  {
   "voice": "meathead",
+  "text": "NOW YOU SMELL LIKE ME.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
   "text": "NOW YOU'RE A DUMB ROBOT TOO.",
   "from": "SPACE"
  },
@@ -82731,6 +83121,11 @@
  },
  {
   "voice": "meathead",
+  "text": "OH, IT IS ON NOW.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
   "text": "OH, IT'S ON, CHOO-CHOO.",
   "from": "FRONTIER"
  },
@@ -82967,6 +83362,11 @@
  {
   "voice": "meathead",
   "text": "ONE MORE 'SOCKS' AND I QUIT.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "ONE MORE FOR THE ROAD.",
   "from": "CARTOON"
  },
  {
@@ -83778,6 +84178,11 @@
   "voice": "meathead",
   "text": "OW! THE VELVET ROPE!",
   "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "meathead",
+  "text": "OW! THE VINYL! IT PINCHED!",
+  "from": "CARTOON"
  },
  {
   "voice": "meathead",
@@ -87461,6 +87866,11 @@
  },
  {
   "voice": "meathead",
+  "text": "SMELL THAT? THAT'S VICTORY. AND ME.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
   "text": "SMELL THAT? THAT'S YOUR FUNERAL.",
   "from": "FANTASY"
  },
@@ -88048,6 +88458,16 @@
   "voice": "meathead",
   "text": "SPEED BUMP.",
   "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
+  "text": "SPEED BUMP. LIKE MY CHEST.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "SPEED BUMP. SQUISHY ONE.",
+  "from": "CARTOON"
  },
  {
   "voice": "meathead",
@@ -89256,6 +89676,11 @@
  },
  {
   "voice": "meathead",
+  "text": "TEABAGGED BY A BUMPER CAR.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
   "text": "TEAR GAS! MY EYES! MY BEAUTIFUL EYES!",
   "from": "HAZARD_HURT"
  },
@@ -89766,6 +90191,11 @@
  },
  {
   "voice": "meathead",
+  "text": "THAT SEAT'S GONNA BE COLD ON THE BALLS. WORTH IT.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
   "text": "THAT SEPTIC SLIME RUINED MY FRESH LIFTING SNEAKERS!",
   "from": "HAZARD_HURT"
  },
@@ -90028,6 +90458,11 @@
   "voice": "meathead",
   "text": "THAT'S A LUCKY HORSESHOE, ALL RIGHT! FOR HIM!",
   "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "THAT'S A PANCAKE.",
+  "from": "CARTOON"
  },
  {
   "voice": "meathead",
@@ -90771,6 +91206,11 @@
  },
  {
   "voice": "meathead",
+  "text": "THE CAR STALLED. IT WAS THE SMELL.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
   "text": "THE CAR'S LOOSE! THE CAR'S LOOSE!",
   "from": "FRONTIER"
  },
@@ -90918,6 +91358,11 @@
   "voice": "meathead",
   "text": "THE CLIFF IS THROWING ROCKS AT ME!",
   "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "THE CLOCK CHEATED.",
+  "from": "CARTOON"
  },
  {
   "voice": "meathead",
@@ -92611,6 +93056,11 @@
  },
  {
   "voice": "meathead",
+  "text": "THE STEERING'S BROKEN. IT'S A BUMPER CAR. THEY'RE ALL BROKEN.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
   "text": "THE STORM CREW HIT ME!",
   "from": "HOLLYWOOD"
  },
@@ -94018,6 +94468,11 @@
   "voice": "meathead",
   "text": "TICK, TOCK, MY NUTSACK!",
   "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
+  "text": "TICKET PUNCHED!",
+  "from": "CARTOON"
  },
  {
   "voice": "meathead",
@@ -96183,6 +96638,11 @@
   "voice": "meathead",
   "text": "WHO STACKS LOGS ON A HILL?!",
   "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
+  "text": "WHO TAUGHT YOU TO DRIVE?",
+  "from": "CARTOON"
  },
  {
   "voice": "meathead",

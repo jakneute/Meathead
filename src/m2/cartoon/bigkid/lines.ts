@@ -9,6 +9,7 @@
 // ambiguous). Pure data.
 
 import { allOf, type ByPants, type HurtTable } from '../talk';
+import { BUMPER_VOICE_LINES as BUMPER } from './bumperLines';
 
 /** The zone's cast's voices (cast.json): a man's and a woman's each; the costume heads muffle theirs. The talking
  *  Stupid Dad doll (a pull-string recording of the show's star). */
@@ -243,13 +244,14 @@ export const VOICE_LINES: Record<string, string[]> = {
   meathead: [
     ...[ARRIVE, REVISIT, LOWRIDE, ...Object.values(GAGS)].flatMap(allOf),
     ...Object.values(HURT).flatMap(h => h.hurt),
+    ...BUMPER.meathead,
   ],
   death: Object.values(HURT).flatMap(h => h.death),
-  announcer: [...new Set(Object.values(KILL_CALLS).flatMap(k => Object.values(k).flat()))],
+  announcer: [...new Set([...Object.values(KILL_CALLS).flatMap(k => Object.values(k).flat()), ...BUMPER.announcer])],
   [CAST_VOICES.rideop]: [RIDEOP_BARK, RIDEOP_RADIO].flatMap(pools), [CAST_VOICES.rideopf]: [RIDEOP_BARK, RIDEOP_RADIO].flatMap(pools),
   [CAST_VOICES.skate]: pools(SKATE_BARK), [CAST_VOICES.skatef]: pools(SKATE_BARK),
   [CAST_VOICES.gloppy]: pools(GLOPPY_BARK), [CAST_VOICES.gloppyf]: pools(GLOPPY_BARK),
   [CAST_VOICES.flea]: pools(FLEA_BARK), [CAST_VOICES.fleaf]: pools(FLEA_BARK),
-  [CAST_VOICES.churro]: pools(CHURRO_BARK), [CAST_VOICES.churrof]: pools(CHURRO_BARK),
+  [CAST_VOICES.churro]: [...pools(CHURRO_BARK), ...BUMPER[CAST_VOICES.churro]], [CAST_VOICES.churrof]: pools(CHURRO_BARK),
   [CAST_VOICES.doll]: DOLL_LINES,
 };

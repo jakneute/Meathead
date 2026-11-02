@@ -76,6 +76,7 @@ import { piperMusic } from '../fantasy/bedroom/index';
 import { whOf, COLLAPSED_MEMO } from '../cartoon/whitehouse1/state';
 import { wh2Of } from '../cartoon/whitehouse2/state';
 import { stupidDadMusic } from '../cartoon/amphi/index';
+import { bumperMusic } from '../cartoon/bigkid/bumper';
 
 export type { Cue };
 
@@ -340,6 +341,8 @@ const FINALE_ARR: Record<string, string> = {
   look: 'real', actress: 'real', answer: 'real',
 };
 const cartoonMoment = (s: GameState, sec: string): Cand | null => {
+  // (the bumper-car challenge's rink: the land's song as a fairground loop)
+  if (sec === 'bigkid') { const arr = bumperMusic(s); if (arr) return { song: 'land:cartoon', arrs: [arr] }; }
   if (sec === 'whitehouse1') {
     const st = whOf(s).scene?.step;
     if (st === 'draw' || st === 'look' || st === 'chelsea') return { song: 'land:cartoon', arrs: ['whitehouse1'] };

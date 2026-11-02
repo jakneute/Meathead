@@ -121,6 +121,8 @@ import { prewarmParkMap } from './parkmap/render';
 import CheckpointPicker from '../m1/components/CheckpointPicker';
 import ChordPrompt from './ChordPrompt';
 import PieceGotCard from './upgrades/PieceGotCard';
+import ShardGotCard from './upgrades/ShardGotCard';
+import BumperCard from './cartoon/bigkid/BumperCard';
 import MinigameAsk from './MinigameAsk';
 import { pauseCard } from './PauseControls';
 import QtePanel from './fantasy/wheel/QtePanel';
@@ -740,7 +742,7 @@ const App2: React.FC = () => {
           onBossDeath={noop}
           onIntroComplete={() => setStatus(GameStatus.PLAYING)}
         />
-        {status === GameStatus.PLAYING && ui.map === null && !ui.introCutscene && !ui.killCam && (
+        {status === GameStatus.PLAYING && ui.map === null && !ui.introCutscene && !ui.killCam && !ui.hudOff && (
           ui.heliHud
             // (flying the helicopter: the PWR row's its boost, its rockets beside it; the weapon's its machine gun)
             ? <HUD health={hud.health} maxHealth={upMaxHealth()} weaponSide={amuSide} ammoBarWidth={amuBar} power={ui.heliBoost ?? 0} powerCells={1} powerExtra={ROCKETS_ON ? <HeliRockets charges={ui.heliRockets ?? 0} /> : undefined} currentWeapon="LMG" ammo={Infinity} maxAmmo={Infinity} weaponName="MACHINE GUN" skin={theme?.hud} cellWidth={M2_CELL_W} />
@@ -774,6 +776,9 @@ const App2: React.FC = () => {
         )}
         {/* A hidden armor piece just given (CON-FUCK-TIOUS): what it is, what it does, its buttons (shown in his cutscene too) */}
         {status === GameStatus.PLAYING && ui.gotPiece && <PieceGotCard piece={ui.gotPiece} ready={!!ui.gotPieceReady} />}
+        {/* A charge shard just won (upgrades/shardAward.ts); Cartoon Land's bumper cars' controls card */}
+        {status === GameStatus.PLAYING && ui.gotShard && <ShardGotCard ready={ui.gotShard.ready} />}
+        {status === GameStatus.PLAYING && ui.bumperCard && <BumperCard ready={ui.bumperCard.ready} />}
         {status === GameStatus.PLAYING && ui.minigameAsk && <MinigameAsk title={ui.minigameAsk.title} text={ui.minigameAsk.text} ready={ui.minigameAsk.ready} />}
         {/* A beatdown to do here (CON-FUCK-TIOUS's pebble) */}
         {status === GameStatus.PLAYING && ui.map === null && !ui.introCutscene && ui.beatPrompt && !ui.upPrompt && (

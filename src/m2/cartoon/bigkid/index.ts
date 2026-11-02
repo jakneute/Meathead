@@ -29,6 +29,7 @@ import { drawRidesBack, drawRidesFront } from './rideArt';
 import { drawBigkidBackdrop, drawBigkidBack, drawGlopHeaps, bigkidLamps } from './art';
 import { ARRIVE, REVISIT, GAGS, LOWRIDE, DOLL_LINES, CAST_VOICES } from './lines';
 import './kinds';
+import { updateBumper, drawBumper, drawBumperWorld, drawBumperWorldFront } from './bumper';
 
 const { x0, x1 } = SECTIONS.bigkid;
 export { COUCH_DONE_MEMO as BIGKID_DONE_MEMO };
@@ -70,6 +71,9 @@ export const bigkid: CartoonSection = {
   },
   update: (ctx, controls) => {
     const { state } = ctx, p = state.player, k = bigkidOf(state);
+    // (the bumper-car challenge at Giggles' booth: while it's on, the zone holds still and it has the buttons)
+    const bumping = updateBumper(ctx, controls);
+    if (bumping) return bumping;
     updateTowers(ctx, k.towers);
     noteSafe(state);
     // (wading through a sticky loogie puddle: half speed)
@@ -114,6 +118,7 @@ export const bigkid: CartoonSection = {
     drawBigkidBack(c, state, !!k.doll);
     drawTowers(c, state, k.towers);
     drawGlopHeaps(c, state);
+    drawBumperWorld(c, state);
     drawRidesBack(c, state);
   },
   drawFront: (c, state) => {
@@ -123,7 +128,9 @@ export const bigkid: CartoonSection = {
     // (the cast's barks over their heads; the doll's over the bin)
     for (const [e, s] of k.barks) if (e.health > 0) saidOver(c, s.text, mid(e).x, e.pos.y - 14, '#FDE68A', 220);
     if (k.doll) saidOver(c, k.doll.text, X(SHACK.bin), Y(96), '#FCA5A5', 200);
+    drawBumperWorldFront(c, state);
   },
+  drawHud: (c, state) => drawBumper(c, state),
   cameraRow: () => 500,
   outdoors: () => 1,
   lamps: (state) => bigkidLamps(state),
