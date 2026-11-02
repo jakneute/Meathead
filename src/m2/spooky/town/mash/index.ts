@@ -152,7 +152,8 @@ const inputOf = (c: Controls): Input => ({ l: c.left, r: c.right, u: c.up || c.j
 
 const CONTROLS_TIPS = [
   { pad: ['DPAD_LEFT', 'DPAD_RIGHT'], join: '/' as const, kb: ['@left', '@right'], label: 'WALK' },
-  { pad: ['DPAD_UP'], kb: ['@up'], label: 'JUMP' },
+  // (A jumps too: the owner's "make A jump in the fighting game")
+  { pad: ['A', 'DPAD_UP'], join: '/' as const, kb: ['@jump', '@up'], label: 'JUMP' },
   { pad: ['DPAD_DOWN'], kb: ['@down'], label: 'CROUCH' },
   { pad: ['X'], kb: ['@@fire'], label: 'PUNCH' },
   { pad: ['Y'], kb: ['@secondary'], label: 'KICK' },
