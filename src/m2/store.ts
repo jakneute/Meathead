@@ -108,9 +108,6 @@ export interface M2Ui {
   hudOff?: boolean;
   /** Cartoon Land's bumper cars: its controls card (bigkid/BumperCard.tsx); `ready` once its buffer's over. */
   bumperCard?: { ready: boolean } | null;
-  /** A minigame's controls card (MinigameCard.tsx: Future Land's lock first): its name, its buttons, how it goes;
-   *  `ready` once its buffer's over. */
-  minigameCard?: { title: string; rows: import('./upgrades/equipInfo').EquipControl[]; text: string; ready: boolean } | null;
 }
 
 /** The stretches with a pause-menu controls card (PauseControls.tsx). */

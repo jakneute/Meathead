@@ -99,6 +99,13 @@ export const MEATHEAD_BASE = ['BACK WHERE I STARTED. ONLY WORSE.', 'HEY. I KNOW 
 /** ...down the hole under it. */
 export const MEATHEAD_CHUTE = ['THE BASEMENT HAS A BASEMENT.', 'SMELLS LIKE A BURGER KING DOWN THERE. AND FARTS.'];
 
+/** Meathead, the heart canister up in the works (the hidden max health find), once its card's shut. */
+export const MEATHEAD_HEART: ByPants = {
+  clean: ["A SPARE HEART. IGOR WON'T MISS IT.", "MORE HEART. I'D RATHER HAVE MORE DICK."],
+  shitty: ['MORE HEART. SAME SHITTY PANTS.', "I FEEL BETTER. MY PANTS DON'T."],
+  nude: ['MORE HEART, NO PANTS. LIVING THE DREAM.', "A BIGGER HEART. MY DICK'S JEALOUS."],
+};
+
 // ---------------------------------------------------------------------------------------------------------------
 // What he says when these hurt him, and the death screen when they kill him
 
@@ -134,7 +141,7 @@ const flat = (r: ByPants) => Object.values(r).flat();
 export const VOICE_LINES: Record<string, string[]> = {
   meathead: [
     ...MEATHEAD_HOW, ...MEATHEAD_ASK, ...MEATHEAD_REFUSED, ...MEATHEAD_BEAM_SIGN, ...MEATHEAD_BEAM_BROKE.flat(), ...MEATHEAD_WOBBLE,
-    ...MEATHEAD_MAIN, ...MEATHEAD_CRASH, ...MEATHEAD_JUMP, ...MEATHEAD_DOWN, ...MEATHEAD_LAMP, ...MEATHEAD_BASE, ...MEATHEAD_CHUTE, ...HURT_CAR,
+    ...MEATHEAD_MAIN, ...MEATHEAD_CRASH, ...MEATHEAD_JUMP, ...MEATHEAD_DOWN, ...MEATHEAD_LAMP, ...MEATHEAD_BASE, ...MEATHEAD_CHUTE, ...flat(MEATHEAD_HEART), ...HURT_CAR,
     ...HURT_GEAR, ...HURT_PENDULUM, ...HURT_DEBRIS, ...HURT_CUCKOO, ...HURT_RINGER, ...HURT_HAMMER, ...HURT_IGOR, ...HURT_PITCHFORK,
     ...HURT_MUMMY, ...HURT_BRIDE, ...HURT_BOUQUET,
   ],

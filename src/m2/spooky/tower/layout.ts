@@ -149,7 +149,7 @@ export const beamTop = (b: BeamDef) => (b.k < STORIES ? F(b.k + 1) + SLAB : ROOF
 
 /** The gears on the walls (and one half sunk in a floor): center, radius, spin (radians a frame); a roller goes back
  *  and forth between x and x + roll. */
-export interface GearDef { x: number; y: number; r: number; spin: number; roll?: number; wholeOnly?: boolean }
+export interface GearDef { x: number; y: number; r: number; spin: number; roll?: number; wholeOnly?: boolean; wreckOnly?: boolean }
 /** A gear by floor k's climb, against the wall it climbs: between the middle and top ledges (don't fall off the middle
  *  one's far end). */
 const climbGear = (k: number, spin: number): GearDef => ({ x: upRight(k) ? U(1125) : U(35), y: F(k) - 170, r: 28, spin: upRight(k) ? spin : -spin });
@@ -163,9 +163,10 @@ export const GEARS: GearDef[] = [
   { x: U(920), y: F(3) + 8, r: 30, spin: 0.06, wholeOnly: true },
   // floor 5: over the middle ledge's far end (jump from its near end)
   { x: U(215), y: F(5) - 310, r: 22, spin: -0.06 },
-  // the clock room: the gear train, high up round the clock (the look of it)
-  { x: U(1090), y: ROOF + 110, r: 52, spin: 0.012 },
-  { x: U(1000), y: ROOF + 70, r: 30, spin: -0.02 },
+  // the clock room: the gear train, high up in the corner by the winch (the look of it: out of reach; the right half's
+  // top is the works' catwalk, after: WORKS)
+  { x: U(215), y: ROOF + 100, r: 52, spin: 0.012 },
+  { x: U(125), y: ROOF + 60, r: 30, spin: -0.02 },
 ];
 
 /** The pendulums: the pivot (the ceiling), the length, the swing (radians either side), its period (frames), phase.
@@ -189,7 +190,8 @@ export const CUCKOOS: [number, number][] = [
   [U(340), F(3) - 260],
   [U(270), F(4) - 280],
   [U(940), F(5) - 260],
-  [U(1040), TOP - 380],
+  // (the clock room's: on the wall over the gallery's far end, under the works' catwalk, after)
+  [U(1100), TOP - 310],
 ];
 
 /** Who's where: [kind, u across, floor] (stood on the floor there; a bride on a ledge: the ledge's y given instead). */
@@ -271,3 +273,28 @@ export const LADDER_SPOTS: { x: number; top: number; bottom: number; ledge?: { x
 /** Floor 4's perch (over the bell ringer, at the ladder's top). */
 export const PERCH: [number, number, number] = [U(820), F(3) - 200, 90];
 LEDGES.push(PERCH);
+
+// ---------------------------------------------------------------------------------------------------------------
+// The works, after (THE HIDDEN HEALTH FIND, the owner's: "after breaking all the load bearing platforms, if you jump
+// to the right instead of down the shaft, in the upper right portion of the tower and past a few obstacles, the health
+// pickup will be there"). The crash shook the clock's works loose: the maintenance catwalk up under the roof came down
+// off its hangers onto the bell's yoke, a roof truss came down jammed across the corner by the DOWN shaft. Across the
+// shaft from the main support (a jump and a charge), up the ladder to the gallery (the bell ringer), up the truss, onto
+// the catwalk: its cracked boards (they go under him: back down to the gallery), the clock's escape wheel knocked off
+// its arbor, rolling back and forth along it with the sway (jump it), the cuckoo under its end, the ceiling still
+// coming down; the heart canister at its far end, in the top right corner. Back: drop off anywhere (the gallery, the
+// floor, or straight on down the DOWN shaft: the way on). None of it's there before the crash.
+
+/** The catwalk's top (resting on the bell's yoke). */
+export const WORKS_Y = ROOF + 156;
+/** The truss jammed across the corner: [x, y, w] (one-way). */
+export const TRUSS: [number, number, number] = [U(750), ROOF + 235, 90];
+/** The catwalk's sound stretches: [x, w] (one-way, at WORKS_Y). */
+export const CATWALK: [number, number][] = [[U(790), 60], [U(920), 230]];
+/** Its cracked boards between them: [u0, u1] (stand on one and it cracks, and goes; back a while after). */
+export const CRACKED: [number, number][] = [[850, 885], [885, 920]];
+/** The escape wheel, rolling along the catwalk (after only). */
+export const WHEEL: GearDef = { x: U(952), y: WORKS_Y - 20, r: 20, spin: 0, roll: 106, wreckOnly: true };
+GEARS.push(WHEEL);
+/** The heart canister: where it sits (its foot's middle), its find id in the save. */
+export const HEART = { x: U(1122), y: WORKS_Y, land: 'spooky', id: 'health-tower' };

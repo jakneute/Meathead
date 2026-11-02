@@ -56,13 +56,14 @@ import { useDoor } from '../dungeon/stairs';
 import {
   x0, x1, ENTRY_DOOR_X, HOW_BOARD_X, ASK_X, BOOTH_X, STAFF_DOOR_X, BAY_TOP, TX0, TX1, U, WALL, SH0, SH1, SHM, SHX, SHU, SHD, CH0, CH1, DOOR_H, F, STORY, STORIES, SLAB, TOP, ROOF, B1,
   HELL_AT, LEDGES, SHELF, CHUTE_LEDGES, BEAMS, beamTop, WHOLE, WRECK, JAMS, pieceY, floorAt, CUCKOOS, FOES, DESCENT_FOES, SECURITY, PICKUPS, CAR_TOP,
-  LIFT, liftY, ROTTEN, TORN_NET, LADDER_SPOTS, type TowerFoe, type FoeAt, type Piece,
+  LIFT, liftY, ROTTEN, TORN_NET, LADDER_SPOTS, TRUSS, CATWALK, CRACKED, WORKS_Y, HEART, type TowerFoe, type FoeAt, type Piece,
 } from './layout';
 import {
   type Dressed, MEATHEAD_HOW, MEATHEAD_ASK, OPERATOR_REFUSE, MEATHEAD_REFUSED, OPERATOR_SECURITY, OPERATOR_SPIEL, OPERATOR_AFTER, OPERATOR_NEXT,
   RIDER_DROP, RIDER_REAL, RIDER_RISE, MEATHEAD_BEAM_SIGN, MEATHEAD_BEAM_BROKE, MEATHEAD_WOBBLE, MEATHEAD_MAIN, MEATHEAD_CRASH, MEATHEAD_JUMP,
-  MEATHEAD_DOWN, MEATHEAD_LAMP, MEATHEAD_BASE, MEATHEAD_CHUTE,
+  MEATHEAD_DOWN, MEATHEAD_LAMP, MEATHEAD_BASE, MEATHEAD_CHUTE, MEATHEAD_HEART,
 } from './lines';
+import { awardHealth, healthWon, openHealthCard, tickHealthCard, type HealthCard } from '../../upgrades/healthAward';
 
 const dressed = (state: GameState): Dressed => (isNude(state) ? 'nude' : isShat(state) ? 'shitty' : 'clean');
 const OP = 'm2.hellop';
@@ -108,6 +109,10 @@ interface Tower {
   riderCar?: Car;
   /** He's seen a car go first thing in the tower (one sent up the shaft as he comes in). */
   firstCar?: boolean;
+  /** The works' catwalk's cracked boards, after: 0 whole, >0 cracking (frames), <0 gone (frames gone). */
+  cracked: number[];
+  /** The heart canister's still up there (after; not found on this save); its card, up. */
+  heart: boolean; heartCard: HealthCard | null;
 }
 const towerOf = (state: GameState) => spookyState<Tower>(state, 'tower', () => ({
   talk: talk(), ride: newRide(), beamHp: BEAMS.map(b => b.hp), beamMove: BEAMS.map(() => -1),
@@ -115,6 +120,7 @@ const towerOf = (state: GameState) => spookyState<Tower>(state, 'tower', () => (
   how: false, asked: false, securityOut: false, afterSaid: false, signSaid: false, mainSaid: false,
   downSaid: false, lampSaid: false, baseSaid: false, chuteSaid: false, jumped: false, leftTop: false,
   spielAt: -99999, wobbleAt: 0, wobbleN: 0, opSaid: null, riderSaid: null, sway: 0, swayV: 0, crash: null, fallCam: false, rumbleAt: 0, age: 0, pull: 0, rot: ROTTEN.boards.map(() => 0), blinded: new Set(),
+  cracked: CRACKED.map(() => 0), heart: false, heartCard: null,
 }));
 const brokenOf = (t: Tower) => t.beamHp.filter(h => h <= 0).length;
 
@@ -295,6 +301,7 @@ const afterCrash = (state: GameState, t: Tower, quiet: boolean) => {
   state.enemies = state.enemies.filter(e => !(e.kind?.startsWith('m2:') && isFoe(e) && e.health > 0 && e.pos.x + e.width / 2 >= x0 && e.pos.x + e.width / 2 <= x1));
   spawnAll(state, DESCENT_FOES, true, 200);
   addPickups(state, true);
+  layWorks(state, t);
 };
 
 const endCrash = (state: GameState, t: Tower, skipped: boolean) => {
@@ -380,6 +387,57 @@ const runRotten = (state: GameState, t: Tower) => {
       for (let j = 0; j < 12; j++) state.particles.push({ pos: { x: U(a) + Math.random() * (b - a), y: y + 6 }, vel: { x: (Math.random() - 0.5) * 3, y: 1 + Math.random() * 3 }, life: 50, color: j % 2 ? '#5B3A1A' : '#3F2812', size: 4 + Math.random() * 5, grav: 0.3, chunk: true });
     }
   });
+};
+
+// ---------------------------------------------------------------------------------------------------------------
+// The works, after: the truss, the catwalk and its cracked boards, the heart canister at its end (layout.ts WORKS)
+
+const CRACK = (i: number) => `tw-crack-${i}`;
+const layWorks = (state: GameState, t: Tower) => {
+  ledge(state, TRUSS[0], TRUSS[1], TRUSS[2], { tag: 'tw-works', hidden: true });
+  for (const [x, w] of CATWALK) ledge(state, x, WORKS_Y, w, { tag: 'tw-works', hidden: true });
+  CRACKED.forEach(([a, b], i) => { t.cracked[i] = 0; ledge(state, U(a), WORKS_Y, b - a, { tag: CRACK(i), hidden: true }); });
+  t.heart = !healthWon(HEART.land, HEART.id);
+};
+/** How long a cracked board holds him, and how long it's gone before it's back (wedged back in by the sway). */
+const CRACK_HOLD = 26, CRACK_BACK = 240;
+const runWorks = (ctx: FrameContext, t: Tower) => {
+  if (!t.crashed) return;
+  const { state } = ctx, p = state.player, feet = p.pos.y + p.height;
+  CRACKED.forEach(([a, b], i) => {
+    const st = t.cracked[i];
+    const over = p.pos.x + p.width > U(a) && p.pos.x < U(b);
+    if (st < 0) {
+      // (back once he's nowhere near where it goes)
+      if (--t.cracked[i] < -CRACK_BACK && !(over && Math.abs(feet - WORKS_Y) < 70)) { t.cracked[i] = 0; ledge(state, U(a), WORKS_Y, b - a, { tag: CRACK(i), hidden: true }); }
+      return;
+    }
+    const on = p.isGrounded && Math.abs(feet - WORKS_Y) < 3 && p.pos.x + p.width > U(a) + 4 && p.pos.x < U(b) - 4;
+    if (st === 0 && on) { t.cracked[i] = 1; playSound('crack', 0.6, 8); }
+    else if (st > 0 && ++t.cracked[i] > CRACK_HOLD) {
+      state.blocks = state.blocks.filter(k => k.tag !== CRACK(i));
+      t.cracked[i] = -1;
+      playSound('crack', 0.9, -2); playSound('crumble', 0.7);
+      for (let j = 0; j < 10; j++) state.particles.push({ pos: { x: U(a) + Math.random() * (b - a), y: WORKS_Y + 6 }, vel: { x: (Math.random() - 0.5) * 3, y: 1 + Math.random() * 3 }, life: 50, color: j % 2 ? '#5B3A1A' : '#3F2812', size: 3 + Math.random() * 4, grav: 0.3, chunk: true });
+    }
+  });
+  // The heart canister: touched, it's his (kept for good, the save written), the card up with its buffer
+  if (!t.heart || p.health <= 0) return;
+  const cx = p.pos.x + p.width / 2;
+  if (Math.abs(cx - HEART.x) > 30 || p.pos.y > HEART.y - 6 || feet < HEART.y - 56) return;
+  t.heart = false;
+  playSound('powerup', 0.6, 4);
+  for (let j = 0; j < 22; j++) state.particles.push({ pos: { x: HEART.x + (Math.random() - 0.5) * 20, y: HEART.y - 26 + (Math.random() - 0.5) * 24 }, vel: { x: (Math.random() - 0.5) * 5, y: -1 - Math.random() * 4 }, life: 36, color: j % 3 ? '#F87171' : '#FDE68A', size: 2 + Math.random() * 2, grav: 0.08 });
+  if (awardHealth(HEART.land, HEART.id)) { t.heartCard = openHealthCard(); p.inCutscene = true; p.vel.x = 0; }
+};
+/** The card's up: him held (nobody moves on him meanwhile), till a fresh press after its buffer; then his line. */
+const runHeartCard = (state: GameState, t: Tower) => {
+  const p = state.player;
+  p.inCutscene = true; p.vel.x = 0;
+  for (const e of state.enemies) e.pauseTimer = Math.max(e.pauseTimer ?? 0, 2);
+  if (!tickHealthCard(t.heartCard!, state.frame)) return;
+  t.heartCard = null; p.inCutscene = false;
+  meatheadSays(state, pick(MEATHEAD_HEART[dressed(state)]));
 };
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -584,6 +642,7 @@ export const tower: SpookySection = {
     });
     t.ride.cars = t.ride.cars.filter(c => !(c.crash && c.y > HELL_AT + 500));
     if (t.crash) return runCrash(ctx, t);
+    if (t.heartCard) { runHeartCard(state, t); return hands(); }
     // The way back to the dungeon: its door at the bay's left end (walked on into: through, out of its other side, the
     // door at the dungeon's far end: dungeon/stairs.ts)
     if (useDoor(state, ENTRY_DOOR_X + 10, GY, -1, () => { teleport(state, DOORS.dungeon.end.x, DOORS.dungeon.end.y); p.facing = -1; })) return controls;
@@ -591,6 +650,8 @@ export const tower: SpookySection = {
     updateThrown(ctx);
     runLift(state);
     runRotten(state, t);
+    runWorks(ctx, t);
+    if (t.heartCard) return hands();
     // (just started again: a moment before anything's shaken loose over him)
     // (the beams still up: cover; the town's staff in here don't see him through them either: held, unnoticing)
     cover.length = 0;
@@ -691,7 +752,7 @@ export const tower: SpookySection = {
   drawBackdrop: (c, state) => { drawTowerBackdrop(c, state); return true; },
   drawBack: (c, state) => {
     const t = towerOf(state);
-    drawTowerBack(c, state, { rot: t.rot, ride: t.ride, broken: brokenOf(t), beamHp: t.beamHp, crashed: t.crashed, nets: t.nets, grate: t.grate, b1: t.b1, opTalking: !!t.opSaid, lamp: lampOn(t.ride, t.crashed) });
+    drawTowerBack(c, state, { rot: t.rot, ride: t.ride, broken: brokenOf(t), beamHp: t.beamHp, crashed: t.crashed, nets: t.nets, grate: t.grate, b1: t.b1, opTalking: !!t.opSaid, lamp: lampOn(t.ride, t.crashed), works: { cracked: t.cracked, heart: t.heart } });
     drawLadders(c, state, t.crashed ? LADDERS_DOWN : LADDERS_UP);
     // (the chute going on down into the dark, to hell: black by the bottom, where it cuts to hell's shaft)
     if (t.crashed) drawFallDark(c, state, HELL_AT - 820, HELL_AT - 430, TX0 - WALL - 600, TX1 + 600);

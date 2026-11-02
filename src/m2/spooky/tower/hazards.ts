@@ -85,7 +85,7 @@ export const gearAt = (g: GearDef, frame: number) => {
   const T = g.roll / 2.2, u = (frame % (T * 2)) / T, k = u < 1 ? u : 2 - u, x = g.x + k * g.roll;
   return { x, y: g.y, a: (x - g.x) / g.r };
 };
-export const gearsNow = (crashed: boolean) => GEARS.filter(g => !(crashed && g.wholeOnly));
+export const gearsNow = (crashed: boolean) => GEARS.filter(g => !(crashed && g.wholeOnly) && !(!crashed && g.wreckOnly));
 const runGears = (ctx: FrameContext, crashed: boolean) => {
   const { state } = ctx;
   // (anybody knocked into one: ground up; and they keep clear of them)

@@ -22,7 +22,7 @@ import {
 import {
   x0, ENTRY_DOOR_X, WAIT_SIGN_X, HOW_BOARD_X, QUEUE_X0, QUEUE_X1, BOOTH_X, PLATFORM_X0, PLATFORM_X1, STAFF_DOOR_X, BAY_TOP,
   TX0, TX1, W, U, WALL, SH0, SH1, SHM, SHX, DOCK_X, CAR_W, DOOR_H, F, STORIES, SLAB, TOP, ROOF, B1, CH0, CH1, HELL_AT, LEDGES, CHUTE_LEDGES, BEAMS, beamTop, PENDULUMS,
-  CUCKOOS, GALLERY, WHOLE, WRECK, JAMS, upRight, LIFT, liftY, ROTTEN, TORN_NET, SHELF, type Piece,
+  CUCKOOS, GALLERY, WHOLE, WRECK, JAMS, upRight, LIFT, liftY, ROTTEN, TORN_NET, SHELF, TRUSS, CATWALK, CRACKED, WORKS_Y, HEART, type Piece,
 } from './layout';
 import { GY } from '../geometry';
 import { drawTodSky, timeOfDay, hourMix, skyAt, skyRamp, farTint, type TimeOfDay } from '../../timeOfDay';
@@ -50,6 +50,8 @@ export interface TowerLook {
   lamp: boolean;
   /** Floor 5's rotten boards (0 whole, >0 cracking, <0 gone). */
   rot: number[];
+  /** After: the works' catwalk's cracked boards (0 whole, >0 cracking, <0 gone), the heart canister still up there. */
+  works?: { cracked: number[]; heart: boolean };
 }
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -1036,6 +1038,84 @@ const drawWinch = (c: Ctx, crashed: boolean) => {
 };
 
 // ---------------------------------------------------------------------------------------------------------------
+// The works, after: the truss jammed across the corner, the catwalk down on the bell's yoke (its hangers snapped), its
+// cracked boards, the heart canister at its end
+
+/** A plank walk's stretch: planks on an iron angle frame, a lit lip (somewhere to stand). */
+const catwalkRun = (c: Ctx, x: number, w: number, y: number) => {
+  box(c, x - 1, y - 1, w + 2, 17, INK);
+  box(c, x, y, w, 12, PLANK[2]); checker(c, x, y + 6, w, 2, PLANK[1]);
+  for (let bx = x + 18; bx < x + w - 2; bx += 22) box(c, bx, y + 3, 1, 9, PLANK[0]);
+  // (the angle iron under it, its rivets)
+  box(c, x, y + 12, w, 4, '#3A3A42'); box(c, x, y + 12, w, 1, '#7A7A86');
+  for (let rx = x + 6; rx < x + w - 2; rx += 20) box(c, rx, y + 13, 2, 2, '#9A9AA6');
+  box(c, x, y, w, 2, LIP_HI); box(c, x, y + 2, w, 2, LIP);
+};
+/** A chain, link by link, from (x, y0) down to y1. */
+const chain = (c: Ctx, x: number, y0: number, y1: number) => {
+  for (let y = y0; y < y1; y += 8) { const o = ((y - y0) / 8) % 2; box(c, x - 3 + o, y, 6 - o * 2, 7, INK); box(c, x - 2 + o, y + 1, 4 - o * 2, 5, o ? '#5A5A64' : '#8A8A96'); }
+};
+/** The heart canister (its foot's middle at x, y): brass caps, the glass, the heart in it beating, its red glow. Small
+ *  and cheap (painted live: the tower's always swaying by now). */
+export const drawHeartCanister = (c: Ctx, x: number, y: number, f: number) => {
+  const bob = ((f >> 4) % 4 === 1 || (f >> 4) % 4 === 2) ? -2 : 0, beat = (f % 48) < 6;
+  x = Math.round(x); y = Math.round(y) + bob;
+  steppedGlow(c, x, y - 24, 40, '#EF4444', 0.22, 0.0, 4);
+  // (the glass: banded across, the dark of the fluid, the shine down its left)
+  box(c, x - 13, y - 42, 26, 36, INK);
+  bandedGradient(c, x - 12, y - 41, 24, 34, ['#7A1414', '#9A1C1C', '#B42222', '#9A1C1C', '#6A1010'], 5);
+  // (the heart: a fat inked lump, stepped, its veins; swells on the beat)
+  const s = beat ? 1 : 0, hx = x, hy = y - 26;
+  box(c, hx - 8 - s, hy - 7 - s, 7 + s, 6 + s, INK); box(c, hx + 1, hy - 7 - s, 7 + s, 6 + s, INK);
+  box(c, hx - 9 - s, hy - 3, 18 + s * 2, 6, INK); box(c, hx - 7 - s, hy + 3, 14 + s * 2, 3, INK); box(c, hx - 4, hy + 6, 8, 2 + s, INK); box(c, hx - 2, hy + 8 + s, 4, 2, INK);
+  box(c, hx - 7 - s, hy - 6 - s, 5 + s, 5 + s, '#E53935'); box(c, hx + 2, hy - 6 - s, 5 + s, 5 + s, '#E53935');
+  box(c, hx - 8 - s, hy - 2, 16 + s * 2, 5, '#D32F2F'); box(c, hx - 6 - s, hy + 3, 12 + s * 2, 2, '#B71C1C'); box(c, hx - 3, hy + 5, 6, 2 + s, '#8E1414'); box(c, hx - 1, hy + 7 + s, 2, 2, '#6A0E0E');
+  box(c, hx - 6 - s, hy - 5 - s, 2, 2, '#FFCDD2'); box(c, hx - 5, hy - 2, 2, 1, '#FF8A80');
+  box(c, hx + 3, hy - 1, 1, 4, '#7A0E0E'); box(c, hx + 4, hy + 2, 2, 1, '#7A0E0E');
+  // (bubbles going up)
+  box(c, x + 6, y - 14 - ((f >> 2) % 20), 2, 2, '#FCA5A5'); box(c, x - 8, y - 12 - ((f >> 3) % 22), 1, 1, '#FCA5A5');
+  box(c, x - 11, y - 40, 2, 30, 'rgba(255, 220, 220, 0.55)'); box(c, x - 8, y - 40, 1, 22, 'rgba(255, 220, 220, 0.3)');
+  // (the caps: brass, stepped, a lit rim; the bolt heads)
+  slab(c, x - 15, y - 48, 30, 8, BRASS, { edge: 2 }); box(c, x - 15, y - 48, 30, 1, '#F2D27A');
+  slab(c, x - 15, y - 8, 30, 8, BRASS, { edge: 2 }); box(c, x - 15, y - 8, 30, 1, '#F2D27A');
+  box(c, x - 4, y - 52, 8, 4, INK); box(c, x - 3, y - 51, 6, 2, '#D8A83A');
+  for (const bx of [x - 11, x + 9]) { box(c, bx, y - 46, 2, 2, '#5A3A08'); box(c, bx, y - 6, 2, 2, '#5A3A08'); }
+  // (the glint off the cap, now and then)
+  if ((f % 90) < 8) box(c, x - 10 + (f % 90) * 2, y - 47, 3, 1, '#FFFFFF');
+};
+const drawWorks = (c: Ctx, f: number, w: { cracked: number[]; heart: boolean }) => {
+  // (the catwalk's hangers: snapped, their ends dangling from the roof's hooks; the two that held, at its ends)
+  for (const hx of [U(860), U(1000), U(1080)]) { box(c, hx - 4, ROOF, 8, 6, INK); chain(c, hx, ROOF + 4, ROOF + 44 + ((hx >> 3) % 3) * 8); }
+  for (const hx of [U(798), U(1144)]) { box(c, hx - 4, ROOF, 8, 6, INK); chain(c, hx, ROOF + 4, WORKS_Y); }
+  // the truss, jammed across the corner against the shaft's lattice: a roof timber, split ends, a lit top
+  {
+    const [x, y, tw] = TRUSS;
+    box(c, x - 1, y - 1, tw + 2, 22, INK);
+    box(c, x, y, tw, 20, OAK); box(c, x, y + 14, tw, 6, '#3E2616'); checker(c, x, y + 8, tw, 2, '#4A2E1A');
+    for (let gx = x + 10; gx < x + tw - 6; gx += 26) box(c, gx, y + 5, 14, 1, '#3E2616');
+    // (its broken end: splinters off it)
+    for (let i = 0; i < 4; i++) { box(c, x + tw, y + 2 + i * 5, 6 + ((i * 7) % 9), 3, INK); box(c, x + tw, y + 3 + i * 5, 4 + ((i * 7) % 9), 1, '#7A5232'); }
+    box(c, x - 4, y + 4, 6, 12, IRON); box(c, x - 4, y + 4, 6, 1, '#8A8A96');
+    box(c, x, y, tw, 2, LIP_HI); box(c, x, y + 2, tw, 2, LIP);
+  }
+  // the catwalk
+  for (const [x, cw] of CATWALK) catwalkRun(c, x, cw, WORKS_Y);
+  // its cracked boards (cracking: shaking; gone: the broken ends, either side)
+  CRACKED.forEach(([a, b], i) => {
+    const st = w.cracked[i], y = WORKS_Y;
+    if (st < 0) { box(c, U(a), y, 5, 12, INK); box(c, U(a), y, 4, 10, PLANK[1]); box(c, U(b) - 5, y, 5, 9, INK); box(c, U(b) - 4, y, 4, 7, PLANK[1]); return; }
+    const sh = st > 0 ? Math.round(Math.sin(st * 1.7) * 2) : 0, l = U(a) + sh, bw = b - a;
+    box(c, l - 1, y - 1, bw + 2, 15, INK);
+    box(c, l, y, bw, 12, '#5A4426'); checker(c, l, y + 6, bw, 2, '#4A3A20');
+    box(c, l + 6, y + 6, 8, 4, '#4A5236');
+    c.strokeStyle = INK; c.lineWidth = 1; c.beginPath(); c.moveTo(l + 4, y + 3); c.lineTo(l + bw * 0.5, y + 9); c.lineTo(l + bw - 6, y + 4); c.stroke();
+    box(c, l, y, bw, 2, '#B89A50'); box(c, l, y + 2, bw, 1, '#8A6A30');
+    if (st > 0) for (let j = 0; j < 2; j++) box(c, l + 6 + j * 14, y + 8, 5, 3, INK);
+  });
+  if (w.heart) drawHeartCanister(c, HEART.x, HEART.y, f);
+};
+
+// ---------------------------------------------------------------------------------------------------------------
 // The beams (LOAD-BEARING. DO NOT RAM)
 
 const BEAM_COL = { wood: '#8A5A2E', steel: '#6A7484', main: '#8A3418' } as const;
@@ -1363,6 +1443,8 @@ export const drawTowerBack = (c: Ctx, state: GameState, look: TowerLook) => {
     for (let bx = x + 26; bx < x + w - 4; bx += 34) box(c, bx, y + 4, 1, 9, PLANK[0]);
     box(c, x, y, w, 2, LIP_HI); box(c, x, y + 2, w, 2, LIP);
   }
+  // the works, after (the hidden heart canister's way)
+  if (look.crashed && look.works && v.y0 < WORKS_Y + 120) drawWorks(c, f, look.works);
   // floor 3's counterweight: a ton of iron on its chain, a lit lip on its top (ride it)
   if (F(LIFT.k) + 40 > v.y0 && LIFT.top - 400 < v.y1) {
     const ly = liftY(f), cx = LIFT.x + LIFT.w / 2;

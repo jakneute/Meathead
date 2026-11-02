@@ -124,6 +124,8 @@ import CheckpointPicker from '../m1/components/CheckpointPicker';
 import ChordPrompt from './ChordPrompt';
 import PieceGotCard from './upgrades/PieceGotCard';
 import ShardGotCard from './upgrades/ShardGotCard';
+import HealthGotCard from './upgrades/HealthGotCard';
+import AmmoGotCard from './upgrades/AmmoGotCard';
 import BumperCard from './cartoon/bigkid/BumperCard';
 import MinigameAsk from './MinigameAsk';
 import { pauseCard } from './PauseControls';
@@ -796,6 +798,10 @@ const App2: React.FC = () => {
         {status === GameStatus.PLAYING && ui.gotPiece && <PieceGotCard piece={ui.gotPiece} ready={!!ui.gotPieceReady} />}
         {/* A charge shard just won (upgrades/shardAward.ts); Cartoon Land's bumper cars' controls card */}
         {status === GameStatus.PLAYING && ui.gotShard && <ShardGotCard ready={ui.gotShard.ready} />}
+        {/* A max health find just picked up (upgrades/healthAward.ts) */}
+        {status === GameStatus.PLAYING && ui.gotHealth && <HealthGotCard ready={ui.gotHealth.ready} />}
+        {/* A max ammo find just picked up (upgrades/ammoAward.ts) */}
+        {status === GameStatus.PLAYING && ui.gotAmmo && <AmmoGotCard ready={ui.gotAmmo.ready} />}
         {status === GameStatus.PLAYING && ui.bumperCard && <BumperCard ready={ui.bumperCard.ready} />}
         {status === GameStatus.PLAYING && ui.minigameAsk && <MinigameAsk title={ui.minigameAsk.title} text={ui.minigameAsk.text} ready={ui.minigameAsk.ready} />}
         {/* A beatdown to do here (CON-FUCK-TIOUS's pebble) */}
