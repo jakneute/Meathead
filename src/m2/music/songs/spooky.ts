@@ -30,6 +30,7 @@
 //   hell      the real thing: the hook sung by the choir over the whole band, a low choir, the organ's pedal, taiko
 //   control   Donnie's own canned tour music on his booth's monitors: vibes, tine piano, upright, brushes, muffled
 //   giftshop  the gift shop chase (the control section past SHOP_X): the square lead out front, the whole band
+//   arcade    MONSTER MASH's cabinet at the arcade (town/mash): the theme off a cheap arcade board, square lead and pulses
 //   ballroom  the foyer's wedding band before the fight: the violin, stride piano, upright, brushes, strings
 //   cutscene  the hook on a violin, slow strings, the harpsichord soft, the bass
 //   boss      (a fight without a theme) the whole band with taiko
@@ -185,6 +186,15 @@ export const LAND_SPOOKY: Song = {
       lowpass: 2800, level: 0.7,
     },
     giftshop: { inst: { hook: 'squarelead' }, vol: { kit: 1.15, hook: 0.9, power: 1.15 } },
+    // MONSTER MASH's cabinet (town/mash): the theme out of a cheap 1993 arcade board: square lead, pulse arps, a synth
+    // bass, the kit; tinny (filtered), dry
+    arcade: {
+      solo: ['hook', 'harpsi', 'bass', 'kit', 'counter'],
+      inst: { hook: 'squarelead', harpsi: 'pwm', bass: 'synthbass', counter: 'sawlead' },
+      vol: { hook: 0.85, harpsi: 0.5, bass: 0.8, kit: 0.9, counter: 0.35 },
+      rev: { hook: 0.08, harpsi: 0.06, counter: 0.08 },
+      lowpass: 4200, level: 0.8,
+    },
     ballroom: {
       solo: ['hook', 'piano', 'bass', 'brushes', 'strings', 'counter', 'chimes'],
       inst: { hook: 'violin', bass: 'upright', strings: 'slowstrings' },

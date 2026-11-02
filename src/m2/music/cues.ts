@@ -78,6 +78,7 @@ import { whOf, COLLAPSED_MEMO } from '../cartoon/whitehouse1/state';
 import { wh2Of } from '../cartoon/whitehouse2/state';
 import { stupidDadMusic } from '../cartoon/amphi/index';
 import { bumperMusic } from '../cartoon/bigkid/bumper';
+import { mashMusic } from '../spooky/town/mash';
 
 export type { Cue };
 
@@ -415,6 +416,8 @@ const SATAN_ARR: Record<string, string> = { whine: 'whine', sink: 'whine', leave
  *  coming down: the run), and Satan's finale. */
 const spookyMoment = (s: GameState, sec: string): Cand | null => {
   const own = spookyOwn(s);
+  // (MONSTER MASH's cabinet up: the land's song as a cheap arcade loop)
+  if (sec === 'town') { const arr = mashMusic(s); if (arr) return { song: 'land:spooky', arrs: [arr] }; }
   if (sec === 'dungeon') {
     const room = own.dungeon?.room;
     if (room === 'armed' || room === 'down') return { song: 'seq:ceiling', arrs: [room === 'armed' ? 'ceiling' : 'chase'] };

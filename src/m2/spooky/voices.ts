@@ -8,5 +8,6 @@ import { VOICE_LINES as tower } from './tower/lines';
 import { VOICE_LINES as hell } from './hell/lines';
 import { VOICE_LINES as control } from './control/lines';
 import { VOICE_LINES as ballroom } from './ballroom/lines';
+import { VOICE_LINES as mash } from './town/mash/lines';
 
-export const SPOOKY_VOICE_LINES: Record<string, string[]>[] = [town, castle, dungeon, tower, hell, control, ballroom];
+export const SPOOKY_VOICE_LINES: Record<string, string[]>[] = [town, castle, dungeon, tower, hell, control, ballroom, mash];
