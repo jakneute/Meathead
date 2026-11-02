@@ -128,6 +128,7 @@ import HealthGotCard from './upgrades/HealthGotCard';
 import AmmoGotCard from './upgrades/AmmoGotCard';
 import BumperCard from './cartoon/bigkid/BumperCard';
 import MinigameAsk from './MinigameAsk';
+import MinigameCard from './MinigameCard';
 import { pauseCard } from './PauseControls';
 import { syncMinigame, liveMinigame, setGamePaused } from './minigamePause';
 import { holdM2Presses } from './input';
@@ -803,6 +804,7 @@ const App2: React.FC = () => {
         {/* A max ammo find just picked up (upgrades/ammoAward.ts) */}
         {status === GameStatus.PLAYING && ui.gotAmmo && <AmmoGotCard ready={ui.gotAmmo.ready} />}
         {status === GameStatus.PLAYING && ui.bumperCard && <BumperCard ready={ui.bumperCard.ready} />}
+        {status === GameStatus.PLAYING && ui.minigameCard && <MinigameCard title={ui.minigameCard.title} rows={ui.minigameCard.rows} text={ui.minigameCard.text} ready={ui.minigameCard.ready} />}
         {status === GameStatus.PLAYING && ui.minigameAsk && <MinigameAsk title={ui.minigameAsk.title} text={ui.minigameAsk.text} ready={ui.minigameAsk.ready} />}
         {/* A beatdown to do here (CON-FUCK-TIOUS's pebble) */}
         {status === GameStatus.PLAYING && ui.map === null && !ui.introCutscene && ui.beatPrompt && !ui.upPrompt && (

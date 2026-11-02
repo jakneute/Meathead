@@ -14,10 +14,14 @@ import { drawSky, drawClouds, drawBlimp, drawFarHills, drawFarSkyline, drawGiant
 import { drawGoingBack, drawPlayPlane, drawPitDressing, type Ground } from '../square/ground';
 import { type Shop, type Block, drawSides, drawShopFront, shopBlocks } from '../square/buildings';
 import { drawLamp, drawSpeaker, drawBigSign } from '../square/props';
-import { X, Y, T1, T2, LEDGES, LAMPS, SPEAKERS, LIFT_X } from './layout';
+import { X, Y, T1, T2, LEDGES, LAMPS, SPEAKERS, LIFT_X, STREET1 } from './layout';
+import { STORE_BLOCK } from './area51Art';
 import { drawFlSkyBits, drawFlHorizon, drawFlXeno } from '../landmarks';
 
-const { x0, x1 } = SECTIONS.drag;
+const { x0 } = SECTIONS.drag;
+/** (the street's end for the backdrop's progress: where the drag used to end, before it ran on past the needle to
+ *  ALIEN GIFTS & NOVELTIES (area51.ts); the walk drawn out to the new end) */
+const x1 = X(7500), WALK1 = X(STREET1);
 
 export const drawDragBackdrop = (c: Ctx, state: GameState) => {
   drawSky(c, state);
@@ -56,7 +60,7 @@ const SHOPS: Shop[] = [
 
 const GROUND: Ground = {
   id: 'dr',
-  floor: [[x0 - 200, X(T1.a)], [X(T1.b), X(T2.a)], [X(T2.b), x1 + 200]],
+  floor: [[x0 - 200, X(T1.a)], [X(T1.b), X(T2.a)], [X(T2.b), WALK1 + 200]],
   pits: [{ a: X(T1.a), b: X(T1.b), kind: 'trench' }, { a: X(T2.a), b: X(T2.b), kind: 'lagoon' }],
 };
 
@@ -64,6 +68,7 @@ const LX = X(LIFT_X);
 const BLOCKS: Block[] = [
   ...shopBlocks(SHOPS, GY, true),
   { x0: LX - 140, x1: LX + 140, top: GY - 150, bottom: GY, col: '#FDA4AF', noTop: true },
+  STORE_BLOCK,
 ];
 
 const signs = (c: Ctx, state: GameState) => {
@@ -148,13 +153,15 @@ const base = (c: Ctx, state: GameState) => {
   still(c, 'spc-needlebase', LX, GY, -380, -562, 760, 564, paintBase);
 };
 
-/** `mid`: what goes on the walk, in front of the shops but behind the furniture (the track, the gear, the landing). */
-export const drawDragBack = (c: Ctx, state: GameState, mid?: () => void) => snapPx(c, () => {
+/** `mid`: what goes on the walk, in front of the shops but behind the furniture (the track, the gear, the landing).
+ *  `shops`: more shopfronts, drawn with the street's (ALIEN GIFTS & NOVELTIES). */
+export const drawDragBack = (c: Ctx, state: GameState, mid?: () => void, shops?: () => void) => snapPx(c, () => {
   const v = viewOf(state);
   drawGoingBack(c, v, GROUND);
   drawSides(c, v, BLOCKS);
   for (const sh of SHOPS) drawShopFront(c, state, sh, GY);
   base(c, state);
+  shops?.();
   drawPlayPlane(c, v, GROUND);
   drawPitDressing(c, v, GROUND);
   mid?.();

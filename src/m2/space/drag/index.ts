@@ -15,6 +15,7 @@ import { makeKindEnemy } from '../../../m1/game/enemies/kinds';
 import { playSound } from '../../../m1/game/platform/audio';
 import { CANVAS_WIDTH } from '../../../m1/constants';
 import type { SpaceSection } from '../section';
+import { setUi } from '../../store';
 import { layOwn, ledge, endWalls, meatheadSays, saidOver, teleport } from '../section';
 import { SECTIONS, DOORS, GY } from '../geometry';
 import { X, Y, GROUND, LEDGES, SAUCERS as SAUCER_DEFS, BELTS, PLATES, PADS, MONO, TRACK, TRACK_LEGS, ENEMIES, PICKUPS, CHECKPOINTS, T1, T2, LIFT_X, SPEAKERS, SMEAR } from './layout';
@@ -26,6 +27,9 @@ import { FALL_SCREAM, PAD_LAUNCHED, MONO_RIDE } from '../square/lines';
 import { drawDragBackdrop, drawDragBack, drawDragSpeakers, dragLamps } from './art';
 import { landingDue, startLanding, runLanding, drawLanding, drawLandingHud, launchOntoDrag, LANDED_MEMO } from './landing';
 import { LANDED, SMEAR_AGAIN, PA_EJECT, NEEDLE_SEEN, SAUCERS, THIRD_RAIL, MOVER_BACK, NEEDLE_BASE } from './lines';
+import { buildA51, updateA51, drawA51Store, drawA51Room, drawA51Words, drawA51Hud, a51Camera, inA51Room, a51Open } from './area51';
+import { storeLamps } from './area51Art';
+import { A51_STOP, ROOM, STREET1 } from './layout';
 
 export { launchOntoDrag };
 
@@ -33,7 +37,7 @@ const { x0, x1 } = SECTIONS.drag;
 const pick = pickLine;
 void LANDED;
 
-interface Dr { gear: Gear; last: number }
+interface Dr { gear: Gear; last: number; upWas: boolean }
 const DR = new WeakMap<object, Dr>();
 const mine = (state: GameState) => DR.get(state.stage as object);
 
@@ -52,7 +56,13 @@ export const drag: SpaceSection = {
       monos: [{ a: X(MONO.a), b: X(MONO.b), y: Y(TRACK.h), len: MONO.len, v: MONO.v, period: MONO.period, off: MONO.off }],
       saucers: SAUCER_DEFS.map(([x, h, w, ax, ay, period, phase]) => [X(x), Y(h), w, ax, ay, period, phase]),
     });
-    DR.set(state.stage as object, { gear, last: -99 });
+    DR.set(state.stage as object, { gear, last: -99, upWas: true });
+    // (past the needle's doors: the street's end at ALIEN GIFTS & NOVELTIES' door (two feet of steel), and the room behind
+    // it, off on its own (area51.ts))
+    state.blocks.push({ x: X(A51_STOP), y: -6000, w: X(STREET1) + 60 - X(A51_STOP), h: 8000, type: 'wall', hidden: true, tag: 'drag-a51' } as never);
+    state.blocks.push({ x: X(ROOM.a) - 40, y: -6000, w: 40, h: 8000, type: 'wall', hidden: true, tag: 'drag-a51' } as never);
+    state.blocks.push({ x: X(ROOM.b), y: -6000, w: 40, h: 8000, type: 'wall', hidden: true, tag: 'drag-a51' } as never);
+    buildA51(state);
     // (starting from one of the drag's checkpoints: he's been launched already; the smear's there)
     if (state.checkpoint >= 30) state.stageMemo[LANDED_MEMO] = '1';
     ENEMIES.forEach(([kind, rx, h], i) => {
@@ -73,6 +83,9 @@ export const drag: SpaceSection = {
     updateShots(ctx);
     const scene = runLanding(ctx);
     if (scene) return scene;
+    // (ALIEN GIFTS & NOVELTIES past the needle: the door, the lock, the room (area51.ts))
+    controls = updateA51(ctx, controls);
+    if (p.inCutscene) return controls;
     const rx = p.pos.x + p.width / 2 - x0;
     const once = (k: string, go: () => void) => { if (!o.said[k]) { o.said[k] = true; go(); } };
     // (his say, not over the PA's: it waits till that's done)
@@ -93,18 +106,21 @@ export const drag: SpaceSection = {
       o.said.falling = true; meatheadSays(state, pick(FALL_SCREAM), false); playSound('whoosh', 0.8, -8);
     }
     // In at the lift (up the needle: its start). No going back into the atom: the launch is one-way (the user's rule)
-    // (the needle's doors, at the drag's end: walked on into, he's in. No up, no animation (the user's: "any transitions
-    // with a door at the edge just goes through automatically"))
-    const feet = p.pos.y + p.height;
-    if (!p.inCutscene && p.health > 0 && p.pos.x + p.width / 2 >= X(LIFT_X) - 20 && feet >= GY - 40 && feet <= GY + 2) {
-      teleport(state, DOORS.needle.start.x, DOORS.needle.start.y); p.facing = 1; return controls;
+    // (the needle's doors: UP goes in now (the owner: "you now need to press up to enter the lobby"), so he can walk on
+    // past them to ALIEN GIFTS & NOVELTIES)
+    const feet = p.pos.y + p.height, upPress = !!controls.up && !dr.upWas;
+    dr.upWas = !!controls.up;
+    if (!p.inCutscene && p.health > 0 && p.isGrounded && Math.abs(p.pos.x + p.width / 2 - X(LIFT_X)) < 50 && feet >= GY - 6 && feet <= GY + 2) {
+      setUi({ upPrompt: 'ENTER' });
+      if (upPress) { teleport(state, DOORS.needle.start.x, DOORS.needle.start.y); p.facing = 1; return { ...controls, up: false }; }
     }
     return controls;
   },
   drawBackdrop: (c, state) => drawDragBackdrop(c, state),
   drawBack: (c, state) => {
     const dr = mine(state);
-    drawDragBack(c, state, () => { if (dr) { drawTrack(c, state, dr.gear.monos[0], TRACK_LEGS.map(X), [[X(T1.a), X(T1.b)], [X(T2.a), X(T2.b)]]); drawGearBack(c, state, dr.gear); } drawLanding(c, state); });
+    drawDragBack(c, state, () => { if (dr) { drawTrack(c, state, dr.gear.monos[0], TRACK_LEGS.map(X), [[X(T1.a), X(T1.b)], [X(T2.a), X(T2.b)]]); drawGearBack(c, state, dr.gear); } drawLanding(c, state); }, () => drawA51Store(c, state));
+    drawA51Room(c, state);
     drawDragSpeakers(c, state, !!outOf(state).pa);
   },
   drawFront: (c, state) => {
@@ -112,6 +128,7 @@ export const drag: SpaceSection = {
     if (dr) drawGearFront(c, state, dr.gear);
     drawShots(c, state);
     drawBarks(c, state, saidOver);
+    drawA51Words(c, state);
     const s = outOf(state).pa;
     if (s && state.player.pos.x > x0 - 400) {
       const cx = state.camera.x + CANVAS_WIDTH / 2;
@@ -120,8 +137,10 @@ export const drag: SpaceSection = {
       if (bd < CANVAS_WIDTH) saidOver(c, s.text, X(best[0]) + 24, Y(best[1]) - 22, '#FDE047', 300);
     }
   },
-  drawHud: (c, state) => drawLandingHud(c, state),
-  outdoors: () => 1,
-  lamps: () => dragLamps(),
+  drawHud: (c, state) => { drawLandingHud(c, state); drawA51Hud(c, state); },
+  // (the camera out to the street's end past the needle (the store's not hidden); in the room, held on it)
+  cameraX: (state) => a51Camera(state, x0),
+  outdoors: (state) => (inA51Room(state) ? 0 : 1),
+  lamps: (state) => (inA51Room(state) ? [] : [...dragLamps(), ...storeLamps(a51Open(state))]),
 };
 void T2;

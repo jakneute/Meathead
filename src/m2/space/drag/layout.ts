@@ -31,7 +31,18 @@ export const LIFT_X = 7380;
 export const SMEAR = { a: 250, b: 560 } as const;
 export const WRECK_X = 640;
 
-export const GROUND: [number, number][] = [[-200, T1.a], [T1.b, T2.a], [T2.b, 7700]];
+/** Past the needle's lobby (UP goes in now: he can walk on by): the street runs on to ALIEN GIFTS & NOVELTIES (area51.ts),
+ *  the camera with it. STREET1: the street's end (its last screen ends there). The store's front; its door (its
+ *  middle, and where he's stopped at it: the door's two feet of steel); the room behind it, off on its own (one fixed
+ *  screen, ROOM.a..ROOM.b, out past the end of the street: UP in at the door). */
+export const STREET1 = 8300;
+export const STORE = { a: 7810, b: 8250 } as const;
+export const A51_DOOR = 8140, A51_STOP = 8142;
+/** The bent paperclip lying on the walk on the way up to the door (area51.ts: he picks it up; it's his pick). */
+export const A51_CLIP = 8066;
+export const ROOM = { a: 8800, b: 9600 } as const;
+
+export const GROUND: [number, number][] = [[-200, T1.a], [T1.b, T2.a], [T2.b, STREET1 + 100], [ROOM.a - 40, ROOM.b + 40]];
 export type LedgeWhat = 'roof' | 'steps' | 'balcony';
 export const LEDGES: [number, number, number, LedgeWhat][] = [
   [3240, 110, 120, 'steps'],

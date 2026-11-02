@@ -18666,6 +18666,11 @@
  },
  {
   "voice": "m2.ben",
+  "text": "DON'T HIT BACK. TAKE IT. LIKE A MARRIAGE.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.ben",
   "text": "DON'T LEAN ON IT. HIT IT.",
   "from": "UPGRADES"
  },
@@ -18692,6 +18697,11 @@
  {
   "voice": "m2.ben",
   "text": "FLOATING. YOUR MOTHER WOULD BE PROUD. SHE THREW YOU OFF A PORCH ONCE.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.ben",
+  "text": "FOR AGES FOUR AND UP. YOU TAKE ENOUGH SHIT, YOU SCREAM, AND EVERYBODY ON SCREEN EATS IT.",
   "from": "UPGRADES"
  },
  {
@@ -18756,7 +18766,17 @@
  },
  {
   "voice": "m2.ben",
+  "text": "GOOD. YOUR FACE IS DOING THE THING.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.ben",
   "text": "GRAVITY ONE, MEATHEAD ZERO.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.ben",
+  "text": "HANDS DOWN. LET THE KNIGHT WORK.",
   "from": "UPGRADES"
  },
  {
@@ -18831,6 +18851,11 @@
  },
  {
   "voice": "m2.ben",
+  "text": "KEEP IT. FOR AGES FOUR AND UP. YOU BARELY QUALIFY.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.ben",
   "text": "KEEP IT. THE TAG STAYS ON. IF YOU DIE IN IT, I WANT MY NINE NINETY-NINE BACK.",
   "from": "UPGRADES"
  },
@@ -18851,6 +18876,16 @@
  },
  {
   "voice": "m2.ben",
+  "text": "LOUDER THAN MY EX. GOOD.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.ben",
+  "text": "MOST BEAUTIFUL THING I EVER HEARD. YOU PASS.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.ben",
   "text": "MY MOTHER PUSHES HARDER. SHE USES A WALKER.",
   "from": "UPGRADES"
  },
@@ -18867,6 +18902,11 @@
  {
   "voice": "m2.ben",
   "text": "NAKED IN MY GYM. AT LEAST WIPE DOWN THE BENCH AFTER.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.ben",
+  "text": "NO IDEA. GRANDPA ONLY TAUGHT ME THE WORD FOR SOY SAUCE. AND I FORGOT IT.",
   "from": "UPGRADES"
  },
  {
@@ -19011,6 +19051,11 @@
  },
  {
   "voice": "m2.ben",
+  "text": "STOP PUNCHING THE TOYS.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.ben",
   "text": "SUGOI. THAT'S ALL THE JAPANESE MY GRANDPA LEFT ME.",
   "from": "UPGRADES"
  },
@@ -19052,6 +19097,11 @@
  {
   "voice": "m2.ben",
   "text": "THAT'S A WRAP. YOU PASS. I'M GETTING CHOKED UP.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.ben",
+  "text": "THAT'S IT. LET IT BUILD.",
   "from": "UPGRADES"
  },
  {
@@ -19146,6 +19196,16 @@
  },
  {
   "voice": "m2.ben",
+  "text": "THE DRAGON UPSTAIRS HEARD THAT. THE FAKE ONE.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.ben",
+  "text": "THE DRAGON'S LAIR. UPSTAIRS. MIND THE GUY IN THE SUIT.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.ben",
   "text": "THE HAND THAT CANNOT REACH HIGH... SHOULD THINK ABOUT LOW.",
   "from": "UPGRADES"
  },
@@ -19157,6 +19217,16 @@
  {
   "voice": "m2.ben",
   "text": "THE KEG DOES NOT COME DOWN TO YOU. YOU GO UP TO THE KEG. JUMP UNDER IT. HEAD FIRST.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.ben",
+  "text": "THE KNIGHTS BLOW BACK UP. GET MAD AT THEM ALL DAY. THEN THE CANNON.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.ben",
+  "text": "THE PENDANT DOESN'T CARE WHAT YOU DISH OUT. IT CARES WHAT YOU TAKE. STAND THERE. GET BOPPED.",
   "from": "UPGRADES"
  },
  {
@@ -19181,7 +19251,17 @@
  },
  {
   "voice": "m2.ben",
+  "text": "THERE IT IS. MY EARS ARE BLEEDING. YOU PASS.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.ben",
   "text": "THESE ARE THE ODD ONES. NO GRAB. HOLD THE SLIDE AND PUSH UP. THE FLASH KICK. FREE. EVERYBODY AROUND YOU GETS IT.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.ben",
+  "text": "THREE KNIGHTS. DON'T HIT THEM. LET THEM PISS YOU OFF. THEN LET IT OUT.",
   "from": "UPGRADES"
  },
  {
@@ -19236,7 +19316,22 @@
  },
  {
   "voice": "m2.ben",
+  "text": "UP. THE DRAGON'S LAIR. DON'T LAND IN THE THORNS.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.ben",
+  "text": "URUSAI. GRANDPA YELLED IT AT US KIDS. PRETTY SURE IT MEANS SHUT UP.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.ben",
   "text": "WITH YOUR HEAD.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.ben",
+  "text": "WORKS ON BOSSES. NOTHING TOUCHES YOU FOR A WHILE AFTER. THERE'S AN OFF SWITCH IN YOUR PAUSE MENU. FOR FUNERALS.",
   "from": "UPGRADES"
  },
  {
@@ -19271,12 +19366,22 @@
  },
  {
   "voice": "m2.ben",
+  "text": "YOU AGAIN. I WAS NAPPING IN THE DRAGON'S MOUTH.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.ben",
   "text": "YOU AGAIN. I WAS READING. NOT REALLY. I WAS LOOKING AT THE PICTURES.",
   "from": "UPGRADES"
  },
  {
   "voice": "m2.ben",
   "text": "YOU AGAIN. NAKED IN A LIBRARY. SHH.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.ben",
+  "text": "YOU AGAIN. NAKED IN A SERVICE TUNNEL. THE UNION WILL HEAR ABOUT THIS.",
   "from": "UPGRADES"
  },
  {
@@ -19311,12 +19416,27 @@
  },
  {
   "voice": "m2.ben",
+  "text": "YOU AGAIN. STILL NO PANTS. STILL ONE PENDANT.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.ben",
   "text": "YOU AGAIN. THE CAPE WAS SUPPOSED TO HIDE THAT.",
   "from": "UPGRADES"
  },
  {
   "voice": "m2.ben",
   "text": "YOU AGAIN. THE CLEARANCE RACK HAD ONE CAPE.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.ben",
+  "text": "YOU AGAIN. THE DRAGON SMELLS BETTER THAN YOU, AND IT'S ROTTING.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.ben",
+  "text": "YOU AGAIN. THE GIFT SHOP HAD ONE PENDANT. YOU'RE WEARING IT.",
   "from": "UPGRADES"
  },
  {
@@ -19376,6 +19496,11 @@
  },
  {
   "voice": "m2.ben",
+  "text": "YOU CAME DOWN HERE IN THOSE? IT ALREADY SMELLS LIKE PROPANE.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.ben",
   "text": "YOU CLIMBED A WATER TOWER IN THOSE PANTS. THE TOWN DRINKS THIS.",
   "from": "UPGRADES"
  },
@@ -19422,6 +19547,16 @@
  {
   "voice": "m2.ben",
   "text": "YOU GRAB LIKE A GUY ON A FIRST DATE.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.ben",
+  "text": "YOU HIT IT. THAT'S THE ONE THING I SAID.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.ben",
+  "text": "YOU POPPED IT. THEY PISS YOU OFF. NOT THE OTHER WAY AROUND.",
   "from": "UPGRADES"
  },
  {
@@ -59911,6 +60046,11 @@
  },
  {
   "voice": "m2.space.area51pa",
+  "text": "ACCESS DENIED. ACCESS DENIED. PLEASE ENJOY THE NORMAL STORE.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "m2.space.area51pa",
   "text": "ALERT. THE NORMAL STORE IS NOW OPEN. PLEASE DO NOT GO IN THE NORMAL STORE.",
   "from": "SPACE"
  },
@@ -59927,6 +60067,11 @@
  {
   "voice": "m2.space.area51pa",
   "text": "REMINDER. LOOKING IS A FEDERAL CRIME. TOUCHING IS TWO.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "m2.space.area51pa",
+  "text": "REMINDER. THIS FACILITY IS PROTECTED BY RETINA SCAN, KEYCARD, AND KEYPAD. ALSO A LOCK.",
   "from": "SPACE"
  },
  {
@@ -62761,6 +62906,16 @@
  },
  {
   "voice": "meathead",
+  "text": "A BENT PAPERCLIP. FINALLY SOMETHING GOES MY WAY TODAY.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "meathead",
+  "text": "A BENT PAPERCLIP. NAKED, BENT OVER, PICKING IT UP. NOBODY LOOK.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "meathead",
   "text": "A BIBLE! IN THE FACE!",
   "from": "CARTOON"
  },
@@ -62768,6 +62923,11 @@
   "voice": "meathead",
   "text": "A BIG BROWN HOLE. I KNOW THE FEELING.",
   "from": "FANTASY"
+ },
+ {
+  "voice": "meathead",
+  "text": "A BIG PINK JEWEL. I'VE NEVER WANTED ANYTHING THIS BAD.",
+  "from": "UPGRADES"
  },
  {
   "voice": "meathead",
@@ -63426,6 +63586,11 @@
  },
  {
   "voice": "meathead",
+  "text": "A DOOR BEAT A NAKED MAN. THAT IS NOT A HEADLINE I WANT.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "meathead",
   "text": "A DOOR THE SIZE OF A BUILDING. AND NO BUILDING.",
   "from": "FOREIGN"
  },
@@ -64021,6 +64186,11 @@
  },
  {
   "voice": "meathead",
+  "text": "A HOLE IN THE WALL. FINALLY, SOMEWHERE TO CHANGE.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "meathead",
   "text": "A HOLE OPENED UP UNDER MY ASS!",
   "from": "CARTOON"
  },
@@ -64506,6 +64676,11 @@
  },
  {
   "voice": "meathead",
+  "text": "A NECKLACE! NOW I'M WEARING SOMETHING!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "meathead",
   "text": "A NEEDLE! IN MY ASS! A USED ONE!",
   "from": "CARTOON"
  },
@@ -64558,6 +64733,26 @@
   "voice": "meathead",
   "text": "A PAPER CUT ON MY NIPPLE!",
   "from": "FANTASY"
+ },
+ {
+  "voice": "meathead",
+  "text": "A PAPERCLIP AND A DREAM. LET ME IN, UNCLE SAM.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "meathead",
+  "text": "A PAPERCLIP. ALREADY BENT. PERFECT.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "meathead",
+  "text": "A PAPERCLIP. I BENT DOWN FOR IT AND IT GOT WORSE BACK THERE.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "meathead",
+  "text": "A PAPERCLIP. NOWHERE TO PUT IT. I WILL HOLD IT.",
+  "from": "SPACE"
  },
  {
   "voice": "meathead",
@@ -64663,6 +64858,11 @@
   "voice": "meathead",
   "text": "A PINEAPPLE. IN HIS HEAD. CARTOONS ARE FUCKED.",
   "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "A PINK JEWEL! PEOPLE WILL LOOK AT MY NECK INSTEAD!",
+  "from": "UPGRADES"
  },
  {
   "voice": "meathead",
@@ -65042,6 +65242,11 @@
  {
   "voice": "meathead",
   "text": "A SECRET PASSAGE. GOOD. NOBODY FOLLOWS A SMELL INTO A WALL.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "meathead",
+  "text": "A SECRET TUNNEL UNDER THE MEADOW. THE UNICORNS DON'T KNOW.",
   "from": "UPGRADES"
  },
  {
@@ -65483,6 +65688,11 @@
   "voice": "meathead",
   "text": "A TUMBLEWEED! THAT'S THE MOST HUMILIATING THING THAT'S EVER HIT ME!",
   "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "A TUNNEL. IT'S COLD DOWN HERE. EVERYTHING'S SHRINKING.",
+  "from": "UPGRADES"
  },
  {
   "voice": "meathead",
@@ -67148,6 +67358,11 @@
   "voice": "meathead",
   "text": "BELLY FLOPPED!",
   "from": "FANTASY"
+ },
+ {
+  "voice": "meathead",
+  "text": "BENT IT. BEND IT BACK. BEND IT BACK.",
+  "from": "SPACE"
  },
  {
   "voice": "meathead",
@@ -70611,6 +70826,11 @@
  },
  {
   "voice": "meathead",
+  "text": "EVERY HORROR IN THE UNIVERSE. BEHIND A LOCK I OPENED WITH A PAPERCLIP.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "meathead",
   "text": "EVERY KILL MAKES IT HARDER. NOT WEIRD. TOTALLY NORMAL.",
   "from": "FANTASY"
  },
@@ -71138,6 +71358,11 @@
   "voice": "meathead",
   "text": "FINALLY. SOMEBODY WHO CAN'T SEE ME NAKED.",
   "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
+  "text": "FINE MOTOR SKILLS. I DID NOT SIGN UP FOR FINE MOTOR SKILLS.",
+  "from": "SPACE"
  },
  {
   "voice": "meathead",
@@ -72693,6 +72918,11 @@
   "voice": "meathead",
   "text": "GIVE ME THAT NAPKIN. IT'S BIG ENOUGH TO COVER IT.",
   "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "GIVE ME THAT. IT DRAWS THE EYE UP. AWAY FROM THE SITUATION.",
+  "from": "UPGRADES"
  },
  {
   "voice": "meathead",
@@ -76771,6 +77001,11 @@
  },
  {
   "voice": "meathead",
+  "text": "I FEEL GREAT. I FEEL LIKE I JUST GOT DIVORCED.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "meathead",
   "text": "I FEEL SO FLOATY... AND ROUND... AND... UH OH.",
   "from": "m1/game/stages/finale/killCam.ts:175"
  },
@@ -76836,7 +77071,7 @@
  },
  {
   "voice": "meathead",
-  "text": "I GOT A BOX OF BOBBY PINS FROM THE GIFT SHOP. LET ME IN, UNCLE SAM.",
+  "text": "I GAVE IT EVERYTHING AND SOME OF IT RAN DOWN MY LEG. ... THERE IS A LITTLE KEYHOLE. THAT CANNOT BE IT.",
   "from": "SPACE"
  },
  {
@@ -76961,6 +77196,16 @@
  },
  {
   "voice": "meathead",
+  "text": "I HAVE KILLED A DINOSAUR WITH THIS. WHAT KIND OF BULLSHIT DOOR IS THIS?",
+  "from": "SPACE"
+ },
+ {
+  "voice": "meathead",
+  "text": "I HAVE KILLED VAMPIRES AND ROBOTS AND A DOOR SAYS NO. WAIT. THERE IS A LITTLE KEYHOLE UNDER ALL THAT.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "meathead",
   "text": "I HAVE NEVER SKIPPED LEG DAY IN MY LIFE.",
   "from": "m1/components/IntroCutscene.tsx:45"
  },
@@ -77003,6 +77248,21 @@
   "voice": "meathead",
   "text": "I HIT IT SO HARD MY DICK FELT IT.",
   "from": "UPGRADES"
+ },
+ {
+  "voice": "meathead",
+  "text": "I HIT IT WITH EVERYTHING I GOT. THE ONLY THING THAT CAME OUT WAS IN MY PANTS.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "meathead",
+  "text": "I HIT IT WITH EVERYTHING. IT DIDN'T EVEN GET WARM.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "meathead",
+  "text": "I HIT IT WITH EVERYTHING. NAKED. IT STILL WON.",
+  "from": "SPACE"
  },
  {
   "voice": "meathead",
@@ -77266,7 +77526,7 @@
  },
  {
   "voice": "meathead",
-  "text": "I PICKED A GOVERNMENT LOCK WITH A BOBBY PIN. I'M A GENIUS OR THEY'RE MORONS.",
+  "text": "I PICKED A GOVERNMENT LOCK WITH A PAPERCLIP. I'M A GENIUS OR THEY'RE MORONS.",
   "from": "SPACE"
  },
  {
@@ -77368,6 +77628,16 @@
   "voice": "meathead",
   "text": "I SAW YOUR BUCKET OF DARTS, DIPSHIT!",
   "from": "ADVENTURE"
+ },
+ {
+  "voice": "meathead",
+  "text": "I SCREAMED SO HARD MY DICK WENT INSIDE.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "meathead",
+  "text": "I SCREAMED SO HARD SOMETHING ELSE CAME OUT.",
+  "from": "UPGRADES"
  },
  {
   "voice": "meathead",
@@ -77756,7 +78026,7 @@
  },
  {
   "voice": "meathead",
-  "text": "I'LL BE BACK. I GOT FOUR HUNDRED BOBBY PINS.",
+  "text": "I'LL BE BACK. I'M KEEPING THE PAPERCLIP.",
   "from": "SPACE"
  },
  {
@@ -77933,6 +78203,11 @@
   "voice": "meathead",
   "text": "I'LL WEAVE YOUR SPINE INTO A ROPE",
   "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "I'M A BATTERING RAM WITH LEGS. WHY AM I DOING THIS WITH A PAPERCLIP?",
+  "from": "SPACE"
  },
  {
   "voice": "meathead",
@@ -78248,6 +78523,11 @@
   "voice": "meathead",
   "text": "I'M NAKED AND YOU'RE THE ONE WHO SHOULD COVER UP.",
   "from": "FANTASY"
+ },
+ {
+  "voice": "meathead",
+  "text": "I'M NAKED, ON CAMERA, PICKING A LOCK WITH A PAPERCLIP. THIS IS BULLSHIT.",
+  "from": "SPACE"
  },
  {
   "voice": "meathead",
@@ -78666,8 +78946,18 @@
  },
  {
   "voice": "meathead",
+  "text": "I'VE BEEN PISSED OFF ALL DAY. NOW IT PAYS.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "meathead",
   "text": "I'VE BEEN SCARIER ON THE TOILET.",
   "from": "SPACE"
+ },
+ {
+  "voice": "meathead",
+  "text": "I'VE BEEN THIS ANGRY MY WHOLE LIFE. NOW IT'S A WEAPON.",
+  "from": "UPGRADES"
  },
  {
   "voice": "meathead",
@@ -78693,6 +78983,11 @@
   "voice": "meathead",
   "text": "I'VE HEARD OF IT NOW. AND YES.",
   "from": "m1/game/stages/ernie/jetski.ts:142"
+ },
+ {
+  "voice": "meathead",
+  "text": "I'VE KICKED DOWN CRACK HOUSES! OW! IT DIDN'T EVEN WOBBLE!",
+  "from": "SPACE"
  },
  {
   "voice": "meathead",
@@ -79001,6 +79296,11 @@
  },
  {
   "voice": "meathead",
+  "text": "IS IT LAUGHING AT ME? I THINK THE DOOR IS LAUGHING AT ME.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "meathead",
   "text": "IS IT SUPPOSED TO DO THAT?",
   "from": "SPOOKY"
  },
@@ -79013,6 +79313,11 @@
   "voice": "meathead",
   "text": "IS THAT A PEASHOOTER, YOU WEAK LITTLE SHIT?!",
   "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "IS THAT A PRINCESS NECKLACE? IT'S BEAUTIFUL.",
+  "from": "UPGRADES"
  },
  {
   "voice": "meathead",
@@ -80388,6 +80693,11 @@
   "voice": "meathead",
   "text": "JETPACK IN MY FACE!",
   "from": "SPACE"
+ },
+ {
+  "voice": "meathead",
+  "text": "JEWELRY! NAKED WITH JEWELRY IS A LOOK. RIGHT?",
+  "from": "UPGRADES"
  },
  {
   "voice": "meathead",
@@ -82251,6 +82561,11 @@
  },
  {
   "voice": "meathead",
+  "text": "MY ASS IS OUT AND I GOTTA BE GENTLE WITH A DOOR. BULLSHIT.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "meathead",
   "text": "MY ASS IS RELOADING.",
   "from": "M2_GUT_LINES"
  },
@@ -82693,6 +83008,11 @@
   "voice": "meathead",
   "text": "MY HANDS ARE KEEPING TO MY PANTS. TRUST ME.",
   "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "MY HANDS ARE SHAKING AND IT'S NOT FROM THE DIARRHEA. OKAY, IT'S A LITTLE FROM THE DIARRHEA.",
+  "from": "SPACE"
  },
  {
   "voice": "meathead",
@@ -83168,6 +83488,11 @@
   "voice": "meathead",
   "text": "NAKED AND PAINTED. I'M MODERN ART.",
   "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "NAKED AND SCREAMING. MY TWO BEST TALENTS.",
+  "from": "UPGRADES"
  },
  {
   "voice": "meathead",
@@ -84701,6 +85026,21 @@
  },
  {
   "voice": "meathead",
+  "text": "NOT A SCRATCH. I HAVE MORE SCRATCHES AND NO CLOTHES.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "meathead",
+  "text": "NOT A SCRATCH. MY PANTS GOT MORE DAMAGE.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "meathead",
+  "text": "NOT A SCRATCH. WHAT IS THIS THING MADE OF?",
+  "from": "SPACE"
+ },
+ {
+  "voice": "meathead",
   "text": "NOT AGAIN! NOT THE PANTS!",
   "from": "FRONTIER"
  },
@@ -85021,6 +85361,11 @@
  },
  {
   "voice": "meathead",
+  "text": "NOTHING I OWN COULD DENT IT. A PAPERCLIP OPENED IT. AMERICA.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "meathead",
   "text": "NOTHING IN HERE BUT FARTS!",
   "from": "EMPTY_BAG_LINES"
  },
@@ -85053,6 +85398,16 @@
   "voice": "meathead",
   "text": "NOTHING TO WIPE ON. KEYPAD IT IS.",
   "from": "ADVENTURE"
+ },
+ {
+  "voice": "meathead",
+  "text": "NOTHING WORKS. ... THERE IS A LITTLE KEYHOLE DOWN THERE. LIKE A HARDWARE STORE LOCK. NO WAY.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "meathead",
+  "text": "NOTHING. NOTHING! ... HUH. A CHEAP LITTLE KEYHOLE. THAT CANNOT BE IT.",
+  "from": "SPACE"
  },
  {
   "voice": "meathead",
@@ -85618,6 +85973,21 @@
   "voice": "meathead",
   "text": "OLD AMERICA. SMELLS LIKE ME.",
   "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
+  "text": "OMAE WA MOU... NAKED DESU! I KNOW JAPANESE FROM CARTOONS.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "meathead",
+  "text": "OMAE WA MOU... PISSED OFF! I KNOW JAPANESE FROM CARTOONS.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "meathead",
+  "text": "OMAE WA MOU... SHAT DESU! I KNOW JAPANESE FROM CARTOONS.",
+  "from": "UPGRADES"
  },
  {
   "voice": "meathead",
@@ -86201,6 +86571,11 @@
  },
  {
   "voice": "meathead",
+  "text": "OW! I KICKED IT SO HARD I SHAT. IT DIDN'T EVEN WOBBLE!",
+  "from": "SPACE"
+ },
+ {
+  "voice": "meathead",
   "text": "OW! I SHOULD HAVE STOOD UNDER HIM!",
   "from": "FOREIGN"
  },
@@ -86291,7 +86666,22 @@
  },
  {
   "voice": "meathead",
+  "text": "OW! MY FOOT! AND EVERYTHING ELSE SWUNG INTO IT TOO! WHAT KIND OF BULLSHIT DOOR IS THIS?",
+  "from": "SPACE"
+ },
+ {
+  "voice": "meathead",
+  "text": "OW! MY FOOT! AND THAT KICK PUSHED OUT A LITTLE MORE. WHAT KIND OF BULLSHIT DOOR IS THIS?",
+  "from": "SPACE"
+ },
+ {
+  "voice": "meathead",
   "text": "OW! MY NIPPLES ARE ON FIRE!",
+  "from": "SPACE"
+ },
+ {
+  "voice": "meathead",
+  "text": "OW! NAKED KICKING IS A MISTAKE! IT DIDN'T EVEN WOBBLE!",
   "from": "SPACE"
  },
  {
@@ -86313,6 +86703,11 @@
   "voice": "meathead",
   "text": "OW! OW!",
   "from": "m1/game/stages/dale/convoy.ts:403"
+ },
+ {
+  "voice": "meathead",
+  "text": "OW! OW! MY FOOT! WHAT KIND OF BULLSHIT DOOR IS THIS?",
+  "from": "SPACE"
  },
  {
   "voice": "meathead",
@@ -87858,6 +88253,11 @@
   "voice": "meathead",
   "text": "RESISTING ARREST? YEAH, I AM!",
   "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "RETINA SCANNER. CARD READER. KEYPAD. AND UNDER ALL THAT, A HARDWARE STORE KEYHOLE.",
+  "from": "SPACE"
  },
  {
   "voice": "meathead",
@@ -90436,11 +90836,6 @@
  },
  {
   "voice": "meathead",
-  "text": "SNAPPED. FOUR HUNDRED NINETY-NINE LEFT.",
-  "from": "SPACE"
- },
- {
-  "voice": "meathead",
   "text": "SNEAKY LITTLE BITCH!",
   "from": "FOREIGN"
  },
@@ -90603,6 +90998,11 @@
   "voice": "meathead",
   "text": "SOMEBODY DOWN THERE SHIT WORSE THAN ME.",
   "from": "ADVENTURE"
+ },
+ {
+  "voice": "meathead",
+  "text": "SOMEBODY DROPPED A PAPERCLIP RIGHT BY THE SECRET DOOR. THANKS, GOVERNMENT.",
+  "from": "SPACE"
  },
  {
   "voice": "meathead",
@@ -92671,6 +93071,11 @@
  },
  {
   "voice": "meathead",
+  "text": "THAT SHOULD'VE WORKED. THAT ALWAYS WORKS.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "meathead",
   "text": "THAT SLUDGE SMELLS WORSE THAN A CRACKHOUSE TOILET!",
   "from": "HURT"
  },
@@ -94091,6 +94496,11 @@
  },
  {
   "voice": "meathead",
+  "text": "THE DOOR IS WINNING. THE DOOR IS CLEAN AND I AM NOT.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "meathead",
   "text": "THE DOOR! THE DOOR!",
   "from": "SPACE"
  },
@@ -95381,6 +95791,11 @@
  },
  {
   "voice": "meathead",
+  "text": "THE SCANNER STILL SAYS ACCESS DENIED. THE DOOR IS WIDE OPEN.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "meathead",
   "text": "THE SCRIPT. IN A GLASS CASE. LIT LIKE JESUS.",
   "from": "HOLLYWOOD"
  },
@@ -96306,11 +96721,6 @@
  },
  {
   "voice": "meathead",
-  "text": "THESE PINS ARE MADE IN CHINA. I AM MADE IN AMERICA.",
-  "from": "SPACE"
- },
- {
-  "voice": "meathead",
   "text": "THESE TREES DON'T HAVE BOLTS IN THEM.",
   "from": "FRONTIER"
  },
@@ -96362,6 +96772,11 @@
  {
   "voice": "meathead",
   "text": "THEY CRASHED A REAL SPACESHIP AND HID IN A FAKE ONE. GENIUSES.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "meathead",
+  "text": "THEY CUT OPEN AN ALIEN. AND LOCKED IT UP WITH A FIVE DOLLAR LOCK.",
   "from": "SPACE"
  },
  {
@@ -96751,6 +97166,16 @@
  },
  {
   "voice": "meathead",
+  "text": "THIS IS BULLSHIT. I CAN RAM THROUGH A WALL AND I GOTTA DO ARTS AND CRAFTS.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "meathead",
+  "text": "THIS IS BULLSHIT. I SHIT MY PANTS AND NOW I GOTTA DO SURGERY ON A DOOR.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "meathead",
   "text": "THIS IS STUPID. THIS IS A STUPID NEIGHBORHOOD.",
   "from": "m1/game/stages/tommy/escape.ts:227"
  },
@@ -96863,6 +97288,11 @@
   "voice": "meathead",
   "text": "THIS ONE'S GOT ELBOWS.",
   "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "meathead",
+  "text": "THIS PAPERCLIP IS MADE IN CHINA. I AM MADE IN AMERICA.",
+  "from": "SPACE"
  },
  {
   "voice": "meathead",
@@ -98591,7 +99021,17 @@
  },
  {
   "voice": "meathead",
+  "text": "WHAT KIND OF BULLSHIT DOOR IS THIS? EVERYTHING BOUNCED OFF. EXCEPT MY DIGNITY. THAT LEFT.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "meathead",
   "text": "WHAT KIND OF BULLSHIT DOOR IS THIS? I HIT IT WITH MY BARE NUTS.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "meathead",
+  "text": "WHAT KIND OF BULLSHIT DOOR IS THIS? I SHIT MYSELF HARDER THAN THAT DOOR GOT HIT.",
   "from": "SPACE"
  },
  {
@@ -98617,6 +99057,11 @@
  {
   "voice": "meathead",
   "text": "WHAT KIND OF CHEAP OIL DO THEY USE? IT DOESN'T EVEN BURN.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "meathead",
+  "text": "WHAT KIND OF DOOR MAKES A GUY LIKE ME PICK A LOCK? BULLSHIT.",
   "from": "SPACE"
  },
  {
@@ -98831,7 +99276,7 @@
  },
  {
   "voice": "meathead",
-  "text": "WHERE DO I KEEP THE BOBBY PINS? DON'T ASK.",
+  "text": "WHERE DO I KEEP THE PAPERCLIP? DON'T ASK.",
   "from": "SPACE"
  },
  {

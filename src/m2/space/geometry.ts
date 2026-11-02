@@ -30,7 +30,7 @@ export const SECTIONS = {
   /** The hijacked train ride: the 1990 PA, the obstacles, the power breaker reveal, the brake crash, the launch. */
   ride: { x0: SPX + 23500, x1: SPX + 40100 },
   /** Back out on the main drag: outdoor platforming up to Space Needle 2. */
-  drag: { x0: SPX + 40500, x1: SPX + 48000 },
+  drag: { x0: SPX + 40500, x1: SPX + 50200 },
   /** Space Needle 2: up into actual space; the slow-spinning cylinder, the suit, the window. */
   needle: { x0: SPX + 51000, x1: SPX + 56300 },
   /** The space shooter (free flight, ray gun only, rapid fire) and the UFO sub-boss; the abduction; the crash. */
@@ -50,7 +50,9 @@ export const DOORS: Record<SpaceId, { start: { x: number; y: number }; end: { x:
   atom: { start: { x: SECTIONS.atom.x0 + 200, y: GY }, end: { x: SECTIONS.atom.x1 - 250, y: GY } },
   // (ride: one-way; back in from the drag, he's put at the atom's load platform, the sled waiting there)
   ride: { start: { x: SECTIONS.ride.x0 + 200, y: GY }, end: { x: SECTIONS.atom.x0 + 6960, y: GY } },
-  drag: { start: { x: SECTIONS.drag.x0 + 200, y: GY }, end: { x: SECTIONS.drag.x1 - 250, y: GY } },
+  // (drag: its x1 runs on past the street's end to the room behind ALIEN GIFTS & NOVELTIES (drag/area51.ts); back out of
+  // the needle's lobby, he's put on the street just short of its doors)
+  drag: { start: { x: SECTIONS.drag.x0 + 200, y: GY }, end: { x: SECTIONS.drag.x0 + 7250, y: GY } },
   needle: { start: { x: SECTIONS.needle.x0 + 200, y: GY }, end: { x: SECTIONS.needle.x0 + 4880, y: GY } },
   // (the orbit: in flight, way up over its ground (orbit/geo.ts: CY + 330). Coming back from the crater, there's no
   // flying back up into space: he's put at the foot of Space Needle 2, the needle's own way back in)

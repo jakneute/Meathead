@@ -99,6 +99,7 @@
   "m2.spooky.mashvoice": { "voice": "am_fenrir", "speed": 0.95, "rate": 0.88, "gain": 1.25, "fx": "radio" },
   "m2.space.needle": { "voice": "af_sky", "speed": 0.94, "rate": 1.0, "gain": 1.05, "fx": "radio_mild" },
   "m2.space.futurepa": { "voice": "am_michael", "speed": 1.12, "rate": 1.04, "fx": "radio" },
+  "m2.space.area51pa": { "voice": [["am_michael", 0.6], ["am_echo", 0.4]], "speed": 1.0, "rate": 0.92, "fx": "radio" },
   "m2.space.guard": { "voice": "am_adam", "speed": 1.15, "rate": 1.02 },
   "m2.space.guardf": { "voice": "af_nicole", "speed": 1.15, "rate": 1.02 },
   "m2.space.zpilot": { "voice": [["am_onyx", 0.6], ["bm_lewis", 0.4]], "speed": 1.05, "rate": 0.86, "gain": 1.1, "fx": "radio_mild" },
