@@ -104,7 +104,9 @@ export interface Train {
   /** The lion's cage as a pen with the max ammo find in it (pen.ts): the hits it's taken, broken open (the lion loose),
    *  the find taken (this save: the cage stays open and empty), the shudder off the last hit; the canister knocked out
    *  of it (x along the car, world y, its flight; null: still in the cage, or gone); the card, while it's up. */
-  pen: { hits: number; broke: boolean; taken: boolean; jit: number; can: { rx: number; y: number; vx: number; vy: number; t: number; down: boolean } | null; card: AmmoCard | null };
+  pen: { hits: number; broke: boolean; taken: boolean; jit: number; can: { rx: number; y: number; vx: number; vy: number; t: number; down: boolean } | null; card: AmmoCard | null;
+    /** The pieces it crumbled into, flying (pen.ts). */
+    bits?: { rx: number; y: number; vx: number; vy: number; rot: number; vr: number; w: number; h: number; col: string; t: number }[] };
 }
 
 /** Off the train onto the tracks (the user's: Meathead 1's fall off Dale's truck): he tumbles along the ties as the

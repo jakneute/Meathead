@@ -36,7 +36,7 @@ import { CARS, CAR_X, DECK, END, TOP, CIRCUS } from './layout';
 import { trainOf, type Maul } from './state';
 import { carXNow } from './where';
 import { viewOf, inView, inDrawn } from './view';
-import { type Ctx, box, checker, mix, hash, INK, N, boards, lip, stillAt, BRASS, RED, VARNISH, HAY } from './paint';
+import { type Ctx, box, checker, mix, hash, INK, N, boards, lip, still, stillAt, BRASS, RED, VARNISH, HAY } from './paint';
 import { LION_CAGE, IM_OKAY, HURT, PEN_SPOTTED, LION_CAGE_GONE } from './lines';
 import { bossGone } from '../../emptyArena';
 import { drawPenInside, penDmg, penOpen } from './pen';
@@ -91,42 +91,115 @@ const paintCageFront = (g: Ctx, len: number, open: boolean, dmg = 0) => {
   box(g, a - 1, FLOOR - 1, w + 2, 14, INK); box(g, a, FLOOR, w, 12, R[3]); box(g, a, FLOOR, w, 2, R[5]); box(g, a, FLOOR + 10, w, 2, R[1]);
   box(g, a + 4, FLOOR + 5, w - 8, 2, B[4]);
   for (let x = a + 30; x < a + w - 20; x += 60) { g.strokeStyle = B[4]; g.lineWidth = 1; g.beginPath(); g.arc(x, FLOOR + 6, 4, Math.PI * 0.2, Math.PI * 1.8); g.stroke(); }
+  // (worn down (pen.ts's stages 1..5): the rail cracked through, then a board of it come away and hanging off)
+  if (dmg >= 3 || open) crack(g, a + w * 0.3, FLOOR, 12, 7);
+  if (dmg >= 5 || open) {
+    g.save(); g.translate(a + w * 0.62, FLOOR + 11); g.rotate(open ? 1.1 : 0.55);
+    box(g, -1, -1, 34, 8, INK); box(g, 0, 0, 32, 6, R[3]); box(g, 0, 0, 32, 1, R[5]); box(g, 0, 3, 32, 1, B[4]);
+    for (let k = 0; k < 4; k++) box(g, 32, k * 1.5, 3 + (k % 2) * 3, 1, R[4]);
+    g.restore();
+    box(g, a + w * 0.62 - 1, FLOOR, 34, 12, '#1A0606'); box(g, a + w * 0.62, FLOOR + 2, 32, 2, '#2A0A0A');
+  }
+  // (and from stage 5 the whole front leaning over on its frame, the top off to the right)
+  g.save();
+  const lean = dmg >= 5 && !open ? 0.06 : 0;
+  if (lean) { g.translate(0, FLOOR); g.transform(1, 0, -lean, 1, 0, 0); g.translate(0, -FLOOR); }
   // (the bars: brass, lit down their left; the middle ones bent out and apart when it's broken open)
   const bars: number[] = [];
   for (let x = a + 16; x < a + w - 14; x += 15) bars.push(x);
   const midI = Math.floor(bars.length / 2);
   // (shot at (pen.ts, `dmg` 1..3): the middle ones bowing out more and more, the shot marks bright on them)
+  const straight = (x: number, y0: number, y1: number) => { box(g, x - 1, y0, 5, y1 - y0, INK); box(g, x, y0, 3, y1 - y0, B[3]); box(g, x, y0, 1, y1 - y0, B[5]); box(g, x + 2, y0, 1, y1 - y0, B[1]); };
+  // (how far out from the middle the bending's got, by the stage)
+  const reach = dmg >= 5 ? 4 : dmg >= 4 ? 3 : dmg >= 3 ? 2 : dmg >= 1 ? 1 : -1;
   bars.forEach((x, i) => {
-    const off = i - midI;
-    const bent = open && Math.abs(off) <= 1 && i !== midI;
-    if (open && i === midI) return;
-    if (bent) { bentBar(g, x, (off < 0 ? -1 : 1) * 22); return; }
-    if (!open && dmg > 0 && Math.abs(off) <= (dmg >= 3 ? 2 : 1)) {
-      const amt = off === 0 ? (dmg % 2 ? 1 : -1) * dmg * 2.5 : Math.sign(off) * Math.max(2, dmg * 5 - (Math.abs(off) - 1) * 7);
+    const off = i - midI, h = hash(i * 7.3);
+    if (open) {
+      // (crumbled: most of them gone (fallen out), stubs top and bottom where they were; the odd one left, bent all over)
+      if (i % 3 === 1) { bentBar(g, x, (h < 0.5 ? -1 : 1) * (10 + h * 16)); return; }
+      straight(x, HEAD_B, HEAD_B + 6 + h * 10);
+      straight(x, FLOOR - 4 - hash(i * 2.1) * 12, FLOOR);
+      return;
+    }
+    if (Math.abs(off) <= reach) {
+      // (the middle one snapped in two at the last stage: its ends bent out, a gap between)
+      if (dmg >= 5 && off === 0) {
+        const m = (HEAD_B + FLOOR) / 2;
+        straight(x, HEAD_B, m - 16); straight(x, m + 12, FLOOR);
+        box(g, x - 3, m - 18, 9, 3, INK); box(g, x - 2, m - 17, 7, 1, B[4]);
+        box(g, x - 3, m + 11, 9, 3, INK); box(g, x - 2, m + 12, 7, 1, B[4]);
+        return;
+      }
+      const amt = off === 0 ? (dmg % 2 ? 1 : -1) * dmg * 2.5 : Math.sign(off) * Math.max(2, dmg * 6 - (Math.abs(off) - 1) * 6);
       bentBar(g, x, amt);
       for (let k = 0; k < dmg + 1; k++) box(g, x + 1 + amt * 0.5 * Math.sin(((k + 1) / (dmg + 2)) * Math.PI), HEAD_B + ((k + 1) * (FLOOR - HEAD_B)) / (dmg + 2) + hash(i * 3 + k) * 6 - 3, 2, 2, '#FFF8D8');
       return;
     }
-    box(g, x - 1, HEAD_B, 5, FLOOR - HEAD_B, INK); box(g, x, HEAD_B, 3, FLOOR - HEAD_B, B[3]); box(g, x, HEAD_B, 1, FLOOR - HEAD_B, B[5]); box(g, x + 2, HEAD_B, 1, FLOOR - HEAD_B, B[1]);
+    straight(x, HEAD_B, FLOOR);
   });
   // (the corner posts: carved, gilt)
   for (const px of [a, a + w - 12]) { box(g, px - 1, TP - 1, 14, FLOOR - TP + 14, INK); box(g, px, TP, 12, FLOOR - TP + 12, B[3]); box(g, px, TP, 3, FLOOR - TP + 12, B[5]); box(g, px + 9, TP, 3, FLOOR - TP + 12, B[1]); for (let y = TP + 34; y < FLOOR; y += 12) box(g, px + 3, y, 6, 2, B[2]); }
+  // (stage 3 on: the front post split, a chunk out of it, splinters standing off it)
+  if (dmg >= 3 || open) {
+    const px = a + w - 12, py = (HEAD_B + FLOOR) / 2 - 6;
+    box(g, px + 2, py, 9, 16, '#140A04'); box(g, px + 3, py + 2, 4, 12, '#2A1608');
+    for (let k = 0; k < 4; k++) { box(g, px + 11, py + 1 + k * 4, 4 + (k % 2) * 3, 1, B[4]); box(g, px - 3 - (k % 2) * 2, py + 3 + k * 4, 4, 1, B[2]); }
+  }
   // (the header: red, gold-edged, CIRCUS, stars either side; the cornice over it, its top lit: he stands on it)
-  box(g, a - 5, TP - 1, w + 10, 28, INK); box(g, a - 4, TP, w + 8, 26, R[3]); box(g, a - 4, TP + 6, w + 8, 2, B[4]); box(g, a - 4, TP + 22, w + 8, 2, B[3]);
-  checker(g, a - 4, TP + 8, w + 8, 2, R[4], 0, 1);
-  box(g, a - 6, TP - 1, w + 12, 7, INK); box(g, a - 5, TP, w + 10, 5, R[2]); box(g, a - 5, TP + 4, w + 10, 1, R[1]);
-  lip(g, a - 5, TP, w + 10, ['#3A0A0C', '#A3262A', '#F09070', '#FFD0B0']);
-  signText(g, 'CIRCUS', a + w / 2, TP + 21, { sx: 2, sy: 2, fill: [GOLD[0], GOLD[1], GOLD[2]], shadow: R[0] });
-  for (const sx of [a + w / 2 - 80, a + w / 2 + 80, a + 40, a + w - 40]) { g.fillStyle = B[5]; g.beginPath(); for (let k = 0; k < 10; k++) { const t = (k / 10) * Math.PI * 2 - Math.PI / 2, rr = k % 2 ? 2.4 : 6; if (k) g.lineTo(sx + Math.cos(t) * rr, TP + 15 + Math.sin(t) * rr); else g.moveTo(sx + Math.cos(t) * rr, TP + 15 + Math.sin(t) * rr); } g.closePath(); g.fill(); }
+  const header = () => {
+    box(g, a - 5, TP - 1, w + 10, 28, INK); box(g, a - 4, TP, w + 8, 26, R[3]); box(g, a - 4, TP + 6, w + 8, 2, B[4]); box(g, a - 4, TP + 22, w + 8, 2, B[3]);
+    checker(g, a - 4, TP + 8, w + 8, 2, R[4], 0, 1);
+    box(g, a - 6, TP - 1, w + 12, 7, INK); box(g, a - 5, TP, w + 10, 5, R[2]); box(g, a - 5, TP + 4, w + 10, 1, R[1]);
+    lip(g, a - 5, TP, w + 10, ['#3A0A0C', '#A3262A', '#F09070', '#FFD0B0']);
+    signText(g, 'CIRCUS', a + w / 2, TP + 21, { sx: 2, sy: 2, fill: [GOLD[0], GOLD[1], GOLD[2]], shadow: R[0] });
+    for (const sx of [a + w / 2 - 80, a + w / 2 + 80, a + 40, a + w - 40]) { g.fillStyle = B[5]; g.beginPath(); for (let k = 0; k < 10; k++) { const t = (k / 10) * Math.PI * 2 - Math.PI / 2, rr = k % 2 ? 2.4 : 6; if (k) g.lineTo(sx + Math.cos(t) * rr, TP + 15 + Math.sin(t) * rr); else g.moveTo(sx + Math.cos(t) * rr, TP + 15 + Math.sin(t) * rr); } g.closePath(); g.fill(); }
+  };
+  // (stage 4 on, and crumbled: broken in the middle, both halves sagging in toward it a little (its top barely
+  // drops: he still stands on it); before that, from stage 2, a crack down through it)
+  const sag = open ? 0.022 : dmg >= 5 ? 0.02 : dmg >= 4 ? 0.012 : 0;
+  if (sag) {
+    const m = a + w / 2;
+    for (const side of [-1, 1]) {
+      g.save(); g.beginPath(); g.rect(side < 0 ? a - 8 : m, TP - 4, w / 2 + 8, 40); g.clip();
+      const px = side < 0 ? a - 6 : a + w + 6;
+      g.translate(px, TP); g.rotate(-side * sag); g.translate(-px, -TP);
+      header();
+      g.restore();
+    }
+    crack(g, m, TP, 28, 6);
+  } else {
+    header();
+    if (dmg >= 2) crack(g, a + w * 0.56, TP + 4, 22, 4);
+  }
   // (the plaques wired to the bars)
-  const plaque = (x: number, text: string, ink: string, col: string) => {
+  const plaque = (x: number, text: string, ink: string, col: string, tilt = 0) => {
     const pw = text.length * 6 + 10;
+    // (worn down: hanging off the one wire, swung round on it)
+    if (tilt) { g.save(); g.translate(x - pw / 2 + 4, HEAD_B + 6); g.rotate(tilt); g.translate(-(x - pw / 2 + 4), -(HEAD_B + 6)); }
     box(g, x - pw / 2 - 1, HEAD_B + 5, pw + 2, 13, INK); box(g, x - pw / 2, HEAD_B + 6, pw, 11, ink); box(g, x - pw / 2, HEAD_B + 6, pw, 1, mix(ink, '#FFFFFF', 0.25));
     line(g, [x - pw / 2 + 4, HEAD_B + 6, x - pw / 2 + 8, HEAD_B], 1, '#9A9AA2'); line(g, [x + pw / 2 - 4, HEAD_B + 6, x + pw / 2 - 8, HEAD_B], 1, '#9A9AA2');
     signText(g, text, x, HEAD_B + 15, { sx: 1, sy: 1, fill: col });
+    if (tilt) g.restore();
   };
-  plaque(a + w * 0.24, 'MAN-EATER', '#3A2410', '#F2E4C4');
-  plaque(a + w * 0.78, open ? 'ESCAPED' : 'DO NOT FEED', open ? '#F2E4C4' : '#3A2410', open ? '#B91C1C' : '#F2E4C4');
+  plaque(a + w * 0.24, 'MAN-EATER', '#3A2410', '#F2E4C4', open ? 0.3 : dmg >= 4 ? 0.22 : 0);
+  plaque(a + w * 0.78, open ? 'ESCAPED' : 'DO NOT FEED', open ? '#F2E4C4' : '#3A2410', open ? '#B91C1C' : '#F2E4C4', open ? 0.42 : dmg >= 2 ? 0.16 + dmg * 0.04 : 0);
+  g.restore();
+};
+
+/** A jagged split down from (x, y) `len` long, `wd` across at its widest: dark in it, a lit edge. */
+const crack = (g: Ctx, x: number, y: number, len: number, wd: number) => {
+  g.fillStyle = '#140606'; g.beginPath(); g.moveTo(x - wd / 2, y);
+  const n = 5;
+  for (let k = 1; k <= n; k++) g.lineTo(x + (k % 2 ? 2 : -2) - (wd / 2) * (1 - k / n), y + (len * k) / n);
+  for (let k = n - 1; k >= 0; k--) g.lineTo(x + (k % 2 ? 2 : -2) + (wd / 2) * (1 - k / n), y + (len * k) / n);
+  g.closePath(); g.fill();
+  g.fillStyle = 'rgba(255, 220, 180, 0.5)'; g.fillRect(x + wd / 2, y, 1, len * 0.6);
+};
+
+/** The lion's paw out through the bent bars at him (stage 3 on, as it roars): painted the once, put down. */
+const paintPaw = (g: Ctx) => {
+  ell(g, 0, 0, 13, 9, INK); ell(g, 0, 0, 12, 8, '#C8862C'); ell(g, -3, -2, 7, 4, '#E0A048');
+  for (let k = 0; k < 4; k++) { const cx = 7 + k * 0.5, cy = -5 + k * 3.4; ell(g, cx, cy, 3.2, 2.4, '#B4742A'); line(g, [cx + 2, cy, cx + 6, cy + 1.5], 1.3, '#F4ECD8'); }
 };
 
 /** The cage wagon on car `CIRCUS` at x (its left end): `live` with the lion in it (by tr.cage), `open` broken open and
@@ -145,9 +218,19 @@ export const drawCage = (c: Ctx, state: GameState, x: number, len: number, mode:
     // (the max ammo find standing in the straw up by the bars, in front of the lion (never lost behind it) (pen.ts))
     drawPenInside(c, state, x, len);
   }
-  // (shot at: dented by the hits so far, and shuddering off the last one)
-  const tr = trainOf(state), dmg = mode === 'live' ? penDmg(tr) : 0, jit = mode === 'live' && tr.pen.jit > 0 ? (tr.pen.jit % 4 < 2 ? 1 : -1) : 0;
-  stillAt(c, `tr-cage-front-${len}-${mode}-${dmg}`, x + jit, GY, END - 8, TP - 4, len - 2 * END + 16, Dk - TP + 8, g => paintCageFront(g, len, mode === 'open', dmg));
+  // (worn down: buckled by the hits so far (a stage of it, each painted the once), and shuddering off the last one)
+  const tr = trainOf(state), dmg = mode === 'live' ? penDmg(tr) : 0, jit = mode === 'live' && tr.pen.jit > 0 ? (tr.pen.jit % 4 < 2 ? 1 : -1) * Math.min(3, 1 + (tr.pen.jit >> 3)) : 0;
+  stillAt(c, `tr-cage-front-${len}-${mode}-${dmg}`, x + jit, GY, END - 18, TP - 6, len - 2 * END + 36, Dk - TP + 34, g => paintCageFront(g, len, mode === 'open', dmg));
+  // (far enough gone, the lion's paw out through the gaps at him as it roars)
+  if (mode === 'live' && dmg >= 3) {
+    const cg = tr.cage;
+    if (cg.roar > 10 && cg.roar < 50) {
+      const px = x + Math.max(END + 30, Math.min(len - END - 30, cg.rx + cg.facing * 34)), py = GY + (HEAD_B + FLOOR) / 2 + 6;
+      c.save(); c.translate(Math.round(px), Math.round(py)); if (cg.facing < 0) c.scale(-1, 1);
+      still(c, 'tr-lion-paw', -16, -12, 32, 24, paintPaw);
+      c.restore();
+    }
+  }
 };
 
 // ---------------------------------------------------------------------------------------------------------------

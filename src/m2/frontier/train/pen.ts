@@ -5,9 +5,11 @@
 // a normal large cat enemy"
 //
 // THE TELL: the ammo canister stands in the straw at the front end of the cage wagon (lion.ts drawCage), the lion pacing
-// in front of it; his line about it after his line about the lion. THE PEN: anything of his that flies (any weapon's
-// shots) into the cage's bars from either end of the car is stopped by them: a clang, sparks, the cage shudders, and the
-// bars bow out more every few hits (PEN_HITS in all); then they burst: the lion's out up onto the cage's roof, roaring
+// in front of it; his line about it after his line about the lion. THE PEN: anything of his that hurts it, from any side
+// (every weapon's shots, his moves, a dive kick on its roof, a body thrown into it: the owner's "any attack on the cage
+// should count"), wears it down: a clang, sparks, the cage shudders, and it buckles a stage further every few hits (the
+// bars bowing, the header cracking then sagging, a post splitting, the plaques swinging loose, the lion's paw out through
+// the gaps, the whole front leaning; PEN_HITS of wear in all); then it crumbles: the lion's out up onto the cage's roof, roaring
 // (CIRCUS LION: the wilds' cougar's way of fighting, a big cat: sees him, roars (the tell), pounces; prowls), and the
 // canister's knocked out through the gap onto the car's front platform. Touched: it's his for good (upgrades/
 // ammoAward.ts: the save written there and then), the card up with its buffer, his line once it's shut. Taken, the cage
@@ -36,8 +38,16 @@ import { PEN_BREAK, PEN_GOT } from './lines';
 
 /** The find, in the save (one of Wilderness Land's collectibles). */
 export const AMMO_LAND = 'frontier', AMMO_ID = 'ammo-train';
-/** Hits the bars take before they burst (any weapon's: each thing of his that flies into them is one). */
-export const PEN_HITS = 12;
+/** The wear the cage takes before it crumbles (the owner's "any weapon should break the lion cage open... any attack on
+ *  the cage should count. dive kicks on it, etc. the whole cage just crumbles when you hurt it enough. maybe a tad more
+ *  hp to make up from any angle being viable"): a shot into it is 1; a hit of his on it (a move, a weapon's own way of
+ *  hitting, a blast) by how hard, WEAR_PER damage a point (WEAR_MIN..WEAR_MAX a hit); a body flung into it 2. It was 12
+ *  shots, from the ends only. */
+export const PEN_HITS = 16;
+const WEAR_PER = 20, WEAR_MIN = 0.6, WEAR_MAX = 4, WEAR_BODY = 2;
+/** The wear each stage of its buckling comes in at (the owner's "show the thing slowly buckling as you hurt it to let the
+ *  player know they should keep hurting it"): the first by the second shot. */
+const STAGES = [1.5, 4, 7, 10, 13];
 /** The cage's height over the deck: its roof (to stand on), under its header, its floor (the straw). World y. */
 const ROOF_Y = TOP.flat ?? DECK - 132, BARS_Y = ROOF_Y + 26, FLOOR_Y = DECK - 38;
 /** Where the canister stands in the straw (x along the car): toward the front end, clear of the plaques on the bars. */
@@ -45,8 +55,9 @@ const canRx = (len: number) => Math.round(len * 0.62);
 
 /** The cage's open (broken this life, or the find taken on this save): no lion in it, nothing to shoot. */
 export const penOpen = (tr: Train) => tr.pen.broke || tr.pen.taken;
-/** How dented the bars are (0..3), by the hits. */
-export const penDmg = (tr: Train) => (penOpen(tr) ? 0 : Math.min(3, Math.floor((tr.pen.hits * 4) / PEN_HITS)));
+/** How buckled it is (0..5), by the wear (lion.ts paints each stage the once). */
+const stageOf = (hits: number) => { let k = 0; while (k < STAGES.length && hits >= STAGES[k]) k++; return k; };
+export const penDmg = (tr: Train) => (penOpen(tr) ? 0 : stageOf(tr.pen.hits));
 /** At the section's build: taken on this save already? */
 export const setPen = (tr: Train) => { tr.pen.taken = ammoWon(AMMO_LAND, AMMO_ID); };
 
@@ -116,6 +127,94 @@ export const drawPenFront = (c: Ctx, state: GameState) => {
 // Each frame
 
 const COUNTED = new WeakSet<object>();
+/** The bodies that have hit it (each the once). */
+const FLUNG = new WeakSet<object>();
+
+// ---- Its stand-in: an unseen, harmless fixture over the cage (the town's TNT crates' way: one of the cast), so that
+// whatever of his hits things (every move, every weapon's own way of hitting, the blasts) hits the cage too. It never
+// dies: what it loses is the cage's wear, and it's put right again each frame (never a kill, a drop, a line). Never
+// seen (so the train's own hazards (the bridges, the tanks) pass it by), never grabbed, never pushed about.
+export const CAGE_KIND = 'm2:fr_lioncage';
+const BANK = 99999;
+/** The stand-in over the cage of this train (a death builds a new one). */
+const standIns = new WeakMap<object, Enemy>();
+const pinStandIn = (state: GameState, e: Enemy) => {
+  const tr = trainOf(state);
+  if (CIRCUS < 0) return;
+  const x = carXNow(tr, CIRCUS), len = CARS[CIRCUS].len;
+  // (just under its roof (he crosses the car on it: walking, charging, sliding over it is no hit), a little out past
+  // its ends (his moves up against it); a dive kick down onto the roof is counted on its own (diveOnRoof))
+  e.pos.x = x + END - 6; e.pos.y = ROOF_Y + 2; e.width = len - 2 * END + 12; e.height = DECK - (ROOF_Y + 2);
+  e.vel.x = 0; e.vel.y = 0; e.rotation = 0; e.pauseTimer = 0; e.frozenTimer = 0; e.isOnFire = false; e.isOiled = false; e.isTased = false;
+  e.needleCount = 0; e.needleOffsets = undefined; e.melee = undefined; e.dropping = false; e.homeX = e.pos.x;
+  e.seen = false;
+};
+registerM2Kind({
+  kind: CAGE_KIND, stats: { w: 300, h: 120, hp: BANK, contact: 0, mass: 99999 },
+  ai: (ctx, e) => { pinStandIn(ctx.state, e); return false; },
+  make: b => ({ ...b, harmless: true, unshakeable: true, noCrowd: true }),
+  draw: () => {}, robot: true, gender: 'n', grab: 'none', fixture: true, pathing: false,
+});
+const dropStandIn = (state: GameState) => {
+  const e = standIns.get(trainOf(state).pen);
+  if (e && state.enemies.includes(e)) state.enemies = state.enemies.filter(o => o !== e);
+};
+/** What its stand-in's lost since last frame: the cage's wear (by how hard), and it put right again. */
+const wearFromStandIn = (ctx: FrameContext, x: number, len: number) => {
+  const { state } = ctx, tr = trainOf(state);
+  let e = standIns.get(tr.pen);
+  if (!e) {
+    e = makeKindEnemy(CAGE_KIND as EnemyKind, x + len / 2, DECK);
+    e.health = BANK; e.maxHealth = BANK;
+    standIns.set(tr.pen, e);
+    pinStandIn(state, e);
+    state.enemies.push(e);
+    return;
+  }
+  let wear = 0;
+  // (taken out of the world by something of his (a weapon's kill of its own): that's a big one; back it goes)
+  const there = state.enemies.includes(e);
+  if (!there || e.isBlownAway || e.health <= 0) wear = WEAR_MAX;
+  else if (e.health < BANK) wear = Math.max(WEAR_MIN, Math.min(WEAR_MAX, (BANK - e.health) / WEAR_PER));
+  e.health = BANK; e.isBlownAway = false;
+  pinStandIn(state, e);
+  if (!there) state.enemies.push(e);
+  if (!wear) return;
+  // (where: the near side of it to him)
+  const p = state.player, px = p.pos.x + p.width / 2, py = p.pos.y + p.height / 2;
+  hitPen(ctx, Math.max(x + END + 4, Math.min(x + len - END - 4, px)), Math.max(ROOF_Y + 2, Math.min(DECK - 10, py)), wear);
+};
+
+/** A dive kick come down on the cage's roof: once a kick, a good hit, him bounced up off it like off anybody's head. */
+let diveAt = -999;
+const diveOnRoof = (ctx: FrameContext, a: number, b: number) => {
+  const { state } = ctx, p = state.player, cx = p.pos.x + p.width / 2, feet = p.pos.y + p.height;
+  if (!p.isDivekicking || cx < a || cx > b || feet > ROOF_Y + 4 || feet + Math.max(p.vel.y, 2) < ROOF_Y - 2 || p.vel.y < 0 || state.frame - diveAt < 20) return;
+  diveAt = state.frame;
+  p.isDivekicking = false; p.vel.y = -9; p.isGrounded = false;
+  playSound('stomp', 0.9, -2);
+  hitPen(ctx, cx, ROOF_Y + 4, 2.5);
+};
+
+/** The pieces it crumbled into: falling, tumbling, gone below the deck (cheap: a few boxes, drawn turned). */
+const stepBits = (tr: Train) => {
+  const bits = tr.pen.bits;
+  if (!bits?.length) return;
+  for (const b of bits) { b.t++; b.vy += 0.45; b.rx += b.vx; b.y += b.vy; b.rot += b.vr; }
+  tr.pen.bits = bits.filter(b => b.t < 90 && b.y < DECK + 300);
+};
+export const drawPenBits = (c: Ctx, state: GameState) => {
+  const tr = trainOf(state), bits = tr.pen.bits;
+  if (!bits?.length || CIRCUS < 0 || tr.cars[CIRCUS]?.gone) return;
+  const x = carXNow(tr, CIRCUS);
+  for (const b of bits) {
+    c.save(); c.translate(Math.round(x + b.rx), Math.round(b.y)); c.rotate(b.rot);
+    c.fillStyle = INK; c.fillRect(-b.w / 2 - 1, -b.h / 2 - 1, b.w + 2, b.h + 2);
+    c.fillStyle = b.col; c.fillRect(-b.w / 2, -b.h / 2, b.w, b.h);
+    c.fillStyle = 'rgba(255, 240, 200, 0.45)'; c.fillRect(-b.w / 2, -b.h / 2, Math.max(1, b.w * 0.3), b.h);
+    c.restore();
+  }
+};
 /** How near the bars a shot heading into them counts (it's stopped by the cage's block on the engine's next step, before
  *  it's ever in among them: farther than any shot goes in a frame). */
 const REACH = 60;
@@ -133,25 +232,42 @@ export const updatePen = (ctx: FrameContext): boolean => {
     return !!pen.card;
   }
   if (CIRCUS < 0 || tr.lion) return false;
-  if (tr.cars[CIRCUS]?.gone) { pen.can = null; return false; }
+  if (tr.cars[CIRCUS]?.gone) { pen.can = null; dropStandIn(state); return false; }
   const x = carXNow(tr, CIRCUS), len = CARS[CIRCUS].len;
   if (pen.jit > 0) pen.jit--;
   if (!penOpen(tr)) {
-    // (the bars: from the end of the car, its platforms, a shot flies into them; moving toward them, or in among them)
+    // (a shot of his into it, from any side: the ends, from up on the roof, down onto it, at a slant; moving toward it,
+    // or in it)
     const a = x + END, b = x + len - END;
     for (const pj of state.projectiles) {
       if (pj.owner !== 'player' || pj.health <= 0 || COUNTED.has(pj)) continue;
-      const l = pj.pos.x, r = pj.pos.x + pj.width;
-      if (pj.pos.y + pj.height < ROOF_Y - 4 || pj.pos.y > DECK - 20) continue;
-      const into = (r > a && l < b) || (r > a - REACH && r <= a && pj.vel.x > 0) || (l < b + REACH && l >= b && pj.vel.x < 0);
+      const l = pj.pos.x, r = pj.pos.x + pj.width, t = pj.pos.y, bt = pj.pos.y + pj.height;
+      if (bt < ROOF_Y - REACH || t > DECK - 6 || r < a - REACH || l > b + REACH) continue;
+      const inX = r > a && l < b, inY = bt > ROOF_Y && t < DECK - 6;
+      const into = (inX && inY) || (inY && ((r > a - REACH && r <= a && pj.vel.x > 0) || (l < b + REACH && l >= b && pj.vel.x < 0)))
+        || (inX && bt > ROOF_Y - REACH && bt <= ROOF_Y && pj.vel.y > 0);
       if (!into) continue;
       COUNTED.add(pj);
-      // (stopped dead by the bars: his own weapons that meet things their own way go on as they do)
+      // (stopped dead by it: his own weapons that meet things their own way go on as they do)
       if (!pj.custom) pj.health = 0;
-      hitPen(ctx, Math.max(a + 4, Math.min(b - 4, pj.vel.x > 0 ? r : l)), pj.pos.y + pj.height / 2);
+      hitPen(ctx, Math.max(a + 4, Math.min(b - 4, (l + r) / 2)), Math.max(ROOF_Y + 2, Math.min(DECK - 10, (t + bt) / 2)), 1);
       if (penOpen(tr)) break;
     }
-  }
+    // (everything else of his: his moves, his weapons' own hits, the blasts: on its stand-in (below))
+    if (!penOpen(tr)) wearFromStandIn(ctx, x, len);
+    // (a dive kick down onto its roof: a hit, and he bounces off it)
+    if (!penOpen(tr)) diveOnRoof(ctx, a, b);
+    // (a body flung into it: his throws, the ones he sends flying)
+    if (!penOpen(tr)) for (const e of state.enemies) {
+      if (e.kind === CAGE_KIND || FLUNG.has(e) || Math.hypot(e.vel.x, e.vel.y) < 4) continue;
+      if (!(e.isBlownAway || e.meleeFlung || (e.pauseTimer ?? 0) > 0 || e.dropping)) continue;
+      if (e.pos.x + e.width < a - 6 || e.pos.x > b + 6 || e.pos.y + e.height < ROOF_Y - 4 || e.pos.y > DECK) continue;
+      FLUNG.add(e);
+      hitPen(ctx, Math.max(a + 4, Math.min(b - 4, e.pos.x + e.width / 2)), Math.max(ROOF_Y + 2, Math.min(DECK - 10, e.pos.y + e.height / 2)), WEAR_BODY);
+      if (penOpen(tr)) break;
+    }
+  } else dropStandIn(state);
+  stepBits(tr);
   // (the canister knocked out: up out of the gap, down onto the front platform, a bounce, lying there)
   const k = pen.can;
   if (k) {
@@ -176,27 +292,43 @@ export const updatePen = (ctx: FrameContext): boolean => {
   return false;
 };
 
-/** A hit on the bars at (hx, hy): the clang, sparks, a shudder; the lion roars at it; enough of them and they burst. */
-const hitPen = (ctx: FrameContext, hx: number, hy: number) => {
+/** A hit on it at (hx, hy), `wear` of it: the clang, sparks and splinters, a shudder; a stage further buckled, its creak
+ *  and groan; the lion roars at it; enough and the whole thing crumbles. */
+const hitPen = (ctx: FrameContext, hx: number, hy: number, wear: number) => {
   const { state } = ctx, tr = trainOf(state), pen = tr.pen;
-  pen.hits++; pen.jit = 8;
-  const before = Math.floor(((pen.hits - 1) * 4) / PEN_HITS), now = Math.floor((pen.hits * 4) / PEN_HITS);
+  const before = stageOf(pen.hits);
+  pen.hits += wear; pen.jit = 8 + Math.round(wear * 2);
+  const now = stageOf(pen.hits);
   playSound('clang', 0.6, 4 + Math.random() * 6);
-  if (now > before) { playSound('crunch', 0.5, 4); shakeScreen(state, 3, 2); }
-  for (let n = 0; n < 7; n++) state.particles.push({ pos: { x: hx, y: hy }, vel: { x: (Math.random() - 0.5) * 6, y: -1 - Math.random() * 4 }, life: 10 + Math.random() * 10, color: n % 2 ? '#FDE047' : '#FFF0A8', size: 2 });
+  if (now > before && pen.hits < PEN_HITS) {
+    // (a stage further gone: the creak of it giving, the groan of the frame, a shake; splinters off the boards)
+    playSound('crack', 0.7, -6 - now); playSound('rumble', 0.6, -10); playSound('crunch', 0.5, 2);
+    shakeScreen(state, 4 + now, 3);
+    for (let n = 0; n < 8; n++) state.particles.push({ pos: { x: hx + (Math.random() - 0.5) * 30, y: hy }, vel: { x: (Math.random() - 0.5) * 5, y: -2 - Math.random() * 3 }, life: 26, color: n % 2 ? '#8A5A30' : '#C8962E', size: 2 + Math.random() * 2, grav: 0.3 });
+  }
+  for (let n = 0; n < 7 + Math.round(wear * 2); n++) state.particles.push({ pos: { x: hx, y: hy }, vel: { x: (Math.random() - 0.5) * 6, y: -1 - Math.random() * 4 }, life: 10 + Math.random() * 10, color: n % 3 === 2 ? '#A3262A' : n % 2 ? '#FDE047' : '#FFF0A8', size: 2 });
   // (the lion in there doesn't care for it)
   if (tr.cage.roar <= 0 && Math.random() < 0.4) { tr.cage.roar = 54; playSound('roar', 0.5, -2); }
   if (pen.hits >= PEN_HITS) breakPen(ctx);
 };
 
-/** The bars burst: the lion out up onto the roof (one of the cast now), the canister knocked out, his line. */
+/** It crumbles: the bars and boards coming away and down off it, the lion out up onto the roof (one of the cast now),
+ *  the canister knocked out, his line. */
 const breakPen = (ctx: FrameContext) => {
   const { state, fx } = ctx, tr = trainOf(state), pen = tr.pen, cg = tr.cage;
   pen.broke = true;
+  dropStandIn(state);
   const x = carXNow(tr, CIRCUS), len = CARS[CIRCUS].len, mx = x + len / 2;
-  playSound('crash', 1, -4); playSound('clang', 1, -8); playSound('roar', 1, -4);
-  shakeScreen(state, 10, 5);
-  for (let n = 0; n < 26; n++) state.particles.push({ pos: { x: mx + (Math.random() - 0.5) * 60, y: BARS_Y + Math.random() * (FLOOR_Y - BARS_Y) }, vel: { x: (Math.random() - 0.5) * 9, y: -2 - Math.random() * 6 }, life: 30 + Math.random() * 20, color: n % 3 === 0 ? '#FFF0A8' : n % 3 === 1 ? '#C8962E' : '#E8D8A0', size: 2 + Math.random() * 2, grav: 0.3 });
+  playSound('crash', 1, -4); playSound('clang', 1, -8); playSound('roar', 1, -4); playSound('crack', 1, -10); playSound('rumble', 0.9, -12);
+  shakeScreen(state, 14, 7);
+  for (let n = 0; n < 40; n++) state.particles.push({ pos: { x: x + END + Math.random() * (len - 2 * END), y: BARS_Y + Math.random() * (FLOOR_Y - BARS_Y) }, vel: { x: (Math.random() - 0.5) * 9, y: -2 - Math.random() * 6 }, life: 30 + Math.random() * 20, color: n % 4 === 0 ? '#FFF0A8' : n % 4 === 1 ? '#C8962E' : n % 4 === 2 ? '#A3262A' : '#8A5A30', size: 2 + Math.random() * 3, grav: 0.3 });
+  // (the pieces of it: bars, boards off the header and the rail, falling, tumbling, off the car)
+  pen.bits = [];
+  for (let n = 0; n < 18; n++) {
+    const bar = n % 3 !== 2, rx = END + 16 + ((n * 37) % (len - 2 * END - 30));
+    pen.bits.push({ rx, y: bar ? BARS_Y + 10 + (n % 4) * 8 : ROOF_Y + 8 + (n % 2) * 70, vx: (rx - len / 2) / 60 + (Math.random() - 0.5) * 3, vy: -3 - Math.random() * 5, rot: Math.random() * 3, vr: (Math.random() - 0.5) * 0.4,
+      w: bar ? 3 : 18 + (n % 3) * 6, h: bar ? 34 + (n % 3) * 10 : 6, col: bar ? '#C8962E' : n % 2 ? '#A3262A' : '#8A5A30', t: 0 });
+  }
   fx.spawnDamageNumber({ x: mx, y: ROOF_Y - 40 }, "THE LION'S LOOSE!", true, '#FDE047');
   // (out through the gap and up onto the cage's roof, from where it was pacing)
   const e = makeKindEnemy(LION_KIND as EnemyKind, Math.max(x + END + 50, Math.min(x + len - END - 50, x + cg.rx)), ROOF_Y);

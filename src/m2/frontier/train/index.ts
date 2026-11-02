@@ -51,7 +51,7 @@ import { driftGround } from './groundDrift';
 import { BOARDED, TUBE_BOARD, TUBE_LEDGER, TRAIN_GAGS, REVISIT, BOARDED_GONE } from './lines';
 import { bossGone } from '../../emptyArena';
 import { updateCage, updateMaul, drawMaul, drawEscape, trainOff } from './lion';
-import { updatePen, drawPenFront, setPen } from './pen';
+import { updatePen, drawPenFront, drawPenBits, setPen } from './pen';
 
 const { x0, x1 } = SECTIONS.train;
 // (back into the train from the town: the tender's front end)
@@ -204,6 +204,7 @@ export const train: FrontierSection = {
     c.save(); c.translate(off, 0);
     drawCarsFront(c, state);
     drawPenFront(c, state);
+    drawPenBits(c, state);
     c.restore();
     drawPassersFront(c, state);
     c.save(); c.translate(off, 0);
