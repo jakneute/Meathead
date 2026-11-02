@@ -54361,6 +54361,11 @@
  },
  {
   "voice": "m2.pa",
+  "text": "GUESTS IN THE SPLASH ZONE WILL GET WET. WITH GUESTS.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.pa",
   "text": "HAPPY LAND IS NOT RESPONSIBLE FOR LOST FINGERS.",
   "from": "INTRO"
  },
@@ -54378,6 +54383,11 @@
   "voice": "m2.pa",
   "text": "IT IS PRONOUNCED CHOWDAH. GUESTS SAYING CHOWDER WILL BE ESCORTED OUT.",
   "from": "INTRO"
+ },
+ {
+  "voice": "m2.pa",
+  "text": "KEEP HANDS, ARMS AND LEGS INSIDE THE BLEACHERS. WHILE YOU HAVE THEM.",
+  "from": "ADVENTURE"
  },
  {
   "voice": "m2.pa",
@@ -54406,6 +54416,11 @@
  },
  {
   "voice": "m2.pa",
+  "text": "PLEASE REMAIN SEATED.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.pa",
   "text": "SORRY TO HAVE INTERRUPTED YOU.",
   "from": "INTRO"
  },
@@ -54428,6 +54443,11 @@
   "voice": "m2.pa",
   "text": "THE FOUNTAIN OF FREEDOM IS NOT A TOILET. WE CAN SEE YOU, SIR.",
   "from": "INTRO"
+ },
+ {
+  "voice": "m2.pa",
+  "text": "THE PARK IS NOT RESPONSIBLE FOR LOST ITEMS. OR LIMBS.",
+  "from": "ADVENTURE"
  },
  {
   "voice": "m2.pa",
@@ -61695,6 +61715,386 @@
   "from": "SPOOKY"
  },
  {
+  "voice": "m2.spooky.mashkid",
+  "text": "BACK FOR MORE? NO PRIZE THIS TIME. JUST SHAME.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.spooky.mashkid",
+  "text": "BAWK BAWK. CHICKEN.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.spooky.mashkid",
+  "text": "BEAT BY A KID, IN POOPY PANTS. AGAIN?",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.spooky.mashkid",
+  "text": "BYE, LOSER. TELL YOUR FRIENDS.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.spooky.mashkid",
+  "text": "CHICKEN. A SHITTY CHICKEN.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.spooky.mashkid",
+  "text": "DID YOU EVEN PRESS A BUTTON?",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.spooky.mashkid",
+  "text": "DUDE, YOU SHIT YOURSELF. I CAN SMELL IT FROM HERE. ONE GAME FOR MY GLOWY ROCK.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.spooky.mashkid",
+  "text": "FINE. TAKE THE ROCK. WHERE ARE YOU EVEN GONNA PUT IT?",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.spooky.mashkid",
+  "text": "FINE. TAKE THE ROCK. YOU STILL SMELL LIKE A BUTT.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.spooky.mashkid",
+  "text": "GET OWNED, GRANDPA.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.spooky.mashkid",
+  "text": "GO CHANGE YOUR DIAPER, CHICKEN.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.spooky.mashkid",
+  "text": "GO FIND YOUR PANTS, CHICKEN.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.spooky.mashkid",
+  "text": "HA! YOU SUCK. WANNA GO AGAIN, LOSER?",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.spooky.mashkid",
+  "text": "HEY, MEATBALL. YOU PLAY MONSTER MASH? BEAT ME AND YOU GET MY GLOWY ROCK.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.spooky.mashkid",
+  "text": "I ALWAYS PICK THIS GUY. HE IS BROKEN.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.spooky.mashkid",
+  "text": "I COULDN'T SEE. YOUR SMELL MADE MY EYES WATER.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.spooky.mashkid",
+  "text": "I LET YOU WIN. FOR CHARITY.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.spooky.mashkid",
+  "text": "I SAW YOUR BUTT BY ACCIDENT. THAT DOESN'T COUNT.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.spooky.mashkid",
+  "text": "MISTER, YOUR BUTT IS OUT. ONE GAME FOR MY GLOWY ROCK. STAND FAR AWAY.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.spooky.mashkid",
+  "text": "MY BROTHER SAYS THIS GUY IS CHEAP. MY BROTHER IS IN JAIL.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.spooky.mashkid",
+  "text": "MY MOM SAYS DON'T TALK TO GUYS WHO POOPED THEIR PANTS. ONE GAME. FOR MY GLOWY ROCK.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.spooky.mashkid",
+  "text": "NAKED AND BAD AT GAMES. AGAIN, MISTER?",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.spooky.mashkid",
+  "text": "NAKED CHICKEN. GROSS.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.spooky.mashkid",
+  "text": "NO FAIR. I'M GAGGING OVER HERE.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.spooky.mashkid",
+  "text": "NO FAIR. YOUR NAKED IS IN MY EYES.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.spooky.mashkid",
+  "text": "NO MORE ROCKS. PLAY FOR PRIDE, LOSER.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.spooky.mashkid",
+  "text": "NO MORE ROCKS. YOU STILL STINK. ONE MORE?",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.spooky.mashkid",
+  "text": "OWNED. AND YOU STINK.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.spooky.mashkid",
+  "text": "OWNED. PUT SOME PANTS ON.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.spooky.mashkid",
+  "text": "QUITTER! I'M PUTTING YOUR INITIALS AS POOPY.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.spooky.mashkid",
+  "text": "STILL NAKED? ONE MORE GAME. NO ROCK.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.spooky.mashkid",
+  "text": "THAT DIDN'T COUNT. MY HAND SLIPPED.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.spooky.mashkid",
+  "text": "THAT WAS SO SAD. AGAIN? I'LL USE ONE HAND.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.spooky.mashkid",
+  "text": "THE INVISIBLE GUY? HE DOESN'T EVEN HAVE A GUY.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.spooky.mashkid",
+  "text": "THE STICK IS BROKEN. EVERYBODY KNOWS.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.spooky.mashkid",
+  "text": "THIS GAME IS FOR BABIES ANYWAY. HERE. TAKE IT.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.spooky.mashkid",
+  "text": "THOUGHT SO. GRANDPA HANDS.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.spooky.mashkid",
+  "text": "WATCH THIS. I KNOW ALL THE CODES.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.spooky.mashkid",
+  "text": "WHATEVER. I'M TELLING MY MOM.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.spooky.mashkid",
+  "text": "WHY ARE YOU NAKED IN AN ARCADE? GROSS. ONE GAME. YOU WIN, YOU GET MY GLOWY ROCK.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.spooky.mashkid",
+  "text": "YOU AGAIN. YOU SMELL WORSE. NO PRIZE.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.spooky.mashkid",
+  "text": "YOU CHEATED. FINE. TAKE THE STUPID ROCK.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.spooky.mashkid",
+  "text": "YOU CHEATED. TAKE IT. DON'T TOUCH ME WITH YOUR POOP HANDS.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.spooky.mashkid",
+  "text": "YOU LOOK LIKE YOU SUCK AT VIDEO GAMES. ONE GAME. MY GLOWY ROCK SAYS YOU LOSE.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.spooky.mashkid",
+  "text": "YOU LOST AND YOU SHIT YOURSELF. WORST DAY EVER. AGAIN?",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.spooky.mashkid",
+  "text": "YOU LOST NAKED. THAT'S TWO LOSSES. AGAIN?",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.spooky.mashkid",
+  "text": "YOU PICKED NOBODY. LITERALLY NOBODY.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.spooky.mashkid",
+  "text": "YOU PLAY LIKE YOU SMELL.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.spooky.mashkid",
+  "text": "YOU STILL HAVEN'T FOUND PANTS? FINE. NO PRIZE.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.spooky.mashkid",
+  "text": "YOU WIN. YOU'RE STILL NAKED. I WIN AT LIFE.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.spooky.mashkid",
+  "text": "YOUR BUTT IS DISTRACTING AND I STILL WON.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.spooky.mashvoice",
+  "text": "CHOOSE YOUR MONSTER!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.spooky.mashvoice",
+  "text": "COUNT DRACULA!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.spooky.mashvoice",
+  "text": "DOCTOR JEKYLL AND MISTER HYDE!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.spooky.mashvoice",
+  "text": "DRACULA WINS!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.spooky.mashvoice",
+  "text": "END THEM!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.spooky.mashvoice",
+  "text": "FIGHT!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.spooky.mashvoice",
+  "text": "FINAL ROUND",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.spooky.mashvoice",
+  "text": "FLAWLESS MASH!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.spooky.mashvoice",
+  "text": "FRANKENSTEIN'S MONSTER!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.spooky.mashvoice",
+  "text": "HE IS THERE. PROBABLY.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.spooky.mashvoice",
+  "text": "INVISIBLE MAN WINS!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.spooky.mashvoice",
+  "text": "JEKYLL/HYDE WINS!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.spooky.mashvoice",
+  "text": "KNOCK OUT!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.spooky.mashvoice",
+  "text": "MONSTER MASH!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.spooky.mashvoice",
+  "text": "MONSTROSITY!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.spooky.mashvoice",
+  "text": "QUASIMODO WINS!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.spooky.mashvoice",
+  "text": "QUASIMODO!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.spooky.mashvoice",
+  "text": "ROUND 1",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.spooky.mashvoice",
+  "text": "ROUND 2",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.spooky.mashvoice",
+  "text": "THE INVISIBLE MAN!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.spooky.mashvoice",
+  "text": "THE MONSTER WINS!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.spooky.mashvoice",
+  "text": "THE MUMMY WINS!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.spooky.mashvoice",
+  "text": "THE MUMMY!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.spooky.mashvoice",
+  "text": "THE PHANTOM OF THE OPERA!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.spooky.mashvoice",
+  "text": "THE PHANTOM WINS!",
+  "from": "SPOOKY"
+ },
+ {
   "voice": "m2.ticket",
   "text": "BACK OF THE LINE, SIR.",
   "from": "INTRO"
@@ -62441,6 +62841,11 @@
  },
  {
   "voice": "meathead",
+  "text": "A CHILD WANTS TO DIE. FINE.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
   "text": "A CHOCOLATE HOUSE. LOOKS LIKE MY PANTS.",
   "from": "FANTASY"
  },
@@ -62533,6 +62938,11 @@
   "voice": "meathead",
   "text": "A COLLECTION PLATE!",
   "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "A COMPUTER. IN A TREE. I KNOW COMPUTERS.",
+  "from": "ADVENTURE"
  },
  {
   "voice": "meathead",
@@ -66151,6 +66561,21 @@
  },
  {
   "voice": "meathead",
+  "text": "BEATEN BY A CHILD, NAKED, IN PUBLIC. NEW LOW.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
+  "text": "BEATEN BY A MAN WITH A FULL LOAD. LIVE WITH IT.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
+  "text": "BEATEN BY A NAKED MAN. TELL YOUR THERAPIST.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
   "text": "BEEP BOOP, MOTHERFUCKER!",
   "from": "SPACE"
  },
@@ -68371,6 +68796,11 @@
  },
  {
   "voice": "meathead",
+  "text": "CRY ABOUT IT, NERD.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
   "text": "CRYO RIFLE! MY PECS ARE FREEZER BURNED!",
   "from": "HAZARD_HURT"
  },
@@ -68851,6 +69281,16 @@
  },
  {
   "voice": "meathead",
+  "text": "DO NOT TOUCH. CHALLENGE ACCEPTED.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "meathead",
+  "text": "DO NOT TOUCH. TOO LATE, I GOT SHIT ON IT.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "meathead",
   "text": "DO YOU EVEN LIFT, BITCHES?",
   "from": "BULK_LINES"
  },
@@ -68933,6 +69373,11 @@
   "voice": "meathead",
   "text": "DON'T LICK THAT!",
   "from": "HUB"
+ },
+ {
+  "voice": "meathead",
+  "text": "DON'T LOOK AT MY DONGLE. LOOK AT THE SCREEN.",
+  "from": "ADVENTURE"
  },
  {
   "voice": "meathead",
@@ -69548,6 +69993,11 @@
   "voice": "meathead",
   "text": "EVEN THE DOLL WANTS A BEER.",
   "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "EVEN WITH A LOAD IN MY PANTS.",
+  "from": "SPOOKY"
  },
  {
   "voice": "meathead",
@@ -70591,6 +71041,11 @@
  },
  {
   "voice": "meathead",
+  "text": "FREE BALLING IT. UNDEFEATED.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
   "text": "FREE BANDAIDS. THE APOCALYPSE HAS BETTER BENEFITS THAN MY JOB.",
   "from": "HOLLYWOOD"
  },
@@ -70738,6 +71193,21 @@
   "voice": "meathead",
   "text": "FRYING PAN! TO THE FACE!",
   "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
+  "text": "FUCK COMPUTERS.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "meathead",
+  "text": "FUCK COMPUTERS. AND MY PANTS.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "meathead",
+  "text": "FUCK COMPUTERS. I GOT NO POCKETS FOR THIS.",
+  "from": "ADVENTURE"
  },
  {
   "voice": "meathead",
@@ -71866,6 +72336,11 @@
  },
  {
   "voice": "meathead",
+  "text": "GOOD NEWS: NOBODY SAW ME NAKED. NOBODY'S LEFT.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "meathead",
   "text": "GOOD THING I KEEP A STANDBY. THIS IS GOING ON MY PODCAST.",
   "from": "m1/game/stages/ernie/jetski.ts:142"
  },
@@ -72203,6 +72678,26 @@
   "voice": "meathead",
   "text": "HACKED UP AND DEAD!",
   "from": "M2_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "HACKERMAN.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "meathead",
+  "text": "HACKERMAN. NUDE HACKERMAN.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "meathead",
+  "text": "HACKERMAN. STINKY HACKERMAN.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "meathead",
+  "text": "HACKING NAKED. LIKE A REAL HACKER.",
+  "from": "ADVENTURE"
  },
  {
   "voice": "meathead",
@@ -74846,6 +75341,11 @@
  },
  {
   "voice": "meathead",
+  "text": "HUH. THAT'S ON WHOEVER WROTE THE PASSWORD.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "meathead",
   "text": "HUH. WHERE'D THAT HIPSTER LAND? HE WAS RIGHT BEHIND ME.",
   "from": "m1/game/stages/ernie/runtime.ts:26"
  },
@@ -74933,6 +75433,11 @@
   "voice": "meathead",
   "text": "I AM BUYING THAT PHOTO.",
   "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
+  "text": "I AM CARRYING A LOAD AND I WILL STILL BEAT YOU.",
+  "from": "SPOOKY"
  },
  {
   "voice": "meathead",
@@ -75258,6 +75763,11 @@
   "voice": "meathead",
   "text": "I COULD SWIM FOR IT.",
   "from": "ADVENTURE"
+ },
+ {
+  "voice": "meathead",
+  "text": "I DID NOT LOSE TO A CHILD. THE CHILD CHEATED.",
+  "from": "SPOOKY"
  },
  {
   "voice": "meathead",
@@ -75656,6 +76166,11 @@
  },
  {
   "voice": "meathead",
+  "text": "I GOT DISTRACTED BY THE BREEZE.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
   "text": "I GOT ENOUGH IN MY BUTT FUR WITHOUT YOU.",
   "from": "CARTOON"
  },
@@ -75708,6 +76223,11 @@
   "voice": "meathead",
   "text": "I GOT RUN OVER BY A LIONEL!",
   "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
+  "text": "I HACK BETTER WITH A LOAD IN MY PANTS.",
+  "from": "ADVENTURE"
  },
  {
   "voice": "meathead",
@@ -75931,6 +76451,11 @@
  },
  {
   "voice": "meathead",
+  "text": "I LOST AND I'M SITTING IN IT. GREAT.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
   "text": "I LOVE LOG RIDES.",
   "from": "FRONTIER"
  },
@@ -75978,6 +76503,11 @@
   "voice": "meathead",
   "text": "I NEED FIFTY PAPER TOWELS AND YOUR HEAD ON A PLATE!",
   "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "I NEED PANTS AND A REMATCH.",
+  "from": "SPOOKY"
  },
  {
   "voice": "meathead",
@@ -76101,6 +76631,11 @@
  },
  {
   "voice": "meathead",
+  "text": "I SAW A MOVIE ABOUT THIS. I GOT THIS.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "meathead",
   "text": "I SAW THE FUSE! I SAW IT!",
   "from": "CARTOON"
  },
@@ -76146,6 +76681,11 @@
  },
  {
   "voice": "meathead",
+  "text": "I SHIFTED AND IT SQUISHED. NOT FAIR.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
   "text": "I SHIT MY PANTS AND HE'S STILL WINNING. CLAPPERBOARD TIME.",
   "from": "CARTOON"
  },
@@ -76153,6 +76693,11 @@
   "voice": "meathead",
   "text": "I SHIT MY PANTS AND I'M STILL NOT THE GROSSEST THING IN HERE.",
   "from": "FANTASY"
+ },
+ {
+  "voice": "meathead",
+  "text": "I SHIT MYSELF AND I'M STILL BETTER THAN YOU.",
+  "from": "SPOOKY"
  },
  {
   "voice": "meathead",
@@ -76401,6 +76946,11 @@
  },
  {
   "voice": "meathead",
+  "text": "I WAS LETTING YOU WIN. FOR YOUR SELF ESTEEM.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
   "text": "I WASN'T A CAT. I WAS A GUY WHO SHIT HIMSELF. WITH A PROJECTOR ON HIM.",
   "from": "CARTOON"
  },
@@ -76493,6 +77043,21 @@
   "voice": "meathead",
   "text": "I'LL BURY YOU UNDER YOUR OWN SHIT!",
   "from": "HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "I'LL COME BACK WITH A HAMMER.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "meathead",
+  "text": "I'LL COME BACK WITH A HAMMER. AND A WIPE.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "meathead",
+  "text": "I'LL COME BACK WITH A HAMMER. AND PANTS.",
+  "from": "ADVENTURE"
  },
  {
   "voice": "meathead",
@@ -76906,6 +77471,21 @@
  },
  {
   "voice": "meathead",
+  "text": "I'M IN.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "meathead",
+  "text": "I'M IN. AND I'M NAKED.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "meathead",
+  "text": "I'M IN. SO'S MY SHIT.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "meathead",
   "text": "I'M LOSING MY BALANCE, GOD DAMNIT!",
   "from": "HURT"
  },
@@ -77073,6 +77653,11 @@
   "voice": "meathead",
   "text": "I'M NOT THE PINATA!",
   "from": "FOREIGN"
+ },
+ {
+  "voice": "meathead",
+  "text": "I'M NOT THE WORST THING THEY SAW TODAY.",
+  "from": "ADVENTURE"
  },
  {
   "voice": "meathead",
@@ -77976,6 +78561,11 @@
  },
  {
   "voice": "meathead",
+  "text": "IT IS HARD TO CROUCH LIKE THIS.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
   "text": "IT IS NOT MINE! IT IS NOT MINE!",
   "from": "FRONTIER"
  },
@@ -78028,6 +78618,21 @@
   "voice": "meathead",
   "text": "IT NEEDS SOMETHING A LOT HEAVIER THAN THAT TO BRING THAT FAN DOWN.",
   "from": "m1/game/stages/dale/junkie.ts:689"
+ },
+ {
+  "voice": "meathead",
+  "text": "IT PAYS OUT? SWEET.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "meathead",
+  "text": "IT PAYS OUT. FINALLY SOMETHING GOOD CAME OUT OF ME.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "meathead",
+  "text": "IT PAYS OUT. HOLD THIS, BUTTCHEEKS.",
+  "from": "ADVENTURE"
  },
  {
   "voice": "meathead",
@@ -78926,6 +79531,21 @@
  },
  {
   "voice": "meathead",
+  "text": "JACKPOT.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "meathead",
+  "text": "JACKPOT. LIKE MY PANTS.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "meathead",
+  "text": "JACKPOT. NO POCKETS. I KNOW WHERE IT GOES.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "meathead",
   "text": "JAPAN. A TASTE OF CHINA. THEY JUST SWAPPED THE SIGNS.",
   "from": "FOREIGN"
  },
@@ -79123,6 +79743,11 @@
   "voice": "meathead",
   "text": "KICKED OUT OF THE CART!",
   "from": "FANTASY"
+ },
+ {
+  "voice": "meathead",
+  "text": "KID, I WAS PLAYING ARCADES BEFORE YOUR DAD LEFT.",
+  "from": "SPOOKY"
  },
  {
   "voice": "meathead",
@@ -79578,6 +80203,11 @@
   "voice": "meathead",
   "text": "LET ME TALK TO MY MANAGER. ...HE SAYS PLEASE LEAVE THE SHOWROOM.",
   "from": "m1/game/bosses/oscar.ts:218"
+ },
+ {
+  "voice": "meathead",
+  "text": "LET ME WIPE MY HANDS. ...ON THE KEYPAD.",
+  "from": "ADVENTURE"
  },
  {
   "voice": "meathead",
@@ -81656,6 +82286,11 @@
  },
  {
   "voice": "meathead",
+  "text": "NAKED GAMERS PLAY BETTER. IT IS SCIENCE.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
   "text": "NAKED GRAB! BAD IDEA! SO MUCH SWEAT!",
   "from": "CARTOON"
  },
@@ -81901,6 +82536,11 @@
  },
  {
   "voice": "meathead",
+  "text": "NAKED. VICTORIOUS. HOME BY SIX.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
   "text": "NAMASTE, PEASANTS!",
   "from": "m1/game/stages/ernie/doorCrash.ts:71"
  },
@@ -81998,6 +82638,11 @@
   "voice": "meathead",
   "text": "NERD SHIT WORKS!",
   "from": "M2_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "NERD SHIT. LATER.",
+  "from": "ADVENTURE"
  },
  {
   "voice": "meathead",
@@ -82641,6 +83286,11 @@
  },
  {
   "voice": "meathead",
+  "text": "NO PANTS. NO MERCY.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
   "text": "NO PANTS. SAVES TIME WITH PIPER.",
   "from": "FANTASY"
  },
@@ -83012,6 +83662,11 @@
  {
   "voice": "meathead",
   "text": "NOBODY'S LOOKING AT MY DICK NOW.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "meathead",
+  "text": "NOBODY'S LOOKING AT MY PANTS NOW.",
   "from": "ADVENTURE"
  },
  {
@@ -83413,6 +84068,11 @@
   "voice": "meathead",
   "text": "NOTHING TO LIGHT YET. THAT GAS LINE ON THE WALL THOUGH...",
   "from": "m1/game/stages/oscar/bunker.ts:368"
+ },
+ {
+  "voice": "meathead",
+  "text": "NOTHING TO WIPE ON. KEYPAD IT IS.",
+  "from": "ADVENTURE"
  },
  {
   "voice": "meathead",
@@ -88336,6 +88996,11 @@
  },
  {
   "voice": "meathead",
+  "text": "SIT DOWN, SKIDMARK.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
   "text": "SIT DOWN!",
   "from": "GENERIC_KILL_LINES"
  },
@@ -88558,6 +89223,11 @@
   "voice": "meathead",
   "text": "SMELL THAT? THAT'S VICTORY. AND ME.",
   "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "SMELL THAT? THAT'S VICTORY. AND POOP.",
+  "from": "SPOOKY"
  },
  {
   "voice": "meathead",
@@ -88868,6 +89538,11 @@
   "voice": "meathead",
   "text": "SOMEBODY DO SOMETHING STUPID. PLEASE.",
   "from": "SPACE"
+ },
+ {
+  "voice": "meathead",
+  "text": "SOMEBODY DOWN THERE SHIT WORSE THAN ME.",
+  "from": "ADVENTURE"
  },
  {
   "voice": "meathead",
@@ -90051,6 +90726,11 @@
  },
  {
   "voice": "meathead",
+  "text": "SUCK IT, NERDS.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "meathead",
   "text": "SUCK IT, SAL.",
   "from": "SPOOKY"
  },
@@ -90691,6 +91371,11 @@
  },
  {
   "voice": "meathead",
+  "text": "THAT IS CALLED SKILL. LOOK IT UP.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
   "text": "THAT IS NOT FLOUR! THAT IS NOT FLOUR!",
   "from": "HAZARD_HURT"
  },
@@ -91291,6 +91976,11 @@
  },
  {
   "voice": "meathead",
+  "text": "THAT'S FOR EVERY KID WHO EVER BEAT ME AT ANYTHING.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
   "text": "THAT'S FOR PIPER.",
   "from": "FANTASY"
  },
@@ -91333,6 +92023,11 @@
   "voice": "meathead",
   "text": "THAT'S IT? IT'S JUST NIGHTTIME.",
   "from": "SPACE"
+ },
+ {
+  "voice": "meathead",
+  "text": "THAT'S IT. I'M SHITTING ON THIS CABINET.",
+  "from": "SPOOKY"
  },
  {
   "voice": "meathead",
@@ -92098,6 +92793,11 @@
   "voice": "meathead",
   "text": "THE COLOR'S GONE. THE SMELL ISN'T.",
   "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "THE CONTROLS ARE COLD ON MY THIGHS.",
+  "from": "SPOOKY"
  },
  {
   "voice": "meathead",
@@ -93156,6 +93856,11 @@
  },
  {
   "voice": "meathead",
+  "text": "THE PANTS WERE HOLDING ME BACK. RACK EM.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
   "text": "THE PARK RANGER SHOVED ME!",
   "from": "HAZARD_HURT"
  },
@@ -93636,6 +94341,11 @@
  },
  {
   "voice": "meathead",
+  "text": "THE SMELL IS PART OF MY STRATEGY. RACK EM.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
   "text": "THE SMOKE'S APPLE FLAVORED. STILL SMOKE.",
   "from": "FOREIGN"
  },
@@ -93763,6 +94473,11 @@
   "voice": "meathead",
   "text": "THE STEERING'S BROKEN. IT'S A BUMPER CAR. THEY'RE ALL BROKEN.",
   "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "THE STICK IS STICKY. WHY IS IT STICKY.",
+  "from": "SPOOKY"
  },
  {
   "voice": "meathead",
@@ -94481,6 +95196,11 @@
  },
  {
   "voice": "meathead",
+  "text": "THEY DID SAY REMAIN SEATED.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "meathead",
   "text": "THEY DIDN'T GO POOF. I DID. IN MY PANTS.",
   "from": "CARTOON"
  },
@@ -94918,6 +95638,11 @@
   "voice": "meathead",
   "text": "THIS LOCKER SMELLS LIKE FEET AND TACO BELL.",
   "from": "SPACE"
+ },
+ {
+  "voice": "meathead",
+  "text": "THIS MACHINE IS RIGGED. I'M CALLING THE BETTER BUSINESS BUREAU.",
+  "from": "SPOOKY"
  },
  {
   "voice": "meathead",
@@ -98028,6 +98753,11 @@
   "voice": "meathead",
   "text": "WORTH IT.",
   "from": "m1/game/stages/barry/power.ts:279"
+ },
+ {
+  "voice": "meathead",
+  "text": "WORTH IT. SHINY ROCK.",
+  "from": "ADVENTURE"
  },
  {
   "voice": "meathead",
