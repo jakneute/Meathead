@@ -143,9 +143,10 @@ export const placard = (c: Ctx, x: number, feet: number, words: string[]) => {
 };
 // (each in its own room, clear of the doorway in from the last one (the rooms meet at their x: the doorway's about 60
 // either side of it on the back wall) and of what's in the play plane: the grand staircase's short of the stairs (6600);
-// the cross hall's halfway between two of its columns)
+// the cross hall's halfway between two of its columns; the east room's past the JUST WAXED sign, which stood over its
+// easel's feet)
 const PLACARDS: [number, number, string[]][] = [
-  [1325, 0, ['THE CROSS', 'HALL']], [2400, 0, ['THE EAST', 'ROOM']], [3880, 0, ['THE PRESS', 'ROOM']], [5180, 0, ['THE STATE', 'DINING ROOM']],
+  [1325, 0, ['THE CROSS', 'HALL']], [2500, 0, ['THE EAST', 'ROOM']], [3880, 0, ['THE PRESS', 'ROOM']], [5180, 0, ['THE STATE', 'DINING ROOM']],
   [6530, 0, ['THE GRAND', 'STAIRCASE']], [7780, F2, ['THE CENTER', 'HALL']], [8630, F2, ['THE LINCOLN', 'BEDROOM']], [9530, F2, ['THE WEST', 'SITTING HALL']],
 ];
 
@@ -534,7 +535,9 @@ export const drawWhBack = (c: Ctx, state: GameState) => {
   if (onScreen(state, X(FALWELL_ARENA.a) - 100, X(FALWELL_ARENA.b) + 100)) { bed(c, E); arenaLedges(c, E, FALWELL_ARENA.ledges, 'shelf'); }
   garden(c, state, E);
   for (const [x, h, words] of PLACARDS) if (onScreen(state, X(x) - 90, X(x) + 90)) placard(c, X(x), Y(h), words);
-  if (onScreen(state, X(11700), X(12100))) toonSign(c, X(11920), GY, ['TO THE', 'WEST WING >'], { board: '#1D4ED8' });
+  // (on the open lawn short of the colonnade, past the roses: it stood in front of the colonnade, its board across a
+  // column)
+  if (onScreen(state, X(11440), X(11740))) toonSign(c, X(11590), GY, ['TO THE', 'WEST WING >'], { board: '#1D4ED8' });
   hazards(c, state);
 };
 
