@@ -80,6 +80,12 @@ export const CREW_MAD: ByPants = {
   shitty: ['HE SHAT IN OUR CHIPPER! GET HIM!', 'YOU STINK AND YOU OWE US A LOG!'],
   nude: ['NAKED GUY KILLED OUR LOG! GET HIM!', 'PUT IT AWAY AND PAY FOR THE LOG!'],
 };
+/** A revisit: him, in their chipper's log, again. */
+export const CREW_MAD_GONE: ByPants = {
+  clean: ["AGAIN?! THAT'S TWO LOGS, ASSHOLE!", 'WE JUST BOUGHT A NEW CHIPPER! GET HIM!'],
+  shitty: ['HE SHAT IN THE NEW CHIPPER! GET HIM!', 'THE STINKY ONE AGAIN! GET HIM!'],
+  nude: ["THE NAKED GUY'S BACK! SAME LOG! GET HIM!", 'HIM AGAIN! STILL NAKED! GET HIM!'],
+};
 /** Anybody thrown into the chipper (the announcer's kill callout). */
 export const CHIPPED_CALLS = ['CHIPPED!', 'MULCHED!', 'FED THE CHIPPER!', 'WOOD CHIPS!', 'LANDSCAPED!'];
 
@@ -193,8 +199,24 @@ export const HURT: HurtTable = {
   },
 };
 
-const MEATHEAD = [DEAD_AGAIN, RIDE_START, FIRST_SAW, LIFT_HILL, BIG_DROP, PHOTO, BREAKOUT, SEWER, REAL_RIVER, FALLS, CHIPPER_SEEN, JUMPED];
-const OPERATOR = [OP_CUT, OP_SHOVED, OP_AFTER, OP_AGAIN];
+// ---------------------------------------------------------------------------------------------------------------
+// A revisit, the land cleared (Tucker's dead: the owner's revisit brief, 2026-11-02)
+
+/** The operator, at the controls, sick of him cutting: BUZZSAW MODE, her own hand on it. */
+export const OP_REVENGE: ByPants = {
+  clean: ['YOU CUT THE WHOLE LINE? AGAIN? OKAY. BUZZSAW MODE.', "I KNOW WHERE TUCKER KEPT THE BUTTON. ENJOY."],
+  shitty: ['YOU CUT MY LINE AND YOU SHIT IN MY LOG? BUZZSAW MODE.', 'NOT IN THOSE PANTS. NOT IN MY LOG. SAWS ON.'],
+  nude: ['NAKED AND CUTTING? NOPE. BUZZSAW MODE.', 'SAWS ON. AIM LOW, SAWS.'],
+};
+/** Him, as the log goes. */
+export const MH_BUZZ: ByPants = {
+  clean: ['OKAY. I EARNED THAT.', 'THE OPERATOR TURNED ON THE SAWS. RESPECT.'],
+  shitty: ['FINE. THE SAWS. THE PANTS ARE ALREADY RUINED.', 'SAWS. I SHAT. WE ARE EVEN.'],
+  nude: ['BUZZSAWS AND NO PANTS. GREAT.', 'SAWS ON. TUCK IT IN. NOTHING TO TUCK IT IN.'],
+};
+
+const MEATHEAD = [MH_BUZZ, DEAD_AGAIN, RIDE_START, FIRST_SAW, LIFT_HILL, BIG_DROP, PHOTO, BREAKOUT, SEWER, REAL_RIVER, FALLS, CHIPPER_SEEN, JUMPED];
+const OPERATOR = [OP_REVENGE, OP_CUT, OP_SHOVED, OP_AFTER, OP_AGAIN];
 export const VOICE_LINES: Record<string, string[]> = {
   meathead: [...MEATHEAD.flatMap(allOf), ...Object.values(HURT).flatMap(h => h.hurt)],
   death: Object.values(HURT).flatMap(h => h.death),
@@ -202,7 +224,7 @@ export const VOICE_LINES: Record<string, string[]> = {
   [RIDE_VOICES.operator]: OPERATOR.flatMap(allOf),
   [RIDE_VOICES.operatorf]: OPERATOR.flatMap(allOf),
   [RIDE_VOICES.spiel]: [...SPIEL_CREEK, ...SPIEL_MILL, ...SPIEL_DROP, ...SPIEL_BUZZMODE],
-  [RIDE_VOICES.crew]: [...allOf(CREW_JUMP), ...allOf(CREW_MAD)],
-  [RIDE_VOICES.crewf]: [...allOf(CREW_JUMP), ...allOf(CREW_MAD)],
+  [RIDE_VOICES.crew]: [...allOf(CREW_JUMP), ...allOf(CREW_MAD), ...allOf(CREW_MAD_GONE)],
+  [RIDE_VOICES.crewf]: [...allOf(CREW_JUMP), ...allOf(CREW_MAD), ...allOf(CREW_MAD_GONE)],
   announcer: CHIPPED_CALLS,
 };

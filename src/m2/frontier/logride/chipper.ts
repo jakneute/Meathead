@@ -30,7 +30,8 @@ import { rideOf } from './state';
 import { unboard, feetY, riderX } from './ride';
 import { X, x0, x1, CHIPPER, JUMP_FROM, READY_FROM, LAND_X, END } from './layout';
 import { startGore, updateGore, chipperJammed } from './chipperGore';
-import { RIDE_VOICES, CREW_JUMP, CREW_MAD, CHIPPED_CALLS, JUMPED, HURT } from './lines';
+import { RIDE_VOICES, CREW_JUMP, CREW_MAD, CREW_MAD_GONE, CHIPPED_CALLS, JUMPED, HURT } from './lines';
+import { bossGone } from '../../emptyArena';
 import { inPlay } from '../../moves/grab';
 
 const LEAP = 54;
@@ -84,7 +85,7 @@ export const updateChipper = (ctx: FrameContext, controls: Controls): Controls |
   if (!ch.madSaid && ch.state === 'safe' && ch.t > 50 && p.health > 0 && !p.inCutscene) {
     const who = crewAlive(state)[0];
     ch.madSaid = true;
-    if (who) crewSays(state, who, CREW_MAD);
+    if (who) crewSays(state, who, bossGone('frontier') ? CREW_MAD_GONE : CREW_MAD);
   }
   if (L.mode === 'ride' && L.rx >= READY_FROM) {
     if (ch.state === 'idle') { ch.state = 'ready'; ch.t = 0; playSound('engine', 0.8, -8); }

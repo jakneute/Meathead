@@ -43,6 +43,35 @@ export const REVISIT: ByPants = {
   shitty: ['BACK IN SAWDUST GULCH. STILL SHITTY. ME AND THE TOWN.', 'THEY FIXED THE STOP. NOT MY PANTS.'],
   nude: ['BACK IN SAWDUST GULCH. STILL NO PANTS.', 'THEY FIXED THE STOP. NOBODY FIXED ME.'],
 };
+// ---------------------------------------------------------------------------------------------------------------
+// A revisit, the land cleared (Tucker's dead: the owner's revisit brief, 2026-11-02)
+
+/** In from the crash, nobody thrown out of the cab this time. */
+export const ARRIVE_GONE: ByPants = {
+  clean: ['THEY JUST REBUILT THAT STOP. CRASHED IT AGAIN.', 'SAME WRECK. NO CONDUCTOR. NEW PAINT, THOUGH.'],
+  shitty: ['CRASHED AGAIN. SHAT AGAIN. TRADITION.', 'SAME WRECK. FRESH LOAD.'],
+  nude: ['NAKED IN A TRAIN WRECK. AGAIN.', 'SAME CRASH. MY BALLS HIT THE DASH.'],
+};
+/** The coffin with Tucker's name on it, still empty (what was left of him stayed in the woods). */
+export const COFFIN_GONE: ByPants = {
+  clean: ["TUCKER'S COFFIN. STILL EMPTY. THE WOODS ATE HIM.", 'RESERVED FOR TUCKER. HE WOULD WANT A REFUND.'],
+  shitty: ["TUCKER'S COFFIN. EMPTY. I COULD PUT THESE PANTS IN IT.", "HIS COFFIN'S EMPTY. HE'D CHARGE ME TO SMELL IT."],
+  nude: ["TUCKER'S COFFIN. EMPTY. COLD. LIKE MY BALLS.", "HIS COFFIN. NOBODY HOME. I COULD NAP IN IT NAKED."],
+};
+
+/** The saloon again: rebuilt since the last brawl. */
+export const SALOON_IN_GONE: ByPants = {
+  clean: ['NEW STOOLS. NEW MIRROR. SAME ASSHOLES.', 'THEY REBUILT THE BAR. ROUND TWO.'],
+  shitty: ["THEY FIXED THE BAR. I'LL RUIN IT AGAIN.", 'NEW STOOLS. THEY WILL NEED NEWER ONES.'],
+  nude: ['THEY REBUILT THE SALOON. NOBODY BUILT ME PANTS.', 'NEW BAR. SAME NAKED GUY.'],
+};
+/** The showdown again: a rematch, a new sheriff. */
+export const SHOW_OPEN_GONE: ByPants = {
+  clean: ["FOLKS, IT'S THE REMATCH! WE HIRED A NEW SHERIFF! THE OLD ONE'S IN TRACTION!"],
+  shitty: ["FOLKS, THE REMATCH! WE HOSED THE STAGE DOWN SINCE LAST TIME! HE'S BACK!"],
+  nude: ["FOLKS, THE REMATCH! HE'S STILL NAKED! WE CHECKED!"],
+};
+
 /** Main street. */
 export const TOWN_IN: ByPants = {
   clean: ['A FAKE TOWN FULL OF FAKE COWBOYS. GREAT.', 'SAWDUST GULCH. SMELLS LIKE FUDGE AND LAWSUITS.'],
@@ -333,7 +362,7 @@ const pools = (r: ByPants) => allOf(r);
 const TOWNSFOLK = [MEDIC, DEPUTY_BARK, BOUNCER_BARK, BOUNCER_WAIT, BOUNCER_START, PATRON_BARK, POSSE_BARK, DANCER_BARK, SMITH_BARK, FARMHAND_BARK, FELLER_TIMBER, FELLER_BARK, BIRLER_BARK, MINER_BARK];
 export const VOICE_LINES: Record<string, string[]> = {
   meathead: [
-    ...[ARRIVE, STRETCHER, REVISIT, TOWN_IN, COFFIN, SALOON_IN, BRAWL_DONE, LOCKED, SALOON_OUT, CHEATED, POSSE_DONE, SHOWDOWN_IN, SHOWDOWN_DONE, POND, BIRLER_SEEN, LADDER_UP, MILL, MINE, CARTS, RIDE_CART, CANARY, FLOOD, QUEUE].flatMap(allOf),
+    ...[ARRIVE, STRETCHER, REVISIT, ARRIVE_GONE, COFFIN_GONE, SALOON_IN_GONE, TOWN_IN, COFFIN, SALOON_IN, BRAWL_DONE, LOCKED, SALOON_OUT, CHEATED, POSSE_DONE, SHOWDOWN_IN, SHOWDOWN_DONE, POND, BIRLER_SEEN, LADDER_UP, MILL, MINE, CARTS, RIDE_CART, CANARY, FLOOD, QUEUE].flatMap(allOf),
     ...Object.values(HURT).flatMap(h => h.hurt),
   ],
   death: Object.values(HURT).flatMap(h => h.death),
@@ -345,5 +374,5 @@ export const VOICE_LINES: Record<string, string[]> = {
   [TOWN_VOICES.undertaker]: pools(UNDERTAKER_MEASURE), [TOWN_VOICES.undertakerf]: pools(UNDERTAKER_MEASURE),
   [TOWN_VOICES.prospector]: pools(PROSPECTOR_BARK), [TOWN_VOICES.prospectorf]: pools(PROSPECTOR_BARK),
   [TOWN_VOICES.quartet]: [QUARTET_SING, QUARTET_HIT, QUARTET_BARK].flatMap(pools),
-  [TOWN_VOICES.announcer]: [SHOW_OPEN, DUEL_RULES, SHOW_CHEAT, SHOW_CLOSE].flatMap(pools),
+  [TOWN_VOICES.announcer]: [SHOW_OPEN, SHOW_OPEN_GONE, DUEL_RULES, SHOW_CHEAT, SHOW_CLOSE].flatMap(pools),
 };

@@ -288,8 +288,30 @@ export const HURT: HurtTable = {
   },
 };
 
-const MEATHEAD = [MH_START, MH_AGAIN, MH_KNOCKOFF, MH_ADULTS, MH_END, ...Object.values(MH_PARRY)];
-const teenLines = [...new Set([TEEN_TAUNT, TEEN_AGE, TEEN_PARRIED, TEEN_DOWN].flatMap(allOf))];
+// ---------------------------------------------------------------------------------------------------------------
+// A revisit, the land cleared (Tucker's dead: the owner's revisit brief, 2026-11-02)
+
+/** Off he goes, the pack behind him (no bounty this time). */
+export const MH_START_GONE: ByPants = {
+  clean: ['COME GET YOUR BIKE BACK, ZIT FACES.', 'NO BOUNTY. YOU ARE DOING THIS FOR FREE, DIPSHITS.'],
+  shitty: ['COME GET THE SEAT. IT IS ALL YOURS NOW.', 'FREE SHITTY BIKE. COME GET IT.'],
+  nude: ['NAKED ON YOUR BUDDY\'S BIKE. COME GET IT.', 'COME ON, PUNKS. THE SEAT IS STILL WARM.'],
+};
+/** Pulling up alongside him (now and then): payback for the kid he kicked off. */
+export const TEEN_REVENGE: ByPants = {
+  clean: ['GIVE IT BACK, OLD MAN!', 'YOU KICKED HIM OFF HIS OWN BIKE!', 'NOBODY STEALS FROM US, GRANDPA!', 'THAT BIKE HAS A PAYMENT PLAN!'],
+  shitty: ['YOU SHAT ON HIS SEAT, YOU ANIMAL!', 'HE STOLE A BIKE AND SHAT ON IT!', 'NOBODY WANTS THAT BIKE BACK NOW!'],
+  nude: ['HIS BARE ASS IS ON OUR BIKE!', "WE'RE BURNING THAT SEAT AFTER THIS!", 'GIVE IT BACK! AND PUT SOMETHING ON!'],
+};
+/** The last teen down: done, nobody ahead. */
+export const MH_END_GONE: ByPants = {
+  clean: ['THAT IS ALL OF THEM. KEEPING THE BIKE.', 'BIKE STAYS STOLEN.'],
+  shitty: ['THAT IS ALL OF THEM. TRUST ME, YOU DO NOT WANT THIS SEAT.', 'DONE. THE BIKE SMELLS LIKE ME NOW.'],
+  nude: ['THAT IS ALL OF THEM. NAKED AND UNBEATEN.', 'DONE. THE SEAT IS STUCK TO MY ASS.'],
+};
+
+const MEATHEAD = [MH_START_GONE, MH_END_GONE, MH_START, MH_AGAIN, MH_KNOCKOFF, MH_ADULTS, MH_END, ...Object.values(MH_PARRY)];
+const teenLines = [...new Set([TEEN_TAUNT, TEEN_REVENGE, TEEN_AGE, TEEN_PARRIED, TEEN_DOWN].flatMap(allOf))];
 export const VOICE_LINES: Record<string, string[]> = {
   meathead: [...MEATHEAD.flatMap(allOf), ...Object.values(HURT).flatMap(h => h.hurt)],
   death: Object.values(HURT).flatMap(h => h.death),

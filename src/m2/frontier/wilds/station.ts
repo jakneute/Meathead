@@ -17,6 +17,10 @@
 //
 // Done for good once it's run (STATION_MEMO, state.stageMemo): back here later, the train's long gone, no Tucker, the
 // timetable says WHENEVER; walk off the platform's right end to go on (DOORS.train.start).
+//
+// A REVISIT, the land cleared (the owner's: "the train just leaves as soon as you enter the station in 'automatic
+// mode'"): no Tucker; walking up, the train pulls out on its own, the park's recorded voice off it (AUTOMATIC MODE),
+// his line, and he goes after it (the same 'leave' and 'chase' as ever, SKIP >> for the lot).
 
 import type { FrameContext } from '../../../m1/game/core/context';
 import type { GameState } from '../../../m1/game/core/state';
@@ -37,7 +41,8 @@ import { viewOf } from './paint';
 import { drawTrain, drawDepot, drawDeck } from './stationArt';
 import { drawTucker, drawTuckerCap, drawTuckerCloseup, TUCKER_H, type TuckerPose } from '../tucker';
 import { STATION, Y } from './layout';
-import { TUCKER_GREET, TUCKER_PITCH, TUCKER_TICKET, NO_TICKET, TUCKER_BLOCK, TUCKER_OOF, TUCKER_RAGE, TUCKER_RUN, TUCKER_CAB, CHASE, STATION_EMPTY } from './lines';
+import { TUCKER_GREET, TUCKER_PITCH, TUCKER_TICKET, NO_TICKET, TUCKER_BLOCK, TUCKER_OOF, TUCKER_RAGE, TUCKER_RUN, TUCKER_CAB, CHASE, STATION_EMPTY, AUTO_DEPART, CHASE_GONE } from './lines';
+import { bossGone } from '../../emptyArena';
 
 /** The scene's run for good (kept across his deaths; a revisit's station is empty). */
 export const STATION_MEMO = 'frontier-station-done';
@@ -78,13 +83,15 @@ interface Station {
   /** The close-up (0 gone .. 1 up), the fade to black at the end. */
   close: number; fade: number;
   emptySaid: boolean;
+  /** A revisit (Tucker dead): the train off on its own, its recorded voice's words over the cab. */
+  auto: boolean;
 }
 const STATIONS = new WeakMap<object, Station>();
 const stOf = (state: GameState): Station => {
   const k = state.stage as object;
   let s = STATIONS.get(k);
   if (!s) {
-    s = { step: stationDone(state) ? 'gone' : 'wait', t: 0, all: 0, tx: STATION.gate, pose: 'stand', face: -1, talking: false, capless: false, inCab: false, cap: null, line: 0, lineDone: false, said: null, puppet: null, wall: null, nagT: 0, trainX: 0, trainV: 0, close: 0, fade: 0, emptySaid: false };
+    s = { step: stationDone(state) ? 'gone' : 'wait', t: 0, all: 0, tx: STATION.gate, pose: 'stand', face: -1, talking: false, capless: false, inCab: false, cap: null, line: 0, lineDone: false, said: null, puppet: null, wall: null, nagT: 0, trainX: 0, trainV: 0, close: 0, fade: 0, emptySaid: false, auto: false };
     STATIONS.set(k, s);
   }
   return s;
@@ -150,6 +157,18 @@ export const updateStation = (ctx: FrameContext, controls: Controls): Controls =
     s.pose = 'stand'; s.face = -1;
     // (the scene starts while he's still off the screen's edge, before Tucker's anywhere he can be shot or hit; a
     // retry this visit (the pitch heard) just gets TICKET, PLEASE again)
+    // (a revisit: nobody at the gate; the train pulls out on its own as he comes up)
+    if (bossGone('frontier') && cx > STATION.gate - TRIGGER && p.health > 0 && !p.inCutscene) {
+      s.step = 'leave'; s.t = 0; s.all = 0; s.auto = true; s.lineDone = false; s.trainV = 0.4;
+      p.inCutscene = true; p.vel.x = 0;
+      playSound('horn', 0.9, 10); playSound('engine', 0.8, -8);
+      s.talking = true;
+      speak('m2.frontier.announcer', pickLine(byPants(state, AUTO_DEPART)), said => { s.said = said; if (!said) s.talking = false; }, true, () => {
+        s.talking = false; s.said = null;
+        meatheadSays(state, pickLine(byPants(state, CHASE_GONE)), true, () => { s.lineDone = true; });
+      });
+      return hands();
+    }
     if (cx > STATION.gate - TRIGGER && p.health > 0 && !p.inCutscene) {
       const heard = !!state.stageMemo[PITCH_MEMO];
       s.step = 'pitch'; s.t = heard ? 21 : 0; s.all = 0; s.line = heard ? 3 : 0; s.lineDone = false;
@@ -241,7 +260,9 @@ export const updateStation = (ctx: FrameContext, controls: Controls): Controls =
       if (s.t > 60) { s.step = 'leave'; s.t = 0; s.trainV = 0.4; playSound('engine', 0.8, -8); meatheadSays(state, pickLine(byPants(state, CHASE)), true); }
       return hands();
     case 'leave':
-      state.cameraOverride = { x: STATION.camX, y: state.camera.y };
+      // (a revisit: eased over to the platform's view, as the scene would have)
+      if (s.auto) { state.camera.x += (STATION.camX - state.camera.x) * 0.08; state.cameraOverride = { x: state.camera.x, y: state.camera.y }; }
+      else state.cameraOverride = { x: STATION.camX, y: state.camera.y };
       s.trainV = Math.min(15, s.trainV + 0.07 + s.trainV * 0.012);
       s.trainX += s.trainV;
       if (s.t % Math.max(4, Math.round(26 - s.trainV * 1.6)) === 0) playSound('thud', 0.35, -14 + s.trainV * 0.4);
@@ -278,7 +299,7 @@ export const drawStationBack = (c: Ctx, state: GameState) => {
   drawDepot(c, v);
   if (s.step !== 'gone') drawTrain(c, s, f);
   drawDeck(c, v, s.step === 'gone');
-  if (!s.inCab && s.step !== 'gone') drawTucker(c, s.tx, Y(STATION.deck.h), s.face, f, s.pose, { talking: s.talking, capless: s.capless });
+  if (!s.inCab && !s.auto && s.step !== 'gone') drawTucker(c, s.tx, Y(STATION.deck.h), s.face, f, s.pose, { talking: s.talking, capless: s.capless });
   if (s.cap) drawTuckerCap(c, s.cap.x, s.cap.y, s.cap.rot);
   if (s.step === 'gone') parkSign(c, STATION.deck.b - 150, Y(STATION.deck.h), ['TO SAWDUST GULCH', 'FOLLOW THE TRACKS >'], { seed: 7 });
 };
@@ -287,8 +308,8 @@ export const drawStationBack = (c: Ctx, state: GameState) => {
 export const drawStationFront = (c: Ctx, state: GameState) => {
   const s = stOf(state);
   if (!s.said || s.step === 'rage') return;
-  const x = s.inCab ? STATION.cab + s.trainX + 40 : s.tx;
-  const y = s.inCab ? Y(STATION.deck.h) - 150 : Y(STATION.deck.h) - TUCKER_H - (s.pose === 'sit' ? -10 : 14);
+  const x = s.inCab || s.auto ? STATION.cab + s.trainX + 40 : s.tx;
+  const y = s.inCab || s.auto ? Y(STATION.deck.h) - 150 : Y(STATION.deck.h) - TUCKER_H - (s.pose === 'sit' ? -10 : 14);
   saidOver(c, s.said.text, x, y, '#FDE68A', 240);
 };
 

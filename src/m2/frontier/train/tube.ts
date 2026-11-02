@@ -10,6 +10,7 @@ import { box, INK, type Ctx } from '../kit';
 import { trainOf } from './state';
 import type { TubeMood } from './tuckerPip';
 import { TUBE_BOARD, TUBE_MISSED, TUBE_ROBBERS, TUBE_UNCOUPLE, TUBE_FALLS } from './lines';
+import { bossGone } from '../../emptyArena';
 
 /** His mood on each pool's lines (his gross-up in the corner, tuckerPip.ts): the meltdowns, the gleeful spite; the rest
  *  (the ledger, the tunnel) petty bookkeeping. */
@@ -21,7 +22,8 @@ export const tubeSay = (state: GameState, pool: ByPants, onDone?: () => void, qu
 /** This line, down the tube (none if it's been said in the last while: on with whatever's next). */
 export const tubeLine = (state: GameState, text: string | null, onDone?: () => void, queued = true, mood: TubeMood = 'petty') => {
   const tr = trainOf(state);
-  if (!text) { setTimeout(() => onDone?.(), 0); return; }
+  // (a revisit, Tucker dead: the train's on automatic, nobody on the tube (the owner's: "no taunting during the ride"))
+  if (!text || bossGone('frontier')) { setTimeout(() => onDone?.(), 0); return; }
   tr.tubeBusy = true;
   speak(TUCKER_VOICE, text, s => { if (s && !tr.tube) tr.tubeMood = mood; tr.tube = s; }, queued, () => { tr.tube = null; tr.tubeBusy = false; onDone?.(); });
 };

@@ -95,8 +95,24 @@ export const HURT: HurtTable = {
   },
 };
 
-const MEATHEAD = [REAL_WOODS, MINE, BOUNTY_BACK];
-const TEEN = [KID_HI, KID_DOWN, TEENS_YES, KID_SULK];
+// ---------------------------------------------------------------------------------------------------------------
+// A revisit, the land cleared (Tucker's dead: the owner's revisit brief, 2026-11-02)
+
+/** One of the lot, seeing him kick a kid off a bike: no bounty, just payback. */
+export const TEENS_MAD: ByPants = {
+  clean: ["HE KICKED ONE OF US OFF A BIKE! GET HIM!", 'NOBODY KICKS US OFF OUR BIKES! GET HIM!'],
+  shitty: ['HE KICKED HIM OFF AND SHAT ON THE SEAT! GET HIM!', 'GET THE SHITTY GUY! HE STOLE A BIKE!'],
+  nude: ['THE NAKED GUY STOLE A BIKE! GET HIM!', 'HIS BARE ASS IS ON OUR BIKE! GET HIM!'],
+};
+/** Him, on the kid's bike, dozens of them revving. */
+export const REVENGE_BACK: ByPants = {
+  clean: ['ALL THIS OVER ONE BIKE?', 'NO BOUNTY? YOU ASSHOLES DO THIS FOR FREE?'],
+  shitty: ['ALL THIS OVER ONE SEAT I RUINED?', 'FINE. COME SMELL ME UP CLOSE.'],
+  nude: ['ALL THIS OVER ONE BIKE? I AM NAKED ON IT.', 'COME ON, PUNKS. IT IS ALL HANGING OUT.'],
+};
+
+const MEATHEAD = [REAL_WOODS, MINE, BOUNTY_BACK, REVENGE_BACK];
+const TEEN = [KID_HI, KID_DOWN, TEENS_YES, KID_SULK, TEENS_MAD];
 const teenLines = TEEN.flatMap(allOf);
 export const VOICE_LINES: Record<string, string[]> = {
   meathead: [...MEATHEAD.flatMap(allOf), ...Object.values(HURT).flatMap(h => h.hurt)],

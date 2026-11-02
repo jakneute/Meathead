@@ -13,6 +13,10 @@
 // over; THE OFFER ("20 BUCKS FOR THE FIRST ONE TO GIVE ME THAT MEATHEAD'S HEAD!"); the kids happily oblige, and dozens
 // more come pouring out of the trees revving; Meathead's say; he guns it off to the right, Tucker and the lot after
 // him; black; the dirt-bike chase (DOORS.dirtbike.start: job 6's; takeBountyHandoff says he came on the bike).
+//
+// A REVISIT, the land cleared (the owner's: "the teens get angry for kicking one off their bikes and chase after you"):
+// the kick, MINE, the kid from the dirt; no leaf pile, no Tucker, no offer: the lot's riders come over, one yells
+// payback (TEENS_MAD), dozens more pour out of the trees, his say (REVENGE_BACK), and off he goes as ever.
 
 import type { FrameContext } from '../../../m1/game/core/context';
 import type { GameState } from '../../../m1/game/core/state';
@@ -30,7 +34,8 @@ import { drawTucker, drawTuckerCloseup, TUCKER_H, type TuckerWounds } from '../t
 import { woodsOf, type Scene, type Step, type Woods } from './state';
 import { X, x0, x1, GY, TRIG, PILE, LANES } from './layout';
 import { makeBike, rideBike, teenOf, drawBike, drawKid, type Bike, type Kid } from './teens';
-import { KID_HI, MINE, KID_DOWN, TUCKER_POP, TUCKER_SORRY, TUCKER_OFFER, TEENS_YES, BOUNTY_BACK } from './lines';
+import { KID_HI, MINE, KID_DOWN, TUCKER_POP, TUCKER_SORRY, TUCKER_OFFER, TEENS_YES, BOUNTY_BACK, TEENS_MAD, REVENGE_BACK } from './lines';
+import { bossGone } from '../../emptyArena';
 import { leafAt, hr, GOLD, BROWN } from './paint';
 
 /** A flying leaf's ramp, by the color it was flung with (the brown ones dead, the rest turned gold). */
@@ -152,7 +157,7 @@ export const updateBounty = (ctx: FrameContext): Controls | null => {
         s.bikeA!.rider = 'meathead'; s.bikeA!.facing = 1;
         playSound('land', 0.8); playSound('engine', 0.9, -2);
       }
-      if (s.t === 30) { next(s, 'down'); sayBy(state, s, 'a', teenOf(kidASeed()).voice, KID_DOWN, () => next(s, 'rustle')); }
+      if (s.t === 30) { next(s, 'down'); sayBy(state, s, 'a', teenOf(kidASeed()).voice, KID_DOWN, () => next(s, bossGone('frontier') ? 'gather' : 'rustle')); }
       break;
     }
     case 'down': break;
@@ -221,7 +226,9 @@ export const updateBounty = (ctx: FrameContext): Controls | null => {
         s.yes = lot[2] ?? lot[0] ?? null;
       }
       if (s.t >= 60 && w.bikes.every(b => b.to === undefined || Math.abs(b.x - b.to) < 4)) {
-        for (const b of w.bikes) if (b.to !== undefined) b.facing = b.x < s.bikeB!.x ? 1 : -1;
+        // (at Tucker on his bike; a revisit, at him)
+        const at = s.bikeB ? s.bikeB.x : MX;
+        for (const b of w.bikes) if (b.to !== undefined) b.facing = b.x < at ? 1 : -1;
         next(s, 'offer');
       }
       break;
@@ -233,7 +240,7 @@ export const updateBounty = (ctx: FrameContext): Controls | null => {
       // (the kids happily oblige; and dozens more come pouring out of the trees, revving)
       if (s.t === 1) {
         const yes = s.yes && s.yes.rider && typeof s.yes.rider !== 'string' ? s.yes.rider : teenOf(333);
-        say(s, 'teen', yes.voice, pickLine(byPants(state, TEENS_YES)), () => { /* (waits on busy) */ });
+        say(s, 'teen', yes.voice, pickLine(byPants(state, bossGone('frontier') ? TEENS_MAD : TEENS_YES)), () => { /* (waits on busy) */ });
         for (const b of w.bikes) if (b.to !== undefined) b.rev = true;
         for (let i = 0; i < 22; i++) {
           const lane = i % 3 === 0 ? 1 : 2, left = i % 2 === 0, seed = 900 + i * 37 + landVisit() * 11;
@@ -248,7 +255,7 @@ export const updateBounty = (ctx: FrameContext): Controls | null => {
       break;
     }
     case 'back':
-      if (s.t === 4) meatSay(state, s, BOUNTY_BACK, () => next(s, 'go'));
+      if (s.t === 4) meatSay(state, s, bossGone('frontier') ? REVENGE_BACK : BOUNTY_BACK, () => next(s, 'go'));
       break;
     case 'go': {
       // (he guns it, off to the right, the front wheel up; Tucker and the lot after him; black)
@@ -274,7 +281,8 @@ const finishBounty = (state: GameState, skipped: boolean) => {
   state.stageMemo[BOUNTY_MEMO] = '1'; state.stageMemo[GRIME_MEMO] = '1';
   state.stageMemo['frontier-tucker-eye'] = '1'; state.stageMemo['frontier-tucker-saw'] = '1';
   s.step = 'done'; s.talk = null; s.busy = false; s.fade = 0; s.tucker.mode = 'hid'; s.tucker.talking = false;
-  w.bikes = []; w.kids = []; w.pile.burst = true;
+  // (a revisit: nobody came out of the leaf pile)
+  w.bikes = []; w.kids = []; w.pile.burst = !bossGone('frontier');
   p.jetski = false; p.moto = false; p.kickPose = 0; p.inCutscene = false;
   state.cameraOverride = null;
   handoff = true;

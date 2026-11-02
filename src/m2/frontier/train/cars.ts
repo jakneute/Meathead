@@ -34,7 +34,8 @@ import { shiftBounds } from './kinds';
 import { tubeSay } from './tube';
 import { throwDynamite } from './dynamite';
 import { inView } from './view';
-import { TUBE_UNCOUPLE, TUBE_MISSED, TRAIN_GAGS, LION_LOOSE } from './lines';
+import { TUBE_UNCOUPLE, TUBE_MISSED, TRAIN_GAGS, LION_LOOSE, CUT_GONE } from './lines';
+import { bossGone } from '../../emptyArena';
 import { startMaul, lionEscapes } from './lion';
 import { CIRCUS } from './layout';
 import { penOpen } from './pen';
@@ -279,7 +280,7 @@ const derail = (ctx: FrameContext, tr: Train, k: number) => {
   tubeSay(state, TUBE_MISSED);
   // (the lion's car: his line's about the lion (lionEscapes); the cut gag waits for the next one)
   if (freed) meatheadSays(state, pickLine(byPants(state, LION_LOOSE)));
-  else if (!tr.said.cut) { tr.said.cut = true; meatheadSays(state, pickLine(byPants(state, TRAIN_GAGS.cut))); }
+  else if (!tr.said.cut) { tr.said.cut = true; meatheadSays(state, pickLine(byPants(state, bossGone('frontier') ? CUT_GONE : TRAIN_GAGS.cut))); }
 };
 
 /** The tracks under the train: down on them while it's moving, it's the circus lion (lion.ts: the user's, Meathead 1's

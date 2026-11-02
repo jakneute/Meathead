@@ -14,6 +14,10 @@
 // The operator: a person of the park's (people.ts: seeded by the visit, a man or a woman), in the ride's frontier
 // vest; her lines by the state of him (lines.ts). Back in a log after the scene (a death, another visit): no scene,
 // just her (OP_AGAIN) and the log goes; this visit, Tucker's still on the booth's floor with the saw in his head.
+//
+// A REVISIT, the land cleared (the owner's: "the log ride has the ride operator get angry for cutting and they activate
+// buzzsaw mode instead of tucker"): no Tucker, no saw out of the sky, no close-up; the operator, at her console, fed up
+// with him (OP_REVENGE), slams the button herself; the PA; his line; the log goes (BUZZ_MEMO keeps it done).
 
 import type { FrameContext } from '../../../m1/game/core/context';
 import type { GameState } from '../../../m1/game/core/state';
@@ -34,13 +38,18 @@ import { box, mix, INK, painted, type Ctx } from '../kit';
 import { drawTucker, drawTuckerCloseup, drawTuckerCap, registerWoundPainter } from '../tucker';
 import { rideOf, type Scene } from './state';
 import { X, waterY, BOOTH, LOAD_X } from './layout';
-import { RIDE_VOICES, TUCKER_ENGAGE, TUCKER_SAWED, OP_CUT, OP_SHOVED, OP_AFTER, OP_AGAIN, DEAD_AGAIN, SPIEL_BUZZMODE } from './lines';
+import { RIDE_VOICES, TUCKER_ENGAGE, TUCKER_SAWED, OP_CUT, OP_SHOVED, OP_AFTER, OP_AGAIN, DEAD_AGAIN, SPIEL_BUZZMODE, OP_REVENGE, MH_BUZZ } from './lines';
+import { bossGone } from '../../emptyArena';
 import { drawSawDisc } from './hazards';
 import { rideStartLine } from './ride';
 
 /** The saw's in Tucker's forehead (for good: tucker.ts draws it on him from here on). */
 export const TUCKER_SAW_MEMO = 'frontier-tucker-saw';
 export const sawed = (state: GameState) => state.stageMemo[TUCKER_SAW_MEMO] === '1';
+/** A revisit's: the operator's turned BUZZSAW MODE on herself (kept across his deaths). */
+const BUZZ_MEMO = 'frontier-logride-buzz';
+/** The booth's scene has been, either way: the saws are on. */
+export const sceneDone = (state: GameState) => sawed(state) || state.stageMemo[BUZZ_MEMO] === '1';
 
 /** This visit, the booth's scene was played (his body's on its floor). */
 let bodyVisit = -1;
@@ -75,7 +84,7 @@ const inScene = (s: Scene) => s.step !== 'wait' && s.step !== 'done';
 export const startScene = (state: GameState) => {
   const s = rideOf(state).scene;
   silenceAll();
-  s.step = 'burst'; s.t = 0; s.all = 0; s.busy = false; s.tx = BX0 - 30; s.ox = OP_AT; s.oy = FLOOR; s.ovx = 0; s.ovy = 0; s.opDown = false; s.sawK = 0; s.k = 0; s.roof = false; s.booth = false;
+  s.step = bossGone('frontier') ? 'engage' : 'burst'; s.t = 0; s.all = 0; s.busy = false; s.tx = BX0 - 30; s.ox = OP_AT; s.oy = FLOOR; s.ovx = 0; s.ovy = 0; s.opDown = false; s.sawK = 0; s.k = 0; s.roof = false; s.booth = false;
   state.player.inCutscene = true;
   state.cameraOverride = { x: X(BOOTH.a) - 180, y: GY - 470 };
   playSound('slam', 1, -6);
@@ -115,13 +124,19 @@ export const updateScene = (ctx: FrameContext): Controls | null => {
       if (s.t === 30) say(state, s, 'op', OP_SHOVED, () => next(s, 'engage'));
       break;
     case 'engage':
-      if (s.t === 1) say(state, s, 'tucker', TUCKER_ENGAGE, () => next(s, 'press'));
+      // (a revisit: her, at the console, fed up with him)
+      if (s.t === 1) say(state, s, bossGone('frontier') ? 'op' : 'tucker', bossGone('frontier') ? OP_REVENGE : TUCKER_ENGAGE, () => next(s, 'press'));
       break;
     case 'press':
       // (the button: slammed; the klaxon; BUZZSAW MODE; the saws coming on all down the line; the PA says so)
       if (s.t === 12) { playSound('slam', 1, -4); playSound('alarm', 0.8); shakeScreen(state, 6, 3); }
       if (s.t === 22) playSound('grind', 1, -8);
-      if (s.t === 30) { s.busy = true; speak(RIDE_VOICES.spiel, pickLine(SPIEL_BUZZMODE), said => { r.pa = said; }, true, () => { s.busy = false; next(s, 'drop'); playSound('whoosh', 1, -8); }); }
+      if (s.t === 30) { s.busy = true; speak(RIDE_VOICES.spiel, pickLine(SPIEL_BUZZMODE), said => { r.pa = said; }, true, () => {
+        s.busy = false;
+        // (a revisit: no saw out of the sky; his line, and the log goes)
+        if (bossGone('frontier')) { s.busy = true; meatheadSays(state, pickLine(byPants(state, MH_BUZZ)), true, () => { s.busy = false; next(s, 'go'); }); }
+        else { next(s, 'drop'); playSound('whoosh', 1, -8); }
+      }); }
       break;
     case 'drop': {
       // (out of the sky: whistling down through the station's roof, then the booth's, into his head; then the close-up)
@@ -163,7 +178,8 @@ export const updateScene = (ctx: FrameContext): Controls | null => {
 const finishScene = (state: GameState, skipped: boolean) => {
   const r = rideOf(state), s = r.scene;
   if (skipped) silenceAll();
-  state.stageMemo[TUCKER_SAW_MEMO] = '1'; bodyVisit = landVisit();
+  if (bossGone('frontier')) state.stageMemo[BUZZ_MEMO] = '1';
+  else { state.stageMemo[TUCKER_SAW_MEMO] = '1'; bodyVisit = landVisit(); }
   s.step = 'done'; s.tucker = null; s.op = null; s.busy = false; s.opDown = false; s.ox = OP_AT + 90; s.oy = FLOOR; s.ovx = 0; s.ovy = 0;
   state.player.inCutscene = false;
   state.cameraOverride = null;
@@ -293,7 +309,7 @@ export const drawBooth = (c: Ctx, state: GameState) => {
   // ---- the blood (once he's had it): up the back wall, on the console
   if (sawed(state)) { c.fillStyle = '#7F1D1D'; for (let i = 0; i < 9; i++) { c.beginPath(); c.arc(SAW_X - 30 + i * 9, top + 40 + (i * 13) % 30, 2 + (i % 3), 0, Math.PI * 2); c.fill(); } box(c, SAW_X - 14, top + 50, 3, 30, '#7F1D1D'); }
   // ---- BUZZSAW MODE: the panel over the console, dark till he slams the button, lit (flashing) from then on
-  const modeOn = sawed(state) || (inScene(s) && !(s.step === 'burst' || s.step === 'shove' || s.step === 'engage' || (s.step === 'press' && s.t < 12)));
+  const modeOn = sceneDone(state) || (inScene(s) && !(s.step === 'burst' || s.step === 'shove' || s.step === 'engage' || (s.step === 'press' && s.t < 12)));
   box(c, CONSOLE_X - 41, FLOOR - 113, 86, 22, INK); box(c, CONSOLE_X - 40, FLOOR - 112, 84, 20, '#3F3F46');
   const panel = modeOn ? (f % 16 < 8 || !inScene(s) ? '#DC2626' : '#7F1D1D') : '#3F1A1A';
   box(c, CONSOLE_X - 38, FLOOR - 110, 80, 16, panel); box(c, CONSOLE_X - 38, FLOOR - 110, 80, 2, mix(panel, '#FFFFFF', 0.25));
@@ -308,7 +324,7 @@ export const drawBooth = (c: Ctx, state: GameState) => {
   }
   // ---- Tucker: in the scene, or flat on its floor after (this visit)
   const wounds = tuckerWoundsOf(state);
-  if (inScene(s)) {
+  if (inScene(s) && !bossGone('frontier')) {
     const pose = s.step === 'burst' ? 'run' : s.step === 'shove' ? (s.t < 18 ? 'shove' : 'stand') : s.step === 'engage' ? 'slam' : s.step === 'press' ? (s.t < 12 ? 'slam' : 'press') : s.step === 'fall' || s.step === 'after' || s.step === 'go' ? 'flat' : 'press';
     const capless = s.step === 'fall' || s.step === 'after' || s.step === 'go';
     const w = s.step === 'close' || s.step === 'last' || s.step === 'fall' || s.step === 'after' || s.step === 'go' ? { ...wounds, saw: true } : wounds;
@@ -335,8 +351,8 @@ export const drawBooth = (c: Ctx, state: GameState) => {
   const cover = s.step === 'wait' || s.step === 'burst' || s.step === 'shove';
   box(c, CONSOLE_X + 19, FLOOR - 67, 18, 5, INK); box(c, CONSOLE_X + 20, FLOOR - 66, 16, 3, cover ? '#FDE047' : '#A16207'); box(c, CONSOLE_X + 20, FLOOR - 66, 16, 1, cover ? '#FFF4A0' : '#C8862A');
   // ---- the operator (in the booth till she's shoved; then out on the platform)
-  const op = r.scene.step === 'wait' && !sawed(state) ? { x: OP_AT, y: FLOOR, pose: 'stand' as const } : { x: s.ox, y: s.oy, pose: s.opDown ? (s.ovy || s.ovx ? 'fly' as const : 'sit' as const) : 'stand' as const };
-  if (sawed(state) && !inScene(s)) { op.x = OP_AT + 90; op.y = FLOOR; op.pose = 'stand'; }
+  const op = r.scene.step === 'wait' && !sceneDone(state) ? { x: OP_AT, y: FLOOR, pose: 'stand' as const } : { x: s.ox, y: s.oy, pose: s.opDown ? (s.ovy || s.ovx ? 'fly' as const : 'sit' as const) : 'stand' as const };
+  if (sceneDone(state) && !inScene(s)) { op.x = OP_AT + 90; op.y = FLOOR; op.pose = 'stand'; }
   drawOperator(c, op.x, op.y, { seed: opSeed(), woman: opWoman(), f, pose: op.pose === 'fly' ? 'fly' : op.pose === 'sit' ? 'down' : 'stand', talk: s.opTalking || !!r.bark, mood: s.step === 'fall' || s.step === 'after' ? 'shocked' : s.opDown ? 'scared' : 'angry', facing: -1 });
   // ---- the booth's front: its window (the glass over them, a glint), the frame and sill, the roof and its sign
   c.globalAlpha = 0.16; box(c, BX0 + 10, top + 12, BX1 - BX0 - 20, 70, '#BFE0F8'); c.globalAlpha = 0.3; box(c, BX0 + 18, top + 16, 6, 40, '#F4FAFE'); box(c, BX0 + 28, top + 16, 2, 26, '#F4FAFE'); c.globalAlpha = 1;

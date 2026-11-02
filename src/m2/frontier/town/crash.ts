@@ -20,6 +20,9 @@
 // The wreck stays for the visit (the aftermath, art.ts's end of the line calls drawWreck): all background, nothing to
 // stand on (no lit tops), the fires smoldering, the steam still going, the debris where it came down. A later visit has
 // the stop rebuilt (art.ts). Module state (outlives a death; a fresh visit starts over).
+//
+// A revisit, the land cleared (the owner's: "crashes into the gulch yet again. no stretcher."): the same wreck, nobody
+// thrown out of the cab, no paramedics; he tumbles out, his line, and it's his.
 
 import type { FrameContext } from '../../../m1/game/core/context';
 import type { GameState } from '../../../m1/game/core/state';
@@ -44,7 +47,8 @@ import { takeCrashScene } from '../train/engine';
 import { GY } from '../geometry';
 import { townOf } from './state';
 import { X } from './layout';
-import { TOWN_VOICES, ARRIVE, STRETCHER, MEDIC } from './lines';
+import { TOWN_VOICES, ARRIVE, STRETCHER, MEDIC, ARRIVE_GONE } from './lines';
+import { bossGone } from '../../emptyArena';
 import { drawImpactBack, drawImpactFront, drawYardWreck, drawCoalHeap, stoveIn, holeAt, BURST } from './impact';
 
 const TAU = Math.PI * 2;
@@ -272,15 +276,15 @@ export const updateCrash = (ctx: FrameContext, controls: Controls): Controls => 
         bits(s, 12, x, y, 120, [-6, 6], [-11, -3], ['#5A2A3A', '#BFE0F8', '#341620', '#8A6A40'], [8, 20]);
         puffs(s, 8, X(-620), GY - 10, 240, '#B8935A', 46, 0.55, 160, 0.5);
       }
-      if (t === FLY_A) playSound('whoosh', 0.8, -4);
+      if (t === FLY_A && !bossGone('frontier')) playSound('whoosh', 0.8, -4);
       // ---- Tucker comes down: face first, a skid, the dirt
-      if (t === FLY_B) {
+      if (t === FLY_B && !bossGone('frontier')) {
         playSound('thud', 1, -6); playSound('splat', 0.9, -4); playSound('crunch', 0.7, -2); shakeScreen(state, 8, 4);
         const hx = X(TUCKER_AT - 26) + 44;
         puffs(s, 6, hx, GY - 4, 40, '#A8845A', 22, 0.6, 70, 0.6);
         bits(s, 6, hx, GY - 6, 20, [1, 5], [-6, -2], ['#7A5A38', '#5A3A1E', '#B8935A'], [3, 6]);
       }
-      if (t === CAP_B) playSound('land', 0.5, 8);
+      if (t === CAP_B && !bossGone('frontier')) playSound('land', 0.5, 8);
       // ---- Meathead tumbles out of the cab after him
       if (t === 140) {
         p.hidden = false; p.carried = false;
@@ -291,11 +295,13 @@ export const updateCrash = (ctx: FrameContext, controls: Controls): Controls => 
       }
       if (t >= 178 && s.mhOut && p.isGrounded) {
         s.phase = 'arrive'; s.pt = 0; s.mhDone = false; arriveVisit = s.visit;
-        meatheadSays(state, pickLine(byPants(state, ARRIVE)), true, () => { if (ok()) s.mhDone = true; });
+        meatheadSays(state, pickLine(byPants(state, bossGone('frontier') ? ARRIVE_GONE : ARRIVE)), true, () => { if (ok()) s.mhDone = true; });
       }
       break;
     }
     case 'arrive':
+      // (a revisit: no Tucker to carry off; that's it)
+      if (s.mhDone && s.pt > 24 && bossGone('frontier')) { end(state, s); return hands(); }
       if (s.mhDone && s.pt > 24) { s.phase = 'run'; s.pt = 0; s.sx = X(900); playSound('slam', 0.4, 6); }
       break;
     case 'run':
@@ -601,7 +607,7 @@ export const drawWreck = (c: Ctx, state: GameState) => {
   }
   // ---- the people: the guests, Tucker and his cap, the paramedics
   drawGuests(c, t, f);
-  if (s && s.phase !== 'done') drawPeople(c, state, s);
+  if (s && s.phase !== 'done' && !bossGone('frontier')) drawPeople(c, state, s);
 };
 
 /** Tucker (thrown, face down in the dirt, rolled onto the stretcher, carried in), his cap, the paramedics. */

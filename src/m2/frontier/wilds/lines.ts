@@ -133,6 +133,22 @@ export const CHASE: ByPants = {
   nude: ['NAKED TRAIN ROBBERY. HERE WE GO.'],
 };
 /** Back at the station later (the train long gone). */
+// ---------------------------------------------------------------------------------------------------------------
+// A revisit, the land cleared (Tucker's dead: the owner's revisit brief, 2026-11-02)
+
+/** The park's recorded voice off the train as it pulls out on its own (nobody in the cab). */
+export const AUTO_DEPART: ByPants = {
+  clean: ['AUTOMATIC MODE. THE SAWDUST GULCH EXPRESS IS NOW DEPARTING. TICKETS REQUIRED.'],
+  shitty: ['AUTOMATIC MODE. NOW DEPARTING. ODOR DETECTED ON PLATFORM. DOORS LOCKED.'],
+  nude: ['AUTOMATIC MODE. NOW DEPARTING. PASSENGERS MUST WEAR PANTS.'],
+};
+/** Him, as it goes without him. */
+export const CHASE_GONE: ByPants = {
+  clean: ["NOBODY'S EVEN DRIVING IT.", 'A TRAIN THAT DRIVES ITSELF. WHAT COULD GO WRONG.'],
+  shitty: ['IT LEFT WITHOUT ME. EVEN THE TRAIN CAN SMELL ME.', 'NO CONDUCTOR. STILL NO FREE RIDE.'],
+  nude: ['IT SAW ME NAKED AND LEFT. FAIR.', 'NO TUCKER. STILL HAVE TO CHASE THE DAMN THING NAKED.'],
+};
+
 export const STATION_EMPTY = ['NO TRAIN. JUST A BELL. I\'M RINGING IT.'];
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -274,10 +290,11 @@ export const KILL_CALLS: Record<string, Record<string, string[]>> = {
 
 export const VOICE_LINES: Record<string, string[]> = {
   meathead: [
-    ...allOf(ARRIVE), ...Object.values(GAGS).flatMap(allOf), ...allOf(NO_CHARGE), ...allOf(NO_TICKET), ...allOf(CHASE), ...STATION_EMPTY,
+    ...allOf(ARRIVE), ...Object.values(GAGS).flatMap(allOf), ...allOf(NO_CHARGE), ...allOf(NO_TICKET), ...allOf(CHASE), ...STATION_EMPTY, ...allOf(CHASE_GONE),
     ...Object.values(HURT).flatMap(h => h.hurt),
   ],
   death: Object.values(HURT).flatMap(h => h.death),
   announcer: [...new Set(Object.values(KILL_CALLS).flatMap(k => Object.values(k).flat()))],
+  'm2.frontier.announcer': allOf(AUTO_DEPART),
   [TUCKER_VOICE]: [TUCKER_GREET, TUCKER_PITCH, TUCKER_TICKET, TUCKER_BLOCK, TUCKER_OOF, TUCKER_RAGE, TUCKER_RUN, TUCKER_CAB].flatMap(allOf),
 };

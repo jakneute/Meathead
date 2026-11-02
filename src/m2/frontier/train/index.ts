@@ -47,7 +47,8 @@ import { ZOOM } from './view';
 import { tubeSay, drawTube } from './tube';
 import { warmTuckerPip, stepTuckerPip, drawTuckerPip } from './tuckerPip';
 import { updateDynamite } from './dynamite';
-import { BOARDED, TUBE_BOARD, TUBE_LEDGER, TRAIN_GAGS, REVISIT } from './lines';
+import { BOARDED, TUBE_BOARD, TUBE_LEDGER, TRAIN_GAGS, REVISIT, BOARDED_GONE } from './lines';
+import { bossGone } from '../../emptyArena';
 import { updateCage, updateMaul, drawMaul, drawEscape, trainOff } from './lion';
 import { updatePen, drawPenFront, setPen } from './pen';
 
@@ -96,7 +97,7 @@ export const train: FrontierSection = {
     if (!tr.settled) {
       tr.settled = true;
       // (Tucker's corner gross-ups for the speaking tube, painted ahead in idle moments (tuckerPip.ts))
-      if (!crashed(state)) warmTuckerPip();
+      if (!crashed(state) && !bossGone('frontier')) warmTuckerPip();
       if (crashed(state)) { tr.phase = 'still'; tr.v = 0; tr.vTarget = 0; }
       else if (state.checkpoint >= 10) {
         tr.phase = 'ride'; tr.v = V_FULL; tr.vTarget = V_FULL;
@@ -243,7 +244,7 @@ const boarded = (state: GameState, voiced: boolean) => {
   const tr = trainOf(state), p = state.player;
   tr.phase = 'ride'; tr.vTarget = V_FULL; tr.introT = 0; tr.hopT = 0;
   p.inCutscene = false;
-  if (voiced) meatheadSays(state, pickLine(byPants(state, BOARDED)), true, () => tubeSay(state, TUBE_BOARD));
+  if (voiced) meatheadSays(state, pickLine(byPants(state, bossGone('frontier') ? BOARDED_GONE : BOARDED)), true, () => tubeSay(state, TUBE_BOARD));
 };
 
 // After the crash: the train stood still and whole, nobody on it (the town's way back comes here).

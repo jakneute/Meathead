@@ -42,12 +42,13 @@ import { GY } from '../geometry';
 import { X, Y, x0, SALOON, SALOON_CAST, SQUARE, POSSE, inSaloon, type TownKind } from './layout';
 import { updateCrash, crashRunning, arriveSaid, drawCrashFront, drawCrashHud } from './crash';
 import {
-  ARRIVE, REVISIT, TOWN_IN, COFFIN, SALOON_IN, BRAWL_DONE, LOCKED, SALOON_OUT, BOUNCER_WAIT, BOUNCER_START,
+  ARRIVE, ARRIVE_GONE, COFFIN_GONE, SALOON_IN_GONE, SHOW_OPEN_GONE, REVISIT, TOWN_IN, COFFIN, SALOON_IN, BRAWL_DONE, LOCKED, SALOON_OUT, BOUNCER_WAIT, BOUNCER_START,
   SHOWDOWN_IN, SHOWDOWN_DONE, CHEATED, POSSE_DONE, POSSE_BARK, POND, MILL, MINE, CANARY, FLOOD, QUEUE, SHOW_OPEN,
   DUEL_RULES, SHOW_CHEAT, SHOW_CLOSE, SHERIFF_BARK, SHERIFF_DRAW, TOWN_VOICES,
 } from './lines';
 import { SALOON_FOLK, bark, voiceOf } from './kinds';
 import { forceWeapon, releaseWeapon } from '../../weaponLock';
+import { bossGone } from '../../emptyArena';
 
 const AWAY = -99999;
 /** After DRAW!, how long he has to fire (frames): fair, but no dawdling. */
@@ -144,7 +145,7 @@ const runSaloon = (ctx: FrameContext) => {
   const folk = [...g.foes];
   if (g.state === 'wait') {
     if (!inside || !free) return;
-    if (!tw.said.saloonIn && cx > SALOON.a + 60) { tw.said.saloonIn = true; meatheadSays(state, pickLine(byPants(state, SALOON_IN)), false); }
+    if (!tw.said.saloonIn && cx > SALOON.a + 60) { tw.said.saloonIn = true; meatheadSays(state, pickLine(byPants(state, bossGone('frontier') ? SALOON_IN_GONE : SALOON_IN)), false); }
     if (!tw.said.locked && cx > SALOON.b - 70 && feet > GY - 10) { tw.said.locked = true; meatheadSays(state, pickLine(byPants(state, LOCKED)), false); }
     br.calmT++;
     // (violence: any of them hurt or knocked about, or a shot of his in the room)
@@ -190,7 +191,8 @@ const startIntro = (state: GameState) => {
   forceWeapon(state, 'GUN');
   shutSquare(state, true);
   playSound('slam', 1, -6);
-  announce(state, SHOW_OPEN, () => {
+  // (a revisit: the rematch, with a new sheriff)
+  announce(state, bossGone('frontier') ? SHOW_OPEN_GONE : SHOW_OPEN, () => {
     if (!ok()) return;
     announce(state, DUEL_RULES, () => {
       if (!ok()) return;
@@ -385,9 +387,10 @@ export const updateScenes = (ctx: FrameContext, controls: Controls): Controls =>
   const crashOut = updateCrash(ctx, controls);
   if (crashRunning()) return crashOut;
   const wreck = wreckHere(state);
-  if (state.checkpoint === 20 && rx < 700 && state.frame > 30 && !(wreck && arriveSaid())) once('arrive', wreck ? ARRIVE : REVISIT);
+  if (state.checkpoint === 20 && rx < 700 && state.frame > 30 && !(wreck && arriveSaid())) once('arrive', wreck ? (bossGone('frontier') ? ARRIVE_GONE : ARRIVE) : REVISIT);
   // ---- passing things
-  for (const [k, a, b, pool] of GAGS) if (rx > a && rx < b) once(k, pool);
+  // (a revisit: Tucker's coffin's for good now)
+  for (const [k, a, b, pool] of GAGS) if (rx > a && rx < b) once(k, k === 'coffin' && bossGone('frontier') ? COFFIN_GONE : pool);
   runSaloon(ctx);
   return runDuel(ctx, controls);
 };

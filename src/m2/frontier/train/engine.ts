@@ -43,7 +43,8 @@ import { CARS, CAR_X, RAIL, TENDER, ENGINE, CAB } from './layout';
 import { ENG, drawMachine, drawCabBack, drawCabFront, CAB_GAP, drawOutOfService, drawBumperArt } from './engineArt';
 import { cutTender, cancelCut } from './cars';
 import { screenX, screenY, inDrawn } from './view';
-import { TUBE_RANT, TUBE_TIMEUP, TUCKER_SHOT, KILL_SEEN, SHOT_LINE, DRIVER_LINE, TUCKER_INSULT, MH_COMEBACK, TUCKER_DARE, TUCKER_DODGE, TUCKER_SLAM, MH_RAYGUN } from './lines';
+import { TUBE_RANT, TUBE_TIMEUP, TUCKER_SHOT, KILL_SEEN, SHOT_LINE, DRIVER_LINE, TUCKER_INSULT, MH_COMEBACK, TUCKER_DARE, TUCKER_DODGE, TUCKER_SLAM, MH_RAYGUN, FAILSAFE, MH_FAILSAFE } from './lines';
+import { bossGone } from '../../emptyArena';
 
 /** The train's crashed into Sawdust Gulch (for good: a revisit finds it stood still). */
 export const CRASH_MEMO = 'frontier-train-crashed';
@@ -51,7 +52,7 @@ export const crashed = (state: GameState) => state.stageMemo[CRASH_MEMO] === '1'
 /** Tucker's been shot through the eye: the wound's on him for the rest of the land (tucker.ts draws it). */
 export const TUCKER_EYE_MEMO = 'frontier-tucker-eye';
 
-type Step = 'wait' | 'insult' | 'rant' | 'close' | 'slump' | 'speed' | 'crash' | 'done';
+type Step = 'wait' | 'insult' | 'rant' | 'close' | 'auto' | 'slump' | 'speed' | 'crash' | 'done';
 interface Scene {
   step: Step; t: number; all: number;
   /** The insult: which beat it's at (his line, Meathead's, his kicker), and is one being said. */
@@ -73,7 +74,7 @@ const scOf = (state: GameState): Scene => {
   if (!s) { s = { step: 'wait', t: 0, all: 0, beat: 0, rantI: 0, busy: false, timeT: 0, timeSaid: false, said: null, talking: false, up: 0, duck: 0, dodged: false, shootWas: false, bumper: 0, flash: 0, fade: 0, lineDone: false }; SCENES.set(k, s); }
   return s;
 };
-const cut = (s: Scene) => s.step === 'close' || s.step === 'slump' || s.step === 'speed' || s.step === 'crash';
+const cut = (s: Scene) => s.step === 'close' || s.step === 'auto' || s.step === 'slump' || s.step === 'speed' || s.step === 'crash';
 /** Where the engine's scene is (the music follows it: music/cues.ts). */
 export const engineStep = (state: GameState): Step => scOf(state).step;
 
@@ -115,6 +116,23 @@ export const updateEngine = (ctx: FrameContext, controls: Controls): Controls =>
     case 'wait':
       // (up onto the tender's back: the insult)
       if (tr.phase === 'ride' && cx > CAR_X[TENDER] - 30 && p.health > 0 && !p.inCutscene) {
+        // (a revisit, Tucker dead: nobody in the cab; the park's recorded voice, the failsafes failing, and on at the
+        // buffer stop as ever (the owner's: "the 'automatic mode's' failsafes, fail, and it crashes into the gulch yet
+        // again"))
+        if (bossGone('frontier')) {
+          s.step = 'auto'; s.t = 0; s.all = 0; s.lineDone = false;
+          silenceAll();
+          p.inCutscene = true; p.vel.x = 0;
+          state.projectiles = state.projectiles.filter(pj => pj.owner !== 'player');
+          playSound('alarm', 0.7, 4);
+          s.talking = true;
+          speak('m2.frontier.announcer', pick(state, FAILSAFE), said => { s.said = said; if (!said) s.talking = false; }, true, () => {
+            s.talking = false; s.said = null;
+            playSound('clang', 0.8, -4); playHornDrone(9);
+            meatheadSays(state, pick(state, MH_FAILSAFE), true, () => { s.lineDone = true; });
+          });
+          return hands();
+        }
         // (seen it this visit (a retry): he's just up at his window, the arrow over him)
         if (insultedOn === landVisit()) { endInsult(state, s); return controls; }
         s.step = 'insult'; s.t = 0; s.all = 0; s.beat = 0; s.busy = false;
@@ -126,6 +144,12 @@ export const updateEngine = (ctx: FrameContext, controls: Controls): Controls =>
       }
       return controls;
     case 'insult': return insult(ctx, s);
+    case 'auto':
+      // (nobody driving, the whistle stuck on, faster; then the end of the line, as ever)
+      tr.vTarget = 15;
+      if (s.t % 40 === 0) shakeScreen(state, 3, 2);
+      if (s.lineDone && s.t > 60) { s.step = 'slump'; s.t = 91; }
+      return hands();
     case 'rant': {
       s.up = 1;
       // (the ledger, line after line; him once, after the first, about the arrow)
@@ -367,7 +391,7 @@ export const drawEngineBack = (c: Ctx, state: GameState) => {
   const s = scOf(state), tr = trainOf(state), f = state.frame, x = ENGINE_X;
   if (!inDrawn(state, x - 300, x + CARS[ENGINE].len + 100, 100)) return;
   // (never stove in here: the train cuts away before the stop; the wreck's the town's)
-  const stuck = s.step === 'slump' || s.step === 'speed';
+  const stuck = (s.step === 'slump' || s.step === 'speed') && !bossGone('frontier');
   // ---- the machine, its wheels on the rail
   drawMachine(c, x, RAIL, f, tr.dist / ENG.dr, tr.v > 1, stuck);
   // ---- the cab's back (his own size from here: the opening he leans out of, the half door's sill at his waist)
@@ -376,7 +400,7 @@ export const drawEngineBack = (c: Ctx, state: GameState) => {
   // manic, shaking his fist; ducked in behind the shutter; slumped over the sill once shot. Not at his window till the
   // insult.
   const shot = s.step !== 'insult' && s.step !== 'rant';
-  if (tr.phase !== 'still' && s.step !== 'done' && s.step !== 'wait') {
+  if (tr.phase !== 'still' && s.step !== 'done' && s.step !== 'wait' && !bossGone('frontier')) {
     // (out in the air off the cab's back (under the roof's overhang), and in the opening itself: never over the cab's
     // back wall above the header)
     const roofUnder = RAIL + ENG.cabTop + 24;
@@ -449,7 +473,7 @@ export const drawEngineHud = (c: Ctx, state: GameState) => {
       if (s.said) saidOver(c, s.said.text, cx, y + h + 34, '#FDE68A', 340);
     }
     if (s.all > SKIP_AFTER) drawSkipPrompt(c, CANVAS_WIDTH);
-  } else if (s.said && (s.step === 'rant' || s.step === 'wait')) {
+  } else if (s.said && (s.step === 'rant' || s.step === 'wait' || s.step === 'auto')) {
     saidOver(c, s.said.text, screenX(state, ENGINE_X - 18), screenY(state, CAB.sill - 140), '#FDE68A', 260);
   }
   if (s.step === 'close') {

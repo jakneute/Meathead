@@ -32,7 +32,7 @@ import {
 import { board, updateRide, holdInLog, SINK } from './ride';
 import { buildHazards, updateHazards, drawHazardsBack, drawHazardsFront, drawProps, drawObstaclesBack, drawObstaclesFront } from './hazards';
 import { LOGGER, setCrewOn } from './kinds';
-import { startScene, updateScene, updateBooth, againLine, sawed, drawBooth, drawSceneHud } from './scene';
+import { startScene, updateScene, updateBooth, againLine, sceneDone, drawBooth, drawSceneHud } from './scene';
 import { updateChipper, drawChipperBack, drawChipperFront } from './chipper';
 import { drawRideBackdrop, drawRideBack, drawRideFront, drawLogBack, drawLogFront, drawSplashes, rideLighting } from './art';
 import { drawVeils } from './veils';
@@ -127,7 +127,7 @@ export const logride: FrontierSection = {
       void runExits;
       updateBooth(state);
       if (L.mode === 'off' && p.health > 0 && cx > X(PLATFORM_END) + 6 && cx < X(LOAD_X + 110) && feet >= waterY(LOAD_X) - SINK - 6 && feet < GY + 60) {
-        if (!sawed(state)) { board(state, LOAD_X, 'scene'); startScene(state); }
+        if (!sceneDone(state)) { board(state, LOAD_X, 'scene'); startScene(state); }
         else { board(state, LOAD_X, 'ride'); againLine(state); }
       }
     }

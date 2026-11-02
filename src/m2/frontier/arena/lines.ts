@@ -348,7 +348,17 @@ export const LION_CALLS: Record<string, string[]> = {
   swim: ['KITTY LITTER!', 'CAT NAP!', 'NINE LIVES USED!'],
 };
 
-const MEATHEAD = [MH_SIGN, MH_CAUGHT, MH_SKEWERED, FAKE_ME_OUT, MH_JUMPED, MH_AXE, MH_BLIND, MH_SPRAY, MH_LIONS, MH_HINT, MH_BAG, MH_WALKUP, MH_POPPED, MH_GRIZZLY, MH_LIONS_WON];
+// ---------------------------------------------------------------------------------------------------------------
+// A revisit, the land cleared (Tucker's dead: the owner's revisit brief, 2026-11-02)
+
+/** Into the empty arena: his say, then out to the parking lot (emptyArena.ts). Tucker's sin was greed. */
+export const MH_EMPTY_ARENA: ByPants = {
+  clean: ['NOBODY HERE TO BILL ME. FREE RIDE.', 'NO TUCKER. NO FARE. I AM OUT.'],
+  shitty: ['NOBODY LEFT TO CHARGE ME FOR THE SMELL. I AM OUT.', 'NO CONDUCTOR. NO CLEANING FEE. BYE.'],
+  nude: ['NO CONDUCTOR. NO FARE. NO PANTS. I AM OUT.', 'NOBODY HERE TO FINE ME FOR DECENCY. BYE.'],
+};
+
+const MEATHEAD = [MH_EMPTY_ARENA, MH_SIGN, MH_CAUGHT, MH_SKEWERED, FAKE_ME_OUT, MH_JUMPED, MH_AXE, MH_BLIND, MH_SPRAY, MH_LIONS, MH_HINT, MH_BAG, MH_WALKUP, MH_POPPED, MH_GRIZZLY, MH_LIONS_WON];
 const TUCKER = [TUCKER_CAUGHT, TUCKER_RANT, TUCKER_HANDOUT, TUCKER_GUN, TUCKER_SKEWERED, TUCKER_JUMP, TUCKER_UP, TUCKER_ENTRANCE, TUCKER_TAUNT, TUCKER_SPLIT, TUCKER_BLIND, TUCKER_MATTER,
   TF_TAUNT, TF_FIRE, TF_HEAR, TF_HIT, TF_RELOAD, TF_HURT, TF_BEES, TF_STAMPEDE, TF_BLOODY, TF_MAULED, TF_GETUP, TF_LOW, TF_FALL, TF_POP, TF_GLOAT, TF_LAST_BEAR, TF_LAST_LIONS];
 

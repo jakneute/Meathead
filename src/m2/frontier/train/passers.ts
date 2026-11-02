@@ -42,7 +42,8 @@ import { FG_GROUND, FG_SCALE, leapK, leapAt, laneBlocked, addRiders, updateRider
 import { drawRider, drawHorse, drawRobberAt } from './kindArt';
 import { tubeSay } from './tube';
 import { viewOf, drawnView } from './view';
-import { TUBE_TUNNEL, TUBE_ROBBERS, TUBE_FALLS, TRAIN_GAGS } from './lines';
+import { TUBE_TUNNEL, TUBE_ROBBERS, TUBE_FALLS, TRAIN_GAGS, ROBBERS_GONE } from './lines';
+import { bossGone } from '../../emptyArena';
 
 /** The low bridge's underside (stood on a roof, his head's over it; ducked, it's not). */
 export const BRIDGE_Y = ROOF - 48;
@@ -156,7 +157,7 @@ const spawnRobbers = (state: GameState, n: number) => {
   if (!tr.said.robbers) {
     tr.said.robbers = true;
     tubeSay(state, TUBE_ROBBERS);
-    meatheadSays(state, pickLine(byPants(state, TRAIN_GAGS.robbers)));
+    meatheadSays(state, pickLine(byPants(state, bossGone('frontier') ? ROBBERS_GONE : TRAIN_GAGS.robbers)));
   }
 };
 

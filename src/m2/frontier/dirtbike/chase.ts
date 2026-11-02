@@ -41,8 +41,9 @@ import {
 } from './road';
 import { drawSpr, drawTeenRider, drawTeenBody, drawTeenSprawl, drawLid, drawTeenDangle, drawEndo, drawMeathead, drawMhTumble, drawBikeTumble, drawTuckerRider, drawWeapon, digits, teenLookOf, parryHand, PUNCH_WIND, PUNCH_LEN, ART, type Weapon, type TeenLook, type RiderPose, type MhPose } from './art';
 import { signText, signW, type Look as Letters } from '../../signLetters';
-import { HURT, MH_START, MH_AGAIN, MH_KNOCKOFF, MH_PARRY, MH_END, MH_ADULTS, TEEN_TAUNT, TEEN_AGE, TEEN_AGE_FIRST, TEEN_DOWN, TEEN_PARRIED, TUCKER_RAISE, TUCKER_LEDGER, TUCKER_FLEE } from './lines';
+import { HURT, MH_START, MH_AGAIN, MH_KNOCKOFF, MH_PARRY, MH_END, MH_ADULTS, TEEN_TAUNT, TEEN_AGE, TEEN_AGE_FIRST, TEEN_DOWN, TEEN_PARRIED, TUCKER_RAISE, TUCKER_LEDGER, TUCKER_FLEE, MH_START_GONE, TEEN_REVENGE, MH_END_GONE } from './lines';
 import { onYell, markTrapHurt } from '../../upgrades/amulet';
+import { bossGone } from '../../emptyArena';
 
 for (const [source, l] of Object.entries(HURT)) registerHurtLines(source, l.hurt, l.death);
 
@@ -194,7 +195,7 @@ export const startChase = (state: GameState, wave: number, fromBounty: boolean) 
   if (fromBounty) for (let i = 0; i < 2; i++) spawnTeen(state, c, true, -1400 - i * 900);
   const first = startVisit !== landVisit();
   c.aged = false; ageFirst = first;
-  if (first) { startVisit = landVisit(); setTimeout(() => meatheadSays(state, pickLine(byPants(state, MH_START)), true), 900); }
+  if (first) { startVisit = landVisit(); setTimeout(() => meatheadSays(state, pickLine(byPants(state, bossGone('frontier') ? MH_START_GONE : MH_START)), true), 900); }
   else if (rnd() < 0.4) setTimeout(() => meatheadSays(state, pickLine(byPants(state, MH_AGAIN)), false), 900);
 };
 
@@ -357,7 +358,7 @@ const updateTeens = (ctx: FrameContext, c: Chase) => {
         speak(t.k.voice, line, s => { t.said = s; }, true, () => {
           if (rnd() < 0.7) { c.quipAt = state.frame + 300; meatheadSays(state, pickLine(byPants(state, MH_ADULTS)), false); }
         });
-      } else if (rnd() < 0.5) speak(t.k.voice, pickLine(byPants(state, rnd() < 0.25 ? TEEN_AGE : TEEN_TAUNT)), s => { t.said = s; }, false);
+      } else if (rnd() < 0.5) speak(t.k.voice, pickLine(byPants(state, rnd() < 0.25 ? TEEN_AGE : bossGone('frontier') ? TEEN_REVENGE : TEEN_TAUNT)), s => { t.said = s; }, false);
     }
     // ---- their swings
     t.t++;
@@ -759,6 +760,8 @@ const hisLoose = (ctx: FrameContext, c: Chase, oldZ: number) => {
 
 const tickTucker = (state: GameState, c: Chase) => {
   const T = c.tucker, f = state.frame;
+  // (a revisit, Tucker dead: nobody up ahead, no bounty going up (the owner's: "no tucker bargaining"))
+  if (bossGone('frontier')) { T.on = false; return; }
   if (!T.on && f >= T.at && c.phase === 'ride') { T.on = true; T.t = 0; T.z = c.z + 9000; T.x = 0.3; T.leave = false; T.flee = false; }
   if (!T.on) return;
   T.t++;
@@ -925,7 +928,7 @@ const startOutro = (state: GameState, c: Chase) => {
   setUi({ bikeHud: false, bikeTips: false });
   offerSkip();
   const T = c.tucker;
-  if (!T.on) { T.on = true; T.t = 0; T.z = c.z + 6000; T.x = 0.2; }
+  if (!T.on && !bossGone('frontier')) { T.on = true; T.t = 0; T.z = c.z + 6000; T.x = 0.2; }
   T.flee = false; T.leave = false; T.at = state.frame + 1e9;
 };
 const tickOutro = (state: GameState, c: Chase) => {
@@ -933,7 +936,9 @@ const tickOutro = (state: GameState, c: Chase) => {
   o.t++;
   if (o.t > SKIP_AFTER) offerSkip();
   if (takeSkip()) { silenceAll(); finishChase(state); return; }
-  if (o.t === 50) speak(TUCKER_VOICE, pickLine(byPants(state, TUCKER_FLEE)), s => { T.said = s; }, true, () => {
+  // (a revisit: nobody to chase into the trees; his line, and on)
+  if (o.t === 50 && bossGone('frontier')) meatheadSays(state, pickLine(byPants(state, MH_END_GONE)), true, () => { o.step = 'fade'; });
+  else if (o.t === 50) speak(TUCKER_VOICE, pickLine(byPants(state, TUCKER_FLEE)), s => { T.said = s; }, true, () => {
     T.flee = true; T.t = 0;
     meatheadSays(state, pickLine(byPants(state, MH_END)), true, () => { o.step = 'fade'; });
   });

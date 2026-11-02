@@ -54,9 +54,12 @@ import { drawArenaCast, drawTuckerWords } from './cast';
 import { drawArenaBackdrop, drawArenaBack, drawBoulder, drawLeaves, tickLeaves, drawFallingTree, drawRemainsMark, SIGN_X } from './art';
 import { startFight, updateFight, fightOver, endFight, tickFightWon, resetFight, holdIn, killedByWeakness, drawFightBack, drawFightFront, drawFightHud, fightZoom, deathNeed, fightHoldTick } from './fight';
 import { frameDeath } from '../../deathFrame';
+import { leaveEmptyArena } from '../../emptyArena';
 
 /** The arena as far as a camera taking his death in may go (its two ends; the woods' sky over it; the fight's row). */
 const FIGHT_ROOM = { x0: ARENA_L, y0: GY - 1200, x1: ARENA_R, y1: GY - 550 + CANVAS_HEIGHT };
+/** A revisit's say in the empty arena (picked once a build). */
+let emptyLine: string | undefined;
 const pmid = (state: GameState) => state.player.pos.x + state.player.width / 2;
 
 /** The world as it stands, on the first frame here since the rebuild (or a cheat start's pick). */
@@ -109,7 +112,7 @@ export const arena: FrontierSection = {
     { name: 'THE GLADE', cp: 61, x: CP61_X, y: GY, manual: true },
   ],
   build: (state) => {
-    resetFight();
+    resetFight(); emptyLine = undefined;
     layOwn(state, [{ x1: x0 - 200, y1: GY, x2: x1 + 200, y2: GY, surface: 'dirt' }]);
     endWalls(state, 'arena');
     // (the boss-door refill: one big health, one big ammo, right before the arena (only the one set: the playtest); there
@@ -141,6 +144,12 @@ export const arena: FrontierSection = {
         return controls;
       case 'body': {
         runExits(state, endExits('arena', { left: false }));
+        // (a revisit: into the empty arena, his say, and back out to the parking lot, as after Tucker (the owner's: "you
+        // teleport back when you reach the boss fight area"))
+        if (isLandCleared('frontier') && p.health > 0 && pmid(state) > ARENA_L + 60) {
+          leaveEmptyArena(state, emptyLine ??= pickLine(byPants(state, L.MH_EMPTY_ARENA)), () => { setWalkBack(true); goTo('intro'); });
+          return hands();
+        }
         if (isLandCleared('frontier') || p.health <= 0 || p.inCutscene) return controls;
         // (walking past the lions board: his say on it, the once a visit)
         if (!state.stageMemo['fr-sign-said'] && Math.abs(p.pos.x + p.width / 2 - SIGN_X) < 60) { state.stageMemo['fr-sign-said'] = '1'; meatheadSays(state, pickLine(byPants(state, L.MH_SIGN)), false); }

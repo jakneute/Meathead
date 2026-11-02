@@ -28,6 +28,7 @@ import { tickHurtGag, drawHurtGag } from '../../hurtGags';
 import { BOUNTY_MEMO, bountyDone, inBounty, startBounty, updateBounty, tickBountyCast, drawBountyCast, drawBountyFront, drawBountyHud, kidASeed } from './scene';
 import { drawWoodsBackdrop, drawWoodsBack, drawWoodsFront, drawPile, drawSulk } from './art';
 import { REAL_WOODS, KID_SULK } from './lines';
+import { bossGone } from '../../emptyArena';
 
 /** The ways off its ends, on foot (the right one only once the bounty's been: before it, the bounty's ride is the way). */
 const exits = (on: boolean): Exit[] => [
@@ -62,7 +63,7 @@ export const woods: FrontierSection = {
       b.loop = { a: X(1980), b: X(2900) }; b.vx = b.facing * 4;
       w.bikes.push(b);
     }
-    if (bountyDone(state)) w.pile.burst = true;
+    if (bountyDone(state) && !bossGone('frontier')) w.pile.burst = true;
   },
   update: (ctx, controls) => {
     const { state } = ctx, p = state.player, w = woodsOf(state);

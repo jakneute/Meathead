@@ -258,6 +258,40 @@ export const DRIVER_LINE: ByPants = {
   shitty: ['WAIT. HE WAS DRIVING. OH, SHIT.', 'NO BRAKES. NO DRIVER. NO CLEAN PANTS.'],
   nude: ['WAIT. HE WAS DRIVING. AND I\'M NAKED.', 'NOBODY\'S DRIVING. HOLD ON TO SOMETHING. NOT THAT.'],
 };
+// ---------------------------------------------------------------------------------------------------------------
+// A revisit, the land cleared (Tucker's dead: the owner's revisit brief, 2026-11-02)
+
+/** On, at the caboose: nobody's driving. */
+export const BOARDED_GONE: ByPants = {
+  clean: ['GOT THE CABOOSE. NOBODY DRIVING. FREE RIDE.', "NO TUCKER. NO TICKET. HE'D HATE THIS."],
+  shitty: ['ON THE TRAIN. NOBODY LEFT TO BILL ME FOR THE SMELL.', 'FREE RIDE. LOADED PANTS.'],
+  nude: ["FREE RIDE. NAKED. TUCKER'D HAVE A STROKE.", 'NOBODY DRIVING. NOBODY TO SEE MY ASS.'],
+};
+/** The first car cut loose: the train did it itself. */
+export const CUT_GONE: ByPants = {
+  clean: ['IT CUT THE CAR LOOSE BY ITSELF.', 'THE TRAIN DUMPS CARS NOW. TUCKER TAUGHT IT THAT.'],
+  shitty: ['THE TRAIN CUT ME LOOSE. NOBODY EVEN DID IT.', 'IT DUMPED A CAR ON ITS OWN. I NEARLY SHAT. AGAIN.'],
+  nude: ['IT CUT THE CAR LOOSE BY ITSELF. MY ASS FELT IT.', 'AUTOMATIC CAR DUMPING. NAKED. GREAT.'],
+};
+/** The robbers ride up (nobody aboard worth robbing). */
+export const ROBBERS_GONE: ByPants = {
+  clean: ["TRAIN ROBBERS. THE GUY WITH THE MONEY'S DEAD."],
+  shitty: ['ROBBERS. ROB THE PANTS. I DARE YOU.'],
+  nude: ['ROBBERS. NO POCKETS, NO MONEY, NO PANTS.'],
+};
+/** The park's recorded voice, at the end of the line coming up. */
+export const FAILSAFE: ByPants = {
+  clean: ['WARNING. END OF LINE AHEAD. ENGAGING FAILSAFE. FAILSAFE FAILED. HAVE A NICE DAY.'],
+  shitty: ['WARNING. FAILSAFE FAILED. ALSO, A PASSENGER HAS SOILED THE TENDER.'],
+  nude: ['WARNING. FAILSAFE FAILED. ALSO, PLEASE PUT ON PANTS BEFORE IMPACT.'],
+};
+/** Him, holding on. */
+export const MH_FAILSAFE: ByPants = {
+  clean: ['NOT AGAIN.', 'SAME GULCH. SAME CRASH.'],
+  shitty: ['NOT AGAIN. I HAD ONE CLEAN SPOT LEFT.', 'SAME CRASH. SAME PANTS.'],
+  nude: ['NOT AGAIN. NAKED, AGAIN.', 'SAME CRASH. NO SEATBELT. NO PANTS.'],
+};
+
 /** Back on the train after it's all over (a revisit: the train stood still, the cars recovered). */
 export const REVISIT: ByPants = {
   clean: ['THEY FOUND THE CARS. HE BILLED ME FOR THE TOWING.'],
@@ -360,10 +394,12 @@ export const HURT: HurtTable = {
 export const VOICE_LINES: Record<string, string[]> = {
   meathead: [
     ...allOf(BOARDED), ...Object.values(TRAIN_GAGS).flatMap(allOf), ...allOf(KILL_SEEN), ...allOf(SHOT_LINE), ...allOf(DRIVER_LINE), ...allOf(REVISIT),
+    ...allOf(BOARDED_GONE), ...allOf(CUT_GONE), ...allOf(ROBBERS_GONE), ...allOf(MH_FAILSAFE),
     ...allOf(MH_COMEBACK), ...allOf(MH_RAYGUN), ...allOf(LION_CAGE), ...allOf(LION_LOOSE), ...allOf(IM_OKAY),
     ...allOf(PEN_SPOTTED), ...allOf(PEN_BREAK), ...allOf(PEN_GOT),
     ...Object.values(HURT).flatMap(h => h.hurt),
   ],
   death: Object.values(HURT).flatMap(h => h.death),
+  'm2.frontier.announcer': allOf(FAILSAFE),
   [TUCKER_VOICE]: [TUBE_BOARD, TUBE_LEDGER, TUBE_UNCOUPLE, TUBE_MISSED, TUBE_TUNNEL, TUBE_ROBBERS, TUBE_FALLS, TUCKER_INSULT, TUCKER_DARE, TUCKER_DODGE, TUCKER_SLAM, TUBE_RANT, TUBE_TIMEUP, TUCKER_SHOT].flatMap(allOf),
 };
