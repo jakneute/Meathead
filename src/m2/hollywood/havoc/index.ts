@@ -49,6 +49,7 @@ import { startFling, updateFling, drawFlingHud, flinging } from './fling';
 import { updateCivilians } from './civilians';
 import { drawHavocBackdrop, drawHavocBack, drawHavocFront, havocLamps } from './art';
 import * as L from './lines';
+import { bossGone } from '../../emptyArena';
 import { buildAmmoFind, updateAmmoFind, drawAmmoFind, ammoFindLamps } from './ammoFind';
 
 export { noteTornadoDeath, diedToTornado } from './state';
@@ -158,20 +159,20 @@ export const havoc: HollywoodSection = {
     if (ch.caught) { startFling(ctx); return updateFling(ctx) ?? controls; }
     // What's said (talk less: each beat once)
     if (alive && !done) {
-      if (rx < 900 && state.frame > 50 && once(state, 'arrive')) paSay(state, pick(byPants(state, L.PA_HAVOC)), () => meatheadSays(state, pick(L.ARRIVE), true));
+      if (rx < 900 && state.frame > 50 && once(state, 'arrive')) paSay(state, pick(byPants(state, bossGone('hollywood') ? L.PA_HAVOC_BACK : L.PA_HAVOC)), () => meatheadSays(state, pick(L.ARRIVE), true));
       if (rx > 1050 && rx < 1300 && once(state, 'lava')) narrate(state, L.NARR_HAVOC.lava, () => meatheadSays(state, pick(L.GAG.lava), true));
       if (ev.fell?.how === 'flat' && once(state, 'facade')) meatheadSays(state, pick(L.GAG.facade), true);
       if (ev.fell?.how === 'bridge' && once(state, 'bridge')) meatheadSays(state, pick(L.GAG.bridge), true);
       if (ev.fell?.how === 'billboard' && once(state, 'billboard')) meatheadSays(state, pick(L.GAG.billboard), true);
       if (ev.gust && rx < WIND[0][1] && once(state, 'wind')) narrate(state, L.NARR_HAVOC.wind, () => meatheadSays(state, pick(L.GAG.wind), true));
       if (rx > 2400 && once(state, 'pa-leak')) paSay(state, pick(L.PA_LEAK_HAVOC));
-      if (rx > 3950 && once(state, 'pa-steve')) paSay(state, L.PA_STEVE_HAVOC[0]);
+      if (rx > 3950 && once(state, 'pa-steve')) paSay(state, (bossGone('hollywood') ? L.PA_STEVE_HAVOC_DEAD : L.PA_STEVE_HAVOC)[0]);
       if (ev.quake && rx < QUAKE[0][1] && once(state, 'quake')) narrate(state, LOOP[0][0], () => meatheadSays(state, pick(L.GAG.quake), true));
       if (rx > SHAFTS[1].a && rx < SHAFTS[1].b && up > 620 && once(state, 'ball')) meatheadSays(state, pick(L.GAG.ball), true);
       if (ch.avalancheTell && rx < COVERS[0].b + 100 && once(state, 'cover')) narrate(state, L.NARR_HAVOC.avalanche, () => meatheadSays(state, pick(L.GAG.coverSign), true));
       if (ch.inCover && oncePer(state, 'inCover')) meatheadSays(state, pick(L.GAG.inCover), true);
       if (ch.ripped && once(state, 'rip')) meatheadSays(state, pick(L.GAG.rip), true);
-      if (rx > 15800 && once(state, 'pa-steve-2')) paSay(state, L.PA_STEVE_HAVOC[1]);
+      if (rx > 15800 && once(state, 'pa-steve-2')) paSay(state, (bossGone('hollywood') ? L.PA_STEVE_HAVOC_DEAD : L.PA_STEVE_HAVOC)[1]);
       if (rx > WIND[1][0] && once(state, 'everything')) narrate(state, REAL.all, () => meatheadSays(state, pick(L.GAG.everything), true));
       if (ev.hail && rx > HAIL[0][0] && once(state, 'hail')) narrate(state, L.NARR_HAVOC.hail);
       if (rx > REFILL - 220 && once(state, 'refill')) meatheadSays(state, pick(L.GAG.refill), true);

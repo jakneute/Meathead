@@ -136,6 +136,26 @@ export const PA_STEVE = [
   'STUNTMAN STEVE! HE WAS IN A FILM! YOU CAN SEE HIS ELBOW FOR TWO FRAMES! SHOWS HOURLY!',
   'STUNTMAN STEVE! WATCH HIM STEP OUT OF THE WAY OF A SLOW CAR! LIVE! PARKING NOT VALIDATED!',
 ];
+// A revisit (Steve's dead: emptyArena.ts bossGone('hollywood')): the PA still plugs him, the show canceled "because
+// he's dead", the park "honoring" his legacy instead; his face still on every wall.
+/** In place of PA_STEVE, one each, in the same three spots. */
+export const PA_STEVE_DEAD = [
+  "STUNTMAN STEVE'S STUPENDOUS STUNTERY HAS BEEN CANCELED. BECAUSE HE'S DEAD. PLEASE STOP ASKING.",
+  'HAPPYWOOD HONORS STUNTMAN STEVE. HE WAS IN A FILM. YOU CAN SEE HIS ELBOW. FOREVER, NOW.',
+  "IN LIEU OF FLOWERS, STUNTMAN STEVE'S FAMILY ASKS THAT YOU STEP OUT OF THE WAY OF A SLOW CAR. IN HIS HONOR.",
+];
+/** The welcome, on a revisit: they know him. */
+export const PA_WELCOME_BACK: ByPants = {
+  clean: ["WELCOME BACK TO HAPPYWOOD BOULEVARD. SECURITY HAS YOUR PICTURE, SIR. IT'S UP NEXT TO STEVE'S."],
+  shitty: ["WELCOME BACK TO HAPPYWOOD BOULEVARD. WE KNOW IT'S YOU, SIR. WE CAN SMELL IT FROM THE BOOTH."],
+  nude: ["WELCOME BACK TO HAPPYWOOD BOULEVARD. WE KNOW IT'S YOU, SIR. WE RECOGNIZE IT."],
+};
+/** Him at Steve's standees, posters and headshots on a revisit (the boulevard's, the lot's, the warehouse's). */
+export const STEVE_GAG_BACK: ByPants = {
+  clean: ['STUNTMAN STEVE. STILL DEAD. STILL SMILING.', "THEY'RE STILL PUTTING HIS FACE UP. HE'D LOVE THAT. THE PRICK.", 'STEVE. TWO SECONDS IN A MOVIE AND ONE SECOND WITH ME.'],
+  shitty: ['STEVE. DEAD, AND HE STILL LOOKS BETTER THAN MY PANTS.', "HIS FACE IS EVERYWHERE. GOOD THING IT CAN'T SMELL.", "STEVE WOULD BE JEALOUS. NOBODY'S EVER SHIT HIMSELF FOR HIM."],
+  nude: ["STEVE. DEAD, AND I'M THE ONE WITH NOTHING ON.", "HIS CUTOUT'S STARING AT MY DICK. JEALOUS TO THE END.", "STEVE'S STILL IN THE YELLOW SUIT. I'M IN NOTHING. I WIN."],
+};
 /** Once he's done in a few of the impersonators. */
 export const PA_SECURITY: ByPants = {
   clean: [
@@ -218,11 +238,11 @@ export const HURT: Record<string, { hurt: string[]; death: string[] }> = {
 
 export const VOICE_LINES: Record<string, string[]> = {
   meathead: [
-    ...ARRIVE, ...Object.values(GAG_LINES).flat(), ...FIRST_WIRE, ...WIRE_WHOOP, ...PICKPOCKETED, ...GOT_IT_BACK, ...FALL_SCREAM,
+    ...ARRIVE, ...Object.values(GAG_LINES).flat(), ...Object.values(STEVE_GAG_BACK).flat(), ...FIRST_WIRE, ...WIRE_WHOOP, ...PICKPOCKETED, ...GOT_IT_BACK, ...FALL_SCREAM,
     ...Object.values(HURT).flatMap(h => h.hurt),
   ],
   death: Object.values(HURT).flatMap(h => h.death),
-  [PA_VOICE]: [...Object.values(PA_WELCOME).flat(), ...PA_STEVE, ...Object.values(PA_SECURITY).flat(), ...Object.values(PA_COASTER).flat()],
+  [PA_VOICE]: [...Object.values(PA_WELCOME).flat(), ...PA_STEVE, ...PA_STEVE_DEAD, ...Object.values(PA_WELCOME_BACK).flat(), ...Object.values(PA_SECURITY).flat(), ...Object.values(PA_COASTER).flat()],
   [TRAM_VOICE]: TRAM_CALL,
   [HUSTLER_VOICES.marilyn]: [...Object.values(MARILYN_HUSTLE).flat(), ...Object.values(THIEF_GLOAT).flat()],
   [HUSTLER_VOICES.elvis]: [...Object.values(ELVIS_HUSTLE).flat(), ...Object.values(THIEF_GLOAT).flat()],

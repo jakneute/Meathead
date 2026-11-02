@@ -17,6 +17,8 @@ import { speak, meatheadSays } from '../section';
 import { X, Y, R, FX, SCREEN, THEATER, WATCHERS } from './layout';
 import { dzOf, type Dz } from './state';
 import { fromDepth, EFX_D } from './paint';
+import { bossGone } from '../../emptyArena';
+import { NARR_STEVE_DEAD } from './lines';
 import { NARR, LOOP, NARR_STEVE, EFFECT, UNDERWHELMED, OVERREACT, GUEST_VOICES } from './lines';
 
 /** How long an effect runs (from its line), and the gap before the next line. */
@@ -55,7 +57,7 @@ export const updateShow = (ctx: FrameContext, active: boolean, wrecked: boolean)
     if (!run.asked && -sh.t > GAP) {
       run.asked = true; run.askedAt = state.frame;
       // (once round the loop: the Steve plug, in the gap)
-      if (sh.loops >= 1 && !o.said.narrSteve && fresh(NARR_STEVE[0])) { o.said.narrSteve = true; narrate(state, NARR_STEVE[0]); }
+      { const steve = bossGone('hollywood') ? NARR_STEVE_DEAD : NARR_STEVE[0]; if (sh.loops >= 1 && !o.said.narrSteve && fresh(steve)) { o.said.narrSteve = true; narrate(state, steve); } }
       narrate(state, pickLine(LOOP[sh.beat]), () => { run.on = true; sh.on = 1; sh.t = 0; });
     }
     // (never shown (dropped): on with it anyway)

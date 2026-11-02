@@ -19,6 +19,7 @@
 
 import type { GameState } from '../../../m1/game/core/state';
 import * as L from './lines';
+import { bossGone } from '../../emptyArena';
 
 export type RideName = 'r1' | 'r2' | 'r3' | 'launch' | 'back';
 export type Who = 'mh' | 'pa';
@@ -37,7 +38,7 @@ export const SCRIPTS: Record<RideName, Beat[]> = {
   r1: [
     board,
     // (the ride's welcome the first time; the Steve plug the next; a short one after that, and his own on the lift)
-    pa('depart', e => (e.once('spiel') ? [L.SPIEL_STATION[0]] : e.once('steve-narr') ? [L.SPIEL_LIFT[1]] : [L.SPIEL_STATION[1], L.SPIEL_LIFT[0]])),
+    pa('depart', e => (e.once('spiel') ? [bossGone('hollywood') ? L.SPIEL_STATION_BACK : L.SPIEL_STATION[0]] : e.once('steve-narr') ? [bossGone('hollywood') ? L.SPIEL_LIFT_DEAD : L.SPIEL_LIFT[1]] : [L.SPIEL_STATION[1], L.SPIEL_LIFT[0]])),
     mh('lift', e => ((e.said.get('depart') ?? '').length < 50 ? R.lift : null)),
     mh('drop', () => R.drop),
     mh('loop', () => R.loop),

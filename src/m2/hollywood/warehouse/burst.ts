@@ -30,6 +30,10 @@ import { X, GY, x0, ROOF_Y, BACK_Y, WALLS_MEMO } from './layout';
 import { whOf } from './state';
 import { BURST, BURST_WHAT, BURST_NEVER, BACK_AGAIN, CROWD_GASP, DIR_WHO, DIR_TITLE, DIR_SECRET, DIR_PONDER, DIR_KILL, PROD_RULES, PROD_ASSASSIN } from './lines';
 import { crowdSay, dirSay, prodSay } from './talk';
+import { PROD_RULES_BACK, DIR_WHO_BACK, DIR_WALLS_BACK, CROWD_GASP_BACK } from './lines';
+import { bossGone } from '../../emptyArena';
+/** A revisit (Steve's dead): the same burst-in, a new producer, a new director (the owner's). */
+const back = () => bossGone('hollywood');
 import { drawDirector } from './kindArt';
 import { INK as KINK, stamp, signText, checker, pixelBlob, hash, poly } from '../blvd/kit';
 import { bodyOf, legs, arm, torso, part, px, dk, headShape, faceOn } from '../../spooky/costume';
@@ -45,7 +49,10 @@ const LATER = 1e9;
 export const ROOF_HOLE = { a: 250, b: 520 } as const;
 export const wallsDown = (state: GameState) => !!state.stageMemo[WALLS_MEMO];
 /** The director's a man (his voice is): the first man's seed. */
-const DIR_SEED = [5, 7, 9, 11, 13, 15, 17, 19, 21].find(s => !lookOf(s).woman) ?? 5;
+const MEN = [5, 7, 9, 11, 13, 15, 17, 19, 21, 23, 25, 27].filter(s => !lookOf(s).woman);
+const DIR_SEED = MEN[0] ?? 5;
+/** ...and on a revisit, the new one: another man, another look. */
+const dirSeed = () => (back() ? MEN[1] ?? DIR_SEED + 2 : DIR_SEED);
 const CAM = { x: x0 - 40, y: GY - 550 };
 /** Up at the roof for the crash (it's off the top of the usual view), down with him as he falls (ct: frames since the
  *  roof went; before it, on the set with the producer). */
@@ -58,7 +65,7 @@ export const roofHoled = (state: GameState) => { const b = whOf(state).burst; re
 const dirPuppet = new WeakMap<object, Enemy>();
 const puppetOf = (state: GameState) => {
   let e = dirPuppet.get(state.stage as object);
-  if (!e) { e = makeKindEnemy('m2:hww_director' as EnemyKind, X(DIR_X), GY); e.initialX = DIR_SEED; e.variant = 0; dirPuppet.set(state.stage as object, e); }
+  if (!e) { e = makeKindEnemy('m2:hww_director' as EnemyKind, X(DIR_X), GY); e.initialX = dirSeed(); e.variant = 0; dirPuppet.set(state.stage as object, e); }
   return e;
 };
 
@@ -117,7 +124,7 @@ export const updateBurst = (ctx: FrameContext): Controls | null => {
   // First, the producer, laying down the law to the cast and crew (one line, then the user's); he looks up at the noise;
   // the roof goes
   const P = b.prod;
-  if (b.t === 30 && P.mode === 'rant') prodSay(state, PROD_RULES, () => prodSay(state, PROD_ASSASSIN, () => { if (P.mode !== 'rant') return; P.mode = 'look'; b.c0 = b.t + 28; playSound('rumble', 0.7, -4); shakeScreen(state, 6, 3); }));
+  if (b.t === 30 && P.mode === 'rant') prodSay(state, back() ? PROD_RULES_BACK : PROD_RULES, () => prodSay(state, PROD_ASSASSIN, () => { if (P.mode !== 'rant') return; P.mode = 'look'; b.c0 = b.t + 28; playSound('rumble', 0.7, -4); shakeScreen(state, 6, 3); }));
   if (b.c0 === LATER && b.t > 1500) { P.mode = 'look'; b.c0 = b.t + 1; }
   const ct = b.t - b.c0;
   state.cameraOverride = { x: CAM.x, y: camY(ct) };
@@ -158,7 +165,7 @@ export const updateBurst = (ctx: FrameContext): Controls | null => {
   // Then, one at a time: who the fuck is he; the movie (he doesn't know it); the secret; buy him or bury him
   if (b.landed && b.step === 0 && ct > 86) {
     b.step = 1;
-    dirSay(state, DIR_WHO, () => meatheadSays(state, pickLine(BURST_WHAT), true, () => dirSay(state, DIR_TITLE, () => meatheadSays(state, pickLine(BURST_NEVER), true,
+    dirSay(state, back() ? DIR_WHO_BACK : DIR_WHO, () => meatheadSays(state, pickLine(BURST_WHAT), true, () => dirSay(state, DIR_TITLE, () => meatheadSays(state, pickLine(BURST_NEVER), true,
       () => dirSay(state, DIR_SECRET, () => { d.mode = 'think'; dirSay(state, DIR_PONDER, () => { b.step = 2; b.falling = 0; playSound('rumble', 0.8, -10); shakeScreen(state, 30, 2); }); })))));
   }
   // ...while he's still thinking it over, the walls go: all of them, flat, outward
@@ -175,7 +182,10 @@ export const updateBurst = (ctx: FrameContext): Controls | null => {
   // The public, staring in; KILL THEM ALL (the crew out at them, behind; the ones on the set at him)
   if (b.fall >= 1 && b.step === 2 && b.falling > 120) {
     b.step = 3;
-    crowdSay(state, CROWD_GASP, CAM.x + 420, 3, () => { d.mode = 'yell'; sendRunners(state); dirSay(state, DIR_KILL, () => { d.mode = 'run'; meatheadSays(state, pickLine(BURST), true, () => { b.step = 4; }); }); });
+    const kill = () => { d.mode = 'yell'; sendRunners(state); dirSay(state, DIR_KILL, () => { d.mode = 'run'; meatheadSays(state, pickLine(BURST), true, () => { b.step = 4; }); }); };
+    // (a revisit: new people finding out they're still shooting here; the new director, livid about his new walls)
+    if (back()) crowdSay(state, CROWD_GASP_BACK, CAM.x + 420, 3, () => dirSay(state, DIR_WALLS_BACK, kill));
+    else crowdSay(state, CROWD_GASP, CAM.x + 420, 3, kill);
   }
   if (d.mode === 'run') { d.x += 6; d.face = 1; if (d.x > CAM.x + CANVAS_WIDTH + 80) d.mode = 'gone'; }
   for (const r of b.runners) r.t++;
@@ -198,7 +208,7 @@ export const drawBurstDirector = (c: CanvasRenderingContext2D, state: GameState)
   // (his chair, behind him, till he's off: the director's chair, his name on its back)
   if (d.mode !== 'run') { c.save(); c.translate(X(DIR_X) + 20, GY); stamp(c, 'hww-burstchair', -4, -86, 50, 88, paintChair); c.restore(); }
   c.save(); c.translate(Math.round(d.x), GY); c.scale(d.face, 1);
-  drawDirector(c, e, f, DIR_SEED, false);
+  drawDirector(c, e, f, dirSeed(), false);
   c.restore();
   // (thinking it over: a hand to the chin's a "...")
   if (d.mode === 'think' && !d.said) { c.fillStyle = '#F5F5F4'; for (let k = 0; k < 3; k++) if ((f >> 4) % 4 > k) { c.beginPath(); c.arc(d.x - 8 + k * 8, GY - 104, 2, 0, Math.PI * 2); c.fill(); } }
@@ -214,7 +224,7 @@ export const drawProducer = (c: CanvasRenderingContext2D, state: GameState) => {
     const look = P.mode === 'look', jab = !look && !!P.said && f % 16 < 8, talk = !!P.said && f % 10 < 5;
     const pose = look ? 'look' : jab ? 'jab' : 'stand';
     c.save(); c.translate(x, y);
-    stamp(c, `hww-producer-${pose}-${talk || look ? 1 : 0}`, -44, -124, 96, 128, g => paintProducer(g, pose, talk || look));
+    stamp(c, `hww-producer-${pose}-${talk || look ? 1 : 0}${back() ? '-new' : ''}`, -44, -124, 96, 128, g => paintProducer(g, pose, talk || look, back()));
     c.restore();
     return;
   }
@@ -226,12 +236,12 @@ export const drawProducer = (c: CanvasRenderingContext2D, state: GameState) => {
   c.save(); c.translate(x, y);
   stamp(c, `hww-producer-pool-${step}`, -170, -8, 340, 24, g => paintPool(g, step / POOL_STEPS));
   stamp(c, 'hww-producer-spatter', -170, -8, 340, 24, paintSpatter);
-  stamp(c, 'hww-producer-flat2', -170, -44, 340, 52, paintProducerFlat);
+  stamp(c, `hww-producer-flat2${back() ? '-new' : ''}`, -170, -44, 340, 52, g => paintProducerFlat(g, back()));
   // (the fingers of the hand out the right end: twitching a while after, and now and then for good)
   const twitch = since < 600 || f % 420 < 24;
   for (let i = 0; i < 4; i++) {
     const curl = twitch && Math.sin(f * 0.7 + i * 1.9) > 0.2, fy = -10 + i * 2.5, len = curl ? 2 : 5 - (i === 3 ? 1 : 0);
-    box(c, 71, fy - 0.5, len + 1, 3, KINK); box(c, 71, fy, len, 2, i % 2 ? '#D49A74' : '#E2AC86'); if (!curl) box(c, 71 + len - 1, fy, 1, 1, '#F2C8A8');
+    box(c, 71, fy - 0.5, len + 1, 3, KINK); const nw = back(); box(c, 71, fy, len, 2, i % 2 ? (nw ? '#8A5A3A' : '#D49A74') : (nw ? '#B07A54' : '#E2AC86')); if (!curl) box(c, 71 + len - 1, fy, 1, 1, nw ? '#C8946C' : '#F2C8A8');
   }
   c.restore();
 };
@@ -292,11 +302,12 @@ const gut = (g: CanvasRenderingContext2D, x: number, y: number, n: number, dir: 
  *  the other sneaker flung; the gush of him out the edge (the fleece vest and the checked shirt in rags, the ribs, the
  *  guts in loops, the liver), the laminate on its lanyard. Out the right end: an arm, palm up (the fingers live), an
  *  eye out on its cord, teeth, the clipboard flung and bloodied, the glasses snapped, the headset. */
-const paintProducerFlat = (g: CanvasRenderingContext2D) => {
-  const K = ['#5A4A2A', '#8A7650', '#B8A47A', '#C8B48A', '#DCCCA8'];
+export const paintProducerFlat = (g: CanvasRenderingContext2D, fresh = false) => {
+  // (fresh: the replacement's black jeans)
+  const K = fresh ? ['#0E1018', '#1A1E28', '#262A36', '#2E3442', '#424A5C'] : ['#5A4A2A', '#8A7650', '#B8A47A', '#C8B48A', '#DCCCA8'];
   const SOAK = ['#3A0A06', '#5A1A10', '#7A3420'];
-  const VEST = ['#0E1630', '#1E2E5A', '#34488A'], SHIRT = ['#3A5A98', '#5A84C8', '#8AB4E8'];
-  const skin = ['#A86A4A', '#D49A74', '#E2AC86', '#F2C8A8'];
+  const VEST = fresh ? ['#4A0A10', '#8A1A22', '#B83A40'] : ['#0E1630', '#1E2E5A', '#34488A'], SHIRT = fresh ? ['#18181B', '#3F3F46', '#52525B'] : ['#3A5A98', '#5A84C8', '#8AB4E8'];
+  const skin = fresh ? ['#6A4028', '#8A5A3A', '#B07A54', '#C8946C'] : ['#A86A4A', '#D49A74', '#E2AC86', '#F2C8A8'];
   // The legs: the far one (on top, toes up), the near one (flat, sock foot); thinner as they go in under it (squashed)
   shape(g, [[-34, -16], [-86, -19], [-88, -10], [-34, -12]], K[2]);
   box(g, -86, -19, 50, 1, K[3]); box(g, -70, -16, 1, 4, K[1]); box(g, -58, -15, 8, 1, K[1]);
@@ -381,11 +392,13 @@ const paintChair = (g: CanvasRenderingContext2D) => {
 /** The producer, stood laying down the law (or looking up at the noise): the fleece vest over the checked shirt, the
  *  khakis, the sneakers, the lanyard, the bald dome and its gray horseshoe, the glasses, the headset; the clipboard in
  *  one hand, the other jabbing at the crew (or both up). Feet at 0, facing right. */
-const paintProducer = (g: CanvasRenderingContext2D, pose: 'stand' | 'jab' | 'look', talk: boolean) => {
+export const paintProducer = (g: CanvasRenderingContext2D, pose: 'stand' | 'jab' | 'look', talk: boolean, fresh = false) => {
   const B = bodyOf(14, 'stand', 0, false);
-  B.L = { ...B.L, skin: '#E2AC86', hair: '#9A9A9A', bald: true, long: false, heavy: true, face: 3 };
-  B.w = 27; B.hipW = 26;
-  const skin = B.L.skin, shirt = '#8AB4E8', vest = '#1E2E5A', khaki = '#C8B48A';
+  // (fresh: the replacement, on a revisit: younger, darker, a full head of slicked black hair, a black tee and a red
+  // fleece vest, black jeans; the same clipboard, the same headset, the same speech)
+  B.L = fresh ? { ...B.L, skin: '#B07A54', hair: '#1A120C', bald: false, long: false, heavy: false, face: 1 } : { ...B.L, skin: '#E2AC86', hair: '#9A9A9A', bald: true, long: false, heavy: true, face: 3 };
+  B.w = fresh ? 24 : 27; B.hipW = fresh ? 22 : 26;
+  const skin = B.L.skin, shirt = fresh ? '#3F3F46' : '#8AB4E8', vest = fresh ? '#8A1A22' : '#1E2E5A', khaki = fresh ? '#2A2E3A' : '#C8B48A';
   legs(g, B, { col: khaki, shoe: 'sneaker', shoeCol: '#E8E8E4', detail: (gg, _h, kn, ft) => px(gg, (kn[0] + ft[0]) / 2, (kn[1] + ft[1]) / 2 - 3, 1, 6, dk(khaki, 0.25)) });
   const far: [number, number] = pose === 'look' ? [-B.w / 2 - 8, B.shY - 28] : [-B.w / 2 - 6, B.shY + 18];
   const near: [number, number] = pose === 'look' ? [B.w / 2 + 6, B.shY - 30] : pose === 'jab' ? [B.w / 2 + 22, B.shY + 2] : [B.w / 2 + 3, B.shY + 22];
@@ -395,8 +408,10 @@ const paintProducer = (g: CanvasRenderingContext2D, pose: 'stand' | 'jab' | 'loo
   px(g, far[0] - 6, far[1] - 9, 10, 13, '#F4F0E8'); px(g, far[0] - 3, far[1] - 13, 4, 3, '#A8A8B0');
   for (let k = 0; k < 3; k++) px(g, far[0] - 5, far[1] - 6 + k * 3, 7, 1, '#8A8A94');
   torso(g, B, shirt);
-  for (let y = B.shY + 3; y < B.hipY; y += 4) px(g, -B.w / 2 + 2, y, B.w - 4, 1, '#5A84C8');
-  for (let x = -B.w / 2 + 3; x < B.w / 2 - 2; x += 4) px(g, x, B.shY + 2, 1, B.hipY - B.shY - 2, '#6A94D8');
+  if (!fresh) {
+    for (let y = B.shY + 3; y < B.hipY; y += 4) px(g, -B.w / 2 + 2, y, B.w - 4, 1, '#5A84C8');
+    for (let x = -B.w / 2 + 3; x < B.w / 2 - 2; x += 4) px(g, x, B.shY + 2, 1, B.hipY - B.shY - 2, '#6A94D8');
+  }
   // (the fleece vest: its zip, its pocket, the logo)
   part(g, () => { g.moveTo(-B.w / 2, B.shY + 2); g.lineTo(-B.hipW / 2 - 1, B.hipY + 3); g.lineTo(-1, B.hipY + 3); g.lineTo(-2, B.shY + 2); g.closePath(); }, vest, -B.hipW / 2 - 1, B.shY + 2, B.w / 2 + 2, B.hipY - B.shY + 2, 1);
   part(g, () => { g.moveTo(B.w / 2, B.shY + 2); g.lineTo(B.hipW / 2 + 3, B.hipY + 3); g.lineTo(2, B.hipY + 3); g.lineTo(2, B.shY + 2); g.closePath(); }, vest, 2, B.shY + 2, B.w / 2 + 3, B.hipY - B.shY + 2, 1);
@@ -408,8 +423,15 @@ const paintProducer = (g: CanvasRenderingContext2D, pose: 'stand' | 'jab' | 'loo
   if (pose === 'look') { B.hy -= 2; B.hx -= 1; }
   headShape(g, B, skin);
   faceOn(g, B, { skin, eyes: pose === 'look' ? 'wide' : 'angry', mouth: pose === 'look' ? 'o' : talk ? 'teeth' : 'flat', md: 'ok', look: pose === 'look' ? -1 : 0.6, brows: '#7A7A7A' });
-  part(g, () => { g.moveTo(B.hx - 9, B.hy - 2); g.quadraticCurveTo(B.hx - 10, B.hy + 6, B.hx - 5, B.hy + 7); g.lineTo(B.hx - 4, B.hy + 2); g.quadraticCurveTo(B.hx - 7, B.hy, B.hx - 6, B.hy - 3); g.closePath(); }, '#9A9A9A', B.hx - 10, B.hy - 3, 6, 10, 0.8);
-  px(g, B.hx - 4, B.hy - 9, 5, 1, '#F8E0CC');
+  if (!fresh) {
+    part(g, () => { g.moveTo(B.hx - 9, B.hy - 2); g.quadraticCurveTo(B.hx - 10, B.hy + 6, B.hx - 5, B.hy + 7); g.lineTo(B.hx - 4, B.hy + 2); g.quadraticCurveTo(B.hx - 7, B.hy, B.hx - 6, B.hy - 3); g.closePath(); }, '#9A9A9A', B.hx - 10, B.hy - 3, 6, 10, 0.8);
+    px(g, B.hx - 4, B.hy - 9, 5, 1, '#F8E0CC');
+  } else {
+    // (the slicked-back black hair over the top, a shine on it; the soul patch)
+    part(g, () => { g.moveTo(B.hx - 10, B.hy + 1); g.quadraticCurveTo(B.hx - 9, B.hy - 12, B.hx + 3, B.hy - 11); g.quadraticCurveTo(B.hx + 9, B.hy - 10, B.hx + 9, B.hy - 5); g.lineTo(B.hx - 4, B.hy - 6); g.lineTo(B.hx - 6, B.hy + 2); g.closePath(); }, '#1A120C', B.hx - 10, B.hy - 12, 20, 14, 0.8);
+    px(g, B.hx - 3, B.hy - 10, 6, 1, '#5A4A3A');
+    px(g, B.hx + 3, B.hy + 7, 3, 2, '#1A120C');
+  }
   for (const s of [-1, 1]) { g.strokeStyle = KINK; g.lineWidth = 1.6; g.strokeRect(B.hx + 2.5 + s * 3.6 - 2.6, B.hy - 3, 5.2, 3.6); }
   g.strokeStyle = KINK; g.lineWidth = 2; g.beginPath(); g.arc(B.hx, B.hy - 1, 10, Math.PI * 1.08, Math.PI * 1.92); g.stroke();
   part(g, () => g.ellipse(B.hx - 8, B.hy + 1, 3, 3.6, 0, 0, Math.PI * 2), '#27272A', B.hx - 11, B.hy - 3, 6, 8, 1);

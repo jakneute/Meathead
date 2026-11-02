@@ -152,6 +152,11 @@ export const PA_STEVE_LOT = [
   'STUNTMAN STEVE\'S STUPENDOUS STUNTERY! HE WAS IN A REAL MOVIE! YOU CAN SEE HIS HAND!',
   'STUNTMAN STEVE! NINETEEN EIGHTY-SIX! THE ONE WHERE THE CAR GOES BY! THAT WAS NEAR HIM!',
 ];
+/** In place of PA_STEVE_LOT on a revisit (Steve's dead): canceled, honored. */
+export const PA_STEVE_LOT_DEAD = [
+  "STUNTMAN STEVE'S STUPENDOUS STUNTERY IS CANCELED, BECAUSE HE'S DEAD. HAPPYWOOD HONORS HIS LEGACY WITH THIS ANNOUNCEMENT.",
+  'STUNTMAN STEVE! NINETEEN EIGHTY-SIX TO NOW! A MOMENT OF SILENCE. THAT WAS LONGER THAN HIS FILM CAREER.',
+];
 export const PA_DISASTER: ByPants = {
   clean: [
     'DISASTER: THE RIDE! FEEL THE FURY OF NATURE! MILDLY!',
@@ -219,7 +224,7 @@ export const VOICE_LINES: Record<string, string[]> = {
     ...Object.entries(HURT).flatMap(([k, h]) => (k === 'm2:hw_lasso' ? h.hurt.slice(LASSOED.length) : h.hurt)), ...LASSOED,
   ],
   death: Object.values(HURT).flatMap(h => h.death),
-  'm2.hollywood.pa': [...Object.values(PA_LOT).flat(), ...PA_LEAK, ...PA_RAIN, ...PA_FLOOD, ...PA_STEVE_LOT, ...Object.values(PA_DISASTER).flat()],
+  'm2.hollywood.pa': [...Object.values(PA_LOT).flat(), ...PA_LEAK, ...PA_RAIN, ...PA_FLOOD, ...PA_STEVE_LOT, ...PA_STEVE_LOT_DEAD, ...Object.values(PA_DISASTER).flat()],
   [LOT_VOICES.guide]: Object.values(GUIDE_BARK).flat(),
   [LOT_VOICES.guidef]: Object.values(GUIDE_BARK).flat(),
   [LOT_VOICES.security]: Object.values(SECURITY_BARK).flat(),

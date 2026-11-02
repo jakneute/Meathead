@@ -66,6 +66,7 @@ import { drawPlunger } from './kindArt';
 import { drawCoasterBackdrop, drawCoasterBack, drawTrain, drawFlyingTrain, drawTrackPass, carsOn, carsParked, coasterLamps, SINK, rollScale, type CarAt } from './art';
 import { cview } from './paint';
 import * as L from './lines';
+import { bossGone } from '../../emptyArena';
 import { updateThrones, drawThroneFront, inCase, throneState, throneHere, plungeHere } from './thrones';
 import { updatePlunge, startPlunge, plungeOf, drawPlungeWorld, drawPlungeHud } from './plunge';
 import { FLOOD_SOURCE, drawFloodCam } from './flood';
@@ -405,9 +406,11 @@ const runStop = (state: GameState, co: Coaster, i: number, ctx: FrameContext) =>
 
 const queueBits = (state: GameState, co: Coaster) => {
   const p = state.player, cx = p.pos.x + p.width / 2, rx = cx - x0, feet = p.pos.y + p.height;
-  if (rx > 300 && once(state, 'pa-steve-1')) paSay(state, PA_VOICE, L.PA_STEVE_QUEUE[0]);
-  if (rx > 1350 && once(state, 'pa-steve-2')) paSay(state, PA_VOICE, L.PA_STEVE_QUEUE[1]);
-  if (rx > STEVE_STANDEE - 160 && rx < STEVE_STANDEE + 40 && once(state, 'standee')) meatheadSays(state, L.STEVE_STANDEE[0], true);
+  // (a revisit, Steve dead: the plugs are for his cancellation; him at the standee, knowing)
+  const dead = bossGone('hollywood'), plug = dead ? L.PA_STEVE_QUEUE_DEAD : L.PA_STEVE_QUEUE;
+  if (rx > 300 && once(state, 'pa-steve-1')) paSay(state, PA_VOICE, plug[0]);
+  if (rx > 1350 && once(state, 'pa-steve-2')) paSay(state, PA_VOICE, plug[1]);
+  if (rx > STEVE_STANDEE - 160 && rx < STEVE_STANDEE + 40 && once(state, 'standee')) meatheadSays(state, dead ? byPants(state, L.STEVE_STANDEE_BACK)[0] : L.STEVE_STANDEE[0], true);
   co.guests.forEach((g, i) => {
     if (g.shove > 0) g.shove--;
     if (g.mad > 0) g.mad--;

@@ -104,6 +104,32 @@ export const PROD_RULES = [
 /** Then (the user's line, word for word). */
 export const PROD_ASSASSIN = "IF YOU TELL YOUR FRIENDS OR FAMILY WHAT YOU'RE WORKING ON, I'LL SEND AN ASSASSIN TO YOUR HOME.";
 
+/** A revisit (Steve's dead: emptyArena.ts bossGone('hollywood')): the same burst-in, a replacement producer under the
+ *  train, a new director, the walls rebuilt and down again, the public finding out they're still shooting here (the
+ *  owner's: "you kill another producer and the new director gets angry when the new walls fall down and new people find
+ *  out they are still filming there"). PROD_ASSASSIN stays the owner's line, word for word. */
+export const PROD_RULES_BACK = [
+  "I'M THE NEW PRODUCER. THE LAST ONE GOT HIT BY A TOILET. NO PHONES.",
+  'NEW PRODUCER. SAME RULES. AND NOBODY LOOKS AT THE ROOF.',
+];
+export const DIR_WHO_BACK: ByPants = {
+  clean: ["CUT! I'M THE NEW DIRECTOR! WE JUST REBUILT THAT ROOF!", 'CUT! YOU AGAIN?! THEY WARNED ME ABOUT YOU!'],
+  shitty: ["CUT! I'M THE NEW DIRECTOR! THEY WARNED ME ABOUT THE SMELL!", 'CUT! YOU AGAIN?! ON MY BRAND NEW SET?!'],
+  nude: ["CUT! I'M THE NEW DIRECTOR! NOBODY SAID HE'D BE NAKED!", "CUT! YOU AGAIN?! THEY SAID YOU'D AT LEAST BE DRESSED!"],
+};
+/** The new walls down: the new director, livid. */
+export const DIR_WALLS_BACK: ByPants = {
+  clean: ['THE NEW WALLS! WE JUST PUT UP THE NEW WALLS!'],
+  shitty: ['THE NEW WALLS! HE SHIT AND THE NEW WALLS FELL DOWN!'],
+  nude: ['THE NEW WALLS! NOW THE WHOLE PARK SEES HIS DICK AND MY MOVIE!'],
+};
+/** New people, staring in: they're still shooting here. */
+export const CROWD_GASP_BACK: ByPants = {
+  clean: ["THEY'RE STILL FILMING IN THERE?!", "AGAIN?! THEY NEVER MOVED THE SHOOT?!"],
+  shitty: ["THEY'RE STILL FILMING IN THERE! AND HE'S STILL SHITTING!", 'AGAIN?! SAME MOVIE, SAME SMELL!'],
+  nude: ["THEY'RE STILL FILMING IN THERE! AND THE NAKED GUY'S BACK!", 'AGAIN?! IS HE IN THE SEQUEL?!'],
+};
+
 /** The walls down, the whole public looking in (the user's line, word for word). */
 export const DIR_KILL = 'KILL THEM ALL! THEY CANNOT KNOW!';
 
@@ -136,6 +162,8 @@ export const AD_SHRUG: ByPants = {
 export const AD_LEAK = ['CODE RED! THE SCRIPT IS LOOSE! THE SCRIPT IS LOOSE!', 'NOBODY READ THOSE! YOU ALL SIGNED AN NDA BY BUYING A CHURRO!'];
 /** The PA plug (Steve, foreshadowed). */
 export const AD_STEVE = ['FOR THE LAST TIME: STUNTMAN STEVE IS NOT ON THIS PRODUCTION. STOP CALLING THE OFFICE.'];
+/** ...on a revisit (Steve's dead). */
+export const AD_STEVE_DEAD = ['FOR THE LAST TIME: STUNTMAN STEVE IS DEAD. STOP CALLING THE OFFICE. SEND FLOWERS.'];
 /** The rest of the principals called (after CAPTAIN AMERICANO's gone in). */
 export const AD_CAST: ByPants = {
   clean: ['ALL PRINCIPALS TO THE MAIN STAGE. PILE ON HIM. PROTECT THE SCRIPT.', 'PRINCIPAL CAST TO SET. SIT ON HIM. SAG SAYS IT COUNTS AS A STUNT.'],
@@ -157,6 +185,17 @@ export const EXEC_RANT = [
   'THE CAST WE CAN REPLACE! CGI! AI! WE OWN THEIR FACES! THE SCRIPT WAS THE ONLY COPY!',
   'ACTORS ARE A DIME A DOZEN! THAT SCRIPT WAS ON PAPER! FOR SECURITY!',
 ];
+/** A revisit (Steve's dead: emptyArena.ts bossGone('hollywood')): the ensemble's back and killed again; the exec,
+ *  panicking, lets out they were the stars' own stunt doubles, and the new script's gone the same way (the owner's:
+ *  "the ensemble, when killed a second time, are revealed to be their own stunt doubles by the panicked man. and 'oh no,
+ *  the new script got leaked'"). In place of EXEC_PHONE, EXEC_SEES, EXEC_RANT, SHRUG. */
+export const EXEC_PHONE_BACK = ["YEAH, THE WHOLE CAST AGAIN. RELAX. THOSE WERE THEIR STUNT DOUBLES.", 'THE DOUBLES. ALL OF THEM. THE REAL ONES ARE IN THEIR TRAILERS, CRYING.'];
+export const EXEC_SEES_BACK = ['OH NO. THE NEW SCRIPT GOT LEAKED!', 'OH NO! NOT AGAIN! THE NEW SCRIPT GOT LEAKED!'];
+export const EXEC_RANT_BACK = [
+  'THOSE WERE STUNT DOUBLES! WHO CARES! OH NO, THE NEW SCRIPT GOT LEAKED! THE ONLY COPY! AGAIN!',
+  'THE DOUBLES HAD DOUBLES! THE SCRIPT DID NOT! WHO PUTS IT BACK IN THE SAME CASE?!',
+];
+export const SHRUG_BACK = ['THEY WERE STUNT DOUBLES? THEY DIED LIKE STARS.', "LEAKED IT AGAIN. I STILL DON'T READ."];
 
 // ---------------------------------------------------------------------------------------------------------------
 // The film crew (kinds.ts), their voices and barks
@@ -287,20 +326,20 @@ const castLines = (v: string) => [...(v === ACTOR_VOICE_OF[0] ? [CAP_RESEMBLE, .
 export const VOICE_LINES: Record<string, string[]> = {
   meathead: [
     ...BURST_WHAT, ...BURST_NEVER, ...BURST, ...BACK_AGAIN, ...Object.values(GAG_LINES).flat(), ...CASE, ...CAP_REPLY, ...CAST_ARRIVE, ...KILL_QUIPS,
-    ...HALF, ...LAST, ...pools(HINT_MOVE), ...pools(HINT_WALL), CLEAN_UP, ...SHRUG,
+    ...HALF, ...LAST, ...pools(HINT_MOVE), ...pools(HINT_WALL), CLEAN_UP, ...SHRUG, ...SHRUG_BACK,
     ...Object.values(HURT).flatMap(h => h.hurt),
   ],
   death: Object.values(HURT).flatMap(h => h.death),
-  [GUEST_VOICES.m]: [...pools(CROWD_GASP), ...pools(CROWD_PAGES)],
-  [GUEST_VOICES.f]: [...pools(CROWD_GASP), ...pools(CROWD_PAGES)],
-  [AD_VOICE]: [...AD_STEVE, ...pools(AD_CAST), ...pools(AD_SHRUG), ...AD_LEAK],
-  [EXEC_VOICE]: [...EXEC_PHONE, ...EXEC_SEES, ...EXEC_RANT],
-  [PRODUCER_VOICE]: [...PROD_RULES, PROD_ASSASSIN],
+  [GUEST_VOICES.m]: [...pools(CROWD_GASP), ...pools(CROWD_GASP_BACK), ...pools(CROWD_PAGES)],
+  [GUEST_VOICES.f]: [...pools(CROWD_GASP), ...pools(CROWD_GASP_BACK), ...pools(CROWD_PAGES)],
+  [AD_VOICE]: [...AD_STEVE, ...AD_STEVE_DEAD, ...pools(AD_CAST), ...pools(AD_SHRUG), ...AD_LEAK],
+  [EXEC_VOICE]: [...EXEC_PHONE, ...EXEC_SEES, ...EXEC_RANT, ...EXEC_PHONE_BACK, ...EXEC_SEES_BACK, ...EXEC_RANT_BACK],
+  [PRODUCER_VOICE]: [...PROD_RULES, ...PROD_RULES_BACK, PROD_ASSASSIN],
   [CREW_VOICES.grip]: pools(GRIP_BARK), [CREW_VOICES.gripf]: pools(GRIP_BARK),
   [CREW_VOICES.boom]: pools(BOOM_BARK), [CREW_VOICES.boomf]: pools(BOOM_BARK),
   [CREW_VOICES.runner]: pools(RUNNER_BARK), [CREW_VOICES.runnerf]: pools(RUNNER_BARK),
   // (the burst-in's director is a man: his panic on the men's director voice)
-  [CREW_VOICES.director]: [...pools(DIRECTOR_BARK), ...pools(ACTION), ...pools(DIR_WHO), ...pools(DIR_TITLE), ...pools(DIR_SECRET), ...pools(DIR_PONDER), DIR_KILL],
+  [CREW_VOICES.director]: [...pools(DIRECTOR_BARK), ...pools(ACTION), ...pools(DIR_WHO), ...pools(DIR_TITLE), ...pools(DIR_SECRET), ...pools(DIR_PONDER), ...pools(DIR_WHO_BACK), ...pools(DIR_WALLS_BACK), DIR_KILL],
   [CREW_VOICES.directorf]: [...pools(DIRECTOR_BARK), ...pools(ACTION)],
   [CREW_VOICES.craft]: pools(CRAFT_BARK), [CREW_VOICES.craftf]: pools(CRAFT_BARK),
   [CREW_VOICES.mocap]: pools(MOCAP_BARK), [CREW_VOICES.mocapf]: pools(MOCAP_BARK),

@@ -13,7 +13,6 @@ import { mist } from '../../adventure/farArt';
 import { FAR, tile, farCol, rampF, paintMountains, paintFoothills, drawHill, paintCity, paintLot, paintPalms } from '../blvd/far';
 import { HWX } from '../geometry';
 import { realDisastersOn } from '../section';
-import { isLandCleared } from '../../store';
 import { steveBoard, boardFrame } from '../posters';
 import { GY, CAM_ROW } from './arena';
 import { type Ctx, INK, box, mix, hash, poly, timeOfDay, hourMix, skyAt, STEVE, bunting, wisp, EYE_UP } from './paint';
@@ -146,7 +145,7 @@ export const drawStuntFar = (c: Ctx, state: GameState) => {
     const T2 = farCol(tod, k);
     bandedGradient(c, 0, Math.round(y), W, H - Math.round(y), [T2(base), T2(mix(base, '#3A3236', 0.18)), T2(mix(base, '#3A3236', 0.32))], 4);
   };
-  drawHwSky(c, state, hz, realDisastersOn(state) && !isLandCleared('hollywood') ? 'real' : 'calm');
+  drawHwSky(c, state, hz, realDisastersOn(state) ? 'real' : 'calm');
   tile(c, `hb-mtn-${tod.key}`, cam * K.mtn + 300, groundAt(K.mtn) - FAR.MH + 10 + drop(K.mtn), FAR.MH, FAR.TW, g => paintMountains(g, tod));
   drawHwHorizon(c, state, groundAt(0.0035) + 4 + drop(0.0035));
   // (the hill where the rest of the land has it, at this end of it)
@@ -159,8 +158,8 @@ export const drawStuntFar = (c: Ctx, state: GameState) => {
   drawHwLandmarks(c, state, groundAt(0.03) + drop(0.03));
   tile(c, `hb-lot-${tod.key}`, cam * K.lot + 1000, groundAt(K.lot) - (FAR.SH - FAR.SG) + drop(K.lot), FAR.SH, FAR.LW, g => paintLot(g, tod));
   under(groundAt(K.lot) + FAR.SG + drop(K.lot), 0.2, '#6A6466');
-  // (the backlot behind, where the havoc was: still smoking thin, off to the left, till the land's cleared)
-  if (realDisastersOn(state) && !isLandCleared('hollywood')) for (let k = 0; k < 4; k++) {
+  // (the backlot behind, where the havoc was: still smoking thin, off to the left (a revisit's too: it all went again))
+  if (realDisastersOn(state)) for (let k = 0; k < 4; k++) {
     const sx = ((k * 173 + 40 - cam * K.lot) % 1100 + 1100) % 1100 - 150;
     wisp(c, sx, groundAt(K.lot) + drop(K.lot) - 20, f, k, 1.4);
   }

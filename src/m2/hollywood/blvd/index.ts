@@ -29,6 +29,8 @@ import { updateShots, drawShots } from './shots';
 import { makeTram, updateTram, drawTram, drawGarageBacks, type Tram } from './tram';
 import { drawBlvdBackdrop, drawBlvdBack, blvdLamps } from './art';
 import { flash, BACK_Y } from './paint';
+import { bossGone } from '../../emptyArena';
+import { PA_STEVE_DEAD, PA_WELCOME_BACK, STEVE_GAG_BACK } from './lines';
 import { ARRIVE, GAG_LINES, FALL_SCREAM, GOT_IT_BACK, PA_VOICE, PA_WELCOME, PA_STEVE, PA_SECURITY, PA_COASTER, TRAM_VOICE, TRAM_CALL } from './lines';
 
 const { x0, x1 } = SECTIONS.blvd;
@@ -94,18 +96,20 @@ export const blvd: HollywoodSection = {
     const once = (k: string, go: () => void) => { if (!o.said[k]) { o.said[k] = true; go(); } };
     // (his say, not over the PA's: it waits till that's done)
     const says = (k: string, lines: string[]) => { if (!o.pa && !o.paBusy && !bv.driver) once(k, () => meatheadSays(state, pick(lines), true)); };
+    // (a revisit, Steve dead: the PA's plugs his cancellation, the welcome knows him, and so does he)
+    const dead = bossGone('hollywood'), plug = dead ? PA_STEVE_DEAD : PA_STEVE;
     if (!p.inCutscene && p.health > 0) {
-      if (state.checkpoint === 0 && rx < 700 && state.frame > 70) once('pa-welcome', () => paSay(state, pick(byPants(state, PA_WELCOME)), () => says('arrive', ARRIVE)));
+      if (state.checkpoint === 0 && rx < 700 && state.frame > 70) once('pa-welcome', () => paSay(state, pick(byPants(state, dead ? PA_WELCOME_BACK : PA_WELCOME)), () => says('arrive', ARRIVE)));
       if (rx > 420 && rx < 900) says('stars', GAG_LINES.stars);
       if (rx > 960 && rx < 1300) says('plaque', GAG_LINES.plaque);
       if (rx > 2780 && rx < 3200) says('palace', GAG_LINES.palace);
-      if (rx > 3300 && rx < 3500) says('steve', GAG_LINES.steve);
-      if (rx > 3560) once('pa-steve-1', () => paSay(state, PA_STEVE[0]));
+      if (rx > 3300 && rx < 3500) says('steve', dead ? byPants(state, STEVE_GAG_BACK) : GAG_LINES.steve);
+      if (rx > 3560) once('pa-steve-1', () => paSay(state, plug[0]));
       if (rx > SINK.a - 260 && rx < SINK.a) says('sinkhole', GAG_LINES.sinkhole);
-      if (rx > 7620) once('pa-steve-2', () => paSay(state, PA_STEVE[1]));
+      if (rx > 7620) once('pa-steve-2', () => paSay(state, plug[1]));
       if (rx > 7700 && rx < DECK.b && p.pos.y + p.height < GY - 100) says('scaffold', GAG_LINES.scaffold);
       if (ev.came && rx > TRAM.a - 400 && rx < TRAM.b + 200) says('tram', GAG_LINES.tram);
-      if (rx > 10450) once('pa-steve-3', () => paSay(state, PA_STEVE[2]));
+      if (rx > 10450) once('pa-steve-3', () => paSay(state, plug[2]));
       if (rx > 10700) says('marquee', GAG_LINES.marquee);
       if (rx > 10900) once('pa-coaster', () => paSay(state, pick(byPants(state, PA_COASTER))));
       // (once he's done in a few of them: the PA's onto him)

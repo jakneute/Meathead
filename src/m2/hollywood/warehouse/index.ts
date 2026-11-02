@@ -49,7 +49,10 @@ import { takeLaunch, updateBurst, drawBurstHud, drawBurstDirector, drawBurstSaid
 import { updateFight, fightCam, castDone, drawFightBack, drawFightFront, drawFightHud } from './fight';
 import { startEnding, updateEnding, endingOn, leaked, endingZoom, drawEndingBack, drawEndingFront, drawEndingHud } from './ending';
 import { drawWarehouseBackdrop, drawWarehouseBack, warehouseLamps } from './art';
-import { GAG_LINES, AD_STEVE, CASE } from './lines';
+import { GAG_LINES, AD_STEVE, AD_STEVE_DEAD, CASE } from './lines';
+import { bossGone } from '../../emptyArena';
+import { STEVE_GAG_BACK } from '../blvd/lines';
+import { byPants } from '../blvd/kinds';
 import { adSay } from './talk';
 
 const memo = (state: GameState, k: string) => !!state.stageMemo[k];
@@ -116,8 +119,8 @@ export const warehouse: HollywoodSection = {
     if (ending) return ending;
     if (p.health <= 0) return controls;
     const busy = () => !!o.ad || o.adBusy;
-    if (!p.inCutscene) for (const [a, b, k] of GAGS) if (rx > a && rx < b && !o.said[k] && !busy()) { o.said[k] = true; meatheadSays(state, pickLine(GAG_LINES[k]), true); }
-    if (rx > 4700 && !o.said.adSteve && !busy()) { o.said.adSteve = true; adSay(state, AD_STEVE, undefined, false); }
+    if (!p.inCutscene) for (const [a, b, k] of GAGS) if (rx > a && rx < b && !o.said[k] && !busy()) { o.said[k] = true; meatheadSays(state, pickLine(k === 'steve' && bossGone('hollywood') ? byPants(state, STEVE_GAG_BACK) : GAG_LINES[k]), true); }
+    if (rx > 4700 && !o.said.adSteve && !busy()) { o.said.adSteve = true; adSay(state, bossGone('hollywood') ? AD_STEVE_DEAD : AD_STEVE, undefined, false); }
     // The way out: through the bulldozer's hole once it's open (the lot). No way back to the coaster: the launch put
     // him here (one-way set piece, the user's rule; the left end's a wall)
     if (!endingOn(state)) {

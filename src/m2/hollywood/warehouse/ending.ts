@@ -39,6 +39,10 @@ import { CASE_D, REST } from './paint';
 import { drawBody, CAST } from './cast';
 import { CLEAN_UP, CROWD_PAGES, SHRUG, AD_LEAK, EXEC_PHONE, EXEC_SEES, EXEC_RANT } from './lines';
 import { crowdSay, adSay, execSay } from './talk';
+import { EXEC_PHONE_BACK, EXEC_SEES_BACK, EXEC_RANT_BACK, SHRUG_BACK } from './lines';
+import { bossGone } from '../../emptyArena';
+/** (a revisit, Steve's dead: the cast were stunt doubles, and it's the new script; the owner's) */
+const back = () => bossGone('hollywood');
 
 type Ctx = CanvasRenderingContext2D;
 
@@ -176,7 +180,7 @@ const finish = (state: GameState, skipped: boolean) => {
   state.cameraOverride = null;
   state.camera.x = LOT_DOZER_X - 34 - CANVAS_WIDTH / 2; state.camera.y = GY - 550; state.cameraRestY = GY - 550;
   // (down off it: he cares about neither; it stands in for the lot's own arrival line)
-  if (!skipped) { outOf(state).said['lot-arrive'] = true; meatheadSays(state, pickLine(SHRUG), true); }
+  if (!skipped) { outOf(state).said['lot-arrive'] = true; meatheadSays(state, pickLine(back() ? SHRUG_BACK : SHRUG), true); }
 };
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -254,7 +258,7 @@ export const updateEnding =(ctx: FrameContext): Controls | null => {
     }
     case 'drive': {
       // The exec on his phone at the back (after his line, in turn): never a look at any of it
-      if (E.t === 1 && !E.wallHit) { E.ex.phoned = false; execSay(state, EXEC_PHONE, () => { E.ex.phoned = true; }); }
+      if (E.t === 1 && !E.wallHit) { E.ex.phoned = false; execSay(state, back() ? EXEC_PHONE_BACK : EXEC_PHONE, () => { E.ex.phoned = true; }); }
       if (E.ex.mode !== 'off') E.ex.t++;
       const front = () => E.heapX + HALF;
       // (the script, flung out of the case as it went over: across the stage and through the far wall, a hole of its own)
@@ -300,7 +304,7 @@ export const updateEnding =(ctx: FrameContext): Controls | null => {
           for (let k = 0; k < 80; k++) state.particles.push({ pos: { x: X(CASE_X) + (Math.random() - 0.5) * 40, y: BACK_Y - 110 }, vel: { x: (Math.random() - 0.45) * 8, y: -2 - Math.random() * 9 }, life: 160 + Math.random() * 60, color: k % 4 ? '#F8FAFC' : '#E7E5E4', size: 4 + Math.random() * 2, grav: 0.05 });
           // (the exec sees; the AD on the bullhorn; the public grabbing pages. In turn)
           E.ex.mode = 'lose'; E.ex.t = 0;
-          execSay(state, EXEC_SEES);
+          execSay(state, back() ? EXEC_SEES_BACK : EXEC_SEES);
           adSay(state, AD_LEAK);
           crowdSay(state, CROWD_PAGES, X(CASE_X) - 160, 7);
         }
@@ -357,7 +361,7 @@ export const updateEnding =(ctx: FrameContext): Controls | null => {
       // The exec out of the hole after it (under the bodies flying past him; not a look), the rant, off after the pages
       const ex = E.ex;
       if (E.t === 50) Object.assign(ex, { mode: 'out', x: LOT_WALL_BREAK.hole.x0 + 30, y: GY, face: 1, t: 0 });
-      if (ex.mode === 'out') { ex.x += 5; if (ex.x >= EX_RANT_X) { ex.x = EX_RANT_X; ex.mode = 'rant'; ex.t = 0; execSay(state, EXEC_RANT, () => { ex.done = true; }); } }
+      if (ex.mode === 'out') { ex.x += 5; if (ex.x >= EX_RANT_X) { ex.x = EX_RANT_X; ex.mode = 'rant'; ex.t = 0; execSay(state, back() ? EXEC_RANT_BACK : EXEC_RANT, () => { ex.done = true; }); } }
       else if (ex.mode === 'rant') { ex.t++; if (ex.done) { ex.mode = 'run'; ex.t = 0; } }
       else if (ex.mode === 'run') { ex.t++; ex.x += 6; }
       const gone = ex.mode === 'off' || ex.mode === 'stand' || ex.mode === 'lose' || (ex.mode === 'run' && ex.x > state.camera.x + CANVAS_WIDTH + 60);

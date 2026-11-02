@@ -9,6 +9,14 @@ export type { ByPants };
 export { PA_VOICE };
 export const STEVE_VOICE = 'm2.hollywood.steve';
 
+/** A revisit (Steve's dead: emptyArena.ts bossGone('hollywood')): flung onto his empty stage, SHOW CANCELED; his line,
+ *  then the hub. */
+export const MH_STAGE_EMPTY: ByPants = {
+  clean: ["EMPTY STAGE. NOBODY CLAPPING FOR STEVE NOW. NOBODY FOR ME EITHER. I'M OUT.", "NO SHOW TODAY. STEVE'S STILL DEAD. BEST STUNT HE EVER PULLED."],
+  shitty: ['FELL OUT OF A TORNADO AND LANDED IN MY OWN SHIT. AGAIN. NOBODY SAW. GOOD.', "EMPTY STAGE. STEVE WOULD BE JEALOUS OF THAT LANDING. EVEN THE SMELL."],
+  nude: ["A NAKED MAN FELL OUT OF A TORNADO AND NOBODY'S HERE TO SEE IT. I'M OUT.", "EMPTY STAGE. STEVE'S DEAD AND I'M STILL THE BETTER ACT. NAKED."],
+};
+
 // ---------------------------------------------------------------------------------------------------------------
 // The intro: he comes down out of the tornado onto the stage, the crowd eats it up, Steve's furious. Steve is ENVY
 // (the user: "stuntman is more envious because he got upstaged"): what he says is about the spotlight, the crowd,
@@ -215,7 +223,7 @@ export const HURT: Record<string, { hurt: string[]; death: string[] }> = {
 const pools = (r: ByPants) => [...r.clean, ...r.shitty, ...r.nude];
 export const VOICE_LINES: Record<string, string[]> = {
   meathead: [
-    ...MEATHEAD_LANDED, ...MEATHEAD_WON, ...MEATHEAD_WON_WEAK, ...MEATHEAD_HINT, ...GRAB_STEVE, ...GRAB_CAR,
+    ...Object.values(MH_STAGE_EMPTY).flat(), ...MEATHEAD_LANDED, ...MEATHEAD_WON, ...MEATHEAD_WON_WEAK, ...MEATHEAD_HINT, ...GRAB_STEVE, ...GRAB_CAR,
     ...Object.values(HURT).flatMap(h => h.hurt),
   ],
   death: Object.values(HURT).flatMap(h => h.death),

@@ -44,6 +44,7 @@ import { updateShow, showNow, narrate, fresh } from './show';
 import { startReal, updateReal, realOn, wreckAll, drawRealHud, WIDE } from './real';
 import { drawDisasterBackdrop, drawDisasterBack, drawDisasterFront, disasterLights } from './art';
 import * as L from './lines';
+import { bossGone } from '../../emptyArena';
 import { fromDepth, SCREEN_D } from './paint';
 
 const pick = pickLine;
@@ -81,7 +82,8 @@ const queueBits = (state: GameState, o: Dz) => {
 /** The pre-show's tape: Chip, line after line, round again (each line not again inside 45 s). */
 const hostTape = (state: GameState, o: Dz) => {
   if (o.said.hostBusy || state.frame - o.hostAt < 140) return;
-  const line = L.HOST_TAPE[o.hostI % L.HOST_TAPE.length];
+  // (a revisit, Steve dead: the tape's Steve line redone)
+  const tape = L.HOST_TAPE[o.hostI % L.HOST_TAPE.length], line = bossGone('hollywood') && tape.includes('STEVE') ? L.HOST_STEVE_DEAD : tape;
   o.hostI++;
   if (!fresh(line)) { o.hostAt = state.frame; return; }
   o.said.hostBusy = true;
@@ -174,7 +176,7 @@ export const disaster: HollywoodSection = {
     if (rx < LOBBY.b) {
       if (state.frame > 50 && !o.said.pa) { o.said.pa = true; paSay(state, real ? L.PA_REAL[0] : pick(byPants(state, L.PA_RIDE)), () => { if (!real && once(state, 'arrive')) meatheadSays(state, pick(L.ARRIVE), true); }); }
       if (rx > 650 && !o.said.paLeak && !busy()) { o.said.paLeak = true; paSay(state, pickLine(L.PA_LEAK_RIDE)); }
-      if (rx > 1300 && !o.said.paSteve && !busy()) { o.said.paSteve = true; paSay(state, L.PA_STEVE[0]); }
+      if (rx > 1300 && !o.said.paSteve && !busy()) { o.said.paSteve = true; paSay(state, (bossGone('hollywood') ? L.PA_STEVE_DEAD : L.PA_STEVE)[0]); }
       queueBits(state, o);
     }
     // The pre-show: Chip's tape (static once it's real); him on Chip
@@ -184,7 +186,7 @@ export const disaster: HollywoodSection = {
     }
     // The theater: the narrator's welcome, him; the cow's wire; the booth
     if (inTheater) {
-      if (!real && !o.said.theater) { o.said.theater = true; if (once(state, 'theater')) narrate(state, L.NARR_WELCOME[0], undefined, () => meatheadSays(state, pick(L.THEATER), true)); }
+      if (!real && !o.said.theater) { o.said.theater = true; if (once(state, 'theater')) narrate(state, bossGone('hollywood') ? L.NARR_WELCOME_BACK : L.NARR_WELCOME[0], undefined, () => meatheadSays(state, pick(L.THEATER), true)); }
       if (real && o.said.out && !o.said.wreck && rx < THEATER.b - 200 && once(state, 'wreck')) { o.said.wreck = true; meatheadSays(state, pick(L.WRECK_AGAIN), true); }
       if (real && Math.abs(rx - 3010) < 120 && !o.said.singed && !busy()) { o.said.singed = true; speak(L.GUEST_VOICES.m, pick(L.SINGED), s => { o.guestSaid = s ? { x: X(3010), y: GY - 90, s } : null; }, false); }
       if (!real && rx > CAT_L.b - 200 && rx < CAT_L.b && feet <= Y(CAT_L.h) + 6 && once(state, 'cow')) meatheadSays(state, pick(L.COW), true);

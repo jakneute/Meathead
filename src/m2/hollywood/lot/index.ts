@@ -27,6 +27,9 @@ import { SECTIONS, GY, LOT_WALL_BREAK, LOT_DUMPSTER } from '../geometry';
 import { X, Y, R, GROUND, SOLIDS, LEDGES, WIRES, ENEMIES, PICKUPS, CHECKPOINTS, TANK, FALL_TOWER, PIT1, PIT2, RAIN, TOWER, GIFT, RIDE_DOORS, SPEAKERS, READERS, DUMP, LOT_BOARDED_MEMO } from './layout';
 import './kinds';
 import { byPants } from '../blvd/kinds';
+import { bossGone } from '../../emptyArena';
+import { STEVE_GAG_BACK } from '../blvd/lines';
+import { PA_STEVE_LOT_DEAD } from './lines';
 import { outOf } from '../blvd/state';
 import { updateShots, drawShots } from '../blvd/shots';
 import { paSay, runThieves } from '../blvd';
@@ -92,10 +95,10 @@ export const lot: HollywoodSection = {
       if (rx > 4750 && rx < 5100) says('lot-western', GAG_LINES.western);
       if (rx > TOWER.x - 300 && rx < TOWER.x) says('lot-tower', GAG_LINES.tower);
       if (rx > PIT1.a - 200 && rx < PIT1.a) says('lot-pit', GAG_LINES.pit);
-      if (rx > 4500 && rx < 4800) once('lot-pa-steve-1', () => paSay(state, PA_STEVE_LOT[0]));
+      if (rx > 4500 && rx < 4800) once('lot-pa-steve-1', () => paSay(state, (bossGone('hollywood') ? PA_STEVE_LOT_DEAD : PA_STEVE_LOT)[0]));
       if (rx > 6600 && rx < 6900) says('lot-suburb', GAG_LINES.suburb);
-      if (rx > 6560 && rx < 6700) says('lot-steve', GAG_LINES.steve);
-      if (rx > 7900 && rx < 8000) once('lot-pa-steve-2', () => paSay(state, PA_STEVE_LOT[1]));
+      if (rx > 6560 && rx < 6700) says('lot-steve', bossGone('hollywood') ? byPants(state, STEVE_GAG_BACK) : GAG_LINES.steve);
+      if (rx > 7900 && rx < 8000) once('lot-pa-steve-2', () => paSay(state, (bossGone('hollywood') ? PA_STEVE_LOT_DEAD : PA_STEVE_LOT)[1]));
       if (rx > GIFT.a + 40 && rx < GIFT.b) says('lot-gift', GAG_LINES.giftshop);
       if (rx > RIDE_DOORS - 250) { once('lot-pa-ride', () => paSay(state, pick(byPants(state, PA_DISASTER)))); says('lot-ride', GAG_LINES.disaster); }
       // (the guests reading the pages: one says something as he goes by (the spoilers, or about him))

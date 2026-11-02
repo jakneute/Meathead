@@ -280,10 +280,25 @@ export const HURT: Record<string, { hurt: string[]; death: string[] }> = {
   },
 };
 
+// A revisit (Steve's dead: emptyArena.ts bossGone('hollywood')): the queue's plugs canceled, the narrator's too, him at
+// the standee
+export const PA_STEVE_QUEUE_DEAD = [
+  "WHILE YOU WAIT: STUNTMAN STEVE'S STUPENDOUS STUNTERY IS CANCELED. HE'S DEAD. ENJOY THE TOILETS.",
+  "STUNTMAN STEVE TESTED THIS RIDE! HE'S DEAD NOW! UNRELATED! TOTALLY UNRELATED!",
+];
+/** The station's welcome on a revisit: why the launch through the warehouse goes again. */
+export const SPIEL_STATION_BACK = 'WELCOME BACK TO THRONES OF THE STARS. THE EXPERIMENTAL TRACK HAS BEEN REPAIRED. THE WAREHOUSE WALL HAS BEEN REPLACED WITH A CHEAPER ONE.';
+export const SPIEL_LIFT_DEAD = 'THIS RIDE WAS TESTED BY STUNTMAN STEVE. HE IS DOING MUCH WORSE NOW.';
+export const STEVE_STANDEE_BACK: ByPants = {
+  clean: ['STEVE TESTED THIS RIDE. THEN I TESTED HIM. HE FAILED.'],
+  shitty: ['STEVE TESTED THIS RIDE. I TESTED HIM. HE FAILED. I SHIT MYSELF. WE BOTH LOST.'],
+  nude: ['STEVE TESTED THIS RIDE. I TESTED HIM, NAKED. HE FAILED.'],
+};
+
 const pools = (r: ByPants) => [...r.clean, ...r.shitty, ...r.nude];
 export const VOICE_LINES: Record<string, string[]> = {
   meathead: [
-    ...CUT_LINE, ...SHOVE, ...STEVE_STANDEE, ...BOARD, ...BOARD_AGAIN, ...Object.values(RIDE_LINES).flat(), ...TOILET_LINES.flat(),
+    ...CUT_LINE, ...SHOVE, ...STEVE_STANDEE, ...pools(STEVE_STANDEE_BACK), ...BOARD, ...BOARD_AGAIN, ...Object.values(RIDE_LINES).flat(), ...TOILET_LINES.flat(),
     ...STAFF_OUT, ...CLEARED, ...LOCKED, ...WALKER, ...BOOTH, ...LEVER_LOCKED, ...LEVER_FIRST, NORMAL_FINE, ...LEVER, ...LAUNCH, ...RIDE_BACK, ...BENT,
     ...THRONE_SIT.flat(), ...THRONE_SIT_AGAIN, ...THRONE_CASE, ...THRONE_STRAIN, ...THRONE_PLOP, ...THRONE_CLOG, ...THRONE_STAND,
     ...THRONE_DONE, ...THRONE_UHOH, ...THRONE_BLOW, ...THRONE_NOPE, ...CASE_BREAK,
@@ -299,12 +314,12 @@ export const VOICE_LINES: Record<string, string[]> = {
   [STAFF_VOICES.docent]: pools(DOCENT_BARK), [STAFF_VOICES.docentf]: pools(DOCENT_BARK),
   [STAFF_VOICES.guard]: pools(GUARD_BARK), [STAFF_VOICES.guardf]: pools(GUARD_BARK),
   [NARRATOR]: [
-    ...SPIEL_STATION, ...SPIEL_LIFT, ...SPIEL_INSANE, ...SPIEL_TOILET.flat(), ...pools(SPIEL_STAFF), ...SPIEL_MORE, ...SPIEL_CLEAR,
+    ...SPIEL_STATION, SPIEL_STATION_BACK, ...SPIEL_LIFT, SPIEL_LIFT_DEAD, ...SPIEL_INSANE, ...SPIEL_TOILET.flat(), ...pools(SPIEL_STAFF), ...SPIEL_MORE, ...SPIEL_CLEAR,
     ...SPIEL_BACK, ...SPIEL_EXPERIMENTAL, ...SPIEL_FLIGHT, ...SPIEL_BENT,
     ...SPIEL_THRONE_SIT.flat(), ...SPIEL_THRONE_AGAIN, ...SPIEL_THRONE_CLOG, ...SPIEL_THRONE_UHOH,
     ...SPIEL_PLUNGE_START, ...pools(SPIEL_PLUNGE_DURING), ...SPIEL_PLUNGE_WIN, ...SPIEL_PLUNGE_AFTER,
   ],
-  [PA_VOICE]: PA_STEVE_QUEUE,
+  [PA_VOICE]: [...PA_STEVE_QUEUE, ...PA_STEVE_QUEUE_DEAD],
   announcer: [ANNOUNCE_PLUNGE],
   [SLEEPER]: [...pools(SLEEPER_MUMBLE), ...SLEEPER_LEVER],
 };

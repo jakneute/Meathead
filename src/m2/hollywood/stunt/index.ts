@@ -29,6 +29,13 @@ import {
   type Fight, startFight, updateFight, fightOver, endFight, resetFight, drawFightBack, drawFightFront, drawFightHud,
   killCamTick, killCamZoom, deathNeed, killedByWeakness, screenState, bayLooks,
 } from './fight';
+import { bossGone, leaveEmptyArena } from '../../emptyArena';
+import { FLUNG_IN, LAND_FALL } from './state';
+import { MH_STAGE_EMPTY } from './lines';
+import { byPants } from '../blvd/kinds';
+import { pickLine } from '../../../m1/game/platform/speech';
+import { playSound } from '../../../m1/game/platform/audio';
+import { shakeScreen } from '../../../m1/game/core/state';
 
 /** The stage as far as a camera taking his death in may go (wall to wall, the truss's ceiling, the front of the shot). */
 const STAGE_ROOM = { x0: ARENA_L, y0: CEIL_Y, x1: ARENA_R, y1: GY - CAM_ROW + CANVAS_HEIGHT };
@@ -36,6 +43,8 @@ interface Stunt {
   fight: 'wait' | 'on' | 'won'; wonAt: number;
   f: Fight | null; walls: Block[];
   victory: Victory | null; walk: WalkAway | null;
+  /** A revisit (Steve's dead): in off the fling, frames into his fall onto the empty stage; his line there, picked once. */
+  fall?: number; fallX?: number; emptyLine?: string;
 }
 const stuntOf = (state: GameState) => hollywoodState<Stunt>(state, 'stunt', () => ({ fight: 'wait', wonAt: 0, f: null, walls: [], victory: null, walk: null }));
 
@@ -43,6 +52,37 @@ const leave = (state: GameState, weakness: boolean) => {
   const s = stuntOf(state);
   markBossDeath('hollywood', weakness); markLandCleared('hollywood'); noteBossKill();
   s.walk = playWalkAway(state, { boss: 'stuntman-steve', weakness, onDone: () => goTo('hub') });
+};
+
+/** The revisit's stage: the fall in off the fling (as the fight's intro has it, simpler: head over heels, down onto the
+ *  stage), then the empty arena (emptyArena.ts). On foot (a fresh start at its checkpoint), straight to the line. */
+const emptyStage = (state: GameState, s: Stunt, controls: Parameters<NonNullable<HollywoodSection['update']>>[1]) => {
+  const p = state.player, cx = p.pos.x + p.width / 2;
+  if (FLUNG_IN.on && s.fall === undefined) { FLUNG_IN.on = false; s.fall = 0; s.fallX = cx; }
+  if (s.fall !== undefined && s.fall <= LAND_FALL.t) {
+    const T = LAND_FALL.t, u = Math.min(1, ++s.fall / T), ease = 1 - (1 - u) * (1 - u);
+    const x = s.fallX! + (ARENA_L + 520 - s.fallX!) * ease, feet = GY - LAND_FALL.h * (1 - u * u);
+    p.inCutscene = true; p.carried = true; p.pos.x = x - p.width / 2; p.pos.y = feet - p.height; p.vel.x = 0; p.vel.y = 0;
+    const rot = Math.PI * 6 * ease;
+    if (!p.freefall) p.freefall = { style: 'flail', t: 0, rot, land: 0 };
+    p.freefall.t++; p.freefall.rot = rot;
+    if (s.fall % 18 === 0) playSound('whoosh', 0.7, -2 + s.fall / 12);
+    if (s.fall >= T) {
+      // (down: feet on the boards, the dust, nobody clapping)
+      s.fall = T + 1;
+      p.freefall = undefined; p.carried = false; p.spriteScaleX = undefined; p.spriteRot = undefined;
+      p.facing = 1; p.pos.y = GY - p.height; p.isGrounded = true;
+      playSound('crash', 0.8, -4); playSound('thud', 1, -8); playSound('land', 1, -4); shakeScreen(state, 14, 6);
+      for (let k = 0; k < 26; k++) state.particles.push({ pos: { x: x + (Math.random() - 0.5) * 60, y: GY - 6 }, vel: { x: (k % 2 ? 1 : -1) * (1 + Math.random() * 6), y: -1 - Math.random() * 3 }, life: 50, color: 'rgba(168, 162, 158, 0.85)', size: 5 + Math.random() * 6 });
+    }
+    return hands();
+  }
+  if (s.emptyLine || (cx > ARENA_L + 40 && cx < ARENA_R && p.isGrounded && p.health > 0)) {
+    s.emptyLine ??= pickLine(byPants(state, MH_STAGE_EMPTY));
+    leaveEmptyArena(state, s.emptyLine);
+    return hands();
+  }
+  return controls;
 };
 
 export const stunt: HollywoodSection = {
@@ -64,6 +104,9 @@ export const stunt: HollywoodSection = {
   },
   update: (ctx, controls) => {
     const { state } = ctx, p = state.player, s = stuntOf(state);
+    // (a revisit, Steve's dead: the tornado still flings him in, onto his empty stage (SHOW CANCELED), no fight; down, his
+    // line, then the hub)
+    if (s.fight === 'wait' && bossGone('hollywood')) return emptyStage(state, s, controls);
     if (s.fight === 'wait') {
       // (no way back to the havoc: the tornado's fling put him here, one-way (the user's rule); a retry from the
       // checkpoint outside walks in through the havoc's way on; the land's end: no way on either)
