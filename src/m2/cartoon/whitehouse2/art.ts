@@ -20,11 +20,12 @@
 
 import type { GameState } from '../../../m1/game/core/state';
 import { CANVAS_WIDTH } from '../../../m1/constants';
-import { signText, signW } from '../../signLetters';
+import { signText } from '../../signLetters';
 import { timeOfDay } from '../../timeOfDay';
-import { box, mix, hash, checker, toonLetters, toonSign, onScreen, INK, still, sideBack, boxSides, GRASS, STEEL, BRASS, CHERRY, LICORICE, type Ctx } from '../kit';
+import { box, mix, hash, checker, toonLetters, onScreen, INK, still, sideBack, boxSides, GRASS, STEEL, BRASS, CHERRY, LICORICE, type Ctx } from '../kit';
 import { GY } from '../geometry';
 import { wh2Of } from './state';
+import { placard } from '../whitehouse1/art';
 import { drawerOut, burnerAt, blinkAt, sweepAt, jelloWobble, FIRE_H, FIRE_W } from './hazards';
 import {
   CABINETS, DRAWER_W, DRAWER_D, DESK_EIB, JELLO, RANGE, BURNERS, POT_RACK, CAB_TABLE, GLOBE, MAP_STEP, MAP_CAB, MAP_STOOL, RESOLUTE,
@@ -111,6 +112,29 @@ const paintColonnadeRun = (g: Ctx, w: number, last: boolean) => {
   box(g, -16, -424, rr + 16, 4, '#5A8A7A'); box(g, -16, -424, rr + 16, 1, '#8ABCAA');
   for (let x = 135; x < w; x += 150) { box(g, x - 1, -370, 3, 28, INK); box(g, x, -370, 1, 28, BRASS[4]); }
 };
+/** THE WEST WING's sign (the owner: "this sign also slightly clips into the wall. a lot of signs do this actually"):
+ *  it stood on the walkway in front of the colonnade, too wide for a gap, so its board ran across a column; now it
+ *  hangs off a lantern's bracket between two columns, in the colonnade's own depth (so it never slides over one as
+ *  the camera moves): a ring and a scroll bar off the bracket, two chains, a navy board in a gilt rim. Its bracket's
+ *  x (one of the lanterns'), local y down from the entablature's underside. */
+const WING_SIGN = 885;
+const paintWingSign = (g: Ctx) => {
+  // (the ring at the bracket's end, the scroll bar under it, the chains down to the board)
+  g.strokeStyle = INK; g.lineWidth = 3; g.beginPath(); g.arc(0, 32, 4, 0, Math.PI * 2); g.stroke(); g.strokeStyle = GILT[4]; g.lineWidth = 1.5; g.stroke();
+  slabI(g, -44, 36, 88, 5, GILT, 1);
+  for (const cx of [-38, 38]) for (let y = 41; y < 52; y += 4) { box(g, cx - 2, y, 4, 3, INK); box(g, cx - 1, y + 1, 2, 1, GILT[4]); }
+  // (the board: a gilt rim, navy banded light to shade, its words)
+  slabI(g, -54, 52, 108, 76, GILT);
+  const N = NAVY;
+  box(g, -49, 57, 98, 66, INK);
+  [N[4], N[3], N[3], N[2], N[2], N[1]].forEach((col, i) => box(g, -48, 58 + i * 11, 96, 11, col));
+  checker(g, -48, 68, 96, 2, N[4], 0, 1); checker(g, -48, 101, 96, 2, N[2], 1, 1);
+  box(g, -48, 58, 96, 2, N[5]);
+  for (const [bx, by] of [[-50, 54], [48, 54], [-50, 124], [48, 124]]) { box(g, bx - 1, by - 1, 4, 4, INK); box(g, bx, by, 2, 2, GILT[5]); }
+  signText(g, 'THE WEST', 0, 66, toonLetters(1, undefined, 11));
+  signText(g, 'WING >', 0, 86, toonLetters(2, undefined, 12));
+  signText(g, 'NO  CATS', 0, 110, toonLetters(1, ['#FFFFFF', '#FFFFFF', '#FDF2F8', '#F9A8D4'], 13));
+};
 const colonnade = (c: Ctx, state: GameState, E: P) => {
   const a = X(-600), b = X(1100);
   if (!onScreen(state, a - 300, b + 300) && !seenAt(state, E, a, b, 0.7)) return;
@@ -146,6 +170,8 @@ const colonnade = (c: Ctx, state: GameState, E: P) => {
     for (let x = -465; x < 1060; x += 150) {
       const lx = X(x), ly = Y(342);
       if (!seenAt(state, E, lx - 20, lx + 20, 0.94)) continue;
+      // (the last bracket but one hangs THE WEST WING's sign instead of a lantern)
+      if (x === WING_SIGN) { still(c, 'wh2-wingsign', lx, Y(370), -60, -2, 120, 132, paintWingSign); continue; }
       const sw = Math.sin(state.frame * 0.03 + x) * 1.5;
       inkP(c, () => { c.moveTo(lx - 9 + sw, ly); c.lineTo(lx + 9 + sw, ly); c.lineTo(lx + 7 + sw, ly + 24); c.lineTo(lx - 7 + sw, ly + 24); c.closePath(); }, '#1A1A24', 1.6);
       box(c, lx - 5 + sw, ly + 3, 10, 18, night ? '#FFE08A' : '#E8E4D0'); box(c, lx - 5 + sw, ly + 3, 3, 18, night ? '#FFF8D8' : '#FFFFFF');
@@ -184,20 +210,13 @@ const wingEnd = (c: Ctx, state: GameState, E: P) => {
 // ---------------------------------------------------------------------------------------------------------------
 // The play plane: what he stands on
 
-const placard = (c: Ctx, x: number, feet: number, words: string[]) => {
-  still(c, `wh2-placard-${words.join('|')}`, x, feet, -84, -156, 168, 160, g => {
-    for (const [ax, bx] of [[-28, -6], [28, 6]] as [number, number][]) { g.strokeStyle = INK; g.lineWidth = 5; g.beginPath(); g.moveTo(ax, 0); g.lineTo(bx, -124); g.stroke(); g.strokeStyle = GILT[3]; g.lineWidth = 3; g.stroke(); g.strokeStyle = GILT[5]; g.lineWidth = 1; g.beginPath(); g.moveTo(ax - 1, 0); g.lineTo(bx - 1, -124); g.stroke(); }
-    g.strokeStyle = INK; g.lineWidth = 4; g.beginPath(); g.moveTo(0, 0); g.lineTo(0, -60); g.stroke(); g.strokeStyle = GILT[1]; g.lineWidth = 2; g.stroke();
-    slabI(g, -74, -78, 148, 8, GILT);
-    slabI(g, -72, -144, 144, 66, GILT);
-    box(g, -64, -136, 128, 50, INK); box(g, -63, -135, 126, 48, '#FFF6E2'); box(g, -63, -135, 126, 12, '#FFFFFF'); checker(g, -63, -123, 126, 2, '#FFFFFF', 0, 1); box(g, -63, -95, 126, 8, '#F2E2C2');
-    for (const [cx, cy] of [[-68, -140], [68, -140], [-68, -82], [68, -82]]) { box(g, cx - 3, cy - 3, 6, 6, INK); box(g, cx - 2, cy - 2, 4, 4, GILT[5]); }
-    words.forEach((w, i) => { const big = signW(w, toonLetters(2)) <= 118 ? 2 : 1; signText(g, w, 0, -112 + i * 20 + (words.length === 1 ? 8 : 0), toonLetters(big, i ? ['#C4B5FD', '#A78BFA', '#7C3AED', '#5B21B6'] : ['#FCA5A5', '#F87171', '#DC2626', '#991B1B'])); });
-  });
-};
 const PLACARDS: [number, string[]][] = [
-  [1160, ['THE WEST WING', 'OFFICES']], [2330, ['THE ROOSEVELT', 'ROOM']], [3640, ['THE KITCHENS']], [5040, ['THE CABINET', 'ROOM']],
-  [6460, ['THE MAP ROOM']], [7860, ['THE SITUATION', 'ROOM']], [9340, ['THE OUTER', 'OVAL']],
+  // (each in its own room, clear of the doorway in from the last one (the rooms meet at their x: the doorway's about 60
+  // either side of it on the back wall) and of what's in the play plane: the offices' short of the first filing
+  // cabinet's drawers (out to 1314), the kitchens' short of the Jell-O (3870), the situation room's short of the first
+  // laser (8000); the map room's short of the globe (6504, and it rolls the room's length), so it's still by its door)
+  [1228, ['THE WEST WING', 'OFFICES']], [2500, ['THE ROOSEVELT', 'ROOM']], [3780, ['THE', 'KITCHENS']], [5200, ['THE CABINET', 'ROOM']],
+  [6425, ['THE', 'MAP ROOM']], [7928, ['THE SITUATION', 'ROOM']], [9500, ['THE OUTER', 'OVAL']],
 ];
 
 /** A filing cabinet: government steel, drawer fronts all up it (label cards, chrome pulls), its top going back (a mug,
@@ -592,7 +611,6 @@ export const drawWh2Back = (c: Ctx, state: GameState) => {
   }
   ovalEnd(c, state);
   for (const [x, words] of PLACARDS) if (onScreen(state, X(x) - 90, X(x) + 90)) placard(c, X(x), GY, words);
-  if (onScreen(state, X(700), X(1050))) toonSign(c, X(880), GY, ['THE WEST WING >', 'NO CATS'], { board: '#1D4ED8' });
 };
 export { Y };
 void starAt; void BRASS;

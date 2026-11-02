@@ -125,21 +125,28 @@ const paintColonnade = (g: Ctx) => {
 // ---------------------------------------------------------------------------------------------------------------
 // The play plane: what he stands on
 
-const placard = (c: Ctx, x: number, feet: number, words: string[]) => {
-  still(c, `wh1-placard-${words.join('|')}`, x, feet, -84, -156, 168, 160, g => {
-    // (a gilt easel: three legs, a ledge, the card on it in the show's fat letters)
+/** A room's name on a gilt easel (both halves' rooms): three legs, a ledge, the card on it in the show's fat letters. */
+export const placard = (c: Ctx, x: number, feet: number, words: string[]) => {
+  const look = (w: string, i: number) => toonLetters(signW(w, toonLetters(2)) <= 118 ? 2 : 1, i ? ['#C4B5FD', '#A78BFA', '#7C3AED', '#5B21B6'] : ['#FCA5A5', '#F87171', '#DC2626', '#991B1B']);
+  // (the board's only as wide as its words need, so it stands clear of the doorways and what's beside it)
+  const hw = Math.round(Math.max(48, ...words.map((w, i) => signW(w, look(w, i)) / 2 + 14)));
+  still(c, `wh-placard2-${words.join('|')}`, x, feet, -84, -156, 168, 160, g => {
     for (const [ax, bx] of [[-28, -6], [28, 6]] as [number, number][]) { g.strokeStyle = INK; g.lineWidth = 5; g.beginPath(); g.moveTo(ax, 0); g.lineTo(bx, -124); g.stroke(); g.strokeStyle = GILT[3]; g.lineWidth = 3; g.stroke(); g.strokeStyle = GILT[5]; g.lineWidth = 1; g.beginPath(); g.moveTo(ax - 1, 0); g.lineTo(bx - 1, -124); g.stroke(); }
     g.strokeStyle = INK; g.lineWidth = 4; g.beginPath(); g.moveTo(0, 0); g.lineTo(0, -60); g.stroke(); g.strokeStyle = GILT[1]; g.lineWidth = 2; g.stroke();
-    slabI(g, -74, -78, 148, 8, GILT);
-    slabI(g, -72, -144, 144, 66, GILT);
-    box(g, -64, -136, 128, 50, INK); box(g, -63, -135, 126, 48, '#FFF6E2'); box(g, -63, -135, 126, 12, '#FFFFFF'); checker(g, -63, -123, 126, 2, '#FFFFFF', 0, 1); box(g, -63, -95, 126, 8, '#F2E2C2');
-    for (const [cx, cy] of [[-68, -140], [68, -140], [-68, -82], [68, -82]]) { box(g, cx - 3, cy - 3, 6, 6, INK); box(g, cx - 2, cy - 2, 4, 4, GILT[5]); }
-    words.forEach((w, i) => { const big = signW(w, toonLetters(2)) <= 118 ? 2 : 1; signText(g, w, 0, -112 + i * 20 + (words.length === 1 ? 8 : 0), toonLetters(big, i ? ['#C4B5FD', '#A78BFA', '#7C3AED', '#5B21B6'] : ['#FCA5A5', '#F87171', '#DC2626', '#991B1B'])); });
+    slabI(g, -hw - 2, -78, hw * 2 + 4, 8, GILT);
+    slabI(g, -hw, -144, hw * 2, 66, GILT);
+    const iw = hw * 2 - 18;
+    box(g, -iw / 2 - 1, -136, iw + 2, 50, INK); box(g, -iw / 2, -135, iw, 48, '#FFF6E2'); box(g, -iw / 2, -135, iw, 12, '#FFFFFF'); checker(g, -iw / 2, -123, iw, 2, '#FFFFFF', 0, 1); box(g, -iw / 2, -95, iw, 8, '#F2E2C2');
+    for (const [cx, cy] of [[-hw + 4, -140], [hw - 4, -140], [-hw + 4, -82], [hw - 4, -82]]) { box(g, cx - 3, cy - 3, 6, 6, INK); box(g, cx - 2, cy - 2, 4, 4, GILT[5]); }
+    words.forEach((w, i) => signText(g, w, 0, -112 + i * 20 + (words.length === 1 ? 8 : 0), look(w, i)));
   });
 };
+// (each in its own room, clear of the doorway in from the last one (the rooms meet at their x: the doorway's about 60
+// either side of it on the back wall) and of what's in the play plane: the grand staircase's short of the stairs (6600);
+// the cross hall's halfway between two of its columns)
 const PLACARDS: [number, number, string[]][] = [
-  [1160, 0, ['THE CROSS HALL']], [2300, 0, ['THE EAST ROOM']], [3760, 0, ['THE PRESS ROOM']], [5100, 0, ['THE STATE', 'DINING ROOM']],
-  [6420, 0, ['THE GRAND', 'STAIRCASE']], [7640, F2, ['THE CENTER HALL']], [8470, F2, ['THE LINCOLN', 'BEDROOM']], [9400, F2, ['THE WEST', 'SITTING HALL']],
+  [1325, 0, ['THE CROSS', 'HALL']], [2400, 0, ['THE EAST', 'ROOM']], [3880, 0, ['THE PRESS', 'ROOM']], [5180, 0, ['THE STATE', 'DINING ROOM']],
+  [6530, 0, ['THE GRAND', 'STAIRCASE']], [7780, F2, ['THE CENTER', 'HALL']], [8630, F2, ['THE LINCOLN', 'BEDROOM']], [9530, F2, ['THE WEST', 'SITTING HALL']],
 ];
 
 const piano = (c: Ctx, E: P) => {

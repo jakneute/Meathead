@@ -40,6 +40,7 @@ import { makeTowers, updateTowers, ridingTower, type Tower, type TowerDef } from
 import { teleport, solid, meatheadSays, byPants } from '../section';
 import { GY } from '../geometry';
 import { whMust } from './onceLines';
+import { COLLAPSED_MEMO } from './state';
 import { PORCH, BENCH, X, Y } from './layout';
 import { STOCK_IN, STOCK_LEAN, STOCK_FALL, STOCK_GOT, STOCK_BYE, STOCK_HURT, PIT_SRC } from './giftShopLines';
 
@@ -57,6 +58,9 @@ export const SH = (h: number) => STOCK.floor - h;
 export const STOCK_W = 2500, CEIL_H = 900;
 /** The porch door (its middle: rooms.ts draws it at the porch's middle), the arrow sign on the lawn. */
 export const DOOR_X = X((PORCH.a + PORCH.b) / 2), ARROW_X = X(10360);
+/** Once the screen's down (the real stage): the arrow stands out on the open stage floor between the scaffold steps
+ *  down off the deck (to 10530) and the bench (from 10640), clear of both (on the lawn's spot it ran across the steps). */
+export const ARROW_REAL_X = X(10585);
 /** The crate stacks he stands on: [lx from, lx to, top height] (down into the dark, lit along their tops). */
 export const STACKS: [number, number, number][] = [[0, 260, 400], [760, 850, 330], [2170, STOCK_W, 300]];
 /** The towers (sway.ts): each one's lean takes its lid out over the next gap; narrower lids as it goes. */
@@ -72,6 +76,10 @@ const DROP = { x: SL(120), y: SH(CEIL_H - 110) };
 export const HEART_X = SL(2265), HEART_Y = SH(300), CANNON_X = SL(2410);
 /** Out of the sky over the Rose Garden, straight down onto its bench (past the arrow; nobody near, the thorns clear). */
 const DEST = { x: X((BENCH.a + BENCH.b) / 2), y: Y(BENCH.h) }, EXIT = { x: DEST.x, y: Y(760) };
+/** Once the screen's down (the real stage), the sky's the lighting grid (a solid: out of the sky he came down on top of
+ *  it and stuck there): he's shot up out of a stage trap in the floor past the bench instead, onto the bench, the arc's
+ *  top well under the grid. */
+const EXIT_REAL = { x: X(10790), y: GY };
 /** Where he's kept on screen down here (the camera's row: low enough to see the chute's dark under the lids). */
 export const STOCK_ROW = 340;
 /** The find, in the save. */
@@ -90,7 +98,8 @@ export const inStock = (state: GameState) => {
 
 export interface Shop {
   towers: Tower[];
-  cannon: Cannon;
+  /** The cannon in use: the show's (out of the sky) or, once the screen's down, the real stage's (up out of a trap). */
+  cannon: Cannon; cannonShow: Cannon; cannonReal: Cannon;
   /** The heart canister's on its plinth (not found on this save); its card, up. */
   heart: boolean; card: HealthCard | null;
   /** This life: his lines said; the fall's begun (the yell, the whistle). */
@@ -106,9 +115,10 @@ export const buildGiftShop = (state: GameState) => {
   // (the end walls, from over the ceiling to under the dark)
   solid(state, STOCK.a - 60, SH(CEIL_H + 400), 60, CEIL_H + 1200, { hidden: true, tag: 'wh1-stock-l' });
   solid(state, SL(STOCK_W), SH(CEIL_H + 400), 60, CEIL_H + 1200, { hidden: true, tag: 'wh1-stock-r' });
+  const show = makeCannon(CANNON_X, SH(300), EXIT, DEST);
   shops.set((state.stage ?? state) as object, {
     towers: makeTowers(state, STOCK_TOWERS),
-    cannon: makeCannon(CANNON_X, SH(300), EXIT, DEST),
+    cannon: show, cannonShow: show, cannonReal: makeCannon(CANNON_X, SH(300), EXIT_REAL, DEST),
     heart: !healthWon(FIND_LAND, FIND_ID), card: null,
     inSaid: false, leanSaid: false, falling: false, upWas: false,
   });
@@ -120,6 +130,9 @@ export const buildGiftShop = (state: GameState) => {
 export const updateGiftShop = (ctx: FrameContext, controls: Controls): Controls => {
   const { state } = ctx, p = state.player, s = shopOf(state);
   if (!s) return controls;
+  // (the show's cannon or the real stage's, by whether the screen's down; never swapped mid-shot)
+  const want = state.stageMemo[COLLAPSED_MEMO] ? s.cannonReal : s.cannonShow;
+  if (s.cannon !== want && !cannonBusy(s.cannon)) s.cannon = want;
   const cx = p.pos.x + p.width / 2, feet = p.pos.y + p.height;
   const upNow = !!controls.up, upPress = upNow && !s.upWas;
   s.upWas = upNow;

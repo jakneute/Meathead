@@ -27,7 +27,8 @@ import { signText } from '../../signLetters';
 import { INK, box, mix, stamp, checker, still, ramp6, toonLetters, hour, STEEL, CHERRY, BRASS, type Ctx } from '../kit';
 import { GY } from '../geometry';
 import { towerTop, lidW, type Tower } from '../sway';
-import { STOCK, SL, SH, STOCK_W, CEIL_H, STACKS, DOOR_X, ARROW_X, HEART_X, HEART_Y, shopOf, inStock } from './giftShop';
+import { STOCK, SL, SH, STOCK_W, CEIL_H, STACKS, DOOR_X, ARROW_X, ARROW_REAL_X, HEART_X, HEART_Y, shopOf, inStock } from './giftShop';
+import { COLLAPSED_MEMO } from './state';
 
 const fontReady = () => typeof document !== 'undefined' && !!document.fonts?.check('8px "Press Start 2P"');
 const hash = (n: number) => { const s = Math.sin(n * 127.1 + 311.7) * 43758.5453; return s - Math.floor(s); };
@@ -53,16 +54,24 @@ const LIT = '#FFF2D6';
 // Outside
 
 /** The arrow sign on the lawn (feet at the ground), painted once a time of day. */
-const paintArrow = (g: Ctx) => {
+const paintArrow = (g: Ctx, real = false) => {
   const G = ramp6(hour('#6CCC6A')), R = ramp6(hour(RED[3])), P = ['#FFF7E8', '#EF4444'].map(c => hour(c));
-  // (the hummock it's sunk in)
-  inkP(g, () => g.ellipse(0, 2, 30, 10, 0, Math.PI, 0), G[2], 2);
-  box(g, -20, -4, 26, 3, G[3]); box(g, -12, -6, 10, 2, G[4]); checker(g, -24, -2, 48, 2, G[1], 0, 1);
-  for (const [fx, fc] of [[-17, '#FFFFFF'], [14, '#F9A8D4']] as const) { box(g, fx, -5, 2, 2, fc); }
+  if (real) {
+    // (the real stage: no lawn under it, so it stands on the plywood in a stage weight's base plate, a sandbag over
+    // the plate's foot)
+    slabI(g, -22, -6, 44, 6, STEEL);
+    inkP(g, () => g.ellipse(-12, -7, 13, 6, 0, Math.PI, 0), '#8A7A58', 1.5); box(g, -20, -10, 14, 2, '#A8966E'); box(g, -13, -13, 1, 6, '#6A5A3E');
+  } else {
+    // (the hummock it's sunk in)
+    inkP(g, () => g.ellipse(0, 2, 30, 10, 0, Math.PI, 0), G[2], 2);
+    box(g, -20, -4, 26, 3, G[3]); box(g, -12, -6, 10, 2, G[4]); checker(g, -24, -2, 48, 2, G[1], 0, 1);
+    for (const [fx, fc] of [[-17, '#FFFFFF'], [14, '#F9A8D4']] as const) { box(g, fx, -5, 2, 2, fc); }
+  }
   // (the pole: candy-striped, lit down its left)
-  box(g, -5, -128, 10, 126, INK); box(g, -4, -127, 8, 124, P[0]);
-  for (let y = -124; y < -4; y += 14) { g.fillStyle = P[1]; g.beginPath(); g.moveTo(-4, y + 6); g.lineTo(4, y); g.lineTo(4, y + 6); g.lineTo(-4, y + 12); g.closePath(); g.fill(); }
-  box(g, -4, -127, 2, 124, 'rgba(255,255,255,0.35)'); box(g, 2, -127, 2, 124, 'rgba(26,16,40,0.25)');
+  const foot = real ? -6 : -2;
+  box(g, -5, -128, 10, 128 + foot, INK); box(g, -4, -127, 8, 126 + foot, P[0]);
+  for (let y = -124; y < foot - 6; y += 14) { g.fillStyle = P[1]; g.beginPath(); g.moveTo(-4, y + 6); g.lineTo(4, y); g.lineTo(4, y + 6); g.lineTo(-4, y + 12); g.closePath(); g.fill(); }
+  box(g, -4, -127, 2, 126 + foot, 'rgba(255,255,255,0.35)'); box(g, 2, -127, 2, 126 + foot, 'rgba(26,16,40,0.25)');
   inkP(g, () => g.arc(0, -130, 6, 0, Math.PI * 2), hour(BRASS[4]), 2); box(g, -3, -133, 2, 2, '#FFFFFF');
   // (the arrow board, pointing left: fat, rounded, stepped down in bands, its rim lit up top; GIFT SHOP on it)
   // (kept narrow, so it stands clear of the topiary tower beside it: the owner's "make sure signs don't sit in front of
@@ -106,11 +115,39 @@ const paintShingle = (g: Ctx) => {
   for (let x = -36; x < 36; x += 6) box(g, x, -1, 3, 1, hour('#5A3414'));
 };
 
-/** World space, behind him (after the section's own): the arrow on the lawn, the shingle at the porch door. */
+/** The real stage's door unit where the porch door was (the screen's down: no house round it, so the door's a set
+ *  piece of its own): the show's white door, inked, in a raw pine frame on a sill (the scaffold's bay left open for it), a
+ *  jack brace off its back and a sandbag on its foot. The plaque, the OPEN card and the mat go on it as before. */
+const paintStageDoor = (g: Ctx) => {
+  const W = ramp6(hour('#F2EEE4')), PINE = ramp6(hour('#C8A070'));
+  // (the jack brace off the back, at its right: a diagonal of 1x3 down to the floor, a sandbag on its foot)
+  g.strokeStyle = INK; g.lineWidth = 5; g.beginPath(); g.moveTo(34, -150); g.lineTo(58, -2); g.stroke();
+  g.strokeStyle = PINE[2]; g.lineWidth = 3; g.stroke();
+  inkP(g, () => g.ellipse(56, -5, 12, 6, 0, Math.PI, 0), '#8A7A58', 1.5); box(g, 48, -8, 12, 2, '#A8966E');
+  // (the frame: jambs, the head, the sill)
+  slabI(g, -40, -186, 8, 186, PINE); slabI(g, 32, -186, 8, 186, PINE); slabI(g, -40, -194, 80, 10, PINE);
+  slabI(g, -44, -4, 88, 4, PINE);
+  // (the door: painted white like the porch's, four panels, the cartoon's fat ink round them)
+  box(g, -32, -184, 64, 180, INK); box(g, -31, -183, 62, 178, W[3]); box(g, -31, -183, 8, 178, W[4]); box(g, 23, -183, 8, 178, W[2]);
+  for (const [px, py, pw, ph] of [[-24, -176, 20, 60], [4, -176, 20, 60], [-24, -108, 20, 96], [4, -108, 20, 96]] as const) {
+    box(g, px - 1, py - 1, pw + 2, ph + 2, INK); box(g, px, py, pw, ph, W[2]); box(g, px, py, pw, 2, W[1]); box(g, px, py + ph - 2, pw, 2, W[4]);
+  }
+  // (the knob)
+  inkP(g, () => g.arc(22, -88, 3, 0, Math.PI * 2), hour(BRASS[4]), 1.2);
+};
+
+/** World space, behind him (after the section's own): the arrow on the lawn, the shingle at the porch door. Once the
+ *  screen's down (the real stage): the door's a door unit of its own under the scaffold deck, and the arrow's out on
+ *  the stage floor clear of the steps down off the deck, in a stage weight, not a lawn. */
 export const drawGiftShopOutside = (c: Ctx, state: GameState) => {
-  const v0 = state.camera.x - 120, v1 = state.camera.x + CANVAS_WIDTH + 120;
-  if (ARROW_X > v0 && ARROW_X < v1) still(c, 'wh1-gift-arrow', ARROW_X, GY, -112, -150, 212, 156, paintArrow);
-  if (DOOR_X > v0 - 120 && DOOR_X < v1) still(c, 'wh1-gift-shingle', DOOR_X, GY, -44, -222, 168, 228, paintShingle);
+  const v0 = state.camera.x - 120, v1 = state.camera.x + CANVAS_WIDTH + 120, real = !!state.stageMemo[COLLAPSED_MEMO];
+  const ax = real ? ARROW_REAL_X : ARROW_X;
+  if (ax > v0 && ax < v1) still(c, real ? 'wh1-gift-arrow-real' : 'wh1-gift-arrow', ax, GY, -112, -150, 212, 156, g => paintArrow(g, real));
+  // (the door unit stands in the middle of its scaffold bay, a little short of the porch door's middle: still well in
+  // the door's reach)
+  const dx = real ? DOOR_X - 16 : DOOR_X;
+  if (real && dx > v0 - 120 && dx < v1 + 60) still(c, 'wh1-gift-stagedoor', dx, GY, -48, -198, 120, 202, paintStageDoor);
+  if (dx > v0 - 120 && dx < v1) still(c, 'wh1-gift-shingle', dx, GY, -44, -222, 168, 228, paintShingle);
 };
 
 // ---------------------------------------------------------------------------------------------------------------

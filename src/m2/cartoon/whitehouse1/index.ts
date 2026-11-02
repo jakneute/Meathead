@@ -77,7 +77,8 @@ const PLAN1: StagePlan = {
   ],
   planks: [[X(TABLE.a), X(TABLE.b), Y(TABLE.h)], [X(ARBOR.a), X(ARBOR.b), Y(ARBOR.h)], ...[PEROT_ARENA, FALWELL_ARENA].flatMap(A => A.ledges.map(([a, b, h]) => [X(a), X(b), Y(h)] as [number, number, number]))],
   stairs: { a: X(STAIRS.a), b: X(STAIRS.b), n: STAIRS.steps, top: Y(F2) },
-  decks: [[X(STAIRS.b), X(BALCONY_EDGE), Y(F2)]],
+  // (the gift shop's door unit stands under the deck where the porch was: its bay's braces left out)
+  decks: [[X(STAIRS.b), X(BALCONY_EDGE), Y(F2), [X((PORCH.a + PORCH.b) / 2)]]],
   flats: [[X(1100), 'WH-02 CROSS'], [X(2200), 'WH-03 EAST'], [X(3700), 'WH-04 PRESS'], [X(5000), 'WH-05 DINING'], [X(6400), 'WH-06 STAIR'], [X(10300), 'WH-11 GARDEN']],
   marks: [[X(500), 'ENTRANCE'], [X(1600), 'CROSS HALL'], [X(2900), 'EAST RM'], [X(4300), 'PRESS RM'], [X(5700), 'DINING'], [X(11000), 'ROSE GDN']],
   cameras: [X(1000), X(5900), X(11900)],

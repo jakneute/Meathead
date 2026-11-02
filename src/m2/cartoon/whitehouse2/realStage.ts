@@ -74,8 +74,8 @@ export interface StagePlan {
   planks: [number, number, number][];
   /** Scaffold stairs up from the stage floor to a deck: from, to, the steps, the deck's top y. */
   stairs?: { a: number; b: number; n: number; top: number };
-  /** Scaffold decks (the second floor): [from, to, top y]. */
-  decks: [number, number, number][];
+  /** Scaffold decks (the second floor): [from, to, top y, the x of any door unit standing under it (its bay left open)]. */
+  decks: [number, number, number, number[]?][];
   /** Scenery flats' backs (where the rooms changed): [x, their stencil]. */
   flats: [number, string][];
   /** Spike-tape names on the floor (where each room's set stood): [x, words]. */
@@ -362,12 +362,14 @@ export const scaffoldStairs = (c: Ctx, a: number, b: number, n: number, fy: numb
 };
 /** A scaffold deck (the second floor): plywood on a steel frame (standards, ledgers, cross braces, couplers, a toe
  *  board), lit along its edge. */
-export const scaffoldDeck = (c: Ctx, a: number, b: number, top: number, fy: number) => {
+export const scaffoldDeck = (c: Ctx, a: number, b: number, top: number, fy: number, open: number[] = []) => {
   slab(c, a, top, b - a, 12, PLYR); box(c, a, top + 10, b - a, 3, PLY_DK);
   for (let x = a + 30; x < b; x += 122) box(c, x, top + 2, 1, 8, PLYR[1]);
   for (let x = a + 10; x < b; x += 110) {
     tube(c, x + 2, top + 12, x + 2, fy, 5);
     box(c, x - 2, top + 14, 9, 6, STL[2]); box(c, x - 6, fy - 4, 17, 4, STL[2]);
+    // (a bay with a door unit standing in it: no braces across its front, just a header rail over the door)
+    if (x + 110 < b && open.some(o => o > x && o < x + 110)) { tube(c, x + 2, top + 18, x + 112, top + 18, 3); continue; }
     if (x + 110 < b) { tube(c, x + 4, top + 18, x + 110, fy - 6, 3); tube(c, x + 4, fy - 6, x + 110, top + 18, 3); tube(c, x + 2, (top + fy) / 2, x + 112, (top + fy) / 2, 3); box(c, x + 52, (top + fy) / 2 - 3, 8, 6, STL[2]); }
   }
   lit(c, a, top, b - a);
@@ -379,7 +381,7 @@ export const drawStageProps = (c: Ctx, state: GameState, plan: StagePlan) => {
   for (const [a, b, top] of plan.decks) if (ok(a, b)) boxSides(c, E, a, b, top, GY, 0.86, PLYR, { apron: 12, leg: 5, sideR: STL });
   for (const [a, b, top] of plan.planks) if (ok(a, b)) boxSides(c, E, a, b, top, plan.floorAt((a + b) / 2), 0.94, PLYR, { apron: 10, leg: 5, sideR: PLYR });
   for (const [a, b, top] of plan.boxes) if (ok(a, b)) boxSides(c, E, a, b, top, plan.floorAt((a + b) / 2), 0.92, BLK, { lines: [top + 3] });
-  for (const [a, b, top] of plan.decks) if (ok(a, b)) scaffoldDeck(c, a, b, top, GY);
+  for (const [a, b, top, open] of plan.decks) if (ok(a, b)) scaffoldDeck(c, a, b, top, GY, open);
   if (plan.stairs && ok(plan.stairs.a, plan.stairs.b)) scaffoldStairs(c, plan.stairs.a, plan.stairs.b, plan.stairs.n, GY, plan.stairs.top);
   for (const [a, b, top] of plan.planks) if (ok(a, b)) stagePlank(c, a, b, top, plan.floorAt((a + b) / 2));
   for (const [a, b, top, name] of plan.boxes) if (ok(a, b)) stageBox(c, a, b, top, plan.floorAt((a + b) / 2), name);
