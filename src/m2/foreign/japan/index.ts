@@ -187,8 +187,11 @@ export const japan: ForeignSection = {
     // (signs)
     { const [a, b] = TORII[0]; if (onScreen(v, X(a), X(b))) hungBoard(c, X((a + b) / 2), Y(KASAGI) + 22, Y(KASAGI) + 40, ['JAPAN', 'A TASTE OF ASIA (CHINA)'], LOOKS.japan(1), '#F8FAFC'); }
     if (onScreen(v, X(720), X(780))) postBoard(c, X(740), GY, ['KOI POND', 'DO NOT FEED', 'THE ROBOT'], LOOKS.japan(1), '#F8FAFC', undefined, 120);
-    if (onScreen(v, X(1660), X(1780))) postBoard(c, X(1710), GY, ['VENDING ALLEY', 'YEN ONLY'], LOOKS.japan(1), '#FEF3C7', undefined, 100);
-    if (onScreen(v, X(PAGODA.a) - 120, X(PAGODA.a))) postBoard(c, X(1640), GY, ['FIVE-STORY PAGODA', 'NO ELEVATOR. NINJAS.'], LOOKS.japan(1), '#F8FAFC', undefined, 150);
+    // (VENDING ALLEY at the alley's way in, between the pond and the first machine; the pagoda's in the gap between the
+    // last machine and the pagoda, under its eave: the two stood over each other there, the pagoda's half behind a
+    // machine)
+    if (onScreen(v, X(1120), X(1320))) postBoard(c, X(1221), GY, ['VENDING', 'ALLEY', 'YEN ONLY'], LOOKS.japan(1), '#FEF3C7', undefined, 100);
+    if (onScreen(v, X(1600), X(1830))) postBoard(c, X(1716), GY, ['FIVE-STORY', 'PAGODA', 'NO ELEVATOR.', 'NINJAS.'], LOOKS.japan(1), '#F8FAFC', undefined, 120);
     if (onScreen(v, X(2300), X(2440))) postBoard(c, X(2350), GY, ['SUMO RING', 'NO SHOES', 'NO SHIRT', 'NO PROBLEM'], LOOKS.japan(1), '#FEF3C7', undefined, 140);
     if (onScreen(v, X(MANGA.a), X(MANGA.b))) postBoard(c, X(3070), Y(MANGA.h), ['MANGA', '(JAPANESE COMICS)', '(READ BACKWARDS)'], LOOKS.japan(1), '#FEF3C7', undefined, 56);
     drawStationBack(c, v, state);

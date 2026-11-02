@@ -152,7 +152,8 @@ export const mexico: ForeignSection = {
     for (let rx = 400; rx < 4300; rx += 360) if (onScreen(v, X(rx), X(rx + 360))) swag(c, X(rx), Y(250), X(rx + 360), Y(250), 26, PICADO, 'flags');
     plazaLights(c, v, X(PYR.a + 40), X(PYR.b - 200), Y(92), f);
     // (the signs: held up on posts, never with anything over them)
-    if (onScreen(v, X(500), X(760))) postBoard(c, X(560), GY, ['MEXICO', "EUROPE'S MEXICO"], LOOKS.mexico(2), '#0F766E');
+    // (between the flagpole (560: the board stood right on it, the pole through its middle) and the potted cactus)
+    if (onScreen(v, X(560), X(780))) postBoard(c, X(665), GY, ['MEXICO', "EUROPE'S", 'MEXICO'], LOOKS.mexico(2), '#0F766E');
     if (onScreen(v, X(PYR.a - 200), X(PYR.a))) postBoard(c, X(PYR.a - 80), GY, ['MERCADO INSIDE', 'EVERYTHING $25'], LOOKS.mexico(1), '#7C2D12', undefined, 90);
     if (onScreen(v, X(3150), X(3350))) postBoard(c, X(3250), GY, ['SIESTA ZONE', 'NO NAPPING'], LOOKS.mexico(1), '#1E3A8A', undefined, 90);
   },
