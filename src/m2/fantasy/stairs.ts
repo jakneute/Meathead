@@ -167,6 +167,8 @@ export const drawStairs = (c: Ctx, state: GameState, list: Stair[]) => {
   for (const s of list) {
     const d = s.d, e = endAt(d, s.ang);
     if (!onScreen(state, Math.min(d.px, e.x) - 40, Math.max(d.px, e.x) + 40)) continue;
+    // (and up or down: way over or under the screen (a climb high up the keep's tower), not drawn)
+    if (Math.max(d.py, e.y) + 40 < state.camera.y - 60 || Math.min(d.py, e.y) - 60 > state.camera.y + 660) continue;
     const dir = dirOf(s.ang), stone = d.stone ?? '#8E84A8', lip = d.lip ?? '#F2E2B8';
     const at = (u: number, up = 0) => ({ x: d.px + dir.x * u, y: d.py + dir.y * u - up });
     const S = shades(stone), OAK = ['#2A1A12', '#4A2E1E', '#6E4A30', '#946A44', '#BA9264'];

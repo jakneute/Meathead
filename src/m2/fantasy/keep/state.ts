@@ -8,6 +8,7 @@ import type { Enemy, Block } from '../../../m1/types';
 import type { Said } from '../section';
 import type { Stair } from '../stairs';
 import { fantasyState, landVisit } from '../section';
+import type { HealthCard } from '../../upgrades/healthAward';
 
 /** What the castle's new cast throw: a jester's juggling pin (lobbed, spinning), a lady-in-waiting's fan (out flat and
  *  back to her hand, like a boomerang). */
@@ -44,11 +45,13 @@ export interface Keep {
   shop: { said: Said | null; who: string | null; step: 'wait' | 'talk' | 'done' };
   roseAt: number;
   scene: RunwayScene;
+  /** The hidden climb's heart canister (heartClimb.ts): still up there (not found on this save); its card, up. */
+  heart: boolean; heartCard: HealthCard | null;
 }
 
 export const keepOf = (state: GameState) => fantasyState<Keep>(state, 'keep', () => ({
   stairs: [], squash: [], throws: [], barks: new Map(), barkAt: -999, said: {}, piper: null, piperX: 0, piperY: 0,
-  shop: { said: null, who: null, step: 'wait' }, roseAt: -999,
+  shop: { said: null, who: null, step: 'wait' }, roseAt: -999, heart: false, heartCard: null,
   scene: { step: 'wait', t: 0, all: 0, line: 0, said: null, who: null, fade: 0, hearts: 0, flyers: [], broom: null, mounted: false, lift: 0, talkers: [] },
 }));
 

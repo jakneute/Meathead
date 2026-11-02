@@ -75,6 +75,12 @@ export const MOUNT: ByPants = {
   shitty: ["BRISTLES IN MY SHIT PANTS. LET'S GO.", 'I RIDE THIS BROOM TO HER BED. SHE WILL SMELL ME COMING.'],
   nude: ['BARE ASS ON A BROOMSTICK. SPLINTERS. WORTH IT.', 'NAKED ON A BROOM. THE BRISTLES ARE TICKLING MY TAINT.'],
 };
+/** The heart canister up the tower's hidden climb (the max health find), once its card's shut. */
+export const HEART_GOT: ByPants = {
+  clean: ['A BIGGER HEART. PIPER WILL LOVE THE STAMINA.', 'ALL THOSE STAIRS FOR A HEART IN A JAR. WORTH IT.'],
+  shitty: ['MORE HEART. STILL A LOAD IN MY PANTS.', 'I CLIMBED ALL THAT WITH SHIT IN MY JEANS. I EARNED THIS.'],
+  nude: ['A BIGGER HEART. MY DICK WANTS ONE TOO.', 'NAKED UP A MAGIC STAIRCASE FOR A JAR HEART. LIVING.'],
+};
 /** Back on the runway later: the brooms gone, the deck empty. */
 export const EMPTY: ByPants = {
   clean: ['NO MORE BROOMS. NO MORE SUITORS.', "THE BROOM PORT. EMPTY. THEY'RE ALL DEAD. I DID THAT."],
@@ -196,7 +202,7 @@ export const KILL_CALLS: Record<string, Record<string, string[]>> = {
 
 const pools = (b: ByPants) => allOf(b);
 export const VOICE_LINES: Record<string, string[]> = {
-  meathead: [...[ARRIVE, SHOP_RETORT, MOUNT, EMPTY, ...Object.values(GAGS)].flatMap(allOf), ...Object.values(HURT).flatMap(h => h.hurt)],
+  meathead: [...[ARRIVE, SHOP_RETORT, MOUNT, EMPTY, HEART_GOT, ...Object.values(GAGS)].flatMap(allOf), ...Object.values(HURT).flatMap(h => h.hurt)],
   death: Object.values(HURT).flatMap(h => h.death),
   announcer: [...new Set(Object.values(KILL_CALLS).flatMap(k => Object.values(k).flat()))],
   [KEEP_VOICES.guard]: pools(GUARD_BARK), [KEEP_VOICES.guardf]: pools(GUARD_BARK),

@@ -32,6 +32,7 @@ import { buildHazards, updateHazards, drawHazardsBack, drawHazardsFront, drawDra
 import { drawKeepBackdrop, drawKeepBack, drawGatehouseVeil, keepLamps } from './art';
 import { buildRunway, updateRunway, updateBoutique, drawBoutique, drawBoutiqueFront, drawRunway, drawRunwayFront, drawRunwayHud, runwayPiper } from './runway';
 import { ARRIVE, GAGS, PIPER_KEEP } from './lines';
+import { CLIMB_STAIRS, buildClimb, updateClimb, drawClimb } from './heartClimb';
 import { primeGround, prewarmGround } from '../broom/arena';
 import '../square/kinds';
 import '../glen/kinds';
@@ -46,7 +47,9 @@ export const keep: FantasySection = {
     for (const [a, b, top, bot] of SOLIDS) solid(state, X(a), Y(top), b - a, (bot !== undefined ? Y(bot) : GY + 40) - Y(top), { hidden: true });
     for (const [a, b, h] of LEDGES) ledge(state, X(a), Y(h), b - a, { hidden: true });
     const k = keepOf(state);
-    k.stairs = makeStairs(state, STAIRS);
+    // (the tower's hidden climb's flights after the castle's own (their indices unchanged): heartClimb.ts)
+    k.stairs = makeStairs(state, [...STAIRS, ...CLIMB_STAIRS]);
+    buildClimb(state);
     buildHazards(state);
     for (const [kind, rx, h] of CAST) {
       const e = makeKindEnemy(kind as EnemyKind, X(rx), Y(h));
@@ -59,6 +62,8 @@ export const keep: FantasySection = {
   update: (ctx, controls) => {
     const { state } = ctx, p = state.player, k = keepOf(state);
     updateStairs(ctx, k.stairs);
+    // (the hidden climb's heart canister: its card up, him held (index.ts's cutscene rule keeps his controls out))
+    if (updateClimb(ctx)) return controls;
     updateHazards(ctx, controls);
     updateBoutique(state);
     const out = updateRunway(ctx, controls);
@@ -91,6 +96,7 @@ export const keep: FantasySection = {
     drawKeepBack(c, state, k.piper ? k.piperX : null, runwayPiper(state), runwayDone(state));
     drawBoutique(c, state);
     drawHazardsBack(c, state);
+    drawClimb(c, state);
     drawStairs(c, state, k.stairs.filter((_, i) => i !== BRIDGE_STAIR));
     drawDrawbridge(c, state, k.stairs[BRIDGE_STAIR]);
     drawRunway(c, state);
