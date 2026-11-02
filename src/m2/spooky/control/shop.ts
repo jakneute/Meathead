@@ -65,10 +65,11 @@ const STANDS: Stand[] = [
   [2700, 150, 110, 'booth'],
   [3420, 110, 130, 'shelf'],
 ];
-/** The racks along the floor (background, till Donnie tips one): x, what's on it, and whether he tips it. */
+/** The racks along the floor (background, till Donnie tips one): x, what's on it, and whether he tips it. (The two
+ *  under the mezzanine sit between its posts: a post stood up through each one's price card.) */
 const RACKS: { rel: number; kind: 'shirts' | 'horns' | 'forks' | 'globes'; tip: boolean }[] = [
   { rel: 200, kind: 'shirts', tip: false }, { rel: 330, kind: 'shirts', tip: true }, { rel: 560, kind: 'horns', tip: false },
-  { rel: 1200, kind: 'globes', tip: false }, { rel: 1750, kind: 'forks', tip: false }, { rel: 2200, kind: 'horns', tip: false },
+  { rel: 1200, kind: 'globes', tip: false }, { rel: 1640, kind: 'forks', tip: false }, { rel: 2120, kind: 'horns', tip: false },
   { rel: 3000, kind: 'shirts', tip: false }, { rel: 3200, kind: 'shirts', tip: true }, { rel: 3600, kind: 'globes', tip: false },
 ];
 /** Donnie's spots: where he stops (looking back) till Meathead's near enough to see it, then what he throws. */

@@ -14,7 +14,7 @@ import { bust, drawBust, SKIN, HAIR, CLOTH, IRIS, type BustSpec } from '../../gr
 
 /** The employee of the month, every month: fat, balding, a headset, grinning, sweating through it. */
 const EOTM: BustSpec = { seed: 909, skin: SKIN.pink, hair: 'combover', hairRamp: HAIR.brown, beard: 'stubble', iris: IRIS.blue, mouth: 'grin', coat: CLOTH.red, extras: ['headset', 'sweaty', 'zits'], jowl: 1.4, wide: 1.12 };
-import { BUFFET_X, BUFFET_W, SLUSH_X } from './geo';
+import { BUFFET_X, BUFFET_W, SLUSH_X, SHOP_X, BALL_DOOR } from './geo';
 
 type Ctx = CanvasRenderingContext2D;
 
@@ -153,7 +153,9 @@ const ropeLights = (c: Ctx, eye: Eye, L: number, R: number, f: number) => {
 export const drawShopRoom = (c: Ctx, state: GameState, eye: Eye, L: number, R: number) => {
   const f = state.frame;
   box(c, L, CEIL - 900, R - L, 900, '#0A0505');
-  wallRun(c, eye, 'shop-wall', L, R, 320, 4, paintShopTile, 'rgba(16, 2, 2, 0.32)');
+  // (its tiles laid from the shop's own left end, not from the camera's: laid from the edge of the view they slid along
+  // with him, the skulls and EMPLOYEE OF THE MONTH riding over the racks and into the ballroom's wall)
+  wallRun(c, eye, 'shop-wall', SHOP_X - 60, BALL_DOOR + 400, 320, 4, paintShopTile, 'rgba(16, 2, 2, 0.32)');
   ropeLights(c, eye, L, R, f);
   ceiling(c, eye, L, R, ['#120404', '#180606', '#1E0808', '#240A0A'], 160, '#2E0C0A');
   // (the track lights along the ceiling: a rail, cans pointed down)

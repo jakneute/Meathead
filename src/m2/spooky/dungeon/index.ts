@@ -327,7 +327,10 @@ const drawDungeon = (c: CanvasRenderingContext2D, state: GameState, dg: Dungeon)
   }
   // The chamber
   if (seen(state, RA - 100, RB + 100)) {
-    plaque(c, RA + 640, GY - 420, 'THE CHAMBER OF THE DESCENDING CEILING', '#3A0A0A', '#FCA5A5', '#6A2A2A');
+    // (on two plates, between two of the ram's columns and down clear of its spikes: on one long plate, up at the
+    // ceiling, the spikes hung over its words and a column ran through it)
+    plaque(c, RA + 735, GY - 372, 'THE CHAMBER OF THE', '#3A0A0A', '#FCA5A5', '#6A2A2A');
+    plaque(c, RA + 735, GY - 346, 'DESCENDING CEILING', '#3A0A0A', '#FCA5A5', '#6A2A2A');
     for (const [x, y, w] of RLEDGES) stoneLedge(c, x, y, w, '#5E5A56');
     // (the ones the ceiling got before him: flattened under its old marks; a skeleton by the far door, selfie stick and all)
     put(c, 'dFlat', RA + 520, GY, -60, -16, 200, 20, g => flatGuest(g, 0, 0, guestOf(64)));

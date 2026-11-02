@@ -253,8 +253,10 @@ const paintSolid = (g: Ctx, i: number) => {
       // (the roof's drip rail, and its lip: lit, to stand on)
       box(g, x + 42, y + 2, w - 50, 1, CH[1]);
       box(g, x + 42, y - 1, w - 50, 3, LIP[2]); box(g, x + 42, y - 1, w - 50, 1, LIP[3]);
-      ironPost(g, x - 28, y - 30, b, 4);
-      board(g, x - 28, y - 40, 'HEARSE PARKING - VALET ONLY', '#1C1917', '#FDE68A', 6); break;
+      // (on two lines, by the hearse's nose: further out, its end ran into the fortune teller's wall)
+      ironPost(g, x - 12, y - 52, b, 4);
+      board(g, x - 12, y - 52, 'HEARSE PARKING', '#1C1917', '#FDE68A', 6);
+      board(g, x - 12, y - 33, 'VALET ONLY', '#1C1917', '#FDE68A', 6); break;
     }
     case 'arcade': {
       // The Grand Arcade: a Victorian Gothic colonnade. 9 fluted columns, dentilled entablature, bat-carved frieze.
@@ -438,9 +440,11 @@ export const paintGag = (g: Ctx, i: number) => {
       poly(g, [[kx - 44, base - 26], [kx - 30, base - 34], [kx - 20, base - 34], [kx - 34, base - 26], [kx - 22, base], [kx - 30, base]], OAK[5]);
       box(g, kx - 30, base - 33, 60, 3, BRASS[4]); box(g, kx - 2, base - 26, 4, 18, BRASS[3]); box(g, kx - 8, base - 20, 16, 4, BRASS[3]);
       for (let k = 0; k < 4; k++) { box(g, kx - 33 + k * 18, base - 51, 12, 18, INK); box(g, kx - 32 + k * 18, base - 50, 10, 16, '#18181B'); box(g, kx - 31 + k * 18, base - 48, 8, 11, ['#22D3EE', '#A3E635', '#22D3EE', '#F472B6'][k]); box(g, kx - 28 + k * 18, base - 34, 2, 6, '#D4D4D8'); }
-      ironPost(g, kx + 53, base - 96, base, 5);
-      board(g, kx + 53, base - 96, 'PHONE CHARGING COFFIN', '#1E1036', '#E9D5FF', 6);
-      board(g, kx + 53, base - 76, '20 MIN LIMIT', '#1C1917', '#FDE68A', 6);
+      // (its sign on the kiosk's open side, on two planks: on the other side it ran into the crypt's front)
+      ironPost(g, kx - 53, base - 114, base, 5);
+      board(g, kx - 53, base - 114, 'PHONE CHARGING', '#1E1036', '#E9D5FF', 6);
+      board(g, kx - 53, base - 95, 'COFFIN', '#1E1036', '#E9D5FF', 6);
+      board(g, kx - 53, base - 76, '20 MIN LIMIT', '#1C1917', '#FDE68A', 6);
       break;
     }
     case 4: { // the gargoyle with the security camera
@@ -467,8 +471,9 @@ export const paintGag = (g: Ctx, i: number) => {
       box(g, x + 64, GY - 104, 22, 14, INK); box(g, x + 65, GY - 103, 20, 12, '#16A34A'); box(g, x + 67, GY - 101, 8, 2, '#BBF7D0');
       g.strokeStyle = INK; g.lineWidth = 4; g.beginPath(); g.moveTo(x + 88, GY - 70); g.quadraticCurveTo(x + 112, GY - 50, x + 104, GY - 26); g.stroke();
       g.strokeStyle = '#27272A'; g.lineWidth = 2; g.stroke();
-      ironPost(g, x + 62, GY - 190, GY - 110, 5);
-      board(g, x + 62, GY - 190, 'HORSE & BUGGY EV CHARGING', '#14532D', '#BBF7D0', 6);
+      // (up clear of the arcade's roof line: its foot sat on it)
+      ironPost(g, x + 62, GY - 208, GY - 110, 5);
+      board(g, x + 62, GY - 208, 'HORSE & BUGGY EV CHARGING', '#14532D', '#BBF7D0', 6);
       break;
     }
     case 6: { // the castle sign at the foot of the stairs, and the stair lift (out of order)
@@ -485,8 +490,11 @@ export const paintGag = (g: Ctx, i: number) => {
       box(g, sx - 15, GY - 77, 10, 32, INK); box(g, sx - 14, GY - 76, 8, 30, '#1D4ED8'); box(g, sx - 14, GY - 76, 2, 30, '#60A5FA');
       box(g, sx - 7, GY - 38, 8, 38, INK); box(g, sx - 6, GY - 38, 6, 38, '#52525B');
       box(g, sx + 4, GY - 64, 14, 3, '#A1A1AA');
-      ironPost(g, sx + 60, GY - 100, GY, 5);
-      board(g, sx + 60, GY - 100, 'STAIR LIFT OUT OF ORDER', '#1C1917', '#FDE68A', 6);
+      // (its sign on the flat, under the castle sign, short of the chair: it stood on the stairs, its post down through
+      // the steps, its end over the newel post)
+      ironPost(g, sx - 110, GY - 62, GY, 5);
+      board(g, sx - 110, GY - 62, 'STAIR LIFT', '#1C1917', '#FDE68A', 6);
+      board(g, sx - 110, GY - 43, 'OUT OF ORDER', '#1C1917', '#FDE68A', 6);
       break;
     }
     case 7: { // the landing: a bench, and the sign
@@ -501,7 +509,7 @@ export const paintGag = (g: Ctx, i: number) => {
   }
 };
 /** Each gag: where it is (for culling) [from, to]. */
-const GAGS: [number, number][] = [[100, 400], [2160, 2320], [RAMP.r0 - 120, RAMP.r0], [3860, 4150], [4940, 5020], [8940, 9120], [STAIRS.a0 - 290, STAIRS.a0 + 200], [STAIRS.a1 + 80, STAIRS.a1 + 260]];
+const GAGS: [number, number][] = [[100, 400], [2160, 2320], [RAMP.r0 - 120, RAMP.r0], [3820, 4150], [4940, 5020], [8940, 9120], [STAIRS.a0 - 290, STAIRS.a0 + 200], [STAIRS.a1 + 80, STAIRS.a1 + 260]];
 
 /** The ADA ramp's handrail, a step back (never in front of him): iron, on posts, sloped with the ramp. */
 const drawHandrail = (c: Ctx, v: View) => {

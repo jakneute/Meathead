@@ -288,8 +288,12 @@ const paintCastle = (g: Ctx) => {
   }
   for (let k = 0; k < 3; k++) { const ix = CL + 30 + k * 200; for (let y = CB - 10; y > CB - 200 - k * 60; y -= 3) { const s = Math.sin(y * 0.08 + k) * 6; box(g, ix + s, y, 3, 3, (y >> 2) % 3 ? '#1E3A1E' : '#2E5A26'); if (y % 15 === 0) box(g, ix + s + 3, y, 4, 2, '#3E7A2E'); } }
   // The signs: DRACULA'S OTHER CASTLE, the rules under it
-  board(g, x1 - 160, CB - 282, "DRACULA'S OTHER CASTLE", '#450A0A', '#FECACA');
-  board(g, x1 - 160, CB - 254, 'NO FLASH PHOTOGRAPHY - NO STROLLERS', '#1E1036', '#E9D5FF', 6);
+  // (on four planks, inside the bay between the last two pilasters: on two long ones they ran across a pilaster)
+  { const bx = CL + 150 + 190 + 25 + (190 - 25) / 2;
+    board(g, bx, CB - 302, "DRACULA'S", '#450A0A', '#FECACA');
+    board(g, bx, CB - 280, 'OTHER CASTLE', '#450A0A', '#FECACA');
+    board(g, bx, CB - 254, 'NO FLASH PHOTOGRAPHY', '#1E1036', '#E9D5FF', 6);
+    board(g, bx, CB - 235, 'NO STROLLERS', '#1E1036', '#E9D5FF', 6); }
   // The door: big, arched, its stone surround, oak planks studded with iron, open a crack (black in the gap)
   const dl = x1 - 132, dr = x1 - 28, dt = CB - 170;
   poly(g, [[dl - 12, CB], [dl - 12, dt], [(dl + dr) / 2, dt - 44], [dr + 12, dt], [dr + 12, CB]], INK);

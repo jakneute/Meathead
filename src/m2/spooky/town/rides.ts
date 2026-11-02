@@ -431,7 +431,8 @@ const drawTrain = (c: Ctx, state: GameState, v: View) => {
     if (withSkull) skull(x - w / 2 - 12, GY - h);
   };
   // (clear of where the train docks at each station: it'd cover them)
-  lowSign(X(TRAIN.a) - 275, 'BOTTOMLESS PIT. NO, REALLY.', '#450A0A', '#FECACA', 7, true);
+  // (on two lines, clear of the hearse: its left end and skull were over the hearse's roof)
+  { const x = X(TRAIN.a) - 235; ironPost(c, x, GY - 72, GY, 6); const w = board(c, x, GY - 72, 'BOTTOMLESS PIT.', '#450A0A', '#FECACA', 7); board(c, x, GY - 52, 'NO, REALLY.', '#450A0A', '#FECACA', 7); skull(x - w / 2 - 12, GY - 72); }
   lowSign(X(TRAIN.a) - 175, 'PLEASE STAY ON THE TRAIN', '#1C1917', '#FDE68A', 6, false, 28);
   // (the far side's crowded with the station and the drop tower: this one up on a tall post over the far lip, clear of
   // the train when it's in)
@@ -552,7 +553,9 @@ const drawPony = (c: Ctx, state: GameState, v: View) => {
   beam(c, -32, -40, -46, -20 + Math.sin(f * 0.2) * 4, 3, B[1], B[3]);
   c.restore();
   signPost(c, x - 140, GY, 90, 'SKELETON PONY', '#3B0764', '#F5D0FE');
-  board(c, x - 140, GY - 66, '25 CENTS - RIDE AT OWN RISK', '#1C1917', '#FDE68A', 6);
+  // (the small print on two planks: on one it ran across the gift shop's doorway)
+  board(c, x - 140, GY - 68, '25 CENTS', '#1C1917', '#FDE68A', 6);
+  board(c, x - 140, GY - 49, 'RIDE AT OWN RISK', '#1C1917', '#FDE68A', 6);
 };
 
 /** The rides that aren't on top of everything (all of them are behind him). */

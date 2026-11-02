@@ -1108,8 +1108,11 @@ const drawRoomBack = (c: Ctx, state: GameState, r: Room) => {
   for (const [wx, sill] of WINDOWS[r.id]) if (seen(state, r.a + wx - 60, r.a + wx + 130)) gothicWindow(c, r.id, r.a + wx, GY - sill);
   for (const sx of SCONCES[r.id]) if (seen(state, r.a + sx - 20, r.a + sx + 20)) sconce(c, r.a + sx, SCONCE_Y, f);
   drawRoomThings(c, state, r);
-  plaque(c, r.a + 300, GY - 330, r.name);
+  plaque(c, r.a + (PLAQUE_AT[r.id] ?? 300), GY - 330, r.name);
 };
+/** Where a room's name plaque hangs (room x), when not 300 in: the bedroom's sat on its window, its end on the wardrobe's
+ *  top (it's over the fireplace's mantel, under the portrait). */
+const PLAQUE_AT: Partial<Record<RoomId, number>> = { bedroom: 1340 };
 /** A room's nearer half: what he stands on, the set pieces, the PA's horns (after the doorways). */
 const drawRoomFront = (c: Ctx, state: GameState, cs: Castle, r: Room) => {
   const f = state.frame, inRoom = (x: number) => x > r.a - 260 && x < r.b + 260;
