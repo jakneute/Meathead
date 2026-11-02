@@ -377,12 +377,16 @@ const sounds = (m: Match) => { for (const e of m.ev) if (e.e === 'sfx') playSoun
 // ---------------------------------------------------------------------------------------------------------------
 // Drawing
 
-/** The cabinet and the kid in the world (the town's back pass: behind him). */
+const inView = (state: GameState) => { const cx = X(CAB_RX), x0 = state.camera.x; return cx > x0 - 100 && cx < x0 + CANVAS_WIDTH + 100; };
+/** The cabinet in the world (the town's back pass: behind him). */
 export const drawMashWorld = (c: Ctx, state: GameState) => {
-  const cx = X(CAB_RX), x0 = state.camera.x;
-  if (cx < x0 - 100 || cx > x0 + CANVAS_WIDTH + 100) return;
+  if (!inView(state)) return;
+  drawCabinet(c, X(CAB_RX), Y(0), state.frame, mashOf(state).phase !== 'off');
+};
+/** The kid (the front pass: a step nearer us than Meathead, so he's never lost behind him at the cabinet). */
+export const drawMashFront = (c: Ctx, state: GameState) => {
+  if (!inView(state)) return;
   const ms = mashOf(state), f = state.frame;
-  drawCabinet(c, cx, Y(0), f, ms.phase !== 'off');
   // (playing, he faces the cabinet; talking, smug at Meathead; after, cheering or sulking)
   const p = state.player, face = ms.kidPose === 'play0' || ms.kidPose === 'play1' ? -1 : (p.pos.x + p.width / 2 >= X(KID_RX) ? 1 : -1);
   drawKid2(c, X(KID_RX), Y(0), face, ms.kidPose, f);

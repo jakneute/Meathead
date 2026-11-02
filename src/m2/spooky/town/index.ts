@@ -26,7 +26,7 @@ import { updateLadders, drawLadders, type LadderDef } from '../../moves/ladders'
 import { drawTownBackdrop, drawTownBack, townLamps } from './art';
 import { ARRIVE, ELEVATOR_SEEN, ELEVATOR_AGAIN, STAIRS as STAIRS_LINES, RIDE_LINES, PONY_LAUNCHED, TRAIN_RIDE, PUMPKINS_SEEN, PIT_SEEN, FALL_SCREAM } from './lines';
 import { playSound } from '../../../m1/game/platform/audio';
-import { updateMash, drawMashWorld, drawMashHud } from './mash';
+import { updateMash, drawMashWorld, drawMashFront, drawMashHud } from './mash';
 
 const { x0, x1 } = SECTIONS.town;
 /** The town's ladders (layout.ts), as the ladders want them: each up to the ledge it's for, stepped off onto it. */
@@ -98,7 +98,7 @@ export const town: SpookySection = {
   drawBackdrop: (c, state) => { drawTownBackdrop(c, state); return true; },
   drawBack: (c, state) => { drawTownBack(c, state); drawLadders(c, state, TOWN_LADDERS); drawMashWorld(c, state); },
   drawHud: (c, state) => drawMashHud(c, state),
-  drawFront: (c, state) => { drawPumpkins(c, state); drawLobbed(c, state); },
+  drawFront: (c, state) => { drawPumpkins(c, state); drawLobbed(c, state); drawMashFront(c, state); },
   // (near the pit, the camera sits higher on him: more of the drop on screen, so it reads as no bottom at all)
   cameraRow: (state) => {
     const px = state.player.pos.x + state.player.width / 2, d = Math.max(0, X(MOAT.a) - px, px - X(MOAT.b));
