@@ -14,7 +14,7 @@ import { stamp } from '../../../m1/game/render/stamp';
 import { brickPattern } from '../../../m1/game/render/pixelArt';
 import { GY } from '../geometry';
 import { drawCheapGreen } from '../crater/art';
-import { BASE_L, STAIRS_X, DOOR_X, HOLE, BF, CATWALK_Y, CEIL_B, STAIRS_A, STAIRS_B } from './geo';
+import { BASE_L, DOOR_X, HOLE, BF, CATWALK_Y, CEIL_B, STAIRS_A, STAIRS_B } from './geo';
 import { CATWALKS, PIPES, PIPE_Y, VENTS, DUCTS, STRIPS } from './basement';
 import { SLABS, slabPose, drawSlab } from './show';
 import { type Ramp, CHROME, dith, tube, blob, hash } from './paint';
@@ -49,13 +49,7 @@ export const drawBasement = (c: Ctx, state: GameState, o: { fell: boolean; lande
   if (shown(state, B - 220, B + 140)) stamp(c, 'sp-q-stairs2', B - 220, CEIL_B, 360, BF - CEIL_B + 4, g => {
     px(g, B - 220, CEIL_B, 220, BF - CEIL_B, '#07070B');
     g.fillStyle = brickPattern(g, 'sp-q-blk-d', 32, 16, ['#121218', '#15151C'], '#09090D'); g.fillRect(B - 220, CEIL_B, 220, BF - CEIL_B);
-    for (let k = 0; k < 14; k++) {
-      const x = B - 200 + k * 14, y = BF - k * 34 - 10;
-      px(g, x, y, 40, BF - y, '#16161C'); px(g, x, y, 40, 10, '#2A2A33'); px(g, x, y, 40, 2, '#5A5A66'); px(g, x, y, 40, 1, '#8A8A96');
-    }
-    px(g, STAIRS_X - 52, BF - 252, 114, 44, '#020203'); px(g, STAIRS_X - 50, BF - 250, 110, 40, '#0B2A18'); px(g, STAIRS_X - 50, BF - 250, 110, 2, '#16A34A');
-    for (const bx of [STAIRS_X - 40, STAIRS_X + 46]) { px(g, bx, BF - 262, 4, 12, '#020203'); px(g, bx + 1, BF - 262, 2, 12, '#52525B'); }
-    lightbox(g, 'EXIT ^ THE HOLD', STAIRS_X + 5, BF - 234, 1, '#4ADE80', '#DCFCE7', '#14532D');
+    // (no stairs back up to the hold any more: the fall's one-way; just the end wall)
   });
   // (the hole in the ceiling he came down through: its broken edges, the hold's light down it; the rubble under it)
   if (o.fell && shown(state, HOLE.a - 120, HOLE.b + 120)) {

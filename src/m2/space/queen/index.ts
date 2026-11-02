@@ -20,17 +20,17 @@
 import type { GameState } from '../../../m1/game/core/state';
 import type { Block } from '../../../m1/types';
 import type { SpaceSection } from '../section';
-import { layOwn, endWalls, endExits, runExits, spaceState, hands, box, teleport, solid } from '../section';
+import { layOwn, endWalls, endExits, runExits, spaceState, hands, box, solid } from '../section';
 import { GY } from '../geometry';
 import { CANVAS_WIDTH, CANVAS_HEIGHT, topBand } from '../../../m1/constants';
 import { drawSkipPrompt, SKIP_AFTER } from '../../../m1/game/platform/skip';
-import { goTo, markLandCleared, markBossDeath, noteBossKill, isLandCleared, setUi, keepForRevisits, keptForRevisits } from '../../store';
+import { goTo, markLandCleared, markBossDeath, noteBossKill, isLandCleared, keepForRevisits, keptForRevisits } from '../../store';
 import { type Victory, startVictory, tickVictory, drawVictory, victoryDone } from '../../victory';
 import { type WalkAway, playWalkAway, tickWalkAway, drawWalkAway } from '../../walkAway';
 import { drawBars } from '../../spooky/control/cine';
 import { playSound } from '../../../m1/game/platform/audio';
 import { shakeScreen } from '../../../m1/game/core/state';
-import { x0, x1, ARENA_L, ARENA_R, TRIGGER_X, QUEEN_X, HOLE, BASE_L, STAIRS_X, LAND_X, DOOR_X, DISCO_L, DISCO_R, DISCO_TRIGGER, DISCO_QX, DOOR_REFILL_X, DOOR_CP_X, BF, STAIRS_A, STAIRS_B, CEIL_B } from './geo';
+import { x0, x1, ARENA_L, ARENA_R, TRIGGER_X, QUEEN_X, HOLE, BASE_L, LAND_X, DOOR_X, DISCO_L, DISCO_R, DISCO_TRIGGER, DISCO_QX, DOOR_REFILL_X, DOOR_CP_X, BF, STAIRS_A, STAIRS_B, CEIL_B } from './geo';
 import { updateLadders, drawLadders } from '../../moves/ladders';
 import { markBossFight } from '../../bossQuiet';
 import { drawRoomBack, drawGlass, drawQueen, roomLights, drawAfterFall } from './art';
@@ -157,11 +157,9 @@ export const queen: SpaceSection = {
       return hands();
     }
     if (q.holdGate && s.step === 'done') { state.blocks = state.blocks.filter(b => b !== q.holdGate); q.holdGate = null; }
-    // (the hole, after: no floor there, he just drops through it the way he went the first time; the stairs up out of
-    // the basement at its west end)
-    const below = feetOf(state) > GY + 40;
-    if (below && cx < STAIRS_X + 30 && cx > BASE_L - 100) setUi({ upPrompt: 'UP THE STAIRS' });
-    if (below && cx < STAIRS_X + 30 && cx > BASE_L - 100 && controls.up && p.isGrounded) { teleport(state, ARENA_L + 80, GY); return controls; }
+    // (the hole, after: no floor there, he just drops through it the way he went the first time. No way back up out of
+    // the basement to the ride: the fall's one-way (the owner's "last i checked you could backtrack from the stalker
+    // section to xenoscare, the normal ride part. that shouldn't happen"); its west end is where Ben's hallway goes)
     // The basement: her; the door
     if (inLower(state) && cx < DOOR_X + 60 || doorKicking(h)) {
       if (!doorIn(h) && !doorKicking(h) && atDoor(state, h)) startKick(state, h);
