@@ -37,7 +37,8 @@ import { bolt, boltV, blast } from './hazards';
 import { drawSaucer, sphere, INK } from './art';
 import { orbitOf, MEMO, type Saucer } from './state';
 import { CY, W, H, X0, X1 } from './geo';
-import { SAUCER_INTRO, SAUCER_TAUNT, SAUCER_HURT, SAUCER_PISSED, MH_WHO, MH_LADIES, GUN_FACTORY, type ByPants } from './lines';
+import { bossGone } from '../../emptyArena';
+import { SAUCER_BACK, MH_WIDOW_BACK, SAUCER_INTRO, SAUCER_TAUNT, SAUCER_HURT, SAUCER_PISSED, MH_WHO, MH_LADIES, GUN_FACTORY, type ByPants } from './lines';
 import { SAUCER_SHARE, SAUCER_FLOOR, MAX_LEVEL, gunSays, gunWords } from './gun';
 import { takeOffSuit } from '../needle/suit';
 import { releaseWeapon } from '../../weaponLock';
@@ -281,9 +282,11 @@ export const updateSaucer = (ctx: FrameContext, controls: Controls): Controls | 
 };
 
 const introLines = (state: GameState, s: Saucer) => {
-  const [a, b] = pool(state, SAUCER_INTRO);
+  // (a revisit, the queen dead: they've met)
+  const back = bossGone('space');
+  const [a, b] = pool(state, back ? SAUCER_BACK : SAUCER_INTRO);
   saucerSays(state, s, a, true);
-  meatheadSays(state, MH_WHO, true);
+  meatheadSays(state, back ? MH_WIDOW_BACK : MH_WHO, true);
   saucerSays(state, s, b, true);
 };
 

@@ -195,14 +195,33 @@ export const DEATH_PROP = ['KILLED BY A DECORATION', 'CLAWED BY A PROP', 'BOO'];
 export const HURT_SPARK = ['IT SPIT SPARKS AT ME!', "OW! IT'S SHORTING OUT ON MY FACE!", 'ELECTRIC SPIT! IN THE EYE!'];
 export const DEATH_SPARK = ['SHORT-CIRCUITED', 'ZAPPED BY A PROP', 'FRIED BY A HALLOWEEN PROP'];
 
+// ---- A revisit (the queen dead: emptyArena.ts bossGone('space')): the same crash, the same ride, no queen to drive
+
+/** At the impact site: they know him now. Mixed in with CRASH_BARK. */
+export const CRASH_BACK: ByPants = {
+  clean: ["HE'S BACK! THE GUY WHO KILLED THE QUEEN!", 'YOU AGAIN?! WE JUST GOT THE SHIP BACK FROM THE BODY SHOP!'],
+  shitty: ["HE'S BACK! HE KILLED THE QUEEN AND SHIT HIMSELF DOING IT!", 'YOU AGAIN?! THE BODY SHOP JUST GOT YOUR SMELL OUT OF THE SHIP!'],
+  nude: ["HE'S BACK! THE NAKED GUY WHO KILLED THE QUEEN!", 'YOU AGAIN?! WE JUST GOT THE SHIP FIXED! AND YOU STILL HAVE NO PANTS!'],
+};
+/** An operator taking a prop over, the queen scrapped (in place of HIJACK's lines about driving her). */
+export const HIJACK_BACK = [
+  "YOU BROKE THE QUEEN. FINE. WE'LL DRIVE THE LITTLE ONES.",
+  'NO QUEEN THIS TIME. JUST A LOT OF LITTLE ONES.',
+  'THIS ONE IS FOR HER MAJESTY. SHE WAS A ROBOT, BUT STILL.',
+];
+/** His first prop coming for him on a revisit (in place of MH_HIJACK's big-one line). */
+export const MH_HIJACK_BACK = ['THE PROPS AGAIN. AT LEAST THE BIG ONE IS SCRAP.'];
+/** The pre-show's tape, redone since: the queen's out of service. */
+export const XENO_ARRIVED_BACK = ['YOU HAVE ARRIVED. THE QUEEN IS OUT OF SERVICE. A GUEST BROKE HER. EXIT TO YOUR RIGHT.'];
+
 export const VOICE_LINES: Record<string, string[]> = {
   meathead: [
     ...MH_ARRIVE, ...MH_ESCAPEES, ...MH_HOUSE, ...all(MH_BOO), ...MH_JUMPSCARE,
-    ...MH_HIJACK, ...HURT_GRUNT, ...HURT_LASER, ...HURT_BRUTE, ...HURT_SPIKES, ...HURT_CRAWLER, ...HURT_TRAM, ...HURT_PROP, ...HURT_SPARK,
+    ...MH_HIJACK, ...MH_HIJACK_BACK, ...HURT_GRUNT, ...HURT_LASER, ...HURT_BRUTE, ...HURT_SPIKES, ...HURT_CRAWLER, ...HURT_TRAM, ...HURT_PROP, ...HURT_SPARK,
   ],
   death: [...DEATH_GRUNT, ...DEATH_LASER, ...DEATH_BRUTE, ...DEATH_SPIKES, ...DEATH_CRAWLER, ...DEATH_TRAM, ...DEATH_PROP, ...DEATH_SPARK],
-  'm2.space.alien': [...all(CRASH_BARK), ...all(FLEE), ...all(HOUSE_BARK), ...all(CALLOUS), ...GRIPE, ...HIJACK],
-  'm2.space.alienf': [...all(CRASH_BARK), ...all(FLEE), ...all(HOUSE_BARK), ...all(CALLOUS), ...GRIPE, ...HIJACK],
-  'm2.space.xeno': [...XENO_WELCOME, ...XENO_TELEPORT, ...XENO_ARRIVED],
+  'm2.space.alien': [...all(CRASH_BARK), ...all(FLEE), ...all(HOUSE_BARK), ...all(CALLOUS), ...GRIPE, ...HIJACK, ...all(CRASH_BACK), ...HIJACK_BACK],
+  'm2.space.alienf': [...all(CRASH_BARK), ...all(FLEE), ...all(HOUSE_BARK), ...all(CALLOUS), ...GRIPE, ...HIJACK, ...all(CRASH_BACK), ...HIJACK_BACK],
+  'm2.space.xeno': [...XENO_WELCOME, ...XENO_TELEPORT, ...XENO_ARRIVED, ...XENO_ARRIVED_BACK],
   'm2.space.boo': [...BOO],
 };

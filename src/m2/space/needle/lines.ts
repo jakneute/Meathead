@@ -25,6 +25,8 @@ export const PA_UP = [
   'WELCOME TO SPACE NEEDLE TWO. YOUR EARS WILL POP. THEN THEY WILL STOP WORKING.',
   'PLEASE HOLD THE HANDRAIL. THE HANDRAIL IS DECORATIVE.',
 ];
+/** A revisit: the elevator's announcer, the deck's window put back since. */
+export const PA_UP_BACK = ['WELCOME BACK TO SPACE NEEDLE TWO. THE DECK WINDOW HAS BEEN REPLACED. WITH THE SAME GLASS. IT WAS ON SALE.'];
 /** Going up (him, bored stiff). */
 export const MH_UP = [
   "IT'S AN ELEVATOR. I'VE BEEN IN AN ELEVATOR.",
@@ -153,7 +155,7 @@ const all = (r: ByPants) => [...r.clean, ...r.shitty, ...r.nude];
 const guests = [...GUEST_VIEW, ...all(GUEST_REACT), ...all(GUEST_SUIT), ...GUEST_SCREAM];
 
 export const VOICE_LINES: Record<string, string[]> = {
-  [PA]: [...PA_UP, ...PA_SPACE, ...PA_DECK, ...PA_IDLE, ...all(PA_SUIT), ...PA_BREACH],
+  [PA]: [...PA_UP, ...PA_UP_BACK, ...PA_SPACE, ...PA_DECK, ...PA_IDLE, ...all(PA_SUIT), ...PA_BREACH],
   meathead: [...MH_LOBBY, ...MH_UP, ...MH_SPACE, ...MH_DECK, ...MH_BORED, ...all(MH_SUIT), ...MH_CASE_EMPTY, ...MH_WINDOW, ...MH_SUCKED, ...MH_SUCKED_SUIT, ...MH_FLOAT, ...HURT_VACUUM],
   [GUEST_F]: guests,
   [GUEST_M]: guests,

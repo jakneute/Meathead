@@ -30,6 +30,12 @@ import { drawCheapGreen, shown } from './art';
 import { alienSays, freshBark, barkPlace, GRUNT, BRUTE, isOperator, setOperating } from './kinds';
 import { RIGS, CEIL, type RigKind } from './layout';
 import * as L from './lines';
+import { bossGone } from '../../emptyArena';
+
+/** A revisit, the queen dead: nobody's driving her, so nobody's on about driving her. */
+const QUEEN_TALK = new Set(['LITTLE ONES FIRST. THEN THE QUEEN.', 'IF IT HAS WIRES, WE CAN WORK IT. SHE HAS LOTS OF WIRES.', "THIS IS JUST PRACTICE. WAIT TILL WE DRIVE THE BIG ONE."]);
+const hijackPool = () => (bossGone('space') ? [...L.HIJACK.filter(t => !QUEEN_TALK.has(t)), ...L.HIJACK_BACK] : L.HIJACK);
+const mhHijackPool = () => (bossGone('space') ? [...L.MH_HIJACK.filter(t => !t.includes('BIG ONE')), ...L.MH_HIJACK_BACK] : L.MH_HIJACK);
 import { inPlay } from '../../moves/grab';
 
 type Ctx = CanvasRenderingContext2D;
@@ -79,7 +85,7 @@ export const tickRigs = (ctx: FrameContext, rigs: Rig[]) => {
         const busy = new Set(rigs.filter(o => o !== r && o.op && (o.mode === 'seize' || o.mode === 'fight')).map(o => o.op));
         const op = state.enemies.filter(e => e.kind === GRUNT && isOperator(e) && e.health > 0 && !busy.has(e) && Math.abs(e.pos.x + e.width / 2 - r.x) < OP_RANGE)
           .sort((u, v) => Math.abs(u.pos.x - r.x) - Math.abs(v.pos.x - r.x))[0];
-        if (op) { r.op = op; r.mode = 'seize'; r.mt = 0; playSound('alienCharge', 0.6, -2); alienSays(op, pick(L.HIJACK)); continue; }
+        if (op) { r.op = op; r.mode = 'seize'; r.mt = 0; playSound('alienCharge', 0.6, -2); alienSays(op, pick(hijackPool())); continue; }
       }
       if (r.t >= POP + HOLD + BACK) { r.t = -1; r.armed = false; }
       continue;
@@ -123,7 +129,7 @@ const tickTaken = (ctx: FrameContext, r: Rig, working: Map<Enemy, number>) => {
     if (r.mt >= SEIZE) {
       r.mode = 'fight'; r.mt = 0;
       playSound('roar', 0.5, 10); shakeScreen(state, 3, 2);
-      if (!saidHijack) { saidHijack = true; meatheadSays(state, pick(L.MH_HIJACK), false); }
+      if (!saidHijack) { saidHijack = true; meatheadSays(state, pick(mhHijackPool()), false); }
     }
     return;
   }

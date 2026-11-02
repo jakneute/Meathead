@@ -39,6 +39,7 @@ import { drawDeckView, drawAscent, prewarmSky, c01, hash } from './sky';
 import { DECOMP, VACUUM, setOutGuests, drawPuppet, drawDecompCam, drawFloat } from './death';
 import { putOnSuit, wearingHelmet, reapplySuit, SUIT_MEMO } from './suit';
 import * as L from './lines';
+import { bossGone } from '../../emptyArena';
 import { onStrike } from '../../weapons/strikes';
 import { addSpawnerBaits } from '../../weapons/spawner';
 import { drawPoseSprite, drawPoseHead } from '../../moves/grab';
@@ -139,7 +140,7 @@ const ride = (state: GameState, ns: Needle) => {
   r.a = k * k * (3 - 2 * k); r.speed = Math.sin(Math.PI * k); r.climbed += r.speed * 40;
   if (t === 1) playSound('rumble', 0.5, -6);
   if (t % 40 === 0 && r.speed > 0.3) { shakeScreen(state, 4, 1 + r.speed); playSound('whoosh', 0.2 + r.speed * 0.3, -8); }
-  if (t === 24) paSays(ns, pickLine(L.PA_UP), true, guard(ns, () => meatheadSays(state, pickLine(L.MH_UP), true, guard(ns, () => { ns.linesDone = true; }))));
+  if (t === 24) paSays(ns, pickLine(bossGone('space') ? L.PA_UP_BACK : L.PA_UP), true, guard(ns, () => meatheadSays(state, pickLine(L.MH_UP), true, guard(ns, () => { ns.linesDone = true; }))));
   // (at the top, and his say's done: through black to the deck's doors)
   if (t >= ASCENT && (ns.linesDone || t > ASCENT + 900) && !r.topped) { r.topped = true; startFade(state, ns, 'top'); return; }
   if (t > SKIP_AFTER) {

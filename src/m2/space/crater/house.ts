@@ -36,6 +36,7 @@ import { lettering } from '../square/lettering';
 import { PRESHOW, TRAMS, CEIL, HOUSE_DOOR, HALLS } from './layout';
 import { liveBolts } from './kinds';
 import * as L from './lines';
+import { bossGone } from '../../emptyArena';
 
 type Ctx = CanvasRenderingContext2D;
 const pick = pickLine;
@@ -133,7 +134,7 @@ const runShow = (ctx: FrameContext, h: House): Controls => {
           go(h, 'mh');
           meatheadSays(state, pick(L.MH_BOO[dressed(state)]), true, guard(h, () => {
             go(h, 'arrived');
-            speak('m2.space.xeno', pick(L.XENO_ARRIVED), guard(h, (s: { text: string } | null) => { h.hostSaid = s?.text ?? null; }), true, guard(h, () => endShow(state, h, false)));
+            speak('m2.space.xeno', pick(bossGone('space') ? L.XENO_ARRIVED_BACK : L.XENO_ARRIVED), guard(h, (s: { text: string } | null) => { h.hostSaid = s?.text ?? null; }), true, guard(h, () => endShow(state, h, false)));
           }));
         }));
       }

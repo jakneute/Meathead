@@ -305,13 +305,45 @@ export const DEATH_CAN = ['SPOTLIGHTED', 'CRUSHED BY THE LIGHTING RIG', 'THE BIG
 export const HURT_SPIT = ['HOT OIL! THE KID SPIT HOT OIL!', "IT'S IN MY MOUTH! IT TASTES LIKE A CAR!", 'SPIT ON BY A BABY! RUDE!'];
 export const DEATH_SPIT = ['SPAT TO DEATH', 'GREASED', 'SPIT-ROASTED'];
 
+// ---- A revisit (she's dead: emptyArena.ts bossGone('space')): her stand empty, the hole still there, nobody in the
+// booths, nothing in the basement; the disco's an empty arena (his line, then the hub)
+
+/** Up to her empty stand in the hold. */
+export const MH_HOLD_BACK: ByPants = {
+  clean: ["EMPTY STAND. YEAH. THAT WAS ME.", 'NOBODY HOME. I SENT HER TO THE SCRAPYARD.'],
+  shitty: ['EMPTY STAND. SHE IS DEAD AND I STILL SHIT MYSELF.', 'NOBODY HOME. JUST ME AND MY LOADED PANTS.'],
+  nude: ["EMPTY STAND. SHE'S DEAD, I'M NAKED. WE BOTH LOST SOMETHING.", 'NOBODY HOME. GOOD. NOBODY TO SEE MY DICK.'],
+};
+/** Down the hole, landed in the basement: nobody stalking it now. */
+export const MH_BASEMENT_BACK: ByPants = {
+  clean: ['QUIET DOWN HERE NOW. NO ROBOT BITCH IN THE PIPES.', 'NOTHING DOWN HERE BUT RATS. AND ME. THE BIGGEST RAT.'],
+  shitty: ['QUIET DOWN HERE NOW. NOTHING TO SHIT MYSELF OVER. TOO LATE.', 'NOTHING DOWN HERE BUT RATS. AND THEY SMELL ME.'],
+  nude: ['QUIET DOWN HERE NOW. JUST A NAKED GUY IN A BASEMENT. NORMAL.', 'NOTHING DOWN HERE BUT RATS. KEEP THEM AWAY FROM MY NUTS.'],
+};
+/** In the disco: what's left of her on the dance floor. Then he's off to the hub. */
+export const MH_DISCO_EMPTY: ByPants = {
+  clean: ["STILL DEAD. NOBODY EVEN SWEPT HER UP. I'M OUT.", "DISCO'S DEAD. SO IS SHE. MY WORK HERE IS DONE."],
+  shitty: ["STILL DEAD. STILL SMELLS. SOME OF THAT'S ME. I'M OUT.", "DISCO'S DEAD. SHE'S DEAD. MY PANTS ARE DEAD. LET'S GO."],
+  nude: ["STILL DEAD. NOBODY TO DANCE WITH NAKED. I'M OUT.", "DISCO'S DEAD. SHE'S DEAD. I'M NAKED ON A DANCE FLOOR. TIME TO GO."],
+};
+/** Down Ben's hatch on a revisit (in place of MH_HATCH_SP: nobody's after him on the way). */
+export const MH_HATCH_BACK: ByPants = {
+  clean: ['A WARM HOLE. AND NOTHING TRYING TO EAT ME ON THE WAY.'],
+  shitty: ['A WARM HOLE. NOBODY LEFT DOWN HERE TO SMELL ME.'],
+  nude: ['A WARM HOLE. NOTHING CHASING MY BARE ASS IN.'],
+};
+/** Ben, his cannon on a revisit (in place of BEN_CANNON_SP). */
+export const BEN_CANNON_BACK = ['BACK WHERE YOU FELL IN. NOBODY DOWN THERE NOW. YOU SAW TO THAT.'];
+
 export const VOICE_LINES: Record<string, string[]> = {
   meathead: [
+    ...all(MH_HOLD_BACK), ...all(MH_BASEMENT_BACK), ...all(MH_DISCO_EMPTY), ...all(MH_HATCH_BACK),
     ...all(MH_GLASS), ...all(MH_KICK), ...all(MH_FALL), ...MH_DARK, ...MH_SPOT, ...all(MH_HIDE), ...all(MH_HIDE_DARK), ...MH_PASSED, ...MH_SEEN, ...MH_WARN_SHOOT, ...MH_WARN_MOVE, ...MH_USELESS,
     ...all(MH_DISCO), ...MH_EXTINGUISHER, ...MH_FOAM_FAIL, ...MH_THROW, ...all(MH_LESS_FATAL), ...MH_RAY, ...MH_BIRTH, ...all(MH_THROW_HINT), ...MH_BAT, ...MH_HEAD, ...MH_GRAB,...all(MH_CHEAP_OIL), ...all(MH_OPS_GONE), ...all(MH_ENDO), ...MH_AIRDROP, ...HURT_CAN,
     ...HURT_SPIT, ...HURT_JAW, ...HURT_OIL, ...all(HURT_FLAIL), ...all(HURT_POOL), ...HURT_BITER, ...HURT_SPITTER, ...HURT_CHARGER,
   ],
   death: [...DEATH_CAN, ...DEATH_SPIT, ...DEATH_JAW, ...DEATH_OIL, ...all(DEATH_FLAIL), ...all(DEATH_POOL), ...DEATH_BITER, ...DEATH_SPITTER, ...DEATH_CHARGER],
   'm2.space.alien': [...all(BOOTH_TAKEOVER), ...all(BOOTH_STUDY), ...all(BOOTH_RITUAL), ...all(BOOTH_RAY), ...all(BOOTH_BIRTH), ...all(BOOTH_MATING), ...all(BOOTH_DROP), ...all(BOOTH_CURSES), BOOTH_EXIT.clean[0]],
+  'm2.ben': BEN_CANNON_BACK,
   'm2.space.queen': ['NOW ENTERING LESS FATAL MODE.', ...[QUEEN_TAUNT, QUEEN_ENTRANCE, QUEEN_BIRTH, QUEEN_LEAP, QUEEN_STUN, QUEEN_MALLET, QUEEN_FLAIL, QUEEN_DIES, QUEEN_BURNS, QUEEN_MORE_FATAL].flatMap(all)],
 };

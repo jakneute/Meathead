@@ -65,6 +65,8 @@ import {
   type BenPose, type BenTalk, type Script, type Beat, type ByPants,
 } from '../../upgrades/confucktious';
 import { meatheadSays } from '../section';
+import { bossGone } from '../../emptyArena';
+import { MH_HATCH_BACK, BEN_CANNON_BACK } from './lines';
 import { BASE_L, BF, LAND_X, HATCH, LAIR, underHall } from './geo';
 import { drawSpar, SPAR_H } from './benLairSpar';
 
@@ -228,7 +230,7 @@ export const updateBenLair = (ctx: FrameContext, controls: Controls, onLand: () 
   // (down the hatch the first time this visit: his line)
   if (!state.stageMemo[IN_MEMO] && p.isGrounded && p.health > 0) {
     state.stageMemo[IN_MEMO] = '1';
-    meatheadSays(state, pickLine(byPants(state, MH_HATCH_SP)), true);
+    meatheadSays(state, pickLine(byPants(state, bossGone('space') ? MH_HATCH_BACK : MH_HATCH_SP)), true);
   }
   // In, on his feet past the hatch: what's on
   if (h.phase === 'out' && p.isGrounded && p.health > 0 && midX(state) > HATCH.b + 30) {
@@ -306,7 +308,7 @@ const cannonHooks = (h: Lair, onLand: () => void) => ({
   onBoard: (st: GameState) => {
     clearSpar(st, h);
     silenceAll(); h.ben.said = null; setUi({ chordTips: null });
-    meatheadSays(st, pickLine(MH_CANNON_ASK), true, () => { if (lairOf(st) === h) benSays(h.ben, pickLine(BEN_CANNON_SP)); });
+    meatheadSays(st, pickLine(MH_CANNON_ASK), true, () => { if (lairOf(st) === h) benSays(h.ben, pickLine(bossGone('space') ? BEN_CANNON_BACK : BEN_CANNON_SP)); });
   },
   onExit: (st: GameState, x: number, y: number) => {
     // (up out of the floor grate by where he landed: it bangs up, steam and grit with him)

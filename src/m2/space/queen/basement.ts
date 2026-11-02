@@ -70,6 +70,7 @@ import { registerDeathDraw, body } from '../../../m1/game/render/player/deathAni
 import { drawBloodPool } from '../../../m1/game/render/spatter';
 import { onLadder, type LadderDef } from '../../moves/ladders';
 import { setUi, isLandCleared } from '../../store';
+import { bossGone } from '../../emptyArena';
 import { hands, meatheadSays, box } from '../section';
 import { ink, limb } from '../../../m1/game/render/npc/kit';
 import { stamp, setStampHold } from '../../../m1/game/render/stamp';
@@ -349,6 +350,13 @@ export const tickHunter = (ctx: FrameContext, h: Hunter, controls: Controls): Co
   }
   h.t++;
   if (h.door === 'kicking') return kick(ctx, h);
+  // (a revisit, she's dead: the basement's empty of her, Ben's hallway too; just the dark and the drips. Nothing out
+  // of the vents, nothing to hide from, safe the whole way to the disco's door (already in))
+  if (bossGone('space')) {
+    if (Math.random() < 1 / 160) playSound('tinkle', 0.15, -4 + Math.random() * 8);
+    if (!h.saidDark && cx > B + 420 && p.isGrounded) { h.saidDark = true; meatheadSays(state, pick(L.MH_DARK), false); }
+    return null;
+  }
   // (down the hatch, in Ben's break room: safe. Whatever she was doing up there, she's off; nothing of hers runs down
   // here, and he's back up to a breather)
   if (underHall(cx, pfeet(state))) {

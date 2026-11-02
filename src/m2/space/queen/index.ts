@@ -45,6 +45,16 @@ import { type Heap, packEndo, unpackEndo, drawHeap } from './endo';
 import { frameDeath } from '../../deathFrame';
 import { drawBasement, drawDisco, discoLighting, discoGlow, drawShutter, drawDiscoShell } from './lowerArt';
 import { type Piece, type Splat, packPieces, unpackPieces, drawPieces, drawSplats } from './burst';
+import { bossGone, leaveEmptyArena } from '../../emptyArena';
+import { pickLine } from '../../../m1/game/platform/speech';
+import { isShat, isNude } from '../../../m1/game/player/gut';
+import { meatheadSays } from '../section';
+import { MH_HOLD_BACK, MH_BASEMENT_BACK, MH_DISCO_EMPTY, type ByPants } from './lines';
+
+/** A revisit's lines (she's dead), by his pants. */
+const backLine = (state: GameState, b: ByPants) => pickLine(b[isNude(state) ? 'nude' : isShat(state) ? 'shitty' : 'clean']);
+/** Said once a visit (kept across his deaths): up to her empty stand; landed in the empty basement. */
+const HOLD_BACK_MEMO = 'm2:space:holdBack', BASE_BACK_MEMO = 'm2:space:baseBack';
 
 interface Queen {
   init: boolean;
@@ -62,6 +72,8 @@ interface Queen {
   wreck: { pieces: Piece[]; splats: Splat[] } | null | undefined;
   /** A revisit after her plain death: her burnt skeleton in its heap (kept: the store), or null. */
   heap: Heap | null | undefined;
+  /** A revisit: into the empty disco, his line (picked once), then the hub. */
+  emptyLine?: string;
 }
 /** The hall as far as a camera taking her death in may go (its walls, the ceiling's plenum, under the floor). */
 const DISCO_ROOM = { x0: DISCO_L - 60, y0: GY - 1000, x1: DISCO_R + 60, y1: GY + 160 };
@@ -151,13 +163,20 @@ export const queen: SpaceSection = {
       q.init = true;
       // (a fresh start at a checkpoint past the fall (it's set after the build): the floor's gone)
       if (fell(state) && s.step === 'wait') { s.step = 'done'; s.glass = false; }
-      if (state.checkpoint >= DISCO_CP) forceDoorIn(state, h);
+      // (a revisit: the door he kicked in the first time is still down)
+      if (state.checkpoint >= DISCO_CP || bossGone('space')) forceDoorIn(state, h);
     }
     if (q.glassBlock && !s.glass) { state.blocks = state.blocks.filter(b => b !== q.glassBlock); q.glassBlock = null; }
     // (the floor's given: the slab over the hole's gone)
     if (q.holeBlock && collapsed(s)) { state.blocks = state.blocks.filter(b => b !== q.holeBlock); q.holeBlock = null; }
     // The hold: the cutscene (into the basement)
     { const out = tickShow(ctx, s); if (out) return out; }
+    // (a revisit, she's dead: no cutscene, no booth, her stand empty; his say at it, and down the hole he goes himself.
+    // Landed: his say about the quiet)
+    if (bossGone('space') && p.health > 0 && p.isGrounded && !p.inCutscene) {
+      if (!state.stageMemo[HOLD_BACK_MEMO] && cx > TRIGGER_X - 120 && cx < ARENA_R && feetOf(state) < GY + 10) { state.stageMemo[HOLD_BACK_MEMO] = '1'; meatheadSays(state, backLine(state, MH_HOLD_BACK), false); }
+      if (!state.stageMemo[BASE_BACK_MEMO] && inBasement(state) && Math.abs(cx - LAND_X) < 300) { state.stageMemo[BASE_BACK_MEMO] = '1'; meatheadSays(state, backLine(state, MH_BASEMENT_BACK), false); }
+    }
     if (s.step === 'wait' && !isLandCleared('space') && cx > TRIGGER_X && cx < ARENA_R && p.isGrounded && p.health > 0) {
       q.holdGate = { x: ARENA_L - 30, y: -4000, w: 30, h: 4000 + GY, type: 'wall', hidden: true, tag: 'queen-hold-gate' } as Block;
       state.blocks.push(q.holdGate);
@@ -179,6 +198,12 @@ export const queen: SpaceSection = {
     queenDrops(q.fight === 'on');
     // The disco
     if (q.fight === 'wait') {
+      // (a revisit: the disco's an empty arena. In through the door, on the floor: his line, then the hub)
+      if (bossGone('space') && (q.emptyLine || (doorIn(h) && cx > DISCO_TRIGGER && p.isGrounded && p.health > 0))) {
+        q.emptyLine ??= backLine(state, MH_DISCO_EMPTY);
+        leaveEmptyArena(state, q.emptyLine);
+        return hands();
+      }
       if (doorIn(h) && !isLandCleared('space') && cx > DISCO_TRIGGER && p.isGrounded && p.health > 0) beginDisco(state, q, f);
       runExits(state, endExits('queen').filter(e => e.x0 < x0 + 100));
       return controls;

@@ -38,6 +38,12 @@ export const OP_GREET: Record<Dressed, string> = {
   shitty: 'WELCOME TO THE FUTURE! ...WHAT IS THAT SMELL?',
   nude: 'WELCOME TO THE— SIR, WHERE ARE YOUR CLOTHES?',
 };
+/** A revisit (the queen dead: he's been through): the operator knows him, and why the ride's all new. */
+export const OP_GREET_BACK: Record<Dressed, string> = {
+  clean: "OH GOD, IT'S YOU. WE REBUILT THE WHOLE RIDE. NEW SLEDS. PLEASE DON'T.",
+  shitty: "OH GOD, IT'S YOU. WE JUST GOT YOUR SMELL OUT OF THE NEW SLEDS.",
+  nude: "OH GOD, IT'S YOU. WE REBUILT THE WHOLE RIDE. THE INSURANCE GUY SAW YOUR PICTURE. HE CRIED.",
+};
 export const MEATHEAD_PARTY = ['ONE.', 'JUST ME. THEY\'RE GETTING OUT.'];
 /** The one he hauls out of the front seat and throws over the rail into the line. */
 export const GUEST_THROWN: ByPants = {
@@ -109,5 +115,5 @@ export const VOICE_LINES: Record<string, string[]> = {
   'm2.space.handf': [...all(HAND_COWERS), ...all(CAST_BARKS)],
   'm2.guest': [...all(QUEUE_BARKS), ...all(GUEST_THROWN), GUEST_FLEES],
   'm2.guest2': [...all(QUEUE_BARKS), ...all(GUEST_THROWN), GUEST_FLEES],
-  'm2.space.op': [...each(OP_GREET), ...each(OP_PROTEST), OP_DONT, OP_AFTER],
+  'm2.space.op': [...each(OP_GREET), ...each(OP_GREET_BACK), ...each(OP_PROTEST), OP_DONT, OP_AFTER],
 };

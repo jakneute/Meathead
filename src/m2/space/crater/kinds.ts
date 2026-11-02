@@ -25,6 +25,7 @@ import { inHazard } from '../../hazardHit';
 import { isShat, isNude } from '../../../m1/game/player/gut';
 import { ALIEN } from '../../../m1/game/scenes/alienLook';
 import { voice, saidOver } from '../section';
+import { bossGone } from '../../emptyArena';
 import { drawAlien, drawCrawler, ALIEN_MUZZLE, type AlienPose, type CrawlPose } from './aliens';
 import { MOUTH_X } from './layout';
 import { floorAt } from './paint';
@@ -79,7 +80,8 @@ export const alienSays = (e: Enemy, text: string) => {
 const bark = (e: Enemy) => {
   if (!game) return;
   const w = where(e), pool = e.kind === FLEER ? L.FLEE : w === 'aft' ? L.CALLOUS : w === 'house' ? L.HOUSE_BARK : L.CRASH_BARK;
-  const text = freshBark(pool[dressed(game)]);
+  // (a revisit, the queen dead: the impact site's know him now)
+  const text = freshBark(pool === L.CRASH_BARK && bossGone('space') ? [...pool[dressed(game)], ...L.CRASH_BACK[dressed(game)]] : pool[dressed(game)]);
   if (text) alienSays(e, text);
 };
 /** What they've said this life: no alien says the same thing twice in one life (out of new things to say, they just

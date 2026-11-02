@@ -27,6 +27,8 @@ export const PA: Record<string, { lines: string[]; reply?: string[] }> = {
 };
 
 /** A worker in the warehouse, the lights up and the sled still coming (m2.space.hand). */
+/** A revisit: the welcome, the ride rebuilt since (the ram, the breaker, the launch: it all goes again). */
+export const PA_WELCOME_BACK = ['WELCOME ABOARD THE ALL NEW VOYAGE TO 2010! REBUILT AFTER AN INCIDENT! PRESENTED BY PROGRESSCO.', 'THE INCIDENT HAS BEEN BANNED FROM THE PARK. PLEASE KEEP YOUR HANDS INSIDE THE STAR SLED.'];
 export const WORKER_YELLS = ["I'M ON BREAK! I'M LEGALLY ON BREAK!", "WHO'S DRIVING THAT?!"];
 
 /** Meathead, the first time each of the ride's tricks has a go at him. */
@@ -69,7 +71,7 @@ export const HURT_FORKLIFT = ['A FORKLIFT! IN THE FUTURE!', 'HE WAS ON HIS PHONE
 export const DEATH_FORKLIFT = ['FORKLIFTED', 'AN OSHA VIOLATION'];
 
 export const VOICE_LINES: Record<string, string[]> = {
-  'm2.space.ridepa': Object.values(PA).flatMap(s => s.lines),
+  'm2.space.ridepa': [...Object.values(PA).flatMap(s => s.lines), ...PA_WELCOME_BACK],
   meathead: [
     ...Object.values(PA).flatMap(s => s.reply ?? []), ...Object.values(SEES).flat(), ...PUNCH_BREAKER, MEATHEAD_BRAKE, ...MEATHEAD_PUNCH_BRAKE, MEATHEAD_RAM, ...MEATHEAD_LANDS,
     ...HURT_SATELLITE, ...HURT_BUTLER, ...HURT_PIT, ...HURT_LASER, ...HURT_METEOR, ...HURT_FORKLIFT, ...HURT_MARTIAN, ...HURT_CRATES,

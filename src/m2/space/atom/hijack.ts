@@ -22,6 +22,7 @@ import { SEATS, SLED_SINK } from '../ride/sled';
 import { LINE_X0, LINE_X1, CONSOLE_X, SLED_X, HIJACK_AT, TUNNEL_X, QUEUE, HIJACK_MEMO } from './layout';
 import { GUEST_SEEDS } from './art';
 import * as L from './lines';
+import { bossGone } from '../../emptyArena';
 
 const dressed = (state: GameState): L.Dressed => (isNude(state) ? 'nude' : isShat(state) ? 'shitty' : 'clean');
 
@@ -155,7 +156,7 @@ export const runHijack = (ctx: FrameContext, hj: Hijack): Controls => {
     case 1:
       if (hj.busy || hj.t < 10) break;
       hj.step = 2;
-      say(hj, 'op', 'm2.space.op', L.OP_GREET[dr], CONSOLE_X - 50, opY, () => me(state, hj, pickLine(L.MEATHEAD_PARTY), () => { hj.step = 3; hj.t = 0; }));
+      say(hj, 'op', 'm2.space.op', (bossGone('space') ? L.OP_GREET_BACK : L.OP_GREET)[dr], CONSOLE_X - 50, opY, () => me(state, hj, pickLine(L.MEATHEAD_PARTY), () => { hj.step = 3; hj.t = 0; }));
       break;
     // The front seat: out, over the rail, into the line
     case 3:

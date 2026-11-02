@@ -99,6 +99,14 @@ export const SAUCER_INTRO: ByPants = {
   shitty: ["THIS IS ZORBLAX'S WIFE. YOU KILLED HIM AND THEN YOU SHIT YOURSELF. CLASSY.", 'HE WAS WEARING THE PRESIDENT. HE NEVER SHIT IN THE PRESIDENT.'],
   nude: ["THIS IS ZORBLAX'S WIFE. WHY ARE YOU NAKED IN JUST A HELMET?", 'HE WAS WEARING THE PRESIDENT. YOU COULD STAND TO WEAR SOMETHING.'],
 };
+/** A revisit (the queen dead: he's been through here before): she knows him, he knows her. In order, as SAUCER_INTRO. */
+export const SAUCER_BACK: ByPants = {
+  clean: ["ZORBLAX'S WIFE AGAIN. YOU'RE BACK, ASSHOLE. I KNEW YOU'D BE BACK.", "I GOT THE SAUCER FIXED. THE INSURANCE WAS IN ZORBLAX'S NAME. HE PAID FOR THIS."],
+  shitty: ["ZORBLAX'S WIFE AGAIN. YOU'RE BACK. AND YOU SHIT YOURSELF AGAIN.", 'I GOT THE SAUCER FIXED. THE MECHANIC ASKED WHY IT SMELLED LIKE THAT. IT WAS YOU.'],
+  nude: ["ZORBLAX'S WIFE AGAIN. YOU'RE BACK. STILL JUST THE HELMET.", 'I GOT THE SAUCER FIXED. THE GIRLS WANTED A REMATCH. SOME OF THEM WANTED MORE.'],
+};
+/** ...and him, between her two (in place of MH_WHO). */
+export const MH_WIDOW_BACK = 'OH, FUCK. THE WIDOW.';
 /** Through the fight, now and then. */
 export const SAUCER_TAUNT: ByPants = {
   clean: [
@@ -201,10 +209,10 @@ export const HURT = {
 const flat = (b: ByPants) => [...b.clean, ...b.shitty, ...b.nude];
 
 export const VOICE_LINES: Record<string, string[]> = {
-  meathead: [...MH_ARRIVE, ...MH_RAPID, MH_BEAM, MH_WHO, ...Object.values(MH_LADIES), ...Object.values(HURT).flatMap(h => h.hurt)],
+  meathead: [...MH_ARRIVE, ...MH_RAPID, MH_BEAM, MH_WHO, MH_WIDOW_BACK, ...Object.values(MH_LADIES), ...Object.values(HURT).flatMap(h => h.hurt)],
   death: Object.values(HURT).flatMap(h => h.death),
   'm2.space.zpilot': [...flat(PILOT_SPOT), ...KAMIKAZE_YELL, ...CRUISER_YELL],
   'm2.space.zpilotf': [...flat(PILOT_SPOT), ...KAMIKAZE_YELL, ...CRUISER_YELL],
   'm2.space.raygun': [...GUN_UPGRADE, GUN_FACTORY],
-  'm2.space.saucer': [SAUCER_INTRO, SAUCER_TAUNT, SAUCER_HURT, SAUCER_PISSED].flatMap(flat),
+  'm2.space.saucer': [SAUCER_INTRO, SAUCER_BACK, SAUCER_TAUNT, SAUCER_HURT, SAUCER_PISSED].flatMap(flat),
 };

@@ -22,6 +22,7 @@ import { GLASS_X, QUEEN_X, BOOTH, HOLE, BF } from './geo';
 import { ink } from '../../../m1/game/render/npc/kit';
 import { drawQueen, queenHead } from './art';
 import * as L from './lines';
+import { bossGone } from '../../emptyArena';
 
 type Ctx = CanvasRenderingContext2D;
 const pick = pickLine;
@@ -41,7 +42,8 @@ export interface Show {
   /** The floor cracking (0..1), given way (the slabs falling, frames since). */
   crack: number; fallT: number;
 }
-export const fell = (state: GameState) => !!state.stageMemo[FELL_MEMO] || state.checkpoint >= BASEMENT_CP;
+/** (a revisit, she's dead: the floor's been gone since, her stand's empty, the hole's open: just drop in) */
+export const fell = (state: GameState) => !!state.stageMemo[FELL_MEMO] || state.checkpoint >= BASEMENT_CP || bossGone('space');
 export const makeShow = (state: GameState): Show => {
   const done = fell(state);
   return { step: done ? 'done' : 'wait', stepT: 0, skipT: 0, token: 0, glass: !done, booth: 0, beam: 0, alive: 0, ext: 0, boothSaid: null, fade: 0, crack: done ? 1 : 0, fallT: done ? 999 : -1 };

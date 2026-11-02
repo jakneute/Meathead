@@ -6,7 +6,8 @@
 import type { GameState } from '../../../m1/game/core/state';
 import { meatheadSays, voice, type Said } from '../section';
 import { say, isTalking, pickLine } from '../../../m1/game/platform/speech';
-import { PA } from './lines';
+import { PA, PA_WELCOME_BACK } from './lines';
+import { bossGone } from '../../emptyArena';
 
 const PA_VOICE = 'm2.space.ridepa';
 interface Pa { gen: number; state: GameState; said: Said | null; busy: boolean; left: string[]; reply: string | null; next: string | null; done: Set<string> }
@@ -51,7 +52,7 @@ const sayLine = (pa: Pa, line: string) => afterQuiet(pa, () => {
 });
 const load = (pa: Pa, id: string) => {
   const st = PA[id];
-  pa.left = [...st.lines]; pa.reply = st.reply ? pickLine(st.reply) : null;
+  pa.left = [...(id === 'welcome' && bossGone('space') ? PA_WELCOME_BACK : st.lines)]; pa.reply = st.reply ? pickLine(st.reply) : null;
 };
 
 /** A story (by id: lines.ts PA), once a go. Something going: it waits its turn (only the newest waits). `now`: it
