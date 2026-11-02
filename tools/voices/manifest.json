@@ -40331,7 +40331,27 @@
  },
  {
   "voice": "m2.foreign.pa",
+  "text": "BENTORNATO! THE OVEN WAS RELIT! IT SMELLS BETTER THAN YOU!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.pa",
   "text": "BENVENUTO TO ITALY! HOME OF PIZZA, PASTA, AND THE PIZZA PASTA!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.pa",
+  "text": "BIENVENIDOS AGAIN! OUR NEW CLIFF DIVERS ARE WEARING MORE THAN YOU!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.pa",
+  "text": "BONJOUR AGAIN! THE FOUNTAIN SHOW HAS SEEN YOUR BUTT! IT WANTS MORE!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.pa",
+  "text": "BONJOUR AGAIN! THE LOUVRE GLUED THE PYRAMID BACK TOGETHER! THE FOUNTAINS ARE STILL ON FULL!",
   "from": "FOREIGN"
  },
  {
@@ -40341,12 +40361,87 @@
  },
  {
   "voice": "m2.foreign.pa",
+  "text": "CANADA AGAIN! SORRY! THE ICE IS COLD! YOU ARE ALREADY SHRINKING!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.pa",
+  "text": "CANADA WELCOMES YOU BACK! WE REFROZE THE POND! SORRY! THE THIN ICE IS STILL THIN!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.pa",
   "text": "CHEERIO AND WELCOME TO THE UNITED KINGDOM! ENGLAND! BRITAIN! LONDON! IT IS ALL ONE PLACE!",
   "from": "FOREIGN"
  },
  {
   "voice": "m2.foreign.pa",
+  "text": "CHINA AGAIN! WE REBUILT THE BEACON TOWER! THE NEW INTERN ASKED WHY YOU ARE NAKED!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.pa",
+  "text": "CHINA WELCOMES YOU BACK! THE FIREWORKS BATTERY HAS A NEW INTERN! THE LAST ONE IS STILL MISSING!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.pa",
+  "text": "FRANCE WELCOMES YOU BACK! WE TURNED THE FOUNTAINS UP! FOR HYGIENE!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.pa",
+  "text": "GERMANY WELCOMES YOU BACK! NEW KEGS! NEW BALES! WE BURNED THE OLD ONES!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.pa",
+  "text": "ITALY AGAIN! THE OVEN IS STILL HOT! PLEASE COVER YOUR MEATBALLS!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.pa",
+  "text": "ITALY WELCOMES YOU BACK! IL FORNO PASSED INSPECTION! THE INSPECTOR IS IN THE BURN WARD!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.pa",
+  "text": "JAPAN AGAIN! THE BULLET TRAIN IS ON TIME! YOUR GENITALS ARE NOT WELCOME!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.pa",
+  "text": "JAPAN WELCOMES YOU BACK! THE SHINKANSEN IS RUNNING AGAIN! IT STILL DOES NOT STOP! FOR ANYONE!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.pa",
   "text": "KONNICHIWA AND WELCOME TO JAPAN! HOME OF NINJAS, SUSHI, AND THE CALIFORNIA ROLL!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.pa",
+  "text": "MEXICO WELCOMES YOU BACK! WE REFILLED THE DIVE POOL! PLEASE DO NOT GET IN IT.",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.pa",
+  "text": "MOROCCO AGAIN! THE NEW CAMELS HAVE BEEN WARNED ABOUT YOU!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.pa",
+  "text": "MOROCCO WELCOMES YOU BACK! THE CAMEL RIDE BOUGHT NEW CAMELS! THEY ALSO GET LOOSE!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.pa",
+  "text": "NORWAY AGAIN! THE TROLLS WERE GLUED BACK TOGETHER! THEY HAVE SEEN YOU NAKED BEFORE!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.pa",
+  "text": "NORWAY WELCOMES YOU BACK! THE TROLL TOLL GANG HAS BEEN REHIRED! THE TOLL IS STILL FIVE DOLLARS!",
   "from": "FOREIGN"
  },
  {
@@ -40497,6 +40592,51 @@
  {
   "voice": "m2.foreign.pa",
   "text": "NOW ENTERING VENICE! SIR, PUT IT AWAY. THIS IS NOT THAT KIND OF ITALIAN.",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.pa",
+  "text": "THE UK AGAIN! THE PHONE BOX IS WORKING! PLEASE DO NOT CALL ANYONE LIKE THAT!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.pa",
+  "text": "THE UK WELCOMES YOU BACK! WE REPLACED THE HANDSET! THE OLD ONE SMELLED OF YOU!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.pa",
+  "text": "WELCOME BACK TO CANADA! SORRY! WE REFROZE THE POND! YOU MIGHT NEED A DIP!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.pa",
+  "text": "WELCOME BACK TO CHINA! THE WALL WAS HOSED OFF! THE FIREWORKS ARE STILL LIVE!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.pa",
+  "text": "WELCOME BACK TO JAPAN! THE BULLET TRAIN WAS WASHED! TWICE! BECAUSE OF YOU!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.pa",
+  "text": "WELCOME BACK TO MEXICO! LA QUEBRADA HAS ALL NEW CLIFF DIVERS! THE OLD ONES WERE LANDED ON.",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.pa",
+  "text": "WELCOME BACK TO NORWAY! THE TOLL GANG IS BACK! THEY ASKED FOR HAZARD PAY! FOR YOU!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.pa",
+  "text": "WELCOME BACK TO THE SOUK! THE CAMELS SMELLED YOU COMING! THEY ARE ALREADY RUNNING!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.pa",
+  "text": "WELCOME BACK TO THE UK! THE PHONE BOX HAS BEEN RECONNECTED! IT'S STILL RINGING FOR YOU!",
   "from": "FOREIGN"
  },
  {
@@ -40652,6 +40792,16 @@
  {
   "voice": "m2.foreign.pa",
   "text": "WELCOME TO THE U.K.! SIR, THE FOG MACHINE CANNOT COVER THAT.",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.pa",
+  "text": "WILLKOMMEN AGAIN! NEW KEGS! PLEASE DO NOT SIT ON THEM!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.pa",
+  "text": "WILLKOMMEN BACK! THE BREWERY RESTOCKED EVERY KEG! THEY ARE ROLLING DOWN THE HILL FOR YOU!",
   "from": "FOREIGN"
  },
  {
@@ -67981,6 +68131,11 @@
  },
  {
   "voice": "meathead",
+  "text": "A NEW LION. EYES UP, CAT. AGAIN.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
   "text": "A NEWT? LIZARDS DON'T SHIT THEIR PANTS. I DO.",
   "from": "CARTOON"
  },
@@ -69828,6 +69983,11 @@
   "voice": "meathead",
   "text": "ANOTHER GUY ASLEEP AT A LEVER. THIS PARK RUNS ON NAPS.",
   "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "meathead",
+  "text": "ANOTHER LION. THE LAST ONE QUIT.",
+  "from": "FRONTIER"
  },
  {
   "voice": "meathead",
@@ -88066,6 +88226,16 @@
  },
  {
   "voice": "meathead",
+  "text": "NEW LION. IT ALREADY HEARD ABOUT MY PANTS.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
+  "text": "NEW LION. SAME FEZ. STILL STARING AT MY DICK.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
   "text": "NEW STOOLS. NEW MIRROR. SAME ASSHOLES.",
   "from": "FRONTIER"
  },
@@ -92771,6 +92941,11 @@
  },
  {
   "voice": "meathead",
+  "text": "REPLACEMENT LION. IT SMELLS ME. IT LIKES IT.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
   "text": "RESEMBLE. RESEMBLE WHAT? THAT'S NOT A WORD THAT MEANS SHIT.",
   "from": "HOLLYWOOD"
  },
@@ -93087,6 +93262,11 @@
  {
   "voice": "meathead",
   "text": "ROB ME. THE ONLY THING I'M CARRYING IS IN MY PANTS.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
+  "text": "ROBBERS AGAIN. WORD GOT OUT NOBODY'S DRIVING.",
   "from": "FRONTIER"
  },
  {
@@ -99098,6 +99278,11 @@
   "voice": "meathead",
   "text": "THE CHURRO CART HIT ME!",
   "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "THE CIRCUS SENT A NEW LION. SAME FEZ.",
+  "from": "FRONTIER"
  },
  {
   "voice": "meathead",
