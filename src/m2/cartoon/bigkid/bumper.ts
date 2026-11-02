@@ -50,6 +50,7 @@ import { playSound } from '../../../m1/game/platform/audio';
 import { pickLine, silenceAll, announce } from '../../../m1/game/platform/speech';
 import { getUi, setUi } from '../../store';
 import { openAsk, tickAsk, closeAsk, type Ask } from '../../minigameConfirm';
+import { onFloorish, upStart } from '../../upZone';
 import { minigamePausable } from '../../minigamePause';
 import type { GameCue } from '../../music/moments';
 import { awardShard, shardWon, openShardCard, tickShardCard, closeShardCard, type ShardCard } from '../../upgrades/shardAward';
@@ -151,7 +152,7 @@ interface Bumper {
   clock: number; shake: number; replay: boolean;
   /** What the carny's saying (over him, at the booth or at his podium), what Meathead's saying in the rink. */
   carny: Said | null; mh: Said | null;
-  prompted: boolean; wasUp: boolean; was: Partial<Controls>;
+  prompted: boolean; wasUp: boolean; upBuf?: number; was: Partial<Controls>;
   rammedAt: number; buzzAt: number; lineAt: number; tick: number;
   /** Lost (or quit) a round and not won since: the carny's "back for more?" next time. */
   lost: boolean;
@@ -248,10 +249,13 @@ export const updateBumper = (ctx: FrameContext, controls: Controls): Controls | 
     if (uiUp) { setUi({ hudOff: false, bumperCard: null }); uiUp = false; }
     const cx = p.pos.x + p.width / 2, d = Math.abs(cx - CARNY_X);
     const free = !p.inCutscene && p.health > 0 && state.deathTimer <= 0;
+    // (UP's zone: the whole booth (BOOTH.hw either side of him) and a good step past it, on the floor or hopping (the
+    // owner's, 2026-11-02: "i really don't want players to miss it. same for all"): upZone.ts)
+    const near = free && d < BOOTH.hw + 36 && onFloorish(p.pos.y + p.height, GY);
     // (his bark as Meathead comes up: the owner's line, once a visit)
     if (free && hookVisit !== landVisit() && d < 330) { hookVisit = landVisit(); b.callAt = b.tick; speak(CARNY_VOICE, CARNY_HOOK, s => { b.carny = s; }, false); }
     // (flagging him down: arms over his head, till he comes over; now and then a shout, never over anybody)
-    b.waving = free && d >= 72 && d < (playedVisit === landVisit() ? WAVE_PLAYED : WAVE_FAR);
+    b.waving = free && !near && d < (playedVisit === landVisit() ? WAVE_PLAYED : WAVE_FAR);
     if (b.waving && !b.carny && d < CALL_NEAR && hookVisit === landVisit() && b.tick - b.callAt > CALL_EVERY) {
       b.callAt = b.tick; speak(CARNY_VOICE, pickLine(byPants(state, CARNY_CALL)), s => { b.carny = s; }, false);
     }
@@ -263,10 +267,9 @@ export const updateBumper = (ctx: FrameContext, controls: Controls): Controls | 
       const sore = b.won || (shardWon(SHARD_LAND, SHARD_ID) && !b.lost);
       if (!(b.won && b.tick - b.endAt < 300)) speak(CARNY_VOICE, pickLine(byPants(state, sore ? CARNY_LEAVE_WON : CARNY_LEAVE)), s => { b.carny = s; }, false);
     }
-    const near = free && d < 72 && p.isGrounded;
     if (near) { if (!b.prompted || getUi().upPrompt !== 'BUMPER CARS') setUi({ upPrompt: 'BUMPER CARS' }); b.prompted = true; }
     else if (b.prompted) { setUi({ upPrompt: null }); b.prompted = false; }
-    const go = near && upNow && !b.wasUp;
+    const go = upStart(b, upNow && !b.wasUp, near, p.isGrounded);
     b.wasUp = upNow;
     if (!go) return null;
     b.waving = false;

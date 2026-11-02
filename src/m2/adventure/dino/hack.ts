@@ -40,6 +40,7 @@ import { SKIP_AFTER, offerSkip, takeSkip, drawSkipPrompt } from '../../../m1/gam
 import { isShat, isNude } from '../../../m1/game/player/gut';
 import { getUi, setUi } from '../../store';
 import { openAsk, tickAsk, closeAsk, type Ask } from '../../minigameConfirm';
+import { onFloorish, upStart } from '../../upZone';
 import { awardShard, shardWon, openShardCard, tickShardCard, closeShardCard, type ShardCard } from '../../upgrades/shardAward';
 import { pollM2, pressed } from '../../input';
 import { minigamePausable, gamePaused } from '../../minigamePause';
@@ -66,7 +67,7 @@ type Phase = 'off' | 'line' | 'ask' | 'boot' | 'play' | 'granted' | 'cut' | 'pul
 interface Hack {
   phase: Phase; t: number; token: number;
   ask: Ask | null; card: ShardCard | null; puzzle: HackPuzzle | null; m: Massacre | null; pull: Pull | null;
-  prompted: boolean; wasUp: boolean; was: Partial<Controls>; rep: Record<'left' | 'right' | 'up' | 'down', number>;
+  prompted: boolean; wasUp: boolean; upBuf?: number; was: Partial<Controls>; rep: Record<'left' | 'right' | 'up' | 'down', number>;
   /** The massacre's lines, the one up next, one being said; when the last one ended (the cut's clock). */
   beats: Beat[]; beat: number; busy: boolean; lastEnd: number;
   /** What's being said: the PA's words, a screamer's (and who), his. */
@@ -155,10 +156,13 @@ export const updateHack = (ctx: FrameContext, controls: Controls): Controls | nu
     if (uiUp) { setUi({ hudOff: false, chordTips: null }); uiUp = false; }
     const cx = p.pos.x + p.width / 2, feet = p.pos.y + p.height;
     const free = !p.inCutscene && p.health > 0 && state.deathTimer <= 0;
-    const near = free && !panelDead(state) && p.isGrounded && Math.abs(feet - PANEL_DECK) < 6 && cx > PANEL_X - 34 && cx < PANEL_X + 64;
+    // (UP's zone: anywhere on the panel's ledge (the top one, the panel on it), on it or hopping (the owner's,
+    // 2026-11-02: "i really don't want players to miss it. same for all"): upZone.ts)
+    const [lx, , lw] = HACK_LEDGES[2];
+    const near = free && !panelDead(state) && onFloorish(feet, PANEL_DECK) && cx > lx - 16 && cx < lx + lw + 16;
     if (near) { if (!h.prompted || getUi().upPrompt !== 'HACK THE PANEL') setUi({ upPrompt: 'HACK THE PANEL' }); h.prompted = true; }
     else if (h.prompted) { setUi({ upPrompt: null }); h.prompted = false; }
-    const go = near && upNow && !h.wasUp;
+    const go = upStart(h, upNow && !h.wasUp, near, p.isGrounded);
     h.wasUp = upNow;
     if (!go) return null;
     h.prompted = false;

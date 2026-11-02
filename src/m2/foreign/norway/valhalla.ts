@@ -56,6 +56,7 @@ import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../../../m1/constants';
 import { registerM2Kind } from '../../kinds';
 import { inPlay } from '../../moves/grab';
 import { setUi } from '../../store';
+import { onFloorish, upStart } from '../../upZone';
 import { saveProgress } from '../../save';
 import { setPiece, setBenMet, benGave, setBenGave, benSpot, setBenSpot } from '../../upgrades/state';
 import { helmetStops } from '../../upgrades/gear';
@@ -245,8 +246,8 @@ export interface Hall {
   /** The halls coming up (0 down, 1 up), the dock once it's there; the doorman's words, his pose, when he can be talked
    *  to again (busy talking), up's last state (a press is a fresh one). */
   lift: number; dock: Block | null;
-  door: { said: Said | null; busy: boolean; pose: 'stand' | 'talk' | 'raise'; poseT: number };
-  upWas: boolean;
+  door: { said: Said | null; busy: boolean; pose: 'stand' | 'talk' | 'raise'; poseT: number; upBuf?: number };
+  upWas: boolean; upBuf?: number;
   phase: Phase;
   /** The scene's clock, a token (bumped on a skip: a line's done-callback from before it does nothing). */
   all: number; token: number;
@@ -367,16 +368,14 @@ export const updateValhalla = (ctx: FrameContext, controls: Controls): Controls 
   if (h.phase !== 'card') setUi({ gotPiece: null });
   setUi({ chordTips: tips });
   // The way out: UP at the door, any time he's in control
-  const atDoor = Math.abs(midX(state) - X(IN_DOOR)) < 40 && p.isGrounded && !p.inCutscene && p.health > 0;
-  if (atDoor && (h.phase === 'trial' || h.phase === 'done')) {
-    setUi({ upPrompt: 'LEAVE VALHALLA' });
-    if (upPress) {
-      if (h.phase === 'done') { silenceAll(); h.ben.said = null; meatheadSays(state, pickLine(BYE_MEATHEAD), true); }
-      setUi({ upPrompt: null, chordTips: null });
-      teleport(state, X(DOOR), GY); p.facing = -1;
-      playSound('slam', 0.5, 2);
-      return { ...NO_CONTROLS };
-    }
+  const atDoor = Math.abs(midX(state) - X(IN_DOOR)) < 52 && !p.inCutscene && p.health > 0 && (h.phase === 'trial' || h.phase === 'done');
+  if (atDoor) setUi({ upPrompt: 'LEAVE VALHALLA' });
+  if (upStart(h, upPress, atDoor, p.isGrounded)) {
+    if (h.phase === 'done') { silenceAll(); h.ben.said = null; meatheadSays(state, pickLine(BYE_MEATHEAD), true); }
+    setUi({ upPrompt: null, chordTips: null });
+    teleport(state, X(DOOR), GY); p.facing = -1;
+    playSound('slam', 0.5, 2);
+    return { ...NO_CONTROLS };
   }
   return out;
 };
@@ -389,22 +388,22 @@ const outside = (state: GameState, h: Hall, controls: Controls, upPress: boolean
   if (!doormanThere(state)) return controls;
   // (painting Ben's gross-up ahead, once the halls are up and he's near them)
   if (h.lift >= 1 && Math.abs(cx - X(DOOR)) < 700 && Math.abs(fy - GY) < 500) warmBenGross();
-  const free = p.isGrounded && !p.inCutscene && p.health > 0;
+  // (on his feet there or hopping; a press mid-hop goes as he lands: upZone.ts. The owner's, 2026-11-02: "i really
+  // don't want players to miss it. same for all")
+  const free = !p.inCutscene && p.health > 0;
   // The doorman: up by him talks
-  if (free && Math.abs(cx - X(DOORMAN.x)) < 58 && Math.abs(fy - Y(DOORMAN.h)) < 12 && !h.door.busy) {
-    setUi({ upPrompt: 'TALK' });
-    if (upPress) { talk(state, h); return { ...controls, up: false }; }
-  }
+  const byMan = free && Math.abs(cx - X(DOORMAN.x)) < 64 && onFloorish(fy, Y(DOORMAN.h)) && !h.door.busy;
+  if (byMan) setUi({ upPrompt: 'TALK' });
+  if (upStart(h.door, upPress, byMan, p.isGrounded)) { talk(state, h); return { ...controls, up: false }; }
   // The halls' door: up on the dock by it goes in
-  if (h.lift >= 1 && free && Math.abs(cx - X(DOOR)) < 34 && Math.abs(fy - GY) < 8) {
-    setUi({ upPrompt: 'ENTER THE HALLS OF VALHALLA' });
-    if (upPress) {
-      setUi({ upPrompt: null });
-      silenceAll(); h.door.said = null; h.door.busy = false;
-      teleport(state, X(IN_DOOR) + 46, HALL.floor); p.facing = 1;
-      playSound('slam', 0.5, 2);
-      return { ...NO_CONTROLS };
-    }
+  const byDoor = h.lift >= 1 && free && Math.abs(cx - X(DOOR)) < 52 && onFloorish(fy, GY);
+  if (byDoor) setUi({ upPrompt: 'ENTER THE HALLS OF VALHALLA' });
+  if (upStart(h, upPress, byDoor, p.isGrounded)) {
+    setUi({ upPrompt: null });
+    silenceAll(); h.door.said = null; h.door.busy = false;
+    teleport(state, X(IN_DOOR) + 46, HALL.floor); p.facing = 1;
+    playSound('slam', 0.5, 2);
+    return { ...NO_CONTROLS };
   }
   return controls;
 };

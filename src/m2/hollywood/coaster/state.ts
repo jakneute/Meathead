@@ -74,7 +74,7 @@ export interface Coaster {
    *  breach (frames since it went; -1 whole), his last refusal to sit on it (frame). */
   caseDmg: number; caseSeen: WeakSet<object>; breach: number; nopeAt: number;
   /** The lever's throw (0 NORMAL .. 1 EXPERIMENTAL), for drawing; up's been let go since the last press. */
-  lever: number; upLatch: boolean;
+  lever: number; upLatch: boolean; upBuf?: number;
   /** The lever being thrown (him hauling on it: ../lever.ts), or null. */
   pull: LeverThrow | null;
   /** Stop 2's track walker, being hit: frames since (0: not yet). */

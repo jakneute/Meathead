@@ -117,7 +117,8 @@ export const advLayout: StageLayout = {
     if (adv.lastSec !== sec.id) { adv.lastSec = sec.id; state.camera.x = Math.max(lim.min, Math.min(lim.max, p.pos.x + p.width / 2 - CANVAS_WIDTH / 2)); }
     // (passing a checkpoint: it's his)
     for (const c of sec.checkpoints) if (c.cp > state.checkpoint && p.pos.x + p.width / 2 >= c.x) state.checkpoint = c.cp;
-    setUi({ near: null, map: null, nearExit: false });
+    // (UP's prompt too, each frame, like every other land: whatever's near sets it again; nothing's left stuck up)
+    setUi({ near: null, map: null, nearExit: false, upPrompt: null });
     // (in through the portal: not his till the land's opened on him)
     const arriving = !!adv.arrive && tickPortalArrival(state, adv.arrive, sec.cameraRow?.(state) ?? 550);
     if (adv.arrive && !arriving) adv.arrive = undefined;

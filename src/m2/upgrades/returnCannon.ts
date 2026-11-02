@@ -24,6 +24,7 @@ import { playSound } from '../../m1/game/platform/audio';
 import { shakeScreen } from '../../m1/game/core/state';
 import { PLAYER_GRAVITY, PLAYER_TERMINAL_VELOCITY } from '../../m1/constants';
 import { setUi } from '../store';
+import { onFloorish, upStart } from '../upZone';
 import { teleport } from '../adventure/section';
 
 type Ctx = CanvasRenderingContext2D;
@@ -55,6 +56,8 @@ export interface Cannon {
   /** Where he started the hop in from (feet). */
   from: P;
   upWas: boolean;
+  /** A press made mid-hop by it, kept for the landing (upZone.ts). */
+  upBuf?: number;
 }
 
 /** The barrel's pivot over the floor, its length, how fast it swings (rad a frame), how fast he leaves it. */
@@ -98,9 +101,11 @@ export const updateCannon = (ctx: FrameContext, cn: Cannon, controls: Controls, 
   cn.t++;
   switch (cn.phase) {
     case 'rest': {
-      const near = Math.abs(cx - cn.x) < 46 && Math.abs(feet - cn.y) < 10 && p.isGrounded && !p.inCutscene && p.health > 0;
+      // (the whole carriage (wheels and all, about 39 either side) and a good step past it, on the floor or hopping (the
+      // owner's, 2026-11-02: "i really don't want players to miss it. same for all"): upZone.ts)
+      const near = Math.abs(cx - cn.x) < 64 && onFloorish(feet, cn.y) && !p.inCutscene && p.health > 0;
       if (near) setUi({ upPrompt: hooks.prompt ?? 'GET IN THE CANNON' });
-      if (near && upPress) {
+      if (upStart(cn, upPress, near, p.isGrounded)) {
         cn.phase = 'in'; cn.t = 0; cn.from = { x: cx, y: feet };
         p.inCutscene = true; p.vel.x = 0; p.vel.y = 0;
         playSound('jump', 0.7, 2);

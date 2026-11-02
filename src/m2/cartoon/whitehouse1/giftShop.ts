@@ -34,6 +34,7 @@ import { hurtPlayer } from '../../../m1/game/bosses/shared';
 import { CANVAS_HEIGHT } from '../../../m1/constants';
 import { registerHurtLines } from '../../kinds';
 import { setUi } from '../../store';
+import { onFloorish, upStart } from '../../upZone';
 import { awardHealth, healthWon, openHealthCard, tickHealthCard, type HealthCard } from '../../upgrades/healthAward';
 import { makeCannon, updateCannon, cannonBusy, type Cannon } from '../../upgrades/returnCannon';
 import { makeTowers, updateTowers, ridingTower, type Tower, type TowerDef } from '../sway';
@@ -104,7 +105,7 @@ export interface Shop {
   heart: boolean; card: HealthCard | null;
   /** This life: his lines said; the fall's begun (the yell, the whistle). */
   inSaid: boolean; leanSaid: boolean; falling: boolean;
-  upWas: boolean;
+  upWas: boolean; upBuf?: number;
 }
 const shops = new WeakMap<object, Shop>();
 export const shopOf = (state: GameState): Shop | null => shops.get((state.stage ?? state) as object) ?? null;
@@ -138,10 +139,10 @@ export const updateGiftShop = (ctx: FrameContext, controls: Controls): Controls 
   s.upWas = upNow;
   if (!inStock(state)) {
     // The porch door: up at it, and in
-    if (p.health > 0 && !p.inCutscene && p.isGrounded && Math.abs(cx - DOOR_X) < 38 && Math.abs(feet - GY) < 8 && !cannonBusy(s.cannon)) {
-      setUi({ upPrompt: 'GIFT SHOP' });
-      if (upPress) { goIn(state); return { ...NO_CONTROLS }; }
-    }
+    // (the door and a good step either side, on the porch or hopping: upZone.ts)
+    const atDoor = p.health > 0 && !p.inCutscene && Math.abs(cx - DOOR_X) < 56 && onFloorish(feet, GY) && !cannonBusy(s.cannon);
+    if (atDoor) setUi({ upPrompt: 'GIFT SHOP' });
+    if (upStart(s, upPress, atDoor, p.isGrounded)) { goIn(state); return { ...NO_CONTROLS }; }
     // (on his way back out: the cannon's flight down onto the bench)
     return cannonBusy(s.cannon) ? updateCannon(ctx, s.cannon, controls) : controls;
   }

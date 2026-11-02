@@ -41,6 +41,7 @@ import { saveProgress } from '../../save';
 import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../../../m1/constants';
 import { setUi } from '../../store';
 import { openAsk, tickAsk, closeAsk, type Ask } from '../../minigameConfirm';
+import { onFloorish, upStart } from '../../upZone';
 import { minigamePausable } from '../../minigamePause';
 import type { GameCue } from '../../music/moments';
 import { awardShard, shardWon, openShardCard, tickShardCard, closeShardCard, type ShardCard } from '../../upgrades/shardAward';
@@ -82,7 +83,7 @@ interface A51 {
   ramLineAt: number; ramPaAt: number; snapLineAt: number;
   ask: Ask | null; cardArmed: boolean; cardShown: boolean;
   lock: Lock | null; shardCard: ShardCard | null; taken: number;
-  pa: Said | null; upWas: boolean;
+  pa: Said | null; upWas: boolean; upBuf?: number;
   /** At the lock: the frame (its own clock) of his next grumble (the owner: "as you do the minigame he says how
    *  bullshit it is that he needs to open the door this way"). */
   grumbleAt: number;
@@ -240,7 +241,8 @@ export const updateA51 = (ctx: FrameContext, controls: Controls): Controls => {
   a.jolt *= 0.86;
   a.look += (cx - a.look) * 0.05;
   const free = p.health > 0 && !p.inCutscene && state.deathTimer <= 0;
-  const ground = p.isGrounded && Math.abs(feet - GY) < 6;
+  // (UP's footing: on the walk or hopping on it; a press mid-hop goes the moment he lands: upZone.ts)
+  const ground = onFloorish(feet, GY);
 
   switch (a.phase) {
     case 'idle': {
@@ -259,15 +261,15 @@ export const updateA51 = (ctx: FrameContext, controls: Controls): Controls => {
       // (and everything else he's got: shots, swings, uppercuts, dive kicks: nothing)
       if (!opened) immune(state, a, controls);
       // UP at it: the lock (or, picked, in)
-      if (ground && Math.abs(cx - X(A51_DOOR)) < 48) {
-        setUi({ upPrompt: opened ? 'GO IN' : 'PICK THE LOCK' });
-        if (upPress) {
-          if (opened) { goIn(state, a); return { ...NO_CONTROLS }; }
-          a.phase = 'intro'; a.t = 0; hold(state); p.facing = 1;
-          if (!hasClip(state)) takeClip(state);
-          meatheadSays(state, pickLine(byPants(state, L.MH_LOCK)), true, () => { if (a.phase === 'intro' && of(state) === a) toAsk(a); });
-          return { ...NO_CONTROLS };
-        }
+      // (the whole door (64 wide) and a good step out in front of it, the owner's "i really don't want players to miss it")
+      const atDoor = ground && Math.abs(cx - X(A51_DOOR)) < 72;
+      if (atDoor) setUi({ upPrompt: opened ? 'GO IN' : 'PICK THE LOCK' });
+      if (upStart(a, upPress, atDoor, p.isGrounded)) {
+        if (opened) { goIn(state, a); return { ...NO_CONTROLS }; }
+        a.phase = 'intro'; a.t = 0; hold(state); p.facing = 1;
+        if (!hasClip(state)) takeClip(state);
+        meatheadSays(state, pickLine(byPants(state, L.MH_LOCK)), true, () => { if (a.phase === 'intro' && of(state) === a) toAsk(a); });
+        return { ...NO_CONTROLS };
       }
       return controls;
     }
@@ -493,10 +495,9 @@ const goOut = (state: GameState, a: A51) => {
 const room = (state: GameState, a: A51, controls: Controls, upPress: boolean, ground: boolean): Controls => {
   const p = state.player, rx = p.pos.x + p.width / 2 - X(ROOM.a);
   a.roomT++;
-  if (ground && Math.abs(rx - ROOM_AT.exit) < 46) {
-    setUi({ upPrompt: 'LEAVE' });
-    if (upPress) { goOut(state, a); return { ...NO_CONTROLS }; }
-  }
+  const atExit = ground && Math.abs(rx - ROOM_AT.exit) < 60;
+  if (atExit) setUi({ upPrompt: 'LEAVE' });
+  if (upStart(a, upPress, atExit, p.isGrounded)) { goOut(state, a); return { ...NO_CONTROLS }; }
   // (his line on each thing as he comes by it: one at a time, never over anybody)
   if (!isTalking()) {
     for (const key of Object.keys(L.MH_SEE) as (keyof typeof L.MH_SEE)[]) {

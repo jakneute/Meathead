@@ -16,6 +16,7 @@ import { playSound } from '../../../m1/game/platform/audio';
 import { CANVAS_WIDTH } from '../../../m1/constants';
 import type { SpaceSection } from '../section';
 import { setUi } from '../../store';
+import { onFloorish, upStart } from '../../upZone';
 import { layOwn, ledge, endWalls, meatheadSays, saidOver, teleport } from '../section';
 import { SECTIONS, DOORS, GY } from '../geometry';
 import { X, Y, GROUND, LEDGES, SAUCERS as SAUCER_DEFS, BELTS, PLATES, PADS, MONO, TRACK, TRACK_LEGS, ENEMIES, PICKUPS, CHECKPOINTS, T1, T2, LIFT_X, SPEAKERS, SMEAR } from './layout';
@@ -37,7 +38,7 @@ const { x0, x1 } = SECTIONS.drag;
 const pick = pickLine;
 void LANDED;
 
-interface Dr { gear: Gear; last: number; upWas: boolean }
+interface Dr { gear: Gear; last: number; upWas: boolean; upBuf?: number }
 const DR = new WeakMap<object, Dr>();
 const mine = (state: GameState) => DR.get(state.stage as object);
 
@@ -110,10 +111,10 @@ export const drag: SpaceSection = {
     // past them to ALIEN GIFTS & NOVELTIES)
     const feet = p.pos.y + p.height, upPress = !!controls.up && !dr.upWas;
     dr.upWas = !!controls.up;
-    if (!p.inCutscene && p.health > 0 && p.isGrounded && Math.abs(p.pos.x + p.width / 2 - X(LIFT_X)) < 50 && feet >= GY - 6 && feet <= GY + 2) {
-      setUi({ upPrompt: 'ENTER' });
-      if (upPress) { teleport(state, DOORS.needle.start.x, DOORS.needle.start.y); p.facing = 1; return { ...controls, up: false }; }
-    }
+    // (the doors and a good step either side, on the walk or hopping: upZone.ts)
+    const atLift = !p.inCutscene && p.health > 0 && Math.abs(p.pos.x + p.width / 2 - X(LIFT_X)) < 64 && onFloorish(feet, GY);
+    if (atLift) setUi({ upPrompt: 'ENTER' });
+    if (upStart(dr, upPress, atLift, p.isGrounded)) { teleport(state, DOORS.needle.start.x, DOORS.needle.start.y); p.facing = 1; return { ...controls, up: false }; }
     return controls;
   },
   drawBackdrop: (c, state) => drawDragBackdrop(c, state),

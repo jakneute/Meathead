@@ -56,6 +56,7 @@ import { registerM2Kind } from '../../kinds';
 import { setUi } from '../../store';
 import { awardShard, shardWon as wonShard, openShardCard, tickShardCard, closeShardCard, type ShardCard } from '../../upgrades/shardAward';
 import { openAsk, tickAsk, closeAsk, type Ask } from '../../minigameConfirm';
+import { onFloorish, upStart } from '../../upZone';
 import { minigamePausable } from '../../minigamePause';
 import { walkOff, walkOffDue, type WalkOff } from '../../walkOffCall';
 import type { GameCue } from '../../music/moments';
@@ -112,7 +113,7 @@ interface Gallery {
   ledge: Block | null;
   /** Dooley: the person (once he can be killed), where he stands otherwise, his words; greeted yet. */
   man: Enemy | null; manX: number; manFace: 1 | -1;
-  talk: Said | null; mh: Said | null; lastLine: number; greeted: boolean; upLatch: boolean;
+  talk: Said | null; mh: Said | null; lastLine: number; greeted: boolean; upLatch: boolean; upBuf?: number;
   /** The gallery. */
   pieces: Piece[]; baked: number; voidCv: HTMLCanvasElement | null; gunCv: HTMLCanvasElement | null;
   cur: { x: number; y: number }; held: boolean; cool: number; recoil: number; aimSpd: number;
@@ -356,7 +357,9 @@ export const updateGallery = (ctx: FrameContext, controls: Controls, out: Contro
   if (!controls.up) g.upLatch = false;
   const upIn = !!controls.up && !g.upLatch;
   if (upIn) g.upLatch = true;
-  const near = pm > BOOTH.a - 24 && pm < BOOTH.b + 24 && Math.abs(feet - GY) < 8;
+  // (UP's zone: the whole booth and a good step either side, on the floor, up on the counter, or hopping (the owner's,
+  // 2026-11-02: "i really don't want players to miss it. same for all"): upZone.ts)
+  const near = pm > BOOTH.a - 36 && pm < BOOTH.b + 36 && onFloorish(feet, GY, COUNTER_H + 12);
   const free = p.health > 0 && !p.inCutscene && state.deathTimer <= 0;
 
   switch (g.phase) {
@@ -367,15 +370,13 @@ export const updateGallery = (ctx: FrameContext, controls: Controls, out: Contro
       if (walkOffDue(state, g.leave, BOOTH.man, g.greeted, !g.talk && state.frame - g.lastLine > 120)) {
         g.lastLine = state.frame; speak(DOOLEY_VOICE, pickLine(byPants(state, DOOLEY_LEAVE)), s => { g.talk = s; }, false);
       }
-      if (near && free && p.isGrounded) {
-        setUi({ upPrompt: 'TALK' });
-        if (upIn) {
-          if (hostileNear(state, g)) { if (!g.talk) dooley(g, state, DOOLEY_NOT_NOW); return { ...out, up: false }; }
-          g.phase = 'offer'; g.t = 0; p.inCutscene = true; p.vel.x = 0;
-          holdWorld(state, g);
-          dooley(g, state, DOOLEY_OFFER, () => { if (g.phase === 'offer' && gal(state) === g) { g.phase = 'ask'; g.ask = openAsk("DEAD-EYE DOOLEY'S SHOOTIN' GALLERY", "SHOOT THE TIN DUCKS. 50 SECONDS. EVERYBODY'S A WINNER. YOU'LL USE YOUR OWN GUN."); } });
-          return { ...NO_CONTROLS };
-        }
+      if (near && free) setUi({ upPrompt: 'TALK' });
+      if (upStart(g, upIn, near && free, p.isGrounded)) {
+        if (hostileNear(state, g)) { if (!g.talk) dooley(g, state, DOOLEY_NOT_NOW); return { ...out, up: false }; }
+        g.phase = 'offer'; g.t = 0; p.inCutscene = true; p.vel.x = 0;
+        holdWorld(state, g);
+        dooley(g, state, DOOLEY_OFFER, () => { if (g.phase === 'offer' && gal(state) === g) { g.phase = 'ask'; g.ask = openAsk("DEAD-EYE DOOLEY'S SHOOTIN' GALLERY", "SHOOT THE TIN DUCKS. 50 SECONDS. EVERYBODY'S A WINNER. YOU'LL USE YOUR OWN GUN."); } });
+        return { ...NO_CONTROLS };
       }
       return out;
     }

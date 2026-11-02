@@ -33,6 +33,7 @@ import { setUi } from '../../../store';
 import { pollM2, btn, pressed as menuPressed } from '../../../input';
 import { shardWon, awardShard, openShardCard, tickShardCard, closeShardCard, type ShardCard } from '../../../upgrades/shardAward';
 import { openAsk, tickAsk, closeAsk, type Ask } from '../../../minigameConfirm';
+import { onFloorish, upStart } from '../../../upZone';
 import { minigamePausable } from '../../../minigamePause';
 import type { GameCue } from '../../../music/moments';
 import { meatheadSays, speak, saidOver, type Said } from '../../section';
@@ -51,7 +52,11 @@ type Rp = 'intro' | 'fight' | 'ko';
 /** Where they are (x from the town's start): the cabinet, the kid at its right side, playing. */
 export const CAB_RX = 8547, KID_RX = 8588;
 export const SHARD_LAND = 'spooky', SHARD_ID = 'shard-mash';
-const TALK_RANGE = 46, FREEZE_RANGE = 1000, CONTROLS_HOLD = 90;
+const FREEZE_RANGE = 1000, CONTROLS_HOLD = 90;
+/** UP's TALK zone (x from the town's start): the whole cabinet (62 wide on CAB_RX) and the kid's crate (20 wide on
+ *  KID_RX), and a good step either side (the owner's, 2026-11-02: "make sure the 'width' of the area to talk to the kid
+ *  includes the whole cabinet, not just the kid itself. i really don't want players to miss it"). */
+const TALK_A = CAB_RX - 31 - 36, TALK_B = KID_RX + 10 + 36;
 /** Flagging him down (the bumper carny's way, cartoon/bigkid/bumper.ts): waving while he's this near (once he's played
  *  this run, only this near); a shout at most this often, only this near, never over anybody. */
 const WAVE_FAR = 560, WAVE_PLAYED = 240, CALL_NEAR = 380, CALL_EVERY = 1500;
@@ -64,7 +69,7 @@ const KID_LOCK = 300;
 const ROOF_BASE = 138, SIGN_FOOT = 106;
 
 interface Mash {
-  phase: Phase; t: number; ask: Ask | null; upLatch: boolean;
+  phase: Phase; t: number; ask: Ask | null; upLatch: boolean; upBuf?: number;
   /** The kid's words in the world, over his head (only while said); the line under the cabinet's screen. */
   kidSaid: Said | null; said: { who: string; text: string; col: string } | null;
   sel: SelectView; p1: CharId; kid: CharId;
@@ -258,9 +263,11 @@ export const updateMash = (ctx: FrameContext, controls: Controls): Controls | nu
     // (by the kid, free, on his feet: UP to talk to him)
     const cx = p.pos.x + p.width / 2, d = Math.abs(cx - X(KID_RX));
     const free = !p.inCutscene && p.health > 0 && state.deathTimer <= 0;
+    // (in the zone (the cabinet and the kid), on the floor or hopping: upZone.ts)
+    const inZone = free && cx > X(TALK_A) && cx < X(TALK_B) && onFloorish(p.pos.y + p.height, Y(0));
     // (the kid trying to get his attention: arms over his head, hopping on his crate; now and then a shout, rarely,
     // never over anybody (casual: dropped if somebody's talking), its words up only while it's said)
-    ms.waving = free && d >= TALK_RANGE && d < (ms.played ? WAVE_PLAYED : WAVE_FAR);
+    ms.waving = free && !inZone && d < (ms.played ? WAVE_PLAYED : WAVE_FAR);
     if (ms.waving && !ms.played && !ms.kidSaid && d < CALL_NEAR && state.frame - ms.callAt > CALL_EVERY) {
       ms.callAt = state.frame;
       speak(L.KID, pickLine(pants(state, won() ? L.KID_CALL_AGAIN : L.KID_CALL)), s => { ms.kidSaid = s; }, false);
@@ -273,10 +280,8 @@ export const updateMash = (ctx: FrameContext, controls: Controls): Controls | nu
       ms.leaveArmed = false;
       if (!ms.kidSaid) speak(L.KID, pickLine(pants(state, ms.lastWon ? L.KID_LEAVE_WON : L.KID_LEAVE)), s => { ms.kidSaid = s; }, false);
     }
-    if (Math.abs(cx - X(KID_RX)) < TALK_RANGE && p.isGrounded && !p.inCutscene && p.health > 0 && Math.abs(p.pos.y + p.height - Y(0)) < 8) {
-      setUi({ upPrompt: 'TALK' });
-      if (upIn) { setUi({ upPrompt: null }); startTalk(state, ms); return { ...NO_CONTROLS }; }
-    }
+    if (inZone) setUi({ upPrompt: 'TALK' });
+    if (upStart(ms, upIn, inZone, p.isGrounded)) { setUi({ upPrompt: null }); startTalk(state, ms); return { ...NO_CONTROLS }; }
     const f = state.frame;
     if (ms.waving) ms.kidPose = ms.kidSaid ? (Math.floor(f / 10) % 2 ? 'beckon1' : 'beckon0') : f % 96 < 16 ? 'hop' : Math.floor(f / 8) % 2 ? 'wave1' : 'wave0';
     else ms.kidPose = Math.floor(f / 9) % 2 ? 'play1' : 'play0';

@@ -69,6 +69,7 @@ import * as L from './lines';
 import { bossGone } from '../../emptyArena';
 import { updateThrones, drawThroneFront, inCase, throneState, throneHere, plungeHere } from './thrones';
 import { updatePlunge, startPlunge, plungeOf, drawPlungeWorld, drawPlungeHud } from './plunge';
+import { upStart } from '../../upZone';
 import { FLOOD_SOURCE, drawFloodCam } from './flood';
 import { inPlay } from '../../moves/grab';
 
@@ -638,10 +639,10 @@ export const coaster: HollywoodSection = {
     setUi({ holdDownPrompt: throneHere(state, co) ? 'SHIT ON IT' : null });
     if (sat) return sat;
     // (UP by the Godfather's Clog, its stop cleared, not plunged yet: PLUNGE IT, the ask first)
-    if (plungeHere(state, co)) {
-      setUi({ upPrompt: 'PLUNGE IT' });
-      if (upIn) { setUi({ upPrompt: null }); startPlunge(state, co); return { ...controls, up: false, jump: false }; }
-    }
+    // (the plinth and a long step either side, on his feet or hopping; a press mid-hop starts it as he lands: upZone.ts)
+    const plungeZone = plungeHere(state, co);
+    if (plungeZone) setUi({ upPrompt: 'PLUNGE IT' });
+    if (upStart(co, upIn, plungeZone, p.isGrounded)) { setUi({ upPrompt: null }); startPlunge(state, co); return { ...controls, up: false, jump: false }; }
     const pl = placeOf(state);
     if (pl === 'station') queueBits(state, co);
     if (pl !== null && pl !== 'station') { runStop(state, co, pl, ctx); stairs(state, co, pl, upIn); }

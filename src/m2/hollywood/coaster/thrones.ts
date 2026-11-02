@@ -29,6 +29,7 @@ import { playSound } from '../../../m1/game/platform/audio';
 import { shakeScreen } from '../../../m1/game/core/state';
 import { hurtPlayer } from '../../../m1/game/bosses/shared';
 import { onWire } from '../wires';
+import { HOP_SLACK } from '../../upZone';
 import { X, Y, STOPS, CLEARED_MEMO } from './layout';
 import { allFound } from '../../store';
 import type { Coaster, Sitting } from './state';
@@ -84,12 +85,12 @@ const getUp = (state: GameState, co: Coaster) => {
 
 /** The toilet he's by (on the deck by its plinth, or up on it, on his feet), its stop's staff all dead, the toilet
  *  still there: which (-1 none). Only then does holding down sit him on it, and only then is its prompt up. */
-const throneBy = (state: GameState) => {
+const throneBy = (state: GameState, hop = 0) => {
   const p = state.player, cx = p.pos.x + p.width / 2, feet = p.pos.y + p.height;
-  if (!p.isGrounded || p.health <= 0 || onWire(state)) return -1;
+  if ((!hop && !p.isGrounded) || p.health <= 0 || onWire(state)) return -1;
   for (let i = 0; i < 3; i++) {
     const g = throneAt(i);
-    if (Math.abs(cx - g.mx) > g.sw / 2 + 70 || feet < g.top - 8 || feet > g.deck + 8) continue;
+    if (Math.abs(cx - g.mx) > g.sw / 2 + 70 || feet < g.top - 8 - hop || feet > g.deck + 8) continue;
     if (i === 2 || !state.stageMemo[CLEARED_MEMO(i)] || throneState(state, i) === 'exploded') continue;
     return i;
   }
@@ -98,7 +99,7 @@ const throneBy = (state: GameState) => {
 /** HOLD down's prompt is up (by one he can sit on, not sat on it yet: the Godfather's only once it's plunged). */
 export const throneHere = (state: GameState, co: Coaster) => { if (co.sit) return false; const by = throneBy(state); return by >= 0 && (by !== 1 || plunged(state)); };
 /** UP's PLUNGE IT prompt is up: by the Godfather's Clog, its staff dead, not plunged yet (plunge.ts). */
-export const plungeHere = (state: GameState, co: Coaster) => !co.sit && throneBy(state) === 1 && !plunged(state);
+export const plungeHere = (state: GameState, co: Coaster) => !co.sit && throneBy(state, HOP_SLACK) === 1 && !plunged(state);
 
 /** Each frame, off the train: the crouch by a toilet, and him on one. Controls to pass on (none while he's sat). */
 export const updateThrones = (ctx: FrameContext, co: Coaster, controls: Controls, pa: (line: string) => void): Controls | null => {
