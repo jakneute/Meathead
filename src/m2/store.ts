@@ -100,10 +100,17 @@ export interface M2Ui {
   minigameAsk?: { title: string; text: string; ready: boolean } | null;
   /** A charge shard just won (upgrades/shardAward.ts, ShardGotCard.tsx): the card's up; `ready` once its buffer's over. */
   gotShard?: { ready: boolean } | null;
+  /** A max health find just picked up (upgrades/healthAward.ts, HealthGotCard.tsx): the card's up; `ready` once its buffer's over. */
+  gotHealth?: { ready: boolean } | null;
+  /** A max ammo find just picked up (upgrades/ammoAward.ts, AmmoGotCard.tsx): the card's up; `ready` once its buffer's over. */
+  gotAmmo?: { ready: boolean } | null;
   /** A full-screen minigame's on (Cartoon Land's bumper cars): the HUD's put away for it. */
   hudOff?: boolean;
   /** Cartoon Land's bumper cars: its controls card (bigkid/BumperCard.tsx); `ready` once its buffer's over. */
   bumperCard?: { ready: boolean } | null;
+  /** A minigame's controls card (MinigameCard.tsx: Future Land's lock first): its name, its buttons, how it goes;
+   *  `ready` once its buffer's over. */
+  minigameCard?: { title: string; rows: import('./upgrades/equipInfo').EquipControl[]; text: string; ready: boolean } | null;
 }
 
 /** The stretches with a pause-menu controls card (PauseControls.tsx). */
