@@ -739,10 +739,11 @@ export const drawSquareBack = (c: Ctx, state: GameState) => {
     if ((a >= CAROUSEL.a - 20 && b <= CAROUSEL.b + 20) || a === PORCH.a || a === 9200 || [LA.a, PIER.a, RB.a, TL.a].includes(a) || h === TOWER.top || (a >= 12600 && a <= 13140)) continue;
     if (h < 200) balcony(c, v, a, b, h); else floater(c, v, a, b, h);
   }
-  // (the signs, on their posts)
+  // (the signs, on their posts: THE PRANCING PONY's board ran into the carousel stair's rail, GINGERBREAD LANE's end
+  // and THE BANDSTAND's post into a lamp post)
   const signs: [number, string[], object?][] = [
-    [3300, ['WANDS & SONS', 'MIND THE STAIRS']], [4980, ['THE PRANCING PONY', 'CAROUSEL']], [6560, ['THE WISHING GORGE', 'BOTTOMLESS. PROBABLY.'], { warn: true }],
-    [8780, ['GINGERBREAD LANE']], [10800, ['THE GRAND STAIRCASE', 'STAIRS MAY MOVE']], [13360, ['THE BANDSTAND', 'ANNOUNCEMENTS TODAY']],
+    [3300, ['WANDS & SONS', 'MIND THE STAIRS']], [4925, ['THE PRANCING PONY', 'CAROUSEL']], [6560, ['THE WISHING GORGE', 'BOTTOMLESS. PROBABLY.'], { warn: true }],
+    [8735, ['GINGERBREAD LANE']], [10800, ['THE GRAND STAIRCASE', 'STAIRS MAY MOVE']], [13390, ['THE BANDSTAND', 'ANNOUNCEMENTS TODAY']],
   ];
   for (const [x, words, o] of signs) if (onScreen(state, X(x) - 120, X(x) + 120)) storySign(c, X(x), GY, words, o as { warn?: boolean });
 };

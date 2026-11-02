@@ -26,7 +26,8 @@ import { DOORS } from '../geometry';
 import { PIPER_PA_VOICE } from '../talk';
 import { drawSuitor, SUITOR_H, type SuitorLook } from '../suitors';
 import { RIVALS } from '../glen/rivals';
-import { box, onScreen, INK, viewOf, sideBack, topBack, still, rampH, ramp6, GOLD, TIMBER, lit, checker, polyF, type Ctx } from '../kit';
+import { box, onScreen, INK, viewOf, sideBack, topBack, still, rampH, ramp6, GOLD, TIMBER, lit, checker, polyF, gilt, type Ctx } from '../kit';
+import { signText } from '../../signLetters';
 import { LEAVES as LEAF } from './paint';
 import { keepOf, RUNWAY_MEMO, ROSTER_MEMO, runwayDone, shopDone, setShopDone, type Flyer, type Keep } from './state';
 import { BOUTIQUE, SCENE, X, Y } from './layout';
@@ -133,6 +134,9 @@ export const drawBoutique = (c: Ctx, state: GameState) => {
     const cx = w / 2; g.fillStyle = INK; g.beginPath(); g.moveTo(cx - 30, -BQ_H - 7); g.lineTo(cx - 30, -BQ_H - 24); g.lineTo(cx - 16, -BQ_H - 14); g.lineTo(cx, -BQ_H - 30); g.lineTo(cx + 16, -BQ_H - 14); g.lineTo(cx + 30, -BQ_H - 24); g.lineTo(cx + 30, -BQ_H - 7); g.closePath(); g.fill();
     g.fillStyle = Gd[3]; g.beginPath(); g.moveTo(cx - 28, -BQ_H - 8); g.lineTo(cx - 28, -BQ_H - 21); g.lineTo(cx - 16, -BQ_H - 12); g.lineTo(cx, -BQ_H - 27); g.lineTo(cx + 16, -BQ_H - 12); g.lineTo(cx + 28, -BQ_H - 21); g.lineTo(cx + 28, -BQ_H - 8); g.closePath(); g.fill();
     box(g, cx - 2, -BQ_H - 20, 4, 4, '#F472B6'); box(g, cx - 28, -BQ_H - 10, 56, 2, Gd[2]);
+    // (its name in gilt on the fascia under the cornice: it was a sign on a post behind the shop, the board hidden behind
+    // the roof)
+    signText(g, 'PRINCESS MAKEOVER BOUTIQUE', cx, -BQ_H + 26, gilt(2));
     // (the awning: pink and white stripes, scalloped, its shadow under (dimmed: not stood on))
     box(g, -8, -200, w + 16, 26, INK);
     for (let x = -7; x < w + 8; x += 24) { box(g, x, -199, 12, 22, Aw[3]); box(g, x + 12, -199, 12, 22, Wh[3]); box(g, x, -199, 12, 2, Aw[5]); box(g, x + 12, -199, 12, 2, Wh[5]); g.fillStyle = INK; g.beginPath(); g.arc(x + 6, -177, 6, 0, Math.PI); g.arc(x + 18, -177, 6, 0, Math.PI); g.fill(); g.fillStyle = Aw[3]; g.beginPath(); g.arc(x + 6, -177, 5, 0, Math.PI); g.fill(); g.fillStyle = Wh[3]; g.beginPath(); g.arc(x + 18, -177, 5, 0, Math.PI); g.fill(); }

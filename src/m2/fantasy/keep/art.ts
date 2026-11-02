@@ -1041,13 +1041,16 @@ export const drawKeepBack = (c: Ctx, state: GameState, piperX: number | null, ru
   // (the signs, on their posts)
   const signs: [number, number, string[], object?][] = [
     // (well clear of the moat's sign: the user's, it was half behind it)
-    [250, 0, ["THE GREAT PIXIE'S CASTLE", 'STAFF AND SUITORS ONLY']],
-    [640, 0, ['THE MOAT', 'DRAINED FOR CLEANING'], { warn: true }],
+    // (narrower, clear of the barbican's arch: its board ran across the arch)
+    [312, 0, ["THE GREAT PIXIE'S", 'CASTLE', 'STAFF AND SUITORS ONLY']],
+    // (clear of the gate's PA horn: its pole ran up through the board's end)
+    [592, 0, ['THE MOAT', 'DRAINED FOR CLEANING'], { warn: true }],
     [1560, 0, ['YE OLDE GIFT SHOPPE', 'TIARAS $40']],
-    [(BOUTIQUE.a + BOUTIQUE.b) / 2 - 30, 0, ['PRINCESS MAKEOVER', 'BOUTIQUE'], { tall: 270, board: '#9A2A6A' }],
     [3960, 0, ['THE ROYAL ROSE GARDEN', 'DO NOT PICK THE ROSES']],
-    [6200, WALL.top, ['THE TOWER STAIRS', 'MIND THE MOVING STEPS']],
-    [8480, 0, ['THE POSTERN GATE', 'TO THE BROOM PORT >']],
+    // (clear of the tower's PA horn: its pole ran up through the board's end)
+    [6150, WALL.top, ['THE TOWER STAIRS', 'MIND THE MOVING STEPS']],
+    // (its post out from under the yard's balcony: its post and bracket ran into the balcony's end)
+    [8545, 0, ['THE POSTERN GATE', 'TO THE BROOM PORT >']],
     [9230, 0, done ? ['THE BROOM PORT', 'NO FLIGHTS TODAY'] : ['THE BROOM PORT', 'FINAL TRIAL TODAY'], { board: '#6E0E1C' }],
     [10720, 0, ['FASTPASS', 'SUITORS ONLY'], { board: '#3B0764' }],
   ];
