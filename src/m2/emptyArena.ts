@@ -11,13 +11,16 @@ import { meatheadSays } from './adventure/section';
 /** The land's boss is dead on this save: the revisit plays without him. */
 export const bossGone = (land: string) => isLandCleared(land);
 
-const going = new WeakSet<GameState>();
+// (keyed on the land's own stage object, built new every time a land loads: the GameState itself lives the whole
+// session, so keyed on that, only the first empty arena of a session ever let him go)
+const going = new WeakSet<object>();
 
 /** He's into the empty arena: his line, then off (once a visit). Call it every frame he's in; it holds him meanwhile. */
 export const leaveEmptyArena = (state: GameState, line: string, leave: () => void = () => goTo('hub')) => {
   const p = state.player;
   p.inCutscene = true; p.vel.x = 0;
-  if (going.has(state)) return;
-  going.add(state);
+  const key = (state.stage ?? state) as object;
+  if (going.has(key)) return;
+  going.add(key);
   meatheadSays(state, line, true, leave);
 };
