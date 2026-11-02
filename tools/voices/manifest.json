@@ -42096,11 +42096,6 @@
  },
  {
   "voice": "m2.frontier.dooley",
-  "text": "AIM FOR THE DUCKS, CHAMP! AND THE BANDITS!",
-  "from": "FRONTIER"
- },
- {
-  "voice": "m2.frontier.dooley",
   "text": "AND PUT SOME PANTS ON.",
   "from": "FRONTIER"
  },
@@ -42231,11 +42226,6 @@
  },
  {
   "voice": "m2.frontier.dooley",
-  "text": "HEY. WHERE DID THE DUCK GO?",
-  "from": "FRONTIER"
- },
- {
-  "voice": "m2.frontier.dooley",
   "text": "I AM HYPERVENTILATING YOUR FARTS! WORST DAY OF MY LIFE!",
   "from": "FRONTIER"
  },
@@ -42351,11 +42341,6 @@
  },
  {
   "voice": "m2.frontier.dooley",
-  "text": "SHOOT SOMETHING, CHAMP! THE CLOCK IS RUNNING!",
-  "from": "FRONTIER"
- },
- {
-  "voice": "m2.frontier.dooley",
   "text": "STEP RIGHT UP, NAKED MAN! NOT THAT FAR UP!",
   "from": "FRONTIER"
  },
@@ -42401,22 +42386,12 @@
  },
  {
   "voice": "m2.frontier.dooley",
-  "text": "THAT IS NOT HOW THE DUCKS WORK.",
-  "from": "FRONTIER"
- },
- {
-  "voice": "m2.frontier.dooley",
   "text": "THAT WAS THE SKY! I PAINTED THAT SKY!",
   "from": "FRONTIER"
  },
  {
   "voice": "m2.frontier.dooley",
   "text": "THE BANDITS HAD FAMILIES! PAINTED ON THE BACK!",
-  "from": "FRONTIER"
- },
- {
-  "voice": "m2.frontier.dooley",
-  "text": "THE DUCK IS SUPPOSED TO FALL DOWN. NOT... LEAVE.",
   "from": "FRONTIER"
  },
  {
@@ -42466,11 +42441,6 @@
  },
  {
   "voice": "m2.frontier.dooley",
-  "text": "THREE ROWS OF DUCKS! KNOCK EM DOWN!",
-  "from": "FRONTIER"
- },
- {
-  "voice": "m2.frontier.dooley",
   "text": "WAS ANY OF IT REAL? WERE THE DUCKS EVER REAL?",
   "from": "FRONTIER"
  },
@@ -42502,11 +42472,6 @@
  {
   "voice": "m2.frontier.dooley",
   "text": "WHAT IS DEATH? IS THIS DEATH?",
-  "from": "FRONTIER"
- },
- {
-  "voice": "m2.frontier.dooley",
-  "text": "WHAT IS THAT GUN? THAT IS NOT MY GUN.",
   "from": "FRONTIER"
  },
  {
@@ -42576,11 +42541,6 @@
  },
  {
   "voice": "m2.frontier.dooley",
-  "text": "YOU GONNA SHOOT OR WHAT?",
-  "from": "FRONTIER"
- },
- {
-  "voice": "m2.frontier.dooley",
   "text": "YOU MADE A DUCK STOP BEING. HOW? HOW DID YOU DO THAT?",
   "from": "FRONTIER"
  },
@@ -42617,6 +42577,61 @@
  {
   "voice": "m2.frontier.dooley",
   "text": "YOUR LOSS. MY EYES GAIN.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.dooleycalm",
+  "text": "ANY TIME NOW, SONNY.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.dooleycalm",
+  "text": "DUCKS GO DOWN, DUCKS COME BACK UP. BANDITS ARE WORTH A LITTLE EXTRA. FIFTY SECONDS. EVERYBODY IS A WINNER.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.dooleycalm",
+  "text": "HEY. WHERE DID THE DUCK GO?",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.dooleycalm",
+  "text": "IT'S REAL SIMPLE, SONNY. SEE THEM LITTLE TIN DUCKS?",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.dooleycalm",
+  "text": "TAKE YOUR TIME, SONNY. BUT THE CLOCK IS RUNNING.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.dooleycalm",
+  "text": "THAT IS NOT HOW THE DUCKS WORK.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.dooleycalm",
+  "text": "THE DUCK IS SUPPOSED TO FALL DOWN. NOT... LEAVE.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.dooleycalm",
+  "text": "WHAT IS THAT GUN? THAT IS NOT MY GUN.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.dooleycalm",
+  "text": "YOU SHOOT EM, THEY FALL DOWN, THEY POP RIGHT BACK UP. FIFTY SECONDS. AND NO SUDDEN MOVEMENTS, SONNY. FOR THE SMELL.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.dooleycalm",
+  "text": "YOU SHOOT EM, THEY FALL DOWN, THEY POP RIGHT BACK UP. FIFTY SECONDS. BOTH HANDS ON THE GUN, SONNY. THE GUN.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.dooleycalm",
+  "text": "YOU SHOOT EM, THEY FALL DOWN, THEY POP RIGHT BACK UP. FIFTY SECONDS. EVERYBODY IS A WINNER.",
   "from": "FRONTIER"
  },
  {

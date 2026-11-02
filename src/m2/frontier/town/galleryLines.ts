@@ -6,6 +6,9 @@ import { allOf, type ByPants } from '../talk';
 
 /** Dooley's voice (cast.json). */
 export const DOOLEY_VOICE = 'm2.frontier.dooley';
+/** His calm voice (cast.json: the same man, unhurried): the rules up front and his first puzzled words, so the
+ *  meltdown later has somewhere to fall from (the owner's: "he should sound calm for a good comedic beat"). */
+export const DOOLEY_CALM_VOICE = 'm2.frontier.dooleycalm';
 
 const same = (l: string[]): ByPants => ({ clean: l, shitty: l, nude: l });
 
@@ -70,13 +73,19 @@ export const DOOLEY_NOT_NOW: ByPants = same(['FINISH YOUR FIGHT FIRST, PAL.', 'N
 // ---------------------------------------------------------------------------------------------------------------
 // The gallery (first person: his face in the corner)
 
-/** It starts. */
-export const DOOLEY_START: ByPants = same(['THREE ROWS OF DUCKS! KNOCK EM DOWN!', 'AIM FOR THE DUCKS, CHAMP! AND THE BANDITS!']);
-/** Nothing shot for a while, nothing gone yet. */
-export const DOOLEY_IDLE: ByPants = same(['SHOOT SOMETHING, CHAMP! THE CLOCK IS RUNNING!', 'YOU GONNA SHOOT OR WHAT?']);
+/** It starts (first person, no crosshair yet): the rules, calm and folksy, one then the other, then the countdown.
+ *  The owner's: "he explains the rules. 'it's real simple, sonny'". */
+export const DOOLEY_RULES_A: ByPants = same(["IT'S REAL SIMPLE, SONNY. SEE THEM LITTLE TIN DUCKS?"]);
+export const DOOLEY_RULES_B: ByPants = {
+  clean: ['YOU SHOOT EM, THEY FALL DOWN, THEY POP RIGHT BACK UP. FIFTY SECONDS. EVERYBODY IS A WINNER.', 'DUCKS GO DOWN, DUCKS COME BACK UP. BANDITS ARE WORTH A LITTLE EXTRA. FIFTY SECONDS. EVERYBODY IS A WINNER.'],
+  shitty: ['YOU SHOOT EM, THEY FALL DOWN, THEY POP RIGHT BACK UP. FIFTY SECONDS. AND NO SUDDEN MOVEMENTS, SONNY. FOR THE SMELL.'],
+  nude: ['YOU SHOOT EM, THEY FALL DOWN, THEY POP RIGHT BACK UP. FIFTY SECONDS. BOTH HANDS ON THE GUN, SONNY. THE GUN.'],
+};
+/** Nothing shot for a while, nothing gone yet (calm). */
+export const DOOLEY_IDLE: ByPants = same(['TAKE YOUR TIME, SONNY. BUT THE CLOCK IS RUNNING.', 'ANY TIME NOW, SONNY.']);
 /** The tiers, by how much of the set no longer exists. Each tier's first line is said first. */
 export const DOOLEY_TIERS: ByPants[] = [
-  // (1: the first thing gone: confused)
+  // (1: the first thing gone: confused (still calm: DOOLEY_CALM_VOICE))
   same(['HEY. WHERE DID THE DUCK GO?', 'THAT IS NOT HOW THE DUCKS WORK.', 'WHAT IS THAT GUN? THAT IS NOT MY GUN.', 'THE DUCK IS SUPPOSED TO FALL DOWN. NOT... LEAVE.']),
   // (2: irritated)
   same(['QUIT IT! THOSE ARE RENTAL DUCKS!', 'KNOCK THEM DOWN! DOWN! NOT OUT OF EXISTENCE!', 'I HAVE TO SIGN FOR THOSE!', 'STOP ZAPPING MY STUFF, YOU MEATHEAD!', 'WHO TAUGHT YOU TO PLAY A SHOOTING GALLERY? SATAN?']),
@@ -167,9 +176,11 @@ export const MH_SHARD: ByPants = {
   nude: ['THERE IS MY PRIZE. NOWHERE TO PUT IT.', 'DEAD EYE, BABY.'],
 };
 
-const DOOLEY_ALL = [DOOLEY_GREET, DOOLEY_LEAVE, DOOLEY_LEAVE_PANIC, DOOLEY_OFFER, DOOLEY_DECLINED, DOOLEY_NOT_NOW, DOOLEY_START, DOOLEY_IDLE, ...DOOLEY_TIERS, ...Object.values(DOOLEY_SAW), DOOLEY_OPEN_NONE, DOOLEY_OPEN_SMALL, DOOLEY_OPEN_BIG, DOOLEY_OPEN_ALL, DOOLEY_PANIC, DOOLEY_MUTTER];
+const DOOLEY_CALM = [DOOLEY_RULES_A, DOOLEY_RULES_B, DOOLEY_IDLE, DOOLEY_TIERS[0]];
+const DOOLEY_ALL = [DOOLEY_GREET, DOOLEY_LEAVE, DOOLEY_LEAVE_PANIC, DOOLEY_OFFER, DOOLEY_DECLINED, DOOLEY_NOT_NOW, ...DOOLEY_TIERS.slice(1), ...Object.values(DOOLEY_SAW), DOOLEY_OPEN_NONE, DOOLEY_OPEN_SMALL, DOOLEY_OPEN_BIG, DOOLEY_OPEN_ALL, DOOLEY_PANIC, DOOLEY_MUTTER];
 const uniq = (l: string[]) => [...new Set(l)];
 export const VOICE_LINES: Record<string, string[]> = {
   meathead: uniq([MH_ACCEPT, MH_PRIZE, MH_KILL, MH_SHARD].flatMap(allOf)),
   [DOOLEY_VOICE]: uniq(DOOLEY_ALL.flatMap(allOf)),
+  [DOOLEY_CALM_VOICE]: uniq(DOOLEY_CALM.flatMap(allOf)),
 };

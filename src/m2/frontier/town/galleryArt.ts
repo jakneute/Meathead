@@ -254,31 +254,80 @@ export const paintCounter = (i: number, w: number) => (g: Ctx) => {
   else signText(g, i === 0 ? '3 SHOTS' : '1 TICKET', w / 2, 36, western(1, '#F4F0E6', '#0A1A2A'));
 };
 
-/** Meathead's left arm and the ray gun, pointing right (156 x 44): the shoulder end at the left, the muzzle at the right
- *  (GUN_MUZZLE). Thick, hairy, a tan; the chrome bulb, the pink coils, the dish, the duct-taped grip. */
-export const GUN_W = 156, GUN_H = 56, GUN_PIVOT = [0, 32] as const, GUN_MUZZLE = [154, 16] as const;
+/** Meathead's left hand round the ray gun, first person (the light-gun look): seen from just behind and above, the gun
+ *  pointing away into the gallery (its chrome bulb nearest, the barrel and the coils going off up the screen to the
+ *  dish), the duct-taped grip down in his fist: the back of the hand to the left, the curled fingers' knuckles stacked
+ *  down its side, the trigger finger reaching in under the bulb, the thumb up the right of the grip; the wrist and the
+ *  forearm coming in from the bottom-left corner, foreshortened. HAND_W x HAND_H art px (drawn 2 screen px each),
+ *  turned about HAND_PIVOT (the wrist's middle) a little toward the cursor; HAND_MUZZLE the dish's middle. `fire`: the
+ *  trigger squeezed, the coils and the dish lit. */
+export const HAND_W = 104, HAND_H = 160, HAND_PIVOT = [50, 118] as const, HAND_MUZZLE = [60, 16] as const;
 const SKINR = ['#4A2414', '#7A4226', '#A86A42', '#C88A5E', '#E4A87A', '#F6C89C'];
-export const paintGunArm = (g: Ctx) => {
-  // (the forearm: banded round, hair, a vein)
-  // (a meathead's forearm: thick at the elbow, thick at the wrist)
-  polyF(g, [0, 4, 60, 8, 104, 14, 108, 38, 60, 46, 0, 56], INK);
-  polyF(g, [0, 5, 60, 9, 103, 15, 107, 37, 60, 45, 0, 55], SKINR[3]);
-  polyF(g, [0, 5, 60, 9, 103, 15, 104, 21, 60, 17, 0, 15], SKINR[4]); polyF(g, [0, 6, 60, 10, 100, 16, 60, 12, 0, 9], SKINR[5]);
-  polyF(g, [0, 46, 60, 39, 106, 33, 107, 37, 60, 45, 0, 55], SKINR[2]); dith(g, 0, 40, 104, 3, SKINR[2]);
-  for (let k = 0; k < 60; k++) { const x = 4 + hash(k * 3.3) * 96, y = 18 + hash(k * 1.7) * 20 - x * 0.04; box(g, x, y, 2, 1, SKINR[1]); }
-  g.strokeStyle = '#8A7AA8'; g.lineWidth = 1; g.beginPath(); g.moveTo(10, 34); g.quadraticCurveTo(50, 24, 96, 28); g.stroke();
-  // (the gun behind the hand: the bulb, banded chrome; the barrel, the coils, the dish)
-  ellF(g, 126, 14, 17, 11, INK); ellF(g, 126, 14, 15.5, 9.5, STEEL[4]); ellF(g, 124, 12, 13, 7, STEEL[5]); ellF(g, 122, 10, 9, 4, STEEL[6]); ellF(g, 120, 9, 4, 2, STEEL[7]);
-  dith(g, 114, 18, 24, 3, STEEL[3]);
-  box(g, 134, 9, 16, 11, INK); box(g, 135, 10, 14, 9, STEEL[4]); box(g, 135, 10, 14, 2, STEEL[6]); box(g, 135, 17, 14, 2, STEEL[2]);
-  for (const x of [137, 142]) { box(g, x, 7, 3, 15, INK); box(g, x, 8, 3, 13, '#EC44C4'); box(g, x, 8, 1, 13, '#FFB8F0'); }
-  box(g, 149, 4, 6, 21, INK); box(g, 150, 5, 4, 19, STEEL[5]); box(g, 150, 5, 4, 2, STEEL[7]); box(g, 152, 10, 2, 9, '#500724');
-  polyF(g, [112, 4, 120, 0, 126, 4], INK); polyF(g, [114, 4, 120, 1, 124, 4], '#C8302A');
-  // (the hand round the duct-taped grip: knuckles banded, the thumb over)
-  box(g, 104, 18, 16, 20, INK); box(g, 105, 19, 14, 18, '#9CA3AF'); for (let y = 20; y < 37; y += 3) box(g, 105, y, 14, 1, '#6B7280');
-  ellF(g, 108, 26, 9, 10, INK); ellF(g, 108, 26, 8, 9, SKINR[3]); ellF(g, 106, 23, 5, 5, SKINR[4]);
-  for (const y of [20, 26, 32]) { box(g, 113, y, 4, 4, INK); box(g, 113, y, 3, 3, SKINR[4]); box(g, 113, y, 2, 1, SKINR[5]); }
-  ellF(g, 112, 16, 6, 3, INK); ellF(g, 112, 16, 5, 2, SKINR[4]);
+const capsule = (g: Ctx, x0: number, y0: number, x1: number, y1: number, w: number, col: string) => {
+  g.strokeStyle = col; g.lineWidth = w; g.lineCap = 'round'; g.beginPath(); g.moveTo(x0, y0); g.lineTo(x1, y1); g.stroke(); g.lineCap = 'butt';
+};
+export const paintGunHand = (fire: boolean) => (g: Ctx) => {
+  const S = SKINR;
+  // THE GUN (behind the hand): the barrel going away, tapering, banded chrome (lit from the upper left)
+  polyF(g, [44, 44, 52, 19, 67, 19, 63, 44], INK);
+  polyF(g, [45, 43, 53, 20, 66, 20, 62, 43], STEEL[4]);
+  polyF(g, [45, 43, 53, 20, 57, 20, 50, 43], STEEL[6]); polyF(g, [47, 43, 54, 20, 55, 20, 48, 43], STEEL[7]);
+  polyF(g, [57, 43, 62, 20, 66, 20, 62, 43], STEEL[2]); dith(g, 55, 22, 4, 20, STEEL[3]);
+  // (the coils, round it)
+  for (const [y, rx] of [[36, 10], [28, 8.5]] as const) {
+    const cx = 55 + (36 - y) * 0.2;
+    ellF(g, cx, y, rx + 1, 3.5, INK); ellF(g, cx, y, rx, 2.5, fire ? '#FF8CE4' : '#EC44C4'); ellF(g, cx - 2, y - 1, rx * 0.5, 1, fire ? '#FFFFFF' : '#FFB8F0');
+  }
+  // (the dish, out at the end: its rim, the hole the ray comes out of)
+  ellF(g, 60, 16, 13, 6.5, INK); ellF(g, 60, 16, 12, 5.5, STEEL[5]); ellF(g, 58, 14.5, 9, 2.5, STEEL[7]); ellF(g, 61, 18, 10, 2, STEEL[3]);
+  ellF(g, 60, 16.5, 7, 2.8, INK); ellF(g, 60, 16.5, 6, 2, fire ? '#FFFFFF' : '#500724');
+  if (fire) ellF(g, 60, 16.5, 3, 1, '#FF8CE4');
+  // (the bulb, nearest: a chrome ball, a red fin on top)
+  polyF(g, [40, 40, 44, 28, 52, 37], INK); polyF(g, [42, 39, 44.5, 30.5, 50, 37], '#C8302A'); box(g, 44, 32, 1, 5, '#F87171');
+  ellF(g, 53, 50, 17, 13, INK); ellF(g, 53, 50, 15.5, 11.5, STEEL[3]); ellF(g, 52, 49, 14, 10, STEEL[4]); ellF(g, 49, 46.5, 10, 6.5, STEEL[5]);
+  ellF(g, 47, 45, 6, 3.5, STEEL[6]); ellF(g, 46, 44, 2.5, 1.5, STEEL[7]); dith(g, 42, 56, 24, 2, STEEL[2]);
+  // THE GRIP: duct tape, going down into the fist
+  polyF(g, [42, 56, 61, 56, 60, 100, 43, 100], INK); polyF(g, [43, 57, 60, 57, 59, 99, 44, 99], '#9CA3AF');
+  for (let y = 59; y < 99; y += 4) box(g, 43, y, 17, 1, '#6B7280');
+  // THE FOREARM: in from the bottom-left corner, thick, foreshortened (wider nearer), banded along its length, hairy
+  polyF(g, [28, 98, 68, 102, 72, 160, 0, 160, 0, 138], INK);
+  polyF(g, [29, 99, 67, 103, 71, 160, 1, 160, 1, 139], S[3]);
+  polyF(g, [29, 99, 40, 100, 14, 160, 1, 160, 1, 139], S[4]); polyF(g, [29, 100, 33, 100, 5, 160, 1, 160, 1, 141], S[5]);
+  polyF(g, [56, 102, 67, 103, 71, 160, 52, 160], S[2]); polyF(g, [63, 103, 67, 103, 71, 160, 64, 160], S[1]);
+  for (let y = 104; y < 160; y += 2) { const t = (y - 100) / 60; dith(g, 52 - t * 4 + 2, y, 3, 1, S[2], y); dith(g, 14 + 22 * (1 - t) - 2, y, 3, 1, S[4], y); }
+  for (let k = 0; k < 46; k++) { const t = hash(k * 2.3), y = 108 + t * 50, x = 14 + (1 - t) * 18 + hash(k * 4.1) * 34; box(g, x, y, 1, 2, S[1]); box(g, x + 1, y + 1, 1, 1, S[1]); }
+  g.strokeStyle = '#8A7AA8'; g.lineWidth = 1; g.beginPath(); g.moveTo(44, 106); g.quadraticCurveTo(38, 130, 30, 158); g.stroke();
+  // THE HAND: the back of it (the fist's bulk), wrapped round the grip
+  ellF(g, 48, 82, 21, 24, INK);
+  ellF(g, 48, 82, 20, 23, S[3]);
+  ellF(g, 55, 90, 12, 15, S[2]); ellF(g, 60, 94, 6, 9, S[1]);
+  ellF(g, 44, 78, 13, 16, S[3]); ellF(g, 41, 75, 10, 12, S[4]); ellF(g, 38, 71, 5, 6, S[5]);
+  dith(g, 49, 70, 8, 28, S[2]);
+  // (the tendons up the back of the hand, a few hairs)
+  for (const [x0, x1] of [[38, 34], [43, 38], [48, 43]] as const) { g.strokeStyle = S[2]; g.beginPath(); g.moveTo(x0 + 0.5, 100); g.lineTo(x1 + 0.5, 74); g.stroke(); }
+  for (let k = 0; k < 10; k++) box(g, 34 + hash(k * 7.7) * 18, 80 + hash(k * 5.1) * 18, 1, 2, S[1]);
+  // (the curled fingers: their knuckles stacked down the left side of the grip, creased; the trigger finger above)
+  for (let i = 0; i < 3; i++) {
+    const y = 75 + i * 9, x = 29 + i * 1.5, rx = i === 2 ? 6.5 : 8, ry = i === 2 ? 4 : 4.5;
+    ellF(g, x, y, rx + 1, ry + 1, INK); ellF(g, x, y, rx, ry, S[3]); ellF(g, x - 1, y - 1.5, rx - 2, ry - 2.2, S[4]); box(g, x - 3, y - 3, 2, 1, S[5]);
+    box(g, x - rx + 1, y + ry - 1, rx * 1.4, 1, S[1]);
+  }
+  // (the index finger: from its knuckle up in under the bulb, on the trigger (pulled back a hair when it fires))
+  const tip = fire ? [45, 63] : [46, 60];
+  capsule(g, 31, 68, tip[0], tip[1], 9, INK); capsule(g, 31, 68, tip[0], tip[1], 7, S[3]); capsule(g, 30, 66.5, tip[0] - 2, tip[1] - 1, 2, S[4]);
+  box(g, 37, 63, 1, 3, S[1]);
+  ellF(g, 29, 68, 5, 4.5, INK); ellF(g, 29, 68, 4, 3.5, S[4]); box(g, 27, 66, 2, 1, S[5]);
+  // (the web of the hand, high on the back of the grip under the bulb)
+  ellF(g, 52, 64, 11, 5, INK); ellF(g, 52, 64.5, 10, 4, S[3]); ellF(g, 50, 63.5, 6, 2, S[4]);
+  // (two fingertips come round the front of the grip and peek out on the right, under the thumb)
+  for (const y of [76, 84]) { ellF(g, 66, y, 4.5, 4, INK); ellF(g, 65.5, y, 3.5, 3, S[2]); box(g, 65, y - 2, 2, 1, S[3]); }
+  // (the thumb: up the right of the grip from the heel of the hand, its tip pressed under the bulb, the nail lit)
+  ellF(g, 61.5, 84, 6.5, 17, INK); ellF(g, 61.5, 84, 5.5, 16, S[3]);
+  ellF(g, 59.5, 83, 2.2, 13, S[4]); box(g, 58.5, 74, 1, 10, S[5]); ellF(g, 64.5, 88, 2, 12, S[2]);
+  g.strokeStyle = S[1]; g.beginPath(); g.moveTo(58, 81.5); g.quadraticCurveTo(61.5, 83.5, 65, 81.5); g.stroke();
+  ellF(g, 61.5, 71, 3.5, 3.2, INK); ellF(g, 61.5, 71, 2.6, 2.3, '#F0C8B0'); box(g, 60, 70, 1, 1, '#FFFFFF');
+  // (the wrist's crease)
+  g.strokeStyle = S[2]; g.beginPath(); g.moveTo(32, 103.5); g.quadraticCurveTo(48, 108, 64, 105.5); g.stroke();
 };
 
 /** The layout: what pieces there are, back to front (the logic gives them life: gallery.ts). */

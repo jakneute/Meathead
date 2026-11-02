@@ -18,7 +18,9 @@
 //            He's scenery: not in the enemies, so nothing touches him (shots, moves, grabs, the amulet's yell).
 //            UP at the counter (TALK): his offer (pants variants), then the ask (minigameConfirm.ts: A accept, B back).
 //   play     FIRST PERSON, full screen, the HUD away (inCutscene), the world held (enemies paused, nothing hurts
-//            him): the gallery, every piece of the set its own (galleryArt.ts pieceDefs). The cursor: the stick or
+//            him): the gallery, every piece of the set its own (galleryArt.ts pieceDefs). First (ready) Dooley's rules,
+//            calm ("IT'S REAL SIMPLE, SONNY."), then 3, 2, 1, GO!: no crosshair, no shots, the clock stopped till GO;
+//            the hand round the gun (first person, from just behind) slides after the cursor. The cursor: the stick or
 //            the d-pad (or the arrow keys); the mouse moves it straight to where it is. Fire (X or RT; the left mouse
 //            button): his ray gun (his left arm, the gun turned at the cursor, recoiling) zaps; whatever's under the
 //            cursor is DISINTEGRATED (lit pink, then eaten away from the side the beam came in, the bits blowing off),
@@ -67,12 +69,12 @@ import { GY } from '../geometry';
 import { X } from './layout';
 import { townOf, type Town } from './state';
 import {
-  ART_W, ART_H, FENCE_Y, RAIL_A, RAIL_C, COUNTER_Y, DUCK_W, BANDIT_H, GUN_W, GUN_H, GUN_PIVOT, GUN_MUZZLE, BOOTH_W, COUNTER_H, DOOLEY_SEED,
-  bake, pinkOf, paintVoid, drawVisor, paintGunArm, pieceDefs, dooleyBust, drawBoothBack, drawBoothFront, drawDooleyAt, drawDooleyKind, drawShard,
+  ART_W, ART_H, FENCE_Y, RAIL_A, RAIL_C, COUNTER_Y, DUCK_W, BANDIT_H, HAND_W, HAND_H, HAND_PIVOT, HAND_MUZZLE, BOOTH_W, COUNTER_H, DOOLEY_SEED,
+  bake, pinkOf, paintVoid, drawVisor, paintGunHand, pieceDefs, dooleyBust, drawBoothBack, drawBoothFront, drawDooleyAt, drawDooleyKind, drawShard,
   type PieceDef, type DooleyLook,
 } from './galleryArt';
 import {
-  DOOLEY_VOICE, DOOLEY_GREET, DOOLEY_LEAVE, DOOLEY_LEAVE_PANIC, DOOLEY_OFFER, DOOLEY_DECLINED, DOOLEY_NOT_NOW, DOOLEY_START, DOOLEY_IDLE, DOOLEY_TIERS, DOOLEY_SAW,
+  DOOLEY_VOICE, DOOLEY_CALM_VOICE, DOOLEY_GREET, DOOLEY_LEAVE, DOOLEY_LEAVE_PANIC, DOOLEY_OFFER, DOOLEY_DECLINED, DOOLEY_NOT_NOW, DOOLEY_RULES_A, DOOLEY_RULES_B, DOOLEY_IDLE, DOOLEY_TIERS, DOOLEY_SAW,
   DOOLEY_OPEN_NONE, DOOLEY_OPEN_SMALL, DOOLEY_OPEN_BIG, DOOLEY_OPEN_ALL, DOOLEY_PANIC, DOOLEY_MUTTER, MH_ACCEPT, MH_PRIZE, MH_KILL, MH_SHARD,
 } from './galleryLines';
 
@@ -88,13 +90,18 @@ const shardWon = () => wonShard(SHARD_LAND, SHARD_ID);
 export const BOOTH = { a: X(3484), b: X(3484) + BOOTH_W, man: X(3570) } as const;
 /** Frames: the gallery's time, the fades, the end card, the card's buffer; the beat's longest. */
 const TIME = 3000, FADE = 18, OVER_T = 70, BEAT_MAX = 1200, TIPS_T = 300;
+/** The start (the owner's, 2026-11-02: "make sure the guy speaks for a bit, give a countdown, then you can start
+ *  shooting"): his rules (calm), a breath, then 3, 2, 1 (CD_STEP frames each), GO! (shown GO_T into the play); the rules
+ *  given up on after READY_MAX. His lines in the play: CALM_GAP frames of quiet after one ends before the next,
+ *  REPEAT_GAP before another of the same tier (the owner's: "he speaks too frantically"). */
+const CD_STEP = 50, CD_LEAD = 30, GO_T = 45, READY_MAX = 900, CALM_GAP = 300, REPEAT_GAP = 600;
 /** The disintegration: lit up first, then eaten away. */
 const VH = 8, VG = 22;
 /** How much has to be gone for each tier of his reaction (1..5), and the score board's going wrong. */
 const TIERS = [0.001, 0.12, 0.3, 0.55, 0.8];
 const VALUE: Partial<Record<PieceDef['kind'], number>> = { duck: 100, bandit: 250, bottle: 50, moon: 1000, wheel: 500, prize: 300 };
 
-type Phase = 'idle' | 'offer' | 'ask' | 'fadeIn' | 'play' | 'over' | 'fadeOut' | 'beat' | 'panic' | 'dead' | 'card' | 'done';
+type Phase = 'idle' | 'offer' | 'ask' | 'fadeIn' | 'ready' | 'play' | 'over' | 'fadeOut' | 'beat' | 'panic' | 'dead' | 'card' | 'done';
 interface Piece extends PieceDef {
   cv: HTMLCanvasElement | null; pk: HTMLCanvasElement | null;
   x0: number; y0: number;
@@ -115,7 +122,11 @@ interface Gallery {
   man: Enemy | null; manX: number; manFace: 1 | -1;
   talk: Said | null; mh: Said | null; lastLine: number; greeted: boolean; upLatch: boolean; upBuf?: number;
   /** The gallery. */
-  pieces: Piece[]; baked: number; voidCv: HTMLCanvasElement | null; gunCv: HTMLCanvasElement | null;
+  pieces: Piece[]; baked: number; voidCv: HTMLCanvasElement | null;
+  /** The hand round the gun: at rest, firing. */
+  gunCv: [HTMLCanvasElement, HTMLCanvasElement] | null;
+  /** The start: his rules said (then the countdown); frames into the countdown (-1: not yet). */
+  rulesDone: boolean; cd: number;
   cur: { x: number; y: number }; held: boolean; cool: number; recoil: number; aimSpd: number;
   bolt: { x0: number; y0: number; x1: number; y1: number; t: number } | null;
   bits: Bit[]; boots: { x: number; y: number }[];
@@ -155,9 +166,10 @@ if (typeof window !== 'undefined') window.addEventListener('mousemove', e => {
 // Speech
 
 /** Dooley says it (queued: never over anybody); his words shown while it's said (the gallery's corner, or over him). */
-const dooley = (g: Gallery, state: GameState, pool: ByPants, onDone?: () => void) => {
+const dooley = (g: Gallery, state: GameState, pool: ByPants, onDone?: () => void, voiceId = DOOLEY_VOICE) => {
   g.lastLine = state.frame;
-  speak(DOOLEY_VOICE, pickLine(byPants(state, pool)), s => { g.talk = s; }, true, onDone);
+  // (the quiet after a line counted from when it ends)
+  speak(voiceId, pickLine(byPants(state, pool)), s => { g.talk = s; if (!s) g.lastLine = state.frame; }, true, onDone);
 };
 /** Meathead in the gallery (his words low on the screen: he's not in view). */
 const mhSays = (g: Gallery, state: GameState, pool: ByPants) => {
@@ -225,7 +237,7 @@ export const buildGallery = (state: GameState) => {
   const g: Gallery = {
     phase: 'idle', t: 0, ask: null, lvl: lvlOf(gone), gone, ledge: null,
     man: null, manX: BOOTH.man, manFace: -1, talk: null, mh: null, lastLine: -9999, greeted: false, upLatch: true, leave: walkOff(),
-    pieces: [], baked: 0, voidCv: null, gunCv: null, cur: { x: 400, y: 260 }, held: true, cool: 0, recoil: 0, aimSpd: 0, bolt: null,
+    pieces: [], baked: 0, voidCv: null, gunCv: null, rulesDone: false, cd: -1, cur: { x: 400, y: 260 }, held: true, cool: 0, recoil: 0, aimSpd: 0, bolt: null,
     bits: [], boots: [], score: 0, time: TIME, lastShot: 0, tier: 0, said: 0, sawQ: [], sawDone: new Set(), idleSaid: false,
     from: { x: 0, y: 0 }, shard: null, card: null, bustK: 0, rebuilt: false,
   };
@@ -251,7 +263,7 @@ const spawnMan = (state: GameState, g: Gallery, x: number) => {
 const bakeSome = (g: Gallery, n: number) => {
   if (!g.pieces.length) g.pieces = pieceDefs().map(d => ({ ...d, cv: null, pk: null, x0: d.x, y0: d.y, alive: true, gone: false, vt: -1, dir: 1, vy: 0, falling: false, rot: 0 }));
   if (!g.voidCv) { g.voidCv = bake(ART_W, ART_H, paintVoid); n--; }
-  if (!g.gunCv) { g.gunCv = bake(GUN_W, GUN_H, paintGunArm); n--; }
+  if (!g.gunCv) { g.gunCv = [bake(HAND_W, HAND_H, paintGunHand(false)), bake(HAND_W, HAND_H, paintGunHand(true))]; n--; }
   for (; n > 0 && g.baked < g.pieces.length; n--, g.baked++) {
     const p = g.pieces[g.baked];
     p.cv = bake(p.w, p.h, p.paint); p.pk = pinkOf(p.cv);
@@ -259,7 +271,7 @@ const bakeSome = (g: Gallery, n: number) => {
 };
 const fresh = (g: Gallery) => {
   for (const p of g.pieces) { p.x = p.x0; p.y = p.y0; p.alive = true; p.gone = false; p.vt = -1; p.vy = 0; p.falling = false; }
-  g.bits = []; g.boots = []; g.score = 0; g.time = TIME; g.tier = 0; g.said = 0; g.sawQ = []; g.sawDone.clear(); g.idleSaid = false; g.lastShot = 0;
+  g.bits = []; g.boots = []; g.score = 0; g.time = TIME; g.tier = 0; g.said = 0; g.sawQ = []; g.sawDone.clear(); g.idleSaid = false; g.lastShot = 0; g.rulesDone = false; g.cd = -1;
   g.cur = { x: 400, y: 250 }; mouse.moved = false; g.held = true; g.cool = 10; g.recoil = 0; g.bolt = null; g.aimSpd = 0;
 };
 const byId = (g: Gallery, id: string) => g.pieces.find(p => p.id === id);
@@ -309,7 +321,7 @@ const zap = (state: GameState, g: Gallery, p: Piece, fromX: number) => {
   playSound('rayFizzle', 0.8, Math.random() * 4 - 2);
   // (a word for some of them, once each)
   const saw = p.kind === 'moon' ? 'moon' : p.kind === 'panel' ? 'sky' : p.kind === 'plank' ? 'void' : p.kind === 'counter' ? 'counter' : p.kind === 'score' ? 'score' : p.kind === 'bandit' ? 'bandit' : p.kind === 'prize' ? 'prize' : null;
-  if (saw && !g.sawDone.has(saw)) { g.sawDone.add(saw); g.sawQ.push(saw); }
+  if (saw && !g.sawDone.has(saw)) { g.sawDone.add(saw); g.sawQ = [saw]; }
   if (p.kind === 'bandit') g.boots.push({ x: q.x + 3, y: FENCE_Y - 4 });
   void state;
 };
@@ -400,11 +412,15 @@ export const updateGallery = (ctx: FrameContext, controls: Controls, out: Contro
       g.phase = 'fadeIn'; g.t = 0;
       holdWorld(state, g);
       mhSays(g, state, MH_ACCEPT);
-      dooley(g, state, DOOLEY_START);
+      // (his rules, calm and folksy, one line then the other: then the countdown)
+      dooley(g, state, DOOLEY_RULES_A, () => {
+        if (gal(state) !== g || (g.phase !== 'fadeIn' && g.phase !== 'ready')) return;
+        dooley(g, state, DOOLEY_RULES_B, () => { if (gal(state) === g) g.rulesDone = true; }, DOOLEY_CALM_VOICE);
+      }, DOOLEY_CALM_VOICE);
       playSound('menuok', 0.6);
       return { ...NO_CONTROLS };
     }
-    case 'fadeIn': case 'play': case 'over': case 'fadeOut':
+    case 'fadeIn': case 'ready': case 'play': case 'over': case 'fadeOut':
       runGallery(state, g, controls);
       // (first person, START pauses it, the pause menu showing its controls: minigamePause.ts)
       if (galleryOn(state)) minigamePausable(state, 'gallery', quitGallery);
@@ -519,7 +535,18 @@ const runGallery = (state: GameState, g: Gallery, controls: Controls) => {
       }
     }
   }
-  if (g.phase === 'fadeIn') { if (++g.t >= FADE) { g.phase = 'play'; g.t = 0; } }
+  if (g.phase === 'fadeIn') { if (++g.t >= FADE) { g.phase = 'ready'; g.t = 0; } }
+  else if (g.phase === 'ready') {
+    // (no crosshair, no shooting, the clock stopped: his rules, a breath, 3, 2, 1, GO!)
+    g.t++;
+    if (g.cd < 0 && ((g.rulesDone && !g.talk) || g.t > READY_MAX)) g.cd = 0;
+    if (g.cd >= 0) {
+      const at = g.cd - CD_LEAD;
+      if (at >= 0 && at % CD_STEP === 0 && at < CD_STEP * 3) playSound('beep', 0.8, 0);
+      if (at >= CD_STEP * 3) { g.phase = 'play'; g.t = 0; g.cool = 0; playSound('beep', 0.9, 12); playSound('ding', 0.6, 0); }
+      g.cd++;
+    }
+  }
   else if (g.phase === 'play') {
     g.t++; g.time--;
     // THE CURSOR: the stick or the d-pad, the arrow keys; the mouse straight to where it is
@@ -570,23 +597,25 @@ const shoot = (state: GameState, g: Gallery) => {
 };
 
 const talkGallery = (state: GameState, g: Gallery) => {
-  if (g.talk || isTalking() || state.frame - g.lastLine < 40) return;
-  const saw = g.sawQ.shift();
-  if (saw) { dooley(g, state, DOOLEY_SAW[saw]); return; }
+  // (unhurried: a good few seconds of quiet after each line (counted from its end), one at a time, never over anybody;
+  // the real meltdown's for the street after)
+  if (g.talk || isTalking() || state.frame - g.lastLine < CALM_GAP) return;
+  const voiceOf = (tier: number) => (tier <= 1 ? DOOLEY_CALM_VOICE : DOOLEY_VOICE);
   if (g.tier > g.said) {
-    // (a new tier: its first line first)
+    // (a new tier: its first line first (tiers passed in the quiet: just the newest))
     g.said = g.tier;
     const pool = DOOLEY_TIERS[g.tier - 1];
-    g.lastLine = state.frame;
     const first = { clean: [pool.clean[0]], shitty: [pool.shitty[0]], nude: [pool.nude[0]] };
-    dooley(g, state, first);
+    dooley(g, state, first, undefined, voiceOf(g.tier));
     return;
   }
+  const saw = g.sawQ.shift();
+  if (saw) { dooley(g, state, DOOLEY_SAW[saw]); return; }
   if (g.tier === 0) {
-    if (!g.idleSaid && g.t > 420) { g.idleSaid = true; dooley(g, state, DOOLEY_IDLE); }
+    if (!g.idleSaid && g.t > 420) { g.idleSaid = true; dooley(g, state, DOOLEY_IDLE, undefined, DOOLEY_CALM_VOICE); }
     return;
   }
-  if (state.frame - g.lastLine > 150) dooley(g, state, DOOLEY_TIERS[g.tier - 1]);
+  if (state.frame - g.lastLine > REPEAT_GAP) dooley(g, state, DOOLEY_TIERS[g.tier - 1], undefined, voiceOf(g.tier));
 };
 
 const endGallery = (state: GameState, g: Gallery) => {
@@ -607,14 +636,22 @@ const endGallery = (state: GameState, g: Gallery) => {
   dooley(g, state, pool, () => meatheadSays(state, pickLine(byPants(state, MH_PRIZE)), true, () => toPanic(state, g)));
 };
 
-const muzzle = (g: Gallery) => {
-  const [px0, py0] = GUN_PIV, a = aimAngle(g), back = g.recoil * 12;
-  const lx = (GUN_MUZZLE[0] - GUN_PIVOT[0]) * GUN_S - back, ly = (GUN_MUZZLE[1] - GUN_PIVOT[1]) * GUN_S;
-  return { x: px0 + Math.cos(a) * lx - Math.sin(a) * ly, y: py0 + Math.sin(a) * lx + Math.cos(a) * ly };
+/** The hand (screen): its wrist low, left of middle (his left: he's left-handed), sliding after the cursor and kicked
+ *  down by the recoil, the gun turned to point at it (within reason); at rest (lower, pointing up the middle) till GO. */
+const HAND_S = 2;
+const handPose = (g: Gallery) => {
+  const aiming = g.phase !== 'fadeIn' && g.phase !== 'ready';
+  const cx = aiming ? g.cur.x : 400, cy = aiming ? g.cur.y : 330;
+  const x = 300 + (cx - 400) * 0.4, y = 604 + (cy - 300) * 0.12 + g.recoil * 14 + (aiming ? 0 : 16);
+  const lean = Math.atan2(HAND_MUZZLE[0] - HAND_PIVOT[0], HAND_PIVOT[1] - HAND_MUZZLE[1]);
+  const a = Math.max(-0.6, Math.min(0.6, Math.atan2(cx - x, y - cy) - lean)) - g.recoil * 0.06;
+  return { x, y, a };
 };
-/** The shoulder (screen): low at the left, off the bottom (his left arm: he's left-handed); the arm's scale. */
-const GUN_PIV = [90, 670] as const, GUN_S = 2.3;
-const aimAngle = (g: Gallery) => Math.max(-1.95, Math.min(-0.08, Math.atan2(g.cur.y - GUN_PIV[1], g.cur.x - GUN_PIV[0])));
+const muzzle = (g: Gallery) => {
+  const { x, y, a } = handPose(g);
+  const lx = (HAND_MUZZLE[0] - HAND_PIVOT[0]) * HAND_S, ly = (HAND_MUZZLE[1] - HAND_PIVOT[1]) * HAND_S;
+  return { x: x + Math.cos(a) * lx - Math.sin(a) * ly, y: y + Math.sin(a) * lx + Math.cos(a) * ly };
+};
 
 // ---------------------------------------------------------------------------------------------------------------
 // Drawing: in the world
@@ -622,10 +659,10 @@ const aimAngle = (g: Gallery) => Math.max(-1.95, Math.min(-0.08, Math.atan2(g.cu
 /** The music's (cues.ts): the gallery's own song while it's up (the ask's the land's), the sting when the time's up. */
 export const galleryMusic = (state: GameState): GameCue | null => {
   const ph = gal(state)?.phase;
-  return ph === 'fadeIn' || ph === 'play' ? { song: 'game:gallery' } : ph === 'over' || ph === 'fadeOut' ? { song: null, sting: 'game:gallery-end' } : null;
+  return ph === 'fadeIn' || ph === 'ready' || ph === 'play' ? { song: 'game:gallery' } : ph === 'over' || ph === 'fadeOut' ? { song: null, sting: 'game:gallery-end' } : null;
 };
 /** Is the gallery up (first person) or fading? (the world's not to be seen) */
-export const galleryOn = (state: GameState) => { const g = gal(state); return !!g && (g.phase === 'fadeIn' || g.phase === 'play' || g.phase === 'over' || g.phase === 'fadeOut'); };
+export const galleryOn = (state: GameState) => { const g = gal(state); return !!g && (g.phase === 'fadeIn' || g.phase === 'ready' || g.phase === 'play' || g.phase === 'over' || g.phase === 'fadeOut'); };
 
 /** The booth's back, Dooley behind the counter (or out front in the beat), the counter. */
 export const drawGalleryWorld = (c: Ctx, state: GameState) => {
@@ -735,15 +772,13 @@ export const drawGalleryHud = (c: Ctx, state: GameState) => {
   }
   // HIS ARM AND THE RAY GUN, turned at the cursor, kicking back as it fires
   if (g.gunCv) {
-    const a = aimAngle(g);
-    c.save(); c.translate(GUN_PIV[0], GUN_PIV[1]); c.rotate(a); c.translate(-g.recoil * 12, 0); c.scale(GUN_S, GUN_S);
-    c.drawImage(g.gunCv, -GUN_PIVOT[0], -GUN_PIVOT[1]);
-    // (the coils glowing)
-    if (f % 10 < 5) { c.fillStyle = 'rgba(255,140,228,0.55)'; c.fillRect(136, 6, 10, 17); }
+    const h = handPose(g);
+    c.save(); c.translate(h.x, h.y); c.rotate(h.a); c.scale(HAND_S, HAND_S);
+    c.drawImage(g.gunCv[g.recoil > 0.3 ? 1 : 0], -HAND_PIVOT[0], -HAND_PIVOT[1]);
     c.restore();
   }
-  // THE CURSOR: a crosshair, pink and white, inked
-  {
+  // THE CURSOR: a crosshair, pink and white, inked (not till GO)
+  if (g.phase !== 'fadeIn' && g.phase !== 'ready') {
     const x = Math.round(g.cur.x), y = Math.round(g.cur.y), r = 12 + (g.recoil > 0.3 ? 4 : 0);
     for (const [lw, col] of [[4, '#1A0B06'], [2, f % 20 < 10 ? '#FF8CE4' : '#FFFFFF']] as const) {
       c.strokeStyle = col; c.lineWidth = lw; c.beginPath(); c.arc(x, y, r, 0, Math.PI * 2); c.stroke();
@@ -757,8 +792,20 @@ export const drawGalleryHud = (c: Ctx, state: GameState) => {
   label(c, String(secs), CANVAS_WIDTH / 2, 122, secs <= 10 && f % 30 < 15 ? '#FF4A3A' : '#FFFFFF', 18);
   // DOOLEY: his gross-up in the corner, leaning in, sweating, shaking worse the more's gone
   drawDooleyInset(c, g, f);
-  if (g.talk) saidOver(c, g.talk.text, 640, 360, '#FDE68A', 300);
+  // (his words: the rules up the middle before GO (nothing to aim at yet); in the play, just over his corner)
+  if (g.talk) { if (g.phase === 'ready' || g.phase === 'fadeIn') saidOver(c, g.talk.text, CANVAS_WIDTH / 2, 250, '#FDE68A', 380); else saidOver(c, g.talk.text, CANVAS_WIDTH - 190, 452, '#FDE68A', 300); }
   if (g.mh) saidOver(c, g.mh.text, 360, 470, '#FFFFFF', 300);
+  // THE COUNTDOWN: 3, 2, 1 (each punched in big and settling), GO!
+  {
+    const at = g.phase === 'ready' && g.cd >= CD_LEAD ? g.cd - CD_LEAD : -1;
+    const n = at >= 0 ? 3 - Math.floor(at / CD_STEP) : 0, go = g.phase === 'play' && g.t < GO_T;
+    if (n > 0 || go) {
+      const k = go ? g.t : at % CD_STEP, s = 1 + Math.max(0, 1 - k / 8) * 0.8;
+      c.save(); c.translate(CANVAS_WIDTH / 2, 290); c.scale(s, s);
+      label(c, go ? 'GO!' : String(n), 0, 0, go ? '#86EFAC' : '#FDE047', go ? 44 : 56);
+      c.restore();
+    }
+  }
   // THE END: time, or nothing left
   if (g.phase === 'over') {
     const all = g.pieces.every(pc => !pc.alive), s = 1 + Math.max(0, 1 - g.t / 10);
@@ -773,7 +820,9 @@ export const drawGalleryHud = (c: Ctx, state: GameState) => {
 };
 
 const drawDooleyInset = (c: Ctx, g: Gallery, f: number) => {
-  const W = 196, H = 220, tier = g.tier, sh = tier >= 3 ? tier - 1 : 0;
+  // (small, tucked in the bottom-right corner over the counter: clear of the targets and the score (the owner's: "make
+  // dooley take up less screen space"))
+  const W = 112, H = 126, tier = g.tier, sh = tier >= 3 ? tier - 1 : 0;
   const x = CANVAS_WIDTH - W - 10 + (sh ? Math.round(Math.sin(f * 1.7) * sh) : 0), y = CANVAS_HEIGHT - H - 8 + (sh ? Math.round(Math.cos(f * 2.3) * sh * 0.7) : 0) + (g.talk && f % 16 < 8 ? 1 : 0);
   box(c, x - 4, y - 4, W + 8, H + 8, '#1A0B06'); box(c, x - 3, y - 3, W + 6, H + 6, '#D8A830'); box(c, x - 3, y - 3, W + 6, 1, '#F8E080'); box(c, x - 1, y - 1, W + 2, H + 2, '#1A0B06');
   const bg = tier >= 4 ? ['#1C1232', '#160E28', '#100A1E', '#0A0614'] : ['#5A2A3A', '#4A2232', '#3A1A2A', '#2A1220'];
@@ -787,11 +836,11 @@ const drawDooleyInset = (c: Ctx, g: Gallery, f: number) => {
     c.drawImage(bu.img, 61, 4, 150, vis, ox, oy, dw, dh);
     drawVisor(c, bu, ox, oy, s);
     // (sweat rolling down him, more the worse it gets)
-    for (let n = 0; n < tier * 2; n++) { const sx = x + 30 + ((n * 47) % (W - 60)), sy = y + 40 + ((f * (1.2 + n * 0.2) + n * 37) % (H - 60)); box(c, sx, sy, 3, 5, '#9AD8F8'); box(c, sx, sy, 1, 2, '#FFFFFF'); }
+    for (let n = 0; n < tier * 2; n++) { const sx = x + 18 + ((n * 29) % (W - 36)), sy = y + 24 + ((f * (0.8 + n * 0.15) + n * 23) % (H - 36)); box(c, sx, sy, 2, 4, '#9AD8F8'); box(c, sx, sy, 1, 1, '#FFFFFF'); }
     c.restore();
   }
-  box(c, x + 6, y + 6, 72, 14, 'rgba(0,0,0,0.6)');
-  c.font = '7px "Press Start 2P"'; c.fillStyle = '#FDE68A'; c.fillText('DOOLEY', x + 10, y + 17);
+  box(c, x + 3, y + 3, 46, 10, 'rgba(0,0,0,0.6)');
+  c.font = '5px "Press Start 2P"'; c.fillStyle = '#FDE68A'; c.fillText('DOOLEY', x + 6, y + 11);
 };
 
 /** The town going away under it (a death mid-ask): the box down. */
