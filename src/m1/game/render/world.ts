@@ -161,6 +161,8 @@ const drawWorldAt = (ctx: CanvasRenderingContext2D, state: GameState, view: Worl
     drawProjectiles(wctx, state, 'puddles');
     state.pickups.forEach(p => drawPickup(wctx, p, state.frame));
     drawTsunamiBack(wctx, state);
+    // (another game's things lying on the floor under everyone: Meathead 2's torn-out nuts)
+    if (underEnemies) fenced(wctx, 'underEnemies', () => underEnemies!(wctx, state));
     drawEnemies(wctx, state, view);
     drawEnemyDeaths(wctx, state);
     for (const [, w] of customWeapons()) w.drawUnder?.(wctx, state);
@@ -1604,6 +1606,10 @@ const drawVictoryText = (ctx: CanvasRenderingContext2D, text: string) => {
 /** Another game's screen-space drawing over the world and the stage's HUD things (Meathead 2: the cheap shot's close-up). */
 let screenOverlay: ((ctx: CanvasRenderingContext2D, state: GameState) => void) | null = null;
 export const setScreenOverlay = (fn: typeof screenOverlay) => { screenOverlay = fn; };
+/** Another game's world-space drawing over the floor and the pickups, under the enemies and him (Meathead 2: the cheap
+ *  shot's trophies lying about). */
+let underEnemies: ((ctx: CanvasRenderingContext2D, state: GameState) => void) | null = null;
+export const setUnderEnemies = (fn: typeof underEnemies) => { underEnemies = fn; };
 let deathDrawer: ((ctx: CanvasRenderingContext2D, state: GameState, text: string) => void) | null = null;
 export const setDeathMessageDrawer = (fn: typeof deathDrawer) => { deathDrawer = fn; };
 

@@ -11,6 +11,7 @@ import { moveFlair } from './moveFlair';
 import { chunky, ditherFill, drawFireball } from '../fx/fireball';
 import { steppedGlow } from '../pixelArt';
 import { drawLeg, drawArmTo, drawTorsoFromHips, drawHead, drawRamDelt, Mood } from './body';
+import { elbow, knee, halfBone } from '../../../../m2/art/limb';
 
 type Ctx = CanvasRenderingContext2D;
 
@@ -351,6 +352,98 @@ export const drawAxeSwing = (ctx: Ctx, frame: number, k: number) => {
   // Front arm, its fist up the handle over it
   arm(ctx, [11, -22], elbow([11, -22], lead), lead, false);
   ctx.restore();
+};
+
+// ---------------------------------------------------------------------------
+// The rip (Meathead 2's hand armor cheap shot: he tears a boss's nuts out by hand)
+// ---------------------------------------------------------------------------
+
+/** The rip's keys, `k` 0..1 (in his feet's frame, facing +x): `f` the front fist, `b` the back fist, `ff` the front foot,
+ *  `lean` the body's, `hx` the hips shoved back, `m` his face. Stepped in, the arm cocked low (to 0.2); the hand shot
+ *  in and clamped on (0.3); the foot planted up on them and both hands on it, wrenching, leaning back (to RIP_K); torn
+ *  free and ripped up over his head (0.76); held up and shaken (to RIP_TOSS); wound back and tossed (1). */
+const RIP_KEYS: { k: number; f: [number, number]; b: [number, number]; ff: [number, number]; lean: number; hx: number; m: Mood }[] = [
+  { k: 0, f: [10, -30], b: [-12, -12], ff: [12, 0], lean: 0.04, hx: 0, m: 'scowl' },
+  { k: 0.2, f: [-8, -24], b: [-14, -14], ff: [16, 0], lean: 0.26, hx: 1, m: 'grit' },
+  { k: 0.3, f: [26, -31], b: [-12, -16], ff: [18, 0], lean: 0.3, hx: 2, m: 'roar' },
+  { k: 0.36, f: [24, -30], b: [18, -30], ff: [24, -13], lean: -0.04, hx: -1, m: 'grit' },
+  { k: 0.7, f: [21, -29], b: [15, -29], ff: [25, -14], lean: -0.22, hx: -4, m: 'grit' },
+  { k: 0.76, f: [0, -78], b: [-16, -38], ff: [16, 0], lean: -0.16, hx: -2, m: 'roar' },
+  { k: 0.9, f: [3, -80], b: [-18, -40], ff: [15, 0], lean: -0.12, hx: -1, m: 'roar' },
+  { k: 0.95, f: [-14, -66], b: [-16, -38], ff: [14, 0], lean: -0.22, hx: -2, m: 'grit' },
+  { k: 1, f: [26, -52], b: [-14, -30], ff: [18, 0], lean: 0.2, hx: 1, m: 'roar' },
+];
+/** When it tears free, and when it leaves his hand. */
+export const RIP_K = 0.7, RIP_TOSS = 0.97;
+const ripKey = (k: number) => {
+  let i = 0;
+  while (i < RIP_KEYS.length - 2 && k > RIP_KEYS[i + 1].k) i++;
+  const A = RIP_KEYS[i], B = RIP_KEYS[i + 1];
+  const u = Math.max(0, Math.min(1, (k - A.k) / (B.k - A.k || 1))), e = u * u * (3 - 2 * u);
+  const mix = (a: [number, number], b: [number, number]): [number, number] => [a[0] + (b[0] - a[0]) * e, a[1] + (b[1] - a[1]) * e];
+  return { f: mix(A.f, B.f), b: mix(A.b, B.b), ff: mix(A.ff, B.ff), lean: A.lean + (B.lean - A.lean) * e, hx: A.hx + (B.hx - A.hx) * e, m: u < 0.5 ? A.m : B.m };
+};
+/** The wrenching: a hard jerk back every few frames while he's at it (0..1), and the shaking held up after. */
+const ripJerk = (k: number, frame: number) => k > 0.36 && k < RIP_K ? Math.max(0, Math.sin(frame * 0.55)) ** 3 : 0;
+const ripShake = (k: number, frame: number) => k > 0.77 && k < 0.92 ? Math.sin(frame * 0.9) : 0;
+/** Where his front fist is (his feet's frame, facing +x), `k` through it: what he's holding is there (the toss). */
+export const ripFist = (k: number, frame: number): [number, number] => {
+  const K = ripKey(k), j = ripJerk(k, frame), s = ripShake(k, frame);
+  return [K.f[0] - j * 3 + s * 4, K.f[1] + j * 0.5 - Math.abs(s) * 2];
+};
+
+/**
+ * Tearing a boss's nuts out (its ovaries, its robot parts) with his bare (gloved) hands, `k` 0..1: a step in, the arm
+ * cocked low, the hand shot in between their legs and clamped on; then a boot planted up on them and BOTH hands on it,
+ * leaning way back, wrenching in savage jerks, teeth gritted, veins out, sweat flying; at RIP_K it tears free and he
+ * rips it up over his head with a roar, shakes it up there, winds back and tosses it. `hold` paints it in his fist.
+ * Every elbow and knee off src/m2/art/limb.ts.
+ */
+export const drawRipPose = (ctx: Ctx, frame: number, k: number, hold?: (c: Ctx) => void) => {
+  frameNow = frame;
+  const K = ripKey(k), j = ripJerk(k, frame), s = ripShake(k, frame);
+  const lean = K.lean - j * 0.07 + s * 0.03, hip: [number, number] = [-1 + K.hx - j * 1.5, -26 + (k > 0.15 && k < 0.36 ? 2 : 0)];
+  const straining = k > 0.36 && k < RIP_K;
+  // Legs: the back one planted, braced; the front one planted on the floor or up on them
+  const bHip: [number, number] = [hip[0] - 4, hip[1]], fHip: [number, number] = [hip[0] + 5, hip[1]];
+  const bFoot: [number, number] = [-12 - (straining ? 4 : 0), 0];
+  leg(ctx, bHip, knee(bHip[0], bHip[1], bFoot[0], bFoot[1], 12, 12, 1), bFoot, 0, true);
+  const ff: [number, number] = [K.ff[0] - j, K.ff[1]];
+  leg(ctx, fHip, knee(fHip[0], fHip[1], ff[0], ff[1], 12, 12, 1), ff, ff[1] < -4 ? -0.9 : 0, false);
+  // (shoulders, off the leaning body: the arms are drawn in the feet's frame so the fists stay on what they hold)
+  const rot = (x: number, y: number): [number, number] => [hip[0] + x * Math.cos(lean) - y * Math.sin(lean), hip[1] + x * Math.sin(lean) + y * Math.cos(lean)];
+  const sB = rot(-9, -22), sF = rot(11, -22);
+  const fist = ripFist(k, frame), bf: [number, number] = straining ? [fist[0] - 6, fist[1] + 1] : [K.b[0], K.b[1]];
+  const arm2 = (sh: [number, number], hand: [number, number], back: boolean) => {
+    const L = halfBone(sh[0], sh[1], hand[0], hand[1], 11, 1.05);
+    arm(ctx, sh, elbow(sh[0], sh[1], hand[0], hand[1], L, L, 1), hand, back, 5.5);
+  };
+  arm2(sB, bf, true);
+  ctx.save();
+  ctx.translate(hip[0], hip[1]); ctx.rotate(lean);
+  torso(ctx);
+  ctx.save(); ctx.translate(2, -37); ctx.rotate(-lean * 0.4 + (straining ? Math.sin(frame * 1.7) * 0.03 : 0)); head(ctx, 0, 0, K.m);
+  // (the strain on his face: a throbbing anger vein, sweat flying off)
+  if (straining || (k >= RIP_K && k < 0.8)) {
+    const pulse = 1 + Math.max(0, Math.sin(frame * 0.8)) * 0.4;
+    ctx.strokeStyle = '#B91C1C'; ctx.lineWidth = 1.4;
+    ctx.beginPath();
+    ctx.moveTo(-5 - pulse, -9); ctx.lineTo(-3, -7); ctx.moveTo(-3, -7); ctx.lineTo(-1 + pulse, -9);
+    ctx.moveTo(-5 - pulse, -4); ctx.lineTo(-3, -6); ctx.moveTo(-3, -6); ctx.lineTo(-1 + pulse, -4);
+    ctx.stroke();
+    ctx.fillStyle = '#BFDBFE';
+    for (let i = 0; i < 3; i++) { const u = (frame * 0.7 + i * 5) % 14; ctx.fillRect(Math.round(-10 - u * 0.8), Math.round(-8 - u * 0.6 + u * u * 0.05 + i * 3), 2, 2); }
+  }
+  ctx.restore();
+  ctx.restore();
+  // What he's got: in his fist, poking out over it
+  if (hold && k >= RIP_K && k < RIP_TOSS) { ctx.save(); ctx.translate(fist[0], fist[1] - 8); hold(ctx); ctx.restore(); }
+  arm2(sF, fist, false);
+  // (the wrench: strain lines off his fists, the jerk's)
+  if (straining && j > 0.3) {
+    ctx.strokeStyle = 'rgba(253, 224, 71, 0.85)'; ctx.lineWidth = 1.5;
+    for (let i = 0; i < 3; i++) { const a = Math.PI * (0.8 + i * 0.2); ctx.beginPath(); ctx.moveTo(fist[0] - 4 + Math.cos(a) * 8, fist[1] + Math.sin(a) * 8); ctx.lineTo(fist[0] - 4 + Math.cos(a) * 14, fist[1] + Math.sin(a) * 14); ctx.stroke(); }
+  }
 };
 
 // ---------------------------------------------------------------------------
