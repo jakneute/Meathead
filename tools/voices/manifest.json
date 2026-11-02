@@ -58271,12 +58271,12 @@
  },
  {
   "voice": "m2.pa",
-  "text": "YOU FOUND A FEW OF THE HIDDEN THINGS. BY ACCIDENT, PROBABLY.",
+  "text": "YOU FOUND A FEW HANDFULS OF THE HIDDEN SHIT. THAT IS A PARTICIPATION TROPHY.",
   "from": "INTRO"
  },
  {
   "voice": "m2.pa",
-  "text": "YOU FOUND A QUARTER OF THE HIDDEN SHIT, GIVE OR TAKE. THAT IS A PARTICIPATION TROPHY.",
+  "text": "YOU FOUND A FEW OF THE HIDDEN THINGS. BY ACCIDENT, PROBABLY.",
   "from": "INTRO"
  },
  {
@@ -75961,17 +75961,7 @@
  },
  {
   "voice": "meathead",
-  "text": "FINE. FUCK IT. I NEED A SHOWER ANYWAY.",
-  "from": "HUB"
- },
- {
-  "voice": "meathead",
   "text": "FINE. FUCK IT. QUITTERS GET TO GO HOME EARLY.",
-  "from": "HUB"
- },
- {
-  "voice": "meathead",
-  "text": "FINE. FUCK IT. SOMEBODY GET ME A TOWEL.",
   "from": "HUB"
  },
  {
@@ -82391,16 +82381,6 @@
  },
  {
   "voice": "meathead",
-  "text": "I SAID NOT YET. I'VE COME THIS FAR WITH MY DICK OUT.",
-  "from": "HUB"
- },
- {
-  "voice": "meathead",
-  "text": "I SAID NOT YET. THE ONLY THING I LEAVE BEHIND IS IN MY PANTS.",
-  "from": "HUB"
- },
- {
-  "voice": "meathead",
   "text": "I SAW A MOVIE ABOUT THIS. I GOT THIS.",
   "from": "ADVENTURE"
  },
@@ -82696,17 +82676,7 @@
  },
  {
   "voice": "meathead",
-  "text": "I WALK OUT THAT GATE NAKED, I'M NOT COMING BACK FOR IT. EVER.",
-  "from": "HUB"
- },
- {
-  "voice": "meathead",
   "text": "I WALK OUT THAT GATE, I'M NOT COMING BACK FOR IT. EVER.",
-  "from": "HUB"
- },
- {
-  "voice": "meathead",
-  "text": "I WALK OUT THAT GATE, I'M NOT COMING BACK FOR IT. EVER. AND NEITHER IS THIS SMELL.",
   "from": "HUB"
  },
  {
@@ -90692,16 +90662,6 @@
  {
   "voice": "meathead",
   "text": "NOT YET. THERE'S STUFF IN THERE WITH MY NAME ON IT.",
-  "from": "HUB"
- },
- {
-  "voice": "meathead",
-  "text": "NOT YET. THERE'S STUFF IN THERE WITH MY NAME ON IT. AND MY SHIT ON IT.",
-  "from": "HUB"
- },
- {
-  "voice": "meathead",
-  "text": "NOT YET. THERE'S STUFF IN THERE WITH MY NAME ON IT. I'M NOT LEAVING IT FOR THE NEXT NAKED GUY.",
   "from": "HUB"
  },
  {
@@ -99291,16 +99251,6 @@
  },
  {
   "voice": "meathead",
-  "text": "THAT'S EVERYTHING. MAYBE IT'S TIME TO GO HOME. AND CHANGE.",
-  "from": "HUB"
- },
- {
-  "voice": "meathead",
-  "text": "THAT'S EVERYTHING. MAYBE IT'S TIME TO GO HOME. AND FIND MY PANTS.",
-  "from": "HUB"
- },
- {
-  "voice": "meathead",
   "text": "THAT'S FAIR.",
   "from": "OSCAR_LINES"
  },
@@ -102667,16 +102617,6 @@
  {
   "voice": "meathead",
   "text": "THERE'S STILL SHIT TO DO.",
-  "from": "HUB"
- },
- {
-  "voice": "meathead",
-  "text": "THERE'S STILL SHIT TO DO. BESIDES MY PANTS.",
-  "from": "HUB"
- },
- {
-  "voice": "meathead",
-  "text": "THERE'S STILL SHIT TO DO. NAKED SHIT.",
   "from": "HUB"
  },
  {

@@ -14,40 +14,19 @@ export const PEN_DOG_JUMP: Record<'clean' | 'shitty' | 'nude', string[]> = {
   nude: ['NOT THE BALLS!', 'COLD NOSE! COLD NOSE!', 'GET YOUR FACE OUT OF MY ASS!', "THAT'S NOT A CHEW TOY!"],
 };
 
+// (the owner's: one version each, whatever state his pants are in)
+type Pooled = Record<'clean' | 'shitty' | 'nude', string[]>;
+const same = (line: string): Pooled => ({ clean: [line], shitty: [line], nude: [line] });
 /** Into the hub with all eight bosses dead and every one of the 24 hidden finds his (the owner's line). */
-export const HUB_ALL_DONE: Record<'clean' | 'shitty' | 'nude', string[]> = {
-  clean: ["THAT'S EVERYTHING. MAYBE IT'S TIME TO GO HOME."],
-  shitty: ["THAT'S EVERYTHING. MAYBE IT'S TIME TO GO HOME. AND CHANGE."],
-  nude: ["THAT'S EVERYTHING. MAYBE IT'S TIME TO GO HOME. AND FIND MY PANTS."],
-};
+export const HUB_ALL_DONE = same("THAT'S EVERYTHING. MAYBE IT'S TIME TO GO HOME.");
 /** ...all eight dead, but finds still out there (the owner's line). */
-export const HUB_STUFF_LEFT: Record<'clean' | 'shitty' | 'nude', string[]> = {
-  clean: ["THERE'S STILL SHIT TO DO."],
-  shitty: ["THERE'S STILL SHIT TO DO. BESIDES MY PANTS."],
-  nude: ["THERE'S STILL SHIT TO DO. NAKED SHIT."],
-};
+export const HUB_STUFF_LEFT = same("THERE'S STILL SHIT TO DO.");
 /** Out through America USA with finds still out there: he won't, the first three times (each harder), the fourth he
  *  gives in (AMERICA_GIVE_IN) and the alpha's ending plays. */
-export const AMERICA_RESIST: Record<'clean' | 'shitty' | 'nude', string[]>[] = [
-  {
-    clean: ["NOT YET. THERE'S STUFF IN THERE WITH MY NAME ON IT."],
-    shitty: ["NOT YET. THERE'S STUFF IN THERE WITH MY NAME ON IT. AND MY SHIT ON IT."],
-    nude: ["NOT YET. THERE'S STUFF IN THERE WITH MY NAME ON IT. I'M NOT LEAVING IT FOR THE NEXT NAKED GUY."],
-  },
-  {
-    clean: ['I SAID NOT YET. I DO NOT LEAVE SHIT BEHIND.'],
-    shitty: ['I SAID NOT YET. THE ONLY THING I LEAVE BEHIND IS IN MY PANTS.'],
-    nude: ["I SAID NOT YET. I'VE COME THIS FAR WITH MY DICK OUT."],
-  },
-  {
-    clean: ["I WALK OUT THAT GATE, I'M NOT COMING BACK FOR IT. EVER."],
-    shitty: ["I WALK OUT THAT GATE, I'M NOT COMING BACK FOR IT. EVER. AND NEITHER IS THIS SMELL."],
-    nude: ["I WALK OUT THAT GATE NAKED, I'M NOT COMING BACK FOR IT. EVER."],
-  },
+export const AMERICA_RESIST: Pooled[] = [
+  same("NOT YET. THERE'S STUFF IN THERE WITH MY NAME ON IT."),
+  same('I SAID NOT YET. I DO NOT LEAVE SHIT BEHIND.'),
+  same("I WALK OUT THAT GATE, I'M NOT COMING BACK FOR IT. EVER."),
 ];
 /** ...the fourth time: fine (then the alpha's ending). */
-export const AMERICA_GIVE_IN: Record<'clean' | 'shitty' | 'nude', string[]> = {
-  clean: ['FINE. FUCK IT. QUITTERS GET TO GO HOME EARLY.'],
-  shitty: ['FINE. FUCK IT. I NEED A SHOWER ANYWAY.'],
-  nude: ['FINE. FUCK IT. SOMEBODY GET ME A TOWEL.'],
-};
+export const AMERICA_GIVE_IN = same('FINE. FUCK IT. QUITTERS GET TO GO HOME EARLY.');
