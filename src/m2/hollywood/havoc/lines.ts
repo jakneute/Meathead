@@ -34,6 +34,15 @@ export const GAG: Record<'lava' | 'facade' | 'bridge' | 'wind' | 'quake' | 'bill
   surge: ['IT\'S FASTER! IT\'S WAY FASTER!', 'FUCK THIS. FUCK THIS. FUCK THIS.'],
 };
 
+/** The MAX AMMO find on the riggers' perch (ammoFind.ts): grabbed, and the flood coming for the way back (once the
+ *  card's shut); then, safe (or no flood), the find itself. */
+export const AMMO_RACE = ['OH SHIT, THE WATER!', 'OH SHIT, THE WATER! BACK ON THE WIRE, FAT ASS!'];
+export const AMMO_FIND: ByPants = {
+  clean: ['MORE AMMO. THE RIGGERS WERE HOARDING.', 'BIGGER MAGS IN EVERY GUN. MERRY CHRISTMAS, ME.'],
+  shitty: ['MORE AMMO. MY PANTS ARE ALREADY LOADED.', 'BIGGER MAGS. AND A BIGGER LOAD IN MY PANTS.'],
+  nude: ["MORE AMMO. NO POCKETS. I'LL FIGURE IT OUT.", "EXTRA AMMO AND NOWHERE TO PUT IT. DON'T SAY IT."],
+};
+
 /** The fling. Caught; spun round in it (the SAFE TORNADO LAUNCHING ZONE: how is a tornado launcher SAFE); flung. */
 export const CAUGHT = ['OH SHIIIIT!', 'NOT THE ASSHOLE! NOT THE ASSHOLE!'];
 export const SPIN = [
@@ -195,7 +204,7 @@ export const HURT: Record<string, { hurt: string[]; death: string[] }> = {
 const pools = (r: ByPants) => [...r.clean, ...r.shitty, ...r.nude];
 export const VOICE_LINES: Record<string, string[]> = {
   meathead: [
-    ...ARRIVE, ...Object.values(GAG).flat(), ...CAUGHT, ...SPIN, ...FLUNG,
+    ...ARRIVE, ...Object.values(GAG).flat(), ...CAUGHT, ...SPIN, ...FLUNG, ...AMMO_RACE, ...pools(AMMO_FIND),
     ...Object.values(HURT).flatMap(h => h.hurt),
   ],
   death: Object.values(HURT).flatMap(h => h.death),

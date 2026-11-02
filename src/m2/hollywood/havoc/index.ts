@@ -49,6 +49,7 @@ import { startFling, updateFling, drawFlingHud, flinging } from './fling';
 import { updateCivilians } from './civilians';
 import { drawHavocBackdrop, drawHavocBack, drawHavocFront, havocLamps } from './art';
 import * as L from './lines';
+import { buildAmmoFind, updateAmmoFind, drawAmmoFind, ammoFindLamps } from './ammoFind';
 
 export { noteTornadoDeath, diedToTornado } from './state';
 
@@ -103,6 +104,8 @@ export const havoc: HollywoodSection = {
     solid(state, X(REFILL - 74), Y(118), 148, 18, { hidden: true, tag: 'havoc-tent' });
     endWalls(state, 'havoc');
     buildHazards(state);
+    // (the riggers' perch out the crane wire's far end, the MAX AMMO find on it)
+    buildAmmoFind(state);
     ENEMIES.forEach(([kind, rx, h], i) => {
       const e = makeKindEnemy(kind as EnemyKind, X(rx), Y(h ?? groundH(rx) ?? 0));
       e.homeX = e.pos.x; e.homeY = e.pos.y; e.initialY = e.pos.y;
@@ -118,6 +121,9 @@ export const havoc: HollywoodSection = {
     const cut = updateFling(ctx);
     if (cut) return cut;
     const done = spent(state);
+    // The MAX AMMO find's card holds everything (the flood too) while it's up
+    const held = updateAmmoFind(ctx, done);
+    if (held) return held;
     const ev = updateHazards(ctx);
     updateLobs(ctx);
     const cx = p.pos.x + p.width / 2, rx = R(cx), feet = p.pos.y + p.height, up = GY - feet;
@@ -177,7 +183,7 @@ export const havoc: HollywoodSection = {
     return controls;
   },
   drawBackdrop: (c, state) => drawHavocBackdrop(c, state),
-  drawBack: (c, state) => drawHavocBack(c, state),
+  drawBack: (c, state) => { drawHavocBack(c, state); drawAmmoFind(c, state); },
   drawFront: (c, state) => drawHavocFront(c, state),
   drawHud: (c, state) => drawFlingHud(c, state),
   cameraX: (state) => {
@@ -193,7 +199,7 @@ export const havoc: HollywoodSection = {
     return rx > CLIMB.a && rx < CLIMB.b + 60 && !flinging(state) ? 430 : undefined;
   },
   outdoors: () => 1,
-  lamps: (state) => havocLamps(state),
+  lamps: (state) => [...havocLamps(state), ...ammoFindLamps(state)],
   wires: () => WIRES,
 };
 

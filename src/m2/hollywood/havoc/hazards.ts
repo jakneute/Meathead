@@ -37,6 +37,7 @@ import {
 import { hvOf, FLUNG_MEMO, FALL_MEMO, type Hv } from './state';
 import { fromDepth } from '../disaster/paint';
 import { FRONT_D } from '../blvd/kit';
+import { raceRate } from './ammoFind';
 
 /** The fling's been (or the land's done, or he's past it): the tornado's spent and the place is calm-ish. */
 export const spent = (state: GameState) => state.stageMemo[FLUNG_MEMO] === '1' || state.checkpoint >= 60 || isLandCleared('hollywood');
@@ -198,7 +199,8 @@ export const updateHazards = (ctx: FrameContext): HazEvents => {
     else {
       const gap = (GY - feet) - fd.h;
       const rate = gap > 480 ? 1.6 : gap > 300 ? 0.8 : gap > 160 ? 0.52 : 0.3;
-      fd.h = Math.min(FLOOD_MAX, fd.h + rate);
+      // (the MAX AMMO find grabbed out on the riggers' perch: it comes for the wire's way back, ammoFind.ts)
+      fd.h = Math.min(FLOOD_MAX, fd.h + (raceRate(state, fd.h) ?? rate));
       if (f % 50 === 0) playSound('glug', 0.3, -8);
     }
     // (it's on fire: its crackle under everything while it's up)

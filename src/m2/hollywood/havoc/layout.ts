@@ -198,9 +198,21 @@ export const DECOR: [number, number, number, string, string][] = [
 export const WIRES: StuntWire[] = [
   // over LAVA RIVER 3
   { from: { x: X(3620), y: Y(0) - HANDS }, to: { x: X(4260), y: Y(0) }, rigY: Y(330) },
-  // up the crane over STAGE 14 (shaft 2): from the first ledge up to the fourth
-  { from: { x: X(7150), y: Y(615) - HANDS }, to: { x: X(7360), y: Y(885) }, rigY: Y(1000) },
+  // up the crane over STAGE 14 (shaft 2): from the first ledge up to the fourth. Its track runs on a long way left
+  // (`beyond`), out over the hotel to the riggers' perch and the MAX AMMO find (ammoFind.ts): only reached riding it.
+  { from: { x: X(7150), y: Y(615) - HANDS }, beyond: { x: X(6410), y: Y(812) }, to: { x: X(7360), y: Y(885) }, rigY: Y(1000) },
 ];
+
+/** The riggers' perch at the far left end of the crane wire's track (one-way, a lit lip): [rx, h, w]; the MAX AMMO
+ *  find on it (rx), its save id. Out over the HOTEL HAPPYWOOD, far past anything he can jump to (the highest he gets
+ *  from the hotel's scaffold is well under it): the wire's the way. */
+export const PERCH = { rx: 6230, h: 800, w: 210 } as const;
+export const AMMO_FIND_RX = 6262, AMMO_FIND_ID = 'ammo-flood';
+/** The way back once it's grabbed: the flood comes up to the wire's low point (where it parks, his feet there, plus
+ *  the 14 px it takes to hurt him) in exactly this many frames from the card shutting, however close behind it was.
+ *  Heading straight back takes ~175 (walk to the harness ~40, the ride back past where it parks ~135): ~75 to spare
+ *  (and reeling the cable in on the way, up, rides over it). */
+export const RACE_T = 250, RACE_TO = 615 + 14;
 
 // ---------------------------------------------------------------------------------------------------------------
 // Who's about
