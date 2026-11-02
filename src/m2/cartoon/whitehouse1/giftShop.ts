@@ -56,7 +56,7 @@ export const SH = (h: number) => STOCK.floor - h;
 /** The room's right wall (lx), the ceiling's height (the hatch he drops through is in it). */
 export const STOCK_W = 2500, CEIL_H = 900;
 /** The porch door (its middle: rooms.ts draws it at the porch's middle), the arrow sign on the lawn. */
-export const DOOR_X = X((PORCH.a + PORCH.b) / 2), ARROW_X = X(10345);
+export const DOOR_X = X((PORCH.a + PORCH.b) / 2), ARROW_X = X(10360);
 /** The crate stacks he stands on: [lx from, lx to, top height] (down into the dark, lit along their tops). */
 export const STACKS: [number, number, number][] = [[0, 260, 400], [760, 850, 330], [2170, STOCK_W, 300]];
 /** The towers (sway.ts): each one's lean takes its lid out over the next gap; narrower lids as it goes. */

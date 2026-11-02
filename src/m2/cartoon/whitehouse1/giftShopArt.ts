@@ -65,7 +65,9 @@ const paintArrow = (g: Ctx) => {
   box(g, -4, -127, 2, 124, 'rgba(255,255,255,0.35)'); box(g, 2, -127, 2, 124, 'rgba(26,16,40,0.25)');
   inkP(g, () => g.arc(0, -130, 6, 0, Math.PI * 2), hour(BRASS[4]), 2); box(g, -3, -133, 2, 2, '#FFFFFF');
   // (the arrow board, pointing left: fat, rounded, stepped down in bands, its rim lit up top; GIFT SHOP on it)
-  const ax = -104, bx = 84, top = -118, bot = -72, mid = (top + bot) / 2;
+  // (kept narrow, so it stands clear of the topiary tower beside it: the owner's "make sure signs don't sit in front of
+  // stuff unnaturally")
+  const ax = -62, bx = 40, top = -122, bot = -90, mid = (top + bot) / 2;
   const arrow = () => { g.moveTo(ax, mid); g.lineTo(ax + 30, top - 10); g.lineTo(ax + 30, top); g.lineTo(bx, top); g.quadraticCurveTo(bx + 6, top, bx + 6, top + 6); g.lineTo(bx + 6, bot - 6); g.quadraticCurveTo(bx + 6, bot, bx, bot); g.lineTo(ax + 30, bot); g.lineTo(ax + 30, bot + 10); g.closePath(); };
   g.fillStyle = '#3A1030'; g.beginPath(); g.save(); g.translate(3, 3); arrow(); g.restore(); g.fill();
   g.save(); g.beginPath(); arrow(); g.clip();
@@ -74,32 +76,27 @@ const paintArrow = (g: Ctx) => {
   g.restore();
   g.beginPath(); arrow(); g.strokeStyle = INK; g.lineWidth = 3; g.lineJoin = 'round'; g.stroke();
   // (a little shopping bag at the tip end: white, red handles)
-  const sx = ax + 40, sy = mid - 2;
+  const sx = ax + 36, sy = mid - 1;
   inkP(g, () => g.rect(sx - 7, sy - 6, 14, 14), '#FFFFFF', 1.5); box(g, sx - 6, sy - 5, 4, 12, '#FFFFFF'); box(g, sx + 3, sy - 5, 3, 12, '#D8D4E6');
   g.strokeStyle = INK; g.lineWidth = 2; g.beginPath(); g.arc(sx, sy - 6, 4, Math.PI, 0); g.stroke();
   box(g, sx - 2, sy - 1, 4, 4, R[3]);
-  if (fontReady()) signText(g, 'GIFT SHOP', ax + 54, mid + 7, toonLetters(2, undefined, 7), 'left');
+  if (fontReady()) { signText(g, 'GIFT', ax + 48, mid - 2, toonLetters(1, undefined, 7), 'left'); signText(g, 'SHOP', ax + 48, mid + 9, toonLetters(1, undefined, 7), 'left'); }
 };
 
 /** The shingle over the porch door, the OPEN card, the WELCOME mat (world: the door's middle, at the floor). */
 const paintShingle = (g: Ctx) => {
   const M = ramp6(hour('#1E3A7E')), B = ramp6(hour(BRASS[3]));
-  // (the bracket: a brass arm out of the wall over the door, a curl under it)
-  box(g, 40, -214, 6, 18, INK); box(g, 41, -213, 4, 16, B[3]);
-  box(g, 40, -212, 70, 5, INK); box(g, 41, -211, 68, 3, B[3]); box(g, 41, -211, 68, 1, B[5]);
-  g.strokeStyle = INK; g.lineWidth = 3; g.beginPath(); g.moveTo(46, -200); g.quadraticCurveTo(70, -200, 76, -210); g.stroke();
-  g.strokeStyle = B[4]; g.lineWidth = 1.5; g.stroke();
-  // (two little chains down to the board)
-  for (const cx of [52, 102]) for (let k = 0; k < 3; k++) { g.strokeStyle = INK; g.lineWidth = 1.5; g.beginPath(); g.ellipse(cx, -204 + k * 5, 1.6, 2.6, 0, 0, Math.PI * 2); g.stroke(); }
-  // (the board: navy, gold rim, GIFT SHOP in gold, a star either side)
-  inkP(g, () => g.roundRect(42, -190, 72, 40, 5), M[2], 2.5);
-  box(g, 45, -187, 66, 34, M[3]); box(g, 45, -187, 66, 6, M[4]); box(g, 45, -159, 66, 6, M[1]); checker(g, 45, -181, 66, 2, M[3], 0, 1);
-  g.strokeStyle = B[4]; g.lineWidth = 1.5; g.strokeRect(47.5, -184.5, 61, 29);
+  // (a brass-rimmed GIFT SHOP plaque screwed onto the door's upper panels: on the door, not hung out over the windows
+  // beside it, the owner's "make sure signs don't sit in front of stuff unnaturally")
+  const px0 = -26, py0 = -150, pw = 52, ph = 26;
+  inkP(g, () => g.roundRect(px0, py0, pw, ph, 3), M[2], 2);
+  box(g, px0 + 2, py0 + 2, pw - 4, ph - 4, M[3]); box(g, px0 + 2, py0 + 2, pw - 4, 4, M[4]); box(g, px0 + 2, py0 + ph - 6, pw - 4, 4, M[1]);
+  g.strokeStyle = B[4]; g.lineWidth = 1.5; g.strokeRect(px0 + 3.5, py0 + 3.5, pw - 7, ph - 7);
+  for (const [sx, sy] of [[px0 + 4, py0 + 4], [px0 + pw - 5, py0 + 4], [px0 + 4, py0 + ph - 5], [px0 + pw - 5, py0 + ph - 5]] as const) box(g, sx, sy, 1, 1, B[5]);
   if (fontReady()) {
     const look = { sx: 1, sy: 1, gap: 1, bold: true, fill: [B[5], B[4], B[3]], ink: INK };
-    signText(g, 'GIFT', 78, -173, look); signText(g, 'SHOP', 78, -162, look);
+    signText(g, 'GIFT', 0, py0 + 12, look); signText(g, 'SHOP', 0, py0 + 22, look);
   }
-  for (const sx of [51, 105]) { g.fillStyle = B[4]; g.beginPath(); for (let k = 0; k < 10; k++) { const a = -Math.PI / 2 + (k * Math.PI) / 5, r = k % 2 ? 1.4 : 3.4; g.lineTo(sx + Math.cos(a) * r, -170 + Math.sin(a) * r); } g.closePath(); g.fill(); }
   // (the OPEN card hung on the knob by its string)
   g.strokeStyle = INK; g.lineWidth = 1; g.beginPath(); g.moveTo(22, -86); g.lineTo(16, -78); g.moveTo(22, -86); g.lineTo(28, -78); g.stroke();
   inkP(g, () => g.rect(9, -78, 26, 13), '#FFFFFF', 1.5); box(g, 10, -77, 24, 2, '#FFFFFF'); box(g, 10, -67, 24, 1, '#D8D4E6');
