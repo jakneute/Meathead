@@ -57,6 +57,7 @@ import { setUi } from '../../store';
 import { awardShard, shardWon as wonShard, openShardCard, tickShardCard, closeShardCard, type ShardCard } from '../../upgrades/shardAward';
 import { openAsk, tickAsk, closeAsk, type Ask } from '../../minigameConfirm';
 import { minigamePausable } from '../../minigamePause';
+import { walkOff, walkOffDue, type WalkOff } from '../../walkOffCall';
 import type { GameCue } from '../../music/moments';
 import { reaction, moodOf, frameOf, type Pose } from '../../spooky/costume';
 import { meatheadSays, speak, byPants, saidOver, label, box, ledge, type Said } from '../section';
@@ -70,7 +71,7 @@ import {
   type PieceDef, type DooleyLook,
 } from './galleryArt';
 import {
-  DOOLEY_VOICE, DOOLEY_GREET, DOOLEY_OFFER, DOOLEY_DECLINED, DOOLEY_NOT_NOW, DOOLEY_START, DOOLEY_IDLE, DOOLEY_TIERS, DOOLEY_SAW,
+  DOOLEY_VOICE, DOOLEY_GREET, DOOLEY_LEAVE, DOOLEY_LEAVE_PANIC, DOOLEY_OFFER, DOOLEY_DECLINED, DOOLEY_NOT_NOW, DOOLEY_START, DOOLEY_IDLE, DOOLEY_TIERS, DOOLEY_SAW,
   DOOLEY_OPEN_NONE, DOOLEY_OPEN_SMALL, DOOLEY_OPEN_BIG, DOOLEY_OPEN_ALL, DOOLEY_PANIC, DOOLEY_MUTTER, MH_ACCEPT, MH_PRIZE, MH_KILL, MH_SHARD,
 } from './galleryLines';
 
@@ -124,6 +125,8 @@ interface Gallery {
   bustK: number;
   /** Built into the panic (a death, a checkpoint after the gallery this attempt): he mutters first. */
   rebuilt: boolean;
+  /** Calling after him as he walks off out of sight (walkOffCall.ts). */
+  leave: WalkOff;
 }
 const ALL = new WeakMap<Town, Gallery>();
 const gal = (state: GameState) => ALL.get(townOf(state)) ?? null;
@@ -220,7 +223,7 @@ export const buildGallery = (state: GameState) => {
   const gone = memo !== undefined ? Math.max(0, Math.min(1, Number(memo) || 0)) : 0;
   const g: Gallery = {
     phase: 'idle', t: 0, ask: null, lvl: lvlOf(gone), gone, ledge: null,
-    man: null, manX: BOOTH.man, manFace: -1, talk: null, mh: null, lastLine: -9999, greeted: false, upLatch: true,
+    man: null, manX: BOOTH.man, manFace: -1, talk: null, mh: null, lastLine: -9999, greeted: false, upLatch: true, leave: walkOff(),
     pieces: [], baked: 0, voidCv: null, gunCv: null, cur: { x: 400, y: 260 }, held: true, cool: 0, recoil: 0, aimSpd: 0, bolt: null,
     bits: [], boots: [], score: 0, time: TIME, lastShot: 0, tier: 0, said: 0, sawQ: [], sawDone: new Set(), idleSaid: false,
     from: { x: 0, y: 0 }, shard: null, card: null, bustK: 0, rebuilt: false,
@@ -360,6 +363,10 @@ export const updateGallery = (ctx: FrameContext, controls: Controls, out: Contro
     case 'idle': {
       g.manFace = pm < BOOTH.man ? -1 : 1;
       if (!g.greeted && free && Math.abs(pm - BOOTH.man) < 380 && !isTalking()) { g.greeted = true; g.lastLine = state.frame; speak(DOOLEY_VOICE, pickLine(byPants(state, DOOLEY_GREET)), s => { g.talk = s; }, false); }
+      // (walked off out of sight after his greeting: once a leaving, "WHERE ARE YOU GOING? COME BACK!")
+      if (walkOffDue(state, g.leave, BOOTH.man, g.greeted, !g.talk && state.frame - g.lastLine > 120)) {
+        g.lastLine = state.frame; speak(DOOLEY_VOICE, pickLine(byPants(state, DOOLEY_LEAVE)), s => { g.talk = s; }, false);
+      }
       if (near && free && p.isGrounded) {
         setUi({ upPrompt: 'TALK' });
         if (upIn) {
@@ -410,6 +417,10 @@ export const updateGallery = (ctx: FrameContext, controls: Controls, out: Contro
     case 'panic': {
       const e = g.man;
       if (e && (e.health <= 0 || e.isBlownAway || !state.enemies.includes(e))) { killed(state, g, e); return out; }
+      // (walked off out of sight from his panic attack: once a leaving, he yells after him, ahead of the next rant)
+      if (e && walkOffDue(state, g.leave, e.pos.x + e.width / 2, true, !g.talk)) {
+        g.lastLine = state.frame; speak(DOOLEY_VOICE, pickLine(byPants(state, DOOLEY_LEAVE_PANIC)), s => { g.talk = s; }, false);
+      }
       // (still ranting, one line at a time, a breath between)
       if (e && !g.talk && !isTalking() && state.frame - g.lastLine > 50 && Math.abs(pm - (e.pos.x + e.width / 2)) < 900) {
         dooley(g, state, g.rebuilt && g.said++ === 0 ? DOOLEY_MUTTER : DOOLEY_PANIC);

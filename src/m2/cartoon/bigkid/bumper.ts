@@ -54,6 +54,7 @@ import { minigamePausable } from '../../minigamePause';
 import type { GameCue } from '../../music/moments';
 import { awardShard, shardWon, openShardCard, tickShardCard, closeShardCard, type ShardCard } from '../../upgrades/shardAward';
 import { pollM2, btn, pressed } from '../../input';
+import { walkOff, walkOffDue, type WalkOff } from '../../walkOffCall';
 import { byPants, meatheadSays, speak, saidOver, landVisit, type Said } from '../section';
 import { GY } from '../geometry';
 import { X, BOOTH } from './layout';
@@ -63,7 +64,7 @@ import {
   type Look, type Build,
 } from './bumperArt';
 import {
-  CARNY_VOICE, CARNY_HOOK, CARNY_CALL, CARNY_OFFER, CARNY_BACK, CARNY_SORE, CARNY_DECLINE, CARNY_LOSE, CARNY_WIN, CARNY_PRIZE, CARNY_WIN_AGAIN,
+  CARNY_VOICE, CARNY_HOOK, CARNY_CALL, CARNY_LEAVE, CARNY_LEAVE_WON, CARNY_OFFER, CARNY_BACK, CARNY_SORE, CARNY_DECLINE, CARNY_LOSE, CARNY_WIN, CARNY_PRIZE, CARNY_WIN_AGAIN,
   MH_OFFERED, MH_START, MH_KILL, MH_OVERKILL, MH_RAMMED, MH_LOSE, MH_WIN, OVERKILL_CALL,
 } from './bumperLines';
 
@@ -158,6 +159,8 @@ interface Bumper {
   boostPress: boolean;
   /** The carny flagging him down (bumper.ts sets it, the booth draws it); when he last called out. */
   waving: boolean; callAt: number;
+  /** Won his last round (the payout's over); when he was last let go; calling after him as he walks off (walkOffCall.ts). */
+  won: boolean; endAt: number; leave: WalkOff;
 }
 const stores = new WeakMap<object, Bumper>();
 const bumperOf = (state: GameState): Bumper => {
@@ -167,7 +170,7 @@ const bumperOf = (state: GameState): Bumper => {
     phase: 'off', t: 0, token: 0, ask: null, shard: null, cardT: 0, cardArmed: false,
     cars: [], flings: [], parts: [], pops: [], clock: 0, shake: 0, replay: false,
     carny: null, mh: null, prompted: false, wasUp: false, was: {}, rammedAt: -9999, buzzAt: 0, lineAt: -9999, tick: 0, boostPress: false,
-    waving: false, callAt: -99999, lost: false,
+    waving: false, callAt: -99999, lost: false, won: false, endAt: -99999, leave: walkOff(),
   });
   return b;
 };
@@ -209,7 +212,7 @@ const release = (state: GameState, b: Bumper) => {
   p.inCutscene = false; p.hidden = false; p.carried = false; p.noSpecials = false;
   // (a moment's grace, put back out by the booth: nothing roaming the zone gets a free hit on him as he's let go)
   p.invincibilityTimer = Math.max(p.invincibilityTimer, 90); p.noContactUntil = state.frame + 90;
-  b.phase = 'off'; b.t = 0; b.mh = null;
+  b.phase = 'off'; b.t = 0; b.mh = null; b.endAt = b.tick;
   if (b.ask) { closeAsk(); b.ask = null; }
   if (b.shard) { closeShardCard(); b.shard = null; }
   setUi({ hudOff: false, bumperCard: null }); uiUp = false;
@@ -251,6 +254,14 @@ export const updateBumper = (ctx: FrameContext, controls: Controls): Controls | 
     b.waving = free && d >= 72 && d < (playedVisit === landVisit() ? WAVE_PLAYED : WAVE_FAR);
     if (b.waving && !b.carny && d < CALL_NEAR && hookVisit === landVisit() && b.tick - b.callAt > CALL_EVERY) {
       b.callAt = b.tick; speak(CARNY_VOICE, pickLine(byPants(state, CARNY_CALL)), s => { b.carny = s; }, false);
+    }
+    // (walked off out of sight once he's been flagged down or played: once a leaving, "WHERE ARE YOU GOING? COME
+    // BACK!"; won (or won it before and not lost since), sore instead; nothing if the sore words just finished)
+    const met = hookVisit === landVisit() || playedVisit === landVisit();
+    if (walkOffDue(state, b.leave, CARNY_X, met, !b.carny && b.tick - b.callAt > 180)) {
+      b.callAt = b.tick;
+      const sore = b.won || (shardWon(SHARD_LAND, SHARD_ID) && !b.lost);
+      if (!(b.won && b.tick - b.endAt < 300)) speak(CARNY_VOICE, pickLine(byPants(state, sore ? CARNY_LEAVE_WON : CARNY_LEAVE)), s => { b.carny = s; }, false);
     }
     const near = free && d < 72 && p.isGrounded;
     if (near) { if (!b.prompted || getUi().upPrompt !== 'BUMPER CARS') setUi({ upPrompt: 'BUMPER CARS' }); b.prompted = true; }
@@ -363,7 +374,7 @@ const quitBumper = (state: GameState) => {
 };
 /** Lost (the clock, or he quit): back out by the booth, let go, his sore-loser line. Again's UP at the booth. */
 const backOut = (state: GameState, b: Bumper) => {
-  b.token++; b.lost = true;
+  b.token++; b.lost = true; b.won = false;
   outOfRink(state, b);
   release(state, b);
   meatheadSays(state, pickLine(byPants(state, MH_LOSE)), false);
@@ -393,7 +404,7 @@ const toAsk = (b: Bumper) => {
 };
 /** Won: the frozen beat over, back out at the booth, the carny's sore words (and the first time, the prize). */
 const toPayout = (state: GameState, b: Bumper) => {
-  b.token++; b.phase = 'payout'; b.t = 0; b.lost = false;
+  b.token++; b.phase = 'payout'; b.t = 0; b.lost = false; b.won = true;
   outOfRink(state, b);
   hold(state, b, false);
   const tok = b.token;
