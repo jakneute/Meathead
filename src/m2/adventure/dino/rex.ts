@@ -544,7 +544,7 @@ export const updateRex = (ctx: FrameContext) => {
   const ce = r.fight === 'on' ? cheapE(r) : null;
   const mode = dinoMode(state);
   const cs = ce ? cheapShotGate(state, ce, 'rex', mode.hostile && !mode.held && !r.parts.legs.broken && !r.parts.legs.live && CHEAP_OK.has(r.st)) : null;
-  if (r.fight === 'on') markBossFight(state, 'trex');
+  if (r.fight === 'on') markBossFight(state, 'trex', { l: r.inX, r: r.outX + 20 });
   if (cs === 'frozen') { placeParts(r); return; }
   const p = state.player;
   // What's come out of each part since last frame

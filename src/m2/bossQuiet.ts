@@ -14,11 +14,19 @@ import { CANVAS_WIDTH } from '../m1/constants';
 
 type SoundType = Parameters<typeof playSound>[0];
 
-const MARKED = new WeakMap<GameState, { at: number; name?: string }>();
+/** A fight's locked room, left to right (world x: its walls, its barricades). */
+export interface BossArena { l: number; r: number }
+
+const MARKED = new WeakMap<GameState, { at: number; name?: string; arena?: BossArena }>();
 
 /** A boss or sub-boss fight is on this frame; `name` says which (the music plays its theme: music/cues.ts,
- *  'boss:<name>'). Unnamed, the music works it out from the land and section it's in. */
-export const markBossFight = (state: GameState, name?: string) => { MARKED.set(state, { at: state.frame, name }); };
+ *  'boss:<name>'). Unnamed, the music works it out from the land and section it's in. `arena`: the room it's locked
+ *  in; while it's on, the land's own enemies outside it are gone (arenaClear.ts: the user's "there are regular enemies
+ *  at the edges who try to attack me despite being barricaded from me"). */
+export const markBossFight = (state: GameState, name?: string, arena?: BossArena) => { MARKED.set(state, { at: state.frame, name, arena }); };
+
+/** The locked room of the fight that's on, if it said (null: none on, or a fight with no room: a chase, a flight). */
+export const bossArena = (state: GameState) => (inBossFight(state) ? MARKED.get(state)?.arena ?? null : null);
 
 /** A boss or sub-boss fight's on (marked this frame or last: whichever of the hazards and the fight updates first). */
 export const inBossFight = (state: GameState) => {

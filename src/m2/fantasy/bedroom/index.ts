@@ -131,7 +131,7 @@ export const bedroom: FantasySection = {
     }
     if (s.fight === 'on' && s.f) {
       const f = s.f;
-      markBossFight(state, 'piper');
+      markBossFight(state, 'piper', { l: ARENA_L, r: ARENA_R });
       // (the door, in: no longer in the way)
       if (f.doorT !== null) { f.doorT++; state.blocks = state.blocks.filter(b => b.tag !== 'pp-door'); }
       const out = updateFight(ctx, f, controls);

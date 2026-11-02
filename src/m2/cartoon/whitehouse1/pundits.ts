@@ -355,7 +355,7 @@ export const updatePundits = (ctx: FrameContext, controls: Controls): Controls =
       continue;
     }
     q.t++;
-    markBossFight(state, id);
+    markBossFight(state, id, { l: X(A.a), r: X(A.b) });
     if (q.flash > 0) q.flash--;
     if (q.phase === 'intro') {
       // His scene: in he drops, Chelsea names him, his piece, Meathead's

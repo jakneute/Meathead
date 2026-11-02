@@ -256,7 +256,7 @@ export const wheel: FantasySection = {
     w.walls.l.y = w.trial === 'on' || (w.trial === 'won' && kept.wonHere) ? -6000 : AWAY;
     w.walls.r.y = w.trial === 'on' ? -6000 : AWAY;
     if (w.trial === 'won' && w.opened >= 0 && w.opened < 60) w.opened++;
-    if (w.trial === 'on') markBossFight(state, 'fairy-wheel');
+    if (w.trial === 'on') markBossFight(state, 'fairy-wheel', { l: X(GATE_L), r: X(GATE_R) });
     let out = controls;
     // In a suitor's cart: the kill, or the QTE
     if (w.kill && w.cu) {

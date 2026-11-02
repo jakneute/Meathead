@@ -425,7 +425,7 @@ export const updateDemon = (ctx: FrameContext) => {
   // (the hand armor's cheap shot (upgrades/cheapShot.ts): the cutscene freezes him; then he's stunned: his stagger,
   // no attacks, no telegraphs, no chatter (what's already up, his pillars and shockwaves, runs out), hits as ever)
   const cs = d.e && d.fight === 'on' ? cheapShotGate(state, d.e, 'demon', d.y >= GY && !CHEAP_NO.has(d.st)) : null;
-  if (d.fight === 'on') markBossFight(state, 'demon');
+  if (d.fight === 'on') markBossFight(state, 'demon', { l: BACK_X, r: ARENA_OUT + 30 });
   if (cs === 'frozen') { place(d); return; }
   if (d.flash > 0) d.flash--;
   // What's come out of his pool since last frame

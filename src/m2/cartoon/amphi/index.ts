@@ -147,7 +147,7 @@ export const amphi: CartoonSection = {
     if (s.kick) return updateKick(ctx, s);
     // DAD GUY's intro, then the fight
     if (s.intro) {
-      markBossFight(state, 'stupid-dad');
+      markBossFight(state, 'stupid-dad', { l: X(ARENA.a), r: X(ARENA.b) });
       const { out, done } = updateIntro(ctx, s);
       // (seen this visit only once it's over, played through or skipped: bossIntro.ts)
       if (done) { s.intro = null; markIntroSeen(state); beginFight(state, s, false); }
@@ -155,7 +155,7 @@ export const amphi: CartoonSection = {
     }
     if (s.fight) {
       const f = s.fight;
-      markBossFight(state, 'stupid-dad');
+      markBossFight(state, 'stupid-dad', { l: X(ARENA.a), r: X(ARENA.b) });
       if (s.flat < 1) { s.flat = Math.min(1, s.flat + 1 / 50); if (s.flat >= 1) playSound('thud', 0.9, -10); }
       const out = updateFight(ctx, f, controls);
       // (held in: never out of the living room, whatever sends him flying)
@@ -184,7 +184,7 @@ export const amphi: CartoonSection = {
     if (s.guard === 'down') groan(state, s, cleared);
     // Up onto the stage: DAD GUY (the first time this visit, the intro; a retry, straight on)
     if (!cleared && s.guard === 'down' && p.health > 0 && p.isGrounded && rx > DECK_A + 70) {
-      markBossFight(state, 'stupid-dad');
+      markBossFight(state, 'stupid-dad', { l: X(ARENA.a), r: X(ARENA.b) });
       if (startIntro(state, s, introSeen(state))) return updateIntro(ctx, s).out;
       beginFight(state, s, true);
       return controls;

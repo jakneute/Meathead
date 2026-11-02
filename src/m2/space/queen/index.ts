@@ -184,7 +184,7 @@ export const queen: SpaceSection = {
       return controls;
     }
     if (q.fight === 'on') {
-      markBossFight(state);
+      markBossFight(state, undefined, { l: DISCO_L, r: DISCO_R });
       let out = updateFight(ctx, f, controls);
       if (introOn(f)) p.inCutscene = true;
       const lo = DISCO_L, hi = DISCO_R - p.width;

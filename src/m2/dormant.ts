@@ -8,6 +8,7 @@ import type { Enemy } from '../m1/types';
 import { isMidBoss } from '../m1/game/combat/midBoss';
 import { CANVAS_WIDTH } from '../m1/constants';
 import { startSafe, tickSafe } from './spawnSafe';
+import { noteCast, tickArenaClear } from './arenaClear';
 
 /** How far past the screen's edges (each side) the cast are awake. */
 const AWAKE = 700;
@@ -27,17 +28,22 @@ export const sleepFar = (state: GameState) => {
   const pool: Enemy[] = [];
   state.enemies = state.enemies.filter(e => { if (keepsAwake(e) || near(state, e)) return true; pool.push(e); return false; });
   POOLS.set(state.stage as object, pool);
+  // (the cast as placed: the land's own, for a locked fight to clear out from round its room (arenaClear.ts))
+  noteCast(state, [...state.enemies, ...pool]);
 };
 
 /** Each frame: whoever's come near wakes, where they were placed. */
 export const wakeNear = (state: GameState) => {
   // (the safe start's grace (spawnSafe.ts): run here, every land's every frame)
   tickSafe(state);
+  // (a locked fight on: the land's own outside its room gone, and nobody outside it woken meanwhile (arenaClear.ts))
+  const room = tickArenaClear(state);
   const pool = state.stage ? POOLS.get(state.stage as object) : undefined;
   if (!pool || !pool.length) return;
   for (let i = pool.length - 1; i >= 0; i--) {
     const e = pool[i];
     if (!near(state, e)) continue;
+    if (room) { const x = e.pos.x + e.width / 2; if (x < room.l || x > room.r) continue; }
     pool.splice(i, 1);
     if (e.health > 0 && !e.isBlownAway) state.enemies.push(e);
   }

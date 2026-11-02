@@ -381,7 +381,7 @@ export const updatePundits2 = (ctx: FrameContext, controls: Controls): Controls 
       continue;
     }
     q.t++;
-    markBossFight(state, id);
+    markBossFight(state, id, { l: X(A.a), r: X(A.b) });
     if (q.flash > 0) q.flash--;
     if (q.phase === 'intro') {
       p.inCutscene = true; p.vel.x = 0;

@@ -82,7 +82,7 @@ export const stunt: HollywoodSection = {
     }
     if (s.fight === 'on' && s.f) {
       const f = s.f;
-      markBossFight(state, 'stuntman-steve');
+      markBossFight(state, 'stuntman-steve', { l: ARENA_L, r: ARENA_R });
       const out = updateFight(ctx, f, controls);
       // (held in: never out of the arena, whatever sends him flying)
       const lo = ARENA_L, hi = ARENA_R - p.width;
