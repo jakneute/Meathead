@@ -369,7 +369,8 @@ export const drawWaterFront = (c: Ctx, state: GameState) => {
     const s = w.surface, R = waterR(w);
     const xa = Math.max(w.a, v.x - 40), xb = Math.min(w.b, v.x + v.w + 40);
     c.globalAlpha = w.mine ? 0.55 : 0.42; box(c, xa, s + 6, xb - xa, 30, R[4]);
-    c.globalAlpha = w.mine ? 0.7 : 0.55; box(c, xa, s + 36, xb - xa, w.bed - s - 36, R[2]);
+    // (the flooded shaft's a step clearer than it was: its floodlights show through it, benLairArt.ts)
+    c.globalAlpha = w.mine ? 0.46 : 0.55; box(c, xa, s + 36, xb - xa, w.bed - s - 36, R[w.mine ? 3 : 2]);
     c.globalAlpha = w.mine ? 0.1 : 0.18;
     for (let x = Math.floor(xa / 16) * 16; x < xb; x += 16) {
       const k = Math.sin(f * 0.05 + x * 0.07) + Math.sin(f * 0.031 - x * 0.11);

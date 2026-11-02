@@ -137,7 +137,7 @@ export interface PieceLines {
   trialPose?: 'offer' | 'brace' | 'fold';
 }
 
-export const PIECE_LINES: { hands: PieceLines; pauldrons: PieceLines; helmet: PieceLines; cape: PieceLines; legs: PieceLines; amulet: PieceLines; armguards: PieceLines } = {
+export const PIECE_LINES: { hands: PieceLines; pauldrons: PieceLines; helmet: PieceLines; cape: PieceLines; legs: PieceLines; amulet: PieceLines; armguards: PieceLines; sabatons: PieceLines } = {
   hands: {
     ask: {
       clean: ['WHAT ARE THOSE? ARE THOSE MICKEY HANDS?', 'WHOA. GIANT CARTOON HANDS. I NEED THOSE.'],
@@ -377,6 +377,66 @@ export const PIECE_LINES: { hands: PieceLines; pauldrons: PieceLines; helmet: Pi
       nude: ['YOU AGAIN. NAKED IN THE BREAK ROOM. THAT IS A WRITE-UP.', 'YOU AGAIN. STILL NO PANTS. STILL TWO BRACERS.'],
     },
   },
+  // Wilderness Land: the COWBELL CLODHOPPERS, in the Mother Lode's drowned old ASSAY OFFICE, through the little maze
+  // under the flooded shaft's bed. The trial: dive kick his spike-hatted scarecrow (the boots: the spikes don't count),
+  // keep holding, tap grab: the MISSILE, into his stack of dud dynamite.
+  sabatons: {
+    ask: {
+      clean: ['ARE THOSE COWBOY BOOTS MADE OUT OF A TRAIN?', 'IRON COWBOY BOOTS WITH A COWBELL. I NEED MORE COWBELL.'],
+      shitty: ['IRON BOOTS! FINALLY, SHOES THAT CAN HANDLE WHAT COMES DOWN MY LEG.', "BOOTS! MINE ARE FULL. DON'T ASK WHAT OF."],
+      nude: ["BOOTS! NAKED IN BOOTS IS A COWBOY'S WORST NIGHT. I'LL TAKE IT.", 'GIVE ME THOSE. MY FEET ARE THE ONLY PART OF ME NOT FREEZING.'],
+    },
+    sell: ['RAILROAD IRON, TWO OLD BOOTS, A COWBELL OFF A FAKE COW. YOU DIVE KICK FURTHER, AND SPIKES CAN KISS YOUR SOLE.'],
+    trial: ['SEE MY SCARECROW? NAILS IN HIS HAT. DIVE KICK HIM ANYWAY. KEEP HOLDING IT, TAP GRAB, AND THROW HIM INTO MY DUD DYNAMITE.'],
+    trialPose: 'fold',
+    miss: ['THAT WAS A STOMP. NOW THROW HIM.', "YOU KICKED HIM. HE'S STILL HERE. THAT'S THE PROBLEM.", 'HOLD THE KICK. TAP GRAB. HE FLIES.', 'YOU LANDED ON HIM LIKE A HEN ON AN EGG.', 'KICK, GRAB, THROW. YOU DID ONE OF THREE.'],
+    hint: ['THE BOOT COMES DOWN. THE SCARECROW GOES ACROSS. HOLD THE DIVE KICK, TAP GRAB ON THE WAY DOWN.'],
+    pass: ["STRAIGHT INTO THE DYNAMITE. GOOD THING IT'S DUDS. YOU PASS.", 'LIKE A CANNONBALL WITH A HAT ON. YOU PASS.'],
+    passed: {
+      clean: ['I THREW A SCARECROW. THE CROWS ARE FREE.'],
+      shitty: ['I THREW HIM SO HARD I LET SOME FLY TOO.'],
+      nude: ['I FLIPPED UPSIDE DOWN NAKED. HIS HAT SAW EVERYTHING.'],
+    },
+    gift: ['KEEP THEM. THE COWBELL STAYS ON. YOUR ENEMIES HEAR YOU COMING. TOO LATE, BUT THEY HEAR.'],
+    tease: ['DIVE KICK A BOSS IN THOSE. HE FEELS IT IN HIS SPURS. AND SPIKES? STEP ON THEM. GO AHEAD.'],
+    enamored: {
+      clean: ["I'M GONNA DIVE KICK EVERYBODY. OFF ROOFS. OFF THE BUS."],
+      shitty: ["I'M GONNA DIVE KICK EVERYBODY. THEY'LL HEAR THE BELL. THEN THEY'LL SMELL ME."],
+      nude: ["I'M GONNA DIVE KICK EVERYBODY. NAKED. FROM ABOVE. THEY'LL LOOK UP. BIG MISTAKE."],
+    },
+    practice: ['PRACTICE ON THE SCARECROW. I GOT A SHED FULL OF THEM. THEN THE CANNON.'],
+    good: ['RIGHT IN THE DYNAMITE. BEAUTIFUL.', 'HE FLEW LIKE A RENT CHECK. GOOD.', 'YOROSHIKU. GRANDPA SAID IT TO EVERY NEW NEIGHBOR. THEY ALL MOVED.'],
+    idle: {
+      clean: ['YOU AGAIN. THE TRAIN ONLY HAD SO MUCH IRON.', 'YOU AGAIN. I WAS NAPPING ON THE COT.'],
+      shitty: ['YOU SWAM HERE IN THOSE? NOW THE WHOLE MINE DRINKS IT.', 'YOU CAME BACK. THE WATER WAS CLEANER BEFORE YOU.'],
+      nude: ['YOU AGAIN. SKINNY DIPPING IN A MINE. BOLD.', 'YOU AGAIN. STILL NO PANTS. STILL TWO BOOTS.'],
+    },
+  },
+};
+
+// ---------------------------------------------------------------------------------------------------------------
+// Wilderness Land: the drowned ASSAY OFFICE under the flooded shaft (frontier/town/benLair.ts)
+
+/** Meathead, down the hole in the flooded shaft's bed the first time this go at the land. */
+export const MH_MAZE: ByPants = {
+  clean: ['A HOLE IN THE BOTTOM WITH A LIGHT IN IT. I GOTTA.'],
+  shitty: ['A HOLE IN THE BOTTOM. GOOD. THE WATER CAN WASH ME ON THE WAY.'],
+  nude: ['A HOLE IN THE BOTTOM. NAKED. I SHOULD NOT. I AM GOING TO.'],
+};
+/** Meathead's cartoon Japanese after the gift (the hidden art already taught), and Ben, lost. */
+export const BOOT_WEEB: ByPants = {
+  clean: ['MISSAIRU KIKKU DESU! I KNOW JAPANESE FROM CARTOONS.'],
+  shitty: ['MISSAIRU KIKKU... UNKO DESU! I KNOW JAPANESE FROM CARTOONS.'],
+  nude: ['MISSAIRU KIKKU... ZENRA DESU! I KNOW JAPANESE FROM CARTOONS.'],
+};
+export const BOOT_HUH = ["GRANDPA NEVER SAID THAT. GRANDPA MOSTLY SAID GET OFF THE LAWN."];
+/** Getting into the cannon: Ben, where it goes (after Meathead's MH_CANNON_ASK). */
+export const BEN_CANNON_FR = ["THE LOG RIDE. FRONT OF THE LINE. YOU'RE WELCOME.", 'STRAIGHT TO THE LOG RIDE. SKIP THE LINE. EVERYBODY HATES YOU.'];
+/** Meathead, down at the log ride's station. */
+export const MH_LANDED_FR: ByPants = {
+  clean: ['I SKIPPED THE WHOLE LINE. BEST DAY OF MY LIFE.'],
+  shitty: ['SKIPPED THE LINE. NOBODY COMPLAINED. THEY SMELLED ME.'],
+  nude: ['SKIPPED THE LINE NAKED. NOBODY STOPPED ME. NOBODY WANTED TO TOUCH ME.'],
 };
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -493,6 +553,6 @@ const pieceBen = (p: PieceLines) => [...p.sell, ...p.trial, ...p.miss, ...p.hint
 const pieceMeathead = (p: PieceLines) => [...all(p.ask), ...all(p.passed), ...all(p.enamored)];
 
 export const BEN_VOICE_LINES: Record<string, string[]> = {
-  [BEN_VOICE]: [...NAME, ...all(RIDDLE), ...PURPOSE, ...FIRST_ASIDE, ...all(AGAIN), ...all(NUDGE), ...all(NUDGE_OUT), ...BYE_BEN, ...ART_OPEN, ...ART_HOW, ...ART_HUH, ...ART_AGAIN, ...ART_FLASH, ...ART_AGAIN_FLASH, ...Object.values(PIECE_LINES).flatMap(pieceBen), ...LEGS_CURTAIN, ...all(NUDGE_HW), ...BEN_CANNON, ...AMULET_HUH, ...BEN_CANNON_FY, ...BRACER_HUH, ...BEN_CANNON_SP],
-  meathead: [...all(MEET), ...all(FIRST_WHY), ...all(FIRST_REACT), ...all(AGAIN_MH), ...BYE_MEATHEAD, ...all(ART_MH), ...all(ART_WEEB), ...Object.values(PIECE_LINES).flatMap(pieceMeathead), ...all(MH_PASSAGE), ...all(MH_HATCH), ...MH_CANNON_ASK, ...MH_FALL, ...all(MH_LANDED), ...all(MH_TUNNEL), ...all(AMULET_WEEB), ...all(MH_HATCH_SP), ...all(BRACER_WEEB)],
+  [BEN_VOICE]: [...NAME, ...all(RIDDLE), ...PURPOSE, ...FIRST_ASIDE, ...all(AGAIN), ...all(NUDGE), ...all(NUDGE_OUT), ...BYE_BEN, ...ART_OPEN, ...ART_HOW, ...ART_HUH, ...ART_AGAIN, ...ART_FLASH, ...ART_AGAIN_FLASH, ...Object.values(PIECE_LINES).flatMap(pieceBen), ...LEGS_CURTAIN, ...all(NUDGE_HW), ...BEN_CANNON, ...AMULET_HUH, ...BEN_CANNON_FY, ...BRACER_HUH, ...BEN_CANNON_SP, ...BOOT_HUH, ...BEN_CANNON_FR],
+  meathead: [...all(MEET), ...all(FIRST_WHY), ...all(FIRST_REACT), ...all(AGAIN_MH), ...BYE_MEATHEAD, ...all(ART_MH), ...all(ART_WEEB), ...Object.values(PIECE_LINES).flatMap(pieceMeathead), ...all(MH_PASSAGE), ...all(MH_HATCH), ...MH_CANNON_ASK, ...MH_FALL, ...all(MH_LANDED), ...all(MH_TUNNEL), ...all(AMULET_WEEB), ...all(MH_HATCH_SP), ...all(BRACER_WEEB), ...all(MH_MAZE), ...all(BOOT_WEEB), ...all(MH_LANDED_FR)],
 };

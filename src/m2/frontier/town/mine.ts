@@ -145,7 +145,7 @@ const drawOutside = (c: Ctx, state: GameState, v: TownView) => {
 // Inside: the rock, the tunnels opened up, timber, lanterns, the gas
 
 /** The rock mass at the play plane (stamped in chunks: strata, blocks, veins of the park's fake gold, real quartz). */
-const paintRock = (g: Ctx, x0: number, w: number, y0: number, h: number) => {
+export const paintRock = (g: Ctx, x0: number, w: number, y0: number, h: number) => {
   const tod = timeOfDay(), R = MINE.map(col => farTint(col, 0.1, tod)), s = Math.floor(x0);
   // (slabs and blocks in loose courses (the streets' rock painter), each lit along its top and left and shaded under,
   // the crevices dark; a step brighter than the ramp's floor: murky, never black)
@@ -254,7 +254,7 @@ const shaft = (c: Ctx, v: TownView, a: number, b: number, y0: number, y1: number
 const bandedGradient4 = (c: Ctx, x: number, y: number, w: number, h: number, cols: string[]) => { for (let i = 0; i < cols.length; i++) box(c, x, y + (h * i) / cols.length, w, h / cols.length + 1, cols[i]); };
 
 /** A lantern on its hook (world), its flame's flicker. */
-const lantern = (c: Ctx, x: number, y: number, f: number) => {
+export const lantern = (c: Ctx, x: number, y: number, f: number) => {
   const B = BRASS;
   box(c, x - 1, y - 18, 2, 10, INK);
   box(c, x - 6, y - 10, 12, 3, INK); box(c, x - 5, y - 9, 10, 1, B[4]);

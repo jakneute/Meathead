@@ -238,6 +238,14 @@ export const FUTURE: CannonLook = {
   wood: ['#0E1014', '#1C2028', '#2C323E', '#434B5A', '#646E80', '#9AA4B4'],
   star: '#4ADE80',
 };
+/** Wilderness Land's (CON-FUCK-TIOUS's drowned assay office under the flooded shaft): the Wild West Show's old parade
+ *  cannon, a black iron barrel with brass bands on a red-painted wagon-wheel carriage; brass stars. */
+export const WILDERNESS: CannonLook = {
+  barrel: ['#0C0C10', '#1A1A20', '#2A2A32', '#3E3E48', '#5A5A66', '#8A8A98'],
+  band: ['#4A2E06', '#7A520E', '#B07F1E', '#DDB24A', '#F2D27A', '#FFF2B0'],
+  wood: ['#2A0A06', '#4A140C', '#6E2014', '#92301E', '#B44A32', '#D8765A'],
+  star: '#DDB24A',
+};
 const INK = '#1A1028';
 const barrels = new Map<CannonLook, HTMLCanvasElement | null>();
 /** The barrel, standing up, its pivot at (BW / 2, BH - 10): baked once a look. */

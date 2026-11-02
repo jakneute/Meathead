@@ -110,7 +110,8 @@ export const CONC = ['#2A2624', '#423C38', '#5A524C', '#746A62', '#8E847A', '#A8
 export const BRICK = ['#2A0E08', '#46180E', '#622416', '#7E3220', '#98442C', '#B25C40', '#CA7A5C'];
 /** The pond's and the sump's water. */
 export const POND = ['#0A1A20', '#10262E', '#16343E', '#1E4650', '#285A62', '#347076', '#4A8A8C', '#72AAA6', '#ACD4C8'];
-export const SUMP = ['#04080A', '#081014', '#0C181E', '#122228', '#182E34', '#203A40', '#2C4A50', '#46666A', '#7A9A9A'];
+/** (lit up a step: the flooded shaft's floodlights; the owner's "illuminate the dark underwater section") */
+export const SUMP = ['#06121A', '#0A1E26', '#0E2C34', '#143A42', '#1C4C52', '#266064', '#347A7A', '#5A9A94', '#94C8BC'];
 
 /** The park's western paint for the false fronts (body colors: each made a ramp for the hour). */
 export const FRONT_PAINT = {

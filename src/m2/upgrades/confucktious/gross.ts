@@ -30,6 +30,9 @@
 //   armguards: the BEEF BRACERS, one on his forearm, the fist up beside his face, the red LED scrolling BEEF across its
 //          window (the armor's own baked LED strip slid along: no pixel work); then the UPPERCUT at the lens: a dip, and
 //          the fist rockets up at the camera, swelling, the motion lines under it, the jolt as it lands; and back up.
+//   sabatons: the COWBELL CLODHOPPERS, one dangled off his fist by its pull strap beside his face, swinging, the cowbell
+//          under it clanking (ring lines off it); then the STOMP: the boot comes down at the lens heel first out of the
+//          top right, swelling, a DONG off the bell, the jolt; and back to dangling it.
 
 import {
   type Ctx, type Buf, GW, GH, R, hexU, WHITE, newBuf, setSeed, rnd, matAt, plot, seg, path, ball, tint, poly, bead, eyeball, teeth, skinPost, stubble, hairs, vein, stamps, drawGrossStamp, grossBackdrop, toCanvas, M_SKIN, M_HAIR, M_MOUTH, M_OTHER, M_CLOTH, M_METAL, SCLERA_R, MOUTH, TONGUE, VEIN_B, BLOOD, GOLD,
@@ -680,6 +683,93 @@ const brcCanvas = () => {
 const SHOW_T = 96, DIP_T = 10, CUT_T = 26;
 const cutU = (f: number) => { const t = f % (SHOW_T + DIP_T + CUT_T) - SHOW_T; return t < 0 ? -1 : t; };
 
+/** The COWBELL CLODHOPPERS (Wilderness Land), at the gross-up's own grain (not the sprite's boot blown up): a cowboy boot
+ *  of rusty railroad iron in profile (toe at the right), baked once: the tall shaft with its scalloped top and pull
+ *  strap, a V notch, fancy stitching up it; the vamp down to a pointed toe under an iron toe cap; the stacked iron heel;
+ *  the sole's lit edge; rivets down the seams, pitting; the spur off the heel with its star rowel. The cowbell its own
+ *  bake (brass in bands, the rim, the clapper). */
+const BOOT_W = 104, BOOT_H = 86, BELL_W = 26, BELL_H = 30;
+const RST = ['#1E0C06', '#3A1A0C', '#5E2C14', '#82401E', '#A6582A', '#C8773E', '#E49A5C'];
+const IRN = ['#0E0E12', '#1E1E24', '#32323A', '#4A4A54', '#6A6A76', '#9A9AA8', '#D2D2DC'];
+const BRS = ['#3A2204', '#6A440C', '#9A6A1A', '#C8962E', '#E6BE52', '#F8E08A', '#FFF6CC'];
+let bootCv: HTMLCanvasElement | null | undefined, bellCv: HTMLCanvasElement | null | undefined;
+/** Bands across x (lit at the left), each band's edge dithered into the next, inside whatever's clipped. */
+const bandsX = (g: CanvasRenderingContext2D, x0: number, x1: number, y0: number, y1: number, R: string[], from: number, to: number) => {
+  const n = Math.max(1, from - to + 1), bw = (x1 - x0) / n;
+  for (let i = 0; i < n; i++) {
+    const x = x0 + i * bw;
+    g.fillStyle = R[from - i]; g.fillRect(Math.floor(x), y0, Math.ceil(bw) + 1, y1 - y0);
+    if (i) { g.fillStyle = R[from - i + 1]; for (let y = y0; y < y1; y += 2) g.fillRect(Math.floor(x) + ((y >> 1) & 1), y, 1, 1); }
+  }
+};
+const bootCanvas = () => {
+  if (bootCv !== undefined) return bootCv;
+  if (typeof document === 'undefined') return (bootCv = null);
+  const cv = document.createElement('canvas'); cv.width = BOOT_W; cv.height = BOOT_H;
+  const g = cv.getContext('2d')!;
+  const outline = () => {
+    g.beginPath();
+    g.moveTo(16, 8); g.lineTo(24, 11); g.lineTo(30, 7); g.lineTo(36, 12); g.lineTo(42, 8); g.lineTo(48, 10);
+    g.lineTo(50, 44); g.quadraticCurveTo(54, 50, 66, 52); g.lineTo(86, 57); g.quadraticCurveTo(98, 61, 101, 66);
+    g.lineTo(96, 70); g.lineTo(38, 70); g.lineTo(36, 80); g.lineTo(18, 80); g.lineTo(15, 66); g.closePath();
+  };
+  // (the ink round it, two px out)
+  g.save(); g.translate(0, 0); g.strokeStyle = '#0A0604'; g.lineWidth = 4; g.lineJoin = 'round'; outline(); g.stroke(); g.restore();
+  g.save(); outline(); g.clip();
+  // (the shaft and the vamp: rust in bands across, lit down the shaft's back)
+  bandsX(g, 14, 52, 0, 72, RST, 6, 2);
+  bandsX(g, 52, 102, 40, 72, RST, 5, 2);
+  // (the shaft's top: a lit scalloped rim; the V notch; the fancy stitching up it in a pale thread)
+  g.fillStyle = RST[6]; g.fillRect(16, 8, 34, 2);
+  g.fillStyle = '#0A0604'; g.beginPath(); g.moveTo(40, 8); g.lineTo(44, 18); g.lineTo(48, 8); g.closePath(); g.fill();
+  g.strokeStyle = '#E8C898'; g.lineWidth = 1; g.setLineDash([2, 2]);
+  g.beginPath(); g.moveTo(24, 16); g.quadraticCurveTo(32, 26, 26, 36); g.quadraticCurveTo(22, 44, 30, 50); g.stroke();
+  g.beginPath(); g.moveTo(34, 16); g.quadraticCurveTo(42, 28, 36, 40); g.stroke();
+  g.setLineDash([]);
+  // (the seam down the shaft's front and along the welt: rivets, each lit on top, its shadow under)
+  for (const [x, y] of [[48, 16], [48, 26], [48, 36], [56, 50], [68, 54], [80, 58], [20, 30], [20, 46], [20, 60]] as const) { g.fillStyle = '#F2B27A'; g.fillRect(x - 2, y - 2, 4, 2); g.fillStyle = RST[1]; g.fillRect(x - 2, y, 4, 2); }
+  // (pitting)
+  for (let k = 0; k < 26; k++) { const x = 16 + ((k * 37) % 80), y = 12 + ((k * 23) % 56); g.fillStyle = k % 3 ? RST[1] : '#D9772E'; g.fillRect(x, y, 2, 1); }
+  // (the iron toe cap over the point, its lit rim, a bolt)
+  g.save(); g.beginPath(); g.moveTo(74, 54); g.lineTo(88, 57); g.quadraticCurveTo(99, 61, 102, 66); g.lineTo(96, 70); g.lineTo(72, 70); g.closePath(); g.clip();
+  bandsX(g, 72, 102, 50, 72, IRN, 5, 2); g.fillStyle = IRN[6]; g.fillRect(74, 55, 16, 1);
+  g.restore();
+  g.fillStyle = IRN[6]; g.fillRect(84, 61, 2, 2);
+  // (the sole: a dark strip, its edge lit; the stacked iron heel under the back)
+  g.fillStyle = IRN[1]; g.fillRect(36, 66, 66, 6); g.fillStyle = IRN[4]; g.fillRect(36, 66, 64, 1);
+  bandsX(g, 14, 40, 66, 82, IRN, 4, 1);
+  for (let y = 70; y < 80; y += 4) { g.fillStyle = IRN[0]; g.fillRect(16, y, 22, 1); }
+  g.fillStyle = IRN[5]; g.fillRect(16, 66, 20, 1);
+  g.restore();
+  // (the pull strap's loop up off the shaft's back top)
+  g.strokeStyle = '#0A0604'; g.lineWidth = 4; g.beginPath(); g.arc(20, 7, 5, Math.PI, 0); g.stroke();
+  g.strokeStyle = RST[4]; g.lineWidth = 2; g.beginPath(); g.arc(20, 7, 5, Math.PI, 0); g.stroke();
+  // (the spur: a strap round the heel, the shank out the back, the star rowel)
+  g.fillStyle = '#0A0604'; g.fillRect(2, 60, 16, 5); g.fillStyle = '#CBD5E1'; g.fillRect(4, 61, 13, 2); g.fillStyle = '#F8FAFC'; g.fillRect(6, 61, 6, 1);
+  for (let k = 0; k < 8; k++) { const a = (k * Math.PI) / 4, r = k % 2 ? 3 : 6; g.fillStyle = k % 2 ? '#94A3B8' : '#E2E8F0'; g.fillRect(Math.round(5 + Math.cos(a) * r) - 1, Math.round(62 + Math.sin(a) * r) - 1, 2, 2); }
+  g.fillStyle = '#475569'; g.fillRect(4, 61, 3, 3);
+  bootCv = cv;
+  return cv;
+};
+const bellCanvas = () => {
+  if (bellCv !== undefined) return bellCv;
+  if (typeof document === 'undefined') return (bellCv = null);
+  const cv = document.createElement('canvas'); cv.width = BELL_W; cv.height = BELL_H;
+  const g = cv.getContext('2d')!;
+  const body = () => { g.beginPath(); g.moveTo(8, 4); g.lineTo(18, 4); g.lineTo(24, 26); g.lineTo(2, 26); g.closePath(); };
+  g.strokeStyle = '#0A0604'; g.lineWidth = 3; g.lineJoin = 'round'; body(); g.stroke();
+  g.save(); body(); g.clip(); bandsX(g, 0, 26, 0, 28, BRS, 6, 2); g.fillStyle = BRS[6]; g.fillRect(8, 4, 10, 1); g.restore();
+  g.fillStyle = BRS[1]; g.fillRect(2, 24, 22, 3); g.fillStyle = BRS[4]; g.fillRect(3, 24, 20, 1);
+  g.fillStyle = '#0A0604'; g.fillRect(11, 26, 4, 3);
+  g.fillStyle = '#3A2410'; g.fillRect(11, 0, 4, 5);
+  bellCv = cv;
+  return cv;
+};
+/** Its cycle (frames): dangled off his fist by its pull strap beside his face, the cowbell clanking under it; then the
+ *  STOMP at the lens: the boot comes down at the camera heel first, swelling, the motion lines behind it, the jolt. */
+const DANGLE_T = 104, STOMP_T = 30;
+const stompU = (f: number) => { const t = f % (DANGLE_T + STOMP_T) - DANGLE_T; return t < 0 ? -1 : t / STOMP_T; };
+
 type Draw = (c: Ctx, f: number) => void;
 /** A piece's prop, drawn in the buffer's own pixels over the face (and a jolt for the screen when it lands). */
 interface Prop { draw: Draw; jolt: (f: number) => number; /** Bake its art now (ahead of the close-up). */ warm?: () => void; /** The whole face pushed at the lens (a headbutt): times the zoom. */ zoom?: (f: number) => number; /** His face losing it just now (the tantrum's: flushed, bulging, screaming). */ mad?: (f: number) => boolean }
@@ -893,6 +983,53 @@ const PROPS: Partial<Record<ArmorPiece, Prop>> = {
     jolt: (f) => (cutU(f) === DIP_T + Math.round(CUT_T * 0.45) ? 6 : 0),
     zoom: (f) => { const u = cutU(f); if (u < DIP_T) return 1; const k = (u - DIP_T) / CUT_T; return 1 + 0.1 * Math.sin(Math.min(1, k * 1.6) * Math.PI); },
     warm: () => { fistCanvas(); brcCanvas(); },
+  },
+  sabatons: {
+    // (the boot dangled off his fist by its pull strap, swinging, the cowbell under it clanking (ring lines off it at each
+    // end of its swing); then the stomp at the lens: heel first down out of the top right, swelling, and back)
+    draw: (c, f) => {
+      const fc = fistCanvas(), bt = bootCanvas(), bl = bellCanvas();
+      if (!fc || !bt || !bl) return;
+      const u = stompU(f), t = f % (DANGLE_T + STOMP_T), up = Math.min(1, t / 14);
+      if (u < 0) {
+        const fx = 212, fy = Math.round(214 - up * 190 + Math.sin(f * 0.1) * 1.5), k = 0.95;
+        const a = Math.sin(f * 0.09) * 0.14, ba = Math.sin(f * 0.09 - 0.8) * 0.5;
+        // (the forearm in off the bottom right, the fist up beside his face; the boot hung off the strap in it, swinging in
+        // front of the arm; then the fist again over the strap (just the fist: the canvas's top), round it)
+        c.save(); c.translate(fx, fy + 24); c.rotate(-0.2); c.drawImage(fc, -FIST_W / 2, -24); c.restore();
+        c.save(); c.translate(fx - 2, fy + 10); c.rotate(a);
+        c.drawImage(bt, -20 * k, 2 - 2 * k, BOOT_W * k, BOOT_H * k);
+        // (the cowbell off a thong round the ankle, on its own swing)
+        const ax = 30 * k, ay = 2 + 58 * k;
+        c.save(); c.translate(ax, ay); c.rotate(ba - a);
+        c.fillStyle = '#0A0604'; c.fillRect(-2, -2, 4, 10); c.fillStyle = '#7A4E26'; c.fillRect(-1, -2, 2, 10);
+        c.drawImage(bl, -BELL_W * 0.45, 7, BELL_W * 0.9, BELL_H * 0.9);
+        c.restore();
+        c.restore();
+        c.save(); c.translate(fx, fy + 24); c.rotate(-0.2); c.drawImage(fc, 0, 0, FIST_W, 44, -FIST_W / 2, -24, FIST_W, 44); c.restore();
+        // (the clank: ring lines off the bell at each end of its swing)
+        const ph = Math.cos(f * 0.09 - 0.8);
+        if (Math.abs(ph) > 0.9) {
+          const side = ph > 0 ? 1 : -1, bx = fx - 2 + ax + side * 16, by = fy + 10 + ay + 22;
+          c.fillStyle = '#FFF2B0';
+          for (let i = 0; i < 3; i++) c.fillRect(Math.round(bx + side * (i * 5)), Math.round(by - 8 + i * 6), side * 7, 2);
+        }
+      } else {
+        // (the stomp: down out of the top right at the lens, heel first, swelling; then back)
+        const out = u < 0.45 ? Math.sin((u / 0.45) * Math.PI / 2) : Math.cos(((u - 0.45) / 0.55) * Math.PI / 2);
+        const x = 250 + (FX + 24 - 250) * out, y = -40 + (FY + 30 + 40) * out, s = 0.8 + out * 1.1;
+        if (u < 0.5) { c.fillStyle = 'rgba(255,255,255,0.75)'; for (let i = 0; i < 5; i++) c.fillRect(Math.round(x + 4 + i * 10), Math.round(y - 56 * s - i * 6), 2, 30); }
+        c.save(); c.translate(x, y); c.rotate(-0.55); c.scale(s, s);
+        c.drawImage(bt, -BOOT_W / 2, -BOOT_H / 2);
+        c.drawImage(bl, -BOOT_W / 2 + 24, -BOOT_H / 2 + 56, BELL_W * 0.8, BELL_H * 0.8);
+        c.restore();
+        // (the bell's DONG as it lands)
+        if (out > 0.85) { c.fillStyle = '#FFF2B0'; for (let i = 0; i < 4; i++) { const a = -0.6 + i * 0.4; c.fillRect(Math.round(x + Math.cos(a) * 80), Math.round(y + Math.sin(a) * 58), 8, 2); } }
+      }
+    },
+    jolt: (f) => (Math.abs(stompU(f) - 0.45) < 0.035 ? 7 : 0),
+    zoom: (f) => { const u = stompU(f); return u < 0 ? 1 : 1 + 0.12 * Math.sin(Math.min(1, u * 1.6) * Math.PI); },
+    warm: () => { fistCanvas(); bootCanvas(); bellCanvas(); },
   },
 };
 

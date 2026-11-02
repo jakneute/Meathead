@@ -151,7 +151,7 @@ const FLURRY: [number, number][][] = [[[42, -62], [16, -52]], [[24, -52], [38, -
 
 /** A leg: the baggy sweatpants from the hip down past the knee to the cuff gathered at the ankle, its folds; the white
  *  high-top. */
-const leg = (g: Ctx, hip: [number, number], fx: number, far: boolean, trophy = false) => {
+const leg = (g: Ctx, hip: [number, number], fx: number, far: boolean, trophy = false, boots = false) => {
   const R = far ? back(SWEAT) : SWEAT, S = far ? back(SHOE) : SHOE;
   const ank: [number, number] = [fx, -9];
   const k = knee(hip[0], hip[1], ank[0], ank[1], 15, 14, 1);
@@ -177,6 +177,18 @@ const leg = (g: Ctx, hip: [number, number], fx: number, far: boolean, trophy = f
   pxR(g, fx - 5.6, -7.4, 3.4, 1.2, S[0]);
   pxR(g, fx + 8, -3.6, 1.4, 0.8, dith(g, '#8A7A6A')); pxR(g, fx - 2, -2.4, 1, 0.6, '#9A8A7A');
   if (trophy) shinDigs(g, k, ank, far);
+  if (boots) clodhoppers(g, fx, far);
+};
+
+/** The COWBELL CLODHOPPERS over a high-top (Wilderness Land, till they're given): the armor's own baked boot (armorArt.ts:
+ *  its 16 x 8 boot rect laid over the sneaker, the shaft up round his ankle, the spur off the heel), the cowbell hung off
+ *  the near one's ankle strap. Baked once into his stamp. */
+const clodhoppers = (g: Ctx, fx: number, far: boolean) => {
+  const cv = armorStamp('sab', far), bell = armorStamp('bell');
+  // (the boot rect, x 4..20 / y 8..16 of its 22 x 17, over the sneaker's fx - 7.6 .. fx + 13, -9 .. 0.6)
+  const k = 1.38, left = fx - 8.4 - 4 * k, top = 1 - 16 * k;
+  if (cv) g.drawImage(cv, left, top, 22 * k, 17 * k);
+  if (bell && !far) { lineR(g, [fx - 1, -9, fx - 2, -5], 0.7, '#5C3A1E'); g.drawImage(bell, fx - 5, -6, 6 * 1.1, 7 * 1.1); }
 };
 
 /** The TROPHY SHIN-DIGS on a shin (Hollywood Land, till they're given): a gold award statuette down its front, duct-taped
@@ -422,8 +434,9 @@ const paintBen = (g: Ctx, pose: BenPose, frame: number, piece: ArmorPiece | null
   // ---- the legs: a wide stance, knees a little bent (the far one first)
   const hipY = -36 + drop;
   const trophy = piece === 'legs';
-  leg(g, [-4, hipY], -9, true, trophy);
-  leg(g, [6, hipY], 11, false, trophy);
+  const boots = piece === 'sabatons';
+  leg(g, [-4, hipY], -9, true, trophy, boots);
+  leg(g, [6, hipY], 11, false, trophy, boots);
   // (the sweatpants' seat over the hips, the waistband under the belt)
   shapeR(g, () => { g.moveTo(-13, hipY - 2); g.lineTo(18, hipY - 2); g.lineTo(17, hipY + 8); g.quadraticCurveTo(10, hipY + 12, 3, hipY + 9); g.quadraticCurveTo(-4, hipY + 12, -12, hipY + 8); g.closePath(); }, SWEAT, -13, 18, 1);
   lineR(g, [3, hipY + 4, 3.4, hipY + 9], 0.7, SWEAT[3]); lineR(g, [-8, hipY + 6, -3, hipY + 8], 0.6, SWEAT[0]);
@@ -447,7 +460,7 @@ const paintBen = (g: Ctx, pose: BenPose, frame: number, piece: ArmorPiece | null
   const hf = arm(g, [sx + 13, sy + 9], hp.f, square, false, S, gloved, pose === 'offer', brc);
   if (pads) pauldron(g, sx + 13, sy + 9, false);
   // (the shaker's the hand armor's trial: nobody else's)
-  const shakes = !pads && piece !== 'helmet' && piece !== 'cape' && !trophy && !pend && !brc;
+  const shakes = !pads && piece !== 'helmet' && piece !== 'cape' && !trophy && !pend && !brc && !boots;
   // (held out on its chain, dangling off his fist)
   if (pend && (pose === 'offer' || pose === 'give')) pendant(g, [[hf[0] + 1, hf[1] + 1]], hf[0] + 1, hf[1] + 13);
   if (shakes && pose === 'offer') shaker(g, hf[0] + 1, hf[1] - 6);

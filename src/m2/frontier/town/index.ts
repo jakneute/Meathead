@@ -46,10 +46,11 @@ import { drawMineVeil } from './mine';
 import { buildGallery, updateGallery, drawGalleryWorld, drawGalleryWords, drawGalleryHud } from './gallery';
 import { makeKindEnemy } from '../../../m1/game/enemies/kinds';
 import type { EnemyKind } from '../../../m1/types';
+import { withBenLair } from './benLairSection';
 
 const { x0, x1 } = SECTIONS.town;
 
-export const town: FrontierSection = {
+const base: FrontierSection = {
   id: 'town', x0, x1,
   checkpoints: CHECKPOINTS,
   build: (state) => {
@@ -147,3 +148,6 @@ export const town: FrontierSection = {
     };
   },
 };
+
+/** The town, with CON-FUCK-TIOUS's assay office under the flooded shaft (benLairSection.ts). */
+export const town: FrontierSection = withBenLair(base);
