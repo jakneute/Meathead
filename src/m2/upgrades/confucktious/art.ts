@@ -23,7 +23,7 @@ import { stamp } from '../../../m1/game/render/stamp';
 import { elbow, elbowFront, knee, reachTo } from '../../art/limb';
 import { shapeR, tubeR, pxR, lineR, ellR, dith, mixHex, type Ramp } from '../../foreign/heli/harryArt';
 import type { ArmorPiece } from '../state';
-import { armorStamp } from '../armorArt';
+import { armorStamp, drawLed, LED_X0, LED_W, LED_Y0, LED_H } from '../armorArt';
 
 type Ctx = CanvasRenderingContext2D;
 
@@ -196,7 +196,7 @@ const shinDigs = (g: Ctx, k: [number, number], ank: [number, number], far: boole
 
 /** An arm: shoulder to elbow (art/limb.ts: bent the right way for how he's standing) to hand. The delt's cap, the bicep's
  *  bulge, the forearm's swell, its veins and its gray hair; the fist (or the glove) on the end. Returns the hand. */
-const arm = (g: Ctx, s: [number, number], h0: [number, number], square: boolean, far: boolean, S0: Ramp, gloved: boolean, open: boolean) => {
+const arm = (g: Ctx, s: [number, number], h0: [number, number], square: boolean, far: boolean, S0: Ramp, gloved: boolean, open: boolean, bracer = false) => {
   const S = far ? back(S0) : S0, up = 15, fore = 14, big = far ? 0.9 : 1;
   /** (the muscles' bulges inside the arm's outline: edged in the deep tone, not the line, so they read as swells) */
   const M: Ramp = [S[0], S[1], S[2], S[3], mixHex(S[3], S[4], 0.45)];
@@ -225,6 +225,18 @@ const arm = (g: Ctx, s: [number, number], h0: [number, number], square: boolean,
   lineR(g, [s[0] + 1, s[1] + 3, s[0] + 4, s[1] + 7.4], 0.7, S[3]);
   // (the elbow's point, wrinkled)
   pxR(g, e[0] - 1, e[1] - 0.6, 2, 0.7, S[3]); pxR(g, e[0] - 0.6, e[1] + 0.8, 1.6, 0.6, S[3]);
+  // (the BEEF BRACER round the forearm, on him till they're given: Future Land; the armor's own baked piece, its LED
+  // window showing the word, baked into his stamp)
+  if (bracer) {
+    const cv = armorStamp('bracer', far);
+    if (cv) {
+      const L0 = fl * 0.16, BL = fl * 0.78, BW = 11.6 * big;
+      g.save(); g.translate(e[0], e[1]); g.rotate(fa);
+      g.drawImage(cv, L0, -BW / 2, BL, BW);
+      drawLed(g, L0 + (LED_X0 / 14) * BL, -BW / 2 + (LED_Y0 / 10) * BW, (LED_W / 14) * BL, (LED_H / 10) * BW, 0);
+      g.restore();
+    }
+  }
   if (gloved) glove(g, h[0], h[1], big, open);
   else fist(g, h[0], h[1], S, fa);
   return h;
@@ -418,7 +430,8 @@ const paintBen = (g: Ctx, pose: BenPose, frame: number, piece: ArmorPiece | null
   // ---- the arms (the back one behind his body), the body, the traps, the head, the front arm
   const sx = 2 + lean, sy = -68 + drop;
   const square = pose === 'stand' || pose === 'fold' || pose === 'nuts';
-  arm(g, [sx - 11, sy + 8], hp.b, square, true, S, gloved, false);
+  const brc = piece === 'armguards';
+  arm(g, [sx - 11, sy + 8], hp.b, square, true, S, gloved, false, brc);
   // (the COCO-NUTS, on him till they're given: the far one over the back delt, under his body)
   const pads = piece === 'pauldrons';
   if (pads) pauldron(g, sx - 11, sy + 8, true);
@@ -431,10 +444,10 @@ const paintBen = (g: Ctx, pose: BenPose, frame: number, piece: ArmorPiece | null
   // (the PISS-OFF PENDANT, round his neck till he hands it out: Fairy Land)
   const pend = piece === 'amulet';
   if (pend && pose !== 'offer' && pose !== 'give') pendant(g, [[hx - 6, hy + 12], [hx + 9, hy + 13]], sx + 2, sy + 12);
-  const hf = arm(g, [sx + 13, sy + 9], hp.f, square, false, S, gloved, pose === 'offer');
+  const hf = arm(g, [sx + 13, sy + 9], hp.f, square, false, S, gloved, pose === 'offer', brc);
   if (pads) pauldron(g, sx + 13, sy + 9, false);
   // (the shaker's the hand armor's trial: nobody else's)
-  const shakes = !pads && piece !== 'helmet' && piece !== 'cape' && !trophy && !pend;
+  const shakes = !pads && piece !== 'helmet' && piece !== 'cape' && !trophy && !pend && !brc;
   // (held out on its chain, dangling off his fist)
   if (pend && (pose === 'offer' || pose === 'give')) pendant(g, [[hf[0] + 1, hf[1] + 1]], hf[0] + 1, hf[1] + 13);
   if (shakes && pose === 'offer') shaker(g, hf[0] + 1, hf[1] - 6);

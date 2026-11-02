@@ -230,6 +230,14 @@ export const FAIRY: CannonLook = {
   wood: ['#2A1A4A', '#3E2A6E', '#5A44A0', '#7A66C4', '#A494E0', '#D2C8F6'],
   star: '#FFFFFF',
 };
+/** Future Land's (CON-FUCK-TIOUS's break room under XENOSCARE's basement): the ride's old prop RAY CANNON, a chrome barrel
+ *  with warning-red bands on a gunmetal carriage; green stars. */
+export const FUTURE: CannonLook = {
+  barrel: ['#1E2230', '#3A4256', '#64708A', '#98A4BC', '#CBD5E1', '#F8FAFC'],
+  band: ['#4A0808', '#7A1010', '#B01C1C', '#DC3030', '#F06A6A', '#FCC0C0'],
+  wood: ['#0E1014', '#1C2028', '#2C323E', '#434B5A', '#646E80', '#9AA4B4'],
+  star: '#4ADE80',
+};
 const INK = '#1A1028';
 const barrels = new Map<CannonLook, HTMLCanvasElement | null>();
 /** The barrel, standing up, its pivot at (BW / 2, BH - 10): baked once a look. */

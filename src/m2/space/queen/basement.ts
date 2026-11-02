@@ -39,6 +39,16 @@
 //   THE TEACHING  the first: her silhouette over the pipes ahead, then out of a vent ahead and walking his way, slowly,
 //                 lockers right there. Then she's loose.
 //
+//   GOING BACK    which way's "ahead" is the way he's been HEADING (h.heading: flipped once he's gone a little way the
+//                 other way, not on every turn of his head): the front ambush drops in front of him that way, the back
+//                 one comes from behind him that way, the noise one too, and a stretch's go still owed while he's
+//                 heading back west is aimed west (forceAim). The owner: "front and back ambushes should work in
+//                 reverse if it detects the player going backwards".
+//   BEN'S HALL    west from where he lands, the brief service hallway to the hatch down to CON-FUCK-TIOUS's break room
+//                 (benLair.ts): heading into it, one go of hers is certain (h.hall, once a life): a front ambush,
+//                 down out of the ceiling in the hallway between him and the hatch (HALL_DROP), a quick tell; two
+//                 hiding spots on the way to it. Down the hatch he's safe: she's off, nothing of hers runs below it.
+//
 // Kept across his deaths: nothing of hers (a death's back at the checkpoint, the opener past it done, a grace spell
 // before she's first out); the door, once kicked in, stays in.
 
@@ -64,7 +74,7 @@ import { hands, meatheadSays, box } from '../section';
 import { ink, limb } from '../../../m1/game/render/npc/kit';
 import { stamp, setStampHold } from '../../../m1/game/render/stamp';
 import { GY } from '../geometry';
-import { BASE_L, BASE_R, DOOR_X, BF, CATWALK_Y, CEIL_B, STAIRS_A, STAIRS_B, LAND_X, stairsY } from './geo';
+import { BASE_L, BASE_R, DOOR_X, BF, CATWALK_Y, CEIL_B, STAIRS_A, STAIRS_B, LAND_X, stairsY, HALL_L, HATCH, LAIR, underHall } from './geo';
 import { drawQueen } from './art';
 import { FLAT } from '../../upgrades/walkArmor';
 import { bandedGradient } from '../../../m1/game/render/pixelArt';
@@ -158,8 +168,15 @@ export const CATWALKS: [number, number][] = [[B + 1500, B + 2200], [B + 2650, B 
 export const PIPES: [number, number][] = [[B + 1700, 110], [B + 2950, 100], [B + 4100, 110], [B + 5200, 100], [B + 6100, 100]];
 export const PIPE_Y = BF - 130;
 /** The ladders up to the catwalks (each a little in from a catwalk's end: stepped off onto it). */
+/** The ladder down the hatch (its middle), at the hatch's west side (the cannon's under its east side). */
+export const HATCH_LADDER_X = HATCH.a + 26;
 const LADDER_X: [number, 1 | -1][] = [[B + 1550, 1], [B + 2150, -1], [B + 2700, 1], [B + 3850, 1], [B + 4650, -1], [B + 5050, 1], [B + 5900, 1], [B + 6300, -1]];
-export const LADDERS: LadderDef[] = LADDER_X.map(([x, inward]) => ({ x, top: CATWALK_Y, bottom: BF, ledge: { x: x + inward * 34, y: CATWALK_Y } }));
+export const LADDERS: LadderDef[] = [
+  ...LADDER_X.map(([x, inward]): LadderDef => ({ x, top: CATWALK_Y, bottom: BF, ledge: { x: x + inward * 34, y: CATWALK_Y } })),
+  // (down the hatch at the hallway's end into the break room, and back up out of it: off the top onto the hallway's
+  // floor past the hatch's east edge)
+  { x: HATCH_LADDER_X, top: BF, bottom: LAIR.floor, ledge: { x: HATCH.b + 24, y: BF } },
+];
 /** The catwalk at x (or null). */
 const catwalkAt = (x: number) => CATWALKS.find(([a, b]) => x >= a && x <= b) ?? null;
 
@@ -169,9 +186,11 @@ export const HIDES: { x: number; y: number; kind: 'locker' | 'dark' | 'cabinet' 
   { x: B + 3200, y: BF, kind: 'dark' }, { x: B + 3600, y: BF, kind: 'locker' }, { x: B + 4380, y: BF, kind: 'locker' }, { x: B + 4880, y: BF, kind: 'dark' },
   { x: B + 5420, y: BF, kind: 'locker' }, { x: B + 6000, y: BF, kind: 'locker' }, { x: B + 6280, y: BF, kind: 'dark' },
   { x: B + 1800, y: CATWALK_Y, kind: 'cabinet' }, { x: B + 3100, y: CATWALK_Y, kind: 'cabinet' }, { x: B + 4200, y: CATWALK_Y, kind: 'cabinet' }, { x: B + 5350, y: CATWALK_Y, kind: 'cabinet' }, { x: B + 6080, y: CATWALK_Y, kind: 'cabinet' },
+  // (Ben's hallway, west: a locker just inside its mouth, a dark corner further on)
+  { x: B - 120, y: BF, kind: 'locker' }, { x: B - 300, y: BF, kind: 'dark' },
 ];
 /** The vents in the ceiling she comes and goes by; the ducts in the back wall at the floor (under the catwalks). */
-export const VENTS = [B + 1100, B + 1400, B + 1800, B + 2400, B + 2900, B + 3300, B + 3650, B + 4050, B + 4400, B + 4800, B + 5250, B + 5500, B + 6050, B + 6320, B + 6450];
+export const VENTS = [B - 380, B - 200, B + 1100, B + 1400, B + 1800, B + 2400, B + 2900, B + 3300, B + 3650, B + 4050, B + 4400, B + 4800, B + 5250, B + 5500, B + 6050, B + 6320, B + 6450];
 export const DUCTS = [B + 1000, B + 2050, B + 2550, B + 3400, B + 4500, B + 5150, B + 6250];
 /** The emergency strips (flickering), along the ceiling. */
 export const STRIPS = [B + 420, B + 1180, B + 1960, B + 2640, B + 3300, B + 4080, B + 4600, B + 5150, B + 5600, B + 6100, B + 6520];
@@ -261,6 +280,11 @@ export interface Hunter {
   frontT: number;
   /** This go's the back ambush's (lost him: she snoops about a good while before she goes). */
   wasRush: boolean;
+  /** The way he's heading (1 east, -1 west: back), and the furthest he's got that way (flipped once he's gone HEAD_TURN
+   *  back the other way): "ahead" for every ambush. */
+  heading: 1 | -1; headX: number;
+  /** Ben's hallway's go still owed (once a life). */
+  hall: boolean;
 }
 export const makeHunter = (state: GameState): Hunter => {
   const cx = state.player.pos.x + state.player.width / 2;
@@ -276,6 +300,7 @@ export const makeHunter = (state: GameState): Hunter => {
     cam: 0,
     win: WINDOWS.map(([a, b, force]) => ({ a, b, force, at: rnd(a, force), done: false })), forced: false, fx: 0, flvl: 0, committed: false, hidNear: false, goneAt: -9999,
     chase: null, rush: false, nextBack: false, ceilSeen: 0, rushT: 0, rushSide: -1, frontT: 0, wasRush: false,
+    heading: 1, headX: cx, hall: true,
   };
 };
 export const buildHunter = (state: GameState, h: Hunter) => {
@@ -312,7 +337,7 @@ const vol = (state: GameState, x: number, k: number) => Math.max(0, k * (1 - Mat
 
 export const tickHunter = (ctx: FrameContext, h: Hunter, controls: Controls): Controls | null => {
   const { state } = ctx, p = state.player, cx = pmid(state);
-  if (cx < B - 60 || cx > DOOR_X + 40 && h.door !== 'kicking') return null;
+  if (cx < HALL_L - 60 || cx > DOOR_X + 40 && h.door !== 'kicking') return null;
   // (the tunnels' hum and drips never under the disco's fight, right by the door: bossQuiet.ts)
   if (inBossFight(state)) return null;
   if (!h.init) {
@@ -324,6 +349,19 @@ export const tickHunter = (ctx: FrameContext, h: Hunter, controls: Controls): Co
   }
   h.t++;
   if (h.door === 'kicking') return kick(ctx, h);
+  // (down the hatch, in Ben's break room: safe. Whatever she was doing up there, she's off; nothing of hers runs down
+  // here, and he's back up to a breather)
+  if (underHall(cx, pfeet(state))) {
+    if (h.mode === 'tell') to(h, 'away');
+    else if (inPlay(h) && h.mode !== 'climb' && h.mode !== 'kill') leave(h);
+    h.fg = null; h.rattle = null; h.fake = null; h.noise = 0;
+    if (h.mode === 'climb') runHer(ctx, h);
+    if (h.mode === 'away') { h.goneAt = state.frame; h.next = Math.max(h.next, 240); }
+    return null;
+  }
+  // (which way he's heading: flipped only once he's gone a little way back the other way)
+  if (h.heading > 0) { h.headX = Math.max(h.headX, cx); if (cx < h.headX - HEAD_TURN) { h.heading = -1; h.headX = cx; } }
+  else { h.headX = Math.min(h.headX, cx); if (cx > h.headX + HEAD_TURN) { h.heading = 1; h.headX = cx; } }
   // The ambience: hum, drips, the pipes, her far off
   ambience(state, h);
   if (!h.saidDark && cx > B + 420 && p.isGrounded) { h.saidDark = true; meatheadSays(state, pick(L.MH_DARK), false); }
@@ -364,6 +402,7 @@ export const tickHunter = (ctx: FrameContext, h: Hunter, controls: Controls): Co
   if (!h.finale && h.opened && !h.forced && !h.committed && h.hid < 0 && (h.mode === 'tell' || h.mode === 'prowl' || h.mode === 'search')
     && h.win.some(w => !w.done && cx >= w.force) && state.frame - h.goneAt >= FORCE_BREATHER
     && (h.x < state.camera.x - 80 || h.x > state.camera.x + CANVAS_WIDTH + 80)) { to(h, 'away'); h.leaving = false; h.rattle = null; }
+  if (!h.finale) hallGo(state, h);
   if (h.mode === 'away') schedule(state, h);
   runHer(ctx, h);
   if (h.mode !== 'kill') h.cam = Math.max(0, h.cam - 0.03);
@@ -432,7 +471,7 @@ const AMBUSH_AHEAD = 230, AMBUSH_T = 60;
 const WARN_GRACE = 120;
 const ambush = (state: GameState, h: Hunter) => {
   h.leaving = false;
-  const cx = pmid(state), dir = (state.player.facing || 1) as 1 | -1, lv = plevel(state);
+  const cx = pmid(state), dir = h.heading, lv = plevel(state);
   h.lvl = lv === 1 && catwalkAt(cx) ? 1 : 0;
   h.x = cx + dir * AMBUSH_AHEAD; h.x = clampLvl(h, h.x);
   if (Math.abs(h.x - cx) < 120) { h.x = cx - dir * AMBUSH_AHEAD; h.x = clampLvl(h, h.x); }
@@ -448,7 +487,7 @@ const ambush = (state: GameState, h: Hunter) => {
 // from just off it (RUSH_FROM) at RUSH_TOP
 const RUSH_WIND = 300, RUSH_FROM = CANVAS_WIDTH / 2 + 170, RUSH_MIN = CANVAS_WIDTH / 2 + 100, RUSH_TOP = 12, RUSH_COVER = 340;
 const rushGo = (state: GameState, h: Hunter) => {
-  const cx = pmid(state), dir = (state.player.facing || 1) as 1 | -1, lv = plevel(state);
+  const cx = pmid(state), dir = h.heading, lv = plevel(state);
   const lvl: 0 | 1 = lv === 1 && catwalkAt(cx) ? 1 : 0, y = lvl ? CATWALK_Y : BF;
   // (her level's ends where he is: she's away, nowhere yet)
   h.lvl = lvl; h.x = cx;
@@ -464,10 +503,33 @@ const rushGo = (state: GameState, h: Hunter) => {
   return true;
 };
 
+/** Her west limit on the floor: in Ben's hallway, short of the hatch (she never stands over it). */
+const W_EDGE = HATCH.b + 50;
+/** Heading: how far back the other way he has to go before it's flipped. */
+const HEAD_TURN = 90;
+/** Ben's hallway's go: heading west past HALL_TRIG (a little way west of where he lands), she's down out of the ceiling
+ *  at HALL_DROP (the hallway's west half, between him and the hatch) after a quick tell (HALL_TELL frames, the pass over
+ *  the near pipes HALL_PASS of them): walking on he's right under her as she lands; the locker just inside the mouth
+ *  and the dark corner past it are his to hide in, and the tell's long enough to reach either. */
+const HALL_TRIG = B + 150, HALL_DROP = HATCH.b + 170, HALL_TELL = 100, HALL_PASS = 64;
+const hallGo = (state: GameState, h: Hunter) => {
+  const p = state.player, cx = pmid(state);
+  if (!h.hall || h.heading > 0 || cx > HALL_TRIG || cx < HALL_DROP + 120 || h.hid >= 0) return;
+  if (p.health <= 0 || state.deathTimer > 0 || p.inCutscene || plevel(state) !== 0 || onLadder(state)) return;
+  // (her off somewhere out of his sight: dropped for this; on him, or in view: not now)
+  const camL = state.camera.x, off = h.x < camL - 80 || h.x > camL + CANVAS_WIDTH + 80;
+  if (h.mode !== 'away' && !((h.mode === 'tell' || h.mode === 'prowl' || h.mode === 'search' || h.mode === 'climb') && off)) return;
+  h.hall = false;
+  to(h, 'away'); h.leaving = false;
+  frontGo(state, h, HALL_DROP, 0, true);
+  h.x = clampLvl(h, HALL_DROP); h.y = levelY(0, h.x); h.dir = 1;
+  h.frontT = HALL_TELL; h.fg = { t: 0, dir: -1, len: HALL_PASS };
+};
+
 /** Her x kept on her level (a catwalk's ends; the basement's). */
 const clampLvl = (h: Hunter, x: number) => {
   if (h.lvl === 1) { const cw = catwalkAt(h.x) ?? CATWALKS[0]; return Math.max(cw[0] + 30, Math.min(cw[1] - 30, x)); }
-  return Math.max(B + 40, Math.min(STAIRS_B - 20, x));
+  return Math.max(W_EDGE, Math.min(STAIRS_B - 20, x));
 };
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -524,7 +586,7 @@ const forceGo = (state: GameState, h: Hunter) => {
   const a = forceAim(state, h, cx);
   // (no room for one in front of him (the stairs' foot just ahead): from behind instead, the sprint; a front one never
   // comes down behind him)
-  if ((a.x - cx) * ((state.player.facing || 1) as number) < 180 && rushGo(state, h)) return true;
+  if ((a.x - cx) * h.heading < 180 && rushGo(state, h)) return true;
   frontGo(state, h, a.x, a.lvl === 1 && lv === 1 ? 1 : 0, true);
   return true;
 };
@@ -536,7 +598,7 @@ const forceGo = (state: GameState, h: Hunter) => {
 // (the playtest: 50 and 14 wanted "ninja reaction times": slowed a fair way)
 const FRONT_PASS = 95, FRONT_DROP = FRONT_PASS + 40, FRONT_IN = 150;
 const frontGo = (state: GameState, h: Hunter, x: number, lvl: 0 | 1, forced: boolean) => {
-  const cx = pmid(state), ahead = (state.player.facing || 1) as 1 | -1, camL = state.camera.x;
+  const cx = pmid(state), ahead = h.heading, camL = state.camera.x;
   if ((x - cx) * ahead < 180) x = cx + ahead * 300;
   h.fake = null; h.rattle = null; h.path = []; h.leg = 0; h.sniff = 0; h.leaving = false; h.huntOnDrop = false;
   h.out = 0; h.passedClose = false; h.hidNear = false; h.forced = false; h.committed = forced;
@@ -549,19 +611,21 @@ const frontGo = (state: GameState, h: Hunter, x: number, lvl: 0 | 1, forced: boo
   playSound('click', 0.6, 4); playSound('screams', 0.5, -6);
 };
 
-/** Where a stretch's go comes down, against where he'll be (cx): its x and level. */
+/** Where a stretch's go comes down, against where he'll be (cx): its x and level. Ahead the way he's heading (back west,
+ *  it's all mirrored: the room's to the catwalk's west end or the hallway's, the hiding spot between him and her). */
 const forceAim = (state: GameState, h: Hunter, cx: number) => {
-  const lv = plevel(state), cw = lv === 1 ? catwalkAt(cx) : null;
-  const lvl: 0 | 1 = cw && cw[1] - 30 - cx >= FORCE_MIN ? 1 : 0;
-  const hi = lvl ? cw![1] - 30 : STAIRS_A - 30, room = hi - cx;
+  const lv = plevel(state), cw = lv === 1 ? catwalkAt(cx) : null, d0 = h.heading;
+  const end = (lvl: 0 | 1) => (d0 > 0 ? (lvl && cw ? cw[1] - 30 : STAIRS_A - 30) : (lvl && cw ? cw[0] + 30 : W_EDGE));
+  const lvl: 0 | 1 = cw && (end(1) - cx) * d0 >= FORCE_MIN ? 1 : 0;
+  const room = (end(lvl) - cx) * d0;
   const ys = [lvl ? CATWALK_Y : BF, lv === 1 ? CATWALK_Y : BF];
-  const cover = (x: number) => HIDES.some((sp, i) => i !== h.torn && ys.some(y => Math.abs(sp.y - y) < 10) && sp.x > cx - FORCE_BACK && sp.x < x - 200);
+  const cover = (x: number) => HIDES.some((sp, i) => i !== h.torn && ys.some(y => Math.abs(sp.y - y) < 10) && (sp.x - cx) * d0 > -FORCE_BACK && (x - sp.x) * d0 > 200);
   let x: number;
   if (room >= FORCE_END_MIN) {
     let d = Math.min(FORCE_STAND, room);
-    for (let k = Math.min(FORCE_MIN, room); k <= Math.min(FORCE_MAX, room); k += 20) if (cover(cx + k)) { d = k; if (k >= Math.min(FORCE_STAND, room)) break; }
-    x = cx + d;
-  } else x = Math.max(B + 40, cx - FORCE_STAND);
+    for (let k = Math.min(FORCE_MIN, room); k <= Math.min(FORCE_MAX, room); k += 20) if (cover(cx + d0 * k)) { d = k; if (k >= Math.min(FORCE_STAND, room)) break; }
+    x = cx + d0 * d;
+  } else x = d0 > 0 ? Math.max(W_EDGE, cx - FORCE_STAND) : Math.min(STAIRS_A - 30, cx + FORCE_STAND);
   return { x, lvl };
 };
 
@@ -569,7 +633,7 @@ const forceAim = (state: GameState, h: Hunter, cx: number) => {
  *  outran her), on the level picked (the floor if there's no catwalk under her, or he's past her); facing him, coming
  *  his way and on past. Never moved. */
 const landForced = (state: GameState, h: Hunter) => {
-  const cx = pmid(state), x = Math.max(B + 40, Math.min(STAIRS_A - 30, h.x));
+  const cx = pmid(state), x = Math.max(W_EDGE, Math.min(STAIRS_A - 30, h.x));
   h.lvl = h.flvl === 1 && x >= cx && catwalkAt(x) ? 1 : 0; h.x = x; h.y = levelY(h.lvl, x); h.entry = 'ceil'; h.dir = cx < x ? -1 : 1;
   h.rattle = null;
   const on = Math.sign(cx - x) || -1;
@@ -608,7 +672,7 @@ const schedule = (state: GameState, h: Hunter) => {
   h.next--;
   // (and between times, every so often, her in the foreground: stalking along the near pipes, over him, on her way
   // somewhere ahead of him; she's not done with him)
-  if (!h.fg && --h.fgNext <= 0) { h.fg = { t: 0, dir: Math.random() < 0.7 ? ((p.facing || 1) as 1 | -1) : ((-(p.facing || 1)) as 1 | -1) }; h.fgNext = rnd(360, 600); playSound('click', 0.4, -4); }
+  if (!h.fg && --h.fgNext <= 0) { h.fg = { t: 0, dir: Math.random() < 0.7 ? h.heading : (-h.heading) as 1 | -1 }; h.fgNext = rnd(360, 600); playSound('click', 0.4, -4); }
   // (his noise, with her away: out sooner, near it)
   if (h.noise > 60) h.next = Math.min(h.next, h.noise > 100 ? 20 : 90);
   if (h.next > 0) return;
@@ -621,8 +685,8 @@ const schedule = (state: GameState, h: Hunter) => {
   // room and a hiding spot near him); else from in FRONT, along the ceiling first, seen crawling in, then down in front
   // of him)
   if (h.nextBack) { h.nextBack = false; if (rushGo(state, h)) { h.committed = false; return; } } else h.nextBack = true;
-  const lvl = plevel(state), his: 0 | 1 = lvl === 1 && catwalkAt(cx) ? 1 : 0, ahead = (p.facing || 1) as 1 | -1;
-  const at = Math.max(B + 40, Math.min(STAIRS_A - 30, cx + ahead * rnd(320, 420)));
+  const lvl = plevel(state), his: 0 | 1 = lvl === 1 && catwalkAt(cx) ? 1 : 0, ahead = h.heading;
+  const at = Math.max(W_EDGE, Math.min(STAIRS_A - 30, cx + ahead * rnd(320, 420)));
   if (Math.abs(at - cx) < 200) { h.next = 60; return; }
   frontGo(state, h, at, his, false);
 };
@@ -637,7 +701,7 @@ const pickVent = (x: number, lvl: 1 | -1) => {
 /** She's coming: the tell first (her clicks nearer, the vent rattling, a screech), then out. */
 const emerge = (state: GameState, h: Hunter, lvl: 0 | 1, from: number, entry: Entry, path: { x: number; stop?: number }[], speed: number, opener: boolean) => {
   h.lvl = lvl; h.x = from; h.y = levelY(lvl, from); h.entry = entry; h.huntOnDrop = false;
-  h.path = path.map(q => ({ ...q, x: lvl ? Math.max((catwalkAt(from) ?? [from, from])[0] + 30, Math.min((catwalkAt(from) ?? [from, from])[1] - 30, q.x)) : Math.max(B + 40, Math.min(STAIRS_A - 30, q.x)) }));
+  h.path = path.map(q => ({ ...q, x: lvl ? Math.max((catwalkAt(from) ?? [from, from])[0] + 30, Math.min((catwalkAt(from) ?? [from, from])[1] - 30, q.x)) : Math.max(W_EDGE, Math.min(STAIRS_A - 30, q.x)) }));
   h.leg = 0; h.speed = speed; h.out = 0; h.passedClose = false; h.hidNear = false; h.forced = false;
   h.fg = opener ? { t: 0, dir: from > pmid(state) ? -1 : 1 } : null;
   h.rattle = { x: from, t: 0 };
@@ -705,9 +769,9 @@ const runHer = (ctx: FrameContext, h: Hunter) => {
         if (++h.sniff > 34) {
           h.sniff = 0;
           // (down in front of him, on his level, far enough off to do something about it)
-          const lv = plevel(state), lvl: 0 | 1 = lv === 1 ? 1 : 0, ahead = (p.facing || 1) as 1 | -1;
-          h.lvl = lvl; h.x = lvl ? Math.max((catwalkAt(cx) ?? [cx, cx])[0] + 30, Math.min((catwalkAt(cx) ?? [cx, cx])[1] - 30, cx + ahead * 280)) : Math.max(B + 40, Math.min(STAIRS_A - 30, cx + ahead * 280));
-          if (Math.abs(h.x - cx) < 200) h.x = Math.max(B + 40, Math.min(STAIRS_A - 30, cx - ahead * 280));
+          const lv = plevel(state), lvl: 0 | 1 = lv === 1 ? 1 : 0, ahead = h.heading;
+          h.lvl = lvl; h.x = lvl ? Math.max((catwalkAt(cx) ?? [cx, cx])[0] + 30, Math.min((catwalkAt(cx) ?? [cx, cx])[1] - 30, cx + ahead * 280)) : Math.max(W_EDGE, Math.min(STAIRS_A - 30, cx + ahead * 280));
+          if (Math.abs(h.x - cx) < 200) h.x = Math.max(W_EDGE, Math.min(STAIRS_A - 30, cx - ahead * 280));
           h.y = levelY(lvl, h.x); h.path = peekPath(h, cx, ahead); h.leg = 0; h.speed = PEEK_SPEED;
           to(h, 'drop');
         }
@@ -992,7 +1056,7 @@ const tickChase = (state: GameState, h: Hunter) => {
 const lunge = (state: GameState, h: Hunter) => {
   const c = h.chase!, cx = pmid(state);
   c.lunge = true;
-  const from = Math.max(B + 40, Math.min(cx - 260, state.camera.x - 90));
+  const from = Math.max(W_EDGE, Math.min(cx - 260, state.camera.x - 90));
   h.lvl = 0; h.x = from; h.y = levelY(0, from); h.dir = 1; h.fg = null; h.rattle = null;
   h.leap = { x0: from, y0: h.y, x1: cx - 46, y1: levelY(0, cx - 46), lvl: 0, then: 'kill' };
   to(h, 'leap');
@@ -1551,6 +1615,8 @@ export const drawHunterFront = (c: Ctx, state: GameState, h: Hunter) => {
   if (cam + CANVAS_WIDTH < B - 100 || cam > STAIRS_A + 100) return;
   // (only down in it: not looking at the hold above, not on the stairs)
   if (state.camera.y < GY - 200) return;
+  // (nor down Ben's hatch, in his break room: no near pipes in there)
+  if (state.camera.y > BF - 300) return;
   c.save(); c.beginPath(); c.rect(0, 0, Math.max(0, Math.min(CANVAS_WIDTH, STAIRS_A - 60 - cam)), CANVAS_HEIGHT); c.clip();
   const off = -((cam - B) * 1.35);
   // (her real go along the ceiling: her red in the air round her and down under her, behind the near pipes)
@@ -1608,7 +1674,7 @@ export const drawHunterFront = (c: Ctx, state: GameState, h: Hunter) => {
 /** The dark: a tight light round him, the strips flickering, her eyes when she's out. Null outside the basement. */
 export const hunterLighting = (state: GameState, h: Hunter): SceneLight | null => {
   const p = state.player, cx = pmid(state);
-  if (cx < B - 80 || cx > DOOR_X + 20 || pfeet(state) < GY - 40 && cx < STAIRS_A) return null;
+  if (cx < HALL_L - 100 || cx > DOOR_X + 20 || pfeet(state) < GY - 40 && cx < STAIRS_A) return null;
   const lights: Light[] = [{ x: cx, y: p.pos.y + 30, r: h.hid >= 0 ? 60 : 150, a: 1 }];
   for (const s of STRIPS) {
     if (Math.abs(s - cx) > 900) continue;
@@ -1645,4 +1711,13 @@ export const hunterLighting = (state: GameState, h: Hunter): SceneLight | null =
   if (Math.abs(DOOR_X - cx) < 1000) { lights.push({ x: DOOR_X - 20, y: DOOR_SIGN.y + 14, r: 170, a: 0.8, color: 'rgba(244, 114, 182, 0.16)' }); lights.push({ x: DOOR_X + 10, y: DOOR_SIGN.y + 34, r: 130, a: 0.6, color: 'rgba(34, 211, 238, 0.12)' }); }
   void BASE_R;
   return { dark: 0.94, shade: [2, 2, 8], lights, rim: 0.3 };
+};
+
+/** Back out of Ben's cannon at the start: she's nowhere near, and a breather before she's out (the owner's "give him a
+ *  moment"). */
+export const restHunter = (state: GameState, h: Hunter) => {
+  if (h.mode !== 'kill') to(h, 'away');
+  h.next = Math.max(h.next, 480); h.goneAt = state.frame; h.fgNext = Math.max(h.fgNext, 360);
+  h.fg = null; h.rattle = null; h.fake = null; h.noise = 0; h.leaving = false; h.forced = false;
+  h.headX = pmid(state); h.heading = 1;
 };

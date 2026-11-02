@@ -15,7 +15,8 @@
 // empty and its hole still there (in it, down he goes); the basement empty of her; the disco's door in, what's left of
 // her on the dance floor (her pieces all over it, or her burnt skeleton in a heap), the DJ booth's glass green.
 //
-// The ways: the left end, back into the haunted spaceship; the hole down (and the stairs up at the basement's left end).
+// The ways: the left end, back into the haunted spaceship; the hole down (one way: no stairs back up). West from where he
+// lands in the basement, Ben's hallway and the hatch down to his break room (benLair.ts); its cannon back to the start.
 
 import type { GameState } from '../../../m1/game/core/state';
 import type { Block } from '../../../m1/types';
@@ -30,11 +31,14 @@ import { type WalkAway, playWalkAway, tickWalkAway, drawWalkAway } from '../../w
 import { drawBars } from '../../spooky/control/cine';
 import { playSound } from '../../../m1/game/platform/audio';
 import { shakeScreen } from '../../../m1/game/core/state';
-import { x0, x1, ARENA_L, ARENA_R, TRIGGER_X, QUEEN_X, HOLE, BASE_L, LAND_X, DOOR_X, DISCO_L, DISCO_R, DISCO_TRIGGER, DISCO_QX, DOOR_REFILL_X, DOOR_CP_X, BF, STAIRS_A, STAIRS_B, CEIL_B } from './geo';
+import { x0, x1, ARENA_L, ARENA_R, TRIGGER_X, QUEEN_X, HOLE, BASE_L, LAND_X, DOOR_X, DISCO_L, DISCO_R, DISCO_TRIGGER, DISCO_QX, DOOR_REFILL_X, DOOR_CP_X, BF, STAIRS_A, STAIRS_B, CEIL_B, HALL_L, LAIR } from './geo';
 import { updateLadders, drawLadders } from '../../moves/ladders';
 import { markBossFight } from '../../bossQuiet';
 import { drawRoomBack, drawGlass, drawQueen, roomLights, drawAfterFall } from './art';
 import { type Show, makeShow, startShow, tickShow, showOn, showSkippable, drawShowQueen, drawShowSaid, drawShowFade, showHead, fell, collapsed, drawFallingSlabs, BASEMENT_CP } from './show';
+import { restHunter } from './basement';
+import { buildBenLair, updateBenLair, belowHall } from './benLair';
+import { drawBenHallBack, drawBenHallFront, drawBenHallHud, hallLights, benLairLighting } from './benLairArt';
 import { type Hunter, makeHunter, buildHunter, forceDoorIn, tickHunter, atDoor, startKick, doorIn, doorKicking, drawHunter, drawHides, drawHunterFront, hunterLighting, hunterZoom, drawDiscoDoor, layBasement, LADDERS, GRAVEYARD_CP, TUNNEL_CP, TUNNEL_CP_X, DISCO_CP } from './basement';
 import { type Fight, makeFight, startFight, updateFight, fightOver, endFight, queenDrops, introOn, drawQueenFight, drawQueenSaid, drawFightHud, discoLights, drawPool, poolLights, oilLights, tellLights, boothOps, introCamX, discoZoom, deathNeed, queenHoldTick, drawBurstFlash, drawIntroCloseup, deathSkippable, deathLights } from './fight';
 import { type Heap, packEndo, unpackEndo, drawHeap } from './endo';
@@ -74,7 +78,7 @@ const feetOf = (state: GameState) => state.player.pos.y + state.player.height;
 /** Down below (the basement, under the hold), or east of the hold (the stairs, the disco). */
 const inLower = (state: GameState) => cxOf(state) > ARENA_R + 40 || feetOf(state) > GY + 40;
 /** In the basement proper (the camera held on its whole height). */
-const inBasement = (state: GameState) => feetOf(state) > GY + 40 && cxOf(state) < STAIRS_A + 40 && cxOf(state) > BASE_L - 300;
+const inBasement = (state: GameState) => feetOf(state) > GY + 40 && cxOf(state) < STAIRS_A + 40 && cxOf(state) > HALL_L - 140;
 
 export const queen: SpaceSection = {
   id: 'queen', x0, x1,
@@ -118,6 +122,8 @@ export const queen: SpaceSection = {
     solid(state, STAIRS_A - 60, GY - 660, DOOR_X + 100 - (STAIRS_A - 60), 60, ceil);
     solid(state, DISCO_L - 40, GY - 660, DISCO_R + 40 - (DISCO_L - 40), 60, ceil);
     layBasement(state);
+    // (Ben's hallway west under the antechamber, the hatch, the break room under it: benLair.ts)
+    buildBenLair(state, CEIL_B);
     q.shutter = 0; q.shutterTo = 0;
     // (her glass: a wall till it's kicked in)
     if (!isLandCleared('space') && !fell(state)) { q.glassBlock = { x: QUEEN_X - 158, y: -4000, w: 16, h: 4000 + GY, type: 'wall', hidden: true, tag: 'queen-glass' } as Block; state.blocks.push(q.glassBlock); }
@@ -134,6 +140,8 @@ export const queen: SpaceSection = {
     const cx = cxOf(state);
     // (the basement's ladders: first, before anything else reads the controls)
     if (inLower(state) && !p.inCutscene) controls = updateLadders(ctx, LADDERS, controls);
+    // (Ben's break room down the hatch at the west hallway's end: the meetup, the trial, the cannon back to the start)
+    controls = updateBenLair(ctx, controls, () => restHunter(state, h));
     // (the camera pulled back for her death and the booth's two running out: in as she goes, held through the VICTORY,
     // back in for the walk-away)
     q.deathCam = (q.fight === 'on' && f.mode === 'dead') || (q.fight === 'won' && !q.walk) ? Math.min(1, q.deathCam + 1 / 50) : Math.max(0, q.deathCam - 1 / 40);
@@ -212,7 +220,9 @@ export const queen: SpaceSection = {
     const q = queenOf(state), s = showOf(state), f = fightOf(state);
     if (showOn(s)) return { min: ARENA_L, max: ARENA_L };
     if (inLower(state)) {
-      if (q.fight === 'wait') return { min: BASE_L - 220, max: DISCO_R - CANVAS_WIDTH };
+      // (down Ben's hatch: held on his break room)
+      if (belowHall(state)) return { min: HALL_L - 100, max: LAIR.b + 40 - CANVAS_WIDTH };
+      if (q.fight === 'wait') return { min: HALL_L - 100, max: DISCO_R - CANVAS_WIDTH };
       // (the disco's cutscene: held on him, the booth and her; the fight: following him, inside the hall)
       const ic = introCamX(f);
       if (ic !== null) return { min: ic, max: ic };
@@ -236,8 +246,11 @@ export const queen: SpaceSection = {
   lighting: (state) => {
     const cx = cxOf(state), s = showOf(state), f = fightOf(state);
     if (inLower(state)) {
+      // (down the hatch: Ben's break room's own light; the hallway: the guide lights' green in her dark)
+      const lair = benLairLighting(state);
+      if (lair) return lair;
       const dark = hunterLighting(state, hunterOf(state));
-      if (dark && cx < DOOR_X + 10) return dark;
+      if (dark && cx < DOOR_X + 10) { dark.lights.push(...hallLights(state)); return dark; }
       const l = discoLighting(state, isLandCleared('space') ? 1 : discoLights(f));
       if (queenOf(state).fight === 'on') l.lights.push(...poolLights(f), ...oilLights(f), ...tellLights(f), ...deathLights(f));
       return l;
@@ -256,6 +269,7 @@ export const queen: SpaceSection = {
     if (s.step === 'done') drawAfterFall(c, state, HOLE); else drawShowQueen(c, state, s);
     // The basement, the disco
     drawBasement(c, state, { fell: fell(state), landed: s.step === 'done' });
+    drawBenHallBack(c, state);
     drawFallingSlabs(c, state, s);
     drawLadders(c, state, LADDERS);
     drawHides(c, state, h);
@@ -282,6 +296,7 @@ export const queen: SpaceSection = {
     // (the hot oil pool over everything on the floor: blood, gore, his feet in it)
     if (q.fight === 'on') drawPool(c, state, f);
     drawGlass(c, state, s.glass && !isLandCleared('space'));
+    drawBenHallFront(c, state);
     drawShowSaid(c, s);
     drawQueenSaid(c, f);
   },
@@ -297,6 +312,7 @@ export const queen: SpaceSection = {
       c.restore();
     }
     drawHunterFront(c, state, h);
+    drawBenHallHud(c, state);
     if (showOn(s)) { drawBars(c, 1); if (showSkippable(s) && s.skipT > SKIP_AFTER) drawSkipPrompt(c, CANVAS_WIDTH); }
     drawShowFade(c, s);
     drawIntroCloseup(c, f, state.frame);

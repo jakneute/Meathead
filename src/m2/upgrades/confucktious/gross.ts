@@ -27,11 +27,15 @@
 //   amulet: the PISS-OFF PENDANT dangled off its sequin chain from his fist beside his face, swinging slow like a
 //          hypnotist's watch; then he LOSES IT (the face 'c': flushed, eyes bulging, veins out, screaming at the lens),
 //          the fist shaking, the jewel thrashing about, steam out of his ears; and back to dangling it.
+//   armguards: the BEEF BRACERS, one on his forearm, the fist up beside his face, the red LED scrolling BEEF across its
+//          window (the armor's own baked LED strip slid along: no pixel work); then the UPPERCUT at the lens: a dip, and
+//          the fist rockets up at the camera, swelling, the motion lines under it, the jolt as it lands; and back up.
 
 import {
   type Ctx, type Buf, GW, GH, R, hexU, WHITE, newBuf, setSeed, rnd, matAt, plot, seg, path, ball, tint, poly, bead, eyeball, teeth, skinPost, stubble, hairs, vein, stamps, drawGrossStamp, grossBackdrop, toCanvas, M_SKIN, M_HAIR, M_MOUTH, M_OTHER, M_CLOTH, M_METAL, SCLERA_R, MOUTH, TONGUE, VEIN_B, BLOOD, GOLD,
 } from '../../grossKit';
 import type { ArmorPiece } from '../state';
+import { drawLed } from '../armorArt';
 
 const FX = 150, FY = 92;
 
@@ -639,6 +643,43 @@ const fistCanvas = () => {
 const DANGLE = 120, TANTRUM = 76;
 const tantrum = (f: number) => { const t = f % (DANGLE + TANTRUM) - DANGLE; return t < 0 ? -1 : t / TANTRUM; };
 
+
+/** THE BEEF BRACERS (Future Land): a chrome robot bracer round his forearm (stark chrome bands, dithered seams, ridged
+ *  rims, rivets, a black LED window the scrolling BEEF is slid through live), baked once; the forearm and fist under it
+ *  are the pendant's (fistCanvas). */
+const BRC_W = 52, BRC_H = 74, BRC_LED = { x: 6, y: 28, w: 40, h: 12 };
+let brcCv: HTMLCanvasElement | null | undefined;
+const brcCanvas = () => {
+  if (brcCv !== undefined) return brcCv;
+  if (typeof document === 'undefined') { brcCv = null; return null; }
+  const cv = document.createElement('canvas'); cv.width = BRC_W; cv.height = BRC_H;
+  const g = cv.getContext('2d')!;
+  const r = (x: number, y: number, w: number, h: number, col: string) => { g.fillStyle = col; g.fillRect(x, y, w, h); };
+  // (the outline, then the body in hard chrome bands across, a checker where two bands meet)
+  r(1, 0, BRC_W - 2, BRC_H, '#05070B'); r(0, 2, BRC_W, BRC_H - 4, '#05070B');
+  const bands: [number, string][] = [[0, '#475569'], [0.1, '#E2E8F0'], [0.2, '#FFFFFF'], [0.27, '#94A3B8'], [0.45, '#334155'], [0.58, '#64748B'], [0.76, '#CBD5E1'], [0.88, '#334155'], [1, '']];
+  for (let i = 0; i < bands.length - 1; i++) {
+    const a = 2 + Math.round(bands[i][0] * (BRC_W - 4)), b = 2 + Math.round(bands[i + 1][0] * (BRC_W - 4));
+    r(a, 2, b - a, BRC_H - 4, bands[i][1]);
+    if (i) for (let y = 2; y < BRC_H - 2; y += 2) r(a, y + ((y >> 1) % 2), 1, 1, bands[i - 1][1]);
+  }
+  // (the rims, top and bottom: a ridge each, its lip lit, its underside black)
+  for (const y of [2, BRC_H - 11]) { r(1, y, BRC_W - 2, 9, '#1E293B'); r(1, y, BRC_W - 2, 2, '#F8FAFC'); r(1, y + 2, BRC_W - 2, 1, '#94A3B8'); r(1, y + 7, BRC_W - 2, 2, '#020617'); for (let x = 4; x < BRC_W - 4; x += 6) r(x, y + 4, 3, 2, '#64748B'); }
+  // (the rivets)
+  for (const [x, y] of [[4, 14], [BRC_W - 7, 14], [4, BRC_H - 18], [BRC_W - 7, BRC_H - 18]]) { r(x, y, 3, 3, '#020617'); r(x, y, 2, 2, '#E2E8F0'); }
+  // (the LED window: recessed black, a lit lip under it, a dark one over it)
+  const L = BRC_LED;
+  r(L.x - 2, L.y - 2, L.w + 4, L.h + 4, '#0F172A'); r(L.x - 1, L.y - 1, L.w + 2, L.h + 2, '#020617'); r(L.x - 2, L.y + L.h + 2, L.w + 4, 1, '#F8FAFC');
+  // (a scratch or two; a strip of gaffer tape holding the battery hatch on)
+  r(30, 50, 7, 1, '#F1F5F9'); r(12, 47, 4, 1, '#0F172A');
+  r(8, 52, 20, 6, '#18181B'); r(8, 52, 20, 1, '#3F3F46'); r(10, 54, 3, 1, '#52525B');
+  brcCv = cv;
+  return cv;
+};
+/** The bracers' cycle (frames): shown off beside his face; the dip; the uppercut at the lens. */
+const SHOW_T = 96, DIP_T = 10, CUT_T = 26;
+const cutU = (f: number) => { const t = f % (SHOW_T + DIP_T + CUT_T) - SHOW_T; return t < 0 ? -1 : t; };
+
 type Draw = (c: Ctx, f: number) => void;
 /** A piece's prop, drawn in the buffer's own pixels over the face (and a jolt for the screen when it lands). */
 interface Prop { draw: Draw; jolt: (f: number) => number; /** Bake its art now (ahead of the close-up). */ warm?: () => void; /** The whole face pushed at the lens (a headbutt): times the zoom. */ zoom?: (f: number) => number; /** His face losing it just now (the tantrum's: flushed, bulging, screaming). */ mad?: (f: number) => boolean }
@@ -824,6 +865,34 @@ const PROPS: Partial<Record<ArmorPiece, Prop>> = {
     zoom: (f) => { const u = tantrum(f); return u < 0 ? 1 : 1 + 0.22 * Math.sin((Math.min(1, u * 4) * Math.PI) / 2) * (u > 0.85 ? (1 - u) / 0.15 : 1); },
     mad: (f) => tantrum(f) >= 0,
     warm: () => { pendCanvas(); fistCanvas(); faceMad.warm(); },
+  },
+  armguards: {
+    // (the fist up beside his face in the bracer, the LED scrolling BEEF; a dip; the uppercut up at the lens, swelling,
+    // the motion lines under it; then back)
+    draw: (c, f) => {
+      const fc = fistCanvas(), bc = brcCanvas();
+      if (!fc || !bc) return;
+      const t = f % (SHOW_T + DIP_T + CUT_T), u = cutU(f);
+      const up = Math.min(1, t / 14);
+      let x = 226, y = Math.round(206 - up * 180 + Math.sin(f * 0.09) * 2), s = 1, a = -0.18;
+      if (u >= 0 && u < DIP_T) { y += Math.round(Math.sin((u / DIP_T) * Math.PI / 2) * 26); a = -0.3; }
+      else if (u >= DIP_T) {
+        const k = (u - DIP_T) / CUT_T, out = k < 0.45 ? Math.sin((k / 0.45) * Math.PI / 2) : Math.cos(((k - 0.45) / 0.55) * Math.PI / 2);
+        x = Math.round(226 + (FX + 40 - 226) * out); y = Math.round(52 + 26 - out * 62); s = 1 + out * 0.9; a = -0.18 + out * 0.12;
+        // (the motion lines under the fist as it comes)
+        if (k < 0.5) { c.fillStyle = 'rgba(255,255,255,0.75)'; for (let i = 0; i < 5; i++) c.fillRect(Math.round(x - 26 + i * 12), Math.round(y + 70 * s + i * 3), 2, 26); }
+      }
+      c.save(); c.translate(x, y); c.rotate(a); c.scale(s, s);
+      c.drawImage(fc, -FIST_W / 2, -24);
+      c.drawImage(bc, -BRC_W / 2, 26);
+      drawLed(c, -BRC_W / 2 + BRC_LED.x, 26 + BRC_LED.y, BRC_LED.w, BRC_LED.h, f);
+      c.restore();
+      // (its LEDs' red on the dark round it while it's shown off)
+      if (u < 0) { c.fillStyle = 'rgba(255,59,59,0.10)'; c.fillRect(x - 34, y + 40, 68, 40); }
+    },
+    jolt: (f) => (cutU(f) === DIP_T + Math.round(CUT_T * 0.45) ? 6 : 0),
+    zoom: (f) => { const u = cutU(f); if (u < DIP_T) return 1; const k = (u - DIP_T) / CUT_T; return 1 + 0.1 * Math.sin(Math.min(1, k * 1.6) * Math.PI); },
+    warm: () => { fistCanvas(); brcCanvas(); },
   },
 };
 

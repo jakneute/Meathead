@@ -137,7 +137,7 @@ export interface PieceLines {
   trialPose?: 'offer' | 'brace' | 'fold';
 }
 
-export const PIECE_LINES: { hands: PieceLines; pauldrons: PieceLines; helmet: PieceLines; cape: PieceLines; legs: PieceLines; amulet: PieceLines } = {
+export const PIECE_LINES: { hands: PieceLines; pauldrons: PieceLines; helmet: PieceLines; cape: PieceLines; legs: PieceLines; amulet: PieceLines; armguards: PieceLines } = {
   hands: {
     ask: {
       clean: ['WHAT ARE THOSE? ARE THOSE MICKEY HANDS?', 'WHOA. GIANT CARTOON HANDS. I NEED THOSE.'],
@@ -342,7 +342,61 @@ export const PIECE_LINES: { hands: PieceLines; pauldrons: PieceLines; helmet: Pi
       nude: ['YOU AGAIN. NAKED IN A SERVICE TUNNEL. THE UNION WILL HEAR ABOUT THIS.', 'YOU AGAIN. STILL NO PANTS. STILL ONE PENDANT.'],
     },
   },
+  // Future Land: the BEEF BRACERS, in XENOSCARE's old ride-ops break room under the hatch at the end of the stalker
+  // basement's west hallway. The trial: uppercut his sparring alien (a busted animatronic green on a rod in a tire) and
+  // ninja drop it head first into his floor (hold the uppercut, tap grab).
+  armguards: {
+    ask: {
+      clean: ['ROBOT ARMS THAT SAY BEEF. THAT IS MY NAME NOW.', 'THEY SAY BEEF! THEY KNOW ME!'],
+      shitty: ['BEEF BRACERS! NOBODY LOOKS AT MY PANTS WHEN MY ARMS SAY BEEF.', "THEY LIGHT UP! NOW I CAN SEE WHAT I'M STANDING IN."],
+      nude: ["THEY SAY BEEF. THAT'S ALSO WHAT I'VE GOT OUT RIGHT NOW.", 'ARM ARMOR! I START AT THE WRISTS AND WORK MY WAY TO THE MIDDLE.'],
+    },
+    sell: ['OFF A GIFT SHOP ROBOT. THE LIGHTS SAY BEEF. YOUR UPPERCUT GOES HIGHER, AND IT GOES RIGHT THROUGH SHIELDS.'],
+    trial: ['SEE MY SPARRING ALIEN? UPPERCUT HIM. KEEP HOLDING IT, TAP GRAB, AND DRIVE HIS HEAD INTO MY FLOOR.'],
+    trialPose: 'fold',
+    miss: ['UP IS HALF OF IT. NOW BRING HIM DOWN.', 'YOU LET GO. NEVER LET GO.', 'THAT WAS A HIGH FIVE.', 'YOU PUNCHED A GUY IN THE CHIN. MY MOTHER DOES THAT.', 'HE WENT UP. HE CAME DOWN BY HIMSELF. THAT IS GRAVITY, NOT YOU.'],
+    hint: ['THE FIST GOES UP. THE HEAD COMES DOWN. HOLD THE UPPERCUT, AND TAP GRAB ON THE WAY UP.'],
+    pass: ['HEAD FIRST INTO CONCRETE. THAT IS THE LESSON. YOU PASS.', 'LIKE A LAWN DART. YOU PASS.'],
+    passed: {
+      clean: ['I PILEDROVE A SPACE MAN. I FEEL LIKE AN ASTRONAUT.'],
+      shitty: ['I DROPPED HIM SO HARD I DROPPED SOME TOO.'],
+      nude: ['WE WERE UPSIDE DOWN TOGETHER. MY BALLS WERE IN HIS FACE.'],
+    },
+    gift: ['KEEP THEM. THE BATTERIES DIED IN NINETY-SIX. IT STILL SAYS BEEF. NOBODY KNOWS WHY.'],
+    tease: ["UPPERCUT A BOSS IN THOSE. HE FEELS IT IN HIS FILLINGS. GOT A SHIELD? DOESN'T MATTER NOW."],
+    enamored: {
+      clean: ["I'M GONNA UPPERCUT EVERYBODY. MY LANDLORD. THE MOON."],
+      shitty: ["I'M GONNA UPPERCUT EVERYBODY. FROM DOWNWIND."],
+      nude: ["I'M GONNA UPPERCUT EVERYBODY. NAKED. FROM BELOW. WORST ANGLE THERE IS."],
+    },
+    practice: ['PRACTICE ON THE ALIEN. HE COMES BACK. THEY ALWAYS COME BACK. THEN THE CANNON.'],
+    good: ['LAWN DART. BEAUTIFUL.', 'RIGHT IN THE FLOOR. GOOD.', 'ITADAKIMASU. GRANDPA SAID IT BEFORE HE ATE. I SAY IT BEFORE I HURT PEOPLE.'],
+    idle: {
+      clean: ['YOU AGAIN. THE ROBOT ONLY HAD TWO ARMS.', 'YOU AGAIN. I WAS WATCHING MY TAPE.'],
+      shitty: ['YOU WALKED PAST HER IN THOSE PANTS? SHE CAN SMELL, YOU KNOW.', 'YOU CAME BACK. THE BREAK ROOM SMELLS LIKE A BREAK ROOM AGAIN.'],
+      nude: ['YOU AGAIN. NAKED IN THE BREAK ROOM. THAT IS A WRITE-UP.', 'YOU AGAIN. STILL NO PANTS. STILL TWO BRACERS.'],
+    },
+  },
 };
+
+// ---------------------------------------------------------------------------------------------------------------
+// Future Land: the ride-ops break room under the stalker basement's west hallway (space/queen/benLair.ts)
+
+/** Meathead, down the hatch into the break room the first time this go at the land (safe: the stalker's up there). */
+export const MH_HATCH_SP: ByPants = {
+  clean: ["A WARM LIGHT IN A HOLE IN A HORROR RIDE. THAT'S NEVER BAD."],
+  shitty: ["A WARM HOLE. FINALLY, SOMEWHERE SHE CAN'T SMELL ME."],
+  nude: ["A WARM HOLE. DON'T SAY IT."],
+};
+/** Meathead's cartoon Japanese after the gift (the hidden art already taught: the big beat has its own), and Ben, lost. */
+export const BRACER_WEEB: ByPants = {
+  clean: ['NINJA DROPPU DESU! I KNOW JAPANESE FROM CARTOONS.'],
+  shitty: ['NINJA DROPPU... AND POOPU! I KNOW JAPANESE FROM CARTOONS.'],
+  nude: ['NINJA DROPPU... NAKED NO KIWAMI! I KNOW JAPANESE FROM CARTOONS.'],
+};
+export const BRACER_HUH = ['I KNOW THREE WORDS OF JAPANESE. THOSE WERE NOT THEM.'];
+/** Getting into the cannon: Ben, where it goes (after Meathead's MH_CANNON_ASK). */
+export const BEN_CANNON_SP = ['BACK WHERE YOU FELL IN. GIVE HER A MINUTE BEFORE YOU GO STOMPING AROUND.', "WHERE YOU CAME DOWN. SHE WON'T BE THERE. PROBABLY."];
 
 // ---------------------------------------------------------------------------------------------------------------
 // Fairy Land: the dragon's lair's old machine room (fantasy/glen/benLair.ts)
@@ -439,6 +493,6 @@ const pieceBen = (p: PieceLines) => [...p.sell, ...p.trial, ...p.miss, ...p.hint
 const pieceMeathead = (p: PieceLines) => [...all(p.ask), ...all(p.passed), ...all(p.enamored)];
 
 export const BEN_VOICE_LINES: Record<string, string[]> = {
-  [BEN_VOICE]: [...NAME, ...all(RIDDLE), ...PURPOSE, ...FIRST_ASIDE, ...all(AGAIN), ...all(NUDGE), ...all(NUDGE_OUT), ...BYE_BEN, ...ART_OPEN, ...ART_HOW, ...ART_HUH, ...ART_AGAIN, ...ART_FLASH, ...ART_AGAIN_FLASH, ...Object.values(PIECE_LINES).flatMap(pieceBen), ...LEGS_CURTAIN, ...all(NUDGE_HW), ...BEN_CANNON, ...AMULET_HUH, ...BEN_CANNON_FY],
-  meathead: [...all(MEET), ...all(FIRST_WHY), ...all(FIRST_REACT), ...all(AGAIN_MH), ...BYE_MEATHEAD, ...all(ART_MH), ...all(ART_WEEB), ...Object.values(PIECE_LINES).flatMap(pieceMeathead), ...all(MH_PASSAGE), ...all(MH_HATCH), ...MH_CANNON_ASK, ...MH_FALL, ...all(MH_LANDED), ...all(MH_TUNNEL), ...all(AMULET_WEEB)],
+  [BEN_VOICE]: [...NAME, ...all(RIDDLE), ...PURPOSE, ...FIRST_ASIDE, ...all(AGAIN), ...all(NUDGE), ...all(NUDGE_OUT), ...BYE_BEN, ...ART_OPEN, ...ART_HOW, ...ART_HUH, ...ART_AGAIN, ...ART_FLASH, ...ART_AGAIN_FLASH, ...Object.values(PIECE_LINES).flatMap(pieceBen), ...LEGS_CURTAIN, ...all(NUDGE_HW), ...BEN_CANNON, ...AMULET_HUH, ...BEN_CANNON_FY, ...BRACER_HUH, ...BEN_CANNON_SP],
+  meathead: [...all(MEET), ...all(FIRST_WHY), ...all(FIRST_REACT), ...all(AGAIN_MH), ...BYE_MEATHEAD, ...all(ART_MH), ...all(ART_WEEB), ...Object.values(PIECE_LINES).flatMap(pieceMeathead), ...all(MH_PASSAGE), ...all(MH_HATCH), ...MH_CANNON_ASK, ...MH_FALL, ...all(MH_LANDED), ...all(MH_TUNNEL), ...all(AMULET_WEEB), ...all(MH_HATCH_SP), ...all(BRACER_WEEB)],
 };

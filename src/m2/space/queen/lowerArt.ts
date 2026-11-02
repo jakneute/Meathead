@@ -3,7 +3,7 @@
 // a fat insulated main), cable trays, valve wheels, gauges, ride motors, fuse boxes; the red emergency strips along the
 // ceiling (flickering, as the lighting has them); the vents in the ceiling and the ducts in the back wall (where she
 // comes and goes: plain to see); the yellow safety line along the wet floor, its drains, puddles catching the red; the
-// stencils; the animatronic graveyard half way; the stairs up at its west end; the hole in its ceiling he came down and
+// stencils; the animatronic graveyard half way; on west of where he lands, Ben's hallway (benLairArt.ts dresses it); the hole in its ceiling he came down and
 // the rubble under it), and the long flight of stairs up at its east end toward the park. The disco: disco.ts.
 // Still things stamped in tiles; the loops live. It's lit by the lighting (basement.ts's hunterLighting): near black,
 // a tight light round him, the strips' red; so what's painted here is painted to read in that.
@@ -14,7 +14,7 @@ import { stamp } from '../../../m1/game/render/stamp';
 import { brickPattern } from '../../../m1/game/render/pixelArt';
 import { GY } from '../geometry';
 import { drawCheapGreen } from '../crater/art';
-import { BASE_L, DOOR_X, HOLE, BF, CATWALK_Y, CEIL_B, STAIRS_A, STAIRS_B } from './geo';
+import { BASE_L, DOOR_X, HOLE, BF, CATWALK_Y, CEIL_B, STAIRS_A, STAIRS_B, HALL_L } from './geo';
 import { CATWALKS, PIPES, PIPE_Y, VENTS, DUCTS, STRIPS } from './basement';
 import { SLABS, slabPose, drawSlab } from './show';
 import { type Ramp, CHROME, dith, tube, blob, hash } from './paint';
@@ -39,18 +39,13 @@ const REDV: Ramp = ['#1A0404', '#5A0F0F', '#8E1B1B', '#C43A3A', '#F08080'];
 
 export const drawBasement = (c: Ctx, state: GameState, o: { fell: boolean; landed: boolean }) => {
   const v = state.view ?? { x: state.camera.x, w: CANVAS_WIDTH };
-  const a = Math.max(B - 220, v.x - 40), b = Math.min(STAIRS_B + 200, v.x + v.w + 40);
+  // (from Ben's hallway's west end: the tunnel goes on west under the antechamber; benLairArt.ts dresses it)
+  const a = Math.max(HALL_L - 100, v.x - 40), b = Math.min(STAIRS_B + 200, v.x + v.w + 40);
   if (b <= a) return;
   for (let tx = Math.floor((a - B) / 400) * 400 + B; tx < b; tx += 400) {
     const i = Math.round((tx - B) / 400);
     stamp(c, `sp-q-base2-${i}`, tx, TOP, 400, BOT - TOP, g => paintTunnel(g, tx));
   }
-  // (the stairs up to the hold at the west end)
-  if (shown(state, B - 220, B + 140)) stamp(c, 'sp-q-stairs2', B - 220, CEIL_B, 360, BF - CEIL_B + 4, g => {
-    px(g, B - 220, CEIL_B, 220, BF - CEIL_B, '#07070B');
-    g.fillStyle = brickPattern(g, 'sp-q-blk-d', 32, 16, ['#121218', '#15151C'], '#09090D'); g.fillRect(B - 220, CEIL_B, 220, BF - CEIL_B);
-    // (no stairs back up to the hold any more: the fall's one-way; just the end wall)
-  });
   // (the hole in the ceiling he came down through: its broken edges, the hold's light down it; the rubble under it)
   if (o.fell && shown(state, HOLE.a - 120, HOLE.b + 120)) {
     c.fillStyle = dith(c, 'rgba(167, 139, 250, 0.16)'); c.beginPath(); c.moveTo(HOLE.a, CEIL_B); c.lineTo(HOLE.b, CEIL_B); c.lineTo(HOLE.b + 50, BF); c.lineTo(HOLE.a - 50, BF); c.closePath(); c.fill();
@@ -188,7 +183,7 @@ const paintTunnel = (g: Ctx, tx: number) => {
       blob(g, x + 4, BF - 40, 20, 20, STEEL); blob(g, x + 4, BF - 40, 8, 8, CHROME);
       px(g, x - 26, BF - 18, 22, 10, '#A16207'); px(g, x - 25, BF - 17, 20, 1, '#FACC15'); print(g, '!', x - 15, BF - 16, 1, 1, '#1A0E04');
     }
-    if (kind === 2) stencil(g, ['CAST MEMBERS ONLY', 'B-LEVEL', 'NO RUNNING', 'XENOSCARE MAINT'][Math.floor(k / 6) % 4], x + 10, CATWALK_Y - 67, 1, '#B4842A', { seed: k, spray: 'rgba(180, 132, 42, 0.3)' });
+    if (kind === 2) stencil(g, ['CAST MEMBERS ONLY', 'B-LEVEL', 'NO RUNNING', 'XENOSCARE MAINT'][((Math.floor(k / 6) % 4) + 4) % 4], x + 10, CATWALK_Y - 67, 1, '#B4842A', { seed: k, spray: 'rgba(180, 132, 42, 0.3)' });
     if (kind === 3) { g.fillStyle = 'rgba(100, 116, 139, 0.3)'; g.beginPath(); g.ellipse(x, BF + 3, 44, 3, 0, 0, Math.PI * 2); g.fill(); g.fillStyle = dith(g, 'rgba(220, 60, 60, 0.4)'); g.fillRect(x - 20, BF + 2, 30, 2); }
     if (kind === 4) {
       // (a gauge on the copper line, its needle in the red)

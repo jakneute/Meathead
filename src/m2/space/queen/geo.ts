@@ -5,8 +5,11 @@
 //                     She's taken over; she smashes the floor and down he goes (a hole there after: the way down again).
 //   THE BASEMENT      the attraction's maintenance tunnels, deep under the hold (from under her floor on east), in the
 //                     dark: two levels (the floor, the catwalks over it: ladders up, drop down), pipes, ride machinery,
-//                     cast-member lockers, the animatronic graveyard. She stalks him through it (basement.ts). Stairs up
-//                     at its left end (back up to the hold); at its east end a long flight of stairs up toward the park.
+//                     cast-member lockers, the animatronic graveyard. She stalks him through it (basement.ts). No way back
+//                     up at its west end (the fall's one-way): a brief service HALLWAY on west from where he lands, under
+//                     the antechamber, a trail of green guide lights along its floor, a hatch at its end down into the
+//                     old RIDE-OPS BREAK ROOM under it, CON-FUCK-TIOUS's lair (benLair.ts); at its east end a long
+//                     flight of stairs up toward the park.
 //   THE SPACE DISCO   GALACTIC GROOVE: its door at the top of the stairs (he kicks it in: the chase is over), the dance
 //                     hall (extra wide; the big refill and the boss's checkpoint inside the door): the extinguisher
 //                     cutscene, then the boss.
@@ -35,6 +38,14 @@ export const BF = GY + 560, CATWALK_Y = BF - 250, CEIL_B = GY + 24;
 /** The stairs up at its left end (back up to the hold); where he lands, falling in (under the hole). */
 export const STAIRS_X = BASE_L + 60;
 export const LAND_X = (HOLE.a + HOLE.b) / 2;
+/** Ben's hallway (the basement's floor and height on west under the antechamber, from BASE_L - 50): its west wall; the
+ *  hatch in its floor at that end; the RIDE-OPS BREAK ROOM under it (its ends, its ceiling, its floor). */
+export const HALL_L = x0 + 40;
+export const HATCH = { a: x0 + 60, b: x0 + 200 };
+export const LAIR = { a: x0 + 30, b: BASE_L - 60, top: BF + 40, floor: BF + 440 };
+/** Down the hatch or in the break room under the hallway (his middle x, his feet): the stalker's nowhere near. */
+export const underHall = (x: number, feet: number) => x < BASE_L - 40 && x > LAIR.a - 40 && feet > BF + 12;
+
 /** Its east end: the foot of the long flight of stairs up out of it, toward the park (the floor's level at the top). */
 export const STAIRS_A = x0 + 7400, STAIRS_B = x0 + 8400;
 export const BASE_R = STAIRS_A;
