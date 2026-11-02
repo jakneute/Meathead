@@ -59,12 +59,13 @@ import { INK, checker, mix, LAVA, blob, thick, inked, flashed } from './paint';
 import { hellOf } from './state';
 import { HELL_KINDS } from './kinds';
 import {
-  DEMON_NAME, DEMON_INTRO, DEMON_CHATTER, DEMON_HIT, DEMON_HURT, DEMON_FEINT, MH_DEMON, MH_BOUNCE,
+  DEMON_NAME, DEMON_INTRO, DEMON_INTRO_BACK, DEMON_CHATTER, DEMON_HIT, DEMON_HURT, DEMON_FEINT, MH_DEMON, MH_BOUNCE,
   HURT_GUITAR, DEATH_GUITAR, HURT_CRUSH, DEATH_CRUSH, HURT_WAVE, DEATH_WAVE, HURT_RUSH, DEATH_RUSH, HURT_PILLAR, DEATH_PILLAR,
   HURT_BREATH, DEATH_BREATH, HURT_AIRBODY, DEATH_AIRBODY, HURT_BOUNCE_FIRE, DEATH_BOUNCE_FIRE, HURT_BUMP, DEATH_BUMP,
 } from './demonLines';
 import type { Dressed, ByPants } from './lines';
 import { markBossFight } from '../../bossQuiet';
+import { bossGone } from '../../emptyArena';
 import { drawSinkBack, drawSinkFront, drawSunk, sinkFx, sinkGulp } from './demonPool';
 
 type Ctx = CanvasRenderingContext2D;
@@ -333,7 +334,8 @@ const startFight = (state: GameState, d: Demon) => {
   playSound('flame', 1, -6); playSound('ignite', 0.9, -4); shakeScreen(state, 8, 4);
   for (let i = 0; i < 24; i++) state.particles.push({ pos: { x: BACK_X + Math.random() * WALL_W, y: GY - Math.random() * 40 }, vel: { x: (Math.random() - 0.5) * 3, y: -3 - Math.random() * 6 }, life: 30, color: i % 2 ? '#F97316' : '#FDE047', size: 3 + Math.random() * 4 });
   meatheadSays(state, pick(MH_DEMON), true);
-  demonSays(state, d, DEMON_INTRO, true);
+  // (back after Donnie's dead: he's heard what Meathead did)
+  demonSays(state, d, bossGone('spooky') ? DEMON_INTRO_BACK : DEMON_INTRO, true);
   d.talkAt = state.frame + 900;
 };
 

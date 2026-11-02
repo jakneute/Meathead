@@ -3,6 +3,9 @@
 // said through in order; a newer room's story waits for the one going to finish (only the newest waits: he's not made
 // to sit through a backlog); a quip only when he's quiet. His words go up by the nearest speaker on the screen, only
 // while they're said.
+//
+// Back after Donnie's dead (bossGone): nobody's on the mic (the owner's: "no more PA announcements"). A story's
+// follow-on still runs (nothing waits on him), and nothing's said.
 
 import type { GameState } from '../../../m1/game/core/state';
 import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../../../m1/constants';
@@ -11,6 +14,7 @@ import { say, isTalking, pickLine } from '../../../m1/game/platform/speech';
 import { isShat, isNude } from '../../../m1/game/player/gut';
 import { PA, type Dressed, type ByPants } from './lines';
 import { box } from '../section';
+import { bossGone } from '../../emptyArena';
 
 type Ctx = CanvasRenderingContext2D;
 
@@ -86,6 +90,7 @@ const sayLine = (pa: Pa, line: string) => afterQuiet(pa, () => {
 
 /** A story (lines in order; then Meathead's `reply`). Something going: it waits its turn, after any others waiting. */
 export const paStory = (state: GameState, lines: readonly string[], reply: string | null = null, fin: (() => void) | null = null) => {
+  if (bossGone('spooky')) { fin?.(); return; }
   const pa = paOf(state);
   // (one going: this one after it, and after any others waiting; none skipped)
   if (pa.busy) { pa.next.push({ lines: [...lines], reply, fin, at: Date.now() }); return; }
@@ -94,6 +99,7 @@ export const paStory = (state: GameState, lines: readonly string[], reply: strin
 };
 /** One line, if he's quiet (nothing going, nothing waiting): true if it's said. */
 export const paQuip = (state: GameState, line: string) => {
+  if (bossGone('spooky')) return false;
   const pa = paOf(state);
   if (pa.busy || pa.next.length || isTalking()) return false;
   pa.left = [line]; pa.reply = null; pa.fin = null;

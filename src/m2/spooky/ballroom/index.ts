@@ -8,7 +8,8 @@
 // goes up behind him, and the view's fixed on the floor. Beaten: VICTORY, the walk-away (walkAway/donnie.ts), the hub.
 // Revisits: once the land's cleared, the floor's empty: the circle's scorch in it, the chairs over; and as he died:
 // burnt up, the disco ball down; the usual way, him still wedged up in the ceiling, legs hanging, the floor under him
-// brown (the ball still up: he only clipped it).
+// brown (the ball still up: he only clipped it). Out onto the floor, Meathead has his say about what's left, and he's
+// off back to the hub (emptyArena.ts).
 //
 // The way back: the left end (into the gift shop). No way on (the end of the land).
 
@@ -32,6 +33,10 @@ import { type Fight, startFight, updateFight, fightOver, endFight, resetFight, d
 import { frameDeath } from '../../deathFrame';
 import { CEIL } from '../control/paint';
 import { setStampHold } from '../../../m1/game/render/stamp';
+import { leaveEmptyArena } from '../../emptyArena';
+import { pickLine } from '../../../m1/game/platform/speech';
+import { isShat, isNude } from '../../../m1/game/player/gut';
+import { MEATHEAD_EMPTY_STUCK, MEATHEAD_EMPTY_BURNT } from './lines';
 
 /** The built room: as far as a camera taking his death in (floor to ceiling) may go. */
 const ROOM = { x0: ARENA_L - 140, y0: CEIL - 140, x1: ARENA_R + 140, y1: GY + 100 };
@@ -42,6 +47,8 @@ interface Ballroom {
   fight: 'wait' | 'on' | 'won'; wonAt: number;
   f: Fight | null; gate: Block | null;
   victory: Victory | null; walk: WalkAway | null;
+  /** Back after he's dead: what Meathead says out on the empty floor (picked once). */
+  emptyLine?: string;
 }
 const ballOf = (state: GameState) => spookyState<Ballroom>(state, 'ballroom', () => ({ fight: 'wait', wonAt: 0, f: null, gate: null, victory: null, walk: null }));
 
@@ -80,6 +87,15 @@ export const ballroom: SpookySection = {
         b.f = startFight(state);
         b.gate = { x: ARENA_L - 30, y: -4000, w: 30, h: 4000 + GY, type: 'wall', hidden: true, tag: 'ballroom-gate' } as Block;
         state.blocks.push(b.gate);
+      }
+      // (back after he's dead: out onto the empty floor, his say about what's left of him, and back to the hub)
+      if (isLandCleared('spooky') && p.pos.x + p.width / 2 > TRIGGER_X && p.isGrounded) {
+        if (b.emptyLine === undefined) {
+          const pool = bossDeath('spooky') === 'weakness' ? MEATHEAD_EMPTY_BURNT : MEATHEAD_EMPTY_STUCK;
+          b.emptyLine = pickLine(pool[isNude(state) ? 'nude' : isShat(state) ? 'shitty' : 'clean']);
+        }
+        leaveEmptyArena(state, b.emptyLine);
+        return hands();
       }
       return controls;
     }

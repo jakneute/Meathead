@@ -82,8 +82,15 @@ export const DEATH_CEILING = ['SKEWERED BY THE CEILING', 'KEBABED', 'MOST OF MEA
 
 const all = (r: ByPants) => [...r.clean, ...r.shitty, ...r.nude];
 
+/** Back after Donnie's dead: the ceiling's been reset (nobody on the PA to say so). */
+export const MH_CEILING_BACK: ByPants = {
+  clean: ['THEY RESET THE CEILING. OF COURSE THEY RESET THE CEILING.', 'SAME SPIKES. NEW BLOOD. MINE, PROBABLY.'],
+  shitty: ['THEY RESET THE CEILING. THEY DID NOT RESET MY PANTS.', 'SAME SPIKES. HURRY UP, I GOTTA SHIT. AGAIN.'],
+  nude: ['THEY RESET THE CEILING. NOTHING BETWEEN THE SPIKES AND MY ASS.', 'SAME SPIKES. EVERYTHING DANGLING. GREAT.'],
+};
+
 export const VOICE_LINES: Record<string, string[]> = {
   [PA]: [...all(PA_DUNGEON), ...all(PA_STAIRS), ...all(PA_CEILING), ...all(PA_ESCAPED)],
-  meathead: [...MH_DARK, ...MH_EYES, ...MH_DUNGEON, ...MH_CEILING, ...MH_LEVER, ...MH_ESCAPED, ...HURT_CEILING, ...MH_ROPE, ...HURT_SPIKEPIT, ...HURT_VAT],
+  meathead: [...MH_DARK, ...MH_EYES, ...MH_DUNGEON, ...MH_CEILING, ...all(MH_CEILING_BACK), ...MH_LEVER, ...MH_ESCAPED, ...HURT_CEILING, ...MH_ROPE, ...HURT_SPIKEPIT, ...HURT_VAT],
   death: [...DEATH_CEILING, ...DEATH_SPIKEPIT, ...DEATH_VAT],
 };

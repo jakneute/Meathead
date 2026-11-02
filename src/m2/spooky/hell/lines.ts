@@ -53,6 +53,8 @@ export const DEATH_HORNS = ['RAMMED THE WRONG GOAT', 'HORNED', 'SHISH-KA-GOAT'];
 // by the state of Meathead's pants.
 
 export const SATAN_CORE = 'MEATHEAD. ONE OF THESE DAYS YOUR SOUL WILL BE MINE FOREVER. THAT TIME IS NOT NOW.';
+/** ...back after Donnie's dead (the demon's tattled again, up he comes again). */
+export const SATAN_CORE_BACK = "MEATHEAD. AGAIN. YOU KILLED MY BEST CUSTOMER UPSTAIRS. YOUR SOUL WILL BE MINE. JUST NOT TODAY.";
 export const SATAN_PARTING: ByPants = {
   clean: ['NOW GET OUT OF MY HOUSE.', 'AND STOP HITTING MY SON. HE IS SENSITIVE.'],
   shitty: ['AND YOU SHAT IN MY HOUSE. GET OUT.', 'EVEN HELL HAS STANDARDS. GO WASH.'],
@@ -67,5 +69,5 @@ export const VOICE_LINES: Record<string, string[]> = {
   ],
   death: [...DEATH_LAVA, ...DEATH_JET, ...DEATH_CAR, ...DEATH_IMP, ...DEATH_IMP_FIRE, ...DEATH_HOUND, ...DEATH_BAT, ...DEATH_GOAT, ...DEATH_HORNS, ...DEMON_VOICE_LINES.death],
   'm2.demon': DEMON_VOICE_LINES['m2.demon'],
-  'm2.satan': [SATAN_CORE, ...all(SATAN_PARTING)],
+  'm2.satan': [SATAN_CORE, SATAN_CORE_BACK, ...all(SATAN_PARTING)],
 };

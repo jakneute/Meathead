@@ -32,6 +32,7 @@ import { GORE, splat, guestOf, flatGuest, skeleton, selfieStick } from './remain
 import { INK, box, pole, rampOf, checker, hazeBands, bandedGradient, hash, put, plaque, blockFill, plateFill, spikeDown, torch, chain, stoneLedge, flagFloor, paintCell, paintRack, paintMaiden, paintCrate, STONE, IRON, STEEL, BLOOD } from './paint';
 import { skewer, skewerRise, SKEWERED } from './death';
 import * as L from './lines';
+import { bossGone } from '../../emptyArena';
 import { CELLS, STAIR_TOP, stairRuns, buildStairs, runStairs, drawStairs, stairsLighting, resetStairs, initStairs } from './stairs';
 import { floorRuns, buildRopes, runRopes, drawRopeWalk, ropeRow } from './ropes';
 import { useDoor, drawTopDoor, drawGalleryLeaf, drawRideDoor } from './stairs';
@@ -182,7 +183,9 @@ const run = (ctx: FrameContext, dg: Dungeon) => {
         dg.room = 'armed'; dg.t = 0;
         shutDoor(dg.entry); shutDoor(dg.exit);
         playSound('slam', 1, -8); playSound('clang', 0.8, -10); shakeScreen(state, 8, 4);
-        paStory(state, [byPants(state, L.PA_CEILING)[0]], pick(L.MH_CEILING));
+        // (back after Donnie's dead: nobody on the PA; reset all the same)
+        if (bossGone('spooky')) meatheadSays(state, pick(byPants(state, L.MH_CEILING_BACK)), false);
+        else paStory(state, [byPants(state, L.PA_CEILING)[0]], pick(L.MH_CEILING));
       }
       break;
     case 'armed':

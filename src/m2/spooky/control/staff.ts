@@ -23,6 +23,7 @@ import { drawShopStaff, drawMascotCostume, globe } from '../wardrobe';
 import { voice, saidOver } from '../section';
 import { GY } from '../geometry';
 import * as L from './lines';
+import { bossGone } from '../../emptyArena';
 
 type Ctx = CanvasRenderingContext2D;
 const pick = pickLine;
@@ -50,7 +51,8 @@ export const setStaffHush = (f: () => boolean) => { othersTalking = f; };
 export const staffTalking = () => { for (const [e, t] of said) if (t && e.health > 0) return true; return false; };
 const bark = (e: Enemy) => {
   if (!game || othersTalking() || staffTalking()) return;
-  const pool = L.STAFF_BARK[isNude(game) ? 'nude' : isShat(game) ? 'shitty' : 'clean'];
+  // (back after Donnie's dead: they know who he is)
+  const pool = (bossGone('spooky') ? L.STAFF_BARK_BACK : L.STAFF_BARK)[isNude(game) ? 'nude' : isShat(game) ? 'shitty' : 'clean'];
   const text = pick(pool);
   const woman = e.kind !== MASCOT && lookOf(seedOf(e)).woman;
   say(text, voice(woman ? 'm2.spooky.clerkf' : 'm2.spooky.clerk'), 'casual', {

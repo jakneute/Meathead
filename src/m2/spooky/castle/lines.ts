@@ -145,10 +145,17 @@ export const DEATH_TRAIN = ['RUN DOWN BY A TOY TRAIN', 'THE LITTLE ENGINE COULD'
 
 const all = (r: ByPants) => [...r.clean, ...r.shitty, ...r.nude];
 
+/** Back after Donnie's dead: in the foyer, the door shut behind him, and nobody on the PA. */
+export const MH_QUIET: ByPants = {
+  clean: ['NO DRACULA ON THE SPEAKERS. NOBODY CHEWING INTO A MIC. NICE.', 'QUIET. THE FAT COUNT FINALLY STOPPED EATING.'],
+  shitty: ['NO DRACULA. NOBODY TO TELL ME I SMELL. I SMELL.', 'QUIET. JUST ME AND MY PANTS. AND THE SMELL.'],
+  nude: ['NO DRACULA. NOBODY TO SEE MY DICK IN HIS FOYER.', "QUIET. NOBODY ON THE SPEAKERS TO SAY I'M NAKED."],
+};
+
 export const VOICE_LINES: Record<string, string[]> = {
   [PA]: [...all(PA_GREET), ...Object.values(PA_STORY).flatMap(all), ...all(PA_KILL)],
   meathead: [
-    ...MH_GREET, ...Object.values(MH_REPLY).flat(),
+    ...MH_GREET, ...Object.values(MH_REPLY).flat(), ...all(MH_QUIET),
     ...HURT_SKELETON, ...HURT_KNIGHT, ...HURT_KNIGHT_SPIKES, ...HURT_IGOR, ...HURT_FORK, ...HURT_WITCH, ...HURT_FLASK, ...HURT_BRIDE,
     ...HURT_BATSUIT, ...HURT_MUMMY, ...HURT_BAT, ...HURT_CHANDELIER, ...HURT_BOOKS, ...HURT_STOVE, ...HURT_TRAIN,
   ],

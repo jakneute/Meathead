@@ -33,6 +33,7 @@ import type { Controls } from '../../../m1/game/platform/input';
 import type { Enemy, EnemyKind } from '../../../m1/types';
 import type { SpookySection } from '../section';
 import { layOwn, solid, ledge, endWalls, teleport, hands, meatheadSays, saidOver, spookyState } from '../section';
+import { bossGone } from '../../emptyArena';
 import { DOORS, GY, SECTIONS } from '../geometry';
 import { floorTopAt } from '../../../m1/game/core/terrain';
 /** Down the DOWN shaft, he lands in hell's pit here (hell's agent: anywhere hell.x0+500..880 at its start's height). */
@@ -60,7 +61,7 @@ import {
 } from './layout';
 import {
   type Dressed, MEATHEAD_HOW, MEATHEAD_ASK, OPERATOR_REFUSE, MEATHEAD_REFUSED, OPERATOR_SECURITY, OPERATOR_SPIEL, OPERATOR_AFTER, OPERATOR_NEXT,
-  RIDER_DROP, RIDER_REAL, RIDER_RISE, MEATHEAD_BEAM_SIGN, MEATHEAD_BEAM_BROKE, MEATHEAD_WOBBLE, MEATHEAD_MAIN, MEATHEAD_CRASH, MEATHEAD_JUMP,
+  RIDER_DROP, RIDER_REAL, RIDER_RISE, MEATHEAD_BEAM_SIGN, MEATHEAD_BEAM_BROKE, MEATHEAD_WOBBLE, MEATHEAD_MAIN, MEATHEAD_CRASH, MEATHEAD_CRASH_BACK, MEATHEAD_JUMP,
   MEATHEAD_DOWN, MEATHEAD_LAMP, MEATHEAD_BASE, MEATHEAD_CHUTE, MEATHEAD_HEART,
 } from './lines';
 import { awardHealth, healthWon, openHealthCard, tickHealthCard, type HealthCard } from '../../upgrades/healthAward';
@@ -316,7 +317,8 @@ const endCrash = (state: GameState, t: Tower, skipped: boolean) => {
   if (state.checkpoint < 45) state.checkpoint = 45;
   kept.crashed = true;
   t.talk.q.length = 0;
-  meatheadSays(state, pick(MEATHEAD_CRASH));
+  // (back after Donnie's dead: they'd rebuilt it)
+  meatheadSays(state, pick(bossGone('spooky') ? MEATHEAD_CRASH_BACK[dressed(state)] : MEATHEAD_CRASH));
 };
 
 /** How far he falls down the shaft, gone in his own way (walked off the lip or jumped), before it's out of his hands. */

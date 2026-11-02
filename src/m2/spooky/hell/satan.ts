@@ -23,7 +23,8 @@ import { hellOf } from './state';
 import { INK, stamp, LAVA } from './paint';
 import { paintSatan, drawSatanFace } from './satanArt';
 import { demonOf, demonSays, sinkDemon, tickSink, settleDemon } from './demon';
-import { DEMON_BEATEN, MH_LEAVES, MH_SATAN, MH_LAUNCH, SATAN_CORE, SATAN_PARTING } from './lines';
+import { DEMON_BEATEN, MH_LEAVES, MH_SATAN, MH_LAUNCH, SATAN_CORE, SATAN_CORE_BACK, SATAN_PARTING } from './lines';
+import { bossGone } from '../../emptyArena';
 
 type Ctx = CanvasRenderingContext2D;
 const pick = pickLine;
@@ -108,7 +109,7 @@ export const runFinale = (ctx: FrameContext): Controls | null => {
       if (line(() => meatheadSays(state, pick(MH_SATAN), true, () => { fin.done = true; }))) go(fin, 'core');
       break;
     case 'core':
-      if (line(() => speak('m2.satan', SATAN_CORE, s => { fin.said = s; }, true, () => { fin.done = true; }), 900)) go(fin, 'parting');
+      if (line(() => speak('m2.satan', bossGone('spooky') ? SATAN_CORE_BACK : SATAN_CORE, s => { fin.said = s; }, true, () => { fin.done = true; }), 900)) go(fin, 'parting');
       break;
     case 'parting':
       if (line(() => speak('m2.satan', pick(dressedPool(state)), s => { fin.said = s; }, true, () => { fin.done = true; }))) {

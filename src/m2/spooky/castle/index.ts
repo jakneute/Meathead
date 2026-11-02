@@ -23,7 +23,8 @@
 import type { GameState } from '../../../m1/game/core/state';
 import type { FrameContext } from '../../../m1/game/core/context';
 import type { SpookySection } from '../section';
-import { layOwn, endWalls, endExits, runExits, solid, ledge, getSpooky } from '../section';
+import { layOwn, endWalls, endExits, runExits, solid, ledge, getSpooky, meatheadSays } from '../section';
+import { bossGone } from '../../emptyArena';
 import { updateLadders, drawLadders, onLadder, type LadderDef } from '../../moves/ladders';
 import { GY } from '../geometry';
 import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../../../m1/constants';
@@ -91,7 +92,9 @@ const runTour = (state: GameState, cs: Castle) => {
   if (!heard.has('foyer') && cx > x0 + 240) {
     const fin = tell('foyer');
     cs.doorShut = 1; playSound('slam', 1, -6); shakeScreen(state, 6, 3);
-    paStory(state, byPants(state, L.PA_GREET), pick(L.MH_GREET), fin);
+    // (back after Donnie's dead: nobody on the PA, Meathead has a word about it instead)
+    if (bossGone('spooky')) { fin(); meatheadSays(state, pick(byPants(state, L.MH_QUIET)), false); }
+    else paStory(state, byPants(state, L.PA_GREET), pick(L.MH_GREET), fin);
   }
   const r = roomAt(cx);
   if (r && r.id !== 'foyer' && !heard.has(r.id) && cx > r.a + 180) {

@@ -85,6 +85,12 @@ export const MEATHEAD_MAIN = ['THE MAIN SUPPORT. COME TO DADDY.', 'THAT ONE HOLD
 /** The car going through the floor (once it's done). */
 export const MEATHEAD_CRASH = ['...THAT WAS NOT THE GIFT SHOP.', 'WELL. THEY WANTED HELL.', "OOPS. THEY'RE GONNA NEED A BIGGER WAIVER."];
 /** Meathead, a way down the shaft after it, going into his cannonball (any of them: the dive's pose is his cannonball). */
+/** ...back after Donnie's dead: through the floor again (they'd rebuilt it). */
+export const MEATHEAD_CRASH_BACK: ByPants = {
+  clean: ['THEY REBUILT THE FLOOR. I REBROKE IT.', 'NEW FLOOR. SAME FAT GUY.'],
+  shitty: ['THEY REBUILT THE FLOOR. I REBROKE IT. AND MY PANTS.', 'NEW FLOOR. NOW IT HAS SHIT ON IT.'],
+  nude: ['THEY REBUILT THE FLOOR. I BROKE IT WITH MY BARE ASS.', 'NEW FLOOR. FIRST NAKED GUY THROUGH IT.'],
+};
 export const MEATHEAD_JUMP = ['CANNONBAAAALL!', 'GERONIMOOOO!', 'WAIT FOR MEEEE!'];
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -141,7 +147,7 @@ const flat = (r: ByPants) => Object.values(r).flat();
 export const VOICE_LINES: Record<string, string[]> = {
   meathead: [
     ...MEATHEAD_HOW, ...MEATHEAD_ASK, ...MEATHEAD_REFUSED, ...MEATHEAD_BEAM_SIGN, ...MEATHEAD_BEAM_BROKE.flat(), ...MEATHEAD_WOBBLE,
-    ...MEATHEAD_MAIN, ...MEATHEAD_CRASH, ...MEATHEAD_JUMP, ...MEATHEAD_DOWN, ...MEATHEAD_LAMP, ...MEATHEAD_BASE, ...MEATHEAD_CHUTE, ...flat(MEATHEAD_HEART), ...HURT_CAR,
+    ...MEATHEAD_MAIN, ...MEATHEAD_CRASH, ...flat(MEATHEAD_CRASH_BACK), ...MEATHEAD_JUMP, ...MEATHEAD_DOWN, ...MEATHEAD_LAMP, ...MEATHEAD_BASE, ...MEATHEAD_CHUTE, ...flat(MEATHEAD_HEART), ...HURT_CAR,
     ...HURT_GEAR, ...HURT_PENDULUM, ...HURT_DEBRIS, ...HURT_CUCKOO, ...HURT_RINGER, ...HURT_HAMMER, ...HURT_IGOR, ...HURT_PITCHFORK,
     ...HURT_MUMMY, ...HURT_BRIDE, ...HURT_BOUQUET,
   ],
