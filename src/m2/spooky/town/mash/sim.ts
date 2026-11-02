@@ -21,7 +21,7 @@ export interface Input { l: boolean; r: boolean; u: boolean; d: boolean; p: bool
 export const NO_INPUT: Input = { l: false, r: false, u: false, d: false, p: false, k: false, s: false, t: false };
 /** The special bar (the owner's: "put in a similar 'charge' bar for special moves too so you cannot spam them"): a
  *  special needs it full and empties it; it fills in METER_FILL frames (a bit quicker taking hits). Throws don't use it. */
-export const METER_FULL = 100, METER_FILL = 250;
+export const METER_FULL = 100, METER_FILL = 140;
 
 export interface Act { id: MoveId; m: Move; t: number; hit: boolean; caught: boolean; done: boolean; landed?: boolean }
 export interface Fighter {
