@@ -788,12 +788,13 @@ const lineSigns = (c: Ctx) => {
     pole(c, x - 2, G - 98, 4, 94, BRASS[2]);
     ellipse(c, x, G - 3, 10, 4, INK); ellipse(c, x, G - 3, 9, 3, BRASS[1]); ellipse(c, x - 2, G - 4, 6, 2, BRASS[3]);
   };
-  const s1 = R(QUEUE_START) - 60, s2 = R(QUEUE_START) + 120;
-  stand(s1 + 75); stand(s2 + 105);
+  // (WAIT TIME's narrower, past the lamp and short of the booth's awning: it ran across both)
+  const s1 = R(QUEUE_START) - 60, s2 = R(QUEUE_START) + 140, w2 = 164;
+  stand(s1 + 75); stand(s2 + w2 / 2);
   sign(c, s1, G - 120, 150, 20, '#FEF3C7', 'LINE STARTS HERE', BLUE, 6, GOLD[2]);
-  sign(c, s2, G - 120, 210, 20, '#FEF3C7', 'WAIT TIME FROM HERE: YES', RED, 6, GOLD[2]);
+  sign(c, s2, G - 120, w2, 20, '#FEF3C7', 'WAIT TIME FROM HERE: YES', RED, 6, GOLD[2]);
   // (a gold star crest on each, a pointing hand on the first)
-  shinyStar(c, s1 + 75, G - 128, 6, GOLD[3]); shinyStar(c, s2 + 105, G - 128, 6, GOLD[3]);
+  shinyStar(c, s1 + 75, G - 128, 6, GOLD[3]); shinyStar(c, s2 + w2 / 2, G - 128, 6, GOLD[3]);
   poly(c, [s1 + 156, G - 116, s1 + 168, G - 110, s1 + 156, G - 104], INK);
   poly(c, [s1 + 157, G - 114, s1 + 165, G - 110, s1 + 157, G - 106], '#FEF3C7');
 };
@@ -831,7 +832,8 @@ const turnstile = (c: Ctx, tx: number, f: number, admitted: boolean) => {
 // ---------------------------------------------------------------------------------------------------------------
 // Plaza dressing
 
-const LAMPS = [P0 + 40, R(QUEUE_START) + 150, GX + 214, P1 - 24];
+// (the second between the line's two signs: at +150 its post ran up through WAIT TIME's board)
+const LAMPS = [P0 + 40, R(QUEUE_START) + 124, GX + 214, P1 - 24];
 const TOPIARY_X = P0 + 170;
 const URNS = [P0 + 280, GX + 380];
 const MAP_X = GX + 238;
