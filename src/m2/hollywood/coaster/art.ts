@@ -519,8 +519,9 @@ const drawQueue = (c: Ctx, v: CView, state: GameState, co: Coaster) => {
     stillAt(c, v, 0.975, 'hwc-arch', ax, GY, -130, -320, 260, 322, paintArch);
     atDepth(c, v.eye, 0.975, () => words(c, 'THRONES', ax, GY - 251, bulbs(3, 3, '#FBBF24', lit() || f % 30 < 24)));
   }
-  if (vis(v, X(250) - 80, X(250) + 80, GY - 170, GY)) stillAt(c, v, 0.97, 'hwc-wait', X(250), GY, -80, -170, 160, 172, g => paintPostSign(g, ['WAIT FROM HERE'], '#F8FAFC', '#18181B', 120, '4 HOURS'));
-  if (vis(v, X(1100) - 80, X(1100) + 80, Y(110) - 190, Y(110))) stillAt(c, v, 0.97, 'hwc-fastpass', X(1100), Y(110), -90, -190, 180, 192, g => paintPostSign(g, ['FAST PASS LANE', 'WAIT: 3 HOURS'], '#FDE68A', '#18181B', 140));
+  // (both a little on: WAIT FROM HERE's board ran into the THRONES gate's leg, FAST PASS LANE's across a coaster tower)
+  if (vis(v, X(275) - 80, X(275) + 80, GY - 170, GY)) stillAt(c, v, 0.97, 'hwc-wait', X(275), GY, -80, -170, 160, 172, g => paintPostSign(g, ['WAIT FROM HERE'], '#F8FAFC', '#18181B', 120, '4 HOURS'));
+  if (vis(v, X(1145) - 80, X(1145) + 80, Y(110) - 190, Y(110))) stillAt(c, v, 0.97, 'hwc-fastpass', X(1145), Y(110), -90, -190, 180, 192, g => paintPostSign(g, ['FAST PASS LANE', 'WAIT: 3 HOURS'], '#FDE68A', '#18181B', 140));
   // The rails between the lanes (low: over them): chrome stanchions on a rail, the velvet along them
   const G = BRASS.map(cc => hour(cc)), V = pal().velvet, Ch = CHROME.map(cc => hour(cc)), Lp = pal().lip;
   for (const [rx, h] of RAILS) {

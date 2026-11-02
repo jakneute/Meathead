@@ -494,9 +494,10 @@ const bunker = (c: Ctx, v: View, k: number, f: number, done: boolean) => {
   bunkerFrost(c, r.x, r.y, r.w, r.h, under, floorY, f);
 };
 /** The sign before a bunker: AVALANCHE ZONE (the avalanche on it), BUNKER AHEAD >, on two posts. */
-const paintAvalancheSign = (g: Ctx) => {
+const paintAvalancheSign = (g: Ctx, drop: [number, number] = [0, 0]) => {
   const S = STEEL.map(c2 => hour(c2));
-  for (const px of [-70, 70]) { box(g, px - 3, -110, 6, 110, INK); box(g, px - 2, -110, 4, 110, S[3]); box(g, px - 2, -110, 1, 110, S[5]); }
+  // (each post down to the slope under it: on the downhill side it stopped short, standing on air)
+  [-70, 70].forEach((px, i) => { const l = 110 + drop[i]; box(g, px - 3, -110, 6, l, INK); box(g, px - 2, -110, 4, l, S[3]); box(g, px - 2, -110, 1, l, S[5]); });
   box(g, -94, -168, 188, 66, INK); box(g, -92, -166, 184, 62, '#B91C1C'); box(g, -88, -162, 176, 54, '#F8FAFC'); box(g, -86, -160, 172, 50, '#B91C1C');
   // (the pictogram: a slope, the snow coming down it, a little man running)
   poly(g, [[-82, -112], [-50, -156], [-50, -112]], '#F8FAFC'); for (let k = 0; k < 4; k++) box(g, -76 + k * 7, -130 + k * 4, 6, 4, '#E2E8F0');
@@ -507,7 +508,7 @@ const paintAvalancheSign = (g: Ctx) => {
   // (snow loaded along its top, overhanging, icicles off its bottom edge, frost up the posts, drifts at their feet)
   box(g, -96, -170, 192, 6, INK); box(g, -95, -171, 190, 5, SNOW[4]); box(g, -93, -172, 150, 2, SNOW[5]); box(g, -95, -166, 190, 1, SNOW[2]);
   for (let x = -90; x < 90; x += 6) { const l = 3 + Math.floor(hash(x * 0.61) * 9); box(g, x, -102, 3, Math.ceil(l / 2), ICICLE[2]); box(g, x + 1, -102 + Math.ceil(l / 2), 1, Math.floor(l / 2), ICICLE[2]); box(g, x, -102, 1, Math.ceil(l / 2), ICICLE[4]); }
-  for (const px of [-70, 70]) { for (let k = 0; k < 6; k++) box(g, px - 2 + (k % 2) * 2, -96 + k * 15, 2, 1, ICICLE[4]); box(g, px - 12, -8, 24, 8, SNOW[4]); box(g, px - 9, -10, 16, 3, SNOW[5]); }
+  [-70, 70].forEach((px, i) => { const d = drop[i]; for (let k = 0; k < 6; k++) box(g, px - 2 + (k % 2) * 2, -96 + k * 15, 2, 1, ICICLE[4]); box(g, px - 12, d - 8, 24, 8, SNOW[4]); box(g, px - 9, d - 10, 16, 3, SNOW[5]); });
 };
 
 export const drawHill = (c: Ctx, v: View, state: GameState, hv: Hv, done: boolean, part: 'back' | 'near') => {
@@ -591,7 +592,10 @@ const hillNear = (c: Ctx, v: View, hv: Hv, f: number, done: boolean, hl: typeof 
   COVERS.forEach((cv, k) => {
     bunker(c, v, k, f, done);
     const sx = X(cv.a - 360);
-    if (!done && seen(v, sx - 100, sx + 100, SIGN_D)) stillAt(c, v, SIGN_D, 'hh-avsign', sx, Y(groundH(cv.a - 360) ?? 0), -100, -172, 200, 174, paintAvalancheSign);
+    if (!done && seen(v, sx - 100, sx + 100, SIGN_D)) {
+      const h0 = groundH(cv.a - 360) ?? 0, drop: [number, number] = [-70, 70].map(px => Math.max(0, Math.round(h0 - (groundH(cv.a - 360 + px) ?? h0)))) as [number, number];
+      stillAt(c, v, SIGN_D, `hh-avsign-${k}`, sx, Y(h0), -100, -172, 200, 176 + Math.max(...drop), g => paintAvalancheSign(g, drop));
+    }
   });
   const mounds = (ra: number, rb: number, d: number) => {
     for (let x = Math.max(X(ra), v.v0 - 60); x < Math.min(X(rb), v.v1 + 60); x += 40) {
