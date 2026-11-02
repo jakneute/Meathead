@@ -18,9 +18,12 @@
 //   cart's rusty floor, bawling, his tears running up his forehead, stars. Up at once, held while his line plays (or
 //   a beat without one), off. Never two: another hit swaps the picture in place (no slide) and holds it on.
 //
-// His line done, a beat, and it slides off. The rage and the taunt once a visit (the callers keep it so). Never over
+// His line done, a beat, and it slides off. The taunt once a visit (the caller keeps it so); the rage every time he goes
+// over the side (the user's: "make sure you see a pip 'gross up' of safari artie the moment you jump off his ship"): up
+// that instant, seething, till his yell comes. Never over
 // the main HUD's corner, and never over his own words (it takes the other side if they'd be under it). Its stamps are painted ahead
-// (warmGrossUps, by the caller well before): it waits for them rather than paint on the spot.
+// (warmGrossUps, by the caller well before): it waits for them rather than paint on the spot; the rage only a few frames
+// (it's up the moment he jumps), then they're finished there and then.
 
 import type { GameState } from '../../../m1/game/core/state';
 import { hash2, GW, GH } from '../../grossKit';
@@ -38,6 +41,8 @@ export interface ArtiePip {
   left: boolean;
   /** Its stamps painted and the corner picked (drawn from then); taken over from one already up (no slide in). */
   ready: boolean; held: boolean;
+  /** Called off before his line ever came (dropPip): off out its side from there. */
+  cut?: boolean;
 }
 
 // (its picture's scale and size, the bezel round it, the slides in and out: the shared pip's, grossPip.ts)
@@ -51,6 +56,8 @@ const KEYS: Record<PipKind, Key[]> = {
   rage: ['a', 'rc', 'r', 'r2', 'hat', 'fist'], taunt: ['t', 't2', 'finger'],
   darted: ['xd'], balded: ['xs', 'hat'], flattened: ['xf'], flipped: ['xu'],
 };
+/** The rage: frames it waits on its paint before it's finished on the spot (up the moment he goes over, not late). */
+const RAGE_WAIT = 4;
 /** The tricks' (no build-up to his line: it's on the instant it hits him). */
 const HURT: Record<PipKind, boolean> = { rage: false, taunt: false, darted: true, balded: true, flattened: true, flipped: true };
 
@@ -70,10 +77,20 @@ export const pipLine = (r: ArtiePip | undefined, said: string | null) => {
   if (!said && r.yellAt >= 0 && r.endAt < 0) r.endAt = r.t;
 };
 
+/** Off with it now, his line not come yet (and not coming: the rage, him back aboard before Artie got his yell out). */
+export const dropPip = (r: ArtiePip | undefined) => {
+  if (!r || r.yellAt >= 0 || r.endAt >= 0) return;
+  r.cut = true; r.endAt = r.t;
+};
+
 /** Each frame (`words`: where his words go up, in the world: the corner's picked clear of them); false once it's gone. */
 export const stepPip = (state: GameState, r: ArtiePip, words: { x: number; y: number }) => {
   if (!r.ready) {
-    if (!KEYS[r.kind].every(artieStampReady)) return ++r.wait < 120;
+    if (!KEYS[r.kind].every(artieStampReady)) {
+      if (r.kind !== 'rage') return ++r.wait < 120;
+      if (++r.wait < RAGE_WAIT) return true;
+      for (const k of KEYS[r.kind]) artieStamp(k);
+    }
     r.ready = true;
   }
   if (r.t === 0) {
@@ -84,7 +101,7 @@ export const stepPip = (state: GameState, r: ArtiePip, words: { x: number; y: nu
   if (r.yellAt >= 0 && r.endAt < 0 && r.t - r.yellAt > YELL_MAX) r.endAt = r.t;
   return r.endAt < 0 || r.t < outAt(r) + OUT;
 };
-const outAt = (r: ArtiePip) => Math.max(r.endAt, r.yellAt + MIN[r.kind]) + AFTER[r.kind];
+const outAt = (r: ArtiePip) => (r.cut ? r.endAt : Math.max(r.endAt, r.yellAt + MIN[r.kind]) + AFTER[r.kind]);
 
 /** Screen space (the section's drawHud). */
 export const drawPip = (c: Ctx, r: ArtiePip, f: number) => {

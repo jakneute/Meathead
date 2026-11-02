@@ -663,6 +663,8 @@ const get = stamps<Key>(build, ['a', 'b', 'rc', 'r', 'r2', 'hat', 'fist', 't', '
 /** One of his stamps (its canvas; null headless), and whether it's painted yet (never paint one the frame it's wanted). */
 export const artieStamp = (key: Key) => get(key).img;
 export const artieStampReady = (key: Key) => get.ready(key);
+/** His stamps painted ahead now, ahead of the rest of warmGrossUps' queue (the river: his inset's due any moment). */
+export const warmArtieGross = () => get.warm();
 /** Where his face's middle is on the buffer. */
 export const ARTIE_FX = FX, ARTIE_FY = FY;
 

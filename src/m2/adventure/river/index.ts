@@ -3,8 +3,11 @@
 // The boat ride (the first time through: `boatRide`): he gets on at the dock, Artie welcomes him aboard (he came
 // through the back; Artie doesn't care), the name comes up (Artie Avalanche: his brother, also Artie, a fucking
 // asshole), the tour, the boat runs out of gas short of the backside of water, Artie radios maintenance (nobody comes,
-// ever) and never shuts up. Getting out's up to him: into the water whenever he likes (Artie's not happy about it).
-// The swim needs none of it: off the dock into the water does the same.
+// ever) and never shuts up. Getting out's up to him: into the water whenever he likes. Artie's not happy about it
+// (his face in the corner inset the moment he goes over, every time; a lecture after him about leaving the group, worse
+// each time he does it), and he can climb back aboard: Artie says so, and before the gas is gone, picks his set up where
+// he left it. Out of gas, there's no set to go back to: he's after Meathead for help (push it, tow it, fetch gas), on or
+// off. The swim needs none of it: off the dock into the water does the same.
 //
 // Under the water: his air (bubbles from vents on the bed, pockets of air up through the tunnel's roof), the river's
 // wildlife after him (kinds.ts), the theme park showing through (discarded rides, then animatronic dinosaurs), the
@@ -32,14 +35,16 @@ import {
   PIRANHAS_BOAT, PIRANHAS, EELS, eelHome, SNAPPERS, GALLERY, CALLOUTS,
 } from './course';
 import {
-  ARTIE_WELCOME, BROTHER, BROTHER_ARTIE, ARTIE_TOUR, ARTIE_GAS, ARTIE_RADIO, ARTIE_STUCK, MEATHEAD_STUCK, ARTIE_JUMPED, ARTIE_ALONE,
-  MEATHEAD_JUMP, MEATHEAD_UNDER, MEATHEAD_AIR, GUESTS_SEE, GUESTS_KILL, type Dressed,
+  ARTIE_WELCOME, BROTHER, BROTHER_ARTIE, ARTIE_TOUR, ARTIE_GAS, ARTIE_RADIO, ARTIE_STUCK, MEATHEAD_STUCK, ARTIE_ALONE,
+  ARTIE_LEFT, ARTIE_LECTURE, ARTIE_BACK, ARTIE_LEFT_STUCK, ARTIE_HELP, ARTIE_ASK, ARTIE_BACK_STUCK,
+  MEATHEAD_JUMP, MEATHEAD_UNDER, MEATHEAD_AIR, GUESTS_SEE, GUESTS_KILL, type Dressed, type ByPants,
 } from './lines';
 import { drawRiverBackdrop, drawRiverBack, drawRiverFront, COUGHS } from './draw';
-import { startPip, pipLine, stepPip, drawPip, type ArtiePip } from './artiePip';
+import { startPip, pipLine, stepPip, drawPip, dropPip, type ArtiePip } from './artiePip';
 import { silenceAll } from '../../../m1/game/platform/speech';
 import { ARTIE_H } from './artie';
 import { warmGrossUps } from '../../grossKit';
+import { warmArtieGross } from './artieGross';
 
 const { x0, x1 } = SECTIONS.river;
 const R = (x: number) => x0 + x;
@@ -57,12 +62,14 @@ const AIR_FRAMES = 1350, AIR_REFILL = 7.5, BUBBLE_AIR = 0.3;
 const DROWN_EVERY = 45, DROWN_DAMAGE = 7;
 /** How far Artie's heard. */
 const EARSHOT = 760;
-/** How much of the tour he gets through on the way (the rest he does stuck). */
+/** How much of the tour he gets through on the way (the rest's never told: out of gas, the set's off). */
 const TOUR_RIDE = 4;
-/** Frames of quiet between Artie's lines once the boat's stuck (and after he's lost his guest). */
+/** Frames of quiet between Artie's lines once the boat's stuck (and while his guest's off it). */
 const STUCK_GAP = 100;
+/** Frames stood on the deck before he counts as back aboard (a hop off the rail and straight back on isn't a return). */
+const BACK_AFTER = 20;
 
-export type BoatPhase = 'moored' | 'ride' | 'stalled' | 'jumped';
+export type BoatPhase = 'moored' | 'ride' | 'stalled';
 export interface Bubble { x: number; y: number; r: number; vy: number }
 /** A cloud in the water: blood off something he killed in it, or what's coming out of his pants. */
 export interface Cloud { x: number; y: number; r: number; a: number; vx: number; vy: number; blood: boolean }
@@ -74,7 +81,11 @@ export interface River {
   talk: Talk;
   /** He's been in the water this visit (the first time in, the piranhas keep off a moment). */
   wetYet?: boolean;
-  boat: { x: number; v: number; phase: BoatPhase; block: ReturnType<typeof ledge> | null; onFor: number; rode: boolean; tour: number; n: number; smoke: number };
+  /** `tour`: the next of the spiel to tell (counted on once one's said through: one cut short is told again). `off`: he's
+   *  left it (mid-ride or stuck); `leaves`: how many times; `onFor`: frames stood on it (boarding, coming back). */
+  boat: { x: number; v: number; phase: BoatPhase; block: ReturnType<typeof ledge> | null; onFor: number; rode: boolean; tour: number; n: number; smoke: number; off: boolean; leaves: number };
+  /** What was last kept of the ride across his deaths (noteBoat). */
+  memo?: string;
   /** What Artie's saying (shown over him), the radio's static after a call. */
   artieSaid: string | null; artieRadio: boolean; static: number;
   bags: Record<string, number[]>;
@@ -84,12 +95,12 @@ export interface River {
   guests: Guest[]; guestNext: number; tankDead: number;
   suck: number;
   stain: Stain;
-  /** Artie losing it in a TV inset up in the corner, him gone over the side (artiePip.ts). */
+  /** Artie losing it in a TV inset up in the corner, him gone over the side (every time: artiePip.ts). */
   rage?: ArtiePip;
 }
 export const getRiver = (state: GameState) => sectionState<River>(state, 'river', () => ({
   talk: talk(),
-  boat: { x: R(BOAT.x), v: 0, phase: 'moored', block: null, onFor: 0, rode: false, tour: 0, n: 0, smoke: 0 },
+  boat: { x: R(BOAT.x), v: 0, phase: 'moored', block: null, onFor: 0, rode: false, tour: 0, n: 0, smoke: 0, off: false, leaves: 0 },
   artieSaid: null, artieRadio: false, static: 0, bags: {},
   o2: 1, lowSaid: false, drownT: 0, bubbles: [], said: new Set(),
   guests: [], guestNext: 200, tankDead: 0, suck: 0,
@@ -113,8 +124,13 @@ const artie = (state: GameState, rv: River, words: (d: Dressed) => string, radio
 /** ...one of a pool (round the bag for that way before any comes again). */
 const artieFrom = (state: GameState, rv: River, key: string, pool: Record<Dressed, readonly string[]>, radio = false) =>
   artie(state, rv, d => fromBag(rv, `${key}:${d}`, pool[d]), radio);
-/** The spiel's next joke (in order: the same one, whichever way it's worded). */
-const tour = (state: GameState, rv: River, i: number) => artie(state, rv, d => ARTIE_TOUR[d][i]);
+/** The spiel's next joke (in order: the same one, whichever way it's worded). Only counted told once it's said through
+ *  (cut off by him going over the side, it's the one he picks up from when he's back). */
+const tour = (state: GameState, rv: River, i: number): Line => {
+  const l = artie(state, rv, d => ARTIE_TOUR[d][i]);
+  l.then = () => { rv.boat.tour = Math.max(rv.boat.tour, i + 1); };
+  return l;
+};
 const mh = (text: string): Line => ({ voice: 'meathead', text });
 
 /** Where Artie stands in his boat (his feet). */
@@ -173,29 +189,33 @@ const build = (state: GameState) => {
 // ---------------------------------------------------------------------------------------------------------------
 // The boat ride
 
-/** Where the boat ride ended up, kept across his deaths (state.stageMemo): out of gas, or him gone over the side. */
-interface BoatMemo { x: number; phase: 'stalled' | 'jumped' }
+/** Where the boat ride ended up, kept across his deaths (state.stageMemo): out of gas, or still going with him off it
+ *  (how far into the spiel, how many times he's walked out). ('jumped': an older save's, him over the side: stuck.) */
+interface BoatMemo { x: number; phase: 'ride' | 'stalled' | 'jumped'; tour?: number; leaves?: number }
 const MEMO = 'm2:riverBoat';
 const memoOf = (state: GameState): BoatMemo | null => { try { return JSON.parse(state.stageMemo[MEMO] ?? 'null'); } catch { return null; } };
-/** The ride's been and gone (out of gas, or him over the side after it): remembered, so dying doesn't send him round
- *  it again from the dock. */
+/** The ride's been and gone (out of gas), or he's walked out on it: remembered, so dying doesn't send him round it
+ *  again from the dock. */
 const noteBoat = (state: GameState, rv: River) => {
   const b = rv.boat;
-  if (!b.rode || (b.phase !== 'stalled' && b.phase !== 'jumped')) return;
-  const m = memoOf(state);
-  if (m?.phase === b.phase && Math.abs(m.x - b.x) < 1) return;
-  state.stageMemo[MEMO] = JSON.stringify({ x: Math.round(b.x), phase: b.phase });
+  if (!b.rode || b.phase === 'moored' || (b.phase === 'ride' && !b.leaves)) return;
+  const m: BoatMemo = { x: Math.round(b.x / 16) * 16, phase: b.phase, tour: b.tour, leaves: b.leaves };
+  const k = JSON.stringify(m);
+  if (k === rv.memo) return;
+  rv.memo = k;
+  state.stageMemo[MEMO] = k;
 };
-/** Back from dying after the ride (or started further on than the dock, under the river): the boat's where it gave
- *  out, Artie in it, stuck; no welcome aboard, no tour again. */
+/** Back from dying after the ride (or started further on than the dock, under the river): the boat's where it was,
+ *  Artie in it (still going, or stuck); no welcome aboard, no tour from the top. He's off it, to Artie (he can get
+ *  back on). */
 const restoreBoat = (state: GameState, rv: River) => {
   const b = rv.boat;
-  const m = memoOf(state) ?? (state.checkpoint >= 21 ? { x: R(BOAT.stop), phase: 'jumped' as const } : null);
+  const m = memoOf(state) ?? (state.checkpoint >= 21 ? { x: R(BOAT.stop), phase: 'stalled' as const } : null);
   if (!m || !b.block) return;
   b.x = m.x; b.block.x = b.x; b.v = 0; b.smoke = 0; b.onFor = 0;
-  b.rode = true; b.phase = m.phase; b.tour = Math.max(b.tour, TOUR_RIDE);
-  // (off it, he's off it: no climbing back aboard)
-  if (m.phase === 'jumped') { const blk = b.block; state.blocks = state.blocks.filter(o => o !== blk); }
+  b.rode = true; b.phase = m.phase === 'ride' ? 'ride' : 'stalled';
+  b.tour = Math.max(b.tour, m.tour ?? TOUR_RIDE); b.leaves = Math.max(1, m.leaves ?? 1); b.off = true;
+  rv.memo = JSON.stringify(m);
 };
 
 const onBoat = (state: GameState, rv: River) => {
@@ -203,37 +223,91 @@ const onBoat = (state: GameState, rv: River) => {
   const cx = p.pos.x + p.width / 2, feet = p.pos.y + p.height;
   return !!b.block && p.isGrounded && Math.abs(feet - BOAT.deck) < 3 && cx > b.x - 4 && cx < b.x + BOAT.w + 4;
 };
+/** Gone off it: in the water, down past the deck, or out over the rail (jumped off: the moment he's over the side, not
+ *  when he lands). A hop on the deck isn't. */
+const offBoat = (state: GameState, rv: River) => {
+  const p = state.player, b = rv.boat;
+  const cx = p.pos.x + p.width / 2, feet = p.pos.y + p.height;
+  return p.swimming || feet > BOAT.deck + 10 || cx < b.x - 12 || cx > b.x + BOAT.w + 12;
+};
+/** How cross he is with him: the first walkout, the second, the third and on. */
+const tier = (b: River['boat']) => Math.max(0, Math.min(2, b.leaves - 1));
+const tiered = (pools: readonly ByPants[], b: River['boat']) => pools[Math.min(pools.length - 1, tier(b))];
+
+/**
+ * He's gone over the side (or off it any way, once the ride's going): Artie's face up in the corner there and then,
+ * every time, seething, and his yell as soon as nobody's mid-line (his own line cut clean off for it: never anybody
+ * over anybody); then the lecture (ride), or the help wanted (out of gas).
+ */
+const leave = (state: GameState, rv: River) => {
+  const b = rv.boat, t = rv.talk;
+  b.off = true; b.leaves++;
+  // (his own line stopped dead and its words down, so the yell's next and nothing's left waiting on a long line (the
+  // playtest: his face came up and the yell never did); the current line's let go first, so its end isn't taken for
+  // it being said through: a joke of the spiel cut off is told again when he's back)
+  if (t.busy && t.current?.voice === 'm2.safari') { const l = t.current; t.busy = false; t.current = null; silenceAll(); l.set?.(null); }
+  t.q = []; t.gap = 0;
+  const pip = startPip('rage', rv.rage);
+  rv.rage = pip;
+  const pool = b.phase === 'stalled' ? ARTIE_LEFT_STUCK : tiered(ARTIE_LEFT, b);
+  const l = artieFrom(state, rv, b.phase === 'stalled' ? 'leftStuck' : `left${tier(b)}`, pool), set = l.set;
+  // (the inset's yell is this line: the jaw drops as it starts)
+  l.set = s => { set?.(s); pipLine(pip, s); };
+  t.q.push(l, mh(pick(MEATHEAD_JUMP)));
+};
+/** Back aboard: Artie says so (whatever he was saying finished first), then the set from where it stopped, or (out of
+ *  gas) on at him for help. */
+const back = (state: GameState, rv: River) => {
+  const b = rv.boat, t = rv.talk;
+  b.off = false;
+  // (his yell not out yet, and now it never will be: his face off with it, not up there waiting on it)
+  dropPip(rv.rage);
+  t.q = [];
+  t.gap = Math.min(t.gap, 12);
+  const stuck = b.phase === 'stalled';
+  t.q.push(artieFrom(state, rv, stuck ? 'backStuck' : `back${tier(b)}`, stuck ? ARTIE_BACK_STUCK : tiered(ARTIE_BACK, b)));
+};
 
 const updateBoat = (state: GameState, rv: River) => {
   const b = rv.boat, t = rv.talk, p = state.player;
   if (!b.block) return;
-  // (his gross-ups painted ahead in idle slices while he's aboard: the inset, him going over the side, never paints on the spot)
-  if (b.phase !== 'jumped') warmGrossUps();
+  // (his gross-ups painted ahead in idle slices from the moment he's here (his own first): the inset, him going over the
+  // side, never paints on the spot)
+  warmArtieGross(); warmGrossUps();
   const aboard = onBoat(state, rv);
+  b.onFor = aboard ? b.onFor + 1 : 0;
   const near = Math.abs(p.pos.x - artieAt(rv).x) < EARSHOT && p.pos.y < 1100;
   // Out of earshot: whatever he had to say goes unheard (he's still saying it)
   if (!near) t.q = t.q.filter(l => l.voice !== 'm2.safari');
   // Boarding: welcome aboard, and off. The name comes up; the tour.
   if (b.phase === 'moored') {
-    b.onFor = aboard ? b.onFor + 1 : 0;
     if (b.onFor > 15) {
       b.phase = 'ride'; b.rode = true;
       t.q.push(artie(state, rv, d => ARTIE_WELCOME[d][0]), artie(state, rv, d => ARTIE_WELCOME[d][1]));
       const bro = (i: number) => artie(state, rv, d => BROTHER_ARTIE[d][i]);
       t.q.push(mh(BROTHER.meathead1), bro(0), mh(BROTHER.meathead2), bro(1), mh(BROTHER.meathead3), bro(2), mh(BROTHER.meathead4));
     }
-  }
+  } else if (!b.off && offBoat(state, rv) && !aboard) leave(state, rv);
+  else if (b.off && b.onFor >= BACK_AFTER) back(state, rv);
   if (b.phase === 'ride') {
-    // (the spiel, in order, once the introductions are done: the first of it on the way, the rest when he's stuck)
-    if (!t.q.length && !t.busy && b.tour < TOUR_RIDE) t.q.push(tour(state, rv, b.tour++));
-    // The boat's pace: there by the time he's done (a crawl, if he's not), never quicker than it goes
+    // (the spiel, in order, once the introductions are done, him aboard to hear it: the first of it on the way; the rest
+    // never (out of gas, the set's off))
+    if (!b.off && !t.q.length && !t.busy && b.tour < TOUR_RIDE) t.q.push(tour(state, rv, b.tour));
+    // (him off it: on at him about it while he's in earshot)
+    if (b.off && near && !t.q.length && !t.busy) {
+      t.gap = Math.max(t.gap, STUCK_GAP);
+      t.q.push(artieFrom(state, rv, `lecture${tier(b)}`, tiered(ARTIE_LECTURE, b)));
+    }
+    // The boat's pace: there by the time he's done (a crawl, if he's not), never quicker than it goes; with nobody
+    // aboard to pace it to, just on down the river
     const left = R(BOAT.stop) - b.x;
     const talkLeft = [...t.q, ...ARTIE_TOUR[dressed(state)].slice(b.tour, TOUR_RIDE).map(text => ({ text }))].reduce((n, l) => n + l.text.length * 4.5 + 30, 0) + 120;
-    const want = left <= 0 ? 0.25 : Math.max(0.35, Math.min(BOAT.speed, left / talkLeft));
+    const want = b.off ? (left <= 0 ? 0.25 : 1) : left <= 0 ? 0.25 : Math.max(0.35, Math.min(BOAT.speed, left / talkLeft));
     b.v += (want - b.v) * 0.02;
-    // Out of gas: the engine coughs, and that's it (once he's through the spiel, there or as near as makes no odds)
-    if ((left <= 0 && b.tour >= TOUR_RIDE && !t.q.length) || b.x >= R(BOAT.stop + 160)) {
-      b.phase = 'stalled'; b.smoke = 90;
+    // Out of gas: the engine coughs, and that's it (once he's through the spiel, there or as near as makes no odds; him
+    // off it, there)
+    if ((left <= 0 && (b.off || (b.tour >= TOUR_RIDE && !t.q.length))) || b.x >= R(BOAT.stop + 160)) {
+      b.phase = 'stalled'; b.smoke = 90; b.n = 0;
       t.q = t.q.filter(l => l.voice !== 'm2.safari');
       t.q.push(artie(state, rv, d => ARTIE_GAS[d][0]), artie(state, rv, d => ARTIE_RADIO[d][0], true), artie(state, rv, d => ARTIE_GAS[d][1]));
     }
@@ -251,39 +325,21 @@ const updateBoat = (state: GameState, rv: River) => {
     if (b.smoke === 20) playSound('clink', 0.6, -6);
     b.smoke--;
   }
-  // Stuck: he never shuts up (the radio, the life story, round and round; Meathead's at the end of his rope)
+  // Stuck: he never shuts up, but the set's off: the radio, and on at Meathead to help (aboard: paddle, push, gas; in
+  // the water: push it, tow it, swim for gas), a gripe now and then; Meathead's at the end of his rope
   if (b.phase === 'stalled' && near && !t.q.length && !t.busy) {
     b.n++;
     // (a breather between them: he's not in a hurry, he's got nowhere to be)
     t.gap = Math.max(t.gap, STUCK_GAP);
-    if (b.n % 4 === 0) t.q.push(artieFrom(state, rv, 'radio', ARTIE_RADIO, true));
-    else if (b.tour < ARTIE_TOUR.clean.length) t.q.push(tour(state, rv, b.tour++));
-    else t.q.push(artieFrom(state, rv, 'stuck', ARTIE_STUCK));
-    if (b.n % 3 === 2) t.q.push(mh(fromBag(rv, 'mstuck', MEATHEAD_STUCK)));
-  }
-  // Over the side (whenever he likes): Artie's not happy. Then on at himself, and the radio.
-  if (b.phase !== 'jumped' && p.swimming) {
-    const wasRiding = b.phase !== 'moored';
-    b.phase = 'jumped';
-    t.q = [];
-    // (over the side mid-spiel: his spiel's cut off there and then, so the yell's next and nothing's left waiting on a
-    // long line (the playtest: his face came up and the yell never did))
-    if (wasRiding && t.busy && t.current?.voice === 'm2.safari') { silenceAll(); const l = t.current; t.busy = false; t.current = null; t.gap = 0; l.set?.(null); }
-    // (off it, he's off it: Artie's not having him back aboard, there's no climbing back on)
-    if (wasRiding && b.block) { const blk = b.block; state.blocks = state.blocks.filter(o => o !== blk); }
-    if (wasRiding) t.q.push(mh(pick(MEATHEAD_JUMP)));
-    if (wasRiding) {
-      // (and up in the corner, Artie losing it: his line's the yell)
-      // (his face up as his yell starts, not before: never up there waiting on him)
-      const l = artieFrom(state, rv, 'jumped', ARTIE_JUMPED), set = l.set;
-      l.set = s => { set?.(s); if (s && !rv.rage) rv.rage = startPip('rage'); pipLine(rv.rage, s); };
-      t.q.unshift(l);
+    if (b.off) {
+      if (b.n % 3 === 0) t.q.push(b.n % 2 ? artieFrom(state, rv, 'alone', ARTIE_ALONE) : artieFrom(state, rv, 'radio', ARTIE_RADIO, true));
+      else t.q.push(artieFrom(state, rv, 'help', ARTIE_HELP));
+    } else {
+      if (b.n % 3 === 0) t.q.push(artieFrom(state, rv, 'radio', ARTIE_RADIO, true));
+      else if (b.n % 6 === 2) t.q.push(artieFrom(state, rv, 'stuck', ARTIE_STUCK));
+      else t.q.push(artieFrom(state, rv, 'ask', ARTIE_ASK));
+      if (b.n % 3 === 2) t.q.push(mh(fromBag(rv, 'mstuck', MEATHEAD_STUCK)));
     }
-  }
-  if (b.phase === 'jumped' && b.rode && near && !t.q.length && !t.busy && p.swimming) {
-    b.n++;
-    t.gap = Math.max(t.gap, STUCK_GAP);
-    t.q.push(artieFrom(state, rv, 'alone', ARTIE_ALONE));
   }
   // The boat moves (him with it, stood on it)
   if (b.v > 0) {

@@ -37,7 +37,7 @@ const drawBoat = (c: Ctx, state: GameState, rv: River) => {
   const b = rv.boat, x = b.x, d = BOAT.deck, f = state.frame;
   // (the launch itself, its wake: surface.ts)
   // (dying: it lurches with each cough; out of gas, its low-fuel light blinks)
-  const dying = b.phase !== 'moored' && b.phase !== 'ride';
+  const dying = b.phase === 'stalled';
   const jolt = b.smoke > 30 && COUGHS.some(k => b.smoke <= k && b.smoke > k - 6) ? -2 : 0;
   drawSurfaceBoat(c, state, { x, v: b.v, on: true, jolt, dry: dying });
   // (the engine at the back: dead, a thin wisp off its cowl now and then)
@@ -45,7 +45,7 @@ const drawBoat = (c: Ctx, state: GameState, rv: River) => {
   // Artie
   const ax = x + 200, p = state.player;
   const facing = p.pos.x + p.width / 2 < ax ? -1 : 1;
-  const pose = rv.artieRadio ? 'radio' : b.phase === 'jumped' && rv.artieSaid ? 'angry' : rv.artieSaid ? (b.phase === 'ride' && b.tour > 0 ? 'point' : 'talk') : 'stand';
+  const pose = rv.artieRadio ? 'radio' : b.off && b.phase !== 'moored' && rv.artieSaid ? 'angry' : rv.artieSaid ? (b.phase === 'ride' && b.tour > 0 ? 'point' : 'talk') : 'stand';
   drawSafariArtie(c, ax, d, pose === 'point' ? 1 : facing, f, pose);
 };
 
