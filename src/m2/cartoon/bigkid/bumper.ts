@@ -21,17 +21,20 @@
 //   THE DRIVERS     men and women, skinny to heavy (squeezed into the car so it reads): heavy ones are heavier cars
 //                   (harder to shove, bounce less, ram harder), take less from a bump and from a boost (one boost
 //                   won't kill a fresh heavy: wear them down first); skinny ones fly about and break easy.
-//   THE HITS        a plain bump chips them (by how hard, and the mass behind it). A BOOSTED ram does massive damage.
-//                   A car at nothing (any way: his boost, his bumps, the others ramming it, a hulk shoved into it)
-//                   blows up and counts: the car's left a burnt-out hulk, a pushable obstacle (it blocks and bounces
-//                   everyone, shoves heavy, and a hard shove into a live car hurts it); the driver's flung up at the
-//                   screen, splats on the glass, peels down it and drops flat on the rink floor. Run the pancake over:
-//                   OVERKILL (not needed to win; the announcer calls it).
-//   THE OTHERS      they wander, ram him, ram each other, gang up on him as they thin out, and now and then line up on
-//                   him, rev (the tell: shaking, beeping, exhaust) and lunge.
-//   THE END         all dead: EVERYBODY'S DEAD!, his line; back out at the booth, the carny sore; the first win, the
-//                   prize: a CHARGE SHARD (upgrades/shardAward.ts: one a save, the card buffered). Time's up: TIME!, the
-//                   carny's TRY AGAIN? (the box: again at once, no penalty; or back out).
+//   THE HITS        only HE hurts them (ME_PUSH, CREDIT_T): his own drive into a car (sat still and rammed, it's just a
+//                   bounce), or a car or hulk he's just sent flying smacking into one. Their bumps on each other knock
+//                   them about but never hurt. A plain bump of his chips them (by how hard, and the mass behind it). A
+//                   BOOSTED ram does massive damage. A car at nothing blows up and counts: the car's left a burnt-out
+//                   hulk, a pushable obstacle (it blocks and bounces everyone, shoves heavy, and one he's shoved hard
+//                   into a live car hurts it); the driver's flung up at the screen, splats on the glass, peels down it
+//                   and drops flat on the rink floor. Run the pancake over: OVERKILL (not needed to win).
+//   THE OTHERS      each on its own whim (think): they go after anyone, him or each other, in bursts, lose interest,
+//                   overshoot, weave, swerve off, stop dead, wander; now and then line up, rev (the tell: shaking,
+//                   beeping, exhaust) and lunge.
+//   THE END         won or lost, the cars stop dead (runFrozen); his line or the carny's; then the box: again or not
+//                   (PLAY AGAIN? / TRY AGAIN?). No after a win: back out at the booth, the carny sore; the first win,
+//                   the prize: a CHARGE SHARD (upgrades/shardAward.ts: one a save, the card buffered; again after the
+//                   first win: the card, then the round, for fun). No after a loss: back out.
 //
 // Nothing here outlives a death but the shard (in the save). He can't die in here anyway.
 
@@ -78,7 +81,8 @@ const CARD_HOLD = 90;
 const TURN_ACC = 0.0075, TURN_DAMP = 0.88, TURN_MAX = 0.075;
 const GAS = 0.13, GAS_AI = 0.112, REVERSE = 0.08;
 const DRAG_F = 0.965, DRAG_F_BOOST = 0.985, DRAG_L = 0.92, VMAX = 11;
-const BOOST_T = 18, BOOST_PUSH = 0.5, BOOST_REFILL = 200;
+/** (the owner's, 2026-11-02: "reduce the cooldown for boost by a bit too": 200 frames to 155) */
+const BOOST_T = 18, BOOST_PUSH = 0.5, BOOST_REFILL = 155;
 const LUNGE_T = 16, LUNGE_PUSH = 0.42;
 /** Bounce off each other, off the rail. */
 const E_CARS = 0.82, E_RAIL = 0.6;
@@ -87,6 +91,12 @@ const BUMP_K = 1.5, BOOST_DMG = 135;
 /** The build: weight (mass, toughness). */
 const BUILD_W: Record<Build, number> = { 0: 0.72, 1: 1, 2: 1.45 };
 const ME_MASS = 2.0, HULK_MASS = 2.5;
+/** Only he kills (the owner's, 2026-11-02: "another car cannot elimate another car, only you can kill another rider";
+ *  "make sure that your own collisions bump them. they cannot die if you idle"): a rival's hurt only by his own drive
+ *  into it (his speed along the hit, at least ME_PUSH: sat still and rammed, nobody's hurt, it's just a bounce), or by a
+ *  car or hulk he's sent flying in the last CREDIT_T frames (his still: the kill's his). Their bumps on each other just
+ *  knock them about. */
+const ME_PUSH = 1.0, CREDIT_T = 50;
 
 // ---------------------------------------------------------------------------------------------------------------
 // Who's driving (men and women, skinny to heavy, skin tones, hair: the same lot every round, shuffled about)
@@ -102,11 +112,21 @@ const RIVAL_LOOKS: (Look & { color: string })[] = [
 export const _RIVAL_LOOKS = RIVAL_LOOKS;
 const ME_COLOR = '#DC2626';
 
-interface Ai { mode: 'roam' | 'hunt' | 'rev' | 'lunge' | 'back'; t: number; tgt: Car | null; px: number; py: number; cool: number; side: number; stuck: number }
+/** Each driver's own way of going at it (rolled each round, leaning on the build): how keen on him (aggro), how long
+ *  they keep at one thing (focus, frames), how much they weave (wobble), how far ahead they aim (lead, frames), how
+ *  slow to notice he's moved (lag, frames: they drive at where he was, and overshoot), how often they swerve off or
+ *  stop dead (rash). */
+interface Pers { aggro: number; focus: number; wobble: number; lead: number; lag: number; rash: number }
+interface Ai {
+  mode: 'roam' | 'hunt' | 'rev' | 'lunge' | 'back' | 'idle' | 'swerve'; t: number; tgt: Car | null; px: number; py: number; cool: number; side: number; stuck: number;
+  pers: Pers; ph: number; aimX: number; aimY: number; aimT: number;
+}
 interface Car {
   x: number; y: number; a: number; vx: number; vy: number; av: number;
   hp: number; mass: number; w: number; look: Look; color: string; num: number;
   me: boolean; dead: boolean; boostT: number; lastBoost: number; hurtAt: number; ai: Ai;
+  /** Sent flying by him: till this tick, what it hits is on him. */
+  credit: number;
 }
 type FlingPhase = 'up' | 'smack' | 'peel' | 'drop' | 'flat';
 interface Fling { look: Look; sx: number; sy: number; fx: number; fy: number; t: number; over: boolean; rot: number; dir: number; px: number; py: number }
@@ -123,6 +143,10 @@ interface Bumper {
   carny: Said | null; mh: Said | null;
   prompted: boolean; wasUp: boolean; was: Partial<Controls>;
   rammedAt: number; buzzAt: number; lineAt: number; tick: number;
+  /** The TRY AGAIN? box is after a win (no: the payout) rather than a loss (no: back out). */
+  askWon: boolean;
+  /** Took the box's yes after his first win: the prize card first, then the round. */
+  againAfterAward: boolean;
   /** B pressed fresh this frame. */
   boostPress: boolean;
   /** The carny flagging him down (bumper.ts sets it, the booth draws it); when he last called out. */
@@ -136,7 +160,7 @@ const bumperOf = (state: GameState): Bumper => {
     phase: 'off', t: 0, token: 0, ask: null, shard: null, cardT: 0, cardArmed: false,
     cars: [], flings: [], parts: [], pops: [], clock: 0, shake: 0, replay: false,
     carny: null, mh: null, prompted: false, wasUp: false, was: {}, rammedAt: -9999, buzzAt: 0, lineAt: -9999, tick: 0, boostPress: false,
-    waving: false, callAt: -99999,
+    waving: false, callAt: -99999, askWon: false, againAfterAward: false,
   });
   return b;
 };
@@ -283,25 +307,30 @@ export const updateBumper = (ctx: FrameContext, controls: Controls): Controls | 
     }
     case 'won': {
       hold(state, b, true);
-      runSim(state, b, null);
+      runFrozen(state, b);
       if (b.t === 1) { playSound('ding', 0.9, 0); playSound('powerup', 0.6, 4); b.shake = 0; }
       if (b.t === 40) mhSays(b, pickLine(byPants(state, MH_WIN)), true, () => { if (b.phase === 'won') b.t = Math.max(b.t, 9000); });
-      if (b.t > 9000 || b.t > 520) toPayout(state, b);
+      if (b.t > 9000 || b.t > 520) toRetry(b, true);
       break;
     }
     case 'lost': {
       hold(state, b, true);
-      runSim(state, b, null);
+      runFrozen(state, b);
       if (b.t === 1) { playSound('truckhorn', 0.8, 0); silenceAll(); b.mh = null; b.carny = null; }
-      if (b.t === 50) { const tok = b.token; carnySays(b, pickLine(byPants(state, CARNY_LOSE)), () => { if (b.token === tok && b.phase === 'lost') toRetry(b); }); }
-      if (b.t > 700) toRetry(b);
+      if (b.t === 50) { const tok = b.token; carnySays(b, pickLine(byPants(state, CARNY_LOSE)), () => { if (b.token === tok && b.phase === 'lost') toRetry(b, false); }); }
+      if (b.t > 700) toRetry(b, false);
       break;
     }
     case 'retry': {
       hold(state, b, true);
-      runSim(state, b, null);
+      runFrozen(state, b);
       const r = tickAsk(b.ask!, state.frame);
-      if (r === 'accept') { b.ask = null; startRound(b); }
+      if (r === 'accept') {
+        b.ask = null;
+        // (again after his first win: the prize is his first (the card), then the round, for fun now)
+        if (b.askWon && !b.replay && awardShard(SHARD_LAND, SHARD_ID)) { b.replay = true; b.againAfterAward = true; b.token++; b.mh = null; toAward(b); }
+        else { if (b.askWon) b.replay = shardWon(SHARD_LAND, SHARD_ID); startRound(b); }
+      } else if (r === 'back' && b.askWon) { b.ask = null; toPayout(state, b); }
       else if (r === 'back') {
         b.ask = null; b.token++;
         outOfRink(state, b);
@@ -318,7 +347,7 @@ export const updateBumper = (ctx: FrameContext, controls: Controls): Controls | 
     }
     case 'award': {
       hold(state, b, false);
-      if (b.shard && tickShardCard(b.shard, state.frame)) { b.shard = null; release(state, b); }
+      if (b.shard && tickShardCard(b.shard, state.frame)) { b.shard = null; if (b.againAfterAward) { b.againAfterAward = false; startRound(b); } else release(state, b); }
       break;
     }
   }
@@ -347,9 +376,12 @@ const toAsk = (b: Bumper) => {
     ? 'NO PRIZE THIS TIME. KILL EVERYONE ANYWAY?'
     : `KILL ALL ${RIVALS} CARS IN ${ROUND_SECS} SECONDS. WIN A PRIZE.`);
 };
-const toRetry = (b: Bumper) => {
-  b.phase = 'retry'; b.t = 0;
-  b.ask = openAsk('TRY AGAIN?', 'NO PENALTY. THE CLOCK STARTS OVER.');
+/** The frozen beat over, won or lost: his pick, go again or not (the owner's: "then you choose to try again or not"). */
+const toRetry = (b: Bumper, won: boolean) => {
+  b.phase = 'retry'; b.t = 0; b.askWon = won;
+  b.ask = won
+    ? openAsk('PLAY AGAIN?', b.replay ? 'ANOTHER ROUND, JUST FOR FUN.' : 'GRAB YOUR PRIZE, THEN ANOTHER ROUND JUST FOR FUN.')
+    : openAsk('TRY AGAIN?', 'NO PENALTY. THE CLOCK STARTS OVER.');
 };
 const toPayout = (state: GameState, b: Bumper) => {
   b.token++; b.phase = 'payout'; b.t = 0;
@@ -371,17 +403,29 @@ const toAward = (b: Bumper) => { b.phase = 'award'; b.t = 0; b.shard = openShard
 // ---------------------------------------------------------------------------------------------------------------
 // The round
 
-const mkAi = (): Ai => ({ mode: 'roam', t: 30 + Math.floor(rnd() * 60), tgt: null, px: 400, py: 340, cool: 120 + Math.floor(rnd() * 120), side: 1, stuck: 0 });
+/** A driver's head (`w`: the build's weight; the heavy ones come straighter and keener, the skinny ones flit about). */
+const mkAi = (w: number): Ai => {
+  const heavy = clamp((w - 0.72) / 0.73, 0, 1);
+  const pers: Pers = {
+    aggro: clamp(0.25 + rnd() * 0.45 + heavy * 0.15, 0.2, 0.85),
+    focus: 50 + Math.floor(rnd() * 90 + heavy * 50),
+    wobble: 0.15 + rnd() * 0.5 - heavy * 0.1,
+    lead: Math.floor(rnd() * 18),
+    lag: 8 + Math.floor(rnd() * 26),
+    rash: 0.003 + rnd() * 0.008,
+  };
+  return { mode: 'roam', t: 30 + Math.floor(rnd() * 60), tgt: null, px: 400, py: 340, cool: 120 + Math.floor(rnd() * 120), side: 1, stuck: 0, pers, ph: rnd() * 6.3, aimX: 400, aimY: 340, aimT: 0 };
+};
 const setupRound = (b: Bumper) => {
   const cx = (RINK.x0 + RINK.x1) / 2, cy = (RINK.y0 + RINK.y1) / 2;
   b.cars = [];
-  b.cars.push({ x: cx, y: RINK.y1 - 60, a: -Math.PI / 2, vx: 0, vy: 0, av: 0, hp: 100, mass: ME_MASS, w: 1.3, look: { woman: false, build: 1, skin: '#E0AC69', hair: '#18181B', shirt: '#E0AC69', pants: '#1E3A8A', long: false, bald: false, seed: 1, meathead: 'clean' }, color: ME_COLOR, num: 1, me: true, dead: false, boostT: 0, lastBoost: -99, hurtAt: -99, ai: mkAi() });
+  b.cars.push({ x: cx, y: RINK.y1 - 60, a: -Math.PI / 2, vx: 0, vy: 0, av: 0, hp: 100, mass: ME_MASS, w: 1.3, look: { woman: false, build: 1, skin: '#E0AC69', hair: '#18181B', shirt: '#E0AC69', pants: '#1E3A8A', long: false, bald: false, seed: 1, meathead: 'clean' }, color: ME_COLOR, num: 1, me: true, dead: false, boostT: 0, lastBoost: -99, hurtAt: -99, ai: mkAi(1), credit: -1 });
   // (the others round the top and sides of the rink, facing in; who's where shuffled)
   const order = RIVAL_LOOKS.map((_, i) => i).sort(() => rnd() - 0.5);
   const spots: [number, number][] = [[RINK.x0 + 80, RINK.y0 + 70], [cx - 150, RINK.y0 + 60], [cx + 150, RINK.y0 + 60], [RINK.x1 - 80, RINK.y0 + 70], [RINK.x0 + 70, cy + 40], [RINK.x1 - 70, cy + 40]];
   order.slice(0, RIVALS).forEach((li, i) => {
     const L = RIVAL_LOOKS[li], [x, y] = spots[i], w = BUILD_W[L.build];
-    b.cars.push({ x, y, a: Math.atan2(cy - y, cx - x), vx: 0, vy: 0, av: 0, hp: 100, mass: 0.6 + w, w, look: L, color: L.color, num: li + 2, me: false, dead: false, boostT: 0, lastBoost: -99, hurtAt: -99, ai: mkAi() });
+    b.cars.push({ x, y, a: Math.atan2(cy - y, cx - x), vx: 0, vy: 0, av: 0, hp: 100, mass: 0.6 + w, w, look: L, color: L.color, num: li + 2, me: false, dead: false, boostT: 0, lastBoost: -99, hurtAt: -99, ai: mkAi(w), credit: -1 });
   });
   b.flings = []; b.parts = []; b.pops = []; b.clock = ROUND_SECS * 60; b.shake = 0; b.mh = null;
 };
@@ -437,6 +481,17 @@ const runSim = (state: GameState, b: Bumper, controls: Controls | null) => {
     if (rnd() < 0.03 + sp * 0.03) { const [tx, ty] = poleTip(c); for (let i = 0; i < 3; i++) addPart(b, tx, ty, (rnd() - 0.5) * 3, (rnd() - 0.5) * 3, 8 + rnd() * 6, rnd() < 0.5 ? '#FEF9C3' : '#67E8F9', 1.5, 'spark'); }
   }
   if (fast > 0 && b.tick - b.buzzAt > 14 && rnd() < 0.5) { b.buzzAt = b.tick; playSound('taser', 0.05 + fast * 0.012, -6 + rnd() * 8); }
+  tickFlings(state, b);
+  tickParts(b);
+  if (b.shake > 0) b.shake *= 0.85;
+  for (const pp of b.pops) pp.t++;
+  b.pops = b.pops.filter(pp => pp.t < 70);
+};
+
+/** Won or lost: the cars stop dead where they are (the owner's: "if you fail/succeed, pause the action. don't show them
+ *  continuing to bump into you"): no driving, no bumps, no hits; just the flung drivers, the smoke and sparks settling. */
+const runFrozen = (state: GameState, b: Bumper) => {
+  for (const c of b.cars) { c.vx = 0; c.vy = 0; c.av = 0; c.boostT = 0; if (!c.me && c.ai.mode !== 'roam') { c.ai.mode = 'roam'; c.ai.t = 999; } }
   tickFlings(state, b);
   tickParts(b);
   if (b.shake > 0) b.shake *= 0.85;
@@ -513,20 +568,30 @@ const impact = (state: GameState, b: Bumper, A: Car, B: Car, rel: number, cA: nu
     for (let i = 0; i < Math.min(8, rel * 2); i++) addPart(b, x, y, (rnd() - 0.5) * rel, (rnd() - 0.5) * rel, 10, i % 2 ? '#FEF08A' : '#FFFFFF', 2, 'spark');
   }
   if (rel > 3.5) b.shake = Math.max(b.shake, rel * 0.6);
-  const hurt = (V: Car, By: Car, push: number) => {
-    if (V.dead || V.me || push <= 0.3) return;
+  const meCar = b.cars[0];
+  // (only his doing hurts (ME_PUSH, CREDIT_T): his own drive into them, or a car or hulk he sent flying)
+  const hurt = (V: Car, By: Car, push: number, flung = false) => {
+    if (V.dead || V.me) return;
+    const his = flung || (By.me ? push >= ME_PUSH : By.credit > b.tick && push > 0.3);
+    if (!his) return;
+    // (what he hit goes flying on his say-so: whatever it smacks next is on him too; a knock-on, a shorter while)
+    if (!flung) V.credit = Math.max(V.credit, b.tick + (By.me ? CREDIT_T : CREDIT_T / 2));
     if (b.tick - V.hurtAt < 10) return;
     const byMass = By.dead ? HULK_MASS : By.mass;
     let dmg = (push * BUMP_K + rel * 0.25 * BUMP_K * 0.3) * (byMass / 1.6) / V.w;
-    // (a boosted ram (his), or one of theirs lunging: massive)
+    // (a boosted ram (his): massive)
     const boosted = By.me && (By.boostT > 0 || b.tick - By.lastBoost < BOOST_T + 6) && push > 2.2;
     if (boosted) { dmg = Math.max(dmg, BOOST_DMG / V.w); By.boostT = 0; playSound('punch', 1, -6); playSound('crunch', 0.8, 0); b.shake = Math.max(b.shake, 9); }
-    else if (!By.me && !By.dead && By.ai.mode === 'lunge') dmg *= 2;
     if (dmg < 1) return;
     V.hurtAt = b.tick; V.hp -= dmg;
-    if (V.hp <= 0) kill(state, b, V, By, boosted);
+    if (V.hp <= 0) kill(state, b, V, By.me ? By : meCar, boosted);
   };
+  // (a car he's sent flying takes the smack too, whatever it hits)
+  const flown = (V: Car, Other: Car) => { if (!Other.me && V.credit > b.tick && rel * 0.5 > 0.3) hurt(V, Other, rel * 0.5, true); };
   hurt(B, A, cA); hurt(A, B, cB);
+  flown(A, B); flown(B, A);
+  // (a hulk he shoves: on him too, while it slides)
+  if (A.me && B.dead && cA >= ME_PUSH) B.credit = b.tick + CREDIT_T; else if (B.me && A.dead && cB >= ME_PUSH) A.credit = b.tick + CREDIT_T;
   // (him rammed hard by one of theirs: knocked about, now and then his line)
   const me = A.me ? A : B.me ? B : null, them = me === A ? B : A, push = me === A ? cB : cA;
   if (me && !them.dead && push > 3.5 && b.tick - b.rammedAt > 480 && b.tick - b.lineAt > 300 && rnd() < 0.5) { b.rammedAt = b.tick; mhSays(b, pickLine(byPants(state, MH_RAMMED)), false); }
@@ -545,12 +610,18 @@ const kill = (state: GameState, b: Bumper, c: Car, by: Car, boosted: boolean) =>
   if (by.me && b.tick - b.lineAt > 180 && rnd() < (boosted ? 0.7 : 0.4)) mhSays(b, pickLine(byPants(state, MH_KILL)), false);
 };
 
-/** The others: wander, hunt him (more as they thin out), hunt each other, line up and lunge; back off a wall. */
+/** The others (the owner's, 2026-11-02: "make them more sporadic with their ability to track you"; "other cars may try
+ *  to bump into others; they won't one track to you only"): each on its own whim (Pers). They pick anyone to go after,
+ *  him or one of the others, keep at it a burst (focus), then lose interest; they drive at where their mark was a moment
+ *  ago (lag), so they overshoot; they weave, swerve off, stop dead for a bit, wander; now and then line up, rev (the
+ *  tell: shaking, beeping, exhaust) and lunge. They gang up on him a bit more as they thin out. Back off a wall. */
 const think = (b: Bumper, c: Car): { turn: number; gas: boolean; rev: boolean } => {
-  const ai = c.ai, me = b.cars[0];
-  ai.t--; ai.cool--;
+  const ai = c.ai, me = b.cars[0], P = ai.pers;
+  ai.t--; ai.cool--; ai.aimT--; ai.ph += 0.05 + P.wobble * 0.08;
   const sp = Math.hypot(c.vx, c.vy);
   if (ai.mode === 'back') { if (ai.t <= 0) { ai.mode = 'roam'; ai.t = 20; } return { turn: ai.side, gas: false, rev: true }; }
+  if (ai.mode === 'idle') { if (ai.t <= 0) { ai.mode = 'roam'; ai.t = 0; } return { turn: rnd() < 0.04 ? ai.side : 0, gas: false, rev: false }; }
+  if (ai.mode === 'swerve') { if (ai.t <= 0) { ai.mode = ai.tgt ? 'hunt' : 'roam'; ai.t = Math.max(ai.t, 20); } return { turn: ai.side, gas: true, rev: false }; }
   if (ai.mode === 'rev') {
     // (the tell: stopped, shaking, beeping, blowing smoke out the back)
     c.a += (rnd() - 0.5) * 0.05;
@@ -560,24 +631,37 @@ const think = (b: Bumper, c: Car): { turn: number; gas: boolean; rev: boolean } 
     if (ai.t <= 0) { ai.mode = 'lunge'; ai.t = 34; c.boostT = LUNGE_T; playSound('whoosh', 0.7, -2); }
     return { turn: Math.abs(diff) > 0.05 ? Math.sign(diff) : 0, gas: false, rev: false };
   }
-  if (ai.mode === 'lunge') { if (ai.t <= 0) { ai.mode = 'hunt'; ai.t = 60; } return { turn: 0, gas: true, rev: false }; }
-  const live = b.cars.filter(o => !o.me && !o.dead);
-  if (ai.t <= 0 || (ai.tgt && ai.tgt.dead)) {
-    const pHunt = 0.45 + (RIVALS - live.length) * 0.09, r = rnd();
-    const others = live.filter(o => o !== c);
-    if (r < pHunt) { ai.mode = 'hunt'; ai.tgt = me; }
-    else if (r < pHunt + 0.3 && others.length) { ai.mode = 'hunt'; ai.tgt = others.reduce((a, o) => (Math.hypot(o.x - c.x, o.y - c.y) < Math.hypot(a.x - c.x, a.y - c.y) ? o : a), others[0]); }
-    else { ai.mode = 'roam'; ai.tgt = null; ai.px = RINK.x0 + 80 + rnd() * (RINK.x1 - RINK.x0 - 160); ai.py = RINK.y0 + 80 + rnd() * (RINK.y1 - RINK.y0 - 160); }
-    ai.t = 90 + Math.floor(rnd() * 130);
+  if (ai.mode === 'lunge') { if (ai.t <= 0) { ai.mode = 'hunt'; ai.t = 30 + Math.floor(rnd() * 40); } return { turn: 0, gas: true, rev: false }; }
+  // (bored of it, or the mark's gone: a new whim)
+  if (ai.t <= 0 || (ai.tgt && ai.tgt.dead) || (ai.mode === 'hunt' && rnd() < 0.004)) {
+    const others = b.cars.filter(o => !o.me && !o.dead && o !== c);
+    const pMe = clamp(P.aggro * (0.6 + (RIVALS - 1 - others.length) * 0.1), 0.15, 0.8), r = rnd();
+    if (r < 0.08) { ai.mode = 'idle'; ai.tgt = null; ai.t = 25 + Math.floor(rnd() * 55); ai.side = rnd() < 0.5 ? -1 : 1; return { turn: 0, gas: false, rev: false }; }
+    if (r < 0.08 + pMe || !others.length) { ai.mode = 'hunt'; ai.tgt = me; }
+    else if (r < 0.08 + pMe + (1 - pMe) * 0.7) {
+      // (one of the others: the nearest, mostly; any of them, sometimes)
+      ai.mode = 'hunt';
+      ai.tgt = rnd() < 0.6 ? others.reduce((a, o) => (Math.hypot(o.x - c.x, o.y - c.y) < Math.hypot(a.x - c.x, a.y - c.y) ? o : a), others[0]) : others[Math.floor(rnd() * others.length)];
+    } else { ai.mode = 'roam'; ai.tgt = null; ai.px = RINK.x0 + 80 + rnd() * (RINK.x1 - RINK.x0 - 160); ai.py = RINK.y0 + 80 + rnd() * (RINK.y1 - RINK.y0 - 160); }
+    ai.t = ai.mode === 'hunt' ? P.focus + Math.floor(rnd() * P.focus) : 60 + Math.floor(rnd() * 100);
+    ai.aimT = 0;
   }
-  const tx = ai.tgt ? ai.tgt.x + ai.tgt.vx * 10 : ai.px, ty = ai.tgt ? ai.tgt.y + ai.tgt.vy * 10 : ai.py;
-  const dist = Math.hypot(tx - c.x, ty - c.y), diff = wrap(Math.atan2(ty - c.y, tx - c.x) - c.a);
-  if (ai.tgt === me && dist > 150 && dist < 330 && Math.abs(diff) < 0.25 && ai.cool <= 0 && rnd() < 0.05) { ai.mode = 'rev'; ai.t = 36; ai.cool = 260 + Math.floor(rnd() * 160); }
+  // (where they think the mark is: looked at again every `lag` frames, led a bit; between looks, it's where it was)
+  if (ai.tgt && ai.aimT <= 0) { ai.aimT = P.lag + Math.floor(rnd() * P.lag); ai.aimX = ai.tgt.x + ai.tgt.vx * P.lead; ai.aimY = ai.tgt.y + ai.tgt.vy * P.lead; }
+  const tx = ai.tgt ? ai.aimX : ai.px, ty = ai.tgt ? ai.aimY : ai.py;
+  const dist = Math.hypot(tx - c.x, ty - c.y);
+  // (a weave on top: never a dead-straight line)
+  const diff = wrap(Math.atan2(ty - c.y, tx - c.x) + Math.sin(ai.ph) * P.wobble - c.a);
+  // (a swerve off out of nowhere)
+  if (rnd() < P.rash) { ai.mode = 'swerve'; ai.t = 14 + Math.floor(rnd() * 22); ai.side = rnd() < 0.5 ? -1 : 1; return { turn: ai.side, gas: true, rev: false }; }
+  if (ai.tgt && dist > 150 && dist < 330 && Math.abs(diff) < 0.3 && ai.cool <= 0 && rnd() < (ai.tgt === me ? 0.03 : 0.02)) { ai.mode = 'rev'; ai.t = 36; ai.cool = 260 + Math.floor(rnd() * 200); }
   const gas = Math.abs(diff) < 0.85;
   // (stuck nose-first in the rail or a hulk: back off, turning)
   if (gas && sp < 0.45) ai.stuck++; else ai.stuck = Math.max(0, ai.stuck - 2);
   if (ai.stuck > 45) { ai.mode = 'back'; ai.t = 32; ai.side = rnd() < 0.5 ? -1 : 1; ai.stuck = 0; }
+  // (at the spot (roaming), or past where the mark was (they overshoot: carry on a beat, then look again))
   if (ai.mode === 'roam' && dist < 50) ai.t = 0;
+  if (ai.tgt && dist < 40) ai.aimT = Math.min(ai.aimT, 6);
   return { turn: Math.abs(diff) > 0.1 ? Math.sign(diff) : 0, gas, rev: !gas && dist < 110 && Math.abs(diff) > 2.3 };
 };
 
