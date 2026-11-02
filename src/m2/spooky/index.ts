@@ -22,7 +22,8 @@ import { takePortalArrival, startPortalArrival, tickPortalArrival, drawPortalArr
 import { SECTIONS, SECTION_ORDER, type SpookyId } from './geometry';
 import { getSpooky, type Spooky, type SpookySection } from './section';
 import { town } from './town';
-import { castle } from './castle';
+import { castle as castleBase } from './castle';
+import { withBenLoft } from './castle/benLoftSection';
 import { dungeon } from './dungeon';
 import { tower } from './tower';
 import { hell } from './hell';
@@ -31,6 +32,9 @@ import { ballroom } from './ballroom';
 import { SHOP_X } from './control/geo';
 import type { Zone } from '../hudThemes';
 export { SPOOKY_VOICE_LINES } from './voices';
+
+// (the castle with CON-FUCK-TIOUS's loft up behind the library's top left shelf)
+const castle = withBenLoft(castleBase);
 
 export const SPOOKY_STAGE = 'M2 Spooky Land';
 

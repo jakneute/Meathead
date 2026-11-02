@@ -389,6 +389,8 @@ const paintBen = (g: Ctx, pose: BenPose, frame: number, piece: ArmorPiece | null
   const hp = pose === 'flurry' ? { f: FLURRY[frame % 3][0], b: FLURRY[frame % 3][1], drop: 0, lean: 2 } : HANDS[pose];
   const drop = hp.drop ?? 0, lean = hp.lean ?? 0, gloved = piece === 'hands', winded = pose === 'nuts';
   const S = winded ? SKIN_RED : SKIN;
+  // (the CLEARANCE CAPE, on him till it's given: Spooky Land; behind all of him)
+  if (piece === 'cape') benCape(g, 2 + lean, -68 + drop, 3 + lean * 1.2, -84 + drop);
   // ---- the legs: a wide stance, knees a little bent (the far one first)
   const hipY = -36 + drop;
   leg(g, [-4, hipY], -9, true);
@@ -412,7 +414,7 @@ const paintBen = (g: Ctx, pose: BenPose, frame: number, piece: ArmorPiece | null
   const hf = arm(g, [sx + 13, sy + 9], hp.f, square, false, S, gloved, pose === 'offer');
   if (pads) pauldron(g, sx + 13, sy + 9, false);
   // (the shaker's the hand armor's trial: nobody else's)
-  const shakes = !pads && piece !== 'helmet';
+  const shakes = !pads && piece !== 'helmet' && piece !== 'cape';
   if (shakes && pose === 'offer') shaker(g, hf[0] + 1, hf[1] - 6);
   if (shakes && pose === 'yank') shaker(g, hf[0], hf[1] - 6);
 };
@@ -431,6 +433,38 @@ const kegHelmet = (g: Ctx, hx: number, hy: number) => {
   lineR(g, pts, 1.9, '#0A0A0A'); lineR(g, pts, 1.1, WHITE);
   g.setLineDash([1, 1.1]); lineR(g, pts, 1.1, '#EF4444', 'butt'); g.setLineDash([]);
   pxR(g, hx + 15.4, hy + 4.6, 1.4, 0.5, '#9CA3AF'); pxR(g, hx + 15.2, hy + 5.6, 1.4, 0.5, '#9CA3AF');
+};
+
+/** The CLEARANCE CAPE on his back (drawn first: behind all of him): shiny black polyester down to his calves, flaring
+ *  out behind, the red lining showing along its trailing edge, still creased in squares from the bag; the tall stiff
+ *  collar's two points standing up behind his head (the lining facing in); the price tag on its barb off the collar.
+ *  (sx, sy) his shoulders' middle, (hx, hy) his head's. Facing +x: behind him is -x. */
+const CAPE_R: Ramp = ['#56567A', '#30304A', '#1E1E30', '#12121E', '#04040A'];
+const LINING_R: Ramp = ['#F87171', '#DC2626', '#A3151E', '#6E0C12', '#2A0206'];
+const benCape = (g: Ctx, sx: number, sy: number, hx: number, hy: number) => {
+  // (the body of it: off both shoulders, down the back, the hem flaring out behind; the lining along the trailing edge)
+  const body = () => { g.moveTo(sx + 12, sy + 2); g.lineTo(sx - 16, sy); g.quadraticCurveTo(sx - 26, sy + 30, -31, -14); g.lineTo(-20, -11); g.lineTo(-8, -15); g.lineTo(4, -12); g.lineTo(sx + 8, sy + 30); g.closePath(); };
+  shapeR(g, body, CAPE_R, -31, sx + 12, 1);
+  lineR(g, [sx - 16, sy + 1, sx - 25, sy + 30, -30, -15], 2.2, LINING_R[1]);
+  lineR(g, [sx - 15, sy + 2, sx - 24, sy + 30, -29, -16], 0.8, LINING_R[0]);
+  // (the hem's scallops, the bag's creases across and down, a shine like a trash bag)
+  for (const [x0, y0] of [[-26, -13], [-14, -13], [-2, -13]] as const) ellR(g, x0, y0 + 1, 4.6, 1.6, CAPE_R[4]);
+  g.save(); g.beginPath(); body(); g.clip();
+  for (let y = sy + 12; y < -14; y += 12) { pxR(g, -34, y, 60, 0.8, CAPE_R[0]); pxR(g, -34, y + 0.8, 60, 0.8, CAPE_R[4]); }
+  for (let x = -26; x < sx + 10; x += 11) { pxR(g, x, sy - 2, 0.8, 90, dith(g, CAPE_R[0])); pxR(g, x + 0.8, sy - 2, 0.8, 90, CAPE_R[4]); }
+  lineR(g, [sx - 12, sy + 8, sx - 18, sy + 34, -22, -24], 1, dith(g, CAPE_R[0]));
+  g.restore();
+  // (the collar: two stiff points up behind his head, black out, red in, a rib up each)
+  for (const s of [-1, 1]) {
+    const bx = hx + s * 9, tipX = hx + s * 15, tipY = hy - 9;
+    const coll = () => { g.moveTo(bx - s * 3, hy + 16); g.lineTo(tipX, tipY); g.lineTo(tipX + s * 4, tipY + 3); g.lineTo(bx + s * 8, hy + 18); g.closePath(); };
+    shapeR(g, coll, s < 0 ? LINING_R : back(LINING_R), Math.min(bx - 4, tipX), Math.max(tipX + 5, bx + 10), 1);
+    lineR(g, [bx + s * 1, hy + 14, tipX + s * 1.5, tipY + 3], 0.8, LINING_R[3]);
+    lineR(g, [tipX, tipY, tipX + s * 4, tipY + 3, bx + s * 8, hy + 18], 1.6, CAPE_R[3]);
+  }
+  // (the price tag on its plastic barb off the back point)
+  lineR(g, [hx - 18, hy - 5, hx - 21, hy + 3], 0.6, '#E5E7EB');
+  pxR(g, hx - 25, hy + 2, 7, 9, '#2A2A36'); pxR(g, hx - 24, hy + 3, 5, 7, '#F4F4F0'); pxR(g, hx - 24, hy + 6, 5, 1.6, '#F07A1A'); pxR(g, hx - 23, hy + 9, 3, 1, '#DC2626');
 };
 
 /** A coconut pauldron strapped over a delt (the armor's own baked piece, armorArt.ts, sized up to his shoulders). */

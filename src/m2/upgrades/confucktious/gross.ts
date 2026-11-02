@@ -20,9 +20,13 @@
 //          in a foam holder each side, the bendy straw from the near one down outside his cheek into the corner of his
 //          mouth): he chugs through the straw (the beer going up it in gulps), then HEADBUTTS the camera (the whole face
 //          lunging at the lens, the BONK's stars off the dome), and chugs again.
+//   cape: the CLEARANCE CAPE round his shoulders (the shiny black polyester still creased in squares from the bag, the
+//          tall stiff collar up either side of his head, the red lining, a ribbon bow under his chin): he sweeps the front
+//          of it up across his face in his fist like a movie vampire (the eyes over it), holds it, drops it; the price
+//          tag dangles off the collar on its barb and the sweep flings it flapping across his face.
 
 import {
-  type Ctx, type Buf, GH, R, hexU, WHITE, newBuf, setSeed, rnd, matAt, plot, seg, path, ball, tint, poly, bead, eyeball, teeth, skinPost, stubble, hairs, vein, stamps, drawGrossStamp, grossBackdrop, toCanvas, M_SKIN, M_HAIR, M_MOUTH, M_OTHER, M_CLOTH, M_METAL, SCLERA_R, MOUTH, TONGUE, VEIN_B, BLOOD,
+  type Ctx, type Buf, GW, GH, R, hexU, WHITE, newBuf, setSeed, rnd, matAt, plot, seg, path, ball, tint, poly, bead, eyeball, teeth, skinPost, stubble, hairs, vein, stamps, drawGrossStamp, grossBackdrop, toCanvas, M_SKIN, M_HAIR, M_MOUTH, M_OTHER, M_CLOTH, M_METAL, SCLERA_R, MOUTH, TONGUE, VEIN_B, BLOOD,
 } from '../../grossKit';
 import type { ArmorPiece } from '../state';
 
@@ -322,6 +326,119 @@ const strawAt = (u: number): [number, number] => {
   return [x0 + (x1 - x0) * k, y0 + (y1 - y0) * k];
 };
 
+/** THE CLEARANCE CAPE (Spooky Land), in the face's own buffer coordinates: the shiny black polyester over his traps, the
+ *  tall stiff collar standing up either side of his head (the red lining facing in, the stiff ribs up it), every bit of
+ *  it still creased in squares from the bag, a red satin ribbon tied in a bow under his chin. (capeCanvas: the still
+ *  part; swirlCanvas: the front of it in his fist, swept up across his face; tagCanvas: the price tag.) */
+const CBLK = R('#6A6A8E', '#44445E', '#2A2A40', '#1A1A2C', '#0E0E1A', '#04040A');
+const CRED = R('#FF9A9A', '#EE4A4A', '#C81E28', '#94101A', '#600810', '#2A0206');
+/** The bag's creases: a light ridge and a dark fold, every this many px, across and down. */
+const crease = (b: Buf, x0: number, y0: number, x1: number, y1: number, step: number, mat: number) => {
+  for (let y = y0 + step; y < y1; y += step) for (let x = x0; x < x1; x++) { if (matAt(b, x, y) !== mat) continue; plot(b, x, y, CBLK[0], mat, mat); plot(b, x, y + 1, CBLK[4], mat, mat); }
+  for (let x = x0 + step; x < x1; x += step) for (let y = y0; y < y1; y++) { if (matAt(b, x, y) !== mat) continue; plot(b, x, y, CBLK[1], mat, mat); plot(b, x + 1, y, CBLK[5], mat, mat); }
+};
+let capeCv: HTMLCanvasElement | null | undefined;
+const capeCanvas = () => {
+  if (capeCv !== undefined) return capeCv;
+  setSeed(6606);
+  const b = newBuf();
+  for (const s of [-1, 1]) {
+    // (the collar: from his shoulder up past his ear to a point, the lining facing in; its black rim round the outside)
+    const ib = FX + s * 56, ob = FX + s * 136;
+    poly(b, [ib, 156, FX + s * 76, 112, FX + s * 92, 50, FX + s * 124, 22, ob + s * 6, 44, ob + s * 2, 156], CBLK, M_CLOTH, { line: true, tilt: -0.3 * s });
+    poly(b, [ib + s * 8, 152, FX + s * 84, 112, FX + s * 99, 56, FX + s * 124, 34, ob - s * 4, 52, ob - s * 6, 150], CRED, M_OTHER, { line: false, tilt: -0.5 * s });
+    // (the shadow his head throws on the lining's inner edge; the stiff ribs up it, the satin's sheen down them)
+    for (let y = 56; y < 152; y++) for (let k = 0; k < 7; k++) { const x = FX + s * (84 + (y < 112 ? (112 - y) * 0.27 : (112 - y) * 0.7) + k); if (matAt(b, x, y) === M_OTHER && (k < 4 || (x + y) % 2)) plot(b, x, y, CRED[4], M_OTHER, M_OTHER); }
+    for (let k = 0; k < 4; k++) {
+      const t = (k + 1) / 5, x0 = ib + s * 8 + (ob - s * 6 - ib - s * 8) * t;
+      path(b, [x0, 150, FX + s * (99 + 26 * t), 50 - 14 * t], CRED[3], 1, undefined, M_OTHER);
+      path(b, [x0 - s, 148, FX + s * (98 + 26 * t), 54 - 14 * t], CRED[0], 1, undefined, M_OTHER);
+    }
+    // (over the trap, down off the edge of the screen)
+    poly(b, [s < 0 ? -12 : 284, GH, s < 0 ? -12 : 284, 150, FX + s * 76, 146, FX + s * 54, 168, FX + s * 50, GH], CBLK, M_CLOTH, { line: true, tilt: 0.2 * s });
+  }
+  crease(b, 0, 0, GW, GH, 22, M_CLOTH);
+  // (the sheen: cheap polyester shines like a trash bag)
+  for (let k = 0; k < 40; k++) { const x = 8 + rnd() * 70, y = 160 + rnd() * 40; if (matAt(b, x, y) === M_CLOTH) seg(b, x, y, x + 4, y - 2, CBLK[0], 1, M_CLOTH, M_CLOTH); }
+  for (let k = 0; k < 40; k++) { const x = 200 + rnd() * 70, y = 160 + rnd() * 40; if (matAt(b, x, y) === M_CLOTH) seg(b, x, y, x + 4, y - 2, CBLK[1], 1, M_CLOTH, M_CLOTH); }
+  // (the red ribbon tied in a bow under his chin, its tails down the tank top)
+  for (const s of [-1, 1]) {
+    ball(b, FX + 2 + s * 11, 176, 11, 6, CRED, { mat: M_OTHER, line: true, lw: 1.2, flat: 0.7 });
+    poly(b, [FX + 2 + s * 2, 178, FX + 2 + s * 8, 180, FX + 2 + s * 14, GH, FX + 2 + s * 6, GH], CRED, M_OTHER, { line: true, tilt: 0.3 });
+  }
+  ball(b, FX + 2, 177, 5, 5, CRED, { mat: M_OTHER, line: true, lw: 1 });
+  plot(b, FX, 175, WHITE);
+  capeCv = toCanvas(b);
+  return capeCv;
+};
+/** The front of the cape in his fist: the edge turned over (the lining showing along it), the folds fanning off his
+ *  knuckles, the creases; his fist on it and his forearm down off the bottom of the screen. Painted at its height
+ *  swept up (under his eyes); drawn lower while it's down. */
+let swirlCv: HTMLCanvasElement | null | undefined;
+const swirlCanvas = () => {
+  if (swirlCv !== undefined) return swirlCv;
+  setSeed(6607);
+  const b = newBuf();
+  const fx = FX + 84, fy = 112;
+  poly(b, [-12, 126, FX - 70, 112, FX - 10, 104, FX + 50, 106, fx, fy, fx + 26, GH, -12, GH], CBLK, M_CLOTH, { line: true, tilt: 0.2 });
+  // (the edge turned over: a band of the red lining along the top)
+  poly(b, [-12, 126, FX - 70, 112, FX - 10, 104, FX + 50, 106, fx, fy, fx - 2, fy + 8, FX + 50, 114, FX - 10, 112, FX - 70, 120, -12, 134], CRED, M_OTHER, { line: true, tilt: 0.1 });
+  // (the folds: off his knuckles, fanning down and away)
+  for (let k = 0; k < 6; k++) {
+    const ex = 10 + k * 40, ey = GH;
+    path(b, [fx - 4, fy + 10, (fx + ex) / 2 - 10, 160, ex, ey], CBLK[4], 3, undefined, M_CLOTH);
+    path(b, [fx - 6, fy + 10, (fx + ex) / 2 - 13, 160, ex - 4, ey], CBLK[1], 1, undefined, M_CLOTH);
+  }
+  crease(b, 0, 110, GW, GH, 26, M_CLOTH);
+  // (his forearm up into the fist, the fist balled in the cloth: the knuckles, a vein, the gray hair on it)
+  poly(b, [fx - 12, fy + 8, fx + 16, fy + 4, fx + 66, GH + 2, fx + 24, GH + 2], SKIN.slice(1), M_SKIN, { line: true, tilt: 0.6 });
+  // (the meat of it: the forearm swelling up off the wrist, gray hair over it)
+  ball(b, fx + 22, fy + 52, 22, 34, SKIN.slice(1), { mat: M_SKIN, line: true, lw: 1.3, flat: 0.8 });
+  ball(b, fx + 40, fy + 98, 26, 30, SKIN.slice(1), { mat: M_SKIN, line: (dx) => dx < 0.2, lw: 1.3, flat: 0.8 });
+  path(b, [fx + 2, fy + 30, fx + 20, fy + 70, fx + 30, GH], SKIN[1], 2, undefined, M_SKIN);
+  for (let k = 0; k < 70; k++) { const x = fx + rnd() * 60, y = fy + 30 + rnd() * 90; if (matAt(b, x, y) === M_SKIN) seg(b, x, y, x - 1.5, y - 2.5, GRAY[2 + (k % 3)], 1, M_SKIN, M_SKIN); }
+  vein(b, [fx + 14, fy + 40, fx + 22, fy + 64, fx + 30, fy + 92], VEIN_B, 2);
+  hairs(b, 30, () => [fx + 10 + rnd() * 34, fy + 40 + rnd() * 60], 3, -2.2, GRAY[3], M_SKIN, 0.6);
+  ball(b, fx, fy, 17, 14, SKIN, { mat: M_SKIN, line: true, lw: 1.4, flat: 0.8 });
+  for (let k = 0; k < 4; k++) { ball(b, fx - 12 + k * 7, fy - 9, 4.6, 4, SKIN, { mat: M_SKIN, line: true, lw: 1 }); plot(b, fx - 13 + k * 7, fy - 11, SKIN[0]); }
+  for (let k = 0; k < 3; k++) path(b, [fx - 9 + k * 7, fy - 6, fx - 9 + k * 7, fy + 2], SKIN[6], 1, undefined, M_SKIN);
+  // (the cloth bunched up out of his grip)
+  poly(b, [fx - 20, fy - 4, fx - 30, fy - 16, fx - 14, fy - 12, fx - 4, fy - 20, fx + 2, fy - 12], CBLK, M_CLOTH, { line: true, tilt: 0.4 });
+  swirlCv = toCanvas(b);
+  return swirlCv;
+};
+/** The price tag on its plastic barb: a white card, the hole, CLEARANCE in an orange band, the old price slashed. */
+const TAG_W = 16, TAG_H = 22;
+let tagCv: HTMLCanvasElement | null | undefined;
+const tagCanvas = () => {
+  if (tagCv !== undefined) return tagCv;
+  if (typeof document === 'undefined') { tagCv = null; return null; }
+  const cv = document.createElement('canvas'); cv.width = TAG_W; cv.height = TAG_H;
+  const g = cv.getContext('2d')!;
+  const bx = (x: number, y: number, w: number, h: number, col: string) => { g.fillStyle = col; g.fillRect(x, y, w, h); };
+  bx(0, 2, 16, 20, '#2A2A36'); bx(1, 3, 14, 18, '#F4F4F0'); bx(1, 3, 14, 1, '#FFFFFF'); bx(14, 3, 1, 18, '#C8C8C0'); bx(1, 20, 14, 1, '#C8C8C0');
+  // (the corners clipped, the hole up top with its ring)
+  bx(0, 2, 2, 2, 'rgba(0,0,0,0)'); g.clearRect(0, 2, 2, 2); g.clearRect(14, 2, 2, 2);
+  bx(6, 4, 4, 3, '#2A2A36'); bx(7, 5, 2, 1, '#8A8A90');
+  // (the orange CLEARANCE band, its letters as ticks; the old price slashed; the new one big)
+  bx(1, 9, 14, 4, '#F07A1A'); for (let k = 0; k < 6; k++) bx(2 + k * 2, 10, 1, 2, '#FFF4E0');
+  bx(3, 14, 9, 2, '#6A6A70'); bx(2, 16, 12, 1, '#DC2626');
+  bx(3, 17, 2, 3, '#DC2626'); bx(6, 17, 1, 3, '#1A1A22'); bx(8, 17, 2, 3, '#1A1A22'); bx(11, 17, 2, 3, '#1A1A22');
+  tagCv = cv;
+  return cv;
+};
+/** The swirl's cycle (frames): down a while, swept up across his face, held (the eyes over it), dropped. */
+const SW_DOWN = 40, SW_UP = 12, SW_HOLD = 40, SW_DROP = 14, SWIRL = SW_DOWN + SW_UP + SW_HOLD + SW_DROP + 14;
+/** How far up the front is (1 swept up across his face, 0 down off the screen). */
+const swirlUp = (f: number) => {
+  const t = f % SWIRL;
+  if (t < SW_DOWN) return 0;
+  if (t < SW_DOWN + SW_UP) { const k = (t - SW_DOWN) / SW_UP; return 1 - (1 - k) * (1 - k); }
+  if (t < SW_DOWN + SW_UP + SW_HOLD) return 1;
+  if (t < SW_DOWN + SW_UP + SW_HOLD + SW_DROP) { const k = (t - SW_DOWN - SW_UP - SW_HOLD) / SW_DROP; return 1 - k * k; }
+  return 0;
+};
+
 type Draw = (c: Ctx, f: number) => void;
 /** A piece's prop, drawn in the buffer's own pixels over the face (and a jolt for the screen when it lands). */
 interface Prop { draw: Draw; jolt: (f: number) => number; /** Bake its art now (ahead of the close-up). */ warm?: () => void; /** The whole face pushed at the lens (a headbutt): times the zoom. */ zoom?: (f: number) => number }
@@ -411,6 +528,29 @@ const PROPS: Partial<Record<ArmorPiece, Prop>> = {
       return 1 + 0.32 * (k < 0.3 ? Math.sin(((k / 0.3) * Math.PI) / 2) : Math.cos((((k - 0.3) / 0.7) * Math.PI) / 2));
     },
     warm: () => { helmCanvas(); },
+  },
+  cape: {
+    // (the vampire: the collar up round his head, the front of the cape in his fist swept up across his face (the eyes
+    // over it, the BLAH), held, dropped; the price tag on the collar's barb, dangling, flung across his face by the sweep)
+    draw: (c, f) => {
+      const cv = capeCanvas(), sw = swirlCanvas(), tag = tagCanvas();
+      if (!cv || !sw) return;
+      c.drawImage(cv, 0, 0);
+      const up = swirlUp(f), t = f % SWIRL;
+      // (the tag: a pendulum off the collar's edge; the sweep throws it up over his face, and it flaps back down)
+      const since = t - SW_DOWN, gust = since >= 0 && since < 70 ? Math.sin(Math.min(1, since / 10) * Math.PI / 2) * Math.exp(-Math.max(0, since - 10) / 26) : 0;
+      const a = Math.sin(f * 0.13) * 0.35 - gust * 2.1 + gust * Math.sin(since * 0.9) * 0.25;
+      const ax = FX + 126, ay = 64, L = 40, tx = ax + Math.sin(a) * L, ty = ay + Math.cos(a) * L;
+      for (let k = 0; k <= 10; k++) { c.fillStyle = k % 2 ? '#F4F4F0' : '#B8B8C0'; c.fillRect(Math.round(ax + (tx - ax) * k / 10), Math.round(ay + (ty - ay) * k / 10), 1, 1); }
+      if (tag) { c.save(); c.translate(Math.round(tx), Math.round(ty)); c.rotate(-a); c.drawImage(tag, -TAG_W / 2, -3); c.restore(); }
+      // (the front of it, up from below the screen to under his eyes)
+      c.drawImage(sw, 0, Math.round((1 - up) * 120 + (up === 1 ? Math.sin(f * 0.15) * 1.5 : 0)));
+      // (the swoosh as it comes up)
+      if (t >= SW_DOWN && t < SW_DOWN + SW_UP + 4) { c.fillStyle = 'rgba(200,200,255,0.55)'; for (let i = 0; i < 5; i++) c.fillRect(20 + i * 44, Math.round(150 - up * 30 + i * 3), 30, 2); }
+    },
+    jolt: (f) => ((f % SWIRL) === SW_DOWN + SW_UP - 2 ? 4 : 0),
+    zoom: (f) => { const t = f % SWIRL - SW_DOWN; return t >= 0 && t < 24 ? 1 + 0.06 * Math.sin((t / 24) * Math.PI) : 1; },
+    warm: () => { capeCanvas(); swirlCanvas(); tagCanvas(); },
   },
 };
 

@@ -137,7 +137,7 @@ export interface PieceLines {
   trialPose?: 'offer' | 'brace' | 'fold';
 }
 
-export const PIECE_LINES: { hands: PieceLines; pauldrons: PieceLines; helmet: PieceLines } = {
+export const PIECE_LINES: { hands: PieceLines; pauldrons: PieceLines; helmet: PieceLines; cape: PieceLines } = {
   hands: {
     ask: {
       clean: ['WHAT ARE THOSE? ARE THOSE MICKEY HANDS?', 'WHOA. GIANT CARTOON HANDS. I NEED THOSE.'],
@@ -237,6 +237,48 @@ export const PIECE_LINES: { hands: PieceLines; pauldrons: PieceLines; helmet: Pi
       nude: ['YOU AGAIN. NAKED IN VALHALLA. VERY TRADITIONAL, ACTUALLY.', 'YOU AGAIN. STILL NO PANTS. STILL ONE HELMET.'],
     },
   },
+  // Spooky Land: the CLEARANCE CAPE, in the castle's forgotten RESTRICTED SECTION up behind the library's top left shelf.
+  // The trial: wear it, snuff his three candles (the high one on the bookcase, the far one on the pillar: float to it off
+  // the bookcase, the one in the wheel over the coffin).
+  cape: {
+    ask: {
+      clean: ['A VAMPIRE CAPE! HAVE YOU BEEN DRACULA THIS WHOLE TIME?', "A CAPE. I ALWAYS WANTED A CAPE. MOM SAID I WASN'T SPECIAL ENOUGH."],
+      shitty: ['A CAPE! IT COVERS THE BACK! IT COVERS MY WHOLE SITUATION!', 'GIVE ME THE CAPE. NOBODY HAS TO SEE THE BACK OF MY PANTS EVER AGAIN.'],
+      nude: ['A CAPE! FINALLY I CAN BE NAKED, BUT CLASSY!', "A CAPE. IT'S NOT PANTS, BUT IT'S IN THE NEIGHBORHOOD."],
+    },
+    sell: ['BLAH. HALLOWEEN STORE, NOVEMBER FIRST, SEVENTY PERCENT OFF. YOU RUN FASTER, YOU JUMP HIGHER, HOLD JUMP AND YOU FLOAT.'],
+    trial: ['PUT IT ON. SNUFF MY THREE CANDLES. THE HIGH ONE, THE FAR ONE, THE ONE OVER THE COFFIN.'],
+    more: ['ONE. THE CAPE DOES THE WORK. YOU DO THE SWEATING.', 'TWO. YOU LOOK LIKE A BAT WITH A MORTGAGE. ONE MORE.'],
+    miss: ['YOU FELL. THAT IS THE OPPOSITE OF FLOATING.', 'HOLD THE JUMP. HOLD IT LIKE A GRUDGE.', 'GRAVITY ONE, MEATHEAD ZERO.', 'YOU DROPPED LIKE MY RETIREMENT FUND.', "THAT'S NOT FLYING. THAT'S FALLING IN A BLANKET."],
+    hint: ['THE BAT DOES NOT JUMP AND PRAY. JUMP OFF THE BOOKCASE AND HOLD JUMP ALL THE WAY DOWN.'],
+    pass: ['ALL THREE. THE DARKNESS WELCOMES YOU. THE DARKNESS IS MY ROOM WITH THE LIGHTS OFF.', "LIGHTS OUT. YOU PASS. I CAN'T SEE A THING, BUT YOU PASS."],
+    passed: {
+      clean: ['I WAS FLYING. I WAS A BAT. A HUGE, BEAUTIFUL BAT.'],
+      shitty: ['I WAS FLYING. SOMETHING WAS FLYING OFF ME TOO.'],
+      nude: ['I WAS FLYING. EVERYTHING WAS FLAPPING. EVERYTHING.'],
+    },
+    gift: ['KEEP IT. THE TAG STAYS ON. IF YOU DIE IN IT, I WANT MY NINE NINETY-NINE BACK.'],
+    tease: ["IT DOESN'T STOP A BULLET. IT JUST HELPS YOU NOT BE WHERE THE BULLET IS."],
+    enamored: {
+      clean: ["I'M WEARING IT TO EVERYTHING. FUNERALS. COURT. LEG DAY."],
+      shitty: ['NOW WHEN I SHIT MYSELF, IT FLAPS DRAMATICALLY.'],
+      nude: ["A CAPE AND NOTHING ELSE. I'M A SUPERHERO FROM THE BACK AND A CRIME FROM THE FRONT."],
+    },
+    practice: ['THE CANDLES COME BACK ON. FLOAT AROUND TILL YOU GET BORED. THEN THE CANNON.'],
+    good: ['LIKE A BAT. A BIG, STUPID BAT. BEAUTIFUL.', 'FLOATING. YOUR MOTHER WOULD BE PROUD. SHE THREW YOU OFF A PORCH ONCE.', "OYASUMI. GRANDPA SAID IT EVERY NIGHT. I THOUGHT IT MEANT SHUT UP."],
+    idle: {
+      clean: ['YOU AGAIN. THE CLEARANCE RACK HAD ONE CAPE.', "YOU AGAIN. I WAS READING. NOT REALLY. I WAS LOOKING AT THE PICTURES."],
+      shitty: ['YOU AGAIN. THE CAPE WAS SUPPOSED TO HIDE THAT.', 'YOU CAME BACK. THE BOOKS ARE GONNA SMELL LIKE YOU FOREVER.'],
+      nude: ['YOU AGAIN. NAKED IN A LIBRARY. SHH.', 'YOU AGAIN. CAPE ON, PANTS OFF. YOU LOOK LIKE A FLASHER.'],
+    },
+  },
+};
+
+/** Spooky Land: Meathead through the false shelf into the passage, the first time this go at the land. */
+export const MH_PASSAGE: ByPants = {
+  clean: ['A SECRET PASSAGE! I KNEW BOOKS WERE GOOD FOR SOMETHING.'],
+  shitty: ['A SECRET PASSAGE. GOOD. NOBODY FOLLOWS A SMELL INTO A WALL.'],
+  nude: ['A SECRET PASSAGE! THERE IS A DRAFT. ON EVERYTHING.'],
 };
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -276,5 +318,5 @@ const pieceMeathead = (p: PieceLines) => [...all(p.ask), ...all(p.passed), ...al
 
 export const BEN_VOICE_LINES: Record<string, string[]> = {
   [BEN_VOICE]: [...NAME, ...all(RIDDLE), ...PURPOSE, ...FIRST_ASIDE, ...all(AGAIN), ...all(NUDGE), ...all(NUDGE_OUT), ...BYE_BEN, ...ART_OPEN, ...ART_HOW, ...ART_HUH, ...ART_AGAIN, ...Object.values(PIECE_LINES).flatMap(pieceBen)],
-  meathead: [...all(MEET), ...all(FIRST_WHY), ...all(FIRST_REACT), ...all(AGAIN_MH), ...BYE_MEATHEAD, ...all(ART_MH), ...all(ART_WEEB), ...Object.values(PIECE_LINES).flatMap(pieceMeathead)],
+  meathead: [...all(MEET), ...all(FIRST_WHY), ...all(FIRST_REACT), ...all(AGAIN_MH), ...BYE_MEATHEAD, ...all(ART_MH), ...all(ART_WEEB), ...Object.values(PIECE_LINES).flatMap(pieceMeathead), ...all(MH_PASSAGE)],
 };

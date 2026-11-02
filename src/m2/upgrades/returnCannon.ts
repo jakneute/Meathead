@@ -206,6 +206,14 @@ export const JUNGLE: CannonLook = {
   wood: ['#2A1A0C', '#4A3018', '#6A4826', '#8A6236', '#AE8452', '#D4B07C'],
   star: '#E8C030',
 };
+/** Spooky Land's (CON-FUCK-TIOUS's loft over the library): an old black iron castle cannon, tarnished bronze bands, on a
+ *  carriage of coffin wood; bone-white stars. */
+export const SPOOKY: CannonLook = {
+  barrel: ['#0E0E14', '#1C1C26', '#2C2C3A', '#3E3E50', '#5C5C72', '#8E8EA6'],
+  band: ['#3A2408', '#5E3E12', '#8A5E20', '#B07E34', '#D0A45A', '#EED49A'],
+  wood: ['#1A0C08', '#2E1810', '#46261A', '#5E3626', '#7E4E3A', '#A8745C'],
+  star: '#E8E2D0',
+};
 const INK = '#1A1028';
 const barrels = new Map<CannonLook, HTMLCanvasElement | null>();
 /** The barrel, standing up, its pivot at (BW / 2, BH - 10): baked once a look. */
