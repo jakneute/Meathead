@@ -21,6 +21,7 @@ import { D, PADDOCK_IN } from './layout';
 import { eyeOf, viewOf, P } from './art/kit';
 import { GUEST_SEE, GUEST_KILL, GUEST_HURT, GUEST_REX, type Dressed } from './lines';
 import { lookOf } from '../temple/people';
+import { allFound } from '../../store';
 
 export type GuestProp = 'none' | 'camera' | 'camcorder' | 'flag' | 'shoulders' | 'icecream' | 'balloon' | 'kid';
 /** Where they're drawn: behind the pen's gallery glass, well back (the meadow, the bleachers), or nearer (the path). */
@@ -84,6 +85,11 @@ const crowdOf = (state: GameState): Crowd => {
 };
 
 const FLED = 'm2:dinoGuestsFled';
+/** The paddock gate hacked (hack.ts): the robots let out into the feeding show's grandstand. Kept across his deaths
+ *  (stageMemo); won on this save (the shard), it's been and gone on any later visit too (hack.ts panelDead). */
+export const MASSACRE_MEMO = 'm2:dinoHacked';
+/** The grandstand's people are what's left of them (art/zoo.ts draws the mess). */
+export const massacred = (state: GameState) => !!state.stageMemo[MASSACRE_MEMO] || !!allFound().adventure?.includes('shard-hack');
 /** Gone: been through the temple's back door (this go at the land), or started past it. */
 export const guestsFled = (state: GameState) => !!state.stageMemo[FLED] || state.checkpoint >= 40;
 
@@ -138,7 +144,8 @@ export const updateGuests = (state: GameState, o: { doorKicked: boolean; scene: 
   if (o.scene || c.speaking || p.health <= 0) return;
   if (isTalking() || state.playerVulgarityTimer > 0 || (rex?.said ?? null) !== null) return;
   if (f - c.lastAt < 300) return;
-  const near = GUESTS.filter(g => onScreen(state, g)).sort((a, b) => Math.abs(a.x - cx) - Math.abs(b.x - cx)).slice(0, 3);
+  const gone = massacred(state);
+  const near = GUESTS.filter(g => onScreen(state, g) && !(gone && g.zone === 'far' && g.y < GY - 10 && g.x > PADDOCK_IN)).sort((a, b) => Math.abs(a.x - cx) - Math.abs(b.x - cx)).slice(0, 3);
   if (!near.length) { c.event = null; return; }
   const dr = dressed(state), st = c.alarm >= 3 ? 'doubt' : 'show';
   let pool: readonly string[] | null = null;

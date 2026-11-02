@@ -15,7 +15,7 @@ import { blob, rect, dot, INK as KINK } from '../../../cast/kit';
 import { type Ctx, type Eye, INK, box, sign, slab, pole, stamp, checker, P, eyeOf, viewOf } from './kit';
 import { D } from '../layout';
 import { signAt, enamel, print, dino } from '../../letters';
-import { GUESTS, GALLERY, BLEACHERS, guestsFled, guestMood, type DinoGuest } from '../guests';
+import { GUESTS, GALLERY, BLEACHERS, guestsFled, guestMood, massacred, type DinoGuest } from '../guests';
 import { drawSafariArtie } from '../../river/artie';
 
 const atD = (c: Ctx, eye: Eye, d: number, paint: () => void) => {
@@ -148,27 +148,44 @@ const artieFar = (c: Ctx, f: number) => {
 };
 
 export const drawZooFar = (c: Ctx, state: GameState) => {
-  const eye = eyeOf(state), f = state.frame || 0, fled = guestsFled(state);
+  const eye = eyeOf(state), f = state.frame || 0, fled = guestsFled(state), gone = massacred(state);
   const far = GUESTS.filter(g => g.zone === 'far' && seen(state, eye, g.x - 40, g.x + 40, g.d));
   const stands = BLEACHERS.xs.filter(bx => seen(state, eye, bx - 20, bx + BLEACHERS.w + 20, BLEACHERS.d, 120));
   const artie = seen(state, eye, ARTIE_PATH[0] - 40, ARTIE_PATH[1] + 40, ARTIE_D);
   if (!far.length && !stands.length && !artie) return;
   drawDimmed(c, 0.3, '18, 26, 20', l => {
     if (artie) atD(l, eye, ARTIE_D, () => artieFar(l, f));
-    for (const bx of stands) atD(l, eye, BLEACHERS.d, () => bleacher(l, state, bx));
-    far.forEach((g) => { if (fled) atD(l, eye, g.d, () => dropped(l, g, GUESTS.indexOf(g), f)); else drawGuest(l, state, eye, g); });
+    for (const bx of stands) atD(l, eye, BLEACHERS.d, () => bleacher(l, state, bx, gone));
+    // (the grandstand after the paddock gate's been hacked (dino/hack.ts): what the robots left of them)
+    far.forEach((g) => { if (gone && g.y < GY - 10 && g.x > BLEACHERS.xs[0] - 20) atD(l, eye, g.d, () => remains(l, g)); else if (fled) atD(l, eye, g.d, () => dropped(l, g, GUESTS.indexOf(g), f)); else drawGuest(l, state, eye, g); });
     // (the bleachers' front: in front of the front row's legs)
     for (const bx of stands) atD(l, eye, BLEACHERS.d, () => bleacherFront(l, bx));
   });
 };
 
 /** A section of the T. rex feeding show's bleachers: planks in three rows on a steel frame. */
-const bleacher = (c: Ctx, state: GameState, bx: number) => {
+const bleacher = (c: Ctx, state: GameState, bx: number, gone = false) => {
   const { w, rows } = BLEACHERS;
   void state;
-  stamp(c, `dzoo-bleach-${bx}`, bx - 10, rows[2] - 4, w + 20, GY - rows[2] + 4, g => {
+  stamp(c, `dzoo-bleach-${bx}-${gone ? 1 : 0}`, bx - 10, rows[2] - 4, w + 20, GY - rows[2] + 4, g => {
     for (let x = bx + 6; x < bx + w; x += 50) { box(g, x, rows[2], 4, GY - rows[2], '#3A424C'); box(g, x, rows[2], 1, GY - rows[2], '#5A646E'); }
     for (const [i, y] of rows.entries()) { box(g, bx, y, w, 5, INK); box(g, bx + 1, y + 1, w - 2, 3, '#9A8A6A'); box(g, bx, y + 5, w, 19 - i, '#2E343C'); }
+    // (the massacre's: blood over the planks and down the risers)
+    if (gone) for (let k = 0; k < 14; k++) {
+      const x = bx + 8 + ((k * 53 + bx) % (w - 20)), y = rows[k % 3], len = 4 + ((k * 7) % 12);
+      box(g, x - 6, y, 14, 3, '#7F1D1D'); box(g, x - 3, y, 7, 2, '#B91C1C'); box(g, x + (k % 3), y + 4, 2, len, '#6A1414');
+    }
+  });
+};
+/** What's left of one of the grandstand's people (the paddock gate hacked): a red heap on the plank, a shoe, a rib. */
+const remains = (c: Ctx, g: DinoGuest) => {
+  const L = lookOf(g.seed);
+  stamp(c, `dzoo-remains-${g.seed}`, g.x - 16, g.y - 14, 32, 16, q => {
+    blob(q, () => q.ellipse(g.x, g.y - 3, 11, 5, 0, 0, Math.PI * 2), '#7F1D1D', g.x - 11, g.x + 11);
+    blob(q, () => q.ellipse(g.x - 2, g.y - 5, 6, 3, 0, 0, Math.PI * 2), '#B91C1C', g.x - 8, g.x + 4, 0);
+    for (const dx of [-3, 0, 3]) rect(q, g.x + dx, g.y - 11, 1.5, 6, '#F2E8D8', 0);
+    rect(q, g.x - 13, g.y - 4, 6, 3, L.shirt, 1);
+    rect(q, g.x + 7, g.y - 4, 6, 3, '#27272A', 1);
   });
 };
 const bleacherFront = (c: Ctx, bx: number) => {

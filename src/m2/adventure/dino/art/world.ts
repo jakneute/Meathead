@@ -415,7 +415,7 @@ const drainWall = (c: Ctx, eye: Eye, f: number) => {
 
 /** A platform on its posts (feeding platform, viewing deck, boardwalk, scaffold, a branch round a tree): its deck's
  *  top going back (when he's over it), its front edge lit, its legs to the ground, braced. */
-const platform = (c: Ctx, state: GameState, eye: Eye, x: number, y: number, w: number, f: number) => {
+export const platform = (c: Ctx, state: GameState, eye: Eye, x: number, y: number, w: number, f: number) => {
   const kind = x < FENCE_X ? 'feed' : x < D + 1300 ? 'deck' : x < D + 2500 ? 'board' : x < D + 5800 && w < 400 ? 'scaffold' : x < D + 5800 ? 'mono' : x < D + 8700 ? 'steel' : 'branch';
   if (kind === 'mono') return; // (the monorail: monorail())
   const deck = kind === 'feed' || kind === 'scaffold' || kind === 'steel' ? '#7A828C' : kind === 'branch' ? '#6E4E30' : WOOD;

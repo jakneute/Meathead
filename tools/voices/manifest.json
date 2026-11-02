@@ -6806,6 +6806,11 @@
  },
  {
   "voice": "death",
+  "text": "ALL SALES FINAL",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "death",
   "text": "ALL YOU CAN EAT",
   "from": "ADVENTURE"
  },
@@ -13863,6 +13868,11 @@
   "voice": "death",
   "text": "RETURN TO SENDER",
   "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "RETURNED TO SENDER",
+  "from": "CARTOON"
  },
  {
   "voice": "death",
@@ -62501,6 +62511,16 @@
  },
  {
   "voice": "meathead",
+  "text": "A BIGGER HEART. I WISH IT WAS SOMETHING ELSE.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "A BIGGER HEART. MY DICK'S JEALOUS.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
   "text": "A BOAT DOESN'T FIT IN THE MAIL. NO.",
   "from": "OSCAR_LINES"
  },
@@ -62687,6 +62707,11 @@
  {
   "voice": "meathead",
   "text": "A CANE! A FANCY CANE!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "A CANNON IN A GIFT SHOP. FINE.",
   "from": "CARTOON"
  },
  {
@@ -63471,8 +63496,23 @@
  },
  {
   "voice": "meathead",
+  "text": "A GIFT SHOP UNDER THE WHITE HOUSE. OF COURSE.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
   "text": "A GIFT SHOP WAND SHOT ME!",
   "from": "FANTASY"
+ },
+ {
+  "voice": "meathead",
+  "text": "A GIFT SHOP. GOT ANY T-SHIRTS? ANY SIZE.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "A GIFT SHOP. I'LL TAKE A PAIR OF SOUVENIR PANTS.",
+  "from": "CARTOON"
  },
  {
   "voice": "meathead",
@@ -64746,6 +64786,11 @@
  },
  {
   "voice": "meathead",
+  "text": "A SPARE HEART. IGOR WON'T MISS IT.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
   "text": "A SPARKLER! IN MY FACE!",
   "from": "FANTASY"
  },
@@ -65246,6 +65291,11 @@
  },
  {
   "voice": "meathead",
+  "text": "A WHOLE STOCKROOM AND NOT ONE PAIR OF SOUVENIR PANTS.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
   "text": "A WHOLE STORE AND NOT ONE PAIR OF DAD GUY PANTS.",
   "from": "CARTOON"
  },
@@ -65508,6 +65558,11 @@
   "voice": "meathead",
   "text": "ALL OF THEM. GOT IT. THEY'LL SMELL ME COMING.",
   "from": "FOREIGN"
+ },
+ {
+  "voice": "meathead",
+  "text": "ALL SALES FINAAAL!",
+  "from": "CARTOON"
  },
  {
   "voice": "meathead",
@@ -70601,6 +70656,11 @@
  },
  {
   "voice": "meathead",
+  "text": "FIRE ME OUT. NAKED. AGAIN.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
   "text": "FIRE PIPE. NOTHING BETWEEN IT AND MY BALLS.",
   "from": "FANTASY"
  },
@@ -70628,6 +70688,11 @@
   "voice": "meathead",
   "text": "FIRE! MY BUSH IS ON FIRE!",
   "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "meathead",
+  "text": "FIRE. I'M READY TO LEAVE A TRAIL.",
+  "from": "CARTOON"
  },
  {
   "voice": "meathead",
@@ -71056,6 +71121,11 @@
  },
  {
   "voice": "meathead",
+  "text": "FREE HEART. I PAID WITH MY DIGNITY.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
   "text": "FREE REFILLS, ASSHOLES!",
   "from": "FANTASY"
  },
@@ -71082,6 +71152,16 @@
  {
   "voice": "meathead",
   "text": "FREE TRADE. THAT'S WHEN SOMEBODY ELSE DOES IT.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "FREE? BEST THING I EVER STOLE.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "FREE. LIKE ME. ALL OF ME.",
   "from": "CARTOON"
  },
  {
@@ -72678,21 +72758,6 @@
   "voice": "meathead",
   "text": "HACKED UP AND DEAD!",
   "from": "M2_KILL_LINES"
- },
- {
-  "voice": "meathead",
-  "text": "HACKERMAN.",
-  "from": "ADVENTURE"
- },
- {
-  "voice": "meathead",
-  "text": "HACKERMAN. NUDE HACKERMAN.",
-  "from": "ADVENTURE"
- },
- {
-  "voice": "meathead",
-  "text": "HACKERMAN. STINKY HACKERMAN.",
-  "from": "ADVENTURE"
  },
  {
   "voice": "meathead",
@@ -75791,6 +75856,11 @@
  },
  {
   "voice": "meathead",
+  "text": "I DIDN'T EVEN BUY ANYTHING!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
   "text": "I DIDN'T FEED THE BIRDS! I SWEAR!",
   "from": "HAZARD_HURT"
  },
@@ -76078,6 +76148,11 @@
   "voice": "meathead",
   "text": "I DRINK SMELLS NOW? COOL.",
   "from": "OSCAR_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "I FEEL BETTER. MY PANTS DON'T.",
+  "from": "SPOOKY"
  },
  {
   "voice": "meathead",
@@ -77471,21 +77546,6 @@
  },
  {
   "voice": "meathead",
-  "text": "I'M IN.",
-  "from": "ADVENTURE"
- },
- {
-  "voice": "meathead",
-  "text": "I'M IN. AND I'M NAKED.",
-  "from": "ADVENTURE"
- },
- {
-  "voice": "meathead",
-  "text": "I'M IN. SO'S MY SHIT.",
-  "from": "ADVENTURE"
- },
- {
-  "voice": "meathead",
   "text": "I'M LOSING MY BALANCE, GOD DAMNIT!",
   "from": "HURT"
  },
@@ -78596,6 +78656,11 @@
  },
  {
   "voice": "meathead",
+  "text": "IT LEANS WHERE THE SHIT GOES. WHICH IS EVERYWHERE.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
   "text": "IT LEANS! THE WHOLE STACK LEANS!",
   "from": "CARTOON"
  },
@@ -78607,6 +78672,16 @@
  {
   "voice": "meathead",
   "text": "IT LEANS. EVERYTHING ON ME SWINGS WITH IT.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "IT LEANS. MY BALLS LEAN WITH IT.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "IT LEANS. THE GIFT SHOP LEANS.",
   "from": "CARTOON"
  },
  {
@@ -79286,6 +79361,11 @@
  },
  {
   "voice": "meathead",
+  "text": "IT'S LEANING. DON'T CLENCH. TOO LATE.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
   "text": "IT'S LEG DAY.",
   "from": "GYM"
  },
@@ -79482,6 +79562,11 @@
  {
   "voice": "meathead",
   "text": "IT'S TIPPING! DON'T SQUEEZE, DON'T SQUEEZE!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "IT'S TIPPING. SO AM I. ALL OF ME.",
   "from": "CARTOON"
  },
  {
@@ -81006,6 +81091,26 @@
  },
  {
   "voice": "meathead",
+  "text": "MORE HEART, NO PANTS. LIVING THE DREAM.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
+  "text": "MORE HEART. I'D RATHER HAVE MORE DICK.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
+  "text": "MORE HEART. SAME SHITTY PANTS.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
+  "text": "MORE HEART. STILL NO CLUE WHY I CARE.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
   "text": "MORE MOVING STAIRS. HER BEDROOM BETTER BE WORTH IT.",
   "from": "FANTASY"
  },
@@ -81293,6 +81398,11 @@
   "voice": "meathead",
   "text": "MY ASS IS FROZEN TO THE DRAGON!",
   "from": "FANTASY"
+ },
+ {
+  "voice": "meathead",
+  "text": "MY ASS IS IN THE BARREL. DO IT.",
+  "from": "CARTOON"
  },
  {
   "voice": "meathead",
@@ -81812,6 +81922,11 @@
  {
   "voice": "meathead",
   "text": "MY HEAD'S RINGING LIKE A CHURCH BELL!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "MY HEART GREW. LIKE THE GRINCH. BUT MEANER.",
   "from": "CARTOON"
  },
  {
@@ -83271,6 +83386,11 @@
  },
  {
   "voice": "meathead",
+  "text": "NO PANTS, NO SERVIIICE!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
   "text": "NO PANTS. LOG RIDE. LET'S GO.",
   "from": "FRONTIER"
  },
@@ -83308,6 +83428,11 @@
   "voice": "meathead",
   "text": "NO REFUNDS!",
   "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "NO REFUNDS?!",
+  "from": "CARTOON"
  },
  {
   "voice": "meathead",
@@ -83492,6 +83617,16 @@
  {
   "voice": "meathead",
   "text": "NOBODY ASKED YOU.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "NOBODY BUYS THIS SHIT. I KNOW HOW IT FEELS.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "NOBODY BUYS THIS SHIT. SO THEY STACK IT.",
   "from": "CARTOON"
  },
  {
@@ -83917,6 +84052,11 @@
  {
   "voice": "meathead",
   "text": "NOT THE NUTS WITH A HAMMER! THEY'RE NOT NAILS!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "NOT THE RETURNS!",
   "from": "CARTOON"
  },
  {
@@ -85283,6 +85423,11 @@
   "voice": "meathead",
   "text": "OW! MY NIPPLES ARE ON FIRE!",
   "from": "SPACE"
+ },
+ {
+  "voice": "meathead",
+  "text": "OW! NO REFUNDS!",
+  "from": "CARTOON"
  },
  {
   "voice": "meathead",
@@ -86856,6 +87001,11 @@
  },
  {
   "voice": "meathead",
+  "text": "RETURN TO SENDERRR!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
   "text": "REVENGERS: RESEMBLE. RESEMBLE A PILE OF SHIT.",
   "from": "HOLLYWOOD"
  },
@@ -88392,6 +88542,16 @@
  {
   "voice": "meathead",
   "text": "SHOOT ME AND YOU'LL WISH YOU HADN'T.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "SHOOT ME OUT OF HERE.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "SHOOT ME. IT CAN'T SMELL WORSE.",
   "from": "CARTOON"
  },
  {
@@ -90726,11 +90886,6 @@
  },
  {
   "voice": "meathead",
-  "text": "SUCK IT, NERDS.",
-  "from": "ADVENTURE"
- },
- {
-  "voice": "meathead",
   "text": "SUCK IT, SAL.",
   "from": "SPOOKY"
  },
@@ -92466,6 +92621,11 @@
  },
  {
   "voice": "meathead",
+  "text": "THE BOBBLEHEADS ARE BOBBLING. NOT GOOD.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
   "text": "THE BONER FOUND THE BEDROOM BEFORE I DID.",
   "from": "FANTASY"
  },
@@ -94058,6 +94218,11 @@
   "voice": "meathead",
   "text": "THE RENT-A-COP SHOT ME! HE CAN'T EVEN DO THAT!",
   "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "THE RETURNS CHUTE!",
+  "from": "CARTOON"
  },
  {
   "voice": "meathead",
@@ -96233,6 +96398,11 @@
   "voice": "meathead",
   "text": "TOURIST PEE! IN MY EYES!",
   "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "meathead",
+  "text": "TOWERS OF SOUVENIRS OVER A BOTTOMLESS PIT. THAT'S NOT A FIRE CODE.",
+  "from": "CARTOON"
  },
  {
   "voice": "meathead",

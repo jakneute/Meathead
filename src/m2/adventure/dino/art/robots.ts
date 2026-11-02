@@ -476,3 +476,28 @@ export const drawPteroBot = (c: Ctx, e: Enemy, f: number, mode: Mode) => {
   eyeLamp(c, ex, ey, 1.3, mode.friendly, f, !g.dead, wear >= 3);
   if (wear >= 2 && !g.dead) { const [sx, sy] = pteroPt(g, [-6, 0]); sparks(c, sx, sy, f, e.pos.x % 3); }
 };
+
+// ---------------------------------------------------------------------------------------------------------------
+// Posed with no enemy behind them (the cutaways: the paddock gate hack's massacre, dino/hackMassacre.ts): hostile (red
+// eyes), the same stamps as in play. Origin at the feet, facing right.
+
+export const drawRaptorPosed = (c: Ctx, pose: 'idle' | 'run' | 'crouch' | 'pounce' | 'hurt' | 'dead', k: number, f: number) => {
+  const g = raptorRig(pose, k);
+  stamp(c, `m2rap:${pose}:${k}:0:0`, -72, -64, 132, 70, gg => paintRaptor(gg, g, 0, false));
+  const [ex, ey] = raptorHeadPt(g, [9.5, -4]);
+  eyeLamp(c, ex, ey, 1.6, false, f, !g.dead, false);
+};
+/** Where its mouth is, posed (for the blood off it). */
+export const raptorMouthAt = (pose: string, k: number): V => raptorHeadPt(raptorRig(pose, k), [14, 2]);
+export const drawTrikePosed = (c: Ctx, pose: 'idle' | 'walk' | 'charge', k: number, f: number) => {
+  const g = trikeRig(pose, k);
+  stamp(c, `m2tri:${pose}:${k}:0:0`, -70, -76, 150, 82, gg => paintTrike(gg, g, 0, false));
+  const [ex, ey] = trikeHeadPt(g, [19, -2]);
+  eyeLamp(c, ex, ey, 1.8, false, f, true, false);
+};
+export const drawPteroPosed = (c: Ctx, pose: 'fly' | 'dive', k: number, f: number) => {
+  const g = pteroRig(pose, k);
+  stamp(c, `m2pte:${pose}:${k}:0:0`, -66, -72, 124, 90, gg => paintPtero(gg, g, 0, false));
+  const [ex, ey] = pteroPt(g, [19.5, -7.5]);
+  eyeLamp(c, ex, ey, 1.3, false, f, true, false);
+};

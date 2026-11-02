@@ -38,6 +38,8 @@ import { drawBoothCut } from './art/booth';
 import { drawZooFar, drawZooNear } from './art/zoo';
 import { updateGuests, drawGuestsSaid } from './guests';
 import { MEATHEAD_LANDED, MEATHEAD_RED_EYES, MAINT_OBLIVIOUS, DINO_FRIENDLY, MEATHEAD_DOOR } from './lines';
+// (the paddock gate hack up the tall tree on the last stretch: a charge shard's minigame)
+import { buildHack, updateHack, drawHackWorld, drawHackHud } from './hack';
 
 import { x0, x1, D, PEN_WALL, DRAIN_Y, PADDOCK_IN, PADDOCK_OUT, PADDOCK_TOP, LAST_FENCE, TEMPLE_ZOOM_OUT, TEMPLE_DOOR_X, LEDGES, SOLIDS } from './layout';
 export { TEMPLE_DOOR_X, DINO_BACK_DOOR_X } from './layout';
@@ -203,6 +205,7 @@ export const dino: Section = {
     }
     // (the paddock's sub-boss: rex.ts)
     buildRex(state, { x: D + 7300, inX: PADDOCK_IN, outX: PADDOCK_OUT, top: PADDOCK_TOP });
+    buildHack(state);
     dinoOf(state);
     // (in dev, ?adv=30 the first time: as if he'd just come down the drain)
     if (import.meta.env.DEV && !devPebble && new URLSearchParams(location.search).get('adv') === '30') {
@@ -216,6 +219,8 @@ export const dino: Section = {
     // Down the drain into the pen: the first time, the pebble
     if (s.dinoArrival) { s.dinoArrival = false; if (!d.pebbleSeen) startPebble(state, d); }
     if (d.pebble) return runPebble(ctx, d);
+    const hacking = updateHack(ctx, controls);
+    if (hacking) { updateRex(ctx); return hacking; }
     updateRex(ctx);
     // (the park's guests: what they make of it, now and then)
     updateGuests(state, { doorKicked: d.doorKicked, scene: p.inCutscene || d.kick > 0 });
@@ -255,6 +260,7 @@ export const dino: Section = {
   drawBack: (c, state) => {
     const d = dinoOf(state);
     drawDinoWorld(c, state, { hostile: d.hostile, doorKicked: d.doorKicked, kick: d.kick, switching: d.pebble?.clicked ?? false }, () => drawRex(c, state), { far: () => drawZooFar(c, state), near: () => drawZooNear(c, state) });
+    drawHackWorld(c, state);
   },
   drawFront: (c, state) => {
     const d = dinoOf(state);
@@ -267,6 +273,7 @@ export const dino: Section = {
   },
   drawHud: (c, state) => {
     drawRexHud(c, state);
+    drawHackHud(c, state);
     const d = dinoOf(state);
     if (!d.pebble) return;
     const pb = d.pebble;
