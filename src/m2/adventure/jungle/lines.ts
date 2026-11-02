@@ -13,6 +13,20 @@ export const GORGE = ["THAT'S A LONG WAY DOWN. I'VE FALLEN FURTHER DRUNK."];
 /** ...on the way out, the Jungle Cruise in sight. */
 export const LEAVING = ['A BOAT RIDE. FINALLY, SOMETHING I CAN DO DRUNK.'];
 
+/** The hidden cave behind the gorge's falls (hidden.ts), three ways: clean, shitty pants, naked. In the cave's mouth
+ *  the first time... */
+export const CAVE_FOUND: Record<'clean' | 'shitty' | 'nude', string[]> = {
+  clean: ["A SECRET CAVE. THAT'S WHERE THEY HIDE THE GOOD SHIT.", 'A CAVE UNDER THE CLIFF. NOBODY CHECKS UNDER THE CLIFF.'],
+  shitty: ['A DARK CAVE. NOBODY CAN SMELL ME IN THERE.', 'A CAVE. FINALLY, SOMEWHERE PRIVATE TO DEAL WITH MY PANTS.'],
+  nude: ['A DARK, DAMP HOLE. STORY OF MY LIFE.', 'A CAVE. MY BALLS COULD USE THE SHADE.'],
+};
+/** ...and the heart in the jar at the end of it, picked up (said as its card goes). */
+export const HEART_GOT: Record<'clean' | 'shitty' | 'nude', string[]> = {
+  clean: ['MY HEART JUST GOT BIGGER. LIKE A HORSE. A JACKED HORSE.', 'MORE HEART. I COULD TAKE A BEATING FROM A GORILLA NOW.'],
+  shitty: ['I FEEL TOUGHER. STILL SHIT MYSELF, BUT TOUGHER.', 'A BIGGER HEART. SAME SHITTY PANTS.'],
+  nude: ['MY HEART GOT BIGGER. AND IT WAS ALREADY THE SECOND BIGGEST THING ON ME.', 'TOUGHER THAN EVER. AND BUCK NAKED.'],
+};
+
 /** What hurts him in here (by source), and the death screen when it's what killed him. */
 export const HURT: Record<string, { hurt: string[]; death: string[] }> = {
   'm2:monkey': {
@@ -50,6 +64,6 @@ export const HURT: Record<string, { hurt: string[]; death: string[] }> = {
 };
 
 export const VOICE_LINES: Record<string, string[]> = {
-  meathead: [...ARRIVE, ...FIRST_VINE, ...GORGE, ...LEAVING, ...Object.values(HURT).flatMap(h => h.hurt)],
+  meathead: [...ARRIVE, ...FIRST_VINE, ...GORGE, ...LEAVING, ...Object.values(HURT).flatMap(h => h.hurt), ...Object.values(CAVE_FOUND).flat(), ...Object.values(HEART_GOT).flat()],
   death: Object.values(HURT).flatMap(h => h.death),
 };

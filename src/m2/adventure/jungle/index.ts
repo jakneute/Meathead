@@ -13,9 +13,13 @@ import { jungleOf } from './state';
 import { GROUND, BRANCHES, VINES, ANIMALS, PICKUPS, CHECKPOINTS, X, Y } from './layout';
 import { drawJungleBackdrop, drawJungleBack, drawJungleFront, jungleLamps } from './draw';
 import { ARRIVE, GORGE, LEAVING } from './lines';
+import { CAVE_VINES, buildHidden, updateHidden, hiddenBusy, hiddenRow, hiddenView } from './hidden';
+import { drawHiddenBack, drawHiddenFront } from './art/hidden';
 
 const { x0, x1 } = SECTIONS.jungle;
 const pick = pickLine;
+/** The land's vines and, after them, the hidden cave's (hidden.ts). */
+const ALL_VINES = [...VINES, ...CAVE_VINES];
 
 export const jungle: Section = {
   id: 'jungle', x0, x1,
@@ -24,6 +28,7 @@ export const jungle: Section = {
     lay(state, GROUND.map(([a, b, h]) => ({ x1: X(a), y1: Y(h), x2: X(b), y2: Y(h), surface: 'jungle' })));
     // (the land's start: no going off the left of it, past the screen's edge)
     state.blocks.push({ x: x0 - 40, y: -4000, w: 40, h: 4000 + GY + 400, type: 'wall', hidden: true, tag: 'jungle-start' } as never);
+    buildHidden(state);
     for (const [a, b, h] of BRANCHES) ledge(state, X(a), Y(h), X(b) - X(a), { hidden: true });
     jungleOf(state);
     state.player.carried = false;
@@ -39,7 +44,8 @@ export const jungle: Section = {
   update: (ctx, controls) => {
     const { state } = ctx, p = state.player, j = jungleOf(state);
     const rx = p.pos.x + p.width / 2 - x0;
-    const out = updateVines(ctx, VINES, controls);
+    // (the hidden cave's card up, or its cannon going: the vines leave him be)
+    const out = updateHidden(ctx, hiddenBusy(state) ? controls : updateVines(ctx, ALL_VINES, controls), VINES.length);
     updateThrown(ctx);
     // What he's got to say about it (once each)
     const once = (k: string, lines: string[]) => { if (!j.said[k]) { j.said[k] = true; meatheadSays(state, pick(lines), false); } };
@@ -53,9 +59,9 @@ export const jungle: Section = {
     return out;
   },
   drawBackdrop: (c, state) => drawJungleBackdrop(c, state),
-  drawBack: (c, state) => { drawJungleBack(c, state); drawVines(c, state, VINES); },
-  drawFront: (c, state) => { drawThrown(c, state); drawJungleFront(c, state); },
-  cameraRow: (state) => (onVine(state) ? VINE_ROW : 500),
+  drawBack: (c, state) => { drawJungleBack(c, state); drawHiddenBack(c, state); drawVines(c, state, ALL_VINES); },
+  drawFront: (c, state) => { drawThrown(c, state); if (!hiddenView(state)) drawJungleFront(c, state); drawHiddenFront(c, state); },
+  cameraRow: (state) => hiddenRow(state) ?? (onVine(state) ? VINE_ROW : 500),
   // (under the canopy: the hour's light, a little less of it)
   outdoors: () => 0.85,
   // (after dark: the torches at the way out, the lamp over the cast members' door)
