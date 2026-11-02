@@ -201,20 +201,20 @@ const progressListeners = new Set<() => void>();
 export const markLandCleared = (id: string) => {
   if (cleared.has(id)) return;
   cleared.add(id);
-  // (the last of the alpha's eight (hub/lands.ts LANDS) just now: the alpha's ending plays as he walks off (alphaEnd.ts).
-  // Only on the kill that clears it: a file loaded all-cleared, or a rematch, never sets it)
-  if (cleared.size === ALPHA_LANDS) alphaEndDue = true;
+  // (the last of the alpha's eight is no different: his walk-away, then the hub like any other. The alpha's ending is
+  // his to pick, out through America USA (hub/index.ts, alphaEnd.ts))
   progressListeners.forEach(l => l());
 };
 /** The lands in the alpha (hub/lands.ts LANDS: not imported, to keep the store free of art). */
 const ALPHA_LANDS = 8;
+/** (dev only now, ?alphaend=walk: the next walk-away ends in the alpha's ending) */
 let alphaEndDue = false;
-/** The alpha's ending is due (the last land just cleared): peeked, to paint it ahead. */
+/** The alpha's ending is due at the walk-away's end (dev): peeked, to paint it ahead. */
 export const alphaEndDuePeek = () => alphaEndDue;
 /** ...and taken, once: true the one time. */
 export const takeAlphaEndDue = () => { const d = alphaEndDue; alphaEndDue = false; return d; };
-/** It's been seen on this file (saved: a file all-cleared that never saw it, quit before the A at the walk-away's end,
- *  plays it on CONTINUE instead: App.tsx). */
+/** It's been seen on this file (saved, for the record: a file all-cleared that never saw it plays nothing on CONTINUE;
+ *  the way out through America USA is how it's seen, every time). */
 let alphaSeen = false;
 export const alphaEndSeen = () => alphaSeen;
 export const setAlphaEndSeen = (on: boolean) => { alphaSeen = on; };
@@ -264,6 +264,9 @@ export const findsGot = (land: string): FindKind[] => {
   return out;
 };
 export const collectiblesFound = (land: string) => findsGot(land).length;
+/** The park's hidden finds, all lands: how many there are (24), and how many he's got. */
+export const FINDS_TOTAL = Object.values(LAND_COLLECTIBLES).reduce((a, b) => a + b, 0);
+export const findsFoundTotal = () => Object.keys(LAND_FINDS).reduce((n, land) => n + collectiblesFound(land), 0);
 export const isLandComplete = (land: string) => {
   const total = LAND_COLLECTIBLES[land] ?? 0;
   return cleared.has(land) && total > 0 && collectiblesFound(land) >= total;

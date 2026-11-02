@@ -58096,7 +58096,22 @@
  },
  {
   "voice": "m2.pa",
+  "text": "A COUPLE MORE AND YOU HAD IT ALL. YOU QUIT ON THE ONE-YARD LINE.",
+  "from": "INTRO"
+ },
+ {
+  "voice": "m2.pa",
+  "text": "A QUARTER OF THEM, TOPS. MY GRANDMA FINDS MORE THAN THAT IN HER COUCH CUSHIONS.",
+  "from": "INTRO"
+ },
+ {
+  "voice": "m2.pa",
   "text": "AMERICA USA: VOTED GREATEST LAND IN HAPPY LAND. BY AMERICA USA.",
+  "from": "INTRO"
+ },
+ {
+  "voice": "m2.pa",
+  "text": "AND YOU FOUND EVERYTHING. ALL TWENTY-FOUR. EVERY LAST HIDDEN THING IN THIS WHOLE PARK.",
   "from": "INTRO"
  },
  {
@@ -58111,7 +58126,22 @@
  },
  {
   "voice": "m2.pa",
+  "text": "DO NOT TELL ANYBODY I SAID THAT.",
+  "from": "INTRO"
+ },
+ {
+  "voice": "m2.pa",
   "text": "FRENCH FRIES ARE NOW FREEDOM FRIES. FRENCH KISSING IS NOW A MISDEMEANOR.",
+  "from": "INTRO"
+ },
+ {
+  "voice": "m2.pa",
+  "text": "GO BACK IN THERE AND FINISH THE JOB, YOU QUITTER.",
+  "from": "INTRO"
+ },
+ {
+  "voice": "m2.pa",
+  "text": "GOOD ENOUGH FOR A GOVERNMENT JOB. NOT GOOD ENOUGH FOR HAPPY LAND.",
   "from": "INTRO"
  },
  {
@@ -58126,7 +58156,17 @@
  },
  {
   "voice": "m2.pa",
+  "text": "HALF OF IT, AT LEAST, IS STILL IN THERE, LAUGHING AT YOU.",
+  "from": "INTRO"
+ },
+ {
+  "voice": "m2.pa",
   "text": "HAPPY LAND IS NOT RESPONSIBLE FOR LOST FINGERS.",
+  "from": "INTRO"
+ },
+ {
+  "voice": "m2.pa",
+  "text": "I MEAN IT. THAT IS GENUINELY IMPRESSIVE. I AM PROUD OF YOU, SON.",
   "from": "INTRO"
  },
  {
@@ -58151,6 +58191,11 @@
  },
  {
   "voice": "m2.pa",
+  "text": "LOAD YOUR SAVE AND TRY OPENING YOUR EYES THIS TIME.",
+  "from": "INTRO"
+ },
+ {
+  "voice": "m2.pa",
   "text": "LOST CHILDREN WILL BE HELD AT GUEST SERVICES. UNCLAIMED CHILDREN WILL BE DRAFTED.",
   "from": "INTRO"
  },
@@ -58161,7 +58206,7 @@
  },
  {
   "voice": "m2.pa",
-  "text": "OR YOU CAN LOAD YOUR SAVED GAME AND TEST THE NEW WEAPON YOU JUST GOT.",
+  "text": "OR YOU CAN LOAD YOUR SAVED GAME AND KEEP PLAYING WITH YOUR NEW WEAPONS.",
   "from": "INTRO"
  },
  {
@@ -58173,11 +58218,6 @@
   "voice": "m2.pa",
   "text": "PLEASE REMAIN SEATED.",
   "from": "ADVENTURE"
- },
- {
-  "voice": "m2.pa",
-  "text": "SORRY TO HAVE INTERRUPTED YOU.",
-  "from": "INTRO"
  },
  {
   "voice": "m2.pa",
@@ -58221,7 +58261,37 @@
  },
  {
   "voice": "m2.pa",
+  "text": "TWENTY-FOUR THINGS HIDDEN IN THIS PARK, AND YOU WALKED RIGHT PAST EVERY SINGLE ONE OF THEM.",
+  "from": "INTRO"
+ },
+ {
+  "voice": "m2.pa",
   "text": "WOULD THE OWNER OF THE RED PICKUP IN THE PILLAR ON LEVEL THREE... NEVER MIND. GOD BLESS.",
+  "from": "INTRO"
+ },
+ {
+  "voice": "m2.pa",
+  "text": "YOU FOUND A FEW OF THE HIDDEN THINGS. BY ACCIDENT, PROBABLY.",
+  "from": "INTRO"
+ },
+ {
+  "voice": "m2.pa",
+  "text": "YOU FOUND A QUARTER OF THE HIDDEN SHIT, GIVE OR TAKE. THAT IS A PARTICIPATION TROPHY.",
+  "from": "INTRO"
+ },
+ {
+  "voice": "m2.pa",
+  "text": "YOU FOUND ALMOST ALL OF THE HIDDEN SHIT. ALMOST. LIKE A GUY WHO PULLS OUT ALMOST IN TIME.",
+  "from": "INTRO"
+ },
+ {
+  "voice": "m2.pa",
+  "text": "YOU FOUND MORE THAN HALF THE HIDDEN SHIT. WHAT WE IN THE BUSINESS CALL HALF-ASSED, PLUS A LITTLE EXTRA ASS.",
+  "from": "INTRO"
+ },
+ {
+  "voice": "m2.pa",
+  "text": "YOU FOUND NOTHING. NOT ONE THING. DID YOU EVEN LOOK?",
   "from": "INTRO"
  },
  {
@@ -75891,6 +75961,21 @@
  },
  {
   "voice": "meathead",
+  "text": "FINE. FUCK IT. I NEED A SHOWER ANYWAY.",
+  "from": "HUB"
+ },
+ {
+  "voice": "meathead",
+  "text": "FINE. FUCK IT. QUITTERS GET TO GO HOME EARLY.",
+  "from": "HUB"
+ },
+ {
+  "voice": "meathead",
+  "text": "FINE. FUCK IT. SOMEBODY GET ME A TOWEL.",
+  "from": "HUB"
+ },
+ {
+  "voice": "meathead",
   "text": "FINE. HAND TO HAND. DICK TO DICK.",
   "from": "FANTASY"
  },
@@ -82301,6 +82386,21 @@
  },
  {
   "voice": "meathead",
+  "text": "I SAID NOT YET. I DO NOT LEAVE SHIT BEHIND.",
+  "from": "HUB"
+ },
+ {
+  "voice": "meathead",
+  "text": "I SAID NOT YET. I'VE COME THIS FAR WITH MY DICK OUT.",
+  "from": "HUB"
+ },
+ {
+  "voice": "meathead",
+  "text": "I SAID NOT YET. THE ONLY THING I LEAVE BEHIND IS IN MY PANTS.",
+  "from": "HUB"
+ },
+ {
+  "voice": "meathead",
   "text": "I SAW A MOVIE ABOUT THIS. I GOT THIS.",
   "from": "ADVENTURE"
  },
@@ -82593,6 +82693,21 @@
   "voice": "meathead",
   "text": "I UNCLOGGED THE GODFATHER! MAKE ME AN OFFER!",
   "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "meathead",
+  "text": "I WALK OUT THAT GATE NAKED, I'M NOT COMING BACK FOR IT. EVER.",
+  "from": "HUB"
+ },
+ {
+  "voice": "meathead",
+  "text": "I WALK OUT THAT GATE, I'M NOT COMING BACK FOR IT. EVER.",
+  "from": "HUB"
+ },
+ {
+  "voice": "meathead",
+  "text": "I WALK OUT THAT GATE, I'M NOT COMING BACK FOR IT. EVER. AND NEITHER IS THIS SMELL.",
+  "from": "HUB"
  },
  {
   "voice": "meathead",
@@ -90573,6 +90688,21 @@
   "voice": "meathead",
   "text": "NOT YET. IT'S SHY.",
   "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "meathead",
+  "text": "NOT YET. THERE'S STUFF IN THERE WITH MY NAME ON IT.",
+  "from": "HUB"
+ },
+ {
+  "voice": "meathead",
+  "text": "NOT YET. THERE'S STUFF IN THERE WITH MY NAME ON IT. AND MY SHIT ON IT.",
+  "from": "HUB"
+ },
+ {
+  "voice": "meathead",
+  "text": "NOT YET. THERE'S STUFF IN THERE WITH MY NAME ON IT. I'M NOT LEAVING IT FOR THE NEXT NAKED GUY.",
+  "from": "HUB"
  },
  {
   "voice": "meathead",
@@ -99156,6 +99286,21 @@
  },
  {
   "voice": "meathead",
+  "text": "THAT'S EVERYTHING. MAYBE IT'S TIME TO GO HOME.",
+  "from": "HUB"
+ },
+ {
+  "voice": "meathead",
+  "text": "THAT'S EVERYTHING. MAYBE IT'S TIME TO GO HOME. AND CHANGE.",
+  "from": "HUB"
+ },
+ {
+  "voice": "meathead",
+  "text": "THAT'S EVERYTHING. MAYBE IT'S TIME TO GO HOME. AND FIND MY PANTS.",
+  "from": "HUB"
+ },
+ {
+  "voice": "meathead",
   "text": "THAT'S FAIR.",
   "from": "OSCAR_LINES"
  },
@@ -102518,6 +102663,21 @@
   "voice": "meathead",
   "text": "THERE'S STILL A RING IN IT. THEY KEPT THE RING.",
   "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "meathead",
+  "text": "THERE'S STILL SHIT TO DO.",
+  "from": "HUB"
+ },
+ {
+  "voice": "meathead",
+  "text": "THERE'S STILL SHIT TO DO. BESIDES MY PANTS.",
+  "from": "HUB"
+ },
+ {
+  "voice": "meathead",
+  "text": "THERE'S STILL SHIT TO DO. NAKED SHIT.",
+  "from": "HUB"
  },
  {
   "voice": "meathead",

@@ -27,7 +27,7 @@ import { FRONTIER_VOICE_LINES } from '../../src/m2/frontier/voices';
 import { FANTASY_VOICE_LINES } from '../../src/m2/fantasy/voices';
 import { CARTOON_VOICE_LINES } from '../../src/m2/cartoon/voices';
 import { VOICE_LINES as GYM_VOICE_LINES } from '../../src/m2/intro/gym/lines';
-import { AMERICA_DENY, PEN_DOG_JUMP } from '../../src/m2/lines/hubLines';
+import { AMERICA_DENY, PEN_DOG_JUMP, HUB_ALL_DONE, HUB_STUFF_LEFT, AMERICA_RESIST, AMERICA_GIVE_IN } from '../../src/m2/lines/hubLines';
 import { UPGRADE_VOICE_LINES } from '../../src/m2/upgrades/lines';
 
 const ROOT = path.resolve(__dirname, '../..');
@@ -77,7 +77,7 @@ add('meathead', [introLines.MEATHEAD_BACK_LOT, introLines.MEATHEAD_REENTRY, intr
 add('m2.ticket', [introLines.TICKET_LADY, introLines.TICKET_NEXT, introLines.TICKET_ALARM, introLines.TICKET_CUT, introLines.TICKET_REENTRY]);
 for (const v of ['m2.guard', 'm2.guardf']) add(v, [introLines.GUARD_ALERT, introLines.GUARD_BARK, introLines.GUARD_IDLE, introLines.GUARD_WELCOME, introLines.GUARD_WELCOME_BACK]);
 add('m2.pa', introLines.PA_LINES);
-add('m2.pa', introLines.PA_ALPHA_END);
+add('m2.pa', [introLines.PA_ALPHA_OPEN, introLines.PA_ALPHA_END, introLines.PA_ALPHA_TIER]);
 for (const byVoice of ADV_VOICE_LINES) for (const [v, lines] of Object.entries(byVoice)) add(v, lines);
 for (const byVoice of SPOOKY_VOICE_LINES) for (const [v, lines] of Object.entries(byVoice)) add(v, lines);
 for (const byVoice of SPACE_VOICE_LINES) for (const [v, lines] of Object.entries(byVoice)) add(v, lines);
@@ -87,7 +87,7 @@ for (const byVoice of FRONTIER_VOICE_LINES) for (const [v, lines] of Object.entr
 for (const byVoice of FANTASY_VOICE_LINES) for (const [v, lines] of Object.entries(byVoice)) add(v, lines);
 for (const byVoice of CARTOON_VOICE_LINES) for (const [v, lines] of Object.entries(byVoice)) add(v, lines);
 for (const [v, lines] of Object.entries(GYM_VOICE_LINES)) add(v, lines);
-add('meathead', AMERICA_DENY);
+add('meathead', [AMERICA_DENY, HUB_ALL_DONE, HUB_STUFF_LEFT, AMERICA_RESIST, AMERICA_GIVE_IN]);
 add('meathead', PEN_DOG_JUMP);
 // (the hidden upgrades: the amulet's yell)
 for (const [v, lines] of Object.entries(UPGRADE_VOICE_LINES)) add(v, lines);

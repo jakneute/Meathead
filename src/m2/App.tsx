@@ -76,7 +76,7 @@ import { landLeft } from './landCaches';
 import { canSkip, requestSkip } from '../m1/game/platform/skip';
 import { getAudioContext, playMenuBack, playMenuOk } from '../m1/game/platform/audio';
 import { STAFF_SLOT, AMERICA_SLOT, landAt } from './hub/lands';
-import { getUi, subscribeUi, onTravel, setUi, goTo, takeBossKill, setStartCheckpoint, requestCarHop, restoreClearedLands, restoreKept, restoreBossDeaths, restoreFound, isLandCleared, isLandComplete, setAlphaEndSeen, ALPHA_LAND_COUNT } from './store';
+import { getUi, subscribeUi, onTravel, setUi, goTo, takeBossKill, setStartCheckpoint, requestCarHop, restoreClearedLands, restoreKept, restoreBossDeaths, restoreFound, isLandCleared, isLandComplete, setAlphaEndSeen } from './store';
 import { alphaEndOver } from './alphaEnd';
 import { setCutsceneBubbles } from '../m1/game/render/speechStyle';
 // (Meathead 2's cutscenes, the skippable ones bar the intro's: the words over heads in speech bubbles; in play, just the
@@ -303,8 +303,7 @@ const App2: React.FC = () => {
     restoreUpgrades(f.upgrades);
     setInitialAmmo(createFullAmmo());
     playOnFile(slot, f.playTimeMs);
-    // (all cleared, but quit before the alpha's ending played: it plays now, and on to the title as ever)
-    if (f.cleared.length >= ALPHA_LAND_COUNT && !f.alphaSeen) { setAlphaOnly(true); alphaEndOver(); return; }
+    // (all cleared: nothing plays by itself; the alpha's ending is out through America USA, as ever (hub/index.ts))
     // (onto the hub, where Meathead 1's goes onto the map: in off America USA's street)
     setHubStart(AMERICA_SLOT);
     refreshFindsHour();

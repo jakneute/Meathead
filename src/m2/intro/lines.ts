@@ -58,17 +58,52 @@ export const GUARD_BARK: Record<Dressed, string[]> = {
   nude: ["DON'T LOOK AT IT! TAKE HIM DOWN!", "I'M NOT TACKLING HIM! HE'S NAKED!", 'THERE ARE FAMILIES HERE, YOU PERVERT!'],
 };
 
-/** The PA (the same announcer as America USA's), the night the last land's cleared: the alpha's ending (alphaEnd.ts).
- *  Three lines, one after another (the user's one speech, split so each fits on screen). */
+/** The PA (the same announcer as America USA's), the night he walks out through America USA with all eight bosses dead:
+ *  the alpha's ending (alphaEnd.ts). A line at a time (the user's one speech, split so each fits on screen): the opening,
+ *  then his take on how much of the 24 hidden finds got found (PA_ALPHA_TIER), then the rest. */
+export const PA_ALPHA_OPEN = 'CONGRATULATIONS! YOU FINISHED THE ALPHA BUILD OF MEATHEAD 2!';
 export const PA_ALPHA_END = [
-  'CONGRATULATIONS! YOU FINISHED THE ALPHA BUILD OF MEATHEAD 2!',
   'CHECK BACK LATER-ISH FOR THE GRAND ENDGAME CONTENT!',
-  'OR YOU CAN LOAD YOUR SAVED GAME AND TEST THE NEW WEAPON YOU JUST GOT.',
+  'OR YOU CAN LOAD YOUR SAVED GAME AND KEEP PLAYING WITH YOUR NEW WEAPONS.',
   'IF YOU WANT TO HEAR MY WONDERFUL VOICE AGAIN, EXIT THROUGH AMERICA USA FROM YOUR SAVED GAME.',
   "IF YOU CHOSE NOT TO SAVE YOUR GAME, YOU'RE SHIT OUT OF LUCK.",
-  'SORRY TO HAVE INTERRUPTED YOU.',
   'GOODBYE.',
 ];
+/** How many of the 24 hidden finds he got (the owner's six, by count): none (0); a few (1-6); a quarter-ish (7-12);
+ *  over half (13-18); so close (19-23, needled for it); every last one (24). */
+export type AlphaTier = 'none' | 'few' | 'quarter' | 'half' | 'close' | 'all';
+export const PA_ALPHA_TIER: Record<AlphaTier, string[]> = {
+  none: [
+    'YOU FOUND NOTHING. NOT ONE THING. DID YOU EVEN LOOK?',
+    'TWENTY-FOUR THINGS HIDDEN IN THIS PARK, AND YOU WALKED RIGHT PAST EVERY SINGLE ONE OF THEM.',
+    'LOAD YOUR SAVE AND TRY OPENING YOUR EYES THIS TIME.',
+  ],
+  few: [
+    'YOU FOUND A FEW OF THE HIDDEN THINGS. BY ACCIDENT, PROBABLY.',
+    'A QUARTER OF THEM, TOPS. MY GRANDMA FINDS MORE THAN THAT IN HER COUCH CUSHIONS.',
+  ],
+  quarter: [
+    'YOU FOUND A QUARTER OF THE HIDDEN SHIT, GIVE OR TAKE. THAT IS A PARTICIPATION TROPHY.',
+    'HALF OF IT, AT LEAST, IS STILL IN THERE, LAUGHING AT YOU.',
+  ],
+  half: [
+    'YOU FOUND MORE THAN HALF THE HIDDEN SHIT. WHAT WE IN THE BUSINESS CALL HALF-ASSED, PLUS A LITTLE EXTRA ASS.',
+    'GOOD ENOUGH FOR A GOVERNMENT JOB. NOT GOOD ENOUGH FOR HAPPY LAND.',
+  ],
+  close: [
+    'YOU FOUND ALMOST ALL OF THE HIDDEN SHIT. ALMOST. LIKE A GUY WHO PULLS OUT ALMOST IN TIME.',
+    'A COUPLE MORE AND YOU HAD IT ALL. YOU QUIT ON THE ONE-YARD LINE.',
+    'GO BACK IN THERE AND FINISH THE JOB, YOU QUITTER.',
+  ],
+  all: [
+    'AND YOU FOUND EVERYTHING. ALL TWENTY-FOUR. EVERY LAST HIDDEN THING IN THIS WHOLE PARK.',
+    'I MEAN IT. THAT IS GENUINELY IMPRESSIVE. I AM PROUD OF YOU, SON.',
+    'DO NOT TELL ANYBODY I SAID THAT.',
+  ],
+};
+/** The tier for `got` finds (of 24: 0, 1-6, 7-12, 13-18, 19-23, all). */
+export const alphaTier = (got: number, total: number): AlphaTier =>
+  got >= total ? 'all' : got >= 19 ? 'close' : got >= 13 ? 'half' : got >= 7 ? 'quarter' : got > 0 ? 'few' : 'none';
 
 /** The PA, in America USA: every so often, annoyingly. */
 export const PA_LINES = [

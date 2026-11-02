@@ -1,14 +1,23 @@
 // The alpha's ending (the user's: "after exiting to hub ... as the last guy killed, show a closeup of the PA, during
-// night time ... then just play triumphant music as "THE END?" plays"). The last land's boss down (store.ts
-// takeAlphaEndDue), his walk-away's A doesn't take him on: it cuts to this. The park's PA horn at night, a Ren & Stimpy
-// gross-up of it (the user's: "the PA should be a 'gross up' too. why not?"): rust, flaking paint, pigeon shit, gum and
-// dead bugs in its grille, a cobweb, a pigeon on it, a frayed taped wire, the grille rattling and spitting as it talks.
-// America USA's announcer (intro/lines.ts PA_VOICE) says his piece (PA_ALPHA_END, a line at a time, its words up only
-// while they're said). Then the theme, triumphant (music/cues.ts: the 'alphaend' moment), fireworks, THE END? in
-// marquee bulbs; a couple of seconds on, any button: back to the title.
+// night time ... then just play triumphant music as "THE END?" plays"). Since 2026-11-02 (the owner's: "when you beat
+// all 8 bosses, it kicks you to the hub, you need to exit through america usa to 'finish' the alpha"): the eighth boss's
+// walk-away goes back to the hub like any other; in the hub he says whether there's anything left (all 24 hidden finds
+// his or not: hub/index.ts), and walking out through America USA plays this (refused a few times first if finds are
+// still out there: the warning the final game will make a hard one, there being no way back after). On CONTINUE nothing
+// plays by itself any more; a file that's seen it gets it again the same way, out through America USA.
 //
-// Played inside the walk-away (walkAway.ts: it ticks and draws this in its place), so the stage holds still under it,
-// in its cutscene, nothing his to play. Start / Esc (the cutscene skip) cuts the PA short, straight to THE END?.
+// The park's PA horn at night, a Ren & Stimpy gross-up of it (the user's: "the PA should be a 'gross up' too. why
+// not?"): rust, flaking paint, pigeon shit, gum and dead bugs in its grille, a cobweb, a pigeon on it, a frayed taped
+// wire, the grille rattling and spitting as it talks. America USA's announcer (intro/lines.ts PA_VOICE) says his piece
+// a line at a time, its words up only while they're said: PA_ALPHA_OPEN, then his take on the finds by tier (the
+// owner's: "he says something different if you got nothing - at least 25 percent - at least 50 percent - at least 75
+// percent - and everything", then six by count: 0, 1-6, 7-12, 13-18, 19-23, all 24: PA_ALPHA_TIER), then PA_ALPHA_END. Then the theme, triumphant
+// (music/cues.ts: the 'alphaend' moment), fireworks, THE END? in marquee bulbs, the finds' count under it; a couple of
+// seconds on, any button: back to the title.
+//
+// From the hub it plays over the page (alphaEndOver). It can still play inside a walk-away (walkAway.ts ticks and draws
+// it in its place), but only for the dev ?alphaend=walk now. Start / Esc (the cutscene skip) cuts the PA short, straight
+// to THE END?.
 //
 // Dev (and the cheats build): ?alphaend plays it on its own over the page; ?alphaend=walk makes the next boss's
 // walk-away end in it.
@@ -22,11 +31,11 @@ import { voicesLoaded } from '../m1/game/platform/voiceclips';
 import { inputDevice, padFamily } from '../m1/game/platform/device';
 import { drawPadFace } from '../m1/game/render/padGlyph';
 import { musicMoment } from './music/moments';
-import { PA_VOICE, PA_ALPHA_END } from './intro/lines';
+import { PA_VOICE, PA_ALPHA_OPEN, PA_ALPHA_END, PA_ALPHA_TIER, alphaTier } from './intro/lines';
 import { glyphDots } from './space/square/lettering';
 import { font, bar, canvas } from './walkAway/screen';
 import { closeFile, saveProgress } from './save';
-import { setAlphaEndDue, setAlphaEndSeen } from './store';
+import { setAlphaEndDue, setAlphaEndSeen, findsFoundTotal, FINDS_TOTAL } from './store';
 import { M2_PUBLIC } from './build';
 import {
   type Buf, type Steps, GW, GH, R, hexU, mixU, WHITE, newBuf, bay, hash2, setSeed, rnd, matAt, plot, shade, seg, path,
@@ -321,7 +330,7 @@ function* paintPA(): Steps<Buf> {
   return b;
 }
 
-const pa = stamps<'pa'>(() => paintPA());
+const pa = stamps<'pa'>(() => paintPA(), ['pa']);
 /** Paint it ahead, a slice per idle moment (the walk-away's on: it's due next). */
 export const warmAlphaEnd = () => pa.warm();
 
@@ -334,6 +343,8 @@ export interface AlphaEnd {
   t: number;
   /** 'pa' the announcement; 'end' THE END? (from `endAt`); 'out' fading off to the title (from `outAt`). */
   phase: 'pa' | 'end' | 'out';
+  /** What the PA says, in order (the opening, the finds' tier, the rest), and the finds he had (THE END?'s count). */
+  lines: string[]; got: number;
   line: number; said: string | null; nextAt: number;
   endAt: number; outAt: number;
   armed: boolean;
@@ -363,12 +374,14 @@ export const startAlphaEnd = (onDone: () => void = toTitle): AlphaEnd => {
   setAlphaEndSeen(true); saveProgress();
   listen(true);
   pa.warm();
-  return { t: 0, phase: 'pa', line: -1, said: null, nextAt: 50, endAt: 0, outAt: 0, armed: false, sparks: [], flecks: [], onDone };
+  const got = findsFoundTotal();
+  const lines = [PA_ALPHA_OPEN, ...PA_ALPHA_TIER[alphaTier(got, FINDS_TOTAL)], ...PA_ALPHA_END];
+  return { t: 0, phase: 'pa', lines, got, line: -1, said: null, nextAt: 50, endAt: 0, outAt: 0, armed: false, sparks: [], flecks: [], onDone };
 };
 
 const sayLine = (a: AlphaEnd, i: number) => {
   a.line = i; a.nextAt = Infinity;
-  const text = PA_ALPHA_END[i];
+  const text = a.lines[i];
   let over = false;
   const done = () => { if (over) return; over = true; a.said = null; if (a.phase === 'pa') a.nextAt = a.t + 24; };
   const shown = say(text, PA_VOICE, i === 0 ? 'urgent' : 'queue', {
@@ -391,7 +404,7 @@ export const tickAlphaEnd = (a: AlphaEnd, controls?: Controls | null, padA = fal
   if (a.phase === 'pa') {
     if (skip && a.t > 20) { toEnd(a); return; }
     // (the voice pack in first (a page that's only just loaded: it's still coming), ten seconds at most)
-    if (a.t >= a.nextAt && (a.line >= 0 || voicesLoaded() || a.t > 600)) { if (a.line + 1 < PA_ALPHA_END.length) sayLine(a, a.line + 1); else toEnd(a); }
+    if (a.t >= a.nextAt && (a.line >= 0 || voicesLoaded() || a.t > 600)) { if (a.line + 1 < a.lines.length) sayLine(a, a.line + 1); else toEnd(a); }
     // (the grille spitting as he talks: dust off it, and spit)
     if (a.said && Math.random() < 0.6) {
       const ang = Math.random() * Math.PI * 2, r = Math.random() * 30;
@@ -517,6 +530,14 @@ export const drawAlphaEnd = (c: Ctx, a: AlphaEnd) => {
       }
       c.restore();
     }
+    // (the finds he had, under it)
+    if (u > 30) {
+      c.save();
+      c.font = font(10); c.textAlign = 'center'; c.textBaseline = 'alphabetic';
+      const txt = `HIDDEN FINDS: ${a.got} OF ${FINDS_TOTAL}`;
+      c.fillStyle = '#000000'; c.fillText(txt, W / 2 + 2, 352); c.fillStyle = a.got >= FINDS_TOTAL ? '#FDE68A' : '#F8FAFC'; c.fillText(txt, W / 2, 350);
+      c.restore();
+    }
     // PRESS [A] (once it'll take it)
     if (a.phase === 'end' && u > INPUT_AFTER) {
       c.save();
@@ -562,8 +583,8 @@ export const devAlphaEnd = () => {
   if (q.get('alphaend') === 'walk') { setAlphaEndDue(true); return; }
   alphaEndOver(true);
 };
-/** It on its own, over the page (a file all-cleared that never saw it, on CONTINUE: App.tsx; or the dev ?alphaend,
- *  looping). */
+/** It on its own, over the page (out through America USA: hub/index.ts; the cheats build's title; or the dev
+ *  ?alphaend, looping). */
 export const alphaEndOver = (loop = false) => {
   const cv = canvas(W, H);
   Object.assign(cv.style, { position: 'fixed', inset: '0', margin: 'auto', zIndex: '9999', background: '#000', imageRendering: 'pixelated', maxWidth: '100vw', maxHeight: '100vh', aspectRatio: '4 / 3', width: 'min(100vw, 133.33vh)' });

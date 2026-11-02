@@ -35,7 +35,7 @@ import { FRONTIER_VOICE_LINES } from '../../src/m2/frontier/voices';
 import { FANTASY_VOICE_LINES } from '../../src/m2/fantasy/voices';
 import { CARTOON_VOICE_LINES } from '../../src/m2/cartoon/voices';
 import { VOICE_LINES as GYM_VOICE_LINES } from '../../src/m2/intro/gym/lines';
-import { AMERICA_DENY, PEN_DOG_JUMP } from '../../src/m2/lines/hubLines';
+import { AMERICA_DENY, PEN_DOG_JUMP, HUB_ALL_DONE, HUB_STUFF_LEFT, AMERICA_RESIST, AMERICA_GIVE_IN } from '../../src/m2/lines/hubLines';
 import { UPGRADE_VOICE_LINES } from '../../src/m2/upgrades/lines';
 import { fitsHappyLand } from '../../src/m2/lines/consistency';
 
@@ -125,7 +125,7 @@ for (const t of allStrings([introLines.MEATHEAD_TICKET, introLines.MEATHEAD_PARK
 for (const t of allStrings([introLines.TICKET_LADY, introLines.TICKET_NEXT, introLines.TICKET_ALARM, introLines.TICKET_CUT, introLines.TICKET_REENTRY])) add('m2.ticket', t, 'INTRO');
 for (const t of allStrings([introLines.GUARD_ALERT, introLines.GUARD_BARK, introLines.GUARD_IDLE, introLines.GUARD_WELCOME, introLines.GUARD_WELCOME_BACK])) { add('m2.guard', t, 'INTRO'); add('m2.guardf', t, 'INTRO'); }
 for (const t of introLines.PA_LINES) add('m2.pa', t, 'INTRO');
-for (const t of introLines.PA_ALPHA_END) add('m2.pa', t, 'INTRO');
+for (const t of allStrings([introLines.PA_ALPHA_OPEN, introLines.PA_ALPHA_END, introLines.PA_ALPHA_TIER])) add('m2.pa', t, 'INTRO');
 // (Adventure Land: every section's, by voice)
 for (const byVoice of ADV_VOICE_LINES) for (const [v, lines] of Object.entries(byVoice)) for (const t of lines) add(v, t, 'ADVENTURE');
 // (Spooky Land: every section's, by voice)
@@ -144,7 +144,7 @@ for (const byVoice of FANTASY_VOICE_LINES) for (const [v, lines] of Object.entri
 for (const byVoice of CARTOON_VOICE_LINES) for (const [v, lines] of Object.entries(byVoice)) for (const t of lines) add(v, t, 'CARTOON');
 // (the Iron Pit, the opening: by voice)
 for (const [v, lines] of Object.entries(GYM_VOICE_LINES)) for (const t of lines) add(v, t, 'GYM');
-for (const t of allStrings(AMERICA_DENY)) add('meathead', t, 'HUB');
+for (const t of allStrings([AMERICA_DENY, HUB_ALL_DONE, HUB_STUFF_LEFT, AMERICA_RESIST, AMERICA_GIVE_IN])) add('meathead', t, 'HUB');
 for (const t of allStrings(PEN_DOG_JUMP)) add('meathead', t, 'HUB');
 // (the hidden upgrades: the amulet's yell)
 for (const [v, lines] of Object.entries(UPGRADE_VOICE_LINES)) for (const t of lines) add(v, t, 'UPGRADES');

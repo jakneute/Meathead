@@ -11,10 +11,10 @@ import { GROUND_Y } from '../../m1/constants';
 import { LANDS, SPOTS, STAFF_SLOT, AMERICA_SLOT, HUB_SLOTS, landAt } from './lands';
 import { say, MEATHEAD_VOICE, pickLine } from '../../m1/game/platform/speech';
 import { isShat, isNude } from '../../m1/game/player/gut';
-import { AMERICA_DENY } from '../lines/hubLines';
+import { AMERICA_DENY, HUB_ALL_DONE, HUB_STUFF_LEFT, AMERICA_RESIST, AMERICA_GIVE_IN } from '../lines/hubLines';
 import { getCheats } from '../cheats';
-import { setUi, getUi, goTo, isLeaving, arrived, carryGut, takeGut, setStartCheckpoint, landsCleared, ALPHA_LAND_COUNT } from '../store';
-import { alphaEndOver } from '../alphaEnd';
+import { setUi, getUi, goTo, isLeaving, arrived, carryGut, takeGut, setStartCheckpoint, landsCleared, ALPHA_LAND_COUNT, findsFoundTotal, FINDS_TOTAL } from '../store';
+import { alphaEndOver, warmAlphaEnd } from '../alphaEnd';
 import { fastTravelStops, fastTravelPick, setFastTravelPick, takeFastTravelGo, takeCardBack } from '../parkmap/fastTravel';
 import { stopWeapons } from '../weapons';
 import { pollM2, pressed } from '../input';
@@ -44,8 +44,30 @@ const COVERED_T = 2;
 
 const GATED: (keyof Controls)[] = ['jump', 'special', 'shoot', 'secondary', 'charge'];
 
-interface Hub { map: number | null; upWas: boolean; /** (the fast-travel pick: down held last frame) */ downWas?: boolean; /** Buttons held from closing the map: ignored till let go. */ gate: Set<keyof Controls>; /** The grabs work here too. */ grab: Grab; /** Going through a portal, or back out of one (portal.ts). */ portal?: Show | null; /** Out through America USA with every land cleared: the alpha's ending playing over it (alphaEnd.ts: it goes to the title). */ ending?: boolean }
+interface Hub { map: number | null; upWas: boolean; /** (the fast-travel pick: down held last frame) */ downWas?: boolean; /** Buttons held from closing the map: ignored till let go. */ gate: Set<keyof Controls>; /** The grabs work here too. */ grab: Grab; /** Going through a portal, or back out of one (portal.ts). */ portal?: Show | null; /** Out through America USA with every land cleared: the alpha's ending playing over it (alphaEnd.ts: it goes to the title). */ ending?: boolean; /** All eight bosses dead: frames till he says whether there's anything left (once an arrival; -1 said). */ arriveIn?: number; /** A line of his at America USA's way out still being said: no more tries till it's done. */ talking?: boolean }
 const getHub = (state: GameState) => state.stage as Hub | null;
+
+/** Out through America USA with finds still out there: how many times he's refused (this session). Three refusals,
+ *  then he gives in (the owner's: "he will resist a few times if you try to leave before getting everything"). */
+let resisted = 0;
+const RESISTS = AMERICA_RESIST.length;
+/** When he last said his piece on arriving (all eight dead): not again within 45 s. */
+let arrivalSaidAt = -1e9;
+
+type Dressed = 'clean' | 'shitty' | 'nude';
+const dressed = (state: GameState): Dressed => (isNude(state) ? 'nude' : isShat(state) ? 'shitty' : 'clean');
+/** A line of his in play, over his head, up only while it's said. `done` once it's over (said, cut, or never said). */
+const sayOver = (state: GameState, text: string, priority: 'casual' | 'urgent', done?: () => void) => {
+  let over = false;
+  const end = () => { if (over) return; over = true; done?.(); };
+  const shown = say(text, MEATHEAD_VOICE, priority, {
+    always: true,
+    onShow: spoken => { state.playerLastVulgarity = text; state.playerVulgarityTimer = 180; if (!spoken) setTimeout(() => { if (state.playerLastVulgarity === text) state.playerVulgarityTimer = 0; end(); }, Math.max(2000, text.length * 70)); },
+    onHide: () => { if (state.playerLastVulgarity === text) state.playerVulgarityTimer = 0; end(); },
+    onDropped: end,
+  });
+  if (!shown) { state.playerLastVulgarity = text; state.playerVulgarityTimer = 150; setTimeout(end, 2500); }
+};
 
 /** Round the lap: everything shifts by a whole lap, so he never runs out of roundabout. */
 const shiftLap = (state: GameState, dx: number) => {
@@ -86,7 +108,11 @@ export const hubLayout: StageLayout = {
     // (and built under the stage change's black, the portal's white over that: what's painted for the first frames spread
     // over them)
     setStampCover(!!portal);
-    state.stage = { map: null, upWas: false, gate: new Set(), grab: createGrab(state), portal } satisfies Hub;
+    // (all eight bosses dead: a moment after he's in, he says whether there's anything left to find)
+    const arriveIn = landsCleared() >= ALPHA_LAND_COUNT ? 50 : -1;
+    // (and the alpha's ending's PA painted ahead, idle slices, for the way out)
+    if (arriveIn >= 0) warmAlphaEnd();
+    state.stage = { map: null, upWas: false, gate: new Set(), grab: createGrab(state), portal, arriveIn } satisfies Hub;
     state.cameraMinX = HUB.x0 - HUB_CIRC;
   },
   update: (ctx, controls) => {
@@ -107,6 +133,11 @@ export const hubLayout: StageLayout = {
     // (through a portal: nothing else till he's there)
     if (hub.portal) return runShow(state, hub, controls);
     const p = state.player, cx = p.pos.x + p.width / 2;
+    // (in, all eight dead: everything found, time to go home; or there's still shit to do (the owner's lines))
+    if (hub.arriveIn !== undefined && hub.arriveIn >= 0 && !getUi().pick && --hub.arriveIn < 0 && performance.now() - arrivalSaidAt > 45000) {
+      arrivalSaidAt = performance.now();
+      sayOver(state, pickLine((findsFoundTotal() >= FINDS_TOTAL ? HUB_ALL_DONE : HUB_STUFF_LEFT)[dressed(state)]), 'casual');
+    }
     if (cx < HUB.x0) shiftLap(state, HUB_CIRC);
     else if (cx > HUB.x0 + HUB_CIRC) shiftLap(state, -HUB_CIRC);
     const at = p.pos.x + p.width / 2;
@@ -153,9 +184,25 @@ export const hubLayout: StageLayout = {
     // (the grabs: no use for them here, with nobody about, but he can still throw them)
     controls = updateGrab(ctx, hub.grab, controls);
     if (grabbing(hub.grab)) near = null;
-    // (every land cleared: out through America USA plays the alpha's ending again (the PA says so in it))
-    if (nearAmerica && near === null && controls.up && !hub.upWas && !grabbing(hub.grab) && landsCleared() >= ALPHA_LAND_COUNT) {
-      hub.ending = true; state.player.inCutscene = true; alphaEndOver();
+    // (every land cleared: out through America USA plays the alpha's ending (the PA says to come back this way to hear
+    // it again). Finds still out there: he won't, the first three tries (the warning: the final game's endgame has no
+    // way back), the fourth he gives in and goes, his line said first. Everything found: straight out.)
+    if (nearAmerica && near === null && controls.up && !hub.upWas && !grabbing(hub.grab) && landsCleared() >= ALPHA_LAND_COUNT && !hub.talking) {
+      const got = findsFoundTotal();
+      if (got >= FINDS_TOTAL) { hub.ending = true; state.player.inCutscene = true; alphaEndOver(); return { ...NO_CONTROLS }; }
+      const d = dressed(state);
+      if (resisted < RESISTS) {
+        hub.talking = true;
+        sayOver(state, pickLine(AMERICA_RESIST[resisted][d]), 'casual', () => { hub.talking = false; });
+        resisted++;
+        setUi({ notice: { text: `HIDDEN FINDS: ${got} OF ${FINDS_TOTAL}. LEAVING ENDS THE ALPHA.`, at: performance.now() } });
+        playMenuBack();
+      } else {
+        hub.ending = true; state.player.inCutscene = true; state.player.vel.x = 0;
+        let started = false;
+        sayOver(state, pickLine(AMERICA_GIVE_IN[d]), 'urgent', () => { if (started) return; started = true; alphaEndOver(); });
+      }
+      hub.upWas = !!controls.up;
       return { ...NO_CONTROLS };
     }
     if (nearAmerica && near === null && controls.up && !hub.upWas && !grabbing(hub.grab)) {
