@@ -71,6 +71,13 @@ export const quitMinigame = (): boolean => {
   return true;
 };
 
+/** (App.tsx, on any travel) Forget the lot: nothing marked, nothing live, no QUIT MINIGAME waiting to run on the next
+ *  stage. The stage being left takes its minigame itself down (spooky/index.ts dropMash and the like). */
+export const dropMinigamePause = () => {
+  markId = null; markFrame = -1; markQuit = null; markState = null;
+  live = null; liveQuit = null; liveState = null; pendingQuit = null;
+};
+
 /** The minigame that's pausable (as of the last frame played: it holds through a pause), or null. */
 export const liveMinigame = () => live;
 

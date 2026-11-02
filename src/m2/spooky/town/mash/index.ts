@@ -83,10 +83,13 @@ interface Mash {
   /** Calling after him when he walks off (armed once he's been near; once a leaving); how the last match went. */
   leaveArmed: boolean; lastWon: boolean;
 }
-const ALL = new WeakMap<GameState, Mash>();
+// (keyed on the land's own stage object, built new every time Spooky Land loads, as the other minigames are: the
+// GameState lives the whole session, so keyed on that a Mash left half-run went on in its old phase on the next visit)
+const ALL = new WeakMap<object, Mash>();
+const keyOf = (state: GameState) => (state.stage ?? state) as object;
 let seenControls = false;
 const mashOf = (state: GameState): Mash => {
-  let ms = ALL.get(state);
+  let ms = ALL.get(keyOf(state));
   if (!ms) {
     ms = {
       phase: 'off', t: 0, ask: null, upLatch: true, kidSaid: null, said: null,
@@ -96,7 +99,7 @@ const mashOf = (state: GameState): Mash => {
       waving: false, callAt: -99999, played: false, kidT: 0, kidNext: 0,
       banterAt: 0, lowSaid: [false, false], mocked: [false, false], leaveArmed: false, lastWon: false,
     };
-    ALL.set(state, ms);
+    ALL.set(keyOf(state), ms);
   }
   return ms;
 };
@@ -112,7 +115,7 @@ const CRT: Phase[] = ['boot', 'controls', 'select', 'vs', 'fight', 'fatal', 'res
 const SELECT_PH: Phase[] = ['boot', 'controls', 'select', 'rematch'];
 const FIGHT_PH: Phase[] = ['vs', 'fight', 'fatal'];
 export const mashMusic = (state: GameState): GameCue | null => {
-  const ms = ALL.get(state);
+  const ms = ALL.get(keyOf(state));
   if (!ms) return null;
   if (SELECT_PH.includes(ms.phase)) return { song: 'game:mash-select' };
   if (FIGHT_PH.includes(ms.phase)) return { song: 'game:mash-fight' };
@@ -120,7 +123,7 @@ export const mashMusic = (state: GameState): GameCue | null => {
   return null;
 };
 /** It's on (the town holds its own business). */
-export const mashOn = (state: GameState) => (ALL.get(state)?.phase ?? 'off') !== 'off';
+export const mashOn = (state: GameState) => (ALL.get(keyOf(state))?.phase ?? 'off') !== 'off';
 
 // ---------------------------------------------------------------------------------------------------------------
 // Talking (in turn: no talk-over; the words up only while they're said)
@@ -378,7 +381,7 @@ export const updateMash = (ctx: FrameContext, controls: Controls): Controls | nu
  *  quitter), the tube switching off, then him let go at the cabinet (once the button's up). No rock: it's only ever
  *  handed over after a won match's lines. */
 const quitMash = (state: GameState) => {
-  const ms = ALL.get(state);
+  const ms = ALL.get(keyOf(state));
   if (!ms || !PAUSABLE.includes(ms.phase)) return;
   silenceAll();
   if (ms.ask) { closeAsk(); ms.ask = null; }
@@ -536,7 +539,7 @@ export const mashLamps = () => [
 
 /** Over everything: the kid's words in the world; the cabinet's screen, whole screen, while it's up. */
 export const drawMashHud = (c: Ctx, state: GameState) => {
-  const ms = ALL.get(state);
+  const ms = ALL.get(keyOf(state));
   if (!ms) return;
   if (ms.kidSaid) saidOver(c, ms.kidSaid.text, X(KID_RX) - state.camera.x, Y(0) - 78 - state.camera.y, '#BFDBFE', 220);
   if (!CRT.includes(ms.phase)) return;
@@ -569,4 +572,4 @@ const tickerOf = (ms: Mash, f: number) => {
 };
 
 /** Stop the lot (the stage going away under it). */
-export const dropMash = (state: GameState) => { const ms = ALL.get(state); if (ms && ms.phase !== 'off') end(state, ms); };
+export const dropMash = (state: GameState) => { const ms = ALL.get(keyOf(state)); if (ms && ms.phase !== 'off') end(state, ms); };

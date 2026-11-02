@@ -130,7 +130,7 @@ import BumperCard from './cartoon/bigkid/BumperCard';
 import MinigameAsk from './MinigameAsk';
 import MinigameCard from './MinigameCard';
 import { pauseCard } from './PauseControls';
-import { syncMinigame, liveMinigame, setGamePaused, quitMinigame } from './minigamePause';
+import { syncMinigame, liveMinigame, setGamePaused, quitMinigame, dropMinigamePause } from './minigamePause';
 import { holdM2Presses } from './input';
 import { pauseSpeech } from '../m1/game/platform/speech';
 import QtePanel from './fantasy/wheel/QtePanel';
@@ -381,6 +381,10 @@ const App2: React.FC = () => {
       // (through a portal: no HUD from here till the land's opened on him, not a frame of it as it loads)
       setUi({ gymTip: null, introTip: null, introPrompt: null, introAhead: null, introTicket: null, introCutscene: dest === 'intro' || portalArrivalPending() || hubExitPending() });
       setUi({ near: null, map: null, nearExit: false, nearAmerica: false, noSwitch: false, pauseControls: null, heliHud: false, bikeHud: false, bikeTips: false, carHops: false, tragonTips: false, tragonHold: null, tragonMarks: null, broomHud: false, broomTips: false, iceMash: null, catHud: false });
+      // (a minigame's never carried along: its pause mark and any QUIT MINIGAME waiting forgotten, its ask, cards and tips
+      // taken down (the stage being left takes the minigame itself down), so nothing of it holds him up where he's going)
+      dropMinigamePause();
+      setUi({ minigameAsk: null, minigameCard: null, bumperCard: null, gotShard: null, chordTips: null, hudOff: false });
       setFade(true);
       // (into a land, everything's topped up; and back at the hub after a boss: elsewhere, what he had)
       // (the walk back after a boss: topped up there, and the boss's top-up used up on it)
@@ -459,7 +463,9 @@ const App2: React.FC = () => {
     if (askingRef.current === 'quit') { quitToTitle(); return; }
     // (out of the minigame on the first frame back in play; the YES held off the game till it's let go
     // (GameCanvas.tsx, input.ts holdM2Presses))
-    if (askingRef.current === 'minigame') { quitMinigame(); setStatus(GameStatus.PLAYING); return; }
+    // (and never off to the hub out of a minigame that's on, whatever the box was asked as: that's QUIT MINIGAME)
+    if (askingRef.current === 'minigame' || liveMinigame()) { quitMinigame(); setStatus(GameStatus.PLAYING); return; }
+    if (!canHub()) { setStatus(GameStatus.PLAYING); return; }
     setStatus(GameStatus.PLAYING); goTo('hub');
   };
   /** The park map (parkmap/): SELECT on a pad, the map keys (TAB, M), MAP in the pause menu. Out of play it pauses the
