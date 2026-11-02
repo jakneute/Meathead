@@ -2,6 +2,7 @@
 // a way to hear about it changing.
 
 import { holdControlsTillRelease } from '../m1/game/core/heldOff';
+import { benGave, type ArmorPiece } from './upgrades/state';
 
 export interface M2Ui {
   /** The hub spot he's standing at (a land's path, or the staff door), or null. */
@@ -229,15 +230,40 @@ export const ALPHA_LAND_COUNT = ALPHA_LANDS;
 export const restoreClearedLands = (ids: string[]) => { cleared.clear(); ids.forEach(id => cleared.add(id)); progressListeners.forEach(l => l()); };
 export const subscribeProgress = (l: () => void) => { progressListeners.add(l); return () => { progressListeners.delete(l); }; };
 
-/** Collectibles (none in the game yet: wired ahead of time). Each land's total (0 till its finds go in), and the ones
- *  he's found, by land, by id. A cleared land with every one found is 100% (the hub flag says so: hub/gates.ts). */
-export const LAND_COLLECTIBLES: Record<string, number> = {};
+/** Collectibles: every land's three hidden finds (the 24: the memory note's tally). Two kept here by id as they're
+ *  picked up (the health, ammo and shard awards: upgrades/*Award.ts, Hollywood's plunge), the third CON-FUCK-TIOUS's
+ *  armor piece, kept in the upgrades as given by him (upgrades/state.ts benGave: a cheat-given piece doesn't count).
+ *  Anything else marked found under a land (a seen-once flag: Area 51's 'seen-a51-kick') isn't a find. A cleared land
+ *  with all three found is 100% (the hub flag, the park map's flag, the hub prompt). */
+export type FindKind = 'armor' | 'health' | 'ammo' | 'shard';
+export const LAND_FINDS: Record<string, { piece: ArmorPiece; finds: readonly (readonly [string, FindKind])[] }> = {
+  adventure: { piece: 'pauldrons', finds: [['health-falls', 'health'], ['shard-hack', 'shard']] },
+  spooky: { piece: 'cape', finds: [['health-tower', 'health'], ['shard-mash', 'shard']] },
+  space: { piece: 'armguards', finds: [['ammo-ladder', 'ammo'], ['shard-lockpick', 'shard']] },
+  hollywood: { piece: 'legs', finds: [['ammo-flood', 'ammo'], ['shard-plunge', 'shard']] },
+  foreign: { piece: 'helmet', finds: [['health-thames', 'health'], ['ammo-shinkansen', 'ammo']] },
+  frontier: { piece: 'sabatons', finds: [['ammo-train', 'ammo'], ['shard-gallery', 'shard']] },
+  fantasy: { piece: 'amulet', finds: [['health-keep', 'health'], ['ammo-crypt', 'ammo']] },
+  cartoon: { piece: 'hands', finds: [['health-giftshop', 'health'], ['shard-bumper', 'shard']] },
+};
+/** Each land's total. */
+export const LAND_COLLECTIBLES: Record<string, number> = Object.fromEntries(Object.entries(LAND_FINDS).map(([k, v]) => [k, v.finds.length + 1]));
 const found = new Map<string, Set<string>>();
 export const markCollectibleFound = (land: string, id: string) => {
   const s = found.get(land) ?? new Set<string>();
   if (s.has(id)) return; s.add(id); found.set(land, s); progressListeners.forEach(l => l());
 };
-export const collectiblesFound = (land: string) => found.get(land)?.size ?? 0;
+/** What he's found in a land, by kind (the armor first, then the rest in the list's order; nothing said of what's
+ *  still out there). */
+export const findsGot = (land: string): FindKind[] => {
+  const d = LAND_FINDS[land];
+  if (!d) return [];
+  const got = found.get(land), out: FindKind[] = [];
+  if (benGave(d.piece)) out.push('armor');
+  for (const [id, kind] of d.finds) if (got?.has(id)) out.push(kind);
+  return out;
+};
+export const collectiblesFound = (land: string) => findsGot(land).length;
 export const isLandComplete = (land: string) => {
   const total = LAND_COLLECTIBLES[land] ?? 0;
   return cleared.has(land) && total > 0 && collectiblesFound(land) >= total;

@@ -357,13 +357,18 @@ export type { StretchId };
 
 /** How many frames the cloth's wave goes round in, and how long each's held (game frames). */
 const FLAG_FRAMES = 8, FLAG_HOLD = 7;
-const clearLook = (land: Land) => {
+const clearLook = (land: Land, word: FlagWord = 'CLEAR') => {
+  // (100%: gold, the same for every land: white-hot letters, a deep red outline)
+  if (word === '100%') return { sx: 1, sy: 2, bold: true, fill: ['#FFFFFF', '#FFF6C8', '#FDE68A'], dither: true, ink: '#7C2D12', shadow: '#3B1A06', drop: 1 };
   const l = LAND_LOOK[land.id](land.id !== 'hollywood');
   return { ...l, sy: 2, bold: true };
 };
+/** The cloth's color: the land's sign's for CLEAR, gold for 100%. */
+const GOLD = '#D9A21E';
+const clothOf = (land: Land, word: FlagWord) => (word === '100%' ? GOLD : land.sign);
 /** The flag's place round the spot's middle: the pole (x), its top, the cloth's size, the box it's all inside. */
 const flagBox = (land: Land, word: FlagWord) => {
-  const { tw, th, ty } = signBox(land), look = clearLook(land);
+  const { tw, th, ty } = signBox(land), look = clearLook(land, word);
   const px = Math.round(tw / 2) + 4, top = Math.max(Math.round(ty) - 4, 360), foot = Math.round(ty + th) + 3;
   const cw = Math.round(signW(word, look)) + 14, ch = 7 * (look.sy ?? 1) + 10;
   return { look, px, top, foot, cw, ch, ty: Math.round(ty), th: Math.round(th), box: [px - 6, top - 8, cw + 16, Math.max(foot, top + ch + 8) - top + 12] as const };
@@ -371,7 +376,7 @@ const flagBox = (land: Land, word: FlagWord) => {
 
 /** The cloth, flat (x0, y0 its top left, the hem at the pole's side). */
 const paintCloth = (c: Ctx, land: Land, x0: number, y0: number, cw: number, ch: number, look: ReturnType<typeof clearLook>, word: FlagWord) => {
-  const R = R6(land.sign), trim = land.swirl[2];
+  const R = R6(clothOf(land, word)), trim = word === '100%' ? '#FFFBEB' : land.swirl[2];
   box(c, x0 - 1, y0 - 1, cw + 2, ch + 2, INK);
   box(c, x0, y0, cw, ch, R[3]);
   box(c, x0, y0, cw, 2, R[4]); checker(c, x0, y0 + 2, cw, 2, R[4]);
@@ -393,7 +398,7 @@ const paintFlag = (c: Ctx, land: Land, cx: number, k: number, word: FlagWord) =>
   // (clamped to the sign's end)
   for (const cy of [ty + 3, ty + th - 6]) { box(c, cx + px - 6, cy - 1, 9, 4, INK); box(c, cx + px - 5, cy, 7, 2, '#78716C'); box(c, cx + px - 5, cy, 7, 1, '#D6D3D1'); }
   // (the cloth, cut in columns, each lifted on the wave: more the farther from the pole; light and shade down the folds)
-  const x0 = x + 3, y0 = top + 1, lit = mix(land.sign, '#FFFFFF', 0.3), shade = mix(land.sign, INK, 0.45);
+  const cloth = clothOf(land, word), x0 = x + 3, y0 = top + 1, lit = mix(cloth, '#FFFFFF', 0.3), shade = mix(cloth, INK, 0.45);
   for (let col = 0; col < cw + 2; col += 2) {
     const u = col / cw, a = ph - u * 4.4, dy = Math.round(2.6 * Math.min(1, u * 1.6) * Math.sin(a)), s = Math.cos(a) * Math.min(1, u * 2);
     c.save(); c.beginPath(); c.rect(x0 - 1 + col, y0 - 6, 2, ch + 12); c.clip();

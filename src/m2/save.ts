@@ -25,7 +25,7 @@ export interface Progress {
   kept: Record<string, string>;
   /** How each cleared land's boss died (store.ts bossDeath), by land. Missing in older files: read as the normal death. */
   deaths: Record<string, BossDeath>;
-  /** The collectibles he's found, by land (store.ts; none in the game yet). Absent in older files. */
+  /** The hidden finds he's picked up, by land (store.ts LAND_FINDS: the health, ammo and shard ones by id; the armor's in upgrades). Absent in older files. */
   found?: Record<string, string[]>;
   /** The alpha's ending has played on this file (alphaEnd.ts). Absent in older files. */
   alphaSeen?: boolean;

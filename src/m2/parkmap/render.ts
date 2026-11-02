@@ -11,6 +11,7 @@ import { ATTRACTIONS, NUMBERS, attractionOfZone, landIndex } from './data';
 import { paintTerrain, terrainJob, attractionAt } from './terrain';
 import { paintFeatures, featureTasks, paintDetails, ICONS, numberBadge, LEGEND, GATE_Y } from './global';
 import { R, hl, vl, ell, ramp, type Ctx } from './paint';
+import { BADGE_H, badgeW, badgeLeft } from './finds';
 
 /** The map's window on screen (game px). */
 export const VIEW_W = 468, VIEW_H = 516;
@@ -210,6 +211,17 @@ const SMALL: Look = { sx: 1, sy: 1, fill: INK };
 const landLook = (li: number, big: boolean): Look => ({ sx: 1, sy: big ? 2 : 1, bold: true, fill: rampDown(LANDS[li].swirl[2], 0.35), dither: true, ink: LANDS[li].sign, shadow: '#1C1206', drop: 1 });
 /** Where a land's name sits. */
 export const landLabelAt = (li: number) => inLand(li, 0, 1.0);
+/** Where a land's finds badge sits on a zoom level (finds.ts: its top left, in that level's px), just under the
+ *  name's plate, its plaque centered under the name (nudged in where the flag'd run off the paper's edge); null on a
+ *  level with no names. */
+export const landBadgeAt = (li: number, level: number): { x: number; y: number } | null => {
+  const s = ZOOMS[level];
+  if (s > 1) return null;
+  const p = landLabelAt(li), big = s >= 0.75;
+  const { h } = plateSize([LANDS[li].name], landLook(li, big), big ? 3 : 2);
+  const x = Math.min(Math.round(p.x * s + badgeLeft(li)), Math.floor(MAP_W * s) - badgeW(li) - 3);
+  return { x, y: Math.round(p.y * s - h / 2) + h + 2 };
+};
 
 /** The park from above, no labels (the base art, map size): Hollywood Land's breach shows it flooded (coaster/flood.ts). */
 export const parkArt = () => baseArt();
@@ -230,6 +242,9 @@ export const levelCanvas = (i: number): HTMLCanvasElement => {
   if (s <= 1) LANDS.forEach((land, li) => {
     const p = at(landLabelAt(li));
     plate(g, placed, land.name, p.x, p.y, landLook(li, s >= 0.75), land.sign, '#1C1206', s >= 0.75 ? 3 : 2, true);
+    // (and room kept under it for its finds badge, drawn live: ParkMap.tsx)
+    const b = landBadgeAt(li, i);
+    if (b) placed.push({ x: b.x - 1, y: b.y - 1, w: badgeW(li) + 2, h: BADGE_H + 2 });
   });
   // (the way in, named once there's room)
   if (s >= 0.75) {

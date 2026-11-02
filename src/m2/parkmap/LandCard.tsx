@@ -10,7 +10,7 @@ import { type Stop, fastTravelStops, fastTravelPick, setFastTravelPick, subscrib
 import { playCursor } from '../../m1/game/platform/audio';
 import { castPhotoImg } from './photos';
 import { remainsPhotoImg } from './remains';
-import { bossDeath } from '../store';
+import { bossDeath, collectiblesFound, isLandComplete, isLandCleared, LAND_COLLECTIBLES } from '../store';
 import { idleTasks } from '../../m1/game/scenes/art/raster';
 
 // The hub's portal card, YOU ARE GOING HERE (up at a land's portal; the hub's own confirm and cancel, hub/index.ts):
@@ -94,6 +94,11 @@ const LandCard: React.FC<{ land: number }> = ({ land }) => {
             <div className="px-2 pt-2 pb-[6px]" style={{ background: `linear-gradient(180deg, ${l?.swirl[1]}, ${l?.sign})`, borderBottom: `2px solid ${INK}` }}>
               <div className="text-[6px] tracking-widest" style={{ color: l?.signText }}>{stops ? 'FAST TRAVEL · WHERE TO?' : 'ATTRACTIONS'}</div>
               <div className="text-[6px] leading-[9px] mt-[3px] italic" style={{ color: l?.signText }}>{l?.blurb}</div>
+              {/* (the hidden finds got here, of its three; the 100% / CLEAR the hub flag shows: finds.ts on the park map) */}
+              {l && <div className="text-[6px] leading-[9px] mt-[3px] tracking-wider" style={{ color: l.signText }}>
+                HIDDEN FINDS: {collectiblesFound(l.id)}/{LAND_COLLECTIBLES[l.id] ?? 3}
+                {isLandComplete(l.id) ? <span style={{ color: '#FDE047' }}> · 100%</span> : isLandCleared(l.id) ? <span> · CLEAR</span> : null}
+              </div>}
             </div>
             {stops ? <StopList stops={stops} pick={Math.min(pick, stops.length - 1)} sign={l.sign} /> : <div className="flex flex-col gap-[6px] px-2 pt-2 overflow-hidden">
               {list.map(a => (

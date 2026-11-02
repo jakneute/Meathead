@@ -10,7 +10,8 @@ import { ATTRACTIONS, CAST, NUMBERS, attractionOfZone } from './data';
 import { castPhotoImg, PHOTO_TILT } from './photos';
 import { remainsPhotoImg } from './remains';
 import { bossDeath, type BossDeath } from '../store';
-import { VIEW_W, VIEW_H, ZOOMS, FIT, levelCanvas, drawMarker, herePoint, hereLand, landOutline, landAtPoint, type Here } from './render';
+import { VIEW_W, VIEW_H, ZOOMS, FIT, levelCanvas, drawMarker, herePoint, hereLand, landOutline, landAtPoint, landBadgeAt, type Here } from './render';
+import { drawFindBadges } from './finds';
 
 // The park map (SELECT on a pad, TAB or M, MAP in the pause menu): Happy Land's brochure map, the whole park, a YOU
 // ARE HERE where he roughly is (which land, which attraction: not a tracker), the attractions of the land in view down
@@ -162,6 +163,8 @@ const ParkMap: React.FC<{ here: Here; onClose: () => void }> = ({ here, onClose 
         g.lineDashOffset = -t / 60 + 4.5; g.strokeStyle = '#FDE047'; g.stroke();
         g.restore();
       }
+      // (each land's hidden finds and its flag, under its name: finds.ts)
+      drawFindBadges(g, i => { const b = landBadgeAt(i, li); return b ? { x: ox + b.x * k, y: oy + b.y * k } : null; }, t);
       drawMarker(g, Math.round(ox + marker.x * v.z), Math.round(oy + marker.y * v.z), t);
     };
     id = requestAnimationFrame(frame);
