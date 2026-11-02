@@ -15,6 +15,7 @@ import { registerMidBossKind } from '../m1/game/combat/midBoss';
 import { registerHalfKind } from './weapons/half';
 import { beforeAI, afterAI } from './hazardHit';
 import { pathAfterAI } from './pathing';
+import { unstick } from './unstick';
 
 export interface M2Kind {
   kind: `m2:${string}`;
@@ -82,11 +83,14 @@ export const registerM2Kind = (d: M2Kind) => {
   // (its AI kept out of the stage's hazards: it doesn't walk into one, or start out in one; see hazardHit.ts. A walker
   // gets to him past what's in the way: pathing.ts)
   const paths = !d.stats.air && (d.pathing ?? !!d.humanoid);
+  // (and one that walls stop is never left inside one: put on top of it or beside it, or quietly gone (unstick.ts))
+  const walls = !d.stats.air && (d.solid ?? true);
   const ai = d.ai, guarded = ai && !d.midBoss && !d.fixture ? (ctx: FrameContext, e: Enemy) => {
     beforeAI(ctx.state, e);
     const bx = e.pos.x, by = e.pos.y, moved = ai(ctx, e);
     if (paths && !moved) pathAfterAI(ctx, e);
     afterAI(ctx.state, e, bx, by, moved);
+    if (walls) unstick(ctx.state, e, moved);
     return moved;
   } : ai;
   registerKind(d.kind as EnemyKind, { stats: d.stats, ai: guarded, make: d.make, machine: d.robot, humanoid: d.humanoid, solid: d.solid ?? !d.stats.air, pointy: d.pointy, spiky: d.spiky, touch: d.touch, blood: d.blood });
