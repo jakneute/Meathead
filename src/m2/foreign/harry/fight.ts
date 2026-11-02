@@ -54,7 +54,8 @@ import { isShat, isNude } from '../../../m1/game/player/gut';
 import { makeKindEnemy } from '../../../m1/game/enemies/kinds';
 import { CANVAS_WIDTH, CANVAS_HEIGHT, BULLET_DAMAGE } from '../../../m1/constants';
 import { bossMelee } from '../../upgrades/bossMelee';
-import { takeYell } from '../../upgrades/amulet';
+import { takeYell, onYell } from '../../upgrades/amulet';
+import { YELL_STUN } from '../../upgrades/tune';
 import { cheapShotGate, cheapShotStunned, crushGroups, crushLines, registerClearThreats, endCheapStun } from '../../upgrades/cheapShot';
 import { registerM2Kind } from '../../kinds';
 import { newSpam, spamTick, hitKey, swatOff, type Spam, BOSS_IFRAMES } from '../../bossSpam';
@@ -680,6 +681,20 @@ const unpin = (state: GameState, f: Fight, kick: boolean) => {
   f.counterAt = f.total;
   setAct(f, 'idle');
 };
+
+// (the amulet's FUCK OFF going off under the gun (the owner's "if a grab attack on meathead happens to trigger a 'fuck
+// off' then the enemies grab ends"): the pin's off on the spot, the bursts still to come never fired; Meathead up off
+// the slab, no kick and no breather of Harry's (the rage is his shield); Harry blown back a step, reeling a beat
+// before he gets on with it)
+onYell(ctx => {
+  const f = live, { state } = ctx, p = state.player;
+  if (!f || game !== state || !f.pin || f.mode !== 'on') return;
+  unpin(state, f, false);
+  p.pos.y = GY - p.height - 2; p.vel.x = f.facing * 5; p.vel.y = -4; p.isGrounded = false;
+  f.hx = Math.max(ARENA_L + 40, Math.min(ARENA_R - 40, f.hx - f.facing * 24));
+  f.rounds = []; f.burst = 0; f.firing = false;
+  f.actT = -YELL_STUN; f.flash = Math.max(f.flash, 12);
+});
 
 /** What's next, now he's free: the stuck arm's walk while she's stuck, else the queue. */
 const nextUp = (ctx: FrameContext, f: Fight) => { startMove(ctx, f, nextMove(f)); };

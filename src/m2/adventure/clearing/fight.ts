@@ -61,9 +61,9 @@ import { body as drawMeatheadBody } from '../../../m1/game/render/player/deathAn
 import { stabLean, STAB_WOUND } from '../../../m1/game/render/player/player';
 import { CANVAS_WIDTH, CANVAS_HEIGHT, BULLET_DAMAGE } from '../../../m1/constants';
 import { bossMelee } from '../../upgrades/bossMelee';
-import { takeYell } from '../../upgrades/amulet';
+import { takeYell, onYell } from '../../upgrades/amulet';
 import { cheapShotGate, cheapShotStunned, crushGroups, crushLines, registerClearThreats, endCheapStun } from '../../upgrades/cheapShot';
-import { CHEAP_STUN } from '../../upgrades/tune';
+import { CHEAP_STUN, YELL_STUN } from '../../upgrades/tune';
 import { registerM2Kind, registerHurtLines } from '../../kinds';
 import { newSpam, spamTick, hitKey, swatOff, type Spam, BOSS_IFRAMES } from '../../bossSpam';
 import { aliensOn, brushOff, popAliensIn, setSpawnerBaits, takeBites, type SpawnerBait } from '../../weapons/spawner';
@@ -739,6 +739,22 @@ const gut = (ctx: FrameContext, f: Fight, controls: Controls): Controls => {
   }
   return hands();
 };
+// (the amulet's FUCK OFF going off on the knife (the owner's "if a grab attack on meathead happens to trigger a 'fuck
+// off' then the enemies grab ends"): the gut's over on the spot, no more stabs, Meathead off the blade and back in
+// control; Artie blown back out of his bush (or along the clearing), seeing stars a beat. Nobody's words over the
+// scream)
+onYell(ctx => {
+  const f = live, { state } = ctx, p = state.player;
+  if (!f || game !== state || f.mode !== 'gut') return;
+  p.stabbed = undefined;
+  p.vel.x = f.facing * 5; p.vel.y = -4;
+  const wasIn = !f.lunged;
+  to(f, 'knocked'); f.counter = false; f.arc = null; f.lunged = false; f.attacks = 0;
+  f.vx = -f.facing * 3.5; f.vy = -6; f.y = Math.min(f.y, GY);
+  f.after = 'whistle'; f.stunLen = YELL_STUN;
+  if (wasIn && f.bushes[f.bush] && !f.bushes[f.bush].gone) { f.bushes[f.bush].shake = 26; leaves(state, f.x, 10); }
+  playSound('punch', 0.8);
+});
 const blood = (state: GameState, x: number, y: number, dir: number) => {
   for (let i = 0; i < 10; i++) state.particles.push({ pos: { x, y }, vel: { x: dir * (1 + Math.random() * 4), y: -2 - Math.random() * 3 }, life: 30, color: i % 2 ? '#B91C1C' : '#7F1D1D', size: 2 + Math.random() * 3, grav: 0.35 });
 };

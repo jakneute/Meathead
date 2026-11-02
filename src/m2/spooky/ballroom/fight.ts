@@ -54,7 +54,7 @@ import { isShat, isNude } from '../../../m1/game/player/gut';
 import { makeKindEnemy } from '../../../m1/game/enemies/kinds';
 import { CANVAS_WIDTH, CANVAS_HEIGHT, BULLET_DAMAGE } from '../../../m1/constants';
 import { bossMelee } from '../../upgrades/bossMelee';
-import { takeYell } from '../../upgrades/amulet';
+import { takeYell, onYell } from '../../upgrades/amulet';
 import { cheapShotGate, cheapShotStunned, crushGroups, crushLines, registerClearThreats, endCheapStun } from '../../upgrades/cheapShot';
 import { CHEAP_STUN } from '../../upgrades/tune';
 import { registerM2Kind, registerHurtLines } from '../../kinds';
@@ -713,6 +713,18 @@ const drain = (ctx: FrameContext, f: Fight, controls: Controls): Controls => {
   }
   return hands();
 };
+// (the amulet's FUCK OFF going off with the fangs in him (the owner's "if a grab attack on meathead happens to trigger a
+// 'fuck off' then the enemies grab ends"): let go on the spot, no more drink or heal off him, Meathead knocked clear;
+// Donnie blown back down on the floor, winded, puffing a beat. Nobody's words over the scream)
+onYell(ctx => {
+  const f = live, p = ctx.state.player;
+  if (!f || game !== ctx.state || f.mode !== 'drain' || !f.held) return;
+  f.held = null; f.dive = null;
+  // (he's held in front of Donnie (f.facing's side): each sent off his own way)
+  p.vel.x = f.facing * 6; p.vel.y = -6;
+  to(f, 'winded'); f.y = GY; f.vy = 0; f.vx = -f.facing * 5;
+  burp(f);
+});
 
 // ---------------------------------------------------------------------------------------------------------------
 // Gluttony: full, the burp, the guest he can't say no to

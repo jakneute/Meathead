@@ -45,6 +45,8 @@ import { hurtTaken } from '../../../m1/game/core/resist';
 import { setHalfHooks } from '../../weapons/half';
 import { setDropTable } from '../../../m1/game/core/effects';
 import { markBossFight } from '../../bossQuiet';
+import { onYell } from '../../upgrades/amulet';
+import { YELL_DAMAGE, YELL_STUN } from '../../upgrades/tune';
 
 /** How many of them are in it (CAPTAIN AMERICANO and the rest in a shuffled order: the whole thirty). */
 const FIGHT_SIZE = CAST.length;
@@ -264,6 +266,22 @@ const shakeOff = (ctx: FrameContext, a: Actor, how: 'charge' | 'shot', dmg: numb
   for (let k = 0; k < 6; k++) state.particles.push({ pos: { x: a.lx, y: a.ly - 50 }, vel: { x: side * (1 + Math.random() * 3), y: -2 - Math.random() * 2 }, life: 20, color: '#B91C1C', size: 2 + Math.random() * 2, grav: 0.3 });
   if (a.hp <= 0) fall(ctx, a);
 };
+
+// (the amulet's FUCK OFF going off under the pile (the owner's "if a grab attack on meathead happens to trigger a 'fuck
+// off' then the enemies grab ends"): every one on him blown off at once, thrown (kept off him a while, as a wall's
+// throw), the yell's hurt on each, dazed as long as the yell dazes anybody. They were off the engine's list while on
+// him, so the yell's own pass missed them: this is their share)
+onYell(ctx => {
+  const { state } = ctx;
+  if (!fightOn(state)) return;
+  const on = whOf(state).fight.actors.filter(a => a.cling && a.e);
+  if (!on.length) return;
+  for (const a of on) {
+    const e = a.e!;
+    shakeOff(ctx, a, 'charge', YELL_DAMAGE);
+    e.pauseTimer = Math.max(e.pauseTimer ?? 0, YELL_STUN); e.leapCd = Math.max(e.leapCd ?? 0, YELL_STUN);
+  }
+});
 
 /** Each frame of the fight: the door, the order, the arrivals, the hits, the dogpile, the bodies. Returns the controls
  *  while CAPTAIN AMERICANO's cutscene has them. */
