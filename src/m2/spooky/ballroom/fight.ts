@@ -152,6 +152,8 @@ const NAG_EVERY = 1300, TAUNT_EVERY = 800;
 const BEAT_GAP = 360;
 /** How long he spends admiring himself as the fight starts (frames): one loop-the-loop. */
 const ADMIRE_T = 120;
+/** After Satan's grant, before Donnie starts to rise: a beat for it to land. */
+const RISE_BEAT = 50;
 /** At least this long between Meathead's hints about the souvenirs (frames). */
 const HINT_GAP = 600;
 /** Gluttony. How full a gulp makes him (a step is 1: drawn a whole step at a time, from the first gulp), Meathead's
@@ -419,17 +421,21 @@ const intro = (ctx: FrameContext, f: Fight): Controls => {
       if (t === 40) playSound('thunder', 0.8, -6);
       if (t >= 80) { f.intro = 'bestow'; f.introT = 0; line(f, 'satan', L.SATAN_GRANT, () => { f.intro = 'rise'; f.introT = 0; }); }
       break;
-    case 'rise':
-      // (up out of his corner, changed: lifted, the flash, the wings out)
-      f.y = GY - Math.min(1, t / 70) * HOVER_UP;
+    case 'rise': {
+      // (a beat after Satan's said it, the power taking hold (the owner's: it "started too fast"), then up out of his
+      // corner, changed: lifted, the flash, the wings out)
+      const k = t - RISE_BEAT;
+      if (k < 0) { if (t % 10 === 0) shakeScreen(state, 3, 3); break; }
+      f.y = GY - Math.min(1, k / 70) * HOVER_UP;
       f.x += (ARENA_MID + 140 - f.x) * 0.03;
-      if (t === 36) {
+      if (k === 36) {
         f.powered = true; playSound('thunder', 1, -2); playSound('roar', 0.7, 4); shakeScreen(state, 14, 8);
         // (the drumstick he'd been cowering with, dropped: he's after bigger things now)
         for (let i = 0; i < 3; i++) state.particles.push({ pos: { x: f.x + f.facing * 14, y: f.y - 60 }, vel: { x: (Math.random() - 0.5) * 2, y: -2 - i }, life: 50, color: ['#B8701E', '#F1E6C8', '#E09A3A'][i], size: 4 - i, grav: 0.35 });
       }
-      if (t >= 80) { f.intro = 'gross'; f.introT = 0; playSound('roar', 0.6, -2); playSound('ding', 0.5, -8); }
+      if (k >= 80) { f.intro = 'gross'; f.introT = 0; playSound('roar', 0.6, -2); playSound('ding', 0.5, -8); }
       break;
+    }
     case 'gross':
       // (changed: his face, close up and gross, a beat; silent but the roar)
       if (t >= GROSS_T) { f.intro = 'close'; f.introT = 0; }
