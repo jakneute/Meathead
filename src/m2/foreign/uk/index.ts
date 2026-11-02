@@ -35,6 +35,7 @@ import {
 import { CANVAS_WIDTH } from '../../../m1/constants';
 import { TALK } from './lines';
 import { TOWER_CHECKPOINTS, buildTower, updateTower, drawTowerBack, drawTowerFront, towerLamps } from './clocktower';
+import { updateHeart, drawDeep } from './heartFind';
 import './kinds';
 
 const { x0, x1 } = SECTIONS.uk;
@@ -52,7 +53,9 @@ const SHELTER = { a: 608, b: 676, h: 100 } as const;
 const BUS = { w: 300, l: 680, r: 1600, roof: 150, wait: 150, run: 320 } as const;
 const PUB = { a: 2050, b: 2300, h: 170 } as const;
 const BARRELS = { a: 2310, b: 2360, h: 90 } as const;
-const THAMES: Pool = { key: 'thames', a: X(2440), b: X(3000), surface: 30, bed: 180, col: '#475569', wall: '#57534E' };
+// (dug extra deep under the bridge, the hidden health on its bed: heartFind.ts. The owner: "maybe make the water extra
+// deep too under the london bridge"; was 180)
+const THAMES: Pool = { key: 'thames', a: X(2440), b: X(3000), surface: 30, bed: 450, col: '#475569', wall: '#57534E' };
 /** The bridge: its towers (solid from `lo` up: walk under), the high walkway, the stairs up and down, its two halves. */
 const TOWERS: [number, number][] = [[2380, 2440], [3000, 3060]];
 const TOWER_LO = 110, TOWER_HI = 420;
@@ -141,6 +144,8 @@ export const uk: ForeignSection = {
     layOwn(state, runsAround(x0, x1, [THAMES]));
     buildTower(state);
     poolSteps(state, THAMES);
+    // (the deep river: its steps out stand on tiled piers down to the bed (as painted), not floating ledges)
+    for (const sx of [THAMES.a, THAMES.b - 54]) solid(state, sx, GY + THAMES.surface + 36, 54, THAMES.bed - THAMES.surface - 36, { hidden: true, tag: 'uk-pier' });
     for (const [a, b, h] of [...SENTRY, ...BOOTHS, [PUB.a, PUB.b, PUB.h] as [number, number, number], [BARRELS.a, BARRELS.b, BARRELS.h] as [number, number, number], [CART.a, CART.b, CART.h] as [number, number, number]]) solid(state, X(a), Y(h), b - a, h, { hidden: true, tag: 'uk-solid' });
     ledge(state, X(SHELTER.a), Y(SHELTER.h), SHELTER.b - SHELTER.a, { hidden: true, tag: 'uk-shelter' });
     for (const [a, b] of TOWERS) solid(state, X(a), Y(TOWER_HI), b - a, TOWER_HI - TOWER_LO, { hidden: true, tag: 'uk-tower' });
@@ -157,6 +162,7 @@ export const uk: ForeignSection = {
   },
   update: (ctx, controls) => {
     const { state } = ctx, p = state.player, f = state.frame, br = britOf(state);
+    controls = updateHeart(ctx, controls, THAMES);
     pavilionTalk(state, 'uk', x0, GY, TALK);
     updateTower(ctx);
     poolZones(state, 'uk-thames', [THAMES]);
@@ -210,6 +216,7 @@ export const uk: ForeignSection = {
   drawFront: (c, state) => {
     const v = viewIn(state), f = state.frame;
     drawPoolFront(c, v, THAMES, f);
+    drawDeep(c, v, state, THAMES);
     drawFog(c, Math.max(x0, v.cam.x - 40), Math.min(x1, v.cam.x + CANVAS_WIDTH + 40), x0, x1, f);
     drawTowerFront(c, viewIn(state), state);
   },

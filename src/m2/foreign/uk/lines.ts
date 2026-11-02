@@ -1,6 +1,6 @@
 // What's said in the United Kingdom (the PA's hello, his lines, the cast's barks, what hurts him here), by voice.
 
-import { pavilionVoices, type ByPants, type PavilionTalk, type HurtTable } from '../talk';
+import { pavilionVoices, allOf, type ByPants, type PavilionTalk, type HurtTable } from '../talk';
 
 export const V = {
   guard: { m: 'm2.foreign.guard', f: 'm2.foreign.guardf' },
@@ -45,6 +45,13 @@ export const RINGING: ByPants = {
   clean: ["IT'S RINGING, INNIT! COVER YOUR EARS! I'M FROM TOLEDO!", "DON'T ANSWER IT! IT'S NEVER GOOD NEWS!", "MIND THE PHONE! I'M ON HOLD WITH MY UNION!"],
   shitty: ["THE RING'S GONNA SHAKE IT RIGHT OUT OF YOU, MATE!", "IT'S THE COUNCIL! THEY'RE CALLING ABOUT THE SMELL!"],
   nude: ["OI! NO NAKED BLOKES IN THE PHONE BOX! WE GET ENOUGH OF THAT!", "IT'S FOR YOU! IT'S YOUR MUM! SHE CAN SEE YOU!"],
+};
+
+/** His line on the heart canister off the bottom of the Thames (heartFind.ts), by pants. */
+export const HEART_GOT: ByPants = {
+  clean: ['A HEART IN A JAR ON THE BOTTOM OF THE THAMES. FINDERS KEEPERS, ENGLAND.', 'BIGGER HEART. THE LIMEYS DROPPED IT. MINE NOW.'],
+  shitty: ['BIGGER HEART. AND THE RIVER RINSED MY PANTS A LITTLE.', 'I FEEL TOUGHER. THE THAMES DID NOT CLEAN MY PANTS.'],
+  nude: ['MORE HEART. LESS EVERYTHING ELSE. THAT WATER WAS COLD.', "BIGGER HEART. DON'T LOOK AT WHAT THE COLD WATER DID."],
 };
 
 /** Him, answering the giant phone as it rings (once). */
@@ -110,4 +117,4 @@ export const HURT: HurtTable = {
   },
 };
 
-export const VOICE_LINES = pavilionVoices(TALK, HURT, [[V.guard, GUARD], [V.hooligan, HOOLIGAN], [V.tealady, TEALADY], [V.bobby, BOBBY], [{ m: V.bobby.m, f: V.bobby.m }, RINGING]], { meathead: ANSWER });
+export const VOICE_LINES = pavilionVoices(TALK, HURT, [[V.guard, GUARD], [V.hooligan, HOOLIGAN], [V.tealady, TEALADY], [V.bobby, BOBBY], [{ m: V.bobby.m, f: V.bobby.m }, RINGING]], { meathead: [...ANSWER, ...allOf(HEART_GOT)] });

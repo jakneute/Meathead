@@ -7296,6 +7296,11 @@
  },
  {
   "voice": "death",
+  "text": "BLASTED OUT BY THE BULLET TRAIN",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "death",
   "text": "BLEW UP A FAMOUS TOILET",
   "from": "HOLLYWOOD"
  },
@@ -15718,6 +15723,11 @@
   "voice": "death",
   "text": "STONEWALLED",
   "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "STOOD IN THE TRAIN TUNNEL",
+  "from": "FOREIGN"
  },
  {
   "voice": "death",
@@ -62761,8 +62771,18 @@
  },
  {
   "voice": "meathead",
+  "text": "A BIGGER HEART. MY DICK WANTS ONE TOO.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "meathead",
   "text": "A BIGGER HEART. MY DICK'S JEALOUS.",
   "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
+  "text": "A BIGGER HEART. PIPER WILL LOVE THE STAMINA.",
+  "from": "FANTASY"
  },
  {
   "voice": "meathead",
@@ -65961,6 +65981,11 @@
  },
  {
   "voice": "meathead",
+  "text": "ALL THOSE STAIRS FOR A HEART IN A JAR. WORTH IT.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "meathead",
   "text": "ALL THREE?! NO WAY AROUND IT!",
   "from": "FANTASY"
  },
@@ -67231,6 +67256,11 @@
  },
  {
   "voice": "meathead",
+  "text": "BIGGER MAGS IN EVERY GUN. NOW RUN.",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "meathead",
   "text": "BIGGER MAGS. AND A BIGGER LOAD IN MY PANTS.",
   "from": "HOLLYWOOD"
  },
@@ -67238,6 +67268,16 @@
   "voice": "meathead",
   "text": "BIGGER MAGS. CIRCUS PRICES.",
   "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
+  "text": "BIGGER MAGS. I LEFT SOMETHING IN THE TUNNEL.",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "meathead",
+  "text": "BIGGER MAGS. MY ASS IS OUT. MOVE.",
+  "from": "FOREIGN"
  },
  {
   "voice": "meathead",
@@ -76346,6 +76386,11 @@
  },
  {
   "voice": "meathead",
+  "text": "I CLIMBED ALL THAT WITH SHIT IN MY JEANS. I EARNED THIS.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "meathead",
   "text": "I CLOGGED A CELEBRITY. HELL YES.",
   "from": "HOLLYWOOD"
  },
@@ -78203,6 +78248,21 @@
   "voice": "meathead",
   "text": "I'M NOT A TRESPASSER! I'M A VISITOR! A VIOLENT VISITOR!",
   "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "I'M NOT CLIMBING DOWN THAT.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "meathead",
+  "text": "I'M NOT CLIMBING DOWN THAT. NOT IN THESE PANTS.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "meathead",
+  "text": "I'M NOT CLIMBING DOWN THAT. NOT WITH MY ASS OUT.",
+  "from": "SPACE"
  },
  {
   "voice": "meathead",
@@ -81721,6 +81781,11 @@
  },
  {
   "voice": "meathead",
+  "text": "MORE AMMO. AND MORE IN MY PANTS. RUN.",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "meathead",
   "text": "MORE AMMO. MY PANTS ARE ALREADY LOADED.",
   "from": "HOLLYWOOD"
  },
@@ -81733,6 +81798,16 @@
   "voice": "meathead",
   "text": "MORE AMMO. NO POCKETS. NO PROBLEM.",
   "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
+  "text": "MORE AMMO. NO POCKETS. RUN ANYWAY.",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "meathead",
+  "text": "MORE AMMO. NOW GET OUT OF THE TRAIN HOLE.",
+  "from": "FOREIGN"
  },
  {
   "voice": "meathead",
@@ -81788,6 +81863,11 @@
   "voice": "meathead",
   "text": "MORE HEART. SAME SHITTY PANTS.",
   "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
+  "text": "MORE HEART. STILL A LOAD IN MY PANTS.",
+  "from": "FANTASY"
  },
  {
   "voice": "meathead",
@@ -83323,6 +83403,11 @@
   "voice": "meathead",
   "text": "NAKED TRAIN ROBBERY. HERE WE GO.",
   "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
+  "text": "NAKED UP A MAGIC STAIRCASE FOR A JAR HEART. LIVING.",
+  "from": "FANTASY"
  },
  {
   "voice": "meathead",
@@ -84988,6 +85073,11 @@
   "voice": "meathead",
   "text": "NOW THAT'S AN UPPERCUT, KID. TAKE NOTES.",
   "from": "RANGE_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "NOW THE FAST WAY DOWN.",
+  "from": "SPACE"
  },
  {
   "voice": "meathead",
@@ -93496,6 +93586,11 @@
  },
  {
   "voice": "meathead",
+  "text": "THE BULLET TRAIN! I WAS THE BULLET!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "meathead",
   "text": "THE BULLET TRAIN! RIGHT IN MY EVERYTHING!",
   "from": "FOREIGN"
  },
@@ -95613,6 +95708,11 @@
   "voice": "meathead",
   "text": "THE TRAFFIC WAND! MY EYE!",
   "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "THE TRAIN SHOT ME OUT OF THE HOLE!",
+  "from": "FOREIGN"
  },
  {
   "voice": "meathead",
@@ -98571,8 +98671,38 @@
  },
  {
   "voice": "meathead",
+  "text": "WHEE! FUCK YEAH!",
+  "from": "SPACE"
+ },
+ {
+  "voice": "meathead",
+  "text": "WHEE! I'M LEAVING A TRAIL!",
+  "from": "SPACE"
+ },
+ {
+  "voice": "meathead",
+  "text": "WHEE! WIND ON MY BALLS!",
+  "from": "SPACE"
+ },
+ {
+  "voice": "meathead",
   "text": "WHEEE, MOTHERFUCKER!",
   "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "meathead",
+  "text": "WHEEE! IT'S ALL FLAPPING!",
+  "from": "SPACE"
+ },
+ {
+  "voice": "meathead",
+  "text": "WHEEE! IT'S COMING OUT THE LEG!",
+  "from": "SPACE"
+ },
+ {
+  "voice": "meathead",
+  "text": "WHEEEE!",
+  "from": "SPACE"
  },
  {
   "voice": "meathead",
@@ -99853,6 +99983,11 @@
   "voice": "meathead",
   "text": "WRONG GUY, SUNGLASSES!",
   "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "WRONG HOLE! WRONG FUCKING HOLE!",
+  "from": "FOREIGN"
  },
  {
   "voice": "meathead",
