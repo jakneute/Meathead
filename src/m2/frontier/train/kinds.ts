@@ -25,7 +25,7 @@
 //
 // The small stuff of the special deaths (headshots, flings, the bodies) plays out on their drawings (kindArt.ts).
 
-import type { Enemy, EnemyKind } from '../../../m1/types';
+import type { Block, Enemy, EnemyKind } from '../../../m1/types';
 import type { FrameContext } from '../../../m1/game/core/context';
 import type { GameState } from '../../../m1/game/core/state';
 import { safeAhead, holdingOff, mid, makeKindEnemy } from '../../../m1/game/enemies/kinds';
@@ -178,16 +178,34 @@ const HAND_Y = FG_GROUND - 101;
 export const laneBlocked = (state: GameState, x0: number, x1: number) =>
   trainOf(state).passers.some(q => (q.kind === 'tunnel' || q.kind === 'bridge' || q.kind === 'falls' || q.kind === 'bumper') && q.x < x1 && q.x + q.len > x0);
 
-/** The top of the train at x (its roof, its load, a coupling's floor), or null (no car there, or the cab). */
-const trainTopAt = (state: GameState, x: number) => {
+/** Half a robber's width (his box), for where he can come down. */
+const ROBBER_HW = 19;
+/**
+ * Where a robber leaping off his horse at x comes down on the train (world): the top of whatever's under any of him (a
+ * roof, a load, a coupling's floor), and x moved along so all of him's on it; or null (no car there, or the cab). The
+ * owner's: "this bandit spawned inside a train car that cannot be reached": one that came down on a coupling's floor
+ * with half of him over the next car's logs landed inside the load. Now it's the highest top under any of him, and
+ * he's put square on it.
+ */
+const trainTopAt = (state: GameState, x0: number) => {
   const tr = trainOf(state);
-  if (x < CAR_X[tr.rear] + 10 || x > CAR_X[ENGINE] - 40) return null;
-  let top: number | null = null;
-  for (const b of state.blocks) {
-    if (!b.tag?.startsWith('tr-') || b.tag === 'tr-cab' || b.y < -1000 || x < b.x + 8 || x > b.x + b.w - 8) continue;
-    if (top === null || b.y < top) top = b.y;
+  if (x0 < CAR_X[tr.rear] + 10 || x0 > CAR_X[ENGINE] - 40) return null;
+  let x = x0;
+  for (let pass = 0; pass < 3; pass++) {
+    let best: Block | null = null;
+    for (const b of state.blocks) {
+      if (!b.tag?.startsWith('tr-') || b.y < -1000 || x + ROBBER_HW <= b.x || x - ROBBER_HW >= b.x + b.w) continue;
+      if (b.tag === 'tr-cab') return null;
+      if (!best || b.y < best.y) best = b;
+    }
+    if (!best) return null;
+    // (all of him on it, if it's wide enough; else his middle on it)
+    const lo = best.x + Math.min(ROBBER_HW, best.w / 2), hi = best.x + best.w - Math.min(ROBBER_HW, best.w / 2);
+    const nx = Math.max(lo, Math.min(hi, x));
+    if (nx === x) return { x, top: best.y };
+    x = nx;
   }
-  return top;
+  return null;
 };
 
 /** Is he inside a car (inside's cover from the riders)? */
@@ -273,9 +291,9 @@ export const updateRiders = (ctx: FrameContext) => {
       const done = (r.shots >= 3 && r.t > 360) || r.t > 640;
       if (!closing && !done) continue;
       if (!onScreen) { if (closing) { r.st = 'off'; r.stT = 0; } continue; }
-      const lx = r.x + r.facing * 20, top = trainTopAt(state, lx);
-      if (top !== null) {
-        r.leap = { x0: r.x, y0: FG_GROUND - 36 * FG_SCALE, x1: lx, y1: top, t: 0 };
+      const at = trainTopAt(state, r.x + r.facing * 20);
+      if (at !== null) {
+        r.leap = { x0: r.x, y0: FG_GROUND - 36 * FG_SCALE, x1: at.x, y1: at.top, t: 0 };
         r.st = 'leap'; r.stT = 0;
         playSound('jump', 0.6, -4);
         // (the horse runs on riderless and drops back)
