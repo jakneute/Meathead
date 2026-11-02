@@ -23,6 +23,7 @@ import { buildHazards, updateHazards, drawHazardsBack, drawHazardsFront } from '
 import { drawSquareBackdrop, drawSquareBack, drawSquareSnow, squareLamps } from './art';
 import { updateSpeaker, drawSpeakerBack, drawSpeakerFront, drawSpeakerHud, speakerDone } from './speaker';
 import { ARRIVE, REVISIT, GAGS } from './lines';
+import { buildCrypt, updateCrypt, drawCryptBack, drawCryptMid } from './crypt';
 import './kinds';
 
 const { x0, x1 } = SECTIONS.square;
@@ -39,6 +40,7 @@ export const square: FantasySection = {
     for (const [a, b, h] of LEDGES) ledge(state, X(a), Y(h), b - a, { hidden: true });
     const sq = squareOf(state);
     sq.stairs = makeStairs(state, STAIRS);
+    buildCrypt(state);
     buildHazards(state);
     for (const [kind, rx, h] of CAST) {
       const e = makeKindEnemy(kind as EnemyKind, X(rx), Y(h));
@@ -49,6 +51,10 @@ export const square: FantasySection = {
   },
   update: (ctx, controls) => {
     const { state } = ctx, p = state.player, sq = squareOf(state);
+    // (the crypt under the Grand Staircase (crypt.ts): its ladder takes his controls on it; its card holds him)
+    const cr = updateCrypt(ctx, controls);
+    if (cr.held) return controls;
+    controls = cr.out;
     updateStairs(ctx, sq.stairs);
     const out = updateSpeaker(ctx, controls);
     updateHazards(ctx);
@@ -69,8 +75,10 @@ export const square: FantasySection = {
   drawBackdrop: (c, state) => drawSquareBackdrop(c, state),
   drawBack: (c, state) => {
     drawSquareBack(c, state);
+    drawCryptBack(c, state);
     drawHazardsBack(c, state);
     drawStairs(c, state, squareOf(state).stairs);
+    drawCryptMid(c, state);
     drawSpeakerBack(c, state);
   },
   drawFront: (c, state) => {

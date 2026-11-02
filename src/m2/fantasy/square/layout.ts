@@ -77,7 +77,10 @@ export const FIRST_STAIR = 0;
 /** Ground: [from, to, height]. Between runs: the gorge (all the way down: clouds painted at the bottom). */
 export const GROUND: [number, number, number][] = [
   [-200, GORGE.a, 0],
-  [FAR_BANK, x1 - x0 + 200, 0],
+  // (the Grand Staircase's hall: over the crypt under it (11240..12300) its floor's crypt.ts's: a slab (solid blocks,
+  // not a ground run: under a ground run is all ground), the hole with the trapdoor stairs across it, the grate over
+  // the ladder's hatch)
+  [FAR_BANK, 11240, 0], [12300, x1 - x0 + 200, 0],
 ];
 export { GORGE, FAR_BANK };
 /** Solid things (walls with a standable top, lit along it): [from, to, top height, bottom height (default the ground's,

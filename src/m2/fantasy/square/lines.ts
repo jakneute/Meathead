@@ -137,7 +137,13 @@ export const TREMAINE_SAY: ByPants = {
 };
 /** Him, aroused (the user's lines, verbatim). */
 export const PIPE_HER = 'PIPER? I WILL PIPE HER. WITH MY DICK.';
-export const WINNING = "I'M WINNING THESE TRIALS, LOSERS.";
+/** The ammo can at the bottom of the crypt under the Grand Staircase (the max ammo find), once its card's shut. */
+export const AMMO_GOT: ByPants = {
+  clean: ['MORE AMMO. DOWN HERE WITH THE SKELETONS.', 'A CRYPT FULL OF BONES AND ONE GOOD BOX.'],
+  shitty: ['MORE AMMO. THE CRYPT SMELLS BETTER THAN ME.', 'FOUND AMMO. LEFT SOME SHIT FOR THE SKELETONS.'],
+  nude: ['NAKED IN A CRYPT WITH A BOX OF BULLETS. NORMAL DAY.', 'MORE AMMO. NOWHERE TO PUT IT.'],
+};
+export const WINNING ="I'M WINNING THESE TRIALS, LOSERS.";
 
 // ---------------------------------------------------------------------------------------------------------------
 // What hurts him here, and the death screens (28 characters at most)
@@ -158,6 +164,8 @@ export const HURT: HurtTable = {
   'm2:fa_dragon_shot': { hurt: ['FIRE! FROM A PLUSH DRAGON!', 'MY EYEBROWS! GONE!', 'MY ARM HAIR! IT SMELLS LIKE BACON!'], death: ['TOASTED BY A DRAGON SUIT', 'FLAMBEED BY A MASCOT'] },
   'm2:fa_owl': { hurt: ['THE OWL GOT MY FACE!', 'OWL! IN MY HAIR!', 'IT SHIT ON ME WHILE IT PECKED ME!'], death: ['KILLED BY A MAIL OWL', 'RETURN TO SENDER'] },
   'm2:fa_snow': { hurt: ['SNOW! OFF THE ROOF!', 'A SNOWBALL THE SIZE OF A CAR!', 'FAKE SNOW! REAL WEIGHT!'], death: ['BURIED UNDER ROOF SNOW', 'DIED UNDER A FAKE SNOWDRIFT'] },
+  'm2:fa_axe': { hurt: ['A PENDULUM AXE! WHO HAS THESE?', 'THE AXE! MY TITS!', 'SHAVED MY CHEST WITH AN AXE!'], death: ['HALVED BY A PENDULUM', 'SWUNG ON BY AN AXE'] },
+  'm2:fa_dragonhead': { hurt: ['THE STATUE BREATHES FIRE!', 'MY ASS IS ON FIRE!', 'A GARGOYLE TORCHED ME!'], death: ['ROASTED IN THE CRYPT', 'COOKED BY A GARGOYLE'] },
   'm2:fa_keg': { hurt: ['HOT BUTTER BREW! MY FACE!', 'FOAM! SCALDING FOAM!', "IT BURNS! AND IT'S DELICIOUS!"], death: ['DROWNED IN BUTTER BREW', 'BOILED IN A $14 DRINK'] },
 };
 
@@ -177,7 +185,7 @@ export const KILL_CALLS: Record<string, Record<string, string[]>> = {
 const pools = (b: ByPants) => allOf(b);
 export const VOICE_LINES: Record<string, string[]> = {
   meathead: [
-    ...[ARRIVE, REVISIT, KEG_BURST, ...Object.values(GAGS)].flatMap(allOf), PIPE_HER, WINNING,
+    ...[ARRIVE, REVISIT, KEG_BURST, AMMO_GOT, ...Object.values(GAGS)].flatMap(allOf), PIPE_HER, WINNING,
     ...Object.values(HURT).flatMap(h => h.hurt),
   ],
   death: Object.values(HURT).flatMap(h => h.death),
