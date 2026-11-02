@@ -17,7 +17,7 @@ import { registerM2Kind } from '../../kinds';
 import { drawCast, womanOf, seedOf, byPants, px, INK, type Costume } from '../cast';
 import { heliOf } from './state';
 import { goonSays } from './talk';
-import { GOON_BARK } from './lines';
+import { GOON_BARK, GOON_BARK_GONE } from './lines';
 import { CAMX, CY, W, H, fx, fy } from './geo';
 import { inPlay } from '../../moves/grab';
 
@@ -141,7 +141,7 @@ const ai = (ctx: FrameContext, e: Enemy) => {
       heliOf(state).shots.set(state.projectiles[state.projectiles.length - 1], { col: '#F97316', r: 6, shape: 'orb', t: 0 });
     }
   }
-  if (t === 30 && Math.random() < 0.5) goonSays(state, e, woman, pickLine(byPants(state, GOON_BARK)));
+  if (t === 30 && Math.random() < 0.5) goonSays(state, e, woman, pickLine(byPants(state, heliOf(state).noHarry ? GOON_BARK_GONE : GOON_BARK)));
   return true;
 };
 

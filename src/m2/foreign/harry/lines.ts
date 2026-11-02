@@ -283,6 +283,12 @@ export const MH_STUCK = ["...SHE'S STUCK.", 'JUST LIKE EVERY GIANT STATUE EVER.'
 /** The first time she pukes concrete on him. */
 export const MH_CONCRETE = ['SHE PUKES CONCRETE.', "THAT'S GONNA SET."];
 /** It's over (after her). */
+/** A revisit, the land cleared (emptyArena.ts): onto the empty slab, his say, then the hub. Harry's sin was wrath. */
+export const MH_EMPTY_ARENA: ByPants = {
+  clean: ['NOBODY LEFT TO YELL AT ME. KIND OF MISS IT.', "THE HIPPIE'S STILL DEAD. HIS TEMPER TOO."],
+  shitty: ["EMPTY. HE'D HAVE SCREAMED ABOUT MY PANTS.", 'NOBODY HERE TO GET MAD AT THE SMELL.'],
+  nude: ['EMPTY. NOBODY LEFT TO SCREAM AT MY DICK.', "NO HARRY. NO RAGE. JUST MY BALLS IN THE WIND."],
+};
 export const MH_WON = ['...WELL. THAT\'S AMERICA.', 'SHE REALLY LOVED THAT ASSHOLE.'];
 export const MH_WON_WEAK = ['SHOULD HAVE TAKEN YOUR PILLS.', 'SHE REALLY LOVED THAT ASSHOLE.'];
 /** She's crumbled (once). */
@@ -331,7 +337,7 @@ export const HURT: HurtTable = {
 
 const levels = (l: ByPants[]) => l.flatMap(allOf);
 export const VOICE_LINES = pavilionVoices({ pa: { clean: [], shitty: [], nude: [] }, arrive: [], gags: [] }, HURT, [], {
-  meathead: [...MH_IMPRESSED, MH_ABACK, ...MH_HINT, ...MH_STUCK, ...MH_CONCRETE, ...MH_WON, ...MH_WON_WEAK, ...GRAB_HARRY, ...MH_CRUMBLE, MH_GRIEF_PUKE, ...MH_WON_ALONE, ...MH_WON_BARFED],
+  meathead: [...MH_IMPRESSED, MH_ABACK, ...MH_HINT, ...MH_STUCK, ...MH_CONCRETE, ...MH_WON, ...MH_WON_WEAK, ...GRAB_HARRY, ...MH_CRUMBLE, MH_GRIEF_PUKE, ...MH_WON_ALONE, ...MH_WON_BARFED, ...allOf(MH_EMPTY_ARENA)],
   [HARRY]: [
     ...allOf(HARRY_QUEASY), ...allOf(HARRY_RIP), ...allOf(HARRY_RANT), ...allOf(HARRY_SUMMON), HARRY_MONUMENT,
     ...allOf(HARRY_TAUNT), ...allOf(HARRY_FIRE), ...allOf(HARRY_CROWN), ...levels(HARRY_STUCK), ...allOf(HARRY_UNSTUCK), ...allOf(HARRY_FAKE),

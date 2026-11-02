@@ -6,7 +6,8 @@
 // the two of them drawn in full; scene.ts: the rest). A retry from the checkpoint goes straight to the fight (her up,
 // him waiting). Beaten: VICTORY, the walk-away (walkAway/helicopterHarry.ts), the hub, Foreign Lands cleared (his toy:
 // the SOUVENIR launcher). Revisits: once the land's cleared, the slab stands empty (her rubble, the gun and the torch
-// lying, a chalk outline, his tie-dye in shreds), the gate open.
+// lying, a chalk outline, his tie-dye in shreds), the gate open; onto the slab, his say, and off to the hub (the owner's
+// revisit brief: emptyArena.ts).
 //
 // No way back: the crash is one-way (the left end's a wall, the wreck burning by it). No way on (the end of the land).
 
@@ -31,6 +32,10 @@ import {
   drawWaiting, introSeen, killCamTick, killCamZoom, killedByWeakness, drawLeftovers, deathNeed, MEMO_CRUMBLED, MEMO_DEATH,
 } from './fight';
 import { frameDeath, type Zoom } from '../../deathFrame';
+import { leaveEmptyArena } from '../../emptyArena';
+import { pickLine } from '../../../m1/game/platform/speech';
+import { byPants } from '../cast';
+import { MH_EMPTY_ARENA } from './lines';
 
 /** The fight's one screen: as far as a camera taking his death in may go. */
 const SHOT = { x0: VIEW_X, y0: sy(0), x1: VIEW_X + CANVAS_WIDTH, y1: sy(CANVAS_HEIGHT) };
@@ -47,6 +52,8 @@ interface Harry {
   gate: 'up' | 'kick' | 'down'; gateT: number; gateBlock: Block | null;
   f: Fight | null; walls: Block[];
   victory: Victory | null; walk: WalkAway | null;
+  /** A revisit: his say on the empty slab (picked once). */
+  emptyLine?: string;
 }
 const harryOf = (state: GameState) => foreignState<Harry>(state, 'harry', () => ({ fight: 'wait', wonAt: 0, f: null, walls: [], victory: null, walk: null, gate: 'up', gateT: 0, gateBlock: null }));
 /** The kick: when his boot lands (the gate starts over), and when it's down flat. */
@@ -131,6 +138,8 @@ export const harry: ForeignSection = {
       }
       // (through the gate onto the slab, not cleared: it's on; the gate shut behind him)
       const cx = p.pos.x + p.width / 2;
+      // (a revisit: the slab's empty; his say, then the hub)
+      if (isLandCleared('foreign') && cx > ARENA_L + 60 && cx < ARENA_R && p.health > 0) { leaveEmptyArena(state, s.emptyLine ??= pickLine(byPants(state, MH_EMPTY_ARENA))); return hands(); }
       if (!isLandCleared('foreign') && cx > ARENA_L + 60 && cx < ARENA_R) {
         s.fight = 'on';
         s.f = startFight(state);

@@ -115,6 +115,9 @@ export interface Heli {
   tips: number;
   /** Back here after it's all over (a revisit): the pad's empty. */
   over: boolean;
+  /** The land's cleared (Harry's dead, emptyArena.ts bossGone): no Harry anywhere; an empty helicopter to steal; out
+   *  of fuel at the end. Set at the build. */
+  noHarry: boolean;
 }
 
 export const heliOf = (state: GameState) => foreignState<Heli>(state, 'heli', () => ({
@@ -123,5 +126,5 @@ export const heliOf = (state: GameState) => foreignState<Heli>(state, 'heli', ()
   waves: [], waveAt: 0, transit: false, transitFrom: 0, transitT: 0, goons: [], goonLandAt: -9999, shots: new Map(), beams: [], drops: [], minions: [],
   harry: null, harryBusy: false, mech: null, guest: null, goonSaid: null, guestAt: -9999, heckleAt: 0, goonBarkAt: -9999, gloatAt: -9999, lastHp: -1,
   hx: 0, hy: 0, hvx: 0, hvy: 0, hpose: 'wave', turned: false, hop: 0, remote: 0, hfacing: 1, zoom: 1, pull: 1, up: 0, pullX: 400, pullY: 300, killAt: -999, fightGoonAt: 0, fightGoonN: 0, step: 0, flags: {}, cam: false, camX: 0, camY: 0,
-  hrocket: null, fall: 0, white: 0, tips: 0, over: false,
+  hrocket: null, fall: 0, white: 0, tips: 0, over: false, noHarry: false,
 }));

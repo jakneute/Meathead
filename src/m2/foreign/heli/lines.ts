@@ -299,6 +299,44 @@ export const MH_KILL: Record<MechId, string[]> = {
 export const MH_SHRED = ['SMOOTHIE.', 'CHOPPED.', 'MULCHED!', "THAT'S WHAT THE SPINNY PART IS FOR."];
 
 // ---------------------------------------------------------------------------------------------------------------
+// A revisit, the land cleared (the owner's: "meathead just steals an unoccupied chopper, the landmarks suddenly come
+// back to life and instead of crashing due to a rocket launcher, he just runs out of fuel")
+
+/** The queue, still waiting on a ride with no pilot. */
+export const QUEUE_GONE: ByPants = {
+  clean: ["THERE'S NO PILOT! WE'VE BEEN IN LINE SINCE THE FUNERAL!", 'YOU KILLED THE PILOT AND NOW YOU CUT THE LINE?', 'HEY! THAT IS NOT YOUR HELICOPTER!'],
+  shitty: ['HE KILLED THE PILOT AND HE SHIT HIMSELF!', "HE'S STEALING THE HELICOPTER! LET HIM! THE SMELL!"],
+  nude: ["THE NAKED GUY WHO KILLED HARRY! HE'S STEALING THE HELICOPTER!", 'COVER THE KIDS EYES! HE KILLED THE PILOT NAKED!'],
+};
+/** Into the empty pilot's seat. */
+export const MH_STEAL: ByPants = {
+  clean: ["NOBODY'S USING IT.", 'NO HIPPIE. NO LINE. MINE.'],
+  shitty: ["NO PILOT. I'LL DRIVE. SORRY ABOUT THE SEAT.", 'HEMP SEAT. GOOD LUCK, HEMP.'],
+  nude: ['NO PILOT. NO PANTS. NO PROBLEM.', 'BARE ASS ON THE HEMP. MINE.'],
+};
+/** The landmarks, up again on their own. */
+export const MH_WOKE: ByPants = {
+  clean: ["THEY REBUILT EVERY LANDMARK. AND NOBODY UNPLUGGED THE REMOTE.", "THE HIPPIE'S DEAD AND THE BUILDINGS STILL HOLD A GRUDGE."],
+  shitty: ['THEY REBUILT THEM. THEY STILL WANT ME DEAD. I ALREADY SHAT.', 'NOBODY WOKE THEM UP. THEY SMELLED ME.'],
+  nude: ['NEW LANDMARKS. SAME GRUDGE. STILL NO PANTS.', 'NOBODY ON THE REMOTE. THEY JUST WANT MY DICK.'],
+};
+/** Every landmark wrecked: out of fuel. */
+export const MH_FUEL: ByPants = {
+  clean: ["WHAT'S THAT NOISE? OH. GAS.", "OUT OF FRYER OIL. OF COURSE IT'S OUT OF FRYER OIL."],
+  shitty: ['OUT OF GAS. ME TOO. OH WAIT, NO.', 'OUT OF FUEL. AT LEAST THE SEAT CAN BURN.'],
+  nude: ['OUT OF GAS. GOING DOWN NAKED.', "NO FUEL. NO PANTS. NO PARACHUTE."],
+};
+/** The lackeys, out to get him for Harry. */
+export const GOON_BARK_GONE: ByPants = {
+  clean: [
+    'YOU KILLED HARRY! WHO SIGNS MY CHECKS NOW?', "HARRY'S DEAD AND THEY STILL MADE ME COME IN!", 'STAY AWAY FROM HIS BLADES! THAT IS HOW BRANDON GOT IT!',
+    "THIS IS FOR HARRY! I DIDN'T EVEN LIKE HARRY!",
+  ],
+  shitty: ['YOU KILLED HARRY AND SHIT IN HIS HELICOPTER!', "HARRY'S SEAT! YOU SHIT ON A DEAD MAN'S SEAT!"],
+  nude: ["THE NAKED GUY KILLED HARRY! I CAN SEE EVERYTHING!", 'FOR HARRY! AND PUT SOME PANTS ON!'],
+};
+
+// ---------------------------------------------------------------------------------------------------------------
 // What hurts him up here (each its own source), and what kills him
 
 export const HURT: HurtTable = {
@@ -335,8 +373,8 @@ export const HURT: HurtTable = {
 const pants = (r: ByPants) => [...r.clean, ...r.shitty, ...r.nude];
 const ALL = <T,>(r: Record<string, T>, f: (t: T) => string[]) => Object.values(r).flatMap(f);
 
-export const VOICE_LINES = pavilionVoices({ pa: { clean: [], shitty: [], nude: [] }, arrive: [], gags: [] }, HURT, [[GOON, GOON_BARK]], {
-  meathead: [...MH_TOUR, MH_SHUT_UP, ...MH_TAKES, ...MH_ROCKET, ...MH_PISA_MISSED, ...ALL(MH_KILL, l => l), ...MH_SHRED],
+export const VOICE_LINES = pavilionVoices({ pa: { clean: [], shitty: [], nude: [] }, arrive: [], gags: [] }, HURT, [[GOON, GOON_BARK], [GOON, GOON_BARK_GONE]], {
+  meathead: [...MH_TOUR, MH_SHUT_UP, ...MH_TAKES, ...MH_ROCKET, ...MH_PISA_MISSED, ...ALL(MH_KILL, l => l), ...MH_SHRED, ...pants(MH_STEAL), ...pants(MH_WOKE), ...pants(MH_FUEL)],
   [HARRY]: [
     ...pants(HARRY_BOARD), ...HARRY_TOUR, ...HARRY_SHOVED, ...HARRY_TURNS, ...ALL(HARRY_SEND, pants), ...ALL(HARRY_LOST, l => l),
     ...pants(HARRY_HECKLE), ...pants(HARRY_BLADES), ...HARRY_GOONS, ...HARRY_GLOAT, ...pants(HARRY_END), ...HARRY_HIT,
@@ -344,6 +382,6 @@ export const VOICE_LINES = pavilionVoices({ pa: { clean: [], shitty: [], nude: [
   ...Object.fromEntries(Object.entries(MECH_TALK).map(([id, t]) => [MECH_VOICE[id as MechId], [
     ...t.intro, ...t.taunt, ...t.hurt, ...t.die, ...(id === 'pisa' ? [...PISA_FALL, ...PISA_MISSED, ...PISA_GOT_HIM] : []),
   ].filter(l => l !== '...')])),
-  [GUEST.m]: [...QUEUE_SHOUT, ...QUEUE_SHOUT_SHAT, ...QUEUE_SHOUT_NUDE],
-  [GUEST.f]: [...QUEUE_SHOUT, ...QUEUE_SHOUT_SHAT, ...QUEUE_SHOUT_NUDE],
+  [GUEST.m]: [...QUEUE_SHOUT, ...QUEUE_SHOUT_SHAT, ...QUEUE_SHOUT_NUDE, ...pants(QUEUE_GONE)],
+  [GUEST.f]: [...QUEUE_SHOUT, ...QUEUE_SHOUT_SHAT, ...QUEUE_SHOUT_NUDE, ...pants(QUEUE_GONE)],
 });

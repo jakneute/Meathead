@@ -29,7 +29,8 @@ export const harryFrom = (state: GameState, bp: ByPants) => harryPick(harryPool(
  *  this life): he says nothing, and what was to come after goes on. */
 export const harrySays = (state: GameState, line: string | null, after = true, onDone?: () => void) => {
   const h = heliOf(state);
-  if (line === null) { if (after) onDone?.(); return false; }
+  // (a revisit, Harry dead: nobody says it; whatever was to come after goes on)
+  if (line === null || h.noHarry) { if (after) onDone?.(); return false; }
   if (!after && !quiet(state)) return false;
   harrySaid.add(line);
   if (after) h.harryBusy = true;
