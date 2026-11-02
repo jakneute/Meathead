@@ -394,6 +394,22 @@ const GAP_SCENES: Tab[] = ['home', 'office', 'cars', 'moon', 'home', 'cars', 'mo
 const MARQUEE_Y = 121;
 /** Screen space: the dark ride, way back (through the gaps in the flats). */
 export const drawRideBackdrop = (c: Ctx, state: GameState) => {
+  // (up the long ladder over the airlocks (climb.ts), way over the flats: the ride sinks away under him, half as fast,
+  // the dome's dark and its stars over it)
+  const lift = Math.max(0, -420 - state.camera.y) * 0.5;
+  if (lift <= 0) return rideBackdrop(c, state);
+  const W = CANVAS_WIDTH;
+  box(c, 0, 0, W, Math.ceil(lift) + 2, '#04030C');
+  for (let i = 0; i < 60; i++) {
+    const sx = ((i * 173.3 - state.camera.x * 0.05) % W + W) % W, sy = Math.round(lift - 4 - ((i * 89.7) % 1200));
+    if (sy > -2 && sy < lift) box(c, sx, sy, i % 4 ? 1 : 2, i % 4 ? 1 : 2, i % 5 ? '#64748B' : '#C4B5FD');
+  }
+  c.save(); c.translate(0, Math.round(lift));
+  const out = rideBackdrop(c, state);
+  c.restore();
+  return out;
+};
+const rideBackdrop = (c: Ctx, state: GameState) => {
   const W = CANVAS_WIDTH, H = CANVAS_HEIGHT, f = state.frame, cam = state.camera.x;
   const tk = 0.4, ty = 420;
   // (the dome: painted black, in the dark it's a deep violet in bands down to the track)
@@ -870,6 +886,8 @@ export const drawAtomBack = (c: Ctx, state: GameState, hj: Hijack) => {
       rivets(g, A + 3906, A + 4854, AIRLOCK_TOP - 60, '#475569', 12); rivets(g, A + 3906, A + 4854, AIRLOCK_TOP - 12, '#475569', 12);
       hazard(g, A + 3900, AIRLOCK_TOP - 8, 960, 4, '#FACC15', '#1C1917', 6);
       box(g, A + 3900, AIRLOCK_TOP - 4, 960, 4, '#64748B');
+      // (its top's a roof he can stand on now (the long ladder up off it, climb.ts): a lit lip along it)
+      box(g, A + 3900, AIRLOCK_TOP - 74, 960, 3, '#94A3B8'); box(g, A + 3900, AIRLOCK_TOP - 74, 960, 1, '#E2E8F0');
       lettering(g, 'SPACE STATION LIBERTY - DECK 2', A + 4185, AIRLOCK_TOP - 34, 'stencil', '#94A3B8', '#334155');
     });
     for (const d of AIRLOCKS) {

@@ -8361,6 +8361,11 @@
  },
  {
   "voice": "death",
+  "text": "COOKED BY A GARGOYLE",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "death",
   "text": "COOKED BY A HEAT MAIN",
   "from": "FANTASY"
  },
@@ -10638,6 +10643,11 @@
   "voice": "death",
   "text": "HALITOSIS",
   "from": "SPOOKY"
+ },
+ {
+  "voice": "death",
+  "text": "HALVED BY A PENDULUM",
+  "from": "FANTASY"
  },
  {
   "voice": "death",
@@ -13966,6 +13976,11 @@
  },
  {
   "voice": "death",
+  "text": "ROASTED IN THE CRYPT",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "death",
   "text": "ROBBED. OF HIS LIFE.",
   "from": "FRONTIER"
  },
@@ -15978,6 +15993,11 @@
   "voice": "death",
   "text": "SWIM FOR IT",
   "from": "m1/game/stages/ernie/index.ts:27"
+ },
+ {
+  "voice": "death",
+  "text": "SWUNG ON BY AN AXE",
+  "from": "FANTASY"
  },
  {
   "voice": "death",
@@ -63336,6 +63356,11 @@
  },
  {
   "voice": "meathead",
+  "text": "A CRYPT FULL OF BONES AND ONE GOOD BOX.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "meathead",
   "text": "A DAD GUY EXTENDED UNIVERSE. FOR A SHOW NOBODY WATCHED.",
   "from": "CARTOON"
  },
@@ -63738,6 +63763,11 @@
   "voice": "meathead",
   "text": "A FUSE. MY ASS HAS BEEN LIT SINCE THE CHURRO.",
   "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "A GARGOYLE TORCHED ME!",
+  "from": "FANTASY"
  },
  {
   "voice": "meathead",
@@ -64543,6 +64573,11 @@
   "voice": "meathead",
   "text": "A PENCIL NECK TOUCHED ME! GROSS!",
   "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "A PENDULUM AXE! WHO HAS THESE?",
+  "from": "FANTASY"
  },
  {
   "voice": "meathead",
@@ -71558,6 +71593,11 @@
   "voice": "meathead",
   "text": "FORTY TAKES OF MEOW. MY UNCLE DOES THAT DRUNK FOR FREE.",
   "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "FOUND AMMO. LEFT SOME SHIT FOR THE SKELETONS.",
+  "from": "FANTASY"
  },
  {
   "voice": "meathead",
@@ -81786,6 +81826,11 @@
  },
  {
   "voice": "meathead",
+  "text": "MORE AMMO. DOWN HERE WITH THE SKELETONS.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "meathead",
   "text": "MORE AMMO. MY PANTS ARE ALREADY LOADED.",
   "from": "HOLLYWOOD"
  },
@@ -81823,6 +81868,11 @@
   "voice": "meathead",
   "text": "MORE AMMO. THE CIRCUS OWES ME.",
   "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
+  "text": "MORE AMMO. THE CRYPT SMELLS BETTER THAN ME.",
+  "from": "FANTASY"
  },
  {
   "voice": "meathead",
@@ -83203,6 +83253,11 @@
   "voice": "meathead",
   "text": "NAKED IN A BEAR TRAP! HOP! HOP!",
   "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "NAKED IN A CRYPT WITH A BOX OF BULLETS. NORMAL DAY.",
+  "from": "FANTASY"
  },
  {
   "voice": "meathead",
@@ -88861,6 +88916,11 @@
  },
  {
   "voice": "meathead",
+  "text": "SHAVED MY CHEST WITH AN AXE!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "meathead",
   "text": "SHAVINGS! IN MY MOUTH!",
   "from": "CARTOON"
  },
@@ -93301,6 +93361,11 @@
  },
  {
   "voice": "meathead",
+  "text": "THE AXE! MY TITS!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "meathead",
   "text": "THE BABY BIT MY ANKLE! I'M CALLING CPS!",
   "from": "SPACE"
  },
@@ -95538,6 +95603,11 @@
   "voice": "meathead",
   "text": "THE STARS ARE CHRISTMAS LIGHTS.",
   "from": "SPACE"
+ },
+ {
+  "voice": "meathead",
+  "text": "THE STATUE BREATHES FIRE!",
+  "from": "FANTASY"
  },
  {
   "voice": "meathead",

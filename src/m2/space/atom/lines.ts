@@ -57,6 +57,19 @@ export const OP_DONT = "DON'T TOUCH THE BIG GREEN ONE.";
 export const OP_AFTER = '...ENJOY THE FUTURE.';
 
 // ---------------------------------------------------------------------------------------------------------------
+// THE LONG LADDER (climb.ts): his line once the ammo find's card is shut, and the dive kick down off the top
+
+export const LADDER_DONE: ByPants = {
+  clean: ["I'M NOT CLIMBING DOWN THAT.", 'NOW THE FAST WAY DOWN.'],
+  shitty: ["I'M NOT CLIMBING DOWN THAT. NOT IN THESE PANTS."],
+  nude: ["I'M NOT CLIMBING DOWN THAT. NOT WITH MY ASS OUT."],
+};
+export const WHEE: ByPants = {
+  clean: ['WHEEEE!', 'WHEE! FUCK YEAH!'],
+  shitty: ["WHEEE! IT'S COMING OUT THE LEG!", "WHEE! I'M LEAVING A TRAIL!"],
+  nude: ["WHEEE! IT'S ALL FLAPPING!", 'WHEE! WIND ON MY BALLS!'],
+};
+
 // What he says when these hurt him, and the death screen when they kill him
 
 export const HURT_THRUSTER = ['MY ASS IS ON FIRE!', 'WHO SIGNED OFF ON A REAL ROCKET?!', 'WHO PUTS REAL FUEL IN A PROP?!'];
@@ -86,6 +99,7 @@ const each = (r: Record<Dressed, string>) => [r.clean, r.shitty, r.nude];
 export const VOICE_LINES: Record<string, string[]> = {
   meathead: [
     ...MEATHEAD_CUTS, ...MEATHEAD_PARTY, MEATHEAD_WHICH,
+    ...all(LADDER_DONE), ...all(WHEE),
     ...HURT_THRUSTER, ...HURT_METEOR, ...HURT_AIRLOCK, ...HURT_LASER, ...HURT_FLAG, ...HURT_FLAGPOLE, ...HURT_MARTIAN, ...HURT_ANTENNAE, ...HURT_RIGGER, ...HURT_WRENCH,
   ],
   death: [

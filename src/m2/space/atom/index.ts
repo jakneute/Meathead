@@ -28,6 +28,7 @@ import { ATOM, homeFacing, drawBarks } from './kinds';
 import { runRigs, buildRigBlocks, type RigBlocks } from './rigs';
 import { drawRideBackdrop, drawAtomBack, drawAtomFront, drawPlatformSleds, atomLighting } from './art';
 import { type Hijack, newHijack, settleHijack, runLine, atPlatform, runHijack } from './hijack';
+import { buildClimb, updateClimb, drawClimb, climbLights, climbRow, climbCardUp, ROOF_Y } from './climb';
 
 interface AtomState { blocks: RigBlocks; hj: Hijack }
 const atomOf = (state: GameState) => sectionState<AtomState, 'atom'>(state, 'atom', () => ({ blocks: { doors: [], rocks: [] }, hj: newHijack() }));
@@ -51,9 +52,11 @@ export const atom: SpaceSection = {
     solid(state, x0 - 60, GY - 800, 60, 800);
     for (const [x, top, w] of SOLIDS) solid(state, x, top, w, GY - top);
     for (const [x, y, w] of LEDGES) ledge(state, x, y, w);
-    // (the space station set's ceiling over the airlocks, the doors' housings: solid under it, and on up into the dark
-    // past anything he can jump to, so nobody goes over the doors through it or along its top)
-    solid(state, A + 3900, GY - 900, 960, AIRLOCK_TOP - (GY - 900), { tag: 'atom-airlock-ceiling' });
+    // (the space station set's ceiling over the airlocks, the doors' housings: just the slab, its top a roof he can
+    // stand on (up the catwalks by the shower); the long ladder up off it to the ammo find, walled in, the far end of the
+    // roof walled up to the roof steel so nobody goes over the doors along it: climb.ts)
+    solid(state, A + 3900, ROOF_Y, 960, AIRLOCK_TOP - ROOF_Y, { tag: 'atom-airlock-ceiling' });
+    buildClimb(state);
     for (let i = n0; i < state.blocks.length; i++) state.blocks[i].hidden = true;
     const as = atomOf(state);
     as.blocks = buildRigBlocks(state);
@@ -81,6 +84,9 @@ export const atom: SpaceSection = {
     if (hj.active) return runHijack(ctx, hj);
     // (back out the stage door: the square)
     if (runExits(state, endExits('atom').filter(e => e.x1 <= x0 + 60))) return controls;
+    // (the long ladder up off the airlocks' roof, the ammo find: first, before anything else reads the controls)
+    controls = updateClimb(ctx, controls);
+    if (climbCardUp(state)) return controls;
     // (a stagehand dead: their rig's stopped, and stays stopped)
     for (const e of state.enemies) if (e.kind === ATOM.hand && (e.health <= 0 || e.isBlownAway)) { const post = postOf.get(e); if (post !== undefined && !deadPosts(state).has(post)) markPostDead(state, post); }
     runRigs(ctx, as.blocks);
@@ -90,9 +96,10 @@ export const atom: SpaceSection = {
     return controls;
   },
   drawBackdrop: (c, state) => drawRideBackdrop(c, state),
-  drawBack: (c, state) => { const hj = atomOf(state).hj; drawAtomBack(c, state, hj); drawPlatformSleds(c, state, hj, true); },
+  drawBack: (c, state) => { const hj = atomOf(state).hj; drawAtomBack(c, state, hj); drawClimb(c, state); drawPlatformSleds(c, state, hj, true); },
   drawFront: (c, state) => { const hj = atomOf(state).hj; drawPlatformSleds(c, state, hj, false); drawAtomFront(c, state, hj); drawBarks(c); },
-  lighting: (state) => atomLighting(state),
+  lighting: (state) => { const l = atomLighting(state); l.lights.push(...climbLights(state)); return l; },
+  cameraRow: (state) => climbRow(state),
   cameraX: () => ({ min: x0 - 200, max: Math.min(x1, TUNNEL_X + 300) - CANVAS_WIDTH }),
   drawHud: (c, state) => { const hj = atomOf(state).hj; if (hj.active && (hj.t > 30 || hj.step > 0)) drawSkipPrompt(c, CANVAS_WIDTH); },
 };

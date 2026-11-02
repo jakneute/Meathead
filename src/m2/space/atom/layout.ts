@@ -166,6 +166,8 @@ export const LEDGES: [number, number, number][] = [
   [A + 3060, GY - 205, 120], [A + 2760, GY - 110, 90],
   // the shower's winch platform
   [A + 3600, GY - 140, 140],
+  // (two catwalks up from it onto the airlock housing's roof: the long ladder up to the ammo find, climb.ts)
+  [A + 3772, GY - 215, 60], [A + 3836, GY - 300, 60],
   // the airlocks: the control booth's step
   [A + 4740, GY - 120, 140],
   // the laser desk's riser
