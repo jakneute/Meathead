@@ -17,24 +17,36 @@
 
 import type { GameState } from '../../m1/game/core/state';
 import { drawTodSky, farTint, timeOfDay, hourMix, skyAt, cloudTint, type TimeOfDay } from '../timeOfDay';
-import { drawAcross, drawTourCopter, drawGulls, ringAt } from './teases';
+import { drawAcross, drawTourCopter, drawGulls, ringAt, SHORE_K } from './teases';
 import { farCol } from '../hollywood/blvd/far';
 import { mist, falls } from '../adventure/farArt';
-import { box as kitBox, poly, mix, hash, checker, stamp, bandedGradient, pixelBlob, signText, plain, INK } from './kit';
+import { box as kitBox, poly as kitPoly, mix, hash, checker, stamp, bandedGradient, pixelBlob, signText, plain, INK } from './kit';
 
 /** Where a far still's being painted only a window of (the hub's skyline: hub/far.ts showcase): the fills wholly
  *  outside it skipped (they'd be clipped off anyway). Everywhere else, nothing's skipped. */
 let cullL = -Infinity, cullR = Infinity;
 export const cullStill = (l: number, r: number) => { cullL = l; cullR = r; };
 const box = (g: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, col: string) => { if (x > cullR || x + w < cullL) { g.fillStyle = col; return; } kitBox(g, x, y, w, h, col); };
-import { SECTIONS, FLX, type ForeignId } from './geometry';
+const poly = (g: CanvasRenderingContext2D, pts: [number, number][], col: string) => {
+  if (cullL > -Infinity) { let l = Infinity, r = -Infinity; for (const [x] of pts) { if (x < l) l = x; if (x > r) r = x; } if (l > cullR || r < cullL) return; }
+  kitPoly(g, pts, col);
+};
+import { SECTIONS, SECTION_ORDER, FLX, type ForeignId } from './geometry';
 
 type Ctx = CanvasRenderingContext2D;
 const W = 800, H = 600;
 
 const SKY = ['#1E3A8A', '#2563EB', '#60A5FA', '#93C5FD', '#BFDBFE', '#FDE68A'];
-/** How far the landmarks slide (of the camera's travel), and the barge. */
-const K = 0.22, BARGE_K = 0.02;
+/** One eye for the whole backdrop, its layers' slide (of the camera's travel) set by how far off each looks, far to
+ *  near: the neighbors out past everything (BEYOND_K), each pavilion's own far landmark (STILL_K: miles off, so it
+ *  hardly moves; it hazes in and out round its pavilion instead of sliding by), the far shore's pavilions and its tree
+ *  line (teases.ts SHORE_K, the same rate so their feet stay put behind the trees), the barge out on the water
+ *  (BARGE_K), the helipad's globe this side of it (HELI_K). */
+const STILL_K = 0.016, BARGE_K = 0.03, HELI_K = 0.22;
+/** How far (world px) a pavilion's landmark takes to haze out toward its border (and the next one's to come in). */
+const STILL_FADE = 520;
+/** The barge goes round the lagoon: back in from the right once it's gone off the left. */
+const BARGE_LAP = 2000;
 
 // ---------------------------------------------------------------------------------------------------------------
 // The stamped landmarks (the SNES pass): each painted with its middle-bottom at (w / 2, h) in its own box
@@ -133,49 +145,6 @@ const facets = (g: Ctx, crest: (x: number) => number, xa: number, xb: number, fo
   checker(g, xa, foot - 40, xb - xa, 20, R[1], 0); box(g, xa, foot - 20, xb - xa, 20, R[1]); checker(g, xa, foot - 10, xb - xa, 10, R[0], 1);
   g.restore();
 };
-/** A sheer fjord wall: rising in steps to its crest, vertical striations down its face (lit edges), snow along the top
- *  and in its gullies, a forest of firs along its foot. `dir`: which way it faces the water (1 right). */
-const fjordWall = (g: Ctx, pts: [number, number][], foot: number, dir: number, R: string[], snow: string[], fir: string[], seed: number) => {
-  const xs = pts.map(p => p[0]), xa = Math.min(...xs), xb = Math.max(...xs);
-  const shape: [number, number][] = [[xa, foot], ...pts, [xb, foot]];
-  poly(g, shape, R[2]);
-  // (its buttresses faceted the SNES way: lit faces and shaded ones, ridges, spurs, flecks, broken strata)
-  facets(g, crestOf(pts), xa, xb, foot, R, seed, 34);
-  g.save(); g.beginPath(); shape.forEach(([x, y], i) => (i ? g.lineTo(x, y) : g.moveTo(x, y))); g.closePath(); g.clip();
-  // (the face toward the water lit or shaded by which way it looks; a few striations down it)
-  for (let x = xa; x < xb; x += 6) { const t = hash(seed + x * 0.21); if (t > 0.8) box(g, x, crestOf(pts)(x) + 30, 1, foot, t > 0.93 ? R[3] : R[1]); }
-  const edge = dir > 0 ? xb - 40 : xa;
-  box(g, edge, 0, 40, foot, dir > 0 ? R[1] : R[3]); checker(g, dir > 0 ? edge - 4 : edge + 40, 0, 4, foot, dir > 0 ? R[1] : R[3], 0);
-  checker(g, dir > 0 ? edge - 10 : edge + 46, 0, 2, foot, dir > 0 ? R[1] : R[3], 1);
-  // (ledges across in steps, broken, a lit top on each, a dark shadow line under)
-  for (let k = 0; k < 6; k++) {
-    const y = 40 + k * 34 + hash(seed + k) * 18;
-    for (let x = xa; x < xb; x += 24) if (hash(seed + k * 7 + x * 0.05) > 0.3) { const lw = 10 + hash(seed + x + k) * 22; box(g, x, y, lw, 2, R[0]); box(g, x, y - 1, lw, 1, R[3]); checker(g, x, y + 2, lw, 2, R[1], k % 2); }
-  }
-  // (the forest climbing the lower slope: a dark belt, dithered up into the rock, stepped firs along its top)
-  const belt = foot - 46;
-  box(g, xa, belt, xb - xa, foot - belt, fir[0]); checker(g, xa, belt - 2, xb - xa, 2, fir[0], 0); checker(g, xa, belt - 6, xb - xa, 2, fir[0], 1);
-  for (let i = 0; i < (xb - xa) / 6; i++) {
-    const fx = xa + i * 6 + hash(seed + i * 3.3) * 4, fy = belt + 4 + hash(seed + i * 1.1) * 30, fh = 9 + hash(seed + i * 2.1) * 9;
-    poly(g, [[fx - fh * 0.34, fy], [fx, fy - fh], [fx + fh * 0.34, fy]], fir[1]); poly(g, [[fx - fh * 0.34, fy], [fx, fy - fh], [fx, fy]], fir[2]); box(g, fx - 1, fy - fh, 1, 1, fir[3]);
-  }
-  // (snow in the gullies off the crest)
-  for (let i = 0; i < (xb - xa) / 18; i++) { const sx = xa + hash(seed + i * 2.7) * (xb - xa); for (let y = 0; y < 60 + hash(seed + i) * 50; y += 2) box(g, sx + Math.round(Math.sin(y * 0.2 + i) * 2), y, 2, 2, snow[1]); }
-  g.restore();
-  // (the snow along the crest, lit, its shaded underside)
-  for (let i = 0; i < pts.length - 1; i++) {
-    const [ax, ay] = pts[i], [bx, by] = pts[i + 1];
-    for (let x = ax; x < bx; x += 2) { const t = (x - ax) / (bx - ax || 1), y = Math.round(ay + (by - ay) * t), d = 4 + Math.round(hash(seed + x) * 6); box(g, x, y, 2, d, snow[2]); box(g, x, y, 2, 1, snow[3]); box(g, x, y + d, 2, 1, snow[0]); }
-  }
-  // (firs along the foot: stepped triangles, a lit left side)
-  for (let i = 0; i < (xb - xa) / 7; i++) {
-    const fx = xa + i * 7 + hash(seed + i) * 4, fh = 12 + hash(seed + i * 1.7) * 14;
-    poly(g, [[fx - fh * 0.32, foot], [fx, foot - fh], [fx + fh * 0.32, foot]], fir[1]);
-    poly(g, [[fx - fh * 0.32, foot], [fx, foot - fh], [fx, foot]], fir[2]);
-    box(g, fx - 1, foot - fh, 1, 2, fir[3]);
-  }
-};
-
 /** A crest through points (linear between them). */
 const crestOf = (pts: [number, number][]) => (x: number) => {
   if (x <= pts[0][0]) return pts[0][1];
@@ -232,6 +201,20 @@ const firsUnder = (g: Ctx, crest: (x: number) => number, w: number, foot: number
   }
 };
 
+/** A still's two ends hazed off into the sky (dithered steps cut out of its outer columns): no hard-cut edge of a range
+ *  ever shows. Painted once, into its stamp. */
+const feather = (g: Ctx, w: number, h: number, n = 32) => {
+  g.save(); g.globalCompositeOperation = 'destination-out'; g.fillStyle = '#000';
+  for (let u = 0; u < n; u += 2) {
+    const keep = u / n;
+    for (let y = 0; y < h; y += 2) {
+      const r = hash(u * 7.1 + y * 0.37);
+      if (r > keep) { g.fillRect(u, y, 2, 2); g.fillRect(w - u - 2, y, 2, 2); }
+    }
+  }
+  g.restore();
+};
+
 const STILLS: Partial<Record<ForeignId, Far>> = {
   china: {
     // (THE GREAT WALL far off: a far range of misty blue-green peaks, the wall a thread along it and its towers specks;
@@ -246,7 +229,7 @@ const STILLS: Partial<Record<ForeignId, Far>> = {
       mist(g, w, 70, foot - 70, skyAt(0.9, tod), 0.05, 0.55, 6);
       const near = crestOf([[0, 232], [70, 196], [150, 220], [240, 150], [330, 182], [420, 118], [520, 168], [610, 128], [700, 188], [790, 154], [880, 206], [960, 194]]);
       // (the near ridge less far into the haze than the far range: it reads nearer, its facets crisper)
-      const Tn = farCol(tod, 0.16);
+      const Tn = farCol(tod, 0.32);
       rangeCols(g, near, 0, w, foot, rampT(Tn, '#4E6E3A'), 11);
       firsUnder(g, near, w, foot, rampT(Tn, '#2E4A2A'), 140, 0);
       wallAlong(g, near, 0, w, rampT(Tn, '#D6CDB8'), 0.85, [70, 240, 420, 610, 790]);
@@ -264,7 +247,7 @@ const STILLS: Partial<Record<ForeignId, Far>> = {
       rangeCols(g, alps, 0, w, foot, rampT(T, '#6A7896'), 7, { S: rampT(T, '#EEF2F8'), line: 160 });
       mist(g, w, 90, foot - 90, skyAt(0.9, tod), 0.05, 0.55, 6);
       const hill = (x: number) => foot - 168 * Math.exp(-(((x - 450) / 230) ** 2)) - 18 * Math.exp(-(((x - 160) / 90) ** 2)) - 14 * Math.exp(-(((x - 760) / 110) ** 2));
-      const Tn = farCol(tod, 0.18);
+      const Tn = farCol(tod, 0.32);
       rangeCols(g, hill, 0, w, foot, rampT(Tn, '#4E7A3A'), 19);
       firsUnder(g, hill, w, foot, rampT(Tn, '#2A4A2A'), 220, 5, (x, y) => Math.abs(x - 450) < 56 && y < hill(450) + 40);
       // (the road winding up to the crag)
@@ -708,7 +691,7 @@ const STILLS: Partial<Record<ForeignId, Far>> = {
       const farC = crestOf([[0, 190], [90, 120], [160, 160], [250, 70], [330, 140], [420, 96], [520, 40], [600, 120], [680, 84], [770, 30], [860, 110], [940, 76], [1000, 130]]);
       rangeCols(g, farC, 0, w, foot, [Fb[0], Fb[1], Fb[2], Fb[3], Fb[4]], 7, { S: [Sn[0], Sn[1], Sn[2], Sn[3], Sn[4]], line: 150 });
       mist(g, w, 100, foot - 100, haze, 0.15, 0.5, 6);
-      const Tn = farCol(tod, 0.16), R = rampT(Tn, '#5A6070'), Fr = rampT(Tn, '#2E4A36');
+      const Tn = farCol(tod, 0.32), R = rampT(Tn, '#5A6070'), Fr = rampT(Tn, '#2E4A36');
       const nearC = crestOf([[0, 230], [70, 170], [140, 200], [220, 110], [300, 180], [380, 140], [450, 196], [520, 150], [560, 170], [640, 170], [690, 120], [760, 190], [840, 130], [920, 210], [1000, 160]]);
       rangeCols(g, nearC, 0, w, foot, R, 19, { S: [Sn[0], Sn[1], Sn[2], Sn[3], Sn[4]], line: 210 });
       // (the cliff the falls come down, its lip, the falls and their pool)
@@ -734,7 +717,7 @@ const STILLS: Partial<Record<ForeignId, Far>> = {
     live: (c, x0, top, f, T) => {
       // (the falls' spray: specks running down its face, a mist puff at its foot)
       for (let k = 0; k < 14; k++) { const y = top + 170 + ((f * 2.4 + k * 23) % 220); box(c, x0 + 594 + (k % 4) * 3, y, 2, 3, T('#FFFFFF')); }
-      c.globalAlpha = 0.5; pixelBlob(c, x0 + 602, top + 440 - 16 - 44 - Math.sin(f * 0.05) * 3, 30, 8, T('#F1F5F9')); c.globalAlpha = 1;
+      const a = c.globalAlpha; c.globalAlpha = a * 0.5; pixelBlob(c, x0 + 602, top + 440 - 16 - 44 - Math.sin(f * 0.05) * 3, 30, 8, T('#F1F5F9')); c.globalAlpha = a;
     },
   },
   mexico: {
@@ -760,32 +743,54 @@ const STILLS: Partial<Record<ForeignId, Far>> = {
     },
   },
   norway: {
-    // (THE FJORD: far snowy mountains, two sheer walls either side of a long arm of water going back to them, firs
-    // along their feet, a waterfall down the right one (its spray live), red boathouses at the water)
+    // (THE FJORD, far off and real-looking (the park's postcard of it, no built slabs): the snowy range at the fjord's
+    // head, blue in the haze; the arm of water going back to it between two mountain walls, banded paler as it goes;
+    // the walls faceted the SNES way (lit faces to the upper left, shade in their lee and down the inner face of the
+    // left one), snow on their crests and down the gullies, the fir belt dithered up their lower slopes; the falls down
+    // the right one (its spray live); red boathouses at the water; the haze thickening down over the feet of it all)
     w: 900, h: 400, k: 0.6,
     paint: (g, T, tod) => {
-      const w = 900, h = 400, foot = h - 16;
-      // (the far mountains, blue and snowy, behind)
-      const M = rampT(T, '#6A7AA0'), S = rampT(T, '#F1F5F9');
-      const back: [number, number][] = [[200, foot], [300, 150], [350, 120], [400, 150], [450, 104], [520, 160], [580, 130], [700, foot]];
-      poly(g, back, M[2]);
-      poly(g, [[300, 150], [350, 120], [370, 170], [330, 190]], S[2]); poly(g, [[450, 104], [520, 160], [480, 180], [430, 150]], S[2]); poly(g, [[450, 104], [430, 150], [440, 170], [452, 130]], S[3]);
-      mist(g, w, 120, foot - 120, skyAt(0.88, tod), 0.1, 0.5, 6);
-      // (the arm of water going back between the walls: banded lighter far off, a glint)
-      const WA = rampT(T, '#2E5A8A');
-      poly(g, [[330, foot], [420, foot - 120], [480, foot - 120], [560, foot]], WA[2]);
-      for (let k = 0; k < 5; k++) { const y = foot - 120 + k * 24, t = (y - (foot - 120)) / 120; box(g, 420 - t * 90, y, 60 + t * 180, 1, WA[3]); }
-      box(g, 440, foot - 118, 20, 1, WA[4]);
-      // (the walls: the left facing right, the right facing left)
-      const Tn = farCol(tod, 0.16), R = rampT(Tn, '#4A5660'), F = rampT(Tn, '#2E4A36');
-      fjordWall(g, [[0, 70], [60, 46], [130, 58], [200, 30], [260, 64], [330, 96], [420, 260]], foot, 1, R, S, F, 5);
-      fjordWall(g, [[470, 250], [560, 90], [640, 40], [700, 60], [780, 26], [860, 50], [900, 70]], foot, -1, R, S, F, 9);
-      // (the falls down the right wall, its pool at the foot)
-      falls(g, 600, 100, foot - 6, 8, { rock: R[1], water: T('#C8DCEC'), lit: T('#F4FAFF'), spray: T('#E0ECF6') });
+      const w = 900, h = 400, foot = h - 16, haze = skyAt(0.9, tod);
+      const S = rampT(T, '#F1F5F9');
+      // (the range at the fjord's head, farthest: bluest, its snow line low)
+      const head = crestOf([[0, 210], [120, 186], [220, 204], [300, 168], [360, 150], [410, 176], [460, 140], [520, 182], [590, 160], [680, 196], [780, 178], [900, 206]]);
+      rangeCols(g, head, 0, w, foot, rampT(T, '#7486AE'), 3, { S, line: 214 });
+      mist(g, w, 150, foot - 150, haze, 0.15, 0.6, 6);
+      // (the arm of water going back between the walls, to its vanishing end under the head range)
+      const WA = rampT(T, '#2E5A8A'), armTop = foot - 112;
+      const arm = (y: number): [number, number] => { const t = (y - armTop) / (foot - armTop); return [436 - t * 106, 466 + t * 104]; };
+      for (let y = armTop, k = 0; y < foot; y += 2, k++) { const [l, r] = arm(y), t = (y - armTop) / (foot - armTop); box(g, l, y, r - l, 2, t < 0.25 ? WA[4] : t < 0.5 ? WA[3] : t < 0.8 ? WA[2] : WA[1]); if (k % 9 === 4) box(g, l + (r - l) * 0.3, y, (r - l) * 0.25, 1, WA[4]); }
+      // (the walls: everything of them clipped off the arm, so they meet the water along its banks)
+      const Tn = farCol(tod, 0.32), R = rampT(Tn, '#58647C'), F = rampT(Tn, '#2E4A3A');
+      g.save(); g.beginPath(); g.rect(0, 0, w, h);
+      g.moveTo(arm(armTop)[0], armTop); g.lineTo(arm(foot)[0], foot); g.lineTo(arm(foot)[1], foot); g.lineTo(arm(armTop)[1], armTop); g.closePath(); g.clip('evenodd');
+      const left = crestOf([[0, 150], [50, 128], [110, 142], [170, 102], [230, 124], [290, 116], [340, 158], [392, 226], [446, foot - 98]]);
+      const right = crestOf([[440, foot - 98], [500, 232], [556, 146], [616, 100], [690, 126], [756, 94], [826, 122], [900, 112]]);
+      rangeCols(g, left, 0, 448, foot, R, 5, { S, line: 176 });
+      rangeCols(g, right, 438, w, foot, R, 9, { S, line: 172 });
+      // (the fir belt up their lower slopes: dark, dithered up into the rock, firs stepped along its top)
+      for (const [crest, xa, xb, seed] of [[left, 0, 448, 2], [right, 438, w, 7]] as const) {
+        for (let x = xa; x < xb; x += 2) {
+          const top = Math.max(Math.round(crest(x)) + 14, foot - 58 + Math.round(Math.sin(x * 0.05 + seed) * 8 + hash(seed + x * 0.3) * 6));
+          if (top >= foot) continue;
+          box(g, x, top, 2, foot - top, F[1]); if ((x >> 1) % 2) box(g, x, top - 2, 2, 2, F[1]);
+          if ((x >> 1) % 4 === 0) box(g, x, top + 6, 2, foot - top - 6, F[0]);
+        }
+        for (let i = 0; i < (xb - xa) / 7; i++) {
+          const fx = xa + i * 7 + hash(seed + i * 3.3) * 4, ft = Math.max(crest(fx) + 18, foot - 54 + Math.sin(fx * 0.05 + seed) * 8), fh = 7 + hash(seed + i * 2.1) * 7;
+          if (ft >= foot - 4) continue;
+          poly(g, [[fx - fh * 0.34, ft], [fx, ft - fh], [fx + fh * 0.34, ft]], F[2]); poly(g, [[fx - fh * 0.34, ft], [fx, ft - fh], [fx, ft]], F[3]); box(g, fx - 1, ft - fh, 1, 1, F[4]);
+        }
+      }
+      // (the falls down the right wall, off its crest, into the water)
+      falls(g, 600, Math.round(right(600)) + 26, foot - 6, 8, { rock: R[1], water: T('#C8DCEC'), lit: T('#F4FAFF'), spray: T('#E0ECF6') });
+      g.restore();
+      // (the haze down over the walls' feet: they're miles off)
+      mist(g, w, foot - 130, 130, haze, 0, 0.5, 6);
       // (red boathouses at the water's edge, their roofs, a jetty)
       for (const [bx, bw] of [[250, 26], [282, 20], [610, 24]] as const) {
-        const by = foot - 2;
-        box(g, bx - 1, by - 15, bw + 2, 16, INK); box(g, bx, by - 14, bw, 14, T('#9F1239')); box(g, bx, by - 14, 3, 14, T('#BE185D'));
+        const by = foot - 2, Rd = rampT(T, '#9F1239');
+        box(g, bx - 1, by - 15, bw + 2, 16, INK); box(g, bx, by - 14, bw, 14, Rd[2]); box(g, bx, by - 14, 3, 14, Rd[3]);
         poly(g, [[bx - 3, by - 14], [bx + bw / 2, by - 24], [bx + bw + 3, by - 14]], T('#3A2A2A')); box(g, bx + bw / 2 - 3, by - 8, 6, 8, T('#2A1A1A'));
         if (tod.lamps > 0.3) box(g, bx + 3, by - 10, 3, 3, '#FFD88A');
       }
@@ -795,8 +800,8 @@ const STILLS: Partial<Record<ForeignId, Far>> = {
     },
     live: (c, x0, top, f, T) => {
       // (the falls' spray: specks drifting down its face, a mist puff at its foot)
-      for (let k = 0; k < 10; k++) { const y = top + 100 + ((f * 2 + k * 29) % 270); box(c, x0 + 597 + (k % 3) * 2, y, 2, 3, T('#FFFFFF')); }
-      c.globalAlpha = 0.5; pixelBlob(c, x0 + 604, top + 378 - Math.sin(f * 0.05) * 3, 22, 7, T('#F1F5F9')); c.globalAlpha = 1;
+      for (let k = 0; k < 10; k++) { const y = top + 132 + ((f * 2 + k * 29) % 240); box(c, x0 + 597 + (k % 3) * 2, y, 2, 3, T('#FFFFFF')); }
+      const a = c.globalAlpha; c.globalAlpha = a * 0.5; pixelBlob(c, x0 + 604, top + 378 - Math.sin(f * 0.05) * 3, 22, 7, T('#F1F5F9')); c.globalAlpha = a;
     },
   },
   heli: {
@@ -914,13 +919,6 @@ const stippleOf = (c: Ctx, col: string): CanvasPattern | string => {
 };
 
 // ---------------------------------------------------------------------------------------------------------------
-// The first pass's live painters (the other pavilions', till their SNES passes): painted about (0, horizon) (its
-// middle at x 0), tinted far
-
-/** Each pavilion's far landmark, painted about (0, horizon) (its middle at x 0), tinted far. */
-const LANDMARKS: Partial<Record<ForeignId, (c: Ctx, hz: number, f: number) => void>> = {};
-
-// ---------------------------------------------------------------------------------------------------------------
 // The far shore, the lagoon, the barge
 
 const fontIn = () => (typeof document !== 'undefined' && document.fonts?.check('8px "Press Start 2P"') ? 'f' : 'n');
@@ -1010,6 +1008,45 @@ const cloudHeaps = (g: Ctx, tw: number, n: number, y0: number, dy: number, w0: n
 const paintClouds = (g: Ctx, tod: TimeOfDay) => cloudHeaps(g, CW, 5, 60, 50, 110, 150, ['#A8B4CC', '#CCD6E6', '#EAF0F8', '#FFFFFF'].map(c => cloudTint(c, tod)), 3);
 const paintFarClouds = (g: Ctx, tod: TimeOfDay) => { const sky = skyAt(0.72, tod); cloudHeaps(g, FCW, 9, 34, 18, 46, 60, ['#B4BECE', '#D2DAE6', '#ECF0F6', '#FFFFFF'].map(c => mix(cloudTint(c, tod), sky, 0.38)), 11); };
 
+// ---------------------------------------------------------------------------------------------------------------
+// The pavilions' far landmarks, baked: each its own canvas at the screen's resolution, painted ahead of time in strips
+// (one strip a frame, a slice of its width: box() skips the fills outside it), for the one he's in and both its
+// neighbors, so the next one's ready long before he gets to its border; then put down with one drawImage at whatever
+// alpha its haze-in is at. (Not the stamp cache: that keys a stamp by its alpha, so a fade painted it afresh at every
+// step of it: the frame rate went through the floor at every border.) Wanted before it's done (a cheat start, a
+// respawn): finished there and then.
+
+interface Bake { key: string; c: HTMLCanvasElement; g: Ctx; scale: number; next: number }
+const STRIPS = 16, BAKES_KEPT = 4;
+const bakes = new Map<ForeignId, Bake>();
+const bakeKey = (id: ForeignId, tod: TimeOfDay, scale: number) => `${id}-${tod.key}-${fontIn()}-${scale}`;
+const bakeOf = (id: ForeignId, tod: TimeOfDay, scale: number): Bake | null => {
+  const S = STILLS[id];
+  if (!S || typeof document === 'undefined') return null;
+  const key = bakeKey(id, tod, scale);
+  let b = bakes.get(id);
+  if (!b || b.key !== key) {
+    const cv = document.createElement('canvas'); cv.width = Math.ceil(S.w * scale); cv.height = Math.ceil(S.h * scale);
+    const g = cv.getContext('2d')!; g.imageSmoothingEnabled = false;
+    b = { key, c: cv, g, scale, next: 0 };
+    bakes.delete(id); bakes.set(id, b);
+    while (bakes.size > BAKES_KEPT) bakes.delete(bakes.keys().next().value!);
+  }
+  return b;
+};
+/** One more strip of it painted (false: it was done already). */
+const bakeStrip = (id: ForeignId, b: Bake, tod: TimeOfDay) => {
+  const S = STILLS[id]!;
+  if (b.next >= STRIPS) return false;
+  const sw = Math.ceil(S.w / STRIPS), l = b.next * sw, r = Math.min(S.w, l + sw);
+  const T = farCol(tod, 0.4), g = b.g;
+  g.save(); g.setTransform(b.scale, 0, 0, b.scale, 0, 0); g.beginPath(); g.rect(l, 0, r - l, S.h); g.clip();
+  cullStill(l - 4, r + 4);
+  try { S.paint(g, T, tod); feather(g, S.w, S.h); } finally { cullStill(-Infinity, Infinity); g.restore(); }
+  b.next++;
+  return true;
+};
+
 export const drawStreetsBackdrop = (c: Ctx, state: GameState) => {
   const cam = state.camera, f = state.frame, tod = timeOfDay();
   // (up a climb, the horizon sinks: more sky)
@@ -1021,27 +1058,53 @@ export const drawStreetsBackdrop = (c: Ctx, state: GameState) => {
   tileAt(c, `fl-fcloud-${tod.key}`, cam.x * 0.006 + f * 0.02, hz - 200, FCW, FCH, g => paintFarClouds(g, tod));
   tileAt(c, `fl-cloud-${tod.key}`, cam.x * 0.012 + f * 0.05, 18 + (hz - 410) * 0.4, CW, CH, g => paintClouds(g, tod));
   drawAcross(c, here, shore, 'beyond');
-  // The landmarks over the far shore: the stamped ones (painted for the hour; what moves on them live), and the first
-  // pass's live ones
+  // Each pavilion's own far landmark (stamped for the hour, what moves on it live): miles off, so it barely slides
+  // (STILL_K); it hazes in round its pavilion and out toward its borders (never two at once), so they don't need to
+  // slide past each other. Behind the far shore's pavilions, hazier than them.
   const mid = cam.x + W / 2;
-  const still = (id: ForeignId) => {
-    const S = STILLS[id], Lm = LANDMARKS[id];
-    if (!S && !Lm) return;
-    const s = SECTIONS[id], cx = (s.x0 + s.x1) / 2, sx = W / 2 + (cx - mid) * K;
-    if (sx < -560 || sx > W + 560) return;
-    if (S) {
-      const x0 = Math.round(sx - S.w / 2), top = hz + 6 - S.h, T = farCol(tod, S.k * 0.5);
-      c.save(); c.translate(x0, top); stamp(c, `fl-far-${id}-${tod.key}-${fontIn()}`, 0, 0, S.w, S.h, g => S.paint(g, T, tod)); c.restore();
-      S.live?.(c, x0, top, f, T);
-    } else { c.save(); c.translate(Math.round(sx), 0); Lm!(c, hz, f); c.restore(); }
+  const scale = Math.round(Math.abs(c.getTransform().a) * 1000) / 1000;
+  // (the one he's in and its neighbors: a strip of whichever isn't baked yet, one a frame)
+  {
+    let inId: ForeignId = 'mexico';
+    for (const id of SECTION_ORDER) if (mid >= SECTIONS[id].x0 && mid < SECTIONS[id].x1) inId = id;
+    const i = SECTION_ORDER.indexOf(inId);
+    for (const id of [inId, SECTION_ORDER[i + 1], SECTION_ORDER[i - 1]]) { if (!id || id === 'heli' || id === 'harry') continue; const b = bakeOf(id, tod, scale); if (b && bakeStrip(id, b, tod)) break; }
+  }
+  const baked = (id: ForeignId, alpha: number) => {
+    const S = STILLS[id]!, s = SECTIONS[id], cx = (s.x0 + s.x1) / 2, sx = W / 2 + (cx - mid) * STILL_K;
+    if (sx < -S.w / 2 - 10 || sx > W + S.w / 2 + 10) return;
+    const b = bakeOf(id, tod, scale);
+    if (!b) return;
+    while (bakeStrip(id, b, tod)) { /* (wanted now: finished now) */ }
+    const x0 = Math.round(sx - S.w / 2), top = hz + 6 - S.h, m = c.getTransform();
+    const a0 = c.globalAlpha; c.globalAlpha = a0 * Math.min(1, alpha);
+    c.save(); c.setTransform(1, 0, 0, 1, 0, 0); c.drawImage(b.c, Math.round(m.e + x0 * m.a), Math.round(m.f + top * m.d)); c.restore();
+    S.live?.(c, x0, top, f, farCol(tod, 0.4));
+    c.globalAlpha = a0;
   };
-  for (const id of Object.keys(SECTIONS) as ForeignId[]) if (id !== 'heli') still(id);
-  // The other pavilions across the lagoon, on the far shore where they are round the ring (their feet behind its trees);
-  // the helipad's globe and terminal in front of them (it's this side of the water, by the walk: its sign clear)
+  const stillAt = (id: ForeignId, k: number, alpha: number) => {
+    const S = STILLS[id];
+    if (!S || alpha <= 0.01) return;
+    const s = SECTIONS[id], cx = (s.x0 + s.x1) / 2, sx = W / 2 + (cx - mid) * k;
+    if (sx < -S.w / 2 - 10 || sx > W + S.w / 2 + 10) return;
+    const x0 = Math.round(sx - S.w / 2), top = hz + 6 - S.h, T = farCol(tod, 0.3);
+    const a0 = c.globalAlpha; c.globalAlpha = a0 * Math.min(1, alpha);
+    c.save(); c.translate(x0, top); stamp(c, `fl-far2-${id}-${tod.key}-${fontIn()}`, 0, 0, S.w, S.h, g => S.paint(g, T, tod)); c.restore();
+    S.live?.(c, x0, top, f, T);
+    c.globalAlpha = a0;
+  };
+  for (const id of Object.keys(SECTIONS) as ForeignId[]) {
+    if (id === 'heli' || id === 'harry') continue;
+    const s = SECTIONS[id];
+    // (the walk's two ends don't fade: Mexico's start, Canada's end into the helipad does)
+    const inL = id === 'mexico' ? Infinity : mid - s.x0, inR = s.x1 - mid;
+    const a = Math.min(inL, inR) / STILL_FADE;
+    if (a > 0.01) baked(id, a);
+  }
+  // The other pavilions across the lagoon, on the far shore where they are round the ring (their feet behind its trees)
   drawAcross(c, here, shore, 'shore');
-  still('heli');
-  // The far shore's tree line along the water
-  const off = cam.x * 0.035;
+  // The far shore's tree line along the water (sliding with the pavilions on it: one eye)
+  const off = cam.x * SHORE_K;
   for (let x = -((off % SW) + SW) % SW; x < W; x += SW) { c.save(); c.translate(Math.round(x), hz - SH + 4); stamp(c, `fl-shore-${tod.key}`, 0, 0, SW, SH, g => paintShore(g, tod)); c.restore(); }
   // The lagoon: banded water (the sky in it near the shore, deeper nearer), dithered between, its glints drifting
   const water = [hourMix('#1D4ED8', '#7C3AED', '#0F172A'), hourMix('#2563EB', '#9D4E8A', '#1E293B'), hourMix('#3B82F6', '#C2678A', '#1E3A5F'), hourMix('#7AA8E8', '#E0909A', '#2A4A70')];
@@ -1051,8 +1114,13 @@ export const drawStreetsBackdrop = (c: Ctx, state: GameState) => {
     const gy = wt + 4 + ((k * 13) % 70), gx = ((k * 97 + f * (0.15 + gy * 0.0008)) % (W + 40)) - 20, len = 6 + ((gy - wt) / 6) | 0;
     if ((f + k * 23) % 140 < 100) { box(c, gx, gy, len, 1, mix(water[3], '#FFFFFF', 0.45)); box(c, gx + 2, gy + 1, len - 4, 1, mix(water[2], '#FFFFFF', 0.25)); }
   }
-  // The barge: its reflection wobbling under it, the barge itself (for the hour), the show after dark
-  const bx = Math.round(620 - (cam.x - FLX) * BARGE_K), wl = hz + 18;
+  // The helipad's globe and terminal: this side of the water, by the walk (its sign clear), so over the far shore and
+  // its trees, on its own quay (the stamp's ground band) at the water's edge
+  stillAt('heli', HELI_K, 1);
+  // The barge, out on the water (nearer than the far shore: it slides faster than its trees): its reflection wobbling
+  // under it, the barge itself (for the hour), the show after dark; round the lagoon, back in from the right
+  const lap = (((620 + BW - (cam.x - FLX) * BARGE_K) % BARGE_LAP) + BARGE_LAP) % BARGE_LAP;
+  const bx = Math.round(lap - BW), wl = hz + 18;
   for (let k = 0; k < 6; k++) box(c, bx - BW / 2 + 16 + Math.sin(f * 0.05 + k) * 2, wl + 1 + k * 2, BW - 40 - k * 14, 1, farTint(mix(water[0], '#000000', 0.3), 0.3));
   c.save(); c.translate(bx - BW / 2, wl - BH + 10); stamp(c, `fl-barge-${tod.key}-${fontIn()}`, 0, 0, BW, BH, g => paintBarge(g, tod)); c.restore();
   if (tod.lamps > 0.3) show(c, bx, wl, f);

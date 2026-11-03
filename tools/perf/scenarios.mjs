@@ -85,6 +85,14 @@ export const SCENARIOS = [
   // (the big avalanche (the user's: "the falling avalanches tank performance as it falls"): from the second bunker on
   // down the hill, out in the open, so the wall of snow comes over the whole screen)
   { name: 'hollywood-avalanche', q: 'hollywood=57', warm: 1, keys: walk() },
+  // Foreign Lands' streets: the far backdrop's handoffs between pavilions (the user's: "when i transition from canada
+  // to uk, the background transition causes a drop in frame rate"): walked across the UK/Canada border both ways, and
+  // Norway's into China; and standing in Canada and in the UK
+  { name: 'foreign-uk-canada', q: 'foreign=85', warm: 2, keys: hopRight(30) },
+  { name: 'foreign-canada-uk', q: 'foreign=91', warm: 2, keys: [[0, 'down', 'ArrowLeft'], ...Array.from({ length: 30 }, (_, i) => [600 + i * 1000, 'tap', 'Space'])] },
+  { name: 'foreign-norway-china', q: 'foreign=14', warm: 2, keys: hopRight(30) },
+  { name: 'foreign-canada', q: 'foreign=92', keys: [] },
+  { name: 'foreign-uk', q: 'foreign=84', keys: [] },
   // Future Land
   { name: 'future-square', q: 'space=0', keys: hopRight() },
   { name: 'future-drag', q: 'space=30', keys: hopRight() },

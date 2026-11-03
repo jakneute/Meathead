@@ -315,6 +315,12 @@ const ON_SHORE: [string, number][] = [['mexico', 3100], ['norway', 9000], ['chin
 const BEYOND: [string, number][] = [['future', 14000], ['jungle', 46000]];
 /** How wide the view is: px per unit of tan(bearing). */
 const FOCAL = 470;
+/** The far shore's slide (of the camera's travel): its pavilions spread evenly by bearing (px per radian = FOCAL, so
+ *  straight across they slide as they did), and backdrop.ts slides the shore's tree line at the same rate, so their
+ *  feet stay put behind its trees as he walks (the tan spread had them skating over it toward the screen's edges). */
+export const SHORE_K = (FOCAL * Math.PI) / RING;
+/** The neighbors out past everything: farther than the pavilions' own landmarks, so slower still. */
+const BEYOND_K = 0.012;
 
 /** Where along the ring he is (the view's middle; the streets' world x from FLX). */
 export const ringAt = (camX: number) => camX + W / 2 - FLX;
@@ -326,6 +332,12 @@ const across = (here: number, at: number, beyond: boolean) => {
   return Math.abs(bb) > 1.1 ? null : FOCAL * Math.tan(bb);
 };
 
+/** A spot on the far shore's bearing from here (radians off the middle), or null: out of view. */
+const bearing = (here: number, at: number) => {
+  const d = ((((at - here) / RING) * Math.PI * 2) % (Math.PI * 2) + Math.PI * 2) % (Math.PI * 2);
+  const b = (Math.PI - d) / 2;
+  return Math.abs(b) > 1.25 ? null : b;
+};
 const markOf = (id: string): Mark => (id === 'future' ? { w: FUTURE_W, h: FUTURE_H, paint: (g, _t, tod) => paintFuture(g, tod) } : MARKS[id]);
 /** One landmark stamped for the hour, its foot at (x middle, foot), `s` its size. `k`: how far into the haze. */
 export const drawMark = (c: Ctx, id: string, x: number, foot: number, k: number, s = 1, tod = timeOfDay()) => {
@@ -342,8 +354,13 @@ export const drawMark = (c: Ctx, id: string, x: number, foot: number, k: number,
  *  pavilions' own big far landmarks) or the shore's pavilions (in front of them). */
 export const drawAcross = (c: Ctx, here: number, shore: number, layer: 'beyond' | 'shore') => {
   const tod = timeOfDay();
-  if (layer === 'beyond') { for (const [id, at] of BEYOND) { const dx = across(here, at, true); if (dx !== null) drawMark(c, id, W / 2 + dx, shore + 14, 0.55, id === 'future' ? 0.5 : 1, tod); } return; }
-  for (const [id, at] of ON_SHORE) { const dx = across(here, at, false); if (dx !== null) drawMark(c, id, W / 2 + dx, shore + 6, 0.42, 1, tod); }
+  if (layer === 'beyond') { for (const [id, at] of BEYOND) drawMark(c, id, W / 2 + (at - here) * BEYOND_K, shore + 18, 0.55, id === 'future' ? 0.5 : 1, tod); return; }
+  // (evenly by bearing, the same slide as the tree line; the ones straight across are the farthest off (the lagoon's
+  // width), so drawn first, the ones off to the sides (nearer round the ring) over them; every foot down in the trees)
+  const seen: { id: string; b: number }[] = [];
+  for (const [id, at] of ON_SHORE) { const b = bearing(here, at); if (b !== null) seen.push({ id, b }); }
+  seen.sort((p, q) => Math.abs(p.b) - Math.abs(q.b));
+  for (const o of seen) drawMark(c, o.id, W / 2 + FOCAL * o.b, shore + 18, 0.34, 1, tod);
 };
 
 /** The far shore's pavilions as seen from `here` round the ring (each one's screen offset from the middle), for painting
