@@ -499,6 +499,72 @@ const paintProps = (g: Ctx) => {
     for (let k = 0; k < 4; k++) { lineR(g, [ix - 46 + k * 6, PB - 28, ix - 48 + k * 7, PB - 48], 2.4, '#1A0B06'); lineR(g, [ix - 46 + k * 6, PB - 28, ix - 48 + k * 7, PB - 48], 1.4, dimR(['#FACC15', '#EAB308', '#CA8A04', '#A16207', '#3A2400'], 0.2)[0]); ellR(g, ix - 48 + k * 7, PB - 50, 4, 5, dimR(FOAM, 0.2)[1]); }
   }
 };
+// ---- Ben's dressing, more of it (the owner: "make the details in bens lairs in general more....detailed" / "all lairs
+// to be on the same high quality baseline"): his workbench under the helmet rack (a scaffold plank on two sawhorses: a
+// vise with a party helmet in it being plated with a stolen pavilion hubcap, a welding mask, a coffee can of
+// bolts, the hot plate with a pot of lutefisk on it, a blender of raw eggs), the weld scorch on the fallen flat's back;
+// his stencil on the footing (SWEAT IS JUST YOUR FAT CRYING); a poster by the door (VALHALLA IS FOR FINISHERS); chalk
+// handprints on the flats by the bench, a chalk bucket, its dust on the mats. Dimmed: none of it's stood on.
+const paintDress = (g: Ctx) => {
+  const TW = dimR(TWO4, 0.3), SR = dimR(STEEL, 0.3);
+  // ---- the stencil up on the footing, over the flats
+  signAt(g, 'SWEAT IS JUST', 170, -H + 36, 2, stencil(2, '#D8D0B8'));
+  signAt(g, 'YOUR FAT CRYING', 170, -H + 54, 2, stencil(2, '#D8D0B8'));
+  // ---- VALHALLA IS FOR FINISHERS: a poster on the first flat, over the door's push bar
+  { const x = 14, y = -262, w = 76, h = 92;
+    shapeR(g, () => g.rect(x, y, w, h), dimR(['#F4E8C8', '#DCCCA4', '#BCAA80', '#8A7A58', '#2A2418'], 0.22), x, x + w, 1);
+    box(g, x + 3, y + 3, w - 6, 40, dimR(['#3E6EC0', '#2C5296', '#1E386A', '#142848', '#0A1428'], 0.2)[1]);
+    // (a horned helmet over a barbell, printed)
+    shapeR(g, () => g.ellipse(x + w / 2, y + 30, 16, 11, 0, Math.PI, 0), dimR(STEEL, 0.2), x + w / 2 - 16, x + w / 2 + 16, 1);
+    for (const s of [-1, 1]) shapeR(g, () => { g.moveTo(x + w / 2 + s * 14, y + 24); g.quadraticCurveTo(x + w / 2 + s * 28, y + 18, x + w / 2 + s * 26, y + 6); g.lineTo(x + w / 2 + s * 22, y + 12); g.quadraticCurveTo(x + w / 2 + s * 20, y + 20, x + w / 2 + s * 10, y + 22); g.closePath(); }, dimR(FUR, 0.2), x + w / 2 - 28, x + w / 2 + 28, 0.8);
+    lineR(g, [x + 10, y + 36, x + w - 10, y + 36], 2, '#141210'); for (const s of [-1, 1]) shapeR(g, () => g.rect(x + w / 2 + s * 26 - 3, y + 30, 6, 12), dimR(['#5A5A64', '#3A3A44', '#2A2A32', '#1C1C22', '#08080A'], 0.2), x + w / 2 + s * 26 - 3, x + w / 2 + s * 26 + 3, 0.8);
+    signAt(g, 'VALHALLA', x + w / 2, y + 54, 1, print(1, '#2A1A0C'));
+    signAt(g, 'IS FOR', x + w / 2, y + 66, 1, print(1, '#2A1A0C'));
+    signAt(g, 'FINISHERS', x + w / 2, y + 78, 1, print(1, '#A8301E'));
+    for (const [tx, ty] of [[x - 2, y - 2], [x + w - 8, y - 2], [x - 2, y + h - 4], [x + w - 8, y + h - 4]] as const) box(g, tx, ty, 10, 5, 'rgba(200,196,170,0.7)');
+  }
+  // ---- the weld scorch on the fallen flat's raw back, behind the bench: a sooty bloom, spatter
+  for (let k = 0; k < 4; k++) { g.fillStyle = `rgba(8,6,4,${(0.14 + k * 0.07).toFixed(2)})`; g.beginPath(); g.ellipse(318, -76, 50 - k * 10, 24 - k * 5, 0, 0, Math.PI * 2); g.fill(); }
+  for (let k = 0; k < 20; k++) pxR(g, 276 + hash(k + 880) * 84, -98 + hash(k + 890) * 40, 1, 1, k % 3 ? 'rgba(240,190,110,0.7)' : 'rgba(255,244,200,0.85)');
+  // ---- the chalk handprints on the flats by the longship bench
+  for (const [hx, hy] of [[372, -96], [534, -118], [548, -100]] as const) {
+    g.fillStyle = dith(g, 'rgba(236,232,224,0.55)'); g.beginPath(); g.ellipse(hx, hy, 4, 5, 0, 0, Math.PI * 2); g.fill();
+    for (let f = 0; f < 4; f++) box(g, hx - 4 + f * 2.4, hy - 10 + Math.abs(f - 1.5), 1.4, 5, dith(g, 'rgba(236,232,224,0.55)'));
+  }
+  // ---- the bench: a scaffold plank on two sawhorses
+  { const x = 262, w = 110, top = -58;
+    for (const sx of [x + 14, x + w - 14]) { for (const s of [-1, 1]) { lineR(g, [sx, top + 4, sx + s * 12, PB], 4, TW[4]); lineR(g, [sx, top + 4, sx + s * 12, PB], 2.4, TW[1]); } shapeR(g, () => g.rect(sx - 10, top + 2, 20, 5), TW, sx - 10, sx + 10, 0.8); }
+    lineR(g, [x + 14, -30, x + w - 14, -30], 2.4, TW[3]);
+    shapeR(g, () => g.rect(x, top - 6, w, 7), TW, x, x + w, 1); pxR(g, x + 1, top - 5, w - 2, 1, TW[0]);
+    // (under it: the coffee can of bolts, a stack of stolen hubcaps from the pavilions' carts)
+    shapeR(g, () => g.rect(x + 40, PB - 16, 12, 16), SR, x + 40, x + 52, 0.8);
+    for (let k = 0; k < 4; k++) shapeR(g, () => g.ellipse(x + 76, PB - 3 - k * 4, 13, 3, 0, 0, Math.PI * 2), SR, x + 63, x + 89, 0.7);
+    // (the vise, a party helmet in its jaws with a hubcap half riveted on its crown; a fresh bead)
+    const vx = x + 18;
+    shapeR(g, () => g.rect(vx - 10, top - 20, 22, 14), dimR(['#7AA6E8', '#3E6EC0', '#2C5296', '#1E386A', '#0A1428'], 0.25), vx - 10, vx + 12, 0.9);
+    partyHelmet(g, vx + 1, top - 26, 1.1);
+    shapeR(g, () => g.ellipse(vx + 1, top - 34, 9, 3.4, 0, 0, Math.PI * 2), SR, vx - 8, vx + 10, 0.8); pxR(g, vx - 3, top - 36, 5, 1, STEEL[0]);
+    for (let k = 0; k < 5; k++) pxR(g, vx - 7 + k * 3, top - 31, 2, 1, 'rgba(255,220,140,0.9)');
+    // (the welding mask face down, the rivet gun)
+    shapeR(g, () => g.roundRect(x + 36, top - 18, 22, 12, 3), dimR(['#4A4A52', '#2E2E36', '#22222A', '#16161C', '#060608'], 0.1), x + 36, x + 58, 0.9);
+    pxR(g, x + 41, top - 14, 12, 4, '#1E3A22'); pxR(g, x + 41, top - 14, 4, 1, '#5A8A5A');
+    // (the hot plate and its pot of lutefisk, the blender of raw eggs)
+    shapeR(g, () => g.roundRect(x + 82, top - 10, 26, 5, 1.4), dimR(['#4A4A56', '#34343C', '#2A2A30', '#202026', '#0C0C10'], 0.1), x + 82, x + 108, 0.9);
+    shapeR(g, () => g.rect(x + 86, top - 26, 18, 16), SR, x + 86, x + 104, 1); pxR(g, x + 85, top - 27, 20, 2, SR[3]);
+    lineR(g, [x + 104, top - 22, x + 112, top - 24], 2, SR[4]);
+    const bl = x + 70;
+    shapeR(g, () => g.rect(bl - 6, top - 12, 12, 12), dimR(['#4A4A52', '#2E2E36', '#22222A', '#16161C', '#060608'], 0.1), bl - 6, bl + 6, 0.8);
+    shapeR(g, () => { g.moveTo(bl - 6, top - 12); g.lineTo(bl + 6, top - 12); g.lineTo(bl + 8, top - 36); g.lineTo(bl - 8, top - 36); g.closePath(); }, ['#E8F0F4', '#C8D8E0', '#A0B4C0', '#708894', '#283840'], bl - 8, bl + 8, 0.9);
+    box(g, bl - 6, top - 22, 12, 9, '#E8C86A'); box(g, bl - 6, top - 22, 12, 2, '#FFF0B0');
+    pxR(g, bl - 8, top - 38, 16, 3, '#1A1A20');
+  }
+  // ---- the chalk bucket by the bench's end, its dust on the mats
+  { const cb = 362;
+    shapeR(g, () => { g.moveTo(cb - 8, PB - 20); g.lineTo(cb + 8, PB - 20); g.lineTo(cb + 6, PB); g.lineTo(cb - 6, PB); g.closePath(); }, SR, cb - 8, cb + 8, 1);
+    ellR(g, cb, PB - 20, 8, 2.4, '#E8E4DC'); pxR(g, cb - 5, PB - 21, 5, 1, '#FFFFFF');
+    for (let k = 0; k < 30; k++) pxR(g, 330 + hash(k + 950) * 200, BACK + 8 + hash(k + 960) * 14, 2, 1, `rgba(236,232,224,${(0.25 + hash(k + 970) * 0.35).toFixed(2)})`);
+  }
+};
 /** The light painted on: the dark gathered into the corners and up under the ceiling. */
 const paintShade = (g: Ctx) => {
   for (let i = 0; i < 4; i++) {
@@ -508,7 +574,7 @@ const paintShade = (g: Ctx) => {
     g.fillRect(W + 30 - (3 - i) * 20, -H - 80, 30 + (3 - i) * 20, H + 120);
   }
 };
-const paintRoom = (g: Ctx) => { paintFooting(g); paintFlats(g); paintFloor(g); paintProps(g); paintShade(g); };
+const paintRoom = (g: Ctx) => { paintFooting(g); paintFlats(g); paintFloor(g); paintDress(g); paintProps(g); paintShade(g); };
 /** The near beam along the ceiling (silhouette, in front), its drips' edge. */
 const paintBeam = (g: Ctx) => {
   box(g, -60, -H - 80, W + 120, 70, '#0A0806');
@@ -592,7 +658,7 @@ export const drawValhallaBack = (c: Ctx, state: GameState) => {
   for (let i = 0; i < CH; i++) {
     const bx = -60 + i * cw;
     if (!seen(state, LA + bx, LA + bx + cw, F - H - 80, F + 260)) continue;
-    stamp(c, `fl-valhalla-room-${i}`, bx, -H - 80, cw, H + 340, g => { g.save(); g.beginPath(); g.rect(bx, -H - 80, cw, H + 340); g.clip(); paintRoom(g); g.restore(); });
+    stamp(c, `fl-valhalla-room2-${i}`, bx, -H - 80, cw, H + 340, g => { g.save(); g.beginPath(); g.rect(bx, -H - 80, cw, H + 340); g.clip(); paintRoom(g); g.restore(); });
   }
   // (the torches' silk flames, the EXIT sign's glow, the seep's drips)
   TORCHES.forEach((t, i) => silkFlame(c, t.x, t.y - 1, f, i + 3));
@@ -603,6 +669,10 @@ export const drawValhallaBack = (c: Ctx, state: GameState) => {
     const t = ((f + i * 53) % 110) / 110;
     c.fillStyle = 'rgba(170,200,210,0.85)'; c.fillRect(SEEP - 4 + i * 5, Math.round(-H + 6 + t * (H + PB - 6)), 2, 3);
   }
+  // (the hot plate's coil on the bench, the lutefisk's steam)
+  { const ht = 0.7 + Math.sin(f * 0.06) * 0.3;
+    c.fillStyle = `rgba(255,${Math.round(90 + 60 * ht)},40,${(0.5 + 0.35 * ht).toFixed(2)})`; c.fillRect(348, -66, 18, 1);
+    for (let i = 0; i < 3; i++) { const u = ((f * 0.4 + i * 33) % 100) / 100; c.fillStyle = `rgba(230,228,220,${(0.3 * (1 - u)).toFixed(2)})`; c.fillRect(Math.round(356 + Math.sin(f * 0.05 + i * 2) * 4), Math.round(-88 - u * 40), Math.round(3 + u * 4), Math.round(3 + u * 4)); } }
   // (the keg's chain up to the beam)
   const kb = kegBox(h);
   c.restore();
@@ -669,6 +739,7 @@ export const hallLighting = (state: GameState): SceneLight => {
   const lights: Light[] = [
     ...TORCHES.map((t, i): Light => { const k = flick(f, i + 3); return { x: LA + t.x, y: F + t.y - 10, r: 260, a: 0.85 * k, color: `rgba(255,150,70,${(0.15 * k).toFixed(3)})` }; }),
     { x: LA + EXIT.x, y: F + EXIT.y, r: 110, a: 0.6, color: 'rgba(255,60,60,0.14)' },
+    { x: LA + 356, y: F - 70, r: 80, a: 0.5, color: 'rgba(255,110,50,0.12)' },
     { x: LA + SEEP, y: F - H + 4, r: H, cone: 70, a: 0.4, color: 'rgba(150,200,220,0.08)' },
     { x: p.pos.x + p.width / 2, y: p.pos.y + 20, r: 150, a: 0.4 },
   ];
