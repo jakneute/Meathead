@@ -524,6 +524,28 @@ const paintLock = (g: Ctx, n: number) => {
   for (let x = LX0 + 32; x < LX1 - 32; x += 8) box(g, x, SHEAR - 1, 4, 1, '#FDE68A');
 };
 
+/** A bent wire along `pts`: inked, steel, a glint. */
+const wireOn = (c: Ctx, pts: [number, number][]) => {
+  for (const [w, col] of [[5, INK], [3, '#A1A1AA'], [1, '#F4F4F5']] as const) {
+    c.strokeStyle = col; c.lineWidth = w; c.lineJoin = 'round'; c.lineCap = 'round';
+    c.beginPath(); pts.forEach(([x, y], i) => (i ? c.lineTo(x, y) : c.moveTo(x, y))); c.stroke();
+  }
+  c.lineJoin = 'miter'; c.lineCap = 'butt';
+};
+/** The paperclip's base shapes, baked (0: coiled up as it came, both loops; to 1: its inner loop unbent, straightened
+ *  out up and away past his fingers, the wire fed in). */
+export const CLIP_STEPS = 7;
+const CLIP_COILED: [number, number][] = [[96, 0], [40, 0], [30, -8], [30, -20], [40, -28], [112, -28], [122, -20], [122, -10], [112, -4], [52, -4], [46, -10], [46, -16], [52, -20], [100, -20]];
+const CLIP_OPEN: [number, number][] = [[96, 0], [40, 0], [30, -8], [30, -20], [40, -28], [70, -34], [92, -44], [108, -56], [118, -70], [125, -84], [130, -98], [133, -110], [135, -120], [136, -128]];
+/** A base `k` 0..1 unfurled: the outer turn stays in his fingers; past it the wire eases from the coil to the straight,
+ *  the far end first (the bend works back along it as it opens). */
+export const clipBase = (k: number, ky: number): [number, number][] => CLIP_COILED.map(([x0, y0], i) => {
+  const [x1, y1] = CLIP_OPEN[i];
+  const lag = Math.max(0, (i - 4) / (CLIP_COILED.length - 5));
+  const u = Math.max(0, Math.min(1, k * 1.6 - (1 - lag) * 0.6)), e = u * u * (3 - 2 * u);
+  return [x0 + (x1 - x0) * e, ky + y0 + (y1 - y0) * e];
+});
+
 /** The lock's close-up, over the whole screen. */
 export const drawLock = (c: Ctx, v: LockView, f: number) => {
   const n = v.pins.length;
@@ -561,16 +583,14 @@ export const drawLock = (c: Ctx, v: LockView, f: number) => {
   const tipX = pinX(Math.max(0, Math.min(n - 1, v.pick)), n), tipY = PLUG_B - 22 - v.push * RISE * 0.18;
   // (the paperclip: its loops out by his fingers, one leg pulled straight in along the keyway, bent up into a hook at
   // the tip; slipped, the straight leg kinked and the tip sagging, bent out of shape)
-  const wire = (pts: [number, number][]) => {
-    for (const [w, col] of [[5, INK], [3, '#A1A1AA'], [1, '#F4F4F5']] as const) {
-      c.strokeStyle = col; c.lineWidth = w; c.lineJoin = 'round'; c.lineCap = 'round';
-      c.beginPath(); pts.forEach(([x, y], i) => (i ? c.lineTo(x, y) : c.moveTo(x, y))); c.stroke();
-    }
-    c.lineJoin = 'miter'; c.lineCap = 'butt';
-  };
+  const wire = (pts: [number, number][]) => wireOn(c, pts);
   const ky = PLUG_B - 20;
-  // (the loops: two nested rounded turns of wire, the clip's body, outside the lock)
-  wire([[96, ky], [40, ky], [30, ky - 8], [30, ky - 20], [40, ky - 28], [112, ky - 28], [122, ky - 20], [122, ky - 10], [112, ky - 4], [52, ky - 4], [46, ky - 10], [46, ky - 16], [52, ky - 20], [100, ky - 20]]);
+  // (the loops: the clip's body, outside the lock: the owner's "the base of the paperclip should change shape as it
+  // furls/unfurls": the further in the pick's fed (and the harder it's pushed), the more its loops unbend, out of
+  // CLIP_STEPS baked shapes)
+  const out = Math.max(0, Math.min(1, (v.pick / Math.max(1, n - 1)) * 0.8 + v.push * 0.2));
+  const st = Math.round(out * (CLIP_STEPS - 1));
+  stamp(c, `spc-a51-clipbase-${st}`, 14, ky - 132, 136, 146, g => wireOn(g, clipBase(st / (CLIP_STEPS - 1), ky)));
   if (v.snap <= 0) {
     wire([[96, ky], [tipX - 16, ky + 2], [tipX - 4, tipY + 6], [tipX, tipY]]);
   } else {
