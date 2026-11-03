@@ -9581,6 +9581,11 @@
  },
  {
   "voice": "death",
+  "text": "EATEN BY A MILLION TINY FISH",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "death",
   "text": "EATEN BY A NEWBORN",
   "from": "SPACE"
  },
@@ -13461,6 +13466,11 @@
  },
  {
   "voice": "death",
+  "text": "PICKED CLEAN",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "death",
   "text": "PICKED CLEAN BY A VULTURE",
   "from": "content/deaths"
  },
@@ -13548,6 +13558,11 @@
   "voice": "death",
   "text": "PIPE WRENCHED",
   "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "PIRANHA BUFFET",
+  "from": "ADVENTURE"
  },
  {
   "voice": "death",
@@ -75481,6 +75496,11 @@
  },
  {
   "voice": "meathead",
+  "text": "DON'T GO IN THE BACK! TRUST ME!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "meathead",
   "text": "DON'T HIT ME! IT SLOSHES!",
   "from": "CARTOON"
  },
@@ -75913,6 +75933,11 @@
   "voice": "meathead",
   "text": "EAT A SANDWICH. EAT A SUBWAY.",
   "from": "FANTASY"
+ },
+ {
+  "voice": "meathead",
+  "text": "EAT AROUND THE PANTS! AROUND THE PANTS!",
+  "from": "ADVENTURE"
  },
  {
   "voice": "meathead",
@@ -91391,6 +91416,11 @@
  },
  {
   "voice": "meathead",
+  "text": "NOT MY CALVES! IT WAS LEG DAY!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "meathead",
   "text": "NOT NOW. MY ASS IS A CRIME SCENE.",
   "from": "CARTOON"
  },
@@ -91458,6 +91488,11 @@
   "voice": "meathead",
   "text": "NOT THE AXE! NOT THE AXE!",
   "from": "FOREIGN"
+ },
+ {
+  "voice": "meathead",
+  "text": "NOT THE BALLS FIRST!",
+  "from": "ADVENTURE"
  },
  {
   "voice": "meathead",
@@ -93797,6 +93832,16 @@
  {
   "voice": "meathead",
   "text": "PIRANHA! ON MY ASS!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "meathead",
+  "text": "PIRANHAS!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "meathead",
+  "text": "PIRANHAS?! WHO STOCKS A WATERFALL WITH PIRANHAS?!",
   "from": "ADVENTURE"
  },
  {
@@ -103942,6 +103987,11 @@
  {
   "voice": "meathead",
   "text": "THEY WENT FOR THE TAINT!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "meathead",
+  "text": "THEY WENT STRAIGHT FOR MY DICK!",
   "from": "ADVENTURE"
  },
  {

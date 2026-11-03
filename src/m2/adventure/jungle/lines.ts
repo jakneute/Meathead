@@ -27,6 +27,13 @@ export const HEART_GOT: Record<'clean' | 'shitty' | 'nude', string[]> = {
   nude: ['MY HEART GOT BIGGER. AND IT WAS ALREADY THE SECOND BIGGEST THING ON ME.', 'TOUGHER THAN EVER. AND BUCK NAKED.'],
 };
 
+/** Into the gorge's plunge pool, and its piranhas (piranhas.ts), as they start on him. */
+export const PIRANHA_SCREAM: Record<'clean' | 'shitty' | 'nude', string[]> = {
+  clean: ['NOT MY CALVES! IT WAS LEG DAY!', 'PIRANHAS?! WHO STOCKS A WATERFALL WITH PIRANHAS?!'],
+  shitty: ['EAT AROUND THE PANTS! AROUND THE PANTS!', "DON'T GO IN THE BACK! TRUST ME!"],
+  nude: ['NOT THE BALLS FIRST!', 'THEY WENT STRAIGHT FOR MY DICK!'],
+};
+
 /** What hurts him in here (by source), and the death screen when it's what killed him. */
 export const HURT: Record<string, { hurt: string[]; death: string[] }> = {
   'm2:monkey': {
@@ -66,6 +73,11 @@ export const HURT: Record<string, { hurt: string[]; death: string[] }> = {
     hurt: ['THORNS! IN MY TAINT!', 'OW! PRICKS!', 'THE ROOTS HAVE SPIKES, YOU BASTARD!'],
     death: ['DIED IN A PRICKER BUSH', 'TOO MANY PRICKS'],
   },
+  // (the gorge's plunge pool: piranhas.ts)
+  'm2:piranhas': {
+    hurt: ['PIRANHAS!'],
+    death: ['EATEN BY A MILLION TINY FISH', 'PIRANHA BUFFET', 'PICKED CLEAN'],
+  },
   'm2:frog': {
     hurt: ['MY LIPS ARE NUMB!', 'WHY DID I TOUCH THE BLUE ONE?!', 'I CAN TASTE COLORS!'],
     death: ['LICKED A FROG. ON PURPOSE.', 'KILLED BY A GRAPE-SIZED FROG'],
@@ -73,6 +85,6 @@ export const HURT: Record<string, { hurt: string[]; death: string[] }> = {
 };
 
 export const VOICE_LINES: Record<string, string[]> = {
-  meathead: [...ARRIVE, ...FIRST_VINE, ...GORGE, ...LEAVING, ...Object.values(HURT).flatMap(h => h.hurt), ...Object.values(CAVE_FOUND).flat(), ...Object.values(HEART_GOT).flat()],
+  meathead: [...ARRIVE, ...FIRST_VINE, ...GORGE, ...LEAVING, ...Object.values(HURT).flatMap(h => h.hurt), ...Object.values(CAVE_FOUND).flat(), ...Object.values(HEART_GOT).flat(), ...Object.values(PIRANHA_SCREAM).flat()],
   death: Object.values(HURT).flatMap(h => h.death),
 };

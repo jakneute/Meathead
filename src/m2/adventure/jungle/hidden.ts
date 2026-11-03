@@ -30,6 +30,8 @@
 //     save; the card; a line), and the RETURN CANNON (upgrades/returnCannon.ts, the Ben lair's jungle look): any time,
 //     up through a crack in the ceiling and out of the plunge pool on the arc to the far bank, just past the vines
 //     (short of JAGUAR COUNTRY's checkpoint and the canopy's first branch: nobody there).
+//   THE PLUNGE POOL (the gorge's, under the falls): piranhas. Feet in it, he's eaten (piranhas.ts: an instant kill like a
+//     pit, its own death where he went in); anything else that goes in is eaten too.
 //   THE PITS: the gallery's are spike pits (SPIKE_Y: a thorny floor that hurts while he's on it; he can jump back out),
 //     the tunnel's bottomless (no floor under any of them). Down one far enough, he's put out of the camera's reach and the
 //     engine's own fall takes it from there (like the gorge's). FALLING INTO THE GORGE is the same as ever: anything
@@ -58,6 +60,8 @@ import { maxHealth } from '../../upgrades/state';
 import { makeCannon, updateCannon, cannonBusy, cannonCeilingX, type Cannon } from '../../upgrades/returnCannon';
 import { makeTraps, updateTraps, canHurt, type Traps } from './caveTraps';
 import { hurtPlayer } from '../../../m1/game/bosses/shared';
+import { envSound } from '../../bossQuiet';
+import { PIRANHA_SRC } from './piranhas';
 
 const X = (rx: number) => SECTIONS.jungle.x0 + rx;
 
@@ -173,14 +177,19 @@ export const crackX = () => { const cn = newCannon(); return Math.round((cannonC
 // ---------------------------------------------------------------------------------------------------------------
 // State (keyed on state.stage: rebuilt with the stage on every death)
 
-interface Hidden { cannon: Cannon; card: HealthCard | null; said: Record<string, boolean>; traps: Traps }
+/** Something else that went into the plunge pool, being eaten (where, since when: drawn by art/hidden.ts). */
+export interface Feed { x: number; at: number }
+interface Hidden { cannon: Cannon; card: HealthCard | null; said: Record<string, boolean>; traps: Traps; feeds: Feed[] }
 const hidOf = (state: GameState) => sectionState<Hidden, string>(state, 'jungleHidden', () => ({
-  cannon: newCannon(), card: null, traps: makeTraps(),
+  cannon: newCannon(), card: null, traps: makeTraps(), feeds: [],
   // (back on the shelf from dying in here: he's found it already)
   said: { cave: state.checkpoint === CAVE_CP },
 }));
 export const hiddenCannon = (state: GameState) => hidOf(state).cannon;
 export const hiddenTraps = (state: GameState) => hidOf(state).traps;
+export const hiddenFeeds = (state: GameState) => hidOf(state).feeds;
+/** How long something that went in is eaten for. */
+export const FEED_LEN = 70;
 /** The card's up, or he's in (or flying out of) the cannon: the vines leave him be. */
 export const hiddenBusy = (state: GameState) => { const h = hidOf(state); return !!h.card || cannonBusy(h.cannon); };
 /** The find's still lying there (not got on this save, nor this visit). */
@@ -245,7 +254,26 @@ export const updateHidden = (ctx: FrameContext, c: Controls, firstCaveVine: numb
   // (put down past everything, out of the camera's reach: the engine's own fall check takes it from there)
   const fallen = () => { p.pos.y = Math.max(state.camera.y + 1001, 2100); p.vel.x = 0; };
   const alive = p.health > 0 && state.deathTimer <= 0;
-  // Fallen into the gorge (below the pool's level, not in the passage): the gorge's fall, as ever
+  // INTO THE PLUNGE POOL (the gorge between the cliff and the far bank): the piranhas, the moment his feet touch it
+  // (piranhas.ts: dead, and its own death where he went in); and whatever else goes in, eaten
+  if (alive && cx > PASSAGE.a && cx < PASSAGE.b && feet >= POOL_Y - 4 && feet < POOL_Y + 60 && !p.inCutscene) {
+    p.pos.y = POOL_Y - p.height; p.vel.x = 0; p.vel.y = 0;
+    p.invincibilityTimer = 0;
+    hurtPlayer(ctx, 9999, PIRANHA_SRC);
+    if (p.health <= 0) return { ...NO_CONTROLS };
+  }
+  for (let i = state.enemies.length - 1; i >= 0; i--) {
+    const e = state.enemies[i], ex = e.pos.x + e.width / 2;
+    if (ex > PASSAGE.a && ex < PASSAGE.b && e.pos.y + e.height >= POOL_Y && e.pos.y + e.height < POOL_Y + 400) {
+      state.enemies.splice(i, 1);
+      h.feeds.push({ x: ex, at: state.frame });
+      envSound(state, ex, 'splash', 0.8, -2, POOL_Y);
+      for (let k = 0; k < 14; k++) state.particles.push({ pos: { x: ex + (Math.random() - 0.5) * 24, y: POOL_Y - 2 }, vel: { x: (Math.random() - 0.5) * 6, y: -2 - Math.random() * 6 }, life: 30, color: k % 3 ? 'rgba(220, 240, 248, 0.85)' : '#B91C1C', size: 2 + Math.random() * 3, grav: 0.35 });
+    }
+  }
+  if (h.feeds.length && state.frame - h.feeds[0].at > FEED_LEN) h.feeds.shift();
+  // Fallen into the gorge (below the pool's level, not in the passage; only invincible gets this far): the gorge's
+  // fall, as ever
   if (alive && cx > PASSAGE.a && cx < PASSAGE.b && feet > KILL_FEET && feet < PASSAGE.ceil + 10) { fallen(); return c; }
   // Down one of the tunnel's pits (anywhere off its ledges)
   const j = jungleOf(state), onCaveVine = j.hold.on >= firstCaveVine;

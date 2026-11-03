@@ -107,6 +107,11 @@ const paintPiranha = (c: Ctx, pose: PiranhaPose, k: number) => {
   c.restore();
 };
 
+/** One piranha, posed, stamped (its origin under its belly, facing right; mirror the context for left). For other
+ *  scenes' swarms (the jungle gorge's plunge pool: jungle/piranhas.ts). */
+export const stampPiranha = (c: Ctx, pose: 'swim' | 'burst' | 'leap' | 'dead', k: number) =>
+  stamp(c, `cr-pir-${pose}-${k % 6}`, -28, -28, 52, 36, g => paintPiranha(g, pose, k % 6));
+
 export const drawPiranha = (c: Ctx, e: Enemy, f: number) => {
   const since = sinceHurt(e, f);
   const sp = Math.hypot(e.vel.x, e.vel.y);

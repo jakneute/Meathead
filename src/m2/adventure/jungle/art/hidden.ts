@@ -15,8 +15,9 @@ import type { GameState } from '../../../../m1/game/core/state';
 import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../../../../m1/constants';
 import { stamp, hazeBands, steppedGlow } from '../../../intro/art/kit';
 import { drawCannon, JUNGLE } from '../../../upgrades/returnCannon';
-import { CAVE, PASSAGE, POOL_Y, HEART_X, FALLS, SHAFT_B, LEDGES_HI, PITS_HI, PILLARS_LO, SPIKE_Y, CAVE_VINES, crackX, heartThere, hiddenCannon, hiddenTraps } from '../hidden';
+import { CAVE, PASSAGE, POOL_Y, HEART_X, FALLS, SHAFT_B, LEDGES_HI, PITS_HI, PILLARS_LO, SPIKE_Y, CAVE_VINES, crackX, heartThere, hiddenCannon, hiddenTraps, hiddenFeeds, FEED_LEN } from '../hidden';
 import { DRIPS, THORNS, SPRAY, sprayPhase } from '../caveTraps';
+import { drawLeapers, drawRedWater } from '../piranhas';
 import { type Ctx, INK, box, checker, mix, hash, poly, leaf, fern, LEAF, BARK, MOSS, ROCK, PIX } from './paint';
 import { GY } from '../../geometry';
 
@@ -369,9 +370,18 @@ const thorns = (g: Ctx, t: (typeof THORNS)[number], seed: number) => {
 /** The plunge pool's surface over the gorge's rock (the falls come down into it far back), and its rock's top. */
 const pool = (g: Ctx) => {
   const a = PASSAGE.a, b = PASSAGE.b, y = POOL_Y;
+  // (the pool's depth, cut away: deep green-blue water down to the rock it lies on, darker the deeper, the piranhas
+  // dark shapes in it)
+  const DEPTH = ['#1E4C5A', '#173E4C', '#11303C', '#0C242E', '#081A22', '#051216'];
+  DEPTH.forEach((col, k) => { box(g, a, y + k * 20, b - a, 20, col); if (k) checker(g, a, y + k * 20, b - a, PIX, DEPTH[k - 1]); });
+  for (let k = 0; k < 40; k++) {
+    const fx = a + 20 + hash(k * 3.7) * (b - a - 40), fy = y + 22 + hash(k * 1.9) * 80, dir = hash(k * 5.3) < 0.5 ? -1 : 1, col = DEPTH[Math.min(5, 2 + Math.floor((fy - y) / 30))];
+    poly(g, [[fx - 6 * dir, fy - 3], [fx + 5 * dir, fy - 2], [fx + 7 * dir, fy], [fx + 5 * dir, fy + 2], [fx - 6 * dir, fy + 3], [fx - 9 * dir, fy - 3], [fx - 9 * dir, fy + 3]], mix(col, '#000000', 0.45));
+    box(g, fx + 3 * dir, fy - 1, 1, 1, mix('#C82A26', col, 0.6));
+  }
+  box(g, a, y + 120, b - a, 2, INK);
   box(g, a, y - 8, b - a, 14, WET[2]); box(g, a, y - 8, b - a, 3, WET[4]); box(g, a, y - 8, b - a, 1, WET[5]);
   for (let x = a; x < b; x += 9) if (hash(x * 0.21) > 0.4) box(g, x, y - 7 + Math.floor(hash(x) * 4), 6, 1, '#E6F4F8');
-  box(g, a, y + 6, b - a, 2, INK);
 };
 
 /** The crack the cannon's shot goes up: through the passage's ceiling and the slab, narrowing up to the pool; daylight
@@ -469,8 +479,8 @@ const paintAll = (g: Ctx) => {
     shade(CAVE.b, CAVE.wall, CAVE.hi.floor, PASSAGE.ceil, y0, y1, col, k > 0);
     shade(CAVE.wall, AREA.x1, POOL_Y, PASSAGE.ceil, y0, y1, col, k > 0);
   }
-  pool(g);
   crack(g);
+  pool(g);
   // (the step down off the shelf onto the first ledge: its face inked, shaded)
   box(g, CAVE.shelf.a - 1, CAVE.shelf.y + 5, 2, CAVE.hi.floor - CAVE.shelf.y - 5, INK);
   sideBands(g, CAVE.shelf.a + 1, CAVE.shelf.y + 6, CAVE.shelf.a + 15, CAVE.hi.floor, 0.3, 0, 3);
@@ -628,6 +638,19 @@ const TELL_SHOW = 25;
 export const drawHiddenFront = (c: Ctx, state: GameState) => {
   drawSpray(c, state);
   drawOverflow(c, state);
+  drawFeeds(c, state);
+};
+
+/** Whatever else went into the plunge pool, being eaten: the boil, the red, a bone or two flung up out of it. */
+const drawFeeds = (c: Ctx, state: GameState) => {
+  const f = state.frame;
+  for (const fd of hiddenFeeds(state)) {
+    const u = f - fd.at, k = 1 - u / FEED_LEN;
+    if (!onScreen(state, fd.x - 80, POOL_Y - 80, fd.x + 80, POOL_Y + 20)) continue;
+    drawRedWater(c, fd.x, POOL_Y, 20 + u * 0.8, k);
+    if (u < FEED_LEN - 10) drawLeapers(c, fd.x, POOL_Y, f, u < 40 ? 10 : 4, 24, fd.at);
+    if (u > 24 && u < 54) { const v = u - 24, bx = fd.x + v * 0.8, by = POOL_Y - 6 - v * 3 + v * v * 0.1; box(c, bx - 6, by - 1, 12, 3, INK); box(c, bx - 5, by, 10, 1, '#E2DACA'); box(c, bx - 7, by - 2, 3, 4, '#E2DACA'); box(c, bx + 4, by - 2, 3, 4, '#E2DACA'); }
+  }
 };
 
 const drawSpray = (c: Ctx, state: GameState) => {
