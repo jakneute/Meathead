@@ -39,8 +39,11 @@ export const TOLL_FROM = 3800;
 /** The trolls: their bodies (solid: shoulders on top), their heads (solid: the bridge sits on them), their knees
  *  (one-way) outside and in, and their elbows under the bridge (one-way: the inner knee, the elbow, the deck, a held
  *  jump each; the way up out from under the bridge, which had none: the owner's doorman stands down there). */
-const TROLL_L = { body: [4120, 4300, 290], head: [4200, 4300, 420], knees: [[4020, 4120, 150], [4300, 4390, 150]], elbows: [[4300, 4366, 285]] } as const;
-const TROLL_R = { body: [5000, 5180, 290], head: [5000, 5100, 420], knees: [[5180, 5280, 150], [4910, 5000, 150]], elbows: [[4934, 5000, 285]] } as const;
+const TROLL_L = { body: [4120, 4300, 290], head: [4200, 4300, 420], knees: [[4020, 4120, 150], [4300, 4390, 150]], elbows: [[4300, 4366, 285]], toes: [] as [number, number, number][] } as const;
+/** (the right troll's big toe on the bank under the bridge (solid, its top lit): the step up onto its inner knee from the
+ *  bank or out of the river, which is higher than he jumps from the ground; the owner: "i have no access to the troll
+ *  under the bridge") */
+const TROLL_R = { body: [5000, 5180, 290], head: [5000, 5100, 420], knees: [[5180, 5280, 150], [4910, 5000, 150]], elbows: [[4934, 5000, 285]], toes: [[4900, 4934, 70]] as [number, number, number][] } as const;
 const DECK = { a: 4300, b: 5000, h: 420 } as const;
 /** The toll gate across the deck (solid, deck to crossbeam), the booth beside it (set back on the deck). */
 const GATE = { a: 4740, b: 4764, top: 660 } as const;
@@ -104,6 +107,7 @@ export const buildToll = (state: GameState) => {
     solid(state, X(ba), Y(bh), bb - ba, bh, { hidden: true, tag: 'no-troll-body' });
     solid(state, X(ha), Y(hh), hb - ha, hh - bh, { hidden: true, tag: 'no-troll-head' });
     for (const [a, b, h] of [...T.knees, ...T.elbows]) ledge(state, X(a), Y(h), b - a, { hidden: true, tag: 'no-troll-knee' });
+    for (const [a, b, h] of T.toes) solid(state, X(a), Y(h), b - a, h, { hidden: true, tag: 'no-troll-toe' });
   }
   ledge(state, X(DECK.a), Y(DECK.h), DECK.b - DECK.a, { hidden: true, tag: 'no-tolldeck' });
   t.gate = paid() ? null : solid(state, X(GATE.a), Y(GATE.top), GATE.b - GATE.a, GATE.top - DECK.h, { hidden: true, tag: 'no-tollgate' });
@@ -163,6 +167,7 @@ const drawGiantTroll = (c: Ctx, v: View, T: typeof TROLL_L | typeof TROLL_R, fli
   boxes3(c, v, [
     { x: X(ba), top: Y(bh), w: bb - ba, bottom: GY, col: TROLL, standable: true, look: 'rock' },
     { x: X(ha), top: Y(hh), w: hb - ha, bottom: Y(bh), col: TROLL, standable: true, look: 'rock' },
+    ...T.toes.map(([a, b, h]) => ({ x: X(a), top: Y(h), w: b - a, bottom: GY, col: TROLL, standable: true, look: 'rock' as const })),
   ]);
   drawGiant(c, T.body, T.head, X, Y, flip, DECK.h);
   for (const [a, b, h] of T.knees) {

@@ -6,8 +6,8 @@
 // valhalla' entrance area under the bridge where you can press up to enter. under the bridge. there, confucktious will
 // be." And: "foreign lands has no cannon, you just exit the hall").
 //
-//   THE DOORMAN: once he's been past the toll (TOLL PAID, or the gate up), a park guy in a cheap troll suit stands on the
-//     right troll's inner knee, under the bridge (the spot of the viking who was boxed in there: moved up onto the deck,
+//   THE DOORMAN: once he's been past the toll (TOLL PAID, the gate up, or swum the river to its far bank), a park guy in a cheap troll suit stands on the
+//     right troll's inner knee, under the bridge (up off the bank by the troll's big toe: toll.ts; the spot of the viking who was boxed in there: moved up onto the deck,
 //     toll.ts). Not an enemy: nothing hits him, nothing he does hurts (he's drawn, not in the enemy list). UP by him
 //     talks: the first time, his demand (the blood of every Norwegian cosplayer); after, how many are still breathing;
 //     all dead, he raises the halls.
@@ -283,7 +283,11 @@ export const hallOf = (state: GameState): Hall => {
 let setNoContact = false;
 
 /** The doorman's there: once he's been past the toll (or the halls are up already). */
-export const doormanThere = (state: GameState) => hallsUp() || tollPaid() || state.checkpoint >= 14;
+export const doormanThere = (state: GameState) => hallsUp() || tollPaid() || state.checkpoint >= 14 || pastVisit === landVisit();
+/** He's been past the toll this way into the land some other way (swum the river: across under the bridge to its far
+ *  bank), so the doorman's there for him too (the owner: "i have no access to the troll under the bridge"). */
+let pastVisit = -1;
+const notePast = (state: GameState) => { if (pastVisit !== landVisit() && midX(state) > X(4890) && feetY(state) <= GY + 8 && feetY(state) > Y(DOORMAN.h + 300)) pastVisit = landVisit(); };
 
 // ---------------------------------------------------------------------------------------------------------------
 // Building it: the dock (once the halls are up), the hall's box down under the bridge
@@ -385,6 +389,7 @@ const outside = (state: GameState, h: Hall, controls: Controls, upPress: boolean
   const p = state.player, cx = midX(state), fy = feetY(state);
   if (h.door.said === null && h.door.pose !== 'raise') h.door.pose = 'stand';
   h.door.poseT++;
+  notePast(state);
   if (!doormanThere(state)) return controls;
   // (painting Ben's gross-up ahead, once the halls are up and he's near them)
   if (h.lift >= 1 && Math.abs(cx - X(DOOR)) < 700 && Math.abs(fy - GY) < 500) warmBenGross();
