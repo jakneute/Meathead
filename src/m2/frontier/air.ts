@@ -42,7 +42,9 @@ export const updateSwimAir = (ctx: FrameContext, bodyAt: (x: number, y: number) 
   if (state.deathTimer > 0 || p.health <= 0) return;
   const under = p.swimming && !!body && p.pos.y + 6 > body.surface;
   if (under && !ctx.cheats.invincible) {
-    a.o2 = Math.max(0, a.o2 - 1 / AIR_FRAMES);
+    // (Ben's maze under the flooded shaft (town/benLair.ts): no air pockets in it, the owner's, and its tunnels made a lot
+    // longer: his air goes at half the rate down there, so straight through costs about what the short maze did)
+    a.o2 = Math.max(0, a.o2 - (body!.key === 'benmaze' ? 0.5 : 1) / AIR_FRAMES);
     if (a.o2 < 0.3 && !a.lowSaid) { a.lowSaid = true; meatheadSays(state, pickLine(AIR_LOW), false); }
     if (a.o2 < 0.25 && state.frame % 20 === 0) playSound('beep');
     if (state.frame % 14 === 0) state.particles.push({ pos: { x: cx + p.facing * 8, y: p.pos.y + 10 }, vel: { x: 0, y: -1.2 }, life: 40, color: 'rgba(224, 242, 254, 0.8)', size: 3 });

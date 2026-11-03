@@ -7,14 +7,16 @@
 //   THE WAY IN: the long swim under the rock comes out under open water at its east end (the way up the far shaft:
 //     the critical path, as it was). Right under that, in the bed, the old WINZE (a shaft sunk down from inside the
 //     mine): its timber collar, a warm light up out of it, a plank nailed on (ASSAY OFFICE, an arrow down).
-//   THE MAZE (no air pockets, the owner's): four cells across, three down, under the bed (a cell every 140 px, each
-//     100 open, rock between). In at the top right, out at the bottom left into the office's pool. The way through is
-//     six cells; three dead ends (Ben's spray paint: NOPE), one cell each. Swum on autopilot (2026-11-02), against his
-//     1350 frames of air (air.ts): straight through, 435 frames under (a third of it); two wrong turns, 620 (under half);
-//     three, 822 (about 60%). Straight off the long swim without a breath it's still in (about 550 + 435). The surface
-//     is right over the winze: he can top up before he goes down. Each cell has a dim work light (it reads; the right
-//     way isn't marked). From up in the flooded shaft it's all solid rock (benLairArt.ts's veil, faded away going down
-//     the winze): the winze's warm light is the only tell.
+//   THE MAZE (no air pockets, the owner's): four cells across, three down, under the bed (a cell every 250 px across
+//     and 380 down, each 100 open, long tunnels between: the owner's "make the tunnels a lot longer, but the layout can
+//     stay the same"). In at the top right, out at the bottom left into the office's pool. The way through is six
+//     cells; three dead ends (Ben's spray paint: NOPE), one cell each. About 2.2 times the swim it was (the first build
+//     timed 435 frames straight through, 822 with all three wrong turns); his air goes at half its rate down here
+//     (air.ts), so it costs about what the short maze did: straight through about a third of his air, all three wrong
+//     turns about three quarters. The surface is right over the winze: he can top up before he goes down. Each cell and
+//     each tunnel has a dim work light (it reads; the right way isn't marked). Swimming the flooded shaft, the rock over
+//     it all is faded away (the owner's "make sure all the underground elements are shown when in the swimming
+//     section"): the maze and the office are in view from the water.
 //   THE LAIR: up out of the maze into the pool at the office's east end; climb out (a step under the water's edge).
 //     The office (1880s, the park dug it out for the tour, then the shaft flooded and the tour was dropped): a gym-bro
 //     hideout (benLairArt.ts): an ore cart on a stub of track for a plate rack (cart wheels for plates), a
@@ -78,9 +80,15 @@ const L = PIECE_LINES.sabatons;
 // ---------------------------------------------------------------------------------------------------------------
 // Where (x from the section's start, heights: Y(h); world via X() / Y())
 
-/** The maze: its cells' grid (its left edge, its top), a cell's pitch and its opening (inset INSET each side). */
-export const MAZE = { a: 13860, top: -900, cols: 4, rows: 3 } as const;
-export const CELL = 140, OPEN = 100, INSET = 20;
+/** The maze: its cells' grid (its left edge, its top), a cell's pitch across and down, and its opening (inset INSET
+ *  each side). The owner's (2026-11-02): "make the tunnels a lot longer, but the layout can stay the same": the same
+ *  cells and joins, the pitch up from 140 to 250 across and 380 down (the way through about 2.2 times as long; the
+ *  winze where it was, under the open water; the office moved west and down with the outlet: OFFICE_DX/DY). */
+export const MAZE = { a: 13530, top: -900, cols: 4, rows: 3 } as const;
+export const CELL_X = 250, CELL_Y = 380, OPEN = 100, INSET = 20;
+/** How far the office (and its pool, chute, cannon, Ben, the scarecrow, the dynamite) sits from where it was first
+ *  built (x, height): its art's own x's are drawn shifted by it (benLairArt.ts). */
+export const OFFICE_DX = -330, OFFICE_DY = -480;
 /** Its open cells, [col, row] (col 0 the west end, row 0 the top); everything else in the grid is rock. */
 export const CELLS: [number, number][] = [
   // (the way through: in at the top right, down, west, down, west, west, out)
@@ -96,7 +104,7 @@ export const JOINS: [number, number, number, number][] = [
 /** The dead ends' last cells (Ben's NOPE on the rock). */
 export const NOPES: [number, number][] = [[2, 0], [3, 2], [1, 1]];
 /** A cell's opening (rx, heights: top over bottom). */
-export const cellBox = (c: number, r: number) => ({ a: MAZE.a + CELL * c + INSET, b: MAZE.a + CELL * c + INSET + OPEN, top: MAZE.top - CELL * r - INSET, bot: MAZE.top - CELL * r - INSET - OPEN });
+export const cellBox = (c: number, r: number) => ({ a: MAZE.a + CELL_X * c + INSET, b: MAZE.a + CELL_X * c + INSET + OPEN, top: MAZE.top - CELL_Y * r - INSET, bot: MAZE.top - CELL_Y * r - INSET - OPEN });
 /** The opening between two joined cells. */
 export const joinBox = ([c1, r1, c2, r2]: [number, number, number, number]) => {
   const A = cellBox(c1, r1), B = cellBox(c2, r2);
@@ -105,14 +113,16 @@ export const joinBox = ([c1, r1, c2, r2]: [number, number, number, number]) => {
 /** The winze down through the bed into the top right cell (under the open water at the long swim's east end). */
 export const WINZE = { a: 14300, b: 14400, top: -880, bot: -920 } as const;
 /** The way out of the bottom left cell west into the office's pool. */
-export const OUTLET = { a: 13840, b: 13880, top: -1200, bot: -1300 } as const;
+export const OUTLET = { a: 13840 + OFFICE_DX, b: 13880 + OFFICE_DX, top: -1200 + OFFICE_DY, bot: -1300 + OFFICE_DY } as const;
 /** The office: its walls, ceiling, floor; the pool in its floor at its east end (down to the outlet's foot), the
  *  water's surface in it; the ore chute up over the cannon (blind at its top: he's gone by then). */
-export const ROOM = { a: 13040, b: 13840, top: -940, floor: -1200 } as const;
-export const POOL = { a: 13720, b: 13840, surface: -1216, bot: -1300 } as const;
-export const CHUTE = { a: 13630, b: 13690, top: -900 } as const;
+export const ROOM = { a: 13040 + OFFICE_DX, b: 13840 + OFFICE_DX, top: -940 + OFFICE_DY, floor: -1200 + OFFICE_DY } as const;
+export const POOL = { a: 13720 + OFFICE_DX, b: 13840 + OFFICE_DX, surface: -1216 + OFFICE_DY, bot: -1300 + OFFICE_DY } as const;
+export const CHUTE = { a: 13630 + OFFICE_DX, b: 13690 + OFFICE_DX, top: -900 + OFFICE_DY } as const;
 /** The cannon (by the pool), Ben (between it and the cot), the scarecrow's post, the dynamite against the west wall. */
-export const CANNON_RX = 13660, BEN_RX = 13550, CROW_RX = 13372, TNT = { a: 13044, b: 13130 } as const;
+export const CANNON_RX = 13660 + OFFICE_DX, BEN_RX = 13550 + OFFICE_DX, CROW_RX = 13372 + OFFICE_DX, TNT = { a: 13044 + OFFICE_DX, b: 13130 + OFFICE_DX } as const;
+/** The bottom of everything down here (height: under the pool's foot). */
+export const UNDER_BOT = POOL.bot - 180;
 /** Where the cannon puts him: up through the service hatch on the log ride station's platform (TIMBER TUMBLE, cp 30, at
  *  its x 200: past it, so it's his), and down on it again. */
 const LR = SECTIONS.logride.x0;
@@ -144,7 +154,7 @@ export const inLair = (state: GameState) => {
 /** Down under the flooded shaft's bed: the maze, the pool, the office (its lighting, its camera). */
 export const underBed = (state: GameState) => {
   const cx = midX(state), cy = state.player.pos.y + state.player.height / 2;
-  return cx > W(ROOM.a) - 40 && cx < W(14440) && cy > Y(-880) + 8 && cy < Y(-1480);
+  return cx > W(ROOM.a) - 40 && cx < W(14440) && cy > Y(-880) + 8 && cy < Y(UNDER_BOT);
 };
 /** In the maze (or its winze, or the pool under the office's floor). */
 export const inMaze = (state: GameState) => underBed(state) && !inLair(state);
@@ -284,9 +294,10 @@ export const updateBenLair = (ctx: FrameContext, controls: Controls): Controls =
   // (back after the cannon took him to the log ride: its flight was the log ride's to finish)
   if (h.flew && h.cannon.phase === 'fly') { h.cannon.phase = 'rest'; h.cannon.t = 0; h.cannon.ang = 0; h.flew = false; }
   if (underBed(state) || (inSump(state) && midX(state) > X(13900))) warmBenGross();
-  // (the rock over it all fades away going down the winze, back coming up: from the flooded shaft it's solid rock, the
-  // winze's warm light the only tell)
-  h.reveal = Math.max(0, Math.min(1, h.reveal + (underBed(state) || (cannonBusy(h.cannon) && h.cannon.phase !== 'fly') ? 0.08 : -0.06)));
+  // (the rock over it all faded away while he's swimming the flooded shaft or down under its bed (the owner's: "make
+  // sure all the underground elements are shown when in the swimming section"): the maze, its lamps, the office, Ben
+  // all in view from the water; solid again once he's out of it)
+  h.reveal = Math.max(0, Math.min(1, h.reveal + (underBed(state) || inSump(state) || (cannonBusy(h.cannon) && h.cannon.phase !== 'fly') ? 0.08 : -0.06)));
   calm(state);
   // (down the winze the first time this visit: his line)
   if (!state.stageMemo[IN_MEMO] && inMaze(state) && p.health > 0 && feetY(state) > Y(WINZE.bot) + 30) {
@@ -364,7 +375,7 @@ const runCannon = (ctx: FrameContext, h: Lair, controls: Controls): Controls => 
 /** Nothing gets at him down there: shots under the bed that aren't his are gone. */
 const calm = (state: GameState) => {
   if (!state.projectiles.length) return;
-  state.projectiles = state.projectiles.filter(q => q.owner === 'player' || !(q.pos.x > W(ROOM.a) - 40 && q.pos.x < W(14440) && q.pos.y > Y(-880) + 8 && q.pos.y < Y(-1480)));
+  state.projectiles = state.projectiles.filter(q => q.owner === 'player' || !(q.pos.x > W(ROOM.a) - 40 && q.pos.x < W(14440) && q.pos.y > Y(-880) + 8 && q.pos.y < Y(UNDER_BOT)));
 };
 
 /** The scarecrow into the dynamite (flying, at the west wall): the stack jolts, dust and straw. */

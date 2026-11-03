@@ -32,7 +32,8 @@ import { paintRock, lantern } from './mine';
 import { X, Y } from './layout';
 import { onScreen } from './view';
 import {
-  lairOf, inLair, underBed, inSump, MAZE_OPEN, MAZE, CELLS, NOPES, cellBox, WINZE, ROOM, POOL, CHUTE, TNT, BEN_RX, HATCH_X,
+  lairOf, inLair, underBed, inSump, MAZE_OPEN, MAZE, CELLS, JOINS, NOPES, cellBox, WINZE, ROOM, POOL, CHUTE, TNT, BEN_RX, HATCH_X,
+  CELL_Y, OFFICE_DX, UNDER_BOT,
 } from './benLair';
 
 const MAZE_TOP = MAZE.top;
@@ -40,6 +41,24 @@ const MAZE_TOP = MAZE.top;
 const OPEN_BOXES = MAZE_OPEN();
 
 const W = (rx: number) => X(rx);
+/** The office's own art, where it was first laid out, drawn where it is now (benLair.ts OFFICE_DX). */
+const O = (rx: number) => X(rx + OFFICE_DX);
+/** The work lamps along the long tunnels between cells (world: x, y of the bulb; `wall`: on a shaft's west wall, not
+ *  up in a ceiling), one in the rock gap of each join. */
+const JOIN_LAMPS = JOINS.map(([c1, r1, c2, r2]) => {
+  const A = cellBox(c1, r1), B = cellBox(c2, r2);
+  if (r1 === r2) { const a = Math.min(A.b, B.b), b = Math.max(A.a, B.a); return { x: X((a + b) / 2), y: Y(A.top) + 3, wall: false }; }
+  // (the middle of the shaft between the two: halfway from the upper one's floor to the lower one's ceiling)
+  return { x: X(A.a) + 3, y: Y((A.bot + B.top) / 2) - 6, wall: true };
+});
+/** The maze's lights round him (the cells' lamps and the tunnels'), cold. */
+const mazeLights = (state: GameState, cx: number, cy: number): Light[] => {
+  const out: Light[] = [];
+  for (const [c, r] of CELLS) { const b = cellBox(c, r), x = W(b.a) + 50, y = Y(b.top) + 30; if (Math.abs(x - cx) < 700 && Math.abs(y - cy) < 560) out.push({ x, y, r: 95, a: 0.6, color: 'rgba(160, 230, 255, 0.12)' }); }
+  for (const l of JOIN_LAMPS) if (Math.abs(l.x - cx) < 700 && Math.abs(l.y - cy) < 560) out.push({ x: l.x + (l.wall ? 20 : 0), y: l.y + (l.wall ? 0 : 26), r: 90, a: 0.55, color: 'rgba(160, 230, 255, 0.12)' });
+  void state;
+  return out;
+};
 const FL = () => Y(ROOM.floor);
 /** The floodlights on the flooded shaft's bed (x from the section's start). */
 const FLOODS = [13160, 13430, 13690, 13960, 14220];
@@ -58,7 +77,7 @@ const seenBox = (state: GameState, x0: number, x1: number, y0: number, y1: numbe
 // The rock under the bed, the maze cut in it (still: in tiles)
 
 /** The under-bed region (world): from the bed down past the pool's foot, the office's west wall to past the winze. */
-const UA = X(12400), UB = X(14760), UT = Y(-886), UBOT = Y(-1718), TILE = 416;
+const UA = X(12400), UB = X(14760), UT = Y(-886), UBOT = Y(UNDER_BOT + 40), TILE = 416;
 /** The rock drawn over it all from up in the flooded shaft (from under the winze down): plain, no cavities. */
 const VT = Y(-890);
 
@@ -67,7 +86,7 @@ const VT = Y(-890);
 const floodBack = (g: Ctx, x: number, y: number, w: number, h: number, y0 = Y(MAZE_TOP)) => {
   const n = 5, BH = 28;
   for (let yy = y; yy < y + h; ) {
-    const off = (((yy - y0) % 140) + 140) % 140, k = Math.min(4, Math.floor(off / BH)), next = Math.min(y + h, yy + BH - (off % BH));
+    const off = (((yy - y0) % CELL_Y) + CELL_Y) % CELL_Y, k = Math.min(4, Math.floor(off / BH)), next = Math.min(y + h, yy + BH - (off % BH));
     box(g, x, yy, w, next - yy, FLOOD[Math.max(1, n - k)]);
     if (k > 0 && off % BH === 0) checker(g, x, yy, w, 2, FLOOD[Math.max(1, n - k + 1)], k & 1);
     yy = next;
@@ -110,6 +129,16 @@ const paintUnder = (g: Ctx, x0: number, y0: number, w: number, h: number) => {
     for (let k = -4; k <= 4; k += 3) box(g, lx + k, ly + 4, 1, 7, STEEL[2]);
     box(g, lx - 6, ly + 7, 12, 1, STEEL[2]);
   }
+  // (the long tunnels' own lamps: one up in each crossway's ceiling, one on each shaft's west wall on a bracket)
+  for (const l of JOIN_LAMPS) {
+    if (l.x < x0 - 20 || l.x > x0 + w + 20 || l.y < y0 - 20 || l.y > y0 + h + 20) continue;
+    const lx = l.wall ? l.x + 10 : l.x, ly = l.y;
+    if (l.wall) { box(g, l.x - 1, ly + 4, 10, 2, INK); box(g, l.x, ly + 4, 8, 1, STEEL[3]); } else box(g, lx - 1, ly - 1, 2, 4, INK);
+    box(g, lx - 6, ly + 3, 12, 9, INK);
+    box(g, lx - 5, ly + 4, 10, 7, '#BDEFFF'); box(g, lx - 5, ly + 4, 4, 3, '#F2FCFF');
+    for (let k = -4; k <= 4; k += 3) box(g, lx + k, ly + 4, 1, 7, STEEL[2]);
+    box(g, lx - 6, ly + 7, 12, 1, STEEL[2]);
+  }
   // (Ben's spray paint in the dead ends: NOPE, dripping)
   g.font = '16px "Press Start 2P"'; g.textAlign = 'center';
   for (const [c, r] of NOPES) {
@@ -137,7 +166,7 @@ const paintWinze = (g: Ctx) => {
 };
 
 export const drawSumpBack = (c: Ctx, state: GameState) => {
-  if (!onScreen(state, X(12900), X(14460))) return;
+  if (!onScreen(state, X(12400), X(14460))) return;
   const f = state.frame, bed = Y(-880);
   // ---- the floodlights on the bed: an iron stand, a squat caged lamp, its lens up; the beam up off it, banded
   for (const rx of FLOODS) {
@@ -200,17 +229,17 @@ const paintRoom = (g: Ctx) => {
   box(g, ca, Y(CHUTE.top), cb - ca, t - Y(CHUTE.top) + 16, '#050403');
   for (const x of [ca - 6, cb]) { box(g, x, Y(CHUTE.top), 6, t - Y(CHUTE.top) + 16, INK); box(g, x + 1, Y(CHUTE.top), 4, t - Y(CHUTE.top) + 16, T[3]); box(g, x + 1, Y(CHUTE.top), 1, t - Y(CHUTE.top) + 16, T[5]); }
   // ---- the gilt sign board over the counter
-  const sx = W(13390), sy = t + 36;
+  const sx = O(13390), sy = t + 36;
   box(g, sx - 1, sy - 1, 172, 30, INK); box(g, sx, sy, 170, 28, '#120C08'); box(g, sx, sy, 170, 2, '#3A2A1A'); box(g, sx + 2, sy + 2, 166, 1, BRASS[3]); box(g, sx + 2, sy + 25, 166, 1, BRASS[2]);
   // ---- the cot along the back wall: canvas on a timber frame, the wool blanket, a lumpy pillow (a sack of feed)
-  const kx = W(13330), ky = fl - 26;
+  const kx = O(13330), ky = fl - 26;
   box(g, kx - 1, ky - 1, 132, 10, INK); box(g, kx, ky, 130, 8, CANVAS[2]); box(g, kx, ky, 130, 2, CANVAS[4]);
   for (const lx of [kx + 4, kx + 120]) { box(g, lx - 1, ky + 8, 6, 18, INK); box(g, lx, ky + 8, 4, 18, T[4]); }
   box(g, kx + 30, ky - 7, 100, 9, INK); box(g, kx + 31, ky - 6, 98, 8, WOOL[2]); box(g, kx + 31, ky - 6, 98, 2, WOOL[4]);
   for (let x = kx + 36; x < kx + 128; x += 12) box(g, x, ky - 6, 2, 8, WOOL[1]);
   box(g, kx + 1, ky - 10, 30, 11, INK); box(g, kx + 2, ky - 9, 28, 9, CANVAS[3]); box(g, kx + 2, ky - 9, 28, 2, CANVAS[4]);
   // (the counter end beside it: the old assay counter, its brass scales)
-  const cx = W(13470);
+  const cx = O(13470);
   box(g, cx - 1, fl - 50, 62, 51, INK); box(g, cx, fl - 49, 60, 49, T[3]); box(g, cx, fl - 49, 60, 4, T[5]); box(g, cx, fl - 45, 60, 1, T[1]);
   for (let y = fl - 38; y < fl; y += 12) box(g, cx + 4, y, 52, 1, T[2]);
   // (the scales: a post, the beam, two pans on chains)
@@ -219,10 +248,10 @@ const paintRoom = (g: Ctx) => {
   box(g, bx - 22, by - 1, 45, 3, BRASS[3]); box(g, bx - 22, by - 1, 45, 1, BRASS[5]);
   for (const s of [-1, 1]) { const px = bx + s * 20; box(g, px, by + 2, 1, 14, BRASS[2]); box(g, px - 8, by + 16, 17, 3, INK); box(g, px - 7, by + 16, 15, 2, BRASS[4]); }
   // ---- the plate rack: an ore cart on a stub of track, cart wheels stood in it for plates
-  box(g, W(13136), fl - 6, 70, 3, STEEL[2]); box(g, W(13136), fl - 6, 70, 1, STEEL[5]);
-  for (let k = 0; k < 4; k++) box(g, W(13140) + k * 18, fl - 4, 10, 4, T[2]);
+  box(g, O(13136), fl - 6, 70, 3, STEEL[2]); box(g, O(13136), fl - 6, 70, 1, STEEL[5]);
+  for (let k = 0; k < 4; k++) box(g, O(13140) + k * 18, fl - 4, 10, 4, T[2]);
   for (const ox of [13140]) {
-    const x = W(ox), y = fl - 46;
+    const x = O(ox), y = fl - 46;
     box(g, x - 1, y - 1, 62, 36, INK);
     for (let i = 0; i < 4; i++) box(g, x + i * 15, y, 15, 34, IRON[4 - i] ?? IRON[1]);
     box(g, x, y, 60, 3, IRON[6]); for (let j = 6; j < 60; j += 12) box(g, x + j, y + 8, 2, 2, IRON[6]);
@@ -231,7 +260,7 @@ const paintRoom = (g: Ctx) => {
     for (let k = 0; k < 3; k++) { const wx = x + 14 + k * 16; g.fillStyle = INK; g.beginPath(); g.arc(wx, y - 4, 12, Math.PI, 0); g.fill(); g.fillStyle = STEEL[3]; g.beginPath(); g.arc(wx, y - 4, 10, Math.PI, 0); g.fill(); g.fillStyle = STEEL[5]; g.beginPath(); g.arc(wx - 2, y - 6, 6, Math.PI, Math.PI * 1.5); g.fill(); box(g, wx - 2, y - 7, 4, 4, INK); }
   }
   // ---- the pickaxe-handle barbell on a bench of rail ties, a cart wheel each end
-  const hx = W(13262), hy = fl - 30;
+  const hx = O(13262), hy = fl - 30;
   box(g, hx - 30, hy + 6, 60, 9, INK); box(g, hx - 29, hy + 7, 58, 7, T[3]); box(g, hx - 29, hy + 7, 58, 2, T[5]);
   for (const lx of [hx - 26, hx + 20]) { box(g, lx - 1, hy + 15, 8, 15, INK); box(g, lx, hy + 15, 6, 15, T[2]); }
   for (const s of [-1, 1]) { box(g, hx + s * 22 - 1, hy - 18, 3, 24, INK); box(g, hx + s * 22, hy - 18, 1, 24, T[5]); }
@@ -243,7 +272,7 @@ const paintRoom = (g: Ctx) => {
     box(g, wx - 3, hy - 30, 2, 8, IRON[6]);
   }
   // ---- the anvil on its stump (his dumbbell: a rope handle knotted round its waist)
-  const ax = W(13604);
+  const ax = O(13604);
   box(g, ax - 13, fl - 26, 26, 26, INK); box(g, ax - 12, fl - 25, 24, 25, T[4]); box(g, ax - 12, fl - 25, 24, 3, T[6]); for (let k = 0; k < 3; k++) box(g, ax - 10 + k * 8, fl - 20, 1, 18, T[2]);
   g.fillStyle = INK; g.beginPath(); g.moveTo(ax - 24, fl - 42); g.lineTo(ax + 22, fl - 42); g.lineTo(ax + 16, fl - 36); g.lineTo(ax + 8, fl - 34); g.lineTo(ax + 10, fl - 26); g.lineTo(ax - 10, fl - 26); g.lineTo(ax - 8, fl - 34); g.lineTo(ax - 18, fl - 36); g.closePath(); g.fill();
   box(g, ax - 22, fl - 41, 42, 4, IRON[4]); box(g, ax - 22, fl - 41, 42, 1, IRON[6]); box(g, ax - 8, fl - 37, 16, 10, IRON[3]); box(g, ax - 8, fl - 37, 3, 10, IRON[5]);
@@ -301,14 +330,14 @@ export const drawBenLairBack = (c: Ctx, state: GameState) => {
     const L = a + i * 400, w = i ? b - L : 400;
     still(c, `ben-office-${i}`, 0, 0, L, t, w, Y(POOL.bot) - t + 4, g => { g.save(); g.beginPath(); g.rect(L, t, w, Y(POOL.bot) - t + 4); g.clip(); paintRoom(g); g.restore(); });
   }
-  signText(c, 'ASSAY OFFICE', W(13390) + 85, Y(ROOM.top) + 56, western(2, BRASS[4], '#120C08'));
+  signText(c, 'ASSAY OFFICE', O(13390) + 85, Y(ROOM.top) + 56, western(2, BRASS[4], '#120C08'));
   // (the dynamite: jolted, dusting, a moment after the scarecrow's hit it)
   const jt = f - h.tntAt, jx = jt < 16 ? Math.round(Math.sin(jt * 1.9) * (16 - jt) * 0.25) : 0;
   still(c, 'ben-tnt', jx, 0, W(TNT.a) - 4, fl - 114, 96, 118, paintTnt);
   // (the lantern over the cot, swaying; drips off the ceiling into the floor, and into the pool)
   const sw = Math.sin(f * 0.025) * 2;
-  c.strokeStyle = INK; c.lineWidth = 1; c.beginPath(); c.moveTo(W(13440), Y(ROOM.top) + 14); c.lineTo(W(13440) + sw, Y(ROOM.top) + 76); c.stroke();
-  lantern(c, W(13440) + sw, Y(ROOM.top) + 94, f);
+  c.strokeStyle = INK; c.lineWidth = 1; c.beginPath(); c.moveTo(O(13440), Y(ROOM.top) + 14); c.lineTo(O(13440) + sw, Y(ROOM.top) + 76); c.stroke();
+  lantern(c, O(13440) + sw, Y(ROOM.top) + 94, f);
   for (let i = 0; i < 5; i++) {
     const per = 70 + i * 13, u = ((f + i * 29) % per) / per, dx = W(ROOM.a + 60 + i * 150 + (i === 4 ? 40 : 0));
     const top = Y(ROOM.top) + 16, end = i === 4 ? Y(POOL.surface) : fl;
@@ -370,21 +399,29 @@ const sumpLights = (state: GameState): Light[] => {
   return out;
 };
 
+/** The office's warm lights: its pool, the lantern over the cot, the glow by the cannon. */
+const officeLights = (f: number): Light[] => {
+  const sw = Math.sin(f * 0.025) * 2;
+  return [
+    { x: (W(POOL.a) + W(POOL.b)) / 2, y: Y(POOL.surface) + 20, r: 140, a: 0.55, color: 'rgba(255, 190, 120, 0.10)' },
+    { x: O(13440) + sw, y: Y(ROOM.top) + 94, r: 340, a: 0.85 + 0.05 * Math.sin(f * 0.4), color: 'rgba(255, 200, 130, 0.12)' },
+    { x: O(13700), y: Y(ROOM.top) + 130, r: 240, a: 0.45, color: 'rgba(255, 200, 130, 0.08)' },
+  ];
+};
+
 /** The town's light, and down here: the flooded shaft lit (the dark eased off by how far under he is: no pop going in),
  *  the maze's work lights (cold), the office's lantern (warm). */
 export const benLighting = (state: GameState, base: SceneLight | null): SceneLight | null => {
   const f = state.frame, p = state.player, cx = p.pos.x + p.width / 2, feet = p.pos.y + p.height;
   if (underBed(state)) {
     const lights: Light[] = [...sumpLights(state), { x: cx, y: p.pos.y + 24, r: 130, a: 0.3 }];
-    if (!inLair(state)) for (const [c, r] of CELLS) { const b = cellBox(c, r), x = W(b.a) + 50, y = Y(b.top) + 30; if (Math.abs(x - cx) < 560 && Math.abs(y - p.pos.y) < 420) lights.push({ x, y, r: 95, a: 0.6, color: 'rgba(160, 230, 255, 0.12)' }); }
-    lights.push({ x: (W(POOL.a) + W(POOL.b)) / 2, y: Y(POOL.surface) + 20, r: 140, a: 0.55, color: 'rgba(255, 190, 120, 0.10)' });
-    const sw = Math.sin(f * 0.025) * 2;
-    lights.push({ x: W(13440) + sw, y: Y(ROOM.top) + 94, r: 340, a: 0.85 + 0.05 * Math.sin(f * 0.4), color: 'rgba(255, 200, 130, 0.12)' });
-    lights.push({ x: W(13700), y: Y(ROOM.top) + 130, r: 240, a: 0.45, color: 'rgba(255, 200, 130, 0.08)' });
+    if (!inLair(state)) lights.push(...mazeLights(state, cx, p.pos.y));
+    lights.push(...officeLights(f));
     return { dark: inLair(state) ? 0.52 : 0.5, shade: inLair(state) ? [12, 8, 4] : [4, 10, 14], lights, rim: 0.4 };
   }
-  if (!onScreen(state, X(12900), X(14460))) return base;
-  const extra = sumpLights(state);
+  if (!onScreen(state, X(12400), X(14460))) return base;
+  // (swimming the flooded shaft: the maze's lamps and the office's lantern lit too, all of it in view from the water)
+  const extra = inSump(state) ? [...sumpLights(state), ...mazeLights(state, cx, p.pos.y + 300), ...officeLights(f)] : sumpLights(state);
   if (!inSump(state)) return base ? { ...base, lights: [...base.lights, ...extra] } : base;
   // (in the water: the mine's murk eased off by how far under he is)
   const k = Math.max(0, Math.min(1, (feet - (Y(-420) + 16)) / 140)), d0 = base?.dark ?? 0.78;
