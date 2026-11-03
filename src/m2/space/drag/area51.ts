@@ -25,7 +25,7 @@
 //              The HUD's away, the world held (enemies paused, nothing hurts him), only the lock's buttons count.
 //              START pauses it (minigamePause.ts, 'lockpick': its controls on the pause card); timers in game frames.
 //   PICKED     the plug turns, the door swings in (stageMemo; and for good once the shard's his: the save). UP: in.
-//   THE ROOM   one fixed screen of the actual secrets (area51Art.ts); his line on each as he passes. The CHARGE SHARD
+//   THE ROOM   a screen and three quarters of the actual secrets (the camera follows him) (area51Art.ts); his line on each as he passes. The CHARGE SHARD
 //              in its jar: walk into it (upgrades/shardAward.ts: once a save, the card with its buffer), then his line
 //              (all this behind a door a dumbass could pick). UP at the door: back out onto the street.
 
@@ -117,7 +117,7 @@ const hasShard = () => !shardWon(SHARD_LAND, SHARD_ID);
 /** In the room (or on the way in): its stretch of the world. */
 export const inA51Room = (state: GameState) => state.player.pos.x + state.player.width / 2 >= X(ROOM.a) - 100;
 /** The drag's camera here: in the room, held on it; on the street, out to the street's end. */
-export const a51Camera = (state: GameState, x0: number) => (inA51Room(state) ? { min: X(ROOM.a), max: X(ROOM.a) } : { min: x0, max: X(STREET1) - CANVAS_WIDTH });
+export const a51Camera = (state: GameState, x0: number) => (inA51Room(state) ? { min: X(ROOM.a), max: X(ROOM.b) - CANVAS_WIDTH } : { min: x0, max: X(STREET1) - CANVAS_WIDTH });
 
 export const buildA51 = (state: GameState) => {
   // (a fresh build (a death, a checkpoint): whatever of ours was up on the screen comes down)
@@ -497,7 +497,7 @@ const endKick = (state: GameState, a: A51) => {
   release(state, a); a.upWas = true;
 };
 
-/** In through the open door: the room, its one screen. */
+/** In through the open door: the room, the camera at its left end. */
 const goIn = (state: GameState, a: A51) => {
   const p = state.player;
   p.isCharging = false; p.isSliding = false; p.chargeTimer = 0;
@@ -560,7 +560,7 @@ export const drawA51Words = (c: Ctx, state: GameState) => {
   const a = of(state);
   if (!hasClip(state) && Math.abs(X(A51_CLIP) - state.camera.x - CANVAS_WIDTH / 2) < CANVAS_WIDTH) drawClip(c, X(A51_CLIP), state.frame);
   if (!a?.pa || a.lock) return;
-  if (inA51Room(state)) saidOver(c, a.pa.text, X(ROOM.a) + CANVAS_WIDTH / 2, GY - 470, '#86EFAC', 420);
+  if (inA51Room(state)) saidOver(c, a.pa.text, state.camera.x + CANVAS_WIDTH / 2, GY - 470, '#86EFAC', 420);
   else saidOver(c, a.pa.text, X(A51_DOOR) + 20, GY - 210, '#86EFAC', 300);
 };
 /** The lock's close-up over the screen (the HUD's pass). */

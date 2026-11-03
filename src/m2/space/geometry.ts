@@ -30,7 +30,7 @@ export const SECTIONS = {
   /** The hijacked train ride: the 1990 PA, the obstacles, the power breaker reveal, the brake crash, the launch. */
   ride: { x0: SPX + 23500, x1: SPX + 40100 },
   /** Back out on the main drag: outdoor platforming up to Space Needle 2. */
-  drag: { x0: SPX + 40500, x1: SPX + 50200 },
+  drag: { x0: SPX + 40500, x1: SPX + 50800 },
   /** Space Needle 2: up into actual space; the slow-spinning cylinder, the suit, the window. */
   needle: { x0: SPX + 51000, x1: SPX + 56300 },
   /** The space shooter (free flight, ray gun only, rapid fire) and the UFO sub-boss; the abduction; the crash. */

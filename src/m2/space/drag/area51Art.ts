@@ -10,11 +10,15 @@
 //               fence at the street's end with its NO GOVERNMENT HERE placard. Live: the door itself (two feet of
 //               riveted steel with a PUSH sticker, a CLOSED sign and a shop bell; rattles when rammed, swings open once
 //               it's picked) and the security camera, turning to watch him.
-//   THE ROOM    one fixed screen behind it: an institutional bunker under fluorescent tubes. MKULTRA OVERFLOW, the
-//               cover-up plan's whiteboard, a dissected grey on the autopsy table (toe-tagged PROPERTY OF THE US
-//               GOV'T), the moon landing set (TAKE 47), the reverse-engineered saucer engine (DO NOT LICK), a shelf of
-//               jars (JFK?), crates of ray guns, the TV with FAKE NEWS on, and the CHARGE SHARD in a containment jar on
-//               its pedestal. Background, all of it: dimmed, no lit tops (nothing in there reads as somewhere to stand).
+//   THE ROOM    behind it, a screen and three quarters wide (the camera follows him: the owner's "maybe make it scroll
+//               just a bit too"): an institutional bunker under fluorescent tubes, a duct and a cable tray along its
+//               ceiling. BAY 1, the autopsy end: MKULTRA OVERFLOW, the cover-up plan's whiteboard, a dissected grey on
+//               the autopsy table under its lamp (toe-tagged PROPERTY OF THE US GOV'T), the moon landing set (TAKE 47),
+//               the CHARGE SHARD in a containment jar on its pedestal. The pier (BAY 2 REVERSE ENGINEERING). BAY 2: TOP
+//               SECRET cabinets, the saucer engine on the wall (DO NOT LICK) over its transformer, the workbench (a ray
+//               gun in the vise) under a shelf of jars (JFK?), the consoles and their blueprint, a chunk of crashed
+//               saucer (EVIDENCE #2), crates of ray guns, the TV with FAKE NEWS on, up clear of every sign. Background,
+//               all of it: dimmed, no lit tops (nothing in there reads as somewhere to stand); the floor's lip lit.
 //   THE LOCK    the minigame's close-up (screen space): the brass lock body cut away, five pin chambers, the springs,
 //               the tumblers, his meaty hand with the bobby pin under them, the tension wrench.
 
@@ -273,46 +277,106 @@ export const storeLamps = (open: boolean) => [
 // The room
 
 /** Where the room's things are (local x from the room's left): what he's walked past for his lines, and the shard. */
-export const ROOM_AT = { exit: 70, cabinet: 160, board: 240, grey: 300, moon: 455, engine: 520, shard: 600, jars: 680, crates: 725, tv: 760 } as const;
+export const ROOM_AT = { exit: 70, cabinet: 160, board: 240, grey: 300, moon: 510, shard: 600, engine: 870, jars: 980, crates: 1336, tv: 1270 } as const;
 const RW = ROOM.b - ROOM.a;
 /** Back there: pulled toward the wall's color (nothing in here reads as somewhere to stand). */
 const back = (col: string) => mix(col, '#3E4A48', 0.22);
+/** The pier between the two bays (local x, width). */
+const PIER = 700, PIER_W = 44;
+/** The fluorescent fittings (local x): the second one blinks, the fifth one buzzes. */
+const TUBES = [130, 390, 600, 880, 1120, 1330];
+/** The TV's screen (local: its top left; 80 x 62). */
+const TV = { x: 1258, y: -406 };
+/** The engine's core (local). */
+const CORE = { x: 870, y: -310 };
+
+/** Cables drooping from (x0, y0) to (x1, y1), sagging `sag`: inked, colored, a glint. */
+const cable = (g: Ctx, x0: number, y0: number, x1: number, y1: number, sag: number, col: string, w = 3) => {
+  const mx = (x0 + x1) / 2, my = Math.max(y0, y1) + sag;
+  for (const [lw, c2] of [[w + 2, INK], [w, col], [1, mix(col, '#FFFFFF', 0.35)]] as const) {
+    g.strokeStyle = c2; g.lineWidth = lw; g.beginPath(); g.moveTo(x0, y0); g.quadraticCurveTo(mx, my, x1, y1); g.stroke();
+  }
+};
+
+/** A government filing cabinet, `n` drawers (`x`, its width, its height), the drawers' white card slots. */
+const cabinet = (g: Ctx, x: number, w: number, h: number, n: number, col: string) => {
+  const R = ramp6(back(col));
+  box(g, x - 2, -h - 2, w + 4, h + 2, INK); slab(g, x, -h, w, h, R, true);
+  for (let k = 0; k < n; k++) {
+    const y = -h + 4 + (k * (h - 6)) / n, dh = (h - 6) / n;
+    box(g, x + 3, y + dh - 2, w - 6, 2, R[1]); box(g, x + 3, y + dh - 3, w - 6, 1, R[4]);
+    box(g, x + w / 2 - 9, y + dh * 0.45, 18, 4, INK); box(g, x + w / 2 - 8, y + dh * 0.45 + 1, 16, 2, '#D4D8DE');
+    box(g, x + w / 2 - 7, y + dh * 0.15, 14, 6, INK); box(g, x + w / 2 - 6, y + dh * 0.15 + 1, 12, 4, '#F5F5F0');
+  }
+  box(g, x - 3, -h - 4, w + 6, 6, INK); box(g, x - 2, -h - 3, w + 4, 4, R[2]);
+};
 
 const paintRoom = (g: Ctx) => {
   const W = RW;
-  // THE WALLS: institutional green, banded darker down toward the wainscot; government beige below; the ceiling, its
-  // fluorescent fittings (the tubes are live)
-  const WALL = ['#2E3B36', '#38473F', '#425349', '#4C5F53', '#566A5D'];
-  for (let k = 0; k < 5; k++) box(g, 0, -560 + k * 80, W, 81, WALL[4 - k > 0 ? 4 - k : 0]);
-  for (let k = 0; k < 5; k++) checker(g, 0, -560 + (k + 1) * 80 - 2, W, 4, WALL[Math.max(0, 3 - k)], k % 2, 2);
+  // THE WALLS: institutional green painted block, banded darker down toward the wainscot (lit from the tubes), dithered
+  // between the bands; the second bay's back wall riveted steel plate; government beige below; the ceiling, its duct,
+  // its cable tray
+  const WALL = ['#2E3B36', '#38473F', '#425349', '#4C5F53', '#566A5D', '#5F7466'];
+  for (let k = 0; k < 6; k++) box(g, 0, -506 + k * 65, PIER, 66, WALL[5 - k]);
+  for (let k = 0; k < 5; k++) checker(g, 0, -506 + (k + 1) * 65 - 3, PIER, 6, WALL[4 - k], k % 2, 2);
+  for (let y = -500; y < -120; y += 20) {
+    box(g, 0, y, PIER, 1, 'rgba(10, 20, 16, 0.22)');
+    for (let x = (Math.abs(y / 20) % 2 ? 0 : 24); x < PIER; x += 48) box(g, x, y, 1, 19, 'rgba(10, 20, 16, 0.18)');
+  }
+  const SP = ['#232A33', '#2C3440', '#363F4D', '#414B5B', '#4C5769', '#586478'];
+  const bx0 = PIER + PIER_W;
+  for (let k = 0; k < 6; k++) box(g, bx0, -506 + k * 65, W - bx0, 66, SP[5 - k]);
+  for (let k = 0; k < 5; k++) checker(g, bx0, -506 + (k + 1) * 65 - 3, W - bx0, 6, SP[4 - k], k % 2, 2);
+  for (let x = bx0 + 48; x < W; x += 96) {
+    box(g, x, -506, 2, 386, '#1A2028'); box(g, x + 2, -506, 1, 386, '#5E6A7E');
+    for (let y = -496; y < -126; y += 40) { box(g, x + 6, y, 3, 3, '#1A2028'); box(g, x + 6, y, 2, 2, '#7A879C'); box(g, x - 7, y, 3, 3, '#1A2028'); box(g, x - 7, y, 2, 2, '#7A879C'); }
+  }
+  for (let y = -506 + 130; y < -120; y += 130) { box(g, bx0, y, W - bx0, 2, '#1A2028'); box(g, bx0, y + 2, W - bx0, 1, '#6A768A'); }
+  // (the glow down the wall under each tube: stepped, banded)
+  for (const fx of TUBES) for (let k = 0; k < 4; k++) { g.fillStyle = `rgba(220, 255, 235, ${0.035 + k * 0.012})`; g.fillRect(fx - 120 + k * 26, -500, 240 - k * 52, 260 - k * 50); }
+  // (grime: streaks down from the ceiling, dithered)
+  for (const sx of [60, 330, 560, 790, 1040, 1270]) for (let k = 0; k < 3; k++) checker(g, sx + k * 3, -500, 2, 90 - k * 26, 'rgba(10, 14, 12, 0.35)', k % 2, 1);
+  // (the wainscot: beige, its rail, its panels; scuffed)
   box(g, 0, -120, W, 120, '#8A7F66'); box(g, 0, -120, W, 3, '#A89C80'); box(g, 0, -117, W, 1, '#6E6450'); checker(g, 0, -18, W, 6, '#6E6450', 0, 1); box(g, 0, -12, W, 12, '#5E5644');
-  for (let x = 0; x < W; x += 64) box(g, x, -117, 1, 105, '#7A705A');
+  for (let x = 0; x < W; x += 64) { box(g, x, -117, 1, 105, '#7A705A'); box(g, x + 1, -117, 1, 105, '#9A8E72'); }
+  for (let x = 20; x < W; x += 137) checker(g, x, -40, 26, 10, '#6E6450', 1, 2);
+  // (the ceiling: dark, the big duct along it, ribbed; the cable tray under it; the fittings)
   box(g, 0, -560, W, 54, '#1C2420'); box(g, 0, -508, W, 2, '#0E1210');
-  for (const fx of [120, 400, 680]) { box(g, fx - 70, -512, 140, 10, INK); box(g, fx - 68, -511, 136, 8, '#9CA3AF'); }
-  // (the floor: linoleum checks going back, banded darker toward the wall)
+  box(g, 0, -552, W, 22, INK); box(g, 0, -551, W, 20, '#5C646E'); box(g, 0, -551, W, 4, '#8A939E'); box(g, 0, -537, W, 6, '#474E58'); checker(g, 0, -541, W, 4, '#474E58', 0, 1);
+  for (let x = 12; x < W; x += 28) { box(g, x, -552, 3, 22, '#3A4048'); box(g, x + 3, -552, 1, 22, '#9AA2AC'); }
+  box(g, 0, -524, W, 4, INK); box(g, 0, -523, W, 2, '#6B7280');
+  for (const fx of TUBES) { box(g, fx - 70, -512, 140, 10, INK); box(g, fx - 68, -511, 136, 8, '#9CA3AF'); box(g, fx - 68, -511, 136, 2, '#D1D5DB'); box(g, fx - 40, -522, 2, 10, INK); box(g, fx + 38, -522, 2, 10, INK); }
+  // (cables off the tray, drooping: the framing up top)
+  cable(g, 220, -520, 330, -520, 26, '#1F2937'); cable(g, 470, -520, 540, -520, 18, '#7F1D1D', 2);
+  cable(g, 760, -520, 820, -520, 30, '#14532D'); cable(g, 990, -520, 1060, -520, 20, '#BE185D', 2); cable(g, 1180, -520, 1240, -520, 22, '#1F2937');
+  // (the floor: linoleum checks going back, banded darker toward the wall; the lit lip along its front edge (it's what
+  // he stands on); the safety line painted along it)
   box(g, 0, 0, W, 60, '#A9A288');
   for (let r = 0; r < 4; r++) { const y = r * 12; for (let x = -(r * 6) % 24; x < W; x += 24) box(g, x, y, 12, 12, r % 2 ? '#C9C2A8' : '#A9A288'); checker(g, 0, y + 10, W, 2, '#8C8670', r % 2, 1); }
   box(g, 0, 0, W, 2, '#E8E2C8');
-  // A FAKE SEAL up top (not anybody's real one): DEPARTMENT OF NORMAL STORES; the banner
-  ball(g, 400, -446, 26, '#1E3A8A'); ball(g, 400, -446, 20, '#F8FAFC', false); ball(g, 400, -446, 12, '#CA8A04', false);
-  words(g, '51', 400, -442, '#1E3A8A', 8);
-  board(g, 400, -400, 'DEPARTMENT OF NORMAL STORES', '#1E3A8A', '#FDE68A', 6, 5, false);
-  board(g, 640, -470, 'AREA 51: GIFT SHOP ANNEX (STAFF ONLY)', '#7F1D1D', '#FEF3C7', 6, 4, false);
-  // THE WAY OUT: the inside of the blast door, ajar, EXIT (TO THE GIFT SHOP) over it
-  box(g, 30, -134, 84, 134, INK); box(g, 34, -130, 76, 130, '#0E1612');
+  box(g, 0, 4, W, 2, '#CA9A08'); checker(g, 0, 6, W, 1, '#8A6A08', 0, 2);
+  hazard(g, PIER - 10, 2, PIER_W + 20, 8);
+
+  // ===== BAY 1: THE AUTOPSY END =====
+  // A FAKE SEAL (not anybody's real one), DEPARTMENT OF NORMAL STORES under it
+  ball(g, 560, -402, 26, '#1E3A8A'); ball(g, 560, -402, 20, '#F8FAFC', false); ball(g, 560, -402, 12, '#CA8A04', false);
+  for (let k = 0; k < 12; k++) { const a = (k / 12) * Math.PI * 2; box(g, 560 + Math.cos(a) * 16 - 1, -402 + Math.sin(a) * 16 - 1, 2, 2, '#1E3A8A'); }
+  words(g, '51', 560, -398, '#1E3A8A', 8);
+  board(g, 560, -356, 'DEPARTMENT OF NORMAL STORES', '#1E3A8A', '#FDE68A', 6, 5, false);
+  // THE WAY OUT: the inside of the blast door, ajar, EXIT (TO THE GIFT SHOP) over it; its frame hazard-banded
+  box(g, 26, -138, 92, 138, INK); hazard(g, 28, -136, 88, 6);
+  box(g, 34, -130, 76, 130, '#0E1612');
   for (let k = 0; k < 3; k++) box(g, 40 + k * 4, -124, 64 - k * 8, 124, `rgba(255, 220, 160, ${0.05 + k * 0.03})`);
   poly(g, [[34, -130], [52, -122], [52, -6], [34, 0]], STEEL[3]); box(g, 34, -130, 3, 130, STEEL[5]);
-  board(g, 72, -150, 'EXIT (TO GIFT SHOP)', '#15803D', '#F0FDF4', 5, 4, false);
-  // MKULTRA OVERFLOW: a filing cabinet, four drawers, the top one hanging open, files spilling
-  const cab = back('#8C929C');
-  box(g, 128, -150, 64, 150, INK); slab(g, 130, -148, 60, 148, ramp6(cab), false);
-  for (let k = 0; k < 4; k++) { const y = -146 + k * 36; box(g, 132, y + 34, 56, 2, mix(cab, INK, 0.4)); box(g, 152, y + 14, 18, 4, INK); box(g, 153, y + 15, 16, 2, '#D4D8DE'); box(g, 154, y + 6, 14, 6, '#F5F5F0'); }
-  box(g, 126, -150, 70, 12, INK); box(g, 128, -149, 66, 10, mix(cab, '#FFFFFF', 0.1));
-  for (let k = 0; k < 6; k++) { box(g, 130 + k * 10, -158 - (k % 3) * 2, 8, 12, k % 2 ? '#F5E6B8' : '#E8D9A8'); box(g, 130 + k * 10, -158 - (k % 3) * 2, 8, 1, '#FFF8DC'); }
+  for (let k = 0; k < 5; k++) box(g, 42, -116 + k * 24, 6, 3, STEEL[1]);
+  board(g, 72, -152, 'EXIT (TO GIFT SHOP)', '#15803D', '#F0FDF4', 5, 4, false);
+  // MKULTRA OVERFLOW: a filing cabinet, four drawers, files piled on top, spilling
+  cabinet(g, 130, 60, 148, 4, '#8C929C');
+  for (let k = 0; k < 6; k++) { box(g, 130 + k * 10, -162 - (k % 3) * 2, 8, 12, k % 2 ? '#F5E6B8' : '#E8D9A8'); box(g, 130 + k * 10, -162 - (k % 3) * 2, 8, 1, '#FFF8DC'); }
   box(g, 196, -14, 14, 2, '#F5E6B8'); box(g, 186, -8, 12, 2, '#E8D9A8'); box(g, 205, -6, 10, 2, '#F5F5F0');
-  board(g, 160, -176, 'MKULTRA\nOVERFLOW', '#F5F5F0', '#1F2937', 5, 3, false);
-  // THE COVER-UP PLAN: a whiteboard, aluminum frame, marker
-  box(g, 108, -372, 216, 146, INK); box(g, 110, -370, 212, 142, '#C8CED6'); box(g, 113, -367, 206, 136, '#F4F6F8'); checker(g, 113, -240, 206, 6, '#E2E6EA', 0, 1);
+  board(g, 160, -186, 'MKULTRA\nOVERFLOW', '#F5F5F0', '#1F2937', 5, 3, false);
+  // THE COVER-UP PLAN: a whiteboard, aluminum frame, marker tray
+  box(g, 108, -372, 216, 146, INK); box(g, 110, -370, 212, 142, '#C8CED6'); box(g, 110, -370, 212, 2, '#E8ECF0'); box(g, 113, -367, 206, 136, '#F4F6F8'); checker(g, 113, -240, 206, 6, '#E2E6EA', 0, 1);
   words(g, 'COVER-UP PLAN', 216, -350, '#DC2626', 7);
   g.font = '6px "Press Start 2P"'; g.textAlign = 'left';
   g.fillStyle = '#1D4ED8'; g.fillText('1. DISGUISE AS', 122, -330); g.fillText('   GIFT SHOP', 122, -320);
@@ -329,104 +393,178 @@ const paintRoom = (g: Ctx) => {
   g.strokeStyle = '#7C3AED'; g.beginPath(); g.ellipse(282, -258, 5, 3, 0, 0, Math.PI * 2); g.ellipse(292, -258, 5, 3, 0, 0, Math.PI * 2); g.stroke();
   g.beginPath(); g.moveTo(287, -260); g.lineTo(287, -276); g.arc(290, -276, 3, Math.PI, 0); g.lineTo(293, -260); g.stroke();
   box(g, 140, -230, 40, 4, '#9CA3AF'); box(g, 150, -232, 10, 3, '#DC2626'); box(g, 162, -232, 10, 3, '#1D4ED8');
-  // THE AUTOPSY TABLE: steel on legs (back there), the grey laid out on it, opened up, his toe tagged
+  // THE AUTOPSY TABLE: steel on legs (back there), the grey laid out on it, opened up, his toe tagged; its lamp
   const stl = back('#A8B0BC');
-  for (const lx of [222, 362]) { box(g, lx, -54, 6, 54, INK); box(g, lx + 1, -54, 4, 54, mix(stl, INK, 0.3)); }
+  // (hung clear of the whiteboard: its cord past the board's right edge)
+  const lp = 346;
+  g.strokeStyle = INK; g.lineWidth = 2; g.beginPath(); g.moveTo(lp, -506); g.lineTo(lp, -176); g.stroke();
+  poly(g, [[lp - 28, -176], [lp + 28, -176], [lp + 38, -160], [lp - 38, -160]], INK); poly(g, [[lp - 26, -175], [lp + 26, -175], [lp + 34, -162], [lp - 34, -162]], '#6B7280'); box(g, lp - 32, -163, 64, 2, '#FEF9C3');
+  g.fillStyle = 'rgba(254, 249, 195, 0.07)'; g.beginPath(); g.moveTo(lp - 34, -160); g.lineTo(lp + 34, -160); g.lineTo(390, -64); g.lineTo(210, -64); g.fill();
+  for (const lx of [222, 362]) { box(g, lx, -54, 6, 54, INK); box(g, lx + 1, -54, 4, 54, mix(stl, INK, 0.3)); box(g, lx - 3, -4, 12, 4, INK); }
   box(g, 214, -54, 168, 2, INK); box(g, 216, -40, 164, 3, mix(stl, INK, 0.4));
-  box(g, 210, -64, 176, 12, INK); box(g, 212, -63, 172, 10, stl); box(g, 212, -63, 172, 1, mix(stl, '#FFFFFF', 0.15)); box(g, 212, -55, 172, 2, mix(stl, INK, 0.3));
-  // (the grey: lying on his back, head left: the big egg head, the black almond eye, the thin limbs, the Y cut)
+  box(g, 210, -64, 176, 12, INK); box(g, 212, -63, 172, 10, stl); box(g, 212, -63, 172, 1, mix(stl, '#FFFFFF', 0.08)); box(g, 212, -55, 172, 2, mix(stl, INK, 0.3));
+  box(g, 296, -30, 8, 24, INK); box(g, 297, -29, 6, 22, '#52525B');
   const GR = ['#3E4A4E', '#5C6A6E', '#7A8A8C', '#98A8A8', '#B6C4C2'];
   g.fillStyle = INK; g.beginPath(); g.ellipse(244, -82, 24, 18, -0.2, 0, Math.PI * 2); g.fill();
   g.fillStyle = GR[2]; g.beginPath(); g.ellipse(244, -82, 22, 16, -0.2, 0, Math.PI * 2); g.fill();
   g.fillStyle = GR[3]; g.beginPath(); g.ellipse(240, -87, 15, 9, -0.2, 0, Math.PI * 2); g.fill();
   box(g, 234, -92, 4, 2, GR[4]);
   g.fillStyle = INK; g.beginPath(); g.ellipse(250, -80, 8, 4, 0.5, 0, Math.PI * 2); g.fill(); box(g, 246, -82, 2, 1, '#FFFFFF');
-  // (body, under a sheet from the waist: the chest open (red, pink, a green organ), the Y cut stitched)
   box(g, 262, -78, 60, 16, INK); box(g, 263, -77, 58, 14, GR[2]); box(g, 263, -77, 58, 3, GR[3]);
   box(g, 276, -76, 30, 9, '#7F1D1D'); box(g, 278, -75, 26, 6, '#B91C1C'); box(g, 282, -74, 8, 4, '#4ADE80'); box(g, 294, -74, 6, 3, '#F9A8D4');
   g.strokeStyle = '#1F2937'; g.lineWidth = 1; g.beginPath(); g.moveTo(272, -77); g.lineTo(291, -70); g.lineTo(310, -77); g.moveTo(291, -70); g.lineTo(291, -63); g.stroke();
   poly(g, [[320, -80], [378, -78], [382, -64], [318, -64]], INK); poly(g, [[321, -79], [376, -77], [380, -65], [320, -65]], '#E5E7EB'); box(g, 322, -79, 54, 2, '#FFFFFF');
   for (let k = 0; k < 4; k++) box(g, 330 + k * 12, -74, 1, 9, '#C8CCD2');
-  // (the feet poking out, the tag on a string)
   box(g, 378, -80, 8, 6, INK); box(g, 379, -79, 6, 4, GR[3]);
-  g.strokeStyle = INK; g.beginPath(); g.moveTo(384, -76); g.lineTo(392, -60); g.stroke();
+  g.strokeStyle = INK; g.beginPath(); g.moveTo(384, -76); g.lineTo(398, -60); g.stroke();
   board(g, 404, -48, "PROPERTY OF\nTHE US GOV'T", '#F5E6B8', '#7F1D1D', 5, 3, false);
-  // (a tray of his bits on a cart by the table)
+  // (a tray of his bits on a stand by the table)
   box(g, 182, -84, 26, 6, INK); box(g, 183, -83, 24, 4, stl); ball(g, 190, -88, 4, '#4ADE80', false); ball(g, 199, -87, 3, '#F472B6', false);
-  // THE MOON LANDING SET: a black curtain with painted stars, a gray mound of a moon, the flag on its coat hanger, a
-  // lander out of gold foil and cardboard, a studio light aimed at it, the clapperboard TAKE 47
-  box(g, 418, -230, 124, 230, INK); box(g, 420, -228, 120, 228, '#0B0B14');
-  for (let k = 0; k < 22; k++) box(g, 424 + (k * 37) % 112, -222 + (k * 53) % 180, k % 4 ? 1 : 2, k % 4 ? 1 : 2, '#E5E7EB');
-  for (let k = 0; k < 6; k++) box(g, 420 + k * 20, -228, 2, 228, '#14141E');
+  box(g, 194, -78, 2, 78, INK); box(g, 186, -4, 18, 4, INK);
+  // THE MOON LANDING SET: a black curtain with painted stars on its rail, a gray mound of a moon, the flag on its coat
+  // hanger, a lander out of gold foil and cardboard, the clapperboard TAKE 47; the studio light over by the pier
+  const mx = 30;
+  box(g, 418 + mx, -230, 124, 230, INK); box(g, 420 + mx, -228, 120, 228, '#0B0B14');
+  for (let k = 0; k < 22; k++) box(g, 424 + mx + (k * 37) % 112, -222 + (k * 53) % 180, k % 4 ? 1 : 2, k % 4 ? 1 : 2, '#E5E7EB');
+  for (let k = 0; k < 6; k++) box(g, 420 + mx + k * 20, -228, 2, 228, '#14141E');
+  box(g, 416 + mx, -236, 128, 6, INK); box(g, 417 + mx, -235, 126, 4, '#52525B');
   const mn = ['#4A4A50', '#6A6A70', '#8A8A90', '#AAAAAE', '#CACACC'];
-  g.fillStyle = INK; g.beginPath(); g.ellipse(478, -2, 70, 22, 0, Math.PI, 0); g.fill();
-  for (const [r, k] of [[68, 1], [58, 2], [40, 3]] as const) { g.fillStyle = mn[k]; g.beginPath(); g.ellipse(478 - (68 - r) * 0.3, -2, r, 20 * r / 68, 0, Math.PI, 0); g.fill(); }
-  for (const [cx, cy] of [[450, -10], [500, -14], [474, -6]]) { g.fillStyle = mn[1]; g.beginPath(); g.ellipse(cx, cy, 6, 2, 0, 0, Math.PI * 2); g.fill(); }
-  // (the lander: a foil box on four legs, a hatch)
-  box(g, 484, -84, 40, 30, INK); box(g, 485, -83, 38, 28, '#CA8A04'); checker(g, 485, -83, 38, 28, '#EAB308', 0, 2); box(g, 485, -83, 38, 3, '#FDE047');
-  box(g, 498, -78, 12, 14, '#1F2937'); box(g, 490, -96, 28, 13, INK); box(g, 491, -95, 26, 11, '#D4D4D8');
-  for (const [lx, fx] of [[486, 476], [520, 532]]) { g.strokeStyle = INK; g.lineWidth = 2; g.beginPath(); g.moveTo(lx, -56); g.lineTo(fx, -22); g.stroke(); box(g, fx - 4, -24, 8, 3, INK); }
-  words(g, 'U.S.A', 504, -60, '#1E3A8A', 5);
-  // (the flag: stiff, the coat hanger showing along its top)
-  box(g, 440, -110, 2, 96, INK);
-  for (let k = 0; k < 7; k++) box(g, 442, -108 + k * 4, 34, 4, k % 2 ? '#F8FAFC' : '#DC2626');
-  box(g, 442, -108, 14, 14, '#1E3A8A'); for (let k = 0; k < 6; k++) box(g, 444 + (k % 3) * 4, -106 + Math.floor(k / 3) * 5, 1, 1, '#FFFFFF');
-  g.strokeStyle = '#9CA3AF'; g.lineWidth = 1; g.beginPath(); g.moveTo(441, -110); g.lineTo(478, -110); g.lineTo(474, -114); g.stroke();
-  // (the studio light on its tripod, aimed in)
-  g.strokeStyle = INK; g.lineWidth = 2; g.beginPath(); g.moveTo(552, -100); g.lineTo(540, 0); g.moveTo(552, -100); g.lineTo(564, 0); g.moveTo(552, -100); g.lineTo(552, 0); g.stroke();
-  poly(g, [[540, -126], [560, -118], [560, -96], [540, -104]], INK); poly(g, [[541, -124], [559, -117], [559, -98], [541, -105]], '#3F3F46');
-  poly(g, [[541, -124], [534, -122], [534, -106], [541, -105]], '#FEF9C3');
-  // (the clapperboard against the mound)
-  box(g, 424, -34, 34, 26, INK); box(g, 425, -33, 32, 24, '#18181B');
-  for (let k = 0; k < 4; k++) box(g, 425 + k * 8, -33, 4, 5, '#F8FAFC');
-  words(g, 'MOON', 441, -21, '#F8FAFC', 5); words(g, 'TAKE 47', 441, -12, '#F8FAFC', 4);
-  board(g, 480, -246, 'MOON LANDING (1969)', '#18181B', '#E5E7EB', 5, 4, false);
-  // THE SAUCER ENGINE on the wall: a disc cut in half on a steel frame, coils, cables down; DO NOT LICK (its core glows:
-  // live)
-  box(g, 560, -360, 6, 120, INK); box(g, 660, -360, 6, 120, INK);
-  g.fillStyle = INK; g.beginPath(); g.ellipse(613, -310, 62, 20, 0, 0, Math.PI * 2); g.fill();
-  const sc = ['#3A3F52', '#565D78', '#7A84A0', '#A4AEC8', '#D0D8EC'];
-  g.fillStyle = sc[2]; g.beginPath(); g.ellipse(613, -310, 60, 18, 0, 0, Math.PI * 2); g.fill();
-  g.fillStyle = sc[3]; g.beginPath(); g.ellipse(608, -314, 44, 9, 0, 0, Math.PI * 2); g.fill();
-  g.fillStyle = sc[1]; g.beginPath(); g.ellipse(613, -303, 56, 8, 0, 0, Math.PI); g.fill();
-  for (let k = -3; k <= 3; k++) { box(g, 613 + k * 15 - 2, -298, 4, 6, INK); box(g, 613 + k * 15 - 1, -297, 2, 4, '#B45309'); }
-  for (const cx of [570, 656]) for (let k = 0; k < 6; k++) { box(g, cx - 5, -344 + k * 6, 10, 4, INK); box(g, cx - 4, -343 + k * 6, 8, 2, '#B87333'); }
-  g.strokeStyle = INK; g.lineWidth = 3; g.beginPath(); g.moveTo(600, -292); g.quadraticCurveTo(590, -200, 612, -132); g.moveTo(626, -292); g.quadraticCurveTo(640, -210, 630, -132); g.stroke();
-  g.strokeStyle = '#7F1D1D'; g.lineWidth = 1; g.beginPath(); g.moveTo(600, -292); g.quadraticCurveTo(590, -200, 612, -132); g.stroke();
-  board(g, 613, -376, 'REVERSE ENGINEERED: DO NOT LICK', '#FEF08A', '#7F1D1D', 5, 3, false);
-  // THE SHARD'S PEDESTAL: a white column, a plaque; the containment jar's on it (live: the shard, the glass)
-  box(g, 578, -46, 44, 46, INK); slab(g, 580, -44, 40, 44, ramp6(back('#E5E7EB')), false); box(g, 574, -50, 52, 6, INK); box(g, 575, -49, 50, 4, back('#F3F4F6'));
+  g.fillStyle = INK; g.beginPath(); g.ellipse(478 + mx, -2, 70, 22, 0, Math.PI, 0); g.fill();
+  for (const [r, k] of [[68, 1], [58, 2], [40, 3]] as const) { g.fillStyle = mn[k]; g.beginPath(); g.ellipse(478 + mx - (68 - r) * 0.3, -2, r, 20 * r / 68, 0, Math.PI, 0); g.fill(); }
+  for (const [cx, cy] of [[450, -10], [500, -14], [474, -6]]) { g.fillStyle = mn[1]; g.beginPath(); g.ellipse(cx + mx, cy, 6, 2, 0, 0, Math.PI * 2); g.fill(); }
+  box(g, 484 + mx, -84, 40, 30, INK); box(g, 485 + mx, -83, 38, 28, '#CA8A04'); checker(g, 485 + mx, -83, 38, 28, '#EAB308', 0, 2); box(g, 485 + mx, -83, 38, 3, '#FDE047');
+  box(g, 498 + mx, -78, 12, 14, '#1F2937'); box(g, 490 + mx, -96, 28, 13, INK); box(g, 491 + mx, -95, 26, 11, '#D4D4D8');
+  for (const [lx, fx] of [[486, 476], [520, 532]]) { g.strokeStyle = INK; g.lineWidth = 2; g.beginPath(); g.moveTo(lx + mx, -56); g.lineTo(fx + mx, -22); g.stroke(); box(g, fx + mx - 4, -24, 8, 3, INK); }
+  words(g, 'U.S.A', 504 + mx, -60, '#1E3A8A', 5);
+  box(g, 440 + mx, -110, 2, 96, INK);
+  for (let k = 0; k < 7; k++) box(g, 442 + mx, -108 + k * 4, 34, 4, k % 2 ? '#F8FAFC' : '#DC2626');
+  box(g, 442 + mx, -108, 14, 14, '#1E3A8A'); for (let k = 0; k < 6; k++) box(g, 444 + mx + (k % 3) * 4, -106 + Math.floor(k / 3) * 5, 1, 1, '#FFFFFF');
+  g.strokeStyle = '#9CA3AF'; g.lineWidth = 1; g.beginPath(); g.moveTo(441 + mx, -110); g.lineTo(478 + mx, -110); g.lineTo(474 + mx, -114); g.stroke();
+  box(g, 424 + mx, -34, 34, 26, INK); box(g, 425 + mx, -33, 32, 24, '#18181B');
+  for (let k = 0; k < 4; k++) box(g, 425 + mx + k * 8, -33, 4, 5, '#F8FAFC');
+  words(g, 'MOON', 441 + mx, -21, '#F8FAFC', 5); words(g, 'TAKE 47', 441 + mx, -12, '#F8FAFC', 4);
+  board(g, 480 + mx, -252, 'MOON LANDING (1969)', '#18181B', '#E5E7EB', 5, 4, false);
+  g.strokeStyle = INK; g.lineWidth = 2; g.beginPath(); g.moveTo(672, -100); g.lineTo(660, 0); g.moveTo(672, -100); g.lineTo(684, 0); g.moveTo(672, -100); g.lineTo(672, 0); g.stroke();
+  poly(g, [[662, -126], [682, -118], [682, -96], [662, -104]], INK); poly(g, [[663, -124], [681, -117], [681, -98], [663, -105]], '#3F3F46');
+  poly(g, [[663, -124], [656, -122], [656, -106], [663, -105]], '#FEF9C3');
+  // THE SHARD'S PEDESTAL: a white column, a plaque, a hazard rope round it; the containment jar's on it (live)
+  box(g, 578, -46, 44, 46, INK); slab(g, 580, -44, 40, 44, ramp6(back('#E5E7EB')), false); box(g, 574, -50, 52, 6, INK); box(g, 575, -49, 50, 4, back('#E5E7EB'));
   board(g, 600, -22, 'ITEM 51-C', '#CA8A04', '#1C1917', 5, 2, false);
-  // THE JARS on a shelf up high: a brain (JFK?), an eye, a toe
+  for (const px of [556, 644]) { box(g, px - 2, -40, 4, 40, INK); box(g, px - 1, -40, 2, 40, '#EAB308'); box(g, px - 4, -2, 8, 2, INK); }
+  g.strokeStyle = INK; g.lineWidth = 3; g.beginPath(); g.moveTo(556, -38); g.quadraticCurveTo(568, -28, 578, -32); g.moveTo(622, -32); g.quadraticCurveTo(634, -28, 644, -38); g.stroke();
+  g.strokeStyle = '#EAB308'; g.lineWidth = 1; g.beginPath(); g.moveTo(556, -38); g.quadraticCurveTo(568, -28, 578, -32); g.moveTo(622, -32); g.quadraticCurveTo(634, -28, 644, -38); g.stroke();
+
+  // ===== THE PIER: concrete, banded, the bay's sign held up on it =====
+  const PR = ramp6(back(CONCRETE[3]));
+  box(g, PIER - 2, -506, PIER_W + 4, 506, INK); slab(g, PIER, -506, PIER_W, 506, PR, true);
+  for (let y = -480; y < -40; y += 64) { box(g, PIER + 4, y, PIER_W - 8, 1, PR[1]); box(g, PIER + 4, y + 1, PIER_W - 8, 1, PR[4]); }
+  hazard(g, PIER, -60, PIER_W, 20);
+  board(g, PIER + PIER_W / 2, -300, 'BAY 2\nREVERSE\nENGINEERING', '#1C1917', '#FDE047', 5, 4, false);
+
+  // ===== BAY 2: THE REVERSE ENGINEERING END =====
+  // TOP SECRET: two filing cabinets by the pier, the label taped across them
+  cabinet(g, 756, 40, 128, 4, '#7C8A6A'); cabinet(g, 800, 40, 128, 4, '#7C8A6A');
+  board(g, 798, -148, 'TOP SECRET', '#F5F5F0', '#B91C1C', 5, 3, false);
+  // THE SAUCER ENGINE on the wall: a disc cut in half on a steel frame, coils, cables down to its transformer; DO NOT
+  // LICK over it (its core glows: live)
+  const ex = CORE.x;
+  box(g, ex - 53, -360, 6, 128, INK); box(g, ex - 52, -360, 4, 128, '#52525B'); box(g, ex + 47, -360, 6, 128, INK); box(g, ex + 48, -360, 4, 128, '#52525B');
+  g.fillStyle = INK; g.beginPath(); g.ellipse(ex, -310, 62, 20, 0, 0, Math.PI * 2); g.fill();
+  const sc = ['#3A3F52', '#565D78', '#7A84A0', '#A4AEC8', '#D0D8EC'];
+  g.fillStyle = sc[2]; g.beginPath(); g.ellipse(ex, -310, 60, 18, 0, 0, Math.PI * 2); g.fill();
+  g.fillStyle = sc[3]; g.beginPath(); g.ellipse(ex - 5, -314, 44, 9, 0, 0, Math.PI * 2); g.fill();
+  g.fillStyle = sc[4]; g.beginPath(); g.ellipse(ex - 12, -316, 22, 3, 0, 0, Math.PI * 2); g.fill();
+  g.fillStyle = sc[1]; g.beginPath(); g.ellipse(ex, -303, 56, 8, 0, 0, Math.PI); g.fill();
+  for (let k = -3; k <= 3; k++) { box(g, ex + k * 15 - 2, -298, 4, 6, INK); box(g, ex + k * 15 - 1, -297, 2, 4, '#B45309'); }
+  for (const cx of [ex - 43, ex + 43]) for (let k = 0; k < 6; k++) { box(g, cx - 5, -344 + k * 6, 10, 4, INK); box(g, cx - 4, -343 + k * 6, 8, 2, '#B87333'); }
+  cable(g, ex - 13, -292, ex - 6, -74, 10, '#1F2937'); cable(g, ex + 13, -292, ex + 10, -74, -6, '#7F1D1D');
+  board(g, ex, -382, 'REVERSE ENGINEERED: DO NOT LICK', '#FEF08A', '#7F1D1D', 5, 3, false);
+  // (its transformer on the floor under it: a gray box, its fins, the hazard band, DANGER)
+  box(g, ex - 26, -74, 52, 74, INK); slab(g, ex - 24, -72, 48, 72, ramp6(back('#6B7280')), true);
+  for (let k = 0; k < 5; k++) box(g, ex - 20 + k * 9, -66, 4, 30, '#3F4652');
+  hazard(g, ex - 24, -32, 48, 6);
+  words(g, 'DANGER', ex, -14, '#FDE047', 5, INK);
+  // THE WORKBENCH: a ray gun stripped down in a vise, its bits laid out, a desk lamp; the pegboard of tools behind it
+  const bx = 912, bw = 128;
+  box(g, bx, -200, bw, 112, INK); box(g, bx + 2, -198, bw - 4, 108, back('#B08A5A'));
+  for (let y = -192; y < -92; y += 8) for (let x = bx + 6; x < bx + bw - 4; x += 8) box(g, x, y, 1, 1, back('#6A4E2E'));
+  for (const [tx, kind] of [[928, 0], [948, 1], [970, 2], [994, 0], [1014, 1], [1030, 2]] as const) {
+    if (kind === 0) { box(g, tx - 1, -186, 3, 30, INK); box(g, tx - 4, -186, 9, 6, '#B91C1C'); }
+    else if (kind === 1) { box(g, tx - 1, -184, 2, 34, '#9CA3AF'); box(g, tx - 4, -152, 8, 4, '#9CA3AF'); }
+    else { g.strokeStyle = '#9CA3AF'; g.lineWidth = 2; g.beginPath(); g.arc(tx, -170, 7, 0.3, Math.PI * 1.7); g.stroke(); }
+  }
+  box(g, bx - 4, -70, bw + 8, 10, INK); box(g, bx - 2, -69, bw + 4, 8, back('#8B5E34')); box(g, bx - 2, -69, bw + 4, 1, back('#9A6A3E'));
+  for (const lx of [bx + 4, bx + bw - 10]) { box(g, lx, -60, 6, 60, INK); box(g, lx + 1, -60, 4, 60, back('#6B4A2A')); }
+  box(g, bx + 4, -26, bw - 8, 4, INK);
+  box(g, 940, -86, 22, 16, INK); box(g, 941, -85, 20, 14, '#3F6212'); box(g, 936, -92, 30, 6, INK); box(g, 937, -91, 28, 4, '#65A30D');
+  box(g, 952, -104, 30, 10, INK); box(g, 953, -103, 28, 8, CHROME[4]); box(g, 953, -103, 28, 2, '#DC2626'); ball(g, 984, -99, 4, '#F472B6', true);
+  for (const [px, col] of [[996, '#4ADE80'], [1006, '#FDE047'], [1016, '#60A5FA']] as const) { box(g, px, -76, 6, 6, INK); box(g, px + 1, -75, 4, 4, col); }
+  g.strokeStyle = INK; g.lineWidth = 2; g.beginPath(); g.moveTo(1030, -70); g.lineTo(1020, -100); g.lineTo(1034, -118); g.stroke();
+  poly(g, [[1026, -126], [1044, -118], [1038, -108], [1022, -114]], INK); poly(g, [[1027, -124], [1042, -118], [1037, -110], [1024, -115]], '#15803D');
+  g.fillStyle = 'rgba(254, 249, 195, 0.12)'; g.beginPath(); g.moveTo(1024, -112); g.lineTo(1038, -108); g.lineTo(1010, -70); g.lineTo(970, -70); g.fill();
+  // THE JARS on a shelf up over the bench: a brain (JFK?), an eye, a toe
   const shelf = back('#7C5A3A');
-  box(g, 644, -230, 150, 6, INK); box(g, 645, -229, 148, 4, shelf); for (const sx of [652, 780]) { box(g, sx, -224, 4, 14, INK); }
-  for (const [jx, what, lbl] of [[664, 'brain', 'JFK?'], [714, 'eye', 'DO NOT'], [762, 'toe', 'BIGFOOT']] as const) {
-    box(g, jx - 15, -278, 30, 48, INK); box(g, jx - 14, -277, 28, 46, '#3F5F3A'); box(g, jx - 14, -277, 28, 46, 'rgba(180, 230, 160, 0.35)');
-    box(g, jx - 16, -284, 32, 8, INK); box(g, jx - 15, -283, 30, 6, '#9CA3AF'); box(g, jx - 15, -283, 30, 2, '#D1D5DB');
-    if (what === 'brain') { ball(g, jx, -258, 10, '#F9A8D4', false); g.strokeStyle = '#BE185D'; g.lineWidth = 1; g.beginPath(); g.moveTo(jx - 6, -262); g.quadraticCurveTo(jx - 2, -256, jx + 2, -262); g.quadraticCurveTo(jx + 5, -254, jx + 8, -258); g.moveTo(jx, -268); g.lineTo(jx, -250); g.stroke(); }
-    if (what === 'eye') { ball(g, jx, -256, 7, '#F8FAFC', false); ball(g, jx + 1, -256, 3, '#2563EB', false); box(g, jx, -257, 2, 2, INK); g.strokeStyle = '#DC2626'; g.beginPath(); g.moveTo(jx - 7, -256); g.lineTo(jx - 12, -246); g.stroke(); }
-    if (what === 'toe') { box(g, jx - 6, -262, 12, 18, '#8B6B4A'); box(g, jx - 6, -262, 12, 4, '#D4B48A'); box(g, jx - 4, -263, 8, 3, '#A16207'); }
-    box(g, jx - 12, -244, 24, 10, '#F5F5F0'); words(g, lbl, jx, -236, '#1F2937', lbl.length > 5 ? 4 : 5);
-    box(g, jx - 13, -276, 3, 40, 'rgba(255,255,255,0.3)');
+  box(g, 912, -230, 132, 6, INK); box(g, 913, -229, 130, 4, shelf);
+  for (const sx of [918, 1034]) box(g, sx, -224, 4, 14, INK);
+  for (const [jx, what, lbl] of [[940, 'brain', 'JFK?'], [980, 'eye', 'EYE SPY'], [1020, 'toe', 'BIGFOOT']] as const) {
+    box(g, jx - 17, -278, 34, 48, INK); box(g, jx - 16, -277, 32, 46, '#3F5F3A'); box(g, jx - 16, -277, 32, 46, 'rgba(180, 230, 160, 0.35)');
+    checker(g, jx - 16, -246, 32, 14, 'rgba(30, 60, 30, 0.35)', 0, 2);
+    box(g, jx - 18, -284, 36, 8, INK); box(g, jx - 17, -283, 34, 6, '#9CA3AF'); box(g, jx - 17, -283, 34, 2, '#D1D5DB');
+    if (what === 'brain') { ball(g, jx, -262, 10, '#F9A8D4', false); g.strokeStyle = '#BE185D'; g.lineWidth = 1; g.beginPath(); g.moveTo(jx - 6, -266); g.quadraticCurveTo(jx - 2, -260, jx + 2, -266); g.quadraticCurveTo(jx + 5, -258, jx + 8, -262); g.moveTo(jx, -272); g.lineTo(jx, -254); g.stroke(); }
+    if (what === 'eye') { ball(g, jx, -260, 7, '#F8FAFC', false); ball(g, jx + 1, -260, 3, '#2563EB', false); box(g, jx, -261, 2, 2, INK); g.strokeStyle = '#DC2626'; g.beginPath(); g.moveTo(jx - 7, -260); g.lineTo(jx - 12, -252); g.stroke(); }
+    if (what === 'toe') { box(g, jx - 6, -266, 12, 18, '#8B6B4A'); box(g, jx - 6, -266, 12, 4, '#D4B48A'); box(g, jx - 4, -267, 8, 3, '#A16207'); }
+    box(g, jx - 20, -247, 40, 13, INK); box(g, jx - 19, -246, 38, 11, '#F5F5F0'); words(g, lbl, jx, -237, '#1F2937', 5);
+    box(g, jx - 14, -276, 3, 28, 'rgba(255,255,255,0.3)');
   }
-  // THE CRATES of ray guns (back against the wall: dimmed, no lit tops): stencilled; the open one, guns sticking out
+  // THE CONSOLES: a bank of them, tape reels, the screen (live), a slanted desk of lights and switches
+  const cx0 = 1050, cw = 90;
+  box(g, cx0, -170, cw, 170, INK); slab(g, cx0 + 2, -168, cw - 4, 168, ramp6(back('#9CA3AF')), true);
+  for (const [rx, ry] of [[cx0 + 24, -148], [cx0 + 66, -148]]) { ball(g, rx, ry, 13, '#3F3F46'); ball(g, rx, ry, 5, '#A1A1AA', false); box(g, rx - 1, ry - 12, 2, 24, '#18181B'); }
+  box(g, cx0 + 8, -128, cw - 16, 40, INK); box(g, cx0 + 10, -126, cw - 20, 36, '#05140A');
+  poly(g, [[cx0 - 6, -76], [cx0 + cw + 6, -76], [cx0 + cw + 10, -60], [cx0 - 10, -60]], INK); poly(g, [[cx0 - 5, -75], [cx0 + cw + 5, -75], [cx0 + cw + 8, -61], [cx0 - 8, -61]], back('#6B7280'));
+  for (let k = 0; k < 8; k++) { box(g, cx0 + 2 + k * 11, -72, 5, 5, INK); box(g, cx0 + 3 + k * 11, -71, 3, 3, ['#DC2626', '#FDE047', '#22C55E', '#F8FAFC'][k % 4]); }
+  for (let k = 0; k < 6; k++) { box(g, cx0 + 8 + k * 13, -54, 6, 10, INK); box(g, cx0 + 9 + k * 13, -53, 4, 4, '#D4D4D8'); }
+  // (the blueprint taped up over them: the saucer in white line, SAUCER: HOW?)
+  const bpx = 1050, bpy = -300;
+  box(g, bpx, bpy, 90, 76, INK); box(g, bpx + 1, bpy + 1, 88, 74, '#1E40AF'); checker(g, bpx + 1, bpy + 1, 88, 60, '#1D3A9E', 0, 2);
+  for (let k = 1; k < 6; k++) { box(g, bpx + 1 + k * 15, bpy + 1, 1, 60, 'rgba(147, 197, 253, 0.35)'); box(g, bpx + 1, bpy + 1 + k * 11, 88, 1, 'rgba(147, 197, 253, 0.35)'); }
+  g.strokeStyle = '#E0F2FE'; g.lineWidth = 1; g.beginPath(); g.ellipse(bpx + 45, bpy + 32, 32, 8, 0, 0, Math.PI * 2); g.moveTo(bpx + 31, bpy + 28); g.arc(bpx + 45, bpy + 28, 14, Math.PI, 0); g.stroke();
+  box(g, bpx + 1, bpy + 62, 88, 13, '#F8FAFC'); words(g, 'SAUCER: HOW?', bpx + 45, bpy + 72, '#1E3A8A', 5);
+  for (const tx of [bpx + 2, bpx + 80]) box(g, tx, bpy - 2, 8, 5, 'rgba(245, 230, 184, 0.9)');
+  board(g, 1150, -392, 'AREA 51: GIFT SHOP ANNEX\n(STAFF ONLY)', '#7F1D1D', '#FEF3C7', 5, 4, false);
+  // THE CRASHED SAUCER: a chunk of its hull rim-first in the floor, scorched, its portholes; a tarp half off it; the
+  // evidence tag on its string; the posts round it. Back there: dimmed, no lit top
+  const hull = ramp6(back('#8C96A8'));
+  g.fillStyle = INK; g.beginPath(); g.moveTo(1150, 0); g.quadraticCurveTo(1170, -150, 1286, -132); g.lineTo(1296, 0); g.fill();
+  g.fillStyle = hull[2]; g.beginPath(); g.moveTo(1154, -2); g.quadraticCurveTo(1174, -144, 1284, -128); g.lineTo(1292, -2); g.fill();
+  g.fillStyle = hull[3]; g.beginPath(); g.moveTo(1172, -2); g.quadraticCurveTo(1190, -118, 1282, -110); g.lineTo(1288, -2); g.fill();
+  checker(g, 1176, -60, 100, 58, hull[2], 0, 2);
+  for (const [px, py] of [[1196, -80], [1228, -96], [1260, -100]]) { ball(g, px, py, 7, '#1F2937'); ball(g, px - 1, py - 1, 4, '#67E8F9', false); box(g, px - 3, py - 4, 2, 2, '#ECFEFF'); }
+  checker(g, 1152, -40, 60, 40, 'rgba(20, 14, 10, 0.55)', 1, 1); checker(g, 1270, -132, 24, 60, 'rgba(20, 14, 10, 0.5)', 0, 1);
+  poly(g, [[1236, -126], [1290, -134], [1300, -60], [1282, -40], [1266, -70], [1246, -100]], INK);
+  poly(g, [[1238, -124], [1288, -131], [1297, -62], [1283, -44], [1268, -72], [1248, -102]], back('#4D7C0F'));
+  for (let k = 0; k < 4; k++) box(g, 1256 + k * 9, -118 + k * 16, 18, 1, back('#365314'));
+  g.strokeStyle = INK; g.lineWidth = 1; g.beginPath(); g.moveTo(1180, -112); g.lineTo(1168, -96); g.stroke();
+  board(g, 1168, -84, 'EVIDENCE\n#2', '#FDE047', '#1C1917', 5, 3, false);
+  for (const px of [1140, 1300]) { box(g, px - 2, -34, 4, 34, INK); box(g, px - 1, -34, 2, 34, '#EAB308'); }
+  // THE CRATES of ray guns (back against the wall: dimmed, no lit tops): stencilled; the top one open, guns poking up
   const crate = back('#9A7442'), CR = ramp6(crate);
-  for (const [cx, cy, cw, ch] of [[652, -66, 80, 66], [664, -126, 64, 60], [736, -54, 60, 54]] as const) {
-    box(g, cx - 1, cy - 1, cw + 2, ch + 1, INK); box(g, cx, cy, cw, ch, CR[2]);
-    for (let k = 1; k < 4; k++) box(g, cx, cy + (ch * k) / 4, cw, 1, CR[1]);
-    box(g, cx, cy, 4, ch, CR[3]); box(g, cx + cw - 4, cy, 4, ch, CR[1]);
-    g.strokeStyle = CR[1]; g.lineWidth = 3; g.beginPath(); g.moveTo(cx + 4, cy + 4); g.lineTo(cx + cw - 4, cy + ch - 4); g.stroke();
+  for (const [cx, cy, cw2, ch] of [[1310, -66, 80, 66], [1318, -124, 64, 58]] as const) {
+    box(g, cx - 1, cy - 1, cw2 + 2, ch + 1, INK); box(g, cx, cy, cw2, ch, CR[2]);
+    for (let k = 1; k < 4; k++) box(g, cx, cy + (ch * k) / 4, cw2, 1, CR[1]);
+    box(g, cx, cy, 4, ch, CR[3]); box(g, cx + cw2 - 4, cy, 4, ch, CR[1]);
+    g.strokeStyle = CR[1]; g.lineWidth = 3; g.beginPath(); g.moveTo(cx + 4, cy + 4); g.lineTo(cx + cw2 - 4, cy + ch - 4); g.stroke();
   }
-  words(g, 'RAY GUNS', 692, -40, '#1C1917', 6); words(g, 'DO NOT SELL', 692, -28, '#7F1D1D', 4); words(g, 'IN GIFT SHOP', 692, -21, '#7F1D1D', 4);
-  words(g, 'TOP SECRET', 696, -94, '#7F1D1D', 5);
-  // (the open one: its lid leant on it, ray guns poking up in their chrome and red)
-  for (let k = 0; k < 4; k++) { const gx = 744 + k * 12, gy = -64 - (k % 2) * 6; box(g, gx - 1, gy - 1, 8, 14, INK); box(g, gx, gy, 6, 12, CHROME[4]); box(g, gx, gy, 6, 3, '#DC2626'); ball(g, gx + 3, gy - 2, 3, '#F472B6', true); }
-  poly(g, [[796, -70], [804, -68], [800, 0], [792, 0]], INK); poly(g, [[797, -68], [802, -67], [799, -2], [794, -2]], CR[2]);
-  // THE TV, wall-mounted up in the corner: a fat CRT on a bracket (what's on it is live)
-  box(g, 720, -436, 4, 26, INK);
-  box(g, 682, -414, 104, 82, INK); box(g, 684, -412, 100, 78, '#27272A'); box(g, 684, -412, 100, 3, '#3F3F46');
-  box(g, 690, -406, 80, 62, '#05050A');
-  box(g, 774, -404, 6, 6, '#52525B'); box(g, 774, -394, 6, 6, '#52525B'); box(g, 775, -380, 4, 2, '#22C55E');
+  for (const [sx2, sy2] of [[1350, -34], [1350, -96]]) { ball(g, sx2, sy2, 9, back('#7F1D1D'), false); ball(g, sx2, sy2, 6, CR[2], false); box(g, sx2 - 1, sy2 - 9, 2, 18, back('#7F1D1D')); box(g, sx2 - 9, sy2 - 1, 18, 2, back('#7F1D1D')); }
+  board(g, 1350, -176, 'RAY GUNS\nDO NOT SELL\nIN GIFT SHOP', '#F5E6B8', '#7F1D1D', 5, 3, false);
+  for (let k = 0; k < 4; k++) { const gx = 1328 + k * 12, gy = -138 - (k % 2) * 6; box(g, gx - 1, gy - 1, 8, 16, INK); box(g, gx, gy, 6, 14, CHROME[4]); box(g, gx, gy, 6, 3, '#DC2626'); ball(g, gx + 3, gy - 2, 3, '#F472B6', true); }
+  // THE TV, wall-mounted up in the corner on its bracket, clear of every sign (what's on it is live)
+  box(g, TV.x + 38, -436, 4, 26, INK);
+  box(g, TV.x - 8, -414, 104, 82, INK); box(g, TV.x - 6, -412, 100, 78, '#27272A'); box(g, TV.x - 6, -412, 100, 3, '#3F3F46');
+  box(g, TV.x, -406, 80, 62, '#05050A');
+  box(g, TV.x + 84, -404, 6, 6, '#52525B'); box(g, TV.x + 84, -394, 6, 6, '#52525B'); box(g, TV.x + 85, -380, 4, 2, '#22C55E');
+  // (the room's far end: the corner, in shadow)
+  box(g, W - 8, -506, 8, 506, '#151A20'); checker(g, W - 14, -506, 6, 506, '#151A20', 0, 1);
   void ORANGE; void CANVAS_HEIGHT;
 };
 
@@ -434,19 +572,28 @@ const paintRoom = (g: Ctx) => {
 export const drawRoom = (c: Ctx, state: GameState, shard: boolean, taken: number) => {
   const x0 = X(ROOM.a), f = state.frame;
   if (!inView(state, x0, X(ROOM.b), 0)) return;
-  still(c, 'spc-a51-room', x0, GY, -40, -620, RW + 80, 700, paintRoom);
-  // (the tubes: one of them on the blink, as they always are in a place like this)
-  for (const [k, fx] of [[0, 120], [1, 400], [2, 680]] as const) {
-    const on = k !== 1 || (f % 170 > 6 && f % 170 < 150) || (f % 170 > 154 && f % 170 < 160);
+  still(c, 'spc-a51-room2', x0, GY, -40, -620, RW + 80, 700, paintRoom);
+  // (the tubes: one of them on the blink, one buzzing, as they always are in a place like this)
+  TUBES.forEach((fx, k) => {
+    if (!inView(state, x0 + fx - 180, x0 + fx + 180, 0)) return;
+    const on = k === 1 ? (f % 170 > 6 && f % 170 < 150) || (f % 170 > 154 && f % 170 < 160) : k === 4 ? f % 47 !== 3 && f % 47 !== 5 : true;
     box(c, x0 + fx - 64, GY - 506, 128, 3, on ? '#F0FFF4' : '#5A6460');
     if (on) { c.fillStyle = 'rgba(220, 255, 230, 0.06)'; c.beginPath(); c.moveTo(x0 + fx - 64, GY - 503); c.lineTo(x0 + fx + 64, GY - 503); c.lineTo(x0 + fx + 170, GY); c.lineTo(x0 + fx - 170, GY); c.fill(); }
-  }
+  });
   // (the saucer engine's core: a slow purple throb)
-  const th = 0.5 + 0.5 * Math.sin(f * 0.07);
-  for (const [r, a] of [[30, 0.1], [20, 0.16], [11, 0.3]] as const) { c.fillStyle = `rgba(192, 132, 252, ${a * (0.6 + th * 0.6)})`; c.beginPath(); c.ellipse(x0 + 613, GY - 310, r * 1.8, r * 0.6, 0, 0, Math.PI * 2); c.fill(); }
-  box(c, x0 + 603, GY - 313, 20, 5, th > 0.5 ? '#F5D0FE' : '#C084FC');
+  const th = 0.5 + 0.5 * Math.sin(f * 0.07), ex = x0 + CORE.x, ey = GY + CORE.y;
+  for (const [r, a] of [[30, 0.1], [20, 0.16], [11, 0.3]] as const) { c.fillStyle = `rgba(192, 132, 252, ${a * (0.6 + th * 0.6)})`; c.beginPath(); c.ellipse(ex, ey, r * 1.8, r * 0.6, 0, 0, Math.PI * 2); c.fill(); }
+  box(c, ex - 10, ey - 3, 20, 5, th > 0.5 ? '#F5D0FE' : '#C084FC');
+  // (the consoles: the lights chasing, the screen's readout)
+  const cx0 = x0 + 1050;
+  for (let k = 0; k < 8; k++) if ((Math.floor(f / 9) + k * 3) % 5 === 0) box(c, cx0 + 3 + k * 11, GY - 71, 3, 3, '#FFFFFF');
+  const sx = cx0 + 10, sy = GY - 126;
+  c.fillStyle = '#4ADE80'; c.font = '5px "Press Start 2P"'; c.textAlign = 'left';
+  c.fillText('SETI: 0 HITS', sx + 3, sy + 10); c.fillText('SAUCER: NO', sx + 3, sy + 20);
+  if (f % 60 < 40) c.fillText('LOCK: OK', sx + 3, sy + 30);
+  box(c, sx, sy + ((f * 0.5) % 36), 70, 2, 'rgba(74, 222, 128, 0.15)');
   // (the TV: FAKE NEWS, an anchor's head and shoulders, the crawl going by, a roll bar)
-  const tx = x0 + 690, ty = GY - 406;
+  const tx = x0 + TV.x, ty = GY + TV.y;
   box(c, tx, ty, 80, 62, '#1E3A8A'); box(c, tx, ty, 80, 20, '#2563EB');
   box(c, tx + 30, ty + 18, 20, 30, '#111827'); ball(c, tx + 40, ty + 16, 7, '#E0B48A'); box(c, tx + 33, ty + 8, 14, 4, '#3A2A1A'); box(c, tx + 38, ty + 26, 4, 14, '#DC2626');
   box(c, tx, ty + 44, 80, 10, '#DC2626'); words(c, 'FAKE NEWS', tx + 40, ty + 52, '#FFFFFF', 6);
