@@ -27,7 +27,7 @@ import { drawBen, benHeadY, drawBenGross, drawBenGrossBack } from '../../upgrade
 import { drawCannon, WILDERNESS } from '../../upgrades/returnCannon';
 import { signText } from '../../signLetters';
 import { saidOver } from '../section';
-import { type Ctx, box, checker, mix, hash, still, INK, TIMBER, BRASS, IRON, RED, PLANK, STONE, STEEL, MINE, western, signPaint } from './paint';
+import { type Ctx, box, checker, mix, hash, still, INK, TIMBER, BRASS, IRON, RED, PLANK, STONE, STEEL, MINE, CREAM, GREEN, BLACK, western, signPaint } from './paint';
 import { paintRock, lantern } from './mine';
 import { X, Y } from './layout';
 import { onScreen } from './view';
@@ -224,6 +224,7 @@ const paintRoom = (g: Ctx) => {
     for (let y = t + 20; y < fl - 10; y += 60) box(g, x + 5, y, 3, 3, IRON[5]);
   }
   box(g, a, t, b - a, 16, INK); box(g, a, t + 1, b - a, 13, T[4]); box(g, a, t + 1, b - a, 3, T[6]); box(g, a, t + 12, b - a, 2, T[1]);
+  paintDressWall(g);
   // ---- the ore chute up through the ceiling over the cannon: its timber lining, black up it
   const ca = W(CHUTE.a), cb = W(CHUTE.b);
   box(g, ca, Y(CHUTE.top), cb - ca, t - Y(CHUTE.top) + 16, '#050403');
@@ -277,6 +278,7 @@ const paintRoom = (g: Ctx) => {
   g.fillStyle = INK; g.beginPath(); g.moveTo(ax - 24, fl - 42); g.lineTo(ax + 22, fl - 42); g.lineTo(ax + 16, fl - 36); g.lineTo(ax + 8, fl - 34); g.lineTo(ax + 10, fl - 26); g.lineTo(ax - 10, fl - 26); g.lineTo(ax - 8, fl - 34); g.lineTo(ax - 18, fl - 36); g.closePath(); g.fill();
   box(g, ax - 22, fl - 41, 42, 4, IRON[4]); box(g, ax - 22, fl - 41, 42, 1, IRON[6]); box(g, ax - 8, fl - 37, 16, 10, IRON[3]); box(g, ax - 8, fl - 37, 3, 10, IRON[5]);
   box(g, ax - 9, fl - 35, 18, 2, '#C8A456');
+  paintDressFloor(g);
   // ---- the floor: old planks over the rock, its lip lit (stand on it), the rock's face under it to the pool
   const fa = a, fb = W(POOL.a);
   box(g, fa, fl, fb - fa, 2, INK); box(g, fa, fl + 1, fb - fa, 3, P[5]); box(g, fa, fl + 4, fb - fa, 2, P[4]); box(g, fa, fl + 6, fb - fa, 8, P[3]); box(g, fa, fl + 14, fb - fa, 2, P[1]);
@@ -287,6 +289,214 @@ const paintRoom = (g: Ctx) => {
   floodBack(g, pa, fl, pb - pa, Y(POOL.bot) - fl);
   box(g, pa, ps + 25, 46, 1, INK); box(g, pa, ps + 26, 46, 8, STONE[3]); box(g, pa, ps + 26, 46, 2, STONE[5]); box(g, pa, ps + 34, 46, 3, STONE[1]);
 };
+// ---- Ben's dressing (the owner: "make the details in bens lairs in general more....detailed"): on the lagging between
+// the sets, a WANTED poster in his voice, a plank shelf of protein tubs (a candle stub burning on it, over the dynamite),
+// his tool board (hammer, wrenches, a hacksaw, tin snips, a welding mask on a nail), a cowboy boot nailed up half
+// plated in stolen tin badges with the weld scorch round it, his DIG DEEP poster under the gilt board, a chalk slate of
+// tallies, the extension cord he's run down the chute, a towel on a nail, SHOWER over the pool; on the floor his mini
+// fridge with a hot plate and a speckled coffee pot on it, a tub and a shaker by the bench, chalk dust, a pickaxe
+// leaned on the last set. All background (dimmed a step, nothing lit along a top).
+
+/** A paper poster nailed up: its face, a curl at one corner, four nails. */
+const poster = (g: Ctx, x: number, y: number, w: number, h: number, face: string[]) => {
+  box(g, x - 1, y - 1, w + 2, h + 2, INK);
+  box(g, x, y, w, h, face[4]); box(g, x, y, w, 2, face[5]); box(g, x, y + h - 3, w, 3, face[3]);
+  checker(g, x, y + h - 10, w, 7, face[3], 1);
+  // (the stains, the curled corner)
+  for (let k = 0; k < 4; k++) box(g, x + 4 + hash(k * 3.1 + x) * (w - 12), y + 8 + hash(k * 7.3 + y) * (h - 20), 4, 3, face[3]);
+  box(g, x + w - 7, y + h - 7, 7, 7, TIMBER[3]); box(g, x + w - 7, y + h - 7, 1, 7, face[2]); box(g, x + w - 7, y + h - 7, 7, 1, face[2]);
+  g.fillStyle = face[5]; g.beginPath(); g.moveTo(x + w - 7, y + h - 7); g.lineTo(x + w - 1, y + h - 7); g.lineTo(x + w - 7, y + h - 1); g.closePath(); g.fill();
+  for (const [nx, ny] of [[x + 2, y + 2], [x + w - 4, y + 2], [x + 2, y + h - 4]]) { box(g, nx, ny, 2, 2, IRON[5]); box(g, nx + 1, ny + 1, 1, 1, INK); }
+};
+/** A tub of protein: its banded drum, a lid, a label (WHEY / MASS), a scoop's handle over the rim on one. */
+const tub = (g: Ctx, x: number, y: number, w: number, h: number, R: string[], word: string) => {
+  box(g, x - 1, y - 1, w + 2, h + 1, INK);
+  for (let i = 0; i < 4; i++) box(g, x + (i * w) / 4, y + 3, w / 4 + 1, h - 3, R[5 - i]);
+  box(g, x - 1, y - 2, w + 2, 5, INK); box(g, x, y - 1, w, 3, BLACK[4]); box(g, x, y - 1, w, 1, BLACK[6]);
+  box(g, x + 2, y + 7, w - 4, h - 14, CREAM[5]); box(g, x + 2, y + 7, w - 4, 1, CREAM[6]);
+  signText(g, word, x + w / 2, y + h / 2 + 1, signPaint(1, R[1], 'rgba(0,0,0,0)'));
+};
+
+const paintDressWall = (g: Ctx) => {
+  const t = Y(ROOM.top), fl = FL();
+  // ---- the WANTED poster (between the first two sets, over the dynamite)
+  { const x = O(13064), y = t + 30, w = 66, h = 92;
+    poster(g, x, y, w, h, CREAM);
+    signText(g, 'WANTED', x + w / 2, y + 10, western(1, RED[2], CREAM[3]));
+    // (his drawing: a flexed arm, the bicep up)
+    const ax = x + 18, ay = y + 46;
+    box(g, ax - 1, ay - 1, 30, 10, INK); box(g, ax, ay, 28, 8, '#C48A5E'); box(g, ax, ay, 28, 2, '#E0AE80');
+    box(g, ax + 19, ay - 21, 10, 22, INK); box(g, ax + 20, ay - 20, 8, 21, '#C48A5E'); box(g, ax + 20, ay - 20, 3, 21, '#E0AE80');
+    g.fillStyle = INK; g.beginPath(); g.ellipse(ax + 13, ay - 3, 10, 7, 0, 0, Math.PI * 2); g.fill();
+    g.fillStyle = '#C48A5E'; g.beginPath(); g.ellipse(ax + 13, ay - 3, 9, 6, 0, 0, Math.PI * 2); g.fill();
+    g.fillStyle = '#E0AE80'; g.beginPath(); g.ellipse(ax + 11, ay - 5, 5, 3, 0, 0, Math.PI * 2); g.fill();
+    box(g, ax + 19, ay - 25, 10, 6, INK); box(g, ax + 20, ay - 24, 8, 4, '#B07850');
+    signText(g, 'MORE REPS', x + w / 2, y + 64, signPaint(1, '#2A1A0C', 'rgba(0,0,0,0)'));
+    signText(g, 'REWARD:', x + w / 2, y + 75, signPaint(1, '#2A1A0C', 'rgba(0,0,0,0)'));
+    signText(g, 'GAINS', x + w / 2, y + 85, signPaint(1, RED[2], 'rgba(0,0,0,0)'));
+  }
+  // ---- the shelf: a plank on two iron brackets, three tubs and a coffee can of bolts on it, the candle stub at its end
+  { const x = O(13136), y = t + 108, w = 72;
+    for (const bx of [x + 8, x + w - 12]) { box(g, bx - 1, y + 4, 5, 16, INK); box(g, bx, y + 4, 3, 14, IRON[3]); g.strokeStyle = INK; g.lineWidth = 2; g.beginPath(); g.moveTo(bx + 2, y + 18); g.lineTo(bx + (bx < x + 30 ? 12 : -8), y + 5); g.stroke(); }
+    box(g, x - 1, y - 1, w + 2, 7, INK); box(g, x, y, w, 5, PLANK[3]); box(g, x, y, w, 1, PLANK[4]); box(g, x, y + 4, w, 1, PLANK[1]);
+    tub(g, x + 2, y - 30, 28, 30, RED, 'WHEY');
+    tub(g, x + 32, y - 26, 28, 26, GREEN, 'MASS');
+    // (the candle stub in its drips)
+    box(g, x + 62, y - 10, 6, 10, INK); box(g, x + 63, y - 9, 4, 9, CREAM[5]); box(g, x + 63, y - 9, 1, 9, CREAM[6]);
+    box(g, x + 60, y - 2, 10, 2, CREAM[4]); box(g, x + 64, y - 12, 1, 3, INK);
+  }
+  // ---- the tool board: a plank panel, the tools on nails (their outlines painted on, his one tidy habit)
+  { const x = O(13232), y = t + 36, w = 74, h = 58;
+    box(g, x - 1, y - 1, w + 2, h + 2, INK); box(g, x, y, w, h, PLANK[2]); for (let k = 0; k < h; k += 12) { box(g, x, y + k, w, 1, PLANK[1]); box(g, x, y + k + 1, w, 1, PLANK[3]); }
+    // (the hammer)
+    box(g, x + 8, y + 10, 3, 32, INK); box(g, x + 9, y + 11, 1, 30, PLANK[5]); box(g, x + 4, y + 7, 12, 6, INK); box(g, x + 5, y + 8, 10, 4, IRON[4]); box(g, x + 5, y + 8, 10, 1, IRON[6]);
+    // (two wrenches)
+    for (const [wx, l] of [[x + 22, 34], [x + 30, 28]] as const) { box(g, wx - 1, y + 8, 4, l, INK); box(g, wx, y + 9, 2, l - 2, STEEL[4]); box(g, wx - 3, y + 6, 8, 6, INK); box(g, wx - 2, y + 7, 6, 4, STEEL[5]); box(g, wx, y + 6, 2, 3, PLANK[2]); }
+    // (the hacksaw: its bow, the blade)
+    box(g, x + 40, y + 10, 26, 2, INK); box(g, x + 40, y + 10, 2, 16, INK); box(g, x + 64, y + 10, 2, 16, INK); box(g, x + 41, y + 24, 24, 2, STEEL[5]); for (let k = 0; k < 24; k += 3) box(g, x + 41 + k, y + 26, 1, 1, STEEL[3]);
+    box(g, x + 38, y + 22, 5, 9, INK); box(g, x + 39, y + 23, 3, 7, RED[3]);
+    // (the tin snips)
+    g.strokeStyle = INK; g.lineWidth = 3; g.beginPath(); g.moveTo(x + 46, y + 34); g.lineTo(x + 56, y + 52); g.moveTo(x + 54, y + 34); g.lineTo(x + 46, y + 52); g.stroke();
+    g.strokeStyle = STEEL[4]; g.lineWidth = 1; g.stroke();
+    box(g, x + 44, y + 48, 5, 6, RED[3]); box(g, x + 54, y + 48, 5, 6, RED[3]);
+    for (const [nx, ny] of [[x + 9, y + 8], [x + 23, y + 7], [x + 31, y + 7], [x + 53, y + 9]]) box(g, nx, ny, 2, 2, IRON[6]);
+  }
+  // ---- the welding mask on its nail
+  { const x = O(13324), y = t + 48;
+    box(g, x - 10, y, 20, 26, INK); box(g, x - 9, y + 1, 18, 24, BLACK[3]); box(g, x - 9, y + 1, 4, 24, BLACK[5]); box(g, x - 9, y + 1, 18, 2, BLACK[5]);
+    box(g, x - 6, y + 8, 12, 6, INK); box(g, x - 5, y + 9, 10, 4, '#2E4A1E'); box(g, x - 5, y + 9, 3, 1, '#7AA05A');
+    box(g, x - 1, y - 4, 2, 4, IRON[5]);
+    for (const s of [-1, 1]) box(g, x + s * 10 - (s < 0 ? 2 : 0), y + 6, 2, 10, BLACK[2]);
+  }
+  // ---- the boot nailed up, half plated: its tin badges riveted on, the weld scorch round it
+  { const x = O(13356), y = t + 46;
+    for (let k = 0; k < 4; k++) { g.fillStyle = `rgba(10,6,2,${(0.22 + k * 0.08).toFixed(2)})`; g.beginPath(); g.ellipse(x + 2, y + 32, 26 - k * 5, 30 - k * 6, 0, 0, Math.PI * 2); g.fill(); }
+    for (let k = 0; k < 14; k++) box(g, x - 20 + hash(k * 4.3) * 44, y + 6 + hash(k * 2.9) * 52, 1, 1, k % 3 ? BRASS[4] : '#FFF4C8');
+    // (the boot: shaft up, toe right)
+    box(g, x - 10, y + 2, 20, 40, INK); box(g, x - 9, y + 3, 18, 38, PLANK[2]); box(g, x - 9, y + 3, 4, 38, PLANK[4]);
+    box(g, x - 10, y + 40, 34, 16, INK); box(g, x - 9, y + 41, 32, 14, PLANK[2]); box(g, x - 9, y + 41, 32, 2, PLANK[4]);
+    box(g, x - 11, y + 54, 36, 4, INK); box(g, x - 10, y + 55, 34, 2, PLANK[1]); box(g, x - 6, y + 56, 8, 3, PLANK[0]);
+    for (let k = 0; k < 6; k++) box(g, x - 7 + k * 3, y + 6, 1, 6, PLANK[1]);
+    // (the badges: stars and a plate, riveted)
+    const star = (sx: number, sy: number, r: number) => { g.fillStyle = INK; g.beginPath(); for (let i = 0; i < 10; i++) { const a = -Math.PI / 2 + (i * Math.PI) / 5, rr = i % 2 ? r * 0.45 : r + 1; g.lineTo(sx + Math.cos(a) * rr, sy + Math.sin(a) * rr); } g.closePath(); g.fill(); g.fillStyle = STEEL[5]; g.beginPath(); for (let i = 0; i < 10; i++) { const a = -Math.PI / 2 + (i * Math.PI) / 5, rr = i % 2 ? r * 0.4 : r; g.lineTo(sx + Math.cos(a) * rr, sy + Math.sin(a) * rr); } g.closePath(); g.fill(); box(g, sx - 1, sy - 1, 2, 2, STEEL[3]); };
+    star(x, y + 16, 7); star(x + 2, y + 32, 7);
+    box(g, x + 2, y + 42, 16, 10, INK); box(g, x + 3, y + 43, 14, 8, STEEL[4]); box(g, x + 3, y + 43, 14, 1, STEEL[6]); for (const rx2 of [x + 4, x + 15]) box(g, rx2, y + 46, 1, 1, INK);
+    // (the bead along a seam: fresh, bright)
+    for (let k = 0; k < 7; k++) box(g, x - 8 + k * 3, y + 25, 2, 2, k % 2 ? '#FFE8A0' : BRASS[4]);
+    box(g, x - 1, y - 2, 2, 4, IRON[6]);
+  }
+  // ---- the chalk handprints on the lagging by the bar
+  for (const [hx, hy] of [[O(13240), fl - 98], [O(13286), fl - 104], [O(13300), fl - 88]] as const) {
+    g.fillStyle = 'rgba(236, 232, 220, 0.32)'; g.beginPath(); g.ellipse(hx, hy, 5, 6, 0, 0, Math.PI * 2); g.fill();
+    for (let k = 0; k < 4; k++) box(g, hx - 5 + k * 3, hy - 12 + Math.abs(k - 1.5) * 2, 2, 6, 'rgba(236, 232, 220, 0.28)');
+    box(g, hx + 5, hy - 4, 4, 2, 'rgba(236, 232, 220, 0.28)');
+  }
+  // ---- DIG DEEP: his poster under the gilt board, a pickaxe crossed on a barbell
+  { const x = O(13472), y = t + 74, w = 64, h = 74;
+    poster(g, x, y, w, h, ['#2A1C10', '#4A3420', '#6E5032', '#B89868', '#D8C090', '#ECDCB0', '#FFF6D8']);
+    signText(g, 'DIG DEEP', x + w / 2, y + 10, signPaint(1, '#3A1A0A', 'rgba(0,0,0,0)'));
+    const cx = x + w / 2, cy = y + 38;
+    box(g, cx - 22, cy - 1, 44, 3, INK); box(g, cx - 21, cy, 42, 1, STEEL[5]);
+    for (const s of [-1, 1]) { box(g, cx + s * 20 - 3, cy - 9, 6, 19, INK); box(g, cx + s * 20 - 2, cy - 8, 4, 17, IRON[3]); }
+    g.strokeStyle = INK; g.lineWidth = 4; g.beginPath(); g.moveTo(cx - 14, cy + 14); g.lineTo(cx + 12, cy - 14); g.stroke(); g.strokeStyle = PLANK[4]; g.lineWidth = 2; g.stroke();
+    g.fillStyle = INK; g.beginPath(); g.moveTo(cx + 2, cy - 22); g.quadraticCurveTo(cx + 14, cy - 16, cx + 22, cy - 4); g.lineTo(cx + 12, cy - 12); g.lineTo(cx + 2, cy - 18); g.closePath(); g.fill();
+    g.fillStyle = IRON[5]; g.beginPath(); g.moveTo(cx + 4, cy - 20); g.quadraticCurveTo(cx + 14, cy - 15, cx + 19, cy - 7); g.lineTo(cx + 11, cy - 13); g.closePath(); g.fill();
+    signText(g, 'LIFT', x + w / 2, y + 58, signPaint(1, '#3A1A0A', 'rgba(0,0,0,0)'));
+    signText(g, 'HEAVY', x + w / 2, y + 67, signPaint(1, RED[2], 'rgba(0,0,0,0)'));
+  }
+  // ---- the chalk slate: REPS, his tallies, a stub of chalk on its ledge
+  { const x = O(13574), y = t + 70, w = 50, h = 42;
+    box(g, x - 3, y - 3, w + 6, h + 6, INK); box(g, x - 2, y - 2, w + 4, h + 4, PLANK[3]); box(g, x - 2, y - 2, w + 4, 1, PLANK[5]);
+    box(g, x, y, w, h, '#1E2622'); checker(g, x, y + h - 8, w, 8, '#18201C', 0);
+    signText(g, 'REPS', x + w / 2, y + 7, signPaint(1, '#D8D8CC', 'rgba(0,0,0,0)'));
+    for (let row = 0; row < 3; row++) for (let k = 0; k < 2 + (row < 2 ? 1 : 0); k++) {
+      const tx = x + 5 + k * 15, ty = y + 15 + row * 9;
+      for (let j = 0; j < 4; j++) box(g, tx + j * 3, ty, 1, 7, 'rgba(220,220,208,0.85)');
+      g.strokeStyle = 'rgba(220,220,208,0.85)'; g.lineWidth = 1; g.beginPath(); g.moveTo(tx - 1, ty + 6); g.lineTo(tx + 11, ty + 1); g.stroke();
+    }
+    box(g, x - 2, y + h + 2, w + 4, 3, INK); box(g, x - 1, y + h + 2, w + 2, 2, PLANK[4]); box(g, x + 30, y + h, 6, 2, '#ECEAE0');
+    g.fillStyle = 'rgba(236,232,220,0.18)'; g.fillRect(x - 2, y + h + 5, w + 4, 6);
+  }
+  // ---- the towel on a nail between the chute and the last set
+  { const x = O(13706), y = t + 118;
+    box(g, x - 1, y - 3, 2, 4, IRON[6]);
+    box(g, x - 9, y, 18, 40, INK); box(g, x - 8, y + 1, 16, 38, CREAM[5]); box(g, x - 8, y + 1, 4, 38, CREAM[6]); box(g, x + 4, y + 1, 4, 38, CREAM[4]);
+    for (const yy of [y + 8, y + 30]) { box(g, x - 8, yy, 16, 2, RED[3]); }
+  }
+  // ---- SHOWER, over the pool: a plank nailed up, burned letters, an arrow down at the water
+  { const x = O(13748), y = t + 96, w = 84, h = 22;
+    box(g, x - 1, y - 1, w + 2, h + 2, INK); box(g, x, y, w, h, PLANK[3]); box(g, x, y, w, 2, PLANK[5]); box(g, x, y + h - 2, w, 2, PLANK[1]);
+    box(g, x + 3, y + 3, 2, 2, IRON[5]); box(g, x + w - 5, y + 3, 2, 2, IRON[5]);
+    signText(g, 'SHOWER', x + w / 2, y + 11, signPaint(1, '#1C1209', '#5E3818'));
+    const ax = x + w / 2; box(g, ax - 2, y + h + 4, 4, 10, '#1C1209'); g.fillStyle = '#1C1209'; g.beginPath(); g.moveTo(ax - 7, y + h + 13); g.lineTo(ax + 7, y + h + 13); g.lineTo(ax, y + h + 20); g.closePath(); g.fill();
+  }
+  // ---- the extension cord: down out of the chute's lining, along the cap, down the set by the fridge
+  { const ca = W(CHUTE.a), x0 = O(13380), y0 = t + 15;
+    g.strokeStyle = INK; g.lineWidth = 4; g.beginPath(); g.moveTo(ca - 4, y0 - 8); g.lineTo(ca - 8, y0 + 4); g.quadraticCurveTo((ca + x0) / 2, y0 + 16, x0 + 2, y0 + 4); g.lineTo(x0 + 2, fl - 76); g.quadraticCurveTo(x0 + 6, fl - 40, x0 + 36, fl - 46); g.stroke();
+    g.strokeStyle = '#D8862A'; g.lineWidth = 2; g.stroke();
+    for (let y = y0 + 30; y < fl - 70; y += 40) box(g, x0, y, 6, 2, IRON[5]);
+  }
+};
+
+const paintDressFloor = (g: Ctx) => {
+  const fl = FL();
+  // ---- the mini fridge at the cot's foot (a dorm fridge, avocado, SNACK on tape: the snack shack's), the hot plate on
+  // it, a speckled enamel coffee pot on that
+  { const x = O(13418), w = 40, h = 52, y = fl - h;
+    box(g, x - 1, y - 1, w + 2, h + 1, INK);
+    const AV = ['#2A3010', '#3E4618', '#566024', '#6E7A32', '#8A9644', '#A6B25E', '#C4CE80'];
+    for (let i = 0; i < 4; i++) box(g, x + (i * w) / 4, y, w / 4 + 1, h, AV[5 - i]);
+    box(g, x, y, w, 2, AV[6]); box(g, x, y + 16, w, 2, AV[1]); box(g, x + w - 6, y + 22, 3, 16, AV[0]); box(g, x + w - 6, y + 22, 1, 16, AV[5]);
+    box(g, x + 4, y + 26, 24, 8, '#E8DCB0'); signText(g, 'SNACK', x + 16, y + 30, signPaint(1, '#3A2A1A', 'rgba(0,0,0,0)'));
+    box(g, x + 2, y + h - 4, w - 4, 4, AV[0]);
+    // (the hot plate: black, its coil (its glow live), its knob)
+    box(g, x + 1, y - 7, w - 2, 7, INK); box(g, x + 2, y - 6, w - 4, 5, BLACK[3]); box(g, x + 2, y - 6, w - 4, 1, BLACK[5]); box(g, x + w - 8, y - 4, 3, 3, STEEL[5]);
+    // (the coffee pot: blue speckled enamel, the spout, the handle, the lid's knob)
+    const px = x + 14, py = y - 7;
+    g.fillStyle = INK; g.beginPath(); g.moveTo(px - 10, py); g.lineTo(px + 10, py); g.lineTo(px + 6, py - 20); g.lineTo(px - 6, py - 20); g.closePath(); g.fill();
+    g.fillStyle = '#2E5A9A'; g.beginPath(); g.moveTo(px - 9, py - 1); g.lineTo(px + 9, py - 1); g.lineTo(px + 5, py - 19); g.lineTo(px - 5, py - 19); g.closePath(); g.fill();
+    box(g, px - 7, py - 16, 3, 14, '#5A86C8');
+    for (let k = 0; k < 9; k++) box(g, px - 6 + hash(k * 2.7) * 12, py - 17 + hash(k * 5.1) * 15, 1, 1, '#E8EEF8');
+    box(g, px - 5, py - 23, 10, 4, INK); box(g, px - 4, py - 22, 8, 2, '#3E6EB0'); box(g, px - 1, py - 26, 2, 3, INK);
+    g.strokeStyle = INK; g.lineWidth = 3; g.beginPath(); g.moveTo(px - 8, py - 12); g.lineTo(px - 15, py - 18); g.stroke(); g.strokeStyle = '#2E5A9A'; g.lineWidth = 1; g.stroke();
+    g.strokeStyle = INK; g.lineWidth = 3; g.beginPath(); g.moveTo(px + 6, py - 16); g.quadraticCurveTo(px + 15, py - 12, px + 7, py - 4); g.stroke();
+    // (the plug in the cord off the wall)
+    box(g, x - 3, y + 4, 4, 5, INK); box(g, x - 2, y + 5, 2, 3, '#D8862A');
+  }
+  // ---- a tub tipped by the bench, its powder out; a shaker
+  { const x = O(13316);
+    g.fillStyle = INK; g.beginPath(); g.ellipse(x + 6, fl - 9, 10, 9, 0, 0, Math.PI * 2); g.fill();
+    box(g, x - 4, fl - 18, 14, 18, INK); for (let i = 0; i < 3; i++) box(g, x - 3, fl - 17 + i * 6, 12, 6, RED[4 - i]);
+    g.fillStyle = CREAM[5]; g.beginPath(); g.ellipse(x + 8, fl - 9, 7, 8, 0, 0, Math.PI * 2); g.fill();
+    g.fillStyle = CREAM[3]; g.beginPath(); g.ellipse(x + 9, fl - 9, 4, 5, 0, 0, Math.PI * 2); g.fill();
+    g.fillStyle = 'rgba(236,224,196,0.7)'; g.beginPath(); g.ellipse(x + 22, fl - 1, 14, 2, 0, 0, Math.PI * 2); g.fill();
+  }
+  // ---- chalk dust on the planks round the bench; a block of chalk
+  for (let k = 0; k < 34; k++) box(g, O(13212) + hash(k * 1.9) * 100, fl - 3 + hash(k * 3.3) * 3, 2, 1, `rgba(236,232,220,${(0.3 + hash(k) * 0.4).toFixed(2)})`);
+  box(g, O(13300) - 1, fl - 6, 10, 6, INK); box(g, O(13300), fl - 5, 8, 5, '#ECEAE0'); box(g, O(13300), fl - 5, 8, 1, '#FFFFFF');
+  // ---- the pickaxe leaned on the last set
+  { const x = O(13712);
+    g.strokeStyle = INK; g.lineWidth = 5; g.beginPath(); g.moveTo(x - 8, fl - 1); g.lineTo(x + 6, fl - 78); g.stroke(); g.strokeStyle = PLANK[4]; g.lineWidth = 3; g.stroke(); g.strokeStyle = PLANK[5]; g.lineWidth = 1; g.beginPath(); g.moveTo(x - 9, fl - 2); g.lineTo(x + 5, fl - 78); g.stroke();
+    g.fillStyle = INK; g.beginPath(); g.moveTo(x - 16, fl - 70); g.quadraticCurveTo(x + 4, fl - 88, x + 26, fl - 76); g.lineTo(x + 22, fl - 72); g.quadraticCurveTo(x + 4, fl - 80, x - 12, fl - 66); g.closePath(); g.fill();
+    g.fillStyle = IRON[4]; g.beginPath(); g.moveTo(x - 13, fl - 70); g.quadraticCurveTo(x + 4, fl - 85, x + 23, fl - 76); g.lineTo(x + 4, fl - 80); g.closePath(); g.fill();
+  }
+};
+
+/** The near framing in front of it all: the nearest cap and its two sets at the room's ends, in silhouette (rim lit
+ *  from the lantern's side); a gap in the cap where the chute goes up. */
+const paintNear = (g: Ctx) => {
+  const a = W(ROOM.a), b = W(ROOM.b), t = Y(ROOM.top), fl = FL(), ca = W(CHUTE.a), cb = W(CHUTE.b);
+  const N = ['#060402', '#0E0906', '#18100A', '#24180E'];
+  for (const [x0, x1] of [[a - 20, ca - 8], [cb + 8, b + 20]] as const) {
+    box(g, x0, t - 14, x1 - x0, 16, N[0]); box(g, x0, t, x1 - x0, 2, N[2]); box(g, x0, t + 2, x1 - x0, 1, N[3]);
+    for (let x = x0 + 30; x < x1 - 10; x += 120) { box(g, x, t + 3, 3, 6 + Math.round(hash(x) * 8), N[1]); }
+  }
+  for (const [x, rim] of [[a - 20, 1], [b + 2, -1]] as const) {
+    box(g, x, t - 14, 18, fl - t + 14, N[0]); box(g, rim > 0 ? x + 16 : x, t + 2, 2, fl - t - 2, N[3]);
+    for (let y = t + 40; y < fl; y += 64) box(g, x + 7, y, 4, 4, N[2]);
+  }
+};
+
 /** The dud dynamite against the west wall (its own stamp: jolted when he's hit it with the scarecrow). */
 const paintTnt = (g: Ctx) => {
   const fl = FL(), a = W(TNT.a);
@@ -328,7 +538,7 @@ export const drawBenLairBack = (c: Ctx, state: GameState) => {
   if (!seenBox(state, a, b, t, Y(POOL.bot))) return;
   for (let i = 0; i < 2; i++) {
     const L = a + i * 400, w = i ? b - L : 400;
-    still(c, `ben-office-${i}`, 0, 0, L, t, w, Y(POOL.bot) - t + 4, g => { g.save(); g.beginPath(); g.rect(L, t, w, Y(POOL.bot) - t + 4); g.clip(); paintRoom(g); g.restore(); });
+    still(c, `ben-office2-${i}`, 0, 0, L, t, w, Y(POOL.bot) - t + 4, g => { g.save(); g.beginPath(); g.rect(L, t, w, Y(POOL.bot) - t + 4); g.clip(); paintRoom(g); g.restore(); });
   }
   signText(c, 'ASSAY OFFICE', O(13390) + 85, Y(ROOM.top) + 56, western(2, BRASS[4], '#120C08'));
   // (the dynamite: gone a moment after the scarecrow's blown it, a scorch on the wall and the floor where it stood; then
@@ -342,6 +552,12 @@ export const drawBenLairBack = (c: Ctx, state: GameState) => {
     c.fillStyle = '#120A06'; c.beginPath(); c.ellipse((W(TNT.a) + W(TNT.b)) / 2, fl - 40, 60, 44, 0, 0, Math.PI * 2); c.fill();
     c.globalAlpha = 1;
   }
+  // (the candle stub on the shelf over the dynamite, its flame; the hot plate's coil, the coffee pot's steam)
+  { const cx = O(13136) + 64, cy = Y(ROOM.top) + 108 - 12, fk = (f >> 2) % 3;
+    box(c, cx - 1, cy - 6 + (fk === 1 ? 1 : 0), 3, 5, '#F97316'); box(c, cx, cy - 4, 1, 3, '#FFF4C8'); if (fk === 2) box(c, cx - 1, cy - 8, 1, 2, '#FDBA74'); }
+  { const hx = O(13418), hy = fl - 52 - 6, on = 0.6 + 0.4 * Math.sin(f * 0.11);
+    c.fillStyle = `rgba(248,113,62,${on.toFixed(2)})`; c.fillRect(hx + 4, hy + 4, 8, 1); c.fillRect(hx + 22, hy + 4, 10, 1);
+    for (let i = 0; i < 3; i++) { const u = ((f * 0.5 + i * 33) % 100) / 100; box(c, hx + 14 + Math.sin(f * 0.05 + i * 2) * 3 - 15 * u, hy - 24 - u * 34, 3 + u * 3, 3 + u * 3, `rgba(230,228,220,${(0.35 * (1 - u)).toFixed(2)})`); } }
   // (the lantern over the cot, swaying; drips off the ceiling into the floor, and into the pool)
   const sw = Math.sin(f * 0.025) * 2;
   c.strokeStyle = INK; c.lineWidth = 1; c.beginPath(); c.moveTo(O(13440), Y(ROOM.top) + 14); c.lineTo(O(13440) + sw, Y(ROOM.top) + 76); c.stroke();
@@ -386,6 +602,12 @@ export const drawBenLairFront = (c: Ctx, state: GameState) => {
     c.fillRect(W(POOL.a), Y(POOL.surface) + 3, W(POOL.b) - W(POOL.a), Y(POOL.bot) - Y(POOL.surface) - 3);
     c.globalAlpha = 1;
   }
+  // (the near framing: the nearest cap and the end sets in silhouette, once the office is in view)
+  if (rv > 0 && seenBox(state, W(ROOM.a) - 30, W(ROOM.b) + 30, Y(ROOM.top) - 10, FL() + 10)) {
+    c.globalAlpha = rv;
+    still(c, 'ben-near', 0, 0, W(ROOM.a) - 22, Y(ROOM.top) - 16, W(ROOM.b) - W(ROOM.a) + 44, FL() - Y(ROOM.top) + 18, paintNear);
+    c.globalAlpha = 1;
+  }
   const h = lairOf(state);
   if (!h.ben.said || h.script?.gross || !seenBox(state, W(BEN_RX) - 100, W(BEN_RX) + 100, FL() - 200, FL() + 10)) return;
   saidOver(c, h.ben.said.text, W(BEN_RX), benHeadY(FL()), '#FFFFFF', 220);
@@ -423,6 +645,8 @@ const officeLights = (f: number): Light[] => {
     { x: (W(POOL.a) + W(POOL.b)) / 2, y: Y(POOL.surface) + 20, r: 140, a: 0.55, color: 'rgba(255, 190, 120, 0.10)' },
     { x: O(13440) + sw, y: Y(ROOM.top) + 94, r: 340, a: 0.85 + 0.05 * Math.sin(f * 0.4), color: 'rgba(255, 200, 130, 0.12)' },
     { x: O(13700), y: Y(ROOM.top) + 130, r: 240, a: 0.45, color: 'rgba(255, 200, 130, 0.08)' },
+    { x: O(13136) + 64, y: Y(ROOM.top) + 92, r: 120, a: 0.45 + 0.06 * Math.sin(f * 0.9), color: 'rgba(255, 180, 100, 0.10)' },
+    { x: O(13438), y: Y(ROOM.floor) - 60, r: 70, a: 0.4, color: 'rgba(248, 113, 62, 0.12)' },
   ];
 };
 
@@ -455,4 +679,4 @@ export const paintBenSheet = (g: Ctx) => {
   paintTnt(g);
   paintWinze(g);
 };
-export { UA, UB, UT, UBOT, HATCH_X, MINE };
+export { UA, UB, UT, UBOT, HATCH_X, MINE, paintNear as paintBenNear };
