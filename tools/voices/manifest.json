@@ -42226,6 +42226,16 @@
  },
  {
   "voice": "m2.frontier.dooley",
+  "text": "A PRIZE?! THE PRIZES DON'T EXIST! THE SHELF DOESN'T EXIST! YOU WANT A PRIZE?!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.dooley",
+  "text": "A PRIZE?! YOU SHIT YOURSELF AND ERASED MY LIFE AND YOU WANT A PRIZE?!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.dooley",
   "text": "ALL THAT IS LEFT IS BOOTS. WHOSE BOOTS ARE THOSE?",
   "from": "FRONTIER"
  },
@@ -42621,6 +42631,16 @@
  },
  {
   "voice": "m2.frontier.dooley",
+  "text": "PANTS?! THE PANTS DON'T EXIST! NOTHING EXISTS!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.dooley",
+  "text": "PANTS?! THERE ARE NO PANTS! THERE WERE NEVER ANY PANTS! NOTHING IS REAL!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.dooley",
   "text": "PLEASE DO NOT COME BACK.",
   "from": "FRONTIER"
  },
@@ -42857,6 +42877,16 @@
  {
   "voice": "m2.frontier.dooley",
   "text": "WHERE DO THEY GO? THEY DON'T GO. THEY JUST WEREN'T.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.dooley",
+  "text": "WON?! NOBODY WON! THERE'S NOTHING LEFT TO WIN! THERE'S NOTHING LEFT!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.dooley",
+  "text": "WON?! YOU'RE NAKED IN A VOID, SON! NOBODY WON!",
   "from": "FRONTIER"
  },
  {

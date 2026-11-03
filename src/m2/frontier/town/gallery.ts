@@ -85,7 +85,7 @@ import { reaction, moodOf, frameOf, type Pose } from '../../spooky/costume';
 import { meatheadSays, speak, voice, byPants, saidOver, label, box, ledge, type Said } from '../section';
 import type { ByPants } from '../talk';
 import { GY } from '../geometry';
-import { X } from './layout';
+import { X, SALOON } from './layout';
 import { townOf, type Town } from './state';
 import {
   ART_W, ART_H, FENCE_Y, RAIL_A, RAIL_C, DUCK_W, BANDIT_H, HAND_W, HAND_H, HAND_PIVOT, HAND_MUZZLE, BOOTH_W, COUNTER_H, DOOLEY_SEED,
@@ -95,7 +95,7 @@ import {
 import {
   DOOLEY_VOICE, DOOLEY_CALM_VOICE, DOOLEY_GREET, DOOLEY_LEAVE, DOOLEY_LEAVE_PANIC, DOOLEY_OFFER, DOOLEY_DECLINED, DOOLEY_NOT_NOW, DOOLEY_RULES_A, DOOLEY_RULES_B, DOOLEY_IDLE, DOOLEY_TIERS, DOOLEY_SAW,
   DOOLEY_OPEN_SMALL, DOOLEY_OPEN_BIG, DOOLEY_OPEN_ALL, DOOLEY_PANIC, DOOLEY_MUTTER, DOOLEY_GUN, DOOLEY_ERASED, DOOLEY_THANKS,
-  DOOLEY_LAZY_A, DOOLEY_LAZY_B, DOOLEY_LAZY_C, DOOLEY_RETRY, MH_ACCEPT, MH_PRIZE, MH_KILL, MH_ERASE, MH_LAZY, MH_SHARD,
+  DOOLEY_LAZY_A, DOOLEY_LAZY_B, DOOLEY_LAZY_C, DOOLEY_RETRY, DOOLEY_PRIZE, MH_ACCEPT, MH_PRIZE, MH_KILL, MH_ERASE, MH_LAZY, MH_SHARD,
 } from './galleryLines';
 
 type Ctx = CanvasRenderingContext2D;
@@ -237,6 +237,13 @@ const GOAL = new WeakMap<Enemy, number>();
 /** Cowering from the ray gun till this frame (gallery.ts's say, each frame it's on him). */
 const TERROR = new WeakMap<Enemy, number>();
 const lookOfAi = (e: Enemy): DooleyLook => (e.aiState === 'point' ? 'point' : e.aiState === 'gasp' ? 'gasp' : 'panic');
+/** His stretch of street: never backed in through the saloon's batwings (the owner's), nor off past the booth's far
+ *  side. */
+const keepOut = (e: Enemy) => {
+  const m = e.pos.x + e.width / 2, lo = BOOTH.a - 220, hi = SALOON.a - 70;
+  if ((m >= hi && e.vel.x > 0) || (m <= lo && e.vel.x < 0)) e.vel.x = 0;
+  if (m > hi) e.pos.x = hi - e.width / 2;
+};
 registerM2Kind({
   kind: DOOLEY_KIND, stats: { w: 42, h: 76, hp: 20, contact: 0, mass: 200 }, humanoid: true, gender: 'm', head: { x: 1, y: -70, r: 11 }, pathing: false,
   ai: (ctx, e) => {
@@ -248,6 +255,7 @@ registerM2Kind({
       e.aiState = 'cower'; e.facing = pm < m ? -1 : 1;
       const away = pm < m ? 1 : -1, nx = m + away * 4;
       e.vel.x = nx > BOOTH.a - 220 && nx < BOOTH.b + 220 ? away * 0.9 : 0;
+      keepOut(e);
       return false;
     }
     if (e.aiState === 'cower') { e.aiState = 'pace'; e.aiTimer = 0; }
@@ -267,6 +275,7 @@ registerM2Kind({
       e.vel.x = 0; e.facing = pm < m ? -1 : 1;
       if (e.aiTimer > 70 + Math.random() * 60) { e.aiState = 'pace'; e.aiTimer = 0; }
     }
+    keepOut(e);
     return false;
   },
   draw: (c, e, f) => {
@@ -936,7 +945,12 @@ const endGallery = (state: GameState, g: Gallery) => {
   g.phase = 'beat'; g.t = 0;
   const pool = g.gone < 0.15 ? DOOLEY_OPEN_SMALL : g.gone < 0.999 ? DOOLEY_OPEN_BIG : DOOLEY_OPEN_ALL;
   playSound('thud', 0.5, -6);
-  dooley(g, state, pool, () => meatheadSays(state, pickLine(byPants(state, MH_PRIZE)), true, () => toPanic(state, g)));
+  // (his chewing out; Meathead's "do I get a prize"; and Dooley's answer to that, so it's not cut off cold into play (the
+  // owner's: it "kinda awkwardly cuts to gameplay"): the panic starts on his answer)
+  dooley(g, state, pool, () => meatheadSays(state, pickLine(byPants(state, MH_PRIZE)), true, () => {
+    if (g.phase !== 'beat' || gal(state) !== g) return;
+    dooley(g, state, DOOLEY_PRIZE, () => toPanic(state, g));
+  }));
 };
 
 /** The hand (screen): its wrist low, left of middle (his left: he's left-handed), sliding after the cursor and kicked
