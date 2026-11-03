@@ -14,7 +14,9 @@ import { isShat, isNude } from '../../m1/game/player/gut';
 import { AMERICA_DENY, HUB_ALL_DONE, HUB_STUFF_LEFT, AMERICA_RESIST, AMERICA_GIVE_IN } from '../lines/hubLines';
 import { getCheats } from '../cheats';
 import { setUi, getUi, goTo, isLeaving, arrived, carryGut, takeGut, setStartCheckpoint, landsCleared, ALPHA_LAND_COUNT, findsFoundTotal, FINDS_TOTAL } from '../store';
-import { alphaEndOver, warmAlphaEnd } from '../alphaEnd';
+import { warmAlphaEnd, toTitle } from '../alphaEnd';
+import { playWalkAway, tickWalkAway, drawWalkAway, type WalkAway } from '../walkAway';
+import { type Announce, type AnnounceKind, announcementDue, prepareAnnouncement, startAnnouncement, tickAnnouncement, drawAnnouncement } from './announce';
 import { fastTravelStops, fastTravelPick, setFastTravelPick, takeFastTravelGo, takeCardBack } from '../parkmap/fastTravel';
 import { stopWeapons } from '../weapons';
 import { pollM2, pressed } from '../input';
@@ -44,7 +46,7 @@ const COVERED_T = 2;
 
 const GATED: (keyof Controls)[] = ['jump', 'special', 'shoot', 'secondary', 'charge'];
 
-interface Hub { map: number | null; upWas: boolean; /** (the fast-travel pick: down held last frame) */ downWas?: boolean; /** Buttons held from closing the map: ignored till let go. */ gate: Set<keyof Controls>; /** The grabs work here too. */ grab: Grab; /** Going through a portal, or back out of one (portal.ts). */ portal?: Show | null; /** Out through America USA with every land cleared: the alpha's ending playing over it (alphaEnd.ts: it goes to the title). */ ending?: boolean; /** All eight bosses dead: frames till he says whether there's anything left (once an arrival; -1 said). */ arriveIn?: number; /** A line of his at America USA's way out still being said: no more tries till it's done. */ talking?: boolean }
+interface Hub { map: number | null; upWas: boolean; /** (the fast-travel pick: down held last frame) */ downWas?: boolean; /** Buttons held from closing the map: ignored till let go. */ gate: Set<keyof Controls>; /** The grabs work here too. */ grab: Grab; /** Going through a portal, or back out of one (portal.ts). */ portal?: Show | null; /** Out through America USA with every land cleared: the alpha's ending playing over it (alphaEnd.ts: it goes to the title). */ ending?: boolean; /** All eight bosses dead: frames till he says whether there's anything left (once an arrival; -1 said). */ arriveIn?: number; /** A line of his at America USA's way out still being said: no more tries till it's done. */ talking?: boolean; /** The PA's announcement due as he came in (announce.ts), and playing. */ annDue?: AnnounceKind | null; announce?: Announce | null; /** The alpha's end walk, out through America USA (endWalk.ts): then the title. */ walk?: WalkAway | null }
 const getHub = (state: GameState) => state.stage as Hub | null;
 
 /** Out through America USA with finds still out there: how many times he's refused (this session). Three refusals,
@@ -67,6 +69,13 @@ const sayOver = (state: GameState, text: string, priority: 'casual' | 'urgent', 
     onDropped: end,
   });
   if (!shown) { state.playerLastVulgarity = text; state.playerVulgarityTimer = 150; setTimeout(end, 2500); }
+};
+
+/** Out through America USA: the alpha's end walk (endWalk.ts), the title after it. */
+const startEndWalk = (state: GameState, hub: Hub) => {
+  hub.ending = true; state.player.inCutscene = true; state.player.vel.x = 0;
+  setUi({ introCutscene: true, near: null, nearAmerica: false });
+  hub.walk = playWalkAway(state, { boss: 'america-exit', onDone: toTitle });
 };
 
 /** Round the lap: everything shifts by a whole lap, so he never runs out of roundabout. */
@@ -110,9 +119,13 @@ export const hubLayout: StageLayout = {
     setStampCover(!!portal);
     // (all eight bosses dead: a moment after he's in, he says whether there's anything left to find)
     const arriveIn = landsCleared() >= ALPHA_LAND_COUNT ? 50 : -1;
-    // (and the alpha's ending's PA painted ahead, idle slices, for the way out)
+    // (and the alpha's end walk painted ahead, idle slices, for the way out)
     if (arriveIn >= 0) warmAlphaEnd();
-    state.stage = { map: null, upWas: false, gate: new Set(), grab: createGrab(state), portal, arriveIn } satisfies Hub;
+    // (the PA's got something to say (announce.ts): a cutscene from the first frame; the fireworks held for it)
+    const annDue = announcementDue();
+    prepareAnnouncement(annDue);
+    if (annDue) { state.player.inCutscene = true; setUi({ introCutscene: true }); }
+    state.stage = { map: null, upWas: false, gate: new Set(), grab: createGrab(state), portal, arriveIn, annDue } satisfies Hub;
     state.cameraMinX = HUB.x0 - HUB_CIRC;
   },
   update: (ctx, controls) => {
@@ -124,14 +137,29 @@ export const hubLayout: StageLayout = {
     if (isLeaving()) { stopWeapons(); carryGut(state.player); state.player.vel.x = 0; return { ...NO_CONTROLS }; }
     state.player.noContactHurt = false;
     if (!hub) return controls;
-    if (hub.ending) { state.player.inCutscene = true; state.player.vel.x = 0; return { ...NO_CONTROLS }; }
+    if (hub.ending) {
+      state.player.inCutscene = true; state.player.vel.x = 0;
+      if (!getUi().introCutscene) setUi({ introCutscene: true });
+      // (the end walk out through America USA, A at its end: the title)
+      if (hub.walk) tickWalkAway(hub.walk, controls);
+      return { ...NO_CONTROLS };
+    }
     pollM2(state.frame);
     // (out of a portal, the camera pulling back: the art stamped as it comes into view, not painted live every frame of
     // the pull-back (stamp.ts))
     setStampSweep(hub.portal?.kind === 'out');
     setStampCover(hub.portal?.kind === 'out' && hub.portal.t < COVERED_T);
     // (through a portal: nothing else till he's there)
-    if (hub.portal) return runShow(state, hub, controls);
+    if (hub.portal) { const out = runShow(state, hub, controls); if (hub.annDue) { state.player.inCutscene = true; if (!getUi().introCutscene) setUi({ introCutscene: true }); } return out; }
+    // (the PA's announcement, once he's out of the portal: then his own word on it)
+    if (hub.annDue && !hub.announce) { hub.announce = startAnnouncement(hub.annDue); hub.annDue = null; }
+    if (hub.announce) {
+      tickAnnouncement(state, hub.announce);
+      if (!hub.announce.done) { if (!getUi().introCutscene) setUi({ introCutscene: true }); return { ...NO_CONTROLS }; }
+      hub.announce = null; state.player.inCutscene = false; setUi({ introCutscene: false });
+      if (hub.arriveIn !== undefined && hub.arriveIn >= 0) hub.arriveIn = 30;
+      return { ...NO_CONTROLS };
+    }
     const p = state.player, cx = p.pos.x + p.width / 2;
     // (in, all eight dead: everything found, time to go home; or there's still shit to do (the owner's lines))
     if (hub.arriveIn !== undefined && hub.arriveIn >= 0 && !getUi().pick && --hub.arriveIn < 0 && performance.now() - arrivalSaidAt > 45000) {
@@ -189,7 +217,7 @@ export const hubLayout: StageLayout = {
     // way back), the fourth he gives in and goes, his line said first. Everything found: straight out.)
     if (nearAmerica && near === null && controls.up && !hub.upWas && !grabbing(hub.grab) && landsCleared() >= ALPHA_LAND_COUNT && !hub.talking) {
       const got = findsFoundTotal();
-      if (got >= FINDS_TOTAL) { hub.ending = true; state.player.inCutscene = true; alphaEndOver(); return { ...NO_CONTROLS }; }
+      if (got >= FINDS_TOTAL) { startEndWalk(state, hub); return { ...NO_CONTROLS }; }
       const d = dressed(state);
       if (resisted < RESISTS) {
         hub.talking = true;
@@ -200,7 +228,7 @@ export const hubLayout: StageLayout = {
       } else {
         hub.ending = true; state.player.inCutscene = true; state.player.vel.x = 0;
         let started = false;
-        sayOver(state, pickLine(AMERICA_GIVE_IN[d]), 'urgent', () => { if (started) return; started = true; alphaEndOver(); });
+        sayOver(state, pickLine(AMERICA_GIVE_IN[d]), 'urgent', () => { if (started) return; started = true; startEndWalk(state, hub); });
       }
       hub.upWas = !!controls.up;
       return { ...NO_CONTROLS };
@@ -236,6 +264,10 @@ export const hubLayout: StageLayout = {
     // wall's curve); the sun's ghosts left off; then the portal's own)
     if (pt) { drawHubLampGlow(ctx, state, HUB.radius, HUB_HORIZON, portalZoom(state, pt)); takeSun(); drawPortalHud(ctx, pt); return; }
     drawHubLampGlow(ctx, state, HUB.radius, HUB_HORIZON); drawNotedSunFlare(ctx);
+    const hub = getHub(state);
+    if (hub?.announce) drawAnnouncement(ctx, hub.announce);
+    // (the end walk over the lot)
+    if (hub?.walk) drawWalkAway(ctx, hub.walk);
   },
   drawBack: (ctx, state) => { const pt = getHub(state)?.portal; notePortalSurge(pt); drawHubBack(ctx, state); drawPortalBack(ctx, state, pt); },
   drawFront: (ctx, state) => { drawHubFront(ctx, state); drawPortalFront(ctx, state, getHub(state)?.portal); const hub = getHub(state); if (hub) drawGrab(ctx, state, hub.grab); },

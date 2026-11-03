@@ -58866,22 +58866,27 @@
  },
  {
   "voice": "m2.pa",
-  "text": "AND YOU FOUND EVERYTHING. ALL TWENTY-FOUR. EVERY LAST HIDDEN THING IN THIS WHOLE PARK.",
+  "text": "AND SOMEBODY FOUND ALL OUR HIDDEN SHIT. ENJOY THE NEVERENDING FIREWORKS SHOW!",
   "from": "INTRO"
  },
  {
   "voice": "m2.pa",
-  "text": "CHECK BACK LATER-ISH FOR THE GRAND ENDGAME CONTENT!",
+  "text": "ATTENTION, HAPPY LAND! ALL EIGHT LANDS ARE UNDER NEW MANAGEMENT. THE OLD MANAGEMENT IS DEAD.",
   "from": "INTRO"
  },
  {
   "voice": "m2.pa",
-  "text": "CONGRATULATIONS! YOU FINISHED THE ALPHA BUILD OF MEATHEAD 2!",
+  "text": "ATTENTION, HAPPY LAND! SOMEBODY FOUND ALL OUR HIDDEN SHIT. ENJOY THE NEVERENDING FIREWORKS SHOW!",
   "from": "INTRO"
  },
  {
   "voice": "m2.pa",
   "text": "DO NOT TELL ANYBODY I SAID THAT.",
+  "from": "INTRO"
+ },
+ {
+  "voice": "m2.pa",
+  "text": "EXIT THROUGH AMERICA USA TO FINISH YOUR FUN-FILLED DAY.",
   "from": "INTRO"
  },
  {
@@ -58897,11 +58902,6 @@
  {
   "voice": "m2.pa",
   "text": "GOOD ENOUGH FOR A GOVERNMENT JOB. NOT GOOD ENOUGH FOR HAPPY LAND.",
-  "from": "INTRO"
- },
- {
-  "voice": "m2.pa",
-  "text": "GOODBYE.",
   "from": "INTRO"
  },
  {
@@ -58926,28 +58926,18 @@
  },
  {
   "voice": "m2.pa",
-  "text": "IF YOU CHOSE NOT TO SAVE YOUR GAME, YOU'RE SHIT OUT OF LUCK.",
-  "from": "INTRO"
- },
- {
-  "voice": "m2.pa",
-  "text": "IF YOU WANT TO HEAR MY WONDERFUL VOICE AGAIN, EXIT THROUGH AMERICA USA FROM YOUR SAVED GAME.",
-  "from": "INTRO"
- },
- {
-  "voice": "m2.pa",
   "text": "IT IS PRONOUNCED CHOWDAH. GUESTS SAYING CHOWDER WILL BE ESCORTED OUT.",
+  "from": "INTRO"
+ },
+ {
+  "voice": "m2.pa",
+  "text": "IT NEVER ENDS. THE GUY WITH THE OFF SWITCH BLEW BOTH HIS HANDS OFF.",
   "from": "INTRO"
  },
  {
   "voice": "m2.pa",
   "text": "KEEP HANDS, ARMS AND LEGS INSIDE THE BLEACHERS. WHILE YOU HAVE THEM.",
   "from": "ADVENTURE"
- },
- {
-  "voice": "m2.pa",
-  "text": "LOAD YOUR SAVE AND TRY OPENING YOUR EYES THIS TIME.",
-  "from": "INTRO"
  },
  {
   "voice": "m2.pa",
@@ -58961,7 +58951,7 @@
  },
  {
   "voice": "m2.pa",
-  "text": "OR YOU CAN LOAD YOUR SAVED GAME AND KEEP PLAYING WITH YOUR NEW WEAPONS.",
+  "text": "NOW LEAVING HAPPY LAND. YOUR TRUCK IS STILL IN THE PILLAR.",
   "from": "INTRO"
  },
  {
@@ -58991,6 +58981,16 @@
  },
  {
   "voice": "m2.pa",
+  "text": "THE FIRE MARSHAL HAS BEEN NOTIFIED. HE IS ALSO ON FIRE.",
+  "from": "INTRO"
+ },
+ {
+  "voice": "m2.pa",
+  "text": "THE FIREWORKS ARE FOR YOU, BY THE WAY. THEY NEVER STOP. WE TRIED.",
+  "from": "INTRO"
+ },
+ {
+  "voice": "m2.pa",
   "text": "THE FOUNTAIN OF FREEDOM IS NOT A TOILET. WE CAN SEE YOU, SIR.",
   "from": "INTRO"
  },
@@ -59002,6 +59002,11 @@
  {
   "voice": "m2.pa",
   "text": "THE TRAIN IN CHICAGO-ISH DOES NOT STOP. STOP WAITING FOR IT.",
+  "from": "INTRO"
+ },
+ {
+  "voice": "m2.pa",
+  "text": "THERE'S STILL HIDDEN SHIT ALL OVER THIS PARK, IF YOU GIVE A SHIT.",
   "from": "INTRO"
  },
  {
@@ -59037,6 +59042,11 @@
  {
   "voice": "m2.pa",
   "text": "YOU FOUND ALMOST ALL OF THE HIDDEN SHIT. ALMOST. LIKE A GUY WHO PULLS OUT ALMOST IN TIME.",
+  "from": "INTRO"
+ },
+ {
+  "voice": "m2.pa",
+  "text": "YOU FOUND EVERYTHING. ALL TWENTY-FOUR. EVERY LAST HIDDEN THING IN THIS WHOLE PARK.",
   "from": "INTRO"
  },
  {

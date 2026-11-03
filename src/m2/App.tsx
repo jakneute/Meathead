@@ -76,8 +76,8 @@ import { landLeft } from './landCaches';
 import { canSkip, requestSkip } from '../m1/game/platform/skip';
 import { getAudioContext, playMenuBack, playMenuOk } from '../m1/game/platform/audio';
 import { STAFF_SLOT, AMERICA_SLOT, landAt } from './hub/lands';
-import { getUi, subscribeUi, onTravel, setUi, goTo, takeBossKill, setStartCheckpoint, requestCarHop, restoreClearedLands, restoreKept, restoreBossDeaths, restoreFound, isLandCleared, isLandComplete, setAlphaEndSeen } from './store';
-import { alphaEndOver } from './alphaEnd';
+import { getUi, subscribeUi, onTravel, setUi, goTo, takeBossKill, setStartCheckpoint, requestCarHop, restoreClearedLands, restoreKept, restoreBossDeaths, restoreFound, isLandCleared, isLandComplete, setAlphaEndSeen, setAnnounced } from './store';
+import { alphaEndOver, devAlphaEnd } from './alphaEnd';
 import { setCutsceneBubbles } from '../m1/game/render/speechStyle';
 // (Meathead 2's cutscenes, the skippable ones bar the intro's: the words over heads in speech bubbles; in play, just the
 // words (speechStyle.ts))
@@ -89,6 +89,7 @@ import { isKillCam } from '../m1/game/player/deathAnim';
 import { disableM1Music } from '../m1/game/music';
 import { setMusicState, setMusicStage, setMusicPaused, setMusicTitle } from './music/cues';
 import { refreshFindsHour } from './timeOfDay';
+import { noteFireworksState } from './fireworks';
 
 // (Meathead 2's own music: music/cues.ts; Meathead 1's never starts)
 disableM1Music();
@@ -98,6 +99,7 @@ disableM1Music();
 const noSwitching = () => !!getUi().noSwitch || !!getUi().locked;
 // (each frame: is the game his to play? Not in a cutscene (the victory walk's one), dying or dead, mid-grab, mid-lever)
 setFrameHook(state => {
+  noteFireworksState(state);
   const p = state.player;
   const still = !!p.inCutscene || victoryOn(state.frame) || state.deathTimer > 0 || p.health <= 0;
   // (a minigame that can be paused just now (minigamePause.ts): a cutscene to the engine, but START pauses it)
@@ -189,6 +191,8 @@ const ANIMALS = new Set(['pigeon', 'pitbull', 'seagull', 'goat', 'hawk', 'rat', 
 setGenderOf(e => m2KindGender(e) ?? (ANIMALS.has(e.kind) ? 'n' : introGender(e)));
 // (dev: ?walkaway plays the after-the-boss walk-away screen on its own, walkAway.ts)
 if (import.meta.env.DEV && new URLSearchParams(location.search).has('walkaway')) void import('./walkAway').then(m => m.devPreviewWalkAway());
+// (dev, the cheats build: ?alphaend, the alpha's end walk on its own over the page, round and round)
+devAlphaEnd();
 // (dev: ?hub=<spot> starts at the hub, stood at that spot round it: 7 is Adventure Land's portal)
 if (import.meta.env.DEV && new URLSearchParams(location.search).get('hub')) setHubStart(+new URLSearchParams(location.search).get('hub')!);
 // (dev: ?portal plays the walk into a land (after its portal at the hub) on its own, portalWalk.ts)
@@ -287,6 +291,7 @@ const App2: React.FC = () => {
   const startNew = (slot: Slot | null) => {
     if (slot !== null && readFile(slot)) deleteFile(slot);
     setAlphaEndSeen(false);
+    setAnnounced(false, false);
     resetUpgrades();
     playOnFile(slot);
     setTitle(false);
@@ -299,6 +304,7 @@ const App2: React.FC = () => {
     restoreBossDeaths(f.deaths);
     restoreFound(f.found ?? {});
     setAlphaEndSeen(!!f.alphaSeen);
+    setAnnounced(!!f.annLands, !!f.annAll);
     // (the hidden upgrades: none on a file from before them; and his ammo full to what they make it)
     restoreUpgrades(f.upgrades);
     setInitialAmmo(createFullAmmo());

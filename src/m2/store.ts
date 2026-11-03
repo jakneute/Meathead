@@ -201,25 +201,23 @@ const progressListeners = new Set<() => void>();
 export const markLandCleared = (id: string) => {
   if (cleared.has(id)) return;
   cleared.add(id);
-  // (the last of the alpha's eight is no different: his walk-away, then the hub like any other. The alpha's ending is
-  // his to pick, out through America USA (hub/index.ts, alphaEnd.ts))
+  // (the last of the alpha's eight is no different: his walk-away, then the hub like any other (the PA's announcement
+  // there: hub/announce.ts). The alpha's end is his to pick, out through America USA (hub/index.ts, endWalk.ts))
   progressListeners.forEach(l => l());
 };
 /** The lands in the alpha (hub/lands.ts LANDS: not imported, to keep the store free of art). */
 const ALPHA_LANDS = 8;
-/** (dev only now, ?alphaend=walk: the next walk-away ends in the alpha's ending) */
-let alphaEndDue = false;
-/** The alpha's ending is due at the walk-away's end (dev): peeked, to paint it ahead. */
-export const alphaEndDuePeek = () => alphaEndDue;
-/** ...and taken, once: true the one time. */
-export const takeAlphaEndDue = () => { const d = alphaEndDue; alphaEndDue = false; return d; };
 /** It's been seen on this file (saved, for the record: a file all-cleared that never saw it plays nothing on CONTINUE;
  *  the way out through America USA is how it's seen, every time). */
 let alphaSeen = false;
 export const alphaEndSeen = () => alphaSeen;
 export const setAlphaEndSeen = (on: boolean) => { alphaSeen = on; };
-/** (dev: the next walk-away ends in it) */
-export const setAlphaEndDue = (on: boolean) => { alphaEndDue = on; };
+/** The hub's PA announcements, each once a file (hub/announce.ts): all eight lands cleared; everything (the eight and
+ *  all 24 hidden finds: the NEVERENDING FIREWORKS SHOW). Saved. */
+let announced = { lands: false, all: false };
+export const announcedLands = () => announced.lands;
+export const announcedAll = () => announced.all;
+export const setAnnounced = (lands: boolean, all: boolean) => { announced = { lands, all }; };
 export const isLandCleared = (id: string) => cleared.has(id);
 /** How many lands he's cleared (0..9). */
 export const landsCleared = () => cleared.size;

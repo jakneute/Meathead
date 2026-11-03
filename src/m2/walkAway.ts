@@ -32,18 +32,17 @@ import { PIPER } from './walkAway/piper';
 import { STUPID_DAD } from './walkAway/stupidDad';
 import { musicMoment } from './music/moments';
 import { setTimeOfDayOverride, timeOfDayOverride } from './timeOfDay';
-import { type AlphaEnd, startAlphaEnd, tickAlphaEnd, drawAlphaEnd, warmAlphaEnd, devAlphaEnd } from './alphaEnd';
-import { alphaEndDuePeek, takeAlphaEndDue } from './store';
-
-// (dev, the cheats build: ?alphaend, the alpha's ending on its own; ?alphaend=walk, the next walk-away ends in it)
-devAlphaEnd();
+import { type EndWalk, startEnd, tickEnd, endPose, drawEndWords, endWeaponArt } from './endWalk';
+import { AMERICA_EXIT } from './walkAway/americaExit';
+import { skipFireworksWash } from './fireworks';
 
 /** The bosses that have a walk-away (add each boss's SceneDef here). */
 export const WALK_AWAY_SCENES = { 'safari-artie': SAFARI_ARTIE, 'donnie-dracula': DONNIE_DRACULA, 'space-queen': SPACE_QUEEN, 'stuntman-steve': STUNTMAN_STEVE, 'helicopter-harry': HELICOPTER_HARRY, tucker: TUCKER, piper: PIPER, 'stupid-dad': STUPID_DAD } satisfies Record<string, SceneDef>;
 export type WalkAwayBoss = keyof typeof WALK_AWAY_SCENES;
 
 export interface WalkAwayOpts {
-  boss: WalkAwayBoss;
+  /** The boss he's walking away from; 'america-exit': the alpha's end, out through America USA (endWalk.ts). */
+  boss: WalkAwayBoss | 'america-exit';
   /** Killed by his weakness (the carnage shows it). */
   weakness?: boolean;
   /** A pressed: off it goes (to the hub). */
@@ -54,7 +53,7 @@ export interface WalkAwayOpts {
 
 interface Bit { x: number; y: number; vx: number; vy: number; life: number; max: number; col: string; g: number }
 export interface WalkAway {
-  def: SceneDef; boss: WalkAwayBoss; weakness: boolean; onDone: () => void;
+  def: SceneDef; boss: WalkAwayBoss | 'america-exit'; weakness: boolean; onDone: () => void;
   /** What he's carrying (the boss's weapon, unless the preview says otherwise). */
   weapon: WeaponType | null;
   t: number; done: boolean;
@@ -64,8 +63,8 @@ export interface WalkAway {
   props: Prop[];
   bits: Bit[]; embers: Bit[];
   lastStep: number; farted: number;
-  /** The alpha's ending, playing in its place (the last land just cleared: alphaEnd.ts). */
-  alpha?: AlphaEnd;
+  /** The alpha's end walk, out through America USA (endWalk.ts: the PA, his weapons one after another, THE END?). */
+  end?: EndWalk;
 }
 
 /** How long before A does anything (so a mashed jump off the boss's death doesn't skip it unseen). */
@@ -85,14 +84,14 @@ const listenKeys = (on: boolean) => {
 
 /** Starts it: `state` (if there is one) for how he's dressed (shitty pants, none). */
 export const playWalkAway = (state: GameState | null, opts: WalkAwayOpts): WalkAway => {
-  const def = WALK_AWAY_SCENES[opts.boss];
+  const ending = opts.boss === 'america-exit';
+  const def = ending ? AMERICA_EXIT : WALK_AWAY_SCENES[opts.boss as WalkAwayBoss];
   listenKeys(true);
-  // (the alpha's ending next: its PA painted ahead while he walks)
-  if (alphaEndDuePeek()) warmAlphaEnd();
   return {
     def, boss: opts.boss, weakness: !!opts.weakness, weapon: opts.weapon ?? def.weapon, onDone: opts.onDone, t: 0, done: false, armed: false,
     nude: state ? isNude(state) : false, shat: state ? isShat(state) : false,
     props: def.props(!!opts.weakness), bits: [], embers: [], lastStep: 0, farted: 0,
+    end: ending ? startEnd() : undefined,
   };
 };
 
@@ -104,9 +103,9 @@ export const walkAwayDone = (w: WalkAway) => w.done;
  * while something else holds the screen (a boss's VICTORY). `hour`: the lands cleared it'll be painted at, if not now's
  * (the land's cleared just before it starts, and the hour moves on with it); a hand-set hour (the cheat) is kept.
  */
-export const prewarmWalkAway = (boss: WalkAwayBoss, weakness: boolean, hour: number | null = null) => {
+export const prewarmWalkAway = (boss: WalkAwayBoss | 'america-exit', weakness: boolean, hour: number | null = null) => {
   if (typeof document === 'undefined') return;
-  const def = WALK_AWAY_SCENES[boss];
+  const def = boss === 'america-exit' ? AMERICA_EXIT : WALK_AWAY_SCENES[boss];
   const scratch = canvas(LW, LH).getContext('2d')!;
   const jobs: (() => void)[] = [
     () => warmGround(def), () => { skyOf(); vignetteOf(); }, () => def.back(scratch, 0, 0, weakness),
@@ -133,14 +132,19 @@ const ease = (k: number) => { const u = Math.max(0, Math.min(1, k)); return u * 
 
 /** His pose: the weapon's own act (walkAway/acts.ts), or the crossbow's (this: turned over, sniffed, gagged on). */
 const poseAt = (w: WalkAway): Pose => {
-  const act = w.weapon ? ACTS[w.weapon] : undefined;
+  // (the end walk: his weapons one after another, each from its own act's held-up moment: endWalk.ts)
+  const at = w.end ? endPose(w.end, w.t) : null;
+  const weapon = at ? at.weapon : w.weapon;
+  const act = weapon ? ACTS[weapon] : undefined;
+  const step = (w.t * Math.PI) / STEP;
   if (act) {
-    const p: Pose = { step: (w.t * Math.PI) / STEP, t: w.t, wx: 0, wy: 0, rot: 0, turn: 0, face: 'grin', green: 0, headY: 0, nude: w.nude, shat: w.shat, rim: w.def.rim };
-    act.pose(w.t, p);
+    const at_t = at ? at.t : w.t;
+    const p: Pose = { step, t: at_t, wx: 0, wy: 0, rot: 0, turn: 0, face: 'grin', green: 0, headY: 0, nude: w.nude, shat: w.shat, rim: w.def.rim };
+    act.pose(at_t, p);
+    p.step = step;
     return p;
   }
-  const t = w.t, u = t % CYCLE;
-  const step = (t * Math.PI) / STEP;
+  const t = at ? at.t : w.t, u = t % CYCLE;
   // (turning it over: a half turn every 150 frames, 40 frames to do it)
   const turnBase = Math.PI * (Math.floor(t / 150) + ease(((t % 150) - 110) / 40));
   // (up to his face and back)
@@ -168,13 +172,20 @@ export const walkAwayOn = () => performance.now() - tickedAt < 250;
 export const tickWalkAway = (w: WalkAway, controls?: Controls | null, padA = false) => {
   if (w.done) return;
   tickedAt = performance.now();
-  if (w.alpha) { tickAlphaEnd(w.alpha, controls, padA); return; }
-  musicMoment('walkaway', w.boss);
+  if (!w.end) musicMoment('walkaway', w.boss);
   w.t++;
   const t = w.t, u = t % CYCLE;
   // (his footsteps)
   const stepN = Math.floor((t + STEP / 2) / STEP);
   if (stepN !== w.lastStep) { w.lastStep = stepN; playSound('land', 0.18, -5 + (stepN % 2)); }
+  // (the end walk: its own business (the PA, the weapons going round, THE END?, A to the title): endWalk.ts)
+  if (w.end) {
+    const e = w.end, at = endPose(e, t), act = at.weapon ? ACTS[at.weapon] : undefined;
+    if (act) act.tick?.(at.t, at.t % act.cycle, actFx(w));
+    w.bits = w.bits.filter(b => { b.life++; b.x += b.vx; b.y += b.vy; b.vy += b.g; return b.life < b.max && b.y < FEET_Y + 4; });
+    if (tickEnd(e, t, !!controls?.jump || enterDown || padA)) { listenKeys(false); w.done = true; w.onDone(); }
+    return;
+  }
   const act = w.weapon ? ACTS[w.weapon] : undefined;
   if (act) act.tick?.(t, t % act.cycle, actFx(w));
   // (the crossbow's: the sniff, the gag and the spit)
@@ -204,7 +215,6 @@ export const tickWalkAway = (w: WalkAway, controls?: Controls | null, padA = fal
 const leave = (w: WalkAway) => {
   listenKeys(false);
   playSound('menuok', 0.8);
-  if (takeAlphaEndDue()) { w.alpha = startAlphaEnd(); return; }
   w.done = true;
   w.onDone();
 };
@@ -250,7 +260,9 @@ const drawScene = (c: Ctx, w: WalkAway) => {
       for (const [x, y, ww, hh] of heat) wobble(c, x, y, ww, hh, t, 1.5);
       heated = true;
       const pose = poseAt(w);
-      const marks = drawMeatheadFront(c, LW / 2, FEET_Y, pose, def.grip, def.drawWeapon);
+      // (the end walk: the crossbow's turn drawn with Jungle Land's walk-away's own crossbow)
+      const art = w.end ? endWeaponArt(w.end, w.t) : null;
+      const marks = drawMeatheadFront(c, LW / 2, FEET_Y, pose, art?.grip ?? def.grip, art?.draw ?? def.drawWeapon);
       lastMouth = marks.mouth;
       continue;
     }
@@ -361,11 +373,24 @@ const drawBottom = (c: Ctx, w: WalkAway) => {
 /** Draws it over the whole screen (call it from the stage's drawHud, screen space, last). */
 export const drawWalkAway = (c: Ctx, w: WalkAway) => {
   if (typeof document === 'undefined') return;
-  if (w.alpha) { drawAlphaEnd(c, w.alpha); return; }
+  // (the fireworks' wash isn't for the bars: fireworks.ts)
+  skipFireworksWash();
   const pic = lowRes();
   drawScene(pic.c, w);
   // (the picture up between the bars, the lens's ghosts if the scene has its sun up: screen.ts)
   blitPicture(c, pic.cv);
+  // (the end walk: its own title, the PA's words, THE END?)
+  if (w.end) {
+    c.textAlign = 'center';
+    drawTitle(c, w.t, w.def.title ?? 'HEADING HOME');
+    drawEndWords(c, w.end, w.t);
+    if (w.t < 30) {
+      const r = ((w.t / 30) ** 2) * 560;
+      c.fillStyle = '#000';
+      c.beginPath(); c.rect(0, 0, W, H); c.arc(W / 2, TOP + (FEET_Y - 90) * 2, Math.max(0, r), 0, Math.PI * 2, true); c.fill('evenodd');
+    }
+    return;
+  }
   // The line under the title: where he's leaving
   c.textAlign = 'center';
   drawTitle(c, w.t, w.def.title ?? TITLE);
@@ -396,7 +421,7 @@ export const devPreviewWalkAway = () => {
   window.addEventListener('keyup', e => { if (e.key === ' ') jumpDown = false; });
   const start = () => {
     const which = q.get('walkaway');
-    const boss: WalkAwayBoss = which === 'donnie' ? 'donnie-dracula' : which === 'queen' || which === 'space' ? 'space-queen' : which === 'steve' || which === 'hollywood' ? 'stuntman-steve' : which === 'harry' || which === 'foreign' ? 'helicopter-harry' : which === 'tucker' || which === 'frontier' ? 'tucker' : which === 'piper' || which === 'fantasy' ? 'piper' : which === 'dad' || which === 'cartoon' ? 'stupid-dad' :'safari-artie';
+    const boss: WalkAwayBoss | 'america-exit' = which === 'america' || which === 'end' ? 'america-exit' : which === 'donnie' ? 'donnie-dracula' : which === 'queen' || which === 'space' ? 'space-queen' : which === 'steve' || which === 'hollywood' ? 'stuntman-steve' : which === 'harry' || which === 'foreign' ? 'helicopter-harry' : which === 'tucker' || which === 'frontier' ? 'tucker' : which === 'piper' || which === 'fantasy' ? 'piper' : which === 'dad' || which === 'cartoon' ? 'stupid-dad' :'safari-artie';
     const weapon = (q.get('weapon')?.toUpperCase() || undefined) as WeaponType | undefined;
     const w = playWalkAway(null, { boss, weapon: weapon && M2_WEAPON_INFO[weapon] ? weapon : undefined, weakness: q.has('weak'), onDone: () => setTimeout(() => { cur = start(); }, 400) });
     w.shat = q.has('shat'); w.nude = q.has('nude');

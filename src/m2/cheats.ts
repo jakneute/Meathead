@@ -4,7 +4,8 @@
 import type { WeaponType } from '../m1/types';
 import type { GameState } from '../m1/game/core/state';
 import { M2_WEAPONS } from './weapons';
-import { ownsWeapon, subscribeProgress } from './store';
+import { ownsWeapon, subscribeProgress, setUi } from './store';
+import { replayAnnouncements } from './hub/announce';
 import { setTimeOfDayOverride, timeOfDayOverride } from './timeOfDay';
 import { clearSkyCache } from './intro/art/sky';
 import { M2_PUBLIC } from './build';
@@ -63,9 +64,9 @@ export const todNow = () => { const v = timeOfDayOverride(); return v === null ?
  */
 let panelOpen = false;
 /** The panel's rows, in order, and what's along each. */
-export const CHEAT_ROWS = ['god', 'ammo', 'allWeapons', 'skip', 'pants', 'tod', 'armor', 'hpUp', 'ammoUp', 'shards', 'music', 'done'] as const;
+export const CHEAT_ROWS = ['god', 'ammo', 'allWeapons', 'skip', 'pants', 'tod', 'armor', 'hpUp', 'ammoUp', 'shards', 'pa', 'music', 'done'] as const;
 export type CheatRow = typeof CHEAT_ROWS[number];
-const rowLength = (r: CheatRow) => (r === 'pants' ? 3 : r === 'tod' ? 11 : r === 'armor' ? ARMOR_PIECES.length + 2 : r === 'music' ? 3 : r === 'done' ? 1 : 2);
+const rowLength = (r: CheatRow) => (r === 'pants' ? 3 : r === 'tod' ? 11 : r === 'armor' ? ARMOR_PIECES.length + 2 : r === 'music' ? 3 : r === 'done' || r === 'pa' ? 1 : 2);
 
 /** The hidden upgrades (upgrades/state.ts), set by hand: each armor piece on or off, all or none; the counts up or down
  *  a step (the owner's: "a debug menu that lets me equip each piece from the cheat menu so i can test it out"). */
@@ -80,6 +81,10 @@ export const stepUpgrade = (r: 'hpUp' | 'ammoUp' | 'shards', d: number) => {
   else setShards(shards() + d);
   ping();
 };
+
+/** The hub PA's announcements (hub/announce.ts: all eight cleared; everything found, the fireworks), heard again the
+ *  next time he's in the hub. */
+export const replayHubPa = () => { replayAnnouncements(); setUi({ notice: { text: 'THE PA WILL GO AGAIN NEXT TIME IN THE HUB', at: performance.now() } }); };
 
 /** The sound test (music/soundTest.ts): back a song, on a song, or off. */
 export const stepMusic = (d: number) => { stepSoundTest(d); ping(); };
@@ -116,6 +121,7 @@ export const activateCheat = () => {
   else if (r === 'tod') setTod(c === 0 ? null : c - 1);
   else if (r === 'armor') toggleArmor(c);
   else if (r === 'hpUp' || r === 'ammoUp' || r === 'shards') stepUpgrade(r, c === 0 ? -1 : 1);
+  else if (r === 'pa') replayHubPa();
   else if (r === 'music') { if (c === 2) setSoundTest(null); else stepSoundTest(c === 0 ? -1 : 1); }
   else setCheatPanelOpen(false);
   ping();

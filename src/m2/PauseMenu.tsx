@@ -11,7 +11,7 @@ import { CardRowView, type PauseCard } from './PauseControls';
 import { PLAIN_PAUSE, type PauseSkin } from './hudThemes';
 import { M2_PUBLIC } from './build';
 import { walkBackOn } from './store';
-import { getCheats, setCheat, subscribeCheats, pantsNow, setPants, todNow, setTod, setCheatPanelOpen, cheatPanelOpen, cheatCursor, CHEAT_ROWS, stepMusic, stopMusicTest, soundTestLabel, toggleArmor, stepUpgrade, type Pants } from './cheats';
+import { getCheats, setCheat, subscribeCheats, pantsNow, setPants, todNow, setTod, setCheatPanelOpen, cheatPanelOpen, cheatCursor, CHEAT_ROWS, stepMusic, stopMusicTest, soundTestLabel, toggleArmor, stepUpgrade, replayHubPa, type Pants } from './cheats';
 import { ARMOR_PIECES, ARMOR_SHORT, has, healthFinds, ammoFinds, shards, maxHealth, ammoScale, powerCells, subscribeUpgrades, upgradesVersion, MAX_HEALTH_FINDS, MAX_AMMO_FINDS, MAX_SHARDS, type ArmorPiece } from './upgrades/state';
 import { EQUIP_ENTRIES, equipIcon, FindIcon, type EquipEntry } from './upgrades/equipInfo';
 
@@ -66,6 +66,7 @@ const CheatPanel: React.FC<{ skin: PauseSkin; onClose: () => void }> = ({ skin, 
           <div className="self-center text-[7px] font-black tracking-wider" style={{ color: skin.text }}>{n}/{max}: {says}</div>
         </>)}</React.Fragment>
       ))}
+      {row('HUB PA', <Chip on={false} at={at(CHEAT_ROWS.indexOf('pa'), 0)} skin={skin} w={120} onClick={replayHubPa}>REPLAY NEXT VISIT</Chip>)}
       {row('SOUND TEST', <>
         <Chip on={false} at={at(CHEAT_ROWS.indexOf('music'), 0)} skin={skin} w={24} onClick={() => stepMusic(-1)}>&lt;</Chip>
         <Chip on={false} at={at(CHEAT_ROWS.indexOf('music'), 1)} skin={skin} w={24} onClick={() => stepMusic(1)}>&gt;</Chip>

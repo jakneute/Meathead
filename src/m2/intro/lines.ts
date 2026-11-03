@@ -58,25 +58,31 @@ export const GUARD_BARK: Record<Dressed, string[]> = {
   nude: ["DON'T LOOK AT IT! TAKE HIM DOWN!", "I'M NOT TACKLING HIM! HE'S NAKED!", 'THERE ARE FAMILIES HERE, YOU PERVERT!'],
 };
 
-/** The PA (the same announcer as America USA's), the night he walks out through America USA with all eight bosses dead:
- *  the alpha's ending (alphaEnd.ts). A line at a time (the user's one speech, split so each fits on screen): the opening,
- *  then his take on how much of the 24 hidden finds got found (PA_ALPHA_TIER), then the rest. */
-export const PA_ALPHA_OPEN = 'CONGRATULATIONS! YOU FINISHED THE ALPHA BUILD OF MEATHEAD 2!';
-export const PA_ALPHA_END = [
-  'CHECK BACK LATER-ISH FOR THE GRAND ENDGAME CONTENT!',
-  'OR YOU CAN LOAD YOUR SAVED GAME AND KEEP PLAYING WITH YOUR NEW WEAPONS.',
-  'IF YOU WANT TO HEAR MY WONDERFUL VOICE AGAIN, EXIT THROUGH AMERICA USA FROM YOUR SAVED GAME.',
-  "IF YOU CHOSE NOT TO SAVE YOUR GAME, YOU'RE SHIT OUT OF LUCK.",
-  'GOODBYE.',
+/** The PA (the same announcer as America USA's) over the hub, each once a file (hub/announce.ts): all eight lands
+ *  cleared; everything found (the NEVERENDING FIREWORKS SHOW); or both at once (he had all 24 before the last boss).
+ *  Each ends on PA_ANNOUNCE_EXIT (the owner's words). */
+export const PA_ANNOUNCE_LANDS = 'ATTENTION, HAPPY LAND! ALL EIGHT LANDS ARE UNDER NEW MANAGEMENT. THE OLD MANAGEMENT IS DEAD.';
+/** ...the eight, finds still out there. */
+export const PA_ANNOUNCE_LEFT = "THERE'S STILL HIDDEN SHIT ALL OVER THIS PARK, IF YOU GIVE A SHIT.";
+/** ...everything found (the fireworks go up on this one): on its own, and after the eight's news. */
+export const PA_ANNOUNCE_ALL = 'ATTENTION, HAPPY LAND! SOMEBODY FOUND ALL OUR HIDDEN SHIT. ENJOY THE NEVERENDING FIREWORKS SHOW!';
+export const PA_ANNOUNCE_BOTH = 'AND SOMEBODY FOUND ALL OUR HIDDEN SHIT. ENJOY THE NEVERENDING FIREWORKS SHOW!';
+export const PA_ANNOUNCE_FIREWORKS = [
+  'IT NEVER ENDS. THE GUY WITH THE OFF SWITCH BLEW BOTH HIS HANDS OFF.',
+  'THE FIRE MARSHAL HAS BEEN NOTIFIED. HE IS ALSO ON FIRE.',
 ];
+export const PA_ANNOUNCE_EXIT = 'EXIT THROUGH AMERICA USA TO FINISH YOUR FUN-FILLED DAY.';
+
+/** The PA on the way out through America USA (the alpha's end walk, endWalk.ts): his send-off, then his take on how
+ *  much of the 24 hidden finds got found (PA_END_TIER). THE END? on screen after it has the last word, not him. */
+export const PA_END_OPEN = 'NOW LEAVING HAPPY LAND. YOUR TRUCK IS STILL IN THE PILLAR.';
 /** How many of the 24 hidden finds he got (the owner's six, by count): none (0); a few (1-6); a quarter-ish (7-12);
- *  over half (13-18); so close (19-23, needled for it); every last one (24). */
+ *  over half (13-18); so close (19-23, needled for it); every last one (24, the fireworks mentioned: only here). */
 export type AlphaTier = 'none' | 'few' | 'quarter' | 'half' | 'close' | 'all';
-export const PA_ALPHA_TIER: Record<AlphaTier, string[]> = {
+export const PA_END_TIER: Record<AlphaTier, string[]> = {
   none: [
     'YOU FOUND NOTHING. NOT ONE THING. DID YOU EVEN LOOK?',
     'TWENTY-FOUR THINGS HIDDEN IN THIS PARK, AND YOU WALKED RIGHT PAST EVERY SINGLE ONE OF THEM.',
-    'LOAD YOUR SAVE AND TRY OPENING YOUR EYES THIS TIME.',
   ],
   few: [
     'YOU FOUND A FEW OF THE HIDDEN THINGS. BY ACCIDENT, PROBABLY.',
@@ -96,7 +102,8 @@ export const PA_ALPHA_TIER: Record<AlphaTier, string[]> = {
     'GO BACK IN THERE AND FINISH THE JOB, YOU QUITTER.',
   ],
   all: [
-    'AND YOU FOUND EVERYTHING. ALL TWENTY-FOUR. EVERY LAST HIDDEN THING IN THIS WHOLE PARK.',
+    'YOU FOUND EVERYTHING. ALL TWENTY-FOUR. EVERY LAST HIDDEN THING IN THIS WHOLE PARK.',
+    'THE FIREWORKS ARE FOR YOU, BY THE WAY. THEY NEVER STOP. WE TRIED.',
     'I MEAN IT. THAT IS GENUINELY IMPRESSIVE. I AM PROUD OF YOU, SON.',
     'DO NOT TELL ANYBODY I SAID THAT.',
   ],
