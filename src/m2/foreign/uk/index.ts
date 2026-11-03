@@ -56,7 +56,7 @@ const PUB = { a: 2050, b: 2300, h: 170 } as const;
 const BARRELS = { a: 2310, b: 2360, h: 90 } as const;
 // (dug extra deep under the bridge, the hidden health on its bed: heartFind.ts. The owner: "maybe make the water extra
 // deep too under the london bridge"; was 180)
-const THAMES: Pool = { key: 'thames', a: X(2440), b: X(3000), surface: 30, bed: 450, col: '#475569', wall: '#57534E' };
+const THAMES: Pool = { key: 'thames', a: X(2440), b: X(3000), surface: 30, bed: 620, col: '#475569', wall: '#57534E' };
 /** The bridge: its towers (solid from `lo` up: walk under), the high walkway, the stairs up and down, its two halves. */
 const TOWERS: [number, number][] = [[2380, 2440], [3000, 3060]];
 const TOWER_LO = 110, TOWER_HI = 420;

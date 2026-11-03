@@ -2,7 +2,7 @@
 // "health pickup in foreign land. simple one. the london bridge. if you go under it after passing it, it will be in the
 // bottom of the river it is sitting in." and "maybe make the water extra deep too under the london bridge").
 //
-//   THE RIVER: dug extra deep (index.ts THAMES.bed: 450 under the promenade, was 180), the water banded darker and
+//   THE RIVER: dug extra deep (index.ts THAMES.bed: 620 under the promenade, was 180, then 450), the water banded darker and
 //     darker on the way down (drawDeep: SNES bands, dithered where they meet) so it reads as deep.
 //   THE FIND: the HEART CANISTER (a glass jar, brass capped, a meaty heart beating in it) lying on the bed under the
 //     middle of the bridge, where its two halves meet. It's only there once he's passed the bridge (been on the far
