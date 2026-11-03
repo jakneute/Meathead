@@ -438,6 +438,7 @@ const startGift = (state: GameState, h: Lair) => {
   h.script = startScript(beats);
 };
 const ART_TIPS: EquipControl[] = [
+  { pad: ['DPAD_UP', 'B'], join: '+', kb: ['@up', '@special'], label: 'UPPERCUT HIM' },
   { ...FOLLOW, label: 'TAP AS YOU HOLD AN UPPERCUT: NINJA DROP' },
   { pad: ['DPAD_LEFT', 'DPAD_RIGHT'], join: '/', kb: ['@left', '@right'], label: 'ON THE WAY DOWN: STEER IT' },
 ];
@@ -479,7 +480,7 @@ const runDone = (state: GameState, h: Lair): EquipControl[] | null => {
     benSays(h.ben, pickLine(byPants(state, NUDGE)));
   }
   // (in the order he does them: the uppercut first, then the tap (the owner's: the tips "seem to be backwards"))
-  return h.tipsTill && h.spar ? UP_TIPS.slice(0, 1).concat(ART_TIPS.slice(0, 1)) : null;
+  return h.tipsTill && h.spar ? UP_TIPS : null;
 };
 
 /** Where Ben's feet are (world). */

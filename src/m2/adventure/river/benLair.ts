@@ -444,7 +444,9 @@ const startGift = (state: GameState, h: Lair) => {
   }
   h.script = startScript(beats);
 };
+// (in the order he does them: the charge, then the tap, then the kick (the owner's: the tips "seem to be backwards"))
 const ART_TIPS: EquipControl[] = [
+  { pad: ['B'], kb: ['@special'], label: 'SHOULDER CHARGE HIM' },
   { ...FOLLOW, label: 'TAP AS YOU HOLD A SHOULDER CHARGE: PLANTED' },
   { pad: ['B'], kb: ['@special'], label: 'BY THE HEAD IN THE GROUND: FIELD GOAL' },
 ];
