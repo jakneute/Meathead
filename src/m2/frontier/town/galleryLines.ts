@@ -93,22 +93,23 @@ export const DOOLEY_IDLE: ByPants = same(['TAKE YOUR TIME, SONNY. BUT THE CLOCK 
  *  things break: they're erased like they never were (no dent, no pieces, the rail closing up around the gap), and he
  *  can't quite remember what was there. */
 export const DOOLEY_TIERS: ByPants[] = [
-  // (1: the first thing gone: baffled and terrified at once, the calm gone in one shot (the owner's))
+  // (1: the first thing gone: baffled and terrified at once, the calm gone in one shot; the word for it said first (the
+  // owner's: "mentions 'disintegration' on the first item you disintegrate"))
   same([
-    "WHAT THE HELL?! IT DIDN'T FALL DOWN! WAS THERE A DUCK THERE? THERE WAS A DUCK THERE!",
-    'THAT IS NOT A DUCK GUN! WHAT IS THAT?! WHAT DOES IT DO?!',
+    "WHAT THE HELL?! IT DIDN'T FALL DOWN! YOU DISINTEGRATED IT! WAS THERE EVEN A DUCK THERE?!",
+    "DISINTEGRATED! NOT SHOT! NOT DENTED! DISINTEGRATED! WHAT KIND OF GUN IS THAT?!",
     "NO DENT! NO HOLE! NO DUCK! THE RAIL'S GOT A GAP LIKE IT ALWAYS HAD ONE!",
     "DUCKS DON'T DO THAT! TIN DOESN'T DO THAT!",
     'I HAD TWELVE DUCKS. I THINK. DID I HAVE TWELVE?',
   ]),
-  // (2: irritated)
+  // (2: irritated, and it's starting to get to him)
   same([
     'QUIT IT! THOSE ARE RENTAL DUCKS!',
     'KNOCK THEM DOWN! DOWN! NOT OUT OF EVER BEING!',
     'HOW DO I SIGN FOR A DUCK THAT WAS NEVER THERE?',
-    'STOP ZAPPING MY STUFF, YOU MEATHEAD! WHATEVER IT WAS!',
-    'WHO TAUGHT YOU TO PLAY A SHOOTING GALLERY? SATAN?',
+    'STOP DISINTEGRATING MY STUFF, YOU MEATHEAD! WHATEVER IT WAS!',
     "MY INVENTORY SHEET'S GOT A BLANK LINE. IT ALWAYS HAD A BLANK LINE. DID IT?",
+    "I KEEP COUNTING. THE NUMBER KEEPS BEING RIGHT. THAT'S WHAT SCARES ME.",
   ]),
   // (3: it dawns on him)
   same([
@@ -117,25 +118,28 @@ export const DOOLEY_TIERS: ByPants[] = [
     'THE PRIZE SHELF SCOOTED OVER. IT IS PRETENDING NOTHING WAS THERE.',
     'I PAINTED THEIR LITTLE EYES. DID I? WHOSE EYES DID I PAINT?',
     "WHERE DO THEY GO? THEY DON'T GO. THEY JUST WEREN'T.",
+    'EVERY ONE YOU HIT, THE WORLD CLOSES UP OVER THE HOLE. LIKE WATER.',
   ]),
-  // (4: existential)
+  // (4: existential: it's not the ducks any more, it's him)
   same([
     'YOU DID NOT KILL IT. KILLING LEAVES SOMETHING. YOU UNMADE IT.',
-    'DEATH I COULD TAKE. THIS IS WORSE THAN DEATH.',
+    'DEATH I COULD TAKE. DEATH YOU GET A FUNERAL. THIS IS WORSE THAN DEATH.',
     'A DEAD DUCK GETS REMEMBERED. THESE DO NOT EVEN GET THAT.',
-    'IF YOU ZAP ME, DOES MY MOTHER STILL HAVE A SON?',
+    'IF YOU ZAP ME, DOES MY MOTHER STILL HAVE A SON? DID SHE EVER?',
     'NINETEEN YEARS IN THIS BOOTH. OR EIGHTEEN. IT IS GETTING SHORTER.',
-    'WAS ANY OF IT REAL? WERE THE DUCKS EVER REAL?',
+    "I'M FORGETTING MY WIFE'S FACE. I'M FORGETTING IF I HAD A WIFE.",
+    'EVERYTHING I EVER DID COULD BE ONE TRIGGER PULL FROM NEVER HAPPENING.',
   ]),
   // (5: the bottom falls out)
   same([
-    'IS ANYTHING REAL? AM I REAL?',
+    'IS ANYTHING REAL? AM I REAL? SOMEBODY TOUCH ME. PROVE IT.',
     'IT CAN JUST BE TAKEN. ANYBODY. ME. AND NOBODY WOULD KNOW TO MISS ME.',
     'NO GRAVE. NO GHOST. NOT EVEN A MEMORY OF A DUCK.',
     'THERE WAS A BOOTH HERE. I THINK. I WORK AT A BOOTH. I THINK.',
     'I CAN SEE THE VOID. IT DOES NOT HAVE A PRIZE SHELF.',
     'I WANT MY MOMMY. DO I HAVE A MOMMY?',
-    'WE ARE ALL JUST DUCKS ON A RAIL.',
+    'WE ARE ALL JUST DUCKS ON A RAIL. AND SOMEBODY IS HOLDING THAT GUN.',
+    "I'M NOT AFRAID OF DYING. I'M AFRAID I NEVER LIVED.",
   ]),
 ];
 /** What he says to a particular thing going (said ahead of the tier's, once each). */

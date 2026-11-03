@@ -10936,6 +10936,11 @@
  },
  {
   "voice": "death",
+  "text": "HIS GLASSES RODE ON WITHOUT HIM",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "death",
   "text": "HIS LUCK RAN OUT. RED HOT.",
   "from": "FRONTIER"
  },
@@ -13762,6 +13767,11 @@
  {
   "voice": "death",
   "text": "QUACKED TO DEATH",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "death",
+  "text": "RACKED ON A TRESTLE. SPLATTED ON A ROCK.",
   "from": "FRONTIER"
  },
  {
@@ -42231,7 +42241,12 @@
  },
  {
   "voice": "m2.frontier.dooley",
-  "text": "DEATH I COULD TAKE. THIS IS WORSE THAN DEATH.",
+  "text": "DEATH I COULD TAKE. DEATH YOU GET A FUNERAL. THIS IS WORSE THAN DEATH.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.dooley",
+  "text": "DISINTEGRATED! NOT SHOT! NOT DENTED! DISINTEGRATED! WHAT KIND OF GUN IS THAT?!",
   "from": "FRONTIER"
  },
  {
@@ -42261,12 +42276,22 @@
  },
  {
   "voice": "m2.frontier.dooley",
+  "text": "EVERY ONE YOU HIT, THE WORLD CLOSES UP OVER THE HOLE. LIKE WATER.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.dooley",
   "text": "EVERYBODY IS A WINNER! THAT WAS THE DEAL! NOBODY WINS NOW!",
   "from": "FRONTIER"
  },
  {
   "voice": "m2.frontier.dooley",
   "text": "EVERYBODY IS A WINNER. EVEN GUYS WHO SHAT THEMSELVES. LEGALLY.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.dooley",
+  "text": "EVERYTHING I EVER DID COULD BE ONE TRIGGER PULL FROM NEVER HAPPENING.",
   "from": "FRONTIER"
  },
  {
@@ -42341,6 +42366,11 @@
  },
  {
   "voice": "m2.frontier.dooley",
+  "text": "I KEEP COUNTING. THE NUMBER KEEPS BEING RIGHT. THAT'S WHAT SCARES ME.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.dooley",
   "text": "I PAINTED THEIR LITTLE EYES. DID I? WHOSE EYES DID I PAINT?",
   "from": "FRONTIER"
  },
@@ -42351,12 +42381,22 @@
  },
  {
   "voice": "m2.frontier.dooley",
-  "text": "IF YOU ZAP ME, DOES MY MOTHER STILL HAVE A SON?",
+  "text": "I'M FORGETTING MY WIFE'S FACE. I'M FORGETTING IF I HAD A WIFE.",
   "from": "FRONTIER"
  },
  {
   "voice": "m2.frontier.dooley",
-  "text": "IS ANYTHING REAL? AM I REAL?",
+  "text": "I'M NOT AFRAID OF DYING. I'M AFRAID I NEVER LIVED.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.dooley",
+  "text": "IF YOU ZAP ME, DOES MY MOTHER STILL HAVE A SON? DID SHE EVER?",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.dooley",
+  "text": "IS ANYTHING REAL? AM I REAL? SOMEBODY TOUCH ME. PROVE IT.",
   "from": "FRONTIER"
  },
  {
@@ -42546,12 +42586,12 @@
  },
  {
   "voice": "m2.frontier.dooley",
-  "text": "STOP JIGGLING AT ME! I AM HAVING A PANIC ATTACK!",
+  "text": "STOP DISINTEGRATING MY STUFF, YOU MEATHEAD! WHATEVER IT WAS!",
   "from": "FRONTIER"
  },
  {
   "voice": "m2.frontier.dooley",
-  "text": "STOP ZAPPING MY STUFF, YOU MEATHEAD! WHATEVER IT WAS!",
+  "text": "STOP JIGGLING AT ME! I AM HAVING A PANIC ATTACK!",
   "from": "FRONTIER"
  },
  {
@@ -42597,11 +42637,6 @@
  {
   "voice": "m2.frontier.dooley",
   "text": "THAT IS MY COUNTER! I LEAN ON THAT! WHAT WAS I LEANING ON?",
-  "from": "FRONTIER"
- },
- {
-  "voice": "m2.frontier.dooley",
-  "text": "THAT IS NOT A DUCK GUN! WHAT IS THAT?! WHAT DOES IT DO?!",
   "from": "FRONTIER"
  },
  {
@@ -42671,12 +42706,7 @@
  },
  {
   "voice": "m2.frontier.dooley",
-  "text": "WAS ANY OF IT REAL? WERE THE DUCKS EVER REAL?",
-  "from": "FRONTIER"
- },
- {
-  "voice": "m2.frontier.dooley",
-  "text": "WE ARE ALL JUST DUCKS ON A RAIL.",
+  "text": "WE ARE ALL JUST DUCKS ON A RAIL. AND SOMEBODY IS HOLDING THAT GUN.",
   "from": "FRONTIER"
  },
  {
@@ -42701,7 +42731,7 @@
  },
  {
   "voice": "m2.frontier.dooley",
-  "text": "WHAT THE HELL?! IT DIDN'T FALL DOWN! WAS THERE A DUCK THERE? THERE WAS A DUCK THERE!",
+  "text": "WHAT THE HELL?! IT DIDN'T FALL DOWN! YOU DISINTEGRATED IT! WAS THERE EVEN A DUCK THERE?!",
   "from": "FRONTIER"
  },
  {
@@ -42732,11 +42762,6 @@
  {
   "voice": "m2.frontier.dooley",
   "text": "WHERE DO THEY GO? THEY DON'T GO. THEY JUST WEREN'T.",
-  "from": "FRONTIER"
- },
- {
-  "voice": "m2.frontier.dooley",
-  "text": "WHO TAUGHT YOU TO PLAY A SHOOTING GALLERY? SATAN?",
   "from": "FRONTIER"
  },
  {
@@ -71231,6 +71256,11 @@
  },
  {
   "voice": "meathead",
+  "text": "AT LEAST IT RINSED ME OOOFF!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
   "text": "AT LEAST IT RINSES MY PAAAANTS!",
   "from": "FRONTIER"
  },
@@ -87951,6 +87981,11 @@
  },
  {
   "voice": "meathead",
+  "text": "MY BALLS! IN THE WIIIND!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
   "text": "MY BALLS! MY BALLS!",
   "from": "FANTASY"
  },
@@ -88218,6 +88253,16 @@
   "voice": "meathead",
   "text": "MY GAINS! HE'S GOT MORE GAINS!",
   "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "MY GLASSEEEES!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
+  "text": "MY GLASSES ARE FILLING UP!",
+  "from": "FRONTIER"
  },
  {
   "voice": "meathead",
@@ -88983,6 +89028,11 @@
   "voice": "meathead",
   "text": "NAKED NEAR AN OPEN FLAME. MY PUBES ARE KINDLING.",
   "from": "FANTASY"
+ },
+ {
+  "voice": "meathead",
+  "text": "NAKED OFF A TRAAAAIN!",
+  "from": "FRONTIER"
  },
  {
   "voice": "meathead",
@@ -90773,6 +90823,11 @@
   "voice": "meathead",
   "text": "NOT NOW. MY FINGERS ARE TOO FAT FOR TREASON.",
   "from": "SPACE"
+ },
+ {
+  "voice": "meathead",
+  "text": "NOT OFF THE TRAAAAIN!",
+  "from": "FRONTIER"
  },
  {
   "voice": "meathead",
@@ -105061,6 +105116,11 @@
  },
  {
   "voice": "meathead",
+  "text": "WASHED OFF LIKE A TUUURD!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
   "text": "WASHED UP AT TWENTY.",
   "from": "RANGE_KILL_LINES"
  },
@@ -106182,6 +106242,11 @@
  {
   "voice": "meathead",
   "text": "WHO PUTS A PIPE THERE?!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
+  "text": "WHO PUTS A WATERFALL ON A TRAAAIN?!",
   "from": "FRONTIER"
  },
  {
