@@ -51,7 +51,7 @@ import type { ByPants } from './lines';
 import { MASSACRE_MEMO } from './guests';
 import { newPuzzle, type HackPuzzle, type PuzzleIn } from './hackPuzzle';
 import { HACK_LEDGES, PANEL_X, PANEL_DECK, drawHackTree, drawTerminal, bootLength } from './hackArt';
-import { makeMassacre, stepMassacre, drawMassacre, startTalk, doom, speakerDown, speakerHead, SPEAKER_WOMAN, OPEN_AT, FIRST_OUT, type Massacre } from './hackMassacre';
+import { makeMassacre, stepMassacre, drawMassacre, startTalk, doom, speakerDown, speakerHead, speakerReady, massacreSettled, SPEAKER_WOMAN, OPEN_AT, FIRST_OUT, type Massacre } from './hackMassacre';
 import { makePull, stepPull, drawPull, PULL_UP, type Pull } from './hackPull';
 import { MH_PANEL, MH_QUIT, MH_WORTH, PA_SEATED, PA_MORE, PA_VOICE, GUEST_F, GUEST_M, GUEST_WHY, GUEST_LOST, GUEST_WORTH, GUEST_MORE_F, GUEST_MORE_M } from './hackLines';
 
@@ -87,6 +87,15 @@ const hackOf = (state: GameState): Hack => {
   return h;
 };
 let uiUp = false;
+/** Dev only: straight into the massacre's cut (window.__m2HackCut(), in the dino park), and where it's at
+ *  (window.__m2HackAt()): for screenshots of it. */
+let devCut = false, devAt: Hack | null = null;
+const devDraw: number[] = [];
+if (import.meta.env.DEV && typeof window !== 'undefined') {
+  const w = window as unknown as { __m2HackCut: () => void; __m2HackAt: () => unknown };
+  w.__m2HackCut = () => { devCut = true; };
+  w.__m2HackAt = () => devAt && { phase: devAt.phase, t: devAt.t, cam: devAt.m?.cam, beat: devAt.beat, kills: devAt.m?.kills, draws: devDraw.slice() };
+}
 
 /** Hacked already: the panel's dead (this run, or won on this save). */
 export const panelDead = (state: GameState) => !!state.stageMemo[MASSACRE_MEMO] || shardWon(SHARD_LAND, SHARD_ID);
@@ -152,6 +161,8 @@ export const buildHack = (state: GameState) => {
 export const updateHack = (ctx: FrameContext, controls: Controls): Controls | null => {
   const { state } = ctx, p = state.player, h = hackOf(state);
   const upNow = !!controls.up;
+  devAt = h;
+  if (h.phase === 'off' && devCut) { devCut = false; h.token++; hold(state); startCut(h); return hands(); }
   if (h.phase === 'off') {
     if (uiUp) { setUi({ hudOff: false, chordTips: null, chordTipsAt: null }); uiUp = false; }
     const cx = p.pos.x + p.width / 2, feet = p.pos.y + p.height;
@@ -245,9 +256,12 @@ export const updateHack = (ctx: FrameContext, controls: Controls): Controls | nu
       stepMassacre(m);
       if (h.t > SKIP_AFTER) offerSkip();
       if (h.t > SKIP_AFTER && takeSkip()) { skipAll(state, h); break; }
-      // The lines, one at a time, each after the last's done (no talk-over)
+      // The lines, one at a time, each after the last's done (no talk-over); a screamer's once the camera's panned to
+      // them (it hurries while nobody's talking and they're still to come)
       const tok = h.token, bt = h.beats[h.beat];
-      if (bt && !h.busy && m.t >= bt.at && m.t >= h.lastEnd + GAP) {
+      const ready = !!bt && (bt.who === 'pa' || speakerReady(m, bt.who));
+      m.hurry = !!bt && !h.busy && !ready;
+      if (bt && !h.busy && ready && m.t >= bt.at && m.t >= h.lastEnd + GAP) {
         h.busy = true; h.beat++;
         const done = () => { if (h.token !== tok) return; h.busy = false; if (h.m) h.lastEnd = h.m.t; };
         if (bt.who === 'pa') speak(PA_VOICE, bt.text, s => { h.pa = s; }, true, done);
@@ -260,7 +274,7 @@ export const updateHack = (ctx: FrameContext, controls: Controls): Controls | nu
       // (the last one said and got: a beat on it, then out)
       const last = h.beats.length - 1, lastWho = h.beats[last].who;
       const allSaid = h.beat > last && !h.busy;
-      if (h.endAt < 0 && ((allSaid && (typeof lastWho !== 'number' || speakerDown(m, lastWho)) && m.t >= h.lastEnd + 40) || (allSaid && m.t >= h.lastEnd + 150) || h.t > 2700)) h.endAt = h.t;
+      if (h.endAt < 0 && ((allSaid && (typeof lastWho !== 'number' || speakerDown(m, lastWho)) && m.t >= h.lastEnd + 40 && massacreSettled(m)) || (allSaid && m.t >= h.lastEnd + 240) || h.t > 2700)) h.endAt = h.t;
       if (h.endAt >= 0 && h.t >= h.endAt + FADE + 6) {
         silenceAll();
         h.phase = 'pull'; h.t = 0; h.m = null; h.pa = null; h.gs = null; h.endAt = -1;
@@ -391,7 +405,9 @@ export const drawHackHud = (c: CanvasRenderingContext2D, state: GameState) => {
     return;
   }
   if (h.phase === 'cut' && h.m) {
+    const t0 = import.meta.env.DEV ? performance.now() : 0;
     drawMassacre(c, h.m, f);
+    if (import.meta.env.DEV && devDraw.push(performance.now() - t0) > 3000) devDraw.shift();
     // (the PA's words, up top, from a horn; a screamer's in a bubble over them: each only while it's said)
     if (h.pa) paCaption(c, h.pa.text);
     if (h.gs) { const [x, y] = speakerHead(h.m, h.gs.i); bubble(c, h.gs.text, x, y); }
