@@ -76,12 +76,15 @@ const N = {
  *  head, slammed down on the far side of him. Same for everybody; no meter. Whiffed, it's a long reach to punish. */
 const THROW: Move = { name: 'THROW', kind: 'grab', start: 4, active: 3, rec: 24, level: 'mid', dmg: 10, stun: 0, bstun: 0, push: 0, pose: 'th0', grab: { range: 8, anim: 36, over: true }, sfx: 'whoosh' };
 
+/** Every normal's reach out from him, times: out to where the drawn fist or foot gets to (the owner's: "the collision
+ *  seems a little off and short"). */
+const REACH = 1.45;
 /** The normals, reach and damage scaled (r: reach, d: damage, sp: frames added to startups). */
 const normals = (r: number, d: number, slow = 0): Record<'sp' | 'sk' | 'cp' | 'ck' | 'jp' | 'jk' | 'th', Move> => {
   const out = {} as Record<'sp' | 'sk' | 'cp' | 'ck' | 'jp' | 'jk' | 'th', Move>;
   for (const k of ['sp', 'sk', 'cp', 'ck', 'jp', 'jk'] as const) {
     const m = N[k] as Move;
-    out[k] = { ...m, start: m.start + slow, dmg: Math.round(m.dmg * d), hit: { ...m.hit!, w: Math.round(m.hit!.w * r) } };
+    out[k] = { ...m, start: m.start + slow, dmg: Math.round(m.dmg * d), hit: { ...m.hit!, w: Math.round(m.hit!.w * r * REACH) } };
   }
   out.th = THROW;
   return out;
