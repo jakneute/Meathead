@@ -16,7 +16,8 @@
 //     coco-nuts (taken back if he leaves on it; never saved lent) and his TACKLING DUMMY's out on its spring post
 //     (benLairDummy.ts: harmless, grabbable): shoulder charge it, keep holding, tap grab: PLANTED, in the floor to the
 //     chin; then B by the head: punted off, through the uprights he's chalked on the back wall (the way it flies is
-//     the way he kicks from; the other way's WIDE, and still counts). A charge with no plant after it is a miss (a dry
+//     the way he kicks from; that way it's lofted over the bar between the posts every time (addKickAim); the other
+//     way still passes, with Ben's GOOD ENOUGH (PADS_WIDE)). A charge with no plant after it is a miss (a dry
 //     line; a hint after two); the head dug back out before he kicks it, Ben says so. Can't get stuck: the dummy's
 //     stood back up whatever's done to it, any plant from either side counts, nothing hurts, the buttons are up on
 //     screen near it (the charge and the tap, then the kick once it's planted).
@@ -62,7 +63,7 @@ import { setUi } from '../../store';
 import { saveProgress } from '../../save';
 import { has, setPiece, setBenMet, benGave, setBenGave, followArt, setFollowArt, FOLLOW_PIECES } from '../../upgrades/state';
 import { lastMelee, type MeleeHit } from '../../upgrades/lastHit';
-import { buriedAs } from '../../moves/followups';
+import { buriedAs, addKickAim } from '../../moves/followups';
 import { FOLLOW } from '../../upgrades/equipInfo';
 import type { EquipControl } from '../../upgrades/equipInfo';
 import { makeCannon, updateCannon, cannonBusy, type Cannon } from '../../upgrades/returnCannon';
@@ -190,6 +191,8 @@ export interface Lair {
    *  wide way. */
   dummy: Enemy | null; dummyAt: number; hitSeen: MeleeHit | null; chargeAt: number; planted: boolean;
   misses: number; missAt: number; passAt: number; wide: boolean;
+  /** The way the trial dummy's head was last kicked (its aim saw it; 0: not yet). */
+  kickDir: 0 | 1 | -1;
   /** The gift: its beats' indexes for the hidden art's how-to (the buttons up while they're said), the big beat or not,
    *  the pads gone over to Meathead. */
   howA: number; howB: number; artFull: boolean; handed: boolean;
@@ -206,7 +209,7 @@ export const lairOf = (state: GameState): Lair => {
   if (!h) stores.set(key, h = {
     phase: 'out', all: 0, token: 0, script: null,
     ben: { said: null, pose: 'flurry', facing: -1, poseT: 0, piece: 'pauldrons', x: BEN_X, lift: 0 },
-    dummy: null, dummyAt: 0, hitSeen: null, chargeAt: 0, planted: false, misses: 0, missAt: 0, passAt: -1, wide: false,
+    dummy: null, dummyAt: 0, hitSeen: null, chargeAt: 0, planted: false, misses: 0, missAt: 0, passAt: -1, wide: false, kickDir: 0,
     howA: -1, howB: -1, artFull: false, handed: false,
     cardT: 0, cardArmed: false, practice: null, respawn: 30, goodSaid: false, tipsTill: false, nudgeAt: 0,
     // (fired up the overflow pipe; out of its end in the tank's left wall, on the arc down into the tank by the gallery)
@@ -375,7 +378,7 @@ const runMeet = (state: GameState, h: Lair): { out: Controls; tips: EquipControl
 
 // ---- the trial
 const startTrial = (state: GameState, h: Lair) => {
-  h.phase = 'trial'; h.misses = 0; h.missAt = 0; h.passAt = -1; h.chargeAt = 0; h.planted = false; h.wide = false; h.hitSeen = lastMelee();
+  h.phase = 'trial'; h.misses = 0; h.missAt = 0; h.passAt = -1; h.chargeAt = 0; h.planted = false; h.wide = false; h.kickDir = 0; h.hitSeen = lastMelee();
   state.player.inCutscene = false;
   // (the coco-nuts off his shoulders and onto Meathead's for it; the dummy stood up)
   h.ben.piece = null; h.ben.x = BEN_X; setPose(h, 'fold');
@@ -410,6 +413,17 @@ const clearDummy = (state: GameState, h: Lair) => {
   if (h.dummy && grabHolding() !== h.dummy && buriedAs(h.dummy) !== 'head') { const e = h.dummy; state.enemies = state.enemies.filter(o => o !== e); h.dummy = null; }
   if (state.enemies.some(o => o.kind === 'm2:jg_tackle' && o !== h.dummy)) state.enemies = state.enemies.filter(o => o.kind !== 'm2:jg_tackle' || o === h.dummy);
 };
+/** The trial's punt toward the uprights: lofted so the top of its arc is between the chalk posts, well over the
+ *  crossbar (benLairArt.ts draws them: the bar 100 over the floor, the posts' tops 184), every time (the owner's "make
+ *  sure the punted dummie's head goes over the 'uprights'"). The other way, or not the trial's dummy: the usual kick. */
+const UPRIGHTS_AIM_Y = LAIR.floor - 150;
+addKickAim((state, e, x, _y, dir) => {
+  if (!inLair(state)) return null;
+  const h = lairOf(state);
+  if (h.phase !== 'trial' || e !== h.dummy) return null;
+  h.kickDir = dir;
+  return (R(UPRIGHTS_X) - x) * dir > 0 ? { x: R(UPRIGHTS_X), y: UPRIGHTS_AIM_Y } : null;
+});
 const PLANT_TIPS: EquipControl[] = [
   { pad: ['B'], kb: ['@special'], label: 'SHOULDER CHARGE HIM' },
   { ...FOLLOW, label: 'TAP AS YOU HOLD THE SHOULDER CHARGE: PLANTED' },
@@ -438,8 +452,8 @@ const runTrial = (ctx: FrameContext, h: Lair): EquipControl[] | null => {
   // Its head punted off: passed (through the uprights if it flew their way)
   if (e && now === 'kicked') {
     h.passAt = state.frame; h.chargeAt = 0; h.planted = false;
-    const hx = mid(e).x;
-    h.wide = (R(UPRIGHTS_X) - hx) * (hx - cx) < 0;
+    const hx = mid(e).x, dir = h.kickDir || Math.sign(hx - cx);
+    h.wide = (R(UPRIGHTS_X) - hx) * dir <= 0;
     silenceAll(); h.ben.said = null; h.token++;
     return null;
   }

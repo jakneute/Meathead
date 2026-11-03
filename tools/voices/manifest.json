@@ -18926,6 +18926,11 @@
  },
  {
   "voice": "m2.ben",
+  "text": "HE FLEW. NOT WHERE I SAID. GOOD ENOUGH.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.ben",
   "text": "HE WENT UP. HE CAME DOWN BY HIMSELF. THAT IS GRAVITY, NOT YOU.",
   "from": "UPGRADES"
  },
@@ -18947,6 +18952,11 @@
  {
   "voice": "m2.ben",
   "text": "HEAD. THE THING YOUR GLASSES SIT ON.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.ben",
+  "text": "HEAD'S OFF. WRONG END ZONE. GOOD ENOUGH.",
   "from": "UPGRADES"
  },
  {
@@ -19186,17 +19196,17 @@
  },
  {
   "voice": "m2.ben",
+  "text": "NOT AT THE DYNAMITE. GOOD ENOUGH. YOU PASS.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.ben",
   "text": "NOW A LIVE ONE. THE TOUR GUIDE. THEN THE CANNON.",
   "from": "UPGRADES"
  },
  {
   "voice": "m2.ben",
   "text": "NOW THE REAL SECRET. THE HIDDEN ART OF FOLLOW-UPS.",
-  "from": "UPGRADES"
- },
- {
-  "voice": "m2.ben",
-  "text": "NOWHERE NEAR. HEAD'S OFF, THOUGH. YOU PASS.",
   "from": "UPGRADES"
  },
  {
@@ -19571,6 +19581,11 @@
  },
  {
   "voice": "m2.ben",
+  "text": "THE DYNAMITE LIVES. GOOD ENOUGH. YOU PASS.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.ben",
   "text": "THE FIST GOES UP. THE HEAD COMES DOWN. HOLD THE UPPERCUT, AND TAP GRAB ON THE WAY UP.",
   "from": "UPGRADES"
  },
@@ -19622,6 +19637,11 @@
  {
   "voice": "m2.ben",
   "text": "THE TREE DOES NOT PLANT ITSELF. HOLD THE CHARGE. TAP GRAB.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.ben",
+  "text": "THE UPRIGHTS ARE BEHIND YOU. GOOD ENOUGH. YOU PASS.",
   "from": "UPGRADES"
  },
  {
@@ -19761,17 +19781,17 @@
  },
  {
   "voice": "m2.ben",
-  "text": "WIDE LEFT. STILL COUNTS. YOU PASS.",
-  "from": "UPGRADES"
- },
- {
-  "voice": "m2.ben",
   "text": "WITH YOUR HEAD.",
   "from": "UPGRADES"
  },
  {
   "voice": "m2.ben",
   "text": "WORKS ON BOSSES. NOTHING TOUCHES YOU FOR A WHILE AFTER. THERE'S AN OFF SWITCH IN YOUR PAUSE MENU. FOR FUNERALS.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.ben",
+  "text": "WRONG WAY. GOOD ENOUGH. YOU PASS.",
   "from": "UPGRADES"
  },
  {

@@ -32,8 +32,9 @@
 //     the boots don't care about; harmless, grabbable): dive kick it, keep holding, tap grab: the MISSILE, west into
 //     the dud dynamite (not so dud: it blows, harmless, the room rumbles, a fresh stack's set down: the owner's). A dive
 //     kick that lands with no missile after it's a miss (a dry line; a hint after two); a missile the other way, or
-//     short, Ben says so (CROW_WRONG / CROW_SHORT: a miss too) and it's stood back up; one knocked over some other way
-//     is stood back up. Can't get stuck: it keeps coming, nothing hurts, the buttons are up
+//     short, passes all the same with Ben's GOOD ENOUGH (CROW_ENOUGH: the owner's "in case the player doesn't orient
+//     correctly"; in the practice after, CROW_WRONG / CROW_SHORT and it's stood back up); one knocked over some other
+//     way is stood back up. Can't get stuck: it keeps coming, nothing hurts, the buttons are up
 //     on screen near it.
 //   THE GIFT (a cutscene, skippable): his (setPiece, setBenGave, saved there and then); the tease, Meathead enamored;
 //     Meathead's cartoon Japanese if the art wasn't the big beat. Then the YOU GOT card (90 frames, every button let
@@ -69,7 +70,7 @@ import { has, setPiece, setBenMet, benGave, setBenGave, followArt, setFollowArt,
 import { FOLLOW, type EquipControl } from '../../upgrades/equipInfo';
 import { makeCannon, updateCannon, cannonBusy, type Cannon } from '../../upgrades/returnCannon';
 import {
-  NUDGE, PIECE_LINES, artBeats, artTipRange, MH_CANNON_ASK, BEN_CANNON_FR, MH_MAZE, MH_LANDED_FR, BOOT_WEEB, BOOT_HUH, CROW_WRONG, CROW_SHORT,
+  NUDGE, PIECE_LINES, artBeats, artTipRange, MH_CANNON_ASK, BEN_CANNON_FR, MH_MAZE, MH_LANDED_FR, BOOT_WEEB, BOOT_HUH, CROW_WRONG, CROW_SHORT, CROW_ENOUGH,
   benSays, warmBenGross, meetupScript, startScript, tickScript, skipScript,
   type BenPose, type BenTalk, type Script, type Beat, type ByPants, giftCoda,
 } from '../../upgrades/confucktious';
@@ -214,6 +215,8 @@ export interface Lair {
   /** The trial: the last dive kick (frame), it in his hands off one (the missile), the last hit seen, a dive kick that
    *  hit it waiting on a missile (frame, 0 none), misses, the next miss line's frame, the pass's beat (frame, -1). */
   kickAt: number; throwing: boolean; hitSeen: MeleeHit | null; kickHit: number; misses: number; missAt: number; passAt: number;
+  /** The pass was a missile thrown, just not into the dynamite (GOOD ENOUGH). */
+  enough: boolean;
   /** The gift: its how-to beats' indexes (the buttons up while they're said), the big beat or not. */
   howA: number; howB: number; artFull: boolean;
   cardT: number; cardArmed: boolean;
@@ -246,7 +249,7 @@ export const lairOf = (state: GameState): Lair => {
       phase: 'out', all: 0, token: 0, script: null,
       ben: { said: null, pose: 'stand', facing: 1, poseT: 0, piece: 'sabatons' },
       crow: null, respawn: 0,
-      kickAt: -999, throwing: false, hitSeen: null, kickHit: 0, misses: 0, missAt: 0, passAt: -1,
+      kickAt: -999, throwing: false, hitSeen: null, kickHit: 0, misses: 0, missAt: 0, passAt: -1, enough: false,
       howA: -1, howB: -1, artFull: false,
       cardT: 0, cardArmed: false, goodSaid: false, tipsTill: false, nudgeAt: 0, tntAt: -999, fly: null,
       cannon: cn, flew: false,
@@ -539,7 +542,7 @@ const runMeet = (state: GameState, h: Lair): { out: Controls; tips: EquipControl
 
 // ---- the trial
 const startTrial = (state: GameState, h: Lair) => {
-  h.phase = 'trial'; h.misses = 0; h.passAt = -1; h.missAt = 0; h.kickHit = 0; h.throwing = false; h.hitSeen = lastMelee();
+  h.phase = 'trial'; h.misses = 0; h.passAt = -1; h.enough = false; h.missAt = 0; h.kickHit = 0; h.throwing = false; h.hitSeen = lastMelee();
   state.player.inCutscene = false;
   // (the boots off his feet and onto Meathead's for it; the scarecrow stood up)
   h.ben.piece = null; setPose(h, 'fold');
@@ -564,7 +567,7 @@ const runTrial = (state: GameState, h: Lair): EquipControl[] | null => {
     const t = state.frame - h.passAt;
     if (t === 50) {
       const tok = h.token;
-      benSays(h.ben, pickLine(L.pass), () => { if (h.token === tok) meatheadSays(state, pickLine(byPants(state, L.passed)), true, () => { if (h.token === tok && h.phase === 'trial') startGift(state, h); }); });
+      benSays(h.ben, pickLine(h.enough ? CROW_ENOUGH : L.pass), () => { if (h.token === tok) meatheadSays(state, pickLine(byPants(state, L.passed)), true, () => { if (h.token === tok && h.phase === 'trial') startGift(state, h); }); });
     }
     // (in case a line never gets its turn)
     if (t > 900 && h.phase === 'trial') startGift(state, h);
@@ -588,13 +591,15 @@ const runTrial = (state: GameState, h: Lair): EquipControl[] | null => {
     if (e) h.fly = { e, at: state.frame, dir: Math.sign(e.vel.x) || p.facing };
   }
   const res = watchFly(state, h, RESPAWN_TRIAL);
-  if (res === 'hit') {
-    h.passAt = state.frame;
+  // (into the dynamite: the pass; thrown the other way, or short of it: the missile's done all the same, a pass with
+  // Ben's GOOD ENOUGH (the owner's: "in case the player doesn't orient correctly for the direction he wants you to use
+  // it"))
+  if (res) {
+    h.passAt = state.frame; h.enough = res !== 'hit';
     silenceAll(); h.ben.said = null; h.token++;
     setPose(h, 'fold');
     return null;
   }
-  if (res) missThrow(state, h, res);
   // (a dive kick, and no missile after it: a miss; a hint after two)
   if (h.kickHit && !h.throwing && state.frame - h.kickHit > MISS_AFTER && state.frame >= h.missAt) {
     h.kickHit = 0; h.missAt = state.frame + 150; h.misses++;

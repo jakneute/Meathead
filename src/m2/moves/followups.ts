@@ -334,6 +334,13 @@ export const buriedAs = (e: Enemy): 'head' | 'kicked' | 'legs' | null => {
   return !b ? null : b.gone !== null ? 'kicked' : b.mode;
 };
 
+/** A trial's own aim for a punted head (Jungle's chalk uprights: the owner's "make sure the punted dummie's head goes
+ *  over the 'uprights'"): given the one kicked, where its head's kicked from and the way, the top of its arc (world),
+ *  or null for the usual kick. Only the trials set one; the head kick everywhere else is as it was. */
+type KickAim = (state: GameState, e: Enemy, x: number, y: number, dir: 1 | -1) => { x: number; y: number } | null;
+const kickAims: KickAim[] = [];
+export const addKickAim = (fn: KickAim) => { if (!kickAims.includes(fn)) kickAims.push(fn); };
+
 /** All of it gone (a new game, the stage's own reset). */
 export const stopFollowUps = () => { buried = []; heads = []; clearMelee(); lastMove = null; ready = null; burst = null; };
 
@@ -876,9 +883,16 @@ const kickHead = (ctx: FrameContext, g: Grab, b: Buried) => {
   const dir = fu.kdir;
   const tgt = foes(state, hx, hy).filter(o => (o.pos.x + o.width / 2 - hx) * dir > 0)
     .sort((a, c) => Math.abs(a.pos.x - hx) - Math.abs(c.pos.x - hx))[0];
-  const vx = dir * HEAD_KICK_SPEED;
+  let vx = dir * HEAD_KICK_SPEED;
   let vy = -9;
-  if (tgt) {
+  // (a trial's aim: lofted so the top of its arc is that spot, there and then)
+  let aim: { x: number; y: number } | null = null;
+  for (const fn of kickAims) if ((aim = fn(state, e, hx, hy, dir))) break;
+  if (aim && aim.y < hy && (aim.x - hx) * dir > 0) {
+    vy = -Math.sqrt(2 * HEAD_G * (hy - aim.y));
+    const T = -vy / HEAD_G;
+    vx = dir * Math.min(HEAD_KICK_SPEED, Math.max(1, Math.abs(aim.x - hx) / T));
+  } else if (tgt) {
     const dx = Math.abs(tgt.pos.x + tgt.width / 2 - hx), dy = tgt.pos.y + tgt.height * 0.4 - hy, T = Math.max(8, dx / HEAD_KICK_SPEED);
     vy = Math.max(-15, Math.min(-2, (dy - 0.5 * HEAD_G * T * T) / T));
   }
