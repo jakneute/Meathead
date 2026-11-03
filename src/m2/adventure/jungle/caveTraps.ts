@@ -4,7 +4,8 @@
 //     shakes, dripping hard (the tell, TELL frames), then drops; it shatters on whatever's under it, or falls on into the
 //     dark. It hurts what it hits (on a vine, that knocks him off it). Each drops once a go.
 //   THORNS: thorny roots (down the far ledge's face in the gallery; up out of the dark under V5's back swing in the
-//     tunnel). Touched, they hurt and throw him off (on a vine, off it).
+//     tunnel). Touched, they hurt and throw him off (on a vine, off it). (The gallery's spike pits' floors are thorns
+//     too, hurting the same way: hidden.ts.)
 //   THE SPRAY: the falls surge every so often and blast spray back down the passage and out over the tunnel's last gap
 //     (a hiss and a mist first, TELL; then the gust; then the calm). It shoves whatever's in the air there (or swinging
 //     on V6) back left. No harm in it but the shove.
@@ -39,7 +40,8 @@ const DRIP_RANGE = 110, TELL = 45, DRIP_DMG = 10, DRIP_W = 16;
 
 /** The thorny roots (world rects): down the gallery's far ledge's face, and up out of the tunnel's dark. */
 export const THORNS: { x: number; y: number; w: number; h: number; kind: 'face' | 'rise' }[] = [
-  { x: X(5950), y: 640, w: 14, h: 300, kind: 'face' },
+  // (down to the spike pit's thorny floor: hidden.ts SPIKE_Y)
+  { x: X(5950), y: 640, w: 14, h: 100, kind: 'face' },
   { x: X(6225), y: 1195, w: 65, h: 420, kind: 'rise' },
 ];
 const THORN_DMG = 6;
@@ -63,7 +65,7 @@ export const sprayPhase = (frame: number): { ph: 'tell' | 'gust' | 'calm'; k: nu
 
 const overlap = (a: { x: number; y: number; w: number; h: number }, x: number, y: number, w: number, h: number) =>
   a.x < x + w && a.x + a.w > x && a.y < y + h && a.y + a.h > y;
-const canHurt = (state: GameState) => { const p = state.player; return p.invincibilityTimer <= 0 && p.health > 0 && !p.inCutscene && !p.untouchable; };
+export const canHurt = (state: GameState) => { const p = state.player; return p.invincibilityTimer <= 0 && p.health > 0 && !p.inCutscene && !p.untouchable; };
 
 /** Something solid's top in under (x, y0..y1): where a falling stalactite stops. */
 const floorUnder = (state: GameState, x: number, y0: number, y1: number) => {

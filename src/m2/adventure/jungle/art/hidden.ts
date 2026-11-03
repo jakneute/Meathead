@@ -15,21 +15,20 @@ import type { GameState } from '../../../../m1/game/core/state';
 import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../../../../m1/constants';
 import { stamp, hazeBands, steppedGlow } from '../../../intro/art/kit';
 import { drawCannon, JUNGLE } from '../../../upgrades/returnCannon';
-import { CAVE, PASSAGE, POOL_Y, HEART_X, FALLS, SHAFT_B, LEDGES_HI, PITS_HI, PILLARS_LO, CAVE_VINES, crackX, heartThere, hiddenCannon, hiddenTraps } from '../hidden';
+import { CAVE, PASSAGE, POOL_Y, HEART_X, FALLS, SHAFT_B, LEDGES_HI, PITS_HI, PILLARS_LO, SPIKE_Y, CAVE_VINES, crackX, heartThere, hiddenCannon, hiddenTraps } from '../hidden';
 import { DRIPS, THORNS, SPRAY, sprayPhase } from '../caveTraps';
 import { type Ctx, INK, box, checker, mix, hash, poly, leaf, fern, LEAF, BARK, MOSS, ROCK, PIX } from './paint';
 import { GY } from '../../geometry';
 
-const TILE = 320;
+const TILE = 320, BLEED = 2;
 /** What's painted (world): the rock round the cave (the camera's kept to it in there: hidden.ts), under the gorge, under
  *  the far bank. */
-const AREA = { x0: CAVE.a - 60, x1: PASSAGE.b + 520, y0: CAVE.ceil - 40, y1: 1960 };
+const AREA = { x0: CAVE.a - 60, x1: PASSAGE.b + 520, y0: 60, y1: 1960 };
 const DEEP = 1960;
-/** Down the gallery's pits, black from here (the camera there never shows below it: hidden.ts restFor); under it the
- *  rock over the tunnel. */
-const PIT_BLACK = 760, PIT_END = 850;
-/** The tunnel's dark: black from here down (no floor). */
-const LO_BLACK = CAVE.lo.floor + 130;
+/** The tunnel's dark: black from here down (no floor; the tunnel's camera shows a little under its floor: hidden.ts). */
+const LO_BLACK = CAVE.lo.floor + 56;
+/** The cliff's face round the mouth: its rock's jagged edge out into the gorge, from the overlook's top down to the pool. */
+const LIP = { x0: CAVE.wall - 30, x1: CAVE.wall + 26, y0: 90, y1: POOL_Y + 6 };
 
 /** The rock's ramp (a cave's: the jungle's stone, sunk toward a dark green-black), its back wall's (much darker). */
 const STONE = ROCK.map(c => mix(c, '#0C1610', 0.26));
@@ -43,9 +42,10 @@ const VOID = '#010302';
 /** The hollow's pieces (world rects) under the ground line: the gallery and the hall down to the ledges' tops, the
  *  shaft, the tunnel (down a way: its dark's painted over it), the passage. (Over the ground line, the mouth: mouthPts.) */
 const HOLLOW: [number, number, number, number][] = [
-  [CAVE.a, GY, CAVE.b, CAVE.hi.floor + 4],
+  [CAVE.a, GY, CAVE.shelf.a, CAVE.hi.floor + 4],
   [CAVE.a, CAVE.hi.floor, SHAFT_B, CAVE.lo.ceil],
-  [CAVE.a, CAVE.lo.ceil, CAVE.b, LO_BLACK],
+  ...PITS_HI.map(([a, b]) => [a, CAVE.hi.floor, b, SPIKE_Y + 4] as [number, number, number, number]),
+  [CAVE.a, CAVE.lo.ceil, CAVE.b, CAVE.lo.floor],
   [CAVE.b - 2, PASSAGE.ceil, PASSAGE.b, PASSAGE.floor],
 ];
 /** The cave over the ground line, open in the cliff's face: its outline (jagged up its left side, along the gallery's
@@ -56,15 +56,17 @@ const mouthPts = (): [number, number][] => {
   for (let x = CAVE.a; x < CAVE.hall - 10; x += 20) pts.push([x, CAVE.hi.ceil + (hash(x * 0.17) - 0.4) * 12 + Math.sin(x * 0.02) * 3]);
   for (let y = CAVE.hi.ceil; y > CAVE.ceil + 10; y -= 16) pts.push([CAVE.hall + (hash(y * 0.7) - 0.5) * 10, y]);
   for (let x = CAVE.hall; x < CAVE.wall - 30; x += 20) pts.push([x, CAVE.ceil + (hash(x * 0.17) - 0.3) * 18 + Math.sin(x * 0.02) * 4]);
-  pts.push([CAVE.wall - 26, CAVE.mouthTop - 6], [CAVE.wall - 12, CAVE.mouthTop + 6], [CAVE.wall, CAVE.mouthTop + 2], [CAVE.wall + 1, CAVE.shelf.y]);
+  pts.push([CAVE.wall - 26, CAVE.mouthTop - 6], [CAVE.wall - 12, CAVE.mouthTop + 6]);
+  // (the opening: ragged down to the shelf, the face's rock biting in and out of it)
+  for (let y = CAVE.mouthTop + 4; y < CAVE.shelf.y - 6; y += 14) pts.push([CAVE.wall + 2 + Math.round((hash(y * 0.53) - 0.5) * 14 + Math.sin(y * 0.05) * 4), y]);
+  pts.push([CAVE.wall + 6, CAVE.shelf.y]);
   return pts;
 };
 /** What's solid inside it, each with its lit top: the shelf, the gallery's ledges (down to the pits' dark), the pillar
  *  in the tunnel. (The passage's ledge and floor: footing on its own.) */
 const SOLIDS: [number, number, number, number][] = [
   [CAVE.shelf.a, CAVE.shelf.y, CAVE.wall, CAVE.lo.ceil],
-  ...LEDGES_HI.map(([a, b]) => [a, CAVE.hi.floor, b, PIT_END] as [number, number, number, number]),
-  ...PILLARS_LO.map(([a, b]) => [a, CAVE.lo.floor, b, DEEP] as [number, number, number, number]),
+  ...LEDGES_HI.map(([a, b]) => [a, CAVE.hi.floor, b, CAVE.lo.ceil] as [number, number, number, number]),
 ];
 /** The vines' roots: from the rock (a little along the ceiling) to where each swinging vine hangs. */
 const ROOTS: [number, number, number, number][] = CAVE_VINES.filter(v => v.kind === 'swing').map((v, i) => {
@@ -75,20 +77,22 @@ const ROOTS: [number, number, number, number][] = CAVE_VINES.filter(v => v.kind 
 // ---------------------------------------------------------------------------------------------------------------
 // Painting the still part (world coordinates)
 
-/** The stones' courses: rows GH tall along wavy seams (shared by the rows either side), blocks about GW long, every
- *  other row half a block on, their ends leaning a little (all from the world position: the same in every tile). */
+/** The stones' courses: level rows GH tall, blocks about GW long (their lengths vary a little), every other row half a
+ *  block on, their ends square (all from the world position: the same in every tile, and in every patch of rock painted,
+ *  so patches meet without a seam). */
 const GW = 50, GH = 30;
-const seam = (k: number, x: number) => k * GH + Math.sin(x * 0.043 + k * 1.7) * 3 + Math.sin(x * 0.011 + k * 0.9) * 4;
-const endX = (i: number, k: number, low: number) => i * GW + (k % 2) * GW * 0.5 + (hash(i * 7.13 + k * 3.71 + low * 0.5) - 0.5) * 14;
-const corner = (i: number, k: number, low: number): [number, number] => { const x = endX(i, k, low); return [x, seam(k + low, x)]; };
+const endX = (i: number, k: number) => i * GW + (((k % 2) + 2) % 2) * GW * 0.5 + Math.round((hash(i * 7.13 + k * 3.71) - 0.5) * 12);
+const corner = (i: number, k: number, low: number): [number, number] => [endX(i, k), (k + low) * GH];
 /** Stone over (x0..x1, y0..y1): irregular blocks, each lit at its upper left (never a full lit top), inked between;
  *  `dark(y)`: how far it's sunk into the dark there (0..1). */
 /** The tile being painted (world): only the stones near it are (the rest are clipped away anyway). */
 let near = { x0: -Infinity, y0: -Infinity, x1: Infinity, y1: Infinity };
 const stones = (g: Ctx, x0: number, y0: number, x1: number, y1: number, r: string[], dark: (y: number) => number, seed: number) => {
-  box(g, x0, y0, x1 - x0, y1 - y0, mix(r[1], '#020504', dark((y0 + y1) / 2)));
   const cx0 = Math.max(x0, near.x0 - GW), cx1 = Math.min(x1, near.x1 + GW), cy0 = Math.max(y0, near.y0 - GH), cy1 = Math.min(y1, near.y1 + GH);
   if (cx0 >= cx1 || cy0 >= cy1) return;
+  // (kept to its own patch: a course never spills over a ledge's lip or into the next patch)
+  g.save(); g.beginPath(); g.rect(x0, y0, x1 - x0, y1 - y0); g.clip();
+  box(g, x0, y0, x1 - x0, y1 - y0, mix(r[1], '#020504', dark((y0 + y1) / 2)));
   for (let k = Math.floor(cy0 / GH) - 1; k <= Math.ceil(cy1 / GH); k++) for (let i = Math.floor(cx0 / GW) - 2; i <= Math.ceil(cx1 / GW) + 1; i++) {
     const q = [corner(i, k, 0), corner(i + 1, k, 0), corner(i + 1, k, 1), corner(i, k, 1)];
     if (q[1][0] < x0 - 4 || q[0][0] > x1 + 4) continue;
@@ -106,6 +110,17 @@ const stones = (g: Ctx, x0: number, y0: number, x1: number, y1: number, r: strin
     // (moss in the seams now and then, wet stains)
     if (hash(i * 4.4 + k * 0.7 + seed) > 0.8) { box(g, q[0][0] + 2, q[0][1] - 1, 12, 3, mix(MOSS[2], '#020504', dk)); box(g, q[0][0] + 4, q[0][1] + 2, 2, 4 + h * 6, mix(MOSS[1], '#020504', dk)); }
   }
+  g.restore();
+};
+/** Darker toward one side, in banded steps (a dither column at each step): from a0 at x0 to a1 at x1 (x1 may be left of
+ *  x0). */
+const sideBands = (g: Ctx, x0: number, y0: number, x1: number, y1: number, a0: number, a1: number, bands: number) => {
+  const w = (x1 - x0) / bands;
+  for (let i = 0; i < bands; i++) {
+    const a = a0 + (a1 - a0) * (i / (bands - 1)), bx0 = Math.round(x0 + i * w), bx1 = Math.round(x0 + (i + 1) * w);
+    g.fillStyle = `rgba(2, 5, 4, ${a.toFixed(3)})`; g.fillRect(Math.min(bx0, bx1), y0, Math.abs(bx1 - bx0), y1 - y0);
+    if (i + 1 < bands && a > 0) checker(g, bx1 - (bx1 > bx0 ? PIX : 0), y0, PIX, y1 - y0, `rgba(2, 5, 4, ${Math.min(1, a).toFixed(3)})`);
+  }
 };
 /** How far into the dark it is: from the mouth's level down. */
 const sunk = (y: number) => Math.max(0, Math.min(0.55, (y - 600) / 1800));
@@ -113,7 +128,7 @@ const sunkBack = (y: number) => Math.max(0.15, Math.min(0.8, 0.15 + (y - 360) / 
 
 /** A thing he stands on: rock, its top lit (moss along the lip, a stone highlight, grass), its face going down dark. */
 const footing = (g: Ctx, x0: number, y0: number, x1: number, y1: number) => {
-  stones(g, x0, y0, x1, y1, STONE, y => sunk(y) * 0.8, 5);
+  stones(g, x0, y0, x1, y1, STONE, sunk, 0);
   // (the shade under the lip and down its face)
   hazeBands(g, x0, y0 + 6, x1 - x0, Math.min(60, y1 - y0 - 6), '#020504', 0.0, 0.35, 4);
   box(g, x0, y0 - 1, x1 - x0, 6, mix(MOSS[2], '#000000', sunk(y0) * 0.5));
@@ -157,22 +172,24 @@ const hollow = (g: Ctx) => {
   const trace = (pts: [number, number][]) => { g.beginPath(); pts.forEach(([x, y], i) => (i ? g.lineTo(x, y) : g.moveTo(x, y))); };
   // (the cave over the ground line: the back wall inside its outline, the dark under its ragged top)
   g.save(); trace(mp); g.closePath(); g.clip();
-  stones(g, CAVE.a - 20, CAVE.ceil - 24, CAVE.wall + 2, CAVE.shelf.y + 2, BACK, sunkBack, 11);
+  stones(g, CAVE.a - 20, CAVE.ceil - 24, CAVE.wall + 20, CAVE.shelf.y + 2, BACK, sunkBack, 11);
   hazeBands(g, CAVE.a - 20, CAVE.ceil - 10, CAVE.wall - CAVE.a + 22, 56, '#020504', 0.7, 0.0, 5);
   hazeBands(g, CAVE.a - 20, CAVE.hi.ceil - 6, CAVE.hall - CAVE.a + 20, 50, '#020504', 0.7, 0.0, 5);
   g.restore();
   for (const [a, b, c, d] of HOLLOW) stones(g, a, b, c, d, BACK, sunkBack, 11);
   // (light in at the mouth: banded, falling off into the hall)
-  g.save(); trace(mp); g.closePath(); g.rect(CAVE.a, GY, CAVE.b - CAVE.a, CAVE.hi.floor + 4 - GY); g.clip();
+  g.save(); trace(mp); g.closePath(); g.rect(CAVE.a, GY, CAVE.shelf.a - CAVE.a, CAVE.hi.floor + 4 - GY);
+  for (const [a, b] of PITS_HI) g.rect(a, CAVE.hi.floor, b - a, SPIKE_Y + 4 - CAVE.hi.floor);
+  g.clip();
   for (let i = 0; i < 6; i++) {
     g.fillStyle = `rgba(150, 190, 140, ${0.035 + i * 0.012})`;
     g.beginPath(); g.ellipse(CAVE.wall, (CAVE.mouthTop + CAVE.shelf.y) / 2, 300 - i * 46, 170 - i * 24, 0, 0, Math.PI * 2); g.fill();
   }
   // (and the further along the gallery from it, the darker, in steps)
-  for (let i = 0; i < 6; i++) { g.fillStyle = 'rgba(2, 5, 4, 0.1)'; g.fillRect(CAVE.a - 20, CAVE.ceil - 30, CAVE.hall - 60 - i * 110 - CAVE.a + 20, CAVE.hi.floor + 40 - CAVE.ceil); }
+  sideBands(g, CAVE.a - 20, CAVE.ceil - 30, CAVE.hall - 60, SPIKE_Y + 10, 0.47, 0, 8);
   g.restore();
   // (light from the falls along the passage, blue; a little of it out into the tunnel's end)
-  g.save(); g.beginPath(); g.rect(CAVE.a, CAVE.lo.ceil, PASSAGE.b - CAVE.a, LO_BLACK - CAVE.lo.ceil); g.clip();
+  g.save(); g.beginPath(); g.rect(CAVE.a, CAVE.lo.ceil, CAVE.b - CAVE.a, CAVE.lo.floor - CAVE.lo.ceil); g.rect(CAVE.b - 2, PASSAGE.ceil, PASSAGE.b - CAVE.b + 2, PASSAGE.floor - PASSAGE.ceil); g.clip();
   for (let i = 0; i < 6; i++) {
     g.fillStyle = `rgba(120, 190, 220, ${0.03 + i * 0.012})`;
     g.beginPath(); g.ellipse((FALLS.a + FALLS.b) / 2, (PASSAGE.ceil + PASSAGE.floor) / 2, 320 - i * 46, 110 - i * 14, 0, 0, Math.PI * 2); g.fill();
@@ -180,73 +197,150 @@ const hollow = (g: Ctx) => {
     g.beginPath(); g.ellipse(PASSAGE.ledge + 40, PASSAGE.floor - 70, 260 - i * 40, 120 - i * 18, 0, 0, Math.PI * 2); g.fill();
   }
   // (the tunnel darker the further from the passage's mouth, in steps)
-  for (let i = 0; i < 5; i++) { g.fillStyle = 'rgba(2, 5, 4, 0.1)'; g.fillRect(CAVE.a, CAVE.lo.ceil, PASSAGE.ledge - 160 - i * 150 - CAVE.a, LO_BLACK - CAVE.lo.ceil); }
+  sideBands(g, CAVE.a, CAVE.lo.ceil, PASSAGE.ledge - 160, CAVE.lo.floor, 0.41, 0, 8);
+  // (the back wall goes on down past the floor's level into the dark: banded off toward black at it, the same all along)
+  hazeBands(g, CAVE.a, CAVE.lo.floor - 120, PASSAGE.b - CAVE.a, 120, '#010302', 0, 0.86, 6);
   g.restore();
   // (dark gathered along its walls and under its ceilings)
   hazeBands(g, CAVE.b - 2, PASSAGE.ceil, PASSAGE.b - CAVE.b + 2, 26, '#020504', 0.55, 0.0, 4);
   hazeBands(g, CAVE.a, CAVE.lo.ceil, CAVE.b - CAVE.a, 40, '#020504', 0.6, 0.0, 4);
-  for (let i = 0; i < 4; i++) { g.fillStyle = `rgba(2,5,4,${0.14 - i * 0.03})`; g.fillRect(CAVE.a, GY, 10 + i * 8, LO_BLACK - GY); g.fillRect(PASSAGE.b - 10 - i * 8, PASSAGE.ceil, 10 + i * 8, PASSAGE.floor - PASSAGE.ceil); }
+  sideBands(g, CAVE.a, GY, CAVE.a + 40, CAVE.lo.floor, 0.4, 0, 4);
+  sideBands(g, PASSAGE.b, PASSAGE.ceil, PASSAGE.b - 40, PASSAGE.floor, 0.4, 0, 4);
   // (inked round it: the mouth's ragged edge (not down the face: it's open there), the walls under the ground line)
   g.strokeStyle = INK; g.lineWidth = 3; g.lineJoin = 'round';
   trace(mp.slice(0, -2)); g.stroke();
   const seg = (x0: number, y0: number, x1: number, y1: number) => { g.beginPath(); g.moveTo(x0, y0); g.lineTo(x1, y1); g.stroke(); };
-  seg(CAVE.a, GY, CAVE.a, LO_BLACK);
+  seg(CAVE.a, GY, CAVE.a, CAVE.lo.floor);
   seg(SHAFT_B, CAVE.lo.ceil, CAVE.b, CAVE.lo.ceil); seg(CAVE.b, CAVE.lo.ceil, CAVE.b, PASSAGE.ceil);
   seg(CAVE.b, PASSAGE.ceil, PASSAGE.b, PASSAGE.ceil); seg(PASSAGE.b, PASSAGE.ceil, PASSAGE.b, PASSAGE.floor);
   g.lineJoin = 'miter';
 };
 
-/** A pit's dark: from its rim down, banded off into black (never a floor). */
-const abyss = (g: Ctx, x0: number, top: number, x1: number, black: number, bottom: number) => {
-  hazeBands(g, x0, top, x1 - x0, Math.min(90, black - top), '#010302', 0.6, 1, 6);
-  box(g, x0, top + Math.min(90, black - top), x1 - x0, bottom - top - Math.min(90, black - top), VOID);
-  // (a damp breath of mist just under the rim)
-  hazeBands(g, x0, top + 6, x1 - x0, 30, '#6A8A80', 0.08, 0, 3);
+/** The gallery's spike pits (hidden.ts SPIKE_Y): the back wall down into each, shadowed deeper in and along its sides,
+ *  their walls inked, and the floor: a mat of thorny roots bristling up with pale spikes, bones caught in it. Nothing lit
+ *  along it: it's not footing. */
+const spikePits = (g: Ctx) => {
+  PITS_HI.forEach(([a, b], n) => {
+    const top = CAVE.hi.floor, y = SPIKE_Y;
+    hazeBands(g, a, top + 4, b - a, y - top, '#020504', 0.1, 0.6, 5);
+    sideBands(g, a, top + 4, a + 18, y + 4, 0.55, 0, 3);
+    sideBands(g, b, top + 4, b - 18, y + 4, 0.55, 0, 3);
+    box(g, a - 1, top + 5, 2, y - top, INK); box(g, b - 1, top + 5, 2, y - top, INK);
+    // (the mat: roots wound along the floor, over the rock)
+    box(g, a, y + 2, b - a, 18, THORN[0]);
+    for (let k = 0; k < 4; k++) {
+      const pts: [number, number][] = [];
+      for (let x = a - 4; x <= b + 4; x += 10) pts.push([x, y + 3 + k * 4 + Math.sin(x * 0.07 + k * 2.1 + n) * 3]);
+      stem(g, pts, 6 - k);
+    }
+    // (bones in it: a skull, a long bone, ribs)
+    const sx = Math.round(a + (b - a) * (0.3 + hash(n * 3.3) * 0.4));
+    skull(g, sx, y - 2);
+    poly(g, [[sx + 30, y + 1], [sx + 62, y - 6], [sx + 63, y - 3], [sx + 31, y + 4]], INK);
+    poly(g, [[sx + 31, y], [sx + 61, y - 6], [sx + 62, y - 4], [sx + 32, y + 2]], '#B8B0A0');
+    box(g, sx + 28, y - 3, 5, 6, '#DCD4C4'); box(g, sx + 58, y - 9, 5, 6, '#DCD4C4');
+    for (let r = 0; r < 4; r++) { g.beginPath(); g.arc(sx - 34 + r * 6, y + 2, 9, Math.PI * 1.05, Math.PI * 1.75); g.strokeStyle = INK; g.lineWidth = 3; g.stroke(); g.strokeStyle = '#B8B0A0'; g.lineWidth = 1.5; g.stroke(); }
+    // (the spikes, up out of it, thick)
+    for (let x = a + 3; x < b - 3; x += 6) {
+      const h = hash(x * 0.29 + n);
+      spike(g, x, y + 4, -Math.PI / 2 + (h - 0.5) * 0.9, 12 + h * 10);
+    }
+    for (let x = a + 6; x < b - 6; x += 17) spike(g, x, y + 10, -Math.PI / 2 + (hash(x) - 0.5) * 1.4, 8);
+  });
+};
+/** The tunnel's dark: under its floor's level, black (nothing under it); the cave's left wall banded off into it. */
+const tunnelDark = (g: Ctx) => {
+  const F = CAVE.lo.floor;
+  hazeBands(g, CAVE.a, F - 2, PASSAGE.ledge - CAVE.a, 16, '#010302', 0.9, 1, 3);
+  box(g, CAVE.a, F + 14, PASSAGE.ledge - CAVE.a, DEEP - F - 14, VOID);
+  hazeBands(g, AREA.x0, F - 70, CAVE.a - AREA.x0, LO_BLACK - F + 70, '#010302', 0, 1, 6);
+  box(g, AREA.x0, LO_BLACK, CAVE.a - AREA.x0, DEEP - LO_BLACK, VOID);
+};
+/** A pillar or a ledge down out of the tunnel: its sides inked and shaded, sunk into the black under its lip (`open`:
+ *  its right side drops into the dark too, not just its left). */
+const sinkInto = (g: Ctx, x0: number, x1: number, open: boolean) => {
+  const F = CAVE.lo.floor;
+  sideBands(g, x0, F + 6, x0 + 16, LO_BLACK, 0.5, 0, 3);
+  if (open) sideBands(g, x1, F + 6, x1 - 16, LO_BLACK, 0.5, 0, 3);
+  hazeBands(g, x0, F + 8, x1 - x0, LO_BLACK - F - 8, '#010302', 0.1, 1, 6);
+  box(g, x0, LO_BLACK, x1 - x0, DEEP - LO_BLACK, VOID);
+  box(g, x0 - 1, F + 6, 2, LO_BLACK - F - 6, INK);
+  if (open) box(g, x1 - 1, F + 6, 2, LO_BLACK - F - 6, INK);
 };
 
-/** The dark the pits and the tunnel go down into: the gallery's pits (down through the rock to where the camera up
- *  there never looks), the tunnel's floor (all of it, but the pillars'), and under the shaft. */
-const darks = (g: Ctx) => {
-  for (const [a, b] of PITS_HI) abyss(g, a, CAVE.hi.floor - 2, b, PIT_BLACK, PIT_END);
-  // (the pits' dark ends in the rock over the tunnel: a ragged bottom of black, rock under it)
-  for (const [a, b] of PITS_HI) for (let x = a; x < b; x += 8) box(g, x, PIT_END, 8, 4 + Math.floor(hash(x * 0.13) * 10), VOID);
-  // (the tunnel's, either side of each pillar)
-  let x = CAVE.a;
-  for (const [a, b] of [...PILLARS_LO, [PASSAGE.ledge, PASSAGE.ledge]]) { if (a > x) abyss(g, x, CAVE.lo.floor - 60, a, LO_BLACK, DEEP); x = b; }
+/** The cliff's face round the mouth: a jagged edge of the gorge's rock (the outside's, lit) out over the cut between the
+ *  cave and the gorge, from the overlook's top down to the pool; round the opening only its lip over it and the shelf's
+ *  end under it (the opening stays open), a shadowed rim just inside. */
+const mouthLip = (g: Ctx) => {
+  const W = CAVE.wall, R = ROCK;
+  g.save(); g.beginPath(); g.rect(W - 46, CAVE.mouthTop - 10, 50, CAVE.shelf.y - CAVE.mouthTop + 10); g.clip();
+  sideBands(g, W + 4, CAVE.mouthTop - 10, W - 46, CAVE.shelf.y, 0.5, 0, 4);
+  g.restore();
+  const chunk = (cx: number, cy: number, w: number, h: number, seed: number) => {
+    const pts: [number, number][] = [];
+    for (let k = 0; k < 8; k++) { const a = (k / 8) * Math.PI * 2 + 0.2, r = 0.82 + hash(seed + k) * 0.3; pts.push([cx + Math.cos(a) * w * 0.5 * r, cy + Math.sin(a) * h * 0.5 * r]); }
+    const sc = (s: number, dx: number, dy: number) => pts.map(([x, y]) => [cx + (x - cx) * s + dx, cy + (y - cy) * s + dy] as [number, number]);
+    poly(g, sc(1.14, 0, 0), INK);
+    poly(g, pts, R[3]);
+    poly(g, sc(0.7, -w * 0.08, -h * 0.1), R[4]);
+    poly(g, sc(0.36, -w * 0.16, -h * 0.2), R[5]);
+    box(g, cx - w * 0.3, cy + h * 0.24, w * 0.6, 2, R[2]);
+    if (hash(seed * 1.7) > 0.5) { box(g, cx - w * 0.3, cy - h * 0.46, w * 0.4, 3, MOSS[2]); box(g, cx - w * 0.25, cy - h * 0.46, w * 0.25, 1, MOSS[4]); }
+  };
+  const run = (y0: number, y1: number) => {
+    for (let y = y0; y < y1; y += 22) {
+      const h = hash(y * 0.71);
+      chunk(W + 2 + (h - 0.5) * 12, y + 11, 26 + h * 14, 24 + hash(y * 1.3) * 10, y);
+    }
+  };
+  run(LIP.y0, CAVE.mouthTop - 8);
+  run(CAVE.shelf.y + 24, LIP.y1 - 10);
+  // (the shelf's end: rounded off, mossy, in the light)
+  chunk(W + 4, CAVE.shelf.y + 14, 22, 22, 3.3);
 };
 
 /** Thorny roots (caveTraps.ts THORNS): a tangle of dark twisted roots bristling with pale spikes, poking out. Down a
  *  ledge's face ('face': rooted in the rock, spikes out over the pit) or up out of the dark ('rise': stems up out of
  *  the black, a crown of tangle at the top). Painted with the rock (they don't move). */
+const spike = (g: Ctx, x: number, y: number, ang: number, len: number) => {
+  const ca = Math.cos(ang), sa = Math.sin(ang), nx = -sa * 2.6, ny = ca * 2.6;
+  const tip: [number, number] = [x + ca * len, y + sa * len];
+  poly(g, [[x + nx * 1.5, y + ny * 1.5], [x - nx * 1.5, y - ny * 1.5], [tip[0] + ca * 1.5, tip[1] + sa * 1.5]], INK);
+  poly(g, [[x + nx, y + ny], [x - nx, y - ny], tip], SPIKE[1]);
+  poly(g, [[x + nx, y + ny], [x, y], tip], SPIKE[2]);
+  box(g, Math.round(tip[0]) - 1, Math.round(tip[1]) - 1, 2, 2, SPIKE[3]);
+};
+const stem = (g: Ctx, pts: [number, number][], w: number) => {
+  const line = (col: string, ww: number, dx: number, dy: number) => { g.strokeStyle = col; g.lineWidth = ww; g.lineCap = 'round'; g.beginPath(); pts.forEach(([x, y], i) => (i ? g.lineTo(x + dx, y + dy) : g.moveTo(x + dx, y + dy))); g.stroke(); };
+  line(INK, w + 3, 0, 0); line(THORN[2], w, 0, 0); line(THORN[3], Math.max(1, w - 4), -1, -1); line(THORN[1], Math.max(1, w - 5), 1.5, 1.5);
+  g.lineCap = 'butt';
+};
+/** A skull lying with its jaw's bottom at (kx, y). */
+const skull = (g: Ctx, kx: number, y: number) => {
+  const ky = y - 8;
+  g.fillStyle = INK; g.beginPath(); g.ellipse(kx, ky, 9, 8, 0, 0, Math.PI * 2); g.fill();
+  g.fillStyle = '#B8B0A0'; g.beginPath(); g.ellipse(kx, ky, 7.5, 6.5, 0, 0, Math.PI * 2); g.fill();
+  box(g, kx - 4, ky + 4, 8, 4, '#B8B0A0'); box(g, kx - 4, ky - 2, 3, 3, INK); box(g, kx + 1, ky - 2, 3, 3, INK); box(g, kx - 1, ky + 2, 2, 2, INK);
+  box(g, kx - 3, ky + 6, 1, 2, INK); box(g, kx, ky + 6, 1, 2, INK); box(g, kx - 5, ky - 5, 4, 2, '#DCD4C4');
+};
 const thorns = (g: Ctx, t: (typeof THORNS)[number], seed: number) => {
-  const spike = (x: number, y: number, ang: number, len: number) => {
-    const ca = Math.cos(ang), sa = Math.sin(ang), nx = -sa * 2.6, ny = ca * 2.6;
-    const tip: [number, number] = [x + ca * len, y + sa * len];
-    poly(g, [[x + nx * 1.5, y + ny * 1.5], [x - nx * 1.5, y - ny * 1.5], [tip[0] + ca * 1.5, tip[1] + sa * 1.5]], INK);
-    poly(g, [[x + nx, y + ny], [x - nx, y - ny], tip], SPIKE[1]);
-    poly(g, [[x + nx, y + ny], [x, y], tip], SPIKE[2]);
-    box(g, Math.round(tip[0]) - 1, Math.round(tip[1]) - 1, 2, 2, SPIKE[3]);
-  };
-  const stem = (pts: [number, number][], w: number) => {
-    const line = (col: string, ww: number, dx: number, dy: number) => { g.strokeStyle = col; g.lineWidth = ww; g.lineCap = 'round'; g.beginPath(); pts.forEach(([x, y], i) => (i ? g.lineTo(x + dx, y + dy) : g.moveTo(x + dx, y + dy))); g.stroke(); };
-    line(INK, w + 3, 0, 0); line(THORN[2], w, 0, 0); line(THORN[3], Math.max(1, w - 4), -1, -1); line(THORN[1], Math.max(1, w - 5), 1.5, 1.5);
-    g.lineCap = 'butt';
-  };
+  const sp = (x: number, y: number, ang: number, len: number) => spike(g, x, y, ang, len);
+  const st = (pts: [number, number][], w: number) => stem(g, pts, w);
   if (t.kind === 'face') {
     // (roots down the face: rooted in the rock, wound over each other, spikes out over the pit and up and down it)
-    const x0 = t.x, x1 = t.x + t.w, y0 = t.y, y1 = PIT_END;
+    const x0 = t.x, x1 = t.x + t.w, y0 = t.y, y1 = SPIKE_Y + 6;
     for (let k = 0; k < 4; k++) {
       const pts: [number, number][] = [];
       for (let y = y0 - 6; y <= y1; y += 12) pts.push([x0 + 2 + (Math.sin(y * 0.05 + k * 1.9) * 0.5 + 0.5) * (x1 - x0 - 2) - k, y]);
-      stem(pts, 6 - k);
+      st(pts, 6 - k);
     }
     for (let y = y0; y < y1 - 6; y += 9) {
       const h = hash(seed + y * 0.37);
-      spike(x0 + 6 + h * (x1 - x0 - 4), y + h * 4, -0.2 + (h - 0.5) * 1.2, 9 + h * 6);
-      if (h > 0.5) spike(x0 + 4, y + 4, (h > 0.75 ? -1 : 1) * 1.1, 6);
+      sp(x0 + 6 + h * (x1 - x0 - 4), y + h * 4, -0.2 + (h - 0.5) * 1.2, 9 + h * 6);
+      if (h > 0.5) sp(x0 + 4, y + 4, (h > 0.75 ? -1 : 1) * 1.1, 6);
     }
     // (sunk into the pit's dark with it)
-    hazeBands(g, x0 - 4, y0 + 40, x1 - x0 + 24, y1 - y0 - 40, '#010302', 0, 0.95, 6);
+    hazeBands(g, x0 - 4, y0 + 30, x1 - x0 + 24, y1 - y0 - 36, '#010302', 0, 0.45, 4);
     return;
   }
   // (rising: stems up out of the black, a tangle crowning them, spikes all over it, a skull caught in it)
@@ -254,26 +348,22 @@ const thorns = (g: Ctx, t: (typeof THORNS)[number], seed: number) => {
   for (let k = 0; k < 5; k++) {
     const bx = x0 + 6 + (k / 4) * (t.w - 12), pts: [number, number][] = [];
     for (let y = LO_BLACK + 60; y >= top + 8; y -= 12) pts.push([bx + Math.sin(y * 0.04 + k * 2.3) * 9, y]);
-    stem(pts, 9 - (k % 2) * 2);
+    st(pts, 9 - (k % 2) * 2);
   }
   for (let k = 0; k < 7; k++) {
     const a0 = x0 - 4 + hash(seed + k) * (t.w + 8), y = top + 6 + hash(seed + k * 3.1) * 26, pts: [number, number][] = [];
     for (let i = 0; i <= 6; i++) pts.push([a0 + (i - 3) * 7, y + Math.sin(i * 1.3 + k) * 5]);
-    stem(pts, 5);
+    st(pts, 5);
   }
   for (let k = 0; k < 26; k++) {
     const h = hash(seed + k * 1.71), sx = x0 - 6 + h * (t.w + 12), sy = top + 2 + hash(seed + k * 2.9) * 70;
     const ang = sy < top + 18 ? -Math.PI / 2 + (h - 0.5) * 1.6 : (sx < cxm ? Math.PI : 0) + (h - 0.5) * 1.4;
-    spike(sx, sy, ang, 8 + h * 7);
+    sp(sx, sy, ang, 8 + h * 7);
   }
   // (a skull caught in it: something that came in low)
-  const kx = cxm + 8, ky = top + 30;
-  g.fillStyle = INK; g.beginPath(); g.ellipse(kx, ky, 9, 8, 0, 0, Math.PI * 2); g.fill();
-  g.fillStyle = '#B8B0A0'; g.beginPath(); g.ellipse(kx, ky, 7.5, 6.5, 0, 0, Math.PI * 2); g.fill();
-  box(g, kx - 4, ky + 4, 8, 4, '#B8B0A0'); box(g, kx - 4, ky - 2, 3, 3, INK); box(g, kx + 1, ky - 2, 3, 3, INK); box(g, kx - 1, ky + 2, 2, 2, INK);
-  box(g, kx - 3, ky + 6, 1, 2, INK); box(g, kx, ky + 6, 1, 2, INK); box(g, kx - 5, ky - 5, 4, 2, '#DCD4C4');
+  skull(g, cxm + 8, top + 38);
   // (into the black with the stems)
-  hazeBands(g, x0 - 16, top + 70, t.w + 32, LO_BLACK - top - 30, '#010302', 0, 1, 6);
+  hazeBands(g, x0 - 16, top + 60, t.w + 32, LO_BLACK - top - 60, '#010302', 0, 1, 5);
 };
 
 /** The plunge pool's surface over the gorge's rock (the falls come down into it far back), and its rock's top. */
@@ -358,30 +448,44 @@ const cavern = (g: Ctx) => {
 };
 
 const paintAll = (g: Ctx) => {
-  // (the rock: everything in the area, the gorge's only below its pool)
+  // (the rock: everything in the area, the gorge's only below its pool; all one rock, the same courses everywhere)
   const L = AREA.x0, R = AREA.x1;
   stones(g, L, CAVE.hi.ceil - 30, CAVE.a, GY, STONE, sunk, 0);
   stones(g, L, GY, PASSAGE.a, DEEP, STONE, sunk, 0);
   stones(g, PASSAGE.a, POOL_Y, R, DEEP, STONE, sunk, 0);
-  pool(g);
   hollow(g);
-  crack(g);
   for (const s of SOLIDS) footing(g, s[0], s[1], s[2], s[3]);
-  footing(g, PASSAGE.ledge, PASSAGE.floor, PASSAGE.b, DEEP);
-  // (the gallery's ledges sunk into the dark the deeper they go, like the pits between them; the pillar in the tunnel
-  // too; and the passage's ledge where it drops away into the tunnel's dark)
-  hazeBands(g, SHAFT_B, CAVE.hi.floor + 30, CAVE.shelf.a - SHAFT_B, PIT_END - CAVE.hi.floor - 30, '#010302', 0, 0.9, 7);
-  for (const [a, b] of PILLARS_LO) hazeBands(g, a, CAVE.lo.floor + 20, b - a, LO_BLACK - CAVE.lo.floor + 20, '#010302', 0, 1, 6);
-  hazeBands(g, PASSAGE.ledge, PASSAGE.floor + 30, 24, LO_BLACK - PASSAGE.floor, '#010302', 0, 0.9, 5);
-  darks(g);
-  // (the shaft's rims: the far ledge's end where the shaft goes down past it, inked)
+  // (the rock under the gallery (the tunnel's roof) darker the deeper, the same all along: no seams between its ledges,
+  // nor where it meets the rock under the gorge (darkened the same, down to the passage's ceiling))
+  const shade = (x0: number, x1: number, ya: number, yb: number, y0: number, y1: number, col: string, dither: boolean) => {
+    const t = Math.max(ya, y0), u = Math.min(yb, y1);
+    if (u <= t) return;
+    g.fillStyle = col; g.fillRect(x0, t, x1 - x0, u - t);
+    if (dither && t === y0) checker(g, x0, t, x1 - x0, PIX, col);
+  };
+  for (let k = 0; k < 10; k++) {
+    const y0 = CAVE.hi.floor + 40 + k * 44, y1 = y0 + 44, col = `rgba(1, 3, 2, ${Math.min(0.55, (k + 1) * 0.07).toFixed(3)})`;
+    shade(SHAFT_B, CAVE.b, CAVE.hi.floor, CAVE.lo.ceil, y0, y1, col, k > 0);
+    shade(CAVE.b, CAVE.wall, CAVE.hi.floor, PASSAGE.ceil, y0, y1, col, k > 0);
+    shade(CAVE.wall, AREA.x1, POOL_Y, PASSAGE.ceil, y0, y1, col, k > 0);
+  }
+  pool(g);
+  crack(g);
+  // (the step down off the shelf onto the first ledge: its face inked, shaded)
+  box(g, CAVE.shelf.a - 1, CAVE.shelf.y + 5, 2, CAVE.hi.floor - CAVE.shelf.y - 5, INK);
+  sideBands(g, CAVE.shelf.a + 1, CAVE.shelf.y + 6, CAVE.shelf.a + 15, CAVE.hi.floor, 0.3, 0, 3);
+  spikePits(g);
+  // (the shaft's rim: the far ledge's end where the shaft goes down past it, inked)
   box(g, SHAFT_B - 1, CAVE.hi.floor + 6, 2, CAVE.lo.ceil - CAVE.hi.floor - 6, INK);
+  tunnelDark(g);
+  for (const [a, b] of PILLARS_LO) { footing(g, a, CAVE.lo.floor, b, LO_BLACK + 10); sinkInto(g, a, b, true); }
+  footing(g, PASSAGE.ledge, PASSAGE.floor, PASSAGE.b, LO_BLACK + 10);
+  sinkInto(g, PASSAGE.ledge, AREA.x1, false);
   THORNS.forEach((t, i) => thorns(g, t, i * 7.7 + 3));
-  box(g, CAVE.a, LO_BLACK, PASSAGE.ledge - CAVE.a, DEEP - LO_BLACK, VOID);
-  hazeBands(g, AREA.x0, CAVE.lo.floor - 40, CAVE.a - AREA.x0, LO_BLACK - CAVE.lo.floor + 140, '#010302', 0, 0.85, 6);
   ROOTS.forEach((r, i) => root(g, r, i * 2.3));
   cavern(g);
   passage(g);
+  mouthLip(g);
 };
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -402,11 +506,13 @@ export const drawHiddenBack = (c: Ctx, state: GameState) => {
       // (what of the tile's in the area: the gorge above its pool and the open air over the overlook aren't painted)
       if (!tileWanted(tx, ty)) continue;
       c.save(); c.translate(tx, ty);
-      stamp(c, `jg-hid-${tx}-${ty}`, 0, 0, TILE, TILE, g => {
+      // (each tile painted a little past its edges, overlapping its neighbors': no hairline seam between them when the
+      // camera's between pixels)
+      stamp(c, `jg-hid-${tx}-${ty}`, -BLEED, -BLEED, TILE + BLEED * 2, TILE + BLEED * 2, g => {
         g.save(); g.translate(-tx, -ty);
         g.beginPath(); areaPath(g); g.clip();
-        g.beginPath(); g.rect(tx, ty, TILE, TILE); g.clip();
-        near = { x0: tx, y0: ty, x1: tx + TILE, y1: ty + TILE };
+        g.beginPath(); g.rect(tx - BLEED, ty - BLEED, TILE + BLEED * 2, TILE + BLEED * 2); g.clip();
+        near = { x0: tx - BLEED, y0: ty - BLEED, x1: tx + TILE + BLEED, y1: ty + TILE + BLEED };
         paintAll(g);
         near = { x0: -Infinity, y0: -Infinity, x1: Infinity, y1: Infinity };
         g.restore();
@@ -443,6 +549,31 @@ export const drawHiddenBack = (c: Ctx, state: GameState) => {
     c.restore();
     if (s.st === 'hang') { const t = (f + i * 29) % 100; if (t < 40) box(c, d.x, d.y + d.len + 2 + t * t * 0.05, 1, 3, WET[5]); }
   });
+  // (the falls' runoff, along the passage's floor and over its ledge's lip, pouring down into the tunnel's dark and gone)
+  if (onScreen(state, PASSAGE.ledge - 30, PASSAGE.floor - 10, PASSAGE.ledge + 20, LO_BLACK + 60)) {
+    const px = PASSAGE.ledge - 7, y0 = PASSAGE.floor - 3;
+    // (a sheet of it, banded off into the black: painted once)
+    c.save(); c.translate(px - 4, y0);
+    stamp(c, 'jg-hid-pour', -4, 0, 24, 124, g => {
+      for (let k = 0; k < 8; k++) { const w = 12 - Math.floor(k / 3) * 2; g.fillStyle = `rgba(150, 205, 228, ${(0.62 - k * 0.075).toFixed(3)})`; g.fillRect(2 + (12 - w) / 2, k * 15, w, 15); if (k < 7) checker(g, 2 + (12 - w) / 2, k * 15 + 13, w, 2, 'rgba(1, 3, 2, 0.35)'); }
+      g.fillStyle = 'rgba(232, 248, 252, 0.7)'; g.fillRect(3, 0, 3, 60); g.fillRect(10, 0, 2, 34);
+      g.fillStyle = 'rgba(210, 240, 250, 0.8)'; g.fillRect(-2, 0, 20, 3); g.fillRect(0, 3, 16, 2);
+    });
+    c.restore();
+    for (let i = 0; i < 8; i++) {
+      const t = ((f * 0.035 + hash(i * 4.1)) % 1), y = y0 + t * 120;
+      c.fillStyle = `rgba(236, 250, 255, ${((1 - t) * 0.85).toFixed(3)})`; c.fillRect(px - 2 + (i % 4) * 3, Math.round(y), 2, 10);
+    }
+  }
+  // (from down in the tunnel, the gallery's rock and spike pits overhead are dimmed: scenery, up there in the dark)
+  const up = Math.max(0, Math.min(1, (cam.y - 420) / 260));
+  if (up > 0 && onScreen(state, SHAFT_B, CAVE.hi.floor, CAVE.wall, CAVE.lo.ceil)) {
+    // (off toward the passage in steps, so it never ends in an edge)
+    const top = Math.max(cam.y - 10, CAVE.hi.floor - 40), x1 = CAVE.b - 160;
+    c.fillStyle = `rgba(1, 3, 2, ${(up * 0.45).toFixed(3)})`;
+    c.fillRect(SHAFT_B, top, x1 - SHAFT_B, CAVE.lo.ceil - top);
+    for (let k = 1; k <= 4; k++) { c.fillStyle = `rgba(1, 3, 2, ${(up * 0.45 * (1 - k / 5)).toFixed(3)})`; c.fillRect(x1 + (k - 1) * 40, top, 40, CAVE.lo.ceil - top); }
+  }
   // (the falls' light rippling on the passage's back wall, behind the overflow)
   if (onScreen(state, FALLS.a - 200, PASSAGE.ceil, FALLS.b + 200, PASSAGE.floor)) {
     c.save(); c.beginPath(); c.rect(FALLS.a - 200, PASSAGE.ceil + 4, FALLS.b - FALLS.a + 400, PASSAGE.floor - PASSAGE.ceil - 4); c.clip();
@@ -540,6 +671,12 @@ const drawSpray = (c: Ctx, state: GameState) => {
     c.fillRect(Math.round(x), Math.round(y), Math.round(len), i % 4 ? 2 : 3);
   }
   c.restore();
+  // (and what it carries out over the gap rains down into the dark under it, fading out as it goes)
+  for (let i = 0; i < 16; i++) {
+    const t = (f * (0.012 + hash(i * 2.3) * 0.01) + hash(i * 5.1)) % 1, x = a + 20 + hash(i * 3.7) * (PASSAGE.ledge - a - 40) - t * 40;
+    const y = bot - 40 + t * 150, al = (1 - t) * 0.7 * fade;
+    c.fillStyle = `rgba(206, 236, 246, ${al.toFixed(3)})`; c.fillRect(Math.round(x), Math.round(y), 2, 4 + Math.round(t * 6));
+  }
 };
 
 const drawOverflow = (c: Ctx, state: GameState) => {
@@ -574,7 +711,9 @@ const tileWanted = (tx: number, ty: number) => {
   const x1 = tx + TILE, y1 = ty + TILE;
   if (x1 <= AREA.x0 || tx >= AREA.x1 || y1 <= AREA.y0 || ty >= AREA.y1) return false;
   // (the gorge's and the far bank's only from the pool down; the overlook's from the cavern's ceiling)
-  if (tx >= PASSAGE.a && y1 <= POOL_Y - 10) return false;
+  const lip = x1 > LIP.x0 && tx < LIP.x1 && y1 > LIP.y0 && ty < LIP.y1;
+  if (tx >= PASSAGE.a && y1 <= POOL_Y - 10 && !lip) return false;
+  if (y1 <= CAVE.ceil - 40 && !lip && !(tx < CAVE.a && y1 > CAVE.hi.ceil - 30)) return false;
   return true;
 };
 /** The area painted: under the overlook (from just over the cavern's ceiling, only round it: the overlook's face over the
@@ -583,6 +722,7 @@ const areaPath = (g: Ctx) => {
   g.rect(AREA.x0, CAVE.hi.ceil - 30, CAVE.a - AREA.x0, DEEP - CAVE.hi.ceil + 30);
   g.rect(CAVE.a - 30, AREA.y0, PASSAGE.a - CAVE.a + 30, DEEP - AREA.y0);
   g.rect(PASSAGE.a, POOL_Y - 10, AREA.x1 - PASSAGE.a, DEEP - POOL_Y + 10);
+  g.rect(LIP.x0, LIP.y0, LIP.x1 - LIP.x0, LIP.y1 - LIP.y0);
 };
 
 // ---------------------------------------------------------------------------------------------------------------

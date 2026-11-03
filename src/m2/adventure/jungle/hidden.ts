@@ -10,7 +10,7 @@
 //   THE WAY IN: let go off that vine toward it (or drop off the overlook's end and steer back in) onto the shelf in its
 //     mouth: THE FALLS CAVE's checkpoint (CAVE_CP: a death in here starts him again on the shelf; out of the cave
 //     again, the gorge's is his again, so jumping out of the mouth into the gorge is always a way back to the overlook).
-//   THE GALLERY (going left, CAVE.hi): ledges along it with bottomless pits between (PITS_HI), a vine over each.
+//   THE GALLERY (going left, CAVE.hi): ledges along it with spike pits between (PITS_HI, SPIKE_Y), a vine over each.
 //     1. Down off the shelf onto the first ledge, a stalactite over it (DRIPS: it shakes and drips, then drops: taught
 //        over solid rock). The first pit: one vine (V1), an easy swing.
 //     2. The second ledge, a stalactite over it too (it comes down while he lines up the next). The second pit, wide:
@@ -30,14 +30,15 @@
 //     save; the card; a line), and the RETURN CANNON (upgrades/returnCannon.ts, the Ben lair's jungle look): any time,
 //     up through a crack in the ceiling and out of the plunge pool on the arc to the far bank, just past the vines
 //     (short of JAGUAR COUNTRY's checkpoint and the canopy's first branch: nobody there).
-//   THE PITS: bottomless (no floor under any of them). Down one far enough, he's put out of the camera's reach and the
+//   THE PITS: the gallery's are spike pits (SPIKE_Y: a thorny floor that hurts while he's on it; he can jump back out),
+//     the tunnel's bottomless (no floor under any of them). Down one far enough, he's put out of the camera's reach and the
 //     engine's own fall takes it from there (like the gorge's). FALLING INTO THE GORGE is the same as ever: anything
 //     down in the gorge below the plunge pool's level (KILL_FEET) that isn't in the passage.
 //
 // Nothing's kept but the find (the save): the stalactites are all back each go.
 //
-// The camera's held still in the gallery and in the tunnel (each fits a screen; the dark under the pits never shows a
-// bottom), and follows him down the shaft.
+// The camera's held still in the gallery and in the tunnel (each fits a screen; the tunnel's shows the gallery's spike
+// pits overhead, dimmed, and the dark under its own pits never shows a bottom), and follows him down the shaft.
 
 import type { FrameContext } from '../../../m1/game/core/context';
 import type { GameState } from '../../../m1/game/core/state';
@@ -55,7 +56,8 @@ import { CAVE_FOUND, HEART_GOT } from './lines';
 import { awardHealth, healthWon, openHealthCard, tickHealthCard, type HealthCard } from '../../upgrades/healthAward';
 import { maxHealth } from '../../upgrades/state';
 import { makeCannon, updateCannon, cannonBusy, cannonCeilingX, type Cannon } from '../../upgrades/returnCannon';
-import { makeTraps, updateTraps, type Traps } from './caveTraps';
+import { makeTraps, updateTraps, canHurt, type Traps } from './caveTraps';
+import { hurtPlayer } from '../../../m1/game/bosses/shared';
 
 const X = (rx: number) => SECTIONS.jungle.x0 + rx;
 
@@ -80,8 +82,15 @@ export const SHAFT_B = X(5850);
 /** The gallery's ledges [from, to] (each at CAVE.hi.floor), and the pits between them. */
 export const LEDGES_HI: [number, number][] = [[X(5850), X(5950)], [X(6280), X(6400)], [X(6640), X(6880)]];
 export const PITS_HI: [number, number][] = [[X(5950), X(6280)], [X(6400), X(6640)]];
-/** The rock under the gallery (the tunnel's ceiling): down to here it's the pits' dark, under it rock. */
+/** The rock under the gallery (the tunnel's ceiling). */
 export const BAND_Y = 940;
+/** The gallery's pits are SPIKE PITS (the owner, 2026-11-03: "for the first level of the new cave area, there's no
+ *  bottomless pits but a spike pit that causes damage as you stand in it" / "when you climb down to the second area, it
+ *  is bottomless there"): a floor of thorny roots this far down (a held jump off it clears the rim with room to spare:
+ *  about 145 up against 110), hurting him every time his hurt frames run out while he's on it. The tunnel's are
+ *  bottomless. */
+export const SPIKE_Y = CAVE.hi.floor + 110;
+const SPIKE_DMG = 6;
 /** The pillar up out of the dark in the tunnel, the landing under the shaft (at CAVE.lo.floor). (The passage's ledge is
  *  the other one.) */
 export const PILLARS_LO: [number, number][] = [[X(5890), X(6010)]];
@@ -142,9 +151,10 @@ export const buildHidden = (state: GameState) => {
   B(CAVE.b, CAVE.ceil, CAVE.wall, CAVE.mouthTop);
   B(CAVE.shelf.a, CAVE.shelf.y, CAVE.wall, CAVE.lo.ceil);
   B(CAVE.b, CAVE.lo.ceil, CAVE.wall, PASSAGE.ceil);
-  // (the gallery's ledges, the rock under them down to the tunnel; under the pits, the rock from where their dark ends
-  // ('seabed': the camera never heads down to it after him falling))
+  // (the gallery's ledges, the rock under them down to the tunnel; the spike pits' floors between them; the tunnel's roof
+  // under it all)
   for (const [a, b] of LEDGES_HI) B(a, CAVE.hi.floor, b, CAVE.lo.ceil);
+  for (const [a, b] of PITS_HI) B(a, SPIKE_Y, b, BAND_Y);
   B(SHAFT_B, BAND_Y, CAVE.shelf.a, CAVE.lo.ceil, { tag: 'seabed' });
   // (the tunnel: the pillar, the passage's ledge; nothing under the rest)
   for (const [a, b] of PILLARS_LO) B(a, CAVE.lo.floor, b, deep);
@@ -185,7 +195,7 @@ const inPassage = (cx: number, feet: number) => cx > PASSAGE.ledge && cx < PASSA
 export const inCave = (state: GameState) => { const p = state.player, cx = p.pos.x + p.width / 2, feet = p.pos.y + p.height; return inCavern(cx, feet) || inPassage(cx, feet); };
 /** Where the camera's top rests down here: the gallery's (the hall's ceiling to just under its pits' rims), the tunnel's
  *  (its ceiling to well down its pits), following him down the shaft between; the passage's, its middle. */
-const UP_REST = 200, LO_REST = 900;
+const UP_REST = 200, LO_REST = 700;
 const restFor = (cx: number, feet: number) => {
   if (inPassage(cx, feet)) return feet - 420;
   if (cx > SHAFT_B + 10 && feet < CAVE.lo.ceil + 30) return UP_REST;
@@ -237,11 +247,14 @@ export const updateHidden = (ctx: FrameContext, c: Controls, firstCaveVine: numb
   const alive = p.health > 0 && state.deathTimer <= 0;
   // Fallen into the gorge (below the pool's level, not in the passage): the gorge's fall, as ever
   if (alive && cx > PASSAGE.a && cx < PASSAGE.b && feet > KILL_FEET && feet < PASSAGE.ceil + 10) { fallen(); return c; }
-  // Down one of the cave's pits: the gallery's (into their dark), the tunnel's (anywhere off its ledges)
+  // Down one of the tunnel's pits (anywhere off its ledges)
   const j = jungleOf(state), onCaveVine = j.hold.on >= firstCaveVine;
   if (alive && !onCaveVine) {
-    if (feet > CAVE.hi.floor + PIT_FALL && feet < CAVE.lo.ceil && PITS_HI.some(([a, b]) => cx > a && cx < b)) { fallen(); return c; }
     if (feet > CAVE.lo.floor + PIT_FALL && cx > CAVE.a - 30 && cx < PASSAGE.ledge) { fallen(); return c; }
+  }
+  // The gallery's spike pits: on the thorny floor, hurt (a little hop) every time his hurt frames have run out
+  if (alive && p.isGrounded && canHurt(state) && Math.abs(feet - SPIKE_Y) < 4 && PITS_HI.some(([a, b]) => cx > a && cx < b)) {
+    hurtPlayer(ctx, SPIKE_DMG, 'm2:thorns', { x: p.vel.x * 0.5, y: -4 }, 8);
   }
   // The stalactites, the thorns, the spray
   updateTraps(ctx, h.traps, firstCaveVine);
