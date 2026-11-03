@@ -18,6 +18,7 @@ import { bandedGradient } from '../m1/game/render/pixelArt';
 import type { Light, SceneLight } from '../m1/game/render/lighting';
 import { landsCleared, LAND_FINDS, LAND_COLLECTIBLES, findsGot } from './store';
 import { noteSun } from './sunFlare';
+import { drawFireworks } from './fireworks';
 
 type Ctx = CanvasRenderingContext2D;
 type RGB = [number, number, number];
@@ -263,6 +264,8 @@ export const drawStars = (c: Ctx, x: number, y: number, w: number, h: number, t 
     if (big) { c.globalAlpha *= 0.55; c.fillRect(gx - px, gy, px * 3, px); c.fillRect(gx, gy - px, px, px * 3); }
   }
   c.restore();
+  // (the day's last hour: the NEVERENDING FIREWORKS SHOW, at the stars' depth, behind the rest of the sky: fireworks.ts)
+  drawFireworks(c, x, y, w, h, px);
 };
 
 /** The moon (a fat waxing gibbous: a stepped disc, its maria, a dark bite, a stepped glow round it). Screen space. */

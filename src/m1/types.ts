@@ -51,7 +51,7 @@ export type SoundType =
   // bodies
   | 'punch' | 'stomp' | 'splat' | 'gunhit' | 'crunch' | 'hurt' | 'whoosh' | 'jump' | 'land' | 'thud' | 'slam'
   // things breaking
-  | 'clang' | 'clink' | 'crack' | 'glass' | 'crash' | 'boom' | 'nuke'
+  | 'clang' | 'clink' | 'crack' | 'glass' | 'crash' | 'boom' | 'nuke' | 'fwpop' | 'fwcrackle'
   // water
   | 'splash' | 'glug' | 'tinkle'
   // signals, machines, the world

@@ -494,6 +494,17 @@ const SFX: Record<string, SfxDef> = {
     gain: 0.7, vary: 1, gap: 150,
     make: () => { const lp = lowpass(), m = metal(180, [1, 2.3, 3.9, 6.1], 4), c = crackle(0.06); const pings = Array.from({ length: 10 }, () => [3000 + Math.random() * 5000, 0.1 + Math.random() * 0.5]); return render(1.3, t => lp(rnd(), 2500 * ex(t, 5) + 150) * ex(t, 4) * 1.2 + m(t) * 0.8 + c() * ex(t, 2.5) * 0.8 + pings.reduce((v, [f, at]) => v + (t > at ? Math.sin(TAU * f * (t - at)) * ex(t - at, 25) : 0), 0) * 0.15); },
   },
+  fwpop: {
+    // Meathead 2's fireworks, far off over the park: a soft dull thump (the high end gone with the distance), a little
+    // tail of air off the hills
+    gain: 0.5, vary: 2.5, gap: 90, voices: 2,
+    make: () => { const lp = lowpass(), lp2 = lowpass(), sub = glide(70, 34, 6); return render(0.9, t => lp(rnd(), 700 * ex(t, 6) + 120) * ex(t, 7) * 1.2 + sub(t) * ex(t, 9) * 0.8 + lp2(rnd(), 260) * ex(t, 2.5) * 0.35); },
+  },
+  fwcrackle: {
+    // ...and a crackle burst's sparks going off, far away: sparse little ticks, thinning out
+    gain: 0.4, vary: 2, gap: 200, voices: 1,
+    make: () => { const hp = highpass(), lp = lowpass(); return render(1.1, t => { const d = 0.05 * ex(t, 2.6); return Math.random() < d ? lp(hp(rnd(), 900), 3200) * 6 * ex(t, 1.6) : lp(hp(0, 900), 3200); }); },
+  },
   boom: {
     // An explosion (a barrel, a car, a truck)
     gain: 0.75, vary: 1.5, gap: 120, voices: 3,

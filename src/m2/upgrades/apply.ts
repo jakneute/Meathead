@@ -18,6 +18,7 @@ import { installArmorArt } from './armorArt';
 import { setScreenOverlay, setUnderEnemies } from '../../m1/game/render/world';
 import { drawCheapShotPanel, drawCheapShotFloor } from './cheapShot';
 import { installCloseUps } from './closeups';
+import { drawFireworksWash } from '../fireworks';
 import { liveState } from '../cheats';
 import type { WeaponType } from '../../m1/types';
 
@@ -37,7 +38,8 @@ export const installUpgrades = () => {
   // (the armor's look: every piece on him wherever he's drawn, while he has it: armorArt.ts)
   installArmorArt();
   // (the hand armor's cheap shot: its close-up, over everything)
-  setScreenOverlay(drawCheapShotPanel);
+  // (under it, the fireworks' faint wash of color over the outdoor picture at the day's last hour: fireworks.ts)
+  setScreenOverlay((c, s) => { drawFireworksWash(c); drawCheapShotPanel(c, s); });
   // (and what it tore out, lying on the floor under everyone after)
   setUnderEnemies(drawCheapShotFloor);
   installCloseUps();

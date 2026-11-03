@@ -8,6 +8,7 @@ import { type Ctx, type Prop, LW, LH, TOP, BOT, HOR, F, CAM_H, INK, stipple } fr
 import { timeOfDay, thisHour, multiply } from '../timeOfDay';
 import { takeSun, drawSunGhosts } from '../sunFlare';
 import { mix } from '../../m1/game/render/backdrops/core';
+import { markFireworksCanvas } from '../fireworks';
 
 /** What the shared painting needs of a scene: its far haze, and its ground's tile (16 m square, 16 px a meter). */
 export interface Look {
@@ -20,7 +21,7 @@ export const canvas = (w: number, h: number) => { const c = document.createEleme
 let lo: HTMLCanvasElement | null = null, loC: Ctx | null = null;
 /** The picture (LW x LH): one, shared (only one walk screen's ever up at once). */
 export const lowRes = () => {
-  if (!lo) { lo = canvas(LW, LH); loC = lo.getContext('2d', { willReadFrequently: true })!; }
+  if (!lo) { lo = canvas(LW, LH); loC = lo.getContext('2d', { willReadFrequently: true })!; markFireworksCanvas(lo); }
   return { cv: lo, c: loC! };
 };
 
