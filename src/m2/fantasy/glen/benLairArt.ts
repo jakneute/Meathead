@@ -21,7 +21,7 @@ import type { SceneLight, Light } from '../../../m1/game/render/lighting';
 import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../../../m1/constants';
 import { box, checker, bandedGradient, hazeBands, tilePattern, stamp, hash, mix, text } from '../../intro/art/kit';
 import { drawCannon, FAIRY } from '../../upgrades/returnCannon';
-import { drawBen, benHeadY, drawBenGross, drawBenGrossBack } from '../../upgrades/confucktious';
+import { drawBen, benHeadY, drawBenGross, drawBenGrossBack, drawGate, drawCannonChain, gateK } from '../../upgrades/confucktious';
 import { drawSkipPrompt, SKIP_AFTER } from '../../../m1/game/platform/skip';
 import { saidOver } from '../section';
 import { GY } from '../geometry';
@@ -652,6 +652,8 @@ export const drawLairBack = (c: Ctx, state: GameState) => {
     for (let i = 0; i < 3; i++) { const u = ((f * 0.45 + i * 33) % 100) / 100; c.fillStyle = `rgba(190,230,170,${(0.32 * (1 - u)).toFixed(2)})`; c.fillRect(Math.round(ro + 20 + Math.sin(f * 0.05 + i * 2) * 4), Math.round(fo - 86 - u * 40), Math.round(3 + u * 4), Math.round(3 + u * 4)); }
   }
   drawCannon(c, h.cannon, FAIRY);
+  drawCannonChain(c, h.cannon, gateK(state, h.gate));
+  drawGate(c, state, h.gate, 'shields');
   if (seen(state, ro, R(ROOM.b), H(ROOM.top), fo)) { const b = h.ben, at = benAt(); drawBen(c, at.x, at.y, b.facing, b.pose, Math.floor(b.poseT / 5), b.piece); }
   // The meadow's near ground over it till he's in (fading out as he goes in)
   if (h.reveal < 1) { c.save(); c.globalAlpha = 1 - h.reveal; box(c, L, T, Rr - L, B - T, '#4E7A3A'); c.restore(); }

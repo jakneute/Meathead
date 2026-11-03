@@ -31,7 +31,7 @@ import { checker } from '../../../m1/game/render/pixelArt';
 import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../../../m1/constants';
 import { shapeR, pxR, lineR, ellR, dith, mixHex, type Ramp } from '../../foreign/heli/harryArt';
 import { drawCannon } from '../../upgrades/returnCannon';
-import { drawBen, benHeadY } from '../../upgrades/confucktious';
+import { drawBen, benHeadY, drawCannonChain, gateK } from '../../upgrades/confucktious';
 import { saidOver } from '../section';
 import { GY } from '../geometry';
 import { HOLE } from './layout';
@@ -709,6 +709,7 @@ export const drawCaveBack = (c: Ctx, state: GameState) => {
     c.fillRect(Math.round(bx + Math.sin(f * 0.01 + i * 2.4) * 70), Math.round(by + 20 + u * 140), 1, 1);
   }
   drawCannon(c, h.cannon);
+  drawCannonChain(c, h.cannon, gateK(state, h.gate));
   // (the heavy bag on its chain, swinging when he works it)
   drawBag(c, BAG_X, CAVE.floor + BAG_HOOK, swing(state));
   const b = h.ben;

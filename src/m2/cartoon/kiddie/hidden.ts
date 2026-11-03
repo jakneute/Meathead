@@ -53,7 +53,7 @@ import { setUi } from '../../store';
 import { saveProgress } from '../../save';
 import { has, setPiece, setBenMet, benGave, setBenGave } from '../../upgrades/state';
 import { makeCannon, updateCannon, cannonBusy, cannonCeilingX, type Cannon } from '../../upgrades/returnCannon';
-import { NUDGE, BYE_MEATHEAD, BYE_BEN, PIECE_LINES, benSays, drawBenGross, drawBenGrossBack, warmBenGross, meetupScript, startScript, tickScript, skipScript, giftCoda, type BenPose, type BenTalk, type Script } from '../../upgrades/confucktious';
+import { NUDGE, BYE_MEATHEAD, BYE_BEN, PIECE_LINES, benSays, drawBenGross, drawBenGrossBack, warmBenGross, meetupScript, startScript, tickScript, skipScript, giftCoda, type BenPose, type BenTalk, type Script, makeGate, markGate, cannonLocked, type Gate } from '../../upgrades/confucktious';
 import { teleport, meatheadSays, byPants, pantsOf, solid, landVisit, saidOver } from '../section';
 import { GY } from '../geometry';
 import { drawMascot } from './kindArt';
@@ -130,6 +130,8 @@ export interface Hidden {
   practice: Enemy | null; respawn: number; goodSaid: boolean;
   nudgeAt: number;
   cannon: Cannon;
+  /** The cannon chained while the trial's on (trialGate.ts: the cave's no other way out). */
+  gate: Gate;
   /** Buttons last frame (the card's any-button). */
   was: Partial<Controls>;
 }
@@ -141,7 +143,7 @@ export const hiddenOf = (state: GameState): Hidden => {
     phase: 'out', all: 0, beat: 0, token: 0, script: null,
     ben: { said: null, pose: 'flurry', facing: 1, poseT: 0, piece: 'hands' },
     tries: 0, lockWas: false, nutsAt: -1, kickT: -1, kickDir: 1, kickFrom: 0, shaker: null, cardT: 0, cardArmed: false, practice: null, respawn: 30, goodSaid: false, nudgeAt: 0,
-    cannon: makeCannon(CANNON_X, CAVE.floor, EXIT, DEST), was: {},
+    cannon: makeCannon(CANNON_X, CAVE.floor, EXIT, DEST), gate: makeGate('ct-ben-gate', CANNON_X, CAVE.floor, 0, 0), was: {},
   });
   return h;
 };
@@ -227,6 +229,9 @@ export const updateHidden = (ctx: FrameContext, controls: Controls): Controls =>
   }
   if (h.phase !== 'card') setUi({ gotPiece: null });
   if (h.phase !== 'trial') setUi({ beatPrompt: null });
+  // (the cannon chained till the shaker's his: UP at it, Ben's bark)
+  markGate(state, h.gate, h.phase === 'trial' && h.nutsAt < 0);
+  if (h.phase === 'trial') cannonLocked(state, h.cannon, out, h.ben);
   // The cannon: only once the trial's cleared (the owner: "the canon shouldn't be accidentally enterable until you clear
   // the challenge"): no getting in, no prompt, before
   if (h.phase === 'done' || h.phase === 'out' || cannonBusy(h.cannon)) {

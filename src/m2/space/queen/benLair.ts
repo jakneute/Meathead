@@ -56,19 +56,21 @@ import { lastMelee, type MeleeHit } from '../../upgrades/lastHit';
 import { FOLLOW_WINDOW } from '../../upgrades/tune';
 import { setUi } from '../../store';
 import { saveProgress } from '../../save';
-import { has, setPiece, setBenMet, benGave, setBenGave, followArt, setFollowArt, FOLLOW_PIECES } from '../../upgrades/state';
+import { has, setPiece, setBenMet, benGave, setBenGave, followArt, setFollowArt, FOLLOW_PIECES, lendPiece, unlendPiece } from '../../upgrades/state';
 import { FOLLOW, type EquipControl } from '../../upgrades/equipInfo';
 import { makeCannon, updateCannon, cannonBusy, type Cannon } from '../../upgrades/returnCannon';
 import {
   NUDGE, PIECE_LINES, artBeats, artTipRange, MH_CANNON_ASK, BEN_CANNON_SP, MH_HATCH_SP, BRACER_WEEB, BRACER_HUH,
   benSays, warmBenGross, meetupScript, startScript, tickScript, skipScript,
   type BenPose, type BenTalk, type Script, type Beat, type ByPants, giftCoda,
+  makeGate, syncGate, gateBump, cannonLocked, type Gate,
 } from '../../upgrades/confucktious';
 import { meatheadSays } from '../section';
 import { bossGone } from '../../emptyArena';
 import { MH_HATCH_BACK, BEN_CANNON_BACK } from './lines';
 import { BASE_L, BF, LAND_X, HATCH, LAIR, underHall } from './geo';
 import { drawSpar, SPAR_H } from './benLairSpar';
+import { HATCH_LADDER_X } from './basement';
 
 const L = PIECE_LINES.armguards;
 
@@ -147,6 +149,11 @@ export interface Lair {
   /** When he came up out of the grate (its lid flapping). */
   grateAt: number;
   cannon: Cannon;
+  /** The way out (the hatch up the ladder) barred while the trial's on (trialGate.ts): the ladder off, a bar over the
+   *  hatch's mouth. */
+  gate: Gate;
+  /** UP last frame (the ladder's bark). */
+  upWasL?: boolean;
   was: Partial<Controls>;
   /** It set the HUD's prompts (so it clears them going out, and only then). */
   ui: boolean;
@@ -164,14 +171,21 @@ export const lairOf = (state: GameState): Lair => {
     cardT: 0, cardArmed: false, goodSaid: false, tipsTill: false, nudgeAt: 0, grateAt: -999,
     // (straight up out of the hatch; up out of the grate by where he landed, and down on it)
     cannon: makeCannon(CANNON_X, LAIR.floor, { x: GRATE_X, y: BF }, { x: GRATE_X, y: BF }),
+    gate: makeGate('sp-ben-gate', HATCH.a, LAIR.top - 22, HATCH.b - HATCH.a, 24),
     was: {}, ui: false,
   });
   return h;
 };
-/** The bracers lent for the trial (taken back if it's not finished). */
-let lent = false;
-const lend = () => { if (!has('armguards')) { setPiece('armguards', true); lent = true; } };
-const unlend = () => { if (lent && !benGave('armguards')) setPiece('armguards', false); lent = false; };
+/** The bracers lent for the trial (taken back if it's not finished; never saved lent: upgrades/state.ts). */
+const lend = () => { lendPiece('armguards'); };
+const unlend = () => unlendPiece('armguards');
+/** The hatch's barred (the trial's on): its ladder's off (the queen section's update leaves it out). */
+export const hatchBarred = (state: GameState) => !!lairOf(state).gate.block;
+/** The sparring alien never leaves the room (knocked up the hatch: gone, the next one wheeled out). */
+const sweepLost = (state: GameState) => {
+  const lost = (o: Enemy) => o.kind === 'm2:sp_spar' && grabHolding() !== o && !(o.pos.x + o.width / 2 > LAIR.a - 10 && o.pos.x + o.width / 2 < LAIR.b + 10 && o.pos.y + o.height > LAIR.top + 20 && o.pos.y + o.height <= LAIR.floor + 40);
+  if (state.enemies.some(lost)) state.enemies = state.enemies.filter(o => !lost(o));
+};
 let setNoContact = false;
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -214,7 +228,10 @@ export const updateBenLair = (ctx: FrameContext, controls: Controls, onLand: () 
   if (!room) {
     // (out of the room: bumping into things hurts again; a lend's taken back; the alien left down there; his words gone)
     if (setNoContact) { p.noContactHurt = false; setNoContact = false; }
-    if (h.phase === 'trial') unlend();
+    // (the safety net: however he got out, the lent bracers come off; the bar's out of the way of coming back down)
+    unlend();
+    syncGate(state, h.gate, false);
+    sweepLost(state);
     if (!belowHall(state)) clearSpar(state, h);
     if (h.ben.said && !belowHall(state) && !cannonBusy(h.cannon)) h.ben.said = null;
     if (h.ui) { h.ui = false; setUi({ gotPiece: null, gotPieceReady: false, chordTips: null }); }
@@ -269,7 +286,17 @@ export const updateBenLair = (ctx: FrameContext, controls: Controls, onLand: () 
   }
   if (h.phase !== 'card') setUi({ gotPiece: null });
   setUi({ chordTips: tips });
-  // The cannon: only once the trial's passed (no getting in, no prompt, before)
+  // The way out: the hatch barred and its ladder chained while the trial's on (UP at the ladder: Ben's bark); clear on
+  // the pass
+  syncGate(state, h.gate, h.phase === 'trial' && h.passAt < 0);
+  if (h.phase === 'trial') {
+    const upPress = !!controls.up && !h.upWasL;
+    gateBump(state, h.gate, h.ben, upPress && Math.abs(midX(state) - HATCH_LADDER_X) < 30 && feetY(state) > LAIR.floor - 60);
+  }
+  h.upWasL = !!controls.up;
+  sweepLost(state);
+  // The cannon: only once the trial's passed (no getting in, no prompt, before: chained, UP at it gets Ben's bark)
+  if (h.phase === 'trial') cannonLocked(state, h.cannon, out, h.ben);
   if (h.phase === 'done' || cannonBusy(h.cannon)) out = updateCannon(ctx, h.cannon, out, cannonHooks(h, onLand));
   return out;
 };
@@ -424,7 +451,7 @@ const startGift = (state: GameState, h: Lair) => {
   h.phase = 'gift'; h.all = 0; h.token++;
   // (the hidden art's been said before the trial (startMeet): here, only the gift, and Meathead naming his new move)
   // (his for good, there and then: a skip, a death, a quit can't lose them)
-  setPiece('armguards', true); setBenGave('armguards'); lent = false; saveProgress();
+  setPiece('armguards', true); setBenGave('armguards'); saveProgress();
   freeze(state);
   setPose(h, 'give');
   const pants = pantsOf(state);

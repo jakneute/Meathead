@@ -105,7 +105,7 @@ export const benMet = () => u.benMet;
 /** That land's piece has been handed over by Ben himself (his find done), whatever the cheats have given: the meetup
  *  plays till then (the owner gave himself every piece and found Ben with nothing to say). */
 export const benGave = (piece: ArmorPiece) => u.benGave.has(piece);
-export const setBenGave = (piece: ArmorPiece) => { if (!u.benGave.has(piece)) { u.benGave.add(piece); changed(); } };
+export const setBenGave = (piece: ArmorPiece) => { lentSet.delete(piece); if (!u.benGave.has(piece)) { u.benGave.add(piece); changed(); } };
 /** How many pieces Ben himself has handed over (0..8): this meetup's the (count + 1)th lair he's met in, whatever the
  *  order of the lands (his backstory goes one beat further each one: confucktious/meetup.ts). */
 export const benGaveCount = () => u.benGave.size;
@@ -122,13 +122,32 @@ export const setHealthFinds = (n: number) => { const v = clampInt(n, MAX_HEALTH_
 export const setAmmoFinds = (n: number) => { const v = clampInt(n, MAX_AMMO_FINDS); if (v !== u.ammo) { u.ammo = v; changed(); } };
 export const setShards = (n: number) => { const v = clampInt(n, MAX_SHARDS); if (v !== u.shards) { u.shards = v; changed(); } };
 export const setPiece = (piece: ArmorPiece, on: boolean) => {
+  // (taken off: no longer lent either; the cheats' toggle on after that is his)
+  if (!on) lentSet.delete(piece);
   if (u.armor.has(piece) === on) return;
   if (on) u.armor.add(piece); else u.armor.delete(piece);
   changed();
 };
+// ---- a piece lent for one of Ben's trials (the owner's "you have to pass the trial to take them"): worn for it, never
+// his till it's passed. Never in the save (snapshotUpgrades leaves it out); off him the moment he's anywhere but the
+// lair (each lair's unlend, returnLent on the way into the hub), and off on a fresh load.
+const lentSet = new Set<ArmorPiece>();
+/** Puts the piece on him for the trial if he hasn't got it (true: it's lent now). */
+export const lendPiece = (piece: ArmorPiece) => {
+  if (u.armor.has(piece)) return lentSet.has(piece);
+  lentSet.add(piece); setPiece(piece, true);
+  return true;
+};
+/** Takes a lent piece back off him (nothing, if it wasn't lent, or Ben's handed it over since). */
+export const unlendPiece = (piece: ArmorPiece) => {
+  if (!lentSet.delete(piece)) return;
+  if (!u.benGave.has(piece)) setPiece(piece, false);
+};
+/** Every lent piece taken back. */
+export const returnLent = () => { for (const p of [...lentSet]) unlendPiece(p); };
 export const setAmuletOn = (on: boolean) => { if (u.amulet !== on) { u.amulet = on; changed(); } };
 export const setBenMet = (on: boolean) => { if (u.benMet !== on) { u.benMet = on; changed(); } };
-export const resetUpgrades = () => { u = { health: 0, ammo: 0, shards: 0, armor: new Set(), amulet: true, benMet: false, benGave: new Set(), followArt: false, benSpots: new Set() }; changed(); };
+export const resetUpgrades = () => { lentSet.clear(); u = { health: 0, ammo: 0, shards: 0, armor: new Set(), amulet: true, benMet: false, benGave: new Set(), followArt: false, benSpots: new Set() }; changed(); };
 
 // ---- the numbers
 export const maxHealth = () => Math.round(BASE_HEALTH * (1 + HEALTH_STEP * u.health));
@@ -142,7 +161,7 @@ export const armorDamageK = (move: MeleeMove) => (moveArmored(move) ? ARMOR_DAMA
 
 // ---- the save file (save.ts)
 export interface UpgradesSave { health: number; ammo: number; shards: number; armor: ArmorPiece[]; amulet: boolean; benMet?: boolean; benGave?: ArmorPiece[]; followArt?: boolean; benSpots?: string[] }
-export const snapshotUpgrades = (): UpgradesSave => ({ health: u.health, ammo: u.ammo, shards: u.shards, armor: ownedPieces(), amulet: u.amulet, benMet: u.benMet, benGave: ARMOR_PIECES.filter(p => u.benGave.has(p)), followArt: u.followArt, benSpots: [...u.benSpots] });
+export const snapshotUpgrades = (): UpgradesSave => ({ health: u.health, ammo: u.ammo, shards: u.shards, armor: ownedPieces().filter(p => !lentSet.has(p)), amulet: u.amulet, benMet: u.benMet, benGave: ARMOR_PIECES.filter(p => u.benGave.has(p)), followArt: u.followArt, benSpots: [...u.benSpots] });
 /** Whatever was in the file, kept to what makes sense (nothing, or nonsense: zero upgrades). */
 export const cleanUpgrades = (raw: unknown): UpgradesSave => {
   const o = raw && typeof raw === 'object' ? raw as Record<string, unknown> : {};
@@ -153,6 +172,7 @@ export const cleanUpgrades = (raw: unknown): UpgradesSave => {
 };
 export const restoreUpgrades = (raw: unknown) => {
   const s = cleanUpgrades(raw);
+  lentSet.clear();
   u = { health: s.health, ammo: s.ammo, shards: s.shards, armor: new Set(s.armor), amulet: s.amulet, benMet: !!s.benMet, benGave: new Set(s.benGave ?? []), followArt: !!s.followArt, benSpots: new Set(s.benSpots ?? []) };
   changed();
 };

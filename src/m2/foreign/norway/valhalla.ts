@@ -73,6 +73,7 @@ import type { EquipControl } from '../../upgrades/equipInfo';
 import {
   NUDGE_OUT, BYE_MEATHEAD, PIECE_LINES, benSays, drawBenGross, drawBenGrossBack, warmBenGross, meetupScript, startScript, tickScript, skipScript,
   type BenPose, type BenTalk, type Script, type Beat, type ByPants, giftCoda,
+  makeGate, markGate, gateBump, type Gate,
 } from '../../upgrades/confucktious';
 import { ledge, solid, teleport, meatheadSays, speak, saidOver, landVisit, type Said } from '../section';
 import { SECTIONS, GY } from '../geometry';
@@ -291,6 +292,8 @@ export interface Hall {
   practice: Enemy | null; respawn: number; goodSaid: boolean;
   foam: Foam[];
   nudgeAt: number;
+  /** The way out (the door) barred while the trial's on (trialGate.ts). */
+  gate: Gate;
   was: Partial<Controls>;
 }
 const stores = new WeakMap<object, Hall>();
@@ -300,6 +303,7 @@ export const hallOf = (state: GameState): Hall => {
   if (!h) stores.set(key, h = {
     tracked: [], lift: hallsUp() ? 1 : 0, dock: null,
     door: { said: null, busy: false, pose: 'stand', poseT: 0, callAt: 0, leave: walkOff() }, upWas: false,
+    gate: makeGate('no-ben-gate', X(IN_DOOR) - 26, HALL.floor - 96, 52, 96),
     phase: 'out', all: 0, token: 0, script: null,
     ben: { said: null, pose: 'flurry', facing: -1, poseT: 0, piece: 'helmet', x: BEN_HOME },
     keg: { a: 0, va: 0, hits: 0, at: -999, burst: -1 }, misses: 0, missAt: 0, passAt: -1,
@@ -401,8 +405,12 @@ export const updateValhalla = (ctx: FrameContext, controls: Controls): Controls 
   }
   if (h.phase !== 'card') setUi({ gotPiece: null });
   setUi({ chordTips: tips });
-  // The way out: UP at the door, any time he's in control
-  const atDoor = Math.abs(midX(state) - X(IN_DOOR)) < 52 && !p.inCutscene && p.health > 0 && (h.phase === 'trial' || h.phase === 'done');
+  // The door barred while the trial's on (UP at it: Ben's bark); unbarred on the pass
+  markGate(state, h.gate, h.phase === 'trial' && h.passAt < 0);
+  const byDoor = Math.abs(midX(state) - X(IN_DOOR)) < 52 && !p.inCutscene && p.health > 0;
+  if (h.phase === 'trial') gateBump(state, h.gate, h.ben, byDoor && upPress);
+  // The way out: UP at the door, any time he's in control once the trial's passed
+  const atDoor = byDoor && h.phase === 'done';
   if (atDoor) setUi({ upPrompt: 'LEAVE VALHALLA' });
   if (upStart(h, upPress, atDoor, p.isGrounded)) {
     if (h.phase === 'done') { silenceAll(); h.ben.said = null; meatheadSays(state, pickLine(BYE_MEATHEAD), true); }

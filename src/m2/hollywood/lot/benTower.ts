@@ -67,7 +67,7 @@ import { registerM2Kind } from '../../kinds';
 import { inPlay } from '../../moves/grab';
 import { setUi } from '../../store';
 import { saveProgress } from '../../save';
-import { has, setPiece, setBenMet, benGave, setBenGave, followArt, setFollowArt, FOLLOW_PIECES } from '../../upgrades/state';
+import { has, setPiece, setBenMet, benGave, setBenGave, followArt, setFollowArt, FOLLOW_PIECES, lendPiece, unlendPiece } from '../../upgrades/state';
 import { FOLLOW, type EquipControl } from '../../upgrades/equipInfo';
 import { FLASH_RADIUS } from '../../upgrades/tune';
 import { makeCannon, updateCannon, cannonBusy, type Cannon } from '../../upgrades/returnCannon';
@@ -76,6 +76,7 @@ import {
   LEGS_CURTAIN, MH_HATCH, NUDGE_HW, MH_CANNON_ASK, BEN_CANNON, MH_FALL, MH_LANDED,
   benSays, warmBenGross, meetupScript, startScript, tickScript, skipScript,
   type BenPose, type BenTalk, type Script, type Beat, type ByPants, giftCoda,
+  makeGate, syncGate, gateBump, cannonLocked, type Gate,
 } from '../../upgrades/confucktious';
 import { meatheadSays, solid, ledge, hollywoodWires, type StuntWire } from '../section';
 import { wireOn, wireU } from '../wires';
@@ -141,6 +142,7 @@ const HATCH_WIRE = [-1, 0, 1, 3, 4, 5];
 
 const midX = (state: GameState) => state.player.pos.x + state.player.width / 2;
 const feetY = (state: GameState) => state.player.pos.y + state.player.height;
+const feetY2 = (e: Enemy) => e.pos.y + e.height;
 /** In the tank (on its floor, or up in it). */
 export const inTank = (state: GameState) => {
   const cx = midX(state), fy = feetY(state);
@@ -209,6 +211,8 @@ export interface Tower {
   cannon: Cannon;
   /** The vent's lid over the cannon (shut but while it's firing). */
   lid: Block | null;
+  /** The way out (the manhole he came up) chained shut while the trial's on (trialGate.ts): no dropping through it. */
+  gate: Gate;
   was: Partial<Controls>;
   ui: boolean;
 }
@@ -228,14 +232,14 @@ export const towerOf = (state: GameState): Tower => {
     // (straight up the roof vent; out high over the tower's right side, down past the lot of it to the street)
     cannon: makeCannon(X(CANNON_X), Y(TANK_F), { x: X(EXIT.x), y: Y(EXIT.h) }, { x: X(LAND.x), y: GY }),
     lid: null,
+    gate: makeGate('hw-ben-gate', X(HATCH_X[5]), Y(TANK_F), HATCH_W, DECK_T),
     was: {}, ui: false,
   });
   return h;
 };
-/** The shin-digs lent for the trial (taken back if it's not finished). */
-let lent = false;
-const lend = () => { if (!has('legs')) { setPiece('legs', true); lent = true; } };
-const unlend = () => { if (lent && !benGave('legs')) setPiece('legs', false); lent = false; };
+/** The shin-digs lent for the trial (taken back if it's not finished; never saved lent: upgrades/state.ts). */
+const lend = () => { lendPiece('legs'); };
+const unlend = () => unlendPiece('legs');
 let setNoContact = false;
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -288,7 +292,9 @@ const runHatches = (state: GameState, h: Tower, controls: Controls) => {
     // (stood on it shut: hold down to drop through)
     const stood = !hk.open && p.isGrounded && Math.abs(fy - hk.top) < 3 && cx > hk.x0 + 6 && cx < hk.x1 - 6 && p.health > 0 && !p.inCutscene
       // (stood still on it: not a slide across it with down held (the tank's trial runs over the manhole))
-      && !p.isSliding && !p.isCharging && Math.abs(p.vel.x) < 1;
+      && !p.isSliding && !p.isCharging && Math.abs(p.vel.x) < 1
+      // (the tank's manhole chained shut while Ben's trial's on: no dropping out through it)
+      && !(hk.k === 5 && h.gate.block);
     if (stood) { setUi({ holdDownPrompt: 'DROP DOWN' }); hk.down = controls.down ? hk.down + 1 : 0; if (hk.down > 10) hk.hold = 24; }
     else hk.down = 0;
     const inCol = p.pos.x + p.width > hk.x0 - 4 && p.pos.x < hk.x1 + 4 && fy > hk.top - 170 && p.pos.y < hk.top + DECK_T + 240;
@@ -318,7 +324,9 @@ export const updateTower = (ctx: FrameContext, controls: Controls): Controls => 
   if (!tank) {
     // (out of the tank: bumping into things hurts again; a lend's taken back; the practice one's gone with him)
     if (setNoContact) { p.noContactHurt = false; setNoContact = false; }
-    if (h.phase === 'trial') unlend();
+    // (the safety net: however he got out, the lent shin-digs come off; the chain's off the manhole for coming back up)
+    unlend();
+    syncGate(state, h.gate, false);
     if (h.practice) { const e = h.practice; state.enemies = state.enemies.filter(o => o !== e); h.practice = null; }
     if (h.ben.said && !cannonBusy(h.cannon)) h.ben.said = null;
     if (h.ui) { h.ui = false; setUi({ gotPiece: null, gotPieceReady: false, chordTips: null }); }
@@ -370,7 +378,16 @@ export const updateTower = (ctx: FrameContext, controls: Controls): Controls => 
   }
   if (h.phase !== 'card') setUi({ gotPiece: null });
   setUi({ chordTips: tips });
-  // The cannon: only once the trial's passed (no getting in, no prompt, before)
+  // The way out: the manhole chained shut while the trial's on (stood on it holding down: Ben's bark); off on the pass
+  syncGate(state, h.gate, h.phase === 'trial' && h.passAt < 0);
+  if (h.phase === 'trial') {
+    const fy = feetY(state), cx = midX(state);
+    gateBump(state, h.gate, h.ben, !!controls.down && p.isGrounded && Math.abs(fy - h.gate.y) < 3 && cx > h.gate.x + 6 && cx < h.gate.x + h.gate.w - 6);
+  }
+  // (the stunt double never leaves the tank: through the manhole somehow, he's gone, the union sends the next)
+  if (h.practice && (feetY2(h.practice) > Y(TANK_F) + 30 || !state.enemies.includes(h.practice))) { const e = h.practice; state.enemies = state.enemies.filter(o => o !== e); h.practice = null; }
+  // The cannon: only once the trial's passed (no getting in, no prompt, before: chained, UP at it gets Ben's bark)
+  if (h.phase === 'trial') cannonLocked(state, h.cannon, out, h.ben);
   if (h.phase === 'done' || cannonBusy(h.cannon)) out = updateCannon(ctx, h.cannon, out, cannonHooks(h));
   return out;
 };
@@ -561,7 +578,7 @@ const startGift = (state: GameState, h: Tower) => {
   h.phase = 'gift'; h.all = 0; h.token++;
   // (the hidden art's been said before the trial (startMeet): here, only the gift)
   // (his for good, there and then: a skip, a death, a quit can't lose them; the curtain goes back up)
-  setPiece('legs', true); setBenGave('legs'); lent = false; saveProgress();
+  setPiece('legs', true); setBenGave('legs'); saveProgress();
   h.curtain = false;
   freeze(state);
   setPose(h, 'give');

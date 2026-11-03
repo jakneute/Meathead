@@ -61,7 +61,7 @@ import { registerM2Kind } from '../../kinds';
 import { grabHolding, inPlay } from '../../moves/grab';
 import { setUi } from '../../store';
 import { saveProgress } from '../../save';
-import { has, setPiece, setBenMet, benGave, setBenGave, followArt, setFollowArt, FOLLOW_PIECES } from '../../upgrades/state';
+import { has, setPiece, setBenMet, benGave, setBenGave, followArt, setFollowArt, FOLLOW_PIECES, lendPiece, unlendPiece } from '../../upgrades/state';
 import { lastMelee, type MeleeHit } from '../../upgrades/lastHit';
 import { buriedAs, addKickAim } from '../../moves/followups';
 import { FOLLOW } from '../../upgrades/equipInfo';
@@ -71,6 +71,7 @@ import {
   NUDGE, BYE_MEATHEAD, BYE_BEN, PIECE_LINES, PADS_WIDE, artBeats, artTipRange,
   benSays, drawBenGross, drawBenGrossBack, warmBenGross, meetupScript, startScript, tickScript, skipScript,
   type BenPose, type BenTalk, type Script, type Beat, type ByPants, giftCoda,
+  makeGate, syncGate, gateBump, cannonLocked, type Gate,
 } from '../../upgrades/confucktious';
 import { meatheadSays, saidOver, ledge } from '../section';
 import type { Block } from '../../../m1/types';
@@ -168,6 +169,9 @@ registerM2Kind({
     const dx = mid(ctx.state.player).x - mid(e).x;
     e.aiState = 'near';
     e.facing = dx < 0 ? -1 : 1;
+    // (bolted down: nothing moves it off its spot (the owner's "make sure the dummy you charge into cannot move when
+    // you hit him"); planted or in his hands, the follow-up's got it)
+    if (anchorTackle(e)) return true;
     if (Math.abs(e.vel.y) < 0.2) e.vel.x *= 0.8;
     // (kept in the room, off the shaft's hole)
     const lo = R(SHAFT.b) + 20, hi = R(LAIR.b) - 30;
@@ -202,6 +206,8 @@ export interface Lair {
   practice: Enemy | null; respawn: number; goodSaid: boolean; tipsTill: boolean;
   nudgeAt: number;
   cannon: Cannon;
+  /** The way out (the shaft's hole) blocked while the trial's on: his bench dragged over it (trialGate.ts). */
+  gate: Gate;
   was: Partial<Controls>;
 }
 const stores = new WeakMap<object, Lair>();
@@ -216,16 +222,22 @@ export const lairOf = (state: GameState): Lair => {
     cardT: 0, cardArmed: false, practice: null, respawn: 30, goodSaid: false, tipsTill: false, nudgeAt: 0,
     // (fired up the overflow pipe; out of its end in the tank's left wall, on the arc down into the tank by the gallery)
     cannon: makeCannon(R(CANNON_X), LAIR.floor, { x: R(OUTLET_X) + 30, y: OUTLET_Y + 22 }, { x: R(LAND_X), y: WS + 24 }),
+    gate: makeGate('jl-ben-gate', R(SHAFT.a), LAIR.floor, SHAFT.b - SHAFT.a, 16),
     was: {},
   });
   return h;
 };
 /** The lair's turned off contact hurts (and turns them back on as he leaves). */
 let setNoContact = false;
-/** The coco-nuts lent for the trial (taken back if it's not finished). */
-let lent = false;
-const lend = () => { if (!has('pauldrons')) { setPiece('pauldrons', true); lent = true; } };
-const unlend = () => { if (lent && !benGave('pauldrons')) setPiece('pauldrons', false); lent = false; };
+/** The coco-nuts lent for the trial (taken back if it's not finished; never saved lent: upgrades/state.ts). */
+const lend = () => { lendPiece('pauldrons'); };
+const unlend = () => unlendPiece('pauldrons');
+/** The trial's dummy and the practice guides never leave the room (knocked down the shaft: gone, the next one along). */
+const sweepLost = (state: GameState) => {
+  if (!state.enemies.some(o => (o.kind === 'm2:jg_tackle' || o.kind === 'm2:jg_dummy') && !inRoomBox(o))) return;
+  state.enemies = state.enemies.filter(o => !((o.kind === 'm2:jg_tackle' || o.kind === 'm2:jg_dummy') && !inRoomBox(o)) || grabHolding() === o);
+};
+const inRoomBox = (e: Enemy) => { const cx = e.pos.x + e.width / 2, fy = e.pos.y + e.height; return cx > R(LAIR.a) - 10 && cx < R(LAIR.b) + 10 && fy <= LAIR.floor + 40 && fy > LAIR.ceil - 60; };
 
 // ---------------------------------------------------------------------------------------------------------------
 // Building it: the shaft and the lair cut out of the river's rock, the ledges up the shaft
@@ -268,7 +280,12 @@ export const updateLair = (ctx: FrameContext, controls: Controls): Controls => {
   if (!inLair(state)) {
     // (out of the lair: bumping into things hurts again; the practice one's gone with him)
     if (setNoContact) { p.noContactHurt = false; setNoContact = false; }
-    if (h.phase === 'trial') unlend();
+    // (the safety net: however he got out, the lent coco-nuts come off; the gate's out of the way of coming back up)
+    unlend();
+    syncGate(state, h.gate, false);
+    sweepLost(state);
+    if (h.practice && !state.enemies.includes(h.practice)) h.practice = null;
+    if (h.dummy && !state.enemies.includes(h.dummy)) h.dummy = null;
     if (!upShaft(state)) clearDummy(state, h);
     if (h.practice) { const e = h.practice; state.enemies = state.enemies.filter(o => o !== e); h.practice = null; }
     if (h.ben.said) h.ben.said = null;
@@ -317,7 +334,13 @@ export const updateLair = (ctx: FrameContext, controls: Controls): Controls => {
   }
   if (h.phase !== 'card') setUi({ gotPiece: null });
   setUi({ chordTips: tips });
-  // The cannon: only once the trial's passed (no getting in, no prompt, before)
+  // The way out: the shaft's hole under his bench while the trial's on (stood on it: Ben's bark); clear on the pass
+  syncGate(state, h.gate, h.phase === 'trial' && h.passAt < 0);
+  if (h.phase === 'trial') gateBump(state, h.gate, h.ben);
+  sweepLost(state);
+  if (h.practice && !state.enemies.includes(h.practice)) h.practice = null;
+  // The cannon: only once the trial's passed (no getting in, no prompt, before: chained, UP at it gets Ben's bark)
+  if (h.phase === 'trial') cannonLocked(state, h.cannon, out, h.ben);
   if (h.phase === 'done' || cannonBusy(h.cannon)) out = updateCannon(ctx, h.cannon, out, cannonHooks(h));
   return out;
 };
@@ -397,6 +420,8 @@ const keepDummy = (state: GameState, h: Lair) => {
   const e = h.dummy;
   if (e) {
     if (buriedAs(e) === 'head' || grabHolding() === e) return;
+    // (its AI's off while it's stunned by a hit: held on its spot from here too)
+    anchorTackle(e);
     if (e.health > 0 && !e.isBlownAway && state.enemies.includes(e)) return;
     h.dummy = null; h.dummyAt = state.frame + RESPAWN_TRIAL;
     return;
@@ -410,6 +435,14 @@ const keepDummy = (state: GameState, h: Lair) => {
   state.enemies.push(k); h.dummy = k;
   playSound('poof', 0.5, -4); playSound('thud', 0.5, -8);
   for (let i = 0; i < 10; i++) state.particles.push({ pos: { x: R(DUMMY_X) + (Math.random() - 0.5) * 40, y: LAIR.floor - 4 }, vel: { x: (Math.random() - 0.5) * 3, y: -0.5 - Math.random() * 1.5 }, life: 26, color: i % 2 ? '#C8A86A' : '#A8A29E', size: 3 });
+};
+/** The dummy back on its spot (its base plate's bolted to the floor): any knock, throw or blast, it's stood straight
+ *  back where it was. Not while it's planted or in his hands (the follow-up's), nor once it's done for (stood up
+ *  again new). True: it was put back. */
+const anchorTackle = (e: Enemy) => {
+  if (e.health <= 0 || e.isBlownAway || grabHolding() === e || buriedAs(e) || e.homeX === undefined || e.homeY === undefined) return false;
+  e.pos.x = e.homeX; e.pos.y = e.homeY; e.vel.x = 0; e.vel.y = 0;
+  return true;
 };
 const clearDummy = (state: GameState, h: Lair) => {
   if (h.dummy && grabHolding() !== h.dummy && buriedAs(h.dummy) !== 'head') { const e = h.dummy; state.enemies = state.enemies.filter(o => o !== e); h.dummy = null; }
@@ -489,7 +522,7 @@ const startGift = (state: GameState, h: Lair) => {
   h.phase = 'gift'; h.all = 0; h.token++; h.handed = false;
   // (the hidden art's been said before the trial (startMeet): here, only the gift)
   // (his for good, there and then: a skip, a death, a quit can't lose them)
-  setPiece('pauldrons', true); setBenGave('pauldrons'); lent = false; saveProgress();
+  setPiece('pauldrons', true); setBenGave('pauldrons'); saveProgress();
   // (the dummy's done its job: off the floor (what's left of it))
   clearDummy(state, h);
   freeze(state);

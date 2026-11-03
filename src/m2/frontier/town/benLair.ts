@@ -66,13 +66,14 @@ import { lastMelee, type MeleeHit } from '../../upgrades/lastHit';
 import { FOLLOW_WINDOW } from '../../upgrades/tune';
 import { setUi } from '../../store';
 import { saveProgress } from '../../save';
-import { has, setPiece, setBenMet, benGave, setBenGave, followArt, setFollowArt, FOLLOW_PIECES } from '../../upgrades/state';
+import { has, setPiece, setBenMet, benGave, setBenGave, followArt, setFollowArt, FOLLOW_PIECES, lendPiece, unlendPiece } from '../../upgrades/state';
 import { FOLLOW, type EquipControl } from '../../upgrades/equipInfo';
 import { makeCannon, updateCannon, cannonBusy, type Cannon } from '../../upgrades/returnCannon';
 import {
   NUDGE, PIECE_LINES, artBeats, artTipRange, MH_CANNON_ASK, BEN_CANNON_FR, MH_MAZE, MH_LANDED_FR, BOOT_WEEB, BOOT_HUH, CROW_WRONG, CROW_SHORT, CROW_ENOUGH,
   benSays, warmBenGross, meetupScript, startScript, tickScript, skipScript,
   type BenPose, type BenTalk, type Script, type Beat, type ByPants, giftCoda,
+  makeGate, syncGate, gateBump, cannonLocked, type Gate,
 } from '../../upgrades/confucktious';
 import { meatheadSays, ledge } from '../section';
 import { SECTIONS, GY } from '../geometry';
@@ -227,6 +228,8 @@ export interface Lair {
    *  (frame), which way (+1 east: away from the dynamite). */
   fly: { e: Enemy; at: number; dir: number } | null;
   cannon: Cannon;
+  /** The way out (the pool he swam in by) planked over while the trial's on (trialGate.ts). */
+  gate: Gate;
   /** It's shot him out to the log ride (its flight's the log ride's to finish: put back to rest when he's next here). */
   flew: boolean;
   was: Partial<Controls>;
@@ -253,15 +256,20 @@ export const lairOf = (state: GameState): Lair => {
       howA: -1, howB: -1, artFull: false,
       cardT: 0, cardArmed: false, goodSaid: false, tipsTill: false, nudgeAt: 0, tntAt: -999, fly: null,
       cannon: cn, flew: false,
+      gate: makeGate('fr-ben-gate', W(POOL.a), Y(ROOM.floor), POOL.b - POOL.a, 14),
       was: {}, ui: false, reveal: 0,
     });
   }
   return h;
 };
-/** The boots lent for the trial (taken back if it's not finished). */
-let lent = false;
-const lend = () => { if (!has('sabatons')) { setPiece('sabatons', true); lent = true; } };
-const unlend = () => { if (lent && !benGave('sabatons')) setPiece('sabatons', false); lent = false; };
+/** The boots lent for the trial (taken back if it's not finished; never saved lent: upgrades/state.ts). */
+const lend = () => { lendPiece('sabatons'); };
+const unlend = () => unlendPiece('sabatons');
+/** The scarecrow never leaves the office (knocked into the pool: gone, the next one stood up). */
+const sweepLost = (state: GameState) => {
+  const lost = (o: Enemy) => o.kind === 'm2:fr_crow' && grabHolding() !== o && !(o.pos.x + o.width / 2 > W(ROOM.a) - 10 && o.pos.x + o.width / 2 < W(ROOM.b) + 10 && o.pos.y + o.height > Y(ROOM.top) + 20 && o.pos.y + o.height <= Y(ROOM.floor) + 30);
+  if (state.enemies.some(lost)) state.enemies = state.enemies.filter(o => !lost(o));
+};
 let setNoContact = false;
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -317,7 +325,10 @@ export const updateBenLair = (ctx: FrameContext, controls: Controls): Controls =
   if (!room) {
     // (out of the room: bumping into things hurts again; a lend's taken back; the scarecrow left down there; his words gone)
     if (setNoContact) { p.noContactHurt = false; setNoContact = false; }
-    if (h.phase === 'trial') unlend();
+    // (the safety net: however he got out, the lent boots come off; the planks out of the way of coming back up)
+    unlend();
+    syncGate(state, h.gate, false);
+    sweepLost(state);
     if (!underBed(state)) clearCrow(state, h);
     if (h.ben.said && !underBed(state) && !cannonBusy(h.cannon)) h.ben.said = null;
     if (h.ui) { h.ui = false; setUi({ gotPiece: null, gotPieceReady: false, chordTips: null }); }
@@ -368,7 +379,12 @@ export const updateBenLair = (ctx: FrameContext, controls: Controls): Controls =
   if (h.phase !== 'card') setUi({ gotPiece: null });
   setUi({ chordTips: tips });
   tickTnt(state, h);
-  // The cannon: only once the trial's passed (no getting in, no prompt, before)
+  // The way out: the pool planked over while the trial's on (stood on it: Ben's bark); clear on the pass
+  syncGate(state, h.gate, h.phase === 'trial' && h.passAt < 0);
+  if (h.phase === 'trial') gateBump(state, h.gate, h.ben);
+  sweepLost(state);
+  // The cannon: only once the trial's passed (no getting in, no prompt, before: chained, UP at it gets Ben's bark)
+  if (h.phase === 'trial') cannonLocked(state, h.cannon, out, h.ben);
   if (h.phase === 'done' || cannonBusy(h.cannon)) out = runCannon(ctx, h, out);
   return out;
 };
@@ -615,7 +631,7 @@ const startGift = (state: GameState, h: Lair) => {
   h.phase = 'gift'; h.all = 0; h.token++;
   // (the hidden art's been said before the trial (startMeet): here, only the gift, and Meathead naming his new move)
   // (his for good, there and then: a skip, a death, a quit can't lose them)
-  setPiece('sabatons', true); setBenGave('sabatons'); lent = false; saveProgress();
+  setPiece('sabatons', true); setBenGave('sabatons'); saveProgress();
   freeze(state);
   setPose(h, 'give');
   const pants = pantsOf(state);

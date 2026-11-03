@@ -30,7 +30,7 @@ import type { SceneLight, Light } from '../../../m1/game/render/lighting';
 import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../../../m1/constants';
 import { drawSkipPrompt, SKIP_AFTER } from '../../../m1/game/platform/skip';
 import { drawCannon, HOLLYWOOD } from '../../upgrades/returnCannon';
-import { drawBen, benHeadY, drawBenGross, drawBenGrossBack } from '../../upgrades/confucktious';
+import { drawBen, benHeadY, drawBenGross, drawBenGrossBack, drawGate, drawCannonChain, gateK } from '../../upgrades/confucktious';
 import { saidOver } from '../section';
 import { GY } from '../geometry';
 import { type Ctx, INK, box, checker, mix, hash, stamp, still, ramp6, hour, dimmed, LIP, VELVET, BRASS, signText, plain, timeOfDay } from '../blvd/kit';
@@ -502,6 +502,8 @@ export const drawTowerBack = (c: Ctx, state: GameState) => {
     for (let i = 0; i < 3; i++) { const u = ((f * 0.5 + i * 33) % 100) / 100; c.fillStyle = `rgba(230,230,220,${(0.32 * (1 - u)).toFixed(2)})`; c.fillRect(Math.round(tx + 28 + Math.sin(f * 0.05 + i) * 4), Math.round(ty - 80 - u * 40), Math.round(3 + u * 4), Math.round(3 + u * 4)); }
     drawBags(c, state);
     drawCannon(c, h.cannon, HOLLYWOOD);
+    drawCannonChain(c, h.cannon, gateK(state, h.gate));
+    drawGate(c, state, h.gate, 'trapdoor');
     const b = h.ben;
     drawBen(c, X(BEN_X), ty, b.facing, b.pose, Math.floor(b.poseT / 5), b.piece);
   }

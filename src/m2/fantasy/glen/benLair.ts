@@ -60,13 +60,14 @@ import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../../../m1/constants';
 import { registerM2Kind } from '../../kinds';
 import { setUi } from '../../store';
 import { saveProgress } from '../../save';
-import { has, setPiece, setBenMet, benGave, setBenGave, amuletOn, setAmuletOn } from '../../upgrades/state';
+import { has, setPiece, setBenMet, benGave, setBenGave, amuletOn, setAmuletOn, lendPiece, unlendPiece } from '../../upgrades/state';
 import { feedAmulet, amuletShielded } from '../../upgrades/amulet';
 import { makeCannon, updateCannon, cannonBusy, type Cannon } from '../../upgrades/returnCannon';
 import {
   NUDGE, PIECE_LINES, MH_TUNNEL, AMULET_WEEB, AMULET_HUH, MH_CANNON_ASK, BEN_CANNON_FY,
   benSays, warmBenGross, meetupScript, startScript, tickScript, skipScript,
   type BenPose, type BenTalk, type Script, type Beat, giftCoda,
+  makeGate, syncGate, gateBump, cannonLocked, type Gate,
 } from '../../upgrades/confucktious';
 import { meatheadSays, solid, byPants, pantsOf } from '../section';
 import { stairEnd } from '../stairs';
@@ -226,6 +227,8 @@ export interface Lair {
   /** The checkpoint he had up top (passing one's x down here doesn't count). */
   cpUp: number;
   cannon: Cannon;
+  /** The way out (the tunnel's mouth) walled up with his shields while the trial's on (trialGate.ts). */
+  gate: Gate;
   was: Partial<Controls>;
   /** It set the HUD's prompts (so it clears them going out, and only then). */
   ui: boolean;
@@ -242,20 +245,21 @@ export const lairOf = (state: GameState): Lair => {
     cardT: 0, cardArmed: false, goodSaid: false, nudgeAt: 0, reveal: 0, hatchAt: -999, cpUp: state.checkpoint,
     // (up the chute; out of the trapdoor in the lair's floor over it, down at the lair's start)
     cannon: makeCannon(X(ROOM.a + CANNON_LX), Y(FLOOR), { x: X(TRAPDOOR_RX), y: GY }, { x: X(LAND_RX), y: GY }),
+    gate: makeGate('fy-ben-gate', X(ROOM.a - 30), Y(TUN.top), 30, TUN.top - FLOOR),
     was: {}, ui: false,
   });
   return h;
 };
 /** The pendant lent for the trial (taken back if it's not finished), and its switch, if it had to be flipped on for it. */
-let lent = false, flipped = false;
+let flipped = false;
 const lend = () => {
-  if (!has('amulet')) { setPiece('amulet', true); lent = true; }
+  lendPiece('amulet');
   if (!amuletOn()) { setAmuletOn(true); flipped = true; }
 };
 const unlend = () => {
-  if (lent && !benGave('amulet')) setPiece('amulet', false);
+  unlendPiece('amulet');
   if (flipped && !benGave('amulet')) setAmuletOn(false);
-  lent = false; flipped = false;
+  flipped = false;
 };
 let setNoContact = false;
 
@@ -306,7 +310,9 @@ export const updateLair = (ctx: FrameContext, controls: Controls): Controls => {
   if (!room) {
     // (out of the room: bumping into things hurts again; a lend's taken back; the knights let down; his words gone)
     if (setNoContact) { p.noContactHurt = false; setNoContact = false; }
-    if (h.phase === 'trial') unlend();
+    // (the safety net: however he got out, the lent pendant comes off; the shields out of the way of coming back in)
+    unlend();
+    syncGate(state, h.gate, false);
     if (!under) clearKnights(state, h);
     if (h.ben.said && !under && !cannonBusy(h.cannon)) h.ben.said = null;
     if (h.ui) { h.ui = false; setUi({ gotPiece: null, gotPieceReady: false, chordTips: null }); }
@@ -357,7 +363,11 @@ export const updateLair = (ctx: FrameContext, controls: Controls): Controls => {
   }
   if (h.phase !== 'card') setUi({ gotPiece: null });
   setUi({ chordTips: null });
-  // The cannon: only once the trial's passed
+  // The way out: the tunnel's mouth walled up while the trial's on (into it: Ben's bark); down on the pass
+  syncGate(state, h.gate, h.phase === 'trial' && h.passAt < 0);
+  if (h.phase === 'trial') gateBump(state, h.gate, h.ben);
+  // The cannon: only once the trial's passed (chained till then, UP at it gets Ben's bark)
+  if (h.phase === 'trial') cannonLocked(state, h.cannon, out, h.ben);
   if (h.phase === 'done' || cannonBusy(h.cannon)) out = updateCannon(ctx, h.cannon, out, cannonHooks(h));
   return out;
 };
@@ -506,7 +516,7 @@ const runTrial = (state: GameState, h: Lair) => {
 const startGift = (state: GameState, h: Lair) => {
   h.phase = 'gift'; h.all = 0; h.token++;
   // (his for good, there and then: a skip, a death, a quit can't lose it; the switch left on)
-  setPiece('amulet', true); setBenGave('amulet'); lent = false; flipped = false; saveProgress();
+  setPiece('amulet', true); setBenGave('amulet'); flipped = false; saveProgress();
   freeze(state);
   setPose(h, 'give');
   const pants = pantsOf(state);

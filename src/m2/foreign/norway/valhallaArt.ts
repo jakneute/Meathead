@@ -37,7 +37,7 @@ import { checker } from '../../../m1/game/render/pixelArt';
 import { CANVAS_WIDTH } from '../../../m1/constants';
 import { shapeR, tubeR, pxR, lineR, ellR, dith, mixHex, type Ramp } from '../heli/harryArt';
 import { elbow } from '../../art/limb';
-import { drawBen, benHeadY } from '../../upgrades/confucktious';
+import { drawBen, benHeadY, drawGate } from '../../upgrades/confucktious';
 import { saidOver } from '../section';
 import { signAt, stencil, print, carved, graffiti } from '../../adventure/letters';
 import { SECTIONS, GY } from '../geometry';
@@ -686,6 +686,8 @@ export const drawValhallaBack = (c: Ctx, state: GameState) => {
   const bust = h.keg.burst >= 0;
   stamp(c, bust ? 'fl-valhalla-keg-bust' : 'fl-valhalla-keg', -KEG.w / 2 - 4, -KEG.h / 2 - 4, KEG.w + 16, KEG.h + 8, bust ? paintHungKegBust : paintHungKeg);
   c.restore();
+  // (the door barred while Ben's trial's on)
+  drawGate(c, state, h.gate, 'bar');
   // Ben
   const b = h.ben, at = benAt(state);
   drawBen(c, at.x, at.y, b.facing, b.pose, Math.floor(b.poseT / 5), b.piece);

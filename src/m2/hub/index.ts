@@ -2,6 +2,7 @@
 // (the world's wrapped round a turning cylinder, Meathead 1's storm-climb trick, with the lands' skylines turning past
 // slower behind it); stood on a land's path, up brings up the map of where he'd be going: confirm to go, back out of it.
 
+import { returnLent } from '../upgrades/state';
 import type { StageLayout } from '../../m1/game/stages/index';
 import type { GameState } from '../../m1/game/core/state';
 import { groundBlocks } from '../../m1/game/core/terrain';
@@ -125,6 +126,8 @@ export const hubLayout: StageLayout = {
     const annDue = announcementDue();
     prepareAnnouncement(annDue);
     if (annDue) { state.player.inCutscene = true; setUi({ introCutscene: true }); }
+    // (a piece lent for one of Ben's trials never comes out to the hub: quit out mid-trial, it's back with Ben)
+    returnLent();
     state.stage = { map: null, upWas: false, gate: new Set(), grab: createGrab(state), portal, arriveIn, annDue } satisfies Hub;
     state.cameraMinX = HUB.x0 - HUB_CIRC;
   },

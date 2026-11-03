@@ -588,6 +588,27 @@ export const PADS_WIDE = ['WRONG WAY. GOOD ENOUGH. YOU PASS.', "THE UPRIGHTS ARE
 export const CROW_ENOUGH = ['NOT AT THE DYNAMITE. GOOD ENOUGH. YOU PASS.', 'THE DYNAMITE LIVES. GOOD ENOUGH. YOU PASS.', 'HE FLEW. NOT WHERE I SAID. GOOD ENOUGH.'];
 
 // ---------------------------------------------------------------------------------------------------------------
+// Walking out on a trial (the owner's "make sure exits are blocked for any of ben's trials so you cannot leave with
+// them. cannons included"): every way out's blocked till it's passed (trialGate.ts); into the block, or UP at the cannon,
+// and Ben barks one of these (pickLine: never the same twice inside 45 s).
+
+/** Into the block on the way out. */
+export const BEN_STAY = [
+  'NOBODY LEAVES MID-SET.',
+  'THE ARMOR STAYS. FINISH IT.',
+  "SIT DOWN. YOU'RE NOT DONE.",
+  'IT OPENS WHEN YOU PASS. NOT BEFORE.',
+  "WALK OUT IN MY STUFF, I'LL FIND YOU. I FIND EVERYBODY.",
+  'FINISH THE REP.',
+];
+/** UP at the cannon before it's passed. */
+export const BEN_STAY_CANNON = [
+  "THE CANNON'S FOR GRADUATES.",
+  'NOT YET. FINISH IT, THEN YOU FLY.',
+  "IT'S CHAINED. GUESS WHY.",
+];
+
+// ---------------------------------------------------------------------------------------------------------------
 // HIS BACKSTORY, a beat a meeting (the owner's "he slowly reveals his backstory the more times you find him"): the
 // 2nd lair he's met in (whichever land) gets the first beat, the 3rd the next, on to the 7th; the 8th is the last
 // meeting (AGAIN_LAST, then FINAL_* after the gift). Throwaway gym stuff first, then the real thing. Woven through it,
@@ -708,6 +729,6 @@ const pieceBen = (p: PieceLines) => [...p.sell, ...p.trial, ...p.miss, ...p.hint
 const pieceMeathead = (p: PieceLines) => [...all(p.ask), ...all(p.passed), ...all(p.enamored)];
 
 export const BEN_VOICE_LINES: Record<string, string[]> = {
-  [BEN_VOICE]: [...NAME, ...all(RIDDLE), ...PURPOSE, ...FIRST_ASIDE, ...all(AGAIN), ...all(NUDGE), ...all(NUDGE_OUT), ...BYE_BEN, ...ART_OPEN, ...ART_HOW, ...ART_HUH, ...ART_AGAIN, ...ART_FLASH, ...ART_AGAIN_FLASH, ...Object.values(PIECE_LINES).flatMap(pieceBen), ...LEGS_CURTAIN, ...all(NUDGE_HW), ...BEN_CANNON, ...AMULET_HUH, ...BEN_CANNON_FY, ...BRACER_HUH, ...BEN_CANNON_SP, ...BOOT_HUH, ...BEN_CANNON_FR, ...all(CROW_WRONG), ...all(CROW_SHORT), ...PADS_WIDE, ...CROW_ENOUGH, ...STORIES.flatMap(storyBen), ...all(AGAIN_LAST), ...FINAL_SET, ...FINAL_DATTE, ...FINAL_GO],
+  [BEN_VOICE]: [...NAME, ...all(RIDDLE), ...PURPOSE, ...FIRST_ASIDE, ...all(AGAIN), ...all(NUDGE), ...all(NUDGE_OUT), ...BYE_BEN, ...ART_OPEN, ...ART_HOW, ...ART_HUH, ...ART_AGAIN, ...ART_FLASH, ...ART_AGAIN_FLASH, ...Object.values(PIECE_LINES).flatMap(pieceBen), ...LEGS_CURTAIN, ...all(NUDGE_HW), ...BEN_CANNON, ...AMULET_HUH, ...BEN_CANNON_FY, ...BRACER_HUH, ...BEN_CANNON_SP, ...BOOT_HUH, ...BEN_CANNON_FR, ...all(CROW_WRONG), ...all(CROW_SHORT), ...PADS_WIDE, ...CROW_ENOUGH, ...STORIES.flatMap(storyBen), ...all(AGAIN_LAST), ...FINAL_SET, ...FINAL_DATTE, ...FINAL_GO, ...BEN_STAY, ...BEN_STAY_CANNON],
   meathead: [...all(MEET), ...all(FIRST_WHY), ...all(FIRST_REACT), ...all(AGAIN_MH), ...BYE_MEATHEAD, ...all(ART_MH), ...all(ART_WEEB), ...Object.values(PIECE_LINES).flatMap(pieceMeathead), ...all(MH_PASSAGE), ...all(MH_HATCH), ...MH_CANNON_ASK, ...MH_FALL, ...all(MH_LANDED), ...all(MH_TUNNEL), ...all(AMULET_WEEB), ...all(MH_HATCH_SP), ...all(BRACER_WEEB), ...all(MH_MAZE), ...all(BOOT_WEEB), ...all(MH_LANDED_FR), ...STORIES.flatMap(storyMh), ...all(FINAL_MH)],
 };

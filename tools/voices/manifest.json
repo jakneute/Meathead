@@ -18821,6 +18821,11 @@
  },
  {
   "voice": "m2.ben",
+  "text": "FINISH THE REP.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.ben",
   "text": "FLOATING. YOUR MOTHER WOULD BE PROUD. SHE THREW YOU OFF A PORCH ONCE.",
   "from": "UPGRADES"
  },
@@ -19041,12 +19046,22 @@
  },
  {
   "voice": "m2.ben",
+  "text": "IT OPENS WHEN YOU PASS. NOT BEFORE.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.ben",
   "text": "IT POPPED. YOUR HEAD WON. YOU PASS.",
   "from": "UPGRADES"
  },
  {
   "voice": "m2.ben",
   "text": "IT'S BEN.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.ben",
+  "text": "IT'S CHAINED. GUESS WHY.",
   "from": "UPGRADES"
  },
  {
@@ -19191,12 +19206,22 @@
  },
  {
   "voice": "m2.ben",
+  "text": "NOBODY LEAVES MID-SET.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.ben",
   "text": "NOPE.",
   "from": "UPGRADES"
  },
  {
   "voice": "m2.ben",
   "text": "NOT AT THE DYNAMITE. GOOD ENOUGH. YOU PASS.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.ben",
+  "text": "NOT YET. FINISH IT, THEN YOU FLY.",
   "from": "UPGRADES"
  },
  {
@@ -19381,6 +19406,11 @@
  },
  {
   "voice": "m2.ben",
+  "text": "SIT DOWN. YOU'RE NOT DONE.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.ben",
   "text": "SKULL, MEATHEAD. THE BONE ONE.",
   "from": "UPGRADES"
  },
@@ -19481,6 +19511,11 @@
  },
  {
   "voice": "m2.ben",
+  "text": "THE ARMOR STAYS. FINISH IT.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.ben",
   "text": "THE BAR DOES NOT LIFT ITSELF. ALSO, YOU FOUND MY HOLE.",
   "from": "UPGRADES"
  },
@@ -19537,6 +19572,11 @@
  {
   "voice": "m2.ben",
   "text": "THE CANNON. PLEASE. THE TANK HOLDS SMELLS.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.ben",
+  "text": "THE CANNON'S FOR GRADUATES.",
   "from": "UPGRADES"
  },
  {
@@ -19757,6 +19797,11 @@
  {
   "voice": "m2.ben",
   "text": "URUSAI. GRANDPA YELLED IT AT US KIDS. PRETTY SURE IT MEANS SHUT UP.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.ben",
+  "text": "WALK OUT IN MY STUFF, I'LL FIND YOU. I FIND EVERYBODY.",
   "from": "UPGRADES"
  },
  {

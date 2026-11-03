@@ -24,7 +24,7 @@ import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../../../m1/constants';
 import { stamp } from '../../../m1/game/render/stamp';
 import { brickPattern } from '../../../m1/game/render/pixelArt';
 import { SKIP_AFTER, drawSkipPrompt } from '../../../m1/game/platform/skip';
-import { drawBen, benHeadY, drawBenGross, drawBenGrossBack } from '../../upgrades/confucktious';
+import { drawBen, benHeadY, drawBenGross, drawBenGrossBack, drawGate, drawCannonChain, gateK } from '../../upgrades/confucktious';
 import { drawCannon, FUTURE } from '../../upgrades/returnCannon';
 import { saidOver } from '../section';
 import { BASE_L, BF, CEIL_B, LAND_X, HATCH, LAIR, HALL_L } from './geo';
@@ -385,6 +385,7 @@ export const drawBenHallBack = (c: Ctx, state: GameState) => {
   c.strokeStyle = '#18181B'; c.lineWidth = 1; c.beginPath(); c.moveTo(A + 330, T + 20); c.lineTo(bx, T + 64); c.stroke();
   px(c, bx - 3, T + 62, 6, 4, '#3F3F46'); px(c, bx - 4, T + 66, 8, 9, '#FDE68A'); px(c, bx - 2, T + 67, 3, 4, '#FFFBEB');
   drawCannon(c, h.cannon, FUTURE);
+  drawCannonChain(c, h.cannon, gateK(state, h.gate));
   drawBen(c, BEN_X, F, h.ben.facing, h.ben.pose, Math.floor(f / 8) % 3, h.ben.piece);
 };
 
@@ -392,6 +393,8 @@ export const drawBenHallBack = (c: Ctx, state: GameState) => {
 export const drawBenHallFront = (c: Ctx, state: GameState) => {
   const h = lairOf(state);
   if (seen(state, A - 12, Bx + 12, T - 12, T + 30)) stamp(c, 'sp-q-ben-near', A - 12, T - 12, Bx - A + 24, 36, paintNear);
+  // (the hatch barred and its ladder chained while Ben's trial's on)
+  if (seen(state, HATCH.a - 40, HATCH.b + 200, LAIR.top - 40, LAIR.floor + 10)) drawGate(c, state, h.gate, 'ladder', HATCH.b - HATCH.a, LAIR.floor - h.gate.y);
   if (!h.ben.said || h.script?.gross || !seen(state, BEN_X - 100, BEN_X + 100, F - 200, F + 10)) return;
   saidOver(c, h.ben.said.text, BEN_X, benHeadY(F), '#FFFFFF', 220);
 };

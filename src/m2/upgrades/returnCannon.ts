@@ -58,6 +58,8 @@ export interface Cannon {
   upWas: boolean;
   /** A press made mid-hop by it, kept for the landing (upZone.ts). */
   upBuf?: number;
+  /** UP pressed at it while it's chained (a Ben's trial on): his bark, waiting on a gap in the talk (confucktious/trialGate.ts). */
+  lockBark?: number;
 }
 
 /** The barrel's pivot over the floor, its length, how fast it swings (rad a frame), how fast he leaves it. */

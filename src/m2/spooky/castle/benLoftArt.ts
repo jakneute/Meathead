@@ -22,7 +22,7 @@ import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../../../m1/constants';
 import { INK, box, pole, rampOf, mix, checker, bandedGradient, hazeBands, brickPattern, stamp, hash } from '../../intro/art/kit';
 import { signAt, gothic, print, fit } from '../letters';
 import { drawCannon, SPOOKY } from '../../upgrades/returnCannon';
-import { drawBen, benHeadY, drawBenGross, drawBenGrossBack } from '../../upgrades/confucktious';
+import { drawBen, benHeadY, drawBenGross, drawBenGrossBack, drawGate, drawCannonChain, gateK } from '../../upgrades/confucktious';
 import { drawSkipPrompt, SKIP_AFTER } from '../../../m1/game/platform/skip';
 import { saidOver } from '../section';
 import {
@@ -498,6 +498,8 @@ export const drawLoftBack = (c: Ctx, state: GameState) => {
   }
   c.restore();
   drawCannon(c, h.cannon, SPOOKY);
+  drawCannonChain(c, h.cannon, gateK(state, h.gate));
+  drawGate(c, state, h.gate, 'books', PART_R - PART_L + 20);
   const b = h.ben, at = benAt(state);
   drawBen(c, at.x, at.y, b.facing, b.pose, Math.floor(b.poseT / 5), b.piece);
   // The roof's dark over it till he's in (the same dark and beams the kitchen's roof void is painted with)

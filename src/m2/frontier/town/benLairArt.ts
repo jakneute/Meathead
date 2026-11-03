@@ -23,7 +23,7 @@ import type { GameState } from '../../../m1/game/core/state';
 import type { Light, SceneLight } from '../../../m1/game/render/lighting';
 import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../../../m1/constants';
 import { SKIP_AFTER, drawSkipPrompt } from '../../../m1/game/platform/skip';
-import { drawBen, benHeadY, drawBenGross, drawBenGrossBack } from '../../upgrades/confucktious';
+import { drawBen, benHeadY, drawBenGross, drawBenGrossBack, drawGate, drawCannonChain, gateK } from '../../upgrades/confucktious';
 import { drawCannon, WILDERNESS } from '../../upgrades/returnCannon';
 import { signText } from '../../signLetters';
 import { saidOver } from '../section';
@@ -572,6 +572,8 @@ export const drawBenLairBack = (c: Ctx, state: GameState) => {
   const ps = Y(POOL.surface), pa = W(POOL.a), pb = W(POOL.b);
   for (let x = pa; x < pb; x += 4) { const y = Math.round(ps - Math.sin(f * 0.07 + x * 0.05) * 1.2); box(c, x, y - 1, 4, 1, INK); box(c, x, y, 4, 2, '#7AC6C4'); box(c, x, y + 2, 4, 2, '#3A8A8C'); }
   drawCannon(c, h.cannon, WILDERNESS);
+  drawCannonChain(c, h.cannon, gateK(state, h.gate));
+  drawGate(c, state, h.gate, 'planks');
   drawBen(c, W(BEN_RX), fl, h.ben.facing, h.ben.pose, Math.floor(f / 8) % 3, h.ben.piece);
 };
 

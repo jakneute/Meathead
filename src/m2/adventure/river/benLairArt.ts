@@ -33,7 +33,7 @@ import { checker } from '../../../m1/game/render/pixelArt';
 import { CANVAS_WIDTH } from '../../../m1/constants';
 import { shapeR, pxR, lineR, ellR, dith, mixHex, type Ramp } from '../../foreign/heli/harryArt';
 import { drawCannon, JUNGLE } from '../../upgrades/returnCannon';
-import { drawBen, benHeadY } from '../../upgrades/confucktious';
+import { drawBen, benHeadY, drawGate, drawCannonChain, gateK } from '../../upgrades/confucktious';
 import { saidOver } from '../section';
 import { signAt, signText, stencil, graffiti, print } from '../letters';
 import { SECTIONS } from '../geometry';
@@ -632,8 +632,10 @@ export const drawLairBack = (c: Ctx, state: GameState) => {
   }
   c.restore();
   const h = lairOf(state);
-  // The cannon, Ben
+  // The cannon (chained till the trial's passed), the shaft's hole under his bench while it's on, Ben
   drawCannon(c, h.cannon, JUNGLE);
+  drawCannonChain(c, h.cannon, gateK(state, h.gate));
+  drawGate(c, state, h.gate, 'bench');
   const b = h.ben, at = benAt(state);
   drawBen(c, at.x, at.y, b.facing, b.pose, Math.floor(b.poseT / 5), b.piece);
 };

@@ -48,12 +48,13 @@ import { isNude, isShat } from '../../../m1/game/player/gut';
 import { CANVAS_WIDTH, CANVAS_HEIGHT, PLAYER_GRAVITY, PLAYER_TERMINAL_VELOCITY } from '../../../m1/constants';
 import { setUi } from '../../store';
 import { saveProgress } from '../../save';
-import { has, setPiece, setBenMet, benGave, setBenGave } from '../../upgrades/state';
+import { has, setPiece, setBenMet, benGave, setBenGave, lendPiece, unlendPiece } from '../../upgrades/state';
 import type { EquipControl } from '../../upgrades/equipInfo';
 import { makeCannon, updateCannon, cannonBusy, type Cannon } from '../../upgrades/returnCannon';
 import {
   NUDGE, BYE_MEATHEAD, BYE_BEN, PIECE_LINES, MH_PASSAGE, benSays, warmBenGross, meetupScript, startScript, tickScript, skipScript,
   type BenPose, type BenTalk, type Script, type Beat, type ByPants, giftCoda,
+  makeGate, syncGate, gateBump, cannonLocked, type Gate,
 } from '../../upgrades/confucktious';
 import { meatheadSays, ledge, solid, spookyState } from '../section';
 import { GY } from '../geometry';
@@ -146,6 +147,9 @@ export interface Loft {
   /** Frames the shot's been held going up to get him clear out of the roof. */
   upHold: number;
   cannon: Cannon;
+  /** The way out (the passage back through the wall) shut while the trial's on: a bookcase dragged across it
+   *  (trialGate.ts). */
+  gate: Gate;
   was: Partial<Controls>;
   /** It set the HUD's prompts (so it clears them going out, and only then). */
   ui: boolean;
@@ -161,6 +165,7 @@ export const loftOf = (state: GameState): Loft => {
     snuffed: 0, misses: 0, offShelf: false, passAt: -1,
     cardT: 0, cardArmed: false, goodSaid: false, nudgeAt: 0, reveal: 0, hatchAt: -999,
     cannon: aimCannon(),
+    gate: makeGate('sp-ben-gate', PART_L - 20, PASS_TOP, 34, F - PASS_TOP),
     was: {}, ui: false, flueShut: true, upHold: 0,
   });
   return h;
@@ -190,10 +195,9 @@ const runCannon = (ctx: FrameContext, h: Loft, controls: Controls): Controls => 
   return out;
 };
 const flue = (state: GameState) => solid(state, LA + CHIMNEY.a, F - LOFT.h - 60, CHIMNEY.b - CHIMNEY.a, 60, { hidden: true, tag: 'sp-loft-flue' });
-/** The cape lent for the trial (taken back if it's not finished). */
-let lent = false;
-const lend = () => { if (!has('cape')) { setPiece('cape', true); lent = true; } };
-const unlend = () => { if (lent && !benGave('cape')) setPiece('cape', false); lent = false; };
+/** The cape lent for the trial (taken back if it's not finished; never saved lent: upgrades/state.ts). */
+const lend = () => { lendPiece('cape'); };
+const unlend = () => unlendPiece('cape');
 let setNoContact = false;
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -252,7 +256,9 @@ export const updateLoft = (ctx: FrameContext, controls: Controls): Controls => {
   if (!loft) {
     // (out of the loft: bumping into things hurts again; a lend's taken back; his words gone)
     if (setNoContact) { p.noContactHurt = false; setNoContact = false; }
-    if (h.phase === 'trial') unlend();
+    // (the safety net: however he got out, the lent cape comes off; the bookcase out of the way of coming back in)
+    unlend();
+    syncGate(state, h.gate, false);
     if (h.ben.said && !secret) h.ben.said = null;
     if (h.ui) { h.ui = false; setUi({ gotPiece: null, gotPieceReady: false, chordTips: null }); }
     return runCannon(ctx, h, controls);
@@ -300,7 +306,11 @@ export const updateLoft = (ctx: FrameContext, controls: Controls): Controls => {
   }
   if (h.phase !== 'card') setUi({ gotPiece: null });
   setUi({ chordTips: tips });
-  // The cannon: only once the trial's passed
+  // The way out: the passage shut behind a bookcase while the trial's on (into it: Ben's bark); dragged off on the pass
+  syncGate(state, h.gate, h.phase === 'trial' && h.passAt < 0);
+  if (h.phase === 'trial') gateBump(state, h.gate, h.ben);
+  // The cannon: only once the trial's passed (chained till then, UP at it gets Ben's bark)
+  if (h.phase === 'trial') cannonLocked(state, h.cannon, out, h.ben);
   if (h.phase === 'done' || cannonBusy(h.cannon)) out = runCannon(ctx, h, out);
   return out;
 };
@@ -440,7 +450,7 @@ const runTrial = (ctx: FrameContext, h: Loft): EquipControl[] | null => {
 const startGift = (state: GameState, h: Loft) => {
   h.phase = 'gift'; h.all = 0; h.token++;
   // (his for good, there and then: a skip, a death, a quit can't lose it)
-  setPiece('cape', true); setBenGave('cape'); lent = false; saveProgress();
+  setPiece('cape', true); setBenGave('cape'); saveProgress();
   freeze(state);
   setPose(h, 'give');
   const pants = pantsOf(state);

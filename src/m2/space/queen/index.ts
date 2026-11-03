@@ -37,9 +37,9 @@ import { markBossFight } from '../../bossQuiet';
 import { drawRoomBack, drawGlass, drawQueen, roomLights, drawAfterFall } from './art';
 import { type Show, makeShow, startShow, tickShow, showOn, showSkippable, drawShowQueen, drawShowSaid, drawShowFade, showHead, fell, collapsed, drawFallingSlabs, BASEMENT_CP } from './show';
 import { restHunter } from './basement';
-import { buildBenLair, updateBenLair, belowHall } from './benLair';
+import { buildBenLair, updateBenLair, belowHall, hatchBarred } from './benLair';
 import { drawBenHallBack, drawBenHallFront, drawBenHallHud, hallLights, benLairLighting } from './benLairArt';
-import { type Hunter, makeHunter, buildHunter, forceDoorIn, tickHunter, atDoor, startKick, doorIn, doorKicking, drawHunter, drawHides, drawHunterFront, hunterLighting, hunterZoom, drawDiscoDoor, layBasement, LADDERS, GRAVEYARD_CP, TUNNEL_CP, TUNNEL_CP_X, DISCO_CP } from './basement';
+import { type Hunter, makeHunter, buildHunter, forceDoorIn, tickHunter, atDoor, startKick, doorIn, doorKicking, drawHunter, drawHides, drawHunterFront, hunterLighting, hunterZoom, drawDiscoDoor, layBasement, LADDERS, LADDERS_SHUT, GRAVEYARD_CP, TUNNEL_CP, TUNNEL_CP_X, DISCO_CP } from './basement';
 import { type Fight, makeFight, startFight, updateFight, fightOver, endFight, queenDrops, introOn, drawQueenFight, drawQueenSaid, drawFightHud, discoLights, drawPool, poolLights, oilLights, tellLights, boothOps, introCamX, discoZoom, deathNeed, queenHoldTick, drawBurstFlash, drawIntroCloseup, deathSkippable, deathLights } from './fight';
 import { type Heap, packEndo, unpackEndo, drawHeap } from './endo';
 import { frameDeath } from '../../deathFrame';
@@ -151,7 +151,8 @@ export const queen: SpaceSection = {
     const { state } = ctx, p = state.player, q = queenOf(state), s = showOf(state), h = hunterOf(state), f = fightOf(state);
     const cx = cxOf(state);
     // (the basement's ladders: first, before anything else reads the controls)
-    if (inLower(state) && !p.inCutscene) controls = updateLadders(ctx, LADDERS, controls);
+    // (the hatch's ladder chained off while Ben's trial's on: benLair.ts)
+    if (inLower(state) && !p.inCutscene) controls = updateLadders(ctx, hatchBarred(state) ? LADDERS_SHUT : LADDERS, controls);
     // (Ben's break room down the hatch at the west hallway's end: the meetup, the trial, the cannon back to the start)
     controls = updateBenLair(ctx, controls, () => restHunter(state, h));
     // (the camera pulled back for her death and the booth's two running out: in as she goes, held through the VICTORY,

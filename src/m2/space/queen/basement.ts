@@ -178,6 +178,8 @@ export const LADDERS: LadderDef[] = [
   // floor past the hatch's east edge)
   { x: HATCH_LADDER_X, top: BF, bottom: LAIR.floor, ledge: { x: HATCH.b + 24, y: BF } },
 ];
+/** ...without the hatch's: chained off while Ben's trial's on (benLair.ts hatchBarred). */
+export const LADDERS_SHUT: LadderDef[] = LADDERS.filter(l => l.x !== HATCH_LADDER_X);
 /** The catwalk at x (or null). */
 const catwalkAt = (x: number) => CATWALKS.find(([a, b]) => x >= a && x <= b) ?? null;
 
