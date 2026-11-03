@@ -297,15 +297,22 @@ export const limb = (c: Ctx, x: number, y: number, w: number, t: number, seed: n
  * A rock face (a cliff, a pillar) over (x, y, w, h): blocks of stone, each lit on its upper left and dark on its lower
  * right, ink in the cracks; no flat lit tops (nothing on a cliff face reads as a ledge); moss and ferns in the cracks.
  */
-export const rockFace = (c: Ctx, x: number, y: number, w: number, h: number, seed: number, r: string[] = ROCK) => {
-  box(c, x, y, w, h, r[1]);
-  // (fissures down it behind the boulders)
-  for (let i = 0; i < w / 60; i++) { const fx = x + hash(seed + i * 1.9) * w; for (let yy = y; yy < y + h; yy += 4) box(c, fx + Math.sin(yy * 0.05 + i) * 5, yy, 3, 4, r[0]); }
+/** `parts`: 1 the rock behind (its fill and fissures), 2 the boulders, 3 both. `near`: only what reaches this (world)
+ *  rect is painted (a stamp of a piece of a bigger face: the rest's clipped away anyway). */
+export const rockFace = (c: Ctx, x: number, y: number, w: number, h: number, seed: number, r: string[] = ROCK, parts = 3, near?: { y0: number; y1: number }) => {
+  const ny0 = near ? Math.max(y, near.y0 - 70) : y, ny1 = near ? Math.min(y + h, near.y1 + 70) : y + h;
+  if (parts & 1) {
+    box(c, x, ny0, w, ny1 - ny0, r[1]);
+    // (fissures down it behind the boulders)
+    for (let i = 0; i < w / 60; i++) { const fx = x + hash(seed + i * 1.9) * w; for (let yy = y + Math.max(0, Math.floor((ny0 - y) / 4)) * 4; yy < ny1; yy += 4) box(c, fx + Math.sin(yy * 0.05 + i) * 5, yy, 3, 4, r[0]); }
+  }
+  if (!(parts & 2)) return;
   // (boulders, overlapping, the lower in front: each lit up and left, shaded down and right, inked; moss over the tops)
   const n = Math.ceil((w * h) / 2300), bs: [number, number, number, number, number][] = [];
   for (let i = 0; i < n; i++) bs.push([x + hash(seed + i * 1.13) * w, y + hash(seed + i * 2.71) * h, 20 + hash(seed + i * 3.3) * 34, 15 + hash(seed + i * 4.7) * 24, seed + i * 7.7]);
   bs.sort((p, q) => p[1] - q[1]);
   for (const [cx, cy, rw, rh, sd] of bs) {
+    if (cy < ny0 - 10 || cy > ny1 + 10) continue;
     const pts: [number, number][] = [];
     for (let k = 0; k < 9; k++) { const a = (k / 9) * Math.PI * 2 + hash(sd) * 0.6, j = 0.78 + hash(sd + k * 1.7) * 0.3; pts.push([cx + Math.cos(a) * rw * j, cy + Math.sin(a) * rh * j]); }
     const out = pts.map(([px, py]) => [cx + (px - cx) * 1.06 + 0.5, cy + (py - cy) * 1.06 + 0.5] as [number, number]);

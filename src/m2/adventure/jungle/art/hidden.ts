@@ -115,12 +115,20 @@ const stones = (g: Ctx, x0: number, y0: number, x1: number, y1: number, r: strin
 };
 /** Darker toward one side, in banded steps (a dither column at each step): from a0 at x0 to a1 at x1 (x1 may be left of
  *  x0). */
-const sideBands = (g: Ctx, x0: number, y0: number, x1: number, y1: number, a0: number, a1: number, bands: number) => {
-  const w = (x1 - x0) / bands;
+const sideBands = (g: Ctx, x0: number, y0: number, x1: number, y1: number, a0: number, a1: number, bands: number, rgb = '2, 5, 4') => {
+  const w = (x1 - x0) / bands, al = (i: number) => a0 + (a1 - a0) * (i / (bands - 1)), bx = (i: number) => Math.round(x0 + i * w);
   for (let i = 0; i < bands; i++) {
-    const a = a0 + (a1 - a0) * (i / (bands - 1)), bx0 = Math.round(x0 + i * w), bx1 = Math.round(x0 + (i + 1) * w);
-    g.fillStyle = `rgba(2, 5, 4, ${a.toFixed(3)})`; g.fillRect(Math.min(bx0, bx1), y0, Math.abs(bx1 - bx0), y1 - y0);
-    if (i + 1 < bands && a > 0) checker(g, bx1 - (bx1 > bx0 ? PIX : 0), y0, PIX, y1 - y0, `rgba(2, 5, 4, ${Math.min(1, a).toFixed(3)})`);
+    g.fillStyle = `rgba(${rgb}, ${al(i).toFixed(3)})`; g.fillRect(Math.min(bx(i), bx(i + 1)), y0, Math.abs(bx(i + 1) - bx(i)), y1 - y0);
+  }
+  // (the dither at each step: on the fainter band's side of it, every other pixel made up to the heavier band's (laid
+  // over the fainter band, never doubled up over its own: that drew a line down every step))
+  const dir = x1 > x0 ? 1 : -1;
+  for (let i = 0; i + 1 < bands; i++) {
+    const a = al(i), b = al(i + 1), lo = Math.min(a, b), hi = Math.max(a, b), e = bx(i + 1);
+    if (hi - lo < 0.004) continue;
+    // (the fainter side's column next to the step: band i's last, or band i+1's first)
+    const cx = a < b ? (dir > 0 ? e - PIX : e) : (dir > 0 ? e : e - PIX);
+    checker(g, cx, y0, PIX, y1 - y0, `rgba(${rgb}, ${((hi - lo) / (1 - lo)).toFixed(3)})`);
   }
 };
 /** How far into the dark it is: from the mouth's level down. */
@@ -178,25 +186,22 @@ const hollow = (g: Ctx) => {
   hazeBands(g, CAVE.a - 20, CAVE.hi.ceil - 6, CAVE.hall - CAVE.a + 20, 50, '#020504', 0.7, 0.0, 5);
   g.restore();
   for (const [a, b, c, d] of HOLLOW) stones(g, a, b, c, d, BACK, sunkBack, 11);
-  // (light in at the mouth: banded, falling off into the hall)
+  // (light in at the mouth: in upright bands, a dither column at each step, falling off into the hall (no rings of it:
+  // nested ellipses of light read as a glitch over the wall))
   g.save(); trace(mp); g.closePath(); g.rect(CAVE.a, GY, CAVE.shelf.a - CAVE.a, CAVE.hi.floor + 4 - GY);
   for (const [a, b] of PITS_HI) g.rect(a, CAVE.hi.floor, b - a, SPIKE_Y + 4 - CAVE.hi.floor);
   g.clip();
-  for (let i = 0; i < 6; i++) {
-    g.fillStyle = `rgba(150, 190, 140, ${0.035 + i * 0.012})`;
-    g.beginPath(); g.ellipse(CAVE.wall, (CAVE.mouthTop + CAVE.shelf.y) / 2, 300 - i * 46, 170 - i * 24, 0, 0, Math.PI * 2); g.fill();
-  }
+  sideBands(g, CAVE.wall + 4, CAVE.ceil - 30, CAVE.wall - 340, SPIKE_Y + 10, 0.22, 0, 8, '150, 190, 140');
   // (and the further along the gallery from it, the darker, in steps)
   sideBands(g, CAVE.a - 20, CAVE.ceil - 30, CAVE.hall - 60, SPIKE_Y + 10, 0.47, 0, 8);
   g.restore();
   // (light from the falls along the passage, blue; a little of it out into the tunnel's end)
   g.save(); g.beginPath(); g.rect(CAVE.a, CAVE.lo.ceil, CAVE.b - CAVE.a, CAVE.lo.floor - CAVE.lo.ceil); g.rect(CAVE.b - 2, PASSAGE.ceil, PASSAGE.b - CAVE.b + 2, PASSAGE.floor - PASSAGE.ceil); g.clip();
-  for (let i = 0; i < 6; i++) {
-    g.fillStyle = `rgba(120, 190, 220, ${0.03 + i * 0.012})`;
-    g.beginPath(); g.ellipse((FALLS.a + FALLS.b) / 2, (PASSAGE.ceil + PASSAGE.floor) / 2, 320 - i * 46, 110 - i * 14, 0, 0, Math.PI * 2); g.fill();
-    g.fillStyle = `rgba(110, 170, 200, ${0.02 + i * 0.008})`;
-    g.beginPath(); g.ellipse(PASSAGE.ledge + 40, PASSAGE.floor - 70, 260 - i * 40, 120 - i * 18, 0, 0, Math.PI * 2); g.fill();
-  }
+  // (in upright bands off either side of the falls, the same as the mouth's: no rings)
+  const fm = Math.round((FALLS.a + FALLS.b) / 2);
+  sideBands(g, fm, PASSAGE.ceil, fm - 330, PASSAGE.floor, 0.2, 0, 8, '120, 190, 220');
+  sideBands(g, fm, PASSAGE.ceil, fm + 330, PASSAGE.floor, 0.2, 0, 8, '120, 190, 220');
+  sideBands(g, PASSAGE.ledge + 300, CAVE.lo.ceil, PASSAGE.ledge - 220, CAVE.lo.floor, 0.08, 0, 6, '110, 170, 200');
   // (the tunnel darker the further from the passage's mouth, in steps)
   sideBands(g, CAVE.a, CAVE.lo.ceil, PASSAGE.ledge - 160, CAVE.lo.floor, 0.41, 0, 8);
   // (the back wall goes on down past the floor's level into the dark: banded off toward black at it, the same all along)
@@ -274,8 +279,9 @@ const sinkInto = (g: Ctx, x0: number, x1: number, open: boolean) => {
  *  end under it (the opening stays open), a shadowed rim just inside. */
 const mouthLip = (g: Ctx) => {
   const W = CAVE.wall, R = ROCK;
-  g.save(); g.beginPath(); g.rect(W - 46, CAVE.mouthTop - 10, 50, CAVE.shelf.y - CAVE.mouthTop + 10); g.clip();
-  sideBands(g, W + 4, CAVE.mouthTop - 10, W - 46, CAVE.shelf.y, 0.5, 0, 4);
+  // (the rim's shadow kept to the opening, up to its ceiling: no square top to it)
+  g.save(); g.beginPath(); mouthPts().forEach(([x, y], i) => (i ? g.lineTo(x, y) : g.moveTo(x, y))); g.closePath(); g.clip();
+  sideBands(g, W + 4, CAVE.ceil - 30, W - 46, CAVE.shelf.y, 0.5, 0, 4);
   g.restore();
   const chunk = (cx: number, cy: number, w: number, h: number, seed: number) => {
     const pts: [number, number][] = [];
@@ -465,19 +471,24 @@ const paintAll = (g: Ctx) => {
   stones(g, PASSAGE.a, POOL_Y, R, DEEP, STONE, sunk, 0);
   hollow(g);
   for (const s of SOLIDS) footing(g, s[0], s[1], s[2], s[3]);
+  // (the shade under the first ledge's lip carried on through the shelf's rock beside it, all one rock: it stopped at the
+  // shelf's edge in a hard-sided dark block)
+  hazeBands(g, CAVE.shelf.a, CAVE.hi.floor + 6, CAVE.wall - CAVE.shelf.a, 60, '#020504', 0.0, 0.35, 4);
   // (the rock under the gallery (the tunnel's roof) darker the deeper, the same all along: no seams between its ledges,
   // nor where it meets the rock under the gorge (darkened the same, down to the passage's ceiling))
-  const shade = (x0: number, x1: number, ya: number, yb: number, y0: number, y1: number, col: string, dither: boolean) => {
+  // (the dither at each step: every other pixel of the lighter band's last row made up to this one's (over this band's
+  // own first row it doubled up: a dotted dark line along every step))
+  const shade = (x0: number, x1: number, ya: number, yb: number, y0: number, y1: number, a: number, prev: number) => {
     const t = Math.max(ya, y0), u = Math.min(yb, y1);
     if (u <= t) return;
-    g.fillStyle = col; g.fillRect(x0, t, x1 - x0, u - t);
-    if (dither && t === y0) checker(g, x0, t, x1 - x0, PIX, col);
+    g.fillStyle = `rgba(1, 3, 2, ${a.toFixed(3)})`; g.fillRect(x0, t, x1 - x0, u - t);
+    if (prev >= 0 && a > prev && t === y0 && t - PIX >= ya) checker(g, x0, t - PIX, x1 - x0, PIX, `rgba(1, 3, 2, ${((a - prev) / (1 - prev)).toFixed(3)})`);
   };
   for (let k = 0; k < 10; k++) {
-    const y0 = CAVE.hi.floor + 40 + k * 44, y1 = y0 + 44, col = `rgba(1, 3, 2, ${Math.min(0.55, (k + 1) * 0.07).toFixed(3)})`;
-    shade(SHAFT_B, CAVE.b, CAVE.hi.floor, CAVE.lo.ceil, y0, y1, col, k > 0);
-    shade(CAVE.b, CAVE.wall, CAVE.hi.floor, PASSAGE.ceil, y0, y1, col, k > 0);
-    shade(CAVE.wall, AREA.x1, POOL_Y, PASSAGE.ceil, y0, y1, col, k > 0);
+    const y0 = CAVE.hi.floor + 40 + k * 44, y1 = y0 + 44, a = Math.min(0.55, (k + 1) * 0.07), prev = k > 0 ? Math.min(0.55, k * 0.07) : -1;
+    shade(SHAFT_B, CAVE.b, CAVE.hi.floor, CAVE.lo.ceil, y0, y1, a, prev);
+    shade(CAVE.b, CAVE.wall, CAVE.hi.floor, PASSAGE.ceil, y0, y1, a, prev);
+    shade(CAVE.wall, AREA.x1, POOL_Y, PASSAGE.ceil, y0, y1, a, prev);
   }
   crack(g);
   pool(g);

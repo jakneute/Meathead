@@ -6,7 +6,9 @@
 
 import { GROUND_Y } from '../../../../m1/constants';
 import { timeOfDay, farTint, skyAt } from '../../../timeOfDay';
-import { stamp, bandedGradient, hazeBands, pixelBlob, bendFloor, BEND } from '../../../intro/art/kit';import { GROUND, X, Y } from '../layout';
+import { stamp, bandedGradient, hazeBands, pixelBlob, bendFloor, BEND } from '../../../intro/art/kit';
+import { GROUND, X, Y } from '../layout';
+import { CAVE } from '../hidden';
 import { type Ctx, type View, INK, box, checker, mix, hash, poly, at, clump, fern, bigLeaf, rockFace, LEAF, MOSS, EARTH, ROCK, RAVINE, BARK, PIX } from './paint';
 
 const GY = GROUND_Y;
@@ -398,8 +400,13 @@ const paintTop = (g: Ctx, x0: number, w: number, y: number) => {
 };
 
 /** The overlook's face (and the rock's): stamped in chunks. Moss and roots hanging off the lip down it. */
-const paintFace = (g: Ctx, x0: number, w: number, top: number, bottom: number, seed: number) => {
-  rockFace(g, x0, top, w, bottom - top, seed);
+const paintFace = (g: Ctx, x0: number, w: number, top: number, bottom: number, seed: number, near: { y0: number; y1: number }, sides: [number, number, number][] = []) => {
+  // (its neighbors' boulders too, where they reach over into it, the same in every piece and in the same order (the
+  // rock behind first, then the boulders, left to right): pieces painted on their own cut the boulders off square at
+  // every piece's edge)
+  const all: [number, number, number][] = [...sides.filter(s => s[0] < x0), [x0, w, seed], ...sides.filter(s => s[0] > x0)];
+  for (const [x, ww, sd] of all) rockFace(g, x, top, ww, bottom - top, sd, ROCK, 1, near);
+  for (const [x, ww, sd] of all) rockFace(g, x, top, ww, bottom - top, sd, ROCK, 2, near);
   // (darker going down, toward the foot)
   hazeBands(g, x0, top + (bottom - top) * 0.5, w, (bottom - top) * 0.5, '#0A100C', 0, 0.45, 5);
   // (moss and creepers hanging off the lip)
@@ -421,9 +428,13 @@ export const drawPlayPlane = (c: Ctx, v: View) => {
       const fb = Math.min(bottom, v.bot + 40), ft = r.y + TOP_D;
       if (fb <= ft) continue;
       // (stamped from the top down, a screen's worth at a time)
+      // (the pieces either side: their boulders reach over into this one)
+      const piece = (k: number): [number, number, number] => [r.a + k * CH, Math.min(CH, r.b - (r.a + k * CH)), r.a + k * 17];
+      const sides = [i - 1, i + 1].filter(k => k >= 0 && r.a + k * CH < r.b).map(piece);
       for (let y = ft, j = 0; y < fb; y += 512, j++) {
         if (y + 512 < v.top) continue;
-        stamp(c, `jg-face-${r.a}-${i}-${j}`, x, y, w, 512, g => { g.save(); g.beginPath(); g.rect(x, y, w, 512); g.clip(); paintFace(g, x, w, ft, Math.max(ft + 200, Math.min(bottom, ft + 1400)), r.a + i * 17 + j * 3); g.restore(); });
+        // (one seed down the whole piece: the pieces stacked down it meet without a seam)
+        stamp(c, `jg-face-${r.a}-${i}-${j}`, x, y, w, 512, g => { g.save(); g.beginPath(); g.rect(x, y, w, 512); g.clip(); paintFace(g, x, w, ft, Math.max(ft + 200, Math.min(bottom, ft + 1400)), r.a + i * 17, { y0: y, y1: y + 512 }, sides); g.restore(); });
       }
     }
     // (its top, flat: bent with the floor below)
@@ -433,8 +444,13 @@ export const drawPlayPlane = (c: Ctx, v: View) => {
       stamp(c, `jg-top-${r.a}-${i}`, x, r.y - 10, w, TOP_D + 10, g => paintTop(g, x, w, r.y));
     }
   }
-  // The floor under him (stamped in chunks, flat, then bent)
-  const CH = 512;
+  // The floor under him (stamped in chunks, flat, then bent). Not in front of the hidden cave under the overlook's end
+  // (hidden.ts: its rock's painted over all of it), from the eye on to the gorge: bent, the floor there fanned out past
+  // the cliff's corner over the gorge as a skewed slab sticking out from behind the cave's rock (the owner: "the ground
+  // textures bend unnaturally in the new cave area"). With it gone the gorge behind fans out there instead, all of a
+  // piece with the rest of the gorge; the floor left of the eye (what fans out over the floor short of the cave) stays.
+  const CH = 512, cutA = Math.max(CAVE.a - 60, v.eye.x), cutB = CAVE.wall, cut = cutA < cutB && v.v1 > CAVE.a - 60 && v.v0 < cutB + 400;
+  if (cut) { c.save(); c.beginPath(); c.rect(v.v0 - 1000, GY - 20, cutA - (v.v0 - 1000), BAND + 40); c.rect(cutB, GY - 20, v.v1 + 1000 - cutB, BAND + 40); c.clip(); }
   for (const [a, b] of FLOOR) {
     for (let x = a, i = 0; x < b; x += CH, i++) {
       const w = Math.min(CH, b - x);
@@ -442,6 +458,7 @@ export const drawPlayPlane = (c: Ctx, v: View) => {
       stamp(c, `jg-floor-${a}-${i}`, x, GY - 10, w, BAND + 10, g => paintFloor(g, x, w));
     }
   }
+  if (cut) c.restore();
   bendFloor(c, v.eye, GY, GY, GY + BAND, FLOOR[0][0], FLOOR[FLOOR.length - 1][1]);
   for (const r of RAISED) if (r.b > v.v0 && r.a < v.v1 && v.eye.y < r.y) bendFloor(c, v.eye, r.y, r.y, r.y + TOP_D, r.a, r.b);
   // The ravines' near banks: where the floor coming toward him stops, its earth going down (seen when he's looking at it)
