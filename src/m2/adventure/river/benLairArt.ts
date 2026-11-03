@@ -16,7 +16,10 @@
 //     of manhole covers, the cooler, his cardboard sign, a stolen tour guide's pith helmet on a hook, LEG DAY IS EVERY
 //     DAY on a flattened box, the chalk tally; the hammock (a cargo net, a gift-shop plush monkey for a pillow) between a
 //     standpipe and a valve stand; the Jungle Cruise boat's string lights along the main; the walk line lit along its
-//     top. The shaft's hole at the room's left end, its lip in hazard stripes.
+//     top. The shaft's hole at the room's left end, its lip in hazard stripes. Up the walls (paintDen): a plank shelf
+//     over the main (protein tubs, bolts, the skipper's megaphone), a GORILLAS DON'T SKIP LEG DAY poster, the pegboard
+//     and fold-down bench with the next coconut pauldron half riveted, the welding's scorch, a hot plate on the pump,
+//     chalk handprints and the chalk bucket, the cruise hippo's head mounted like a trophy (MINE NOW).
 //   LIVE: the sled (painted once, put down where it's been shoved), the cannon, Ben, the work lamps' flicker, the leak's
 //     drips, dust in the grate's beam; in front, the overflow pipe the cannon fires him up (he goes into it) and the
 //     ceiling's near beam. Over in the dinosaur tank, the overflow's end out of its left wall, a flap hanging off it
@@ -312,6 +315,117 @@ const paintProps = (g: Ctx) => {
   for (let k = 0; k < 4; k++) { const y = PB - 6 - k * 7; shapeR(g, () => g.roundRect(900 - 30 + (k % 2) * 3, y, 60, 7, 2), dimR(['#7A7A80', '#55555C', '#424248', '#2E2E34', '#0E0E10'], 0.25), 870, 930, 1); for (let j = 0; j < 6; j++) pxR(g, 876 + j * 9 + (k % 2) * 3, y + 2, 4, 1, '#1A1A1E'); }
 };
 
+/** More of his things, on the walls and up off the band (dimmed: none of it's stood on): the plank shelf over the main
+ *  (his protein tubs, a coffee can of bolts, the Jungle Cruise skipper's megaphone), the gorilla poster, the pegboard
+ *  and the fold-down bench where the next coconut pauldron's being riveted up (the welding's scorch up the wall over
+ *  it), the hot plate on the old pump's volute (it's warm anyway) with a pot on it, the chalk (handprints by the rack,
+ *  a bucket at its foot), the dead animatronic hippo's head off the cruise mounted like a hunting trophy. */
+const paintDen = (g: Ctx) => {
+  const D = (r: Ramp, k = 0.3) => dimR(r, k);
+  const WHITE: Ramp = ['#F2F2F2', '#D8D8D8', '#B8B8B8', '#8A8A8A', '#2A2A2A'];
+  const BLACK: Ramp = ['#5A5A62', '#3A3A42', '#2A2A30', '#1C1C22', '#08080A'];
+  const PEG: Ramp = ['#B08A62', '#8E6A46', '#745434', '#563C24', '#1E140A'];
+  // ---- the plank shelf up over the main, on two angle brackets (a background thing: its top not lit)
+  const sy = -338;
+  for (const bx of [236, 414]) { g.fillStyle = D(GRATEST)[4]; g.beginPath(); g.moveTo(bx - 2, sy + 4); g.lineTo(bx + 12, sy + 4); g.lineTo(bx - 2, sy + 22); g.closePath(); g.fill(); lineR(g, [bx - 1, sy + 20, bx + 10, sy + 5], 1.4, D(GRATEST)[2]); }
+  shapeR(g, () => g.rect(222, sy, 208, 6), D(WOOD, 0.4), 222, 430, 1);
+  pxR(g, 222, sy, 208, 1, D(WOOD, 0.4)[1]); pxR(g, 222, sy + 6, 208, 2, dith(g, '#0C0A08'));
+  // (the tubs: MASS, white, red-lidded; WHEY, black; a scoop off the top of one)
+  shapeR(g, () => g.rect(238, sy - 30, 26, 30), D(WHITE, 0.35), 238, 264, 1.1);
+  shapeR(g, () => g.rect(236, sy - 34, 30, 5), D(RED, 0.35), 236, 266, 1);
+  pxR(g, 240, sy - 22, 22, 11, D(RED, 0.35)[1]); signAt(g, 'MASS', 251, sy - 16, 3, print(3, mixHex('#FFF4C8', '#14120C', 0.3)));
+  shapeR(g, () => g.rect(270, sy - 24, 20, 24), D(BLACK, 0.2), 270, 290, 1);
+  pxR(g, 272, sy - 16, 16, 7, D(ORANGE, 0.35)[1]); pxR(g, 274, sy - 14, 12, 1, '#2A1A0C'); pxR(g, 274, sy - 12, 8, 1, '#2A1A0C');
+  shapeR(g, () => g.rect(268, sy - 27, 24, 4), D(BLACK, 0.2), 268, 292, 1);
+  // (a coffee can of bolts, a coconut, the megaphone lying on its side)
+  shapeR(g, () => g.rect(302, sy - 16, 14, 16), D(STEEL, 0.35), 302, 316, 1);
+  for (let k = 0; k < 4; k++) pxR(g, 304 + k * 3, sy - 18 - (k % 2), 2, 2, D(STEEL, 0.3)[0]);
+  coconut(g, 330, sy - 6, 6, D(COCO, 0.3));
+  shapeR(g, () => { g.moveTo(352, sy - 8); g.lineTo(392, sy - 18); g.lineTo(392, sy); g.lineTo(352, sy - 2); g.closePath(); }, D(['#F8F0D8', '#E8D8B0', '#C8B48A', '#9A845E', '#2A2414'], 0.3), 352, 392, 1);
+  ellR(g, 394, sy - 9, 4, 9, D(['#F8F0D8', '#E8D8B0', '#C8B48A', '#9A845E', '#2A2414'], 0.3)[3]);
+  pxR(g, 360, sy - 9, 18, 2, D(RED, 0.3)[1]); shapeR(g, () => g.rect(358, sy - 2, 6, 2), D(BLACK, 0.2), 358, 364, 1);
+  // (dust and a web under the shelf's back)
+  pxR(g, 222, sy - 1, 208, 1, dith(g, 'rgba(200,190,170,0.25)'));
+  // ---- the poster, taped up left of the standpipe: a gorilla squatting a bar, in his words
+  { const x = 206, y = -252, w = 82, h = 76, P = mixHex('#E8E0C8', '#2A2620', 0.32);
+    box(g, x - 1, y - 1, w + 2, h + 2, '#14120C'); box(g, x, y, w, h, P);
+    for (let i = 0; i < 4; i++) box(g, x + 3, y + 3 + i * 9, w - 6, 9, mixHex(['#2E5A2A', '#3A6A30', '#467A38', '#528A40'][i], '#2A2620', 0.32));
+    checker(g, x + 3, y + 11, w - 6, 2, mixHex('#3A6A30', '#2A2620', 0.32), 0, 2);
+    // (the gorilla: a hunched black body, its arms up at the bar over its shoulders, its legs bent in the squat)
+    const gx = x + w / 2, gy = y + 34, FUR = mixHex('#1E1A18', '#2A2620', 0.2), FURL = mixHex('#4A403A', '#2A2620', 0.2);
+    lineR(g, [gx - 30, gy - 16, gx + 30, gy - 16], 2, mixHex('#8A8A92', '#2A2620', 0.3));
+    for (const s of [-1, 1]) { box(g, gx + s * 30 - (s < 0 ? 4 : 0), gy - 24, 4, 16, mixHex('#3A3A42', '#2A2620', 0.3)); }
+    ellR(g, gx, gy - 6, 12, 10, FUR); ellR(g, gx - 3, gy - 9, 5, 4, FURL);
+    ellR(g, gx, gy - 18, 6, 5, FUR); box(g, gx - 4, gy - 19, 8, 3, mixHex('#6A5A50', '#2A2620', 0.25)); box(g, gx - 3, gy - 18, 2, 1, '#14120C'); box(g, gx + 1, gy - 18, 2, 1, '#14120C');
+    for (const s of [-1, 1]) { lineR(g, [gx + s * 9, gy - 10, gx + s * 16, gy - 20, gx + s * 18, gy - 16], 3.4, FUR); lineR(g, [gx + s * 6, gy + 2, gx + s * 15, gy + 2, gx + s * 13, gy + 9], 3.6, FUR); }
+    signAt(g, 'GORILLAS', gx, y + 50, 4, print(4, '#1E1A14'));
+    signAt(g, "DON'T SKIP", gx, y + 59, 4, print(4, '#1E1A14'));
+    signAt(g, 'LEG DAY', gx, y + 68, 4, print(4, mixHex('#B83A2A', '#2A2620', 0.25)));
+    for (const [tx, ty] of [[x - 3, y - 2], [x + w - 7, y - 2], [x - 3, y + h - 4], [x + w - 7, y + h - 4]] as const) box(g, tx, ty, 10, 5, 'rgba(220,210,170,0.45)');
+    box(g, x + w - 12, y + h - 10, 12, 10, mixHex('#B8B098', '#2A2620', 0.35)); }
+  // ---- the pegboard (masonite, its holes; each tool's outline painted on it, the tools hung on their outlines)
+  { const x = 730, y = -228, w = 104, h = 64;
+    shapeR(g, () => g.rect(x, y, w, h), D(PEG, 0.35), x, x + w, 1);
+    for (let yy = y + 4; yy < y + h - 2; yy += 6) for (let xx = x + 4; xx < x + w - 2; xx += 6) pxR(g, xx, yy, 1, 1, D(PEG, 0.35)[4]);
+    const TL = mixHex('#E8E0C8', '#14120C', 0.45);
+    // (the hammer: its outline, it)
+    lineR(g, [x + 14, y + 10, x + 14, y + 46], 3.4, D(WOOD, 0.3)[1]); shapeR(g, () => g.rect(x + 7, y + 6, 15, 7), D(STEEL, 0.35), x + 7, x + 22, 1);
+    // (the wrench, crooked on its hook)
+    lineR(g, [x + 30, y + 12, x + 36, y + 48], 3, D(STEEL, 0.3)[1]); ellR(g, x + 29, y + 10, 4, 4, D(STEEL, 0.3)[1]); pxR(g, x + 28, y + 6, 3, 4, D(PEG, 0.35)[1]);
+    // (the hacksaw, the tin snips, a missing tool's outline (the drill's out on the bench))
+    lineR(g, [x + 46, y + 10, x + 76, y + 10, x + 76, y + 20, x + 46, y + 20, x + 46, y + 10], 1.6, D(STEEL, 0.3)[2], 'square');
+    lineR(g, [x + 46, y + 20, x + 76, y + 20], 1, D(STEEL, 0.25)[0]); shapeR(g, () => g.rect(x + 40, y + 9, 8, 14), D(RED, 0.3), x + 40, x + 48, 1);
+    lineR(g, [x + 50, y + 30, x + 58, y + 54], 2, D(ORANGE, 0.35)[1]); lineR(g, [x + 60, y + 30, x + 54, y + 54], 2, D(ORANGE, 0.35)[2]); ellR(g, x + 55, y + 42, 2, 2, D(STEEL, 0.3)[0]);
+    lineR(g, [x + 70, y + 30, x + 90, y + 30, x + 92, y + 36, x + 86, y + 50, x + 74, y + 50, x + 70, y + 30], 1, TL);
+    // (the welding mask on its hook, a coil of bungee)
+    shapeR(g, () => g.roundRect(x + 82, y + 4, 18, 22, 4), D(BLACK, 0.15), x + 82, x + 100, 1); pxR(g, x + 85, y + 12, 12, 4, mixHex('#2A3A20', '#14120C', 0.2)); pxR(g, x + 86, y + 12, 4, 1, '#4A6A3A');
+    for (let k = 0; k < 3; k++) { g.strokeStyle = k % 2 ? D(BLUE, 0.3)[1] : D(RED, 0.3)[1]; g.lineWidth = 1.4; g.beginPath(); g.ellipse(x + 20 + k, y + 54, 9 - k, 5 - k * 0.5, 0, 0, Math.PI * 2); g.stroke(); } }
+  // ---- the welding's scorch up the wall over the bench (soot in dithered bands, spatter)
+  for (let i = 0; i < 4; i++) { g.fillStyle = dith(g, `rgba(10,8,6,${(0.18 + i * 0.08).toFixed(2)})`); g.beginPath(); g.ellipse(806, -160 - i * 4, 26 - i * 6, 20 - i * 4, 0, 0, Math.PI * 2); g.fill(); }
+  for (let k = 0; k < 14; k++) pxR(g, 788 + hash(k + 500) * 38, -176 + hash(k + 510) * 26, 1, 1, k % 3 ? '#6A5A48' : '#C8A060');
+  // ---- the fold-down bench under it (a plank on two drop brackets), the vise, the pauldron being riveted up
+  { const y = -150;
+    for (const bx of [744, 828]) { lineR(g, [bx, y + 4, bx, y + 26], 2, D(STEEL, 0.4)[3]); lineR(g, [bx, y + 24, bx + (bx < 780 ? 14 : -14), y + 4], 1.4, D(STEEL, 0.4)[2]); }
+    shapeR(g, () => g.rect(734, y, 104, 6), D(WOOD, 0.35), 734, 838, 1); pxR(g, 734, y + 6, 104, 2, dith(g, '#0C0A08'));
+    // (the vise, clamped on its left end)
+    shapeR(g, () => g.rect(738, y - 12, 16, 12), D(BLUE, 0.35), 738, 754, 1); shapeR(g, () => g.rect(734, y - 16, 24, 5), D(STEEL, 0.35), 734, 758, 1); lineR(g, [746, y - 6, 732, y - 6], 1.4, D(STEEL, 0.3)[0]);
+    // (the pauldron: a coconut half, sawn, its strap riveted through, rivets in a row; the other half in the vise)
+    shapeR(g, () => g.ellipse(790, y - 2, 15, 12, 0, Math.PI, 0), D(COCO, 0.2), 775, 805, 1);
+    pxR(g, 776, y - 3, 28, 2, D(['#F2E8D0', '#E0D0B0', '#C8B490', '#9A8662', '#2A2418'], 0.2)[1]);
+    lineR(g, [770, y - 6, 812, y - 8], 3.4, D(['#A87438', '#865826', '#6A4420', '#4A2E14', '#1A0E06'], 0.2)[1]);
+    for (const rx of [780, 790, 800]) { pxR(g, rx, y - 9, 2, 2, D(STEEL, 0.2)[0]); }
+    shapeR(g, () => g.ellipse(746, y - 18, 7, 6, 0, Math.PI, 0), D(COCO, 0.2), 739, 753, 1);
+    // (the hand drill laid down, the bag of rivets, a sawn-off coconut shell, husk on the bench)
+    lineR(g, [812, y - 4, 830, y - 4], 2, D(STEEL, 0.3)[1]); shapeR(g, () => g.rect(818, y - 12, 6, 8), D(RED, 0.3), 818, 824, 1); ellR(g, 815, y - 10, 3, 3, D(RED, 0.3)[2]);
+    for (let k = 0; k < 8; k++) pxR(g, 758 + hash(k + 600) * 70, y - 1, 2, 1, k % 2 ? '#6A4426' : '#8A5C34'); }
+  // ---- the hot plate on the old pump's volute, a dented pot on it (its steam's drawn live), its cord down the side
+  { const x = 330, y = -64;
+    shapeR(g, () => g.rect(x - 16, y - 6, 32, 6), D(BLACK, 0.15), x - 16, x + 16, 1); pxR(g, x - 12, y - 7, 24, 1, mixHex('#E8604A', '#14120C', 0.25));
+    shapeR(g, () => g.rect(x - 12, y - 20, 24, 13), D(STEEL, 0.3), x - 12, x + 12, 1);
+    lineR(g, [x + 12, y - 16, x + 22, y - 18], 2, D(BLACK, 0.2)[0]); pxR(g, x - 12, y - 21, 24, 2, D(STEEL, 0.3)[0]); pxR(g, x + 2, y - 15, 4, 3, D(STEEL, 0.3)[3]);
+    lineR(g, [x - 16, y - 2, x - 22, y + 10, x - 20, y + 30], 1.2, '#1A1410'); }
+  // ---- the chalk: handprints slapped on the wall by the rack, the bucket at its foot, the dust round it
+  for (const [hx, hy] of [[526, -196], [636, -188], [530, -172]] as const) { ellR(g, hx, hy, 4, 5, 'rgba(230,226,214,0.2)'); for (let k = 0; k < 4; k++) pxR(g, hx - 4 + k * 2.4, hy - 9, 1.4, 4, 'rgba(230,226,214,0.18)'); pxR(g, hx - 3, hy + 4, 6, 12, dith(g, 'rgba(230,226,214,0.16)')); }
+  { const x = 575; shapeR(g, () => g.rect(x - 9, PB - 14, 18, 14), D(WHITE, 0.4), x - 9, x + 9, 1); pxR(g, x - 8, PB - 15, 16, 2, '#E8E4D8'); lineR(g, [x - 8, PB - 14, x, PB - 22, x + 8, PB - 14], 0.8, D(STEEL, 0.3)[2]);
+    g.fillStyle = dith(g, 'rgba(230,226,214,0.4)'); g.fillRect(x - 24, PB - 2, 48, 3); }
+  // ---- the hippo's head: off one of the cruise's animatronics, mounted on a shield like a trophy, its jaw hung open,
+  // one eye out on its spring, its wiring out of the neck; MINE NOW on the plate
+  { const x = 902, y = -196, HIP: Ramp = ['#9A86A0', '#7A6684', '#5E4E68', '#44384E', '#16101C'], HP = D(HIP, 0.25), SH = D(WOOD, 0.3);
+    shapeR(g, () => { g.moveTo(x - 30, y - 34); g.lineTo(x + 30, y - 34); g.lineTo(x + 30, y + 14); g.lineTo(x, y + 34); g.lineTo(x - 30, y + 14); g.closePath(); }, SH, x - 30, x + 30, 1.2);
+    for (let k = 0; k < 4; k++) pxR(g, x - 26, y - 28 + k * 12, 52, 1, SH[3]);
+    // (the wires out of its neck, behind it)
+    for (let k = 0; k < 4; k++) lineR(g, [x - 6 + k * 4, y + 10, x - 8 + k * 5 + (hash(k + 700) - 0.5) * 6, y + 40 + k * 3], 1, ['#B83A2A', '#E8C030', '#4A7AC0', '#2A2A2A'][k]);
+    shapeR(g, () => g.ellipse(x, y - 6, 22, 18, 0, 0, Math.PI * 2), HP, x - 22, x + 22, 1.2);
+    shapeR(g, () => g.roundRect(x - 18, y + 2, 36, 16, 7), HP, x - 18, x + 18, 1);
+    shapeR(g, () => g.roundRect(x - 16, y + 16, 32, 8, 3), HP, x - 16, x + 16, 1);
+    pxR(g, x - 14, y + 14, 28, 3, mixHex('#6A2A3A', '#14120C', 0.25)); for (const tx of [x - 12, x + 9]) pxR(g, tx, y + 13, 3, 5, mixHex('#E8E0C8', '#14120C', 0.25));
+    for (const s of [-1, 1]) { ellR(g, x + s * 16, y - 22, 5, 4, HP[2]); ellR(g, x + s * 16, y - 22, 2.4, 2, HP[3]); ellR(g, x + s * 8, y + 6, 2.4, 1.6, HP[4]); }
+    ellR(g, x - 9, y - 12, 4, 4, '#14120C'); ellR(g, x - 9, y - 13, 2, 2, mixHex('#E8E0C8', '#14120C', 0.3));
+    lineR(g, [x + 9, y - 12, x + 14, y - 4, x + 10, y + 2, x + 16, y + 8], 0.8, D(STEEL, 0.2)[1]); ellR(g, x + 17, y + 11, 4, 4, mixHex('#E8E0C8', '#14120C', 0.3)); ellR(g, x + 18, y + 11, 2, 2, '#14120C');
+    shapeR(g, () => g.rect(x - 29, y + 26, 58, 9), D(['#F8E08A', '#E8C030', '#B8901A', '#806008', '#2A2004'], 0.3), x - 29, x + 29, 1);
+    signAt(g, 'MINE NOW', x, y + 30, 3, print(3, '#2A1A0C')); }
+};
+
 /** The light painted on: the lamps' pools on the wall, the grate's beam, the dark gathered into the corners. */
 const paintLight = (g: Ctx) => {
   for (const l of LAMPS) for (let i = 0; i < 5; i++) { g.fillStyle = `rgba(255,214,140,${0.03 + i * 0.014})`; g.beginPath(); g.ellipse(l.x, l.y + 90 + i * 10, 200 - i * 34, 150 - i * 26, 0, 0, Math.PI * 2); g.fill(); }
@@ -327,7 +441,7 @@ const paintLight = (g: Ctx) => {
   }
 };
 
-const paintRoom = (g: Ctx) => { paintWall(g); paintPipes(g); paintFloor(g); paintProps(g); paintLight(g); };
+const paintRoom = (g: Ctx) => { paintWall(g); paintPipes(g); paintFloor(g); paintProps(g); paintDen(g); paintLight(g); };
 
 // ---------------------------------------------------------------------------------------------------------------
 // The shaft (painted once; room coordinates: x 0..SW, y 0 at the floor's line down to SD at the pocket's roof)
@@ -440,6 +554,10 @@ const paintBeam = (g: Ctx) => {
   for (let x = -60; x < W + 60; x += 3) { const y = -H - 6 + Math.sin(x * 0.09) * 1.5 + (hash(x + 7) > 0.9 ? 3 + hash(x + 8) * 6 : 0); box(g, x, -H - 8, 3, y + H + 8, '#0C0A08'); }
   box(g, -60, -H - 10, W + 120, 1, '#2A2620');
   for (let x = 30; x < W; x += 140) { box(g, x, -H - 2, 18, 10, '#0C0A08'); box(g, x, -H - 2, 18, 1, '#3A342C'); }
+  // (near roots in through the beam's cracks by the grate, and a sagging cable: short, in silhouette, up out of his way)
+  for (let k = 0; k < 7; k++) { const x = GRATE.x - 40 + hash(k + 800) * (GRATE.w + 90), len = 8 + hash(k + 801) * 14; lineR(g, [x, -H - 8, x + (hash(k + 802) - 0.5) * 6, -H + len * 0.5, x + (hash(k + 803) - 0.5) * 8, -H + len], 1.6, '#0C0A08'); }
+  g.strokeStyle = '#0C0A08'; g.lineWidth = 2; g.beginPath(); g.moveTo(170, -H - 4); g.quadraticCurveTo(240, -H + 16, 310, -H - 4); g.stroke();
+  g.strokeStyle = '#2A2620'; g.lineWidth = 1; g.beginPath(); g.moveTo(170, -H - 5); g.quadraticCurveTo(240, -H + 15, 310, -H - 5); g.stroke();
 };
 
 const paintOverflow = (g: Ctx) => {
@@ -495,6 +613,8 @@ export const drawLairBack = (c: Ctx, state: GameState) => {
     const t = ((f + i * 47) % 90) / 90;
     c.fillStyle = 'rgba(170,200,220,0.8)'; c.fillRect(LEAK - 1 + i, Math.round(MAIN2 + 10 + t * (-MAIN2 - 10 + PB)), 2, 3);
   }
+  // (the pot's steam off the hot plate on the pump)
+  for (let i = 0; i < 4; i++) { const u = ((f * 0.5 + i * 25) % 100) / 100; c.fillStyle = `rgba(230,230,220,${(0.35 * (1 - u)).toFixed(2)})`; c.fillRect(Math.round(328 + Math.sin(f * 0.05 + i) * 4), Math.round(-86 - u * 46), Math.round(3 + u * 4), Math.round(3 + u * 4)); }
   for (let i = 0; i < 9; i++) {
     const u = ((f * 0.25 + i * 61) % 400) / 400;
     c.fillStyle = `rgba(220,250,190,${0.18 + 0.3 * Math.sin(u * Math.PI)})`;
@@ -542,6 +662,7 @@ export const lairLighting = (state: GameState): SceneLight => {
     ...SHAFT_LAMPS.map((l, i) => lamp(l, i + 2, 200)),
     { x: LA + GRATE.x + GRATE.w / 2, y: F - H - 10, r: H + 40, cone: 90, a: 0.7, color: 'rgba(190,240,160,0.12)' },
     { x: LA + SW / 2, y: POCKET_TOP + 60, r: 160, a: 0.5, color: 'rgba(160,220,230,0.08)' },
+    { x: LA + 330, y: F - 72, r: 60, a: 0.45, color: 'rgba(248,113,80,0.12)' },
     { x: p.pos.x + p.width / 2, y: p.pos.y + 20, r: 150, a: 0.4 },
   ];
   return { dark: 0.5, shade: [14, 10, 6], rim: 0.5, lights };
