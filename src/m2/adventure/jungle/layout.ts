@@ -22,6 +22,7 @@
 
 import { SECTIONS, GY } from '../geometry';
 import type { VineDef } from './vines';
+import { CAVE_CP, CAVE_SPAWN } from './hidden';
 
 const X = (rx: number) => SECTIONS.jungle.x0 + rx;
 const Y = (h: number) => GY - h;
@@ -117,6 +118,9 @@ export const CHECKPOINTS = [
   { name: 'THE CLIFF', cp: 3, x: X(5150), y: GY },
   // (up on the overlook, short of its end: the gorge's two long vines ahead)
   { name: 'THE GORGE', cp: 4, x: X(6750), y: Y(460) },
+  // (the hidden cave's, on the shelf in its mouth: his only once he's stood there, and the gorge's again once he's out
+  // of the cave (hidden.ts), never walking the overlook past its x)
+  { name: 'THE FALLS CAVE', cp: CAVE_CP, x: CAVE_SPAWN.x, y: CAVE_SPAWN.y, manual: true },
   { name: 'JAGUAR COUNTRY', cp: 5, x: X(7950), y: GY },
   // (by the LAST VINES sign, on the ground before the last ravine)
   { name: 'THE LAST VINES', cp: 6, x: X(9650), y: GY },

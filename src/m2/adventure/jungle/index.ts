@@ -6,6 +6,7 @@ import type { EnemyKind } from '../../../m1/types';
 import type { Section } from '../section';
 import { lay, ledge, teleport, meatheadSays } from '../section';
 import { SECTIONS, GY } from '../geometry';
+import { CANVAS_WIDTH } from '../../../m1/constants';
 import { makeKindEnemy } from '../../../m1/game/enemies/kinds';
 import { updateVines, drawVines, onVine, VINE_ROW } from './vines';
 import { updateThrown, drawThrown } from './animals';
@@ -13,7 +14,7 @@ import { jungleOf } from './state';
 import { GROUND, BRANCHES, VINES, ANIMALS, PICKUPS, CHECKPOINTS, X, Y } from './layout';
 import { drawJungleBackdrop, drawJungleBack, drawJungleFront, jungleLamps } from './draw';
 import { ARRIVE, GORGE, LEAVING } from './lines';
-import { CAVE_VINES, buildHidden, updateHidden, hiddenBusy, hiddenRow, hiddenView } from './hidden';
+import { CAVE_VINES, buildHidden, updateHidden, hiddenBusy, hiddenRow, hiddenView, hiddenCameraMin } from './hidden';
 import { drawHiddenBack, drawHiddenFront } from './art/hidden';
 
 const { x0, x1 } = SECTIONS.jungle;
@@ -62,6 +63,8 @@ export const jungle: Section = {
   drawBack: (c, state) => { drawJungleBack(c, state); drawHiddenBack(c, state); drawVines(c, state, ALL_VINES); },
   drawFront: (c, state) => { drawThrown(c, state); if (!hiddenView(state)) drawJungleFront(c, state); drawHiddenFront(c, state); },
   cameraRow: (state) => hiddenRow(state) ?? (onVine(state) ? VINE_ROW : 500),
+  // (in the hidden cave: the camera kept off the overlook's face outside it)
+  cameraX: (state) => { const m = hiddenCameraMin(state); return m === undefined ? undefined : { min: m, max: x1 - CANVAS_WIDTH }; },
   // (under the canopy: the hour's light, a little less of it)
   outdoors: () => 0.85,
   // (after dark: the torches at the way out, the lamp over the cast members' door)

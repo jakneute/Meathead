@@ -57,6 +57,15 @@ export const HURT: Record<string, { hurt: string[]; death: string[] }> = {
     hurt: ['FUCK YOU, POLLY!', 'IT WENT FOR MY EYES!', 'PRETTY BIRD MY ASS!'],
     death: ['PECKED TO DEATH BY A PARROT', 'THE PARROT GOT THE LAST WORD'],
   },
+  // (the hidden cave's: caveTraps.ts)
+  'm2:stalactite': {
+    hurt: ['RIGHT IN THE SKULL!', "THE CAVE'S SHITTING ROCKS ON ME!", 'A ROCK! FROM THE CEILING! WHO DOES THAT?!'],
+    death: ['THE CEILING GOT HIM', 'A STALACTITE TO THE DOME'],
+  },
+  'm2:thorns': {
+    hurt: ['THORNS! IN MY TAINT!', 'OW! PRICKS!', 'THE ROOTS HAVE SPIKES, YOU BASTARD!'],
+    death: ['DIED IN A PRICKER BUSH', 'TOO MANY PRICKS'],
+  },
   'm2:frog': {
     hurt: ['MY LIPS ARE NUMB!', 'WHY DID I TOUCH THE BLUE ONE?!', 'I CAN TASTE COLORS!'],
     death: ['LICKED A FROG. ON PURPOSE.', 'KILLED BY A GRAPE-SIZED FROG'],
