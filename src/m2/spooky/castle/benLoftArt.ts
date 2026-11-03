@@ -11,7 +11,10 @@
 // stone wall (closed: books in a stone wall, the draft blowing dust out between them; open: swung in, the passage dark
 // behind it) are drawn on the library's side; the loft itself stays under the roof's dark till he's in (its `reveal`).
 // The bedroom's servants' hatch the cannon shoots him out of, too. Still art painted once (stamps, the room in
-// chunks); the flames, the dust, the smoke live and few.
+// chunks); the flames, the dust, the smoke live and few. More of his things (paintDen): the oak icebox by the cannon
+// with a hot plate and a cauldron of oats on it, an illuminated page (THOU SHALT NOT SKIP LEG DAY), the hook board with
+// the next cape half sewn and his tools, the work shelf under it, gainer tubs among the high books, a jack-o'-lantern
+// bucket of chalk, chalk handprints, candle soot, a gift-shop rubber bat; a near tie-beam across the top in front.
 
 import type { GameState } from '../../../m1/game/core/state';
 import type { SceneLight, Light } from '../../../m1/game/render/lighting';
@@ -147,7 +150,7 @@ const paintStacks = (g: Ctx) => {
     spines(g, x0, x1, y, x0 + y, 0.45);
   }
   // (book towers, leaning)
-  for (const [x, n, s] of [[40, 14, 3], [130, 9, 11], [470, 16, 21], [700, 8, 31], [880, 11, 41]] as const) pile(g, x, 0, n, s, 0.35);
+  for (const [x, n, s] of [[130, 9, 11], [470, 16, 21], [700, 8, 31], [880, 11, 41]] as const) pile(g, x, 0, n, s, 0.35);
   // (the plaque: RESTRICTED SECTION; the cardboard under it in marker)
   box(g, 254, -342, 172, 28, INK); box(g, 255, -341, 170, 26, BRASS[1]); box(g, 255, -341, 170, 2, BRASS[3]); box(g, 255, -317, 170, 2, BRASS[0]);
   signAt(g, 'RESTRICTED SECTION', 340, -328, 7, gothic(7, '#2A1A08', '#E8C870'));
@@ -250,6 +253,105 @@ const paintGym = (g: Ctx) => {
     pile(g, a + 30, t, 2, 77, 0.05); }
   // ---- the cannon's hearth: the old fireplace's stone apron it stands on
   { box(g, CANNON_LX - 56, -6, 112, 6, INK); box(g, CANNON_LX - 55, -5, 110, 5, STONE[2]); box(g, CANNON_LX - 55, -5, 110, 1, STONE[3]); }
+};
+
+/** More of his things (dimmed: none of it's stood on): the oak icebox by the cannon (his mini fridge) with a hot plate
+ *  and a little iron cauldron of oats on it; an illuminated page nailed up over it in his words; the hook board where
+ *  the next cape's being sewn (hung half-hemmed, pins in it, the tag still on), his tools on it, the work shelf under
+ *  it (pincushion, a spool, a glue pot, shears); tubs of gainer shoved in among the high shelf's books; a gift-shop
+ *  jack-o'-lantern bucket of chalk by the coffin bench, chalk handprints on the pillar; candle soot up the stone; a
+ *  rubber bat off the gift shop dangling on its string from a strut. */
+const paintDen = (g: Ctx) => {
+  // ---- the icebox (oak, two brass-latched doors, a drip tray), the hot plate on it, the cauldron, its ladle
+  { const x = 4, w = 40, t = -58, Wd = rampOf(dimc('#5A3A20', 0.2)), B = BRASS.map(c => dimc(c, 0.2));
+    box(g, x - 1, t - 1, w + 2, -t + 1, INK); box(g, x, t, w, -t, Wd[2]); box(g, x, t, w, 2, Wd[3]); box(g, x, t, 3, -t, Wd[3]); box(g, x + w - 3, t, 3, -t, Wd[1]);
+    for (const [dy, dh] of [[4, 24], [32, 22]] as const) { box(g, x + 4, t + dy, w - 8, dh, INK); box(g, x + 5, t + dy + 1, w - 10, dh - 2, Wd[2]); box(g, x + 5, t + dy + 1, w - 10, 1, Wd[4]); box(g, x + w - 10, t + dy + dh / 2 - 3, 5, 6, B[2]); box(g, x + w - 10, t + dy + dh / 2 - 3, 5, 1, B[4]); }
+    box(g, x + 2, -4, w - 4, 4, INK); box(g, x + 3, -3, w - 6, 2, IRON[2]);
+    // (the hot plate, its coil glowing; the cauldron: iron, round-bellied, a rim, three stub legs; the ladle in it)
+    box(g, x + 4, t - 6, w - 8, 6, INK); box(g, x + 5, t - 5, w - 10, 4, '#2A2A30'); box(g, x + 8, t - 6, w - 16, 1, '#E8603A');
+    g.fillStyle = INK; g.beginPath(); g.ellipse(x + w / 2, t - 15, 15, 11, 0, 0, Math.PI * 2); g.fill();
+    g.fillStyle = IRON[2]; g.beginPath(); g.ellipse(x + w / 2, t - 15, 13.5, 9.5, 0, 0, Math.PI * 2); g.fill();
+    box(g, x + w / 2 - 10, t - 20, 4, 9, IRON[3]); box(g, x + w / 2 + 6, t - 18, 3, 8, IRON[1]);
+    box(g, x + w / 2 - 15, t - 26, 30, 5, INK); box(g, x + w / 2 - 14, t - 25, 28, 3, IRON[3]); box(g, x + w / 2 - 12, t - 26, 24, 2, '#C8B48A');
+    box(g, x + w / 2 + 6, t - 40, 2, 16, INK); box(g, x + w / 2 + 6, t - 40, 1, 15, IRON[4]); }
+  // ---- the illuminated page nailed up over it: vellum, a red drop cap, a vine border, in his words
+  { const x = 18, y = -234, w = 104, h = 98, V = dimc('#D8CCA8', 0.3), VD = dimc('#B8A87E', 0.3);
+    box(g, x - 1, y - 1, w + 2, h + 2, INK); box(g, x, y, w, h, V); checker(g, x, y + h - 10, w, 10, VD); box(g, x + w - 3, y, 3, h, VD);
+    // (the border: a gilt rule, a green vine winding round it)
+    g.strokeStyle = dimc('#A87A1E', 0.25); g.lineWidth = 1; g.strokeRect(x + 4.5, y + 4.5, w - 9, h - 9);
+    for (let k = 0; k < 10; k++) { const vx = x + 8 + k * 9.6; box(g, vx, y + 3 + (k % 2) * 2, 3, 2, dimc('#2E6A2A', 0.25)); box(g, vx + 3, y + h - 6 - (k % 2) * 2, 3, 2, dimc('#2E6A2A', 0.25)); }
+    // (the drop cap: a red block, a gold T)
+    box(g, x + 9, y + 9, 18, 20, INK); box(g, x + 10, y + 10, 16, 18, dimc('#8A1A1A', 0.2)); box(g, x + 12, y + 13, 12, 3, dimc('#E8C870', 0.2)); box(g, x + 16, y + 13, 4, 13, dimc('#E8C870', 0.2));
+    signAt(g, 'HOU', x + 28, y + 22, 8, print(10, dimc('#1A0E04', 0.1)), 'left');
+    signAt(g, 'SHALT NOT', x + w / 2, y + 44, 8, fit('SHALT NOT', print(10, dimc('#1A0E04', 0.1)), w - 14));
+    signAt(g, 'SKIP', x + w / 2, y + 62, 8, print(10, dimc('#1A0E04', 0.1)));
+    signAt(g, 'LEG DAY', x + w / 2, y + 80, 8, fit('LEG DAY', print(10, dimc('#8A1010', 0.05)), w - 14));
+    for (const [nx, ny] of [[x + 3, y + 2], [x + w - 6, y + 2]] as const) { box(g, nx, ny, 3, 3, INK); box(g, nx, ny, 2, 1, '#8A8A90'); }
+    // (a corner torn off, a candle-wax drip)
+    g.fillStyle = dimc(STONE[2], 0.25); g.beginPath(); g.moveTo(x + w + 1, y + h - 14); g.lineTo(x + w + 1, y + h + 1); g.lineTo(x + w - 14, y + h + 1); g.closePath(); g.fill();
+    box(g, x + 70, y + 12, 3, 9, dimc(WAX[2], 0.2)); box(g, x + 70, y + 12, 1, 9, dimc(WAX[4], 0.2)); }
+  // ---- candle soot up the stone over the sconce and over the wheel
+  for (const [sx, sy, sw, sh] of [[PILLAR_LX, -340, 12, 26], [WHEEL_LX, -318, 22, 26], [828, -212, 10, 24]] as const) for (let i = 0; i < 4; i++) { g.fillStyle = `rgba(4,2,4,${(0.1 + i * 0.05).toFixed(2)})`; g.beginPath(); g.ellipse(sx, sy + i * 4, sw - i * 2.5, sh - i * 5, 0, 0, Math.PI * 2); g.fill(); }
+  // ---- the hook board (an oak batten, iron hooks), the cape on it being sewn, his tools; the work shelf under it
+  { const x = 466, y = -238, w = 86, Wd = rampOf(dimc('#4A3020', 0.25));
+    box(g, x - 1, y - 1, w + 2, 10, INK); box(g, x, y, w, 8, Wd[2]); box(g, x, y, w, 1, Wd[4]); box(g, x, y + 7, w, 1, Wd[0]);
+    for (const hx of [x + 10, x + 34, x + 60, x + 78]) { box(g, hx - 1, y + 3, 3, 3, IRON[1]); box(g, hx, y + 6, 2, 6, IRON[3]); box(g, hx + 1, y + 10, 3, 2, IRON[3]); }
+    // (the cape: shiny black polyester, creased in squares from the bag, the tall collar, the red lining showing at a
+    // turned-up hem; pins along the hem, the needle and the red thread hanging, the price tag on its barb)
+    { const cx = x + 34, top = y + 12, P = ['#0A0A10', '#16161E', '#24242E', '#3A3A48', '#5A5A6A'].map(c => dimc(c, 0.1));
+      g.fillStyle = INK; g.beginPath(); g.moveTo(cx - 9, top - 1); g.lineTo(cx + 9, top - 1); g.lineTo(cx + 23, top + 63); g.lineTo(cx - 23, top + 63); g.closePath(); g.fill();
+      g.fillStyle = P[2]; g.beginPath(); g.moveTo(cx - 8, top); g.lineTo(cx + 8, top); g.lineTo(cx + 22, top + 62); g.lineTo(cx - 22, top + 62); g.closePath(); g.fill();
+      for (const fx of [-12, -4, 4, 12]) box(g, cx + fx, top + 10, 1, 50, P[fx < 0 ? 3 : 1]);
+      for (const fy of [20, 36]) box(g, cx - 18 + (fy - 20) * 0.1, top + fy, 36, 1, P[3]);
+      box(g, cx - 16, top + 6, 2, 12, P[4]); box(g, cx - 14, top + 24, 2, 10, P[4]);
+      g.fillStyle = INK; g.beginPath(); g.moveTo(cx - 12, top + 2); g.lineTo(cx - 9, top - 16); g.lineTo(cx - 3, top + 2); g.closePath(); g.moveTo(cx + 12, top + 2); g.lineTo(cx + 9, top - 16); g.lineTo(cx + 3, top + 2); g.closePath(); g.fill();
+      g.fillStyle = P[3]; g.beginPath(); g.moveTo(cx - 11, top + 1); g.lineTo(cx - 9, top - 13); g.lineTo(cx - 5, top + 1); g.closePath(); g.moveTo(cx + 11, top + 1); g.lineTo(cx + 9, top - 13); g.lineTo(cx + 5, top + 1); g.closePath(); g.fill();
+      box(g, cx - 2, top - 1, 4, 3, IRON[3]);
+      box(g, cx + 4, top + 56, 18, 6, dimc('#8A1A2A', 0.15)); box(g, cx + 4, top + 56, 18, 1, dimc('#C83A4A', 0.15));
+      for (let k = 0; k < 5; k++) { box(g, cx - 18 + k * 8, top + 58, 1, 4, '#C8C8D0'); box(g, cx - 18 + k * 8, top + 57, 2, 2, k % 2 ? '#C81E28' : '#E8C870'); }
+      g.strokeStyle = dimc('#C81E28', 0.1); g.lineWidth = 1; g.beginPath(); g.moveTo(cx + 20, top + 60); g.quadraticCurveTo(cx + 28, top + 68, cx + 25, top + 76); g.stroke();
+      box(g, cx + 24, top + 76, 1, 5, '#C8C8D0');
+      box(g, cx + 10, top + 4, 1, 6, '#C8C8D0'); box(g, cx + 6, top + 10, 12, 8, INK); box(g, cx + 7, top + 11, 10, 6, dimc('#E8E2D0', 0.15)); box(g, cx + 9, top + 13, 6, 1, dimc('#B01818', 0.1)); box(g, cx + 9, top + 15, 4, 1, dimc('#B01818', 0.1)); }
+    // (the shears and a hammer on their hooks, a coil of rope)
+    { const hx = x + 60; g.strokeStyle = INK; g.lineWidth = 3; g.beginPath(); g.moveTo(hx, y + 12); g.lineTo(hx - 3, y + 40); g.moveTo(hx + 2, y + 12); g.lineTo(hx + 6, y + 40); g.stroke();
+      g.strokeStyle = IRON[3]; g.lineWidth = 1.4; g.beginPath(); g.moveTo(hx, y + 14); g.lineTo(hx - 3, y + 39); g.moveTo(hx + 2, y + 14); g.lineTo(hx + 6, y + 39); g.stroke();
+      for (const s of [-1, 1]) { g.strokeStyle = dimc('#141010', 0.1); g.lineWidth = 2; g.beginPath(); g.arc(hx + s * 3, y + 14, 3, 0, Math.PI * 2); g.stroke(); } }
+    { const hx = x + 79; box(g, hx - 1, y + 12, 4, 30, INK); box(g, hx, y + 12, 2, 30, dimc(OAK[3], 0.2)); box(g, hx - 6, y + 38, 14, 7, INK); box(g, hx - 5, y + 39, 12, 5, IRON[3]); box(g, hx - 5, y + 39, 12, 1, IRON[4]); }
+    for (let k = 0; k < 3; k++) { g.strokeStyle = k % 2 ? dimc('#8A6A3A', 0.25) : dimc('#B08A52', 0.25); g.lineWidth = 2; g.beginPath(); g.ellipse(x + 10, y + 26, 8 - k, 11 - k, 0, 0, Math.PI * 2); g.stroke(); }
+    // (the work shelf on its iron brackets: the pincushion (a tomato), a spool, the glue pot, a candle stub, offcuts)
+    const sy = -140;
+    for (const bx of [x + 6, x + w - 14]) { g.fillStyle = INK; g.beginPath(); g.moveTo(bx - 1, sy + 5); g.lineTo(bx + 9, sy + 5); g.lineTo(bx - 1, sy + 26); g.closePath(); g.fill(); g.fillStyle = IRON[1]; g.beginPath(); g.moveTo(bx, sy + 6); g.lineTo(bx + 7, sy + 6); g.lineTo(bx, sy + 22); g.closePath(); g.fill(); }
+    box(g, x - 3, sy - 1, w + 6, 7, INK); box(g, x - 2, sy, w + 4, 5, Wd[2]); box(g, x - 2, sy, w + 4, 1, Wd[3]);
+    g.fillStyle = INK; g.beginPath(); g.ellipse(x + 10, sy - 6, 8, 6, 0, 0, Math.PI * 2); g.fill(); g.fillStyle = dimc('#B82828', 0.15); g.beginPath(); g.ellipse(x + 10, sy - 6, 7, 5, 0, 0, Math.PI * 2); g.fill();
+    box(g, x + 8, sy - 13, 4, 3, dimc('#2E6A2A', 0.2)); for (const [px2, py2] of [[x + 6, sy - 12], [x + 13, sy - 11], [x + 10, sy - 14]] as const) box(g, px2, py2 - 3, 1, 3, '#C8C8D0');
+    box(g, x + 22, sy - 12, 10, 12, INK); box(g, x + 23, sy - 11, 8, 10, dimc(OAK[3], 0.2)); box(g, x + 23, sy - 9, 8, 6, dimc('#141010', 0.1)); box(g, x + 23, sy - 9, 8, 1, dimc('#3A3A48', 0.1));
+    box(g, x + 38, sy - 14, 16, 14, INK); box(g, x + 39, sy - 13, 14, 13, IRON[2]); box(g, x + 39, sy - 13, 14, 2, IRON[4]); box(g, x + 44, sy - 22, 2, 10, dimc(OAK[3], 0.2));
+    box(g, x + 58, sy - 4, 22, 4, dimc('#16161E', 0.1)); box(g, x + 62, sy - 7, 14, 3, dimc('#8A1A2A', 0.15));
+    candleWax(g, x + 82, sy - 9, 8); }
+  // ---- tubs of gainer shoved in among the high shelf's books
+  for (const [tx, lbl] of [[838, '#F0C020'], [860, '#C81E28']] as const) { box(g, tx - 1, -277, 20, 27, INK); box(g, tx, -276, 18, 26, dimc('#2A2A30', 0.2)); box(g, tx, -276, 18, 3, dimc('#4A4A52', 0.2)); box(g, tx + 2, -268, 14, 7, dimc(lbl, 0.25)); box(g, tx + 4, -266, 10, 1, INK); }
+  // ---- the jack-o'-lantern bucket of chalk by the coffin bench, its dust on the boards; handprints on the pillar
+  { const x = 352;
+    g.fillStyle = INK; g.beginPath(); g.ellipse(x, -9, 11, 10, 0, 0, Math.PI * 2); g.fill();
+    g.fillStyle = dimc('#E8741A', 0.2); g.beginPath(); g.ellipse(x, -9, 10, 9, 0, 0, Math.PI * 2); g.fill();
+    box(g, x - 9, -17, 4, 12, dimc('#F8A04A', 0.2)); for (const fx of [-4, 3]) box(g, x + fx, -13, 3, 3, INK); box(g, x - 4, -7, 9, 2, INK);
+    box(g, x - 8, -20, 16, 3, dimc('#E8E2D0', 0.1)); g.strokeStyle = INK; g.lineWidth = 1; g.beginPath(); g.arc(x, -18, 10, Math.PI, 0); g.stroke();
+    checker(g, x - 20, -2, 40, 2, 'rgba(230,226,214,0.4)'); }
+  for (const [hx, hy] of [[PILLAR_LX - 4, -150], [PILLAR_LX + 6, -128]] as const) { g.fillStyle = 'rgba(230,226,214,0.22)'; g.beginPath(); g.ellipse(hx, hy, 4, 5, 0, 0, Math.PI * 2); g.fill(); for (let k = 0; k < 4; k++) box(g, hx - 4 + k * 2.4, hy - 9, 1, 4, 'rgba(230,226,214,0.2)'); box(g, hx - 3, hy + 4, 6, 10, 'rgba(230,226,214,0.1)'); }
+  // ---- the gift shop's rubber bat on its string, off a strut
+  { const x = 787, y = -334;
+    box(g, x, -366, 1, 28, '#9A9AA6');
+    g.fillStyle = INK; g.beginPath(); g.moveTo(x - 16, y - 2); g.lineTo(x - 8, y - 6); g.lineTo(x - 2, y - 2); g.lineTo(x, y - 7); g.lineTo(x + 2, y - 2); g.lineTo(x + 8, y - 6); g.lineTo(x + 16, y - 2); g.lineTo(x + 10, y + 1); g.lineTo(x + 6, y + 5); g.lineTo(x, y + 3); g.lineTo(x - 6, y + 5); g.lineTo(x - 10, y + 1); g.closePath(); g.fill();
+    box(g, x - 2, y - 1, 1, 1, '#E83A3A'); box(g, x + 2, y - 1, 1, 1, '#E83A3A'); box(g, x - 9, y - 3, 6, 1, '#2A2A34'); box(g, x + 4, y - 3, 6, 1, '#2A2A34'); }
+};
+
+/** The near tie-beam across the top in front (silhouette): oak, cobwebs off it, a chain hanging. Local to the loft. */
+const paintNearBeam = (g: Ctx) => {
+  box(g, -40, -H - 40, W + 80, 34, '#050203'); box(g, -40, -H - 8, W + 80, 2, '#1E1012');
+  for (let x = 60; x < W; x += 210) { box(g, x, -H - 8, 26, 12, '#050203'); box(g, x, -H + 3, 26, 1, '#1E1012'); }
+  g.strokeStyle = 'rgba(200,200,214,0.3)'; g.lineWidth = 1;
+  for (const wx of [120, 470, 760]) { g.beginPath(); g.moveTo(wx, -H - 6); g.quadraticCurveTo(wx + 14, -H + 14, wx + 34, -H - 6); g.moveTo(wx + 10, -H - 6); g.lineTo(wx + 14, -H + 10); g.stroke(); }
+  g.strokeStyle = '#050203'; g.lineWidth = 3; g.setLineDash([4, 2]); g.beginPath(); g.moveTo(330, -H - 6); g.lineTo(330, -H + 14); g.stroke(); g.setLineDash([]);
 };
 
 /** The floor: old boards (the lit edge he walks along), the joists under, the dark of the roof void below. */
@@ -376,7 +478,7 @@ export const drawLoftBack = (c: Ctx, state: GameState) => {
   for (let i = 0; i < CH; i++) {
     const bx = -40 + i * cw;
     if (!seen(state, LA + bx, LA + bx + cw, F - H - 60, F + 40)) continue;
-    stamp(c, `sp-loft-${i}`, bx, -H - 40, cw, H + 80, g => { g.save(); g.beginPath(); g.rect(bx, -H - 40, cw, H + 80); g.clip(); paintWall(g); paintStacks(g); paintGym(g); paintLeft(g); paintFloor(g); g.restore(); });
+    stamp(c, `sp-loft-${i}`, bx, -H - 40, cw, H + 80, g => { g.save(); g.beginPath(); g.rect(bx, -H - 40, cw, H + 80); g.clip(); paintWall(g); paintStacks(g); paintGym(g); paintDen(g); paintLeft(g); paintFloor(g); g.restore(); });
   }
   // (the moonlight's dust, drifting down the shaft from the rose window)
   for (let i = 0; i < 10; i++) {
@@ -384,6 +486,8 @@ export const drawLoftBack = (c: Ctx, state: GameState) => {
     c.fillStyle = `rgba(190,210,250,${(0.15 + 0.35 * Math.sin(u * Math.PI)).toFixed(2)})`;
     c.fillRect(Math.round(600 + Math.sin(f * 0.01 + i * 1.7) * (10 + u * 40) + u * 30), Math.round(-250 + u * 250), 2, 2);
   }
+  // (the cauldron's steam on the icebox)
+  for (let i = 0; i < 3; i++) { const u = ((f * 0.5 + i * 33) % 100) / 100; c.fillStyle = `rgba(220,220,228,${(0.3 * (1 - u)).toFixed(2)})`; c.fillRect(Math.round(22 + Math.sin(f * 0.05 + i) * 4), Math.round(-88 - u * 40), Math.round(3 + u * 4), Math.round(3 + u * 4)); }
   // (the stubs on the barbell's stands, lit)
   for (const sx of [COFFIN.a - 18, COFFIN.b + 18]) FLAME(c, sx, -130, f, sx);
   // (the trial's candles: lit, or a wisp off the wick)
@@ -411,6 +515,12 @@ export const drawLoftBack = (c: Ctx, state: GameState) => {
 /** In front of him: Ben's words over his head (only while said; not while his gross-up has them). */
 export const drawLoftFront = (c: Ctx, state: GameState) => {
   const h = loftOf(state);
+  // (the near tie-beam over it all, in silhouette, once the loft's showing)
+  if (h.reveal > 0 && seen(state, LA - 40, LOFT.b, F - H - 60, F - H + 30)) {
+    c.save(); c.globalAlpha = h.reveal; c.beginPath(); c.rect(LA - 40, F - H - 60, W + 40, 100); c.clip(); c.translate(LA, F);
+    stamp(c, 'sp-loft-near', -40, -H - 40, W + 80, 60, paintNearBeam);
+    c.restore();
+  }
   if (h.reveal < 0.5 || !h.ben.said || h.script?.gross) return;
   const at = benAt(state);
   saidOver(c, h.ben.said.text, at.x, benHeadY(at.y), '#FFFFFF', 220);
@@ -439,6 +549,7 @@ export const loftLighting = (base: SceneLight | null, state: GameState): SceneLi
     const k = h.reveal;
     for (const cd of h.candles) if (cd.lit) { const fl = 0.85 + 0.15 * Math.sin(f * 0.3 + cd.lx); lights.push({ x: LA + cd.lx, y: F - cd.h, r: 190, a: 0.8 * fl * k, color: 'rgba(255,180,100,0.12)' }); }
     for (const sx of [COFFIN.a - 18, COFFIN.b + 18]) lights.push({ x: LA + sx, y: F - 136, r: 120, a: 0.5 * k, color: 'rgba(255,180,100,0.08)' });
+    lights.push({ x: LA + 24, y: F - 64, r: 60, a: 0.45 * k, color: 'rgba(248,113,80,0.12)' });
     lights.push({ x: LA + 600, y: F - 300, r: 120, a: 0.6 * k, color: 'rgba(150,180,240,0.12)' });
     lights.push({ x: LA + 600, y: F - 260, r: 260, cone: 80, a: 0.5 * k, color: 'rgba(150,180,240,0.08)' });
     lights.push({ x: p.pos.x + p.width / 2, y: p.pos.y + 20, r: 140, a: 0.35 * k });
