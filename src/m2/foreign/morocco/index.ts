@@ -25,7 +25,7 @@ import { TALK, DYED_LINES, MIXED_LINES, UNDYED_LINES } from './lines';
 import { meatheadSays } from '../section';
 import { pickLine } from '../../../m1/game/platform/speech';
 import { dipDye } from '../../dye';
-import './kinds';
+import { clearSnakeDrops, drawSnakeDrops } from './kinds';
 import { SOUK_CHECKPOINTS, buildSouk, updateSouk, drawSoukBack, drawSoukFront, soukLamps } from './souk';
 import {
   type MaFront, SAND, CLAY, ROSE, OCHRE, drawFront, drawGate, drawHouseBox, drawCrate, drawCarpet, drawTowerArt, vatPaving, drawVat, drawVatFront, drawRackArt,
@@ -120,6 +120,7 @@ export const morocco: ForeignSection = {
     solid(state, X(CUSHIONS.a), Y(CUSHIONS.h), CUSHIONS.b - CUSHIONS.a, CUSHIONS.h, { hidden: true, tag: 'ma-cushions' });
     solid(state, X(SPICE.a), Y(SPICE.h), SPICE.b - SPICE.a, SPICE.h, { hidden: true, tag: 'ma-spice' });
     spawnCast(state, ENEMIES, X, Y);
+    clearSnakeDrops(state);
     for (const [rx, h, type] of PICKUPS) state.pickups.push({ id: `ma-${rx}`, pos: { x: X(rx) - 10, y: Y(h) - 24 }, vel: { x: 0, y: 0 }, width: 20, height: 20, type, life: 1e9 });
   },
   update: (ctx, controls) => {
@@ -196,6 +197,8 @@ export const morocco: ForeignSection = {
     if (onScreen(v, X(TENT.a), X(TENT.b))) hungBoard(c, X((TENT.a + TENT.b) / 2), Y(TENT.h) + 30, Y(TENT.h) + 56, ['HOOKAH LOUNGE', 'APPLE. ONLY APPLE.'], LOOKS.morocco(1), TILEBLUE);
     if (onScreen(v, X(SPICE.a), X(SPICE.b))) postBoard(c, X((SPICE.a + SPICE.b) / 2), Y(SPICE.h), ['SPICES', 'MILD (ALL OF THEM)'], LOOKS.morocco(1), '#7C2D12', undefined, 44);
     drawSoukBack(c, v, state);
+    // (the baskets and snakes the grabbed charmers left on the ground)
+    drawSnakeDrops(c, state);
     // (the flag: red, the green star)
     if (onScreen(v, X(20), X(120))) drawMaFlag(c, X(40), f);
   },

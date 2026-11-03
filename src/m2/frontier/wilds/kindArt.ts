@@ -14,6 +14,7 @@ import type { Enemy } from '../../../m1/types';
 import { stamp } from '../../../m1/game/render/stamp';
 import { limb as stroke } from '../../../m1/game/render/npc/kit';
 import { mix, rampOf, part, INK } from './paint';
+import { heldHow } from '../../held';
 
 type Ctx = CanvasRenderingContext2D;
 type Mood = 'ok' | 'hurt' | 'dead';
@@ -378,12 +379,55 @@ const snakeHead = (c: Ctx, hx: number, hy: number, md: Mood, tonguing: boolean) 
   if (tonguing) { c.strokeStyle = '#D02A2A'; c.lineWidth = 0.8; c.beginPath(); c.moveTo(hx + 8, hy); c.lineTo(hx + 12, hy); c.lineTo(hx + 13.5, hy - 1.4); c.moveTo(hx + 12, hy); c.lineTo(hx + 13.5, hy + 1.4); c.stroke(); }
 };
 
+/** The hole: a dark mouth in a ring of dug dirt. */
+const paintHole = (g: Ctx) => { ink(g, () => g.ellipse(0, -1, 16, 4.4, 0, 0, Math.PI * 2), '#5A3E22', 1); g.fillStyle = '#1A0E06'; g.beginPath(); g.ellipse(0, -1, 12, 2.8, 0, 0, Math.PI * 2); g.fill(); };
+/** A rattler's hole as the ground's own (layout's SNAKE_HOLES): there whether its snake's in it or not (grabbed out of
+ *  it, it's still there; the snake never goes back). At the rattler's size, under where it's drawn. */
+export const drawSnakeHole = (c: Ctx, x: number, feet: number) => { c.save(); c.translate(x, feet); c.scale(1.2, 1.2); put(c, 'rattler-hole', -18, -8, 36, 12, paintHole); c.restore(); };
+
+/** The whole snake, out of its hole (grabbed out of it: in his fist, or down on the ground after): its body strung
+ *  through `pts` (tail first) in the stepped strokes, the diamonds down it, the rattle on the tail end, the head on the
+ *  other. Painted once a frame of it (a stamp). */
+const paintWholeSnake = (g: Ctx, pts: [number, number][], md: Mood, tonguing: boolean, buzz = 0) => {
+  const path = () => { g.beginPath(); g.moveTo(pts[0][0], pts[0][1]); for (let i = 1; i < pts.length - 1; i++) { const mx = (pts[i][0] + pts[i + 1][0]) / 2, my = (pts[i][1] + pts[i + 1][1]) / 2; g.quadraticCurveTo(pts[i][0], pts[i][1], mx, my); } const l = pts[pts.length - 1]; g.lineTo(l[0], l[1]); };
+  // (the rattle off the tail: its stacked segments, along the way the tail points)
+  const [t0, t1] = pts, ta = Math.atan2(t0[1] - t1[1], t0[0] - t1[0]);
+  g.save(); g.translate(t0[0], t0[1] + buzz * 0.5); g.rotate(ta + Math.PI / 2);
+  for (let k = 0; k < 4; k++) ink(g, () => g.ellipse(0, -1.4 - k * 2.4, 2.2 - k * 0.2, 1.4, 0, 0, Math.PI * 2), k % 2 ? '#E8D8A8' : '#C8B888', 0.6);
+  g.restore();
+  g.lineCap = 'round'; g.lineJoin = 'round';
+  g.strokeStyle = INK; g.lineWidth = 6.4; path(); g.stroke();
+  g.strokeStyle = dark(SNAKE, 0.12); g.lineWidth = 4.4; path(); g.stroke();
+  g.strokeStyle = SNAKE; g.lineWidth = 2.6; g.save(); g.translate(0, -0.6); path(); g.stroke(); g.restore();
+  g.strokeStyle = lite(SNAKE, 0.3); g.lineWidth = 1; g.save(); g.translate(-0.4, -1.6); path(); g.stroke(); g.restore();
+  g.lineCap = 'butt'; g.lineJoin = 'miter';
+  // (the diamonds down its back, at the points between)
+  for (let i = 1; i < pts.length - 1; i++) { const [dx, dy] = pts[i]; g.fillStyle = SNAKE_D; g.beginPath(); g.moveTo(dx, dy - 2.4); g.lineTo(dx + 1.8, dy - 0.6); g.lineTo(dx, dy + 1.2); g.lineTo(dx - 1.8, dy - 0.6); g.closePath(); g.fill(); g.fillStyle = '#E8D8A8'; g.fillRect(dx - 0.5, dy - 0.8, 1, 1); }
+  const [hx, hy] = pts[pts.length - 1];
+  snakeHead(g, hx, hy, md, tonguing);
+};
+/** The rattler's ways out of its hole: held (writhing, `fr` 0-2), crawling (slithering, 0-3), rattling at him low (the
+ *  short tell), nipping (out a little way at him, `fr` 0-2), dead (belly up, no hole). Tail at -x, head at +x. */
+const loosePts = (pose: string, fr: number): [number, number][] => {
+  const n = 6, out: [number, number][] = [];
+  for (let i = 0; i <= n; i++) {
+    const t = i / n;
+    if (pose === 'held') { const ph = fr * 2.1; out.push([-22 + t * 36, -12 + Math.sin(t * 6.4 + ph) * (2 + t * 4) - t * 3]); }
+    else if (pose === 'crawl') { const ph = fr * (Math.PI / 2); out.push([-24 + t * 36, -3 + Math.sin(t * 7 + ph) * 2.2 * (1 - t * 0.6) - (t > 0.8 ? (t - 0.8) * 12 : 0)]); }
+    else if (pose === 'buzz') out.push([-22 + t * 30, -3 - Math.max(0, t - 0.55) * 22 + Math.sin(t * 9) * 1.6]);
+    else { const r = [0.3, 0.7, 1][fr] * 14; out.push([-24 + t * (36 + r), -3 - Math.sin(t * Math.PI) * 2 - (t > 0.7 ? (t - 0.7) * 10 : 0)]); }
+  }
+  return out;
+};
+
 export const drawRattler = (c: Ctx, e: Enemy, f: number) => {
   const md = mood(e), st = e.aiState ?? 'hide';
+  // (grabbed out of its hole (any grab, the air grab too): the whole snake from then on, never tied back to a hole, never
+  // the long strike; the hole stays where it was (drawSnakeHole))
+  const loose = !!e.wasGrabbed;
   if (md === 'dead') {
-    put(c, 'rattler-dead', -20, -14, 44, 18, g => {
-      ink(g, () => g.ellipse(0, -1, 16, 4.4, 0, 0, Math.PI * 2), '#5A3E22', 1);
-      g.fillStyle = '#1A0E06'; g.beginPath(); g.ellipse(0, -1, 12, 2.8, 0, 0, Math.PI * 2); g.fill();
+    put(c, loose ? 'rattler-dead-loose' : 'rattler-dead', -20, -14, 44, 18, g => {
+      if (!loose) paintHole(g);
       // (stretched out of the hole, belly up (the pale scutes), limp, a kink in it)
       for (const [col, w] of [[INK, 7.4], ['#E8DCB0', 5.4]] as [string, number][]) { g.strokeStyle = col; g.lineWidth = w; g.lineCap = 'round'; g.beginPath(); g.moveTo(-12, -3); g.quadraticCurveTo(-2, -9, 6, -4); g.quadraticCurveTo(11, -1, 17, -4); g.stroke(); }
       g.strokeStyle = '#B8AC80'; g.lineWidth = 0.8; for (let k = -10; k < 16; k += 3) { g.beginPath(); g.moveTo(k, -6); g.lineTo(k, -2); g.stroke(); }
@@ -392,10 +436,22 @@ export const drawRattler = (c: Ctx, e: Enemy, f: number) => {
     });
     return;
   }
+  if (loose) {
+    let pose = 'crawl', fr = 0;
+    // (in his hands, or flying (let go of, thrown): writhing)
+    if (heldHow(e) || e.vel.y !== 0) { pose = 'held'; fr = Math.floor(f / 5) % 3; }
+    else if (st === 'buzz') pose = 'buzz';
+    else if (st === 'nip') { pose = 'nip'; fr = Math.min(2, Math.floor((e.aiTimer ?? 0) / 2)); }
+    else if (Math.abs(e.vel.x) > 0.1) fr = Math.floor(f / 6) % 4;
+    const buzz = pose === 'buzz' || pose === 'held' ? (f % 4 < 2 ? 1 : -1) : 0;
+    const tonguing = pose !== 'crawl' || f % 40 < 8;
+    put(c, `rattler-${pose}-${fr}-${buzz}-${md}-${tonguing ? 1 : 0}`, -30, -30, 64, 34, g => paintWholeSnake(g, loosePts(pose, fr), md, tonguing, buzz));
+    return;
+  }
   const hidden = st === 'hide';
   const buzz = st === 'rattle' ? Math.round(Math.sin(f * 2.4) * 2) : 0;
   if (!hidden) put(c, `rattler-coil-${buzz}`, -22, -26, 44, 32, g => paintCoil(g, buzz));
-  else put(c, 'rattler-hole', -18, -8, 36, 12, g => { ink(g, () => g.ellipse(0, -1, 16, 4.4, 0, 0, Math.PI * 2), '#5A3E22', 1); g.fillStyle = '#1A0E06'; g.beginPath(); g.ellipse(0, -1, 12, 2.8, 0, 0, Math.PI * 2); g.fill(); });
+  else put(c, 'rattler-hole', -18, -8, 36, 12, paintHole);
   // (the neck and head: peeking out, reared up rattling, or struck out at him (live: its reach goes by the frame))
   const reach = st === 'strike' ? Math.min(1, (e.aiTimer ?? 0) / 6) * 46 : 0;
   const hx = hidden ? 2 : 6 + reach, hy = hidden ? -4 : st === 'rattle' ? -20 : -14 + reach * 0.15;

@@ -16,7 +16,9 @@ import { timeOfDay } from '../../timeOfDay';
 import type { FrontierSection } from '../section';
 import { layOwn, ledge, solid, meatheadSays, byPants, endExits, runExits } from '../section';
 import { SECTIONS, GY } from '../geometry';
-import { GROUND, LEDGES, BOULDERS, ANIMALS, PICKUPS, CHECKPOINTS, WATERS, STATION, X, Y } from './layout';
+import { GROUND, LEDGES, BOULDERS, ANIMALS, PICKUPS, CHECKPOINTS, WATERS, STATION, SNAKE_HOLES, X, Y } from './layout';
+import { drawSnakeHole } from './kindArt';
+import { CANVAS_WIDTH } from '../../../m1/constants';
 import { wildsOf } from './state';
 import { waterAt, layWaterSteps, waterZones, carrySwimmer, surfaceY, drawWaterFront } from './water';
 import { buildLogs, updateLogs, updateFalls, updateBranches, drawLogs, drawBoomAndBranches } from './logs';
@@ -86,6 +88,8 @@ export const wilds: FrontierSection = {
   drawBack: (c, state) => {
     // (the water's body is drawn in among the ground: drawWildsBack)
     drawWildsBack(c, state);
+    // (the rattlers' holes: the ground's, there after a grab's had its snake out of it)
+    for (const rx of SNAKE_HOLES) if (Math.abs(X(rx) - state.camera.x - CANVAS_WIDTH / 2) < CANVAS_WIDTH) drawSnakeHole(c, X(rx), Y(0));
     drawStationBack(c, state);
     drawHazardsBack(c, state);
     drawLogs(c, state);

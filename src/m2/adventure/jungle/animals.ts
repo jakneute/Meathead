@@ -19,6 +19,7 @@ import { hurtPlayer } from '../../../m1/game/bosses/shared';
 import { helmetStopsAt } from '../../upgrades/gear';
 import { registerM2Kind, registerHurtLines } from '../../kinds';
 import { jungleOf } from './state';
+import { heldHow } from '../../held';
 import { HURT } from './lines';
 import { drawMonkeyArt, drawChimpArt, drawJaguarArt, drawBoaArt, drawMacawArt, drawFrogArt } from './animalArt';
 
@@ -166,6 +167,8 @@ const BOA_HANG = 80, BOA_REACH = 175;
 
 const boa = (ctx: FrameContext, e: Enemy) => {
   const { state } = ctx, p = state.player;
+  // (grabbed off its branch, any grab: down on the ground for good)
+  if (e.wasGrabbed) return boaLoose(ctx, e);
   tick(e);
   const ax = e.homeX ?? e.pos.x, ay = e.homeY ?? e.pos.y;
   const pm = mid(p);
@@ -200,6 +203,41 @@ const boa = (ctx: FrameContext, e: Enemy) => {
   return true;
 };
 
+/** Off its branch for good (the owner's: an air grab should "dismount" it, a "crawl" state if it gets dislodged): a
+ *  ground animal from then on (the engine's gravity and ground under it), slithering at him, coiled back up close (the
+ *  tell), a short lunge (its bite: its touch), then off away from him a while. Never back up to the branch. */
+const boaLoose = (ctx: FrameContext, e: Enemy) => {
+  const { state } = ctx, p = state.player;
+  tick(e);
+  const pm = mid(p), em = mid(e), d = Math.abs(pm.x - em.x), level = Math.abs(pm.y - em.y) < 70;
+  const go = (dir: 1 | -1, speed: number) => { e.facing = dir; e.vel.x = safeAhead(ctx, e, dir, 14) ? dir * speed : 0; };
+  switch (e.aiState) {
+    default:
+      setState(e, 'crawl');
+      e.vel.x = 0;
+      break;
+    case 'crawl':
+      if (alive(state) && !holdingOff(state) && d < 420 && Math.abs(pm.y - em.y) < 140) {
+        go(dirTo(e, pm.x), 1.2);
+        if (d < 80 && level && e.aiTimer > 24) { setState(e, 'coil'); e.vel.x = 0; }
+      } else e.vel.x = 0;
+      break;
+    case 'coil':
+      e.vel.x = 0; e.facing = dirTo(e, pm.x);
+      if (e.aiTimer > 20) setState(e, 'strike');
+      break;
+    case 'strike':
+      e.vel.x = e.aiTimer < 8 && safeAhead(ctx, e, e.facing ?? 1, 14) ? (e.facing ?? 1) * 4.5 : 0;
+      if (e.aiTimer > 14) setState(e, 'flee');
+      break;
+    case 'flee':
+      go((-dirTo(e, pm.x)) as 1 | -1, 1.5);
+      if (e.aiTimer > 50) setState(e, 'crawl');
+      break;
+  }
+  return false;
+};
+
 const drawBoa = (c: Ctx, e: Enemy, f: number) => {
   // (the branch it's wrapped round, back from its head: in its own coordinates, turned with it)
   // (torn off it, in his fist or flying: the tail just hangs off it, whipping about)
@@ -210,8 +248,12 @@ const drawBoa = (c: Ctx, e: Enemy, f: number) => {
   const toBranch = { x: ((e.homeX ?? 0) - (e.pos.x + e.width / 2)) * fx, y: (e.homeY ?? 0) - (e.pos.y + e.height) };
   // (alive and still hung on, knocked about by a charge however far: its tail stretches back to the branch, never cut
   // loose (the user's: the snapper's stalk going when its head's knocked far off its root; the same here))
-  const hung = e.health > 0 && e.aiState !== 'loose' && e.homeY !== undefined && e.homeX !== undefined;
-  const loose = !hung && (e.aiState === 'loose' || !!e.isBlownAway || e.homeY === undefined || e.homeX === undefined || !(Math.hypot(toBranch.x, toBranch.y) < BOA_HANG + BOA_REACH + 40));
+  // (grabbed off it, any grab: never hung on it again; in his arms or flying the tail hangs off it, down on the ground
+  // after it lies along the ground behind its head, slithering)
+  const hung = e.health > 0 && e.aiState !== 'loose' && !e.wasGrabbed && e.homeY !== undefined && e.homeX !== undefined;
+  const loose = !hung && (e.aiState === 'loose' || !!e.wasGrabbed || !!e.isBlownAway || e.homeY === undefined || e.homeX === undefined || !(Math.hypot(toBranch.x, toBranch.y) < BOA_HANG + BOA_REACH + 40));
+  const lying = loose && !!e.wasGrabbed && !heldHow(e) && e.vel.y === 0;
+  if (lying) { const coil = e.aiState === 'coil' ? 12 : 0; drawBoaArt(c, e, f, -52 + coil, -6, true, -6 + Math.sin(f * (Math.abs(e.vel.x) > 0.1 ? 0.25 : 0.05)) * 5 - coil * 0.8); return; }
   const ax = loose ? -34 + Math.sin(f * 0.4) * 6 : toBranch.x, ay = loose ? hy + 30 : toBranch.y;
   drawBoaArt(c, e, f, ax, ay, loose);
 };
@@ -284,7 +326,9 @@ registerM2Kind({ kind: 'm2:monkey', stats: { w: 28, h: 36, hp: 14, contact: 6, m
 // (the chimp's on two legs, like a person: grabbed by the neck, pinned and shaken, keeling over, as people are)
 registerM2Kind({ kind: 'm2:chimp', stats: { w: 40, h: 54, hp: 80, contact: 14, mass: 70 }, ai: chimp, draw: drawChimp, head: { x: 11, y: -44, r: 10 }, gender: 'n', grab: 'body', humanoid: true, pathing: false });
 registerM2Kind({ kind: 'm2:jaguar', stats: { w: 72, h: 36, hp: 120, contact: 18, mass: 100 }, ai: jaguar, draw: drawJaguar, head: { x: 32, y: -28, r: 10 }, gender: 'n', grab: 'body' });
-registerM2Kind({ kind: 'm2:boa', stats: { w: 28, h: 20, hp: 35, contact: 12, mass: 60, air: true }, ai: boa, make: flyer, draw: drawBoa, head: { x: 4, y: -10, r: 9 }, gender: 'n', grab: 'critter' });
+registerM2Kind({ kind: 'm2:boa', stats: { w: 28, h: 20, hp: 35, contact: 12, mass: 60, air: true }, ai: boa, make: flyer, draw: drawBoa, head: { x: 4, y: -10, r: 9 }, gender: 'n', grab: 'critter',
+  // (off its branch: no flyer any more, a snake on the ground (boaLoose), falling when it's let go of like anything else)
+  onTaken: (_state, e) => { e.enemyType = 'tank'; e.returnHome = false; } });
 registerM2Kind({ kind: 'm2:macaw', stats: { w: 30, h: 22, hp: 14, contact: 8, mass: 3, air: true }, ai: macaw, make: flyer, draw: drawMacaw, head: { x: 10, y: -15, r: 6 }, gender: 'n', grab: 'critter' });
 registerM2Kind({ kind: 'm2:frog', stats: { w: 22, h: 16, hp: 8, contact: 10, mass: 2 }, ai: frog, draw: drawFrog, head: { x: 5, y: -10, r: 5 }, gender: 'n', grab: 'critter' });
 

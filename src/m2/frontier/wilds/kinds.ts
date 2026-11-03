@@ -313,6 +313,8 @@ const beaver = (ctx: FrameContext, e: Enemy) => {
 
 const rattler = (ctx: FrameContext, e: Enemy) => {
   const { state } = ctx, p = state.player;
+  // (grabbed out of its hole, any grab: out on the ground for good)
+  if (e.wasGrabbed) return rattlerLoose(ctx, e);
   tick(e);
   const pm = mid(p), em = mid(e);
   e.vel.x = 0; e.vel.y = 0;
@@ -339,6 +341,43 @@ const rattler = (ctx: FrameContext, e: Enemy) => {
       break;
   }
   return true;
+};
+
+/** Out of its hole for good (the owner's: an air grab should "dismount" it, a "crawl" state if it gets dislodged):
+ *  slithering along the ground at him, a short rattle up close (the tell), a short nip (nothing like the strike out of
+ *  the hole), then off away from him a while. Never back in a hole; the engine's ground and gravity under it. */
+const rattlerLoose = (ctx: FrameContext, e: Enemy) => {
+  const { state } = ctx, p = state.player;
+  tick(e);
+  const pm = mid(p), em = mid(e), d = Math.abs(pm.x - em.x), level = Math.abs(pm.y - em.y) < 60;
+  const go = (dir: 1 | -1, speed: number) => { e.facing = dir; e.vel.x = safeAhead(ctx, e, dir, 14) ? dir * speed : 0; };
+  switch (e.aiState) {
+    default:
+      setState(e, 'crawl');
+      e.vel.x = 0;
+      break;
+    case 'crawl':
+      if (sees(state, e, 420, 120)) {
+        go(dirTo(e, pm.x), 1.1);
+        if (d < 58 && level && e.aiTimer! > 20) { setState(e, 'buzz'); e.vel.x = 0; }
+      } else { e.vel.x = 0; }
+      break;
+    case 'buzz':
+      e.vel.x = 0; e.facing = dirTo(e, pm.x);
+      if (e.aiTimer! % 6 === 0) playSound('click', 0.35, 14);
+      if (e.aiTimer! > 18) { setState(e, 'nip'); playSound('whoosh', 0.4, 14); }
+      break;
+    case 'nip':
+      e.vel.x = 0;
+      if (e.aiTimer! >= 3 && e.aiTimer! <= 8) strike(ctx, e, { x: e.facing! > 0 ? em.x : em.x - 34, y: e.pos.y - 10, w: 34, h: 26 }, 7, 'm2:fr_rattler', 3);
+      if (e.aiTimer! > 16) setState(e, 'flee');
+      break;
+    case 'flee':
+      go((-dirTo(e, pm.x)) as 1 | -1, 1.4);
+      if (e.aiTimer! > 50) setState(e, 'crawl');
+      break;
+  }
+  return false;
 };
 
 // ---------------------------------------------------------------------------------------------------------------

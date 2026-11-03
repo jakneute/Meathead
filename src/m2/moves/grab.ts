@@ -526,6 +526,8 @@ const lungeHits = (state: GameState, dir: number) => {
  * user's: "interrupted by the very enemy i'm shaking"; the owner's "they are getting grabbed"). Every grab.
  */
 const take = (state: GameState, e: Enemy) => {
+  // (the first time: its own say (the snake charmer's basket and snake left lying where he stood))
+  if (!e.wasGrabbed) m2Kind(e.kind)?.onTaken?.(state, e);
   e.wasGrabbed = true; state.enemies = state.enemies.filter(o => o !== e);
   e.melee = undefined; e.throwWindup = undefined;
   const ex = e.pos.x + e.width / 2, ey = e.pos.y + e.height / 2;
@@ -1136,6 +1138,10 @@ const stepGrab = (ctx: FrameContext, g: Grab, controls: Controls): Controls => {
       }
       if (hit) {
         // Got him: a hop up together, then the arc down
+        // (a critter of Meathead 2's own, torn loose from its hole, its branch, its stalk, as the one-handed grab tears it:
+        // drawn whole in his arms, never strung back to where it was (the owner's: "you see its neck extend outwards
+        // everywhere"))
+        if (isCritter(hit) && m2Kind(hit.kind)) hit.aiState = 'loose';
         g.phase = 'aarc'; g.t = 0; g.held = hit; take(state, hit); g.fall = 0; g.ang = 0; g.arc = 'down'; g.arcJump = true;
         g.avy = Math.min(p.vel.y, -A.ARC_POP);
         hit.facing = (-g.dir) as 1 | -1;

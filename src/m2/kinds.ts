@@ -53,6 +53,9 @@ export interface M2Kind {
    * closes on air). Unset: 'body' for a humanoid, otherwise 'none'.
    */
   grab?: 'body' | 'critter' | 'none';
+  /** The first time any grab takes it out of the world's hands (moves/grab.ts take): its own business then (the snake
+   *  charmer's basket left lying where he stood). Every grab after that it's already `wasGrabbed`. */
+  onTaken?: (state: GameState, e: Enemy) => void;
   /** Grabbing it hurts him (a poison frog in his bare hand, a live eel): the damage, and when (unset: always). Its hurt lines are its own kind's. */
   grabHurts?: { dmg: number; when?: (e: Enemy) => boolean };
   /** A grab that's got to it (the hands on it, the lunge into it) and can't have it: its own reaction (a boss's: the

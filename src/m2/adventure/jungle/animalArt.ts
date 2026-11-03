@@ -299,7 +299,8 @@ const paintBoaHead = (g: Ctx, pose: string, fr: number, md: Mood) => {
   else if (!open && fr > 0) { const L = fr === 1 ? 6 : 10; g.strokeStyle = '#DC2626'; g.lineWidth = 1.4; g.beginPath(); g.moveTo(17, 0); g.lineTo(17 + L, 0); g.lineTo(20 + L, -2); g.moveTo(17 + L, 0); g.lineTo(20 + L, 2); g.stroke(); }
 };
 
-export const drawBoaArt = (c: Ctx, e: Enemy, f: number, ax: number, ay: number, loose: boolean) => {
+/** `sag`: where the body's curve bows to (its control point's y), when it's not hanging (lying along the ground). */
+export const drawBoaArt = (c: Ctx, e: Enemy, f: number, ax: number, ay: number, loose: boolean, sag?: number) => {
   const md = mood(e), hx = 0, hy = -e.height / 2;
   // The coils round the branch: three rings, lit on top
   if (!loose) for (let i = -1; i <= 1; i++) {
@@ -309,7 +310,7 @@ export const drawBoaArt = (c: Ctx, e: Enemy, f: number, ax: number, ay: number, 
     c.fillStyle = '#6E4A1E'; c.fillRect(ax + i * 9 - 2, ay + 1, 4, 3);
   }
   // The body hanging between: stepped strokes (the ink, the shadow, the green, the lit back), the saddles along it
-  const mx = (ax + hx) / 2 + Math.sin(f * 0.05) * 10, my = Math.max(ay, hy) + 20;
+  const mx = (ax + hx) / 2 + (sag === undefined ? Math.sin(f * 0.05) * 10 : 0), my = sag ?? Math.max(ay, hy) + 20;
   const path = () => { c.beginPath(); c.moveTo(ax, ay); c.quadraticCurveTo(mx, my, hx - 6, hy); };
   c.lineCap = 'round';
   for (const [col, w, dy] of [[INK, 13, 0], [BOA[0], 11, 0], [BOA[2], 8, -1], [BOA[3], 3, -3]] as [string, number, number][]) { c.save(); c.translate(0, dy); c.strokeStyle = col; c.lineWidth = w; path(); c.stroke(); c.restore(); }

@@ -12,6 +12,10 @@
 
 import type { FrameContext } from '../../../m1/game/core/context';
 import type { Enemy } from '../../../m1/types';
+import type { GameState } from '../../../m1/game/core/state';
+import { CANVAS_WIDTH } from '../../../m1/constants';
+import { stamp } from '../../../m1/game/render/stamp';
+import { floorTopAt } from '../../../m1/game/core/terrain';
 import { playSound } from '../../../m1/game/platform/audio';
 import { safeAhead } from '../../../m1/game/enemies/kinds';
 import { lookOf } from '../../adventure/temple/people';
@@ -110,7 +114,8 @@ const SNAKES = [['#4D7C0F', '#A3E635', '#1A2E05'], ['#A16207', '#FDE047', '#4220
  *  one on a stick, in steps: its scales banded, its pale belly, its eyes, its tongue): peeking, swaying up (the tell),
  *  out low and long (the strike). */
 const drawSnake = (c: Ctx, e: Enemy, f: number) => {
-  if (e.health <= 0 || !e.id) return;
+  // (grabbed, any grab: the snake and its basket were left lying where he stood (dropSnake); he's without them now)
+  if (e.health <= 0 || !e.id || e.wasGrabbed) return;
   const bx = 26, st = e.aiState, [sc, belly, dark] = SNAKES[Math.abs(Math.round(e.initialX || 0)) % SNAKES.length];
   const sway = Math.sin(f * 0.15) * 4;
   let pts: [number, number][];
@@ -135,6 +140,62 @@ const drawSnake = (c: Ctx, e: Enemy, f: number) => {
   for (let k = 0; k < 3; k++) { px(c, bx - 11, -17 + k * 6, 22, 1, '#78350F'); for (let x = bx - 10 + (k % 2) * 2; x < bx + 10; x += 4) px(c, x, -16 + k * 6, 2, 2, '#D97706'); }
   px(c, bx - 13, -21, 26, 3, INK); px(c, bx - 12, -21, 24, 2, '#D97706'); px(c, bx - 12, -21, 24, 1, '#FCD34D');
   part(c, () => c.ellipse(bx - 18, -4, 4, 9, 0.35, 0, Math.PI * 2), '#B45309', bx - 22, -13, 8, 18, 1);
+};
+
+/** Where a grabbed charmer's basket and snake were left: the spot on the ground (x: the basket's), the way he faced,
+ *  the snake's colors. Per run (a fresh state, a rebuilt Morocco: none). */
+interface Drop { x: number; y: number; face: 1 | -1; k: number }
+const DROPS = new WeakMap<GameState, Drop[]>();
+/** Grabbed (the owner's: the rubber snake on its stick comes out of his hands): the basket tipped over on the ground
+ *  where he stood, at his feet's depth, the snake lying limp out of it, the stick it's on showing. */
+const dropSnake = (state: GameState, e: Enemy) => {
+  const face = (e.facing ?? 1) as 1 | -1, x = e.pos.x + e.width / 2 + face * 26, feet = e.pos.y + e.height;
+  const y = floorTopAt(state.blocks, x, feet, 4) ?? feet;
+  let l = DROPS.get(state);
+  if (!l) DROPS.set(state, (l = []));
+  l.push({ x, y, face, k: Math.abs(Math.round(e.initialX || 0)) % SNAKES.length });
+  playSound('thud', 0.4, 10);
+};
+export const clearSnakeDrops = (state: GameState) => { DROPS.delete(state); };
+const paintDrop = (g: Ctx, k: number) => {
+  const [sc, belly, dark] = SNAKES[k];
+  // (the lid, rolled off behind it)
+  part(g, () => g.ellipse(-24, -2.5, 9, 2.6, 0, 0, Math.PI * 2), '#B45309', -33, -5, 18, 5, 1);
+  px(g, -31, -4, 14, 1, '#FCD34D');
+  // (the basket on its side: the weave in columns now, its rim round the mouth to the right, the dark inside)
+  part(g, () => g.roundRect(-14, -22, 22, 22, 4), '#B45309', -14, -22, 22, 22, 1);
+  for (let k2 = 0; k2 < 3; k2++) { px(g, -11 + k2 * 6, -21, 1, 20, '#78350F'); for (let y = -20 + (k2 % 2) * 2; y < -2; y += 4) px(g, -10 + k2 * 6, y, 2, 2, '#D97706'); }
+  px(g, -14, -21, 1, 20, lt('#B45309', 0.3));
+  px(g, 6, -23, 4, 24, INK); px(g, 7, -22, 2, 22, '#D97706'); px(g, 7, -22, 1, 22, '#FCD34D');
+  part(g, () => g.ellipse(8, -11, 3, 9, 0, 0, Math.PI * 2), '#1C1008', 5, -20, 6, 18, 0.6);
+  // (the stick, out the far end of it: it was never a real one)
+  limb(g, 12, -2, 46, -3, 2, '#A16207'); px(g, 14, -3, 31, 1, '#CA8A04');
+  // (the rubber snake, limp along the ground out of the mouth: its scales, its belly, its eyes gone dull)
+  const pts: [number, number][] = [[8, -7], [18, -4], [28, -5], [38, -3]];
+  const path = () => { g.beginPath(); pts.forEach(([x, y], i) => (i ? g.lineTo(x, y) : g.moveTo(x, y))); };
+  g.lineCap = 'round'; g.lineJoin = 'round';
+  g.strokeStyle = INK; g.lineWidth = 7; path(); g.stroke();
+  g.strokeStyle = sc; g.lineWidth = 5; path(); g.stroke();
+  g.strokeStyle = lt(sc, 0.3); g.lineWidth = 1.5; g.save(); g.translate(-0.5, -1.4); path(); g.stroke(); g.restore();
+  g.strokeStyle = belly; g.lineWidth = 1.2; g.save(); g.translate(0, 1.8); path(); g.stroke(); g.restore();
+  g.lineCap = 'butt'; g.lineJoin = 'miter';
+  for (let i = 0; i < pts.length - 1; i++) { const [ax, ay] = pts[i], [bx2, by] = pts[i + 1]; for (let t = 0.25; t < 1; t += 0.4) px(g, ax + (bx2 - ax) * t - 1, ay + (by - ay) * t - 2, 2, 2, dark); }
+  const [hx, hy] = pts[pts.length - 1];
+  part(g, () => g.ellipse(hx + 3, hy - 0.5, 5.5, 3.6, 0, 0, Math.PI * 2), sc, hx - 3, hy - 4, 12, 7, 1);
+  px(g, hx + 2, hy - 3, 2, 1, INK); px(g, hx + 1, hy + 1.5, 6, 1, belly);
+  limb(g, hx + 8, hy + 0.5, hx + 11, hy + 2.5, 0.8, '#DC2626', false);
+};
+/** The baskets and snakes the grabbed charmers left (Morocco's drawBack: on the ground, behind whoever's about). */
+export const drawSnakeDrops = (c: Ctx, state: GameState) => {
+  const l = DROPS.get(state);
+  if (!l) return;
+  const cx = state.camera.x + CANVAS_WIDTH / 2;
+  for (const d of l) {
+    if (Math.abs(d.x - cx) > CANVAS_WIDTH) continue;
+    c.save(); c.translate(d.x, d.y); if (d.face < 0) c.scale(-1, 1);
+    stamp(c, `ma-snakedrop-${d.k}`, -36, -26, 86, 30, g => paintDrop(g, d.k));
+    c.restore();
+  }
 };
 
 const FUZZ = ['#C08A4A', '#A16207', '#D6A15E', '#E2B880'];
@@ -221,8 +282,13 @@ castKind({
 castKind({
   kind: 'm2:fl_snakecharmer', costume: SNAKE_COSTUME, stats: { w: 36, h: 72, hp: 90, contact: 4, mass: 170 },
   voice: V.snake, pool: SNAKE, speed: 0.5, range: [40, 128], reachY: 60, tell: 26, strikeFor: 14, after: 24, cooldown: 45,
-  strike: (ctx, e) => { playSound('whoosh', 0.6, 16); if (meleeHit(ctx, e, 124, 9, 'm2:fl_snake', 7, 40)) playSound('crunch', 0.6, 14); },
+  strike: (ctx, e) => {
+    // (his snake gone (grabbed: dropSnake): all he's got is the recorder, jabbed at him; up close only, and it hardly hurts)
+    if (e.wasGrabbed) { playSound('whoosh', 0.4, 20); if (meleeHit(ctx, e, 44, 4, 'm2:fl_snakecharmer', 3, 40)) playSound('punch', 0.4, 16); return; }
+    playSound('whoosh', 0.6, 16); if (meleeHit(ctx, e, 124, 9, 'm2:fl_snake', 7, 40)) playSound('crunch', 0.6, 14);
+  },
   drawExtra: drawSnake,
+  onTaken: dropSnake,
 });
 
 castKind({

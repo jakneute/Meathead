@@ -179,6 +179,8 @@ export interface CastDef {
   pathing?: boolean;
   grab?: 'body' | 'critter' | 'none';
   drawExtra?: (c: Ctx, e: Enemy, f: number) => void;
+  /** The first time a grab takes it (see M2Kind's onTaken). */
+  onTaken?: (state: GameState, e: Enemy) => void;
 }
 
 const TURNING = new WeakMap<Enemy, number>();
@@ -258,7 +260,7 @@ export const castKind = (d: CastDef) => {
   registerM2Kind({
     kind: d.kind, stats: d.stats, humanoid: true, head: d.head ?? { x: 1, y: -66, r: 10 },
     gender: d.woman === undefined ? (e => (womanOf(e) ? 'f' : 'm')) : d.woman ? 'f' : 'm',
-    pointy: d.pointy, spiky: d.spiky, pathing: d.pathing, grab: d.grab,
+    pointy: d.pointy, spiky: d.spiky, pathing: d.pathing, grab: d.grab, onTaken: d.onTaken,
     make: d.shield ? b => ({ ...b, enemyType: 'shield', isShieldActive: true }) : undefined,
     ai: castAI(d),
     draw: (c, e, f) => { drawCast(c, e, f, d.costume, d.woman, d.poseFor, d.variantOf?.(e) ?? ''); d.drawExtra?.(c, e, f); },
