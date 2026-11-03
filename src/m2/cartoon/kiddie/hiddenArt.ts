@@ -463,11 +463,91 @@ const paintProps = (g: Ctx, sx: number) => {
   for (let k = 0; k < 7; k++) ball(g, sx + 60 + hash(k + 3300) * 160, -5 - hash(k + 3400) * 6, 6, BALLS[(k * 5 + 2) % BALLS.length]);
 };
 
+// ---- Ben's dressing, more of it (the owner: "make the details in bens lairs in general more....detailed"): his
+// workbench along the wall by the cot (a plank on angle iron over the tubs: a vise with a foam mascot glove in it, the
+// next glove half plated with hubcaps and bolts, a rivet gun, a can of bolts, a mascot's googly eye), the pegboard over
+// it (a hammer, wrenches, a hacksaw, the welding mask), the weld scorch on the dirt behind; a stolen SNOOZLE CHOO ride
+// sign nailed up crooked; his second poster (YOUR MOM CALLED. SHE SAID DO LEGS.) on notebook paper; a mini fridge by the
+// ball heap with a magnet and a SILLYVILLE sticker. All set dressing (dimmed: none of it's stood on).
+const paintDress = (g: Ctx) => {
+  const W8 = dimR(WOOD, 0.3), S8 = dimR(STEEL, 0.34), I8 = dimR(IRONP, 0.2);
+  // ---- the pegboard over the bench, the tools on its hooks
+  { const x = 792, y = -176, w = 92, h = 64, PG: Ramp = dimR(['#C8A070', '#A68052', '#8A6640', '#6A4C2E', '#2E2010'], 0.3);
+    shapeR(g, () => g.rect(x, y, w, h), PG, x, x + w, 1);
+    for (let yy = y + 5; yy < y + h - 2; yy += 6) for (let xx = x + 4; xx < x + w - 2; xx += 6) pxR(g, xx, yy, 1, 1, PG[3]);
+    // (the hammer, two wrenches, the hacksaw, the mask)
+    shapeR(g, () => g.rect(x + 9, y + 12, 3, 30), W8, x + 9, x + 12, 0.8); shapeR(g, () => g.rect(x + 4, y + 8, 13, 6), I8, x + 4, x + 17, 0.8);
+    for (const [wx, l] of [[x + 24, 34], [x + 31, 26]] as const) { shapeR(g, () => g.rect(wx, y + 10, 3, l), S8, wx, wx + 3, 0.7); shapeR(g, () => g.roundRect(wx - 3, y + 6, 9, 6, 2), S8, wx - 3, wx + 6, 0.7); }
+    lineR(g, [x + 40, y + 12, x + 64, y + 12, x + 64, y + 26, x + 40, y + 26, x + 40, y + 12], 1.6, S8[4]); lineR(g, [x + 41, y + 25, x + 63, y + 25], 1, S8[0]);
+    shapeR(g, () => g.rect(x + 37, y + 22, 5, 9), dimR(BUMPER, 0.3), x + 37, x + 42, 0.7);
+    shapeR(g, () => g.roundRect(x + 68, y + 10, 18, 24, 3), dimR(['#4A4A56', '#34343C', '#2A2A30', '#202026', '#0C0C10'], 0.1), x + 68, x + 86, 0.9);
+    pxR(g, x + 71, y + 17, 12, 5, '#1E3A22'); pxR(g, x + 71, y + 17, 4, 1, '#5A8A5A');
+    for (const [nx, ny] of [[x + 10, y + 10], [x + 25, y + 8], [x + 32, y + 8], [x + 52, y + 10], [x + 77, y + 8]]) pxR(g, nx, ny, 2, 2, '#B8B8C4');
+  }
+  // ---- the weld scorch on the dirt behind the bench: a sooty bloom, spatter
+  for (let k = 0; k < 4; k++) { g.fillStyle = `rgba(10,4,10,${(0.14 + k * 0.07).toFixed(2)})`; g.beginPath(); g.ellipse(846, -86, 44 - k * 9, 20 - k * 4, 0, 0, Math.PI * 2); g.fill(); }
+  for (let k = 0; k < 18; k++) pxR(g, 810 + hash(k + 7100) * 76, -104 + hash(k + 7200) * 34, 1, 1, k % 3 ? 'rgba(240,190,110,0.7)' : 'rgba(255,244,200,0.8)');
+  // ---- the bench: a scaffold plank on angle-iron legs, a shelf rail under (the tubs stand under it)
+  { const x = 784, w = 104;
+    for (const lx of [x + 2, x + w - 6]) { shapeR(g, () => g.rect(lx, -66, 4, 66 + PB), S8, lx, lx + 4, 0.9); }
+    shapeR(g, () => g.rect(x, -72, w, 7), W8, x, x + w, 1); pxR(g, x + 1, -71, w - 2, 1, W8[0]);
+    for (let k = 0; k < 4; k++) pxR(g, x + 12 + k * 24, -70, 1, 4, W8[3]);
+    // (the vise at its west end, a foam mascot glove in its jaws: big, white, four fingers)
+    shapeR(g, () => g.rect(x + 4, -84, 22, 12), dimR(BLUEP, 0.2), x + 4, x + 26, 0.9); shapeR(g, () => g.rect(x + 13, -90, 4, 6), S8, x + 13, x + 17, 0.7);
+    const GL: Ramp = dimR(['#FFFFFF', '#E4E6EE', '#BEC2CE', '#8E92A2', '#2A2C36'], 0.18);
+    shapeR(g, () => { g.moveTo(x + 2, -88); g.quadraticCurveTo(x + 2, -108, x + 14, -110); g.quadraticCurveTo(x + 30, -112, x + 30, -96); g.lineTo(x + 28, -86); g.closePath(); }, GL, x + 2, x + 30, 1);
+    for (let k = 0; k < 3; k++) lineR(g, [x + 8 + k * 7, -110 + Math.abs(k - 1) * 2, x + 8 + k * 7, -100], 0.7, GL[3]);
+    // (the next glove lying on the bench, half plated: hubcaps and bolts on its back, a fresh bead)
+    shapeR(g, () => g.ellipse(x + 52, -80, 18, 8, -0.1, 0, Math.PI * 2), GL, x + 34, x + 70, 1);
+    for (const [fx, fy] of [[x + 66, -86], [x + 70, -80], [x + 68, -74]] as const) shapeR(g, () => g.ellipse(fx, fy, 5, 3.4, 0, 0, Math.PI * 2), GL, fx - 5, fx + 5, 0.8);
+    shapeR(g, () => g.ellipse(x + 48, -82, 8, 5, 0, 0, Math.PI * 2), S8, x + 40, x + 56, 0.9); ellR(g, x + 48, -82, 2.4, 1.6, S8[3]); pxR(g, x + 44, -85, 3, 1, S8[0]);
+    for (let k = 0; k < 5; k++) pxR(g, x + 38 + k * 6, -74, 2, 2, S8[2]);
+    for (let k = 0; k < 6; k++) pxR(g, x + 56 + k * 2, -88 + (k & 1), 2, 1, 'rgba(255,220,140,0.85)');
+    // (the rivet gun, a can of bolts, the googly eye off a mascot's head)
+    shapeR(g, () => { g.moveTo(x + 74, -84); g.lineTo(x + 92, -84); g.lineTo(x + 92, -78); g.lineTo(x + 82, -78); g.lineTo(x + 80, -72); g.lineTo(x + 76, -72); g.closePath(); }, dimR(BUMPER, 0.25), x + 74, x + 92, 0.9);
+    pxR(g, x + 92, -82, 4, 2, S8[1]);
+    shapeR(g, () => g.rect(x + 94, -88, 9, 16), S8, x + 94, x + 103, 0.8); for (let k = 0; k < 3; k++) pxR(g, x + 95 + k * 3, -90, 2, 2, I8[1]);
+    ellR(g, x + 30, -76, 5, 5, '#1A1028'); ellR(g, x + 30, -76, 4, 4, '#E8E8F0'); ellR(g, x + 31, -75, 2, 2, '#1A1028');
+  }
+  // ---- the SNOOZLE CHOO ride sign, stolen, nailed up crooked: candy-striped plywood, a cloud cut out at one end
+  { const x = 404, y = -296;
+    g.save(); g.translate(x, y); g.rotate(-0.06);
+    const SG: Ramp = dimR(['#FDE68A', '#FACC15', '#D4A60E', '#8A6A08', '#2A2004'], 0.25);
+    shapeR(g, () => g.roundRect(-58, -14, 116, 28, 10), SG, -58, 58, 1.2);
+    for (let k = -50; k < 50; k += 14) pxR(g, k, -12, 6, 2, dimR(BUMPER, 0.25)[1]);
+    for (let k = -50; k < 50; k += 14) pxR(g, k + 7, 10, 6, 2, dimR(BLUEP, 0.25)[1]);
+    shapeR(g, () => { g.ellipse(64, -6, 10, 8, 0, 0, Math.PI * 2); g.ellipse(72, 2, 8, 7, 0, 0, Math.PI * 2); }, dimR(['#FFFFFF', '#E4E6EE', '#BEC2CE', '#8E92A2', '#2A2C36'], 0.25), 54, 80, 1);
+    for (const [nx, ny] of [[-52, -8], [52, -8]] as const) pxR(g, nx, ny, 2, 2, '#9A9AA6');
+    if (fontReady()) { g.font = '7px "Press Start 2P"'; g.textAlign = 'center'; g.fillStyle = '#2A1408'; g.fillText('SNOOZLE CHOO', 1, 5); g.fillStyle = mixHex('#B4282A', '#1C1024', 0.2); g.fillText('SNOOZLE CHOO', 0, 4); g.textAlign = 'left'; }
+    g.restore();
+  }
+  // ---- his second poster, on notebook paper: YOUR MOM CALLED. SHE SAID DO LEGS.
+  { const x = 924, y = -284, w = 68, h = 66, NP: Ramp = dimR(['#F8F8F0', '#E4E4DA', '#C8C8BC', '#9A9A8E', '#2A2A24'], 0.22);
+    shapeR(g, () => g.rect(x, y, w, h), NP, x, x + w, 1);
+    for (let yy = y + 12; yy < y + h - 2; yy += 7) pxR(g, x + 2, yy, w - 4, 1, 'rgba(90,130,200,0.35)');
+    pxR(g, x + 10, y + 2, 1, h - 4, 'rgba(210,80,80,0.4)');
+    for (let k = 0; k < 4; k++) ellR(g, x + 5, y + 10 + k * 15, 1.6, 1.6, '#3A2A30');
+    if (fontReady()) { g.font = '6px "Press Start 2P"'; g.textAlign = 'center'; g.fillStyle = '#2A2A44'; [['YOUR MOM', 18], ['CALLED.', 26], ['SHE SAID', 40], ['DO LEGS.', 49]].forEach(([t, dy]) => g.fillText(t as string, x + w / 2 + 3, y + (dy as number))); g.fillStyle = '#B4282A'; g.fillRect(x + 18, y + 51, 40, 1); g.textAlign = 'left'; }
+    for (const [tx, ty, r] of [[x - 2, y - 2, -0.3], [x + w - 8, y - 2, 0.3]] as const) { g.save(); g.translate(tx + 5, ty + 3); g.rotate(r); box(g, -6, -2.5, 12, 5, 'rgba(210,206,180,0.75)'); g.restore(); }
+  }
+  // ---- the mini fridge by the ball heap: a dorm fridge, a magnet, a sticker; its cord to the cord on the wall
+  { const x = 200, w = 38, h = 48, y = PB - h, FR: Ramp = dimR(['#E8E8EC', '#C4C4CC', '#9C9CA6', '#74747E', '#26262C'], 0.28);
+    shapeR(g, () => g.roundRect(x, y, w, h, 2), FR, x, x + w, 1.1);
+    pxR(g, x + 1, y + 15, w - 2, 1, FR[3]); shapeR(g, () => g.rect(x + w - 7, y + 20, 3, 16), FR, x + w - 7, x + w - 4, 0.6);
+    shapeR(g, () => g.roundRect(x + 4, y + 24, 22, 10, 3), dimR(['#F9A8D4', '#F472B6', '#DB2777', '#9D174D', '#2A0418'], 0.25), x + 4, x + 26, 0.8);
+    if (fontReady()) { g.font = '4px "Press Start 2P"'; g.textAlign = 'center'; g.fillStyle = '#FDF2F8'; g.fillText('SILLYVILLE', x + 15, y + 31); g.textAlign = 'left'; }
+    ellR(g, x + 10, y + 7, 4, 4, dimR(BUMPER, 0.2)[1]); ellR(g, x + 9, y + 6, 1.4, 1.4, '#FFFFFF');
+    pxR(g, x + 2, y + h - 4, w - 4, 3, FR[3]);
+    lineR(g, [x + w, y + 10, x + w + 4, y + 6, x + w + 5, ceilAt(x + w + 5) + 3], 1.6, CORD_D); lineR(g, [x + w, y + 10, x + w + 4, y + 6, x + w + 5, ceilAt(x + w + 5) + 3], 0.8, mixHex(CORD, '#1C1024', 0.35));
+  }
+};
+
 /** The whole cave in its own coordinates (x from its left end, y up from its floor: the ceiling at -H). */
 const paintCave = (g: Ctx, holeX: number) => {
   const sx = SHAFT_X - CAVE.a, hx = holeX - CAVE.a;
   paintWall(g, sx, hx);
   paintFloor(g);
+  paintDress(g);
   paintProps(g, sx);
   paintLight(g, sx, hx);
 };
@@ -600,7 +680,7 @@ export const drawCaveBack = (c: Ctx, state: GameState) => {
   for (let i = 0; i < 3; i++) {
     const bx = -60 + i * ((W + 120) / 3), bw = (W + 120) / 3;
     if (CAVE.a + bx + bw < state.camera.x - 20 || CAVE.a + bx > state.camera.x + CANVAS_WIDTH + 20) continue;
-    stamp(c, `ct-cave2-${i}-${hx}-${font}`, bx, -H - 460, bw, H + 620, g => {
+    stamp(c, `ct-cave3-${i}-${hx}-${font}`, bx, -H - 460, bw, H + 620, g => {
       g.save(); g.beginPath(); g.rect(bx, -H - 460, bw, H + 620); g.clip(); paintCave(g, hx); g.restore();
     });
   }
