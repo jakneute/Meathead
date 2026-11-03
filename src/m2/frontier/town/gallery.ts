@@ -600,7 +600,8 @@ const talkGallery = (state: GameState, g: Gallery) => {
   // (unhurried: a good few seconds of quiet after each line (counted from its end), one at a time, never over anybody;
   // the real meltdown's for the street after)
   if (g.talk || isTalking() || state.frame - g.lastLine < CALM_GAP) return;
-  const voiceOf = (tier: number) => (tier <= 1 ? DOOLEY_CALM_VOICE : DOOLEY_VOICE);
+  // (calm only till the first thing's gone: from the first disintegration he's frantic)
+  const voiceOf = (_tier: number) => DOOLEY_VOICE;
   if (g.tier > g.said) {
     // (a new tier: its first line first (tiers passed in the quiet: just the newest))
     g.said = g.tier;

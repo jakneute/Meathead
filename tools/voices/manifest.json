@@ -42161,6 +42161,11 @@
  },
  {
   "voice": "m2.frontier.dooley",
+  "text": "DEATH I COULD TAKE. THIS IS WORSE THAN DEATH.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.dooley",
   "text": "DO NOT LEAVE ME ALONE WITH THE NOTHING!",
   "from": "FRONTIER"
  },
@@ -42172,6 +42177,11 @@
  {
   "voice": "m2.frontier.dooley",
   "text": "DO NOT WALK AWAY! IT JIGGLES WHEN YOU WALK AWAY!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.dooley",
+  "text": "DUCKS DON'T DO THAT! TIN DOESN'T DO THAT!",
   "from": "FRONTIER"
  },
  {
@@ -42271,6 +42281,11 @@
  },
  {
   "voice": "m2.frontier.dooley",
+  "text": "IT CAN JUST BE TAKEN. ANYTHING. ANYBODY. ME.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.dooley",
   "text": "IT IS GONE! ALL OF IT! THE DUCKS! THE SKY! THE MOON! THERE IS NOTHING LEFT!",
   "from": "FRONTIER"
  },
@@ -42307,6 +42322,11 @@
  {
   "voice": "m2.frontier.dooley",
   "text": "NINETEEN YEARS! NINETEEN YEARS OF DUCKS!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.dooley",
+  "text": "NO GRAVE. NO GHOST. NOT EVEN A MEMORY OF A DUCK.",
   "from": "FRONTIER"
  },
  {
@@ -42386,6 +42406,11 @@
  },
  {
   "voice": "m2.frontier.dooley",
+  "text": "THAT IS NOT A DUCK GUN! WHAT IS THAT?! WHAT DOES IT DO?!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.dooley",
   "text": "THAT WAS THE SKY! I PAINTED THAT SKY!",
   "from": "FRONTIER"
  },
@@ -42427,6 +42452,11 @@
  {
   "voice": "m2.frontier.dooley",
   "text": "THERE IS NOTHING! YOU SHOT IT ALL INTO NOTHING! THERE IS NOT EVEN A WALL!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.dooley",
+  "text": "THERE'S NOT EVEN A DENT! THERE'S NOT EVEN A DUCK!",
   "from": "FRONTIER"
  },
  {
@@ -42481,6 +42511,11 @@
  },
  {
   "voice": "m2.frontier.dooley",
+  "text": "WHAT THE HELL WAS THAT?! IT DIDN'T FALL DOWN! IT STOPPED BEING! WHAT DID YOU DO TO MY DUCK?!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.dooley",
   "text": "WHERE ARE YOU GOING? COME BACK! EVERYBODY IS A WINNER!",
   "from": "FRONTIER"
  },
@@ -42527,6 +42562,11 @@
  {
   "voice": "m2.frontier.dooley",
   "text": "YOU DID NOT EVEN SHOOT. WHY DID YOU NOT SHOOT? WHAT ARE YOU? WHAT DO YOU WANT?",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.dooley",
+  "text": "YOU DID NOT KILL IT. KILLING LEAVES SOMETHING. YOU UNMADE IT.",
   "from": "FRONTIER"
  },
  {
@@ -42591,32 +42631,12 @@
  },
  {
   "voice": "m2.frontier.dooleycalm",
-  "text": "HEY. WHERE DID THE DUCK GO?",
-  "from": "FRONTIER"
- },
- {
-  "voice": "m2.frontier.dooleycalm",
   "text": "IT'S REAL SIMPLE, SONNY. SEE THEM LITTLE TIN DUCKS?",
   "from": "FRONTIER"
  },
  {
   "voice": "m2.frontier.dooleycalm",
   "text": "TAKE YOUR TIME, SONNY. BUT THE CLOCK IS RUNNING.",
-  "from": "FRONTIER"
- },
- {
-  "voice": "m2.frontier.dooleycalm",
-  "text": "THAT IS NOT HOW THE DUCKS WORK.",
-  "from": "FRONTIER"
- },
- {
-  "voice": "m2.frontier.dooleycalm",
-  "text": "THE DUCK IS SUPPOSED TO FALL DOWN. NOT... LEAVE.",
-  "from": "FRONTIER"
- },
- {
-  "voice": "m2.frontier.dooleycalm",
-  "text": "WHAT IS THAT GUN? THAT IS NOT MY GUN.",
   "from": "FRONTIER"
  },
  {
