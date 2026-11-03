@@ -20,7 +20,7 @@ import { hurtPlayer } from '../../../m1/game/bosses/shared';
 import { playSound } from '../../../m1/game/platform/audio';
 import { hazardVictims, hazardHit, boxHits } from '../../hazardHit';
 import { runsAround, poolSteps, poolAt, poolZones, drawPoolBack, drawPoolFront, type Pool } from '../water';
-import { type Ctx, type View, viewIn, promenade, postBoard, hungBoard, swag, LOOKS, onScreen, FACADE_D } from '../kit';
+import { type Ctx, type View, viewIn, promenade, postBoard, hungBoard, mastedSwag, LOOKS, onScreen, FACADE_D } from '../kit';
 import { TALK } from './lines';
 import './kinds';
 import { STATION_CHECKPOINTS, buildStation, updateStation, drawStationBack, drawStationFront, stationLamps } from './station';
@@ -171,6 +171,8 @@ export const japan: ForeignSection = {
     // (the pond's back first (its far paving and railing are farther back than any front), then the fronts)
     drawPoolBack(c, v, POND);
     drawFronts(c, v);
+    // (tied off to masts stood on the karaoke front's roof, at its depth)
+    mastedSwag(c, v, X(1246), X(1654), Y(290), FACADE_D, 24, ['#DC2626', '#F8FAFC'], 'lanterns', 40, [true, true], [Y(220), Y(220)]);
     // (cherry trees, set back; petals drifting)
     for (const rx of [1150, 2340, 2870, 3560]) drawCherry(c, v, X(rx), rx);
     TORII.forEach(([a, b], i) => drawTorii(c, v, X(a), X(b), Y(KASAGI), Y(NUKI), i === 1));
@@ -182,7 +184,6 @@ export const japan: ForeignSection = {
     drawMangaStand(c, v, X(MANGA.a), X(MANGA.b), Y(MANGA.h));
     for (let k = 0; k < 8; k++) { const px0 = ((k * 233 + f * 0.6) % 3600), py0 = ((k * 97 + f * 0.8) % 260); if (onScreen(v, X(px0), X(px0))) petal(c, X(px0), Y(260) + py0, f + k * 5); }
     // (lanterns strung over the alley; the lantern posts)
-    if (onScreen(v, X(1240), X(1660))) swag(c, X(1240), Y(300), X(1660), Y(300), 24, ['#DC2626', '#F8FAFC'], 'lanterns', 40);
     if (onScreen(v, X(3150), X(3250))) for (const lx of [3160, 3220]) lanternPost(c, X(lx), GY);
     // (signs)
     { const [a, b] = TORII[0]; if (onScreen(v, X(a), X(b))) hungBoard(c, X((a + b) / 2), Y(KASAGI) + 22, Y(KASAGI) + 40, ['JAPAN', 'A TASTE OF ASIA (CHINA)'], LOOKS.japan(1), '#F8FAFC'); }

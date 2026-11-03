@@ -21,7 +21,7 @@ import { spawnCast } from '../cast';
 import { pavilionTalk } from '../pavilion';
 import { worldSound } from '../../onScreen';
 import { makeMover, moveMover, type Mover } from '../movers';
-import { type Ctx, type View, viewIn, promenade, postBoard, hungBoard, swag, LOOKS, onScreen, FACADE_D } from '../kit';
+import { type Ctx, type View, viewIn, promenade, postBoard, hungBoard, mastedSwag, LOOKS, onScreen, FACADE_D } from '../kit';
 import { TALK } from './lines';
 import {
   type FrFront, BISTRO, OXBLOOD, drawFront, cafeAwning, bistroTable, morrisColumn, drawCurtain, drawStage, drawMarquee, drawArcArt, drawLiftShaft, drawLiftCar,
@@ -152,6 +152,8 @@ export const france: ForeignSection = {
     const v = viewIn(state), f = state.frame;
     promenade(c, v, x0, x1, '#D9D2C2', '#857B68');
     drawFronts(c, v);
+    // (each across its cafe's front, hooked to its two corners, at its depth)
+    for (const [a, b] of [[304, 596], [784, 1056]] as const) mastedSwag(c, v, X(a), X(b), Y(214), FACADE_D, 14, ['#FDE68A'], 'bulbs', 18, [false, false]);
     // (the cafes: the awnings over, the tables and their chairs, the newspaper column)
     for (const [a, b, h, col] of AWNINGS) cafeAwning(c, v, X(a), X(b), Y(h), col);
     for (const [a, b, h] of TABLES) bistroTable(c, v, X(a), X(b), Y(h));
@@ -168,7 +170,6 @@ export const france: ForeignSection = {
     { const [a, b, h] = STALLS[0]; drawFlowerStall(c, v, X(a), X(b), Y(h)); }
     { const [a, b, h] = STALLS[1]; drawMonaStand(c, v, X(a), X(b), Y(h)); }
     // (string lights over the cafes)
-    if (onScreen(v, X(300), X(1060))) { swag(c, X(300), Y(260), X(680), Y(260), 18, ['#FDE68A'], 'bulbs', 18); swag(c, X(740), Y(260), X(1060), Y(260), 18, ['#FDE68A'], 'bulbs', 18); }
     // (signs)
     if (onScreen(v, X(100), X(320))) postBoard(c, X(190), GY, ['FRANCE', 'OOH LA LA ZONE'], LOOKS.france(2), '#14532D');
     { const [a, b, h] = AWNINGS[0]; if (onScreen(v, X(a), X(b))) hungBoard(c, X((a + b) / 2), Y(h) + 50, Y(h) + 76, ['CAFE', 'NO SUBSTITUTIONS'], LOOKS.france(1), '#14532D'); }

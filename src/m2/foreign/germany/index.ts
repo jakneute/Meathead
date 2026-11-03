@@ -24,7 +24,7 @@ import { shakeScreen } from '../../../m1/game/core/state';
 import { hazardVictims, hazardHit, boxHits, setHazardZones } from '../../hazardHit';
 import { makeMover, moveMover, type Mover } from '../movers';
 import {
-  type Ctx, type View, type Box3, viewIn, atDepth, promenade, boxes3, box3Back, box3Front, ledge3, postBoard, hungBoard, flagPole, LOOKS, onScreen, FACADE_D,
+  type Ctx, type View, type Box3, viewIn, atDepth, promenade, boxes3, box3Back, box3Front, ledge3, postBoard, hungBoard, flagPole, LOOKS, onScreen, FACADE_D, tieMast,
 } from '../kit';
 import {
   drawFront, drawCastle, drawFarTower, drawClockHouse, drawCuckoo, drawFigure, drawWheelArt, merlons, drawPortcullis, backRail, paintedBoxes, bench,
@@ -125,6 +125,12 @@ const drawGarden = (c: Ctx, v: View, f: number) => {
   const on = FRONTS.filter(fr => onScreen(v, X(fr.rx) - 60, X(fr.rx + fr.w) + 60, FACADE_D));
   on.sort((p, q) => Math.abs(X(q.rx + q.w / 2) - v.eye.x) - Math.abs(X(p.rx + p.w / 2) - v.eye.x));
   for (const fr of on) drawFront(c, v, X(fr.rx), fr);
+  // (Bavarian blue-and-white pennants over the garden: strung mast to mast along the back of it, at the fronts' depth,
+  // never tied off to the sky)
+  if (onScreen(v, X(380), X(1580), FACADE_D)) atDepth(c, v.eye, FACADE_D, () => {
+    for (let rx = 380; rx <= 1580; rx += 300) tieMast(c, X(rx), GY, Y(230), '#1E3A8A');
+    for (let rx = 380; rx < 1580; rx += 300) pennants(c, X(rx), Y(230), X(rx + 300), Y(230), 22);
+  });
   drawCastle(c, v, X(1720));
   drawClockHouse(c, v, X(2120), f);
   // (the giant pretzel and sausage on their sticks, stood at the backs of their stands)
@@ -146,8 +152,6 @@ const drawGarden = (c: Ctx, v: View, f: number) => {
     ledge3(c, v, X(STAGE.a), Y(STAGE.roof), STAGE.b - STAGE.a, '#1E40AF', 6);
   }
   for (const [a, b, h, col] of STANDS) if (onScreen(v, X(a), X(b))) valance(c, X(a), X(b), Y(h), col);
-  // (Bavarian blue-and-white pennants over the garden)
-  for (let rx = 380; rx < 1300; rx += 300) if (onScreen(v, X(rx), X(rx + 300))) pennants(c, X(rx), Y(230), X(rx + 300), Y(230), 22);
 };
 
 export const germany: ForeignSection = {

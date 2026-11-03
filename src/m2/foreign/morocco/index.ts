@@ -20,7 +20,7 @@ import { hurtPlayer } from '../../../m1/game/bosses/shared';
 import { playSound } from '../../../m1/game/platform/audio';
 import { hazardVictims, hazardHit, setHazardZones } from '../../hazardHit';
 import { runsAround, type Pool } from '../water';
-import { type Ctx, type View, viewIn, promenade, postBoard, hungBoard, LOOKS, onScreen, FACADE_D } from '../kit';
+import { type Ctx, type View, viewIn, promenade, railLampsSkip, postBoard, hungBoard, LOOKS, onScreen, FACADE_D } from '../kit';
 import { TALK, DYED_LINES, MIXED_LINES, UNDYED_LINES } from './lines';
 import { meatheadSays } from '../section';
 import { pickLine } from '../../../m1/game/platform/speech';
@@ -29,7 +29,7 @@ import './kinds';
 import { SOUK_CHECKPOINTS, buildSouk, updateSouk, drawSoukBack, drawSoukFront, soukLamps } from './souk';
 import {
   type MaFront, SAND, CLAY, ROSE, OCHRE, drawFront, drawGate, drawHouseBox, drawCrate, drawCarpet, drawTowerArt, vatPaving, drawVat, drawVatFront, drawRackArt,
-  drawTentArt, drawPoufs, drawSpiceStall, lanternString, drawMaFlag,
+  drawTentArt, drawPoufs, drawSpiceStall, lanternString, tiePole, drawMaFlag,
 } from './art';
 
 const { x0, x1 } = SECTIONS.morocco;
@@ -41,6 +41,8 @@ const X = (rx: number) => x0 + rx, Y = (h: number) => GY - h;
 /** The houses (solid, flat roofs to stand on) and the carpets hung between them (one-way). */
 const ROOFS: [number, number, number][] = [[520, 700, 140], [860, 1020, 220], [1180, 1340, 300], [1500, 1650, 200]];
 const CARPETS: [number, number, number][] = [[700, 860, 170], [1020, 1180, 250], [1340, 1500, 240]];
+/** The roof's height at x (null: no roof there). */
+const roofAt = (rx: number) => { const r = ROOFS.find(([a, b]) => rx >= a && rx <= b); return r ? r[2] : null; };
 /** Crates: a step up onto the first roof, and one in each alley (a way back up out of it). */
 const CRATES: [number, number, number][] = [[450, 510, 70], [740, 790, 70], [1060, 1110, 110], [1360, 1410, 110]];
 /** The tower: its walls (doors under them), its floors inside, its balcony, the carpets hung off its far side. */
@@ -149,17 +151,25 @@ export const morocco: ForeignSection = {
   },
   drawBack: (c, state) => {
     const v = viewIn(state), f = state.frame;
+    // (no railing lamp up through the gaps between the rooftops: it read as rising out of the alley)
+    railLampsSkip(x => x > X(440) && x < X(2020));
     promenade(c, v, x0, VATS[0].a, '#E7D3B0', '#9C7F5A', [false, true]);
     VATS.forEach((p, i) => { const nx = VATS[i + 1]?.a ?? x1; promenade(c, v, p.b, nx, '#E7D3B0', '#9C7F5A', [true, i + 1 < VATS.length]); });
     // (the vats' paving behind them first (it's farther back than any front), then the fronts, then the gate over the
     // way in)
     for (const p of VATS) vatPaving(c, v, p.a, p.b);
+    railLampsSkip(null);
     drawFronts(c, v);
     drawGate(c, v, X(220));
     // (the rooftops: the houses, the crates, the carpets between)
     ROOFS.forEach(([a, b, h], i) => drawHouseBox(c, v, X(a), X(b), Y(h), i % 2 ? CLAY : SAND, i));
     for (const [a, b, h] of CRATES) drawCrate(c, v, X(a), X(b), Y(h), a);
-    CARPETS.forEach(([a, b, h], i) => drawCarpet(c, v, X(a), X(b), Y(h), i));
+    // (each carpet's rod tied off at both ends: to a pole up off the roof there where the roof's lower than the rod, so
+    // no hook ever hangs on thin air)
+    CARPETS.forEach(([a, b, h], i) => {
+      for (const [ex, roof] of [[a + 3, roofAt(a - 1)], [b - 3, roofAt(b + 1)]] as const) if (roof !== null && roof < h - 2 && onScreen(v, X(ex) - 10, X(ex) + 10)) tiePole(c, X(ex), Y(roof), Y(h) - 6);
+      drawCarpet(c, v, X(a), X(b), Y(h), i);
+    });
     drawTowerArt(c, v, X, Y, { a: TOWER.a, b: TOWER.b, top: TOWER.top, walls: T_WALLS, floors: T_FLOORS, balcony: BALCONY, carpets: T_CARPETS });
     // (the tannery: the vats, the racks over them)
     VATS.forEach((p, i) => drawVat(c, v, p.a, p.b, p.surface, p.bed, p.col, p.wall, f, i * 37));
@@ -169,7 +179,14 @@ export const morocco: ForeignSection = {
     drawPoufs(c, v, X(CUSHIONS.a), X(CUSHIONS.b), Y(CUSHIONS.h));
     drawSpiceStall(c, v, X(SPICE.a), X(SPICE.b), Y(SPICE.h));
     // (brass lanterns strung over the alleys)
-    for (const [a, b] of [[700, 860], [1020, 1180], [1340, 1500]] as const) if (onScreen(v, X(a), X(b))) lanternString(c, X(a), Y(330), X(b), Y(330), 20, 40);
+    // (each strung between two poles, one up off each roof either side of its alley, a little over the higher one: tied
+    // off to something at its own depth, never out into the sky)
+    for (const [a, b] of [[700, 860], [1020, 1180], [1340, 1500]] as const) {
+      if (!onScreen(v, X(a) - 20, X(b) + 20)) continue;
+      const ra = roofAt(a - 1) ?? 0, rb = roofAt(b + 1) ?? 0, hy = Math.max(ra, rb) + 54, pa = X(a) - 10, pb = X(b) + 10;
+      tiePole(c, pa, Y(ra), Y(hy)); tiePole(c, pb, Y(rb), Y(hy));
+      lanternString(c, pa, Y(hy), pb, Y(hy), 20, 40);
+    }
     // (signs: held up, nothing over them)
     // (narrower, between the flagpole and the gate: its board ran across the gate's tower)
     if (onScreen(v, X(40), X(220))) postBoard(c, X(140), GY, ['MOROCCO', 'THE MIDDLE', 'EAST', '(IN AFRICA)'], LOOKS.morocco(2), TILEBLUE, undefined, 104);

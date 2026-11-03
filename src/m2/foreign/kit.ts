@@ -359,6 +359,10 @@ export const pavingBack = (c: Ctx, v: View, A0: number, B0: number, from = 1, to
 };
 /** The railing at the lagoon's edge (world x A0..B0): its posts (finials), balusters, the top rail lit; a lamp every so
  *  far, its globes glowing after dark. */
+/** Stretches whose railing lamps would show only up through a gap between rooftops in front (rising out of an alley):
+ *  left out there. A pavilion sets it round its own drawing (railLampsSkip(fn) .. railLampsSkip(null)). */
+let lampSkip: ((x: number) => boolean) | null = null;
+export const railLampsSkip = (fn: ((x: number) => boolean) | null) => { lampSkip = fn; };
 export const railing = (c: Ctx, v: View, A0: number, B0: number) => {
   const eye = v.eye, tod = timeOfDay();
   const P = (x: number, d: number) => at(eye, x, GY, d);
@@ -376,6 +380,7 @@ export const railing = (c: Ctx, v: View, A0: number, B0: number) => {
   }
   const lampsOn = tod.lamps > 0.3;
   for (let x = Math.ceil(A0 / 700) * 700 + 350; x < B0; x += 700) {
+    if (lampSkip?.(x)) continue;
     const [px] = P(x, RAIL_D), X0 = Math.round(px), lh = Math.round(118 * k);
     box(c, X0 - 2, ry - lh, 5, lh, INK); box(c, X0 - 1, ry - lh, 3, lh, IR[3]); box(c, X0 - 1, ry - lh, 1, lh, IR[5]);
     box(c, X0 - 4, ry - 6, 9, 6, INK); box(c, X0 - 3, ry - 5, 7, 5, IR[2]);
@@ -473,6 +478,29 @@ export const hungBoard = (c: Ctx, x: number, hangY: number, y: number, lines: st
 // ---------------------------------------------------------------------------------------------------------------
 // Bits every pavilion hangs about
 
+/** A mast a string's tied off to, at x, its foot at `foot`, up to `top` (in whatever depth it's drawn at): a painted
+ *  pole lit up its left, an iron cap and the cleat the string's tied to, an iron shoe at its foot. Nothing strung is
+ *  ever tied off to thin air. */
+export const tieMast = (c: Ctx, x: number, foot: number, top: number, col = '#7C4A1E') => {
+  const R = ramp6(dimmed(col)), I = ramp6(dimmed('#3F3F46')), X0 = Math.round(x), t = Math.round(top) - 4, f = Math.round(foot);
+  if (f - t < 4) return;
+  box(c, X0 - 3, t, 6, f - t, INK); box(c, X0 - 2, t, 4, f - t, R[3]); box(c, X0 - 2, t, 1, f - t, R[5]); box(c, X0 + 1, t, 1, f - t, R[1]);
+  box(c, X0 - 4, t - 3, 8, 4, INK); box(c, X0 - 3, t - 2, 6, 2, I[4]);
+  box(c, X0 - 5, f - 5, 10, 5, INK); box(c, X0 - 4, f - 4, 8, 4, I[3]); box(c, X0 - 4, f - 4, 8, 1, I[5]);
+  box(c, X0 + 2, t + 4, 4, 2, INK);
+};
+/** A swag (swag()) strung at depth d between masts stood on the ground there (`masts`: which ends get one; an end
+ *  without is tied to a wall at that depth, a hook on it), everything of it at that one depth. */
+export const mastedSwag = (c: Ctx, v: View, x0: number, x1: number, y: number, d: number, sag: number, cols: string[], kind: 'flags' | 'bulbs' | 'lanterns', step: number, masts: readonly [boolean, boolean] = [true, true], feet: readonly [number, number] = [GY, GY]) => {
+  if (!onScreen(v, x0 - 10, x1 + 10, d)) return;
+  atDepth(c, v.eye, d, () => {
+    ([[x0, masts[0], feet[0]], [x1, masts[1], feet[1]]] as const).forEach(([x, m, foot]) => {
+      if (m) tieMast(c, x, foot, y);
+      else { box(c, Math.round(x) - 2, Math.round(y) - 2, 5, 5, INK); box(c, Math.round(x) - 1, Math.round(y) - 1, 3, 3, dimmed('#71717A')); }
+    });
+    swag(c, x0, y, x1, y, sag, cols, kind, step);
+  });
+};
 /** A string of little flags or bulbs swagged between two points (papel picado, bunting, lights). */
 export const swag = (c: Ctx, x0: number, y0: number, x1: number, y1: number, sag: number, cols: string[], kind: 'flags' | 'bulbs' | 'lanterns' = 'flags', step = 18) => {
   const n = Math.max(2, Math.round(Math.hypot(x1 - x0, y1 - y0) / step));

@@ -22,7 +22,7 @@ import { pickLine } from '../../../m1/game/platform/speech';
 import { meatheadSays } from '../section';
 import { PA_WELCOME, ARRIVE } from '../lines';
 import {
-  type Ctx, type View, viewIn, at, promenade, boxes3, ledge3, postBoard, hungBoard, swag, flagPole, LOOKS, onScreen, FACADE_D,
+  type Ctx, type View, viewIn, at, promenade, boxes3, ledge3, postBoard, hungBoard, swag, mastedSwag, flagPole, LOOKS, onScreen, FACADE_D,
 } from '../kit';
 import { drawGate, drawFront, drawPyramid, pillar, templeFace, drawCart, drawBalcony, pottedCactus, plazaLights, stallGlow, type MxFront } from './art';
 import { TALK } from './lines';
@@ -130,6 +130,7 @@ export const mexico: ForeignSection = {
     promenade(c, v, DIVE_POOL.b, x1, '#E7D9BE', '#9C8462', [true, false]);
     drawLandGate(c, v, f);
     drawFronts(c, v);
+    for (const [a, b] of [[400, 760], [760, 1120], [1120, 1480], [3120, 3480], [3480, 3840], [3840, 4200]] as const) mastedSwag(c, v, X(a), X(b), Y(250), FACADE_D, 26, PICADO, 'flags', 18);
     drawPyramid(c, v, X(PYR.a), PYR.b - PYR.a);
     // (the stalls' glow in the plaza after dark)
     for (let rx = PYR.a + 260; rx < PYR.b - 200; rx += 260) if (onScreen(v, X(rx), X(rx), 0.95)) { const [gx, gy] = at(v.eye, X(rx), Y(60), 0.95); stallGlow(c, gx, gy); }
@@ -148,8 +149,9 @@ export const mexico: ForeignSection = {
     if (onScreen(v, X(CART.a) - 20, X(CART.b) + 20)) { drawCart(c, X(CART.a), X(CART.b), Y(CART.h), f); hungBoard(c, X((CART.a + CART.b) / 2), Y(CART.h) - 68, Y(CART.h) - 40, ['TACOS:', 'AN ITALIAN TRADITION'], LOOKS.mexico(1), '#7C2D12'); }
     // (the temple's sign)
     if (onScreen(v, X(SHRINE.a), X(SHRINE.b))) postBoard(c, X((SHRINE.a + SHRINE.b) / 2), Y(400), ['TEMPLE OF THE SUN', '(GIFT SHOP)'], LOOKS.mexico(1), '#7C2D12', undefined, 160);
-    // (papel picado, strung all along over the promenade; string lights through the plaza)
-    for (let rx = 400; rx < 4300; rx += 360) if (onScreen(v, X(rx), X(rx + 360))) swag(c, X(rx), Y(250), X(rx + 360), Y(250), 26, PICADO, 'flags');
+    // (papel picado, strung all along the promenade: out in the open, between masts stood back by the fronts, all of
+    // it at their depth; through the plaza under the terraces, wall to wall inside it; string lights through the plaza)
+    for (let rx = 1520; rx < 3080; rx += 390) if (onScreen(v, X(rx), X(rx + 390))) swag(c, X(rx), Y(250), X(Math.min(3080, rx + 390)), Y(250), 26, PICADO, 'flags');
     plazaLights(c, v, X(PYR.a + 40), X(PYR.b - 200), Y(92), f);
     // (the signs: held up on posts, never with anything over them)
     // (between the flagpole (560: the board stood right on it, the pole through its middle) and the potted cactus)

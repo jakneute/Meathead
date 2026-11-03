@@ -132,6 +132,17 @@ export const brassLantern = (c: Ctx, x: number, y: number, r: number, scenery = 
   box(c, x - 1, y + r * 0.6, 3, r * 0.5, INK); box(c, x, y + r * 0.6, 1, r * 0.5, B[4]); ball(c, x, y + r * 1.2, 2, B[3], true);
 };
 /** A string of brass lanterns swagged between two points (on a chain). */
+/** A pole stood on a roof (or the ground) at x, its foot at `foot`, up to `top`: what a string or a rug's rod is tied
+ *  off to (nothing's hung off thin air). Turned cedar, lit up its left, an iron cap and a cleat; its foot in a little
+ *  iron shoe on the parapet. At the play plane, like what it holds. */
+export const tiePole = (c: Ctx, x: number, foot: number, top: number) => {
+  const R = ramp6(hour('#7C4A1E')), I = ramp6(hour('#3F3F46')), X0 = Math.round(x), t = Math.round(top) - 4, f = Math.round(foot);
+  if (f - t < 4) return;
+  box(c, X0 - 3, t, 6, f - t, INK); box(c, X0 - 2, t, 4, f - t, R[3]); box(c, X0 - 2, t, 1, f - t, R[5]); box(c, X0 + 1, t, 1, f - t, R[1]);
+  box(c, X0 - 4, t - 3, 8, 4, INK); box(c, X0 - 3, t - 2, 6, 2, I[4]);
+  box(c, X0 - 5, f - 5, 10, 5, INK); box(c, X0 - 4, f - 4, 8, 4, I[3]); box(c, X0 - 4, f - 4, 8, 1, I[5]);
+  box(c, X0 + 2, t + 4, 4, 2, INK);
+};
 export const lanternString = (c: Ctx, x0: number, y0: number, x1: number, y1: number, sag: number, step = 40) => {
   const n = Math.max(2, Math.round(Math.hypot(x1 - x0, y1 - y0) / step));
   const pt = (t: number) => [x0 + (x1 - x0) * t, y0 + (y1 - y0) * t + sag * 4 * t * (1 - t)] as const;
