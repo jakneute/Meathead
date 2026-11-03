@@ -18861,6 +18861,11 @@
  },
  {
   "voice": "m2.ben",
+  "text": "HE DIDN'T MAKE IT. THROW HIM LIKE HE OWES YOU MONEY.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.ben",
   "text": "HE FLEW LIKE A RENT CHECK. GOOD.",
   "from": "UPGRADES"
  },
@@ -19106,6 +19111,21 @@
  },
  {
   "voice": "m2.ben",
+  "text": "OTHER WAY. AND NOW HE SMELLS LIKE YOU.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.ben",
+  "text": "OTHER WAY. EYES ON THE DYNAMITE. NOT ON YOURSELF.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.ben",
+  "text": "OTHER WAY. THE RED STICKS. BY THE WALL.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.ben",
   "text": "OUT THE DOOR. AND KEEP THAT OFF MY THRONE.",
   "from": "UPGRADES"
  },
@@ -19201,12 +19221,37 @@
  },
  {
   "voice": "m2.ben",
+  "text": "RIGHT WAY. NO ARM. AGAIN.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.ben",
+  "text": "RIGHT WAY. NO ARM. ALL GUT, I GUESS.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.ben",
+  "text": "RIGHT WAY. NO ARM. PUT YOUR BACK INTO IT. YOUR NAKED BACK.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.ben",
   "text": "SEE MY SCARECROW? NAILS IN HIS HAT. DIVE KICK HIM ANYWAY. KEEP HOLDING IT, TAP GRAB, AND THROW HIM INTO MY DUD DYNAMITE.",
   "from": "UPGRADES"
  },
  {
   "voice": "m2.ben",
   "text": "SEE MY SPARRING ALIEN? UPPERCUT HIM. KEEP HOLDING IT, TAP GRAB, AND DRIVE HIS HEAD INTO MY FLOOR.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.ben",
+  "text": "SHORT. HE DIDN'T WANT TO GET CLOSER TO YOU EITHER.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.ben",
+  "text": "SHORT. LIKE EVERYTHING ELSE ON YOU RIGHT NOW.",
   "from": "UPGRADES"
  },
  {
@@ -19236,7 +19281,7 @@
  },
  {
   "voice": "m2.ben",
-  "text": "STRAIGHT INTO THE DYNAMITE. GOOD THING IT'S DUDS. YOU PASS.",
+  "text": "STRAIGHT INTO THE DYNAMITE. SO MUCH FOR DUDS. YOU PASS.",
   "from": "UPGRADES"
  },
  {
@@ -19411,6 +19456,16 @@
  },
  {
   "voice": "m2.ben",
+  "text": "THE DYNAMITE IS BEHIND YOU. DO NOT TURN AROUND. YES. TURN AROUND.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.ben",
+  "text": "THE DYNAMITE IS THE OTHER WAY. SO IS THE SMELL, HOPEFULLY.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.ben",
   "text": "THE FIST GOES UP. THE HEAD COMES DOWN. HOLD THE UPPERCUT, AND TAP GRAB ON THE WAY UP.",
   "from": "UPGRADES"
  },
@@ -19562,6 +19617,21 @@
  {
   "voice": "m2.ben",
   "text": "WORKS ON BOSSES. NOTHING TOUCHES YOU FOR A WHILE AFTER. THERE'S AN OFF SWITCH IN YOUR PAUSE MENU. FOR FUNERALS.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.ben",
+  "text": "WRONG WAY. HARD TO AIM WITH EVERYTHING FLAPPING.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.ben",
+  "text": "WRONG WAY. THE DYNAMITE'S BEHIND YOU.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.ben",
+  "text": "WRONG WAY. YOU THROW LIKE YOU SHIT. EVERYWHERE.",
   "from": "UPGRADES"
  },
  {
@@ -19872,6 +19942,11 @@
  {
   "voice": "m2.ben",
   "text": "YOU SWAM HERE IN THOSE? NOW THE WHOLE MINE DRINKS IT.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.ben",
+  "text": "YOU THREW HIM AT MY POOL. THE DYNAMITE IS THE OTHER WAY.",
   "from": "UPGRADES"
  },
  {

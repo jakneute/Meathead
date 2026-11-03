@@ -30,8 +30,10 @@
 //   THE TRIAL (in play; invented): THE SCARECROW. Ben lends the boots (taken back if he leaves on it; never saved
 //     lent) and stands his scarecrow out (a straw cowboy on a post in a nail keg, his hat full of nails: spiky, which
 //     the boots don't care about; harmless, grabbable): dive kick it, keep holding, tap grab: the MISSILE, west into
-//     the dud dynamite. A dive kick that lands with no missile after it's a miss (a dry line; a hint after two); one
-//     knocked over some other way is stood back up. Can't get stuck: it keeps coming, nothing hurts, the buttons are up
+//     the dud dynamite (not so dud: it blows, harmless, the room rumbles, a fresh stack's set down: the owner's). A dive
+//     kick that lands with no missile after it's a miss (a dry line; a hint after two); a missile the other way, or
+//     short, Ben says so (CROW_WRONG / CROW_SHORT: a miss too) and it's stood back up; one knocked over some other way
+//     is stood back up. Can't get stuck: it keeps coming, nothing hurts, the buttons are up
 //     on screen near it.
 //   THE GIFT (a cutscene, skippable): his (setPiece, setBenGave, saved there and then); the tease, Meathead enamored;
 //     Meathead's cartoon Japanese if the art wasn't the big beat. Then the YOU GOT card (90 frames, every button let
@@ -67,7 +69,7 @@ import { has, setPiece, setBenMet, benGave, setBenGave, followArt, setFollowArt,
 import { FOLLOW, type EquipControl } from '../../upgrades/equipInfo';
 import { makeCannon, updateCannon, cannonBusy, type Cannon } from '../../upgrades/returnCannon';
 import {
-  NUDGE, PIECE_LINES, artBeats, artStart, MH_CANNON_ASK, BEN_CANNON_FR, MH_MAZE, MH_LANDED_FR, BOOT_WEEB, BOOT_HUH,
+  NUDGE, PIECE_LINES, artBeats, artStart, MH_CANNON_ASK, BEN_CANNON_FR, MH_MAZE, MH_LANDED_FR, BOOT_WEEB, BOOT_HUH, CROW_WRONG, CROW_SHORT,
   benSays, warmBenGross, meetupScript, startScript, tickScript, skipScript,
   type BenPose, type BenTalk, type Script, type Beat, type ByPants,
 } from '../../upgrades/confucktious';
@@ -216,8 +218,11 @@ export interface Lair {
   howA: number; howB: number; artFull: boolean;
   cardT: number; cardArmed: boolean;
   goodSaid: boolean; tipsTill: boolean; nudgeAt: number;
-  /** The scarecrow last into the dynamite (frame: the stack jolts, the dust). */
+  /** The scarecrow last into the dynamite (frame: the boom; the stack's gone a moment, then a fresh one's set down). */
   tntAt: number;
+  /** The scarecrow let fly off a dive kick, watched till it's into the dynamite or plainly isn't going to be: it, when
+   *  (frame), which way (+1 east: away from the dynamite). */
+  fly: { e: Enemy; at: number; dir: number } | null;
   cannon: Cannon;
   /** It's shot him out to the log ride (its flight's the log ride's to finish: put back to rest when he's next here). */
   flew: boolean;
@@ -243,7 +248,7 @@ export const lairOf = (state: GameState): Lair => {
       crow: null, respawn: 0,
       kickAt: -999, throwing: false, hitSeen: null, kickHit: 0, misses: 0, missAt: 0, passAt: -1,
       howA: -1, howB: -1, artFull: false,
-      cardT: 0, cardArmed: false, goodSaid: false, tipsTill: false, nudgeAt: 0, tntAt: -999,
+      cardT: 0, cardArmed: false, goodSaid: false, tipsTill: false, nudgeAt: 0, tntAt: -999, fly: null,
       cannon: cn, flew: false,
       was: {}, ui: false, reveal: 0,
     });
@@ -359,7 +364,7 @@ export const updateBenLair = (ctx: FrameContext, controls: Controls): Controls =
   }
   if (h.phase !== 'card') setUi({ gotPiece: null });
   setUi({ chordTips: tips });
-  noteTnt(state, h);
+  tickTnt(state, h);
   // The cannon: only once the trial's passed (no getting in, no prompt, before)
   if (h.phase === 'done' || cannonBusy(h.cannon)) out = runCannon(ctx, h, out);
   return out;
@@ -379,15 +384,71 @@ const calm = (state: GameState) => {
   state.projectiles = state.projectiles.filter(q => q.owner === 'player' || !(q.pos.x > W(ROOM.a) - 40 && q.pos.x < W(14440) && q.pos.y > Y(-880) + 8 && q.pos.y < Y(UNDER_BOT)));
 };
 
-/** The scarecrow into the dynamite (flying, at the west wall): the stack jolts, dust and straw. */
-const noteTnt = (state: GameState, h: Lair) => {
-  const e = h.crow;
-  if (!e || !e.isBlownAway || state.frame - h.tntAt < 40) return;
-  if (e.pos.x < W(TNT.b) + 14 && Math.abs(e.vel.x) > 3) {
-    h.tntAt = state.frame;
-    playSound('crash', 0.8, -4); playSound('thud', 0.7, -8); shakeScreen(state, 6, 4);
-    for (let i = 0; i < 18; i++) state.particles.push({ pos: { x: W(TNT.b) - Math.random() * 60, y: Y(ROOM.floor) - 20 - Math.random() * 90 }, vel: { x: 1 + Math.random() * 3, y: -1 - Math.random() * 3 }, life: 34, color: i % 3 === 0 ? '#E2C46A' : i % 3 === 1 ? '#8A6A44' : '#C2302A', size: 3 + Math.random() * 3 });
+/** How long the dynamite's gone after it blows (frames), before a fresh stack's set down. */
+export const TNT_GONE = 75;
+/** The dynamite's there to hit (not blown and not yet replaced). */
+const tntUp = (state: GameState, h: Lair) => state.frame - h.tntAt >= TNT_GONE;
+/** A straw puff where the scarecrow was (it's gone: blown up, or taken off to be stood back up). */
+const strawPuff = (state: GameState, e: Enemy) => {
+  for (let i = 0; i < 14; i++) state.particles.push({ pos: { x: mid(e).x + (Math.random() - 0.5) * 30, y: e.pos.y + Math.random() * e.height }, vel: { x: (Math.random() - 0.5) * 4, y: -1 - Math.random() * 3 }, life: 30, color: i % 3 ? '#C8A456' : '#6A5236', size: 3, grav: 0.15 });
+};
+/** The scarecrow off the floor (blown up, or not where it should be): stood back up on its post `wait` frames on. */
+const dropCrow = (state: GameState, h: Lair, e: Enemy, wait: number) => {
+  if (grabHolding() === e) return;
+  strawPuff(state, e);
+  state.enemies = state.enemies.filter(o => o !== e);
+  if (h.crow === e || !h.crow) { h.crow = null; h.respawn = state.frame + wait; }
+};
+/**
+ * The scarecrow into the dynamite: it goes up (the owner's: "when it hits the dynamite, it explodes. doesn't affect
+ * anything, rumbles, some debris, new dynamite shows up"): the boom, a flash there, the room shaking, sticks and
+ * splinters and straw everywhere; nothing hurt, nothing broken; the stack gone a moment, then a fresh one set down.
+ */
+const boomTnt = (state: GameState, h: Lair, e: Enemy, wait: number) => {
+  h.tntAt = state.frame;
+  const x = (W(TNT.a) + W(TNT.b)) / 2, y = Y(ROOM.floor) - 50;
+  playSound('boom', 1, -6); playSound('crash', 0.8, -4); shakeScreen(state, 14, 8);
+  const P = state.particles;
+  for (let i = 0; i < 26; i++) { const a = -Math.PI / 2 + (Math.random() - 0.5) * 2.6, sp = 2 + Math.random() * 7; P.push({ pos: { x, y }, vel: { x: Math.cos(a) * sp + 1.5, y: Math.sin(a) * sp }, life: 12 + Math.random() * 14, color: i % 3 ? '#FDBA74' : '#FEF08A', size: 5 + Math.random() * 7 }); }
+  for (let i = 0; i < 22; i++) P.push({ pos: { x: x + (Math.random() - 0.5) * 60, y: y + (Math.random() - 0.5) * 60 }, vel: { x: 1 + Math.random() * 6, y: -2 - Math.random() * 6 }, life: 50 + Math.random() * 30, color: ['#C2302A', '#8A1C18', '#8A6A44', '#5A4028', '#E2C46A'][i % 5], size: 2 + Math.random() * 4, grav: 0.3 });
+  for (let i = 0; i < 12; i++) P.push({ pos: { x: x + (Math.random() - 0.5) * 70, y: y - Math.random() * 40 }, vel: { x: 0.5 + Math.random() * 1.5, y: -0.6 - Math.random() * 1.2 }, life: 60 + Math.random() * 30, color: 'rgba(120, 110, 100, 0.55)', size: 8 + Math.random() * 8 });
+  // (dust shaken down off the ceiling all along the room)
+  for (let i = 0; i < 16; i++) P.push({ pos: { x: W(ROOM.a) + Math.random() * (ROOM.b - ROOM.a), y: Y(ROOM.top) + 18 }, vel: { x: 0, y: 1 + Math.random() }, life: 40, color: '#8A7A62', size: 2, grav: 0.2 });
+  dropCrow(state, h, e, wait);
+};
+/** Each frame in the room: a fresh stack set down once the last one's blown; anything flung into it fast blows it. */
+const tickTnt = (state: GameState, h: Lair) => {
+  if (state.frame - h.tntAt === TNT_GONE) {
+    playSound('thud', 0.7, -8); playSound('clink', 0.5, -2);
+    for (let i = 0; i < 12; i++) state.particles.push({ pos: { x: W(TNT.a) + Math.random() * (TNT.b - TNT.a), y: Y(ROOM.floor) - 4 }, vel: { x: (Math.random() - 0.5) * 3, y: -0.5 - Math.random() * 1.5 }, life: 26, color: i % 2 ? '#A8A29E' : '#8A6A44', size: 3 });
   }
+  // (knocked into it hard some other way than the missile: it goes up all the same)
+  const e = h.crow;
+  if (e && !h.fly && e.isBlownAway && tntUp(state, h) && e.pos.x < W(TNT.b) + 14 && Math.abs(e.vel.x) > 3) boomTnt(state, h, e, h.phase === 'trial' ? RESPAWN_TRIAL : RESPAWN);
+};
+/** The flying scarecrow: into the dynamite ('hit': it's blown), or done flying without getting there ('wrong': thrown
+ *  the other way; 'short': the right way, not far enough); null while it's still going. */
+const watchFly = (state: GameState, h: Lair, wait: number): 'hit' | 'wrong' | 'short' | null => {
+  const fl = h.fly;
+  if (!fl) return null;
+  const e = fl.e, t = state.frame - fl.at, gone = !state.enemies.includes(e);
+  if (!gone && tntUp(state, h) && e.pos.x < W(TNT.b) + 14 && e.pos.y + e.height > Y(ROOM.floor) - 150) { h.fly = null; boomTnt(state, h, e, wait); return 'hit'; }
+  if (gone || grabHolding() === e || t > 110 || (t > 14 && Math.abs(e.vel.x) < 0.6)) {
+    h.fly = null;
+    if (!gone) dropCrow(state, h, e, wait);
+    return fl.dir > 0 ? 'wrong' : 'short';
+  }
+  return null;
+};
+/** Ben on a throw that didn't go in the dynamite (the owner's: "if i throw the scarecrow not at the dynamite, he
+ *  should acknowledge it"). In the trial it counts as a miss (the hint after two). */
+const missThrow = (state: GameState, h: Lair, res: 'wrong' | 'short') => {
+  if (state.frame < h.missAt) return;
+  h.missAt = state.frame + 150;
+  silenceAll(); h.ben.said = null;
+  const tok = h.token, trial = h.phase === 'trial';
+  if (trial) h.misses++;
+  benSays(h.ben, pickLine(byPants(state, res === 'wrong' ? CROW_WRONG : CROW_SHORT)), trial && h.misses === 2 ? () => { if (h.token === tok && h.phase === 'trial' && h.passAt < 0) benSays(h.ben, L.hint[0]); } : undefined);
 };
 
 /** The scarecrow: one at a time, stood back up a while after each goes. */
@@ -520,12 +581,20 @@ const runTrial = (state: GameState, h: Lair): EquipControl[] | null => {
   if (hit && hit !== h.hitSeen) { h.hitSeen = hit; if (e && hit.e === e && hit.move === 'divekick') h.kickHit = state.frame; }
   // (it in his hands off a dive kick: the missile's on; let go of (thrown): passed)
   if (tookIt(state, h, e)) h.throwing = true;
+  // (let go of (the missile): watched till it's in the dynamite (passed: it blows) or it isn't (Ben says so, it's stood
+  // back up))
   if (h.throwing && grabHolding() !== e) {
-    h.throwing = false; h.passAt = state.frame; h.kickHit = 0;
+    h.throwing = false; h.kickHit = 0;
+    if (e) h.fly = { e, at: state.frame, dir: Math.sign(e.vel.x) || p.facing };
+  }
+  const res = watchFly(state, h, RESPAWN_TRIAL);
+  if (res === 'hit') {
+    h.passAt = state.frame;
     silenceAll(); h.ben.said = null; h.token++;
     setPose(h, 'fold');
     return null;
   }
+  if (res) missThrow(state, h, res);
   // (a dive kick, and no missile after it: a miss; a hint after two)
   if (h.kickHit && !h.throwing && state.frame - h.kickHit > MISS_AFTER && state.frame >= h.missAt) {
     h.kickHit = 0; h.missAt = state.frame + 150; h.misses++;
@@ -588,10 +657,20 @@ const runDone = (state: GameState, h: Lair): EquipControl[] | null => {
   if (p.isDivekicking) h.kickAt = state.frame;
   if (tookIt(state, h, e)) h.throwing = true;
   if (h.throwing && grabHolding() !== e) {
-    h.throwing = false; h.tipsTill = false;
-    // (the first one after the gift: his word)
-    if (!h.goodSaid && has('sabatons')) { h.goodSaid = true; const tok = h.token; setTimeout(() => { if (lairOf(state) === h && h.token === tok) { silenceAll(); benSays(h.ben, pickLine(L.good)); } }, 700); }
+    h.throwing = false;
+    if (e) h.fly = { e, at: state.frame, dir: Math.sign(e.vel.x) || p.facing };
   }
+  // (into the dynamite: it blows, and his word (the first one after the gift always; after that, now and then); the
+  // other way, or short: he says so)
+  const res = watchFly(state, h, RESPAWN);
+  if (res === 'hit') {
+    h.tipsTill = false;
+    if (!h.goodSaid || state.frame >= h.missAt) {
+      h.goodSaid = true; h.missAt = state.frame + 420;
+      const tok = h.token;
+      setTimeout(() => { if (lairOf(state) === h && h.token === tok && h.phase === 'done' && !cannonBusy(h.cannon)) { silenceAll(); benSays(h.ben, pickLine(L.good)); } }, 700);
+    }
+  } else if (res) missThrow(state, h, res);
   keepCrow(state, h, RESPAWN);
   // (now and then: the cannon)
   if (state.frame > h.nudgeAt && !p.inCutscene && !h.ben.said && !cannonBusy(h.cannon)) {

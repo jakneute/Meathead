@@ -33,7 +33,7 @@ import { X, Y } from './layout';
 import { onScreen } from './view';
 import {
   lairOf, inLair, underBed, inSump, MAZE_OPEN, MAZE, CELLS, JOINS, NOPES, cellBox, WINZE, ROOM, POOL, CHUTE, TNT, BEN_RX, HATCH_X,
-  CELL_Y, OFFICE_DX, UNDER_BOT,
+  CELL_Y, OFFICE_DX, UNDER_BOT, TNT_GONE,
 } from './benLair';
 
 const MAZE_TOP = MAZE.top;
@@ -331,9 +331,17 @@ export const drawBenLairBack = (c: Ctx, state: GameState) => {
     still(c, `ben-office-${i}`, 0, 0, L, t, w, Y(POOL.bot) - t + 4, g => { g.save(); g.beginPath(); g.rect(L, t, w, Y(POOL.bot) - t + 4); g.clip(); paintRoom(g); g.restore(); });
   }
   signText(c, 'ASSAY OFFICE', O(13390) + 85, Y(ROOM.top) + 56, western(2, BRASS[4], '#120C08'));
-  // (the dynamite: jolted, dusting, a moment after the scarecrow's hit it)
-  const jt = f - h.tntAt, jx = jt < 16 ? Math.round(Math.sin(jt * 1.9) * (16 - jt) * 0.25) : 0;
-  still(c, 'ben-tnt', jx, 0, W(TNT.a) - 4, fl - 114, 96, 118, paintTnt);
+  // (the dynamite: gone a moment after the scarecrow's blown it, a scorch on the wall and the floor where it stood; then
+  // a fresh stack set down, settling)
+  const jt = f - h.tntAt;
+  if (jt >= TNT_GONE) {
+    const st = jt - TNT_GONE, jy = st < 8 ? Math.round((8 - st) * 0.6) : 0;
+    still(c, 'ben-tnt', 0, -jy, W(TNT.a) - 4, fl - 114, 96, 118, paintTnt);
+  } else {
+    c.globalAlpha = 0.5 * (1 - jt / TNT_GONE) + 0.15;
+    c.fillStyle = '#120A06'; c.beginPath(); c.ellipse((W(TNT.a) + W(TNT.b)) / 2, fl - 40, 60, 44, 0, 0, Math.PI * 2); c.fill();
+    c.globalAlpha = 1;
+  }
   // (the lantern over the cot, swaying; drips off the ceiling into the floor, and into the pool)
   const sw = Math.sin(f * 0.025) * 2;
   c.strokeStyle = INK; c.lineWidth = 1; c.beginPath(); c.moveTo(O(13440), Y(ROOM.top) + 14); c.lineTo(O(13440) + sw, Y(ROOM.top) + 76); c.stroke();
@@ -354,6 +362,15 @@ export const drawBenLairBack = (c: Ctx, state: GameState) => {
 /** World space, over him: the maze's water (see-through: he's in it), Ben's words over his head (in play: plain text). */
 export const drawBenLairFront = (c: Ctx, state: GameState) => {
   const rv = lairOf(state).reveal;
+  // (the dynamite going up: a flash there, white-hot to orange, in stepped rings, a few frames)
+  const bt = state.frame - lairOf(state).tntAt;
+  if (bt >= 0 && bt < 12) {
+    const x = (W(TNT.a) + W(TNT.b)) / 2, y = FL() - 50, k = 1 - bt / 12;
+    for (const [r, col, a] of [[130, '#F97316', 0.35], [90, '#FDBA74', 0.5], [50, '#FEF9C3', 0.8]] as const) {
+      c.globalAlpha = a * k; c.fillStyle = col; c.beginPath(); c.arc(x, y, r * (0.7 + 0.3 * (1 - k)), 0, Math.PI * 2); c.fill();
+    }
+    c.globalAlpha = 1;
+  }
   // (from up in the flooded shaft: solid rock under the bed, faded away going down the winze)
   if (rv < 1 && seenBox(state, UA, UB, VT, UBOT)) {
     c.globalAlpha = 1 - rv;
@@ -417,6 +434,9 @@ export const benLighting = (state: GameState, base: SceneLight | null): SceneLig
     const lights: Light[] = [...sumpLights(state), { x: cx, y: p.pos.y + 24, r: 130, a: 0.3 }];
     if (!inLair(state)) lights.push(...mazeLights(state, cx, p.pos.y));
     lights.push(...officeLights(f));
+    // (the dynamite going up lights the room a moment)
+    const bt = f - lairOf(state).tntAt;
+    if (bt >= 0 && bt < 30) lights.push({ x: (W(TNT.a) + W(TNT.b)) / 2, y: FL() - 50, r: 420, a: 1 - bt / 30, color: 'rgba(253, 186, 116, 0.2)' });
     return { dark: inLair(state) ? 0.52 : 0.5, shade: inLair(state) ? [12, 8, 4] : [4, 10, 14], lights, rim: 0.4 };
   }
   if (!onScreen(state, X(12400), X(14460))) return base;

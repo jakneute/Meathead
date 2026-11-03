@@ -391,7 +391,7 @@ export const PIECE_LINES: { hands: PieceLines; pauldrons: PieceLines; helmet: Pi
     trialPose: 'fold',
     miss: ['THAT WAS A STOMP. NOW THROW HIM.', "YOU KICKED HIM. HE'S STILL HERE. THAT'S THE PROBLEM.", 'HOLD THE KICK. TAP GRAB. HE FLIES.', 'YOU LANDED ON HIM LIKE A HEN ON AN EGG.', 'KICK, GRAB, THROW. YOU DID ONE OF THREE.'],
     hint: ['THE BOOT COMES DOWN. THE SCARECROW GOES ACROSS. HOLD THE DIVE KICK, TAP GRAB ON THE WAY DOWN.'],
-    pass: ["STRAIGHT INTO THE DYNAMITE. GOOD THING IT'S DUDS. YOU PASS.", 'LIKE A CANNONBALL WITH A HAT ON. YOU PASS.'],
+    pass: ["STRAIGHT INTO THE DYNAMITE. SO MUCH FOR DUDS. YOU PASS.", 'LIKE A CANNONBALL WITH A HAT ON. YOU PASS.'],
     passed: {
       clean: ['I THREW A SCARECROW. THE CROWS ARE FREE.'],
       shitty: ['I THREW HIM SO HARD I LET SOME FLY TOO.'],
@@ -430,6 +430,19 @@ export const BOOT_WEEB: ByPants = {
   nude: ['MISSAIRU KIKKU... ZENRA DESU! I KNOW JAPANESE FROM CARTOONS.'],
 };
 export const BOOT_HUH = ["GRANDPA NEVER SAID THAT. GRANDPA MOSTLY SAID GET OFF THE LAWN."];
+/** Ben, the scarecrow thrown the other way, away from the dynamite (the owner's: "if i throw the scarecrow not at the
+ *  dynamite, he should acknowledge it. there are two directions you can throw it"). */
+export const CROW_WRONG: ByPants = {
+  clean: ["WRONG WAY. THE DYNAMITE'S BEHIND YOU.", 'YOU THREW HIM AT MY POOL. THE DYNAMITE IS THE OTHER WAY.', 'OTHER WAY. THE RED STICKS. BY THE WALL.'],
+  shitty: ['OTHER WAY. AND NOW HE SMELLS LIKE YOU.', 'WRONG WAY. YOU THROW LIKE YOU SHIT. EVERYWHERE.', 'THE DYNAMITE IS THE OTHER WAY. SO IS THE SMELL, HOPEFULLY.'],
+  nude: ['OTHER WAY. EYES ON THE DYNAMITE. NOT ON YOURSELF.', 'WRONG WAY. HARD TO AIM WITH EVERYTHING FLAPPING.', 'THE DYNAMITE IS BEHIND YOU. DO NOT TURN AROUND. YES. TURN AROUND.'],
+};
+/** Ben, thrown toward the dynamite but it never got there. */
+export const CROW_SHORT: ByPants = {
+  clean: ['RIGHT WAY. NO ARM. AGAIN.', "HE DIDN'T MAKE IT. THROW HIM LIKE HE OWES YOU MONEY."],
+  shitty: ["SHORT. HE DIDN'T WANT TO GET CLOSER TO YOU EITHER.", 'RIGHT WAY. NO ARM. ALL GUT, I GUESS.'],
+  nude: ['SHORT. LIKE EVERYTHING ELSE ON YOU RIGHT NOW.', 'RIGHT WAY. NO ARM. PUT YOUR BACK INTO IT. YOUR NAKED BACK.'],
+};
 /** Getting into the cannon: Ben, where it goes (after Meathead's MH_CANNON_ASK). */
 export const BEN_CANNON_FR = ["THE LOG RIDE. FRONT OF THE LINE. YOU'RE WELCOME.", 'STRAIGHT TO THE LOG RIDE. SKIP THE LINE. EVERYBODY HATES YOU.'];
 /** Meathead, down at the log ride's station. */
@@ -553,6 +566,6 @@ const pieceBen = (p: PieceLines) => [...p.sell, ...p.trial, ...p.miss, ...p.hint
 const pieceMeathead = (p: PieceLines) => [...all(p.ask), ...all(p.passed), ...all(p.enamored)];
 
 export const BEN_VOICE_LINES: Record<string, string[]> = {
-  [BEN_VOICE]: [...NAME, ...all(RIDDLE), ...PURPOSE, ...FIRST_ASIDE, ...all(AGAIN), ...all(NUDGE), ...all(NUDGE_OUT), ...BYE_BEN, ...ART_OPEN, ...ART_HOW, ...ART_HUH, ...ART_AGAIN, ...ART_FLASH, ...ART_AGAIN_FLASH, ...Object.values(PIECE_LINES).flatMap(pieceBen), ...LEGS_CURTAIN, ...all(NUDGE_HW), ...BEN_CANNON, ...AMULET_HUH, ...BEN_CANNON_FY, ...BRACER_HUH, ...BEN_CANNON_SP, ...BOOT_HUH, ...BEN_CANNON_FR],
+  [BEN_VOICE]: [...NAME, ...all(RIDDLE), ...PURPOSE, ...FIRST_ASIDE, ...all(AGAIN), ...all(NUDGE), ...all(NUDGE_OUT), ...BYE_BEN, ...ART_OPEN, ...ART_HOW, ...ART_HUH, ...ART_AGAIN, ...ART_FLASH, ...ART_AGAIN_FLASH, ...Object.values(PIECE_LINES).flatMap(pieceBen), ...LEGS_CURTAIN, ...all(NUDGE_HW), ...BEN_CANNON, ...AMULET_HUH, ...BEN_CANNON_FY, ...BRACER_HUH, ...BEN_CANNON_SP, ...BOOT_HUH, ...BEN_CANNON_FR, ...all(CROW_WRONG), ...all(CROW_SHORT)],
   meathead: [...all(MEET), ...all(FIRST_WHY), ...all(FIRST_REACT), ...all(AGAIN_MH), ...BYE_MEATHEAD, ...all(ART_MH), ...all(ART_WEEB), ...Object.values(PIECE_LINES).flatMap(pieceMeathead), ...all(MH_PASSAGE), ...all(MH_HATCH), ...MH_CANNON_ASK, ...MH_FALL, ...all(MH_LANDED), ...all(MH_TUNNEL), ...all(AMULET_WEEB), ...all(MH_HATCH_SP), ...all(BRACER_WEEB), ...all(MH_MAZE), ...all(BOOT_WEEB), ...all(MH_LANDED_FR)],
 };
