@@ -19,6 +19,9 @@
 // a beam across, a rubber raft strung up on chains for his hammock (he naps up there: it holds you), the stunt cannon
 // under the roof vent. His stage curtain (red velvet, gold fringe) rolled up under the roof, dropped for the trial. The
 // tank's shell cut away round it, its cone roof over it with HAPPYWOOD round the band and the red light on the finial.
+// More of his things (paintDen): the CRAFTY mini fridge with a hot plate and chili, a styrofoam saguaro, two one-sheets
+// (LEG DAY II, THE SPOTTER), the fold-down bench with the next shin-dig half taped up, a welded patch and its scorch, a
+// carton of the gift shop's knockoff statuettes, chalk handprints; a near roof pipe across the top in front.
 // Still art painted once (stamps by the hour; the tank in chunks); only the bags, the curtain, the hatches' leaves, the
 // dust in the beam and Ben move.
 
@@ -201,14 +204,15 @@ const filmCans = (g: Ctx, x: number) => {
     box(g, x + off - 1, y - 1, 46, 13, INK); box(g, x + off, y, 44, 11, C[3]); box(g, x + off, y, 44, 2, C[5]); box(g, x + off, y + 9, 44, 2, C[1]);
     box(g, x + off + 12, y + 3, 20, 5, i % 2 ? dimmed('#E8DCB8') : dimmed('#F4F0E4')); box(g, x + off + 14, y + 4, 16, 1, dimmed('#B91C1C'));
   }
-  signText(g, "DAILIES '87", x + 22, -66, plain(1, 1, dimmed('#E8E0D0'), '#0A0608'));
+  // (DAILIES '87 on a strip of camera tape across the top can)
+  box(g, x - 13, -61, 70, 11, INK); box(g, x - 12, -60, 68, 9, dimmed('#ECE6D6')); box(g, x - 12, -60, 68, 1, dimmed('#FFFFFF'));
+  signText(g, "DAILIES '87", x + 22, -52, plain(1, 1, dimmed('#1C1C22')));
 };
 const award = (g: Ctx, x: number) => {
   const P = ramp6(dimmed('#1C1C22'));
   // (the column (a thin plinth: nothing to stand on), the plaque, the big gold man on top)
   box(g, x - 9, -74, 18, 74, INK); box(g, x - 8, -74, 16, 74, P[2]); box(g, x - 8, -74, 3, 74, P[4]); box(g, x + 5, -74, 3, 74, P[0]);
   box(g, x - 14, -78, 28, 6, INK); box(g, x - 13, -77, 26, 4, P[3]);
-  box(g, x - 7, -50, 14, 10, BRASS[2]); box(g, x - 6, -49, 12, 1, BRASS[4]);
   const G = GOLDR;
   g.fillStyle = INK; g.beginPath(); g.moveTo(x - 11, -116); g.lineTo(x + 11, -116); g.lineTo(x + 8, -98); g.lineTo(x + 5, -80); g.lineTo(x - 5, -80); g.lineTo(x - 8, -98); g.closePath(); g.fill();
   g.fillStyle = G[3]; g.beginPath(); g.moveTo(x - 10, -115); g.lineTo(x + 10, -115); g.lineTo(x + 7, -98); g.lineTo(x + 4, -81); g.lineTo(x - 4, -81); g.lineTo(x - 7, -98); g.closePath(); g.fill();
@@ -216,8 +220,12 @@ const award = (g: Ctx, x: number) => {
   g.fillStyle = INK; g.beginPath(); g.arc(x, -124, 9, 0, Math.PI * 2); g.fill();
   g.fillStyle = G[3]; g.beginPath(); g.arc(x, -124, 8, 0, Math.PI * 2); g.fill();
   g.fillStyle = G[5]; g.fillRect(x - 4, -129, 3, 2);
-  signText(g, 'BEST SUPPORTING', x, -58, plain(1, 1, dimmed('#E8E0D0'), '#0A0608'));
-  signText(g, 'SPOTTER', x, -30, plain(1, 1, dimmed('#E8E0D0'), '#0A0608'));
+  // (its placard: a black plate screwed across the column, both lines on it)
+  box(g, x - 34, -72, 68, 34, INK); box(g, x - 33, -71, 66, 32, P[1]); box(g, x - 33, -71, 66, 1, P[4]); box(g, x - 31, -69, 62, 28, P[2]);
+  for (const bx of [x - 31, x + 29]) { box(g, bx, -69, 2, 2, BRASS[2]); box(g, bx, -43, 2, 2, BRASS[2]); }
+  signText(g, 'BEST', x, -61, plain(1, 1, dimmed('#E8C25A'), '#0A0608'));
+  signText(g, 'SUPPORTING', x, -52, plain(1, 1, dimmed('#E8C25A'), '#0A0608'));
+  signText(g, 'SPOTTER', x, -43, plain(1, 1, dimmed('#E8C25A'), '#0A0608'));
 };
 const weights = (g: Ctx, x: number) => {
   const A = ramp6(dimmed('#9A7A4A')), S = ramp6(dimmed('#7A828E'));
@@ -271,6 +279,93 @@ const curtainRolled = (g: Ctx) => {
   box(g, cx - 30, -TH + 26, 60, 24, INK); box(g, cx - 29, -TH + 27, 58, 22, VELVET[2]); box(g, cx - 29, -TH + 29, 58, 5, VELVET[3]); box(g, cx - 29, -TH + 44, 58, 4, VELVET[0]);
   for (const tx of [cx - 18, cx + 14]) { box(g, tx, -TH + 24, 4, 28, BRASS[3]); box(g, tx, -TH + 24, 1, 28, BRASS[5]); box(g, tx - 1, -TH + 50, 6, 6, BRASS[2]); }
 };
+/** More of his things (dimmed: none of it's stood on): the craft-services mini fridge (CRAFTY on it) with a hot plate
+ *  and a pot of chili; a styrofoam saguaro off the western town; two one-sheets on the staves in his words (LEG DAY II,
+ *  THE SPOTTER); the fold-down bench bolted to the staves where the next shin-dig's being built (a shin guard, a gold
+ *  statuette half gaffer-taped down it, the glue gun, the soldering iron, a tub of whey), the welding's scorch and a
+ *  fresh plate welded over a hole behind it; a carton of the gift shop's knockoff statuettes under it; chalk handprints
+ *  on the plates by the weights and its dust on the floor. */
+const paintDen = (g: Ctx) => {
+  const D = (c: string) => ramp6(dimmed(c));
+  // ---- the mini fridge: white, CRAFTY on its door on gaffer tape, the hot plate on it, a pot of chili, the ladle
+  { const x = 6, w = 46, t = -52, Fr = D('#D8D4CC'), S = D('#3A3A42');
+    box(g, x - 1, t - 1, w + 2, -t + 1, INK); box(g, x, t, w, -t, Fr[3]); box(g, x, t, 4, -t, Fr[4]); box(g, x + w - 6, t, 6, -t, Fr[2]);
+    box(g, x, t + 16, w, 2, Fr[1]); box(g, x + w - 10, t + 22, 3, 14, S[2]); box(g, x + w - 10, t + 4, 3, 8, S[2]);
+    box(g, x + 6, t + 24, 26, 9, D('#C8C0A8')[3]); signText(g, 'CRAFTY', x + 19, t + 32, plain(1, 1, dimmed('#1C1C22')));
+    box(g, x + 4, -3, w - 8, 3, S[1]);
+    box(g, x + 6, t - 6, w - 12, 6, INK); box(g, x + 7, t - 5, w - 14, 4, S[2]); box(g, x + 10, t - 6, w - 20, 1, '#E8603A');
+    box(g, x + 9, t - 22, 28, 16, INK); box(g, x + 10, t - 21, 26, 15, S[3]); box(g, x + 10, t - 21, 5, 15, S[4]); box(g, x + 30, t - 21, 6, 15, S[1]);
+    box(g, x + 7, t - 24, 32, 4, INK); box(g, x + 8, t - 23, 30, 2, S[4]); box(g, x + 11, t - 24, 24, 1, dimmed('#8A2A10'));
+    box(g, x + 4, t - 18, 6, 2, INK); box(g, x + 36, t - 18, 6, 2, INK);
+    box(g, x + 26, t - 38, 2, 16, INK); box(g, x + 26, t - 38, 1, 15, S[5]); }
+  // ---- the styrofoam saguaro off the western town (a chunk bitten out of it, the white foam showing)
+  { const x = 138, C = D('#3A7A3A');
+    for (const [ax, ay, aw, ah] of [[x - 5, -58, 10, 58], [x - 15, -42, 6, 18], [x + 9, -48, 6, 22]] as const) { box(g, ax - 1, ay - 1, aw + 2, ah + 2, INK); box(g, ax, ay, aw, ah, C[2]); box(g, ax + 1, ay, 2, ah, C[4]); box(g, ax + aw - 2, ay, 1, ah, C[1]); }
+    box(g, x - 15, -26, 10, 5, INK); box(g, x - 14, -25, 9, 3, C[2]); box(g, x + 5, -28, 10, 5, INK); box(g, x + 5, -27, 9, 3, C[2]);
+    for (let y = -54; y < -4; y += 6) { box(g, x - 3, y, 1, 1, C[5]); box(g, x + 3, y + 3, 1, 1, C[5]); }
+    box(g, x + 1, -36, 5, 7, dimmed('#E8E4DA')); box(g, x + 1, -36, 1, 7, dimmed('#B8B4AA'));
+    box(g, x - 9, -6, 18, 6, INK); box(g, x - 8, -5, 16, 5, D('#8A6A4A')[3]); }
+  // ---- two one-sheets on the staves over the waterline, in his words (taped up, a corner lifting)
+  const sheet = (x: number, title: string[], tag: string, art: (cx: number, cy: number) => void, bg: string, ink: string) => {
+    const w = 76, y = -346, h = 84, B = D(bg);
+    box(g, x - 1, y - 1, w + 2, h + 2, INK);
+    for (let i = 0; i < 4; i++) box(g, x, y + i * (h / 4), w, h / 4 + 1, B[[2, 3, 3, 2][i]]);
+    checker(g, x, y + h / 4 - 1, w, 2, B[2], 0, 2); checker(g, x, y + (h * 3) / 4 - 1, w, 2, B[2], 0, 2);
+    art(x + w / 2, y + 38);
+    title.forEach((t, i) => signText(g, t, x + w / 2, y + 12 + i * 9, plain(1, 1, hour(ink), '#0A0608')));
+    signText(g, tag, x + w / 2, y + h - 5, plain(1, 1, hour('#F4EEE2'), '#0A0608'));
+    for (const [tx, ty] of [[x - 2, y - 2], [x + w - 8, y - 2], [x - 2, y + h - 3]] as const) box(g, tx, ty, 10, 5, dimmed('#9A9A90'));
+    g.fillStyle = dimmed('#C8C0A8'); g.beginPath(); g.moveTo(x + w + 1, y + h - 10); g.lineTo(x + w + 1, y + h + 1); g.lineTo(x + w - 10, y + h + 1); g.closePath(); g.fill();
+  };
+  sheet(650, ['LEG DAY II'], 'NO EXCUSES', (cx, cy) => {
+    // (a huge calf and a sneaker, kicking up across it)
+    const SK = D('#D59C6C');
+    g.fillStyle = INK; g.beginPath(); g.moveTo(cx - 26, cy + 30); g.lineTo(cx - 14, cy - 2); g.quadraticCurveTo(cx - 4, cy - 14, cx + 8, cy - 8); g.lineTo(cx - 2, cy + 30); g.closePath(); g.fill();
+    g.fillStyle = SK[3]; g.beginPath(); g.moveTo(cx - 24, cy + 29); g.lineTo(cx - 13, cy - 1); g.quadraticCurveTo(cx - 4, cy - 12, cx + 6, cy - 7); g.lineTo(cx - 4, cy + 29); g.closePath(); g.fill();
+    box(g, cx - 16, cy + 2, 3, 16, SK[4]);
+    box(g, cx + 2, cy - 18, 26, 12, INK); box(g, cx + 3, cy - 17, 24, 10, dimmed('#F4F4F0')); box(g, cx + 3, cy - 9, 24, 2, dimmed('#B91C1C')); box(g, cx + 4, cy - 16, 6, 2, dimmed('#B91C1C'));
+    for (let k = 0; k < 3; k++) box(g, cx + 22 + k * 3, cy - 24 + k * 2, 2, 8, dimmed('#FACC15'));
+  }, '#1E3A8A', '#FACC15');
+  sheet(756, ['THE SPOTTER', 'STARRING BEN'], "HE'S GOT YOU.", (cx, cy) => {
+    // (a barbell over a bench, two big hands up under it)
+    const S = D('#7A828E'), SK = D('#C68A5E');
+    box(g, cx - 30, cy - 4, 60, 3, INK); box(g, cx - 29, cy - 3, 58, 1, S[4]);
+    for (const s of [-1, 1]) { box(g, cx + s * 26 - 4, cy - 12, 8, 19, INK); box(g, cx + s * 26 - 3, cy - 11, 6, 17, S[3]); }
+    for (const s of [-1, 1]) { box(g, cx + s * 10 - 5, cy - 2, 10, 14, INK); box(g, cx + s * 10 - 4, cy - 1, 8, 12, SK[3]); box(g, cx + s * 10 - 4, cy - 1, 8, 2, SK[4]); box(g, cx + s * 10 - 3, cy + 11, 6, 14, SK[2]); }
+    box(g, cx - 24, cy + 26, 48, 4, INK); box(g, cx - 23, cy + 27, 46, 2, D('#2A2A30')[3]);
+  }, '#5A0C14', '#F4EEE2');
+  // ---- the welding: a fresh plate welded over a hole in a stave behind the bench (its bead bright), scorch round it
+  for (let i = 0; i < 4; i++) { g.fillStyle = `rgba(8,6,4,${(0.12 + i * 0.07).toFixed(2)})`; g.beginPath(); g.ellipse(690, -140 - i * 3, 34 - i * 7, 22 - i * 4, 0, 0, Math.PI * 2); g.fill(); }
+  { const P = D('#8A8A92'); box(g, 700, -168, 26, 20, INK); box(g, 701, -167, 24, 18, P[3]); box(g, 701, -167, 24, 2, P[4]);
+    for (let k = 0; k < 24; k += 3) { box(g, 700 + k, -169, 2, 1, dimmed('#E8C890')); box(g, 700 + k, -148, 2, 1, dimmed('#C8A060')); } }
+  for (let k = 0; k < 16; k++) box(g, 664 + hash(k + 900) * 60, -160 + hash(k + 910) * 34, 1, 1, k % 3 ? '#6A5A48' : '#E8C890');
+  // ---- the fold-down bench on its drop brackets (off the floor: the tank's floor hatch is under it)
+  { const y = -100, a = 636, b = 730, Wd = D('#6A4A2A'), S = D('#7A828E');
+    for (const bx of [a + 8, b - 8]) { box(g, bx - 1, y, 3, 26, INK); box(g, bx, y, 1, 26, S[3]); g.strokeStyle = INK; g.lineWidth = 2; g.beginPath(); g.moveTo(bx, y + 24); g.lineTo(bx + (bx < 680 ? 16 : -16), y + 4); g.stroke(); }
+    box(g, a - 1, y - 1, b - a + 2, 8, INK); box(g, a, y, b - a, 6, Wd[3]); box(g, a, y, b - a, 1, Wd[5]); box(g, a, y + 5, b - a, 1, Wd[1]);
+    // (the shin guard: white plastic, its straps; the gold statuette half taped down it in silver gaffer)
+    box(g, a + 8, y - 14, 40, 14, INK); box(g, a + 9, y - 13, 38, 12, D('#E8E4DA')[3]); box(g, a + 9, y - 13, 38, 3, D('#E8E4DA')[4]); for (const sx of [a + 14, a + 38]) box(g, sx, y - 14, 4, 14, D('#1C1C22')[3]);
+    const G = GOLDR.map(c => dimmed(c));
+    box(g, a + 14, y - 22, 28, 7, INK); box(g, a + 15, y - 21, 26, 5, G[3]); box(g, a + 15, y - 21, 26, 1, G[5]); g.fillStyle = INK; g.beginPath(); g.arc(a + 44, y - 18, 5, 0, Math.PI * 2); g.fill(); g.fillStyle = G[3]; g.beginPath(); g.arc(a + 44, y - 18, 4, 0, Math.PI * 2); g.fill();
+    for (const tx of [a + 20, a + 32]) { box(g, tx, y - 24, 6, 12, dimmed('#9A9AA2')); box(g, tx, y - 24, 6, 1, dimmed('#C8C8D0')); }
+    // (the gaffer roll, the glue gun, the soldering iron in its stand, a tub of whey, screws)
+    g.fillStyle = INK; g.beginPath(); g.arc(a + 56, y - 7, 7, 0, Math.PI * 2); g.fill(); g.fillStyle = dimmed('#8A8A92'); g.beginPath(); g.arc(a + 56, y - 7, 6, 0, Math.PI * 2); g.fill(); g.fillStyle = Wd[1]; g.beginPath(); g.arc(a + 56, y - 7, 2.5, 0, Math.PI * 2); g.fill();
+    box(g, a + 66, y - 12, 12, 6, INK); box(g, a + 67, y - 11, 10, 4, dimmed('#E89A1A')); box(g, a + 70, y - 7, 4, 7, INK); box(g, a + 70, y - 7, 3, 6, dimmed('#E89A1A'));
+    g.strokeStyle = INK; g.lineWidth = 2; g.beginPath(); g.moveTo(a + 80, y - 1); g.lineTo(a + 92, y - 16); g.stroke(); box(g, a + 78, y - 3, 10, 3, S[2]);
+    box(g, a + 76, y - 40, 16, 22, INK); box(g, a + 77, y - 39, 14, 21, D('#2A2A30')[3]); box(g, a + 77, y - 39, 14, 3, D('#2A2A30')[4]); box(g, a + 78, y - 31, 12, 6, dimmed('#F0C020')); box(g, a + 80, y - 29, 8, 1, INK);
+    for (let k = 0; k < 6; k++) box(g, a + 4 + hash(k + 950) * 80, y - 1, 2, 1, S[5]); }
+  // ---- the carton of knockoff statuettes under it (one sticking up out of the flaps)
+  { const x = 640, w = 44, t = -26, C = D('#B08A5A');
+    box(g, x - 1, t - 1, w + 2, -t + 1, INK); box(g, x, t, w, -t, C[3]); box(g, x, t, w, 2, C[4]); box(g, x + w / 2 - 1, t, 2, 8, C[1]);
+    box(g, x - 4, t - 4, 14, 4, C[2]); box(g, x + w - 10, t - 5, 14, 4, C[2]);
+    signText(g, 'GIFT SHOP', x + w / 2, t + 18, plain(1, 1, dimmed('#3A2414')));
+    const G = GOLDR.map(c => dimmed(c));
+    box(g, x + 14, t - 20, 8, 20, INK); box(g, x + 15, t - 19, 6, 19, G[3]); box(g, x + 15, t - 19, 2, 19, G[4]); g.fillStyle = INK; g.beginPath(); g.arc(x + 18, t - 23, 5, 0, Math.PI * 2); g.fill(); g.fillStyle = G[3]; g.beginPath(); g.arc(x + 18, t - 23, 4, 0, Math.PI * 2); g.fill(); }
+  // ---- chalk: handprints slapped on the plates by the weights, its dust on the floor under the bar
+  for (const [hx, hy] of [[458, -118], [552, -126], [470, -96]] as const) { g.fillStyle = 'rgba(232,228,218,0.2)'; g.beginPath(); g.ellipse(hx, hy, 4, 5, 0, 0, Math.PI * 2); g.fill(); for (let k = 0; k < 4; k++) box(g, hx - 4 + k * 2.4, hy - 9, 1, 4, 'rgba(232,228,218,0.18)'); box(g, hx - 3, hy + 4, 6, 12, 'rgba(232,228,218,0.08)'); }
+  checker(g, 440, -3, 120, 2, 'rgba(232,228,218,0.35)', 0, 2);
+};
+
 /** The tank's inside (the room), one chunk of it. */
 const paintTankChunk = (g: Ctx) => {
   wallTank(g);
@@ -284,6 +379,7 @@ const paintTankChunk = (g: Ctx) => {
   weights(g, 420);
   fresnel(g, 760);
   raft(g);
+  paintDen(g);
   // (the floor's puddle that never dries, the crust along the wall's foot)
   for (let r = 0; r < 4; r++) { const hw = 46 - r * 9; box(g, 650 - hw, -2 + 0 * r, hw * 2, 1, r % 2 ? '#3A4A50' : '#4A6068'); }
   checker(g, 0, -6, TW, 4, '#B0AA94', 0, 3);
@@ -402,6 +498,8 @@ export const drawTowerBack = (c: Ctx, state: GameState) => {
       c.fillStyle = `rgba(255,240,200,${(0.12 + 0.3 * Math.sin(u * Math.PI)).toFixed(2)})`;
       c.fillRect(Math.round(tx + 720 - u * 260 + Math.sin(f * 0.02 + i) * 6), Math.round(ty - 162 + (i % 3) * 7 + u * 30), 2, 2);
     }
+    // (the chili's steam off the hot plate on the fridge)
+    for (let i = 0; i < 3; i++) { const u = ((f * 0.5 + i * 33) % 100) / 100; c.fillStyle = `rgba(230,230,220,${(0.32 * (1 - u)).toFixed(2)})`; c.fillRect(Math.round(tx + 28 + Math.sin(f * 0.05 + i) * 4), Math.round(ty - 80 - u * 40), Math.round(3 + u * 4), Math.round(3 + u * 4)); }
     drawBags(c, state);
     drawCannon(c, h.cannon, HOLLYWOOD);
     const b = h.ben;
@@ -513,6 +611,15 @@ export const drawTowerFront = (c: Ctx, state: GameState) => {
   if (!seenBox(state, X(TANK.a), X(TANK.b), Y(TANK_F + TANK.h), Y(TANK_F) + 10)) return;
   const h = towerOf(state);
   if (h.curtain) drawCurtainDown(c, state);
+  // (the near roof pipe and a sagging cable across the top of the tank, in silhouette)
+  { const tx = X(TANK.a), ty = Y(TANK_F);
+    c.save(); c.translate(tx, ty);
+    stamp(c, 'hwt-near', -WALL, -TH - 4, TW + WALL * 2, 30, g => {
+      box(g, -WALL, -TH, TW + WALL * 2, 10, '#08060A'); box(g, -WALL, -TH + 10, TW + WALL * 2, 1, '#2A2028');
+      for (let x = 40; x < TW; x += 180) { box(g, x, -TH - 2, 12, 16, '#08060A'); box(g, x + 1, -TH + 15, 10, 1, '#2A2028'); }
+      g.strokeStyle = '#08060A'; g.lineWidth = 2; g.beginPath(); g.moveTo(250, -TH + 8); g.quadraticCurveTo(330, -TH + 24, 420, -TH + 8); g.stroke();
+    });
+    c.restore(); }
   if (h.ben.said && !h.script?.gross) saidOver(c, h.ben.said.text, X(BEN_X), benHeadY(Y(TANK_F)), '#FFFFFF', 220);
 };
 
@@ -537,6 +644,7 @@ export const tankLighting = (state: GameState): SceneLight | null => {
     { x: tx + 730, y: ty - 162, r: 380, cone: 70, a: 0.75, color: 'rgba(255,236,190,0.10)' },
     { x: tx + 730, y: ty - 162, r: 90, a: 0.7, color: 'rgba(255,236,190,0.14)' },
     { x: tx + 190, y: ty - 210, r: 120, a: 0.65, color: 'rgba(255,220,150,0.12)' },
+    { x: tx + 28, y: ty - 58, r: 60, a: 0.45, color: 'rgba(248,113,80,0.12)' },
     { x: p.pos.x + p.width / 2, y: p.pos.y + 24, r: 150, a: 0.35 },
   ];
   const hk5 = h.hatches[4];
