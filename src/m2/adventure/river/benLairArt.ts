@@ -35,10 +35,10 @@ import { shapeR, pxR, lineR, ellR, dith, mixHex, type Ramp } from '../../foreign
 import { drawCannon, JUNGLE } from '../../upgrades/returnCannon';
 import { drawBen, benHeadY } from '../../upgrades/confucktious';
 import { saidOver } from '../section';
-import { signAt, stencil, graffiti, print } from '../letters';
+import { signAt, signText, stencil, graffiti, print } from '../letters';
 import { SECTIONS } from '../geometry';
 import { POCKET_TOP } from './course';
-import { SHAFT, LAIR, LEDGES, UPRIGHTS_X, HAMMOCK, CANNON_X, OUTLET_X, OUTLET_Y, OVERFLOW_W, lairOf, benAt, inLair, lairView } from './benLair';
+import { SHAFT, LAIR, LEDGES, UPRIGHTS_X, UPRIGHTS_BAR, UPRIGHTS_TOP, UPRIGHTS_HALF, HAMMOCK, CANNON_X, OUTLET_X, OUTLET_Y, OVERFLOW_W, lairOf, benAt, inLair, lairView } from './benLair';
 
 type Ctx = CanvasRenderingContext2D;
 const { x0 } = SECTIONS.river;
@@ -150,20 +150,44 @@ const paintWall = (g: Ctx) => {
     let x = 120 + hash(k + 70) * (W - 200), y = -H + 30 + hash(k + 71) * 140;
     for (let s = 0; s < 6; s++) { const nx = x + (hash(k * 9 + s) - 0.5) * 16, ny = y + 10 + hash(k * 5 + s) * 14; lineR(g, [x, y, nx, ny], 1, 'rgba(12,10,8,0.6)'); lineR(g, [x + 1, y, nx + 1, ny], 0.6, 'rgba(200,190,170,0.12)'); x = nx; y = ny; }
   }
-  // ---- the trial's uprights, chalked on the wall past the dummy's spot: two posts, the crossbar, the post down to the
-  // floor, a 3 for the points, and the chalk's smudge (the punted head goes over the bar between them)
-  { const ux = lx(UPRIGHTS_X), CH = 'rgba(236,232,220,0.72)', CS = 'rgba(236,232,220,0.22)', bar = -100, half = 30;
-    lineR(g, [ux, BACK + 2, ux, bar], 3, CS); lineR(g, [ux, BACK, ux, bar], 1.6, CH);
-    lineR(g, [ux - half, bar, ux + half, bar], 3, CS); lineR(g, [ux - half, bar, ux + half, bar], 1.6, CH);
-    for (const sx of [-half, half]) { lineR(g, [ux + sx, bar, ux + sx + sx * 0.04, -184], 3, CS); lineR(g, [ux + sx, bar, ux + sx + sx * 0.04, -184], 1.6, CH); }
-    signAt(g, '3', ux, -136, 5, print(5, CH));
-    signAt(g, 'IT IS GOOD', ux, -72, 2, print(2, 'rgba(232,228,214,0.4)')); }
+  // ---- the trial's uprights, chalked big and bright on the clear wall between the squat rack and the hammock's
+  // standpipe (nothing in front of them): two posts, the crossbar, IT IS GOOD under it, the stem down to the floor
+  // band, a 3 for the points between the posts; fat chalk strokes, a dithered smudge round each, the drag's nicks
+  // (the punted head goes over the bar between them)
+  { const ux = lx(UPRIGHTS_X), bar = -UPRIGHTS_BAR, top = -UPRIGHTS_TOP, half = UPRIGHTS_HALF;
+    const CH = '#F4F0E2', CHL = '#FFFFFF', CHD = '#B8B4A8', SMUDGE = dith(g, 'rgba(236,232,220,0.4)');
+    // (a stroke, in 6 px dabs: each a hand's wobble off the line, its smudge, the lit edge, a nick where it skipped)
+    const stroke = (xa: number, ya: number, xb: number, yb: number, seed: number) => {
+      const across = ya === yb, n = Math.max(1, Math.round(Math.abs(across ? xb - xa : yb - ya) / 6));
+      for (let i = 0; i < n; i++) {
+        const t = i / n, j = Math.round((hash(seed + i * 3.1) - 0.5) * 1.6);
+        const x = across ? xa + (xb - xa) * t : xa + j, y = across ? ya + j : ya + (yb - ya) * t;
+        const w = across ? Math.abs(xb - xa) / n + 1 : 4, h = across ? 4 : Math.abs(yb - ya) / n + 1;
+        box(g, x - (across ? 0 : 2) - 2, y - (across ? 2 : 0) - 2, w + 4, h + 4, SMUDGE);
+      }
+      for (let i = 0; i < n; i++) {
+        const t = i / n, j = Math.round((hash(seed + i * 3.1) - 0.5) * 1.6);
+        const x = across ? xa + (xb - xa) * t : xa + j, y = across ? ya + j : ya + (yb - ya) * t;
+        const w = across ? Math.abs(xb - xa) / n + 1 : 4, h = across ? 4 : Math.abs(yb - ya) / n + 1;
+        box(g, x - (across ? 0 : 2), y - (across ? 2 : 0), w, h, CH);
+        box(g, x - (across ? 0 : 2), y - (across ? 2 : 0), across ? w : 1, across ? 1 : h, CHL);
+        if (hash(seed + i * 7.7) > 0.55) box(g, x + (across ? 2 + hash(seed + i) * (w - 4) : -1 + Math.round(hash(seed + i) * 2)), y + (across ? 0 : 2 + hash(seed + i * 2) * (h - 4)), 1, 1, CHD);
+      }
+    };
+    stroke(ux - half - 2, bar, ux + half + 2, bar, 11);
+    for (const s of [-1, 1]) stroke(ux + s * half, top, ux + s * half, bar + 2, s > 0 ? 23 : 31);
+    // (IT IS GOOD under the bar, in two lines; the stem down from under it to the floor band)
+    const WORDS = { ...print({ sx: 2, sy: 2 }, CH, 'rgba(14,12,8,0.55)'), fill: [CHL, CH, CH, '#E4E0D2'], worn: 0.08, wornCol: CHD, seed: 5 };
+    signText(g, 'IT IS', ux, bar + 20, WORDS);
+    signText(g, 'GOOD', ux, bar + 37, WORDS);
+    stroke(ux, bar + 42, ux, BACK - 2, 41);
+    signText(g, '3', ux, Math.round((bar + top) / 2) + 11, { ...print({ sx: 3, sy: 3 }, CH, 'rgba(14,12,8,0.55)'), fill: [CHL, CH, CH, '#E4E0D2'], bold: true, worn: 0.06, wornCol: CHD, seed: 9 }); }
   // ---- stencils: what the room was; and what it is now
   signAt(g, 'PUMP STATION 3', 520, -214, 6, stencil(6, mixHex('#D8D0B8', '#2A2620', 0.35)));
   signAt(g, 'AUTHORIZED PERSONNEL ONLY', 520, -194, 4, stencil(4, mixHex('#C8B848', '#2A2620', 0.35)));
   signAt(g, "BEN'S", 520, -176, 10, graffiti(10, '#B83A2A', 7));
-  // (the chalk tally by the rack: the days, or the reps)
-  for (let k = 0; k < 4; k++) { for (let j = 0; j < 4; j++) box(g, 660 + k * 16 + j * 3, -170, 1, 12, 'rgba(230,226,214,0.5)'); lineR(g, [658 + k * 16, -160, 672 + k * 16, -169], 1, 'rgba(230,226,214,0.5)'); }
+  // (the chalk tally over the shaft: the days, or the reps)
+  for (let k = 0; k < 4; k++) { for (let j = 0; j < 4; j++) box(g, 100 + k * 16 + j * 3, -170, 1, 12, 'rgba(230,226,214,0.5)'); lineR(g, [98 + k * 16, -160, 112 + k * 16, -169], 1, 'rgba(230,226,214,0.5)'); }
   // ---- the ceiling: a slab, its underside in shadow, a conduit along it, the storm grate (roots and leaves down through
   // it, the jungle green beyond), the overflow pipe's hole (the pipe's drawn in front)
   box(g, -60, -H - 80, W + 120, 80, CONC_D[3]);
@@ -286,7 +310,7 @@ const paintProps = (g: Ctx) => {
   signAt(g, 'DAY', 185 + SW, -134, 3, print(3, '#8A1A0C'));
   for (const [tx, ty] of [[150 + SW, -166], [216 + SW, -166]] as const) pxR(g, tx + 1, ty + 1, 2, 2, '#C8C8D0');
   // ---- the scaffold squat rack, its pipe barbell, paint buckets of concrete for plates (a coconut set in each)
-  const rk = 540, SR = dimR(STEEL, 0.35);
+  const rk = 500, SR = dimR(STEEL, 0.35);
   for (const ux of [rk, rk + 70]) { shapeR(g, () => g.rect(ux - 3, -150, 6, 150 + PB), SR, ux - 3, ux + 3, 1); for (let y = -140; y < PB - 10; y += 22) pxR(g, ux - 6, y, 12, 2, SR[3]); shapeR(g, () => g.rect(ux - 9, PB - 4, 18, 4), SR, ux - 9, ux + 9, 1); }
   shapeR(g, () => g.rect(rk - 3, -154, 76, 5), SR, rk - 3, rk + 73, 1);
   lineR(g, [rk - 3, -150, rk + 73, -60], 1.4, SR[3]);
@@ -298,7 +322,7 @@ const paintProps = (g: Ctx) => {
     pxR(g, bx - 11, -120, 22, 3, dimR(['#F2F2F2', '#D8D8D8', '#B8B8B8', '#8A8A8A', '#2A2A2A'], 0.3)[1]);
   }
   // ---- the boat bench (a Jungle Cruise seat, its cushion split, on two milk crates)
-  const bb = 660;
+  const bb = 670;
   for (const mx of [bb, bb + 52]) { shapeR(g, () => g.rect(mx, PB - 26, 22, 26), dimR(BLUE, 0.35), mx, mx + 22, 1); for (let k = 0; k < 3; k++) pxR(g, mx + 3 + k * 6, PB - 22, 3, 18, '#141210'); }
   shapeR(g, () => g.roundRect(bb - 6, PB - 38, 86, 12, 3), dimR(ORANGE, 0.3), bb - 6, bb + 80, 1);
   pxR(g, bb + 20, PB - 36, 10, 1, '#F8E8C8'); lineR(g, [bb + 24, PB - 37, bb + 28, PB - 30], 1, '#2A1A08');
@@ -414,8 +438,8 @@ const paintDen = (g: Ctx) => {
     lineR(g, [x + 12, y - 16, x + 22, y - 18], 2, D(BLACK, 0.2)[0]); pxR(g, x - 12, y - 21, 24, 2, D(STEEL, 0.3)[0]); pxR(g, x + 2, y - 15, 4, 3, D(STEEL, 0.3)[3]);
     lineR(g, [x - 16, y - 2, x - 22, y + 10, x - 20, y + 30], 1.2, '#1A1410'); }
   // ---- the chalk: handprints slapped on the wall by the rack, the bucket at its foot, the dust round it
-  for (const [hx, hy] of [[526, -196], [636, -188], [530, -172]] as const) { ellR(g, hx, hy, 4, 5, 'rgba(230,226,214,0.2)'); for (let k = 0; k < 4; k++) pxR(g, hx - 4 + k * 2.4, hy - 9, 1.4, 4, 'rgba(230,226,214,0.18)'); pxR(g, hx - 3, hy + 4, 6, 12, dith(g, 'rgba(230,226,214,0.16)')); }
-  { const x = 575; shapeR(g, () => g.rect(x - 9, PB - 14, 18, 14), D(WHITE, 0.4), x - 9, x + 9, 1); pxR(g, x - 8, PB - 15, 16, 2, '#E8E4D8'); lineR(g, [x - 8, PB - 14, x, PB - 22, x + 8, PB - 14], 0.8, D(STEEL, 0.3)[2]);
+  for (const [hx, hy] of [[590, -178], [600, -150]] as const) { ellR(g, hx, hy, 4, 5, 'rgba(230,226,214,0.2)'); for (let k = 0; k < 4; k++) pxR(g, hx - 4 + k * 2.4, hy - 9, 1.4, 4, 'rgba(230,226,214,0.18)'); pxR(g, hx - 3, hy + 4, 6, 12, dith(g, 'rgba(230,226,214,0.16)')); }
+  { const x = 535; shapeR(g, () => g.rect(x - 9, PB - 14, 18, 14), D(WHITE, 0.4), x - 9, x + 9, 1); pxR(g, x - 8, PB - 15, 16, 2, '#E8E4D8'); lineR(g, [x - 8, PB - 14, x, PB - 22, x + 8, PB - 14], 0.8, D(STEEL, 0.3)[2]);
     g.fillStyle = dith(g, 'rgba(230,226,214,0.4)'); g.fillRect(x - 24, PB - 2, 48, 3); }
   // ---- the hippo's head: off one of the cruise's animatronics, mounted on a shield like a trophy, its jaw hung open,
   // one eye out on its spring, its wiring out of the neck; MINE NOW on the plate

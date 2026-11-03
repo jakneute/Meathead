@@ -99,8 +99,10 @@ export const LEDGES: [number, number, number][] = [
   [SHAFT.b - LW, SHAFT.b, 240], [SHAFT.a, SHAFT.a + LW, 140], [SHAFT.b - LW, SHAFT.b, 40],
 ];
 /** The tackling dummy's spot, Ben's (by the old pump, watching), the chalk uprights on the back wall (their middle: the
- *  way a head punted from the shaft's side flies). */
-export const DUMMY_X = 9060, BEN_X = 8960, UPRIGHTS_X = 9180;
+ *  way a head punted from the shaft's side flies; on the clear stretch of wall between the squat rack and the hammock's
+ *  standpipe), and how they're chalked (px over the floor: the crossbar, the posts' tops; each post off the middle). */
+export const DUMMY_X = 9060, BEN_X = 8960, UPRIGHTS_X = 9310;
+export const UPRIGHTS_BAR = 140, UPRIGHTS_TOP = 222, UPRIGHTS_HALF = 34;
 /** The hammock (strung between two pipes), where the practice guide turns up, the cannon, the overflow pipe's end out of
  *  the tank's left wall (its mouth's height; where the cannon shoots him out), where he comes down in the tank (the
  *  gallery's start), the overflow pipe over the cannon (its width). */
@@ -414,9 +416,10 @@ const clearDummy = (state: GameState, h: Lair) => {
   if (state.enemies.some(o => o.kind === 'm2:jg_tackle' && o !== h.dummy)) state.enemies = state.enemies.filter(o => o.kind !== 'm2:jg_tackle' || o === h.dummy);
 };
 /** The trial's punt toward the uprights: lofted so the top of its arc is between the chalk posts, well over the
- *  crossbar (benLairArt.ts draws them: the bar 100 over the floor, the posts' tops 184), every time (the owner's "make
- *  sure the punted dummie's head goes over the 'uprights'"). The other way, or not the trial's dummy: the usual kick. */
-const UPRIGHTS_AIM_Y = LAIR.floor - 150;
+ *  crossbar (benLairArt.ts draws them from UPRIGHTS_*: the top of the arc halfway between the bar and the posts' tops),
+ *  every time (the owner's "make sure the punted dummie's head goes over the 'uprights'"). The other way, or not the
+ *  trial's dummy: the usual kick. */
+const UPRIGHTS_AIM_Y = LAIR.floor - (UPRIGHTS_BAR + UPRIGHTS_TOP) / 2;
 addKickAim((state, e, x, _y, dir) => {
   if (!inLair(state)) return null;
   const h = lairOf(state);
