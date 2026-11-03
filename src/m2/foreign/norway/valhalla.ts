@@ -70,7 +70,7 @@ import { SECTIONS, GY } from '../geometry';
 import { drawCast, womanOf, type Costume } from '../cast';
 import { VIKING_COSTUME } from './kinds';
 import { tollPaid, stopArmAt } from './toll';
-import { DOORMAN_VOICE, DOOR_DEMAND, DOOR_DEMAND_MH, DOOR_LEFT, doorCount, DOOR_RAISE, DOOR_RAISE_MH, DOOR_OPEN } from './lines';
+import { DOORMAN_VOICE, DOOR_DEMAND, DOOR_DEMAND_MH, DOOR_LEFT, doorCount, DOOR_RAISE, DOOR_RAISE_FIRST, DOOR_RAISE_MH, DOOR_OPEN } from './lines';
 
 const { x0 } = SECTIONS.norway;
 const X = (rx: number) => x0 + rx, Y = (h: number) => GY - h;
@@ -85,7 +85,9 @@ export const FACADE = { a: 4640, b: 4888, h: 236 };
 export const DOOR = 4764;
 export const DOCK = { a: 4630, b: 4900 };
 /** The doorman, on the right troll's inner knee under the bridge (his feet's middle, the knee's height). */
-export const DOORMAN = { x: 4954, h: 150 };
+// (on the bank at the right troll's outer foot, on the street side he comes along: the owner's "he should be at the
+// bottom at a place i can reach him, not on the other side" (he'd been up on the inner knee, behind the troll's body))
+export const DOORMAN = { x: 5300, h: 0 };
 /** The hall: its ends, its floor and ceiling (world y), straight down under the bridge, past the ground. */
 export const HALL = { a: 4380, b: 5220, floor: GY + 2400, ceil: GY + 2000 };
 /** The hall's door (inside: its middle), the keg (its chain's x, its bottom's height off the floor, its size), where Ben
@@ -424,7 +426,9 @@ const talk = (state: GameState, h: Hall) => {
     // (every last one: up they come; for good)
     setBenSpot(SPOT); saveProgress();
     h.door.pose = 'raise'; h.door.poseT = 0;
-    doorSays(h, pickLine(byPants(state, DOOR_RAISE)), () => meatheadSays(state, pickLine(byPants(state, DOOR_RAISE_MH)), true, done));
+    // (never asked yet and it's done already: impressed)
+    const raise = demanded ? DOOR_RAISE : DOOR_RAISE_FIRST; demanded = true;
+    doorSays(h, pickLine(byPants(state, raise)), () => meatheadSays(state, pickLine(byPants(state, DOOR_RAISE_MH)), true, done));
     if (h.lift <= 0) { h.lift = 0.001; playSound('rumble', 0.9, -6); playSound('clang', 0.6, -10); }
     return;
   }
