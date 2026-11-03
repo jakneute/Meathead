@@ -1,4 +1,4 @@
-import { hasClip, playClip, voicesLoaded, sentenceTimes, ClipHandle, holdVoices } from './voiceclips';
+import { hasClip, playClip, voicesLoaded, sentenceTimes, ClipHandle, holdVoices, type ClipEcho } from './voiceclips';
 import { hasCues, playCues } from './cues';
 // Who's talking, and when: every line goes through here. A line that's been recorded (voiceclips.ts: every character
 // has their own voice) plays that; anything that hasn't is only shown, never said: the browser's own speech is never
@@ -367,18 +367,21 @@ export const cancelSpeech = () => {
 };
 
 interface SpeakOptions {
-  onStart?: () => void;
+  /** It's going (with how long the line itself is, in ms). */
+  onStart?: (ms?: number) => void;
+  /** Thrown back, fading (voiceclips.ts's ClipEcho): onDone once the echo's rung out. */
+  echo?: ClipEcho;
   /** Called when the line finishes or fails. */
   onDone?: () => void;
 }
 
 /** Plays a line directly, outside the dialogue rules (menus). */
-export const speak = (text: string, voice: Voice, { onStart, onDone }: SpeakOptions = {}) => {
+export const speak = (text: string, voice: Voice, { onStart, onDone, echo }: SpeakOptions = {}) => {
   outside++;
   let out = false;
   const done = () => { if (!out) { out = true; outside--; afterOutside(); } };
   noteStart(voice, text, false);
-  const clip = playClip(voice.id, text, { onStart: () => { noteStart(voice, text, true); onStart?.(); }, onEnd: () => { outsideClips.delete(clip!); done(); onDone?.(); } });
+  const clip = playClip(voice.id, text, { echo, onStart: ms => { noteStart(voice, text, true); onStart?.(ms); }, onEnd: () => { outsideClips.delete(clip!); done(); onDone?.(); } });
   if (clip) { outsideClips.add(clip); return; }
   // (not recorded: nothing's said)
   done();

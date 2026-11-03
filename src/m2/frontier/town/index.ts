@@ -43,7 +43,7 @@ import { buildScenes, updateScenes, drawScenesFront, drawScenesHud, spawnTown, w
 import { drawTownBackdrop, drawTownBack, drawWaterFront, townLamps } from './art';
 import { updateZoom, zoomOf, spill } from './view';
 import { drawMineVeil } from './mine';
-import { buildGallery, updateGallery, drawGalleryWorld, drawGalleryWords, drawGalleryHud } from './gallery';
+import { buildGallery, updateGallery, drawGalleryWorld, drawGalleryWords, drawGalleryHud, galleryZoom } from './gallery';
 import { makeKindEnemy } from '../../../m1/game/enemies/kinds';
 import type { EnemyKind } from '../../../m1/types';
 import { withBenLair } from './benLairSection';
@@ -98,7 +98,8 @@ const base: FrontierSection = {
     const s = spill(state);
     return { min: x0 + s, max: x1 - CANVAS_WIDTH - s };
   },
-  zoom: (state) => ({ scale: zoomOf(state), x: state.camera.x + CANVAS_WIDTH / 2, y: state.camera.y + 300 }),
+  // (Dooley erased by the ray gun: the camera in on him, gallery.ts)
+  zoom: (state) => galleryZoom(state, zoomOf(state)) ?? ({ scale: zoomOf(state), x: state.camera.x + CANVAS_WIDTH / 2, y: state.camera.y + 300 }),
   // (down the mine, his feet higher on the screen: what's above and below both in view)
   // (eased by how far down he is, as the dark is: no jump at the shaft's top)
   cameraRow: (state) => 510 - 110 * mineDepthOf(state.player.pos.x + state.player.width / 2, state.player.pos.y + state.player.height, 0, 160),

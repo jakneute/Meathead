@@ -44,8 +44,10 @@ let paused = false;
 let pendingQuit: { quit: MinigameQuit; state: GameState } | null = null;
 
 /** This frame, the minigame `id` is on and can be paused (call it every frame it can be, from its update); `quit`
- *  backs out of it (QUIT MINIGAME in the pause menu: a module-level function, not a fresh closure a frame). */
-export const minigamePausable = (state: GameState, id: MinigameId, quit: MinigameQuit) => { markId = id; markFrame = state.frame; markQuit = quit; markState = state; };
+ *  backs out of it (QUIT MINIGAME in the pause menu: a module-level function, not a fresh closure a frame). `quit`
+ *  null: it can't be backed out of (the shooting gallery, the owner's: "the one minigame you cannot 'back out of'
+ *  because it would ruin the punchline"): no QUIT MINIGAME, no BACK TO HUB, just its controls. */
+export const minigamePausable = (state: GameState, id: MinigameId, quit: MinigameQuit | null) => { markId = id; markFrame = state.frame; markQuit = quit; markState = state; };
 
 /** (App.tsx's frame hook, after the land's update) Which minigame's pausable this frame, or null. */
 export const syncMinigame = (state: GameState): MinigameId | null => {
@@ -80,6 +82,8 @@ export const dropMinigamePause = () => {
 
 /** The minigame that's pausable (as of the last frame played: it holds through a pause), or null. */
 export const liveMinigame = () => live;
+/** Can the live minigame be backed out of (QUIT MINIGAME)? */
+export const minigameQuittable = () => !!live && !!liveQuit;
 
 /** (App.tsx) The game's paused or not. */
 export const setGamePaused = (on: boolean) => { paused = on; };

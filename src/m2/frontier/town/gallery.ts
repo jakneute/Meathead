@@ -38,11 +38,28 @@
 //            (his first line by how much he lost), Meathead's "so do I get a prize?".
 //   panic    control back, the HUD back: Dooley's a person now (the kind below: a killable townsman who never hurts
 //            him), pacing, clutching his head, hyperventilating, still ranting (plain words over his head, one line
-//            at a time). Kill him any way at all: the CHARGE SHARD drops out of him.
+//            at a time). Kill him any way at all: the CHARGE SHARD drops out of him. He's terrified of the ray gun:
+//            out and on him (or a bolt by him), he cowers, backing off, begging (NOT THE GUN!). How he goes (the
+//            owner's, 2026-11-02):
+//              the ray gun   one shot: erase. No control, no HUD, nothing can touch Meathead; the camera pushes in and
+//                            he's eaten away slowly from the edges in (his legs first, his screaming head last), his
+//                            last words thrown back and fading, fading, fading (an echo on the voice, the words with
+//                            it); back out, the shard where he stood. "NOW YOU NO LONGER EXIST."
+//              the stunt car crushed, the car's own way, nothing said.
+//              any other special weapon  misses him, always (he's `innocent` to them while one's out and Meathead's
+//                            not right on him); the near miss scares him into a heart attack: he clutches his chest
+//                            and keels over, thanking him for a real death. One near miss is enough.
+//              hands, charges, grabs  land as on anybody; a kill's a plain death, and the same thanks.
 //   dead     the shard lying in the street till it's picked up: the card (the explain screens' buffer), and it's his
 //            for good (the save: one a save). After that the booth stays wrecked and empty.
 //
-// Firing nothing at all still ends it (the time runs out): a smaller panic, still killable, still the shard.
+// Nothing erased at all when the time's up (never fired, or never hit anything): the lazy fail (no meltdown, no
+// shard; a short scene at the booth, then talk to him to go again). Anything erased wins it, when the time's up or
+// there's nothing left. There's no backing out once it's on (no QUIT MINIGAME: the punchline).
+//
+// The set holds itself up: what rests on a shelf, a rail, the fence, the wall falls when that goes, onto whatever's
+// under it (and on again if that goes), and can be shot where it lands; the small stuff erases in one hit, bigger pieces
+// take a good few (TOUGH), worn as they go.
 
 import type { FrameContext } from '../../../m1/game/core/context';
 import type { GameState } from '../../../m1/game/core/state';
@@ -51,7 +68,9 @@ import type { Enemy, EnemyKind, Block } from '../../../m1/types';
 import { NO_CONTROLS, getLastInputDevice } from '../../../m1/game/platform/input';
 import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../../../m1/constants';
 import { playSound } from '../../../m1/game/platform/audio';
-import { pickLine, isTalking, say, cutVoice, silenceAll, MEATHEAD_VOICE } from '../../../m1/game/platform/speech';
+import { pickLine, isTalking, say, cutVoice, cancelSpeech, speak as speakLine, MEATHEAD_VOICE } from '../../../m1/game/platform/speech';
+import type { ClipEcho } from '../../../m1/game/platform/voiceclips';
+import { rayGun } from '../../../m1/game/combat/rayGun';
 import { getActiveGamepad, getGamepadMovement } from '../../../m1/game/platform/gamepad';
 import { makeKindEnemy } from '../../../m1/game/enemies/kinds';
 import { registerM2Kind } from '../../kinds';
@@ -63,19 +82,20 @@ import { minigamePausable } from '../../minigamePause';
 import { walkOff, walkOffDue, type WalkOff } from '../../walkOffCall';
 import type { GameCue } from '../../music/moments';
 import { reaction, moodOf, frameOf, type Pose } from '../../spooky/costume';
-import { meatheadSays, speak, byPants, saidOver, label, box, ledge, type Said } from '../section';
+import { meatheadSays, speak, voice, byPants, saidOver, label, box, ledge, type Said } from '../section';
 import type { ByPants } from '../talk';
 import { GY } from '../geometry';
 import { X } from './layout';
 import { townOf, type Town } from './state';
 import {
-  ART_W, ART_H, FENCE_Y, RAIL_A, RAIL_C, COUNTER_Y, DUCK_W, BANDIT_H, HAND_W, HAND_H, HAND_PIVOT, HAND_MUZZLE, BOOTH_W, COUNTER_H, DOOLEY_SEED,
+  ART_W, ART_H, FENCE_Y, RAIL_A, RAIL_C, DUCK_W, BANDIT_H, HAND_W, HAND_H, HAND_PIVOT, HAND_MUZZLE, BOOTH_W, COUNTER_H, DOOLEY_SEED,
   bake, pinkOf, paintVoid, drawVisor, paintGunHand, pieceDefs, dooleyBust, drawBoothBack, drawBoothFront, drawDooleyAt, drawDooleyKind, drawShard,
   type PieceDef, type DooleyLook,
 } from './galleryArt';
 import {
   DOOLEY_VOICE, DOOLEY_CALM_VOICE, DOOLEY_GREET, DOOLEY_LEAVE, DOOLEY_LEAVE_PANIC, DOOLEY_OFFER, DOOLEY_DECLINED, DOOLEY_NOT_NOW, DOOLEY_RULES_A, DOOLEY_RULES_B, DOOLEY_IDLE, DOOLEY_TIERS, DOOLEY_SAW,
-  DOOLEY_OPEN_NONE, DOOLEY_OPEN_SMALL, DOOLEY_OPEN_BIG, DOOLEY_OPEN_ALL, DOOLEY_PANIC, DOOLEY_MUTTER, MH_ACCEPT, MH_PRIZE, MH_KILL, MH_SHARD,
+  DOOLEY_OPEN_SMALL, DOOLEY_OPEN_BIG, DOOLEY_OPEN_ALL, DOOLEY_PANIC, DOOLEY_MUTTER, DOOLEY_GUN, DOOLEY_ERASED, DOOLEY_THANKS,
+  DOOLEY_LAZY_A, DOOLEY_LAZY_B, DOOLEY_LAZY_C, DOOLEY_RETRY, MH_ACCEPT, MH_PRIZE, MH_KILL, MH_ERASE, MH_LAZY, MH_SHARD,
 } from './galleryLines';
 
 type Ctx = CanvasRenderingContext2D;
@@ -100,8 +120,15 @@ const VH = 8, VG = 22;
 /** How much has to be gone for each tier of his reaction (1..5), and the score board's going wrong. */
 const TIERS = [0.001, 0.12, 0.3, 0.55, 0.8];
 const VALUE: Partial<Record<PieceDef['kind'], number>> = { duck: 100, bandit: 250, bottle: 50, moon: 1000, wheel: 500, prize: 300 };
+/** Ray hits to erase, by size (the owner's: "larger support structures take more ray gun bullets to disintegrate than
+ *  smaller ones. quite a bit more"): the small stuff one; anything else 1. */
+const TOUGH: Partial<Record<PieceDef['kind'], number>> = {
+  score: 4, wheel: 5, pshelf: 4, bshelf: 4, rail: 5, scallop: 6, sign: 8, crail: 9, fence: 10, plank: 15, post: 18, panel: 20, counter: 22,
+};
+/** What things rest on (falling things land on them), and what has to be erased whole before it stops holding. */
+const SURFACE = new Set<PieceDef['kind']>(['rail', 'pshelf', 'bshelf', 'fence', 'crail', 'counter']);
 
-type Phase = 'idle' | 'offer' | 'ask' | 'fadeIn' | 'ready' | 'play' | 'over' | 'fadeOut' | 'beat' | 'panic' | 'dead' | 'card' | 'done';
+type Phase = 'idle' | 'offer' | 'ask' | 'fadeIn' | 'ready' | 'play' | 'over' | 'fadeOut' | 'lazy' | 'beat' | 'panic' | 'erase' | 'heart' | 'dead' | 'card' | 'done';
 interface Piece extends PieceDef {
   cv: HTMLCanvasElement | null; pk: HTMLCanvasElement | null;
   x0: number; y0: number;
@@ -110,8 +137,16 @@ interface Piece extends PieceDef {
   alive: boolean; gone: boolean; vt: number; dir: 1 | -1; vy: number; falling: boolean;
   /** (the wheel, the lantern) Its turn when it was hit (it goes as it was). */
   rot: number;
+  /** Ray hits it takes to go (by size: TOUGH), hits taken; lit up from the last hit (frames); the pocks eaten out of it
+   *  where it's been hit (local art px); come to rest where it fell (shootable there); what it counts for (its size). */
+  hp: number; hits: number; flash: number; pocks: { x: number; y: number; r: number }[]; landed: boolean; wt: number;
 }
 interface Bit { x: number; y: number; vx: number; vy: number; life: number; col: string; s: number }
+/** Erased by the ray gun (the cutscene): where, frames in, frames into the camera's way back out; him baked (two
+ *  frames, and lit pink); his last words (when they started (-1: not yet), how long, when the echo's rung out). */
+interface Erase { x: number; face: 1 | -1; t: number; out: number; cv: HTMLCanvasElement[]; pk: HTMLCanvasElement[]; said: { text: string; at: number; ms: number; end: number } | null }
+/** The heart attack: where, which way he's falling, frames in; him clutching his chest (two frames), and dead. */
+interface Fall { x: number; face: 1 | -1; t: number; cv: HTMLCanvasElement[]; dead: HTMLCanvasElement }
 interface Gallery {
   phase: Phase; t: number;
   ask: Ask | null;
@@ -139,6 +174,16 @@ interface Gallery {
   rebuilt: boolean;
   /** Calling after him as he walks off out of sight (walkOffCall.ts). */
   leave: WalkOff;
+  /** The ray gun on him: frames of terror left, when he last broke off a line for it; his health last frame, a ray
+   *  bolt by him last frame (the hit that left him standing: the ray's one shot is the end of him all the same); the
+   *  shoot cooldown last frame (a special weapon fired), frames till a near miss drops him. */
+  terror: number; gunCut: number; hp: number; rayNear: boolean; rayHit: boolean; lastCool: number; scare: number;
+  /** Things erased this round (none at the end: the lazy fail); failed lazy this visit (his retry offer); the
+   *  participation sticker on him (the lazy fail's scene). */
+  erasedN: number; lazy: boolean; sticker: boolean;
+  erase: Erase | null; fall: Fall | null;
+  /** Where his words go once he's not a person any more (dying). */
+  wordsAt: { x: number; y: number } | null;
 }
 const ALL = new WeakMap<Town, Gallery>();
 const gal = (state: GameState) => ALL.get(townOf(state)) ?? null;
@@ -189,6 +234,8 @@ const mhSays = (g: Gallery, state: GameState, pool: ByPants) => {
 const DOOLEY_KIND = 'm2:fr_dooley';
 /** Where he's pacing to. */
 const GOAL = new WeakMap<Enemy, number>();
+/** Cowering from the ray gun till this frame (gallery.ts's say, each frame it's on him). */
+const TERROR = new WeakMap<Enemy, number>();
 const lookOfAi = (e: Enemy): DooleyLook => (e.aiState === 'point' ? 'point' : e.aiState === 'gasp' ? 'gasp' : 'panic');
 registerM2Kind({
   kind: DOOLEY_KIND, stats: { w: 42, h: 76, hp: 20, contact: 0, mass: 200 }, humanoid: true, gender: 'm', head: { x: 1, y: -70, r: 11 }, pathing: false,
@@ -196,6 +243,14 @@ registerM2Kind({
     const { state } = ctx, p = state.player, pm = p.pos.x + p.width / 2, m = e.pos.x + e.width / 2;
     // (his body never hurts him: he's having a panic attack, not a fight)
     e.trippedUntil = state.frame + 2;
+    // (the ray gun on him: cowering, facing it, backing off (not far from his booth))
+    if ((TERROR.get(e) ?? 0) > state.frame) {
+      e.aiState = 'cower'; e.facing = pm < m ? -1 : 1;
+      const away = pm < m ? 1 : -1, nx = m + away * 4;
+      e.vel.x = nx > BOOTH.a - 220 && nx < BOOTH.b + 220 ? away * 0.9 : 0;
+      return false;
+    }
+    if (e.aiState === 'cower') { e.aiState = 'pace'; e.aiTimer = 0; }
     e.aiTimer = (e.aiTimer || 0) + 1;
     const s = e.aiState || 'pace';
     if (s === 'pace') {
@@ -219,7 +274,11 @@ registerM2Kind({
     const pose: Pose = r?.pose ?? (walk ? 'walk' : 'stand');
     const F = frameOf(DOOLEY_SEED, f, pose, r?.md ?? moodOf(e), 0, false, lookOfAi(e));
     if (!r && !walk) F.fr = Math.floor(f / 7) % 2;
+    // (cowering: shaking)
+    const jit = e.aiState === 'cower' ? (f % 4 < 2 ? 1 : -1) : 0;
+    if (jit) c.translate(jit, 0);
     drawDooleyKind(c, F);
+    if (jit) c.translate(-jit, 0);
   },
 });
 
@@ -240,6 +299,8 @@ export const buildGallery = (state: GameState) => {
     pieces: [], baked: 0, voidCv: null, gunCv: null, rulesDone: false, cd: -1, cur: { x: 400, y: 260 }, held: true, cool: 0, recoil: 0, aimSpd: 0, bolt: null,
     bits: [], boots: [], score: 0, time: TIME, lastShot: 0, tier: 0, said: 0, sawQ: [], sawDone: new Set(), idleSaid: false,
     from: { x: 0, y: 0 }, shard: null, card: null, bustK: 0, rebuilt: false,
+    erasedN: 0, lazy: false, sticker: false,
+    terror: 0, gunCut: -9999, hp: 0, rayNear: false, rayHit: false, lastCool: 0, scare: 0, erase: null, fall: null, wordsAt: null,
   };
   ALL.set(townOf(state), g);
   if (shardWon()) { g.phase = 'done'; g.lvl = g.lvl === 3 ? 3 : 2; }
@@ -254,14 +315,15 @@ const spawnMan = (state: GameState, g: Gallery, x: number) => {
   const e = makeKindEnemy(DOOLEY_KIND as EnemyKind, x - 21, GY - 76);
   e.homeX = e.pos.x; e.homeY = e.pos.y; e.facing = -1; e.aiState = 'panic'; e.aiTimer = 0;
   state.enemies.push(e);
-  g.man = e;
+  g.man = e; g.hp = e.health;
 };
 
 // ---------------------------------------------------------------------------------------------------------------
 // The gallery's pieces
 
 const bakeSome = (g: Gallery, n: number) => {
-  if (!g.pieces.length) g.pieces = pieceDefs().map(d => ({ ...d, cv: null, pk: null, x0: d.x, y0: d.y, alive: true, gone: false, vt: -1, dir: 1, vy: 0, falling: false, rot: 0 }));
+  if (!g.pieces.length) g.pieces = pieceDefs().map(d => ({ ...d, cv: null, pk: null, x0: d.x, y0: d.y, alive: true, gone: false, vt: -1, dir: 1, vy: 0, falling: false, rot: 0,
+    hp: TOUGH[d.kind] ?? 1, hits: 0, flash: 0, pocks: [], landed: false, wt: Math.sqrt(d.w * d.h) }));
   if (!g.voidCv) { g.voidCv = bake(ART_W, ART_H, paintVoid); n--; }
   if (!g.gunCv) { g.gunCv = [bake(HAND_W, HAND_H, paintGunHand(false)), bake(HAND_W, HAND_H, paintGunHand(true))]; n--; }
   for (; n > 0 && g.baked < g.pieces.length; n--, g.baked++) {
@@ -270,18 +332,21 @@ const bakeSome = (g: Gallery, n: number) => {
   }
 };
 const fresh = (g: Gallery) => {
-  for (const p of g.pieces) { p.x = p.x0; p.y = p.y0; p.alive = true; p.gone = false; p.vt = -1; p.vy = 0; p.falling = false; }
+  for (const p of g.pieces) { p.x = p.x0; p.y = p.y0; p.alive = true; p.gone = false; p.vt = -1; p.vy = 0; p.falling = false; p.landed = false; p.hits = 0; p.flash = 0; p.pocks = []; p.rot = 0; }
+  g.erasedN = 0;
   g.bits = []; g.boots = []; g.score = 0; g.time = TIME; g.tier = 0; g.said = 0; g.sawQ = []; g.sawDone.clear(); g.idleSaid = false; g.lastShot = 0; g.rulesDone = false; g.cd = -1;
   g.cur = { x: 400, y: 250 }; mouse.moved = false; g.held = true; g.cool = 10; g.recoil = 0; g.bolt = null; g.aimSpd = 0;
 };
 const byId = (g: Gallery, id: string) => g.pieces.find(p => p.id === id);
-const goneFrac = (g: Gallery) => (g.pieces.length ? g.pieces.filter(p => p.gone).length / g.pieces.length : 0);
+/** How much of the set's gone (bigger pieces counting for more: by the square root of their size). */
+const goneFrac = (g: Gallery) => { let all = 0, gone = 0; for (const p of g.pieces) { all += p.wt; if (p.gone) gone += p.wt; } return all ? gone / all : 0; };
 
 /** Where a piece is this frame (moving ones), and whether it can be hit there. */
 const placeOf = (g: Gallery, p: Piece, t: number): { x: number; y: number; on: boolean; rot?: number } => {
+  // (fallen, or falling: where it is, as it was)
+  if (p.falling || p.landed) return { x: p.x, y: p.y, on: true, rot: p.rot };
   switch (p.kind) {
     case 'duck': {
-      if (p.falling) return { x: p.x, y: p.y, on: true };
       const dir = p.row ? -1 : 1, sp = p.row ? 1.05 : 0.85;
       const span = 360, base = (p.x0 - 20 + dir * t * sp) % span;
       const x = 20 - DUCK_W + ((base + span) % span);
@@ -306,7 +371,7 @@ const hitOf = (g: Gallery, p: Piece, ax: number, ay: number, t: number) => {
   if (p.kind === 'wheel') return Math.hypot(ax - (q.x + 24), ay - (q.y + 24)) < 23;
   if (p.kind === 'moon') return Math.hypot(ax - (q.x + 13), ay - (q.y + 13)) < 14 || (ax > q.x + 10 && ax < q.x + 16 && ay > q.y + 22 && ay < q.y + 44);
   if (p.kind === 'scallop') return ax >= q.x && ax < q.x + p.w && ay >= q.y && ay < q.y + 16 + Math.sqrt(Math.max(0, 625 - (ax - q.x - 25) ** 2));
-  if (p.kind === 'bandit' && ay > FENCE_Y + 4) return false;
+  if (p.kind === 'bandit' && !p.landed && ay > FENCE_Y + 4) return false;
   return ax >= q.x && ax < q.x + p.w && ay >= q.y && ay < q.y + p.h;
 };
 
@@ -316,8 +381,8 @@ const zap = (state: GameState, g: Gallery, p: Piece, fromX: number) => {
   const t = g.t;
   const q = placeOf(g, p, t);
   p.x = q.x; p.y = q.y; p.rot = q.rot ?? 0; // (frozen where it was hit)
-  p.vt = 0; p.gone = true; p.dir = fromX <= q.x + p.w / 2 ? 1 : -1;
-  g.score += VALUE[p.kind] ?? 10;
+  p.vt = 0; p.gone = true; p.falling = false; p.dir = fromX <= q.x + p.w / 2 ? 1 : -1;
+  g.score += VALUE[p.kind] ?? 10; g.erasedN++;
   playSound('rayFizzle', 0.8, Math.random() * 4 - 2);
   // (a word for some of them, once each)
   const saw = p.kind === 'moon' ? 'moon' : p.kind === 'panel' ? 'sky' : p.kind === 'plank' ? 'void' : p.kind === 'counter' ? 'counter' : p.kind === 'score' ? 'score' : p.kind === 'bandit' ? 'bandit' : p.kind === 'prize' ? 'prize' : null;
@@ -326,18 +391,58 @@ const zap = (state: GameState, g: Gallery, p: Piece, fromX: number) => {
   void state;
 };
 
-/** What's on a gone rail or shelf falls. */
-const drops = (g: Gallery) => {
-  const railGone = (row: number, s: number) => { const r = byId(g, `rail${row}${s}`); return !r || r.gone; };
-  for (const p of g.pieces) {
-    if (!p.alive || p.gone || p.falling) continue;
-    if (p.kind === 'duck') {
-      const q = placeOf(g, p, g.t), cx = q.x + DUCK_W / 2;
-      if (!q.on) continue;
-      const s = Math.max(0, Math.min(2, Math.floor((cx - 20) / 120)));
-      if (railGone(p.row ?? 0, s)) { p.x = q.x; p.y = q.y; p.falling = true; p.gone = true; p.vy = -1; }
-    } else if ((p.kind === 'bottle' && byId(g, 'bshelf')?.gone) || (p.kind === 'prize' && byId(g, 'pshelf')?.gone)) { p.falling = true; p.gone = true; p.vy = 0; }
+/** Standing, not falling or going: holds things up. */
+const solid = (q: Piece) => q.alive && !q.gone && !q.falling && q.vt < 0;
+/** One that's still where it was built (not fallen anywhere). */
+const held = (g: Gallery, id: string) => { const q = byId(g, id); return !!q && solid(q) && !q.landed; };
+/** Is it still held up? Where it was built: by what it was built on (the ducks their stretch of rail, the bottles and
+ *  prizes their shelves, the bandits the fence, the wheel, the board and the shelves the wall behind them, the lantern
+ *  its post, the sign the awning, the rails and the fence the posts). Fallen: by whatever it landed on. */
+const supported = (g: Gallery, p: Piece): boolean => {
+  if (p.landed) return g.pieces.some(q => q !== p && SURFACE.has(q.kind) && solid(q) && Math.abs(q.y - (p.y + p.h)) <= 3 && p.x + p.w / 2 >= q.x && p.x + p.w / 2 <= q.x + q.w);
+  const over = (k: (q: Piece) => boolean) => g.pieces.some(q => q !== p && k(q) && solid(q) && !q.landed && q.x < p.x + p.w && q.x + q.w > p.x);
+  switch (p.kind) {
+    case 'duck': {
+      const q = placeOf(g, p, g.t);
+      if (!q.on) return true;
+      const seg = Math.max(0, Math.min(2, Math.floor((q.x + DUCK_W / 2 - 20) / 120)));
+      return held(g, `rail${p.row ?? 0}${seg}`);
+    }
+    case 'bottle': return held(g, 'bshelf');
+    case 'prize': return held(g, 'pshelf');
+    case 'bandit': return held(g, 'fence');
+    case 'lantern': return held(g, 'postL');
+    case 'wheel': case 'score': case 'pshelf': case 'bshelf': return over(q => q.kind === 'plank' || q.kind === 'panel');
+    case 'sign': return over(q => q.kind === 'scallop');
+    case 'rail': case 'fence': return held(g, 'postL') || held(g, 'postR');
+    case 'crail': return held(g, 'postL') || held(g, 'postR') || g.pieces.some(q => q.kind === 'counter' && solid(q));
+    default: return true;
   }
+};
+/** What's lost what held it up falls (the owner's: "if a shelf that housed an obstacle is obliterated, the obstacles on
+ *  the shelf fall on the floor"), down to the next thing under it, or the counter; and again if that goes later. */
+const drops = (g: Gallery) => {
+  for (const p of g.pieces) {
+    if (!p.alive || p.gone || p.falling || p.vt >= 0 || supported(g, p)) continue;
+    const q = placeOf(g, p, g.t);
+    p.x = q.x; p.y = q.y; p.rot = q.rot ?? p.rot; p.landed = false; p.falling = true; p.vy = p.kind === 'duck' ? -1 : 0;
+  }
+};
+/** A frame of something falling: down onto whatever's under it (a little bounce, a clatter), or out the bottom. */
+const fallStep = (g: Gallery, pc: Piece) => {
+  const prevB = pc.y + pc.h;
+  pc.vy = Math.min(9, pc.vy + 0.35); pc.y += pc.vy;
+  const cx = pc.x + pc.w / 2, nb = pc.y + pc.h;
+  if (pc.vy > 0) for (const q of g.pieces) {
+    if (q === pc || !SURFACE.has(q.kind) || !solid(q) || cx < q.x || cx > q.x + q.w || prevB > q.y + 1 || nb < q.y) continue;
+    pc.y = q.y - pc.h;
+    if (pc.vy > 3) pc.vy = -pc.vy * 0.3;
+    else { pc.vy = 0; pc.falling = false; pc.landed = true; }
+    playSound(pc.kind === 'bottle' ? 'glass' : 'clang', pc.kind === 'bottle' ? 0.3 : 0.5, 2 + Math.random() * 4);
+    for (let n = 0; n < 4; n++) bit(g, cx, q.y, n % 2 ? '#A8A29E' : '#57534E', 1.4);
+    return;
+  }
+  if (pc.y > ART_H + 10) { pc.alive = false; pc.gone = true; pc.falling = false; }
 };
 
 const bit = (g: Gallery, x: number, y: number, col: string, sp = 2.4, s = 1) => {
@@ -387,7 +492,7 @@ export const updateGallery = (ctx: FrameContext, controls: Controls, out: Contro
         if (hostileNear(state, g)) { if (!g.talk) dooley(g, state, DOOLEY_NOT_NOW); return { ...out, up: false }; }
         g.phase = 'offer'; g.t = 0; p.inCutscene = true; p.vel.x = 0;
         holdWorld(state, g);
-        dooley(g, state, DOOLEY_OFFER, () => { if (g.phase === 'offer' && gal(state) === g) { g.phase = 'ask'; g.ask = openAsk("DEAD-EYE DOOLEY'S SHOOTIN' GALLERY", "SHOOT THE TIN DUCKS. 50 SECONDS. EVERYBODY'S A WINNER. YOU'LL USE YOUR OWN GUN."); } });
+        dooley(g, state, g.lazy ? DOOLEY_RETRY : DOOLEY_OFFER, () => { if (g.phase === 'offer' && gal(state) === g) { g.phase = 'ask'; g.ask = openAsk("DEAD-EYE DOOLEY'S SHOOTIN' GALLERY", "SHOOT THE TIN DUCKS. 50 SECONDS. EVERYBODY'S A WINNER. YOU'LL USE YOUR OWN GUN."); } });
         return { ...NO_CONTROLS };
       }
       return out;
@@ -422,8 +527,9 @@ export const updateGallery = (ctx: FrameContext, controls: Controls, out: Contro
     }
     case 'fadeIn': case 'ready': case 'play': case 'over': case 'fadeOut':
       runGallery(state, g, controls);
-      // (first person, START pauses it, the pause menu showing its controls: minigamePause.ts)
-      if (galleryOn(state)) minigamePausable(state, 'gallery', quitGallery);
+      // (first person, START pauses it, the pause menu showing its controls (minigamePause.ts); no QUIT MINIGAME: the
+      // owner's "the one minigame you cannot 'back out of' because it would ruin the punchline")
+      if (galleryOn(state)) minigamePausable(state, 'gallery', null);
       return { ...NO_CONTROLS };
     case 'beat': {
       p.inCutscene = true; p.vel.x = 0;
@@ -431,16 +537,68 @@ export const updateGallery = (ctx: FrameContext, controls: Controls, out: Contro
       if (g.t > BEAT_MAX) toPanic(state, g);
       return { ...NO_CONTROLS };
     }
+    case 'lazy': {
+      p.inCutscene = true; p.vel.x = 0;
+      holdWorld(state, g);
+      if (++g.t > BEAT_MAX + 600) lazyDone(state, g);
+      return { ...NO_CONTROLS };
+    }
     case 'panic': {
       const e = g.man;
-      if (e && (e.health <= 0 || e.isBlownAway || !state.enemies.includes(e))) { killed(state, g, e); return out; }
+      if (e) {
+        // (the ray gun's one shot is the end of him: a hit that left him standing erases him all the same)
+        if (e.health > 0 && e.health < g.hp && g.rayNear) { e.health = 0; g.rayHit = true; }
+        g.hp = e.health;
+      }
+      if (e && (e.health <= 0 || e.isBlownAway || !state.enemies.includes(e))) { killed(state, g, e); return (g.phase as Phase) === 'erase' ? { ...NO_CONTROLS } : out; }
+      if (e) {
+        const em = e.pos.x + e.width / 2;
+        // (the ray gun out and on him, or a bolt by him: he cowers, begging, the line he was on cut off for it (the
+        // owner's: "he is really fucking frightened of the ray gun"))
+        if (rayOut(state) && (aimedAt(state, e, 560) || rayNearMan(state, e, 160))) {
+          if (g.terror <= 0 && state.frame - g.gunCut > 240) { g.gunCut = state.frame; cutVoice(DOOLEY_VOICE); g.talk = null; dooley(g, state, DOOLEY_GUN); }
+          g.terror = 60;
+        } else if (g.terror > 0) g.terror--;
+        if (g.terror > 0) TERROR.set(e, state.frame + 2);
+        g.rayNear = rayNearMan(state, e, 70);
+        // (any other special weapon (bar the stunt car) misses him: their hits pass him by while one's out and he's
+        // not right on him (hands, charges and grabs still land); a near miss scares him into a heart attack)
+        const special = p.currentWeapon !== 'GUN' && p.currentWeapon !== 'STUNT_CAR' && !p.holstered;
+        const close = Math.abs(pm - em) < 70 && Math.abs(feet - (e.pos.y + e.height)) < 60;
+        e.innocent = special && !close;
+        if (special && g.scare <= 0) {
+          const fired = p.shootCooldown > g.lastCool;
+          const whiz = state.projectiles.some(q => q.owner === 'player' && !q.isRay && q.custom !== 'STUNT_CAR' && byMan(q, e, 40));
+          if (whiz || (fired && aimedAt(state, e, 460))) g.scare = whiz ? 6 : 14;
+        }
+        g.lastCool = p.shootCooldown;
+        if (g.scare > 0 && --g.scare === 0) { heartAttack(state, g, e); return out; }
+      }
       // (walked off out of sight from his panic attack: once a leaving, he yells after him, ahead of the next rant)
       if (e && walkOffDue(state, g.leave, e.pos.x + e.width / 2, true, !g.talk)) {
         g.lastLine = state.frame; speak(DOOLEY_VOICE, pickLine(byPants(state, DOOLEY_LEAVE_PANIC)), s => { g.talk = s; }, false);
       }
       // (still ranting, one line at a time, a breath between)
       if (e && !g.talk && !isTalking() && state.frame - g.lastLine > 50 && Math.abs(pm - (e.pos.x + e.width / 2)) < 900) {
-        dooley(g, state, g.rebuilt && g.said++ === 0 ? DOOLEY_MUTTER : DOOLEY_PANIC);
+        dooley(g, state, g.terror > 0 ? DOOLEY_GUN : g.rebuilt && g.said++ === 0 ? DOOLEY_MUTTER : DOOLEY_PANIC);
+      }
+      return out;
+    }
+    case 'erase': {
+      const er = g.erase;
+      if (!er) { g.phase = 'dead'; releaseWorld(state); return out; }
+      // (no control, no HUD, nothing touches him: the camera's in on Dooley)
+      p.inCutscene = true; p.vel.x = 0; p.noContactUntil = state.frame + 10;
+      holdWorld(state, g);
+      tickErase(state, g, er);
+      return { ...NO_CONTROLS };
+    }
+    case 'heart': {
+      const fl = g.fall;
+      if (fl && ++fl.t === FALL_LAND) {
+        playSound('thud', 0.7, -8);
+        dropShard(state, g, Math.max(BOOTH.a - 80, Math.min(BOOTH.b + 80, fl.x + fl.face * 40)), GY - 30);
+        meatheadSays(state, pickLine(byPants(state, MH_KILL)));
       }
       return out;
     }
@@ -472,24 +630,6 @@ export const updateGallery = (ctx: FrameContext, controls: Controls, out: Contro
   }
 };
 
-/** QUIT MINIGAME (the pause menu: minigamePause.ts): out of first person, back in the street where he took it on, the
- *  gallery as it was before this go (nothing he zapped counts: no panic, no shard), Dooley back behind the counter,
- *  sore as when it's turned down. */
-const quitGallery = (state: GameState) => {
-  const g = gal(state);
-  if (!g || !galleryOn(state)) return;
-  silenceAll(); g.talk = null; g.mh = null; g.bolt = null; g.bits = [];
-  const memo = state.stageMemo[GALLERY_MEMO];
-  g.gone = memo !== undefined ? Math.max(0, Math.min(1, Number(memo) || 0)) : 0;
-  g.lvl = lvlOf(g.gone);
-  const p = state.player;
-  p.pos.x = g.from.x; p.pos.y = g.from.y; p.vel.x = 0; p.vel.y = 0;
-  setUi({ chordTips: null });
-  g.phase = 'idle'; g.t = 0; g.upLatch = true;
-  releaseWorld(state);
-  dooley(g, state, DOOLEY_DECLINED);
-};
-
 const toPanic = (state: GameState, g: Gallery) => {
   // (a stale callback, the town rebuilt under it since (a death): nothing)
   if (g.phase !== 'beat' || gal(state) !== g) return;
@@ -499,14 +639,139 @@ const toPanic = (state: GameState, g: Gallery) => {
   if (g.man) { g.man.facing = g.manFace; g.man.aiState = 'point'; }
 };
 
+/** Dead: how decides what's next (the shard his whichever way: dropped where he went). */
 const killed = (state: GameState, g: Gallery, e: Enemy) => {
-  cutVoice(DOOLEY_VOICE); g.talk = null;
+  e.innocent = false;
   const x = Math.max(BOOTH.a - 80, Math.min(BOOTH.b + 80, e.pos.x + e.width / 2));
-  g.shard = { x, y: Math.min(GY - 16, e.pos.y + e.height / 2), vy: -5 };
+  // (the ray gun: not the engine's vaporizing, his own slow erasing, the camera in on it)
+  const vi = state.enemyDeaths.findIndex(d => d.kind === 'vaporized' && (d.sprite?.kind as string | undefined) === DOOLEY_KIND);
+  if (vi >= 0 || g.rayHit) {
+    if (vi >= 0) state.enemyDeaths.splice(vi, 1);
+    state.enemies = state.enemies.filter(o => o !== e);
+    startErase(state, g, e, x);
+    return;
+  }
+  cutVoice(DOOLEY_VOICE); g.talk = null;
+  dropShard(state, g, x, Math.min(GY - 16, e.pos.y + e.height / 2));
+  // (the stunt car: just crushed, nothing said (the owner's: "he just gets crushed and says nothing and dies"))
+  if (state.projectiles.some(q => q.custom === 'STUNT_CAR')) return;
+  thanks(state, g, x, GY - 70);
+  meatheadSays(state, pickLine(byPants(state, MH_KILL)));
+};
+/** The shard out of him, where he went (his for good once it's picked up). */
+const dropShard = (state: GameState, g: Gallery, x: number, y: number) => {
+  g.shard = { x, y, vy: -5 };
   g.phase = 'dead'; g.man = null;
   state.stageMemo[GALLERY_DEAD] = String(Math.round(x));
   playSound('powerup', 0.5, 6);
-  meatheadSays(state, pickLine(byPants(state, MH_KILL)));
+};
+/** A real death, a body left: he thanks him for it. */
+const thanks = (state: GameState, g: Gallery, x: number, y: number) => {
+  g.wordsAt = { x, y };
+  speak(DOOLEY_VOICE, pickLine(byPants(state, DOOLEY_THANKS)), s => { g.talk = s; }, true);
+};
+
+// ---------------------------------------------------------------------------------------------------------------
+// The ray gun, to him
+
+/** His last words thrown back: a repeat every 0.42 s, each 0.62 of the one before (about 4 dB down) and duller (a
+ *  2.2 kHz low-pass in the loop), the repeats at 0.8; counted done 3.4 s after the line (about 7 repeats heard). */
+const RAY_ECHO: ClipEcho = { delay: 0.42, feedback: 0.62, tone: 2200, wet: 0.8, tail: 3.4 };
+const rayOut = (state: GameState) => { const p = state.player; return rayGun() && p.currentWeapon === 'GUN' && !p.holstered && p.health > 0; };
+/** A projectile within `r` of him (and about his height). */
+const byMan = (q: { pos: { x: number; y: number }; width: number; height: number }, e: Enemy, r: number) =>
+  q.pos.x + q.width > e.pos.x - r && q.pos.x < e.pos.x + e.width + r && q.pos.y + q.height > e.pos.y - 40 && q.pos.y < e.pos.y + e.height + 20;
+const rayNearMan = (state: GameState, e: Enemy, r: number) => state.projectiles.some(q => q.isRay && q.owner === 'player' && byMan(q, e, r));
+/** Meathead facing him, within `far`, about level with him (the gun on him). */
+const aimedAt = (state: GameState, e: Enemy, far: number) => {
+  const p = state.player, pm = p.pos.x + p.width / 2, m = e.pos.x + e.width / 2, py = p.pos.y + p.height * 0.4;
+  return Math.sign(m - pm) === p.facing && Math.abs(m - pm) < far && py > e.pos.y - 50 && py < e.pos.y + e.height + 30;
+};
+
+/** Him, baked once at 3x (looked at close in the push-in): `look` in frames 0 and 7 (his two panting frames). */
+const ES = 3, DW = 140, DH = 144, DOX = 64, DOY = 140;
+const bakeDooley = (look: DooleyLook, md: 'ok' | 'dead', frames = [0, 7]) =>
+  frames.map(f => bake(DW * ES, DH * ES, c => { c.scale(ES, ES); drawDooleyAt(c, DOX, DOY, 1, look, f, false, undefined, md); }));
+/** The erasing (frames): lit up pink and shaking, then eaten away (EAT_T), the push-in and the pull back out, the
+ *  longest it waits on his echo; how far in; the eaten bands (art px) and how far either side of him he reaches. */
+const LIT = 40, EAT_T = 280, EAT_END = LIT + EAT_T, ZIN = 36, ZOUT = 40, ER_MAX = 640, ER_Z = 1.75, BAND = 6, HALF_W = 48;
+const smooth = (u: number) => u * u * (3 - 2 * u);
+const eraseK = (er: Erase) => smooth(Math.min(1, er.t / ZIN)) * (1 - smooth(Math.min(1, er.out / ZOUT)));
+
+const startErase = (state: GameState, g: Gallery, e: Enemy, x: number) => {
+  cancelSpeech(); g.talk = null; g.mh = null;
+  const cv = bakeDooley('panic', 'ok');
+  g.erase = { x, face: e.facing ?? 1, t: 0, out: 0, cv, pk: cv.map(c => pinkOf(c)), said: null };
+  g.man = null; g.phase = 'erase'; g.t = 0;
+  playSound('alienBeam', 0.8, -10);
+  const p = state.player;
+  p.inCutscene = true; p.vel.x = 0; p.killSatisfactionTimer = 60;
+  holdWorld(state, g);
+};
+/** What's left of him, frames in: a span a band, his legs going first and his screaming head last. */
+const spansOf = (t: number) => {
+  const out: { l: number; r: number; y: number }[] = [];
+  const k = Math.max(0, Math.min(1, (t - LIT) / EAT_T)) ** 1.2;
+  for (let y = 0, b = 0; y < DH; y += BAND, b++) {
+    const kk = Math.min(1, k * (y < 95 ? 1 : 1.5)), wob = (1 - kk) * 7, half = HALF_W * (1 - kk);
+    const l = DOX - half + Math.abs(Math.sin(b * 2.3 + t * 0.09)) * wob, r = DOX + half - Math.abs(Math.sin(b * 1.7 - t * 0.07)) * wob;
+    if (r - l > 1) out.push({ l, r, y });
+  }
+  return out;
+};
+const sayErased = (state: GameState, er: Erase) => {
+  const text = pickLine(byPants(state, DOOLEY_ERASED));
+  const s = { text, at: -1, ms: 0, end: 0 };
+  er.said = s;
+  // (from when it's actually heard; not recorded: up its usual while, echo and all)
+  const begin = (ms: number) => { if (s.at >= 0) return; s.at = state.frame; s.ms = ms; s.end = state.frame + ms * 0.06 + RAY_ECHO.tail * 60; };
+  speakLine(text, voice(DOOLEY_VOICE), { echo: RAY_ECHO, onStart: ms => begin(ms ?? text.length * 70), onDone: () => begin(Math.max(1800, text.length * 70)) });
+};
+const tickErase = (state: GameState, g: Gallery, er: Erase) => {
+  er.t++;
+  if (er.t === 14) sayErased(state, er);
+  if (er.t > LIT && er.t < EAT_END) {
+    if (er.t % 18 === 0) playSound('rayFizzle', 0.5, -6 + Math.random() * 4);
+    const spans = spansOf(er.t);
+    for (let n = 0; n < 3 && spans.length; n++) {
+      const sp = spans[Math.floor(Math.random() * spans.length)], left = Math.random() < 0.5, lx = left ? sp.l : sp.r;
+      state.particles.push({ pos: { x: er.x + er.face * (lx - DOX), y: GY - DOY + sp.y + Math.random() * BAND }, vel: { x: er.face * (left ? -1 : 1) * (0.4 + Math.random() * 1.4), y: -0.4 - Math.random() * 1.4 }, life: 20 + Math.random() * 25, color: VAPOR[(er.t + n) % VAPOR.length], size: 1.5 + Math.random() * 2 });
+    }
+  }
+  // (he's gone, and his echo's rung out (or it's waited long enough): the camera back out, then on)
+  const heard = !!er.said && er.said.at >= 0 && state.frame >= er.said.end;
+  if (er.t >= EAT_END && (heard || er.t >= ER_MAX) && ++er.out >= ZOUT) {
+    g.erase = null;
+    releaseWorld(state);
+    dropShard(state, g, er.x, GY - 40);
+    meatheadSays(state, pickLine(byPants(state, MH_ERASE)));
+  }
+};
+/** The camera's push-in on him (index.ts, over the town's own zoom `base`): eased in, held, eased back out. */
+export const galleryZoom = (state: GameState, base: number) => {
+  const g = gal(state), er = g?.erase;
+  if (!g || g.phase !== 'erase' || !er) return null;
+  const k = eraseK(er), sc = base + (ER_Z - base) * k, cam = state.camera, fx = er.x, fy = GY - 56;
+  // (where he'd be on screen at the town's zoom, slid to the middle as it pushes in)
+  const tx0 = (fx - cam.x - CANVAS_WIDTH / 2) * base + CANVAS_WIDTH / 2, ty0 = (fy - cam.y - 300) * base + 300;
+  const tx = tx0 + (CANVAS_WIDTH / 2 - tx0) * k, ty = ty0 + (330 - ty0) * k;
+  return { scale: sc, x: fx, y: fy, shiftX: tx - (fx - cam.x), shiftY: ty - (fy - cam.y) };
+};
+
+// ---------------------------------------------------------------------------------------------------------------
+// The heart attack (any other special weapon's near miss)
+
+const FALL_CLUTCH = 40, FALL_LAND = 62;
+const heartAttack = (state: GameState, g: Gallery, e: Enemy) => {
+  e.innocent = false;
+  const x = e.pos.x + e.width / 2;
+  state.enemies = state.enemies.filter(o => o !== e);
+  cutVoice(DOOLEY_VOICE); g.talk = null;
+  g.fall = { x, face: e.facing ?? 1, t: 0, cv: bakeDooley('gasp', 'ok'), dead: bakeDooley('gasp', 'dead', [0])[0] };
+  g.man = null; g.phase = 'heart';
+  state.player.killSatisfactionTimer = 60;
+  playSound('thud', 0.3, 8);
+  thanks(state, g, x, GY - 84);
 };
 
 /** A frame of the gallery itself: the cursor, the gun, the pieces, the clock, his reaction; the fades either end. */
@@ -526,14 +791,8 @@ const runGallery = (state: GameState, g: Gallery, controls: Controls) => {
       pc.vt++;
       if (pc.vt > VH) { const ex = pc.x + edgeX(pc); for (let n = 0; n < 3; n++) bit(g, ex, pc.y + Math.random() * pc.h, VAPOR[(n + pc.vt) % VAPOR.length], 2.6); }
       if (pc.vt > VH + VG) { pc.alive = false; for (let n = 0; n < 8; n++) bit(g, pc.x + Math.random() * pc.w, pc.y + Math.random() * pc.h, n % 2 ? '#A8A29E' : '#57534E', 1.6); }
-    } else if (pc.falling) {
-      pc.vy += 0.35; pc.y += pc.vy;
-      if (pc.y + pc.h > COUNTER_Y + 6) {
-        pc.alive = false;
-        if (pc.kind === 'bottle') { playSound('glass', 0.6, Math.random() * 4); for (let n = 0; n < 10; n++) bit(g, pc.x + 4, COUNTER_Y, n % 2 ? '#9AB8C8' : '#3A7A3A', 3); }
-        else playSound('clang', 0.5, 4 + Math.random() * 4);
-      }
-    }
+    } else if (pc.falling) fallStep(g, pc);
+    if (pc.flash > 0) pc.flash--;
   }
   if (g.phase === 'fadeIn') { if (++g.t >= FADE) { g.phase = 'ready'; g.t = 0; } }
   else if (g.phase === 'ready') {
@@ -590,10 +849,22 @@ const shoot = (state: GameState, g: Gallery) => {
   for (let i = g.pieces.length - 1; i >= 0; i--) {
     const pc = g.pieces[i];
     if (!pc.alive || pc.vt >= 0 || pc.falling) continue;
-    if (hitOf(g, pc, ax, ay, g.t)) { zap(state, g, pc, m.x / 2); return; }
+    if (hitOf(g, pc, ax, ay, g.t)) { hitPiece(state, g, pc, m.x / 2, ax, ay); return; }
   }
   // (a miss: a fizzle into the nothing)
   for (let n = 0; n < 4; n++) bit(g, ax, ay, n % 2 ? '#FF8CE4' : '#FFFFFF', 1.5);
+};
+
+/** A ray hit: the small stuff goes at once; anything bigger wears (lit up, fizzing, a pock eaten out where it hit, a
+ *  crackle lower the further gone it is) till its last hit. */
+const hitPiece = (state: GameState, g: Gallery, p: Piece, fromX: number, ax: number, ay: number) => {
+  p.hits++;
+  if (p.hits >= p.hp) { zap(state, g, p, fromX); return; }
+  const q = placeOf(g, p, g.t), k = p.hits / p.hp;
+  p.flash = 8;
+  if (p.pocks.length < 16) p.pocks.push({ x: ax - q.x, y: ay - q.y, r: 1.5 + k * 6 + Math.random() * 1.5 });
+  for (let n = 0; n < 6; n++) bit(g, ax, ay, VAPOR[n % VAPOR.length], 2);
+  playSound('rayFizzle', 0.55, 5 - k * 10);
 };
 
 const talkGallery = (state: GameState, g: Gallery) => {
@@ -619,7 +890,38 @@ const talkGallery = (state: GameState, g: Gallery) => {
   if (state.frame - g.lastLine > REPEAT_GAP) dooley(g, state, DOOLEY_TIERS[g.tier - 1], undefined, voiceOf(g.tier));
 };
 
+/** Nothing erased at all, the time up (the owner's: "in case the player is extra lazy. then you 'fail' and need to
+ *  retry"): a short scene at the booth (no control, no HUD), Dooley calm and baffled, a participation sticker, and back to
+ *  how it was: no meltdown, no shard, the booth whole; talk to him to go again (his retry offer). */
+const lazyFail = (state: GameState, g: Gallery) => {
+  g.gone = 0; g.lvl = lvlOf(0);
+  const p = state.player;
+  p.pos.x = g.from.x; p.pos.y = g.from.y; p.vel.x = 0; p.vel.y = 0;
+  p.facing = BOOTH.man > p.pos.x + p.width / 2 ? 1 : -1;
+  g.manFace = BOOTH.man > p.pos.x + p.width / 2 ? -1 : 1;
+  g.phase = 'lazy'; g.t = 0; g.lazy = true; g.sticker = false;
+  const on = () => gal(state) === g && g.phase === 'lazy';
+  dooley(g, state, DOOLEY_LAZY_A, () => {
+    if (!on()) return;
+    dooley(g, state, DOOLEY_LAZY_B, () => {
+      if (!on()) return;
+      meatheadSays(state, pickLine(byPants(state, MH_LAZY)), true, () => {
+        if (!on()) return;
+        dooley(g, state, DOOLEY_LAZY_C, () => lazyDone(state, g), DOOLEY_CALM_VOICE);
+      });
+    }, DOOLEY_CALM_VOICE);
+    // (the sticker's on him as he says so)
+    g.sticker = true; playSound('ding', 0.5, 7);
+  }, DOOLEY_CALM_VOICE);
+};
+const lazyDone = (state: GameState, g: Gallery) => {
+  if (gal(state) !== g || g.phase !== 'lazy') return;
+  g.phase = 'idle'; g.t = 0; g.upLatch = true; g.greeted = true; g.sticker = false;
+  releaseWorld(state);
+};
+
 const endGallery = (state: GameState, g: Gallery) => {
+  if (g.erasedN === 0) { lazyFail(state, g); return; }
   g.gone = goneFrac(g);
   state.stageMemo[GALLERY_MEMO] = g.gone.toFixed(3);
   g.lvl = lvlOf(g.gone);
@@ -632,7 +934,7 @@ const endGallery = (state: GameState, g: Gallery) => {
   g.manFace = g.manX > pm ? -1 : 1;
   p.facing = g.manX > pm ? 1 : -1;
   g.phase = 'beat'; g.t = 0;
-  const pool = g.gone <= 0 ? DOOLEY_OPEN_NONE : g.gone < 0.15 ? DOOLEY_OPEN_SMALL : g.gone < 0.999 ? DOOLEY_OPEN_BIG : DOOLEY_OPEN_ALL;
+  const pool = g.gone < 0.15 ? DOOLEY_OPEN_SMALL : g.gone < 0.999 ? DOOLEY_OPEN_BIG : DOOLEY_OPEN_ALL;
   playSound('thud', 0.5, -6);
   dooley(g, state, pool, () => meatheadSays(state, pickLine(byPants(state, MH_PRIZE)), true, () => toPanic(state, g)));
 };
@@ -672,7 +974,7 @@ export const drawGalleryWorld = (c: Ctx, state: GameState) => {
   const v = state.view, f = state.frame;
   if (v && (BOOTH.b + 200 < v.x || BOOTH.a - 200 > v.x + v.w)) return;
   drawBoothBack(c, BOOTH.a, GY, g.lvl);
-  if (g.phase === 'idle' || g.phase === 'offer' || g.phase === 'ask') {
+  if (g.phase === 'idle' || g.phase === 'offer' || g.phase === 'ask' || g.phase === 'lazy') {
     const p = state.player, pm = p.pos.x + p.width / 2, close = Math.abs(pm - BOOTH.man) < 300;
     drawDooleyAt(c, BOOTH.man, GY, g.manFace, close || g.talk ? 'pitch' : 'idle', f);
   }
@@ -680,15 +982,74 @@ export const drawGalleryWorld = (c: Ctx, state: GameState) => {
   // (his counter's top going back, lit along the front: he stands on it)
   if (g.lvl < 3) { box(c, BOOTH.a, GY - COUNTER_H - 3, BOOTH_W, 1, '#3A2010'); box(c, BOOTH.a, GY - COUNTER_H - 2, BOOTH_W, 1, '#FFE8A0'); box(c, BOOTH.a, GY - COUNTER_H - 1, BOOTH_W, 1, '#E8C060'); }
   if (g.phase === 'beat') drawDooleyAt(c, g.manX, GY, g.manFace, Math.floor(g.t / 50) % 3 === 1 ? 'point' : 'panic', f, false);
+  if (g.erase) drawErase(c, g.erase, f);
+  if (g.fall) drawFall(c, g.fall, f);
   // (the shard, lying in the street)
   if (g.shard) drawShard(c, g.shard.x, g.shard.y - 4 + Math.sin(f * 0.08) * 3, 1, f);
+};
+/** The lazy fail's participation sticker, on his chest: a gold star. */
+const drawSticker = (c: Ctx, state: GameState) => {
+  const p = state.player, x = p.pos.x + p.width / 2 + p.facing * 5, y = p.pos.y + p.height * 0.36;
+  c.beginPath();
+  for (let i = 0; i < 10; i++) { const a = -Math.PI / 2 + (i * Math.PI) / 5, r = i % 2 ? 2.2 : 5; c.lineTo(x + Math.cos(a) * r, y + Math.sin(a) * r); }
+  c.closePath(); c.fillStyle = '#5A3A08'; c.lineWidth = 2; c.strokeStyle = '#5A3A08'; c.stroke(); c.fillStyle = '#FFD84A'; c.fill();
+  box(c, x - 1, y - 2, 1, 1, '#FFFFFF');
+};
+/** Erased: lit up, shaking, then eaten away band by band from both sides (baked once; clipped and drawn each frame),
+ *  the eaten edges glowing pink. */
+const drawErase = (c: Ctx, er: Erase, f: number) => {
+  const t = er.t, fr = Math.floor(f / 5) % 2, cv = er.cv[fr], pk = er.pk[fr];
+  if (t >= EAT_END) return;
+  const shake = ((t >> 1) % 2 ? 1 : -1) * (t < LIT ? 2 : 1);
+  c.save(); c.translate(Math.round(er.x + shake), GY); c.scale(er.face, 1); c.imageSmoothingEnabled = false;
+  if (t <= LIT) {
+    c.drawImage(cv, -DOX, -DOY, DW, DH);
+    c.globalAlpha = 0.2 + 0.55 * ((t >> 2) % 2); c.drawImage(pk, -DOX, -DOY, DW, DH);
+  } else {
+    const spans = spansOf(t);
+    if (spans.length) {
+      c.save(); c.beginPath(); for (const sp of spans) c.rect(sp.l - DOX, sp.y - DOY, sp.r - sp.l, BAND); c.clip();
+      c.drawImage(cv, -DOX, -DOY, DW, DH);
+      c.globalAlpha = 0.25 + 0.4 * ((t - LIT) / EAT_T); c.drawImage(pk, -DOX, -DOY, DW, DH);
+      c.restore();
+      for (const sp of spans) for (const ex of [sp.l, sp.r - 3]) { const sx = Math.max(0, Math.min(DW - 3, ex)); c.drawImage(pk, sx * ES, sp.y * ES, 3 * ES, BAND * ES, sx - DOX, sp.y - DOY, 3, BAND); }
+    }
+  }
+  c.restore();
+};
+/** The heart attack: clutching his chest, staggering, then over like a tree (baked once, drawn turned); then lying there. */
+const drawFall = (c: Ctx, fl: Fall, f: number) => {
+  const k = fl.t < FALL_CLUTCH ? 0 : Math.min(1, ((fl.t - FALL_CLUTCH) / (FALL_LAND - FALL_CLUTCH)) ** 2);
+  const lying = fl.t >= FALL_LAND, wob = fl.t < FALL_CLUTCH ? Math.sin(fl.t * 0.5) * 0.06 : 0;
+  c.save(); c.translate(Math.round(fl.x), GY); c.scale(fl.face, 1); c.translate(0, -k * 14); c.rotate(k * Math.PI / 2 + wob); c.imageSmoothingEnabled = false;
+  c.drawImage(lying ? fl.dead : fl.cv[Math.floor(f / 6) % 2], -DOX, -DOY, DW, DH);
+  c.restore();
+};
+/** Erased: his last words, fading as the echo does, the end of them thrown back again and again, fainter each time. */
+const drawEchoWords = (c: Ctx, state: GameState, er: Erase) => {
+  const s = er.said!, el = state.frame - s.at, msF = s.ms * 0.06, tailF = RAY_ECHO.tail * 60, step = RAY_ECHO.delay * 60;
+  if (el < 0 || el > msF + tailF) return;
+  const fade = el < msF ? 1 : Math.max(0, 1 - (el - msF) / tailF), top = GY - 100;
+  c.save();
+  c.globalAlpha = fade;
+  saidOver(c, s.text, er.x, top, '#FDE68A');
+  const last = s.text.replace(/[!?.]+$/, '').split(' ').slice(-2).join(' ') + '...';
+  for (let n = 1; n <= 7; n++) {
+    const a = fade * RAY_ECHO.feedback ** n;
+    if (el < msF * 0.5 + n * step || a < 0.03) break;
+    c.globalAlpha = a;
+    saidOver(c, last, er.x + (n % 2 ? 1 : -1) * n * 6, top - 12 - n * 11, '#FDE68A');
+  }
+  c.restore();
 };
 /** His words over his head (plain, while they're said: not in the gallery, where they're in its corner). */
 export const drawGalleryWords = (c: Ctx, state: GameState) => {
   const g = gal(state);
+  if (g?.phase === 'erase' && g.erase?.said && g.erase.said.at >= 0) { drawEchoWords(c, state, g.erase); return; }
+  if (g?.sticker && g.phase === 'lazy') drawSticker(c, state);
   if (!g || !g.talk || galleryOn(state) || g.phase === 'card') return;
-  const x = g.man ? g.man.pos.x + g.man.width / 2 : g.phase === 'beat' ? g.manX : BOOTH.man;
-  const top = g.man ? g.man.pos.y : GY - 84;
+  const x = g.man ? g.man.pos.x + g.man.width / 2 : g.wordsAt ? g.wordsAt.x : g.phase === 'beat' ? g.manX : BOOTH.man;
+  const top = g.man ? g.man.pos.y : g.wordsAt ? g.wordsAt.y : GY - 84;
   saidOver(c, g.talk.text, x, top - 12, '#FDE68A');
 };
 
@@ -700,15 +1061,25 @@ const drawPiece = (c: Ctx, g: Gallery, p: Piece) => {
   const q = p.vt >= 0 || p.falling ? { x: p.x, y: p.y, on: true, rot: p.rot } : placeOf(g, p, g.t);
   c.save();
   // (the ducks run inside the posts; the bandits drop in behind their fence)
-  if (p.kind === 'duck' && !p.falling) { c.beginPath(); c.rect(20, 0, 360, ART_H); c.clip(); }
-  if (p.kind === 'bandit') { c.beginPath(); c.rect(0, 0, ART_W, FENCE_Y + 5); c.clip(); }
+  if (p.kind === 'duck' && !p.falling && !p.landed) { c.beginPath(); c.rect(20, 0, 360, ART_H); c.clip(); }
+  if (p.kind === 'bandit' && !p.falling && !p.landed) { c.beginPath(); c.rect(0, 0, ART_W, FENCE_Y + 5); c.clip(); }
   let lx = q.x, ly = q.y;
   if (p.kind === 'wheel' || p.kind === 'lantern') {
     const px0 = q.x + p.w / 2, py0 = p.kind === 'wheel' ? q.y + p.h / 2 : q.y;
     c.translate(px0, py0); c.rotate(q.rot ?? 0); lx = -p.w / 2; ly = p.kind === 'wheel' ? -p.h / 2 : 0;
   }
-  if (p.vt < 0) c.drawImage(p.cv, Math.round(lx), Math.round(ly));
-  else if (p.vt < VH) {
+  if (p.vt < 0) {
+    c.drawImage(p.cv, Math.round(lx), Math.round(ly));
+    // (worn: eaten through where it's been hit, the holes' edges pink; lit up from the last hit)
+    if (p.pocks.length) {
+      c.save(); c.beginPath(); c.rect(lx, ly, p.w, p.h); c.clip();
+      for (const k of p.pocks) { c.fillStyle = '#FF8CE4'; c.beginPath(); c.arc(lx + k.x, ly + k.y, k.r + 1, 0, Math.PI * 2); c.fill(); }
+      c.fillStyle = '#0A0614';
+      for (const k of p.pocks) { c.beginPath(); c.arc(lx + k.x, ly + k.y, k.r, 0, Math.PI * 2); c.fill(); }
+      c.restore();
+    }
+    if (p.flash > 0) { c.globalAlpha = p.flash / 10; c.drawImage(p.pk!, Math.round(lx), Math.round(ly)); c.globalAlpha = 1; }
+  } else if (p.vt < VH) {
     c.drawImage(p.cv, Math.round(lx), Math.round(ly));
     c.globalAlpha = p.vt % 2 ? 0.75 : 0.45; c.drawImage(p.pk!, Math.round(lx), Math.round(ly)); c.globalAlpha = 1;
   } else {
@@ -742,6 +1113,12 @@ const scoreText = (g: Gallery) => {
 export const drawGalleryHud = (c: Ctx, state: GameState) => {
   const g = gal(state);
   if (!g) return;
+  // (erased: the bars in with the push-in)
+  if (g.phase === 'erase' && g.erase) {
+    const bar = Math.round(eraseK(g.erase) * 44);
+    if (bar > 0) { c.fillStyle = '#000'; c.fillRect(0, 0, CANVAS_WIDTH, bar); c.fillRect(0, CANVAS_HEIGHT - bar, CANVAS_WIDTH, bar); }
+    return;
+  }
   if (!galleryOn(state)) return;
   const f = g.t;
   c.save();

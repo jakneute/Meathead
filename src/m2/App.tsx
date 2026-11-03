@@ -131,7 +131,7 @@ import BumperCard from './cartoon/bigkid/BumperCard';
 import MinigameAsk from './MinigameAsk';
 import MinigameCard from './MinigameCard';
 import { pauseCard } from './PauseControls';
-import { syncMinigame, liveMinigame, setGamePaused, quitMinigame, dropMinigamePause } from './minigamePause';
+import { syncMinigame, liveMinigame, minigameQuittable, setGamePaused, quitMinigame, dropMinigamePause } from './minigamePause';
 import { holdM2Presses } from './input';
 import { pauseSpeech } from '../m1/game/platform/speech';
 import QtePanel from './fantasy/wheel/QtePanel';
@@ -407,7 +407,8 @@ const App2: React.FC = () => {
   const canHub = () => (!!landOfStage(live.current.stage) || live.current.stage === PEN_STAGE) && !liveMinigame();
   /** (mid-minigame, in BACK TO HUB's place: QUIT MINIGAME, the owner's "if the user wants to back out for whatever
    *  reason" (minigamePause.ts quitMinigame)) */
-  const canQuitGame = () => !!liveMinigame();
+  // (not one that can't be backed out of: the shooting gallery; no slot at all then)
+  const canQuitGame = () => !!liveMinigame() && minigameQuittable();
   /** (the cheats build only: SKIP STAGE in the gym, to its closing cutscene) */
   const canGymSkip = () => live.current.stage === GYM_STAGE && !M2_PUBLIC;
   const skipGym = () => { setStatus(GameStatus.PLAYING); requestGymSkip(); };
@@ -1019,7 +1020,7 @@ const App2: React.FC = () => {
         {status === GameStatus.PAUSED && !mapFrom && (
           <PauseMenu weapons={arsenal()} current={weapon} ammo={hud.ammo} selected={pauseSel} locked={!!ui.noSwitch || !!minigameId} card={card} cat={!!ui.catHud}
             onPick={i => { setPauseSel(i); equip(i); }} onResume={resume} onMap={() => { setPauseSel(arsenal().length + 1); openMap(); }} mapOff={stage === GYM_STAGE} onOptions={() => { setPauseSel(arsenal().length + 2); openOptions(); }} onSkip={stage === INTRO_STAGE && !M2_PUBLIC ? skipIntro : stage === GYM_STAGE && !M2_PUBLIC ? skipGym : undefined} skipLabel={stage === GYM_STAGE ? 'SKIP STAGE' : undefined}
-            onHub={minigameId ? () => { setPauseSel(arsenal().length + 3); askMinigame(); } : (landOfStage(stage) || stage === PEN_STAGE) ? askHub : undefined} hubLabel={minigameId ? 'QUIT MINIGAME' : undefined} hubAsk={hubAsk} onHubAnswer={answerHub} onHubPick={a => setHubAsk(a)} skin={theme?.pause}
+            onHub={minigameId ? (minigameQuittable() ? () => { setPauseSel(arsenal().length + 3); askMinigame(); } : undefined) : (landOfStage(stage) || stage === PEN_STAGE) ? askHub : undefined} hubLabel={minigameId ? 'QUIT MINIGAME' : undefined} hubAsk={hubAsk} onHubAnswer={answerHub} onHubPick={a => setHubAsk(a)} skin={theme?.pause}
             onQuit={() => { setPauseSel(quitIndex()); askQuit(); }} quitAt={quitIndex()} amuletOn={amuletOn()} onAmulet={flipAmulet}
             tab={pauseTab} onTab={showTab} equipSel={equipSel} onEquipPick={k => { equipSelRef.current = k; setEquipSel(k); setPauseSel(0); }} asking={asking} onFile={activeSlot() !== null} />
         )}

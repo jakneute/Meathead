@@ -203,6 +203,10 @@ const fxChain = (ctx: AudioContext, fx: string, out: AudioNode): AudioNode => {
 };
 
 export interface ClipHandle { stop: () => void }
+/** A line thrown back, over and over, quieter and duller each time (a man being erased: Meathead 2's gallery): a delay
+ *  of `delay` s fed back into itself at `feedback` (each repeat that much of the one before), through a low-pass at
+ *  `tone` Hz (each repeat duller, farther off), the repeats at `wet`; the line counted done `tail` s after its end. */
+export interface ClipEcho { delay: number; feedback: number; tone: number; wet: number; tail: number }
 
 /** What's playing right now, and the speed each is meant to go at (so they can all be held, and let go again). */
 const live = new Map<AudioBufferSourceNode, number>();
@@ -273,9 +277,10 @@ export const voicesHeld = () => held;
 
 /**
  * Plays a recorded line (null if there isn't one). `onStart` when it's actually going (with how long it is, in ms),
- * `onEnd` when it's done or stopped. `radio`: through a radio whatever the voice is.
+ * `onEnd` when it's done or stopped (with an `echo`, once the echo's rung out). `radio`: through a radio whatever the
+ * voice is.
  */
-export const playClip = (voice: string, text: string, opts: { radio?: boolean; onStart?: (ms: number) => void; onEnd?: () => void } = {}): ClipHandle | null => {
+export const playClip = (voice: string, text: string, opts: { radio?: boolean; echo?: ClipEcho; onStart?: (ms: number) => void; onEnd?: () => void } = {}): ClipHandle | null => {
   if (!pack) return null;
   const key = keyOf(voice, text);
   if (!pack.clips[key]) return null;
@@ -284,6 +289,7 @@ export const playClip = (voice: string, text: string, opts: { radio?: boolean; o
   const spec = pack.voices[voice] ?? { rate: 1, gain: 1, fx: '' };
   const pitch = pitchHook ? pitchHook(voice) : 1;
   let stopped = false, src: AudioBufferSourceNode | null = null, post: GainNode | null = null, ended = false;
+  let echoOut: GainNode | null = null, echoNodes: AudioNode[] = [];
   const end = () => { if (ended) return; ended = true; opts.onEnd?.(); };
   decode(ctx, key).then(raw => {
     if (stopped || !raw) { end(); return; }
@@ -296,8 +302,23 @@ export const playClip = (voice: string, text: string, opts: { radio?: boolean; o
     post = ctx.createGain(); post.connect(busFor(ctx));
     src.connect(g);
     g.connect(fxChain(ctx, opts.radio ? 'radio' : spec.fx, post));
+    const ec = opts.echo;
+    if (ec) {
+      // (the echo: off the line as it goes out, round a delay that feeds itself, each pass duller and quieter)
+      const d = ctx.createDelay(2); d.delayTime.value = ec.delay;
+      const lp = ctx.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = ec.tone;
+      const fb = ctx.createGain(); fb.gain.value = ec.feedback;
+      echoOut = ctx.createGain(); echoOut.gain.value = ec.wet;
+      post.connect(d); d.connect(lp); lp.connect(fb); fb.connect(d); lp.connect(echoOut); echoOut.connect(busFor(ctx));
+      echoNodes = [d, lp, fb, echoOut];
+    }
     const me = src;
-    src.onended = () => { live.delete(me); try { g.disconnect(); } catch { /* fine */ } end(); };
+    const unEcho = () => { for (const n of echoNodes) { try { n.disconnect(); } catch { /* fine */ } } echoNodes = []; };
+    src.onended = () => {
+      live.delete(me); try { g.disconnect(); } catch { /* fine */ }
+      if (ec && !stopped) setTimeout(() => { unEcho(); end(); }, ec.tail * 1000);
+      else { unEcho(); end(); }
+    };
     src.start();
     // (a count of what's been said from the recordings, for checking: `window.__voicesPlayed`)
     const w = window as unknown as { __voicesPlayed?: string[] };
@@ -311,6 +332,7 @@ export const playClip = (voice: string, text: string, opts: { radio?: boolean; o
       try { src?.stop(); } catch { /* fine */ }
       // (its echoes and reverb go quiet with it)
       if (post) { const p = post; p.gain.setTargetAtTime(0, ctx.currentTime, 0.03); setTimeout(() => { try { p.disconnect(); } catch { /* fine */ } }, 400); }
+      if (echoOut) { const e = echoOut, ns = echoNodes; echoNodes = []; e.gain.setTargetAtTime(0, ctx.currentTime, 0.03); setTimeout(() => { for (const n of ns) { try { n.disconnect(); } catch { /* fine */ } } }, 400); }
       end();
     },
   };
