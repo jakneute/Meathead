@@ -15,6 +15,7 @@
 // where.
 
 import { GY } from '../geometry';
+import { checkerFill } from '../../../m1/game/render/pixelArt';
 import { bust, tintBust, drawBust, SKIN, HAIR, CLOTH, IRIS, LIPSTICK, type BustSpec } from '../../grossBust';
 import {
   type Ctx, type View, type Look, INK, box, mix, poly, checker, hash, at, atDepth, ramp6, dimmed, hour, slab, post, ball, timeOfDay, steppedGlow, pixelBlob,
@@ -789,20 +790,49 @@ export const drawLanding = (c: Ctx, v: View, a: number, b: number, y: number) =>
 /** The fog machine's fog: thin banks rolling through, in stepped layers (an outer haze dithered at its edges, a body,
  *  a denser core), never thick enough to hide anybody. */
 export const drawFog = (c: Ctx, a: number, b: number, x0: number, x1: number, f: number) => {
-  if (b <= a) return;
+  if (b <= a || typeof document === 'undefined') return;
+  // (the same fills as a column at a time, layer by layer instead: each band's columns never overlap one another, so
+  // what's over what in any pixel is as it was. The layers whose alpha only the fade at the ends changes (the haze,
+  // the dither) go down as one path a run, not a fill a column: the fog was a few hundred fills a frame)
+  const ditherTop = checkerFill(c, '#E2E8F0', 0, 2), ditherBot = checkerFill(c, '#E2E8F0', 1, 2);
   for (let band = 0; band < 3; band++) {
     const y = GY - 40 - band * 150, hgt = 70 + band * 20;
+    let n = 0;
     for (let x = Math.floor(a / 16) * 16; x < b; x += 16) {
       const k = 0.5 + 0.5 * Math.sin((x + f * (0.6 + band * 0.25)) * 0.006 + band * 2), edge = Math.max(0, Math.min(1, (x - x0) / 400, (x1 - x) / 400));
       if (k * edge < 0.05) continue;
-      const yy = Math.round(y + Math.sin(x * 0.01 + f * 0.01) * 10), hh = Math.round(hgt * (0.55 + 0.45 * k));
-      c.globalAlpha = 0.06 * edge; c.fillStyle = '#E2E8F0'; c.fillRect(x, yy - hh / 2, 16, hh);
-      c.globalAlpha = 0.07 * k * edge; c.fillRect(x, Math.round(yy - hh * 0.32), 16, Math.round(hh * 0.64));
-      c.globalAlpha = 0.06 * k * edge; c.fillStyle = '#F8FAFC'; c.fillRect(x, Math.round(yy - hh * 0.16), 16, Math.round(hh * 0.32));
-      c.globalAlpha = 0.08 * edge; checker(c, x, Math.round(yy - hh / 2) - 4, 16, 4, '#E2E8F0', 0, 2); checker(c, x, Math.round(yy + hh / 2), 16, 4, '#E2E8F0', 1, 2);
+      FOG_X[n] = x; FOG_K[n] = k; FOG_E[n] = edge;
+      FOG_Y[n] = Math.round(y + Math.sin(x * 0.01 + f * 0.01) * 10); FOG_H[n] = Math.round(hgt * (0.55 + 0.45 * k));
+      n++;
     }
+    if (!n) continue;
+    // (the outer haze)
+    c.fillStyle = '#E2E8F0';
+    fogRuns(c, n, 0.06, (i) => c.rect(FOG_X[i], FOG_Y[i] - FOG_H[i] / 2, 16, FOG_H[i]));
+    // (the body, the denser core)
+    for (let i = 0; i < n; i++) { const hh = FOG_H[i]; c.globalAlpha = 0.07 * FOG_K[i] * FOG_E[i]; c.fillRect(FOG_X[i], Math.round(FOG_Y[i] - hh * 0.32), 16, Math.round(hh * 0.64)); }
+    c.fillStyle = '#F8FAFC';
+    for (let i = 0; i < n; i++) { const hh = FOG_H[i]; c.globalAlpha = 0.06 * FOG_K[i] * FOG_E[i]; c.fillRect(FOG_X[i], Math.round(FOG_Y[i] - hh * 0.16), 16, Math.round(hh * 0.32)); }
+    // (the dithered edges, over and under)
+    c.fillStyle = ditherTop;
+    fogRuns(c, n, 0.08, (i) => c.rect(FOG_X[i], Math.round(FOG_Y[i] - FOG_H[i] / 2) - 4, 16, 4));
+    c.fillStyle = ditherBot;
+    fogRuns(c, n, 0.08, (i) => c.rect(FOG_X[i], Math.round(FOG_Y[i] + FOG_H[i] / 2), 16, 4));
   }
   c.globalAlpha = 1;
+};
+/** The fog's columns this band (scratch, reused: no garbage a frame). */
+const FOG_X = new Float64Array(1024), FOG_K = new Float64Array(1024), FOG_E = new Float64Array(1024), FOG_Y = new Float64Array(1024), FOG_H = new Float64Array(1024);
+/** Fills the fog's columns' rects (`rect` adds column i's to the path) at alpha `base` × each one's fade, one path for
+ *  each run of columns at the same alpha. */
+const fogRuns = (c: Ctx, n: number, base: number, rect: (i: number) => void) => {
+  let alpha = -1;
+  for (let i = 0; i < n; i++) {
+    const al = base * FOG_E[i];
+    if (al !== alpha) { if (alpha >= 0) c.fill(); alpha = al; c.globalAlpha = al; c.beginPath(); }
+    rect(i);
+  }
+  if (alpha >= 0) c.fill();
 };
 /** The Union Jack's color at u, v (0..1 across, down): the blue field, the white saltire and the red one in it, the
  *  white cross and the red cross in that. */

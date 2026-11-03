@@ -93,6 +93,15 @@ export const SCENARIOS = [
   { name: 'foreign-norway-china', q: 'foreign=14', warm: 2, keys: hopRight(30) },
   { name: 'foreign-canada', q: 'foreign=92', keys: [] },
   { name: 'foreign-uk', q: 'foreign=84', keys: [] },
+  // (and every other pavilion's streets, walked from its start: the fronts, the cast, its set pieces coming into view)
+  { name: 'foreign-mexico', q: 'foreign=0', warm: 2, keys: hopRight(30) },
+  { name: 'foreign-norway', q: 'foreign=10', warm: 2, keys: hopRight(30) },
+  { name: 'foreign-china', q: 'foreign=20', warm: 2, keys: hopRight(30) },
+  { name: 'foreign-germany', q: 'foreign=30', warm: 2, keys: hopRight(30) },
+  { name: 'foreign-italy', q: 'foreign=40', warm: 2, keys: hopRight(30) },
+  { name: 'foreign-japan', q: 'foreign=50', warm: 2, keys: hopRight(30) },
+  { name: 'foreign-morocco', q: 'foreign=60', warm: 2, keys: hopRight(30) },
+  { name: 'foreign-france', q: 'foreign=70', warm: 2, keys: hopRight(30) },
   // Future Land
   { name: 'future-square', q: 'space=0', keys: hopRight() },
   { name: 'future-drag', q: 'space=30', keys: hopRight() },

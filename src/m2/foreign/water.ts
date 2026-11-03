@@ -80,13 +80,26 @@ export const drawPoolBack = (c: Ctx, v: View, p: Pool) => {
   const [ax, ay] = P(p.a, top, FAR_D), [bx] = P(p.b, top, FAR_D), [, sy] = P(p.a, sY, FAR_D), [, by] = P(p.a, bot, FAR_D);
   box(c, ax, ay, bx - ax, sy - ay, W[3]);
   box(c, ax, sy, bx - ax, by - sy, mix(W[2], waterAt(p, 0.5), 0.55));
-  for (let y = ay + 6, row = 0; y < by; y += 10, row++) {
-    const under = y > sy;
-    box(c, ax, y, bx - ax, 1, under ? mix(W[1], waterAt(p, 0.7), 0.5) : W[1]);
-    for (let x = ax + (row % 2) * 8; x < bx; x += 16) box(c, x, y - 9, 1, 9, under ? mix(W[1], waterAt(p, 0.6), 0.5) : W[2]);
+  // (the colors worked out once, not a tile at a time; and the courses and the joints between their tiles each one
+  // path a color, not a fill a tile: the same pixels (none of them overlap; every joint still goes down after the
+  // courses it meets), a few fills where there were hundreds)
+  const courseWet = mix(W[1], waterAt(p, 0.7), 0.5), jointWet = mix(W[1], waterAt(p, 0.6), 0.5);
+  for (const wet of [false, true]) {
+    c.fillStyle = wet ? courseWet : W[1]; c.beginPath();
+    for (let y = ay + 6; y < by; y += 10) if (y > sy === wet) c.rect(Math.round(ax), Math.round(y), Math.round(bx - ax), 1);
+    c.fill();
+  }
+  for (const wet of [false, true]) {
+    c.fillStyle = wet ? jointWet : W[2]; c.beginPath();
+    for (let y = ay + 6, row = 0; y < by; y += 10, row++) {
+      if (y > sy !== wet) continue;
+      for (let x = ax + (row % 2) * 8; x < bx; x += 16) c.rect(Math.round(x), Math.round(y - 9), 1, 9);
+    }
+    c.fill();
   }
   // (the band of trim tile along the water line, a mosaic stripe)
-  box(c, ax, sy - 4, bx - ax, 4, mix(W[4], hour('#1E40AF'), 0.5)); for (let x = ax; x < bx; x += 6) box(c, x, sy - 4, 3, 2, mix(W[5], hour('#60A5FA'), 0.4));
+  box(c, ax, sy - 4, bx - ax, 4, mix(W[4], hour('#1E40AF'), 0.5));
+  c.fillStyle = mix(W[5], hour('#60A5FA'), 0.4); c.beginPath(); for (let x = ax; x < bx; x += 6) c.rect(Math.round(x), Math.round(sy - 4), 3, 2); c.fill();
   // (the bed going back: tile, lane lines; its end walls going back as faces, in courses)
   topBack(c, eye, p.a, p.b, bot, 1, FAR_D, [W[0], W[1], mix(W[1], waterAt(p, 0.8), 0.5), mix(W[2], waterAt(p, 0.8), 0.5), W[3], W[4]], 3);
   for (const [e, side] of [[p.a, 1], [p.b, -1]] as const) {
@@ -133,11 +146,16 @@ export const drawPoolFront = (c: Ctx, v: View, p: Pool, f: number, wave?: (x: nu
   const bands = [waterAt(p, 0), waterAt(p, 0.18), waterAt(p, 0.36), waterAt(p, 0.55), waterAt(p, 0.75)];
   const x0 = Math.max(p.a, v.cam.x - 40), x1 = Math.min(p.b, v.cam.x + 840);
   c.globalAlpha = 0.64;
-  for (let x = Math.floor((x0 - p.a) / 4) * 4 + p.a; x < x1; x += 4) {
+  // (the surface band a column at a time (it rides the wave), then each deeper band in one go across all of them: the
+  // same pixels, the columns side by side and never overlapping, each band still over the one above it)
+  const xs = Math.floor((x0 - p.a) / 4) * 4 + p.a;
+  let cols = 0;
+  c.fillStyle = bands[0];
+  for (let x = xs; x < x1; x += 4, cols++) {
     const lift = (wave?.(x) ?? 0) + Math.sin(f * 0.06 + x * 0.05) * 2, y = s - lift;
-    box(c, x, y, 4, 8 + lift, bands[0]);
-    for (let k = 1; k < bands.length; k++) box(c, x, s + 8 + ((k - 1) * (depth - 8)) / (bands.length - 1), 4, (depth - 8) / (bands.length - 1) + 1, bands[k]);
+    c.fillRect(Math.round(x), Math.round(y), 4, Math.round(8 + lift));
   }
+  if (cols) for (let k = 1; k < bands.length; k++) box(c, xs, s + 8 + ((k - 1) * (depth - 8)) / (bands.length - 1), cols * 4, (depth - 8) / (bands.length - 1) + 1, bands[k]);
   c.globalAlpha = 1;
   // (the dither where the bands meet)
   for (let k = 1; k < bands.length; k++) checker(c, x0, Math.round(s + 8 + ((k - 1) * (depth - 8)) / (bands.length - 1)) - 1, x1 - x0, 2, bands[k], 0, 2);
