@@ -39,11 +39,19 @@ export const TOLL_FROM = 3800;
 /** The trolls: their bodies (solid: shoulders on top), their heads (solid: the bridge sits on them), their knees
  *  (one-way) outside and in, and their elbows under the bridge (one-way: the inner knee, the elbow, the deck, a held
  *  jump each; the way up out from under the bridge, which had none: the owner's doorman stands down there). */
-const TROLL_L = { body: [4120, 4300, 290], head: [4200, 4300, 420], knees: [[4020, 4120, 150], [4300, 4390, 150]], elbows: [[4300, 4366, 285]], toes: [] as [number, number, number][] } as const;
-/** (the right troll's big toe on the bank under the bridge (solid, its top lit): the step up onto its inner knee from the
- *  bank or out of the river, which is higher than he jumps from the ground; the owner: "i have no access to the troll
- *  under the bridge") */
-const TROLL_R = { body: [5000, 5180, 290], head: [5000, 5100, 420], knees: [[5180, 5280, 150], [4910, 5000, 150]], elbows: [[4934, 5000, 285]], toes: [[4900, 4934, 70]] as [number, number, number][] } as const;
+const TROLL_L = { body: [4120, 4300, 290], head: [4200, 4300, 420], knees: [[4020, 4120, 150], [4300, 4390, 150]], elbows: [[4300, 4366, 285]], crotch: 110 } as const;
+/** The left troll's plug: the rock between its legs (a wall, the street's side shut) till the Halls of Valhalla come
+ *  up, when it goes up into it on the same hydraulics (the owner: "blocks on both sides can rise. why not"), and he
+ *  walks in under the bridge from that end too, along the halls' dock (valhalla.ts) to their door. */
+let plugLift = 0;
+/** valhalla.ts: how far up the halls are (0..1); the plug goes with them. */
+export const liftPlug = (k: number) => { plugLift = k; };
+/** The right troll straddles the walk under the bridge: solid only from its loincloth up (`crotch`), its legs set back
+ *  either side (the owner, 2026-11-02: "just walk to the left of the troll... otherwise you cannot really get under the
+ *  bridge. not sure why there's an obstacle under there": its body was a wall down to the ground, and a big toe step in
+ *  front of it). From the street he walks straight in under it, onto the bank, past the doorman (valhalla.ts), to the
+ *  halls' dock. Its inner knee a hop up off the bank (no toe now), the elbow, the deck: the way up from under it still. */
+const TROLL_R = { body: [5000, 5180, 290], head: [5000, 5100, 420], knees: [[5180, 5280, 150], [4910, 5000, 138]], elbows: [[4934, 5000, 278]], crotch: 110 } as const;
 const DECK = { a: 4300, b: 5000, h: 420 } as const;
 /** The toll gate across the deck (solid, deck to crossbeam), the booth beside it (set back on the deck). */
 const GATE = { a: 4740, b: 4764, top: 660 } as const;
@@ -61,7 +69,7 @@ const ENEMIES: [string, number, number][] = [
   // its knee
   ['m2:fl_lutefisk', 4160, TROLL_L.body[2]],
   // past the gate on the deck, two vikings (the second was on the right troll's inner knee, boxed in under the bridge:
-  // the owner, "there is an enemy npc stuck inside the bridge area... be sure to move/remove him"; the doorman's spot now)
+  // the owner, "there is an enemy npc stuck inside the bridge area... be sure to move/remove him")
   ['m2:fl_viking', 4880, DECK.h], ['m2:fl_viking', 4960, DECK.h],
   // a shield wall of one on the right troll's shoulder: the way down off the bridge and the way up out of the river
   // both cross it (TOLL PAID's stretch by its checkpoint left quiet)
@@ -87,13 +95,15 @@ export const tollPaid = paid;
 let armStop: number | null = null;
 export const stopArmAt = (x: number | null) => { armStop = x; };
 
-interface Toll { gate: Block | null; gang: Enemy[]; said: Shout; demanded: boolean; lift: number; hit: Set<object>; n: number }
-const tollOf = (state: GameState) => foreignState<Toll>(state, 'norway-toll' as 'norway', () => ({ gate: null, gang: [], said: newShout(), demanded: false, lift: 0, hit: new Set(), n: -1 }));
+interface Toll { gate: Block | null; plug: Block | null; gang: Enemy[]; said: Shout; demanded: boolean; lift: number; hit: Set<object>; n: number }
+const tollOf = (state: GameState) => foreignState<Toll>(state, 'norway-toll' as 'norway', () => ({ gate: null, plug: null, gang: [], said: newShout(), demanded: false, lift: 0, hit: new Set(), n: -1 }));
 
 /** The arm: 'warn' (bubbles at its end), 'sweep' (its hand at world x), or under. It comes from alternate ends. */
 const armAt = (f: number) => {
   const t = f % EVERY, n = Math.floor(f / EVERY), fromL = n % 2 === 0;
   const a = RIVER.a + 40, b = armStop ?? RIVER.b - 40;
+  // (the halls' dock over the whole river: the troll's retired)
+  if (b <= a) return { st: 'under' as const, n, x: 0, k: 0 };
   if (t < WARN) return { st: 'warn' as const, n, x: fromL ? a : b, k: t / WARN };
   if (t < WARN + RUN) { const u = (t - WARN) / RUN; return { st: 'sweep' as const, n, x: fromL ? a + (b - a) * u : b - (b - a) * u, k: Math.sin(u * Math.PI) }; }
   return { st: 'under' as const, n, x: 0, k: 0 };
@@ -104,11 +114,11 @@ export const buildToll = (state: GameState) => {
   poolSteps(state, RIVER);
   for (const T of [TROLL_L, TROLL_R]) {
     const [ba, bb, bh] = T.body, [ha, hb, hh] = T.head;
-    solid(state, X(ba), Y(bh), bb - ba, bh, { hidden: true, tag: 'no-troll-body' });
+    solid(state, X(ba), Y(bh), bb - ba, bh - T.crotch, { hidden: true, tag: 'no-troll-body' });
     solid(state, X(ha), Y(hh), hb - ha, hh - bh, { hidden: true, tag: 'no-troll-head' });
     for (const [a, b, h] of [...T.knees, ...T.elbows]) ledge(state, X(a), Y(h), b - a, { hidden: true, tag: 'no-troll-knee' });
-    for (const [a, b, h] of T.toes) solid(state, X(a), Y(h), b - a, h, { hidden: true, tag: 'no-troll-toe' });
   }
+  t.plug = plugLift >= 1 ? null : solid(state, X(TROLL_L.body[0]), Y(TROLL_L.crotch), TROLL_L.body[1] - TROLL_L.body[0], TROLL_L.crotch, { hidden: true, tag: 'no-troll-plug' });
   ledge(state, X(DECK.a), Y(DECK.h), DECK.b - DECK.a, { hidden: true, tag: 'no-tolldeck' });
   t.gate = paid() ? null : solid(state, X(GATE.a), Y(GATE.top), GATE.b - GATE.a, GATE.top - DECK.h, { hidden: true, tag: 'no-tollgate' });
   t.lift = paid() ? 1 : 0;
@@ -139,6 +149,14 @@ export const updateToll = (ctx: FrameContext) => {
     t.lift = Math.min(1, t.lift + 1 / 70);
     if (t.gate && t.lift >= 1) { t.gate.y = -99999; t.gate = null; }
   }
+  // (the left troll's plug going up into it with the halls: dust off its foot, a grind; gone once it's up)
+  if (t.plug) {
+    const u = Math.round(plugLift * TROLL_L.crotch);
+    t.plug.h = Math.max(1, TROLL_L.crotch - u);
+    if (plugLift > 0 && plugLift < 1 && f % 3 === 0) state.particles.push({ pos: { x: X(TROLL_L.body[0]) + Math.random() * (TROLL_L.body[1] - TROLL_L.body[0]), y: GY - 4 }, vel: { x: (Math.random() - 0.5) * 3, y: -1 - Math.random() * 2 }, life: 34, color: Math.random() < 0.5 ? 'rgba(168,162,158,0.8)' : 'rgba(120,113,108,0.8)', size: 4 + Math.random() * 4 });
+    if (plugLift > 0 && plugLift < 1 && f % 30 === 0 && heardSpan(state, X(TROLL_L.body[0]), X(TROLL_L.body[1]))) playSound('rumble', 0.4, -2);
+    if (plugLift >= 1) { t.plug.y = -99999; t.plug = null; }
+  }
   // (the troll under the bridge)
   const arm = armAt(f);
   if (arm.n !== t.n) { t.n = arm.n; t.hit.clear(); }
@@ -165,20 +183,30 @@ const drawGiantTroll = (c: Ctx, v: View, T: typeof TROLL_L | typeof TROLL_R, fli
   if (!onScreen(v, X(Math.min(ba, ...T.knees.map(k => k[0]))) - 40, X(Math.max(bb, ...T.knees.map(k => k[1]))) + 40)) return;
   const R = ramp6(hour(TROLL));
   boxes3(c, v, [
-    { x: X(ba), top: Y(bh), w: bb - ba, bottom: GY, col: TROLL, standable: true, look: 'rock' },
+    { x: X(ba), top: Y(bh), w: bb - ba, bottom: Y(T.crotch), col: TROLL, standable: true, look: 'rock' },
     { x: X(ha), top: Y(hh), w: hb - ha, bottom: Y(bh), col: TROLL, standable: true, look: 'rock' },
-    ...T.toes.map(([a, b, h]) => ({ x: X(a), top: Y(h), w: b - a, bottom: GY, col: TROLL, standable: true, look: 'rock' as const })),
   ]);
-  drawGiant(c, T.body, T.head, X, Y, flip, DECK.h);
+  drawGiant(c, T.body, T.head, X, Y, flip, DECK.h, T.crotch > 0);
+  // (the left troll's plug: rock between its legs, a wall, going up into it as the halls rise; clipped at its loincloth)
+  if (T === TROLL_L && plugLift < 1) {
+    const u = Math.round(plugLift * T.crotch);
+    c.save(); c.beginPath(); c.rect(X(ba) - 40, Y(T.crotch), bb - ba + 80, T.crotch + 4); c.clip();
+    boxes3(c, v, [{ x: X(ba), top: Y(T.crotch) - u, w: bb - ba, bottom: GY - u, col: TROLL, standable: false, look: 'rock' }]);
+    // (its hydraulic seam: a dark line across it, a lighter one under: it's a door, painted rock)
+    box(c, X(ba) + 4, Y(T.crotch / 2) - u, bb - ba - 8, 2, INK); box(c, X(ba) + 4, Y(T.crotch / 2) - u + 2, bb - ba - 8, 1, R[3]);
+    c.restore();
+  }
   for (const [a, b, h] of T.knees) {
-    poly(c, [[X(a) + 6, Y(h) + 13], [X(b) - 6, Y(h) + 13], [X(b) - 18, Y(h) + 62], [X(a) + 18, Y(h) + 62]], INK);
-    poly(c, [[X(a) + 8, Y(h) + 14], [X(b) - 8, Y(h) + 14], [X(b) - 20, Y(h) + 60], [X(a) + 20, Y(h) + 60]], R[2]);
-    poly(c, [[X(a) + 8, Y(h) + 14], [X(a) + 30, Y(h) + 14], [X(a) + 34, Y(h) + 50], [X(a) + 20, Y(h) + 60]], R[3]);
-    for (let k = 0; k < 3; k++) box(c, X(a) + 24 + k * ((b - a - 48) / 2), Y(h) + 24 + (k % 2) * 10, 10, 2, R[1]);
+    // (a straddler's knees are shallow lumps: the walk goes under them, the doorman stands under the inner one)
+    const d = T === TROLL_R ? 26 : 62, d2 = d - 2;
+    poly(c, [[X(a) + 6, Y(h) + 13], [X(b) - 6, Y(h) + 13], [X(b) - 18, Y(h) + d], [X(a) + 18, Y(h) + d]], INK);
+    poly(c, [[X(a) + 8, Y(h) + 14], [X(b) - 8, Y(h) + 14], [X(b) - 20, Y(h) + d2], [X(a) + 20, Y(h) + d2]], R[2]);
+    poly(c, [[X(a) + 8, Y(h) + 14], [X(a) + 30, Y(h) + 14], [X(a) + 34, Y(h) + d2 - 10], [X(a) + 20, Y(h) + d2]], R[3]);
+    for (let k = 0; k < 3; k++) box(c, X(a) + 24 + k * ((b - a - 48) / 2), Y(h) + 17 + (k % 2) * 4, 10, 2, R[1]);
     ledge3(c, v, X(a), Y(h), b - a, TROLL, 14, 'rock');
   }
   // (the elbows under the bridge: the forearm's stump up into the deck's underside, the elbow's knob a shallow lump (the
-  // doorman stands under the right one), a lit lip)
+  // doorman stands on the bank under the right troll's inner knee, by its elbow), a lit lip)
   for (const [a, b, h] of T.elbows) {
     const fa = flip ? X(b) - 26 : X(a) + 4;
     box(c, fa - 1, Y(DECK.h) + 15, 24, Y(h) - Y(DECK.h) - 13, INK); box(c, fa, Y(DECK.h) + 16, 22, Y(h) - Y(DECK.h) - 14, R[2]);

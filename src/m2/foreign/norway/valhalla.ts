@@ -6,13 +6,20 @@
 // valhalla' entrance area under the bridge where you can press up to enter. under the bridge. there, confucktious will
 // be." And: "foreign lands has no cannon, you just exit the hall").
 //
-//   THE DOORMAN: once he's been past the toll (TOLL PAID, the gate up, or swum the river to its far bank), a park guy in a cheap troll suit stands on the
-//     right troll's inner knee, under the bridge (up off the bank by the troll's big toe: toll.ts; the spot of the viking who was boxed in there: moved up onto the deck,
-//     toll.ts). Not an enemy: nothing hits him, nothing he does hurts (he's drawn, not in the enemy list). UP by him
+//   THE DOORMAN: once he's been past the toll (TOLL PAID, the gate up, or swum the river to its far bank), a park guy in
+//     a cheap troll suit stands on the bank under the bridge, just left of the right troll, under its inner knee (the
+//     owner, 2026-11-02: "he should be at the bottom at a place i can reach him... just walk to the left of the troll":
+//     the right troll straddles the walk now, toll.ts, so from the street he walks in under it straight to him). He
+//     flags him down as he comes near (waving; a hey the first time, a call now and then; a call after him if he walks
+//     off), till he's talked to him. Not an enemy: nothing hits him, nothing he does hurts (he's drawn, not in the enemy list). UP by him
 //     talks: the first time, his demand (the blood of every Norwegian cosplayer); after, how many are still breathing;
 //     all dead, he raises the halls.
-//   THE COUNT: every enemy Norway's build put down (the village, the church, the longship's viking, the toll gang and
-//     the rest by the toll bridge: 19), and nobody else (no other pavilion's cast, nobody who isn't an enemy). One's
+//   THE COUNT: every Norwegian Norway's build put down, from the village on (the owner: "all npcs in the level
+//     associated with norway must die to make the troll happy"): the village's two, the little troll bridge's viking,
+//     the lutefisk booth's sampler lady, the longship's viking, the stave church's four and the two past it, the
+//     sampler lady on the left troll, the toll gang's four, the two vikings past the gate, the shield viking on the
+//     right troll's shoulder: 19. Norway has no other people (no guests, no harmless cast). Once only a few are left,
+//     the count comes with where the nearest still is. One's
 //     counted dead once its health is gone or it's blown away (a kill, a drowning, the troll's hand; and the ones a
 //     checkpoint's safe start leaves out: they're out of the world for good, so nothing's ever stuck waiting on one).
 //     The kills outlive a death, the way the toll's gate does: whoever's dead stays dead on the respawn (and counted),
@@ -20,8 +27,10 @@
 //     are up, they stay up for good (the save: upgrades/state.ts benSpot('valhalla')).
 //   THE HALLS: up out of the river at the bridge's right end on a hydraulic lift (a theme park's plywood facade: painted
 //     logs and shields, a plastic dragon head over the door, the foam-axe sign, the fog machine), a dock of planks on
-//     barrels in front of it flush with the bank (one-way: up through it out of the water). The troll's sweep stops short
-//     of the dock once it's up. UP at its door: in.
+//     barrels in front of it right across the river, flush with both banks (one-way: up through it out of the water), and
+//     the left troll's plug goes up into it on the same lift (toll.ts: the owner, "blocks on both sides can rise. why
+//     not"): he walks in under the bridge from either end to the door. The troll under the bridge retires once the dock's
+//     over the river. UP at its door: in.
 //   THE HALL (down under the bridge, valhallaArt.ts draws it): a ride's old Viking show set gone gym-bro hideout. Ben.
 //   THE MEETUP (a cutscene, SKIP >> for all of it, bubbles; confucktious/meetup.ts's script): the FIRST meeting's long
 //     intro if he's never met Ben anywhere, else the short LATER one; his gross-up chugging through the helmet's straw
@@ -69,8 +78,10 @@ import { ledge, solid, teleport, meatheadSays, speak, saidOver, landVisit, type 
 import { SECTIONS, GY } from '../geometry';
 import { drawCast, womanOf, type Costume } from '../cast';
 import { VIKING_COSTUME } from './kinds';
-import { tollPaid, stopArmAt } from './toll';
-import { DOORMAN_VOICE, DOOR_DEMAND, DOOR_DEMAND_MH, DOOR_LEFT, doorCount, DOOR_RAISE, DOOR_RAISE_FIRST, DOOR_RAISE_MH, DOOR_OPEN } from './lines';
+import { tollPaid, stopArmAt, liftPlug } from './toll';
+import { walkOff, walkOffDue, type WalkOff } from '../../walkOffCall';
+import { isTalking } from '../../../m1/game/platform/speech';
+import { DOORMAN_VOICE, DOOR_DEMAND, DOOR_DEMAND_MH, DOOR_LEFT, doorCount, DOOR_RAISE, DOOR_RAISE_FIRST, DOOR_RAISE_MH, DOOR_OPEN, DOOR_HEY, DOOR_CALL, DOOR_WALKOFF, DOOR_WHERE, type DoorWhere } from './lines';
 
 const { x0 } = SECTIONS.norway;
 const X = (rx: number) => x0 + rx, Y = (h: number) => GY - h;
@@ -83,11 +94,12 @@ const L = PIECE_LINES.helmet;
  *  river's right end). */
 export const FACADE = { a: 4640, b: 4888, h: 236 };
 export const DOOR = 4764;
-export const DOCK = { a: 4630, b: 4900 };
-/** The doorman, on the right troll's inner knee under the bridge (his feet's middle, the knee's height). */
-// (on the bank at the right troll's outer foot, on the street side he comes along: the owner's "he should be at the
-// bottom at a place i can reach him, not on the other side" (he'd been up on the inner knee, behind the troll's body))
-export const DOORMAN = { x: 5300, h: 0 };
+export const DOCK = { a: 4400, b: 4900 };
+/** The doorman (his feet's middle, on the ground): on the bank under the bridge, just left of the right troll's inner
+ *  leg, under its knee, right on the walk in to the halls (the owner: "just walk to the left of the troll"). */
+export const DOORMAN = { x: 4954, h: 0 };
+/** How near he starts flagging him down, how near a call comes, how often. */
+const WAVE_NEAR = 560, CALL_NEAR = 460, CALL_EVERY = 330;
 /** The hall: its ends, its floor and ceiling (world y), straight down under the bridge, past the ground. */
 export const HALL = { a: 4380, b: 5220, floor: GY + 2400, ceil: GY + 2000 };
 /** The hall's door (inside: its middle), the keg (its chain's x, its bottom's height off the floor, its size), where Ben
@@ -126,7 +138,11 @@ export const hallsUp = () => benSpot(SPOT) || benGave('helmet');
 let countVisit = -1;
 const killed = new Set<string>();
 const names = new Set<string>();
-const fresh = () => { if (countVisit !== landVisit()) { countVisit = landVisit(); killed.clear(); names.clear(); demanded = false; } };
+/** Where each was put (Norway x; the longship's viking -1): for the doorman's where-hint. */
+const homes = new Map<string, number>();
+const fresh = () => { if (countVisit !== landVisit()) { countVisit = landVisit(); killed.clear(); names.clear(); homes.clear(); demanded = false; hookVisit = -1; } };
+/** He's been hailed this way into the land (the first hey). */
+let hookVisit = -1;
 /** He's been told what the doorman wants (this way into the land). */
 let demanded = false;
 /** How many are still breathing. */
@@ -144,10 +160,20 @@ export const trackCast = (state: GameState, spawned: Enemy[], ship: Enemy | null
   for (const e of spawned) {
     const name = e === ship ? 'ship' : `${e.kind}@${Math.round(e.homeX ?? e.pos.x)}@${Math.round(e.homeY ?? e.pos.y)}`;
     names.add(name);
+    homes.set(name, e === ship ? -1 : Math.round((e.homeX ?? e.pos.x) - x0));
     if (killed.has(name)) { e.health = 0; gone.add(e); continue; }
     h.tracked.push({ e, name, away: 0 });
   }
   if (gone.size) state.enemies = state.enemies.filter(e => !gone.has(e));
+};
+/** Where the nearest one still breathing is (nearest the doorman), or null. */
+const whereLeft = (): DoorWhere | null => {
+  let best: number | null = null;
+  const at = (x: number) => (x < 0 ? 2300 : x);
+  for (const n of names) if (!killed.has(n)) { const x = homes.get(n) ?? 0; if (best === null || at(x) > at(best)) best = x; }
+  if (best === null) return null;
+  if (best < 0) return 'ship';
+  return best < 1000 ? 'village' : best < 1500 ? 'plank' : best < 1900 ? 'booth' : best < 3500 ? 'church' : best < 3800 ? 'fisk' : best < 4380 ? 'trollL' : best < 5000 ? 'deck' : 'trollR';
 };
 /** Each frame: anybody tracked who's dead (or gone from the world for good) counted. */
 const tally = (state: GameState) => {
@@ -248,7 +274,7 @@ export interface Hall {
   /** The halls coming up (0 down, 1 up), the dock once it's there; the doorman's words, his pose, when he can be talked
    *  to again (busy talking), up's last state (a press is a fresh one). */
   lift: number; dock: Block | null;
-  door: { said: Said | null; busy: boolean; pose: 'stand' | 'talk' | 'raise'; poseT: number; upBuf?: number };
+  door: { said: Said | null; busy: boolean; pose: 'stand' | 'talk' | 'raise' | 'wave'; poseT: number; upBuf?: number; callAt: number; leave: WalkOff };
   upWas: boolean; upBuf?: number;
   phase: Phase;
   /** The scene's clock, a token (bumped on a skip: a line's done-callback from before it does nothing). */
@@ -273,7 +299,7 @@ export const hallOf = (state: GameState): Hall => {
   let h = stores.get(key);
   if (!h) stores.set(key, h = {
     tracked: [], lift: hallsUp() ? 1 : 0, dock: null,
-    door: { said: null, busy: false, pose: 'stand', poseT: 0 }, upWas: false,
+    door: { said: null, busy: false, pose: 'stand', poseT: 0, callAt: 0, leave: walkOff() }, upWas: false,
     phase: 'out', all: 0, token: 0, script: null,
     ben: { said: null, pose: 'flurry', facing: -1, poseT: 0, piece: 'helmet', x: BEN_HOME },
     keg: { a: 0, va: 0, hits: 0, at: -999, burst: -1 }, misses: 0, missAt: 0, passAt: -1,
@@ -297,12 +323,13 @@ const notePast = (state: GameState) => { if (pastVisit !== landVisit() && midX(s
 const putDock = (state: GameState, h: Hall) => {
   if (h.dock) return;
   h.dock = ledge(state, X(DOCK.a), GY, DOCK.b - DOCK.a, { hidden: true, tag: 'no-valhalla-dock' });
-  // (the troll's sweep stops short of it)
-  stopArmAt(X(DOCK.a) - 60);
+  // (right across the river: the troll under the bridge retires)
+  stopArmAt(X(DOCK.a));
 };
 export const buildValhalla = (state: GameState) => {
   const h = hallOf(state);
   stopArmAt(null);
+  liftPlug(h.lift);
   if (h.lift >= 1) putDock(state, h);
   // (the hall: floor, ceiling and end walls, thick, far down under everything)
   const a = X(HALL.a), b = X(HALL.b), T = 240;
@@ -318,6 +345,7 @@ export const buildValhalla = (state: GameState) => {
 export const updateValhalla = (ctx: FrameContext, controls: Controls): Controls => {
   const { state } = ctx, p = state.player, h = hallOf(state);
   tally(state);
+  liftPlug(h.lift);
   const upNow = !!controls.up, upPress = upNow && !h.upWas;
   h.upWas = upNow;
   if (h.lift > 0 && h.lift < 1) runRise(state, h);
@@ -399,7 +427,17 @@ const outside = (state: GameState, h: Hall, controls: Controls, upPress: boolean
   // don't want players to miss it. same for all")
   const free = !p.inCutscene && p.health > 0;
   // The doorman: up by him talks
-  const byMan = free && Math.abs(cx - X(DOORMAN.x)) < 64 && onFloorish(fy, Y(DOORMAN.h)) && !h.door.busy;
+  // (flagging him down till he's talked to him: waving as he comes near, a hey the first time, a call now and then, a
+  // call after him if he walks off; never over anybody, never in a cutscene)
+  const d = Math.abs(cx - X(DOORMAN.x)), low = Math.abs(fy - GY) < 260, unmet = !demanded && !hallsUp();
+  const waving = unmet && free && low && d < WAVE_NEAR && !h.door.busy && !h.door.said;
+  if (waving) h.door.pose = 'wave';
+  if (unmet && free && low && !h.door.busy && !h.door.said && d < CALL_NEAR && !isTalking()) {
+    if (hookVisit !== landVisit()) { hookVisit = landVisit(); h.door.callAt = state.frame; doorCalls(h, pickLine(byPants(state, DOOR_HEY))); }
+    else if (state.frame - h.door.callAt > CALL_EVERY) { h.door.callAt = state.frame; doorCalls(h, pickLine(byPants(state, DOOR_CALL))); }
+  }
+  if (walkOffDue(state, h.door.leave, X(DOORMAN.x), unmet && hookVisit === landVisit(), unmet && !h.door.busy && !h.door.said)) doorCalls(h, pickLine(byPants(state, DOOR_WALKOFF)));
+  const byMan = free && d < 84 && onFloorish(fy, Y(DOORMAN.h)) && !h.door.busy;
   if (byMan) setUi({ upPrompt: 'TALK' });
   if (upStart(h.door, upPress, byMan, p.isGrounded)) { talk(state, h); return { ...controls, up: false }; }
   // The halls' door: up on the dock by it goes in
@@ -417,7 +455,11 @@ const outside = (state: GameState, h: Hall, controls: Controls, upPress: boolean
 
 /** The doorman's say (one at a time: no talk-over). */
 const doorSays = (h: Hall, text: string, after?: () => void) => speak(DOORMAN_VOICE, text, s => { h.door.said = s; }, true, after);
+/** A call-out (a bark: dropped if anybody's talking). */
+const doorCalls = (h: Hall, text: string) => speak(DOORMAN_VOICE, text, s => { h.door.said = s; }, false);
 const talk = (state: GameState, h: Hall) => {
+  // (a call-out of his still going: cut off, he's got him now)
+  if (h.door.said) { silenceAll(); h.door.said = null; }
   h.door.busy = true; h.door.pose = 'talk'; h.door.poseT = 0;
   const done = () => { if (hallOf(state) === h) { h.door.busy = false; if (h.door.pose === 'talk') h.door.pose = 'stand'; } };
   const n = leftAlive();
@@ -437,7 +479,9 @@ const talk = (state: GameState, h: Hall) => {
     doorSays(h, pickLine(byPants(state, DOOR_DEMAND)), () => meatheadSays(state, pickLine(byPants(state, DOOR_DEMAND_MH)), true, done));
     return;
   }
-  doorSays(h, pickLine(byPants(state, DOOR_LEFT)), () => doorSays(h, doorCount(n), done));
+  // (only a few left: where the nearest still is, so it can always be finished)
+  const where = n <= 6 ? whereLeft() : null;
+  doorSays(h, pickLine(byPants(state, DOOR_LEFT)), () => doorSays(h, doorCount(n), where ? () => doorSays(h, DOOR_WHERE[where], done) : done));
 };
 /** The halls coming up out of the river: the lift's rumble, the river boiling round it, fog off it; the dock last. */
 const runRise = (state: GameState, h: Hall) => {

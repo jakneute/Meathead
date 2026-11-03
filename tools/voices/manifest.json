@@ -35661,6 +35661,16 @@
  },
  {
   "voice": "m2.foreign.doorman",
+  "text": "COME BACK! BUT SLOWER! AND DOWNWIND!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.doorman",
+  "text": "COME BACK! OR DON'T! I'VE SEEN EVERYTHING ALREADY!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.doorman",
   "text": "EIGHT COSPLAYERS STILL BREATHING.",
   "from": "FOREIGN"
  },
@@ -35687,6 +35697,11 @@
  {
   "voice": "m2.foreign.doorman",
   "text": "FIFTEEN COSPLAYERS STILL BREATHING.",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.doorman",
+  "text": "FINE! VALHALLA DIDN'T WANT YOU ANYWAY! ...COME BACK!",
   "from": "FOREIGN"
  },
  {
@@ -35726,6 +35741,11 @@
  },
  {
   "voice": "m2.foreign.doorman",
+  "text": "HALT! ...PLEASE. I'M ON THE CLOCK.",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.doorman",
   "text": "HALT. BRING ME THE BLOOD OF EVERY... YOU ALREADY KILLED THEM ALL? IN THOSE PANTS? THAT'S DEDICATION. RISE, HALLS OF VALHALLA!",
   "from": "FOREIGN"
  },
@@ -35752,6 +35772,36 @@
  {
   "voice": "m2.foreign.doorman",
   "text": "HALT. TO ENTER VALHALLA YOU MUST BRING ME THE BLOOD OF EVERY... OH. YOU ALREADY DID. ALL OF THEM? WITHOUT BEING ASKED? RISE, HALLS OF VALHALLA!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.doorman",
+  "text": "HEY! YOU! THE GUY COVERED IN VIKING! DOWN HERE!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.doorman",
+  "text": "HEY! YOU! THE GUY WHO SHIT HIMSELF! DOWN HERE! ...DON'T COME TOO CLOSE. BUT COME HERE.",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.doorman",
+  "text": "HEY! YOU! THE NAKED GUY! DOWN HERE! EYES UP HERE. MY EYES. THE FAKE ONES.",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.doorman",
+  "text": "HEY. NAKED GUY. TALK TO THE TROLL.",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.doorman",
+  "text": "HEY. STINKY. TALK TO THE TROLL.",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.doorman",
+  "text": "HEY. TROLL HERE. TALK TO THE TROLL.",
   "from": "FOREIGN"
  },
  {
@@ -35811,6 +35861,21 @@
  },
  {
   "voice": "m2.foreign.doorman",
+  "text": "MORTAL! I HAVE A QUEST! IT COMES WITH NO PANTS EITHER!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.doorman",
+  "text": "MORTAL! I HAVE A QUEST! IT INVOLVES YOU STANDING DOWNWIND!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.doorman",
+  "text": "MORTAL! THE HALLS OF VALHALLA AWAIT! SO DOES MY BREAK!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.doorman",
   "text": "NINE COSPLAYERS STILL BREATHING.",
   "from": "FOREIGN"
  },
@@ -35842,6 +35907,36 @@
  {
   "voice": "m2.foreign.doorman",
   "text": "ONE COSPLAYER STILL BREATHING. ONE. FIND HIM.",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.doorman",
+  "text": "OVER HERE! I'M WAVING! I'M PAID TO WAVE!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.doorman",
+  "text": "OVER HERE! STOP SWINGING IT AT ME AND COME TALK!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.doorman",
+  "text": "OVER HERE! YES, YOU! THE BROWN ONE!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.doorman",
+  "text": "PSST. MORTAL. OVER HERE. I HAVE A QUEST. AND A NOSE. SO STAY OVER THERE A LITTLE.",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.doorman",
+  "text": "PSST. MORTAL. OVER HERE. UNDER THE BIG TROLL. I HAVE A QUEST. IT PAYS NOTHING.",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.doorman",
+  "text": "PSST. NAKED MORTAL. OVER HERE. I HAVE A QUEST. YOU HAVE NO PANTS. WE BOTH HAVE PROBLEMS.",
   "from": "FOREIGN"
  },
  {
@@ -35906,6 +36001,51 @@
  },
  {
   "voice": "m2.foreign.doorman",
+  "text": "THERE'S ONE BACK AT THE LUTEFISK BOOTH. FOLLOW THE SMELL.",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.doorman",
+  "text": "THERE'S ONE BACK IN THE VILLAGE. BY THE WAFFLES. HE THINKS HE'S SAFE.",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.doorman",
+  "text": "THERE'S ONE BACK ON THE LITTLE TROLL BRIDGE. THE CHEAP ONE.",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.doorman",
+  "text": "THERE'S ONE ON THE LONGSHIP. BACK AND FORTH ALL DAY. LIKE MY CAREER.",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.doorman",
+  "text": "THERE'S ONE PAST THE CHURCH. BY THE FISH SHOP.",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.doorman",
+  "text": "THERE'S ONE UP ON THE BRIDGE. RIGHT OVER MY HEAD.",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.doorman",
+  "text": "THERE'S ONE UP ON THE OTHER TROLL. THE FAR ONE.",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.doorman",
+  "text": "THERE'S ONE UP ON THE STAVE CHURCH. ON THE ROOFS. GOD WON'T SAVE HIM.",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.doorman",
+  "text": "THERE'S ONE UP ON THIS TROLL'S SHOULDER. YOU WALKED RIGHT PAST HIM.",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.doorman",
   "text": "THIRTEEN COSPLAYERS STILL BREATHING.",
   "from": "FOREIGN"
  },
@@ -35927,6 +36067,21 @@
  {
   "voice": "m2.foreign.doorman",
   "text": "TWO COSPLAYERS STILL BREATHING.",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.doorman",
+  "text": "WHERE ARE YOU GOING? ...ACTUALLY, GOOD. THE AIR'S COMING BACK.",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.doorman",
+  "text": "WHERE ARE YOU GOING? I HAD A WHOLE QUEST!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.doorman",
+  "text": "WHERE ARE YOU GOING? YOUR ASS SAYS GOODBYE, I GUESS.",
   "from": "FOREIGN"
  },
  {

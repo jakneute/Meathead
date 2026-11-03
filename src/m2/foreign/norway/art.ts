@@ -271,10 +271,12 @@ export const drawChurch = (c: Ctx, v: View, X: (rx: number) => number, Y: (h: nu
 /** A giant troll's features over its body and head boxes (world): moss hair down past the head, a beard of moss, the
  *  brow, glowing eyes, the nose, tusks; its arms up under the deck, the hands gripping the planks' edge; the fur
  *  loincloth, the belly, the legs down to its feet. `flip`: facing left. */
-export const drawGiant = (c: Ctx, body: readonly number[], head: readonly number[], X: (rx: number) => number, Y: (h: number) => number, flip: boolean, deckH: number) => {
+/** `straddle`: its legs set back either side of the walk under it (nothing there's solid below its loincloth: the
+ *  owner's "just walk to the left of the troll"), drawn dimmed, no lit tops on its feet, so they read as behind him. */
+export const drawGiant = (c: Ctx, body: readonly number[], head: readonly number[], X: (rx: number) => number, Y: (h: number) => number, flip: boolean, deckH: number, straddle = false) => {
   const [ba, bb, bh] = body, [ha, hb, hh] = head;
   const bx = X(ba), bw = bb - ba, top = Y(hh), hx = X(ha), hw = hb - ha;
-  still(c, `fl-no-giant-${ba}`, bx, top, -40, -20, bw + 80, Y(0) - top + 2, g => {
+  still(c, `fl-no-giant-${ba}${straddle ? '-s' : ''}`, bx, top, -40, -20, bw + 80, Y(0) - top + 2, g => {
     const R = ramp6(hour(TROLL)), M = ramp6(hour('#3F6212')), F = ramp6(hour('#7A5A3A'));
     const lx = hx - bx, s = flip ? -1 : 1, ht = 0, hb2 = Y(bh) - top;
     // (the face on the head: the brow, the eyes, the nose, the mouth and its tusks)
@@ -305,6 +307,18 @@ export const drawGiant = (c: Ctx, body: readonly number[], head: readonly number
     for (let x = 0; x < bw; x += 6) { const t = hash(x + ba); box(g, x, ly0, 6, ly1 - ly0, F[t > 0.6 ? 3 : 2]); box(g, x, ly0, 6, 2, F[4]); box(g, x + 1, ly1 - 2, 4, 4 + Math.round(t * 6), F[t > 0.5 ? 2 : 1]); }
     box(g, 0, ly0 + 4, bw, 3, hour('#3F2A14')); ball(g, bw / 2, ly0 + 5, 4, hour('#9CA3AF'));
     const foot = Y(0) - top;
+    if (straddle) {
+      // (set back, dimmed: the shadow under its loincloth, the legs out at its ends, the feet with no lit tops)
+      const D = ramp6(mix(dimmed(TROLL), INK, 0.25));
+      for (let k = 0; k < 4; k++) box(g, 0, ly1 + k * 3, bw, 3, `rgba(10,8,6,${0.35 - k * 0.08})`);
+      for (const lxx of [6, bw - 56]) {
+        box(g, lxx - 1, ly1, 52, foot - ly1, INK); box(g, lxx, ly1, 50, foot - ly1, D[1]); box(g, lxx + (flip ? 40 : 0), ly1, 10, foot - ly1, D[2]);
+        for (let y = ly1 + 14; y < foot - 10; y += 14) box(g, lxx + 6, y, 38, 2, D[0]);
+        box(g, lxx - 6, foot - 14, 62, 14, INK); box(g, lxx - 5, foot - 13, 60, 13, D[2]);
+        for (let k = 0; k < 4; k++) box(g, lxx - 3 + k * 14, foot - 7, 11, 5, D[3]);
+      }
+      return;
+    }
     for (const lxx of [20, bw - 70]) {
       box(g, lxx - 1, ly1 + 4, 52, foot - ly1 - 4, INK); box(g, lxx, ly1 + 4, 50, foot - ly1 - 4, R[1]); box(g, lxx, ly1 + 4, 10, foot - ly1 - 4, R[2]);
       for (let y = ly1 + 14; y < foot - 10; y += 14) box(g, lxx + 6, y, 38, 2, R[0]);

@@ -7,7 +7,7 @@
 //       googly eyes (one hanging off), felt tusks, his own bored face showing through the mesh in its mouth; a green
 //       fleece onesie zipped up the front, a felt fur loincloth, foam troll feet over his sneakers, the STAFF lanyard,
 //       the clipboard). Poses: standing with the clipboard, talking (it up, a finger raised), raising the halls (both
-//       arms up). Arms from art/limb.ts.
+//       arms up), waving him over (a mitt up, side to side). Arms from art/limb.ts.
 //     THE FACADE: a theme park's plywood flat on a hydraulic lift, up out of the river: painted logs, a painted shingle
 //       gable with crossed dragon bargeboards, the HALLS OF VALHALLA plank sign with a giant foam axe behind it, painted
 //       round shields, a green PLASTIC DRAGON HEAD over the door (its mould seam, a chip off its snout), the open studded
@@ -77,7 +77,7 @@ const dimR = (r: Ramp, k = 0.3): Ramp => r.map(c => mixHex(c, '#120C08', k)) as 
 // ---------------------------------------------------------------------------------------------------------------
 // The doorman (local: feet at 0,0, facing +x; painted once per pose into a stamp)
 
-type DoorPose = 'stand' | 'talk' | 'raise';
+type DoorPose = 'stand' | 'talk' | 'raise' | 'wave' | 'wave2';
 const FLEECE: Ramp = ['#9ACB6A', '#6EA244', '#527E32', '#3A5A22', '#14220A'];
 const TROLLFOAM: Ramp = ['#A8C878', '#82A856', '#62863E', '#46622C', '#18240E'];
 const YARN = ['#E8742A', '#7AA43A', '#C8501E', '#5E8A2A'];
@@ -90,6 +90,9 @@ const DOOR_HANDS: Record<DoorPose, [[number, number], [number, number]]> = {
   stand: [[12, -44], [-9, -36]],
   talk: [[16, -50], [10, -60]],
   raise: [[30, -78], [-22, -80]],
+  // (flagging him down: the mitt up over his head, side to side; the clipboard down at his hip)
+  wave: [[22, -86], [-9, -36]],
+  wave2: [[10, -90], [-9, -36]],
 };
 const paintDoorman = (g: Ctx, pose: DoorPose) => {
   // ---- the legs: green fleece down into the foam troll feet (big, lumpy, three felt toenails), sneaker heels showing
@@ -617,7 +620,7 @@ const silkFlame = (c: Ctx, x: number, y: number, f: number, k: number) => {
 export const drawValhallaBack = (c: Ctx, state: GameState) => {
   const h = hallOf(state), f = state.frame;
   // ---- up top
-  if (seen(state, X(FACADE.a) - 60, X(DOORMAN.x) + 60, GY - 400, GY + 80)) {
+  if (seen(state, X(DOCK.a) - 60, X(DOORMAN.x) + 60, GY - 400, GY + 80)) {
     // (the halls: up out of the river as the lift brings them, cut off at the water's line)
     if (h.lift > 0) {
       const rise = Math.round((1 - h.lift) * (FH + 40)), shake = h.lift < 1 ? (f % 4 < 2 ? 1 : -1) : 0;
@@ -637,9 +640,9 @@ export const drawValhallaBack = (c: Ctx, state: GameState) => {
         c.save(); c.translate(X(DOCK.a), GY);
         stamp(c, 'fl-valhalla-dock', -2, -2, DW + 4, 44, paintDock);
         c.restore();
-        c.save(); c.translate(X(DOCK.a) + 30, GY); stamp(c, 'fl-valhalla-fogger', -16, -18, 38, 20, paintFogger); c.restore();
+        c.save(); c.translate(X(FACADE.a) + 20, GY); stamp(c, 'fl-valhalla-fogger', -16, -18, 38, 20, paintFogger); c.restore();
         for (let i = 0; i < 6; i++) {
-          const u = ((f * 0.6 + i * 37) % 160) / 160, fx = X(DOCK.a) + 50 + u * 160, fy = GY - 6 - Math.sin(u * Math.PI) * 10;
+          const u = ((f * 0.6 + i * 37) % 160) / 160, fx = X(FACADE.a) + 40 + u * 160, fy = GY - 6 - Math.sin(u * Math.PI) * 10;
           c.fillStyle = `rgba(226,232,240,${0.22 * Math.sin(u * Math.PI)})`; c.beginPath(); c.ellipse(fx, fy, 16 + u * 22, 6 + u * 4, 0, 0, Math.PI * 2); c.fill();
         }
       }
@@ -647,7 +650,7 @@ export const drawValhallaBack = (c: Ctx, state: GameState) => {
     // (the doorman, once he's there: facing whoever's about)
     if (doormanThere(state)) {
       const dx = X(DOORMAN.x), face: 1 | -1 = state.player.pos.x + state.player.width / 2 < dx ? -1 : 1;
-      const pose = h.door.pose === 'talk' && h.door.poseT % 50 > 30 ? 'stand' : h.door.pose;
+      const pose: DoorPose = h.door.pose === 'talk' && h.door.poseT % 50 > 30 ? 'stand' : h.door.pose === 'wave' ? (Math.floor(state.frame / 12) % 2 ? 'wave2' : 'wave') : h.door.pose;
       drawDoorman(c, dx, Y(DOORMAN.h), face, pose);
     }
   }
