@@ -134,7 +134,20 @@ const paintHousing = (g: Ctx) => {
   box(g, 0, -14, 120, 1, INK); box(g, 0, -2, 120, 2, INK);
   box(g, 96, -110, 10, 14, INK); box(g, 97, -109, 8, 12, S[2]);
 };
-export const drawHousing = (c: Ctx, v: View, x: number, warn: boolean) => {
+/** The wave machine's housing, set back at the pool's near corner: where it stands out over the water (`pool` its left
+ *  edge, `bed` its depth) a cast-concrete pier holds it up from the pool's bed (formwork lines, a dark waterline, the
+ *  shade under the housing's lip); then the housing on it. The pier's a background thing: dimmed, no lit top. */
+export const drawHousing = (c: Ctx, v: View, x: number, warn: boolean, pool?: number, bed = 0) => {
+  if (pool !== undefined && pool < x + 120 && onScreen(v, x, x + 120, 0.9)) {
+    const C = ramp6(dimmed('#8A8E92')), a = Math.max(x, pool) - 4, b = x + 116;
+    const P = (xx: number, y: number) => at(v.eye, xx, y, 0.9);
+    const [ax, ay] = P(a, GY), [bx] = P(b, GY), [, by] = P(a, GY + bed);
+    box(c, ax - 1, ay, bx - ax + 2, by - ay, INK); box(c, ax, ay, bx - ax, by - ay, C[2]);
+    box(c, ax, ay, 3, by - ay, C[3]); box(c, bx - 4, ay, 4, by - ay, C[1]);
+    for (let y = ay + 10; y < by; y += 14) box(c, ax, y, bx - ax, 1, C[1]);
+    for (let xx = ax + 18; xx < bx - 4; xx += 22) box(c, xx, ay, 1, by - ay, C[1]);
+    box(c, ax, ay, bx - ax, 4, C[0]); checker(c, ax, ay + 4, bx - ax, 2, C[0], 0);
+  }
   facade(c, v, 'no-housing', x, 120, 96, paintHousing, 0.9, 30, 10, false);
   if (onScreen(v, x, x + 120, 0.9)) {
     const [lx, ly] = at(v.eye, x + 101, GY - 106, 0.9);

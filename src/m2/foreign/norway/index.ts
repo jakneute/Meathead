@@ -185,8 +185,9 @@ export const norway: ForeignSection = {
     promenade(c, v, RIVER.b, x1, '#D6CBB4', '#8C7F68', [true, false]);
     drawFronts(c, v);
     drawPoolBack(c, v, POOL);
-    // (the wave machine's housing at the pool's far end, set back: its light on before a wave)
-    drawHousing(c, v, POOL.a - 40, f % WAVE_EVERY > WAVE_EVERY - 70);
+    // (the wave machine's housing at the pool's near corner, set back on its pier out of the water: its light on before
+    // a wave)
+    drawHousing(c, v, POOL.a - 40, f % WAVE_EVERY > WAVE_EVERY - 70, POOL.a, POOL.bed);
     // (the trolls and their plank, the booth)
     boxes3(c, v, [
       ...TROLLS.map(([a, b]) => ({ x: X(a), top: Y(TROLL_H), w: b - a, bottom: GY, col: '#6B7F5E', standable: true, look: 'rock' as const })),
