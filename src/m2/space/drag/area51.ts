@@ -15,8 +15,9 @@
 //              with a line; it's his pick. (UP at the door without it: he spots it then.)
 //   UP         his line, then the ask (minigameConfirm.ts: A accept, B back), the controls card the first go (the
 //              explain screens' buffer), then THE LOCK, Oblivion's tumblers: five pins in a row over his paperclip.
-//              Left / right moves the pick under one; PUSH (A / jump) springs that tumbler up, where it hangs a moment
-//              at the top (each its own rhythm: snappy, lazy, stiff...) and falls back. SET (X / fire) while it hangs
+//              Left / right moves the pick under one; PUSH (UP: the owner's "up button should push it up. a button sets
+//              it.") springs that tumbler up (held, it springs it again each time it's back down), where it hangs a moment
+//              at the top (each its own rhythm: snappy, lazy, stiff...) and falls back. SET (A / jump) while it hangs
 //              and it's set. Set it while it's still going up or already coming down and the clip slips (bent out of
 //              shape: he bends it back): that tumbler drops and so does the last one set (never all of them). No limit
 //              on goes, and every slip gives the hang a couple of frames more (up to ten): never stuck. B gives up.
@@ -65,7 +66,9 @@ const N_PINS = 5;
 /** Frames: the controls card's buffer; the win (the plug turning) before the world's back; the door's swing. */
 const CARD_HOLD = 90, WON_T = 80, TIPS_T = 240;
 /** A pin's hang at the top: a snap adds this much more (up to MERCY_MAX). Grace frames either side of the hang. */
-const MERCY_STEP = 2, MERCY_MAX = 10, GRACE = 3;
+// (the owner: "make it a little harder too": GRACE was 3 and the hangs a third longer (RHYTHMS): the set window's about
+// 28% narrower now, 16 frames on average where it was 22)
+const MERCY_STEP = 2, MERCY_MAX = 10, GRACE = 2;
 /** His bullshit-door line no more often than this (frames); the PA's on a ram no more often than this. */
 const RAM_LINE_GAP = 240, RAM_PA_GAP = 900, SNAP_LINE_GAP = 200;
 
@@ -75,7 +78,7 @@ interface Pin { h: number; st: PinSt; t: number; rise: number; hang: number; fal
 interface Lock {
   pins: Pin[]; slot: number; pick: number; push: number; snap: number; broken: number; turn: number; flash: number;
   verdict: string | null; good: boolean; verdictT: number; mercy: number; order: number[]; t: number;
-  prev: { l: boolean; r: boolean; a: boolean; x: boolean; b: boolean };
+  prev: { l: boolean; r: boolean; u: boolean; a: boolean; b: boolean };
 }
 interface A51 {
   phase: Phase; t: number;
@@ -150,13 +153,13 @@ const release = (state: GameState, a: A51) => {
 // The lock
 
 /** The tumblers' rhythms (rise, hang at the top, fall: frames), dealt out one each, shuffled, a new lock every go. */
-const RHYTHMS: [number, number, number][] = [[7, 12, 14], [20, 22, 30], [12, 16, 20], [9, 13, 26], [16, 19, 16]];
+const RHYTHMS: [number, number, number][] = [[7, 9, 14], [20, 16, 30], [12, 12, 20], [9, 10, 26], [16, 14, 16]];
 const newLock = (): Lock => {
   const r = [...RHYTHMS].sort(() => Math.random() - 0.5);
   return {
     pins: Array.from({ length: N_PINS }, (_, i) => ({ h: 0, st: 'down' as PinSt, t: 0, rise: 1, hang: 1, fall: 1, wob: 0, from: 0, base: r[i % r.length] })),
     slot: 0, pick: 0, push: 0, snap: 0, broken: 0, turn: 0, flash: 0, verdict: null, good: true, verdictT: 0, mercy: 0, order: [], t: 0,
-    prev: { l: true, r: true, a: true, x: true, b: true },
+    prev: { l: true, r: true, u: true, a: true, b: true },
   };
 };
 const verdict = (k: Lock, s: string, good: boolean) => { k.verdict = s; k.good = good; k.verdictT = 50; };
@@ -165,9 +168,10 @@ const dropPin = (pin: Pin) => { pin.from = pin.h; pin.st = 'fall'; pin.t = 0; };
 /** A frame of the lock: true once every tumbler's set. */
 const runLock = (state: GameState, a: A51, k: Lock, controls: Controls): boolean => {
   k.t++;
-  const c = { l: !!controls.left, r: !!controls.right, a: !!controls.jump, x: !!controls.shoot, b: !!(controls.special || controls.charge) };
+  // (UP pushes, A sets: the held up, not the uppercut hotkey's)
+  const c = { l: !!controls.left, r: !!controls.right, u: !!(controls.upHeld ?? controls.up), a: !!controls.jump, b: !!(controls.special || controls.charge) };
   const press = (key: keyof typeof c) => c[key] && !k.prev[key];
-  const pl = press('l'), pr = press('r'), pa = press('a'), px = press('x'), pb = press('b');
+  const pl = press('l'), pr = press('r'), pu = press('u'), pa = press('a'), pb = press('b');
   k.prev = c;
   if (k.flash > 0) k.flash--;
   if (k.verdictT > 0 && --k.verdictT === 0) k.verdict = null;
@@ -185,16 +189,16 @@ const runLock = (state: GameState, a: A51, k: Lock, controls: Controls): boolean
   if (pr && k.slot < N_PINS - 1) { k.slot++; playSound('click', 0.3, 8); }
   k.pick += (k.slot - k.pick) * 0.35;
   const under = Math.abs(k.pick - k.slot) < 0.2, pin = k.pins[k.slot];
-  if (pa && under) {
-    k.push = 1;
+  if (c.u && under) k.push = 1;
+  if ((pu || c.u) && under) {
     if (pin.st === 'down') {
       const j = () => 0.85 + Math.random() * 0.3;
       pin.st = 'rise'; pin.t = 0;
       pin.rise = Math.max(5, Math.round(pin.base[0] * j())); pin.hang = Math.round(pin.base[1] * j()) + k.mercy; pin.fall = Math.max(8, Math.round(pin.base[2] * j()));
       playSound('boing', 0.45, -4 + pin.base[0] * -0.2);
-    } else playSound('click', 0.25, 4);
+    } else if (pu) playSound('click', 0.25, 4);
   }
-  if (px && under) {
+  if (pa && under) {
     const inWindow = pin.st === 'top' || (pin.st === 'rise' && pin.rise - pin.t <= GRACE) || (pin.st === 'fall' && pin.t <= GRACE);
     if (inWindow) {
       pin.st = 'set'; pin.h = 1; pin.wob = 0; k.order.push(k.slot); k.flash = 24;
@@ -217,8 +221,8 @@ const runLock = (state: GameState, a: A51, k: Lock, controls: Controls): boolean
 };
 const LOCK_TIPS: EquipControl[] = [
   { pad: ['DPAD_LEFT', 'DPAD_RIGHT'], join: '/', kb: ['@left', '@right'], label: 'MOVE THE PICK' },
-  { pad: ['A'], kb: ['@jump'], label: 'PUSH IT UP' },
-  { pad: ['X'], kb: ['@fire'], label: 'SET IT AT THE TOP' },
+  { pad: ['DPAD_UP'], kb: ['@up'], label: 'PUSH IT UP' },
+  { pad: ['A'], kb: ['@jump'], label: 'SET IT AT THE TOP' },
 ];
 /** The lock's controls, all of them (its card; and the pause screen's, once minigames take a pause card). */
 export const A51_LOCK_CONTROLS: EquipControl[] = [
@@ -299,7 +303,7 @@ export const updateA51 = (ctx: FrameContext, controls: Controls): Controls => {
       a.t++;
       const held = btnAny(controls);
       if (!a.cardArmed && a.t > CARD_HOLD && !held) { a.cardArmed = true; showCard(true); }
-      if (a.cardArmed && held) { setUi({ minigameCard: null }); playSound('menuok', 0.6); a.phase = 'play'; a.t = 0; a.lock!.prev = { l: true, r: true, a: true, x: true, b: true }; }
+      if (a.cardArmed && held) { setUi({ minigameCard: null }); playSound('menuok', 0.6); a.phase = 'play'; a.t = 0; a.lock!.prev = { l: true, r: true, u: true, a: true, b: true }; }
       return { ...NO_CONTROLS };
     }
     case 'play': {

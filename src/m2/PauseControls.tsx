@@ -133,11 +133,11 @@ export const pauseCard = (id: PauseCardId | MinigameId, nin: boolean, joycon: bo
       { label: 'TURN IT (CLICK ITS TOP OR BOTTOM)', parts: [{ pad: ['A'], kb: ['@jump', 'ENTER'], mouse: 'left' }] },
       one('QUIT', ['BACK'], ['BKSP']),
     ] };
-    // (space/drag/area51.ts: left / right move the pick, A pushes a pin up, X sets it at the top, B gives up)
+    // (space/drag/area51.ts: left / right move the pick, UP pushes a pin up, A sets it at the top, B gives up)
     case 'lockpick': return { title: 'THE LOCK', rows: [
       LR('MOVE THE PICK'),
-      one('PUSH IT UP', ['A'], ['@jump']),
-      one('SET IT AT THE TOP', ['X'], ['@fire']),
+      one('PUSH IT UP', ['DPAD_UP'], ['@up']),
+      one('SET IT AT THE TOP', ['A'], ['@jump']),
       one('GIVE UP', ['B'], ['@special']),
     ] };
   }
