@@ -223,15 +223,18 @@ const restoreBoat = (state: GameState, rv: River) => {
 
 const onBoat = (state: GameState, rv: River) => {
   const p = state.player, b = rv.boat;
-  const cx = p.pos.x + p.width / 2, feet = p.pos.y + p.height;
-  return !!b.block && p.isGrounded && Math.abs(feet - BOAT.deck) < 3 && cx > b.x - 4 && cx < b.x + BOAT.w + 4;
+  const feet = p.pos.y + p.height;
+  // (standing on it anywhere, out on the very edge too: any of him over the deck, feet on it)
+  return !!b.block && p.isGrounded && Math.abs(feet - BOAT.deck) < 3 && p.pos.x + p.width > b.x && p.pos.x < b.x + BOAT.w;
 };
-/** Gone off it: in the water, down past the deck, or out over the rail (jumped off: the moment he's over the side, not
- *  when he lands). A hop on the deck isn't. */
+/** Gone off it: in the water, down past the deck, or all of him out past the rail (the owner's: "it can happen just by
+ *  standing on the edge of the boat. make sure it detects complete departure"). A hop on the deck isn't, nor standing
+ *  out on its edge. */
 const offBoat = (state: GameState, rv: River) => {
   const p = state.player, b = rv.boat;
-  const cx = p.pos.x + p.width / 2, feet = p.pos.y + p.height;
-  return p.swimming || feet > BOAT.deck + 10 || cx < b.x - 12 || cx > b.x + BOAT.w + 12;
+  const feet = p.pos.y + p.height;
+  if (onBoat(state, rv)) return false;
+  return p.swimming || feet > BOAT.deck + 10 || p.pos.x + p.width < b.x - 4 || p.pos.x > b.x + BOAT.w + 4;
 };
 /** How cross he is with him: the first walkout, the second, the third and on. */
 const tier = (b: River['boat']) => Math.max(0, Math.min(2, b.leaves - 1));
