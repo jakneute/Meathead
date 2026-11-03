@@ -31,7 +31,7 @@ import { shakeScreen } from '../../../m1/game/core/state';
 import { hurtPlayer } from '../../../m1/game/bosses/shared';
 import { makeKindEnemy } from '../../../m1/game/enemies/kinds';
 import { SKIP_AFTER, offerSkip, takeSkip, drawSkipPrompt } from '../../../m1/game/platform/skip';
-import { hazardKill } from '../../hazardHit';
+import { startGunKill } from '../../../m1/game/enemies/deaths';
 import { signText } from '../../signLetters';
 import { meatheadSays, speak, byPants, saidOver, landVisit, label, teleport, type Said } from '../section';
 import { painted } from '../kit';
@@ -228,33 +228,30 @@ const settle = (state: GameState) => {
 const dropSheriff = (ctx: FrameContext, call: string) => {
   const s = townOf(ctx.state).duel.sheriff;
   if (!s || s.health <= 0) return;
-  s.puppet = false; s.harmless = false; s.seen = true; s.pauseTimer = 0;
-  // (over backwards, where he stood, so it's seen (the user's); then, a beat later, he goes off: SHERIFF_BOOM)
-  const away = Math.sign(s.pos.x + s.width / 2 - (ctx.state.player.pos.x + ctx.state.player.width / 2)) || 1;
-  hazardKill(ctx, s, ctx.state.player.pos.x, call, { fling: { x: away * 1.6, y: -3.5 }, sound: 'gun' });
-  sheriffBoom = { e: s, at: ctx.state.frame + SHERIFF_BOOM };
+  // (the owner's: "a bullet goes in his head and he falls over ... he dies that way no matter what": always the one
+  // death, whatever hit him: in through the forehead, the head snapping back, blood out the back, then over he goes
+  // where he stood (the pistol's person death, gunDeaths.ts); no fling off down the street, no other variant)
+  const { state, fx } = ctx;
+  const away = (Math.sign(s.pos.x + s.width / 2 - (state.player.pos.x + state.player.width / 2)) || 1) as 1 | -1;
+  s.health = 0; s.puppet = false; s.harmless = false; s.seen = true; s.pauseTimer = 0; s.vel.x = 0; s.vel.y = 0;
+  s.isBlownAway = false; s.meleeFlung = false; s.uppercutFlung = false;
+  startGunKill(state, s, 'person', { x: away * 6, y: 0 });
+  state.enemies = state.enemies.filter(o => o !== s);
+  townOf(state).barks.delete(s);
+  fx.spawnDamageNumber({ x: s.pos.x, y: s.pos.y - 30 }, call, true, '#FCA5A5');
+  playSound('gun', 1, -10); playSound('crunch', 0.9, -4);
+  state.player.killSatisfactionTimer = 60;
 };
-/** Frames after he falls over that the sheriff explodes (outdrawn or shot first: the user's). */
-const SHERIFF_BOOM = 50;
-let sheriffBoom: { e: Enemy; at: number } | null = null;
-const boomSheriff = (ctx: FrameContext) => {
-  if (!sheriffBoom || ctx.state.frame < sheriffBoom.at) return;
-  const { e } = sheriffBoom, { state, fx } = ctx;
-  sheriffBoom = null;
-  if (!state.enemies.includes(e)) return;
-  const at = { x: e.pos.x + e.width / 2, y: e.pos.y + e.height / 2 };
-  fx.spawnDeathShower(at, 0, 2.2);
-  fx.spawnExplosion(at, '#B91C1C', 30, 0, 18);
-  fx.spawnExplosion(at, '#FDE047', 12, 0, 10);
-  playSound('boom', 1, -4); playSound('gorespray', 1, -2); shakeScreen(state, 12, 6);
-  state.enemies = state.enemies.filter(o => o !== e);
-};
+/** After he's outdrawn, how long the camera holds the whole street (the owner's: "make sure it remains zoomed out for
+ *  the whole death sequence"): through the head snap, the fall and what follows it. */
+const WON_HOLD = 200;
 
 const win = (ctx: FrameContext) => {
   const { state } = ctx;
   dropSheriff(ctx, 'OUTDRAWN!');
   settle(state);
-  townOf(state).duel.phase = 'won';
+  // (the gates kept shut through it, as the camera's held on the street: he can't wander off out of the shot)
+  townOf(state).duel.phase = 'won'; townOf(state).duel.t = 0; shutSquare(state, true);
   announce(state, SHOW_CLOSE, () => meatheadSays(state, pickLine(byPants(state, SHOWDOWN_DONE)), true));
 };
 
@@ -303,7 +300,6 @@ const runDuel = (ctx: FrameContext, controls: Controls): Controls => {
   const { state } = ctx, tw = townOf(state), d = tw.duel, g = tw.showdown, p = state.player, s = d.sheriff;
   const cx = p.pos.x + p.width / 2, feet = p.pos.y + p.height;
   if (d.cardT > 0) d.cardT--;
-  boomSheriff(ctx);
   // (shot before the duel's even begun (from down the street, before he's walked to his mark): one shot does him, the
   // user's, and that's cheating: the posse; anything of his that reached him counts)
   if (s && s.health > 0 && d.phase === 'wait' && p.health > 0 && (s.health < s.maxHealth || s.isBlownAway || (s.hitFlash ?? 0) > 0 || s.meleeFlung || s.uppercutFlung)) {
@@ -362,12 +358,16 @@ const runDuel = (ctx: FrameContext, controls: Controls): Controls => {
       }
       return controls;
     }
+    case 'won':
+      // (the camera held on the whole street till he's down and done: squareShut)
+      if (++d.t >= WON_HOLD) { d.phase = 'done'; shutSquare(state, false); }
+      return controls;
     default: return controls;
   }
 };
 
 /** The camera on the showdown's street (its gates shut). */
-export const squareShut = (state: GameState) => { const ph = townOf(state).duel.phase; return ph === 'intro' || ph === 'duel' || ph === 'posse' || ph === 'lost'; };
+export const squareShut = (state: GameState) => { const ph = townOf(state).duel.phase; return ph === 'intro' || ph === 'duel' || ph === 'won' || ph === 'posse' || ph === 'lost'; };
 
 // ---------------------------------------------------------------------------------------------------------------
 // The frame
