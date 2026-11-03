@@ -16,7 +16,7 @@ import { peeProgress } from '../../scenes/victoryPee';
 import { SLIDE_HOLD, vineGrip, vineLean, VINE_SHOULDER } from '../../combat/muzzle';
 import { pitchLean, drawPitchLegs, drawPitchArm, drawPitchGloveArm, kegLean, drawKegLegs, drawKegArm, drawKegGloveArm } from './pitch';
 import { PITCH_FRAMES } from '../../combat/finaleBuffs';
-import { sprintLeg, drawShoulderCharge, drawSwimCharge, drawUppercut, drawDivekick, drawJetskiWheelie, drawJetskiLeap, drawJetskiDive, drawStandingKick, drawPedalLegs, drawLedgeDrop, drawGunslinger, drawAxeSwing, drawRipPose } from './moves';
+import { sprintLeg, drawShoulderCharge, drawSwimCharge, drawUppercut, drawDivekick, drawJetskiWheelie, drawJetskiLeap, drawJetskiDive, drawStandingKick, drawPedalLegs, drawLedgeDrop, drawGunslinger, drawAxeSwing, drawRipPose, drawToeHop } from './moves';
 import { moveFlair } from './moveFlair';
 import { KICK_POSE_FRAMES, LEDGE_DROP_FRAMES, FINALE_STAGE } from '../../../constants';
 import { GameState } from '../../core/state';
@@ -386,6 +386,8 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
     : p.axeSwing !== undefined ? (c: CanvasRenderingContext2D, fr: number) => drawAxeSwing(c, fr, p.axeSwing ?? 0)
     // (tearing a boss's nuts out: Meathead 2's cheap shot)
     : p.ripPose ? (c: CanvasRenderingContext2D, fr: number) => drawRipPose(c, fr, p.ripPose!.k, p.ripPose!.hold)
+    // (hopping on one foot, clutching the other: Meathead 2's Area 51 door)
+    : p.toeHop ? (c: CanvasRenderingContext2D, fr: number) => drawToeHop(c, fr, p.toeHop!.t, p.toeHop!.settle)
     : (p.kickPose || 0) > 0 && !isDivekicking ? (c: CanvasRenderingContext2D, fr: number) => drawStandingKick(c, fr, 1 - (p.kickPose || 0) / KICK_POSE_FRAMES)
     // (squared up for a duel: Meathead 2's showdown)
     : p.gunslinger && p.isGrounded && !isCharging && !isUppercutting && !isDivekicking ? (c: CanvasRenderingContext2D, fr: number) => drawGunslinger(c, fr, cc => drawHeldWeapon(cc, currentWeapon, 0, 0, 0, fr))

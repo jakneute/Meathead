@@ -342,6 +342,9 @@ export interface Player extends Entity {
   logRoll?: { spin: number; lean: number };
   /** Frames left of a cutscene kick pose (drawn like the dive kick, standing). */
   kickPose?: number;
+  /** Hopping on one foot clutching the other (Meathead 2's Area 51 door, render/player/moves.ts drawToeHop): `t` frames
+   *  into it, `settle` 0..1 coming down out of it. Set and cleared by whatever scripts it. */
+  toeHop?: { t: number; settle: number };
   /** Sat in a ride's seat, a big haymaker with his lead fist (render/player/seatPunch.ts): 0..1 the wind-up, 1..2 the
    *  throw (2: the fist in, at full reach), 2..3 back down into the seat. Set and cleared by whatever scripts it. */
   seatPunch?: number;

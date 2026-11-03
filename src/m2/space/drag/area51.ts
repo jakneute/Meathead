@@ -50,6 +50,7 @@ import { meatheadSays, speak, saidOver, teleport, type Said } from '../section';
 import { GY } from '../geometry';
 import { byPants } from '../square/kinds';
 import { X, STORE, A51_DOOR, A51_STOP, A51_CLIP, ROOM, STREET1 } from './layout';
+import { toeHopLift } from '../../../m1/game/render/player/moves';
 import { drawStore, drawRoom, drawLock, drawLockWords, drawClip, ROOM_AT, type LockView } from './area51Art';
 import * as L from './area51Lines';
 
@@ -130,9 +131,11 @@ export const buildA51 = (state: GameState) => {
 const paSay = (a: A51, lines: string[], after = true) => speak(L.A51_PA_VOICE, pickLine(lines), s => { a.pa = s; }, after);
 
 /** The world held while it's on: nobody moves, nothing hurts him. */
-const hold = (state: GameState) => {
+const hold = (state: GameState) => { holdWorld(state); state.player.vel.x = 0; };
+/** ...the same, his feet left to the engine (a scripted walk). */
+const holdWorld = (state: GameState) => {
   const p = state.player;
-  p.inCutscene = true; p.vel.x = 0; p.untouchable = true;
+  p.inCutscene = true; p.untouchable = true;
   for (const e of state.enemies) e.pauseTimer = Math.max(e.pauseTimer ?? 0, 2);
   state.projectiles = state.projectiles.filter(q => q.owner !== 'enemy');
 };
@@ -251,7 +254,7 @@ export const updateA51 = (ctx: FrameContext, controls: Controls): Controls => {
       // (walking up to it: the PA's recording, then his first look)
       if (cx > X(STORE.a) - 140 && !a.said.has('pa-normal') && !isTalking()) { a.said.add('pa-normal'); paSay(a, L.PA_NORMAL); meatheadSays(state, pickLine(byPants(state, L.MH_STORE)), true); }
       // (the first walk up to the door: the beat (he kicks it, it doesn't care, he spots the paperclip))
-      if (!kickSeen() && !isOpen(state) && p.isGrounded && cx > X(A51_DOOR) - 250) { a.phase = 'kick'; a.t = 0; a.step = 'walk'; a.st = 0; hold(state); p.carried = true; return { ...NO_CONTROLS }; }
+      if (!kickSeen() && !isOpen(state) && p.isGrounded && cx > X(A51_DOOR) - 250) { a.phase = 'kick'; a.t = 0; a.step = 'walk'; a.st = 0; holdWorld(state); return { ...NO_CONTROLS }; }
       // (the paperclip on the walk: picked up on the way past)
       if (!hasClip(state) && Math.abs(cx - X(A51_CLIP)) < 26 && feet > GY - 70) takeClip(state);
       // RAMMED: a charge (or a slide) into the door: it doesn't budge; he does
@@ -418,14 +421,24 @@ const immune = (state: GameState, a: A51, controls: Controls) => {
 const KICK_AT = A51_STOP - 34;
 const kickBeat = (state: GameState, a: A51): Controls => {
   const p = state.player;
-  hold(state); p.carried = true; p.vel.y = 0;
   a.t++; a.st++;
   const cx = () => p.pos.x + p.width / 2;
-  const walkTo = (x: number, sp = 2.6) => { const d = x - cx(); p.facing = d < 0 ? -1 : 1; p.pos.x += Math.max(-sp, Math.min(sp, d)); return Math.abs(d) < 1.5; };
   const to = (s: A51['step']) => { a.step = s; a.st = 0; };
   if (a.t > SKIP_AFTER) { offerSkip(); if (takeSkip()) { silenceAll(); endKick(state, a); return { ...NO_CONTROLS }; } }
+  // (the walks: his own legs, the engine's walk (the owner: "meathead kinda floats as he approaches... he should walk
+  // normally to it"): held but not carried, the stick pushed for him, let go a step short so he stops on his mark)
+  const walking = a.step === 'walk' || a.step === 'fetch';
+  if (walking) {
+    holdWorld(state); p.carried = false;
+    const x = a.step === 'walk' ? X(KICK_AT) : X(A51_CLIP) + 14, d = x - cx();
+    const near = Math.abs(d) < 4 + Math.abs(p.vel.x) * 3;
+    if (near && Math.abs(p.vel.x) < 0.2 && p.isGrounded) { p.vel.x = 0; p.facing = a.step === 'walk' ? 1 : -1; to(a.step === 'walk' ? 'kick' : 'pick'); return { ...NO_CONTROLS }; }
+    if (a.st > 180) { p.vel.x = 0; p.pos.x = x - p.width / 2; p.facing = a.step === 'walk' ? 1 : -1; to(a.step === 'walk' ? 'kick' : 'pick'); return { ...NO_CONTROLS }; }
+    return near ? { ...NO_CONTROLS } : { ...NO_CONTROLS, right: d > 0, left: d < 0 };
+  }
+  // (carried (the engine off his position) only for the hop: stood still, he's on his own feet, grounded)
+  hold(state); p.carried = a.step === 'hurt'; if (p.carried) p.vel.y = 0;
   switch (a.step) {
-    case 'walk': if (walkTo(X(KICK_AT)) || a.st > 120) { p.facing = 1; to('kick'); } break;
     case 'kick':
       p.facing = 1;
       if (a.st === 4) p.kickPose = 16;
@@ -435,15 +448,22 @@ const kickBeat = (state: GameState, a: A51): Controls => {
         playSound('clang', 1, -10); playSound('thud', 0.9, -12); shakeScreen(state, 14, 7);
         for (let i = 0; i < 12; i++) state.particles.push({ pos: { x: X(A51_STOP) - 3, y: GY - 40 + (Math.random() - 0.5) * 20 }, vel: { x: -1 - Math.random() * 4, y: -2 - Math.random() * 4 }, life: 18 + Math.random() * 14, color: i % 2 ? '#FDE68A' : '#FFFFFF', size: 2 + Math.random() * 2, grav: 0.3 });
       }
-      if (a.st >= 22) { to('hurt'); meatheadSays(state, pickLine(byPants(state, L.MH_KICK_HURT)), true); }
+      if (a.st >= 22) { p.kickPose = 0; to('hurt'); meatheadSays(state, pickLine(byPants(state, L.MH_KICK_HURT)), true); }
       break;
     case 'hurt': {
-      // (hopping about on the other foot, backing off)
-      const hop = Math.abs(Math.sin(a.st * 0.22)) * 12;
-      p.pos.y = GY - p.height - hop; p.isGrounded = hop < 1;
-      if (a.st < 70) p.pos.x -= 0.5;
-      p.facing = Math.floor(a.st / 22) % 2 ? -1 : 1;
-      if (a.st > 80 && !isTalking()) { p.pos.y = GY - p.height; p.isGrounded = true; to('look'); }
+      // (the owner: "he doesn't animate enough when wincing in pain after kicking the door": hopping on the other foot,
+      // clutching the kicked one, wobbling, backing off, turning about; for as long as he's yelling about it, a good
+      // beat at least (HURT_MIN..HURT_MAX), then the foot back down (HURT_SETTLE))
+      const going = a.st < HURT_MIN || (isTalking() && a.st < HURT_MAX);
+      if (going) a.ky = a.st;
+      const settle = going ? 0 : Math.min(1, (a.st - a.ky) / HURT_SETTLE);
+      // (a hop, only off the ground once he's done: the settle lands it)
+      const lift = toeHopLift(a.st, settle);
+      p.toeHop = { t: a.st, settle };
+      p.pos.y = GY - p.height - lift; p.isGrounded = lift < 1;
+      if (a.st < 90 && p.pos.x > X(KICK_AT) - 70) p.pos.x -= 0.45;
+      p.facing = going && Math.floor(a.st / 40) % 2 ? -1 : 1;
+      if (settle >= 1) { p.carried = false; p.toeHop = undefined; p.pos.y = GY - p.height; p.isGrounded = true; p.facing = 1; to('look'); }
       break;
     }
     case 'look':
@@ -453,7 +473,6 @@ const kickBeat = (state: GameState, a: A51): Controls => {
       if (a.st === 56) playSound('ding', 0.4, 10);
       if (a.st > 66) { p.isDucking = false; to('fetch'); }
       break;
-    case 'fetch': if (walkTo(X(A51_CLIP) + 14, 2.2) || a.st > 150) { p.facing = -1; to('pick'); } break;
     case 'pick':
       p.isDucking = a.st < 20;
       if (a.st === 12) takeClip(state);
@@ -463,11 +482,13 @@ const kickBeat = (state: GameState, a: A51): Controls => {
   }
   return { ...NO_CONTROLS };
 };
+/** The pain beat's frames: at least, at most (while he's still yelling), and the foot coming back down. */
+const HURT_MIN = 100, HURT_MAX = 170, HURT_SETTLE = 14;
 const endKick = (state: GameState, a: A51) => {
   const p = state.player;
   state.stageMemo[CLIP_MEMO] = '1';
   markCollectibleFound(SHARD_LAND, KICK_ID); saveProgress();
-  p.carried = false; p.isDucking = false; p.kickPose = 0; p.pos.y = GY - p.height; p.isGrounded = true; p.vel.x = 0; p.vel.y = 0;
+  p.carried = false; p.isDucking = false; p.kickPose = 0; p.toeHop = undefined; p.pos.y = GY - p.height; p.isGrounded = true; p.vel.x = 0; p.vel.y = 0;
   if (p.pos.x + p.width > X(A51_STOP) - 2) p.pos.x = X(A51_STOP) - p.width - 2;
   release(state, a); a.upWas = true;
 };

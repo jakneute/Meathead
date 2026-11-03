@@ -447,6 +447,93 @@ export const drawRipPose = (ctx: Ctx, frame: number, k: number, hold?: (c: Ctx) 
 };
 
 // ---------------------------------------------------------------------------
+// The stubbed toe (Meathead 2's Area 51 door: he kicks two feet of steel and it doesn't care)
+// ---------------------------------------------------------------------------
+
+/** How high the hop has him off the ground (px), `t` frames into it, `settle` 0..1 coming down out of it. The scene
+ *  moves him by this so his feet and the pose agree. */
+export const toeHopLift = (t: number, settle = 0) => Math.abs(Math.sin(t * 0.2)) * 13 * (1 - settle);
+/** 0..1 how squashed he is on the landing (the standing knee bent under him as the hop comes down on it). */
+const toeHopSquash = (t: number) => { const s = Math.abs(Math.sin(t * 0.2)); return s < 0.35 ? 1 - s / 0.35 : 0; };
+
+/**
+ * Hopping on his back foot, clutching the kicked one: the kicking leg folded up in front of him, both hands round the
+ * boot, hunched over it; the hop springing off the standing leg (straight in the air, bent on each landing), the
+ * whole of him wobbling; his face screwed up, teeth gritted (a yell to start), tears squirting off his glasses, sweat
+ * flying, and the toe throbbing red. `t` frames into it, `settle` 0..1 the foot coming down out of it at the end.
+ * Every elbow and knee off src/m2/art/limb.ts.
+ */
+export const drawToeHop = (ctx: Ctx, frame: number, t: number, settle = 0) => {
+  frameNow = frame;
+  const live = 1 - settle;
+  const sq = toeHopSquash(t) * live;
+  const wob = (Math.sin(t * 0.13) * 0.11 + Math.sin(t * 0.31) * 0.04) * live;
+  const lean = 0.34 * live + wob + sq * 0.06;
+  const hip: [number, number] = [-1 - sq * 0.5, -26 + sq * 3];
+  // The standing leg: under him, straight in the air, bent as he lands
+  const bHip: [number, number] = [hip[0] - 4, hip[1]], bFoot: [number, number] = [-5 + wob * 10, 0];
+  leg(ctx, bHip, knee(bHip[0], bHip[1], bFoot[0], bFoot[1], 12, 12, 1), bFoot, 0.15 * live, true);
+  // The kicked foot: folded up in front, held there (lowered back down as he settles)
+  const fHip: [number, number] = [hip[0] + 5, hip[1]];
+  const kick: [number, number] = [15 + wob * 6, -17 + Math.sin(t * 0.4) * 1.2 * live];
+  const down: [number, number] = [9, 0];
+  const ff: [number, number] = [kick[0] + (down[0] - kick[0]) * settle, kick[1] + (down[1] - kick[1]) * settle];
+  // (the shoulders, off the hunched body; the arms drawn in the feet's frame so the hands stay on the boot)
+  const rot = (x: number, y: number): [number, number] => [hip[0] + x * Math.cos(lean) - y * Math.sin(lean), hip[1] + x * Math.sin(lean) + y * Math.cos(lean)];
+  const sB = rot(-9, -22), sF = rot(11, -22);
+  // (the hands: one round the ankle, one up the shin, the boot sticking out past them; let go as he settles, back down
+  // by his sides)
+  const fKnee = knee(fHip[0], fHip[1], ff[0], ff[1], 12, 12, 1);
+  const toe: [number, number] = [ff[0] - 1, ff[1] - 3], heel: [number, number] = [(ff[0] + fKnee[0]) / 2 - 1, (ff[1] + fKnee[1]) / 2 - 2];
+  const lerp = (a: [number, number], b: [number, number], k: number): [number, number] => [a[0] + (b[0] - a[0]) * k, a[1] + (b[1] - a[1]) * k];
+  const hB = lerp(heel, [sB[0] - 3, sB[1] + 22], settle), hF = lerp(toe, [sF[0] + 3, sF[1] + 22], settle);
+  const arm2 = (sh: [number, number], hand: [number, number], back: boolean) => {
+    const L = halfBone(sh[0], sh[1], hand[0], hand[1], 11, 1.05);
+    arm(ctx, sh, elbow(sh[0], sh[1], hand[0], hand[1], L, L, 1), hand, back, 5.5);
+  };
+  arm2(sB, hB, true);
+  ctx.save();
+  ctx.translate(hip[0], hip[1]); ctx.rotate(lean);
+  torso(ctx);
+  ctx.save(); ctx.translate(2, -37); ctx.rotate(-lean * 0.5 + Math.sin(frame * 1.9) * 0.04 * live);
+  head(ctx, 0, 0, t < 22 && live > 0.5 ? 'yell' : 'grit');
+  if (live > 0.4) {
+    // (screwed shut: squint creases at the eyes' corners)
+    ctx.strokeStyle = '#7A3A20'; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(-11, -6); ctx.lineTo(-9, -4); ctx.lineTo(-11, -2); ctx.moveTo(9, -6); ctx.lineTo(11, -4); ctx.lineTo(9, -2); ctx.stroke();
+    // (tears squirting off the glasses, both ways, in arcs)
+    for (let i = 0; i < 4; i++) {
+      const u = (t * 0.9 + i * 6) % 22, side = i % 2 ? 1 : -1;
+      const x = side * (7 + u * 0.9), y = -4 - u * 0.55 + u * u * 0.045;
+      ctx.fillStyle = '#1E3A8A'; ctx.fillRect(Math.round(x) - 1, Math.round(y) - 1, 3, 3);
+      ctx.fillStyle = '#93C5FD'; ctx.fillRect(Math.round(x) - 1, Math.round(y) - 1, 2, 2);
+    }
+    // (sweat off the top of his head)
+    for (let i = 0; i < 2; i++) {
+      const u = (t * 0.6 + i * 9) % 18, side = i ? 1 : -1;
+      const x = side * (4 + u * 0.7), y = -16 - u * 0.4 + u * u * 0.05;
+      ctx.fillStyle = '#E0F2FE'; ctx.fillRect(Math.round(x), Math.round(y), 2, 3);
+    }
+  }
+  ctx.restore();
+  ctx.restore();
+  // (the kicked leg, up in front of him, over his belly)
+  leg(ctx, fHip, fKnee, ff, -0.1 * live, false);
+  // THE THROB: the toe pulsing red, rings beating out off it
+  if (live > 0.3) {
+    const beat = (frame % 18) / 18, tx = ff[0] + 12, ty = ff[1] - 2;
+    ctx.fillStyle = `rgba(239, 68, 68, ${0.6 - beat * 0.45})`;
+    ctx.beginPath(); ctx.arc(tx, ty, 2 + (1 - beat) * 1.5, 0, Math.PI * 2); ctx.fill();
+    ctx.strokeStyle = `rgba(254, 202, 202, ${1 - beat})`; ctx.lineWidth = 1.5;
+    for (let i = 0; i < 4; i++) {
+      const a = -1.9 + i * 0.75, r0 = 5 + beat * 4, r1 = 9 + beat * 7;
+      ctx.beginPath(); ctx.moveTo(tx + Math.cos(a) * r0, ty + Math.sin(a) * r0); ctx.lineTo(tx + Math.cos(a) * r1, ty + Math.sin(a) * r1); ctx.stroke();
+    }
+  }
+  arm2(sF, hF, false);
+};
+
+// ---------------------------------------------------------------------------
 // Dropping down through a ledge
 // ---------------------------------------------------------------------------
 
