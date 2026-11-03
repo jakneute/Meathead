@@ -13,7 +13,10 @@
 //
 // The still art's stamped once in tiles; the live bits (the guide lights' chase, the box's flicker, the CRT's picture,
 // the pot's steam, the bulb's sway) are a few rects a frame. Lit by its own light in the room (lairLighting), warm;
-// the hallway's in the basement's dark (basement.ts hunterLighting) with hallLights' green.
+// More of his things (paintShade, paintDen): the dark banded into the room's top and ends, the bulb's pool, grime; a
+// cable tray, a vent, the pegboard and the lockers' tops for his bench (the next BEEF BRACER half built), soldering
+// scorch, a SPOT ME OR GET EATEN poster, the ride's KEEP ARMS AND LEGS INSIDE sign, chalk prints, his army cot, a crate
+// of spare eggs; a near cable run across the top in front. The hallway's in the basement's dark (basement.ts hunterLighting) with hallLights' green.
 
 import type { GameState } from '../../../m1/game/core/state';
 import type { Light, SceneLight } from '../../../m1/game/render/lighting';
@@ -36,6 +39,7 @@ const seen = (state: GameState, a: number, b: number, t: number, u: number) => {
   return b > cx - 40 && a < cx + CANVAS_WIDTH + 40 && u > cy - 40 && t < cy + CANVAS_HEIGHT + 40;
 };
 
+const mixHex = (a: string, b: string, k: number) => { const p = (h: string, i: number) => parseInt(h.slice(1 + i * 2, 3 + i * 2), 16); const ch = (i: number) => Math.round(p(a, i) + (p(b, i) - p(a, i)) * k).toString(16).padStart(2, '0'); return `#${ch(0)}${ch(1)}${ch(2)}`; };
 const STEEL: Ramp = ['#0A0A0E', '#22222A', '#34343F', '#4E4E5C', '#7A7A8A'];
 const CHROME: Ramp = ['#0F172A', '#334155', '#64748B', '#CBD5E1', '#F8FAFC'];
 const EGG: Ramp = ['#052E16', '#166534', '#22C55E', '#86EFAC', '#F0FFF4'];
@@ -150,6 +154,7 @@ const paintRoom = (g: Ctx) => {
   px(g, A + 602, T + 20, 58, 8, '#4A443C');
   // (the hatch's shaft coming down through it, over the west end)
   px(g, HATCH.a, T - 2, HATCH.b - HATCH.a, 24, '#07050A'); px(g, HATCH.a - 2, T + 20, HATCH.b - HATCH.a + 4, 3, '#3A3A44');
+  paintShade(g);
   // (a dead fluorescent fixture)
   px(g, A + 420, T + 22, 120, 10, '#2A2A30'); px(g, A + 424, T + 32, 112, 3, '#B8B8B0'); px(g, A + 424, T + 34, 112, 1, '#6A6A66');
   // (the floor: brown linoleum checker, scuffed; its lip lit: stand on it)
@@ -229,6 +234,103 @@ const paintRoom = (g: Ctx) => {
   }
   // (a towel over the bench, a belt hung on the rack)
   px(g, rk - 20, F - 36, 26, 6, '#E8E2D0'); px(g, rk - 20, F - 30, 6, 10, '#D6D0C0');
+  paintDen(g);
+};
+
+/** The light and the dark painted on the walls (over the block, under his things): the dark gathered up under the
+ *  ceiling and into the room's ends in stepped dithered bands, the bulb's warm pool, grime run down from the ceiling. */
+const paintShade = (g: Ctx) => {
+  for (let k = 0; k < 5; k++) { g.fillStyle = dith(g, `rgba(6,4,6,${(0.42 - k * 0.08).toFixed(2)})`, 2, k % 2); g.fillRect(A, T + 22 + k * 12, Bx - A, 12); }
+  for (let k = 0; k < 4; k++) { const a = `rgba(6,4,6,${(0.4 - k * 0.09).toFixed(2)})`; g.fillStyle = dith(g, a, 2, k % 2); g.fillRect(A + k * 14, T + 22, 14, F - T - 22); g.fillRect(Bx - (k + 1) * 14, T + 22, 14, F - T - 22); }
+  for (let i = 0; i < 5; i++) { g.fillStyle = `rgba(255,214,150,${(0.025 + i * 0.012).toFixed(3)})`; g.beginPath(); g.ellipse(A + 330, T + 110 + i * 8, 190 - i * 34, 120 - i * 20, 0, 0, Math.PI * 2); g.fill(); }
+  for (let k = 0; k < 16; k++) { const x = A + 30 + hash(k + 300) * (Bx - A - 60), len = 20 + hash(k + 301) * 70; g.fillStyle = dith(g, 'rgba(20,16,10,0.35)', 2, k % 2); g.fillRect(x, T + 22, 2 + hash(k + 302) * 3, len); }
+};
+
+/** More of his things (dimmed toward the room's dark: none of it's stood on): the cable tray and conduit under the
+ *  ceiling, a wall vent; the lockers' tops for his workbench (the next BEEF BRACER half built: ride-car plastic, a strip
+ *  of red LEDs wired up, the soldering iron, solder, a tub of whey, a foam alien head wearing a cast mask) and the
+ *  pegboard over them; the soldering's scorch; a SPOT ME OR GET EATEN poster; the stolen KEEP ARMS AND LEGS INSIDE
+ *  THE RIDE sign over the pull-up arm; chalk handprints; his army cot behind where he stands (a XENOSCARE blanket, a
+ *  pillow); a crate of spare alien eggs. */
+const paintDen = (g: Ctx) => {
+  const D = (c: string, k = 0.25) => mixHex(c, '#0A080A', k);
+  // ---- the cable tray under the ceiling (its rungs, cables in it), a conduit down to a switch box by the lockers
+  px(g, A + 180, T + 34, Bx - A - 200, 4, '#05070B'); px(g, A + 180, T + 34, Bx - A - 200, 1, D('#5A5A66'));
+  for (let x = A + 184; x < Bx - 20; x += 12) px(g, x, T + 30, 2, 8, D('#3A3A46'));
+  for (let k = 0; k < 3; k++) px(g, A + 180, T + 30 + k, Bx - A - 200, 1, ['#3F0A0A', '#0A2A4A', '#2A2A0A'][k]);
+  for (const hx of [A + 260, A + 560]) px(g, hx, T + 22, 2, 12, D('#3A3A46'));
+  px(g, A + 182, T + 38, 3, F - 150 - T - 38, D('#3A3A46')); px(g, A + 182, T + 38, 1, F - 150 - T - 38, D('#6A6A78'));
+  px(g, A + 176, F - 156, 14, 18, '#05070B'); px(g, A + 177, F - 155, 12, 16, D('#4A4A56')); px(g, A + 181, F - 151, 4, 6, D('#18181E'));
+  // (the wall vent, dust streaked down from it)
+  { const x = A + 600, y = F - 344; px(g, x - 1, y - 1, 42, 26, '#05070B'); px(g, x, y, 40, 24, D('#4A4A56')); for (let k = 0; k < 5; k++) { px(g, x + 3, y + 3 + k * 4, 34, 2, '#0A0A0E'); px(g, x + 3, y + 5 + k * 4, 34, 1, D('#7A7A8A')); }
+    g.fillStyle = dith(g, 'rgba(20,16,10,0.4)'); g.fillRect(x + 6, y + 24, 28, 30); }
+  // ---- the pegboard over the lockers: masonite, its holes; pliers, cutters, a multimeter, a coil of wire, tape
+  { const x = A + 186, y = F - 250, w = 92, h = 64, P = ['#3A2A1C', '#5A4430', '#7A5C40', '#9A7A58'].map(c => D(c));
+    px(g, x - 1, y - 1, w + 2, h + 2, '#05070B'); px(g, x, y, w, h, P[1]); px(g, x, y, w, 2, P[2]);
+    for (let yy = y + 5; yy < y + h - 2; yy += 6) for (let xx = x + 4; xx < x + w - 2; xx += 6) px(g, xx, yy, 1, 1, P[0]);
+    g.strokeStyle = D('#B91C1C'); g.lineWidth = 2; g.beginPath(); g.moveTo(x + 12, y + 8); g.lineTo(x + 8, y + 34); g.moveTo(x + 14, y + 8); g.lineTo(x + 18, y + 34); g.stroke();
+    px(g, x + 10, y + 4, 6, 6, D('#71717A'));
+    g.strokeStyle = D('#CA8A04'); g.beginPath(); g.moveTo(x + 28, y + 10); g.lineTo(x + 26, y + 30); g.moveTo(x + 30, y + 10); g.lineTo(x + 33, y + 30); g.stroke();
+    px(g, x + 42, y + 8, 18, 26, '#05070B'); px(g, x + 43, y + 9, 16, 24, D('#CA8A04')); px(g, x + 45, y + 11, 12, 7, D('#1E3A2A')); px(g, x + 46, y + 13, 6, 1, D('#4ADE80'));
+    blob(g, x + 50, y + 26, 4, 4, STEEL); px(g, x + 44, y + 34, 2, 14, '#B91C1C'); px(g, x + 56, y + 34, 2, 12, '#18181B');
+    for (let k = 0; k < 3; k++) { g.strokeStyle = k % 2 ? D('#B45309') : D('#0E7490'); g.lineWidth = 1.5; g.beginPath(); g.ellipse(x + 74, y + 18, 9 - k, 10 - k, 0, 0, Math.PI * 2); g.stroke(); }
+    blob(g, x + 74, y + 46, 7, 6, ['#0A0A0E', '#1E1E24', '#3A3A44', '#5A5A66', '#8A8A96']); px(g, x + 72, y + 44, 4, 4, '#0A0A0E');
+    px(g, x + 6, y + 40, 26, 18, D('#E8E2D0', 0.35)); for (let k = 0; k < 4; k++) px(g, x + 8, y + 43 + k * 4, 18 - k * 3, 1, D('#3F3F46')); }
+  // (the soldering's scorch on the block over the lockers' right end)
+  for (let i = 0; i < 4; i++) { g.fillStyle = dith(g, `rgba(8,6,4,${(0.16 + i * 0.07).toFixed(2)})`, 2, i % 2); g.beginPath(); g.ellipse(A + 248, F - 156 - i * 3, 24 - i * 5, 14 - i * 3, 0, 0, Math.PI * 2); g.fill(); }
+  // ---- on the lockers' tops (his workbench): the bracer half built, its LED strip, the iron in its stand, solder, a tub
+  { const y = F - 132, x = A + 186;
+    // (the bracer: a curl of the ride car's purple plastic, a strip of red LEDs taped along it, wires off it)
+    px(g, x + 4, y - 14, 40, 14, '#05070B'); px(g, x + 5, y - 13, 38, 12, VINYL[2]); px(g, x + 5, y - 13, 38, 3, VINYL[3]); px(g, x + 5, y - 4, 38, 3, VINYL[1]);
+    px(g, x + 8, y - 10, 32, 4, '#18181B'); for (let k = 0; k < 7; k++) px(g, x + 9 + k * 4.4, y - 9, 2, 2, k % 3 ? '#7F1D1D' : '#F87171');
+    g.strokeStyle = '#B45309'; g.lineWidth = 1; g.beginPath(); g.moveTo(x + 42, y - 8); g.quadraticCurveTo(x + 52, y - 2, x + 50, y + 14); g.stroke();
+    g.strokeStyle = '#0E7490'; g.beginPath(); g.moveTo(x + 42, y - 6); g.quadraticCurveTo(x + 48, y + 2, x + 46, y + 18); g.stroke();
+    // (the iron in its coil stand, its tip glowing; a spool of solder)
+    px(g, x + 54, y - 4, 16, 4, '#05070B'); px(g, x + 55, y - 3, 14, 2, D('#3F3F46'));
+    for (let k = 0; k < 3; k++) px(g, x + 58 + k * 3, y - 12 + k, 2, 8, D('#A1A1AA'));
+    g.strokeStyle = '#05070B'; g.lineWidth = 3; g.beginPath(); g.moveTo(x + 58, y - 10); g.lineTo(x + 74, y - 20); g.stroke(); g.strokeStyle = D('#CA8A04'); g.lineWidth = 2; g.beginPath(); g.moveTo(x + 66, y - 15); g.lineTo(x + 74, y - 20); g.stroke();
+    px(g, x + 56, y - 9, 2, 2, '#FB923C');
+    blob(g, x + 80, y - 5, 5, 5, ['#2A2418', '#7C735A', '#B3AA8A', '#D9D1B4', '#F4EFDC']); px(g, x + 79, y - 6, 2, 2, '#18181B');
+    // (a foam alien head wearing a spare cast mask: the ride's)
+    blob(g, x + 18, y - 32, 9, 12, ['#052E16', '#166534', '#22C55E', '#86EFAC', '#F0FFF4'].map(c => D(c, 0.3)) as unknown as Ramp);
+    px(g, x + 12, y - 34, 5, 3, '#05070B'); px(g, x + 20, y - 34, 5, 3, '#05070B'); px(g, x + 14, y - 20, 8, 6, D('#E8E2D0', 0.35));
+    // (whey tub)
+    px(g, x + 32, y - 40, 20, 26, '#05070B'); px(g, x + 33, y - 39, 18, 25, D('#18181B', 0.1)); px(g, x + 33, y - 39, 18, 3, D('#3F3F46', 0.1)); px(g, x + 35, y - 30, 14, 7, D('#2563EB'));
+    print(g, 'WHEY', x + 42, y - 29, 1, 1, '#F1F5F9'); }
+  // ---- the poster in his words (an alien looming over a lifter under a bar)
+  { const x = A + 402, y = F - 314, w = 80, h = 88;
+    px(g, x - 1, y - 1, w + 2, h + 2, '#05070B'); px(g, x, y, w, h, D('#1E1E2A'));
+    for (let k = 0; k < 4; k++) px(g, x, y + 10 + k * 10, w, 10, D(['#14532D', '#166534', '#15803D', '#166534'][k], 0.4));
+    blob(g, x + 54, y + 30, 14, 18, EGG); px(g, x + 46, y + 26, 6, 4, '#05070B'); px(g, x + 56, y + 26, 6, 4, '#05070B');
+    px(g, x + 14, y + 44, 40, 3, D('#A1A1AA')); px(g, x + 12, y + 38, 4, 14, D('#52525B')); px(g, x + 52, y + 38, 4, 14, D('#52525B'));
+    px(g, x + 28, y + 46, 12, 10, D('#C89A70')); px(g, x + 30, y + 40, 8, 6, D('#C89A70'));
+    print(g, 'SPOT ME', x + w / 2, y + 64, 1, 1, '#F1F5F9');
+    print(g, 'OR GET EATEN', x + w / 2, y + 75, 1, 1, '#4ADE80');
+    for (const [tx, ty] of [[x - 2, y - 2], [x + w - 8, y - 2]] as const) px(g, tx, ty, 10, 5, 'rgba(220,210,170,0.5)'); }
+  // ---- the KEEP ARMS AND LEGS INSIDE THE RIDE sign off the ride, wired up over the pull-up arm
+  { const x = A + 520, y = F - 300, w = 124, h = 34;
+    for (const wx of [x + 10, x + w - 10]) { px(g, wx, y - 18, 1, 18, D('#71717A')); }
+    px(g, x - 1, y - 1, w + 2, h + 2, '#05070B'); px(g, x, y, w, h, '#CA8A04'); px(g, x, y, w, 2, '#FDE047'); px(g, x + 3, y + 3, w - 6, h - 6, '#18181B');
+    print(g, 'KEEP ARMS AND LEGS', x + w / 2, y + 8, 1, 1, '#FDE047');
+    print(g, 'INSIDE THE RIDE', x + w / 2, y + 19, 1, 1, '#FDE047');
+    for (const bx of [x + 4, x + w - 7]) px(g, bx, y + 4, 2, 2, '#71717A'); }
+  // ---- chalk handprints on the block under the arm
+  for (const [hx, hy] of [[ARM.a + 30, ARM.y + 40], [ARM.b - 40, ARM.y + 30], [ARM.a + 80, ARM.y + 54]] as const) { g.fillStyle = 'rgba(230,230,225,0.18)'; g.beginPath(); g.ellipse(hx, hy, 4, 5, 0, 0, Math.PI * 2); g.fill(); for (let k = 0; k < 4; k++) px(g, hx - 4 + k * 2.4, hy - 9, 1, 4, 'rgba(230,230,225,0.16)'); }
+  // ---- his army cot (behind where he stands): olive canvas on X legs, a XENOSCARE blanket balled up, a pillow
+  { const x = A + 418, y = F - 26, w = 88, O = ['#1A2010', '#2E3A1C', '#46562C', '#5E7040'].map(c => D(c, 0.2));
+    for (const lx of [x + 6, x + w - 18]) { g.strokeStyle = '#05070B'; g.lineWidth = 3; g.beginPath(); g.moveTo(lx, y + 6); g.lineTo(lx + 12, F); g.moveTo(lx + 12, y + 6); g.lineTo(lx, F); g.stroke(); g.strokeStyle = D('#52525B'); g.lineWidth = 1; g.beginPath(); g.moveTo(lx, y + 6); g.lineTo(lx + 12, F); g.stroke(); }
+    px(g, x - 1, y - 1, w + 2, 9, '#05070B'); px(g, x, y, w, 7, O[2]); px(g, x, y, w, 2, O[3]); px(g, x, y + 5, w, 2, O[1]);
+    px(g, x + 2, y - 9, 24, 9, '#05070B'); px(g, x + 3, y - 8, 22, 8, D('#E8E2D0', 0.3)); px(g, x + 3, y - 8, 22, 2, D('#FFFFFF', 0.3));
+    blob(g, x + 56, y - 6, 22, 7, VINYL.map(c => D(c, 0.25)) as unknown as Ramp); px(g, x + 44, y - 8, 20, 2, D('#4ADE80', 0.35)); }
+  // ---- a crate of spare alien eggs by the hatch's foot side of the lockers
+  { const x = A + 664, y = F - 24; px(g, x - 1, y - 1, 46, 25, '#05070B'); px(g, x, y, 44, 24, D('#6B4423', 0.3)); for (let k = 1; k < 3; k++) px(g, x, y + k * 8, 44, 1, D('#3A2414', 0.3));
+    for (let k = 0; k < 3; k++) blob(g, x + 9 + k * 13, y - 4, 6, 8, EGG.map(c => D(c, 0.25)) as unknown as Ramp); }
+};
+
+/** The near cable run across the top of the room in front, in silhouette (world). */
+const paintNear = (g: Ctx) => {
+  px(g, A - 12, T - 12, Bx - A + 24, 14, '#030204'); px(g, A - 12, T + 2, Bx - A + 24, 1, '#1E1A20');
+  g.strokeStyle = '#030204'; g.lineWidth = 3; g.beginPath(); g.moveTo(A + 220, T); g.quadraticCurveTo(A + 300, T + 22, A + 380, T); g.moveTo(A + 470, T); g.quadraticCurveTo(A + 560, T + 18, A + 640, T); g.stroke();
 };
 
 /** The CRT's picture: the workout tape (a stick man doing curls, two frames), the rolling bar, blue. */
@@ -289,6 +391,7 @@ export const drawBenHallBack = (c: Ctx, state: GameState) => {
 /** World space, over him: Ben's words over his head (in play: plain text). */
 export const drawBenHallFront = (c: Ctx, state: GameState) => {
   const h = lairOf(state);
+  if (seen(state, A - 12, Bx + 12, T - 12, T + 30)) stamp(c, 'sp-q-ben-near', A - 12, T - 12, Bx - A + 24, 36, paintNear);
   if (!h.ben.said || h.script?.gross || !seen(state, BEN_X - 100, BEN_X + 100, F - 200, F + 10)) return;
   saidOver(c, h.ben.said.text, BEN_X, benHeadY(F), '#FFFFFF', 220);
 };
