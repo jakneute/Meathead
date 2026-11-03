@@ -69,9 +69,9 @@ import { has, setPiece, setBenMet, benGave, setBenGave, followArt, setFollowArt,
 import { FOLLOW, type EquipControl } from '../../upgrades/equipInfo';
 import { makeCannon, updateCannon, cannonBusy, type Cannon } from '../../upgrades/returnCannon';
 import {
-  NUDGE, PIECE_LINES, artBeats, artStart, MH_CANNON_ASK, BEN_CANNON_FR, MH_MAZE, MH_LANDED_FR, BOOT_WEEB, BOOT_HUH, CROW_WRONG, CROW_SHORT,
+  NUDGE, PIECE_LINES, artBeats, artTipRange, MH_CANNON_ASK, BEN_CANNON_FR, MH_MAZE, MH_LANDED_FR, BOOT_WEEB, BOOT_HUH, CROW_WRONG, CROW_SHORT,
   benSays, warmBenGross, meetupScript, startScript, tickScript, skipScript,
-  type BenPose, type BenTalk, type Script, type Beat, type ByPants,
+  type BenPose, type BenTalk, type Script, type Beat, type ByPants, giftCoda,
 } from '../../upgrades/confucktious';
 import { meatheadSays, ledge } from '../section';
 import { SECTIONS, GY } from '../geometry';
@@ -514,10 +514,10 @@ const startMeet = (state: GameState, h: Lair) => {
   // (the hidden art of follow-ups before the trial line: what follow-ups are, then the scarecrow; the big beat only with
   // his first follow-up piece, whichever land: none taught, none of the others handed over)
   h.artFull = !followArt() && !FOLLOW_PIECES.some(pc => pc !== 'sabatons' && benGave(pc));
-  const art = artBeats(pantsOf(state), h.artFull);
+  const art = artBeats(pantsOf(state), h.artFull, { extra: L.follow?.[0], again: L.followAgain?.[0] });
   const beats = meetupScript(pantsOf(state), L, undefined, art).map((b): Beat => (b.who === 'ben' && b.text === sell ? { ...b, gross: true } : b));
-  const at = artStart(beats, art);
-  h.howA = at + art.how[0]; h.howB = at + art.how[1];
+  // (the buttons up from the how through what this piece's own follow-up does)
+  [h.howA, h.howB] = artTipRange(beats, art);
   h.script = startScript(beats);
   freeze(state);
   setPose(h, 'stand'); faceBen(state, h);
@@ -622,6 +622,8 @@ const startGift = (state: GameState, h: Lair) => {
   // (the art already taught with the big beat has its own cartoon Japanese; otherwise he names the move his way)
   if (!h.artFull) beats.push({ who: 'mh', text: pickLine(BOOT_WEEB[pants]) }, { who: 'ben', text: BOOT_HUH[0] });
   h.howA = h.howB = -1;
+  // (the last piece of the eight: the full set, his last word)
+  beats.push(...giftCoda(pants));
   h.script = startScript(beats);
 };
 /** The practice's tips, in the order he does them (the owner's: "say down+B while in air followed by the tap Y as you

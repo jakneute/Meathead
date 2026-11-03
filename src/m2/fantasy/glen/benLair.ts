@@ -66,7 +66,7 @@ import { makeCannon, updateCannon, cannonBusy, type Cannon } from '../../upgrade
 import {
   NUDGE, PIECE_LINES, MH_TUNNEL, AMULET_WEEB, AMULET_HUH, MH_CANNON_ASK, BEN_CANNON_FY,
   benSays, warmBenGross, meetupScript, startScript, tickScript, skipScript,
-  type BenPose, type BenTalk, type Script, type Beat,
+  type BenPose, type BenTalk, type Script, type Beat, giftCoda,
 } from '../../upgrades/confucktious';
 import { meatheadSays, solid, byPants, pantsOf } from '../section';
 import { stairEnd } from '../stairs';
@@ -517,6 +517,8 @@ const startGift = (state: GameState, h: Lair) => {
     { who: 'mh', text: pickLine(AMULET_WEEB[pants]) },
     { who: 'ben', text: AMULET_HUH[0] },
   ];
+  // (the last piece of the eight: the full set, his last word)
+  beats.push(...giftCoda(pants));
   h.script = startScript(beats);
 };
 const runGift = (state: GameState, h: Lair): Controls => {

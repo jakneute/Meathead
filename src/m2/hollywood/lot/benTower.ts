@@ -75,7 +75,7 @@ import {
   BYE_MEATHEAD, PIECE_LINES, artBeats, artStart, ART_FLASH, ART_AGAIN_FLASH,
   LEGS_CURTAIN, MH_HATCH, NUDGE_HW, MH_CANNON_ASK, BEN_CANNON, MH_FALL, MH_LANDED,
   benSays, warmBenGross, meetupScript, startScript, tickScript, skipScript,
-  type BenPose, type BenTalk, type Script, type Beat, type ByPants,
+  type BenPose, type BenTalk, type Script, type Beat, type ByPants, giftCoda,
 } from '../../upgrades/confucktious';
 import { meatheadSays, solid, ledge, hollywoodWires, type StuntWire } from '../section';
 import { wireOn, wireU } from '../wires';
@@ -572,6 +572,8 @@ const startGift = (state: GameState, h: Tower) => {
     { who: 'mh', text: pickLine(L.enamored[pants]) },
   ];
   h.howA = h.howB = h.flashA = h.flashB = -1;
+  // (the last piece of the eight: the full set, his last word)
+  beats.push(...giftCoda(pants));
   h.script = startScript(beats);
 };
 const HOW_TIPS: EquipControl[] = [{ ...FOLLOW, label: 'TAP AS YOU HOLD A CHARGE MOVE: FOLLOW-UP' }];

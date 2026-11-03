@@ -53,7 +53,7 @@ import type { EquipControl } from '../../upgrades/equipInfo';
 import { makeCannon, updateCannon, cannonBusy, type Cannon } from '../../upgrades/returnCannon';
 import {
   NUDGE, BYE_MEATHEAD, BYE_BEN, PIECE_LINES, MH_PASSAGE, benSays, warmBenGross, meetupScript, startScript, tickScript, skipScript,
-  type BenPose, type BenTalk, type Script, type Beat, type ByPants,
+  type BenPose, type BenTalk, type Script, type Beat, type ByPants, giftCoda,
 } from '../../upgrades/confucktious';
 import { meatheadSays, ledge, solid, spookyState } from '../section';
 import { GY } from '../geometry';
@@ -449,6 +449,8 @@ const startGift = (state: GameState, h: Loft) => {
     { who: 'ben', text: L.tease[0], pose: 'fold' },
     { who: 'mh', text: pickLine(L.enamored[pants]) },
   ];
+  // (the last piece of the eight: the full set, his last word)
+  beats.push(...giftCoda(pants));
   h.script = startScript(beats);
 };
 const runGift = (state: GameState, h: Loft): Controls => {

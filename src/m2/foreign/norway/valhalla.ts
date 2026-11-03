@@ -72,7 +72,7 @@ import { helmetStops } from '../../upgrades/gear';
 import type { EquipControl } from '../../upgrades/equipInfo';
 import {
   NUDGE_OUT, BYE_MEATHEAD, PIECE_LINES, benSays, drawBenGross, drawBenGrossBack, warmBenGross, meetupScript, startScript, tickScript, skipScript,
-  type BenPose, type BenTalk, type Script, type Beat, type ByPants,
+  type BenPose, type BenTalk, type Script, type Beat, type ByPants, giftCoda,
 } from '../../upgrades/confucktious';
 import { ledge, solid, teleport, meatheadSays, speak, saidOver, landVisit, type Said } from '../section';
 import { SECTIONS, GY } from '../geometry';
@@ -627,6 +627,8 @@ const startGift = (state: GameState, h: Hall) => {
     { who: 'ben', text: L.tease[0], pose: 'fold' },
     { who: 'mh', text: pickLine(L.enamored[pants]) },
   ];
+  // (the last piece of the eight: the full set, his last word)
+  beats.push(...giftCoda(pants));
   h.script = startScript(beats);
 };
 const runGift = (state: GameState, h: Hall): Controls => {

@@ -11,12 +11,13 @@
 import type { GameState } from '../../../m1/game/core/state';
 import { pickLine } from '../../../m1/game/platform/speech';
 import { meatheadSays } from '../../adventure/section';
-import { benMet } from '../state';
+import { benMet, benGaveCount } from '../state';
 import { benSays, type BenTalk } from './talk';
 import type { BenPose } from './art';
 import {
   MEET, NAME, RIDDLE, FIRST_WHY, PURPOSE, FIRST_REACT, FIRST_ASIDE, AGAIN, AGAIN_MH, ART_OPEN, ART_MH, ART_HOW, ART_WEEB, ART_HUH, ART_AGAIN,
-  type ByPants, type PieceLines,
+  BACKSTORY, AGAIN_LAST, FINAL_SET, FINAL_MH, FINAL_DATTE, FINAL_GO,
+  type ByPants, type PieceLines, type StoryLine,
 } from './lines';
 
 export type Pants = keyof ByPants;
@@ -53,11 +54,39 @@ export const meetupScript = (pants: Pants, piece: PieceLines, first = !benMet(),
     { who: 'mh', text: p(FIRST_REACT) },
     { who: 'ben', text: FIRST_ASIDE[0] },
   ] : [
-    { who: 'ben', text: p(AGAIN), gross: true },
+    // (the last lair he's met in, whichever land: its own hello)
+    { who: 'ben', text: p(meetingNo() === LAST_MEETING ? AGAIN_LAST : AGAIN), gross: true },
     { who: 'mh', text: p(AGAIN_MH) },
     { who: 'ben', text: pickLine(NAME) },
+    ...storyBeats(pants),
   ];
   return [...intro, { who: 'mh', text: p(piece.ask) }, { who: 'ben', text: piece.sell[0] }, ...(art?.beats ?? []), { who: 'ben', text: piece.trial[0], pose: piece.trialPose ?? 'offer' }];
+};
+
+/** Which meeting this is: the lairs he's met Ben in, this one counted (1..8), whatever order the lands came in (the
+ *  pieces Ben's handed over, plus this one: a lair whose piece he's given gets the idle line, not a meetup). */
+export const meetingNo = () => benGaveCount() + 1;
+export const LAST_MEETING = 8;
+const toBeats = (pants: Pants, s: StoryLine[]): Beat[] => s.map(l => (l.who === 'ben' ? { who: 'ben', text: l.text } : { who: 'mh', text: pickLine(l.lines[pants]) }));
+/** This later meeting's beat of his backstory (BACKSTORY: the 2nd meeting's first, one more each meeting; the 8th's are
+ *  after its gift: giftCoda). */
+export const storyBeats = (pants: Pants, n = meetingNo()): Beat[] => {
+  const s = BACKSTORY[n - 2];
+  return n >= 2 && n < LAST_MEETING && s ? toBeats(pants, s) : [];
+};
+/** After a gift's own lines (gift, tease, Meathead's): the last piece's (the owner's "special dialogue if your meeting
+ *  with ben is the final one. like 'you got all the pieces'"), else nothing. Call it after setBenGave. */
+export const giftCoda = (pants: Pants): Beat[] => (benGaveCount() < LAST_MEETING ? [] : [
+  { who: 'ben', text: FINAL_SET[0], pose: 'fold' },
+  { who: 'mh', text: pickLine(FINAL_MH[pants]) },
+  { who: 'ben', text: FINAL_DATTE[0] },
+  { who: 'ben', text: FINAL_GO[0] },
+]);
+/** The beats (in a meetup script built with `art`) the art's buttons are up for: its how, through its piece's own line. */
+export const artTipRange = (script: Beat[], art: ArtBeats): [number, number] => {
+  const at = artStart(script, art);
+  if (art.how[0] < 0) return [-1, -1];
+  return [at + art.how[0], at + Math.max(art.how[1], art.extra[1])];
 };
 
 /** The gross-up's least time up (frames), however quick its lines. */

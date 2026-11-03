@@ -62,8 +62,8 @@ export const FIRST_WHY: ByPants = {
 /** Ben, the first meeting: who he is to Meathead, and what he's here for (in order). */
 export const PURPOSE = [
   "TWENTY YEARS I SPOTTED YOU AT THE IRON PIT. YOU THINK I'D LET YOU DO THIS PARK ALONE?",
-  "I'VE BEEN STEALING JUNK FROM EVERY LAND IN THIS DUMP AND BOLTING IT INTO ARMOR. CHEAP. DIRTY. WORKS.",
-  'EVERY PIECE GIVES YOU AN EDGE. A NASTIER MOVE, A THICKER HIDE, A DIRTY NEW TRICK. ONE IN EVERY LAND. FIND ME. PASS MY TEST. IT IS YOURS.',
+  // (trimmed to two, the owner's "he talks too much")
+  'I BOLTED JUNK FROM EVERY LAND INTO ARMOR. ONE PIECE IN EACH. FIND ME. PASS MY TEST.',
 ];
 /** Meathead, the first meeting: armor! */
 export const FIRST_REACT: ByPants = {
@@ -135,6 +135,10 @@ export interface PieceLines {
   more?: string[];
   /** His pose for the trial's set (default 'offer': holding the thing out). */
   trialPose?: 'offer' | 'brace' | 'fold';
+  /** Ben, a follow-up piece: what its follow-up does (after the hidden art's how, the first follow-up piece he gives)... */
+  follow?: string[];
+  /** ...or, the art already taught, the brief mention with it (in place of ART_AGAIN). */
+  followAgain?: string[];
 }
 
 export const PIECE_LINES: { hands: PieceLines; pauldrons: PieceLines; helmet: PieceLines; cape: PieceLines; legs: PieceLines; amulet: PieceLines; armguards: PieceLines; sabatons: PieceLines } = {
@@ -169,8 +173,9 @@ export const PIECE_LINES: { hands: PieceLines; pauldrons: PieceLines; helmet: Pi
       nude: ['NAKED AGAIN. THIS HOLE IS NOT A NUDE BEACH.', 'YOU AGAIN. STILL NO PANTS. STILL NO SECOND PAIR.'],
     },
   },
-  // Jungle Land: the COCO-NUTS, up the third maintenance shaft over the river. The trial: knock him on his ass, shoulder
-  // first, through his tackling sled (three shoulder charges).
+  // Jungle Land: the COCO-NUTS, up the third maintenance shaft over the river. The trial (the owner's "make sure you
+  // 'pass' when you do the follow up attack. the shoulder pads do not"): the coco-nuts lent, his tackling dummy on its
+  // spring post: shoulder charge it, tap grab, the HEAD PLANT; then punt the head off through his chalk uprights.
   pauldrons: {
     ask: {
       clean: ['ARE THOSE COCONUTS? ON YOUR SHOULDERS?', "COCONUT SHOULDER PADS. I THINK I'M GONNA CRY."],
@@ -178,25 +183,28 @@ export const PIECE_LINES: { hands: PieceLines; pauldrons: PieceLines; helmet: Pi
       nude: ["SHOULDER PADS! I'VE GOT NOTHING ELSE ON. IT'S A START.", 'COCONUTS! THEN I WOULD HAVE FOUR!'],
     },
     sell: ['TWO COCONUT HALVES. GIFT SHOP LEOPARD. A TUSK OFF A FAKE ELEPHANT. YOU HIT A GUY, HE STAYS HIT.'],
-    trial: ["KNOCK ME ON MY ASS AND THEY'RE YOURS. SHOULDER FIRST. I'LL HOLD THE SLED."],
-    trialPose: 'brace',
-    more: ['OOF. AGAIN.', 'GOOD. MY KIDNEY MOVED. AGAIN.'],
-    miss: ['THAT WAS A HUG.', "DON'T LEAN ON IT. HIT IT.", 'I SAID SHOULDER, NOT SNUGGLE.', 'MY MOTHER PUSHES HARDER. SHE USES A WALKER.', 'YOU PUSH LIKE A GUY HOLDING A DOOR.'],
-    hint: ['THE BULL DOES NOT KNOCK. THE BULL COMES THROUGH THE DOOR. SHOULDER CHARGE, MEATHEAD.'],
-    pass: ['OH. THERE IT IS. YOU PASS. I NEED A MINUTE.', 'GOOD. MY SPLEEN SAYS GOOD. YOU PASS.'],
+    trial: ['MY DUMMY. BORROW THE COCO-NUTS. PLANT HIM, PUNT HIS HEAD THROUGH MY UPRIGHTS.'],
+    trialPose: 'fold',
+    // (in order: planted, then the head's dug back out before he kicked it)
+    more: ['PLANTED. NOW PUNT IT.', 'HE DUG OUT. AGAIN.'],
+    miss: ['THAT WAS A SHOVE. PLANT HIM.', 'HE BOUNCED. HE WAS SUPPOSED TO GO IN THE FLOOR.', 'SHOULDER, THEN GRAB. YOU DID HALF.', "HE'S STILL STANDING. THAT'S THE PROBLEM.", 'YOU TACKLE LIKE A GUY HOLDING A DOOR.'],
+    hint: ['THE TREE DOES NOT PLANT ITSELF. HOLD THE CHARGE. TAP GRAB.'],
+    pass: ['IT IS GOOD. YOU PASS.', 'THROUGH THE UPRIGHTS. YOU PASS. HE DOES NOT.'],
     passed: {
-      clean: ['DID I HURT YOU? I DID IT LIKE YOU SHOWED ME.'],
-      shitty: ['SORRY. SOME OF MY PANTS GOT ON YOUR SLED.'],
-      nude: ['SORRY. MY EVERYTHING WAS FLAPPING THE WHOLE TIME.'],
+      clean: ['I KICKED HIS HEAD OFF! THE CROWD GOES WILD! THE CROWD IS YOU!'],
+      shitty: ['I KICKED IT SO HARD SOMETHING CAME OUT OF ME TOO.'],
+      nude: ['I KICKED IT NAKED. EVERYTHING FOLLOWED THROUGH.'],
     },
-    gift: ["TAKE THE COCO-NUTS. YOUR SHOULDER'S A TRUCK NOW. HORNS AND SPEARS DON'T STOP A TRUCK."],
+    gift: ["KEEP THE COCO-NUTS. YOUR SHOULDER'S A TRUCK NOW. HORNS AND SPEARS DON'T STOP A TRUCK."],
     tease: ["HIT A BOSS WITH THAT SHOULDER. THEY'LL FEEL IT IN THEIR TEETH."],
     enamored: {
       clean: ["I'M GONNA SHOULDER EVERYBODY. EVEN PEOPLE I LIKE."],
       shitty: ["I'M GONNA SHOULDER EVERYBODY. THEY'LL SMELL ME COMING. TOO LATE."],
       nude: ["I'M GONNA SHOULDER EVERYBODY. NAKED. THEY'LL NEVER RECOVER."],
     },
-    practice: ["PRACTICE ON THE TOUR GUIDE. PLANT HIM, THEN KICK HIS HEAD THROUGH THE UPRIGHTS. THE PARK'S GOT PLENTY. THEN THE CANNON."],
+    follow: ["THESE DO THE HEAD PLANT. ONE BONK, HE'S IN THE FLOOR TO THE CHIN. THEN YOU PUNT THE HEAD."],
+    followAgain: ['ANOTHER ONE FOR THE HIDDEN ART. THE HEAD PLANT: ONE BONK, FLOOR TO THE CHIN. THEN PUNT THE HEAD.'],
+    practice: ['NOW A LIVE ONE. THE TOUR GUIDE. THEN THE CANNON.'],
     good: ['RAIL SPIKE. BEAUTIFUL.', 'PLANTED LIKE A TOMATO. GOOD.', 'YOSHI. GRANDPA SAID THAT. MOSTLY TO THE LAWNMOWER.'],
     idle: {
       clean: ['YOU AGAIN. I ONLY HAD THE TWO COCONUTS.', 'YOU AGAIN. I WAS MID-NAP IN THE HAMMOCK.'],
@@ -211,7 +219,7 @@ export const PIECE_LINES: { hands: PieceLines; pauldrons: PieceLines; helmet: Pi
       nude: ["A HELMET! NOW I'M ONLY NAKED FROM THE EYEBROWS DOWN!", 'A HELMET! FINALLY SOMETHING TO COVER! WRONG HEAD, BUT STILL!'],
     },
     sell: ['GIFT SHOP HELMET. TWO CANS, ONE STRAW, HORNS HOT-GLUED ON. WHATEVER THEY THROW AT YOUR HEAD BOUNCES OFF.'],
-    trial: ["HEADBUTT THE KEG THREE TIMES AND IT'S YOURS. JUMP UNDER IT, HEAD FIRST. DON'T THINK. THINKING IS WHAT HURTS."],
+    trial: ['HEADBUTT MY KEG THREE TIMES. JUMP UNDER IT, HEAD FIRST. THINKING IS WHAT HURTS.'],
     trialPose: 'fold',
     more: ['ONE. YOUR SKULL IS THICKER THAN I REMEMBERED.', 'TWO. I HEARD SOMETHING RATTLE. KEEP GOING.'],
     miss: ['WITH YOUR HEAD.', "THAT WASN'T YOUR HEAD.", 'HEAD. THE THING YOUR GLASSES SIT ON.', "YOU DON'T SHOOT A KEG. YOU'RE NOT A COWARD.", 'SKULL, MEATHEAD. THE BONE ONE.'],
@@ -281,7 +289,7 @@ export const PIECE_LINES: { hands: PieceLines; pauldrons: PieceLines; helmet: Pi
       nude: ["TWO GOLD NAKED GUYS. NOW THERE'S THREE OF US.", "SHIN ARMOR! IT DOESN'T COVER ANYTHING IMPORTANT. I'LL TAKE IT."],
     },
     sell: ["I'D LIKE TO THANK THE GIFT SHOP. FAKE AWARDS, DUCT TAPE, FILM REELS FOR KNEES. YOU SLIDE FURTHER AND YOU TRIP EVERYBODY."],
-    trial: ['SLIDE UNDER MY CURTAIN. THEN FLASH KICK MY THREE SANDBAGS. HOLD THE SLIDE, PUSH UP.'],
+    trial: ['SLIDE UNDER MY CURTAIN. THEN FLASH KICK MY THREE SANDBAGS.'],
     trialPose: 'fold',
     more: ['ONE. THE ACADEMY IS MOVED.', 'TWO. YOU KICK LIKE A STUNTMAN WITH NO INSURANCE. ONE MORE.'],
     miss: ['THAT WAS A JUMP. FLASH KICK. SLIDE, THEN UP.', "YOU DON'T TOUCH A SANDBAG. YOU MURDER IT.", 'UP WHILE YOU SLIDE. NOT AFTER. NOT BEFORE. WHILE.', 'CUT. AGAIN.', "THAT'S NOT A FLASH KICK. THAT'S A HOP."],
@@ -352,7 +360,7 @@ export const PIECE_LINES: { hands: PieceLines; pauldrons: PieceLines; helmet: Pi
       nude: ["THEY SAY BEEF. THAT'S ALSO WHAT I'VE GOT OUT RIGHT NOW.", 'ARM ARMOR! I START AT THE WRISTS AND WORK MY WAY TO THE MIDDLE.'],
     },
     sell: ['OFF A GIFT SHOP ROBOT. THE LIGHTS SAY BEEF. YOUR UPPERCUT GOES HIGHER, AND IT GOES RIGHT THROUGH SHIELDS.'],
-    trial: ['SEE MY SPARRING ALIEN? UPPERCUT HIM. KEEP HOLDING IT, TAP GRAB, AND DRIVE HIS HEAD INTO MY FLOOR.'],
+    trial: ['MY SPARRING ALIEN. UPPERCUT HIM, KEEP HOLDING, TAP GRAB. HEAD IN THE FLOOR.'],
     trialPose: 'fold',
     miss: ['UP IS HALF OF IT. NOW BRING HIM DOWN.', 'YOU LET GO. NEVER LET GO.', 'THAT WAS A HIGH FIVE.', 'YOU PUNCHED A GUY IN THE CHIN. MY MOTHER DOES THAT.', 'HE WENT UP. HE CAME DOWN BY HIMSELF. THAT IS GRAVITY, NOT YOU.'],
     hint: ['THE FIST GOES UP. THE HEAD COMES DOWN. HOLD THE UPPERCUT, AND TAP GRAB ON THE WAY UP.'],
@@ -369,6 +377,8 @@ export const PIECE_LINES: { hands: PieceLines; pauldrons: PieceLines; helmet: Pi
       shitty: ["I'M GONNA UPPERCUT EVERYBODY. FROM DOWNWIND."],
       nude: ["I'M GONNA UPPERCUT EVERYBODY. NAKED. FROM BELOW. WORST ANGLE THERE IS."],
     },
+    follow: ['THESE DO THE NINJA DROP. UP WITH HIM, FLIP, DOWN HEAD FIRST. HE DOES NOT GET UP.'],
+    followAgain: ['ANOTHER ONE FOR THE HIDDEN ART. THE NINJA DROP: UP, FLIP, HEAD FIRST INTO THE FLOOR.'],
     practice: ['PRACTICE ON THE ALIEN. HE COMES BACK. THEY ALWAYS COME BACK. THEN THE CANNON.'],
     good: ['LAWN DART. BEAUTIFUL.', 'RIGHT IN THE FLOOR. GOOD.', 'ITADAKIMASU. GRANDPA SAID IT BEFORE HE ATE. I SAY IT BEFORE I HURT PEOPLE.'],
     idle: {
@@ -387,7 +397,7 @@ export const PIECE_LINES: { hands: PieceLines; pauldrons: PieceLines; helmet: Pi
       nude: ["BOOTS! NAKED IN BOOTS IS A COWBOY'S WORST NIGHT. I'LL TAKE IT.", 'GIVE ME THOSE. MY FEET ARE THE ONLY PART OF ME NOT FREEZING.'],
     },
     sell: ['RAILROAD IRON, TWO OLD BOOTS, A COWBELL OFF A FAKE COW. YOU DIVE KICK FURTHER, AND SPIKES CAN KISS YOUR SOLE.'],
-    trial: ['SEE MY SCARECROW? NAILS IN HIS HAT. DIVE KICK HIM ANYWAY. KEEP HOLDING IT, TAP GRAB, AND THROW HIM INTO MY DUD DYNAMITE.'],
+    trial: ['MY SCARECROW. NAILS IN HIS HAT. DIVE KICK HIM ANYWAY, KEEP HOLDING, TAP GRAB. INTO THE DYNAMITE.'],
     trialPose: 'fold',
     miss: ['THAT WAS A STOMP. NOW THROW HIM.', "YOU KICKED HIM. HE'S STILL HERE. THAT'S THE PROBLEM.", 'HOLD THE KICK. TAP GRAB. HE FLIES.', 'YOU LANDED ON HIM LIKE A HEN ON AN EGG.', 'KICK, GRAB, THROW. YOU DID ONE OF THREE.'],
     hint: ['THE BOOT COMES DOWN. THE SCARECROW GOES ACROSS. HOLD THE DIVE KICK, TAP GRAB ON THE WAY DOWN.'],
@@ -404,6 +414,8 @@ export const PIECE_LINES: { hands: PieceLines; pauldrons: PieceLines; helmet: Pi
       shitty: ["I'M GONNA DIVE KICK EVERYBODY. THEY'LL HEAR THE BELL. THEN THEY'LL SMELL ME."],
       nude: ["I'M GONNA DIVE KICK EVERYBODY. NAKED. FROM ABOVE. THEY'LL LOOK UP. BIG MISTAKE."],
     },
+    follow: ['THESE DO THE MISSILE. FLIP OVER HIM, GRAB HIS SHOULDERS, HURL HIM. WHOEVER HE HITS GOES DOWN TOO.'],
+    followAgain: ['ANOTHER ONE FOR THE HIDDEN ART. THE MISSILE: FLIP OVER HIM, THROW HIM AT HIS FRIENDS.'],
     practice: ['PRACTICE ON THE SCARECROW. I GOT A SHED FULL OF THEM. THEN THE CANNON.'],
     good: ['RIGHT IN THE DYNAMITE. BEAUTIFUL.', 'HE FLEW LIKE A RENT CHECK. GOOD.', 'YOROSHIKU. GRANDPA SAID IT TO EVERY NEW NEIGHBOR. THEY ALL MOVED.'],
     idle: {
@@ -542,13 +554,13 @@ export const ART_MH: ByPants = {
   nude: ['THE HIDDEN ART! I HAVE NOTHING TO HIDE IT IN!'],
 };
 /** Ben, how it goes (the buttons on screen while he says it). */
+// (trimmed, the owner's: "somewhat trim his dialogue", with what this piece's own follow-up does said after: the piece's
+// `follow`. Earlier: "they don't work on bosses" then "more damage on bosses" sounded contradictory: the follow-up's for
+// the mid-sized guys; it's the charge move itself the armor makes hit bosses harder)
+// (and trimmed again: what the armor does to bosses is each piece's own tease after the gift)
 export const ART_HOW = [
-  "START A CHARGE. KEEP HOLDING IT. TAP GRAB. YOU DON'T EVEN HAVE TO HIT THE GUY.",
-  'DURING THE CHARGE, THE BOUNCE BACK, OR RIGHT AFTER. THAT IS THE WHOLE ART.',
-  // (the owner's: "they don't work on bosses" then "more damage on bosses" sounded contradictory: the follow-up's for the
-  // mid-sized guys; it's the charge move itself the armor makes hit bosses harder)
-  "THE FOLLOW-UP IS FOR THE MID-SIZED GUYS. BOSSES, SUB BOSSES, LITTLE CRITTERS: NO. THE LITTLE ONES YOU JUST THROW.",
-  "THE ARMOR STILL MAKES THE CHARGE ITSELF HIT BOSSES HARDER. JUST NO FOLLOW-UP ON THEM. AND ONE PIECE OUT THERE DOESN'T USE THE GRAB AT ALL.",
+  'HOLD A CHARGE MOVE. TAP GRAB, DURING IT OR RIGHT AFTER. NO HIT NEEDED.',
+  'MID-SIZED GUYS ONLY. NO BOSSES, NO CRITTERS.',
 ];
 /** Meathead's Japanese, from cartoons (the joke's on him: weeb nonsense). */
 export const ART_WEEB: ByPants = {
@@ -561,14 +573,136 @@ export const ART_HUH = ['I GREW UP BEHIND A BOWLING ALLEY. NO IDEA WHAT YOU JUST
 /** Ben, a later follow-up piece: it's the art again. */
 export const ART_AGAIN = ['ANOTHER ONE FOR THE HIDDEN ART. HOLD THE CHARGE, TAP GRAB. SAME AS ALWAYS.'];
 /** Ben, the shins (the flash kick: the one follow-up that isn't a grab): with the big beat (after ART_HOW)... */
-export const ART_FLASH = ['THESE ARE THE ODD ONES. NO GRAB. HOLD THE SLIDE AND PUSH UP. THE FLASH KICK. FREE. EVERYBODY AROUND YOU GETS IT.'];
+export const ART_FLASH = ['THESE ARE THE ODD ONES. NO GRAB. HOLD THE SLIDE, PUSH UP: THE FLASH KICK. WHOEVER IT KILLS COMES APART IN HALVES.'];
 /** ...or, the art already taught, instead of ART_AGAIN. */
-export const ART_AGAIN_FLASH = ['ANOTHER ONE FOR THE HIDDEN ART. EXCEPT THIS ONE CHEATS. NO GRAB. HOLD THE SLIDE, PUSH UP.'];
+export const ART_AGAIN_FLASH = ['ANOTHER ONE FOR THE HIDDEN ART. THIS ONE CHEATS: NO GRAB. HOLD THE SLIDE, PUSH UP. IT CUTS GUYS IN HALF.'];
 
-const pieceBen = (p: PieceLines) => [...p.sell, ...p.trial, ...p.miss, ...p.hint, ...p.pass, ...p.gift, ...p.tease, ...p.practice, ...p.good, ...all(p.idle), ...(p.more ?? [])];
+// ---------------------------------------------------------------------------------------------------------------
+// Jungle Land: the dummy's head punted the other way (not through the uprights: it still counts)
+
+export const PADS_WIDE = ['WIDE LEFT. STILL COUNTS. YOU PASS.', "NOWHERE NEAR. HEAD'S OFF, THOUGH. YOU PASS."];
+
+// ---------------------------------------------------------------------------------------------------------------
+// HIS BACKSTORY, a beat a meeting (the owner's "he slowly reveals his backstory the more times you find him"): the
+// 2nd lair he's met in (whichever land) gets the first beat, the 3rd the next, on to the 7th; the 8th is the last
+// meeting (AGAIN_LAST, then FINAL_* after the gift). Throwaway gym stuff first, then the real thing. Woven through it,
+// the owner's "the fact that meathead knows more japanese than him, even if completely rudimentary and broken and
+// terrible, makes him insecure": Meathead's cartoon Japanese gets under his skin (curious, then irritated, then it
+// stings), played dry. Said after the later meeting's hello, before Meathead asks about the piece (meetup.ts).
+// Ben's lines are text; Meathead's a pool by his pants.
+//
+// Timeline: the game's now is the mid 2020s, Ben's about sixty (born mid sixties), so the camp was his grandpa's and
+// his dad's (born in it), and the no-Japanese rule came down to him.
+
+export type StoryLine = { who: 'ben'; text: string } | { who: 'mh'; lines: ByPants };
+const ben = (text: string): StoryLine => ({ who: 'ben', text });
+const mh = (lines: ByPants): StoryLine => ({ who: 'mh', lines });
+
+/** The 2nd meeting: the broken nose. */
+export const BACKSTORY_NOSE: StoryLine[] = [
+  ben('THIS NOSE? EIGHTY-FOUR. SPOTTER FELL ASLEEP.'),
+  mh({
+    clean: ["YOU NEVER FELL ASLEEP ON ME. YOU'RE A SAINT."],
+    shitty: ['YOU NEVER FELL ASLEEP ON ME. NOT EVEN THE TIME I SHAT ON THE BENCH.'],
+    nude: ['YOU NEVER FELL ASLEEP ON ME. NOT EVEN NAKED SQUAT DAY.'],
+  }),
+  ben('YOU SCREAM EVERY REP.'),
+];
+/** The 3rd: Meathead's cartoon Japanese, first noticed; grandpa's few words. */
+export const BACKSTORY_GRANDPA: StoryLine[] = [
+  ben('STILL WATCHING THE JAPANESE CARTOONS?'),
+  mh({
+    clean: ["EVERY EPISODE TWICE! DATTEBAYO! I'M FLUENT!"],
+    shitty: ['EVERY EPISODE! ON THE TOILET, MOSTLY! DATTEBAYO!'],
+    nude: ['EVERY EPISODE! DRESSED LIKE THIS! DATTEBAYO!'],
+  }),
+  ben('HUH. GRANDPA SPOKE IT. I GOT A FEW WORDS.'),
+];
+/** The 4th: he looked it up. Irritated. */
+export const BACKSTORY_LOOKED: StoryLine[] = [
+  ben("I LOOKED UP DATTEBAYO. IT'S NOTHING. YOU STILL KNOW MORE THAN ME."),
+  mh({
+    clean: ["I'LL TEACH YOU! KAMEHAMEHA MEANS GOOD MORNING."],
+    shitty: ["I'LL TEACH YOU! UNKO MEANS THIS."],
+    nude: ["I'LL TEACH YOU! ZENRA MEANS THIS."],
+  }),
+  ben("DON'T."),
+];
+/** The 5th: his dad. */
+export const BACKSTORY_DAD: StoryLine[] = [
+  ben('MY DAD. SAME CANNERY, THIRTY YEARS. TEN WORDS A DINNER.'),
+  mh({
+    clean: ["MINE NEVER SAID TEN WORDS EITHER. HE WASN'T THERE. WE'RE THE SAME."],
+    shitty: ['MINE LEFT AFTER MY CHRISTENING. I DID THIS AT IT.'],
+    nude: ["MINE JUST LEFT. I'D HUG YOU, BUT LOOK AT ME."],
+  }),
+  ben("WE'RE NOT THE SAME."),
+];
+/** The 6th: the one word he had, and Meathead would've had more. It stings. */
+export const BACKSTORY_ARIGATO: StoryLine[] = [
+  ben("GUY ASKED ME TO SAY SOMETHING IN JAPANESE. I SAID ARIGATO. HE SAID, THAT'S IT?"),
+  mh({
+    clean: ["I'D HAVE YELLED DATTEBAYO FOR YOU!"],
+    shitty: ["I'D HAVE YELLED DATTEBAYO FOR YOU. AND SHAT. FOR EMPHASIS."],
+    nude: ["I'D HAVE YELLED DATTEBAYO FOR YOU. NAKED."],
+  }),
+  ben("I KNOW. THAT'S THE PROBLEM."),
+];
+/** The 7th: why he doesn't know Japanese. THE INTERNMENT BEAT (the owner's idea, his question: "would it perhaps be too
+ *  dark..."), kept to itself so it pulls in one line (BACKSTORY_CAMP_ON; BACKSTORY_SPARE plays instead). The owner's
+ *  tone: "the internment camp lines are so fucked up that even that seems too much even for meathead. that's the joke",
+ *  then "still keep it comedic. don't let it get sentimental, just a joke that plays at the idea that those with power
+ *  may be more violently corrupt than meathead, even if meathead is more outwardly violent". So: Ben flat and matter of
+ *  fact, Meathead (who kills people all day) appalled that it was done on purpose, on paper; Ben shrugs it off and
+ *  back to business. The joke's on the people with the power. Never on the people in the camp, never on Ben. */
+export const BACKSTORY_CAMP_ON = true;
+export const BACKSTORY_CAMP: StoryLine[] = [
+  ben("WHY ONLY A FEW WORDS? THE GOVERNMENT PUT GRANDPA'S WHOLE FAMILY IN A CAMP. AFTER THAT, NO JAPANESE IN THE HOUSE."),
+  mh({
+    clean: ['THE GOVERNMENT DID THAT? ON PURPOSE? I ONLY KILL GUYS TRYING TO KILL ME!'],
+    shitty: ['THE GOVERNMENT DID THAT? WITH FORMS? I SHIT MYSELF BY ACCIDENT AND I STILL SAY SORRY!'],
+    nude: ["THE GOVERNMENT DID THAT? I'M NAKED WITH A RAY GUN AND I'M THE DECENT ONE?"],
+  }),
+  ben('YEAH. THERE WAS PAPERWORK. ANYWAY. THE ARMOR.'),
+];
+/** The 7th's beat if the camp's pulled. */
+export const BACKSTORY_SPARE: StoryLine[] = [
+  ben('SAME BELT SINCE EIGHTY-SEVEN. OUTLASTED BOTH WIVES.'),
+  mh({
+    clean: ['CAN I TOUCH IT?'],
+    shitty: ["CAN I TOUCH IT? I'LL WIPE FIRST."],
+    nude: ['CAN I WEAR IT? I NEED SOMETHING.'],
+  }),
+  ben('NO.'),
+];
+/** The beats in order, the 2nd meeting's first. */
+export const BACKSTORY: StoryLine[][] = [BACKSTORY_NOSE, BACKSTORY_GRANDPA, BACKSTORY_LOOKED, BACKSTORY_DAD, BACKSTORY_ARIGATO, BACKSTORY_CAMP_ON ? BACKSTORY_CAMP : BACKSTORY_SPARE];
+
+/** The last meeting (the 8th lair, whichever land): his hello (the gross-up's line, in place of AGAIN). */
+export const AGAIN_LAST: ByPants = {
+  clean: ['LAST HOLE. YOU FOUND THEM ALL.'],
+  shitty: ['LAST HOLE. YOU FOUND THEM ALL. I SMELLED THIS ONE COMING.'],
+  nude: ['LAST HOLE. YOU FOUND THEM ALL. NAKED. IMPRESSIVE.'],
+};
+/** ...and after the last gift (the owner's "you got all the pieces"): the full set, proud his way; Meathead; the one
+ *  cartoon word Ben finally says back; a word on the road ahead (not what's on it). */
+export const FINAL_SET = ["ALL EIGHT. YOU LOOK LIKE A YARD SALE THAT KILLS PEOPLE. I'M PROUD OF YOU."];
+export const FINAL_MH: ByPants = {
+  clean: ['I NEVER FINISHED ANYTHING! NOT SCHOOL, NOT A SANDWICH! DATTEBAYO, CON-FUCK-TIOUS!'],
+  shitty: ['ARMOR ON EVERYTHING BUT THE PART THAT NEEDS IT! DATTEBAYO, CON-FUCK-TIOUS!'],
+  nude: ['EIGHT PIECES OF ARMOR AND STILL NO PANTS! DATTEBAYO, CON-FUCK-TIOUS!'],
+};
+export const FINAL_DATTE = ["...DATTEBAYO. TELL ANYBODY, YOU'RE DEAD."];
+export const FINAL_GO = ["WHATEVER'S AT THE END OF THIS DUMP, HIT IT WITH ALL EIGHT."];
+
+const storyBen = (s: StoryLine[]) => s.flatMap(l => (l.who === 'ben' ? [l.text] : []));
+const storyMh = (s: StoryLine[]) => s.flatMap(l => (l.who === 'mh' ? all(l.lines) : []));
+const STORIES = [BACKSTORY_NOSE, BACKSTORY_GRANDPA, BACKSTORY_LOOKED, BACKSTORY_DAD, BACKSTORY_ARIGATO, BACKSTORY_CAMP, BACKSTORY_SPARE];
+
+const pieceBen = (p: PieceLines) => [...p.sell, ...p.trial, ...p.miss, ...p.hint, ...p.pass, ...p.gift, ...p.tease, ...p.practice, ...p.good, ...all(p.idle), ...(p.more ?? []), ...(p.follow ?? []), ...(p.followAgain ?? [])];
 const pieceMeathead = (p: PieceLines) => [...all(p.ask), ...all(p.passed), ...all(p.enamored)];
 
 export const BEN_VOICE_LINES: Record<string, string[]> = {
-  [BEN_VOICE]: [...NAME, ...all(RIDDLE), ...PURPOSE, ...FIRST_ASIDE, ...all(AGAIN), ...all(NUDGE), ...all(NUDGE_OUT), ...BYE_BEN, ...ART_OPEN, ...ART_HOW, ...ART_HUH, ...ART_AGAIN, ...ART_FLASH, ...ART_AGAIN_FLASH, ...Object.values(PIECE_LINES).flatMap(pieceBen), ...LEGS_CURTAIN, ...all(NUDGE_HW), ...BEN_CANNON, ...AMULET_HUH, ...BEN_CANNON_FY, ...BRACER_HUH, ...BEN_CANNON_SP, ...BOOT_HUH, ...BEN_CANNON_FR, ...all(CROW_WRONG), ...all(CROW_SHORT)],
-  meathead: [...all(MEET), ...all(FIRST_WHY), ...all(FIRST_REACT), ...all(AGAIN_MH), ...BYE_MEATHEAD, ...all(ART_MH), ...all(ART_WEEB), ...Object.values(PIECE_LINES).flatMap(pieceMeathead), ...all(MH_PASSAGE), ...all(MH_HATCH), ...MH_CANNON_ASK, ...MH_FALL, ...all(MH_LANDED), ...all(MH_TUNNEL), ...all(AMULET_WEEB), ...all(MH_HATCH_SP), ...all(BRACER_WEEB), ...all(MH_MAZE), ...all(BOOT_WEEB), ...all(MH_LANDED_FR)],
+  [BEN_VOICE]: [...NAME, ...all(RIDDLE), ...PURPOSE, ...FIRST_ASIDE, ...all(AGAIN), ...all(NUDGE), ...all(NUDGE_OUT), ...BYE_BEN, ...ART_OPEN, ...ART_HOW, ...ART_HUH, ...ART_AGAIN, ...ART_FLASH, ...ART_AGAIN_FLASH, ...Object.values(PIECE_LINES).flatMap(pieceBen), ...LEGS_CURTAIN, ...all(NUDGE_HW), ...BEN_CANNON, ...AMULET_HUH, ...BEN_CANNON_FY, ...BRACER_HUH, ...BEN_CANNON_SP, ...BOOT_HUH, ...BEN_CANNON_FR, ...all(CROW_WRONG), ...all(CROW_SHORT), ...PADS_WIDE, ...STORIES.flatMap(storyBen), ...all(AGAIN_LAST), ...FINAL_SET, ...FINAL_DATTE, ...FINAL_GO],
+  meathead: [...all(MEET), ...all(FIRST_WHY), ...all(FIRST_REACT), ...all(AGAIN_MH), ...BYE_MEATHEAD, ...all(ART_MH), ...all(ART_WEEB), ...Object.values(PIECE_LINES).flatMap(pieceMeathead), ...all(MH_PASSAGE), ...all(MH_HATCH), ...MH_CANNON_ASK, ...MH_FALL, ...all(MH_LANDED), ...all(MH_TUNNEL), ...all(AMULET_WEEB), ...all(MH_HATCH_SP), ...all(BRACER_WEEB), ...all(MH_MAZE), ...all(BOOT_WEEB), ...all(MH_LANDED_FR), ...STORIES.flatMap(storyMh), ...all(FINAL_MH)],
 };

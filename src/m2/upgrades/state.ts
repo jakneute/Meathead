@@ -13,6 +13,7 @@
 //   benMet()       he's met CON-FUCK-TIOUS (any land): later meetups get the short intro    setBenMet(on)
 //   followArt()    Ben's taught him THE HIDDEN ART OF FOLLOW-UPS (with his first follow-up piece, any land): later
 //                  follow-up pieces just bring it up                                         setFollowArt(on)
+//   benGaveCount() pieces Ben's handed over himself (benGave(piece) for one): the meetup count, his backstory's place
 //   benSpot(key)   a land's way in to Ben opened for good (Foreign Lands' HALLS OF VALHALLA raised: 'valhalla')
 //                                                                                            setBenSpot(key)
 //   subscribeUpgrades(fn) / upgradesVersion()   for React (useSyncExternalStore) or anything else that redraws.
@@ -105,6 +106,9 @@ export const benMet = () => u.benMet;
  *  plays till then (the owner gave himself every piece and found Ben with nothing to say). */
 export const benGave = (piece: ArmorPiece) => u.benGave.has(piece);
 export const setBenGave = (piece: ArmorPiece) => { if (!u.benGave.has(piece)) { u.benGave.add(piece); changed(); } };
+/** How many pieces Ben himself has handed over (0..8): this meetup's the (count + 1)th lair he's met in, whatever the
+ *  order of the lands (his backstory goes one beat further each one: confucktious/meetup.ts). */
+export const benGaveCount = () => u.benGave.size;
 /** Ben's taught THE HIDDEN ART OF FOLLOW-UPS (the first follow-up piece he hands over, whichever land): the big beat's
  *  done with, later follow-up pieces just bring it up again. */
 export const followArt = () => u.followArt;

@@ -53,7 +53,7 @@ import { setUi } from '../../store';
 import { saveProgress } from '../../save';
 import { has, setPiece, setBenMet, benGave, setBenGave } from '../../upgrades/state';
 import { makeCannon, updateCannon, cannonBusy, cannonCeilingX, type Cannon } from '../../upgrades/returnCannon';
-import { NUDGE, BYE_MEATHEAD, BYE_BEN, PIECE_LINES, benSays, drawBenGross, drawBenGrossBack, warmBenGross, meetupScript, startScript, tickScript, skipScript, type BenPose, type BenTalk, type Script } from '../../upgrades/confucktious';
+import { NUDGE, BYE_MEATHEAD, BYE_BEN, PIECE_LINES, benSays, drawBenGross, drawBenGrossBack, warmBenGross, meetupScript, startScript, tickScript, skipScript, giftCoda, type BenPose, type BenTalk, type Script } from '../../upgrades/confucktious';
 import { teleport, meatheadSays, byPants, pantsOf, solid, landVisit, saidOver } from '../section';
 import { GY } from '../geometry';
 import { drawMascot } from './kindArt';
@@ -367,7 +367,7 @@ const runGift = (state: GameState, h: Hidden): Controls => {
   p.facing = BEN_X > p.pos.x + p.width / 2 ? 1 : -1;
   h.ben.facing = p.facing === 1 ? -1 : 1;
   const toCard = () => { h.ben.piece = null; setPose(h, 'fold'); h.phase = 'card'; h.cardT = 0; h.cardArmed = false; };
-  if (h.all > SKIP_AFTER) { offerSkip(); if (takeSkip()) { silenceAll(); h.token++; h.ben.said = null; toCard(); return { ...NO_CONTROLS }; } }
+  if (h.all > SKIP_AFTER) { offerSkip(); if (takeSkip()) { silenceAll(); h.token++; h.ben.said = null; if (h.script) { skipScript(h.script); h.script = null; } toCard(); return { ...NO_CONTROLS }; } }
   const tok = h.token;
   switch (h.beat) {
     case 0: if (h.all > 20) { h.beat = 100; benSays(h.ben, L.gift[0], () => { if (h.token === tok) h.beat = 1; }); } break;
@@ -377,7 +377,9 @@ const runGift = (state: GameState, h: Hidden): Controls => {
       benSays(h.ben, L.tease[0], () => { if (h.token === tok) h.beat = 2; });
       break;
     case 2: h.beat = 102; meatheadSays(state, pickLine(byPants(state, L.enamored)), true, () => { if (h.token === tok) h.beat = 3; }); break;
-    case 3: toCard(); break;
+    // (the last piece of the eight: the full set, his last word; else straight to the card)
+    case 3: { const coda = giftCoda(pantsOf(state)); if (!coda.length) { toCard(); break; } h.beat = 4; h.script = startScript(coda); break; }
+    case 4: tickScript(state, h.script!, h.ben); setPose(h, h.script!.pose); if (h.script!.done) { h.script = null; toCard(); } break;
   }
   return { ...NO_CONTROLS };
 };

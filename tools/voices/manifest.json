@@ -6796,6 +6796,11 @@
  },
  {
   "voice": "death",
+  "text": "A STALACTITE TO THE DOME",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "death",
   "text": "A STRIKE. ON ME",
   "from": "CARTOON"
  },
@@ -8933,6 +8938,11 @@
   "voice": "death",
   "text": "DIED IN A NINETY MINUTE LINE",
   "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "death",
+  "text": "DIED IN A PRICKER BUSH",
+  "from": "ADVENTURE"
  },
  {
   "voice": "death",
@@ -16271,6 +16281,11 @@
  },
  {
   "voice": "death",
+  "text": "THE CEILING GOT HIM",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "death",
   "text": "THE CEILING WON",
   "from": "m1/game/stages/ernie/quake.ts:339"
  },
@@ -16818,6 +16833,11 @@
   "voice": "death",
   "text": "TOO GROSS FOR A GATOR",
   "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "TOO MANY PRICKS",
+  "from": "ADVENTURE"
  },
  {
   "voice": "death",
@@ -18646,12 +18666,22 @@
  },
  {
   "voice": "m2.ben",
+  "text": "...DATTEBAYO. TELL ANYBODY, YOU'RE DEAD.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.ben",
   "text": "AGAIN WITH THE PANTS. FINE. COME HERE.",
   "from": "UPGRADES"
  },
  {
   "voice": "m2.ben",
   "text": "AGAIN. LIKE YOU MEAN IT.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.ben",
+  "text": "ALL EIGHT. YOU LOOK LIKE A YARD SALE THAT KILLS PEOPLE. I'M PROUD OF YOU.",
   "from": "UPGRADES"
  },
  {
@@ -18666,12 +18696,27 @@
  },
  {
   "voice": "m2.ben",
-  "text": "ANOTHER ONE FOR THE HIDDEN ART. EXCEPT THIS ONE CHEATS. NO GRAB. HOLD THE SLIDE, PUSH UP.",
+  "text": "ANOTHER ONE FOR THE HIDDEN ART. HOLD THE CHARGE, TAP GRAB. SAME AS ALWAYS.",
   "from": "UPGRADES"
  },
  {
   "voice": "m2.ben",
-  "text": "ANOTHER ONE FOR THE HIDDEN ART. HOLD THE CHARGE, TAP GRAB. SAME AS ALWAYS.",
+  "text": "ANOTHER ONE FOR THE HIDDEN ART. THE HEAD PLANT: ONE BONK, FLOOR TO THE CHIN. THEN PUNT THE HEAD.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.ben",
+  "text": "ANOTHER ONE FOR THE HIDDEN ART. THE MISSILE: FLIP OVER HIM, THROW HIM AT HIS FRIENDS.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.ben",
+  "text": "ANOTHER ONE FOR THE HIDDEN ART. THE NINJA DROP: UP, FLIP, HEAD FIRST INTO THE FLOOR.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.ben",
+  "text": "ANOTHER ONE FOR THE HIDDEN ART. THIS ONE CHEATS: NO GRAB. HOLD THE SLIDE, PUSH UP. IT CUTS GUYS IN HALF.",
   "from": "UPGRADES"
  },
  {
@@ -18746,27 +18791,17 @@
  },
  {
   "voice": "m2.ben",
-  "text": "DON'T LEAN ON IT. HIT IT.",
-  "from": "UPGRADES"
- },
- {
-  "voice": "m2.ben",
   "text": "DON'T MAKE IT WEIRD. AND IT'S BEN.",
   "from": "UPGRADES"
  },
  {
   "voice": "m2.ben",
+  "text": "DON'T.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.ben",
   "text": "DUCK AND IT COVERS MORE OF YOU. BOSSES, THOUGH, THEIR SHIT STILL GETS THROUGH. IT JUST HURTS LESS.",
-  "from": "UPGRADES"
- },
- {
-  "voice": "m2.ben",
-  "text": "DURING THE CHARGE, THE BOUNCE BACK, OR RIGHT AFTER. THAT IS THE WHOLE ART.",
-  "from": "UPGRADES"
- },
- {
-  "voice": "m2.ben",
-  "text": "EVERY PIECE GIVES YOU AN EDGE. A NASTIER MOVE, A THICKER HIDE, A DIRTY NEW TRICK. ONE IN EVERY LAND. FIND ME. PASS MY TEST. IT IS YOURS.",
   "from": "UPGRADES"
  },
  {
@@ -18826,16 +18861,6 @@
  },
  {
   "voice": "m2.ben",
-  "text": "GOOD. MY KIDNEY MOVED. AGAIN.",
-  "from": "UPGRADES"
- },
- {
-  "voice": "m2.ben",
-  "text": "GOOD. MY SPLEEN SAYS GOOD. YOU PASS.",
-  "from": "UPGRADES"
- },
- {
-  "voice": "m2.ben",
   "text": "GOOD. NOW DO THAT TO SOMEBODY WHO DESERVES IT.",
   "from": "UPGRADES"
  },
@@ -18856,12 +18881,27 @@
  },
  {
   "voice": "m2.ben",
+  "text": "GUY ASKED ME TO SAY SOMETHING IN JAPANESE. I SAID ARIGATO. HE SAID, THAT'S IT?",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.ben",
   "text": "HANDS DOWN. LET THE KNIGHT WORK.",
   "from": "UPGRADES"
  },
  {
   "voice": "m2.ben",
+  "text": "HE BOUNCED. HE WAS SUPPOSED TO GO IN THE FLOOR.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.ben",
   "text": "HE DIDN'T MAKE IT. THROW HIM LIKE HE OWES YOU MONEY.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.ben",
+  "text": "HE DUG OUT. AGAIN.",
   "from": "UPGRADES"
  },
  {
@@ -18881,6 +18921,11 @@
  },
  {
   "voice": "m2.ben",
+  "text": "HE'S STILL STANDING. THAT'S THE PROBLEM.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.ben",
   "text": "HEAD FIRST INTO CONCRETE. THAT IS THE LESSON. YOU PASS.",
   "from": "UPGRADES"
  },
@@ -18891,12 +18936,17 @@
  },
  {
   "voice": "m2.ben",
-  "text": "HEADBUTT THE KEG THREE TIMES AND IT'S YOURS. JUMP UNDER IT, HEAD FIRST. DON'T THINK. THINKING IS WHAT HURTS.",
+  "text": "HEADBUTT MY KEG THREE TIMES. JUMP UNDER IT, HEAD FIRST. THINKING IS WHAT HURTS.",
   "from": "UPGRADES"
  },
  {
   "voice": "m2.ben",
   "text": "HIT A BOSS WITH THAT SHOULDER. THEY'LL FEEL IT IN THEIR TEETH.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.ben",
+  "text": "HOLD A CHARGE MOVE. TAP GRAB, DURING IT OR RIGHT AFTER. NO HIT NEEDED.",
   "from": "UPGRADES"
  },
  {
@@ -18911,6 +18961,16 @@
  },
  {
   "voice": "m2.ben",
+  "text": "HUH. GRANDPA SPOKE IT. I GOT A FEW WORDS.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.ben",
+  "text": "I BOLTED JUNK FROM EVERY LAND INTO ARMOR. ONE PIECE IN EACH. FIND ME. PASS MY TEST.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.ben",
   "text": "I GREW UP BEHIND A BOWLING ALLEY. NO IDEA WHAT YOU JUST SAID.",
   "from": "UPGRADES"
  },
@@ -18921,17 +18981,17 @@
  },
  {
   "voice": "m2.ben",
-  "text": "I SAID SHOULDER, NOT SNUGGLE.",
+  "text": "I KNOW. THAT'S THE PROBLEM.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.ben",
+  "text": "I LOOKED UP DATTEBAYO. IT'S NOTHING. YOU STILL KNOW MORE THAN ME.",
   "from": "UPGRADES"
  },
  {
   "voice": "m2.ben",
   "text": "I'D LIKE TO THANK THE GIFT SHOP. FAKE AWARDS, DUCT TAPE, FILM REELS FOR KNEES. YOU SLIDE FURTHER AND YOU TRIP EVERYBODY.",
-  "from": "UPGRADES"
- },
- {
-  "voice": "m2.ben",
-  "text": "I'VE BEEN STEALING JUNK FROM EVERY LAND IN THIS DUMP AND BOLTING IT INTO ARMOR. CHEAP. DIRTY. WORKS.",
   "from": "UPGRADES"
  },
  {
@@ -18947,6 +19007,11 @@
  {
   "voice": "m2.ben",
   "text": "IT DOESN'T STOP A BULLET. IT JUST HELPS YOU NOT BE WHERE THE BULLET IS.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.ben",
+  "text": "IT IS GOOD. YOU PASS.",
   "from": "UPGRADES"
  },
  {
@@ -18976,6 +19041,11 @@
  },
  {
   "voice": "m2.ben",
+  "text": "KEEP THE COCO-NUTS. YOUR SHOULDER'S A TRUCK NOW. HORNS AND SPEARS DON'T STOP A TRUCK.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.ben",
   "text": "KEEP THEM. THE BATTERIES DIED IN NINETY-SIX. IT STILL SAYS BEEF. NOBODY KNOWS WHY.",
   "from": "UPGRADES"
  },
@@ -18991,7 +19061,17 @@
  },
  {
   "voice": "m2.ben",
-  "text": "KNOCK ME ON MY ASS AND THEY'RE YOURS. SHOULDER FIRST. I'LL HOLD THE SLED.",
+  "text": "LAST HOLE. YOU FOUND THEM ALL.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.ben",
+  "text": "LAST HOLE. YOU FOUND THEM ALL. I SMELLED THIS ONE COMING.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.ben",
+  "text": "LAST HOLE. YOU FOUND THEM ALL. NAKED. IMPRESSIVE.",
   "from": "UPGRADES"
  },
  {
@@ -19026,17 +19106,37 @@
  },
  {
   "voice": "m2.ben",
+  "text": "MID-SIZED GUYS ONLY. NO BOSSES, NO CRITTERS.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.ben",
   "text": "MOST BEAUTIFUL THING I EVER HEARD. YOU PASS.",
   "from": "UPGRADES"
  },
  {
   "voice": "m2.ben",
-  "text": "MY MOTHER PUSHES HARDER. SHE USES A WALKER.",
+  "text": "MY DAD. SAME CANNERY, THIRTY YEARS. TEN WORDS A DINNER.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.ben",
+  "text": "MY DUMMY. BORROW THE COCO-NUTS. PLANT HIM, PUNT HIS HEAD THROUGH MY UPRIGHTS.",
   "from": "UPGRADES"
  },
  {
   "voice": "m2.ben",
   "text": "MY NAME IS BEN. IT'S ON MY LOCKER.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.ben",
+  "text": "MY SCARECROW. NAILS IN HIS HAT. DIVE KICK HIM ANYWAY, KEEP HOLDING, TAP GRAB. INTO THE DYNAMITE.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.ben",
+  "text": "MY SPARRING ALIEN. UPPERCUT HIM, KEEP HOLDING, TAP GRAB. HEAD IN THE FLOOR.",
   "from": "UPGRADES"
  },
  {
@@ -19061,12 +19161,27 @@
  },
  {
   "voice": "m2.ben",
+  "text": "NO.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.ben",
   "text": "NOPE.",
   "from": "UPGRADES"
  },
  {
   "voice": "m2.ben",
+  "text": "NOW A LIVE ONE. THE TOUR GUIDE. THEN THE CANNON.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.ben",
   "text": "NOW THE REAL SECRET. THE HIDDEN ART OF FOLLOW-UPS.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.ben",
+  "text": "NOWHERE NEAR. HEAD'S OFF, THOUGH. YOU PASS.",
   "from": "UPGRADES"
  },
  {
@@ -19077,11 +19192,6 @@
  {
   "voice": "m2.ben",
   "text": "OH. OH GOD. THAT... IS THE LESSON.",
-  "from": "UPGRADES"
- },
- {
-  "voice": "m2.ben",
-  "text": "OH. THERE IT IS. YOU PASS. I NEED A MINUTE.",
   "from": "UPGRADES"
  },
  {
@@ -19097,11 +19207,6 @@
  {
   "voice": "m2.ben",
   "text": "ONE. YOUR SKULL IS THICKER THAN I REMEMBERED.",
-  "from": "UPGRADES"
- },
- {
-  "voice": "m2.ben",
-  "text": "OOF. AGAIN.",
   "from": "UPGRADES"
  },
  {
@@ -19146,6 +19251,11 @@
  },
  {
   "voice": "m2.ben",
+  "text": "PLANTED. NOW PUNT IT.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.ben",
   "text": "PRACTICE ON MY STUNT DOUBLE. TRIP HIM, KICK HIM IN HALF. THE UNION SENDS ANOTHER ONE. THEN THE CANNON.",
   "from": "UPGRADES"
  },
@@ -19167,11 +19277,6 @@
  {
   "voice": "m2.ben",
   "text": "PRACTICE ON THE SCARECROW. I GOT A SHED FULL OF THEM. THEN THE CANNON.",
-  "from": "UPGRADES"
- },
- {
-  "voice": "m2.ben",
-  "text": "PRACTICE ON THE TOUR GUIDE. PLANT HIM, THEN KICK HIS HEAD THROUGH THE UPRIGHTS. THE PARK'S GOT PLENTY. THEN THE CANNON.",
   "from": "UPGRADES"
  },
  {
@@ -19231,12 +19336,7 @@
  },
  {
   "voice": "m2.ben",
-  "text": "SEE MY SCARECROW? NAILS IN HIS HAT. DIVE KICK HIM ANYWAY. KEEP HOLDING IT, TAP GRAB, AND THROW HIM INTO MY DUD DYNAMITE.",
-  "from": "UPGRADES"
- },
- {
-  "voice": "m2.ben",
-  "text": "SEE MY SPARRING ALIEN? UPPERCUT HIM. KEEP HOLDING IT, TAP GRAB, AND DRIVE HIS HEAD INTO MY FLOOR.",
+  "text": "SAME BELT SINCE EIGHTY-SEVEN. OUTLASTED BOTH WIVES.",
   "from": "UPGRADES"
  },
  {
@@ -19251,6 +19351,11 @@
  },
  {
   "voice": "m2.ben",
+  "text": "SHOULDER, THEN GRAB. YOU DID HALF.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.ben",
   "text": "SKULL, MEATHEAD. THE BONE ONE.",
   "from": "UPGRADES"
  },
@@ -19261,12 +19366,12 @@
  },
  {
   "voice": "m2.ben",
-  "text": "SLIDE UNDER MY CURTAIN. THEN FLASH KICK MY THREE SANDBAGS. HOLD THE SLIDE, PUSH UP.",
+  "text": "SLIDE UNDER MY CURTAIN. THEN FLASH KICK MY THREE SANDBAGS.",
   "from": "UPGRADES"
  },
  {
   "voice": "m2.ben",
-  "text": "START A CHARGE. KEEP HOLDING IT. TAP GRAB. YOU DON'T EVEN HAVE TO HIT THE GUY.",
+  "text": "STILL WATCHING THE JAPANESE CARTOONS?",
   "from": "UPGRADES"
  },
  {
@@ -19296,11 +19401,6 @@
  },
  {
   "voice": "m2.ben",
-  "text": "TAKE THE COCO-NUTS. YOUR SHOULDER'S A TRUCK NOW. HORNS AND SPEARS DON'T STOP A TRUCK.",
-  "from": "UPGRADES"
- },
- {
-  "voice": "m2.ben",
   "text": "TAKE THE KEGGER HELMET. THE STRAW GOES AROUND THE GLASSES. NOT THROUGH THEM. I TRIED.",
   "from": "UPGRADES"
  },
@@ -19316,12 +19416,12 @@
  },
  {
   "voice": "m2.ben",
-  "text": "THAT WAS A HUG.",
+  "text": "THAT WAS A JUMP. FLASH KICK. SLIDE, THEN UP.",
   "from": "UPGRADES"
  },
  {
   "voice": "m2.ben",
-  "text": "THAT WAS A JUMP. FLASH KICK. SLIDE, THEN UP.",
+  "text": "THAT WAS A SHOVE. PLANT HIM.",
   "from": "UPGRADES"
  },
  {
@@ -19356,11 +19456,6 @@
  },
  {
   "voice": "m2.ben",
-  "text": "THE ARMOR STILL MAKES THE CHARGE ITSELF HIT BOSSES HARDER. JUST NO FOLLOW-UP ON THEM. AND ONE PIECE OUT THERE DOESN'T USE THE GRAB AT ALL.",
-  "from": "UPGRADES"
- },
- {
-  "voice": "m2.ben",
   "text": "THE BAR DOES NOT LIFT ITSELF. ALSO, YOU FOUND MY HOLE.",
   "from": "UPGRADES"
  },
@@ -19382,11 +19477,6 @@
  {
   "voice": "m2.ben",
   "text": "THE BOTTOM OF THE TOWER. JUST 'CAUSE.",
-  "from": "UPGRADES"
- },
- {
-  "voice": "m2.ben",
-  "text": "THE BULL DOES NOT KNOCK. THE BULL COMES THROUGH THE DOOR. SHOULDER CHARGE, MEATHEAD.",
   "from": "UPGRADES"
  },
  {
@@ -19471,11 +19561,6 @@
  },
  {
   "voice": "m2.ben",
-  "text": "THE FOLLOW-UP IS FOR THE MID-SIZED GUYS. BOSSES, SUB BOSSES, LITTLE CRITTERS: NO. THE LITTLE ONES YOU JUST THROW.",
-  "from": "UPGRADES"
- },
- {
-  "voice": "m2.ben",
   "text": "THE HAND THAT CANNOT REACH HIGH... SHOULD THINK ABOUT LOW.",
   "from": "UPGRADES"
  },
@@ -19521,6 +19606,11 @@
  },
  {
   "voice": "m2.ben",
+  "text": "THE TREE DOES NOT PLANT ITSELF. HOLD THE CHARGE. TAP GRAB.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.ben",
   "text": "THERE IT GOES. FREE BEER AND A CONCUSSION. YOU PASS.",
   "from": "UPGRADES"
  },
@@ -19531,12 +19621,37 @@
  },
  {
   "voice": "m2.ben",
-  "text": "THESE ARE THE ODD ONES. NO GRAB. HOLD THE SLIDE AND PUSH UP. THE FLASH KICK. FREE. EVERYBODY AROUND YOU GETS IT.",
+  "text": "THESE ARE THE ODD ONES. NO GRAB. HOLD THE SLIDE, PUSH UP: THE FLASH KICK. WHOEVER IT KILLS COMES APART IN HALVES.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.ben",
+  "text": "THESE DO THE HEAD PLANT. ONE BONK, HE'S IN THE FLOOR TO THE CHIN. THEN YOU PUNT THE HEAD.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.ben",
+  "text": "THESE DO THE MISSILE. FLIP OVER HIM, GRAB HIS SHOULDERS, HURL HIM. WHOEVER HE HITS GOES DOWN TOO.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.ben",
+  "text": "THESE DO THE NINJA DROP. UP WITH HIM, FLIP, DOWN HEAD FIRST. HE DOES NOT GET UP.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.ben",
+  "text": "THIS NOSE? EIGHTY-FOUR. SPOTTER FELL ASLEEP.",
   "from": "UPGRADES"
  },
  {
   "voice": "m2.ben",
   "text": "THREE KNIGHTS. DON'T HIT THEM. LET THEM PISS YOU OFF. THEN LET IT OUT.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.ben",
+  "text": "THROUGH THE UPRIGHTS. YOU PASS. HE DOES NOT.",
   "from": "UPGRADES"
  },
  {
@@ -19611,7 +19726,27 @@
  },
  {
   "voice": "m2.ben",
+  "text": "WE'RE NOT THE SAME.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.ben",
+  "text": "WHATEVER'S AT THE END OF THIS DUMP, HIT IT WITH ALL EIGHT.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.ben",
   "text": "WHERE YOU CAME DOWN. SHE WON'T BE THERE. PROBABLY.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.ben",
+  "text": "WHY ONLY A FEW WORDS? THE GOVERNMENT PUT GRANDPA'S WHOLE FAMILY IN A CAMP. AFTER THAT, NO JAPANESE IN THE HOUSE.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.ben",
+  "text": "WIDE LEFT. STILL COUNTS. YOU PASS.",
   "from": "UPGRADES"
  },
  {
@@ -19637,6 +19772,11 @@
  {
   "voice": "m2.ben",
   "text": "WRONG WAY. YOU THROW LIKE YOU SHIT. EVERYWHERE.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.ben",
+  "text": "YEAH. THERE WAS PAPERWORK. ANYWAY. THE ARMOR.",
   "from": "UPGRADES"
  },
  {
@@ -19941,12 +20081,17 @@
  },
  {
   "voice": "m2.ben",
-  "text": "YOU PUSH LIKE A GUY HOLDING A DOOR.",
+  "text": "YOU SCREAM EVERY REP.",
   "from": "UPGRADES"
  },
  {
   "voice": "m2.ben",
   "text": "YOU SWAM HERE IN THOSE? NOW THE WHOLE MINE DRINKS IT.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.ben",
+  "text": "YOU TACKLE LIKE A GUY HOLDING A DOOR.",
   "from": "UPGRADES"
  },
  {
@@ -69891,6 +70036,11 @@
  },
  {
   "voice": "meathead",
+  "text": "A ROCK! FROM THE CEILING! WHO DOES THAT?!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "meathead",
   "text": "A ROCK! IN THE CART! WITH ME!",
   "from": "ADVENTURE"
  },
@@ -71492,6 +71642,11 @@
  {
   "voice": "meathead",
   "text": "ARM ARMOR! I START AT THE WRISTS AND WORK MY WAY TO THE MIDDLE.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "meathead",
+  "text": "ARMOR ON EVERYTHING BUT THE PART THAT NEEDS IT! DATTEBAYO, CON-FUCK-TIOUS!",
   "from": "UPGRADES"
  },
  {
@@ -73421,6 +73576,21 @@
  },
  {
   "voice": "meathead",
+  "text": "CAN I TOUCH IT?",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "meathead",
+  "text": "CAN I TOUCH IT? I'LL WIPE FIRST.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "meathead",
+  "text": "CAN I WEAR IT? I NEED SOMETHING.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "meathead",
   "text": "CAN SPACE GOLD BUY ME NEW PANTS? NO? THEN SHUT UP.",
   "from": "ALIEN_LINES"
  },
@@ -75056,11 +75226,6 @@
  },
  {
   "voice": "meathead",
-  "text": "DID I HURT YOU? I DID IT LIKE YOU SHOWED ME.",
-  "from": "UPGRADES"
- },
- {
-  "voice": "meathead",
   "text": "DID YOU JUST DISRUPT ME?!",
   "from": "HAZARD_HURT"
  },
@@ -75821,6 +75986,11 @@
  },
  {
   "voice": "meathead",
+  "text": "EIGHT PIECES OF ARMOR AND STILL NO PANTS! DATTEBAYO, CON-FUCK-TIOUS!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "meathead",
   "text": "EIGHTEEN FIFTY-NINE. GOOD RUN.",
   "from": "DOOR_KICK"
  },
@@ -76048,6 +76218,21 @@
   "voice": "meathead",
   "text": "EVERY DISASTER AT ONCE. I DID THAT.",
   "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "meathead",
+  "text": "EVERY EPISODE TWICE! DATTEBAYO! I'M FLUENT!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "meathead",
+  "text": "EVERY EPISODE! DRESSED LIKE THIS! DATTEBAYO!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "meathead",
+  "text": "EVERY EPISODE! ON THE TOILET, MOSTLY! DATTEBAYO!",
+  "from": "UPGRADES"
  },
  {
   "voice": "meathead",
@@ -82741,6 +82926,21 @@
  },
  {
   "voice": "meathead",
+  "text": "I KICKED HIS HEAD OFF! THE CROWD GOES WILD! THE CROWD IS YOU!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "meathead",
+  "text": "I KICKED IT NAKED. EVERYTHING FOLLOWED THROUGH.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "meathead",
+  "text": "I KICKED IT SO HARD SOMETHING CAME OUT OF ME TOO.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "meathead",
   "text": "I KILLED A DOZEN GUYS FOR A WATER HEATER IN A DRESS.",
   "from": "FANTASY"
  },
@@ -82903,6 +83103,11 @@
   "voice": "meathead",
   "text": "I NEEDED THAT AIR!",
   "from": "SPACE"
+ },
+ {
+  "voice": "meathead",
+  "text": "I NEVER FINISHED ANYTHING! NOT SCHOOL, NOT A SANDWICH! DATTEBAYO, CON-FUCK-TIOUS!",
+  "from": "UPGRADES"
  },
  {
   "voice": "meathead",
@@ -83461,6 +83666,21 @@
  },
  {
   "voice": "meathead",
+  "text": "I'D HAVE YELLED DATTEBAYO FOR YOU!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "meathead",
+  "text": "I'D HAVE YELLED DATTEBAYO FOR YOU. AND SHAT. FOR EMPHASIS.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "meathead",
+  "text": "I'D HAVE YELLED DATTEBAYO FOR YOU. NAKED.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "meathead",
   "text": "I'D LIKE TO THANK MY MOM. AND YOU, CON-FUCK-TIOUS.",
   "from": "UPGRADES"
  },
@@ -83667,6 +83887,21 @@
  {
   "voice": "meathead",
   "text": "I'LL TAKE THESE!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "meathead",
+  "text": "I'LL TEACH YOU! KAMEHAMEHA MEANS GOOD MORNING.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "meathead",
+  "text": "I'LL TEACH YOU! UNKO MEANS THIS.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "meathead",
+  "text": "I'LL TEACH YOU! ZENRA MEANS THIS.",
   "from": "UPGRADES"
  },
  {
@@ -87603,6 +87838,21 @@
   "voice": "meathead",
   "text": "MINE CART. THE ORE WILL NEVER RECOVER.",
   "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
+  "text": "MINE JUST LEFT. I'D HUG YOU, BUT LOOK AT ME.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "meathead",
+  "text": "MINE LEFT AFTER MY CHRISTENING. I DID THIS AT IT.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "meathead",
+  "text": "MINE NEVER SAID TEN WORDS EITHER. HE WASN'T THERE. WE'RE THE SAME.",
+  "from": "UPGRADES"
  },
  {
   "voice": "meathead",
@@ -92861,6 +93111,11 @@
  },
  {
   "voice": "meathead",
+  "text": "OW! PRICKS!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "meathead",
   "text": "OW! RIGHT IN THE RENAISSANCE FAIRE!",
   "from": "SPOOKY"
  },
@@ -94623,6 +94878,11 @@
   "voice": "meathead",
   "text": "RIGHT IN THE SHIN!",
   "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
+  "text": "RIGHT IN THE SKULL!",
+  "from": "ADVENTURE"
  },
  {
   "voice": "meathead",
@@ -97588,16 +97848,6 @@
   "voice": "meathead",
   "text": "SORRY, PAL. YOUR NUTS, MY PANTS. WE BOTH LOST.",
   "from": "CARTOON"
- },
- {
-  "voice": "meathead",
-  "text": "SORRY. MY EVERYTHING WAS FLAPPING THE WHOLE TIME.",
-  "from": "UPGRADES"
- },
- {
-  "voice": "meathead",
-  "text": "SORRY. SOME OF MY PANTS GOT ON YOUR SLED.",
-  "from": "UPGRADES"
  },
  {
   "voice": "meathead",
@@ -100711,6 +100961,11 @@
  },
  {
   "voice": "meathead",
+  "text": "THE CAVE'S SHITTING ROCKS ON ME!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "meathead",
   "text": "THE CEILING IS LEAKING ON MY TRAPS!",
   "from": "HAZARD_HURT"
  },
@@ -101353,6 +101608,21 @@
   "voice": "meathead",
   "text": "THE GOOSE GOT ME!",
   "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
+  "text": "THE GOVERNMENT DID THAT? I'M NAKED WITH A RAY GUN AND I'M THE DECENT ONE?",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "meathead",
+  "text": "THE GOVERNMENT DID THAT? ON PURPOSE? I ONLY KILL GUYS TRYING TO KILL ME!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "meathead",
+  "text": "THE GOVERNMENT DID THAT? WITH FORMS? I SHIT MYSELF BY ACCIDENT AND I STILL SAY SORRY!",
+  "from": "UPGRADES"
  },
  {
   "voice": "meathead",
@@ -102323,6 +102593,11 @@
   "voice": "meathead",
   "text": "THE ROOF'S ON FIRE! WHY IS YOUR ROOF ON FIRE, DALE?!",
   "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "THE ROOTS HAVE SPIKES, YOU BASTARD!",
+  "from": "ADVENTURE"
  },
  {
   "voice": "meathead",
@@ -104078,6 +104353,11 @@
   "voice": "meathead",
   "text": "THORNS! IN MY EYE!",
   "from": "FANTASY"
+ },
+ {
+  "voice": "meathead",
+  "text": "THORNS! IN MY TAINT!",
+  "from": "ADVENTURE"
  },
  {
   "voice": "meathead",
@@ -107713,6 +107993,21 @@
   "voice": "meathead",
   "text": "YOU MUST BE THIS SHORT. FUCK YOU TOO, SIGN.",
   "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "YOU NEVER FELL ASLEEP ON ME. NOT EVEN NAKED SQUAT DAY.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "meathead",
+  "text": "YOU NEVER FELL ASLEEP ON ME. NOT EVEN THE TIME I SHAT ON THE BENCH.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "meathead",
+  "text": "YOU NEVER FELL ASLEEP ON ME. YOU'RE A SAINT.",
+  "from": "UPGRADES"
  },
  {
   "voice": "meathead",
