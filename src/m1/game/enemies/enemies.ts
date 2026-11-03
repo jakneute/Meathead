@@ -30,7 +30,7 @@ import { startEnemyDeath } from './deaths';
 import { poofEnemy } from '../core/cartoonKills';
 import { ejectLowriderCrew } from './gunDeaths';
 import { getEnemyMass, enemyGrip, massRatio } from '../combat/knockback';
-import { floorTopAt, groundLineAt } from '../core/terrain';
+import { floorTopAt, groundLineAt, solidsNear } from '../core/terrain';
 import { getStageLeft, getStageLayout } from '../stages';
 import { kindDef, runKindAI, kindContactDamage, holdingOff, shieldFacing, isChargerKind, safeAhead, walkableTo, isSmallCritter, weakShot } from './kinds';
 import { selfPropelled } from './kinds/hector';
@@ -170,7 +170,8 @@ const keepOutOfWalls = (state: FrameContext['state'], e: Enemy, xWas: number) =>
   const dx = e.pos.x - xWas;
   if (!dx) return;
   const feet = e.pos.y + e.height;
-  for (const b of state.blocks) {
+  // (just the blocks round where it is, in the same order: solidsNear)
+  for (const b of solidsNear(state.blocks, e.pos.x, e.pos.x + e.width)) {
     if (b.oneWay || !(b.type === 'wall' || b.type === 'ground' || b.type === 'platform')) continue;
     // (a step it walks up, or something over its head)
     if (b.y >= feet - SHOVE_STEP || b.y + b.h <= e.pos.y + 4) continue;
@@ -1263,7 +1264,7 @@ const hasFloorAt = (state: GameState, e: Enemy, dx: number) => {
   const feet = e.pos.y + e.height;
   const top = floorTopAt(state.blocks, e.pos.x + e.width / 2 + dx + Math.sign(dx) * (e.width / 2 - 4), feet, 26);
   return top !== null && top > feet - 26 && top - feet < 30
-    && !state.blocks.some(bk => bk.type === 'wall' && e.pos.x + dx < bk.x + bk.w && e.pos.x + dx + e.width > bk.x && e.pos.y < bk.y + bk.h && feet > bk.y);
+    && !solidsNear(state.blocks, e.pos.x + dx, e.pos.x + dx + e.width).some(bk => bk.type === 'wall' && e.pos.x + dx < bk.x + bk.w && e.pos.x + dx + e.width > bk.x && e.pos.y < bk.y + bk.h && feet > bk.y);
 };
 const isFrozen = (e: Enemy) => !!(e.frozenTimer && e.frozenTimer > 0);
 const toGml = (v: number) => Math.abs(v) / GML_SCALE;

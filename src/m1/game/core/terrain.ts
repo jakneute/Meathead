@@ -112,9 +112,29 @@ const standable = (b: Block) => b.type !== 'pit' && b.type !== 'door';
  * Null if there's nothing under x at all (a pit).
  */
 export const floorTopAt = (blocks: Block[], x: number, feetY: number, reach = 26): number | null => {
+  // (inside withFloorIndex, against its blocks: from its columns)
+  if (scope && blocks === scope.blocks && Number.isFinite(x)) {
+    const S = scoped(blocks);
+    let best: number | null = null;
+    const top = feetY - reach;
+    for (const list of [S.cols.get(Math.floor(x / FLOOR_COL)), S.wide]) {
+      if (list) for (const b of list) {
+        if (x < b.x || x > b.x + b.w || b.y < top || !standable(b)) continue;
+        if (best === null || b.y < best) best = b.y;
+      }
+    }
+    return best;
+  }
+  return scanFloor(blocks, x, feetY, reach);
+};
+/** floorTopAt the long way: every block looked at. */
+const scanFloor = (blocks: Block[], x: number, feetY: number, reach: number): number | null => {
+  // (the cheap number tests first: nearly every block's off to one side, and a land's whole length of them is scanned)
   let best: number | null = null;
-  for (const b of blocks) {
-    if (!standable(b) || x < b.x || x > b.x + b.w || b.y < feetY - reach) continue;
+  const top = feetY - reach;
+  for (let i = 0, n = blocks.length; i < n; i++) {
+    const b = blocks[i];
+    if (x < b.x || x > b.x + b.w || b.y < top || !standable(b)) continue;
     if (best === null || b.y < best) best = b.y;
   }
   return best;
@@ -131,7 +151,7 @@ export const floorFinder = (blocks: Block[]) => {
   let cols: Map<number, Block[]> | null = null;
   const wide: Block[] = [];
   return (x: number, feetY: number, reach = 26): number | null => {
-    if (!Number.isFinite(x)) return floorTopAt(blocks, x, feetY, reach);
+    if (!Number.isFinite(x)) return scanFloor(blocks, x, feetY, reach);
     if (!cols) {
       cols = new Map();
       for (const b of blocks) {
@@ -145,12 +165,59 @@ export const floorFinder = (blocks: Block[]) => {
     const top = feetY - reach;
     for (const list of [cols.get(Math.floor(x / FLOOR_COL)), wide]) {
       if (list) for (const b of list) {
-        if (x < b.x || x > b.x + b.w || b.y < top) continue;
+        if (x < b.x || x > b.x + b.w || b.y < top || !standable(b)) continue;
         if (best === null || b.y < best) best = b.y;
       }
     }
     return best;
   };
+};
+
+/**
+ * floorTopAt's lookups against `blocks` while `run` runs answered from columns (as floorFinder's), not a scan of the lot:
+ * the enemies' turn (each of them looking under itself, a step ahead, where a hop lands: over a land laid as slopes,
+ * thousands of blocks each time). The same answers: the columns are sorted out again the first lookup of each turn
+ * (blocks moved since the last are where they are now), and again whenever a block's gone in or out meanwhile (one
+ * put up or knocked down mid-turn); a block's height is looked at live. (A block shoved along sideways by an enemy's
+ * own turn would want the columns sorted again: nothing in an enemy's turn does that.)
+ */
+interface Scope { blocks: Block[]; len: number; last: Block | undefined; cols: Map<number, Block[]>; wide: Block[]; pos: Map<Block, number> | null }
+let scope: Scope | null = null;
+/** The scope's columns, sorted out afresh if a block's gone in or out since. */
+const scoped = (blocks: Block[]): Scope => {
+  const S = scope!;
+  if (S.len === blocks.length && S.last === blocks[blocks.length - 1] && S.len >= 0) return S;
+  S.len = blocks.length; S.last = blocks[blocks.length - 1]; S.cols = new Map(); S.wide = []; S.pos = null;
+  for (const b of blocks) {
+    if (!standable(b)) continue;
+    const c0 = Math.floor(b.x / FLOOR_COL), c1 = Math.floor((b.x + b.w) / FLOOR_COL);
+    if (!Number.isFinite(c0) || !Number.isFinite(c1) || c1 - c0 > 32) { S.wide.push(b); continue; }
+    for (let k = c0; k <= c1; k++) { const l = S.cols.get(k); if (l) l.push(b); else S.cols.set(k, [b]); }
+  }
+  return S;
+};
+export const withFloorIndex = <T>(blocks: Block[], run: () => T): T => {
+  const was = scope;
+  // (sorted out on the first lookup: len -1 till then)
+  scope = { blocks, len: -1, last: undefined, cols: new Map(), wide: [], pos: null };
+  try { return run(); } finally { scope = was; }
+};
+/**
+ * The blocks there could be anything solid of between world x0 and x1 (and anything of them outside it too), in the
+ * order they're in `blocks`: inside withFloorIndex, from its columns; otherwise all of `blocks`. For a lookup that
+ * takes the first one that fits (an enemy walked into a wall: which wall's face it's put back against).
+ * (Only what floorTopAt would stand on: no pits, no doors.)
+ */
+export const solidsNear = (blocks: Block[], x0: number, x1: number): Block[] => {
+  if (!scope || blocks !== scope.blocks || !Number.isFinite(x0) || !Number.isFinite(x1)) return blocks;
+  const S = scoped(blocks), c0 = Math.floor(x0 / FLOOR_COL), c1 = Math.floor(x1 / FLOOR_COL);
+  if (c1 - c0 > 8) return blocks;
+  const got = new Set<Block>();
+  for (let k = c0; k <= c1; k++) { const l = S.cols.get(k); if (l) for (const b of l) got.add(b); }
+  for (const b of S.wide) got.add(b);
+  if (!S.pos) { S.pos = new Map(); blocks.forEach((b, i) => S.pos!.set(b, i)); }
+  const pos = S.pos;
+  return [...got].sort((a, b) => pos.get(a)! - pos.get(b)!);
 };
 
 /**

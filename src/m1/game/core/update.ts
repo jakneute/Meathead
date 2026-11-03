@@ -39,7 +39,7 @@ import { tickMeatheadDeath } from '../player/deathAnim';
 import { updateVictoryPee, peeFinished } from '../scenes/victoryPee';
 import { getBossDef, getArenaRight, getStageWidth } from '../bosses/registry';
 import { getStageLayout } from '../stages';
-import { groundLineAt, floorTopAt, floorFinder, runYAt } from './terrain';
+import { groundLineAt, floorTopAt, floorFinder, runYAt, withFloorIndex } from './terrain';
 import { landOnFloor } from './splatSurface';
 import { scrapMachineGore } from '../enemies/machineGore';
 import { tintKindGore } from '../enemies/kindBlood';
@@ -604,9 +604,13 @@ const updatePlaying = (ctx: FrameContext, controls: Controls): boolean => {
   // (anything that comes off him while the enemies have their turn (bodies, bites, a kind's own attack, however it's
   // done) was an enemy's doing: Meathead 2's piss-off meter counts it (state.foeHurtAt); a trap's isn't)
   const hpBefore = state.player.health, hurtBefore = state.player.hurtTimer;
-  state.enemies = enemies.filter(e => updateEnemy(ctx, e, enemies));
-  if (state.player.health < hpBefore || state.player.hurtTimer > hurtBefore) state.foeHurtAt = state.frame;
-  separateEnemies(state);
+  // (every enemy's looking for the ground under it answered from the blocks sorted into columns, not a scan of the lot each
+  // time: withFloorIndex)
+  withFloorIndex(state.blocks, () => {
+    state.enemies = enemies.filter(e => updateEnemy(ctx, e, enemies));
+    if (state.player.health < hpBefore || state.player.hurtTimer > hurtBefore) state.foeHurtAt = state.frame;
+    separateEnemies(state);
+  });
   // Note: projectiles spawned while this filter runs (shrapnel, ice shards) are not kept.
   // Projectiles spawned while these update (ice shards, splashes) are appended to the same
   // array but skipped by filter(): keep them, so they start moving next frame
@@ -863,7 +867,13 @@ const updateCamera = (ctx: FrameContext) => {
     const feet = player.pos.y + player.height;
     // (the bottom of the sea only counts once he's under: bobbing at the surface, or falling in, it stays up top)
     const underwater = !!player.swimming && player.pos.y > (player.swimSurfaceY ?? Infinity);
-    const floors = underwater ? state.blocks : state.blocks.filter(b => b.tag !== 'seabed');
+    // (and only what's in reach of the lookups below: the ground under him and along the look-ahead either way, no
+    // higher than the look-ahead's lookups take in. The same answers as the whole lot: floorTopAt skips the rest
+    // anyway, and over a land of thousands of blocks, scanning all of them twenty times a frame added up)
+    const cx = player.pos.x + player.width / 2;
+    const near = Number.isFinite(cx) && Number.isFinite(feet);
+    const lo = cx - CAMERA_LOOK_AHEAD - 1, hi = cx + CAMERA_LOOK_AHEAD + 1, yTop = feet - 60;
+    const floors = state.blocks.filter(b => (underwater || b.tag !== 'seabed') && (!near || !(b.x > hi || b.x + b.w < lo || b.y < yTop)));
     // (the bottom of a pool of water isn't what he's coming down on: its surface is. Looking ahead to the bottom of a
     // flooded hole, the camera would lurch down to it and back up again past it)
     const waterAt = layout.waterBodyAt;

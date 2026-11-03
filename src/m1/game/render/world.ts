@@ -159,7 +159,10 @@ const drawWorldAt = (ctx: CanvasRenderingContext2D, state: GameState, view: Worl
     drawIcicles(wctx, state);
     drawOilSlicks(wctx, state);
     drawProjectiles(wctx, state, 'puddles');
-    state.pickups.forEach(p => drawPickup(wctx, p, state.frame));
+    // (only those anywhere near the screen: a land's every pickup drawn every frame, glows and all, was a good part of
+    // some frames; well clear of the screen's edge, for its glow and a tilt of the world)
+    { const v = state.view, pad = 200;
+      for (const p of state.pickups) if (!v || (p.pos.x + p.width > v.x - pad && p.pos.x < v.x + v.w + pad && p.pos.y + p.height > v.y - pad && p.pos.y < v.y + v.h + pad)) drawPickup(wctx, p, state.frame); }
     drawTsunamiBack(wctx, state);
     // (another game's things lying on the floor under everyone: Meathead 2's torn-out nuts)
     if (underEnemies) fenced(wctx, 'underEnemies', () => underEnemies!(wctx, state));

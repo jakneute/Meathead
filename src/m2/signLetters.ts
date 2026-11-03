@@ -105,7 +105,15 @@ const stencilCut = (gl: Glyph): Glyph => {
 };
 
 interface Cell { x: number; y: number; i: number }
+/** Each set of words laid out once in each spacing (signW asks a good many times a frame): never changed after. */
+const LAYOUTS = new Map<string, { cells: Cell[]; w: number }>();
 const layout = (text: string, L: Look) => {
+  const key = `${text}|${L.gap ?? 1}|${L.space ?? 3}|${L.stencil ? 1 : 0}|${L.bold ? 1 : 0}`;
+  let out = LAYOUTS.get(key);
+  if (!out) { if (LAYOUTS.size > 4000) LAYOUTS.clear(); out = layOut(text, L); LAYOUTS.set(key, out); }
+  return out;
+};
+const layOut = (text: string, L: Look) => {
   const cells: Cell[] = [];
   const gap = L.gap ?? 1;
   let x = 0, n = 0;
@@ -150,8 +158,17 @@ export const signText = (c: Ctx, text: string, x: number, y: number, L: Look, al
   const W = signW(text, L), H = 7 * (L.sy ?? 1);
   const x0 = Math.round(align === 'center' ? x - W / 2 : align === 'right' ? x - W : x), top = Math.round(y) - H;
   const wob = Math.ceil(L.wobble ?? 0) * 2, pad = 6 + wob + (L.drop ?? 1), foot = L.drip ? (L.drip.len ?? (L.sy ?? 1) * 4) + 4 : 0;
-  stamp(c, `sign|${text}|${x0},${top}|${align}|${JSON.stringify(L)}`, x0 - pad, top - pad, W + pad * 2, H + pad * 2 + foot, g => setLive(g, text, x, y, L, align));
+  // (set where it is, less the nearest even step back (the dither's laid every other pixel: on the same pixels): one
+  // stamp for the words wherever they go, not one for each place. A sign set back, sliding past as the camera goes,
+  // was a new place nearly every frame: painted afresh nearly every frame)
+  const tx = x0 - (x0 & 1), ty = top - (top & 1), m = c.getTransform();
+  c.translate(tx, ty);
+  stamp(c, `sign|${text}|${x0 - tx},${top - ty}|${align}|${lookKey(L)}`, x0 - tx - pad, top - ty - pad, W + pad * 2, H + pad * 2 + foot, g => setLive(g, text, x - tx, y - ty, L, align));
+  c.setTransform(m);
 };
+/** A look's key (its JSON), worked out once a look. */
+const LOOK_KEYS = new WeakMap<Look, string>();
+const lookKey = (L: Look) => { let k = LOOK_KEYS.get(L); if (k === undefined) { k = JSON.stringify(L); LOOK_KEYS.set(L, k); } return k; };
 const setLive = (c: Ctx, text: string, x: number, y: number, L: Look, align: Align) => {
   const sx = L.sx ?? 1, sy = L.sy ?? 1, sl = L.slant ?? 0, seed = L.seed ?? 0;
   const { cells } = layout(text, L);

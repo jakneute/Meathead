@@ -13,6 +13,20 @@ type Ctx = CanvasRenderingContext2D;
 /** The drawing state a paint leaves behind (line joins, colours, the font...), which the live art after it may count on. */
 interface Leaves { globalAlpha: number; lineCap: CanvasLineCap; lineJoin: CanvasLineJoin; miterLimit: number; lineWidth: number; fillStyle: Ctx['fillStyle']; strokeStyle: Ctx['strokeStyle']; font: string; textAlign: CanvasTextAlign; textBaseline: CanvasTextBaseline }
 const leaves = (g: Ctx): Leaves => ({ globalAlpha: g.globalAlpha, lineCap: g.lineCap, lineJoin: g.lineJoin, miterLimit: g.miterLimit, lineWidth: g.lineWidth, fillStyle: g.fillStyle, strokeStyle: g.strokeStyle, font: g.font, textAlign: g.textAlign, textBaseline: g.textBaseline });
+/** Leaves `ctx` in the drawing state `s` (what a stamp's paint left behind): only what isn't that already is set (the
+ *  same state after; setting all ten every time was half a stamp's cost, the colors and the font parsed afresh). */
+const leave = (ctx: Ctx, s: Leaves) => {
+  if (ctx.globalAlpha !== s.globalAlpha) ctx.globalAlpha = s.globalAlpha;
+  if (ctx.lineCap !== s.lineCap) ctx.lineCap = s.lineCap;
+  if (ctx.lineJoin !== s.lineJoin) ctx.lineJoin = s.lineJoin;
+  if (ctx.miterLimit !== s.miterLimit) ctx.miterLimit = s.miterLimit;
+  if (ctx.lineWidth !== s.lineWidth) ctx.lineWidth = s.lineWidth;
+  if (ctx.fillStyle !== s.fillStyle) ctx.fillStyle = s.fillStyle;
+  if (ctx.strokeStyle !== s.strokeStyle) ctx.strokeStyle = s.strokeStyle;
+  if (ctx.font !== s.font) ctx.font = s.font;
+  if (ctx.textAlign !== s.textAlign) ctx.textAlign = s.textAlign;
+  if (ctx.textBaseline !== s.textBaseline) ctx.textBaseline = s.textBaseline;
+};
 /** (a, d: the exact scale it was painted at; L, T: its device box at that scale) */
 interface Stamp { c: HTMLCanvasElement; L: number; T: number; a: number; d: number; after: Leaves; /** Only the part of it near the screen (a sweep, pushed right in: stamp()). */ clip?: boolean }
 /** Most recently used last; the oldest are let go once they add up to more than BUDGET bytes. */
@@ -149,14 +163,14 @@ export const stamp = (ctx: Ctx, key: string, x: number, y: number, w: number, h:
     if (sweep && near) {
       const ka = m.a / l!.s.a, kd = m.d / l!.s.d;
       putDown(ctx, m, l!.s.c, l!.s.L * ka, l!.s.T * kd, l!.s.c.width * ka, l!.s.c.height * kd);
-      Object.assign(ctx, l!.s.after);
+      leave(ctx, l!.s.after);
       return;
     }
     // (a kill cam pushed in (setStampHold), and this one would be painted far bigger than the screen: scaled instead)
     if (hold && near && (holdAll || Math.abs(m.a * w * m.d * h) > ctx.canvas.width * ctx.canvas.height * HOLD_AREA)) {
       const ka = m.a / l!.s.a, kd = m.d / l!.s.d;
       putDown(ctx, m, l!.s.c, l!.s.L * ka, l!.s.T * kd, l!.s.c.width * ka, l!.s.c.height * kd);
-      Object.assign(ctx, l!.s.after);
+      leave(ctx, l!.s.after);
       return;
     }
     const askedAt = asked.get(id);
@@ -170,7 +184,7 @@ export const stamp = (ctx: Ctx, key: string, x: number, y: number, w: number, h:
       if (near) {
         const ka = m.a / l!.s.a, kd = m.d / l!.s.d;
         putDown(ctx, m, l!.s.c, l!.s.L * ka, l!.s.T * kd, l!.s.c.width * ka, l!.s.c.height * kd);
-        Object.assign(ctx, l!.s.after);
+        leave(ctx, l!.s.after);
         return;
       }
       // (covered: not painted live at all, nobody sees it; its stamp's painted when it's asked again, in budget)
@@ -179,7 +193,7 @@ export const stamp = (ctx: Ctx, key: string, x: number, y: number, w: number, h:
       // (wanted at a settled scale, but this frame's painted plenty already: the one it has, scaled, for now)
       const ka = m.a / l!.s.a, kd = m.d / l!.s.d;
       putDown(ctx, m, l!.s.c, l!.s.L * ka, l!.s.T * kd, l!.s.c.width * ka, l!.s.c.height * kd);
-      Object.assign(ctx, l!.s.after);
+      leave(ctx, l!.s.after);
       return;
     }
     // (under cover, this frame's painted plenty: next frame)
@@ -225,13 +239,14 @@ export const stamp = (ctx: Ctx, key: string, x: number, y: number, w: number, h:
       if (latest.get(ok)?.s === old) latest.delete(ok);
     }
   }
-  latest.set(lk, { s, a, d });
+  // (the one it has already noted as its newest is left as it is: no new note a stamp a frame)
+  if (latest.get(lk)?.s !== s) latest.set(lk, { s, a, d });
   // (painted on whole device pixels; put down where the art itself would've gone, between pixels when the camera is:
   // its edges soften just the way the live art's do there)
   // (the scale now a hair off the one it was painted at, inside the rounding that keys it: shifted so its box's corner
   // lands right where the art's own would)
   putDown(ctx, m, s.c, s.L + (m.a - s.a) * x, s.T + (m.d - s.d) * y, s.c.width, s.c.height);
-  Object.assign(ctx, s.after);
+  leave(ctx, s.after);
 };
 
 /** stamp(), but painted into its stamp straight away, even the first time it's asked for (not live first, stamped the
