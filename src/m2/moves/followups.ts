@@ -327,6 +327,13 @@ export const plantedOnMovingGround = (ctx: FrameContext, x0: number, x1: number,
   });
 };
 
+/** Where one is in the ground, if it is: 'head' (in to the neck, alive), 'kicked' (its head punted off), 'legs' (head
+ *  first, dead), or null (not in it). Read only (Ben's trials ask it). */
+export const buriedAs = (e: Enemy): 'head' | 'kicked' | 'legs' | null => {
+  const b = buried.find(o => o.e === e);
+  return !b ? null : b.gone !== null ? 'kicked' : b.mode;
+};
+
 /** All of it gone (a new game, the stage's own reset). */
 export const stopFollowUps = () => { buried = []; heads = []; clearMelee(); lastMove = null; ready = null; burst = null; };
 

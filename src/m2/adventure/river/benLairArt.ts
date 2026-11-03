@@ -20,7 +20,8 @@
 //     over the main (protein tubs, bolts, the skipper's megaphone), a GORILLAS DON'T SKIP LEG DAY poster, the pegboard
 //     and fold-down bench with the next coconut pauldron half riveted, the welding's scorch, a hot plate on the pump,
 //     chalk handprints and the chalk bucket, the cruise hippo's head mounted like a trophy (MINE NOW).
-//   LIVE: the sled (painted once, put down where it's been shoved), the cannon, Ben, the work lamps' flicker, the leak's
+//   THE TRIAL'S UPRIGHTS: a field goal chalked on the back wall past the dummy's spot (the head's punted through it).
+//   LIVE: the cannon, Ben (the tackling dummy's an enemy: benLairDummy.ts), the work lamps' flicker, the leak's
 //     drips, dust in the grate's beam; in front, the overflow pipe the cannon fires him up (he goes into it) and the
 //     ceiling's near beam. Over in the dinosaur tank, the overflow's end out of its left wall, a flap hanging off it
 //     (he's shot out of it).
@@ -37,7 +38,7 @@ import { saidOver } from '../section';
 import { signAt, stencil, graffiti, print } from '../letters';
 import { SECTIONS } from '../geometry';
 import { POCKET_TOP } from './course';
-import { SHAFT, LAIR, LEDGES, SLED, HAMMOCK, CANNON_X, OUTLET_X, OUTLET_Y, OVERFLOW_W, lairOf, benAt, inLair, lairView } from './benLair';
+import { SHAFT, LAIR, LEDGES, UPRIGHTS_X, HAMMOCK, CANNON_X, OUTLET_X, OUTLET_Y, OVERFLOW_W, lairOf, benAt, inLair, lairView } from './benLair';
 
 type Ctx = CanvasRenderingContext2D;
 const { x0 } = SECTIONS.river;
@@ -149,6 +150,14 @@ const paintWall = (g: Ctx) => {
     let x = 120 + hash(k + 70) * (W - 200), y = -H + 30 + hash(k + 71) * 140;
     for (let s = 0; s < 6; s++) { const nx = x + (hash(k * 9 + s) - 0.5) * 16, ny = y + 10 + hash(k * 5 + s) * 14; lineR(g, [x, y, nx, ny], 1, 'rgba(12,10,8,0.6)'); lineR(g, [x + 1, y, nx + 1, ny], 0.6, 'rgba(200,190,170,0.12)'); x = nx; y = ny; }
   }
+  // ---- the trial's uprights, chalked on the wall past the dummy's spot: two posts, the crossbar, the post down to the
+  // floor, a 3 for the points, and the chalk's smudge (the punted head goes over the bar between them)
+  { const ux = lx(UPRIGHTS_X), CH = 'rgba(236,232,220,0.72)', CS = 'rgba(236,232,220,0.22)', bar = -100, half = 30;
+    lineR(g, [ux, BACK + 2, ux, bar], 3, CS); lineR(g, [ux, BACK, ux, bar], 1.6, CH);
+    lineR(g, [ux - half, bar, ux + half, bar], 3, CS); lineR(g, [ux - half, bar, ux + half, bar], 1.6, CH);
+    for (const sx of [-half, half]) { lineR(g, [ux + sx, bar, ux + sx + sx * 0.04, -184], 3, CS); lineR(g, [ux + sx, bar, ux + sx + sx * 0.04, -184], 1.6, CH); }
+    signAt(g, '3', ux, -136, 5, print(5, CH));
+    signAt(g, 'IT IS GOOD', ux, -72, 2, print(2, 'rgba(232,228,214,0.4)')); }
   // ---- stencils: what the room was; and what it is now
   signAt(g, 'PUMP STATION 3', 520, -214, 6, stencil(6, mixHex('#D8D0B8', '#2A2620', 0.35)));
   signAt(g, 'AUTHORIZED PERSONNEL ONLY', 520, -194, 4, stencil(4, mixHex('#C8B848', '#2A2620', 0.35)));
@@ -510,30 +519,7 @@ const paintLedges = (g: Ctx) => {
 };
 
 // ---------------------------------------------------------------------------------------------------------------
-// The sled, the overflow's end, the near beam, the overflow pipe (painted once each)
-
-const paintSled = (g: Ctx) => {
-  // (local: its bottom middle at 0,0, the pad facing -x; the skids, the pallet, three tires stacked, the boat cushion
-  // ratchet-strapped on its face, a coconut wedged on top)
-  const w = SLED.w, h = SLED.h;
-  lineR(g, [-w / 2 - 6, -6, -w / 2 - 2, -2, w / 2, -2], 3, STEEL[4]); lineR(g, [-w / 2 - 6, -6.6, -w / 2 - 2, -2.6, w / 2, -2.6], 1.4, STEEL[1]);
-  shapeR(g, () => g.rect(-w / 2, -12, w, 8), WOOD, -w / 2, w / 2, 1);
-  for (let k = 1; k < 4; k++) pxR(g, -w / 2 + k * (w / 4), -12, 1, 8, WOOD[3]);
-  for (let k = 0; k < 3; k++) {
-    const y = -12 - (k + 1) * 15;
-    shapeR(g, () => g.roundRect(-w / 2 + 6, y, w - 10, 15, 6), ['#5A5A60', '#36363C', '#28282C', '#1A1A1E', '#08080A'], -w / 2 + 6, w / 2 - 4, 1);
-    for (let j = 0; j < 9; j++) pxR(g, -w / 2 + 10 + j * 5, y + 2, 2, 11, '#121214');
-    pxR(g, -w / 2 + 9, y + 2, w - 18, 1, '#6A6A72');
-  }
-  // (the cushion: a boat seat, orange vinyl, JUNGLE CRUISE faded on it, a split taped)
-  shapeR(g, () => g.roundRect(-w / 2 - 4, -h + 6, 12, h - 16, 3), ORANGE, -w / 2 - 4, -w / 2 + 8, 1.2);
-  pxR(g, -w / 2 - 2, -h + 10, 2, h - 26, ORANGE[0]);
-  pxR(g, -w / 2 - 3, -h * 0.55, 10, 4, '#C8C8D0'); pxR(g, -w / 2 - 3, -h * 0.55, 10, 1, '#F2F2F6');
-  // (the ratchet straps round it all, the buckle)
-  for (const y of [-h + 16, -26]) { lineR(g, [-w / 2 - 5, y, w / 2 - 2, y], 2.6, '#1A1A40'); lineR(g, [-w / 2 - 5, y - 0.6, w / 2 - 2, y - 0.6], 1, '#4A5AC0'); }
-  shapeR(g, () => g.rect(w / 2 - 12, -30, 8, 8), STEEL, w / 2 - 12, w / 2 - 4, 0.8);
-  coconut(g, 4, -h - 2, 7);
-};
+// The overflow's end, the near beam, the overflow pipe (painted once each)
 
 const paintOutlet = (g: Ctx) => {
   // (local: the wall's face at x 0, the pipe's middle at y 0; its end out of the wall, a collar bolted round it, the
@@ -622,12 +608,7 @@ export const drawLairBack = (c: Ctx, state: GameState) => {
   }
   c.restore();
   const h = lairOf(state);
-  // The sled (where it's been shoved; its pad toward him), the cannon, Ben
-  const sx = R(h.sled.x), jolt = h.sled.jolt > 0 ? (h.sled.jolt % 4 < 2 ? 1 : -1) : 0;
-  const padLeft = state.player.pos.x + state.player.width / 2 < sx;
-  c.save(); c.translate(Math.round(sx + jolt), F); if (!padLeft) c.scale(-1, 1);
-  stamp(c, `jl-sled-${padLeft ? 'l' : 'r'}`, -SLED.w / 2 - 10, -SLED.h - 12, SLED.w + 20, SLED.h + 14, paintSled);
-  c.restore();
+  // The cannon, Ben
   drawCannon(c, h.cannon, JUNGLE);
   const b = h.ben, at = benAt(state);
   drawBen(c, at.x, at.y, b.facing, b.pose, Math.floor(b.poseT / 5), b.piece);
