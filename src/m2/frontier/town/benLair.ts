@@ -24,7 +24,9 @@
 //     the dud dynamite stacked against the west wall (the target), drips off the ceiling. SAFE: nothing in it hurts
 //     him (noContactHurt), nobody else's shots get in.
 //   THE MEETUP (a cutscene, SKIP >> for all of it; confucktious/meetup.ts): the first meeting's long intro or a later
-//     one's short one; his gross-up dangling the COWBELL CLODHOPPERS, the cowbell clanking, the stomp at the lens.
+//     one's short one; his gross-up dangling the COWBELL CLODHOPPERS, the cowbell clanking, the stomp at the lens;
+//     then, before the trial line (the owner's "get the sequencing right"), THE HIDDEN ART OF FOLLOW-UPS if it's his
+//     first follow-up piece (the big beat, the buttons up while it's said), else Ben's brief mention (artBeats).
 //   THE TRIAL (in play; invented): THE SCARECROW. Ben lends the boots (taken back if he leaves on it; never saved
 //     lent) and stands his scarecrow out (a straw cowboy on a post in a nail keg, his hat full of nails: spiky, which
 //     the boots don't care about; harmless, grabbable): dive kick it, keep holding, tap grab: the MISSILE, west into
@@ -32,9 +34,8 @@
 //     knocked over some other way is stood back up. Can't get stuck: it keeps coming, nothing hurts, the buttons are up
 //     on screen near it.
 //   THE GIFT (a cutscene, skippable): his (setPiece, setBenGave, saved there and then); the tease, Meathead enamored;
-//     THE HIDDEN ART OF FOLLOW-UPS if it's his first follow-up piece (the big beat, the buttons up while it's said),
-//     else Ben's brief mention and Meathead's cartoon Japanese. Then the YOU GOT card (90 frames, every button let go,
-//     a fresh press).
+//     Meathead's cartoon Japanese if the art wasn't the big beat. Then the YOU GOT card (90 frames, every button let
+//     go, a fresh press).
 //   THE PRACTICE: the scarecrow, one at a time, stood back up a moment after each goes; Ben's word the first time it's
 //     thrown after the gift. Ben nudges him to the cannon.
 //   THE CANNON (upgrades/returnCannon.ts, Wilderness's look): only once the trial's passed; by the pool, straight up an
@@ -66,7 +67,7 @@ import { has, setPiece, setBenMet, benGave, setBenGave, followArt, setFollowArt,
 import { FOLLOW, type EquipControl } from '../../upgrades/equipInfo';
 import { makeCannon, updateCannon, cannonBusy, type Cannon } from '../../upgrades/returnCannon';
 import {
-  NUDGE, PIECE_LINES, ART_OPEN, ART_MH, ART_HOW, ART_WEEB, ART_HUH, ART_AGAIN, MH_CANNON_ASK, BEN_CANNON_FR, MH_MAZE, MH_LANDED_FR, BOOT_WEEB, BOOT_HUH,
+  NUDGE, PIECE_LINES, artBeats, artStart, MH_CANNON_ASK, BEN_CANNON_FR, MH_MAZE, MH_LANDED_FR, BOOT_WEEB, BOOT_HUH,
   benSays, warmBenGross, meetupScript, startScript, tickScript, skipScript,
   type BenPose, type BenTalk, type Script, type Beat, type ByPants,
 } from '../../upgrades/confucktious';
@@ -332,7 +333,7 @@ export const updateBenLair = (ctx: FrameContext, controls: Controls): Controls =
   }
   let out = controls, tips: EquipControl[] | null = null;
   switch (h.phase) {
-    case 'meet': out = runMeet(state, h); break;
+    case 'meet': ({ out, tips } = runMeet(state, h)); break;
     case 'trial': tips = runTrial(state, h); break;
     case 'gift': ({ out, tips } = runGift(state, h)); break;
     case 'card': {
@@ -449,22 +450,30 @@ const startMeet = (state: GameState, h: Lair) => {
   state.stageMemo[MEMO] = '1';
   // (the gross-up back up for the sell: the boots, the stomp at the lens)
   const sell = L.sell[0];
-  h.script = startScript(meetupScript(pantsOf(state), L).map((b): Beat => (b.who === 'ben' && b.text === sell ? { ...b, gross: true } : b)));
+  // (the hidden art of follow-ups before the trial line: what follow-ups are, then the scarecrow; the big beat only with
+  // his first follow-up piece, whichever land: none taught, none of the others handed over)
+  h.artFull = !followArt() && !FOLLOW_PIECES.some(pc => pc !== 'sabatons' && benGave(pc));
+  const art = artBeats(pantsOf(state), h.artFull);
+  const beats = meetupScript(pantsOf(state), L, undefined, art).map((b): Beat => (b.who === 'ben' && b.text === sell ? { ...b, gross: true } : b));
+  const at = artStart(beats, art);
+  h.howA = at + art.how[0]; h.howB = at + art.how[1];
+  h.script = startScript(beats);
   freeze(state);
   setPose(h, 'stand'); faceBen(state, h);
 };
-const runMeet = (state: GameState, h: Lair): Controls => {
+const runMeet = (state: GameState, h: Lair): { out: Controls; tips: EquipControl[] | null } => {
   const s = h.script!;
   freeze(state); h.all++;
   const end = () => { setBenMet(true); saveProgress(); h.script = null; startTrial(state, h); };
-  if (h.all > SKIP_AFTER) { offerSkip(); if (takeSkip()) { silenceAll(); skipScript(s); h.ben.said = null; end(); return { ...NO_CONTROLS }; } }
+  if (h.all > SKIP_AFTER) { offerSkip(); if (takeSkip()) { silenceAll(); skipScript(s); h.ben.said = null; end(); return { out: { ...NO_CONTROLS }, tips: null }; } }
   // (a beat of him turning from his lifting; then he turns to Meathead for the lot)
   if (h.all > 40) {
     tickScript(state, s, h.ben);
     if (s.i > 0 || s.waiting) { setPose(h, s.pose); faceBen(state, h); }
-    if (s.done) end();
+    if (s.done) { end(); return { out: { ...NO_CONTROLS }, tips: null }; }
   }
-  return { ...NO_CONTROLS };
+  // (the buttons up while he says how the art goes)
+  return { out: { ...NO_CONTROLS }, tips: s.i >= h.howA && s.i <= h.howB ? KICK_TIPS : null };
 };
 
 // ---- the trial
@@ -530,8 +539,7 @@ const runTrial = (state: GameState, h: Lair): EquipControl[] | null => {
 // ---- the gift, and the hidden art of follow-ups
 const startGift = (state: GameState, h: Lair) => {
   h.phase = 'gift'; h.all = 0; h.token++;
-  // (the big beat only with his first follow-up piece, whichever land: none taught, none of the others handed over)
-  h.artFull = !followArt() && !FOLLOW_PIECES.some(pc => pc !== 'sabatons' && benGave(pc));
+  // (the hidden art's been said before the trial (startMeet): here, only the gift, and Meathead naming his new move)
   // (his for good, there and then: a skip, a death, a quit can't lose them)
   setPiece('sabatons', true); setBenGave('sabatons'); lent = false; saveProgress();
   freeze(state);
@@ -542,19 +550,15 @@ const startGift = (state: GameState, h: Lair) => {
     { who: 'ben', text: L.tease[0], pose: 'fold' },
     { who: 'mh', text: pickLine(L.enamored[pants]) },
   ];
-  if (h.artFull) {
-    beats.push({ who: 'ben', text: ART_OPEN[0], gross: true }, { who: 'mh', text: pickLine(ART_MH[pants]) });
-    h.howA = beats.length;
-    for (const text of ART_HOW) beats.push({ who: 'ben', text });
-    h.howB = beats.length - 1;
-    beats.push({ who: 'mh', text: pickLine(ART_WEEB[pants]) }, { who: 'ben', text: ART_HUH[0] });
-  } else {
-    h.howA = h.howB = beats.length;
-    beats.push({ who: 'ben', text: ART_AGAIN[0] }, { who: 'mh', text: pickLine(BOOT_WEEB[pants]) }, { who: 'ben', text: BOOT_HUH[0] });
-  }
+  // (the art already taught with the big beat has its own cartoon Japanese; otherwise he names the move his way)
+  if (!h.artFull) beats.push({ who: 'mh', text: pickLine(BOOT_WEEB[pants]) }, { who: 'ben', text: BOOT_HUH[0] });
+  h.howA = h.howB = -1;
   h.script = startScript(beats);
 };
-const ART_TIPS: EquipControl[] = [
+/** The practice's tips, in the order he does them (the owner's: "say down+B while in air followed by the tap Y as you
+ *  hold B"): the dive kick, then the tap. */
+const PRACTICE_TIPS: EquipControl[] = [
+  KICK_TIPS[0],
   { ...FOLLOW, label: 'TAP AS YOU HOLD A DIVE KICK: MISSILE' },
 ];
 const runGift = (state: GameState, h: Lair): { out: Controls; tips: EquipControl[] | null } => {
@@ -570,7 +574,7 @@ const runGift = (state: GameState, h: Lair): { out: Controls; tips: EquipControl
   if (h.all > 20) tickScript(state, s, h.ben);
   setPose(h, s.pose);
   if (s.done) toCard();
-  const tips = s.i >= h.howA && s.i <= h.howB && !s.done ? ART_TIPS : null;
+  const tips: EquipControl[] | null = null;
   return { out: { ...NO_CONTROLS }, tips };
 };
 
@@ -594,7 +598,7 @@ const runDone = (state: GameState, h: Lair): EquipControl[] | null => {
     h.nudgeAt = state.frame + 2700;
     benSays(h.ben, pickLine(byPants(state, NUDGE)));
   }
-  return h.tipsTill && h.crow ? ART_TIPS.concat(KICK_TIPS.slice(0, 1)) : null;
+  return h.tipsTill && h.crow ? PRACTICE_TIPS : null;
 };
 
 /** Where Ben's feet are (world). */

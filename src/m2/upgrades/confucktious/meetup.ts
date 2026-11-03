@@ -14,12 +14,35 @@ import { meatheadSays } from '../../adventure/section';
 import { benMet } from '../state';
 import { benSays, type BenTalk } from './talk';
 import type { BenPose } from './art';
-import { MEET, NAME, RIDDLE, FIRST_WHY, PURPOSE, FIRST_REACT, FIRST_ASIDE, AGAIN, AGAIN_MH, type ByPants, type PieceLines } from './lines';
+import {
+  MEET, NAME, RIDDLE, FIRST_WHY, PURPOSE, FIRST_REACT, FIRST_ASIDE, AGAIN, AGAIN_MH, ART_OPEN, ART_MH, ART_HOW, ART_WEEB, ART_HUH, ART_AGAIN,
+  type ByPants, type PieceLines,
+} from './lines';
 
 export type Pants = keyof ByPants;
 export interface Beat { who: 'ben' | 'mh'; text: string; gross?: boolean; pose?: BenPose }
 /** The whole scene's lines, in order: the first meeting's intro or a later one's, then the piece's. */
-export const meetupScript = (pants: Pants, piece: PieceLines, first = !benMet()): Beat[] => {
+/** THE HIDDEN ART OF FOLLOW-UPS, for a follow-up piece's meetup: said before the trial line, so what follow-ups are
+ *  comes first and the land's trial then teaches its own (the owner's: "ben mentions the 'hidden art' of follow ups
+ *  after he already guided me to the follow up. get the sequencing right"). `full`: his first follow-up piece, any land
+ *  (the big beat); else the brief mention (`again`, ART_AGAIN by default). `extra`: a line said right after the how (the
+ *  shins' flash kick). `how` / `extra` are the beats (indexes in `beats`, -1 none) the buttons are up for; with
+ *  `againIsExtra`, the brief mention's an extra (its own buttons), not a how. */
+export interface ArtBeats { beats: Beat[]; how: [number, number]; extra: [number, number] }
+export const artBeats = (pants: Pants, full: boolean, opts: { extra?: string; again?: string; againIsExtra?: boolean } = {}): ArtBeats => {
+  if (!full) return { beats: [{ who: 'ben', text: opts.again ?? ART_AGAIN[0] }], how: opts.againIsExtra ? [-1, -1] : [0, 0], extra: opts.againIsExtra ? [0, 0] : [-1, -1] };
+  const beats: Beat[] = [{ who: 'ben', text: ART_OPEN[0], gross: true }, { who: 'mh', text: pickLine(ART_MH[pants]) }];
+  const how: [number, number] = [beats.length, beats.length + ART_HOW.length - 1];
+  for (const text of ART_HOW) beats.push({ who: 'ben', text });
+  let extra: [number, number] = [-1, -1];
+  if (opts.extra) { extra = [beats.length, beats.length]; beats.push({ who: 'ben', text: opts.extra }); }
+  beats.push({ who: 'mh', text: pickLine(ART_WEEB[pants]) }, { who: 'ben', text: ART_HUH[0] });
+  return { beats, how, extra };
+};
+/** Where `art` starts in a meetup script built with it (it goes in just before the trial line, the last beat). */
+export const artStart = (script: Beat[], art: ArtBeats) => script.length - 1 - art.beats.length;
+
+export const meetupScript = (pants: Pants, piece: PieceLines, first = !benMet(), art?: ArtBeats): Beat[] => {
   const p = (r: ByPants) => pickLine(r[pants]);
   const intro: Beat[] = first ? [
     { who: 'mh', text: p(MEET) },
@@ -34,7 +57,7 @@ export const meetupScript = (pants: Pants, piece: PieceLines, first = !benMet())
     { who: 'mh', text: p(AGAIN_MH) },
     { who: 'ben', text: pickLine(NAME) },
   ];
-  return [...intro, { who: 'mh', text: p(piece.ask) }, { who: 'ben', text: piece.sell[0] }, { who: 'ben', text: piece.trial[0], pose: piece.trialPose ?? 'offer' }];
+  return [...intro, { who: 'mh', text: p(piece.ask) }, { who: 'ben', text: piece.sell[0] }, ...(art?.beats ?? []), { who: 'ben', text: piece.trial[0], pose: piece.trialPose ?? 'offer' }];
 };
 
 /** The gross-up's least time up (frames), however quick its lines. */

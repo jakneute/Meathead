@@ -16,7 +16,8 @@
 //     line, a hint after two); the third charge sends Ben flying, winded. Can't get stuck: any charge that lands counts,
 //     wherever the sled's got to, from either side; the charge's buttons are up on screen while he's near it.
 //   THE GIFT (a cutscene, skippable): the coco-nuts are his (setPiece, setBenGave, saved there and then); Ben's tease,
-//     Meathead enamored. Then THE HIDDEN ART OF FOLLOW-UPS: if it's his first follow-up piece (the save's followArt()
+//     Meathead enamored. (THE HIDDEN ART OF FOLLOW-UPS now comes in the meetup, before the trial line: the owner's "get
+//     the sequencing right".) The art: if it's his first follow-up piece (the save's followArt()
 //     not set, and Ben's handed over no other follow-up piece), the big beat: the gross-up, how it works (hold the
 //     charge, tap grab, no hit needed, through the bounce back, not on bosses, sub-bosses or critters; one piece out
 //     there doesn't use the grab at all: the flash kick), Meathead's cartoon Japanese, Ben lost; the buttons up on
@@ -61,7 +62,7 @@ import { FOLLOW } from '../../upgrades/equipInfo';
 import type { EquipControl } from '../../upgrades/equipInfo';
 import { makeCannon, updateCannon, cannonBusy, type Cannon } from '../../upgrades/returnCannon';
 import {
-  NUDGE, BYE_MEATHEAD, BYE_BEN, PIECE_LINES, ART_OPEN, ART_MH, ART_HOW, ART_WEEB, ART_HUH, ART_AGAIN,
+  NUDGE, BYE_MEATHEAD, BYE_BEN, PIECE_LINES, artBeats, artStart,
   benSays, drawBenGross, drawBenGrossBack, warmBenGross, meetupScript, startScript, tickScript, skipScript,
   type BenPose, type BenTalk, type Script, type Beat, type ByPants,
 } from '../../upgrades/confucktious';
@@ -254,7 +255,7 @@ export const updateLair = (ctx: FrameContext, controls: Controls): Controls => {
   }
   let out = controls, tips: EquipControl[] | null = null;
   switch (h.phase) {
-    case 'meet': out = runMeet(state, h); break;
+    case 'meet': ({ out, tips } = runMeet(state, h)); break;
     case 'trial': tips = runTrial(ctx, h); break;
     case 'gift': ({ out, tips } = runGift(state, h)); break;
     case 'card': {
@@ -312,22 +313,30 @@ const faceBen = (state: GameState, h: Lair) => {
 const startMeet = (state: GameState, h: Lair) => {
   h.phase = 'meet'; h.all = 0; h.token++;
   state.stageMemo[MEMO] = '1';
-  h.script = startScript(meetupScript(pantsOf(state), L));
+  // (the hidden art of follow-ups before the trial line (the owner's: "ben mentions the 'hidden art' of follow ups after
+  // he already guided me to the follow up. get the sequencing right"): the big beat only with his first follow-up piece,
+  // whichever land: none taught, none of the others handed over)
+  h.artFull = !followArt() && !FOLLOW_PIECES.some(pc => pc !== 'pauldrons' && benGave(pc));
+  const art = artBeats(pantsOf(state), h.artFull);
+  const beats = meetupScript(pantsOf(state), L, undefined, art), at = artStart(beats, art);
+  h.howA = at + art.how[0]; h.howB = at + art.how[1];
+  h.script = startScript(beats);
   freeze(state);
   setPose(h, 'flurry'); h.ben.facing = -1;
 };
-const runMeet = (state: GameState, h: Lair): Controls => {
+const runMeet = (state: GameState, h: Lair): { out: Controls; tips: EquipControl[] | null } => {
   const s = h.script!;
   freeze(state); h.all++;
   const end = () => { setBenMet(true); saveProgress(); h.script = null; startTrial(state, h); };
-  if (h.all > SKIP_AFTER) { offerSkip(); if (takeSkip()) { silenceAll(); skipScript(s); h.ben.said = null; end(); return { ...NO_CONTROLS }; } }
+  if (h.all > SKIP_AFTER) { offerSkip(); if (takeSkip()) { silenceAll(); skipScript(s); h.ben.said = null; end(); return { out: { ...NO_CONTROLS }, tips: null }; } }
   // (a beat of him working the sled's tires first; then he turns to Meathead for the lot)
   if (h.all > 40) {
     tickScript(state, s, h.ben);
     if (s.i > 0 || s.waiting) { setPose(h, s.pose); faceBen(state, h); }
-    if (s.done) end();
+    if (s.done) { end(); return { out: { ...NO_CONTROLS }, tips: null }; }
   }
-  return { ...NO_CONTROLS };
+  // (the buttons up while he says how the art goes)
+  return { out: { ...NO_CONTROLS }, tips: s.i >= h.howA && s.i <= h.howB ? ART_TIPS : null };
 };
 
 // ---- the trial
@@ -420,8 +429,7 @@ const runFly = (state: GameState, h: Lair) => {
 // ---- the gift, and the hidden art of follow-ups
 const startGift = (state: GameState, h: Lair) => {
   h.phase = 'gift'; h.all = 0; h.token++; h.handed = false;
-  // (the big beat only with his first follow-up piece, whichever land: none taught, none of the others handed over)
-  h.artFull = !followArt() && !FOLLOW_PIECES.some(pc => pc !== 'pauldrons' && benGave(pc));
+  // (the hidden art's been said before the trial (startMeet): here, only the gift)
   // (his for good, there and then: a skip, a death, a quit can't lose them)
   setPiece('pauldrons', true); setBenGave('pauldrons'); saveProgress();
   freeze(state);
@@ -432,16 +440,7 @@ const startGift = (state: GameState, h: Lair) => {
     { who: 'ben', text: L.tease[0], pose: 'fold' },
     { who: 'mh', text: pickLine(L.enamored[pants]) },
   ];
-  if (h.artFull) {
-    beats.push({ who: 'ben', text: ART_OPEN[0], gross: true }, { who: 'mh', text: pickLine(ART_MH[pants]) });
-    h.howA = beats.length;
-    for (const text of ART_HOW) beats.push({ who: 'ben', text });
-    h.howB = beats.length - 1;
-    beats.push({ who: 'mh', text: pickLine(ART_WEEB[pants]) }, { who: 'ben', text: ART_HUH[0] });
-  } else {
-    h.howA = h.howB = beats.length;
-    beats.push({ who: 'ben', text: ART_AGAIN[0] });
-  }
+  h.howA = h.howB = -1;
   h.script = startScript(beats);
 };
 // (in the order he does them: the charge, then the tap, then the kick (the owner's: the tips "seem to be backwards"))
