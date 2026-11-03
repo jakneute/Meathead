@@ -73,7 +73,7 @@ const warnSign = (g: Ctx, x: number, foot: number, a: string, b: string) => {
   painted(g, b, x, top + 46, 6, '#141414', null);
   // (rust running from the bolts, a dent)
   for (const bx of [l + 4, l + w - 6]) { box(g, bx, top + 22, 2, 2, '#5A5F68'); for (let k = 0; k < 8; k++) box(g, bx + (k % 2), top + 24 + k * 2, 1, 2, k < 4 ? '#B45A1E' : '#C88A5A'); }
-  box(g, l + w - 22, top + h - 10, 12, 4, '#D8D4CC');
+  box(g, l + w - 22, top + h - 5, 12, 3, '#D8D4CC'); // (in the strip under the words, never over a letter)
   // (a vine climbing the post, round it)
   for (let y = foot; y > top + h; y -= 4) { const sx = Math.sin(y * 0.18) * 6; box(g, x + sx - 1, y, 3, 4, sx > 0 ? LEAF[4] : LEAF[2]); if (y % 12 === 0) leaf(g, x + sx, y, 8, sx > 0 ? -0.3 : Math.PI + 0.3, LEAF, 3); }
   fern(g, x, foot, 26, 3, 0, LEAF, 3);

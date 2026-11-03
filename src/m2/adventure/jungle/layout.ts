@@ -101,6 +101,10 @@ export const SIGNS: [number, number, string, string, SignStyle][] = [
   [3390, 0, 'DANGER: RAVINE', 'VINES ARE NOT A RIDE', 'warn'],
   [5130, 0, 'SCENIC OVERLOOK', 'THAT WAY (UP)', 'scenic'],
   [6880, 460, 'SCENIC OVERLOOK', 'NO RAILING. ENJOY!', 'scenic'],
+  // (the owner's: "make sure there are warnings of flesh eating piranhas in the waterfall area. not like 'normal' piranhas":
+  // one on the overlook before the gorge, one on the far bank facing back at it)
+  [6560, 460, 'FLESH-EATING PIRANHAS', 'NOT THE NORMAL KIND', 'warn'],
+  [7945, 0, 'PIRANHA POOL', 'BONES IN SECONDS', 'warn'],
   [8200, 0, 'JAGUAR CROSSING', 'DO NOT PET', 'jaguar'],
   [9700, 0, 'LAST VINES', 'HAPPY LAND IS NOT LIABLE', 'legal'],
   [11640, 0, 'JUNGLE CRUISE', 'THIS WAY >', 'exit'],
