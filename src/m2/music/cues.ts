@@ -26,7 +26,7 @@ import type { GameState } from '../../m1/game/core/state';
 import { getAudioContext } from '../../m1/game/platform/audio';
 import { getSettings } from '../../m1/game/settings';
 import { isTalking } from '../../m1/game/platform/speech';
-import { play, stop, setMix, useContext, prewarm, prewarmRooms, nowPlaying } from './engine';
+import { play, stop, setMix, setSpace, useContext, prewarm, prewarmRooms, nowPlaying, type MusicSpace } from './engine';
 import { SONGS } from './songs/index';
 import { soundTestCue, type Cue, soundTestPicks } from './soundTest';
 import { momentOn } from './moments';
@@ -84,6 +84,20 @@ import { mashMusic } from '../spooky/town/mash';
 import { hackMusic } from '../adventure/dino/hack';
 import { a51Music } from '../space/drag/area51';
 import { plungeMusic } from '../hollywood/coaster/plunge';
+import { CAVE as JUNGLE_CAVE, PASSAGE as JUNGLE_PASSAGE } from '../adventure/jungle/hidden';
+import { inLair as inPumpRoom, upShaft as upPumpShaft } from '../adventure/river/benLair';
+import { inSecret as inLibraryLoft } from '../spooky/castle/benLoft';
+import { underHall } from '../space/queen/geo';
+import { inA51Room } from '../space/drag/area51';
+import { inTank, upTower } from '../hollywood/lot/benTower';
+import { inHall as inValhalla } from '../foreign/norway/valhalla';
+import { inLair as inAssayOffice, underBed } from '../frontier/town/benLair';
+import { CRYPT } from '../fantasy/square/crypt';
+import { X as SQUARE_X } from '../fantasy/square/layout';
+import { underground as underGlen, inRoom as inMachineRoom } from '../fantasy/glen/benLair';
+import { inCave as inBallPitCave } from '../cartoon/kiddie/hidden';
+import { inStock } from '../cartoon/whitehouse1/giftShop';
+import { GY } from '../adventure/geometry';
 import type { GameCue } from './moments';
 
 export type { Cue };
@@ -125,7 +139,45 @@ const WHOLE_SECTION_FIGHTS = new Set(['space:orbit']);
 const INTRO_STANDIN: Record<string, string> = { garage: 'lounge', security: 'lounge', america: 'main', ticket: 'calliope' };
 
 interface Cand { song: string; arrs?: string[] }
-interface Want { cands: Cand[]; cutscene: boolean }
+interface Want { cands: Cand[]; cutscene: boolean; space?: MusicSpace }
+
+/** The hidden spots, as the music hears them (the owner's: "when in the cave part of the jungle land with the hidden
+ *  pickup, be sure to play a 'cave' version of the song currently playing. same for any new areas we have since
+ *  built"): whatever's on goes on, at the same place, heard from in there (engine.ts setSpace): a cave (rock, a
+ *  crypt, a hollow tank, a hall dug deep under a bridge) or a smaller room. Not a minigame's song nor a boss's. */
+const hiddenSpace = (s: GameState, land: string, sec: string): MusicSpace => {
+  const p = s.player, cx = p.pos.x + p.width / 2, feet = p.pos.y + p.height;
+  switch (`${land}:${sec}`) {
+    // (Jungle Land: the cavern behind the falls and the passage under the gorge, by the cave's own bounds)
+    case 'adventure:jungle': {
+      const C = JUNGLE_CAVE, P = JUNGLE_PASSAGE;
+      const cavern = cx > C.a - 30 && cx < C.wall + 10 && feet > C.mouthTop && feet < C.base + 10;
+      const passage = cx > P.ledge && cx < P.b && feet > P.ceil && feet < P.floor + 10;
+      return cavern || passage ? 'cave' : 'open';
+    }
+    // (Ben's pump room up the maintenance shaft)
+    case 'adventure:river': return inPumpRoom(s) || upPumpShaft(s) ? 'room' : 'open';
+    // (Ben's reading loft over the library, and the way through the wall to it)
+    case 'spooky:castle': return inLibraryLoft(s) ? 'room' : 'open';
+    // (Ben's break room under the hatch; Area 51's store room)
+    case 'space:queen': return underHall(cx, feet) ? 'room' : 'open';
+    case 'space:drag': return inA51Room(s) ? 'room' : 'open';
+    // (Ben's drained water tank: a hollow steel drum; the walled scaffold up to it, a room)
+    case 'hollywood:lot': return inTank(s) ? 'cave' : upTower(s) ? 'room' : 'open';
+    // (the Halls of Valhalla, deep under the bridge)
+    case 'foreign:norway': return inValhalla(s) ? 'cave' : 'open';
+    // (Ben's assay office, and the flooded maze round it under the mine)
+    case 'frontier:town': return inAssayOffice(s) ? 'room' : underBed(s) ? 'cave' : 'open';
+    // (the crypt under the Grand Staircase hall)
+    case 'fantasy:square': return cx > SQUARE_X(CRYPT.a) && cx < SQUARE_X(CRYPT.b) && feet > GY + 12 ? 'cave' : 'open';
+    // (Ben's machine room, and the adit and tunnel to it)
+    case 'fantasy:glen': return inMachineRoom(s) ? 'room' : underGlen(s) ? 'cave' : 'open';
+    // (Ben's cave under the ball pit; the gift shop's stockroom)
+    case 'cartoon:kiddie': return inBallPitCave(s) ? 'cave' : 'open';
+    case 'cartoon:whitehouse1': return inStock(s) ? 'room' : 'open';
+  }
+  return 'open';
+};
 
 let state: GameState | null = null;
 let stage: string | null = null;
@@ -552,17 +604,19 @@ const gameWants = (s: GameState | null): Want => {
     };
   }
   // Future Land's basement: the queen stalking him in the dark (the user's: atmospheric, creepy)
-  if (land === 'space' && sec === 'queen' && p.pos.y + p.height > CEIL_B + 30 && p.pos.x < STAIRS_B) return { cands: [{ song: 'seq:stalker', arrs: [stalkerArr(s)] }, { song: 'land:space', arrs: ['stalker', 'queen'] }], cutscene };
+  // (a hidden spot: whatever's on, heard from in there)
+  const space = hiddenSpace(s, land, sec);
+  if (land === 'space' && sec === 'queen' && p.pos.y + p.height > CEIL_B + 30 && p.pos.x < STAIRS_B) return { cands: [{ song: 'seq:stalker', arrs: [stalkerArr(s)] }, { song: 'land:space', arrs: ['stalker', 'queen'] }], cutscene, space };
   // Spooky Land's chamber and Satan (a scene, but not quieter: it's his)
   const moment = land === 'spooky' ? spookyMoment(s, sec) : land === 'frontier' ? frontierMoment(s, sec) : land === 'fantasy' ? fantasyMoment(s, sec) : land === 'cartoon' ? cartoonMoment(s, sec) : null;
-  if (moment) return { cands: [moment, theme], cutscene: false };
+  if (moment) return { cands: [moment, theme], cutscene: false, space };
   const seq = SEQUENCES[land]?.[sec];
   // (Hollywood Land's rides are shows he sits through (the coaster's laps, REAL DISASTERS, the fling): their songs at
   // full, by what's on (hollywoodArrs), not the quieter cutscene mix; and the helicopter's tour, the ride's own tape;
   // and Wilderness Land's run for the caboose, the engine's crash, the booth's scene and the chipper's leap; and
   // Truelling Tragons)
-  if (seq && !seqOver(s, land, sec)) return { cands: [{ song: `seq:${seq}`, arrs: seqArrs(s, land, sec) }, theme], cutscene: cutscene && land !== 'hollywood' && land !== 'foreign' && land !== 'frontier' && land !== 'fantasy' };
-  return { cands: [theme], cutscene };
+  if (seq && !seqOver(s, land, sec)) return { cands: [{ song: `seq:${seq}`, arrs: seqArrs(s, land, sec) }, theme], cutscene: cutscene && land !== 'hollywood' && land !== 'foreign' && land !== 'frontier' && land !== 'fantasy', space };
+  return { cands: [theme], cutscene, space };
 };
 
 /** Starts making a land's songs in idle time as he arrives (its theme, its sequences, its bosses). */
@@ -581,7 +635,7 @@ const warmLand = (land: string | null) => {
 const apply = () => {
   const test = soundTestCue();
   if (!enabled()) { if (last) { last = ''; stop(0.3); } return; }
-  let cue: Cue | null = null, quiet = false;
+  let cue: Cue | null = null, quiet = false, space: MusicSpace = 'open';
   if (test) { cue = test; lastWasTest = true; }
   else if (paused && !lastWasTest) {
     // (paused: whatever was on stays on, muffled; the moments it follows aren't ticking; a minigame's sting isn't
@@ -595,6 +649,7 @@ const apply = () => {
     const w = gameWants(state);
     const got = pick(w.cands, w.cutscene);
     cue = got?.cue ?? null; quiet = !!got?.quiet;
+    space = w.space ?? 'open';
   }
   const key = cue ? `${cue.song}:${cue.arr ?? ''}${test ? `#${soundTestPicks()}` : ''}` : '';
   if (key !== last) {
@@ -602,6 +657,7 @@ const apply = () => {
     if (!cue || !SONGS[cue.song]) stop(0.6);
     else play(cue.song, SONGS[cue.song], cue.arr ?? 'main', !!test);
   } else if (cue && !nowPlaying() && !SONGS[cue.song].once) play(cue.song, SONGS[cue.song], cue.arr ?? 'main');
+  setSpace(space);
   setMix(isTalking(), !test && (paused || (!!state?.player.swimming && !!LAND_OF_STAGE[stage ?? ''])), !test && quiet);
   warmLand(stage ? LAND_OF_STAGE[stage] ?? null : null);
 };

@@ -8,7 +8,9 @@ synthesized at startup: no audio ships, the game stays one offline file.
   their place (Banjo-Kazooie), intros that loop back (`loopFrom`), velocity, expression, per-note pan, bends, falls,
   portamento, vibrato, slurs, swing; a convolution reverb (generated rooms: `fx.ts`), a tempo-synced ping-pong delay,
   a stereo chorus (per-part sends), the bus compressor and a limiter. Ducked under speech, muffled when paused or
-  under water, quieter in a cutscene, off at music volume 0.
+  under water, quieter in a cutscene, off at music volume 0. In a hidden spot (cues.ts `hiddenSpace`: the caves,
+  Ben's lairs, the crypt, the stockroom...) whatever's playing is heard from in there, no restart: the bus's space
+  (engine.ts `setSpace`: 'cave' a wet cave reverb, the top rolled off, a bit quieter; 'room' a small room's).
 - `mml.ts` + **`MML.md`**: the notation (Meathead 1's, extended). Read MML.md before composing.
 - `bank/`: the instruments (below). Multi-sampled an octave apart (a note's never sped up or slowed down more than half
   an octave: no chipmunks, formants where they belong), 22-44.1 kHz, stereo where it matters, made lazily in idle

@@ -199,9 +199,80 @@ const ensureChain = (): AudioContext | null => {
   comp.threshold.value = -16; comp.knee.value = 10; comp.ratio.value = 2.5; comp.attack.value = 0.015; comp.release.value = 0.3;
   const lim = c.createDynamicsCompressor();
   lim.threshold.value = -3; lim.knee.value = 0; lim.ratio.value = 20; lim.attack.value = 0.002; lim.release.value = 0.12;
-  master.connect(muffleF); muffleF.connect(comp); comp.connect(lim); lim.connect(mixOut(c, 'music'));
+  // (the space he's in: the dry signal through its tone filter and level; the wet sends made the first time a space
+  // wants them: spaceWet)
+  spaceTone = c.createBiquadFilter();
+  spaceTone.type = 'lowpass'; spaceTone.frequency.value = OPEN_CUTOFF; spaceTone.Q.value = 0.5;
+  spaceDry = c.createGain();
+  spaceComp = comp;
+  spaceWets.clear(); space = 'open';
+  master.connect(muffleF); muffleF.connect(spaceTone); spaceTone.connect(spaceDry); spaceDry.connect(comp); comp.connect(lim); lim.connect(mixOut(c, 'music'));
   return c;
 };
+
+// ---- The space he's in (a cave, a small room: whatever's playing, heard from in there) ----
+
+/** A space's sound: its room's reverb (and how much of it), the dry signal's top (the rock soaking it up) and level,
+ *  the wet's own top. */
+interface SpaceDef { ir: ReverbKind; wet: number; dry: number; cutoff: number; wetCutoff: number }
+const SPACES: Record<Exclude<MusicSpace, 'open'>, SpaceDef> = {
+  cave: { ir: 'cave', wet: 0.55, dry: 0.62, cutoff: 2400, wetCutoff: 2600 },
+  room: { ir: 'room', wet: 0.4, dry: 0.86, cutoff: 7000, wetCutoff: 6000 },
+};
+/** How fast a space comes in and goes (a time constant: about 0.8 s to settle). */
+const SPACE_TC = 0.2;
+export type MusicSpace = 'open' | 'cave' | 'room';
+let space: MusicSpace = 'open';
+let spaceTone: BiquadFilterNode | null = null;
+let spaceDry: GainNode | null = null;
+let spaceComp: AudioNode | null = null;
+/** Each space's wet path (made once per audio context, the first time it's wanted): the send, its room, its tone, and
+ *  whether the send's hooked up (it's let go of a while after it's faded out, so the room isn't working for nothing). */
+interface Wet { send: GainNode; conv: ConvolverNode; out: GainNode; on: boolean; off: ReturnType<typeof setTimeout> | null }
+const spaceWets = new Map<string, Wet>();
+const spaceWet = (kind: Exclude<MusicSpace, 'open'>): Wet | null => {
+  if (!ctx || !muffleF || !spaceComp) return null;
+  let w = spaceWets.get(kind);
+  if (w) return w;
+  const c = ctx, d = SPACES[kind];
+  const send = c.createGain(); send.gain.value = 0;
+  const conv = c.createConvolver(); conv.buffer = reverbIR(c, d.ir);
+  const hp = c.createBiquadFilter(); hp.type = 'highpass'; hp.frequency.value = 150;
+  const lp = c.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = d.wetCutoff; lp.Q.value = 0.5;
+  const out = c.createGain(); out.gain.value = 1;
+  conv.connect(hp); hp.connect(lp); lp.connect(out); out.connect(spaceComp);
+  w = { send, conv, out, on: false, off: null };
+  spaceWets.set(kind, w);
+  return w;
+};
+/** The music heard from the space he's in: 'open' (as it is), a cave, a small room. Ramps (no restart, no jump);
+ *  asked for ten times a second, it only does anything when the space changes. */
+export const setSpace = (next: MusicSpace) => {
+  if (next === space || !ctx || !spaceTone || !spaceDry || !muffleF) return;
+  space = next;
+  const t = ctx.currentTime, d = next === 'open' ? null : SPACES[next];
+  spaceTone.frequency.cancelScheduledValues(t); spaceTone.frequency.setTargetAtTime(d?.cutoff ?? OPEN_CUTOFF, t, SPACE_TC);
+  spaceDry.gain.cancelScheduledValues(t); spaceDry.gain.setTargetAtTime(d?.dry ?? 1, t, SPACE_TC);
+  for (const kind of Object.keys(SPACES) as Exclude<MusicSpace, 'open'>[]) {
+    const want = kind === next;
+    const w = want ? spaceWet(kind) : spaceWets.get(kind);
+    if (!w) continue;
+    if (w.off) { clearTimeout(w.off); w.off = null; }
+    if (want && !w.on) { muffleF.connect(w.send); w.send.connect(w.conv); w.on = true; }
+    w.send.gain.cancelScheduledValues(t);
+    w.send.gain.setTargetAtTime(want ? SPACES[kind].wet : 0, t, SPACE_TC);
+    // (faded out, and the room's tail rung out: unhooked)
+    if (!want && w.on) {
+      const ww = w;
+      ww.off = setTimeout(() => { ww.off = null; if (space === kind) return; try { muffleF?.disconnect(ww.send); ww.send.disconnect(); } catch { /* gone */ } ww.on = false; }, 6000);
+    }
+  }
+};
+/** The space's bus as it stands (for a check: the tone's top, the dry level, each wet send). */
+export const spaceNow = () => ({
+  space, cutoff: spaceTone?.frequency.value ?? null, dry: spaceDry?.gain.value ?? null,
+  wet: Object.fromEntries([...spaceWets].map(([k, w]) => [k, { send: w.send.gain.value, on: w.on }])),
+});
 
 /** A song's own effects: its room (convolution), the ping-pong delay, the chorus; each fed by the parts' sends. */
 const buildFx = (c: AudioContext, song: Song, spb: number, out: AudioNode) => {
