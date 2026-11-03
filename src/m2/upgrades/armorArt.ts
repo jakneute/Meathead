@@ -346,9 +346,11 @@ const paintGlove = (c: C) => {
 // PAULDRONS (Jungle): 20 x 18, the deltoid's middle at (9, 10); a coconut half strapped on: the hairy shell, its three
 // eyes, the white meat showing round the rim, leopard-print trim under that, a plastic tusk glued on.
 const COCO: Ramp = ['#24120A', '#3E2212', '#5E361C', '#80502C', '#A26C40'];
-const paintPauldron = (c: C) => {
-  const dome = inEllipse(9, 11, 8.4, 8.2);
-  shade(c, 0, 2, 18, 10, (x, y) => dome(x, y) && y < 11.4, domeLit(8, 10, 8.4, 8.2, 0.16), COCO);
+const paintPauldronLit = (c: C, far: boolean) => {
+  const dome = inEllipse(9, 11, 8.4, 8.2), lit = domeLit(8, 10, 8.4, 8.2, 0.16);
+  // (the -x one's drawn mirrored (its tusk out that way): its dome's light painted mirrored too, so once it's turned
+  // round it's lit from the same side as the other)
+  shade(c, 0, 2, 18, 10, (x, y) => dome(x, y) && y < 11.4, far ? (x, y) => lit(18 - x, y) : lit, COCO);
   // (the husk's hair: short lit strands, the shell's three eyes near its top)
   for (const [hx, hy] of [[4, 6], [7, 4.4], [11, 5], [14, 7], [5, 9], [9, 7.6], [12, 9.4], [15, 9.6], [3, 9.6], [8, 10]] as const) { px(c, hx, hy, COCO[4]); px(c, hx + 1, hy + 1, COCO[3]); }
   for (const [ex, ey] of [[7, 4], [9, 3.6], [8, 5.4]] as const) px(c, ex, ey, '#0E0704');
@@ -363,6 +365,8 @@ const paintPauldron = (c: C) => {
   px(c, 16, 3, '#FFFFFF'); px(c, 17, 2, '#FFFFFF');
   c.fillStyle = 'rgba(220, 240, 255, 0.75)'; c.fillRect(11.2, 5.4, 3, 1.6); px(c, 11.6, 5.6, '#FFFFFF');
 };
+const paintPauldron = (c: C) => paintPauldronLit(c, false);
+const paintPauldronFar = (c: C) => paintPauldronLit(c, true);
 
 // ---------------------------------------------------------------------------------------------------------------------
 // HELMET (Foreign): 36 x 26, his head's middle at x 18, his eyes' line at y 24; a souvenir-shop Viking helmet: a silver
@@ -662,7 +666,17 @@ const ART: ArmorArt = {
   shoulder(ctx, x, y, r, back) {
     if (!has('pauldrons')) return;
     const k = r / 6;
-    armorSeam(ctx, () => piece(ctx, 'pauldron', 20, 18, paintPauldron, back, x - 9 * k, y - 10 * k - 1, 20 * k, 18 * k));
+    // (the one on the -x side of him (his frame's middle at x 0) mirrored, its tusk out that way: each juts outward off
+    // its own shoulder, never in at his head (the owner's: "mirrored on both shoulders... they should jut outwards, not
+    // into his head"); lit from the same side as the other. Whether it's the shadowed arm's (`back`) doesn't decide it:
+    // his standing arms are both lit, one each side of him)
+    armorSeam(ctx, () => {
+      if (x >= 0) { piece(ctx, 'pauldron', 20, 18, paintPauldron, back, x - 9 * k, y - 10 * k - 1, 20 * k, 18 * k); return; }
+      ctx.save();
+      ctx.translate(x, 0); ctx.scale(-1, 1); ctx.translate(-x, 0);
+      piece(ctx, 'pauldronFar', 20, 18, paintPauldronFar, back, x - 9 * k, y - 10 * k - 1, 20 * k, 18 * k);
+      ctx.restore();
+    });
   },
   helmet(ctx, hx, ey) { if (has('helmet')) armorSeam(ctx, () => drawHelmet(ctx, hx, ey)); },
   chest(ctx, top, pecY) { if (has('amulet')) armorSeam(ctx, () => drawAmulet(ctx, top, pecY)); },

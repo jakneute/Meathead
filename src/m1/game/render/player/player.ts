@@ -707,10 +707,13 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
       ctx.save();
       ctx.translate(-15, -45);
       ctx.rotate(armAngle);
-      drawArm(ctx, 0, 0, -0.5, 12, Math.sin(bend) * 10 - 0.5, 12 + Math.cos(bend) * 10, skinTone, skinShadow, skinHighlight);
+      drawArm(ctx, 0, 0, -0.5, 12, Math.sin(bend) * 10 - 0.5, 12 + Math.cos(bend) * 10, skinTone, skinShadow, skinHighlight, undefined, 5, false);
       if (gore > 0.4) smear(ctx, -1, 4, 4, 3, bloodDark);
       if (gore > 0.7) drip(ctx, 0, 5, 8);
       ctx.restore();
+      // (another game's pauldron on this shoulder, on the -x side of him: upright, not turned with the swinging arm, so
+      // its tusk always juts up and out that side, never in at his head)
+      armorOn()?.shoulder(ctx, -15, -45, 6, false);
     };
   }
   ctx.restore();

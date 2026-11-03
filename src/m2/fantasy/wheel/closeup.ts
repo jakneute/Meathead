@@ -257,8 +257,9 @@ const paintTorso = (g: Ctx, F: Fig) => {
     // (the cape's tall collar behind his neck, the skull at his throat; the princess jewel on its chain between his pecs)
     FLAT.capeFront(g, 0, -38, 26, -8, 'collar', armorFrame);
     FLAT.amulet(g, 0, -41, 0.9, true, armorFrame);
-    // (the far coconut on the far corner of his shoulders, its tusk out that way, in his shadow)
-    wearing(() => { g.save(); g.translate(-19, -36); g.scale(-1, 1); armorParts.shoulder(g, 0, 0, 7, true); g.restore(); });
+    // (the far coconut on the far corner of his shoulders, its tusk out that way, in his shadow: one on the -x side
+    // comes mirrored)
+    wearing(() => armorParts.shoulder(g, -19, -36, 7, true));
     // (the waist: belt and jeans, stained; or nothing on)
     if (who.pants === 'nude') { box(g, -15, 0, 30, 6, R[2]); box(g, -8, -2, 2, 6, R[0]); box(g, 7, -2, 2, 6, R[0]); box(g, -2, 3, 6, 3, '#18181B'); }
     else {

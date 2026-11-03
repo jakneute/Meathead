@@ -261,9 +261,10 @@ export const drawBelt = (ctx: Ctx, beltY: number, beltH: number) => {
  * An arm, shoulder (sx, sy) to elbow (ex, ey) to wrist (wx, wy): a deltoid capping the shoulder, the upper arm with
  * the bicep bulging out the side the forearm bends toward, the forearm thicker by the elbow and tapering to the wrist,
  * a spiked wristband, and a fist (at `fistX` along the forearm's line if given, else just past the wrist). Shaded:
- * `shade` down the back of each part, `light` along the top of the deltoid and the bicep.
+ * `shade` down the back of each part, `light` along the top of the deltoid and the bicep. `shoulderArmor` false: the
+ * armor's pauldron left off (the caller puts it on itself, unturned).
  */
-export const drawArm = (ctx: Ctx, sx: number, sy: number, ex: number, ey: number, wx: number, wy: number, skin: string, shade: string, light: string, fistX?: number, fistR = 5) => {
+export const drawArm = (ctx: Ctx, sx: number, sy: number, ex: number, ey: number, wx: number, wy: number, skin: string, shade: string, light: string, fistX?: number, fistR = 5, shoulderArmor = true) => {
   if (catBodyOn()) { catArm(ctx, sx, sy, ex, ey, wx, wy, skin !== skinTone, fistR); return; }
   const seg = (ax: number, ay: number, bx: number, by: number, ra: number, rb: number, color: string) => {
     const a = Math.atan2(by - ay, bx - ax), nx = -Math.sin(a), ny = Math.cos(a);
@@ -301,7 +302,7 @@ export const drawArm = (ctx: Ctx, sx: number, sy: number, ex: number, ey: number
   ctx.restore();
   // (armor: along the forearm, over the shoulder)
   const armor = armorOn(), backArm = skin !== skinTone;
-  if (armor) { armor.forearm(ctx, ex, ey, wx, wy, backArm); armor.shoulder(ctx, sx, sy, 6, backArm); }
+  if (armor) { armor.forearm(ctx, ex, ey, wx, wy, backArm); if (shoulderArmor) armor.shoulder(ctx, sx, sy, 6, backArm); }
   // Fist
   const reach = fistR - 0.5;
   const hx = fistX ?? wx + (fx / fl) * reach, hy = fistX !== undefined ? wy : wy + (fy / fl) * reach;
