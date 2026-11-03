@@ -19066,11 +19066,6 @@
  },
  {
   "voice": "m2.ben",
-  "text": "NOT ON BOSSES. NOT ON SUB BOSSES. NOT ON LITTLE CRITTERS. THOSE YOU JUST THROW. AND ONE PIECE OUT THERE DOESN'T USE THE GRAB AT ALL.",
-  "from": "UPGRADES"
- },
- {
-  "voice": "m2.ben",
   "text": "NOW THE REAL SECRET. THE HIDDEN ART OF FOLLOW-UPS.",
   "from": "UPGRADES"
  },
@@ -19361,6 +19356,11 @@
  },
  {
   "voice": "m2.ben",
+  "text": "THE ARMOR STILL MAKES THE CHARGE ITSELF HIT BOSSES HARDER. JUST NO FOLLOW-UP ON THEM. AND ONE PIECE OUT THERE DOESN'T USE THE GRAB AT ALL.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.ben",
   "text": "THE BAR DOES NOT LIFT ITSELF. ALSO, YOU FOUND MY HOLE.",
   "from": "UPGRADES"
  },
@@ -19467,6 +19467,11 @@
  {
   "voice": "m2.ben",
   "text": "THE FIST GOES UP. THE HEAD COMES DOWN. HOLD THE UPPERCUT, AND TAP GRAB ON THE WAY UP.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.ben",
+  "text": "THE FOLLOW-UP IS FOR THE MID-SIZED GUYS. BOSSES, SUB BOSSES, LITTLE CRITTERS: NO. THE LITTLE ONES YOU JUST THROW.",
   "from": "UPGRADES"
  },
  {

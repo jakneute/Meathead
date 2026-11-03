@@ -545,7 +545,10 @@ export const ART_MH: ByPants = {
 export const ART_HOW = [
   "START A CHARGE. KEEP HOLDING IT. TAP GRAB. YOU DON'T EVEN HAVE TO HIT THE GUY.",
   'DURING THE CHARGE, THE BOUNCE BACK, OR RIGHT AFTER. THAT IS THE WHOLE ART.',
-  "NOT ON BOSSES. NOT ON SUB BOSSES. NOT ON LITTLE CRITTERS. THOSE YOU JUST THROW. AND ONE PIECE OUT THERE DOESN'T USE THE GRAB AT ALL.",
+  // (the owner's: "they don't work on bosses" then "more damage on bosses" sounded contradictory: the follow-up's for the
+  // mid-sized guys; it's the charge move itself the armor makes hit bosses harder)
+  "THE FOLLOW-UP IS FOR THE MID-SIZED GUYS. BOSSES, SUB BOSSES, LITTLE CRITTERS: NO. THE LITTLE ONES YOU JUST THROW.",
+  "THE ARMOR STILL MAKES THE CHARGE ITSELF HIT BOSSES HARDER. JUST NO FOLLOW-UP ON THEM. AND ONE PIECE OUT THERE DOESN'T USE THE GRAB AT ALL.",
 ];
 /** Meathead's Japanese, from cartoons (the joke's on him: weeb nonsense). */
 export const ART_WEEB: ByPants = {
