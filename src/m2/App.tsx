@@ -393,7 +393,7 @@ const App2: React.FC = () => {
       // (a minigame's never carried along: its pause mark and any QUIT MINIGAME waiting forgotten, its ask, cards and tips
       // taken down (the stage being left takes the minigame itself down), so nothing of it holds him up where he's going)
       dropMinigamePause();
-      setUi({ minigameAsk: null, minigameCard: null, bumperCard: null, gotShard: null, chordTips: null, hudOff: false });
+      setUi({ minigameAsk: null, minigameCard: null, bumperCard: null, gotShard: null, chordTips: null, chordTipsAt: null, hudOff: false });
       setFade(true);
       // (into a land, everything's topped up; and back at the hub after a boss: elsewhere, what he had)
       // (the walk back after a boss: topped up there, and the boss's top-up used up on it)
@@ -844,7 +844,7 @@ const App2: React.FC = () => {
         )}
         {/* The buttons CON-FUCK-TIOUS is teaching (the trial's charge, the hidden art of follow-ups): shown in his scenes too */}
         {status === GameStatus.PLAYING && ui.map === null && !ui.gotPiece && !!ui.chordTips?.length && !ui.upPrompt && (
-          <div className="absolute left-1/2 -translate-x-1/2 top-[132px] z-30 flex flex-col items-start gap-[5px] px-3 py-2 text-[9px] text-white bg-black/75 border-2 border-zinc-600">
+          <div className={`absolute left-1/2 -translate-x-1/2 z-30 flex px-3 py-2 text-[9px] text-white bg-black/75 border-2 border-zinc-600 ${ui.chordTipsAt === 'bottom' ? 'bottom-[4px] flex-row items-center gap-4 whitespace-nowrap' : 'top-[132px] flex-col items-start gap-[5px]'}`}>
             {ui.chordTips.map((k, i) => <ChordPrompt key={i} pad={k.pad} join={k.join ?? '+'} kb={k.kb} mouse={k.mouse} label={k.label} size={14} />)}
           </div>
         )}

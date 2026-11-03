@@ -139,7 +139,7 @@ const release = (state: GameState, h: Hack) => {
   p.facing = PANEL_X < p.pos.x + p.width / 2 ? -1 : 1;
   if (h.ask) { closeAsk(); h.ask = null; }
   if (h.card) { closeShardCard(); h.card = null; }
-  setUi({ hudOff: false, chordTips: null }); uiUp = false;
+  setUi({ hudOff: false, chordTips: null, chordTipsAt: null }); uiUp = false;
 };
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -153,7 +153,7 @@ export const updateHack = (ctx: FrameContext, controls: Controls): Controls | nu
   const { state } = ctx, p = state.player, h = hackOf(state);
   const upNow = !!controls.up;
   if (h.phase === 'off') {
-    if (uiUp) { setUi({ hudOff: false, chordTips: null }); uiUp = false; }
+    if (uiUp) { setUi({ hudOff: false, chordTips: null, chordTipsAt: null }); uiUp = false; }
     const cx = p.pos.x + p.width / 2, feet = p.pos.y + p.height;
     const free = !p.inCutscene && p.health > 0 && state.deathTimer <= 0;
     // (UP's zone: anywhere on the panel's ledge (the top one, the panel on it), on it or hopping (the owner's,
@@ -224,10 +224,10 @@ export const updateHack = (ctx: FrameContext, controls: Controls): Controls | nu
         { pad: ['DPAD', 'LSTICK'], join: '/', kb: ['@left', '@right'], label: 'PICK A WHEEL' },
         { pad: ['DPAD_UP', 'DPAD_DOWN'], join: '/', kb: ['@up', '@down'], mouse: 'left', label: 'TURN IT' },
         { pad: ['BACK'], join: '/', kb: ['BKSP'], label: 'QUIT' },
-      ] });
+      ], chordTipsAt: 'bottom' });
       if (ev === 'solved') {
         h.phase = 'granted'; h.t = 0;
-        setUi({ chordTips: null });
+        setUi({ chordTips: null, chordTipsAt: null });
         state.stageMemo[MASSACRE_MEMO] = '1';
         playSound('ding', 0.9); playSound('powerup', 0.7, 4); playSound('alarm', 0.3, 8);
       }

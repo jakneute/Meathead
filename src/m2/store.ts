@@ -99,6 +99,9 @@ export interface M2Ui {
   /** Button lines to show, each its buttons and a label (CON-FUCK-TIOUS teaching: the trial's charge, the hidden art of
    *  follow-ups); null: none. Shown in his scenes too (it's the lesson, not the HUD). */
   chordTips?: import('./upgrades/equipInfo').EquipControl[] | null;
+  /** Where they go: up top (the default), or along the bottom in a row, clear of a screen's own hints (the dino hack's
+   *  glyphs: the owner's "make sure the tutorial panel doesn't block the code hints"). */
+  chordTipsAt?: 'top' | 'bottom' | null;
   /** A minigame asking first (minigameConfirm.ts): its name, a line, the buttons shown once it takes an answer. */
   minigameAsk?: { title: string; text: string; ready: boolean } | null;
   /** A charge shard just won (upgrades/shardAward.ts, ShardGotCard.tsx): the card's up; `ready` once its buffer's over. */
