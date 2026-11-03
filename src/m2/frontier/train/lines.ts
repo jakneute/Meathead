@@ -292,6 +292,12 @@ export const LION_CAGE_GONE: ByPants = {
   shitty: ['NEW LION. IT ALREADY HEARD ABOUT MY PANTS.', 'REPLACEMENT LION. IT SMELLS ME. IT LIKES IT.'],
   nude: ['NEW LION. SAME FEZ. STILL STARING AT MY DICK.', 'A NEW LION. EYES UP, CAT. AGAIN.'],
 };
+/** Him, washed off the roof under the waterfall, the once, as its kill cam starts (fallsDeath.ts). */
+export const TRAIN_FALLS_SCREAM: ByPants = {
+  clean: ['MY GLASSEEEES!', 'NOT OFF THE TRAAAAIN!', 'WHO PUTS A WATERFALL ON A TRAAAIN?!'],
+  shitty: ['WASHED OFF LIKE A TUUURD!', 'AT LEAST IT RINSED ME OOOFF!'],
+  nude: ['MY BALLS! IN THE WIIIND!', 'NAKED OFF A TRAAAAIN!'],
+};
 /** The park's recorded voice, at the end of the line coming up. */
 export const FAILSAFE: ByPants = {
   clean: ['WARNING. END OF LINE AHEAD. ENGAGING FAILSAFE. FAILSAFE FAILED. HAVE A NICE DAY.'],
@@ -316,9 +322,10 @@ export const REVISIT: ByPants = {
 // What hurts him on the train (by source), and the death screen when it's what killed him
 
 export const HURT: HurtTable = {
-  'm2:fr_falls': {
-    hurt: ["THE WATER! IT'S TOO HEAVY!", "IT'S PUSHING ME OFF!", 'WATERFALL! WATERFALL!'],
-    death: ['SWEPT OFF BY A WATERFALL', "SHOULD'VE GONE INSIDE", 'SHOWERED ON A TRAIN. DIED.'],
+  // (outside under the waterfall: battered, then off the train down the trestle (fallsDeath.ts: its kill cam))
+  'm2:fr_train_falls': {
+    hurt: ["THE WATER! IT'S TOO HEAVY!", "IT'S PUSHING ME OFF!", 'WATERFALL! WATERFALL!', 'MY GLASSES ARE FILLING UP!'],
+    death: ['SWEPT OFF BY A WATERFALL', "SHOULD'VE GONE INSIDE", 'SHOWERED ON A TRAIN. DIED.', 'RACKED ON A TRESTLE. SPLATTED ON A ROCK.', 'HIS GLASSES RODE ON WITHOUT HIM'],
   },
   'm2:fr_derail': {
     hurt: ['IT\'S GOING! IT\'S GOING!', 'THE CAR\'S LOOSE! THE CAR\'S LOOSE!'],
@@ -409,7 +416,7 @@ export const VOICE_LINES: Record<string, string[]> = {
     ...allOf(BOARDED), ...Object.values(TRAIN_GAGS).flatMap(allOf), ...allOf(KILL_SEEN), ...allOf(SHOT_LINE), ...allOf(DRIVER_LINE), ...allOf(REVISIT),
     ...allOf(BOARDED_GONE), ...allOf(CUT_GONE), ...allOf(ROBBERS_GONE), ...allOf(MH_FAILSAFE), ...allOf(LION_CAGE_GONE),
     ...allOf(MH_COMEBACK), ...allOf(MH_RAYGUN), ...allOf(LION_CAGE), ...allOf(LION_LOOSE), ...allOf(IM_OKAY),
-    ...allOf(PEN_SPOTTED), ...allOf(PEN_NUDGE), ...allOf(PEN_BREAK), ...allOf(PEN_GOT),
+    ...allOf(PEN_SPOTTED), ...allOf(PEN_NUDGE), ...allOf(PEN_BREAK), ...allOf(PEN_GOT), ...allOf(TRAIN_FALLS_SCREAM),
     ...Object.values(HURT).flatMap(h => h.hurt),
   ],
   death: Object.values(HURT).flatMap(h => h.death),

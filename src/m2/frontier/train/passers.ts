@@ -44,6 +44,7 @@ import { tubeSay } from './tube';
 import { viewOf, drawnView } from './view';
 import { TUBE_TUNNEL, TUBE_ROBBERS, TUBE_FALLS, TRAIN_GAGS, ROBBERS_GONE } from './lines';
 import { bossGone } from '../../emptyArena';
+import { TRAIN_FALLS_SRC } from './fallsDeath';
 
 /** The low bridge's underside (stood on a roof, his head's over it; ducked, it's not). */
 export const BRIDGE_Y = ROOF - 48;
@@ -218,14 +219,14 @@ const soakHim = (ctx: FrameContext, under: boolean) => {
   tr.soak++;
   p.pos.x -= 1.6; p.vel.y = Math.max(p.vel.y, 1.2);
   if (state.frame % 3 === 0) for (let n = 0; n < 3; n++) state.particles.push({ pos: { x: p.pos.x + Math.random() * p.width, y: p.pos.y + Math.random() * 20 }, vel: { x: -1 - Math.random() * 3, y: 2 + Math.random() * 3 }, life: 18, color: n % 2 ? '#E0F2FE' : '#BAE6FD', size: 3 });
-  if (tr.soak === 1 || tr.soak === 28) { hurtPlayer(ctx, 10, 'm2:fr_falls', { x: -6, y: 2 }); playSound('splash', 1, -6); }
+  if (tr.soak === 1 || tr.soak === 28) { hurtPlayer(ctx, 10, TRAIN_FALLS_SRC, { x: -6, y: 2 }); playSound('splash', 1, -6); }
   if (tr.soak >= SWEPT && p.health > 0) {
-    // (off the train with it: down past the cars into the gorge)
+    // (off the train with it: down the trestle into the gorge (fallsDeath.ts: the kill cam))
     p.invincibilityTimer = 0;
     p.vel.x = -7; p.vel.y = 8;
     for (let n = 0; n < 30; n++) state.particles.push({ pos: { x: p.pos.x + p.width / 2, y: p.pos.y + 20 }, vel: { x: (Math.random() - 0.8) * 8, y: Math.random() * 8 }, life: 40, color: n % 3 ? '#E0F2FE' : '#7DD3FC', size: 3 + Math.random() * 3 });
     playSound('splash', 1, -12); playSound('screams', 0.7, 2);
-    hurtPlayer(ctx, 9999, 'm2:fr_falls');
+    hurtPlayer(ctx, 9999, TRAIN_FALLS_SRC);
   }
 };
 

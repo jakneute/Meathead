@@ -37,6 +37,7 @@ import { inView } from './view';
 import { TUBE_UNCOUPLE, TUBE_MISSED, TRAIN_GAGS, LION_LOOSE, CUT_GONE } from './lines';
 import { bossGone } from '../../emptyArena';
 import { startMaul, lionEscapes } from './lion';
+import { TRAIN_FALLS_SRC } from './fallsDeath';
 import { CIRCUS } from './layout';
 import { penOpen } from './pen';
 import { setSeeThroughFloor } from '../../moves/followups';
@@ -290,6 +291,8 @@ export const updateTracks = (ctx: FrameContext, x0: number, x1: number) => {
   const { state } = ctx, tr = trainOf(state), p = state.player;
   if (tr.phase !== 'ride') return;
   const cx = p.pos.x + p.width / 2;
+  // (knocked down onto the ties by the waterfall, still under it or just out: the falls' own death, not the lion's)
+  if (p.health > 0 && !p.inCutscene && cx > x0 && cx < x1 && p.pos.y + p.height >= GY - 3 && p.vel.y >= 0 && tr.soak > 0) { p.invincibilityTimer = 0; hurtPlayer(ctx, 9999, TRAIN_FALLS_SRC); return; }
   if (p.health > 0 && !p.inCutscene && cx > x0 && cx < x1 && p.pos.y + p.height >= GY - 3 && p.vel.y >= 0 && !(tr.cut && tr.cut.phase === 'drift')) { startMaul(ctx); return; }
   if (p.health > 0 && !p.inCutscene && cx > x0 && cx < x1 && p.pos.y + p.height >= GY - 3 && p.vel.y >= 0) {
     p.invincibilityTimer = 0;

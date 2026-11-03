@@ -52,6 +52,7 @@ import { BOARDED, TUBE_BOARD, TUBE_LEDGER, TRAIN_GAGS, REVISIT, BOARDED_GONE } f
 import { bossGone } from '../../emptyArena';
 import { updateCage, updateMaul, drawMaul, drawEscape, trainOff } from './lion';
 import { updatePen, drawPenFront, drawPenBits, setPen } from './pen';
+import { drawTrainFallsCam } from './fallsDeath';
 
 const { x0, x1 } = SECTIONS.train;
 // (back into the train from the town: the tender's front end)
@@ -222,6 +223,8 @@ export const train: FrontierSection = {
   },
   drawHud: (c, state) => {
     const tr = trainOf(state);
+    // (swept off under the waterfall: its kill cam over everything (fallsDeath.ts))
+    if (drawTrainFallsCam(c, state)) return;
     // (off it onto the tracks: a cutscene, nothing up over it)
     if (tr.lion) return;
     drawWarnings(c, state);

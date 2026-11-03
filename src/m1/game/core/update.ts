@@ -75,7 +75,8 @@ export const stepGame = (ctx: FrameContext, status: GameStatus, controls: Contro
   state.frame++;
   if (state.screenShakeTimer > 0 && --state.screenShakeTimer === 0) state.screenShakeMagnitude = DEFAULT_SHAKE;
 
-  if (state.deathTimer > 0) { updateDeathScreen(ctx); return false; }
+  // (the frame hook too: Meathead 2's HUD comes down for a kill cam, and it's dying that plays one)
+  if (state.deathTimer > 0) { updateDeathScreen(ctx); frameHook?.(state); return false; }
   if (state.volcanoFinale) { updateVolcanoFinale(ctx); return false; }
   if (state.bossExplosionTimer > 0) { updateBossExplosion(ctx); return false; }
   switch (status) {
