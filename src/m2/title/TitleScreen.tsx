@@ -36,6 +36,9 @@ const titleOptions = (hasFile: boolean, cleared: boolean): TitleOption[] => [
   ...(isDesktop ? [{ label: 'QUIT GAME', kind: 'quit' as const }] : []),
 ];
 const PAD_REPEAT_MS = 180;
+/** (the cheats build's ALPHA ENDING) A find count in each of the announcer's tiers: none, a few, a quarter-ish, over
+ *  half, so close, every last one (intro/lines.ts alphaTier). */
+const END_PREVIEW = [0, 3, 9, 15, 21, 24];
 
 const TitleScreen: React.FC<{
   /** A new game: on a file (anything on it erased), or NO SAVE (null). */
@@ -44,12 +47,15 @@ const TitleScreen: React.FC<{
   onContinue: (slot: Slot) => void;
   /** (the cheats build) Straight onto the hub, NO SAVE. */
   onHub?: () => void;
-  /** (the cheats build) The alpha's ending on its own (alphaEnd.ts). */
-  onEnding?: () => void;
+  /** (the cheats build) The alpha's ending on its own (alphaEnd.ts), as if this many of the 24 finds were his. */
+  onEnding?: (finds: number) => void;
 }> = ({ onNew, onContinue, onHub, onEnding }) => {
   const filesV = useSyncExternalStore(subscribeFiles, filesVersion, filesVersion);
   const options = React.useMemo(() => titleOptions(!!M2_PUBLIC && anyFile(), !!M2_PUBLIC && SLOTS.some(s => (readFile(s)?.cleared.length ?? 0) >= ALPHA_LAND_COUNT)), [filesV]);
   const [soundOpen, setSoundOpen] = useState(false);
+  // (the cheats build's ALPHA ENDING: left / right picks how many finds it plays as, one count per tier of the
+  // announcer's take (the owner's: "press left or right on that menu option ... so you can see the alternate endings"))
+  const [endTier, setEndTier] = useState(END_PREVIEW.length - 1);
   const soundRef = useRef(false); soundRef.current = soundOpen;
   const [sel, setSel] = useState(0);
   const [locked, setLocked] = useState(true);
@@ -104,7 +110,7 @@ const TitleScreen: React.FC<{
     if (locked) return;
     if (o.kind === 'continue') { const slot = latestSlot(); if (slot) { playMenuOk(); onContinue(slot); } return; }
     if (o.kind === 'hub') { if (onHub) { playMenuOk(); onHub(); } return; }
-    if (o.kind === 'ending') { if (onEnding) { playMenuOk(); onEnding(); } return; }
+    if (o.kind === 'ending') { if (onEnding) { playMenuOk(); onEnding(END_PREVIEW[endTier]); } return; }
     if (o.kind === 'sound') { playMenuOk(); setSoundOpen(true); return; }
     // (the cheats build: straight in, NO SAVE)
     if (!M2_PUBLIC) { playMenuOk(); onNew(null); return; }
@@ -126,6 +132,7 @@ const TitleScreen: React.FC<{
     const n = options.length;
     if (a === 'up') setSel(i => (i + n - 1) % n);
     else if (a === 'down') setSel(i => (i + 1) % n);
+    else if ((a === 'left' || a === 'right') && options[sel]?.kind === 'ending') { setEndTier(t => (t + (a === 'left' ? END_PREVIEW.length - 1 : 1)) % END_PREVIEW.length); playMenuOk(); }
     else if (a === 'ok') pick(sel);
   };
   const actRef = useRef(act); actRef.current = act;
@@ -221,7 +228,7 @@ const TitleScreen: React.FC<{
                   : 'bg-[#5a0a3a] text-white/70 shadow-[inset_0_2px_0_#9c1a62,inset_0_-4px_0_#2c0420,4px_4px_0_#000] hover:bg-[#8c145a]'}`}>
                 {on && !lockedOut && <span className="absolute left-3 text-[#fcd850] animate-pulse">&#9654;</span>}
                 {on && !lockedOut && <span className="absolute right-3 text-[#fcd850] animate-pulse">&#9664;</span>}
-                {locked && i === 0 ? 'WAITING IN LINE...' : o.label}
+                {locked && i === 0 ? 'WAITING IN LINE...' : o.kind === 'ending' ? `${o.label} ${on ? '‹' : ''} ${END_PREVIEW[endTier]}/24 ${on ? '›' : ''}` : o.label}
               </button>
             );
           })}

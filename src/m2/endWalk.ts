@@ -56,13 +56,18 @@ export interface EndWalk {
 
 const shuffle = <T,>(a: T[]) => { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
 
+/** (the cheats build's title, ALPHA ENDING) The next end walk plays as if this many finds were his (used once). */
+let previewFinds: number | null = null;
+export const setEndPreviewFinds = (n: number | null) => { previewFinds = n; };
+
 export const startEnd = (): EndWalk => {
   // (seen: the file saved as it is now, so loading it carries on from here)
   setAlphaEndSeen(true); saveProgress();
   // (dev: ?allweapons, every one of them, for looking at the lot)
   const all = import.meta.env.DEV && typeof location !== 'undefined' && new URLSearchParams(location.search).has('allweapons');
   const pool = (all ? M2_WEAPONS : availableWeapons()).filter(w => HELD[w] !== undefined);
-  const got = findsFoundTotal();
+  const got = previewFinds ?? findsFoundTotal();
+  previewFinds = null;
   return {
     order: [], pool: pool.length ? pool : ['GUN'],
     lines: [PA_END_OPEN, ...PA_END_TIER[alphaTier(got, FINDS_TOTAL)]], line: -1, said: null, nextAt: PA_AT, gap: false,

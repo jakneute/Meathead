@@ -76,7 +76,7 @@ import { landLeft } from './landCaches';
 import { canSkip, requestSkip } from '../m1/game/platform/skip';
 import { getAudioContext, playMenuBack, playMenuOk } from '../m1/game/platform/audio';
 import { STAFF_SLOT, AMERICA_SLOT, landAt } from './hub/lands';
-import { getUi, subscribeUi, onTravel, setUi, goTo, takeBossKill, setStartCheckpoint, requestCarHop, restoreClearedLands, restoreKept, restoreBossDeaths, restoreFound, isLandCleared, isLandComplete, setAlphaEndSeen, setAnnounced } from './store';
+import { getUi, subscribeUi, onTravel, setUi, goTo, takeBossKill, setStartCheckpoint, requestCarHop, restoreClearedLands, restoreKept, restoreBossDeaths, restoreFound, isLandCleared, isLandComplete, setAlphaEndSeen, setAnnounced, FINDS_TOTAL } from './store';
 import { alphaEndOver, devAlphaEnd } from './alphaEnd';
 import { setCutsceneBubbles } from '../m1/game/render/speechStyle';
 // (Meathead 2's cutscenes, the skippable ones bar the intro's: the words over heads in speech bubbles; in play, just the
@@ -88,7 +88,8 @@ import { setFrameHook } from '../m1/game/core/update';
 import { isKillCam } from '../m1/game/player/deathAnim';
 import { disableM1Music } from '../m1/game/music';
 import { setMusicState, setMusicStage, setMusicPaused, setMusicTitle } from './music/cues';
-import { refreshFindsHour } from './timeOfDay';
+import { refreshFindsHour, setTimeOfDayOverride } from './timeOfDay';
+import { setEndPreviewFinds } from './endWalk';
 import { noteFireworksState } from './fireworks';
 
 // (Meathead 2's own music: music/cues.ts; Meathead 1's never starts)
@@ -1043,7 +1044,7 @@ const App2: React.FC = () => {
           <div className="absolute left-1/2 top-[40%] -translate-x-1/2 z-40 px-4 py-3 text-[12px] text-yellow-300 bg-black/85 border-2 border-yellow-500">{ui.notice.text}</div>
         )}
         <div className="absolute inset-0 z-50 bg-black pointer-events-none transition-opacity duration-200" style={{ opacity: fade || status === GameStatus.START ? 1 : 0 }} />
-        {title && !alphaOnly && <TitleScreen onNew={startNew} onContinue={continueFile} onHub={startAtHub} onEnding={() => { setAlphaOnly(true); alphaEndOver(); }} />}
+        {title && !alphaOnly && <TitleScreen onNew={startNew} onContinue={continueFile} onHub={startAtHub} onEnding={finds => { setEndPreviewFinds(finds); setTimeOfDayOverride(finds >= FINDS_TOTAL ? 9 : 8); setAlphaOnly(true); alphaEndOver(); }} />}
       </div>
     </div>
   );
