@@ -42376,6 +42376,11 @@
  },
  {
   "voice": "m2.frontier.dooley",
+  "text": "I SPENT MY WHOLE LIFE SCARED OF DYING. NOBODY WARNED ME ABOUT VAPORIZING.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.dooley",
   "text": "I WANT MY MOMMY. DO I HAVE A MOMMY?",
   "from": "FRONTIER"
  },
@@ -42387,6 +42392,11 @@
  {
   "voice": "m2.frontier.dooley",
   "text": "I'M NOT AFRAID OF DYING. I'M AFRAID I NEVER LIVED.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.dooley",
+  "text": "IF A DUCK CAN STOP EXISTING, SO CAN A MAN. SO CAN THIS TOWN. SO CAN THE SUN.",
   "from": "FRONTIER"
  },
  {
@@ -42407,6 +42417,11 @@
  {
   "voice": "m2.frontier.dooley",
   "text": "IT CAN JUST BE TAKEN. ANYBODY. ME. AND NOBODY WOULD KNOW TO MISS ME.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.dooley",
+  "text": "IT DIDN'T BREAK. IT DIDN'T BURN. IT JUST STOPPED. EXISTING. WHO SAID THAT WAS AN OPTION?",
   "from": "FRONTIER"
  },
  {
@@ -42702,6 +42717,11 @@
  {
   "voice": "m2.frontier.dooley",
   "text": "THEY NO LONGER EXIST. THEY NEVER EXISTED.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.dooley",
+  "text": "THINGS CAN JUST VAPORIZE. THINGS CAN JUST STOP EXISTING. NOBODY TOLD ME THAT WAS ALLOWED.",
   "from": "FRONTIER"
  },
  {

@@ -114,7 +114,7 @@ const TIME = 3000, FADE = 18, OVER_T = 70, BEAT_MAX = 1200, TIPS_T = 300;
  *  shooting"): his rules (calm), a breath, then 3, 2, 1 (CD_STEP frames each), GO! (shown GO_T into the play); the rules
  *  given up on after READY_MAX. His lines in the play: CALM_GAP frames of quiet after one ends before the next,
  *  REPEAT_GAP before another of the same tier (the owner's: "he speaks too frantically"). */
-const CD_STEP = 50, CD_LEAD = 30, GO_T = 45, READY_MAX = 900, CALM_GAP = 300, REPEAT_GAP = 600;
+const CD_STEP = 50, CD_LEAD = 30, GO_T = 45, READY_MAX = 900, CALM_GAP = 110, REPEAT_GAP = 240;
 /** The disintegration: lit up first, then eaten away. */
 const VH = 8, VG = 22;
 /** How much has to be gone for each tier of his reaction (1..5), and the score board's going wrong. */
