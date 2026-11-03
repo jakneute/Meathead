@@ -75,14 +75,16 @@ const epiphytes = (c: Ctx, t: Tree, f: number) => {
 
 /** A bough off in the leaves (the swinging vines hang off them; the boas wrap round them): dark, leaves over the top
  *  of it, so it never reads as somewhere to stand. */
-const bough = (c: Ctx, x: number, y: number, w: number, seed: number) => {
+// (`rise`: how far up it comes from. A boa's, low down, comes from well up in the leaves: cut short, its top end hung in
+// the air with nothing to grow out of (the owner's: "this tree limb in jungle land is floating in mid air"))
+const bough = (c: Ctx, x: number, y: number, w: number, seed: number, rise = 190) => {
   c.save(); c.translate(Math.round(x), Math.round(y));
-  stamp(c, `jg-bough-${w}-${seed % 4}`, -w - 60, -200, w * 2 + 120, 230, g => {
+  stamp(c, `jg-bough-${w}-${seed % 4}-${rise}`, -w - 60, -rise - 10, w * 2 + 120, rise + 40, g => {
     // (a limb arching in from up in the canopy, down to where the vine's tied on, and on a little past it)
     const r = BARK.map(col => mix(col, '#000000', 0.2));
     const s0 = seed % 2 ? 1 : -1;
     const P = (t: number): [number, number] => {
-      const ax = s0 * -w, ay = -190, bx = s0 * w * 0.35, by = -10, cx2 = s0 * -w * 0.2, cy2 = 6;
+      const ax = s0 * -w, ay = -rise, bx = s0 * w * 0.35, by = -10, cx2 = s0 * -w * 0.2, cy2 = 6;
       return [(1 - t) * (1 - t) * ax + 2 * t * (1 - t) * cx2 + t * t * bx, (1 - t) * (1 - t) * ay + 2 * t * (1 - t) * cy2 + t * t * by];
     };
     const N = 18;
@@ -203,7 +205,7 @@ export const drawTrees = (c: Ctx, v: View) => {
   }
   // The boughs the swinging vines hang off, and the boas' (dark, leafy on top)
   VINES.forEach((d, i) => { if (d.kind === 'swing' && d.x > v.v0 - 200 && d.x < v.v1 + 200) bough(c, d.x, d.y, 120 + (i % 3) * 30, i); });
-  for (const s of BOA_BRANCHES) if (s.x > v.v0 - 200 && s.x < v.v1 + 200) bough(c, s.x - 8, s.y - 2, 110, 7);
+  for (const s of BOA_BRANCHES) if (s.x > v.v0 - 200 && s.x < v.v1 + 200) bough(c, s.x - 8, s.y - 2, 110, 7, 760);
   // The branches to stand on: real wood out of their trees, the lit lip along the top
   BRANCHES.forEach(([r0, r1, h], i) => {
     const a = X(r0), b = X(r1), y = Y(h);
