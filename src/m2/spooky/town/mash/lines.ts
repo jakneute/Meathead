@@ -88,6 +88,12 @@ export const KID_GLOAT: ByPants = {
 };
 /** Meathead walked away after losing. */
 export const KID_QUIT = ['QUITTER! I\'M PUTTING YOUR INITIALS AS POOPY.', 'BYE, LOSER. TELL YOUR FRIENDS.'];
+/** He quit mid-game from the pause menu (QUIT MINIGAME): the kid calls him out. */
+export const KID_RAGEQUIT: ByPants = {
+  clean: ["YOU RAGE QUIT? I'M NINE!", "YOU'RE PULLING THE PLUG? THAT'S A FORFEIT. I WIN FOREVER.", 'QUITTER! I GET TO PUT YOUR INITIALS AS POOPY.'],
+  shitty: ["QUITTER! YOU QUIT AND YOU POOPED. THAT'S TWO LOSSES.", 'GO HOME AND CHANGE, QUITTER.'],
+  nude: ['QUITTER! GO HOME AND PUT ON PANTS, QUITTER.', "YOU QUIT NAKED. THAT'S THE SADDEST THING I EVER SAW."],
+};
 /** He lost the match: sore, and the rock. */
 export const KID_SORE: ByPants = {
   clean: ['YOU CHEATED. FINE. TAKE THE STUPID ROCK.', 'THIS GAME IS FOR BABIES ANYWAY. HERE. TAKE IT.'],
@@ -216,7 +222,7 @@ const all = (b: ByPants) => [...b.clean, ...b.shitty, ...b.nude];
 const each = <T,>(r: Partial<Record<CharId, T>>) => Object.values(r) as T[];
 export const VOICE_LINES: Record<string, string[]> = {
   [MASH]: [A_TITLE, A_SELECT, A_INVIS, ...A_ROUND, A_FIGHT, A_KO, A_END, A_FATAL, A_FLAWLESS, ...Object.values(A_WINS), ...Object.values(A_CALL)],
-  [KID]: [...all(KID_CALL), ...all(KID_CALL_AGAIN), ...all(KID_LEAVE), ...all(KID_LEAVE_WON), ...all(KID_CHALLENGE), ...all(KID_AGAIN), ...all(KID_CHICKEN), ...KID_PICK, ...KID_INVIS, ...all(KID_ROUND_WON), ...all(KID_ROUND_LOST), ...all(KID_GLOAT), ...KID_QUIT, ...all(KID_SORE), ...KID_SORE_AGAIN,
+  [KID]: [...all(KID_CALL), ...all(KID_CALL_AGAIN), ...all(KID_LEAVE), ...all(KID_LEAVE_WON), ...all(KID_CHALLENGE), ...all(KID_AGAIN), ...all(KID_CHICKEN), ...KID_PICK, ...KID_INVIS, ...all(KID_ROUND_WON), ...all(KID_ROUND_LOST), ...all(KID_GLOAT), ...KID_QUIT, ...all(KID_RAGEQUIT), ...all(KID_SORE), ...KID_SORE_AGAIN,
     ...each(KID_MOCK).flatMap(all), ...all(KID_MIRROR), ...each(KID_MIRROR_BY).flat(), ...all(KID_TAUNT), ...KID_LOW],
   meathead: [...all(MH_TAKE), ...all(MH_ROUND_WON), ...all(MH_ROUND_LOST), ...all(MH_MATCH_LOST), ...all(MH_MATCH_WON),
     ...each(MH_MOCK).flat(), ...MH_MIRROR, ...each(MH_MIRROR_BY).flat(), ...MH_TAUNT, ...MH_LOW],

@@ -65,7 +65,7 @@ import {
   type Look, type Build,
 } from './bumperArt';
 import {
-  CARNY_VOICE, CARNY_HOOK, CARNY_CALL, CARNY_LEAVE, CARNY_LEAVE_WON, CARNY_OFFER, CARNY_BACK, CARNY_SORE, CARNY_DECLINE, CARNY_LOSE, CARNY_WIN, CARNY_PRIZE, CARNY_WIN_AGAIN,
+  CARNY_VOICE, CARNY_HOOK, CARNY_CALL, CARNY_LEAVE, CARNY_LEAVE_WON, CARNY_OFFER, CARNY_BACK, CARNY_SORE, CARNY_DECLINE, CARNY_LOSE, CARNY_QUIT, CARNY_WIN, CARNY_PRIZE, CARNY_WIN_AGAIN,
   MH_OFFERED, MH_START, MH_KILL, MH_OVERKILL, MH_RAMMED, MH_LOSE, MH_WIN, OVERKILL_CALL,
 } from './bumperLines';
 
@@ -373,14 +373,16 @@ const quitBumper = (state: GameState) => {
   const b = bumperOf(state);
   if (b.phase !== 'count' && b.phase !== 'play' && b.phase !== 'won' && b.phase !== 'lost') return;
   silenceAll(); b.carny = null;
-  backOut(state, b);
+  backOut(state, b, true);
 };
 /** Lost (the clock, or he quit): back out by the booth, let go, his sore-loser line. Again's UP at the booth. */
-const backOut = (state: GameState, b: Bumper) => {
+const backOut = (state: GameState, b: Bumper, quit = false) => {
   b.token++; b.lost = true; b.won = false;
   outOfRink(state, b);
   release(state, b);
-  meatheadSays(state, pickLine(byPants(state, MH_LOSE)), false);
+  // (quit: the carny calls him out for it (the owner's "special callouts for quitting"); the clock: his own sore line)
+  if (quit) speak(CARNY_VOICE, pickLine(byPants(state, CARNY_QUIT)), s => { b.carny = s; }, true);
+  else meatheadSays(state, pickLine(byPants(state, MH_LOSE)), false);
 };
 
 const startOffer = (state: GameState, b: Bumper) => {

@@ -393,7 +393,7 @@ const quitMash = (state: GameState) => {
   setUi({ chordTips: null });
   ms.said = null; ms.kidSaid = null; ms.banner = null; ms.ready = true; ms.anyPrev = true;
   ms.kidPose = 'smug';
-  speak(L.KID, pickLine(L.KID_QUIT), s => { ms.kidSaid = s; }, true);
+  speak(L.KID, pickLine(pants(state, L.KID_RAGEQUIT)), s => { ms.kidSaid = s; }, true);
   toPhase(ms, 'out');
 };
 
