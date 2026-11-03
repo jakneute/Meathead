@@ -220,9 +220,16 @@ export const LION_LOOSE: ByPants = {
 /** The max ammo find in the lion's cage (pen.ts): spotted (after his line about the lion), the cage shot open (the lion
  *  loose), and his once the card's shut. */
 export const PEN_SPOTTED: ByPants = {
-  clean: ['AMMO. IN THE LION CAGE. GREAT.', "THE CAT'S SITTING ON AMMO."],
-  shitty: ['AMMO IN THE CAGE. WORTH SHITTING OVER.', "THE LION'S GOT AMMO. I'VE GOT SHIT."],
-  nude: ["AMMO IN THE CAGE. I'M NAKED. I NEED IT MORE.", "THAT CAT'S GOT MORE GEAR THAN ME."],
+  clean: ["AMMO. IN THE LION CAGE. THAT CAGE LOOKS LIKE IT'D BREAK IF I BEAT ON IT.", "THE CAT'S SITTING ON AMMO. BUST THE CAGE, GET THE AMMO. GET THE CAT TOO."],
+  shitty: ["AMMO IN THE CAGE. I COULD BREAK THAT CAGE OPEN. WORTH SHITTING OVER.", "THE LION'S GOT AMMO. THAT CAGE IS ALL RUST. I COULD BUST IT."],
+  nude: ["AMMO IN THE CAGE. I'M NAKED. I NEED IT MORE. I'M BREAKING THAT CAGE.", "THAT CAT'S GOT MORE GEAR THAN ME. THAT CAGE WON'T TAKE MUCH."],
+};
+/** Walked on past the cage, never touched it: the hint again, louder (the owner's: "a verbal callout the player
+ *  shouldn't miss about maybe breaking the cage"). */
+export const PEN_NUDGE: ByPants = {
+  clean: ["WAIT. THAT CAGE. I COULD BREAK IT OPEN. THERE'S AMMO IN THERE."],
+  shitty: ["WAIT. THE CAGE. BEAT IT OPEN, GET THE AMMO. I ALREADY SHIT, WHAT'S A LION?"],
+  nude: ["WAIT. THAT CAGE. BREAK IT, GET THE AMMO. WORST IT CAN DO IS BITE MY DICK."],
 };
 export const PEN_BREAK: ByPants = {
   clean: ['HERE KITTY KITTY.', 'HERE KITTY. COME GET SOME.'],
@@ -402,7 +409,7 @@ export const VOICE_LINES: Record<string, string[]> = {
     ...allOf(BOARDED), ...Object.values(TRAIN_GAGS).flatMap(allOf), ...allOf(KILL_SEEN), ...allOf(SHOT_LINE), ...allOf(DRIVER_LINE), ...allOf(REVISIT),
     ...allOf(BOARDED_GONE), ...allOf(CUT_GONE), ...allOf(ROBBERS_GONE), ...allOf(MH_FAILSAFE), ...allOf(LION_CAGE_GONE),
     ...allOf(MH_COMEBACK), ...allOf(MH_RAYGUN), ...allOf(LION_CAGE), ...allOf(LION_LOOSE), ...allOf(IM_OKAY),
-    ...allOf(PEN_SPOTTED), ...allOf(PEN_BREAK), ...allOf(PEN_GOT),
+    ...allOf(PEN_SPOTTED), ...allOf(PEN_NUDGE), ...allOf(PEN_BREAK), ...allOf(PEN_GOT),
     ...Object.values(HURT).flatMap(h => h.hurt),
   ],
   death: Object.values(HURT).flatMap(h => h.death),

@@ -37,7 +37,7 @@ import { trainOf, type Maul } from './state';
 import { carXNow } from './where';
 import { viewOf, inView, inDrawn } from './view';
 import { type Ctx, box, checker, mix, hash, INK, N, boards, lip, still, stillAt, BRASS, RED, VARNISH, HAY } from './paint';
-import { LION_CAGE, IM_OKAY, HURT, PEN_SPOTTED, LION_CAGE_GONE } from './lines';
+import { LION_CAGE, IM_OKAY, HURT, PEN_SPOTTED, PEN_NUDGE, LION_CAGE_GONE } from './lines';
 import { bossGone } from '../../emptyArena';
 import { drawPenInside, penDmg, penOpen } from './pen';
 import { drawCircusLion, type LionPose } from './lionArt';
@@ -258,6 +258,8 @@ export const updateCage = (ctx: FrameContext) => {
   // (his line about it: once he's off the caboose (the boarding's said), with it on screen)
   // (...and then the ammo in there with it, the find's tell)
   if (!tr.said.lionCage && tr.phase === 'ride' && seen && cx > CAR_X[1] && p.health > 0 && !p.inCutscene) { tr.said.lionCage = true; meatheadSays(state, pickLine(byPants(state, bossGone('frontier') ? LION_CAGE_GONE : LION_CAGE)), true, () => { if (!penOpen(tr) && !tr.lion) meatheadSays(state, pickLine(byPants(state, PEN_SPOTTED))); }); }
+  // (walked on past it, the cage never touched: the hint once more, so it's not missed)
+  if (tr.said.lionCage && !tr.said.penNudge && tr.phase === 'ride' && !penOpen(tr) && !tr.lion && tr.pen.hits === 0 && cx > x + len + 60 && p.health > 0 && !p.inCutscene) { tr.said.penNudge = true; meatheadSays(state, pickLine(byPants(state, PEN_NUDGE)), true); }
 };
 
 /** Its car's blown (cars.ts derail): the lion leaps out of the fire, lands on the near bank and is off back down the

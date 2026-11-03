@@ -70811,17 +70811,17 @@
  },
  {
   "voice": "meathead",
-  "text": "AMMO IN THE CAGE. I'M NAKED. I NEED IT MORE.",
+  "text": "AMMO IN THE CAGE. I COULD BREAK THAT CAGE OPEN. WORTH SHITTING OVER.",
   "from": "FRONTIER"
  },
  {
   "voice": "meathead",
-  "text": "AMMO IN THE CAGE. WORTH SHITTING OVER.",
+  "text": "AMMO IN THE CAGE. I'M NAKED. I NEED IT MORE. I'M BREAKING THAT CAGE.",
   "from": "FRONTIER"
  },
  {
   "voice": "meathead",
-  "text": "AMMO. IN THE LION CAGE. GREAT.",
+  "text": "AMMO. IN THE LION CAGE. THAT CAGE LOOKS LIKE IT'D BREAK IF I BEAT ON IT.",
   "from": "FRONTIER"
  },
  {
@@ -98791,7 +98791,7 @@
  },
  {
   "voice": "meathead",
-  "text": "THAT CAT'S GOT MORE GEAR THAN ME.",
+  "text": "THAT CAT'S GOT MORE GEAR THAN ME. THAT CAGE WON'T TAKE MUCH.",
   "from": "FRONTIER"
  },
  {
@@ -100331,7 +100331,7 @@
  },
  {
   "voice": "meathead",
-  "text": "THE CAT'S SITTING ON AMMO.",
+  "text": "THE CAT'S SITTING ON AMMO. BUST THE CAGE, GET THE AMMO. GET THE CAT TOO.",
   "from": "FRONTIER"
  },
  {
@@ -101336,7 +101336,7 @@
  },
  {
   "voice": "meathead",
-  "text": "THE LION'S GOT AMMO. I'VE GOT SHIT.",
+  "text": "THE LION'S GOT AMMO. THAT CAGE IS ALL RUST. I COULD BUST IT.",
   "from": "FRONTIER"
  },
  {
@@ -104978,6 +104978,21 @@
   "voice": "meathead",
   "text": "WAIT. I HAVE WET WIPES. SOMEWHERE.",
   "from": "FANTASY"
+ },
+ {
+  "voice": "meathead",
+  "text": "WAIT. THAT CAGE. BREAK IT, GET THE AMMO. WORST IT CAN DO IS BITE MY DICK.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
+  "text": "WAIT. THAT CAGE. I COULD BREAK IT OPEN. THERE'S AMMO IN THERE.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
+  "text": "WAIT. THE CAGE. BEAT IT OPEN, GET THE AMMO. I ALREADY SHIT, WHAT'S A LION?",
+  "from": "FRONTIER"
  },
  {
   "voice": "meathead",
