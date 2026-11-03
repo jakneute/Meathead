@@ -235,7 +235,12 @@ const dropSheriff = (ctx: FrameContext, call: string) => {
   const away = (Math.sign(s.pos.x + s.width / 2 - (state.player.pos.x + state.player.width / 2)) || 1) as 1 | -1;
   s.health = 0; s.puppet = false; s.harmless = false; s.seen = true; s.pauseTimer = 0; s.vel.x = 0; s.vel.y = 0;
   s.isBlownAway = false; s.meleeFlung = false; s.uppercutFlung = false;
+  const n = state.enemyDeaths.length;
   startGunKill(state, s, 'person', { x: away * 6, y: 0 });
+  // (no burst where he lands, the owner's "a bullet goes in his head and he falls over": over backward, stiff, and he
+  // lies there dead in the street, the body left)
+  const gd = state.enemyDeaths[n]?.gd;
+  if (gd) { gd.keep = true; gd.fall = gd.b; gd.limp = false; }
   state.enemies = state.enemies.filter(o => o !== s);
   townOf(state).barks.delete(s);
   fx.spawnDamageNumber({ x: s.pos.x, y: s.pos.y - 30 }, call, true, '#FCA5A5');

@@ -56,6 +56,10 @@ export interface GunDeath {
   water?: number;
   burstAt?: number;
   props: GunProp[];
+  /** (people, Meathead 2's quickdraw sheriff) No burst where he comes down: he lies there dead, and stays. */
+  keep?: boolean;
+  /** (keep) The frame of his death he came down on (he's lying there from then). */
+  downAt?: number;
 }
 
 const G = GRAVITY * 0.8;
@@ -246,7 +250,24 @@ const snapHead = (state: GameState, d: EnemyDeath, g: GunDeath) => {
   }
 };
 
+/** (keep) Down: flat where he fell, a thud and the dust, the blood running out of his head a while. */
+const lieDown = (state: GameState, d: EnemyDeath, g: GunDeath) => {
+  g.downAt = d.t; g.om = 0;
+  g.th = g.fall * Math.PI / 2;
+  const fx = d.x + d.w / 2;
+  playSound('thud', 0.9); shakeScreen(state, 3);
+  dust(state, fx + g.fall * d.h * 0.5, d.floorY, 10, d.h * 0.4);
+};
+const lying = (state: GameState, d: EnemyDeath, g: GunDeath) => {
+  const k = d.t - (g.downAt ?? d.t);
+  if (k < 90 && k % 5 === 0) {
+    const hx = d.x + d.w / 2 + g.fall * d.h * 0.88;
+    push(state, { pos: { x: hx + rnd(-3, 3), y: d.floorY - 4 }, vel: { x: g.fall * rnd(0.2, 1.2), y: rnd(-0.6, 0) }, life: rnd(30, 50), color: GORE[k % GORE.length], size: rnd(2, 4) });
+  }
+};
+
 const person = (state: GameState, d: EnemyDeath, g: GunDeath) => {
+  if (g.keep && g.downAt !== undefined) { lying(state, d, g); return; }
   snapHead(state, d, g);
   const fx = d.x + d.w / 2, fy = d.y + d.h;
   if (g.mode === 'lying') {
@@ -273,7 +294,7 @@ const person = (state: GameState, d: EnemyDeath, g: GunDeath) => {
   if (g.air) {
     // Shot in the air: he drops, going limp, and bursts where he lands
     g.th += g.fall * Math.max(0, 0.05 - Math.abs(g.th) * 0.03);
-    if (drop(state, d, g)) burst(state, d, g, d.x + d.w / 2, d.floorY - d.h * 0.25, g.fall * 0.4, 1.3);
+    if (drop(state, d, g)) { if (g.keep) lieDown(state, d, g); else burst(state, d, g, d.x + d.w / 2, d.floorY - d.h * 0.25, g.fall * 0.4, 1.3); }
     return;
   }
   if (d.t < (g.limp ? 3 : 7)) return;
@@ -286,6 +307,7 @@ const person = (state: GameState, d: EnemyDeath, g: GunDeath) => {
   // What his head comes down on: a wall in the way, or the floor
   const wall = state.blocks.find(bk => bk.type !== 'pit' && bk.type !== 'door' && !bk.oneWay && tx > bk.x && tx < bk.x + bk.w && ty > bk.y && ty < bk.y + bk.h && bk.y < fy - 4);
   if (wall || Math.abs(g.th) >= 1.32 || ty >= d.floorY - 4) {
+    if (g.keep) { lieDown(state, d, g); if (wall) g.th = Math.max(-1.32, Math.min(1.32, g.th)); return; }
     const k = wall ? 0.8 : 0.55;
     burst(state, d, g, fx + Math.sin(g.th) * len * k, Math.min(d.floorY - 6, fy - Math.cos(g.th) * len * k), g.fall * 0.5, 1.35);
   }
