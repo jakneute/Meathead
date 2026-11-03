@@ -478,7 +478,8 @@ const runDone = (state: GameState, h: Lair): EquipControl[] | null => {
     h.nudgeAt = state.frame + 2700;
     benSays(h.ben, pickLine(byPants(state, NUDGE)));
   }
-  return h.tipsTill && h.spar ? ART_TIPS.slice(0, 1).concat(UP_TIPS.slice(0, 1)) : null;
+  // (in the order he does them: the uppercut first, then the tap (the owner's: the tips "seem to be backwards"))
+  return h.tipsTill && h.spar ? UP_TIPS.slice(0, 1).concat(ART_TIPS.slice(0, 1)) : null;
 };
 
 /** Where Ben's feet are (world). */
