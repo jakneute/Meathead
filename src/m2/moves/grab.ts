@@ -196,6 +196,8 @@ const Y_TAP = 15;
 const CONTACT_GRACE = 30;
 /** How near together B (or X) and Y count as pressed together: frames B's held back, waiting for Y. */
 const CHORD_WINDOW = 4;
+/** Hit at most this many frames before he went for a grab: it goes anyway, the knock off the hit cancelled. */
+const HIT_THRU = 6;
 /** After an air grab, how long bumping into anybody doesn't hurt (frames). */
 const AIR_CONTACT_GRACE = 50;
 /** The frame A was last pressed (A + B, the air grab: A first and he's already jumping; B a moment after's still it). */
@@ -301,6 +303,11 @@ export interface Grab {
   /** Missed a grab in the air: none again till he's landed. */
   airSpent: boolean;
   bumpT: number;
+  /** When he first went for the grab still asked for (a press held back for its chord, or queued; -1: none), and when
+   *  his last knockback started: hit as he went for it, the grab goes anyway (the owner's "just take the damage, but have
+   *  no interruption. they are getting grabbed"). */
+  askAt: number;
+  pbAt: number;
   /** The controls last frame (to catch presses). */
   was: Controls;
   /** Shaken down already: no more ammo in them (they can still be grabbed and thrown again). */
@@ -334,7 +341,7 @@ export interface Grab {
 }
 
 export const createGrab = (state: GameState): Grab => ({
-  phase: 'idle', t: 0, dir: 1, held: null, blow: 'punch', blowT: -1, want: null, window: BEAT_WINDOW, healBank: 0, punchN: 0, ammoLeft: 0, nextPunchAt: 0, hp: state.player.health, yHeld: 0, yChord: false, was: { ...NO_CONTROLS }, shaken: new WeakSet(), gate: new Set(), pend: null, clearT: 0, calmed: new Set(), toss: 'forward', thrown: null, flying: [], fall: 0, pitch: 'right', aim: null, queued: null, windHp: 0, pb: 0, bumpT: 0, airSpent: false,
+  phase: 'idle', t: 0, dir: 1, held: null, blow: 'punch', blowT: -1, want: null, window: BEAT_WINDOW, healBank: 0, punchN: 0, ammoLeft: 0, nextPunchAt: 0, hp: state.player.health, yHeld: 0, yChord: false, was: { ...NO_CONTROLS }, shaken: new WeakSet(), gate: new Set(), pend: null, clearT: 0, calmed: new Set(), toss: 'forward', thrown: null, flying: [], fall: 0, pitch: 'right', aim: null, queued: null, windHp: 0, pb: 0, bumpT: 0, askAt: -1, pbAt: -1e9, airSpent: false,
   airLock: false, diveOk: false, arcJump: true, arc: 'down', ang: 0, avx: 0, avy: 0, hitAt: null, lastVy: 0, airT: 0, fu: null, line: null,
 });
 
@@ -513,7 +520,17 @@ const lungeHits = (state: GameState, dir: number) => {
   return best;
 };
 
-const take = (state: GameState, e: Enemy) => { e.wasGrabbed = true; state.enemies = state.enemies.filter(o => o !== e); };
+/**
+ * Got hold of: out of the world's hands (its AI stops, so whatever attack it was in the middle of goes no further), and
+ * whatever it had going at him right then goes nowhere: a swing's windup, a throw's, a shot just let go point-blank (the
+ * user's: "interrupted by the very enemy i'm shaking"; the owner's "they are getting grabbed"). Every grab.
+ */
+const take = (state: GameState, e: Enemy) => {
+  e.wasGrabbed = true; state.enemies = state.enemies.filter(o => o !== e);
+  e.melee = undefined; e.throwWindup = undefined;
+  const ex = e.pos.x + e.width / 2, ey = e.pos.y + e.height / 2;
+  state.projectiles = state.projectiles.filter(q => q.owner !== 'enemy' || Math.hypot(q.pos.x + q.width / 2 - ex, q.pos.y + q.height / 2 - ey) > 90);
+};
 
 /**
  * While he's busy with one, nobody else crowds in on him or stands on him. Anyone who runs at him (to hit him, to
@@ -937,12 +954,18 @@ const envGuard = (ctx: FrameContext, g: Grab, hurt: boolean) => {
   const { state } = ctx, p = state.player;
   if (g.t > PHASE_MAX[g.phase]) { letGo(state, g); return true; }
   if (p.swimming && TWO_HANDED.has(g.phase)) { letGo(state, g); return true; }
+  // (hurt with no throw up off it: whatever knockback it left on him (one of the few hurts that don't ask about the
+  // armor) is gone, so he's not shoved about once the grab's over either)
+  if (hurt && (p.pushbackTimer ?? 0) > 0 && !(p.vel.y < Math.min(g.lastVy, 0) - 0.5)) { p.pushbackTimer = 0; p.isHarmlessPushback = false; }
   // (going up faster than the grab left him going: something else did that, the engine's gravity only pulls down)
   if (PINNED.has(g.phase) && p.vel.y < Math.min(g.lastVy, 0) - 0.5) {
-    // (shaking one down: a hit's knock doesn't make him let go, he takes it and keeps shaking (the user's: his shakedown
-    // cut short, the ammo with it); his feet stay put)
-    if (g.phase === 'shake' && hurt) { p.vel.y = Math.max(p.vel.y, 0); p.vel.x = 0; return false; }
-    if (hurt || hazardOwnersIn(state, p.pos.x, p.pos.y, p.width, p.height).length) { letGo(state, g); return true; }
+    // (a hit's knock, in any grab, windups included: he takes the hurt, but it never makes him let go or throws him out
+    // of it (the user's: his shakedown cut short, the ammo with it; the owner's "if that happens to happen, just take the
+    // damage, but have no interruption. they are getting grabbed"); his feet stay put. A hazard's throw (briars, lava,
+    // the stage's own) still lets go, clean: below)
+    const inHazard = hazardOwnersIn(state, p.pos.x, p.pos.y, p.width, p.height).length > 0;
+    if (hurt && !inHazard) { p.vel.y = Math.max(p.vel.y, Math.min(g.lastVy, 0)); p.vel.x = 0; p.pushbackTimer = 0; return false; }
+    if (hurt || inHazard) { letGo(state, g); return true; }
     // (nothing under him to stand back on (a pit's spring, an updraft over a gap): let go, and it carries him off)
     if (!standBack(state)) { letGo(state, g); return true; }
   }
@@ -1035,10 +1058,19 @@ const stepGrab = (ctx: FrameContext, g: Grab, controls: Controls): Controls => {
       const pb = p.pushbackTimer ?? 0;
       if (pb > g.pb && state.enemies.some(e => canGrab(state, e) && e.pos.x < p.pos.x + p.width + 12 && e.pos.x + e.width > p.pos.x - 12 && e.pos.y < p.pos.y + p.height + 12 && e.pos.y + e.height > p.pos.y - 12)) g.bumpT = pb;
       else if (g.bumpT > 0) g.bumpT--;
+      if (pb > g.pb && (hurt || (p.hurtTimer ?? 0) > 0)) g.pbAt = state.frame;
       g.pb = pb;
       const touching = pb > 0 && g.bumpT > 0;
+      // (hit just as he went for it, by whoever he's going for or anybody else: he's taken the hurt already, but the
+      // knock off it doesn't stop the grab, it goes all the same (the owner's "sometimes when i initiate a shakedown on
+      // someone, they do their attack and it interrupts. if that happens to happen, just take the damage, but have no
+      // interruption"). The hit landing while it's asked for, or a few frames before the ask; not a grab out of any old
+      // knockback long after)
+      const asking = !!(want || g.pend || g.queued);
+      if (!asking) g.askAt = -1; else if (g.askAt < 0) g.askAt = state.frame;
+      const hitThru = pb > 0 && g.askAt >= 0 && g.askAt <= g.pbAt + HIT_THRU;
       if (p.isGrounded || handsOnly(state)) g.airSpent = false;
-      const free = !g.airSpent && !p.isCharging && !p.isSliding && !p.isUppercutting && !p.isDivekicking && !p.inCutscene && !p.noSpecials && !p.stabbed && (!(p.pushbackTimer && p.pushbackTimer > 0) || touching);
+      const free = !g.airSpent && !p.isCharging && !p.isSliding && !p.isUppercutting && !p.isDivekicking && !p.inCutscene && !p.noSpecials && !p.stabbed && (!(p.pushbackTimer && p.pushbackTimer > 0) || touching || hitThru);
       if (want) g.queued = { want, t: 0 };
       else if (g.queued && ++g.queued.t > GRAB_BUFFER) g.queued = null;
       // (an air grab's been used: no charge moves till he's down again)
@@ -1051,7 +1083,10 @@ const stepGrab = (ctx: FrameContext, g: Grab, controls: Controls): Controls => {
       if (g.queued?.want === 'beat' && !handsOnly(state) && free && cheapShotStart(ctx)) { g.queued = null; g.pend = null; if (y) g.yChord = true; g.phase = 'cheap'; g.t = 0; return { ...NO_CONTROLS }; }
       if (!g.queued || !free) return out;
       const go = g.queued.want; g.queued = null;
-      if (touching) { p.pushbackTimer = 0; p.vel.x = 0; }
+      if (touching || hitThru) { p.pushbackTimer = 0; p.vel.x = 0; }
+      // (and the hop up off a hit: gone, he's planted for it)
+      if (hitThru) { if (p.vel.y < 0 && !g.airLock && go !== 'air') p.vel.y = 0; p.isHarmlessPushback = false; }
+      g.askAt = -1;
       if (y) g.yChord = true;
       g.dir = p.facing; g.t = 0;
       if (go === 'air') {
@@ -1141,9 +1176,7 @@ const stepGrab = (ctx: FrameContext, g: Grab, controls: Controls): Controls => {
       // Got him: up by the neck (in the air: down they both come first, no harm in the landing for him)
       g.phase = p.isGrounded ? 'shake' : 'drop'; g.t = 0; g.held = e; g.thrown = null; take(state, e); g.fall = 0;
       e.facing = (-g.dir) as 1 | -1;
-      // (whatever he'd just let go at Meathead from right there (a swing's hit, a shot point-blank) goes nowhere: the one
-      // he's got by the neck doesn't get to hurt him (the user's: "interrupted by the very enemy i'm shaking"))
-      { const ex = e.pos.x + e.width / 2, ey = e.pos.y + e.height / 2; state.projectiles = state.projectiles.filter(q => q.owner !== 'enemy' || Math.hypot(q.pos.x + q.width / 2 - ex, q.pos.y + q.height / 2 - ey) > 90); }
+      // (whatever he'd just let go at Meathead from right there goes nowhere: see take)
       playSound('punch', 0.8, 4);
       return hold();
     }
@@ -2658,7 +2691,9 @@ export const drawGrab = (ctx: Ctx, state: GameState, g: Grab) => {
       const L = g.line, e = g.held;
       const s = Math.min(1, g.t / LINEUP_SNAP), ease = 1 - (1 - s) ** 3;
       const cy = y - 30;
-      if (g.t < 3) { ctx.fillStyle = `rgba(255, 255, 255, ${(0.35 * (1 - g.t / 3)).toFixed(3)})`; ctx.fillRect(x - 3000, cy - 3000, 6000, 6000); }
+      // (the pop: a little burst at the catch, never the whole screen: the owner's "the screen flahes white when doing
+      // a beatdown on someone. make sure it doesn't")
+      if (g.t < 3) { ctx.fillStyle = `rgba(255, 255, 255, ${(0.6 * (1 - g.t / 3)).toFixed(3)})`; ctx.beginPath(); ctx.arc(x, cy + 10, 16 + g.t * 8, 0, Math.PI * 2); ctx.fill(); }
       const throb = g.t - LINEUP_HIT;
       if (e) {
         if (!L || L.pinned || ease >= 1) drawPinned(ctx, e, state, x, y, g.dir, throb >= 0 && throb < 3 ? 1 : 0, 0);
