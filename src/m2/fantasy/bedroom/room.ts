@@ -1515,7 +1515,10 @@ const barrier = (c: Ctx, f: number) => {
 
 export const drawHall = (c: Ctx, state: GameState, look: RoomLook) => {
   const f = state.frame, x0 = HALL_L - 210;
-  if (state.camera.x > DOOR_X + 200 || state.camera.x + 1580 < x0) return;
+  // (the door's leaves fly in onto her carpet, well past the hall's end: they're kept on till they're off the screen,
+  // not dropped with the hall (the owner's: "the door sprites disappear too soon, before they are off screen"))
+  if (state.camera.x + 1580 < x0) return;
+  if (state.camera.x > DOOR_X + 200) { if (look.doorT !== null && state.camera.x < DOOR_X + 340 + LEAF_H) door(c, look.doorT); return; }
   runW(c, state, 'hall', x0, ARENA_L, VAULT_T, GY + 140, (g, a, b) => paintHall(g, a, b));
   // (the sconces' flames; glints in the glass on the runner)
   for (const p of HALL_PIL) flame(c, HALL_L + p, GY - 262, f, 0.18);
