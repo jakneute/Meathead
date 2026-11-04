@@ -23,11 +23,12 @@
 import type { GameState } from '../../../m1/game/core/state';
 import type { SceneLight, Light } from '../../../m1/game/render/lighting';
 import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../../../m1/constants';
-import { box, checker, bandedGradient, hazeBands, tilePattern, stamp, hash, mix, text } from '../../intro/art/kit';
+import { box, checker, bandedGradient, hazeBands, tilePattern, stamp, hash, mix, text, PIX } from '../../intro/art/kit';
 import { drawCannon, FAIRY } from '../../upgrades/returnCannon';
 import { drawBen, benHeadY, drawBenGross, drawBenGrossBack, drawGate, drawCannonChain, gateK } from '../../upgrades/confucktious';
 import { drawSkipPrompt, SKIP_AFTER } from '../../../m1/game/platform/skip';
 import { saidOver } from '../section';
+import { sunBehind } from '../../sunFlare';
 import { at, polyF, topBack, viewOf, type View } from '../kit';
 import { checkerFill } from '../../../m1/game/render/pixelArt';
 import { GY } from '../geometry';
@@ -89,17 +90,23 @@ const board = (g: Ctx, x: number, y: number, w: number, h: number, face: string,
 // ---------------------------------------------------------------------------------------------------------------
 // The earth, the adit, the service tunnel (world space; painted into the tiles)
 
-const earthTile = (g: Ctx) => tilePattern(g, 'fy-ben-earth2', 96, 80, t => {
+/** Paints `draw` at (0, 0) and wrapped round a w x h tile's edges (what hangs over one edge comes in at the other), so
+ *  the tile repeats without a seam: cut off at the edges, its clods and blocks drew a straight line down and across
+ *  the rock every tile (the owner: "similar banding problem when entering the cave to ben's lair"). */
+const wrapped = (w: number, h: number, draw: (ox: number, oy: number) => void) => { for (const oy of [-h, 0, h]) for (const ox of [-w, 0, w]) draw(ox, oy); };
+const earthTile = (g: Ctx) => tilePattern(g, 'fy-ben-earth3', 96, 80, t => {
   box(t, 0, 0, 96, 80, SOIL[2]);
-  // (clods: dithered darker blobs, lighter crumbs on their tops)
-  for (let k = 0; k < 14; k++) { const x = hash(k * 3.7) * 92, y = hash(k * 5.9) * 76, r = 3 + hash(k) * 6; t.fillStyle = SOIL[1]; t.beginPath(); t.ellipse(x, y, r * 1.4, r, hash(k * 9.1) - 0.5, 0, Math.PI * 2); t.fill(); checker(t, x - r * 1.6, y - r - 2, r * 3.2, 2, SOIL[3], 0, 1); }
-  for (let k = 0; k < 9; k++) {
-    // (stones in it: a lit top, a dark under)
-    const x = hash(k * 7.1 + 2) * 86 + 5, y = hash(k * 2.3 + 9) * 70 + 4, r = 2.5 + hash(k * 4.4) * 3.5;
-    t.fillStyle = ROCK[0]; t.beginPath(); t.ellipse(x, y, r + 1, r * 0.8 + 1, 0, 0, Math.PI * 2); t.fill();
-    t.fillStyle = ROCK[2]; t.beginPath(); t.ellipse(x, y, r, r * 0.8, 0, 0, Math.PI * 2); t.fill();
-    t.fillStyle = ROCK[4]; t.beginPath(); t.ellipse(x - r * 0.3, y - r * 0.35, r * 0.5, r * 0.3, 0, 0, Math.PI * 2); t.fill();
-  }
+  wrapped(96, 80, (ox, oy) => {
+    // (clods: dithered darker blobs, lighter crumbs on their tops)
+    for (let k = 0; k < 14; k++) { const x = hash(k * 3.7) * 92 + ox, y = hash(k * 5.9) * 76 + oy, r = 3 + hash(k) * 6; t.fillStyle = SOIL[1]; t.beginPath(); t.ellipse(x, y, r * 1.4, r, hash(k * 9.1) - 0.5, 0, Math.PI * 2); t.fill(); checker(t, Math.round(x - r * 1.6), Math.round(y - r - 2), Math.round(r * 3.2), 2, SOIL[3], 0, 1); }
+    for (let k = 0; k < 9; k++) {
+      // (stones in it: a lit top, a dark under)
+      const x = hash(k * 7.1 + 2) * 86 + 5 + ox, y = hash(k * 2.3 + 9) * 70 + 4 + oy, r = 2.5 + hash(k * 4.4) * 3.5;
+      t.fillStyle = ROCK[0]; t.beginPath(); t.ellipse(x, y, r + 1, r * 0.8 + 1, 0, 0, Math.PI * 2); t.fill();
+      t.fillStyle = ROCK[2]; t.beginPath(); t.ellipse(x, y, r, r * 0.8, 0, 0, Math.PI * 2); t.fill();
+      t.fillStyle = ROCK[4]; t.beginPath(); t.ellipse(x - r * 0.3, y - r * 0.35, r * 0.5, r * 0.3, 0, 0, Math.PI * 2); t.fill();
+    }
+  });
   for (let k = 0; k < 40; k++) box(t, hash(k * 1.3 + 5) * 95, hash(k * 8.1) * 79, 1, 1, k % 3 ? SOIL[4] : SOIL[0]);
 });
 
@@ -154,21 +161,18 @@ const slabTop = (g: Ctx, a: number, b: number, floor: number, edge: boolean) => 
 
 /** The mine's rock (the adit, the incline): blocky faces lit top-left and dark under-right, grit, and an ore glint or
  *  two (fake gems: it's the dwarf mine's). */
-const rockTile = (g: Ctx) => tilePattern(g, 'fy-ben-rock', 120, 90, t => {
+const rockTile = (g: Ctx) => tilePattern(g, 'fy-ben-rock2', 120, 90, t => {
   box(t, 0, 0, 120, 90, ROCK[2]);
-  for (let k = 0; k < 16; k++) {
-    const x = Math.round(hash(k * 4.1) * 108), y = Math.round(hash(k * 6.3 + 1) * 82), w = Math.round(10 + hash(k * 2.2) * 18), h = Math.round(6 + hash(k * 3.7) * 10);
-    box(t, x, y, w, h, ROCK[k % 3 ? 2 : 3]); box(t, x, y, w, 1, ROCK[4]); box(t, x, y, 1, h, ROCK[3]); box(t, x, y + h - 1, w, 1, ROCK[0]); box(t, x + w - 1, y, 1, h, ROCK[1]);
-  }
+  wrapped(120, 90, (ox, oy) => {
+    for (let k = 0; k < 16; k++) {
+      const x = Math.round(hash(k * 4.1) * 108) + ox, y = Math.round(hash(k * 6.3 + 1) * 82) + oy, w = Math.round(10 + hash(k * 2.2) * 18), h = Math.round(6 + hash(k * 3.7) * 10);
+      box(t, x, y, w, h, ROCK[k % 3 ? 2 : 3]); box(t, x, y, w, 1, ROCK[4]); box(t, x, y, 1, h, ROCK[3]); box(t, x, y + h - 1, w, 1, ROCK[0]); box(t, x + w - 1, y, 1, h, ROCK[1]);
+    }
+  });
   for (let k = 0; k < 34; k++) box(t, hash(k * 1.7 + 3) * 119, hash(k * 9.3) * 89, 1, 1, k % 2 ? ROCK[1] : ROCK[4]);
   const GEM = ['#F9A8D4', '#C4B5FD', '#FDE68A', '#93C5FD'];
   for (let k = 0; k < 4; k++) { const x = Math.round(6 + hash(k * 7.7 + 2) * 104), y = Math.round(6 + hash(k * 5.5 + 4) * 74), col = GEM[k % 4]; box(t, x, y, 2, 2, col); box(t, x, y, 1, 1, '#FFFFFF'); box(t, x + 2, y + 1, 1, 1, mix(col, '#000000', 0.45)); }
 });
-/** A stretch of the mine's rock behind him (world rect), dark up under the roof, banded down to the lamp-lit low wall. */
-const rockBack = (g: Ctx, x: number, y: number, w: number, h: number) => {
-  g.fillStyle = rockTile(g); g.fillRect(x, y, w, h);
-  hazeBands(g, x, y, w, Math.min(h, 70), '#0A0608', 0.6, 0.05, 4);
-};
 /** A timber set standing on the floor at x (world), up to the roof at `top` (screen y): the post (lit down its left),
  *  its cap along the roof (lit along its underside, from the lamps), a wedge or two. */
 const timberSet = (g: Ctx, x: number, top: number, floor: number) => {
@@ -200,13 +204,60 @@ const puddle = (g: Ctx, x: number, y: number, w: number) => {
 const noseAt = (rx: number) => MOUTH.floor + (FLOOR - MOUTH.floor) * Math.max(0, Math.min(1, (rx - STEPS_A) / (STEPS_B - STEPS_A)));
 /** The step under rx. */
 const stepUnder = (rx: number) => stepAt(Math.max(0, Math.min(STEP_N - 1, Math.floor((rx - STEPS_A) / STEP_W))));
+/** The roof over the adit and the incline (a height, at rx): flat over the adit, then sloping down with the treads
+ *  (between each tread's stepped ceiling's two ends, so it's never far off where his head would stop). One slope, not
+ *  a step per tread: stepped, every tread's roof and its shade under it came out as a staircase of square blocks. */
+const ROOF_OFF = 152;
+const roofAt = (rx: number) => (rx < STEPS_A ? MOUTH.top : Math.min(MOUTH.top, noseAt(rx) + ROOF_OFF));
+/** The floor under the rock wall at rx: the adit's, then each tread's. */
+const wallFloorAt = (rx: number) => (rx < STEPS_A ? MOUTH.floor : stepUnder(rx).floor);
+/** A run of 2px columns from x0 to x1 (screen), each from top(x) to bot(x) (screen, at the column's middle): a shape
+ *  that follows a slope in whole pixel steps (no smoothed edge on it). */
+const columns = (g: Ctx, x0: number, x1: number, top: (x: number) => number, bot: (x: number) => number) => {
+  const a = Math.floor(x0 / PIX) * PIX;
+  g.beginPath();
+  for (let x = a; x < x1; x += PIX) { const y = Math.round(top(x + PIX / 2)); if (x === a) g.moveTo(x, y); else g.lineTo(x, y); g.lineTo(x + PIX, y); }
+  for (let x = a + Math.ceil((x1 - a) / PIX) * PIX - PIX; x >= a; x -= PIX) { const y = Math.round(bot(x + PIX / 2)); g.lineTo(x + PIX, y); g.lineTo(x, y); }
+  g.closePath();
+};
+/** The mine's rock wall behind him, all along the adit and down the incline as one piece: the rock, dark up under the
+ *  roof in bands that follow the roof's slope (a dither row at each step, laid on the fainter band's side of it, never
+ *  doubled up over its own), the roof's lagging along its top. */
+const ROOF_BANDS = [0.6, 0.42, 0.27, 0.14, 0.05], ROOF_BAND_H = 14;
+const paintMineWall = (g: Ctx) => {
+  const xa = R(MOUTH.a), xb = R(STEPS_B), rx = (x: number) => x - R(0);
+  const roof = (x: number) => H(roofAt(rx(x))), under = (o: number) => (x: number) => roof(x) + o;
+  columns(g, xa, xb, roof, x => H(wallFloorAt(rx(x)))); g.fillStyle = rockTile(g); g.fill();
+  ROOF_BANDS.forEach((al, k) => { columns(g, xa, xb, under(k * ROOF_BAND_H), under((k + 1) * ROOF_BAND_H)); g.fillStyle = `rgba(10, 6, 8, ${al})`; g.fill(); });
+  for (let k = 0; k + 1 < ROOF_BANDS.length; k++) {
+    const hi = ROOF_BANDS[k], lo = ROOF_BANDS[k + 1], y = (k + 1) * ROOF_BAND_H;
+    columns(g, xa, xb, under(y), under(y + PIX)); g.fillStyle = checkerFill(g, `rgba(10, 6, 8, ${((hi - lo) / (1 - lo)).toFixed(3)})`, 0, PIX); g.fill();
+  }
+  // (the lagging: boards along the roof, lit along their underside, a butt joint every few feet)
+  columns(g, xa, xb, roof, under(5)); g.fillStyle = TIMB[1]; g.fill();
+  columns(g, xa, xb, under(4), under(5)); g.fillStyle = TIMB[3]; g.fill();
+  for (let x = Math.ceil(xa / 34) * 34; x < xb; x += 34) box(g, x, Math.round(roof(x + 1)), 1, 4, TIMB[0]);
+};
+/** A timber set on the incline: a post standing on the tread at rx, up to the sloping roof; its cap laid along the roof
+ *  under the lagging (raked with it), lit along its underside; a wedge or two. */
+const rakedSet = (g: Ctx, rx: number) => {
+  const x = R(rx), top = H(roofAt(rx)), floor = H(stepUnder(rx).floor), h = floor - top;
+  box(g, x - 5, top, 10, h, INK); box(g, x - 4, top, 8, h, TIMB[2]); box(g, x - 4, top, 2, h, TIMB[4]); box(g, x + 3, top, 1, h, TIMB[0]);
+  for (let y = top + 14; y < floor - 6; y += 23) box(g, x - 3, y, 6, 1, TIMB[1]);
+  const ya = H(roofAt(rx - 22)), yb = H(roofAt(rx + 22));
+  polyF(g, [[x - 22, ya - 1], [x + 22, yb - 1], [x + 22, yb + 9], [x - 22, ya + 9]], INK);
+  polyF(g, [[x - 21, ya], [x + 21, yb], [x + 21, yb + 7], [x - 21, ya + 7]], TIMB[3]);
+  polyF(g, [[x - 21, ya + 6], [x + 21, yb + 6], [x + 21, yb + 7], [x - 21, ya + 7]], TIMB[5]);
+  const yc = H(roofAt(rx));
+  box(g, x - 9, yc + 9, 4, 4, TIMB[1]); box(g, x + 5, yc + 9, 4, 4, TIMB[1]);
+};
 /** The incline's timber sets, and the work lamps on its cable (every other set). */
 const SETS = Array.from({ length: Math.floor((STEPS_B - STEPS_A - 30) / 96) + 1 }, (_, k) => STEPS_A + 30 + k * 96);
-export const INCLINE_BULBS = SETS.filter((_, k) => k % 2 === 1).map(rx => ({ rx, top: stepUnder(rx).top }));
+export const INCLINE_BULBS = SETS.filter((_, k) => k % 2 === 1).map(rx => ({ rx, top: roofAt(rx) }));
 /** Where water drips off the roof (x from the glen's start; the roof's height there), onto a puddle under it. */
 const DRIPS: { rx: number; top: number; floor: number }[] = [
   { rx: MOUTH.a + 118, top: MOUTH.top, floor: MOUTH.floor },
-  ...[0.3, 0.72].map(t => { const rx = Math.round(STEPS_A + t * (STEPS_B - STEPS_A)), s = stepUnder(rx); return { rx: Math.round((s.a + s.b) / 2), top: s.top, floor: s.floor }; }),
+  ...[0.3, 0.72].map(t => { const rx = Math.round(STEPS_A + t * (STEPS_B - STEPS_A)), s = stepUnder(rx), m = Math.round((s.a + s.b) / 2); return { rx: m, top: roofAt(m), floor: s.floor }; }),
   { rx: TUN.a + 200, top: TUN.top, floor: FLOOR }, { rx: TUN.a + 470, top: TUN.top, floor: FLOOR },
 ];
 
@@ -215,8 +266,7 @@ const paintTunnel = (g: Ctx) => {
   // THE ADIT: the mine's rock, two timber sets, the roof lagged with boards; its floor planked over the old cart rails;
   // a lantern on the inner set's cap (its flame live); the NO ADMITTANCE board fallen half across it
   { const x = R(MOUTH.a), w = MOUTH.b - MOUTH.a, y = H(MOUTH.top), fy = H(MOUTH.floor);
-    rockBack(g, x, y, w, fy - y);
-    box(g, x, y, w, 5, T[1]); box(g, x, y + 4, w, 1, T[3]);
+    paintMineWall(g);
     for (const rx of [MOUTH.a + 34, MOUTH.a + 108]) timberSet(g, R(rx), y, fy);
     box(g, R(MOUTH.a + 108) + 10, y + 9, 1, 8, STEEL[2]); box(g, R(MOUTH.a + 108) + 7, y + 17, 7, 9, INK); box(g, R(MOUTH.a + 108) + 8, y + 18, 5, 7, '#C89A40');
     board(g, R(MOUTH.a + 60), fy - 30, 50, 22, '#A89470', ['NO', 'ADMITTANCE'], '#6A1414', 5);
@@ -230,11 +280,6 @@ const paintTunnel = (g: Ctx) => {
   // THE INCLINE: forty treads down through the rock, timber sets every few yards (their caps under the stepped roof),
   // the roof lagged; a rope handrail along the wall; a cable sagging set to set with a work lamp on every other one;
   // the treads planks on a stringer, each lit along its nosing (standable reads standable)
-  for (let i = 0; i < STEP_N; i++) {
-    const s = stepAt(i), x = R(s.a), w = s.b - s.a, y = H(s.top), fy = H(s.floor);
-    rockBack(g, x, y, w + 1, fy - y);
-    box(g, x, y, w + 1, 5, T[1]); box(g, x, y + 4, w + 1, 1, T[3]);
-  }
   chalk(g, 'BEN', R(STEPS_A + 70), H(MOUTH.floor) - 40, 6); chalkArrow(g, R(STEPS_A + 92), H(MOUTH.floor) - 44, 40, 34);
   chalk(g, 'MIND THE STEP BRO', R(STEPS_A + 380), H(noseAt(STEPS_A + 380)) - 58, 5);
   // (the rope handrail along the wall: dim, nothing to stand on; iron eyes at the sets)
@@ -242,10 +287,10 @@ const paintTunnel = (g: Ctx) => {
     g.strokeStyle = '#3A2C1E'; g.lineWidth = 3; g.beginPath(); g.moveTo(R(x0r), H(noseAt(x0r)) - off); g.lineTo(R(x1r), H(noseAt(x1r)) - off); g.stroke();
     g.strokeStyle = '#6A5640'; g.lineWidth = 1; g.beginPath(); g.moveTo(R(x0r), H(noseAt(x0r)) - off - 1); g.lineTo(R(x1r), H(noseAt(x1r)) - off - 1); g.stroke();
   }
-  for (const rx of SETS) { const s = stepUnder(rx); timberSet(g, R(rx), H(s.top), H(s.floor)); box(g, R(rx) + 4, H(noseAt(rx)) - 44, 4, 4, STEEL[3]); }
+  for (const rx of SETS) { rakedSet(g, rx); box(g, R(rx) + 4, H(noseAt(rx)) - 44, 4, 4, STEEL[3]); }
   // (the cable, sagging set to set under the caps)
   g.strokeStyle = '#141014'; g.lineWidth = 2; g.beginPath();
-  for (let k = 0; k + 1 < SETS.length; k++) { const a = SETS[k], b = SETS[k + 1], ya = H(stepUnder(a).top) + 12, yb = H(stepUnder(b).top) + 12; g.moveTo(R(a), ya); g.quadraticCurveTo(R((a + b) / 2), Math.max(ya, yb) + 14, R(b), yb); }
+  for (let k = 0; k + 1 < SETS.length; k++) { const a = SETS[k], b = SETS[k + 1], ya = H(roofAt(a)) + 12, yb = H(roofAt(b)) + 12; g.moveTo(R(a), ya); g.quadraticCurveTo(R((a + b) / 2), Math.max(ya, yb) + 14, R(b), yb); }
   g.stroke();
   for (const b of INCLINE_BULBS) bulbHousing(g, R(b.rx), H(b.top) + 20);
   // (the stringer under the treads, the treads, the risers)
@@ -850,6 +895,17 @@ export const drawAditOver = (c: Ctx, state: GameState) => {
 // ---------------------------------------------------------------------------------------------------------------
 // Drawing
 
+/** A caged bulb's light falling under it (live): a cone opening down from the bulb at (x, y), w wide at its foot h
+ *  below, in three bands stepping down toward its edge and its foot, a dithered skirt round them (a flat rectangle of
+ *  light read as a pale box down the post). Six fills. */
+const bulbGlow = (c: Ctx, x: number, y: number, w: number, h: number, a: number) => {
+  const cone = (s: number, l: number): [number, number][] => [[x - 3, y], [x + 3, y], [x + (w / 2) * s, y + h * l], [x - (w / 2) * s, y + h * l]];
+  c.save();
+  c.globalAlpha = a * 0.7; c.fillStyle = checkerFill(c, '#FFECAA', 0, PIX); c.beginPath(); cone(1.2, 1.1).forEach(([px, py], i) => (i ? c.lineTo(px, py) : c.moveTo(px, py))); c.closePath(); c.fill();
+  for (const [s, l] of [[1, 1], [0.66, 0.75], [0.36, 0.5]] as const) { c.globalAlpha = a * 0.45; polyF(c, cone(s, l), '#FFECAA'); }
+  c.restore();
+};
+
 /** Behind him: the adit's mouth on the shaft's wall and the light out of it (the tell), the trapdoor up top; under the
  *  ground (once he's in): the earth in cross section, the tunnel, the room, its live lights, the cannon, Ben; the
  *  meadow's near ground over it till then. */
@@ -862,6 +918,9 @@ export const drawLairBack = (c: Ctx, state: GameState) => {
   }
   // Under the ground
   if (h.reveal <= 0) return;
+  // (the sun's lens ghosts fade out while the cutaway's up: its discs and ring strung across the screen read as pale
+  // rings of light on the rock, the owner's "banding problem when entering the cave")
+  sunBehind(c, () => true);
   const L = Math.max(R(MOUTH.a), state.camera.x - 40), Rr = Math.min(R(CUT_B), state.camera.x + CANVAS_WIDTH + 40);
   const T = Math.max(CUT_TOP, state.camera.y - 40), B = Math.min(CUT_BOT, state.camera.y + CANVAS_HEIGHT + 40);
   if (Rr <= L || B <= T) return;
@@ -871,16 +930,16 @@ export const drawLairBack = (c: Ctx, state: GameState) => {
     const x = ox + tx * TILE, y = oy + ty * TILE;
     const w = Math.min(TILE, R(CUT_B) - x), hh = Math.min(TILE, CUT_BOT - y);
     if (w <= 0 || hh <= 0) continue;
-    stamp(c, `fy-ben-under3-${tx}-${ty}`, x, y, w, hh, g => { g.save(); g.beginPath(); g.rect(x, y, w, hh); g.clip(); paintUnder(g); g.restore(); });
+    stamp(c, `fy-ben-under4-${tx}-${ty}`, x, y, w, hh, g => { g.save(); g.beginPath(); g.rect(x, y, w, hh); g.clip(); paintUnder(g); g.restore(); });
   }
   // (the live bits: the tunnel's bulbs flickering, the dragon's eye, the desk's button, the pilots, the fog off the drum)
   for (let rx = TUN.a + 60, i = 0; rx < TUN.b; rx += 220, i++) {
     const on = !(i === 2 && f % 140 < 9) && !(i === 4 && (f % 97 < 4 || f % 97 === 11));
-    if (on) { c.fillStyle = 'rgba(255,236,170,0.18)'; c.fillRect(R(rx) - 18, H(TUN.top) + 40, 36, 60); c.fillStyle = '#FFF8D8'; c.fillRect(R(rx) - 2, H(TUN.top) + 41, 4, 3); }
+    if (on) { bulbGlow(c, R(rx), H(TUN.top) + 41, 36, 60, 0.18); c.fillStyle = '#FFF8D8'; c.fillRect(R(rx) - 2, H(TUN.top) + 41, 4, 3); }
   }
   // (the incline's work lamps, the adit's lantern flame, the drips off the roof (each a drop falling, a ring on its
   // puddle as it lands))
-  for (const b of INCLINE_BULBS) { c.fillStyle = 'rgba(255,236,170,0.16)'; c.fillRect(R(b.rx) - 14, H(b.top) + 22, 28, 40); c.fillStyle = '#FFF8D8'; c.fillRect(R(b.rx) - 2, H(b.top) + 23, 4, 3); }
+  for (const b of INCLINE_BULBS) { bulbGlow(c, R(b.rx), H(b.top) + 23, 30, 44, 0.16); c.fillStyle = '#FFF8D8'; c.fillRect(R(b.rx) - 2, H(b.top) + 23, 4, 3); }
   { const fl = (f >> 3) % 3; c.fillStyle = fl ? '#FFD060' : '#FFF0A0'; c.fillRect(R(MOUTH.a + 108) + 9, H(MOUTH.top) + 19 + (fl === 2 ? 1 : 0), 3, 4); }
   DRIPS.forEach((d, i) => {
     const per = 70 + i * 13, t = (f + i * 29) % per, fall = H(d.floor) - H(d.top) - 6;
@@ -964,6 +1023,12 @@ export const lairLighting = (base: SceneLight | null, state: GameState): SceneLi
   lights.push({ x: p.pos.x + p.width / 2, y: p.pos.y + 20, r: 140, a: 0.35 * r });
   return { ...(base ?? { dark: 0.4 }), dark: 0.4 + 0.22 * r, shade: [14, 8, 24], grade: undefined, lights };
 };
+
+/** Where the meadow's near ground is cut off at the shaft's wall (screen x), while the cutaway's up, or null. It's the
+ *  ground in front of the play plane, and the cutaway's a section through the play plane: bent (fanned out from the
+ *  eye), its end past the wall stuck out over the shaft as a slanted green wedge between the stairs and the adit. Cut
+ *  there, what shows past the wall is the shaft behind, the same as the rest of the shaft. */
+export const nearGroundCut = (state: GameState) => (lairOf(state).reveal >= 0.5 ? R(MOUTH.a) : null);
 
 /** For a still look (the contact sheet): the whole room painted at once at (0, 0) = its floor's left end. */
 export const paintLairRoom = (g: Ctx) => paintRoom(g);

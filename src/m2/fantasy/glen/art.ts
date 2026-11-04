@@ -38,7 +38,7 @@ import {
   Q, clipAt, leafy, paintTreeFoot, paintTrunk, paintBough, GIANTS, giantX,
 } from './paint';
 import { drawSetsBack, drawSetsFar, drawSetsMid, drawSetsNear, setLamps } from './sets';
-import { drawAditUnder, drawAditOver } from './benLairArt';
+import { drawAditUnder, drawAditOver, nearGroundCut } from './benLairArt';
 
 export const drawGlenBackdrop = (c: Ctx, state: GameState) => drawGlenFar(c, state);
 
@@ -435,9 +435,13 @@ const nearPath = (c: Ctx, s: number, e: number) => {
 const drawNearGround = (c: Ctx, state: GameState, v: View) => {
   const L = state.camera.x - 40, R = state.camera.x + 840, M = rampH(MOSS), S = rampH(SOIL);
   const runs: [number, number][] = [[X(-300), X(GAP1.a)], [X(GAP1.b), X(GAP2.a)], [X(GAP2.b), X(END)]];
+  // (with Ben's cutaway up, the meadow's run is cut square at the shaft's wall: benLairArt.ts nearGroundCut)
+  const cut = nearGroundCut(state);
   for (const [a, b] of runs) {
     const s = Math.max(a, L), e = Math.min(b, R);
     if (e <= s) continue;
+    const clip = cut !== null && a === cut;
+    if (clip) { c.save(); c.beginPath(); c.rect(cut, state.camera.y - 100, R + 100 - cut, 1000); c.clip(); }
     box(c, s, GY, e - s, 700, M[1]);
     c.fillStyle = nearTile(c); c.fillRect(s, GY + 10, e - s, 600);
     nearPath(c, s, e);
@@ -447,6 +451,7 @@ const drawNearGround = (c: Ctx, state: GameState, v: View) => {
     for (let x = Math.floor(s / 14) * 14; x < e; x += 14) { const t = hash(x * 0.29); if (t > 0.6) box(c, x, GY + 3, 4, 2, M[4]); else if (t < 0.15) { box(c, x, GY + 6, 6, 2, S[1]); box(c, x, GY + 6, 3, 1, S[4]); } }
     box(c, s, GY, e - s, 2, LIP[2]); box(c, s, GY, e - s, 1, LIP[3]);
     for (let x = Math.floor(s / 6) * 6; x < e; x += 6) { const t = hash(x * 0.17); if (t > 0.55) { box(c, x, GY - 2, 1, 2, M[4]); box(c, x + 2, GY - 3, 1, 3, M[5]); } if (t > 0.93) { box(c, x + 1, GY - 5, 3, 2, FLOWERS[Math.floor(hash(x) * FLOWERS.length)]); box(c, x + 2, GY - 3, 1, 3, M[3]); } }
+    if (clip) c.restore();
   }
 };
 
