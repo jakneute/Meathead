@@ -9,12 +9,16 @@
 // shields for plates, racked on two hydraulic jacks; a fiberglass DRAGON EGG with a handle bolted on for a kettlebell; a
 // towel on a valve. Riveted steel panels, its own dark, the eye's red and the pilots' blue in it.
 //
-// The way to it: the plank out of the adit in the mine shaft's wall (lit along its top), and the adit's hole (the warm
-// light out of it, pink fairy dust drifting out: the tell, faded in as the view comes down the shaft); then once he's
-// in, the earth in cross section (the meadow's near ground fading into it: `reveal`): the adit's few feet of mine timber,
-// the park's service tunnel (concrete, a lavender stripe, conduit, caged bulbs, stenciled signs), its twelve steps down
-// (each lit along its edge, hazard striped), the long run to the room. And the staff trapdoor in the lair's floor up top
-// the cannon shoots him out of. Still art painted once (stamped in tiles); the bulbs, the pilots, the eye, the dust live.
+// The way to it: the plank out of the adit in the mine shaft's wall (lit along its top), and the adit's mouth drawn on
+// that wall in perspective (the shaft's one eye), half boarded up, warm light beaming out between the boards across the
+// shaft, falling on the plank and the shaft's far wall, pink fairy dust drifting in it (the tell; drawAditUnder /
+// drawAditOver, called from art.ts so the meadow's near ground covers it where that ground's in front); then once he's
+// in, the earth in cross section (the meadow's near ground fading into it: `reveal`): the adit's few feet of mine timber
+// (rock, timber sets, a lantern, a puddle under a drip), the incline's forty treads down (timber sets, a rope rail, a
+// work-lamp cable, Ben's chalk), broken through into the park's service tunnel (concrete, a lavender stripe, conduit, a
+// cable tray, caged bulbs, water stains, puddles, stenciled signs, Ben's stash by his door), the long run to the room.
+// And the staff trapdoor in the lair's floor up top the cannon shoots him out of. Still art painted once (stamped in
+// tiles); the bulbs, the pilots, the eye, the drips, the beam and the dust live.
 
 import type { GameState } from '../../../m1/game/core/state';
 import type { SceneLight, Light } from '../../../m1/game/render/lighting';
@@ -24,10 +28,13 @@ import { drawCannon, FAIRY } from '../../upgrades/returnCannon';
 import { drawBen, benHeadY, drawBenGross, drawBenGrossBack, drawGate, drawCannonChain, gateK } from '../../upgrades/confucktious';
 import { drawSkipPrompt, SKIP_AFTER } from '../../../m1/game/platform/skip';
 import { saidOver } from '../section';
+import { at, polyF, topBack, viewOf, type View } from '../kit';
+import { checkerFill } from '../../../m1/game/render/pixelArt';
 import { GY } from '../geometry';
+import { GORGE_D } from './paint';
 import { X, Y } from './layout';
 import {
-  LIP, MOUTH, STEP_N, STEP_D, STEP_W, STEPS_B, stepAt, FLOOR, TUN, ROOM, RH, CANNON_LX, CHUTE, HEAD_LX, TRAPDOOR_RX,
+  LIP, MOUTH, STEP_N, STEP_D, STEP_W, STEPS_A, STEPS_B, stepAt, FLOOR, TUN, ROOM, RH, CANNON_LX, CHUTE, HEAD_LX, TRAPDOOR_RX,
   lairOf, benAt, inRoom, underView,
 } from './benLair';
 
@@ -145,42 +152,162 @@ const slabTop = (g: Ctx, a: number, b: number, floor: number, edge: boolean) => 
   if (edge) for (let k = 0; k < 4; k++) box(g, x + w - 12 + k * 3, y + 2, 2, 3, HAZ[k % 2]);
 };
 
-const paintTunnel = (g: Ctx) => {
-  // The adit: the mine's rock and timber, in off the plank; a NO ADMITTANCE board fallen half across it
-  airBack(g, MOUTH.a, MOUTH.b, MOUTH.top, MOUTH.floor, 'adit');
-  board(g, R(MOUTH.a + 74), H(MOUTH.floor) - 40, 58, 22, '#C8B48A', ['NO', 'ADMITTANCE'], '#7A1A1A', 5);
-  { const x = R(MOUTH.a), y = H(MOUTH.floor), w = MOUTH.b - MOUTH.a; box(g, x, y, w, 6, TIMB[2]); for (let k = 0; k < w; k += 18) box(g, x + k, y, 1, 6, TIMB[0]); lip(g, x, y, w); }
-  // The steps down and the long run: the service tunnel
-  for (let i = 0; i < STEP_N; i++) {
-    const s = stepAt(i);
-    airBack(g, s.a, s.b, s.top, s.floor, 'tunnel');
-    slabTop(g, s.a, s.b, s.floor, false);
-    // (the riser up to the step before: concrete, the hazard stripe up its face)
-    const rx = R(s.a), ry = H(s.floor + STEP_D);
-    box(g, rx, ry, 4, H(s.floor) - ry, CONC[3]);
-    for (let y = ry; y < H(s.floor); y += 6) box(g, rx, y, 4, 3, HAZ[((y - ry) / 6) & 1]);
+/** The mine's rock (the adit, the incline): blocky faces lit top-left and dark under-right, grit, and an ore glint or
+ *  two (fake gems: it's the dwarf mine's). */
+const rockTile = (g: Ctx) => tilePattern(g, 'fy-ben-rock', 120, 90, t => {
+  box(t, 0, 0, 120, 90, ROCK[2]);
+  for (let k = 0; k < 16; k++) {
+    const x = Math.round(hash(k * 4.1) * 108), y = Math.round(hash(k * 6.3 + 1) * 82), w = Math.round(10 + hash(k * 2.2) * 18), h = Math.round(6 + hash(k * 3.7) * 10);
+    box(t, x, y, w, h, ROCK[k % 3 ? 2 : 3]); box(t, x, y, w, 1, ROCK[4]); box(t, x, y, 1, h, ROCK[3]); box(t, x, y + h - 1, w, 1, ROCK[0]); box(t, x + w - 1, y, 1, h, ROCK[1]);
   }
+  for (let k = 0; k < 34; k++) box(t, hash(k * 1.7 + 3) * 119, hash(k * 9.3) * 89, 1, 1, k % 2 ? ROCK[1] : ROCK[4]);
+  const GEM = ['#F9A8D4', '#C4B5FD', '#FDE68A', '#93C5FD'];
+  for (let k = 0; k < 4; k++) { const x = Math.round(6 + hash(k * 7.7 + 2) * 104), y = Math.round(6 + hash(k * 5.5 + 4) * 74), col = GEM[k % 4]; box(t, x, y, 2, 2, col); box(t, x, y, 1, 1, '#FFFFFF'); box(t, x + 2, y + 1, 1, 1, mix(col, '#000000', 0.45)); }
+});
+/** A stretch of the mine's rock behind him (world rect), dark up under the roof, banded down to the lamp-lit low wall. */
+const rockBack = (g: Ctx, x: number, y: number, w: number, h: number) => {
+  g.fillStyle = rockTile(g); g.fillRect(x, y, w, h);
+  hazeBands(g, x, y, w, Math.min(h, 70), '#0A0608', 0.6, 0.05, 4);
+};
+/** A timber set standing on the floor at x (world), up to the roof at `top` (screen y): the post (lit down its left),
+ *  its cap along the roof (lit along its underside, from the lamps), a wedge or two. */
+const timberSet = (g: Ctx, x: number, top: number, floor: number) => {
+  const h = floor - top;
+  box(g, x - 5, top, 10, h, INK); box(g, x - 4, top, 8, h, TIMB[2]); box(g, x - 4, top, 2, h, TIMB[4]); box(g, x + 3, top, 1, h, TIMB[0]);
+  for (let y = top + 14; y < floor - 6; y += 23) box(g, x - 3, y, 6, 1, TIMB[1]);
+  box(g, x - 22, top, 44, 9, INK); box(g, x - 21, top, 42, 7, TIMB[3]); box(g, x - 21, top + 6, 42, 1, TIMB[5]);
+  box(g, x - 9, top + 9, 4, 4, TIMB[1]); box(g, x + 5, top + 9, 4, 4, TIMB[1]);
+};
+/** Chalk on rock or concrete (Ben's: a little smudged). */
+const chalk = (g: Ctx, s: string, x: number, y: number, size = 5) => {
+  g.save(); g.globalAlpha = 0.3; text(g, s, x + 1, y, '#F4F0E8', size, 'center', null); g.globalAlpha = 0.85; text(g, s, x, y, '#F4F0E8', size, 'center', null); g.restore();
+};
+/** A chalked arrow (pointing right, or down the incline). */
+const chalkArrow = (g: Ctx, x: number, y: number, len: number, down = 0) => {
+  g.save(); g.globalAlpha = 0.85; g.strokeStyle = '#F4F0E8'; g.lineWidth = 2;
+  g.beginPath(); g.moveTo(x, y); g.lineTo(x + len, y + down); g.stroke();
+  const a = Math.atan2(down, len), ex = x + len, ey = y + down;
+  g.beginPath(); g.moveTo(ex - Math.cos(a - 0.6) * 8, ey - Math.sin(a - 0.6) * 8); g.lineTo(ex, ey); g.lineTo(ex - Math.cos(a + 0.6) * 8, ey - Math.sin(a + 0.6) * 8); g.stroke();
+  g.restore();
+};
+/** A puddle on a floor's top at x (world), w wide: the wet dark, the ceiling's light in it. */
+const puddle = (g: Ctx, x: number, y: number, w: number) => {
+  box(g, x, y - 1, w, 2, '#2A3040'); box(g, x + 3, y - 2, w - 6, 1, '#2A3040');
+  box(g, x + 4, y - 1, w * 0.4, 1, '#8A96B0'); box(g, x + w * 0.6, y - 1, 3, 1, '#C8D2E8');
+};
+
+/** The incline's line of nosings, height at rx (from the adit's floor down to the tunnel's). */
+const noseAt = (rx: number) => MOUTH.floor + (FLOOR - MOUTH.floor) * Math.max(0, Math.min(1, (rx - STEPS_A) / (STEPS_B - STEPS_A)));
+/** The step under rx. */
+const stepUnder = (rx: number) => stepAt(Math.max(0, Math.min(STEP_N - 1, Math.floor((rx - STEPS_A) / STEP_W))));
+/** The incline's timber sets, and the work lamps on its cable (every other set). */
+const SETS = Array.from({ length: Math.floor((STEPS_B - STEPS_A - 30) / 96) + 1 }, (_, k) => STEPS_A + 30 + k * 96);
+export const INCLINE_BULBS = SETS.filter((_, k) => k % 2 === 1).map(rx => ({ rx, top: stepUnder(rx).top }));
+/** Where water drips off the roof (x from the glen's start; the roof's height there), onto a puddle under it. */
+const DRIPS: { rx: number; top: number; floor: number }[] = [
+  { rx: MOUTH.a + 118, top: MOUTH.top, floor: MOUTH.floor },
+  ...[0.3, 0.72].map(t => { const rx = Math.round(STEPS_A + t * (STEPS_B - STEPS_A)), s = stepUnder(rx); return { rx: Math.round((s.a + s.b) / 2), top: s.top, floor: s.floor }; }),
+  { rx: TUN.a + 200, top: TUN.top, floor: FLOOR }, { rx: TUN.a + 470, top: TUN.top, floor: FLOOR },
+];
+
+const paintTunnel = (g: Ctx) => {
+  const T = TIMB;
+  // THE ADIT: the mine's rock, two timber sets, the roof lagged with boards; its floor planked over the old cart rails;
+  // a lantern on the inner set's cap (its flame live); the NO ADMITTANCE board fallen half across it
+  { const x = R(MOUTH.a), w = MOUTH.b - MOUTH.a, y = H(MOUTH.top), fy = H(MOUTH.floor);
+    rockBack(g, x, y, w, fy - y);
+    box(g, x, y, w, 5, T[1]); box(g, x, y + 4, w, 1, T[3]);
+    for (const rx of [MOUTH.a + 34, MOUTH.a + 108]) timberSet(g, R(rx), y, fy);
+    box(g, R(MOUTH.a + 108) + 10, y + 9, 1, 8, STEEL[2]); box(g, R(MOUTH.a + 108) + 7, y + 17, 7, 9, INK); box(g, R(MOUTH.a + 108) + 8, y + 18, 5, 7, '#C89A40');
+    board(g, R(MOUTH.a + 60), fy - 30, 50, 22, '#A89470', ['NO', 'ADMITTANCE'], '#6A1414', 5);
+    // (the floor: planks over the sleepers, the rail's head showing along it, lit along its top)
+    box(g, x, fy, w, 8, T[2]); for (let k = 0; k < w; k += 18) box(g, x + k, fy, 1, 8, T[0]);
+    for (let k = 6; k < w; k += 24) box(g, x + k, fy + 5, 10, 3, T[1]);
+    lip(g, x, fy, w);
+    box(g, x, fy + 2, w, 1, STEEL[4]);
+    puddle(g, R(MOUTH.a + 110), fy, 18);
+  }
+  // THE INCLINE: forty treads down through the rock, timber sets every few yards (their caps under the stepped roof),
+  // the roof lagged; a rope handrail along the wall; a cable sagging set to set with a work lamp on every other one;
+  // the treads planks on a stringer, each lit along its nosing (standable reads standable)
+  for (let i = 0; i < STEP_N; i++) {
+    const s = stepAt(i), x = R(s.a), w = s.b - s.a, y = H(s.top), fy = H(s.floor);
+    rockBack(g, x, y, w + 1, fy - y);
+    box(g, x, y, w + 1, 5, T[1]); box(g, x, y + 4, w + 1, 1, T[3]);
+  }
+  chalk(g, 'BEN', R(STEPS_A + 70), H(MOUTH.floor) - 40, 6); chalkArrow(g, R(STEPS_A + 92), H(MOUTH.floor) - 44, 40, 34);
+  chalk(g, 'MIND THE STEP BRO', R(STEPS_A + 380), H(noseAt(STEPS_A + 380)) - 58, 5);
+  // (the rope handrail along the wall: dim, nothing to stand on; iron eyes at the sets)
+  { const off = 42, x0r = STEPS_A + 4, x1r = STEPS_B - 4;
+    g.strokeStyle = '#3A2C1E'; g.lineWidth = 3; g.beginPath(); g.moveTo(R(x0r), H(noseAt(x0r)) - off); g.lineTo(R(x1r), H(noseAt(x1r)) - off); g.stroke();
+    g.strokeStyle = '#6A5640'; g.lineWidth = 1; g.beginPath(); g.moveTo(R(x0r), H(noseAt(x0r)) - off - 1); g.lineTo(R(x1r), H(noseAt(x1r)) - off - 1); g.stroke();
+  }
+  for (const rx of SETS) { const s = stepUnder(rx); timberSet(g, R(rx), H(s.top), H(s.floor)); box(g, R(rx) + 4, H(noseAt(rx)) - 44, 4, 4, STEEL[3]); }
+  // (the cable, sagging set to set under the caps)
+  g.strokeStyle = '#141014'; g.lineWidth = 2; g.beginPath();
+  for (let k = 0; k + 1 < SETS.length; k++) { const a = SETS[k], b = SETS[k + 1], ya = H(stepUnder(a).top) + 12, yb = H(stepUnder(b).top) + 12; g.moveTo(R(a), ya); g.quadraticCurveTo(R((a + b) / 2), Math.max(ya, yb) + 14, R(b), yb); }
+  g.stroke();
+  for (const b of INCLINE_BULBS) bulbHousing(g, R(b.rx), H(b.top) + 20);
+  // (the stringer under the treads, the treads, the risers)
+  polyF(g, [[R(STEPS_A), H(stepAt(0).floor) + 5], [R(STEPS_B), H(FLOOR - STEP_D) + 5], [R(STEPS_B), H(FLOOR - STEP_D) + 16], [R(STEPS_A), H(stepAt(0).floor) + 16]], T[1]);
+  g.strokeStyle = T[3]; g.lineWidth = 1; g.beginPath(); g.moveTo(R(STEPS_A), H(stepAt(0).floor) + 6); g.lineTo(R(STEPS_B), H(FLOOR - STEP_D) + 6); g.stroke();
+  for (let i = 0; i < STEP_N; i++) {
+    const s = stepAt(i), x = R(s.a), w = s.b - s.a, fy = H(s.floor), py = H(i ? stepAt(i - 1).floor : MOUTH.floor);
+    box(g, x, py, 2, fy - py, T[1]); box(g, x, py, 1, fy - py, T[0]);
+    box(g, x, fy, w, 6, T[3]); box(g, x, fy + 5, w, 1, T[0]); box(g, x + w - 3, fy + 2, 1, 1, STEEL[4]);
+    lip(g, x, fy, w);
+  }
+  for (const d of DRIPS) if (d.rx > STEPS_A && d.rx < STEPS_B) puddle(g, R(d.rx) - 7, H(d.floor), 14);
+  // THE BREAK-THROUGH at the incline's foot: the utilidor's wall smashed open, rebar out of it, rubble on the floor
+  // THE UTILIDOR: the park's service tunnel (board-formed concrete, the lavender stripe, the dado)
   airBack(g, TUN.a, TUN.b, TUN.top, FLOOR, 'tunnel');
   slabTop(g, TUN.a, TUN.b, FLOOR, false);
-  // (the conduit along the ceiling the whole way: a fat gray one, a red sprinkler line, a yellow gas line)
-  const pipe = (y: number, col: string[], th: number) => {
-    const runs: [number, number, number][] = [[MOUTH.b - 10, STEPS_B, 0], [TUN.a, TUN.b, 1]];
-    for (const [a, b, flat] of runs) {
-      if (flat) { box(g, R(a), H(TUN.top) + y, b - a, th, col[2]); box(g, R(a), H(TUN.top) + y, b - a, 1, col[4]); box(g, R(a), H(TUN.top) + y + th - 1, b - a, 1, col[0]); continue; }
-      for (let i = 0; i < STEP_N; i++) { const s = stepAt(i); box(g, R(s.a), H(s.top) + y, STEP_W, th, col[2]); box(g, R(s.a), H(s.top) + y, STEP_W, 1, col[4]); }
-    }
-  };
+  { const x = R(TUN.a), y = H(TUN.top), fy = H(FLOOR);
+    const jag: [number, number][] = [[x, y]];
+    for (let k = 0; k <= 10; k++) jag.push([x + 10 + hash(k * 3.3) * 26 + (k % 2) * 8, y + (k * (fy - y - 8)) / 10]);
+    jag.push([x, fy - 8]);
+    g.fillStyle = rockTile(g); g.beginPath(); jag.forEach(([px, py], i) => (i ? g.lineTo(px, py) : g.moveTo(px, py))); g.closePath(); g.fill();
+    g.strokeStyle = CONC[0]; g.lineWidth = 2; g.beginPath(); jag.slice(1, -1).forEach(([px, py], i) => (i ? g.lineTo(px, py) : g.moveTo(px, py))); g.stroke();
+    g.strokeStyle = '#6A4A3A'; g.lineWidth = 1; for (let k = 0; k < 4; k++) { const ry = y + 26 + k * 30; g.beginPath(); g.moveTo(x + 14 + (k % 2) * 6, ry); g.lineTo(x + 30 + k * 2, ry + 6 - k * 3); g.stroke(); }
+    for (let k = 0; k < 7; k++) { const rx = x + 4 + hash(k * 5.1) * 60, r = 3 + hash(k * 2.7) * 5; box(g, rx - r, fy - r, r * 2, r, CONC[1]); box(g, rx - r, fy - r, r * 2, 1, CONC[3]); }
+  }
+  // (water stains down the concrete from the roof's seams)
+  for (let k = 0; k < 9; k++) { const sx = R(TUN.a + 60 + k * 92 + hash(k * 7.3) * 30), l = 30 + hash(k * 3.9) * 70; checker(g, sx, H(TUN.top) + 8, 4 + (k % 2) * 2, l, CONC[0], 0, 1); box(g, sx + 1, H(TUN.top) + 8, 1, l * 0.6, CONC[0]); }
+  // (the conduit along the ceiling: a fat gray one, a red sprinkler line, a yellow gas line; a cable tray under them,
+  // the cables sagging out of it hanger to hanger)
+  const pipe = (y: number, col: string[], th: number) => { box(g, R(TUN.a + 30), H(TUN.top) + y, TUN.b - TUN.a - 30, th, col[2]); box(g, R(TUN.a + 30), H(TUN.top) + y, TUN.b - TUN.a - 30, 1, col[4]); box(g, R(TUN.a + 30), H(TUN.top) + y + th - 1, TUN.b - TUN.a - 30, 1, col[0]); };
   pipe(8, STEEL, 6); pipe(16, RED, 3); pipe(21, ['#5A4404', '#8A6A08', '#C09A14', '#E8C030', '#F8E070', '#FFF6B8'], 2);
-  for (let rx = TUN.a + 60; rx < TUN.b; rx += 220) bulbHousing(g, R(rx), H(TUN.top) + 28);
+  box(g, R(TUN.a + 30), H(TUN.top) + 30, TUN.b - TUN.a - 30, 2, STEEL[3]);
+  g.strokeStyle = '#141014'; g.lineWidth = 1; g.beginPath();
+  for (let rx = TUN.a + 30; rx + 110 <= TUN.b; rx += 110) { box(g, R(rx), H(TUN.top) + 24, 1, 8, STEEL[2]); for (const sag of [6, 10]) { g.moveTo(R(rx), H(TUN.top) + 32); g.quadraticCurveTo(R(rx + 55), H(TUN.top) + 32 + sag, R(rx + 110), H(TUN.top) + 32); } }
+  g.stroke();
+  for (let rx = TUN.a + 60; rx < TUN.b; rx += 220) bulbHousing(g, R(rx), H(TUN.top) + 38);
+  // (a junction box or two off the conduit)
+  for (const rx of [TUN.a + 420, TUN.a + 760]) { const x = R(rx), y = H(TUN.top) + 52; box(g, x + 5, H(TUN.top) + 30, 2, 22, STEEL[2]); box(g, x - 1, y - 1, 14, 18, INK); box(g, x, y, 12, 16, STEEL[3]); box(g, x, y, 12, 1, STEEL[5]); box(g, x + 4, y + 6, 4, 4, HAZ[0]); }
   // (the stencils and the signs along it)
-  stencil(g, 'CAST MEMBERS ONLY', R(STEPS_B + 140), H(FLOOR) - 70, LAV[4]);
-  stencil(g, "DRAGON'S LAIR", R(TUN.a + 520), H(FLOOR) - 72, '#E8E2F0');
-  for (let k = 0; k < 3; k++) box(g, R(TUN.a + 572) + k * 6, H(FLOOR) - 78 + k, 4, 6 - k * 2, '#E8E2F0');
+  stencil(g, 'B-7', R(TUN.a + 70), H(TUN.top) + 60, CONC[4], 8);
+  stencil(g, 'CAST MEMBERS ONLY', R(TUN.a + 150), H(FLOOR) - 70, LAV[4]);
   board(g, R(TUN.a + 300), H(FLOOR) - 104, 84, 30, '#2A2A3A', ['NO PIXIE DUST', 'PAST THIS POINT'], '#F9A8D4', 5);
-  stencil(g, 'B-7', R(TUN.a + 40), H(TUN.top) + 50, CONC[4], 8);
-  stencil(g, 'CORRIDOR CLOSED 2004', R(TUN.b - 260), H(FLOOR) - 70, '#E8B820', 5);
-  // (a mop bucket somebody left in 2004)
-  { const x = R(TUN.b - 150), y = H(FLOOR); box(g, x - 1, y - 21, 24, 21, INK); box(g, x, y - 20, 22, 18, '#D8B020'); box(g, x, y - 20, 22, 2, '#F8E070'); box(g, x + 4, y - 4, 4, 4, INK); box(g, x + 14, y - 4, 4, 4, INK); box(g, x + 15, y - 46, 2, 30, TIMB[3]); box(g, x + 10, y - 22, 12, 3, '#7A7A84'); }
+  stencil(g, "DRAGON'S LAIR", R(TUN.a + 540), H(FLOOR) - 72, '#E8E2F0');
+  for (let k = 0; k < 3; k++) box(g, R(TUN.a + 592) + k * 6, H(FLOOR) - 78 + k, 4, 6 - k * 2, '#E8E2F0');
+  stencil(g, 'CORRIDOR CLOSED 2004', R(TUN.a + 650), H(TUN.top) + 62, '#E8B820', 5);
+  // (puddles under the drips; a WET FLOOR sign somebody put out in 2004)
+  for (const d of DRIPS) if (d.rx > TUN.a) puddle(g, R(d.rx) - 16, H(FLOOR), 32);
+  { const x = R(TUN.a + 236), y = H(FLOOR);
+    polyF(g, [[x - 9, y], [x - 3, y - 26], [x + 3, y - 26], [x + 9, y]], INK); polyF(g, [[x - 8, y], [x - 2, y - 25], [x + 2, y - 25], [x + 8, y]], mix(HAZ[0], CONC[1], 0.25));
+    box(g, x - 4, y - 16, 8, 1, INK); box(g, x - 5, y - 11, 10, 1, INK); box(g, x - 1, y - 22, 2, 4, INK);
+  }
+  // (a mop bucket somebody left in 2004, one of the gift shop's foam swords stood up in it)
+  { const x = R(TUN.a + 440), y = H(FLOOR); box(g, x - 1, y - 21, 24, 21, INK); box(g, x, y - 20, 22, 18, '#C8A420'); box(g, x, y - 20, 22, 2, '#E8D068'); box(g, x + 4, y - 4, 4, 4, INK); box(g, x + 14, y - 4, 4, 4, INK); box(g, x + 15, y - 46, 2, 30, TIMB[3]); box(g, x + 10, y - 22, 12, 3, '#7A7A84');
+    box(g, x + 4, y - 58, 4, 38, '#8AA0C8'); box(g, x + 4, y - 58, 1, 38, '#C8D6F0'); box(g, x, y - 24, 12, 3, '#E0B840'); }
+  // BEN'S STASH by his door: tubs of whey off the gift shop's truck, a towel over the sprinkler line, a stack of plush
+  // boxes, his chalked arrow (dimmed: the junk's set dressing, nothing to stand on)
+  { const fy = H(FLOOR), P = ['#3A1A5A', '#5A2A8A', '#7A44B4', '#9A66D2', '#C4A0EE'], G = ['#1A3A1A', '#2A5A2A', '#3A7A3A', '#5A9A4A', '#8ACA6A'];
+    tub(g, R(TUN.b - 236), fy - 22, 18, 22, P, 'WHEY'); tub(g, R(TUN.b - 214), fy - 16, 14, 16, G, 'BCAA'); tub(g, R(TUN.b - 232), fy - 40, 14, 15, P, 'WHEY');
+    for (let k = 0; k < 2; k++) { const x = R(TUN.b - 186), y = fy - 20 - k * 20; box(g, x - 1, y - 1, 34, 21, INK); box(g, x, y, 32, 19, mix('#E8B8D0', CONC[1], 0.3)); box(g, x, y, 32, 1, mix('#FFFFFF', CONC[1], 0.3)); text(g, 'PIXIE', x + 16, y + 9, '#8A2A5A', 4, 'center', null); text(g, 'PLUSH', x + 16, y + 15, '#8A2A5A', 4, 'center', null); }
+    { const x = R(TUN.b - 300), y = H(TUN.top) + 18; box(g, x, y, 22, 3, '#E8E2D8'); box(g, x + 2, y + 3, 6, 26, '#E8E2D8'); box(g, x + 14, y + 3, 6, 20, '#D8D0C4'); box(g, x + 2, y + 24, 6, 2, '#C84A4A'); }
+    chalk(g, "BEN'S GYM", R(TUN.b - 120), fy - 92, 5); chalkArrow(g, R(TUN.b - 148), fy - 80, 70);
+  }
 };
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -557,7 +684,8 @@ const paintUnder = (g: Ctx) => {
 };
 
 // ---------------------------------------------------------------------------------------------------------------
-// The adit's way in from the shaft (the plank; the hole and the tell), the trapdoor up top
+// The adit's way in from the shaft (the plank; the mouth in the shaft's side wall and the light beaming out of it),
+// the trapdoor up top
 
 const paintPlank = (g: Ctx) => {
   const w = LIP.b - LIP.a + 6;
@@ -566,18 +694,6 @@ const paintPlank = (g: Ctx) => {
   for (let k = 6; k < w; k += 14) box(g, k, 2, 1, 6, TIMB[1]);
   for (const bx of [6, w - 14]) { box(g, bx, 12, 4, 14, INK); box(g, bx + 1, 12, 2, 12, STEEL[3]); g.strokeStyle = INK; g.lineWidth = 3; g.beginPath(); g.moveTo(bx + 2, 24); g.lineTo(w + 2, 12); g.stroke(); g.strokeStyle = STEEL[3]; g.lineWidth = 1; g.stroke(); }
 };
-const paintHole = (g: Ctx) => {
-  const w = 70, hh = MOUTH.floor - MOUTH.top;
-  // (the adit's timber frame: two posts, a cap; the dark in it; the warm lamp-glow back down it)
-  box(g, -2, -hh - 6, w + 10, hh + 6, INK);
-  box(g, 4, -hh, w - 6, hh, '#120A06');
-  bandedGradient(g, 4, -hh + 8, w - 6, hh - 8, ['#2A1408', '#5A2A0E', '#8A4A18'], 4);
-  for (let k = 0; k < 5; k++) box(g, 8 + k * 12, -hh + 4, 6, hh - 4, k % 2 ? 'rgba(255,200,120,0.12)' : 'rgba(0,0,0,0)');
-  for (const px of [0, w]) { box(g, px - 1, -hh - 4, 8, hh + 4, INK); box(g, px, -hh - 4, 6, hh + 4, TIMB[2]); box(g, px, -hh - 4, 2, hh + 4, TIMB[4]); }
-  box(g, -4, -hh - 8, w + 14, 8, INK); box(g, -3, -hh - 7, w + 12, 6, TIMB[3]); box(g, -3, -hh - 7, w + 12, 2, TIMB[5]);
-  // (a cobweb in the top corner, waving in the draft (live): the frame's still part)
-  g.strokeStyle = 'rgba(220,220,230,0.4)'; g.lineWidth = 1; for (let k = 0; k < 4; k++) { g.beginPath(); g.moveTo(6, -hh + 1); g.lineTo(6 + k * 5, -hh + 14 - k * 3); g.stroke(); }
-};
 const paintTrapdoor = (g: Ctx, open: boolean) => {
   // (flush in the lair's floor: two boards, iron hinges, STAFF stenciled; open: the lid up on its hinge)
   if (!open) { box(g, -22, 2, 44, 5, '#3A2A1A'); box(g, -22, 2, 44, 1, '#5A4630'); box(g, -1, 2, 1, 5, '#1A100A'); box(g, -18, 3, 5, 3, STEEL[3]); box(g, 13, 3, 5, 3, STEEL[3]); return; }
@@ -585,33 +701,160 @@ const paintTrapdoor = (g: Ctx, open: boolean) => {
   box(g, -24, -42, 6, 44, INK); box(g, -23, -41, 4, 42, TIMB[3]); box(g, -23, -41, 1, 42, TIMB[5]);
 };
 
+/** The mouth is in the shaft's side wall (the wall at x = MOUTH.a, going back in depth like the rest of the shaft's
+ *  sides, sets.ts gorgeFaces): from depth DF (behind the play plane) to DN (in front of it). One eye for all of it
+ *  (viewOf). It shows (and the beam's drawn over the wall) while the eye's out over the shaft; past the wall the
+ *  meadow's near ground is in front of the shaft, so the beam's drawn before that ground (drawAditUnder), which covers
+ *  it where it should. */
+const DF = 0.8, DN = 1.24;
+const wallX = () => R(MOUTH.a);
+type Eye = View['eye'];
+const onWall = (eye: Eye, y: number, d: number) => at(eye, wallX(), y, d);
+/** A quad on the wall's face: heights y0..y1 (screen), depths d0..d1. */
+const wallQuad = (c: Ctx, eye: Eye, y0: number, y1: number, d0: number, d1: number, col: string) =>
+  polyF(c, [onWall(eye, y0, d0), onWall(eye, y0, d1), onWall(eye, y1, d1), onWall(eye, y1, d0)], col);
+/** A shimmer in steps (the light's not a candle: a slow breathe, stepped, never smooth). */
+const shimmer = (f: number) => 0.9 + 0.1 * Math.round(Math.sin(f * 0.045) * 2) / 2;
+
+/** The mouth, on the shaft's side wall: its timber frame, the dark in it, the warm light back down it (banded, hotter
+ *  deeper in), two boards nailed across it (one hanging loose), the light coming through between them. */
+const drawMouth = (c: Ctx, eye: Eye, f: number) => {
+  const top = H(MOUTH.top), fl = H(MOUTH.floor), sh = shimmer(f);
+  wallQuad(c, eye, top - 12, fl + 2, DF - 0.07, DN + 0.07, INK);
+  wallQuad(c, eye, top, fl, DF, DN, '#140A06');
+  // (the light back down it: bands closing in on the hot middle)
+  const GL = ['#4A220C', '#8A4416', '#C8702A', '#F2A848', sh > 0.95 ? '#FFE8B0' : '#FFD890'];
+  GL.forEach((col, k) => {
+    const t = (k + 1) / (GL.length + 1), yc = fl - 30, dc = (DF + DN) / 2;
+    wallQuad(c, eye, top + (yc - top) * t * 0.8, fl + (yc - fl) * t * 0.7, DF + (dc - DF) * t, DN + (dc - DN) * t, col);
+  });
+  // (seen nearly edge-on it's still a slit of light: never thinner than that)
+  { const [ax] = onWall(eye, top, 1), [bx, by] = onWall(eye, fl, 1); box(c, Math.round(Math.min(ax, bx)) - 1, top + 6, 2, by - top - 6, GL[4]); }
+  // (the frame: the posts at its two sides (the near one lit), the cap over it)
+  wallQuad(c, eye, top - 6, fl, DN, DN + 0.05, TIMB[3]); wallQuad(c, eye, top - 6, fl, DN + 0.04, DN + 0.05, TIMB[5]);
+  wallQuad(c, eye, top - 6, fl, DF - 0.05, DF, TIMB[1]);
+  wallQuad(c, eye, top - 12, top - 4, DF - 0.07, DN + 0.07, TIMB[3]); wallQuad(c, eye, top - 6, top - 4, DF - 0.07, DN + 0.07, TIMB[5]);
+  // (the boards: one nailed across its top, one torn off at the near end and hanging down)
+  const board = (y0: number, d0: number, y1: number, d1: number, th: number) => {
+    polyF(c, [onWall(eye, y0 - 1, d0), onWall(eye, y1 - 1, d1), onWall(eye, y1 + th + 1, d1), onWall(eye, y0 + th + 1, d0)], INK);
+    polyF(c, [onWall(eye, y0, d0), onWall(eye, y1, d1), onWall(eye, y1 + th, d1), onWall(eye, y0 + th, d0)], TIMB[3]);
+    polyF(c, [onWall(eye, y0, d0), onWall(eye, y1, d1), onWall(eye, y1 + 1, d1), onWall(eye, y0 + 1, d0)], TIMB[5]);
+  };
+  board(top + 4, DF - 0.04, top + 8, DN + 0.04, 8);
+  board(top + 16, DF - 0.04, top + 46, DN - 0.06, 7);
+};
+
+/** The light beaming out of the mouth, across the shaft at the play plane (the plank, the stair's foot): the volume
+ *  from the opening out to its far end, projected for the one eye; banded in three spreads and three lengths, a
+ *  dithered skirt round it; two shafts through the gaps in the boards; dust drifting in it. Polygons each frame
+ *  (cheap), no pixel work. */
+const BEAM_L = 240;
+const drawBeam = (c: Ctx, eye: Eye, f: number, k: number) => {
+  if (k <= 0) return;
+  const top = H(MOUTH.top), fl = H(MOUTH.floor), x0 = wallX(), sh = shimmer(f) * k;
+  /** The beam's cross section at t (0 the mouth, 1 its far end), spread s (1 the whole, less nearer its core). */
+  const corners = (t: number, s: number): [number, number][] => {
+    const yc = fl - 30 + t * 42, dc = 1.0;
+    const yt = top + 6 + t * 24, yb = fl - 2 + t * 60, dn = 1.08 + t * 0.08, df = 0.94 - t * 0.04;
+    const x = x0 - t * BEAM_L, out: [number, number][] = [];
+    for (const y of [yc + (yt - yc) * s, yc + (yb - yc) * s]) for (const d of [dc + (df - dc) * s, dc + (dn - dc) * s]) out.push(at(eye, x, y, d));
+    return out;
+  };
+  const vol = (t0: number, t1: number, s: number) => hull([...corners(t0, s), ...corners(t1, s)]);
+  const fill = (pts: [number, number][], style: string | CanvasPattern) => { c.fillStyle = style; c.beginPath(); pts.forEach(([x, y], i) => (i ? c.lineTo(x, y) : c.moveTo(x, y))); c.closePath(); c.fill(); };
+  c.save();
+  // (its dithered skirt, then the bands: each spread nearer the core brighter, each length further out dimmer)
+  c.globalAlpha = 0.3 * sh; fill(vol(0, 0.6, 1.15), checkerFill(c, '#FFD8A0', 0, 2));
+  for (const [t0, t1, a] of [[0, 0.35, 1], [0.35, 0.7, 0.6], [0.7, 1, 0.3]] as const) {
+    for (const [s, al] of [[1, 0.07], [0.6, 0.12], [0.3, 0.2]] as const) { c.globalAlpha = al * a * sh; fill(vol(t0, t1, s), '#FFD08A'); }
+  }
+  // (the two shafts through the gaps between the boards)
+  for (const dy of [-50, -34]) {
+    const pts: [number, number][] = [];
+    for (const t of [0, 0.9]) { const x = x0 - t * BEAM_L, y = fl + dy + t * 50; for (const d of [0.97, 1.04 + t * 0.06]) { pts.push(at(eye, x, y - 1 - t * 5, d), at(eye, x, y + 1 + t * 5, d)); } }
+    c.globalAlpha = 0.24 * sh; fill(hull(pts), '#FFF0C8');
+  }
+  // (dust in it: pink fairy dust and gold motes, drifting out and down, twinkling)
+  c.globalAlpha = k;
+  for (let i = 0; i < 16; i++) {
+    const u = ((f * 0.35 + i * 19) % 140) / 140, x = x0 - 6 - u * BEAM_L * 0.85 + Math.sin(f * 0.04 + i * 1.7) * 5;
+    const y = fl - 34 + hash(i * 3.1) * 40 + u * 60 + Math.sin(u * 6 + i) * 4, d = 0.92 + hash(i * 5.7) * 0.22;
+    const [sx, sy] = at(eye, x, y, d), a = (u < 0.15 ? u / 0.15 : 1 - (u - 0.15) / 0.85) * 0.9;
+    c.fillStyle = i % 3 ? `rgba(249,168,212,${a.toFixed(2)})` : `rgba(255,236,160,${a.toFixed(2)})`;
+    c.fillRect(Math.round(sx), Math.round(sy), 2, 2);
+    if (i % 5 === 0 && (f + i * 7) % 40 < 12) { c.fillRect(Math.round(sx) - 2, Math.round(sy), 6, 1); c.fillRect(Math.round(sx), Math.round(sy) - 2, 1, 6); }
+  }
+  // (where it falls on the plank: its top lit warm)
+  c.globalAlpha = 0.55 * sh; c.fillStyle = '#FFD890'; c.fillRect(R(LIP.a) - 3, H(LIP.top), LIP.b - LIP.a + 6, 2);
+  c.globalAlpha = 0.25 * sh; c.fillRect(R(LIP.a) - 3, H(LIP.top) + 2, LIP.b - LIP.a + 6, 6);
+  c.restore();
+};
+/** Where the beam's light falls on the shaft's far wall (depth GORGE_D): a warm wash, banded, brightest level with the
+ *  mouth, fading up the wall to the shaft's rim (what's seen of it from the meadow, the rest behind the near ground). */
+const drawSpill = (c: Ctx, eye: Eye, f: number, k: number) => {
+  if (k <= 0) return;
+  const x0 = wallX(), sh = shimmer(f) * k, cy = H(MOUTH.floor) - 20;
+  const rect = (s: number): [number, number][] => {
+    const a = x0 - 30 - BEAM_L * 0.85 * s, b = x0 - 4, t = cy - (cy - GY) * s - 4, bt = cy + 60 * s;
+    return [at(eye, a, t, GORGE_D), at(eye, b, t, GORGE_D), at(eye, b, bt, GORGE_D), at(eye, a, bt, GORGE_D)];
+  };
+  c.save();
+  c.globalAlpha = 0.28 * sh; c.fillStyle = checkerFill(c, '#FFC880', 1, 2); c.beginPath(); rect(1.1).forEach(([x, y], i) => (i ? c.lineTo(x, y) : c.moveTo(x, y))); c.closePath(); c.fill();
+  for (const [s, a] of [[1, 0.07], [0.62, 0.09], [0.3, 0.12]] as const) { c.globalAlpha = a * sh; polyF(c, rect(s), '#FFC070'); }
+  c.restore();
+};
+/** A convex hull (the beam's volume, projected). */
+const hull = (pts: [number, number][]): [number, number][] => {
+  const p = [...pts].sort((a, b) => a[0] - b[0] || a[1] - b[1]);
+  const cross = (o: [number, number], a: [number, number], b: [number, number]) => (a[0] - o[0]) * (b[1] - o[1]) - (a[1] - o[1]) * (b[0] - o[0]);
+  const lo: [number, number][] = [], up: [number, number][] = [];
+  for (const q of p) { while (lo.length >= 2 && cross(lo[lo.length - 2], lo[lo.length - 1], q) <= 0) lo.pop(); lo.push(q); }
+  for (let i = p.length - 1; i >= 0; i--) { const q = p[i]; while (up.length >= 2 && cross(up[up.length - 2], up[up.length - 1], q) <= 0) up.pop(); up.push(q); }
+  return [...lo.slice(0, -1), ...up.slice(0, -1)];
+};
+/** The beam's strength: on whenever it's about (it's the tell: seen from the meadow and from across the shaft), gone
+ *  as the cutaway comes up. */
+const beamK = (state: GameState) => {
+  const h = lairOf(state), cx = state.camera.x + CANVAS_WIDTH / 2;
+  return Math.abs(cx - wallX()) < CANVAS_WIDTH * 1.2 ? 1 - h.reveal : 0;
+};
+const aditSeen = (state: GameState) => seen(state, R(LIP.a) - BEAM_L - 120, R(MOUTH.a) + 200, GY - 40, H(MOUTH.floor) + 160);
+
+/** The plank (it stands out of the wall, in front of it). */
+const drawPlank = (c: Ctx, eye: Eye) => {
+  topBack(c, eye, R(LIP.a) - 3, R(LIP.b) + 3, H(LIP.top), 1, 0.9, TIMB);
+  c.save(); c.translate(R(LIP.a) - 3, H(LIP.top)); stamp(c, 'fy-ben-plank', -4, -4, LIP.b - LIP.a + 18, 34, paintPlank); c.restore();
+};
+/** Before the meadow's near ground (art.ts drawGlenBack), with the eye past the wall (the meadow's ground in front of
+ *  the shaft there): the plank and the beam, so that ground covers what of them it's in front of. */
+export const drawAditUnder = (c: Ctx, state: GameState) => {
+  if (!aditSeen(state)) return;
+  const v = viewOf(state);
+  if (v.eye.x < wallX() - 1) return;
+  drawSpill(c, v.eye, state.frame, beamK(state));
+  drawPlank(c, v.eye);
+  drawBeam(c, v.eye, state.frame, beamK(state));
+};
+/** After the shaft's side walls (art.ts drawGlenBack; the stairs go over it), with the eye out over the shaft (the
+ *  wall's face in view): the mouth on the wall, the plank out of it, the beam over the shaft. */
+export const drawAditOver = (c: Ctx, state: GameState) => {
+  if (!aditSeen(state)) return;
+  const v = viewOf(state), h = lairOf(state);
+  if (v.eye.x >= wallX() - 1) return;
+  drawSpill(c, v.eye, state.frame, beamK(state));
+  if (h.reveal < 1) { c.save(); c.globalAlpha = 1 - h.reveal; drawMouth(c, v.eye, state.frame); c.restore(); }
+  drawPlank(c, v.eye);
+  drawBeam(c, v.eye, state.frame, beamK(state));
+};
+
 // ---------------------------------------------------------------------------------------------------------------
 // Drawing
 
-/** The tell's fade (0..1): the hole and its dust only show once the view's come down the shaft with him. */
-const tellK = (state: GameState) => Math.round(Math.max(0, Math.min(1, (state.camera.y - (GY - 470)) / 50)) * 4) / 4;
-
-/** Behind him: the plank and the adit's hole (the tell), the trapdoor up top; under the ground (once he's in): the earth
- *  in cross section, the tunnel, the room, its live lights, the cannon, Ben; the meadow's near ground over it till then. */
+/** Behind him: the adit's mouth on the shaft's wall and the light out of it (the tell), the trapdoor up top; under the
+ *  ground (once he's in): the earth in cross section, the tunnel, the room, its live lights, the cannon, Ben; the
+ *  meadow's near ground over it till then. */
 export const drawLairBack = (c: Ctx, state: GameState) => {
   const f = state.frame, h = lairOf(state);
-  // The plank out of the adit
-  if (seen(state, R(LIP.a) - 20, R(LIP.b) + 20, H(LIP.top) - 20, H(LIP.top) + 40)) { c.save(); c.translate(R(LIP.a) - 3, H(LIP.top)); stamp(c, 'fy-ben-plank', -4, -4, LIP.b - LIP.a + 18, 34, paintPlank); c.restore(); }
-  // The adit's hole and the tell (the warm light, the fairy dust out into the shaft)
-  const k = tellK(state);
-  if (h.reveal < 1 && k > 0 && seen(state, R(MOUTH.a) - 120, R(MOUTH.a) + 100, H(MOUTH.top) - 40, H(MOUTH.floor) + 20)) {
-    c.save(); c.globalAlpha = k * (1 - h.reveal); c.translate(R(MOUTH.a), H(MOUTH.floor));
-    stamp(c, 'fy-ben-hole', -6, -(MOUTH.floor - MOUTH.top) - 10, 86, MOUTH.floor - MOUTH.top + 12, paintHole);
-    c.restore();
-    c.save(); c.globalAlpha = k * (1 - h.reveal);
-    for (let i = 0; i < 14; i++) {
-      const u = ((f * 0.5 + i * 23) % 120) / 120, x = R(MOUTH.a) + 30 - u * 110 + Math.sin(f * 0.05 + i * 1.7) * 6, y = H(MOUTH.floor) - 14 - ((i * 13) % 50) + Math.sin(u * 5 + i) * 5 + u * 20;
-      c.fillStyle = i % 3 ? `rgba(249,168,212,${(0.8 * (1 - u)).toFixed(2)})` : `rgba(255,236,160,${(0.9 * (1 - u)).toFixed(2)})`;
-      c.fillRect(Math.round(x), Math.round(y), 2, 2);
-      if (i % 4 === 0 && u < 0.5) { c.fillRect(Math.round(x) - 2, Math.round(y), 6, 1); c.fillRect(Math.round(x), Math.round(y) - 2, 1, 6); }
-    }
-    c.restore();
-  }
   // The trapdoor in the lair's floor up top (banged open a moment as he comes out of it)
   if (seen(state, R(TRAPDOOR_RX) - 40, R(TRAPDOOR_RX) + 40, GY - 60, GY + 20)) {
     const open = f - h.hatchAt < 40;
@@ -628,13 +871,23 @@ export const drawLairBack = (c: Ctx, state: GameState) => {
     const x = ox + tx * TILE, y = oy + ty * TILE;
     const w = Math.min(TILE, R(CUT_B) - x), hh = Math.min(TILE, CUT_BOT - y);
     if (w <= 0 || hh <= 0) continue;
-    stamp(c, `fy-ben-under2-${tx}-${ty}`, x, y, w, hh, g => { g.save(); g.beginPath(); g.rect(x, y, w, hh); g.clip(); paintUnder(g); g.restore(); });
+    stamp(c, `fy-ben-under3-${tx}-${ty}`, x, y, w, hh, g => { g.save(); g.beginPath(); g.rect(x, y, w, hh); g.clip(); paintUnder(g); g.restore(); });
   }
   // (the live bits: the tunnel's bulbs flickering, the dragon's eye, the desk's button, the pilots, the fog off the drum)
   for (let rx = TUN.a + 60, i = 0; rx < TUN.b; rx += 220, i++) {
     const on = !(i === 2 && f % 140 < 9) && !(i === 4 && (f % 97 < 4 || f % 97 === 11));
-    if (on) { c.fillStyle = 'rgba(255,236,170,0.18)'; c.fillRect(R(rx) - 18, H(TUN.top) + 30, 36, 60); c.fillStyle = '#FFF8D8'; c.fillRect(R(rx) - 2, H(TUN.top) + 31, 4, 3); }
+    if (on) { c.fillStyle = 'rgba(255,236,170,0.18)'; c.fillRect(R(rx) - 18, H(TUN.top) + 40, 36, 60); c.fillStyle = '#FFF8D8'; c.fillRect(R(rx) - 2, H(TUN.top) + 41, 4, 3); }
   }
+  // (the incline's work lamps, the adit's lantern flame, the drips off the roof (each a drop falling, a ring on its
+  // puddle as it lands))
+  for (const b of INCLINE_BULBS) { c.fillStyle = 'rgba(255,236,170,0.16)'; c.fillRect(R(b.rx) - 14, H(b.top) + 22, 28, 40); c.fillStyle = '#FFF8D8'; c.fillRect(R(b.rx) - 2, H(b.top) + 23, 4, 3); }
+  { const fl = (f >> 3) % 3; c.fillStyle = fl ? '#FFD060' : '#FFF0A0'; c.fillRect(R(MOUTH.a + 108) + 9, H(MOUTH.top) + 19 + (fl === 2 ? 1 : 0), 3, 4); }
+  DRIPS.forEach((d, i) => {
+    const per = 70 + i * 13, t = (f + i * 29) % per, fall = H(d.floor) - H(d.top) - 6;
+    const y = H(d.top) + 6 + Math.min(fall, 0.05 * t * t);
+    if (y < H(d.floor) - 2) { c.fillStyle = '#A8C0E0'; c.fillRect(R(d.rx), Math.round(y), 1, 3); }
+    else if (t < Math.sqrt(fall / 0.05) + 10) { c.fillStyle = 'rgba(200,215,240,0.6)'; c.fillRect(R(d.rx) - 4, H(d.floor) - 3, 9, 1); }
+  });
   const ro = R(ROOM.a), fo = H(FLOOR);
   if (seen(state, ro, R(ROOM.b), H(ROOM.top), fo)) {
     const pulse = 0.6 + 0.4 * Math.sin(f * 0.08);
@@ -685,19 +938,20 @@ export const drawLairHud = (c: Ctx, state: GameState) => {
 };
 
 /** The glen's light, and the lair's: under the ground, its own dark (deep, a cold violet), the bulbs' warm pools down the
- *  tunnel, the room's eye red and pilots blue, a glow about him; from the shaft, the warm light out of the adit (the
- *  tell, as it fades in). */
+ *  tunnel, the room's eye red and pilots blue, a glow about him; over the shaft, a soft warm light where the beam out
+ *  of the adit falls on the plank (the tell). */
 export const lairLighting = (base: SceneLight | null, state: GameState): SceneLight | null => {
   const h = lairOf(state), f = state.frame, p = state.player;
-  const k = tellK(state);
-  if (!underView(state) && (k <= 0 || h.reveal >= 1)) return base;
+  const k = beamK(state);
+  if (!underView(state) && k <= 0) return base;
   const lights: Light[] = [...(base?.lights ?? [])];
-  if (k > 0 && h.reveal < 1) lights.push({ x: R(MOUTH.a) + 30, y: H(MOUTH.floor) - 36, r: 150, a: 0.6 * k * (1 - h.reveal), color: 'rgba(255,170,90,0.12)' });
+  if (k > 0) lights.push({ x: R(MOUTH.a) - 60, y: H(MOUTH.floor) - 16, r: 110, a: 0.45 * k, color: 'rgba(255,190,110,0.10)' });
   if (!underView(state)) return { ...(base ?? { dark: 0.3 }), lights };
   const r = h.reveal;
+  for (const b of INCLINE_BULBS) lights.push({ x: R(b.rx), y: H(b.top) + 26, r: 130, a: 0.6 * r, color: 'rgba(255,220,150,0.10)' });
   for (let rx = TUN.a + 60, i = 0; rx < TUN.b; rx += 220, i++) {
     const on = !(i === 2 && f % 140 < 9) && !(i === 4 && (f % 97 < 4 || f % 97 === 11));
-    if (on) lights.push({ x: R(rx), y: H(TUN.top) + 34, r: 150, a: 0.7 * r, color: 'rgba(255,220,150,0.10)' });
+    if (on) lights.push({ x: R(rx), y: H(TUN.top) + 44, r: 150, a: 0.7 * r, color: 'rgba(255,220,150,0.10)' });
   }
   lights.push({ x: R(MOUTH.a) + 80, y: H(MOUTH.floor) - 40, r: 120, a: 0.4 * r, color: 'rgba(255,170,90,0.10)' });
   const ro = R(ROOM.a), fo = H(FLOOR);

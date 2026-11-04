@@ -8,13 +8,14 @@
 //   THE WAY IN: the mine shaft's chain of four staircases, the last one (layout.ts S4, by the UNICORN MEADOW sign) swings
 //     between docked level with the meadow and hanging down into the shaft. Ride it down and at its low end, in the
 //     shaft's far wall under the meadow's edge, there's an old timbered adit: an iron-bracketed plank sticking out of it
-//     level with the stair's low end (lit along its top), and a hole into the dark. THE TELL: a warm light out of the
-//     hole and pink fairy dust drifting out of it into the shaft, seen only once the camera's down there with him (it
-//     fades in as the view comes down the shaft: from up on the meadow it's under the bottom of the screen anyway).
-//     He steps off the stair's low end onto the plank and walks in.
-//   THE TUNNEL: past the adit's few feet of mine timber it's the park's own service tunnel (the cast's utilidor under
-//     Fantasyland, parodied): concrete, a lavender stripe, conduit, caged bulbs; twelve concrete steps down (each a hop
-//     back up, lit along its edge); then the long run along to the dragon's lair. The earth over it is drawn in cross
+//     level with the stair's low end (lit along its top), and its mouth in the shaft's side wall (drawn on that wall in
+//     perspective), half boarded up. THE TELL: warm light beaming out through the gaps in the boards, raking across the
+//     shaft and the plank, pink fairy dust drifting in it (the owner: "like a light beaming out of the wall for the
+//     secret passageway"). He steps off the stair's low end onto the plank and walks in.
+//   THE TUNNEL: past the adit's few feet of mine timber, a timbered incline of forty treads down (walked like any
+//     stairs; each tread lit along its edge), broken through at its foot into the park's own service tunnel (the cast's
+//     utilidor under Fantasyland, parodied): concrete, a lavender stripe, conduit, caged bulbs, Ben's junk stashed along
+//     it; the long run along to the dragon's lair. The earth over it is drawn in cross
 //     section once he's in (its `reveal`: the meadow's near ground fades into the cutaway).
 //   THE LAIR (benLairArt.ts paints it): right under the dragon's lair, its old MACHINE ROOM from when the dragon was a
 //     real animatronic (SIR SCORCH-A-LOT, 1979-2004, replaced by a theater major in a suit): his great rotting head on
@@ -86,13 +87,14 @@ const LOW = stairEnd(STAIRS[6], 0);
 export const LIP = { a: Math.round(LOW.x - x0) + 3, b: GAP2.b, top: Math.round(GY - LOW.y) - 2 };
 /** The adit: in under the meadow's edge, the hole's top, its floor (the plank's). */
 export const MOUTH = { a: GAP2.b, b: GAP2.b + 150, top: -22, floor: LIP.top };
-/** The concrete steps down: how many, each one's width, each one's drop. */
-export const STEP_N = 12, STEP_W = 64, STEP_D = 55;
+/** The stairs down (walked like any stairs: each riser low enough to step up and to walk down off without a drop): how
+ *  many treads, each one's width, each one's drop (a whole pixel each, rounded: stepAt). */
+export const STEP_N = 40, STEP_W = 19.2, STEP_D = 16.5;
 export const STEPS_A = MOUTH.b, STEPS_B = MOUTH.b + STEP_N * STEP_W;
 /** The tunnel's and the machine room's floor. */
 export const FLOOR = MOUTH.floor - STEP_N * STEP_D;
 /** Step i's floor and ceiling. */
-export const stepAt = (i: number) => { const f = MOUTH.floor - (i + 1) * STEP_D; return { a: STEPS_A + i * STEP_W, b: STEPS_A + (i + 1) * STEP_W, floor: f, top: Math.min(MOUTH.top, f + 160) }; };
+export const stepAt = (i: number) => { const f = Math.round(MOUTH.floor - (i + 1) * STEP_D); return { a: Math.round(STEPS_A + i * STEP_W), b: Math.round(STEPS_A + (i + 1) * STEP_W), floor: f, top: Math.min(MOUTH.top, f + 160) }; };
 /** The long run along to the room. */
 export const TUN = { a: STEPS_B, b: 11260, top: FLOOR + 160 };
 /** The machine room, right under the dragon's lair. */

@@ -38,6 +38,7 @@ import {
   Q, clipAt, leafy, paintTreeFoot, paintTrunk, paintBough, GIANTS, giantX,
 } from './paint';
 import { drawSetsBack, drawSetsFar, drawSetsMid, drawSetsNear, setLamps } from './sets';
+import { drawAditUnder, drawAditOver } from './benLairArt';
 
 export const drawGlenBackdrop = (c: Ctx, state: GameState) => drawGlenFar(c, state);
 
@@ -462,8 +463,10 @@ export const drawGlenBack = (c: Ctx, state: GameState, piperX: number | null) =>
   drawUnder(c, v);
   drawSetsMid(c, state, v);      // (the mine's hill, its rails and cart; the lair's bones and gold; the queue's crowd)
   drawProps(c, v);
+  drawAditUnder(c, state);        // (CON-FUCK-TIOUS's adit, with the eye past its wall: the plank, the light out over the shaft)
   drawNearGround(c, state, v);
   drawSetsNear(c, state, v, piperX); // (the gorges' faces, the solids, the cottage, the ride's front, the shelves, the PA horns)
+  drawAditOver(c, state);         // (the adit, with the eye out over the shaft: its mouth on the wall, the plank, the light)
   // (the signs, on their posts; UNICORN MEADOW's set back off the gorge's edge: at +80 its post stood out over the drop,
   // the owner's "the sign's post is in midair")
   const signs: [number, string[], object?][] = [
