@@ -121,6 +121,8 @@ export interface M2Ui {
   bumperCard?: { ready: boolean } | null;
   /** A minigame's controls card (MinigameCard.tsx: Future Land's lock first): its name, its buttons, how it goes;
    *  `ready` once its buffer's over. */
+  /** (the cheats build, the checkpoint skip on: out through America USA, the endgame test picker's up: endgame/EndgamePicker.tsx) */
+  endgamePick?: boolean | null;
   minigameCard?: { title: string; rows: import('./upgrades/equipInfo').EquipControl[]; text: string; ready: boolean } | null;
 }
 

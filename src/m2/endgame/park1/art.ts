@@ -184,11 +184,15 @@ export const sign = (c: Ctx, x: number, feet: number, lines: string[], board = '
   };
   if (key) stamp(c, `wp-sign-${key}`, x - 200, feet - 120, 400, 124, draw); else draw(c);
 };
+/** Where the plaza's signs stand (no palm in front of one). */
+const SIGN_X = [...SLIDES.filter(S => S.stairs.n > 0).map(S => S.stairs.x - 90), ...TUBES.map(T => T.stairs.x - 100), 4600, 5380, 520, 760];
 /** The plaza's back props (behind him, dimmed: nothing here to stand on). */
 const drawProps = (c: Ctx, state: GameState) => {
   // (palms, every so often, back from the path)
   for (let x = Math.floor((state.camera.x - 200) / 520) * 520 + 130; x < state.camera.x + W + 200; x += 520) {
     if (GROUND.every(([a, b]) => x < a + 40 || x > b - 40) || (x > TOWER.TL - 600 && x < TOWER.TR + 300)) continue;
+    // (never over a sign, a slide's stairs or a booth)
+    if (SIGN_X.some(sx => Math.abs(sx - x) < 160) || [...SLIDES, ...TUBES].some(S => x > S.stairs.x - 40 && x < S.deck.x2 + 40)) continue;
     stamp(c, `wp-palm-${Math.floor(x / 520) % 3}`, x - 70, GY - 260, 140, 262, g => {
       const lean = (Math.floor(x / 520) % 3 - 1) * 14;
       g.strokeStyle = '#3A2A1A'; g.lineWidth = 12; g.beginPath(); g.moveTo(x, GY); g.quadraticCurveTo(x + lean * 0.4, GY - 120, x + lean, GY - 200); g.stroke();
@@ -299,18 +303,26 @@ const drawTubeBack = (c: Ctx, state: GameState, T: Tube, i: number) => {
     R(g, d.x1 - 6, d.y - 110, d.x2 - d.x1 + 12, 10, INK); R(g, d.x1 - 4, d.y - 108, d.x2 - d.x1 + 8, 6, T.col);
     R(g, d.x1, d.y - 100, 4, 100, '#3F3F46'); R(g, d.x2 - 4, d.y - 100, 4, 100, '#3F3F46');
   });
-  // (the chute: baked in tiles along its length, the legs down into the deep end, the lips red, NO JUMPING)
+  // (the chute's legs down into the deep end: live, plain boxes (a few a screen); a tile of the chute itself is only as
+  // tall as the chute is in it)
+  for (const P of paths) {
+    const pts = tubePts(P), a = Math.max(pts[0][0], state.camera.x - 40), b = Math.min(pts[pts.length - 1][0], state.camera.x + W + 40);
+    for (let x = Math.ceil(a / 160) * 160; x < b; x += 160) {
+      const y = pointAt(P, Math.max(0, x - pts[0][0])).y, bot = Math.min(GY + 520, state.camera.y + H + 20);
+      if (bot <= y + 10) continue;
+      R(c, x - 4, y + 10, 8, bot - y - 10, '#2A3442'); R(c, x - 4, y + 10, 2, bot - y - 10, '#4A5466');
+      R(c, x - 16, y + 60, 32, 4, '#2A3442');
+    }
+  }
+  // (the chute: baked in tiles along its length, the lips red, NO JUMPING)
   for (let tx = Math.floor((state.camera.x - 60) / TUBE_TILE) * TUBE_TILE; tx < state.camera.x + W + 60; tx += TUBE_TILE) {
     if (tx + TUBE_TILE < T.deck.x2 - 40 || tx > last + 40) continue;
-    stamp(c, `wp-tube-${T.id}-${tx}`, tx, T.deck.y - 80, TUBE_TILE, GY - T.deck.y + 600, g => {
-      g.save(); g.beginPath(); g.rect(tx, T.deck.y - 80, TUBE_TILE, GY - T.deck.y + 600); g.clip();
+    const [y0, y1] = bandOf(paths.flatMap(tubePts), tx, TUBE_TILE);
+    if (y1 < y0 || !visY(state, y0 - 60, y1 + 60)) continue;
+    stamp(c, `wp-tube-${T.id}-${tx}`, tx, y0 - 60, TUBE_TILE, y1 - y0 + 100, g => {
+      g.save(); g.beginPath(); g.rect(tx, y0 - 60, TUBE_TILE, y1 - y0 + 100); g.clip();
       paths.forEach((P, pi) => {
         const pts = tubePts(P);
-        for (let x = Math.ceil(pts[0][0] / 160) * 160; x < pts[pts.length - 1][0]; x += 160) {
-          const y = (pointAt(P, Math.max(0, x - pts[0][0])).y);
-          R(g, x - 4, y + 10, 8, GY + 520 - y, '#2A3442'); R(g, x - 4, y + 10, 2, GY + 520 - y, '#4A5466');
-          R(g, x - 16, y + 60, 32, 4, '#2A3442');
-        }
         chuteBack(g, pts, T.col, 26);
         if (pi < paths.length - 1) {
           // (the lip's run-up: red and white, NO JUMPING painted on)
@@ -326,14 +338,26 @@ const drawTubeBack = (c: Ctx, state: GameState, T: Tube, i: number) => {
     });
   }
 };
+/** The top and bottom of a chute's points in a tile (x tx..tx+w, a margin either side). */
+const bandOf = (pts: [number, number][], tx: number, w: number): [number, number] => {
+  let y0 = Infinity, y1 = -Infinity;
+  for (let i = 0; i < pts.length; i++) {
+    const [x, y] = pts[i], nx = pts[i + 1]?.[0] ?? x, px = pts[i - 1]?.[0] ?? x;
+    if (Math.max(x, nx, px) < tx - 40 || Math.min(x, nx, px) > tx + w + 40) continue;
+    y0 = Math.min(y0, y); y1 = Math.max(y1, y);
+  }
+  return [y0, y1];
+};
 /** The tube chutes' near walls, the pipes end-on (in front of him). */
 const drawTubeFront = (c: Ctx, state: GameState, T: Tube, i: number) => {
   const paths = tubePaths(i);
   for (let tx = Math.floor((state.camera.x - 60) / TUBE_TILE) * TUBE_TILE; tx < state.camera.x + W + 60; tx += TUBE_TILE) {
     const last = paths[paths.length - 1].segs[paths[paths.length - 1].segs.length - 1].x1;
     if (tx + TUBE_TILE < T.deck.x2 - 40 || tx > last + 40) continue;
-    stamp(c, `wp-tubef-${T.id}-${tx}`, tx, T.deck.y - 80, TUBE_TILE, GY - T.deck.y + 200, g => {
-      g.save(); g.beginPath(); g.rect(tx, T.deck.y - 80, TUBE_TILE, GY - T.deck.y + 200); g.clip();
+    const [y0, y1] = bandOf(paths.flatMap(tubePts), tx, TUBE_TILE);
+    if (y1 < y0 || !visY(state, y0 - 40, y1 + 40)) continue;
+    stamp(c, `wp-tubef-${T.id}-${tx}`, tx, y0 - 40, TUBE_TILE, y1 - y0 + 70, g => {
+      g.save(); g.beginPath(); g.rect(tx, y0 - 40, TUBE_TILE, y1 - y0 + 70); g.clip();
       for (const P of paths) chuteFront(g, tubePts(P), T.col);
       g.restore();
     });
@@ -383,17 +407,17 @@ const paintFloor = (g: Ctx, k: number) => {
     g.strokeStyle = '#4A5468'; g.lineWidth = 2;
     for (let x = TL; x < TR; x += 100) { g.beginPath(); g.moveTo(x, y); g.lineTo(x + 100, top + 20); g.stroke(); }
     // (prayer flags strung across under the ceiling)
-    for (let i = 0; i < 2; i++) {
-      const sy = top + 22 + i * 26;
+    for (let i = 0; i < 1; i++) {
+      const sy = top + 14;
       g.strokeStyle = '#E2E8F0'; g.lineWidth = 1; g.beginPath(); g.moveTo(TL, sy); g.quadraticCurveTo((TL + TR) / 2, sy + 20, TR, sy); g.stroke();
       for (let x = TL + 20; x < TR - 10; x += 26) { const t = (x - TL) / (TR - TL), fy = sy + 20 * 4 * t * (1 - t); R(g, x, fy, 14, 14, ['#2563EB', '#F8FAFC', '#DC2626', '#16A34A', '#FACC15'][Math.floor(x / 26) % 5]); }
     }
     // (fake snow, piled)
     for (const [sx, w] of [[TL, 120], [TR - 140, 140]] as const) { g.fillStyle = '#E8F0FA'; g.beginPath(); g.ellipse(sx + w / 2, y, w / 2, 24, 0, Math.PI, 0); g.fill(); g.fillStyle = '#FFFFFF'; g.fillRect(sx + 14, y - 18, w - 40, 3); }
     // (the floor's name and its height, up on the wall, readable; the oxygen sign)
-    R(g, (TL + TR) / 2 - 130, top + 100, 260, 40, INK); R(g, (TL + TR) / 2 - 128, top + 102, 256, 36, '#7C2D12');
-    text(g, FLOOR_NAMES[k], (TL + TR) / 2, top + 118, '#FEF3C7', 10);
-    text(g, `ELEV. ${FLOOR_FT[k].toLocaleString('en-US')} FT`, (TL + TR) / 2, top + 132, '#FDE68A', 7);
+    R(g, (TL + TR) / 2 - 130, top + 52, 260, 40, INK); R(g, (TL + TR) / 2 - 128, top + 54, 256, 36, '#7C2D12');
+    text(g, FLOOR_NAMES[k], (TL + TR) / 2, top + 70, '#FEF3C7', 10);
+    text(g, `ELEV. ${FLOOR_FT[k].toLocaleString('en-US')} FT`, (TL + TR) / 2, top + 84, '#FDE68A', 7);
     if (k === 2 || k === 5) { R(g, TL + 520, top + 160, 140, 28, INK); R(g, TL + 522, top + 162, 136, 24, '#F8FAFC'); text(g, 'OXYGEN $40', TL + 590, top + 178, '#B91C1C', 7, 'center', null); }
     if (k === 7) { R(g, TL + 60, top + 160, 200, 28, INK); R(g, TL + 62, top + 162, 196, 24, '#FDE047'); text(g, 'DEATH ZONE: NO REFUNDS', TL + 160, top + 178, INK, 6, 'center', null); }
     // (the staff doors at the back: where they come out)
@@ -402,9 +426,12 @@ const paintFloor = (g: Ctx, k: number) => {
   // (the ledges: crates of fake snow, oxygen tank racks: lit lips)
   for (const [x, h, w] of FLOOR_LEDGES[k]) {
     const ly = y - h;
-    R(g, x + 6, ly + 16, 6, h - 16, '#5A4028'); R(g, x + w - 12, ly + 16, 6, h - 16, '#5A4028');
+    // (a scaffold plank on two poles, a crossbrace; fake snow on it, an oxygen tank or two stood on it at the back)
+    R(g, x + 8, ly + 16, 4, h - 16, '#64748B'); R(g, x + w - 12, ly + 16, 4, h - 16, '#64748B');
+    g.strokeStyle = '#475569'; g.lineWidth = 2; g.beginPath(); g.moveTo(x + 10, ly + 20); g.lineTo(x + w - 10, y - 4); g.stroke();
+    for (let t = x + 14; t < x + w - 20; t += 40) { R(g, t, ly - 22, 10, 22, '#16A34A'); R(g, t, ly - 22, 10, 3, '#86EFAC'); R(g, t + 3, ly - 26, 4, 4, '#94A3B8'); }
     R(g, x, ly, w, 16, INK); R(g, x + 1, ly + 1, w - 2, 14, '#8A6A3A'); R(g, x + 1, ly + 1, w - 2, 3, '#FDE68A');
-    for (let t = x + 10; t < x + w - 10; t += 16) { R(g, t, ly + 18, 10, h - 30, '#E2E8F0'); R(g, t, ly + 18, 10, 4, '#16A34A'); }
+    g.fillStyle = '#F1F5F9'; g.beginPath(); g.ellipse(x + w * 0.7, ly, w * 0.18, 5, 0, Math.PI, 0); g.fill();
   }
   // (the deck under it: steel, lit along its top: standable reads standable)
   if (k > 0) { R(g, TL, y, TR - TL, DECK, '#3A4252'); R(g, TL, y, TR - TL, 3, '#F1F5F9'); R(g, TL, y + 3, TR - TL, 2, '#94A3B8'); for (let x = TL; x < TR; x += 40) R(g, x, y + 8, 2, DECK - 8, '#262C38'); }
@@ -456,8 +483,9 @@ const drawTower = (c: Ctx, state: GameState, gates: number[], tells: { x: number
       R(g, TL + 150, sy - 120, 5, 120, '#3F3F46'); R(g, TL + 245, sy - 120, 5, 120, '#3F3F46');
       R(g, TL + 100, sy - 160, 200, 40, INK); R(g, TL + 102, sy - 158, 196, 36, '#7C2D12'); text(g, 'THE SUMMIT', TL + 200, sy - 142, '#FEF3C7', 9); text(g, 'ELEV. 1,000 FT', TL + 200, sy - 128, '#FDE68A', 7);
       // (the slide's mouth: its arch, its sign)
-      R(g, TR - 20, sy - 150, 12, 150, INK); R(g, TR + 120, sy - 150, 12, 120, INK);
-      R(g, TR - 30, sy - 170, 170, 26, INK); R(g, TR - 28, sy - 168, 166, 22, '#0891B2'); text(g, 'THE BIG ONE', TR + 55, sy - 153, '#F8FAFC', 7);
+      const mx = SUMMIT.mouthX;
+      R(g, mx - 20, sy - 150, 10, 150, INK); R(g, mx + 100, sy - 150, 10, 150, INK);
+      R(g, mx - 30, sy - 170, 150, 26, INK); R(g, mx - 28, sy - 168, 146, 22, '#0891B2'); text(g, 'THE BIG ONE', mx + 45, sy - 153, '#F8FAFC', 7);
       // (the deck's lit top over the summit)
       R(g, TL, sy, TR - TL, 3, '#F8FAFC');
     });
@@ -478,20 +506,23 @@ const drawSummitDoor = (c: Ctx, state: GameState, down: number) => {
 const drawDescentChute = (c: Ctx, state: GameState) => {
   const x0 = DESCENT[0][0], x1 = DESCENT[DESCENT.length - 1][0];
   if (!vis(state, x0 - 60, x1 + 60)) return;
+  // (its legs down to the ground: live boxes, a few a screen; crossbraces up them)
+  const bot = Math.min(GY, state.camera.y + H + 20);
+  for (let x = Math.ceil(Math.max(x0 + 100, state.camera.x - 40) / 200) * 200; x < Math.min(x1, state.camera.x + W + 40); x += 200) {
+    const p = DESCENT.find(([px]) => px >= x);
+    if (!p || bot <= p[1] + 10) continue;
+    const top = Math.max(p[1] + 10, state.camera.y - 20);
+    R(c, x - 4, top, 8, bot - top, '#2A3442'); R(c, x - 4, top, 2, bot - top, '#4A5466');
+    for (let yy = Math.ceil((p[1] + 80) / 160) * 160; yy < bot; yy += 160) if (yy > state.camera.y - 10) R(c, x - 26, yy, 52, 4, '#2A3442');
+  }
   for (let tx = Math.floor((state.camera.x - 60) / 600) * 600; tx < state.camera.x + W + 60; tx += 600) {
     if (tx + 600 < x0 - 40 || tx > x1 + 40) continue;
     const pts = DESCENT.filter(([x]) => x > tx - 300 && x < tx + 900);
     if (pts.length < 2) continue;
-    const ys = pts.map(p => p[1]), y0 = Math.min(...ys) - 60, y1 = GY + 40;
-    if (!visY(state, y0, y1)) continue;
-    stamp(c, `wp-desc-${tx}`, tx, y0, 600, y1 - y0, g => {
-      g.save(); g.beginPath(); g.rect(tx, y0, 600, y1 - y0); g.clip();
-      for (let x = Math.ceil(tx / 200) * 200; x < tx + 600; x += 200) {
-        const p = DESCENT.find(([px]) => px >= x);
-        if (!p) continue;
-        R(g, x - 4, p[1] + 10, 8, GY - p[1] - 10, '#2A3442'); R(g, x - 4, p[1] + 10, 2, GY - p[1] - 10, '#4A5466');
-        for (let yy = p[1] + 80; yy < GY; yy += 160) R(g, x - 26, yy, 52, 4, '#2A3442');
-      }
+    const [y0, y1] = bandOf(DESCENT, tx, 600);
+    if (y1 < y0 || !visY(state, y0 - 60, y1 + 60)) continue;
+    stamp(c, `wp-desc-${tx}`, tx, y0 - 60, 600, y1 - y0 + 100, g => {
+      g.save(); g.beginPath(); g.rect(tx, y0 - 60, 600, y1 - y0 + 100); g.clip();
       chuteBack(g, pts, '#0891B2', 28);
       g.restore();
     });

@@ -298,7 +298,7 @@ export const parkLayout: StageLayout = {
     });
     if (!pk) return;
     // (the kid: up there; dead in the slide's mouth, on the way down, floating in the pool)
-    if (pk.f && pk.fightState === 'on') drawFight(c, state, pk.f);
+    if (pk.f && pk.fightState === 'on') { drawFight(c, state, pk.f); if (pk.f.death && (pk.f.death.step === 'flop' || pk.f.death.step === 'done')) drawDescentKid(c, null, true); }
     if (pk.fightState === 'won' && (pk.descent || pk.killed)) drawDescentKid(c, pk.descent, !pk.descent);
     // (the tube's back half, behind him)
     const T = pk.tube;

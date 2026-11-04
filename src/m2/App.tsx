@@ -131,6 +131,7 @@ import { openParkMap, closeParkMap, parkMapFrom, parkMapBusy, subscribeParkMap }
 import { askCardBack } from './parkmap/fastTravel';
 import { prewarmParkMap } from './parkmap/render';
 import CheckpointPicker from '../m1/components/CheckpointPicker';
+import EndgamePicker from './endgame/EndgamePicker';
 import ChordPrompt from './ChordPrompt';
 import PieceGotCard from './upgrades/PieceGotCard';
 import ShardGotCard from './upgrades/ShardGotCard';
@@ -1055,6 +1056,11 @@ const App2: React.FC = () => {
               onPick={at => { const id = ui.pick!; setUi({ pick: null }); setStartCheckpoint(typeof at === 'number' ? at : cps[cps.length - 1].cp); goTo(id); }} />
           );
         })()}
+        {/* (the endgame test picker: the checkpoint skip on, out through America USA) */}
+        {ui.endgamePick && (
+          <EndgamePicker onCancel={() => setUi({ endgamePick: null })}
+            onPick={(id, cp) => { setUi({ endgamePick: null }); setEndgameAt({ stage: id, cp }); saveProgress(); setStartCheckpoint(cp); goTo(id); }} />
+        )}
         {wheelAt !== null && status === GameStatus.PLAYING && !noSwitching() && <WeaponWheel weapons={arsenal()} index={wheelAt} current={weapon} nameOf={w => (w === 'GUN' && ui.catHud ? 'HAIRBALL' : weaponName(w))} Art={ui.catHud ? CatWeaponArt : M2WeaponArt} />}
         {status === GameStatus.PAUSED && !mapFrom && (
           <PauseMenu weapons={arsenal()} current={weapon} ammo={hud.ammo} selected={pauseSel} locked={!!ui.noSwitch || !!minigameId} card={card} cat={!!ui.catHud}

@@ -169,7 +169,7 @@ export const FLOOR_NAMES = ['BASE CAMP', 'KHUMBU ICEFALL', 'CAMP 1', 'CAMP 2', '
 export const FLOOR_FT = [0, 111, 222, 333, 444, 555, 666, 777, 888, 1000];
 /** The summit: the arena (the whole top floor), its door (on the left, at the top of the Hillary Step's stairs), the slide's
  *  mouth (on the right). */
-export const SUMMIT = { y: floorY(9), L: TOWER.TL, R: TOWER.TR, doorX: TOWER.TL, mouthX: TOWER.TR };
+export const SUMMIT = { y: floorY(9), L: TOWER.TL, R: TOWER.TR, doorX: TOWER.TL, mouthX: TOWER.TR - 110 };
 /** The descent: the slide off the summit, all the way down to its splash pool (world points). */
 export const DESCENT: [number, number][] = (() => {
   const out: [number, number][] = [];
@@ -199,8 +199,8 @@ export const CP_AT: Record<number, { x: number; y: number }> = {
   [CP.splash]: { x: 16260, y: GY },
   [CP.abyss]: { x: 19360, y: GY },
   [CP.baseCamp]: { x: 28200, y: GY },
-  [CP.camp2]: { x: TOWER.TL + 60, y: floorY(3) },
-  [CP.camp4]: { x: TOWER.TR - 60, y: floorY(6) },
+  [CP.camp2]: { x: TOWER.TR - 80, y: floorY(3) },
+  [CP.camp4]: { x: TOWER.TL + 80, y: floorY(6) },
   [CP.hillary]: { x: TOWER.TL + 120, y: floorY(8) },
   [CP.L2]: { x: L2.x, y: GY },
 };

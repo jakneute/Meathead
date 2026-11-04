@@ -14,6 +14,7 @@ import { say, MEATHEAD_VOICE, pickLine } from '../../m1/game/platform/speech';
 import { isShat, isNude } from '../../m1/game/player/gut';
 import { AMERICA_DENY, HUB_ALL_DONE, HUB_STUFF_LEFT, AMERICA_RESIST, AMERICA_GIVE_IN } from '../lines/hubLines';
 import { getCheats } from '../cheats';
+import { M2_PUBLIC } from '../build';
 import { setUi, getUi, goTo, isLeaving, arrived, carryGut, takeGut, setStartCheckpoint, landsCleared, ALPHA_LAND_COUNT, findsFoundTotal, FINDS_TOTAL, setEndgameAt, setWalkOut } from '../store';
 import { ALPHA_ENDINGS } from '../build';
 import { ENDGAME_START } from '../endgame/stages';
@@ -88,6 +89,9 @@ const startEndWalk = (state: GameState, hub: Hub) => {
  *  build.ts, its end walk, as it was.) */
 const leaveHub = (state: GameState, hub: Hub) => {
   if (ALPHA_ENDINGS) { startEndWalk(state, hub); return; }
+  // (the cheats build with the checkpoint skip on: the endgame test picker, a stage and a checkpoint in it (App.tsx
+  // takes it from there); backed out of, he's still in the hub)
+  if (getCheats().skip && !M2_PUBLIC) { setUi({ endgamePick: true }); return; }
   hub.ending = true; state.player.inCutscene = true; state.player.vel.x = 0;
   setEndgameAt({ ...ENDGAME_START });
   saveProgress();
@@ -195,7 +199,7 @@ export const hubLayout: StageLayout = {
     // (the way back out to America USA: he's having none of it)
     const nearAmerica = Math.abs(at - slotX(AMERICA_SLOT)) < 90 && p.isGrounded;
     // (asked where in the land to start: nothing else till that's answered)
-    if (getUi().pick) { p.vel.x = 0; return { ...NO_CONTROLS }; }
+    if (getUi().pick || getUi().endgamePick) { p.vel.x = 0; return { ...NO_CONTROLS }; }
     // The map's up: nothing else till it's dealt with
     if (hub.map !== null) {
       p.vel.x = 0;

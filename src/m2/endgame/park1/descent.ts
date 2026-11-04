@@ -66,7 +66,7 @@ export const updateDescent = (ctx: FrameContext, d: Descent, onSplash: () => voi
     }
     case 'ride': {
       const here = pointAt(P, d.s);
-      d.v = Math.min(19, d.v + 0.32 * Math.max(0.15, Math.sin(here.a)) + 0.02);
+      d.v = Math.min(23, d.v + 0.4 * Math.max(0.15, Math.sin(here.a)) + 0.03);
       d.s += d.v;
       const at = pointAt(P, Math.min(d.s, P.len));
       d.kx = at.x; d.ky = at.y; d.ka = at.a;

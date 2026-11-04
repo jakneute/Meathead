@@ -423,7 +423,7 @@ const die = (ctx: FrameContext, f: Fight) => {
   onKilled?.(state);
 };
 /** The mouth he ends up flopped into (his middle, world). */
-export const MOUTH_AT = { x: SUMMIT.R - 30, y: GY };
+export const MOUTH_AT = { x: SUMMIT.mouthX + 30, y: GY };
 const updateDying = (ctx: FrameContext, f: Fight): Controls => {
   const { state } = ctx, d = f.death!, p = state.player;
   d.t++;

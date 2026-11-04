@@ -85,7 +85,7 @@ export const buildTower = (state: GameState) => {
 /** The stairs from floor k up to k+1 (a switchback outside the tower, on k's exit side): his feet's path. */
 export const stairsOf = (k: number): [number, number][] => {
   const s = exitSide(k), edge = s > 0 ? TR : TL, y0 = floorY(k), y1 = floorY(k + 1);
-  return [[edge - s * 20, y0], [edge + s * 10, y0], [edge + s * (STAIR - 20), y0 - FLOOR / 2], [edge + s * (STAIR - 20), y0 - FLOOR / 2], [edge + s * 10, y1], [edge - s * 30, y1]];
+  return [[edge - s * 20, y0], [edge + s * 10, y0], [edge + s * (STAIR - 20), y0 - FLOOR / 2], [edge + s * (STAIR - 20), y0 - FLOOR / 2], [edge + s * 10, y1], [edge - s * 80, y1]];
 };
 const lenOf = (pts: [number, number][]) => pts.slice(1).reduce((n, q, i) => n + Math.hypot(q[0] - pts[i][0], q[1] - pts[i][1]), 0);
 const at = (pts: [number, number][], s: number) => {
@@ -136,7 +136,7 @@ export const updateTower = (ctx: FrameContext, tw: Tower, controls: Controls, ev
   const cx = p.pos.x + p.width / 2;
   const onDeck = p.isGrounded && Math.abs(p.pos.y + p.height - floorY(k)) < 4;
   // ---- up on a fight floor not cleared: locked in, and the waves
-  if (tw.locked === null && FIGHT_FLOORS.includes(k) && !tw.cleared[k] && onDeck && cx > TL + 30 && cx < TR - 30) {
+  if (tw.locked === null && FIGHT_FLOORS.includes(k) && !tw.cleared[k] && onDeck && cx > TL + 20 && cx < TR - 20) {
     tw.locked = k; tw.wave = 0; tw.spawnT = 70; tw.queue = [...WAVES[k][0]]; tw.tells = []; tw.cast = [];
     ev.locked = k;
     playSound('clang', 0.9, -8); playSound('clang', 0.7, -4);
