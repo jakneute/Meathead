@@ -90,6 +90,7 @@ import { disableM1Music } from '../m1/game/music';
 import { setMusicState, setMusicStage, setMusicPaused, setMusicTitle } from './music/cues';
 import { refreshFindsHour, setTimeOfDayOverride } from './timeOfDay';
 import { setEndPreviewFinds } from './endWalk';
+import { grantEverything } from './cheatEpilogue';
 import { noteFireworksState } from './fireworks';
 
 // (Meathead 2's own music: music/cues.ts; Meathead 1's never starts)
@@ -326,8 +327,10 @@ const App2: React.FC = () => {
     setTitle(false);
   };
   /** (the cheats build's SKIP TO HUB on the title: NO SAVE, straight onto the hub, past the gym and the way in) */
-  const startAtHub = () => {
+  const startAtHub = (all?: boolean) => {
     playOnFile(null);
+    // (SKIP TO EPILOGUE: as a 100% file, all eight cleared and all 24 finds, the hour 9)
+    if (all) grantEverything();
     setHubStart(AMERICA_SLOT);
     pending.current = HUB_STAGE;
     setTitle(false);

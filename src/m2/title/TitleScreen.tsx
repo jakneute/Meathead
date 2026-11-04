@@ -46,7 +46,7 @@ const TitleScreen: React.FC<{
   /** Carrying on with a file. */
   onContinue: (slot: Slot) => void;
   /** (the cheats build) Straight onto the hub, NO SAVE. */
-  onHub?: () => void;
+  onHub?: (all?: boolean) => void;
   /** (the cheats build) The alpha's ending on its own (alphaEnd.ts), as if this many of the 24 finds were his. */
   onEnding?: (finds: number) => void;
 }> = ({ onNew, onContinue, onHub, onEnding }) => {
@@ -56,6 +56,8 @@ const TitleScreen: React.FC<{
   // (the cheats build's ALPHA ENDING: left / right picks how many finds it plays as, one count per tier of the
   // announcer's take (the owner's: "press left or right on that menu option ... so you can see the alternate endings"))
   const [endTier, setEndTier] = useState(END_PREVIEW.length - 1);
+  // (the cheats build's SKIP TO HUB: left / right flips it to SKIP TO EPILOGUE, a 100% file's everything (cheatEpilogue.ts))
+  const [hubAll, setHubAll] = useState(false);
   const soundRef = useRef(false); soundRef.current = soundOpen;
   const [sel, setSel] = useState(0);
   const [locked, setLocked] = useState(true);
@@ -109,7 +111,7 @@ const TitleScreen: React.FC<{
     if (o.kind === 'quit') { setQuitAsk(1); return; }
     if (locked) return;
     if (o.kind === 'continue') { const slot = latestSlot(); if (slot) { playMenuOk(); onContinue(slot); } return; }
-    if (o.kind === 'hub') { if (onHub) { playMenuOk(); onHub(); } return; }
+    if (o.kind === 'hub') { if (onHub) { playMenuOk(); onHub(hubAll); } return; }
     if (o.kind === 'ending') { if (onEnding) { playMenuOk(); onEnding(END_PREVIEW[endTier]); } return; }
     if (o.kind === 'sound') { playMenuOk(); setSoundOpen(true); return; }
     // (the cheats build: straight in, NO SAVE)
@@ -133,6 +135,7 @@ const TitleScreen: React.FC<{
     if (a === 'up') setSel(i => (i + n - 1) % n);
     else if (a === 'down') setSel(i => (i + 1) % n);
     else if ((a === 'left' || a === 'right') && options[sel]?.kind === 'ending') { setEndTier(t => (t + (a === 'left' ? END_PREVIEW.length - 1 : 1)) % END_PREVIEW.length); playMenuOk(); }
+    else if ((a === 'left' || a === 'right') && options[sel]?.kind === 'hub') { setHubAll(v => !v); playMenuOk(); }
     else if (a === 'ok') pick(sel);
   };
   const actRef = useRef(act); actRef.current = act;
@@ -228,7 +231,7 @@ const TitleScreen: React.FC<{
                   : 'bg-[#5a0a3a] text-white/70 shadow-[inset_0_2px_0_#9c1a62,inset_0_-4px_0_#2c0420,4px_4px_0_#000] hover:bg-[#8c145a]'}`}>
                 {on && !lockedOut && <span className="absolute left-3 text-[#fcd850] animate-pulse">&#9654;</span>}
                 {on && !lockedOut && <span className="absolute right-3 text-[#fcd850] animate-pulse">&#9664;</span>}
-                {locked && i === 0 ? 'WAITING IN LINE...' : o.kind === 'ending' ? `${o.label} ${on ? '‹' : ''} ${END_PREVIEW[endTier]}/24 ${on ? '›' : ''}` : o.label}
+                {locked && i === 0 ? 'WAITING IN LINE...' : o.kind === 'ending' ? `${o.label} ${on ? '‹' : ''} ${END_PREVIEW[endTier]}/24 ${on ? '›' : ''}` : o.kind === 'hub' ? `${on ? '‹ ' : ''}${hubAll ? 'SKIP TO EPILOGUE' : o.label}${on ? ' ›' : ''}` : o.label}
               </button>
             );
           })}
