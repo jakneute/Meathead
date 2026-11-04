@@ -18,6 +18,15 @@
 // in off the real woods, and says so. No tips, a short line that's served quick (he can still cut it or plow through
 // it), the first guard's a welcome BACK, and the window's a re-entry exchange (his opener, her answer, his last word;
 // naked: her answer, then the punch). Security's rules as ever. Out the gate (or SKIP INTRO): the hub, and it's over.
+//
+// THE WALK OUT (the prologue of the epilogue, every run: out of the hub through America USA, every land cleared; the
+// owner's "essentially the intro sequence but in reverse"; store.ts setWalkOut): in through the gate from the hub's
+// side, the whole way back to the truck, right to left. Closing time: nobody in line, the window shut, the walkways
+// running back toward the garage, the metal detector switched off for the night; park security sat about on folding
+// chairs at their posts, bored stiff, muttering as he goes by, waiting on everybody to leave so they can go home. They
+// leave him be unless he's hostile (an attack that actually lands: watchForTrouble), and then they're up and at him as
+// ever. The hour's what it is (fireworks at 100%). No going back through the gate. At his truck: the abduction
+// (endgame/abduction.ts), and on to the endgame's first stage.
 
 import type { StageLayout } from '../../m1/game/stages/index';
 import type { GameState } from '../../m1/game/core/state';
@@ -39,7 +48,9 @@ import { isShat, isNude } from '../../m1/game/player/gut';
 import { shakeScreen } from '../../m1/game/core/state';
 import { SKIP_AFTER, offerSkip, takeSkip } from '../../m1/game/platform/skip';
 import { createGrab, updateGrab, drawGrab, grabbing, type Grab } from '../moves/grab';
-import { setUi, goTo, isLeaving, arrived, carryGut, takeGut, walkBackOn, setWalkBack } from '../store';
+import { setUi, goTo, isLeaving, arrived, carryGut, takeGut, walkBackOn, setWalkBack, walkOutOn } from '../store';
+import { MH_WALK_OUT, GUARD_BORED, GUARD_ALERT_OUT, PA_OUT } from '../endgame/lines';
+import { startAbduction, tickAbduction, abductionLift, drawAbductionFront, drawAbductionHud, type Abduction } from '../endgame/abduction';
 import { stopWeapons } from '../weapons';
 import { todLight } from '../timeOfDay';
 import { drawNotedSunFlare } from '../sunFlare';
@@ -50,7 +61,7 @@ import {
   MEATHEAD_BACK_LOT, GUARD_WELCOME_BACK, MEATHEAD_REENTRY, TICKET_REENTRY, MEATHEAD_REENTRY_BACK,
 } from './lines';
 import { drawIntroBackdrop, drawIntroBack, drawIntroFront } from './draw';
-import { X0, R, CEIL_Y, UPPER, floorY, GARAGE_END, CHECK_END, STAIRS_END, USA_START, WALKWAYS, WALKWAY_SPEED, OFFICE_X, DETECTOR_X, DETECTOR_TOP, DETECTOR_BEAM, DETECTOR_GAP, DETECTOR_HALF, FRONT_X, WINDOW_X, SPACING, QUEUE_START, TURN_X, GATE_X, END_X } from './geometry';
+import { X0, R, CEIL_Y, UPPER, floorY, GARAGE_END, CHECK_END, STAIRS_END, USA_START, WALKWAYS, walkwaySpeed, setWalkwaysBack, OFFICE_X, DETECTOR_X, DETECTOR_TOP, DETECTOR_BEAM, DETECTOR_GAP, DETECTOR_HALF, FRONT_X, WINDOW_X, SPACING, QUEUE_START, TURN_X, GATE_X, END_X } from './geometry';
 
 export const INTRO_STAGE = 'M2 America USA';
 
@@ -95,6 +106,9 @@ export interface Intro {
   seenDressed: Dressed; reactNext: number;
   /** The way he gets here (the first time): the truck into the pillar, him out of its window. */
   arrival: { t: number; landed: number; said: boolean; done: number; waiting: boolean } | null;
+  /** (the walk out at closing: the prologue of the epilogue) Its frames, his line said; the abduction once he's at the
+   *  truck. Null: not walking out. */
+  out: { t: number; said: boolean; abduct: Abduction | null } | null;
 }
 export const getIntro = (state: GameState) => state.stage as Intro | null;
 /** (the walk back) The window's re-entry exchange: his opener, her answer, his last word (none naked: the punch). */
@@ -187,7 +201,8 @@ const outOfGarage = (state: GameState) => Math.max(0, Math.min(1, (state.camera.
 
 export const introLayout: StageLayout = {
   left: X0 - 400,
-  startX: R(260),
+  // (the walk out at closing: in through the gate from the hub's side, at the far end)
+  get startX() { return walkOutOn() ? R(GATE_X) + 30 : R(260); },
   verticalCamera: false,
   // (his footsteps: the walkways' steel treads ring under him; everything else out here's concrete, brick or tile)
   footstep: (state) => { const x = state.player.pos.x + state.player.width / 2; return WALKWAYS.some(([a, b]) => x > R(a) && x < R(b)) && state.player.pos.y + state.player.height < UPPER + 2 ? 'metal' : 'hard'; },
@@ -215,15 +230,30 @@ export const introLayout: StageLayout = {
     // (the walk back: the truck's long since in the pillar, whatever this run's seen of the way in)
     const back = walkingBack(), walkIn = back && !walkedIn;
     if (back) crashedIn = true;
+    // (the walk out: the truck's in its pillar, he's in through the gate from the hub's side)
+    const out = walkOutOn();
+    if (out) crashedIn = true;
+    setWalkwaysBack(out);
     const intro: Intro = {
       grab: createGrab(state), provoked: false, me: null, nextNumber: 0, serveT: 0, arriveT: 0, hurryT: 0, atWindowT: 0,
       lady: { said: null, ko: 0 }, admitted: false, scene: null, office: { open: 0, cd: 0, due: 0 },
       pa: { said: null, next: 600, heard: [] }, bark: null, barkNext: 0, hp: new WeakMap(), hpWas: state.player.health, upWas: false, alarm: 0, inDetector: false, cool: 0, tripped: false, welcomed: false, lineFight: false, seenDressed: 'clean', reactNext: 0,
       arrival: crashedIn ? null : { t: 0, landed: 0, said: false, done: 0, waiting: true },
-      walkIn: walkIn ? 0 : null,
+      walkIn: walkIn && !out ? 0 : null,
+      out: out ? { t: 0, said: false, abduct: null } : null,
     };
+    // (the walk out: just in through the gate, facing back the way he came in that morning; let in long since, nobody in
+    // line, the PA saying goodnight; back here after dying, the same)
+    if (out) {
+      const p = state.player;
+      p.hidden = false; p.inCutscene = false; p.pos = { x: R(GATE_X) + 30 - p.width / 2, y: GROUND_Y - p.height }; p.vel = { x: 0, y: 0 }; p.facing = -1;
+      state.camera.x = Math.min(R(END_X) + 60 - CANVAS_WIDTH, p.pos.x - CANVAS_WIDTH / 2);
+      intro.admitted = true;
+      intro.pa.next = state.frame + 260;
+      setUi({ introCutscene: false });
+    }
     // (the walk back, the first time in: in at the garage's far left end, off the woods, walking; no HUD till he's in)
-    if (walkIn) {
+    else if (walkIn) {
       walkedIn = true;
       const p = state.player;
       p.hidden = false; p.inCutscene = true; p.pos = { x: X0 + 6, y: UPPER - p.height }; p.vel = { x: 0, y: 0 }; p.facing = 1;
@@ -237,9 +267,12 @@ export const introLayout: StageLayout = {
     state.stage = intro;
     state.cameraMinX = X0 - 60;
     state.cameraMaxX = R(END_X) + 60 - CANVAS_WIDTH;
-    for (const x of POSTS) addGuard(state, intro, R(x));
-    // The line, already there: six people, the front one at the window (the walk back: a short one, three)
-    for (let i = 0; i < (back ? 3 : 6); i++) addGuest(state, intro, R(FRONT_X - i * SPACING), false);
+    for (const x of POSTS) { const e = addGuard(state, intro, R(x)); if (out) (e as Enemy & { seated?: boolean }).seated = true; }
+    // The line, already there: six people, the front one at the window (the walk back: a short one, three; the walk out
+    // at closing, nobody)
+    if (!out) for (let i = 0; i < (back ? 3 : 6); i++) addGuest(state, intro, R(FRONT_X - i * SPACING), false);
+    // (the walk out: where he starts, for the engine (it'd put him at the stage's start, by the truck, otherwise))
+    if (out) return { x: R(GATE_X) + 30, y: GROUND_Y };
   },
   update: (ctx, controls) => {
     const { state } = ctx;
@@ -247,6 +280,8 @@ export const introLayout: StageLayout = {
     if (import.meta.env.DEV) (window as unknown as { __m2: GameState }).__m2 = state;
     // (off out of it: the walk back, if it was one, is over)
     if (isLeaving()) { stopWeapons(); carryGut(state.player); state.player.vel.x = 0; setWalkBack(false); walkedIn = false; return { ...NO_CONTROLS }; }
+    // (the walk out at closing: its own run of things, then the abduction)
+    if (intro?.out) return walkOut(ctx, intro, controls);
     if (!intro) return controls;
     const p = state.player, px = p.pos.x + p.width / 2;
     // (where he is, for the HUD's look)
@@ -319,9 +354,10 @@ export const introLayout: StageLayout = {
     return k > 0 ? todLight([], k) : null;
   },
   // (the lens's ghosts off the sun, out in the open: sunFlare.ts)
-  drawHud: (ctx, state) => drawNotedSunFlare(ctx, outOfGarage(state), state),
+  // (and the abduction's cutscene over the lot, once it's on: endgame/abduction.ts)
+  drawHud: (ctx, state) => { drawNotedSunFlare(ctx, outOfGarage(state), state); const ab = getIntro(state)?.out?.abduct; if (ab) drawAbductionHud(ctx, ab); },
   drawBack: (ctx, state) => drawIntroBack(ctx, state),
-  drawFront: (ctx, state) => { drawIntroFront(ctx, state); const intro = getIntro(state); if (intro) drawGrab(ctx, state, intro.grab); },
+  drawFront: (ctx, state) => { drawIntroFront(ctx, state); const intro = getIntro(state); if (intro) drawGrab(ctx, state, intro.grab); if (intro?.out?.abduct) drawAbductionFront(ctx, state, intro.out.abduct); },
 };
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -336,7 +372,9 @@ export const CRASH_AT = 70, EMERGE_AT = 140, DIVE_AT = 164;
 export const truckNow = (intro: Intro | null, f: number) => {
   const t = intro?.arrival ? intro.arrival.t : 100000;
   const dx = t < CRASH_AT ? -560 + 8 * t : t < CRASH_AT + 12 ? -7 * Math.sin(((t - CRASH_AT) / 12) * Math.PI) : 0;
-  const dy = t < CRASH_AT ? ((t >> 1) % 3 === 0 ? -1 : 0) : t < CRASH_AT + 8 ? -Math.round(4 * Math.sin(((t - CRASH_AT) / 8) * Math.PI)) : 0;
+  // (the walk out: up in the beam, out through the roof: endgame/abduction.ts)
+  const lift = intro?.out?.abduct ? abductionLift(intro.out.abduct) : 0;
+  const dy = (t < CRASH_AT ? ((t >> 1) % 3 === 0 ? -1 : 0) : t < CRASH_AT + 8 ? -Math.round(4 * Math.sin(((t - CRASH_AT) / 8) * Math.PI)) : 0) - lift;
   return { dx, dy, crash: t - CRASH_AT, f, emerging: !!intro?.arrival && t >= EMERGE_AT && t < DIVE_AT + 10 };
 };
 
@@ -431,14 +469,14 @@ const walkBackIn = (state: GameState, intro: Intro) => {
 
 const walkways = (state: GameState) => {
   const on = (x: number) => WALKWAYS.some(([a, b]) => x > R(a) && x < R(b));
-  const p = state.player;
-  if (p.isGrounded && on(p.pos.x + p.width / 2)) p.pos.x += WALKWAY_SPEED;
+  const p = state.player, v = walkwaySpeed(), dir = Math.sign(v);
+  if (p.isGrounded && on(p.pos.x + p.width / 2)) p.pos.x += v;
   // (anybody else: carried along, unless they're walking back against it: then they just walk, slowly, rather than
   // stand stuck on it treading)
   for (const e of state.enemies) {
     if (e.health <= 0 || e.isBlownAway || Math.abs(e.pos.y + e.height - UPPER) >= 3 || !on(e.pos.x + e.width / 2)) continue;
-    const against = e.vel.x < -0.005 || (e.puppet && (e.facing ?? 1) < 0);
-    if (!against) e.pos.x += WALKWAY_SPEED;
+    const against = e.vel.x * dir < -0.005 || (e.puppet && (e.facing ?? 1) * dir < 0);
+    if (!against) e.pos.x += v;
   }
 };
 
@@ -477,7 +515,7 @@ const provoke = (ctx: FrameContext, intro: Intro, near: Enemy | null) => {
   // (the nearest guard shouts it; the ticket lady too, if she's in earshot)
   const p = state.player, px = p.pos.x + p.width / 2;
   const guard = state.enemies.filter(e => e.kind === 'parksec' && e.health > 0).sort((a, b) => Math.abs(a.pos.x - px) - Math.abs(b.pos.x - px))[0];
-  if (guard) { const said = { text: '' }; intro.bark = { e: guard, said }; speak(guardVoice(guard), pick(GUARD_ALERT[dressed(state)]), s => { if (intro.bark) intro.bark.said = s ?? { text: '' }; if (!s) intro.bark = null; }); }
+  if (guard) { const said = { text: '' }; intro.bark = { e: guard, said }; speak(guardVoice(guard), pick((intro.out ? GUARD_ALERT_OUT : GUARD_ALERT)[dressed(state)]), s => { if (intro.bark) intro.bark.said = s ?? { text: '' }; if (!s) intro.bark = null; }); }
   if (px > R(QUEUE_START) - 400 && intro.lady.ko <= 0) speak(TICKET_VOICE, pick(TICKET_ALARM), s => { intro.lady.said = s; }, true);
   intro.barkNext = state.frame + 420;
   void near;
@@ -496,7 +534,19 @@ const security = (ctx: FrameContext, intro: Intro) => {
   for (const e of state.enemies) {
     if (e.kind !== 'parksec' || e.health <= 0 || e.isBlownAway) continue;
     e.shootTimer = 0; // (no guns in Happy Land)
-    if (intro.provoked) { e.puppet = false; e.harmless = false; continue; }
+    if (intro.provoked) { e.puppet = false; e.harmless = false; (e as Enemy & { seated?: boolean }).seated = false; continue; }
+    // (the walk out at closing: sat at their posts, bored; a mutter as he goes by, now and then, each the once)
+    if ((e as Enemy & { seated?: boolean }).seated) {
+      e.puppet = true; e.harmless = true; e.vel.x = 0; e.pauseTimer = 2;
+      const cx = e.pos.x + e.width / 2;
+      if (intro.out && !intro.out.abduct && Math.abs(cx - px) < 130 && !intro.bark && state.playerVulgarityTimer <= 0 && state.frame > intro.barkNext && !remarked.has(e) && Math.random() < 0.04) {
+        remarked.add(e);
+        intro.bark = { e, said: { text: '' } };
+        speak(guardVoice(e), pick(GUARD_BORED[dressed(state)]), s => { if (intro.bark) intro.bark.said = s ?? { text: '' }; if (!s) intro.bark = null; });
+        intro.barkNext = state.frame + 240;
+      }
+      continue;
+    }
     // Not started anything: strolling up and down their beat, keeping an eye on him
     e.puppet = true; e.harmless = true;
     if ((e.pauseTimer || 0) > 2) continue;
@@ -810,7 +860,7 @@ const talk = (ctx: FrameContext, intro: Intro) => {
   if (px > R(USA_START) && state.frame > intro.pa.next && !intro.scene) {
     intro.pa.next = state.frame + 2100 + Math.floor(Math.random() * 900);
     // (never the same thing twice in the one life: once it's said them all, it's said its piece)
-    const fresh = PA_LINES.filter(l => !intro.pa.heard.includes(l));
+    const fresh = (intro.out ? PA_OUT : PA_LINES).filter(l => !intro.pa.heard.includes(l));
     if (fresh.length) { const line = pick(fresh); speak(PA_VOICE, line, s => { intro.pa.said = s; if (s && !intro.pa.heard.includes(line)) intro.pa.heard.push(line); }); }
   }
 };
@@ -828,4 +878,48 @@ const tipAt = (state: GameState, intro: Intro): IntroTip => {
   // line's count at the window)
   if (x > QUEUE_START - 300 && !intro.admitted) return 'line';
   return null;
+};
+
+// ---------------------------------------------------------------------------------------------------------------
+// The walk out at closing (the prologue of the epilogue): right to left, out to the truck
+
+/** Where his truck is (the cab's window, where he climbs back in) and how near it sets the abduction off. */
+const TRUCK_AT = 430;
+const walkOut = (ctx: FrameContext, intro: Intro, controls: import('../../m1/game/platform/input').Controls) => {
+  const { state } = ctx;
+  const o = intro.out!, p = state.player, px = p.pos.x + p.width / 2;
+  o.t++;
+  setUi({ zone: px < R(GARAGE_END) ? 'garage' : px < R(USA_START) ? 'security' : px < R(QUEUE_START) - 300 ? 'america' : 'ticket' });
+  state.pickups = state.pickups.filter(k => k.type !== 'small_ammo' && k.type !== 'large_ammo');
+  if (p.health < intro.hpWas && p.health > 0) p.health = Math.min(intro.hpWas, p.health + (intro.hpWas - p.health) * 0.65);
+  intro.hpWas = p.health;
+  // At the truck: the abduction, the lot of it a cutscene (endgame/abduction.ts); everybody holds still for it
+  if (o.abduct) {
+    for (const e of state.enemies) {
+      if (e.health <= 0 || e.isBlownAway) continue;
+      e.puppet = true; e.harmless = true; e.melee = undefined; e.shootTimer = 0; e.pauseTimer = Math.max(e.pauseTimer || 0, 2); e.vel.x = 0;
+    }
+    intro.bark = null; intro.pa.said = null;
+    setUi({ introCutscene: true, introTip: null, introPrompt: null, introAhead: null });
+    if (tickAbduction(state, o.abduct, R(258))) { carryGut(p); goTo('lot'); }
+    return { ...NO_CONTROLS };
+  }
+  walkways(state);
+  watchForTrouble(ctx, intro);
+  security(ctx, intro);
+  talk(ctx, intro);
+  // (the gate's behind him: no going back through it)
+  if (p.pos.x + p.width > R(GATE_X) + 70) { p.pos.x = R(GATE_X) + 70 - p.width; if (p.vel.x > 0) p.vel.x = 0; }
+  // (a moment in, he says his piece about the day)
+  if (!o.said && o.t > 50) { o.said = true; meatheadSays(state, pick(MH_WALK_OUT[dressed(state)]), true); }
+  controls = updateGrab(ctx, intro.grab, controls);
+  setUi({ near: null, map: null, nearExit: false, introTip: null, introPrompt: null, introAhead: null });
+  // His truck: on his feet, not holding anybody, there he climbs back in, and it's out of his hands
+  if (px < R(TRUCK_AT) && p.isGrounded && !grabbing(intro.grab)) {
+    o.abduct = startAbduction(state);
+    p.inCutscene = true;
+    setUi({ introCutscene: true });
+    return { ...NO_CONTROLS };
+  }
+  return controls;
 };

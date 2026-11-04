@@ -6,7 +6,7 @@
 // drawImage apiece. What moves is drawn live over them: the walkways' treads, handrails and skirt lights, the one
 // fluorescent tube that's on its way out, the office door, the metal detector's light, the camera's light, the flags.
 
-import { X0, R, CEIL_Y, UPPER, STAIRS_END, WALKWAYS, WALKWAY_SPEED, OFFICE_X, DETECTOR_X, DETECTOR_TOP, DETECTOR_BEAM, DETECTOR_GAP, DETECTOR_HALF, GARAGE_END, HALL_END, CHECK_END } from '../geometry';
+import { X0, R, CEIL_Y, UPPER, STAIRS_END, WALKWAYS, walkwaySpeed, OFFICE_X, DETECTOR_X, DETECTOR_TOP, DETECTOR_BEAM, DETECTOR_GAP, DETECTOR_HALF, GARAGE_END, HALL_END, CHECK_END } from '../geometry';
 import { GROUND_Y, CANVAS_HEIGHT } from '../../../m1/constants';
 import {
   type Ctx, INK, RED, WHITE, BLUE, box, text, flag, sign, slab, pole, ball, shinyStar, star, eagle, bunting,
@@ -762,13 +762,13 @@ const paintBeam = (g: Ctx) => {
   signAt(g, signW('FREEDOM-SCAN', look) <= BW - 6 ? 'FREEDOM-SCAN' : 'F-SCAN 3000', BW / 2, BH / 2 + 3, 5, look);
 };
 /** The LED bar up an upright's slot (at x, its slot's top y, scale s): a couple of green ticks idling; going off, red,
- *  filling up and down it with the beeps. */
+ *  filling up and down it with the beeps; switched off for the night (alarm < 0: the walk out at closing), all dark. */
 const detLeds = (c: Ctx, x: number, y: number, s: number, f: number, alarm: number) => {
   const n = 12, step = ((DH - 30) / n) * s;
   const lit = alarm > 0 ? Math.round(n * (0.5 + 0.5 * Math.sin(alarm * 0.4))) : -1;
   for (let k = 0; k < n; k++) {
     const yy = y + (DH - 30) * s - (k + 1) * step + 1;
-    const on = alarm > 0 ? k <= lit : k === ((f >> 3) % n) || k === 0;
+    const on = alarm > 0 ? k <= lit : alarm < 0 ? false : k === ((f >> 3) % n) || k === 0;
     box(c, x, yy, 4 * s, Math.max(1, step - 2), on ? (alarm > 0 ? (k > n * 0.7 ? '#FF6050' : '#EF4444') : '#22C55E') : alarm > 0 ? '#3A1010' : '#103018');
   }
 };
@@ -823,11 +823,12 @@ export const detectorFront = (c: Ctx, eye: Eye, f: number, alarm: number, cool: 
   if (alarm > 0) steppedGlow(c, lx, ly, on ? 150 : 120, '#EF4444', on ? 0.3 : 0.12, 0.03, 5);
   else if (cool > 0) steppedGlow(c, lx, ly, 22, '#F59E0B', 0.3, 0.05, 3);
   box(c, lx - 5, ly - 2, 10, 3, INK); box(c, lx - 4, ly - 2, 8, 2, '#3A3F46');
-  const lamp = alarm > 0 ? (on ? '#EF4444' : '#7F1D1D') : cool > 0 ? '#F59E0B' : ((f >> 5) % 2 ? '#22C55E' : '#15803D');
+  // (switched off for the night, alarm < 0: the lamp out)
+  const lamp = alarm < 0 ? '#1F2937' : alarm > 0 ? (on ? '#EF4444' : '#7F1D1D') : cool > 0 ? '#F59E0B' : ((f >> 5) % 2 ? '#22C55E' : '#15803D');
   dome(c, lx, ly - 2, 4, lamp);
   if (alarm > 0 && on) { box(c, lx - 2, ly - 5, 2, 1, '#FFFFFF'); steppedGlow(c, lx, ly - 3, 14, '#FFB0A0', 0.4, 0.1, 3); }
   // (what it says, up over the top of it: clear of him stood up there)
-  if (alarm <= 0 && cool > 0) text(c, 'RESETTING...', X, UPPER - 210, '#F59E0B', 6);
+  if (alarm === 0 && cool > 0) text(c, 'RESETTING...', X, UPPER - 210, '#F59E0B', 6);
   if (alarm > 0 && on) text(c, 'BEEP BEEP BEEP', X, UPPER - 210, '#EF4444', 8);
 };
 
@@ -1360,7 +1361,7 @@ const walkwayStill = (g: Ctx, a: number, b: number) => {
 const walkway = (c: Ctx, a: number, b: number, f: number) => {
   stamp(c, `m2u-ww:${a}`, a - 50, UPPER - 92, b - a + 100, TB + 106, g => walkwayStill(g, a, b));
   // (the pallets going by, the handrail's marks going by with them, the skirt's lights chasing along: all at the walkway's speed)
-  const run = f * WALKWAY_SPEED;
+  const run = f * walkwaySpeed();
   const off = run % 24;
   for (let x = a + off; x < b - 2; x += 24) { box(c, x, UPPER + 4, 2, TB - 8, '#363C44'); box(c, x + 2, UPPER + 4, 1, TB - 8, '#CAD2DC'); }
   for (let x = a + (run % 60); x < b - 12; x += 60) { box(c, x, UPPER - 84, 12, 2, '#5A5A66'); box(c, x + 12, UPPER - 84, 2, 2, '#3A3A44'); }
@@ -1440,4 +1441,15 @@ export const drawUpperFloor = (c: Ctx, f: number, eye: Eye) => {
   stairs(c, R(CHECK_END), R(STAIRS_END), f);
   const [l, r] = view(c);
   for (const [a, b] of WALKWAYS) if (R(b) + 60 > l && R(a) - 60 < r) walkway(c, R(a), R(b), f);
+};
+
+/** His truck, painted the once into a canvas of its own (300 x 152: its wheels' bottoms 6 up from the bottom, the
+ *  tailgate's end 62 in from the left): for the endgame's lot, where Satan threw it (endgame/lot/art.ts). */
+let truckCanvas: HTMLCanvasElement | null = null;
+export const truckPicture = () => {
+  if (truckCanvas) return truckCanvas;
+  truckCanvas = document.createElement('canvas'); truckCanvas.width = 300; truckCanvas.height = 152;
+  const g = truckCanvas.getContext('2d')!;
+  g.translate(-(R(110) - 40), -(UPPER - 150)); truck(g);
+  return truckCanvas;
 };

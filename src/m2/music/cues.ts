@@ -31,12 +31,13 @@ import { SONGS } from './songs/index';
 import { soundTestCue, type Cue, soundTestPicks } from './soundTest';
 import { momentOn } from './moments';
 import { bossFightName, inBossFight } from '../bossQuiet';
-import { getUi, walkBackOn, isLandCleared } from '../store';
+import { getUi, walkBackOn, walkOutOn, isLandCleared } from '../store';
 import { HUB_STAGE } from '../hub/index';
 import { HUB, HUB_CIRC } from '../hub/geometry';
 import { SPOTS, LANDS } from '../hub/lands';
 import { PEN_STAGE } from '../pen/index';
 import { INTRO_STAGE } from '../intro/index';
+import { abductionOn } from '../endgame/abduction';
 import { GYM_STAGE } from '../intro/gym/course';
 import { ADV_STAGE } from '../adventure/index';
 import { SPOOKY_STAGE } from '../spooky/index';
@@ -579,9 +580,11 @@ const gameWants = (s: GameState | null): Want => {
   // (his gym, the opening: its own; its cutscenes the same tune, soft)
   if (stage === GYM_STAGE) { const sc = cutscene || !!getUi().introCutscene; return { cands: [{ song: 'gym', arrs: sc ? ['cutscene', 'main'] : ['main'] }, { song: 'staff' }], cutscene: sc }; }
   if (stage === INTRO_STAGE) {
+    // (the abduction at the end of the walk out (endgame/abduction.ts): no music, its own sounds)
+    if (abductionOn()) return none;
     const zone = getUi().zone ?? 'garage';
     // (the walk back after Wilderness Land: its own arrangement the whole way, if the song has one)
-    return { cands: [{ song: 'intro', arrs: walkBackOn() ? ['back', zone] : [zone] },{ song: 'title', arrs: [INTRO_STANDIN[zone] ?? 'main'] }], cutscene: cutscene || !!getUi().introCutscene };
+    return { cands: [{ song: 'intro', arrs: walkBackOn() || walkOutOn() ? ['back', zone] : [zone] },{ song: 'title', arrs: [INTRO_STANDIN[zone] ?? 'main'] }], cutscene: cutscene || !!getUi().introCutscene };
   }
   const land = LAND_OF_STAGE[stage];
   if (!land) return none;

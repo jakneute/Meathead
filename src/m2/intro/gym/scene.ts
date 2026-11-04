@@ -8,6 +8,7 @@ import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../../../m1/constants';
 import { say, silenceAll, MEATHEAD_VOICE, type Voice } from '../../../m1/game/platform/speech';
 import { SKIP_AFTER, offerSkip, takeSkip, drawSkipPrompt } from '../../../m1/game/platform/skip';
 import { playSound } from '../../../m1/game/platform/audio';
+import { drawBubbleRows } from '../../../m1/game/render/speechStyle';
 import type { SoundType } from '../../../m1/types';
 
 type Ctx = CanvasRenderingContext2D;
@@ -35,6 +36,10 @@ export interface Beat {
   caption?: string;
   /** Drawn this many times finer than the art (a gross-up: gross.ts), in the art's coordinates still. */
   res?: number;
+  /** Where the speaker's mouth is in the picture (art coordinates; a function: where it is this frame): the words go in a
+   *  speech bubble over it, its tail down to it, instead of the box under the picture (the endgame's abduction: a
+   *  skippable cutscene's words go in bubbles, the owner's rule; the gym's, the intro's, keep the box). */
+  at?: [number, number] | (() => [number, number]);
 }
 
 export interface Scene {
@@ -139,7 +144,19 @@ export const drawScene = (ctx: Ctx, s: Scene) => {
   ctx.strokeStyle = '#2a2a30'; ctx.lineWidth = 2; ctx.strokeRect(PX - 1, PY - 1, ART_W * SCALE + 2, ART_H * SCALE + 2);
   // The words: who, then what (wrapped, kept whole in the box under the picture)
   ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
-  if (s.said) {
+  if (s.said && b.at) {
+    // (a bubble over the speaker: kept whole on the screen, its tail down to them)
+    const [ax, ay] = typeof b.at === 'function' ? b.at() : b.at;
+    const tipX = PX + ax * SCALE, tipY = PY + ay * SCALE;
+    const font = '10px "Press Start 2P"', lineH = 15;
+    ctx.font = font;
+    const rows = wrap(ctx, s.said.text, 330).slice(0, 4);
+    const w = Math.max(...rows.map(r => ctx.measureText(r).width)) + 14;
+    const x = Math.max(w / 2 + 8, Math.min(CANVAS_WIDTH - w / 2 - 8, tipX));
+    const top = rows.length * lineH + 10;
+    const y = Math.max(8 + top, Math.min(CANVAS_HEIGHT - 20, tipY - 16));
+    drawBubbleRows(ctx, rows, x, y, tipX, lineH, font);
+  } else if (s.said) {
     ctx.font = '10px "Press Start 2P"';
     if (s.said.who) { ctx.fillStyle = '#FACC15'; ctx.fillText(`${s.said.who}:`, PX + 12, SUB_Y); }
     ctx.font = '11px "Press Start 2P"';

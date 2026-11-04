@@ -14,8 +14,9 @@ const M1_ONLY = [
   /[\/]src[\/]m1[\/]game[\/]bosses[\/](alien|alienDeath|artie|barry|dale|ernie|hector|oscar|tommy|victor)\.ts$/,
   /[\/]src[\/]m1[\/]game[\/]render[\/]bosses[\/](?!kit\.ts$|boulders\.ts$)/,
   // (not ending.ts: Meathead 2's title draws his close-up with it; not intro.ts: the Iron Pit's cutscenes paint the
-  // gym and the agent's close-up with it)
-  /[\/]src[\/]m1[\/]game[\/]scenes[\/](endingAlien|epilogue|faceOff|faceOffEgg|fastFood|grossUp|radio|sewerNuke|sewerNukeDraw|volcanoFinale|volcanoFinaleDraw|victoryPee|victoryPeeDraw|weaponShot|weaponShotFx|bossFour|alienLook|titleArt)\.ts$/,
+  // gym and the agent's close-up with it; not alienLook.ts: Future Land's aliens (space/orbit/art.ts) and the endgame's
+  // Zorblax's wife take their colors off it: stubbed, they came out black)
+  /[\/]src[\/]m1[\/]game[\/]scenes[\/](endingAlien|epilogue|faceOff|faceOffEgg|fastFood|grossUp|radio|sewerNuke|sewerNukeDraw|volcanoFinale|volcanoFinaleDraw|victoryPee|victoryPeeDraw|weaponShot|weaponShotFx|bossFour|titleArt)\.ts$/,
 ];
 
 /** Every value a module exports (types are gone by then anyway), and its `export * from`s, read off its syntax tree. */

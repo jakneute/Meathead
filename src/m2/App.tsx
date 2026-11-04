@@ -61,6 +61,8 @@ import BroomWand from './fantasy/broom/BroomWand';
 import { usePadFamily } from '../m1/components/useInputDevice';
 import { SPOTS, LANDS } from './hub/lands';
 import { introLayout, INTRO_STAGE, registerIntro, introGender } from './intro/index';
+import { lotLayout, LOT_STAGE } from './endgame/lot/index';
+import { endgameStage } from './endgame/stages';
 import { setGenderOf, unpaired } from '../m1/content/gender';
 import { m2KindGender } from './kinds';
 import { KILL_LINES, GENERIC_KILL_LINES, KILL_CALLOUTS, ENEMY_KILL_LINES } from '../m1/content/dialogue';
@@ -76,7 +78,7 @@ import { landLeft } from './landCaches';
 import { canSkip, requestSkip } from '../m1/game/platform/skip';
 import { getAudioContext, playMenuBack, playMenuOk } from '../m1/game/platform/audio';
 import { STAFF_SLOT, AMERICA_SLOT, landAt } from './hub/lands';
-import { getUi, subscribeUi, onTravel, setUi, goTo, takeBossKill, setStartCheckpoint, requestCarHop, restoreClearedLands, restoreKept, restoreBossDeaths, restoreFound, isLandCleared, isLandComplete, setAlphaEndSeen, setAnnounced, FINDS_TOTAL } from './store';
+import { getUi, subscribeUi, onTravel, setUi, goTo, takeBossKill, setStartCheckpoint, requestCarHop, restoreClearedLands, restoreKept, restoreBossDeaths, restoreFound, isLandCleared, isLandComplete, setAlphaEndSeen, setAnnounced, FINDS_TOTAL, setEndgameAt, walkOutOn } from './store';
 import { alphaEndOver, devAlphaEnd } from './alphaEnd';
 import { setCutsceneBubbles } from '../m1/game/render/speechStyle';
 // (Meathead 2's cutscenes, the skippable ones bar the intro's: the words over heads in speech bubbles; in play, just the
@@ -155,7 +157,7 @@ import { registerGrabCallouts } from './moves/callouts';
 // test pen behind the staff door (try out the beatdown and the shakedown on whoever walks in).
 
 // (in Meathead 2, what's thrown up off the top of the screen comes back down: no "TO THE MOON")
-for (const l of [hubLayout, penLayout, advLayout, spookyLayout, spaceLayout, hollywoodLayout, foreignLayout, frontierLayout, fantasyLayout, cartoonLayout, introLayout, gymLayout]) l.noMoonKills = true;
+for (const l of [hubLayout, penLayout, advLayout, spookyLayout, spaceLayout, hollywoodLayout, foreignLayout, frontierLayout, fantasyLayout, cartoonLayout, introLayout, gymLayout, lotLayout]) l.noMoonKills = true;
 // (and the camera glides where it'd jump in the lands: out of a cutscene's view, onto a fight's arena)
 advLayout.smoothCameraSnaps = true;
 spookyLayout.smoothCameraSnaps = true;
@@ -177,6 +179,8 @@ registerStageLayout(FANTASY_STAGE, fantasyLayout);
 registerStageLayout(CARTOON_STAGE, cartoonLayout);
 registerStageLayout(INTRO_STAGE, introLayout);
 registerStageLayout(GYM_STAGE, gymLayout);
+// (the endgame's stages: endgame/stages.ts)
+registerStageLayout(LOT_STAGE, lotLayout);
 registerIntro();
 registerGmen();
 loadVoicePack(voicePackUrl);
@@ -302,6 +306,7 @@ const App2: React.FC = () => {
     if (slot !== null && readFile(slot)) deleteFile(slot);
     setAlphaEndSeen(false);
     setAnnounced(false, false);
+    setEndgameAt(null);
     resetUpgrades();
     playOnFile(slot);
     setTitle(false);
@@ -319,10 +324,15 @@ const App2: React.FC = () => {
     restoreUpgrades(f.upgrades);
     setInitialAmmo(createFullAmmo());
     playOnFile(slot, f.playTimeMs);
-    // (all cleared: nothing plays by itself; the alpha's ending is out through America USA, as ever (hub/index.ts))
+    // (in the endgame (out through America USA, past the point of no return): back where he got to in it, its stage and
+    // checkpoint; never the hub again)
+    const eg = f.endgame ? endgameStage(f.endgame.stage) : null;
+    setEndgameAt(eg && f.endgame ? { ...f.endgame } : null);
+    refreshFindsHour();
+    if (eg && f.endgame) { setStartCheckpoint(f.endgame.cp); pending.current = eg.stage; setTitle(false); return; }
+    // (all cleared: nothing plays by itself; out through America USA is the endgame's way in (hub/index.ts))
     // (onto the hub, where Meathead 1's goes onto the map: in off America USA's street)
     setHubStart(AMERICA_SLOT);
-    refreshFindsHour();
     pending.current = HUB_STAGE;
     setTitle(false);
   };
@@ -388,7 +398,8 @@ const App2: React.FC = () => {
   useEffect(() => {
     onTravel(dest => {
       // ('intro': the way in again, from the parking lot: Wilderness Land's walk back after Tucker, store.ts setWalkBack)
-      const to = dest === 'pen' ? PEN_STAGE : dest === 'hub' ? HUB_STAGE : dest === 'intro' ? INTRO_STAGE : dest === 'gym' ? GYM_STAGE : LAND_STAGES[dest]?.stage ?? null;
+      // (an endgame stage: endgame/stages.ts, by its id)
+      const to = dest === 'pen' ? PEN_STAGE : dest === 'hub' ? HUB_STAGE : dest === 'intro' ? INTRO_STAGE : dest === 'gym' ? GYM_STAGE : LAND_STAGES[dest]?.stage ?? endgameStage(dest)?.stage ?? null;
       if (!to) return;
       clearSkyCache();
       // (back at the hub where he left it: the staff door, the land's portal, or America USA's way in)
@@ -432,7 +443,8 @@ const App2: React.FC = () => {
   const skipGym = () => { setStatus(GameStatus.PLAYING); requestGymSkip(); };
   /** (RESUME, MAP, OPTIONS, then SKIP INTRO / BACK TO HUB where there's one) */
   /** (the cheats build only, the user's: SKIP INTRO / SKIP TO HUB in America USA) */
-  const canIntroSkip = () => live.current.stage === INTRO_STAGE && !M2_PUBLIC;
+  // (not on the walk out at closing: the hub's behind him for good)
+  const canIntroSkip = () => live.current.stage === INTRO_STAGE && !M2_PUBLIC && !walkOutOn();
   const lastPause = () => (canIntroSkip() || canGymSkip() || canHub() || canQuitGame() ? arsenal().length + 4 : arsenal().length + 3);
   /** (the amulet owned: AMULET ON / OFF, on its entry in the EQUIPMENT tab) */
   const flipAmulet = () => setAmuletOn(!amuletOn());
@@ -773,8 +785,8 @@ const App2: React.FC = () => {
   }, [cardId, tipsUp, ui.introCutscene, status]);
   useEffect(() => { if (!pausePrompt) return; const id = setTimeout(() => setPausePrompt(false), 4500); return () => clearTimeout(id); }, [pausePrompt]);
 
-  const noticeUp = ui.notice && performance.now() - ui.notice.at < 1800;
-  useEffect(() => { if (!ui.notice) return; const id = setTimeout(() => setUi({ notice: null }), 1900); return () => clearTimeout(id); }, [ui.notice]);
+  const noticeUp = ui.notice && performance.now() - ui.notice.at < (ui.notice.ms ?? 1800);
+  useEffect(() => { if (!ui.notice) return; const id = setTimeout(() => setUi({ notice: null }), (ui.notice.ms ?? 1800) + 100); return () => clearTimeout(id); }, [ui.notice]);
   const nearLand = landAt(ui.near);
   // (the HUD and the pause menu, done up for wherever he is)
   // (in dev, ?zone=<zone> shows that one's look anywhere)
@@ -1055,7 +1067,7 @@ const App2: React.FC = () => {
             look={{ border: (theme?.pause ?? PLAIN_PAUSE).frame.border, boxShadow: (theme?.pause ?? PLAIN_PAUSE).frame.boxShadow, stripe: (theme?.pause ?? PLAIN_PAUSE).stripe }} />
         )}
         {noticeUp && ui.notice && (
-          <div className="absolute left-1/2 top-[40%] -translate-x-1/2 z-40 px-4 py-3 text-[12px] text-yellow-300 bg-black/85 border-2 border-yellow-500">{ui.notice.text}</div>
+          <div className="absolute left-1/2 top-[40%] -translate-x-1/2 z-40 px-4 py-3 text-[12px] leading-5 text-center max-w-[640px] text-yellow-300 bg-black/85 border-2 border-yellow-500">{ui.notice.text}</div>
         )}
         <div className="absolute inset-0 z-50 bg-black pointer-events-none transition-opacity duration-200" style={{ opacity: fade || status === GameStatus.START ? 1 : 0 }} />
         {title && !alphaOnly && <TitleScreen onNew={startNew} onContinue={continueFile} onHub={startAtHub} onEnding={finds => { setEndPreviewFinds(finds); setTimeOfDayOverride(finds >= FINDS_TOTAL ? 9 : 8); setAlphaOnly(true); alphaEndOver(); }} />}

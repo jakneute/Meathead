@@ -15,6 +15,11 @@ export const floorY = (x: number) => (x <= CHECK_END ? UPPER : x >= STAIRS_END ?
 /** The moving walkways, out from the garage, and how fast they carry you. */
 export const WALKWAYS: [number, number][] = [[1650, 2250], [2350, 2950], [3050, 3550]];
 export const WALKWAY_SPEED = 2.4;
+/** Which way they're running right now: out from the garage (the way in), or back toward it (the walk out at closing,
+ *  intro/index.ts: the way in in reverse, the belts too). Px a frame, signed. */
+let walkwayV = WALKWAY_SPEED;
+export const walkwaySpeed = () => walkwayV;
+export const setWalkwaysBack = (back: boolean) => { walkwayV = back ? -WALKWAY_SPEED : WALKWAY_SPEED; };
 /** The checkpoint's security office door. */
 export const OFFICE_X = 4420;
 /** The metal detector, just before the stairs down to America USA: walk through it and it goes off (over the top of it,
