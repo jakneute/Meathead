@@ -47,9 +47,14 @@ const sm = (u: number) => { const k = Math.max(0, Math.min(1, u)); return k * k 
 // The ride's curves (the whole frame of three bending left and right: sideways world x), its hills (the classic ride's
 // middle track's heights: the lift hill, the drops, the mountain, the splashdown), the veers.
 
-/** The whole ride's sideways bend at s (every lane the same). Straight on the lift and the drops; winding between. */
+/** The whole ride's sideways bend at s (every lane the same). Straight on the lift and the drops; winding between.
+ *  The lift's calm eased off over CALM_EASE past the first drop's top (it was a step there: the whole ride jumped
+ *  sideways, so the track past it was drawn off to the side of the track short of it, a second track beside each one
+ *  on the way down, snapping over as the camera went by: the owner's "another phantom blue track to the right of the
+ *  'real' one until it settles when going downhill"). */
+const CALM_AT = stretch(5200), CALM_EASE = 2400;
 export const curveX = (s: number) => {
-  const calm = s < stretch(5200) ? 0.15 : 1;
+  const calm = 0.15 + 0.85 * sm((s - CALM_AT) / CALM_EASE);
   return calm * (420 * Math.sin(s / 2900) + 260 * Math.sin(s / 1370 + 1.3));
 };
 /** The bend's curvature at s (for the bank). */

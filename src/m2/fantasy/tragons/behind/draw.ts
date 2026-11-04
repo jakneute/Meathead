@@ -22,7 +22,7 @@ import { paintCar } from '../dragon';
 import { text, warnSign, loopSign, countdown, drawPa } from '../art';
 import {
   SEG, DRAW_N, DRAW, REAR, CAR_L, NOSE, FOCAL, TUNNEL,
-  trackAt, project, curveX, inTunnel, inLagoon, zOf, sOfW, carS, noseS, paceAt, type TP, type SP, type Cam,
+  trackAt, project, curveX, inTunnel, inLagoon, zOf, wOf, sOfW, carS, noseS, paceAt, type TP, type SP, type Cam,
 } from './geom';
 import { RING_BOTTOM, RING_IN, PYLON_CRYSTAL, PYLON_LEG, DUCK_LOW, JET_Y, JET_HH, ST_W, SUP_W, SUP_H, jetPost, pylon, strip, lattice, footing, ring, icicles, iceBar, HAZE, type Placed } from './sprites';
 import { carBack, panelBack, carLive, FLOOR_Y } from './cars';
@@ -37,6 +37,9 @@ let M = 0;
 const hazeStep = (z: number) => Math.min(HAZE - 1, Math.floor((z / DRAW) * HAZE * 1.15));
 /** The nearest steps of track: none nearer than NEAR_CUT, faded in over NEAR_FADE past it. */
 const NEAR_CUT = 140, NEAR_FADE = 30;
+/** The supports: faded in over this far out at the far end of where they're put, and out over SUP_NEAR going in
+ *  (never popping in or out on screen). */
+const SUP_FAR = 3300, SUP_FAR_FADE = 500, SUP_NEAR = 70;
 /** The ribs round the bore and the supports under the tracks, every this much track. */
 const RIB = 360, SUP = 240;
 
@@ -254,6 +257,8 @@ export const drawBehind = (c: Ctx, state: GameState) => {
       }
     }
     const fade = r.z < NEAR_CUT ? 0 : r.z < NEAR_CUT + NEAR_FADE ? (r.z - NEAR_CUT) / NEAR_FADE : 1;
+    // (the supports: faded in far off, out going in under the camera, with the track's own fade)
+    const supA = fade * Math.min(1, (r.z - 260) / SUP_NEAR, (SUP_FAR - r.z) / SUP_FAR_FADE);
     if (fade > 0) {
       if (fade < 1) c.globalAlpha = fade;
       const id = Math.floor(r.s / SEG);
@@ -264,7 +269,11 @@ export const drawBehind = (c: Ctx, state: GameState) => {
         if (a.k * ST_W > 900) continue;
         const flat = Math.abs(r.phi[l]) < 0.01;
         // (its supports down to the lawn: none rolled, in the mountain, over the lagoon or right under the camera)
-        if (supRow && !cave && flat && r.z > 260 && r.z < 2800 && r.gy > a.y + 14 * a.k) support(c, a.x, a.y + 10 * a.k, r.gy, a.k, step);
+        if (supRow && !cave && flat && supA > 0.02 && r.gy > a.y + 14 * a.k) {
+          if (supA < 1) c.globalAlpha = supA;
+          support(c, a.x, a.y + 10 * a.k, r.gy, a.k, step);
+          c.globalAlpha = fade < 1 ? fade : 1;
+        }
         // (far off, two steps a picture: half the puts where they're a few pixels each)
         const ge = groupEnd[l][k];
         // (off the screen: nothing to put down (turned, the view's corners are in play: no cull then))
@@ -306,24 +315,74 @@ export const drawBehind = (c: Ctx, state: GameState) => {
 const CP: TP = { x: 0, y: 0, phi: 0 };
 const pants = (state: GameState) => { const g = state.player.gut; return { nude: g?.stage === 3, shat: g?.stage === 2 }; };
 
+/** A dragon gone over a broken end: how far each car's dropped (world). The cars go over one by one as each one's
+ *  front passes the end (the rest still on the whole track up to it), and fall away from there (the old way all three
+ *  sank at once, the near cars down through the track they were still on). */
+const fallDrop = (t: Tragons, tr: Bv['trains'][number], lane: Lane, which: 0 | 1 | 2, s: number) => {
+  let ga = -Infinity;
+  const nose = noseS(t.dist) + 2;
+  for (const g of t.gaps) if (g.lane === lane && g.a <= nose && g.b > t.dist - 400 && g.a > ga) ga = g.a;
+  if (ga === -Infinity) return tr.fy * (1 + (2 - which) * 0.1) + (which === 2 ? tr.t * 1.2 : 0);
+  const past = wOf(s) + CAR_L * 0.5 - wOf(ga);
+  if (past <= 0) return 0;
+  const fr = past / Math.max(1, t.v * paceAt(s));
+  return 0.25 * fr * fr + fr * 0.6;
+};
+/** A spare coming down onto the track: how high over it still (world). From over the top of the screen (wherever its
+ *  car is on it: it never pops into the open sky), eased down onto the rails. */
+const arriveUp = (tr: Bv['trains'][number], sy: number, k: number) => {
+  const u = tr.t / 60, e = 1 - (1 - u) * (1 - u);
+  return (1 - e) * Math.max(420, (sy + 60 + M) / Math.max(0.05, k) + 260);
+};
 const drawCar = (c: Ctx, state: GameState, t: Tragons, bv: Bv, lane: Lane, which: 0 | 1 | 2, s: number) => {
-  const tr = bv.trains[lane], f = state.frame;
+  const tr = bv.trains[lane];
   trackAt(bv.rolls, lane, s, CP);
   let y = CP.y;
-  if (tr.phase === 'fall') y -= tr.fy * (1 + (2 - which) * 0.1) + (which === 2 ? tr.t * 1.2 : 0);
-  else if (tr.phase === 'arrive') { const u = tr.t / 60, e = 1 - (1 - u) * (1 - u); y += (1 - e) * 420; }
+  if (tr.phase === 'fall') y -= fallDrop(t, tr, lane, which, s);
+  else if (tr.phase === 'arrive') { if (!project(bv.cam, CP.x, y, s, SPi)) return; y += arriveUp(tr, SPi.y, SPi.k); }
+  // (its shadow on the lawn (or the water) under it, at its depth: what puts it over the ground, how high it is)
+  if (!inTunnel(s)) carShadow(c, bv, CP.x, s);
   if (!project(bv.cam, CP.x, y, s, SPi)) return;
+  // (going over a broken end: nothing of it below the lawn (or the water) at its depth: it's gone into the ground there)
+  const under = tr.phase === 'fall' && y < 90;
+  if (under) { const gy = bv.cam.hy + bv.cam.y * SPi.k; c.save(); c.beginPath(); c.rect(-W - M, -H - M, 3 * W + 2 * M, gy + H + M); c.clip(); }
+  drawCarAt(c, state, t, bv, lane, which, s, tr);
+  if (under) c.restore();
+};
+/** A car's shadow on the ground under it: its footprint (the hull's width, a car long) laid on the lawn at its depth, a
+ *  soft dark there, fainter far off. Drawn with the car, so it's under everything nearer and over everything farther
+ *  (nothing farther comes down that low on the screen). */
+const SH0: SP = { x: 0, y: 0, k: 1 }, SH1: SP = { x: 0, y: 0, k: 1 };
+const carShadow = (c: Ctx, bv: Bv, x: number, s: number) => {
+  const cam = bv.cam;
+  if (!project(cam, x, 0, s - CAR_L * 0.42, SH0) || !project(cam, x, 0, s + CAR_L * 0.42, SH1)) return;
+  if (SH0.y < -M || SH1.y > H + M || SH0.x + 80 * SH0.k < -M || SH0.x - 80 * SH0.k > W + M) return;
+  const z = zOf(cam, s), al = 0.3 * Math.max(0, 1 - z / DRAW);
+  if (al < 0.02) return;
+  const hw0 = 58 * SH0.k, hw1 = 58 * SH1.k;
+  c.globalAlpha = al;
+  polyF(c, [[SH0.x - hw0, SH0.y], [SH0.x + hw0, SH0.y], [SH1.x + hw1, SH1.y], [SH1.x - hw1, SH1.y]], '#0A1A12');
+  c.globalAlpha = al * 0.6;
+  polyF(c, [[SH0.x - hw0 * 1.12, SH0.y + 1], [SH0.x + hw0 * 1.12, SH0.y + 1], [SH1.x + hw1 * 1.12, SH1.y - 1], [SH1.x - hw1 * 1.12, SH1.y - 1]], '#0A1A12');
+  c.globalAlpha = 1;
+};
+const drawCarAt = (c: Ctx, state: GameState, t: Tragons, bv: Bv, lane: Lane, which: 0 | 1 | 2, s: number, tr: Bv['trains'][number]) => {
+  const f = state.frame;
   const x = SPi.x, sy = SPi.y, k = SPi.k, a = -CP.phi, z = zOf(bv.cam, s);
   const step = hazeStep(z), cave = inTunnel(s);
   if (x < -300 * k - M || x > W + 300 * k + M) return;
   const his = lane === t.lane && which === 0 && !bv.hop && !bv.fling;
-  // (a spare's bat wings, beating)
-  if (tr.phase === 'arrive' && which === 1) {
-    const flap = Math.sin(f * 0.45) * 14, W2 = LANE_COL[lane];
+  // (a spare's bat wings, beating: a pair on every car, out from its sides behind it, the membrane between the fingers)
+  if (tr.phase === 'arrive') {
+    const flap = Math.sin(f * 0.45 + which * 0.9) * 14, W2 = LANE_COL[lane], dark = mix(W2[2], '#000000', 0.35), lit = mix(W2[2], '#FFFFFF', 0.2);
     for (const sd of [-1, 1]) {
-      polyF(c, [[x + sd * 40 * k, sy - 30 * k], [x + sd * 154 * k, sy - (74 + flap) * k], [x + sd * 124 * k, sy - 8 * k]], INK);
-      polyF(c, [[x + sd * 42 * k, sy - 30 * k], [x + sd * 148 * k, sy - (70 + flap) * k], [x + sd * 120 * k, sy - 10 * k]], W2[2]);
-      polyF(c, [[x + sd * 42 * k, sy - 30 * k], [x + sd * 148 * k, sy - (70 + flap) * k], [x + sd * 90 * k, sy - 40 * k]], mix(W2[2], '#FFFFFF', 0.2));
+      const sx = (q: number) => x + sd * q * k, wy = (q: number) => sy - q * k;
+      polyF(c, [[sx(40), wy(30)], [sx(154), wy(74 + flap)], [sx(134), wy(20 + flap * 0.4)], [sx(124), wy(8)], [sx(96), wy(14)]], INK);
+      polyF(c, [[sx(42), wy(30)], [sx(148), wy(70 + flap)], [sx(130), wy(22 + flap * 0.4)], [sx(120), wy(10)], [sx(94), wy(16)]], W2[2]);
+      polyF(c, [[sx(42), wy(30)], [sx(148), wy(70 + flap)], [sx(90), wy(40)]], lit);
+      polyF(c, [[sx(94), wy(16)], [sx(120), wy(10)], [sx(130), wy(22 + flap * 0.4)]], dark);
+      c.strokeStyle = INK; c.lineWidth = Math.max(1, 2 * k); c.beginPath();
+      c.moveTo(sx(44), wy(30)); c.lineTo(sx(130), wy(22 + flap * 0.4)); c.moveTo(sx(44), wy(30)); c.lineTo(sx(96), wy(16)); c.stroke();
     }
   }
   const shake = his && bv.landT > 0 ? Math.sin(bv.landT * 1.9) * bv.landT * 0.25 * k : 0;
