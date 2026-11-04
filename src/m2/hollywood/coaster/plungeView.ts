@@ -28,9 +28,14 @@ import { walkBoot, walkShin, walkShoulder, walkForearm, walkFist, walkHelmet, wa
 import { ownedPieces } from '../../upgrades/state';
 import { kneeFront, elbowFront, elbow, type P2 } from '../../art/limb';
 
-export type PlungePose = 'ready' | 'down' | 'up' | 'wobL' | 'wobR' | 'yank' | 'fail' | 'win';
+export type PlungePose = 'ready' | 'down' | 'up' | 'wobL' | 'wobR' | 'yank' | 'fail' | 'win' | JumpPose;
+/** The win's hop for joy, up off his knees (the owner: "meathead jumps up and down in triumph"): crouched, springing
+ *  up, at the top, landing. Painted without the room (the fountain goes between the two: winRoom()). */
+export type JumpPose = 'jumpCrouch' | 'jumpUp' | 'jumpApex' | 'jumpLand';
+export const JUMP_POSES: JumpPose[] = ['jumpCrouch', 'jumpUp', 'jumpApex', 'jumpLand'];
+const isJump = (p: PlungePose): p is JumpPose => p.startsWith('jump');
 export type PlungePants = 'clean' | 'shitty' | 'nude';
-export const PLUNGE_POSES: PlungePose[] = ['ready', 'down', 'up', 'wobL', 'wobR', 'yank', 'fail', 'win'];
+export const PLUNGE_POSES: PlungePose[] = ['ready', 'down', 'up', 'wobL', 'wobR', 'yank', 'fail', 'win', ...JUMP_POSES];
 
 /** The picture (its own pixels), drawn 2x: the whole screen. */
 export const VIEW_W = 400, VIEW_H = 300, VIEW_S = 2;
@@ -67,6 +72,10 @@ const POSES: Record<PlungePose, Pose> = {
   yank: { cup: -24, sq: -1.4, tilt: 0, lx: -4, ly: -11, hip: 4, sag: 6, strain: 1, fx: 'pop' },
   fail: { cup: -6, sq: -0.4, tilt: -0.04, lx: -7, ly: -7, hip: 3, sag: 3, strain: 0.5, fx: 'burst' },
   win: { cup: 0, sq: 0, tilt: 0, lx: -2, ly: -10, hip: 2, sag: 4, strain: 0.8, fx: 'win' },
+  jumpCrouch: { cup: 0, sq: 0, tilt: 0, lx: 0, ly: 0, hip: -18, sag: 4, strain: 0.8, fx: 'none' },
+  jumpUp: { cup: 0, sq: 0, tilt: 0, lx: 0, ly: 0, hip: -44, sag: 5, strain: 0.8, fx: 'none' },
+  jumpApex: { cup: 0, sq: 0, tilt: 0, lx: 0, ly: 0, hip: -58, sag: 6, strain: 0.8, fx: 'none' },
+  jumpLand: { cup: 0, sq: 0, tilt: 0, lx: 0, ly: 0, hip: -22, sag: 4, strain: 0.8, fx: 'none' },
 };
 
 const ellF = (g: Ctx, x: number, y: number, rx: number, ry: number, col: string | CanvasPattern) => { if (rx <= 0 || ry <= 0) return; g.fillStyle = col; g.beginPath(); g.ellipse(x, y, rx, ry, 0, 0, Math.PI * 2); g.fill(); };
@@ -462,6 +471,7 @@ const stinkLines = (c: Ctx, x: number, y: number) => {
 
 /** One frame: the backdrop, the toilet, him, the plunger, whatever's flying. */
 const paintFrame = (pose: PlungePose, pants: PlungePants): HTMLCanvasElement => {
+  if (isJump(pose)) return paintJump(pose, pants);
   const P = POSES[pose];
   const cv = document.createElement('canvas'); cv.width = VIEW_W; cv.height = VIEW_H;
   const g = cv.getContext('2d')!;
@@ -580,6 +590,178 @@ const paintFrame = (pose: PlungePose, pants: PlungePants): HTMLCanvasElement => 
   return cv;
 };
 
+// ---------------------------------------------------------------------------------------------------------------
+// THE WIN: the fountain of it out of the bowl, him up off his knees hopping for joy, the plunger thrust up overhead
+
+/** The room for the win (the backdrop, the toilet blown clear), painted once: the fountain goes over it, him over that. */
+let roomCv: HTMLCanvasElement | null = null;
+export const winRoom = (): HTMLCanvasElement => {
+  if (roomCv) return roomCv;
+  const cv = document.createElement('canvas'); cv.width = VIEW_W; cv.height = VIEW_H;
+  const g = cv.getContext('2d')!;
+  g.drawImage(backdrop(), 0, 0);
+  g.save(); g.translate(OX, OY); g.scale(FK, FK);
+  g.save(); g.translate(TX, TFW); g.scale(TKS, TKS); g.translate(-TX, -TF); toilet(g, true); g.restore();
+  g.restore();
+  for (const [w, al] of [[24, 0.35], [12, 0.3]] as const) { g.fillStyle = `rgba(6, 2, 8, ${al})`; g.fillRect(0, 0, VIEW_W, w); g.fillRect(0, VIEW_H - w * 0.5, VIEW_W, w * 0.5); g.fillRect(0, 0, w, VIEW_H); g.fillRect(VIEW_W - w, 0, w, VIEW_H); }
+  roomCv = cv;
+  return cv;
+};
+
+/** Each hop's frame: how high he's off the floor, how far his knees are bent, where his fists are (the left with the
+ *  plunger in it, the right pumping). */
+const JUMPS: Record<JumpPose, { lift: number; bend: number; lh: P2; rh: P2 }> = {
+  jumpCrouch: { lift: 0, bend: 16, lh: [-30, -176], rh: [40, -150] },
+  jumpUp: { lift: -14, bend: 0, lh: [-34, -206], rh: [46, -196] },
+  jumpApex: { lift: -28, bend: 5, lh: [-36, -210], rh: [44, -206] },
+  jumpLand: { lift: 0, bend: 11, lh: [-34, -196], rh: [48, -176] },
+};
+
+/** Him stood up hopping: further back from the camera than he knelt (smaller), stepped off to the left of the bowl so the
+ *  fountain goes up past him. */
+const JX = 104, JY = 274, JK = 0.86;
+/** A boot from behind, him on his feet: the shaft, the pull tab, the heel cup (the sabatons over it if he's got them). */
+const standBoot = (g: Ctx, x: number, y: number, side: number) => {
+  const bw = 21, bh = 15, bx = Math.round(x - bw / 2), by = Math.round(y - bh);
+  g.fillStyle = INK; g.beginPath(); g.roundRect(bx - 1, by - 1, bw + 2, bh + 2, 3); g.fill();
+  box(g, bx, by, bw, bh, BOOT[2]); box(g, bx, by, 3, bh, BOOT[3]); box(g, bx + bw - 3, by, 3, bh, BOOT[1]);
+  box(g, bx + bw / 2 - 2, by - 3, 4, 4, BOOT[1]);
+  box(g, bx + 2, by + bh - 6, bw - 4, 4, BOOT[1]); box(g, bx + 3, by + bh - 7, bw - 6, 1, BOOT[3]);
+  box(g, bx - 1, by + bh - 1, bw + 2, 2, INK);
+  walkBoot(g, bx, by, bw, bh, side, false, 0);
+};
+
+/** A hop's frame: him on his feet from behind (the same back, seat, head and arms as the kneeling frames, stood up),
+ *  off the floor by the hop, the plunger thrust up in his left, his right fist pumping. Only him: the room's winRoom(). */
+const paintJump = (pose: JumpPose, pants: PlungePants): HTMLCanvasElement => {
+  const J = JUMPS[pose];
+  const cv = document.createElement('canvas'); cv.width = VIEW_W; cv.height = VIEW_H;
+  const g = cv.getContext('2d')!;
+  g.save(); g.translate(JX, JY); g.scale(JK, JK);
+  const lift = J.lift, ty = J.bend + lift, foot = lift;
+  // (his shadow on the plinth, smaller the higher he is)
+  const sk = 1 + lift / 60;
+  g.fillStyle = 'rgba(20, 10, 14, 0.35)'; g.beginPath(); g.ellipse(0, 2, 40 * sk, 6 * sk, 0, 0, Math.PI * 2); g.fill();
+  // Legs: hip to boot, the knees out over his feet (limb.ts) as he crouches into it or lands
+  const hipY = -74 + J.bend + lift;
+  for (const side of [-1, 1]) {
+    const H: P2 = [side * 13, hipY + 4], A: P2 = [side * 16, foot - 16];
+    const Kn = kneeFront(H[0], H[1], A[0], A[1], 32, 32, side) as P2;
+    const bare = pants === 'nude';
+    flesh(g, legMass(H, Kn, A, bare), bare ? SKIN : JEANS);
+    if (!bare) for (let i = 0; i < 3; i++) box(g, Kn[0] - 7 + i, Kn[1] - 3 + i * 3, 13 - i * 2, 1, JEANS[1]);
+    else for (let i = 0; i < 6; i++) box(g, A[0] - 7 + ((i * 5) % 13), hipY + 20 + ((i * 13) % 26), 1, 2, SKIN[1]);
+    if (pants === 'shitty') { g.fillStyle = stipple(g, STAIN[1], 0); g.fillRect(A[0] - side * 8 - 3, hipY + 8, 7, 22); box(g, A[0] - side * 6, hipY + 10, 2, 16, STAIN[1]); }
+    walkShin(g, A[0], Kn[1], foot - 18, side, false);
+    standBoot(g, A[0], foot, side);
+  }
+  // His seat, his back (upright now: no lean), his head
+  const waist = -90 + ty, tb = -84 + ty;
+  seat(g, tb, hipY - 2, 5, pants);
+  back(g, ty, 0.9, 0);
+  walkAmulet(g, ty, false, 0);
+  walkCapeBack(g, ty, 0.5, 0);
+  head(g, 0, -147 + ty + 12);
+  void waist;
+  // The arms: up over his head, elbows out (limb.ts), the plunger up in his left (the cup dripping), the right pumping
+  const sL: P2 = [-44, -128 + ty], sR: P2 = [44, -128 + ty];
+  const hl: P2 = [J.lh[0], J.lh[1] + ty], hr: P2 = [J.rh[0], J.rh[1] + ty];
+  const arm = (S: P2, F: P2, side: number) => {
+    const bone = Math.max(30, Math.hypot(F[0] - S[0], F[1] - S[1]) / 2 * 1.02);
+    return armOf(S, F, elbowFront(S[0], S[1], F[0], F[1], bone, bone, side) as P2, side);
+  };
+  const aL = arm(sL, hl, -1), aR = arm(sR, hr, 1);
+  const top: P2 = [hl[0] - 2, hl[1] - 56];
+  drawHandle(g, { C: [0, 0], v: [0, -1], top, hl, hr }, [hl[0], hl[1] + 16]);
+  drawCup(g, [top[0], top[1] - 4], 0, Math.PI);
+  for (let k = 0; k < 4; k++) box(g, top[0] - 9 + k * 5, top[1] + 2 + (k % 2) * 5, 2, 3 + k, POO[2]);
+  for (const a of [aL, aR]) {
+    const S = a.side < 0 ? SKIN : [SKIN[0], SKIN[1], SKIN[2], SKIN[3], SKIN[3]];
+    flesh(g, a.mass, S, undefined, undefined, cc => { upperLines(a, S, true)(cc); foreLines(a, S, true)(cc); });
+    wristband(g, a, BAND); walkForearm(g, a.E, a.W, 0);
+  }
+  gripFist(g, aL.F[0], aL.F[1], Math.atan2(aL.dir[1], aL.dir[0]));
+  gripFist(g, aR.F[0], aR.F[1], Math.atan2(aR.dir[1], aR.dir[0]));
+  walkShoulder(g, aL.S[0], aL.S[1], -1); walkShoulder(g, aR.S[0], aR.S[1], 1);
+  if (pants === 'shitty') { stinkLines(g, -44, hipY + 8); stinkLines(g, 44, hipY + 8); }
+  // (sweat flying off him)
+  for (const [dx, dy] of [[-30, -196], [30, -190], [-40, -170], [40, -160]] as const) { ellF(g, dx, dy + ty, 1.6, 2.4, SWEAT); box(g, dx, dy + ty - 2, 1, 1, '#FFFFFF'); }
+  g.restore();
+  return cv;
+};
+
+/** The fountain's blobs: banded brown rounds (inked, lit up and left, a glint), painted once in a few sizes. */
+const BLOB_R = [1.5, 2.5, 4, 6];
+let blobs: HTMLCanvasElement[] | null = null;
+const blobStamps = () => {
+  if (blobs) return blobs;
+  blobs = BLOB_R.map((r, i) => {
+    const s = Math.ceil(r * 2 + 4), cv = document.createElement('canvas'); cv.width = s; cv.height = s;
+    const g = cv.getContext('2d')!, m = s / 2;
+    ellF(g, m, m, r + 1, r + 1, INK); ellF(g, m, m, r, r, POO[2 + (i & 1)]); ellF(g, m - r * 0.3, m - r * 0.3, r * 0.55, r * 0.5, POO[4]);
+    if (r > 2) box(g, Math.round(m - r * 0.5), Math.round(m - r * 0.55), 1, 1, POO[5]);
+    return cv;
+  });
+  return blobs;
+};
+/** The column, painted once: banded brown down its length, a lit streak, chunks in it (stretched to its height). */
+let colCv: HTMLCanvasElement | null = null;
+const columnStamp = () => {
+  if (colCv) return colCv;
+  const cv = document.createElement('canvas'); cv.width = 36; cv.height = 160;
+  const g = cv.getContext('2d')!;
+  box(g, 0, 0, 36, 160, INK); box(g, 2, 0, 32, 160, POO[2]); box(g, 4, 0, 8, 160, POO[3]); box(g, 7, 0, 3, 160, POO[4]); box(g, 25, 0, 8, 160, POO[1]);
+  g.fillStyle = stipple(g, POO[1]); g.fillRect(22, 0, 3, 160); g.fillStyle = stipple(g, POO[3], 1); g.fillRect(12, 0, 3, 160);
+  for (let i = 0; i < 26; i++) { const y = hash(i * 3.3) * 156, x = 5 + hash(i * 7.1) * 24; ellF(g, x, y, 2, 2.6, i % 3 ? POO[1] : '#F4F0E6'); box(g, x - 1, y - 1, 1, 1, i % 3 ? POO[4] : '#FFFFFF'); }
+  colCv = cv;
+  return cv;
+};
+
+export interface Fountain { t: number; drops: { x: number; y: number; vx: number; vy: number; r: number }[]; marks: { x: number; y: number; r: number; front: boolean }[] }
+export const newFountain = (): Fountain => ({ t: 0, drops: [], marks: [] });
+/** The bowl's mouth and how high the column stands now (picture px). */
+const mouth = (): P2 => [OX + (TX - 2) * FK, OY + RIMW * FK];
+const colH = (t: number) => (t < 90 ? Math.min(1, t / 8) * 175 * (1 - Math.max(0, t - 60) / 30) : 0);
+/** A frame of it (run in the update): the column up, its top fanning out in a spray, the splatter raining back down onto
+ *  the curtain, the plinth and him (where it lands, it stays). */
+export const tickFountain = (fo: Fountain) => {
+  fo.t++;
+  const [bx, by] = mouth(), h = colH(fo.t);
+  if (h > 20) for (let i = 0; i < 7; i++) {
+    const top = by - h;
+    fo.drops.push({ x: bx + (Math.random() - 0.5) * 10, y: top + Math.random() * 8, vx: (Math.random() - 0.5) * 5.4, vy: -1.5 - Math.random() * 2.8, r: Math.floor(Math.random() * 4) });
+  }
+  if (fo.t < 70 && fo.t % 3 === 0) fo.drops.push({ x: bx + (Math.random() - 0.5) * 8, y: by - 4, vx: (Math.random() - 0.5) * 6, vy: -3 - Math.random() * 3, r: 1 + Math.floor(Math.random() * 2) });
+  const keep: Fountain['drops'] = [];
+  for (const d of fo.drops) {
+    d.vy += 0.16; d.x += d.vx; d.y += d.vy;
+    // (on its way down: splat on the curtain now and then, on him if it comes down on him, on the plinth if it gets
+    // that far)
+    const onHim = Math.abs(d.x - JX) < 42 && d.y > JY - 180 && d.y < JY - 50;
+    const onTank = Math.abs(d.x - bx) < 52 && d.y > by - 140;
+    if (d.vy > 0 && ((d.y < 150 && !onTank && Math.random() < 0.015) || (onHim && Math.random() < 0.06) || d.y > 165 + ((d.x * 7) % 120))) {
+      if (fo.marks.length < 160) fo.marks.push({ x: d.x, y: d.y, r: Math.min(2, d.r), front: onHim });
+      continue;
+    }
+    if (d.y < VIEW_H + 10 && d.x > -10 && d.x < VIEW_W + 10) keep.push(d);
+  }
+  fo.drops = keep.length > 260 ? keep.slice(keep.length - 260) : keep;
+};
+/** It drawn, in the picture's pixels (`front`: what's in front of him: the drops coming down, the splats on him). */
+const drawFountain = (c: Ctx, fo: Fountain, front: boolean) => {
+  const st = blobStamps();
+  for (const m of fo.marks) if (m.front === front) { const s = st[m.r]; c.drawImage(s, Math.round(m.x - s.width / 2), Math.round(m.y - s.height / 2)); }
+  if (!front) {
+    const h = colH(fo.t), [bx, by] = mouth();
+    if (h > 1) {
+      c.drawImage(columnStamp(), 0, (fo.t * 6) % 40, 36, 120, Math.round(bx - 18), Math.round(by - h), 36, Math.round(h));
+      // (where it comes up out of the bowl: a ring of it boiling over)
+      for (let k = -2; k <= 2; k++) { const s = st[3]; c.drawImage(s, Math.round(bx + k * 7 - s.width / 2), Math.round(by - 4 - Math.abs(k) - s.height / 2)); }
+    }
+  }
+  for (const d of fo.drops) if ((d.vy > 0) === front) { const s = st[d.r]; c.drawImage(s, Math.round(d.x - s.width / 2), Math.round(d.y - s.height / 2)); }
+};
+
 const frames = new Map<string, HTMLCanvasElement>();
 /** A frame, painted the first time it's wanted (by the pose, the pants and the armor he has on), then kept. */
 export const plungeFrame = (pose: PlungePose, pants: PlungePants): HTMLCanvasElement => {
@@ -592,13 +774,22 @@ export const plungeFrame = (pose: PlungePose, pants: PlungePants): HTMLCanvasEle
 export const dropPlungeFrames = () => frames.clear();
 
 /** The shot on the screen: the frame (2x), shaken; the flies round his seat in shitty pants (live: a few pixels). */
-export const drawPlungeView = (c: Ctx, pose: PlungePose, pants: PlungePants, f: number, shake: number) => {
+export const drawPlungeView = (c: Ctx, pose: PlungePose, pants: PlungePants, f: number, shake: number, fo: Fountain | null = null) => {
   const jx = shake > 0.5 ? Math.round((Math.random() - 0.5) * shake) : 0, jy = shake > 0.5 ? Math.round((Math.random() - 0.5) * shake) : 0;
   const was = c.imageSmoothingEnabled;
   c.imageSmoothingEnabled = false;
-  c.drawImage(plungeFrame(pose, pants), jx - 4, jy - 4, VIEW_W * VIEW_S + 8, VIEW_H * VIEW_S + 8);
+  const W = VIEW_W * VIEW_S + 8, H = VIEW_H * VIEW_S + 8;
+  if (isJump(pose)) {
+    // (the win: the room, the fountain behind him, him hopping, what's coming down in front of him and on him)
+    c.drawImage(winRoom(), jx - 4, jy - 4, W, H);
+    c.save(); c.translate(jx - 4, jy - 4); c.scale(W / VIEW_W, H / VIEW_H);
+    if (fo) drawFountain(c, fo, false);
+    c.drawImage(plungeFrame(pose, pants), 0, 0);
+    if (fo) drawFountain(c, fo, true);
+    c.restore();
+  } else c.drawImage(plungeFrame(pose, pants), jx - 4, jy - 4, W, H);
   c.imageSmoothingEnabled = was;
-  if (pants !== 'clean') {
+  if (pants !== 'clean' && !isJump(pose)) {
     const P = POSES[pose], hx = OX * VIEW_S + jx, hy = (OY + (-42 + P.hip - 6) * FK) * VIEW_S + jy;
     for (let k = 0; k < (pants === 'shitty' ? 4 : 2); k++) {
       const a = f * (0.13 + k * 0.03) + k * 1.7, x = hx + Math.cos(a) * (40 + k * 12), y = hy - 20 + Math.sin(a * 1.4) * 22;

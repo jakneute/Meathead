@@ -66,7 +66,7 @@ import { meatheadSays, speak, saidOver, box, type Said } from '../section';
 import { byPants } from '../blvd/kinds';
 import { throneAt, plunged, PLUNGED_MEMO, SHARD_LAND, SHARD_ID } from './thrones';
 import { coasterOf, type Coaster } from './state';
-import { drawPlungeView, dropPlungeFrames, viewBowl, type PlungePose, type PlungePants } from './plungeView';
+import { drawPlungeView, dropPlungeFrames, viewBowl, newFountain, tickFountain, JUMP_POSES, type Fountain, type PlungePose, type PlungePants } from './plungeView';
 import * as L from './lines';
 
 type Ctx = CanvasRenderingContext2D;
@@ -76,7 +76,7 @@ type Tier = 'perfect' | 'good' | 'close' | 'nothing';
 
 /** Frames: a round's title; the turd line; a press's wait on the nose; MASH IT's time; a tier up (SUCCESS filling); the
  *  win (the geyser, the shard coming up) before the card; the card's buffer; the beat between the announcer's words. */
-const TITLE_T = 70, LINE_T = 420, TAP_WAIT = 210, TAP_N = 5, MASH_T = 300, GRADE_T = 90, WIN_T = 110, CARD_HOLD = 90, WORD_GAP = 22;
+const TITLE_T = 70, LINE_T = 420, TAP_WAIT = 210, TAP_N = 5, MASH_T = 300, GRADE_T = 90, WIN_T = 170, CARD_HOLD = 90, WORD_GAP = 22;
 /** SUCCESS (0..1) paid by a round's tier: PERFECT double GOOD, CLOSE half, NOTHING takes some back (never under 0). */
 export const TIER_PAY: Record<Tier, number> = { perfect: 0.4, good: 0.2, close: 0.1, nothing: -0.1 };
 const TIER_NAME: Record<Tier, string> = { perfect: 'PERFECT!', good: 'GOOD', close: 'CLOSE', nothing: 'NOTHING' };
@@ -116,6 +116,8 @@ interface Plunge {
   /** His push (0..1, eased); the stroke's phase (holding on the line); the pose on show and when it came up; the
    *  shot's shake; the last grunt and gurgle (frames). */
   pump: number; stroke: number; pose: PlungePose; poseAt: number; shake: number; gruntAt: number; gurgleAt: number; lastPress: number; duringSaid: number;
+  /** The win's fountain (plungeView.ts: run here, drawn there). */
+  fountain: Fountain | null;
   cardArmed: boolean;
 }
 const ALL = new WeakMap<Coaster, Plunge>();
@@ -142,7 +144,7 @@ export const startPlunge = (state: GameState, co: Coaster) => {
     mark: 0, dir: 1, speed: TAP_SPEED, spot: 0.5, taps: 0, tapT: 0, marks: [],
     flash: null, flashT: 0, flashGood: true, gauge: 0, peak: 0, done: 0,
     tier: 'nothing', fillFrom: 0, fillTo: 0,
-    pump: 0, stroke: 0, pose: 'ready', poseAt: 0, shake: 0, gruntAt: -9999, gurgleAt: -9999, lastPress: -9999, duringSaid: 0, cardArmed: false,
+    pump: 0, stroke: 0, pose: 'ready', poseAt: 0, shake: 0, gruntAt: -9999, gurgleAt: -9999, lastPress: -9999, duringSaid: 0, fountain: null, cardArmed: false,
   });
 };
 
@@ -167,8 +169,6 @@ const grunt = (state: GameState, pg: Plunge) => {
   if (isTalking() || state.frame - pg.gruntAt < 540) return;
   pg.gruntAt = state.frame; meatheadSays(state, pickLine(byPants(state, L.PLUNGE_GRUNT)), false);
 };
-/** The bowl's mouth (world). */
-const bowl = (g: ReturnType<typeof throneAt>) => ({ x: g.mx + 10, y: g.top - 31 });
 const pantsOf = (state: GameState): PlungePants => (isNude(state) ? 'nude' : isShat(state) ? 'shitty' : 'clean');
 
 const end = (state: GameState, co: Coaster) => {
@@ -215,7 +215,9 @@ const poseFor = (state: GameState, pg: Plunge, held: boolean): PlungePose => {
       if (state.frame - pg.lastPress < 5) return 'down';
       return state.frame - pg.lastPress < 14 ? 'up' : (pg.gauge > 0.5 ? ((pg.t >> 2) & 1 ? 'wobL' : 'wobR') : 'ready');
     case 'grade': return pg.t > 50 ? 'ready' : pg.tier === 'perfect' ? 'yank' : pg.tier === 'good' ? 'up' : pg.tier === 'close' ? 'wobL' : 'fail';
-    case 'win': case 'card': return 'win';
+    // (the win: up off his knees, hopping for joy under the fountain; landed by the card)
+    case 'win': return JUMP_POSES[Math.floor(pg.t / 6) % 4];
+    case 'card': return 'jumpLand';
     default: return 'ready';
   }
 };
@@ -226,6 +228,7 @@ const poseSounds = (state: GameState, pg: Plunge, was: PlungePose, now: PlungePo
   else if (now === 'up') playSound('plunge_pop', v * 0.85, 1 - work * 3);
   else if (now === 'yank') { playSound('plunge_pop', 1, -5); playSound('splat', 0.5, -8); pg.shake = Math.max(pg.shake, 6); }
   else if (now === 'fail') { playSound('poopsplat', 0.7, -2); playSound('splash', 0.5, -6); pg.shake = Math.max(pg.shake, 5); }
+  else if (now === 'jumpLand') playSound('thud', 0.45, -2);
   else if ((now === 'wobL' || now === 'wobR') && (was === 'wobL' || was === 'wobR') && state.frame - pg.gurgleAt > 50) { pg.gurgleAt = state.frame; playSound('plunge_gurgle', 0.5 * v, -3); }
 };
 
@@ -233,7 +236,7 @@ const poseSounds = (state: GameState, pg: Plunge, was: PlungePose, now: PlungePo
 export const updatePlunge = (ctx: FrameContext, co: Coaster, controls: Controls, pa: (line: string) => void): Controls | null => {
   const pg = ALL.get(co);
   if (!pg) return null;
-  const { state } = ctx, p = state.player, g = throneAt(1), b = bowl(g);
+  const { state } = ctx, p = state.player, g = throneAt(1);
   p.inCutscene = true; p.vel.x = 0;
   // THE ASK: A to accept, B back (nothing changed)
   if (pg.phase === 'leave') {
@@ -351,17 +354,22 @@ export const updatePlunge = (ctx: FrameContext, co: Coaster, controls: Controls,
         // THE CLOG BLOWS CLEAR: and up comes the shard (his for good: saved there and then)
         state.stageMemo[PLUNGED_MEMO] = '1';
         setShards(shards() + 1); markCollectibleFound(SHARD_LAND, SHARD_ID); saveProgress();
-        playSound('boom', 0.7, -10); playSound('poopsplat', 1, -6); playSound('splash', 1, -10); playSound('plunge_gurgle', 1, -8);
+        // (the fountain: a whoosh and a gurgle up out of it, the splatter coming down after)
+        pg.fountain = newFountain();
+        playSound('boom', 0.7, -10); playSound('plunge_gurgle', 1, -12); playSound('plunge_pop', 1, -10); playSound('splash', 1, -10); playSound('poopsplat', 1, -6);
         shakeScreen(state, 22, 14); pg.shake = 14;
         setUi({ chordTips: null });
         meatheadSays(state, pickLine(byPants(state, L.PLUNGE_WIN)), true);
         pa(pickLine(L.SPIEL_PLUNGE_WIN));
       }
-      if (pg.t < 70 && pg.t % 2 === 0) {
-        // (the geyser in the world too: brown, green, paper, a chunk of 1994)
-        for (let i = 0; i < 6; i++) state.particles.push({ pos: { x: b.x + (Math.random() - 0.5) * 14, y: b.y - 4 }, vel: { x: (Math.random() - 0.5) * 7, y: -9 - Math.random() * 10 * (1 - pg.t / 90) }, life: 50 + Math.random() * 40, color: ['#5C3A16', '#78350F', '#3F2A10', '#5E5628', '#84CC16', '#F4F0E6'][(i + pg.t) % 6], size: 3 + Math.random() * 5, grav: 0.4 });
-      }
-      if (pg.t === 60) playSound('powerup', 0.8);
+      if (pg.fountain) tickFountain(pg.fountain);
+      // (the splatter raining down, a long run of it, dying off)
+      if (pg.t < 110 && pg.t % 7 === 0) playSound(pg.t % 14 ? 'splat' : 'poopsplat', 0.6 * (1 - pg.t / 130), -4 + Math.random() * 6);
+      if (pg.t === 30) playSound('plunge_gurgle', 0.8, -6);
+      // (START skips to the shard's card: it's his already)
+      if (pg.t > SKIP_AFTER) offerSkip();
+      if (pg.t > SKIP_AFTER && takeSkip()) { pg.phase = 'card'; pg.t = 0; pg.cardArmed = false; break; }
+      if (pg.t === 112) playSound('powerup', 0.8);
       if (pg.t >= WIN_T) { pg.phase = 'card'; pg.t = 0; pg.cardArmed = false; }
       break;
     }
@@ -504,9 +512,9 @@ export const drawPlungeHud = (c: Ctx, state: GameState, co: Coaster, pa: Said | 
   if (!pg || pg.phase === 'ask' || pg.phase === 'leave') return false;
   const f = state.frame;
   // THE SHOT: the whole screen
-  drawPlungeView(c, pg.pose, pantsOf(state), f, pg.shake);
-  if (pg.phase === 'win' && pg.t > 30) {
-    const u = Math.min(1, (pg.t - 30) / 40), [bx, by] = viewBowl();
+  drawPlungeView(c, pg.pose, pantsOf(state), f, pg.shake, pg.fountain);
+  if (pg.phase === 'win' && pg.t > 110) {
+    const u = Math.min(1, (pg.t - 110) / 40), [bx, by] = viewBowl();
     drawShardGem(c, bx, by - 30 - 170 * (1 - (1 - u) * (1 - u)), 2, f);
   }
   // (his words, over his head in the shot; the ride's narrator's, low and whole)
