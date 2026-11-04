@@ -3,17 +3,27 @@
 // uppercut to to get to. have a rising tricky moving stiar section here in the upper left portion of this castle that
 // will have a health pickup at the end of the climb."
 //
-// Off the tower's GALLERY (the balcony at the top of the tower stairs, its balustrade, the king's portrait over it):
-//   U1  the way in: a flight hanging over the gallery's left end, its pivot ~236 over the gallery's floor. A jump
-//       (~145) can't make it; an UPPERCUT (~289; 361 with the armguards) from under its pivot can. On the clock: it
-//       swings up to the first corbel (L1) and back down.
-//   U2  off L1, up the tower's left wall to L2: fast; down, its end's way under L2 (no jump up): ride it up.
-//   U3  off L2, back out to the right, long: a 'ride' flight (stand on it a moment and it swings up, carrying him, to
-//       L3; back once he's off).
-//   U4  off L3, up to the right: the fastest, its low dock way under the top perch (L4): ride it up, step off in time.
-//   L4  the top perch: the HEART CANISTER (once a save: upgrades/healthAward.ts, the find kept in the save, the card).
+// Off the tower's GALLERY (the balcony at the top of the tower stairs, its balustrade, the king's portrait over it).
+// The owner, later: "make the gaps between the stair obstacles higher. not the number of obstacles but space it out and
+// make it more challenging. you will go quite a bit higher to get the heart", and "remember you can uppercut. so you can
+// make it a bit more than what a standard jump can reach". The same four flights, a gap above the top of each: he
+// gets himself from each flight's high end up to the next landing (a held jump ~142; an UPPERCUT ~277; a jump with
+// the uppercut at its peak ~380-418; no armor counted). 800 up from the gallery to the perch before, ~1580 now.
+//   U1  the way in (teaches the uppercut, the gallery the safe spot under it): a flight hanging over the gallery's
+//       left end, its pivot ~236 over the gallery's floor. A jump can't make it; an uppercut from under its pivot can.
+//       On the clock: it swings up and back down.
+//   G1  a HELD JUMP (100) off its high end up to the first corbel (L1), overhanging the end.
+//   U2  off L1, up the tower's left wall: fast; down, its end's way under; ride it up.
+//   G2  an UPPERCUT (190) off its high end to L2, before it swings away.
+//   U3  off L2, back out to the right, long: a 'ride' flight (stand on it a moment and it swings up, carrying him; it
+//       waits up there while he's on it).
+//   G3  the big one, no hurry: a JUMP and an UPPERCUT at its peak (300) off its high end to L3. A miss drops him onto L1.
+//   U4  off L3, up to the right: the fastest, its low dock way under: ride it up.
+//   G4  an UPPERCUT (190) off its high end, on its short hold, to the top perch (L4): the HEART CANISTER (once a save:
+//       upgrades/healthAward.ts, the find kept in the save, the card).
 // Down: drop off the perch (or anywhere): it's the gallery under it (the perch is over it); off the left side, the
-// landing, the stairs and the tower's floor. Nothing's in the way of the tower's own route (all of it's over 900 up).
+// landing, the stairs and the tower's floor (no fall hurts here). Nothing's in the way of the tower's own route (all
+// of it's over 900 up).
 //
 // Heights up from the ground line; x from the section's start (layout.ts X / Y).
 
@@ -36,19 +46,23 @@ const STONE = '#9A8EB4', LIP = '#F6E7C0';
 const st = (d: StairDef): StairDef => ({ stone: STONE, lip: LIP, ...d });
 const rel = (p: { x: number; y: number }) => ({ x: Math.round(p.x - X(0)), h: Math.round(GY - p.y) });
 
+/** The gaps over each flight's high end (see above): a held jump, an uppercut, a jump and an uppercut, an uppercut. */
+export const GAPS = [100, 190, 300, 190];
+/** How far each landing reaches back over the flight's end under it (so he can go straight up off the end). */
+const OVER = 20;
 // (U1: its pivot over the gallery's left end (the gallery's 6791..7540, 774 up); low dock first)
-const U1 = st({ px: X(6900), py: Y(1010), len: 240, docks: [Math.PI - 0.2, Math.PI + 0.5], hold: 110, swing: 50 });
+const U1 = st({ px: X(6900), py: Y(1010), len: 240, docks: [Math.PI - 0.2, Math.PI + 0.5], hold: 100, swing: 50 });
 const e1 = rel(stairEnd(U1, 1));
-export const L1 = { a: e1.x - 90, b: e1.x, h: e1.h };
-const U2 = st({ px: X(L1.a), py: Y(L1.h), len: 250, docks: [Math.PI - 0.3, Math.PI + 0.6], hold: 80, swing: 40, phase: 70 });
+export const L1 = { a: e1.x - 80, b: e1.x + OVER, h: e1.h + GAPS[0] };
+const U2 = st({ px: X(L1.a), py: Y(L1.h), len: 250, docks: [Math.PI - 0.3, Math.PI + 0.6], hold: 70, swing: 40, phase: 70 });
 const e2 = rel(stairEnd(U2, 1));
-export const L2 = { a: e2.x - 88, b: e2.x, h: e2.h };
+export const L2 = { a: e2.x - 68, b: e2.x + OVER, h: e2.h + GAPS[1] };
 const U3 = st({ px: X(L2.b), py: Y(L2.h), len: 300, docks: [-0.3, -0.7], hold: 150, swing: 50, ride: 24 });
 const e3 = rel(stairEnd(U3, 1));
-export const L3 = { a: e3.x, b: e3.x + 90, h: e3.h };
+export const L3 = { a: e3.x - OVER, b: e3.x + 80, h: e3.h + GAPS[2] };
 const U4 = st({ px: X(L3.b), py: Y(L3.h), len: 240, docks: [0.35, -0.5], hold: 70, swing: 34, phase: 40 });
 const e4 = rel(stairEnd(U4, 1));
-export const L4 = { a: e4.x, b: e4.x + 120, h: e4.h };
+export const L4 = { a: e4.x - OVER, b: e4.x + 100, h: e4.h + GAPS[3] };
 
 /** The climb's staircases (keep/index.ts puts them after layout.ts's STAIRS: the same stairs.ts runs and draws them). */
 export const CLIMB_STAIRS: StairDef[] = [U1, U2, U3, U4];
@@ -56,7 +70,7 @@ export const CLIMB_STAIRS: StairDef[] = [U1, U2, U3, U4];
 export const CLIMB_LEDGES = [L1, L2, L3, L4];
 
 /** The heart canister: its foot's middle (world), its find id in the save. */
-export const HEART = { x: X(L4.a + 72), y: Y(L4.h), land: 'fantasy', id: 'health-keep' };
+export const HEART = { x: X(L4.a + 76), y: Y(L4.h), land: 'fantasy', id: 'health-keep' };
 
 export const buildClimb = (state: GameState) => {
   for (const L of CLIMB_LEDGES) ledge(state, X(L.a), Y(L.h), L.b - L.a, { hidden: true });

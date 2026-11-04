@@ -749,7 +749,8 @@ const drawHoardings = (c: Ctx, v: View) => {
 // ---------------------------------------------------------------------------------------------------------------
 // THE TOWER: its inside (up out of the picture), its landings, the gallery; its outside behind the steps
 
-const TOWER = { a: 6250, b: TOWER_WALL.b }, TOWER_TOP = 1700;
+// (up past the hidden climb's top perch (heartClimb.ts, ~2350 up) and a screen over it)
+const TOWER = { a: 6250, b: TOWER_WALL.b }, TOWER_TOP = 2900;
 const TCELL = 260;
 const paintTowerCell = (g: Ctx, w: number, sx: number, row: number) => {
   const S = R(PALE), Gd = R(GOLD), Pk = R(PINK), Ir = R(IRON), Tm = R(TIMBER), Bl = R(['#0E1430', '#18224E', '#22327A', '#2E4EA8', '#5A7ACC', '#9AB4EC']);
@@ -841,7 +842,7 @@ const drawTowerShell = (c: Ctx, v: View) => {
 /** The tower's own sides going back from the play plane (it stands forward of the walk's parapet on its left and of
  *  the outside wall behind the steps down on its right), back to its inside's depth (drawn before the parapet and the
  *  outside wall: they're nearer than its back part), the doorways in and out cut into their fronts. */
-const TOWER_UP = 1800;
+const TOWER_UP = 2900;
 const drawTowerSides = (c: Ctx, v: View) => {
   if (onScreenV(v, X(6250) - 400, X(6250) + 40)) wallSide(c, v, X(6250), -1, WALL.top + 200 + TOWER_UP, WALL.top, TOWER_D, [WALL.top, WALL.top + 200, 0.965]);
   if (onScreenV(v, X(TOWER_WALL.b) - 40, X(TOWER_WALL.b) + 400)) wallSide(c, v, X(TOWER_WALL.b), 1, GALLERY.h + 190 + TOWER_UP, 0, TOWER_D, [GALLERY.h, GALLERY.h + 190, 0.965]);
