@@ -53,9 +53,9 @@ export const WIFE_HELLO: ByDress = {
 };
 /** ...the saucer he wrecked, and this one. */
 export const WIFE_STANDBY: ByDress = {
-  clean: ['YOU WRECKED MY SAUCER. SO I BROUGHT THE OTHER ONE.'],
-  shitty: ['YOU WRECKED MY SAUCER. SO I BROUGHT THE OTHER ONE. THE ONE WITH THE HOSE.'],
-  nude: ['YOU WRECKED MY SAUCER. SO I BROUGHT THE OTHER ONE. THE GIRLS BROUGHT CAMERAS.'],
+  clean: ['YOU SHOT MY SAUCER DOWN OVER FUTURE LAND. LUCKY FOR ME, I KEEP A STANDBY.'],
+  shitty: ['YOU SHOT MY SAUCER DOWN OVER FUTURE LAND. LUCKY FOR ME, I KEEP A STANDBY. WITH A HOSE.'],
+  nude: ['YOU SHOT MY SAUCER DOWN OVER FUTURE LAND. LUCKY FOR ME, I KEEP A STANDBY. THE GIRLS BROUGHT CAMERAS.'],
 };
 /** Him, in the cab, going up (the owner's line, then the state of him). */
 export const MH_STANDBY: ByDress = {
