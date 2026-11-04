@@ -4,11 +4,16 @@
 // out to the sides, never in). Local frame: his car's floor under his boots at the origin, up is -y, the handrails'
 // knobs at (+-RAIL_X, -(RAIL_Y - FLOOR_Y)).
 //
-//   ride    crouched, knees bent out, a fist on each handrail
-//   duck    squatted right down, head bowed between his shoulders, both fists on the rails (the grip: ducking always
-//           holds on)
-//   jump    up off it, knees tucked, arms out for balance
-//   hop     the leap to the next track: spread-eagled, leaning the way he's going
+// He's a huge swaggering gym bro (the owner's: "fit his character more"): from behind, a big V (traps bunched up round
+// his neck, lats flared wide, a small waist), every pose cocky and powerful.
+//   ride    a wide, low crouch, knees out, elbows out, a fist on each handrail, his traps up
+//   duck    hunched like a bull: squatted right down, head sunk between his traps, elbows out, both fists on the rails
+//           (the grip: ducking always holds on)
+//   jump    an explosive spring: one knee driven up, the other leg kicked down, one fist pumped up over his head, the
+//           other arm flexed out wide, lats flared, leaning into it
+//   hop     a sideways lunge-leap like a linebacker: the lead shoulder dipped into it, the lead fist tucked in front,
+//           the far arm thrown out and up behind, the trailing leg kicked out, the lead knee up
+//   land    a heavy squat landing: knees wide, sunk deep, fists on the rails, a bounce out of it
 //   grip    hung on through a roll: both fists on the rails, his body swung the way gravity has him (`hang`), leaning
 //           (`side`) into the high side
 //   dangle  one hand torn off (the warning: almost gone): hanging off the low rail by one fist, the other arm clawing
@@ -19,7 +24,7 @@ import { elbowFront, kneeFront, reachTo, type P2 } from '../../../art/limb';
 import { INK, box, type Ctx } from '../../kit';
 import { RAIL_X, RAIL_Y, FLOOR_Y } from './sprites';
 
-export type MePose = 'ride' | 'duck' | 'jump' | 'hop' | 'grip' | 'dangle' | 'fling';
+export type MePose = 'ride' | 'duck' | 'jump' | 'hop' | 'land' | 'grip' | 'dangle' | 'fling';
 export interface MeQ {
   mode: MePose;
   /** The lean / hop's way (-1 left, 1 right). */
@@ -49,12 +54,21 @@ const limb = (c: Ctx, a: P2, b: P2, w: number, col: string, lit?: string) => {
 };
 
 /** A body: where its parts go (local frame), all joints found. */
-interface Body { hip: P2; sho: P2; lean: number; feet: [P2, P2]; hands: [P2, P2]; head: number; plates?: boolean; kick?: number }
+interface Body { hip: P2; sho: P2; lean: number; feet: [P2, P2]; hands: [P2, P2]; head: number; plates?: boolean; kick?: number;
+  /** Lats flared wider (a jump, a leap); his head sunk down into his traps (a duck, a landing). */
+  flare?: number; sink?: number }
 
 const arm = (c: Ctx, s: P2, h: P2, out: number) => {
   const hh = reachTo(s[0], s[1], h[0], h[1], UPPER, FORE);
   const e = elbowFront(s[0], s[1], hh[0], hh[1], UPPER, FORE, out);
-  limb(c, s, e, 9, SKIN[3], SKIN[4]); limb(c, e, hh, 8, SKIN[3], SKIN[4]);
+  limb(c, s, e, 11, SKIN[3], SKIN[4]); limb(c, e, hh, 9, SKIN[3], SKIN[4]);
+  // (the bicep's bulge, the delt's cap)
+  const mx = (s[0] + e[0]) / 2, my = (s[1] + e[1]) / 2;
+  c.fillStyle = INK; c.beginPath(); c.arc(mx, my, 6.6, 0, Math.PI * 2); c.fill();
+  c.fillStyle = SKIN[3]; c.beginPath(); c.arc(mx, my, 5.4, 0, Math.PI * 2); c.fill();
+  box(c, mx - 3, my - 4, 3, 2, SKIN[4]);
+  c.fillStyle = INK; c.beginPath(); c.arc(s[0], s[1], 7.6, 0, Math.PI * 2); c.fill();
+  c.fillStyle = SKIN[3]; c.beginPath(); c.arc(s[0], s[1], 6.4, 0, Math.PI * 2); c.fill();
   // (the fist, knuckles round the rail)
   c.fillStyle = INK; c.beginPath(); c.arc(hh[0], hh[1], 5.5, 0, Math.PI * 2); c.fill();
   c.fillStyle = SKIN[3]; c.beginPath(); c.arc(hh[0], hh[1], 4.3, 0, Math.PI * 2); c.fill();
@@ -64,7 +78,7 @@ const leg = (c: Ctx, h: P2, f: P2, out: number, q: MeQ) => {
   const ff = reachTo(h[0], h[1], f[0], f[1], THIGH, SHIN);
   const k = kneeFront(h[0], h[1], ff[0], ff[1], THIGH, SHIN, out);
   const R = q.nude ? SKIN : JEANS;
-  limb(c, h, k, 11, R[2], R[3]); limb(c, k, ff, 10, R[2], R[3]);
+  limb(c, h, k, 13, R[2], R[3]); limb(c, k, ff, 11, R[2], R[3]);
   // (the boot's heel, from behind)
   c.fillStyle = INK; c.beginPath(); c.roundRect(ff[0] - 7, ff[1] - 6, 14, 11, 3); c.fill();
   box(c, ff[0] - 6, ff[1] - 5, 12, 9, BOOT[1]); box(c, ff[0] - 6, ff[1] - 5, 12, 3, BOOT[3]); box(c, ff[0] - 6, ff[1] + 2, 12, 2, BOOT[0]);
@@ -77,10 +91,16 @@ const torso = (c: Ctx, b: Body, q: MeQ, f: number) => {
   const L = Math.hypot(sx - hx, sy - hy);
   // (the back: a wedge, narrow at the waist, wide at the lats; inked; banded light to shade)
   const back = (w0: number, w1: number, col: string) => { c.fillStyle = col; c.beginPath(); c.moveTo(-w0, 2); c.lineTo(w0, 2); c.lineTo(w1, -L + 4); c.quadraticCurveTo(0, -L - 6, -w1, -L + 4); c.closePath(); c.fill(); };
-  back(15, 24, INK); back(13.5, 22.5, SKIN[2]); back(9, 18, SKIN[3]);
-  // (the spine's groove, the shoulder blades, the lats' edges)
-  box(c, -1, -L + 6, 2, L - 8, SKIN[1]);
-  for (const s of [-1, 1]) { box(c, s * 6 - 4, -L + 8, 8, 2, SKIN[4]); box(c, s * 13 - (s > 0 ? 2 : 0), -L * 0.55, 2, 10, SKIN[1]); }
+  const fl = b.flare ?? 0, w1 = 29 + fl * 5;
+  back(14, w1 + 1.5, INK); back(12.5, w1, SKIN[2]); back(8, w1 - 7, SKIN[3]);
+  // (the traps bunched up round his neck, the spine's groove, the shoulder blades, the lats' edges)
+  for (const s of [-1, 1]) {
+    c.fillStyle = INK; c.beginPath(); c.ellipse(s * 10, -L + 1, 12, 8, s * 0.35, 0, Math.PI * 2); c.fill();
+    c.fillStyle = SKIN[3]; c.beginPath(); c.ellipse(s * 10, -L + 1, 10.8, 6.8, s * 0.35, 0, Math.PI * 2); c.fill();
+    box(c, s * 8 - 3, -L - 3, 6, 2, SKIN[4]);
+  }
+  box(c, -1, -L + 8, 2, L - 10, SKIN[1]);
+  for (const s of [-1, 1]) { box(c, s * 8 - 5, -L + 10, 10, 2, SKIN[4]); box(c, s * (w1 - 9) - 1, -L * 0.62, 2, 13, SKIN[1]); box(c, s * 5 - 1, -L * 0.45, 2, 8, SKIN[1]); }
   // (the belt and his jeans' seat; or his bare ass; the stain, shat)
   if (q.nude) {
     for (const s of [-1, 1]) { c.fillStyle = INK; c.beginPath(); c.ellipse(s * 6.5, 6, 8, 8, 0, 0, Math.PI * 2); c.fill(); c.fillStyle = SKIN[3]; c.beginPath(); c.ellipse(s * 6.5, 6, 7, 7, 0, 0, Math.PI * 2); c.fill(); }
@@ -91,7 +111,7 @@ const torso = (c: Ctx, b: Body, q: MeQ, f: number) => {
     if (q.shat) { c.fillStyle = 'rgba(92, 58, 22, 0.85)'; c.beginPath(); c.ellipse(0, 7, 9, 5, 0, 0, Math.PI * 2); c.fill(); }
   }
   // (the neck, the back of his head: buzzed black, his ears, the arms of his glasses over them)
-  const ny = -L - 2;
+  const ny = -L - 2 + (b.sink ?? 0);
   box(c, -6, ny - 6, 12, 8, INK); box(c, -5, ny - 6, 10, 8, SKIN[2]);
   c.translate(0, ny - 8); c.rotate(b.head);
   c.fillStyle = INK; c.beginPath(); c.ellipse(0, -2, 11, 12, 0, 0, Math.PI * 2); c.fill();
@@ -118,12 +138,21 @@ const bodyOf = (q: MeQ, f: number): Body => {
   const bob = Math.sin(f * 0.3) * 0.8;
   switch (q.mode) {
     case 'duck':
-      return { hip: [0, -18], sho: [0, -44], lean: 0, feet: [[-15, 0], [15, 0]], hands: [GRIP_L, GRIP_R], head: 0 };
+      // (hunched like a bull: low, wide, head sunk, elbows out)
+      return { hip: [0, -18], sho: [0, -44], lean: 0, feet: [[-19, 0], [19, 0]], hands: [GRIP_L, GRIP_R], head: 0, sink: 7 };
+    case 'land':
+      // (a heavy squat landing: knees wide, sunk deep, a bounce)
+      return { hip: [0, -14 + bob * 2], sho: [0, -42 + bob * 2], lean: 0, feet: [[-22, 0], [22, 0]], hands: [GRIP_L, GRIP_R], head: 0, sink: 5, flare: 0.5 };
     case 'jump':
-      return { hip: [0, -46], sho: [0, -78], lean: 0, feet: [[-12, -20], [12, -20]], hands: [[-40, -82], [40, -82]], head: 0 };
+      // (an explosive spring: his left knee driven up, his right leg kicked down; his left fist pumped up, his right
+      // flexed out wide)
+      return { hip: [2, -50], sho: [5, -84], lean: 0, feet: [[-12, -34], [16, -6]], hands: [[-22, -126], [48, -96]], head: 0.08, flare: 1 };
     case 'hop': {
+      // (a sideways lunge-leap: the lead shoulder dipped into it, the lead fist tucked, the far arm thrown out behind,
+      // the trailing leg kicked out, the lead knee up)
       const s = q.side;
-      return { hip: [s * 4, -46], sho: [s * 10, -78], lean: s * 0.2, feet: [[-22 + s * 4, -12], [22 + s * 4, -10]], hands: [[-44 + s * 6, -86], [44 + s * 6, -88]], head: s * 0.15, plates: true };
+      return { hip: [-s * 6, -46], sho: [s * 14, -76], lean: 0, feet: [[s > 0 ? -34 : 10, s > 0 ? -6 : -26], [s > 0 ? -10 : 34, s > 0 ? -26 : -6]],
+        hands: s > 0 ? [[-56, -98], [30, -66]] : [[-30, -66], [56, -98]], head: s * 0.25, flare: 1, plates: false };
     }
     case 'fling':
       return { hip: [0, -40], sho: [0, -72], lean: 0, feet: [[-24, -10], [24, -6]], hands: [[-46, -92], [46, -88]], head: Math.sin(f * 0.5) * 0.3, plates: true };
@@ -131,7 +160,7 @@ const bodyOf = (q: MeQ, f: number): Body => {
     case 'dangle':
     case 'ride':
     default:
-      return { hip: [0, -32 + bob], sho: [0, -62 + bob], lean: 0, feet: [[-16, 0], [16, 0]], hands: [GRIP_L, GRIP_R], head: 0 };
+      return { hip: [0, -30 + bob], sho: [0, -60 + bob], lean: 0, feet: [[-19, 0], [19, 0]], hands: [GRIP_L, GRIP_R], head: 0, sink: 3 };
   }
 };
 

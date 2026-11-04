@@ -101,6 +101,8 @@ export interface Roll {
   lanes: Lane[]; s0: number; len: number; turns: number; dir: 1 | -1; shared: boolean;
   /** The script's event it came of; its warning (frames); the teaching one; what it's called on the card. */
   ev: number; w: number; teach: boolean; kind: string;
+  /** How many loops came before it along the ride (the balance bar's harder each one). */
+  tier: number;
 }
 
 /** The roll's angle u of the way through (eased in and out: never a kink). */
@@ -202,7 +204,7 @@ export const BV_SCRIPT: BvEv[] = ([
   // THE SECOND DROP; FIRE and ICE loop (LIGHTNING the way out), and LIGHTNING goes live right after (hop back)
   { k: 'say', at: 13700, what: 'drop' },
   { k: 'spin', at: 15700, kind: 'loop', on: 'two', len: L(1000), warn: 260 },
-  { k: 'zap', at: 16200 },
+  { k: 'zap', at: 17000 },
   // THE HEAD-ON: the outside tracks swing out and back; rings, icicles, live
   { k: 'say', at: 17700, what: 'near' },
   { k: 'fire', at: 17700, len: L(1500), gap: 470 },

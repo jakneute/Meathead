@@ -18,11 +18,10 @@ const Row: React.FC<{ children: React.ReactNode }> = ({ children }) => <span cla
 
 const BehindCards: React.FC<{ card: BvCard }> = ({ card }) => {
   if (card.k === 'now') {
-    const lean = card.lean < 0 ? LEFT : card.lean > 0 ? RIGHT : null;
     return (
       <div className={`${shingle} text-[12px] ${card.oneOff ? 'border-red-500' : 'border-white'}`}>
-        <Row><span>HOLD</span><Prompt {...DOWN} />{lean ? <><span>+ LEAN</span><Prompt {...lean} /></> : <span>TO HANG ON!</span>}</Row>
-        {card.oneOff && <span className="text-[9px] text-red-300">ONE HAND OFF! LEAN TO THE HIGH SIDE!</span>}
+        <Row><span>BALANCE!</span><Prompt {...LEFT} /><Prompt {...RIGHT} /><span>KEEP IT IN THE GREEN</span></Row>
+        {card.oneOff && <span className="text-[9px] text-red-300">ONE HAND OFF! PUSH IT BACK!</span>}
       </div>
     );
   }
@@ -32,8 +31,8 @@ const BehindCards: React.FC<{ card: BvCard }> = ({ card }) => {
     return (
       <div className={`${shingle} ${card.teach ? 'text-[10px] border-[#FACC15]' : 'text-[9px]'}`} style={card.teach ? undefined : { borderColor: card.cols[0] }}>
         <Row>{card.kind} ON {joined}{card.lanes.length > 1 ? ' TRACKS' : ' TRACK'}{card.mine ? <span className="text-red-400"> YOURS!</span> : null}</Row>
-        <Row><span>HOLD</span><Prompt {...DOWN} /><span>TO HANG ON,</span><Prompt {...LEFT} /><Prompt {...RIGHT} /><span>LEAN TO THE HIGH SIDE</span></Row>
-        {card.teach && <span className="text-[8px] text-zinc-300">LET GO, OR BOTH HANDS OFF, AND YOU FALL. LIGHTNING ONLY LOOPS WHEN ALL THREE DO.</span>}
+        <Row><span>HE HANGS ON. YOU BALANCE HIM:</span><Prompt {...LEFT} /><Prompt {...RIGHT} /><span>KEEP THE BAR IN THE GREEN</span></Row>
+        {card.teach && <span className="text-[8px] text-zinc-300">RED: ONE HAND OFF. OFF THE END: YOU FALL. LIGHTNING ONLY LOOPS WHEN ALL THREE DO.</span>}
       </div>
     );
   }

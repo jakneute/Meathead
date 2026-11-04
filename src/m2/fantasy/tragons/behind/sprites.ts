@@ -163,28 +163,38 @@ export const panelBack = (lane: Lane) => placed(pic(`panel${lane}`, CAR_W + 30, 
 // ---------------------------------------------------------------------------------------------------------------
 // The obstacles
 
-/** A ring of fire stood on the FIRE track (four flicker frames): 120 across, its burning bottom on the track; through
- *  its middle (jump). */
-export const RING_R = 58;
-export const ring = (frame: number, step: number, cave: boolean) => placed(pic(`ring${frame}${step}${cave ? 1 : 0}`, 150, 150, 75, 140, 2, g => {
-  const F = ['#7A1A1A', '#DC2626', '#F97316', '#FDE047', '#FFF6B0'].map(c => hazeOf(c, Math.max(0, step - 1), false));
-  const cy = -RING_R - 6;
-  // (the iron hoop, then flames licking up all round it, outer to inner, in steps)
-  g.strokeStyle = INK; g.lineWidth = 12; g.beginPath(); g.arc(0, cy, RING_R, 0, Math.PI * 2); g.stroke();
-  g.strokeStyle = hazeOf('#3A2A2A', step, cave); g.lineWidth = 8; g.beginPath(); g.arc(0, cy, RING_R, 0, Math.PI * 2); g.stroke();
-  for (let L = 0; L < 4; L++) {
-    const n = 22;
-    for (let i = 0; i < n; i++) {
-      const a = (i / n) * Math.PI * 2, lick = 6 + 10 * (0.5 + 0.5 * Math.sin(i * 2.3 + frame * 1.7 + L)) * (1 - L * 0.2);
-      const x = Math.cos(a) * RING_R, y = cy + Math.sin(a) * RING_R;
-      const w = 9 - L * 1.6;
-      // (flames go up, whatever side of the hoop)
-      box(g, x - w / 2, y - lick - L * 2, w, lick + 4, F[1 + L]);
+/** A ring of fire hung over the FIRE track on two iron posts (four flicker frames): its burning bottom edge RING_BOTTOM
+ *  up (over the car's hull, at his shins: he jumps it, the car goes under), its inside RING_IN round, so a good jump
+ *  carries him through its middle. Painted in halves (the owner's: he's seen inside it as it goes by): 'back' (its top
+ *  half, its posts: drawn behind him), 'front' (its bottom half: in front of him), or 'all'. */
+export const RING_BOTTOM = 58, RING_IN = 74, RING_T = 13;
+const RING_CY = -(RING_BOTTOM + RING_IN), RING_OUT = RING_IN + RING_T;
+export const ring = (frame: number, step: number, cave: boolean, half: 'all' | 'back' | 'front' = 'all') =>
+  placed(pic(`ring${frame}${step}${cave ? 1 : 0}${half}`, 220, 250, 110, 236, 2, g => {
+    const F = ['#7A1A1A', '#DC2626', '#F97316', '#FDE047', '#FFF6B0'].map(c => hazeOf(c, Math.max(0, step - 1), false));
+    const I = IRON.map(c => hazeOf(c, step, cave));
+    const cy = RING_CY, rm = RING_IN + RING_T / 2;
+    if (half !== 'front') {
+      // (the posts, each side, up to its middle)
+      for (const s of [-1, 1]) { box(g, s * (RING_OUT + 4) - 4, cy, 8, -cy, INK); box(g, s * (RING_OUT + 4) - 3, cy, 6, -cy, I[3]); box(g, s * (RING_OUT + 4) - 3, cy, 2, -cy, I[5]); }
     }
-  }
-  // (the burning bottom, on the track: what he must jump)
-  box(g, -RING_R + 6, -14, (RING_R - 6) * 2, 12, F[1]); box(g, -RING_R + 10, -12, (RING_R - 10) * 2, 6, F[3]);
-}), 150, 150, 75, 140);
+    g.save();
+    if (half !== 'all') { g.beginPath(); if (half === 'back') g.rect(-120, cy - 120, 240, 120); else g.rect(-120, cy, 240, 130); g.clip(); }
+    // (the iron hoop, inked; then flames licking up all round it, outer to inner, in steps)
+    g.strokeStyle = INK; g.lineWidth = RING_T + 4; g.beginPath(); g.arc(0, cy, rm, 0, Math.PI * 2); g.stroke();
+    g.strokeStyle = I[2]; g.lineWidth = RING_T; g.beginPath(); g.arc(0, cy, rm, 0, Math.PI * 2); g.stroke();
+    g.strokeStyle = F[1]; g.lineWidth = RING_T - 6; g.beginPath(); g.arc(0, cy, rm, 0, Math.PI * 2); g.stroke();
+    for (let L = 0; L < 4; L++) {
+      const n = 26;
+      for (let i = 0; i < n; i++) {
+        const a = (i / n) * Math.PI * 2, lick = 7 + 11 * (0.5 + 0.5 * Math.sin(i * 2.3 + frame * 1.7 + L)) * (1 - L * 0.2);
+        const x = Math.cos(a) * rm, y = cy + Math.sin(a) * rm;
+        const w = 10 - L * 1.8;
+        box(g, x - w / 2, y - lick - L * 2, w, lick + 4, F[1 + L]);
+      }
+    }
+    g.restore();
+  }), 220, 250, 110, 236);
 
 /** A gantry of icicles across the ICE track: frosted posts each side, the beam 104 up, icicles hanging to 52 (under
  *  them ducked; standing: in the face). */

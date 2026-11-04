@@ -13,9 +13,11 @@ export interface BvTrain { lane: Lane; phase: 'ok' | 'fall' | 'gone' | 'arrive';
 /** On a track: a ring of fire (FIRE: jump through it), a gantry of icicles (ICE: duck), a frozen bar (ICE: jump). */
 export interface BvObst { kind: 'ring' | 'icicles' | 'bar'; lane: Lane; s: number; done: boolean; hit: boolean }
 
-/** His grip through a roll: frames DOWN's been let go, how far he's slipping (leaning the wrong way, or not at all),
- *  one hand off (the warning), which way he's leaning and which way the roll wants him to. */
-export interface BvLock { down: number; slip: number; oneOff: boolean; lean: -1 | 0 | 1; want: -1 | 0 | 1; roll: Roll; t: number }
+/** His balance through a roll (the owner's Tony Hawk grind bar: he grips on his own; the needle drifts off, LEFT /
+ *  RIGHT push it back): where the needle is (-1 .. 1: the bar's ends), how fast it's going, which way he's pushing,
+ *  one hand off (the warning, near an end), the roll, frames in, how hard it is (grows along the ride), the wobble's
+ *  way. */
+export interface BvLock { bal: number; vel: number; push: -1 | 0 | 1; oneOff: boolean; roll: Roll; t: number; hard: number; drift: 1 | -1 }
 
 export interface Bv {
   trains: BvTrain[];
@@ -41,6 +43,12 @@ export interface Bv {
   cam: Cam;
   /** The camera's sideways lean toward the middle track (eased), the bank (eased), the horizon (eased). */
   camOx: number; bank: number; hy: number;
+  /** How far behind his car the camera is (pulled back to frame a track veered off: eased out and back in). */
+  back: number;
+  /** Frames of his heavy landing (the squat, the car's shake); DOWN held through a loop's end: no duck till it's let go. */
+  landT: number; downHeld: boolean;
+  /** A ring gone through clean (frames of the flourish), or clipped (frames of his burning legs). */
+  through: number; burnT: number;
   /** His feet on screen (before the view's turned: on his car) and how big he's drawn. */
   me: { x: number; y: number; k: number };
   /** In from the station: frames of the fade in. Out at the unload: frames of the fade out (0: not yet). */

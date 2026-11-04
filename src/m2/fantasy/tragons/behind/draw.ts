@@ -20,9 +20,9 @@ import {
   SEG, DRAW_N, DRAW, TRACK_HW, REAR, CAR_L, NOSE, FOCAL, ZAP_TELL, TUNNEL,
   trackAt, project, curveX, inTunnel, inLagoon, type TP, type SP, type Cam,
 } from './geom';
-import { strip, carBack, panelBack, ring, icicles, iceBar, pine, sky, pano, hazeOf, HAZE, SKY_H, SKY_HORIZON, PANO_W, PANO_H, FLOOR_Y, type Placed } from './sprites';
+import { RING_BOTTOM, RING_IN, strip, carBack, panelBack, ring, icicles, iceBar, pine, sky, pano, hazeOf, HAZE, SKY_H, SKY_HORIZON, PANO_W, PANO_H, FLOOR_Y, type Placed } from './sprites';
 import { drawMeBack, type MeQ } from './meathead';
-import { SHOT_CAR, SHOT_LAWN, turned, HOP_ARC } from './ride';
+import { SHOT_CAR, SHOT_LAWN, turned, HOP_ARC, BAL_ONE } from './ride';
 import type { Bv } from './state';
 
 const W = CANVAS_WIDTH, H = CANVAS_HEIGHT;
@@ -116,10 +116,16 @@ export const drawBehind = (c: Ctx, state: GameState) => {
 
   // ---- what stands on the tracks, far to near
   items.length = 0;
+  const sCar = t.dist + REAR;
   for (const o of bv.obst) {
-    // (gone past his car: out of the picture, or it'd fill the screen between him and the camera)
-    if (o.s < t.dist + REAR - 16 || o.s > cam.s + DRAW) continue;
-    items.push({ s: o.s, draw: () => drawObst(c, t, bv, o.kind, o.lane, o.s, f) });
+    // (gone past his car: out of the picture, or it'd fill the screen between him and the camera; a ring goes on past
+    // him a little: he's seen going through it)
+    if (o.s > cam.s + DRAW || o.s < sCar - (o.kind === 'ring' && o.lane === t.lane ? 110 : 16)) continue;
+    if (o.kind === 'ring' && o.lane === t.lane && o.s < sCar + 60) {
+      // (going by him: its top half and posts behind him, its bottom half in front)
+      items.push({ s: Math.max(o.s, sCar + 1), draw: () => drawObst(c, t, bv, o.kind, o.lane, o.s, f, 'back') });
+      items.push({ s: Math.min(o.s, sCar - 1), draw: () => drawObst(c, t, bv, o.kind, o.lane, o.s, f, 'front') });
+    } else items.push({ s: o.s, draw: () => drawObst(c, t, bv, o.kind, o.lane, o.s, f) });
   }
   for (const tr of bv.trains) {
     if (tr.phase === 'gone') continue;
@@ -220,7 +226,8 @@ const drawCar = (c: Ctx, state: GameState, t: Tragons, bv: Bv, lane: Lane, which
     const flap = Math.sin(f * 0.45) * 14;
     for (const sd of [-1, 1]) polyF(c, [[x + sd * 40 * k, sy - 30 * k], [x + sd * 150 * k, sy - (70 + flap) * k], [x + sd * 120 * k, sy - 10 * k]], LANE_COL[lane][2]);
   }
-  put(c, carBack(lane, which, step, cave), x, sy, k, a);
+  const shake = his && bv.landT > 0 ? Math.sin(bv.landT * 1.9) * bv.landT * 0.25 * k : 0;
+  put(c, carBack(lane, which, step, cave), x, sy + shake, k, a);
   // (the LIGHTNING dragon going live: its tell (sparks crawling over it, flashing faster), then live (arcs all over it))
   if (lane === 0 && bv.zap && tr.phase === 'ok') zapFx(c, bv, x, sy, k, f + which * 7);
   if (his) {
@@ -228,8 +235,21 @@ const drawCar = (c: Ctx, state: GameState, t: Tragons, bv: Bv, lane: Lane, which
     c.save(); c.translate(x, sy); c.rotate(a); c.scale(k, k); c.translate(0, -FLOOR_Y - bv.jy);
     if (bv.hurtT > 0 && bv.hurtT % 6 < 3) c.globalAlpha = 0.55;
     drawMeBack(c, q, f);
+    c.globalAlpha = 1;
+    // (a ring clipped: his ass and legs on fire a moment, over the car's back)
+    if (bv.burnT > 0) for (const sd of [-1, 1]) for (let i = 0; i < 3; i++) {
+      const hgt = 10 + ((f * 3 + i * 7 + sd * 5) % 12) - i * 2;
+      box(c, sd * 13 - (5 - i), -34 - hgt - i * 6, (10 - i * 2), hgt + 10, ['#DC2626', '#F97316', '#FDE047'][i]);
+    }
     c.restore();
     put(c, panelBack(lane), x, sy, k, a);
+    // (a ring gone through clean: a burst of flame round him, out and gone)
+    if (bv.through > 0) {
+      const u = 1 - bv.through / 30;
+      c.globalAlpha = 0.7 * (1 - u); c.strokeStyle = u < 0.5 ? '#FDE047' : '#F97316'; c.lineWidth = Math.max(2, 10 * k * (1 - u));
+      c.beginPath(); c.ellipse(x, sy - 90 * k, (60 + u * 140) * k, (70 + u * 150) * k, 0, 0, Math.PI * 2); c.stroke();
+      c.globalAlpha = 1;
+    }
   }
 };
 
@@ -240,13 +260,16 @@ const pose = (state: GameState, t: Tragons, bv: Bv): MeQ => {
     // (the way gravity has him in his car's frame: the view's turned by the roll, so down's turned by it too)
     const a = bv.cam.ang, gx = -Math.sin(a), gy = Math.cos(a);
     const hang = Math.atan2(-gx, gy);
-    if (bv.lock.oneOff) return { mode: 'dangle', side: gx < 0 ? -1 : 1, hang, hurt, ...pt };
-    const leanIn = bv.lock.want !== 0 && bv.lock.lean === bv.lock.want;
-    return { mode: 'grip', side: bv.lock.lean, hang: hang * (leanIn ? 0.3 : 0.8), hurt, ...pt };
+    // (the needle's way is the way he's tipping: hung off that side's rail past the warning)
+    const b = bv.lock.bal;
+    void gx;
+    if (bv.lock.oneOff) return { mode: 'dangle', side: b < 0 ? -1 : 1, hang: hang * 0.4 - Math.sign(b) * 1.1, hurt, ...pt };
+    return { mode: 'grip', side: -bv.lock.push, hang: hang * 0.35 - b * 0.9, hurt, ...pt };
   }
   if (bv.fall) return { mode: 'dangle', side: 1, hang: Math.PI * 0.9, hurt: true, ...pt };
   if (bv.jy > 0) return { mode: 'jump', side: 0, hang: 0, hurt, ...pt };
   if (bv.duck) return { mode: 'duck', side: 0, hang: 0, hurt, ...pt };
+  if (bv.landT > 0) return { mode: 'land', side: 0, hang: 0, hurt, ...pt };
   return { mode: 'ride', side: 0, hang: 0, hurt, ...pt };
 };
 
@@ -272,15 +295,15 @@ const drawFling = (c: Ctx, state: GameState, bv: Bv) => {
 // ---------------------------------------------------------------------------------------------------------------
 // The obstacles
 
-const drawObst = (c: Ctx, t: Tragons, bv: Bv, kind: 'ring' | 'icicles' | 'bar', lane: Lane, s: number, f: number) => {
+const drawObst = (c: Ctx, t: Tragons, bv: Bv, kind: 'ring' | 'icicles' | 'bar', lane: Lane, s: number, f: number, half: 'all' | 'back' | 'front' = 'all') => {
   if (bv.trains[lane] && inGap(t, lane, s)) return;
   trackAt(bv.rolls, lane, s, CP);
   if (!project(bv.cam, CP.x, CP.y, s, SPi)) return;
   const z = s - bv.cam.s, step = hazeStep(z), cave = inTunnel(s);
-  const pic = kind === 'ring' ? ring((f >> 2) % 4, step, cave) : kind === 'icicles' ? icicles(step, cave) : iceBar(step, cave);
+  const pic = kind === 'ring' ? ring((f >> 2) % 4, step, cave, half) : kind === 'icicles' ? icicles(step, cave) : iceBar(step, cave);
   put(c, pic, SPi.x, SPi.y, SPi.k, -CP.phi);
   // (a ring's glow in the dark)
-  if (kind === 'ring' && (cave || step < 3)) { c.globalAlpha = 0.12; c.fillStyle = '#F97316'; c.beginPath(); c.arc(SPi.x, SPi.y - 64 * SPi.k, 80 * SPi.k, 0, Math.PI * 2); c.fill(); c.globalAlpha = 1; }
+  if (kind === 'ring' && half !== 'front' && (cave || step < 3)) { c.globalAlpha = 0.12; c.fillStyle = '#F97316'; c.beginPath(); c.arc(SPi.x, SPi.y - (RING_BOTTOM + RING_IN) * SPi.k, (RING_IN + 30) * SPi.k, 0, Math.PI * 2); c.fill(); c.globalAlpha = 1; }
 };
 
 const flamesAt = (c: Ctx, x: number, y: number, k: number, f: number, phi: number) => {
@@ -456,21 +479,17 @@ export const drawBehindHud = (c: Ctx, state: GameState) => {
         else { countdown(c, x, y, 70, 1 - bv.zap.t / ZAP_TELL, f % 10 < 5 && bv.zap.t > ZAP_TELL * 0.6 ? '#FFFFFF' : '#FDE047', false); text(c, 'GOING LIVE!', x, y - 6, '#FDE047', 6, 'center', true); }
       }
     }
+    // ---- a ring gone through clean: THROUGH!
+    if (bv.through > 0) { const hy = turned(bv, bv.me.x, bv.me.y - 150 * bv.me.k); text(c, 'THROUGH!', clampX(hy.x), clampY(hy.y) - (30 - bv.through), bv.through % 6 < 3 ? '#FDE047' : '#FFFFFF', 8, 'center', true); }
     // ---- in a roll: the lean (a big arrow the way to lean), a hand off (red at the edges)
     if (bv.lock) {
       const L = bv.lock;
-      if (L.want !== 0) {
-        const x = W / 2 + L.want * 150, y = bv.me.y - 70, ok = L.lean === L.want;
-        const col = ok ? '#4ADE80' : f % 10 < 5 ? '#FFFFFF' : '#FDE047';
-        polyF(c, [[x - L.want * 22, y - 18], [x + L.want * 14, y], [x - L.want * 22, y + 18]], INK);
-        polyF(c, [[x - L.want * 19, y - 13], [x + L.want * 9, y], [x - L.want * 19, y + 13]], col);
-        text(c, 'LEAN', x - L.want * 6, y + 30, col, 7, 'center', true);
-      }
+      balanceBar(c, L.bal, L.oneOff, L.push, f);
       if (L.oneOff) {
         const a = 0.25 + 0.2 * (f % 12 < 6 ? 1 : 0);
         c.fillStyle = `rgba(220, 38, 38, ${a})`;
         c.fillRect(0, 0, W, 18); c.fillRect(0, H - 18, W, 18); c.fillRect(0, 0, 18, H); c.fillRect(W - 18, 0, 18, H);
-        text(c, 'ONE HAND! LEAN!', W / 2, bv.me.y - 130, f % 8 < 4 ? '#FCA5A5' : '#FFFFFF', 8, 'center', true);
+        text(c, 'ONE HAND! BALANCE!', W / 2, ARC_Y + 6, f % 8 < 4 ? '#FCA5A5' : '#FFFFFF', 8, 'center', true);
       }
     }
   }
@@ -478,6 +497,51 @@ export const drawBehindHud = (c: Ctx, state: GameState) => {
   // ---- the fades (in from the station; out to the unload)
   const fade = Math.max(bv.fadeIn / 16, bv.out / 16);
   if (fade > 0) { c.fillStyle = `rgba(0, 0, 0, ${Math.min(1, fade)})`; c.fillRect(0, 0, W, H); }
+};
+
+// ---------------------------------------------------------------------------------------------------------------
+// The balance meter (the owner's: "a 'tony hawk' balance meter? curved."): an arc like a rainbow over him, the safe
+// green at its top through yellow and orange to red at its two ends (stepped bands, inked, lit), the warning zones past
+// BAL_ONE marked, and the needle swinging on a pivot under the arc's middle, his tiny buzzed head on its tip. Screen
+// space, a few fills.
+
+const ARC_X = W / 2, ARC_Y = 262, ARC_R = 104, ARC_W = 14, ARC_SPAN = 1.05, BANDS = 17;
+export const BAR_Y = ARC_Y - ARC_R;
+const BAR_COLS = ['#16A34A', '#22C55E', '#4ADE80', '#A3E635', '#FACC15', '#F59E0B', '#F97316', '#EF4444'];
+/** The point on the arc u of the way out (-1 the left end, 1 the right), at radius r. */
+const arcAt = (u: number, r: number) => { const a = -Math.PI / 2 + u * ARC_SPAN; return { x: ARC_X + Math.cos(a) * r, y: ARC_Y + Math.sin(a) * r }; };
+const band = (c: Ctx, u0: number, u1: number, r0: number, r1: number, col: string) => {
+  const a = -Math.PI / 2 + u0 * ARC_SPAN, b = -Math.PI / 2 + u1 * ARC_SPAN;
+  c.fillStyle = col; c.beginPath(); c.arc(ARC_X, ARC_Y, r1, a, b); c.arc(ARC_X, ARC_Y, r0, b, a, true); c.closePath(); c.fill();
+};
+const balanceBar = (c: Ctx, bal: number, oneOff: boolean, push: number, f: number) => {
+  // (the arc: inked all round, then its bands, lit along the outside, shaded inside)
+  band(c, -1.04, 1.04, ARC_R - ARC_W / 2 - 2, ARC_R + ARC_W / 2 + 2, INK);
+  for (let i = 0; i < BANDS; i++) {
+    const u0 = -1 + (i * 2) / BANDS, u1 = u0 + 2 / BANDS, far = Math.abs((u0 + u1) / 2);
+    const col = BAR_COLS[Math.min(BAR_COLS.length - 1, Math.floor(far * BAR_COLS.length))];
+    const hot = far > BAL_ONE && oneOff && f % 8 < 4;
+    band(c, u0, u1 + 0.002, ARC_R - ARC_W / 2, ARC_R + ARC_W / 2, hot ? '#FFFFFF' : col);
+    band(c, u0, u1 + 0.002, ARC_R + ARC_W / 2 - 3, ARC_R + ARC_W / 2, mix(col, '#FFFFFF', 0.45));
+    band(c, u0, u1 + 0.002, ARC_R - ARC_W / 2, ARC_R - ARC_W / 2 + 3, mix(col, '#000000', 0.3));
+  }
+  // (the warning zones' marks, the top's notch)
+  for (const s of [-1, 1]) band(c, s * BAL_ONE - 0.012, s * BAL_ONE + 0.012, ARC_R - ARC_W / 2 - 3, ARC_R + ARC_W / 2 + 3, INK);
+  band(c, -0.012, 0.012, ARC_R + ARC_W / 2 - 4, ARC_R + ARC_W / 2 + 4, '#FFFFFF');
+  // (the needle: from its pivot to past the arc, his tiny head on its tip; pushed: an arrow the way he's pushing)
+  const u = Math.max(-1.04, Math.min(1.04, bal)), tip = arcAt(u, ARC_R + 16), base = arcAt(u, 26);
+  c.lineCap = 'round';
+  c.strokeStyle = INK; c.lineWidth = 6; c.beginPath(); c.moveTo(base.x, base.y); c.lineTo(tip.x, tip.y); c.stroke();
+  c.strokeStyle = '#F8FAFC'; c.lineWidth = 3; c.beginPath(); c.moveTo(base.x, base.y); c.lineTo(tip.x, tip.y); c.stroke();
+  c.lineCap = 'butt';
+  c.fillStyle = INK; c.beginPath(); c.arc(base.x, base.y, 5, 0, Math.PI * 2); c.fill();
+  c.fillStyle = '#D09A30'; c.beginPath(); c.arc(base.x, base.y, 3.5, 0, Math.PI * 2); c.fill();
+  const hd = arcAt(u, ARC_R + 26);
+  c.fillStyle = INK; c.beginPath(); c.arc(hd.x, hd.y, 9, 0, Math.PI * 2); c.fill();
+  c.fillStyle = '#E0AC69'; c.beginPath(); c.arc(hd.x, hd.y, 7.5, 0, Math.PI * 2); c.fill();
+  c.fillStyle = '#18181B'; c.beginPath(); c.arc(hd.x, hd.y - 2, 7.5, Math.PI, 0); c.fill();
+  box(c, hd.x - 7, hd.y - 1, 14, 1.5, INK);
+  if (push) { const p = arcAt(u + push * 0.2, ARC_R + 26); polyF(c, [[p.x, p.y - 6], [p.x + push * 8, p.y], [p.x, p.y + 6]], '#FFFFFF'); }
 };
 
 export const behindOn = (state: GameState) => !!tragonsOf(state).bv;
