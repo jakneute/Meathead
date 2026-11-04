@@ -94,9 +94,9 @@ export const pauseCard = (id: PauseCardId | MinigameId, nin: boolean, joycon: bo
     // THE MINIGAMES (minigamePause.ts: paused in one, its controls here)
     // (hollywood/coaster/plunge.ts: JUMP for all of it, a round at a time)
     case 'plunge': return { title: 'TEST YOUR PLUNGE', rows: [
-      one('THE TURD LINE: RAISE THE BAR (LET GO: IT SINKS)', ['A'], ['@jump'], true),
+      one('THE TURD LINE: HOLD = BAR UP, LET GO = DOWN', ['A'], ['@jump'], true),
       one('ON THE NOSE: PRESS IN THE SWEET SPOT', ['A'], ['@jump']),
-      one('MASH IT: MASH PAST THE LINE', ['A'], ['@jump']),
+      one('MASH IT: MASH IT TO THE TOP', ['A'], ['@jump']),
     ] };
     // (cartoon/bigkid/bumper.ts: tank controls; B (special or charge) boosts once its meter's full)
     case 'bumper': return { title: 'BUMPER BASH', rows: [

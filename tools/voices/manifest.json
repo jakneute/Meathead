@@ -2776,11 +2776,6 @@
  },
  {
   "voice": "announcer",
-  "text": "TEST YOUR PLUNGE!",
-  "from": "HOLLYWOOD"
- },
- {
-  "voice": "announcer",
   "text": "THAT'S A WRAP!",
   "from": "GRAB_CALLOUTS"
  },
@@ -58121,6 +58116,11 @@
  },
  {
   "voice": "m2.hollywood.thrones",
+  "text": "A GUEST HAS PLUNGED THE GODFATHER. A GUEST. IT IS ON THE CEILING. I HAVE ONE MOP.",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.thrones",
   "text": "A LINE CUTTER IS ON THE THRONE. ATTENDANTS, REMOVE HIM.",
   "from": "HOLLYWOOD"
  },
@@ -58201,27 +58201,17 @@
  },
  {
   "voice": "m2.hollywood.thrones",
+  "text": "FINE. YOU DID MY JOB FOR ME. I WILL BE TAKING THIS UP WITH THE UNION.",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.thrones",
   "text": "HE IS BACK ON IT.",
   "from": "HOLLYWOOD"
  },
  {
   "voice": "m2.hollywood.thrones",
   "text": "I HAVE A DEGREE IN FILM. I AM GOING TO BE MOPPING.",
-  "from": "HOLLYWOOD"
- },
- {
-  "voice": "m2.hollywood.thrones",
-  "text": "I WILL NOW BE CLEANING THE GODFATHER'S CLOG. WITH MY HANDS. THANK YOU.",
-  "from": "HOLLYWOOD"
- },
- {
-  "voice": "m2.hollywood.thrones",
-  "text": "IT IS JUST A TOILET NOW. A TOILET I HAVE TO SCRUB. I HATE YOU.",
-  "from": "HOLLYWOOD"
- },
- {
-  "voice": "m2.hollywood.thrones",
-  "text": "IT IS ON THE CEILING. IT IS ON THE CEILING. I HAVE ONE MOP.",
   "from": "HOLLYWOOD"
  },
  {
@@ -58237,16 +58227,6 @@
  {
   "voice": "m2.hollywood.thrones",
   "text": "PLEASE STAND CLEAR OF THE THRONE. ALL OF YOU. NOW.",
-  "from": "HOLLYWOOD"
- },
- {
-  "voice": "m2.hollywood.thrones",
-  "text": "SINCE 1994 IT WAITED. NOW IT IS ON EVERYTHING. AND I HAVE THE ONLY KEY TO THE MOP CLOSET.",
-  "from": "HOLLYWOOD"
- },
- {
-  "voice": "m2.hollywood.thrones",
-  "text": "SIR. I JUST CLEANED THAT. ON MY KNEES. DO NOT.",
   "from": "HOLLYWOOD"
  },
  {
@@ -58267,6 +58247,11 @@
  {
   "voice": "m2.hollywood.thrones",
   "text": "SIR. THAT IS DINO SINATRELLI'S TOILET. SIR. YOUR PANTS.",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.thrones",
+  "text": "SIR. YOU PLUNGED THAT RELIC WITH YOUR OWN HANDS. AND NOW YOU SIT ON IT. OF COURSE YOU DO.",
   "from": "HOLLYWOOD"
  },
  {
@@ -58297,6 +58282,11 @@
  {
   "voice": "m2.hollywood.thrones",
   "text": "THE THRONE WILL NOW CONTINUE. PLEASE BE SEATED.",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.thrones",
+  "text": "THIRTY YEARS NOBODY COULD MOVE IT. YOU MOVED IT. NOW IT IS ON EVERYTHING.",
   "from": "HOLLYWOOD"
  },
  {
@@ -58342,6 +58332,11 @@
  {
   "voice": "m2.hollywood.thrones",
   "text": "YOU KILLED THE JANITORS. WHO DO YOU THINK IS CLEANING THAT. ME. IT IS ME.",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.thrones",
+  "text": "YOU UNCLOGGED A NATIONAL TREASURE. CONGRATULATIONS. I STILL HAVE TO MOP THE CEILING.",
   "from": "HOLLYWOOD"
  },
  {
@@ -59163,6 +59158,21 @@
   "voice": "m2.pa",
   "text": "YOU FOUND NOTHING. NOT ONE THING. DID YOU EVEN LOOK?",
   "from": "INTRO"
+ },
+ {
+  "voice": "m2.plunge.announcer",
+  "text": "PLUNGE!",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.plunge.announcer",
+  "text": "TEST.",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.plunge.announcer",
+  "text": "YOUR.",
+  "from": "HOLLYWOOD"
  },
  {
   "voice": "m2.rex",

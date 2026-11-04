@@ -204,26 +204,28 @@ export const SPIEL_BENT = ['EXPERIMENTAL MODE IS STILL ENGAGED. WE HAVE NOT FOUN
 /** The star toilets: him sat on one (each); on his own; clogged; the blowout coming. */
 export const SPIEL_THRONE_SIT = [
   ["SIR. THAT IS DINO SINATRELLI'S TOILET. SIR. YOUR PANTS."],
-  ["SIR. I JUST CLEANED THAT. ON MY KNEES. DO NOT."],
+  ["SIR. YOU PLUNGED THAT RELIC WITH YOUR OWN HANDS. AND NOW YOU SIT ON IT. OF COURSE YOU DO."],
   ['SIR. THAT CASE IS NOT TO BE OPENED. SIR. THE CASE IS FOR US.'],
 ];
 export const SPIEL_THRONE_AGAIN = ['HE IS BACK ON IT.', 'AGAIN. HE IS DOING IT AGAIN. HE HAS NO SHAME.'];
 export const SPIEL_THRONE_CLOG = ['THE RELIC HAS BEEN ADDED TO. THE RELIC IS RUINED.', 'THAT IS NOT A STAR. THAT IS A NOBODY. HE ATE CORN.'];
 export const SPIEL_THRONE_UHOH = ['THE THRONE IS MAKING A NOISE IT SHOULD NOT MAKE.', 'PLEASE STAND CLEAR OF THE THRONE. ALL OF YOU. NOW.'];
 
-/** TEST YOUR PLUNGE's title, boomed by the game's announcer (MORTAL KOMBAT's TEST YOUR MIGHT: the owner's "make sure an
- *  announcer says 'test your plunge'"). */
-export const ANNOUNCE_PLUNGE = 'TEST YOUR PLUNGE!';
-/** THE GODFATHER'S CLOG being plunged (plunge.ts): starting; during (he'll be the one cleaning it: the staff are dead);
- *  it blown clear, all over everything; after. */
+/** TEST YOUR PLUNGE's title, boomed by the death announcer's voice (MORTAL KOMBAT's TEST YOUR MIGHT: the owner's "before
+ *  it starts an announcer who sounds like the death announcer goes 'TEST. YOUR. PLUNGE!'. one word shows up at a time
+ *  with a beat between"): a word a clip, each up while it's said (plunge.ts). Its voice: cast.json's, the death's. */
+export const PLUNGE_ANNOUNCER = 'm2.plunge.announcer';
+export const ANNOUNCE_PLUNGE = ['TEST.', 'YOUR.', 'PLUNGE!'];
+/** THE GODFATHER'S CLOG being plunged (plunge.ts): starting; during (he'll be the one mopping up: the staff are dead);
+ *  it blown clear by a guest, all over everything; after (the owner: Meathead unclogged it, not the narrator). */
 export const SPIEL_PLUNGE_START = ['SIR. PUT DOWN THE PLUNGER. THAT CLOG IS PROTECTED.', 'SIR. THAT CLOG IS IN THE NATIONAL REGISTRY. SIR.'];
 export const SPIEL_PLUNGE_DURING: ByPants = {
   clean: ['YOU KILLED THE JANITORS. WHO DO YOU THINK IS CLEANING THAT. ME. IT IS ME.', 'I HAVE A DEGREE IN FILM. I AM GOING TO BE MOPPING.'],
   shitty: ['YOU HAVE SHIT YOURSELF AND YOU ARE PLUNGING. I CAN SMELL IT THROUGH THE SPEAKERS.', 'TWO CLOGS. ONE IN THE BOWL. ONE IN HIS PANTS. BOTH MINE TO CLEAN.'],
   nude: ['A NAKED MAN IS PLUNGING A RELIC. I WILL BE WIPING HIM OFF IT TOO.', 'SIR. YOUR THINGS ARE DANGLING IN THE BOWL. I HAVE TO TOUCH THAT BOWL.'],
 };
-export const SPIEL_PLUNGE_WIN = ['IT IS ON THE CEILING. IT IS ON THE CEILING. I HAVE ONE MOP.', 'SINCE 1994 IT WAITED. NOW IT IS ON EVERYTHING. AND I HAVE THE ONLY KEY TO THE MOP CLOSET.'];
-export const SPIEL_PLUNGE_AFTER = ["I WILL NOW BE CLEANING THE GODFATHER'S CLOG. WITH MY HANDS. THANK YOU.", 'IT IS JUST A TOILET NOW. A TOILET I HAVE TO SCRUB. I HATE YOU.'];
+export const SPIEL_PLUNGE_WIN = ['A GUEST HAS PLUNGED THE GODFATHER. A GUEST. IT IS ON THE CEILING. I HAVE ONE MOP.', 'THIRTY YEARS NOBODY COULD MOVE IT. YOU MOVED IT. NOW IT IS ON EVERYTHING.'];
+export const SPIEL_PLUNGE_AFTER = ['YOU UNCLOGGED A NATIONAL TREASURE. CONGRATULATIONS. I STILL HAVE TO MOP THE CEILING.', 'FINE. YOU DID MY JOB FOR ME. I WILL BE TAKING THIS UP WITH THE UNION.'];
 
 /** The park's PA (the boulevard's trailer voice) in the queue: Stuntman Steve. */
 export const PA_STEVE_QUEUE = [
@@ -320,6 +322,6 @@ export const VOICE_LINES: Record<string, string[]> = {
     ...SPIEL_PLUNGE_START, ...pools(SPIEL_PLUNGE_DURING), ...SPIEL_PLUNGE_WIN, ...SPIEL_PLUNGE_AFTER,
   ],
   [PA_VOICE]: [...PA_STEVE_QUEUE, ...PA_STEVE_QUEUE_DEAD],
-  announcer: [ANNOUNCE_PLUNGE],
+  [PLUNGE_ANNOUNCER]: ANNOUNCE_PLUNGE,
   [SLEEPER]: [...pools(SLEEPER_MUMBLE), ...SLEEPER_LEVER],
 };

@@ -54,6 +54,8 @@ export type SoundType =
   | 'clang' | 'clink' | 'crack' | 'glass' | 'crash' | 'boom' | 'nuke' | 'fwpop' | 'fwcrackle'
   // water
   | 'splash' | 'glug' | 'tinkle'
+  // (Meathead 2's TEST YOUR PLUNGE: the plunger's push, its pull, the clog moving down in there)
+  | 'plunge_squelch' | 'plunge_pop' | 'plunge_gurgle'
   // signals, machines, the world
   | 'cursor' | 'menuok' | 'menuback' | 'beep' | 'alert' | 'ding' | 'pickup' | 'reload' | 'powerup' | 'alarm' | 'siren' | 'horn' | 'truckhorn' | 'engine'
   | 'rumble' | 'thunder' | 'roar' | 'bellow' | 'snort' | 'screams'

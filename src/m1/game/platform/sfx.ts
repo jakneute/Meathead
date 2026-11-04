@@ -520,6 +520,51 @@ const SFX: Record<string, SfxDef> = {
     gain: 0.5, vary: 2, gap: 80,
     make: () => { const bp = bandpass(), lp = lowpass(); const drops = Array.from({ length: 8 }, () => [900 + Math.random() * 1800, 0.05 + Math.random() * 0.4]); return render(0.8, t => bp(rnd(), 1500 * ex(t, 3) + 400, 0.5) * ex(t, 5) * 1.2 + lp(rnd(), 300) * ex(t, 8) + drops.reduce((v, [f, at]) => v + (t > at ? Math.sin(TAU * f * (t - at) * (1 + (t - at) * 6)) * ex(t - at, 30) : 0), 0) * 0.25); },
   },
+  // ---- Meathead 2's TEST YOUR PLUNGE (hollywood/coaster/plunge.ts) ----
+  plunge_squelch: {
+    // The plunger shoved down on it: the rubber slapping the water (a low wet thump), a squelch squeezed out under the
+    // cup (a narrow, wobbling burst of wet noise), the air farting out round its rim in bubbles
+    gain: 0.55, vary: 1.2, gap: 90, voices: 2,
+    make: () => {
+      const bp = bandpass(), bp2 = bandpass(), lp = lowpass(); let ph = 0;
+      const bubbles = Array.from({ length: 5 }, (_, k) => [0.07 + k * 0.045 + Math.random() * 0.02, 160 + Math.random() * 140]);
+      return render(0.42, t => {
+        ph += (70 * ex(t, 9) + 48) / SFX_SR;
+        const thump = Math.sin(TAU * ph) * ex(t, 14) * 1.1;
+        const squelch = bp(rnd(), 520 + 380 * Math.sin(TAU * 34 * t) * ex(t, 5), 2.2) * ex(t, 8) * 1.3;
+        const burp = bubbles.reduce((v, [at, f]) => { const u = t - at; return v + (u > 0 ? Math.sin(TAU * f * u * (1 + u * 14)) * ex(u, 30) : 0); }, 0) * 0.55;
+        return lp(thump + squelch + burp + bp2(rnd(), 1500, 1) * ex(t, 40) * 0.4, 2600);
+      });
+    },
+  },
+  plunge_pop: {
+    // ...and pulled up: the cup straining on its suction (a thin rising squeak of rubber and air), the seal letting go
+    // (a sharp, deep POP), the slurp of water rushing back in after it
+    gain: 0.5, vary: 1, gap: 110, voices: 2,
+    make: () => {
+      const bp = bandpass(), bp2 = bandpass(), lp = lowpass();
+      return render(0.5, t => {
+        const strain = t < 0.2 ? bp(rnd(), 380 + 1100 * (t / 0.2), 6) * (t / 0.2) * 0.8 : 0;
+        const u = t - 0.2, pop = u > 0 ? Math.sin(TAU * (820 * ex(u, 22) + 160) * u) * ex(u, 34) * 1.4 : 0;
+        const slurp = u > 0.03 ? bp2(rnd(), 900 - 1200 * (u - 0.03), 3) * Math.sin(Math.PI * Math.min(1, (u - 0.03) / 0.26)) * 0.7 : 0;
+        return lp(strain + pop + slurp, 3400);
+      });
+    },
+  },
+  plunge_gurgle: {
+    // The clog moving down in there: a run of fat, low bubbles coming up through the murk, the pipe groaning under them
+    gain: 0.42, vary: 2.5, gap: 300, voices: 1,
+    make: () => {
+      const lp = lowpass(); let ph = 0;
+      const bub = Array.from({ length: 7 }, (_, k) => [k * 0.075 + Math.random() * 0.03, 110 + Math.random() * 120, 0.6 + Math.random() * 0.5]);
+      return render(0.7, t => {
+        ph += (52 + 9 * Math.sin(TAU * 5 * t)) / SFX_SR;
+        const groan = lp(Math.tanh(2.5 * Math.sin(TAU * ph)), 380) * 0.35 * Math.sin(Math.PI * t / 0.7);
+        const b = bub.reduce((v, [at, f, a]) => { const u = t - at; return v + (u > 0 ? Math.sin(TAU * f * u * (1 + u * 10)) * ex(u, 18) * a : 0); }, 0);
+        return groan + b * 0.8;
+      });
+    },
+  },
   glug: {
     gain: 0.4, vary: 2, gap: 200,
     make: () => render(0.8, t => { const k = Math.floor(t / 0.13), u = t - k * 0.13; return Math.sin(TAU * (180 + k * 30) * u * (1 + u * 8)) * ex(u, 25); }),
