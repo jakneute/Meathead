@@ -36,8 +36,8 @@ export const drawIntroBack = (c: Ctx, state: GameState) => {
   const cam = state.camera.x;
   const vis = (a: number, b: number) => b > cam - 100 && a < cam + CANVAS_WIDTH + 100;
   if (vis(R(GARAGE_END), R(STAIRS_END))) deck(c, f, intro?.office.open ?? 0, intro?.out ? -1 : intro?.alarm ?? 0, intro?.cool ?? 0, vis, { x: state.camera.x + CANVAS_WIDTH / 2, y: state.camera.y + CANVAS_HEIGHT * 0.42 });
-  if (vis(X0 - 400, R(GARAGE_END))) garage(c, vis, truckNow(intro, f));
   const eye = { x: state.camera.x + CANVAS_WIDTH / 2, y: state.camera.y + CANVAS_HEIGHT * 0.42 };
+  if (vis(X0 - 400, R(GARAGE_END))) garage(c, vis, truckNow(intro, f), eye);
   if (vis(R(USA_START) - 600, R(USA_END))) america(c, f, vis, eye);
   if (vis(R(USA_END) - 200, R(END_X) + 400)) plaza(c, state, f, eye);
   // The floors: the garage level's slab (its edge showing, the drop under it), the stairs down, brick in America USA,

@@ -227,7 +227,7 @@ const paintGarage = (g: Ctx, a: number, b: number) => {
   PILLARS.forEach((px, k) => { if (near(px - 20, px + 60)) pillar(g, px, k); });
 
   // The signs (hung, or on the wall)
-  if (near(R(300), R(520))) hungSign(g, R(300), CEIL_Y + 20, 210, 30, BLUE, 'LEVEL 3: LIBERTY', WHITE);
+  // (LEVEL 3: LIBERTY's stamped on its own, over his truck: garage() below, the roof coming in tears it half down)
   if (near(R(1000), R(1340))) hungSign(g, R(1000), CEIL_Y + 20, 330, 30, RED, 'AMERICA USA ->  THIS WAY, PATRIOT', WHITE);
   // (the pay station between the parked cars, its sign up on two posts over it)
   if (near(R(630), R(900))) {
@@ -311,9 +311,11 @@ const sedan = (g: Ctx, x: number, w: number, col: string) => {
   }
 };
 
-const truck = (g: Ctx) => {
+/** Its shadow on the floor under it (left on the floor when the beam takes it up). */
+const truckShadow = (g: Ctx) => { const tx = R(110); checker(g, tx - 22, UPPER - 8, 262, 8, 'rgba(0, 0, 0, 0.5)'); box(g, tx - 10, UPPER - 5, 240, 5, 'rgba(0, 0, 0, 0.45)'); };
+const truck = (g: Ctx, shadow = true) => {
   const tx = R(110);
-  checker(g, tx - 22, UPPER - 8, 262, 8, 'rgba(0, 0, 0, 0.5)'); box(g, tx - 10, UPPER - 5, 240, 5, 'rgba(0, 0, 0, 0.45)');
+  if (shadow) truckShadow(g);
   g.save(); g.translate(tx, UPPER - 6); g.rotate(-0.03);
   const r = ['#4A0A0A', '#7A1010', '#B91C1C', '#DC3A2E', '#F47A66', '#FFD6CC'];
   // (the lift: frame, the yellow coils)
@@ -375,7 +377,7 @@ const truck = (g: Ctx) => {
 };
 
 /** The truck now (see intro/index truckNow): dx from where it ends up, a bounce, frames since it hit (< 0: not yet). */
-export interface TruckNow { dx: number; dy: number; crash: number; f: number; emerging: boolean }
+export interface TruckNow { dx: number; dy: number; crash: number; f: number; emerging: boolean; /** Frames since the roof over it burst (the walk out's abduction); -1: it hasn't. */ hole: number }
 
 /** What the pillar and the truck's front look like after: the pillar cratered and cracked, rebar showing; the hood
  * crumpled up like an accordion and popped, the grille stove in, a headlight smashed; steam coming off it, forever. */
@@ -400,7 +402,7 @@ const wreck = (c: Ctx, tr: TruckNow) => {
   box(c, 222, -30, 18, 6, INK); box(c, 223, -29, 16, 4, '#9AA0A8');
   c.restore();
   // (steam off the radiator, rising; a lot at first, never quite stopping)
-  const sx = R(330) + tr.dx, sy = UPPER - 78;
+  const sx = R(330) + tr.dx, sy = UPPER - 78 + tr.dy;
   const n = T < 200 ? 7 : 3;
   for (let k = 0; k < n; k++) {
     const age = (tr.f * 1.3 + k * (120 / n)) % 120;
@@ -431,6 +433,175 @@ const wreck = (c: Ctx, tr: TruckNow) => {
   }
 };
 
+// ---------------------------------------------------------------------------------------------------------------
+// The roof over his truck, burst open (the walk out's abduction: endgame/abduction.ts). The garage's ceiling is seen from
+// under it: its back edge on top of the back wall (CEIL_Y), coming forward toward him up the screen. The hole's broken
+// through it over the truck: its back edge along the top of the wall (the girder there gone), its sides running forward
+// (fanning out from his eye a touch, the way a ceiling does), its near lip up under the conduit. Through it: the slab's
+// cut face along the back (its thickness, rebar out of it), the inside of the side facing his eye, and over it all the
+// night and the saucer's belly. The still part's painted the once (holeArt); the outline follows his eye.
+
+/** The slab's thickness (the cut face along the hole's back), and how far up the ceiling the hole runs (its near lip). */
+const SLAB_T = 34, HOLE_UP = 104;
+/** Its outline, (along the garage, d: 0 its back edge, 1 its near lip): from the back left corner up its left side
+ *  (to HOLE_L), along the near lip (to HOLE_R), down its right side; the back edge is the straight run back along the
+ *  wall's top. Round the same way as a rect, so the two clip together (holeClip). */
+const HOLE: [number, number][] = [
+  [80, 0], [74, 0.16], [84, 0.32], [74, 0.5], [82, 0.68], [72, 0.86], [80, 1],
+  [100, 0.94], [120, 1.04], [150, 0.92], [178, 1.03], [206, 0.95], [234, 1.05], [262, 0.93], [290, 1.01], [312, 0.94], [328, 1],
+  [336, 0.82], [324, 0.66], [334, 0.47], [322, 0.3], [332, 0.14], [334, 0],
+];
+const HOLE_L = 6, HOLE_R = 16;
+/** Where a point of the ceiling (along, d) lands on screen: up it as it comes forward, out from his eye a touch. */
+const onCeil = (eye: Eye, x: number, d: number): [number, number] => [R(x) + (R(x) - eye.x) * d * 0.08, CEIL_Y - d * HOLE_UP];
+const holePath = (c: Ctx, eye: Eye) => {
+  HOLE.forEach(([x, d], i) => { const [px, py] = onCeil(eye, x, d); if (i) c.lineTo(px, py); else c.moveTo(px, py); });
+  c.closePath();
+};
+/** Clips to what the slab isn't in front of: everything under the ceiling, and up through the hole (the endgame's beam
+ *  uses it too). */
+export const holeClip = (c: Ctx, eye: Eye) => { c.beginPath(); holePath(c, eye); c.rect(-1e6, CEIL_Y, 2e6, 1e6); c.clip(); };
+/** The saucer's belly's middle, over the truck (where the beam comes out of it); its lights' ring. */
+export const SAUCER_X = R(214), SAUCER_EMIT = 72;
+const LIGHTS = 12;
+const lightAt = (i: number): [number, number] => { const a = Math.PI * (0.06 + (0.88 * i) / (LIGHTS - 1)); return [SAUCER_X - Math.cos(a) * 150, 30 + Math.sin(a) * 26]; };
+
+/** The still part, painted the once: the night, the saucer's belly in it, the slab's cut face along the back. */
+const HA_X = R(-20), HA_Y = -60, HA_W = 460, HA_H = CEIL_Y + 4 - HA_Y;
+let holeCanvas: HTMLCanvasElement | null = null;
+const holeArt = () => {
+  if (holeCanvas) return holeCanvas;
+  holeCanvas = document.createElement('canvas'); holeCanvas.width = HA_W; holeCanvas.height = HA_H;
+  const g = holeCanvas.getContext('2d')!;
+  g.translate(-HA_X, -HA_Y);
+  // (the night: deep up top, a pink haze off the saucer lower down, a few stars)
+  bandedGradient(g, HA_X, HA_Y, HA_W, HA_H, ['#05061A', '#0A0E24', '#141236', '#22163E', '#2E1A44'], 12);
+  for (let k = 0; k < 26; k++) box(g, HA_X + Math.floor(hash(k * 1.7) * HA_W), 64 + Math.floor(hash(k * 3.1) * 50), 1, 1, k % 4 ? '#8A88B0' : '#F0EEFF');
+  // (the saucer's belly from under: its rim, the rings stepping in to the emitter, the panel seams, the lights' sockets)
+  const rings: [number, number, string][] = [[200, 58, '#141020'], [194, 54, '#241C34'], [180, 48, '#342A48'], [160, 42, '#443A5C'], [132, 34, '#3A3050'], [100, 26, '#4C4266'], [66, 18, '#5A5078']];
+  for (const [rx, ry, col] of rings) { g.fillStyle = col; g.beginPath(); g.ellipse(SAUCER_X, 14, rx, ry, 0, 0, Math.PI * 2); g.fill(); }
+  g.save(); g.beginPath(); g.ellipse(SAUCER_X, 14, 180, 48, 0, 0, Math.PI * 2); g.clip();
+  checker(g, HA_X, 56, HA_W, 4, '#241C34'); checker(g, HA_X, 46, HA_W, 2, '#443A5C');
+  g.strokeStyle = '#1A1428'; g.lineWidth = 1;
+  for (let i = 0; i < 14; i++) { const a = Math.PI * (i / 13); g.beginPath(); g.moveTo(SAUCER_X - Math.cos(a) * 66, 14 + Math.sin(a) * 18); g.lineTo(SAUCER_X - Math.cos(a) * 180, 14 + Math.sin(a) * 48); g.stroke(); }
+  g.restore();
+  g.strokeStyle = '#8A7AAE'; g.lineWidth = 1; g.beginPath(); g.ellipse(SAUCER_X, 14, 196, 56, 0, Math.PI * 0.08, Math.PI * 0.92); g.stroke();
+  for (let i = 0; i < LIGHTS; i++) { const [lx, ly] = lightAt(i); box(g, lx - 5, ly - 3, 10, 6, '#0E0A16'); box(g, lx - 4, ly - 2, 8, 1, '#5A5078'); }
+  // (the emitter: a stepped yellow dome, glowing pink round it)
+  steppedGlow(g, SAUCER_X, SAUCER_EMIT - 4, 60, '#FF9AE6', 0.3, 0.04, 5);
+  for (const [rx, ry, col] of [[40, 11, '#7A5A10'], [36, 10, '#C89A20'], [30, 8, '#F2C840'], [22, 6, '#FDE68A'], [12, 3, '#FFF8E0']] as [number, number, string][]) { g.fillStyle = col; g.beginPath(); g.ellipse(SAUCER_X, SAUCER_EMIT - 6, rx, ry, 0, 0, Math.PI * 2); g.fill(); }
+  // (the slab's cut face along the hole's back, facing him: broken concrete stepping darker up to its ragged top, the
+  // girder's cut steel along its foot, rebar ends in it and sticking up out of its top)
+  const L = R(HOLE[0][0]), Rt = R(HOLE[HOLE.length - 1][0]), top = CEIL_Y - SLAB_T;
+  g.save(); g.beginPath(); g.moveTo(L, CEIL_Y + 4);
+  for (let x = L; x <= Rt; x += 12) g.lineTo(x, top + Math.round((hash(x * 0.21) - 0.5) * 10));
+  g.lineTo(Rt, top + 2); g.lineTo(Rt, CEIL_Y + 4); g.closePath();
+  g.fillStyle = '#2A2830'; g.fill(); g.clip();
+  ['#2A2830', '#38353E', '#46434C', '#54505A', '#5E5A64'].forEach((col, k) => { const y = top - 6 + k * 6; box(g, L, y, Rt - L, 6, col); checker(g, L, y - 2, Rt - L, 2, col); });
+  speckle(g, L, top - 6, Rt - L, SLAB_T - 10, ['#6A6672', '#2A2830', '#76727E'], 120, 77);
+  box(g, L, CEIL_Y - 16, Rt - L, 16, '#3E3E48'); box(g, L, CEIL_Y - 16, Rt - L, 2, '#6E6E78'); box(g, L, CEIL_Y - 4, Rt - L, 4, '#26262C'); checker(g, L, CEIL_Y - 6, Rt - L, 2, '#26262C');
+  for (let x = L + 8; x < Rt - 4; x += 22) { const y = top + 8 + (x % 3) * 3; box(g, x, y, 3, 3, '#7A3A1A'); box(g, x, y, 1, 1, '#C0703A'); }
+  g.restore();
+  for (let x = L + 14; x < Rt - 10; x += 30) {
+    const h = 6 + Math.floor(hash(x * 0.33) * 12), lean = Math.round((hash(x * 0.71) - 0.5) * 8);
+    for (const [col, w] of [[INK, 3], ['#8A3A1A', 1.5]] as [string, number][]) { g.strokeStyle = col; g.lineWidth = w; g.beginPath(); g.moveTo(x, top + 4); g.lineTo(x + lean, top - h); g.stroke(); }
+  }
+  return holeCanvas;
+};
+
+/** Behind the truck: what's seen up through the hole, and the inside of whichever side faces his eye (the slab's
+ *  thickness again, widening as it comes forward). */
+const roofHoleBack = (c: Ctx, eye: Eye, f: number) => {
+  c.save(); c.beginPath(); holePath(c, eye); c.clip();
+  c.drawImage(holeArt(), HA_X, HA_Y);
+  for (let i = 0; i < LIGHTS; i++) { const [lx, ly] = lightAt(i), lit = (i + (f >> 2)) % 4 === 0; box(c, lx - 4, ly - 2, 8, 4, lit ? '#FF9AE6' : '#7A2A66'); if (lit) box(c, lx - 2, ly - 2, 4, 1, '#FFFFFF'); }
+  const side = (idx: number[], dir: 1 | -1, w: number) => {
+    if (w < 1) return;
+    const pts = idx.map(i => onCeil(eye, HOLE[i][0], HOLE[i][1])), inner = idx.map((i, k): [number, number] => [pts[k][0] + dir * w * HOLE[i][1], pts[k][1]]);
+    c.beginPath(); pts.forEach(([x, y], k) => (k ? c.lineTo(x, y) : c.moveTo(x, y))); for (let k = inner.length - 1; k >= 0; k--) c.lineTo(inner[k][0], inner[k][1]); c.closePath();
+    c.fillStyle = '#34313A'; c.fill();
+    c.beginPath(); inner.forEach(([x, y], k) => (k ? c.lineTo(x, y) : c.moveTo(x, y))); c.strokeStyle = '#5E5A64'; c.lineWidth = 1; c.stroke();
+  };
+  const range = (a: number, b: number) => Array.from({ length: b - a + 1 }, (_, k) => a + k);
+  side(range(0, HOLE_L), 1, Math.min(14, (eye.x - R(HOLE[0][0])) * 0.04));
+  side(range(HOLE_R, HOLE.length - 1), -1, Math.min(14, (R(HOLE[HOLE.length - 1][0]) - eye.x) * 0.04));
+  c.restore();
+};
+
+/** In front of the truck: the hole's broken edge (an ink line round it, the light catching the lip's underside), the
+ *  conduit and the sprinkler main cut off where they crossed it, rebar hanging down off the lip. */
+const roofHoleFront = (c: Ctx, eye: Eye) => {
+  c.beginPath(); HOLE.forEach(([x, d], i) => { const [px, py] = onCeil(eye, x, d); if (i) c.lineTo(px, py); else c.moveTo(px, py); });
+  c.strokeStyle = INK; c.lineWidth = 2; c.stroke();
+  c.beginPath(); for (let i = HOLE_L; i <= HOLE_R; i++) { const [px, py] = onCeil(eye, HOLE[i][0], HOLE[i][1]); if (i > HOLE_L) c.lineTo(px, py - 2); else c.moveTo(px, py - 2); }
+  c.strokeStyle = '#7A7682'; c.lineWidth = 1; c.stroke();
+  for (const [x, dir] of [[74, 1], [334, -1]] as [number, 1 | -1][]) {
+    const [cx] = onCeil(eye, x, 60 / HOLE_UP), [sx] = onCeil(eye, x, 49 / HOLE_UP);
+    const c0 = dir > 0 ? cx - 2 : cx - 8, s0 = dir > 0 ? sx - 2 : sx - 10;
+    box(c, c0, CEIL_Y - 60, 10, 3, '#555B64'); box(c, c0, CEIL_Y - 60, 10, 1, '#8A919C'); box(c, dir > 0 ? c0 + 9 : c0, CEIL_Y - 61, 2, 5, INK);
+    box(c, s0, CEIL_Y - 49, 12, 6, '#9B1C1C'); box(c, s0, CEIL_Y - 49, 12, 1, '#E8705C');
+    const bx = dir > 0 ? s0 + 10 : s0 - 2;
+    box(c, bx, CEIL_Y - 46, 4, 8, '#7A1414'); box(c, bx, CEIL_Y - 46, 1, 8, '#C8352C'); box(c, bx - 1, CEIL_Y - 38, 6, 2, INK);
+  }
+  for (let i = HOLE_L + 1; i < HOLE_R; i += 2) {
+    const [px, py] = onCeil(eye, HOLE[i][0], HOLE[i][1]), h = 8 + (i % 3) * 5, k = i % 4 ? 4 : -4;
+    for (const [col, w] of [[INK, 3], ['#8A3A1A', 1.5]] as [string, number][]) { c.strokeStyle = col; c.lineWidth = w; c.beginPath(); c.moveTo(px, py - 2); c.lineTo(px + k * 0.5, py + h * 0.6); c.lineTo(px + k, py + h); c.stroke(); }
+  }
+};
+
+/** Its underside, going up past his eye (seen from under it): the frame, the axles, the driveshaft, the exhaust, the
+ *  tank, and the tires' treads. Painted the once; drawn as deep as he's looking up at it (none till it's over his eye). */
+let underCanvas: HTMLCanvasElement | null = null, treadCanvas: HTMLCanvasElement | null = null;
+const underArt = () => {
+  if (underCanvas) return underCanvas;
+  underCanvas = document.createElement('canvas'); underCanvas.width = 250; underCanvas.height = 20;
+  const g = underCanvas.getContext('2d')!;
+  bandedGradient(g, 0, 0, 250, 20, ['#2A2A30', '#1E1E24', '#141418', '#0C0C10'], 5);
+  box(g, 4, 2, 242, 3, '#3A3A42'); box(g, 4, 2, 242, 1, '#5A5A64'); box(g, 4, 13, 242, 3, '#2E2E35');
+  for (const x of [46, 206]) { box(g, x - 22, 6, 44, 5, '#3A3A42'); box(g, x - 22, 6, 44, 1, '#6A6A74'); g.fillStyle = '#4A4A54'; g.beginPath(); g.ellipse(x, 9, 9, 6, 0, 0, Math.PI * 2); g.fill(); box(g, x - 3, 7, 6, 2, '#8A8A94'); }
+  box(g, 56, 8, 140, 3, '#4E4E58'); box(g, 56, 8, 140, 1, '#7A7A84');
+  box(g, 20, 15, 200, 2, '#8A9098'); box(g, 20, 15, 200, 1, '#C8CCD2'); box(g, 10, 14, 12, 4, '#6A707A');
+  box(g, 90, 3, 50, 9, '#24242A'); checker(g, 90, 3, 50, 9, '#34343C');
+  for (let x = 14; x < 240; x += 40) box(g, x, 3, 3, 13, '#24242A');
+  return underCanvas;
+};
+const treadArt = () => {
+  if (treadCanvas) return treadCanvas;
+  treadCanvas = document.createElement('canvas'); treadCanvas.width = 34; treadCanvas.height = 20;
+  const g = treadCanvas.getContext('2d')!;
+  box(g, 2, 0, 30, 20, INK); box(g, 4, 0, 26, 19, '#26262C');
+  for (let y = 1; y < 19; y += 4) { box(g, 5, y, 10, 2, '#3A3A42'); box(g, 19, y + 2, 10, 2, '#3A3A42'); }
+  box(g, 4, 0, 2, 19, '#3A3A42'); box(g, 28, 0, 2, 19, '#141418');
+  return treadCanvas;
+};
+const underDepth = (tr: TruckNow, eye: Eye) => Math.max(0, Math.min(18, (eye.y - (UPPER - 6 + tr.dy)) * 0.09));
+const truckUnder = (c: Ctx, tr: TruckNow, eye: Eye) => {
+  const h = underDepth(tr, eye);
+  if (h < 1) return;
+  c.save(); c.translate(R(110) + Math.round(tr.dx), UPPER - 6 + Math.round(tr.dy)); c.rotate(-0.03);
+  c.drawImage(underArt(), -16, -14, 250, h + 4);
+  c.restore();
+};
+const truckTreads = (c: Ctx, tr: TruckNow, eye: Eye) => {
+  const h = underDepth(tr, eye);
+  if (h < 1) return;
+  c.save(); c.translate(R(110) + Math.round(tr.dx), UPPER - 6 + Math.round(tr.dy)); c.rotate(-0.03);
+  for (const wx of [30, 190]) c.drawImage(treadArt(), wx - 17, 2, 34, h + 2);
+  c.restore();
+};
+
+/** LEVEL 3: LIBERTY, hung over his truck on its two rods; once the roof's come in (frames since: `hole`), torn off its
+ *  left rod and swinging down off the right one, settling. */
+const LIB_X = R(296), LIB_Y = CEIL_Y - 6, LIB_W = 222, LIB_H = 64, LIB_PX = R(494), LIB_PY = CEIL_Y - 2;
+const paintLiberty = (g: Ctx) => hungSign(g, R(300), CEIL_Y + 20, 210, 30, BLUE, 'LEVEL 3: LIBERTY', WHITE);
+let libCanvas: HTMLCanvasElement | null = null;
+const libertySign = (c: Ctx, hole: number) => {
+  if (hole < 0) { stamp(c, 'm2u-liberty', LIB_X, LIB_Y, LIB_W, LIB_H, paintLiberty); return; }
+  if (!libCanvas) { libCanvas = document.createElement('canvas'); libCanvas.width = LIB_W; libCanvas.height = LIB_H; const g = libCanvas.getContext('2d')!; g.translate(-LIB_X, -LIB_Y); paintLiberty(g); }
+  const a = -0.95 * (1 - Math.exp(-hole / 5)) + 0.2 * Math.exp(-hole / 60) * Math.sin(hole * 0.15);
+  c.save(); c.translate(LIB_PX, LIB_PY); c.rotate(a); c.drawImage(libCanvas, LIB_X - LIB_PX, LIB_Y - LIB_PY); c.restore();
+};
+
 /** In front of him while he climbs out of the window: the truck's door again (so it's in front of his legs). */
 export const truckDoorFront = (c: Ctx, tr: TruckNow) => {
   c.save();
@@ -440,10 +611,12 @@ export const truckDoorFront = (c: Ctx, tr: TruckNow) => {
   c.restore();
 };
 
-export const garage = (c: Ctx, vis: (a: number, b: number) => boolean, tr: TruckNow) => {
+export const garage = (c: Ctx, vis: (a: number, b: number) => boolean, tr: TruckNow, eye: Eye) => {
   chunked(c, 'm2u-gar', GX0, GX1, -80, UPPER + 80, paintGarage);
   // (walking out at closing: only the one left on this level)
   for (const [x, col, w] of CARS) if ((!walkOutOn() || x === R(820)) && vis(x - 10, x + w + 10)) stamp(c, `m2u-car:${x}`, x - 8, UPPER - 72, w + 16, 74, g => sedan(g, x, w, col));
+  // (the roof over it burst open, the endgame's abduction: the night and the saucer up through it, the slab's cut faces)
+  if (tr.hole >= 0) roofHoleBack(c, eye, tr.f);
   if (vis(R(60) + tr.dx, R(380) + tr.dx)) {
     // (coming in: dust kicked up behind it, speed lines)
     if (tr.crash < 0) for (let k = 0; k < 6; k++) {
@@ -451,11 +624,30 @@ export const garage = (c: Ctx, vis: (a: number, b: number) => boolean, tr: Truck
       pixelBlob(c, x, UPPER - 8 - age * 0.4, 6 + age * 0.3, 4 + age * 0.15, `rgba(150, 146, 140, ${(0.5 * (1 - age / 28)).toFixed(2)})`);
       box(c, R(40) + tr.dx - k * 30 - (tr.f * 9) % 30, UPPER - 30 - k * 14, 26, 2, 'rgba(255, 255, 255, 0.5)');
     }
-    c.save(); c.translate(Math.round(tr.dx), Math.round(tr.dy));
-    stamp(c, 'm2u-truck', R(110) - 40, UPPER - 150, 300, 152, truck);
-    c.restore();
-    if (tr.crash >= 0) wreck(c, tr);
+    if (tr.dy < 0) {
+      // Up in the beam: its shadow stays on the floor, fading; the truck only where the slab isn't in the way (under the
+      // ceiling, or up through the hole); its underside showing once it's up over his eye
+      c.save(); c.globalAlpha = Math.max(0, 1 + tr.dy / 90); stamp(c, 'm2u-truck-shadow', R(110) - 40, UPPER - 10, 300, 12, truckShadow); c.restore();
+      c.save();
+      if (tr.hole >= 0) holeClip(c, eye);
+      truckUnder(c, tr, eye);
+      c.save(); c.translate(Math.round(tr.dx), Math.round(tr.dy));
+      stamp(c, 'm2u-truck-up', R(110) - 40, UPPER - 150, 300, 152, g => truck(g, false));
+      c.restore();
+      if (tr.crash >= 0) wreck(c, tr);
+      truckTreads(c, tr, eye);
+      c.restore();
+    } else {
+      c.save(); c.translate(Math.round(tr.dx), Math.round(tr.dy));
+      stamp(c, 'm2u-truck', R(110) - 40, UPPER - 150, 300, 152, truck);
+      c.restore();
+      if (tr.crash >= 0) wreck(c, tr);
+    }
   }
+  // (the hole's near lip and broken edges, in front of the truck going up through it)
+  if (tr.hole >= 0) roofHoleFront(c, eye);
+  // (LEVEL 3: LIBERTY, hung off the ceiling; the roof coming in tears its left rod loose, and it swings down off the right)
+  if (vis(R(290), R(520))) libertySign(c, tr.hole);
   // (the tube on its way out: off, on, off...)
   if (vis(FLICKER - 80, FLICKER + 144) && typeof performance !== 'undefined') {
     const now = performance.now(), t = Math.floor(now / 70);

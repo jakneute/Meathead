@@ -50,7 +50,7 @@ import { SKIP_AFTER, offerSkip, takeSkip } from '../../m1/game/platform/skip';
 import { createGrab, updateGrab, drawGrab, grabbing, type Grab } from '../moves/grab';
 import { setUi, goTo, isLeaving, arrived, carryGut, takeGut, walkBackOn, setWalkBack, walkOutOn } from '../store';
 import { MH_WALK_OUT, GUARD_BORED, GUARD_ALERT_OUT, PA_OUT } from '../endgame/lines';
-import { startAbduction, tickAbduction, abductionLift, drawAbductionFront, drawAbductionHud, type Abduction } from '../endgame/abduction';
+import { startAbduction, tickAbduction, abductionLift, abductionHole, drawAbductionFront, drawAbductionHud, type Abduction } from '../endgame/abduction';
 import { stopWeapons } from '../weapons';
 import { todLight } from '../timeOfDay';
 import { drawNotedSunFlare } from '../sunFlare';
@@ -375,7 +375,8 @@ export const truckNow = (intro: Intro | null, f: number) => {
   // (the walk out: up in the beam, out through the roof: endgame/abduction.ts)
   const lift = intro?.out?.abduct ? abductionLift(intro.out.abduct) : 0;
   const dy = (t < CRASH_AT ? ((t >> 1) % 3 === 0 ? -1 : 0) : t < CRASH_AT + 8 ? -Math.round(4 * Math.sin(((t - CRASH_AT) / 8) * Math.PI)) : 0) - lift;
-  return { dx, dy, crash: t - CRASH_AT, f, emerging: !!intro?.arrival && t >= EMERGE_AT && t < DIVE_AT + 10 };
+  const hole = intro?.out?.abduct ? abductionHole(intro.out.abduct) : -1;
+  return { dx, dy, crash: t - CRASH_AT, f, emerging: !!intro?.arrival && t >= EMERGE_AT && t < DIVE_AT + 10, hole };
 };
 
 const arrival = (ctx: FrameContext, intro: Intro, controls: object) => {
