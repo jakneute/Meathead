@@ -5,7 +5,8 @@
 //
 // He climbs out of the wreck (it's upside down: out of the cab's window on his belly; skipped the cutscene, he's
 // already out, stood by it), says his piece; up in the sky the aliens and the demons go at each other over him,
-// yelling it now and then. Right, along the lot, to the water park's gate: chained shut, for now (his line about it).
+// yelling it now and then. Right, along the lot, to the water park's gate, chained shut: he kicks it down and walks in
+// over it (the water park, level 1: endgame/park1).
 // No way back: the lot's fenced off to the left. Hour 10 from here on (endgame/stages.ts, timeOfDay.ts). Two
 // checkpoints (endgame/stages.ts: the wreck, the gate), nothing about to hurt him at either (there's nobody here yet).
 // Saved here, as he lands and at each checkpoint (the file's in the endgame: CONTINUE comes back to it).
@@ -19,14 +20,15 @@ import { playSound } from '../../../m1/game/platform/audio';
 import { shakeScreen } from '../../../m1/game/core/state';
 import { say, MEATHEAD_VOICE, pickLine } from '../../../m1/game/platform/speech';
 import { isShat, isNude } from '../../../m1/game/player/gut';
-import { arrived, isLeaving, carryGut, takeGut, setUi, takeStartCheckpoint, setEndgameAt, setWalkOut } from '../../store';
+import { arrived, isLeaving, carryGut, takeGut, setUi, takeStartCheckpoint, setEndgameAt, setWalkOut, setStartCheckpoint, goTo } from '../../store';
 import { saveProgress } from '../../save';
 import { stopWeapons } from '../../weapons';
 import { todLight, setEndgameHour } from '../../timeOfDay';
 import { createGrab, updateGrab, drawGrab, type Grab } from '../../moves/grab';
 import { endgameStage } from '../stages';
 import { takeAbductionSkipped } from '../abduction';
-import { MH_LOT, MH_GATE, ALIEN_CLAIM, DEMON_CLAIM, ALIEN_VOICE, DEMON_VOICE, type Dressed } from '../lines';
+import { MH_KICK } from '../park1/lines';
+import { MH_LOT, ALIEN_CLAIM, DEMON_CLAIM, ALIEN_VOICE, DEMON_VOICE, type Dressed } from '../lines';
 import { LOT, drawLotBackdrop, drawLotBack, lotLights, flyerAt, FLYER_LIST } from './art';
 import { setWalkwaysBack } from '../../intro/geometry';
 
@@ -44,6 +46,8 @@ interface Lot {
   barkNext: number; bark: { text: string; i: number } | null;
   /** How hard the wreck's steaming (it dies down). */
   steam: number;
+  /** The gate kicked down: frames into it (-1 not yet), and how far down it is (0..1). */
+  kick: number; gate: number;
 }
 const getLot = (state: GameState) => state.stage as Lot | null;
 const dressed = (state: GameState): Dressed => (isNude(state) ? 'nude' : isShat(state) ? 'shitty' : 'clean');
@@ -86,7 +90,7 @@ export const lotLayout: StageLayout = {
     if (!STAGE.checkpoints.some(c => c.cp === state.checkpoint)) state.checkpoint = 0;
     // (just landed, the cutscene played out: he's in the wreck yet, and climbs out)
     const inWreck = fresh && state.checkpoint === 0 && !takeAbductionSkipped();
-    const lot: Lot = { grab: createGrab(state), climb: inWreck ? 0 : -1, said: !inWreck && !fresh, gateAt: -1e9, barkNext: state.frame + 420, bark: null, steam: fresh ? 1 : 0.5 };
+    const lot: Lot = { grab: createGrab(state), climb: inWreck ? 0 : -1, said: !inWreck && !fresh, gateAt: -1e9, barkNext: state.frame + 420, bark: null, steam: fresh ? 1 : 0.5, kick: -1, gate: 0 };
     state.stage = lot;
     const p = state.player, x = inWreck ? OUT_X : CP_AT[state.checkpoint];
     p.pos = { x: x - p.width / 2, y: GROUND_Y - p.height }; p.vel = { x: 0, y: 0 }; p.facing = 1;
@@ -122,8 +126,19 @@ export const lotLayout: StageLayout = {
     if (!lot.said) { lot.said = true; mhSays(state, pickLine(MH_LOT[dressed(state)])); }
     // (the checkpoints: on past one, it's where he comes back to; saved there)
     for (const c of STAGE.checkpoints) if (c.cp > state.checkpoint && px >= CP_AT[c.cp]) { state.checkpoint = c.cp; setEndgameAt({ stage: STAGE.id, cp: c.cp }); saveProgress(); }
-    // (at the gate: chained shut. For now.)
-    if (px > LOT.gate - 200 && performance.now() - lot.gateAt > 45000) { lot.gateAt = performance.now(); mhSays(state, pickLine(MH_GATE[dressed(state)])); }
+    // (at the gate, chained shut: he kicks it down (a quick beat, no input, no HUD), walks in over it: the water park,
+    // level 1 (endgame/park1))
+    if (lot.kick < 0 && px > LOT.gate - 200 && p.isGrounded && p.health > 0) { lot.kick = 0; p.inCutscene = true; p.vel.x = 0; setUi({ introCutscene: true }); }
+    if (lot.kick >= 0) {
+      lot.kick++;
+      p.inCutscene = true; p.facing = 1;
+      if (lot.kick === 6) p.kickPose = 22;
+      if (lot.kick === 14) { state.blocks = state.blocks.filter(b => b.tag !== 'lot-gate'); lot.gate = 0.01; playSound('crash', 1, -6); playSound('slam', 0.9, -8); shakeScreen(state, 14, 6); mhSays(state, pickLine(MH_KICK[dressed(state)])); }
+      if (lot.gate > 0) lot.gate = Math.min(1, lot.gate + 0.08);
+      if (lot.kick > 60) p.vel.x = 2.4;
+      if (lot.kick === 110) { setStartCheckpoint(0); goTo('park1'); }
+      return { ...NO_CONTROLS, right: lot.kick > 60 };
+    }
     // (the sky: now and then one of them yells it; only one at a time, and only while it's said)
     if (!lot.bark && state.frame > lot.barkNext) {
       const up = FLYER_LIST.map((f, i) => ({ f, i, at: flyerAt(f, state.frame) })).filter(o => !o.at.falling && o.at.x > 80 && o.at.x < CANVAS_WIDTH - 80);
@@ -140,7 +155,7 @@ export const lotLayout: StageLayout = {
   },
   drawBackdrop: (c, state) => { drawLotBackdrop(c, state); return true; },
   lighting: () => todLight(lotLights(), 1),
-  drawBack: (c, state) => { const lot = getLot(state); drawLotBack(c, state, { steam: lot?.steam ?? 0.5 }); },
+  drawBack: (c, state) => { const lot = getLot(state); drawLotBack(c, state, { steam: lot?.steam ?? 0.5, gate: lot?.gate ?? 0 }); },
   drawFront: (c, state) => { const lot = getLot(state); if (lot) drawGrab(c, state, lot.grab); },
   drawHud: (c, state) => {
     // (whoever's yelling up there: the words over them, plain, while it's said)

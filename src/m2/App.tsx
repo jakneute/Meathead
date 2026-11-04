@@ -62,7 +62,8 @@ import { usePadFamily } from '../m1/components/useInputDevice';
 import { SPOTS, LANDS } from './hub/lands';
 import { introLayout, INTRO_STAGE, registerIntro, introGender } from './intro/index';
 import { lotLayout, LOT_STAGE } from './endgame/lot/index';
-import { endgameStage } from './endgame/stages';
+import { parkLayout, PARK_STAGE } from './endgame/park1/index';
+import { endgameStage, endgameLevelStart } from './endgame/stages';
 import { setGenderOf, unpaired } from '../m1/content/gender';
 import { m2KindGender } from './kinds';
 import { KILL_LINES, GENERIC_KILL_LINES, KILL_CALLOUTS, ENEMY_KILL_LINES } from '../m1/content/dialogue';
@@ -157,7 +158,7 @@ import { registerGrabCallouts } from './moves/callouts';
 // test pen behind the staff door (try out the beatdown and the shakedown on whoever walks in).
 
 // (in Meathead 2, what's thrown up off the top of the screen comes back down: no "TO THE MOON")
-for (const l of [hubLayout, penLayout, advLayout, spookyLayout, spaceLayout, hollywoodLayout, foreignLayout, frontierLayout, fantasyLayout, cartoonLayout, introLayout, gymLayout, lotLayout]) l.noMoonKills = true;
+for (const l of [hubLayout, penLayout, advLayout, spookyLayout, spaceLayout, hollywoodLayout, foreignLayout, frontierLayout, fantasyLayout, cartoonLayout, introLayout, gymLayout, lotLayout, parkLayout]) l.noMoonKills = true;
 // (and the camera glides where it'd jump in the lands: out of a cutscene's view, onto a fight's arena)
 advLayout.smoothCameraSnaps = true;
 spookyLayout.smoothCameraSnaps = true;
@@ -167,6 +168,7 @@ foreignLayout.smoothCameraSnaps = true;
 frontierLayout.smoothCameraSnaps = true;
 fantasyLayout.smoothCameraSnaps = true;
 cartoonLayout.smoothCameraSnaps = true;
+parkLayout.smoothCameraSnaps = true;
 registerStageLayout(HUB_STAGE, hubLayout);
 registerStageLayout(PEN_STAGE, penLayout);
 registerStageLayout(ADV_STAGE, advLayout);
@@ -181,6 +183,7 @@ registerStageLayout(INTRO_STAGE, introLayout);
 registerStageLayout(GYM_STAGE, gymLayout);
 // (the endgame's stages: endgame/stages.ts)
 registerStageLayout(LOT_STAGE, lotLayout);
+registerStageLayout(PARK_STAGE, parkLayout);
 registerIntro();
 registerGmen();
 loadVoicePack(voicePackUrl);
@@ -286,7 +289,7 @@ const App2: React.FC = () => {
   // Spooky Land, ?space=<checkpoint> in Space Land, ?hollywood=<checkpoint> in Hollywood Land, ?foreign=<checkpoint> in
   // Foreign Lands, ?hub=<spot> at the hub, ?pen in the staff room)
   const devQ = import.meta.env.DEV ? new URLSearchParams(location.search) : null;
-  const first = devQ?.has('adv') ? ADV_STAGE : devQ?.has('spooky') ? SPOOKY_STAGE : devQ?.has('space') ? SPACE_STAGE : devQ?.has('hollywood') ? HOLLYWOOD_STAGE : devQ?.has('foreign') ? FOREIGN_STAGE : devQ?.has('frontier') ? FRONTIER_STAGE : devQ?.has('fantasy') ? FANTASY_STAGE : devQ?.has('cartoon') ? CARTOON_STAGE :devQ?.has('hub') ? HUB_STAGE : devQ?.has('pen') ? PEN_STAGE : devQ?.has('intro') ? INTRO_STAGE : GYM_STAGE;
+  const first = devQ?.has('adv') ? ADV_STAGE : devQ?.has('spooky') ? SPOOKY_STAGE : devQ?.has('space') ? SPACE_STAGE : devQ?.has('hollywood') ? HOLLYWOOD_STAGE : devQ?.has('foreign') ? FOREIGN_STAGE : devQ?.has('frontier') ? FRONTIER_STAGE : devQ?.has('fantasy') ? FANTASY_STAGE : devQ?.has('cartoon') ? CARTOON_STAGE :devQ?.has('hub') ? HUB_STAGE : devQ?.has('pen') ? PEN_STAGE : devQ?.has('intro') ? INTRO_STAGE : devQ?.has('park') ? PARK_STAGE : devQ?.has('lot') ? LOT_STAGE : GYM_STAGE;
   const [stage, setStage] = useState(first);
   // (the hidden upgrades changing (the cheats, a find): the HUD's max health, cells and ammo redrawn)
   useSyncExternalStore(subscribeUpgrades, upgradesVersion);
@@ -326,10 +329,13 @@ const App2: React.FC = () => {
     playOnFile(slot, f.playTimeMs);
     // (in the endgame (out through America USA, past the point of no return): back where he got to in it, its stage and
     // checkpoint; never the hub again)
-    const eg = f.endgame ? endgameStage(f.endgame.stage) : null;
-    setEndgameAt(eg && f.endgame ? { ...f.endgame } : null);
+    // (the owner's: "loaded saves take you to the very start of the stage you last reached": the start of the level
+    // the file's got to, not the checkpoint it was saved at (endgame/stages.ts endgameLevelStart))
+    const egAt = f.endgame && endgameStage(f.endgame.stage) ? { ...f.endgame, ...endgameLevelStart(f.endgame.stage) } : null;
+    const eg = egAt ? endgameStage(egAt.stage) : null;
+    setEndgameAt(egAt);
     refreshFindsHour();
-    if (eg && f.endgame) { setStartCheckpoint(f.endgame.cp); pending.current = eg.stage; setTitle(false); return; }
+    if (eg && egAt) { setStartCheckpoint(egAt.cp); pending.current = eg.stage; setTitle(false); return; }
     // (all cleared: nothing plays by itself; out through America USA is the endgame's way in (hub/index.ts))
     // (onto the hub, where Meathead 1's goes onto the map: in off America USA's street)
     setHubStart(AMERICA_SLOT);

@@ -9,7 +9,7 @@
 
 import { storage, readJson, writeJson } from '../m1/game/save/storage';
 import { clearedLands, allKept, allBossDeaths, allFound, alphaEndSeen, announcedLands, announcedAll, subscribeProgress, endgameAt, type BossDeath } from './store';
-import { endgameStage } from './endgame/stages';
+import { endgameStage, type EndgameRecord } from './endgame/stages';
 import { LANDS } from './hub/lands';
 import { snapshotUpgrades, cleanUpgrades, type UpgradesSave } from './upgrades/state';
 
@@ -36,7 +36,7 @@ export interface Progress {
   upgrades?: UpgradesSave;
   /** In the endgame (out through America USA, past the point of no return): which of its stages, which checkpoint
    *  (store.ts endgameAt; endgame/stages.ts). CONTINUE goes there, not the hub. Absent: not in it (older files too). */
-  endgame?: { stage: string; cp: number };
+  endgame?: EndgameRecord;
 }
 
 export interface SaveFile extends Progress {
@@ -64,10 +64,15 @@ const clean = (raw: unknown): SaveFile | null => {
   const found: Record<string, string[]> = {};
   if (o.found && typeof o.found === 'object') for (const [k, v] of Object.entries(o.found as Record<string, unknown>)) if (LAND_IDS.includes(k) && Array.isArray(v)) found[k] = v.filter((id): id is string => typeof id === 'string');
   // (the endgame: a stage this build knows, its checkpoint a whole number; else it's as if he'd never got there)
-  let endgame: { stage: string; cp: number } | undefined;
+  let endgame: EndgameRecord | undefined;
   if (o.endgame && typeof o.endgame === 'object') {
     const e = o.endgame as Record<string, unknown>, st = typeof e.stage === 'string' ? endgameStage(e.stage) : null;
-    if (st) { const cp = typeof e.cp === 'number' && st.checkpoints.some(c => c.cp === e.cp) ? e.cp : st.checkpoints[0].cp; endgame = { stage: st.id, cp }; }
+    if (st) {
+      const cp = typeof e.cp === 'number' && st.checkpoints.some(c => c.cp === e.cp) ? e.cp : st.checkpoints[0].cp;
+      endgame = { stage: st.id, cp };
+      // (Ned's boss rush, level 4: the rematches done, kept (none yet in this build))
+      if (Array.isArray(e.rematches)) endgame.rematches = e.rematches.filter((r): r is string => typeof r === 'string');
+    }
   }
   return { version: VERSION, cleared, kept, deaths, found, endgame, alphaSeen: o.alphaSeen === true, annLands: o.annLands === true, annAll: o.annAll === true, upgrades: cleanUpgrades(o.upgrades), playTimeMs: num(o.playTimeMs), lastPlayed: num(o.lastPlayed) };
 };

@@ -125,7 +125,7 @@ export interface M2Ui {
 }
 
 /** The stretches with a pause-menu controls card (PauseControls.tsx). */
-export type PauseCardId = 'bike' | 'heli' | 'cart' | 'tragons' | 'tragonsClassic' | 'broom' | 'sled' | 'orbit' | 'logride';
+export type PauseCardId = 'bike' | 'heli' | 'cart' | 'tragons' | 'tragonsClassic' | 'broom' | 'sled' | 'orbit' | 'logride' | 'tube';
 
 /** (Truelling Tragons) A hop asked for (wheel up or RB: the car above; wheel down or LB: the car below), taken by the
  *  ride next frame (it keeps its own cooldown); one at a time, the last asked. */
@@ -338,10 +338,11 @@ export const takeStartCheckpoint = () => { const cp = startCheckpoint; startChec
 /** Where he's got to in the endgame: an endgame stage (endgame/stages.ts id) and a checkpoint in it; null, not in it.
  *  Set the moment he walks out of the hub through America USA (the hub's behind him for good), saved (save.ts), and
  *  CONTINUE takes him there. */
-let endgame: { stage: string; cp: number } | null = null;
+let endgame: import('./endgame/stages').EndgameRecord | null = null;
 export const endgameAt = () => endgame;
 export const inEndgame = () => endgame !== null;
-export const setEndgameAt = (at: { stage: string; cp: number } | null) => { endgame = at; };
+/** (the rematches done, level 4's, are kept across a move on: only null clears them) */
+export const setEndgameAt = (at: import('./endgame/stages').EndgameRecord | null) => { endgame = at ? { ...at, rematches: at.rematches ?? endgame?.rematches } : null; if (endgame && !endgame.rematches) delete endgame.rematches; };
 /** (the prologue of the epilogue) The way in walked backward, out of the park to his truck: set going there
  *  (goTo('intro')), read by the intro as it's built (intro/walkOut.ts). */
 let walkOut = false;

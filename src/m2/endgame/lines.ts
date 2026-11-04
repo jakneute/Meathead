@@ -5,6 +5,8 @@
 // and anybody's who's talking to him three ways: clean pants, shitty, naked. All recorded: ENDGAME_VOICE_LINES (in
 // tools/voices extract.ts and m2pack.ts).
 
+import { PARK1_VOICE_LINES } from './park1/lines';
+
 export type Dressed = 'clean' | 'shitty' | 'nude';
 type ByDress = Record<Dressed, string[]>;
 
@@ -120,3 +122,5 @@ export const ENDGAME_VOICE_LINES: Record<string, string[]> = {
   'm2.space.alien': all(ALIEN_CLAIM),
   'm2.demon': all(DEMON_CLAIM),
 };
+// (the water park's level 1: park1/lines.ts)
+for (const [v, l] of Object.entries(PARK1_VOICE_LINES)) (ENDGAME_VOICE_LINES[v] ??= []).push(...l);

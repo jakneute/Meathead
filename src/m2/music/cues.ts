@@ -38,6 +38,7 @@ import { SPOTS, LANDS } from '../hub/lands';
 import { PEN_STAGE } from '../pen/index';
 import { INTRO_STAGE } from '../intro/index';
 import { abductionOn } from '../endgame/abduction';
+import { PARK_STAGE } from '../endgame/stages';
 import { GYM_STAGE } from '../intro/gym/course';
 import { ADV_STAGE } from '../adventure/index';
 import { SPOOKY_STAGE } from '../spooky/index';
@@ -586,6 +587,12 @@ const gameWants = (s: GameState | null): Want => {
     // (the walk back after Wilderness Land: its own arrangement the whole way, if the song has one)
     return { cands: [{ song: 'intro', arrs: walkBackOn() || walkOutOn() ? ['back', zone] : [zone] },{ song: 'title', arrs: [INTRO_STANDIN[zone] ?? 'main'] }], cutscene: cutscene || !!getUi().introCutscene };
   }
+  // (the water park (the endgame's level 1, endgame/park1): for now Future Land's theme (the aliens' park), and the
+  // saucer fight's song for the summit's kid; the owner's music plan for the endgame comes later)
+  if (stage === PARK_STAGE) {
+    if (bossFightName(s) || inBossFight(s)) return { cands: [{ song: 'boss:ufo', arrs: cutscene ? ['intro', 'main'] : ['main'] }, { song: 'land:space', arrs: ['main'] }], cutscene: false };
+    return { cands: [{ song: 'land:space', arrs: ['main'] }], cutscene: cutscene || !!getUi().introCutscene };
+  }
   const land = LAND_OF_STAGE[stage];
   if (!land) return none;
   const sec = sectionOf(s) ?? '';
@@ -635,6 +642,7 @@ const warmLand = (land: string | null) => {
   for (const id of ids) if (SONGS[id]) prewarm(SONGS[id]);
 };
 
+let parkWarm = false;
 const apply = () => {
   const test = soundTestCue();
   if (!enabled()) { if (last) { last = ''; stop(0.3); } return; }
@@ -663,6 +671,8 @@ const apply = () => {
   setSpace(space);
   setMix(isTalking(), !test && (paused || (!!state?.player.swimming && !!LAND_OF_STAGE[stage ?? ''])), !test && quiet);
   warmLand(stage ? LAND_OF_STAGE[stage] ?? null : null);
+  // (the water park: the two songs it borrows, made ahead)
+  if (stage === PARK_STAGE && !parkWarm) { parkWarm = true; for (const id of ['land:space', 'boss:ufo']) if (SONGS[id]) prewarm(SONGS[id]); }
 };
 
 const start = () => {

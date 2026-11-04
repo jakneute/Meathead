@@ -15,6 +15,7 @@ import { truckPicture } from '../../intro/art/upper';
 import { text, steppedGlow, pixelBlob } from '../../intro/art/kit';
 import { elbow, knee } from '../../art/limb';
 import { stamp } from '../../../m1/game/render/stamp';
+import { WATER_PARK_NAME } from '../stages';
 
 type Ctx = CanvasRenderingContext2D;
 const INK = '#08070C';
@@ -175,7 +176,7 @@ export const drawLotBackdrop = (c: Ctx, state: GameState) => {
 
 const LIGHTS = [260, 900, 1400, 1850];
 export const lotLights = () => LIGHTS.map(x => ({ x, y: GROUND_Y - 150, r: 170, a: 0.3, color: '#FDE68A' }));
-export const drawLotBack = (c: Ctx, state: GameState, wreck: { steam: number }) => {
+export const drawLotBack = (c: Ctx, state: GameState, wreck: { steam: number; gate?: number }) => {
   const cam = state.camera.x, f = state.frame;
   const vis = (a: number, b: number) => b > cam - 60 && a < cam + W + 60;
   // (the fence at the back of the lot, chain link, against the far off)
@@ -211,11 +212,31 @@ export const drawLotBack = (c: Ctx, state: GameState, wreck: { steam: number }) 
     for (let k = 0; k < 5; k++) { const an = a + (k / 5) * Math.PI * 2; R(c, wx + Math.cos(an) * 11, wy + Math.sin(an) * 11, 2, 2, '#FFFFFF'); }
   }
   // The water park's gate: two towers, the arch, its name; the gates under it shut, a chain and a padlock, CLOSED
-  if (vis(LOT.gate - 200, LOT.gate + 200)) drawGate(c, f);
+  if (vis(LOT.gate - 200, LOT.gate + 200)) drawGate(c, f, wreck.gate ?? 0);
 };
 
-const drawGate = (c: Ctx, f: number) => {
+/** The gates themselves (the bars, the chain, the CLOSED sign): `down` 0 up, 1 kicked in flat (falling away from him,
+ *  into the park: squashed down onto the ground's plane, the far side). */
+const paintBars = (g: Ctx) => {
   const X = LOT.gate, B = GROUND_Y;
+  for (let x = X - 116; x <= X + 114; x += 14) { R(g, x, B - 150, 4, 150, INK); R(g, x + 1, B - 150, 2, 150, '#8A8E98'); }
+  R(g, X - 118, B - 154, 236, 6, INK); R(g, X - 117, B - 153, 234, 4, '#A4A8B2');
+  R(g, X - 118, B - 70, 236, 6, INK); R(g, X - 117, B - 69, 234, 4, '#A4A8B2');
+  for (let k = 0; k < 9; k++) { g.strokeStyle = INK; g.lineWidth = 3; g.beginPath(); g.ellipse(X - 32 + k * 8, B - 96 + Math.sin(k) * 2, 5, 3, 0, 0, Math.PI * 2); g.stroke(); g.strokeStyle = '#C8CCD2'; g.lineWidth = 1.2; g.stroke(); }
+  R(g, X - 8, B - 92, 16, 16, INK); R(g, X - 6, B - 90, 12, 12, '#D4A017'); R(g, X - 2, B - 86, 4, 5, INK);
+  R(g, X - 44, B - 76, 88, 28, INK); R(g, X - 42, B - 74, 84, 24, '#F8FAFC'); R(g, X - 42, B - 74, 84, 4, '#DC2626');
+  text(g, 'CLOSED', X, B - 55, '#B91C1C', 10);
+};
+const drawGate = (c: Ctx, f: number, down: number) => {
+  const X = LOT.gate, B = GROUND_Y;
+  // (the bars: up, or going over away from him, flat at the last; drawn first: the arch's towers stand in front of them)
+  if (down <= 0) stamp(c, 'lot-gate-bars', X - 130, B - 160, 260, 162, paintBars);
+  else {
+    const k = Math.min(1, down), sq = Math.max(0.04, Math.cos(k * Math.PI / 2));
+    c.save(); c.translate(0, B); c.scale(1, sq); c.translate(0, -B);
+    stamp(c, 'lot-gate-bars', X - 130, B - 160, 260, 162, paintBars);
+    c.restore();
+  }
   stamp(c, 'lot-gate', X - 190, B - 300, 380, 302, g => {
     for (const tx of [X - 170, X + 120]) {
       R(g, tx - 2, B - 260, 54, 260, INK); R(g, tx, B - 258, 50, 258, '#1E4A7A'); R(g, tx, B - 258, 8, 258, '#3A7AB8'); R(g, tx + 42, B - 258, 8, 258, '#14345A');
@@ -229,15 +250,7 @@ const drawGate = (c: Ctx, f: number) => {
     g.strokeStyle = '#67E8F9'; g.lineWidth = 6; g.beginPath(); g.moveTo(X - 150, B - 246); g.quadraticCurveTo(X, B - 340, X + 150, B - 246); g.stroke();
     g.lineCap = 'butt';
     // (its name: readable, up on the arch)
-    text(g, 'HAPPY WATERS', X, B - 262, '#FEF08A', 14);
-    // (the gates: bars, shut, the chain round the middle, the padlock, the sign hung off it)
-    for (let x = X - 116; x <= X + 114; x += 14) { R(g, x, B - 150, 4, 150, INK); R(g, x + 1, B - 150, 2, 150, '#8A8E98'); }
-    R(g, X - 118, B - 154, 236, 6, INK); R(g, X - 117, B - 153, 234, 4, '#A4A8B2');
-    R(g, X - 118, B - 70, 236, 6, INK); R(g, X - 117, B - 69, 234, 4, '#A4A8B2');
-    for (let k = 0; k < 9; k++) { g.strokeStyle = INK; g.lineWidth = 3; g.beginPath(); g.ellipse(X - 32 + k * 8, B - 96 + Math.sin(k) * 2, 5, 3, 0, 0, Math.PI * 2); g.stroke(); g.strokeStyle = '#C8CCD2'; g.lineWidth = 1.2; g.stroke(); }
-    R(g, X - 8, B - 92, 16, 16, INK); R(g, X - 6, B - 90, 12, 12, '#D4A017'); R(g, X - 2, B - 86, 4, 5, INK);
-    R(g, X - 44, B - 76, 88, 28, INK); R(g, X - 42, B - 74, 84, 24, '#F8FAFC'); R(g, X - 42, B - 74, 84, 4, '#DC2626');
-    text(g, 'CLOSED', X, B - 55, '#B91C1C', 10);
+    text(g, WATER_PARK_NAME, X, B - 262, '#FEF08A', 14);
   });
   // (the work lights on its towers, blinking)
   for (const tx of [X - 145, X + 145]) if ((f >> 5) % 2) steppedGlow(c, tx, B - 268, 12, '#22D3EE', 0.5, 0.1, 3);

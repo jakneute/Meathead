@@ -30,7 +30,7 @@ export const LAND_COUNT = 9;
  *  own (out through America USA, past the point of no return: endgame/stages.ts gives each stage its hour). The owner:
  *  "'10' from then on regardless: the same skyline as 9 but with no fireworks"; it'll run on through the night to
  *  sunrise as the endgame's built (more keys past 10 then). */
-export const LAST_HOUR = 10;
+export const LAST_HOUR = 11;
 
 // ---------------------------------------------------------------------------------------------------------------
 // Where in the day it is
@@ -120,6 +120,11 @@ const KEYS: Key[] = [
   // (the endgame's first hour: the same night as 9, no fireworks (fireworks.ts keys them to 9 alone))
   { at: 10, name: 'night', sky: ['#060A1C', '#0B1230', '#121B42', '#1C2752', '#283460', '#38406C'], skyK: 0.93,
     sunH: -1, sun: '#F2683A', sunGlow: '#C24A44', moon: 1, stars: 1, cloud: '#5E6890', mul: '#A8B0DC', dark: 0.22, shade: [8, 12, 40], haze: '#2E3866', lamps: 1 },
+  // (the small hours: the water park's level 1 boss dead (the owner's: "after the kid dies, the hour advances"). Deeper
+  // in: the darkest of it, the moon low and going, the horizon gone a cold indigo; dawn's still a way off (the water
+  // park runs on through the night to it; Satan at sunrise))
+  { at: 11, name: 'small hours', sky: ['#04061A', '#080E2A', '#0E163A', '#16204A', '#202A58', '#2C3462'], skyK: 0.95,
+    sunH: -1, sun: '#F2683A', sunGlow: '#C24A44', moon: 0.85, stars: 1, cloud: '#545E86', mul: '#9EA6D4', dark: 0.25, shade: [6, 10, 38], haze: '#283160', lamps: 1 },
 ];
 
 /** The look at this point in the day: everything a scene needs to light itself by. */
