@@ -269,8 +269,10 @@ const camera = (state: GameState, t: Tragons, bv: Bv, snap: boolean) => {
   laneBase(lane, sCar, HB);
   const hx = bv.hop ? cx : HB.x;
   let lo = hx, hi = hx;
+  // (by the tracks, not the dragons on them: a dragon gone over a broken end and its spare coming back must never swing
+  // the camera, or the tracks slide across into each other's places on screen (the owner's: "i saw a fire track where
+  // the ice track should be ... before it 'snapped'"))
   for (const l of LANES) {
-    if (bv.trains[l].phase !== 'ok' && bv.trains[l].phase !== 'arrive') continue;
     laneBase(l, sCar, MB);
     if (Math.abs(MB.x - hx) > 1300) continue;
     lo = Math.min(lo, MB.x); hi = Math.max(hi, MB.x);
