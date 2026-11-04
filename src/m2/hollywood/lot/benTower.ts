@@ -648,30 +648,21 @@ const cutCurtains = (state: GameState, h: Tower): number => {
 };
 /** The ones still hung, in his way: under one sliding (or flash kicking); walking or jumping into one, bounced back
  *  out (it swings). What happened at one this frame: walked into it, jumped (or uppercut) into it, slid on under it. */
+// (they never stop him or shove him (the owner's: "make sure the curtains in the shin minigame don't hinder movement in
+// any way. they just sway when you get close. it felt like i got stuck"): he goes straight through, and one sways as
+// he comes near or passes; only a flash kick cuts one)
 const runCurtains = (state: GameState, h: Tower): 'walk' | 'air' | 'under' | null => {
-  const p = state.player, fy = feetY(state), cx = midX(state);
-  let got: 'walk' | 'air' | 'under' | null = null;
+  const p = state.player, cx = midX(state);
   if (!h.curtain) return null;
   for (const c of h.curtains) {
     if (c.cut) continue;
     const a = X(c.a), b = a + CUR_W, mx = (a + b) / 2;
-    const over = p.pos.x + p.width > a && p.pos.x < b && fy > Y(TANK_F + TANK.h);
-    if (!over) {
-      // (out from under it: out the far side is a slide on under, not a cut)
-      const side = cx < mx ? -1 : 1;
-      if (c.slidIn && side !== c.side) got = 'under';
-      c.side = side; c.slidIn = false;
-      continue;
-    }
-    if (p.isSliding || p.flashKick) { c.slidIn = true; continue; }
-    // (slid partway under and stopped: out the far side; walked or jumped into it: back out, and it swings)
-    const side = c.slidIn ? -c.side as 1 | -1 : c.side;
-    p.pos.x = side < 0 ? a - p.width - 1 : b + 1; p.vel.x = 0;
-    if (c.slidIn) { c.side = side; c.slidIn = false; got = 'under'; continue; }
-    if (Math.abs(c.sv) < 0.01) { c.sv = -side * 0.05; playSound('thud', 0.5, -10); }
-    got = !p.isGrounded || p.isUppercutting ? 'air' : 'walk';
+    const near = p.pos.x + p.width > a - 24 && p.pos.x < b + 24;
+    const side = cx < mx ? -1 : 1;
+    if (near && Math.abs(c.sv) < 0.01) c.sv = -side * (0.03 + Math.min(0.03, Math.abs(p.vel.x) * 0.006));
+    c.side = side; c.slidIn = false;
   }
-  return got;
+  return null;
 };
 const miss = (state: GameState, h: Tower, lines: string[]) => {
   if (state.frame < h.missAt) return;
