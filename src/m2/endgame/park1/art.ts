@@ -185,7 +185,7 @@ export const sign = (c: Ctx, x: number, feet: number, lines: string[], board = '
   if (key) stamp(c, `wp-sign-${key}`, x - 200, feet - 120, 400, 124, draw); else draw(c);
 };
 /** Where the plaza's signs stand (no palm in front of one). */
-const SIGN_X = [...SLIDES.filter(S => S.stairs.n > 0).map(S => S.stairs.x - 90), ...TUBES.map(T => T.stairs.x - 100), 4600, 5380, 520, 760];
+const SIGN_X = [...SLIDES.filter(S => S.stairs.n > 0).map(S => S.stairs.x - 90), ...TUBES.map(T => T.stairs.x - 150), 4600, 5380, 520, 760];
 /** The plaza's back props (behind him, dimmed: nothing here to stand on). */
 const drawProps = (c: Ctx, state: GameState) => {
   // (palms, every so often, back from the path)
@@ -221,7 +221,7 @@ const drawProps = (c: Ctx, state: GameState) => {
   });
   // (the slides' and tubes' signs, at their stairs' foot)
   for (const S of SLIDES) if (S.stairs.n > 0 && vis(state, S.stairs.x - 220, S.stairs.x)) sign(c, S.stairs.x - 90, GY, [S.name, S.id === 'squirt' ? 'RIDE IT. FLY.' : S.id === 'kamikaze' ? 'NOT FOR CHILDREN' : S.id === 'twister' ? 'MIND THE CRATER' : 'KEEP ARMS IN'], '#7C2D12', '#FEF3C7', S.id);
-  for (const T of TUBES) if (vis(state, T.stairs.x - 220, T.stairs.x)) sign(c, T.stairs.x - 100, GY, [T.name, 'TUBES ONLY', 'NO JUMPING AT THE LIPS'], '#312E81', '#E0E7FF', T.id);
+  for (const T of TUBES) if (vis(state, T.stairs.x - 260, T.stairs.x)) sign(c, T.stairs.x - 150, GY, [T.name, 'TUBES ONLY', 'NO JUMPING AT THE LIPS'], '#312E81', '#E0E7FF', T.id);
   if (vis(state, 4500, 4720)) sign(c, 4600, GY, ['THE LAGOON', 'NO DIVING'], '#0E7490', '#FEF3C7', 'lagoon');
   if (vis(state, 5300, 5480)) sign(c, 5380, GY, ['LAZY RIVER', 'RELAX'], '#065F46', '#ECFDF5', 'lazy');
   // (the tiki hut under its roof ledge, the lifeguard stands: their tops lit, they're stood on)
@@ -252,9 +252,10 @@ const chuteBack = (g: Ctx, pts: [number, number][], col: string, wide = 20) => {
 };
 const chuteFront = (g: Ctx, pts: [number, number][], col: string) => {
   g.lineCap = 'round'; g.lineJoin = 'round';
-  g.strokeStyle = INK; g.lineWidth = 12; g.beginPath(); pts.forEach(([x, y], i) => (i ? g.lineTo(x, y + 6) : g.moveTo(x, y + 6))); g.stroke();
-  g.strokeStyle = col; g.lineWidth = 8; g.stroke();
-  g.strokeStyle = 'rgba(255,255,255,0.4)'; g.lineWidth = 2; g.beginPath(); pts.forEach(([x, y], i) => (i ? g.lineTo(x, y + 3) : g.moveTo(x, y + 3))); g.stroke();
+  // (the near wall: up past the water's line, so whoever's sat in it is down behind it from the hips)
+  g.strokeStyle = INK; g.lineWidth = 15; g.beginPath(); pts.forEach(([x, y], i) => (i ? g.lineTo(x, y + 2) : g.moveTo(x, y + 2))); g.stroke();
+  g.strokeStyle = col; g.lineWidth = 11; g.stroke();
+  g.strokeStyle = 'rgba(255,255,255,0.4)'; g.lineWidth = 2; g.beginPath(); pts.forEach(([x, y], i) => (i ? g.lineTo(x, y - 3) : g.moveTo(x, y - 3))); g.stroke();
   g.lineCap = 'butt'; g.lineJoin = 'miter';
 };
 const boundsOf = (pts: [number, number][], pad = 40) => {
@@ -397,7 +398,7 @@ const paintFloor = (g: Ctx, k: number) => {
   const y = floorY(k), top = k < FLOORS ? floorY(k + 1) + DECK : y - FLOOR;
   // (the back wall: scaffold behind a tarp printed with a mountain; fake snow piled in the corners. Not the summit's:
   // it's out in the open, the sky over it)
-  if (k > 0 && k < FLOORS) {
+  if (k < FLOORS) {
     R(g, TL, top, TR - TL, y - top, '#2A3448');
     g.fillStyle = '#3A4A66'; g.beginPath(); g.moveTo(TL, y); g.lineTo(TL + 220, top + 60); g.lineTo(TL + 360, top + 110); g.lineTo(TL + 520, top + 30); g.lineTo(TR, y); g.closePath(); g.fill();
     g.fillStyle = '#C8D4E4'; g.beginPath(); g.moveTo(TL + 180, top + 82); g.lineTo(TL + 220, top + 60); g.lineTo(TL + 262, top + 82); g.closePath(); g.fill();
@@ -421,7 +422,7 @@ const paintFloor = (g: Ctx, k: number) => {
     if (k === 2 || k === 5) { R(g, TL + 520, top + 160, 140, 28, INK); R(g, TL + 522, top + 162, 136, 24, '#F8FAFC'); text(g, 'OXYGEN $40', TL + 590, top + 178, '#B91C1C', 7, 'center', null); }
     if (k === 7) { R(g, TL + 60, top + 160, 200, 28, INK); R(g, TL + 62, top + 162, 196, 24, '#FDE047'); text(g, 'DEATH ZONE: NO REFUNDS', TL + 160, top + 178, INK, 6, 'center', null); }
     // (the staff doors at the back: where they come out)
-    for (const dx of DOORS_X) { R(g, dx - 28, y - 96, 56, 96, INK); R(g, dx - 26, y - 94, 52, 94, '#475569'); R(g, dx - 26, y - 94, 52, 3, '#94A3B8'); R(g, dx + 14, y - 50, 6, 6, '#FACC15'); text(g, 'STAFF', dx, y - 74, '#F8FAFC', 6); }
+    if (k > 0) for (const dx of DOORS_X) { R(g, dx - 28, y - 96, 56, 96, INK); R(g, dx - 26, y - 94, 52, 94, '#475569'); R(g, dx - 26, y - 94, 52, 3, '#94A3B8'); R(g, dx + 14, y - 50, 6, 6, '#FACC15'); text(g, 'STAFF', dx, y - 74, '#F8FAFC', 6); }
   }
   // (the ledges: crates of fake snow, oxygen tank racks: lit lips)
   for (const [x, h, w] of FLOOR_LEDGES[k]) {
@@ -442,15 +443,21 @@ const paintStairs = (g: Ctx, k: number) => {
   // (the frame they hang off)
   const s = exitSide(k), edge = s > 0 ? TR : TL, x1 = edge + s * STAIR;
   R(g, Math.min(edge, x1), floorY(k + 1), 4, FLOOR, '#4A5468'); R(g, Math.max(edge, x1) - 4, floorY(k + 1), 4, FLOOR, '#4A5468');
-  for (let i = 1; i < pts.length - 1; i++) {
+  // (the flights and the landing between: not the bits on the decks either end)
+  for (let i = 1; i < pts.length - 2; i++) {
     const [ax, ay] = pts[i], [bx, by] = pts[i + 1];
+    if (Math.abs(ay - by) < 2) { R(g, Math.min(ax, bx) - 6, ay, Math.abs(bx - ax) + 12, 8, '#3A4252'); R(g, Math.min(ax, bx) - 6, ay, Math.abs(bx - ax) + 12, 2, '#E2E8F0'); continue; }
+    // (the stringer under the flight, solid; the treads on it, each lit along its top; the rail)
+    g.strokeStyle = INK; g.lineWidth = 12; g.beginPath(); g.moveTo(ax, ay + 5); g.lineTo(bx, by + 5); g.stroke();
+    g.strokeStyle = '#3A4252'; g.lineWidth = 9; g.stroke();
     const n = Math.max(1, Math.round(Math.abs(ay - by) / 18));
     for (let j = 0; j < n; j++) {
-      const t = j / n, x = ax + (bx - ax) * t, yy = ay + (by - ay) * t;
-      R(g, Math.min(x, x + (bx - ax) / n), yy - 4, Math.abs(bx - ax) / n + 2, 4, '#64748B');
-      R(g, Math.min(x, x + (bx - ax) / n), yy - 4, Math.abs(bx - ax) / n + 2, 1, '#CBD5E1');
+      const t = j / n, x = ax + (bx - ax) * t, yy = ay + (by - ay) * t, w = Math.abs(bx - ax) / n + 3;
+      R(g, Math.min(x, x + (bx - ax) / n) - 1, yy - 5, w, 6, '#64748B');
+      R(g, Math.min(x, x + (bx - ax) / n) - 1, yy - 5, w, 2, '#E2E8F0');
     }
     g.strokeStyle = '#94A3B8'; g.lineWidth = 2; g.beginPath(); g.moveTo(ax, ay - 38); g.lineTo(bx, by - 38); g.stroke();
+    for (const [px, py] of [[ax, ay], [bx, by]]) R(g, px - 1, py - 38, 2, 38, '#94A3B8');
   }
 };
 const drawTower = (c: Ctx, state: GameState, gates: number[], tells: { x: number; t: number }[], lockedFloor: number | null) => {

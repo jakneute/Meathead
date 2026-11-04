@@ -222,8 +222,6 @@ export const PLAZA_CAST: [Who, number, number][] = [
   ['gator', 5340, GY], ['aguest', 5760, GY], ['pelican', 5900, GY - 280], ['dguest', 6050, GY], ['trooper', 6225, GY - 120],
   // the Kamikaze's island
   ['trooper', 8300, GY], ['dguest', 8390, GY],
-  // past the island
-  ['aguest', 9260, GY],
   // the splashdown's plaza, the Wipeout
   ['dguest', 16500, GY], ['aguest', 16700, GY], ['trooper', 17060, GY - 110], ['gator', 16900, GY], ['pelican', 16800, GY - 280],
   ['hover', 18380, GY - 260],

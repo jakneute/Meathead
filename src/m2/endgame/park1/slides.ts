@@ -14,7 +14,7 @@ import { playSound } from '../../../m1/game/platform/audio';
 import { SLIDES, type Slide } from './geo';
 
 /** How far down into the chute's water he sits (his feet under its surface line). */
-const SINK = 8;
+const SINK = 11;
 /** The pace on a slide: gravity along it, the drag, the lean either way, the least and most. */
 const G = 0.5, DRAG = 0.01, LEAN_ON = 0.09, LEAN_BACK = 0.14, MIN_V = 2.5, MAX_V = 15;
 /** JUMP within this many frames of the lip: thrown higher (px a frame up), and a touch further. */

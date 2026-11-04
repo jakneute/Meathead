@@ -96,6 +96,10 @@ export const parkLayout: StageLayout = {
     if (!CP_AT[state.checkpoint]) state.checkpoint = 0;
     const killed = state.checkpoint >= CP.L2;
     setEndgameHour(killed ? STAGE2.hour : STAGE1.hour);
+    // ---- the engine's own boss end (Meathead 1's: its door, its arena's floor, walls and ceiling at BOSS_DOOR_X, 7200 on,
+    // and a wall at its stage width): the lands sit out past it (100000 on); the water park's at 0, so it's taken out
+    // here (it stood in the Kamikaze's sinkhole). Only the far left wall's kept.
+    state.blocks = state.blocks.filter(b => b.x + b.w <= parkLayout.left);
     // ---- the ground: the plaza's runs, the pools' floors (their sides are the runs' ends), the islands, the ledges
     lay(state, GROUND.map(([a, b]) => ({ x1: a, y1: GY, x2: b, y2: GY, surface: 'hard' })));
     lay(state, POOLS.map(p => ({ x1: p.x1, y1: p.bottom, x2: p.x2, y2: p.bottom, surface: 'hard' })));
@@ -156,7 +160,7 @@ export const parkLayout: StageLayout = {
   update: (ctx, controls) => {
     const { state } = ctx;
     const pk = parkOf(state);
-    if (import.meta.env.DEV) { (window as unknown as { __m2: GameState }).__m2 = state; (window as unknown as { __wp: unknown }).__wp = pk; }
+    if (import.meta.env.DEV) { (window as unknown as { __m2: GameState }).__m2 = state; (window as unknown as { __wp: unknown }).__wp = pk; (window as unknown as { __wpProbe: () => unknown }).__wpProbe = () => { const q = state.player, x = q.pos.x + q.width / 2, f = q.pos.y + q.height; return [x | 0, f | 0, +q.vel.x.toFixed(1), +q.vel.y.toFixed(1), q.isGrounded, state.blocks.filter(b => x >= b.x && x <= b.x + b.w && Math.abs(b.y - f) < 6).map(b => `${b.tag}:${b.type}:${b.x},${b.y},${b.w}`)]; }; }
     if (isLeaving()) { stopWeapons(); carryGut(state.player); state.player.vel.x = 0; return { ...NO_CONTROLS }; }
     if (!pk) return controls;
     wakeNear(state);
