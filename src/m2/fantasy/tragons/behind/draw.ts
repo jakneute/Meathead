@@ -222,7 +222,7 @@ export const drawBehind = (c: Ctx, state: GameState) => {
   let ii = 0;
 
   // ---- the lawn, the tracks, step by step from the far end in
-  let farRib: Bore | null = null;
+  let farRib: Bore | null = null, nearDone = false;
   const lift = DROPS[0];
   for (let k = DRAW_N - 1; k >= 0; k--) {
     const r = rows[k], n = rows[k + 1];
@@ -245,6 +245,12 @@ export const drawBehind = (c: Ctx, state: GameState) => {
         drawRib(c, rib, step);
         if (step < 4) ribLamps.push({ x: (rib.x0 + rib.x1) / 2, y: rib.y0 + 18 * rib.k, r: 220 * rib.k });
         farRib = { ...rib };
+        // (the last rib before the camera: the rock on out to the camera now, under what's nearer (drawn after, it
+        // painted over the near cars: the owner's "the cave walls render in front of the dragon cart"))
+        const nxt = ribAt - RIB;
+        if (camIn && !nearDone && !(nxt > TUNNEL.a + 20 && zOf(cam, nxt) > 30)) {
+          const near = boreRect(bv, Math.max(TUNNEL.a + 1, cam.s + 30)); caveSpan(c, near, farRib, 0, f, 0); nearDone = true;
+        }
       }
     }
     const fade = r.z < NEAR_CUT ? 0 : r.z < NEAR_CUT + NEAR_FADE ? (r.z - NEAR_CUT) / NEAR_FADE : 1;
@@ -275,7 +281,7 @@ export const drawBehind = (c: Ctx, state: GameState) => {
     while (ii < items.length && items[ii].s >= r.s) { if (items[ii].s < r.s + SEG * 1.5 || k === DRAW_N - 1) items[ii].draw(); ii++; }
   }
   // (the mountain's rock on past the nearest rib, out to the camera)
-  if (camIn && farRib) { const near = boreRect(bv, Math.max(TUNNEL.a + 1, cam.s + 30)); caveSpan(c, near, farRib, 0, f, 0); }
+  if (camIn && farRib && !nearDone) { const near = boreRect(bv, Math.max(TUNNEL.a + 1, cam.s + 30)); caveSpan(c, near, farRib, 0, f, 0); }
   if (clipped) c.restore();
   while (ii < items.length) { items[ii].draw(); ii++; }
   // (the dragons' lamps in the mountain: a beam ahead of each head)
