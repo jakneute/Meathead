@@ -5,6 +5,7 @@
 
 import type { FrontierSection } from '../section';
 import { buildBenLair, updateBenLair, benWaterAt, inLair, underBed } from './benLair';
+import { benCamZoom } from '../../upgrades/confucktious';
 import { drawBenLairBack, drawBenLairFront, drawBenLairHud, benLighting } from './benLairArt';
 
 /** Where his feet sit on screen down there: the office (it fits, floor to ceiling, the rock over it), the maze (he's
@@ -19,6 +20,8 @@ export const withBenLair = (base: FrontierSection): FrontierSection => ({
     return base.update ? base.update(ctx, c) : c;
   },
   waterBodyAt: (state, x, y) => benWaterAt(x, y) ?? base.waterBodyAt?.(state, x, y) ?? null,
+  // (pulled back a little more while Ben's talking, if that's what holds them both: confucktious/benCam.ts)
+  zoom: (state) => benCamZoom(state) ?? base.zoom?.(state) ?? null,
   cameraRow: (state) => (inLair(state) ? ROOM_ROW : underBed(state) ? MAZE_ROW : base.cameraRow?.(state)),
   lighting: (state, b) => benLighting(state, base.lighting?.(state, b) ?? b ?? null),
   drawBack: (c, state) => { base.drawBack?.(c, state); drawBenLairBack(c, state); },

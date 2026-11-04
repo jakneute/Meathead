@@ -24,6 +24,7 @@ import { drawPitBounce } from '../pitBounce';
 import { drawKiddieBackdrop, drawKiddieBack, drawPitHeaps, kiddieLamps } from './art';
 import { ARRIVE, REVISIT, GAGS } from './lines';
 import './kinds';
+import { benCamZoom } from '../../upgrades/confucktious';
 import { buildHidden, updateHidden, inCave, overTrolleyPit, drawHiddenHud, CAVE } from './hidden';
 import { drawHoleBack, drawCaveBackdrop, drawCaveBack, drawCaveFront, caveLighting } from './hiddenArt';
 import { CANVAS_WIDTH } from '../../../m1/constants';
@@ -101,6 +102,8 @@ export const kiddie: CartoonSection = {
   // (the cave: its own walls; the square: the section's own (its x1 is the studio's door side))
   cameraX: (state) => (inCave(state) ? { min: CAVE.a - 40, max: CAVE.b + 40 - CANVAS_WIDTH } : { min: x0, max: x1 - CANVAS_WIDTH }),
   drawHud: (c, state) => drawHiddenHud(c, state),
+  // (pulled back a little while Ben's talking in the cave, if that's what holds them both: confucktious/benCam.ts)
+  zoom: (state) => benCamZoom(state),
   outdoors: (state) => (inCave(state) ? 0 : 1),
   // (down in the cave: its own dark and lights (hiddenArt.ts); up in the square, the time of day's as ever)
   lighting: (state, base) => (inCave(state) ? caveLighting(state) : base ?? null),

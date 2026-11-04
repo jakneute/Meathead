@@ -71,7 +71,7 @@ import { setPiece, setBenMet, benGave, setBenGave, benSpot, setBenSpot } from '.
 import { helmetStops } from '../../upgrades/gear';
 import type { EquipControl } from '../../upgrades/equipInfo';
 import {
-  NUDGE_OUT, BYE_MEATHEAD, PIECE_LINES, benSays, drawBenGross, drawBenGrossBack, warmBenGross, meetupScript, startScript, tickScript, skipScript,
+  NUDGE_OUT, BYE_MEATHEAD, PIECE_LINES, benSays, drawBenGross, drawBenGrossBack, warmBenGross, frameBen, meetupScript, startScript, tickScript, skipScript,
   type BenPose, type BenTalk, type Script, type Beat, type ByPants, giftCoda,
   makeGate, markGate, gateBump, type Gate,
 } from '../../upgrades/confucktious';
@@ -353,6 +353,9 @@ export const updateValhalla = (ctx: FrameContext, controls: Controls): Controls 
   const upNow = !!controls.up, upPress = upNow && !h.upWas;
   h.upWas = upNow;
   if (h.lift > 0 && h.lift < 1) runRise(state, h);
+  // (the camera on him and Ben whenever Ben's talking, the meetup and the gift through (the owner's "make sure he is in
+  // frame at every meeting"))
+  frameBen(state, inHall(state) && (h.phase === 'meet' || h.phase === 'gift' || h.phase === 'card' || !!h.ben.said), X(h.ben.x), HALL.floor, { a: X(HALL.a), b: X(HALL.b) });
   if (!inHall(state)) {
     // (out of the hall: bumping into things hurts again; the intern and his foam gone with him)
     if (setNoContact) { p.noContactHurt = false; setNoContact = false; }

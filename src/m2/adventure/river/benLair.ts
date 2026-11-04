@@ -69,7 +69,7 @@ import type { EquipControl } from '../../upgrades/equipInfo';
 import { makeCannon, updateCannon, cannonBusy, type Cannon } from '../../upgrades/returnCannon';
 import {
   NUDGE, BYE_MEATHEAD, BYE_BEN, PIECE_LINES, PADS_WIDE, artBeats, grabArt, artTipRange,
-  benSays, drawBenGross, drawBenGrossBack, warmBenGross, meetupScript, startScript, tickScript, skipScript,
+  benSays, drawBenGross, drawBenGrossBack, warmBenGross, frameBen, releaseBenCam, meetupScript, startScript, tickScript, skipScript,
   type BenPose, type BenTalk, type Script, type Beat, type ByPants, giftCoda,
   makeGate, syncGate, gateBump, cannonLocked, type Gate,
 } from '../../upgrades/confucktious';
@@ -277,6 +277,10 @@ export const updateLair = (ctx: FrameContext, controls: Controls): Controls => {
   // (the cannon's prompt is set each frame it's near: Jungle Land doesn't clear it itself, and nothing else here sets it)
   setUi({ upPrompt: null });
   if (upShaft(state)) warmBenGross();
+  // (the camera on him and Ben whenever Ben's talking, the meetup and the gift through (the owner's "make sure he is in
+  // frame at every meeting"); the cannon's got the camera once it's busy)
+  if (cannonBusy(h.cannon)) releaseBenCam(state);
+  else frameBen(state, inLair(state) && (h.phase === 'meet' || h.phase === 'gift' || h.phase === 'card' || !!h.ben.said), R(h.ben.x), LAIR.floor - h.ben.lift, { a: R(LAIR.a), b: R(LAIR.b) });
   if (!inLair(state)) {
     // (out of the lair: bumping into things hurts again; the practice one's gone with him)
     if (setNoContact) { p.noContactHurt = false; setNoContact = false; }

@@ -7,6 +7,7 @@ import type { FantasySection } from '../section';
 import { buildLair, updateLair, underground, inRoom, underView } from './benLair';
 import { drawLairBack, drawLairFront, drawLairHud, lairLighting } from './benLairArt';
 import { glenOf } from './state';
+import { benCamZoom } from '../../upgrades/confucktious';
 import { GAG_AT, PA_AT, HORNY_AT } from './layout';
 
 /** Where his feet sit on screen down there: the tunnel (low, the earth over it in view), the room (it fits, floor to
@@ -29,6 +30,8 @@ export const withBenLair = (base: FantasySection): FantasySection => ({
     HELD.forEach((k, i) => { said[k] = was[i]; });
     return out;
   },
+  // (pulled back a little while Ben's talking, if that's what holds them both: confucktious/benCam.ts)
+  zoom: (state) => benCamZoom(state) ?? base.zoom?.(state) ?? null,
   cameraRow: (state) => (inRoom(state) ? ROOM_ROW : underground(state) ? TUNNEL_ROW : base.cameraRow?.(state)),
   // (down there, no sky: no sun flare, no time of day's light (its own dark instead))
   outdoors: (state) => (underView(state) ? 0 : base.outdoors?.(state)),

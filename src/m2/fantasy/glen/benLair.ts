@@ -64,7 +64,7 @@ import { saveProgress } from '../../save';
 import { has, setPiece, setBenMet, benGave, setBenGave, amuletOn, setAmuletOn, lendPiece, unlendPiece } from '../../upgrades/state';
 import { feedAmulet, amuletShielded } from '../../upgrades/amulet';
 import { makeCannon, updateCannon, cannonBusy, type Cannon } from '../../upgrades/returnCannon';
-import {
+import { frameBen, releaseBenCam,
   NUDGE, PIECE_LINES, MH_TUNNEL, AMULET_WEEB, AMULET_HUH, MH_CANNON_ASK, BEN_CANNON_FY,
   benSays, warmBenGross, meetupScript, startScript, tickScript, skipScript,
   type BenPose, type BenTalk, type Script, type Beat, giftCoda,
@@ -301,6 +301,10 @@ export const updateLair = (ctx: FrameContext, controls: Controls): Controls => {
   const under = underground(state), room = inRoom(state);
   h.reveal = Math.max(0, Math.min(1, h.reveal + (under || (cannonBusy(h.cannon) && h.cannon.phase !== 'fly') ? 0.08 : -0.06)));
   if (nearWay(state)) warmBenGross();
+  // (the camera on him and Ben whenever Ben's talking, the meetup and the gift through (the owner's "make sure he is in
+  // frame at every meeting"); the cannon's got the camera once it's busy)
+  if (cannonBusy(h.cannon)) releaseBenCam(state);
+  else frameBen(state, room && (h.phase === 'meet' || h.phase === 'gift' || h.phase === 'card' || !!h.ben.said), X(ROOM.a + BEN_LX), Y(FLOOR), { a: X(ROOM.a), b: X(ROOM.b) });
   // (a checkpoint's x passed down here isn't one passed up top: back to the one he had)
   if (under) { if (state.checkpoint > h.cpUp) state.checkpoint = h.cpUp; } else h.cpUp = state.checkpoint;
   // (in through the adit the first time this visit: his line)

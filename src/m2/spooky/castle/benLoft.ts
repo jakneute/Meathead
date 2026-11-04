@@ -52,7 +52,7 @@ import { has, setPiece, setBenMet, benGave, setBenGave, lendPiece, unlendPiece }
 import type { EquipControl } from '../../upgrades/equipInfo';
 import { makeCannon, updateCannon, cannonBusy, type Cannon } from '../../upgrades/returnCannon';
 import {
-  NUDGE, BYE_MEATHEAD, BYE_BEN, PIECE_LINES, MH_PASSAGE, benSays, warmBenGross, meetupScript, startScript, tickScript, skipScript,
+  NUDGE, BYE_MEATHEAD, BYE_BEN, PIECE_LINES, MH_PASSAGE, benSays, warmBenGross, frameBen, releaseBenCam, meetupScript, startScript, tickScript, skipScript,
   type BenPose, type BenTalk, type Script, type Beat, type ByPants, giftCoda,
   makeGate, syncGate, gateBump, cannonLocked, type Gate,
 } from '../../upgrades/confucktious';
@@ -246,6 +246,10 @@ export const updateLoft = (ctx: FrameContext, controls: Controls): Controls => {
   const secret = inSecret(state), loft = inLoft(state);
   h.reveal = Math.max(0, Math.min(1, h.reveal + (secret || cannonBusy(h.cannon) && h.cannon.phase !== 'fly' ? 0.07 : -0.05)));
   if (nearWay(state)) warmBenGross();
+  // (the camera on him and Ben whenever Ben's talking, the meetup and the gift through (the owner's "make sure he is in
+  // frame at every meeting"); the cannon's got the camera once it's busy)
+  if (cannonBusy(h.cannon)) releaseBenCam(state);
+  else frameBen(state, loft && (h.phase === 'meet' || h.phase === 'gift' || h.phase === 'card' || !!h.ben.said), LA + h.ben.x, F, { a: LA, b: LOFT.b });
   calm(state, secret);
   // (through the false shelf the first time this visit: his line)
   if (!state.stageMemo[PASS_MEMO] && midX(state) < PART_R - 10 && midX(state) > PART_L - 30 && Math.abs(feetY(state) - F) < 8 && p.health > 0) {

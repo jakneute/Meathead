@@ -53,7 +53,7 @@ import { setUi } from '../../store';
 import { saveProgress } from '../../save';
 import { has, setPiece, setBenMet, benGave, setBenGave } from '../../upgrades/state';
 import { makeCannon, updateCannon, cannonBusy, cannonCeilingX, type Cannon } from '../../upgrades/returnCannon';
-import { NUDGE, BYE_MEATHEAD, BYE_BEN, PIECE_LINES, benSays, drawBenGross, drawBenGrossBack, warmBenGross, meetupScript, startScript, tickScript, skipScript, giftCoda, type BenPose, type BenTalk, type Script, makeGate, markGate, cannonLocked, type Gate } from '../../upgrades/confucktious';
+import { NUDGE, BYE_MEATHEAD, BYE_BEN, PIECE_LINES, benSays, drawBenGross, drawBenGrossBack, warmBenGross, frameBen, releaseBenCam, meetupScript, startScript, tickScript, skipScript, giftCoda, type BenPose, type BenTalk, type Script, makeGate, markGate, cannonLocked, type Gate } from '../../upgrades/confucktious';
 import { teleport, meatheadSays, byPants, pantsOf, solid, landVisit, saidOver } from '../section';
 import { GY } from '../geometry';
 import { drawMascot } from './kindArt';
@@ -178,6 +178,10 @@ export const updateHidden = (ctx: FrameContext, controls: Controls): Controls =>
     warmBenGross();
     h.phase = 'out';
   }
+  // (the camera on him and Ben whenever Ben's talking, the meetup and the gift through (the owner's "make sure he is in
+  // frame at every meeting"); the cannon's got the camera once it's busy)
+  if (cannonBusy(h.cannon)) releaseBenCam(state);
+  else frameBen(state, inCave(state) && (h.phase === 'meet' || h.phase === 'gift' || h.phase === 'card' || !!h.ben.said), BEN_X, CAVE.floor, { a: CAVE.a - 40, b: CAVE.b + 40 });
   if (!inCave(state)) {
     // (out of the cave: bumping into things hurts again)
     if (setNoContact) { p.noContactHurt = false; setNoContact = false; }

@@ -4,6 +4,7 @@
 
 import type { Section } from '../section';
 import { todLight } from '../../timeOfDay';
+import { benCamZoom } from '../../upgrades/confucktious';
 import { buildLair, updateLair, inLair, lairView, drawLairHud } from './benLair';
 import { drawLairBack, drawLairFront, lairLighting } from './benLairArt';
 
@@ -14,6 +15,8 @@ export const withBenLair = (base: Section): Section => ({
   ...base,
   build: (state) => { base.build(state); buildLair(state); },
   update: (ctx, controls) => { const c = updateLair(ctx, controls); return base.update ? base.update(ctx, c) : c; },
+  // (pulled back a little while Ben's talking, if that's what holds them both: confucktious/benCam.ts)
+  zoom: (state) => benCamZoom(state) ?? base.zoom?.(state) ?? null,
   cameraRow: (state) => (inLair(state) ? LAIR_ROW : base.cameraRow?.(state)),
   // (up the shaft and in the lair: its own dark and lamps; else the river's, as the land works it out)
   lighting: (state, b) => {

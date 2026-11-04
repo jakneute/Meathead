@@ -4,6 +4,7 @@
 
 import type { SpookySection } from '../section';
 import { buildLoft, updateLoft, inLoft } from './benLoft';
+import { benCamZoom } from '../../upgrades/confucktious';
 import { drawLoftBack, drawLoftFront, drawLoftHud, loftLighting } from './benLoftArt';
 
 /** Where his feet sit on screen in the loft (the room fits, floor to ceiling). */
@@ -13,6 +14,8 @@ export const withBenLoft = (base: SpookySection): SpookySection => ({
   ...base,
   build: (state) => { base.build(state); buildLoft(state); },
   update: (ctx, controls) => { const c = updateLoft(ctx, controls); return base.update ? base.update(ctx, c) : c; },
+  // (pulled back a little while Ben's talking, if that's what holds them both: confucktious/benCam.ts)
+  zoom: (state) => benCamZoom(state) ?? base.zoom?.(state) ?? null,
   cameraRow: (state) => (inLoft(state) ? LOFT_ROW : base.cameraRow?.(state)),
   lighting: (state) => loftLighting(base.lighting?.(state) ?? null, state),
   drawBack: (c, state) => { base.drawBack?.(c, state); drawLoftBack(c, state); },

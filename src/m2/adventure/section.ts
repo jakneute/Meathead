@@ -183,9 +183,9 @@ export const saidOver = (c: Ctx, s: string, x: number, y: number, col = '#FFFFFF
   // edge, or a fixed camera framing them close to it, would cut the words off)
   // (the render scale off the canvas's height: a cylinder's strip is wider than the screen, never taller)
   const m = c.getTransform(), k = c.canvas.height / CANVAS_HEIGHT;
-  // (a kill cam pushed in: the words kept their own size, not blown up with it)
+  // (a kill cam pushed in, or the view pulled back: the words kept their own size, not blown up or shrunk with it)
   const z = m.a / k;
-  if (m.a > 0 && m.d > 0 && z > 1.01) {
+  if (m.a > 0 && m.d > 0 && Math.abs(z - 1) > 0.01) {
     const L = -m.e / m.a, R = (c.canvas.width - m.e) / m.a, T = -m.f / m.d;
     const half = (Math.max(...lines.map(l => c.measureText(l).width)) / 2 + (bubblesNow() ? 12 : 6)) / z, up = ((lines.length - 1) * 11 + 9) / z;
     x = Math.min(Math.max(x, L + half), R - half); y = Math.max(y, T + 6 / z + up);

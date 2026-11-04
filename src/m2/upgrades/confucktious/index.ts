@@ -18,3 +18,4 @@ export * from './gross';
 export * from './talk';
 export * from './meetup';
 export * from './trialGate';
+export * from './benCam';

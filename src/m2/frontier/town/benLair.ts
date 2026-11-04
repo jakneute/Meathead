@@ -48,6 +48,7 @@
 //
 // What outlives a death: what he's got (the save) and the meetup having run this visit (state.stageMemo).
 
+import { zoomOf } from './view';
 import type { FrameContext } from '../../../m1/game/core/context';
 import type { GameState } from '../../../m1/game/core/state';
 import type { Controls } from '../../../m1/game/platform/input';
@@ -70,7 +71,7 @@ import { has, setPiece, setBenMet, benGave, setBenGave, setFollowArt, lendPiece,
 import { FOLLOW, type EquipControl } from '../../upgrades/equipInfo';
 import { makeCannon, updateCannon, cannonBusy, type Cannon } from '../../upgrades/returnCannon';
 import {
-  NUDGE, PIECE_LINES, artBeats, grabArt, artTipRange, MH_CANNON_ASK, BEN_CANNON_FR, MH_MAZE, MH_LANDED_FR, BOOT_WEEB, BOOT_HUH, CROW_WRONG, CROW_SHORT, CROW_ENOUGH,
+  NUDGE, PIECE_LINES, artBeats, grabArt, frameBen, releaseBenCam, artTipRange, MH_CANNON_ASK, BEN_CANNON_FR, MH_MAZE, MH_LANDED_FR, BOOT_WEEB, BOOT_HUH, CROW_WRONG, CROW_SHORT, CROW_ENOUGH,
   benSays, warmBenGross, meetupScript, startScript, tickScript, skipScript,
   type BenPose, type BenTalk, type Script, type Beat, type ByPants, giftCoda,
   makeGate, syncGate, gateBump, cannonLocked, type Gate,
@@ -311,6 +312,10 @@ export const updateBenLair = (ctx: FrameContext, controls: Controls): Controls =
   // (back after the cannon took him to the log ride: its flight was the log ride's to finish)
   if (h.flew && h.cannon.phase === 'fly') { h.cannon.phase = 'rest'; h.cannon.t = 0; h.cannon.ang = 0; h.flew = false; }
   if (underBed(state) || (inSump(state) && midX(state) > X(13900))) warmBenGross();
+  // (the camera on him and Ben whenever Ben's talking, the meetup and the gift through (the owner's "make sure he is in
+  // frame at every meeting"), from the town's own zoom; the cannon's got the camera once it's busy)
+  if (cannonBusy(h.cannon)) releaseBenCam(state);
+  else frameBen(state, inLair(state) && (h.phase === 'meet' || h.phase === 'gift' || h.phase === 'card' || !!h.ben.said), W(BEN_RX), Y(ROOM.floor), { a: W(ROOM.a), b: W(ROOM.b), scale: zoomOf(state) });
   // (the rock over it all faded away while he's swimming the flooded shaft or down under its bed (the owner's: "make
   // sure all the underground elements are shown when in the swimming section"): the maze, its lamps, the office, Ben
   // all in view from the water; solid again once he's out of it)

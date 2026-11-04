@@ -60,7 +60,7 @@ import { has, setPiece, setBenMet, benGave, setBenGave, setFollowArt, lendPiece,
 import { FOLLOW, type EquipControl } from '../../upgrades/equipInfo';
 import { makeCannon, updateCannon, cannonBusy, type Cannon } from '../../upgrades/returnCannon';
 import {
-  NUDGE, PIECE_LINES, artBeats, grabArt, artTipRange, MH_CANNON_ASK, BEN_CANNON_SP, MH_HATCH_SP, BRACER_WEEB, BRACER_HUH,
+  NUDGE, PIECE_LINES, artBeats, grabArt, frameBen, releaseBenCam, artTipRange, MH_CANNON_ASK, BEN_CANNON_SP, MH_HATCH_SP, BRACER_WEEB, BRACER_HUH,
   benSays, warmBenGross, meetupScript, startScript, tickScript, skipScript,
   type BenPose, type BenTalk, type Script, type Beat, type ByPants, giftCoda,
   makeGate, syncGate, gateBump, cannonLocked, type Gate,
@@ -225,6 +225,10 @@ export const updateBenLair = (ctx: FrameContext, controls: Controls, onLand: () 
   if (nearWay(state)) warmBenGross();
   calm(state);
   const room = inLair(state);
+  // (the camera on him and Ben whenever Ben's talking, the meetup and the gift through (the owner's "make sure he is in
+  // frame at every meeting"); the cannon's got the camera once it's busy)
+  if (cannonBusy(h.cannon)) releaseBenCam(state);
+  else frameBen(state, room && (h.phase === 'meet' || h.phase === 'gift' || h.phase === 'card' || !!h.ben.said), BEN_X, LAIR.floor, { a: LAIR.a, b: LAIR.b });
   if (!room) {
     // (out of the room: bumping into things hurts again; a lend's taken back; the alien left down there; his words gone)
     if (setNoContact) { p.noContactHurt = false; setNoContact = false; }

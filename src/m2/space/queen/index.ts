@@ -38,6 +38,7 @@ import { drawRoomBack, drawGlass, drawQueen, roomLights, drawAfterFall } from '.
 import { type Show, makeShow, startShow, tickShow, showOn, showSkippable, drawShowQueen, drawShowSaid, drawShowFade, showHead, fell, collapsed, drawFallingSlabs, BASEMENT_CP } from './show';
 import { restHunter } from './basement';
 import { buildBenLair, updateBenLair, belowHall, hatchBarred } from './benLair';
+import { benCamZoom } from '../../upgrades/confucktious';
 import { drawBenHallBack, drawBenHallFront, drawBenHallHud, hallLights, benLairLighting } from './benLairArt';
 import { type Hunter, makeHunter, buildHunter, forceDoorIn, tickHunter, atDoor, startKick, doorIn, doorKicking, drawHunter, drawHides, drawHunterFront, hunterLighting, hunterZoom, drawDiscoDoor, layBasement, LADDERS, LADDERS_SHUT, GRAVEYARD_CP, TUNNEL_CP, TUNNEL_CP_X, DISCO_CP } from './basement';
 import { type Fight, makeFight, startFight, updateFight, fightOver, endFight, queenDrops, introOn, drawQueenFight, drawQueenSaid, drawFightHud, discoLights, drawPool, poolLights, oilLights, tellLights, boothOps, introCamX, discoZoom, deathNeed, queenHoldTick, drawBurstFlash, drawIntroCloseup, deathSkippable, deathLights } from './fight';
@@ -260,6 +261,9 @@ export const queen: SpaceSection = {
   cameraRow: (state) => (inBasement(state) ? feetOf(state) - (GY - 6) : undefined),
   // (her plain death killed with her a way off the screen: the camera takes in all of it, the heap too (deathFrame.ts))
   zoom: (state) => {
+    // (pulled back a little while Ben's talking down in his break room, if that's what holds them both)
+    const bz = benCamZoom(state);
+    if (bz) return bz;
     const hz = hunterZoom(state, hunterOf(state));
     if (hz) return hz;
     const q = queenOf(state), f = fightOf(state), z = discoZoom(state, f, q.deathCam);

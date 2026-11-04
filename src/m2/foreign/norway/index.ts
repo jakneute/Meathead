@@ -31,6 +31,7 @@ import { drawHouse, trollFace, drawBooth, drawHousing, drawShip, drawChurch, typ
 import { TALK } from './lines';
 import './kinds';
 import { TOLL_FROM, TOLL_CHECKPOINTS, RIVER, tollRuns, buildToll, updateToll, tollWater, drawTollBack, drawTollFront, tollLamps } from './toll';
+import { benCamZoom } from '../../upgrades/confucktious';
 import { trackCast, buildValhalla, updateValhalla, inHall, drawHallHud, HALL } from './valhalla';
 import { drawValhallaBack, drawValhallaFront, hallLighting, hallView } from './valhallaArt';
 
@@ -222,6 +223,8 @@ export const norway: ForeignSection = {
   },
   drawHud: (c, state) => drawHallHud(c, state),
   // (down in the hall under the bridge: its own dark and lamps, the camera kept to it, his feet low on the screen)
+  // (pulled back a little while Ben's talking in the hall, if that's what holds them both: confucktious/benCam.ts)
+  zoom: (state) => benCamZoom(state),
   lighting: (state, base) => (hallView(state) ? hallLighting(state) : base ?? null),
   cameraRow: (state) => (inHall(state) ? 470 : undefined),
   cameraX: (state) => (inHall(state) ? { min: X(HALL.a) - 30, max: X(HALL.b) + 30 - CANVAS_WIDTH } : undefined),
