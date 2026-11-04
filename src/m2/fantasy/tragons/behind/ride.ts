@@ -56,7 +56,7 @@ export const BAL_ONE = 0.64;
  *  pulls and wobbles this much harder. */
 /** The needle held dead center this long as the meter pops up (frames). */
 const BAL_HOLD = 24;
-const BAL_PULL = 0.0011, BAL_WOBBLE = 0.0007, BAL_PUSH = 0.0045, BAL_HARDER = 0.16;
+const BAL_PULL = 0.0014, BAL_WOBBLE = 0.0007, BAL_PUSH = 0.0045, BAL_HARDER = 0.16;
 /** The needle's top speed (the owner's: "the balance meter can move too far too quickly sometimes"): a third of the
  *  arc (2 wide) a second, however it's pushed; slower still in the red, so the one-hand warning gets half a second. */
 const BAL_VMAX = 2 / 3 / 60, BAL_VRED = 0.0095;
@@ -431,7 +431,7 @@ export const updateBehind = (ctx: FrameContext, controls: Controls, onArrive: ()
       // turns on him), pushed back by LEFT / RIGHT; harder each loop along the ride)
       trackAt(bv.rolls, t.lane, sCar, TA);
       const sn = Math.sin(TA.phi);
-      if (L.t % 90 === 0 && Math.random() < 0.4) L.drift = L.drift > 0 ? -1 : 1;
+      if (L.t % 90 === 0 && Math.random() < 0.25) L.drift = L.drift > 0 ? -1 : 1;
       // (it always starts dead in the middle, at rest, and holds there a beat as it pops up, before anything moves it)
       const held = L.t < BAL_HOLD;
       L.push = held ? 0 : controls.left && !controls.right ? -1 : controls.right && !controls.left ? 1 : 0;
@@ -439,7 +439,7 @@ export const updateBehind = (ctx: FrameContext, controls: Controls, onArrive: ()
       // (a steady pull, smooth swings (eased sines, faster the later the loop: no per-frame kicks), his push with a little
       // momentum; never faster than the cap)
       const h = L.hard, tt = L.t - BAL_HOLD;
-      const pull = (sn * 0.6 + L.drift * 0.5 + L.bal * 0.3) * BAL_PULL * h * ease;
+      const pull = (sn * 0.4 + L.drift * 0.6 + L.bal * 0.6) * BAL_PULL * h * ease;
       const wob = (Math.sin(tt * 0.045 * h + L.drift) + 0.6 * Math.sin(tt * 0.097 * h + 1.7)) * BAL_WOBBLE * h * ease;
       L.vel = L.vel * 0.9 + pull + wob + L.push * BAL_PUSH;
       const vmax = Math.abs(L.bal) > BAL_ONE && Math.sign(L.vel) === Math.sign(L.bal) ? BAL_VRED : BAL_VMAX;
