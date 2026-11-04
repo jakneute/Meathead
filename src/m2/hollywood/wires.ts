@@ -4,8 +4,8 @@
 // them each frame and this runs them (index.ts: after the section's own update) and draws them (index.ts: drawBack).
 //
 //   Grab:     jump into the harness, or walk up to it (no button: he just takes hold).
-//   Ride:     the trolley runs along its track the way he's facing (left/right turns him, and it, and pumps the
-//             swing); at either end of the track it stops and he hangs there. Up reels the cable in (shorter, higher),
+//   Ride:     the trolley runs along its track the way he's facing on screen (left/right turns him, and it, and pumps
+//             the swing: a rig whose far end is to the left goes there facing left); at either end of the track it stops and he hangs there. Up reels the cable in (shorter, higher),
 //             down pays it out (longer, lower). He can shoot the whole way.
 //   Charge:   the charge button (any charge: up/down with it are nothing special up here) thrusts him forward the way
 //             he's facing: a shoulder charge into the swing (a power cell, like any charge), the trolley and the swing
@@ -96,20 +96,42 @@ export const wireRides = (state: GameState) => (state.stage ? storeOf(state).hol
 export const wireOn = (state: GameState) => (state.stage ? storeOf(state).hold.on : -1);
 /** How far along its track a wire's trolley is (0 at `from` (or `beyond`, on a track run on past it), 1 at `to`). */
 export const wireU = (state: GameState, i: number) => (state.stage ? storeOf(state).runs[i]?.u ?? 0 : 0);
+/** Where a wire's trolley is across (world x), and its harness's swing (radians, 0 hanging straight down): a camera
+ *  can follow the pivot rather than him at the end of the swing; where his feet would hang with it still. */
+export const wirePivot = (state: GameState, wires: StuntWire[], i: number) => {
+  const w = wires[i], r = state.stage ? storeOf(state).runs[i] : undefined;
+  if (!w || !r) return null;
+  const g = geoOf(state, w), t = trolley(g, r.u, r.ext);
+  // (restFeet: where his feet would hang with the swing still, straight under the trolley)
+  return { x: t.x, th: r.th, om: r.om, restFeet: g.rigY + t.len - HAND_DY + state.player.height };
+};
+/** Off the one he's on, sent off at this speed (a set piece's own let-go: the water tower's first rig lifting him up
+ *  through its hatch). Nothing else of the let-go: no fling carried on, a moment before it'll take him again. */
+export const kickOffWire = (state: GameState, vx: number, vy: number) => {
+  if (!state.stage) return;
+  const s = storeOf(state), h = s.hold, p = state.player;
+  if (h.on < 0) return;
+  const r = s.runs[h.on];
+  if (r) { r.idle = 0; r.v = 0; }
+  p.carried = false; p.vine = undefined;
+  h.last = h.on; h.on = -1; h.cd = 45; h.away = false; h.boost = 0; h.fling = null; h.lastX = p.pos.x;
+  p.vel.x = vx; p.vel.y = vy; p.isGrounded = false;
+};
 
 // ---------------------------------------------------------------------------------------------------------------
 // The geometry of one
 
 /** (u 0 is the track's far end: `beyond` if it has one, else `from`. `uh` is where it parks, `from` (0 without a
  *  `beyond`), and `hy` the harness's height there.) */
-interface Geo { ax: number; ay: number; bx: number; by: number; rigY: number; dist: number; uh: number; hy: number }
+interface Geo { ax: number; ay: number; bx: number; by: number; rigY: number; dist: number; uh: number; hy: number; xs: 1 | -1 }
 const geoOf = (state: GameState, w: StuntWire): Geo => {
   const p = state.player, feetToHand = p.height - HAND_DY;
   const bx = w.to.x, by = w.to.y - feetToHand - 2;
   const ax = w.beyond ? w.beyond.x : w.from.x, ay = w.beyond ? w.beyond.y - feetToHand - 2 : w.from.y;
   const uh = w.beyond ? (w.from.x - ax) / (bx - ax) : 0, hy = w.from.y;
   const rigY = w.rigY ?? Math.min(ay, by, hy) - 150;
-  return { ax, ay, bx, by, rigY, dist: Math.max(1, Math.abs(bx - ax)), uh, hy };
+  // (xs: which way on screen u's going: + right. A run's v is along u, so v * xs is the trolley's speed across)
+  return { ax, ay, bx, by, rigY, dist: Math.max(1, Math.abs(bx - ax)), uh, hy, xs: bx >= ax ? 1 : -1 };
 };
 /** The cable's own length at u (between the ends' heights; through `from`'s on a track run on past it). */
 const baseLen = (g: Geo, u: number) => {
@@ -138,7 +160,9 @@ const grab = (state: GameState, s: Store, i: number, g: Geo, c: Controls) => {
   h.on = i; h.fling = null; h.boost = 0;
   // (his momentum into the swing)
   const hand = handAt(g, r);
-  r.om = Math.max(-0.07, Math.min(0.07, r.om + ((p.vel.x - r.v) * Math.cos(r.th) - p.vel.y * Math.sin(r.th)) / Math.max(90, hand.len) * 0.6));
+  // (a shuttle caught on the move: he's turned the way it's going, and it carries him on that way)
+  if (Math.abs(r.v) > 0.1) p.facing = (Math.sign(r.v) * g.xs) as 1 | -1;
+  r.om = Math.max(-0.07, Math.min(0.07, r.om + ((p.vel.x - r.v * g.xs) * Math.cos(r.th) - p.vel.y * Math.sin(r.th)) / Math.max(90, hand.len) * 0.6));
   p.carried = true;
   p.isCharging = false; p.isSliding = false; p.isUppercutting = false; p.isDivekicking = false; p.isDucking = false;
   p.recoiling = false; p.lockTimer = 0; p.jumpHoldTimer = 0; p.powerLocked = false;
@@ -159,7 +183,7 @@ const letGo = (state: GameState, s: Store, c: Controls, g: Geo, how: 'jump' | 's
   r.idle = 0;
   if (how === 'knocked') { h.fling = null; return; }
   const len = trolley(g, r.u, r.ext).len;
-  let vx = r.v + len * r.om * Math.cos(r.th);
+  let vx = r.v * g.xs + len * r.om * Math.cos(r.th);
   let vy = -len * r.om * Math.sin(r.th);
   if (how === 'jump') { vy = Math.max(-15, Math.min(vy, 0) - 8.5); vx += dir * 1.5; h.jumpLatch = true; }
   if (how === 'swoop') {
@@ -214,7 +238,7 @@ export const updateWires = (ctx: FrameContext, wires: StuntWire[], c: Controls):
       if (r.u >= 1) { r.u = 1; r.v = -sp; r.wait = 50; }
       else if (r.u <= 0) { r.u = 0; r.v = sp; r.wait = 50; }
       // (the swing thrown by its starts and stops)
-      r.om -= ((r.v - v0) * 0.6) / Math.max(90, trolley(g, r.u, r.ext).len);
+      r.om -= ((r.v - v0) * g.xs * 0.6) / Math.max(90, trolley(g, r.u, r.ext).len);
       return;
     }
     // (moving with nobody on it (let go of mid-run, or running back): on to the next stop it's going to (an end; on a
@@ -299,14 +323,15 @@ export const updateWires = (ctx: FrameContext, wires: StuntWire[], c: Controls):
   const dir = (c.right ? 1 : 0) - (c.left ? 1 : 0);
   if (dir && !p.isCharging) p.facing = dir as 1 | -1;
   r.idle = 0;
-  const d = p.facing;
+  // (d: which way along u he's facing: his facing on screen, turned round on a rig that runs right to left)
+  const d = p.facing * g.xs;
   // How far to the end of the track the way he's facing
   const left = (d > 0 ? 1 - r.u : r.u) * g.dist;
   // The charge: off the end of the line (the swoop), or a thrust forward. Either's a power cell.
   let charge = false;
   if (specialIn && !p.isCharging && state.playerStunTimer <= 0 && p.lockTimer <= 0 && (ctx.cheats.infinitePower || p.power >= 1)) {
     h.specialLatch = true;
-    if (left < 6 && roomAbove(state, d)) {
+    if (left < 6 && roomAbove(state, p.facing)) {
       if (!ctx.cheats.infinitePower) p.power -= 1;
       letGo(state, s, c, g, 'swoop');
       playSound('whoosh', 1, 4); playSound('clang', 0.4, 6);
@@ -317,7 +342,7 @@ export const updateWires = (ctx: FrameContext, wires: StuntWire[], c: Controls):
     charge = true;
     h.boost = BOOST;
     if (left > 4) r.v += d * THRUST;
-    r.om += (d * PUSH) / Math.max(90, trolley(g, r.u, r.ext).len);
+    r.om += (p.facing * PUSH) / Math.max(90, trolley(g, r.u, r.ext).len);
     playSound('whoosh', 0.6, 8);
   }
   // (a charge under way: held through to the engine while the button is)
@@ -349,7 +374,7 @@ export const updateWires = (ctx: FrameContext, wires: StuntWire[], c: Controls):
   // his pump, gravity; shorter, it swings faster
   const L = Math.max(90, trolley(g, r.u, r.ext).len);
   if (L !== L0) r.om *= Math.min(1.25, Math.max(0.8, L0 / L));
-  const acc = h.boost > BOOST - 2 ? 0 : r.v - v0;
+  const acc = h.boost > BOOST - 2 ? 0 : (r.v - v0) * g.xs;
   r.om += (-G * Math.sin(r.th) - acc * 1.4 * Math.cos(r.th)) / L;
   if (dir && !p.isCharging) r.om += (dir * PUMP * Math.cos(r.th)) / L;
   r.om *= 0.993;
@@ -374,7 +399,7 @@ export const updateWires = (ctx: FrameContext, wires: StuntWire[], c: Controls):
     }
   }
   place(state, hand.x, hand.y);
-  if (!p.isCharging) { p.vel.x = r.v + hand.len * r.om * Math.cos(r.th); p.vel.y = -hand.len * r.om * Math.sin(r.th); }
+  if (!p.isCharging) { p.vel.x = r.v * g.xs + hand.len * r.om * Math.cos(r.th); p.vel.y = -hand.len * r.om * Math.sin(r.th); }
   p.isGrounded = false;
   p.vine = { mode: p.isCharging ? 'push' : 'hang', th: r.th, om: r.om };
   state.cameraRestY = p.pos.y + p.height - WIRE_ROW;

@@ -12,17 +12,19 @@
 // THE TANK (its own signature, no other lair has it): a drained water tank turned gym-bro hideout. Riveted staves
 // curving round (lit down the middle, dark at the sides), rust bleeding down from every rivet, the old WATERLINE scummed
 // across them (darker and water-stained under it, mineral crust over it), a puddle that never dries; the roof's pipes
-// with his sandbags hung off them. His junk, all studio props: a dressing-room mirror ringed with bulbs (a polaroid of
+// (he used to hang sandbags off them). His junk, all studio props: a dressing-room mirror ringed with bulbs (a polaroid of
 // the two of them at the Iron Pit tucked in its corner), his director's chair (BEN on its back), a five-high stack of
 // film cans (DAILIES '87), the knockoff award statue on its column (BEST SUPPORTING SPOTTER), a boom pole for a barbell
 // with film reels for plates on two apple boxes, a clapperboard (LEG DAY, TAKE 9000), a fresnel on its C-stand throwing
 // a beam across, a rubber raft strung up on chains for his hammock (he naps up there: it holds you), the stunt cannon
-// under the roof vent. His stage curtain (red velvet, gold fringe) rolled up under the roof, dropped for the trial. The
+// under the roof vent. His three stage curtains (red velvet, gold fringe) rolled up under the roof, dropped for the
+// trial (cut in half by a flash kick, the halves dropping off the pipe and slumping in heaps). The
 // tank's shell cut away round it, its cone roof over it with HAPPYWOOD round the band and the red light on the finial.
 // More of his things (paintDen): the CRAFTY mini fridge with a hot plate and chili, a styrofoam saguaro, two one-sheets
 // (LEG DAY II, THE SPOTTER), the fold-down bench with the next shin-dig half taped up, a welded patch and its scorch, a
 // carton of the gift shop's knockoff statuettes, chalk handprints; a near roof pipe across the top in front.
-// Still art painted once (stamps by the hour; the tank in chunks); only the bags, the curtain, the hatches' leaves, the
+// Still art painted once (stamps by the hour; the tank in chunks; a curtain baked once, drawn turned and cut); only the
+// curtains, the hatches' leaves, the
 // dust in the beam and Ben move.
 
 import type { GameState } from '../../../m1/game/core/state';
@@ -36,8 +38,8 @@ import { GY } from '../geometry';
 import { type Ctx, INK, box, checker, mix, hash, stamp, still, ramp6, hour, dimmed, LIP, VELVET, BRASS, signText, plain, timeOfDay } from '../blvd/kit';
 import { X, Y } from './layout';
 import {
-  IN_A, IN_B, WALL, DECK_T, DECKS, HATCH_W, HATCH_X, TANK, VENT, TANK_F, PERCH, RAFT, BEN_X, CURTAIN, BAG_W, BAG_H,
-  towerOf, inTank, tankView, bagBox, type Hatch,
+  IN_A, IN_B, WALL, DECK_T, DECKS, HATCH_W, HATCH_X, TANK, VENT, TANK_F, PERCH, RAFT, BEN_X, CURTAINS, CUR_W, CUR_GAP,
+  towerOf, inTank, tankView, curtainBox, type Hatch,
 } from './benTower';
 
 const W = CANVAS_WIDTH, H = CANVAS_HEIGHT;
@@ -131,8 +133,8 @@ const paintBoard = (g: Ctx, lines: string[], w: number) => {
 };
 const BOARDS: [number, number, string[]][] = [
   // (rx, height of the board's top, its lines)
-  [5880, 300, ['HAPPYWOOD WATER TOWER', 'RIGGERS ONLY', 'RIDE THE RIG UP', 'CHARGE AT THE END']],
-  [5090, DECKS[1] + 230, [`LEVEL 1 - ${feet(DECKS[1])} FT`, 'CATCH THE DOLLY']],
+  [5300, 300, ['HAPPYWOOD WATER TOWER', 'RIGGERS ONLY', 'JUMP IN THE RIG', 'IT TAKES YOU UP']],
+  [5170, DECKS[1] + 230, [`LEVEL 1 - ${feet(DECKS[1])} FT`, 'CATCH THE DOLLY']],
   [5690, DECKS[2] + 360, [`LEVEL 2 - ${feet(DECKS[2])} FT`, 'JUMP RIG TO RIG']],
   [5640, DECKS[3] + 340, [`LEVEL 3 - ${feet(DECKS[3])} FT`, 'HOLD UP: REEL IN', 'THEN CHARGE']],
   [5420, DECKS[4] + 330, [`LEVEL 4 - ${feet(DECKS[4])} FT`, 'HOP. CATCH. RIDE.']],
@@ -274,8 +276,8 @@ const raft = (g: Ctx) => {
   // (its lip, lit: it holds him)
   box(g, a, y, w, 2, LIP[2]); box(g, a, y, w, 1, LIP[3]);
 };
-const curtainRolled = (g: Ctx) => {
-  const cx = (CURTAIN.a + CURTAIN.b) / 2 - TANK.a;
+const curtainRolled = (g: Ctx, a: number) => {
+  const cx = a + CUR_W / 2 - TANK.a;
   box(g, cx - 30, -TH + 26, 60, 24, INK); box(g, cx - 29, -TH + 27, 58, 22, VELVET[2]); box(g, cx - 29, -TH + 29, 58, 5, VELVET[3]); box(g, cx - 29, -TH + 44, 58, 4, VELVET[0]);
   for (const tx of [cx - 18, cx + 14]) { box(g, tx, -TH + 24, 4, 28, BRASS[3]); box(g, tx, -TH + 24, 1, 28, BRASS[5]); box(g, tx - 1, -TH + 50, 6, 6, BRASS[2]); }
 };
@@ -388,69 +390,73 @@ const paintTankChunk = (g: Ctx) => {
 // ---------------------------------------------------------------------------------------------------------------
 // The live bits
 
-let bagCv: HTMLCanvasElement | null | undefined;
-/** A sandbag (burlap, 25 LB stenciled, its neck tied off, the rope up off the top), baked once: drawn turned. */
-const bagCanvas = () => {
-  if (bagCv !== undefined) return bagCv;
-  if (typeof document === 'undefined') { bagCv = null; return null; }
-  const cv = document.createElement('canvas'); cv.width = BAG_W + 8; cv.height = BAG_H + 10;
+let curCv: HTMLCanvasElement | null | undefined;
+/** A curtain (red velvet in deep folds, its brass rod sleeve at the top, the gold fringe along its hem), baked once:
+ *  drawn swinging, and each half of it drawn on its own, turned and squashed as it drops (the stamp cache takes no
+ *  turned draws). PAD round it for the sleeve's overhang. */
+const CUR_PAD = 4;
+const curtainCanvas = () => {
+  if (curCv !== undefined) return curCv;
+  if (typeof document === 'undefined') { curCv = null; return null; }
+  const w = CUR_W + 8, hh = TANK.h - 18 - CUR_GAP;
+  const cv = document.createElement('canvas'); cv.width = w + CUR_PAD * 2; cv.height = hh + 12;
   const g = cv.getContext('2d')!;
-  const B = ['#4A3A22', '#6E5836', '#968050', '#B8A270', '#D6C494'];
-  g.translate(4, 8);
-  g.fillStyle = INK; g.beginPath(); g.moveTo(BAG_W / 2 - 4, -2); g.lineTo(BAG_W / 2 + 4, -2); g.lineTo(BAG_W + 1, 10); g.lineTo(BAG_W + 1, BAG_H - 3); g.quadraticCurveTo(BAG_W / 2, BAG_H + 3, -1, BAG_H - 3); g.lineTo(-1, 10); g.closePath(); g.fill();
-  g.fillStyle = B[2]; g.beginPath(); g.moveTo(BAG_W / 2 - 3, 0); g.lineTo(BAG_W / 2 + 3, 0); g.lineTo(BAG_W, 10); g.lineTo(BAG_W, BAG_H - 4); g.quadraticCurveTo(BAG_W / 2, BAG_H + 1, 0, BAG_H - 4); g.lineTo(0, 10); g.closePath(); g.fill();
-  g.fillStyle = B[3]; g.fillRect(1, 11, 6, BAG_H - 16); g.fillStyle = B[4]; g.fillRect(1, 11, 2, BAG_H - 18);
-  g.fillStyle = B[1]; g.fillRect(BAG_W - 6, 11, 5, BAG_H - 16);
-  for (let y = 12; y < BAG_H - 4; y += 3) for (let x = 2; x < BAG_W - 1; x += 3) { g.fillStyle = (x + y) % 2 ? B[1] : B[3]; g.fillRect(x, y, 1, 1); }
-  g.fillStyle = '#7F1D1D'; g.font = '6px monospace';
-  g.fillRect(6, 18, 16, 1); g.fillRect(6, 26, 16, 1);
-  g.fillStyle = '#5A1414'; for (const [x, y, w] of [[8, 20, 2], [11, 20, 2], [15, 20, 2], [18, 20, 3], [8, 23, 3], [13, 23, 2], [17, 23, 4]] as const) g.fillRect(x, y, w, 2);
-  // (the tie at the neck, the rope's end up off it)
-  g.fillStyle = INK; g.fillRect(BAG_W / 2 - 5, 2, 10, 4); g.fillStyle = '#C8A870'; g.fillRect(BAG_W / 2 - 4, 3, 8, 2);
-  g.fillStyle = INK; g.fillRect(BAG_W / 2 - 1, -8, 3, 10); g.fillStyle = '#E0C890'; g.fillRect(BAG_W / 2, -8, 1, 10);
-  bagCv = cv;
+  g.translate(CUR_PAD, 0);
+  box(g, -1, 0, w + 2, hh, INK);
+  for (let x = 0; x < w; x++) { const k = [3, 4, 3, 2, 1, 0, 1, 2][x % 8]; box(g, x, 0, 1, hh, VELVET[Math.min(4, k)]); }
+  checker(g, 0, 0, w, hh, VELVET[1], 0, 3);
+  // (the light down the folds' crowns, banded darker toward the hem)
+  for (let y = Math.floor(hh * 0.6); y < hh - 8; y += 4) for (let x = 1; x < w; x += 8) box(g, x, y, 1, 2, VELVET[1]);
+  box(g, -3, 0, w + 6, 6, BRASS[2]); box(g, -3, 0, w + 6, 2, BRASS[4]); box(g, -3, 5, w + 6, 1, INK);
+  box(g, 0, hh - 8, w, 8, BRASS[2]); box(g, 0, hh - 8, w, 1, BRASS[4]);
+  for (let x = 1; x < w; x += 3) box(g, x, hh - 2, 1, 6, BRASS[x % 2 ? 3 : 4]);
+  curCv = cv;
   return cv;
 };
-const drawBags = (c: Ctx, state: GameState) => {
-  const h = towerOf(state), cv = bagCanvas(), roof = Y(TANK_F + TANK.h) + 22, f = state.frame;
-  for (const b of h.bags) {
-    const [x, y] = bagBox(b);
-    if (!b.down) {
-      // (the rope down off the pipe to it; it, swinging about the rope's top)
-      const cx = X(b.x), rope = y - roof;
-      c.save(); c.translate(cx, roof); c.rotate(b.sway);
-      c.fillStyle = INK; c.fillRect(-1, 0, 3, rope); c.fillStyle = '#C8A870'; c.fillRect(0, 0, 1, rope);
-      if (cv) c.drawImage(cv, -BAG_W / 2 - 4, rope - 8);
-      c.restore();
-    } else {
-      // (down: dropped to the floor, split, its sand out in a heap; the rope's cut end swinging)
-      const t = f - b.at, k = Math.min(1, t / 14), fy = Y(TANK_F);
-      const by = y + (fy - BAG_H + 10 - y) * k * k;
-      const cx = X(b.x);
-      c.fillStyle = INK; c.fillRect(cx - 1, roof, 3, 30 + Math.sin(t * 0.2) * 3); c.fillStyle = '#C8A870'; c.fillRect(cx, roof, 1, 28);
-      if (k < 1) { if (cv) c.drawImage(cv, x - 4, by - 8); }
-      else {
-        for (let r = 0; r < 5; r++) { const hw = 24 - r * 4; box(c, cx - hw, fy - 2 - r * 2, hw * 2, 2, r % 2 ? '#C8B07A' : '#D8C08A'); }
-        box(c, cx - 15, fy - 12, 26, 10, INK); box(c, cx - 14, fy - 11, 24, 8, '#968050'); box(c, cx - 14, fy - 11, 24, 2, '#B8A270');
-      }
-    }
+/** The ones down across the tank, whole: hung off the pipe, swinging a little when he's bumped one. In front of him
+ *  (he slides under them). */
+const drawCurtainsDown = (c: Ctx, state: GameState) => {
+  const h = towerOf(state), cv = curtainCanvas();
+  if (!cv) return;
+  for (const cu of h.curtains) {
+    if (cu.cut) continue;
+    const [x, top] = curtainBox(cu);
+    if (!seenBox(state, x - 20, x + CUR_W + 20, top, top + cv.height)) continue;
+    c.save(); c.translate(x + CUR_W / 2, top); c.rotate(cu.sway);
+    c.drawImage(cv, -CUR_W / 2 - 4 - CUR_PAD, 0);
+    c.restore();
   }
 };
-/** The curtain down across the tank (the trial): red velvet in deep folds from the pipe to a gap over the floor, the
- *  gold fringe along its hem. In front of him (he slides under it). */
-const drawCurtainDown = (c: Ctx, state: GameState) => {
-  const a = X(CURTAIN.a) - 4, w = CURTAIN.b - CURTAIN.a + 8, top = Y(TANK_F + TANK.h) + 18, bot = Y(TANK_F + CURTAIN.gap);
-  c.save(); c.translate(a, top);
-  stamp(c, 'hwt-curtain', -2, -2, w + 4, bot - top + 12, g => {
-    const hh = bot - top;
-    box(g, -1, 0, w + 2, hh, INK);
-    for (let x = 0; x < w; x++) { const k = [3, 4, 3, 2, 1, 0, 1, 2][x % 8]; box(g, x, 0, 1, hh, VELVET[Math.min(4, k)]); }
-    checker(g, 0, 0, w, hh, VELVET[1], 0, 3);
-    box(g, -3, 0, w + 6, 6, BRASS[2]); box(g, -3, 0, w + 6, 2, BRASS[4]);
-    box(g, 0, hh - 8, w, 8, BRASS[2]); for (let x = 1; x < w; x += 3) box(g, x, hh - 2, 1, 6, BRASS[x % 2 ? 3 : 4]);
-  });
-  c.restore();
-  void state;
+/** How long a cut curtain's halves take to come down off the pipe and slump (frames). */
+const DROP_T = 26;
+/** A cut one: its halves, split down the middle, each dropping off the pipe and slumping into a heap on the floor,
+ *  falling away from each other (the far one more, away from the kick). Behind him (they're on the floor). */
+const drawCutCurtains = (c: Ctx, state: GameState) => {
+  const h = towerOf(state), cv = curtainCanvas();
+  if (!h.curtain || !cv) return;
+  const floor = Y(TANK_F), f = state.frame;
+  for (const cu of h.curtains) {
+    if (!cu.cut) continue;
+    const [x, top, , hh] = curtainBox(cu);
+    if (!seenBox(state, x - 80, x + CUR_W + 80, top, floor + 10)) continue;
+    const t = Math.min(DROP_T, f - cu.at), k = t / DROP_T;
+    // (each half: the canvas's left or right half; dropping (its top coming down), squashed as it piles up on the
+    // floor, turned out away from the cut, splayed wider as it slumps)
+    const full = hh + 8, heap = 16, half = (CUR_W + 8) / 2;
+    const drawnH = Math.max(heap, full - (full - heap) * k * k);
+    for (const side of [-1, 1] as const) {
+      const lean = side * (0.08 + 0.5 * k) * (side === cu.dir ? 1.2 : 0.8);
+      const spread = side * (2 + 14 * k);
+      const wide = half * (1 + 0.6 * k);
+      const bx = x + CUR_W / 2 + spread;
+      c.save(); c.translate(bx, floor); c.rotate(k < 1 ? lean * (1 - k) * 0.6 : 0);
+      const sx = side < 0 ? CUR_PAD : CUR_PAD + half;
+      c.drawImage(cv, sx, 0, half, full + 4, side < 0 ? -wide : 0, -drawnH, wide, drawnH);
+      c.restore();
+    }
+    // (the cut ends of the sleeve left on the pipe)
+    box(c, x - 2, top, 6, 6, BRASS[2]); box(c, x + CUR_W - 4, top, 6, 6, BRASS[2]);
+  }
 };
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -488,8 +494,7 @@ export const drawTowerBack = (c: Ctx, state: GameState) => {
       stamp(c, `hwt-tank-${i}`, x0, -TH - 2, cw, TH + 4, g => { g.save(); g.beginPath(); g.rect(x0, -TH - 2, cw, TH + 4); g.clip(); paintTankChunk(g); g.restore(); });
     }
     const h = towerOf(state);
-    const rcx = (CURTAIN.a + CURTAIN.b) / 2 - TANK.a;
-    if (!h.curtain) stamp(c, 'hwt-rolled', rcx - 36, -TH + 20, 72, 40, curtainRolled);
+    if (!h.curtain) CURTAINS.forEach((a, i) => { const rcx = a + CUR_W / 2 - TANK.a; stamp(c, `hwt-rolled-${i}`, rcx - 36, -TH + 20, 72, 40, g => curtainRolled(g, a)); });
     c.restore();
     // (the dust in the fresnel's beam)
     const f = state.frame;
@@ -500,7 +505,7 @@ export const drawTowerBack = (c: Ctx, state: GameState) => {
     }
     // (the chili's steam off the hot plate on the fridge)
     for (let i = 0; i < 3; i++) { const u = ((f * 0.5 + i * 33) % 100) / 100; c.fillStyle = `rgba(230,230,220,${(0.32 * (1 - u)).toFixed(2)})`; c.fillRect(Math.round(tx + 28 + Math.sin(f * 0.05 + i) * 4), Math.round(ty - 80 - u * 40), Math.round(3 + u * 4), Math.round(3 + u * 4)); }
-    drawBags(c, state);
+    drawCutCurtains(c, state);
     drawCannon(c, h.cannon, HOLLYWOOD);
     drawCannonChain(c, h.cannon, gateK(state, h.gate));
     drawGate(c, state, h.gate, 'trapdoor');
@@ -612,7 +617,7 @@ const drawHatch = (c: Ctx, hk: Hatch, tank: boolean) => {
 export const drawTowerFront = (c: Ctx, state: GameState) => {
   if (!seenBox(state, X(TANK.a), X(TANK.b), Y(TANK_F + TANK.h), Y(TANK_F) + 10)) return;
   const h = towerOf(state);
-  if (h.curtain) drawCurtainDown(c, state);
+  if (h.curtain) drawCurtainsDown(c, state);
   // (the near roof pipe and a sagging cable across the top of the tank, in silhouette)
   { const tx = X(TANK.a), ty = Y(TANK_F);
     c.save(); c.translate(tx, ty);

@@ -18696,6 +18696,11 @@
  },
  {
   "voice": "m2.ben",
+  "text": "A SLIDE GOES UNDER. A FLASH KICK GOES THROUGH.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.ben",
   "text": "AGAIN WITH THE PANTS. FINE. COME HERE.",
   "from": "UPGRADES"
  },
@@ -19006,6 +19011,11 @@
  },
  {
   "voice": "m2.ben",
+  "text": "HOLD THE SLIDE. PUSH UP. THE KICK GOES ALL THE WAY ROUND YOU. GET CLOSE AND CUT IT.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.ben",
   "text": "HUH. GRANDPA SPOKE IT. I GOT A FEW WORDS.",
   "from": "UPGRADES"
  },
@@ -19077,6 +19087,11 @@
  {
   "voice": "m2.ben",
   "text": "IT'S CHAINED. GUESS WHY.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.ben",
+  "text": "IT'S VELVET. IT WINS. FLASH KICK IT.",
   "from": "UPGRADES"
  },
  {
@@ -19202,6 +19217,11 @@
  {
   "voice": "m2.ben",
   "text": "NAKED IN MY GYM. AT LEAST WIPE DOWN THE BENCH AFTER.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.ben",
+  "text": "NICE SLIDE. NOW PUSH UP IN IT.",
   "from": "UPGRADES"
  },
  {
@@ -19436,11 +19456,6 @@
  },
  {
   "voice": "m2.ben",
-  "text": "SLIDE UNDER MY CURTAIN. THEN FLASH KICK MY THREE SANDBAGS.",
-  "from": "UPGRADES"
- },
- {
-  "voice": "m2.ben",
   "text": "STILL WATCHING THE JAPANESE CARTOONS?",
   "from": "UPGRADES"
  },
@@ -19536,11 +19551,6 @@
  },
  {
   "voice": "m2.ben",
-  "text": "THE BAR GOES UNDER THE CHIN. THE MAN GOES UNDER THE CURTAIN. SLIDE. THEN PUSH UP MID-SLIDE.",
-  "from": "UPGRADES"
- },
- {
-  "voice": "m2.ben",
   "text": "THE BAT DOES NOT JUMP AND PRAY. JUMP OFF THE BOOKCASE AND HOLD JUMP ALL THE WAY DOWN.",
   "from": "UPGRADES"
  },
@@ -19596,7 +19606,7 @@
  },
  {
   "voice": "m2.ben",
-  "text": "THE CURTAIN DOES NOT GO UP FOR YOU. SLIDE.",
+  "text": "THE CURTAIN DOES NOT GO UP FOR YOU. CUT IT.",
   "from": "UPGRADES"
  },
  {
@@ -19741,6 +19751,11 @@
  },
  {
   "voice": "m2.ben",
+  "text": "THREE CURTAINS. CUT ALL THREE IN HALF. SLIDE AT ONE, PUSH UP. FLASH KICK.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.ben",
   "text": "THREE KNIGHTS. DON'T HIT THEM. LET THEM PISS YOU OFF. THEN LET IT OUT.",
   "from": "UPGRADES"
  },
@@ -19791,7 +19806,7 @@
  },
  {
   "voice": "m2.ben",
-  "text": "UNDER IT. YOU'RE NOT A STAGEHAND.",
+  "text": "UNDER IT? YOU'RE NOT A STAGEHAND. CUT IT.",
   "from": "UPGRADES"
  },
  {
@@ -20121,12 +20136,12 @@
  },
  {
   "voice": "m2.ben",
-  "text": "YOU DON'T SHOOT A KEG. YOU'RE NOT A COWARD.",
+  "text": "YOU DON'T PET MY CURTAIN. YOU CUT IT.",
   "from": "UPGRADES"
  },
  {
   "voice": "m2.ben",
-  "text": "YOU DON'T TOUCH A SANDBAG. YOU MURDER IT.",
+  "text": "YOU DON'T SHOOT A KEG. YOU'RE NOT A COWARD.",
   "from": "UPGRADES"
  },
  {

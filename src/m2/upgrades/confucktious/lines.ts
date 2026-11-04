@@ -289,11 +289,11 @@ export const PIECE_LINES: { hands: PieceLines; pauldrons: PieceLines; helmet: Pi
       nude: ["TWO GOLD NAKED GUYS. NOW THERE'S THREE OF US.", "SHIN ARMOR! IT DOESN'T COVER ANYTHING IMPORTANT. I'LL TAKE IT."],
     },
     sell: ["I'D LIKE TO THANK THE GIFT SHOP. FAKE AWARDS, DUCT TAPE, FILM REELS FOR KNEES. YOU SLIDE FURTHER AND YOU TRIP EVERYBODY."],
-    trial: ['SLIDE UNDER MY CURTAIN. THEN FLASH KICK MY THREE SANDBAGS.'],
+    trial: ['THREE CURTAINS. CUT ALL THREE IN HALF. SLIDE AT ONE, PUSH UP. FLASH KICK.'],
     trialPose: 'fold',
     more: ['ONE. THE ACADEMY IS MOVED.', 'TWO. YOU KICK LIKE A STUNTMAN WITH NO INSURANCE. ONE MORE.'],
-    miss: ['THAT WAS A JUMP. FLASH KICK. SLIDE, THEN UP.', "YOU DON'T TOUCH A SANDBAG. YOU MURDER IT.", 'UP WHILE YOU SLIDE. NOT AFTER. NOT BEFORE. WHILE.', 'CUT. AGAIN.', "THAT'S NOT A FLASH KICK. THAT'S A HOP."],
-    hint: ['THE BAR GOES UNDER THE CHIN. THE MAN GOES UNDER THE CURTAIN. SLIDE. THEN PUSH UP MID-SLIDE.'],
+    miss: ['THAT WAS A JUMP. FLASH KICK. SLIDE, THEN UP.', "YOU DON'T PET MY CURTAIN. YOU CUT IT.", 'UP WHILE YOU SLIDE. NOT AFTER. NOT BEFORE. WHILE.', 'CUT. AGAIN.', "THAT'S NOT A FLASH KICK. THAT'S A HOP."],
+    hint: ['HOLD THE SLIDE. PUSH UP. THE KICK GOES ALL THE WAY ROUND YOU. GET CLOSE AND CUT IT.'],
     pass: ["THAT'S A WRAP. YOU PASS. I'M GETTING CHOKED UP.", 'AND THE AWARD GOES TO... THE IDIOT. YOU PASS.'],
     passed: {
       clean: ["I'D LIKE TO THANK MY MOM. AND YOU, CON-FUCK-TIOUS."],
@@ -506,7 +506,9 @@ export const BEN_CANNON_FY = ["THE DRAGON'S LAIR. UPSTAIRS. MIND THE GUY IN THE 
 // Hollywood Land: the HAPPYWOOD WATER TOWER (lot/benTower.ts)
 
 /** Ben, the trial: he walked into the curtain instead of sliding under it. */
-export const LEGS_CURTAIN = ["UNDER IT. YOU'RE NOT A STAGEHAND.", 'THE CURTAIN DOES NOT GO UP FOR YOU. SLIDE.', 'YOU WALKED INTO A CURTAIN. IN FRONT OF EVERYBODY.'];
+export const LEGS_CURTAIN = ['YOU WALKED INTO A CURTAIN. IN FRONT OF EVERYBODY.', 'THE CURTAIN DOES NOT GO UP FOR YOU. CUT IT.', "IT'S VELVET. IT WINS. FLASH KICK IT."];
+/** Ben's three-curtain trial: a slide right on under one (not a cut). */
+export const LEGS_UNDER = ["UNDER IT? YOU'RE NOT A STAGEHAND. CUT IT.", 'A SLIDE GOES UNDER. A FLASH KICK GOES THROUGH.', 'NICE SLIDE. NOW PUSH UP IN IT.'];
 /** Meathead, the first time a rig hatch opens over him this go at the land. */
 export const MH_HATCH: ByPants = {
   clean: ['THE HATCH OPENS WHEN I RIDE UP. THE TOWER WANTS ME.'],
@@ -737,6 +739,6 @@ const pieceBen = (p: PieceLines) => [...p.sell, ...p.trial, ...p.miss, ...p.hint
 const pieceMeathead = (p: PieceLines) => [...all(p.ask), ...all(p.passed), ...all(p.enamored)];
 
 export const BEN_VOICE_LINES: Record<string, string[]> = {
-  [BEN_VOICE]: [...NAME, ...all(RIDDLE), ...PURPOSE, ...FIRST_ASIDE, ...all(AGAIN), ...all(NUDGE), ...all(NUDGE_OUT), ...BYE_BEN, ...ART_OPEN, ...ART_HOW, ...ART_HUH, ...ART_AGAIN, ...ART_FLASH, ...ART_AGAIN_FLASH, ...ART_FLASH_FIRST, ...ART_GRAB_OPEN, ...Object.values(PIECE_LINES).flatMap(pieceBen), ...LEGS_CURTAIN, ...all(NUDGE_HW), ...BEN_CANNON, ...AMULET_HUH, ...BEN_CANNON_FY, ...BRACER_HUH, ...BEN_CANNON_SP, ...BOOT_HUH, ...BEN_CANNON_FR, ...all(CROW_WRONG), ...all(CROW_SHORT), ...PADS_WIDE, ...CROW_ENOUGH, ...STORIES.flatMap(storyBen), ...all(AGAIN_LAST), ...FINAL_SET, ...FINAL_DATTE, ...FINAL_GO, ...BEN_STAY, ...BEN_STAY_CANNON],
+  [BEN_VOICE]: [...NAME, ...all(RIDDLE), ...PURPOSE, ...FIRST_ASIDE, ...all(AGAIN), ...all(NUDGE), ...all(NUDGE_OUT), ...BYE_BEN, ...ART_OPEN, ...ART_HOW, ...ART_HUH, ...ART_AGAIN, ...ART_FLASH, ...ART_AGAIN_FLASH, ...ART_FLASH_FIRST, ...ART_GRAB_OPEN, ...Object.values(PIECE_LINES).flatMap(pieceBen), ...LEGS_CURTAIN, ...LEGS_UNDER, ...all(NUDGE_HW), ...BEN_CANNON, ...AMULET_HUH, ...BEN_CANNON_FY, ...BRACER_HUH, ...BEN_CANNON_SP, ...BOOT_HUH, ...BEN_CANNON_FR, ...all(CROW_WRONG), ...all(CROW_SHORT), ...PADS_WIDE, ...CROW_ENOUGH, ...STORIES.flatMap(storyBen), ...all(AGAIN_LAST), ...FINAL_SET, ...FINAL_DATTE, ...FINAL_GO, ...BEN_STAY, ...BEN_STAY_CANNON],
   meathead: [...all(MEET), ...all(FIRST_WHY), ...all(FIRST_REACT), ...all(AGAIN_MH), ...BYE_MEATHEAD, ...all(ART_MH), ...all(ART_WEEB), ...Object.values(PIECE_LINES).flatMap(pieceMeathead), ...all(MH_PASSAGE), ...all(MH_HATCH), ...MH_CANNON_ASK, ...MH_FALL, ...all(MH_LANDED), ...all(MH_TUNNEL), ...all(AMULET_WEEB), ...all(MH_HATCH_SP), ...all(BRACER_WEEB), ...all(MH_MAZE), ...all(BOOT_WEEB), ...all(MH_LANDED_FR), ...STORIES.flatMap(storyMh), ...all(FINAL_MH)],
 };

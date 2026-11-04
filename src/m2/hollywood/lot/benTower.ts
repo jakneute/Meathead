@@ -15,10 +15,16 @@
 //     the only way up a level is the wire. Up through it, off the rig's end: the swoop (charge at the end of the line,
 //     the land's own trick), or jump off and uppercut, or pump the swing and jump. A fall lands him on the deck under
 //     him (the hatches are shut again); nothing up there hurts. Stood on a shut hatch, holding down drops it (the way
-//     down; a HOLD DOWN prompt).
+//     down; a HOLD DOWN prompt). Once all of him's up over an open hatch it shuts under him (the owner's "when your
+//     whole body goes over a trap door, it will close"): floor to land on. Every rig runs the way he faces on screen
+//     (wires.ts), and each is laid out so he comes at it heading the way it goes; taking hold of one at an end, he's
+//     turned to face the way it goes (runRigs). The camera (benTowerCam.ts): steady on the rigs (the trolley, not the
+//     swing), Ben and him held on screen together whenever Ben talks in the tank.
 //     THE FIVE LEVELS (a different rope trick each):
-//       0  the street to LEVEL 1: one rig, up and across (the harness hangs a jump up, out of the walkers' way: nobody's
-//          yanked up the tower just walking past). Charge at the end: the hatch is right over it.
+//       0  the street to LEVEL 1: one short rig just inside the tower's left leg, nearly straight up (the harness hangs a
+//          jump up, out of the walkers' way: nobody's yanked up the tower just walking past), on the way he walked in;
+//          at the end it lifts him on up through the hatch over it onto the deck (the owner's "it should go up a little
+//          ways so you are now in the progression path to the tower and not pull you forward"), by the dolly's end.
 //       1  a camera dolly on its own loop (a shuttle): catch it as it comes, ride it up across.
 //       2  a CHAIN: the first rig ends out in the air, short; jump across to the second's harness (hung too high to reach
 //          off the deck), and it takes him up the other way.
@@ -30,18 +36,21 @@
 //   THE MEETUP (a cutscene, SKIP >> for all of it; confucktious/meetup.ts): the first meeting's long intro or a later
 //     one's short one; Ben's gross-up holding up one of the statuettes for an acceptance speech, then a flash kick up
 //     across the screen, the other statuette taped down his shin (gross.ts).
-//   THE TRIAL (in play; invented): ACTION! Ben lends him the shin-digs (taken back if he drops out of the tank on it;
-//     never saved lent). His red stage curtain drops across the tank, down to a gap at the floor: walking into it bumps
-//     him back (a dry line; a hint after two); a SLIDE goes under it. Past it, three sandbags hung off the pipes: a FLASH
-//     KICK (up as he holds the slide) knocks one down; a jump or an uppercut into one just swings it (a dry line). Any
-//     order, any number at once. Can't get stuck: the slide's always there to go back, and nothing hurts.
+//   THE TRIAL (in play; the owner's "bens flash kick thing should slice the curtains apart. that's the criteria for
+//     passing" / "ben has three curtains he wants you to slice" / "this doesn't have an 'other' way to pass"): Ben lends
+//     him the shin-digs (taken back if he drops out of the tank on it; never saved lent). His three red stage curtains
+//     drop across the tank, 210 apart, down to a gap at the floor. A FLASH KICK (up as he holds the slide) anywhere near
+//     one (its own circle, a little more, against the whole curtain) cuts it in half: the halves drop off the pipe and
+//     slump to the floor. Only that: walking into one bumps him back, a jump or an uppercut into one swings it, a plain
+//     slide goes under it (a dry line each; a hint after two); shots and weapons go through them. Any order, any number
+//     at once ("ONE.", "TWO.", then the pass). Can't get stuck: the slide's always there to go back, and nothing hurts.
 //   THE GIFT (a cutscene, skippable): they're his (setPiece, setBenGave, saved there and then); Ben's tease, Meathead
 //     enamored. THE HIDDEN ART OF FOLLOW-UPS: if this is his first follow-up piece, the big beat (the gross-up, how
 //     follow-ups go, the buttons up as he says it) and then how this one's the odd one out (no grab: up as he holds the
 //     slide); else just that this one cheats. Then the YOU GOT card: 90 frames, every button let go, a fresh press.
 //   THE PRACTICE: Steve's stunt double (m2:hw_double: harmless, never attacks; trippable, kickable in half), one at a
-//     time, the union sends another a moment after each goes; the sandbags are hung again a while after they're kicked
-//     down. Nothing in the tank hurts him (noContactHurt). The flash kick's buttons stay up till he's done one.
+//     time, the union sends another a moment after each goes; the curtains hung again, each a few seconds after it's
+//     cut. Nothing in the tank hurts him (noContactHurt). The flash kick's buttons stay up till he's done one.
 //   THE CANNON (upgrades/returnCannon.ts, HOLLYWOOD look): only once the trial's passed (Ben nudges him). It points
 //     straight up the tank's roof vent and stays that way: it fires him out of the top of the tower and he comes down
 //     past the whole thing, outside it, onto the street at its foot. "Just cause."
@@ -62,7 +71,7 @@ import { pickLine, silenceAll } from '../../../m1/game/platform/speech';
 import { SKIP_AFTER, offerSkip, takeSkip } from '../../../m1/game/platform/skip';
 import { makeKindEnemy, mid } from '../../../m1/game/enemies/kinds';
 import { isNude, isShat } from '../../../m1/game/player/gut';
-import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../../../m1/constants';
+import { CANVAS_WIDTH, CANVAS_HEIGHT, PLAYER_GRAVITY, PLAYER_MOVE_SPEED } from '../../../m1/constants';
 import { registerM2Kind } from '../../kinds';
 import { inPlay } from '../../moves/grab';
 import { setUi } from '../../store';
@@ -72,14 +81,15 @@ import { FOLLOW, type EquipControl } from '../../upgrades/equipInfo';
 import { FLASH_RADIUS } from '../../upgrades/tune';
 import { makeCannon, updateCannon, cannonBusy, type Cannon } from '../../upgrades/returnCannon';
 import {
-  BYE_MEATHEAD, PIECE_LINES, artBeats, artStart, ART_FLASH, ART_AGAIN_FLASH,
-  LEGS_CURTAIN, MH_HATCH, NUDGE_HW, MH_CANNON_ASK, BEN_CANNON, MH_FALL, MH_LANDED,
+  BYE_MEATHEAD, PIECE_LINES, artBeats, artStart, ART_FLASH_FIRST, ART_AGAIN_FLASH,
+  LEGS_CURTAIN, LEGS_UNDER, MH_HATCH, NUDGE_HW, MH_CANNON_ASK, BEN_CANNON, MH_FALL, MH_LANDED,
   benSays, warmBenGross, meetupScript, startScript, tickScript, skipScript,
   type BenPose, type BenTalk, type Script, type Beat, type ByPants, giftCoda,
   makeGate, syncGate, gateBump, cannonLocked, type Gate,
 } from '../../upgrades/confucktious';
 import { meatheadSays, solid, ledge, hollywoodWires, type StuntWire } from '../section';
-import { wireOn, wireU } from '../wires';
+import { wireOn, wireU, kickOffWire } from '../wires';
+import { runTowerCam } from './benTowerCam';
 import { GY } from '../geometry';
 import { X, Y } from './layout';
 import { drawDouble } from './benTowerDouble';
@@ -96,7 +106,7 @@ export const IN_A = 5060, IN_B = 5860, WALL = 40, DECK_T = 24;
 export const DECKS = [0, 460, 940, 1500, 2040, 2640];
 /** Each deck's rig hatch (its left edge; 150 wide), [1..5]. */
 export const HATCH_W = 150;
-export const HATCH_X = [0, 5300, 5560, 5520, 5250, 5690];
+export const HATCH_X = [0, 5125, 5560, 5520, 5250, 5690];
 /** The tank: its inside's ends, how high inside; the vent in its roof over the cannon. */
 export const TANK = { a: 5000, b: 5920, h: 380 };
 export const VENT = { a: 5850, b: 5920 };
@@ -104,18 +114,24 @@ export const TANK_F = DECKS[5];
 /** Level 4's perch (under the fast dolly's run), the raft hammock up in the tank: [x0, x1, height]. */
 export const PERCH: [number, number, number] = [5150, 5260, DECKS[4] + 120];
 export const RAFT: [number, number, number] = [5020, 5160, TANK_F + 250];
-/** In the tank: Ben, the curtain (its ends; down to this gap off the floor), the three sandbags (x, how high their feet
- *  hang), the cannon, where the stunt double turns up. */
+/** In the tank: Ben, his three curtains (each one's left edge, from the manhole's side in toward Ben; how wide; down to
+ *  this gap off the floor: a slide goes under), the cannon, where the stunt double turns up. The curtains 210 apart:
+ *  a flash kick's circle (FLASH_RADIUS, 100, about his middle) can't take two from between them but at a stretch. */
 export const BEN_X = 5090;
-export const CURTAIN = { a: 5600, b: 5632, gap: 30 };
-export const BAGS0: [number, number][] = [[5200, 120], [5370, 150], [5540, 120]];
-export const BAG_W = 28, BAG_H = 38;
+export const CURTAINS = [5630, 5388, 5146];
+export const CUR_W = 32, CUR_GAP = 30;
 export const CANNON_X = 5885;
 export const DOUBLE_X = 5330;
 /** Where the cannon shoots him out (high over the tank's roof, just off the tower's right side) and where he comes down
  *  (the street at the tower's foot). */
 const EXIT = { x: 6000, h: 3300 }, LAND = { x: 6000 };
+/** Where his feet sit on screen in the tank (the room fits, floor to roof). */
+export const TANK_ROW = 470;
+/** Off the rigs, outside the tank: the engine's ground row. */
+const GROUND_ROW = 550;
 
+/** The first rig's street end (its harness, a jump up). */
+const RIG0_A = 5115;
 /** A rig's track a little under the deck over it; its harness at its far end hangs this far under (his feet) the deck's
  *  underside. */
 const rigUnder = (k: number) => Y(DECKS[k] - DECK_T - 24);
@@ -124,8 +140,10 @@ const feetUnder = (k: number, gap = 156) => Y(DECKS[k] - DECK_T - gap);
 const chainTo = (k: number, rigH: number) => DECKS[k] - DECK_T - rigH + 6;
 /** The tower's rigs, bottom up (each one's hatch: HATCHES below). */
 export const TOWER_WIRES: StuntWire[] = [
-  // 0: the street up to level 1 (its harness a jump up, so walking under it on the street doesn't yank him up)
-  { from: { x: X(5800), y: Y(170) }, to: { x: X(HATCH_X[1] + HATCH_W - 37), y: feetUnder(1) }, rigY: rigUnder(1), speed: 6, chain: chainTo(1, DECKS[1] - DECK_T - 24) },
+  // 0: the street up to level 1: just inside the tower's left leg, short and nearly straight up (its harness a jump up,
+  // so walking under it on the street doesn't yank him up), on the way he walked in (right), to under the hatch; there
+  // it lifts him on up through it onto the deck (runLift), by the dolly's end
+  { from: { x: X(RIG0_A), y: Y(170) }, to: { x: X(HATCH_X[1] + HATCH_W / 2), y: feetUnder(1) }, rigY: rigUnder(1), speed: 5, chain: chainTo(1, DECKS[1] - DECK_T - 24) },
   // 1: level 1, a camera dolly on its own loop
   { from: { x: X(5120), y: Y(DECKS[1] + 80) }, to: { x: X(HATCH_X[2] + 37), y: feetUnder(2) }, rigY: rigUnder(2), shuttle: true, speed: 7, chain: chainTo(2, DECKS[2] - DECK_T - 24) },
   // 2a: level 2, out into the air short of the far wall...
@@ -189,8 +207,13 @@ export interface Hatch {
   block: Block | null;
   /** How far its leaves have swung down (0 shut, 1 hanging). */
   swing: number;
+  /** He's been in it or under it while it's open: once all of him's up over it, it shuts under him. */
+  under: boolean;
+  /** (this frame: shut it, he's up over it) */
+  shutNow?: boolean;
 }
-export interface Bag { x: number; h: number; down: boolean; at: number; sway: number; sv: number }
+/** One of Ben's curtains: cut (the frame it was), which side of it he was last on, slid in under it, its swing. */
+export interface Curtain { a: number; cut: boolean; at: number; side: 1 | -1; slidIn: boolean; sway: number; sv: number; dir: 1 | -1 }
 type Phase = 'out' | 'meet' | 'trial' | 'gift' | 'card' | 'done';
 export interface Tower {
   hatches: Hatch[];
@@ -198,9 +221,12 @@ export interface Tower {
   all: number; token: number;
   script: Script | null;
   ben: BenTalk & { pose: BenPose; facing: 1 | -1; poseT: number; piece: 'legs' | null };
-  bags: Bag[];
-  /** The curtain's down across the tank (the trial), and him at it: which side he was last on, slid in under it. */
-  curtain: boolean; curSide: 1 | -1; slidIn: boolean;
+  /** The curtains are down across the tank (the trial on; after it, the practice), each one's state. */
+  curtain: boolean; curtains: Curtain[];
+  /** The first rig: ridden up from its street end (so at the hatch it lifts him through). The rig he was on last frame. */
+  liftArmed: boolean; wasOn: number;
+  /** The meetup's walk over to Ben (frames). */
+  walkT: number;
   /** The trial: misses (curtain bumps, sandbags swung), the next miss line's frame, the pass's beat started (frame). */
   misses: number; missAt: number; passAt: number;
   /** The gift: the hidden art's beats (their indexes: the follow-ups' how-to, the flash kick's), the big beat or not. */
@@ -224,8 +250,8 @@ export const towerOf = (state: GameState): Tower => {
     hatches: [],
     phase: 'out', all: 0, token: 0, script: null,
     ben: { said: null, pose: 'flurry', facing: 1, poseT: 0, piece: 'legs' },
-    bags: BAGS0.map(([x, hh]) => ({ x, h: hh, down: false, at: -999, sway: 0, sv: 0 })),
-    curtain: false, curSide: 1, slidIn: false,
+    curtain: false, curtains: CURTAINS.map(a => ({ a, cut: false, at: -999, side: 1, slidIn: false, sway: 0, sv: 0, dir: 1 })),
+    liftArmed: false, wasOn: -1, walkT: 0,
     misses: 0, missAt: 0, passAt: -1,
     howA: -1, howB: -1, flashA: -1, flashB: -1, artFull: false,
     cardT: 0, cardArmed: false, practice: null, respawn: 40, goodSaid: false, tipsTill: false, nudgeAt: 0,
@@ -256,7 +282,7 @@ export const buildTower = (state: GameState) => {
     const x0 = HATCH_X[k], x1 = x0 + HATCH_W;
     solid(state, X(a), top, x0 - a, DECK_T, { hidden: true, tag });
     solid(state, X(x1), top, b - x1, DECK_T, { hidden: true, tag });
-    const hk: Hatch = { k, x0: X(x0), x1: X(x1), top, wire: TOWER_WIRES[HATCH_WIRE[k]], open: false, hold: 0, down: 0, block: null, swing: 0 };
+    const hk: Hatch = { k, x0: X(x0), x1: X(x1), top, wire: TOWER_WIRES[HATCH_WIRE[k]], open: false, hold: 0, down: 0, block: null, swing: 0, under: false };
     hk.block = solid(state, hk.x0, top, HATCH_W, DECK_T, { hidden: true, tag: 'hw-hatch' });
     h.hatches.push(hk);
   }
@@ -298,7 +324,12 @@ const runHatches = (state: GameState, h: Tower, controls: Controls) => {
     if (stood) { setUi({ holdDownPrompt: 'DROP DOWN' }); hk.down = controls.down ? hk.down + 1 : 0; if (hk.down > 10) hk.hold = 24; }
     else hk.down = 0;
     const inCol = p.pos.x + p.width > hk.x0 - 4 && p.pos.x < hk.x1 + 4 && fy > hk.top - 170 && p.pos.y < hk.top + DECK_T + 240;
-    const want = hk.hold > 0 || (hk.open && inCol);
+    // (the owner's "when your whole body goes over a trap door, it will close": in it or under it while it's open, then
+    // all of him up over its top (his feet over the deck), it shuts there and then, rig or no rig: floor to land on)
+    if (hk.open && fy > hk.top + 1 && p.pos.x + p.width > hk.x0 - 4 && p.pos.x < hk.x1 + 4 && p.pos.y < hk.top + DECK_T + 240) hk.under = true;
+    if (hk.open && hk.under && fy < hk.top - 1 && !overlaps(state, hk.x0 - 1, hk.top - 1, HATCH_W + 2, DECK_T + 2)) { hk.hold = 0; hk.under = false; hk.shutNow = true; }
+    const want = !hk.shutNow && (hk.hold > 0 || (hk.open && inCol));
+    hk.shutNow = false;
     if (hk.hold > 0) hk.hold--;
     if (want && !hk.open) {
       hk.open = true;
@@ -306,7 +337,7 @@ const runHatches = (state: GameState, h: Tower, controls: Controls) => {
       playSound('clang', 0.7, -6); playSound('whoosh', 0.4, -8);
       if (loaded && !state.stageMemo['m2:hwHatch']) { state.stageMemo['m2:hwHatch'] = '1'; meatheadSays(state, pickLine(byPants(state, MH_HATCH)), true); }
     } else if (!want && hk.open && !overlaps(state, hk.x0 - 1, hk.top - 1, HATCH_W + 2, DECK_T + 2)) {
-      hk.open = false;
+      hk.open = false; hk.under = false;
       hk.block = solid(state, hk.x0, hk.top, HATCH_W, DECK_T, { hidden: true, tag: 'hw-hatch' });
       playSound('slam', 0.5, -4);
     }
@@ -315,10 +346,39 @@ const runHatches = (state: GameState, h: Tower, controls: Controls) => {
   }
 };
 
+/** Rigs he's just taken hold of at one end of (parked): turned to face the only way it goes (the owner's "the wires
+ *  should move in the same direction you face horizontally": riding one, he faces the way it's carrying him). The
+ *  first rig ridden up to its hatch: it lifts him on up through it, straight up, onto the deck (the owner's "it should
+ *  go up a little ways so you are now in the progression path to the tower and not pull you forward"). */
+const runRigs = (state: GameState, h: Tower) => {
+  const p = state.player, all = hollywoodWires(state), on = wireOn(state);
+  const rig = on >= 0 ? TOWER_WIRES.indexOf(all[on]) : -1;
+  if (rig >= 0 && h.wasOn !== on) {
+    const w = TOWER_WIRES[rig], u = wireU(state, on), xs = w.to.x >= w.from.x ? 1 : -1;
+    if (u <= 0.02) p.facing = xs as 1 | -1;
+    else if (u >= 0.98) p.facing = -xs as 1 | -1;
+  }
+  h.wasOn = on;
+  if (rig !== 0) { h.liftArmed = false; return; }
+  const u = wireU(state, on), hk = h.hatches[0];
+  if (u < 0.85) h.liftArmed = true;
+  if (!h.liftArmed || u < 0.97 || !hk.open) return;
+  // (up through it: from where he hangs, his feet a good way up over the deck; drifted to the hatch's middle)
+  h.liftArmed = false;
+  const rise = hk.top - 70 - feetY(state);
+  const vy = -Math.sqrt(2 * PLAYER_GRAVITY * Math.max(60, -rise));
+  const mid = (hk.x0 + hk.x1) / 2;
+  kickOffWire(state, Math.max(-1.5, Math.min(1.5, (mid - midX(state)) / 30)), vy);
+  playSound('whoosh', 0.8, 2); playSound('clang', 0.4, 4);
+};
+
 export const updateTower = (ctx: FrameContext, controls: Controls): Controls => {
   const { state } = ctx, p = state.player, h = towerOf(state);
   runHatches(state, h, controls);
+  runRigs(state, h);
   runLid(state, h);
+  // (the camera: steady on the rigs, Ben framed with him when he talks; inTank's own below)
+  if (!inTank(state)) runTowerCam(state, TOWER_WIRES, null, GROUND_ROW);
   if (upTower(state) && feetY(state) < Y(DECKS[3])) warmBenGross();
   const tank = inTank(state);
   if (!tank) {
@@ -340,7 +400,7 @@ export const updateTower = (ctx: FrameContext, controls: Controls): Controls => 
   const pressed = (k: keyof Controls) => !!controls[k] && !h.was[k];
   const anyPress = pressed('jump') || pressed('shoot') || pressed('special') || pressed('secondary') || pressed('charge');
   h.was = { ...controls };
-  swayBags(state, h);
+  swayCurtains(h);
   // Up out of the manhole, on his feet off it: what's on
   const hk5 = h.hatches[4];
   if (h.phase === 'out' && p.isGrounded && p.health > 0 && (midX(state) < hk5.x0 - 4 || midX(state) > hk5.x1 + 4)) {
@@ -389,6 +449,9 @@ export const updateTower = (ctx: FrameContext, controls: Controls): Controls => 
   // The cannon: only once the trial's passed (no getting in, no prompt, before: chained, UP at it gets Ben's bark)
   if (h.phase === 'trial') cannonLocked(state, h.cannon, out, h.ben);
   if (h.phase === 'done' || cannonBusy(h.cannon)) out = updateCannon(ctx, h.cannon, out, cannonHooks(h));
+  // (the camera: Ben and him held on screen together while Ben's talking, the meetup and the gift all through)
+  const talking = (h.phase === 'meet' || h.phase === 'gift' || h.phase === 'card' || !!h.ben.said) && !cannonBusy(h.cannon);
+  runTowerCam(state, TOWER_WIRES, talking ? [X(BEN_X), midX(state)] : null, TANK_ROW, [X(TANK.a - WALL), X(TANK.b + WALL)]);
   return out;
 };
 
@@ -396,8 +459,8 @@ export const updateTower = (ctx: FrameContext, controls: Controls): Controls => 
 const CARD_HOLD = 90;
 /** The meetup's run this visit (state.stageMemo: kept across deaths, gone on a fresh way into the land). */
 const MEMO = 'm2:benHollywood';
-/** A kicked-down sandbag's hung again this long after (practice). */
-const REHANG = 360;
+/** A cut curtain's hung again this long after (practice: a few seconds). */
+const REHANG = 240;
 
 /** Nothing in the tank gets at him: shots in it that aren't his are gone; anything else in it but the stunt double is
  *  put back down on the street. */
@@ -442,8 +505,10 @@ const faceBen = (state: GameState, h: Tower) => {
 };
 
 // ---- the meetup
+/** The meetup's widest he's let be from Ben (him and Ben on screen together, their words with them). */
+const MEET_SPAN = 520;
 const startMeet = (state: GameState, h: Tower) => {
-  h.phase = 'meet'; h.all = 0; h.token++;
+  h.phase = 'meet'; h.all = 0; h.token++; h.walkT = 0;
   state.stageMemo[MEMO] = '1';
   // (the gross-up back up for the sell: the acceptance speech)
   const sell = L.sell[0];
@@ -451,7 +516,7 @@ const startMeet = (state: GameState, h: Tower) => {
   // he already guided me to the follow up. get the sequencing right"): the big beat (with the shins' flash kick after
   // the how) only with his first follow-up piece, whichever land; else the brief mention, the flash kick's own)
   h.artFull = !followArt() && !FOLLOW_PIECES.some(pc => pc !== 'legs' && benGave(pc));
-  const art = artBeats(pantsOf(state), h.artFull, { extra: ART_FLASH[0], again: ART_AGAIN_FLASH[0], againIsExtra: true });
+  const art = artBeats(pantsOf(state), h.artFull, { how: [], extra: ART_FLASH_FIRST, again: ART_AGAIN_FLASH[0], againIsExtra: true });
   const beats = meetupScript(pantsOf(state), L, undefined, art).map((b): Beat => (b.who === 'ben' && b.text === sell ? { ...b, gross: true } : b));
   const at = artStart(beats, art), abs = (i: number) => (i < 0 ? -1 : at + i);
   h.howA = abs(art.how[0]); h.howB = abs(art.how[1]); h.flashA = abs(art.extra[0]); h.flashB = abs(art.extra[1]);
@@ -463,6 +528,15 @@ const runMeet = (state: GameState, h: Tower): { out: Controls; tips: EquipContro
   const s = h.script!;
   freeze(state); h.all++;
   const end = () => { setBenMet(true); saveProgress(); h.script = null; startTrial(state, h); };
+  // (too far off across the tank for the two of them on screen together: he walks on over first)
+  const gap = midX(state) - X(BEN_X);
+  if (h.walkT < 240 && s.i === 0 && !s.waiting && Math.abs(gap) > MEET_SPAN) {
+    h.walkT++;
+    const d = gap > 0 ? -1 : 1;
+    state.player.facing = d; state.player.vel.x = d * PLAYER_MOVE_SPEED;
+    h.all = Math.min(h.all, 40);
+    return { out: { ...NO_CONTROLS, left: d < 0, right: d > 0 }, tips: null };
+  }
   if (h.all > SKIP_AFTER) { offerSkip(); if (takeSkip()) { silenceAll(); skipScript(s); h.ben.said = null; end(); return { out: { ...NO_CONTROLS }, tips: null }; } }
   // (a beat of him shadowboxing first; then he turns to Meathead for the lot)
   if (h.all > 40) {
@@ -479,9 +553,8 @@ const runMeet = (state: GameState, h: Tower): { out: Controls; tips: EquipContro
 const startTrial = (state: GameState, h: Tower) => {
   h.phase = 'trial'; h.misses = 0; h.passAt = -1; h.missAt = 0;
   state.player.inCutscene = false;
-  // (the curtain down across the tank (he's on the manhole's side of it), the sandbags hung)
-  h.curtain = true; h.curSide = midX(state) < X((CURTAIN.a + CURTAIN.b) / 2) ? -1 : 1; h.slidIn = false;
-  for (const b of h.bags) { b.down = false; b.sway = 0; b.sv = 0; }
+  // (the three curtains down across the tank (he's on the manhole's side of them))
+  hangCurtains(state, h);
   playSound('whoosh', 0.8, -10); playSound('thud', 0.6, -6);
   // (the shin-digs off his shins and onto Meathead's for it)
   h.ben.piece = null; setPose(h, 'fold');
@@ -495,50 +568,79 @@ const SLIDE_TIPS: EquipControl[] = [
   { pad: ['DPAD_DOWN', 'B'], join: '+', kb: ['@down', '@special'], label: 'SLIDE TACKLE' },
   { pad: ['DPAD_UP'], kb: ['@up'], label: 'PRESS AS YOU HOLD THE SLIDE: FLASH KICK' },
 ];
-/** A sandbag's box (world): x0, top, w, h. */
-export const bagBox = (b: Bag): [number, number, number, number] => [X(b.x) - BAG_W / 2, Y(TANK_F + b.h) - BAG_H, BAG_W, BAG_H];
-/** In the flash kick's circle (its own reach: tune.ts FLASH_RADIUS, about his middle). */
+/** A curtain's box (world): x0, top, w, h (from under the roof's pipe down to its gap over the floor). */
+export const curtainBox = (c: Curtain): [number, number, number, number] => {
+  const top = Y(TANK_F + TANK.h) + 18, bot = Y(TANK_F + CUR_GAP);
+  return [X(c.a), top, CUR_W, bot - top];
+};
+/** All three hung again, whole (the trial's start; the practice), him on whichever side of each he's on. */
+const hangCurtains = (state: GameState, h: Tower) => {
+  h.curtain = true;
+  const p = state.player;
+  for (const c of h.curtains) {
+    c.cut = false; c.at = -999; c.slidIn = false; c.sway = 0; c.sv = 0; c.side = midX(state) < X(c.a + CUR_W / 2) ? -1 : 1;
+    // (never down on top of him: he's stood off to the side he was on)
+    if (p.pos.x + p.width > X(c.a) && p.pos.x < X(c.a) + CUR_W) p.pos.x = c.side < 0 ? X(c.a) - p.width - 1 : X(c.a) + CUR_W + 1;
+  }
+};
+/** In the flash kick's circle: its own (tune.ts FLASH_RADIUS about his middle, as followups.ts has it), a little more
+ *  (the owner's "a flash kick anywhere near it cuts it"). */
+const FLASH_REACH = FLASH_RADIUS + 16;
 const inFlash = (state: GameState, [x, y, w, hh]: [number, number, number, number]) => {
   const p = state.player, cx = midX(state), cy = p.pos.y + p.height / 2 - 6;
   const nx = Math.max(x, Math.min(cx, x + w)), ny = Math.max(y, Math.min(cy, y + hh));
-  return (nx - cx) ** 2 + (ny - cy) ** 2 <= FLASH_RADIUS * FLASH_RADIUS;
+  return (nx - cx) ** 2 + (ny - cy) ** 2 <= FLASH_REACH * FLASH_REACH;
 };
-/** The sandbags: swinging back to still; a flash kick through one knocks it down (true); anything else into it swings
- *  it (`bumped`). */
-const swayBags = (state: GameState, h: Tower) => {
-  for (const b of h.bags) { b.sv += -b.sway * 0.02; b.sv *= 0.96; b.sway += b.sv; }
+/** Swinging back to still (bumped). */
+const swayCurtains = (h: Tower) => {
+  for (const c of h.curtains) { c.sv += -c.sway * 0.03; c.sv *= 0.92; c.sway += c.sv; }
 };
-const kickBags = (state: GameState, h: Tower): { kicked: number; bumped: boolean } => {
+/** A flash kick near one: it's cut in half (both halves drop off the pipe and slump to the floor). Only the flash kick:
+ *  nothing else he's got touches them (shots, weapons, charges, uppercuts, slides: none of them are looked at). How many
+ *  it cut. (The old sandbags' miss: they hung 120-150 up, over the circle's reach off the floor, and a kick only got one
+ *  when it had risen enough: the "random" pass.) */
+const cutCurtains = (state: GameState, h: Tower): number => {
   const p = state.player;
-  let kicked = 0, bumped = false;
-  for (const b of h.bags) {
-    if (b.down) continue;
-    const bx = bagBox(b);
-    if (p.flashKick && inFlash(state, bx)) {
-      b.down = true; b.at = state.frame; kicked++;
-      playSound('punch', 1, -6); playSound('thud', 0.8, -4); playSound('poof', 0.6, -6);
-      const [x, y] = bx;
-      for (let i = 0; i < 20; i++) state.particles.push({ pos: { x: x + Math.random() * BAG_W, y: y + Math.random() * BAG_H }, vel: { x: (Math.random() - 0.5) * 5, y: -2 - Math.random() * 3 }, life: 30 + Math.random() * 20, color: i % 3 ? '#D8C08A' : '#A88A52', size: 2 + Math.random() * 2, grav: 0.3 } as typeof state.particles[number]);
-      shakeScreen(state, 5, 4);
-    } else if (overlaps(state, bx[0], bx[1], bx[2], bx[3])) {
-      if (Math.abs(b.sv) < 0.02) { b.sv = (midX(state) < X(b.x) ? 1 : -1) * 0.12; playSound('thud', 0.4, 2); }
-      bumped = true;
-    }
+  if (!h.curtain || !p.flashKick) return 0;
+  let n = 0;
+  for (const c of h.curtains) {
+    if (c.cut || !inFlash(state, curtainBox(c))) continue;
+    c.cut = true; c.at = state.frame; c.slidIn = false; n++;
+    c.dir = midX(state) < X(c.a + CUR_W / 2) ? 1 : -1;
+    // (the rip: velvet shreds and gold fringe off the cut, all the way down it)
+    playSound('scratch', 1.2, -9); playSound('scratch', 0.9, -4); playSound('whoosh', 1, -6);
+    const [x, y, w, hh] = curtainBox(c);
+    for (let i = 0; i < 26; i++) state.particles.push({ pos: { x: x + w / 2 + (Math.random() - 0.5) * 8, y: y + Math.random() * hh }, vel: { x: (Math.random() - 0.5) * 4, y: -1 - Math.random() * 2 }, life: 30 + Math.random() * 25, color: i % 4 ? '#9B1B2A' : '#E0B040', size: 2 + Math.random() * 2, grav: 0.2 } as typeof state.particles[number]);
+    shakeScreen(state, 5, 4);
   }
-  return { kicked, bumped };
+  return n;
 };
-/** Him at the curtain: under it sliding; walking into it, bumped back out (true). */
-const runCurtain = (state: GameState, h: Tower): boolean => {
-  const p = state.player, fy = feetY(state), mx = X((CURTAIN.a + CURTAIN.b) / 2);
-  const over = p.pos.x + p.width > X(CURTAIN.a) && p.pos.x < X(CURTAIN.b) && fy > Y(TANK_F + TANK.h);
-  if (!over) { h.curSide = midX(state) < mx ? -1 : 1; h.slidIn = false; return false; }
-  if (p.isSliding) { h.slidIn = true; return false; }
-  // (slid partway under and stopped: out the far side; walked into it: back out)
-  const side = h.slidIn ? -h.curSide as 1 | -1 : h.curSide;
-  p.pos.x = side < 0 ? X(CURTAIN.a) - p.width - 1 : X(CURTAIN.b) + 1; p.vel.x = 0;
-  if (h.slidIn) { h.curSide = side; h.slidIn = false; return false; }
-  playSound('thud', 0.5, -10);
-  return true;
+/** The ones still hung, in his way: under one sliding (or flash kicking); walking or jumping into one, bounced back
+ *  out (it swings). What happened at one this frame: walked into it, jumped (or uppercut) into it, slid on under it. */
+const runCurtains = (state: GameState, h: Tower): 'walk' | 'air' | 'under' | null => {
+  const p = state.player, fy = feetY(state), cx = midX(state);
+  let got: 'walk' | 'air' | 'under' | null = null;
+  if (!h.curtain) return null;
+  for (const c of h.curtains) {
+    if (c.cut) continue;
+    const a = X(c.a), b = a + CUR_W, mx = (a + b) / 2;
+    const over = p.pos.x + p.width > a && p.pos.x < b && fy > Y(TANK_F + TANK.h);
+    if (!over) {
+      // (out from under it: out the far side is a slide on under, not a cut)
+      const side = cx < mx ? -1 : 1;
+      if (c.slidIn && side !== c.side) got = 'under';
+      c.side = side; c.slidIn = false;
+      continue;
+    }
+    if (p.isSliding || p.flashKick) { c.slidIn = true; continue; }
+    // (slid partway under and stopped: out the far side; walked or jumped into it: back out, and it swings)
+    const side = c.slidIn ? -c.side as 1 | -1 : c.side;
+    p.pos.x = side < 0 ? a - p.width - 1 : b + 1; p.vel.x = 0;
+    if (c.slidIn) { c.side = side; c.slidIn = false; got = 'under'; continue; }
+    if (Math.abs(c.sv) < 0.01) { c.sv = -side * 0.05; playSound('thud', 0.5, -10); }
+    got = !p.isGrounded || p.isUppercutting ? 'air' : 'walk';
+  }
+  return got;
 };
 const miss = (state: GameState, h: Tower, lines: string[]) => {
   if (state.frame < h.missAt) return;
@@ -556,12 +658,14 @@ const runTrial = (state: GameState, h: Tower): EquipControl[] | null => {
     if (state.frame - h.passAt > 900 && h.phase === 'trial') startGift(state, h);
     return null;
   }
-  if (h.curtain && runCurtain(state, h)) miss(state, h, LEGS_CURTAIN);
-  const { kicked, bumped } = kickBags(state, h);
-  const down = h.bags.filter(b => b.down).length;
+  // (the owner's "bens flash kick thing should slice the curtains apart. that's the criteria for passing" / "ben has
+  // three curtains he wants you to slice": only the flash kick cuts one; all three is the pass, no other way)
+  const kicked = cutCurtains(state, h);
+  const bump = runCurtains(state, h);
+  const left = h.curtains.filter(c => !c.cut).length;
   if (kicked) {
     silenceAll(); h.ben.said = null; h.token++;
-    if (down < 3) benSays(h.ben, L.more?.[down - 1] ?? pickLine(L.miss));
+    if (left > 0) benSays(h.ben, L.more?.[2 - left] ?? pickLine(L.miss));
     else {
       // (all three: the pass, Meathead's word, then the gift)
       h.passAt = state.frame; setPose(h, 'fold');
@@ -569,7 +673,9 @@ const runTrial = (state: GameState, h: Tower): EquipControl[] | null => {
       benSays(h.ben, pickLine(L.pass), () => { if (h.token === tok) meatheadSays(state, pickLine(byPants(state, L.passed)), true, () => { if (h.token === tok && h.phase === 'trial') startGift(state, h); }); });
       return null;
     }
-  } else if (bumped && !p.flashKick) miss(state, h, L.miss);
+  } else if (bump === 'walk') miss(state, h, LEGS_CURTAIN);
+  else if (bump === 'air') miss(state, h, L.miss);
+  else if (bump === 'under') miss(state, h, LEGS_UNDER);
   return p.health > 0 ? SLIDE_TIPS : null;
 };
 
@@ -579,7 +685,7 @@ const startGift = (state: GameState, h: Tower) => {
   // (the hidden art's been said before the trial (startMeet): here, only the gift)
   // (his for good, there and then: a skip, a death, a quit can't lose them; the curtain goes back up)
   setPiece('legs', true); setBenGave('legs'); saveProgress();
-  h.curtain = false;
+  // (the cut curtains stay down where they fell: hung again for the practice after)
   freeze(state);
   setPose(h, 'give');
   const pants = pantsOf(state);
@@ -621,9 +727,16 @@ const runDone = (state: GameState, h: Tower): EquipControl[] | null => {
   // (Ben: hands on his hips watching when he's close; shadowboxing when he's off)
   if (Math.abs(cx - bx) < 220 || h.ben.said) setPose(h, 'fold'); else setPose(h, 'flurry');
   h.ben.facing = cx < bx ? -1 : 1;
-  // (the sandbags: kicked down, hung again a while after)
-  for (const b of h.bags) if (b.down && state.frame - b.at > REHANG) { b.down = false; b.sway = 0; b.sv = 0.08; playSound('whoosh', 0.3, 6); }
-  kickBags(state, h);
+  // (the curtains, for practice: hung (back up on a revisit), each cut one hung again a while after)
+  if (!h.curtain) hangCurtains(state, h);
+  for (const c of h.curtains) if (c.cut && state.frame - c.at > REHANG) {
+    const [x, , w] = curtainBox(c);
+    // (not down on him)
+    if (state.player.pos.x + state.player.width > x - 4 && state.player.pos.x < x + w + 4) continue;
+    c.cut = false; c.sway = 0; c.sv = 0.04; c.side = midX(state) < x + w / 2 ? -1 : 1; c.slidIn = false; playSound('whoosh', 0.4, 6);
+  }
+  cutCurtains(state, h);
+  runCurtains(state, h);
   if (p.flashKick) h.tipsTill = false;
   // The practice one: one at a time, another along a moment after each goes (kicked in half, tripped off, dead)
   const e = h.practice;
