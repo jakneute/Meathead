@@ -201,6 +201,8 @@ const angDiff = (a: number, b: number) => Math.atan2(Math.sin(a - b), Math.cos(a
 /** Flying (units a frame): his cruise and boost, his turn and climb; the wand bolt's speed and life. */
 /** Boosting into a suitor: how near the broom's tip (units), the hit (a laser's few), not the same one again for (frames). */
 const RAM_R = 150, RAM_DMG = 6, RAM_AGAIN = 45;
+/** The boost meter: frames to refill it from empty (was 220), and how full it has to be to go again once used up. */
+const BOOST_REFILL = 80, BOOST_AGAIN = 0.35;
 const CRUISE = 22, BOOST = 40, BRAKE = 11, TURN = 0.04, CLIMB = 10, BOLT_V = 64, BOLT_LIFE = 60, FIRE_EVERY = 8;
 /** The lock-on: held this long it's charging (a tap's just the laser), this long more to lock; the homing shot. */
 const HOLD_T = 12, LOCK_T = 26, HOME_V = 46, HOME_DMG = 5;
@@ -646,7 +648,9 @@ const fire = (f: Fight, home = -1) => {
   } else { const n = Math.hypot(vx, vz, va); vx /= n; vz /= n; va /= n; }
   f.shots.push({ k: 'mybolt', x: ox, z: oz, alt: oa, vx: vx * BOLT_V + Math.sin(f.yaw) * f.speed, vz: vz * BOLT_V + Math.cos(f.yaw) * f.speed, valt: va * BOLT_V, g: 0, life: BOLT_LIFE, owner: -1, dmg: 0, foe: 1, src: '', rot: 0 });
   f.fired = 0;
-  playSound('egun', 0.2, 9);
+  // (loud enough to hear over the music and the wind (the owner's: "make sure there are sfx when firing your lasers on the
+  // broom minigame"): it was at a fifth, under them)
+  playSound('egun', 0.75, 9);
 };
 
 const updateShots = (ctx: FrameContext, f: Fight) => {
@@ -713,7 +717,9 @@ export const updateFight = (ctx: FrameContext, controls: Controls): Controls => 
     steer = (controls.right ? 1 : 0) - (controls.left ? 1 : 0);
     climb = (controls.up ? 1 : 0) - (controls.down ? 1 : 0);
     if (inverted) climb = -climb;
-    if (f.spent && f.boost >= 0.99) f.spent = false;
+    // (used up: it'll go again once it's back past a third, not only when full (the owner's: "you should be able to boost
+    // quite a bit more often there"))
+    if (f.spent && f.boost >= BOOST_AGAIN) f.spent = false;
     // (on a Nintendo pad the two swap (the user's: an exception to positional buttons): the jump spot brakes, the
     // boost spot boosts; keyboard and the other pads as above)
     const nin = switchPad();
@@ -735,7 +741,7 @@ export const updateFight = (ctx: FrameContext, controls: Controls): Controls => 
   if (f.alt > MAX_ALT) { f.alt = MAX_ALT; f.valt = Math.min(0, f.valt); }
   f.speed += ((boosting ? BOOST : braking ? BRAKE : CRUISE) - f.speed) * (boosting ? 0.12 : 0.07);
   if (boosting) { f.boost = Math.max(0, f.boost - 1 / 75); if (f.boost <= 0) f.spent = true; if (f.t % 20 === 0) playSound('whoosh', 0.35, -4); }
-  else f.boost = Math.min(1, f.boost + 1 / 220);
+  else f.boost = Math.min(1, f.boost + 1 / BOOST_REFILL);
   f.bank = f.yawRate / TURN; f.pitch = f.valt / CLIMB;
   if (f.phase !== 'zoom') { f.x += Math.sin(f.yaw) * f.speed; f.z += Math.cos(f.yaw) * f.speed; }
   }
