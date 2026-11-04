@@ -37,11 +37,12 @@ import { tone } from '../../signLetters';
 import { levelQ, sideQ, truss, tubeH } from '../disaster/paint';
 import { bricks, corrugated, CAT, SIDING, BOARD } from '../lot/paint';
 import {
-  SCAF_D, HOTEL_D, STAGE_BACK_D, BACKS_D, ROAD_D, SLOPE_D, RISE, LETTER_D, BUNK_D, SIGN_D, SNOW, ROCK, LAVA_R, BASALT, ASHY,
+  SCAF_D, HOTEL_D, STAGE_BACK_D, BACKS_D, ROAD_D, SLOPE_D, RISE, LETTER_D, BUNK_D, SIGN_D, SNOW, ROCK, BASALT, ASHY,
   flame, smokeUp, slopeLip, hazard, lip,
 } from './paint';
 import { win, soot } from './fronts';
 import { lavaBack } from './ground';
+import { hillFlow, hillFall } from './lavaHill';
 import { surgeOf } from './effects';
 import { hillDetail, BURIED, BURIED_BOX, paintBuried, farDrifts, snowpack, glints, bunkerMouth, bunkerFrost, blowFar, ICICLE, type Buried } from './snowzone';
 
@@ -558,18 +559,8 @@ export const drawHill = (c: Ctx, v: View, state: GameState, hv: Hv, done: boolea
     const jy = ((i * 7) % 5 - 2) * 2;
     stillAt(c, v, LETTER_D, `hh-letter2-${gone ? '_' : word[i]}`, lx, gy + jy, -40, -152, 80, 156, g => paintLetter(g, gone ? null : word[i]));
   }
-  // The lava coming down the hillside into the trench
-  if (hl && !done) {
-    const la = X(hl.a) + 20, lb = X(hl.b) - 20;
-    for (let i = 0; i < 8; i++) {
-      const d0 = ROAD_D - ((ROAD_D - SLOPE_D) * i) / 8, d1 = ROAD_D - ((ROAD_D - SLOPE_D) * (i + 1)) / 8, w2 = 1 - i * 0.07;
-      const m = (la + lb) / 2, hw2 = ((lb - la) / 2) * w2;
-      poly(c, [at(eye, m - hw2, hillTop(R(m), d0), d0), at(eye, m + hw2, hillTop(R(m), d0), d0), at(eye, m + hw2 * 0.9, hillTop(R(m), d1), d1), at(eye, m - hw2 * 0.9, hillTop(R(m), d1), d1)], ((i + Math.floor(f / 6)) % 3) ? LAVA_R[3] : LAVA_R[4]);
-    }
-  } else if (hl) {
-    const la = X(hl.a) + 20, lb = X(hl.b) - 20, m = (la + lb) / 2;
-    poly(c, [at(eye, la, hillTop(R(m), ROAD_D), ROAD_D), at(eye, lb, hillTop(R(m), ROAD_D), ROAD_D), at(eye, m + 20, hillTop(R(m), SLOPE_D), SLOPE_D), at(eye, m - 20, hillTop(R(m), SLOPE_D), SLOPE_D)], BASALT[2]);
-  }
+  // The lava coming down the hillside into the trench (lavaHill.ts)
+  if (hl) hillFlow(c, v, hl, hillTop, f, done);
   // (the snow blowing far back over the hillside: snowzone.ts)
   if (!done) blowFar(c, state);
   // The road down it: packed snow going back, its ruts, ash on it
@@ -656,15 +647,15 @@ const hillNear = (c: Ctx, v: View, hv: Hv, f: number, done: boolean, hl: typeof 
   if (hl) {
     const la = X(hl.a), lb = X(hl.b), surf = Y(Math.min(hl.hl, hl.hr)) + LAVA_DOWN, top = done ? Y((hl.hl + hl.hr) / 2) : surf - 2;
     if (lb > v.v0 && la < v.v1) {
-      // (spent: the crust's front, flush across the trench at its level, lit along its top: he walks on it)
-      const fall = done ? surf + 30 : top;
-      for (let y = fall; y < v.bot + 20; y += 6) {
-        const k = ((y + f * (done ? 0 : 4)) % 36) / 36;
-        box(c, la + 4, y, lb - la - 8, 6, done ? (k < 0.5 ? BASALT[2] : BASALT[3]) : k < 0.3 ? LAVA_R[5] : k < 0.7 ? LAVA_R[4] : LAVA_R[3]);
+      // (live: the fall, lavaHill.ts; spent: the crust's front, flush across the trench at its level, lit along its top:
+      // he walks on it)
+      if (!done) hillFall(c, v, hl, f);
+      else {
+        const fall = surf + 30;
+        for (let y = fall; y < v.bot + 20; y += 6) box(c, la + 4, y, lb - la - 8, 6, ((y % 36) / 36) < 0.5 ? BASALT[2] : BASALT[3]);
+        box(c, la, fall, 4, v.bot - fall + 20, BASALT[1]); box(c, lb - 4, fall, 4, v.bot - fall + 20, BASALT[1]);
+        box(c, la, top, lb - la, surf + 30 - top, BASALT[2]); box(c, la, top + 6, lb - la, 2, BASALT[3]); lip(c, la, top, lb - la);
       }
-      box(c, la, fall, 4, v.bot - fall + 20, done ? BASALT[1] : LAVA_R[1]); box(c, lb - 4, fall, 4, v.bot - fall + 20, done ? BASALT[1] : LAVA_R[1]);
-      if (done) { box(c, la, top, lb - la, surf + 30 - top, BASALT[2]); box(c, la, top + 6, lb - la, 2, BASALT[3]); lip(c, la, top, lb - la); }
-      if (!done) for (let k = 0; k < 5; k++) { const t = ((f + k * 17) % 50) / 50; box(c, la + 10 + hash(k) * (lb - la - 20), top + t * 200, 3, 3, LAVA_R[6]); }
     }
   }
   void BRASS; void CONCRETE; void lit; void slab; void dimmed; void checker; void poly; void smokeUp; void ball;

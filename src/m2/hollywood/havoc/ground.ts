@@ -262,7 +262,7 @@ export const pourAt = (l: typeof LAVA[number]) => {
 };
 
 /** A point on a lava top: world x, t along the flow (0 its far end, 1 nearest us) to screen x, y and the scale there. */
-type Proj = (x: number, t: number) => [number, number, number];
+export type Proj = (x: number, t: number) => [number, number, number];
 
 /** A crust plate's outline (round its middle, x across, t along the flow), jittered per plate. */
 const PLATE: [number, number][] = [[-1, -0.3], [-0.45, -1], [0.55, -0.9], [1, 0.15], [0.5, 1], [-0.6, 0.85]];
@@ -311,7 +311,7 @@ const bubble = (c: Ctx, proj: Proj, x: number, t: number, u: number) => {
 /** On the molten (its bands drawn by the caller): the flow's bright ripples carried on toward us, crust plates drifting
  *  on toward us (the farther first) and cracking open as they come, bubbles swelling and popping. `pt`: t per px of a
  *  plate's width (how deep a plate is, along the flow). */
-const lavaTop = (c: Ctx, proj: Proj, a: number, b: number, f: number, seed: number, pt: number) => {
+export const lavaTop = (c: Ctx, proj: Proj, a: number, b: number, f: number, seed: number, pt: number) => {
   const w = b - a;
   for (let k = 0; k < Math.ceil(w / 12); k++) {
     const t = (f * 0.0016 + hash(k * 2.3 + seed)) % 1, x = a + 6 + hash(k * 7.1 + seed) * (w - 12), [sx, sy, s] = proj(x, t);
@@ -432,13 +432,14 @@ export const lavaBack = (c: Ctx, v: View, l: typeof LAVA[number], done: boolean,
   lavaTop(c, projB, a, b, f, l.a, 0.0009 / (1.3 - D));
   // (the pour: a glowing fall down the far wall out of a gash in its lip, crusting at its edges, pulses and clots running
   // down it, white-hot down its middle; splashing where it hits)
-  const gash: [number, number][] = [[-18, -1], [-7, -6], [4, -3], [16, -6], [20, 3], [-15, 4]];
+  // (on the hill, wider: the flow down the hillside comes over into it)
+  const gk = notch ? 1.8 : 1, gash: [number, number][] = [[-18, -1], [-7, -6], [4, -3], [16, -6], [20, 3], [-15, 4]].map(([gx, gy]) => [gx * gk, gy]);
   poly(c, gash.map(([gx, gy]) => at(eye, px + gx, bank + gy, D)), INK);
   poly(c, gash.map(([gx, gy]) => at(eye, px + gx * 0.7, bank + gy * 0.6 + 1, D)), LAVA_R[5]);
   poly(c, gash.map(([gx, gy]) => at(eye, px + gx * 0.35, bank + gy * 0.3 + 1, D)), LAVA_R[6]);
   const pulse = f * 2.4;
   for (let y = bank - 2; y < surf; y += 2) {
-    const [sx, sy] = at(eye, px + Math.sin(y * 0.15 + f * 0.05) * 2, y, D), u = (y - bank) / Math.max(1, surf - bank), wv = (12 + u * 10) * D;
+    const [sx, sy] = at(eye, px + Math.sin(y * 0.15 + f * 0.05) * 2, y, D), u = (y - bank) / Math.max(1, surf - bank), wv = (12 + u * 10) * D * gk;
     const band = (((y - pulse) % 16) + 16) % 16;
     box(c, sx - wv / 2 - 1, sy, wv + 2, 2, LAVA_R[1]); box(c, sx - wv / 2, sy, wv, 2, LAVA_R[3]);
     box(c, sx - wv * 0.35, sy, wv * 0.7, 2, band < 6 ? LAVA_R[5] : LAVA_R[4]);

@@ -18,13 +18,15 @@
 
 import type { GameState } from '../../../m1/game/core/state';
 import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../../../m1/constants';
-import { X, R, DOWNHILL } from './layout';
-import { type Ctx, type View, INK, box, poly, mix, hash, at, atDepth, signText, plain, still, dimmed, PLY, STEEL, SNOW, ROCK } from './paint';
+import { X, Y, R, DOWNHILL, groundH } from './layout';
+import { type Ctx, type View, INK, box, poly, mix, hash, at, atDepth, signText, plain, still, dimmed, viewOf, PLY, STEEL, SNOW, ROCK } from './paint';
 import { gate } from '../../hub/letters';
 
 /** Ice (icicles, the snowpack's seam), darkest first. */
 export const ICICLE = ['#5E7C9E', '#7C9CC0', '#A6C4E0', '#CFE2F2', '#F2F8FF'];
 const W = CANVAS_WIDTH, H = CANVAS_HEIGHT;
+/** How far under the road the ground the near firs stand on is (world px: the foot of the slope in front of him). */
+const NEAR_DROP = 240;
 const mod = (a: number, m: number) => ((a % m) + m) % m;
 
 /** How deep into the blizzard the view is (0 off the hill, 1 on it; eased in and out at its ends). */
@@ -302,13 +304,19 @@ export const blowNear = (c: Ctx, state: GameState) => {
   c.save(); c.globalAlpha = k;
   flakes(c, state, 1.2, 12, 4, 8, 3, ['#FFFFFF', '#DCE6F2', '#B6C6DE'], 61);
   veils(c, state, 1.25, 0.06, 97);
-  // (fir tips poking up at the very front, frosted, dark with the near haze)
-  const d = 1.22, eye = { x: cam.x + W / 2 }, sp = 640;
+  // (fir tips poking up at the very front, frosted, dark with the near haze: each standing on the ground below the
+  // road's edge at its own spot, on the one eye, so it stays put on the hill as the camera goes up and down it (it was
+  // pinned to the bottom of the screen, and followed him))
+  const d = 1.22, eye = viewOf(state).eye, sp = 640;
   const wx0 = eye.x + (cam.x - 120 - eye.x) / d, wx1 = eye.x + (cam.x + W + 120 - eye.x) / d;
   for (let wx = Math.floor(wx0 / sp) * sp; wx < wx1; wx += sp) {
     const hh = hash(wx * 0.0031);
     if (hh < 0.4) continue;
-    const sx = eye.x + (wx + hh * 200 - eye.x) * d, base = cam.y + H + 6, th = 40 + hh * 40;
+    const gx = wx + hh * 200, th = 40 + hh * 40;
+    let gh = groundH(R(gx));
+    for (let k = 1; gh === null && k < 8; k++) gh = groundH(R(gx) + k * 80);
+    const [sx, base] = at(eye, gx, Y(gh ?? 0) + NEAR_DROP, d);
+    if (base - th > cam.y + H || base < cam.y - 20) continue;
     for (let t = 0; t < 3; t++) {
       const y = base - t * (th / 3), hw = 26 - t * 7;
       poly(c, [[sx - hw, y], [sx, y - th / 2.4], [sx + hw, y]], '#0A1210');

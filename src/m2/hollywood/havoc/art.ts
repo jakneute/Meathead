@@ -28,7 +28,8 @@ import { isTorn } from './chase';
 import { drawHavocFar } from './far';
 import { drawHavocPavement, drawHavocStreet, lavaBack, lavaNear, lavaRiver, lavaGlow, puddlesBack, puddlesNear, STREET_LAVA, pourAt } from './ground';
 import { drawHavocFronts, drawLightTower, drawRideEnd, FRONTS } from './fronts';
-import { drawClimb, drawHill } from './climb';
+import { drawClimb, drawHill, hillTop } from './climb';
+import { flowAt } from './lavaHill';
 import { drawHavocProps, zoneFloor, zoneStreet, zoneSigns, zoneLights } from './props';
 import { drawHavocEffects } from './effects';
 import { blowMid } from './snowzone';
@@ -92,6 +93,11 @@ export const havocLamps = (state: GameState): Light[] => {
     const [px, py] = l.hl > 0 ? at(v.eye, X(pourAt(l)), y + LAVA_DOWN, ROAD_D) : at(v.eye, X(pourAt(l)), y, FRONT_D + 0.01);
     out.push({ x: px, y: py - 10, r: l.hl > 0 ? 120 : 90, a: (l.hl > 0 ? 0.75 : 0.55) * fl, color: '#FDBA4A' });
     for (const e of [X(l.a), X(l.b)]) out.push({ x: e, y: y + 10, r: 110, a: 0.5 * fl, color: '#FB6A1E' });
+    // (the hill's: up the flow on the hillside, and down the fall over the rock face)
+    if (l.hl > 0) {
+      for (const t of [0.35, 0.7]) { const [d, m] = flowAt(l, t), [fx, fy] = at(v.eye, m, hillTop(R(m), d), d); out.push({ x: fx, y: fy, r: 130, a: 0.6 * fl, color: '#FB8A2E' }); }
+      out.push({ x, y: y + LAVA_DOWN + 150, r: 150, a: 0.6 * fl, color: '#F97316' });
+    }
   }
   // (the fronts burning: their tops, where they're drawn)
   let n = 0;
