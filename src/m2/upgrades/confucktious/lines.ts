@@ -574,6 +574,14 @@ export const ART_HUH = ['I GREW UP BEHIND A BOWLING ALLEY. NO IDEA WHAT YOU JUST
 export const ART_AGAIN = ['ANOTHER ONE FOR THE HIDDEN ART. HOLD THE CHARGE, TAP GRAB. SAME AS ALWAYS.'];
 /** Ben, the shins (the flash kick: the one follow-up that isn't a grab): with the big beat (after ART_HOW)... */
 export const ART_FLASH = ['THESE ARE THE ODD ONES. NO GRAB. HOLD THE SLIDE, PUSH UP: THE FLASH KICK. WHOEVER IT KILLS COMES APART IN HALVES.'];
+/** Ben, the shins as his FIRST follow-up (the art's big beat, in place of ART_HOW and ART_FLASH: nothing about grabs,
+ *  nothing it's an exception to yet; and it works on everything, the owner's "it works on everything"). */
+export const ART_FLASH_FIRST = [
+  'A MOVE ON TOP OF A MOVE. HOLD THE SLIDE, PUSH UP: THE FLASH KICK.',
+  'EVERYBODY ROUND YOU GETS IT. BOSSES, CRITTERS, ALL OF THEM. WHOEVER IT KILLS COMES APART IN HALVES.',
+];
+/** Ben, a grab follow-up piece's big beat when the flash kick's taught already: the art's no news, the grab is. */
+export const ART_GRAB_OPEN = ['THE HIDDEN ART AGAIN. THIS ONE YOU GRAB.'];
 /** ...or, the art already taught, instead of ART_AGAIN. */
 export const ART_AGAIN_FLASH = ['ANOTHER ONE FOR THE HIDDEN ART. THIS ONE CHEATS: NO GRAB. HOLD THE SLIDE, PUSH UP. IT CUTS GUYS IN HALF.'];
 
@@ -729,6 +737,6 @@ const pieceBen = (p: PieceLines) => [...p.sell, ...p.trial, ...p.miss, ...p.hint
 const pieceMeathead = (p: PieceLines) => [...all(p.ask), ...all(p.passed), ...all(p.enamored)];
 
 export const BEN_VOICE_LINES: Record<string, string[]> = {
-  [BEN_VOICE]: [...NAME, ...all(RIDDLE), ...PURPOSE, ...FIRST_ASIDE, ...all(AGAIN), ...all(NUDGE), ...all(NUDGE_OUT), ...BYE_BEN, ...ART_OPEN, ...ART_HOW, ...ART_HUH, ...ART_AGAIN, ...ART_FLASH, ...ART_AGAIN_FLASH, ...Object.values(PIECE_LINES).flatMap(pieceBen), ...LEGS_CURTAIN, ...all(NUDGE_HW), ...BEN_CANNON, ...AMULET_HUH, ...BEN_CANNON_FY, ...BRACER_HUH, ...BEN_CANNON_SP, ...BOOT_HUH, ...BEN_CANNON_FR, ...all(CROW_WRONG), ...all(CROW_SHORT), ...PADS_WIDE, ...CROW_ENOUGH, ...STORIES.flatMap(storyBen), ...all(AGAIN_LAST), ...FINAL_SET, ...FINAL_DATTE, ...FINAL_GO, ...BEN_STAY, ...BEN_STAY_CANNON],
+  [BEN_VOICE]: [...NAME, ...all(RIDDLE), ...PURPOSE, ...FIRST_ASIDE, ...all(AGAIN), ...all(NUDGE), ...all(NUDGE_OUT), ...BYE_BEN, ...ART_OPEN, ...ART_HOW, ...ART_HUH, ...ART_AGAIN, ...ART_FLASH, ...ART_AGAIN_FLASH, ...ART_FLASH_FIRST, ...ART_GRAB_OPEN, ...Object.values(PIECE_LINES).flatMap(pieceBen), ...LEGS_CURTAIN, ...all(NUDGE_HW), ...BEN_CANNON, ...AMULET_HUH, ...BEN_CANNON_FY, ...BRACER_HUH, ...BEN_CANNON_SP, ...BOOT_HUH, ...BEN_CANNON_FR, ...all(CROW_WRONG), ...all(CROW_SHORT), ...PADS_WIDE, ...CROW_ENOUGH, ...STORIES.flatMap(storyBen), ...all(AGAIN_LAST), ...FINAL_SET, ...FINAL_DATTE, ...FINAL_GO, ...BEN_STAY, ...BEN_STAY_CANNON],
   meathead: [...all(MEET), ...all(FIRST_WHY), ...all(FIRST_REACT), ...all(AGAIN_MH), ...BYE_MEATHEAD, ...all(ART_MH), ...all(ART_WEEB), ...Object.values(PIECE_LINES).flatMap(pieceMeathead), ...all(MH_PASSAGE), ...all(MH_HATCH), ...MH_CANNON_ASK, ...MH_FALL, ...all(MH_LANDED), ...all(MH_TUNNEL), ...all(AMULET_WEEB), ...all(MH_HATCH_SP), ...all(BRACER_WEEB), ...all(MH_MAZE), ...all(BOOT_WEEB), ...all(MH_LANDED_FR), ...STORIES.flatMap(storyMh), ...all(FINAL_MH)],
 };

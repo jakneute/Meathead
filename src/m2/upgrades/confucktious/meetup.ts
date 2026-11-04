@@ -11,11 +11,11 @@
 import type { GameState } from '../../../m1/game/core/state';
 import { pickLine } from '../../../m1/game/platform/speech';
 import { meatheadSays } from '../../adventure/section';
-import { benMet, benGaveCount } from '../state';
+import { benMet, benGaveCount, benGave, GRAB_FOLLOW_PIECES, type ArmorPiece } from '../state';
 import { benSays, type BenTalk } from './talk';
 import type { BenPose } from './art';
 import {
-  MEET, NAME, RIDDLE, FIRST_WHY, PURPOSE, FIRST_REACT, FIRST_ASIDE, AGAIN, AGAIN_MH, ART_OPEN, ART_MH, ART_HOW, ART_WEEB, ART_HUH, ART_AGAIN,
+  MEET, NAME, RIDDLE, FIRST_WHY, PURPOSE, FIRST_REACT, FIRST_ASIDE, AGAIN, AGAIN_MH, ART_OPEN, ART_GRAB_OPEN, ART_MH, ART_HOW, ART_WEEB, ART_HUH, ART_AGAIN,
   BACKSTORY, AGAIN_LAST, FINAL_SET, FINAL_MH, FINAL_DATTE, FINAL_GO,
   type ByPants, type PieceLines, type StoryLine,
 } from './lines';
@@ -30,16 +30,29 @@ export interface Beat { who: 'ben' | 'mh'; text: string; gross?: boolean; pose?:
  *  shins' flash kick). `how` / `extra` are the beats (indexes in `beats`, -1 none) the buttons are up for; with
  *  `againIsExtra`, the brief mention's an extra (its own buttons), not a how. */
 export interface ArtBeats { beats: Beat[]; how: [number, number]; extra: [number, number] }
-export const artBeats = (pants: Pants, full: boolean, opts: { extra?: string; again?: string; againIsExtra?: boolean } = {}): ArtBeats => {
+/** `how`: the lines that say how it goes (ART_HOW by default: the grab's; [] for none: the flash kick first, whose own
+ *  lines go in `extra`). `known`: the art's already been taught with a follow-up that isn't a grab (the flash kick), so
+ *  a grab piece's full beat opens short (ART_GRAB_OPEN), no Meathead thrill, no weeb exchange (it ran then). */
+export const artBeats = (pants: Pants, full: boolean, opts: { extra?: string | string[]; again?: string; againIsExtra?: boolean; how?: string[]; known?: boolean } = {}): ArtBeats => {
   if (!full) return { beats: [{ who: 'ben', text: opts.again ?? ART_AGAIN[0] }], how: opts.againIsExtra ? [-1, -1] : [0, 0], extra: opts.againIsExtra ? [0, 0] : [-1, -1] };
-  const beats: Beat[] = [{ who: 'ben', text: ART_OPEN[0], gross: true }, { who: 'mh', text: pickLine(ART_MH[pants]) }];
-  const how: [number, number] = [beats.length, beats.length + ART_HOW.length - 1];
-  for (const text of ART_HOW) beats.push({ who: 'ben', text });
+  const beats: Beat[] = opts.known
+    ? [{ who: 'ben', text: ART_GRAB_OPEN[0], gross: true }]
+    : [{ who: 'ben', text: ART_OPEN[0], gross: true }, { who: 'mh', text: pickLine(ART_MH[pants]) }];
+  const howLines = opts.how ?? ART_HOW;
+  const how: [number, number] = howLines.length ? [beats.length, beats.length + howLines.length - 1] : [-1, -1];
+  for (const text of howLines) beats.push({ who: 'ben', text });
   let extra: [number, number] = [-1, -1];
-  if (opts.extra) { extra = [beats.length, beats.length]; beats.push({ who: 'ben', text: opts.extra }); }
-  beats.push({ who: 'mh', text: pickLine(ART_WEEB[pants]) }, { who: 'ben', text: ART_HUH[0] });
+  const ex = opts.extra === undefined ? [] : typeof opts.extra === 'string' ? [opts.extra] : opts.extra;
+  if (ex.length) { extra = [beats.length, beats.length + ex.length - 1]; for (const text of ex) beats.push({ who: 'ben', text }); }
+  if (!opts.known) beats.push({ who: 'mh', text: pickLine(ART_WEEB[pants]) }, { who: 'ben', text: ART_HUH[0] });
   return { beats, how, extra };
 };
+/** A grab follow-up piece's meetup: the full beat unless a GRAB follow-up piece (other than `mine`) has been given
+ *  already (the flash kick's art says nothing of grabs); `known`: the flash kick's been, so the art's no news. */
+export const grabArt = (mine: ArmorPiece) => ({
+  full: !GRAB_FOLLOW_PIECES.some(pc => pc !== mine && benGave(pc)),
+  known: benGave('legs'),
+});
 /** Where `art` starts in a meetup script built with it (it goes in just before the trial line, the last beat). */
 export const artStart = (script: Beat[], art: ArtBeats) => script.length - 1 - art.beats.length;
 

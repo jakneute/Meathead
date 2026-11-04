@@ -66,11 +66,11 @@ import { lastMelee, type MeleeHit } from '../../upgrades/lastHit';
 import { FOLLOW_WINDOW } from '../../upgrades/tune';
 import { setUi } from '../../store';
 import { saveProgress } from '../../save';
-import { has, setPiece, setBenMet, benGave, setBenGave, followArt, setFollowArt, FOLLOW_PIECES, lendPiece, unlendPiece } from '../../upgrades/state';
+import { has, setPiece, setBenMet, benGave, setBenGave, setFollowArt, lendPiece, unlendPiece } from '../../upgrades/state';
 import { FOLLOW, type EquipControl } from '../../upgrades/equipInfo';
 import { makeCannon, updateCannon, cannonBusy, type Cannon } from '../../upgrades/returnCannon';
 import {
-  NUDGE, PIECE_LINES, artBeats, artTipRange, MH_CANNON_ASK, BEN_CANNON_FR, MH_MAZE, MH_LANDED_FR, BOOT_WEEB, BOOT_HUH, CROW_WRONG, CROW_SHORT, CROW_ENOUGH,
+  NUDGE, PIECE_LINES, artBeats, grabArt, artTipRange, MH_CANNON_ASK, BEN_CANNON_FR, MH_MAZE, MH_LANDED_FR, BOOT_WEEB, BOOT_HUH, CROW_WRONG, CROW_SHORT, CROW_ENOUGH,
   benSays, warmBenGross, meetupScript, startScript, tickScript, skipScript,
   type BenPose, type BenTalk, type Script, type Beat, type ByPants, giftCoda,
   makeGate, syncGate, gateBump, cannonLocked, type Gate,
@@ -532,8 +532,11 @@ const startMeet = (state: GameState, h: Lair) => {
   const sell = L.sell[0];
   // (the hidden art of follow-ups before the trial line: what follow-ups are, then the scarecrow; the big beat only with
   // his first follow-up piece, whichever land: none taught, none of the others handed over)
-  h.artFull = !followArt() && !FOLLOW_PIECES.some(pc => pc !== 'sabatons' && benGave(pc));
-  const art = artBeats(pantsOf(state), h.artFull, { extra: L.follow?.[0], again: L.followAgain?.[0] });
+  // (full unless a GRAB follow-up piece is his already: the flash kick's art said nothing of grabs; after the flash kick,
+  // the short opener, no weeb exchange)
+  const ga = grabArt('sabatons');
+  h.artFull = ga.full;
+  const art = artBeats(pantsOf(state), h.artFull, { extra: L.follow?.[0], again: L.followAgain?.[0], known: ga.known });
   const beats = meetupScript(pantsOf(state), L, undefined, art).map((b): Beat => (b.who === 'ben' && b.text === sell ? { ...b, gross: true } : b));
   // (the buttons up from the how through what this piece's own follow-up does)
   [h.howA, h.howB] = artTipRange(beats, art);
