@@ -27126,6 +27126,11 @@
  },
  {
   "voice": "m2.demon",
+  "text": "GET BACK IN YOUR FRISBEE, GRAY BOY!",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "m2.demon",
   "text": "GOT HIM! RIGHT IN THE NAKED!",
   "from": "SPOOKY"
  },
@@ -27148,6 +27153,11 @@
   "voice": "m2.demon",
   "text": "HA! FLINCHED! IT JIGGLED!",
   "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.demon",
+  "text": "HE OWES THE BOSS A SOUL! HE'S OURS!",
+  "from": "ENDGAME"
  },
  {
   "voice": "m2.demon",
@@ -27358,6 +27368,11 @@
   "voice": "m2.demon",
   "text": "THAT'S PUNK ROCK, BITCH!",
   "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.demon",
+  "text": "THE BOSS SAID BRING HIM DOWN. WHOLE OR NOT.",
+  "from": "ENDGAME"
  },
  {
   "voice": "m2.demon",
@@ -49811,6 +49826,26 @@
  },
  {
   "voice": "m2.guard",
+  "text": "DON'T START ANYTHING. I'M OFF IN FIVE.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "m2.guard",
+  "text": "FIVE MINUTES LEFT AND NOW I GOTTA TACKLE A NAKED GUY!",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "m2.guard",
+  "text": "FIVE MINUTES LEFT AND NOW I GOTTA TOUCH THAT!",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "m2.guard",
+  "text": "FIVE MINUTES! I HAD FIVE MINUTES LEFT!",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "m2.guard",
   "text": "GET ON THE GROUND, YOU BIG DUMB SON OF A BITCH!",
   "from": "INTRO"
  },
@@ -49818,6 +49853,21 @@
   "voice": "m2.guard",
   "text": "GET ON THE GROUND! NOT LIKE THAT!",
   "from": "INTRO"
+ },
+ {
+  "voice": "m2.guard",
+  "text": "GO HOME, SIR. AND SHOWER.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "m2.guard",
+  "text": "GO HOME, SIR. FIND PANTS ON THE WAY.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "m2.guard",
+  "text": "GO HOME. PLEASE. I WANT TO GO HOME.",
+  "from": "ENDGAME"
  },
  {
   "voice": "m2.guard",
@@ -49866,6 +49916,31 @@
  },
  {
   "voice": "m2.guard",
+  "text": "I'M OFF IN FIVE. I DIDN'T SEE YOUR DICK.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "m2.guard",
+  "text": "I'M OFF IN FIVE. I'M NOT WRITING UP SHIT. LITERALLY.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "m2.guard",
+  "text": "KEEP WALKING, SIR. ALL OF YOU.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "m2.guard",
+  "text": "KEEP WALKING, SIR. DOWNWIND.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "m2.guard",
+  "text": "LAST ONE OUT. EVERY NIGHT, SOME BIG GUY.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "m2.guard",
   "text": "NICE GLASSES, SIR. NOTHING ELSE, THOUGH.",
   "from": "INTRO"
  },
@@ -49881,8 +49956,38 @@
  },
  {
   "voice": "m2.guard",
+  "text": "OH COME ON! I WAS ALMOST OFF, AND HE'S NAKED!",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "m2.guard",
+  "text": "OH COME ON! I WAS ALMOST OFF, YOU SHITTY BASTARD!",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "m2.guard",
+  "text": "OH COME ON! I WAS ALMOST OFF!",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "m2.guard",
   "text": "OH GOD, HE'S LEAKING! GET HIM!",
   "from": "INTRO"
+ },
+ {
+  "voice": "m2.guard",
+  "text": "PARK'S CLOSED, BUDDY. KEEP WALKING.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "m2.guard",
+  "text": "PARK'S CLOSED. SO ARE MY EYES.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "m2.guard",
+  "text": "PARK'S CLOSED. SO SHOULD YOUR PANTS BE.",
+  "from": "ENDGAME"
  },
  {
   "voice": "m2.guard",
@@ -49921,6 +50026,11 @@
  },
  {
   "voice": "m2.guard",
+  "text": "THE JANITOR'S GONNA CRY.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "m2.guard",
   "text": "THERE ARE FAMILIES HERE, YOU PERVERT!",
   "from": "INTRO"
  },
@@ -49928,6 +50038,16 @@
   "voice": "m2.guard",
   "text": "THEY DON'T PAY ME ENOUGH TO SMELL THAT.",
   "from": "INTRO"
+ },
+ {
+  "voice": "m2.guard",
+  "text": "THIRD NAKED GUY TODAY. I DON'T EVEN LOOK UP.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "m2.guard",
+  "text": "TWELVE HOUR SHIFT. NOBODY ROBBED ANYTHING.",
+  "from": "ENDGAME"
  },
  {
   "voice": "m2.guard",
@@ -49991,6 +50111,26 @@
  },
  {
   "voice": "m2.guardf",
+  "text": "DON'T START ANYTHING. I'M OFF IN FIVE.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "m2.guardf",
+  "text": "FIVE MINUTES LEFT AND NOW I GOTTA TACKLE A NAKED GUY!",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "m2.guardf",
+  "text": "FIVE MINUTES LEFT AND NOW I GOTTA TOUCH THAT!",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "m2.guardf",
+  "text": "FIVE MINUTES! I HAD FIVE MINUTES LEFT!",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "m2.guardf",
   "text": "GET ON THE GROUND, YOU BIG DUMB SON OF A BITCH!",
   "from": "INTRO"
  },
@@ -49998,6 +50138,21 @@
   "voice": "m2.guardf",
   "text": "GET ON THE GROUND! NOT LIKE THAT!",
   "from": "INTRO"
+ },
+ {
+  "voice": "m2.guardf",
+  "text": "GO HOME, SIR. AND SHOWER.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "m2.guardf",
+  "text": "GO HOME, SIR. FIND PANTS ON THE WAY.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "m2.guardf",
+  "text": "GO HOME. PLEASE. I WANT TO GO HOME.",
+  "from": "ENDGAME"
  },
  {
   "voice": "m2.guardf",
@@ -50046,6 +50201,31 @@
  },
  {
   "voice": "m2.guardf",
+  "text": "I'M OFF IN FIVE. I DIDN'T SEE YOUR DICK.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "m2.guardf",
+  "text": "I'M OFF IN FIVE. I'M NOT WRITING UP SHIT. LITERALLY.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "m2.guardf",
+  "text": "KEEP WALKING, SIR. ALL OF YOU.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "m2.guardf",
+  "text": "KEEP WALKING, SIR. DOWNWIND.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "m2.guardf",
+  "text": "LAST ONE OUT. EVERY NIGHT, SOME BIG GUY.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "m2.guardf",
   "text": "NICE GLASSES, SIR. NOTHING ELSE, THOUGH.",
   "from": "INTRO"
  },
@@ -50061,8 +50241,38 @@
  },
  {
   "voice": "m2.guardf",
+  "text": "OH COME ON! I WAS ALMOST OFF, AND HE'S NAKED!",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "m2.guardf",
+  "text": "OH COME ON! I WAS ALMOST OFF, YOU SHITTY BASTARD!",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "m2.guardf",
+  "text": "OH COME ON! I WAS ALMOST OFF!",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "m2.guardf",
   "text": "OH GOD, HE'S LEAKING! GET HIM!",
   "from": "INTRO"
+ },
+ {
+  "voice": "m2.guardf",
+  "text": "PARK'S CLOSED, BUDDY. KEEP WALKING.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "m2.guardf",
+  "text": "PARK'S CLOSED. SO ARE MY EYES.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "m2.guardf",
+  "text": "PARK'S CLOSED. SO SHOULD YOUR PANTS BE.",
+  "from": "ENDGAME"
  },
  {
   "voice": "m2.guardf",
@@ -50101,6 +50311,11 @@
  },
  {
   "voice": "m2.guardf",
+  "text": "THE JANITOR'S GONNA CRY.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "m2.guardf",
   "text": "THERE ARE FAMILIES HERE, YOU PERVERT!",
   "from": "INTRO"
  },
@@ -50108,6 +50323,16 @@
   "voice": "m2.guardf",
   "text": "THEY DON'T PAY ME ENOUGH TO SMELL THAT.",
   "from": "INTRO"
+ },
+ {
+  "voice": "m2.guardf",
+  "text": "THIRD NAKED GUY TODAY. I DON'T EVEN LOOK UP.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "m2.guardf",
+  "text": "TWELVE HOUR SHIFT. NOBODY ROBBED ANYTHING.",
+  "from": "ENDGAME"
  },
  {
   "voice": "m2.guardf",
@@ -59036,6 +59261,11 @@
  },
  {
   "voice": "m2.pa",
+  "text": "HAPPY LAND IS NOW CLOSED. GO HOME. GOD BLESS.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "m2.pa",
   "text": "I MEAN IT. THAT IS GENUINELY IMPRESSIVE. I AM PROUD OF YOU, SON.",
   "from": "INTRO"
  },
@@ -59081,6 +59311,11 @@
  },
  {
   "voice": "m2.pa",
+  "text": "THANK YOU FOR VISITING HAPPY LAND. DON'T TELL ANYONE WHAT YOU SAW.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "m2.pa",
   "text": "THE BALD EAGLE ENCOUNTER IS CLOSED. THE EAGLE WON.",
   "from": "INTRO"
  },
@@ -59108,6 +59343,11 @@
   "voice": "m2.pa",
   "text": "THE FOUNTAIN OF FREEDOM IS NOT A TOILET. WE CAN SEE YOU, SIR.",
   "from": "INTRO"
+ },
+ {
+  "voice": "m2.pa",
+  "text": "THE PARK IS CLOSED. GUESTS STILL INSIDE WILL BE CHARGED RENT.",
+  "from": "ENDGAME"
  },
  {
   "voice": "m2.pa",
@@ -59143,6 +59383,11 @@
   "voice": "m2.pa",
   "text": "WOULD THE OWNER OF THE RED PICKUP IN THE PILLAR ON LEVEL THREE... NEVER MIND. GOD BLESS.",
   "from": "INTRO"
+ },
+ {
+  "voice": "m2.pa",
+  "text": "WOULD THE OWNER OF THE RED PICKUP IN THE PILLAR PLEASE LEAVE. PLEASE.",
+  "from": "ENDGAME"
  },
  {
   "voice": "m2.pa",
@@ -63066,6 +63311,11 @@
  },
  {
   "voice": "m2.satan",
+  "text": "OH NO YOU DON'T.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "m2.satan",
   "text": "POOR DONALD. ...I WILL BE SEEING YOU, MEATHEAD.",
   "from": "SPOOKY"
  },
@@ -63181,6 +63431,11 @@
  },
  {
   "voice": "m2.satan",
+  "text": "YOU ALIEN FUCKS STAKE NO CLAIM IN THIS MAN. HE OWES ME HIS SOUL.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "m2.satan",
   "text": "YOU ARE BOTH SHOWING OFF, DONALD. IT IS UNBEARABLE.",
   "from": "SPOOKY"
  },
@@ -63261,6 +63516,11 @@
  },
  {
   "voice": "m2.space.alien",
+  "text": "BACK OFF, HORN BOY! WE SAW HIM FIRST!",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "m2.space.alien",
   "text": "CURSES! THE DISCO HAS FAILED US!",
   "from": "SPACE"
  },
@@ -63328,6 +63588,16 @@
   "voice": "m2.space.alien",
   "text": "GREEN SKIN, BIG HEAD, RAY GUN. LAZY WRITING. ACCURATE, BUT LAZY.",
   "from": "SPACE"
+ },
+ {
+  "voice": "m2.space.alien",
+  "text": "HE GOES IN A JAR! THAT IS THE RULE!",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "m2.space.alien",
+  "text": "HE KILLED OUR QUEEN! HE IS OURS!",
+  "from": "ENDGAME"
  },
  {
   "voice": "m2.space.alien",
@@ -66056,6 +66326,11 @@
  },
  {
   "voice": "m2.space.saucer",
+  "text": "A WIDOW WITH HIS LIFE INSURANCE, THAT'S WHO.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "m2.space.saucer",
   "text": "HE HAD TWELVE YEARS LEFT ON THE PRESIDENT. TWELVE.",
   "from": "SPACE"
  },
@@ -66073,6 +66348,26 @@
   "voice": "m2.space.saucer",
   "text": "HE WAS WEARING THE PRESIDENT. YOU SHOT HIM IN HIS PRESIDENT.",
   "from": "SPACE"
+ },
+ {
+  "voice": "m2.space.saucer",
+  "text": "HEY! HANDS OFF! THIS ONE'S LEASED!",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "m2.space.saucer",
+  "text": "HI, ASSHOLE. REMEMBER ME? ZORBLAX'S WIFE.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "m2.space.saucer",
+  "text": "HI, ASSHOLE. REMEMBER ME? ZORBLAX'S WIFE. STILL NAKED, HUH?",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "m2.space.saucer",
+  "text": "HI, ASSHOLE. REMEMBER ME? ZORBLAX'S WIFE. YOU STILL STINK.",
+  "from": "ENDGAME"
  },
  {
   "voice": "m2.space.saucer",
@@ -66181,6 +66476,21 @@
  },
  {
   "voice": "m2.space.saucer",
+  "text": "THE GIRLS WANT YOU STUFFED. AFTER A HOSE-DOWN.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "m2.space.saucer",
+  "text": "THE GIRLS WANT YOU STUFFED. AS IS.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "m2.space.saucer",
+  "text": "THE GIRLS WANT YOU STUFFED. OVER THE FIREPLACE.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "m2.space.saucer",
   "text": "THE INSURANCE DOESN'T COVER SHIT! LITERAL SHIT!",
   "from": "SPACE"
  },
@@ -66223,6 +66533,21 @@
   "voice": "m2.space.saucer",
   "text": "YOU HIT THE BATHROOM! YOU OF ALL PEOPLE!",
   "from": "SPACE"
+ },
+ {
+  "voice": "m2.space.saucer",
+  "text": "YOU WRECKED MY SAUCER. SO I BROUGHT THE OTHER ONE.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "m2.space.saucer",
+  "text": "YOU WRECKED MY SAUCER. SO I BROUGHT THE OTHER ONE. THE GIRLS BROUGHT CAMERAS.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "m2.space.saucer",
+  "text": "YOU WRECKED MY SAUCER. SO I BROUGHT THE OTHER ONE. THE ONE WITH THE HOSE.",
+  "from": "ENDGAME"
  },
  {
   "voice": "m2.space.saucer",
@@ -68338,6 +68663,21 @@
   "voice": "meathead",
   "text": "A CAVE. MY BALLS COULD USE THE SHADE.",
   "from": "ADVENTURE"
+ },
+ {
+  "voice": "meathead",
+  "text": "A CHAIN ON THE GATE. CUTE.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "meathead",
+  "text": "A CHAIN ON THE GATE. MY PANTS ARE CRYING.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "meathead",
+  "text": "A CHAIN ON THE GATE. NOT CLIMBING THAT NAKED. YET.",
+  "from": "ENDGAME"
  },
  {
   "voice": "meathead",
@@ -70911,6 +71251,21 @@
  },
  {
   "voice": "meathead",
+  "text": "A WATER PARK. FINALLY, A PLACE I'M DRESSED FOR.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "meathead",
+  "text": "A WATER PARK. FINALLY, SOME GOOD NEWS.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "meathead",
+  "text": "A WATER PARK. I CAN RINSE OFF.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "meathead",
   "text": "A WATER TOWER. HOSE ME DOWN. PLEASE.",
   "from": "FRONTIER"
  },
@@ -72168,6 +72523,21 @@
   "voice": "meathead",
   "text": "BACK TO THE STAGE. NO DAD. JUST MY SMELL.",
   "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "BACK TO THE TRUCK. IT'S IN A PILLAR.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "meathead",
+  "text": "BACK TO THE TRUCK. LEATHER SEATS. FUCK.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "meathead",
+  "text": "BACK TO THE TRUCK. TOWELS ON THE SEAT.",
+  "from": "ENDGAME"
  },
  {
   "voice": "meathead",
@@ -76946,6 +77316,16 @@
  },
  {
   "voice": "meathead",
+  "text": "FINE. FUCK IT. I'M GOING HOME TO CHANGE.",
+  "from": "HUB"
+ },
+ {
+  "voice": "meathead",
+  "text": "FINE. FUCK IT. I'M GOING HOME TO FIND PANTS.",
+  "from": "HUB"
+ },
+ {
+  "voice": "meathead",
   "text": "FINE. FUCK IT. QUITTERS GET TO GO HOME EARLY.",
   "from": "HUB"
  },
@@ -78833,6 +79213,21 @@
   "voice": "meathead",
   "text": "GOOD BEER! WASTED ON MY FACE!",
   "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "GOOD DAY. KILLED A LOT OF SHIT.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "meathead",
+  "text": "GOOD DAY. LOST MY PANTS. KILLED A LOT OF SHIT.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "meathead",
+  "text": "GOOD DAY. SHIT MYSELF. KILLED A LOT OF SHIT.",
+  "from": "ENDGAME"
  },
  {
   "voice": "meathead",
@@ -83281,6 +83676,26 @@
  },
  {
   "voice": "meathead",
+  "text": "I OWE YOU WHAT?",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "meathead",
+  "text": "I OWE YOU WHAT? I DON'T EVEN HAVE POCKETS.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "meathead",
+  "text": "I OWE YOU WHAT? I JUST SHIT MYSELF.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "meathead",
+  "text": "I PAID FOR A WHOLE DAY. I'M USING THE WHOLE DAY.",
+  "from": "HUB"
+ },
+ {
+  "voice": "meathead",
   "text": "I PAID TO STAND AT A RAIL. I DO THAT AT THE BAR FOR FREE.",
   "from": "HOLLYWOOD"
  },
@@ -83387,6 +83802,16 @@
  {
   "voice": "meathead",
   "text": "I SAID NOT YET. I DO NOT LEAVE SHIT BEHIND.",
+  "from": "HUB"
+ },
+ {
+  "voice": "meathead",
+  "text": "I SAID NOT YET. I LEFT MY PANTS BEHIND. THAT IS ENOUGH.",
+  "from": "HUB"
+ },
+ {
+  "voice": "meathead",
+  "text": "I SAID NOT YET. THE ONLY THING I LEAVE BEHIND IS IN MY PANTS.",
   "from": "HUB"
  },
  {
@@ -83683,6 +84108,16 @@
   "voice": "meathead",
   "text": "I UNCLOGGED THE GODFATHER! MAKE ME AN OFFER!",
   "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "meathead",
+  "text": "I WALK OUT IN THESE PANTS, I'M NOT COMING BACK. EVER.",
+  "from": "HUB"
+ },
+ {
+  "voice": "meathead",
+  "text": "I WALK OUT NAKED, I'M NOT COMING BACK. EVER.",
+  "from": "HUB"
  },
  {
   "voice": "meathead",
@@ -87481,6 +87916,16 @@
  },
  {
   "voice": "meathead",
+  "text": "LOCKED. AND I'M THE ONE WHO NEEDS A RINSE.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "meathead",
+  "text": "LOCKED. FOR NOW.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "meathead",
   "text": "LOCKED. GUESS I GOTTA EARN IT.",
   "from": "FRONTIER"
  },
@@ -87488,6 +87933,11 @@
   "voice": "meathead",
   "text": "LOCKED. HEALTH AND SAFETY. I'LL KILL HEALTH AND SAFETY.",
   "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "meathead",
+  "text": "LOCKED. I'LL CLIMB IT LATER. CAREFULLY.",
+  "from": "ENDGAME"
  },
  {
   "voice": "meathead",
@@ -91756,6 +92206,16 @@
  },
  {
   "voice": "meathead",
+  "text": "NOT YET. I DIDN'T GET NAKED FOR HALF A PARK.",
+  "from": "HUB"
+ },
+ {
+  "voice": "meathead",
+  "text": "NOT YET. I DIDN'T SHIT MY PANTS FOR HALF A PARK.",
+  "from": "HUB"
+ },
+ {
+  "voice": "meathead",
   "text": "NOT YET. I GOT A LEVER TO YANK. HEH. YANK.",
   "from": "HOLLYWOOD"
  },
@@ -91766,7 +92226,17 @@
  },
  {
   "voice": "meathead",
+  "text": "NOT YET. MY PANTS ARE ALREADY RUINED. MIGHT AS WELL FINISH.",
+  "from": "HUB"
+ },
+ {
+  "voice": "meathead",
   "text": "NOT YET. THERE'S STUFF IN THERE WITH MY NAME ON IT.",
+  "from": "HUB"
+ },
+ {
+  "voice": "meathead",
+  "text": "NOT YET. THERE'S STUFF IN THERE, AND NOTHING ON ME.",
   "from": "HUB"
  },
  {
@@ -92246,8 +92716,23 @@
  },
  {
   "voice": "meathead",
+  "text": "OH SHIT. MORE SHIT. OH SHIT.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "meathead",
+  "text": "OH SHIT. OH SHIT. OH SHIT.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "meathead",
   "text": "OH SHIT. THAT'S A LOT OF DEVIL.",
   "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
+  "text": "OH SHIT. THE WIND. EVERYWHERE.",
+  "from": "ENDGAME"
  },
  {
   "voice": "meathead",
@@ -92508,6 +92993,21 @@
   "voice": "meathead",
   "text": "ON THE TRAIN. PANTS FULL. LET'S GO.",
   "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
+  "text": "ONCE I'M OUT, THAT'S IT. NOBODY LETS ME BACK IN SMELLING LIKE THIS.",
+  "from": "HUB"
+ },
+ {
+  "voice": "meathead",
+  "text": "ONCE I'M OUT, THAT'S IT. THEY DON'T LET YOU BACK IN WITH YOUR DICK OUT.",
+  "from": "HUB"
+ },
+ {
+  "voice": "meathead",
+  "text": "ONCE I'M OUT, THE PARK'S DONE. NO SECOND TRIP.",
+  "from": "HUB"
  },
  {
   "voice": "meathead",
@@ -97956,6 +98456,11 @@
  },
  {
   "voice": "meathead",
+  "text": "SOMETHING IN THERE IS STILL HIDING FROM ME. I HATE THAT.",
+  "from": "HUB"
+ },
+ {
+  "voice": "meathead",
   "text": "SOMETHING IN THESE WOODS EATS CONDUCTORS. IT JUST NEEDS A SMELL.",
   "from": "FRONTIER"
  },
@@ -97988,6 +98493,16 @@
   "voice": "meathead",
   "text": "SOMETHING'S GUTS!",
   "from": "FOR_AN_ANIMAL"
+ },
+ {
+  "voice": "meathead",
+  "text": "SOMETHING'S STILL HIDING IN THERE. LIKE WHAT'S IN MY PANTS.",
+  "from": "HUB"
+ },
+ {
+  "voice": "meathead",
+  "text": "SOMETHING'S STILL HIDING IN THERE. UNLIKE MY DICK.",
+  "from": "HUB"
  },
  {
   "voice": "meathead",
@@ -105466,6 +105981,21 @@
  },
  {
   "voice": "meathead",
+  "text": "TWO TRUCKS IN ONE DAY. AND MY PANTS. FUCK.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "meathead",
+  "text": "TWO TRUCKS IN ONE DAY. AND NO PANTS.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "meathead",
+  "text": "TWO TRUCKS IN ONE DAY. THE GOVERNMENT'S GONNA BE PISSED.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "meathead",
   "text": "TWO.",
   "from": "m1/game/stages/oscar/bar.ts:165"
  },
@@ -106908,6 +107438,21 @@
   "voice": "meathead",
   "text": "WHO IS STILL GETTING ON THAT THING?! THE LINE MUST BE A MILE!",
   "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
+  "text": "WHO KEEPS A STANDBY UFO?",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "meathead",
+  "text": "WHO KEEPS A STANDBY UFO? I CAN'T EVEN KEEP PANTS.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "meathead",
+  "text": "WHO KEEPS A STANDBY UFO? I CAN'T KEEP CLEAN PANTS.",
+  "from": "ENDGAME"
  },
  {
   "voice": "meathead",

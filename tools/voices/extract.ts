@@ -37,6 +37,7 @@ import { CARTOON_VOICE_LINES } from '../../src/m2/cartoon/voices';
 import { VOICE_LINES as GYM_VOICE_LINES } from '../../src/m2/intro/gym/lines';
 import { AMERICA_DENY, PEN_DOG_JUMP, HUB_ALL_DONE, HUB_STUFF_LEFT, AMERICA_RESIST, AMERICA_GIVE_IN } from '../../src/m2/lines/hubLines';
 import { UPGRADE_VOICE_LINES } from '../../src/m2/upgrades/lines';
+import { ENDGAME_VOICE_LINES } from '../../src/m2/endgame/lines';
 import { fitsHappyLand } from '../../src/m2/lines/consistency';
 
 const ROOT = path.resolve(__dirname, '../../src');
@@ -148,6 +149,8 @@ for (const t of allStrings([AMERICA_DENY, HUB_ALL_DONE, HUB_STUFF_LEFT, AMERICA_
 for (const t of allStrings(PEN_DOG_JUMP)) add('meathead', t, 'HUB');
 // (the hidden upgrades: the amulet's yell)
 for (const [v, lines] of Object.entries(UPGRADE_VOICE_LINES)) for (const t of lines) add(v, t, 'UPGRADES');
+// (the endgame: the walk out at closing, the abduction, the lot outside the water park)
+for (const [v, lines] of Object.entries(ENDGAME_VOICE_LINES)) for (const t of lines) add(v, t, 'ENDGAME');
 for (const t of allStrings([introLines.GUEST_HURRY, introLines.GUEST_CUT, introLines.GUEST_HIT, introLines.GUEST_REACT, introLines.GUEST_REACT_NOW])) { add('m2.guest', t, 'INTRO'); add('m2.guest2', t, 'INTRO'); }
 for (const byGround of Object.values(dialogue.SURFACE_CALLOUTS)) for (const lines of Object.values(byGround ?? {})) for (const t of lines ?? []) add('announcer', t, 'SURFACE_CALLOUTS');
 

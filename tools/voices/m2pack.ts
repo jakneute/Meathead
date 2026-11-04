@@ -29,6 +29,7 @@ import { CARTOON_VOICE_LINES } from '../../src/m2/cartoon/voices';
 import { VOICE_LINES as GYM_VOICE_LINES } from '../../src/m2/intro/gym/lines';
 import { AMERICA_DENY, PEN_DOG_JUMP, HUB_ALL_DONE, HUB_STUFF_LEFT, AMERICA_RESIST, AMERICA_GIVE_IN } from '../../src/m2/lines/hubLines';
 import { UPGRADE_VOICE_LINES } from '../../src/m2/upgrades/lines';
+import { ENDGAME_VOICE_LINES } from '../../src/m2/endgame/lines';
 
 const ROOT = path.resolve(__dirname, '../..');
 const IN = path.join(ROOT, 'src/m1/generated/voices.bin');
@@ -91,6 +92,8 @@ add('meathead', [AMERICA_DENY, HUB_ALL_DONE, HUB_STUFF_LEFT, AMERICA_RESIST, AME
 add('meathead', PEN_DOG_JUMP);
 // (the hidden upgrades: the amulet's yell)
 for (const [v, lines] of Object.entries(UPGRADE_VOICE_LINES)) add(v, lines);
+// (the endgame: the walk out at closing, the abduction, the lot outside the water park)
+for (const [v, lines] of Object.entries(ENDGAME_VOICE_LINES)) add(v, lines);
 for (const v of ['m2.guest', 'm2.guest2']) add(v, [introLines.GUEST_HURRY, introLines.GUEST_CUT, introLines.GUEST_HIT, introLines.GUEST_REACT, introLines.GUEST_REACT_NOW]);
 // The death screens
 want.add('death|YOU DIED');
