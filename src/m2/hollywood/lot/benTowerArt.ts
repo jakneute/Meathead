@@ -481,6 +481,17 @@ export const drawTowerBack = (c: Ctx, state: GameState) => {
   for (const [rx, top, lines] of BOARDS) {
     const x = X(rx), y = Y(top), w = 132;
     if (!seenBox(state, x - 70, x + 70, y, y + 60)) continue;
+    // (the street's one, under the tower where there's no frame behind it to bolt to: hung off the first deck's beam on
+    // two chains (the owner's: "this sign below the tower is floating mid air"))
+    if (top < D1B) {
+      const hang = y - Y(D1B);
+      still(c, `hwt-board-chain-${rx}`, x - w / 2, y, 0, -hang - 2, w, hang + 4, g => {
+        for (const cx of [10, w - 12]) {
+          box(g, cx - 3, -hang - 2, 8, 4, INK); box(g, cx - 2, -hang - 1, 6, 2, '#5A626C');
+          for (let k = -hang + 2; k < 0; k += 6) { box(g, cx - 1, k, 4, 5, INK); box(g, cx, k + 1, 2, 3, (k / 6) % 2 ? '#8A939E' : '#6B7280'); }
+        }
+      });
+    }
     still(c, `hwt-board-${rx}`, x - w / 2, y, -3, -3, w + 6, 14 + lines.length * 11 + 8, g => paintBoard(g, lines, w));
   }
   // The tank
