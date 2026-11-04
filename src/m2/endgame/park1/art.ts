@@ -229,10 +229,10 @@ const drawProps = (c: Ctx, state: GameState) => {
     R(c, x + 10, y + 14, 8, GY - y - 14, '#5A4028'); R(c, x + w - 18, y + 14, 8, GY - y - 14, '#5A4028');
     R(c, x - 4, y, w + 8, 16, INK); R(c, x - 2, y + 2, w + 4, 12, '#A16207'); R(c, x - 2, y + 1, w + 4, 3, '#FDE68A');
   }
-  for (const [x, y, w] of ISLANDS) if (vis(state, x, x + w)) {
-    R(c, x, y, w, GY + 400 - y, '#7A6C58'); R(c, x, y, w, 3, '#FFF4E0'); R(c, x, y + 3, w, 4, CONC[0]);
-    checker(c, x, y + 40, w, 40, '#5A4E40');
-  }
+  for (const [x, y, w] of ISLANDS) if (vis(state, x, x + w)) stamp(c, `wp-island-${x}`, x, y, w, GY + 400 - y, g => {
+    R(g, x, y, w, GY + 400 - y, '#7A6C58'); R(g, x, y, w, 3, '#FFF4E0'); R(g, x, y + 3, w, 4, CONC[0]);
+    checker(g, x, y + 40, w, 40, '#5A4E40');
+  });
 };
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -495,12 +495,14 @@ const drawTower = (c: Ctx, state: GameState, gates: number[], tells: { x: number
 const drawSummitDoor = (c: Ctx, state: GameState, down: number) => {
   const sy = SUMMIT.y, x = TL;
   if (!visY(state, sy - 200, sy + 20) || !vis(state, x - 100, x + 100)) return;
-  R(c, x - 14, sy - 132, 10, 132, INK); R(c, x + 4, sy - 132, 10, 132, INK); R(c, x - 14, sy - 140, 28, 10, INK);
-  if (down < 0.02) { R(c, x - 6, sy - 128, 12, 128, '#7C2D12'); R(c, x - 2, sy - 70, 4, 4, '#FACC15'); return; }
-  // (falling in: down flat inward)
-  const a = Math.min(1, down) * (Math.PI / 2);
-  c.save(); c.translate(x + 6, sy); c.rotate(a);
-  R(c, -12, -128, 12, 128, '#7C2D12'); c.restore();
+  // (its frame; the door up in it, or going over inward (squashed toward the deck, not turned: stamped either way),
+  // flat on the deck at the last)
+  stamp(c, 'wp-sdoor-frame', x - 16, sy - 142, 32, 144, g => { R(g, x - 14, sy - 132, 10, 132, INK); R(g, x + 4, sy - 132, 10, 132, INK); R(g, x - 14, sy - 140, 28, 10, INK); });
+  if (down >= 1) { stamp(c, 'wp-sdoor-flat', x + 4, sy - 14, 132, 16, g => { R(g, x + 6, sy - 12, 128, 12, '#7C2D12'); R(g, x + 6, sy - 12, 128, 2, '#A8502A'); }); return; }
+  const k = Math.max(0.06, Math.cos(Math.min(1, down) * Math.PI / 2));
+  c.save(); c.translate(x, sy); c.scale(1, k); c.translate(-x, -sy);
+  stamp(c, 'wp-sdoor', x - 8, sy - 130, 16, 132, g => { R(g, x - 6, sy - 128, 12, 128, '#7C2D12'); R(g, x - 2, sy - 70, 4, 4, '#FACC15'); });
+  c.restore();
 };
 /** The descent's chute (baked in tiles), its legs down to the ground. */
 const drawDescentChute = (c: Ctx, state: GameState) => {

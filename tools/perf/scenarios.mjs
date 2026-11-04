@@ -12,6 +12,14 @@ const chargeRight = (secs = 40) => [[0, 'down', 'ArrowRight'], ...Array.from({ l
 const grip = [[0, 'down', 'ArrowDown']];
 
 export const SCENARIOS = [
+  // The water park, level 1 (endgame/park1): the plaza's start (hopping right through the possessed), the Abyss's tube
+  // ride (the aliens riding along, shooting), CAMP 4's locked-in floor (two waves: hovers, a trooper, the yeti), the
+  // summit's fight (up the stairs, the intro skipped, firing)
+  { name: 'wp-plaza', q: 'park=0', keys: hopRight(40) },
+  { name: 'wp-tube', q: 'park=7', warm: 2, keys: [[0, 'down', 'ArrowRight'], [2600, 'up', 'ArrowRight'], [3000, 'down', 'ArrowRight'], ...Array.from({ length: 20 }, (_, i) => [3500 + i * 1100, 'tap', 'Space'])] },
+  { name: 'wp-floor', q: 'park=10', keys: [[300, 'js', 'window.dispatchEvent(new MouseEvent("mousedown", { button: 0 }))'], ...Array.from({ length: 16 }, (_, i) => [600 + i * 1500, 'tap', i % 2 ? 'ArrowLeft' : 'ArrowRight'])] },
+  // (its intro marked seen: the retry's short entrance, straight into it)
+  { name: 'wp-boss', q: 'park=11', warm: 14, keys: [[0, 'js', 'window.__m2.stageMemo["m2:boss-intro:zorzarblax"] = "1"'], [100, 'down', 'ArrowLeft'], [7000, 'up', 'ArrowLeft'], [7200, 'js', 'window.dispatchEvent(new MouseEvent("mousedown", { button: 0 }))'], ...Array.from({ length: 14 }, (_, i) => [7600 + i * 1600, 'tap', i % 3 === 2 ? 'Space' : i % 2 ? 'ArrowLeft' : 'ArrowRight'])] },
   // The crossbow on a crowd (the user's: slowdown "when using the crossbow and a ton of people are hurling and i move
   // back and forth", in the break room): every weapon on, the crossbow (9), fire held, pacing left and right
   { name: 'crossbow-crowd', q: 'pen', warm: 8, keys: [

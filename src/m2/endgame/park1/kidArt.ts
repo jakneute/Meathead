@@ -33,6 +33,19 @@ const CURL = ['#BFDBFE', '#60A5FA', '#2563EB', '#1E3A8A'];
 const HEADSET = ['#6B7280', '#3F3F46', '#27272A', '#09090B'];
 const GUN = ['#E4E6EE', '#A4A8B2', '#6A6E7A', '#2A2C34'];
 
+/** A 2x2 checker of one color (the dither between two steps), as a pattern: made once a color. */
+const PATS = new Map<string, CanvasPattern | string>();
+const dither = (g: Ctx, col: string): CanvasPattern | string => {
+  let p = PATS.get(col);
+  if (p) return p;
+  const cv = typeof document !== 'undefined' ? document.createElement('canvas') : null;
+  if (!cv) return col;
+  cv.width = 4; cv.height = 4;
+  const q = cv.getContext('2d')!; q.fillStyle = col; q.fillRect(0, 0, 2, 2); q.fillRect(2, 2, 2, 2);
+  p = g.createPattern(cv, 'repeat') ?? col;
+  PATS.set(col, p);
+  return p;
+};
 /** A shaded ball: the ramp's mid, its dark side down-right, its lit side up-left, a checker between, inked. */
 const ball = (g: Ctx, x: number, y: number, rx: number, ry: number, ramp: string[], rot = 0, line = 1.5) => {
   g.save();
@@ -41,12 +54,9 @@ const ball = (g: Ctx, x: number, y: number, rx: number, ry: number, ramp: string
   g.clip();
   g.fillStyle = ramp[2]; g.beginPath(); g.ellipse(x + rx * 0.35, y + ry * 0.38, rx * 0.95, ry * 0.92, rot, 0, Math.PI * 2); g.fill();
   g.fillStyle = ramp[3]; g.beginPath(); g.ellipse(x + rx * 0.62, y + ry * 0.66, rx * 0.8, ry * 0.78, rot, 0, Math.PI * 2); g.fill();
-  // (the checker over each step's edge: the dither)
-  g.fillStyle = ramp[2];
-  for (let yy = Math.floor(y - ry); yy < y + ry; yy += 2) for (let xx = Math.floor(x - rx) + ((yy >> 1) & 1) * 2; xx < x + rx; xx += 4) {
-    const dx = (xx - x - rx * 0.35) / (rx * 0.95), dy = (yy - y - ry * 0.38) / (ry * 0.92), d = dx * dx + dy * dy;
-    if (d > 1 && d < 1.35) g.fillRect(xx, yy, 2, 2);
-  }
+  // (the checker over the dark step's edge: the dither, one pattern fill of the ring)
+  g.fillStyle = dither(g, ramp[2]);
+  g.beginPath(); g.ellipse(x + rx * 0.35, y + ry * 0.38, rx * 0.95 * 1.16, ry * 0.92 * 1.16, rot, 0, Math.PI * 2); g.ellipse(x + rx * 0.35, y + ry * 0.38, rx * 0.95, ry * 0.92, rot, 0, Math.PI * 2); g.fill('evenodd');
   g.fillStyle = ramp[0]; g.beginPath(); g.ellipse(x - rx * 0.32, y - ry * 0.36, rx * 0.42, ry * 0.34, rot, 0, Math.PI * 2); g.fill();
   g.restore();
   g.strokeStyle = INK; g.lineWidth = line; g.beginPath(); g.ellipse(x, y, rx, ry, rot, 0, Math.PI * 2); g.stroke();
@@ -69,7 +79,7 @@ const shape = (g: Ctx, pts: [number, number][], ramp: string[], dark = 0.55) => 
   g.fillStyle = ramp[1]; g.fill(); g.clip();
   const cut = x0 + (x1 - x0) * dark;
   g.fillStyle = ramp[2]; g.fillRect(cut, y0, x1 - cut + 2, y1 - y0 + 2);
-  for (let yy = Math.floor(y0); yy < y1; yy += 2) for (let xx = Math.floor(cut - 4) + ((yy >> 1) & 1) * 2; xx < cut; xx += 4) g.fillRect(xx, yy, 2, 2);
+  g.fillStyle = dither(g, ramp[2]); g.fillRect(cut - 6, y0, 6, y1 - y0 + 2);
   g.fillStyle = ramp[3]; g.fillRect(x0, y1 - (y1 - y0) * 0.16, x1 - x0, (y1 - y0) * 0.2);
   g.fillStyle = ramp[0]; g.fillRect(x0, y0, (x1 - x0) * 0.35, 3);
   g.restore();
@@ -182,7 +192,7 @@ export const paintKid = (g: Ctx, o: KidOpts) => {
   g.beginPath(); g.moveTo(hx - 10, hy + 2); g.lineTo(hx + 34, hy + 4); g.lineTo(hx + 38, hy + 24); g.lineTo(hx + 30, hy + 34); g.lineTo(hx - 6, hy + 34); g.closePath();
   g.fillStyle = HIDE[1]; g.fill(); g.clip();
   R(g, hx + 10, hy + 18, 40, 20, HIDE[2]); R(g, hx - 10, hy + 28, 50, 8, HIDE[3]);
-  for (let yy = hy + 14; yy < hy + 20; yy += 2) for (let xx = hx + ((yy >> 1) & 1) * 2; xx < hx + 40; xx += 4) R(g, xx, yy, 2, 2, HIDE[2]);
+  g.fillStyle = dither(g, HIDE[2]); g.fillRect(hx, hy + 14, 40, 6);
   R(g, hx - 8, hy + 3, 24, 3, HIDE[0]);
   g.restore();
   g.strokeStyle = INK; g.lineWidth = 1.8; g.beginPath(); g.moveTo(hx - 10, hy + 2); g.lineTo(hx + 34, hy + 4); g.lineTo(hx + 38, hy + 24); g.lineTo(hx + 30, hy + 34); g.lineTo(hx - 6, hy + 34); g.closePath(); g.stroke();

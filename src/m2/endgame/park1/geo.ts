@@ -213,7 +213,7 @@ export const CP_FLOOR: Record<number, number> = { [CP.baseCamp]: 0, [CP.camp2]: 
 export type Who = 'dguest' | 'aguest' | 'gator' | 'pelican' | 'trooper' | 'hover' | 'yeti';
 export const PLAZA_CAST: [Who, number, number][] = [
   // the gate: the possessed taught, one of each
-  ['dguest', 1000, GY], ['aguest', 1220, GY],
+  ['dguest', 1150, GY], ['aguest', 1340, GY],
   // after LIL SQUIRT
   ['gator', 2400, GY], ['trooper', 2560, GY],
   // past the Twister's crater
