@@ -63,6 +63,8 @@ export const drag: SpaceSection = {
     state.blocks.push({ x: X(A51_STOP), y: -6000, w: X(STREET1) + 60 - X(A51_STOP), h: 8000, type: 'wall', hidden: true, tag: 'drag-a51' } as never);
     state.blocks.push({ x: X(ROOM.a) - 40, y: -6000, w: 40, h: 8000, type: 'wall', hidden: true, tag: 'drag-a51' } as never);
     state.blocks.push({ x: X(ROOM.b), y: -6000, w: 40, h: 8000, type: 'wall', hidden: true, tag: 'drag-a51' } as never);
+    // (and its ceiling: no jumping, floating or being thrown up out of the top of it)
+    state.blocks.push({ x: X(ROOM.a) - 40, y: GY - 6000, w: X(ROOM.b) - X(ROOM.a) + 80, h: 6000 - 506, type: 'wall', hidden: true, tag: 'drag-a51' } as never);
     buildA51(state);
     // (starting from one of the drag's checkpoints: he's been launched already; the smear's there)
     if (state.checkpoint >= 30) state.stageMemo[LANDED_MEMO] = '1';

@@ -340,7 +340,10 @@ const paintRoom = (g: Ctx) => {
   box(g, 0, -120, W, 120, '#8A7F66'); box(g, 0, -120, W, 3, '#A89C80'); box(g, 0, -117, W, 1, '#6E6450'); checker(g, 0, -18, W, 6, '#6E6450', 0, 1); box(g, 0, -12, W, 12, '#5E5644');
   for (let x = 0; x < W; x += 64) { box(g, x, -117, 1, 105, '#7A705A'); box(g, x + 1, -117, 1, 105, '#9A8E72'); }
   for (let x = 20; x < W; x += 137) checker(g, x, -40, 26, 10, '#6E6450', 1, 2);
-  // (the ceiling: dark, the big duct along it, ribbed; the cable tray under it; the fittings)
+  // (the ceiling: dark, the big duct along it, ribbed; the cable tray under it; the fittings. Over it, solid poured
+  // slab right up past the top of the picture: nothing of the street's sky shows over the room (the owner's: "make sure
+  // the secret facility in future land with the shard has a ceiling"))
+  box(g, -40, -900, W + 80, 340, '#141A17'); checker(g, -40, -600, W + 80, 40, '#1C2420', 0, 2); box(g, 0, -566, W, 6, '#2A332E');
   box(g, 0, -560, W, 54, '#1C2420'); box(g, 0, -508, W, 2, '#0E1210');
   box(g, 0, -552, W, 22, INK); box(g, 0, -551, W, 20, '#5C646E'); box(g, 0, -551, W, 4, '#8A939E'); box(g, 0, -537, W, 6, '#474E58'); checker(g, 0, -541, W, 4, '#474E58', 0, 1);
   for (let x = 12; x < W; x += 28) { box(g, x, -552, 3, 22, '#3A4048'); box(g, x + 3, -552, 1, 22, '#9AA2AC'); }
@@ -572,7 +575,7 @@ const paintRoom = (g: Ctx) => {
 export const drawRoom = (c: Ctx, state: GameState, shard: boolean, taken: number) => {
   const x0 = X(ROOM.a), f = state.frame;
   if (!inView(state, x0, X(ROOM.b), 0)) return;
-  still(c, 'spc-a51-room2', x0, GY, -40, -620, RW + 80, 700, paintRoom);
+  still(c, 'spc-a51-room3', x0, GY, -40, -900, RW + 80, 980, paintRoom);
   // (the tubes: one of them on the blink, one buzzing, as they always are in a place like this)
   TUBES.forEach((fx, k) => {
     if (!inView(state, x0 + fx - 180, x0 + fx + 180, 0)) return;
