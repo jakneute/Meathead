@@ -2,7 +2,7 @@
 // into the screen, him hunched along it: his back, his ass on the shaft at us, his fists on it ahead, knees out, boots
 // tucked back by the bristles), the rig leaning into his turns, sat up some on a boost, the most braking, the bristles fanned
 // under him and the sparkle trail off them; his jeans' seat or his bare backside (shat: the stain; naked: the balls over
-// the shaft and the BONER poking out past his hip, further the harder he banks). Stepped everywhere now: the ash shaft
+// the shaft). Stepped everywhere now: the ash shaft
 // and its grain, leather grips under his fists, a brass ferrule, the laser's emitter and its fins, the binding's twine
 // in bands, the bristles in straw ramps; denim in six steps (seams, the yoke, pocket stitching, creases at the knees),
 // stepped boots (heel, sole, a pull tab); skin in six steps (shoulder blades, the spine's groove, lats, deltoids,
@@ -221,15 +221,8 @@ export const drawMeatheadBroom = (c: Ctx, x: number, y: number, k: number, L: Mh
     box(c, -15, wY - 3, 30, 5, INK); box(c, -14, wY - 2.4, 28, 3.8, '#5A2A0C'); box(c, -14, wY - 2.4, 28, 1, '#8A4A1C'); box(c, -14, wY + 0.6, 28, 0.8, '#3A1A06');
     for (const lx of [-11, -4, 3, 10]) { box(c, lx, wY - 3.6, 2, 6, JE[2]); box(c, lx, wY - 3.6, 1, 6, JE[4]); }
   }
-  // (THE BONER, naked: poking out past his hip on the outside of the turn, further the harder he banks)
-  if (L.nude) {
-    const side = L.bank > 0.04 ? -1 : 1, len = 7 + Math.min(1, Math.abs(L.bank)) * 10;
-    const bx = side * 14, by = aY + 3;
-    line(c, INK, 5, [side * 8, by + 1, bx + side * len, by - 3 - len * 0.35]);
-    line(c, '#E89A86', 3.4, [side * 8, by + 1, bx + side * len, by - 3 - len * 0.35]);
-    line(c, '#F4B8A4', 1.2, [side * 8, by, bx + side * len, by - 4 - len * 0.35]);
-    ell(c, bx + side * (len + 1), by - 4 - len * 0.35, 2.6, 2.2, '#C8505A'); ell(c, bx + side * (len + 0.6), by - 4.6 - len * 0.35, 1, 0.8, '#E87A80');
-  }
+  // (naked: just his bare ass from back here, no boner poking out past his hip (the owner's: "looks like a weird
+  // stick moving in random directions. you should just see his butt"))
   // (the laser's glow over everything: X held, it charges, glowing bigger; a flash when it fires)
   c.save(); c.translate(0, tipY - 1.5); c.scale(0.85, 0.85);
   const ch = L.charge ?? 0;
