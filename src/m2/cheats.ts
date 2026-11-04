@@ -10,6 +10,7 @@ import { setTimeOfDayOverride, timeOfDayOverride } from './timeOfDay';
 import { clearSkyCache } from './intro/art/sky';
 import { M2_PUBLIC } from './build';
 import { stepSoundTest, setSoundTest, soundTestLabel } from './music/soundTest';
+import { setClassicTragons, classicTragonsPicked } from './fantasy/tragons/classic';
 import { ARMOR_PIECES, has, setPiece, healthFinds, setHealthFinds, ammoFinds, setAmmoFinds, shards, setShards } from './upgrades/state';
 
 export interface M2Cheats { god: boolean; ammo: boolean; allWeapons: boolean; skip: boolean }
@@ -64,7 +65,7 @@ export const todNow = () => { const v = timeOfDayOverride(); return v === null ?
  */
 let panelOpen = false;
 /** The panel's rows, in order, and what's along each. */
-export const CHEAT_ROWS = ['god', 'ammo', 'allWeapons', 'skip', 'pants', 'tod', 'armor', 'hpUp', 'ammoUp', 'shards', 'pa', 'music', 'done'] as const;
+export const CHEAT_ROWS = ['god', 'ammo', 'allWeapons', 'skip', 'pants', 'tod', 'armor', 'hpUp', 'ammoUp', 'shards', 'pa', 'music', 'classic', 'done'] as const;
 export type CheatRow = typeof CHEAT_ROWS[number];
 const rowLength = (r: CheatRow) => (r === 'pants' ? 3 : r === 'tod' ? 11 : r === 'armor' ? ARMOR_PIECES.length + 2 : r === 'music' ? 3 : r === 'done' || r === 'pa' ? 1 : 2);
 
@@ -89,6 +90,10 @@ export const replayHubPa = () => { replayAnnouncements(); setUi({ notice: { text
 /** The sound test (music/soundTest.ts): back a song, on a song, or off. */
 export const stepMusic = (d: number) => { stepSoundTest(d); ping(); };
 export const stopMusicTest = () => { setSoundTest(null); ping(); };
+/** Fairy Land's Truelling Tragons: the classic side-view ride instead of the one from behind (fantasy/tragons/classic.ts;
+ *  takes the next time the ride's set up: the station, a death, a checkpoint). */
+export const setClassicRide = (on: boolean) => { setClassicTragons(on); ping(); };
+export { classicTragonsPicked };
 export { soundTestLabel };
 let cursor = { row: 0, col: 0 };
 export const cheatPanelOpen = () => panelOpen;
@@ -107,6 +112,7 @@ export const setCheatPanelOpen = (open: boolean) => {
 /** What's set in a row, as its column (so moving onto a row puts the cursor on its current choice). */
 const colOf = (r: CheatRow) =>
   r === 'god' ? (cheats.god ? 0 : 1) : r === 'ammo' ? (cheats.ammo ? 0 : 1) : r === 'allWeapons' ? (cheats.allWeapons ? 0 : 1) : r === 'skip' ? (cheats.skip ? 0 : 1)
+    : r === 'classic' ? (classicTragonsPicked() ? 0 : 1)
     : r === 'pants' ? ['normal', 'shitty', 'naked'].indexOf(pantsNow()) : r === 'tod' ? (todNow() === null ? 0 : todNow()! + 1) : 0;
 export const moveCheatCursor = (dx: number, dy: number) => {
   if (dy) { const row = (cursor.row + dy + CHEAT_ROWS.length) % CHEAT_ROWS.length; cursor = { row, col: colOf(CHEAT_ROWS[row]) }; }
@@ -122,6 +128,7 @@ export const activateCheat = () => {
   else if (r === 'armor') toggleArmor(c);
   else if (r === 'hpUp' || r === 'ammoUp' || r === 'shards') stepUpgrade(r, c === 0 ? -1 : 1);
   else if (r === 'pa') replayHubPa();
+  else if (r === 'classic') setClassicRide(c === 0);
   else if (r === 'music') { if (c === 2) setSoundTest(null); else stepSoundTest(c === 0 ? -1 : 1); }
   else setCheatPanelOpen(false);
   ping();

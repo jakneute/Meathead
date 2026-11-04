@@ -11,7 +11,7 @@ import { CardRowView, type PauseCard } from './PauseControls';
 import { PLAIN_PAUSE, type PauseSkin } from './hudThemes';
 import { M2_PUBLIC } from './build';
 import { walkBackOn } from './store';
-import { getCheats, setCheat, subscribeCheats, pantsNow, setPants, todNow, setTod, setCheatPanelOpen, cheatPanelOpen, cheatCursor, CHEAT_ROWS, stepMusic, stopMusicTest, soundTestLabel, toggleArmor, stepUpgrade, replayHubPa, type Pants } from './cheats';
+import { getCheats, setCheat, subscribeCheats, pantsNow, setPants, todNow, setTod, setCheatPanelOpen, cheatPanelOpen, cheatCursor, CHEAT_ROWS, stepMusic, stopMusicTest, soundTestLabel, toggleArmor, stepUpgrade, replayHubPa, setClassicRide, classicTragonsPicked, type Pants } from './cheats';
 import { ARMOR_PIECES, ARMOR_SHORT, has, healthFinds, ammoFinds, shards, maxHealth, ammoScale, powerCells, subscribeUpgrades, upgradesVersion, MAX_HEALTH_FINDS, MAX_AMMO_FINDS, MAX_SHARDS, type ArmorPiece } from './upgrades/state';
 import { EQUIP_ENTRIES, equipIcon, FindIcon, type EquipEntry } from './upgrades/equipInfo';
 
@@ -75,6 +75,11 @@ const CheatPanel: React.FC<{ skin: PauseSkin; onClose: () => void }> = ({ skin, 
         <div className="self-center text-[7px] font-black tracking-wider max-w-[240px] truncate" style={{ color: skin.text }}>{soundTestLabel()}</div>
       </>)}
       {browse && <SoundTest onClose={() => setBrowse(false)} />}
+      {row('CLASSIC TRAGONS', <>
+        <Chip on={classicTragonsPicked()} at={at(CHEAT_ROWS.indexOf('classic'), 0)} skin={skin} w={40} onClick={() => setClassicRide(true)}>ON</Chip>
+        <Chip on={!classicTragonsPicked()} at={at(CHEAT_ROWS.indexOf('classic'), 1)} skin={skin} w={40} onClick={() => setClassicRide(false)}>OFF</Chip>
+        <div className="self-center text-[6px] tracking-wider" style={{ color: skin.muted }}>THE OLD SIDE-VIEW RIDE. TAKES NEXT TIME THE RIDE STARTS.</div>
+      </>)}
       <div className="mt-auto"><Chip on={false} at={at(CHEAT_ROWS.indexOf('done'), 0)} skin={skin} w={80} onClick={onClose}>DONE</Chip></div>
     </div>
   );

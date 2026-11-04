@@ -9,6 +9,7 @@ import type { Said } from '../section';
 import { fantasyState } from '../section';
 import type { Lane } from './layout';
 import type { Spin, Eye } from './track';
+import type { Bv } from './behind/state';
 
 /** A car as it's drawn now: its roof's middle (projected: where it is on screen in the world), which way it's
  *  pointing (radians), its depth, how far it's rolled, and the track position of its middle. */
@@ -90,6 +91,13 @@ export interface Tragons {
   /** The rivals at the unload (glimpsed: off the train ahead of his, out the exit): how far they've walked, who's said
    *  their piece, what's being said over whom. */
   unload: { t: number; walk: number; said: number; talk: Record<string, Said | null> };
+  /** The ride seen from behind (behind/: the normal ride since the owner's redo), while it's on: from the dispatch's
+   *  cut to the arrival's. Never on the classic ride. */
+  bv?: Bv;
+  /** This visit rides the classic side-view ride (classic.ts), latched as the ride's set up. */
+  classic?: boolean;
+  /** Frames left of a fade in from black (the cut back from behind him at the unload). */
+  fade?: number;
 }
 
 export const tragonsOf = (state: GameState) => fantasyState<Tragons>(state, 'tragons', () => ({

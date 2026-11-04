@@ -18,7 +18,7 @@ import { CAR, type Lane } from './layout';
 
 interface Look { body: string; belly: string; wing: string; horn: string; crest: string; eye: string }
 /** By lane: LIGHTNING, FIRE, ICE. */
-const LOOKS: Look[] = [
+export const LOOKS: Look[] = [
   { body: '#E2B21E', belly: '#FFF0A0', wing: '#5A2A9A', horn: '#9A5AE8', crest: '#B88AF4', eye: '#F4F0FF' },
   { body: '#C42828', belly: '#F2902E', wing: '#6E1414', horn: '#F2E6C8', crest: '#F6A02A', eye: '#FDE047' },
   { body: '#3A8ED8', belly: '#DCEFFC', wing: '#1E4A9A', horn: '#E8F8FF', crest: '#9ADCFF', eye: '#E0F7FF' },

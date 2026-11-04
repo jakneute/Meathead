@@ -452,7 +452,7 @@ export const drawTragonsFront = (c: Ctx, state: GameState) => snapPx(c, () => {
 
 /** A hole's warning: an enamel shield in the lane's color, a gilt rim, the broken track on it (two rails, the gap, the
  *  drop), flashing. Its middle at (x, y). */
-const warnSign = (c: Ctx, x: number, y: number, col: string, f: number, r = 15) => {
+export const warnSign = (c: Ctx, x: number, y: number, col: string, f: number, r = 15) => {
   const on = f % 16 < 10, C = on ? col : mix(col, '#000000', 0.45);
   const shield = (s: number): [number, number][] => [[x - r * s, y - r * s], [x + r * s, y - r * s], [x + r * s, y + r * 0.2 * s], [x, y + r * 1.15 * s], [x - r * s, y + r * 0.2 * s]];
   polyF(c, shield(1.25), INK); polyF(c, shield(1.12), on ? GOLD[4] : GOLD[2]); polyF(c, shield(0.96), C);
@@ -464,7 +464,7 @@ const warnSign = (c: Ctx, x: number, y: number, col: string, f: number, r = 15) 
 };
 /** A loop's warning: a round enamel medallion in the lane's color with a gilt rim, the loop drawn on it (a corkscrew:
  *  a coil; the helix: three strands). */
-const loopSign = (c: Ctx, x: number, y: number, col: string, f: number, kind: string, r = 15) => {
+export const loopSign = (c: Ctx, x: number, y: number, col: string, f: number, kind: string, r = 15) => {
   const on = f % 16 < 10, C = on ? col : mix(col, '#000000', 0.45);
   c.fillStyle = INK; c.beginPath(); c.arc(x, y, r + 4, 0, Math.PI * 2); c.fill();
   c.fillStyle = on ? GOLD[4] : GOLD[2]; c.beginPath(); c.arc(x, y, r + 2.5, 0, Math.PI * 2); c.fill();
@@ -480,7 +480,7 @@ const loopSign = (c: Ctx, x: number, y: number, col: string, f: number, kind: st
   glyph(4, INK); glyph(2, '#F8FAFC');
 };
 /** A label on a little banner (dark, gilt-edged). */
-const text = (c: Ctx, s: string, x: number, y: number, col: string, size = 7, align: CanvasTextAlign = 'center', plate = false) => {
+export const text = (c: Ctx, s: string, x: number, y: number, col: string, size = 7, align: CanvasTextAlign = 'center', plate = false) => {
   c.font = `${size}px ${FONT}`; c.textAlign = align;
   if (plate) {
     const w = c.measureText(s).width + 8, x0 = align === 'center' ? x - w / 2 : align === 'left' ? x - 4 : x - w + 4;
@@ -491,7 +491,7 @@ const text = (c: Ctx, s: string, x: number, y: number, col: string, size = 7, al
 };
 const KIND_WORD: Record<string, string> = { loop: 'LOOP', cork: 'CORKSCREW', chain: 'LOOP', braid: 'HELIX', chain3: 'LOOP' };
 /** A countdown bar: a gilt frame, the dark inside, the lane's color in two steps, notched. */
-const countdown = (c: Ctx, x: number, y: number, bw: number, k: number, col: string, hot: boolean) => {
+export const countdown = (c: Ctx, x: number, y: number, bw: number, k: number, col: string, hot: boolean) => {
   box(c, x - bw / 2 - 3, y - 3, bw + 6, 12, INK); box(c, x - bw / 2 - 2, y - 2, bw + 4, 10, GOLD[2]); box(c, x - bw / 2 - 2, y - 2, bw + 4, 1, GOLD[4]);
   box(c, x - bw / 2, y, bw, 6, '#140C1E');
   const fill = hot ? '#FFFFFF' : col;
@@ -584,6 +584,10 @@ export const drawTragonsHud = (c: Ctx, state: GameState) => {
     saidOver(c, s.text, p.x, p.y, '#FDE68A', 220);
   });
   // (the PA: the ride's spiel, or Piper, in the top band: a dark plate, a gilt rule, her pink or the herald's gold)
+  drawPa(c, t);
+};
+/** The PA's words (the ride's spiel, or Piper) in the top band. */
+export const drawPa = (c: Ctx, t: Tragons) => {
   if (t.pa) {
     const band = topBand(), who = t.paWho === 'piper' ? 'PIPER (PA):' : 'THE RIDE:';
     const col = t.paWho === 'piper' ? '#F9A8D4' : '#FDE68A';

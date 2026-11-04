@@ -75,6 +75,9 @@ export interface M2Ui {
   /** (Truelling Tragons) The loop card: what's coming (or on now) on which track(s), their colors, whether his is one
    *  of them, locked in it now (HOLD!), the first one's teaching, his grip slipping. */
   tragonHold?: { kind: string; lanes: string[]; cols: string[]; mine: boolean; now: boolean; teach: boolean; slip: boolean } | null;
+  /** (Truelling Tragons from behind: fantasy/tragons/behind/ride.ts) The card at the bottom: hanging on in a roll (the
+   *  lean, a hand off), a roll coming, the first time each thing comes at his track, the controls (BehindCards.tsx). */
+  tragonCard?: import('./fantasy/tragons/behind/ride').BvCard | null;
   /** (Fairy Land's broomstick deathmatch) The main HUD's his broom's: the PWR row the boost (0..1), the BROOM LASER for
    *  the weapon; and the flying controls card (X laser, hold X lock on, A boost, B brake, Y invert, pitch and turn). */
   broomHud?: boolean;
@@ -120,7 +123,7 @@ export interface M2Ui {
 }
 
 /** The stretches with a pause-menu controls card (PauseControls.tsx). */
-export type PauseCardId = 'bike' | 'heli' | 'cart' | 'tragons' | 'broom' | 'sled' | 'orbit' | 'logride';
+export type PauseCardId = 'bike' | 'heli' | 'cart' | 'tragons' | 'tragonsClassic' | 'broom' | 'sled' | 'orbit' | 'logride';
 
 /** (Truelling Tragons) A hop asked for (wheel up or RB: the car above; wheel down or LB: the car below), taken by the
  *  ride next frame (it keeps its own cooldown); one at a time, the last asked. */

@@ -26,6 +26,8 @@ import { tragonsOf } from './state';
 import { buildRide, updateRide, viewOf, cameraLimits, holdOffRide, offRideNow } from './ride';
 import { drawTragonsBackdrop, drawTragonsBack, drawTragonsFront, drawTragonsHud } from './art';
 import { caveLight } from './cave';
+import { drawBehind, drawBehindHud } from './behind/draw';
+import { CUT_AT, CUT_FADE } from './ride';
 import './deaths';
 
 // (back from the castle's base: out by the unload's exit)
@@ -50,16 +52,24 @@ export const tragons: FantasySection = {
     runExits(ctx.state, [...(offRideNow(ctx.state) ? [] : endExits('tragons', { right: false })), { x0: EXIT_X + 30, x1: EXIT_X + 120, yTop: GY - 40, yBot: GY + 2, to: DOORS.keep.start }]);
     return out;
   },
-  drawBackdrop: (c, state) => drawTragonsBackdrop(c, state),
-  drawBack: (c, state) => drawTragonsBack(c, state),
-  drawFront: (c, state) => drawTragonsFront(c, state),
-  drawHud: (c, state) => drawTragonsHud(c, state),
+  // (the ride from behind (behind/): its whole picture in the backdrop, nothing in the world's layers)
+  drawBackdrop: (c, state) => { if (tragonsOf(state).bv) { drawBehind(c, state); return true; } return drawTragonsBackdrop(c, state); },
+  drawBack: (c, state) => { if (!tragonsOf(state).bv) drawTragonsBack(c, state); },
+  drawFront: (c, state) => { if (!tragonsOf(state).bv) drawTragonsFront(c, state); },
+  drawHud: (c, state) => {
+    const t = tragonsOf(state);
+    if (t.bv) { drawBehindHud(c, state); return; }
+    drawTragonsHud(c, state);
+    // (the fades through black: out of the station into the ride from behind; back from it at the unload)
+    const k = t.phase === 'dispatch' && !t.classic ? (t.goT - CUT_AT) / CUT_FADE : (t.fade ?? 0) / CUT_FADE;
+    if (k > 0) { c.fillStyle = `rgba(0, 0, 0, ${Math.min(1, k)})`; c.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT); }
+  },
   cameraX: (state) => cameraLimits(state),
   cameraRow: () => 500,
   // (the ride: all three dragons in the picture, the camera pulled out as they spread and in as they close; blended
   // in from the engine's camera as it sets off, and back out at the unload)
   zoom: (state) => {
-    if (tragonsOf(state).cam.on <= 0) return null;
+    if (tragonsOf(state).cam.on <= 0 || tragonsOf(state).bv) return null;
     const v = viewOf(state);
     return { scale: v.k, x: v.cx, y: v.cy, shiftX: CANVAS_WIDTH / 2 - (v.cx - state.camera.x), shiftY: CANVAS_HEIGHT / 2 - (v.cy - state.camera.y) };
   },

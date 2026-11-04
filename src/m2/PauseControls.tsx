@@ -48,8 +48,18 @@ export const pauseCard = (id: PauseCardId | MinigameId, nin: boolean, joycon: bo
       one('JUMP', ['A'], ['@jump']),
       one('DUCK', ['DPAD_DOWN'], ['@down']),
     ] };
-    // (fantasy/tragons/ride.ts and App.tsx: LB / RB hop cars (the weapon buttons), down held in a loop hangs on)
+    // (fantasy/tragons/behind/ride.ts: from behind; LB / RB hop a track left / right (the weapon buttons), no walking;
+    // down ducks gripping the rails; in a roll, down held hangs on and left / right lean to the high side)
     case 'tragons': return { title: 'TRUELLING TRAGONS', rows: [
+      one('HOP A TRACK LEFT', ['LB'], ['@nextWeapon']),
+      one('HOP A TRACK RIGHT', ['RB'], ['@prevWeapon']),
+      one('JUMP (THROUGH THE FIRE RINGS, OVER THE ICE BARS)', ['A'], ['@jump']),
+      one('DUCK, GRIPPING THE RAILS (UNDER THE ICICLES)', ['DPAD_DOWN'], ['@down']),
+      one('LOOPS: HOLD TO HANG ON', ['DPAD_DOWN'], ['@down'], true),
+      LR('LOOPS: LEAN TO THE HIGH SIDE'),
+    ] };
+    // (the classic side-view ride (fantasy/tragons/ride.ts, classic.ts): LB / RB hop cars, down held in a loop hangs on)
+    case 'tragonsClassic': return { title: 'TRUELLING TRAGONS (CLASSIC)', rows: [
       one('HOP UP A CAR (TOP: TO THE BOTTOM)', ['RB'], ['@prevWeapon']),
       one('HOP DOWN A CAR (BOTTOM: TO THE TOP)', ['LB'], ['@nextWeapon']),
       LR('WALK'),

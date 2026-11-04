@@ -9,7 +9,7 @@
 //
 //   npm run perf                                  every scenario (scenarios.mjs), 4x CPU throttle
 //   npm run perf -- tragons-lift heli-board       just those (names, or a prefix: "fantasy-" runs every Fairy Land one)
-//   options: --build --dist=<folder> (serve that build instead) --throttle=4 --secs=25 --warm=5 --settle=6 --profile --top=25 --port=5179 --shots (a PNG per scenario, into
+//   options: --soft (software rendering, no GPU) --build --dist=<folder> (serve that build instead) --throttle=4 --secs=25 --warm=5 --settle=6 --profile --top=25 --port=5179 --shots (a PNG per scenario, into
 //            tools/perf/out/) --headed --json=tools/perf/out/last.json --url=http://127.0.0.1:3000 (some other server
 //            with the dev starts: none started) --extra=nogl (more on every scenario's URL: ?nogl, the software paths)
 //
@@ -89,7 +89,9 @@ const METER = () => {
 
 const browser = await chromium.launch({
   headless: !HEADED,
-  args: ['--enable-gpu', '--ignore-gpu-blocklist', '--use-angle=d3d11', '--enable-gpu-rasterization', '--autoplay-policy=no-user-gesture-required', '--disable-background-timer-throttling', '--disable-renderer-backgrounding'],
+  // (--soft: no GPU at all, software ANGLE (SwiftShader): for when the real GPU mustn't be touched (the owner's driver
+  // resets under headless GPU runs); slower than the real thing, so compare soft with soft)
+  args: [...(flag('soft') ? ['--disable-gpu', '--use-angle=swiftshader'] : ['--enable-gpu', '--ignore-gpu-blocklist', '--use-angle=d3d11', '--enable-gpu-rasterization']), '--autoplay-policy=no-user-gesture-required', '--disable-background-timer-throttling', '--disable-renderer-backgrounding'],
 });
 const stats = a => {
   const s = [...a].sort((x, y) => x - y), q = p => s.length ? s[Math.min(s.length - 1, Math.floor(p * s.length))] : NaN;

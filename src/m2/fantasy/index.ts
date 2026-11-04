@@ -36,13 +36,14 @@ import type { Zone } from '../hudThemes';
 import { onLandLeft } from '../landCaches';
 import { clearBanded } from './tragons/cache';
 import { clearDragonSprites } from './tragons/dragon';
+import { clearBehindSprites } from './tragons/behind/sprites';
 import { prewarmGround } from './broom/arena';
 export { FANTASY_VOICE_LINES } from './voices';
 
 export const FANTASY_STAGE = 'M2 Fairy Land';
 // (what's only wanted here, let go once he's gone: landCaches.ts. Not the deathmatch's mode 7 ground: back in at its
 // checkpoint (fast travel), its floor's drawn on the first frame, and painting it all again there was a long stall)
-onLandLeft(FANTASY_STAGE, () => { clearBanded(); clearDragonSprites(); });
+onLandLeft(FANTASY_STAGE, () => { clearBanded(); clearDragonSprites(); clearBehindSprites(); });
 
 // (the glen with CON-FUCK-TIOUS's lair under its dragon's lair: glen/benLairSection.ts)
 const glen = withBenLair(glenBase);

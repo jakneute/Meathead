@@ -53,6 +53,7 @@ function stretch(s: number) {
   return Math.round(s >= 0 ? seg(0, s) : -seg(s, 0));
 }
 const at = stretch;
+export { stretch };
 
 // ---------------------------------------------------------------------------------------------------------------
 // The world

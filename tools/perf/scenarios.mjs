@@ -31,6 +31,11 @@ export const SCENARIOS = [
   { name: 'tragons-mountain', q: 'fantasy=35', keys: grip },
   { name: 'tragons-splash', q: 'fantasy=36', keys: grip },
   { name: 'tragons-finale', q: 'fantasy=37', keys: grip },
+  // (the ride from behind (fantasy/tragons/behind): the mountain's dark and its mouths; the triple helix, the whole view
+  // turned; and the classic side-view ride kept as an extra (?classic))
+  { name: 'tragons-cave', q: 'fantasy=35', keys: grip },
+  { name: 'tragons-helix', q: 'fantasy=36', keys: grip, warm: 12 },
+  { name: 'tragons-classic', q: 'fantasy=31&classic', keys: grip },
   // (the drops (the user's: "slows down when going down hills"): the lift's top and the first drop, straight down at
   // the camera; the second drop and the head-on's dive)
   { name: 'tragons-drop1', q: 'fantasy=31', keys: grip, warm: 9 },

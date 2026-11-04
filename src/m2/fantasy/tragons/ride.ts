@@ -31,6 +31,8 @@ import { tragonsOf, type Tragons, type Train, type Obst } from './state';
 import { makeTrainBlocks, layCars, roofSpan, roofAt, carUnder, alongTrain, trainSpun, trainUnder, overTrains, hopTarget, trainOn } from './cars';
 import { TRACK_SRC, FLUNG_SRC, FELL_SRC, trackDeath } from './deaths';
 import { unloadSpots } from './rivals';
+import { classicTragons } from './classic';
+import { buildBehind, startBehind, settleBehind, updateBehind, bvInLoop } from './behind/ride';
 import {
   SPIEL, SPIEL_VOICE, PIPER_T, LOAD, BOARD, NO_GUNS, FIRST_GAP, HOPPED, NEAR, DROP, LOOP_SEE, LOOP_IN, CORK_IN, BRAID, LOOP_OUT, SLIP,
   TUNNEL as TUNNEL_L, SPLASH, ARRIVE, CLOSED, RIVAL_UNLOAD, RIVAL_VOICES,
@@ -78,6 +80,7 @@ export const buildRide = (state: GameState) => {
   // where it's drawn (loading, or done: it slides off with the ride); the unload hall's, out with the decks)
   loadRoof = solid(state, STATION_X - 500 - 8, AWAY, GATE_X + 200 - (STATION_X - 500) + 16, 60, { hidden: true, tag: 'tragons-roof' });
   unloadRoof = solid(state, DECK_X0 - 130, AWAY, DECK_X1 - DECK_X0 + 256, 60, { hidden: true, tag: 'tragons-roof' });
+  buildBehind(state);
 };
 let loadRoof: { y: number } = { y: 0 };
 let unloadRoof: { y: number } = { y: 0 };
@@ -112,6 +115,15 @@ const settle = (state: GameState) => {
   t.settled = true;
   p.carried = false; p.tragon = undefined; p.noSpecials = false; p.spriteRot = undefined; p.spriteScaleX = undefined; p.spriteScaleY = undefined;
   const rc = rideCp(state.checkpoint);
+  t.classic = classicTragons(state);
+  if (rc && !t.classic && !state.stageMemo[DONE_MEMO]) {
+    // (the ride from behind (behind/ride.ts), back on it that far along)
+    t.phase = 'ride';
+    Object.assign(t.said, { load: true, board: true, station: true });
+    gate.y = AWAY;
+    settleBehind(state);
+    return;
+  }
   if (state.stageMemo[DONE_MEMO] || state.checkpoint >= UNLOAD_CP) {
     t.phase = 'done'; t.dist = END_S; t.v = 0;
     gate.y = AWAY; setDecks(true);
@@ -432,6 +444,9 @@ export const hisTrainD = (state: GameState) => {
 export const updateRide = (ctx: FrameContext, controls: Controls): Controls => {
   const { state } = ctx, t = tragonsOf(state), p = state.player, f = state.frame;
   if (!t.settled) settle(state);
+  // (the ride from behind: its own, from the dispatch's cut to the arrival's)
+  if (t.bv) { loadRoof.y = AWAY; return updateBehind(ctx, controls, () => arriveFromBehind(state)); }
+  if (t.fade && t.fade > 0) t.fade--;
   if (t.hopCd > 0) t.hopCd--;
   const want = takeCarHop();
   const riding = t.phase === 'dispatch' || t.phase === 'ride';
@@ -460,6 +475,13 @@ export const updateRide = (ctx: FrameContext, controls: Controls): Controls => {
     t.goT++;
     if (t.goT > 40) t.v = Math.min(V_TEACH, t.v + 0.06);
     t.dist += t.v;
+    // (the ride from behind: out of the station a little, a fade through black, and the cut to behind him)
+    if (!t.classic && t.goT >= CUT_AT + CUT_FADE && alive) {
+      t.phase = 'ride';
+      startBehind(state, (pOn ?? trainOn(t, t.lane)).lane);
+      p.tragon = undefined; p.spriteRot = undefined; p.spriteScaleX = undefined; p.spriteScaleY = undefined;
+      return { ...controls, left: false, right: false, up: false, down: false, jump: false, shoot: false, secondary: false, special: false, charge: false };
+    }
     if (t.dist >= LOCK) t.phase = 'ride';
     // (off it, back on the platform, while it's still in the station: it stops and comes back for him)
     if (p.isGrounded && !pOn && p.pos.x + p.width / 2 < GATE_X && alive) {
@@ -672,7 +694,7 @@ export const updateRide = (ctx: FrameContext, controls: Controls): Controls => {
     if (!riding) { t.said.posed = false; p.tragon = undefined; }
   }
   // (no charge, slide, uppercut or dive kick on a dragon's back: survival, not a fight)
-  if (riding) { p.noSpecials = true; t.said.nospec = true; setUi({ pauseControls: 'tragons' }); } else if (t.said.nospec) { p.noSpecials = false; t.said.nospec = false; setUi({ pauseControls: null }); }
+  if (riding) { p.noSpecials = true; t.said.nospec = true; setUi({ pauseControls: t.classic ? 'tragonsClassic' : 'tragons' }); } else if (t.said.nospec) { p.noSpecials = false; t.said.nospec = false; setUi({ pauseControls: null }); }
 
   for (const tr of t.trains) placeBlocks(state, tr);
 
@@ -775,6 +797,31 @@ const KIND_CARD: Record<string, string> = { loop: 'LOOP', cork: 'CORKSCREW', cha
 
 /** Pulled in at the unload: stopped, the decks out, the heads off the front (step off); the spiel, Piper, him; the
  *  suitors (off the train ahead) have their say in turn and go; done for good. */
+/** The fade out of the ride from behind done: back to the side view, pulled in at the unload, him on his dragon's
+ *  back (the classic ride's arrival from here on), a fade in. */
+const arriveFromBehind = (state: GameState) => {
+  const t = tragonsOf(state), p = state.player;
+  const lane = t.lane;
+  t.bv = undefined;
+  t.fade = CUT_FADE;
+  setUi({ tragonCard: null, tragonMarks: null });
+  state.cameraOverride = null;
+  p.hidden = false; p.carried = false; p.isDucking = false; p.vel.x = 0; p.vel.y = 0;
+  t.hop = null; t.lock = null; t.flung = false;
+  t.dist = END_S; t.v = 0;
+  for (const tr of t.trains) { tr.phase = 'ok'; tr.t = 0; }
+  eyeTo(t, true);
+  for (const tr of t.trains) layCars(t, tr);
+  const tr = trainOn(t, lane), at = alongTrain(tr, 0.5);
+  t.lane = lane;
+  p.pos.x = at.x - p.width / 2; p.pos.y = roofAt(tr, at.x) - p.height - 0.5;
+  for (const k of t.trains) placeBlocks(state, k);
+  const c = camTarget(state); t.cam.fx = c.fx; t.cam.fy = c.fy; t.cam.k = c.k; t.cam.on = 1;
+  arrive(state);
+};
+/** The dispatch's cut to behind him: this many frames out of the station, then a fade through black this long. */
+export const CUT_AT = 70, CUT_FADE = 16;
+
 const arrive = (state: GameState) => {
   const t = tragonsOf(state);
   t.dist = END_S; t.v = 0; t.phase = 'arrive'; t.goT = 0;
@@ -818,5 +865,5 @@ export const cameraLimits = (state: GameState) => {
 /** (index.ts) The holes coming on each lane, for the warnings. */
 export const gapsAhead = (t: Tragons) => t.gaps.filter(g => g.a > t.dist + TL - 2);
 /** (the music) Locked in a loop, or his dragon in one. */
-export const inLoop = (t: Tragons) => !!t.lock?.loop || (!!t.trains[t.lane]?.cars.length && trainSpun(t, t.trains[t.lane]));
+export const inLoop = (t: Tragons) => (t.bv ? bvInLoop(t) : false) || !!t.lock?.loop || (!!t.trains[t.lane]?.cars.length && trainSpun(t, t.trains[t.lane]));
 export { DECK_X1 };
