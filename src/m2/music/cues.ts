@@ -670,6 +670,23 @@ const start = () => {
   setTimeout(() => { for (const id of ['title', 'hub', 'intro', 'staff', 'jingle:death', 'jingle:victory']) if (SONGS[id]) prewarm(SONGS[id]); prewarmRooms(); }, 2500);
   timer = setInterval(() => { try { apply(); } catch (err) { console.error('music', err); } }, 100);
 };
-// (the dev server swapping this file in fresh on an edit: the old copy's loop stopped, or it goes on asking for the
-// song of wherever he was when it was swapped (the user's: the parking lot's music on at the hub))
-if (import.meta.hot) import.meta.hot.dispose(() => { if (timer) clearInterval(timer); timer = null; });
+// (the dev server swapping this file in fresh: on an edit to it, or to anything it reads (a minigame's file, the
+// songs, a land's), since the hot reload re-runs every module between the edited one and App.tsx. Its dispose only
+// ever runs for App.tsx, so it can't be counted on here: the old copy's loop went on, reading the old copies of the
+// minigames' state (a minigame's song on for good as he played on, the owner's), and its stage stuck where he was
+// (the parking lot's music on at the hub); the new copy sat idle, handed nothing. Now the newest copy loaded takes
+// over from the one before: its game, stage, pause and title, its loop stopped, its own started.)
+interface MusicCopy { hand: () => { state: GameState | null; stage: string | null; paused: boolean; onTitle: boolean }; stop: () => void }
+if (import.meta.hot && typeof window !== 'undefined') {
+  const g = globalThis as { __m2MusicCopy?: MusicCopy };
+  const prev = g.__m2MusicCopy;
+  g.__m2MusicCopy = { hand: () => ({ state, stage, paused, onTitle }), stop: () => { if (timer) clearInterval(timer); timer = null; } };
+  if (prev) {
+    const was = prev.hand();
+    prev.stop();
+    state = was.state; stage = was.stage; paused = was.paused; onTitle = was.onTitle;
+    if (state || stage || onTitle) start();
+  }
+}
+// (dev only: the cue chosen last (song:arrangement) and what the engine has on, for headless checks: window.__m2Cue())
+if (import.meta.env.DEV && typeof window !== 'undefined') (window as unknown as { __m2Cue: () => string }).__m2Cue = () => { const n = nowPlaying(); return `${last || '(none)'} [engine: ${n ? `${n.id}:${n.arr}` : 'none'}${timer ? '' : ', loop off'}]`; };

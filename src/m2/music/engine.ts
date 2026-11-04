@@ -610,6 +610,13 @@ export const stop = (fade = FADE_OUT) => {
 // (the dev server swapping this file in fresh on an edit: the old copy's song out and its scheduler stopped, so it's
 // never left playing under the new copy's)
 if (import.meta.hot) import.meta.hot.dispose(() => { stop(0.2); if (timer) clearInterval(timer); timer = null; });
+// (...and the same when it's re-run for an edit to something it reads, which that dispose never hears of: the newest
+// copy loaded stops the one before (cues.ts does the same))
+if (import.meta.hot && typeof window !== 'undefined') {
+  const g = globalThis as { __m2MusicEngine?: () => void };
+  g.__m2MusicEngine?.();
+  g.__m2MusicEngine = () => { stop(0.2); if (timer) clearInterval(timer); timer = null; };
+}
 
 /** What's playing (its id and arrangement), or null. */
 export const nowPlaying = () => (current ? { id: current.id, arr: current.arrangement, done: current.done } : null);
