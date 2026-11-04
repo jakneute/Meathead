@@ -27,6 +27,7 @@ import { buildRide, updateRide, viewOf, cameraLimits, holdOffRide, offRideNow } 
 import { drawTragonsBackdrop, drawTragonsBack, drawTragonsFront, drawTragonsHud } from './art';
 import { caveLight } from './cave';
 import { drawBehind, drawBehindHud } from './behind/draw';
+import { behindLight } from './behind/world';
 import { CUT_AT, CUT_FADE } from './ride';
 import { drawPa } from './art';
 /** The ride's seen from behind now (not dead on it: that's the side shot). */
@@ -80,5 +81,5 @@ export const tragons: FantasySection = {
   },
   outdoors: () => 1,
   // (inside the fake mountain: dark as the Wilderness train's tunnels, never black, the dragons' lamps through it)
-  lighting: (state, base) => caveLight(state, base),
+  lighting: (state, base) => (behindNow(state) ? behindLight(state, base) : caveLight(state, base)),
 };

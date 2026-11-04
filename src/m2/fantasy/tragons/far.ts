@@ -45,7 +45,7 @@ const BULB = ['#FFE9A8', '#FFB0D8', '#A8E8FF', '#C8FFB8'];
 // ---------------------------------------------------------------------------------------------------------------
 // The rest of Truelling Tragons, across the park
 
-const RW = 2000, RH = 320, RG = RH - 34;
+export const RW = 2000, RH = 320, RG = RH - 34;
 const TRK = ['#F2D24A', '#D8402E', '#7AC8F0'];
 const sm = (u: number) => { const k = Math.max(0, Math.min(1, u)); return k * k * (3 - 2 * k); };
 /** A lane's height along the far ride (its track over the ground line RG). */
@@ -69,7 +69,7 @@ const run = (g: Ctx, pts: [number, number][], col: string, T: (c: string) => str
   g.save(); g.translate(0, -1.6 * s); g.strokeStyle = T(mix(col, '#FFFFFF', 0.5)); g.lineWidth = 0.7; path(); g.stroke(); g.restore();
   g.lineCap = 'butt'; g.lineJoin = 'miter';
 };
-const paintRideRow = (g: Ctx, tod: TimeOfDay) => {
+export const paintRideRow = (g: Ctx, tod: TimeOfDay) => {
   const T = farCol(tod, 0.3), Sn = T('#E8EEF8'), SnL = T('#FFFFFF');
   // (the snowy hill behind it, pines along it)
   const hill = (x: number) => snap2(RG - 70 + wave(x, RW, 2.3, 2) * 16 + jag(x, RW, 8, 21) * 4);
@@ -140,8 +140,8 @@ const paintRideRow = (g: Ctx, tod: TimeOfDay) => {
 // ---------------------------------------------------------------------------------------------------------------
 // The park near the ride
 
-const NW = 1800, NH = 280, NG = 214;
-const paintParkNear = (g: Ctx, tod: TimeOfDay) => {
+export const NW = 1800, NH = 280, NG = 214;
+export const paintParkNear = (g: Ctx, tod: TimeOfDay) => {
   const T = farCol(tod, 0.12), Sn = T('#ECF2FC'), SnL = T('#FFFFFF'), night = tod.lamps > 0.3;
   // (the tree line behind: snowy pines, bare trees strung with lights)
   for (let x = 0; x < NW; x += 12) {

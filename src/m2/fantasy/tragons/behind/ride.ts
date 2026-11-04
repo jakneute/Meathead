@@ -39,7 +39,8 @@ import {
   bvDue, bvEnd, trackAt, rollOn, laneBase, curveK, project, wOf, sOfW, noseS, type BvEv, type TP, type SP,
 } from './geom';
 import type { Bv } from './state';
-import { RING_BOTTOM, JUMP_TOP, FLOOR_Y } from './sprites';
+import { RING_BOTTOM, JUMP_TOP } from './sprites';
+import { FLOOR_Y } from './cars';
 
 // ---------------------------------------------------------------------------------------------------------------
 // Feel
