@@ -375,6 +375,9 @@ const drawPistol = (c: Ctx, frame: number) => {
 };
 
 /** Everything it was in the middle of, stopped (through a door). */
+/** (dropActions.ts: a minigame taking over, or handing him back) The bead being drawn let go of without the shot:
+ *  it fires on fire's release, and a minigame taking the buttons away reads as one. */
+export const dropFlintlockHeld = () => { charge = 0; target = null; };
 export const stopFlintlock = () => { charge = 0; target = null; trails = []; clearFlourish(); };
 
 export const registerFlintlock = () => registerWeapon('FLINTLOCK', { fire: ctx => fire(ctx), update: () => false, draw: () => {}, drawHeld, tick: ctx => tick(ctx), drawOverlay });

@@ -51,7 +51,7 @@ import { pickLine, silenceAll, announce } from '../../../m1/game/platform/speech
 import { getUi, setUi } from '../../store';
 import { openAsk, tickAsk, closeAsk, type Ask } from '../../minigameConfirm';
 import { onFloorish, upStart } from '../../upZone';
-import { minigamePausable } from '../../minigamePause';
+import { minigamePausable, minigameTakeover } from '../../minigamePause';
 import type { GameCue } from '../../music/moments';
 import { awardShard, shardWon, openShardCard, tickShardCard, closeShardCard, type ShardCard } from '../../upgrades/shardAward';
 import { pollM2, btn, pressed } from '../../input';
@@ -273,6 +273,8 @@ export const updateBumper = (ctx: FrameContext, controls: Controls): Controls | 
     b.wasUp = upNow;
     if (!go) return null;
     b.waving = false;
+    // (taken over: whatever he had going called off: minigamePause.ts)
+    minigameTakeover();
     startOffer(state, b);
     return hands();
   }

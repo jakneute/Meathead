@@ -43,7 +43,7 @@ import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../../../m1/constants';
 import { setUi } from '../../store';
 import { openAsk, tickAsk, closeAsk, type Ask } from '../../minigameConfirm';
 import { onFloorish, upStart } from '../../upZone';
-import { minigamePausable } from '../../minigamePause';
+import { minigamePausable, minigameTakeover } from '../../minigamePause';
 import type { GameCue } from '../../music/moments';
 import { awardShard, shardWon, openShardCard, tickShardCard, closeShardCard, type ShardCard } from '../../upgrades/shardAward';
 import type { EquipControl } from '../../upgrades/equipInfo';
@@ -273,6 +273,8 @@ export const updateA51 = (ctx: FrameContext, controls: Controls): Controls => {
       if (atDoor) setUi({ upPrompt: opened ? 'GO IN' : 'PICK THE LOCK' });
       if (upStart(a, upPress, atDoor, p.isGrounded)) {
         if (opened) { goIn(state, a); return { ...NO_CONTROLS }; }
+        // (taken over: whatever he had going called off: minigamePause.ts)
+        minigameTakeover();
         a.phase = 'intro'; a.t = 0; hold(state); p.facing = 1;
         if (!hasClip(state)) takeClip(state);
         meatheadSays(state, pickLine(byPants(state, L.MH_LOCK)), true, () => { if (a.phase === 'intro' && of(state) === a) toAsk(a); });

@@ -1282,6 +1282,13 @@ const drawHeld = (c: Ctx, frame: number) => {
 export const holdMalletForTests = (m: string, at: number) => { mode = m as Mode; t = at; };
 export const malletModeForTests = () => `${mode}:${t}:${xHeld}`;
 /** Everything it was in the middle of, stopped (through a door). */
+/** (dropActions.ts: a minigame taking over, or handing him back) Any swing, spin, wind-up or smash under way called
+ *  off, and the fire / secondary holds and their edges forgotten (no tornado or smash built up from before). */
+export const dropMalletHeld = (pl: GameState['player']) => {
+  if (mode !== 'idle') { mode = 'idle'; t = 0; pl.hidden = false; }
+  xHeld = 0; yHeld = 0; xWas = false; yWas = false; pogo = false; rebound = false;
+  syncArmor();
+};
 export const stopMallet = () => { mode = 'idle'; stick = false; syncArmor(); words = []; twinkles = []; flat = []; flying = []; junk = []; impacts = []; scuffs = []; glimpse = null; dustRings = []; cracks = []; springs = []; bounceAt = -9999; };
 
 export const registerMallet = () => registerWeapon('MALLET', {

@@ -98,6 +98,8 @@ disableM1Music();
 /** No weapon switching (the wheel, the shoulder buttons, the number keys, the mouse wheel, the pause menu's pick):
  *  stuck with one (the mine cart), or not his to play just now. */
 const noSwitching = () => !!getUi().noSwitch || !!getUi().locked;
+// (a minigame taking him over or letting him go: whatever he had going called off: minigamePause.ts)
+setDropActions(dropPlayerActions);
 // (each frame: is the game his to play? Not in a cutscene (the victory walk's one), dying or dead, mid-grab, mid-lever)
 setFrameHook(state => {
   noteFireworksState(state);
@@ -134,7 +136,8 @@ import BumperCard from './cartoon/bigkid/BumperCard';
 import MinigameAsk from './MinigameAsk';
 import MinigameCard from './MinigameCard';
 import { pauseCard } from './PauseControls';
-import { syncMinigame, liveMinigame, minigameQuittable, setGamePaused, quitMinigame, dropMinigamePause } from './minigamePause';
+import { syncMinigame, liveMinigame, minigameQuittable, setGamePaused, quitMinigame, dropMinigamePause, setDropActions } from './minigamePause';
+import { dropPlayerActions } from './dropActions';
 import { holdM2Presses } from './input';
 import { pauseSpeech } from '../m1/game/platform/speech';
 import QtePanel from './fantasy/wheel/QtePanel';

@@ -30,6 +30,8 @@
 // stepped in its update), never the wall clock, so a pause doesn't eat its time.
 
 import type { GameState } from '../m1/game/core/state';
+import { holdControlsTillRelease } from '../m1/game/core/heldOff';
+import { holdM2Presses } from './input';
 
 /** The minigames with a pause-menu controls card (PauseControls.tsx pauseCard). */
 export type MinigameId = 'plunge' | 'bumper' | 'gallery' | 'mash' | 'hack' | 'lockpick';
@@ -43,6 +45,46 @@ let paused = false;
 /** QUIT MINIGAME said yes to: run on the next frame played. */
 let pendingQuit: { quit: MinigameQuit; state: GameState } | null = null;
 
+// ---------------------------------------------------------------------------------------------------------------
+// His hands, in and out of a minigame (the owner: "when ending the minigame, he fired the spellbook of the damned" and
+// "any action you may have initiated at the start of the minigame gets eaten if you start it").
+//
+// A minigame takes him over (its UP start, or its A/B ask: minigameConfirm.ts openAsk calls this too, so every one's
+// covered by its ask even if its start doesn't say so) with minigameTakeover(). On the next frame hook (syncMinigame,
+// straight after the land's update, before the engine reads his buttons or ticks the weapons) whatever he had going is
+// called off: dropActions.ts (the spellbook's reading would otherwise finish under the minigame, the flintlock's bead
+// goes off when the buttons go). Then the session's on till he's let go (player.inCutscene off, alive): there it's all
+// dropped again and the action buttons are held off till every one's been let go (heldOff.ts; Meathead 2's own presses
+// too, input.ts), so a fire held, or pressed on the minigame's last screen, never goes off as play comes back. However
+// it ends (won, lost, BACK on the ask, QUIT MINIGAME, its card closed) it ends by letting him go, so that's the one
+// place it's caught. A death, or leaving (dropMinigamePause), just forgets the session.
+
+let takeoverPending = false, session = false, sessionHeld = false;
+/** dropActions.ts dropPlayerActions, handed in by App.tsx (imported here it'd pull every weapon in under the minigames:
+ *  an import loop). */
+let dropPlayerActions: (state: GameState) => void = () => {};
+export const setDropActions = (fn: (state: GameState) => void) => { dropPlayerActions = fn; };
+
+/** (a minigame's start, the frame it takes him over; openAsk too) Whatever he had going is called off now, and his
+ *  buttons are held off as he's let go after it. */
+export const minigameTakeover = () => { takeoverPending = true; };
+
+const syncHands = (state: GameState) => {
+  const p = state.player;
+  if (takeoverPending) {
+    takeoverPending = false; session = true; sessionHeld = !!p.inCutscene;
+    dropPlayerActions(state); holdM2Presses();
+    return;
+  }
+  if (!session) return;
+  if (state.deathTimer > 0 || p.health <= 0) { session = false; return; }
+  // (seen held once first: a start that holds him a frame later isn't taken for the end)
+  if (p.inCutscene) { sessionHeld = true; return; }
+  if (!sessionHeld) return;
+  session = false;
+  dropPlayerActions(state); holdControlsTillRelease(); holdM2Presses();
+};
+
 /** This frame, the minigame `id` is on and can be paused (call it every frame it can be, from its update); `quit`
  *  backs out of it (QUIT MINIGAME in the pause menu: a module-level function, not a fresh closure a frame). `quit`
  *  null: it can't be backed out of (the shooting gallery, the owner's: "the one minigame you cannot 'back out of'
@@ -51,6 +93,7 @@ export const minigamePausable = (state: GameState, id: MinigameId, quit: Minigam
 
 /** (App.tsx's frame hook, after the land's update) Which minigame's pausable this frame, or null. */
 export const syncMinigame = (state: GameState): MinigameId | null => {
+  syncHands(state);
   // (QUIT MINIGAME said yes to: done on the first frame back in play, so its lines start with the voices running)
   if (pendingQuit) {
     const q = pendingQuit;
@@ -78,6 +121,7 @@ export const quitMinigame = (): boolean => {
 export const dropMinigamePause = () => {
   markId = null; markFrame = -1; markQuit = null; markState = null;
   live = null; liveQuit = null; liveState = null; pendingQuit = null;
+  takeoverPending = false; session = false; sessionHeld = false;
 };
 
 /** The minigame that's pausable (as of the last frame played: it holds through a pause), or null. */

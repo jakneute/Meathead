@@ -43,7 +43,7 @@ import { openAsk, tickAsk, closeAsk, type Ask } from '../../minigameConfirm';
 import { onFloorish, upStart } from '../../upZone';
 import { awardShard, shardWon, openShardCard, tickShardCard, closeShardCard, type ShardCard } from '../../upgrades/shardAward';
 import { pollM2, pressed } from '../../input';
-import { minigamePausable, gamePaused } from '../../minigamePause';
+import { minigamePausable, gamePaused, minigameTakeover } from '../../minigamePause';
 import type { GameCue } from '../../music/moments';
 import { ledge, meatheadSays, speak, type Said } from '../section';
 import { box, text, INK } from './art/kit';
@@ -332,6 +332,8 @@ const quitHack = (state: GameState) => {
 const startLine = (state: GameState, h: Hack) => {
   const p = state.player;
   h.token++; h.phase = 'line'; h.t = 0;
+  // (taken over: whatever he had going called off (a spellbook reading would finish under it): minigamePause.ts)
+  minigameTakeover();
   hold(state);
   p.facing = PANEL_X < p.pos.x + p.width / 2 ? -1 : 1;
   const tok = h.token;

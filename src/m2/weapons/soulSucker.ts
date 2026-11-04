@@ -874,6 +874,13 @@ const drawOverlay = (c: Ctx, state: GameState) => {
 
 /** Everything it was in the middle of, stopped (through a door): no spray going, nobody half way in, nothing pulled. */
 const calmDown = (e: Enemy) => { const ps = poise.get(e); if (ps?.held) { e.puppet = ps.held.puppet; e.harmless = ps.held.harmless; ps.held = undefined; } panicking.delete(e); };
+/** (dropActions.ts: a minigame taking over, or handing him back) What the hold had going let go of: nobody left
+ *  half pulled in or bleeding into the bag, no spray still coming, the secondary's held edge forgotten. Who's already
+ *  being swallowed and the bag's gore are left be. */
+export const dropSoulSuckerHeld = () => {
+  for (const e of [...panicking]) calmDown(e);
+  bleedFrom = null; bleedBank = 0; sprayLeft = 0; secondaryWas = false; suckingAt = -10; syncArmor(false);
+};
 export const stopSoulSucker = () => {
   for (const e of [...panicking]) calmDown(e); for (const d of DROPS) d.on = false; bleedFrom = null; bleedBank = 0; sprayLeft = 0; swallowing = []; suckingAt = -10; fullTryAt = fullTryFrom = -9999; showSprayTip(false); stains.length = 0; syncArmor(false); stopGoreSlides(); };
 

@@ -78,7 +78,7 @@ import { setUi } from '../../store';
 import { awardShard, shardWon as wonShard, openShardCard, tickShardCard, closeShardCard, type ShardCard } from '../../upgrades/shardAward';
 import { openAsk, tickAsk, closeAsk, type Ask } from '../../minigameConfirm';
 import { onFloorish, upStart } from '../../upZone';
-import { minigamePausable } from '../../minigamePause';
+import { minigamePausable, minigameTakeover } from '../../minigamePause';
 import { walkOff, walkOffDue, type WalkOff } from '../../walkOffCall';
 import type { GameCue } from '../../music/moments';
 import { reaction, moodOf, frameOf, type Pose } from '../../spooky/costume';
@@ -499,6 +499,8 @@ export const updateGallery = (ctx: FrameContext, controls: Controls, out: Contro
       if (near && free) setUi({ upPrompt: 'TALK' });
       if (upStart(g, upIn, near && free, p.isGrounded)) {
         if (hostileNear(state, g)) { if (!g.talk) dooley(g, state, DOOLEY_NOT_NOW); return { ...out, up: false }; }
+        // (taken over: whatever he had going called off: minigamePause.ts)
+        minigameTakeover();
         g.phase = 'offer'; g.t = 0; p.inCutscene = true; p.vel.x = 0;
         holdWorld(state, g);
         dooley(g, state, g.lazy ? DOOLEY_RETRY : DOOLEY_OFFER, () => { if (g.phase === 'offer' && gal(state) === g) { g.phase = 'ask'; g.ask = openAsk("DEAD-EYE DOOLEY'S SHOOTIN' GALLERY", "SHOOT THE TIN DUCKS. 50 SECONDS. EVERYBODY'S A WINNER. YOU'LL USE YOUR OWN GUN."); } });

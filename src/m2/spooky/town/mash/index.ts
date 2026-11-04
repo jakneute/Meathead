@@ -34,7 +34,7 @@ import { pollM2, btn, pressed as menuPressed } from '../../../input';
 import { shardWon, awardShard, openShardCard, tickShardCard, closeShardCard, type ShardCard } from '../../../upgrades/shardAward';
 import { openAsk, tickAsk, closeAsk, type Ask } from '../../../minigameConfirm';
 import { onFloorish, upStart } from '../../../upZone';
-import { minigamePausable } from '../../../minigamePause';
+import { minigamePausable, minigameTakeover } from '../../../minigamePause';
 import type { GameCue } from '../../../music/moments';
 import { meatheadSays, speak, saidOver, type Said } from '../../section';
 import { X, Y } from '../layout';
@@ -399,6 +399,8 @@ const quitMash = (state: GameState) => {
 
 const startTalk = (state: GameState, ms: Mash) => {
   const p = state.player;
+  // (taken over: whatever he had going called off: minigamePause.ts)
+  minigameTakeover();
   p.inCutscene = true; p.vel.x = 0;
   toPhase(ms, 'talk'); ms.kidPose = 'smug'; ms.anyPrev = true;
   freeze(state, ms);

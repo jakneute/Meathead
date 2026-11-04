@@ -13,11 +13,14 @@
 import { pollM2, btn, pressed } from './input';
 import { setUi } from './store';
 import { playSound } from '../m1/game/platform/audio';
+import { minigameTakeover } from './minigamePause';
 
 export const ASK_HOLD = 40;
 export interface Ask { title: string; text: string; t: number; armed: boolean }
 
 export const openAsk = (title: string, text: string): Ask => {
+  // (him taken over: whatever he had going called off, and his buttons held off as he's let go: minigamePause.ts)
+  minigameTakeover();
   playSound('menuok', 0.5);
   setUi({ minigameAsk: { title, text, ready: false } });
   return { title, text, t: 0, armed: false };

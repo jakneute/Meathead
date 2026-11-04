@@ -165,7 +165,9 @@ const fire = (ctx: FrameContext) => {
   const pl = state.player;
   // (sat in a set piece's own pose: no reading, nothing spent)
   if (seated(pl)) return;
+  const had = pl.weaponAmmo.SPELLBOOK;
   if (!cheats.infiniteAmmo) pl.weaponAmmo.SPELLBOOK = Math.max(0, pl.weaponAmmo.SPELLBOOK - (MANA.storm[0] + Math.floor(Math.random() * (MANA.storm[1] - MANA.storm[0] + 1))));
+  castSpent = had - pl.weaponAmmo.SPELLBOOK;
   pl.shootCooldown = CAST_COOLDOWN + WINDUP;
   winding = WINDUP; casting = WINDUP + CAST_POSE;
   playSound('spell', 0.5, -6);
@@ -357,6 +359,8 @@ const boltPath = (state: GameState, to: { x: number; y: number }, from: { x: num
 let bulkLeft = 0, bulkCool = 0, secondaryWas = false;
 /** The bulk-up's pose, frames left: struck before it takes (nothing interrupts it: hurt, he takes it, but he isn't knocked about). */
 let posing = 0, bulkFailSaidAt = -9999;
+/** The mana the reading under way took (given back if it's called off: dropSpellbookHeld), and the bulk-up's pose's. */
+let castSpent = 0, poseSpent = 0;
 const POSE = 40;
 const listeners = new Set<() => void>();
 const notify = () => listeners.forEach(f => f());
@@ -408,6 +412,7 @@ const tick = (ctx: FrameContext, input: { secondary?: boolean }, equipped: boole
     const mana = ctx.cheats.infiniteAmmo || pl.weaponAmmo.SPELLBOOK >= BULK.mana;
     if (bulkLeft <= 0 && bulkCool <= 0 && posing <= 0 && (pl.isGrounded || !!pl.vine) && mana) {
       if (!ctx.cheats.infiniteAmmo) pl.weaponAmmo.SPELLBOOK -= BULK.mana;
+      poseSpent = ctx.cheats.infiniteAmmo ? 0 : BULK.mana;
       // First the pose: the book held up, flexing, the power going into him
       posing = POSE;
       playSound('spell', 1, -8);
@@ -490,6 +495,19 @@ const tick = (ctx: FrameContext, input: { secondary?: boolean }, equipped: boole
 export const holdPoseForTests = (cast: number, bulk = 0) => { casting = cast; posing = bulk; };
 /** For tests: where the rifts are, and whether any's in something solid or off the screen. */
 export const riftsForTests = (state: GameState) => rifts.map(r => `${Math.round(r.x - state.camera.x)},${Math.round(r.y - state.camera.y)}${inSolid(state, r.x, r.y, r.size) ? ':IN-WALL' : ''}`);
+
+/** (dropActions.ts: a minigame taking over, or handing him back) Whatever he'd set going with it called off, not left
+ *  to finish under the minigame or after it: the reading's wind-up and pose (no storm comes), anything still due out of
+ *  a rift, the bulk-up's pose (no bulk), the secondary's held edge. The mana a called-off reading or pose took comes
+ *  back. What's already landed (burning, a bulk that's on) is left be. */
+export const dropSpellbookHeld = (pl: GameState['player']) => {
+  if (winding > 0 && castSpent > 0) pl.weaponAmmo.SPELLBOOK = (pl.weaponAmmo.SPELLBOOK ?? 0) + castSpent;
+  if (posing > 0 && poseSpent > 0) pl.weaponAmmo.SPELLBOOK = (pl.weaponAmmo.SPELLBOOK ?? 0) + poseSpent;
+  if (casting > 0 || posing > 0) pl.hidden = false;
+  casting = 0; winding = 0; posing = 0; castSpent = 0; poseSpent = 0; pending = []; rifts = []; secondaryWas = false;
+  sigils = sigils.filter(s => s.el !== 'cast');
+  syncArmor();
+};
 
 export const stopSpellbook = () => { posing = 0; casting = 0; winding = 0; syncArmor(); bolts = []; burning.clear(); casting = 0; rings = []; flash = 0; rifts = []; pending = []; bulkLeft = 0; setBuffs({ speed: 1, size: 1, knock: 1 }); publish(); sparks = []; sigils = []; flares = []; craters = []; zaps = []; };
 
