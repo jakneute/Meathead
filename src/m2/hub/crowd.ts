@@ -24,6 +24,7 @@ import { queueSpan, paintQueueRail } from './gates';
 import { stretchOf } from './stretch';
 import { paintMascot, paintCart, paintBench, paintBin, paintFloat, type Mascot, type Cart } from './props';
 import { PATH } from './geometry';
+import { dayProgress } from '../timeOfDay';
 
 // ---------------------------------------------------------------------------------------------------------------
 // The cast, standing about by the portals (as before)
@@ -241,11 +242,18 @@ const WALKERS: Walker[] = [];
 }
 
 /** Everything standing about (a guest, a mascot, a prop), at a feet y; drawn in order back to front. */
-type Thing = { x: number; y: number; draw: (c: Ctx, x: number, f: number) => void };
+/** `who`: a guest's seed (the crowd thins out by it as the day goes on: `here`); none, always there (the rails, the
+ *  carts and their vendors, the mascots, the guard, the puker). */
+type Thing = { x: number; y: number; draw: (c: Ctx, x: number, f: number) => void; who?: number };
+/** How much of the crowd's still about at this hour (the owner's: "as the day gets darker, the hub gets less crowded"):
+ *  everybody in the morning, a quarter of them by the last of the evening. */
+const crowdKeep = () => Math.max(0.25, 1 - 0.85 * dayProgress());
+/** Is this guest still in the park (by their seed: the same ones go home first, so nobody blinks in and out)? */
+const here = (seed: number, keep: number) => hash(seed * 0.731 + 17.3) < keep;
 const THINGS: Thing[] = [];
 const MID_THINGS: Thing[] = [];
 {
-  const add = (x: number, y: number, draw: Thing['draw']) => THINGS.push({ x, y, draw });
+  const add = (x: number, y: number, draw: Thing['draw'], who?: number) => THINGS.push({ x, y, draw, who });
   for (let i = 0; i < HUB_SLOTS; i++) {
     const spot = SPOTS[i], cx = slotX(i), id = stretchOf(i), sd = i * 101;
     if (spot.kind === 'land') {
@@ -255,7 +263,7 @@ const MID_THINGS: Thing[] = [];
       THINGS.push({ x: cx, y: back, draw: (c, x) => stampRail(c, land, x, back, false) });
       for (let k = 0; k < 6; k++) {
         const qs = sd + k * 13, qx = q0 + 12 + k * ((q1 - q0 - 16) / 6);
-        THINGS.push({ x: qx, y: back + 6 + (k % 2), draw: (c, x, f) => {
+        THINGS.push({ x: qx, y: back + 6 + (k % 2), who: qs, draw: (c, x, f) => {
           // (shuffling: a breath now and then; somebody turning to look round)
           const fi = Math.floor((f + qs * 7) / 90) % 2, look = ((f + qs * 13) % 600) < 80 ? -1 : 1;
           guest(c, x + (((f + qs) >> 8) % 2), back + 6 + (k % 2), look as 1 | -1, qs, k === 2 ? 'point' : 'stand', fi, k === 4 ? 'kid' : k === 1 ? 'camera' : 'none');
@@ -271,8 +279,8 @@ const MID_THINGS: Thing[] = [];
     // A bench, two on it (chatting, or one on a phone)
     const bx = cx + 112 + (i % 2) * 20;
     add(bx, ROW.walk0 - 2, (c, x) => bench(c, x, ROW.walk0 - 2));
-    add(bx - 8, ROW.walk0 - 1, (c, x, f) => guest(c, x, ROW.walk0 - 8, 1, sd + 501, 'sit', Math.floor((f + sd) / 100) % 2));
-    if (i % 3) add(bx + 10, ROW.walk0 - 1, (c, x, f) => guest(c, x, ROW.walk0 - 8, -1, sd + 502, 'sit', Math.floor((f + sd + 50) / 100) % 2));
+    add(bx - 8, ROW.walk0 - 1, (c, x, f) => guest(c, x, ROW.walk0 - 8, 1, sd + 501, 'sit', Math.floor((f + sd) / 100) % 2), sd + 501);
+    if (i % 3) add(bx + 10, ROW.walk0 - 1, (c, x, f) => guest(c, x, ROW.walk0 - 8, -1, sd + 502, 'sit', Math.floor((f + sd + 50) / 100) % 2), sd + 502);
     // A vendor at their cart (at the seam's little plaza after this stretch)
     const kinds: Cart[] = ['balloons', 'popcorn', 'icecream', 'churros'];
     const ck = kinds[i % 4], vx = seamX(i + 1) - 30 - (i % 2) * 20;
@@ -280,7 +288,7 @@ const MID_THINGS: Thing[] = [];
       add(vx + 18, ROW.walk0 + 3, (c, x, f) => guest(c, x, ROW.walk0 + 3, -1, sd + 601, 'stand', Math.floor(f / 80) % 2, 'vendor'));
       add(vx, ROW.walk0 + 6, (c, x, f) => cart(c, x, ROW.walk0 + 6, ck, f));
       // (somebody buying)
-      add(vx - 26, ROW.walk0 + 8, (c, x, f) => guest(c, x, ROW.walk0 + 8, 1, sd + 602, i % 2 ? 'point' : 'stand', Math.floor(f / 70) % 2, 'none'));
+      add(vx - 26, ROW.walk0 + 8, (c, x, f) => guest(c, x, ROW.walk0 + 8, 1, sd + 602, i % 2 ? 'point' : 'stand', Math.floor(f / 70) % 2, 'none'), sd + 602);
     }
     // A costumed character posing for a photo with a family; the photographer crouched, the flash going off
     if (id !== 'america') {
@@ -295,12 +303,12 @@ const MID_THINGS: Thing[] = [];
       });
     }
     // Two more stood about, chatting (one points at something)
-    add(cx - 112 + (i % 3) * 8, ROW.walk1 - 6, (c, x, f) => guest(c, x, ROW.walk1 - 6, 1, sd + 801, (f + sd) % 400 < 120 ? 'point' : 'stand', Math.floor(f / 60) % 2, i % 2 ? 'map' : 'none'));
-    add(cx - 88 + (i % 3) * 8, ROW.walk1 - 5, (c, x, f) => guest(c, x, ROW.walk1 - 5, -1, sd + 802, 'stand', Math.floor((f + 30) / 60) % 2, i % 3 === 0 ? 'balloon' : 'none'));
+    add(cx - 112 + (i % 3) * 8, ROW.walk1 - 6, (c, x, f) => guest(c, x, ROW.walk1 - 6, 1, sd + 801, (f + sd) % 400 < 120 ? 'point' : 'stand', Math.floor(f / 60) % 2, i % 2 ? 'map' : 'none'), sd + 801);
+    add(cx - 88 + (i % 3) * 8, ROW.walk1 - 5, (c, x, f) => guest(c, x, ROW.walk1 - 5, -1, sd + 802, 'stand', Math.floor((f + 30) / 60) % 2, i % 3 === 0 ? 'balloon' : 'none'), sd + 802);
     // On the promenade behind: a few stood looking at things, a mascot or two signing autographs
-    MID_THINGS.push({ x: cx - 120, y: ROW.mid1, draw: (c, x, f) => guest(c, x, ROW.mid1, 1, sd + 901, 'stand', Math.floor(f / 90) % 2, 'camera') });
-    MID_THINGS.push({ x: cx - 100, y: ROW.mid1, draw: (c, x, f) => guest(c, x, ROW.mid1, -1, sd + 902, 'point', Math.floor(f / 90) % 2) });
-    MID_THINGS.push({ x: cx + 80, y: ROW.mid0 + 2, draw: (c, x, f) => guest(c, x, ROW.mid0 + 2, 1, sd + 903, 'stand', Math.floor(f / 90) % 2, 'kid') });
+    MID_THINGS.push({ x: cx - 120, y: ROW.mid1, who: sd + 901, draw: (c, x, f) => guest(c, x, ROW.mid1, 1, sd + 901, 'stand', Math.floor(f / 90) % 2, 'camera') });
+    MID_THINGS.push({ x: cx - 100, y: ROW.mid1, who: sd + 902, draw: (c, x, f) => guest(c, x, ROW.mid1, -1, sd + 902, 'point', Math.floor(f / 90) % 2) });
+    MID_THINGS.push({ x: cx + 80, y: ROW.mid0 + 2, who: sd + 903, draw: (c, x, f) => guest(c, x, ROW.mid0 + 2, 1, sd + 903, 'stand', Math.floor(f / 90) % 2, 'kid') });
   }
   // The guy throwing up by the trash can (by the snacks, of course)
   const px = seamX(1) + 30;
@@ -362,14 +370,14 @@ const wrapX = (x: number) => HUB.x0 + ((((x - HUB.x0) % HUB_CIRC) + HUB_CIRC) % 
 
 /** The promenade's crowd (behind the portals and the fence): its walkers, those stood about, the parade. */
 export const drawCrowdMid = (c: Ctx, state: GameState, each: (x: number, r: number, draw: (x: number) => void) => void) => {
-  const f = state.frame;
+  const f = state.frame, keep = crowdKeep();
   const list: [number, number, () => void][] = [];
   for (const w of WALKERS) {
-    if (!w.mid) continue;
+    if (!w.mid || !here(w.seed, keep)) continue;
     const x = wrapX(w.x0 + w.v * f);
     each(x, 40, xx => list.push([w.y, xx, () => guest(c, xx, w.y, w.v > 0 ? 1 : -1, w.seed, 'walk', Math.floor((f * Math.abs(w.v) * 0.6 + w.seed) / 5) % 4, w.extra)]));
   }
-  for (const t of MID_THINGS) each(t.x, 40, xx => list.push([t.y, xx, () => t.draw(c, xx, f)]));
+  for (const t of MID_THINGS) if (t.who === undefined || here(t.who, keep)) each(t.x, 40, xx => list.push([t.y, xx, () => t.draw(c, xx, f)]));
   list.sort((a, b) => a[0] - b[0]);
   for (const [, , d] of list) d();
   drawParade(c, state, each);
@@ -396,14 +404,14 @@ const walkAt = (w: Walker, f: number): [number, 1 | -1] => {
 
 /** The walk's crowd (in front of the fence, behind him): walkers, the queues, the benches, the carts, the mascots. */
 export const drawCrowdWalk = (c: Ctx, state: GameState, each: (x: number, r: number, draw: (x: number) => void) => void) => {
-  const f = state.frame;
+  const f = state.frame, keep = crowdKeep();
   const list: [number, () => void][] = [];
   for (const w of WALKERS) {
-    if (w.mid) continue;
+    if (w.mid || !here(w.seed, keep)) continue;
     const [x, dir] = walkAt(w, f);
     each(x, 50, xx => list.push([w.y, () => guest(c, xx, w.y, dir, w.seed, 'walk', Math.floor((f * Math.abs(w.v) * 0.6 + w.seed) / 5) % 4, w.extra)]));
   }
-  for (const t of THINGS) each(t.x, 180, xx => list.push([t.y, () => t.draw(c, xx, f)]));
+  for (const t of THINGS) if (t.who === undefined || here(t.who, keep)) each(t.x, 180, xx => list.push([t.y, () => t.draw(c, xx, f)]));
   list.sort((a, b) => a[0] - b[0]);
   for (const [, d] of list) d();
 };

@@ -17,6 +17,7 @@ import { type Far, type RangeLook, rampF, block, cylV, ball as orb, windowGrid, 
 import { crown } from '../../adventure/farArt';
 import { noteSun } from '../../sunFlare';
 import { signText, signAt, signW, federal } from './letters';
+import { walkOutOn } from '../../store';
 
 const W = CANVAS_WIDTH, HT = CANVAS_HEIGHT;
 
@@ -461,7 +462,7 @@ const paintCar = (g: Ctx, x: number, base: number, u: number, type: number, col:
 /** One row's held strip: PER stalls, the lines between them, the cars in them (or an oil stain where one isn't). */
 const stripTop = (r: number) => Math.floor(rowY(r) - 26 * rowS(r) - 4);
 const stripH = (r: number) => Math.ceil(rowY(r) + 6 * rowS(r) + 4) - stripTop(r);
-const paintRow = (g: Ctx, r: number) => {
+const paintRow = (g: Ctx, r: number, out = false) => {
   const s = rowS(r), step = 46 * s, hz = rowHaze(r), y = rowY(r) - stripTop(r);
   const line = mix('#ECEAE4', LOT_HAZE, hz * 0.8);
   // (the line along the front of the row, the stall lines, slanted back a touch)
@@ -472,7 +473,9 @@ const paintRow = (g: Ctx, r: number) => {
     for (let d = 0; d < depth; d += 1) box(g, lx + d * 0.35, y + 2 * s - d, lw, 1, line);
     const seed = hash(i * 13.1 + r * 101.7);
     const cx = lx + 6 * s;
-    if (seed < 0.07) {
+    // (closing time, walking out (the owner's: "the parking lot should also be less crowded on your 'exit' phase"):
+    // most of them gone home, the stains where they were)
+    if (seed < 0.07 || (out && hash(i * 3.7 + r * 41.9) < 0.7)) {
       // (the one free space in the whole lot: an oil stain in it)
       pixelBlob(g, cx + 17 * s, y - 2 * s, 9 * s + 2, 2 * s + 1, `rgba(16, 14, 20, ${(0.35 * (1 - hz)).toFixed(2)})`);
       continue;
@@ -521,7 +524,8 @@ const parkingLot = (c: Ctx, cam: number, f: number) => {
   }
   for (let r = 0; r < ROWS; r++) {
     const s = rowS(r), step = 46 * s, sw = PER * step, base = cam * rowPar(r) + r * 137, y = rowY(r);
-    tiled(c, `m2row${r}`, base, stripTop(r), Math.round(sw), stripH(r), g => paintRow(g, r));
+    const out = walkOutOn();
+    tiled(c, `m2row${r}${out ? 'out' : ''}`, base, stripTop(r), Math.round(sw), stripH(r), g => paintRow(g, r, out));
     // (a light pole now and then on its row, going by with it, the same sign on the same pole)
     if (r % 3 === 2) {
       const gap = step * POLE_EVERY, first = Math.floor(base / gap) - 1;
@@ -576,7 +580,7 @@ const tram = (c: Ctx, cam: number, f: number, base: number) => {
 const walkers = (c: Ctx, cam: number, f: number, r: number, y: number) => {
   const s = rowS(r) * 0.9, hz = rowHaze(r), par = rowPar(r);
   const H = (cl: string) => mix(cl, LOT_HAZE, hz);
-  for (let i = 0; i < 3; i++) {
+  for (let i = 0; i < (walkOutOn() ? 1 : 3); i++) {
     const seed = r * 11 + i, v = (hash(seed * 1.9) < 0.5 ? -1 : 1) * (0.12 + hash(seed * 2.7) * 0.18);
     const x = Math.round(((((hash(seed * 4.1) * 1400 + f * v - cam * par) % 1400) + 1400) % 1400) - 200);
     if (x < -10 || x > W + 10) continue;

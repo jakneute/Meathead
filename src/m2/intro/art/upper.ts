@@ -14,6 +14,7 @@ import {
   type Eye, sideFace, bendFloor, BEND,
 } from './kit';
 import { signAt, signW, signText, stencil, led, marker, federal, flag as flagType, print } from './letters';
+import { walkOutOn } from '../../store';
 
 /** How far down the floors fill (past the bottom of the screen, so nothing behind ever shows under them). */
 const BOTTOM = CANVAS_HEIGHT + 120;
@@ -441,7 +442,8 @@ export const truckDoorFront = (c: Ctx, tr: TruckNow) => {
 
 export const garage = (c: Ctx, vis: (a: number, b: number) => boolean, tr: TruckNow) => {
   chunked(c, 'm2u-gar', GX0, GX1, -80, UPPER + 80, paintGarage);
-  for (const [x, col, w] of CARS) if (vis(x - 10, x + w + 10)) stamp(c, `m2u-car:${x}`, x - 8, UPPER - 72, w + 16, 74, g => sedan(g, x, w, col));
+  // (walking out at closing: only the one left on this level)
+  for (const [x, col, w] of CARS) if ((!walkOutOn() || x === R(820)) && vis(x - 10, x + w + 10)) stamp(c, `m2u-car:${x}`, x - 8, UPPER - 72, w + 16, 74, g => sedan(g, x, w, col));
   if (vis(R(60) + tr.dx, R(380) + tr.dx)) {
     // (coming in: dust kicked up behind it, speed lines)
     if (tr.crash < 0) for (let k = 0; k < 6; k++) {
