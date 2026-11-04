@@ -31,7 +31,6 @@
 
 import type { GameState } from '../m1/game/core/state';
 import { holdControlsTillRelease } from '../m1/game/core/heldOff';
-import { holdM2Presses } from './input';
 
 /** The minigames with a pause-menu controls card (PauseControls.tsx pauseCard). */
 export type MinigameId = 'plunge' | 'bumper' | 'gallery' | 'mash' | 'hack' | 'lockpick';
@@ -60,10 +59,12 @@ let pendingQuit: { quit: MinigameQuit; state: GameState } | null = null;
 // place it's caught. A death, or leaving (dropMinigamePause), just forgets the session.
 
 let takeoverPending = false, session = false, sessionHeld = false;
-/** dropActions.ts dropPlayerActions, handed in by App.tsx (imported here it'd pull every weapon in under the minigames:
- *  an import loop). */
+/** dropActions.ts dropPlayerActions and input.ts holdM2Presses, handed in by App.tsx (imported here either one makes an
+ *  import loop: every weapon in under the minigames; input.ts round through fireworks.ts and timeOfDay.ts, which broke
+ *  the page's load: "Cannot access 'hourly' before initialization"). */
 let dropPlayerActions: (state: GameState) => void = () => {};
-export const setDropActions = (fn: (state: GameState) => void) => { dropPlayerActions = fn; };
+let holdM2Presses: () => void = () => {};
+export const setDropActions = (fn: (state: GameState) => void, holdPresses: () => void) => { dropPlayerActions = fn; holdM2Presses = holdPresses; };
 
 /** (a minigame's start, the frame it takes him over; openAsk too) Whatever he had going is called off now, and his
  *  buttons are held off as he's let go after it. */

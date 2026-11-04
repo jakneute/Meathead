@@ -99,7 +99,7 @@ disableM1Music();
  *  stuck with one (the mine cart), or not his to play just now. */
 const noSwitching = () => !!getUi().noSwitch || !!getUi().locked;
 // (a minigame taking him over or letting him go: whatever he had going called off: minigamePause.ts)
-setDropActions(dropPlayerActions);
+setDropActions(dropPlayerActions, holdM2Presses);
 // (each frame: is the game his to play? Not in a cutscene (the victory walk's one), dying or dead, mid-grab, mid-lever)
 setFrameHook(state => {
   noteFireworksState(state);
