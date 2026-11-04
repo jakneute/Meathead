@@ -43,13 +43,13 @@ export const PA_OUT = [
 ];
 
 // ---------------------------------------------------------------------------------------------------------------
-// The abduction (abduction.ts): Zorblax's wife in her standby saucer, then Satan
+// The abduction (abduction.ts): ZARBLAX (Zorblax's wife and sister) in her standby saucer, then Satan
 
 /** Her, over the saucer's loudspeaker, the truck going up in the beam: who she is... */
 export const WIFE_HELLO: ByDress = {
-  clean: ["HI, ASSHOLE. REMEMBER ME? ZORBLAX'S WIFE."],
-  shitty: ["HI, ASSHOLE. REMEMBER ME? ZORBLAX'S WIFE. YOU STILL STINK."],
-  nude: ["HI, ASSHOLE. REMEMBER ME? ZORBLAX'S WIFE. STILL NAKED, HUH?"],
+  clean: ["HI, ASSHOLE. REMEMBER ME? ZARBLAX. ZORBLAX'S WIFE. AND SISTER."],
+  shitty: ["HI, ASSHOLE. REMEMBER ME? ZARBLAX. HIS WIFE AND SISTER. YOU STILL STINK."],
+  nude: ["HI, ASSHOLE. REMEMBER ME? ZARBLAX. HIS WIFE AND SISTER. STILL NAKED, HUH?"],
 };
 /** ...the saucer he wrecked, and this one. */
 export const WIFE_STANDBY: ByDress = {
@@ -64,7 +64,7 @@ export const MH_STANDBY: ByDress = {
   nude: ["WHO KEEPS A STANDBY UFO? I CAN'T EVEN KEEP PANTS."],
 };
 /** Her answer; then what's in store for him. */
-export const WIFE_ANSWER = "A WIDOW WITH HIS LIFE INSURANCE, THAT'S WHO.";
+export const WIFE_ANSWER = "A WIDOW WITH HER HUSBAND'S LIFE INSURANCE. AND HER BROTHER'S. SAME POLICY.";
 export const WIFE_PLAN: ByDress = {
   clean: ['THE GIRLS WANT YOU STUFFED. OVER THE FIREPLACE.'],
   shitty: ['THE GIRLS WANT YOU STUFFED. AFTER A HOSE-DOWN.'],

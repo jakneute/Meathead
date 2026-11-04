@@ -66,15 +66,15 @@ export const abductionLift = (a: Abduction) => {
 };
 
 const beats = (d: Dressed): Beat[] => [
-  { shot: shotWife, who: 'ZORBLAX\'S WIFE', voice: SAUCER_VOICE.id, text: pickLine(WIFE_HELLO[d]), at: WIFE_MOUTH, wait: 30, enter: sfx('whirl', 0.6, -8) },
-  { shot: shotWife, who: 'ZORBLAX\'S WIFE', voice: SAUCER_VOICE.id, text: pickLine(WIFE_STANDBY[d]), at: WIFE_MOUTH },
+  { shot: shotWife, who: 'ZARBLAX', voice: SAUCER_VOICE.id, text: pickLine(WIFE_HELLO[d]), at: WIFE_MOUTH, wait: 30, enter: sfx('whirl', 0.6, -8) },
+  { shot: shotWife, who: 'ZARBLAX', voice: SAUCER_VOICE.id, text: pickLine(WIFE_STANDBY[d]), at: WIFE_MOUTH },
   { shot: shotCab('dumb'), who: 'MEATHEAD', voice: 'meathead', text: pickLine(MH_STANDBY[d]), at: MH_MOUTH, wait: 14 },
-  { shot: shotWife, who: 'ZORBLAX\'S WIFE', voice: SAUCER_VOICE.id, text: WIFE_ANSWER, at: WIFE_MOUTH },
-  { shot: shotWife, who: 'ZORBLAX\'S WIFE', voice: SAUCER_VOICE.id, text: pickLine(WIFE_PLAN[d]), at: WIFE_MOUTH, hold: 20 },
+  { shot: shotWife, who: 'ZARBLAX', voice: SAUCER_VOICE.id, text: WIFE_ANSWER, at: WIFE_MOUTH },
+  { shot: shotWife, who: 'ZARBLAX', voice: SAUCER_VOICE.id, text: pickLine(WIFE_PLAN[d]), at: WIFE_MOUTH, hold: 20 },
   // Outside: the ground splits, Satan comes up out of it
   { shot: shotWide, hold: 140, enter: () => { clip.rise = clip.t; playSound('rumble', 1, -6); playSound('roar', 0.8, -10); } },
   { shot: shotWide, who: 'SATAN', voice: SATAN_VOICE.id, text: SATAN_GRAB, at: SATAN_MOUTH, enter: () => { clip.grab = clip.t; playSound('clang', 0.9, -8); playSound('crunch', 0.8, -4); } },
-  { shot: shotWide, who: 'ZORBLAX\'S WIFE', voice: SAUCER_VOICE.id, text: WIFE_GRABBED, at: UFO_MOUTH, hold: 10 },
+  { shot: shotWide, who: 'ZARBLAX', voice: SAUCER_VOICE.id, text: WIFE_GRABBED, at: UFO_MOUTH, hold: 10 },
   { shot: shotWide, who: 'SATAN', voice: SATAN_VOICE.id, text: SATAN_CLAIM, at: SATAN_MOUTH, wait: 24, enter: () => { clip.catch = clip.t; playSound('thud', 0.8, -6); } },
   { shot: shotCab('dumb', true), who: 'MEATHEAD', voice: 'meathead', text: pickLine(MH_OWE[d]), at: MH_MOUTH, wait: 10 },
   // The throw

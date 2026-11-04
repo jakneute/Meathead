@@ -7,7 +7,8 @@
 //   m2.space.zpilot       the alien pilots (Zorblax's people, sore about him), the men
 //   m2.space.zpilotf      the alien pilots, the women
 //   m2.space.raygun       the ray gun (space radiation got into it: it talks)
-//   m2.space.saucer       the flying saucer's loudspeaker: Zorblax's widow (her girls are aboard with her)
+//   m2.space.saucer       the flying saucer's loudspeaker: ZARBLAX, Zorblax's widow and his sister (the owner's: "aliens regularly
+//                         commit incest. hint at that"; her girls are aboard with her)
 
 export type Dressed = 'clean' | 'shitty' | 'nude';
 export type ByPants = Record<Dressed, readonly string[]>;
@@ -91,22 +92,22 @@ export const CRUISER_YELL = [
 ] as const;
 
 // ---------------------------------------------------------------------------------------------------------------
-// The saucer: Zorblax's widow on its loudspeaker. Every group three ways, all the pools the same size.
+// The saucer: ZARBLAX, Zorblax's widow (and sister) on its loudspeaker. Every group three ways, all the pools the same size.
 
 /** Coming on: who she is (then he asks who the fuck Zorblax is), then who he was. In order. */
 export const SAUCER_INTRO: ByPants = {
-  clean: ["THIS IS ZORBLAX'S WIFE. YOU MADE ME A WIDOW, ASSHOLE.", 'HE WAS WEARING THE PRESIDENT. YOU SHOT HIM IN HIS PRESIDENT.'],
-  shitty: ["THIS IS ZORBLAX'S WIFE. YOU KILLED HIM AND THEN YOU SHIT YOURSELF. CLASSY.", 'HE WAS WEARING THE PRESIDENT. HE NEVER SHIT IN THE PRESIDENT.'],
-  nude: ["THIS IS ZORBLAX'S WIFE. WHY ARE YOU NAKED IN JUST A HELMET?", 'HE WAS WEARING THE PRESIDENT. YOU COULD STAND TO WEAR SOMETHING.'],
+  clean: ["THIS IS ZARBLAX. ZORBLAX'S WIFE. ALSO HIS SISTER. YOU MADE ME A WIDOW, ASSHOLE.", 'HE WAS WEARING THE PRESIDENT. YOU SHOT HIM IN HIS PRESIDENT.'],
+  shitty: ["THIS IS ZARBLAX. HIS WIFE. AND SISTER. YOU KILLED HIM AND THEN YOU SHIT YOURSELF. CLASSY.", 'HE WAS WEARING THE PRESIDENT. HE NEVER SHIT IN THE PRESIDENT.'],
+  nude: ["THIS IS ZARBLAX. ZORBLAX'S WIFE. AND SISTER. WHY ARE YOU NAKED IN JUST A HELMET?", 'HE WAS WEARING THE PRESIDENT. YOU COULD STAND TO WEAR SOMETHING.'],
 };
 /** A revisit (the queen dead: he's been through here before): she knows him, he knows her. In order, as SAUCER_INTRO. */
 export const SAUCER_BACK: ByPants = {
-  clean: ["ZORBLAX'S WIFE AGAIN. YOU'RE BACK, ASSHOLE. I KNEW YOU'D BE BACK.", "I GOT THE SAUCER FIXED. THE INSURANCE WAS IN ZORBLAX'S NAME. HE PAID FOR THIS."],
-  shitty: ["ZORBLAX'S WIFE AGAIN. YOU'RE BACK. AND YOU SHIT YOURSELF AGAIN.", 'I GOT THE SAUCER FIXED. THE MECHANIC ASKED WHY IT SMELLED LIKE THAT. IT WAS YOU.'],
-  nude: ["ZORBLAX'S WIFE AGAIN. YOU'RE BACK. STILL JUST THE HELMET.", 'I GOT THE SAUCER FIXED. THE GIRLS WANTED A REMATCH. SOME OF THEM WANTED MORE.'],
+  clean: ["ZARBLAX AGAIN. YOU'RE BACK, ASSHOLE. I KNEW YOU'D BE BACK.", "I GOT THE SAUCER FIXED. THE INSURANCE WAS IN ZORBLAX'S NAME. HE PAID FOR THIS."],
+  shitty: ["ZARBLAX AGAIN. YOU'RE BACK. AND YOU SHIT YOURSELF AGAIN.", 'I GOT THE SAUCER FIXED. THE MECHANIC ASKED WHY IT SMELLED LIKE THAT. IT WAS YOU.'],
+  nude: ["ZARBLAX AGAIN. YOU'RE BACK. STILL JUST THE HELMET.", 'I GOT THE SAUCER FIXED. THE GIRLS WANTED A REMATCH. SOME OF THEM WANTED MORE.'],
 };
 /** ...and him, between her two (in place of MH_WHO). */
-export const MH_WIDOW_BACK = 'OH, FUCK. THE WIDOW.';
+export const MH_WIDOW_BACK = 'OH, FUCK. THE SISTER-WIFE.';
 /** Through the fight, now and then. */
 export const SAUCER_TAUNT: ByPants = {
   clean: [
@@ -198,7 +199,7 @@ export const HURT = {
   },
   'm2:ufo_shot': {
     hurt: ['SAUCER LASERS!', "THE WIDOW'S PACKING HEAT!", 'TAKE IT UP WITH ZORBLAX, LADY!', 'PINK! EVERYWHERE PINK!'],
-    death: ['SHOT DOWN BY THE WIDOW', 'KILLED BY A GRIEVING SPOUSE', "SHOT BY ZORBLAX'S WIFE", 'GRIEF COUNSELED'],
+    death: ['SHOT DOWN BY THE WIDOW', 'KILLED BY A GRIEVING SPOUSE', "SHOT BY ZORBLAX'S SISTER-WIFE", 'GRIEF COUNSELED'],
   },
   'm2:ufo_ray': {
     hurt: ['THE BIG RAY! MY NIPPLES!', 'SHE FIRED THE BIG ONE!', 'COOKING IN THE CAN!', 'TURN IT OFF, YOU BITCH!'],
