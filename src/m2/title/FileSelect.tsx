@@ -5,7 +5,7 @@ import { getActiveGamepad, isButtonPressed, getGamepadMovement, GP_BUTTONS, menu
 import { playMenuOk, playMenuBack } from '../../m1/game/platform/audio';
 import { SLOTS, readFile, deleteFile, subscribeFiles, filesVersion, formatPlayTime, formatLastPlayed, type Slot, type SaveFile } from '../save';
 import { LANDS } from '../hub/lands';
-import { LAND_WEAPON } from '../store';
+import { LAND_WEAPON, findsOnFile, FINDS_TOTAL } from '../store';
 import { M2WeaponArt } from '../weapons';
 
 // START GAME's file select, over the title, as Meathead 1's is (src/m1/components/FileSelect.tsx): the three save files
@@ -172,6 +172,7 @@ const FileSelect: React.FC<{
               <div className="flex gap-4 text-[7px] font-black tracking-wider">
                 <span className="text-zinc-400">LANDS <span className="text-white">{done}/{BOSS_LANDS.length}</span></span>
                 <span className="text-zinc-400">WEAPONS <span className="text-white">{done + 1}/{BOSS_LANDS.length + 1}</span></span>
+                <span className="text-zinc-400">FINDS <span className="text-white">{findsOnFile(f.found ?? {}, f.upgrades?.benGave ?? [])}/{FINDS_TOTAL}</span></span>
               </div>
             </div>
             <div className="ml-auto flex flex-col items-end gap-[5px] text-right text-[7px] font-black tracking-wider">

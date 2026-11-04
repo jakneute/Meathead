@@ -274,6 +274,9 @@ export const findsGot = (land: string): FindKind[] => {
 export const collectiblesFound = (land: string) => findsGot(land).length;
 /** The park's hidden finds, all lands: how many there are (24), and how many he's got. */
 export const FINDS_TOTAL = Object.values(LAND_COLLECTIBLES).reduce((a, b) => a + b, 0);
+/** A save file's hidden finds (the file select's): the ids it found, the armor Ben's given on it. */
+export const findsOnFile = (fileFound: Record<string, string[]>, gave: readonly string[]) =>
+  Object.entries(LAND_FINDS).reduce((n, [land, d]) => n + (gave.includes(d.piece) ? 1 : 0) + d.finds.filter(([id]) => fileFound[land]?.includes(id)).length, 0);
 export const findsFoundTotal = () => Object.keys(LAND_FINDS).reduce((n, land) => n + collectiblesFound(land), 0);
 export const isLandComplete = (land: string) => {
   const total = LAND_COLLECTIBLES[land] ?? 0;
