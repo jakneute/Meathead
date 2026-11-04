@@ -95,6 +95,8 @@ export interface Follow {
   /** The flash kick: who it's had; a line said yet. */
   hits: Set<Enemy>;
   said: boolean;
+  /** The flash kick's one kill callout's been called (the rest of a crowd it slices go uncalled: the text hid the kick). */
+  called?: boolean;
   /** The head kick: the head, the way it'll go, where he's walking to, round it or not, which part he's at, its frames. */
   bur: Buried | null;
   kdir: 1 | -1;
@@ -868,7 +870,8 @@ const sliced = (ctx: FrameContext, g: Grab, e: Enemy) => {
   markKindGore(state, e.kind, at.x - 60, at.y - 60, 120, 120, 20);
   for (let i = 0; i < 18; i++) state.particles.push(kindGore({ pos: { x: at.x + (Math.random() - 0.5) * 3, y: top + (i / 18) * h }, vel: { x: (Math.random() < 0.5 ? -1 : 1) * (0.5 + Math.random() * 2.5), y: -1.5 - Math.random() * 3 }, life: 30 + Math.random() * 16, color: i % 3 ? '#B91C1C' : '#7F1D1D', size: 2 + Math.random() * 3, grav: 0.3 }, e.kind));
   fx.spawnDeathShower({ x: at.x, y: top + 8 }, 0, 1.2);
-  ctx.fx.spawnKillCallout(e, grabCallout('sliced'));
+  // (one callout a kick (the owner's: "the text callouts hide the animation"), over the first it slices)
+  if (!fu.called) { ctx.fx.spawnKillCallout(e, grabCallout('sliced')); fu.called = true; }
   if (!fu.said) { fx.speakVulgarity('uppercut_kill'); fu.said = true; }
   fx.spawnPickup(e.pos);
   p.killSatisfactionTimer = 60;
