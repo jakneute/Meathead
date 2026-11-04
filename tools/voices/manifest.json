@@ -9896,6 +9896,11 @@
  },
  {
   "voice": "death",
+  "text": "FELL ON THE SPIKES",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "death",
   "text": "FELL THROUGH A HOLE",
   "from": "CARTOON"
  },
@@ -11383,6 +11388,11 @@
   "voice": "death",
   "text": "IMPALED FROM BELOW",
   "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "IMPALED IN A CRYPT",
+  "from": "FANTASY"
  },
  {
   "voice": "death",
@@ -82726,6 +82736,11 @@
  },
  {
   "voice": "meathead",
+  "text": "I FELL ON THE SPIKES! LIKE A DUMBASS!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "meathead",
   "text": "I FELT IT MOVE!",
   "from": "HOLLYWOOD"
  },
@@ -88873,6 +88888,11 @@
   "voice": "meathead",
   "text": "MY FEET! MY LEGS! MY—",
   "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
+  "text": "MY FEET! THE FUCKING SPIKES!",
+  "from": "FANTASY"
  },
  {
   "voice": "meathead",
@@ -98093,6 +98113,11 @@
   "voice": "meathead",
   "text": "SPIKES ON THE ANTENNAE?!",
   "from": "SPACE"
+ },
+ {
+  "voice": "meathead",
+  "text": "SPIKES! IN MY ASS!",
+  "from": "FANTASY"
  },
  {
   "voice": "meathead",

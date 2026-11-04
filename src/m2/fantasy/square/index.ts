@@ -25,7 +25,7 @@ import { updateSpeaker, drawSpeakerBack, drawSpeakerFront, drawSpeakerHud, speak
 import { ARRIVE, REVISIT, GAGS } from './lines';
 import { piperGone } from '../piperLines';
 import { SQUARE_BACK } from '../revisitLines';
-import { buildCrypt, updateCrypt, drawCryptBack, drawCryptMid } from './crypt';
+import { buildCrypt, updateCrypt, drawCryptBack, drawCryptMid, cryptLight } from './crypt';
 import './kinds';
 
 const { x0, x1 } = SECTIONS.square;
@@ -53,7 +53,7 @@ export const square: FantasySection = {
   },
   update: (ctx, controls) => {
     const { state } = ctx, p = state.player, sq = squareOf(state);
-    // (the crypt under the Grand Staircase (crypt.ts): its ladder takes his controls on it; its card holds him)
+    // (the crypt under the Grand Staircase (crypt.ts): its cannon takes his controls in it; its card holds him)
     const cr = updateCrypt(ctx, controls);
     if (cr.held) return controls;
     controls = cr.out;
@@ -94,4 +94,6 @@ export const square: FantasySection = {
   cameraRow: () => 500,
   outdoors: () => 1,
   lamps: (state) => squareLamps(state),
+  // (down in the crypt: its dark, its torches)
+  lighting: (state, base) => cryptLight(state, base),
 };

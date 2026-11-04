@@ -79,7 +79,7 @@ export const GROUND: [number, number, number][] = [
   [-200, GORGE.a, 0],
   // (the Grand Staircase's hall: over the crypt under it (11240..12300) its floor's crypt.ts's: a slab (solid blocks,
   // not a ground run: under a ground run is all ground), the hole with the trapdoor stairs across it, the grate over
-  // the ladder's hatch)
+  // the cannon's shaft)
   [FAR_BANK, 11240, 0], [12300, x1 - x0 + 200, 0],
 ];
 export { GORGE, FAR_BANK };
