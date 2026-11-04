@@ -825,7 +825,8 @@ const ninjaMeteor = (ctx: FrameContext, buriedOne: Enemy, x: number, y: number) 
     if (e.health <= 0) {
       e.health = 0; e.isBlownAway = true;
       e.vel = { x: away * (6 + 6 * k), y: -6 - 5 * k };
-      fx.spawnKillCallout(e, grabCallout('ninja'));
+      // (the drop's splash kills: a callout of their own, apart from the one it was dropped on)
+      fx.spawnKillCallout(e, grabCallout('ninja'), 'ninja-splash');
       fx.spawnPickup(e.pos);
       continue;
     }

@@ -32,6 +32,13 @@ const ANNOUNCER_TAKES = 0.35, ANNOUNCER_WHEN_QUIET = 0.75;
  * lands with the words going up or not at all. */
 const HANDED_WAIT = 6;
 
+/** Kill callouts of the same kind (or group) this many frames apart and this close to the last are one group kill:
+ *  only the first is called (0, Meathead 1's: every one called). */
+let calloutGroupFrames = 0;
+const CALLOUT_GROUP_R = 520;
+const recentCallouts = new Map<string, { frame: number; x: number; y: number }>();
+export const setCalloutGrouping = (frames: number) => { calloutGroupFrames = frames; };
+
 export const createFx = (state: GameState) => {
   const spawnDamageNumber = (pos: Vector2, value: number | string, isCritical: boolean = false, color?: string) => {
     const isText = typeof value === 'string';
@@ -49,11 +56,20 @@ export const createFx = (state: GameState) => {
   };
 
   /** Big "SPLAT!"-style callout over a special kill. */
-  const spawnKillCallout = (e: { pos: Vector2, width: number, height?: number, kind?: string, health?: number, isBlownAway?: boolean }, kind: KillCallout) => {
+  const spawnKillCallout = (e: { pos: Vector2, width: number, height?: number, kind?: string, health?: number, isBlownAway?: boolean }, kind: KillCallout, group?: string) => {
     if (e.kind === 'tenant') return;
     // (no kill, no callout: the kill that's just been tried on it didn't take (it was spared, never having been on the
     // screen), and something sweeping over it every frame, like the tsunami, would call it out every frame)
     if (e.health !== undefined && e.health > 0 && !e.isBlownAway) return;
+    // (a group kill (Meathead 2's: the same callout again close by within a few frames, the same blast or sweep): one
+    // callout for the lot, not a stack of text over the action)
+    if (calloutGroupFrames > 0) {
+      const key = group ?? kind, cx = e.pos.x + e.width / 2, cy = e.pos.y, last = recentCallouts.get(key);
+      const chained = !!last && state.frame - last.frame >= 0 && state.frame - last.frame <= calloutGroupFrames && Math.hypot(cx - last.x, cy - last.y) < CALLOUT_GROUP_R;
+      // (each kill keeps the chain going, so a sweep (a stunt car through a crowd) stays the one callout)
+      recentCallouts.set(key, { frame: state.frame, x: cx, y: cy });
+      if (chained) return;
+    }
     const { color } = KILL_CALLOUTS[kind];
     // (the ones that name what it hit go by what's actually under it)
     const bySurface = SURFACE_CALLOUTS[kind];

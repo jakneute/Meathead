@@ -20,7 +20,7 @@ import { setHurtScale, setShoveSetDistance, setWallSplatDeath } from '../m1/game
 import { setDeathMessageDrawer } from '../m1/game/render/world';
 import { drawM2DeathMessage, prewarmDeathText } from './deathText';
 import { installCanvasSafety } from './canvasSafety';
-import { setDropTable } from '../m1/game/core/effects';
+import { setDropTable, setCalloutGrouping } from '../m1/game/core/effects';
 import { M2_GUT_LINES, M2_GUT_DEATH } from './lines/gutLines';
 import { createFullAmmo, maxAmmo, INITIAL_PLAYER_HEALTH, enemyMeleeDamage, WHEEL_COOLDOWN_MS, HUD_CLEAR_Y } from '../m1/constants';
 import { installUpgrades } from './upgrades/apply';
@@ -190,6 +190,9 @@ setSettingsStore('meathead2-settings');
 loadSettings();
 setRayGun(true, m2Kill('raygun_kill'));
 registerGrabCallouts();
+// (a group kill, the same callout close by within half a second: one callout for the lot (the owner's: "just slightly
+// less busy text callouts"))
+setCalloutGrouping(30);
 registerKillLines();
 // (he or she, over whoever it was)
 // (the animals are its; the people on the way in, who they are)
