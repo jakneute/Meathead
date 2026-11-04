@@ -26,6 +26,11 @@ type RGB = [number, number, number];
 /** How many lands Happy Land has (the design's nine: the day's spread over clearing them all). lands.ts lists eight so
  * far; the ninth's still to come. */
 export const LAND_COUNT = 9;
+/** The last hour there's a look for (KEYS): 9 is the park's last (every boss and every find), 10 on are the endgame's
+ *  own (out through America USA, past the point of no return: endgame/stages.ts gives each stage its hour). The owner:
+ *  "'10' from then on regardless: the same skyline as 9 but with no fireworks"; it'll run on through the night to
+ *  sunrise as the endgame's built (more keys past 10 then). */
+export const LAST_HOUR = 10;
 
 // ---------------------------------------------------------------------------------------------------------------
 // Where in the day it is
@@ -37,7 +42,7 @@ const parseTod = (s: string | null): number | null => {
   if (!Number.isFinite(v)) return null;
   // (with a decimal point and no more than 1: the day's progress itself; else lands cleared)
   if (s.includes('.') && v <= 1) return Math.max(0, Math.min(1, v));
-  return Math.max(0, Math.min(1, v / LAND_COUNT));
+  return Math.max(0, Math.min(LAST_HOUR / LAND_COUNT, v / LAND_COUNT));
 };
 if (import.meta.env.DEV && typeof location !== 'undefined') {
   override = parseTod(new URLSearchParams(location.search).get('tod'));
@@ -49,7 +54,7 @@ if (import.meta.env.DEV && typeof location !== 'undefined') {
  * the real progress again. Everything reads it the next frame (painted-once art is keyed by the hour).
  */
 export const setTimeOfDayOverride = (landsCleared: number | null) => {
-  override = landsCleared === null || !Number.isFinite(landsCleared) ? null : Math.max(0, Math.min(1, landsCleared / LAND_COUNT));
+  override = landsCleared === null || !Number.isFinite(landsCleared) ? null : Math.max(0, Math.min(LAST_HOUR / LAND_COUNT, landsCleared / LAND_COUNT));
 };
 /** The hand-set hour, as lands cleared (null: following the real progress). */
 export const timeOfDayOverride = () => (override === null ? null : override * LAND_COUNT);
@@ -60,8 +65,15 @@ let findsHour = 0;
 export const refreshFindsHour = () => {
   findsHour = Object.keys(LAND_FINDS).every(l => findsGot(l).length >= LAND_COLLECTIBLES[l]) ? 1 : 0;
 };
-/** How far through the day it is: 0 the morning he walks in, 1 the last hour (every boss beaten and every find). */
-export const dayProgress = () => override ?? Math.max(0, Math.min(1, (landsCleared() + findsHour) / LAND_COUNT));
+/** (the endgame) The hour its stage is at (10 on: endgame/stages.ts), set as the stage is built; null: the park's day,
+ *  by what he's done. */
+let endgameHour: number | null = null;
+export const setEndgameHour = (h: number | null) => { endgameHour = h; };
+/** How far through the day it is: 0 the morning he walks in, 1 the last hour (every boss beaten and every find); past 1
+ *  in the endgame (hour 10 on, as hours over LAND_COUNT). */
+export const dayProgress = () => override ?? (endgameHour !== null ? endgameHour / LAND_COUNT : Math.max(0, Math.min(1, (landsCleared() + findsHour) / LAND_COUNT)));
+/** The hour, as lands cleared (0..9 through the park's day; 10 on, the endgame's). */
+export const dayHour = () => dayProgress() * LAND_COUNT;
 
 // ---------------------------------------------------------------------------------------------------------------
 // The hours (keyframes): by lands cleared
@@ -104,6 +116,9 @@ const KEYS: Key[] = [
   { at: 8, name: 'dusk', sky: ['#121634', '#1E2250', '#33306A', '#563E78', '#8A5276', '#C27064'], skyK: 0.9,
     sunH: -0.3, sun: '#F2683A', sunGlow: '#C24A44', moon: 0.75, stars: 0.5, cloud: '#9C8AB0', mul: '#BDB8DA', dark: 0.14, shade: [16, 14, 44], haze: '#7E5A80', lamps: 0.8 },
   { at: 9, name: 'night', sky: ['#060A1C', '#0B1230', '#121B42', '#1C2752', '#283460', '#38406C'], skyK: 0.93,
+    sunH: -1, sun: '#F2683A', sunGlow: '#C24A44', moon: 1, stars: 1, cloud: '#5E6890', mul: '#A8B0DC', dark: 0.22, shade: [8, 12, 40], haze: '#2E3866', lamps: 1 },
+  // (the endgame's first hour: the same night as 9, no fireworks (fireworks.ts keys them to 9 alone))
+  { at: 10, name: 'night', sky: ['#060A1C', '#0B1230', '#121B42', '#1C2752', '#283460', '#38406C'], skyK: 0.93,
     sunH: -1, sun: '#F2683A', sunGlow: '#C24A44', moon: 1, stars: 1, cloud: '#5E6890', mul: '#A8B0DC', dark: 0.22, shade: [8, 12, 40], haze: '#2E3866', lamps: 1 },
 ];
 

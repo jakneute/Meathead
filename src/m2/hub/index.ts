@@ -14,7 +14,10 @@ import { say, MEATHEAD_VOICE, pickLine } from '../../m1/game/platform/speech';
 import { isShat, isNude } from '../../m1/game/player/gut';
 import { AMERICA_DENY, HUB_ALL_DONE, HUB_STUFF_LEFT, AMERICA_RESIST, AMERICA_GIVE_IN } from '../lines/hubLines';
 import { getCheats } from '../cheats';
-import { setUi, getUi, goTo, isLeaving, arrived, carryGut, takeGut, setStartCheckpoint, landsCleared, ALPHA_LAND_COUNT, findsFoundTotal, FINDS_TOTAL } from '../store';
+import { setUi, getUi, goTo, isLeaving, arrived, carryGut, takeGut, setStartCheckpoint, landsCleared, ALPHA_LAND_COUNT, findsFoundTotal, FINDS_TOTAL, setEndgameAt, setWalkOut } from '../store';
+import { ALPHA_ENDINGS } from '../build';
+import { ENDGAME_START } from '../endgame/stages';
+import { saveProgress } from '../save';
 import { warmAlphaEnd, toTitle } from '../alphaEnd';
 import { playWalkAway, tickWalkAway, drawWalkAway, type WalkAway } from '../walkAway';
 import { type Announce, type AnnounceKind, announcementDue, prepareAnnouncement, startAnnouncement, tickAnnouncement, drawAnnouncement } from './announce';
@@ -79,6 +82,19 @@ const startEndWalk = (state: GameState, hub: Hub) => {
   hub.walk = playWalkAway(state, { boss: 'america-exit', onDone: toTitle });
 };
 
+/** Out through America USA, every land cleared: past the point of no return (the owner's: "once he's through, the
+ *  hub's behind him for good"). The file's in the endgame from here (saved: CONTINUE puts him at its first stage), and
+ *  it's the way in walked backward, out to his truck (intro/walkOut.ts). (With the alpha's endings switched back on:
+ *  build.ts, its end walk, as it was.) */
+const leaveHub = (state: GameState, hub: Hub) => {
+  if (ALPHA_ENDINGS) { startEndWalk(state, hub); return; }
+  hub.ending = true; state.player.inCutscene = true; state.player.vel.x = 0;
+  setEndgameAt({ ...ENDGAME_START });
+  saveProgress();
+  setWalkOut(true);
+  goTo('intro');
+};
+
 /** Round the lap: everything shifts by a whole lap, so he never runs out of roundabout. */
 const shiftLap = (state: GameState, dx: number) => {
   state.player.pos.x += dx;
@@ -121,7 +137,7 @@ export const hubLayout: StageLayout = {
     // (all eight bosses dead: a moment after he's in, he says whether there's anything left to find)
     const arriveIn = landsCleared() >= ALPHA_LAND_COUNT ? 50 : -1;
     // (and the alpha's end walk painted ahead, idle slices, for the way out)
-    if (arriveIn >= 0) warmAlphaEnd();
+    if (arriveIn >= 0 && ALPHA_ENDINGS) warmAlphaEnd();
     // (the PA's got something to say (announce.ts): a cutscene from the first frame; the fireworks held for it)
     const annDue = announcementDue();
     prepareAnnouncement(annDue);
@@ -143,7 +159,8 @@ export const hubLayout: StageLayout = {
     if (hub.ending) {
       state.player.inCutscene = true; state.player.vel.x = 0;
       if (!getUi().introCutscene) setUi({ introCutscene: true });
-      // (the end walk out through America USA, A at its end: the title)
+      // (the end walk out through America USA, A at its end: the title (the alpha's: build.ts ALPHA_ENDINGS); or off out
+      // to the truck, the screen going: nothing more here)
       if (hub.walk) tickWalkAway(hub.walk, controls);
       return { ...NO_CONTROLS };
     }
@@ -215,23 +232,28 @@ export const hubLayout: StageLayout = {
     // (the grabs: no use for them here, with nobody about, but he can still throw them)
     controls = updateGrab(ctx, hub.grab, controls);
     if (grabbing(hub.grab)) near = null;
-    // (every land cleared: out through America USA plays the alpha's ending (the PA says to come back this way to hear
-    // it again). Finds still out there: he won't, the first three tries (the warning: the final game's endgame has no
-    // way back), the fourth he gives in and goes, his line said first. Everything found: straight out.)
+    // (every land cleared: out through America USA is the endgame's way in, no way back. Finds still out there: he won't,
+    // the first three tries (each harder; the third the hard warning: there's no coming back), the fourth he gives in
+    // and goes, his line said first. Everything found: straight out. (The alpha's ending in its place, if it's ever
+    // switched back on: build.ts.))
     if (nearAmerica && near === null && controls.up && !hub.upWas && !grabbing(hub.grab) && landsCleared() >= ALPHA_LAND_COUNT && !hub.talking) {
       const got = findsFoundTotal();
-      if (got >= FINDS_TOTAL) { startEndWalk(state, hub); return { ...NO_CONTROLS }; }
+      if (got >= FINDS_TOTAL) { leaveHub(state, hub); return { ...NO_CONTROLS }; }
       const d = dressed(state);
       if (resisted < RESISTS) {
         hub.talking = true;
         sayOver(state, pickLine(AMERICA_RESIST[resisted][d]), 'casual', () => { hub.talking = false; });
         resisted++;
-        setUi({ notice: { text: `HIDDEN FINDS: ${got} OF ${FINDS_TOTAL}. LEAVING ENDS THE ALPHA.`, at: performance.now() } });
+        const last = resisted >= RESISTS;
+        const text = ALPHA_ENDINGS ? `HIDDEN FINDS: ${got} OF ${FINDS_TOTAL}. LEAVING ENDS THE ALPHA.`
+          : last ? `THERE'S NO COMING BACK. LEAVE NOW AND THE PARK IS GONE FOR GOOD. HIDDEN FINDS: ${got} OF ${FINDS_TOTAL}.`
+          : `HIDDEN FINDS: ${got} OF ${FINDS_TOTAL}. STILL SHIT OUT THERE.`;
+        setUi({ notice: { text, at: performance.now(), ms: last ? 4500 : 2200 } });
         playMenuBack();
       } else {
         hub.ending = true; state.player.inCutscene = true; state.player.vel.x = 0;
         let started = false;
-        sayOver(state, pickLine(AMERICA_GIVE_IN[d]), 'urgent', () => { if (started) return; started = true; startEndWalk(state, hub); });
+        sayOver(state, pickLine(AMERICA_GIVE_IN[d]), 'urgent', () => { if (started) return; started = true; leaveHub(state, hub); });
       }
       hub.upWas = !!controls.up;
       return { ...NO_CONTROLS };

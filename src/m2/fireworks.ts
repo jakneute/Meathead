@@ -21,7 +21,7 @@
 
 import type { GameState } from '../m1/game/core/state';
 import { playSound } from '../m1/game/platform/audio';
-import { dayProgress } from './timeOfDay';
+import { dayHour } from './timeOfDay';
 import { inBossFight } from './bossQuiet';
 import { gamePaused } from './minigamePause';
 
@@ -30,7 +30,8 @@ type Ctx = CanvasRenderingContext2D;
 /** The show's on at all: the last hour. */
 // (dev, the perf build: ?nofw, the show off, to measure it against)
 const OFF = import.meta.env.DEV && typeof location !== 'undefined' && new URLSearchParams(location.search).has('nofw');
-export const fireworksHour = () => !OFF && dayProgress() >= 0.999;
+// (9 alone: the endgame's hours from 10 on are the same night with the show over)
+export const fireworksHour = () => { if (OFF) return false; const h = dayHour(); return h >= 8.99 && h < 9.5; };
 
 // ---------------------------------------------------------------------------------------------------------------
 // Where it can be drawn: the screen's canvas (in the page), and canvases drawn fresh each frame (the walk screens')

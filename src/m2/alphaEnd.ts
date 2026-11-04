@@ -9,7 +9,7 @@
 
 import { CANVAS_WIDTH as W, CANVAS_HEIGHT as H } from '../m1/constants';
 import { closeFile } from './save';
-import { M2_PUBLIC } from './build';
+import { M2_PUBLIC, ALPHA_ENDINGS } from './build';
 import { canvas } from './walkAway/screen';
 import { playWalkAway, tickWalkAway, drawWalkAway, prewarmWalkAway, type WalkAway } from './walkAway';
 
@@ -21,7 +21,7 @@ export const warmAlphaEnd = () => prewarmWalkAway('america-exit', false);
 
 /** Dev (and the cheats build): ?alphaend plays it alone over the page (round again after). */
 export const devAlphaEnd = () => {
-  if (typeof document === 'undefined' || M2_PUBLIC) return;
+  if (typeof document === 'undefined' || M2_PUBLIC || !ALPHA_ENDINGS) return;
   if (new URLSearchParams(location.search).has('alphaend')) alphaEndOver(true);
 };
 

@@ -8,7 +8,8 @@
 // nothing's written. Anything missing, corrupt or from a newer version reads as an empty slot: no crash.
 
 import { storage, readJson, writeJson } from '../m1/game/save/storage';
-import { clearedLands, allKept, allBossDeaths, allFound, alphaEndSeen, announcedLands, announcedAll, subscribeProgress, type BossDeath } from './store';
+import { clearedLands, allKept, allBossDeaths, allFound, alphaEndSeen, announcedLands, announcedAll, subscribeProgress, endgameAt, type BossDeath } from './store';
+import { endgameStage } from './endgame/stages';
 import { LANDS } from './hub/lands';
 import { snapshotUpgrades, cleanUpgrades, type UpgradesSave } from './upgrades/state';
 
@@ -33,6 +34,9 @@ export interface Progress {
   annLands?: boolean; annAll?: boolean;
   /** The hidden upgrades he's found (upgrades/state.ts). Absent in older files: none. */
   upgrades?: UpgradesSave;
+  /** In the endgame (out through America USA, past the point of no return): which of its stages, which checkpoint
+   *  (store.ts endgameAt; endgame/stages.ts). CONTINUE goes there, not the hub. Absent: not in it (older files too). */
+  endgame?: { stage: string; cp: number };
 }
 
 export interface SaveFile extends Progress {
@@ -59,7 +63,13 @@ const clean = (raw: unknown): SaveFile | null => {
   if (o.deaths && typeof o.deaths === 'object') for (const [k, v] of Object.entries(o.deaths as Record<string, unknown>)) if (LAND_IDS.includes(k) && (v === 'normal' || v === 'weakness')) deaths[k] = v;
   const found: Record<string, string[]> = {};
   if (o.found && typeof o.found === 'object') for (const [k, v] of Object.entries(o.found as Record<string, unknown>)) if (LAND_IDS.includes(k) && Array.isArray(v)) found[k] = v.filter((id): id is string => typeof id === 'string');
-  return { version: VERSION, cleared, kept, deaths, found, alphaSeen: o.alphaSeen === true, annLands: o.annLands === true, annAll: o.annAll === true, upgrades: cleanUpgrades(o.upgrades), playTimeMs: num(o.playTimeMs), lastPlayed: num(o.lastPlayed) };
+  // (the endgame: a stage this build knows, its checkpoint a whole number; else it's as if he'd never got there)
+  let endgame: { stage: string; cp: number } | undefined;
+  if (o.endgame && typeof o.endgame === 'object') {
+    const e = o.endgame as Record<string, unknown>, st = typeof e.stage === 'string' ? endgameStage(e.stage) : null;
+    if (st) { const cp = typeof e.cp === 'number' && st.checkpoints.some(c => c.cp === e.cp) ? e.cp : st.checkpoints[0].cp; endgame = { stage: st.id, cp }; }
+  }
+  return { version: VERSION, cleared, kept, deaths, found, endgame, alphaSeen: o.alphaSeen === true, annLands: o.annLands === true, annAll: o.annAll === true, upgrades: cleanUpgrades(o.upgrades), playTimeMs: num(o.playTimeMs), lastPlayed: num(o.lastPlayed) };
 };
 
 // ---- who's listening (the title's CONTINUE, the file select's cards)
@@ -125,7 +135,7 @@ const cantSave = () => {
 export const saveProgress = () => {
   if (active === null) return;
   tick();
-  const file: SaveFile = { cleared: clearedLands(), kept: allKept(), deaths: allBossDeaths(), found: allFound(), alphaSeen: alphaEndSeen(), annLands: announcedLands(), annAll: announcedAll(), upgrades: snapshotUpgrades(), version: VERSION, playTimeMs: playTime(), lastPlayed: Date.now() };
+  const file: SaveFile = { cleared: clearedLands(), kept: allKept(), deaths: allBossDeaths(), found: allFound(), alphaSeen: alphaEndSeen(), annLands: announcedLands(), annAll: announcedAll(), upgrades: snapshotUpgrades(), ...(endgameAt() ? { endgame: { ...endgameAt()! } } : {}), version: VERSION, playTimeMs: playTime(), lastPlayed: Date.now() };
   if (writeJson(keyOf(active), file)) changed(); else cantSave();
 };
 

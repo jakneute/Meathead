@@ -12,7 +12,7 @@ export interface M2Ui {
   /** Near the pen's way back to the hub. */
   nearExit: boolean;
   /** A line across the screen for a moment ("COMING SOON"), and when it was put up. */
-  notice: { text: string; at: number } | null;
+  notice: { text: string; at: number; /** How long it's up (ms; 1800 if not said). */ ms?: number } | null;
   /** (the intro) The panel in the corner, what up does at the ticket window, how many are ahead of him in line, the
    *  ticket up close, and whether a scene's on (no HUD). */
   introTip?: 'postal' | 'grabs' | 'line' | null;
@@ -331,3 +331,19 @@ export const walkBackOn = () => walkBack;
 let startCheckpoint: number | null = null;
 export const setStartCheckpoint = (cp: number | null) => { startCheckpoint = cp; };
 export const takeStartCheckpoint = () => { const cp = startCheckpoint; startCheckpoint = null; return cp; };
+
+// ---------------------------------------------------------------------------------------------------------------
+// The endgame (endgame/): out through America USA with every land cleared, past the point of no return
+
+/** Where he's got to in the endgame: an endgame stage (endgame/stages.ts id) and a checkpoint in it; null, not in it.
+ *  Set the moment he walks out of the hub through America USA (the hub's behind him for good), saved (save.ts), and
+ *  CONTINUE takes him there. */
+let endgame: { stage: string; cp: number } | null = null;
+export const endgameAt = () => endgame;
+export const inEndgame = () => endgame !== null;
+export const setEndgameAt = (at: { stage: string; cp: number } | null) => { endgame = at; };
+/** (the prologue of the epilogue) The way in walked backward, out of the park to his truck: set going there
+ *  (goTo('intro')), read by the intro as it's built (intro/walkOut.ts). */
+let walkOut = false;
+export const setWalkOut = (on: boolean) => { walkOut = on; };
+export const walkOutOn = () => walkOut;

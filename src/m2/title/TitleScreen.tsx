@@ -12,7 +12,7 @@ import { ALPHA_LAND_COUNT } from '../store';
 import SoundTest from './SoundTest';
 import { M2_GUIDE_PAGES } from '../ControlsGuide';
 import { PLAIN_PAUSE } from '../hudThemes';
-import { M2_PUBLIC } from '../build';
+import { ALPHA_ENDINGS, M2_PUBLIC } from '../build';
 
 // Meathead 2's title screen, as Meathead 1's is (src/m1/components/Overlay.tsx TitleScreen, App.tsx pickTitle): the
 // picture the whole screen (title/art.ts), the menu under the logo: CONTINUE (the file played last, while there's one),
@@ -28,7 +28,8 @@ const titleOptions = (hasFile: boolean, cleared: boolean): TitleOption[] => [
   ...(hasFile ? [{ label: 'CONTINUE', kind: 'continue' as const }] : []),
   { label: 'START GAME', kind: 'new' },
   // (the cheats build only: straight onto the hub)
-  ...(!M2_PUBLIC ? [{ label: 'SKIP TO HUB', kind: 'hub' as const }, { label: 'ALPHA ENDING', kind: 'ending' as const }] : []),
+  // (the alpha's ending row: kept, switched off with the alpha's endings: build.ts ALPHA_ENDINGS)
+  ...(!M2_PUBLIC ? [{ label: 'SKIP TO HUB', kind: 'hub' as const }, ...(ALPHA_ENDINGS ? [{ label: 'ALPHA ENDING', kind: 'ending' as const }] : [])] : []),
   // (the standard build, once a file's cleared the game: the sound test (title/SoundTest.tsx); the cheats build has
   // it in its cheat panel only)
   ...(cleared ? [{ label: 'SOUND TEST', kind: 'sound' as const }] : []),
