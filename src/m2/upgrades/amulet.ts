@@ -63,6 +63,9 @@ const a = {
   hurtWas: 0,
   /** A trap's hurt holds the meter from draining till this frame. */
   holdTill: -1,
+  /** Soft hits fed in since the last step (feedAmulet): added in with that frame's own, so the drain can't sit it just
+   *  under full. */
+  fed: 0,
   /** The stage it was last stepped in, and the frame (a load starts it over). */
   stage: '',
   frameWas: 0,
@@ -99,7 +102,7 @@ export const amuletShielded = () => a.phase === 'rage' && a.t > 0;
 /** A soft hit that takes nothing off him but pisses him off all the same (CON-FUCK-TIOUS's inflatable knights in Fairy
  *  Land's lair: practice): into the meter as an enemy's hit of `n` would be (the hit's own share on top); the yell goes
  *  off on its own next frame if that fills it. Only while it's filling (the amulet on, no rage or cooldown going). */
-export const feedAmulet = (n: number) => { if (amuletActive() && a.phase === 'fill') a.meter = Math.min(AMULET_FULL, a.meter + n + AMULET_HIT); };
+export const feedAmulet = (n: number) => { if (amuletActive() && a.phase === 'fill') a.fed += n + AMULET_HIT; };
 /** His charge moves and grabs through the rage: RAGE_DAMAGE_K, else 1 (bossMelee.ts, apply.ts's melee hook,
  *  moves/grab.ts, moves/followups.ts). Multiplies with the bulk up's own. Never his weapons. */
 /** Through the rage, his colors cycling like a star's invincibility (the owner's "he will be blinking colors, like the
@@ -125,7 +128,7 @@ setHeadFlush(() => { const k = amuletAnger(); return k <= AMULET_ANGRY_AT ? 0 : 
 const endRage = () => { setArmor(false, 'amulet'); };
 const reset = () => {
   if (a.phase === 'rage') endRage();
-  a.phase = 'fill'; a.meter = 0; a.t = 0; a.ring = null; a.holdTill = -1;
+  a.phase = 'fill'; a.meter = 0; a.t = 0; a.ring = null; a.holdTill = -1; a.fed = 0;
 };
 
 /** On the screen (or just off it): the view as drawn, else the camera's. */
@@ -231,6 +234,8 @@ export const stepAmulet = (ctx: FrameContext) => {
   }
   a.hurtWas = p.hurtTimer;
   a.hp = p.health;
+  // (the soft hits since the last frame (feedAmulet), in with this one's)
+  took += a.fed; a.fed = 0;
   // (dead, dying: it's all off; back at a checkpoint it starts empty)
   if (p.health <= 0 || state.deathTimer > 0) { reset(); publish(); return; }
   if (!amuletActive()) {
