@@ -12,8 +12,8 @@
 //     walled in on both sides from the first deck up; the street runs on under it between its legs. Every deck is solid
 //     steel grating, wall to wall, but for one RIG HATCH: a double trapdoor that only swings open with his weight on the
 //     rig that ends under it (the rig's pull line trips its latch). So no uppercut, jump or charge gets through a deck:
-//     the only way up a level is the wire. Up through it, off the rig's end: the swoop (charge at the end of the line,
-//     the land's own trick), or jump off and uppercut, or pump the swing and jump. A fall lands him on the deck under
+//     the only way up a level is the wire. Ridden to its end under the hatch, the rig takes him on up through it and sets
+//     him down on the deck (the owner's "you automatically get 'sucked' up to the next level"). A fall lands him on the deck under
 //     him (the hatches are shut again); nothing up there hurts. Stood on a shut hatch, holding down drops it (the way
 //     down; a HOLD DOWN prompt). Once all of him's up over an open hatch it shuts under him (the owner's "when your
 //     whole body goes over a trap door, it will close"): floor to land on. Every rig runs the way he faces on screen
@@ -28,8 +28,7 @@
 //       1  a camera dolly on its own loop (a shuttle): catch it as it comes, ride it up across.
 //       2  a CHAIN: the first rig ends out in the air, short; jump across to the second's harness (hung too high to reach
 //          off the deck), and it takes him up the other way.
-//       3  REEL IN: the rig ends a long cable under the hatch: charging off the end from there falls short. Hold up to
-//          reel in first, then charge.
+//       3  a LONG CABLE: the rig ends a long way under the hatch (it swings wide); it takes him up all the same.
 //       4  a fast dolly hung high: up onto the perch, jump into its harness as it comes past; up under the tank, and the
 //          tank's own manhole swings open over him: up into the tank.
 //   THE TANK (benTowerArt.ts draws it): drained, a gym-bro hideout. Its own lighting; echoey.
@@ -71,7 +70,7 @@ import { pickLine, silenceAll } from '../../../m1/game/platform/speech';
 import { SKIP_AFTER, offerSkip, takeSkip } from '../../../m1/game/platform/skip';
 import { makeKindEnemy, mid } from '../../../m1/game/enemies/kinds';
 import { isNude, isShat } from '../../../m1/game/player/gut';
-import { CANVAS_WIDTH, CANVAS_HEIGHT, PLAYER_GRAVITY, PLAYER_MOVE_SPEED } from '../../../m1/constants';
+import { CANVAS_WIDTH, CANVAS_HEIGHT, PLAYER_MOVE_SPEED } from '../../../m1/constants';
 import { registerM2Kind } from '../../kinds';
 import { inPlay } from '../../moves/grab';
 import { setUi } from '../../store';
@@ -138,20 +137,21 @@ const rigUnder = (k: number) => Y(DECKS[k] - DECK_T - 24);
 const feetUnder = (k: number, gap = 156) => Y(DECKS[k] - DECK_T - gap);
 /** Its chains go up to the deck over it (and no further: the decks are stacked close). */
 const chainTo = (k: number, rigH: number) => DECKS[k] - DECK_T - rigH + 6;
-/** The tower's rigs, bottom up (each one's hatch: HATCHES below). */
+/** The tower's rigs, bottom up (each one's hatch: HATCHES below). The parked ones `follow`: the owner's "any wires on
+ *  screen that you're not holding should automatically move to the side the player is closest to" (wires.ts). */
 export const TOWER_WIRES: StuntWire[] = [
   // 0: the street up to level 1: just inside the tower's left leg, short and nearly straight up (its harness a jump up,
   // so walking under it on the street doesn't yank him up), on the way he walked in (right), to under the hatch; there
   // it lifts him on up through it onto the deck (runLift), by the dolly's end
-  { from: { x: X(RIG0_A), y: Y(170) }, to: { x: X(HATCH_X[1] + HATCH_W / 2), y: feetUnder(1) }, rigY: rigUnder(1), speed: 5, chain: chainTo(1, DECKS[1] - DECK_T - 24) },
+  { from: { x: X(RIG0_A), y: Y(170) }, to: { x: X(HATCH_X[1] + HATCH_W / 2), y: feetUnder(1) }, rigY: rigUnder(1), speed: 5, chain: chainTo(1, DECKS[1] - DECK_T - 24), follow: true },
   // 1: level 1, a camera dolly on its own loop
   { from: { x: X(5120), y: Y(DECKS[1] + 80) }, to: { x: X(HATCH_X[2] + 37), y: feetUnder(2) }, rigY: rigUnder(2), shuttle: true, speed: 7, chain: chainTo(2, DECKS[2] - DECK_T - 24) },
   // 2a: level 2, out into the air short of the far wall...
-  { from: { x: X(5820), y: Y(DECKS[2] + 80) }, to: { x: X(5330), y: Y(DECKS[2] + 250) }, rigY: Y(DECKS[2] + 400), speed: 6, chain: chainTo(3, DECKS[2] + 400) },
+  { from: { x: X(5820), y: Y(DECKS[2] + 80) }, to: { x: X(5330), y: Y(DECKS[2] + 250) }, rigY: Y(DECKS[2] + 400), speed: 6, chain: chainTo(3, DECKS[2] + 400), follow: true },
   // 2b: ...across to this one's harness (too high to reach off the deck), back up the other way
-  { from: { x: X(5240), y: Y(DECKS[2] + 340) }, to: { x: X(HATCH_X[3] + 37), y: feetUnder(3) }, rigY: rigUnder(3), speed: 6, chain: chainTo(3, DECKS[3] - DECK_T - 24) },
+  { from: { x: X(5240), y: Y(DECKS[2] + 340) }, to: { x: X(HATCH_X[3] + 37), y: feetUnder(3) }, rigY: rigUnder(3), speed: 6, chain: chainTo(3, DECKS[3] - DECK_T - 24), follow: true },
   // 3: level 3, a long cable at the end (reel in, then charge)
-  { from: { x: X(5810), y: Y(DECKS[3] + 80) }, to: { x: X(HATCH_X[4] + HATCH_W - 37), y: Y(DECKS[4] - 48 - 200 - 82) }, rigY: Y(DECKS[4] - 48), speed: 6, chain: chainTo(4, DECKS[4] - 48) },
+  { from: { x: X(5810), y: Y(DECKS[3] + 80) }, to: { x: X(HATCH_X[4] + HATCH_W - 37), y: Y(DECKS[4] - 48 - 200 - 82) }, rigY: Y(DECKS[4] - 48), speed: 6, chain: chainTo(4, DECKS[4] - 48), follow: true },
   // 4: level 4, a fast dolly hung high (off the perch), up under the tank's manhole
   { from: { x: X(5110), y: Y(DECKS[4] + 300) }, to: { x: X(HATCH_X[5] + 37), y: feetUnder(5) }, rigY: rigUnder(5), shuttle: true, speed: 10, chain: chainTo(5, DECKS[5] - DECK_T - 24) },
 ];
@@ -223,8 +223,10 @@ export interface Tower {
   ben: BenTalk & { pose: BenPose; facing: 1 | -1; poseT: number; piece: 'legs' | null };
   /** The curtains are down across the tank (the trial on; after it, the practice), each one's state. */
   curtain: boolean; curtains: Curtain[];
-  /** The first rig: ridden up from its street end (so at the hatch it lifts him through). The rig he was on last frame. */
+  /** The rig he's on: ridden toward its hatch end (so there it lifts him through). The rig he was on last frame. */
   liftArmed: boolean; wasOn: number;
+  /** Being taken up through a hatch: which deck's, how long. */
+  lift: { k: number; t: number } | null;
   /** The meetup's walk over to Ben (frames). */
   walkT: number;
   /** The trial: misses (curtain bumps, sandbags swung), the next miss line's frame, the pass's beat started (frame). */
@@ -251,7 +253,7 @@ export const towerOf = (state: GameState): Tower => {
     phase: 'out', all: 0, token: 0, script: null,
     ben: { said: null, pose: 'flurry', facing: 1, poseT: 0, piece: 'legs' },
     curtain: false, curtains: CURTAINS.map(a => ({ a, cut: false, at: -999, side: 1, slidIn: false, sway: 0, sv: 0, dir: 1 })),
-    liftArmed: false, wasOn: -1, walkT: 0,
+    liftArmed: false, wasOn: -1, walkT: 0, lift: null,
     misses: 0, missAt: 0, passAt: -1,
     howA: -1, howB: -1, flashA: -1, flashB: -1, artFull: false,
     cardT: 0, cardArmed: false, practice: null, respawn: 40, goodSaid: false, tipsTill: false, nudgeAt: 0,
@@ -347,10 +349,12 @@ const runHatches = (state: GameState, h: Tower, controls: Controls) => {
 };
 
 /** Rigs he's just taken hold of at one end of (parked): turned to face the only way it goes (the owner's "the wires
- *  should move in the same direction you face horizontally": riding one, he faces the way it's carrying him). The
- *  first rig ridden up to its hatch: it lifts him on up through it, straight up, onto the deck (the owner's "it should
- *  go up a little ways so you are now in the progression path to the tower and not pull you forward"). */
-const runRigs = (state: GameState, h: Tower) => {
+ *  should move in the same direction you face horizontally": riding one, he faces the way it's carrying him). Any rig
+ *  ridden up to the end under its hatch: the hatch opens, and the rig takes him on up through it and sets him down on
+ *  the deck (the owner's "it should go up a little ways so you are now in the progression path to the tower and not
+ *  pull you forward" / "if you are hanging on any wire and a trap door opens above you, you automatically get 'sucked'
+ *  up to the next level. you don't have to jump/uppercut"). */
+const runRigs = (state: GameState, h: Tower, controls: Controls) => {
   const p = state.player, all = hollywoodWires(state), on = wireOn(state);
   const rig = on >= 0 ? TOWER_WIRES.indexOf(all[on]) : -1;
   if (rig >= 0 && h.wasOn !== on) {
@@ -358,24 +362,51 @@ const runRigs = (state: GameState, h: Tower) => {
     if (u <= 0.02) p.facing = xs as 1 | -1;
     else if (u >= 0.98) p.facing = -xs as 1 | -1;
   }
+  // (still at its start, nothing held either way (he came at it heading the other way, a key still down as he took
+  // hold): turned the way it goes, and off it goes)
+  if (rig >= 0 && h.wasOn === on && !controls.left && !controls.right && wireU(state, on) <= 0.02) {
+    const w = TOWER_WIRES[rig];
+    p.facing = (w.to.x >= w.from.x ? 1 : -1) as 1 | -1;
+  }
   h.wasOn = on;
-  if (rig !== 0) { h.liftArmed = false; return; }
-  const u = wireU(state, on), hk = h.hatches[0];
-  if (u < 0.85) h.liftArmed = true;
+  if (h.lift) { stepLift(state, h); return; }
+  // (the hatch over this rig's end, if it has one: 2a's ends out in the air)
+  const k = rig >= 0 ? HATCH_WIRE.indexOf(rig) : -1;
+  if (k < 1) { h.liftArmed = false; return; }
+  const u = wireU(state, on), hk = h.hatches[k - 1];
+  // (ridden there: not just dropped onto its end from the deck over it)
+  if (u < 0.95) h.liftArmed = true;
   if (!h.liftArmed || u < 0.97 || !hk.open) return;
-  // (up through it: from where he hangs, his feet a good way up over the deck; drifted to the hatch's middle)
   h.liftArmed = false;
-  const rise = hk.top - 70 - feetY(state);
-  const vy = -Math.sqrt(2 * PLAYER_GRAVITY * Math.max(60, -rise));
-  const mid = (hk.x0 + hk.x1) / 2;
-  kickOffWire(state, Math.max(-1.5, Math.min(1.5, (mid - midX(state)) / 30)), vy);
+  // (no catching hold of anything else on the way: up, out, and down on the deck first)
+  kickOffWire(state, 0, 0, LIFT_LOCK);
+  h.lift = { k, t: 0 };
   playSound('whoosh', 0.8, 2); playSound('clang', 0.4, 4);
+};
+/** The lift's climb (px a frame), the longest it goes on (frames). */
+const LIFT_V = 13, LIFT_MAX = 150;
+/** How long after the lift starts he can't take hold of another rig (the next level's dolly passing the hatch). */
+const LIFT_LOCK = 60;
+/** Him on the way up through a hatch: over under its middle first (hung off to the side of it at the end of the swing),
+ *  then straight up through it; out over the deck, a little hop, and he's down on it (it shuts under him). */
+const stepLift = (state: GameState, h: Tower) => {
+  const p = state.player, L = h.lift!, hk = h.hatches[L.k - 1];
+  L.t++;
+  if (p.health <= 0 || L.t > LIFT_MAX || wireOn(state) >= 0) { h.lift = null; return; }
+  if (feetY(state) > hk.top) hk.hold = Math.max(hk.hold, 8);
+  const mid = (hk.x0 + hk.x1) / 2, dx = mid - midX(state), room = HATCH_W / 2 - p.width / 2 - 8;
+  p.pos.x += Math.max(-8, Math.min(8, dx)); p.vel.x = 0;
+  p.vel.y = Math.abs(mid - midX(state)) <= room ? -LIFT_V : 0;
+  p.isGrounded = false;
+  if (feetY(state) < hk.top - 10) { p.vel.y = -3; h.lift = null; }
 };
 
 export const updateTower = (ctx: FrameContext, controls: Controls): Controls => {
   const { state } = ctx, p = state.player, h = towerOf(state);
   runHatches(state, h, controls);
-  runRigs(state, h);
+  runRigs(state, h, controls);
+  // (on the way up through a hatch: nothing of his own till he's out on the deck)
+  if (h.lift) controls = { ...NO_CONTROLS };
   runLid(state, h);
   // (the camera: steady on the rigs, Ben framed with him when he talks; inTank's own below)
   if (!inTank(state)) runTowerCam(state, TOWER_WIRES, null, GROUND_ROW);

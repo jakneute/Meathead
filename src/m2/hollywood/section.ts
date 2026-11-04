@@ -47,6 +47,10 @@ export interface StuntWire {
   /** How far up its track's chains go (px; left out: 700, up out of sight). The water tower's rigs hang just under the
    *  next deck. */
   chain?: number;
+  /** Comes to him (the water tower's parked rigs): while nobody's on it and it's on screen, it glides to whichever end
+   *  of its track he's nearer, at its own speed (wires.ts). Left out: it only runs back once he's stood by the other end
+   *  a while. */
+  follow?: boolean;
 }
 // (Wires are matched frame to frame by their place in a section's list: keep the list's order steady, and switch one
 // `off` rather than leaving it out.)

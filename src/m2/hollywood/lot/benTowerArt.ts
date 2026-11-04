@@ -6,7 +6,7 @@
 // link stretched between their chords: nobody's getting through that), the rear frame's X bracing set back and dimmed
 // (scenery: nothing to stand on), the decks (steel grating, a lit lip along every top: standable reads standable), the
 // RIG HATCHES (hazard-striped double trapdoors, their leaves swinging down when one opens), stenciled level boards
-// (LEVEL n, how many feet up, the trick for it: CHARGE AT THE END, CATCH THE DOLLY, JUMP RIG TO RIG, HOLD UP: REEL IN,
+// (LEVEL n, how many feet up, the trick for it: RIDE IT TO THE HATCH, CATCH THE DOLLY, JUMP RIG TO RIG, LONG CABLE,
 // HOP. CATCH. RIDE.), level 4's perch, the tank's riveted underside and its manhole ring over the top level.
 //
 // THE TANK (its own signature, no other lair has it): a drained water tank turned gym-bro hideout. Riveted staves
@@ -133,10 +133,10 @@ const paintBoard = (g: Ctx, lines: string[], w: number) => {
 };
 const BOARDS: [number, number, string[]][] = [
   // (rx, height of the board's top, its lines)
-  [5300, 300, ['HAPPYWOOD WATER TOWER', 'RIGGERS ONLY', 'JUMP IN THE RIG', 'IT TAKES YOU UP']],
+  [5300, 300, ['HAPPYWOOD WATER TOWER', 'RIGGERS ONLY', 'JUMP IN THE RIG', 'RIDE IT TO THE HATCH']],
   [5170, DECKS[1] + 230, [`LEVEL 1 - ${feet(DECKS[1])} FT`, 'CATCH THE DOLLY']],
   [5690, DECKS[2] + 360, [`LEVEL 2 - ${feet(DECKS[2])} FT`, 'JUMP RIG TO RIG']],
-  [5640, DECKS[3] + 340, [`LEVEL 3 - ${feet(DECKS[3])} FT`, 'HOLD UP: REEL IN', 'THEN CHARGE']],
+  [5640, DECKS[3] + 340, [`LEVEL 3 - ${feet(DECKS[3])} FT`, 'LONG CABLE', 'HANG ON']],
   [5420, DECKS[4] + 330, [`LEVEL 4 - ${feet(DECKS[4])} FT`, 'HOP. CATCH. RIDE.']],
 ];
 

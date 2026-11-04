@@ -19,14 +19,16 @@
 //
 // Left alone, a rig runs on to the end it was going to, and then (with him stood nearer the other end a while) back
 // there empty: it's never left out of his reach. A `shuttle` rig (a camera dolly on its own loop) runs back and forth
-// by itself while nobody's on it (grab it as it comes). An `off` one hangs slack, its light out, and can't be grabbed.
+// by itself while nobody's on it (grab it as it comes). A `follow` rig (the water tower's) comes to him: parked, and
+// on screen, it glides to whichever end he's nearer, whatever he's stood on or hanging off. An `off` one hangs slack,
+// its light out, and can't be grabbed.
 //
 // Enemies don't ride them (yet); the harness doesn't hurt anybody.
 
 import type { FrameContext } from '../../m1/game/core/context';
 import type { GameState } from '../../m1/game/core/state';
 import type { Controls } from '../../m1/game/platform/input';
-import { PLAYER_MOVE_SPEED } from '../../m1/constants';
+import { PLAYER_MOVE_SPEED, CANVAS_WIDTH, CANVAS_HEIGHT } from '../../m1/constants';
 import { rectsOverlap } from '../../m1/game/core/utils';
 import { pickLine } from '../../m1/game/platform/speech';
 import { playSound } from '../../m1/game/platform/audio';
@@ -78,13 +80,15 @@ interface Hold {
   /** Carried on by the swing he let go of. */
   fling: { vx: number; t: number } | null; lastX: number;
   rides: number;
+  /** Frames left he can't take hold of any (kickOffWire's: a set piece carrying him on past them). */
+  lock: number;
 }
 interface Store { runs: Run[]; hold: Hold }
 const STORES = new WeakMap<object, Store>();
 const storeOf = (state: GameState): Store => {
   const k = state.stage as object;
   let s = STORES.get(k);
-  if (!s) { s = { runs: [], hold: { on: -1, jumpLatch: false, specialLatch: false, last: -1, cd: 0, away: true, hurtWas: 0, boost: 0, recoiled: false, fling: null, lastX: 0, rides: 0 } }; STORES.set(k, s); }
+  if (!s) { s = { runs: [], hold: { on: -1, jumpLatch: false, specialLatch: false, last: -1, cd: 0, away: true, hurtWas: 0, boost: 0, recoiled: false, fling: null, lastX: 0, rides: 0, lock: 0 } }; STORES.set(k, s); }
   return s;
 };
 
@@ -105,16 +109,17 @@ export const wirePivot = (state: GameState, wires: StuntWire[], i: number) => {
   // (restFeet: where his feet would hang with the swing still, straight under the trolley)
   return { x: t.x, th: r.th, om: r.om, restFeet: g.rigY + t.len - HAND_DY + state.player.height };
 };
-/** Off the one he's on, sent off at this speed (a set piece's own let-go: the water tower's first rig lifting him up
- *  through its hatch). Nothing else of the let-go: no fling carried on, a moment before it'll take him again. */
-export const kickOffWire = (state: GameState, vx: number, vy: number) => {
+/** Off the one he's on, sent off at this speed (a set piece's own let-go: the water tower's rigs lifting him up
+ *  through their hatches). Nothing else of the let-go: no fling carried on, a moment before it'll take him again, and
+ *  none at all for `lock` frames. */
+export const kickOffWire = (state: GameState, vx: number, vy: number, lock = 0) => {
   if (!state.stage) return;
   const s = storeOf(state), h = s.hold, p = state.player;
   if (h.on < 0) return;
   const r = s.runs[h.on];
   if (r) { r.idle = 0; r.v = 0; }
   p.carried = false; p.vine = undefined;
-  h.last = h.on; h.on = -1; h.cd = 45; h.away = false; h.boost = 0; h.fling = null; h.lastX = p.pos.x;
+  h.last = h.on; h.on = -1; h.cd = 45; h.away = false; h.boost = 0; h.fling = null; h.lastX = p.pos.x; h.lock = lock;
   p.vel.x = vx; p.vel.y = vy; p.isGrounded = false;
 };
 
@@ -198,6 +203,12 @@ const letGo = (state: GameState, s: Store, c: Controls, g: Geo, how: 'jump' | 's
   h.lastX = p.pos.x;
 };
 
+/** Is a rig's track (its trolley and the harness under it) about the screen? */
+const onScreen = (state: GameState, g: Geo, r: Run) => {
+  const t = trolley(g, r.u, r.ext), cam = state.camera;
+  return t.x > cam.x - 80 && t.x < cam.x + CANVAS_WIDTH + 80 && g.rigY + t.len > cam.y - 40 && g.rigY < cam.y + CANVAS_HEIGHT + 40;
+};
+
 /** Room over him (and a little on the way he's going) for a swoop up off the end: nothing solid in it. */
 const roomAbove = (state: GameState, dir: number) => {
   const p = state.player, r = { x: p.pos.x + Math.min(0, dir * 50) - 6, y: p.pos.y - 230, w: p.width + 62, h: 228 };
@@ -243,11 +254,22 @@ export const updateWires = (ctx: FrameContext, wires: StuntWire[], c: Controls):
     }
     // (moving with nobody on it (let go of mid-run, or running back): on to the next stop it's going to (an end; on a
     // track run on past `from`, where it parks too))
+    // (a `follow` rig glides at its own speed, whirring while it's on screen)
+    const back = w.follow ? (w.speed ?? SPEED) * 0.8 : RETURN;
     if (r.v !== 0) {
       const d = Math.sign(r.v), st = stopsOf(g);
       const goal = d > 0 ? st.find(q => q > r.u + 1e-6) ?? 1 : [...st].reverse().find(q => q < r.u - 1e-6) ?? 0;
-      const nu = r.u + (d * RETURN) / g.dist;
-      if (d > 0 ? nu >= goal : nu <= goal) { r.u = goal; r.v = 0; } else { r.u = nu; r.v = d * RETURN; }
+      const nu = r.u + (d * back) / g.dist;
+      if (d > 0 ? nu >= goal : nu <= goal) { r.u = goal; r.v = 0; } else { r.u = nu; r.v = d * back; }
+      if (w.follow && state.frame % 10 === i % 10 && onScreen(state, g, r)) playSound('engine', 0.05, 10);
+      return;
+    }
+    if (w.follow) {
+      // (a parked one that comes to him: on screen, grounded or not (hanging off another rig too), to whichever end
+      // he's nearer, after a moment's wait; stopped short of an end, on to the nearer one)
+      if (r.u > 0 && r.u < 1) { if (r.idle > 20) r.v = (r.u < 0.5 ? -1 : 1) * back; return; }
+      const atA = r.u < 0.5, near = atA ? g.bx : g.ax, here = atA ? g.ax : g.bx;
+      if (r.idle > 20 && onScreen(state, g, r) && Math.abs(cx - near) + 40 < Math.abs(cx - here)) r.v = (atA ? 1 : -1) * back;
       return;
     }
     if (g.uh > 0) {
@@ -284,6 +306,7 @@ export const updateWires = (ctx: FrameContext, wires: StuntWire[], c: Controls):
       if (Math.abs(hand.x - cx) > AWAY || Math.abs(hand.y - (p.pos.y + HAND_DY)) > AWAY * 1.5) h.away = true;
     }
     const out: Controls = { ...c, jump: c.jump && !h.jumpLatch, special: c.special && !h.specialLatch, charge: c.charge && !h.specialLatch };
+    if (h.lock > 0) { h.lock--; return out; }
     if (p.health <= 0 || p.carried || p.swimming || p.airGrab || p.isDivekicking || p.isUppercutting || (p.pushbackTimer ?? 0) > 0 || p.skiing || p.inCutscene) return out;
     const hx = cx, hy = p.pos.y + HAND_DY;
     for (let i = 0; i < wires.length; i++) {
