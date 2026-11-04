@@ -560,16 +560,22 @@ export const updateBehind = (ctx: FrameContext, controls: Controls, onArrive: ()
 const hopTo = (t: Tragons, bv: Bv, d: 1 | -1, sCar: number): Lane | null => {
   const a = t.lane + d, b = t.lane + 2 * d;
   if (a < 0 || a > 2) return null;
-  if (canLand(t, bv, a as Lane, sCar)) return a as Lane;
-  if (b >= 0 && b <= 2 && canLand(t, bv, b as Lane, sCar, HOP_REACH * 2)) return b as Lane;
+  // (his own track out ahead (the warning's up): never a death sentence (the owner's: "i get a warning the track is out
+  // but i cannot jump to the safe train"): any whole track not rolling right here takes him, veered off or near a loop)
+  const urgent = t.gaps.some(g => g.lane === t.lane && g.b > sCar && g.a < sCar + HOP_URGENT);
+  if (canLand(t, bv, a as Lane, sCar, HOP_REACH, urgent)) return a as Lane;
+  if (b >= 0 && b <= 2 && canLand(t, bv, b as Lane, sCar, HOP_REACH * 2, urgent)) return b as Lane;
   return null;
 };
+/** How far ahead a hole in his track makes every whole track a fair hop. */
+const HOP_URGENT = 3200;
 
 /** Can he land on that track now (its dragon there, its track whole under his car, in reach, not rolling)? */
-const canLand = (t: Tragons, bv: Bv, to: Lane, sCar: number, reach = HOP_REACH) => {
+const canLand = (t: Tragons, bv: Bv, to: Lane, sCar: number, reach = HOP_REACH, urgent = false) => {
   if (bv.trains[to].phase !== 'ok') return false;
   if (t.gaps.some(g => g.lane === to && g.a <= sCar + 30 && g.b > sCar)) return false;
-  if (rollOn(bv.rolls, to, sCar) || rollOn(bv.rolls, to, sCar + 120)) return false;
+  if (rollOn(bv.rolls, to, sCar) || (!urgent && rollOn(bv.rolls, to, sCar + 120))) return false;
+  if (urgent) return true;
   trackAt(bv.rolls, t.lane, sCar, TA); trackAt(bv.rolls, to, sCar, TB);
   return Math.abs(TA.x - TB.x) <= reach && Math.abs(TA.y - TB.y) < 200;
 };
