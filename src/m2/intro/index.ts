@@ -22,7 +22,6 @@
 import type { StageLayout } from '../../m1/game/stages/index';
 import type { GameState } from '../../m1/game/core/state';
 import type { FrameContext } from '../../m1/game/core/context';
-import type { Controls } from '../../m1/game/platform/input';
 import type { Enemy } from '../../m1/types';
 import { groundBlocks } from '../../m1/game/core/terrain';
 import { makeKindEnemy } from '../../m1/game/enemies/kinds';
@@ -264,7 +263,7 @@ export const introLayout: StageLayout = {
     if (intro.walkIn !== null) { security(ctx, intro); return walkBackIn(state, intro); }
 
     walkways(state);
-    watchForTrouble(ctx, intro, controls);
+    watchForTrouble(ctx, intro);
     security(ctx, intro);
     detector(ctx, intro);
     line(ctx, intro);
@@ -446,21 +445,19 @@ const walkways = (state: GameState) => {
 // ---------------------------------------------------------------------------------------------------------------
 // Postal: has he started something?
 
-const watchForTrouble = (ctx: FrameContext, intro: Intro, controls: Controls) => {
-  const { state } = ctx, p = state.player;
-  // (any weapon fired, any attack started, out in the open (the user's: "any weapon or attack should trigger a security
-  // response in america usa. special weapons show no resistance"): whatever it hits or doesn't, that's trouble)
-  if (!intro.provoked && p.health > 0 && !p.inCutscene && (controls.shoot || controls.special || controls.secondary || controls.charge || p.isCharging || p.isUppercutting || p.isDivekicking || p.isSliding || intro.grab.phase !== 'idle' || state.projectiles.some(q => q.owner === 'player'))) { provoke(ctx, intro, null); return; }
+const watchForTrouble = (ctx: FrameContext, intro: Intro) => {
+  const { state } = ctx;
+  // (only when it lands: somebody hurt, or grabbed (the owner, 2026-11-03: "charge moves or shots shouldn't alert
+  // security unless you hit someone, in america usa"; it used to be any weapon fired or attack started, hit or not))
   let hit: Enemy | null = null;
   for (const e of state.enemies) {
-    if (e.kind !== 'parksec' && !guests.has(e)) continue;
     const was = intro.hp.get(e);
     if (was !== undefined && e.health < was) hit = e;
     intro.hp.set(e, e.health);
   }
   // (somebody of theirs grabbed, or somebody in line)
   const held = intro.grab.held;
-  if (held && (held.kind === 'parksec' || guests.has(held))) hit = held;
+  if (held) hit = held;
   if (hit) {
     const g = guests.get(hit);
     // (he's started on the line: nobody's making him wait his turn now)
