@@ -144,6 +144,7 @@ import QtePanel from './fantasy/wheel/QtePanel';
 import IcePanel from './fantasy/bedroom/IcePanel';
 import TragonMarks from './fantasy/tragons/TragonMarks';
 import BehindCards from './fantasy/tragons/behind/BehindCards';
+import BehindCue from './fantasy/tragons/behind/BehindCue';
 import WorldPrompt from './WorldPrompt';
 import { registerKillLines, m2Kill } from './moves/killLines';
 import { cleanLines } from './lines/clean';
@@ -394,7 +395,7 @@ const App2: React.FC = () => {
       setHubExit(to === HUB_STAGE && stage !== PEN_STAGE && !!from);
       // (through a portal: no HUD from here till the land's opened on him, not a frame of it as it loads)
       setUi({ gymTip: null, introTip: null, introPrompt: null, introAhead: null, introTicket: null, introCutscene: dest === 'intro' || portalArrivalPending() || hubExitPending() });
-      setUi({ near: null, map: null, nearExit: false, nearAmerica: false, noSwitch: false, pauseControls: null, heliHud: false, bikeHud: false, bikeTips: false, carHops: false, tragonTips: false, tragonHold: null, tragonMarks: null, tragonCard: null, broomHud: false, broomTips: false, iceMash: null, catHud: false });
+      setUi({ near: null, map: null, nearExit: false, nearAmerica: false, noSwitch: false, pauseControls: null, heliHud: false, bikeHud: false, bikeTips: false, carHops: false, tragonTips: false, tragonHold: null, tragonMarks: null, tragonCard: null, tragonCue: null, broomHud: false, broomTips: false, iceMash: null, catHud: false });
       // (a minigame's never carried along: its pause mark and any QUIT MINIGAME waiting forgotten, its ask, cards and tips
       // taken down (the stage being left takes the minigame itself down), so nothing of it holds him up where he's going)
       dropMinigamePause();
@@ -915,6 +916,7 @@ const App2: React.FC = () => {
         {status === GameStatus.PLAYING && ui.map === null && !ui.introCutscene && <WorldPrompt />}
         {/* Fairy Land's Truelling Tragons from behind: hanging on in a roll, a roll coming, the first of each thing, the controls */}
         {status === GameStatus.PLAYING && ui.map === null && !ui.introCutscene && ui.tragonCard && <BehindCards card={ui.tragonCard} />}
+        {status === GameStatus.PLAYING && ui.map === null && !ui.introCutscene && ui.tragonCue && <BehindCue cue={ui.tragonCue} />}
         {/* Fairy Land's Truelling Tragons: hopping cars, the first ride (till he's hopped once) */}
         {status === GameStatus.PLAYING && ui.map === null && !ui.introCutscene && ui.tragonTips && !ui.tragonHold && (
           // (a storybook shingle: a navy field banded down, a gilt edge, inked)

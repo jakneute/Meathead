@@ -23,7 +23,7 @@ import { playSound } from '../../../../m1/game/platform/audio';
 import { pickFreshLine } from '../../../../m1/game/platform/speech';
 import { shakeScreen } from '../../../../m1/game/core/state';
 import { CANVAS_WIDTH, HUD_CLEAR_Y, CANVAS_HEIGHT } from '../../../../m1/constants';
-import { setUi, takeCarHop, tragonMarkAt } from '../../../store';
+import { setUi, takeCarHop, tragonMarkAt, tragonCueAt } from '../../../store';
 import { speak, meatheadSays, byPants } from '../../section';
 import { PIPER_PA_VOICE, type ByPants } from '../../talk';
 import { paLine } from '../../piperLines';
@@ -39,7 +39,7 @@ import {
   bvDue, bvEnd, trackAt, rollOn, laneBase, curveK, project, wOf, sOfW, noseS, type BvEv, type TP, type SP,
 } from './geom';
 import type { Bv } from './state';
-import { RING_BOTTOM, FLOOR_Y } from './sprites';
+import { RING_BOTTOM, JUMP_TOP, FLOOR_Y } from './sprites';
 
 // ---------------------------------------------------------------------------------------------------------------
 // Feel
@@ -60,7 +60,7 @@ const BAL_PULL = 0.0011, BAL_WOBBLE = 0.0007, BAL_PUSH = 0.0045, BAL_HARDER = 0.
  *  arc (2 wide) a second, however it's pushed; slower still in the red, so the one-hand warning gets half a second. */
 const BAL_VMAX = 2 / 3 / 60, BAL_VRED = 0.0095;
 /** How high his feet must be to clear a ring's burning bottom / a frozen bar; ducked under the icicles. */
-const RING_CLEAR = RING_BOTTOM - FLOOR_Y, BAR_CLEAR = 20;
+const RING_CLEAR = RING_BOTTOM - FLOOR_Y, BAR_CLEAR = JUMP_TOP - FLOOR_Y;
 /** Framing: this much room past the outermost dragon's middle (half a car and a margin). */
 const FRAME_PAD = 110;
 /** Off a checkpoint: the ride's speed to start from (the station's crawl), built up to its own over a few seconds. */
@@ -150,8 +150,11 @@ const fire = (state: GameState, t: Tragons, bv: Bv, ev: BvEv, i: number, silent 
     else if (ev.what === 'near') mSay(state, NEAR);
     else paSay(state, 'spiel', pickFreshLine(SPIEL[ev.what]));
   } else if (ev.k === 'fire') {
-    bv.burns.push({ a: ev.at - 160, b: ev.at + ev.len });
-    for (let s = ev.at; s < ev.at + ev.len; s += ev.gap) if (s > t.dist + REAR + 40) bv.obst.push({ kind: 'ring', lane: 1, s, done: false, hit: false });
+    bv.burns.push({ a: ev.at - 160, b: ev.at + ev.pat.length * ev.gap });
+    [...ev.pat].forEach((ch, n) => {
+      const s = ev.at + n * ev.gap;
+      if (s > t.dist + REAR + 40 && (ch === 'r' || ch === 'j')) bv.obst.push({ kind: ch === 'r' ? 'ring' : 'jet', lane: 1, s, done: false, hit: false });
+    });
   } else if (ev.k === 'ice') {
     [...ev.pat].forEach((ch, n) => {
       const s = ev.at + n * ev.gap;
@@ -159,8 +162,13 @@ const fire = (state: GameState, t: Tragons, bv: Bv, ev: BvEv, i: number, silent 
     });
   } else if (ev.k === 'zap') {
     // (the pylon put down ahead of the LIGHTNING dragon's nose, the tell's length ahead at the speed it's going)
-    if (!silent && bv.trains[0].phase === 'ok') {
-      const d0 = ZAP_TELL * Math.max(t.v, 6), s = noseS(t.dist) + d0;
+    // (never live in a loop (his or the others': LIGHTNING's the way out of theirs), nor while it's the one track a hole
+    // leaves whole: there'd be nowhere to go)
+    const d0 = ZAP_TELL * Math.max(t.v, 6), reach = t.dist + d0 + ZAP_LIVE * Math.max(t.v, 6) + 600;
+    const trapped = bv.rolls.some(r => r.s0 < reach && r.s0 + r.len > t.dist) || t.gaps.some(g => g.safe === 0 && g.b > t.dist)
+      || BV_SCRIPT.some(e => (e.k === 'spin' || e.k === 'safe') && e.at > t.dist && e.at < reach);
+    if (!silent && !trapped && !bv.zap && bv.trains[0].phase === 'ok') {
+      const s = noseS(t.dist) + d0;
       bv.obst.push({ kind: 'pylon', lane: 0, s, done: false, hit: false });
       bv.zap = { phase: 'tell', t: 0, shockAt: -99, s, d0, flash: 0 };
       playSound('alert', 0.5, 6);
@@ -312,7 +320,7 @@ export const turned = (bv: Bv, x: number, y: number) => {
 export const updateBehind = (ctx: FrameContext, controls: Controls, onArrive: () => void): Controls => {
   const { state } = ctx, t = tragonsOf(state), bv = t.bv!, p = state.player, f = state.frame;
   const alive = p.health > 0;
-  if (import.meta.env.DEV) noteBehind(t);
+  if (import.meta.env.DEV) noteBehind(t, p);
   const asked = takeCarHop();
   if (bv.hurtT > 0) bv.hurtT--;
   if (bv.fadeIn > 0) bv.fadeIn--;
@@ -500,11 +508,11 @@ export const updateBehind = (ctx: FrameContext, controls: Controls, onArrive: ()
     const hit = o.kind === 'ring' ? bv.jy < RING_CLEAR || bv.duck : o.kind === 'bar' ? bv.jy < BAR_CLEAR : !bv.duck || bv.jy > 0;
     if (hit) {
       o.hit = true;
-      const src = o.kind === 'ring' ? 'm2:fa_ring' : o.kind === 'bar' ? 'm2:fa_icebar' : 'm2:fa_icicles';
-      if (hurtMe(ctx, bv, o.kind === 'ring' ? 12 : o.kind === 'bar' ? 10 : 11, src)) {
-        playSound(o.kind === 'ring' ? 'flame' : 'glass', 0.8, 0);
+      const src = o.kind === 'ring' ? 'm2:fa_ring' : o.kind === 'bar' ? 'm2:fa_icebar' : o.kind === 'jet' ? 'm2:fa_breath' : 'm2:fa_icicles';
+      if (hurtMe(ctx, bv, o.kind === 'ring' || o.kind === 'jet' ? 12 : o.kind === 'bar' ? 10 : 11, src)) {
+        playSound(o.kind === 'ring' || o.kind === 'jet' ? 'flame' : 'glass', 0.8, 0);
         if (o.kind === 'bar') { bv.jv = 4; bv.jy = 0.1; }
-        if (o.kind === 'ring') bv.burnT = 40;
+        if (o.kind === 'ring' || o.kind === 'jet') bv.burnT = 40;
       }
     } else if (o.kind === 'ring') { bv.through = 30; playSound('whoosh', 0.8, 4); playSound('ignite', 0.4, 8); }
     else playSound('whoosh', 0.35, 6);
@@ -539,7 +547,7 @@ export const updateBehind = (ctx: FrameContext, controls: Controls, onArrive: ()
   }
 
   // ---- the HUD: the hop buttons over the dragons he can hop to; the cards
-  setUi({ carHops: !bv.lock && !bv.fall && !bv.fling, tragonMarks: hopMarks(t, bv, sCar), tragonCard: card(state, t, bv) });
+  setUi({ carHops: !bv.lock && !bv.fall && !bv.fling, tragonMarks: hopMarks(t, bv, sCar), tragonCard: card(state, t, bv), tragonCue: cue(t, bv, sCar) });
   // ---- no guns on the ride (a line if he tries)
   if (controls.shoot && !t.said.shotHeld && !bv.lock && f - t.shotAt > 360) { t.shotAt = f; mSay(state, NO_GUNS, false); }
   t.said.shotHeld = !!controls.shoot;
@@ -606,7 +614,7 @@ const hopMarks = (t: Tragons, bv: Bv, sCar: number): string | null => {
 export type BvCard =
   | { k: 'now'; oneOff: boolean; kind: string }
   | { k: 'coming'; kind: string; lanes: string[]; cols: string[]; mine: boolean; teach: boolean }
-  | { k: 'teach'; what: 'ring' | 'icicles' | 'bar' | 'zap' | 'gap' }
+  | { k: 'teach'; what: 'ring' | 'jet' | 'icicles' | 'bar' | 'zap' | 'gap' }
   | { k: 'tips' };
 let lastCard: BvCard | null = null;
 const same = (a: BvCard | null, b: BvCard | null) => JSON.stringify(a) === JSON.stringify(b);
@@ -627,7 +635,7 @@ const cardNow = (state: GameState, t: Tragons, bv: Bv): BvCard | null => {
   }
   // (the first time each comes at his track: its button, a few seconds before it gets to him)
   const soon = (s: number) => s > sCar && (s - sCar) / Math.max(1, t.v) < 150;
-  const teachOf = (what: 'ring' | 'icicles' | 'bar' | 'zap' | 'gap', now: boolean): BvCard | null => {
+  const teachOf = (what: 'ring' | 'jet' | 'icicles' | 'bar' | 'zap' | 'gap', now: boolean): BvCard | null => {
     const k = `fa-tragons-bv-${what}`;
     if (state.stageMemo[k]) return null;
     if (!now) { if (bv.taught[what] && state.frame - bv.taught[what] > 200) state.stageMemo[k] = '1'; return bv.taught[what] && state.frame - bv.taught[what] <= 200 ? { k: 'teach', what } : null; }
@@ -636,10 +644,26 @@ const cardNow = (state: GameState, t: Tragons, bv: Bv): BvCard | null => {
   };
   { const c = teachOf('zap', !!bv.zap && t.lane === 0); if (c) return c; }
   const o = bv.obst.find(q => q.lane === t.lane && soon(q.s));
-  for (const what of ['ring', 'icicles', 'bar'] as const) { const c = teachOf(what, o?.kind === what); if (c) return c; }
+  for (const what of ['ring', 'jet', 'icicles', 'bar'] as const) { const c = teachOf(what, o?.kind === what); if (c) return c; }
   { const c = teachOf('gap', t.gaps.some(g => g.lane === t.lane && g.a > t.dist + NOSE)); if (c) return c; }
   if (!state.stageMemo[TIPS_MEMO]) return { k: 'tips' };
   return null;
+};
+
+/** The button over the next jump or duck coming at his own track (BehindCue.tsx: where, in tragonCueAt), shown from
+ *  well off and faded out as it gets to him. */
+const CQ: TP = { x: 0, y: 0, phi: 0 }, CS: SP = { x: 0, y: 0, k: 1 };
+const cue = (t: Tragons, bv: Bv, sCar: number): 'jump' | 'duck' | null => {
+  if (bv.lock || bv.fall || bv.fling || bv.hop || bv.out) return null;
+  const o = bv.obst.filter(q => q.lane === t.lane && q.kind !== 'pylon' && !q.done && q.s > sCar + 30).sort((a, b) => a.s - b.s)[0];
+  if (!o || (o.s - sCar) / Math.max(1, t.v) > 170) return null;
+  trackAt(bv.rolls, o.lane, o.s, CQ);
+  const up = o.kind === 'ring' ? 240 : o.kind === 'bar' ? 70 : 150;
+  if (!project(bv.cam, CQ.x, CQ.y + up, o.s, CS)) return null;
+  const p = turned(bv, CS.x, CS.y);
+  tragonCueAt.x = Math.max(40, Math.min(CANVAS_WIDTH - 40, p.x)); tragonCueAt.y = Math.max(HUD_CLEAR_Y + 24, Math.min(CANVAS_HEIGHT - 90, p.y));
+  tragonCueAt.a = Math.max(0.25, Math.min(1, ((o.s - sCar) / Math.max(1, t.v) - 12) / 30));
+  return o.kind === 'ring' || o.kind === 'bar' ? 'jump' : 'duck';
 };
 
 /** How near the LIGHTNING dragon's nose is to the pylon that'll charge it (0 just seen .. 1 under it). */
@@ -654,11 +678,11 @@ export const zapNear = (t: Tragons, bv: Bv) => {
 export const bvInLoop = (t: Tragons) => !!t.bv && (!!t.bv.lock || !!rollOn(t.bv.rolls, t.lane, t.dist + REAR));
 
 // (dev only: the headless checks read the ride from outside)
-let lastT: Tragons | null = null;
-export const noteBehind = (t: Tragons) => { lastT = t; };
+let lastT: Tragons | null = null, lastP: GameState['player'] | null = null;
+export const noteBehind = (t: Tragons, p?: GameState['player']) => { lastT = t; if (p) lastP = p; };
 if (import.meta.env.DEV && typeof window !== 'undefined') (window as unknown as { __tragonsBv: () => unknown }).__tragonsBv = () => {
   const t = lastT, bv = t?.bv;
-  if (!t || !bv) return { phase: t?.phase ?? null };
+  if (!t || !bv) return { phase: t?.phase ?? null, noSpecials: lastP?.noSpecials ?? null, x: lastP ? Math.round(lastP.pos.x) : null, charging: lastP ? !!(lastP as unknown as { isCharging?: boolean }).isCharging : null };
   const sCar = t.dist + REAR;
   return {
     phase: t.phase, dist: Math.round(t.dist), lane: t.lane, hop: !!bv.hop, jy: bv.jy, lock: bv.lock ? { bal: bv.lock.bal, oneOff: bv.lock.oneOff, hard: bv.lock.hard } : null,

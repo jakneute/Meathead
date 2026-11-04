@@ -41,6 +41,7 @@ const BehindCards: React.FC<{ card: BvCard }> = ({ card }) => {
       <div className={`${shingle} text-[10px] border-[#FACC15]`}>
         {card.what === 'ring' && <Row><span>RINGS OF FIRE:</span><Prompt {...JUMP} /><span>JUMP THROUGH</span></Row>}
         {card.what === 'bar' && <Row><span>FROZEN BAR:</span><Prompt {...JUMP} /><span>JUMP IT</span></Row>}
+        {card.what === 'jet' && <Row><span>DRAGON FIRE AT HEAD HEIGHT:</span><Prompt {...DOWN} /><span>DUCK</span></Row>}
         {card.what === 'icicles' && <Row><span>ICICLES:</span><Prompt {...DOWN} /><span>DUCK</span></Row>}
         {card.what === 'zap' && <Row><span>THE LIGHTNING DRAGON'S GOING LIVE:</span><Prompt {...HOP_L} /><Prompt {...HOP_R} /><span>HOP OFF</span></Row>}
         {card.what === 'gap' && <Row><span>TRACK OUT AHEAD:</span><Prompt {...HOP_L} /><Prompt {...HOP_R} /><span>HOP TO ANOTHER DRAGON</span></Row>}

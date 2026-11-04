@@ -804,7 +804,10 @@ const arriveFromBehind = (state: GameState) => {
   const lane = t.lane;
   t.bv = undefined;
   t.fade = CUT_FADE;
-  setUi({ tragonCard: null, tragonMarks: null });
+  // (everything the ride from behind took off him given back: his moves (the owner's: "when the tragons ride ends i
+  // cannot charge"), the weapon switch, the pause card, the hops)
+  p.noSpecials = false; t.said.nospec = false;
+  setUi({ tragonCard: null, tragonMarks: null, tragonCue: null, carHops: false, noSwitch: false, pauseControls: null, tragonTips: false, tragonHold: null });
   state.cameraOverride = null;
   p.hidden = false; p.carried = false; p.isDucking = false; p.vel.x = 0; p.vel.y = 0;
   t.hop = null; t.lock = null; t.flung = false;

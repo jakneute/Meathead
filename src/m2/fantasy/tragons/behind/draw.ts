@@ -20,7 +20,7 @@ import {
   SEG, DRAW_N, DRAW, TRACK_HW, REAR, CAR_L, NOSE, FOCAL, TUNNEL,
   trackAt, project, curveX, inTunnel, inLagoon, zOf, sOfW, carS, noseS, type TP, type SP, type Cam,
 } from './geom';
-import { RING_BOTTOM, RING_IN, PYLON_CRYSTAL, PYLON_LEG, pylon, strip, carBack, panelBack, ring, icicles, iceBar, pine, sky, pano, hazeOf, HAZE, SKY_H, SKY_HORIZON, PANO_W, PANO_H, FLOOR_Y, type Placed } from './sprites';
+import { RING_BOTTOM, RING_IN, PYLON_CRYSTAL, PYLON_LEG, DUCK_LOW, JET_Y, JET_HH, jetPost, pylon, strip, carBack, panelBack, ring, icicles, iceBar, pine, sky, pano, hazeOf, HAZE, SKY_H, SKY_HORIZON, PANO_W, PANO_H, FLOOR_Y, type Placed } from './sprites';
 import { drawMeBack, type MeQ } from './meathead';
 import { SHOT_CAR, SHOT_LAWN, turned, HOP_ARC, BAL_ONE, zapNear } from './ride';
 import type { Bv } from './state';
@@ -297,13 +297,18 @@ const drawFling = (c: Ctx, state: GameState, bv: Bv) => {
 // ---------------------------------------------------------------------------------------------------------------
 // The obstacles
 
-const drawObst = (c: Ctx, t: Tragons, bv: Bv, kind: 'ring' | 'icicles' | 'bar' | 'pylon', lane: Lane, s: number, f: number, half: 'all' | 'back' | 'front' = 'all') => {
+const drawObst = (c: Ctx, t: Tragons, bv: Bv, kind: 'ring' | 'jet' | 'icicles' | 'bar' | 'pylon', lane: Lane, s: number, f: number, half: 'all' | 'back' | 'front' = 'all') => {
   if (bv.trains[lane] && inGap(t, lane, s)) return;
   trackAt(bv.rolls, lane, s, CP);
   if (!project(bv.cam, CP.x, CP.y, s, SPi)) return;
   const z = zOf(bv.cam, s), step = hazeStep(z), cave = inTunnel(s);
   if (kind === 'pylon') { drawPylon(c, t, bv, s, step, cave, f); return; }
-  const pic = kind === 'ring' ? ring((f >> 2) % 4, step, cave, half) : kind === 'icicles' ? icicles(step, cave) : iceBar(step, cave);
+  // (the ducks: a dark shadow line on the track under them, the bright gap over it)
+  if ((kind === 'icicles' || kind === 'jet') && Math.abs(CP.phi) < 0.01) { box(c, SPi.x - (TRACK_HW + 6) * SPi.k, SPi.y - 3 * SPi.k, (TRACK_HW + 6) * 2 * SPi.k, 4 * SPi.k + 1, 'rgba(10, 8, 20, 0.6)'); }
+  // (hazed less than the scenery: they stand out from well off)
+  const hs = Math.max(0, step - 2);
+  if (kind === 'jet') { drawJet(c, SPi.x, SPi.y, SPi.k, -CP.phi, hs, cave, f); return; }
+  const pic = kind === 'ring' ? ring((f >> 2) % 4, hs, cave, half) : kind === 'icicles' ? icicles(hs, cave) : iceBar(hs, cave);
   put(c, pic, SPi.x, SPi.y, SPi.k, -CP.phi);
   // (a ring's glow in the dark)
   if (kind === 'ring' && half !== 'front' && (cave || step < 3)) { c.globalAlpha = 0.12; c.fillStyle = '#F97316'; c.beginPath(); c.arc(SPi.x, SPi.y - (RING_BOTTOM + RING_IN) * SPi.k, (RING_IN + 30) * SPi.k, 0, Math.PI * 2); c.fill(); c.globalAlpha = 1; }
@@ -336,6 +341,27 @@ const drawPylon = (c: Ctx, t: Tragons, bv: Bv, s: number, step: number, cave: bo
   }
   // (the strike: the big arc down onto the dragon's nose)
   if (z && z.flash > 0 && Math.abs(z.s - s) < 2) bolt(c, x, cy, x + ((f % 3) - 1) * 6 * k, y - 20 * k, 2.4 * k, f, 8);
+};
+
+/** The FIRE track's duck: the dragon's head on its post, its gout of fire right across the track at head height (a
+ *  roaring band in steps, licking, its underside DUCK_LOW up), glowing. */
+export const drawJet = (c: Ctx, x: number, y: number, k: number, a: number, step: number, cave: boolean, f: number) => {
+  c.save(); c.translate(x, y); if (a) c.rotate(a); c.scale(k, k);
+  const F = ['#7A1A1A', '#DC2626', '#F97316', '#FDE047', '#FFF6B0'];
+  const top = -JET_Y - JET_HH, bot = -DUCK_LOW;
+  // (inked, then the band in steps: red outside to white-hot in its middle; licks along its edges)
+  box(c, -104, top - 3, 172, bot - top + 6, INK);
+  for (let L = 0; L < 4; L++) {
+    const inset = L * 4;
+    box(c, -102 + inset * 2, top - 1 + inset, 168 - inset * 2, bot - top + 2 - inset * 2, F[1 + L]);
+  }
+  for (let i = 0; i < 12; i++) {
+    const lx = -98 + i * 14, h = 4 + ((f * 3 + i * 7) % 9);
+    box(c, lx, top - h, 8, h, F[(i + (f >> 2)) % 2 ? 2 : 3]);
+    box(c, lx + 4, bot, 6, 3 + ((f * 5 + i * 3) % 5), F[2]);
+  }
+  c.restore();
+  put(c, jetPost(step, cave), x, y, k, a);
 };
 
 const flamesAt = (c: Ctx, x: number, y: number, k: number, f: number, phi: number) => {

@@ -167,7 +167,7 @@ export const panelBack = (lane: Lane) => placed(pic(`panel${lane}`, CAR_W + 30, 
  *  up (over the car's hull, at his shins: he jumps it, the car goes under), its inside RING_IN round, so a good jump
  *  carries him through its middle. Painted in halves (the owner's: he's seen inside it as it goes by): 'back' (its top
  *  half, its posts: drawn behind him), 'front' (its bottom half: in front of him), or 'all'. */
-export const RING_BOTTOM = 58, RING_IN = 74, RING_T = 13;
+export const RING_BOTTOM = 48, RING_IN = 74, RING_T = 13;
 const RING_CY = -(RING_BOTTOM + RING_IN), RING_OUT = RING_IN + RING_T;
 export const ring = (frame: number, step: number, cave: boolean, half: 'all' | 'back' | 'front' = 'all') =>
   placed(pic(`ring${frame}${step}${cave ? 1 : 0}${half}`, 220, 250, 110, 236, 2, g => {
@@ -196,21 +196,44 @@ export const ring = (frame: number, step: number, cave: boolean, half: 'all' | '
     g.restore();
   }), 220, 250, 110, 236);
 
-/** A gantry of icicles across the ICE track: frosted posts each side, the beam 104 up, icicles hanging to 52 (under
- *  them ducked; standing: in the face). */
-export const ICICLE_LOW = 52;
-export const icicles = (step: number, cave: boolean) => placed(pic(`icicles${step}${cave ? 1 : 0}`, 160, 124, 80, 116, 2, g => {
+/** The obstacles read by their shapes (the owner's "make the obstacles more readable"): the ducks hang HIGH, their
+ *  undersides at DUCK_LOW (over him ducked, into him stood up), a clear bright gap under them; the jumps sit LOW, at
+ *  his shins, JUMP_TOP their tops (over the car's hull, so the car goes under and he must jump). All of them inked
+ *  thick against anything behind. */
+export const DUCK_LOW = 92, JUMP_TOP = 50;
+
+/** A gantry of icicles across the ICE track: frosted posts each side, the beam high, the icicles hanging down to
+ *  DUCK_LOW (duck). */
+export const icicles = (step: number, cave: boolean) => placed(pic(`icicles${step}${cave ? 1 : 0}`, 170, 186, 85, 178, 2, g => {
   const H = (c: string) => hazeOf(c, step, cave);
   const S = ['#4A6AA0', '#8CB8E8', '#C8E4FC', '#F0F9FF'].map(H);
-  for (const s of [-1, 1]) { box(g, s * 70 - 5, -112, 10, 112, INK); box(g, s * 70 - 4, -112, 8, 112, S[1]); box(g, s * 70 - 4, -112, 3, 112, S[3]); }
-  box(g, -76, -114, 152, 14, INK); box(g, -75, -113, 150, 12, S[1]); box(g, -75, -113, 150, 4, S[3]);
+  for (const s of [-1, 1]) { box(g, s * 74 - 6, -174, 12, 174, INK); box(g, s * 74 - 4, -172, 8, 172, S[1]); box(g, s * 74 - 4, -172, 3, 172, S[3]); }
+  box(g, -82, -176, 164, 18, INK); box(g, -80, -174, 160, 14, S[1]); box(g, -80, -174, 160, 5, S[3]);
   for (let k = 0; k < 12; k++) {
-    const x = -66 + k * 12, len = 40 + ((k * 7) % 3) * 6 + (k % 2 ? 0 : 6);
-    polyF(g, [[x - 5, -101], [x + 5, -101], [x, -101 + len]], INK);
-    polyF(g, [[x - 4, -101], [x + 4, -101], [x, -102 + len]], S[2]);
-    polyF(g, [[x - 4, -101], [x - 1, -101], [x, -104 + len]], S[3]);
+    const x = -66 + k * 12, tip = -DUCK_LOW - ((k * 7) % 3) * 3;
+    polyF(g, [[x - 7, -160], [x + 7, -160], [x, tip + 3]], INK);
+    polyF(g, [[x - 5, -160], [x + 5, -160], [x, tip]], S[2]);
+    polyF(g, [[x - 5, -160], [x - 1, -160], [x, tip - 3]], S[3]);
   }
-}), 160, 124, 80, 116);
+}), 170, 186, 85, 178);
+
+/** The FIRE track's duck: a dragon's head on an iron post beside the track, breathing a gout of fire across at head
+ *  height (the flame's drawn live: draw.ts), its bottom at DUCK_LOW. */
+export const JET_Y = 120, JET_HH = 18;
+export const jetPost = (step: number, cave: boolean) => placed(pic(`jet${step}${cave ? 1 : 0}`, 70, 170, -50, 162, 2, g => {
+  const H = (c: string) => hazeOf(c, step, cave);
+  const I = IRON.map(H), B = ramp6('#C42828').map(H), Hn = ramp6('#F2E6C8').map(H);
+  // (the post, beside the track's right rail)
+  box(g, 92, -136, 12, 136, INK); box(g, 94, -134, 8, 134, I[3]); box(g, 94, -134, 3, 134, I[5]);
+  // (the dragon's head, turned across the track, jaws wide)
+  polyF(g, [[106, -142], [74, -132], [64, -JET_Y - 6], [74, -JET_Y + 14], [106, -104]], INK);
+  polyF(g, [[104, -140], [76, -131], [67, -JET_Y - 5], [76, -JET_Y + 11], [104, -107]], B[3]);
+  polyF(g, [[104, -140], [76, -131], [72, -126], [104, -128]], B[4]);
+  polyF(g, [[96, -140], [108, -158], [102, -138]], Hn[3]);
+  box(g, 84, -133, 4, 3, '#FDE047');
+  // (its throat glowing)
+  polyF(g, [[67, -JET_Y - 5], [80, -JET_Y - 2], [80, -JET_Y + 4], [70, -JET_Y + 8]], '#FDE047');
+}), 70, 170, -50, 162);
 
 /** The wizard's crystal pylon over the LIGHTNING track (what charges the dragon): two stone legs PYLON_LEG out each
  *  side, an iron crossbeam 230 up with gilt studs, a big violet crystal hung under it (its middle PYLON_CRYSTAL up),
@@ -238,14 +261,15 @@ export const pylon = (step: number, cave: boolean) => placed(pic(`pylon${step}${
   function I(i: number) { return hazeOf(['#0C0A14', '#18162A', '#26243C', '#36344E', '#6C6A88'][i], step, cave); }
 }), 230, 270, 115, 262);
 
-/** A frozen bar across the ICE track: a block of ice 20 high (jump it). */
-export const BAR_H = 20;
-export const iceBar = (step: number, cave: boolean) => placed(pic(`bar${step}${cave ? 1 : 0}`, 100, 30, 50, 26, 2, g => {
+/** A frozen bar across the ICE track at his shins, on stubby posts: its top at JUMP_TOP (jump it; the car goes
+ *  under). */
+export const iceBar = (step: number, cave: boolean) => placed(pic(`bar${step}${cave ? 1 : 0}`, 130, 74, 65, 70, 2, g => {
   const H = (c: string) => hazeOf(c, step, cave);
-  box(g, -46, -BAR_H - 2, 92, BAR_H + 3, INK);
-  box(g, -45, -BAR_H - 1, 90, BAR_H + 1, H('#7DB8E8')); box(g, -45, -BAR_H - 1, 90, 5, H('#E0F2FE')); box(g, -45, -6, 90, 5, H('#3A78C0'));
-  for (let k = 0; k < 6; k++) box(g, -40 + k * 15, -BAR_H + 3, 2, 8, H('#FFFFFF'));
-}), 100, 30, 50, 26);
+  for (const s of [-1, 1]) { box(g, s * 58 - 5, -JUMP_TOP, 10, JUMP_TOP, INK); box(g, s * 58 - 3, -JUMP_TOP, 6, JUMP_TOP, H('#4A6AA0')); }
+  box(g, -62, -JUMP_TOP - 3, 124, 22, INK);
+  box(g, -60, -JUMP_TOP - 1, 120, 18, H('#7DB8E8')); box(g, -60, -JUMP_TOP - 1, 120, 6, H('#E0F2FE')); box(g, -60, -JUMP_TOP + 12, 120, 5, H('#3A78C0'));
+  for (let k = 0; k < 7; k++) box(g, -54 + k * 17, -JUMP_TOP + 3, 2, 9, H('#FFFFFF'));
+}), 130, 74, 65, 70);
 
 /** A pine (the park's, stood on the lawn): 70 tall. */
 export const pine = (step: number) => placed(pic(`pine${step}`, 60, 92, 30, 88, 1, g => {

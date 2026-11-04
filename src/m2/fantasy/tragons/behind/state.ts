@@ -11,7 +11,7 @@ import type { Roll, Cam } from './geom';
 export interface BvTrain { lane: Lane; phase: 'ok' | 'fall' | 'gone' | 'arrive'; t: number; fy: number; fvy: number }
 
 /** On a track: a ring of fire (FIRE: jump through it), a gantry of icicles (ICE: duck), a frozen bar (ICE: jump). */
-export interface BvObst { kind: 'ring' | 'icicles' | 'bar' | 'pylon'; lane: Lane; s: number; done: boolean; hit: boolean }
+export interface BvObst { kind: 'ring' | 'jet' | 'icicles' | 'bar' | 'pylon'; lane: Lane; s: number; done: boolean; hit: boolean }
 
 /** His balance through a roll (the owner's Tony Hawk grind bar: he grips on his own; the needle drifts off, LEFT /
  *  RIGHT push it back): where the needle is (-1 .. 1: the bar's ends), how fast it's going, which way he's pushing,

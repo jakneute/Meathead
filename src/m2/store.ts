@@ -78,6 +78,8 @@ export interface M2Ui {
   /** (Truelling Tragons from behind: fantasy/tragons/behind/ride.ts) The card at the bottom: hanging on in a roll (the
    *  lean, a hand off), a roll coming, the first time each thing comes at his track, the controls (BehindCards.tsx). */
   tragonCard?: import('./fantasy/tragons/behind/ride').BvCard | null;
+  /** (Truelling Tragons from behind) The button over the next jump or duck coming at his track (where: tragonCueAt). */
+  tragonCue?: 'jump' | 'duck' | null;
   /** (Fairy Land's broomstick deathmatch) The main HUD's his broom's: the PWR row the boost (0..1), the BROOM LASER for
    *  the weapon; and the flying controls card (X laser, hold X lock on, A boost, B brake, Y invert, pitch and turn). */
   broomHud?: boolean;
@@ -132,6 +134,8 @@ export const requestCarHop = (dir: 'up' | 'down') => { carHop = dir; };
 export const takeCarHop = () => { const d = carHop; carHop = null; return d; };
 /** (Truelling Tragons) Where each lane's hop button sits on screen (game px), updated every frame by the ride. */
 export const tragonMarkAt: { x: number; y: number }[] = [{ x: 0, y: 0 }, { x: 0, y: 0 }, { x: 0, y: 0 }];
+/** (Truelling Tragons from behind) Where the jump / duck cue sits on screen (game px) and how solid it is. */
+export const tragonCueAt = { x: 0, y: 0, a: 1 };
 /** A button prompt hanging over something in the world (WorldPrompt.tsx reads it on its own frame loop, no re-render):
  *  'kick' (B, by a head in the ground: moves/followups.ts), 'follow' (Y + B, an armor follow-up on offer), or none;
  *  where on screen (game px); when it was last set (performance.now(): gone stale, it's hidden, so a pause or a stretch

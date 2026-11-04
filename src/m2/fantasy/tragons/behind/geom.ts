@@ -214,15 +214,18 @@ export { END_S, TUNNEL, LAGOON };
 // interlocked loops; the gauntlet again; the splashdown; the triple helix (unison); ONLY ONE SAFE; the double roll;
 // the finale (three rolls, one after another, all of them) and one last hole.
 //
-//   fire  the FIRE track's burning stretch from `at`, `len` long, its rings (jump through) every `gap`
-//   ice   the ICE track's gantries from `at`: one a `gap`, by the pattern (i icicles: duck; b a frozen bar: jump)
-//   zap   the LIGHTNING dragon goes live: the tell, then live (hop off it)
+//   fire  the FIRE track's burning stretch from `at`: one a `gap` by the pattern (r a ring of fire: jump through it, the
+//         most of them; j a dragon's-head jet blasting across at head height: duck, rarer)
+//   ice   the ICE track's gantries from `at`: one a `gap`, by the pattern (i icicles: duck, the most of them; b a frozen
+//         bar: jump, rarer). The owner's mix: ICE ducks, FIRE jumps, about 3 or 4 to 1 the other way each
+//   zap   the LIGHTNING dragon goes live under a crystal pylon: the tell, then live (hop off it). No jump or duck on
+//         LIGHTNING at all: it's just too dangerous to stand on, and often (the owner's)
 //   gap   the track broken ahead on his lane (hop off it); safe: all but one ('next' to his, or the 'far' one)
 //   spin  a roll: on 'his' track (FIRE or ICE: on LIGHTNING it goes on the other two), FIRE and ICE ('two'), all three
 //         ('all', round the middle), the one ONLY ONE SAFE left ('safe'); its kind, length, turns, warning
 
 export type BvEv =
-  | { k: 'fire'; at: number; len: number; gap: number }
+  | { k: 'fire'; at: number; pat: string; gap: number }
   | { k: 'ice'; at: number; pat: string; gap: number }
   | { k: 'zap'; at: number }
   | { k: 'gap'; at: number; len: number; warn: number }
@@ -237,15 +240,15 @@ export const BV_SCRIPT: BvEv[] = ([
   { k: 'say', at: 1300, what: 'rules' },
   { k: 'ice', at: 2100, pat: 'iii', gap: 520 },
   { k: 'say', at: 2300, what: 'piper' },
-  { k: 'fire', at: 2900, len: L(700), gap: 560 },
+  { k: 'fire', at: 2900, pat: 'rrr', gap: 560 },
   { k: 'gap', at: 4300, len: L(700), warn: 300 },
   // THE FIRST DROP; THE FIRST LOOP: all three together, slow, a long warning and the card
   { k: 'say', at: 4900, what: 'drop' },
   { k: 'spin', at: 7900, kind: 'loop', on: 'all', len: L(1100), warn: 330, teach: true },
   // THE GAUNTLET: the lightning dragon live (the first), the rings and the icicles and bars together, a hole
   { k: 'zap', at: 9800 },
-  { k: 'fire', at: 10200, len: L(1300), gap: 520 },
-  { k: 'ice', at: 10300, pat: 'ibibi', gap: 560 },
+  { k: 'fire', at: 10200, pat: 'rrjrr', gap: 520 },
+  { k: 'ice', at: 10300, pat: 'iibii', gap: 560 },
   { k: 'zap', at: 11800 },
   { k: 'gap', at: 13300, len: L(800), warn: 220 },
   // THE SECOND DROP; FIRE and ICE loop (LIGHTNING the way out), and LIGHTNING goes live right after (hop back)
@@ -254,8 +257,8 @@ export const BV_SCRIPT: BvEv[] = ([
   { k: 'zap', at: 17000 },
   // THE HEAD-ON: the outside tracks swing out and back; rings, icicles, live
   { k: 'say', at: 17700, what: 'near' },
-  { k: 'fire', at: 17700, len: L(1500), gap: 470 },
-  { k: 'ice', at: 17800, pat: 'iibib', gap: 500 },
+  { k: 'fire', at: 17700, pat: 'rjrrr', gap: 470 },
+  { k: 'ice', at: 17800, pat: 'ibiib', gap: 500 },
   { k: 'zap', at: 19000 },
   // THE CORKSCREW (his, rolled the other way); ONLY ONE SAFE
   { k: 'spin', at: 20300, kind: 'cork', on: 'his', len: L(1000), warn: 240 },
@@ -263,15 +266,15 @@ export const BV_SCRIPT: BvEv[] = ([
   { k: 'safe', at: 22500, len: L(800), safe: 'next', warn: 210 },
   // THE MOUNTAIN: in the dark: rings, icicles, live, a hole
   { k: 'say', at: 23300, what: 'tunnel' },
-  { k: 'fire', at: 24050, len: L(800), gap: 470 },
-  { k: 'ice', at: 24100, pat: 'ibi', gap: 480 },
+  { k: 'fire', at: 24050, pat: 'rjr', gap: 470 },
+  { k: 'ice', at: 24100, pat: 'iib', gap: 480 },
   { k: 'zap', at: 24100 },
   { k: 'gap', at: 25000, len: L(700), warn: 200 },
   // THE CHAIN: FIRE and ICE, one roll after the other
   { k: 'spin', at: 26300, kind: 'chain', on: 'two', len: L(1000), warn: 240 },
   // THE GAUNTLET AGAIN; ONLY ONE SAFE, and the one that's left rolls straight after the hop
-  { k: 'fire', at: 27900, len: L(1300), gap: 440 },
-  { k: 'ice', at: 27900, pat: 'bibib', gap: 470 },
+  { k: 'fire', at: 27900, pat: 'rrjrrj', gap: 440 },
+  { k: 'ice', at: 27900, pat: 'iibiii', gap: 470 },
   { k: 'zap', at: 28500 },
   { k: 'zap', at: 29800 },
   { k: 'safe', at: 30700, len: L(800), safe: 'next', warn: 200 },
@@ -281,20 +284,31 @@ export const BV_SCRIPT: BvEv[] = ([
   // THE TRIPLE HELIX: all three wound round one line, two turns (no way round it: hang on)
   { k: 'spin', at: 35900, kind: 'braid', on: 'all', len: L(1900), turns: 2, warn: 280 },
   // (out of it: rings, bars, then ONLY ONE SAFE (the far one), live, the double roll on FIRE and ICE)
-  { k: 'fire', at: 38600, len: L(700), gap: 420 },
-  { k: 'ice', at: 38650, pat: 'bb', gap: 420 },
+  { k: 'fire', at: 38600, pat: 'rjrr', gap: 420 },
+  { k: 'ice', at: 38650, pat: 'ii', gap: 420 },
   { k: 'safe', at: 39500, len: L(800), safe: 'far', warn: 220 },
   { k: 'zap', at: 40600 },
   { k: 'say', at: 40800, what: 'near' },
   { k: 'spin', at: 41600, kind: 'cork', on: 'two', len: L(1500), turns: 2, warn: 240 },
   { k: 'ice', at: 43500, pat: 'iibi', gap: 420 },
-  { k: 'fire', at: 43500, len: L(600), gap: 420 },
+  { k: 'fire', at: 43500, pat: 'rrjr', gap: 420 },
   // THE GRAND FINALE: Piper; three rolls one after another, all of them; live; one more hole; the brakes
   { k: 'say', at: 44000, what: 'piperLate' },
   { k: 'spin', at: 45400, kind: 'chain3', on: 'all', len: L(900), warn: 280 },
   { k: 'zap', at: 47300 },
-  { k: 'fire', at: 47400, len: L(500), gap: 400 },
+  { k: 'fire', at: 47400, pat: 'rr', gap: 400 },
   { k: 'gap', at: 48000, len: L(700), warn: 200 },
+  { k: 'zap', at: 11000 },
+  { k: 'zap', at: 12300 },
+  { k: 'zap', at: 18200 },
+  { k: 'zap', at: 22000 },
+  { k: 'zap', at: 27200 },
+  { k: 'zap', at: 31000 },
+  { k: 'zap', at: 33600 },
+  { k: 'zap', at: 39100 },
+  { k: 'zap', at: 42800 },
+  { k: 'zap', at: 44600 },
+  { k: 'zap', at: 48400 },
 ] as BvEv[]).map(ev => ({ ...ev, at: stretch(ev.at) }));
 
 /** How far ahead an obstacle's put on the track (just past the draw distance). */
@@ -308,7 +322,8 @@ export const bvDue = (ev: BvEv, dist: number, v: number) => {
 };
 /** The end of what an event puts on the track (for a checkpoint start: what's still to come). */
 export const bvEnd = (ev: BvEv) =>
-  ev.k === 'fire' || ev.k === 'gap' || ev.k === 'safe' || ev.k === 'spin' ? ev.at + ev.len + (ev.k === 'spin' && ev.kind === 'chain3' ? 600 : ev.k === 'spin' && ev.kind === 'chain' ? ev.len / 2 : 0)
+  ev.k === 'fire' ? ev.at + ev.pat.length * ev.gap
+    : ev.k === 'gap' || ev.k === 'safe' || ev.k === 'spin' ? ev.at + ev.len + (ev.k === 'spin' && ev.kind === 'chain3' ? 600 : ev.k === 'spin' && ev.kind === 'chain' ? ev.len / 2 : 0)
     : ev.k === 'ice' ? ev.at + ev.pat.length * ev.gap : ev.at;
 
 /** The LIGHTNING dragon going live: the tell, then live (frames). */
