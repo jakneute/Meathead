@@ -212,6 +212,32 @@ export const icicles = (step: number, cave: boolean) => placed(pic(`icicles${ste
   }
 }), 160, 124, 80, 116);
 
+/** The wizard's crystal pylon over the LIGHTNING track (what charges the dragon): two stone legs PYLON_LEG out each
+ *  side, an iron crossbeam 230 up with gilt studs, a big violet crystal hung under it (its middle PYLON_CRYSTAL up),
+ *  over the car and him (it never hits him: it's the dragon it charges). */
+export const PYLON_LEG = 92, PYLON_CRYSTAL = 196;
+export const pylon = (step: number, cave: boolean) => placed(pic(`pylon${step}${cave ? 1 : 0}`, 230, 270, 115, 262, 2, g => {
+  const H = (c: string) => hazeOf(c, step, cave);
+  const St = ['#2A2438', '#4A4060', '#6A6088', '#9088B0'].map(H), G = GOLD.map(H), C = ['#3B0764', '#6D28D9', '#A78BFA', '#E9D5FF'].map(H);
+  // (the legs: stone, banded, a gilt cap)
+  for (const sd of [-1, 1]) {
+    const x = sd * PYLON_LEG;
+    box(g, x - 9, -236, 18, 236, INK); box(g, x - 8, -236, 16, 236, St[1]); box(g, x - 8, -236, 5, 236, St[2]);
+    for (let k = 0; k < 6; k++) box(g, x - 8, -30 - k * 36, 16, 3, St[0]);
+    box(g, x - 11, -244, 22, 10, INK); box(g, x - 10, -243, 20, 8, G[3]); box(g, x - 10, -243, 20, 2, G[5]);
+  }
+  // (the crossbeam, studded)
+  box(g, -PYLON_LEG - 4, -238, PYLON_LEG * 2 + 8, 14, INK); box(g, -PYLON_LEG - 3, -237, PYLON_LEG * 2 + 6, 12, I(1)); box(g, -PYLON_LEG - 3, -237, PYLON_LEG * 2 + 6, 3, I(4));
+  for (let k = -4; k <= 4; k++) box(g, k * 20 - 2, -233, 4, 4, G[4]);
+  // (the crystal: a long violet point, faceted)
+  const cy = -PYLON_CRYSTAL;
+  polyF(g, [[0, -228], [20, cy - 6], [0, cy + 34], [-20, cy - 6]], INK);
+  polyF(g, [[0, -225], [17, cy - 6], [0, cy + 30], [-17, cy - 6]], C[1]);
+  polyF(g, [[0, -225], [0, cy + 30], [-17, cy - 6]], C[2]);
+  polyF(g, [[-4, -214], [0, -222], [-12, cy - 6]], C[3]);
+  function I(i: number) { return hazeOf(['#0C0A14', '#18162A', '#26243C', '#36344E', '#6C6A88'][i], step, cave); }
+}), 230, 270, 115, 262);
+
 /** A frozen bar across the ICE track: a block of ice 20 high (jump it). */
 export const BAR_H = 20;
 export const iceBar = (step: number, cave: boolean) => placed(pic(`bar${step}${cave ? 1 : 0}`, 100, 30, 50, 26, 2, g => {

@@ -110,7 +110,7 @@ const LAMP_TINT = LANE_COL.map(([, light]) => {
  *  dragons' head lamps, a glow off each, the work lamps cut out of it. */
 export const caveLight = (state: GameState, base: SceneLight | null | undefined): SceneLight | null => {
   const t = tragonsOf(state);
-  if ((t.phase !== 'ride' && t.phase !== 'dispatch') || t.bv) return base ?? null;
+  if ((t.phase !== 'ride' && t.phase !== 'dispatch') || (t.bv && !t.bv.dead)) return base ?? null;
   const mid = t.dist + TL / 2;
   const u = Math.max(0, Math.min(1, (mid - TUNNEL.a + 150) / 450, (TUNNEL.b + 150 - mid) / 450));
   const k = u * u * (3 - 2 * u);

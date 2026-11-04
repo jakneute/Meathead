@@ -36,7 +36,7 @@ import {
 } from '../lines';
 import {
   BV_SCRIPT, END_S, TUNNEL, LAGOON, REAR, NOSE, CAR_L, CAM_BACK, CAM_UP, HORIZON, FOCAL, NEAR_K, HOP_REACH, ZAP_TELL, ZAP_LIVE,
-  bvDue, bvEnd, trackAt, rollOn, laneBase, curveK, project, type BvEv, type TP, type SP,
+  bvDue, bvEnd, trackAt, rollOn, laneBase, curveK, project, wOf, sOfW, noseS, type BvEv, type TP, type SP,
 } from './geom';
 import type { Bv } from './state';
 import { RING_BOTTOM, FLOOR_Y } from './sprites';
@@ -50,16 +50,21 @@ const JUMP_V = 7.2, GRAV = 0.42;
 const HOP_T = 18, HOP_CD = 14;
 export const HOP_ARC = 46;
 /** The balance bar through a roll: past this far out a hand's off (the warning); at the end, he's flung. */
-export const BAL_ONE = 0.72;
+export const BAL_ONE = 0.64;
 /** The needle's pull (toward the roll's high side), its wobble and his push, at the first loop; each loop after it
  *  pulls and wobbles this much harder. */
 /** The needle held dead center this long as the meter pops up (frames). */
 const BAL_HOLD = 24;
-const BAL_PULL = 0.0011, BAL_WOBBLE = 0.0016, BAL_PUSH = 0.0042, BAL_HARDER = 0.16;
+const BAL_PULL = 0.0011, BAL_WOBBLE = 0.0007, BAL_PUSH = 0.0045, BAL_HARDER = 0.16;
+/** The needle's top speed (the owner's: "the balance meter can move too far too quickly sometimes"): a third of the
+ *  arc (2 wide) a second, however it's pushed; slower still in the red, so the one-hand warning gets half a second. */
+const BAL_VMAX = 2 / 3 / 60, BAL_VRED = 0.0095;
 /** How high his feet must be to clear a ring's burning bottom / a frozen bar; ducked under the icicles. */
 const RING_CLEAR = RING_BOTTOM - FLOOR_Y, BAR_CLEAR = 20;
 /** Framing: this much room past the outermost dragon's middle (half a car and a margin). */
 const FRAME_PAD = 110;
+/** Off a checkpoint: the ride's speed to start from (the station's crawl), built up to its own over a few seconds. */
+const START_V = 2.4;
 /** The arrival: the fade out starts this far short of the end. */
 const OUT_LEAD = 900, FADE = 16;
 /** The death's side shot: the engine's camera here (world), so the shot's lawn is the park's (GY) at screen row 520. */
@@ -97,7 +102,7 @@ const newBv = (lane: Lane): Bv => ({
   trains: LANES.map(l => ({ lane: l, phase: 'ok' as const, t: 0, fy: 0, fvy: 0 })),
   gaps: [], rolls: [], obst: [], burns: [], zap: null, fired: new Set(), lastSafe: null,
   hop: null, hopCd: 0, jy: 0, jv: 0, duck: false, jumpHeld: true, lock: null, fling: null, fall: null, dead: null, deadLane: lane,
-  cam: { x: 0, y: 0, s: 0, ang: 0, hy: HORIZON }, camOx: 0, bank: 0, hy: HORIZON, back: CAM_BACK, landT: 0, downHeld: false, through: 0, burnT: 0,
+  cam: { x: 0, y: 0, s: 0, w: 0, ang: 0, hy: HORIZON }, camOx: 0, bank: 0, hy: HORIZON, back: CAM_BACK, landT: 0, downHeld: false, through: 0, burnT: 0,
   me: { x: CANVAS_WIDTH / 2, y: 470, k: NEAR_K }, fadeIn: 0, out: 0, taught: {}, hurtT: 0,
 });
 
@@ -119,7 +124,8 @@ export const settleBehind = (state: GameState) => {
   if (!rc) return;
   startBehind(state, rc.lane, false);
   const bv = t.bv!;
-  t.dist = rc.s; t.v = speedAt(rc.s);
+  // (it starts slow off a checkpoint, as out of the station, and builds up: the owner's)
+  t.dist = rc.s; t.v = START_V;
   BV_SCRIPT.forEach((ev, i) => {
     if (!bvDue(ev, t.dist, t.v)) return;
     bv.fired.add(i);
@@ -152,7 +158,13 @@ const fire = (state: GameState, t: Tragons, bv: Bv, ev: BvEv, i: number, silent 
       if (s > t.dist + REAR + 40 && (ch === 'i' || ch === 'b')) bv.obst.push({ kind: ch === 'i' ? 'icicles' : 'bar', lane: 2, s, done: false, hit: false });
     });
   } else if (ev.k === 'zap') {
-    if (!silent && bv.trains[0].phase === 'ok') { bv.zap = { phase: 'tell', t: 0, shockAt: -99 }; playSound('alert', 0.5, 6); }
+    // (the pylon put down ahead of the LIGHTNING dragon's nose, the tell's length ahead at the speed it's going)
+    if (!silent && bv.trains[0].phase === 'ok') {
+      const d0 = ZAP_TELL * Math.max(t.v, 6), s = noseS(t.dist) + d0;
+      bv.obst.push({ kind: 'pylon', lane: 0, s, done: false, hit: false });
+      bv.zap = { phase: 'tell', t: 0, shockAt: -99, s, d0, flash: 0 };
+      playSound('alert', 0.5, 6);
+    }
   } else if (ev.k === 'gap' || ev.k === 'safe') {
     let lanes: Lane[], safe: Lane | undefined;
     if (ev.k === 'gap') lanes = [his];
@@ -195,17 +207,28 @@ const fire = (state: GameState, t: Tragons, bv: Bv, ev: BvEv, i: number, silent 
 const hurtMe = (ctx: FrameContext, bv: Bv, dmg: number, src: string) => {
   const p = ctx.state.player;
   if (p.invincibilityTimer > 0 || p.health <= 0) return false;
-  const keep = { x: p.pos.x, y: p.pos.y };
-  toShot(ctx.state, 'other');
   hurtPlayer(ctx, dmg, src);
-  if (p.health > 0) { p.pos.x = keep.x; p.pos.y = keep.y; p.vel.x = 0; p.vel.y = 0; bv.hurtT = 30; bv.dead = null; return true; }
+  // (it killed him: the side shot, his death played there)
+  if (p.health <= 0) toShot(ctx.state, 'other');
+  else { p.vel.x = 0; p.vel.y = 0; bv.hurtT = 30; }
   return true;
 };
 
 /** Puts him (and the engine's camera) in the death's side shot. */
+/** (ride.ts) The side shot as the classic ride draws it, at this moment of the ride: the same stretch of park or the
+ *  mountain's inside, the same height, the trains where they are, him on his (the owner's: "make sure the side view
+ *  matches the front view when you die"). Null: the plain shot below. */
+let classicShot: ((state: GameState, how: 'track' | 'splat' | 'other', lane: Lane) => void) | null = null;
+export const setShotHook = (f: typeof classicShot) => { classicShot = f; };
 const toShot = (state: GameState, how: 'track' | 'splat' | 'other') => {
   const t = tragonsOf(state), bv = t.bv!, p = state.player, cam = shotCam();
   bv.dead = how;
+  if (classicShot) {
+    p.hidden = false; p.vel.x = 0; p.vel.y = 0; p.isGrounded = true; state.cameraOverride = null;
+    p.spriteRot = undefined; p.spriteScaleX = undefined; p.spriteScaleY = undefined; p.tragon = undefined; p.freefall = undefined;
+    classicShot(state, how, how === 'track' ? bv.deadLane : t.lane);
+    return;
+  }
   state.cameraOverride = { ...cam }; state.camera.x = cam.x; state.camera.y = cam.y;
   const fx = cam.x + SHOT_CAR.x, fy = how === 'splat' ? GY : cam.y + SHOT_CAR.y;
   p.hidden = false; p.carried = how !== 'splat'; p.vel.x = 0; p.vel.y = 0;
@@ -260,7 +283,7 @@ const camera = (state: GameState, t: Tragons, bv: Bv, snap: boolean) => {
   bv.back = snap ? back : bv.back + (back - bv.back) * 0.04;
   const c = Math.cos(phi), s = Math.sin(phi);
   const lx = bv.camOx, ly = CAM_UP * (0.55 + 0.45 * (bv.back / CAM_BACK));
-  bv.cam.x = cx + lx * c - ly * s; bv.cam.y = cy + lx * s + ly * c; bv.cam.s = sCar - bv.back;
+  bv.cam.x = cx + lx * c - ly * s; bv.cam.y = cy + lx * s + ly * c; bv.cam.w = wOf(sCar) - bv.back; bv.cam.s = sOfW(bv.cam.w);
   laneBase(1, sCar, MB);
   // (the bank into the bends; the pitch up the hills and down the drops (the slope ahead of him); none in a roll)
   const bank = Math.max(-0.22, Math.min(0.22, -curveK(sCar + 400) * 9000));
@@ -299,6 +322,8 @@ export const updateBehind = (ctx: FrameContext, controls: Controls, onArrive: ()
     const ok = LANES.find(l => bv.trains[l].phase === 'ok' && !t.gaps.some(g => g.lane === l && g.a <= t.dist + NOSE + 200 && g.b > t.dist));
     if (ok !== undefined) t.lane = ok;
     if (shotFloor) shotFloor.y = -99999;
+    t.cam.on = 0; state.viewIsScreen = false; t.flung = false;
+    for (const tr of t.trains) { tr.roof.y = -99999; tr.head.y = -99999; tr.tail.y = -99999; tr.phase = 'ok'; }
   }
   // ---- dead: the side shot holds; nothing goes on
   if (!alive || bv.dead) {
@@ -324,9 +349,10 @@ export const updateBehind = (ctx: FrameContext, controls: Controls, onArrive: ()
   });
   for (const c of RIDE_CPS) if (c.cp > state.checkpoint && t.dist >= c.s) state.checkpoint = c.cp;
 
+  const nose = noseS(t.dist);
   // ---- the dragons: over a broken end; gone; a spare down onto the track once it's whole again
   for (const tr of bv.trains) {
-    if (tr.phase === 'ok' && t.gaps.some(g => g.lane === tr.lane && g.a <= t.dist + NOSE && g.b > t.dist)) {
+    if (tr.phase === 'ok' && t.gaps.some(g => g.lane === tr.lane && g.a <= nose && g.b > t.dist)) {
       tr.phase = 'fall'; tr.t = 0; tr.fvy = 0; tr.fy = 0;
       playSound('crash', 0.7, -6); playSound('screams', 0.4, 2);
       const on = !bv.hop && t.lane === tr.lane;
@@ -358,9 +384,12 @@ export const updateBehind = (ctx: FrameContext, controls: Controls, onArrive: ()
   if (bv.zap) {
     const z = bv.zap, tr = bv.trains[0];
     z.t++;
+    if (z.flash > 0) z.flash--;
     if (z.phase === 'tell') {
-      if (z.t % Math.max(3, 14 - Math.floor(z.t / 9)) === 0) playSound('taser', 0.12 + 0.35 * (z.t / ZAP_TELL) * (t.lane === 0 ? 1 : 0.5), 6);
-      if (z.t >= ZAP_TELL) { z.phase = 'live'; z.t = 0; playSound('thunder', 0.8, 2); shakeScreen(state, 5, 3); }
+      const u = zapNear(t, bv);
+      if (z.t % Math.max(3, 14 - Math.floor(u * 11)) === 0) playSound('taser', 0.12 + 0.35 * u * (t.lane === 0 ? 1 : 0.5), 6);
+      // (the nose under the pylon: the arc down onto it, live)
+      if (noseS(t.dist) >= z.s) { z.phase = 'live'; z.t = 0; z.flash = 14; playSound('thunder', 1, 2); playSound('taser', 1, 0); shakeScreen(state, 8, 4); }
     } else {
       if (f % 6 === 0) playSound('taser', t.lane === 0 && !bv.hop ? 0.4 : 0.18, 2 + (f % 3));
       if (tr.phase === 'ok' && t.lane === 0 && !bv.hop && bv.jy < 3 && f - z.shockAt > 22 && !bv.fall && !bv.fling) {
@@ -391,14 +420,19 @@ export const updateBehind = (ctx: FrameContext, controls: Controls, onArrive: ()
       // turns on him), pushed back by LEFT / RIGHT; harder each loop along the ride)
       trackAt(bv.rolls, t.lane, sCar, TA);
       const sn = Math.sin(TA.phi);
-      if (L.t % 50 === 0 && Math.random() < 0.45) L.drift = L.drift > 0 ? -1 : 1;
+      if (L.t % 90 === 0 && Math.random() < 0.4) L.drift = L.drift > 0 ? -1 : 1;
       // (it always starts dead in the middle, at rest, and holds there a beat as it pops up, before anything moves it)
       const held = L.t < BAL_HOLD;
       L.push = held ? 0 : controls.left && !controls.right ? -1 : controls.right && !controls.left ? 1 : 0;
       const ease = held ? 0 : Math.min(1, (L.t - BAL_HOLD) / 24);
-      const pull = (sn * 0.8 + L.drift * 0.45 + L.bal * 0.9) * BAL_PULL * L.hard * ease;
-      const wob = ((Math.random() - 0.5) * 2 + Math.sin(L.t * 0.13 * L.hard) * 0.5) * BAL_WOBBLE * L.hard * ease;
-      L.vel = L.vel * 0.94 + pull + wob + L.push * BAL_PUSH;
+      // (a steady pull, smooth swings (eased sines, faster the later the loop: no per-frame kicks), his push with a little
+      // momentum; never faster than the cap)
+      const h = L.hard, tt = L.t - BAL_HOLD;
+      const pull = (sn * 0.6 + L.drift * 0.5 + L.bal * 0.3) * BAL_PULL * h * ease;
+      const wob = (Math.sin(tt * 0.045 * h + L.drift) + 0.6 * Math.sin(tt * 0.097 * h + 1.7)) * BAL_WOBBLE * h * ease;
+      L.vel = L.vel * 0.9 + pull + wob + L.push * BAL_PUSH;
+      const vmax = Math.abs(L.bal) > BAL_ONE && Math.sign(L.vel) === Math.sign(L.bal) ? BAL_VRED : BAL_VMAX;
+      L.vel = Math.max(-vmax, Math.min(vmax, L.vel));
       L.bal += L.vel;
       const was = L.oneOff;
       L.oneOff = Math.abs(L.bal) >= BAL_ONE;
@@ -458,7 +492,7 @@ export const updateBehind = (ctx: FrameContext, controls: Controls, onArrive: ()
   // ---- what's on the tracks, going under his car: the rings (jump through), the icicles (duck), the bars (jump)
   const lane = t.lane;
   for (const o of bv.obst) {
-    if (o.done || o.s > sCar || o.s <= prevCar) continue;
+    if (o.kind === 'pylon' || o.done || o.s > sCar || o.s <= prevCar) continue;
     o.done = true;
     if (bv.hop || bv.fall || bv.fling || o.lane !== lane || bv.trains[lane].phase !== 'ok') continue;
     const hit = o.kind === 'ring' ? bv.jy < RING_CLEAR || bv.duck : o.kind === 'bar' ? bv.jy < BAR_CLEAR : !bv.duck || bv.jy > 0;
@@ -606,6 +640,14 @@ const cardNow = (state: GameState, t: Tragons, bv: Bv): BvCard | null => {
   return null;
 };
 
+/** How near the LIGHTNING dragon's nose is to the pylon that'll charge it (0 just seen .. 1 under it). */
+export const zapNear = (t: Tragons, bv: Bv) => {
+  const z = bv.zap;
+  if (!z) return 0;
+  if (z.phase === 'live') return 1;
+  return Math.max(0, Math.min(1, 1 - (z.s - noseS(t.dist)) / Math.max(1, z.d0)));
+};
+
 /** (the music) Hung on in a roll, or his dragon in one. */
 export const bvInLoop = (t: Tragons) => !!t.bv && (!!t.bv.lock || !!rollOn(t.bv.rolls, t.lane, t.dist + REAR));
 
@@ -621,6 +663,6 @@ if (import.meta.env.DEV && typeof window !== 'undefined') (window as unknown as 
     obst: bv.obst.filter(o => o.s > sCar - 100).map(o => ({ kind: o.kind, lane: o.lane, ahead: Math.round(o.s - sCar) })).slice(0, 6),
     gaps: t.gaps.map(g => ({ lane: g.lane, ahead: Math.round(g.a - (t.dist + NOSE)) })),
     rolls: bv.rolls.map(r => ({ lanes: r.lanes, ahead: Math.round(r.s0 - sCar), len: r.len })),
-    zap: bv.zap ? bv.zap.phase : null, trains: bv.trains.map(q => q.phase), dead: bv.dead, v: t.v,
+    zap: bv.zap ? bv.zap.phase : null, trains: bv.trains.map(q => q.phase), dead: bv.dead, fall: !!bv.fall, v: t.v, zapU: zapNear(t, bv),
   };
 };

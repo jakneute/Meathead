@@ -11,7 +11,7 @@ import type { Roll, Cam } from './geom';
 export interface BvTrain { lane: Lane; phase: 'ok' | 'fall' | 'gone' | 'arrive'; t: number; fy: number; fvy: number }
 
 /** On a track: a ring of fire (FIRE: jump through it), a gantry of icicles (ICE: duck), a frozen bar (ICE: jump). */
-export interface BvObst { kind: 'ring' | 'icicles' | 'bar'; lane: Lane; s: number; done: boolean; hit: boolean }
+export interface BvObst { kind: 'ring' | 'icicles' | 'bar' | 'pylon'; lane: Lane; s: number; done: boolean; hit: boolean }
 
 /** His balance through a roll (the owner's Tony Hawk grind bar: he grips on his own; the needle drifts off, LEFT /
  *  RIGHT push it back): where the needle is (-1 .. 1: the bar's ends), how fast it's going, which way he's pushing,
@@ -24,8 +24,10 @@ export interface Bv {
   gaps: Gap[]; rolls: Roll[]; obst: BvObst[];
   /** The FIRE track's burning stretches (track positions). */
   burns: { a: number; b: number }[];
-  /** The LIGHTNING dragon going live: the tell, then live; frames in; the last shock. */
-  zap: { phase: 'tell' | 'live'; t: number; shockAt: number } | null;
+  /** The LIGHTNING dragon going live (the owner's: never without something in the way that does it): a wizard's
+   *  crystal pylon over its track, crackling as the dragon closes on it (the tell: how far it was, `d0`, and where it
+   *  is, `s`); the dragon's nose under it, a big arc down and it's live; frames in; the last shock; the arc's flash. */
+  zap: { phase: 'tell' | 'live'; t: number; shockAt: number; s: number; d0: number; flash: number } | null;
   fired: Set<number>;
   lastSafe: Lane | null;
   /** His hop: from, to, frames in, how long; frames till he can again. */

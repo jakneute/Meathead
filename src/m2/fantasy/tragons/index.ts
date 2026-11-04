@@ -28,6 +28,9 @@ import { drawTragonsBackdrop, drawTragonsBack, drawTragonsFront, drawTragonsHud 
 import { caveLight } from './cave';
 import { drawBehind, drawBehindHud } from './behind/draw';
 import { CUT_AT, CUT_FADE } from './ride';
+import { drawPa } from './art';
+/** The ride's seen from behind now (not dead on it: that's the side shot). */
+const behindNow = (state: Parameters<typeof tragonsOf>[0]) => { const b = tragonsOf(state).bv; return !!b && !b.dead; };
 import './deaths';
 
 // (back from the castle's base: out by the unload's exit)
@@ -53,12 +56,14 @@ export const tragons: FantasySection = {
     return out;
   },
   // (the ride from behind (behind/): its whole picture in the backdrop, nothing in the world's layers)
-  drawBackdrop: (c, state) => { if (tragonsOf(state).bv) { drawBehind(c, state); return true; } return drawTragonsBackdrop(c, state); },
-  drawBack: (c, state) => { if (!tragonsOf(state).bv) drawTragonsBack(c, state); },
-  drawFront: (c, state) => { if (!tragonsOf(state).bv) drawTragonsFront(c, state); },
+  // (dead on it: the classic ride's side view of that moment, its death played there)
+  drawBackdrop: (c, state) => { if (behindNow(state)) { drawBehind(c, state); return true; } return drawTragonsBackdrop(c, state); },
+  drawBack: (c, state) => { if (!behindNow(state)) drawTragonsBack(c, state); },
+  drawFront: (c, state) => { if (!behindNow(state)) drawTragonsFront(c, state); },
   drawHud: (c, state) => {
     const t = tragonsOf(state);
-    if (t.bv) { drawBehindHud(c, state); return; }
+    if (t.bv && !t.bv.dead) { drawBehindHud(c, state); return; }
+    if (t.bv) { drawPa(c, t); return; }
     drawTragonsHud(c, state);
     // (the fades through black: out of the station into the ride from behind; back from it at the unload)
     const k = t.phase === 'dispatch' && !t.classic ? (t.goT - CUT_AT) / CUT_FADE : (t.fade ?? 0) / CUT_FADE;
@@ -69,7 +74,7 @@ export const tragons: FantasySection = {
   // (the ride: all three dragons in the picture, the camera pulled out as they spread and in as they close; blended
   // in from the engine's camera as it sets off, and back out at the unload)
   zoom: (state) => {
-    if (tragonsOf(state).cam.on <= 0 || tragonsOf(state).bv) return null;
+    if (tragonsOf(state).cam.on <= 0 || behindNow(state)) return null;
     const v = viewOf(state);
     return { scale: v.k, x: v.cx, y: v.cy, shiftX: CANVAS_WIDTH / 2 - (v.cx - state.camera.x), shiftY: CANVAS_HEIGHT / 2 - (v.cy - state.camera.y) };
   },

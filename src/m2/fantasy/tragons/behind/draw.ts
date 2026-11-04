@@ -17,12 +17,12 @@ import { tragonsOf, type Tragons } from '../state';
 import { paintCar } from '../dragon';
 import { text, warnSign, loopSign, countdown, drawPa } from '../art';
 import {
-  SEG, DRAW_N, DRAW, TRACK_HW, REAR, CAR_L, NOSE, FOCAL, ZAP_TELL, TUNNEL,
-  trackAt, project, curveX, inTunnel, inLagoon, type TP, type SP, type Cam,
+  SEG, DRAW_N, DRAW, TRACK_HW, REAR, CAR_L, NOSE, FOCAL, TUNNEL,
+  trackAt, project, curveX, inTunnel, inLagoon, zOf, sOfW, carS, noseS, type TP, type SP, type Cam,
 } from './geom';
-import { RING_BOTTOM, RING_IN, strip, carBack, panelBack, ring, icicles, iceBar, pine, sky, pano, hazeOf, HAZE, SKY_H, SKY_HORIZON, PANO_W, PANO_H, FLOOR_Y, type Placed } from './sprites';
+import { RING_BOTTOM, RING_IN, PYLON_CRYSTAL, PYLON_LEG, pylon, strip, carBack, panelBack, ring, icicles, iceBar, pine, sky, pano, hazeOf, HAZE, SKY_H, SKY_HORIZON, PANO_W, PANO_H, FLOOR_Y, type Placed } from './sprites';
 import { drawMeBack, type MeQ } from './meathead';
-import { SHOT_CAR, SHOT_LAWN, turned, HOP_ARC, BAL_ONE } from './ride';
+import { SHOT_CAR, SHOT_LAWN, turned, HOP_ARC, BAL_ONE, zapNear } from './ride';
 import type { Bv } from './state';
 
 const W = CANVAS_WIDTH, H = CANVAS_HEIGHT;
@@ -43,10 +43,12 @@ interface Row { s: number; z: number; gy: number; ok: boolean[]; p: SP[]; phi: n
 const rows: Row[] = Array.from({ length: DRAW_N + 2 }, () => ({ s: 0, z: 0, gy: 0, ok: [false, false, false], p: [0, 1, 2].map(() => ({ x: 0, y: 0, k: 1 })), phi: [0, 0, 0], x: [0, 0, 0], y: [0, 0, 0] }));
 const TQ: TP = { x: 0, y: 0, phi: 0 };
 const fillRows = (bv: Bv) => {
-  const cam = bv.cam, base = Math.floor(cam.s / SEG) * SEG + SEG;
+  // (the rows a step apart along the drawn track: the pace stretches it)
+  const cam = bv.cam, base = Math.floor(cam.w / SEG) * SEG + SEG;
   for (let k = 0; k < rows.length; k++) {
     const r = rows[k];
-    r.s = base + k * SEG; r.z = r.s - cam.s;
+    const w = base + k * SEG;
+    r.s = sOfW(w); r.z = w - cam.w;
     r.gy = cam.hy + cam.y * (FOCAL / r.z);
     for (const l of LANES) {
       trackAt(bv.rolls, l, r.s, TQ);
@@ -102,8 +104,8 @@ export const drawBehind = (c: Ctx, state: GameState) => {
   else box(c, -M, -M, W + 2 * M, H + 2 * M, '#120E1A');
 
   // ---- the mountain's mouths ahead: the bore to clip the far side into
-  const faceS = !camIn && TUNNEL.a > cam.s + 60 && TUNNEL.a < cam.s + DRAW ? TUNNEL.a : null;
-  const exitS = camIn && TUNNEL.b < cam.s + DRAW ? TUNNEL.b : null;
+  const faceS = !camIn && zOf(cam, TUNNEL.a) > 60 && zOf(cam, TUNNEL.a) < DRAW ? TUNNEL.a : null;
+  const exitS = camIn && zOf(cam, TUNNEL.b) < DRAW ? TUNNEL.b : null;
   const hole = faceS !== null ? boreRect(bv, faceS) : exitS !== null ? boreRect(bv, exitS) : null;
   let clipped = false;
   if (hole && faceS !== null) {
@@ -120,7 +122,7 @@ export const drawBehind = (c: Ctx, state: GameState) => {
   for (const o of bv.obst) {
     // (gone past his car: out of the picture, or it'd fill the screen between him and the camera; a ring goes on past
     // him a little: he's seen going through it)
-    if (o.s > cam.s + DRAW || o.s < sCar - (o.kind === 'ring' && o.lane === t.lane ? 110 : 16)) continue;
+    if (zOf(cam, o.s) > DRAW || o.s < sCar - (o.kind === 'ring' && o.lane === t.lane ? 110 : 16)) continue;
     if (o.kind === 'ring' && o.lane === t.lane && o.s < sCar + 60) {
       // (going by him: its top half and posts behind him, its bottom half in front)
       items.push({ s: Math.max(o.s, sCar + 1), draw: () => drawObst(c, t, bv, o.kind, o.lane, o.s, f, 'back') });
@@ -130,7 +132,7 @@ export const drawBehind = (c: Ctx, state: GameState) => {
   for (const tr of bv.trains) {
     if (tr.phase === 'gone') continue;
     for (let i = 2 as 0 | 1 | 2; i >= 0; i--) {
-      const s = t.dist + REAR + i * CAR_L, which = i as 0 | 1 | 2;
+      const s = carS(t.dist, i), which = i as 0 | 1 | 2;
       items.push({ s, draw: () => drawCar(c, state, t, bv, tr.lane, which, s) });
     }
   }
@@ -218,7 +220,7 @@ const drawCar = (c: Ctx, state: GameState, t: Tragons, bv: Bv, lane: Lane, which
   if (tr.phase === 'fall') y -= tr.fy * (1 + (2 - which) * 0.1) + (which === 2 ? tr.t * 1.2 : 0);
   else if (tr.phase === 'arrive') { const u = tr.t / 60, e = 1 - (1 - u) * (1 - u); y += (1 - e) * 420; }
   if (!project(bv.cam, CP.x, y, s, SPi)) return;
-  const x = SPi.x, sy = SPi.y, k = SPi.k, a = -CP.phi, z = s - bv.cam.s;
+  const x = SPi.x, sy = SPi.y, k = SPi.k, a = -CP.phi, z = zOf(bv.cam, s);
   const step = hazeStep(z), cave = inTunnel(s);
   const his = lane === t.lane && which === 0 && !bv.hop && !bv.fling;
   // (a spare's bat wings, beating)
@@ -229,7 +231,7 @@ const drawCar = (c: Ctx, state: GameState, t: Tragons, bv: Bv, lane: Lane, which
   const shake = his && bv.landT > 0 ? Math.sin(bv.landT * 1.9) * bv.landT * 0.25 * k : 0;
   put(c, carBack(lane, which, step, cave), x, sy + shake, k, a);
   // (the LIGHTNING dragon going live: its tell (sparks crawling over it, flashing faster), then live (arcs all over it))
-  if (lane === 0 && bv.zap && tr.phase === 'ok') zapFx(c, bv, x, sy, k, f + which * 7);
+  if (lane === 0 && bv.zap && tr.phase === 'ok') zapFx(c, t, bv, x, sy, k, f + which * 7);
   if (his) {
     const q = pose(state, t, bv);
     c.save(); c.translate(x, sy); c.rotate(a); c.scale(k, k); c.translate(0, -FLOOR_Y - bv.jy);
@@ -295,15 +297,45 @@ const drawFling = (c: Ctx, state: GameState, bv: Bv) => {
 // ---------------------------------------------------------------------------------------------------------------
 // The obstacles
 
-const drawObst = (c: Ctx, t: Tragons, bv: Bv, kind: 'ring' | 'icicles' | 'bar', lane: Lane, s: number, f: number, half: 'all' | 'back' | 'front' = 'all') => {
+const drawObst = (c: Ctx, t: Tragons, bv: Bv, kind: 'ring' | 'icicles' | 'bar' | 'pylon', lane: Lane, s: number, f: number, half: 'all' | 'back' | 'front' = 'all') => {
   if (bv.trains[lane] && inGap(t, lane, s)) return;
   trackAt(bv.rolls, lane, s, CP);
   if (!project(bv.cam, CP.x, CP.y, s, SPi)) return;
-  const z = s - bv.cam.s, step = hazeStep(z), cave = inTunnel(s);
+  const z = zOf(bv.cam, s), step = hazeStep(z), cave = inTunnel(s);
+  if (kind === 'pylon') { drawPylon(c, t, bv, s, step, cave, f); return; }
   const pic = kind === 'ring' ? ring((f >> 2) % 4, step, cave, half) : kind === 'icicles' ? icicles(step, cave) : iceBar(step, cave);
   put(c, pic, SPi.x, SPi.y, SPi.k, -CP.phi);
   // (a ring's glow in the dark)
   if (kind === 'ring' && half !== 'front' && (cave || step < 3)) { c.globalAlpha = 0.12; c.fillStyle = '#F97316'; c.beginPath(); c.arc(SPi.x, SPi.y - (RING_BOTTOM + RING_IN) * SPi.k, (RING_IN + 30) * SPi.k, 0, Math.PI * 2); c.fill(); c.globalAlpha = 1; }
+};
+
+/** A jagged bolt from (x0, y0) to (x1, y1): purple round a white core. */
+const bolt = (c: Ctx, x0: number, y0: number, x1: number, y1: number, w: number, f: number, n = 6) => {
+  const pts: [number, number][] = [[x0, y0]];
+  for (let i = 1; i < n; i++) { const u = i / n, j = (((f * 7 + i * 13) % 11) - 5) * w * 1.6; pts.push([x0 + (x1 - x0) * u + j, y0 + (y1 - y0) * u]); }
+  pts.push([x1, y1]);
+  for (const [col, lw] of [['#6D28D9', w * 2.4], ['#E9D5FF', w * 1.2], ['#FFFFFF', w * 0.5]] as const) {
+    c.strokeStyle = col; c.lineWidth = Math.max(1, lw); c.beginPath(); c.moveTo(pts[0][0], pts[0][1]); for (const p of pts) c.lineTo(p[0], p[1]); c.stroke();
+  }
+};
+
+/** The wizard's crystal pylon over the LIGHTNING track (what charges the dragon): its stone legs each side, the iron
+ *  crossbeam, a big violet crystal hung from it, crackling (more and faster as the dragon closes on it); the dragon's
+ *  nose under it, a big arc down onto it. */
+const drawPylon = (c: Ctx, t: Tragons, bv: Bv, s: number, step: number, cave: boolean, f: number) => {
+  put(c, pylon(step, cave), SPi.x, SPi.y, SPi.k, -CP.phi);
+  const z = bv.zap, k = SPi.k, x = SPi.x, y = SPi.y;
+  const cy = y - PYLON_CRYSTAL * k;
+  const near = z && Math.abs(z.s - s) < 2 ? zapNear(t, bv) : 0;
+  // (its glow, brighter as the dragon comes)
+  c.globalAlpha = 0.12 + 0.25 * near; c.fillStyle = '#C4B5FD'; c.beginPath(); c.arc(x, cy, (40 + 40 * near) * k, 0, Math.PI * 2); c.fill(); c.globalAlpha = 1;
+  // (crackling: arcs off the crystal out to the legs, more and more of them)
+  if (z && z.phase === 'tell' && Math.abs(z.s - s) < 2 && f % Math.max(2, Math.round(8 - near * 6)) === 0) {
+    const n = 1 + Math.floor(near * 3);
+    for (let i = 0; i < n; i++) { const sd = (f + i) % 2 ? 1 : -1; bolt(c, x, cy, x + sd * PYLON_LEG * k, y - (60 + ((f * 5 + i * 17) % 80)) * k, k, f + i * 3, 4); }
+  }
+  // (the strike: the big arc down onto the dragon's nose)
+  if (z && z.flash > 0 && Math.abs(z.s - s) < 2) bolt(c, x, cy, x + ((f % 3) - 1) * 6 * k, y - 20 * k, 2.4 * k, f, 8);
 };
 
 const flamesAt = (c: Ctx, x: number, y: number, k: number, f: number, phi: number) => {
@@ -326,9 +358,9 @@ const tornEnd = (c: Ctx, x: number, y: number, k: number, f: number) => {
   // (the drop beyond: dark)
 };
 
-const zapFx = (c: Ctx, bv: Bv, x: number, y: number, k: number, f: number) => {
+const zapFx = (c: Ctx, t: Tragons, bv: Bv, x: number, y: number, k: number, f: number) => {
   const z = bv.zap!;
-  const live = z.phase === 'live', u = live ? 1 : z.t / ZAP_TELL;
+  const live = z.phase === 'live', u = zapNear(t, bv);
   const every = live ? 2 : Math.max(2, Math.round(10 - u * 8));
   if (f % every !== 0) return;
   const n = live ? 4 : 1 + Math.floor(u * 3);
@@ -355,7 +387,7 @@ const boreRect = (bv: Bv, s: number) => {
 };
 const drawFace = (c: Ctx, bv: Bv, s: number, hole: ReturnType<typeof boreRect>, R: string[]) => {
   // (the fake mountain's face: rock from the lawn up past the top of the screen, the mouth cut out of it)
-  const gy = bv.cam.hy + bv.cam.y * (FOCAL / (s - bv.cam.s)), k = hole.k;
+  const gy = bv.cam.hy + bv.cam.y * (FOCAL / zOf(bv.cam, s)), k = hole.k;
   const peak = hole.y0 - 600 * k;
   c.fillStyle = R[2];
   c.beginPath();
@@ -385,7 +417,7 @@ const lamps = (c: Ctx, t: Tragons, bv: Bv) => {
   c.globalAlpha = 0.14;
   for (const tr of bv.trains) {
     if (tr.phase !== 'ok') continue;
-    const s = t.dist + NOSE;
+    const s = noseS(t.dist);
     trackAt(bv.rolls, tr.lane, s, CP);
     if (!inTunnel(s)) continue;
     if (!project(bv.cam, CP.x, CP.y + 60, s, BQ)) continue;
@@ -443,7 +475,7 @@ export const drawBehindHud = (c: Ctx, state: GameState) => {
       if (g.a <= t.dist + NOSE - 2) continue;
       const [main] = LANE_COL[g.lane];
       const left = (g.a - (t.dist + NOSE)) / Math.max(1, t.v), total = Math.max(left, g.w ?? left), kk = Math.max(0, Math.min(1, left / total));
-      if (g.a < bv.cam.s + DRAW) { const p = onScreen(bv, g.lane, g.a, 60); if (p) { warnSign(c, clampX(p.x), clampY(p.y), main, f, 11); text(c, 'TRACK OUT', clampX(p.x), clampY(p.y) + 26, main, 6, 'center', true); } }
+      if (zOf(bv.cam, g.a) < DRAW) { const p = onScreen(bv, g.lane, g.a, 60); if (p) { warnSign(c, clampX(p.x), clampY(p.y), main, f, 11); text(c, 'TRACK OUT', clampX(p.x), clampY(p.y) + 26, main, 6, 'center', true); } }
       if (bv.trains[g.lane].phase === 'ok') {
         const p = onScreen(bv, g.lane, sCar + CAR_L, 150);
         if (p) { countdown(c, clampX(p.x), clampY(p.y), 70, kk, f % 10 < 5 && kk < 0.35 ? '#EF4444' : main, false); text(c, g.lane === t.lane ? 'HOP OFF!' : 'TRACK OUT', clampX(p.x), clampY(p.y) - 6, main, 6, 'center', true); }
@@ -462,7 +494,7 @@ export const drawBehindHud = (c: Ctx, state: GameState) => {
       const left = (r.s0 - sCar) / Math.max(1, t.v), kk = Math.max(0, Math.min(1, left / Math.max(1, r.w)));
       for (const l of r.lanes) {
         const [main] = LANE_COL[l];
-        if (r.s0 < bv.cam.s + DRAW) { const p = onScreen(bv, l, r.s0, 90); if (p) loopSign(c, clampX(p.x), clampY(p.y), main, f, 'loop', 10); }
+        if (zOf(bv.cam, r.s0) < DRAW) { const p = onScreen(bv, l, r.s0, 90); if (p) loopSign(c, clampX(p.x), clampY(p.y), main, f, 'loop', 10); }
         const key = l;
         if (seen.has(key) || bv.trains[l].phase !== 'ok' || left > 300) continue;
         seen.add(key);
@@ -476,7 +508,7 @@ export const drawBehindHud = (c: Ctx, state: GameState) => {
       if (p) {
         const x = clampX(p.x), y = clampY(p.y);
         if (bv.zap.phase === 'live') text(c, f % 10 < 5 ? 'LIVE! HOP OFF!' : 'LIVE!', x, y, f % 6 < 3 ? '#FFFFFF' : '#FDE047', 8, 'center', true);
-        else { countdown(c, x, y, 70, 1 - bv.zap.t / ZAP_TELL, f % 10 < 5 && bv.zap.t > ZAP_TELL * 0.6 ? '#FFFFFF' : '#FDE047', false); text(c, 'GOING LIVE!', x, y - 6, '#FDE047', 6, 'center', true); }
+        else { const u = zapNear(t, bv); countdown(c, x, y, 70, 1 - u, f % 10 < 5 && u > 0.6 ? '#FFFFFF' : '#FDE047', false); text(c, 'GOING LIVE!', x, y - 6, '#FDE047', 6, 'center', true); }
       }
     }
     // ---- a ring gone through clean: THROUGH!
@@ -493,6 +525,8 @@ export const drawBehindHud = (c: Ctx, state: GameState) => {
       }
     }
   }
+  // (the pylon's strike: a flash)
+  if (bv.zap && bv.zap.flash > 8) { c.fillStyle = `rgba(233, 213, 255, ${(bv.zap.flash - 8) * 0.07})`; c.fillRect(0, 0, W, H); }
   drawPa(c, t);
   // ---- the fades (in from the station; out to the unload)
   const fade = Math.max(bv.fadeIn / 16, bv.out / 16);

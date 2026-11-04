@@ -32,7 +32,7 @@ import { makeTrainBlocks, layCars, roofSpan, roofAt, carUnder, alongTrain, train
 import { TRACK_SRC, FLUNG_SRC, FELL_SRC, trackDeath } from './deaths';
 import { unloadSpots } from './rivals';
 import { classicTragons } from './classic';
-import { buildBehind, startBehind, settleBehind, updateBehind, bvInLoop } from './behind/ride';
+import { buildBehind, startBehind, settleBehind, updateBehind, bvInLoop, setShotHook } from './behind/ride';
 import {
   SPIEL, SPIEL_VOICE, PIPER_T, LOAD, BOARD, NO_GUNS, FIRST_GAP, HOPPED, NEAR, DROP, LOOP_SEE, LOOP_IN, CORK_IN, BRAID, LOOP_OUT, SLIP,
   TUNNEL as TUNNEL_L, SPLASH, ARRIVE, CLOSED, RIVAL_UNLOAD, RIVAL_VOICES,
@@ -819,6 +819,33 @@ const arriveFromBehind = (state: GameState) => {
   const c = camTarget(state); t.cam.fx = c.fx; t.cam.fy = c.fy; t.cam.k = c.k; t.cam.on = 1;
   arrive(state);
 };
+/** A death on the ride from behind, seen from the side (behind/ride.ts toShot): the classic ride's picture of this very
+ *  moment (the park or the mountain's inside at this far along, the tracks' heights, the holes, the trains where they
+ *  are, the camera's framing), him on his dragon (or the dragon going over the end with him: deaths.ts draws that one),
+ *  or (flung, fallen) down on the lawn under it. */
+const shotOfRide = (state: GameState, how: 'track' | 'splat' | 'other', lane: Lane) => {
+  const t = tragonsOf(state), p = state.player, bv = t.bv!;
+  t.lane = lane; t.hop = null; t.lock = null; t.flung = how === 'splat';
+  eyeTo(t, true);
+  t.trains.forEach((tr, i) => { tr.t = 0; tr.phase = bv.trains[i].phase === 'ok' || bv.trains[i].phase === 'arrive' || (how === 'track' && i === lane) ? 'ok' : 'gone'; if (tr.phase === 'ok') layCars(t, tr); else tr.cars = []; });
+  const tr = trainOn(t, lane);
+  if (tr.cars.length) {
+    const at = alongTrain(tr, 0.15), m = tr.cars[1];
+    if (how === 'splat') { p.pos.x = at.x - p.width / 2; p.pos.y = GY - p.height; p.carried = false; }
+    else { p.pos.x = at.x - p.width / 2; p.pos.y = roofAt(tr, at.x) - p.height; p.carried = true; }
+    if (how === 'track') {
+      Object.assign(trackDeath, { cx: m.x, cy: m.y, a: m.a, d: m.d, lane });
+      // (the death draws the dragon going down with him: none of it left here to draw twice)
+      tr.phase = 'gone'; tr.cars = [];
+    }
+  }
+  for (const k of t.trains) placeBlocks(state, k);
+  const c = camTarget(state);
+  t.cam.fx = c.fx; t.cam.fy = how === 'splat' ? GY - 140 : c.fy; t.cam.k = how === 'splat' ? 0.8 : c.k; t.cam.on = 1; t.cam.kick = 0;
+  state.viewIsScreen = true;
+};
+setShotHook(shotOfRide);
+
 /** The dispatch's cut to behind him: this many frames out of the station, then a fade through black this long. */
 export const CUT_AT = 70, CUT_FADE = 16;
 

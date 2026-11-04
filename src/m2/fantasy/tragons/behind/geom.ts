@@ -136,15 +136,62 @@ export const trackAt = (rolls: Roll[], lane: Lane, s: number, o: TP): TP => {
 // The camera and the projection
 
 export interface Cam {
-  /** Where it is (world), how it's turned (canvas radians: the roll of his car undone, and the bank), its horizon's
-   *  screen row (pitched up and down with the hills). */
-  x: number; y: number; s: number; ang: number; hy: number;
+  /** Where it is (world: sideways, up, its track position s and how far along the drawn track that is, w), how it's
+   *  turned (canvas radians: the roll of his car undone, and the bank), its horizon's screen row (pitched up and down
+   *  with the hills). */
+  x: number; y: number; s: number; w: number; ang: number; hy: number;
 }
+
+// ---------------------------------------------------------------------------------------------------------------
+// The pace (the owner's: "speed it up a fair amount as it goes along. make sure the length of the track is lengthened
+// to make up for the speed difference"). The ride's clock is its track positions s (the classic ride's: the script,
+// the warnings, the checkpoints, the music all go by s, at the classic speeds, so they keep their time); the track as
+// it's drawn is longer than s by the pace, stepping up at the drops and the set pieces: w (how far along the drawn
+// track) = the sum of the pace over s. So the world goes by faster and faster, the obstacles' and warnings' timing
+// stays what it was in seconds, and the ride takes as long as it did.
+
+/** The pace's steps (old track positions; each eased in over PACE_EASE): the lift as it was, then a bit faster than
+ *  the first pass from the first drop on (the owner's: "a bit higher than the last time i tried"), a little lift at
+ *  each big drop. */
+const PACE: [number, number][] = ([
+  [0, 1], [5150, 1.22], [13850, 1.26], [23900, 1.29], [33250, 1.32],
+] as [number, number][]).map(([s, m]) => [stretch(s), m]);
+const PACE_EASE = 700;
+export const paceAt = (s: number) => {
+  let m = 1;
+  for (const [a, v] of PACE) { if (s <= a) break; const prev = m; m = prev + (v - prev) * sm((s - a) / PACE_EASE); if (s < a + PACE_EASE) return m; m = v; }
+  return m;
+};
+const W_STEP = 20, W_FROM = -4000;
+const W_TAB: number[] = (() => {
+  const out: number[] = [0];
+  for (let s = W_FROM; s < END_S + 12000; s += W_STEP) out.push(out[out.length - 1] + paceAt(s + W_STEP / 2) * W_STEP);
+  return out;
+})();
+/** How far along the drawn track track position s is. */
+export const wOf = (s: number) => {
+  const u = (s - W_FROM) / W_STEP, i = Math.max(0, Math.min(W_TAB.length - 2, Math.floor(u)));
+  return W_TAB[i] + (W_TAB[i + 1] - W_TAB[i]) * (u - i);
+};
+/** The track position that far along the drawn track. */
+export const sOfW = (w: number) => {
+  let lo = 0, hi = W_TAB.length - 1;
+  while (hi - lo > 1) { const m = (lo + hi) >> 1; if (W_TAB[m] <= w) lo = m; else hi = m; }
+  const d = W_TAB[hi] - W_TAB[lo] || 1;
+  return W_FROM + (lo + (w - W_TAB[lo]) / d) * W_STEP;
+};
+/** Where a car of the train is (0 his, the rear; 2 the front), the train's `dist` along: a car's length apart on the
+ *  drawn track. */
+export const carS = (dist: number, i: number) => (i === 0 ? dist + REAR : sOfW(wOf(dist + REAR) + i * CAR_L));
+/** The train's nose, on the drawn track (what runs into a broken end, under a pylon). */
+export const noseS = (dist: number) => sOfW(wOf(dist + REAR) + NOSE - REAR);
+/** How far ahead of the camera track position s is drawn. */
+export const zOf = (cam: Cam, s: number) => wOf(s) - cam.w;
 /** A projected point: screen x, y and its scale. */
 export interface SP { x: number; y: number; k: number }
 /** World (x, y, s) on screen (before the view's turned), or false behind the camera. */
 export const project = (cam: Cam, x: number, y: number, s: number, o: SP): boolean => {
-  const z = s - cam.s;
+  const z = wOf(s) - cam.w;
   if (z < 24) return false;
   const k = FOCAL / z;
   o.x = CANVAS_WIDTH / 2 + (x - cam.x) * k; o.y = cam.hy - (y - cam.y) * k; o.k = k;
