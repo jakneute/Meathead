@@ -27,21 +27,21 @@
 //   MASH IT         mash JUMP to push the gauge to the top before the time's up (it sinks back on its own).
 //
 // Each round ends on a TIER, said big with its own sound, and SUCCESS fills by it there and then (the new segments
-// flashing): PERFECT (double), GOOD (TIER_PAY.good), CLOSE (half that), NOTHING. There's no losing it (a bad round just
-// pays nothing). SUCCESS full: the clog blows clear, a CHARGE SHARD comes up out of the bowl (upgrades/state.ts: shards
+// flashing): PERFECT (double), GOOD (TIER_PAY.good), CLOSE (half that), NOTHING (takes a little back, drained red).
+// There's no losing it outright (the meter never goes under 0). SUCCESS full: the clog blows clear, a CHARGE SHARD comes up out of the bowl (upgrades/state.ts: shards
 // + 1, saved; kept in the save so it's never won twice: thrones.ts SHARD_ID), the card (the explain-screen buffer:
 // CARD_HOLD frames, every button let go, then a fresh press). Then it's a toilet like the others.
 //
-// THE NUMBERS, old (sim'd, a decent bot ~35-40 s to fill) and now (a decent player GOOD, GOOD, PERFECT: ~26 s, one go
-// round; all PERFECT: full after ON THE NOSE, ~20 s):
+// THE NUMBERS, old (sim'd, a decent bot ~35-40 s to fill) and now (a decent player GOOD, GOOD, PERFECT then a GOOD
+// line: ~36 s; all PERFECT: full at the end of the first MASH IT, ~25 s):
 //   the line's bar    BAR_H 0.26 -> 0.34 of the pipe; lift 0.0016 -> 0.0012 a frame held, fall 0.0016 -> 0.0011,
 //                     top speed 0.028 -> 0.018, and a drag (x0.96 a frame) so it doesn't sail; floor bounce 0.35 -> 0.15
 //   the turd          was: a new spot anywhere in the pipe every 30-100 frames, snapping to it (a quarter of the time in
 //                     ~10 frames). Now: a spring to a spot within 0.3 of where it is, every 60-130 frames, its speed
 //                     capped (0.009 a frame; a dash now and then 0.014); a calm first second; a hair of give round it
 //   the payout        was LINE_GAIN 0.0009 a frame on it / LINE_DRAIN 0.00036 off it, TAP +0.055 / +0.035 / -0.03 a
-//                     press, MASH +0.16 / -0.05. Now by tier, at the round's end: PERFECT 0.5, GOOD 0.25, CLOSE 0.12,
-//                     NOTHING 0. The line: >= 90% PERFECT, >= 65% GOOD, >= 35% CLOSE. On the nose: 5 hits PERFECT,
+//                     press, MASH +0.16 / -0.05. Now by tier, at the round's end: PERFECT 0.4, GOOD 0.2, CLOSE 0.1,
+//                     NOTHING -0.1 (the owner: "the success meter can go down a bit if you do poorly"; never under 0). The line: >= 90% PERFECT, >= 65% GOOD, >= 35% CLOSE. On the nose: 5 hits PERFECT,
 //                     3-4 GOOD, 1-2 CLOSE. Mash it: the top PERFECT, 70% up GOOD, 40% CLOSE.
 //   on the nose       sweet spot half-widths 0.03 / 0.085 -> 0.04 / 0.1
 //   mash it           a press 0.06 -> 0.07, the sink 0.0035 -> 0.0025 a frame, the line 80% -> the top (5 s)
@@ -77,8 +77,8 @@ type Tier = 'perfect' | 'good' | 'close' | 'nothing';
 /** Frames: a round's title; the turd line; a press's wait on the nose; MASH IT's time; a tier up (SUCCESS filling); the
  *  win (the geyser, the shard coming up) before the card; the card's buffer; the beat between the announcer's words. */
 const TITLE_T = 70, LINE_T = 420, TAP_WAIT = 210, TAP_N = 5, MASH_T = 300, GRADE_T = 90, WIN_T = 110, CARD_HOLD = 90, WORD_GAP = 22;
-/** SUCCESS (0..1) paid by a round's tier: PERFECT double GOOD, CLOSE about half. */
-export const TIER_PAY: Record<Tier, number> = { perfect: 0.5, good: 0.25, close: 0.12, nothing: 0 };
+/** SUCCESS (0..1) paid by a round's tier: PERFECT double GOOD, CLOSE half, NOTHING takes some back (never under 0). */
+export const TIER_PAY: Record<Tier, number> = { perfect: 0.4, good: 0.2, close: 0.1, nothing: -0.1 };
 const TIER_NAME: Record<Tier, string> = { perfect: 'PERFECT!', good: 'GOOD', close: 'CLOSE', nothing: 'NOTHING' };
 /** The line's cut-offs (the share on the turd), on the nose's (hits of five), mash it's (how far up it got). */
 const LINE_TIERS = [0.9, 0.65, 0.35], TAP_TIERS = [5, 3, 1], MASH_TIERS = [1, 0.7, 0.4];
@@ -156,11 +156,11 @@ const verdict = (pg: Plunge, text: string, good: boolean) => { pg.flash = text; 
 /** A round over: its tier, said big, its sound, SUCCESS filled by it now. */
 const grade = (state: GameState, pg: Plunge, tier: Tier) => {
   pg.tier = tier; pg.phase = 'grade'; pg.t = 0; pg.flash = null;
-  pg.fillFrom = pg.meter; pg.meter = Math.min(1, pg.meter + TIER_PAY[tier]); pg.fillTo = pg.meter;
+  pg.fillFrom = pg.meter; pg.meter = Math.max(0, Math.min(1, pg.meter + TIER_PAY[tier])); pg.fillTo = pg.meter;
   if (tier === 'perfect') { playSound('powerup', 0.9); playSound('ding', 0.8, 7); playSound('plunge_pop', 1, -6); pg.shake = 10; shakeScreen(state, 8, 6); }
   else if (tier === 'good') { playSound('ding', 0.8, 2); playSound('plunge_pop', 0.8, -2); pg.shake = 4; }
   else if (tier === 'close') { playSound('ding', 0.5, -5); playSound('plunge_gurgle', 0.6); }
-  else { playSound('fart', 0.7, -4); playSound('plunge_squelch', 0.6, 6); }
+  else { playSound('fart', 0.8, -6); playSound('plunge_gurgle', 0.7, -10); if (pg.fillTo < pg.fillFrom) { pg.shake = 5; shakeScreen(state, 4, 4); } }
 };
 /** A grunt, now and then (not over anybody). */
 const grunt = (state: GameState, pg: Plunge) => {
@@ -471,7 +471,11 @@ const meterTall = (c: Ctx, pg: Plunge, f: number) => {
       // (just paid: flashing)
       const fresh = pg.phase === 'grade' && lo >= pg.fillFrom - 1e-6 && lo < pg.fillTo - 1e-6;
       if (fresh && (f >> (perfect ? 1 : 2)) % 2 === 0) box(c, x + 1, yy, w - 2, hh, perfect ? 'rgba(255,255,255,0.85)' : 'rgba(255,255,255,0.45)');
-    } else box(c, x + 1, sy, w - 2, sh - 2, '#18181B');
+    } else {
+      box(c, x + 1, sy, w - 2, sh - 2, '#18181B');
+      // (just lost: drained, flashing red)
+      if (pg.phase === 'grade' && pg.fillTo < pg.fillFrom && lo >= pg.fillTo - 1e-6 && lo < pg.fillFrom - 1e-6 && (f >> 2) % 2 === 0) box(c, x + 1, sy, w - 2, sh - 2, 'rgba(239, 68, 68, 0.75)');
+    }
   }
   if (perfect && pg.t < 50) { const r = 10 + (pg.t % 10); c.strokeStyle = `rgba(255, 246, 192, ${1 - (pg.t % 10) / 10})`; c.lineWidth = 2; c.strokeRect(x - 2 - r * 0.3, y + h * (1 - pg.fillTo) - r * 0.3, w + 4 + r * 0.6, h * (pg.fillTo - pg.fillFrom) + r * 0.6); }
 };
@@ -547,7 +551,8 @@ export const drawPlungeHud = (c: Ctx, state: GameState, co: Coaster, pa: Said | 
     const face = pg.tier === 'perfect' ? ['#FFFFFF', '#FFF6C0', '#FDE047', '#EAB308'] : pg.tier === 'good' ? ['#DCFCE7', '#86EFAC', '#22C55E', '#15803D'] : pg.tier === 'close' ? ['#FFEDD5', '#FDBA74', '#F97316', '#C2410C'] : ['#E4E4E7', '#A1A1AA', '#71717A', '#3F3F46'];
     c.save(); c.translate(320, 92); c.scale(s, s); bigTxt(c, TIER_NAME[pg.tier], 0, 0, pg.tier === 'perfect' ? 30 : 24, face); c.restore();
     const paid = Math.round(TIER_PAY[pg.tier] * SEG);
-    txt(c, paid > 0 ? `+${paid} SUCCESS${pg.tier === 'perfect' ? '  x2!' : ''}` : 'NO SUCCESS', 320, 122, 9, paid > 0 ? '#FFF6C0' : '#A1A1AA', '#000000');
+    const lost = Math.round((pg.fillFrom - pg.fillTo) * SEG);
+    txt(c, paid > 0 ? `+${paid} SUCCESS${pg.tier === 'perfect' ? '  x2!' : ''}` : lost > 0 ? `-${lost} SUCCESS` : 'NO SUCCESS', 320, 122, 9, paid > 0 ? '#FFF6C0' : '#F87171', '#000000');
   }
   return true;
 };

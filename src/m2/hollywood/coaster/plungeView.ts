@@ -35,7 +35,7 @@ export const PLUNGE_POSES: PlungePose[] = ['ready', 'down', 'up', 'wobL', 'wobR'
 /** The picture (its own pixels), drawn 2x: the whole screen. */
 export const VIEW_W = 400, VIEW_H = 300, VIEW_S = 2;
 /** His figure's units into the picture; where his origin (the floor under his knees) sits. */
-const FK = 1.25, OX = 150, OY = 292;
+const FK = 1.25, OX = 140, OY = 292;
 
 /** Where the sun never gets (walkAway/meatheadBack.ts's). */
 const PALE = ['#A2704C', '#C9946A', '#E4B890', '#F3D0AC', '#FFE8CE'];
@@ -62,10 +62,10 @@ const POSES: Record<PlungePose, Pose> = {
   ready: { cup: 0, sq: 0, tilt: 0, lx: 0, ly: 0, hip: 0, sag: 0, strain: 0, fx: 'none' },
   down: { cup: 3, sq: 1, tilt: 0, lx: 3, ly: 6, hip: -2, sag: 0, strain: 0.3, fx: 'slosh' },
   up: { cup: -9, sq: -1, tilt: 0, lx: -2, ly: -5, hip: 2, sag: 3, strain: 0.7, fx: 'none' },
-  wobL: { cup: -5, sq: -0.5, tilt: -0.16, lx: -6, ly: -2, hip: 1, sag: 2, strain: 0.6, fx: 'none' },
-  wobR: { cup: -5, sq: -0.5, tilt: 0.16, lx: 6, ly: -2, hip: 1, sag: 2, strain: 0.6, fx: 'none' },
-  yank: { cup: -24, sq: -1.4, tilt: -0.08, lx: -4, ly: -11, hip: 4, sag: 6, strain: 1, fx: 'pop' },
-  fail: { cup: -6, sq: -0.4, tilt: -0.1, lx: -7, ly: -7, hip: 3, sag: 3, strain: 0.5, fx: 'burst' },
+  wobL: { cup: -5, sq: -0.5, tilt: -0.06, lx: -6, ly: -2, hip: 1, sag: 2, strain: 0.6, fx: 'none' },
+  wobR: { cup: -5, sq: -0.5, tilt: 0.06, lx: 6, ly: -2, hip: 1, sag: 2, strain: 0.6, fx: 'none' },
+  yank: { cup: -24, sq: -1.4, tilt: 0, lx: -4, ly: -11, hip: 4, sag: 6, strain: 1, fx: 'pop' },
+  fail: { cup: -6, sq: -0.4, tilt: -0.04, lx: -7, ly: -7, hip: 3, sag: 3, strain: 0.5, fx: 'burst' },
   win: { cup: 0, sq: 0, tilt: 0, lx: -2, ly: -10, hip: 2, sag: 4, strain: 0.8, fx: 'win' },
 };
 
@@ -108,10 +108,10 @@ const backdrop = (): HTMLCanvasElement => {
 // ---------------------------------------------------------------------------------------------------------------
 // The Godfather's Clog, front on (his units: its middle at TX, its foot on the floor at TF, further off than him)
 
-const TX = 88, TF = -52, RIM_Y = -112;
+const TX = 40, TF = -52, RIM_Y = -112;
 /** It painted smaller and lower than that (further off than him, its rim down at his belly), its foot on the floor at
  *  TFW: the rim at RIMW. */
-const TKS = 0.8, TFW = -40, RIMW = TFW + TKS * (RIM_Y - TF);
+const TKS = 1, TFW = -38, RIMW = TFW + TKS * (RIM_Y - TF);
 const toilet = (g: Ctx, clear: boolean) => {
   // (its shadow on the plinth)
   ellF(g, TX, TF, 34, 5, 'rgba(20, 10, 14, 0.35)');
@@ -194,10 +194,11 @@ const toilet = (g: Ctx, clear: boolean) => {
 
 interface Plunger { C: P2; v: P2; top: P2; hl: P2; hr: P2 }
 const plungerOf = (P: Pose): Plunger => {
-  const C: P2 = [TX - 6, RIMW - 1 + P.cup];
-  const a = -2.6 + P.tilt, v: P2 = [Math.cos(a), Math.sin(a)];
+  // (dead upright in the bowl's middle: straight down on a push, straight up on a pull; a wobble rocks it on its cup)
+  const C: P2 = [TX - 2, RIMW + 2 + P.cup];
+  const v: P2 = [Math.sin(P.tilt), -Math.cos(P.tilt)];
   const at = (k: number): P2 => [C[0] + v[0] * k, C[1] + v[1] * k];
-  return { C, v, top: at(68), hl: at(60), hr: at(16) };
+  return { C, v, top: at(54), hl: at(40), hr: at(24) };
 };
 const drawCup = (g: Ctx, C: P2, sq: number, a: number) => {
   // (a dome: wider and flatter on a push, taller and narrower on the pull, sucked in at its waist)
@@ -299,31 +300,52 @@ const back = (c: Ctx, ty: number, strain: number, curl: number) => {
   c.restore();
 };
 
-/** The back of his head (meatheadBack.ts's: the fade, the flat-top, the ears, the glasses' arms hooked behind them),
- *  turned a touch toward the bowl: the corner of his glasses' frame peeking past his cheek on the right. */
-const head = (c: Ctx, hy: number) => {
-  const S = SKIN;
-  poly(c, [[-13, -140 + hy], [13, -140 + hy], [12, -152 + hy], [-12, -152 + hy]], S[2]);
-  box(c, -12, -150 + hy, 4, 9, S[3]); box(c, 8, -150 + hy, 4, 9, S[1]); box(c, -1, -150 + hy, 2, 8, S[1]);
-  const hd = [[-13, -174 + hy], [13, -174 + hy], [14, -160 + hy], [12, -151 + hy], [-12, -151 + hy], [-14, -160 + hy]];
-  lump(c, -15, -163 + hy, 3, 4, S); lump(c, 15, -163 + hy, 3, 4, [S[0], S[1], S[1], S[2], S[2]]);
-  // (the frame's corner past his right cheek, the lens' edge catching the light)
-  box(c, 14, -168 + hy, 5, 8, INK); box(c, 15, -167 + hy, 3, 6, '#8EC5E8'); box(c, 15, -167 + hy, 1, 3, '#FFFFFF');
-  poly(c, hd, S[2]);
-  box(c, -13, -172 + hy, 4, 18, S[3]); box(c, 9, -172 + hy, 4, 18, S[1]);
-  c.fillStyle = stipple(c, mix(S[1], HAIR[2], 0.55)); c.fillRect(-13, -173 + hy, 26, 14);
-  c.fillStyle = stipple(c, mix(S[1], HAIR[2], 0.35), 1); c.fillRect(-13, -173 + hy, 26, 8);
-  box(c, -12, -173 + hy, 24, 3, mix(S[1], HAIR[2], 0.6));
-  box(c, -9, -153 + hy, 18, 1, S[0]); box(c, -8, -152 + hy, 16, 1, S[3]); box(c, -10, -156 + hy, 20, 1, S[1]);
-  box(c, -15, -186 + hy, 30, 14, INK); box(c, -14, -185 + hy, 28, 12, HAIR[2]); box(c, -14, -185 + hy, 28, 2, HAIR[4]);
-  for (let i = 0; i < 12; i++) box(c, -13 + i * 2.3, -183 + hy + (i % 2) * 4, 1, 3, HAIR[3]);
-  box(c, -14, -175 + hy, 28, 2, HAIR[1]);
-  walkHelmet(c, hy, false);
+/** The back of his head, bowed over the bowl: a thick neck up out of his traps (its two cords, the groove between),
+ *  the round of his skull lit from the left, his ears, the flat-top from behind (flat across the top, squared off,
+ *  its comb lines; clipped high and tight round the back to a short dark band), the arms of his thick glasses hooked
+ *  over his ears, the corner of the frame past his right temple. `base`: where the neck goes into the traps. */
+const head = (c: Ctx, cx: number, base: number) => {
+  const S = SKIN, top = base - 47;
+  // (the neck: as wide as his head, into the traps)
+  poly(c, [[cx - 15, base + 6], [cx + 15, base + 6], [cx + 12, base - 14], [cx - 12, base - 14]], S[2]);
+  box(c, cx - 14, base - 12, 5, 17, S[3]); box(c, cx + 9, base - 12, 5, 17, S[1]);
+  box(c, cx - 6, base - 13, 3, 18, S[3]); box(c, cx + 3, base - 13, 3, 18, S[2]); box(c, cx - 1, base - 13, 2, 18, S[1]);
+  box(c, cx - 11, base - 3, 22, 1, S[1]); box(c, cx - 10, base - 2, 20, 1, S[3]);
+  // (the ears, out each side, the inner fold dark)
+  for (const side of [-1, 1]) { const ex = cx + side * 16; ellF(c, ex, base - 22, 4.4, 6.2, INK); ellF(c, ex, base - 22, 3.4, 5.2, side < 0 ? S[3] : S[2]); ellF(c, ex - side * 0.6, base - 21, 1.6, 3, S[1]); }
+  // (the skull: a round, banded to the light)
+  ellF(c, cx, base - 25, 16, 18, INK);
+  ellF(c, cx, base - 25, 15, 17, S[1]);
+  ellF(c, cx - 1.5, base - 26, 13.4, 16, S[2]);
+  ellF(c, cx - 5, base - 27, 7, 11, S[3]);
+  box(c, cx - 8, base - 30, 2, 6, S[4]);
+  // (the fold of skin at the base of his skull)
+  box(c, cx - 9, base - 11, 18, 1, S[0]); box(c, cx - 8, base - 10, 16, 1, S[3]);
+  // THE FLAT-TOP from behind: the hair follows the round of his skull down its sides and stands up dead flat across
+  // the top, its corners squared; clipped short round the back of his skull to a band of dark stubble (solid, no smudge)
+  const hair = () => { c.beginPath(); c.ellipse(cx, base - 25, 15, 17, 0, Math.PI, Math.PI * 2); c.rect(cx - 14, top, 28, base - 25 - top); };
+  c.save(); c.beginPath(); c.ellipse(cx, base - 25, 15, 17, 0, 0, Math.PI * 2); c.clip();
+  box(c, cx - 16, base - 33, 32, 6, mix(S[1], HAIR[2], 0.6)); box(c, cx - 16, base - 27, 32, 2, mix(S[1], HAIR[2], 0.3));
+  c.restore();
+  c.save(); hair(); c.clip();
+  box(c, cx - 17, top - 1, 34, base - 32 - top, INK);
+  box(c, cx - 16, top + 1, 32, base - 34 - top, HAIR[2]);
+  box(c, cx - 16, top + 1, 32, 2, HAIR[4]); box(c, cx - 16, top + 3, 32, 1, HAIR[3]);
+  box(c, cx - 16, top + 1, 5, base - 34 - top, HAIR[3]); box(c, cx + 11, top + 4, 5, base - 37 - top, HAIR[1]);
+  for (let i = 0; i < 9; i++) box(c, cx - 13 + i * 3, top + 4 + (i % 3), 1, base - 40 - top - (i % 2) * 3, i < 4 ? HAIR[4] : HAIR[3]);
+  for (let i = 0; i < 6; i++) box(c, cx - 12 + i * 4.5, top + 2, 2, 1, HAIR[4]);
+  box(c, cx - 16, base - 36, 32, 2, HAIR[1]);
+  c.restore();
+  // (the helmet, if he's got it: walkArmor.ts's, its flat-top's top at -186 there)
+  c.save(); c.translate(cx, 0); walkHelmet(c, top + 186, false); c.restore();
+  // (his glasses: the thick black arms over the tops of his ears and hooked down behind them; the frame's corner)
   for (const side of [-1, 1]) {
-    const ax = side < 0 ? -18 : 13;
-    box(c, ax, -167 + hy, 5, 2, INK); box(c, side < 0 ? ax : ax + 4, -165 + hy, 1, 4, INK);
-    box(c, ax + 1, -167 + hy, 3, 1, BAND[3]); box(c, side < 0 ? ax + 1 : ax + 3, -167 + hy, 1, 1, BAND[4]);
+    const ex = cx + side * 16;
+    box(c, Math.min(ex, cx + side * 11) - (side > 0 ? 0 : 2), base - 28, 7, 3, INK);
+    box(c, ex + side * 1 - (side < 0 ? 1 : 0), base - 27, 2, 6, INK);
+    box(c, Math.min(ex, cx + side * 11) - (side > 0 ? 0 : 1), base - 28, 5, 1, BAND[3]);
   }
+  box(c, cx + 16, base - 32, 5, 9, INK); box(c, cx + 17, base - 31, 3, 7, '#8EC5E8'); box(c, cx + 17, base - 31, 1, 3, '#FFFFFF');
 };
 
 /** A fist round the handle (the back of his hand, the knuckles' ridge), the glove over it if he's got the hands. */
@@ -333,82 +355,98 @@ const gripFist = (c: Ctx, x: number, y: number, a: number) => {
   walkFist(c, x, y, 7, a);
 };
 
-/** His seat, the belt, the crack (the jeans riding down by `sag` more), by pants; `hy` the seat's middle. */
-const seat = (c: Ctx, hy: number, waist: number, sag: number, pants: PlungePants, t: number) => {
+/** A cheek: a round, banded the SNES way (its shade low and out, its midtone, the light high and in, a glint). */
+const cheek = (c: Ctx, x: number, y: number, rx: number, ry: number, R: string[], side: number, ink = true) => {
+  if (ink) ellF(c, x, y, rx + 1, ry + 1, INK);
+  ellF(c, x, y, rx, ry, R[1]);
+  ellF(c, x - side * rx * 0.08 - rx * 0.06, y - ry * 0.1, rx * 0.86, ry * 0.84, R[2]);
+  ellF(c, x - rx * 0.28, y - ry * 0.3, rx * 0.5, ry * 0.46, R[3]);
+  box(c, x - rx * 0.46, y - ry * 0.56, Math.max(2, rx * 0.2), Math.max(1, ry * 0.14), R[4]);
+};
+
+/** His seat: his lower back running down from his back (`tb`, the bottom of it) into the jeans, the waistband sagging
+ *  in a curve below the tops of his cheeks (`sag` more on a pull), the belt riding down with it, the crack running down
+ *  into the jeans; the seat's two cheeks, the seam, the back pockets. Shitty: the seat soaked through. Nude: the full
+ *  moon. `hy`: the seat's middle. */
+const seat = (c: Ctx, tb: number, hy: number, sag: number, pants: PlungePants) => {
   const S = SKIN;
-  // (his lower back down to the jeans: bare skin, the dimples either side of his spine)
-  const wb = waist + 7 + sag * 1.3;
-  poly(c, [[-26, waist - 4], [26, waist - 4], [29, wb + 4], [-29, wb + 4]], S[2], null);
-  box(c, -26, waist - 4, 4, wb - waist + 8, S[3]); box(c, 23, waist - 4, 4, wb - waist + 8, S[1]);
-  box(c, -9, waist + 1, 3, 2, S[1]); box(c, 6, waist + 1, 3, 2, S[1]);
+  const side0 = Math.min(hy - 14, tb + 10), mid0 = side0 + 8 + (sag + 3) * 1.4;
+  const band = (x: number) => side0 + (mid0 - side0) * (1 - (x / 31) ** 2);
+  // (his lower back, from his back right down to below the waistband: no gap, the sides shaded round)
+  poly(c, [[-25, tb - 3], [25, tb - 3], [30, side0 + 4], [31, side0 + 8], [-31, side0 + 8], [-30, side0 + 4]], S[2], null);
+  poly(c, [[-25, tb - 3], [-19, tb - 3], [-24, side0 + 8], [-31, side0 + 8], [-30, side0 + 4]], S[3], null);
+  poly(c, [[25, tb - 3], [19, tb - 3], [24, side0 + 8], [31, side0 + 8], [30, side0 + 4]], S[1], null);
+  box(c, -1, tb - 3, 2, side0 - tb + 4, S[1]);
+  box(c, -10, tb + 3, 4, 2, S[1]); box(c, 6, tb + 3, 4, 2, S[1]);
   if (pants === 'nude') {
-    // THE FULL MOON: white as the rest of him isn't, two great cheeks, the crack top to bottom, hairy; between his
-    // thighs, under them, the lot hanging
+    // THE FULL MOON: white as the rest of him isn't (the tan line where his jeans sat), two great cheeks banded round,
+    // the crack top to bottom, the hair in it; under them, between his thighs, the lot hanging
     const R = PALE;
-    c.fillStyle = stipple(c, PALE[2]); c.fillRect(-28, wb - 2, 56, 3);
+    box(c, -30, side0 + 2, 60, 2, mix(S[2], R[2], 0.5));
     poly(c, [[-5, hy + 12], [5, hy + 12], [6, hy + 30], [-6, hy + 30]], '#2A160A', null);
     const by = hy + 22;
-    c.fillStyle = '#1C0E06'; c.beginPath(); c.ellipse(0, hy + 18, 6, 3, 0, 0, Math.PI * 2); c.fill();
+    ellF(c, 0, hy + 18, 6, 3, '#1C0E06');
     lump(c, -3.5, by, 6, 7, SACK); lump(c, 4, by + 1, 6, 7, [SACK[0], SACK[1], SACK[2], SACK[2], SACK[3]]);
     for (let k = 0; k < 3; k++) box(c, -6 + k * 3, by - 1 + k * 2, 3, 1, SACK[1]);
     box(c, -7, by - 6, 1, 2, INK); box(c, 6, by - 5, 1, 2, INK); box(c, 1, by + 7, 1, 2, INK);
     for (const side of [-1, 1]) {
-      lump(c, side * 15, hy + 4, 17, 16, side < 0 ? R : [R[0], R[1], R[2], R[2], R[3]], true);
-      box(c, side * 15 - 12, hy + 19, 24, 1, R[0]); box(c, side * 15 - 10, hy + 18, 20, 1, R[1]);
-      // (the hair on it)
-      for (let i = 0; i < 9; i++) box(c, side * 15 - 11 + hash(i * 2.3 + side) * 22, hy - 8 + hash(i * 4.1 + side) * 22, 1, 2, R[0]);
-      // (a zit)
-      if (side > 0) { box(c, 18, hy - 2, 2, 2, '#D9534F'); box(c, 18, hy - 2, 1, 1, '#FFF1E0'); }
+      cheek(c, side * 14.5, hy + 2, 16, 17, R, side);
+      box(c, side * 14.5 - 11, hy + 17, 22, 1, R[0]);
+      for (let i = 0; i < 8; i++) box(c, side * 14.5 - 10 + hash(i * 2.3 + side) * 20, hy - 9 + hash(i * 4.1 + side) * 20, 1, 2, R[1]);
+      if (side > 0) { box(c, 18, hy - 3, 2, 2, '#D9534F'); box(c, 18, hy - 3, 1, 1, '#FFF1E0'); }
     }
-    // (the crack, top to bottom, deepening as it goes)
-    box(c, -1, wb - 2, 2, 6, R[1]); box(c, -1, wb + 4, 3, hy + 18 - wb - 4, R[0]); box(c, 0, wb + 4, 1, hy + 16 - wb - 4, INK);
-    for (let i = 0; i < 6; i++) box(c, -3 + (i % 2) * 5, wb + 2 + i * 3, 1, 2, '#3A2414');
+    // (the crack: from the small of his back down between them, the shade either side of it)
+    const ct = side0 - 2;
+    box(c, -2, ct, 4, hy + 17 - ct, R[1]); box(c, -1, ct + 2, 2, hy + 15 - ct, R[0]); box(c, 0, ct + 4, 1, hy + 12 - ct, INK);
+    for (let i = 0; i < 5; i++) box(c, -3 + (i % 2) * 5, ct + 1 + i * 2, 1, 2, '#3A2414');
     return;
   }
-  // The jeans, ridden down: the seat, the cheeks lit, the back pockets, the yoke, a crack's worth of him above them
-  const R = JEANS;
-  const top = wb, bot = hy + 20;
-  const jean = [[-30, top], [-2, top + 3], [2, top + 3], [30, top], [32, hy + 6], [28, bot - 2], [16, bot + 1], [4, bot - 2], [0, bot - 4], [-4, bot - 2], [-16, bot + 1], [-28, bot - 2], [-32, hy + 6]];
-  poly(c, jean, R[2]);
+  // The tops of his cheeks, up out of the jeans (whiter than his back), the crack between them running down in
+  const R = PALE;
+  c.save(); c.beginPath(); c.rect(-34, mid0 - 30, 68, 40); c.clip();
+  for (const side of [-1, 1]) cheek(c, side * 12.5, mid0 + 3, 13.5, 13, R, side, false);
+  c.restore();
+  const ct = mid0 - 13 - sag;
+  box(c, -2, ct, 4, mid0 - ct + 4, R[1]); box(c, -1, ct + 1, 2, mid0 - ct + 3, R[0]); box(c, 0, ct + 3, 1, mid0 - ct + 1, INK);
+  for (let i = 0; i < 6; i++) box(c, -4 + (i % 3) * 3 + (i > 2 ? 1 : 0), ct - 1 + i * 1.6, 1, 2, '#3A2414');
+  if (pants === 'shitty') { box(c, -1, mid0 - 3, 3, 4, STAIN[1]); box(c, 0, mid0 - 3, 1, 1, STAIN[3]); }
+  // The jeans: the top along the sagging waistband, the seat round over his cheeks, banded, the seam, the pockets
+  const J = JEANS, bot = hy + 20;
+  const jean: number[][] = [];
+  for (let x = -32; x <= 32; x += 4) jean.push([x, band(x) + 1]);
+  jean.push([33, hy + 4], [30, bot - 3], [18, bot + 1], [6, bot - 1], [0, bot - 4], [-6, bot - 1], [-18, bot + 1], [-30, bot - 3], [-33, hy + 4]);
+  poly(c, jean, J[1]);
   c.save(); path(c, jean); c.clip();
+  for (const side of [-1, 1]) cheek(c, side * 15, hy + 3, 16.5, 16, J, side, false);
+  // (the seam down the middle into the crotch, gold stitched beside it; the yoke across under the band)
+  c.strokeStyle = J[0]; c.lineWidth = 2; c.beginPath(); c.moveTo(0, mid0); c.quadraticCurveTo(0.5, hy + 4, 0, bot - 2); c.stroke();
+  c.strokeStyle = GOLD[0]; c.lineWidth = 1; c.beginPath(); c.moveTo(2, mid0 + 1); c.quadraticCurveTo(2.5, hy + 4, 2, bot - 4); c.stroke();
+  c.strokeStyle = J[1]; c.beginPath(); for (let x = -32; x <= 32; x += 4) { const y = band(x) + 7 + Math.abs(x) * 0.06; x === -32 ? c.moveTo(x, y) : c.lineTo(x, y); } c.stroke();
   for (const side of [-1, 1]) {
-    ellF(c, side * 15 - 4, hy + 2, 10, 8, R[3]); ellF(c, side * 15 - 6, hy - 1, 4, 3, R[4]);
-    box(c, side * 15 - 12, bot - 3, 24, 1, R[1]);
-    const px = side * 15, py = top + 7;
-    const pk = [[px - 9, py], [px + 9, py], [px + 8, py + 12], [px, py + 15], [px - 8, py + 12]];
-    poly(c, pk, R[2], R[0]);
-    c.fillStyle = GOLD[1]; for (let k = -6; k <= 6; k += 2) c.fillRect(Math.round(px + k), Math.round(py + 4 - Math.abs(k) * 0.35), 1, 1);
-    box(c, px - 9, py + 1, 18, 1, R[3]);
+    // (the back pocket: on the cheek, tipped with it, its stitching, the wings on it)
+    const px = side * 15, py = band(px) + 11;
+    const pk = [[px - 8, py], [px + 8, py], [px + 7, py + 11], [px, py + 14], [px - 7, py + 11]];
+    poly(c, pk, side < 0 ? J[3] : J[2], J[0]);
+    c.fillStyle = GOLD[1]; for (let k = -6; k <= 6; k += 2) c.fillRect(Math.round(px + k), Math.round(py + 5 - Math.abs(k) * 0.4), 1, 1);
+    box(c, px - 7, py + 1, 14, 1, J[4]);
+    box(c, side * 15 - 12, bot - 4, 24, 1, J[0]);
   }
-  c.strokeStyle = R[4]; c.lineWidth = 1; c.beginPath(); c.arc(15, top + 14, 4, 0, Math.PI * 2); c.stroke();
-  box(c, -1, top + 3, 2, bot - top - 6, R[0]); box(c, 1, top + 3, 1, bot - top - 8, GOLD[0]);
-  box(c, -32, top, 4, 30, R[3]); box(c, 28, top, 4, 30, R[1]);
+  // (the ring a can of dip's worn into his right pocket)
+  c.strokeStyle = J[4]; c.beginPath(); c.arc(15, band(15) + 17, 3.5, 0, Math.PI * 2); c.stroke();
   if (pants === 'shitty') {
-    // (the seat soaked through: dark in the middle, a wet shine, stippled out round its edge, running)
-    c.fillStyle = stipple(c, STAIN[1], 1); c.beginPath(); c.ellipse(0, hy + 10, 26, 15, 0, 0, Math.PI * 2); c.fill();
-    ellF(c, 0, hy + 11, 19, 11, STAIN[1]); ellF(c, 0, hy + 13, 10, 7, STAIN[0]);
-    box(c, -8, hy + 4, 4, 1, STAIN[3]); box(c, 5, hy + 6, 2, 1, STAIN[3]); box(c, -5, hy + 5, 1, 1, '#C8A070');
+    // (the seat soaked through: dark in the middle, stippled out round its edge, a wet shine, running)
+    c.fillStyle = stipple(c, STAIN[1], 1); c.beginPath(); c.ellipse(0, hy + 9, 24, 15, 0, 0, Math.PI * 2); c.fill();
+    ellF(c, 0, hy + 10, 17, 11, STAIN[1]); ellF(c, 0, hy + 13, 9, 7, STAIN[0]);
+    box(c, -8, hy + 3, 4, 1, STAIN[3]); box(c, 5, hy + 5, 2, 1, STAIN[3]); box(c, -5, hy + 4, 1, 1, '#C8A070');
     for (const [x, l] of [[-12, 9], [7, 12], [16, 6]] as const) box(c, x, hy + 18, 2, l, STAIN[1]);
   }
   c.restore();
-  // (the belt, ridden down with them, sagging at the middle; the crack up out of it)
-  const belt = [[-31, top - 7], [0, top - 4], [31, top - 7], [31, top + 2], [0, top + 5], [-31, top + 2]];
-  poly(c, belt, BELT[2]);
-  c.save(); path(c, belt); c.clip();
-  box(c, -32, top - 7, 64, 2, BELT[3]); box(c, -32, top + 1, 64, 4, BELT[1]);
-  for (let i = -28; i < 28; i += 3) box(c, i, top - 4 + Math.abs(i) * -0.1, 1, 1, BELT[4]);
-  box(c, -28, top - 7, 6, 10, BELT[1]);
-  c.restore();
-  // THE CRACK: up out of the belt, a dark cleft, hair round it
-  const ch = 10 + sag * 1.6;
-  box(c, -2, top - 6 - ch, 4, ch + 2, S[1]); box(c, -1, top - 6 - ch + 1, 2, ch + 1, S[0]); box(c, 0, top - 6 - ch + 3, 1, ch - 1, INK);
-  for (const side of [-1, 1]) { lump(c, side * 6, top - 7, 7, 4, side < 0 ? S : [S[0], S[1], S[2], S[2], S[3]], false); }
-  for (let i = 0; i < 7; i++) box(c, -4 + (i % 3) * 3 + (i > 3 ? 1 : 0), top - 7 - ch + i * (ch / 7), 1, 2, '#3A2414');
-  if (pants === 'shitty') {
-    // (it's up out of the crack too)
-    box(c, -1, top - 8, 3, 3, STAIN[1]); box(c, 0, top - 8, 1, 1, STAIN[3]);
-  }
-  void t;
+  path(c, jean); c.strokeStyle = INK; c.lineWidth = 1; c.stroke();
+  // The belt: riding down with them, along the band's curve, its loops, the tail through a keeper
+  const along = (dy: number, w: number, col: string) => { c.strokeStyle = col; c.lineWidth = w; c.beginPath(); for (let x = -32; x <= 32; x += 2) { const y = band(x) + dy; x === -32 ? c.moveTo(x, y) : c.lineTo(x, y); } c.stroke(); };
+  along(3.5, 8, INK); along(3.5, 6, BELT[2]); along(1.5, 1, BELT[4]); along(5.5, 1.5, BELT[1]);
+  for (const x of [-28, -14, 14, 28]) { const y = band(x); box(c, x - 1, y, 3, 8, INK); box(c, x - 0.5, y + 1, 2, 6, J[2]); }
+  for (let x = -26; x <= 26; x += 4) box(c, x, band(x) + 3, 1, 1, BELT[3]);
 };
 
 /** The stink coming up off his seat (shitty pants), painted in its frame: wavy lines going up, greenish brown. */
@@ -445,6 +483,8 @@ const paintFrame = (pose: PlungePose, pants: PlungePants): HTMLCanvasElement => 
     drawCup(g, pl.C, P.sq, ang);
     if (P.fx === 'pop') { ellF(g, pl.C[0] - 2, pl.C[1] + 1, 9, 3, INK); ellF(g, pl.C[0] - 2, pl.C[1] + 0.5, 8, 2.2, POO[2]); box(g, pl.C[0] - 6, pl.C[1], 3, 1, POO[4]); }
     else murkLip(g, pl.C, P.fx, clear);
+    // (the handle, straight up out of it to his fists: in front of his chest, so his back and his shoulders are over it)
+    drawHandle(g, pl, [pl.C[0] + pl.v[0] * 8, pl.C[1] + pl.v[1] * 8]);
   }
 
   // Him: kneeling (his walk-away figure dropped by his thighs), leaning in over it
@@ -491,17 +531,16 @@ const paintFrame = (pose: PlungePose, pants: PlungePants): HTMLCanvasElement => 
   // his head); the right's out round his side to the handle's foot)
   if (!win) drawArm(aL);
   // (his seat)
-  seat(g, hipY - 2, waist + 16, P.sag, pants, 0);
+  const tb = waist + (-84 + ty - waist) * squash;
+  seat(g, tb, hipY - 2, P.sag, pants);
   g.save(); g.translate(0, waist); g.scale(1, squash); g.translate(0, -waist);
   back(g, ty, P.strain, curl);
   walkAmulet(g, ty, false, 0);
   walkCapeBack(g, ty, 0.5, 0);
   g.restore();
   // (his head, bowed down between his shoulders over the bowl: the flat-top and the back of his skull over his traps)
-  const hy = waist + (-147 + ty - waist) * squash + 147 + 6 + Math.max(0, P.ly) * 0.8;
-  g.save(); g.translate(lx * 1.3, -140 + hy); g.scale(1.08, 0.74); g.translate(0, 140 - hy); head(g, hy); g.restore();
-  // (the handle, up out of the murk past his right shoulder to his fists)
-  if (!win) drawHandle(g, pl, [pl.C[0] + pl.v[0] * 8, pl.C[1] + pl.v[1] * 8]);
+  const trap = waist + (-147 + ty - waist) * squash;
+  head(g, lx * 1.2, trap + 16 + Math.max(0, P.ly) * 0.8);
   // (the win: the plunger held up high in his left, the cup dripping)
   if (win) {
     const top: P2 = [hl[0] + 4, hl[1] - 54];
@@ -569,4 +608,4 @@ export const drawPlungeView = (c: Ctx, pose: PlungePose, pants: PlungePants, f: 
   }
 };
 /** Where the bowl's mouth is on the screen (the shard coming up out of it). */
-export const viewBowl = (): [number, number] => [(OX + (TX - 6) * FK) * VIEW_S - 4, (OY + RIMW * FK) * VIEW_S - 4];
+export const viewBowl = (): [number, number] => [(OX + (TX - 2) * FK) * VIEW_S - 4, (OY + RIMW * FK) * VIEW_S - 4];
