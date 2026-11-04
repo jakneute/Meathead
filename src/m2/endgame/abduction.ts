@@ -6,7 +6,7 @@
 // In the garage first (intro/index.ts's walk out, at his truck): he climbs back in through the window (the door's
 // still stuck from the crash this morning), the place rumbles, the roof over the truck bursts (chunks down, dust), a
 // pink beam down through the hole, and up the truck goes. Then the cutscene proper, the gym's way (intro/gym/scene.ts:
-// the 256 x 144 pictures, endgame/shots.ts), the words in speech bubbles. No HUD from the first frame (introCutscene),
+// the 256 x 144 pictures, endgame/shots.ts), the words in the box along the bottom (the owner's: "full cutscene mode" shows the spoken text on the bottom of the screen, not bubbles). No HUD from the first frame (introCutscene),
 // no input, nobody talking over anybody; SKIP skips the lot, garage and all, to the lot with him out of the truck.
 
 import type { GameState } from '../../m1/game/core/state';
@@ -22,7 +22,7 @@ import { pixelBlob, steppedGlow } from '../intro/art/kit';
 import {
   type Dressed, SAUCER_VOICE, SATAN_VOICE, WIFE_HELLO, WIFE_STANDBY, MH_STANDBY, WIFE_ANSWER, WIFE_PLAN, SATAN_GRAB, WIFE_GRABBED, SATAN_CLAIM, MH_OWE, MH_THROWN,
 } from './lines';
-import { clip, resetClip, shotWife, shotCab, shotWide, shotFlight, shotCrash, WIFE_MOUTH, MH_MOUTH, SATAN_MOUTH, UFO_MOUTH, FLIGHT_MOUTH } from './shots';
+import { clip, resetClip, shotWife, shotCab, shotWide, shotFlight, shotCrash } from './shots';
 
 type Ctx = CanvasRenderingContext2D;
 
@@ -66,20 +66,20 @@ export const abductionLift = (a: Abduction) => {
 };
 
 const beats = (d: Dressed): Beat[] => [
-  { shot: shotWife, who: 'ZARBLAX', voice: SAUCER_VOICE.id, text: pickLine(WIFE_HELLO[d]), at: WIFE_MOUTH, wait: 30, enter: sfx('whirl', 0.6, -8) },
-  { shot: shotWife, who: 'ZARBLAX', voice: SAUCER_VOICE.id, text: pickLine(WIFE_STANDBY[d]), at: WIFE_MOUTH },
-  { shot: shotCab('dumb'), who: 'MEATHEAD', voice: 'meathead', text: pickLine(MH_STANDBY[d]), at: MH_MOUTH, wait: 14 },
-  { shot: shotWife, who: 'ZARBLAX', voice: SAUCER_VOICE.id, text: WIFE_ANSWER, at: WIFE_MOUTH },
-  { shot: shotWife, who: 'ZARBLAX', voice: SAUCER_VOICE.id, text: pickLine(WIFE_PLAN[d]), at: WIFE_MOUTH, hold: 20 },
+  { shot: shotWife, who: 'ZARBLAX', voice: SAUCER_VOICE.id, text: pickLine(WIFE_HELLO[d]), wait: 30, enter: sfx('whirl', 0.6, -8) },
+  { shot: shotWife, who: 'ZARBLAX', voice: SAUCER_VOICE.id, text: pickLine(WIFE_STANDBY[d]) },
+  { shot: shotCab('dumb'), who: 'MEATHEAD', voice: 'meathead', text: pickLine(MH_STANDBY[d]), wait: 14 },
+  { shot: shotWife, who: 'ZARBLAX', voice: SAUCER_VOICE.id, text: WIFE_ANSWER },
+  { shot: shotWife, who: 'ZARBLAX', voice: SAUCER_VOICE.id, text: pickLine(WIFE_PLAN[d]), hold: 20 },
   // Outside: the ground splits, Satan comes up out of it
   { shot: shotWide, hold: 140, enter: () => { clip.rise = clip.t; playSound('rumble', 1, -6); playSound('roar', 0.8, -10); } },
-  { shot: shotWide, who: 'SATAN', voice: SATAN_VOICE.id, text: SATAN_GRAB, at: SATAN_MOUTH, enter: () => { clip.grab = clip.t; playSound('clang', 0.9, -8); playSound('crunch', 0.8, -4); } },
-  { shot: shotWide, who: 'ZARBLAX', voice: SAUCER_VOICE.id, text: WIFE_GRABBED, at: UFO_MOUTH, hold: 10 },
-  { shot: shotWide, who: 'SATAN', voice: SATAN_VOICE.id, text: SATAN_CLAIM, at: SATAN_MOUTH, wait: 24, enter: () => { clip.catch = clip.t; playSound('thud', 0.8, -6); } },
-  { shot: shotCab('dumb', true), who: 'MEATHEAD', voice: 'meathead', text: pickLine(MH_OWE[d]), at: MH_MOUTH, wait: 10 },
+  { shot: shotWide, who: 'SATAN', voice: SATAN_VOICE.id, text: SATAN_GRAB, enter: () => { clip.grab = clip.t; playSound('clang', 0.9, -8); playSound('crunch', 0.8, -4); } },
+  { shot: shotWide, who: 'ZARBLAX', voice: SAUCER_VOICE.id, text: WIFE_GRABBED, hold: 10 },
+  { shot: shotWide, who: 'SATAN', voice: SATAN_VOICE.id, text: SATAN_CLAIM, wait: 24, enter: () => { clip.catch = clip.t; playSound('thud', 0.8, -6); } },
+  { shot: shotCab('dumb', true), who: 'MEATHEAD', voice: 'meathead', text: pickLine(MH_OWE[d]), wait: 10 },
   // The throw
   { shot: shotWide, hold: 60, enter: () => { clip.throw = clip.t; playSound('whoosh', 1, -6); playSound('screams', 0.5, 8); } },
-  { shot: shotFlight, who: 'MEATHEAD', voice: 'meathead', text: pickLine(MH_THROWN[d]), at: FLIGHT_MOUTH, wait: 10, hold: 20, enter: sfx('whoosh', 0.7, -2) },
+  { shot: shotFlight, who: 'MEATHEAD', voice: 'meathead', text: pickLine(MH_THROWN[d]), wait: 10, hold: 20, enter: sfx('whoosh', 0.7, -2) },
   { shot: shotCrash, hold: 90, enter: () => { setTimeout(() => { playSound('crash', 1); playSound('crunch', 1, -6); playSound('glass', 0.8); }, 430); } },
 ];
 
