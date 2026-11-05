@@ -24,6 +24,7 @@ import { holdingOff, mid, safeAhead } from '../../../m1/game/enemies/kinds';
 import { shakeScreen } from '../../../m1/game/core/state';
 import { hurtPlayer } from '../../../m1/game/bosses/shared';
 import { helmetStopsAt } from '../../upgrades/gear';
+import { tubeRide } from '../../weapons/tubeRide';
 import { playSound } from '../../../m1/game/platform/audio';
 import { CANVAS_WIDTH, CANVAS_HEIGHT, HUD_CLEAR_X, HUD_CLEAR_Y } from '../../../m1/constants';
 import { pickLine } from '../../../m1/game/platform/speech';
@@ -55,6 +56,9 @@ const sees = (state: GameState, e: Enemy, rx: number, ry: number) => {
 let riding: (state: GameState) => boolean = () => false;
 /** On a tube ride: the hover aliens waiting their turn behind him (tube.ts says): they keep back and don't fire. */
 export const QUEUED = new WeakSet<Enemy>();
+/** On a tube ride: how long the ones out in front wait between shots down at him (the ride says: the Abyss's sooner). */
+let rideAim = 120;
+export const setRideAim = (frames: number) => { rideAim = frames; };
 export const setRidingCheck = (f: (state: GameState) => boolean) => { riding = f; };
 /** His box as the shots see it (riding a tube, it's the tube's say: ducked, it's low). Set by the stage. */
 let boxOf: (state: GameState) => { x: number; y: number; w: number; h: number } = s => ({ x: s.player.pos.x, y: s.player.pos.y, w: s.player.width, h: s.player.height });
@@ -64,7 +68,9 @@ export const setShotBox = (f: typeof boxOf) => { boxOf = f; };
 // What's fired: bolts (straight, Zorblax's pink), the kid's (green), the kid's ice balls (lobbed), the yeti's shockwave
 // (along the floor)
 
-export interface Shot { x: number; y: number; vx: number; vy: number; kind: 'bolt' | 'kid' | 'snow' | 'wave'; t: number; floor?: number; src: string; dmg: number }
+export interface Shot { x: number; y: number; vx: number; vy: number; kind: 'bolt' | 'kid' | 'snow' | 'wave'; t: number; floor?: number; src: string; dmg: number;
+  /** Fired back along a tube's chute: kept this high over it as it goes (up its rises, down its dips: tube.ts). */
+  overChute?: number }
 const SHOTS = new WeakMap<GameState, Shot[]>();
 export const shotsOf = (state: GameState) => { let s = SHOTS.get(state); if (!s) { s = []; SHOTS.set(state, s); } return s; };
 export const clearShots = (state: GameState) => { shotsOf(state).length = 0; };
@@ -330,12 +336,15 @@ const hover = (ctx: FrameContext, e: Enemy) => {
   const tx = ride ? p.x + (queued ? -150 - (seedOf(e) % 3) * 40 : 180 + (seedOf(e) % 3) * 50) - e.width / 2 : awake ? Math.max(hx - 280, Math.min(hx + 280, p.x + side * 220 - e.width / 2)) : hx;
   const ty = (ride ? p.y - (queued ? 230 : 170 + (seedOf(e) % 2) * 50) : Math.min(hy, awake ? p.y - 200 : hy)) + Math.sin((state.frame + seedOf(e)) * 0.06) * 10;
   const k = ride ? 0.12 : 0.03;
-  e.vel.x = Math.max(-14, Math.min(14, (tx - e.pos.x) * k + (ride ? pl.vel.x : 0)));
-  e.vel.y = Math.max(-4, Math.min(4, (ty - e.pos.y) * 0.05));
+  // (on a tube: carried along at the chute's pace, whatever it is (its fast stretches), and keeping up with him down
+  // its drops and up its climbs)
+  const pace = ride ? tubeRide(state)?.speed ?? pl.vel.x : 0;
+  e.vel.x = Math.max(-18, Math.min(18, (tx - e.pos.x) * k + pace));
+  e.vel.y = ride ? Math.max(-10, Math.min(10, (ty - e.pos.y) * 0.12)) : Math.max(-4, Math.min(4, (ty - e.pos.y) * 0.05));
   e.facing = dirTo(e, p.x);
   switch (e.aiState) {
     default:
-      if (awake && !queued && e.aiTimer > (ride ? 120 : 100) && !holdingOff(state)) set(e, 'aim');
+      if (awake && !queued && e.aiTimer > (ride ? rideAim : 100) && !holdingOff(state)) set(e, 'aim');
       break;
     case 'aim':
       if (e.aiTimer === 28) fireBolt(state, m.x + e.facing! * 20, m.y + 4, p.x + (ride ? pl.vel.x * 14 : 0), p.y, ride ? 6 : 5.5, 'm2:wp_bolt', 10);
@@ -405,8 +414,12 @@ const trooperPose = (e: Enemy): AlienPose => ((e.hitFlash ?? 0) > 0 ? 'hurt' : e
 const gender = (e: Enemy) => (guestOf(seedOf(e)).woman ? 'f' : 'm') as 'm' | 'f';
 
 const flyer = (b: Enemy): Enemy => ({ ...b, enemyType: 'flyer', initialY: b.pos.y });
-registerM2Kind({ kind: DGUEST, stats: { w: 36, h: 70, hp: 220, contact: 12, mass: 190 }, ai: dguest, humanoid: true, gender, head: { x: 3, y: -64, r: 10 }, draw: (c, e, f) => drawGuest(c, guestOf(seedOf(e)), 'demon', guestPose(e, 'demon'), f) });
-registerM2Kind({ kind: AGUEST, stats: { w: 36, h: 70, hp: 200, contact: 12, mass: 190 }, ai: aguest, humanoid: true, gender, pathing: false, head: { x: 3, y: -64, r: 10 }, draw: (c, e, f) => drawGuest(c, guestOf(seedOf(e)), 'alien', guestPose(e, 'alien'), f) });
+// (the owner's: "make the possessed enemies function smilarly. they don't dogpile you but are heavily resistant to grabs
+// like the ensemble fight. you can still grab them but they won't go as far or hurt as much": every grab still works on
+// them, at this share of a throw's distance and of the grabs' damage (moves/grab.ts grabResist))
+const GUEST_GRAB_RESIST = 0.5;
+registerM2Kind({ kind: DGUEST, stats: { w: 36, h: 70, hp: 220, contact: 12, mass: 190 }, ai: dguest, humanoid: true, gender, grabResist: GUEST_GRAB_RESIST, head: { x: 3, y: -64, r: 10 }, draw: (c, e, f) => drawGuest(c, guestOf(seedOf(e)), 'demon', guestPose(e, 'demon'), f) });
+registerM2Kind({ kind: AGUEST, stats: { w: 36, h: 70, hp: 200, contact: 12, mass: 190 }, ai: aguest, humanoid: true, gender, grabResist: GUEST_GRAB_RESIST, pathing: false, head: { x: 3, y: -64, r: 10 }, draw: (c, e, f) => drawGuest(c, guestOf(seedOf(e)), 'alien', guestPose(e, 'alien'), f) });
 registerM2Kind({
   kind: GATOR, stats: { w: 80, h: 26, hp: 40, contact: 10, mass: 120 }, ai: gator, gender: 'n', grab: 'critter', head: { x: 52, y: -14, r: 8 },
   pointy: { source: 'm2:wp_gator', label: 'CHOMP!', damage: 16 },

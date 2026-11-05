@@ -25,6 +25,7 @@ import { sleepFar, wakeNear } from '../../dormant';
 import { markBossFight } from '../../bossQuiet';
 import { updateSwimAir, drawAir } from '../../frontier/air';
 import { setTubeRide } from '../../weapons/tubeRide';
+import { has } from '../../upgrades/state';
 import { lay, solid, ledge, meatheadSays, saidOver } from '../../adventure/section';
 import { endgameStage, PARK_STAGE } from '../stages';
 import { GY, CP, CP_AT, CP_FLOOR, GROUND, POOLS, LEDGES, ISLANDS, SLIDES, TUBES, TOWER, SUMMIT, PLAZA_CAST, PICKUPS, L2, FLOORS, floorY } from './geo';
@@ -82,15 +83,16 @@ const SLIDE_TIPS = [
   { pad: ['DPAD_LEFT'], kb: ['@left'], label: 'SLOWER' },
   { pad: ['A'], kb: ['@jump'], label: 'AT THE LIP: THROWN HIGHER' },
 ] as import('../../upgrades/equipInfo').EquipControl[];
-const TUBE_CARD_ROWS = [
+// (the owner's "disable all charge moves on the tube slides. just shooting or air grabs", and "the cape can still be
+// used on the tube slide though": its line only when he has it)
+const tubeCardRows = () => [
   { pad: ['A'], kb: ['@jump'], label: 'JUMP, TUBE AND ALL (THE GAPS, LOW SHOTS)' },
   { pad: ['DPAD_DOWN'], kb: ['@down'], label: 'DUCK (HIGH SHOTS, PIPES)' },
   { pad: ['X'], kb: ['@fire'], label: 'SHOOT (ANY GUN: SWITCH AWAY)' },
-  { pad: ['DPAD_UP', 'B'], join: '+', kb: ['@up', '@special'], label: 'UPPERCUT' },
-  { pad: ['DPAD_DOWN', 'B'], join: '+', kb: ['@down', '@special'], label: 'DIVE KICK (IN THE AIR)' },
   { pad: ['A', 'B'], join: '+', kb: ['@airGrab'], label: 'AIR GRAB (WATCH WHERE YOU LAND)' },
+  ...(has('cape') ? [{ pad: ['A'], kb: ['@jump'], label: 'CAPE: STILL WORKS (HOLD: HIGHER, FLOAT DOWN)' }] : []),
 ] as import('../../upgrades/equipInfo').EquipControl[];
-const TUBE_CARD_TEXT = "THE TUBE'S STUCK TO YOUR ASS AND IT GOES ON ITS OWN. THE CHUTE'S GOT HOLES IN IT WITH NO BOTTOM: JUMP THEM. EVERYTHING WORKS BUT THE CHARGE MOVES, BEATDOWNS AND SHAKEDOWNS. IT KEEPS GOING TILL EVERY ALIEN ON IT'S DEAD.";
+const TUBE_CARD_TEXT = "THE TUBE'S STUCK TO YOUR ASS AND IT GOES ON ITS OWN. THE CHUTE'S GOT HOLES IN IT WITH NO BOTTOM: JUMP THEM. JUST SHOOTING AND AIR GRABS: NO UPPERCUTS, DIVE KICKS, SLIDES, CHARGES, BEATDOWNS OR SHAKEDOWNS. IT KEEPS GOING TILL EVERY ALIEN ON IT'S DEAD.";
 const CARD_HOLD = 90;
 /** The turning tower's radius at its most (the spiral's middle): about the screen's width across. */
 const TOWER_RADIUS = 330;
@@ -243,7 +245,7 @@ export const parkLayout: StageLayout = {
     if (pk.tube.mode === 'card' && pk.card) {
       pk.card.t++;
       const any = !!(controls.jump || controls.special || controls.shoot || controls.left || controls.right || controls.up || controls.down);
-      if (!pk.card.armed && pk.card.t > CARD_HOLD && !any) { pk.card.armed = true; setUi({ minigameCard: { title: 'THE TUBE', rows: TUBE_CARD_ROWS, text: TUBE_CARD_TEXT, ready: true } }); }
+      if (!pk.card.armed && pk.card.t > CARD_HOLD && !any) { pk.card.armed = true; setUi({ minigameCard: { title: 'THE TUBE', rows: tubeCardRows(), text: TUBE_CARD_TEXT, ready: true } }); }
       if (pk.card.armed && any) { pk.card = null; setUi({ minigameCard: null }); playSound('menuok', 0.6); pk.tube.mode = 'ride'; mhSay(state, pk, 'tube', L.MH_TUBE, 20000); }
     }
     if (tubeOn(pk.tube)) {
@@ -264,7 +266,7 @@ export const parkLayout: StageLayout = {
         offSlide(state, pk.sl);
         const card = !pk.cardSeen;
         boardTube(state, pk.tube, i, card);
-        if (card) { pk.cardSeen = true; pk.card = { t: 0, armed: false }; setUi({ minigameCard: { title: 'THE TUBE', rows: TUBE_CARD_ROWS, text: TUBE_CARD_TEXT, ready: false } }); }
+        if (card) { pk.cardSeen = true; pk.card = { t: 0, armed: false }; setUi({ minigameCard: { title: 'THE TUBE', rows: tubeCardRows(), text: TUBE_CARD_TEXT, ready: false } }); }
         else mhSay(state, pk, 'tube', L.MH_TUBE, 20000);
         // (its checkpoint: back here, at the rack)
         const cp = i === 0 ? CP.blackHole : CP.abyss;

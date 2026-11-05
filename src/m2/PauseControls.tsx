@@ -3,6 +3,7 @@ import type { PadKey } from '../m1/components/ButtonIcons';
 import { Prompt } from '../m1/components/ButtonIcons';
 import ChordPrompt from './ChordPrompt';
 import { ROCKETS_ON } from './foreign/heli/copter';
+import { has } from './upgrades/state';
 import type { PauseCardId } from './store';
 import type { MinigameId } from './minigamePause';
 
@@ -94,15 +95,14 @@ export const pauseCard = (id: PauseCardId | MinigameId, nin: boolean, joycon: bo
       one('HOP', ['A'], ['@jump']),
       one('DUCK', ['DPAD_DOWN'], ['@down']),
     ] };
-    // (endgame/park1/tube.ts: an autorunner: the tube goes on its own, stuck to him; everything of his works (A jumps
-    // him and the tube) but the charge moves, the beatdown and the shakedown)
-    case 'tube': return { title: 'THE TUBE (NO CHARGES, BEATDOWNS, SHAKEDOWNS)', rows: [
+    // (endgame/park1/tube.ts: an autorunner: the tube goes on its own, stuck to him; A jumps him and the tube; the
+    // owner's "just shooting or air grabs": nothing on B; and "the cape can still be used on the tube slide though")
+    case 'tube': return { title: 'THE TUBE (JUST SHOOTING AND AIR GRABS)', rows: [
       one('JUMP, TUBE AND ALL (THE GAPS, LOW SHOTS)', ['A'], ['@jump']),
       one('DUCK (HIGH SHOTS, PIPES)', ['DPAD_DOWN'], ['@down']),
       one('SHOOT (ANY GUN)', ['X'], ['@fire']),
-      { label: 'UPPERCUT', parts: [{ pad: ['DPAD_UP', 'B'], kb: ['@up', '@special'], join: '+' }] },
-      { label: 'DIVE KICK (IN THE AIR)', parts: [{ pad: ['DPAD_DOWN', 'B'], kb: ['@down', '@special'], join: '+' }] },
       { label: 'AIR GRAB (WATCH WHERE YOU LAND)', parts: [{ pad: ['A', 'B'], kb: ['@airGrab'], join: '+' }] },
+      ...(has('cape') ? [one('CAPE: STILL WORKS (HOLD: HIGHER, FLOAT DOWN)', ['A'], ['@jump'], true)] : []),
     ] };
     // (space/orbit: free flight any way, the ray gun held)
     case 'orbit': return { title: 'SPACE', rows: [

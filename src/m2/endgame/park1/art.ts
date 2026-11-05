@@ -391,7 +391,16 @@ const drawSlideFront = (c: Ctx, state: GameState, S: Slide) => {
 // ---------------------------------------------------------------------------------------------------------------
 // The tube rides
 
-const TUBE_TILE = 900;
+/** (narrow: the Abyss's steep chute in a wide tile made it tall, mostly empty, and every pixel of it drawn each frame) */
+const TUBE_TILE = 300;
+/** Each tile's top and bottom of the chute, worked out once (ride, lap, tile). */
+const BANDS = new Map<string, [number, number]>();
+const tileBand = (T: Tube, paths: Path[], tx: number) => {
+  const k = `${T.id}-${tubeLapNo(TUBES.indexOf(T))}-${tx}`;
+  let b = BANDS.get(k);
+  if (!b) { b = bandOf(paths.flatMap(tubePts), tx, TUBE_TILE); BANDS.set(k, b); }
+  return b;
+};
 const tubePts = (P: Path): [number, number][] => [[P.segs[0].x0, P.segs[0].y0], ...P.segs.map(s => [s.x1, s.y1] as [number, number])];
 /** The bottomless drop under a ride (world y): a little under the lowest of its chute on screen (the chute's the same
  *  either side of the loop's carry back, so this is too). */
@@ -449,7 +458,7 @@ const drawTubeBack = (c: Ctx, state: GameState, T: Tube, i: number) => {
   // (the chute: baked in tiles along its length; the ends at the gaps broken off, striped)
   for (let tx = Math.floor((state.camera.x - 60) / TUBE_TILE) * TUBE_TILE; tx < state.camera.x + W + 60; tx += TUBE_TILE) {
     if (tx + TUBE_TILE < T.deck.x2 - 40 || tx > last + 40) continue;
-    const [y0, y1] = bandOf(paths.flatMap(tubePts), tx, TUBE_TILE);
+    const [y0, y1] = tileBand(T, paths, tx);
     if (y1 < y0 || !visY(state, y0 - 60, y1 + 60)) continue;
     stamp(c, `wp-tube-${T.id}-${tubeLapNo(i)}-${tx}`, tx, y0 - 60, TUBE_TILE, y1 - y0 + 100, g => {
       g.save(); g.beginPath(); g.rect(tx, y0 - 60, TUBE_TILE, y1 - y0 + 100); g.clip();
@@ -482,19 +491,23 @@ const drawTubeBack = (c: Ctx, state: GameState, T: Tube, i: number) => {
     const n = DROP_BANDS.length, step = (bot - top) / n;
     DROP_BANDS.forEach((col, k) => R(c, g1 + 2, top + k * step, g2 - g1 - 4, step + 1, col));
   }
-  // (the GAP signs: hung over the chute off a cable, well before each gap)
-  for (const [g1] of tubeLap(i).gaps) {
-    const x = g1 - GAP_WARN;
+  // (the GAP signs: hung over the chute off a cable, well before each gap. Two gaps back to back (the second's sign
+  // would hang over the first's hole: the Abyss's): one sign for both, GAPS AHEAD, JUMP x2)
+  const gs = tubeLap(i).gaps;
+  for (let gi = 0; gi < gs.length; gi++) {
+    const [g1] = gs[gi], x = g1 - GAP_WARN;
+    const onChute = (wx: number) => paths.some(q => q.segs[0].x0 <= wx && q.segs[q.segs.length - 1].x1 >= wx);
+    const two = !!gs[gi + 1] && !onChute(gs[gi + 1][0] - GAP_WARN);
     if (!vis(state, x - 80, x + 80)) continue;
     const P = paths.find(q => q.segs[0].x0 <= x && q.segs[q.segs.length - 1].x1 >= x);
     if (!P) continue;
     const y = pointAt(P, x - P.segs[0].x0).y - 160;
-    stamp(c, `wp-gapsign-${T.id}-${g1}`, x - 60, y - 420, 120, 470, g => {
+    stamp(c, `wp-gapsign-${T.id}-${g1}${two ? '-2' : ''}`, x - 60, y - 420, 120, 470, g => {
       R(g, x - 40, y - 420, 2, 420, '#3F4A5A'); R(g, x + 38, y - 420, 2, 420, '#3F4A5A');
       R(g, x - 52, y - 2, 104, 44, INK); R(g, x - 50, y, 100, 40, '#FACC15');
       for (let k = 0; k < 100; k += 16) { g.fillStyle = INK; g.beginPath(); g.moveTo(x - 50 + k, y + 40); g.lineTo(x - 42 + k, y + 40); g.lineTo(x - 34 + k, y + 34); g.lineTo(x - 42 + k, y + 34); g.closePath(); g.fill(); }
-      text(g, 'GAP AHEAD', x, y + 14, INK, 7, 'center', null);
-      text(g, 'JUMP!', x, y + 28, '#B91C1C', 8, 'center', null);
+      text(g, two ? 'GAPS AHEAD' : 'GAP AHEAD', x, y + 14, INK, 7, 'center', null);
+      text(g, two ? 'JUMP x2!' : 'JUMP!', x, y + 28, '#B91C1C', 8, 'center', null);
     });
     // (its warning lamps, blinking)
     const on = Math.floor(state.frame / 12) % 2 === 0;
@@ -517,7 +530,7 @@ const drawTubeFront = (c: Ctx, state: GameState, T: Tube, i: number) => {
   for (let tx = Math.floor((state.camera.x - 60) / TUBE_TILE) * TUBE_TILE; tx < state.camera.x + W + 60; tx += TUBE_TILE) {
     const last = paths[paths.length - 1].segs[paths[paths.length - 1].segs.length - 1].x1;
     if (tx + TUBE_TILE < T.deck.x2 - 40 || tx > last + 40) continue;
-    const [y0, y1] = bandOf(paths.flatMap(tubePts), tx, TUBE_TILE);
+    const [y0, y1] = tileBand(T, paths, tx);
     if (y1 < y0 || !visY(state, y0 - 40, y1 + 40)) continue;
     stamp(c, `wp-tubef-${T.id}-${tubeLapNo(i)}-${tx}`, tx, y0 - 40, TUBE_TILE, y1 - y0 + 70, g => {
       g.save(); g.beginPath(); g.rect(tx, y0 - 40, TUBE_TILE, y1 - y0 + 70); g.clip();

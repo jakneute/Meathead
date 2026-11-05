@@ -121,14 +121,14 @@ export interface Tube {
   /** The chute, its gaps and pipes, lap by lap (tube.ts goes on to the next each time he's carried back round): the
    *  loop's middle differs from lap to lap, its ends (all that's on screen at the carry back) the same. (pieces, gaps,
    *  pipes above: the first lap's.) */
-  laps: { pieces: [number, number][][]; gaps: [number, number][]; pipes: number[] }[];
+  laps: { pieces: [number, number][][]; gaps: [number, number][]; pipes: number[]; fast: [number, number, number][] }[];
   /** The loop: from `a + len` he's carried back to `a` (the chute's the same either side) till the ride's cleared. */
   loop: { a: number; len: number };
   /** The aliens to kill (all of them: then the loop lets him go), at most this many at once. */
   foes: number; most: number;
   /** The splash pool it comes down into at the end. */
   pool: Pool;
-  /** Its pace (px a frame, steady: an autorunner). */
+  /** Its pace (px a frame, an autorunner's): steady, but for a lap's fast stretches (laps' fast: tubeSpeedAt). */
   speed: number;
   col: string;
 }
@@ -142,15 +142,29 @@ const course = (o: {
   gaps: [number, number][]; pipes: number[]; introGaps: [number, number][]; poolX: number;
   /** How far past the loop's end it runs on the same (he's never carried back mid-grab: room for one to finish). */
   copy: number;
+  /** The plunges and the humps: [where in the loop, how deep (down; less than 0 a hump up), half its width] (a cosine
+   *  bell). The middle's own (the loop's ends stay the same): kept inside its first 800 and last 500. */
+  dips?: [number, number, number][];
+  /** The fast stretches: [from, to (in the loop), its pace there] (eased in and out: tubeSpeedAt). The middle's too,
+   *  and kept off the steep climbs (a jump's rise has to beat the chute's). */
+  fast?: [number, number, number][];
 }) => {
   const { x0, y0, a, len, yl, amp } = o, z0 = a - 500, z1 = a + len + o.copy, poolY = GY - 6;
-  const f = (x: number) => yl + amp * (0.6 * Math.sin(((x - a) / len) * Math.PI * 4) + 0.4 * Math.sin(((x - a) / len) * Math.PI * 6 + 1));
+  const dips = o.dips ?? [];
+  const bell = (x: number) => {
+    let d = 0;
+    for (let k = -1; k <= 1; k++) for (const [c, depth, hw] of dips) { const u = (x - (a + c + k * len)) / hw; if (u > -1 && u < 1) d += depth * (0.5 + 0.5 * Math.cos(Math.PI * u)); }
+    return d;
+  };
+  const f = (x: number) => yl + amp * (0.6 * Math.sin(((x - a) / len) * Math.PI * 4) + 0.4 * Math.sin(((x - a) / len) * Math.PI * 6 + 1)) + bell(x);
   const yAt = (x: number) => (x < z0 ? y0 + (f(x) - y0) * smooth((x - x0) / (z0 - x0)) : x > z1 ? f(x) + (poolY - f(x)) * smooth((x - z1) / (o.poolX - z1)) : f(x));
   const gaps: [number, number][] = [...o.introGaps.map(([x, w]) => [x, x + w] as [number, number])];
   const pipes: number[] = [];
+  const fast: [number, number, number][] = [];
   for (let k = -1; k <= 1; k++) {
     for (const [g, w] of o.gaps) { const x = a + g + k * len; if (x >= z0 && x + w <= z1) gaps.push([x, x + w]); }
     for (const q of o.pipes) { const x = a + q + k * len; if (x >= z0 && x <= z1) pipes.push(x); }
+    for (const [f0, f1, v] of o.fast ?? []) { const x = a + f0 + k * len; if (x >= z0 && x <= z1) fast.push([x, a + f1 + k * len, v]); }
   }
   gaps.sort((p, q) => p[0] - q[0]); pipes.sort((p, q) => p - q);
   const pieces: [number, number][][] = [];
@@ -162,23 +176,29 @@ const course = (o: {
     pieces.push(pts);
     from = g2;
   }
-  return { pieces, gaps, pipes };
+  return { pieces, gaps, pipes, fast };
 };
 /** A ride's laps: its ends' gaps and pipes (the first 800 of the loop, the last 500: the same every lap) and each lap's
  *  own middle (the owner's "go through the same obstacles as before": they're not, lap to lap). */
-const laps = (o: Omit<Parameters<typeof course>[0], 'gaps' | 'pipes'>, ends: { gaps: [number, number][]; pipes: number[] }, mids: { gaps: [number, number][]; pipes: number[] }[]) => {
-  const all = mids.map(m => course({ ...o, gaps: [...ends.gaps, ...m.gaps], pipes: [...ends.pipes, ...m.pipes] }));
+type Mid = { gaps: [number, number][]; pipes: number[]; dips?: [number, number, number][]; fast?: [number, number, number][] };
+const laps = (o: Omit<Parameters<typeof course>[0], 'gaps' | 'pipes' | 'dips' | 'fast'>, ends: { gaps: [number, number][]; pipes: number[] }, mids: Mid[]) => {
+  const all = mids.map(m => course({ ...o, gaps: [...ends.gaps, ...m.gaps], pipes: [...ends.pipes, ...m.pipes], dips: m.dips, fast: m.fast }));
   return { ...all[0], laps: all };
 };
 const BH = laps({ x0: 9990, y0: GY - 600, a: 11520, len: 1920, yl: GY - 330, amp: 40, introGaps: [[10520, 150]], poolX: 15560, copy: 1600 },
   { gaps: [[600, 180]], pipes: [1680] },
   [{ gaps: [[1200, 200]], pipes: [990] }, { gaps: [[1080, 210]], pipes: [900] }, { gaps: [[1120, 230]], pipes: [880] }]);
-const AB = laps({ x0: 20100, y0: GY - 720, a: 21440, len: 3840, yl: GY - 390, amp: 55, introGaps: [[20520, 170]], poolX: 27460, copy: 1700 },
-  { gaps: [[500, 200]], pipes: [3550] },
+// THE ABYSS (the owner's "make the second tube slide more 'gnarly'"): a deeper swell, and each lap's middle its own
+// plunges and humps (the steep drops and climbs), longer gaps, gaps back to back (one sign for both), a pipe straight
+// after a gap, and fast stretches. Every gap clears with a held jump wherever it's taken in its window, whatever the
+// drop or the climb either side (the numbers checked: 16 to 30 frames of window at each, a pipe 10 frames or more past
+// the latest landing; the climbs gentle enough for a jump's rise to leave them).
+const AB = laps({ x0: 20100, y0: GY - 720, a: 21440, len: 3840, yl: GY - 390, amp: 75, introGaps: [[20520, 190]], poolX: 27460, copy: 1700 },
+  { gaps: [[480, 250]], pipes: [3640] },
   [
-    { gaps: [[1400, 240], [2300, 250], [3050, 220]], pipes: [1000, 1900, 2750] },
-    { gaps: [[1100, 220], [1900, 260], [2700, 240]], pipes: [1500, 2350, 3150] },
-    { gaps: [[1600, 230], [2500, 200], [3100, 200]], pipes: [1250, 2050, 2850] },
+    { gaps: [[1000, 320], [1780, 230], [2330, 280], [3000, 300]], pipes: [1570, 2880], dips: [[1330, 170, 560], [2900, -120, 440]], fast: [[2000, 2450, 11.5], [2950, 3100, 11.5]] },
+    { gaps: [[1060, 340], [2600, 340], [3100, 220]], pipes: [1790, 2240], dips: [[1500, 170, 560], [2550, -150, 480]], fast: [[1000, 1450, 11.5]] },
+    { gaps: [[1050, 300], [1700, 190], [2280, 380]], pipes: [1600, 3060], dips: [[1330, 180, 560], [2700, 120, 600]], fast: [[2300, 2700, 12]] },
   ]);
 export const TUBES: Tube[] = [
   {
@@ -192,6 +212,12 @@ export const TUBES: Tube[] = [
     pool: POOLS[2], speed: 9, col: '#450A0A',
   },
 ];
+/** A ride's pace at world x on a lap: its own, but up to a fast stretch's through it (eased in and out over 200). */
+export const tubeSpeedAt = (T: Tube, lap: number, x: number) => {
+  let v = T.speed;
+  for (const [x1, x2, sp] of T.laps[lap].fast) { const k = Math.min(smooth((x - x1 + 200) / 200), smooth((x2 + 200 - x) / 200)); if (k > 0) v = Math.max(v, T.speed + (sp - T.speed) * k); }
+  return v;
+};
 /** Where a tube's chute ends (its last point): the pool's edge. */
 export const tubeEnd = (t: Tube) => t.pieces[t.pieces.length - 1][t.pieces[t.pieces.length - 1].length - 1];
 /** The rides' stretch of world (the deck's end to the pool): the drop under it is bottomless. */

@@ -330,7 +330,9 @@ const lobFrom = (pl: GameState['player'], muzzle: { x: number; y: number }) => (
 const lobTarget = (state: GameState, from: { x: number; y: number }) => {
   const f = state.player.facing;
   let best: Enemy | null = null, bestD = Infinity;
-  for (const e of state.enemies) {
+  // (on a tube ride: the ones out in front fighting, never the queue behind him)
+  const ride = tubeRide(state);
+  for (const e of ride ? ride.foes : state.enemies) {
     if (e.health <= 0 || e.isBlownAway || e.innocent || e.type === 'boss') continue;
     // (out in front of him: right up in his face counts, the lob just goes up and drops straight down on him)
     const dx = (e.pos.x + e.width / 2 - (state.player.pos.x + state.player.width / 2)) * f;
@@ -347,8 +349,11 @@ const lobArc = (state: GameState, from: { x: number; y: number }, g: number, e: 
   const top = Math.min(from.y, to.y) - LOB.apex;
   const vy = -Math.sqrt(2 * g * (from.y - top));
   const T = -vy / g + Math.sqrt(Math.max(0, 2 * (to.y - top) / g));
-  // (leading him: where he'll be by the time it comes down, the way he's going)
-  if (e && !e.pauseTimer) to.x += Math.max(-80, Math.min(80, (e.vel?.x ?? 0) * T));
+  // (leading him: where he'll be by the time it comes down, the way he's going. On a tube ride the aliens go on at the
+  // chute's pace (and he with them): all the way to where that has it by then, however far)
+  const ride = tubeRide(state);
+  if (e && ride) to.x += ride.speed * T;
+  else if (e && !e.pauseTimer) to.x += Math.max(-80, Math.min(80, (e.vel?.x ?? 0) * T));
   return { vel: { x: (to.x - from.x) / T, y: vy }, to, T };
 };
 

@@ -6,15 +6,17 @@
 // like an autorunner, this section. you cannot lose the tube, but you can fall on a misplaced jump", and "the tube ride
 // should allow all actions like air grabs and other weapons if so desired. beatdowns and shakedowns are disabled. air
 // grabs are risky high risk high reward moves. hopefully you don't land in the hole", then "charge moves disabled too,
-// air grabs are not".
+// air grabs are not", then "disable all charge moves on the tube slides. just shooting or air grabs", and "the cape can
+// still be used on the tube slide though".
 //
-// An autorunner: the chute carries him on at the ride's steady pace (a conveyor under him: the tube's stuck to his ass,
-// drawn round him whatever he's doing). He's himself on it: the engine's jump, duck, every gun and the switching, the
-// uppercut, the dive kick, the air grab (the alien and him come down together, where they come down: over a hole, down
-// it). Not the charge moves (the shoulder charge, the slide), the beatdown or the shakedown. The chute's floor is a
-// block kept under him at the chute's height (none over a gap: he drops). The gaps have to be jumped (a GAP sign before
-// each, the chute's broken end striped); down one, he's gone into the dark, tube and all: the one way to die of the ride
-// itself.
+// An autorunner: the chute carries him on at the ride's pace (a conveyor under him: the tube's stuck to his ass, drawn
+// round him whatever he's doing; the Abyss's fast stretches: geo.ts tubeSpeedAt). On it he jumps, ducks, shoots (every
+// gun, the switching, their own secondary fire) and air grabs (the alien and him come down together, where they come
+// down: over a hole, down it); the cape's lift and float are his as anywhere (upgrades/gear.ts: in the air he's out of
+// the seat). Nothing on B: no uppercut, dive kick, slide or shoulder charge, no beatdown or shakedown or their follow-ups
+// (grab.ts setGroundGrabsOff). The chute's floor is a block kept under him at the chute's height (none over a gap: he
+// drops). The gaps have to be jumped (a GAP sign before each, the chute's broken end striped); down one, he's gone into
+// the dark, tube and all: the one way to die of the ride itself.
 //
 // The ride goes on till every alien of it's dead: the chute loops (from its loop's end he's carried back to its start,
 // the same chute either side, everything round him carried with him: geo.ts course; never mid-grab), and once the last
@@ -31,10 +33,10 @@ import { hurtPlayer } from '../../../m1/game/bosses/shared';
 import { makeKindEnemy } from '../../../m1/game/enemies/kinds';
 import { setUi } from '../../store';
 import { grabBusy, inPlay, setGroundGrabsOff } from '../../moves/grab';
-import { TUBES, type Tube } from './geo';
+import { TUBES, tubeSpeedAt, type Tube } from './geo';
 import { pathOf, surfaceAt, type Path } from './slides';
-import { HOVER, QUEUED, fire, shotsOf } from './kinds';
-import { steerShot } from '../../weapons/tubeRide';
+import { HOVER, QUEUED, fire, shotsOf, setRideAim } from './kinds';
+import { steerShot, setTubeFoes } from '../../weapons/tubeRide';
 
 /** His seat: his feet this far over the tube's bottom (down in its hole). */
 const SEAT = 8;
@@ -64,6 +66,12 @@ export interface TubeRide {
   fallT: number;
   /** The chute's floor under him (a block of the stage's, moved with him). */
   floor: Block | null;
+  /** Last frame he was over the chute and on it or up over it (not under it, not over a gap): coming down, or the
+   *  chute climbing up into him, he's on it. */
+  above: boolean;
+  /** Up in the air on the ride: his rise and his jump's hold as the last frame left them (a hit in the air hurts him
+   *  but doesn't spoil the jump); and how hurt he was then (a fresh hit: his hurt's gone up). */
+  air: { vy: number; hold: number } | null; hurtWas: number;
 }
 const PATHS: Path[][][] = TUBES.map(t => t.laps.map(l => l.pieces.map(pathOf)));
 /** The lap each ride's on (the chute's middle differs lap to lap: geo.ts laps). */
@@ -72,7 +80,7 @@ export const tubeLapNo = (i: number) => LAP[i];
 export const tubeLap = (i: number) => TUBES[i].laps[LAP[i]];
 export const tubePaths = (i: number) => PATHS[i][LAP[i]];
 
-export const newTube = (): TubeRide => ({ i: 0, mode: 'off', x: 0, y: 0, rideY: 0, camY: 0, t: 0, sent: 0, killed: 0, escort: [], spawnIn: 0, cleared: false, shift: 0, fallT: 0, floor: null });
+export const newTube = (): TubeRide => ({ i: 0, mode: 'off', x: 0, y: 0, rideY: 0, camY: 0, t: 0, sent: 0, killed: 0, escort: [], spawnIn: 0, cleared: false, shift: 0, fallT: 0, floor: null, above: false, air: null, hurtWas: 0 });
 export const tubeOn = (r: TubeRide) => r.mode === 'ride' || r.mode === 'card' || r.mode === 'fall';
 /** Ducked down in it. */
 export const tubeDucked = (state: GameState, _r: TubeRide) => !!state.player.isDucking;
@@ -105,7 +113,9 @@ const floorAt = (state: GameState, r: TubeRide, cx: number, y: number) => {
 export const boardTube = (state: GameState, r: TubeRide, i: number, card: boolean) => {
   LAP[i] = 0;
   const p = state.player, at = PATHS[i][0][0].segs[0];
-  Object.assign(r, { i, mode: card ? 'card' : 'ride', x: at.x0, y: at.y0, rideY: at.y0, camY: at.y0 - 400, t: 0, sent: 0, killed: 0, escort: [], spawnIn: 60, cleared: false, fallT: 0 });
+  Object.assign(r, { i, mode: card ? 'card' : 'ride', x: at.x0, y: at.y0, rideY: at.y0, camY: at.y0 - 400, t: 0, sent: 0, killed: 0, escort: [], spawnIn: 60, cleared: false, fallT: 0, above: true, air: null, hurtWas: 0 });
+  // (the Abyss's aliens shoot down at him sooner)
+  setRideAim(i === 0 ? 120 : 85);
   p.facing = 1;
   p.isCharging = false; p.isSliding = false; p.isDivekicking = false; p.isUppercutting = false;
   p.pos.x = at.x0 - p.width / 2; p.pos.y = at.y0 - SEAT - p.height; p.vel.x = 0; p.vel.y = 0;
@@ -160,6 +170,18 @@ export const updateTube = (ctx: FrameContext, r: TubeRide, controls: Controls, e
   }
   p.carried = false;
   r.t++;
+  // (hit on the chute (a pipe, a bolt): hurt, but never knocked about by it: the chute's pace is all that carries him,
+  // a jump goes as he jumped it, and on the chute he stays sat in it, his control his own (a bolt's knock, mid jump,
+  // stopped his rise short of a gap's far side; one just before a gap bounced him up off the chute and out of reach of a
+  // jump: deaths the holes didn't earn, with the Abyss's close). An air grab's own)
+  if (r.mode === 'ride' && !grabBusy()) {
+    p.vel.x = 0; p.pushbackTimer = 0;
+    if ((p.hurtTimer ?? 0) > r.hurtWas) {
+      if (r.air) { p.vel.y = r.air.vy; p.jumpHoldTimer = Math.max(0, r.air.hold - 1); }
+      else if (p.jumpHoldTimer <= 0 && p.vel.y < 0) p.vel.y = 0;
+    }
+  }
+  r.hurtWas = p.hurtTimer ?? 0;
   const feet = () => p.pos.y + p.height, mid = () => p.pos.x + p.width / 2;
   // ---- down the drop, tube and all: the camera holds, he goes down into the dark (the engine's fall death has him)
   if (r.mode === 'fall') {
@@ -173,28 +195,26 @@ export const updateTube = (ctx: FrameContext, r: TubeRide, controls: Controls, e
   }
   // ---- the chute carries him on (whatever he's doing: it's the tube's pace, stuck to him)
   const wasX = mid();
-  p.pos.x += T.speed;
+  const pace = tubeSpeedAt(T, LAP[r.i], wasX);
+  p.pos.x += pace;
   // ---- round the loop again (the aliens not all dead yet; never mid-grab): carried back to its start
   if (!r.cleared && mid() >= T.loop.a + T.loop.len && !grabBusy()) { carry(state, r, -T.loop.len); LAP[r.i] = (LAP[r.i] + 1) % T.laps.length; }
   const paths = tubePaths(r.i), lap = tubeLap(r.i);
   const crossedFrom = mid() < wasX ? wasX - T.loop.len : wasX;
   const cx = mid(), under = chuteAt(r.i, cx);
-  // ---- the shots: the ray gun's bolts and the crossbow's darts bent a little toward the aliens up over him (aim help
-  // only: tubeRide.ts)
-  for (const q of state.projectiles) {
-    if (q.owner !== 'player') continue;
-    if (q.isRay) steerShot(state, q, 0.06);
-    else if (q.custom === 'CROSSBOW' && (q.customData as { kind?: string } | undefined)?.kind === 'dart') steerShot(state, q, 0.05);
-  }
   // ---- the floor under him: at the chute's height, wherever he's over it and not under it (none over a gap)
   const moving = !!(p.isUppercutting || p.isDivekicking || grabBusy());
   const sy = under ? under.y - SEAT : 0;
+  // (up in the air over the chute, the chute climbing faster than he comes down (its steep rises): it never goes up
+  // through him, he's on it)
+  if (under && r.above && !moving && feet() > sy && feet() < sy + 60) { p.pos.y = sy - p.height; if (p.vel.y > 0) p.vel.y = 0; }
   if (under && feet() <= sy + Math.max(6, p.vel.y + 2)) {
     // (sat in it, riding: kept right on the chute, up and down its swell)
     if (p.isGrounded && p.vel.y >= 0 && !moving) { p.pos.y = sy - p.height; p.vel.y = 0; }
     floorAt(state, r, cx, sy);
     r.rideY = under.y;
   } else floorOff(state, r);
+  r.above = !!under && feet() <= sy + 1;
   // ---- gone: below where he could still come down on the chute (over a gap, the far side's start)
   const lowest = under ? under.y : Math.max(r.rideY, nextStartY(r.i, cx));
   if (!p.isGrounded && feet() > lowest + 40) {
@@ -245,6 +265,15 @@ export const updateTube = (ctx: FrameContext, r: TubeRide, controls: Controls, e
   // each moving up as one ahead dies)
   const front = r.i === 0 ? 1 : 2;
   r.escort.forEach((e, k) => { if (k < front) QUEUED.delete(e); else QUEUED.add(e); });
+  // (who's out in front fighting, and the pace: the weapons' tube-only aim help seeks those, never the queue)
+  setTubeFoes(pace, r.escort.filter(e => !QUEUED.has(e)));
+  // ---- the shots: the ray gun's bolts and the crossbow's darts sent after the aliens out in front, up over him, down on
+  // the chute, ahead on a rise or in a dip (aim help only, never more damage: tubeRide.ts)
+  for (const q of state.projectiles) {
+    if (q.owner !== 'player') continue;
+    if (q.isRay) steerShot(state, q, 'ray');
+    else if (q.custom === 'CROSSBOW' && (q.customData as { kind?: string } | undefined)?.kind === 'dart') steerShot(state, q, 'dart');
+  }
   if (!r.cleared && r.killed >= T.foes) { r.cleared = true; ev.onClear(); }
   r.spawnIn--;
   // (none ahead: the next one's straight in)
@@ -262,34 +291,45 @@ export const updateTube = (ctx: FrameContext, r: TubeRide, controls: Controls, e
     for (let k = 0; k < 10; k++) state.particles.push({ pos: { x: e.pos.x + e.width / 2, y: e.pos.y + e.height - 6 }, vel: { x: (Math.random() - 0.5) * 4, y: (Math.random() - 0.5) * 3 }, life: 20, color: k % 2 ? '#86EFAC' : '#F0ABFC', size: 2 + Math.random() * 2 });
   }
   // (each one riding along: now and then it drops down onto the chute ahead and fires back along it, low (jump it) or
-  // at head height (duck it): the tell's where it holds, the coil glowing, and the height it's at)
+  // at head height (duck it): the tell's where it holds, the coil glowing, and the height it's at; the bolt keeps that
+  // height over the chute, up its rises and down its dips. The Abyss's do it more often (the owner's "gnarly"), one at a
+  // time, the tell as long)
+  const cycle = r.i === 0 ? 300 : 210, k0 = cycle - 140;
+  const skimming = r.escort.some(e => (e.aiY ?? 0) > 0);
   for (const e of r.escort) {
     if (!state.enemies.includes(e) || QUEUED.has(e)) continue;
     e.aiX = (e.aiX ?? 0) + 1;
-    const k = e.aiX % 300;
-    if (k === 160) { e.aiY = Math.random() < 0.5 ? 1 : 2; }
-    if (k > 160 && k < 230 && e.aiY) {
-      const low = e.aiY === 1, ty = r.rideY - (low ? 14 : 50);
-      e.pos.x += ((cx + 300) - (e.pos.x + e.width / 2)) * 0.2 + T.speed;
+    const k = e.aiX % cycle;
+    if (k === k0) { if (skimming && !e.aiY) e.aiX -= 70; else e.aiY = Math.random() < 0.5 ? 1 : 2; }
+    if (k > k0 && k < k0 + 70 && e.aiY) {
+      const low = e.aiY === 1, ex = cx + 300, ground = chuteAt(r.i, ex)?.y ?? r.rideY, off = low ? 14 : 50, ty = ground - off;
+      e.pos.x += (ex - (e.pos.x + e.width / 2)) * 0.2 + pace;
       e.pos.y += (ty - (e.pos.y + e.height - 10)) * 0.2;
       e.aiState = 'skim'; e.aiTimer = 0;
-      if (k === 214) { fire(state, { x: e.pos.x, y: ty, vx: -6.5, vy: 0, kind: 'bolt', src: 'm2:wp_bolt', dmg: 12 }); playSound('rayFizzle', 0.5, low ? -2 : 4); }
+      if (k === k0 + 54) { fire(state, { x: e.pos.x, y: ty, vx: -6.5, vy: 0, kind: 'bolt', src: 'm2:wp_bolt', dmg: 12, overChute: off }); playSound('rayFizzle', 0.5, low ? -2 : 4); }
     }
-    if (k === 232) { e.aiY = 0; e.aiState = 'idle'; }
+    if (k === k0 + 72) { e.aiY = 0; e.aiState = 'idle'; }
+  }
+  for (const s of shotsOf(state)) {
+    if (s.overChute === undefined) continue;
+    const c = chuteAt(r.i, s.x);
+    if (c) s.y = c.y - s.overChute;
   }
   // ---- the camera (kept to the chute's height, not his jumps)
   const ty = r.rideY - 400;
   r.camY += (ty - r.camY) * 0.1;
   state.cameraOverride = { x: Math.max(0, cx - 250), y: r.camY };
   setUi({ pauseControls: 'tube' });
-  // ---- what's his: everything but walking and turning (the owner's "you can only face right during the tube rides":
-  // whatever he does, he faces down the chute), the charge moves (B on its own, B down on the chute: the shoulder
-  // charge, the slide); the uppercut (up + B) and the dive kick (down + B up in the air) are his
+  r.air = p.isGrounded ? null : { vy: p.vel.y, hold: p.jumpHoldTimer };
+  // ---- what's his: the jump, the duck, the guns (and the air grab, grab.ts's, off the buttons themselves); not walking
+  // or turning (the owner's "you can only face right during the tube rides": whatever he does, he faces down the chute),
+  // and nothing on B (the owner's "disable all charge moves on the tube slides. just shooting or air grabs": the
+  // uppercut, the dive kick, the slide, the shoulder charge; grab.ts holds back a B it lets through late too)
   p.facing = 1;
-  const specialOk = !!controls.up || (!!controls.down && !p.isGrounded);
   // (dev only: window.__wpAutoTube set, it jumps the gaps itself: the headless checks and the perf run ride it through)
   const auto = import.meta.env.DEV && !!(window as unknown as { __wpAutoTube?: boolean }).__wpAutoTube;
-  const autoJump = auto && (p.isGrounded ? lap.gaps.some(([g1]) => g1 - cx > 0 && g1 - cx < T.speed * 3) : p.vel.y < 0 || (!under && feet() < r.rideY + 12));
-  return { ...controls, left: false, right: false, jump: !!controls.jump || autoJump, charge: false, special: !!controls.special && specialOk };
+  const autoJump = auto && ((p.isGrounded || p.coyoteJumpTimer > 0) && p.vel.y >= 0 ? lap.gaps.some(([g1]) => g1 - cx > pace * 3 && g1 - cx < pace * 7) : p.vel.y < 0 || (!under && feet() < r.rideY + 12));
+  const autoDuck = auto && !autoJump && p.isGrounded && lap.pipes.some(x => x - cx > -20 && x - cx < pace * 5);
+  return { ...controls, left: false, right: false, jump: !!controls.jump || autoJump, down: !!controls.down || autoDuck, charge: false, special: false };
 };
 export type { Tube };
