@@ -413,7 +413,7 @@ registerM2Kind({
   draw: (c, e, f) => drawGator(c, (e.hitFlash ?? 0) > 0 ? 'hurt' : e.aiState === 'tell' ? 'tell' : e.aiState === 'lunge' ? 'lunge' : 'walk', f),
 });
 registerM2Kind({ kind: PELICAN, stats: { w: 44, h: 30, hp: 40, contact: 8, mass: 20, air: true }, ai: pelican, make: flyer, gender: 'n', grab: 'critter', blood: '#3FA34D', head: { x: 18, y: -18, r: 6 }, draw: (c, e, f) => drawPelican(c, e.aiState === 'tell' ? 'tell' : e.aiState === 'dive' ? 'dive' : 'fly', f) });
-registerM2Kind({ kind: TROOPER, stats: { w: 40, h: 88, hp: 170, contact: 10, mass: 220 }, ai: trooper, humanoid: true, gender: e => (seedOf(e) % 3 === 0 ? 'f' : 'm'), blood: '#3FA34D', head: { x: 4, y: -82, r: 11 }, draw: (c, e, f) => drawAlien(c, { seed: seedOf(e), gun: true, woman: seedOf(e) % 3 === 0 }, trooperPose(e), f) });
+registerM2Kind({ kind: TROOPER, stats: { w: 40, h: 88, hp: 170, contact: 10, mass: 220 }, ai: trooper, humanoid: true, grab: 'none', gender: e => (seedOf(e) % 3 === 0 ? 'f' : 'm'), blood: '#3FA34D', head: { x: 4, y: -82, r: 11 }, draw: (c, e, f) => drawAlien(c, { seed: seedOf(e), gun: true, woman: seedOf(e) % 3 === 0 }, trooperPose(e), f) });
 registerM2Kind({ kind: HOVER, stats: { w: 40, h: 70, hp: 120, contact: 10, mass: 160, air: true }, ai: hover, make: flyer, humanoid: true, gender: 'm', blood: '#3FA34D', head: { x: 3, y: -62, r: 9 }, draw: (c, e, f) => drawHover(c, { seed: seedOf(e), gun: true }, e.aiState === 'aim' ? (e.aiTimer! < 28 ? 'tell' : 'aim') : 'stand', f) });
 registerM2Kind({
   kind: YETI, stats: { w: 70, h: 150, hp: 560, contact: 16, mass: 500 }, ai: yeti, humanoid: true, gender: 'm', grab: 'none', head: { x: 4, y: -116, r: 22 },
