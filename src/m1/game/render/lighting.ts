@@ -210,6 +210,8 @@ export const drawSceneLighting = (ctx: Ctx, state: GameState, scene: SceneLight,
     lit = Math.min(1, lit) * Math.min(1, d * 1.6);
     if (lit < 0.05) continue;
     const x = sx(wx), y = sy(wy), rr = Math.max(a.w, a.h) * 0.9 * zs;
+    // (one with a broken position (NaN) never takes the frame down with it)
+    if (!Number.isFinite(x) || !Number.isFinite(y) || !Number.isFinite(rr) || rr <= 4) continue;
     const tint = best?.color ? best.color.replace(/[\d.]+\)$/, `${(0.3 * lit).toFixed(3)})`) : `rgba(255, 220, 160, ${(0.3 * lit).toFixed(3)})`;
     const grad = ctx.createRadialGradient(x, y - 6 * zs, 4, x, y, rr);
     grad.addColorStop(0, tint); grad.addColorStop(1, 'rgba(0,0,0,0)');
