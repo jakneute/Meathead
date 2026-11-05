@@ -232,7 +232,9 @@ const canGrab = (state: GameState, e: Enemy) => isCritter(e) || (grabbable(e) &&
 /**
  * A regular enemy the grabs don't work on (an animal far too big, a machine, a person they're no good on): not a boss, not
  * a sub-boss, not a critter, not one behind or up in something (NOT_PEOPLE), not one bolted down (unshakeable). The hand
- * armor's beatdown works on these (the shakedown and the air grab never do), and with it every other piece's follow-up.
+ * armor's beatdown works on these (the shakedown, the air grab and any follow-up that lifts or throws never do: the
+ * owner's "if an enemy cannot be beatdown without the gloves, it cannot be shaken down or air grabbed ever"; with the
+ * gloves, PLANTED's bonk still does: followups.ts followable).
  */
 export const handsOnlyFoe = (e: Enemy) => e.type !== 'boss' && !isMidBoss(e) && e.health > 0 && !e.isBlownAway && !!e.kind && !e.innocent
   && !e.unshakeable && !isCritter(e) && !grabbable(e) && !NOT_PEOPLE.has(e.kind);

@@ -150,10 +150,13 @@ const headSpot = (b: { e: Enemy; x: number; ground: number }, face: 1 | -1) => {
   return animal(b.e) ? { x: b.x - face * hd.r * 0.5, y: b.ground - hd.r * 1.1 } : { x: b.x + face * hd.x, y: b.ground - hd.r };
 };
 
-/** One the follow-ups can be done to: not a critter, a boss, a sub-boss; one the grabs work on, or with the hand armor,
- *  one they don't. */
-const followable = (e: Enemy) => !isCritter(e) && e.type !== 'boss' && !isMidBoss(e) && e.health > 0 && !e.isBlownAway && !e.innocent
-  && (grabbable(e) || (has('hands') && handsOnlyFoe(e)));
+/** One the follow-ups can be done to: not a critter, a boss, a sub-boss; one the grabs work on. One they don't (a
+ *  big one only the gloved beatdown has: handsOnlyFoe) is never picked up or thrown, gloves or not (the owner's "if an
+ *  enemy cannot be beatdown without the gloves, it cannot be shaken down or air grabbed ever"): the missile and the
+ *  ninja drop lift and throw, so they're out; PLANTED's a bonk on the head where it stands, no lift, so with the hand
+ *  armor it still works on one. */
+const followable = (e: Enemy, move: FollowMove) => !isCritter(e) && e.type !== 'boss' && !isMidBoss(e) && e.health > 0 && !e.isBlownAway && !e.innocent
+  && (grabbable(e) || (move === 'charge' && has('hands') && handsOnlyFoe(e)));
 
 /** Stood on the floor (a flyer never is): the floor's top, or null. */
 const standing = (state: GameState, e: Enemy) => {
@@ -381,7 +384,7 @@ const followTarget = (state: GameState, move: FollowMove): Enemy | null => {
   const across = move === 'charge' ? FOLLOW_REACH_CHARGE : FOLLOW_REACH;
   let best: Enemy | null = null, bestD = Infinity;
   for (const e of state.enemies) {
-    if (!followable(e)) continue;
+    if (!followable(e, move)) continue;
     const em = emid(e), dx = em.x - pm.x, dy = em.y - pm.y;
     // (to their near edge, not their middle: bigger than it looks)
     if (Math.abs(dx) > across + e.width / 2 || Math.abs(dy) > FOLLOW_REACH_UP + e.height / 2) continue;
