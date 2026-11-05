@@ -142,7 +142,13 @@ const start = (state: GameState) => {
 // (the special weapons' say over them, at half: their real health; dead of a headshot, or into the soul sucker)
 setHalfHooks(ACTOR_KIND, {
   max: e => (CAST[e.variant ?? 0]?.hp ?? 100),
-  kill: (ctx, e, how) => { const a = whOf(ctx.state).fight.actors.find(q => q.e === e); if (a) fall(ctx, a, how); else e.health = 0; },
+  // (laid down where it is now: off the engine's list in a follow-up, its last spot's stale)
+  kill: (ctx, e, how) => {
+    const a = whOf(ctx.state).fight.actors.find(q => q.e === e);
+    if (!a) { e.health = 0; return; }
+    a.lx = e.pos.x + e.width / 2; a.ly = e.pos.y + e.height;
+    fall(ctx, a, how);
+  },
 });
 
 const appear = (state: GameState, a: Arrival) => {

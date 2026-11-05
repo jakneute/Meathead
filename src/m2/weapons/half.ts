@@ -15,8 +15,9 @@ const KINDS = new Set<string>();
 export interface HalfHooks {
   /** Its real most health (the engine's may be a stand-in that never runs out). */
   max?: (e: Enemy) => number;
-  /** Dead of a special: 'headless' (the flintlock), 'gone' (into the soul sucker: no body left). */
-  kill?: (ctx: FrameContext, e: Enemy, how: 'headless' | 'gone') => void;
+  /** Dead of a special: 'headless' (the flintlock), 'gone' (into the soul sucker, or a follow-up has the remains: no
+   *  body of its own); unset, the usual (a follow-up's kill: its body laid down where it is). */
+  kill?: (ctx: FrameContext, e: Enemy, how?: 'headless' | 'gone') => void;
 }
 const HOOKS = new Map<string, HalfHooks>();
 
@@ -36,7 +37,7 @@ export const realMax = (e: Enemy) => (e.kind ? HOOKS.get(e.kind)?.max?.(e) : und
 /** An instant kill, made a heavy hit. */
 export const heavyHit = (e: Enemy) => Math.round(realMax(e) * HEAVY);
 /** Dead of a special its own fight has a death for (otherwise just its health run out). */
-export const halfKill = (ctx: FrameContext, e: Enemy, how: 'headless' | 'gone') => {
+export const halfKill = (ctx: FrameContext, e: Enemy, how?: 'headless' | 'gone') => {
   const k = e.kind ? HOOKS.get(e.kind)?.kill : undefined;
   if (k) k(ctx, e, how); else e.health = 0;
 };

@@ -72,6 +72,8 @@ import { m2Kill } from './killLines';
 import { sliceInHalf, bakeEnemyCut, bakeEnemyCutAlive, type BakedCut, type Cut } from '../weapons/dismember';
 import { meteorLooks } from '../weapons/spellbook';
 import { zoneCountsIn, hazardKill } from '../hazardHit';
+import { specialsHalf, halfKill } from '../weapons/half';
+import { grabResist } from '../kinds';
 
 type Ctx = CanvasRenderingContext2D;
 
@@ -152,8 +154,12 @@ const headSpot = (b: { e: Enemy; x: number; ground: number }, face: 1 | -1) => {
 
 /** One the follow-ups can be done to: not a critter, a boss, a sub-boss; one the grabs work on, or with the hand armor,
  *  any other (the owner: "the gloves allow follow up grabs to be allowed on any non boss enemy ... as well as standard
- *  beatdowns": the big ones the shakedown and the air grab never take still get every follow-up with the gloves). */
-const followable = (e: Enemy, _move: FollowMove) => !isCritter(e) && e.type !== 'boss' && !isMidBoss(e) && e.health > 0 && !e.isBlownAway && !e.innocent
+ *  beatdowns": the big ones the shakedown and the air grab never take still get every follow-up with the gloves).
+ *  With the hand armor, the Ensemble Cast too (the owner: "...or ensemble as well"; "they work like more aggressive
+ *  standard enemies"): sub-bosses only to the engine (weapons/half.ts specialsHalf), their fight keeping their real
+ *  health and laying them down (the hits come off the stand-in health it reads; the kills go through halfKill). */
+export const ensembleFollowable = (e: Enemy) => specialsHalf(e) && has('hands');
+const followable = (e: Enemy, _move: FollowMove) => !isCritter(e) && e.type !== 'boss' && (!isMidBoss(e) || ensembleFollowable(e)) && e.health > 0 && !e.isBlownAway && !e.innocent
   && (grabbable(e) || (has('hands') && handsOnlyFoe(e)));
 
 /** Stood on the floor (a flyer never is): the floor's top, or null. */
@@ -254,6 +260,8 @@ const knockLoose = (ctx: FrameContext, b: Buried, vel: { x: number; y: number },
     // (alive in it to the neck: that's a kill now, the usual one)
     e.isBlownAway = false;
     K.release(state, e);
+    // (one of the Ensemble Cast: its fight lays the body down there, and counts it)
+    if (specialsHalf(e)) { halfKill(ctx, e); return; }
     hazardKill(ctx, e, b.x - dir * 40, call, { fling: vel, sound: 'splat' });
     return;
   }
@@ -744,8 +752,10 @@ export const stepFollow = (ctx: FrameContext, g: Grab, controls: Controls): Cont
  *  its feet, seeing stars. */
 const ninjaImpact = (ctx: FrameContext, g: Grab, e: Enemy, floor: number): Controls => {
   const { state, fx } = ctx, p = state.player, x = K.centerX(state);
-  const dmg = raged(NINJA_DAMAGE);
-  if (e.health > dmg) return ninjaSurvived(ctx, g, e, floor, dmg);
+  const dmg = raged(Math.round(NINJA_DAMAGE * grabResist(e)));
+  // (one of the Ensemble Cast always comes back up out of it: its health is its fight's (a stand-in here), and the fight
+  // lays it down, there, if that was the end of it)
+  if (e.health > dmg || specialsHalf(e)) return ninjaSurvived(ctx, g, e, floor, dmg);
   e.health = Math.min(0, e.health - dmg); e.isBlownAway = true; e.vel = { x: 0, y: 0 };
   // (a person: head first, legs up out of it; an animal: on its back in the dirt, four legs up, painted as it looked
   // alive and put down upside down: its dead picture's lying down already, or belly up)
@@ -907,6 +917,8 @@ const kickHead = (ctx: FrameContext, g: Grab, b: Buried) => {
   heads.push({ e, x: hx, y: hy, vx, vy, rot: beast ? -face * Math.PI / 2 : 0, vr: dir * 0.35, r: hd.r, face, cut, cx: hd.x, cy: hd.y, bake: beast ? bakeEnemyCutAlive(state, e, face, cut) : null, t: 0, down: false, bounces: 0, hit: new Set(), stage: b.stage });
   if (heads.length > 8) heads.splice(0, heads.length - 8);
   b.gone = state.frame;
+  // (one of the Ensemble Cast: dead by its fight's own rules (counted, its doors), no body of its own: the stump's here)
+  if (specialsHalf(e)) halfKill(ctx, e, 'gone');
   e.health = 0; e.isBlownAway = true;
   calloutAt(ctx, e, hx, hy - 20, 'punted');
   fx.speakVulgarity(m2Kill('throw_kill'));

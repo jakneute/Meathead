@@ -58,6 +58,10 @@ export interface M2Kind {
   onTaken?: (state: GameState, e: Enemy) => void;
   /** Grabbing it hurts him (a poison frog in his bare hand, a live eel): the damage, and when (unset: always). Its hurt lines are its own kind's. */
   grabHurts?: { dmg: number; when?: (e: Enemy) => boolean };
+  /** Hard to throw about and to hurt with the grabs (the water park's possessed guests: the owner's "heavily resistant
+   *  to grabs like the ensemble fight... they won't go as far or hurt as much"): this share of a throw's distance and of
+   *  the grabs' damage to it (unset: 1). Still grabbable. */
+  grabResist?: number;
   /** A grab that's got to it (the hands on it, the lunge into it) and can't have it: its own reaction (a boss's: the
    *  queen too big, Donnie too greasy, Artie's knife). `said`: it saw to the words (no generic too-big line); `free`:
    *  the grab's over there and then (he's not left stood in the whiff: thrown off, or the boss has him). */
@@ -103,6 +107,8 @@ export const registerM2Kind = (d: M2Kind) => {
   if (d.head) (KIND_HEAD as Record<string, { x: number; y: number; r: number }>)[d.kind] = d.head;
 };
 export const m2Kind = (kind?: string) => (kind ? defs.get(kind) : undefined);
+/** Its share of what the grabs do to it (grabResist: the possessed guests; unset 1): a throw's distance, the damage. */
+export const grabResist = (e: Enemy) => m2Kind(e.kind)?.grabResist ?? 1;
 /** He, she or it, for one of Meathead 2's own (null: not one of them). */
 export const m2KindGender = (e: Enemy): 'm' | 'f' | 'n' | null => {
   const d = m2Kind(e.kind);
