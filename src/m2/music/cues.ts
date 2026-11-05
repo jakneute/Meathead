@@ -38,7 +38,9 @@ import { SPOTS, LANDS } from '../hub/lands';
 import { PEN_STAGE } from '../pen/index';
 import { INTRO_STAGE } from '../intro/index';
 import { abductionOn } from '../endgame/abduction';
-import { PARK_STAGE } from '../endgame/stages';
+import { PARK_STAGE, LOT_STAGE } from '../endgame/stages';
+import { CP as PARK_CP_IDS, CP_AT as PARK_CP_AT, TOWER, GY as PARK_GY } from '../endgame/park1/geo';
+import { KID_HP } from '../endgame/park1/boss';
 import { GYM_STAGE } from '../intro/gym/course';
 import { ADV_STAGE } from '../adventure/index';
 import { SPOOKY_STAGE } from '../spooky/index';
@@ -558,6 +560,51 @@ const hubArr = (s: GameState): string => {
   return spot.kind === 'land' ? LANDS[spot.land].id : spot.kind;
 };
 
+/** The water park's level 1 as the music hears it (endgame/lot, endgame/park1: their state read loosely, so their
+ *  layout can change under it). Keyed off what's going on and the checkpoints' places, not hard x's. */
+interface LotOwn { kick?: number }
+interface ParkOwn {
+  tube?: { mode?: string; i?: number };
+  fightState?: string; f?: { mode?: string; hp?: number } | null;
+  descent?: unknown; killed?: boolean;
+}
+const PARK_CP = () => PARK_CP_IDS as Record<string, number>;
+/** Where the climb's music starts: a little short of base camp's checkpoint (the Abyss's splash pool behind him). */
+const everestFrom = () => (PARK_CP_AT[PARK_CP().baseCamp]?.x ?? TOWER.TL - 600) - 250;
+/** Where the middle plaza's starts: a little short of the splashdown's checkpoint (out of the Black Hole's pool). */
+const wipeoutFrom = () => (PARK_CP_AT[PARK_CP().splash]?.x ?? 16260) - 300;
+/** The arrangement for the floor he's on up MOUNT EVEREST BUT BETTER (the floors TOWER.FLOOR apart up from the ground). */
+const everestArr = (s: GameState) => {
+  const feet = s.player.pos.y + s.player.height;
+  const k = Math.max(0, Math.round((PARK_GY - feet) / TOWER.FLOOR));
+  return k >= 8 ? 'hillary' : k >= 6 ? 'death-zone' : k >= 3 ? 'camp' : 'base';
+};
+/** The lot: the park's theme heard over the wall ('gate'), the full song from the boot that knocks the gate down. The
+ *  park: the summit's kid's song (his intro, the fight, his last third, his death); the slide down after; a tube ride's
+ *  (the controls card, THE BLACK HOLE, THE ABYSS); the climb's, by the floor; the middle plaza's; the plaza's. */
+const parkWants = (s: GameState, lot: boolean): Want => {
+  if (lot) {
+    const kicked = ((s.stage as LotOwn | null)?.kick ?? -1) >= 14;
+    return { cands: [{ song: 'land:park1', arrs: [kicked ? 'plaza' : 'gate'] }], cutscene: false };
+  }
+  const pk = (s.stage as ParkOwn | null) ?? {};
+  const theme = (arr: string): Cand => ({ song: 'land:park1', arrs: [arr, 'plaza'] });
+  // (the kid: the fight's on from his intro through his death; the slide down after it)
+  if (pk.fightState === 'on' && pk.f) {
+    const m = pk.f.mode, arr = m === 'intro' ? 'intro' : m === 'dying' || m === 'dead' ? 'death' : (pk.f.hp ?? KID_HP) < KID_HP / 3 ? 'tantrum' : 'main';
+    return { cands: [{ song: 'boss:zorzarblax', arrs: [arr, 'main'] }, theme('plaza')], cutscene: false };
+  }
+  if (bossFightName(s) || inBossFight(s)) return { cands: [{ song: 'boss:zorzarblax', arrs: ['main'] }, theme('plaza')], cutscene: false };
+  if (pk.descent) return { cands: [theme('descent')], cutscene: false };
+  if (pk.killed || pk.fightState === 'won') return { cands: [theme('plaza')], cutscene: false };
+  // (on a tube: its controls card, then the ride (the second one's meaner))
+  const t = pk.tube, mode = t?.mode;
+  if (mode === 'card' || mode === 'ride' || mode === 'fall') return { cands: [{ song: 'seq:wp-tube', arrs: [mode === 'card' ? 'card' : (t?.i ?? 0) >= 1 ? 'abyss' : 'main'] }, theme('plaza')], cutscene: false };
+  const cx = s.player.pos.x + s.player.width / 2;
+  if (cx >= everestFrom()) return { cands: [{ song: 'seq:wp-everest', arrs: [everestArr(s), 'main'] }, theme('plaza')], cutscene: false };
+  return { cands: [theme(cx >= wipeoutFrom() ? 'wipeout' : 'plaza')], cutscene: false };
+};
+
 /** What the game wants on right now. */
 const gameWants = (s: GameState | null): Want => {
   const none: Want = { cands: [], cutscene: false };
@@ -587,12 +634,9 @@ const gameWants = (s: GameState | null): Want => {
     // (the walk back after Wilderness Land: its own arrangement the whole way, if the song has one)
     return { cands: [{ song: 'intro', arrs: walkBackOn() || walkOutOn() ? ['back', zone] : [zone] },{ song: 'title', arrs: [INTRO_STANDIN[zone] ?? 'main'] }], cutscene: cutscene || !!getUi().introCutscene };
   }
-  // (the water park (the endgame's level 1, endgame/park1): for now Future Land's theme (the aliens' park), and the
-  // saucer fight's song for the summit's kid; the owner's music plan for the endgame comes later)
-  if (stage === PARK_STAGE) {
-    if (bossFightName(s) || inBossFight(s)) return { cands: [{ song: 'boss:ufo', arrs: cutscene ? ['intro', 'main'] : ['main'] }, { song: 'land:space', arrs: ['main'] }], cutscene: false };
-    return { cands: [{ song: 'land:space', arrs: ['main'] }], cutscene: cutscene || !!getUi().introCutscene };
-  }
+  // (the water park, the endgame's level 1: its own songs by where he is (parkWants); the lot outside, its theme
+  // muffled over the wall till he kicks the gate in)
+  if (stage === LOT_STAGE || stage === PARK_STAGE) return parkWants(s, stage === LOT_STAGE);
   const land = LAND_OF_STAGE[stage];
   if (!land) return none;
   const sec = sectionOf(s) ?? '';
@@ -671,8 +715,8 @@ const apply = () => {
   setSpace(space);
   setMix(isTalking(), !test && (paused || (!!state?.player.swimming && !!LAND_OF_STAGE[stage ?? ''])), !test && quiet);
   warmLand(stage ? LAND_OF_STAGE[stage] ?? null : null);
-  // (the water park: the two songs it borrows, made ahead)
-  if (stage === PARK_STAGE && !parkWarm) { parkWarm = true; for (const id of ['land:space', 'boss:ufo']) if (SONGS[id]) prewarm(SONGS[id]); }
+  // (the water park's songs, made ahead from the lot on)
+  if ((stage === LOT_STAGE || stage === PARK_STAGE) && !parkWarm) { parkWarm = true; for (const id of ['land:park1', 'seq:wp-tube', 'seq:wp-everest', 'boss:zorzarblax']) if (SONGS[id]) prewarm(SONGS[id]); }
 };
 
 const start = () => {

@@ -27,6 +27,7 @@ import { LAND_FANTASY, SEQ_TRAGONS } from './fantasy';
 import { BOSS_FAIRY_WHEEL, BOSS_BROOMSTICKS, BOSS_PIPER } from './fantasyBosses';
 import { LAND_CARTOON } from './cartoon';
 import { BOSS_PUNDITS, BOSS_STUPID_DAD } from './cartoonBosses';
+import { LAND_PARK1, SEQ_WP_TUBE, SEQ_WP_EVEREST, BOSS_ZORZARBLAX } from './waterpark';
 import {
   GAME_HACK, GAME_HACK_GRANTED, GAME_LOCKPICK, GAME_LOCKPICK_OPEN, GAME_MASH_SELECT, GAME_MASH_FIGHT, GAME_MASH_WIN, GAME_MASH_LOSE,
   GAME_PLUNGE, GAME_PLUNGE_WIN, GAME_GALLERY, GAME_GALLERY_END, GAME_BUMPER, GAME_BUMPER_WIN, GAME_BUMPER_LOSE,
@@ -106,6 +107,12 @@ export const SONGS: Record<string, Song> = {
   'boss:dole': BOSS_PUNDITS,
   'boss:newt': BOSS_PUNDITS,
   'boss:stupid-dad': BOSS_STUPID_DAD,
+  // (the water park, the endgame's level 1: the lot and the park by where he is, the tube rides, MOUNT EVEREST BUT
+  // BETTER, the summit's kid: cues.ts parkWants)
+  'land:park1': LAND_PARK1,
+  'seq:wp-tube': SEQ_WP_TUBE,
+  'seq:wp-everest': SEQ_WP_EVEREST,
+  'boss:zorzarblax': BOSS_ZORZARBLAX,
   // (the minigames: a song each while it's on, a sting on a win or a loss: games.ts, cues.ts gameCand)
   'game:hack': GAME_HACK,
   'game:hack-granted': GAME_HACK_GRANTED,

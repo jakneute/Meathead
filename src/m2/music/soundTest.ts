@@ -30,6 +30,7 @@ const FILED: { name: string; keys: string[] }[] = [
   { name: 'WILDERNESS LAND', keys: ['land:frontier', 'seq:train', 'seq:brawl', 'seq:duel', 'seq:draw', 'seq:log-ride', 'seq:road-rash', 'boss:tucker', 'game:gallery', 'game:gallery-end'] },
   { name: 'FAIRY LAND', keys: ['land:fantasy', 'boss:fairy-wheel', 'seq:tragons', 'boss:broomsticks', 'boss:piper'] },
   { name: 'CARTOON LAND', keys: ['land:cartoon', 'boss:perot', 'boss:stupid-dad', 'game:bumper', 'game:bumper-win', 'game:bumper-lose'] },
+  { name: 'THE WATER PARK', keys: ['land:park1', 'seq:wp-tube', 'seq:wp-everest', 'boss:zorzarblax'] },
 ];
 /** Left out of it altogether, wherever they're filed: the portal walk's and the walk-away's songs (the user's: "remove
  *  the heading in and walk it off songs from the sound test"). */
