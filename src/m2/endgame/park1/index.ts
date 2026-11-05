@@ -85,7 +85,6 @@ const TUBE_CARD_ROWS = [
   { pad: ['DPAD_UP', 'B'], join: '+', kb: ['@up', '@special'], label: 'UPPERCUT' },
   { pad: ['DPAD_DOWN', 'B'], join: '+', kb: ['@down', '@special'], label: 'DIVE KICK (IN THE AIR)' },
   { pad: ['A', 'B'], join: '+', kb: ['@airGrab'], label: 'AIR GRAB (WATCH WHERE YOU LAND)' },
-  { pad: ['X'], kb: ['@fire'], label: "SPELLBOOK: STUCK TILL IT'S CAST (TIME IT BETWEEN HOLES)" },
 ] as import('../../upgrades/equipInfo').EquipControl[];
 const TUBE_CARD_TEXT = "THE TUBE'S STUCK TO YOUR ASS AND IT GOES ON ITS OWN. THE CHUTE'S GOT HOLES IN IT WITH NO BOTTOM: JUMP THEM. EVERYTHING WORKS BUT THE CHARGE MOVES, BEATDOWNS AND SHAKEDOWNS. IT KEEPS GOING TILL EVERY ALIEN ON IT'S DEAD.";
 const CARD_HOLD = 90;
