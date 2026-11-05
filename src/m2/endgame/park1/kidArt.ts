@@ -86,7 +86,7 @@ const shape = (g: Ctx, pts: [number, number][], ramp: string[], dark = 0.55) => 
   g.strokeStyle = INK; g.lineWidth = 1.5; g.beginPath(); pts.forEach(([x, y], i) => (i ? g.lineTo(x, y) : g.moveTo(x, y))); g.closePath(); g.stroke();
 };
 
-export type KidPose = 'idle' | 'walk' | 'crouch' | 'leap' | 'land' | 'aim' | 'fire' | 'stomp' | 'throw' | 'flail' | 'glitch' | 'hurt' | 'stagger' | 'dead' | 'talk' | 'sit';
+export type KidPose = 'idle' | 'walk' | 'crouch' | 'leap' | 'land' | 'aim' | 'fire' | 'stomp' | 'throw' | 'flail' | 'glitch' | 'hurt' | 'stagger' | 'dead' | 'talk' | 'sit' | 'stun';
 /** Which arm's up to fire (the aim and fire poses): 0 the long gun arm, 1 the far one, 2 the little chest one. */
 export interface KidOpts { pose: KidPose; q: number; arm?: 0 | 1 | 2; mouth?: boolean }
 
@@ -122,6 +122,8 @@ const rig = (o: KidOpts) => {
     case 'hurt': lean = -10; hN = [-6, -136]; hF = [-34, -128]; hC = [8, -120]; break;
     case 'stagger': lean = -14; footN = [20, 0]; footF = [-26, -10]; hN = [44, -150]; hF = [-48, -140]; hC = [26, -128]; break;
     case 'glitch': hN = [36, -84]; hF = [-34, -60]; lean = 6; break;
+    // (the cheap shot's stun: knees in, bent over, all three hands at the crotch, the wheeze bobbing him)
+    case 'stun': crouch = 16 + Math.round(Math.sin(ph) * 2); lean = 12; footN = [7, 0]; footF = [-7, 0]; hN = [14, -58]; hF = [2, -56]; hC = [9, -64]; break;
     case 'sit': crouch = 52; footN = [46, -4]; footF = [40, -2]; hN = [30, -60]; hF = [-24, -56]; break;
     default: break;
   }
@@ -197,7 +199,7 @@ export const paintKid = (g: Ctx, o: KidOpts) => {
   g.restore();
   g.strokeStyle = INK; g.lineWidth = 1.8; g.beginPath(); g.moveTo(hx - 10, hy + 2); g.lineTo(hx + 34, hy + 4); g.lineTo(hx + 38, hy + 24); g.lineTo(hx + 30, hy + 34); g.lineTo(hx - 6, hy + 34); g.closePath(); g.stroke();
   // (the mouth's slot: open when he's talking or screaming; mom's lipstick smeared round it)
-  const open = !!o.mouth || o.pose === 'stomp' || o.pose === 'hurt' || o.pose === 'stagger' || o.pose === 'crouch';
+  const open = !!o.mouth || o.pose === 'stomp' || o.pose === 'hurt' || o.pose === 'stagger' || o.pose === 'crouch' || o.pose === 'stun';
   R(g, hx + 4, hy + 15, 34, open ? 9 : 3, INK);
   if (open) R(g, hx + 6, hy + 17, 30, 6, ALIEN.mouth);
   R(g, hx + 2, hy + 13, 36, 2, '#F43F5E'); R(g, hx + 30, hy + 11, 6, 2, '#F43F5E');
@@ -244,7 +246,7 @@ export const KID_W = 64, KID_H = 150;
 
 /** Drawn (stamped by pose, frame, arm): the palm's glow and the drool live over it. Feet at (0, 0), facing right. */
 export const drawKid = (c: Ctx, o: KidOpts, f: number, glow = 0) => {
-  const moving = o.pose === 'walk' || o.pose === 'flail' || o.pose === 'idle' || o.pose === 'talk';
+  const moving = o.pose === 'walk' || o.pose === 'flail' || o.pose === 'idle' || o.pose === 'talk' || o.pose === 'stun';
   const q = moving ? Math.floor(f / (o.pose === 'flail' ? 2 : 5)) % 8 : 0;
   const mouth = o.pose === 'talk' ? Math.floor(f / 6) % 2 === 0 : !!o.mouth;
   stamp(c, `wp-kid-${o.pose}-${q}-${o.arm ?? 0}-${mouth ? 1 : 0}`, -80, -210, 180, 216, g => paintKid(g, { ...o, q, mouth }));

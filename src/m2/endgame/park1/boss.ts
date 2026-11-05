@@ -46,6 +46,8 @@ import { SUMMIT } from './geo';
 import { fire, fireBolt, byPants, clearShots } from './kinds';
 import { drawKid, kidPalm, KID_W, KID_H, type KidPose } from './kidArt';
 import { drawKidGross, drawKidGrossBack, warmKidGross } from './kidGross';
+import { cheapShotGate, cheapShotStunned, endCheapStun, registerClearThreats, crushGroups, crushLines, isCrushed } from '../../upgrades/cheapShot';
+import { CRUSHED } from '../../upgrades/crushedLines';
 import * as L from './lines';
 
 type Ctx = CanvasRenderingContext2D;
@@ -99,6 +101,15 @@ registerM2Kind({
   ai: () => true,
 });
 TOO_BIG_BY_KIND[KID_KIND] = L.GRAB_KID;
+// (the hand armor's cheap shot (upgrades/cheapShot.ts): after it, his hurt and taunt lines from the crushed-nuts pool;
+// its free window, the moment the stun starts: every bolt, ice ball and crack of his in the air gone in a puff)
+crushGroups('kid', { hurt: [L.KID_HURT], taunt: [L.KID_TAUNT, L.KID_LOW] });
+registerClearThreats('kid', state => {
+  const f = live;
+  for (let i = 0; i < 16; i++) state.particles.push({ pos: { x: (f?.x ?? SUMMIT.L) + (Math.random() - 0.5) * 300, y: GY - Math.random() * 200 }, vel: { x: (Math.random() - 0.5) * 3, y: -1 - Math.random() * 2 }, life: 26, color: i % 2 ? '#7CFF3A' : '#E8F0FA', size: 3 + Math.random() * 3 });
+  clearShots(state);
+  playSound('rayFizzle', 0.6, -6);
+});
 
 let live: Fight | null = null;
 let token = 0;
@@ -216,6 +227,8 @@ const choose = (state: GameState, f: Fight): Move => {
 const setAct = (f: Fight, a: Act, T: number) => { f.act = a; f.actT = 0; f.T = Math.max(1, Math.round(T)); };
 const startMove = (state: GameState, f: Fight, m: Move, quick = false) => {
   f.move = m; f.last = m; f.shots = 0;
+  // (nutless: now and then he squeaks his rage going into one)
+  if (isCrushed(f.e) && Math.random() < 0.25) bark(state, f, CRUSHED.kid.attack as unknown as L.ByPants);
   f.arm = (Math.floor(Math.random() * 3)) as 0 | 1 | 2;
   f.face = pmid(state).x < f.x ? -1 : 1;
   setAct(f, 'tell', TELL[m] * lowK(f) * (quick ? 0.6 : 1));
@@ -227,14 +240,28 @@ const startMove = (state: GameState, f: Fight, m: Move, quick = false) => {
 
 const updateOn = (ctx: FrameContext, f: Fight) => {
   const { state } = ctx, pl = state.player, p = pmid(state);
+  // (the cheap shot: up for it on the floor, out in the open (not blinked off, not mid-lunge); frozen in its cutscene,
+  // then stunned: planted, no attacks, taking hits)
+  const cs = cheapShotGate(state, f.e, 'kid', f.y >= GY - 0.5 && f.act !== 'gone' && f.act !== 'appear' && !(f.act === 'tell' && f.move === 'blink'));
+  if (cs === 'frozen') return;
+  if (cs === 'stunned') {
+    if (f.iframes > 0) f.iframes--;
+    if (f.flash > 0) f.flash--;
+    f.vx = 0; f.vy = 0; f.y = GY; f.act = 'recover'; f.actT = 0; f.T = 20; f.move = null; f.hug = 0;
+    const box = kidBox(f), e = f.e;
+    e.pos.x = box.x; e.pos.y = box.y; e.width = box.w; e.height = box.h; e.vel.x = 0; e.vel.y = 0; e.facing = f.face;
+    if (!state.enemies.includes(e)) state.enemies.push(e);
+    takeHits(ctx, f);
+    return;
+  }
   f.total++; f.actT++;
   if (f.iframes > 0) f.iframes--;
   if (f.flash > 0) f.flash--;
   const dx = p.x - f.x;
   f.hug = Math.abs(dx) < HUG_R ? f.hug + 1 : Math.max(0, f.hug - 2);
   // (the taunts, now and then)
-  if (f.total > f.tauntAt && !f.said) { f.tauntAt = f.total + 620 + Math.floor(Math.random() * 400); bark(state, f, L.KID_TAUNT); }
-  if (!f.lowSaid && f.hp < KID_HP / 3) { f.lowSaid = true; bark(state, f, L.KID_LOW); }
+  if (f.total > f.tauntAt && !f.said) { f.tauntAt = f.total + 620 + Math.floor(Math.random() * 400); bark(state, f, crushLines(f.e, L.KID_TAUNT)); }
+  if (!f.lowSaid && f.hp < KID_HP / 3) { f.lowSaid = true; bark(state, f, crushLines(f.e, L.KID_LOW)); }
   // (gravity, when he's up off the floor)
   const air = f.y < GY - 0.5 || f.vy < 0;
   switch (f.act) {
@@ -396,7 +423,7 @@ const takeHits = (ctx: FrameContext, f: Fight) => {
   playSound('gunhit', 0.6, -2);
   ctx.fx.spawnDamageNumber({ x: f.x - 10, y: f.y - KID_H - 10 }, Math.max(1, Math.round(dmg)), dmg > 40);
   for (let i = 0; i < 6; i++) state.particles.push({ pos: { x: f.x, y: f.y - 90 }, vel: { x: (Math.random() - 0.5) * 4, y: -1 - Math.random() * 3 }, life: 22, color: '#3FA34D', size: 2 + Math.random() * 3, grav: 0.3 });
-  if (f.hp > 0 && Math.random() < 0.2) bark(state, f, L.KID_HURT);
+  if (f.hp > 0 && Math.random() < 0.2) bark(state, f, crushLines(f.e, L.KID_HURT));
   // (the same hit landing on him for ~4 s: he glitches off somewhere else; off his head or out of his face first)
   if (f.hp > 0 && spamTick(f.spam, state.frame, hitKey(state.player, melee))) {
     if (melee) swatOff(state, f.x);
@@ -413,6 +440,7 @@ let onKilled: ((state: GameState) => void) | null = null;
 export const setOnKilled = (fn: (state: GameState) => void) => { onKilled = fn; };
 const die = (ctx: FrameContext, f: Fight) => {
   const { state } = ctx;
+  endCheapStun(f.e);
   f.hp = 0; f.mode = 'dying'; f.death = { t: 0, step: 'stagger' }; token++; f.said = null;
   silenceAll();
   clearShots(state);
@@ -430,10 +458,16 @@ const updateDying = (ctx: FrameContext, f: Fight): Controls => {
   p.inCutscene = true; p.vel.x = 0;
   switch (d.step) {
     case 'stagger':
-      // (staggering about, all three arms going, green out of him)
-      f.x += Math.sin(d.t * 0.3) * 2.5; f.x = Math.max(ARENA_L, Math.min(ARENA_R - 40, f.x));
+      // (staggering about, all three arms going, green out of him: drunken lurches, but always on over toward the slide's
+      // mouth (the owner's "the level one boss will stumble and fall over so he's always near the slide on death"), so
+      // he goes over into it wherever on the summit he was killed)
+      { const to = MOUTH_AT.x - 70, lurch = Math.max(0, Math.sin(d.t * 0.22)) * 3.2;
+        f.x += Math.sign(to - f.x) * Math.min(Math.abs(to - f.x), lurch) + Math.sin(d.t * 0.5) * 1.2;
+        if (Math.abs(to - f.x) > 6) f.face = to > f.x ? 1 : -1;
+        if (d.t % 18 === 9) playSound('thud', 0.4, 4); }
+      f.x = Math.max(ARENA_L, Math.min(ARENA_R - 40, f.x));
       if (d.t % 6 === 0) state.particles.push({ pos: { x: f.x, y: f.y - 100 }, vel: { x: (Math.random() - 0.5) * 5, y: -2 - Math.random() * 3 }, life: 30, color: '#3FA34D', size: 3 + Math.random() * 3, grav: 0.3 });
-      if (d.t > 60) { d.step = 'line'; d.t = 0; kidSays(f, pick(byPants(state, L.KID_DEATH)), true, () => { if (f.death) { f.death.step = 'fall'; f.death.t = 0; } }); }
+      if (d.t > 60 && Math.abs(MOUTH_AT.x - 70 - f.x) < 40 || d.t > 360) { f.face = MOUTH_AT.x > f.x ? -1 : 1; d.step = 'line'; d.t = 0; kidSays(f, pick(byPants(state, L.KID_DEATH)), true, () => { if (f.death) { f.death.step = 'fall'; f.death.t = 0; } }); }
       break;
     case 'line':
       if (d.t > 400) { d.step = 'fall'; d.t = 0; }
@@ -470,6 +504,7 @@ export const fightDead = (f: Fight) => f.mode === 'dead';
 const poseOf = (f: Fight): KidPose => {
   if (f.mode === 'intro') return f.intro === 'view' || (f.intro === 'kick' || f.intro === 'walk') || (f.intro === 'turn' && f.introT < 10) ? 'sit' : f.intro === 'talk' && f.said ? 'talk' : 'idle';
   if (f.mode === 'dying') { const s = f.death!.step; return s === 'stagger' ? 'stagger' : s === 'line' ? 'talk' : 'stagger'; }
+  if (f.mode === 'on' && cheapShotStunned(f.e)) return 'stun';
   if (f.flash > 4) return 'hurt';
   switch (f.act) {
     case 'spasm': return 'flail';

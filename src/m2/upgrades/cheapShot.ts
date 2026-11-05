@@ -373,16 +373,16 @@ const finish = (state: GameState, stun: boolean) => {
 // floor for the rest of the fight (the owner's "it has no collision just a visual representation of their sexual
 // organs they once had"): a baked sprite and a few numbers each, gone with his life (a death) or the stage
 
-type TrophyKind = 'balls' | 'ovaries' | 'robot' | 'circuits' | 'demon';
+type TrophyKind = 'balls' | 'ovaries' | 'robot' | 'circuits' | 'demon' | 'mutant';
 interface Trophy { kind: TrophyKind; x: number; y: number; vx: number; vy: number; rot: number; floor: number; squash: number; stains: number[]; gen: number; stage: string }
 const trophies: Trophy[] = [];
 const kindOf = (id: CrushId): TrophyKind => {
   const c = CRUSHED[id];
-  return id === 'demon' ? 'demon' : c.robot ? (c.female ? 'circuits' : 'robot') : c.female ? 'ovaries' : 'balls';
+  return id === 'demon' ? 'demon' : id === 'kid' ? 'mutant' : c.robot ? (c.female ? 'circuits' : 'robot') : c.female ? 'ovaries' : 'balls';
 };
 /** Half its height, world px (it rests on the floor by its middle this far up). */
 const T_HALF = 5;
-const STAIN: Record<TrophyKind, string> = { balls: '#7F1D1D', ovaries: '#BE185D', robot: '#141018', circuits: '#141018', demon: '#2A0A04' };
+const STAIN: Record<TrophyKind, string> = { balls: '#7F1D1D', ovaries: '#BE185D', robot: '#141018', circuits: '#141018', demon: '#2A0A04', mutant: '#14532D' };
 
 const tossTrophy = (state: GameState, s: Scene, x: number, y: number) => {
   trophies.push({ kind: kindOf(s.id), x, y, vx: s.dir * 2.4, vy: -4.6, rot: 0, floor: s.floorY - T_HALF, squash: 0, stains: [], gen, stage: String(state.stageId) });
@@ -425,16 +425,18 @@ const trophyCanvas = (kind: TrophyKind) => {
     g.fillStyle = col; g.beginPath(); g.ellipse(x, y, rx, ry, 0, 0, Math.PI * 2); g.fill();
   };
   const glint = (x: number, y: number) => { g.fillStyle = '#FFFFFF'; g.fillRect(x, y, 3, 2); };
-  if (kind === 'balls' || kind === 'demon') {
-    const meat = kind === 'demon' ? ['#560C08', '#A2241A', '#DE6646'] : ['#A93A62', '#E06A8E', '#F7A1BC'];
-    const lobes: [number, number][] = kind === 'demon' ? [[11, 19], [31, 19], [21, 23]] : [[14, 19], [28, 19]];
+  if (kind === 'balls' || kind === 'demon' || kind === 'mutant') {
+    // (the kid's (a mutant's): three, green, lumpy, one bigger than the others, in a mottled purple bag)
+    const meat = kind === 'demon' ? ['#560C08', '#A2241A', '#DE6646'] : kind === 'mutant' ? ['#14532D', '#4D9A2A', '#A3E635'] : ['#A93A62', '#E06A8E', '#F7A1BC'];
+    const lobes: [number, number][] = kind === 'demon' ? [[11, 19], [31, 19], [21, 23]] : kind === 'mutant' ? [[10, 20], [22, 17], [32, 22]] : [[14, 19], [28, 19]];
     // (the bag: torn open at the top, the two (three) in it, the cords hanging off)
-    ell(21, 20, 18, 11, kind === 'demon' ? '#7E1610' : '#D8957A');
+    ell(21, 20, 18, 11, kind === 'demon' ? '#7E1610' : kind === 'mutant' ? '#6B3A78' : '#D8957A');
     for (const [x, y] of lobes) { ell(x, y, 7, 8, meat[1], meat[0]); g.fillStyle = meat[2]; g.fillRect(x - 4, y - 5, 4, 3); glint(x - 3, y - 6); }
     g.fillStyle = '#7F1D1D'; for (let i = 0; i < 6; i++) g.fillRect(5 + i * 6, 8 + (i % 2) * 2, 4, 3);
     g.strokeStyle = '#4E1028'; g.lineWidth = 3; g.beginPath(); g.moveTo(18, 9); g.quadraticCurveTo(14, 3, 9, 2); g.moveTo(24, 9); g.quadraticCurveTo(29, 4, 34, 3); g.stroke();
     g.strokeStyle = '#E06A8E'; g.lineWidth = 1.5; g.stroke();
-    if (kind === 'demon') { g.strokeStyle = '#1A0A0A'; g.lineWidth = 3; g.beginPath(); g.arc(21, 29, 3, 0, Math.PI * 2); g.stroke(); g.strokeStyle = '#C9CBD3'; g.lineWidth = 1.5; g.stroke(); }
+    if (kind === 'mutant') { g.fillStyle = '#9B6AA8'; for (let i = 0; i < 5; i++) g.fillRect(6 + i * 7, 24 + (i % 2) * 3, 3, 2); g.fillStyle = '#A3E635'; g.fillRect(22, 26, 2, 4); }
+    else if (kind === 'demon') { g.strokeStyle = '#1A0A0A'; g.lineWidth = 3; g.beginPath(); g.arc(21, 29, 3, 0, Math.PI * 2); g.stroke(); g.strokeStyle = '#C9CBD3'; g.lineWidth = 1.5; g.stroke(); }
     else { g.strokeStyle = '#4A341E'; g.lineWidth = 1; g.beginPath(); for (let i = 0; i < 8; i++) { const x = 6 + i * 4.3; g.moveTo(x, 27); g.lineTo(x + 2, 30); } g.stroke(); }
   } else if (kind === 'ovaries') {
     g.strokeStyle = '#6B1640'; g.lineWidth = 5; g.beginPath(); g.moveTo(10, 16); g.quadraticCurveTo(21, 6, 32, 16); g.stroke();

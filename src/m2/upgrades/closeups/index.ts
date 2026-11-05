@@ -23,6 +23,8 @@ import { closeUp as newt } from './newt';
 
 export const CUSTOM_CLOSEUPS: Record<CrushId, CloseUpPaint | null> = {
   artie, donnie, steve, tucker, dad, demon, harry, piper, queen, rex, perot, falwell, limbaugh, dole, newt,
+  // (the water park's kid: the generic close-up for now)
+  kid: null,
 };
 
 export const installCloseUps = () => {

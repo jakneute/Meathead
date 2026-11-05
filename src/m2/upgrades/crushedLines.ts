@@ -9,7 +9,7 @@ export type Dressed = 'clean' | 'shitty' | 'nude';
 export type CrushPants = Record<Dressed, readonly string[]>;
 export type CrushGroup = 'hurt' | 'taunt' | 'attack';
 export type CrushId = 'artie' | 'donnie' | 'queen' | 'steve' | 'harry' | 'tucker' | 'piper' | 'dad' | 'rex' | 'demon'
-  | 'perot' | 'falwell' | 'limbaugh' | 'dole' | 'newt';
+  | 'perot' | 'falwell' | 'limbaugh' | 'dole' | 'newt' | 'kid';
 
 export interface CrushSet {
   voice: string;
@@ -248,6 +248,30 @@ export const CRUSHED: Record<CrushId, CrushSet> = {
     },
   }),
   // ---- BRATHAZAR (the hell demon): Satan's boy, desperate to impress Dad; now he wants his mom
+  // ---- ZORZARBLAX, Zorblax and Zarblax's kid (the water park's summit): a mutant's three, and his mom who's also his
+  // aunt; whining, high, thirty-ish and still in the pod
+  kid: set('m2.wp.kid', {}, {
+    scream: {
+      clean: ['MY NUTS! ALL THREE OF MY NUTS!', 'MOMMY! DADDY! UNCLE DADDY!'],
+      shitty: ['MY NUTS! YOUR SHIT HAND TOOK MY NUTS!', 'IT STINKS AND IT TOOK ALL THREE!'],
+      nude: ['MY NUTS! A NAKED MAN TOOK ALL THREE!', "YOURS ARE OUT AND MINE AREN'T IN!"],
+    },
+    hurt: {
+      clean: ["OW! MOM SAYS THEY GROW BACK! THEY DON'T!", "NOT THERE! THERE'S NOTHING THERE!", "I'M TELLING MY MOM! SHE'S ALSO MY AUNT!"],
+      shitty: ["OW! YOU STINK AND I'M EMPTY!", 'STOP! YOUR SHIT GOT IN THE HOLE!', 'MOM! THE STINKY MAN HURT MY HOLE!'],
+      nude: ['OW! STOP SWINGING THOSE AT ME!', "YOURS ARE RIGHT THERE! GIVE ME ONE!", "MOM! HE'S NAKED AND I'M NUTLESS!"],
+    },
+    taunt: {
+      clean: ["NOW I CAN'T GIVE MOM GRANDKIDS! OR DAD! SAME PERSON!", "I'LL STILL KILL YOU! IN A HIGHER VOICE!", "DAD SAYS REAL ALIENS DON'T NEED NUTS!"],
+      shitty: ['YOU STILL STINK! I SMELL IT WITH ALL THREE NOSTRILS!', 'I LOST MY NUTS! YOU LOST YOUR BOWELS!', "COME HERE, STINKY! I'M SQUEAKY AND MAD!"],
+      nude: ["PUT THEM AWAY! YOU'RE RUBBING IT IN!", 'I HAD THREE! YOU HAVE TWO! I STILL LOST!', "DON'T SWING THEM AT ME! I'M GRIEVING!"],
+    },
+    attack: {
+      clean: ['THIS IS FOR MY NUTS!', 'SQUEAK! DIE!'],
+      shitty: ['FOR MY NUTS, STINKY!', 'SQUEAK! DIE, STINKY!'],
+      nude: ['FOR MY NUTS, NAKED MAN!', 'SQUEAK! PUT IT AWAY AND DIE!'],
+    },
+  }),
   demon: set('m2.demon', {}, {
     scream: {
       clean: ['MY UNHOLY NUTS! DAD! DAAAD!', 'AAAH! DON\'T TELL MY DAD! DON\'T TELL ANYBODY!'],
