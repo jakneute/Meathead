@@ -383,7 +383,7 @@ export const parkLayout: StageLayout = {
     const pk = parkOf(state);
     const tw = pk?.tw;
     drawParkBack(c, state, { gates: tw?.gate ?? [], tells: tw?.tells ?? [], locked: tw?.locked ?? null, door: pk?.f ? doorState(pk.f) : pk?.killed ? 1 : 0, greenPool: pk?.greenPool ?? 0, climb: tw?.climb ? { k: tw.climb.k, e: climbEase(tw.climb) } : null, descent: !!pk && (!!pk.descent || pk.killed) }, () => {
-      if (pk) drawGreenWater(c, state, pk.descent);
+      if (pk) drawGreenWater(c, state, pk.descent, pk.killed);
     });
     if (!pk) return;
     // (the kid: up there; dead in the slide's mouth, on the way down, floating in the pool)

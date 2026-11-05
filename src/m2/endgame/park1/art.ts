@@ -21,7 +21,8 @@ import type { GameState } from '../../../m1/game/core/state';
 import type { Light } from '../../../m1/game/render/lighting';
 import { CANVAS_WIDTH as W, CANVAS_HEIGHT as H } from '../../../m1/constants';
 import { stamp } from '../../../m1/game/render/stamp';
-import { drawTodSky, timeOfDay, farTint, lampGlow } from '../../timeOfDay';
+import { drawTodSky, timeOfDay, farTint, lampGlow, skyAt } from '../../timeOfDay';
+import { drawTowerAt } from '../../cartoon/monument';
 import { farMark, farTreeline } from '../../parkFar';
 import { text, steppedGlow, mix, checker as dither, hazeBands, sideFace } from '../../intro/art/kit';
 import { signText, signW, signH, rampDown, type Look } from '../../signLetters';
@@ -94,7 +95,17 @@ const paintFar = (g: Ctx) => {
   farMark(g, 'atom', 440, foot, 80, 0.45, tod);
   farMark(g, 'clockTower', 560, foot, 110, 0.45, tod);
   farMark(g, 'thrones', 700, foot, 70, 0.5, tod);
-  farMark(g, 'cartoonTower', 840, foot, 90, 0.45, tod);
+  // (Cartoon Land's water tower: painted at its far size here, not shrunk (shrunk smooth, its thin legs went see-through
+  // and the tank hung in the air like a ghost in a propeller beanie): pixel for pixel, its legs down solid to its feet on
+  // the horizon, washed toward the haze over its own pixels only)
+  if (typeof document !== 'undefined') {
+    const s = 96 / 280, cv = document.createElement('canvas'); cv.width = 70; cv.height = 106;
+    const og = cv.getContext('2d')!;
+    og.imageSmoothingEnabled = false;
+    drawTowerAt(og, 35, 100, s, 0);
+    og.globalCompositeOperation = 'source-atop'; og.globalAlpha = 0.3; og.fillStyle = skyAt(0.86, tod); og.fillRect(0, 0, cv.width, cv.height);
+    g.drawImage(cv, 840 - 35, foot - 100);
+  }
   farMark(g, 'showcase', 960, foot, 80, 0.5, tod);
   // (the water park's own rides, farther along: scaffold towers in steps, their flumes off them on legs, canopies)
   const FL = ['#0891B2', '#BE185D', '#CA8A04', '#16A34A', '#7C3AED'];
@@ -422,14 +433,37 @@ const paintCraterEdge = (g: Ctx, ex: number, d: number) => {
   R(g, Math.min(X(0), X(22)), GY + 70, 22, 8, INK); R(g, Math.min(X(0), X(21)), GY + 71, 21, 6, '#5A6068'); R(g, Math.min(X(0), X(21)), GY + 71, 21, 2, '#9AA0AA');
   R(g, X(21) - (d > 0 ? 0 : 2), GY + 78, 2, 40, 'rgba(120, 190, 240, 0.45)');
 };
+/** The mountain's outside's foot past base camp's ground (the face's band 0 out over the crater there: TR..TR+FACE,
+ *  base camp's ground ends at 29900): its fiberglass rock carried on down past the ground's line, a concrete footing
+ *  under it on piers, the lot banded off into the crater's dark (no lit top: nothing to stand on). */
+const FACE_FOOT: [number, number] = [GROUND[7][1], TOWER.TR + (TOWER.TR - TOWER.TL)], FOOT_H = 320;
+const paintFaceFoot = (g: Ctx) => {
+  const [x0, x1] = FACE_FOOT, Rk = ['#2E2418', '#463828', '#5E4C38', '#7E6850', '#9A8468', '#B8A284'];
+  R(g, x0 - 4, GY, x1 - x0 + 4, 70, Rk[2]);
+  dither(g, x0 - 4, GY + 20, x1 - x0 + 4, 40, Rk[1]);
+  for (let i = 0; i < 8; i++) { const fx = x0 + hash(i + 900) * (x1 - x0 - 90), fw = 50 + hash(i + 910) * 80, fy = GY + 6 + hash(i + 920) * 30; poly(g, [[fx, fy + 30], [fx + fw * 0.3, fy], [fx + fw, fy + 6], [fx + fw + 6, fy + 34]], Rk[3]); R(g, fx + fw * 0.3, fy, fw * 0.5, 1, Rk[4]); }
+  for (let x = x0 + 120 - ((x0 - TOWER.TR) % 160); x < x1; x += 160) if (x > x0) { R(g, x, GY, 2, 70, Rk[0]); R(g, x + 2, GY, 1, 70, Rk[4]); }
+  // (the shell's bottom edge, ragged, and the concrete footing it's bolted down onto)
+  const fy = GY + 64;
+  R(g, x0 - 4, fy, x1 - x0 + 4, 30, INK); R(g, x0 - 4, fy + 1, x1 - x0 + 4, 28, CONC[2]); R(g, x0 - 4, fy + 1, x1 - x0 + 4, 2, CONC[3]); R(g, x0 - 4, fy + 24, x1 - x0 + 4, 5, CONC[0]);
+  for (let x = x0 + 10; x < x1; x += 40) { R(g, x, fy - 2, 4, 4, INK); R(g, x + 1, fy - 1, 2, 2, '#B8B2AA'); }
+  for (let x = x0; x < x1; x += 12) R(g, x, fy - 3 - Math.round(hash(x * 0.3) * 4), 8, 3, Rk[1]);
+  // (its piers on down, and the dark: banded off into the crater's)
+  for (const px of [x0 + 40, (x0 + x1) / 2 - 12, x1 - 70]) { const p = Math.round(px); R(g, p - 1, fy + 30, 26, FOOT_H - 94, INK); R(g, p, fy + 30, 24, FOOT_H - 94, CONC[1]); R(g, p, fy + 30, 3, FOOT_H - 94, CONC[2]); R(g, p + 19, fy + 30, 5, FOOT_H - 94, CONC[0]); }
+  hazeBands(g, x0 - 4, GY + 24, x1 - x0 + 4, FOOT_H - 24, CRATER[4], 0.15, 1, 7);
+  // (the shell's cut edge on its far side, carried down)
+  R(g, x1 - 10, GY, 10, 70, '#120E0A'); R(g, x1 - 12, GY, 2, 70, Rk[1]);
+};
 /** The pits between runs: blast craters (in bands down into the dark, a glow far down), or the drained DEEP END under
  *  the tube rides (black: the drop's bands over it, drawTubeBack). */
-const drawPits = (c: Ctx, state: GameState) => {
+const drawPits = (c: Ctx, state: GameState, face = false) => {
   const bot = state.camera.y + H + 40;
   for (let i = 0; i + 1 < GROUND.length; i++) {
-    const a = GROUND[i][1], b = GROUND[i + 1][0];
-    if (!vis(state, a, b, 20) || bot < GY) continue;
-    const pool = POOLS.find(p => p.x1 >= a - 1 && p.x2 <= b + 1);
+    const a = GROUND[i][1], b0 = GROUND[i + 1][0];
+    if (!vis(state, a, b0, 20) || bot < GY) continue;
+    const pool = POOLS.find(p => p.x1 >= a - 1 && p.x2 <= b0 + 1);
+    // (a pool at the far end of a crater (the descent's splash pool, past base camp's): the crater up to the pool's wall)
+    const b = pool && pool.x1 > a + 200 && !TUBES.some(t => t.pool === pool) ? pool.x1 : b0;
     const deep = TUBES.some(t => t.deck.x1 >= a - 140 && t.deck.x1 <= a + 5);
     const x0 = Math.max(a, state.camera.x - 40), x1 = Math.min(b, state.camera.x + W + 40);
     if (deep) {
@@ -440,12 +474,18 @@ const drawPits = (c: Ctx, state: GameState) => {
       if (bot > GY + 140) for (const T of TUBES) { if (T.deck.x1 < a - 140 || T.deck.x1 > a + 5) continue; for (const [u, v] of [[a, T.deck.x2], [T.pool.x2, b]]) { const p0 = Math.max(x0, u), p1 = Math.min(x1, v); if (p1 > p0) R(c, p0, GY + 140, p1 - p0, bot - GY - 140, VOID); } }
       continue;
     }
-    if (pool) continue;
+    if (pool && b === b0) continue;
     // (a crater: the dark in bands, each seam dithered; the glow far down, stepped)
     const w = x1 - x0;
-    CRATER.forEach((col, k) => { const y0 = GY + k * 44, h = k === CRATER.length - 1 ? bot - y0 : 44; if (h > 0 && y0 < bot) { R(c, x0, y0, w, h, col); if (k) dither(c, x0, y0 - 2, w, 2, col); } });
+    // (the descent's crater, past base camp: deeper, darker from its top (it's the long drop under the slide))
+    const CR = a === FACE_FOOT[0] ? [CRATER[2], CRATER[3], CRATER[4], CRATER[4], CRATER[4]] : CRATER;
+    CR.forEach((col, k) => { const y0 = GY + k * 44, h = k === CRATER.length - 1 ? bot - y0 : 44; if (h > 0 && y0 < bot) { R(c, x0, y0, w, h, col); if (k) dither(c, x0, y0 - 2, w, 2, col); } });
     for (let k = 0; k < 4; k++) { const y0 = GY + 230 + k * 40; if (y0 < bot) { c.fillStyle = `rgba(234, 88, 12, ${(0.05 + k * 0.045).toFixed(3)})`; c.fillRect(x0, y0, w, k === 3 ? bot - y0 : 40); } }
+    // (the mountain's foot, out past base camp's ground over the crater: its fiberglass on down into the dark and the
+    // concrete footing it stands on, before the crater's broken edge (in front of it))
+    if (face && a === FACE_FOOT[0] && vis(state, FACE_FOOT[0] - 10, FACE_FOOT[1] + 10)) for (let ty = GY; ty < Math.min(bot, GY + FOOT_H); ty += 160) if (visY(state, ty, ty + 160, 0)) stamp(c, `wp-facefoot-${ty}`, FACE_FOOT[0] - 4, ty, FACE_FOOT[1] - FACE_FOOT[0] + 4, Math.min(160, GY + FOOT_H - ty), g => { g.save(); g.beginPath(); g.rect(FACE_FOOT[0] - 4, ty, FACE_FOOT[1] - FACE_FOOT[0] + 4, 160); g.clip(); paintFaceFoot(g); g.restore(); });
     for (const [ex, d] of [[a, 1], [b, -1]] as const) {
+      if (pool && d < 0) continue;
       if (ex < state.camera.x - 80 || ex > state.camera.x + W + 80) continue;
       stamp(c, `wp-crater-${ex}`, d > 0 ? ex - 2 : ex - 62, GY - 4, 64, 220, g => paintCraterEdge(g, ex, d));
     }
@@ -526,15 +566,20 @@ const paintSplash = (g: Ctx, p: (typeof POOLS)[number]) => {
 const drawPools = (c: Ctx, state: GameState, greenPool: number) => {
   for (const p of POOLS) {
     if (!vis(state, p.x1 - 20, p.x2)) continue;
-    if (p === POOLS[0] || SPLASH.includes(p)) {
+    if (p === POOLS[0] || SPLASH.includes(p) || p === POOLS[3]) {
       // (the lagoon: its basin stamped; the water over it live (banded: deeper, bluer)) (the tube rides' splash pools the
       // same, their near walls' outsides down into the drop)
       if (p === POOLS[0]) stamp(c, 'wp-lagoon', p.x1 - 10, GY - 40, p.x2 - p.x1 + 20, p.bottom - GY + 64, g => paintLagoon(g, p));
       else stamp(c, `wp-splash-${p.x1}`, p.x1 - 22, GY - 40, p.x2 - p.x1 + 32, p.bottom - GY + SPLASH_DEEP + 40, g => paintSplash(g, p));
       const d = p.bottom - p.surface;
-      c.fillStyle = 'rgba(40, 150, 225, 0.42)'; c.fillRect(p.x1, p.surface, p.x2 - p.x1, d * 0.3);
-      c.fillStyle = 'rgba(34, 128, 210, 0.5)'; c.fillRect(p.x1, p.surface + Math.round(d * 0.3), p.x2 - p.x1, Math.round(d * 0.35));
-      c.fillStyle = 'rgba(26, 100, 190, 0.58)'; c.fillRect(p.x1, p.surface + Math.round(d * 0.65), p.x2 - p.x1, d - Math.round(d * 0.65));
+      // (the Everest splash pool's goes green with the kid's blood: the bands toward his green)
+      const gk = p === POOLS[3] ? Math.min(1, greenPool) : 0;
+      const band = (r: number, gg: number, b: number, a: number) => (gk > 0 ? `rgba(${Math.round(r + (46 - r) * gk)}, ${Math.round(gg + (150 - gg) * gk)}, ${Math.round(b + (60 - b) * gk)}, ${(a + 0.1 * gk).toFixed(3)})` : `rgba(${r}, ${gg}, ${b}, ${a})`);
+      c.fillStyle = band(40, 150, 225, 0.42); c.fillRect(p.x1, p.surface, p.x2 - p.x1, d * 0.3);
+      c.fillStyle = band(34, 128, 210, 0.5); c.fillRect(p.x1, p.surface + Math.round(d * 0.3), p.x2 - p.x1, Math.round(d * 0.35));
+      c.fillStyle = band(26, 100, 190, 0.58); c.fillRect(p.x1, p.surface + Math.round(d * 0.65), p.x2 - p.x1, d - Math.round(d * 0.65));
+      // (his blood in it in clouds, darker, drifting)
+      if (gk > 0.3) for (let k = 0; k < 5; k++) { const cx = p.x1 + 40 + ((hash(k + 950) * (p.x2 - p.x1 - 120) + state.frame * (0.1 + k * 0.03)) % (p.x2 - p.x1 - 100)), cy = p.surface + 30 + hash(k + 960) * (d - 60); c.fillStyle = `rgba(20, 70, 24, ${(0.25 * gk).toFixed(3)})`; c.fillRect(Math.round(cx), Math.round(cy), 50 + k * 8, 10); c.fillRect(Math.round(cx) + 8, Math.round(cy) - 6, 30, 6); c.fillRect(Math.round(cx) + 14, Math.round(cy) + 10, 26, 5); }
       // (the light off the water on the floor, wobbling)
       for (let x = p.x1 + 20 + ((state.frame * 0.4) % 40); x < p.x2 - 20; x += 40) R(c, x, p.bottom - 3, 12, 1, 'rgba(200, 240, 255, 0.5)');
       continue;
@@ -899,28 +944,7 @@ const drawProps = (c: Ctx, state: GameState) => {
 // ---------------------------------------------------------------------------------------------------------------
 // The slides
 
-/** A chute along a path, painted: its back wall and its water (world), or its near wall (in front of him). */
-const chuteBack = (g: Ctx, pts: [number, number][], col: string, wide = 20, water = -3) => {
-  g.lineCap = 'round'; g.lineJoin = 'round';
-  const line = (dy: number, w: number, s: string) => { g.strokeStyle = s; g.lineWidth = w; g.beginPath(); pts.forEach(([x, y], i) => (i ? g.lineTo(x, y + dy) : g.moveTo(x, y + dy))); g.stroke(); };
-  line(-wide / 2 + 6, wide + 4, INK);
-  line(-wide / 2 + 6, wide, col);
-  line(-wide + 8, 3, 'rgba(255,255,255,0.35)');
-  // (the water in it)
-  line(water, 6, 'rgba(120, 200, 255, 0.85)');
-  line(water - 2, 2, '#E0F2FE');
-  g.lineCap = 'butt'; g.lineJoin = 'miter';
-};
-const chuteFront = (g: Ctx, pts: [number, number][], col: string, lift = 0) => {
-  g.lineCap = 'round'; g.lineJoin = 'round';
-  // (the near wall: up past the water's line, so whoever's sat in it is down behind it from the hips; `lift`: taller)
-  const dy = 2 - lift / 2;
-  g.strokeStyle = INK; g.lineWidth = 15 + lift; g.beginPath(); pts.forEach(([x, y], i) => (i ? g.lineTo(x, y + dy) : g.moveTo(x, y + dy))); g.stroke();
-  g.strokeStyle = col; g.lineWidth = 11 + lift; g.stroke();
-  g.strokeStyle = 'rgba(255,255,255,0.4)'; g.lineWidth = 2; g.beginPath(); pts.forEach(([x, y], i) => (i ? g.lineTo(x, y - 3 - lift) : g.moveTo(x, y - 3 - lift))); g.stroke();
-  g.lineCap = 'butt'; g.lineJoin = 'miter';
-};
-/** The plaza slides' chute (the SNES pass; the tube rides' and the descent's keep chuteBack/chuteFront): its back half a
+/** The plaza slides' chute (the SNES pass; the tube rides' and the descent's have their own): its back half a
  *  round trough in its plastic's steps (shade under, the body, the lit inner rim along its top, a glint), its sections'
  *  joints banded; the water in it in steps (deep, the run, the foam flecked along it). Within chuteBack's own bounds. */
 const slideBack = (g: Ctx, pts: [number, number][], col: string) => {
@@ -1533,6 +1557,8 @@ const smallLook = (col: string, sy = 1): Look => ({ sx: 1, sy, fill: rampDown(co
 const words = (g: Ctx, s: string, x: number, y: number, L: Look, maxW: number) => {
   let use = L;
   if (signW(s, use) > maxW && (use.sx ?? 1) > 1) use = { ...use, sx: 1 };
+  // (bold letters set tight run into each other (the spiral's THE REST OF YOUR LIFE lost its I): thinned first)
+  if (signW(s, use) > maxW && use.bold && (use.gap ?? 1) > 0) use = { ...use, bold: false };
   if (signW(s, use) > maxW && (use.gap ?? 1) > 0) use = { ...use, gap: 0 };
   signText(g, s, x, y, use);
 };
@@ -1934,6 +1960,18 @@ const themeProps = (g: Ctx, k: number, y: number, top: number) => {
       dither(g, TL + 266, y - 100, 140, 4, Rk[4]); dither(g, TL + 250, y - 30, 180, 4, Rk[2]);
       for (let i = 0; i < 7; i++) { const cx = TL + 270 + hash(i + 80) * 140, cy = y - 90 + hash(i + 81) * 70; R(g, cx, cy, 10 + hash(i + 82) * 14, 1, Rk[1]); }
       g.strokeStyle = INK; g.lineWidth = 3; g.beginPath(); g.moveTo(TL + 230, y); g.quadraticCurveTo(TL + 270, y - 80, TL + 330, y - 126); g.stroke(); g.strokeStyle = '#DC2626'; g.lineWidth = 2; g.stroke();
+      // (the refill (the big health and ammo on the deck in front of it): LAST AID STATION, a first aid cabinet and an
+      // oxygen rack on a cart at the step's foot, its board on a post; behind the play, nothing to stand on)
+      { const cx = TL + 196, cy = y;
+        R(g, cx - 1, cy - 40, 132, 34, INK); R(g, cx, cy - 39, 130, 32, '#3F4654'); R(g, cx, cy - 39, 130, 2, '#6B7486'); R(g, cx, cy - 10, 130, 3, '#262B34');
+        for (const wx of [cx + 12, cx + 116]) { R(g, wx - 6, cy - 8, 12, 8, INK); R(g, wx - 5, cy - 7, 10, 6, '#1C1F26'); R(g, wx - 2, cy - 5, 4, 2, '#8A93A0'); }
+        R(g, cx + 6, cy - 36, 38, 26, INK); R(g, cx + 7, cy - 35, 36, 24, '#F1F5F9'); R(g, cx + 7, cy - 35, 36, 2, '#FFFFFF'); R(g, cx + 40, cy - 35, 3, 24, '#B8C0CC');
+        R(g, cx + 22, cy - 31, 6, 16, '#DC2626'); R(g, cx + 17, cy - 26, 16, 6, '#DC2626'); R(g, cx + 22, cy - 31, 2, 16, '#F87171');
+        for (let i = 0; i < 5; i++) bottle(g, cx + 54 + i * 12, cy - 9, i % 2 ? '#15803D' : '#C2570C');
+        postV(g, cx + 118, cy - 86, cy - 40, 4, STEEL6);
+        board(g, cx + 70, cy - 108, 100, 26, '#B91C1C');
+        words(g, 'LAST AID STATION', cx + 120, cy - 97, { sx: 1, sy: 1, fill: '#FFFFFF', gap: 1 }, 94);
+        words(g, 'FREE REFILLS', cx + 120, cy - 88, { sx: 1, sy: 1, fill: '#FDE68A', gap: 1 }, 94); }
       break;
     }
   }
@@ -2183,6 +2221,22 @@ const paintFace = (g: Ctx, k: number, cx0 = -1e9, cx1 = 1e9, cy0 = -1e9, cy1 = 1
   // them); a stanchion every other one and their rope; QUEUE CONTINUES half way, and the wait)
   const ax = TR + 10, ay = floorY(k), bx = TR + FACE - 10, by = floorY(k + 1), n = 28, T = THEME[k], A = ramp5(T.accent), S = STEEL6;
   const yAt = (x: number) => ay + ((by - ay) * (x - ax)) / (bx - ax);
+  // (the spiral's corner standards up both edges of the face, bracketed into the rock, and a landing on each at the
+  // flight's ends: its foot and its head stand on something (from round the far side, where the tower's inside isn't
+  // drawn, the flight's end hung off the face's edge in the air))
+  for (const [sx, ly, lx0, lx1] of [[x0 + 12, ay, x0 + 4, ax + 22], [x1 - 20, by, bx - 22, x1 - 4]] as const) {
+    if (inT(sx - 2, sx + 10, yt, yb)) {
+      postV(g, sx, yt, yb, 7, S);
+      for (let yy = yt + 50; yy < yb - 10; yy += 120) { R(g, sx - 3, yy, 14, 6, INK); R(g, sx - 2, yy + 1, 12, 4, S[2]); R(g, sx - 2, yy + 1, 12, 1, S[4]); R(g, sx + 2, yy + 2, 2, 2, S[5]); }
+    }
+    if (inT(lx0 - 4, lx1 + 4, ly - 8, ly + 40)) {
+      R(g, lx0 - 1, ly - 5, lx1 - lx0 + 2, 10, INK); R(g, lx0, ly - 4, lx1 - lx0, 8, S[3]); R(g, lx0, ly - 4, lx1 - lx0, 2, '#E2E8F0'); R(g, lx0, ly - 2, lx1 - lx0, 1, S[5]); R(g, lx0, ly + 2, lx1 - lx0, 2, S[1]);
+      for (let x = lx0 + 3; x < lx1 - 3; x += 6) R(g, x, ly, 2, 1, S[2]);
+      // (its knee brace, from under it into the standard)
+      const kx = sx < (x0 + x1) / 2 ? lx1 - 6 : lx0 + 6, sx0 = sx + 3;
+      g.strokeStyle = INK; g.lineWidth = 5; g.beginPath(); g.moveTo(kx, ly + 5); g.lineTo(sx0, ly + 32); g.stroke(); g.strokeStyle = S[2]; g.lineWidth = 3; g.stroke();
+    }
+  }
   if (inT(ax - 10, bx + 10, by - 60, ay + 30)) {
     for (let x = ax + 60; x < bx - 20; x += 130) { const sy0 = yAt(x) + 16; g.strokeStyle = INK; g.lineWidth = 5; g.beginPath(); g.moveTo(x, sy0); g.lineTo(x - 30, sy0 + 30); g.stroke(); g.strokeStyle = S[2]; g.lineWidth = 3; g.stroke(); R(g, x - 36, sy0 + 26, 12, 10, INK); R(g, x - 35, sy0 + 27, 10, 8, S[3]); R(g, x - 32, sy0 + 30, 2, 2, S[5]); }
     poly(g, [[ax, ay + 1], [bx, by + 1], [bx, by + 18], [ax, ay + 18]], INK);
@@ -2230,41 +2284,191 @@ const drawFace = (c: Ctx, state: GameState, ox: number) => {
     c.restore();
   }
 };
-/** The summit: the peak's snow, the flag, the slide's mouth on its right, its sign. */
-const drawSummit = (c: Ctx, state: GameState) => {
-  const { TL, TR } = TOWER;
-  // (the summit: the peak's snow, the flag, the slide's mouth on its right, its sign)
-  const sy = SUMMIT.y;
-  if (visY(state, sy - 300, sy + 40)) {
-    stamp(c, 'wp-summit', TL - 60, sy - 330, TR - TL + 260, 340, g => {
-      g.fillStyle = '#E8F0FA'; g.beginPath(); g.moveTo(TL, sy); g.lineTo(TL + 300, sy - 140); g.lineTo(TL + 400, sy - 240); g.lineTo(TL + 470, sy - 150); g.lineTo(TR, sy); g.closePath(); g.fill();
-      g.fillStyle = '#C8D4E4'; g.beginPath(); g.moveTo(TL + 400, sy - 240); g.lineTo(TL + 470, sy - 150); g.lineTo(TR, sy); g.lineTo(TL + 420, sy); g.closePath(); g.fill();
-      R(g, TL + 398, sy - 300, 4, 62, '#3F3F46'); R(g, TL + 402, sy - 300, 46, 26, '#DC2626'); text(g, 'SUMMIT', TL + 425, sy - 283, '#F8FAFC', 6);
-      // (its sign, stood on the deck on its posts, at the snow's foot: readable over the kid's head)
-      // (a board deep enough that the far-off SPACE NEEDLE 2's saucer's all behind it, none of its letters poking out under)
-      R(g, TL + 150, sy - 98, 5, 98, '#3F3F46'); R(g, TL + 245, sy - 98, 5, 98, '#3F3F46');
-      R(g, TL + 100, sy - 160, 200, 62, INK); R(g, TL + 102, sy - 158, 196, 58, '#7C2D12'); R(g, TL + 102, sy - 158, 196, 3, '#A8502A');
-      text(g, 'THE SUMMIT', TL + 200, sy - 140, '#FEF3C7', 9); text(g, 'ELEV. 1,000 FT', TL + 200, sy - 125, '#FDE68A', 7); text(g, '(ROUGHLY)', TL + 200, sy - 110, '#FDBA74', 5);
-      // (the slide's mouth: its arch, its sign)
-      const mx = SUMMIT.mouthX;
-      R(g, mx - 20, sy - 150, 10, 150, INK); R(g, mx + 100, sy - 150, 10, 150, INK);
-      R(g, mx - 30, sy - 170, 150, 26, INK); R(g, mx - 28, sy - 168, 146, 22, '#0891B2'); text(g, 'THE BIG ONE', mx + 45, sy - 153, '#F8FAFC', 7);
-      // (the deck's lit top over the summit)
-      R(g, TL, sy, TR - TL, 3, '#F8FAFC');
-    });
+/** The summit (stamped; the SNES pass): the fake peak behind the arena (moulded fiberglass in its steps, the coldest
+ *  blue of the mountain's, lit up its left, its panel seams and bolts, a torn panel with the scaffold inside, the fake
+ *  snowcap in bands with its blue shade, its stains and its plastic icicles: nothing on it reads as a ledge), the
+ *  SUMMIT flag on its pole at the top, prayer flags strung from it down to poles on the slopes, the coin telescope, the
+ *  queue's rope along the back of the deck; THE SUMMIT's board on its posts (icy letters, snow piled on it, bulbs);
+ *  THE BIG ONE's start gate over the slide's mouth on the right (striped posts on their plates, a marquee board in
+ *  bulbs, its caged lamps), NO REFUNDS on its post; the deck's lit top. Depth: all of it behind the kid and him (drawn in
+ *  drawBack after the tower and the face), the board and the gate stood on the deck. */
+const SUMMIT_PEAK: [number, number][] = [[0, 0], [60, -30], [120, -50], [170, -82], [215, -96], [258, -132], [300, -150], [338, -190], [372, -214], [400, -242], [422, -226], [448, -202], [472, -164], [520, -142], [580, -112], [640, -86], [700, -52], [760, -24], [800, 0]];
+const peakY = (dx: number) => { for (let i = 1; i < SUMMIT_PEAK.length; i++) { const [ax, ay] = SUMMIT_PEAK[i - 1], [bx, by] = SUMMIT_PEAK[i]; if (dx <= bx) return ay + ((by - ay) * (dx - ax)) / Math.max(1, bx - ax); } return 0; };
+/** A string of prayer flags from (x0, y0) to (x1, y1), sagging: the cord, the flags hung square off it. */
+const flagLine = (g: Ctx, x0: number, y0: number, x1: number, y1: number, sag: number, step = 18) => {
+  const at = (u: number) => [x0 + (x1 - x0) * u, y0 + (y1 - y0) * u + sag * 4 * u * (1 - u)] as const;
+  g.strokeStyle = '#3A3630'; g.lineWidth = 2; g.beginPath(); for (let i = 0; i <= 16; i++) { const [x, y] = at(i / 16); if (i) g.lineTo(x, y + 1); else g.moveTo(x, y + 1); } g.stroke();
+  g.strokeStyle = '#CBD5E1'; g.lineWidth = 1; g.beginPath(); for (let i = 0; i <= 16; i++) { const [x, y] = at(i / 16); if (i) g.lineTo(x, y); else g.moveTo(x, y); } g.stroke();
+  const n = Math.max(2, Math.floor(Math.hypot(x1 - x0, y1 - y0) / step));
+  for (let i = 1; i < n; i++) {
+    const [x, y] = at(i / n), F = FLAGS[i % 5], fx = Math.round(x - 5), fy = Math.round(y);
+    R(g, fx - 1, fy, 12, 12, F[0]); R(g, fx, fy, 10, 11, F[2]); R(g, fx, fy, 10, 2, F[3]); R(g, fx, fy + 1, 1, 9, F[3]);
+    R(g, fx + 8, fy + 2, 2, 9, F[1]); R(g, fx, fy + 9, 10, 2, F[1]); R(g, fx + 3, fy + 4, 4, 4, F[1]);
   }
 };
-/** The summit's door (on its left, at the top of the Hillary Step's stairs): up, or kicked in flat. */
+const paintSummit = (g: Ctx) => {
+  const sy = SUMMIT.y, Rk = ramp6('#5E6E8A'), S = STEEL6;
+  const at = (i: number) => [TL + SUMMIT_PEAK[i][0], sy + SUMMIT_PEAK[i][1]] as [number, number];
+  const outline = SUMMIT_PEAK.map((_, i) => at(i));
+  // (the peak: its ink edge, its rock in steps: lit down its left face, shaded down its right (the ridge from the top
+  // down to the deck the line between), the seam dithered)
+  poly(g, outline.map(([x, y]) => [x, y - 2] as [number, number]), INK);
+  poly(g, outline, Rk[2]);
+  g.save(); g.beginPath(); g.moveTo(outline[0][0], outline[0][1]); for (const [x, y] of outline.slice(1)) g.lineTo(x, y); g.closePath(); g.clip();
+  poly(g, [[TL, sy], [TL + 400, sy - 242], [TL + 360, sy - 120], [TL + 430, sy]], Rk[3]);
+  poly(g, [[TL, sy], [TL + 400, sy - 242], [TL + 300, sy - 150], [TL + 170, sy - 82], [TL + 40, sy]], Rk[4]);
+  poly(g, [[TL + 400, sy - 242], [TL + 800, sy], [TL + 520, sy], [TL + 452, sy - 120]], Rk[1]);
+  dither(g, TL + 420, sy - 140, 60, 140, Rk[1]);
+  // (its strata, in broken runs: a lit lip, the shadow under; cracks)
+  for (let i = 0; i < 12; i++) {
+    const lx = TL + 30 + hash(i + 600) * 680, ly = sy - 10 - hash(i + 610) * 120, lw = 40 + hash(i + 620) * 90;
+    if (ly < sy + peakY(lx - TL) + 8) continue;
+    poly(g, [[lx, ly], [lx + lw * 0.4, ly - 3], [lx + lw, ly], [lx + lw + 8, ly + 6], [lx + 4, ly + 7]], Rk[1]);
+    R(g, lx + 2, ly - 1, lw * 0.6, 1, Rk[5]);
+  }
+  g.strokeStyle = Rk[0]; g.lineWidth = 1; g.beginPath();
+  for (let i = 0; i < 8; i++) { let cx = TL + 60 + hash(i + 640) * 680, cy = sy - 6 - hash(i + 650) * 90; g.moveTo(cx, cy); for (let j = 0; j < 3; j++) { cx += (hash(i * 3 + j + 660) - 0.5) * 24; cy += 6 + hash(i * 3 + j + 670) * 8; g.lineTo(Math.round(cx), Math.round(cy)); } }
+  g.stroke();
+  // (the shell's panels: a seam every so far, its lit lip, its bolts)
+  for (let x = TL + 100; x < TR - 20; x += 140) { R(g, x, sy - 260, 2, 260, Rk[0]); R(g, x + 2, sy - 260, 1, 260, Rk[4]); for (let yy = sy - 230; yy < sy; yy += 36) { R(g, x - 4, yy, 4, 4, INK); R(g, x - 3, yy + 1, 2, 2, '#B8B2AA'); } }
+  // (a panel torn off low on the right: the scaffold inside, dark, a lamp)
+  { const hx = TL + 560, hy = sy - 74;
+    poly(g, [[hx, hy], [hx + 50, hy - 8], [hx + 62, hy + 30], [hx + 40, hy + 52], [hx + 4, hy + 46]], INK);
+    poly(g, [[hx + 3, hy + 3], [hx + 48, hy - 4], [hx + 58, hy + 30], [hx + 38, hy + 48], [hx + 6, hy + 43]], '#0C1020');
+    R(g, hx + 18, hy - 2, 4, 50, S[1]); R(g, hx + 18, hy - 2, 1, 50, S[3]); R(g, hx + 4, hy + 20, 52, 3, S[1]); R(g, hx + 4, hy + 20, 52, 1, S[3]);
+    g.strokeStyle = S[0]; g.lineWidth = 2; g.beginPath(); g.moveTo(hx + 22, hy + 22); g.lineTo(hx + 52, hy + 46); g.stroke();
+    R(g, hx + 36, hy + 6, 4, 4, '#F6C860'); R(g, hx + 37, hy + 7, 2, 2, '#FFF6D0');
+    for (let i = 0; i < 8; i++) R(g, hx + 4 + hash(i + 690) * 52, hy + hash(i + 700) * 46, 3, 1, '#D8C8A0');
+  }
+  // (the fake snowcap: down from the top in a ragged line, banded (the blue shade under, the body, lit up its left, the
+  // highlight along the ridge), the seams dithered, yellowed at its edges, its foam pocked; plastic icicles under it)
+  const Sn = ['#7A8EB0', '#B4C4D8', '#D4E0EE', '#EEF4FA', '#FFFFFF'];
+  const cap: [number, number][] = [];
+  for (let dx = 150; dx <= 660; dx += 15) cap.push([TL + dx, sy + peakY(dx) - 2]);
+  const foot: [number, number][] = [];
+  for (let dx = 660; dx >= 150; dx -= 15) { const top = peakY(dx), deep = (dx > 300 && dx < 520 ? 64 : 30) * (0.7 + hash(dx * 0.13) * 0.5); foot.push([TL + dx, sy + top + Math.min(-top - 10, deep)]); }
+  const capPoly = [...cap, ...foot];
+  poly(g, capPoly.map(([x, y]) => [x, y + 2] as [number, number]), Sn[0]);
+  poly(g, capPoly, Sn[2]);
+  g.save(); g.beginPath(); g.moveTo(capPoly[0][0], capPoly[0][1]); for (const [x, y] of capPoly.slice(1)) g.lineTo(x, y); g.closePath(); g.clip();
+  poly(g, [[TL + 150, sy], [TL + 400, sy - 250], [TL + 380, sy]], Sn[3]);
+  poly(g, [[TL + 400, sy - 250], [TL + 700, sy], [TL + 470, sy], [TL + 440, sy - 170]], Sn[1]);
+  dither(g, TL + 430, sy - 200, 40, 200, Sn[1]); dither(g, TL + 340, sy - 200, 30, 200, Sn[3]);
+  for (const [x, y] of foot) { R(g, x - 8, y - 4, 16, 4, Sn[1]); dither(g, x - 8, y - 8, 16, 4, Sn[1]); }
+  for (let i = 0; i < 18; i++) R(g, TL + 200 + hash(i + 720) * 420, sy - 30 - hash(i + 730) * 180, 2, 1, Sn[1]);
+  g.restore();
+  for (let i = 1; i < cap.length; i++) { const [x, y] = cap[i]; R(g, x - 7, y + 1, 14, 1, Sn[4]); }
+  for (const [x, y] of foot) {
+    if (hash(x * 0.7) < 0.35) dither(g, x - 6, y - 4, 10, 3, '#B8A060');
+    const il = 5 + Math.round(hash(x * 0.3) * 10);
+    g.fillStyle = INK; g.beginPath(); g.moveTo(x - 4, y); g.lineTo(x + 4, y); g.lineTo(x, y + il + 1); g.closePath(); g.fill();
+    g.fillStyle = '#C8E4F8'; g.beginPath(); g.moveTo(x - 3, y); g.lineTo(x + 3, y); g.lineTo(x, y + il); g.closePath(); g.fill(); R(g, x - 1, y + 1, 1, Math.max(1, il - 5), '#FFFFFF');
+  }
+  g.restore();
+  // (the queue's rope along the back of the deck: background, no lit tops)
+  queueRail(g, TL + 40, TL + 330, sy - 1, '#DC2626');
+  queueRail(g, TL + 470, SUMMIT.mouthX - 80, sy - 1, '#DC2626');
+  // (the coin telescope on its pedestal: 25 CENTS, a view of the parking lot)
+  { const tx = TL + 360;
+    postV(g, tx - 3, sy - 46, sy - 4, 6, S); R(g, tx - 10, sy - 5, 20, 5, INK); R(g, tx - 9, sy - 4, 18, 3, S[2]); R(g, tx - 9, sy - 4, 18, 1, S[4]);
+    R(g, tx - 12, sy - 62, 26, 18, INK); R(g, tx - 11, sy - 61, 24, 16, '#B45309'); R(g, tx - 11, sy - 61, 24, 3, '#F59E0B'); R(g, tx - 11, sy - 61, 3, 16, '#D97706'); R(g, tx + 9, sy - 61, 4, 16, '#78350F');
+    for (const ex of [tx + 12, tx + 12]) { R(g, ex, sy - 59, 7, 6, INK); R(g, ex + 1, sy - 58, 5, 4, '#1E293B'); R(g, ex + 1, sy - 58, 2, 1, '#93C5FD'); }
+    R(g, tx - 6, sy - 50, 8, 3, INK); R(g, tx - 5, sy - 50, 6, 1, '#FDE68A'); }
+  // (the SUMMIT flag up on its pole at the top: the pole stood into the peak on a bracket, a ball on it; the flag in its
+  // red, a fold in it, SUMMIT in white)
+  { const px = TL + 398;
+    postV(g, px, sy - 300, sy - 238, 4, S); R(g, px - 3, sy - 244, 10, 6, INK); R(g, px - 2, sy - 243, 8, 4, S[2]);
+    g.fillStyle = INK; g.beginPath(); g.arc(px + 2, sy - 303, 4, 0, Math.PI * 2); g.fill(); g.fillStyle = '#F2CC4A'; g.beginPath(); g.arc(px + 2, sy - 303, 3, 0, Math.PI * 2); g.fill(); R(g, px + 1, sy - 305, 1, 1, '#FFF0A0');
+    const F = ramp6('#DC2626');
+    for (let i = 0; i < 46; i += 2) { const wv = Math.round(Math.sin(i * 0.16) * 2); R(g, px + 4 + i, sy - 299 + wv, 2, 27, INK); R(g, px + 4 + i, sy - 298 + wv, 2, 25, i > 26 && i < 36 ? F[2] : F[3]); R(g, px + 4 + i, sy - 298 + wv, 2, 2, F[4]); R(g, px + 4 + i, sy - 275 + wv, 2, 2, F[1]); }
+    signText(g, 'SUMMIT', px + 27, sy - 280, { sx: 1, sy: 2, fill: rampDown('#FFFFFF', 0.12), shadow: '#5A0A0A', drop: 1, gap: 1, bold: true });
+    // (prayer flags strung off it, down to a pole on either slope)
+    for (const [qx, qy] of [[TL + 236, sy + peakY(236)], [TL + 566, sy + peakY(566)]] as const) { postV(g, qx - 2, qy - 64, qy + 18, 4, S); R(g, qx - 5, qy + 14, 10, 5, INK); R(g, qx - 4, qy + 15, 8, 3, S[3]); }
+    flagLine(g, px, sy - 272, TL + 236, sy + peakY(236) - 62, 10);
+    flagLine(g, px + 4, sy - 272, TL + 566, sy + peakY(566) - 62, 10);
+  }
+  // (THE SUMMIT's board, stood on the deck on its posts, at the snow's foot: readable over the kid's head; deep enough
+  // that the far-off SPACE NEEDLE 2's saucer's all behind it)
+  { const bx = TL + 100, by = sy - 160, bw = 200, bh = 62;
+    for (const px of [TL + 150, TL + 245]) { postV(g, px - 1, by + bh, sy - 3, 6, S); R(g, px - 6, sy - 4, 16, 4, INK); R(g, px - 5, sy - 4, 14, 3, S[2]); R(g, px - 5, sy - 4, 14, 1, S[4]); }
+    beamH(g, TL + 150, TL + 251, sy - 60, 4, S);
+    board(g, bx, by, bw, bh, '#13265E');
+    R(g, bx + 4, by + 4, bw - 8, 1, '#2E50A8');
+    const top: [number, number][] = [[bx - 4, by + 2]];
+    for (let x = bx - 4; x < bx + bw + 4; x += 14) top.push([x + 7, by - 6 - Math.round(hash(x * 0.9) * 6)], [Math.min(bx + bw + 4, x + 14), by - 2]);
+    top.push([bx + bw + 4, by + 6], [bx - 4, by + 6]);
+    poly(g, top.map(([x, y]) => [x, y - 1] as [number, number]), INK); poly(g, top, '#DCE6F0');
+    for (let x = bx; x < bx + bw; x += 14) R(g, x + 3, by - 3 - Math.round(hash(x * 0.9 + 1) * 4), 7, 2, '#F8FAFC');
+    for (let x = bx + 6; x < bx + bw - 4; x += 18) { const l = 2 + Math.round(hash(x + 5) * 4); R(g, x, by + 6, 4, l, '#DCE6F0'); R(g, x + 3, by + 6, 1, l, '#94A3B8'); }
+    for (let x = bx + 6, i = 0; x < bx + bw - 4; x += 12, i++) { R(g, x, by + bh - 7, 4, 4, INK); R(g, x, by + bh - 7, 3, 3, i % 3 ? '#FDE68A' : '#FFFBEB'); }
+    signText(g, 'THE SUMMIT', bx + bw / 2, by + 26, { sx: 2, sy: 2, fill: rampDown('#F0F9FF', 0.15), dither: true, shadow: '#060C24', drop: 1, gap: 1, bold: true, drip: { col: '#BAE6FD', tip: '#F0F9FF', rate: 0.3, len: 3 } });
+    signText(g, 'ELEV. 1,000 FT', bx + bw / 2, by + 41, { sx: 1, sy: 2, fill: rampDown('#FDE047', 0.35), dither: true, shadow: '#0B1640', drop: 1, gap: 1 });
+    signText(g, '(ROUGHLY)', bx + bw / 2, by + 50, { sx: 1, sy: 1, fill: '#FDBA74', shadow: '#0B1640', drop: 1, gap: 1 });
+  }
+  // (THE BIG ONE's start gate over the slide's mouth: its striped posts on their plates (hazard stripes low down), the
+  // marquee board across in its bulbs, caged lamps on the posts' tops; NO REFUNDS on a post by it)
+  { const mx = SUMMIT.mouthX, T = ramp6('#0E7490');
+    for (const px of [mx - 22, mx + 100]) {
+      postV(g, px, sy - 148, sy - 3, 12, T);
+      g.save(); g.beginPath(); g.rect(px, sy - 40, 12, 37); g.clip();
+      for (let i = -12; i < 40; i += 8) poly(g, [[px, sy - 3 - i], [px + 12, sy - 15 - i], [px + 12, sy - 11 - i], [px, sy + 1 - i]], '#FACC15');
+      g.restore();
+      R(g, px - 4, sy - 4, 20, 4, INK); R(g, px - 3, sy - 4, 18, 3, S[2]); R(g, px - 3, sy - 4, 18, 1, S[4]);
+      R(g, px - 1, sy - 160, 14, 12, INK); R(g, px, sy - 159, 12, 10, '#FDE68A'); for (let k = 0; k < 3; k++) R(g, px + 1 + k * 4, sy - 159, 1, 10, S[1]);
+      steppedGlow(g, px + 6, sy - 154, 12, '#FDE68A', 0.35, 0.06, 3);
+    }
+    board(g, mx - 34, sy - 182, 158, 30, '#0E7490');
+    for (let x = mx - 30, i = 0; x < mx + 122; x += 8, i++) for (const yy of [sy - 180, sy - 159]) { R(g, x, yy, 3, 3, INK); R(g, x, yy, 2, 2, i % 3 ? '#FDE68A' : '#FFFBEB'); }
+    signText(g, 'THE BIG ONE', mx + 45, sy - 163, { sx: 1, sy: 2, fill: rampDown('#F0FDFA', 0.2), dither: true, shadow: '#022C36', drop: 1, gap: 1, bold: true });
+    postV(g, mx - 50, sy - 72, sy - 3, 4, S); R(g, mx - 55, sy - 4, 14, 4, INK); R(g, mx - 54, sy - 4, 12, 3, S[2]);
+    board(g, mx - 74, sy - 98, 52, 28, '#F8FAFC');
+    R(g, mx - 74, sy - 98, 52, 8, '#B91C1C'); R(g, mx - 74, sy - 98, 52, 1, '#F87171');
+    words(g, 'DANGER', mx - 48, sy - 91, { sx: 1, sy: 1, fill: '#FFFFFF', gap: 1 }, 48);
+    words(g, 'NO REFUNDS', mx - 48, sy - 78, { sx: 1, sy: 1, fill: '#140A04', gap: 0 }, 48);
+  }
+  // (the deck's lit top over the summit)
+  R(g, TL, sy, TR - TL, 3, '#F8FAFC');
+};
+const drawSummit = (c: Ctx, state: GameState) => {
+  const sy = SUMMIT.y;
+  if (visY(state, sy - 320, sy + 40)) stamp(c, 'wp-summit2', TL - 60, sy - 330, TR - TL + 260, 340, paintSummit);
+};
+/** The summit's door (on its left, at the top of the Hillary Step's stairs): up, or kicked in flat. Its frame in steel's
+ *  steps, the red beacon over it; the door (side on: its edge) in its paint, lit down its left; down flat on the deck,
+ *  its face up: the panel, the push plate, the hinges torn out, his boot print on it. */
+const SDOOR = ramp6('#7C2D12');
 const drawSummitDoor = (c: Ctx, state: GameState, down: number, ox = 0) => {
   const sy = SUMMIT.y, x = TL;
   if (!visY(state, sy - 200, sy + 20) || !vis(state, x - 100 + ox, x + 100 + ox)) return;
   // (its frame; the door up in it, or going over inward (squashed toward the deck, not turned: stamped either way),
   // flat on the deck at the last)
-  stamp(c, 'wp-sdoor-frame', x - 16, sy - 142, 32, 144, g => { R(g, x - 14, sy - 132, 10, 132, INK); R(g, x + 4, sy - 132, 10, 132, INK); R(g, x - 14, sy - 140, 28, 10, INK); });
-  if (down >= 1) { stamp(c, 'wp-sdoor-flat', x + 4, sy - 14, 132, 16, g => { R(g, x + 6, sy - 12, 128, 12, '#7C2D12'); R(g, x + 6, sy - 12, 128, 2, '#A8502A'); }); return; }
+  stamp(c, 'wp-sdoor-frame2', x - 18, sy - 152, 36, 154, g => {
+    postV(g, x - 14, sy - 132, sy, 9, STEEL6); postV(g, x + 5, sy - 132, sy, 9, STEEL6);
+    beamH(g, x - 15, x + 15, sy - 141, 9, STEEL6);
+    R(g, x - 5, sy - 150, 10, 8, INK); R(g, x - 4, sy - 149, 8, 6, '#B91C1C'); R(g, x - 3, sy - 149, 2, 2, '#FCA5A5');
+    R(g, x - 4, sy - 132, 8, 132, '#06080C');
+  });
+  if (down >= 1) {
+    stamp(c, 'wp-sdoor-flat2', x + 2, sy - 16, 136, 18, g => {
+      const D = SDOOR;
+      R(g, x + 5, sy - 13, 130, 14, INK); R(g, x + 6, sy - 12, 128, 12, D[3]); R(g, x + 6, sy - 12, 128, 2, D[5]); R(g, x + 6, sy - 3, 128, 3, D[1]);
+      R(g, x + 30, sy - 10, 60, 6, D[2]); R(g, x + 30, sy - 10, 60, 1, D[1]); R(g, x + 30, sy - 5, 60, 1, D[4]);
+      R(g, x + 100, sy - 10, 12, 5, INK); R(g, x + 101, sy - 9, 10, 3, CHROME[2]); R(g, x + 101, sy - 9, 10, 1, CHROME[4]);
+      for (const hx of [x + 10, x + 56]) { R(g, hx, sy - 12, 6, 3, INK); R(g, hx + 1, sy - 12, 4, 1, CHROME[3]); }
+      // (his boot print, kicked in)
+      for (const [dx, w] of [[60, 9], [62, 7]] as const) R(g, x + dx, sy - 10 + (dx - 60), w, 2, D[0]);
+      R(g, x + 72, sy - 10, 5, 4, D[0]);
+    });
+    return;
+  }
   const k = Math.max(0.06, Math.cos(Math.min(1, down) * Math.PI / 2));
   c.save(); c.translate(x, sy); c.scale(1, k); c.translate(-x, -sy);
-  stamp(c, 'wp-sdoor', x - 8, sy - 130, 16, 132, g => { R(g, x - 6, sy - 128, 12, 128, '#7C2D12'); R(g, x - 2, sy - 70, 4, 4, '#FACC15'); });
+  stamp(c, 'wp-sdoor2', x - 8, sy - 130, 16, 132, g => {
+    const D = SDOOR;
+    R(g, x - 6, sy - 128, 12, 128, D[3]); R(g, x - 6, sy - 128, 2, 128, D[5]); R(g, x - 4, sy - 128, 1, 128, D[4]); R(g, x + 3, sy - 128, 3, 128, D[1]);
+    R(g, x - 6, sy - 128, 12, 2, D[5]); R(g, x - 6, sy - 20, 12, 18, '#E0A90A'); for (let y = sy - 18; y < sy - 2; y += 6) R(g, x - 6, y, 12, 3, INK);
+    R(g, x - 2, sy - 72, 5, 8, INK); R(g, x - 1, sy - 71, 3, 6, '#FACC15');
+  });
   c.restore();
 };
 /** Where the descent's behind the mountain (the spiral's world: its outside face, the inside drawn round again past
@@ -2274,22 +2478,99 @@ const drawSummitDoor = (c: Ctx, state: GameState, down: number, ox = 0) => {
 const HIDE_X0 = TR, HIDE_X1 = TR + ROUND;
 /** The descent's chute: deeper than the plaza's (its near wall up past the riders' hips, the water's line over it). */
 export const DESC_WIDE = 30, DESC_WATER = -18, DESC_LIFT = 10;
+/** The descent's height at world x (between its points). */
+const descY = (x: number) => {
+  const j = DESCENT.findIndex(([px]) => px >= x);
+  if (j < 1) return DESCENT[Math.max(0, j)][1];
+  const [ax, ay] = DESCENT[j - 1], [bx, by] = DESCENT[j];
+  return ay + (by - ay) * ((x - ax) / Math.max(1, bx - ax));
+};
+/** THE BIG ONE's plastic, in its steps. */
+const DESC_C = ramp5('#0891B2');
+/** The descent's chute's back half (the SNES pass, within chuteBack's old bounds: the trough's ink 26 over its line to 8
+ *  under): the trough in its plastic's steps (the shadow under it, the body, the lit inner rim along its top, a glint),
+ *  the sections' joints banded and bolted (world-anchored, every 80), the water running in it (deep, the run, the foam
+ *  flecked along). */
+const descBack = (g: Ctx, pts: [number, number][], x0: number, x1: number) => {
+  const C = DESC_C, Wt = DESC_WATER;
+  g.lineCap = 'round'; g.lineJoin = 'round';
+  along(g, pts, -9, 34, INK);
+  along(g, pts, -9, 30, C[1]);
+  along(g, pts, -12, 20, C[2]);
+  along(g, pts, -22, 4, C[3]);
+  along(g, pts, -23.5, 1.5, C[4]);
+  along(g, pts, 5, 3, C[0]);
+  g.lineCap = 'butt'; g.lineJoin = 'miter';
+  for (let x = Math.ceil(x0 / 80) * 80; x <= x1; x += 80) {
+    if (x < DESCENT[0][0] + 20 || x > DESCENT[DESCENT.length - 1][0]) continue;
+    const y = Math.round(descY(x));
+    R(g, x - 1, y - 24, 3, 30, C[0]); R(g, x + 2, y - 24, 1, 30, C[3]); R(g, x - 2, y - 25, 6, 2, C[4]); R(g, x - 1, y - 25, 3, 1, INK);
+    R(g, x - 1, y + 3, 3, 2, '#C8CED6');
+  }
+  for (let x = Math.ceil(x0 / 8) * 8; x <= x1; x += 8) { const n = hash(x * 0.37); if (n < 0.25 && x > DESCENT[0][0]) R(g, x, Math.round(descY(x)) - 16 + Math.floor(hash(x + 3) * 6), 2, 1, C[3]); }
+  g.lineCap = 'round'; g.lineJoin = 'round';
+  along(g, pts, Wt + 1, 9, '#1D5C99');
+  along(g, pts, Wt, 6, 'rgba(120, 205, 255, 0.95)');
+  along(g, pts, Wt - 2, 2, '#E0F2FE');
+  g.lineCap = 'butt'; g.lineJoin = 'miter';
+  for (let x = Math.ceil(x0 / 24) * 24; x <= x1; x += 24) if (hash(x * 0.71) < 0.6 && x > DESCENT[0][0]) R(g, x, Math.round(descY(x)) + Wt - 3, 3, 1, '#FFFFFF');
+};
+/** ...its near wall (in front of him: the riders down in it from the hips; within chuteFront's old bounds): in its
+ *  steps, the lit lip along its top, the gold stripe along it, the joints banded. */
+const descFront = (g: Ctx, pts: [number, number][], x0: number, x1: number) => {
+  const C = DESC_C, d = 2 - DESC_LIFT / 2;
+  g.lineCap = 'round'; g.lineJoin = 'round';
+  along(g, pts, d, 25, INK);
+  along(g, pts, d, 21, C[1]);
+  along(g, pts, d - 1.5, 14, C[2]);
+  along(g, pts, d + 2.5, 2, GOLD[2]);
+  along(g, pts, d + 1.5, 1, GOLD[4]);
+  along(g, pts, d - 8, 2, C[3]);
+  along(g, pts, d - 9.5, 1, C[4]);
+  along(g, pts, d + 9.5, 1.5, C[0]);
+  g.lineCap = 'butt'; g.lineJoin = 'miter';
+  for (let x = Math.ceil(x0 / 80) * 80; x <= x1; x += 80) {
+    if (x < DESCENT[0][0] + 20 || x > DESCENT[DESCENT.length - 1][0]) continue;
+    const y = Math.round(descY(x));
+    R(g, x - 1, y + d - 9, 2, 19, C[0]); R(g, x + 1, y + d - 9, 1, 19, C[3]); R(g, x - 1, y + d - 3, 2, 2, C[4]);
+  }
+};
+/** The descent's legs: steel columns in their steps (live, a handful of fills each), a saddle under the chute, bolted
+ *  collars, braced across in pairs; down to the ground on a footing, or (over the crater past base camp) on down into
+ *  its dark. */
+const DLEG = ramp5(mix('#56647A', '#0B1020', 0.2));
+const descLeg = (c: Ctx, x: number, top: number, bot: number, footing: boolean) => {
+  const h = bot - top;
+  if (h <= 0) return;
+  R(c, x - 12, top - 7, 24, 7, INK); R(c, x - 11, top - 6, 22, 2, DLEG[3]); R(c, x - 11, top - 4, 22, 3, DLEG[1]); R(c, x - 11, top - 6, 1, 5, DLEG[4]);
+  R(c, x - 5, top, 10, h, INK); R(c, x - 4, top, 8, h, DLEG[2]); R(c, x - 4, top, 2, h, DLEG[3]); R(c, x - 4, top, 1, h, DLEG[4]); R(c, x + 2, top, 2, h, DLEG[1]); R(c, x + 3, top, 1, h, DLEG[0]);
+  for (let y = Math.ceil((top + 40) / 120) * 120; y < bot - 8; y += 120) { R(c, x - 6, y, 12, 6, INK); R(c, x - 5, y + 1, 10, 4, DLEG[1]); R(c, x - 5, y + 1, 10, 1, DLEG[3]); }
+  if (footing) { R(c, x - 11, bot - 6, 22, 6, INK); R(c, x - 10, bot - 5, 20, 5, PAVE[3]); R(c, x - 10, bot - 5, 20, 1, PAVE[5]); }
+};
+const onGround = (x: number) => GROUND.some(([a, b]) => x >= a && x <= b);
 /** The descent's chute (baked in tiles), its legs down to the ground. `behind`: the mountain's face out there, in front. */
 const drawDescentChute = (c: Ctx, state: GameState, behind: boolean) => {
   const x0 = DESCENT[0][0], x1 = DESCENT[DESCENT.length - 1][0];
   if (!vis(state, x0 - 60, x1 + 60)) return;
-  // (its legs down to the ground: live boxes, a few a screen; crossbraces up them)
-  const bot = Math.min(GY, state.camera.y + H + 20), v = state.view && state.view.w > W ? state.view : { x: state.camera.x, w: W };
+  // (its legs down to the ground (or into the crater's dark), a few a screen; braced across in pairs)
+  const camBot = state.camera.y + H + 20, v = state.view && state.view.w > W ? state.view : { x: state.camera.x, w: W };
   for (let x = Math.ceil(Math.max(x0 + 100, v.x - 40) / 200) * 200; x < Math.min(x1, v.x + v.w + 40); x += 200) {
     if (behind && x > HIDE_X0 - 10 && x < HIDE_X1 + 10) continue;
-    // (up to the chute's underside right there: between its points, not the next point down (50-80 short of it))
-    const j = DESCENT.findIndex(([px]) => px >= x);
-    if (j < 1) continue;
-    const [ax, ay] = DESCENT[j - 1], [bx, by] = DESCENT[j], py = ay + (by - ay) * ((x - ax) / Math.max(1, bx - ax));
+    // (none in the splash pool's wall)
+    if (POOLS.some(p => x > p.x1 - 40 && x < p.x2 + 10)) continue;
+    const py = descY(x), grd = onGround(x), bot = grd ? Math.min(GY, camBot) : camBot;
     if (bot <= py + 8) continue;
     const top = Math.max(py + 8, state.camera.y - 20);
-    R(c, x - 4, top, 8, bot - top, '#2A3442'); R(c, x - 4, top, 2, bot - top, '#4A5466');
-    for (let yy = Math.ceil((py + 80) / 160) * 160; yy < bot; yy += 160) if (yy > state.camera.y - 10) R(c, x - 26, yy, 52, 4, '#2A3442');
+    // (the X-brace to the next leg: two steel flats, lit along their tops)
+    const nx = x + 200;
+    if (nx < x1 && !(behind && nx > HIDE_X0 - 10 && nx < HIDE_X1 + 10)) {
+      const ny = descY(nx) + 8, ya = py + 60, yb = ya + 160, yc = ny + 60, yd = yc + 160;
+      if (Math.max(yb, yd) > state.camera.y - 20 && Math.min(ya, yc) < camBot && Math.max(yb, yd) < bot) {
+        c.lineCap = 'butt';
+        for (const [w, col, dy] of [[4, INK, 0], [2, DLEG[2], 0], [1, DLEG[4], -1]] as const) { c.strokeStyle = col; c.lineWidth = w; c.beginPath(); c.moveTo(x, ya + dy); c.lineTo(nx, yd + dy); c.moveTo(x, yb + dy); c.lineTo(nx, yc + dy); c.stroke(); }
+      }
+    }
+    descLeg(c, x, top, bot, grd && bot >= GY - 1);
   }
   for (let tx = Math.floor((v.x - 60) / 600) * 600; tx < v.x + v.w + 60; tx += 600) {
     if (tx + 600 < x0 - 40 || tx > x1 + 40) continue;
@@ -2298,9 +2579,9 @@ const drawDescentChute = (c: Ctx, state: GameState, behind: boolean) => {
     if (pts.length < 2) continue;
     const [y0, y1] = bandOf(DESCENT, tx, 600);
     if (y1 < y0 || !visY(state, y0 - 60, y1 + 60)) continue;
-    stamp(c, `wp-desc-${tx}`, tx, y0 - 60, 600, y1 - y0 + 100, g => {
+    stamp(c, `wp-desc2-${tx}`, tx, y0 - 60, 600, y1 - y0 + 100, g => {
       g.save(); g.beginPath(); g.rect(tx, y0 - 60, 600, y1 - y0 + 100); g.clip();
-      chuteBack(g, pts, '#0891B2', DESC_WIDE, DESC_WATER);
+      descBack(g, pts, tx - 20, tx + 620);
       g.restore();
     });
   }
@@ -2321,7 +2602,7 @@ const drawDescentFront = (c: Ctx, state: GameState, behind: boolean) => {
     if (!visY(state, y0, y1)) continue;
     // (and down at the summit's deck: what of it's under there is inside the deck and the tower's wall, not over them)
     const w = cut ? HIDE_X0 - tx : 600, h = cut ? Math.min(y1, SUMMIT.y + 2) - y0 : y1 - y0;
-    stamp(c, `wp-descf-${tx}${cut ? '-cut' : ''}`, tx, y0, w, h, g => { g.save(); g.beginPath(); g.rect(tx, y0, w, h); g.clip(); chuteFront(g, pts, '#0891B2', DESC_LIFT); g.restore(); });
+    stamp(c, `wp-descf2-${tx}${cut ? '-cut' : ''}`, tx, y0, w, h, g => { g.save(); g.beginPath(); g.rect(tx, y0, w, h); g.clip(); descFront(g, pts, tx - 20, tx + 620); g.restore(); });
   }
 };
 /** Base camp's dressing (stamped; drawn after the mountain's face: stood on the ground in front of it): MOUNT EVEREST
@@ -2388,18 +2669,78 @@ const paintBaseCamp = (g: Ctx) => {
 };
 // (dev only: the tower's figures and floors painted on their own, for their contact sheets)
 if (import.meta.env.DEV && typeof window !== 'undefined') (window as unknown as { __wpTowerArt: unknown }).__wpTowerArt = { yetiStatue, sherpaStatue, paintFloor, paintFace, paintBaseCamp, GY, TL, TR, floorY };
-/** Level 2's stub (the owner designs it): the deck on past the splash pool, the way on shut. */
-const drawStub = (c: Ctx, state: GameState) => {
-  if (!vis(state, L2.wall - 300, L2.wall + 100)) return;
-  stamp(c, 'wp-stub', L2.wall - 260, GY - 220, 360, 222, g => {
-    R(g, L2.wall - 10, GY - 200, 20, 200, INK); R(g, L2.wall - 6, GY - 196, 12, 196, '#0E7490');
-    for (let x = L2.wall - 220; x < L2.wall; x += 16) R(g, x, GY - 120, 4, 120, '#8A8E98');
-    R(g, L2.wall - 224, GY - 124, 230, 6, '#A4A8B2');
-    R(g, L2.wall - 200, GY - 190, 190, 46, INK); R(g, L2.wall - 198, GY - 188, 186, 42, '#F8FAFC');
-    text(g, 'THE WAVE POOL', L2.wall - 105, GY - 170, '#0E7490', 8, 'center', null); text(g, 'OPENING SOON', L2.wall - 105, GY - 154, '#B91C1C', 7, 'center', null);
-  });
+/** Level 2's stub (the owner designs it): the deck on past the splash pool to THE WAVE POOL's way in, shut. Its gate
+ *  building in the gate's blue stucco (lit down its left, banded, its side face toward the eye), up off the top of the
+ *  screen (no way over it), the arch's roll shutter down to the deck and padlocked, OPENING SOON hung on it; the wave
+ *  pool's marquee across the top in wave-crested letters; a CLOSED sawhorse and cones in front, a palm either side.
+ *  Stood on the deck at its ground's depth; the shut way's the wall (wp-l2) where the shutter is. */
+const STUB_X0 = L2.wall - 320, STUB_X1 = L2.wall + 160, STUB_TOP = GY - 640;
+const paintStub = (g: Ctx) => {
+  const w0 = L2.wall - 150, w1 = L2.wall + 150, Gt = GTOWER, S = STEEL6;
+  // (the building: its front in stucco steps, the course lines, lit down the left; a darker band along its foot)
+  R(g, w0 - 2, STUB_TOP, w1 - w0 + 4, GY - STUB_TOP, INK);
+  R(g, w0, STUB_TOP, w1 - w0, GY - STUB_TOP, Gt[2]);
+  R(g, w0, STUB_TOP, 6, GY - STUB_TOP, Gt[4]); R(g, w0 + 6, STUB_TOP, 2, GY - STUB_TOP, Gt[3]);
+  dither(g, w0 + 8, STUB_TOP, 4, GY - STUB_TOP, Gt[3]);
+  for (let y = STUB_TOP + 40; y < GY - 20; y += 48) { R(g, w0, y, w1 - w0, 2, Gt[1]); R(g, w0, y + 2, w1 - w0, 1, Gt[3]); }
+  R(g, w0, GY - 26, w1 - w0, 26, Gt[1]); R(g, w0, GY - 26, w1 - w0, 2, Gt[3]);
+  // (its pilasters, either side of the arch, their caps)
+  for (const px of [L2.wall - 112, L2.wall + 84]) { R(g, px - 1, STUB_TOP, 30, GY - STUB_TOP, INK); R(g, px, STUB_TOP, 28, GY - STUB_TOP, Gt[3]); R(g, px, STUB_TOP, 3, GY - STUB_TOP, Gt[5]); R(g, px + 22, STUB_TOP, 6, GY - STUB_TOP, Gt[1]); for (let y = STUB_TOP + 20; y < GY; y += 30) R(g, px, y, 28, 1, Gt[2]); }
+  // (the arch: its dark reveal, the roll shutter down in it to the deck, slats in steel's steps, its foot bar striped;
+  // a padlock on its hasp)
+  const ax0 = L2.wall - 82, ax1 = L2.wall + 84, atop = GY - 230;
+  R(g, ax0 - 2, atop - 2, ax1 - ax0 + 4, GY - atop + 2, INK); R(g, ax0, atop, ax1 - ax0, 8, Gt[0]);
+  g.fillStyle = INK; g.beginPath(); g.ellipse((ax0 + ax1) / 2, atop + 2, (ax1 - ax0) / 2 + 2, 30, 0, Math.PI, 0); g.fill();
+  g.fillStyle = Gt[0]; g.beginPath(); g.ellipse((ax0 + ax1) / 2, atop + 2, (ax1 - ax0) / 2 - 4, 24, 0, Math.PI, 0); g.fill();
+  for (let y = atop + 8; y < GY - 14; y += 9) { R(g, ax0 + 2, y, ax1 - ax0 - 4, 8, S[3]); R(g, ax0 + 2, y, ax1 - ax0 - 4, 1, S[5]); R(g, ax0 + 2, y + 7, ax1 - ax0 - 4, 1, S[1]); }
+  R(g, ax0 + 2, atop + 8, 3, GY - atop - 22, S[1]); R(g, ax1 - 5, atop + 8, 3, GY - atop - 22, S[1]);
+  R(g, ax0 + 2, GY - 14, ax1 - ax0 - 4, 14, INK);
+  g.save(); g.beginPath(); g.rect(ax0 + 2, GY - 13, ax1 - ax0 - 4, 12); g.clip();
+  for (let i = -20; i < ax1 - ax0 + 20; i += 14) poly(g, [[ax0 + i, GY - 1], [ax0 + i + 7, GY - 1], [ax0 + i + 19, GY - 13], [ax0 + i + 12, GY - 13]], '#E0A90A');
+  g.restore();
+  R(g, L2.wall - 6, GY - 26, 12, 12, INK); R(g, L2.wall - 5, GY - 25, 10, 10, '#D4A017'); R(g, L2.wall - 5, GY - 25, 10, 2, '#FFF0A0'); R(g, L2.wall - 1, GY - 21, 2, 3, INK);
+  g.strokeStyle = INK; g.lineWidth = 3; g.beginPath(); g.arc(L2.wall, GY - 27, 4, Math.PI, 0); g.stroke(); g.strokeStyle = '#A4A8B2'; g.lineWidth = 1.5; g.stroke();
+  // (OPENING SOON, a vinyl banner zip-tied across the shutter, sagging, its corner curled)
+  { const bx0 = ax0 + 12, bx1 = ax1 - 12, by = GY - 170;
+    poly(g, [[bx0 - 2, by - 2], [bx1 + 2, by - 2], [bx1 + 2, by + 46], [(bx0 + bx1) / 2, by + 50], [bx0 - 2, by + 46]], INK);
+    poly(g, [[bx0, by], [bx1, by], [bx1, by + 44], [(bx0 + bx1) / 2, by + 48], [bx0, by + 44]], '#F8FAFC');
+    R(g, bx0, by, bx1 - bx0, 3, '#FFFFFF'); dither(g, bx0, by + 38, bx1 - bx0, 6, '#CBD5E1');
+    poly(g, [[bx1 - 12, by + 44], [bx1, by + 44], [bx1, by + 34]], '#94A3B8');
+    for (const zx of [bx0 + 2, bx1 - 4]) { R(g, zx, by + 2, 2, 4, '#111827'); R(g, zx, by + 38, 2, 4, '#111827'); }
+    words(g, 'OPENING', (bx0 + bx1) / 2, by + 20, { sx: 2, sy: 2, fill: rampDown('#DC2626', 0.3), dither: true, shadow: '#F8C8C8', drop: 1, gap: 1, bold: true }, bx1 - bx0 - 8);
+    words(g, 'SOON', (bx0 + bx1) / 2, by + 38, { sx: 2, sy: 2, fill: rampDown('#1D4ED8', 0.3), dither: true, shadow: '#C8D8F8', drop: 1, gap: 1, bold: true }, bx1 - bx0 - 8);
+  }
+  // (THE WAVE POOL across the top of the arch: a marquee board, its wave crests along its top, bulbs, its letters)
+  { const mx0 = w0 + 16, mx1 = w1 - 16, my = atop - 92;
+    board(g, mx0, my, mx1 - mx0, 56, '#0E7490');
+    for (let x = mx0; x < mx1 - 8; x += 16) { poly(g, [[x, my], [x + 6, my - 9], [x + 12, my - 7], [x + 10, my - 4], [x + 16, my]], '#E0F2FE'); R(g, x + 6, my - 8, 3, 1, '#FFFFFF'); }
+    for (let x = mx0 + 6, i = 0; x < mx1 - 4; x += 12, i++) { R(g, x, my + 49, 4, 4, INK); R(g, x, my + 49, 3, 3, i % 3 ? '#FDE68A' : '#FFFBEB'); }
+    signText(g, 'THE WAVE POOL', (mx0 + mx1) / 2, my + 30, { sx: 2, sy: 3, fill: rampDown('#F0F9FF', 0.15), dither: true, shadow: '#022C36', drop: 1, gap: 1, bold: true });
+    signText(g, 'SURF THE BIG ONE', (mx0 + mx1) / 2, my + 43, { sx: 1, sy: 1, fill: '#FDE047', shadow: '#022C36', drop: 1, gap: 1 });
+  }
+  // (the CLOSED sawhorse in front, on the deck: its legs, the striped board; two cones)
+  { const sx = L2.wall - 230, sy = GY;
+    for (const lx of [sx + 4, sx + 66]) { g.strokeStyle = INK; g.lineWidth = 5; g.beginPath(); g.moveTo(lx - 8, sy); g.lineTo(lx, sy - 34); g.lineTo(lx + 8, sy); g.stroke(); g.strokeStyle = '#E8E0D0'; g.lineWidth = 3; g.stroke(); }
+    R(g, sx - 6, sy - 44, 84, 16, INK); R(g, sx - 5, sy - 43, 82, 14, '#F8FAFC');
+    g.save(); g.beginPath(); g.rect(sx - 5, sy - 43, 82, 14); g.clip(); for (let i = -14; i < 90; i += 14) poly(g, [[sx - 5 + i, sy - 29], [sx + 2 + i, sy - 29], [sx + 16 + i, sy - 43], [sx + 9 + i, sy - 43]], '#EA580C'); g.restore();
+    R(g, sx + 14, sy - 42, 44, 11, INK); R(g, sx + 15, sy - 41, 42, 9, '#F8FAFC');
+    words(g, 'CLOSED', sx + 36, sy - 33, { sx: 1, sy: 1, fill: '#B91C1C', gap: 1, bold: true }, 40);
+    for (const cx of [sx + 110, L2.wall - 96]) {
+      poly(g, [[cx - 11, sy], [cx - 3, sy - 28], [cx + 3, sy - 28], [cx + 11, sy]], INK);
+      poly(g, [[cx - 9, sy - 1], [cx - 2, sy - 27], [cx + 2, sy - 27], [cx + 9, sy - 1]], '#EA580C');
+      poly(g, [[cx - 6, sy - 12], [cx - 4, sy - 18], [cx + 4, sy - 18], [cx + 6, sy - 12]], '#F8FAFC');
+      R(g, cx - 2, sy - 26, 2, 24, '#FDBA74'); R(g, cx - 14, sy - 3, 28, 3, INK); R(g, cx - 13, sy - 3, 26, 2, '#C2410C');
+    }
+  }
+  // (a palm past it, on the deck: the plaza's (the plaza's own stand this side))
+  paintPalm(g, w1 + 40, 2);
 };
-
+const drawStub = (c: Ctx, state: GameState) => {
+  if (!vis(state, STUB_X0, STUB_X1)) return;
+  // (the building's side face toward the eye, behind its front)
+  sideFace(c, eyeOf(state), L2.wall - 150, -1, STUB_TOP, GY, 0.94, GTOWER[1]);
+  for (let ty = STUB_TOP; ty < GY + 2; ty += 214) if (visY(state, ty, ty + 214, 0)) stamp(c, `wp-stub2-${ty}`, STUB_X0, ty, STUB_X1 - STUB_X0, Math.min(214, GY + 2 - ty), g => { g.save(); g.beginPath(); g.rect(STUB_X0, ty, STUB_X1 - STUB_X0, 214); g.clip(); paintStub(g); g.restore(); });
+};
 // ---------------------------------------------------------------------------------------------------------------
 
 export interface DrawState {
@@ -2413,7 +2754,7 @@ export interface DrawState {
 /** World space, behind everything that moves. */
 export const drawParkBack = (c: Ctx, state: GameState, d: DrawState, extra?: () => void) => {
   drawProps(c, state);
-  drawPits(c, state);
+  drawPits(c, state, !d.descent);
   drawPools(c, state, d.greenPool);
   for (const S of SLIDES) drawSlideBack(c, state, S);
   TUBES.forEach((T, i) => drawTubeBack(c, state, T, i));

@@ -156,23 +156,29 @@ export const drawDescentKid = (c: Ctx, d: Descent | null, inMouth: boolean) => {
   c.drawImage(img, -130, -60, 240, 74);
   c.restore();
 };
-/** The water gone green behind him: the chute's water from the top down to `green` along it (world space). */
-export const drawGreenWater = (c: Ctx, state: GameState, d: Descent | null) => {
-  if (!d || d.green <= 0) return;
+/** The water gone green behind him: the chute's water from the top down to `green` along it (world space); `all`: the
+ *  kid's dead and the ride's over, the whole chute's green. */
+export const drawGreenWater = (c: Ctx, state: GameState, d: Descent | null, all = false) => {
+  const green = d ? d.green : all ? P.len : 0;
+  if (green <= 0) return;
   const L0 = state.camera.x - 100, R0 = state.camera.x + 900;
   c.lineCap = 'round'; c.lineJoin = 'round';
-  c.strokeStyle = 'rgba(63, 163, 77, 0.85)'; c.lineWidth = 9;
+  c.strokeStyle = '#1E5A26'; c.lineWidth = 9;
   c.beginPath();
   let on = false;
   for (const g of P.segs) {
-    if (g.at > d.green) break;
+    if (g.at > green) break;
     if (Math.max(g.x0, g.x1) < L0 || Math.min(g.x0, g.x1) > R0) { on = false; continue; }
-    const k = Math.min(1, (d.green - g.at) / g.len);
+    const k = Math.min(1, (green - g.at) / g.len);
     if (!on) { c.moveTo(g.x0, g.y0 + DESC_WATER); on = true; }
     c.lineTo(g.x0 + (g.x1 - g.x0) * k, g.y0 + (g.y1 - g.y0) * k + DESC_WATER);
   }
   c.stroke();
-  c.strokeStyle = 'rgba(168, 224, 58, 0.7)'; c.lineWidth = 2; c.stroke();
+  // (in its steps, as the water's painted (art.ts descBack): the deep of it, the run, the lit line along its top, the
+  // froth; the strokes moved, not the path: one path, a few strokes)
+  c.save(); c.translate(0, -1); c.strokeStyle = '#2E8A3A'; c.lineWidth = 6; c.stroke(); c.restore();
+  c.save(); c.translate(0, -3); c.strokeStyle = '#A8E03A'; c.lineWidth = 2; c.stroke(); c.restore();
+  c.save(); c.translate(0, -4); c.strokeStyle = 'rgba(236, 252, 203, 0.9)'; c.lineWidth = 1; c.setLineDash([3, 9]); c.stroke(); c.setLineDash([]); c.restore();
   c.lineCap = 'butt';
 };
 export const drawDescentHud = (c: Ctx, d: Descent | null) => { if (d?.victory) drawVictory(c, d.victory); };
