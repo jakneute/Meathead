@@ -2669,14 +2669,16 @@ const paintBaseCamp = (g: Ctx) => {
 };
 // (dev only: the tower's figures and floors painted on their own, for their contact sheets)
 if (import.meta.env.DEV && typeof window !== 'undefined') (window as unknown as { __wpTowerArt: unknown }).__wpTowerArt = { yetiStatue, sherpaStatue, paintFloor, paintFace, paintBaseCamp, GY, TL, TR, floorY };
-/** Level 2's stub (the owner designs it): the deck on past the splash pool to THE WAVE POOL's way in, shut. Its gate
+/** The gate building between the water park's levels: level 2's way in (past the splash pool: THE LAZY RIVER, its
+ *  shutter rolled up now, the way on; the owner's level 2 brief) and level 3's (out past the son's grotto: THE WAVE
+ *  POOL, still shut: a stub, the owner designs it). Its gate
  *  building in the gate's blue stucco (lit down its left, banded, its side face toward the eye), up off the top of the
  *  screen (no way over it), the arch's roll shutter down to the deck and padlocked, OPENING SOON hung on it; the wave
  *  pool's marquee across the top in wave-crested letters; a CLOSED sawhorse and cones in front, a palm either side.
  *  Stood on the deck at its ground's depth; the shut way's the wall (wp-l2) where the shutter is. */
-const STUB_X0 = L2.wall - 320, STUB_X1 = L2.wall + 160, STUB_TOP = GY - 640;
-const paintStub = (g: Ctx) => {
-  const w0 = L2.wall - 150, w1 = L2.wall + 150, Gt = GTOWER, S = STEEL6;
+const STUB_TOP = GY - 640;
+const paintStub = (g: Ctx, wall: number, open: boolean, title: string, sub: string) => {
+  const w0 = wall - 150, w1 = wall + 150, Gt = GTOWER, S = STEEL6;
   // (the building: its front in stucco steps, the course lines, lit down the left; a darker band along its foot)
   R(g, w0 - 2, STUB_TOP, w1 - w0 + 4, GY - STUB_TOP, INK);
   R(g, w0, STUB_TOP, w1 - w0, GY - STUB_TOP, Gt[2]);
@@ -2685,47 +2687,57 @@ const paintStub = (g: Ctx) => {
   for (let y = STUB_TOP + 40; y < GY - 20; y += 48) { R(g, w0, y, w1 - w0, 2, Gt[1]); R(g, w0, y + 2, w1 - w0, 1, Gt[3]); }
   R(g, w0, GY - 26, w1 - w0, 26, Gt[1]); R(g, w0, GY - 26, w1 - w0, 2, Gt[3]);
   // (its pilasters, either side of the arch, their caps)
-  for (const px of [L2.wall - 112, L2.wall + 84]) { R(g, px - 1, STUB_TOP, 30, GY - STUB_TOP, INK); R(g, px, STUB_TOP, 28, GY - STUB_TOP, Gt[3]); R(g, px, STUB_TOP, 3, GY - STUB_TOP, Gt[5]); R(g, px + 22, STUB_TOP, 6, GY - STUB_TOP, Gt[1]); for (let y = STUB_TOP + 20; y < GY; y += 30) R(g, px, y, 28, 1, Gt[2]); }
+  for (const px of [wall - 112, wall + 84]) { R(g, px - 1, STUB_TOP, 30, GY - STUB_TOP, INK); R(g, px, STUB_TOP, 28, GY - STUB_TOP, Gt[3]); R(g, px, STUB_TOP, 3, GY - STUB_TOP, Gt[5]); R(g, px + 22, STUB_TOP, 6, GY - STUB_TOP, Gt[1]); for (let y = STUB_TOP + 20; y < GY; y += 30) R(g, px, y, 28, 1, Gt[2]); }
   // (the arch: its dark reveal, the roll shutter down in it to the deck, slats in steel's steps, its foot bar striped;
   // a padlock on its hasp)
-  const ax0 = L2.wall - 82, ax1 = L2.wall + 84, atop = GY - 230;
+  const ax0 = wall - 82, ax1 = wall + 84, atop = GY - 230;
   R(g, ax0 - 2, atop - 2, ax1 - ax0 + 4, GY - atop + 2, INK); R(g, ax0, atop, ax1 - ax0, 8, Gt[0]);
   g.fillStyle = INK; g.beginPath(); g.ellipse((ax0 + ax1) / 2, atop + 2, (ax1 - ax0) / 2 + 2, 30, 0, Math.PI, 0); g.fill();
   g.fillStyle = Gt[0]; g.beginPath(); g.ellipse((ax0 + ax1) / 2, atop + 2, (ax1 - ax0) / 2 - 4, 24, 0, Math.PI, 0); g.fill();
+  if (open) {
+    // (open: the shutter rolled up into its drum at the top of the arch, the passage through dark, the lazy river's
+    // glow at the far end of it; the OPENING SOON banner torn off, hanging by a zip tie)
+    R(g, ax0 + 2, atop + 8, ax1 - ax0 - 4, GY - atop - 8, '#0A0608');
+    for (let k = 0; k < 4; k++) R(g, ax0 + 2, GY - 40 - k * 30, ax1 - ax0 - 4, 30, ['#2A1208', '#1E0E08', '#140A08', '#0E0808'][k]);
+    R(g, ax0 + 2, atop + 8, ax1 - ax0 - 4, 14, INK); R(g, ax0 + 4, atop + 9, ax1 - ax0 - 8, 12, S[2]); R(g, ax0 + 4, atop + 9, ax1 - ax0 - 8, 2, S[4]); R(g, ax0 + 4, atop + 18, ax1 - ax0 - 8, 2, S[1]);
+    poly(g, [[ax1 - 20, atop + 22], [ax1 - 8, atop + 22], [ax1 - 12, atop + 70], [ax1 - 26, atop + 64]], '#F8FAFC'); R(g, ax1 - 20, atop + 22, 2, 4, '#111827');
+  } else {
   for (let y = atop + 8; y < GY - 14; y += 9) { R(g, ax0 + 2, y, ax1 - ax0 - 4, 8, S[3]); R(g, ax0 + 2, y, ax1 - ax0 - 4, 1, S[5]); R(g, ax0 + 2, y + 7, ax1 - ax0 - 4, 1, S[1]); }
-  R(g, ax0 + 2, atop + 8, 3, GY - atop - 22, S[1]); R(g, ax1 - 5, atop + 8, 3, GY - atop - 22, S[1]);
-  R(g, ax0 + 2, GY - 14, ax1 - ax0 - 4, 14, INK);
-  g.save(); g.beginPath(); g.rect(ax0 + 2, GY - 13, ax1 - ax0 - 4, 12); g.clip();
-  for (let i = -20; i < ax1 - ax0 + 20; i += 14) poly(g, [[ax0 + i, GY - 1], [ax0 + i + 7, GY - 1], [ax0 + i + 19, GY - 13], [ax0 + i + 12, GY - 13]], '#E0A90A');
-  g.restore();
-  R(g, L2.wall - 6, GY - 26, 12, 12, INK); R(g, L2.wall - 5, GY - 25, 10, 10, '#D4A017'); R(g, L2.wall - 5, GY - 25, 10, 2, '#FFF0A0'); R(g, L2.wall - 1, GY - 21, 2, 3, INK);
-  g.strokeStyle = INK; g.lineWidth = 3; g.beginPath(); g.arc(L2.wall, GY - 27, 4, Math.PI, 0); g.stroke(); g.strokeStyle = '#A4A8B2'; g.lineWidth = 1.5; g.stroke();
-  // (OPENING SOON, a vinyl banner zip-tied across the shutter, sagging, its corner curled)
-  { const bx0 = ax0 + 12, bx1 = ax1 - 12, by = GY - 170;
-    poly(g, [[bx0 - 2, by - 2], [bx1 + 2, by - 2], [bx1 + 2, by + 46], [(bx0 + bx1) / 2, by + 50], [bx0 - 2, by + 46]], INK);
-    poly(g, [[bx0, by], [bx1, by], [bx1, by + 44], [(bx0 + bx1) / 2, by + 48], [bx0, by + 44]], '#F8FAFC');
-    R(g, bx0, by, bx1 - bx0, 3, '#FFFFFF'); dither(g, bx0, by + 38, bx1 - bx0, 6, '#CBD5E1');
-    poly(g, [[bx1 - 12, by + 44], [bx1, by + 44], [bx1, by + 34]], '#94A3B8');
-    for (const zx of [bx0 + 2, bx1 - 4]) { R(g, zx, by + 2, 2, 4, '#111827'); R(g, zx, by + 38, 2, 4, '#111827'); }
-    words(g, 'OPENING', (bx0 + bx1) / 2, by + 20, { sx: 2, sy: 2, fill: rampDown('#DC2626', 0.3), dither: true, shadow: '#F8C8C8', drop: 1, gap: 1, bold: true }, bx1 - bx0 - 8);
-    words(g, 'SOON', (bx0 + bx1) / 2, by + 38, { sx: 2, sy: 2, fill: rampDown('#1D4ED8', 0.3), dither: true, shadow: '#C8D8F8', drop: 1, gap: 1, bold: true }, bx1 - bx0 - 8);
+    R(g, ax0 + 2, atop + 8, 3, GY - atop - 22, S[1]); R(g, ax1 - 5, atop + 8, 3, GY - atop - 22, S[1]);
+    R(g, ax0 + 2, GY - 14, ax1 - ax0 - 4, 14, INK);
+    g.save(); g.beginPath(); g.rect(ax0 + 2, GY - 13, ax1 - ax0 - 4, 12); g.clip();
+    for (let i = -20; i < ax1 - ax0 + 20; i += 14) poly(g, [[ax0 + i, GY - 1], [ax0 + i + 7, GY - 1], [ax0 + i + 19, GY - 13], [ax0 + i + 12, GY - 13]], '#E0A90A');
+    g.restore();
+    R(g, wall - 6, GY - 26, 12, 12, INK); R(g, wall - 5, GY - 25, 10, 10, '#D4A017'); R(g, wall - 5, GY - 25, 10, 2, '#FFF0A0'); R(g, wall - 1, GY - 21, 2, 3, INK);
+    g.strokeStyle = INK; g.lineWidth = 3; g.beginPath(); g.arc(wall, GY - 27, 4, Math.PI, 0); g.stroke(); g.strokeStyle = '#A4A8B2'; g.lineWidth = 1.5; g.stroke();
+    // (OPENING SOON, a vinyl banner zip-tied across the shutter, sagging, its corner curled)
+    { const bx0 = ax0 + 12, bx1 = ax1 - 12, by = GY - 170;
+      poly(g, [[bx0 - 2, by - 2], [bx1 + 2, by - 2], [bx1 + 2, by + 46], [(bx0 + bx1) / 2, by + 50], [bx0 - 2, by + 46]], INK);
+      poly(g, [[bx0, by], [bx1, by], [bx1, by + 44], [(bx0 + bx1) / 2, by + 48], [bx0, by + 44]], '#F8FAFC');
+      R(g, bx0, by, bx1 - bx0, 3, '#FFFFFF'); dither(g, bx0, by + 38, bx1 - bx0, 6, '#CBD5E1');
+      poly(g, [[bx1 - 12, by + 44], [bx1, by + 44], [bx1, by + 34]], '#94A3B8');
+      for (const zx of [bx0 + 2, bx1 - 4]) { R(g, zx, by + 2, 2, 4, '#111827'); R(g, zx, by + 38, 2, 4, '#111827'); }
+      words(g, 'OPENING', (bx0 + bx1) / 2, by + 20, { sx: 2, sy: 2, fill: rampDown('#DC2626', 0.3), dither: true, shadow: '#F8C8C8', drop: 1, gap: 1, bold: true }, bx1 - bx0 - 8);
+      words(g, 'SOON', (bx0 + bx1) / 2, by + 38, { sx: 2, sy: 2, fill: rampDown('#1D4ED8', 0.3), dither: true, shadow: '#C8D8F8', drop: 1, gap: 1, bold: true }, bx1 - bx0 - 8);
+    }
   }
   // (THE WAVE POOL across the top of the arch: a marquee board, its wave crests along its top, bulbs, its letters)
   { const mx0 = w0 + 16, mx1 = w1 - 16, my = atop - 92;
     board(g, mx0, my, mx1 - mx0, 56, '#0E7490');
     for (let x = mx0; x < mx1 - 8; x += 16) { poly(g, [[x, my], [x + 6, my - 9], [x + 12, my - 7], [x + 10, my - 4], [x + 16, my]], '#E0F2FE'); R(g, x + 6, my - 8, 3, 1, '#FFFFFF'); }
     for (let x = mx0 + 6, i = 0; x < mx1 - 4; x += 12, i++) { R(g, x, my + 49, 4, 4, INK); R(g, x, my + 49, 3, 3, i % 3 ? '#FDE68A' : '#FFFBEB'); }
-    signText(g, 'THE WAVE POOL', (mx0 + mx1) / 2, my + 30, { sx: 2, sy: 3, fill: rampDown('#F0F9FF', 0.15), dither: true, shadow: '#022C36', drop: 1, gap: 1, bold: true });
-    signText(g, 'SURF THE BIG ONE', (mx0 + mx1) / 2, my + 43, { sx: 1, sy: 1, fill: '#FDE047', shadow: '#022C36', drop: 1, gap: 1 });
+    signText(g, title, (mx0 + mx1) / 2, my + 30, { sx: 2, sy: 3, fill: rampDown('#F0F9FF', 0.15), dither: true, shadow: '#022C36', drop: 1, gap: 1, bold: true });
+    signText(g, sub, (mx0 + mx1) / 2, my + 43, { sx: 1, sy: 1, fill: '#FDE047', shadow: '#022C36', drop: 1, gap: 1 });
   }
-  // (the CLOSED sawhorse in front, on the deck: its legs, the striped board; two cones)
-  { const sx = L2.wall - 230, sy = GY;
+  // (the CLOSED sawhorse in front, on the deck: its legs, the striped board; two cones (shut only; open, they're
+  // knocked over off to the side: the son came through))
+  if (!open) { const sx = wall - 230, sy = GY;
     for (const lx of [sx + 4, sx + 66]) { g.strokeStyle = INK; g.lineWidth = 5; g.beginPath(); g.moveTo(lx - 8, sy); g.lineTo(lx, sy - 34); g.lineTo(lx + 8, sy); g.stroke(); g.strokeStyle = '#E8E0D0'; g.lineWidth = 3; g.stroke(); }
     R(g, sx - 6, sy - 44, 84, 16, INK); R(g, sx - 5, sy - 43, 82, 14, '#F8FAFC');
     g.save(); g.beginPath(); g.rect(sx - 5, sy - 43, 82, 14); g.clip(); for (let i = -14; i < 90; i += 14) poly(g, [[sx - 5 + i, sy - 29], [sx + 2 + i, sy - 29], [sx + 16 + i, sy - 43], [sx + 9 + i, sy - 43]], '#EA580C'); g.restore();
     R(g, sx + 14, sy - 42, 44, 11, INK); R(g, sx + 15, sy - 41, 42, 9, '#F8FAFC');
     words(g, 'CLOSED', sx + 36, sy - 33, { sx: 1, sy: 1, fill: '#B91C1C', gap: 1, bold: true }, 40);
-    for (const cx of [sx + 110, L2.wall - 96]) {
+    for (const cx of [sx + 110, wall - 96]) {
       poly(g, [[cx - 11, sy], [cx - 3, sy - 28], [cx + 3, sy - 28], [cx + 11, sy]], INK);
       poly(g, [[cx - 9, sy - 1], [cx - 2, sy - 27], [cx + 2, sy - 27], [cx + 9, sy - 1]], '#EA580C');
       poly(g, [[cx - 6, sy - 12], [cx - 4, sy - 18], [cx + 4, sy - 18], [cx + 6, sy - 12]], '#F8FAFC');
@@ -2735,12 +2747,16 @@ const paintStub = (g: Ctx) => {
   // (a palm past it, on the deck: the plaza's (the plaza's own stand this side))
   paintPalm(g, w1 + 40, 2);
 };
-const drawStub = (c: Ctx, state: GameState) => {
+/** The gate building at `wall` (its arch's middle): `open`, the shutter's up (the way on). */
+export const drawStubAt = (c: Ctx, state: GameState, wall: number, open: boolean, title: string, sub: string) => {
+  const STUB_X0 = wall - 320, STUB_X1 = wall + 160;
   if (!vis(state, STUB_X0, STUB_X1)) return;
   // (the building's side face toward the eye, behind its front)
-  sideFace(c, eyeOf(state), L2.wall - 150, -1, STUB_TOP, GY, 0.94, GTOWER[1]);
-  for (let ty = STUB_TOP; ty < GY + 2; ty += 214) if (visY(state, ty, ty + 214, 0)) stamp(c, `wp-stub2-${ty}`, STUB_X0, ty, STUB_X1 - STUB_X0, Math.min(214, GY + 2 - ty), g => { g.save(); g.beginPath(); g.rect(STUB_X0, ty, STUB_X1 - STUB_X0, 214); g.clip(); paintStub(g); g.restore(); });
+  sideFace(c, eyeOf(state), wall - 150, -1, STUB_TOP, GY, 0.94, GTOWER[1]);
+  for (let ty = STUB_TOP; ty < GY + 2; ty += 214) if (visY(state, ty, ty + 214, 0)) stamp(c, `wp-stub2-${wall}-${open ? 1 : 0}-${ty}`, STUB_X0, ty, STUB_X1 - STUB_X0, Math.min(214, GY + 2 - ty), g => { g.save(); g.beginPath(); g.rect(STUB_X0, ty, STUB_X1 - STUB_X0, 214); g.clip(); paintStub(g, wall, open, title, sub); g.restore(); });
 };
+/** Level 2's way in (its shutter's up: on to THE LAZY RIVER). */
+const drawStub = (c: Ctx, state: GameState) => drawStubAt(c, state, L2.wall, true, 'THE LAZY RIVER', 'FLOAT FOREVER');
 // ---------------------------------------------------------------------------------------------------------------
 
 export interface DrawState {

@@ -15,7 +15,7 @@
 //   BASE CAMP       the foot of MOUNT EVEREST BUT BETTER, and up it: seven floors of scaffold to fight up, one at a time
 //                   (locked in till the floor's clear), a refill landing (THE HILLARY STEP), THE SUMMIT (the kid)
 //   THE DESCENT     the slide all the way back down, off the summit to a splash pool (no input: a set piece)
-//   LEVEL 2         (a stub: the owner designs it) on past the splash pool
+//   LEVEL 2         on past the splash pool, through the gate building: THE LAZY RIVER (endgame/park2)
 //
 // The checkpoints (CP) match endgame/stages.ts's park1 and park2 lists.
 
@@ -45,7 +45,7 @@ export const GROUND: [number, number][] = [
   [16000, 17860],      // the Black Hole's splash pool's far side (the pool's its own: POOLS), the plaza, the Wipeout's foot
   [19060, 19950],      // past the Wipeout, the Abyss's tower
   [27900, 29900],      // the Abyss's splash pool's far side, base camp (the tower's floor 0 inside it; a wall at its end)
-  [37700, 40000],      // the descent's splash pool's far side: level 2 (the stub)
+  [37700, 41100],      // the descent's splash pool's far side, through level 2's gate building, to the lazy river's head (park2/geo.ts HEAD: its dock's end)
 ];
 /** The pools (a swim): the ground's gap filled with water, a floor at its bottom, walls at its ends. */
 export interface Pool { x1: number; x2: number; surface: number; bottom: number; name: string }

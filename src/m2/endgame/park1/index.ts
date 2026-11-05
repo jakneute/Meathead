@@ -27,7 +27,7 @@ import { updateSwimAir, drawAir } from '../../frontier/air';
 import { setTubeRide } from '../../weapons/tubeRide';
 import { has } from '../../upgrades/state';
 import { lay, solid, ledge, meatheadSays, saidOver } from '../../adventure/section';
-import { endgameStage, PARK_STAGE } from '../stages';
+import { endgameStage, endgameAtCheckpoint, PARK_STAGE, L3_CP } from '../stages';
 import { GY, CP, CP_AT, CP_FLOOR, GROUND, POOLS, LEDGES, ISLANDS, SLIDES, TUBES, TOWER, SUMMIT, PLAZA_CAST, PICKUPS, L2, FLOORS, floorY } from './geo';
 import { newSlides, updateSlides, offSlide, type SlideState } from './slides';
 import { newTube, boardTube, updateTube, unboardTube, tubeOn, tubeBox, tubeFoesLeft, type TubeRide } from './tube';
@@ -37,9 +37,13 @@ import { type Fight, startFight, updateFight, resetFight, fightDead, drawFight, 
 import { type Descent, startDescent, updateDescent, descentDone, drawDescentKid, drawGreenWater, drawDescentHud } from './descent';
 import { drawParkBackdrop, drawParkBack, drawParkFront, parkLamps, drawTubeRing, drawTubeHud } from './art';
 import * as L from './lines';
+import { type Park2, buildPark2, updatePark2, inLevel2, camY2, drawBackdrop2Over, drawPark2Back, drawPark2Front, drawPark2Hud, lights2, setPark2Killed } from '../park2/index';
+import { CP2_AT } from '../park2/geo';
 
 export { PARK_STAGE };
-const STAGE1 = endgameStage('park1')!, STAGE2 = endgameStage('park2')!;
+const STAGE1 = endgameStage('park1')!, STAGE2 = endgameStage('park2')!, STAGE3 = endgameStage('park3')!;
+/** Where every checkpoint puts him: level 1's (geo.ts) and level 2's (park2/geo.ts). */
+const AT: Record<number, { x: number; y: number }> = { ...CP_AT, ...CP2_AT };
 
 interface Park {
   grab: Grab; sl: SlideState; tube: TubeRide; tw: Tower;
@@ -60,6 +64,8 @@ interface Park {
   killed: boolean;
   slideTipT: number;
   greenPool: number;
+  /** Level 2 (THE LAZY RIVER, park2/): its own state; on past the splashdown. */
+  l2: Park2;
 }
 const parkOf = (state: GameState) => state.stage as Park | null;
 /** The stairs' ramp underfoot: how wide each of its columns is. */
@@ -75,8 +81,9 @@ const mhSay = (state: GameState, pk: Park, k: string, lines: L.ByPants, gap = 45
   pk.lineAt[k] = now;
   meatheadSays(state, pickLine(byPants(state, lines)), true);
 };
-/** A safe point: the endgame's place on the file (level 1, or level 2 once the kid's dead), saved. */
-const savePoint = (state: GameState, pk: Park) => { setEndgameAt({ stage: pk.killed ? STAGE2.id : STAGE1.id, cp: state.checkpoint }); saveProgress(); };
+/** A safe point: the endgame's place on the file (level 1, level 2 once the kid's dead, level 3 once the son is: by the
+ *  checkpoint's own stage), saved. */
+const savePoint = (state: GameState, pk: Park) => { setEndgameAt({ stage: endgameAtCheckpoint(PARK_STAGE, state.checkpoint)?.id ?? (pk.killed ? STAGE2.id : STAGE1.id), cp: state.checkpoint }); saveProgress(); };
 
 const SLIDE_TIPS = [
   { pad: ['DPAD_RIGHT'], kb: ['@right'], label: 'FASTER' },
@@ -133,9 +140,9 @@ export const parkLayout: StageLayout = {
     resetFight(); clearShots(state);
     { const pick = takeStartCheckpoint(); if (pick !== null) state.checkpoint = pick; }
     { const d = DEV_CP(); if (d !== null) state.checkpoint = d; }
-    if (!CP_AT[state.checkpoint]) state.checkpoint = 0;
+    if (!AT[state.checkpoint]) state.checkpoint = 0;
     const killed = state.checkpoint >= CP.L2;
-    setEndgameHour(killed ? STAGE2.hour : STAGE1.hour);
+    setEndgameHour(state.checkpoint >= L3_CP ? STAGE3.hour : killed ? STAGE2.hour : STAGE1.hour);
     // ---- the engine's own boss end (Meathead 1's: its door, its arena's floor, walls and ceiling at BOSS_DOOR_X, 7200 on,
     // and a wall at its stage width): the lands sit out past it (100000 on); the water park's at 0, so it's taken out
     // here (it stood in the Kamikaze's sinkhole). Only the far left wall's kept.
@@ -161,11 +168,10 @@ export const parkLayout: StageLayout = {
     // ---- the walls: no way back out the gate (the lot's behind it), base camp's far end, level 2's way on (shut)
     solid(state, -120, -6000, 60, 7000, { hidden: true, tag: 'wp-gate' });
     solid(state, 29900, -400, 60, 1400, { hidden: true, tag: 'wp-basecamp-end' });
-    solid(state, L2.wall, -2000, 60, 3000, { hidden: true, tag: 'wp-l2' });
     buildTower(state);
     // ---- the cast, the pickups
     // (none at or near where he starts: safe-checkpoints)
-    const at0 = CP_AT[state.checkpoint];
+    const at0 = AT[state.checkpoint];
     PLAZA_CAST.forEach(([who, x, y], i) => {
       if (state.checkpoint > 0 && x > at0.x - 700 && x < at0.x + 300) return;
       const e = makeKindEnemy(KIND_OF[who] as EnemyKind, x, y);
@@ -174,10 +180,15 @@ export const parkLayout: StageLayout = {
     });
     for (const [x, y, type] of PICKUPS) state.pickups.push({ id: `wp-${x}-${y}`, pos: { x: x - 10, y: y - 24 }, vel: { x: 0, y: 0 }, width: 20, height: 20, type, life: 1e9 });
     const pk: Park = {
-      grab: createGrab(state), sl: newSlides(), tube: newTube(), tw: newTower(CP_FLOOR[state.checkpoint] ?? (state.checkpoint >= CP.baseCamp ? 1 : 0)),
+      grab: createGrab(state), sl: newSlides(), tube: newTube(), tw: newTower(state.checkpoint >= CP.L2 ? CP_FLOOR[CP.L2] : CP_FLOOR[state.checkpoint] ?? (state.checkpoint >= CP.baseCamp ? 1 : 0)),
       fightState: killed ? 'won' : 'wait', f: null, descent: null, said: {}, lineAt: {}, card: null, cardSeen: false, lostTube: false, shift: 0, standY: GY, camStand: GY, killed,
       slideTipT: 0, greenPool: killed ? 1 : 0,
+      l2: null as unknown as Park2,
     };
+    // (level 2's world, on past the splashdown (park2/): its decks, river, cast; the son's death moves the hour on and
+    // the file to level 3)
+    pk.l2 = buildPark2(state, state.checkpoint, () => { state.checkpoint = L3_CP; savePoint(state, pk); });
+    setPark2Killed(() => { setEndgameHour(STAGE3.hour); });
     // (past a tube's or the tower's checkpoint: what's behind it's been done; said already)
     if (state.checkpoint >= CP.blackHole) pk.cardSeen = true;
     if (state.checkpoint > 0) { pk.said.in = true; pk.said.possessed = true; }
@@ -196,13 +207,13 @@ export const parkLayout: StageLayout = {
       setEndgameAt({ stage: STAGE2.id, cp: CP.L2 }); saveProgress();
     });
     // ---- him, where he starts
-    const p = state.player, at = CP_AT[state.checkpoint];
+    const p = state.player, at = AT[state.checkpoint];
     p.pos = { x: at.x - p.width / 2, y: at.y - p.height }; p.vel = { x: 0, y: 0 }; p.facing = 1;
     p.noSpecials = false; p.carried = false; p.logSeat = false; p.kickPose = 0; p.inCutscene = false;
     setUi({ noSwitch: false, pauseControls: null, introCutscene: false, chordTips: null, minigameCard: null });
     state.camera.x = at.x - CANVAS_WIDTH / 2;
     const k = state.checkpoint >= CP.camp2 && state.checkpoint < CP.L2 ? CP_FLOOR[state.checkpoint] : null;
-    state.camera.y = k !== null ? towerCamY(k) : at.y - 550;
+    state.camera.y = k !== null ? towerCamY(k) : state.checkpoint >= CP.L2 ? camY2() : at.y - 550;
     // (a safe point: on the file)
     savePoint(state, pk);
     sleepFar(state);
@@ -237,6 +248,11 @@ export const parkLayout: StageLayout = {
       }
       setUi({ introCutscene: true });
       return out;
+    }
+    // ---- level 2 (past the splashdown, out of its pool): park2's
+    if (pk.killed && pk.l2 && inLevel2(state)) {
+      out = updatePark2(ctx, pk.l2, controls, cp => { state.checkpoint = cp; savePoint(state, pk); });
+      return updateGrab(ctx, pk.grab, out);
     }
     // ---- the summit's fight
     if (pk.fightState === 'on' && pk.f) {
@@ -314,7 +330,6 @@ export const parkLayout: StageLayout = {
       if (cx > 3300 && cx < 3520) once(pk, 'crater', () => meatheadSays(state, pickLine(byPants(state, L.MH_CRATER)), true));
       if (cx > 4300 && cx < 4500) once(pk, 'pelican', () => meatheadSays(state, pickLine(byPants(state, L.MH_PELICAN)), true));
       if (cx > 27950 && cx < 28500) once(pk, 'everest', () => meatheadSays(state, pickLine(byPants(state, L.MH_EVEREST)), true));
-      if (pk.killed && cx > L2.wall - 260) mhSay(state, pk, 'stub', L.MH_STUB, 45000);
     }
     // ---- the camera: the floor he's on, up the tower (the whole floor in view); on the stairs, him; else the plaza
     const k = floorOf(state);
@@ -338,6 +353,7 @@ export const parkLayout: StageLayout = {
   cameraFixedY: (state) => {
     const pk = parkOf(state);
     if (!pk || pk.tw.climb || pk.tw.settle > 0 || tubeOn(pk.tube) || pk.descent) return undefined;
+    if (pk.killed && inLevel2(state)) return camY2();
     const p = state.player, cx = p.pos.x + p.width / 2;
     if (pk.fightState === 'on') return towerCamY(9);
     const k = floorOf(state);
@@ -376,9 +392,11 @@ export const parkLayout: StageLayout = {
       trueCam = { x: state.camera.x, y: state.camera.y };
       state.camera.x = Math.round(state.camera.x * RENDER_SCALE) / RENDER_SCALE; state.camera.y = Math.round(state.camera.y * RENDER_SCALE) / RENDER_SCALE;
     }
-    return drawParkBackdrop(c, state, parkOf(state)?.shift ?? 0, spiralHole(state) ?? floorHole(state));
+    const out = drawParkBackdrop(c, state, parkOf(state)?.shift ?? 0, spiralHole(state) ?? floorHole(state));
+    if (parkOf(state)?.killed) drawBackdrop2Over(c, state);
+    return out;
   },
-  lighting: (state) => todLight(parkLamps(state), 1),
+  lighting: (state) => todLight(parkOf(state)?.killed && state.camera.x + CANVAS_WIDTH > 37400 ? [...parkLamps(state), ...lights2(state)] : parkLamps(state), 1),
   drawBack: (c, state) => {
     const pk = parkOf(state);
     const tw = pk?.tw;
@@ -394,6 +412,8 @@ export const parkLayout: StageLayout = {
     if (tubeOn(T)) { state.player.facing = 1; drawTubeRing(c, T.x, T.y - 4, state.player.spriteRot ?? 0, false); }
     // (on the stairs: drawn stood (he's walking up them))
     if (pk.tw.climb) state.player.isGrounded = true;
+    // (level 2's world)
+    if (pk.l2 && state.camera.x + CANVAS_WIDTH > 37400) drawPark2Back(c, state, pk.l2);
   },
   drawFront: (c, state) => {
     const pk = parkOf(state);
@@ -402,6 +422,7 @@ export const parkLayout: StageLayout = {
     const T = pk.tube;
     if (tubeOn(T)) drawTubeRing(c, T.x, T.y - 4, state.player.spriteRot ?? 0, true);
     drawShots(c, state);
+    if (pk.l2 && state.camera.x + CANVAS_WIDTH > 37400) drawPark2Front(c, state, pk.l2);
     drawAir(c, state);
     drawBarks(c, state, saidOver);
     drawGrab(c, state, pk.grab);
@@ -413,6 +434,7 @@ export const parkLayout: StageLayout = {
     if (pk.f && pk.fightState === 'on') drawFightHud(c, state, pk.f, topBand());
     drawDescentHud(c, pk.descent);
     if (pk.tube.mode === 'ride' || pk.tube.mode === 'fall') drawTubeHud(c, tubeFoesLeft(pk.tube), topBand());
+    if (pk.l2) drawPark2Hud(c, state, pk.l2);
   },
 };
 export const PARK_FLOOR_Y = floorY;

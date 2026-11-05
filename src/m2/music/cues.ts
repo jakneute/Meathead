@@ -567,6 +567,8 @@ interface ParkOwn {
   tube?: { mode?: string; i?: number };
   fightState?: string; f?: { mode?: string; hp?: number } | null;
   descent?: unknown; killed?: boolean;
+  /** Level 2 (THE LAZY RIVER, endgame/park2): the son's meeting, his fight, after him. */
+  l2?: { meet?: { step?: string }; fightState?: string; f?: { mode?: string; tryT?: number } | null; after?: unknown; killed?: boolean } | null;
 }
 const PARK_CP = () => PARK_CP_IDS as Record<string, number>;
 /** Where the climb's music starts: a little short of base camp's checkpoint (the Abyss's splash pool behind him). */
@@ -589,6 +591,17 @@ const parkWants = (s: GameState, lot: boolean): Want => {
   }
   const pk = (s.stage as ParkOwn | null) ?? {};
   const theme = (arr: string): Cand => ({ song: 'land:park1', arrs: [arr, 'plaza'] });
+  // (level 2, past the splashdown: for now (the owner's to score) his brother's song for MEHPHISTO, the meeting and the
+  // fight (its intro, trying: the same, 'main'); the burning river, Spooky Land's hell arrangement)
+  if (pk.killed && pk.l2 && s.player.pos.x + s.player.width / 2 >= 37700) {
+    const l2 = pk.l2, m = l2.f?.mode;
+    if (l2.fightState === 'on' && l2.f) return { cands: [{ song: 'boss:demon', arrs: [m === 'intro' ? 'intro' : 'main', 'main'] }, { song: 'land:spooky', arrs: ['hell', 'main'] }], cutscene: false };
+    if (l2.after) return { cands: [{ song: 'land:spooky', arrs: ['hell', 'main'] }], cutscene: false };
+    const meeting = l2.meet?.step && l2.meet.step !== 'done' && l2.meet.step !== 'wait';
+    if (meeting) return { cands: [{ song: 'boss:demon', arrs: ['intro', 'main'] }, theme('plaza')], cutscene: true };
+    if (l2.killed) return { cands: [theme('plaza')], cutscene: false };
+    return { cands: [{ song: 'land:spooky', arrs: ['hell', 'main'] }, theme('plaza')], cutscene: false };
+  }
   // (the kid: the fight's on from his intro through his death; the slide down after it)
   if (pk.fightState === 'on' && pk.f) {
     const m = pk.f.mode, arr = m === 'intro' ? 'intro' : m === 'dying' || m === 'dead' ? 'death' : (pk.f.hp ?? KID_HP) < KID_HP / 3 ? 'tantrum' : 'main';

@@ -37,8 +37,11 @@ export const LOT_STAGE = 'M2 Water Park Lot';
  *  level 2's start (the owner designs it): one continuous run (endgame/park1). */
 export const PARK_STAGE = 'M2 Water Park';
 /** Level 2's start, in PARK_STAGE: the splashdown at the foot of MOUNT EVEREST BUT BETTER's slide (endgame/park1/geo.ts
- *  CP.L2). Hour 11 from there (the kid's dead). */
+ *  CP.L2). Hour 11 from there (the kid's dead). Level 2's own checkpoints run on from it (endgame/park2/geo.ts CP2). */
 export const L2_CP = 40;
+/** Level 3's start (a stub: the owner designs it), in PARK_STAGE too: out of the goth son's grotto, past THE LAZY
+ *  RIVER (endgame/park2/geo.ts CP2.L3). Hour 12 from there (the son's dead). */
+export const L3_CP = 49;
 
 export const ENDGAME_STAGES: EndgameStage[] = [
   // Level 1, its start: the lot just outside the water park, where Satan threw his truck
@@ -50,9 +53,17 @@ export const ENDGAME_STAGES: EndgameStage[] = [
     { name: 'THE KAMIKAZE', cp: 4 }, { name: 'THE BLACK HOLE', cp: 5 }, { name: 'THE SPLASHDOWN', cp: 6 }, { name: 'THE ABYSS', cp: 7 },
     { name: 'BASE CAMP', cp: 8 }, { name: 'CAMP 2', cp: 9 }, { name: 'CAMP 4', cp: 10 }, { name: 'THE HILLARY STEP', cp: 11 },
   ] },
-  // Level 2 (the owner designs it): for now just its start, the splashdown where level 1's slide ends; the kid's dead,
-  // the hour's on (11)
-  { id: 'park2', level: 2, stage: PARK_STAGE, name: 'LEVEL 2: (STUB)', hour: 11, checkpoints: [{ name: 'THE SPLASHDOWN', cp: L2_CP }] },
+  // Level 2 (the owner's brief 2026-11-05): on from the splashdown where level 1's slide ends, through THE LAZY RIVER
+  // (set on fire by Satan's goth son), to his grotto; the kid's dead, the hour's on (11). (endgame/park2/geo.ts CP2:
+  // these match it)
+  { id: 'park2', level: 2, stage: PARK_STAGE, name: 'LEVEL 2: THE LAZY RIVER', hour: 11, checkpoints: [
+    { name: 'THE SPLASHDOWN', cp: L2_CP }, { name: 'THE LAZY RIVER', cp: 41 }, { name: 'THE BURNING CANOPY', cp: 42 }, { name: 'THE LOG JAM', cp: 43 },
+    { name: 'THE SWIM-UP BAR', cp: 44 }, { name: 'THE TIKI TOWERS', cp: 45 }, { name: 'THE SOUP', cp: 46 }, { name: 'THE LAST BEND', cp: 47 },
+    { name: 'THE GROTTO', cp: 48 },
+  ] },
+  // Level 3 (the owner designs it): for now just its start, out the far side of the son's grotto; the son's dead, the
+  // hour's on (12)
+  { id: 'park3', level: 3, stage: PARK_STAGE, name: 'LEVEL 3: (STUB)', hour: 12, checkpoints: [{ name: 'THE WAVE POOL', cp: L3_CP }] },
 ];
 
 export const endgameStage = (id: string) => ENDGAME_STAGES.find(s => s.id === id) ?? null;

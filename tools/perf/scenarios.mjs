@@ -24,6 +24,15 @@ export const SCENARIOS = [
   { name: 'wp-stairs', q: 'park=11', keys: [[0, 'down', 'ArrowLeft'], ...Array.from({ length: 12 }, (_, i) => [1500 + i * 2600, 'tap', 'ArrowDown'])] },
   // (its intro marked seen: the retry's short entrance, straight into it)
   { name: 'wp-boss', q: 'park=11', warm: 14, keys: [[0, 'js', 'window.__m2.stageMemo["m2:boss-intro:zorzarblax"] = "1"'], [100, 'down', 'ArrowLeft'], [7000, 'up', 'ArrowLeft'], [7200, 'js', 'window.dispatchEvent(new MouseEvent("mousedown", { button: 0 }))'], ...Array.from({ length: 14 }, (_, i) => [7600 + i * 1600, 'tap', i % 3 === 2 ? 'Space' : i % 2 ? 'ArrowLeft' : 'ArrowRight'])] },
+  // The water park, level 2 (endgame/park2: THE LAZY RIVER): the meeting at the river's head (the cutscene, the river
+  // going up and the fire racing off); hopping right along the burning canopy's vines and jets; stood on a burning log
+  // walking it across (the three-log run: imps, a hover alien, the footbridges); stood on the TIKI TOWERS' four-tower
+  // run, burning, leaning (a hover alien); the son's fight (the retry entrance, firing, hopping)
+  { name: 'wp2-meet', q: 'park=40', warm: 3, keys: walk() },
+  { name: 'wp2-vines', q: 'park=42', keys: hopRight(30) },
+  { name: 'wp2-logs', q: 'park=43', warm: 2, keys: [[0, 'js', 'window.__m2.player.pos.x = 39600 + 12580'], [200, 'down', 'ArrowRight']] },
+  { name: 'wp2-towers', q: 'park=44', warm: 2, keys: [[0, 'js', '{ const t = window.__wp2.towers[4].t, p = window.__m2.player; p.pos.x = t.b.x + 30; p.pos.y = t.b.y - p.height - 1; p.vel.y = 0; }'], ...Array.from({ length: 10 }, (_, i) => [1500 + i * 2200, 'js', `{ const t = window.__wp2.towers[${4 + (i % 4)}], p = window.__m2.player; if (!t.gone && !t.fall && !t.rise) { p.pos.x = t.t.b.x + 30; p.pos.y = t.t.b.y - p.height - 1; p.vel.y = 0; } }`])] },
+  { name: 'wp2-boss', q: 'park=48', warm: 12, keys: [[0, 'js', 'window.__m2.stageMemo["m2:boss-intro:mehphisto"] = "1"'], [100, 'down', 'ArrowRight'], [6500, 'up', 'ArrowRight'], [6700, 'js', 'window.dispatchEvent(new MouseEvent("mousedown", { button: 0 }))'], ...Array.from({ length: 14 }, (_, i) => [7000 + i * 1600, 'tap', i % 3 === 2 ? 'Space' : i % 2 ? 'ArrowLeft' : 'ArrowRight'])] },
   // The crossbow on a crowd (the user's: slowdown "when using the crossbow and a ton of people are hurling and i move
   // back and forth", in the break room): every weapon on, the crossbow (9), fire held, pacing left and right
   { name: 'crossbow-crowd', q: 'pen', warm: 8, keys: [

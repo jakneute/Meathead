@@ -7271,6 +7271,11 @@
  },
  {
   "voice": "death",
+  "text": "BEATEN UP BY A GOTH KID",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "death",
   "text": "BEATEN UP BY A GUY IN A CAPE",
   "from": "HOLLYWOOD"
  },
@@ -7866,6 +7871,11 @@
  },
  {
   "voice": "death",
+  "text": "BURNED A BRIDGE",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "death",
   "text": "BURNED ALIVE",
   "from": "content/deaths"
  },
@@ -7928,6 +7938,11 @@
   "voice": "death",
   "text": "BURNED UP ON REENTRY",
   "from": "SPACE"
+ },
+ {
+  "voice": "death",
+  "text": "BURPED ON",
+  "from": "ENDGAME"
  },
  {
   "voice": "death",
@@ -8441,6 +8456,11 @@
  },
  {
   "voice": "death",
+  "text": "COOKED IN TANNING OIL",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "death",
   "text": "COOKED IN THE FLOOD",
   "from": "HOLLYWOOD"
  },
@@ -8858,6 +8878,11 @@
   "voice": "death",
   "text": "DEEP FRIED IN LARD",
   "from": "SPOOKY"
+ },
+ {
+  "voice": "death",
+  "text": "DEEP FRIED IN THE LAZY RIVER",
+  "from": "ENDGAME"
  },
  {
   "voice": "death",
@@ -9398,6 +9423,11 @@
   "voice": "death",
   "text": "DRONE STRIKE",
   "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "DROPPED ON",
+  "from": "ENDGAME"
  },
  {
   "voice": "death",
@@ -9996,6 +10026,16 @@
  },
  {
   "voice": "death",
+  "text": "FIREBALLED BY AN IMP",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "death",
+  "text": "FIREBALLED BY MEHPHISTO",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "death",
   "text": "FISH FOOD",
   "from": "ADVENTURE"
  },
@@ -10261,6 +10301,11 @@
  },
  {
   "voice": "death",
+  "text": "FLICKED TO DEATH",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "death",
   "text": "FLINT TAP WATER: 1, MEATHEAD: 0",
   "from": "content/deaths"
  },
@@ -10283,6 +10328,11 @@
   "voice": "death",
   "text": "FLOODED THE WHOLE PARK",
   "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "death",
+  "text": "FLOOR FIRE",
+  "from": "ENDGAME"
  },
  {
   "voice": "death",
@@ -10548,6 +10598,11 @@
   "voice": "death",
   "text": "GEARED",
   "from": "FOREIGN"
+ },
+ {
+  "voice": "death",
+  "text": "GEYSERED",
+  "from": "ENDGAME"
  },
  {
   "voice": "death",
@@ -10836,6 +10891,11 @@
  },
  {
   "voice": "death",
+  "text": "HE ACTUALLY TRIED",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "death",
   "text": "HE DID NOT STAND CLEAR",
   "from": "FRONTIER"
  },
@@ -10878,6 +10938,11 @@
   "voice": "death",
   "text": "HE TOOK HIS TURN",
   "from": "FOREIGN"
+ },
+ {
+  "voice": "death",
+  "text": "HE TRIED, FOR ONCE",
+  "from": "ENDGAME"
  },
  {
   "voice": "death",
@@ -11306,6 +11371,11 @@
  },
  {
   "voice": "death",
+  "text": "HOTFOOTED",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "death",
   "text": "HOUNDED",
   "from": "SPOOKY"
  },
@@ -11378,6 +11448,11 @@
   "voice": "death",
   "text": "HUMPED TO DEATH",
   "from": "SPOOKY"
+ },
+ {
+  "voice": "death",
+  "text": "HUNG AROUND TOO LONG",
+  "from": "ENDGAME"
  },
  {
   "voice": "death",
@@ -11721,6 +11796,11 @@
  },
  {
   "voice": "death",
+  "text": "KILLED BY A BURNOUT",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "death",
   "text": "KILLED BY A BUTTON",
   "from": "CARTOON"
  },
@@ -11943,6 +12023,11 @@
   "voice": "death",
   "text": "KILLED BY A LANDLINE",
   "from": "FOREIGN"
+ },
+ {
+  "voice": "death",
+  "text": "KILLED BY A LIT JOINT",
+  "from": "ENDGAME"
  },
  {
   "voice": "death",
@@ -12211,6 +12296,11 @@
  },
  {
   "voice": "death",
+  "text": "KILLED BY AN IMP",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "death",
   "text": "KILLED BY AN INTERN",
   "from": "HOLLYWOOD"
  },
@@ -12328,6 +12418,11 @@
   "voice": "death",
   "text": "KILLED BY MEATLOAF",
   "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "KILLED BY MEHPHISTO",
+  "from": "ENDGAME"
  },
  {
   "voice": "death",
@@ -13746,6 +13841,11 @@
  },
  {
   "voice": "death",
+  "text": "POOL TOYS ARE FLAMMABLE",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "death",
   "text": "POPPED BY A BALLOON DOG",
   "from": "CARTOON"
  },
@@ -14096,6 +14196,11 @@
  },
  {
   "voice": "death",
+  "text": "RINGED",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "death",
   "text": "RINGER TO THE SKULL",
   "from": "FANTASY"
  },
@@ -14108,6 +14213,11 @@
   "voice": "death",
   "text": "RIVETED",
   "from": "FOREIGN"
+ },
+ {
+  "voice": "death",
+  "text": "ROACHED",
+  "from": "ENDGAME"
  },
  {
   "voice": "death",
@@ -14496,6 +14606,11 @@
  },
  {
   "voice": "death",
+  "text": "SAT ON BY A GOTH",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "death",
   "text": "SAT ON BY A MOOSE",
   "from": "content/deaths"
  },
@@ -14581,6 +14696,11 @@
  },
  {
   "voice": "death",
+  "text": "SCRATCHED TO DEATH",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "death",
   "text": "SCRUBBED",
   "from": "SPACE"
  },
@@ -14593,6 +14713,11 @@
   "voice": "death",
   "text": "SEARCHLIGHTED",
   "from": "FOREIGN"
+ },
+ {
+  "voice": "death",
+  "text": "SECONDHAND DEATH",
+  "from": "ENDGAME"
  },
  {
   "voice": "death",
@@ -15376,6 +15501,11 @@
  },
  {
   "voice": "death",
+  "text": "SLAIN BY SATAN'S SPARE",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "death",
   "text": "SLAPPED BY A ROBOT FISH",
   "from": "FOREIGN"
  },
@@ -15498,6 +15628,11 @@
   "voice": "death",
   "text": "SMOKED",
   "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "SMOKED OUT",
+  "from": "ENDGAME"
  },
  {
   "voice": "death",
@@ -15958,6 +16093,11 @@
   "voice": "death",
   "text": "STOOD ON A BURNING TRUCK",
   "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "STOOD ON IT TOO LONG",
+  "from": "ENDGAME"
  },
  {
   "voice": "death",
@@ -16621,6 +16761,11 @@
  },
  {
   "voice": "death",
+  "text": "THE LOG BURNED AWAY",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "death",
   "text": "THE MASCOT WON",
   "from": "ENDGAME"
  },
@@ -16791,6 +16936,11 @@
  },
  {
   "voice": "death",
+  "text": "THE TOWER BURNED DOWN",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "death",
   "text": "THE TRACTOR WASN'T EVEN ON",
   "from": "FRONTIER"
  },
@@ -16818,6 +16968,11 @@
   "voice": "death",
   "text": "THE UNFRIENDLY ROUTE",
   "from": "ADVENTURE"
+ },
+ {
+  "voice": "death",
+  "text": "THE VINE SNAPPED",
+  "from": "ENDGAME"
  },
  {
   "voice": "death",
@@ -16956,6 +17111,11 @@
  },
  {
   "voice": "death",
+  "text": "TOASTED BY A TINY DEVIL",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "death",
   "text": "TOASTED BY A TODDLER DEVIL",
   "from": "SPOOKY"
  },
@@ -17033,6 +17193,11 @@
   "voice": "death",
   "text": "TORCHED BY A BAT",
   "from": "SPOOKY"
+ },
+ {
+  "voice": "death",
+  "text": "TORCHED FROM BELOW",
+  "from": "ENDGAME"
  },
  {
   "voice": "death",
@@ -17231,6 +17396,11 @@
  },
  {
   "voice": "death",
+  "text": "VAPED TO DEATH",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "death",
   "text": "VAPORIZED",
   "from": "content/deaths"
  },
@@ -17283,6 +17453,11 @@
   "voice": "death",
   "text": "WAKE BOARDED",
   "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "WALKED INTO A FIRE",
+  "from": "ENDGAME"
  },
  {
   "voice": "death",
@@ -68185,6 +68360,511 @@
   "from": "INTRO"
  },
  {
+  "voice": "m2.wp.burnout",
+  "text": "DUDE. PUT IT AWAY. IT'S CLOSED CASKET.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "m2.wp.burnout",
+  "text": "DUDE. YOU SMELL WORSE THAN OUR BAND.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "m2.wp.burnout",
+  "text": "DUDE. YOU'RE HARSHING THE FIRE.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "m2.wp.burnout",
+  "text": "EW. THE NORMIE SHIT HIMSELF.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "m2.wp.burnout",
+  "text": "NAKED AND ON FIRE. RESPECT.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "m2.wp.burnout",
+  "text": "NOT EVEN THE SMOKE COVERS THAT.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "m2.wp.burnout",
+  "text": "THIS RIVER IS SO METAL RIGHT NOW.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "m2.wp.burnout",
+  "text": "WE WERE HERE FIRST, NORMIE.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "m2.wp.burnout",
+  "text": "WHOA. HE'S NAKED. THAT'S KINDA PUNK.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "m2.wp.burnout",
+  "text": "WHOA. IT'S HIM. MEHPHISTO SAID YOU'D COME.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "m2.wp.burnoutf",
+  "text": "DUDE. PUT IT AWAY. IT'S CLOSED CASKET.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "m2.wp.burnoutf",
+  "text": "DUDE. YOU SMELL WORSE THAN OUR BAND.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "m2.wp.burnoutf",
+  "text": "DUDE. YOU'RE HARSHING THE FIRE.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "m2.wp.burnoutf",
+  "text": "EW. THE NORMIE SHIT HIMSELF.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "m2.wp.burnoutf",
+  "text": "NAKED AND ON FIRE. RESPECT.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "m2.wp.burnoutf",
+  "text": "NOT EVEN THE SMOKE COVERS THAT.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "m2.wp.burnoutf",
+  "text": "THIS RIVER IS SO METAL RIGHT NOW.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "m2.wp.burnoutf",
+  "text": "WE WERE HERE FIRST, NORMIE.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "m2.wp.burnoutf",
+  "text": "WHOA. HE'S NAKED. THAT'S KINDA PUNK.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "m2.wp.burnoutf",
+  "text": "WHOA. IT'S HIM. MEHPHISTO SAID YOU'D COME.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "m2.wp.goth",
+  "text": "...WHATEVER. THIS IS STUPID.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "m2.wp.goth",
+  "text": "...WHATEVER. THIS IS STUPID. AND NAKED.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "m2.wp.goth",
+  "text": "...WHATEVER. YOU STINK ANYWAY.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "m2.wp.goth",
+  "text": "DAD SAID SET THE RIVER ON FIRE SO YOU CAN'T GET THROUGH. GOOD LUCK WITH YOUR BALLS.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "m2.wp.goth",
+  "text": "DAD SAID SET THE RIVER ON FIRE SO YOU CAN'T GET THROUGH. OR WHATEVER.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "m2.wp.goth",
+  "text": "DAD SAID SET THE RIVER ON FIRE SO YOU CAN'T GET THROUGH. YOU'D PUT IT OUT WITH YOUR PANTS.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "m2.wp.goth",
+  "text": "DAD, LOOK! I TOUCHED HIM! GROSS!",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "m2.wp.goth",
+  "text": "DAD! DAD, ARE YOU SEEING THIS?!",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "m2.wp.goth",
+  "text": "DAD! I'M FIGHTING A NAKED GUY! THAT'S HARDCORE!",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "m2.wp.goth",
+  "text": "DAD! I'M KILLING THE SHITTY ONE!",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "m2.wp.goth",
+  "text": "DAD! I'M ON FIRE! AND I SMELL LIKE HIM!",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "m2.wp.goth",
+  "text": "DAD! I'M ON FIRE! DON'T LET THE NAKED GUY WATCH!",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "m2.wp.goth",
+  "text": "DAD! I'M ON FIRE! I THOUGHT WE WERE FIREPROOF!",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "m2.wp.goth",
+  "text": "DAD'S GONNA HEAR ABOUT THIS. FROM MY BROTHER. GREAT.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "m2.wp.goth",
+  "text": "DID HE SEE? DON'T TELL HIM ABOUT THE NAKED PART.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "m2.wp.goth",
+  "text": "DID HE SEE? DON'T TELL HIM YOU WERE SHITTY.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "m2.wp.goth",
+  "text": "DID HE SEE? TELL ME HE DIDN'T SEE.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "m2.wp.goth",
+  "text": "DON'T TALK ABOUT MY DAD WITH THAT ASS!",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "m2.wp.goth",
+  "text": "DON'T TALK ABOUT MY DAD WITH YOUR DICK OUT!",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "m2.wp.goth",
+  "text": "DON'T TALK ABOUT MY DAD!",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "m2.wp.goth",
+  "text": "FINE! I'LL TRY! EVEN THOUGH YOU STINK!",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "m2.wp.goth",
+  "text": "FINE! I'LL TRY! HAPPY?!",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "m2.wp.goth",
+  "text": "FINE! I'LL TRY! PUT IT AWAY!",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "m2.wp.goth",
+  "text": "FINE. I'LL KILL YOU. DON'T SIT ON ANYTHING.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "m2.wp.goth",
+  "text": "FINE. I'LL KILL YOU. OR WHATEVER. IT'S NOT A BIG DEAL.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "m2.wp.goth",
+  "text": "FINE. I'LL KILL YOU. YOU SMELL HALF DEAD ALREADY.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "m2.wp.goth",
+  "text": "GROSS. OW.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "m2.wp.goth",
+  "text": "HE WASN'T EVEN WATCHING. WHATEVER.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "m2.wp.goth",
+  "text": "HE WASN'T WATCHING. HE'D WATCH YOU. EVERYBODY WATCHES YOU.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "m2.wp.goth",
+  "text": "HE WASN'T WATCHING. NOBODY WATCHES ME.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "m2.wp.goth",
+  "text": "I COULD BE NAPPING RIGHT NOW.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "m2.wp.goth",
+  "text": "I DON'T EVEN WANT TO BE HERE.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "m2.wp.goth",
+  "text": "I'M LOOKING AT THE CEILING. THE WHOLE TIME.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "m2.wp.goth",
+  "text": "I'M LOSING TO A GUY WHO SHIT HIMSELF. DAD'S GONNA LOVE THAT.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "m2.wp.goth",
+  "text": "I'M LOSING TO A NAKED GUY. DAD'S GONNA FRAME IT.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "m2.wp.goth",
+  "text": "I'M NOT LIKE HIM! I'M BETTER!",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "m2.wp.goth",
+  "text": "I'M NOT TOUCHING YOU. YOU'RE WET.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "m2.wp.goth",
+  "text": "I'M TIRED NOW.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "m2.wp.goth",
+  "text": "I'M TIRED. AND I SMELL YOU.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "m2.wp.goth",
+  "text": "I'M TIRED. PUT IT AWAY.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "m2.wp.goth",
+  "text": "I'M TRYING, DAD! LOOK AT ME, NOT HIM!",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "m2.wp.goth",
+  "text": "MEHPHISTO. SATAN'S OTHER SON. AT LEAST I GOT PANTS FROM HIM.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "m2.wp.goth",
+  "text": "MEHPHISTO. SATAN'S OTHER SON. THE ONE HE DOESN'T BRAG ABOUT.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "m2.wp.goth",
+  "text": "MEHPHISTO. SATAN'S OTHER SON. YOU'RE NOT THE ONLY DISAPPOINTMENT HERE.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "m2.wp.goth",
+  "text": "MY BROTHER WOULD BE SCREAMING BY NOW. LAME.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "m2.wp.goth",
+  "text": "OH. IT'S YOU. NAKED. COOL. I'M NOT GONNA LOOK. WHATEVER.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "m2.wp.goth",
+  "text": "OH. IT'S YOU. THE GUY EVERYBODY'S FREAKING OUT ABOUT. COOL. I GUESS.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "m2.wp.goth",
+  "text": "OH. IT'S YOU. YOU SMELL LIKE A PORTA POTTY ON FIRE. COOL. I GUESS.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "m2.wp.goth",
+  "text": "OW. COOL.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "m2.wp.goth",
+  "text": "OW. DON'T BE NAKED AT ME.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "m2.wp.goth",
+  "text": "OW. GROSS.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "m2.wp.goth",
+  "text": "OW. NOW I SMELL LIKE YOU.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "m2.wp.goth",
+  "text": "OW. RUDE.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "m2.wp.goth",
+  "text": "OW. YOU GOT IT ON MY COAT.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "m2.wp.goth",
+  "text": "OW. YOUR THING TOUCHED ME.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "m2.wp.goth",
+  "text": "PUT SOMETHING ON. OR DON'T. WHATEVER.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "m2.wp.goth",
+  "text": "SHUT UP! DAD, I'M TRYING! LOOK!",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "m2.wp.goth",
+  "text": "SHUT UP! YOU DON'T KNOW HIM! DAD, LOOK!",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "m2.wp.goth",
+  "text": "SHUT UP. SHUT UP! DAD, WATCH THIS!",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "m2.wp.goth",
+  "text": "TELL MY DAD I DID THAT ON PURPOSE. AND THAT YOU SHIT YOURSELF. HE'LL LIKE THAT.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "m2.wp.goth",
+  "text": "TELL MY DAD I DID THAT ON PURPOSE. LEAVE OUT THE NAKED PART.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "m2.wp.goth",
+  "text": "TELL MY DAD I DID THAT ON PURPOSE. NOT THAT I CARE.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "m2.wp.goth",
+  "text": "THAT LEFT A MARK. GREAT.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "m2.wp.goth",
+  "text": "THIS COUNTS! DON'T LOOK AT HIS DICK, DAD!",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "m2.wp.goth",
+  "text": "THIS COUNTS! EVEN IF HE STINKS!",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "m2.wp.goth",
+  "text": "THIS IS ME TRYING! IT COUNTS!",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "m2.wp.goth",
+  "text": "THIS IS SO MUCH EFFORT.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "m2.wp.goth",
+  "text": "THIS IS SO MUCH EFFORT. AND IT STINKS.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "m2.wp.goth",
+  "text": "THIS IS SO MUCH EFFORT. AND IT'S NAKED.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "m2.wp.goth",
+  "text": "UGH. YOU GOT THROUGH. AND YOU BROUGHT THAT SMELL INTO MY GROTTO.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "m2.wp.goth",
+  "text": "UGH. YOU GOT THROUGH. I SET A WHOLE RIVER ON FIRE.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "m2.wp.goth",
+  "text": "UGH. YOU GOT THROUGH. NAKED. INTO MY GROTTO.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "m2.wp.goth",
+  "text": "UGH. YOU'RE DRIPPING ON MY RUG.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "m2.wp.goth",
+  "text": "WHATEVER. BYE.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "m2.wp.goth",
+  "text": "WHATEVER. PANTS.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "m2.wp.goth",
+  "text": "WHATEVER. SHOWER.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "m2.wp.goth",
+  "text": "YOU AGAIN. COOL. WHATEVER.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "m2.wp.goth",
+  "text": "YOU AGAIN. STILL GROSS.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "m2.wp.goth",
+  "text": "YOU AGAIN. STILL NAKED. COOL.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "m2.wp.goth",
+  "text": "YOU SMELL LIKE MY BROTHER'S BAND.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "m2.wp.goth",
+  "text": "YOU'RE NOT EVEN WEIRD. JUST NAKED.",
+  "from": "ENDGAME"
+ },
+ {
   "voice": "m2.wp.kid",
   "text": "COME HERE, STINKY! I'M SQUEAKY AND MAD!",
   "from": "UPGRADES"
@@ -69056,6 +69736,26 @@
  },
  {
   "voice": "meathead",
+  "text": "A BURNING BRIDGE TO THE FACE!",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "meathead",
+  "text": "A BURNING LOG IN A BURNING RIVER. KEEP MOVING.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "meathead",
+  "text": "A BURNING LOG. BETWEEN MY LEGS. HURRY.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "meathead",
+  "text": "A BURNING LOG. MY ASS IS ALREADY HOT.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "meathead",
   "text": "A BURRITO! IT EXPLODED!",
   "from": "HOLLYWOOD"
  },
@@ -69736,6 +70436,11 @@
  },
  {
   "voice": "meathead",
+  "text": "A FIRE GEYSER! WHY?!",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "meathead",
   "text": "A FIRE LIZARD! IT BIT MY ANKLE!",
   "from": "HAZARD_HURT"
  },
@@ -70053,6 +70758,11 @@
   "voice": "meathead",
   "text": "A GONDOLA. A CANOE WITH A GUY WHO SINGS.",
   "from": "FOREIGN"
+ },
+ {
+  "voice": "meathead",
+  "text": "A GOTH KID PUNCHED ME!",
+  "from": "ENDGAME"
  },
  {
   "voice": "meathead",
@@ -70393,6 +71103,11 @@
   "voice": "meathead",
   "text": "A LIT CIGAR! MY FUR!",
   "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "A LIT ROACH! IN MY EYE!",
+  "from": "ENDGAME"
  },
  {
   "voice": "meathead",
@@ -71381,6 +72096,11 @@
  },
  {
   "voice": "meathead",
+  "text": "A SMOKE RING! A HOT ONE!",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "meathead",
   "text": "A SNACK CART UP MY ASS!",
   "from": "CARTOON"
  },
@@ -71626,6 +72346,11 @@
  },
  {
   "voice": "meathead",
+  "text": "A TOWER OF POOL TOYS. ON FIRE. ON A ROCK. IN A FIRE.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "meathead",
   "text": "A TOWER. THE ELEVATOR SAYS OUT OF ORDER. SINCE 1994.",
   "from": "FOREIGN"
  },
@@ -71838,6 +72563,11 @@
   "voice": "meathead",
   "text": "A VIKING SHIP. MADE IN TAIWAN.",
   "from": "FOREIGN"
+ },
+ {
+  "voice": "meathead",
+  "text": "A VINE OVER A RIVER ON FIRE. GREAT.",
+  "from": "ENDGAME"
  },
  {
   "voice": "meathead",
@@ -73736,6 +74466,11 @@
  },
  {
   "voice": "meathead",
+  "text": "BET YOUR DAD DOESN'T EVEN KNOW YOUR NAME.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "meathead",
   "text": "BETTER CLEAN UP THE BODIES.",
   "from": "HOLLYWOOD"
  },
@@ -73976,6 +74711,11 @@
  },
  {
   "voice": "meathead",
+  "text": "BLOW IT THE OTHER WAY!",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "meathead",
   "text": "BLOWN UP BY A MOUSE!",
   "from": "CARTOON"
  },
@@ -74183,6 +74923,21 @@
   "voice": "meathead",
   "text": "BOTH FISTS! WHO DOES THAT?!",
   "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
+  "text": "BOTH OF SATAN'S KIDS. AND MY PANTS. ROUGH NIGHT FOR EVERYBODY.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "meathead",
+  "text": "BOTH OF SATAN'S KIDS. NAKED. TELL HIM THAT PART.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "meathead",
+  "text": "BOTH OF SATAN'S KIDS. ONE CRIED. ONE CAUGHT FIRE.",
+  "from": "ENDGAME"
  },
  {
   "voice": "meathead",
@@ -76256,6 +77011,21 @@
  },
  {
   "voice": "meathead",
+  "text": "DADDY'S WATCHING. HE'S EMBARRASSED.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "meathead",
+  "text": "DADDY'S WATCHING. JUST KIDDING. HE ISN'T.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "meathead",
+  "text": "DADDY'S WATCHING. NOT YOU. ME. I'M NAKED.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "meathead",
   "text": "DALE'S BEEN DELIVERED. SIGNED FOR AND EVERYTHING.",
   "from": "BOSS_REBUKES"
  },
@@ -76801,6 +77571,11 @@
  },
  {
   "voice": "meathead",
+  "text": "DON'T TOUCH ME, YOU'RE CLAMMY!",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "meathead",
   "text": "DON'T TOUCH MY NATURAL TESTOSTERONE, BITCH!",
   "from": "HURT"
  },
@@ -77033,6 +77808,11 @@
   "voice": "meathead",
   "text": "DRY? THEY'RE NOT DRY.",
   "from": "OSCAR_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "DUCK, DUMBASS! IT SAID DUCK!",
+  "from": "ENDGAME"
  },
  {
   "voice": "meathead",
@@ -77421,6 +78201,11 @@
  },
  {
   "voice": "meathead",
+  "text": "EVEN MY SHIT GETS MORE ATTENTION FROM YOUR DAD.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "meathead",
   "text": "EVEN THE BIRDS ARE POSSESSED. FLORIDA.",
   "from": "ENDGAME"
  },
@@ -77758,6 +78543,11 @@
   "voice": "meathead",
   "text": "EYES UP, CAT. THAT'S NOT A SAUSAGE.",
   "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
+  "text": "FACE DOWN IN HIS BONG. I'VE SEEN WORSE. I'VE BEEN WORSE.",
+  "from": "ENDGAME"
  },
  {
   "voice": "meathead",
@@ -78126,6 +78916,11 @@
  },
  {
   "voice": "meathead",
+  "text": "FIRE CAME UP OUT OF THE RIVER!",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "meathead",
   "text": "FIRE EXTINGUISHER. EAT FOAM, BITCH.",
   "from": "SPACE"
  },
@@ -78143,6 +78938,11 @@
   "voice": "meathead",
   "text": "FIRE ME OUT. NAKED. AGAIN.",
   "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "FIRE OUT OF THE FLOOR!",
+  "from": "ENDGAME"
  },
  {
   "voice": "meathead",
@@ -78183,6 +78983,16 @@
   "voice": "meathead",
   "text": "FIREBALL! FIREBALL!",
   "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
+  "text": "FIREBALL! FROM A TINY DEVIL!",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "meathead",
+  "text": "FIREBALL! HE CAN TRY!",
+  "from": "ENDGAME"
  },
  {
   "voice": "meathead",
@@ -78731,6 +79541,11 @@
  },
  {
   "voice": "meathead",
+  "text": "FROM THE CEILING?!",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "meathead",
   "text": "FRONT DELT DOMINANCE",
   "from": "VULGARITIES"
  },
@@ -79186,6 +80001,11 @@
  },
  {
   "voice": "meathead",
+  "text": "GET OFF ME, MALL VAMPIRE!",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "meathead",
   "text": "GET OFF ME, PAVAROTTI!",
   "from": "FOREIGN"
  },
@@ -79207,6 +80027,11 @@
  {
   "voice": "meathead",
   "text": "GET OFF ME, YOU HANDBAG!",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "meathead",
+  "text": "GET OFF ME, YOU HOT GREMLIN!",
   "from": "ENDGAME"
  },
  {
@@ -79431,6 +80256,11 @@
  },
  {
   "voice": "meathead",
+  "text": "GET YOUR BONY ASS OFF ME!",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "meathead",
   "text": "GET YOUR BOOTS OFF MY FACE!",
   "from": "SPOOKY"
  },
@@ -79458,6 +80288,11 @@
   "voice": "meathead",
   "text": "GET YOUR CHOPPER OFF MY CALF!",
   "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "GET YOUR EYELINER AWAY FROM ME!",
+  "from": "ENDGAME"
  },
  {
   "voice": "meathead",
@@ -80311,6 +81146,11 @@
  },
  {
   "voice": "meathead",
+  "text": "GROSS! AND HOT!",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "meathead",
   "text": "GROSS! BIOHAZARD BILE ALL OVER MY CHEST, TOMMY!",
   "from": "HAZARD_HURT"
  },
@@ -80631,6 +81471,11 @@
  },
  {
   "voice": "meathead",
+  "text": "HE BLEW A RING THROUGH ME!",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "meathead",
   "text": "HE BLEW CHUNKS. I BLEW MY PANTS. WE'RE EVEN.",
   "from": "CARTOON"
  },
@@ -80668,6 +81513,11 @@
   "voice": "meathead",
   "text": "HE BUMPED ME! I COULD FEEL HIS RIBS!",
   "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "HE BURPED FIRE ALONG THE FLOOR!",
+  "from": "ENDGAME"
  },
  {
   "voice": "meathead",
@@ -80823,6 +81673,11 @@
   "voice": "meathead",
   "text": "HE FLEW A BROOM UP MY ASS!",
   "from": "FANTASY"
+ },
+ {
+  "voice": "meathead",
+  "text": "HE FLICKED HIS JOINT AT ME!",
+  "from": "ENDGAME"
  },
  {
   "voice": "meathead",
@@ -81041,6 +81896,11 @@
  },
  {
   "voice": "meathead",
+  "text": "HE HITS LIKE HE MEANS IT!",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "meathead",
   "text": "HE HOCKED A LOOGIE IN MY MOUTH!",
   "from": "CARTOON"
  },
@@ -81116,6 +81976,11 @@
  },
  {
   "voice": "meathead",
+  "text": "HE MEANT THAT ONE!",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "meathead",
   "text": "HE MEASURED ME! THEN HE HIT ME!",
   "from": "FRONTIER"
  },
@@ -81123,6 +81988,11 @@
   "voice": "meathead",
   "text": "HE MOPPED ME! RIGHT IN THE FACE!",
   "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "HE NEVER LOOKED. RESPECT.",
+  "from": "ENDGAME"
  },
  {
   "voice": "meathead",
@@ -81641,6 +82511,11 @@
  },
  {
   "voice": "meathead",
+  "text": "HE THREW ONE FOR REAL!",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "meathead",
   "text": "HE THROWS BIBLES. AT A CAT. ON SATURDAY MORNING.",
   "from": "CARTOON"
  },
@@ -81748,6 +82623,11 @@
   "voice": "meathead",
   "text": "HE'S ALREADY DEAD. HE JUST NEEDS TO BE A LOT COLDER.",
   "from": "m1/game/stages/dale/junkie.ts:689"
+ },
+ {
+  "voice": "meathead",
+  "text": "HE'S CLAMMY. I'M NOT GRABBING THAT.",
+  "from": "ENDGAME"
  },
  {
   "voice": "meathead",
@@ -82986,6 +83866,11 @@
  },
  {
   "voice": "meathead",
+  "text": "HOT HOT HOT HOT!",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "meathead",
   "text": "HOT LARD! HOT LARD!",
   "from": "SPOOKY"
  },
@@ -83063,6 +83948,11 @@
   "voice": "meathead",
   "text": "HOT WAX! ON MY TOES!",
   "from": "FANTASY"
+ },
+ {
+  "voice": "meathead",
+  "text": "HOT! HOT FLOOR!",
+  "from": "ENDGAME"
  },
  {
   "voice": "meathead",
@@ -84796,6 +85686,11 @@
  },
  {
   "voice": "meathead",
+  "text": "I STEPPED IN FIRE!",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "meathead",
   "text": "I STEPPED IN THE VOLCANO!",
   "from": "HAZARD_HURT"
  },
@@ -85786,6 +86681,11 @@
  },
  {
   "voice": "meathead",
+  "text": "I'M NOT HUGGING A GOTH.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "meathead",
   "text": "I'M NOT PAYING FOR THE PHOTO.",
   "from": "SPACE"
  },
@@ -85906,8 +86806,18 @@
  },
  {
   "voice": "meathead",
+  "text": "I'M ON FIRE!",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "meathead",
   "text": "I'M ON FIRE! AND NOT THE GOOD KIND!",
   "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "I'M ON FIRE! I'M ON FIRE!",
+  "from": "ENDGAME"
  },
  {
   "voice": "meathead",
@@ -86991,6 +87901,11 @@
  },
  {
   "voice": "meathead",
+  "text": "IT SNAPPED!",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "meathead",
   "text": "IT SPANKED ME!",
   "from": "ADVENTURE"
  },
@@ -87073,6 +87988,11 @@
   "voice": "meathead",
   "text": "IT TASTES LIKE BLUE CRAYON! MY FAVORITE!",
   "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "IT THREW FIRE AT ME!",
+  "from": "ENDGAME"
  },
  {
   "voice": "meathead",
@@ -87406,6 +88326,11 @@
  },
  {
   "voice": "meathead",
+  "text": "IT'S FALLING APART! MOVE!",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "meathead",
   "text": "IT'S FASTER! IT'S WAY FASTER!",
   "from": "HOLLYWOOD"
  },
@@ -87441,8 +88366,18 @@
  },
  {
   "voice": "meathead",
+  "text": "IT'S GOING OVER!",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "meathead",
   "text": "IT'S GOING! IT'S GOING!",
   "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
+  "text": "IT'S GONE!",
+  "from": "ENDGAME"
  },
  {
   "voice": "meathead",
@@ -87588,6 +88523,11 @@
   "voice": "meathead",
   "text": "IT'S MEAT TIME, BABY!",
   "from": "m1/App.tsx:700"
+ },
+ {
+  "voice": "meathead",
+  "text": "IT'S MELTING!",
+  "from": "ENDGAME"
  },
  {
   "voice": "meathead",
@@ -88126,6 +89066,11 @@
  },
  {
   "voice": "meathead",
+  "text": "KNOCK KNOCK, DEVIL BOY.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "meathead",
   "text": "KNOCK KNOCK! WHO'S THERE? MY DICK!",
   "from": "FANTASY"
  },
@@ -88133,6 +89078,16 @@
   "voice": "meathead",
   "text": "KNOCK KNOCK.",
   "from": "ADVENTURE"
+ },
+ {
+  "voice": "meathead",
+  "text": "KNOCK KNOCK. NAKED GUY.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "meathead",
+  "text": "KNOCK KNOCK. SMELL THAT? ME.",
+  "from": "ENDGAME"
  },
  {
   "voice": "meathead",
@@ -89881,6 +90836,11 @@
  },
  {
   "voice": "meathead",
+  "text": "MY ASS! FROM BELOW!",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "meathead",
   "text": "MY ASS! I'M WEARING A CELEBRITY!",
   "from": "HOLLYWOOD"
  },
@@ -89898,6 +90858,11 @@
   "voice": "meathead",
   "text": "MY ASS! IT'S ON THE BACK BURNER!",
   "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "MY ASS! THE RIVER SPAT FIRE!",
+  "from": "ENDGAME"
  },
  {
   "voice": "meathead",
@@ -90216,8 +91181,18 @@
  },
  {
   "voice": "meathead",
+  "text": "MY FEET ARE ON FIRE!",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "meathead",
   "text": "MY FEET ARE SHISH KEBABS!",
   "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
+  "text": "MY FEET! HIS BURP!",
+  "from": "ENDGAME"
  },
  {
   "voice": "meathead",
@@ -90328,6 +91303,11 @@
   "voice": "meathead",
   "text": "MY HAIR! ALL OF IT! EVERYWHERE!",
   "from": "ADVENTURE"
+ },
+ {
+  "voice": "meathead",
+  "text": "MY HAIR! IT GOT MY HAIR!",
+  "from": "ENDGAME"
  },
  {
   "voice": "meathead",
@@ -91546,6 +92526,21 @@
  },
  {
   "voice": "meathead",
+  "text": "NICE CAVE. CAN I SIT ON THE BEANBAG? NAKED?",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "meathead",
+  "text": "NICE CAVE. DOES YOUR DAD KNOW YOU LIVE HERE?",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "meathead",
+  "text": "NICE CAVE. SMELLS LIKE A BONG AND A SULK.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "meathead",
   "text": "NICE CHAIN! NICE COFFIN!",
   "from": "ENEMY_KILL_LINES"
  },
@@ -92066,6 +93061,11 @@
  },
  {
   "voice": "meathead",
+  "text": "NO LOG!",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "meathead",
   "text": "NO MORE BROOMS. NO MORE SUITORS.",
   "from": "FANTASY"
  },
@@ -92408,6 +93408,11 @@
   "voice": "meathead",
   "text": "NO TUCKER. STILL HAVE TO CHASE THE DAMN THING NAKED.",
   "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
+  "text": "NO VINE!",
+  "from": "ENDGAME"
  },
  {
   "voice": "meathead",
@@ -93056,6 +94061,11 @@
  },
  {
   "voice": "meathead",
+  "text": "NOT THE RIVER!",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "meathead",
   "text": "NOT THE SEWER. NOT NAKED.",
   "from": "FRONTIER"
  },
@@ -93481,6 +94491,11 @@
  },
  {
   "voice": "meathead",
+  "text": "OFF THE LOG! OFF!",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "meathead",
   "text": "OFF THE RAILS! BEST FIVE BUCKS I NEVER PAID!",
   "from": "FRONTIER"
  },
@@ -93493,6 +94508,11 @@
   "voice": "meathead",
   "text": "OFF THE TRACK! STILL NAKED!",
   "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
+  "text": "OFF! GET OFF IT!",
+  "from": "ENDGAME"
  },
  {
   "voice": "meathead",
@@ -94483,6 +95503,11 @@
   "voice": "meathead",
   "text": "OW! HAIRNET!",
   "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "meathead",
+  "text": "OW! HE AIMED!",
+  "from": "ENDGAME"
  },
  {
   "voice": "meathead",
@@ -95508,6 +96533,21 @@
   "voice": "meathead",
   "text": "POOF. WISH MY PANTS DID THAT.",
   "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "POOL TOYS ON FIRE. DON'T LET IT TOUCH ANYTHING.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "meathead",
+  "text": "POOL TOYS ON FIRE. SMELLS BETTER THAN ME.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "meathead",
+  "text": "POOL TOYS!",
+  "from": "ENDGAME"
  },
  {
   "voice": "meathead",
@@ -98821,6 +99861,11 @@
  },
  {
   "voice": "meathead",
+  "text": "SKULL GROTTO. SMELLS LIKE WEED AND SULFUR. HE'S IN THERE.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "meathead",
   "text": "SKUNK! OH GOD, THE SMELL!",
   "from": "FRONTIER"
  },
@@ -99023,6 +100068,16 @@
   "voice": "meathead",
   "text": "SMELLS LIKE MY PANTS DOWN HERE.",
   "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
+  "text": "SMELLS LIKE WEED AND SULFUR. AND ME.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "meathead",
+  "text": "SMELLS LIKE WEED IN THERE. GOING IN NAKED. FINE.",
+  "from": "ENDGAME"
  },
  {
   "voice": "meathead",
@@ -100756,6 +101811,11 @@
  },
  {
   "voice": "meathead",
+  "text": "SWING. DON'T THINK. DON'T LOOK DOWN.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "meathead",
   "text": "SWINGING NAKED FROM A CHANDELIER. LIKE COLLEGE.",
   "from": "CARTOON"
  },
@@ -101451,6 +102511,11 @@
  },
  {
   "voice": "meathead",
+  "text": "THAT RING BURNS!",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "meathead",
   "text": "THAT ROCK'S ON THE TRACK!",
   "from": "SPACE"
  },
@@ -101503,6 +102568,11 @@
   "voice": "meathead",
   "text": "THAT SLUDGE SMELLS WORSE THAN A CRACKHOUSE TOILET!",
   "from": "HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "THAT SMOKE BURNS!",
+  "from": "ENDGAME"
  },
  {
   "voice": "meathead",
@@ -102471,6 +103541,11 @@
  },
  {
   "voice": "meathead",
+  "text": "THE BRIDGE! MY HEAD!",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "meathead",
   "text": "THE BRIM GOT ME!",
   "from": "FOREIGN"
  },
@@ -102916,6 +103991,16 @@
  },
  {
   "voice": "meathead",
+  "text": "THE DEVIL HAS A SPARE. A SAD ONE.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "meathead",
+  "text": "THE DEVIL'S GOT A SPARE KID. HE SMELLED ME AND LIT A RIVER.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "meathead",
   "text": "THE DEVIL'S KID IS A MALL PUNK.",
   "from": "SPOOKY"
  },
@@ -102923,6 +104008,16 @@
   "voice": "meathead",
   "text": "THE DEVIL'S KID TATTLED ON ME.",
   "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
+  "text": "THE DEVIL'S SPARE KID SET A RIVER ON FIRE TO GET AWAY FROM MY DICK.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "meathead",
+  "text": "THE DEVIL'S SPARE. NOT FIREPROOF. NOTED.",
+  "from": "ENDGAME"
  },
  {
   "voice": "meathead",
@@ -103296,6 +104391,11 @@
  },
  {
   "voice": "meathead",
+  "text": "THE GOTH KID SHOVED ME!",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "meathead",
   "text": "THE GOVERNMENT DID THAT? I'M NAKED WITH A RAY GUN AND I'M THE DECENT ONE?",
   "from": "UPGRADES"
  },
@@ -103546,6 +104646,11 @@
  },
  {
   "voice": "meathead",
+  "text": "THE JOINT BURNED ME!",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "meathead",
   "text": "THE KEY WAS IN THE BOUNCER'S ASS POCKET.",
   "from": "FRONTIER"
  },
@@ -103706,6 +104811,11 @@
  },
  {
   "voice": "meathead",
+  "text": "THE LITTLE FIRE DEVIL BIT ME!",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "meathead",
   "text": "THE LITTLE RED FUCKER BIT MY ANKLE!",
   "from": "SPOOKY"
  },
@@ -103726,8 +104836,18 @@
  },
  {
   "voice": "meathead",
+  "text": "THE LOG!",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "meathead",
   "text": "THE LOG! THE LOG!",
   "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
+  "text": "THE LOG'S DONE! JUMP!",
+  "from": "ENDGAME"
  },
  {
   "voice": "meathead",
@@ -104248,6 +105368,16 @@
   "voice": "meathead",
   "text": "THE RIVER NEEDS THIS MORE THAN I DO.",
   "from": "ADVENTURE"
+ },
+ {
+  "voice": "meathead",
+  "text": "THE RIVER!",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "meathead",
+  "text": "THE ROACH BURNS!",
+  "from": "ENDGAME"
  },
  {
   "voice": "meathead",
@@ -104776,6 +105906,11 @@
  },
  {
   "voice": "meathead",
+  "text": "THE TOWER!",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "meathead",
   "text": "THE TOWER'S FALLING ON ME! A LITTLE AT A TIME!",
   "from": "SPOOKY"
  },
@@ -104903,6 +106038,26 @@
   "voice": "meathead",
   "text": "THE VILLAIN IS A SHORT GUY WITH GRAPHS. I'M SHAKING.",
   "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "THE VINE!",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "meathead",
+  "text": "THE VINE'S ON FIRE! IT'S COMING FOR MY ASS!",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "meathead",
+  "text": "THE VINE'S ON FIRE! IT'S COMING FOR MY BALLS!",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "meathead",
+  "text": "THE VINE'S ON FIRE! WHY IS THE VINE ON FIRE?!",
+  "from": "ENDGAME"
  },
  {
   "voice": "meathead",
@@ -105676,8 +106831,18 @@
  },
  {
   "voice": "meathead",
+  "text": "THEY SMOKED ME OUT!",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "meathead",
   "text": "THEY SPENT THE BUDGET ON A REAL LASER?!",
   "from": "SPACE"
+ },
+ {
+  "voice": "meathead",
+  "text": "THEY THREW A LIT JOINT AT ME!",
+  "from": "ENDGAME"
  },
  {
   "voice": "meathead",
@@ -107546,6 +108711,11 @@
  },
  {
   "voice": "meathead",
+  "text": "WASTE OF A GOOD JOINT!",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "meathead",
   "text": "WASTE OF MEAT",
   "from": "VULGARITIES"
  },
@@ -108808,6 +109978,21 @@
   "voice": "meathead",
   "text": "WHO THE FUCK ARE YOU TWO?",
   "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "WHO THE FUCK ARE YOU?",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "meathead",
+  "text": "WHO THE FUCK ARE YOU? EYES UP HERE.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "meathead",
+  "text": "WHO THE FUCK ARE YOU? QUIT SNIFFING.",
+  "from": "ENDGAME"
  },
  {
   "voice": "meathead",
@@ -110201,6 +111386,21 @@
  },
  {
   "voice": "meathead",
+  "text": "YOUR BROTHER AT LEAST TRIED. HE CRIED, BUT HE TRIED.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "meathead",
+  "text": "YOUR BROTHER CRIED BETTER THAN YOU FIGHT.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "meathead",
+  "text": "YOUR BROTHER FOUGHT ME AND STILL TRIED HARDER.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "meathead",
   "text": "YOUR BUDDY IN THE CLOSET LOOKS HOT! WANT ME TO PUT HIM ON ICE?",
   "from": "m1/game/stages/dale/junkie.ts:769"
  },
@@ -110218,6 +111418,21 @@
   "voice": "meathead",
   "text": "YOUR DAD BOWLS? WHO THE FUCK IS YOUR DAD?",
   "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "YOUR DAD LIKES YOUR BROTHER BETTER.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "meathead",
+  "text": "YOUR DAD SEES MORE OF ME THAN HE DOES OF YOU.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "meathead",
+  "text": "YOUR DAD'D BE PROUDER OF MY PANTS.",
+  "from": "ENDGAME"
  },
  {
   "voice": "meathead",

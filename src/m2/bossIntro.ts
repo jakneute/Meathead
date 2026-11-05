@@ -12,7 +12,7 @@
 
 import type { GameState } from '../m1/game/core/state';
 
-export type IntroBoss = 'artie' | 'donnie' | 'queen' | 'steve' | 'harry' | 'tucker' | 'piper' | 'dad' | 'zorzarblax';
+export type IntroBoss = 'artie' | 'donnie' | 'queen' | 'steve' | 'harry' | 'tucker' | 'piper' | 'dad' | 'zorzarblax' | 'mehphisto';
 
 const key = (boss: IntroBoss) => `m2:boss-intro:${boss}`;
 /** The intro's been seen this visit (a retry: the short entrance). */
