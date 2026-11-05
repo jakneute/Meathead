@@ -25,8 +25,8 @@ import { drawTodSky, timeOfDay, farTint, lampGlow } from '../../timeOfDay';
 import { farMark, farTreeline } from '../../parkFar';
 import { text, steppedGlow, mix, checker as dither, hazeBands, sideFace } from '../../intro/art/kit';
 import { signText, signW, signH, rampDown, type Look } from '../../signLetters';
-import { GY, GROUND, POOLS, LEDGES, ISLANDS, SLIDES, TUBES, TOWER, FLOORS, floorY, exitSide, FLOOR_NAMES, FLOOR_FT, SUMMIT, DESCENT, L2, step, tubeSpan, type Slide, type Tube } from './geo';
-import { SLIDE_PATHS, pointAt, type Path } from './slides';
+import { GY, GROUND, POOLS, LEDGES, ISLANDS, SLIDES, TUBES, TOWER, FLOORS, floorY, exitSide, FLOOR_NAMES, FLOOR_FT, SUMMIT, DESCENT, L2, step, tubeSpan, type Slide, type Tube, type Stairs } from './geo';
+import { SLIDE_PATHS, pointAt, surfaceAt, type Path } from './slides';
 import { tubePaths, tubeLap, tubeLapNo, PIPE_CLEAR, GAP_WARN } from './tube';
 import { FLOOR_LEDGES, DOORS_X, ROUND, FACE } from './tower';
 
@@ -45,7 +45,6 @@ const checker = (c: Ctx, x: number, y: number, w: number, h: number, col: string
 
 /** The tube rides' bottomless drop: banded (stepped down, SNES) into black. */
 const VOID = '#020308';
-const DROP_BANDS = ['#141A2C', '#0E1322', '#090D18', '#05070F'];
 const FAR_W = 1600, FAR_H = 300;
 /** Five steps round a color: deep, shade, body, lit, highlight. */
 const ramp5 = (col: string) => [mix(col, INK, 0.55), mix(col, INK, 0.3), col, mix(col, '#FFFFFF', 0.25), mix(col, '#FFFFFF', 0.5)];
@@ -244,6 +243,7 @@ export const drawParkBackdrop = (c: Ctx, state: GameState, shift = 0, hole?: { x
 };
 const paintBackdrop = (c: Ctx, state: GameState, shift: number) => {
   const f = state.frame, cx = state.camera.x + shift, cy = state.camera.y, tod = timeOfDay();
+  backShift = shift;
   // (over a tube ride's drop: nothing of the backdrop's painted under the drop's top (it's the drop's, black: painted
   // once, below), so the screen's not painted twice over there)
   const drop = dropRect(state);
@@ -279,9 +279,29 @@ const paintBackdrop = (c: Ctx, state: GameState, shift: number) => {
     }
     if (by < H) R(c, 0, Math.round(by), W, H - Math.round(by), farTint('#0A1020', 0.8));
   }
+  // (over a tube ride's drop: the mist rising out of it, thin up high, thickening down to the haze's top (drawTubeBack
+  // carries on from there, in front of the legs): the slides far down under him go into it, so none of them reads as
+  // somewhere a fall would land; stepped in over the drop's ends (the tower's, the splash pool's), no hard edge)
+  const dz = dropOf(state);
+  if (dz) {
+    const x0 = Math.max(0, Math.round(dz.a - state.camera.x)), x1 = Math.min(W, Math.round(dz.b - state.camera.x));
+    const ST = 5, SW = 28, SH = 36, base = Math.min(H + 20, dz.top - Math.round(state.camera.y)), y1 = Math.min(H, base, drop ? drop.y : H);
+    const cols: [number, number, number][] = [];
+    const L = x0 > 0 ? ST : 0, Rn = x1 < W ? ST : 0, m0 = x0 + L * SW, m1 = x1 - Rn * SW;
+    if (m1 > m0) {
+      for (let k = 0; k < L; k++) cols.push([x0 + k * SW, x0 + (k + 1) * SW, (k + 1) / (ST + 1)]);
+      cols.push([m0, m1, 1]);
+      for (let k = Rn - 1; k >= 0; k--) cols.push([x1 - (k + 1) * SW, x1 - k * SW, (k + 1) / (ST + 1)]);
+    }
+    for (let k = 0; k < MIST_UP.length; k++) {
+      const ya = Math.max(0, base - (MIST_UP.length - k) * SH), yb = Math.min(y1, base - (MIST_UP.length - k - 1) * SH);
+      if (yb <= ya) continue;
+      for (const [ca, cb, g2] of cols) if (cb > ca) { c.fillStyle = `rgba(14, 19, 34, ${(MIST_UP[k] * g2).toFixed(3)})`; c.fillRect(ca, ya, cb - ca, yb - ya); }
+    }
+  }
   if (drop) {
     if (crop) c.restore();
-    // (the drop: banded down into black, no bottom)
+    // (the drop under its haze's solid line (the haze: drawTubeBack): banded on down into black, no bottom)
     const w = drop.x1 - drop.x0;
     DROP_BANDS.forEach((col, k) => R(c, drop.x0, drop.y + k * 26, w, 26, col));
     const v = drop.y + DROP_BANDS.length * 26;
@@ -411,8 +431,11 @@ const drawPits = (c: Ctx, state: GameState) => {
     const deep = TUBES.some(t => t.deck.x1 >= a - 140 && t.deck.x1 <= a + 5);
     const x0 = Math.max(a, state.camera.x - 40), x1 = Math.min(b, state.camera.x + W + 40);
     if (deep) {
-      // (under the tube rides: nothing. Black all the way down (the drop's bands over it: drawTubeBack))
-      R(c, x0, GY, x1 - x0, bot - GY, VOID);
+      // (under the tube rides: nothing. Black all the way down, under the drop's haze (drawTubeBack): its solid line's
+      // never lower than this)
+      // (not where a ride's drop is (its haze and bands, drawTubeBack and the backdrop), nor under a splash pool (its own
+      // piers down into the dark): only under the tower's shaft and past the pool's far end)
+      if (bot > GY + 140) for (const T of TUBES) { if (T.deck.x1 < a - 140 || T.deck.x1 > a + 5) continue; for (const [u, v] of [[a, T.deck.x2], [T.pool.x2, b]]) { const p0 = Math.max(x0, u), p1 = Math.min(x1, v); if (p1 > p0) R(c, p0, GY + 140, p1 - p0, bot - GY - 140, VOID); } }
       continue;
     }
     if (pool) continue;
@@ -446,7 +469,7 @@ const drawPoolsFront = (c: Ctx, state: GameState, greenPool: number) => {
  *  going down; its floor's tiles lit along the top (he stands on it); its end walls; the coping round its rim, lit; the
  *  ladder at its far end in chrome steps. */
 const TILE = ['#0E3460', '#16487E', '#1F5A92', '#2E70AA', '#4A8AC8', '#8AC0EA'];
-const paintLagoon = (g: Ctx, p: (typeof POOLS)[number]) => {
+const paintLagoon = (g: Ctx, p: (typeof POOLS)[number], marks: [string, string] = ['3 FT', '9 FT']) => {
   const { x1, x2, bottom } = p, w = x2 - x1;
   R(g, x1, GY, w, bottom - GY + 20, TILE[2]);
   for (let y = GY + 20; y < bottom; y += 8) for (let x = x1 + ((y >> 3) % 2) * 4; x < x2; x += 8) { const n = hash(x * 0.37 + y * 0.11); R(g, x, y, 7, 7, n < 0.3 ? TILE[1] : n < 0.8 ? TILE[2] : TILE[3]); R(g, x, y, 7, 1, TILE[3]); }
@@ -457,8 +480,8 @@ const paintLagoon = (g: Ctx, p: (typeof POOLS)[number]) => {
   // (deeper, darker: banded down)
   hazeBands(g, x1, GY + 20, w, bottom - GY - 20, '#041228', 0, 0.55, 5);
   // (the depth markers on the wall, in tile letters)
-  signText(g, '3 FT', x1 + 40, GY + 38, { sx: 1, sy: 2, fill: '#F8FAFC', shadow: TILE[0] }, 'center');
-  signText(g, '9 FT', x2 - 60, GY + 38, { sx: 1, sy: 2, fill: '#F8FAFC', shadow: TILE[0] }, 'center');
+  signText(g, marks[0], x1 + 40, GY + 38, { sx: 1, sy: 2, fill: '#F8FAFC', shadow: TILE[0] }, 'center');
+  signText(g, marks[1], x2 - 60, GY + 38, { sx: 1, sy: 2, fill: '#F8FAFC', shadow: TILE[0] }, 'center');
   // (its floor: tiles, lit along the top: he stands on it)
   R(g, x1, bottom, w, 20, TILE[1]); R(g, x1, bottom, w, 2, '#CFEFFF'); R(g, x1, bottom + 2, w, 2, TILE[5]); R(g, x1, bottom + 4, w, 1, TILE[3]);
   for (let x = x1 + 16; x < x2; x += 32) R(g, x, bottom + 5, 1, 15, TILE[0]);
@@ -476,12 +499,36 @@ const paintLagoon = (g: Ctx, p: (typeof POOLS)[number]) => {
   g.strokeStyle = '#C8CED6'; g.lineWidth = 2; g.stroke();
   for (let y = GY - 22; y < GY + 30; y += 12) { R(g, x2 - 21, y, 12, 3, '#5A626C'); R(g, x2 - 21, y, 12, 1, '#E2E8F0'); }
 };
+/** A tube ride's splash pool: the lagoon's basin (its tiles, its markers, its coping, the ladder out at its far end),
+ *  and the outside of its near wall going down into the drop the chute comes in over (concrete, streaked, no lit top:
+ *  nothing to stand on), banded on down into black. */
+const SPLASH = [POOLS[1], POOLS[2]];
+const CONC = ramp5(mix('#6A7080', '#0B1020', 0.35));
+const SPLASH_DEEP = 260;
+const paintSplash = (g: Ctx, p: (typeof POOLS)[number]) => {
+  const x = p.x1 - 16, top = GY + 8, shell = p.bottom + 20, bot = p.bottom + SPLASH_DEEP;
+  // (the basin's shell under its floor: concrete, its bottom edge shaded (nothing to stand on under there)), and the piers
+  // it stands on, on down into the drop's dark)
+  R(g, x - 1, shell, p.x2 - x + 1, 34, INK); R(g, x, shell, p.x2 - x, 32, CONC[1]); R(g, x, shell, p.x2 - x, 2, CONC[2]); R(g, x, shell + 26, p.x2 - x, 6, CONC[0]);
+  for (let k = x + 40; k < p.x2; k += 64) R(g, k, shell + 4, 1, 22, CONC[0]);
+  for (const px of [x + 30, (x + p.x2) / 2 - 12, p.x2 - 60]) { const pxr = Math.round(px); R(g, pxr - 1, shell + 32, 26, bot - shell - 32, INK); R(g, pxr, shell + 32, 24, bot - shell - 32, CONC[1]); R(g, pxr, shell + 32, 3, bot - shell - 32, CONC[2]); R(g, pxr + 19, shell + 32, 5, bot - shell - 32, CONC[0]); }
+  // (its near wall's outside: down the drop side of it to the shell)
+  R(g, x - 1, top, 17, shell + 32 - top, INK); R(g, x, top, 16, shell + 32 - top, CONC[2]); R(g, x, top, 2, shell + 32 - top, CONC[3]); R(g, x + 12, top, 4, shell + 32 - top, CONC[1]);
+  for (let y = top + 18; y < shell + 30; y += 30) { R(g, x, y, 16, 1, CONC[0]); R(g, x, y + 1, 16, 1, CONC[3]); }
+  for (let k = 0; k < 5; k++) { const sx = x + 3 + Math.floor(hash(k + p.x1) * 9); R(g, sx, top + 4 + k * 37, 1, 14 + Math.floor(hash(k + 9) * 20), CONC[1]); }
+  dither(g, x, top, 16, 6, CONC[0]);
+  // (going down into the dark: banded off into black under the floor)
+  hazeBands(g, x - 1, shell + 40, p.x2 - x + 1, bot - shell - 40, VOID, 0.2, 1, 7);
+  paintLagoon(g, p, ['12 FT', '12 FT']);
+};
 const drawPools = (c: Ctx, state: GameState, greenPool: number) => {
   for (const p of POOLS) {
-    if (!vis(state, p.x1, p.x2)) continue;
-    if (p === POOLS[0]) {
-      // (the lagoon: its basin stamped; the water over it live (banded: deeper, bluer))
-      stamp(c, 'wp-lagoon', p.x1 - 10, GY - 40, p.x2 - p.x1 + 20, p.bottom - GY + 64, g => paintLagoon(g, p));
+    if (!vis(state, p.x1 - 20, p.x2)) continue;
+    if (p === POOLS[0] || SPLASH.includes(p)) {
+      // (the lagoon: its basin stamped; the water over it live (banded: deeper, bluer)) (the tube rides' splash pools the
+      // same, their near walls' outsides down into the drop)
+      if (p === POOLS[0]) stamp(c, 'wp-lagoon', p.x1 - 10, GY - 40, p.x2 - p.x1 + 20, p.bottom - GY + 64, g => paintLagoon(g, p));
+      else stamp(c, `wp-splash-${p.x1}`, p.x1 - 22, GY - 40, p.x2 - p.x1 + 32, p.bottom - GY + SPLASH_DEEP + 40, g => paintSplash(g, p));
       const d = p.bottom - p.surface;
       c.fillStyle = 'rgba(40, 150, 225, 0.42)'; c.fillRect(p.x1, p.surface, p.x2 - p.x1, d * 0.3);
       c.fillStyle = 'rgba(34, 128, 210, 0.5)'; c.fillRect(p.x1, p.surface + Math.round(d * 0.3), p.x2 - p.x1, Math.round(d * 0.35));
@@ -910,6 +957,47 @@ const boundsOf = (pts: [number, number][], pad = 40) => {
 };
 /** Steel, in its steps (the slides' legs, stairs and towers). */
 const STEEL = ramp5('#56647A');
+/** A slide's tower (the plaza's and the tube rides'): its stairs (lit treads, a riveted stringer, ribbed panels under), the
+ *  steel tower under the deck (ribbed, riveted, its pilasters, the ride's color banded round it), the rail up the stairs
+ *  and along the deck, the peaked striped canopy over it. (The deck's own lit top: the caller's.) */
+const paintTower = (g: Ctx, st: Stairs, d: { x1: number; x2: number; y: number }, col: string) => {
+  const St = STEEL;
+  // (the stairs: a solid run of steel steps; each tread's nose lit (he walks up them), the risers shaded, the
+  // stringer along the noses riveted, the panels under it ribbed)
+  for (let i = 0; i < st.n; i++) {
+    const s = step(st, i);
+    R(g, s.x, s.y, s.w, s.h, St[1]);
+    for (let yy = s.y + 14; yy < GY; yy += 24) R(g, s.x, yy, s.w, 1, St[0]);
+    R(g, s.x, s.y, 1, Math.min(10, s.h), St[0]);
+    R(g, s.x, s.y, s.w, 2, '#F1F5F9'); R(g, s.x, s.y + 2, s.w, 2, St[4]); R(g, s.x, s.y + 4, s.w, 2, St[2]); R(g, s.x, s.y + 6, s.w, 1, St[0]);
+  }
+  dither(g, st.x, GY - 16, st.n * st.run, 16, St[0]);
+  g.strokeStyle = INK; g.lineWidth = 9; g.beginPath(); g.moveTo(st.x, GY - 6); g.lineTo(d.x1, d.y + 18); g.stroke();
+  g.strokeStyle = St[2]; g.lineWidth = 6; g.stroke();
+  g.strokeStyle = St[3]; g.lineWidth = 1; g.beginPath(); g.moveTo(st.x, GY - 9); g.lineTo(d.x1, d.y + 15); g.stroke();
+  for (let k = 1; k < st.n; k += 2) { const s = step(st, k); R(g, s.x + 2, s.y + 18, 2, 2, St[4]); }
+  // (the tower under the deck: steel panels, ribbed, riveted, its pilasters, the slide's color banded round it)
+  R(g, d.x1, d.y, d.x2 - d.x1, GY - d.y, St[1]);
+  R(g, d.x1, d.y, 4, GY - d.y, St[3]); R(g, d.x1, d.y, 1, GY - d.y, St[4]); R(g, d.x2 - 6, d.y, 6, GY - d.y, St[0]); dither(g, d.x2 - 10, d.y, 4, GY - d.y, St[0]);
+  for (let y = d.y + 24; y < GY; y += 24) { R(g, d.x1 + 4, y, d.x2 - d.x1 - 10, 2, St[0]); R(g, d.x1 + 4, y + 2, d.x2 - d.x1 - 10, 1, St[2]); for (let x = d.x1 + 10; x < d.x2 - 8; x += 14) R(g, x, y - 4, 2, 2, St[3]); }
+  const Cc = ramp5(col);
+  R(g, d.x1, d.y + 10, d.x2 - d.x1, 8, Cc[2]); R(g, d.x1, d.y + 10, d.x2 - d.x1, 2, Cc[4]); R(g, d.x1, d.y + 16, d.x2 - d.x1, 2, Cc[0]);
+  dither(g, d.x1, GY - 40, d.x2 - d.x1, 40, St[0]);
+  // (the rail up the stairs and along the deck: a steel tube, its posts every other step)
+  for (let k = 0; k < st.n; k += 2) { const s = step(st, k); R(g, s.x + 4, s.y - 38, 2, 38, St[2]); }
+  for (const px of [d.x1 + 6, (d.x1 + d.x2) / 2]) R(g, px, d.y - 38, 2, 38, St[2]);
+  g.strokeStyle = INK; g.lineWidth = 4; g.beginPath(); g.moveTo(st.x, GY - 40); g.lineTo(d.x1, d.y - 40); g.lineTo(d.x2 - 10, d.y - 40); g.stroke();
+  g.strokeStyle = St[4]; g.lineWidth = 2; g.stroke();
+  // (the canopy over the deck: its posts, a peaked roof in the slide's color, striped, stepped (no flat top), a pennant)
+  R(g, d.x1 - 1, d.y - 100, 5, 100, INK); R(g, d.x1, d.y - 100, 3, 100, St[3]); R(g, d.x2 - 5, d.y - 100, 5, 100, INK); R(g, d.x2 - 4, d.y - 100, 3, 100, St[2]);
+  const mx = (d.x1 + d.x2) / 2, L = d.x1 - 12, Rr = d.x2 + 12;
+  poly(g, [[L - 2, d.y - 98], [mx, d.y - 124], [Rr + 2, d.y - 98]], INK);
+  poly(g, [[L, d.y - 99], [mx, d.y - 121], [mx, d.y - 99]], Cc[3]);
+  poly(g, [[mx, d.y - 121], [Rr, d.y - 99], [mx, d.y - 99]], Cc[1]);
+  for (let k = 1; k < 6; k += 2) { const ax = L + ((Rr - L) * k) / 6; poly(g, [[ax, d.y - 99], [mx, d.y - 121], [ax + (Rr - L) / 6, d.y - 99]], k < 3 ? '#F8FAFC' : '#C8CCD6'); }
+  for (let x = L; x < Rr; x += 8) { g.fillStyle = INK; g.beginPath(); g.arc(x + 4, d.y - 98, 4, 0, Math.PI); g.fill(); g.fillStyle = Cc[2]; g.beginPath(); g.arc(x + 4, d.y - 98, 3, 0, Math.PI); g.fill(); }
+  R(g, mx - 1, d.y - 140, 2, 20, St[2]); poly(g, [[mx + 1, d.y - 140], [mx + 16, d.y - 135], [mx + 1, d.y - 130]], Cc[3]);
+};
 const drawSlideBack = (c: Ctx, state: GameState, S: Slide) => {
   const b = boundsOf(S.pts, 30), x0 = S.stairs.x, x1 = b.x + b.w;
   if (!vis(state, x0 - 40, x1)) return;
@@ -927,43 +1015,7 @@ const drawSlideBack = (c: Ctx, state: GameState, S: Slide) => {
       R(g, x - 9, y + 6, 18, 4, INK); R(g, x - 8, y + 6, 16, 2, St[3]);
       if (y < GY - 20 && !GROUND.every(([a, bb]) => x < a || x > bb)) { R(g, x - 8, GY - 5, 16, 5, INK); R(g, x - 7, GY - 4, 14, 4, PAVE[3]); R(g, x - 7, GY - 4, 14, 1, PAVE[5]); }
     }
-    if (S.stairs.n > 0) {
-      // (the stairs: a solid run of steel steps; each tread's nose lit (he walks up them), the risers shaded, the
-      // stringer along the noses riveted, the panels under it ribbed)
-      for (let i = 0; i < S.stairs.n; i++) {
-        const s = step(S.stairs, i);
-        R(g, s.x, s.y, s.w, s.h, St[1]);
-        for (let yy = s.y + 14; yy < GY; yy += 24) R(g, s.x, yy, s.w, 1, St[0]);
-        R(g, s.x, s.y, 1, Math.min(10, s.h), St[0]);
-        R(g, s.x, s.y, s.w, 2, '#F1F5F9'); R(g, s.x, s.y + 2, s.w, 2, St[4]); R(g, s.x, s.y + 4, s.w, 2, St[2]); R(g, s.x, s.y + 6, s.w, 1, St[0]);
-      }
-      dither(g, S.stairs.x, GY - 16, S.stairs.n * S.stairs.run, 16, St[0]);
-      g.strokeStyle = INK; g.lineWidth = 9; g.beginPath(); g.moveTo(S.stairs.x, GY - 6); g.lineTo(d.x1, d.y + 18); g.stroke();
-      g.strokeStyle = St[2]; g.lineWidth = 6; g.stroke();
-      g.strokeStyle = St[3]; g.lineWidth = 1; g.beginPath(); g.moveTo(S.stairs.x, GY - 9); g.lineTo(d.x1, d.y + 15); g.stroke();
-      for (let k = 1; k < S.stairs.n; k += 2) { const s = step(S.stairs, k); R(g, s.x + 2, s.y + 18, 2, 2, St[4]); }
-      // (the tower under the deck: steel panels, ribbed, riveted, its pilasters, the slide's color banded round it)
-      R(g, d.x1, d.y, d.x2 - d.x1, GY - d.y, St[1]);
-      R(g, d.x1, d.y, 4, GY - d.y, St[3]); R(g, d.x1, d.y, 1, GY - d.y, St[4]); R(g, d.x2 - 6, d.y, 6, GY - d.y, St[0]); dither(g, d.x2 - 10, d.y, 4, GY - d.y, St[0]);
-      for (let y = d.y + 24; y < GY; y += 24) { R(g, d.x1 + 4, y, d.x2 - d.x1 - 10, 2, St[0]); R(g, d.x1 + 4, y + 2, d.x2 - d.x1 - 10, 1, St[2]); for (let x = d.x1 + 10; x < d.x2 - 8; x += 14) R(g, x, y - 4, 2, 2, St[3]); }
-      const Cc = ramp5(S.col);
-      R(g, d.x1, d.y + 10, d.x2 - d.x1, 8, Cc[2]); R(g, d.x1, d.y + 10, d.x2 - d.x1, 2, Cc[4]); R(g, d.x1, d.y + 16, d.x2 - d.x1, 2, Cc[0]);
-      dither(g, d.x1, GY - 40, d.x2 - d.x1, 40, St[0]);
-      // (the rail up the stairs and along the deck: a steel tube, its posts every other step)
-      for (let k = 0; k < S.stairs.n; k += 2) { const s = step(S.stairs, k); R(g, s.x + 4, s.y - 38, 2, 38, St[2]); }
-      for (const px of [d.x1 + 6, (d.x1 + d.x2) / 2]) R(g, px, d.y - 38, 2, 38, St[2]);
-      g.strokeStyle = INK; g.lineWidth = 4; g.beginPath(); g.moveTo(S.stairs.x, GY - 40); g.lineTo(d.x1, d.y - 40); g.lineTo(d.x2 - 10, d.y - 40); g.stroke();
-      g.strokeStyle = St[4]; g.lineWidth = 2; g.stroke();
-      // (the canopy over the deck: its posts, a peaked roof in the slide's color, striped, stepped (no flat top), a pennant)
-      R(g, d.x1 - 1, d.y - 100, 5, 100, INK); R(g, d.x1, d.y - 100, 3, 100, St[3]); R(g, d.x2 - 5, d.y - 100, 5, 100, INK); R(g, d.x2 - 4, d.y - 100, 3, 100, St[2]);
-      const mx = (d.x1 + d.x2) / 2, L = d.x1 - 12, Rr = d.x2 + 12;
-      poly(g, [[L - 2, d.y - 98], [mx, d.y - 124], [Rr + 2, d.y - 98]], INK);
-      poly(g, [[L, d.y - 99], [mx, d.y - 121], [mx, d.y - 99]], Cc[3]);
-      poly(g, [[mx, d.y - 121], [Rr, d.y - 99], [mx, d.y - 99]], Cc[1]);
-      for (let k = 1; k < 6; k += 2) { const ax = L + ((Rr - L) * k) / 6; poly(g, [[ax, d.y - 99], [mx, d.y - 121], [ax + (Rr - L) / 6, d.y - 99]], k < 3 ? '#F8FAFC' : '#C8CCD6'); }
-      for (let x = L; x < Rr; x += 8) { g.fillStyle = INK; g.beginPath(); g.arc(x + 4, d.y - 98, 4, 0, Math.PI); g.fill(); g.fillStyle = Cc[2]; g.beginPath(); g.arc(x + 4, d.y - 98, 3, 0, Math.PI); g.fill(); }
-      R(g, mx - 1, d.y - 140, 2, 20, St[2]); poly(g, [[mx + 1, d.y - 140], [mx + 16, d.y - 135], [mx + 1, d.y - 130]], Cc[3]);
-    }
+    if (S.stairs.n > 0) paintTower(g, S.stairs, d, S.col);
     // (the deck: steel, lit along its top: he stands on it)
     R(g, d.x1, d.y, d.x2 - d.x1, 2, '#F1F5F9'); R(g, d.x1, d.y + 2, d.x2 - d.x1, 2, St[4]); R(g, d.x1, d.y + 4, d.x2 - d.x1, 2, St[2]); R(g, d.x1, d.y + 6, d.x2 - d.x1, 1, St[0]);
     slideBack(g, S.pts, S.col);
@@ -978,8 +1030,10 @@ const drawSlideFront = (c: Ctx, state: GameState, S: Slide) => {
 // ---------------------------------------------------------------------------------------------------------------
 // The tube rides
 
-/** (narrow: the Abyss's steep chute in a wide tile made it tall, mostly empty, and every pixel of it drawn each frame) */
-const TUBE_TILE = 300;
+/** (narrow: the Abyss's steep chute in a wide tile made it tall, mostly empty, and every pixel of it drawn each frame;
+ *  150, and each tile cut to the chute's own reach above and below it (the back half 32 over the line to 26 under it,
+ *  the near wall 14 over to 18 under, slopes and all): the tiles were most of the ride's draw) */
+const TUBE_TILE = 150;
 /** Each tile's top and bottom of the chute, worked out once (ride, lap, tile). */
 const BANDS = new Map<string, [number, number]>();
 const tileBand = (T: Tube, paths: Path[], tx: number) => {
@@ -989,117 +1043,328 @@ const tileBand = (T: Tube, paths: Path[], tx: number) => {
   return b;
 };
 const tubePts = (P: Path): [number, number][] => [[P.segs[0].x0, P.segs[0].y0], ...P.segs.map(s => [s.x1, s.y1] as [number, number])];
-/** The bottomless drop under a ride (world y): a little under the lowest of its chute on screen (the chute's the same
- *  either side of the loop's carry back, so this is too). */
+/** The chute's lowest on screen (world y; -Infinity: none of it), the same either side of the loop's carry back. */
 const CHUTE_PTS = TUBES.map(T => T.laps.map(l => l.pieces.flat()));
-const dropTopAt = (i: number, x0: number, x1: number) => { let y = -Infinity; for (const [x, yy] of CHUTE_PTS[i][tubeLapNo(i)]) if (x > x0 && x < x1 && yy > y) y = yy; return y + 46; };
-const dropTop = (state: GameState, T: Tube) => dropTopAt(TUBES.indexOf(T), state.camera.x - 120, state.camera.x + W + 120);
-/** The drop on screen (the backdrop paints it: bands, then black), or null: no ride's drop in view. */
-const dropRect = (state: GameState) => {
+const lowestAt = (i: number, x0: number, x1: number) => { let y = -Infinity; for (const [x, yy] of CHUTE_PTS[i][tubeLapNo(i)]) if (x > x0 && x < x1 && yy > y) y = yy; return y; };
+
+// The tube rides (the SNES pass). Depth, back to front:
+//   the backdrop (screen space): the sky, the far horizon, the giant slides; under the drop's haze line, black (cropped:
+//     nothing of it painted there);
+//   drawTubeBack (world, behind him), each step's own draw in this order:
+//     the tower's side face (toward the eye, down into the drop);
+//     the chute's legs (steel columns off saddles under the chute, X-braced to the next) and the pipes' risers (coming up
+//       out of the dark behind the chute), all running on down;
+//     the drop's haze (a flat line just under the lowest of the chute on screen: the mist thickening down it into bands,
+//       then black: the legs and the risers go down into it and are gone; drifting wisps in it): over the legs, under
+//       everything else; no bottom to it anywhere;
+//     the tower (its shaft on down into the dark, its stairs, the tower, the canopy, the rack of tubes, the deck's lit top);
+//     the GAP signs (on posts stood on the chute's back rim, their feet behind it);
+//     the chute's back half (the trough, the water in it, the broken ends at the gaps): over the legs' saddles, the
+//       risers, the signs' feet;
+//   (the engine: the aliens, him, the tube's back half)
+//   drawTubeFront (world, in front of him): the chute's near wall, the pipes' ends (end on, coming at us off their risers'
+//     elbows, a LOW plate on struts on top).
+
+/** The rides' looks: the stripe along the near wall (and the canopy's color), the print on the plastic (the Black Hole's
+ *  stars, the Abyss's embers). */
+const TUBE_LOOK: Record<string, { accent: string; print: string[] }> = {
+  blackHole: { accent: '#7C3AED', print: ['#F8FAFC', '#C4B5FD', '#818CF8'] },
+  abyss: { accent: '#EA580C', print: ['#FDBA74', '#F97316', '#FDE047'] },
+};
+/** Marks along the chute (its joints, its print, the foam) are anchored to the world and repeat every PERIOD: both
+ *  loops' lengths are multiples of it, so the carry back shows the same marks either side. */
+const PERIOD = 1920;
+const mod = (x: number) => ((x % PERIOD) + PERIOD) % PERIOD;
+/** A piece's points near x0..x1 (one either side past it): a tile's strokes only that much of the chute (the whole ride
+ *  stroked into every tile and clipped was most of a tile's paint). */
+const near = (pts: [number, number][], x0: number, x1: number) => {
+  let i0 = 0, i1 = pts.length - 1;
+  while (i0 < i1 && pts[i0 + 1][0] < x0) i0++;
+  while (i1 > i0 && pts[i1 - 1][0] > x1) i1--;
+  return pts.slice(i0, i1 + 1);
+};
+const GOLD = ['#6B4A04', '#A87A0A', '#FACC15', '#FDE68A', '#FFF9DB'];
+/** The chute's back half (a tile's worth, x0..x1): the trough in its plastic's steps (the shadow under it, the body, the
+ *  lit inner rim along its top, a glint), the sections' joints banded and bolted, the print on it; the water running in
+ *  it (deep, the run, the foam flecked along). Within chuteBack's old bounds. */
+const tubeBack = (g: Ctx, P: Path, T: Tube, x0: number, x1: number) => {
+  const pts = near(tubePts(P), x0 - 80, x1 + 80);
+  if (pts.length < 2) return;
+  const C = ramp5(T.col), Lk = TUBE_LOOK[T.id] ?? TUBE_LOOK.blackHole;
+  g.lineCap = 'round'; g.lineJoin = 'round';
+  along(g, pts, -7, 30, INK);
+  along(g, pts, -7, 26, C[1]);
+  along(g, pts, -9, 17, C[2]);
+  along(g, pts, -18, 4, C[3]);
+  along(g, pts, -19, 1.5, C[4]);
+  along(g, pts, 5, 3, C[0]);
+  g.lineCap = 'butt'; g.lineJoin = 'miter';
+  const lo = Math.max(x0 - 24, pts[0][0]), hi = Math.min(x1 + 24, pts[pts.length - 1][0]);
+  for (let x = Math.ceil(lo / 16) * 16; x <= hi; x += 16) {
+    const q = surfaceAt(P, x);
+    if (!q) continue;
+    const y = Math.round(q.y), m = mod(x);
+    if (m % 80 === 0) { R(g, x - 1, y - 20, 2, 25, C[0]); R(g, x + 1, y - 20, 1, 25, C[3]); R(g, x - 2, y - 21, 5, 2, C[4]); R(g, x - 1, y - 21, 2, 1, INK); continue; }
+    const n = hash(m * 0.37);
+    if (n < 0.45) R(g, x + Math.floor(hash(m + 3) * 12), y - 16 + Math.floor(hash(m + 7) * 8), n < 0.1 ? 2 : 1, 1, Lk.print[Math.floor(hash(m + 11) * 3) % 3]);
+  }
+  g.lineCap = 'round'; g.lineJoin = 'round';
+  along(g, pts, -2, 9, '#1D5C99');
+  along(g, pts, -3, 6, 'rgba(120, 205, 255, 0.95)');
+  along(g, pts, -5, 2, '#E0F2FE');
+  g.lineCap = 'butt'; g.lineJoin = 'miter';
+  for (let x = Math.ceil(lo / 24) * 24; x <= hi; x += 24) { const q = surfaceAt(P, x); if (q && hash(mod(x) * 0.71) < 0.6) R(g, x, Math.round(q.y) - 6, 3, 1, '#FFFFFF'); }
+};
+/** A piece's ends at the gaps (`first`: its start, `last`: its end): the last stretch of the trough striped yellow and
+ *  black (lit along the top), the end snapped off ragged (a cracked lip of the plastic, a shard hanging), a bolt rod
+ *  bent out of the break. */
+const brokenEnds = (g: Ctx, P: Path, T: Tube, first: boolean, last: boolean) => {
+  const C = ramp5(T.col), ends: [number, number][] = [];
+  if (last) ends.push([P.len - 64, P.len]);
+  if (first) ends.push([0, 40]);
+  for (const [s0, s1] of ends) {
+    g.lineCap = 'butt';
+    for (let s = s0, k = 0; s < s1; s += 12, k++) {
+      const q = pointAt(P, s), q2 = pointAt(P, Math.min(s1, s + 12));
+      g.lineWidth = 9; g.strokeStyle = k % 2 ? INK : GOLD[2]; g.beginPath(); g.moveTo(q.x, q.y - 4); g.lineTo(q2.x, q2.y - 4); g.stroke();
+      g.lineWidth = 2; g.strokeStyle = k % 2 ? '#3A3020' : GOLD[4]; g.beginPath(); g.moveTo(q.x, q.y - 8); g.lineTo(q2.x, q2.y - 8); g.stroke();
+      g.lineWidth = 1; g.strokeStyle = k % 2 ? INK : GOLD[0]; g.beginPath(); g.moveTo(q.x, q.y); g.lineTo(q2.x, q2.y); g.stroke();
+    }
+    const e = pointAt(P, s0 === 0 ? 0 : P.len), d = s0 === 0 ? -1 : 1;
+    // (the break: ragged, ink; the plastic's cracked lip inside it, lit; a shard hanging off its foot)
+    poly(g, [[e.x, e.y - 22], [e.x + d * 6, e.y - 15], [e.x - d * 2, e.y - 8], [e.x + d * 5, e.y - 1], [e.x - d * 3, e.y + 6], [e.x + d * 2, e.y + 10], [e.x - d * 8, e.y + 10], [e.x - d * 8, e.y - 22]], INK);
+    poly(g, [[e.x - d * 1, e.y - 20], [e.x + d * 3, e.y - 15], [e.x - d * 4, e.y - 9], [e.x - d * 4, e.y - 19]], C[3]);
+    poly(g, [[e.x - d * 2, e.y + 6], [e.x + d * 1, e.y + 9], [e.x - d * 1, e.y + 17], [e.x - d * 4, e.y + 9]], INK);
+    poly(g, [[e.x - d * 2, e.y + 7], [e.x, e.y + 9], [e.x - d * 1, e.y + 14], [e.x - d * 3, e.y + 9]], C[2]);
+    // (a bolt rod bent out of the break, lit along its top)
+    g.strokeStyle = INK; g.lineWidth = 3; g.beginPath(); g.moveTo(e.x, e.y - 2); g.lineTo(e.x + d * 10, e.y + 4); g.lineTo(e.x + d * 14, e.y + 14); g.stroke();
+    g.strokeStyle = '#8A93A0'; g.lineWidth = 1; g.stroke();
+  }
+};
+/** ...the near wall (in front of him: his legs down in the water behind it): in its steps, the lit lip along its top,
+ *  the ride's stripe along it, the joints banded. Within chuteFront's old bounds. */
+const tubeFrontPaint = (g: Ctx, P: Path, T: Tube, x0: number, x1: number) => {
+  const pts = near(tubePts(P), x0 - 80, x1 + 80);
+  if (pts.length < 2) return;
+  const C = ramp5(T.col), Lk = TUBE_LOOK[T.id] ?? TUBE_LOOK.blackHole;
+  g.lineCap = 'round'; g.lineJoin = 'round';
+  along(g, pts, 2, 15, INK);
+  along(g, pts, 2, 11, C[1]);
+  along(g, pts, 1, 7, C[2]);
+  along(g, pts, 3.5, 2, Lk.accent);
+  along(g, pts, -2.5, 2, C[3]);
+  along(g, pts, -3.5, 1, C[4]);
+  along(g, pts, 7.5, 1.5, C[0]);
+  g.lineCap = 'butt'; g.lineJoin = 'miter';
+  const lo = Math.max(x0 - 24, pts[0][0]), hi = Math.min(x1 + 24, pts[pts.length - 1][0]);
+  for (let x = Math.ceil(lo / 80) * 80; x <= hi; x += 80) { const q = surfaceAt(P, x); if (!q) continue; const y = Math.round(q.y); R(g, x - 1, y - 3, 2, 11, C[0]); R(g, x + 1, y - 3, 1, 11, C[3]); R(g, x - 1, y + 2, 2, 2, C[4]); }
+};
+
+/** The chute's legs (live, a handful of fills each: a stamp apiece cost more), drawn from the chute's line there: a
+ *  saddle under the chute, a steel column in its steps (lit up its left, the night on its right), bolted collars, on
+ *  down past the haze's solid line. The pipes' risers the same, fatter, in their paint. */
+const LEG_H = 880;
+/** A leg's (or a riser's) length: on down to the haze's solid line (gone into it there; no more of it painted). */
+const legLen = (y: number, solid: number) => Math.min(LEG_H, Math.max(20, solid - y));
+const LEG = ramp5(mix('#56647A', '#0B1020', 0.3));
+const PIPE = ramp5('#4B6270');
+const paintLeg = (g: Ctx, LEG_H: number) => {
+  R(g, -12, 7, 24, 7, INK); R(g, -11, 8, 22, 2, LEG[3]); R(g, -11, 10, 22, 3, LEG[1]); R(g, -11, 8, 1, 5, LEG[4]);
+  R(g, -5, 14, 10, LEG_H - 14, INK); R(g, -4, 14, 8, LEG_H - 14, LEG[2]); R(g, -4, 14, 2, LEG_H - 14, LEG[3]); R(g, -4, 14, 1, LEG_H - 14, LEG[4]); R(g, 2, 14, 2, LEG_H - 14, LEG[1]); R(g, 3, 14, 1, LEG_H - 14, LEG[0]);
+  R(g, 0, 14, 1, LEG_H - 14, LEG[1]);
+  for (let y = 70; y < LEG_H; y += 110) { R(g, -6, y, 12, 6, INK); R(g, -5, y + 1, 10, 4, LEG[1]); R(g, -5, y + 1, 10, 1, LEG[3]); R(g, -3, y + 3, 1, 1, LEG[4]); R(g, 2, y + 3, 1, 1, LEG[4]); }
+};
+const paintRiser = (g: Ctx, LEG_H: number) => {
+  // (its elbow at the top, turned at us (the end's drawn in front, over it): a round cap)
+  g.fillStyle = INK; g.beginPath(); g.arc(0, 0, 9, Math.PI, 0); g.fill();
+  g.fillStyle = PIPE[2]; g.beginPath(); g.arc(0, 0, 7, Math.PI, 0); g.fill();
+  R(g, -8, 0, 16, LEG_H, INK); R(g, -7, 0, 14, LEG_H, PIPE[2]); R(g, -7, 0, 3, LEG_H, PIPE[3]); R(g, -6, 0, 1, LEG_H, PIPE[4]); R(g, 3, 0, 4, LEG_H, PIPE[1]); R(g, 6, 0, 1, LEG_H, PIPE[0]);
+  R(g, 1, 0, 1, LEG_H, PIPE[1]);
+  for (let y = 46; y < LEG_H; y += 64) { R(g, -10, y, 20, 7, INK); R(g, -9, y + 1, 18, 5, PIPE[1]); R(g, -9, y + 1, 18, 1, PIPE[4]); R(g, -7, y + 3, 2, 1, PIPE[4]); R(g, 5, y + 3, 2, 1, PIPE[4]); }
+};
+
+/** The drop's haze (live: a handful of plain fills, cheaper than one big see-through picture put down): the mist
+ *  thickening down it in bands (each seam dithered), solid HAZE_H down from its top (the drop's bands on into black under
+ *  that: the backdrop's); wisps drifting in it, long thin streaks of the mist, lit a touch. */
+const HAZE_H = 102;
+const MIST = '#141A2C';
+const DROP_BANDS = [MIST, '#0E1322', '#090D18', '#05070F'];
+const HAZE_A = [0.34, 0.52, 0.67, 0.8, 0.9, 0.97];
+const hazeRgb = (a: number) => `rgba(20, 26, 44, ${a.toFixed(3)})`;
+const HAZE_COLS = HAZE_A.map(hazeRgb), HAZE_SEAMS = HAZE_A.map((a, k) => hazeRgb(k ? a - HAZE_A[k - 1] : a));
+const WISP_W = 512;
+/** The mist rising up out of the drop (behind the world: the backdrop's), up to the haze's top, band by band. */
+const MIST_UP = [0.07, 0.14, 0.21, 0.28, 0.35, 0.4];
+const GAP_SHAFT = [0.04, 0.1, 0.18, 0.28, 0.4].map(a => `rgba(6, 9, 20, ${a})`);
+const WISPS = Array.from({ length: 7 }, (_, i) => ({ x: Math.floor(hash(i + 300) * WISP_W), w: 50 + Math.floor(hash(i + 310) * 130), y: 28 + Math.floor(hash(i + 320) * 30) }));
+/** (`phase`: where along the world a wisp's repeat starts (it drifts: slower than the world, a parallax)) */
+const drawHaze = (c: Ctx, x: number, top: number, w: number, phase: number) => {
+  const bh = HAZE_H / HAZE_A.length;
+  HAZE_COLS.forEach((col, k) => R(c, x, top + Math.round(k * bh), w, Math.round((k + 1) * bh) - Math.round(k * bh), col));
+  for (let k = 1; k < HAZE_A.length; k++) dither(c, x, top + Math.round(k * bh) - 2, w, 2, HAZE_SEAMS[k]);
+  for (let px = phase + Math.floor((x - phase) / WISP_W) * WISP_W - WISP_W; px < x + w; px += WISP_W) for (const s of WISPS) {
+    const a = Math.max(x, px + s.x), b = Math.min(x + w, px + s.x + s.w);
+    if (b > a) { R(c, a, top + s.y, b - a, 2, 'rgba(120, 140, 190, 0.16)'); if (b - a > 30) R(c, a + 10, top + s.y - 1, b - a - 24, 1, 'rgba(150, 170, 215, 0.12)'); }
+  }
+};
+/** How far the tube rides have carried him back round (the backdrop's told: the wisps drift on as if he hadn't been). */
+let backShift = 0;
+/** The drop under the ride on screen: its haze's top (world y: just under the chute's lowest on screen), the stretch of
+ *  world it's under (the deck's end to the splash pool's outside wall), or null: no ride's drop in view. */
+const dropOf = (state: GameState) => {
   for (let i = 0; i < TUBES.length; i++) {
     const [a, b] = tubeSpan(TUBES[i]);
     if (!vis(state, a, b, 0)) continue;
-    const t = dropTopAt(i, state.camera.x - 120, state.camera.x + W + 120);
+    const t = lowestAt(i, state.camera.x - 120, state.camera.x + W + 120);
     if (!isFinite(t)) return null;
-    const y = Math.round(t - state.camera.y);
-    if (y >= H) return null;
-    return { x0: Math.max(0, Math.round(a - state.camera.x)), x1: Math.min(W, Math.round(b - state.camera.x)), y: Math.max(0, y) };
+    return { i, a, b, top: Math.round(t + 8) };
   }
   return null;
 };
-const LEG_RAMP = ['#2A3442', '#1E2632', '#141A24', '#0B0F18'];
+/** ...on screen, where it's solid (the backdrop paints nothing under it: it's the drop's, black), or null. */
+const dropRect = (state: GameState) => {
+  const d = dropOf(state);
+  if (!d) return null;
+  const y = Math.round(d.top + HAZE_H - state.camera.y);
+  if (y >= H) return null;
+  return { x0: Math.max(0, Math.round(d.a - state.camera.x)), x1: Math.min(W, Math.round(d.b - state.camera.x)), y: Math.max(0, y) };
+};
 const inGap = (i: number, x: number, m = 0) => tubeLap(i).gaps.some(([a, b]) => x > a - m && x < b + m);
+/** The chute's height at world x on ride i (null: a gap). */
+const chuteY = (paths: Path[], x: number) => { for (const P of paths) if (x >= P.segs[0].x0 && x <= P.segs[P.segs.length - 1].x1) { const q = surfaceAt(P, x); if (q) return q.y; } return null; };
+const RACK = ['#F97316', '#FACC15', '#22D3EE', '#EC4899'];
+/** A tube ride's tower (stamped): the plaza slides' tower (paintTower), its shaft on down past the ground into the drop
+ *  (its panels going on, ribbed, banded darker into black), the deck's lit top, the rack of tubes on it (each ring in
+ *  its rubber's steps). */
+const paintTubeTower = (g: Ctx, T: Tube) => {
+  const d = T.deck, St = STEEL, w = d.x2 - d.x1, sh = 520;
+  R(g, d.x1, GY, w, sh, St[1]); R(g, d.x1, GY, 4, sh, St[3]); R(g, d.x1, GY, 1, sh, St[4]); R(g, d.x2 - 6, GY, 6, sh, St[0]); dither(g, d.x2 - 10, GY, 4, sh, St[0]);
+  for (let y = GY + 24 - ((GY - d.y) % 24); y < GY + sh; y += 24) { R(g, d.x1 + 4, y, w - 10, 2, St[0]); R(g, d.x1 + 4, y + 2, w - 10, 1, St[2]); for (let x = d.x1 + 10; x < d.x2 - 8; x += 14) R(g, x, y - 4, 2, 2, St[3]); }
+  hazeBands(g, d.x1, GY, w, sh, VOID, 0.15, 1, 8);
+  paintTower(g, T.stairs, d, (TUBE_LOOK[T.id] ?? TUBE_LOOK.blackHole).accent);
+  R(g, d.x1, d.y, w, 2, '#F1F5F9'); R(g, d.x1, d.y + 2, w, 2, St[4]); R(g, d.x1, d.y + 4, w, 2, St[2]); R(g, d.x1, d.y + 6, w, 1, St[0]);
+  // (the rack: tubes stacked by the canopy's post, each ring inked, its rubber, lit along its top, shaded under)
+  for (let k = 0; k < 4; k++) {
+    const cx = d.x1 + 40, cy = d.y - 9 - k * 13, Rr = ramp5(RACK[k]);
+    const ring = (lw: number, col: string, a0 = 0, a1 = Math.PI * 2, ry = 7, rx = 22) => { g.strokeStyle = col; g.lineWidth = lw; g.beginPath(); g.ellipse(cx, cy, rx, ry, 0, a0, a1); g.stroke(); };
+    ring(11, INK); ring(7, Rr[2]); ring(3, Rr[0], 0.2, Math.PI - 0.2, 8.5); ring(2, Rr[4], Math.PI + 0.5, Math.PI * 1.6, 5.5, 20); ring(1, Rr[3], Math.PI * 1.6, Math.PI * 1.9, 5.5, 20);
+  }
+};
 const drawTubeBack = (c: Ctx, state: GameState, T: Tube, i: number) => {
   const paths = tubePaths(i);
   const first = T.stairs.x, last = paths[paths.length - 1].segs[paths[paths.length - 1].segs.length - 1].x1;
   if (!vis(state, first - 40, last + 40)) return;
-  const dt = dropTop(state, T);
-  // (the tower up to the rack: its stairs, its deck (down into the drop where it stands out over it), the rack of tubes)
-  if (vis(state, first - 40, T.deck.x2 + 40)) stamp(c, `wp-tubetower-${T.id}`, first - 20, T.deck.y - 120, T.deck.x2 - first + 60, GY - T.deck.y + 520, g => {
-    for (let k = 0; k < T.stairs.n; k++) { const s = step(T.stairs, k); R(g, s.x, s.y, s.w, s.h, '#2E3644'); R(g, s.x, s.y, s.w, 3, '#E2E8F0'); }
-    const d = T.deck;
-    R(g, d.x1, d.y, d.x2 - d.x1, GY - d.y, '#2E3644'); R(g, d.x1, d.y, d.x2 - d.x1, 3, '#E2E8F0');
-    for (let y = d.y + 20; y < GY; y += 24) R(g, d.x1, y, d.x2 - d.x1, 2, '#1E2430');
-    // (its shaft on down into the dark)
-    LEG_RAMP.forEach((col, k) => R(g, d.x1, GY + k * 100, d.x2 - d.x1, 100, col));
-    // (the rack: tubes stacked up, the canopy)
-    for (let k = 0; k < 4; k++) { g.strokeStyle = INK; g.lineWidth = 10; g.beginPath(); g.ellipse(d.x1 + 40, d.y - 10 - k * 14, 22, 7, 0, 0, Math.PI * 2); g.stroke(); g.strokeStyle = ['#F97316', '#FACC15', '#22D3EE', '#EC4899'][k]; g.lineWidth = 6; g.stroke(); }
-    R(g, d.x1 - 6, d.y - 110, d.x2 - d.x1 + 12, 10, INK); R(g, d.x1 - 4, d.y - 108, d.x2 - d.x1 + 8, 6, T.col);
-    R(g, d.x1, d.y - 100, 4, 100, '#3F3F46'); R(g, d.x2 - 4, d.y - 100, 4, 100, '#3F3F46');
-  });
-  // (the chute's legs down into the drop, darker and darker till they're gone (live, plain boxes: a few a screen). None
-  // under a gap: nothing under those at all)
-  for (const P of paths) {
-    const pts = tubePts(P), a = Math.max(pts[0][0], state.camera.x - 40), b = Math.min(pts[pts.length - 1][0], state.camera.x + W + 40);
-    for (let x = Math.ceil(a / 160) * 160; x < b; x += 160) {
-      if (inGap(i, x, 30)) continue;
-      const y = pointAt(P, Math.max(0, x - pts[0][0])).y, bot = state.camera.y + H + 20;
-      if (bot <= y + 10) continue;
-      R(c, x - 16, y + 60, 32, 4, '#2A3442');
-      for (let k = 0; k < LEG_RAMP.length; k++) {
-        const y0 = y + 10 + k * 110, h = k === LEG_RAMP.length - 1 ? Math.min(bot, dt + 260) - y0 : 110;
-        if (h > 0 && y0 < bot) { R(c, x - 4, y0, 8, h, LEG_RAMP[k]); if (k < 2) R(c, x - 4, y0, 2, h, k ? '#2E3848' : '#4A5466'); }
-      }
+  const d = T.deck, bot = state.camera.y + H + 20;
+  const dp = dropOf(state), solid = dp && dp.i === i ? dp.top + HAZE_H : bot;
+  // (the tower's side face: toward the eye, from the deck on down into the drop (the haze over its foot))
+  if (vis(state, d.x1, d.x2 + 60)) sideFace(c, eyeOf(state), d.x2, 1, d.y, Math.min(bot, GY + 520), 0.94, STEEL[1]);
+  // (the legs: one every 160 under the chute (none under a gap, or near one), X-braced to the next; the pipes' risers)
+  const legs: [number, number][] = [];
+  for (let x = Math.floor((state.camera.x - 200) / 160) * 160; x < state.camera.x + W + 200; x += 160) {
+    if (x < d.x2 + 20 || x > last - 20 || inGap(i, x, 30)) continue;
+    const y = chuteY(paths, x);
+    if (y === null || y + 10 > bot) continue;
+    legs.push([x, Math.round(y)]);
+  }
+  c.beginPath();
+  for (let k = 0; k + 1 < legs.length; k++) {
+    const [x, y] = legs[k], [x2, y2] = legs[k + 1];
+    if (x2 - x !== 160) continue;
+    c.moveTo(x + 4, y + 44); c.lineTo(x2 - 4, y2 + 150); c.moveTo(x + 4, y + 150); c.lineTo(x2 - 4, y2 + 44);
+  }
+  c.strokeStyle = INK; c.lineWidth = 4; c.stroke(); c.strokeStyle = LEG[1]; c.lineWidth = 2; c.stroke();
+  for (const [x, y] of legs) { c.save(); c.translate(x, y); paintLeg(c, legLen(y, solid)); c.restore(); }
+  for (const x of tubeLap(i).pipes) {
+    if (!vis(state, x - 20, x + 20)) continue;
+    const y = chuteY(paths, x);
+    if (y === null) continue;
+    const ry = Math.round(y - PIPE_CLEAR - 12), n = legLen(ry, solid);
+    c.save(); c.translate(x, ry); paintRiser(c, n); c.restore();
+  }
+  // (the haze: the screen's width, put down at the camera; cut to the drop's stretch where it's not all of the screen)
+  if (dp && dp.i === i && dp.top < bot) {
+    const cx = state.camera.x, x0 = Math.max(cx, dp.a), x1 = Math.min(cx + W, dp.b - 16);
+    if (x1 > x0) {
+      drawHaze(c, Math.floor(x0), dp.top, Math.ceil(x1) - Math.floor(x0), Math.round(cx - (cx + backShift) * 0.5));
+    }
+  }
+  // (the tower up to the rack)
+  if (vis(state, first - 40, d.x2 + 40)) stamp(c, `wp-tubetower-${T.id}`, first - 20, d.y - 150, d.x2 - first + 60, GY - d.y + 670, g => paintTubeTower(g, T));
+  // (under each gap: the dark coming up the hole, in see-through bands thickening down to the haze (nothing under a gap
+  // to land on), its sides dithered)
+  if (dp && dp.i === i) for (const [g1, g2] of tubeLap(i).gaps) {
+    if (!vis(state, g1, g2, 0)) continue;
+    const ya = chuteY(paths, g1 - 1), yb = chuteY(paths, g2 + 1);
+    const top = Math.round(Math.max(ya ?? -Infinity, yb ?? -Infinity) + 12), sol = dp.top + HAZE_H;
+    if (sol <= top) continue;
+    const n = GAP_SHAFT.length, bh = (sol - top) / n, x = Math.round(g1 + 6), w = Math.round(g2 - g1 - 12);
+    GAP_SHAFT.forEach((col, k) => R(c, x, Math.round(top + k * bh), w, Math.round(top + (k + 1) * bh) - Math.round(top + k * bh), col));
+    dither(c, x - 4, Math.round(top + bh), 4, sol - Math.round(top + bh), GAP_SHAFT[1]); dither(c, x + w, Math.round(top + bh), 4, sol - Math.round(top + bh), GAP_SHAFT[1]);
+  }
+  // (the GAP signs: well before each gap, on posts stood on the chute's back rim (their feet behind it). Two gaps back to
+  // back (the second's sign would stand over the first's hole: the Abyss's): one sign for both, GAPS AHEAD, JUMP X2)
+  const gs = tubeLap(i).gaps;
+  const onChute = (wx: number) => chuteY(paths, wx) !== null;
+  for (let gi = 0; gi < gs.length; gi++) {
+    const [g1] = gs[gi], x = g1 - GAP_WARN;
+    const two = !!gs[gi + 1] && !onChute(gs[gi + 1][0] - GAP_WARN);
+    if (!vis(state, x - 90, x + 90)) continue;
+    const cy = chuteY(paths, x);
+    if (cy === null) continue;
+    const top = Math.round(cy - 160), L1 = two ? 'GAPS AHEAD' : 'GAP AHEAD', L2 = two ? 'JUMP X2!' : 'JUMP!';
+    const w = Math.max(100, Math.round(Math.max(signW(L1, GAP_L1), signW(L2, GAP_L2)) + 22)), h = 48, x0 = Math.round(x - w / 2);
+    // (its posts: inside the board's ends, moved in off a hole if one's under them)
+    const posts = [x0 + 16, x0 + w - 20].map(px => { let p = px; while (!onChute(p) && Math.abs(p - x) > 4) p += p < x ? 4 : -4; return [p, Math.round((chuteY(paths, p) ?? cy) - 8)] as [number, number]; });
+    const foot = Math.max(...posts.map(p => p[1]));
+    stamp(c, `wp-gapsign-${T.id}-${tubeLapNo(i)}-${g1}${two ? '-2' : ''}`, x0 - 14, top - 6, w + 28, foot - top + 12, g => paintGapSign(g, x, x0, top, w, h, posts, L1, L2));
+    // (its warning lamps, blinking in turn)
+    const on = Math.floor(state.frame / 12) % 2 === 0;
+    for (const [lx, lit] of [[x0 - 9, on], [x0 + w + 3, !on]] as const) {
+      R(c, lx, top + 17, 6, 6, lit ? '#EF4444' : '#4A0B0B');
+      if (lit) { R(c, lx + 1, top + 18, 2, 2, '#FECACA'); c.fillStyle = 'rgba(239, 68, 68, 0.22)'; c.fillRect(lx - 3, top + 14, 12, 12); }
     }
   }
   // (the chute: baked in tiles along its length; the ends at the gaps broken off, striped)
-  for (let tx = Math.floor((state.camera.x - 60) / TUBE_TILE) * TUBE_TILE; tx < state.camera.x + W + 60; tx += TUBE_TILE) {
-    if (tx + TUBE_TILE < T.deck.x2 - 40 || tx > last + 40) continue;
+  for (let tx = Math.floor(state.camera.x / TUBE_TILE) * TUBE_TILE; tx < state.camera.x + W; tx += TUBE_TILE) {
+    if (tx + TUBE_TILE < d.x2 - 40 || tx > last + 40) continue;
     const [y0, y1] = tileBand(T, paths, tx);
-    if (y1 < y0 || !visY(state, y0 - 60, y1 + 60)) continue;
-    stamp(c, `wp-tube-${T.id}-${tubeLapNo(i)}-${tx}`, tx, y0 - 60, TUBE_TILE, y1 - y0 + 100, g => {
-      g.save(); g.beginPath(); g.rect(tx, y0 - 60, TUBE_TILE, y1 - y0 + 100); g.clip();
+    if (y1 < y0 || !visY(state, y0 - 32, y1 + 26, 0)) continue;
+    stamp(c, `wp-tube-${T.id}-${tubeLapNo(i)}-${tx}`, tx, y0 - 32, TUBE_TILE, y1 - y0 + 58, g => {
+      g.save(); g.beginPath(); g.rect(tx, y0 - 32, TUBE_TILE, y1 - y0 + 58); g.clip();
       paths.forEach((P, pi) => {
-        chuteBack(g, tubePts(P), T.col, 26);
-        // (each end at a gap: the last stretch striped yellow and black, the end itself snapped off ragged)
-        const ends: [number, number][] = [];
-        if (pi < paths.length - 1) ends.push([P.len - 64, P.len]);
-        if (pi > 0) ends.push([0, 40]);
-        for (const [s0, s1] of ends) {
-          g.lineWidth = 9; g.lineCap = 'butt';
-          for (let s = s0, k = 0; s < s1; s += 12, k++) { const q = pointAt(P, s), q2 = pointAt(P, Math.min(s1, s + 12)); g.strokeStyle = k % 2 ? INK : '#FACC15'; g.beginPath(); g.moveTo(q.x, q.y - 4); g.lineTo(q2.x, q2.y - 4); g.stroke(); }
-          const e = pointAt(P, s0 === 0 ? 0 : P.len), d = s0 === 0 ? -1 : 1;
-          g.fillStyle = INK; g.beginPath(); g.moveTo(e.x, e.y - 16); g.lineTo(e.x + d * 6, e.y - 10); g.lineTo(e.x - d * 2, e.y - 4); g.lineTo(e.x + d * 5, e.y + 2); g.lineTo(e.x - d * 3, e.y + 8); g.lineTo(e.x - d * 8, e.y + 8); g.lineTo(e.x - d * 8, e.y - 16); g.closePath(); g.fill();
-          // (a bent bit of rebar sticking out of the break)
-          g.strokeStyle = '#7A6A5A'; g.lineWidth = 2; g.beginPath(); g.moveTo(e.x, e.y - 2); g.lineTo(e.x + d * 10, e.y + 4); g.lineTo(e.x + d * 14, e.y + 14); g.stroke();
-        }
+        if (P.segs[P.segs.length - 1].x1 < tx - 80 || P.segs[0].x0 > tx + TUBE_TILE + 80) return;
+        tubeBack(g, P, T, tx, tx + TUBE_TILE);
+        brokenEnds(g, P, T, pi > 0, pi < paths.length - 1);
       });
       g.restore();
     });
   }
-  // (under each gap: the drop from the chute's own height down (where the chute's high, the drop's top on screen is well
-  // under it): nothing under a gap but black)
-  for (const [g1, g2] of tubeLap(i).gaps) {
-    if (!vis(state, g1, g2, 0)) continue;
-    const P = paths.find(q => Math.abs(q.segs[q.segs.length - 1].x1 - g1) < 1);
-    if (!P) continue;
-    const top = Math.round(pointAt(P, P.len).y + 14), bot = Math.min(dt, state.camera.y + H + 10);
-    if (bot <= top) continue;
-    const n = DROP_BANDS.length, step = (bot - top) / n;
-    DROP_BANDS.forEach((col, k) => R(c, g1 + 2, top + k * step, g2 - g1 - 4, step + 1, col));
-  }
-  // (the GAP signs: hung over the chute off a cable, well before each gap. Two gaps back to back (the second's sign
-  // would hang over the first's hole: the Abyss's): one sign for both, GAPS AHEAD, JUMP x2)
-  const gs = tubeLap(i).gaps;
-  for (let gi = 0; gi < gs.length; gi++) {
-    const [g1] = gs[gi], x = g1 - GAP_WARN;
-    const onChute = (wx: number) => paths.some(q => q.segs[0].x0 <= wx && q.segs[q.segs.length - 1].x1 >= wx);
-    const two = !!gs[gi + 1] && !onChute(gs[gi + 1][0] - GAP_WARN);
-    if (!vis(state, x - 80, x + 80)) continue;
-    const P = paths.find(q => q.segs[0].x0 <= x && q.segs[q.segs.length - 1].x1 >= x);
-    if (!P) continue;
-    const y = pointAt(P, x - P.segs[0].x0).y - 160;
-    stamp(c, `wp-gapsign-${T.id}-${g1}${two ? '-2' : ''}`, x - 60, y - 420, 120, 470, g => {
-      R(g, x - 40, y - 420, 2, 420, '#3F4A5A'); R(g, x + 38, y - 420, 2, 420, '#3F4A5A');
-      R(g, x - 52, y - 2, 104, 44, INK); R(g, x - 50, y, 100, 40, '#FACC15');
-      for (let k = 0; k < 100; k += 16) { g.fillStyle = INK; g.beginPath(); g.moveTo(x - 50 + k, y + 40); g.lineTo(x - 42 + k, y + 40); g.lineTo(x - 34 + k, y + 34); g.lineTo(x - 42 + k, y + 34); g.closePath(); g.fill(); }
-      text(g, two ? 'GAPS AHEAD' : 'GAP AHEAD', x, y + 14, INK, 7, 'center', null);
-      text(g, two ? 'JUMP x2!' : 'JUMP!', x, y + 28, '#B91C1C', 8, 'center', null);
-    });
-    // (its warning lamps, blinking)
-    const on = Math.floor(state.frame / 12) % 2 === 0;
-    R(c, x - 56, y + 14, 6, 6, on ? '#EF4444' : '#450A0A'); R(c, x + 50, y + 14, 6, 6, on ? '#450A0A' : '#EF4444');
-  }
+};
+/** The GAP sign's letters: the warning stenciled in ink, JUMP in red enamel. */
+const GAP_L1: Look = { sx: 1, sy: 2, fill: '#1A1206', gap: 1, bold: true };
+const GAP_L2: Look = { sx: 2, sy: 2, fill: rampDown('#DC2626', 0.3), dither: true, shadow: '#1A1206', drop: 1, gap: 1 };
+/** A GAP sign (stamped): its two steel posts (lit up their left) braced across under the board, their feet down behind
+ *  the chute's rim; the board in hazard enamel (its steps, the lit top, the shaded foot, chevrons along the bottom, bolts),
+ *  its lamps' housings either end. */
+const paintGapSign = (g: Ctx, x: number, x0: number, top: number, w: number, h: number, posts: [number, number][], L1: string, L2: string) => {
+  const St = STEEL;
+  for (const [px, fy] of posts) { R(g, px - 1, top + h, 6, fy - top - h, INK); R(g, px, top + h, 4, fy - top - h, St[2]); R(g, px, top + h, 1, fy - top - h, St[4]); R(g, px + 3, top + h, 1, fy - top - h, St[0]); }
+  const by = top + h + 12;
+  g.strokeStyle = INK; g.lineWidth = 3; g.beginPath(); g.moveTo(posts[0][0] + 2, by); g.lineTo(posts[1][0] + 2, by + 18); g.moveTo(posts[0][0] + 2, by + 18); g.lineTo(posts[1][0] + 2, by); g.stroke();
+  g.strokeStyle = St[1]; g.lineWidth = 1; g.stroke();
+  R(g, posts[0][0], by - 2, posts[1][0] - posts[0][0] + 4, 4, INK); R(g, posts[0][0] + 1, by - 1, posts[1][0] - posts[0][0] + 2, 2, St[3]);
+  // (the board)
+  R(g, x0 - 2, top - 2, w + 4, h + 4, INK);
+  R(g, x0, top, w, h, GOLD[2]); R(g, x0, top, w, 2, GOLD[4]); R(g, x0, top + 2, w, 1, GOLD[3]); R(g, x0, top, 2, h, GOLD[3]); R(g, x0 + w - 2, top, 2, h, GOLD[1]);
+  dither(g, x0, top + h - 14, w, 4, GOLD[1]);
+  R(g, x0, top + h - 10, w, 10, INK);
+  for (let k = 0; k < w; k += 12) poly(g, [[x0 + k, top + h - 1], [x0 + k + 6, top + h - 9], [x0 + k + 12, top + h - 9], [x0 + k + 6, top + h - 1]], GOLD[2]);
+  R(g, x0, top + h - 10, w, 1, GOLD[0]);
+  for (const sx of [x0 + 4, x0 + w - 7]) { R(g, sx, top + 4, 3, 3, GOLD[0]); R(g, sx, top + 4, 1, 1, GOLD[4]); }
+  signText(g, L1, x, top + 18, GAP_L1);
+  signText(g, L2, x, top + 34, GAP_L2);
+  // (the lamps' housings, bolted to the board's ends)
+  for (const lx of [x0 - 11, x0 + w + 1]) { R(g, lx, top + 14, 10, 12, INK); R(g, lx + 1, top + 15, 8, 1, St[3]); }
 };
 /** The top and bottom of a chute's points in a tile (x tx..tx+w, a margin either side). */
 const bandOf = (pts: [number, number][], tx: number, w: number): [number, number] => {
@@ -1111,34 +1376,45 @@ const bandOf = (pts: [number, number][], tx: number, w: number): [number, number
   }
   return [y0, y1];
 };
-/** The tube chutes' near walls, the pipes end-on (in front of him). */
+/** A low pipe's end (stamped, in front of him): end on, coming at us off its riser's elbow: its flange in hazard
+ *  stripes (lit along its top, bolted), the dark bore; a LOW plate on two struts on top of it. (y: its middle) */
+const paintPipeEnd = (g: Ctx, x: number, y: number) => {
+  g.fillStyle = INK; g.beginPath(); g.arc(x, y, 14, 0, Math.PI * 2); g.fill();
+  g.fillStyle = GOLD[2]; g.beginPath(); g.arc(x, y, 12, 0, Math.PI * 2); g.fill();
+  g.fillStyle = INK; for (let k = 0; k < 4; k++) { g.beginPath(); g.moveTo(x, y); g.arc(x, y, 12, k * Math.PI / 2 + 0.3, k * Math.PI / 2 + Math.PI / 4 + 0.3); g.closePath(); g.fill(); }
+  g.lineWidth = 2; g.strokeStyle = GOLD[4]; g.beginPath(); g.arc(x, y, 11, Math.PI * 1.05, Math.PI * 1.6); g.stroke();
+  g.strokeStyle = GOLD[0]; g.beginPath(); g.arc(x, y, 11, 0.1, Math.PI * 0.6); g.stroke();
+  for (let k = 0; k < 6; k++) { const a = k * Math.PI / 3 + 0.5, bx = Math.round(x + Math.cos(a) * 9), byy = Math.round(y + Math.sin(a) * 9); R(g, bx - 1, byy - 1, 2, 2, '#3A3020'); R(g, bx - 1, byy - 1, 1, 1, GOLD[4]); }
+  g.fillStyle = '#2A3442'; g.beginPath(); g.arc(x, y, 6, 0, Math.PI * 2); g.fill();
+  g.fillStyle = '#0B0F18'; g.beginPath(); g.arc(x + 1, y + 1, 4.5, 0, Math.PI * 2); g.fill();
+  g.fillStyle = VOID; g.beginPath(); g.arc(x + 1.5, y + 1.5, 2.5, 0, Math.PI * 2); g.fill();
+  // (the plate on its struts)
+  for (const sx of [x - 12, x + 10]) { R(g, sx - 1, y - 23, 4, 12, INK); R(g, sx, y - 23, 2, 11, STEEL[3]); }
+  R(g, x - 24, y - 42, 48, 20, INK); R(g, x - 23, y - 41, 46, 18, GOLD[2]); R(g, x - 23, y - 41, 46, 2, GOLD[4]); R(g, x - 23, y - 25, 46, 2, GOLD[1]);
+  for (const sx of [x - 21, x + 19]) { R(g, sx, y - 38, 2, 2, GOLD[0]); R(g, sx, y - 38, 1, 1, GOLD[4]); }
+  signText(g, 'LOW', x, y - 26, GAP_L1);
+};
+/** The tube chutes' near walls, the pipes' ends (in front of him). */
 const drawTubeFront = (c: Ctx, state: GameState, T: Tube, i: number) => {
   const paths = tubePaths(i);
-  for (let tx = Math.floor((state.camera.x - 60) / TUBE_TILE) * TUBE_TILE; tx < state.camera.x + W + 60; tx += TUBE_TILE) {
-    const last = paths[paths.length - 1].segs[paths[paths.length - 1].segs.length - 1].x1;
+  const last = paths[paths.length - 1].segs[paths[paths.length - 1].segs.length - 1].x1;
+  for (let tx = Math.floor(state.camera.x / TUBE_TILE) * TUBE_TILE; tx < state.camera.x + W; tx += TUBE_TILE) {
     if (tx + TUBE_TILE < T.deck.x2 - 40 || tx > last + 40) continue;
     const [y0, y1] = tileBand(T, paths, tx);
-    if (y1 < y0 || !visY(state, y0 - 40, y1 + 40)) continue;
-    stamp(c, `wp-tubef-${T.id}-${tubeLapNo(i)}-${tx}`, tx, y0 - 40, TUBE_TILE, y1 - y0 + 70, g => {
-      g.save(); g.beginPath(); g.rect(tx, y0 - 40, TUBE_TILE, y1 - y0 + 70); g.clip();
-      for (const P of paths) chuteFront(g, tubePts(P), T.col);
+    if (y1 < y0 || !visY(state, y0 - 14, y1 + 18, 0)) continue;
+    stamp(c, `wp-tubef-${T.id}-${tubeLapNo(i)}-${tx}`, tx, y0 - 14, TUBE_TILE, y1 - y0 + 32, g => {
+      g.save(); g.beginPath(); g.rect(tx, y0 - 14, TUBE_TILE, y1 - y0 + 32); g.clip();
+      for (const P of paths) if (P.segs[P.segs.length - 1].x1 >= tx - 80 && P.segs[0].x0 <= tx + TUBE_TILE + 80) tubeFrontPaint(g, P, T, tx, tx + TUBE_TILE);
       g.restore();
     });
   }
-  // (the low pipes: end-on, striped, LOW on a sign under them; hung off a beam from above)
+  // (the low pipes: end on, off their risers (drawTubeBack), at the hit's height: its underside PIPE_CLEAR over the chute)
   for (const x of tubeLap(i).pipes) {
     if (!vis(state, x - 60, x + 60)) continue;
-    const P = paths.find(q => q.segs[0].x0 <= x && q.segs[q.segs.length - 1].x1 >= x);
-    if (!P) continue;
-    const y = pointAt(P, x - P.segs[0].x0).y - PIPE_CLEAR - 12;
-    stamp(c, `wp-pipe-${T.id}-${x}`, x - 40, y - 400, 80, 420, g => {
-      R(g, x - 3, y - 400, 6, 400, '#3F4A5A');
-      g.fillStyle = INK; g.beginPath(); g.arc(x, y, 13, 0, Math.PI * 2); g.fill();
-      g.fillStyle = '#FACC15'; g.beginPath(); g.arc(x, y, 11, 0, Math.PI * 2); g.fill();
-      g.fillStyle = INK; for (let k = 0; k < 4; k++) { g.beginPath(); g.moveTo(x, y); g.arc(x, y, 11, k * Math.PI / 2, k * Math.PI / 2 + Math.PI / 4); g.closePath(); g.fill(); }
-      g.fillStyle = '#1E293B'; g.beginPath(); g.arc(x, y, 5, 0, Math.PI * 2); g.fill();
-      R(g, x - 22, y - 34, 44, 14, INK); R(g, x - 21, y - 33, 42, 12, '#FACC15'); text(g, 'LOW', x, y - 23, INK, 7, 'center', null);
-    });
+    const cy = chuteY(paths, x);
+    if (cy === null) continue;
+    const y = Math.round(cy - PIPE_CLEAR - 12);
+    stamp(c, `wp-pipe-${T.id}-${tubeLapNo(i)}-${x}`, x - 30, y - 48, 60, 66, g => paintPipeEnd(g, x, y));
   }
 };
 /** The tube rides' count: the aliens left to kill (the ride goes round till they're all dead). In the top band. */
