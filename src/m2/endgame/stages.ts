@@ -46,7 +46,7 @@ export const ENDGAME_STAGES: EndgameStage[] = [
   // Level 1, through the gate he kicks down: the entry plaza, the slides, the tubes, MOUNT EVEREST BUT BETTER, the summit
   // (endgame/park1/geo.ts CHECKPOINTS: these match it)
   { id: 'park1', level: 1, stage: PARK_STAGE, name: 'LEVEL 1: THE WATER PARK', hour: 10, checkpoints: [
-    { name: 'THE GATE', cp: 0 }, { name: 'LIL SQUIRT', cp: 1 }, { name: 'THE TWISTER', cp: 2 }, { name: 'THE LAZY RIVER', cp: 3 },
+    { name: 'THE GATE', cp: 0 }, { name: 'LIL SQUIRT', cp: 1 }, { name: 'THE TWISTER', cp: 2 }, { name: 'THE LAGOON', cp: 3 },
     { name: 'THE KAMIKAZE', cp: 4 }, { name: 'THE BLACK HOLE', cp: 5 }, { name: 'THE SPLASHDOWN', cp: 6 }, { name: 'THE ABYSS', cp: 7 },
     { name: 'BASE CAMP', cp: 8 }, { name: 'CAMP 2', cp: 9 }, { name: 'CAMP 4', cp: 10 }, { name: 'THE HILLARY STEP', cp: 11 },
   ] },

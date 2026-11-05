@@ -4,10 +4,13 @@
 //
 // Depth, back to front (each step's own draw, in this order):
 //   the backdrop (screen space): the sky; far off, Happy Land's landmarks on the horizon (their own painters, parkFar.ts)
-//     and the water park's other rides; both drop away down the screen as he climbs (the height reads).
+//     and the water park's other rides; nearer, the park's giant tangled slide towers (dimmed); all drop away down the
+//     screen as he climbs (the height reads).
 //   drawBack (world, behind everything that moves): the plaza's back props (palms, booths, umbrellas: dimmed, nothing
-//     to stand on); the pits' walls; the pools' and lazy river's water and tiles; the slides' stairs, decks, chutes
-//     and legs; the tube chutes, their lips, their legs, the pipes' gantries; the tower (its back wall, its floors'
+//     to stand on); the pits' walls; the pools'
+//     water and tiles; the slides' stairs, decks, chutes and legs; the tube rides' bottomless drop (dark bands down
+//     into nothing), their legs going down into it, their chutes, the gaps' striped broken ends and GAP signs, the
+//     pipes' gantries; the tower (its back wall, its floors'
 //     props, its decks, its stair switchbacks outside it, its doors and gates); the summit; the descent's chute; the
 //     level 2 stub. The ground's slab (lit top edge) over all of it at GY.
 //   (the engine: enemies, him, the shots' particles)
@@ -22,9 +25,9 @@ import { drawTodSky, timeOfDay, farTint, lampGlow } from '../../timeOfDay';
 import { farMark } from '../../parkFar';
 import { text, steppedGlow } from '../../intro/art/kit';
 import { WATER_PARK_NAME } from '../stages';
-import { GY, GROUND, POOLS, LAZY, LEDGES, ISLANDS, SLIDES, TUBES, TOWER, FLOORS, floorY, exitSide, FLOOR_NAMES, FLOOR_FT, SUMMIT, DESCENT, L2, step, type Slide, type Tube } from './geo';
+import { GY, GROUND, POOLS, LEDGES, ISLANDS, SLIDES, TUBES, TOWER, FLOORS, floorY, exitSide, FLOOR_NAMES, FLOOR_FT, SUMMIT, DESCENT, L2, step, tubeSpan, type Slide, type Tube } from './geo';
 import { SLIDE_PATHS, pointAt, type Path } from './slides';
-import { tubePaths, NO_JUMP, PIPE_CLEAR } from './tube';
+import { tubePaths, PIPE_CLEAR, GAP_WARN } from './tube';
 import { stairsOf, FLOOR_LEDGES, DOORS_X } from './tower';
 
 type Ctx = CanvasRenderingContext2D;
@@ -38,6 +41,9 @@ const checker = (c: Ctx, x: number, y: number, w: number, h: number, col: string
 // ---------------------------------------------------------------------------------------------------------------
 // The backdrop (screen space)
 
+/** The tube rides' bottomless drop: banded (stepped down, SNES) into black. */
+const VOID = '#020308';
+const DROP_BANDS = ['#141A2C', '#0E1322', '#090D18', '#05070F'];
 const FAR_W = 1600, FAR_H = 300;
 const paintFar = (g: Ctx) => {
   const tod = timeOfDay(), t = (col: string, k = 1) => farTint(col, k, tod);
@@ -62,22 +68,80 @@ const paintFar = (g: Ctx) => {
   g.fillStyle = t('#0C1424', 0.8); for (let x = 0; x < FAR_W; x += 6) { const h = 6 + hash(x * 0.37) * 10; g.fillRect(x, foot - h, 6, h + 4); }
   for (let i = 0; i < 70; i++) R(g, hash(i + 3) * FAR_W, foot - 4 - hash(i) * 40, 2, 2, i % 3 ? '#F6C860' : '#93C5FD');
 };
-/** The water park's plaza far off (nearer: drops away quicker as he climbs). */
-const MID_W = 1400, MID_H = 220;
-const paintMid = (g: Ctx) => {
-  const t = (col: string, k = 1) => farTint(col, k);
-  for (let i = 0; i < 9; i++) {
-    const x = 40 + i * 150 + hash(i) * 40, h = 90 + hash(i + 5) * 100;
-    R(g, x, MID_H - h, 18, h, t('#232C4A', 0.55));
-    for (let k = 10; k < h; k += 16) R(g, x, MID_H - h + k, 18, 2, t('#1A2038', 0.55));
-    g.strokeStyle = t(['#06B6D4', '#EC4899', '#FACC15', '#22C55E', '#F97316'][i % 5], 0.45); g.lineWidth = 9; g.lineCap = 'round';
-    g.beginPath(); g.moveTo(x + 18, MID_H - h + 10); g.bezierCurveTo(x + 80, MID_H - h, x + 40, MID_H - h / 2, x + 120, MID_H - 4); g.stroke(); g.lineCap = 'butt';
+/** The park's giant slides, nearer (the owner's: "i want the scale to feel grander with all the slides"): towers of
+ *  scaffold with slides tangled round and between them, helixes, enclosed tubes, long sweeps down to their pools.
+ *  Dimmed (nothing here to stand on: no lit tops). A seamless strip (everything's painted at x and x ± BIG_W). */
+const BIG_W = 1800, BIG_H = 430, BIG_TW = 300, BIG_TH = 215;
+const NOBIG = import.meta.env.DEV && typeof location !== 'undefined' && location.search.includes('wpnobig');
+const BIG_COLS = ['#0891B2', '#DB2777', '#CA8A04', '#16A34A', '#EA580C', '#7C3AED', '#0EA5E9', '#E11D48'];
+const paintBig = (g: Ctx, x0 = -1e9, x1 = 1e9) => {
+  const t = (col: string) => farTint(col, 0.42);
+  const foot = BIG_H - 2;
+  const towers = Array.from({ length: 8 }, (_, i) => ({ x: 90 + i * 225 + Math.round(hash(i + 40) * 60), h: 170 + Math.round(hash(i + 7) * 240), w: 30 + Math.round(hash(i + 2) * 16) }));
+  for (const off of [-BIG_W, 0, BIG_W]) {
+    g.save(); g.translate(off, 0);
+    // (the pools at their feet)
+    for (let i = 0; i < 8; i++) { const x = 40 + i * 225 + hash(i + 90) * 80; g.fillStyle = t('#1E6FA8'); g.beginPath(); g.ellipse(x, foot - 4, 70, 7, 0, 0, Math.PI * 2); g.fill(); }
+    towers.forEach((T, i) => {
+      // (a tile's only what reaches into it: a tower and what's off it reach ~700 either side)
+      if (T.x + off < x0 - 720 || T.x + off > x1 + 720) return;
+      const top = foot - T.h, tl = T.x - T.w / 2;
+      // (the scaffold: legs, cross-braces every so far, a platform and its canopy up top)
+      g.fillStyle = t('#1C2438'); g.fillRect(tl, top, 4, T.h); g.fillRect(tl + T.w - 4, top, 4, T.h);
+      g.strokeStyle = t('#2A3450'); g.lineWidth = 2; g.beginPath();
+      for (let y = top + 10; y < foot - 20; y += 28) { g.moveTo(tl + 2, y); g.lineTo(tl + T.w - 2, y + 28); g.moveTo(tl + T.w - 2, y); g.lineTo(tl + 2, y + 28); }
+      g.stroke();
+      g.fillStyle = t('#232C44'); g.fillRect(tl - 8, top - 4, T.w + 16, 6);
+      g.fillStyle = t(BIG_COLS[(i + 3) % 8]); g.beginPath(); g.moveTo(tl - 12, top - 22); g.lineTo(T.x, top - 40); g.lineTo(tl + T.w + 12, top - 22); g.closePath(); g.fill();
+      g.fillStyle = t('#1C2438'); g.fillRect(tl - 8, top - 22, 3, 18); g.fillRect(tl + T.w + 5, top - 22, 3, 18);
+      g.lineCap = 'round'; g.lineJoin = 'round';
+      const col = t(BIG_COLS[i % 8]), col2 = t(BIG_COLS[(i + 5) % 8]);
+      // (a helix down the tower: its back halves first, darker, then the front)
+      if (i % 2 === 0) {
+        const turns = Math.max(3, Math.floor(T.h / 80)), r = T.w / 2 + 26;
+        for (const front of [false, true]) for (let k = 0; k < turns; k++) {
+          const y = top + 30 + k * ((T.h - 60) / turns);
+          g.strokeStyle = front ? col : t('#141A2A'); g.lineWidth = front ? 9 : 7;
+          g.beginPath(); g.ellipse(T.x, y + 20, r, 16, -0.12, front ? 0 : Math.PI, front ? Math.PI : Math.PI * 2); g.stroke();
+        }
+      }
+      // (a long sweep off the top, down and away to the next tower's pool or further, crossing what's between)
+      const dir = i % 3 === 1 ? -1 : 1, reach = 260 + hash(i + 11) * 360;
+      g.strokeStyle = t('#0A0E18'); g.lineWidth = 13;
+      g.beginPath(); g.moveTo(T.x + dir * T.w / 2, top + 4); g.bezierCurveTo(T.x + dir * reach * 0.35, top - 10, T.x + dir * reach * 0.5, foot - T.h * 0.2, T.x + dir * reach, foot - 10); g.stroke();
+      g.strokeStyle = col2; g.lineWidth = 9; g.stroke();
+      // (an enclosed tube: thicker, banded, a loop-de-loop on the way down)
+      if (i % 3 !== 1) {
+        const lx = T.x + dir * 40, ly = top + T.h * 0.45;
+        g.strokeStyle = t('#0A0E18'); g.lineWidth = 17;
+        g.beginPath(); g.moveTo(T.x - dir * T.w / 2, top + 20); g.quadraticCurveTo(T.x - dir * 120, top + 40, lx, ly - 50);
+        g.arc(lx, ly, 50, -Math.PI / 2, Math.PI * 1.5 * (dir > 0 ? 1 : -1) - (dir > 0 ? 0 : Math.PI), dir < 0);
+        g.quadraticCurveTo(lx + dir * 180, ly + 40, lx + dir * 240, foot - 8); g.stroke();
+        g.strokeStyle = t(BIG_COLS[(i + 2) % 8]); g.lineWidth = 13; g.stroke();
+        g.strokeStyle = t('#10162A'); g.lineWidth = 13; g.setLineDash([3, 14]); g.stroke(); g.setLineDash([]);
+      }
+      // (a short kiddie one off a lower deck)
+      const dy = foot - T.h * 0.3;
+      g.fillStyle = t('#232C44'); g.fillRect(tl - 10, dy, T.w + 20, 4);
+      g.strokeStyle = t(BIG_COLS[(i + 6) % 8]); g.lineWidth = 6; g.beginPath(); g.moveTo(tl - 10, dy + 2); g.quadraticCurveTo(tl - 60, dy + 10, tl - 90, foot - 6); g.stroke();
+      g.lineCap = 'butt'; g.lineJoin = 'miter';
+    });
+    g.restore();
   }
-  g.fillStyle = t('#121A30', 0.6); g.fillRect(0, MID_H - 10, MID_W, 10);
+  // (dimmed: a haze over the lot, so none of it reads as somewhere to stand)
+  // (over what's painted only: the sky behind's left as it is)
+  g.globalCompositeOperation = 'source-atop'; g.fillStyle = 'rgba(8, 12, 26, 0.58)'; g.fillRect(0, 0, BIG_W, BIG_H); g.globalCompositeOperation = 'source-over';
 };
-/** Screen space: the sky; the far horizon and the plaza's rides, dropping away as he climbs. */
-export const drawParkBackdrop = (c: Ctx, state: GameState) => {
-  const f = state.frame, cx = state.camera.x, cy = state.camera.y, tod = timeOfDay();
+/** Screen space: the sky; the far horizon and the plaza's rides, dropping away as he climbs. `shift`: how far the tube
+ *  rides have carried him back round their loops (the parallax carries on as if they hadn't: no jump). */
+export const drawParkBackdrop = (c: Ctx, state: GameState, shift = 0) => {
+  const f = state.frame, cx = state.camera.x + shift, cy = state.camera.y, tod = timeOfDay();
+  // (over a tube ride's drop: nothing of the backdrop's painted under the drop's top (it's the drop's, black: painted
+  // once, below), so the screen's not painted twice over there)
+  const drop = dropRect(state);
+  // (a plain rect clip only, the drop across the whole screen: a clip of any other shape costs more than it saves)
+  const crop = !!drop && drop.x0 <= 0 && drop.x1 >= W;
+  if (crop) { c.save(); c.beginPath(); c.rect(0, 0, W, drop!.y); c.clip(); }
   drawTodSky(c, 0, 0, W, H, tod.sky, { moon: [620, 80], horizon: 420, t: f, scroll: cx });
   // (how high he is: the camera's top over the ground's)
   const up = Math.max(0, -cy);
@@ -88,14 +152,33 @@ export const drawParkBackdrop = (c: Ctx, state: GameState) => {
     c.restore();
   }
   const my = 470 + up * 0.22;
-  if (my - MID_H < H) {
-    c.save(); c.translate(-Math.round(((cx * 0.12) % (MID_W - W) + (MID_W - W)) % (MID_W - W)), Math.round(my - MID_H));
-    stamp(c, `wp-mid-${tod.key}`, 0, 0, MID_W, MID_H, paintMid);
-    c.restore();
-  }
   // (the haze down at the horizon, and under it the dark of the land)
   const base = Math.round(Math.max(hz, my));
   if (base < H) { R(c, 0, base, W, H - base, farTint('#0A1020', 0.8)); }
+  // (the park's giant slides (in place of the plain far-off rides there were): a seamless strip, dropping away quicker
+  // as he climbs)
+  const by = 548 + up * 0.35;
+  if (by - BIG_H < H && !NOBIG) {
+    const ox = ((cx * 0.2) % BIG_W + BIG_W) % BIG_W;
+    // (in tiles, only those on screen (and not under the drop) put down)
+    const top = Math.round(by - BIG_H), cut = drop && crop ? drop.y : H;
+    for (const dx of [-ox, BIG_W - ox]) for (let tx = 0; tx < BIG_W; tx += BIG_TW) for (let ty = 0; ty < BIG_H; ty += BIG_TH) {
+      const sx = Math.round(dx) + tx, sy = top + ty;
+      if (sx >= W || sx + BIG_TW <= 0 || sy >= cut || sy + BIG_TH <= 0) continue;
+      c.save(); c.translate(Math.round(dx), top);
+      stamp(c, `wp-big-${tod.key}-${tx}-${ty}`, tx, ty, BIG_TW, BIG_TH, g => { g.save(); g.beginPath(); g.rect(tx, ty, BIG_TW, BIG_TH); g.clip(); paintBig(g, tx, tx + BIG_TW); g.restore(); });
+      c.restore();
+    }
+    if (by < H) R(c, 0, Math.round(by), W, H - Math.round(by), farTint('#0A1020', 0.8));
+  }
+  if (drop) {
+    if (crop) c.restore();
+    // (the drop: banded down into black, no bottom)
+    const w = drop.x1 - drop.x0;
+    DROP_BANDS.forEach((col, k) => R(c, drop.x0, drop.y + k * 26, w, 26, col));
+    const v = drop.y + DROP_BANDS.length * 26;
+    if (v < H) R(c, drop.x0, v, w, H - v, VOID);
+  }
   return true;
 };
 
@@ -126,15 +209,11 @@ const drawPits = (c: Ctx, state: GameState) => {
     const a = GROUND[i][1], b = GROUND[i + 1][0];
     if (!vis(state, a, b, 20) || bot < GY) continue;
     const pool = POOLS.find(p => p.x1 >= a - 1 && p.x2 <= b + 1);
-    const deep = TUBES.some(t => t.deck.x2 >= a - 5 && t.deck.x2 <= a + 5);
+    const deep = TUBES.some(t => t.deck.x1 >= a - 140 && t.deck.x1 <= a + 5);
     const x0 = Math.max(a, state.camera.x - 40), x1 = Math.min(b, state.camera.x + W + 40);
     if (deep) {
-      // (the drained deep end: tiles down into the dark, the depth markers painted on the far wall)
-      R(c, x0, GY, x1 - x0, bot - GY, '#0E2A48');
-      for (let y = GY; y < bot; y += 24) R(c, x0, y, x1 - x0, 1, '#1E4A7A');
-      for (let x = Math.floor(x0 / 24) * 24; x < x1; x += 24) R(c, x, GY, 1, bot - GY, '#163A60');
-      c.fillStyle = 'rgba(0, 0, 0, 0.5)'; c.fillRect(x0, GY + 160, x1 - x0, bot - GY - 160);
-      for (let x = Math.ceil(x0 / 600) * 600; x < x1; x += 600) text(c, `${8 + Math.floor(x / 600) % 9} FT`, x, GY + 40, '#F8FAFC', 10);
+      // (under the tube rides: nothing. Black all the way down (the drop's bands over it: drawTubeBack))
+      R(c, x0, GY, x1 - x0, bot - GY, VOID);
       continue;
     }
     if (pool) continue;
@@ -165,14 +244,6 @@ const drawPools = (c: Ctx, state: GameState, greenPool: number) => {
     for (let y = GY - 24; y < GY + 30; y += 12) R(c, p.x2 - 20, y, 13, 2, '#C8CCD2');
   }
 };
-const drawLazy = (c: Ctx, state: GameState) => {
-  if (!vis(state, LAZY.x1, LAZY.x2)) return;
-  // (a shallow channel along the plaza: the water's ripples going left, the current)
-  c.fillStyle = 'rgba(56, 160, 230, 0.55)'; c.fillRect(LAZY.x1, GY - 10, LAZY.x2 - LAZY.x1, 12);
-  for (let x = LAZY.x2 - ((state.frame * 1.7) % 40); x > LAZY.x1; x -= 40) { R(c, x, GY - 8, 14, 2, '#E0F2FE'); R(c, x + 4, GY - 4, 6, 1, '#BFE6FF'); }
-  R(c, LAZY.x1, GY - 12, 6, 14, '#F8FAFC'); R(c, LAZY.x2 - 6, GY - 12, 6, 14, '#F8FAFC');
-};
-
 /** A sign on posts, stood on the ground at (x, feet), its board high enough to read over him. */
 export const sign = (c: Ctx, x: number, feet: number, lines: string[], board = '#0E7490', ink = '#FEF3C7', key?: string) => {
   const draw = (g: Ctx) => {
@@ -185,7 +256,7 @@ export const sign = (c: Ctx, x: number, feet: number, lines: string[], board = '
   if (key) stamp(c, `wp-sign-${key}`, x - 200, feet - 120, 400, 124, draw); else draw(c);
 };
 /** Where the plaza's signs stand (no palm in front of one). */
-const SIGN_X = [...SLIDES.filter(S => S.stairs.n > 0).map(S => S.stairs.x - 90), ...TUBES.map(T => T.stairs.x - 150), 4600, 5380, 520, 760];
+const SIGN_X = [...SLIDES.filter(S => S.stairs.n > 0).map(S => S.stairs.x - 90), ...TUBES.map(T => T.stairs.x - 90), 4600, 520, 760];
 /** The plaza's back props (behind him, dimmed: nothing here to stand on). */
 const drawProps = (c: Ctx, state: GameState) => {
   // (palms, every so often, back from the path)
@@ -221,9 +292,8 @@ const drawProps = (c: Ctx, state: GameState) => {
   });
   // (the slides' and tubes' signs, at their stairs' foot)
   for (const S of SLIDES) if (S.stairs.n > 0 && vis(state, S.stairs.x - 220, S.stairs.x)) sign(c, S.stairs.x - 90, GY, [S.name, S.id === 'squirt' ? 'RIDE IT. FLY.' : S.id === 'kamikaze' ? 'NOT FOR CHILDREN' : S.id === 'twister' ? 'MIND THE CRATER' : 'KEEP ARMS IN'], '#7C2D12', '#FEF3C7', S.id);
-  for (const T of TUBES) if (vis(state, T.stairs.x - 260, T.stairs.x)) sign(c, T.stairs.x - 150, GY, [T.name, 'TUBES ONLY', 'NO JUMPING AT THE LIPS'], '#312E81', '#E0E7FF', T.id);
+  for (const T of TUBES) if (vis(state, T.stairs.x - 260, T.stairs.x)) sign(c, T.stairs.x - 90, GY, [T.name, 'TUBES ONLY', 'MIND THE GAPS'], '#312E81', '#E0E7FF', T.id);
   if (vis(state, 4500, 4720)) sign(c, 4600, GY, ['THE LAGOON', 'NO DIVING'], '#0E7490', '#FEF3C7', 'lagoon');
-  if (vis(state, 5300, 5480)) sign(c, 5380, GY, ['LAZY RIVER', 'RELAX'], '#065F46', '#ECFDF5', 'lazy');
   // (the tiki hut under its roof ledge, the lifeguard stands: their tops lit, they're stood on)
   for (const [x, y, w] of LEDGES) if (vis(state, x, x + w)) {
     R(c, x + 10, y + 14, 8, GY - y - 14, '#5A4028'); R(c, x + w - 18, y + 14, 8, GY - y - 14, '#5A4028');
@@ -289,33 +359,60 @@ const drawSlideFront = (c: Ctx, state: GameState, S: Slide) => {
 
 const TUBE_TILE = 900;
 const tubePts = (P: Path): [number, number][] => [[P.segs[0].x0, P.segs[0].y0], ...P.segs.map(s => [s.x1, s.y1] as [number, number])];
+/** The bottomless drop under a ride (world y): a little under the lowest of its chute on screen (the chute's the same
+ *  either side of the loop's carry back, so this is too). */
+const CHUTE_PTS = TUBES.map(T => T.pieces.flat());
+const dropTopAt = (i: number, x0: number, x1: number) => { let y = -Infinity; for (const [x, yy] of CHUTE_PTS[i]) if (x > x0 && x < x1 && yy > y) y = yy; return y + 46; };
+const dropTop = (state: GameState, T: Tube) => dropTopAt(TUBES.indexOf(T), state.camera.x - 120, state.camera.x + W + 120);
+/** The drop on screen (the backdrop paints it: bands, then black), or null: no ride's drop in view. */
+const dropRect = (state: GameState) => {
+  for (let i = 0; i < TUBES.length; i++) {
+    const [a, b] = tubeSpan(TUBES[i]);
+    if (!vis(state, a, b, 0)) continue;
+    const t = dropTopAt(i, state.camera.x - 120, state.camera.x + W + 120);
+    if (!isFinite(t)) return null;
+    const y = Math.round(t - state.camera.y);
+    if (y >= H) return null;
+    return { x0: Math.max(0, Math.round(a - state.camera.x)), x1: Math.min(W, Math.round(b - state.camera.x)), y: Math.max(0, y) };
+  }
+  return null;
+};
+const LEG_RAMP = ['#2A3442', '#1E2632', '#141A24', '#0B0F18'];
+const inGap = (T: Tube, x: number, m = 0) => T.gaps.some(([a, b]) => x > a - m && x < b + m);
 const drawTubeBack = (c: Ctx, state: GameState, T: Tube, i: number) => {
   const paths = tubePaths(i);
   const first = T.stairs.x, last = paths[paths.length - 1].segs[paths[paths.length - 1].segs.length - 1].x1;
   if (!vis(state, first - 40, last + 40)) return;
-  // (the tower up to the rack: its stairs, its deck, the rack of tubes)
-  if (vis(state, first - 40, T.deck.x2 + 40)) stamp(c, `wp-tubetower-${T.id}`, first - 20, T.deck.y - 120, T.deck.x2 - first + 60, GY - T.deck.y + 180, g => {
+  const dt = dropTop(state, T);
+  // (the tower up to the rack: its stairs, its deck (down into the drop where it stands out over it), the rack of tubes)
+  if (vis(state, first - 40, T.deck.x2 + 40)) stamp(c, `wp-tubetower-${T.id}`, first - 20, T.deck.y - 120, T.deck.x2 - first + 60, GY - T.deck.y + 520, g => {
     for (let k = 0; k < T.stairs.n; k++) { const s = step(T.stairs, k); R(g, s.x, s.y, s.w, s.h, '#2E3644'); R(g, s.x, s.y, s.w, 3, '#E2E8F0'); }
     const d = T.deck;
     R(g, d.x1, d.y, d.x2 - d.x1, GY - d.y, '#2E3644'); R(g, d.x1, d.y, d.x2 - d.x1, 3, '#E2E8F0');
     for (let y = d.y + 20; y < GY; y += 24) R(g, d.x1, y, d.x2 - d.x1, 2, '#1E2430');
+    // (its shaft on down into the dark)
+    LEG_RAMP.forEach((col, k) => R(g, d.x1, GY + k * 100, d.x2 - d.x1, 100, col));
     // (the rack: tubes stacked up, the canopy)
     for (let k = 0; k < 4; k++) { g.strokeStyle = INK; g.lineWidth = 10; g.beginPath(); g.ellipse(d.x1 + 40, d.y - 10 - k * 14, 22, 7, 0, 0, Math.PI * 2); g.stroke(); g.strokeStyle = ['#F97316', '#FACC15', '#22D3EE', '#EC4899'][k]; g.lineWidth = 6; g.stroke(); }
     R(g, d.x1 - 6, d.y - 110, d.x2 - d.x1 + 12, 10, INK); R(g, d.x1 - 4, d.y - 108, d.x2 - d.x1 + 8, 6, T.col);
     R(g, d.x1, d.y - 100, 4, 100, '#3F3F46'); R(g, d.x2 - 4, d.y - 100, 4, 100, '#3F3F46');
   });
-  // (the chute's legs down into the deep end: live, plain boxes (a few a screen); a tile of the chute itself is only as
-  // tall as the chute is in it)
+  // (the chute's legs down into the drop, darker and darker till they're gone (live, plain boxes: a few a screen). None
+  // under a gap: nothing under those at all)
   for (const P of paths) {
     const pts = tubePts(P), a = Math.max(pts[0][0], state.camera.x - 40), b = Math.min(pts[pts.length - 1][0], state.camera.x + W + 40);
     for (let x = Math.ceil(a / 160) * 160; x < b; x += 160) {
-      const y = pointAt(P, Math.max(0, x - pts[0][0])).y, bot = Math.min(GY + 520, state.camera.y + H + 20);
+      if (inGap(T, x, 30)) continue;
+      const y = pointAt(P, Math.max(0, x - pts[0][0])).y, bot = state.camera.y + H + 20;
       if (bot <= y + 10) continue;
-      R(c, x - 4, y + 10, 8, bot - y - 10, '#2A3442'); R(c, x - 4, y + 10, 2, bot - y - 10, '#4A5466');
       R(c, x - 16, y + 60, 32, 4, '#2A3442');
+      for (let k = 0; k < LEG_RAMP.length; k++) {
+        const y0 = y + 10 + k * 110, h = k === LEG_RAMP.length - 1 ? Math.min(bot, dt + 260) - y0 : 110;
+        if (h > 0 && y0 < bot) { R(c, x - 4, y0, 8, h, LEG_RAMP[k]); if (k < 2) R(c, x - 4, y0, 2, h, k ? '#2E3848' : '#4A5466'); }
+      }
     }
   }
-  // (the chute: baked in tiles along its length, the lips red, NO JUMPING)
+  // (the chute: baked in tiles along its length; the ends at the gaps broken off, striped)
   for (let tx = Math.floor((state.camera.x - 60) / TUBE_TILE) * TUBE_TILE; tx < state.camera.x + W + 60; tx += TUBE_TILE) {
     if (tx + TUBE_TILE < T.deck.x2 - 40 || tx > last + 40) continue;
     const [y0, y1] = bandOf(paths.flatMap(tubePts), tx, TUBE_TILE);
@@ -323,20 +420,51 @@ const drawTubeBack = (c: Ctx, state: GameState, T: Tube, i: number) => {
     stamp(c, `wp-tube-${T.id}-${tx}`, tx, y0 - 60, TUBE_TILE, y1 - y0 + 100, g => {
       g.save(); g.beginPath(); g.rect(tx, y0 - 60, TUBE_TILE, y1 - y0 + 100); g.clip();
       paths.forEach((P, pi) => {
-        const pts = tubePts(P);
-        chuteBack(g, pts, T.col, 26);
-        if (pi < paths.length - 1) {
-          // (the lip's run-up: red and white, NO JUMPING painted on)
-          const a = pointAt(P, P.len - NO_JUMP), b = pointAt(P, P.len);
-          g.strokeStyle = '#DC2626'; g.lineWidth = 8; g.lineCap = 'butt';
-          for (let s = P.len - NO_JUMP; s < P.len; s += 24) { const q = pointAt(P, s), q2 = pointAt(P, Math.min(P.len, s + 12)); g.beginPath(); g.moveTo(q.x, q.y - 3); g.lineTo(q2.x, q2.y - 3); g.stroke(); }
-          g.font = '7px "Press Start 2P"'; g.textAlign = 'center';
-          g.fillStyle = INK; g.fillText('NO JUMPING', (a.x + b.x) / 2 + 1, (a.y + b.y) / 2 + 21);
-          g.fillStyle = '#FECACA'; g.fillText('NO JUMPING', (a.x + b.x) / 2, (a.y + b.y) / 2 + 20);
+        chuteBack(g, tubePts(P), T.col, 26);
+        // (each end at a gap: the last stretch striped yellow and black, the end itself snapped off ragged)
+        const ends: [number, number][] = [];
+        if (pi < paths.length - 1) ends.push([P.len - 64, P.len]);
+        if (pi > 0) ends.push([0, 40]);
+        for (const [s0, s1] of ends) {
+          g.lineWidth = 9; g.lineCap = 'butt';
+          for (let s = s0, k = 0; s < s1; s += 12, k++) { const q = pointAt(P, s), q2 = pointAt(P, Math.min(s1, s + 12)); g.strokeStyle = k % 2 ? INK : '#FACC15'; g.beginPath(); g.moveTo(q.x, q.y - 4); g.lineTo(q2.x, q2.y - 4); g.stroke(); }
+          const e = pointAt(P, s0 === 0 ? 0 : P.len), d = s0 === 0 ? -1 : 1;
+          g.fillStyle = INK; g.beginPath(); g.moveTo(e.x, e.y - 16); g.lineTo(e.x + d * 6, e.y - 10); g.lineTo(e.x - d * 2, e.y - 4); g.lineTo(e.x + d * 5, e.y + 2); g.lineTo(e.x - d * 3, e.y + 8); g.lineTo(e.x - d * 8, e.y + 8); g.lineTo(e.x - d * 8, e.y - 16); g.closePath(); g.fill();
+          // (a bent bit of rebar sticking out of the break)
+          g.strokeStyle = '#7A6A5A'; g.lineWidth = 2; g.beginPath(); g.moveTo(e.x, e.y - 2); g.lineTo(e.x + d * 10, e.y + 4); g.lineTo(e.x + d * 14, e.y + 14); g.stroke();
         }
       });
       g.restore();
     });
+  }
+  // (under each gap: the drop from the chute's own height down (where the chute's high, the drop's top on screen is well
+  // under it): nothing under a gap but black)
+  for (const [g1, g2] of T.gaps) {
+    if (!vis(state, g1, g2, 0)) continue;
+    const P = paths.find(q => Math.abs(q.segs[q.segs.length - 1].x1 - g1) < 1);
+    if (!P) continue;
+    const top = Math.round(pointAt(P, P.len).y + 14), bot = Math.min(dt, state.camera.y + H + 10);
+    if (bot <= top) continue;
+    const n = DROP_BANDS.length, step = (bot - top) / n;
+    DROP_BANDS.forEach((col, k) => R(c, g1 + 2, top + k * step, g2 - g1 - 4, step + 1, col));
+  }
+  // (the GAP signs: hung over the chute off a cable, well before each gap)
+  for (const [g1] of T.gaps) {
+    const x = g1 - GAP_WARN;
+    if (!vis(state, x - 80, x + 80)) continue;
+    const P = paths.find(q => q.segs[0].x0 <= x && q.segs[q.segs.length - 1].x1 >= x);
+    if (!P) continue;
+    const y = pointAt(P, x - P.segs[0].x0).y - 160;
+    stamp(c, `wp-gapsign-${T.id}-${g1}`, x - 60, y - 420, 120, 470, g => {
+      R(g, x - 40, y - 420, 2, 420, '#3F4A5A'); R(g, x + 38, y - 420, 2, 420, '#3F4A5A');
+      R(g, x - 52, y - 2, 104, 44, INK); R(g, x - 50, y, 100, 40, '#FACC15');
+      for (let k = 0; k < 100; k += 16) { g.fillStyle = INK; g.beginPath(); g.moveTo(x - 50 + k, y + 40); g.lineTo(x - 42 + k, y + 40); g.lineTo(x - 34 + k, y + 34); g.lineTo(x - 42 + k, y + 34); g.closePath(); g.fill(); }
+      text(g, 'GAP AHEAD', x, y + 14, INK, 7, 'center', null);
+      text(g, 'JUMP!', x, y + 28, '#B91C1C', 8, 'center', null);
+    });
+    // (its warning lamps, blinking)
+    const on = Math.floor(state.frame / 12) % 2 === 0;
+    R(c, x - 56, y + 14, 6, 6, on ? '#EF4444' : '#450A0A'); R(c, x + 50, y + 14, 6, 6, on ? '#450A0A' : '#EF4444');
   }
 };
 /** The top and bottom of a chute's points in a tile (x tx..tx+w, a margin either side). */
@@ -378,6 +506,14 @@ const drawTubeFront = (c: Ctx, state: GameState, T: Tube, i: number) => {
       R(g, x - 22, y - 34, 44, 14, INK); R(g, x - 21, y - 33, 42, 12, '#FACC15'); text(g, 'LOW', x, y - 23, INK, 7, 'center', null);
     });
   }
+};
+/** The tube rides' count: the aliens left to kill (the ride goes round till they're all dead). In the top band. */
+export const drawTubeHud = (c: Ctx, left: number, band: { x1: number; x2: number; mid: number }) => {
+  const s = left > 0 ? `ALIENS LEFT: ${left}` : 'ALL DEAD: RIDE IT OUT';
+  c.font = '8px "Press Start 2P"';
+  const w = c.measureText(s).width + 16;
+  R(c, band.mid - w / 2, 22, w, 16, 'rgba(10, 8, 6, 0.75)');
+  text(c, s, band.mid, 34, left > 0 ? '#BEF264' : '#FDE047', 8);
 };
 /** The tube round him (its back half behind him, its front half over his legs). */
 export const drawTubeRing = (c: Ctx, x: number, y: number, a: number, front: boolean, col = '#F97316') => {
@@ -588,7 +724,6 @@ export const drawParkBack = (c: Ctx, state: GameState, d: DrawState, extra?: () 
   drawBaseCamp(c, state);
   drawPits(c, state);
   drawPools(c, state, d.greenPool);
-  drawLazy(c, state);
   for (const S of SLIDES) drawSlideBack(c, state, S);
   TUBES.forEach((T, i) => drawTubeBack(c, state, T, i));
   drawDescentChute(c, state);
@@ -607,7 +742,7 @@ export const drawParkFront = (c: Ctx, state: GameState) => {
 /** The lamps (world): the plaza's light poles, the towers' work lights, a floor's lights. */
 export const parkLamps = (state: GameState): Light[] => {
   const out: Light[] = [], k = lampGlow();
-  for (let x = Math.floor((state.camera.x - 300) / 700) * 700 + 350; x < state.camera.x + W + 300; x += 700) out.push({ x, y: GY - 160, r: 200, a: 0.3 * k, color: '#FDE68A' } as Light);
+  for (let x = Math.floor((state.camera.x - 300) / 700) * 700 + 350; x < state.camera.x + W + 300; x += 700) if (!TUBES.some(T => x > tubeSpan(T)[0] - 200 && x < tubeSpan(T)[1])) out.push({ x, y: GY - 160, r: 200, a: 0.3 * k, color: '#FDE68A' } as Light);
   if (vis(state, TL - 200, TR + 200)) for (let j = 0; j <= FLOORS; j++) { const y = floorY(j) - 200; if (visY(state, y - 200, y + 200)) out.push({ x: (TL + TR) / 2, y, r: 420, a: 0.32, color: '#E0F2FE' } as Light); }
   return out;
 };

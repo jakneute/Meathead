@@ -36,16 +36,16 @@ export const MH_CRATER = bp(
   ["A CRATER. I'M NOT FALLING IN THAT WITH SHIT PANTS."],
   ["A CRATER. NOT FALLING IN THAT NAKED."],
 );
-/** The lazy river. */
-export const MH_LAZY = bp(["LAZY RIVER, MY ASS. IT'S SHOVING ME."], ["LAZY RIVER. IT'S WASHING ME. FINALLY."], ["LAZY RIVER. IT'S IN PLACES."]);
 /** The pelicans. */
 export const MH_PELICAN = bp(["EVEN THE BIRDS ARE POSSESSED. FLORIDA."], ["EVEN THE BIRDS. THEY SMELL ME."], ["EVEN THE BIRDS. DON'T PECK THAT."]);
 /** Taking a tube. */
 export const MH_TUBE = bp(
-  ["A TUBE. STAY IN THE TUBE. DON'T BE A DUMBASS.", "DON'T JUMP OFF THE TUBE. DON'T JUMP OFF THE TUBE."],
-  ["A TUBE. MY SHITTY ASS IN A TUBE.", "STAY IN THE TUBE. SHIT STAYS IN THE PANTS."],
-  ["A TUBE. MY BARE ASS IS STUCK TO IT.", "STAY IN THE TUBE. IT'S SUCTIONED ON."],
+  ["A TUBE. IT'S STUCK TO MY ASS. GOOD.", "THE SLIDE'S GOT HOLES IN IT. GREAT. JUMP THE HOLES."],
+  ["A TUBE. MY SHITTY ASS IN A TUBE.", "IT'S STUCK ON. THE SHIT'S HOLDING IT."],
+  ["A TUBE. MY BARE ASS IS STUCK TO IT.", "IT'S SUCTIONED ON. IT'S NOT COMING OFF. NEITHER AM I."],
 );
+/** The ride's last alien down: the loop lets him go. */
+export const MH_TUBE_CLEAR = bp(["THAT'S ALL OF THEM. NOW LET ME OFF."], ["ALL DEAD. NOW LET ME OFF THIS THING."], ["ALL DEAD. LET ME OFF. MY ASS IS RAW."]);
 /** Off the end of a tube ride into its pool. */
 export const MH_TUBE_DONE = bp(["AGAIN. NO. NEVER AGAIN."], ["THE POOL GOT SOME OF IT OFF."], ["THAT POOL'S HAD WORSE IN IT."]);
 /** MOUNT EVEREST BUT BETTER, in sight. */
@@ -95,16 +95,15 @@ export const HURT: Record<string, { hurt: string[]; death: string[] }> = {
   'm2:wp_hover': { hurt: ['A FLYING ONE! GET DOWN HERE!', 'YOUR FRISBEE HIT ME!', 'GET OFF YOUR DINNER PLATE!'], death: ['RUN DOWN BY A SAUCER GUY', 'KILLED BY A DINNER PLATE'] },
   'm2:wp_yeti': { hurt: ['THE YETI! THE MASCOT! IT PUNCHED ME!', "THERE'S A DEMON IN THE MASCOT!", 'YOUR COSTUME SMELLS LIKE A FOOT!'], death: ['BEATEN BY A YETI MASCOT', 'THE MASCOT WON'] },
   'm2:wp_pipe': { hurt: ['MY HEAD! A PIPE! DUCK, IDIOT!', 'THE PIPE! RIGHT IN THE FACE!', 'LOW CLEARANCE! LOW!'], death: ['HEAD MEETS PIPE', 'SHOULD HAVE DUCKED'] },
-  'm2:wp_lip': { hurt: ['FUCK! THE TUBE!'], death: ['JUMPED OFF THE TUBE', 'LEFT THE TUBE BEHIND'] },
   'm2:wp_kid': { hurt: ['THE KID! THE FUCKING KID!', "YOUR MOM'S YOUR AUNT, YOU FREAK!", 'STOP FLAILING, YOU INBRED FUCK!'], death: ['KILLED BY THE INBRED KID', 'TAKEN OUT BY A MUTANT'] },
   'm2:wp_kidshot': { hurt: ['THE KID SHOOTS TOO! GREAT!', 'WHICH ARM DID THAT COME OUT OF?!', 'THE KID GOT ME!'], death: ['SHOT BY THE KID', 'THE THIRD ARM GOT ME'] },
   'm2:wp_kidslam': { hurt: ['HE LANDED ON ME!', 'GET YOUR FAT ASS OFF ME!', 'THE KID FELL ON ME!'], death: ['SAT ON BY THE KID', 'CRUSHED BY THE KID'] },
   'm2:wp_kidsnow': { hurt: ['FAKE SNOW! IT HURTS!', 'AN ICE BALL! IN FLORIDA!', 'THE KID THREW SNOW!'], death: ['KILLED BY FAKE SNOW', 'ICED BY THE KID'] },
 };
-/** His fall off a tube (careless: up in the air as the tube jumped a gap without him), as he goes down. */
-export const MH_LOST_TUBE = ['NO NO NO NO!', 'MY TUBE!', 'COME BACK!'];
-/** The death screen's line for falling off the tube (the stage says: layout.deathMessage). */
-export const TUBE_DEATH = ['JUMPED OFF THE TUBE', 'LEFT THE TUBE BEHIND'];
+/** Down a gap in the chute, tube and all (a missed jump), as he goes down into the dark. */
+export const MH_FALL = ['NO NO NO NO!', "THERE'S NO BOTTOM!", "WHERE'S THE REST OF THE SLIDE?!"];
+/** The death screen's line for the drop (the stage says: layout.deathMessage). */
+export const TUBE_DEATH = ['MISSED THE JUMP', 'THE SLIDE HAD A HOLE IN IT', 'NO BOTTOM'];
 
 // ---------------------------------------------------------------------------------------------------------------
 // The summit: Zorblax and Zarblax's kid (grown, a young adult: their son, mutated). Talks like a young adult who never
@@ -158,7 +157,7 @@ export const SUMMIT_DEATH = ['KILLED BY THE INBRED KID', 'DEAD AT 1,000 FEET'];
 
 const all = (...pools: (string | string[] | ByPants)[]) => pools.flatMap(p => (typeof p === 'string' ? [p] : Array.isArray(p) ? p : Object.values(p).flat()));
 export const PARK1_VOICE_LINES: Record<string, string[]> = {
-  meathead: all(GRAB_KID, MH_KICK, MH_IN, MH_POSSESSED, MH_SLIDE, MH_CRATER, MH_LAZY, MH_PELICAN, MH_TUBE, MH_TUBE_DONE, MH_EVEREST, MH_LOCKED, MH_FLOOR_DONE, MH_SUMMIT, MH_STUB, MH_LOST_TUBE, MH_INTRO, MH_RIDE, MH_SPLASH, ...Object.values(HURT).map(h => h.hurt)),
+  meathead: all(GRAB_KID, MH_KICK, MH_IN, MH_POSSESSED, MH_SLIDE, MH_CRATER, MH_PELICAN, MH_TUBE, MH_TUBE_DONE, MH_TUBE_CLEAR, MH_EVEREST, MH_LOCKED, MH_FLOOR_DONE, MH_SUMMIT, MH_STUB, MH_FALL, MH_INTRO, MH_RIDE, MH_SPLASH, ...Object.values(HURT).map(h => h.hurt)),
   death: all(...Object.values(HURT).map(h => h.death), TUBE_DEATH, SUMMIT_DEATH),
   [KID_VOICE]: all(KID_INTRO, KID_INTRO2, KID_TAUNT, KID_HURT, KID_LOW, KID_DEATH, KID_RETRY),
   [DPOS_VOICE.m]: all(DPOS_BARK), [DPOS_VOICE.f]: all(DPOS_BARK),

@@ -133,6 +133,8 @@ export const lotLayout: StageLayout = {
       lot.kick++;
       p.inCutscene = true; p.facing = 1;
       if (lot.kick === 6) p.kickPose = 22;
+      // (the engine doesn't run the pose down in a cutscene: it's run down here, so he's stood again after the boot)
+      else if ((p.kickPose || 0) > 0) p.kickPose!--;
       if (lot.kick === 14) { state.blocks = state.blocks.filter(b => b.tag !== 'lot-gate'); lot.gate = 0.01; playSound('crash', 1, -6); playSound('slam', 0.9, -8); shakeScreen(state, 14, 6); mhSays(state, pickLine(MH_KICK[dressed(state)])); }
       if (lot.gate > 0) lot.gate = Math.min(1, lot.gate + 0.08);
       if (lot.kick > 60) p.vel.x = 2.4;

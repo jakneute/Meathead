@@ -4,10 +4,12 @@
 //   LIL SQUIRT      the first slide: a kiddie one over solid ground (the slide taught: ride it, it throws you)
 //   THE TWISTER     a bigger one, and a blast crater past its end too wide to jump: the launch clears it cleanly (a
 //                   jump and a charge just about does, risky)
-//   THE LAGOON      a pool to swim; THE LAZY RIVER, its current shoving him back
+//   THE LAGOON      a pool to swim (the lazy river's level 2's: the owner's "no lazy river; that's the next level")
 //   THE KAMIKAZE    the tall one: over a sinkhole onto an island, and off the island's own little slide over another
-//   THE BLACK HOLE  the first tube ride: down a long chute on an inner tube over the drained DEEP END, aliens shooting,
-//                   the chute broken in places (the tube jumps the gaps; jump yourself at the wrong moment and you don't)
+//   THE BLACK HOLE  the first tube ride: off a tall tower, down a long chute on an inner tube high over a bottomless
+//                   drop, aliens shooting. An autorunner (the owner's): the tube carries him on, stuck to him; he jumps
+//                   (tube and all) the broken chute's gaps, ducks and shoots. It goes round and round (the chute loops
+//                   seamlessly) till every alien of the ride's dead; then on down into the splash pool
 //   THE SPLASHDOWN  the middle of the plaza; THE WIPEOUT, two slides back to back over two craters
 //   THE ABYSS       the second tube ride, longer and meaner
 //   BASE CAMP       the foot of MOUNT EVEREST BUT BETTER, and up it: seven floors of scaffold to fight up, one at a time
@@ -26,7 +28,7 @@ export const GY = GROUND_Y;
 // The checkpoints
 
 export const CP = {
-  gate: 0, squirt: 1, twister: 2, lazy: 3, kamikaze: 4, blackHole: 5, splash: 6, abyss: 7, baseCamp: 8, camp2: 9, camp4: 10, hillary: 11,
+  gate: 0, squirt: 1, twister: 2, lagoon: 3, kamikaze: 4, blackHole: 5, splash: 6, abyss: 7, baseCamp: 8, camp2: 9, camp4: 10, hillary: 11,
   L2: L2_CP,
 } as const;
 
@@ -37,7 +39,7 @@ export const CP = {
 export const GROUND: [number, number][] = [
   [-200, 3520],        // the gate, LIL SQUIRT, the Twister's foot
   [4020, 4700],        // past the Twister's crater, to the lagoon
-  [5100, 7580],        // past the lagoon: the lazy river, the Kamikaze's foot
+  [5100, 7580],        // past the lagoon, the tiki hut, the Kamikaze's foot
   [8130, 8740],        // the Kamikaze's island
   [9180, 9900],        // past the island, the Black Hole's tower (its foot)
   [16000, 17860],      // the Black Hole's splash pool's far side (the pool's its own: POOLS), the plaza, the Wipeout's foot
@@ -53,11 +55,9 @@ export const POOLS: Pool[] = [
   { x1: 27460, x2: 27900, surface: GY + 14, bottom: GY + 200, name: 'ABYSS SPLASH POOL' },
   { x1: 37200, x2: 37700, surface: GY + 14, bottom: GY + 220, name: 'EVEREST SPLASH POOL' },
 ];
-/** The lazy river: a shallow channel along the ground, its current shoving him back (left) as he wades it. */
-export const LAZY = { x1: 5400, x2: 6420, push: -1.7 };
 /** Raised bits to stand on: [x, top (y), w] one-way ledges (huts' roofs, lifeguard stands); [x, top, w] solid islands. */
 export const LEDGES: [number, number, number][] = [
-  [6150, GY - 120, 150],    // the lazy river's tiki hut roof (a trooper up on it)
+  [5900, GY - 120, 150],    // the tiki hut's roof (a trooper up on it)
   [17000, GY - 110, 120],   // a lifeguard stand
 ];
 /** The Wipeout's island: a raised block in the middle of its two craters (solid, from its top down into the pit). */
@@ -92,8 +92,10 @@ const mk = (id: string, name: string, x: number, n: number, rise: number, deckW:
 /** (each shape from its deck's far end: dx along, dy down) */
 export const SLIDES: Slide[] = [
   mk('squirt', "LIL' SQUIRT", 1500, 5, 24, 50, 22, [[0, 0], [60, 14], [140, 46], [220, 74], [270, 84], [300, 78]], '#FACC15', [9.5, -8]),
-  mk('twister', 'THE TWISTER', 2800, 8, 24, 64, 22, [[0, 0], [80, 12], [160, 50], [240, 98], [320, 136], [380, 150], [420, 142]], '#EC4899', [16, -11]),
-  mk('kamikaze', 'THE KAMIKAZE', 6700, 10, 24, 70, 24, [[0, 0], [90, 14], [190, 60], [290, 120], [390, 170], [470, 188], [520, 176]], '#22D3EE', [15.5, -12]),
+  // (the owner's: "i want the scale to feel grander with all the slides": the Twister and the Kamikaze tower over the plaza
+  // now, their lips where they were (the launches are set for the gaps past them))
+  mk('twister', 'THE TWISTER', 2540, 16, 24, 64, 16, [[0, 0], [60, 24], [140, 96], [230, 180], [320, 250], [410, 300], [490, 330], [560, 342], [600, 334]], '#EC4899', [16, -11]),
+  mk('kamikaze', 'THE KAMIKAZE', 6338, 22, 24, 70, 16, [[0, 0], [70, 36], [160, 130], [270, 240], [380, 330], [490, 400], [600, 446], [700, 470], [740, 472], [770, 460]], '#22D3EE', [15.5, -12]),
   mk('drop', 'THE DROP', 8420, 4, 24, 44, 24, [[0, 0], [60, 26], [120, 50], [160, 46]], '#A3E635', [14.6, -10]),
   mk('wipeout1', 'THE WIPEOUT', 17200, 7, 24, 62, 24, [[0, 0], [90, 18], [190, 70], [280, 118], [330, 132], [370, 124]], '#F97316', [17.2, -12]),
   // (the second half of the Wipeout: down off the island's far end (its deck the island's top: no stairs, 0 steps))
@@ -101,57 +103,84 @@ export const SLIDES: Slide[] = [
 ];
 
 // ---------------------------------------------------------------------------------------------------------------
-// The tube rides: a chute in pieces (the gaps between: the tube jumps them off the lips), over a pit
+// The tube rides: an autorunner (the owner's: "it's kinda like an autorunner, this section. you cannot lose the tube,
+// but you can fall on a misplaced jump"). A chute off a tall tower, broken into pieces over a bottomless drop; it loops
+// (tube.ts carries him from its loop's end back to its start, the same chute either side: no seam) till the ride's
+// aliens are all dead, then runs on down into its splash pool.
 
 export interface Tube {
   id: string; name: string;
   /** The stairs up to the rack and its deck (where he takes a tube). */
   stairs: Stairs; deck: { x1: number; x2: number; y: number };
-  /** The chute's pieces, each its points (world); the tube flies the gaps between (off each piece's lip). */
+  /** The chute's pieces, each its points (world); the gaps between are bottomless (he jumps them, the tube with him). */
   pieces: [number, number][][];
-  /** The low pipes over the chute (duck under): x, and how high off the chute their underside is. */
+  /** The gaps (world x1, x2), in order. */
+  gaps: [number, number][];
+  /** The low pipes over the chute (duck under): world x. */
   pipes: number[];
+  /** The loop: from `a + len` he's carried back to `a` (the chute's the same either side) till the ride's cleared. */
+  loop: { a: number; len: number };
+  /** The aliens to kill (all of them: then the loop lets him go), at most this many at once. */
+  foes: number; most: number;
   /** The splash pool it comes down into at the end. */
   pool: Pool;
-  /** Its pace (px a frame) on the flat, flat out. */
+  /** Its pace (px a frame, steady: an autorunner). */
   speed: number;
   col: string;
 }
-/** A chute's pieces from a start, by stretches: [length, drop] runs (a little wiggle on each), a gap after each but
- *  the last ([gap length, how far down the far side is]). */
-const chute = (x: number, y: number, runs: [number, number, number?][]): [number, number][][] => {
-  const out: [number, number][][] = [];
-  let cx = x, cy = y;
-  for (const [len, drop, gap] of runs) {
-    const pts: [number, number][] = [[cx, cy]];
-    const n = Math.max(2, Math.round(len / 160));
-    for (let i = 1; i <= n; i++) {
-      const k = i / n, wig = i < n ? Math.sin(i * 1.7 + cx * 0.01) * 10 : 0;
-      pts.push([cx + len * k, cy + drop * k + wig]);
-    }
-    // (the lip: the last bit turned up, if there's a gap after it)
-    if (gap) { const [lx, ly] = pts[pts.length - 1]; pts.push([lx + 50, ly - 12]); cx = lx + 50 + gap; cy = ly - 12 + 30; }
-    else { cx += len; cy += drop; }
-    out.push(pts);
+const smooth = (t: number) => { const k = Math.max(0, Math.min(1, t)); return k * k * (3 - 2 * k); };
+/** A ride's chute: off the deck (x0, y0), down a sweep to the loop's height, the loop (a periodic swell, `len` long from
+ *  `a`, its gaps and pipes repeating), on past it far enough to look the same as its start, then down to the pool. Every
+ *  gap and pipe in [a - 500, a + len + 800] is the loop's, repeated: so what's on screen either side of the carry back
+ *  is the same. Legs (art.ts) stand every 160: a and len are multiples of it. */
+const course = (o: {
+  x0: number; y0: number; a: number; len: number; yl: number; amp: number;
+  gaps: [number, number][]; pipes: number[]; introGaps: [number, number][]; poolX: number;
+}) => {
+  const { x0, y0, a, len, yl, amp } = o, z0 = a - 500, z1 = a + len + 800, poolY = GY - 6;
+  const f = (x: number) => yl + amp * (0.6 * Math.sin(((x - a) / len) * Math.PI * 4) + 0.4 * Math.sin(((x - a) / len) * Math.PI * 6 + 1));
+  const yAt = (x: number) => (x < z0 ? y0 + (f(x) - y0) * smooth((x - x0) / (z0 - x0)) : x > z1 ? f(x) + (poolY - f(x)) * smooth((x - z1) / (o.poolX - z1)) : f(x));
+  const gaps: [number, number][] = [...o.introGaps.map(([x, w]) => [x, x + w] as [number, number])];
+  const pipes: number[] = [];
+  for (let k = -1; k <= 1; k++) {
+    for (const [g, w] of o.gaps) { const x = a + g + k * len; if (x >= z0 && x + w <= z1) gaps.push([x, x + w]); }
+    for (const q of o.pipes) { const x = a + q + k * len; if (x >= z0 && x <= z1) pipes.push(x); }
   }
-  return out;
+  gaps.sort((p, q) => p[0] - q[0]); pipes.sort((p, q) => p - q);
+  const pieces: [number, number][][] = [];
+  let from = x0;
+  for (const [g1, g2] of [...gaps, [o.poolX, o.poolX] as [number, number]]) {
+    const pts: [number, number][] = [];
+    for (let x = from; x < g1; x += 40) pts.push([x, yAt(x)]);
+    pts.push([g1, yAt(g1)]);
+    pieces.push(pts);
+    from = g2;
+  }
+  return { pieces, gaps, pipes };
 };
+const BH = course({ x0: 9990, y0: GY - 600, a: 11520, len: 2560, yl: GY - 330, amp: 40, gaps: [[600, 180], [1700, 210]], pipes: [1200, 2200], introGaps: [[10520, 150]], poolX: 15560 });
+const AB = course({ x0: 20100, y0: GY - 720, a: 21440, len: 3840, yl: GY - 390, amp: 55, gaps: [[500, 200], [1400, 240], [2300, 250], [3050, 220]], pipes: [1000, 1900, 2750, 3550], introGaps: [[20520, 170]], poolX: 27460 });
 export const TUBES: Tube[] = [
   {
-    id: 'blackHole', name: 'THE BLACK HOLE', stairs: { x: 9500, n: 10, rise: 24, run: 24 }, deck: { x1: 9740, x2: 9900, y: GY - 240 },
-    pieces: chute(9900, GY - 240, [[900, 30, 220], [1000, 20, 260], [800, 40, 300], [1050, 30, 280], [800, 40]]),
-    pipes: [10500, 11600, 12800, 14000, 15300],
+    id: 'blackHole', name: 'THE BLACK HOLE', stairs: { x: 9500, n: 25, rise: 24, run: 15 }, deck: { x1: 9875, x2: 9990, y: GY - 600 },
+    ...BH, loop: { a: 11520, len: 2560 }, foes: 6, most: 2,
     pool: POOLS[1], speed: 8.2, col: '#1E1B4B',
   },
   {
-    id: 'abyss', name: 'THE ABYSS', stairs: { x: 19500, n: 12, rise: 24, run: 24 }, deck: { x1: 19788, x2: 19950, y: GY - 288 },
-    pieces: chute(19950, GY - 288, [[900, 20, 260], [800, 20, 300], [1000, 30, 240], [700, 10, 320], [900, 20, 300], [900, 20, 280], [600, 30]]),
-    pipes: [20400, 21600, 22800, 23900, 25100, 26300, 27400],
-    pool: POOLS[2], speed: 9.2, col: '#450A0A',
+    id: 'abyss', name: 'THE ABYSS', stairs: { x: 19500, n: 30, rise: 24, run: 15 }, deck: { x1: 19950, x2: 20100, y: GY - 720 },
+    ...AB, loop: { a: 21440, len: 3840 }, foes: 9, most: 3,
+    pool: POOLS[2], speed: 9, col: '#450A0A',
   },
 ];
 /** Where a tube's chute ends (its last point): the pool's edge. */
 export const tubeEnd = (t: Tube) => t.pieces[t.pieces.length - 1][t.pieces[t.pieces.length - 1].length - 1];
+/** The rides' stretch of world (the deck's end to the pool): the drop under it is bottomless. */
+export const tubeSpan = (t: Tube): [number, number] => [t.deck.x2, t.pool.x1];
+
+// The named areas (where each starts, world x: music cues and the like key off these)
+export const AREAS = {
+  gate: -200, plaza: 0, blackHole: 9990, splashdown: 15560, abyss: 20100, baseCamp: 27900, tower: 28800, l2: 37200,
+} as const;
 
 // ---------------------------------------------------------------------------------------------------------------
 // MOUNT EVEREST BUT BETTER: the tower (floors stacked FLOOR apart; floor 0 is base camp's ground), the summit on top
@@ -192,9 +221,9 @@ export const L2 = { x: POOLS[3].x2 + 200, wall: 39400 };
 export const CP_AT: Record<number, { x: number; y: number }> = {
   [CP.gate]: { x: 300, y: GY },
   [CP.squirt]: { x: 1380, y: GY },
-  [CP.twister]: { x: 2680, y: GY },
-  [CP.lazy]: { x: 5260, y: GY },
-  [CP.kamikaze]: { x: 6560, y: GY },
+  [CP.twister]: { x: 2420, y: GY },
+  [CP.lagoon]: { x: 5260, y: GY },
+  [CP.kamikaze]: { x: 6200, y: GY },
   [CP.blackHole]: { x: 9360, y: GY },
   [CP.splash]: { x: 16260, y: GY },
   [CP.abyss]: { x: 19360, y: GY },
@@ -215,11 +244,11 @@ export const PLAZA_CAST: [Who, number, number][] = [
   // the gate: the possessed taught, one of each
   ['dguest', 1150, GY], ['aguest', 1340, GY],
   // after LIL SQUIRT
-  ['gator', 2400, GY], ['trooper', 2560, GY],
+  ['gator', 2200, GY], ['trooper', 2330, GY],
   // past the Twister's crater
   ['dguest', 4250, GY], ['pelican', 4420, GY - 260], ['aguest', 4560, GY],
-  // past the lagoon, the lazy river
-  ['gator', 5340, GY], ['aguest', 5760, GY], ['pelican', 5900, GY - 280], ['dguest', 6050, GY], ['trooper', 6225, GY - 120],
+  // past the lagoon, round the tiki hut
+  ['gator', 5400, GY], ['aguest', 5640, GY], ['pelican', 5800, GY - 280], ['dguest', 5850, GY], ['trooper', 5975, GY - 120],
   // the Kamikaze's island
   ['trooper', 8300, GY], ['dguest', 8390, GY],
   // the splashdown's plaza, the Wipeout
@@ -231,7 +260,7 @@ export const PLAZA_CAST: [Who, number, number][] = [
 ];
 /** The pickups along the way (small ones: the endgame's lean drops), and the big refill before the summit. [x, feet y, type] */
 export const PICKUPS: [number, number, 'small_health' | 'large_health' | 'small_ammo' | 'large_ammo'][] = [
-  [2050, GY, 'small_health'], [4150, GY, 'small_ammo'], [6225, GY - 120, 'small_health'], [8240, GY, 'small_ammo'],
+  [2050, GY, 'small_health'], [4150, GY, 'small_ammo'], [5975, GY - 120, 'small_health'], [8240, GY, 'small_ammo'],
   [16420, GY, 'small_health'], [18380, GY - 100, 'small_ammo'], [28100, GY, 'small_health'],
   // (the summit's door: the big health and ammo, on THE HILLARY STEP)
   [TOWER.TL + 220, floorY(8), 'large_health'], [TOWER.TL + 300, floorY(8), 'large_ammo'],

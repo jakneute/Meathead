@@ -11606,11 +11606,6 @@
  },
  {
   "voice": "death",
-  "text": "JUMPED OFF THE TUBE",
-  "from": "ENDGAME"
- },
- {
-  "voice": "death",
   "text": "JUST ANOTHER NEW YORK STATISTIC",
   "from": "m1/game/stages/barry/runtime.ts:424"
  },
@@ -12611,11 +12606,6 @@
  },
  {
   "voice": "death",
-  "text": "LEFT THE TUBE BEHIND",
-  "from": "ENDGAME"
- },
- {
-  "voice": "death",
   "text": "LEFTY LOOSEY",
   "from": "SPACE"
  },
@@ -12942,7 +12932,7 @@
  {
   "voice": "death",
   "text": "MISSED THE JUMP",
-  "from": "m1/game/stages/oscar/chase.ts:585"
+  "from": "ENDGAME"
  },
  {
   "voice": "death",
@@ -13163,6 +13153,11 @@
   "voice": "death",
   "text": "NO BADGE",
   "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "NO BOTTOM",
+  "from": "ENDGAME"
  },
  {
   "voice": "death",
@@ -16748,6 +16743,11 @@
   "voice": "death",
   "text": "THE SIGN SAID NO",
   "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "THE SLIDE HAD A HOLE IN IT",
+  "from": "ENDGAME"
  },
  {
   "voice": "death",
@@ -71601,17 +71601,17 @@
  },
  {
   "voice": "meathead",
+  "text": "A TUBE. IT'S STUCK TO MY ASS. GOOD.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "meathead",
   "text": "A TUBE. MY BARE ASS IS STUCK TO IT.",
   "from": "ENDGAME"
  },
  {
   "voice": "meathead",
   "text": "A TUBE. MY SHITTY ASS IN A TUBE.",
-  "from": "ENDGAME"
- },
- {
-  "voice": "meathead",
-  "text": "A TUBE. STAY IN THE TUBE. DON'T BE A DUMBASS.",
   "from": "ENDGAME"
  },
  {
@@ -72121,8 +72121,18 @@
  },
  {
   "voice": "meathead",
+  "text": "ALL DEAD. LET ME OFF. MY ASS IS RAW.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "meathead",
   "text": "ALL DEAD. NOBODY TO IMPRESS. STILL NAKED.",
   "from": "FANTASY"
+ },
+ {
+  "voice": "meathead",
+  "text": "ALL DEAD. NOW LET ME OFF THIS THING.",
+  "from": "ENDGAME"
  },
  {
   "voice": "meathead",
@@ -75491,11 +75501,6 @@
  },
  {
   "voice": "meathead",
-  "text": "COME BACK!",
-  "from": "ENDGAME"
- },
- {
-  "voice": "meathead",
   "text": "COME GET ME. FOLLOW THE SMELL.",
   "from": "FANTASY"
  },
@@ -76538,11 +76543,6 @@
   "voice": "meathead",
   "text": "DON'T HIT ME! IT SLOSHES!",
   "from": "CARTOON"
- },
- {
-  "voice": "meathead",
-  "text": "DON'T JUMP OFF THE TUBE. DON'T JUMP OFF THE TUBE.",
-  "from": "ENDGAME"
  },
  {
   "voice": "meathead",
@@ -78738,11 +78738,6 @@
   "voice": "meathead",
   "text": "FUCK! THE MASK GUY!",
   "from": "FOREIGN"
- },
- {
-  "voice": "meathead",
-  "text": "FUCK! THE TUBE!",
-  "from": "ENDGAME"
  },
  {
   "voice": "meathead",
@@ -87591,6 +87586,11 @@
  },
  {
   "voice": "meathead",
+  "text": "IT'S STUCK ON. THE SHIT'S HOLDING IT.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "meathead",
   "text": "IT'S SUCKING ME UP! NOT THE FUN KIND!",
   "from": "HOLLYWOOD"
  },
@@ -87598,6 +87598,11 @@
   "voice": "meathead",
   "text": "IT'S SUCKING MY FACE OFF!",
   "from": "SPACE"
+ },
+ {
+  "voice": "meathead",
+  "text": "IT'S SUCTIONED ON. IT'S NOT COMING OFF. NEITHER AM I.",
+  "from": "ENDGAME"
  },
  {
   "voice": "meathead",
@@ -88208,21 +88213,6 @@
   "voice": "meathead",
   "text": "LAVA. IN THE STREET. DON'T STEP IN THE LAVA, DUMBASS.",
   "from": "HOLLYWOOD"
- },
- {
-  "voice": "meathead",
-  "text": "LAZY RIVER, MY ASS. IT'S SHOVING ME.",
-  "from": "ENDGAME"
- },
- {
-  "voice": "meathead",
-  "text": "LAZY RIVER. IT'S IN PLACES.",
-  "from": "ENDGAME"
- },
- {
-  "voice": "meathead",
-  "text": "LAZY RIVER. IT'S WASHING ME. FINALLY.",
-  "from": "ENDGAME"
  },
  {
   "voice": "meathead",
@@ -90638,11 +90628,6 @@
   "voice": "meathead",
   "text": "MY TRAPS ARE ANGRY",
   "from": "VULGARITIES"
- },
- {
-  "voice": "meathead",
-  "text": "MY TUBE!",
-  "from": "ENDGAME"
  },
  {
   "voice": "meathead",
@@ -99756,16 +99741,6 @@
  },
  {
   "voice": "meathead",
-  "text": "STAY IN THE TUBE. IT'S SUCTIONED ON.",
-  "from": "ENDGAME"
- },
- {
-  "voice": "meathead",
-  "text": "STAY IN THE TUBE. SHIT STAYS IN THE PANTS.",
-  "from": "ENDGAME"
- },
- {
-  "voice": "meathead",
   "text": "STAY IN YOUR LANE, ASSHOLE. YOUR LANE IS THE GROUND.",
   "from": "FANTASY"
  },
@@ -101693,6 +101668,11 @@
   "voice": "meathead",
   "text": "THAT'S ALL OF THEM. AND ALL OF MY PANTS.",
   "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "THAT'S ALL OF THEM. NOW LET ME OFF.",
+  "from": "ENDGAME"
  },
  {
   "voice": "meathead",
@@ -104371,6 +104351,11 @@
  },
  {
   "voice": "meathead",
+  "text": "THE SLIDE'S GOT HOLES IN IT. GREAT. JUMP THE HOLES.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "meathead",
   "text": "THE SMELL IS PART OF MY STRATEGY. RACK EM.",
   "from": "SPOOKY"
  },
@@ -105173,6 +105158,11 @@
   "voice": "meathead",
   "text": "THERE'S MY TRUCK. STILL IN THE PILLAR.",
   "from": "INTRO"
+ },
+ {
+  "voice": "meathead",
+  "text": "THERE'S NO BOTTOM!",
+  "from": "ENDGAME"
  },
  {
   "voice": "meathead",
@@ -108143,6 +108133,11 @@
   "voice": "meathead",
   "text": "WHERE'S THE MUTE BUTTON ON THIS THING?",
   "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "WHERE'S THE REST OF THE SLIDE?!",
+  "from": "ENDGAME"
  },
  {
   "voice": "meathead",

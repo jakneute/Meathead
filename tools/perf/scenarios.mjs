@@ -16,7 +16,7 @@ export const SCENARIOS = [
   // ride (the aliens riding along, shooting), CAMP 4's locked-in floor (two waves: hovers, a trooper, the yeti), the
   // summit's fight (up the stairs, the intro skipped, firing)
   { name: 'wp-plaza', q: 'park=0', keys: hopRight(40) },
-  { name: 'wp-tube', q: 'park=7', warm: 2, keys: [[0, 'down', 'ArrowRight'], [2600, 'up', 'ArrowRight'], [3000, 'down', 'ArrowRight'], ...Array.from({ length: 20 }, (_, i) => [3500 + i * 1100, 'tap', 'Space'])] },
+  { name: 'wp-tube', q: 'park=7', warm: 2, keys: [[0, 'js', 'window.__wpAutoTube = true'], [0, 'down', 'ArrowRight'], [6000, 'js', 'window.dispatchEvent(new MouseEvent("mousedown", { button: 0 }))']] },
   { name: 'wp-floor', q: 'park=10', keys: [[300, 'js', 'window.dispatchEvent(new MouseEvent("mousedown", { button: 0 }))'], ...Array.from({ length: 16 }, (_, i) => [600 + i * 1500, 'tap', i % 2 ? 'ArrowLeft' : 'ArrowRight'])] },
   // (its intro marked seen: the retry's short entrance, straight into it)
   { name: 'wp-boss', q: 'park=11', warm: 14, keys: [[0, 'js', 'window.__m2.stageMemo["m2:boss-intro:zorzarblax"] = "1"'], [100, 'down', 'ArrowLeft'], [7000, 'up', 'ArrowLeft'], [7200, 'js', 'window.dispatchEvent(new MouseEvent("mousedown", { button: 0 }))'], ...Array.from({ length: 14 }, (_, i) => [7600 + i * 1600, 'tap', i % 3 === 2 ? 'Space' : i % 2 ? 'ArrowLeft' : 'ArrowRight'])] },

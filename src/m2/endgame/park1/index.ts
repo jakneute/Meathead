@@ -25,14 +25,14 @@ import { sleepFar, wakeNear } from '../../dormant';
 import { markBossFight } from '../../bossQuiet';
 import { lay, solid, ledge, meatheadSays, saidOver } from '../../adventure/section';
 import { endgameStage, PARK_STAGE } from '../stages';
-import { GY, CP, CP_AT, CP_FLOOR, GROUND, POOLS, LAZY, LEDGES, ISLANDS, SLIDES, TUBES, TOWER, SUMMIT, PLAZA_CAST, PICKUPS, L2, floorY, step } from './geo';
+import { GY, CP, CP_AT, CP_FLOOR, GROUND, POOLS, LEDGES, ISLANDS, SLIDES, TUBES, TOWER, SUMMIT, PLAZA_CAST, PICKUPS, L2, floorY, step } from './geo';
 import { newSlides, updateSlides, offSlide, type SlideState } from './slides';
-import { newTube, boardTube, updateTube, unboardTube, tubeOn, tubeBox, tubeDucked, type TubeRide } from './tube';
+import { newTube, boardTube, updateTube, unboardTube, tubeOn, tubeBox, tubeFoesLeft, type TubeRide } from './tube';
 import { newTower, buildTower, updateTower, floorOf, towerCamY, type Tower, type TowerEvents } from './tower';
 import { KIND_OF, setRidingCheck, setShotBox, updateShots, drawShots, drawBarks, byPants, clearShots } from './kinds';
 import { type Fight, startFight, updateFight, resetFight, fightDead, drawFight, drawFightHud, setOnKilled, doorState } from './boss';
 import { type Descent, startDescent, updateDescent, descentDone, drawDescentKid, drawGreenWater, drawDescentHud } from './descent';
-import { drawParkBackdrop, drawParkBack, drawParkFront, parkLamps, drawTubeRing } from './art';
+import { drawParkBackdrop, drawParkBack, drawParkFront, parkLamps, drawTubeRing, drawTubeHud } from './art';
 import * as L from './lines';
 
 export { PARK_STAGE };
@@ -47,6 +47,10 @@ interface Park {
   /** The tube's controls card: up, how long, armed (a fresh press closes it); seen. */
   card: { t: number; armed: boolean } | null; cardSeen: boolean;
   lostTube: boolean;
+  /** How far the tube rides have carried him back round their loops, all told (the backdrop's parallax: art.ts). */
+  shift: number;
+  /** Where his feet last stood (or rode): the plaza's camera goes up with him up a tall slide's stairs, not his jumps. */
+  standY: number;
   /** The kid's dead (the hour's on, the file's at level 2). */
   killed: boolean;
   slideTipT: number;
@@ -73,13 +77,11 @@ const SLIDE_TIPS = [
   { pad: ['A'], kb: ['@jump'], label: 'AT THE LIP: THROWN HIGHER' },
 ] as import('../../upgrades/equipInfo').EquipControl[];
 const TUBE_CARD_ROWS = [
-  { pad: ['DPAD_RIGHT'], kb: ['@right'], label: 'LEAN ON (FASTER)' },
-  { pad: ['DPAD_LEFT'], kb: ['@left'], label: 'LEAN BACK (SLOWER)' },
-  { pad: ['A'], kb: ['@jump'], label: 'HOP (THE LOW SHOTS)' },
+  { pad: ['A'], kb: ['@jump'], label: 'JUMP, TUBE AND ALL (GAPS, LOW SHOTS)' },
   { pad: ['DPAD_DOWN'], kb: ['@down'], label: 'DUCK (HIGH SHOTS, PIPES)' },
   { pad: ['X'], kb: ['@fire'], label: 'SHOOT' },
 ] as import('../../upgrades/equipInfo').EquipControl[];
-const TUBE_CARD_TEXT = "YOU'RE LOCKED INTO THE TUBE: NOTHING KNOCKS YOU OUT OF IT. BUT THE CHUTE'S BROKEN, AND THE TUBE JUMPS THE GAPS OFF THE RED LIPS. BE UP IN A HOP WHEN IT HITS ONE AND IT GOES WITHOUT YOU.";
+const TUBE_CARD_TEXT = "THE TUBE'S STUCK TO YOUR ASS AND IT GOES ON ITS OWN. THE CHUTE'S GOT HOLES IN IT WITH NO BOTTOM: JUMP THEM. IT KEEPS GOING TILL EVERY ALIEN ON IT'S DEAD.";
 const CARD_HOLD = 90;
 
 export const parkLayout: StageLayout = {
@@ -117,7 +119,10 @@ export const parkLayout: StageLayout = {
     solid(state, L2.wall, -2000, 60, 3000, { hidden: true, tag: 'wp-l2' });
     buildTower(state);
     // ---- the cast, the pickups
+    // (none at or near where he starts: safe-checkpoints)
+    const at0 = CP_AT[state.checkpoint];
     PLAZA_CAST.forEach(([who, x, y], i) => {
+      if (state.checkpoint > 0 && x > at0.x - 700 && x < at0.x + 300) return;
       const e = makeKindEnemy(KIND_OF[who] as EnemyKind, x, y);
       e.homeX = e.pos.x; e.homeY = e.pos.y; e.initialY = e.pos.y; e.variant = (i * 7 + Math.floor(x / 10)) % 23;
       state.enemies.push(e);
@@ -125,7 +130,7 @@ export const parkLayout: StageLayout = {
     for (const [x, y, type] of PICKUPS) state.pickups.push({ id: `wp-${x}-${y}`, pos: { x: x - 10, y: y - 24 }, vel: { x: 0, y: 0 }, width: 20, height: 20, type, life: 1e9 });
     const pk: Park = {
       grab: createGrab(state), sl: newSlides(), tube: newTube(), tw: newTower(CP_FLOOR[state.checkpoint] ?? (state.checkpoint >= CP.baseCamp ? 1 : 0)),
-      fightState: killed ? 'won' : 'wait', f: null, descent: null, said: {}, lineAt: {}, card: null, cardSeen: false, lostTube: false, killed,
+      fightState: killed ? 'won' : 'wait', f: null, descent: null, said: {}, lineAt: {}, card: null, cardSeen: false, lostTube: false, shift: 0, standY: GY, killed,
       slideTipT: 0, greenPool: killed ? 1 : 0,
     };
     // (past a tube's or the tower's checkpoint: what's behind it's been done; said already)
@@ -147,7 +152,7 @@ export const parkLayout: StageLayout = {
     // ---- him, where he starts
     const p = state.player, at = CP_AT[state.checkpoint];
     p.pos = { x: at.x - p.width / 2, y: at.y - p.height }; p.vel = { x: 0, y: 0 }; p.facing = 1;
-    p.noSpecials = false; p.carried = false; p.logSeat = false;
+    p.noSpecials = false; p.carried = false; p.logSeat = false; p.kickPose = 0; p.inCutscene = false;
     setUi({ noSwitch: false, pauseControls: null, introCutscene: false, chordTips: null, minigameCard: null });
     state.camera.x = at.x - CANVAS_WIDTH / 2;
     const k = state.checkpoint >= CP.camp2 && state.checkpoint < CP.L2 ? CP_FLOOR[state.checkpoint] : null;
@@ -165,6 +170,7 @@ export const parkLayout: StageLayout = {
     if (!pk) return controls;
     wakeNear(state);
     const p = state.player, cx = p.pos.x + p.width / 2;
+    if (p.isGrounded || p.carried) pk.standY = p.pos.y + p.height;
     updateShots(ctx);
     let out: Controls = controls;
     // ---- the descent (the kid's dead): no input, no HUD, then VICTORY; then he's his again
@@ -183,7 +189,7 @@ export const parkLayout: StageLayout = {
     // ---- the summit's fight
     if (pk.fightState === 'on' && pk.f) {
       const f = pk.f;
-      markBossFight(state, 'ufo', { l: SUMMIT.L, r: SUMMIT.R });
+      markBossFight(state, 'zorzarblax', { l: SUMMIT.L, r: SUMMIT.R });
       out = updateFight(ctx, f, controls);
       // (held in: the summit's ends)
       const lo = SUMMIT.L + 4, hi = SUMMIT.R - 4 - p.width;
@@ -202,16 +208,16 @@ export const parkLayout: StageLayout = {
       if (pk.card.armed && any) { pk.card = null; setUi({ minigameCard: null }); playSound('menuok', 0.6); pk.tube.mode = 'ride'; pk.tube.jumpWas = true; mhSay(state, pk, 'tube', L.MH_TUBE, 20000); }
     }
     if (tubeOn(pk.tube)) {
-      out = updateTube(ctx, pk.tube, controls, () => { mhSay(state, pk, 'tubeDone', L.MH_TUBE_DONE, 30000); }, () => {
-        // (off the tube: the careless jump. Down into the deep end)
-        pk.lostTube = true;
-        meatheadSays(state, pickLine(L.MH_LOST_TUBE), false);
-        playSound('whoosh', 0.9, -10);
+      out = updateTube(ctx, pk.tube, controls, {
+        onEnd: () => { mhSay(state, pk, 'tubeDone', L.MH_TUBE_DONE, 30000); },
+        // (a missed jump: down a gap, tube and all, into the dark)
+        onFall: () => { pk.lostTube = true; meatheadSays(state, pickLine(L.MH_FALL), false); },
+        onClear: () => { mhSay(state, pk, 'tubeClear', L.MH_TUBE_CLEAR, 20000); },
       });
+      pk.shift = pk.tube.shift;
       setUi({ introCutscene: pk.tube.mode === 'card' });
       return updateGrab(ctx, pk.grab, out);
     }
-    if (pk.tube.mode === 'lost') { updateTube(ctx, pk.tube, controls, () => {}, () => {}); }
     // (onto a tube: walked off the rack's deck into the chute's mouth)
     if (!p.inCutscene && p.health > 0 && p.isGrounded) TUBES.forEach((T, i) => {
       if (Math.abs(p.pos.y + p.height - T.deck.y) < 4 && cx > T.deck.x2 - 36 && controls.right && !tubeOn(pk.tube)) {
@@ -244,10 +250,8 @@ export const parkLayout: StageLayout = {
       out = updateSlides(ctx, pk.sl, out, () => { once(pk, 'slide', () => meatheadSays(state, pickLine(byPants(state, L.MH_SLIDE)), true)); if (pk.slideTipT === 0) pk.slideTipT = 1; });
     }
     if (pk.slideTipT > 0) { pk.slideTipT++; setUi({ chordTips: pk.slideTipT < 300 ? SLIDE_TIPS : null }); if (pk.slideTipT >= 300) pk.slideTipT = -1; }
-    // ---- the lazy river: shoving him back as he wades it
-    if (p.isGrounded && !p.carried && Math.abs(p.pos.y + p.height - GY) < 3 && cx > LAZY.x1 && cx < LAZY.x2) p.pos.x += LAZY.push;
     // ---- the checkpoints along the plaza (passing one: it's his, saved there)
-    for (const c of [CP.squirt, CP.twister, CP.lazy, CP.kamikaze, CP.splash, CP.baseCamp]) {
+    for (const c of [CP.squirt, CP.twister, CP.lagoon, CP.kamikaze, CP.splash, CP.baseCamp]) {
       if (c > state.checkpoint && cx >= CP_AT[c].x && p.isGrounded && Math.abs(p.pos.y + p.height - GY) < 4 && p.health > 0) { state.checkpoint = c; savePoint(state, pk); }
     }
     // ---- what he says on the way (each once; never over anybody)
@@ -255,7 +259,6 @@ export const parkLayout: StageLayout = {
       if (cx > 360 && cx < 900) once(pk, 'in', () => meatheadSays(state, pickLine(byPants(state, L.MH_IN)), true));
       if (cx > 820 && cx < 1300) once(pk, 'possessed', () => meatheadSays(state, pickLine(byPants(state, L.MH_POSSESSED)), true));
       if (cx > 3300 && cx < 3520) once(pk, 'crater', () => meatheadSays(state, pickLine(byPants(state, L.MH_CRATER)), true));
-      if (cx > LAZY.x1 && cx < LAZY.x2) once(pk, 'lazy', () => meatheadSays(state, pickLine(byPants(state, L.MH_LAZY)), true));
       if (cx > 4300 && cx < 4500) once(pk, 'pelican', () => meatheadSays(state, pickLine(byPants(state, L.MH_PELICAN)), true));
       if (cx > 27950 && cx < 28500) once(pk, 'everest', () => meatheadSays(state, pickLine(byPants(state, L.MH_EVEREST)), true));
       if (pk.killed && cx > L2.wall - 260) mhSay(state, pk, 'stub', L.MH_STUB, 45000);
@@ -266,7 +269,7 @@ export const parkLayout: StageLayout = {
       state.cameraMinX = TOWER.TL - TOWER.STAIR - 200; state.cameraMaxX = TOWER.TR + TOWER.STAIR + 200 - CANVAS_WIDTH;
       state.cameraOverride = { x: Math.max(TOWER.TL - 260, Math.min(TOWER.TR + 260 - CANVAS_WIDTH, cx - CANVAS_WIDTH / 2)), y: p.pos.y + p.height - 400 };
     } else {
-      if (state.cameraOverride && !pk.tube.lostAt) state.cameraOverride = null;
+      if (state.cameraOverride) state.cameraOverride = null;
       if (k !== null && k >= 1 && cx > TOWER.TL - 10 && cx < TOWER.TR + 10) { state.cameraMinX = TOWER.TL; state.cameraMaxX = TOWER.TL; }
       else { state.cameraMinX = -200; state.cameraMaxX = (pk.killed ? L2.wall + 120 : TOWER.TR + 40) - CANVAS_WIDTH; }
     }
@@ -280,8 +283,8 @@ export const parkLayout: StageLayout = {
     if (pk.fightState === 'on') return towerCamY(9);
     const k = floorOf(state);
     if (k !== null && k >= 1 && cx > TOWER.TL - 10 && cx < TOWER.TR + 10) return towerCamY(k);
-    // (the plaza's flat: the camera held steady over it)
-    return GY - 550;
+    // (the plaza's flat: the camera held steady over it; up a tall slide's or tube's stairs, up with him)
+    return Math.min(GY - 550, pk.standY - 430);
   },
   waterBodyAt: (_state, x, y) => {
     for (const p of POOLS) if (x >= p.x1 && x <= p.x2 && y >= p.surface - 40 && y <= p.bottom) return { key: p.name, x1: p.x1, x2: p.x2, surface: p.surface, bottom: p.bottom, kind: 'clean' };
@@ -292,7 +295,7 @@ export const parkLayout: StageLayout = {
     if (pk?.lostTube) { pk.lostTube = false; return pickLine(L.TUBE_DEATH); }
     return undefined;
   },
-  drawBackdrop: (c, state) => drawParkBackdrop(c, state),
+  drawBackdrop: (c, state) => drawParkBackdrop(c, state, parkOf(state)?.shift ?? 0),
   lighting: (state) => todLight(parkLamps(state), 1),
   drawBack: (c, state) => {
     const pk = parkOf(state);
@@ -306,7 +309,7 @@ export const parkLayout: StageLayout = {
     if (pk.fightState === 'won' && (pk.descent || pk.killed)) drawDescentKid(c, pk.descent, !pk.descent);
     // (the tube's back half, behind him)
     const T = pk.tube;
-    if (tubeOn(T) || T.mode === 'lost') drawTubeRing(c, T.x, T.y - 4, T.air ? 0 : (state.player.spriteRot ?? 0), false);
+    if (tubeOn(T)) drawTubeRing(c, T.x, T.y - 4, state.player.spriteRot ?? 0, false);
     // (on the stairs: drawn stood (he's walking up them))
     if (pk.tw.climb) state.player.isGrounded = true;
   },
@@ -315,8 +318,7 @@ export const parkLayout: StageLayout = {
     drawParkFront(c, state);
     if (!pk) return;
     const T = pk.tube;
-    if (tubeOn(T) || T.mode === 'lost') drawTubeRing(c, T.x, T.y - 4, T.air ? 0 : (state.player.spriteRot ?? 0), true);
-    void tubeDucked;
+    if (tubeOn(T)) drawTubeRing(c, T.x, T.y - 4, state.player.spriteRot ?? 0, true);
     drawShots(c, state);
     drawBarks(c, state, saidOver);
     drawGrab(c, state, pk.grab);
@@ -326,6 +328,7 @@ export const parkLayout: StageLayout = {
     if (!pk) return;
     if (pk.f && pk.fightState === 'on') drawFightHud(c, state, pk.f, topBand());
     drawDescentHud(c, pk.descent);
+    if (pk.tube.mode === 'ride' || pk.tube.mode === 'fall') drawTubeHud(c, tubeFoesLeft(pk.tube), topBand());
   },
 };
 export const PARK_FLOOR_Y = floorY;

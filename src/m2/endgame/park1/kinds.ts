@@ -25,6 +25,7 @@ import { shakeScreen } from '../../../m1/game/core/state';
 import { hurtPlayer } from '../../../m1/game/bosses/shared';
 import { helmetStopsAt } from '../../upgrades/gear';
 import { playSound } from '../../../m1/game/platform/audio';
+import { CANVAS_WIDTH, CANVAS_HEIGHT, HUD_CLEAR_X, HUD_CLEAR_Y } from '../../../m1/constants';
 import { pickLine } from '../../../m1/game/platform/speech';
 import { isShat, isNude } from '../../../m1/game/player/gut';
 import { registerM2Kind, registerHurtLines } from '../../kinds';
@@ -323,7 +324,7 @@ const hover = (ctx: FrameContext, e: Enemy) => {
   const awake = ride || sees(state, e, 640, 600);
   const side = (seedOf(e) % 2 ? 1 : -1) * (ride ? 1 : m.x < p.x ? -1 : 1);
   // (on a tube: ahead of him and up, or behind; on foot: its own patch of sky)
-  const tx = ride ? p.x + side * (180 + (seedOf(e) % 3) * 50) - e.width / 2 : awake ? Math.max(hx - 280, Math.min(hx + 280, p.x + side * 220 - e.width / 2)) : hx;
+  const tx = ride ? p.x + (side > 0 ? 180 + (seedOf(e) % 3) * 50 : -150) - e.width / 2 : awake ? Math.max(hx - 280, Math.min(hx + 280, p.x + side * 220 - e.width / 2)) : hx;
   const ty = (ride ? p.y - 170 - (seedOf(e) % 2) * 50 : Math.min(hy, awake ? p.y - 200 : hy)) + Math.sin((state.frame + seedOf(e)) * 0.06) * 10;
   const k = ride ? 0.12 : 0.03;
   e.vel.x = Math.max(-14, Math.min(14, (tx - e.pos.x) * k + (ride ? pl.vel.x : 0)));
@@ -339,6 +340,13 @@ const hover = (ctx: FrameContext, e: Enemy) => {
       break;
   }
   e.pos.x += e.vel.x; e.pos.y += e.vel.y;
+  // (on a tube: never off the screen (enemies-always-visible): the ride doesn't end till it's dead)
+  if (ride && e.health > 0) {
+    const cam = state.camera;
+    e.pos.x = Math.max(cam.x + 24, Math.min(cam.x + CANVAS_WIDTH - 24 - e.width, e.pos.x));
+    // (and clear of the HUD up in the top left)
+    e.pos.y = Math.max(cam.y + (e.pos.x < cam.x + HUD_CLEAR_X ? HUD_CLEAR_Y + 8 : 48), Math.min(cam.y + CANVAS_HEIGHT - 60 - e.height, e.pos.y));
+  }
   return true;
 };
 

@@ -94,13 +94,11 @@ export const pauseCard = (id: PauseCardId | MinigameId, nin: boolean, joycon: bo
       one('HOP', ['A'], ['@jump']),
       one('DUCK', ['DPAD_DOWN'], ['@down']),
     ] };
-    // (endgame/park1/tube.ts: the tube goes at the chute's pace; right leans on, left leans back, A hops (careful at
-    // the lips: up in the air there and the tube goes without him), down ducks; he can shoot)
+    // (endgame/park1/tube.ts: an autorunner: the tube goes on its own, stuck to him; A jumps him and the tube (the
+    // chute's bottomless gaps, the low shots), down ducks; he can shoot)
     case 'tube': return { title: 'THE TUBE', rows: [
-      one('LEAN ON (FASTER)', ['DPAD_RIGHT'], ['@right']),
-      one('LEAN BACK (SLOWER)', ['DPAD_LEFT'], ['@left']),
-      one('HOP (NOT AT THE RED LIPS)', ['A'], ['@jump']),
-      one('DUCK', ['DPAD_DOWN'], ['@down']),
+      one('JUMP, TUBE AND ALL (THE GAPS, LOW SHOTS)', ['A'], ['@jump']),
+      one('DUCK (HIGH SHOTS, PIPES)', ['DPAD_DOWN'], ['@down']),
       one('SHOOT', ['X'], ['@fire']),
     ] };
     // (space/orbit: free flight any way, the ray gun held)
