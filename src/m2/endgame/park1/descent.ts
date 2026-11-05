@@ -19,12 +19,16 @@ import { type Victory, startVictory, tickVictory, drawVictory, victoryDone } fro
 import { DESCENT, POOLS, GY } from './geo';
 import { pathOf, pointAt } from './slides';
 import { paintKidCorpse } from './kidArt';
+import { DESC_WATER } from './art';
 import { MOUTH_AT } from './boss';
 import { byPants } from './kinds';
 import * as L from './lines';
 
 type Ctx = CanvasRenderingContext2D;
 const P = pathOf(DESCENT);
+/** How far over the chute's line he's sat (on the kid's back): low enough that the chute's near wall (art.ts DESC_LIFT)
+ *  is over his feet and the kid's belly, the way the tube rides' near half is over his legs. */
+const SEAT = 12;
 const POOL = POOLS[3];
 /** Where the splash throws him: the deck past the pool. */
 const OUT_X = POOL.x2 + 110;
@@ -59,7 +63,7 @@ export const updateDescent = (ctx: FrameContext, d: Descent, onSplash: () => voi
     case 'hop': {
       // (up onto the kid's back: a hop, sat down on him)
       const k = Math.min(1, d.t / 24), seat = pointAt(P, 0);
-      const x = d.from.x + (seat.x - 6 - d.from.x) * k, y = d.from.y + (seat.y - 26 - d.from.y) * k - Math.sin(k * Math.PI) * 50;
+      const x = d.from.x + (seat.x - 6 - d.from.x) * k, y = d.from.y + (seat.y - SEAT - d.from.y) * k - Math.sin(k * Math.PI) * 50;
       p.carried = true; p.pos.x = x - p.width / 2; p.pos.y = y - p.height; p.vel.x = 0; p.vel.y = 0;
       if (k >= 1) { d.step = 'ride'; d.t = 0; p.logSeat = true; playSound('splat', 0.8, -4); playSound('splash', 0.9, -6); }
       return hands();
@@ -71,10 +75,10 @@ export const updateDescent = (ctx: FrameContext, d: Descent, onSplash: () => voi
       const at = pointAt(P, Math.min(d.s, P.len));
       d.kx = at.x; d.ky = at.y; d.ka = at.a;
       d.green = d.s;
-      // (him on the kid's back: sat, turned with the slide)
+      // (him on the kid's back: sat, turned with the slide; down in it, the chute's near wall over his hips (art.ts))
       const nx = -Math.sin(at.a), ny = Math.cos(at.a);
       p.carried = true; p.logSeat = true; p.facing = 1; p.spriteRot = at.a;
-      p.pos.x = at.x - nx * 26 - p.width / 2; p.pos.y = at.y - ny * 26 - p.height + 6; p.vel.x = d.v; p.vel.y = 0;
+      p.pos.x = at.x - nx * SEAT - p.width / 2; p.pos.y = at.y - ny * SEAT - p.height + 6; p.vel.x = d.v; p.vel.y = 0;
       // (the kid's green out of him into the water behind, the spray off them)
       if (d.t % 2 === 0) state.particles.push({ pos: { x: at.x - 40, y: at.y - 4 }, vel: { x: -1 - Math.random() * 3, y: -1 - Math.random() * 3 }, life: 26, color: Math.random() < 0.6 ? '#3FA34D' : '#A8E03A', size: 2 + Math.random() * 3 });
       if (d.t % 3 === 0) state.particles.push({ pos: { x: at.x + 50, y: at.y - 6 }, vel: { x: 2 + Math.random() * 3, y: -2 - Math.random() * 3 }, life: 20, color: '#E0F2FE', size: 2 + Math.random() * 2 });
@@ -164,8 +168,8 @@ export const drawGreenWater = (c: Ctx, state: GameState, d: Descent | null) => {
     if (g.at > d.green) break;
     if (Math.max(g.x0, g.x1) < L0 || Math.min(g.x0, g.x1) > R0) { on = false; continue; }
     const k = Math.min(1, (d.green - g.at) / g.len);
-    if (!on) { c.moveTo(g.x0, g.y0 - 5); on = true; }
-    c.lineTo(g.x0 + (g.x1 - g.x0) * k, g.y0 + (g.y1 - g.y0) * k - 5);
+    if (!on) { c.moveTo(g.x0, g.y0 + DESC_WATER); on = true; }
+    c.lineTo(g.x0 + (g.x1 - g.x0) * k, g.y0 + (g.y1 - g.y0) * k + DESC_WATER);
   }
   c.stroke();
   c.strokeStyle = 'rgba(168, 224, 58, 0.7)'; c.lineWidth = 2; c.stroke();

@@ -342,23 +342,24 @@ const drawProps = (c: Ctx, state: GameState) => {
 // The slides
 
 /** A chute along a path, painted: its back wall and its water (world), or its near wall (in front of him). */
-const chuteBack = (g: Ctx, pts: [number, number][], col: string, wide = 20) => {
+const chuteBack = (g: Ctx, pts: [number, number][], col: string, wide = 20, water = -3) => {
   g.lineCap = 'round'; g.lineJoin = 'round';
   const line = (dy: number, w: number, s: string) => { g.strokeStyle = s; g.lineWidth = w; g.beginPath(); pts.forEach(([x, y], i) => (i ? g.lineTo(x, y + dy) : g.moveTo(x, y + dy))); g.stroke(); };
   line(-wide / 2 + 6, wide + 4, INK);
   line(-wide / 2 + 6, wide, col);
   line(-wide + 8, 3, 'rgba(255,255,255,0.35)');
   // (the water in it)
-  line(-3, 6, 'rgba(120, 200, 255, 0.85)');
-  line(-5, 2, '#E0F2FE');
+  line(water, 6, 'rgba(120, 200, 255, 0.85)');
+  line(water - 2, 2, '#E0F2FE');
   g.lineCap = 'butt'; g.lineJoin = 'miter';
 };
-const chuteFront = (g: Ctx, pts: [number, number][], col: string) => {
+const chuteFront = (g: Ctx, pts: [number, number][], col: string, lift = 0) => {
   g.lineCap = 'round'; g.lineJoin = 'round';
-  // (the near wall: up past the water's line, so whoever's sat in it is down behind it from the hips)
-  g.strokeStyle = INK; g.lineWidth = 15; g.beginPath(); pts.forEach(([x, y], i) => (i ? g.lineTo(x, y + 2) : g.moveTo(x, y + 2))); g.stroke();
-  g.strokeStyle = col; g.lineWidth = 11; g.stroke();
-  g.strokeStyle = 'rgba(255,255,255,0.4)'; g.lineWidth = 2; g.beginPath(); pts.forEach(([x, y], i) => (i ? g.lineTo(x, y - 3) : g.moveTo(x, y - 3))); g.stroke();
+  // (the near wall: up past the water's line, so whoever's sat in it is down behind it from the hips; `lift`: taller)
+  const dy = 2 - lift / 2;
+  g.strokeStyle = INK; g.lineWidth = 15 + lift; g.beginPath(); pts.forEach(([x, y], i) => (i ? g.lineTo(x, y + dy) : g.moveTo(x, y + dy))); g.stroke();
+  g.strokeStyle = col; g.lineWidth = 11 + lift; g.stroke();
+  g.strokeStyle = 'rgba(255,255,255,0.4)'; g.lineWidth = 2; g.beginPath(); pts.forEach(([x, y], i) => (i ? g.lineTo(x, y - 3 - lift) : g.moveTo(x, y - 3 - lift))); g.stroke();
   g.lineCap = 'butt'; g.lineJoin = 'miter';
 };
 const boundsOf = (pts: [number, number][], pad = 40) => {
@@ -612,12 +613,12 @@ const paintFloor = (g: Ctx, k: number) => {
     for (let x = TL + 20; x < TR; x += 80) { R(g, x, cy0, 12, CEIL - DECK, '#2C3342'); R(g, x + 2, cy0, 3, CEIL - DECK, '#3E4658'); }
     R(g, TL, top - 6, TR - TL, 6, '#0C0E14'); R(g, TL, top - 8, TR - TL, 2, '#3E4658');
     for (let x = TL + 140; x < TR; x += 260) { R(g, x - 10, top, 20, 8, '#3F3F46'); R(g, x - 7, top + 8, 14, 7, '#FDE68A'); R(g, x - 8, top + 8, 16, 1, '#3F3F46'); }
-    // (its props: what's up there of the real mountain, in plastic)
-    themeProps(g, k, y, top);
-    // (prayer flags strung across under the ceiling)
+    // (prayer flags strung across under the ceiling: before the props, so the signs on the wall are in front of them, never crossed)
     const sy = top + 14;
     g.strokeStyle = '#E2E8F0'; g.lineWidth = 1; g.beginPath(); g.moveTo(TL, sy); g.quadraticCurveTo((TL + TR) / 2, sy + 20, TR, sy); g.stroke();
     for (let x = TL + 20; x < TR - 10; x += 26) { const t = (x - TL) / (TR - TL), fy = sy + 20 * 4 * t * (1 - t); R(g, x, fy, 14, 14, ['#2563EB', '#F8FAFC', '#DC2626', '#16A34A', '#FACC15'][Math.floor(x / 26) % 5]); }
+    // (its props: what's up there of the real mountain, in plastic)
+    themeProps(g, k, y, top);
     // (the floor's name and its height, up on the wall, readable)
     R(g, (TL + TR) / 2 - 130, top + 40, 260, 40, INK); R(g, (TL + TR) / 2 - 128, top + 42, 256, 36, '#7C2D12');
     text(g, FLOOR_NAMES[k], (TL + TR) / 2, top + 58, '#FEF3C7', 10);
@@ -806,9 +807,9 @@ const paintFace = (g: Ctx, k: number, cx0 = -1e9, cx1 = 1e9, cy0 = -1e9, cy1 = 1
     R(g, sx - 30, sy - 4, 60, 8, '#57534E'); text(g, 'OUT OF ORDER', sx, sy + 3, '#FDE68A', 4, 'center', null);
   }
   if (k === 6) { g.fillStyle = '#0A1428'; g.beginPath(); g.moveTo(x0 + 280, yb - 40); g.lineTo(x0 + 330, yb - 70); g.lineTo(x0 + 420, yb - 60); g.lineTo(x0 + 470, yb - 34); g.lineTo(x0 + 380, yb - 44); g.closePath(); g.fill(); R(g, x0 + 290, yb - 72, 24, 3, '#F8FAFC'); }
-  // (its tacky sign, on two posts off the rock: readable)
+  // (its tacky sign, bolted flat to the rock on brackets (nothing under it to stand posts on): readable)
   { const [l1, l2] = FACE_SIGNS[k] ?? FACE_SIGNS[0], sx = x0 + FACE * 0.68, sy = yb - 150;
-    R(g, sx - 50, sy + 40, 4, 110, '#57534E'); R(g, sx + 46, sy + 40, 4, 110, '#57534E');
+    for (const bx of [sx - 52, sx + 44]) { R(g, bx, sy - 8, 8, 20, '#3F3A36'); R(g, bx + 1, sy - 8, 2, 8, '#78716C'); R(g, bx + 2, sy - 5, 3, 3, '#A8A29E'); }
     R(g, sx - 66, sy - 2, 132, 44, INK); R(g, sx - 64, sy, 128, 40, '#BE185D'); R(g, sx - 64, sy, 128, 3, '#F9A8D4');
     text(g, l1, sx, sy + 16, '#FEF3C7', 7, 'center', null); text(g, l2, sx, sy + 30, '#FDE68A', 6, 'center', null); }
   // (the shell's cut edges either side, where the inside's in: dark, its rim)
@@ -858,8 +859,10 @@ const drawSummit = (c: Ctx, state: GameState) => {
       g.fillStyle = '#C8D4E4'; g.beginPath(); g.moveTo(TL + 400, sy - 240); g.lineTo(TL + 470, sy - 150); g.lineTo(TR, sy); g.lineTo(TL + 420, sy); g.closePath(); g.fill();
       R(g, TL + 398, sy - 300, 4, 62, '#3F3F46'); R(g, TL + 402, sy - 300, 46, 26, '#DC2626'); text(g, 'SUMMIT', TL + 425, sy - 283, '#F8FAFC', 6);
       // (its sign, stood on the deck on its posts, at the snow's foot: readable over the kid's head)
-      R(g, TL + 150, sy - 120, 5, 120, '#3F3F46'); R(g, TL + 245, sy - 120, 5, 120, '#3F3F46');
-      R(g, TL + 100, sy - 160, 200, 40, INK); R(g, TL + 102, sy - 158, 196, 36, '#7C2D12'); text(g, 'THE SUMMIT', TL + 200, sy - 142, '#FEF3C7', 9); text(g, 'ELEV. 1,000 FT', TL + 200, sy - 128, '#FDE68A', 7);
+      // (a board deep enough that the far-off SPACE NEEDLE 2's saucer's all behind it, none of its letters poking out under)
+      R(g, TL + 150, sy - 98, 5, 98, '#3F3F46'); R(g, TL + 245, sy - 98, 5, 98, '#3F3F46');
+      R(g, TL + 100, sy - 160, 200, 62, INK); R(g, TL + 102, sy - 158, 196, 58, '#7C2D12'); R(g, TL + 102, sy - 158, 196, 3, '#A8502A');
+      text(g, 'THE SUMMIT', TL + 200, sy - 140, '#FEF3C7', 9); text(g, 'ELEV. 1,000 FT', TL + 200, sy - 125, '#FDE68A', 7); text(g, '(ROUGHLY)', TL + 200, sy - 110, '#FDBA74', 5);
       // (the slide's mouth: its arch, its sign)
       const mx = SUMMIT.mouthX;
       R(g, mx - 20, sy - 150, 10, 150, INK); R(g, mx + 100, sy - 150, 10, 150, INK);
@@ -870,9 +873,9 @@ const drawSummit = (c: Ctx, state: GameState) => {
   }
 };
 /** The summit's door (on its left, at the top of the Hillary Step's stairs): up, or kicked in flat. */
-const drawSummitDoor = (c: Ctx, state: GameState, down: number) => {
+const drawSummitDoor = (c: Ctx, state: GameState, down: number, ox = 0) => {
   const sy = SUMMIT.y, x = TL;
-  if (!visY(state, sy - 200, sy + 20) || !vis(state, x - 100, x + 100)) return;
+  if (!visY(state, sy - 200, sy + 20) || !vis(state, x - 100 + ox, x + 100 + ox)) return;
   // (its frame; the door up in it, or going over inward (squashed toward the deck, not turned: stamped either way),
   // flat on the deck at the last)
   stamp(c, 'wp-sdoor-frame', x - 16, sy - 142, 32, 144, g => { R(g, x - 14, sy - 132, 10, 132, INK); R(g, x + 4, sy - 132, 10, 132, INK); R(g, x - 14, sy - 140, 28, 10, INK); });
@@ -887,6 +890,8 @@ const drawSummitDoor = (c: Ctx, state: GameState, down: number) => {
  *  ridden: then there's no face out there, just the slide in the open), what of the slide's in there isn't drawn: the
  *  mountain's in front of it (it was drawn over the spiral's steps and its signs' posts). */
 const HIDE_X0 = TR, HIDE_X1 = TR + ROUND;
+/** The descent's chute: deeper than the plaza's (its near wall up past the riders' hips, the water's line over it). */
+export const DESC_WIDE = 30, DESC_WATER = -18, DESC_LIFT = 10;
 /** The descent's chute (baked in tiles), its legs down to the ground. `behind`: the mountain's face out there, in front. */
 const drawDescentChute = (c: Ctx, state: GameState, behind: boolean) => {
   const x0 = DESCENT[0][0], x1 = DESCENT[DESCENT.length - 1][0];
@@ -895,11 +900,14 @@ const drawDescentChute = (c: Ctx, state: GameState, behind: boolean) => {
   const bot = Math.min(GY, state.camera.y + H + 20), v = state.view && state.view.w > W ? state.view : { x: state.camera.x, w: W };
   for (let x = Math.ceil(Math.max(x0 + 100, v.x - 40) / 200) * 200; x < Math.min(x1, v.x + v.w + 40); x += 200) {
     if (behind && x > HIDE_X0 - 10 && x < HIDE_X1 + 10) continue;
-    const p = DESCENT.find(([px]) => px >= x);
-    if (!p || bot <= p[1] + 10) continue;
-    const top = Math.max(p[1] + 10, state.camera.y - 20);
+    // (up to the chute's underside right there: between its points, not the next point down (50-80 short of it))
+    const j = DESCENT.findIndex(([px]) => px >= x);
+    if (j < 1) continue;
+    const [ax, ay] = DESCENT[j - 1], [bx, by] = DESCENT[j], py = ay + (by - ay) * ((x - ax) / Math.max(1, bx - ax));
+    if (bot <= py + 8) continue;
+    const top = Math.max(py + 8, state.camera.y - 20);
     R(c, x - 4, top, 8, bot - top, '#2A3442'); R(c, x - 4, top, 2, bot - top, '#4A5466');
-    for (let yy = Math.ceil((p[1] + 80) / 160) * 160; yy < bot; yy += 160) if (yy > state.camera.y - 10) R(c, x - 26, yy, 52, 4, '#2A3442');
+    for (let yy = Math.ceil((py + 80) / 160) * 160; yy < bot; yy += 160) if (yy > state.camera.y - 10) R(c, x - 26, yy, 52, 4, '#2A3442');
   }
   for (let tx = Math.floor((v.x - 60) / 600) * 600; tx < v.x + v.w + 60; tx += 600) {
     if (tx + 600 < x0 - 40 || tx > x1 + 40) continue;
@@ -910,7 +918,7 @@ const drawDescentChute = (c: Ctx, state: GameState, behind: boolean) => {
     if (y1 < y0 || !visY(state, y0 - 60, y1 + 60)) continue;
     stamp(c, `wp-desc-${tx}`, tx, y0 - 60, 600, y1 - y0 + 100, g => {
       g.save(); g.beginPath(); g.rect(tx, y0 - 60, 600, y1 - y0 + 100); g.clip();
-      chuteBack(g, pts, '#0891B2', 28);
+      chuteBack(g, pts, '#0891B2', DESC_WIDE, DESC_WATER);
       g.restore();
     });
   }
@@ -931,7 +939,7 @@ const drawDescentFront = (c: Ctx, state: GameState, behind: boolean) => {
     if (!visY(state, y0, y1)) continue;
     // (and down at the summit's deck: what of it's under there is inside the deck and the tower's wall, not over them)
     const w = cut ? HIDE_X0 - tx : 600, h = cut ? Math.min(y1, SUMMIT.y + 2) - y0 : y1 - y0;
-    stamp(c, `wp-descf-${tx}${cut ? '-cut' : ''}`, tx, y0, w, h, g => { g.save(); g.beginPath(); g.rect(tx, y0, w, h); g.clip(); chuteFront(g, pts, '#0891B2'); g.restore(); });
+    stamp(c, `wp-descf-${tx}${cut ? '-cut' : ''}`, tx, y0, w, h, g => { g.save(); g.beginPath(); g.rect(tx, y0, w, h); g.clip(); chuteFront(g, pts, '#0891B2', DESC_LIFT); g.restore(); });
   }
 };
 /** Base camp's dressing: the big sign, the queue rails, the yeti mascot's cutout. */
@@ -989,6 +997,8 @@ export const drawParkBack = (c: Ctx, state: GameState, d: DrawState, extra?: () 
   if (d.climb) { drawTower(c, state, d.gates, d.tells, null, -ROUND); drawTower(c, state, d.gates, d.tells, null, ROUND); }
   drawSummit(c, state);
   drawSummitDoor(c, state, d.door);
+  // (on the spiral: the summit round with the tower's inside, either side (no lone sliver of its snow, no pop onto it))
+  if (d.climb) for (const ox of [-ROUND, ROUND]) if (vis(state, TL - 60 + ox, TR + 200 + ox, 0)) { c.save(); c.translate(ox, 0); drawSummit(c, state); drawSummitDoor(c, state, d.door, ox); c.restore(); }
   drawStub(c, state);
   drawGround(c, state);
 };
