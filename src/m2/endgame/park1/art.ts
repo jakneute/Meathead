@@ -22,9 +22,9 @@ import type { Light } from '../../../m1/game/render/lighting';
 import { CANVAS_WIDTH as W, CANVAS_HEIGHT as H } from '../../../m1/constants';
 import { stamp } from '../../../m1/game/render/stamp';
 import { drawTodSky, timeOfDay, farTint, lampGlow } from '../../timeOfDay';
-import { farMark } from '../../parkFar';
-import { text, steppedGlow } from '../../intro/art/kit';
-import { WATER_PARK_NAME } from '../stages';
+import { farMark, farTreeline } from '../../parkFar';
+import { text, steppedGlow, mix, checker as dither, hazeBands, sideFace } from '../../intro/art/kit';
+import { signText, signW, signH, rampDown, type Look } from '../../signLetters';
 import { GY, GROUND, POOLS, LEDGES, ISLANDS, SLIDES, TUBES, TOWER, FLOORS, floorY, exitSide, FLOOR_NAMES, FLOOR_FT, SUMMIT, DESCENT, L2, step, tubeSpan, type Slide, type Tube } from './geo';
 import { SLIDE_PATHS, pointAt, type Path } from './slides';
 import { tubePaths, tubeLap, tubeLapNo, PIPE_CLEAR, GAP_WARN } from './tube';
@@ -47,9 +47,47 @@ const checker = (c: Ctx, x: number, y: number, w: number, h: number, col: string
 const VOID = '#020308';
 const DROP_BANDS = ['#141A2C', '#0E1322', '#090D18', '#05070F'];
 const FAR_W = 1600, FAR_H = 300;
+/** Five steps round a color: deep, shade, body, lit, highlight. */
+const ramp5 = (col: string) => [mix(col, INK, 0.55), mix(col, INK, 0.3), col, mix(col, '#FFFFFF', 0.25), mix(col, '#FFFFFF', 0.5)];
+const poly = (c: Ctx, pts: [number, number][], col: string) => { c.fillStyle = col; c.beginPath(); c.moveTo(pts[0][0], pts[0][1]); for (let i = 1; i < pts.length; i++) c.lineTo(pts[i][0], pts[i][1]); c.closePath(); c.fill(); };
+/** A stroke along a path of points (round caps and joins), `dy` down. */
+const along = (g: Ctx, pts: [number, number][], dy: number, w: number, col: string, dash?: number[]) => {
+  g.strokeStyle = col; g.lineWidth = w; if (dash) g.setLineDash(dash);
+  g.beginPath(); pts.forEach(([x, y], i) => (i ? g.lineTo(x, y + dy) : g.moveTo(x, y + dy))); g.stroke();
+  if (dash) g.setLineDash([]);
+};
+/** A cubic bezier's points (for its legs and its shading). */
+const bez = (x0: number, y0: number, x1: number, y1: number, x2: number, y2: number, x3: number, y3: number, n = 24): [number, number][] =>
+  Array.from({ length: n + 1 }, (_, i) => { const t = i / n, u = 1 - t; return [u * u * u * x0 + 3 * u * u * t * x1 + 3 * u * t * t * x2 + t * t * t * x3, u * u * u * y0 + 3 * u * u * t * y1 + 3 * u * t * t * y2 + t * t * t * y3] as [number, number]; });
+/** A round tube along points, stepped across (SNES: shadow under, body, the lit band along its top, a glint line): `w`
+ *  its width, its colors a ramp (ramp5). `rings`: its joints' bands every so far (the sections bolted together). */
+const tubeAlong = (g: Ctx, pts: [number, number][], w: number, R: string[], ink: string, rings = 0) => {
+  g.lineCap = 'round'; g.lineJoin = 'round';
+  along(g, pts, 0, w + 3, ink);
+  along(g, pts, 0, w, R[1]);
+  along(g, pts, -w * 0.12, w * 0.7, R[2]);
+  along(g, pts, -w * 0.26, Math.max(1.5, w * 0.28), R[3]);
+  along(g, pts, -w * 0.34, Math.max(1, w * 0.1), R[4], [Math.max(2, w * 0.6), Math.max(3, w * 0.5)]);
+  if (rings) along(g, pts, 0, w, R[0], [2, rings]);
+  g.lineCap = 'butt'; g.lineJoin = 'miter';
+};
+
+/** The far horizon (screen space, a strip cached for the hour): the night's haze glowing low with the park's lights; Happy
+ *  Land's lands' landmarks as they are now (their own painters, parkFar.ts); the water park's own further rides in
+ *  steps (towers, flumes and their legs, a wave-pool's wall, a bowl ride), the hotels' lit windows; a treeline of palms
+ *  along the foot, banded into the haze. Busy, but dark: it's ten at night. No volcanoes. */
 const paintFar = (g: Ctx) => {
   const tod = timeOfDay(), t = (col: string, k = 1) => farTint(col, k, tod);
   const foot = FAR_H - 4;
+  // (the haze low down: the lights of the park on it, banded up into the sky)
+  hazeBands(g, 0, foot - 120, FAR_W, 120, t('#5A3A5A', 0.5), 0, 0.32, 6);
+  // (a far line of resort hotels behind it all, their windows lit here and there)
+  for (let i = 0; i < 22; i++) {
+    const x = i * 76 + hash(i + 200) * 30, w = 40 + hash(i + 210) * 34, h = 30 + hash(i + 220) * 46;
+    const Rh = ramp5(t('#1C2238', 0.8));
+    R(g, x, foot - h, w, h, Rh[1]); R(g, x, foot - h, 3, h, Rh[2]); R(g, x + w - 4, foot - h, 4, h, Rh[0]); R(g, x - 1, foot - h - 2, w + 2, 2, Rh[2]);
+    for (let yy = foot - h + 5; yy < foot - 6; yy += 6) for (let xx = x + 5; xx < x + w - 5; xx += 6) if (hash(xx * 0.31 + yy * 0.7 + i) < 0.22) R(g, xx, yy, 2, 2, hash(xx + yy) < 0.7 ? t('#F6C860', 0.4) : t('#9CC8F0', 0.4));
+  }
   // Happy Land on the horizon: its lands' landmarks, as they are now (dark, the odd light)
   farMark(g, 'rockies', 200, foot, 70, 0.55, tod);
   farMark(g, 'fairyCastle', 120, foot, 120, 0.45, tod);
@@ -59,20 +97,42 @@ const paintFar = (g: Ctx) => {
   farMark(g, 'thrones', 700, foot, 70, 0.5, tod);
   farMark(g, 'cartoonTower', 840, foot, 90, 0.45, tod);
   farMark(g, 'showcase', 960, foot, 80, 0.5, tod);
-  // (the water park's own rides, farther along: towers and their tubes)
+  // (the water park's own rides, farther along: scaffold towers in steps, their flumes off them on legs, canopies)
+  const FL = ['#0891B2', '#BE185D', '#CA8A04', '#16A34A', '#7C3AED'];
   for (let i = 0; i < 6; i++) {
-    const x = 1080 + i * 85, h = 60 + hash(i) * 60;
-    R(g, x, foot - h, 14, h, t('#2A3456', 0.7)); R(g, x - 6, foot - h - 8, 26, 8, t('#7A2A1A', 0.7));
-    g.strokeStyle = t(['#0891B2', '#BE185D', '#CA8A04'][i % 3], 0.6); g.lineWidth = 6; g.lineCap = 'round';
-    g.beginPath(); g.moveTo(x + 14, foot - h + 6); g.quadraticCurveTo(x + 70, foot - h, x + 80, foot - 4); g.stroke(); g.lineCap = 'butt';
+    const x = 1060 + i * 88 + hash(i + 5) * 20, h = 60 + hash(i) * 70, Rt = ramp5(t('#2A3456', 0.7));
+    R(g, x - 1, foot - h, 16, h, INK); R(g, x, foot - h, 14, h, Rt[1]); R(g, x, foot - h, 3, h, Rt[3]); R(g, x + 11, foot - h, 3, h, Rt[0]);
+    for (let yy = foot - h + 8; yy < foot; yy += 12) R(g, x, yy, 14, 1, Rt[0]);
+    const Rc = ramp5(t('#7A2A1A', 0.7));
+    poly(g, [[x - 8, foot - h - 2], [x + 7, foot - h - 14], [x + 22, foot - h - 2]], Rc[2]); poly(g, [[x + 7, foot - h - 14], [x + 22, foot - h - 2], [x + 7, foot - h - 2]], Rc[1]);
+    const pts = bez(x + 14, foot - h + 6, x + 46, foot - h, x + 62, foot - h * 0.4, x + 84, foot - 4, 16);
+    for (let k = 3; k < pts.length - 1; k += 3) R(g, pts[k][0] - 1, pts[k][1] + 2, 2, foot - pts[k][1] - 2, Rt[0]);
+    tubeAlong(g, pts, 5, ramp5(t(FL[i % 5], 0.6)), t(INK, 0.6));
   }
-  // (the treeline and the lights along the horizon)
-  g.fillStyle = t('#0C1424', 0.8); for (let x = 0; x < FAR_W; x += 6) { const h = 6 + hash(x * 0.37) * 10; g.fillRect(x, foot - h, 6, h + 4); }
-  for (let i = 0; i < 70; i++) R(g, hash(i + 3) * FAR_W, foot - 4 - hash(i) * 40, 2, 2, i % 3 ? '#F6C860' : '#93C5FD');
+  // (the wave pool's wall and its big bowl ride, a funnel on its side)
+  { const x = 1550, Rw = ramp5(t('#3A4A6A', 0.7)); R(g, x - 30, foot - 26, 80, 26, Rw[1]); R(g, x - 30, foot - 26, 80, 3, Rw[2]); for (let k = 0; k < 5; k++) R(g, x - 26 + k * 16, foot - 20, 8, 6, Rw[0]); }
+  // (the treeline: palms along the foot, then the crowns' band; into the haze)
+  farTreeline(g, 0, FAR_W, foot - 16, t('#16301E', 0.7), 3);
+  for (let i = 0; i < 46; i++) {
+    const x = hash(i + 400) * FAR_W, h = 22 + hash(i + 410) * 26, col = t('#10241A', 0.75), cl = t('#1E3A26', 0.75);
+    R(g, x, foot - h, 2, h, t('#1A1410', 0.75));
+    for (let k = -2; k <= 2; k++) { poly(g, [[x + 1, foot - h], [x + 1 + k * 6, foot - h + 3 + Math.abs(k) * 2], [x + 1 + k * 5, foot - h + 1]], col); R(g, x + 1 + k * 3, foot - h + 1, 2, 1, cl); }
+  }
+  hazeBands(g, 0, foot - 14, FAR_W, 18, t('#1A2440', 0.6), 0.1, 0.55, 4);
+  // (the lights along the horizon: lamps, the odd window; a few with their stepped glow)
+  for (let i = 0; i < 70; i++) {
+    const x = hash(i + 3) * FAR_W, y = foot - 4 - hash(i) * 40, col = i % 3 ? '#F6C860' : '#93C5FD';
+    if (i % 9 === 0) steppedGlow(g, x + 1, y + 1, 6, col, 0.25, 0.04, 3);
+    R(g, x, y, 2, 2, col);
+  }
 };
 /** The park's giant slides, nearer (the owner's: "i want the scale to feel grander with all the slides"): towers of
  *  scaffold with slides tangled round and between them, helixes, enclosed tubes, long sweeps down to their pools.
- *  Dimmed (nothing here to stand on: no lit tops). A seamless strip (everything's painted at x and x ± BIG_W). */
+ *  Dimmed (nothing here to stand on: no lit tops). A seamless strip (everything's painted at x and x ± BIG_W).
+ *  The SNES pass: the towers in steel steps (lit legs, shaded backs, braces in two tones, a stair zig-zag up the inside),
+ *  their canopies' stripes stepped, every flume a round tube in its plastic's ramp (the lit band along its top, joints
+ *  banded), legs down from them to the ground, the pools at their feet with lit rims and a glint; all of it hazed back,
+ *  in bands, deeper toward the foot. */
 const BIG_W = 1800, BIG_H = 430, BIG_TW = 300, BIG_TH = 215;
 const NOBIG = import.meta.env.DEV && typeof location !== 'undefined' && location.search.includes('wpnobig');
 const BIG_COLS = ['#0891B2', '#DB2777', '#CA8A04', '#16A34A', '#EA580C', '#7C3AED', '#0EA5E9', '#E11D48'];
@@ -80,59 +140,89 @@ const paintBig = (g: Ctx, x0 = -1e9, x1 = 1e9) => {
   const t = (col: string) => farTint(col, 0.42);
   const foot = BIG_H - 2;
   const towers = Array.from({ length: 8 }, (_, i) => ({ x: 90 + i * 225 + Math.round(hash(i + 40) * 60), h: 170 + Math.round(hash(i + 7) * 240), w: 30 + Math.round(hash(i + 2) * 16) }));
+  const S = ramp5(t('#2A3450')), ink = t('#060810');
+  /** Legs down from a flume's points to the ground, every so many points. */
+  const legs = (pts: [number, number][], every: number) => { for (let k = every; k < pts.length - 1; k += every) { const [x, y] = pts[k]; if (y > foot - 8) continue; R(g, x - 2, y + 3, 4, foot - y - 3, S[0]); R(g, x - 2, y + 3, 1, foot - y - 3, S[2]); R(g, x - 5, y + 2, 10, 2, S[1]); } };
   for (const off of [-BIG_W, 0, BIG_W]) {
     g.save(); g.translate(off, 0);
-    // (the pools at their feet)
-    for (let i = 0; i < 8; i++) { const x = 40 + i * 225 + hash(i + 90) * 80; g.fillStyle = t('#1E6FA8'); g.beginPath(); g.ellipse(x, foot - 4, 70, 7, 0, 0, Math.PI * 2); g.fill(); }
+    // (the pools at their feet: the deck's rim lit, the water banded, a glint)
+    for (let i = 0; i < 8; i++) {
+      const x = 40 + i * 225 + hash(i + 90) * 80;
+      g.fillStyle = t('#8A8A84'); g.beginPath(); g.ellipse(x, foot - 4, 74, 9, 0, 0, Math.PI * 2); g.fill();
+      g.fillStyle = t('#14507E'); g.beginPath(); g.ellipse(x, foot - 4, 70, 7, 0, 0, Math.PI * 2); g.fill();
+      g.fillStyle = t('#1E6FA8'); g.beginPath(); g.ellipse(x, foot - 5, 62, 4, 0, 0, Math.PI * 2); g.fill();
+      R(g, x - 30, foot - 7, 18, 1, t('#7FC4F0')); R(g, x + 12, foot - 5, 10, 1, t('#7FC4F0'));
+    }
     towers.forEach((T, i) => {
       // (a tile's only what reaches into it: a tower and what's off it reach ~700 either side)
       if (T.x + off < x0 - 720 || T.x + off > x1 + 720) return;
       const top = foot - T.h, tl = T.x - T.w / 2;
-      // (the scaffold: legs, cross-braces every so far, a platform and its canopy up top)
-      g.fillStyle = t('#1C2438'); g.fillRect(tl, top, 4, T.h); g.fillRect(tl + T.w - 4, top, 4, T.h);
-      g.strokeStyle = t('#2A3450'); g.lineWidth = 2; g.beginPath();
+      // (the scaffold: the back legs (shaded), a stair zig-zagging up inside, the braces, the front legs (lit); the deck
+      // up top and its canopy, striped)
+      R(g, tl + 5, top, 3, T.h, S[0]); R(g, tl + T.w - 8, top, 3, T.h, S[0]);
+      g.strokeStyle = S[0]; g.lineWidth = 2; g.beginPath();
+      for (let y = top + 14, k = 0; y < foot - 10; y += 22, k++) { g.moveTo(k % 2 ? tl + 6 : tl + T.w - 6, y); g.lineTo(k % 2 ? tl + T.w - 6 : tl + 6, y + 22); }
+      g.stroke();
+      g.strokeStyle = S[1]; g.lineWidth = 2; g.beginPath();
       for (let y = top + 10; y < foot - 20; y += 28) { g.moveTo(tl + 2, y); g.lineTo(tl + T.w - 2, y + 28); g.moveTo(tl + T.w - 2, y); g.lineTo(tl + 2, y + 28); }
       g.stroke();
-      g.fillStyle = t('#232C44'); g.fillRect(tl - 8, top - 4, T.w + 16, 6);
-      g.fillStyle = t(BIG_COLS[(i + 3) % 8]); g.beginPath(); g.moveTo(tl - 12, top - 22); g.lineTo(T.x, top - 40); g.lineTo(tl + T.w + 12, top - 22); g.closePath(); g.fill();
-      g.fillStyle = t('#1C2438'); g.fillRect(tl - 8, top - 22, 3, 18); g.fillRect(tl + T.w + 5, top - 22, 3, 18);
+      for (let y = top + 10; y < foot - 4; y += 28) { R(g, tl, y, T.w, 2, S[1]); R(g, tl, y, T.w, 1, S[2]); }
+      R(g, tl - 1, top, 6, T.h, ink); R(g, tl, top, 4, T.h, S[2]); R(g, tl, top, 1, T.h, S[3]);
+      R(g, tl + T.w - 5, top, 6, T.h, ink); R(g, tl + T.w - 4, top, 4, T.h, S[1]); R(g, tl + T.w - 4, top, 1, T.h, S[2]);
+      R(g, tl - 9, top - 5, T.w + 18, 8, ink); R(g, tl - 8, top - 4, T.w + 16, 6, S[1]); R(g, tl - 8, top + 1, T.w + 16, 1, S[0]);
+      const Rc = ramp5(t(BIG_COLS[(i + 3) % 8]));
+      R(g, tl - 8, top - 24, 3, 20, S[1]); R(g, tl + T.w + 5, top - 24, 3, 20, S[1]); R(g, T.x - 1, top - 24, 2, 20, S[0]);
+      poly(g, [[tl - 14, top - 21], [T.x, top - 42], [tl + T.w + 14, top - 21]], ink);
+      poly(g, [[tl - 12, top - 22], [T.x, top - 40], [T.x, top - 22]], Rc[3]);
+      poly(g, [[T.x, top - 40], [tl + T.w + 12, top - 22], [T.x, top - 22]], Rc[1]);
+      for (let k = 1; k < 4; k++) { const fx = tl - 12 + ((T.x - (tl - 12)) * k) / 4; poly(g, [[fx, top - 22], [T.x, top - 40], [fx + 5, top - 22]], Rc[4]); }
+      R(g, tl - 12, top - 22, T.w + 24, 3, Rc[0]);
       g.lineCap = 'round'; g.lineJoin = 'round';
-      const col = t(BIG_COLS[i % 8]), col2 = t(BIG_COLS[(i + 5) % 8]);
-      // (a helix down the tower: its back halves first, darker, then the front)
+      const col = ramp5(t(BIG_COLS[i % 8])), col2 = ramp5(t(BIG_COLS[(i + 5) % 8]));
+      // (a helix down the tower: its back halves first, darker, then the front, round in its plastic's steps)
       if (i % 2 === 0) {
         const turns = Math.max(3, Math.floor(T.h / 80)), r = T.w / 2 + 26;
         for (const front of [false, true]) for (let k = 0; k < turns; k++) {
           const y = top + 30 + k * ((T.h - 60) / turns);
-          g.strokeStyle = front ? col : t('#141A2A'); g.lineWidth = front ? 9 : 7;
-          g.beginPath(); g.ellipse(T.x, y + 20, r, 16, -0.12, front ? 0 : Math.PI, front ? Math.PI : Math.PI * 2); g.stroke();
+          const pts = Array.from({ length: 17 }, (_, j) => { const a = (front ? 0 : Math.PI) + (j / 16) * Math.PI; return [T.x + Math.cos(a) * r, y + 20 + Math.sin(a) * 16] as [number, number]; });
+          if (front) tubeAlong(g, pts, 9, col, ink, 10); else { along(g, pts, 0, 8, ink); along(g, pts, 0, 6, col[0]); along(g, pts, -1, 2, col[1]); }
         }
+        // (its legs: posts out to the helix's rim)
+        for (const s of [-1, 1]) { R(g, T.x + s * r - 2, top + 40, 3, T.h - 40, S[0]); R(g, T.x + s * r - 2, top + 40, 1, T.h - 40, S[2]); }
       }
-      // (a long sweep off the top, down and away to the next tower's pool or further, crossing what's between)
+      // (a long sweep off the top, down and away to the next tower's pool or further, crossing what's between, on legs)
       const dir = i % 3 === 1 ? -1 : 1, reach = 260 + hash(i + 11) * 360;
-      g.strokeStyle = t('#0A0E18'); g.lineWidth = 13;
-      g.beginPath(); g.moveTo(T.x + dir * T.w / 2, top + 4); g.bezierCurveTo(T.x + dir * reach * 0.35, top - 10, T.x + dir * reach * 0.5, foot - T.h * 0.2, T.x + dir * reach, foot - 10); g.stroke();
-      g.strokeStyle = col2; g.lineWidth = 9; g.stroke();
-      // (an enclosed tube: thicker, banded, a loop-de-loop on the way down)
+      const sweep = bez(T.x + dir * T.w / 2, top + 4, T.x + dir * reach * 0.35, top - 10, T.x + dir * reach * 0.5, foot - T.h * 0.2, T.x + dir * reach, foot - 10, 30);
+      legs(sweep, 3);
+      tubeAlong(g, sweep, 9, col2, ink, 14);
+      // (an enclosed tube: thicker, its rings banded, a loop-de-loop on the way down)
       if (i % 3 !== 1) {
         const lx = T.x + dir * 40, ly = top + T.h * 0.45;
-        g.strokeStyle = t('#0A0E18'); g.lineWidth = 17;
-        g.beginPath(); g.moveTo(T.x - dir * T.w / 2, top + 20); g.quadraticCurveTo(T.x - dir * 120, top + 40, lx, ly - 50);
-        g.arc(lx, ly, 50, -Math.PI / 2, Math.PI * 1.5 * (dir > 0 ? 1 : -1) - (dir > 0 ? 0 : Math.PI), dir < 0);
-        g.quadraticCurveTo(lx + dir * 180, ly + 40, lx + dir * 240, foot - 8); g.stroke();
-        g.strokeStyle = t(BIG_COLS[(i + 2) % 8]); g.lineWidth = 13; g.stroke();
-        g.strokeStyle = t('#10162A'); g.lineWidth = 13; g.setLineDash([3, 14]); g.stroke(); g.setLineDash([]);
+        const path = new Path2D();
+        path.moveTo(T.x - dir * T.w / 2, top + 20); path.quadraticCurveTo(T.x - dir * 120, top + 40, lx, ly - 50);
+        path.arc(lx, ly, 50, -Math.PI / 2, Math.PI * 1.5 * (dir > 0 ? 1 : -1) - (dir > 0 ? 0 : Math.PI), dir < 0);
+        path.quadraticCurveTo(lx + dir * 180, ly + 40, lx + dir * 240, foot - 8);
+        const Re = ramp5(t(BIG_COLS[(i + 2) % 8]));
+        const st = (w: number, col: string, dy = 0, dash?: number[]) => { g.save(); g.translate(0, dy); g.strokeStyle = col; g.lineWidth = w; if (dash) g.setLineDash(dash); g.stroke(path); g.restore(); g.setLineDash([]); };
+        st(17, ink); st(13, Re[1]); st(9, Re[2], -1); st(4, Re[3], -3); st(1.5, Re[4], -4, [8, 6]); st(13, Re[0], 0, [3, 14]);
+        // (its legs: under the loop and the run-out)
+        for (const [px, py] of [[lx, ly + 50], [lx + dir * 120, ly + 30], [lx + dir * 190, ly + 70]] as const) if (py < foot - 8) { R(g, px - 2, py + 8, 4, foot - py - 8, S[0]); R(g, px - 2, py + 8, 1, foot - py - 8, S[2]); }
       }
       // (a short kiddie one off a lower deck)
       const dy = foot - T.h * 0.3;
-      g.fillStyle = t('#232C44'); g.fillRect(tl - 10, dy, T.w + 20, 4);
-      g.strokeStyle = t(BIG_COLS[(i + 6) % 8]); g.lineWidth = 6; g.beginPath(); g.moveTo(tl - 10, dy + 2); g.quadraticCurveTo(tl - 60, dy + 10, tl - 90, foot - 6); g.stroke();
+      R(g, tl - 11, dy - 1, T.w + 22, 6, ink); R(g, tl - 10, dy, T.w + 20, 4, S[1]);
+      const kid = bez(tl - 10, dy + 2, tl - 40, dy + 4, tl - 70, foot - 20, tl - 90, foot - 6, 12);
+      tubeAlong(g, kid, 6, ramp5(t(BIG_COLS[(i + 6) % 8])), ink);
       g.lineCap = 'butt'; g.lineJoin = 'miter';
     });
     g.restore();
   }
-  // (dimmed: a haze over the lot, so none of it reads as somewhere to stand)
-  // (over what's painted only: the sky behind's left as it is)
-  g.globalCompositeOperation = 'source-atop'; g.fillStyle = 'rgba(8, 12, 26, 0.58)'; g.fillRect(0, 0, BIG_W, BIG_H); g.globalCompositeOperation = 'source-over';
+  // (dimmed: a haze over the lot, so none of it reads as somewhere to stand; deeper toward the foot (the night air),
+  // in bands; over what's painted only: the sky behind's left as it is)
+  g.globalCompositeOperation = 'source-atop';
+  g.fillStyle = 'rgba(8, 12, 26, 0.5)'; g.fillRect(0, 0, BIG_W, BIG_H);
+  hazeBands(g, 0, BIG_H * 0.45, BIG_W, BIG_H * 0.55, '#080C1A', 0, 0.3, 6);
+  g.globalCompositeOperation = 'source-over';
 };
 /** Screen space: the sky; the far horizon and the plaza's rides, dropping away as he climbs. `shift`: how far the tube
  *  rides have carried him back round their loops (the parallax carries on as if they hadn't: no jump). `hole`: a part
@@ -202,25 +292,116 @@ const paintBackdrop = (c: Ctx, state: GameState, shift: number) => {
 
 // ---------------------------------------------------------------------------------------------------------------
 // The plaza: the ground, its pits and pools, its props
+//
+// The SNES pass (the owner's "snes-ify all the visual elements added since starting with the abduction"). Depth, back to
+// front, all in drawBack (world, behind him), each step's own draw in this order:
+//   drawProps: palms (furthest back, dimmed), the light poles, the gate's towers and arch (their side faces first),
+//     the ticket booths and the turnstiles, the stands (HOT DOGS, SNO-CONES), the lockers, the loungers and umbrellas,
+//     the trash cans (all dimmed, nothing on them to stand on: no lit tops, round or sloped tops), the signs on their
+//     posts (stood on the ground, at its depth), the tiki hut and the lifeguard stand (stood on: lit tops), the Wipeout's
+//     island (stood on: a lit top);
+//   the pits (the craters' dark in bands and their broken edges; the deep end's black is the tube rides');
+//   the pools (the lagoon's tiles, its water over them);
+//   the slides (legs, stairs, the tower under the deck, its canopy, the chute's back half and its water);
+//   the ground's slab (its lit lip) over all of it at GY.
+// In front of him (drawFront): the pools' water over him, the slides' near walls.
 
-const CONC = ['#E8D9C4', '#CDBBA2', '#A8977E', '#7A6C58'];
-/** The plaza's slab at GY: pastel concrete, its lit lip (standable reads standable), its tiles anchored to the world. */
+/** The plaza's pavers, in steps (deep to highlight). */
+const PAVE = ['#4A4034', '#655949', '#807260', '#9C8C74', '#B8A68A', '#D6C6A8', '#F2E6CE'];
+/** The background props' colors: their own, a little back toward the night (dimmed: nothing there to stand on). */
+const back = (col: string) => mix(col, '#26304E', 0.3);
+/** The one eye the plaza's solid props' side faces go back toward: the screen's middle, at the ground (their feet stay
+ *  on the ground line: the plaza's seen side on, no floor going back to stand them on). */
+const eyeOf = (state: GameState) => ({ x: state.camera.x + W / 2, y: GY });
+/** A box's side faces, whichever faces him (sideFace skips the other): drawn before its front. */
+const faces = (c: Ctx, state: GameState, x0: number, x1: number, top: number, col: string, depth = 0.9) => {
+  const e = eyeOf(state);
+  sideFace(c, e, x0, -1, top, GY, depth, col);
+  sideFace(c, e, x1, 1, top, GY, depth, col);
+};
+
+/** The ground's tiles (world-anchored, one of four looks each): the coping along the top (lit: standable reads standable),
+ *  two courses of pavers in their steps, the odd crack, drain, stain. */
+const GT = 256, GH = 90;
+const paintGround = (g: Ctx, x: number, v: number) => {
+  const y = GY, P = PAVE;
+  R(g, x, y, GT, GH, P[0]);
+  // (the coping: its lit lip, its face, the shadow under it)
+  R(g, x, y, GT, 2, '#FFF6E2'); R(g, x, y + 2, GT, 3, P[5]); R(g, x, y + 5, GT, 5, P[4]); dither(g, x, y + 5, GT, 2, P[5]);
+  R(g, x, y + 10, GT, 2, P[1]);
+  for (let k = 0; k < GT; k += 32) R(g, x + k, y + 5, 1, 5, P[2]);
+  // (the pavers: two courses, staggered; each lit along its top and left, shaded along its foot and right, specked)
+  for (const [cy, ch, off] of [[y + 13, 28, 0], [y + 43, 30, 32]] as const) {
+    for (let px = x - 64 + off; px < x + GT; px += 64) {
+      const n = hash(px * 0.013 + cy), base = n < 0.33 ? P[2] : n < 0.66 ? mix(P[2], P[3], 0.5) : P[3];
+      const x0 = Math.max(x, px + 1), x1 = Math.min(x + GT, px + 63);
+      if (x1 <= x0) continue;
+      R(g, x0, cy, x1 - x0, ch, base);
+      dither(g, x0, cy + ch - 8, x1 - x0, 4, P[1]);
+      R(g, x0, cy + ch - 3, x1 - x0, 3, mix(base, P[1], 0.6));
+      R(g, x0, cy, x1 - x0, 2, P[4]); R(g, x0, cy, x1 - x0, 1, P[5]);
+      if (px + 1 >= x) R(g, px + 1, cy, 2, ch, mix(base, P[4], 0.6));
+      if (px + 63 <= x + GT) R(g, px + 61, cy, 2, ch, P[1]);
+      for (let k = 0; k < 6; k++) { const sx = px + 4 + hash(px + k * 7.3 + cy) * 56, sy = cy + 4 + hash(px * 0.7 + k + cy) * (ch - 10); if (sx >= x && sx < x + GT - 2) R(g, sx, sy, 2, 1, k % 2 ? P[1] : P[4]); }
+    }
+  }
+  R(g, x, y + 73, GT, 3, P[1]); dither(g, x, y + 76, GT, 4, P[1]);
+  // (its look: a crack, a drain, a stain)
+  if (v === 1) { g.strokeStyle = P[0]; g.lineWidth = 1; g.beginPath(); g.moveTo(x + 70, y + 13); g.lineTo(x + 84, y + 24); g.lineTo(x + 80, y + 33); g.lineTo(x + 98, y + 46); g.lineTo(x + 94, y + 60); g.stroke(); g.strokeStyle = P[4]; g.beginPath(); g.moveTo(x + 71, y + 14); g.lineTo(x + 85, y + 25); g.stroke(); }
+  if (v === 2) { R(g, x + 150, y + 18, 34, 16, INK); R(g, x + 151, y + 19, 32, 14, '#1E2228'); for (let k = 0; k < 7; k++) R(g, x + 153 + k * 4, y + 20, 2, 12, '#5A606A'); R(g, x + 151, y + 19, 32, 1, '#8A909A'); }
+  if (v === 3) { g.fillStyle = 'rgba(40, 30, 20, 0.35)'; g.beginPath(); g.ellipse(x + 110, y + 30, 26, 6, 0, 0, Math.PI * 2); g.fill(); g.fillStyle = 'rgba(40, 30, 20, 0.25)'; g.beginPath(); g.ellipse(x + 124, y + 52, 16, 4, 0, 0, Math.PI * 2); g.fill(); }
+};
+/** The plaza's slab at GY: its tiles (stamped, anchored to the world), cut to each run; a lit corner where a run ends. */
 const drawGround = (c: Ctx, state: GameState) => {
   const bot = state.camera.y + H + 40;
   if (bot < GY) return;
+  const v = state.view && state.view.w > W ? state.view : { x: state.camera.x, w: W };
   for (const [a, b] of GROUND) {
     if (!vis(state, a, b, 20)) continue;
-    const x0 = Math.max(a, state.camera.x - 40), x1 = Math.min(b, state.camera.x + W + 40);
-    R(c, x0, GY, x1 - x0, bot - GY, CONC[2]);
-    R(c, x0, GY, x1 - x0, 3, '#FFF4E0'); R(c, x0, GY + 3, x1 - x0, 4, CONC[0]);
-    for (let x = Math.floor(x0 / 64) * 64; x < x1; x += 64) R(c, x, GY + 7, 2, 30, CONC[3]);
-    R(c, x0, GY + 36, x1 - x0, 2, CONC[3]);
-    // (the edge of a run: a lit corner, the crater's broken edge under it)
-    for (const e of [a, b]) if (e > x0 - 2 && e < x1 + 2) R(c, e - (e === a ? 0 : 3), GY, 3, 60, '#FFF4E0');
+    const x0 = Math.max(a, v.x - 40), x1 = Math.min(b, v.x + v.w + 40);
+    if (x1 <= x0) continue;
+    c.save(); c.beginPath(); c.rect(x0, GY, x1 - x0, bot - GY); c.clip();
+    for (let tx = Math.floor(x0 / GT) * GT; tx < x1; tx += GT) { const k = Math.floor(hash(tx / GT + 0.5) * 4); c.save(); c.translate(tx, 0); stamp(c, `wp-gnd-${k}`, 0, GY, GT, GH, g => paintGround(g, 0, k)); c.restore(); }
+    if (bot > GY + GH) R(c, x0, GY + GH, x1 - x0, bot - GY - GH, PAVE[0]);
+    c.restore();
+    // (the edge of a run: a lit corner, the slab's broken face down it)
+    for (const e of [a, b]) if (e > x0 - 2 && e < x1 + 2) { R(c, e - (e === a ? 0 : 3), GY, 3, 12, '#FFF6E2'); R(c, e - (e === a ? 0 : 3), GY + 12, 3, 48, PAVE[3]); }
   }
 };
-/** The pits between runs: blast craters (glowing at the bottom: something burning down there), or the drained DEEP END
- *  under the tube rides (blue tiles going down, its depth painted). */
+/** The craters' dark, in bands going down; their glow (something burning down there). */
+const CRATER = ['#3E2A1C', '#2C1D14', '#1F140E', '#140C09', '#0A0505'];
+const SOIL = ['#1A110A', '#2A1C10', '#3C2A18', '#523A22', '#6A4C2E'];
+/** A crater's broken edge (d: 1 the pit's to the right of ex, -1 to its left): the slab snapped off, a chunk of it
+ *  hanging, rebar bent out of it, the gravel and the dirt under it going down. Stamped. */
+const paintCraterEdge = (g: Ctx, ex: number, d: number) => {
+  const X = (dx: number) => ex + d * dx;
+  // (the dirt under the slab, going down into the dark, banded)
+  poly(g, [[X(0), GY + 10], [X(34), GY + 26], [X(26), GY + 60], [X(46), GY + 96], [X(20), GY + 140], [X(30), GY + 200], [X(0), GY + 210]], SOIL[1]);
+  poly(g, [[X(0), GY + 12], [X(26), GY + 28], [X(20), GY + 58], [X(32), GY + 90], [X(0), GY + 100]], SOIL[2]);
+  dither(g, Math.min(X(0), X(36)), GY + 92, 36, 6, SOIL[1]);
+  for (let k = 0; k < 12; k++) { const sx = X(4 + hash(ex + k) * 26), sy = GY + 20 + hash(ex * 0.3 + k) * 150; R(g, sx, sy, 3, 2, k % 3 ? SOIL[3] : SOIL[4]); }
+  // (the slab: snapped off ragged, its top lit, its broken face, a chunk of it hanging down on its rebar)
+  poly(g, [[X(0), GY - 1], [X(28), GY + 1], [X(20), GY + 7], [X(32), GY + 12], [X(12), GY + 16], [X(0), GY + 16]], INK);
+  poly(g, [[X(0), GY], [X(26), GY + 2], [X(18), GY + 7], [X(29), GY + 11], [X(10), GY + 14], [X(0), GY + 14]], PAVE[3]);
+  poly(g, [[X(0), GY + 8], [X(29), GY + 11], [X(10), GY + 14], [X(0), GY + 14]], PAVE[1]);
+  R(g, Math.min(X(0), X(25)), GY, 25, 2, '#FFF6E2');
+  poly(g, [[X(14), GY + 18], [X(40), GY + 24], [X(48), GY + 46], [X(22), GY + 42]], INK);
+  poly(g, [[X(15), GY + 19], [X(38), GY + 25], [X(45), GY + 44], [X(23), GY + 40]], PAVE[2]);
+  poly(g, [[X(15), GY + 19], [X(38), GY + 25], [X(39), GY + 29], [X(17), GY + 23]], PAVE[4]);
+  // (the rebar: rust in steps, bent out over the drop)
+  g.lineCap = 'round';
+  for (const [y0, a, b] of [[GY + 6, 46, -4], [GY + 12, 38, 14], [GY + 30, 56, 30]] as const) {
+    g.strokeStyle = '#2A140A'; g.lineWidth = 3; g.beginPath(); g.moveTo(X(10), y0); g.quadraticCurveTo(X(a * 0.7), y0 + b * 0.2, X(a), y0 + b); g.stroke();
+    g.strokeStyle = '#8A4A26'; g.lineWidth = 1.5; g.stroke();
+    g.strokeStyle = '#C07A46'; g.lineWidth = 1; g.beginPath(); g.moveTo(X(10), y0 - 1); g.quadraticCurveTo(X(a * 0.7), y0 + b * 0.2 - 1, X(a * 0.9), y0 + b * 0.8 - 1); g.stroke();
+  }
+  g.lineCap = 'butt';
+  // (a broken water pipe out of the dirt, dribbling)
+  R(g, Math.min(X(0), X(22)), GY + 70, 22, 8, INK); R(g, Math.min(X(0), X(21)), GY + 71, 21, 6, '#5A6068'); R(g, Math.min(X(0), X(21)), GY + 71, 21, 2, '#9AA0AA');
+  R(g, X(21) - (d > 0 ? 0 : 2), GY + 78, 2, 40, 'rgba(120, 190, 240, 0.45)');
+};
+/** The pits between runs: blast craters (in bands down into the dark, a glow far down), or the drained DEEP END under
+ *  the tube rides (black: the drop's bands over it, drawTubeBack). */
 const drawPits = (c: Ctx, state: GameState) => {
   const bot = state.camera.y + H + 40;
   for (let i = 0; i + 1 < GROUND.length; i++) {
@@ -235,14 +416,16 @@ const drawPits = (c: Ctx, state: GameState) => {
       continue;
     }
     if (pool) continue;
-    // (a crater: broken slab edges, rebar, the dark going down, an orange glow far down)
-    R(c, x0, GY, x1 - x0, bot - GY, '#120A0A');
-    c.fillStyle = 'rgba(234, 88, 12, 0.18)'; c.fillRect(x0, GY + 200, x1 - x0, Math.max(0, bot - GY - 200));
+    // (a crater: the dark in bands, each seam dithered; the glow far down, stepped)
+    const w = x1 - x0;
+    CRATER.forEach((col, k) => { const y0 = GY + k * 44, h = k === CRATER.length - 1 ? bot - y0 : 44; if (h > 0 && y0 < bot) { R(c, x0, y0, w, h, col); if (k) dither(c, x0, y0 - 2, w, 2, col); } });
+    for (let k = 0; k < 4; k++) { const y0 = GY + 230 + k * 40; if (y0 < bot) { c.fillStyle = `rgba(234, 88, 12, ${(0.05 + k * 0.045).toFixed(3)})`; c.fillRect(x0, y0, w, k === 3 ? bot - y0 : 40); } }
     for (const [ex, d] of [[a, 1], [b, -1]] as const) {
       if (ex < state.camera.x - 80 || ex > state.camera.x + W + 80) continue;
-      c.fillStyle = CONC[3]; c.beginPath(); c.moveTo(ex, GY); c.lineTo(ex + d * 28, GY + 10); c.lineTo(ex + d * 10, GY + 40); c.lineTo(ex + d * 30, GY + 90); c.lineTo(ex, GY + 130); c.closePath(); c.fill();
-      c.strokeStyle = '#5A3A2A'; c.lineWidth = 2; c.beginPath(); c.moveTo(ex, GY + 20); c.lineTo(ex + d * 40, GY + 12); c.moveTo(ex, GY + 50); c.lineTo(ex + d * 34, GY + 60); c.stroke();
+      stamp(c, `wp-crater-${ex}`, d > 0 ? ex - 2 : ex - 62, GY - 4, 64, 220, g => paintCraterEdge(g, ex, d));
     }
+    // (an island stood up out of it (the Wipeout's): over the crater's dark, down into it)
+    for (const [x, y, w] of ISLANDS) if (x > a && x < b) if (vis(state, x, x + w)) stamp(c, `wp-island-${x}`, x, y, w, GY + 400 - y, g => paintIsland(g, x, y, w));
   }
 };
 const waterOf = (p: (typeof POOLS)[number], greenPool: number, a: number) => {
@@ -259,9 +442,54 @@ const drawPoolsFront = (c: Ctx, state: GameState, greenPool: number) => {
     for (let x = p.x1 + ((state.frame * 0.6) % 30); x < p.x2 - 8; x += 30) R(c, x, p.surface + 4, 8, 1, '#E0F2FE');
   }
 };
+/** THE LAGOON's basin (stamped): its walls in mosaic tile (a band of wave tiles up top, the depth markers), banded darker
+ *  going down; its floor's tiles lit along the top (he stands on it); its end walls; the coping round its rim, lit; the
+ *  ladder at its far end in chrome steps. */
+const TILE = ['#0E3460', '#16487E', '#1F5A92', '#2E70AA', '#4A8AC8', '#8AC0EA'];
+const paintLagoon = (g: Ctx, p: (typeof POOLS)[number]) => {
+  const { x1, x2, bottom } = p, w = x2 - x1;
+  R(g, x1, GY, w, bottom - GY + 20, TILE[2]);
+  for (let y = GY + 20; y < bottom; y += 8) for (let x = x1 + ((y >> 3) % 2) * 4; x < x2; x += 8) { const n = hash(x * 0.37 + y * 0.11); R(g, x, y, 7, 7, n < 0.3 ? TILE[1] : n < 0.8 ? TILE[2] : TILE[3]); R(g, x, y, 7, 1, TILE[3]); }
+  // (the wave tiles' band along the top: white crests on blue)
+  R(g, x1, GY + 4, w, 14, TILE[3]);
+  for (let x = x1; x < x2; x += 16) { poly(g, [[x, GY + 16], [x + 6, GY + 7], [x + 12, GY + 9], [x + 10, GY + 12], [x + 16, GY + 16]], '#E0F2FE'); R(g, x + 6, GY + 8, 3, 1, '#FFFFFF'); }
+  R(g, x1, GY + 18, w, 2, TILE[0]);
+  // (deeper, darker: banded down)
+  hazeBands(g, x1, GY + 20, w, bottom - GY - 20, '#041228', 0, 0.55, 5);
+  // (the depth markers on the wall, in tile letters)
+  signText(g, '3 FT', x1 + 40, GY + 38, { sx: 1, sy: 2, fill: '#F8FAFC', shadow: TILE[0] }, 'center');
+  signText(g, '9 FT', x2 - 60, GY + 38, { sx: 1, sy: 2, fill: '#F8FAFC', shadow: TILE[0] }, 'center');
+  // (its floor: tiles, lit along the top: he stands on it)
+  R(g, x1, bottom, w, 20, TILE[1]); R(g, x1, bottom, w, 2, '#CFEFFF'); R(g, x1, bottom + 2, w, 2, TILE[5]); R(g, x1, bottom + 4, w, 1, TILE[3]);
+  for (let x = x1 + 16; x < x2; x += 32) R(g, x, bottom + 5, 1, 15, TILE[0]);
+  // (its end walls: darker tile, a lit edge down each)
+  for (const [ex, d] of [[x1, 1], [x2, -1]] as const) {
+    const ox = d > 0 ? ex : ex - 8;
+    R(g, ox, GY, 8, bottom - GY, TILE[0]); R(g, d > 0 ? ex + 8 : ex - 10, GY, 2, bottom - GY, TILE[4]);
+    for (let y = GY + 8; y < bottom; y += 8) R(g, ox, y, 8, 1, TILE[1]);
+  }
+  // (the coping round the rim: stone, lit along its top, its lip over the water)
+  for (const ex of [x1, x2]) { R(g, ex - 6, GY - 3, 12, 10, INK); R(g, ex - 5, GY - 2, 10, 8, PAVE[4]); R(g, ex - 5, GY - 2, 10, 2, '#FFF6E2'); R(g, ex - 5, GY + 4, 10, 2, PAVE[2]); }
+  // (the ladder at the far end: chrome rails in steps, rungs)
+  for (const rx of [x2 - 22, x2 - 11]) { R(g, rx - 1, GY - 32, 5, 64, INK); R(g, rx, GY - 31, 3, 62, '#9AA2AC'); R(g, rx, GY - 31, 1, 62, '#F1F5F9'); R(g, rx + 2, GY - 31, 1, 62, '#5A626C'); }
+  g.strokeStyle = INK; g.lineWidth = 4; g.beginPath(); g.arc(x2 - 16.5, GY - 31, 5.5, Math.PI, 0); g.stroke();
+  g.strokeStyle = '#C8CED6'; g.lineWidth = 2; g.stroke();
+  for (let y = GY - 22; y < GY + 30; y += 12) { R(g, x2 - 21, y, 12, 3, '#5A626C'); R(g, x2 - 21, y, 12, 1, '#E2E8F0'); }
+};
 const drawPools = (c: Ctx, state: GameState, greenPool: number) => {
   for (const p of POOLS) {
     if (!vis(state, p.x1, p.x2)) continue;
+    if (p === POOLS[0]) {
+      // (the lagoon: its basin stamped; the water over it live (banded: deeper, bluer))
+      stamp(c, 'wp-lagoon', p.x1 - 10, GY - 40, p.x2 - p.x1 + 20, p.bottom - GY + 64, g => paintLagoon(g, p));
+      const d = p.bottom - p.surface;
+      c.fillStyle = 'rgba(40, 150, 225, 0.42)'; c.fillRect(p.x1, p.surface, p.x2 - p.x1, d * 0.3);
+      c.fillStyle = 'rgba(34, 128, 210, 0.5)'; c.fillRect(p.x1, p.surface + Math.round(d * 0.3), p.x2 - p.x1, Math.round(d * 0.35));
+      c.fillStyle = 'rgba(26, 100, 190, 0.58)'; c.fillRect(p.x1, p.surface + Math.round(d * 0.65), p.x2 - p.x1, d - Math.round(d * 0.65));
+      // (the light off the water on the floor, wobbling)
+      for (let x = p.x1 + 20 + ((state.frame * 0.4) % 40); x < p.x2 - 20; x += 40) R(c, x, p.bottom - 3, 12, 1, 'rgba(200, 240, 255, 0.5)');
+      continue;
+    }
     // (the tiles of its walls and floor; the water over it, banded, its surface glinting)
     R(c, p.x1, GY, p.x2 - p.x1, p.bottom - GY + 20, '#2A6AA8');
     for (let y = GY; y < p.bottom; y += 16) R(c, p.x1, y, p.x2 - p.x1, 1, '#4A8AC8');
@@ -277,65 +505,346 @@ const drawPools = (c: Ctx, state: GameState, greenPool: number) => {
     for (let y = GY - 24; y < GY + 30; y += 12) R(c, p.x2 - 20, y, 13, 2, '#C8CCD2');
   }
 };
-/** A sign on posts, stood on the ground at (x, feet), its board high enough to read over him. */
+/** A sign on posts, stood on the ground at (x, feet), its board high enough to read over him: a water park's, its top a
+ *  wave cresting (foam on it), planks in its paint's steps, an ink edge; its words in the park's sign letters (enamel,
+ *  ramped down each letter, a drop shadow), the name big; its posts bamboo, notched, stood on the ground. */
+const SIGN_INK = '#140A04';
+const nameLook = (col: string): Look => ({ sx: 2, sy: 2, fill: rampDown(col, 0.35), dither: true, shadow: SIGN_INK, drop: 2, gap: 1 });
+const subLook = (col: string): Look => ({ sx: 1, sy: 2, fill: rampDown(col, 0.3), dither: true, shadow: SIGN_INK, drop: 1, gap: 1 });
 export const sign = (c: Ctx, x: number, feet: number, lines: string[], board = '#0E7490', ink = '#FEF3C7', key?: string) => {
   const draw = (g: Ctx) => {
-    g.font = '8px "Press Start 2P"';
-    const w = Math.max(70, ...lines.map(l => g.measureText(l).width + 18)), h = 12 + lines.length * 12, top = feet - 110;
-    R(g, x - w / 2 + 6, top + h, 5, 110 - h, '#3F3F46'); R(g, x + w / 2 - 11, top + h, 5, 110 - h, '#3F3F46');
-    R(g, x - w / 2 - 2, top - 2, w + 4, h + 4, INK); R(g, x - w / 2, top, w, h, board); R(g, x - w / 2, top, w, 2, '#FFFFFF');
-    lines.forEach((l, i) => text(g, l, x, top + 16 + i * 12, ink, 8));
+    const Ls = lines.map((_, i) => (i ? subLook(ink) : nameLook(ink)));
+    const w = Math.round(Math.max(84, ...lines.map((l, i) => signW(l, Ls[i]))) + 26);
+    const h = Math.round(10 + Ls.reduce((n, L) => n + signH(L) + 5, 0)), top = feet - 114, x0 = Math.round(x - w / 2);
+    const B = ramp5(board), bam = ramp5('#A8843E');
+    // (its posts: bamboo, notched, from under the board down to the ground)
+    for (const px of [x0 + 12, x0 + w - 18]) {
+      R(g, px - 1, top + h, 8, feet - top - h, INK); R(g, px, top + h, 6, feet - top - h, bam[2]); R(g, px, top + h, 2, feet - top - h, bam[3]); R(g, px + 5, top + h, 1, feet - top - h, bam[1]);
+      for (let yy = top + h + 12; yy < feet - 6; yy += 16) { R(g, px, yy, 6, 2, bam[0]); R(g, px, yy + 2, 6, 1, bam[4]); }
+      R(g, px - 2, feet - 3, 10, 3, bam[0]);
+    }
+    // (the board: its crest of a wave along the top, then the planks)
+    g.fillStyle = INK; for (let k = x0 + 4; k < x0 + w - 4; k += 14) { g.beginPath(); g.arc(k + 5, top + 1, 8, Math.PI, 0); g.fill(); }
+    R(g, x0 - 2, top - 2, w + 4, h + 4, INK);
+    for (let k = x0 + 4; k < x0 + w - 4; k += 14) { g.fillStyle = B[2]; g.beginPath(); g.arc(k + 5, top + 1, 6, Math.PI, 0); g.fill(); R(g, k + 1, top - 4, 3, 2, B[4]); R(g, k + 2, top - 5, 2, 1, '#FFFFFF'); }
+    R(g, x0, top, w, h, B[2]);
+    R(g, x0, top, w, 3, B[3]); R(g, x0, top, w, 1, B[4]); R(g, x0, top, 2, h, B[3]);
+    for (let yy = top + 12; yy < top + h - 4; yy += 12) R(g, x0, yy, w, 1, B[1]);
+    R(g, x0, top + h - 3, w, 3, B[1]); dither(g, x0, top + h - 7, w, 4, B[1]); R(g, x0 + w - 2, top, 2, h, B[1]);
+    for (const sx of [x0 + 4, x0 + w - 7]) { R(g, sx, top + h - 10, 3, 3, B[0]); R(g, sx, top + h - 10, 1, 1, B[4]); }
+    let yy = top + 6;
+    lines.forEach((l, i) => { yy += signH(Ls[i]); signText(g, l, x, yy, Ls[i]); yy += 5; });
   };
-  if (key) stamp(c, `wp-sign-${key}`, x - 200, feet - 120, 400, 124, draw); else draw(c);
+  if (key) stamp(c, `wp-sign-${key}`, x - 200, feet - 140, 400, 144, draw); else draw(c);
 };
+/** A palm (three looks): its trunk in rings of bark, lit up its left, curving up; its fronds in three greens, each a spine
+ *  with leaflets drooping off it, the under side darker; coconuts at the crown. Behind the play: a touch dimmed. */
+const paintPalm = (g: Ctx, x: number, v: number) => {
+  const lean = (v - 1) * 14, top = 196 + v * 8, bark = ramp5(back('#6E5034')), leaf = ramp5(back('#22663C'));
+  const at = (t: number) => { const u = 1 - t; return [u * u * x + 2 * u * t * (x + lean * 0.4) + t * t * (x + lean), GY - top * t] as const; };
+  for (let s = 0; s < top; s += 6) {
+    const [cx, cy] = at(s / top), w = Math.round(13 - (s / top) * 5), l = Math.round(cx - w / 2);
+    R(g, l - 1, cy - 6, 1, 7, INK); R(g, l + w, cy - 6, 1, 7, INK);
+    R(g, l, cy - 6, w, 6, bark[2]); R(g, l, cy - 6, 3, 6, bark[3]); R(g, l, cy - 6, 1, 6, bark[4]); R(g, l + w - 3, cy - 6, 3, 6, bark[1]);
+    // (its rings: a notch across, lit under, staggered)
+    R(g, l + 1, cy - 6, w - 2, 1, bark[1]); R(g, l + ((s / 6) % 2 ? 2 : 4), cy - 5, w - 6, 1, bark[3]);
+  }
+  const [hx, hy] = at(1);
+  g.lineCap = 'round'; g.lineJoin = 'round';
+  const fronds = 9;
+  for (const pass of [0, 1]) for (let k = 0; k < fronds; k++) {
+    // (the back fronds first (darker), the front ones over them)
+    if ((k % 2) !== pass) continue;
+    const a = Math.PI + (k / (fronds - 1)) * Math.PI + (hash(k + v * 9) - 0.5) * 0.2, len = 62 + hash(k * 3 + v) * 22;
+    const tx = hx + Math.cos(a) * len, ty = hy + Math.sin(a) * len * 0.45 + 34 + Math.abs(Math.cos(a)) * 20;
+    const mx = hx + Math.cos(a) * len * 0.5, my = hy + Math.sin(a) * len * 0.5 - 10, dir = Math.cos(a) < 0 ? -1 : 1;
+    const L = pass ? leaf : leaf.map(cc => mix(cc, INK, 0.25));
+    // (a frond: filled, its top edge along the spine, its leaflets hanging off it in a saw edge, toward its tip)
+    const n = 14, spine: [number, number][] = [], upper: [number, number][] = [], lower: [number, number][] = [];
+    for (let i = 0; i <= n; i++) {
+      const t = i / n, u = 1 - t, px = u * u * hx + 2 * u * t * mx + t * t * tx, py = u * u * hy + 2 * u * t * my + t * t * ty;
+      const w = 3 * (1 - t) + 1, ll = (18 - 12 * t) * (0.8 + 0.4 * hash(i + k * 13 + v));
+      spine.push([px, py]); upper.push([px, py - w]);
+      lower.push(i % 2 ? [px + dir * 5, py + ll] : [px, py + 2]);
+    }
+    const shape = [...upper, ...lower.reverse()];
+    g.strokeStyle = INK; g.lineWidth = 2; g.beginPath(); shape.forEach(([px, py], i) => (i ? g.lineTo(px, py) : g.moveTo(px, py))); g.closePath(); g.stroke();
+    g.fillStyle = L[1]; g.fill();
+    g.fillStyle = L[2]; g.beginPath(); [...upper, ...spine.slice().reverse().map(([px, py]) => [px, py + 4] as [number, number])].forEach(([px, py], i) => (i ? g.lineTo(px, py) : g.moveTo(px, py))); g.closePath(); g.fill();
+    along(g, spine, 0, 1.5, L[3]);
+    along(g, upper.slice(0, 8), 0, 1, L[4]);
+  }
+  g.lineCap = 'butt'; g.lineJoin = 'miter';
+  // (the coconuts)
+  for (const [ox, oy] of [[-5, 6], [4, 7], [0, 11]] as const) { g.fillStyle = INK; g.beginPath(); g.arc(hx + ox, hy + oy, 5, 0, Math.PI * 2); g.fill(); g.fillStyle = back('#5A3A1E'); g.beginPath(); g.arc(hx + ox, hy + oy, 4, 0, Math.PI * 2); g.fill(); R(g, hx + ox - 2, hy + oy - 2, 2, 2, back('#9A6A3A')); }
+};
+/** The gate's kit, as the lot paints it from the other side (endgame/lot/art.ts GATE: the colors exactly). */
+const GTOWER = ['#0B2340', '#14345A', '#1E4A7A', '#2C64A0', '#3A7AB8', '#6AA4D8'];
+const GCAP = ['#0E5A6E', '#0E8CA8', '#22D3EE', '#67E8F9', '#A5F3FC'];
+const GARCH = ['#064A5E', '#06708A', '#0891B2', '#22B8D8', '#67E8F9', '#CFFAFE'];
+const GBARS = ['#2A2E36', '#4A4E58', '#6A6E78', '#8A8E98', '#A4A8B2', '#C8CCD2'];
+const GBRASS = ['#5C3A06', '#9A6A0E', '#D4A017', '#F2CC4A', '#FFF0A0'];
+const GATE_TX = [-120, 210] as const, GATE_TW = 50, GATE_TH = 260;
+/** The gate from inside, kicked down (stamped): its towers' backs in their blue stucco (lit down the left, banded joints,
+ *  a staff door and an EXIT plaque on one, a breaker box on the other), their cyan caps in tiers; the arch's back, the
+ *  wave in its steps, its plaque (COME BACK SOON); the gates themselves flat on the plaza, bars and spear tips, the
+ *  chain still round them and its padlock. */
+const paintGate = (g: Ctx) => {
+  const B = GY, T = GTOWER, C = GCAP, A = GARCH;
+  for (const tx of GATE_TX) {
+    R(g, tx - 2, B - GATE_TH, GATE_TW + 4, GATE_TH, INK);
+    R(g, tx, B - GATE_TH + 2, GATE_TW, GATE_TH - 2, T[2]);
+    R(g, tx, B - GATE_TH + 2, 6, GATE_TH - 2, T[4]); R(g, tx + 6, B - GATE_TH + 2, 2, GATE_TH - 2, T[3]); dither(g, tx + 8, B - GATE_TH + 2, 2, GATE_TH - 2, T[3]);
+    R(g, tx + GATE_TW - 10, B - GATE_TH + 2, 10, GATE_TH - 2, T[1]); dither(g, tx + GATE_TW - 12, B - GATE_TH + 2, 2, GATE_TH - 2, T[1]); R(g, tx + GATE_TW - 2, B - GATE_TH + 2, 2, GATE_TH - 2, T[0]);
+    for (let k = 0; k < 8; k++) { R(g, tx, B - 236 + k * 30, GATE_TW, 2, T[0]); R(g, tx, B - 234 + k * 30, GATE_TW, 1, T[3]); }
+    R(g, tx - 4, B - 26, GATE_TW + 8, 26, INK); R(g, tx - 3, B - 25, GATE_TW + 6, 25, T[1]); R(g, tx - 3, B - 25, GATE_TW + 6, 2, T[3]); dither(g, tx - 3, B - 10, GATE_TW + 6, 8, T[0]);
+    const tiers: [number, number, number][] = [[-8, B - GATE_TH - 14, GATE_TW + 16], [-4, B - GATE_TH - 24, GATE_TW + 8], [0, B - GATE_TH - 32, GATE_TW]];
+    for (const [dx, y, w] of tiers) { R(g, tx + dx - 1, y - 1, w + 2, 12, INK); R(g, tx + dx, y, w, 10, C[2]); R(g, tx + dx, y, w, 2, C[4]); R(g, tx + dx, y + 7, w, 3, C[1]); R(g, tx + dx, y + 2, 3, 5, C[3]); }
+    const px = tx + GATE_TW / 2;
+    poly(g, [[px - 7, B - GATE_TH - 32], [px - 2, B - GATE_TH - 50], [px + 8, B - GATE_TH - 44], [px + 2, B - GATE_TH - 42], [px + 6, B - GATE_TH - 32]], INK);
+    poly(g, [[px - 5, B - GATE_TH - 33], [px - 1.5, B - GATE_TH - 47], [px + 5, B - GATE_TH - 44], [px + 1, B - GATE_TH - 41], [px + 4, B - GATE_TH - 33]], C[3]);
+  }
+  // (the left tower's staff door, its EXIT plaque; the right one's breaker box, its conduit up)
+  { const dx = GATE_TX[0] + 10; R(g, dx - 1, B - 92, 32, 66, INK); R(g, dx, B - 91, 30, 65, '#3A4656'); R(g, dx, B - 91, 30, 2, '#6A7686'); R(g, dx + 2, B - 89, 1, 61, '#5A6676'); R(g, dx + 24, B - 60, 3, 3, GBRASS[3]);
+    R(g, dx - 3, B - 112, 36, 14, INK); R(g, dx - 2, B - 111, 34, 12, '#7F1D1D'); signText(g, 'EXIT', dx + 15, B - 102, { sx: 1, sy: 1, fill: ['#FCA5A5', '#F87171', '#EF4444'], shadow: '#3A0A0A' }); }
+  { const bx = GATE_TX[1] + 12; R(g, bx - 1, B - 120, 28, 36, INK); R(g, bx, B - 119, 26, 34, '#5A6470'); R(g, bx, B - 119, 26, 2, '#8A949E'); R(g, bx + 2, B - 110, 22, 1, '#3A424C'); R(g, bx + 10, B - 104, 6, 6, '#FACC15'); R(g, bx + 12, B - 102, 2, 2, INK); R(g, bx + 11, B - 230, 4, 111, '#3A424C'); R(g, bx + 11, B - 230, 1, 111, '#6A747E'); }
+  // (the arch's back: the wave in its steps)
+  const L0 = GATE_TX[0] + 20, R0 = GATE_TX[1] + 30, X = (L0 + R0) / 2;
+  const arc = (dy: number) => { g.beginPath(); g.moveTo(L0, B - 236 + dy); g.quadraticCurveTo(X, B - 330 + dy, R0, B - 236 + dy); };
+  g.lineCap = 'round';
+  arc(0); g.strokeStyle = INK; g.lineWidth = 36; g.stroke();
+  arc(1); g.strokeStyle = A[1]; g.lineWidth = 30; g.stroke();
+  arc(-2); g.strokeStyle = A[2]; g.lineWidth = 22; g.stroke();
+  arc(-8); g.strokeStyle = A[3]; g.lineWidth = 8; g.stroke();
+  arc(-12); g.strokeStyle = A[4]; g.lineWidth = 4; g.stroke();
+  arc(-14); g.strokeStyle = A[5]; g.lineWidth = 1.5; g.setLineDash([6, 5]); g.stroke(); g.setLineDash([]);
+  arc(10); g.strokeStyle = A[0]; g.lineWidth = 6; g.stroke();
+  g.lineCap = 'butt';
+  // (its plaque at the top, held on it: what the way out says)
+  R(g, X - 92, B - 294, 184, 28, INK); R(g, X - 91, B - 293, 182, 26, '#0B2A4A'); R(g, X - 91, B - 293, 182, 2, A[3]); R(g, X - 91, B - 269, 182, 2, '#061A30');
+  for (const sx of [X - 87, X + 85]) R(g, sx, B - 289, 2, 2, GBRASS[3]);
+  signText(g, 'COME BACK SOON', X, B - 275, { sx: 1, sy: 2, fill: rampDown('#FEF08A', 0.35), dither: true, shadow: '#3A2A06', gap: 1 });
+  // (the gates, down flat (kicked in): seen edge on, a sliver of bars on the ground, the spear tips at their top's end,
+  // the rails, the chain still round them, its padlock)
+  R(g, -62, B - 7, 264, 7, INK); R(g, -60, B - 6, 260, 5, GBARS[2]); R(g, -60, B - 6, 260, 1, GBARS[5]); R(g, -60, B - 2, 260, 1, GBARS[0]);
+  for (let x = -56; x < 196; x += 14) { R(g, x, B - 5, 4, 3, GBARS[4]); R(g, x, B - 5, 1, 3, GBARS[5]); }
+  for (const rx of [-40, 60, 170]) { R(g, rx, B - 9, 8, 9, INK); R(g, rx + 1, B - 8, 6, 7, GBARS[3]); R(g, rx + 1, B - 8, 6, 1, GBARS[5]); }
+  for (let k = 0; k < 4; k++) poly(g, [[200 + k * 3, B - 6], [206 + k * 3, B - 4 - k], [200 + k * 3, B - 2]], GBARS[4]);
+  for (let k = 0; k < 6; k++) { g.strokeStyle = k % 2 ? '#9AA0AA' : '#C8CCD2'; g.lineWidth = 2; g.beginPath(); g.ellipse(52 + k * 7, B - 9, 4, 2.5, 0, 0, Math.PI * 2); g.stroke(); }
+  R(g, 94, B - 15, 12, 10, INK); R(g, 95, B - 14, 10, 8, GBRASS[2]); R(g, 95, B - 14, 10, 2, GBRASS[4]); R(g, 99, B - 11, 2, 3, GBRASS[0]);
+  g.strokeStyle = INK; g.lineWidth = 3; g.beginPath(); g.arc(100, B - 15, 3.5, Math.PI, 0); g.stroke(); g.strokeStyle = GBARS[4]; g.lineWidth = 1.5; g.stroke();
+};
+/** A ticket booth (stamped, dimmed): pink stucco in its steps, its window smashed in (glass shards, the dark), a striped
+ *  awning over it, a cresting-wave cap on top (no flat top: nothing to stand on), TICKETS on it in the park's letters,
+ *  CLOSED on a card in the glass. */
+const BOOTH = '#D84F92';
+const paintBooth = (g: Ctx, x: number) => {
+  const P = ramp5(back(BOOTH)), A = ramp5(back('#0EA5E9')), gl = back('#0B1220');
+  R(g, x - 50, GY - 120, 100, 120, INK); R(g, x - 48, GY - 118, 96, 118, P[2]);
+  R(g, x - 48, GY - 118, 6, 118, P[3]); R(g, x - 48, GY - 118, 2, 118, P[4]); R(g, x + 38, GY - 118, 10, 118, P[1]); dither(g, x + 36, GY - 118, 2, 118, P[1]);
+  for (let y = GY - 98; y < GY - 16; y += 22) R(g, x - 48, y, 96, 1, P[1]);
+  // (the window: its frame, the dark through it, the glass smashed (shards still in the frame), a CLOSED card)
+  R(g, x - 38, GY - 98, 76, 44, P[0]); R(g, x - 36, GY - 96, 72, 40, gl);
+  for (const s of [[[-36, -96], [-14, -96], [-30, -80]], [[36, -96], [14, -96], [24, -86], [36, -70]], [[-36, -56], [-24, -56], [-36, -68]], [[36, -56], [6, -56], [20, -64]]] as [number, number][][]) {
+    poly(g, s.map(([a, b]) => [x + a, GY + b] as [number, number]), back('#3A5A7A'));
+    g.strokeStyle = back('#BFE0FF'); g.lineWidth = 1; g.beginPath(); g.moveTo(x + s[1][0], GY + s[1][1]); g.lineTo(x + s[2][0], GY + s[2][1]); g.stroke();
+  }
+  R(g, x - 10, GY - 74, 26, 14, back('#F1EFEA')); signText(g, 'CLOSED', x + 3, GY - 64, { sx: 1, sy: 1, fill: back('#B91C1C') });
+  // (the counter under it, the kick plate along the foot)
+  R(g, x - 42, GY - 54, 84, 5, P[0]); R(g, x - 42, GY - 54, 84, 1, P[1]);
+  R(g, x - 48, GY - 18, 96, 18, P[1]); dither(g, x - 48, GY - 22, 96, 4, P[1]); R(g, x - 48, GY - 4, 96, 4, P[0]);
+  // (the awning over the window: stripes, scalloped)
+  for (let k = 0; k < 10; k++) { const ax = x - 44 + k * 9; R(g, ax, GY - 108, 9, 8, k % 2 ? P[4] : A[2]); g.fillStyle = k % 2 ? P[4] : A[2]; g.beginPath(); g.arc(ax + 4.5, GY - 100, 4.5, 0, Math.PI); g.fill(); }
+  R(g, x - 44, GY - 109, 90, 2, INK);
+  // (the cap: a wave cresting over it, TICKETS on its board)
+  poly(g, [[x - 58, GY - 116], [x - 50, GY - 136], [x - 20, GY - 150], [x + 26, GY - 148], [x + 54, GY - 134], [x + 46, GY - 128], [x + 58, GY - 116]], INK);
+  poly(g, [[x - 55, GY - 118], [x - 48, GY - 134], [x - 20, GY - 147], [x + 25, GY - 145], [x + 50, GY - 134], [x + 42, GY - 129], [x + 55, GY - 118]], A[2]);
+  poly(g, [[x - 48, GY - 134], [x - 20, GY - 147], [x + 25, GY - 145], [x + 20, GY - 140], [x - 18, GY - 141], [x - 44, GY - 130]], A[4]);
+  R(g, x - 55, GY - 121, 110, 3, A[0]);
+  R(g, x - 36, GY - 136, 72, 14, INK); R(g, x - 35, GY - 135, 70, 12, back('#F8FAFC'));
+  signText(g, 'TICKETS', x, GY - 125, { sx: 1, sy: 1, fill: [back('#0E7490'), back('#155E75')], shadow: back('#A5F3FC') });
+};
+/** A food stand (stamped, dimmed): its hut in its paint's steps, a striped awning, the shutter half down, its board, and
+ *  on its roof the thing it sells, giant and fiberglass (round: nothing to stand on). */
+const paintStand = (g: Ctx, x: number, kind: 'dogs' | 'sno') => {
+  const body = ramp5(back(kind === 'dogs' ? '#E8B83A' : '#7DD3FC')), st = ramp5(back(kind === 'dogs' ? '#DC2626' : '#DB2777')), wht = back('#F1EFEA');
+  R(g, x - 46, GY - 96, 92, 96, INK); R(g, x - 44, GY - 94, 88, 94, body[2]); R(g, x - 44, GY - 94, 5, 94, body[3]); R(g, x + 34, GY - 94, 10, 94, body[1]); dither(g, x + 32, GY - 94, 2, 94, body[1]);
+  R(g, x - 36, GY - 76, 72, 30, back('#140E0A')); for (let y = GY - 76; y < GY - 60; y += 3) R(g, x - 36, y, 72, 2, body[1]);
+  R(g, x - 38, GY - 46, 76, 5, body[0]);
+  R(g, x - 44, GY - 16, 88, 16, body[1]); R(g, x - 44, GY - 3, 88, 3, body[0]);
+  for (let k = 0; k < 10; k++) { const ax = x - 46 + k * 9.4; R(g, ax, GY - 88, 9.4, 8, k % 2 ? wht : st[2]); g.fillStyle = k % 2 ? wht : st[2]; g.beginPath(); g.arc(ax + 4.7, GY - 80, 4.7, 0, Math.PI); g.fill(); }
+  signText(g, kind === 'dogs' ? '$19' : 'BLUE OR RED', x, GY - 26, { sx: 1, sy: 1, fill: st[1] });
+  if (kind === 'dogs') {
+    // (the giant hot dog: bun, sausage, the mustard zig-zag)
+    const bun = ramp5(back('#D9933E')), dog = ramp5(back('#B3412A'));
+    g.fillStyle = INK; g.beginPath(); g.ellipse(x, GY - 118, 46, 12, 0, 0, Math.PI * 2); g.fill();
+    g.fillStyle = dog[2]; g.beginPath(); g.ellipse(x, GY - 122, 44, 7, 0, 0, Math.PI * 2); g.fill(); R(g, x - 36, GY - 127, 72, 2, dog[4]);
+    g.fillStyle = bun[2]; g.beginPath(); g.ellipse(x, GY - 116, 40, 8, 0, 0, Math.PI); g.fill(); R(g, x - 34, GY - 117, 68, 2, bun[4]); R(g, x - 30, GY - 111, 60, 2, bun[1]);
+    g.strokeStyle = back('#FACC15'); g.lineWidth = 2; g.beginPath(); for (let k = 0; k < 9; k++) g.lineTo(x - 32 + k * 8, GY - 124 + (k % 2) * 4); g.stroke();
+  } else {
+    // (the giant sno-cone: the paper cone, the ice in a ball, its syrup)
+    const cone = ramp5(back('#F1EFEA')), ice = ramp5(back('#3B82F6'));
+    poly(g, [[x - 20, GY - 128], [x + 20, GY - 128], [x, GY - 98]], INK); poly(g, [[x - 18, GY - 127], [x + 18, GY - 127], [x, GY - 100]], cone[2]); poly(g, [[x - 18, GY - 127], [x - 8, GY - 127], [x, GY - 100]], cone[4]);
+    g.fillStyle = INK; g.beginPath(); g.arc(x, GY - 136, 23, 0, Math.PI * 2); g.fill();
+    g.fillStyle = ice[1]; g.beginPath(); g.arc(x, GY - 136, 21, 0, Math.PI * 2); g.fill();
+    g.fillStyle = ice[2]; g.beginPath(); g.arc(x - 3, GY - 139, 16, 0, Math.PI * 2); g.fill();
+    g.fillStyle = back('#DC2626'); g.beginPath(); g.arc(x + 6, GY - 140, 9, 0, Math.PI * 2); g.fill();
+    R(g, x - 10, GY - 150, 5, 4, ice[4]);
+  }
+  // (its board, over the roof's front)
+  R(g, x - 40, GY - 110, 80, 18, INK); R(g, x - 39, GY - 109, 78, 16, wht);
+  signText(g, kind === 'dogs' ? 'HOT DOGS' : 'SNO-CONES', x, GY - 97, { sx: 1, sy: 1, fill: [st[3], st[2], st[1]], shadow: st[0] });
+};
+/** The lockers (stamped, dimmed): a bank of them in their steel steps, vents, numbers, one hanging open; their top
+ *  sloped (nothing to stand on), LOCKERS on a plaque, the rate. */
+const paintLockers = (g: Ctx, x: number) => {
+  const S = ramp5(back('#4A7A9A'));
+  poly(g, [[x - 2, GY - 90], [x + 92, GY - 104], [x + 92, GY], [x - 2, GY]], INK);
+  poly(g, [[x, GY - 88], [x + 90, GY - 102], [x + 90, GY - 96], [x, GY - 82]], S[0]);
+  for (let k = 0; k < 6; k++) {
+    const lx = x + k * 15;
+    R(g, lx + 1, GY - 80, 13, 76, k === 4 ? back('#0E141A') : S[2]);
+    if (k !== 4) { R(g, lx + 1, GY - 80, 2, 76, S[3]); R(g, lx + 12, GY - 80, 2, 76, S[1]); for (let v = 0; v < 4; v++) R(g, lx + 4, GY - 74 + v * 3, 7, 1, S[0]); R(g, lx + 10, GY - 44, 2, 5, S[4]); R(g, lx + 4, GY - 60, 6, 4, back('#E2E8F0')); }
+    else { poly(g, [[lx + 1, GY - 80], [lx - 8, GY - 84], [lx - 8, GY - 2], [lx + 1, GY - 4]], S[3]); R(g, lx - 6, GY - 70, 5, 2, S[0]); }
+  }
+  R(g, x, GY - 4, 90, 4, S[0]);
+  R(g, x + 14, GY - 116, 62, 22, INK); R(g, x + 15, GY - 115, 60, 20, back('#FDE047'));
+  R(g, x + 24, GY - 94, 2, 6, INK); R(g, x + 64, GY - 94, 2, 6, INK);
+  signText(g, 'LOCKERS', x + 45, GY - 107, { sx: 1, sy: 1, fill: back('#1E293B') }); signText(g, '$8 AN HOUR', x + 45, GY - 98, { sx: 1, sy: 1, fill: back('#B91C1C') });
+};
+/** Loungers and an umbrella (stamped, dimmed): the chairs' white frames, their straps, a towel; the umbrella's pole and
+ *  its striped dome (round: nothing to stand on). */
+const paintLoungers = (g: Ctx, x: number, seed: number) => {
+  const F = ramp5(back('#E8E4DA')), U = ramp5(back(['#F97316', '#0891B2', '#DB2777'][seed % 3]));
+  for (const lx of [x, x + 64]) {
+    R(g, lx, GY - 14, 52, 3, INK); R(g, lx, GY - 14, 52, 2, F[3]);
+    poly(g, [[lx + 40, GY - 14], [lx + 56, GY - 34], [lx + 59, GY - 32], [lx + 44, GY - 12]], F[2]);
+    for (let k = 0; k < 6; k++) R(g, lx + 4 + k * 7, GY - 15, 4, 3, k % 2 ? back('#38BDF8') : back('#F8FAFC'));
+    for (const fx of [lx + 4, lx + 44]) R(g, fx, GY - 12, 2, 12, F[1]);
+  }
+  R(g, x + 70, GY - 16, 26, 3, back('#FACC15'));
+  const ux = x + 56;
+  R(g, ux - 1, GY - 96, 3, 96, F[1]); R(g, ux - 1, GY - 96, 1, 96, F[4]);
+  g.fillStyle = INK; g.beginPath(); g.ellipse(ux, GY - 96, 52, 20, 0, Math.PI, 0); g.fill();
+  for (let k = 0; k < 8; k++) { g.fillStyle = k % 2 ? F[4] : U[2]; g.beginPath(); g.moveTo(ux, GY - 116); g.ellipse(ux, GY - 96, 50, 18, 0, Math.PI + (k / 8) * Math.PI, Math.PI + ((k + 1) / 8) * Math.PI); g.closePath(); g.fill(); }
+  g.fillStyle = 'rgba(10, 12, 30, 0.25)'; g.beginPath(); g.moveTo(ux, GY - 116); g.ellipse(ux, GY - 96, 50, 18, 0, Math.PI * 1.5, Math.PI * 2); g.closePath(); g.fill();
+  R(g, ux - 50, GY - 97, 100, 2, U[0]); R(g, ux - 2, GY - 120, 4, 4, F[3]);
+};
+/** Trash cans (stamped, dimmed): drums painted like lifebuoys, domed lids (nothing to stand on). */
+const paintCans = (g: Ctx, x: number) => {
+  for (const cx of [x, x + 34]) {
+    R(g, cx - 13, GY - 44, 26, 44, INK); R(g, cx - 12, GY - 43, 24, 43, back('#F1EFEA')); R(g, cx - 12, GY - 30, 24, 10, back('#DC2626')); R(g, cx - 12, GY - 43, 4, 43, back('#FFFFFF')); R(g, cx + 6, GY - 43, 6, 43, back('#B8B4AE'));
+    g.fillStyle = INK; g.beginPath(); g.ellipse(cx, GY - 44, 15, 8, 0, Math.PI, 0); g.fill(); g.fillStyle = back('#4A5A6A'); g.beginPath(); g.ellipse(cx, GY - 44, 13, 6, 0, Math.PI, 0); g.fill(); R(g, cx - 8, GY - 48, 5, 2, back('#8A9AAA'));
+  }
+};
+/** The plaza's light poles (where parkLamps' lights are: a pole under each, stamped): steel in steps, a lantern up top. */
+const paintLamp = (g: Ctx, x: number, on: boolean) => {
+  const S = ramp5(back('#4A525E'));
+  R(g, x - 3, GY - 156, 6, 156, INK); R(g, x - 2, GY - 156, 4, 156, S[2]); R(g, x - 2, GY - 156, 1, 156, S[4]); R(g, x + 1, GY - 156, 1, 156, S[0]);
+  R(g, x - 6, GY - 12, 12, 12, INK); R(g, x - 5, GY - 11, 10, 11, S[1]); R(g, x - 5, GY - 11, 10, 1, S[3]);
+  R(g, x - 9, GY - 172, 18, 4, INK); R(g, x - 8, GY - 171, 16, 2, S[3]);
+  R(g, x - 7, GY - 168, 14, 12, INK); R(g, x - 6, GY - 167, 12, 10, on ? '#FFE8A8' : S[1]); if (on) { R(g, x - 4, GY - 165, 4, 6, '#FFF8E0'); R(g, x + 2, GY - 167, 4, 10, '#E8C070'); }
+  R(g, x - 2, GY - 176, 4, 4, S[2]);
+};
+/** Where the plaza's stands, lockers, loungers and cans are (world x of their left or middle). */
+const PROPS: { x: number; kind: 'dogs' | 'sno' | 'lockers' | 'loungers' | 'cans'; w: number }[] = [
+  { x: 950, kind: 'dogs', w: 50 }, { x: 1960, kind: 'loungers', w: 120 }, { x: 4160, kind: 'lockers', w: 92 },
+  { x: 5210, kind: 'loungers', w: 120 }, { x: 16480, kind: 'sno', w: 50 }, { x: 19110, kind: 'cans', w: 50 },
+];
 /** Where the plaza's signs stand (no palm in front of one). */
-const SIGN_X = [...SLIDES.filter(S => S.stairs.n > 0).map(S => S.stairs.x - 90), ...TUBES.map(T => T.stairs.x - 90), 4600, 520, 760];
-/** The plaza's back props (behind him, dimmed: nothing here to stand on). */
+/** (the Wipeout's, left of the lifeguard stand: at its stairs' foot it was behind the stand; the tubes', clear of their stairs) */
+const slideSignX = (S: Slide) => (S.id === 'wipeout1' ? 16880 : S.stairs.x - 90), tubeSignX = (T: Tube) => T.stairs.x - 110;
+const SIGN_X = [...SLIDES.filter(S => S.stairs.n > 0).map(slideSignX), ...TUBES.map(tubeSignX), 4600, 520, 760, ...PROPS.map(p => p.x + (p.kind === 'loungers' || p.kind === 'lockers' ? 50 : 0))];
+/** The tiki hut (its roof the ledge: lit along its top): bamboo posts, the thatch and its fringe, the bar under it (its
+ *  front bamboo, its top dimmed: not stood on), a carved tiki on the post, TIKI BAR on its front. */
+const paintTiki = (g: Ctx, x: number, y: number, w: number) => {
+  const bam = ramp5('#A8843E'), th = ramp5('#B8862E');
+  for (const px of [x + 10, x + w - 18]) { R(g, px - 1, y + 14, 10, GY - y - 14, INK); R(g, px, y + 14, 8, GY - y - 14, bam[2]); R(g, px, y + 14, 2, GY - y - 14, bam[3]); R(g, px + 6, y + 14, 2, GY - y - 14, bam[1]); for (let yy = y + 30; yy < GY - 4; yy += 20) { R(g, px, yy, 8, 2, bam[0]); R(g, px, yy + 2, 8, 1, bam[4]); } }
+  // (the bar under it: its front in bamboo, its counter (dimmed), bottles on the back shelf)
+  const bx = x + 26, bw = w - 52;
+  R(g, bx, GY - 74, bw, 2, back('#5A4028')); for (let k = 0; k < 6; k++) { const cx = bx + 6 + k * (bw - 12) / 5; R(g, cx, GY - 86, 4, 12, back(['#16A34A', '#B45309', '#7C2D12', '#0891B2'][k % 4])); R(g, cx + 1, GY - 90, 2, 4, back('#D6D3D1')); }
+  R(g, bx - 2, GY - 52, bw + 4, 6, INK); R(g, bx - 1, GY - 51, bw + 2, 4, back(th[1]));
+  for (let k = 0; k < bw; k += 7) { R(g, bx + k, GY - 46, 7, 46, INK); R(g, bx + k + 1, GY - 46, 5, 46, back(bam[k % 14 ? 2 : 1])); R(g, bx + k + 1, GY - 46, 1, 46, back(bam[3])); R(g, bx + k + 1, GY - 24, 5, 1, back(bam[0])); }
+  R(g, bx + bw / 2 - 34, GY - 40, 68, 14, INK); R(g, bx + bw / 2 - 33, GY - 39, 66, 12, back('#3A2410'));
+  signText(g, 'TIKI BAR', bx + bw / 2, GY - 30, { sx: 1, sy: 1, fill: ['#FDE68A', '#F59E0B', '#B45309'], shadow: INK });
+  // (a tiki carved on the left post: its brow, eyes, the grin)
+  { const tx = x + 14; R(g, tx - 7, y + 34, 14, 30, INK); R(g, tx - 6, y + 35, 12, 28, '#7A5230'); R(g, tx - 6, y + 35, 12, 3, '#A8764A'); R(g, tx - 4, y + 41, 3, 3, '#FDE68A'); R(g, tx + 1, y + 41, 3, 3, '#FDE68A'); R(g, tx - 4, y + 52, 8, 4, INK); R(g, tx - 3, y + 53, 6, 1, '#F8FAFC'); }
+  // (the thatch: the roof he stands on: its top lit, the straw in its steps, its fringe hanging ragged)
+  R(g, x - 4, y, w + 8, 16, INK);
+  R(g, x - 3, y + 1, w + 6, 14, th[2]);
+  for (let k = 0; k < w + 6; k += 4) R(g, x - 3 + k, y + 4 + (k % 8 ? 0 : 2), 1, 9, th[1]);
+  R(g, x - 3, y + 1, w + 6, 2, '#FFF2B0'); R(g, x - 3, y + 3, w + 6, 2, th[4]);
+  for (let k = 0; k < w + 8; k += 5) { const l = 8 + hash(x + k) * 10; poly(g, [[x - 4 + k, y + 15], [x + 1 + k, y + 15], [x - 1 + k, y + 15 + l]], k % 10 ? th[1] : th[0]); }
+};
+/** The lifeguard stand (its seat platform the ledge: lit along its top): white-painted wood in its steps, its A-frame legs
+ *  braced, a ladder up the left, the red cross on its skirt, an OFF DUTY card hung under it. */
+const paintGuard = (g: Ctx, x: number, y: number, w: number) => {
+  const F = ramp5('#E2DED2');
+  const leg = (x0: number, x1: number) => { g.strokeStyle = INK; g.lineWidth = 8; g.beginPath(); g.moveTo(x0, y + 12); g.lineTo(x1, GY); g.stroke(); g.strokeStyle = F[2]; g.lineWidth = 6; g.stroke(); g.strokeStyle = F[4]; g.lineWidth = 1; g.beginPath(); g.moveTo(x0 - 2, y + 12); g.lineTo(x1 - 2, GY); g.stroke(); };
+  leg(x + 16, x + 4); leg(x + w - 16, x + w - 4); leg(x + 34, x + 30); leg(x + w - 34, x + w - 30);
+  g.strokeStyle = F[1]; g.lineWidth = 3; g.beginPath(); g.moveTo(x + 12, y + 40); g.lineTo(x + w - 12, GY - 20); g.moveTo(x + w - 12, y + 40); g.lineTo(x + 12, GY - 20); g.stroke();
+  for (let yy = y + 26; yy < GY - 6; yy += 14) { R(g, x + 6, yy, 26, 3, INK); R(g, x + 7, yy, 24, 2, F[3]); }
+  // (the platform: the ledge, lit along its top; its skirt, the red cross)
+  R(g, x - 2, y - 1, w + 4, 14, INK); R(g, x - 1, y, w + 2, 12, F[2]); R(g, x - 1, y, w + 2, 2, '#FFFFFF'); R(g, x - 1, y + 2, w + 2, 1, F[4]); R(g, x - 1, y + 9, w + 2, 3, F[1]);
+  R(g, x + 8, y + 12, w - 16, 18, INK); R(g, x + 9, y + 12, w - 18, 17, F[1]); R(g, x + 9, y + 12, w - 18, 2, F[3]);
+  const cx = x + w / 2; R(g, cx - 3, y + 14, 6, 13, '#DC2626'); R(g, cx - 7, y + 18, 14, 5, '#DC2626'); R(g, cx - 3, y + 14, 2, 13, '#F87171');
+  R(g, cx + 22, y + 30, 1, 8, INK); R(g, cx + 44, y + 30, 1, 8, INK);
+  R(g, cx + 18, y + 38, 30, 12, INK); R(g, cx + 19, y + 39, 28, 10, '#FDE047');
+  signText(g, 'OFF DUTY', cx + 33, y + 47, { sx: 1, sy: 1, fill: '#7F1D1D' });
+};
+/** The Wipeout's island (stood on: a lit top): poured concrete in its steps from its top down into the pit, the pour
+ *  lines, its orange band, the rebar stubs, darker going down. */
+const paintIsland = (g: Ctx, x: number, y: number, w: number) => {
+  const h = GY + 400 - y, C = PAVE;
+  R(g, x, y, w, h, C[2]); R(g, x, y, 4, h, C[4]); R(g, x + 4, y, 2, h, C[3]); R(g, x + w - 8, y, 8, h, C[1]); dither(g, x + w - 10, y, 2, h, C[1]);
+  for (let yy = y + 24; yy < y + h; yy += 26) { R(g, x, yy, w, 1, C[1]); R(g, x, yy + 1, w, 1, C[3]); }
+  R(g, x, y + 8, w, 12, '#C2410C'); R(g, x, y + 8, w, 2, '#FB923C'); R(g, x, y + 18, w, 2, '#7C2D12');
+  for (let k = 0; k < w; k += 20) R(g, x + k + 4, y + 10, 8, 8, '#7C2D12');
+  R(g, x, y, w, 2, '#FFF6E2'); R(g, x, y + 2, w, 3, C[5]); R(g, x, y + 5, w, 2, C[4]);
+  hazeBands(g, x, y + 220, w, h - 220, '#0B0606', 0, 0.7, 5);
+};
+/** The plaza's back props (behind him, dimmed: nothing here to stand on), the signs, the stood-on huts. */
 const drawProps = (c: Ctx, state: GameState) => {
+  const busy = (x: number, m: number) => SIGN_X.some(sx => Math.abs(sx - x) < m) || [...SLIDES, ...TUBES].some(S => x > S.stairs.x - 40 && x < S.deck.x2 + 40) || LEDGES.some(([lx, , lw]) => x > lx - 60 && x < lx + lw + 60);
   // (palms, every so often, back from the path)
   for (let x = Math.floor((state.camera.x - 200) / 520) * 520 + 130; x < state.camera.x + W + 200; x += 520) {
-    if (GROUND.every(([a, b]) => x < a + 40 || x > b - 40) || (x > TOWER.TL - 600 && x < TOWER.TR + 300)) continue;
+    if (GROUND.every(([a, b]) => x < a + 40 || x > b - 40) || (x > TOWER.TL - 600 && x < TOWER.TR + 300) || (x > -220 && x < 440)) continue;
     // (never over a sign, a slide's stairs or a booth)
-    if (SIGN_X.some(sx => Math.abs(sx - x) < 160) || [...SLIDES, ...TUBES].some(S => x > S.stairs.x - 40 && x < S.deck.x2 + 40)) continue;
-    stamp(c, `wp-palm-${Math.floor(x / 520) % 3}`, x - 70, GY - 260, 140, 262, g => {
-      const lean = (Math.floor(x / 520) % 3 - 1) * 14;
-      g.strokeStyle = '#3A2A1A'; g.lineWidth = 12; g.beginPath(); g.moveTo(x, GY); g.quadraticCurveTo(x + lean * 0.4, GY - 120, x + lean, GY - 200); g.stroke();
-      g.strokeStyle = '#5A4028'; g.lineWidth = 8; g.stroke();
-      for (let k = 0; k < 7; k++) { const a = -Math.PI / 2 + (k - 3) * 0.48; g.strokeStyle = '#0F3A22'; g.lineWidth = 7; g.beginPath(); g.moveTo(x + lean, GY - 200); g.quadraticCurveTo(x + lean + Math.cos(a) * 40, GY - 214 + Math.sin(a) * 40, x + lean + Math.cos(a) * 66, GY - 186 + Math.sin(a) * 30); g.stroke(); g.strokeStyle = '#1E5A36'; g.lineWidth = 4; g.stroke(); }
-    });
+    if (busy(x, 160)) continue;
+    const v = Math.floor(x / 520) % 3;
+    c.save(); c.translate(x, 0); stamp(c, `wp-palm-${v}`, -110, GY - 262, 220, 264, g => paintPalm(g, 0, v)); c.restore();
   }
-  // (the gate, kicked down: its arch and towers behind him (the back of the lot's), the gates themselves flat on the plaza)
+  // (the light poles, under the lamps' lights: on the ground, clear of the signs, the stairs, the props)
+  const on = lampGlow() > 0.3;
+  for (let x = Math.floor((state.camera.x - 300) / 700) * 700 + 350; x < state.camera.x + W + 300; x += 700) {
+    if (TUBES.some(T => x > tubeSpan(T)[0] - 200 && x < tubeSpan(T)[1]) || GROUND.every(([a, b]) => x < a + 20 || x > b - 20) || busy(x, 70) || SLIDES.some(S => x > S.pts[0][0] - 20 && x < S.pts[S.pts.length - 1][0] + 20) || (x > -220 && x < 440) || (x > TOWER.TL - 100)) continue;
+    c.save(); c.translate(x, 0); stamp(c, `wp-lamp-${on ? 1 : 0}`, -12, GY - 180, 24, 182, g => paintLamp(g, 0, on)); c.restore();
+  }
+  // (the gate, kicked down: its towers' side faces, then the towers, the arch and the gates flat on the plaza)
   if (vis(state, -200, 420)) {
-    stamp(c, 'wp-gate', -200, GY - 310, 620, 316, g => {
-      for (const tx of [-120, 210]) { R(g, tx - 2, GY - 262, 54, 262, INK); R(g, tx, GY - 260, 50, 260, '#1E4A7A'); R(g, tx, GY - 260, 8, 260, '#3A7AB8'); R(g, tx - 6, GY - 276, 62, 14, '#22D3EE'); }
-      g.strokeStyle = INK; g.lineWidth = 30; g.lineCap = 'round'; g.beginPath(); g.moveTo(-100, GY - 238); g.quadraticCurveTo(110, GY - 330, 240, GY - 238); g.stroke();
-      g.strokeStyle = '#0891B2'; g.lineWidth = 24; g.stroke(); g.lineCap = 'butt';
-      text(g, WATER_PARK_NAME, 70, GY - 266, '#FEF08A', 14);
-      // (the gates, down flat: bars in a sliver on the ground, the chain still round them)
-      R(g, -60, GY - 6, 260, 6, INK); for (let x = -56; x < 196; x += 14) R(g, x, GY - 5, 4, 4, '#8A8E98');
-      R(g, 60, GY - 9, 30, 4, '#C8CCD2'); R(g, 70, GY - 12, 10, 8, '#D4A017');
-    });
+    for (const tx of GATE_TX) faces(c, state, tx - 2, tx + GATE_TW + 2, GY - GATE_TH, back(GTOWER[2]), 0.92);
+    stamp(c, 'wp-gate', -200, GY - 336, 620, 342, paintGate);
   }
-  // (the ticket booths, smashed; the turnstiles)
-  for (const x of [520, 760]) if (vis(state, x - 80, x + 80)) stamp(c, `wp-booth-${x}`, x - 70, GY - 150, 140, 152, g => {
-    R(g, x - 50, GY - 120, 100, 120, INK); R(g, x - 48, GY - 118, 96, 118, '#F472B6'); R(g, x - 48, GY - 118, 96, 4, '#FBCFE8');
-    R(g, x - 36, GY - 96, 72, 40, '#0B1220'); for (let k = 0; k < 6; k++) R(g, x - 30 + k * 11, GY - 92 + (k % 2) * 14, 4, 4, '#BFE0FF');
-    R(g, x - 58, GY - 136, 116, 18, INK); R(g, x - 56, GY - 134, 112, 14, '#0EA5E9'); text(g, 'TICKETS', x, GY - 123, '#F8FAFC', 7);
-    R(g, x - 50, GY - 50, 100, 6, '#7A2A3A');
+  // (the ticket booths, smashed; the turnstiles between them)
+  for (const x of [520, 760]) if (vis(state, x - 80, x + 80)) { faces(c, state, x - 50, x + 50, GY - 120, back(BOOTH), 0.92); stamp(c, `wp-booth-${x}`, x - 70, GY - 160, 140, 162, g => paintBooth(g, x)); }
+  if (vis(state, 580, 700)) stamp(c, 'wp-turnstiles', 580, GY - 50, 120, 52, g => {
+    const S = ramp5(back('#8A8E98'));
+    for (const tx of [596, 640, 684]) { R(g, tx - 5, GY - 38, 10, 38, INK); R(g, tx - 4, GY - 37, 8, 37, S[2]); R(g, tx - 4, GY - 37, 2, 37, S[4]); R(g, tx + 2, GY - 37, 2, 37, S[1]); for (const a of [-1, 1]) { R(g, tx + a * 4, GY - 30, a * 14, 3, INK); R(g, tx + a * 4, GY - 30, a * 13, 2, S[3]); } R(g, tx - 6, GY - 42, 12, 5, INK); R(g, tx - 5, GY - 41, 10, 3, back('#DC2626')); }
   });
+  // (the stands, the lockers, the loungers, the cans)
+  for (const p of PROPS) {
+    if (!vis(state, p.x - 80, p.x + 140)) continue;
+    if (p.kind === 'dogs' || p.kind === 'sno') { faces(c, state, p.x - 46, p.x + 46, GY - 96, back(p.kind === 'dogs' ? '#E8B83A' : '#7DD3FC'), 0.92); stamp(c, `wp-stand-${p.x}`, p.x - 60, GY - 164, 120, 166, g => paintStand(g, p.x, p.kind as 'dogs' | 'sno')); }
+    else if (p.kind === 'lockers') { faces(c, state, p.x - 2, p.x + 92, GY - 90, back('#4A7A9A'), 0.94); stamp(c, `wp-lockers-${p.x}`, p.x - 14, GY - 120, 120, 122, g => paintLockers(g, p.x)); }
+    else if (p.kind === 'loungers') stamp(c, `wp-loungers-${p.x}`, p.x - 4, GY - 124, 140, 126, g => paintLoungers(g, p.x, Math.floor(p.x / 100)));
+    else stamp(c, `wp-cans-${p.x}`, p.x - 20, GY - 56, 76, 58, g => paintCans(g, p.x));
+  }
   // (the slides' and tubes' signs, at their stairs' foot)
-  for (const S of SLIDES) if (S.stairs.n > 0 && vis(state, S.stairs.x - 220, S.stairs.x)) sign(c, S.stairs.x - 90, GY, [S.name, S.id === 'squirt' ? 'RIDE IT. FLY.' : S.id === 'kamikaze' ? 'NOT FOR CHILDREN' : S.id === 'twister' ? 'MIND THE CRATER' : 'KEEP ARMS IN'], '#7C2D12', '#FEF3C7', S.id);
-  for (const T of TUBES) if (vis(state, T.stairs.x - 260, T.stairs.x)) sign(c, T.stairs.x - 90, GY, [T.name, 'TUBES ONLY', 'MIND THE GAPS'], '#312E81', '#E0E7FF', T.id);
+  for (const S of SLIDES) if (S.stairs.n > 0 && vis(state, slideSignX(S) - 130, slideSignX(S) + 130)) sign(c, slideSignX(S), GY, [S.name, S.id === 'squirt' ? 'RIDE IT. FLY.' : S.id === 'kamikaze' ? 'NOT FOR CHILDREN' : S.id === 'twister' ? 'MIND THE CRATER' : 'KEEP ARMS IN'], '#9A3412', '#FEF3C7', S.id);
+  for (const T of TUBES) if (vis(state, tubeSignX(T) - 130, tubeSignX(T) + 130)) sign(c, tubeSignX(T), GY, [T.name, 'TUBES ONLY', 'MIND THE GAPS'], '#3730A3', '#E0E7FF', T.id);
   if (vis(state, 4500, 4720)) sign(c, 4600, GY, ['THE LAGOON', 'NO DIVING'], '#0E7490', '#FEF3C7', 'lagoon');
-  // (the tiki hut under its roof ledge, the lifeguard stands: their tops lit, they're stood on)
-  for (const [x, y, w] of LEDGES) if (vis(state, x, x + w)) {
-    R(c, x + 10, y + 14, 8, GY - y - 14, '#5A4028'); R(c, x + w - 18, y + 14, 8, GY - y - 14, '#5A4028');
-    R(c, x - 4, y, w + 8, 16, INK); R(c, x - 2, y + 2, w + 4, 12, '#A16207'); R(c, x - 2, y + 1, w + 4, 3, '#FDE68A');
-  }
-  for (const [x, y, w] of ISLANDS) if (vis(state, x, x + w)) stamp(c, `wp-island-${x}`, x, y, w, GY + 400 - y, g => {
-    R(g, x, y, w, GY + 400 - y, '#7A6C58'); R(g, x, y, w, 3, '#FFF4E0'); R(g, x, y + 3, w, 4, CONC[0]);
-    checker(g, x, y + 40, w, 40, '#5A4E40');
-  });
+  // (the tiki hut under its roof ledge, the lifeguard stand: their tops lit, they're stood on)
+  LEDGES.forEach(([x, y, w], i) => { if (vis(state, x - 20, x + w + 20)) stamp(c, `wp-ledge-${x}`, x - 10, y - 4, w + 20, GY - y + 6, g => (i === 0 ? paintTiki : paintGuard)(g, x, y, w)); });
 };
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -362,30 +871,108 @@ const chuteFront = (g: Ctx, pts: [number, number][], col: string, lift = 0) => {
   g.strokeStyle = 'rgba(255,255,255,0.4)'; g.lineWidth = 2; g.beginPath(); pts.forEach(([x, y], i) => (i ? g.lineTo(x, y - 3 - lift) : g.moveTo(x, y - 3 - lift))); g.stroke();
   g.lineCap = 'butt'; g.lineJoin = 'miter';
 };
+/** The plaza slides' chute (the SNES pass; the tube rides' and the descent's keep chuteBack/chuteFront): its back half a
+ *  round trough in its plastic's steps (shade under, the body, the lit inner rim along its top, a glint), its sections'
+ *  joints banded; the water in it in steps (deep, the run, the foam flecked along it). Within chuteBack's own bounds. */
+const slideBack = (g: Ctx, pts: [number, number][], col: string) => {
+  const C = ramp5(col);
+  g.lineCap = 'round'; g.lineJoin = 'round';
+  along(g, pts, -4, 24, INK);
+  along(g, pts, -4, 20, C[1]);
+  along(g, pts, -6, 14, C[2]);
+  along(g, pts, -11, 4, C[3]);
+  along(g, pts, -12, 1.5, C[4], [10, 6]);
+  along(g, pts, 4, 3, C[0]);
+  along(g, pts, -4, 20, C[0], [2, 46]);
+  // (the water: the deep of it, the run, foam flecked along)
+  along(g, pts, -3, 7, '#2A78C0');
+  along(g, pts, -3, 5, 'rgba(120, 205, 255, 0.95)');
+  along(g, pts, -5, 2, '#E0F2FE');
+  along(g, pts, -4, 2, '#FFFFFF', [3, 11]);
+  g.lineCap = 'butt'; g.lineJoin = 'miter';
+};
+/** ...its near wall (in front of him): in its steps, the lit lip along its top, the joints banded. Within chuteFront's. */
+const slideFront = (g: Ctx, pts: [number, number][], col: string) => {
+  const C = ramp5(col);
+  g.lineCap = 'round'; g.lineJoin = 'round';
+  along(g, pts, 2, 15, INK);
+  along(g, pts, 2, 11, C[1]);
+  along(g, pts, 0.5, 7, C[2]);
+  along(g, pts, -2, 2.5, C[3]);
+  along(g, pts, -3, 1, C[4]);
+  along(g, pts, 6, 2, C[0]);
+  along(g, pts, 2, 11, C[0], [2, 46]);
+  g.lineCap = 'butt'; g.lineJoin = 'miter';
+};
 const boundsOf = (pts: [number, number][], pad = 40) => {
   const xs = pts.map(p => p[0]), ys = pts.map(p => p[1]);
   return { x: Math.min(...xs) - pad, y: Math.min(...ys) - pad, w: Math.max(...xs) - Math.min(...xs) + pad * 2, h: Math.max(...ys) - Math.min(...ys) + pad * 2 };
 };
+/** Steel, in its steps (the slides' legs, stairs and towers). */
+const STEEL = ramp5('#56647A');
 const drawSlideBack = (c: Ctx, state: GameState, S: Slide) => {
   const b = boundsOf(S.pts, 30), x0 = S.stairs.x, x1 = b.x + b.w;
   if (!vis(state, x0 - 40, x1)) return;
-  stamp(c, `wp-slide-${S.id}`, x0 - 20, S.deck.y - 60, x1 - x0 + 60, GY - S.deck.y + 120, g => {
-    // (the legs down from the chute to the ground (or into the pit))
-    for (let i = 1; i < S.pts.length - 1; i++) { const [x, y] = S.pts[i]; R(g, x - 3, y + 8, 6, GY + 60 - y, '#3F4A5A'); R(g, x - 3, y + 8, 2, GY + 60 - y, '#6A7486'); }
-    // (the stairs: steel treads, lit along their tops; the deck)
-    for (let i = 0; i < S.stairs.n; i++) { const s = step(S.stairs, i); R(g, s.x, s.y, s.w, s.h, '#2E3644'); R(g, s.x, s.y, s.w, 3, '#E2E8F0'); R(g, s.x, s.y + 3, s.w, 2, '#94A3B8'); }
-    const d = S.deck;
-    if (S.stairs.n > 0) { R(g, d.x1, d.y, d.x2 - d.x1, GY - d.y, '#2E3644'); for (let y = d.y + 20; y < GY; y += 24) R(g, d.x1, y, d.x2 - d.x1, 2, '#1E2430'); }
-    R(g, d.x1, d.y, d.x2 - d.x1, 3, '#E2E8F0'); R(g, d.x1, d.y + 3, d.x2 - d.x1, 2, '#94A3B8');
-    // (the rail up the stairs)
-    if (S.stairs.n > 0) { g.strokeStyle = '#94A3B8'; g.lineWidth = 2; g.beginPath(); g.moveTo(S.stairs.x, GY - 40); g.lineTo(d.x1, d.y - 40); g.lineTo(d.x2, d.y - 40); g.stroke(); }
-    chuteBack(g, S.pts, S.col);
+  const d = S.deck;
+  // (the tower under the deck: its side face, toward the eye (live), behind its front)
+  if (S.stairs.n > 0) sideFace(c, eyeOf(state), d.x2, 1, d.y, GY, 0.94, STEEL[1]);
+  stamp(c, `wp-slide-${S.id}`, x0 - 20, S.deck.y - 150, x1 - x0 + 60, GY - S.deck.y + 210, g => {
+    const St = STEEL;
+    // (the legs down from the chute to the ground (or into the pit): round steel columns in steps, a bracket under the
+    // chute, a footing; braced to the next one)
+    for (let i = 1; i < S.pts.length - 1; i++) {
+      const [x, y] = S.pts[i], n = S.pts[i + 1];
+      if (i + 1 < S.pts.length - 1 && n[0] - x < 140) { g.strokeStyle = St[0]; g.lineWidth = 2; g.beginPath(); g.moveTo(x, y + 30); g.lineTo(n[0], Math.min(GY - 10, n[1] + 80)); g.stroke(); }
+      R(g, x - 4, y + 8, 8, GY + 60 - y, INK); R(g, x - 3, y + 8, 6, GY + 60 - y, St[2]); R(g, x - 3, y + 8, 2, GY + 60 - y, St[3]); R(g, x - 3, y + 8, 1, GY + 60 - y, St[4]); R(g, x + 2, y + 8, 1, GY + 60 - y, St[0]);
+      R(g, x - 9, y + 6, 18, 4, INK); R(g, x - 8, y + 6, 16, 2, St[3]);
+      if (y < GY - 20 && !GROUND.every(([a, bb]) => x < a || x > bb)) { R(g, x - 8, GY - 5, 16, 5, INK); R(g, x - 7, GY - 4, 14, 4, PAVE[3]); R(g, x - 7, GY - 4, 14, 1, PAVE[5]); }
+    }
+    if (S.stairs.n > 0) {
+      // (the stairs: a solid run of steel steps; each tread's nose lit (he walks up them), the risers shaded, the
+      // stringer along the noses riveted, the panels under it ribbed)
+      for (let i = 0; i < S.stairs.n; i++) {
+        const s = step(S.stairs, i);
+        R(g, s.x, s.y, s.w, s.h, St[1]);
+        for (let yy = s.y + 14; yy < GY; yy += 24) R(g, s.x, yy, s.w, 1, St[0]);
+        R(g, s.x, s.y, 1, Math.min(10, s.h), St[0]);
+        R(g, s.x, s.y, s.w, 2, '#F1F5F9'); R(g, s.x, s.y + 2, s.w, 2, St[4]); R(g, s.x, s.y + 4, s.w, 2, St[2]); R(g, s.x, s.y + 6, s.w, 1, St[0]);
+      }
+      dither(g, S.stairs.x, GY - 16, S.stairs.n * S.stairs.run, 16, St[0]);
+      g.strokeStyle = INK; g.lineWidth = 9; g.beginPath(); g.moveTo(S.stairs.x, GY - 6); g.lineTo(d.x1, d.y + 18); g.stroke();
+      g.strokeStyle = St[2]; g.lineWidth = 6; g.stroke();
+      g.strokeStyle = St[3]; g.lineWidth = 1; g.beginPath(); g.moveTo(S.stairs.x, GY - 9); g.lineTo(d.x1, d.y + 15); g.stroke();
+      for (let k = 1; k < S.stairs.n; k += 2) { const s = step(S.stairs, k); R(g, s.x + 2, s.y + 18, 2, 2, St[4]); }
+      // (the tower under the deck: steel panels, ribbed, riveted, its pilasters, the slide's color banded round it)
+      R(g, d.x1, d.y, d.x2 - d.x1, GY - d.y, St[1]);
+      R(g, d.x1, d.y, 4, GY - d.y, St[3]); R(g, d.x1, d.y, 1, GY - d.y, St[4]); R(g, d.x2 - 6, d.y, 6, GY - d.y, St[0]); dither(g, d.x2 - 10, d.y, 4, GY - d.y, St[0]);
+      for (let y = d.y + 24; y < GY; y += 24) { R(g, d.x1 + 4, y, d.x2 - d.x1 - 10, 2, St[0]); R(g, d.x1 + 4, y + 2, d.x2 - d.x1 - 10, 1, St[2]); for (let x = d.x1 + 10; x < d.x2 - 8; x += 14) R(g, x, y - 4, 2, 2, St[3]); }
+      const Cc = ramp5(S.col);
+      R(g, d.x1, d.y + 10, d.x2 - d.x1, 8, Cc[2]); R(g, d.x1, d.y + 10, d.x2 - d.x1, 2, Cc[4]); R(g, d.x1, d.y + 16, d.x2 - d.x1, 2, Cc[0]);
+      dither(g, d.x1, GY - 40, d.x2 - d.x1, 40, St[0]);
+      // (the rail up the stairs and along the deck: a steel tube, its posts every other step)
+      for (let k = 0; k < S.stairs.n; k += 2) { const s = step(S.stairs, k); R(g, s.x + 4, s.y - 38, 2, 38, St[2]); }
+      for (const px of [d.x1 + 6, (d.x1 + d.x2) / 2]) R(g, px, d.y - 38, 2, 38, St[2]);
+      g.strokeStyle = INK; g.lineWidth = 4; g.beginPath(); g.moveTo(S.stairs.x, GY - 40); g.lineTo(d.x1, d.y - 40); g.lineTo(d.x2 - 10, d.y - 40); g.stroke();
+      g.strokeStyle = St[4]; g.lineWidth = 2; g.stroke();
+      // (the canopy over the deck: its posts, a peaked roof in the slide's color, striped, stepped (no flat top), a pennant)
+      R(g, d.x1 - 1, d.y - 100, 5, 100, INK); R(g, d.x1, d.y - 100, 3, 100, St[3]); R(g, d.x2 - 5, d.y - 100, 5, 100, INK); R(g, d.x2 - 4, d.y - 100, 3, 100, St[2]);
+      const mx = (d.x1 + d.x2) / 2, L = d.x1 - 12, Rr = d.x2 + 12;
+      poly(g, [[L - 2, d.y - 98], [mx, d.y - 124], [Rr + 2, d.y - 98]], INK);
+      poly(g, [[L, d.y - 99], [mx, d.y - 121], [mx, d.y - 99]], Cc[3]);
+      poly(g, [[mx, d.y - 121], [Rr, d.y - 99], [mx, d.y - 99]], Cc[1]);
+      for (let k = 1; k < 6; k += 2) { const ax = L + ((Rr - L) * k) / 6; poly(g, [[ax, d.y - 99], [mx, d.y - 121], [ax + (Rr - L) / 6, d.y - 99]], k < 3 ? '#F8FAFC' : '#C8CCD6'); }
+      for (let x = L; x < Rr; x += 8) { g.fillStyle = INK; g.beginPath(); g.arc(x + 4, d.y - 98, 4, 0, Math.PI); g.fill(); g.fillStyle = Cc[2]; g.beginPath(); g.arc(x + 4, d.y - 98, 3, 0, Math.PI); g.fill(); }
+      R(g, mx - 1, d.y - 140, 2, 20, St[2]); poly(g, [[mx + 1, d.y - 140], [mx + 16, d.y - 135], [mx + 1, d.y - 130]], Cc[3]);
+    }
+    // (the deck: steel, lit along its top: he stands on it)
+    R(g, d.x1, d.y, d.x2 - d.x1, 2, '#F1F5F9'); R(g, d.x1, d.y + 2, d.x2 - d.x1, 2, St[4]); R(g, d.x1, d.y + 4, d.x2 - d.x1, 2, St[2]); R(g, d.x1, d.y + 6, d.x2 - d.x1, 1, St[0]);
+    slideBack(g, S.pts, S.col);
   });
 };
 const drawSlideFront = (c: Ctx, state: GameState, S: Slide) => {
   const b = boundsOf(S.pts, 20);
   if (!vis(state, b.x, b.x + b.w)) return;
-  stamp(c, `wp-slidef-${S.id}`, b.x, b.y, b.w, b.h, g => chuteFront(g, S.pts, S.col));
+  stamp(c, `wp-slidef-${S.id}`, b.x, b.y, b.w, b.h, g => slideFront(g, S.pts, S.col));
 };
 
 // ---------------------------------------------------------------------------------------------------------------
