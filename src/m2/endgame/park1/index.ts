@@ -27,7 +27,7 @@ import { updateSwimAir, drawAir } from '../../frontier/air';
 import { setTubeRide } from '../../weapons/tubeRide';
 import { lay, solid, ledge, meatheadSays, saidOver } from '../../adventure/section';
 import { endgameStage, PARK_STAGE } from '../stages';
-import { GY, CP, CP_AT, CP_FLOOR, GROUND, POOLS, LEDGES, ISLANDS, SLIDES, TUBES, TOWER, SUMMIT, PLAZA_CAST, PICKUPS, L2, FLOORS, floorY, step } from './geo';
+import { GY, CP, CP_AT, CP_FLOOR, GROUND, POOLS, LEDGES, ISLANDS, SLIDES, TUBES, TOWER, SUMMIT, PLAZA_CAST, PICKUPS, L2, FLOORS, floorY } from './geo';
 import { newSlides, updateSlides, offSlide, type SlideState } from './slides';
 import { newTube, boardTube, updateTube, unboardTube, tubeOn, tubeBox, tubeFoesLeft, type TubeRide } from './tube';
 import { newTower, buildTower, updateTower, floorOf, towerCamY, climbEase, ROUND, type Tower, type TowerEvents } from './tower';
@@ -53,12 +53,16 @@ interface Park {
   shift: number;
   /** Where his feet last stood (or rode): the plaza's camera goes up with him up a tall slide's stairs, not his jumps. */
   standY: number;
+  /** standY eased (the plaza's camera follows this: a landing or a step up doesn't jolt it). */
+  camStand: number;
   /** The kid's dead (the hour's on, the file's at level 2). */
   killed: boolean;
   slideTipT: number;
   greenPool: number;
 }
 const parkOf = (state: GameState) => state.stage as Park | null;
+/** The stairs' ramp underfoot: how wide each of its columns is. */
+const STAIR_COL = 3;
 let devStarted = false;
 const DEV_CP = (): number | null => { if (!import.meta.env.DEV || devStarted) return null; devStarted = true; const q = new URLSearchParams(location.search).get('park'); return q !== null ? +q : null; };
 
@@ -131,7 +135,14 @@ export const parkLayout: StageLayout = {
     for (const [x, y, w] of LEDGES) ledge(state, x, y, w, { hidden: true, tag: 'wp-ledge' });
     // ---- the slides' and tubes' stairs and decks
     for (const S of [...SLIDES, ...TUBES]) {
-      for (let i = 0; i < S.stairs.n; i++) { const s = step(S.stairs, i); solid(state, s.x, s.y, s.w, s.h, { hidden: true, tag: 'wp-step' }); }
+      // (the owner's: "walking up narrow flights of stairs looks jittery. smooth it out": a solid block a step, he popped up
+      // 24 px every few frames (and the camera with him). Underfoot now, a smooth ramp through the treads' middles, cut
+      // into thin columns (the engine's own slopes, finer): his feet climb a few px a frame; the steps are still drawn)
+      const st = S.stairs, end = st.x + st.n * st.run;
+      for (let x = st.x; x < end; x += STAIR_COL) {
+        const w = Math.min(STAIR_COL, end - x), y = Math.max(S.deck.y, Math.round(GY - ((x + w / 2 - st.x) / st.run + 0.5) * st.rise));
+        solid(state, x, y, w, GY - y, { hidden: true, tag: 'wp-step' });
+      }
       if (S.stairs.n > 0) solid(state, S.deck.x1, S.deck.y, S.deck.x2 - S.deck.x1, GY - S.deck.y, { hidden: true, tag: 'wp-deck' });
     }
     // ---- the walls: no way back out the gate (the lot's behind it), base camp's far end, level 2's way on (shut)
@@ -151,7 +162,7 @@ export const parkLayout: StageLayout = {
     for (const [x, y, type] of PICKUPS) state.pickups.push({ id: `wp-${x}-${y}`, pos: { x: x - 10, y: y - 24 }, vel: { x: 0, y: 0 }, width: 20, height: 20, type, life: 1e9 });
     const pk: Park = {
       grab: createGrab(state), sl: newSlides(), tube: newTube(), tw: newTower(CP_FLOOR[state.checkpoint] ?? (state.checkpoint >= CP.baseCamp ? 1 : 0)),
-      fightState: killed ? 'won' : 'wait', f: null, descent: null, said: {}, lineAt: {}, card: null, cardSeen: false, lostTube: false, shift: 0, standY: GY, killed,
+      fightState: killed ? 'won' : 'wait', f: null, descent: null, said: {}, lineAt: {}, card: null, cardSeen: false, lostTube: false, shift: 0, standY: GY, camStand: GY, killed,
       slideTipT: 0, greenPool: killed ? 1 : 0,
     };
     // (past a tube's or the tower's checkpoint: what's behind it's been done; said already)
@@ -195,6 +206,10 @@ export const parkLayout: StageLayout = {
     updateSwimAir(ctx, (x, y) => parkLayout.waterBodyAt!(state, x, y));
     const p = state.player, cx = p.pos.x + p.width / 2;
     if (p.isGrounded || p.carried) pk.standY = p.pos.y + p.height;
+    // (a stage built before this field existed (the dev tab's hot reload) has none: NaN would take the camera with it)
+    if (!Number.isFinite(pk.camStand)) pk.camStand = pk.standY;
+    pk.camStand += (pk.standY - pk.camStand) * 0.2;
+    if (Math.abs(pk.standY - pk.camStand) < 0.5) pk.camStand = pk.standY;
     updateShots(ctx);
     let out: Controls = controls;
     // ---- the descent (the kid's dead): no input, no HUD, then VICTORY; then he's his again
@@ -318,7 +333,7 @@ export const parkLayout: StageLayout = {
     const feet = p.pos.y + p.height, pool = POOLS.find(q => cx > q.x1 - 10 && cx < q.x2 + 10 && feet > q.surface + 4);
     if (pool) return Math.max(GY - 550, pool.bottom + 70 - 600);
     // (the plaza's flat: the camera held steady over it; up a tall slide's or tube's stairs, up with him)
-    return Math.min(GY - 550, pk.standY - 430);
+    return Math.min(GY - 550, (Number.isFinite(pk.camStand) ? pk.camStand : pk.standY) - 430);
   },
   waterBodyAt: (_state, x, y) => {
     for (const p of POOLS) if (x >= p.x1 && x <= p.x2 && y >= p.surface - 40 && y <= p.bottom) return { key: p.name, x1: p.x1, x2: p.x2, surface: p.surface, bottom: p.bottom, kind: 'clean' };
