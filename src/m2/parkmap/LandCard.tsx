@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useSyncExternalStore } from 'react';
+import React, { useEffect, useRef, useState, useSyncExternalStore } from 'react';
 import { LANDS } from '../hub/lands';
 import { Prompt } from '../../m1/components/ButtonIcons';
 import { signText, rampDown } from '../signLetters';
@@ -6,7 +6,7 @@ import { inLand } from './geo';
 import { ATTRACTIONS, CAST, NUMBERS } from './data';
 import { ZOOMS, levelCanvas, landOutline } from './render';
 import { attractionAt } from './terrain';
-import { type Stop, fastTravelStops, fastTravelPick, setFastTravelPick, subscribeFastTravel, askFastTravelGo } from './fastTravel';
+import { type Stop, fastTravelStops, fastTravelPick, setFastTravelPick, subscribeFastTravel, askFastTravelGo, missedAt } from './fastTravel';
 import { playCursor } from '../../m1/game/platform/audio';
 import { castPhotoImg } from './photos';
 import { remainsPhotoImg } from './remains';
@@ -35,6 +35,9 @@ const LandCard: React.FC<{ land: number }> = ({ land }) => {
   const stops = fastTravelStops(l?.id);
   const pick = useSyncExternalStore(subscribeFastTravel, fastTravelPick);
   const stop = stops ? stops[Math.min(pick, stops.length - 1)] : null;
+  // (the hidden finds he's missed, under the stop each is still ahead of: the stops marked, the picked one's hints)
+  const missed = stops && l ? stops.map(st => missedAt(l.id, st)) : null;
+  const hints = missed ? missed[Math.min(pick, missed.length - 1)] : [];
   const target = stop ? ATTRACTIONS.find(a => a.id === stop.attraction) ?? null : null;
   /** (the canvas's loop reads the stop's spot from here: it doesn't restart on a new pick) */
   const targetRef = useRef<{ x: number; y: number } | null>(null);
@@ -100,7 +103,7 @@ const LandCard: React.FC<{ land: number }> = ({ land }) => {
                 {isLandComplete(l.id) ? <span style={{ color: '#FDE047' }}> · 100%</span> : isLandCleared(l.id) ? <span> · CLEAR</span> : null}
               </div>}
             </div>
-            {stops ? <StopList stops={stops} pick={Math.min(pick, stops.length - 1)} sign={l.sign} /> : <div className="flex flex-col gap-[6px] px-2 pt-2 overflow-hidden">
+            {stops ? <StopList stops={stops} pick={Math.min(pick, stops.length - 1)} sign={l.sign} marks={missed!.map(m => m.length)} /> : <div className="flex flex-col gap-[6px] px-2 pt-2 overflow-hidden">
               {list.map(a => (
                 <div key={a.id} className="flex gap-[5px]">
                   <span className="inline-flex items-center justify-center shrink-0 w-[13px] h-[13px] rounded-full text-[6px] font-black" style={{ background: '#FFFFFF', color: '#7F1D1D', border: '2px solid #DC2626' }}>{NUMBERS[a.id]}</span>
@@ -119,6 +122,17 @@ const LandCard: React.FC<{ land: number }> = ({ land }) => {
                 <span className="text-[5px] leading-[8px]" style={{ color: '#44403C' }}>{target.blurb}</span>
                 <span className="text-[5px] leading-[8px]" style={{ color: '#B91C1C' }}>{target.info}</span>
               </div>
+            </div>}
+            {stops && hints.length > 0 && <div className="flex flex-col gap-[3px] mx-2 mt-[4px] px-[5px] py-[3px]" style={{ background: '#FEF3C7', border: '1px solid #A16207', boxShadow: '1px 1px 0 #78350F' }}>
+              {hints.map((h, i) => (
+                <div key={i} className="flex gap-[5px]">
+                  <span className="w-[13px] shrink-0 text-center text-[7px] leading-[9px]" style={{ color: '#B45309', textShadow: '1px 1px 0 #FDE047' }}>{'✦'}</span>
+                  <div className="flex flex-col min-w-0">
+                    <span className="text-[6px] font-black leading-[9px]" style={{ color: '#78350F' }}>MISSED: {h.label}</span>
+                    <span className="text-[5px] leading-[7px]" style={{ color: INK }}>{h.hint}</span>
+                  </div>
+                </div>
+              ))}
             </div>}
             {star && <div className="mt-auto flex items-center gap-[6px] px-2 py-[5px] text-[5px] leading-[8px]" style={{ color: '#44403C', borderTop: `2px dashed ${l?.swirl[1]}` }}>
               {photo && <img src={photo.url} width={photo.w} height={photo.h} alt="" draggable={false} className="shrink-0" style={{ width: photo.w, height: photo.h, imageRendering: 'pixelated', transform: 'rotate(-3deg)' }} />}
@@ -144,7 +158,12 @@ const LandCard: React.FC<{ land: number }> = ({ land }) => {
 export default LandCard;
 
 /** A cleared land's stops, the picked one marked (a click picks one; a click on the picked one goes). */
-const StopList: React.FC<{ stops: Stop[]; pick: number; sign: string }> = ({ stops, pick, sign }) => (
+const StopList: React.FC<{ stops: Stop[]; pick: number; sign: string; marks: number[] }> = ({ stops, pick, sign, marks }) => {
+  // (a stop with a find still missing past it: a gold tag on its row, its star blinking)
+  const [blink, setBlink] = useState(false);
+  const any = marks.some(n => n > 0);
+  useEffect(() => { if (!any) return; const id = setInterval(() => setBlink(b => !b), 300); return () => clearInterval(id); }, [any]);
+  return (
   <div className="flex flex-col gap-[2px] px-2 pt-2">
     {stops.map((st, i) => {
       const on = i === pick;
@@ -155,11 +174,16 @@ const StopList: React.FC<{ stops: Stop[]; pick: number; sign: string }> = ({ sto
           <span className="w-[8px] shrink-0 text-[7px]" style={{ color: on ? '#FDE047' : 'transparent' }}>{'\u25B6'}</span>
           <span className="text-[6px] font-black leading-[9px] truncate" style={{ color: on ? '#FFFFFF' : INK, textShadow: on ? '1px 1px 0 #000' : undefined }}>{st.name}</span>
           <span className="ml-auto shrink-0 text-[5px] leading-[8px]" style={{ color: on ? '#FDE68A' : '#7C6A4A' }}>{st.cp === null ? 'THE WAY IN' : i === stops.length - 1 ? 'BOSS DOOR' : ''}</span>
+          {marks[i] > 0 && <span className="shrink-0 inline-flex items-center gap-[2px] px-[3px] h-[11px] text-[5px] font-black leading-[8px]"
+            style={{ background: blink ? '#FDE047' : '#F59E0B', color: '#451A03', border: '1px solid #451A03', boxShadow: '1px 1px 0 rgba(0,0,0,0.45)' }}>
+            <span className="text-[6px]" style={{ color: blink ? '#B45309' : '#FFFBEB' }}>{'✦'}</span>{marks[i] > 1 ? `${marks[i]} FINDS` : 'FIND'}
+          </span>}
         </div>
       );
     })}
   </div>
-);
+  );
+};
 
 /** YOU ARE GOING HERE, pinned on the stop's attraction (kept on the card: one off the paper's edge sits at its edge). */
 const drawGoingPin = (g: CanvasRenderingContext2D, px: number, py: number, t: number) => {
