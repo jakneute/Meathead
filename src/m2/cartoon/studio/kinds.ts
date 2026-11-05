@@ -378,5 +378,5 @@ const person = (kind: `m2:ct_${string}`, stats: Reg['stats'], ai: (ctx: FrameCon
 person('m2:ct_guide', { w: 36, h: 74, hp: 85, contact: 4, mass: 160 }, guide, drawGuide, { pointy: { source: 'm2:ct_flagpole', label: 'FLAGGED!', damage: 12 } });
 person('m2:ct_intern', { w: 34, h: 72, hp: 60, contact: 4, mass: 150 }, intern, drawIntern);
 person('m2:ct_exec', { w: 38, h: 76, hp: 95, contact: 4, mass: 175 }, exec, drawExec);
-person('m2:ct_pencil', { w: 46, h: 112, hp: 240, contact: 6, mass: 300 }, pencil, drawPencil, { head: { x: 3, y: -78, r: 12 }, spiky: { source: 'm2:ct_pencil_point', label: 'LEADED!', damage: 14 } });
+person('m2:ct_pencil', { w: 46, h: 112, hp: 240, contact: 6, mass: 300 }, pencil, drawPencil, { grab: 'none', head: { x: 3, y: -78, r: 12 }, spiky: { source: 'm2:ct_pencil_point', label: 'LEADED!', damage: 14 } });
 person('m2:ct_guard', { w: 44, h: 80, hp: 230, contact: 6, mass: 320 }, guard, drawGuard);

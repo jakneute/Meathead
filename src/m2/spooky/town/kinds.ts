@@ -411,7 +411,7 @@ registerM2Kind({ kind: 'm2:town_rat', stats: { w: 30, h: 14, hp: 14, contact: 6,
 registerM2Kind({ kind: 'm2:town_cat', stats: { w: 36, h: 24, hp: 14, contact: 9, mass: 6 }, ai: cat, draw: (c, e, f) => drawCat(c, e, f), head: { x: 13, y: -18, r: 6 }, gender: 'n', grab: 'critter' });
 registerM2Kind({ kind: 'm2:town_ghost', stats: { w: 38, h: 64, hp: 90, contact: 8, mass: 180 }, ai: ghost, humanoid: true, gender: personGender, head: { x: 2, y: -54, r: 9 }, draw: (c, e, f) => drawGhost(c, e, f, seedOf(e)) });
 registerM2Kind({ kind: 'm2:town_wolfman', stats: { w: 42, h: 74, hp: 160, contact: 14, mass: 220 }, ai: wolfman, humanoid: true, gender: personGender, head: { x: 4, y: -64, r: 10 }, draw: (c, e, f) => drawWolfman(c, e, f, seedOf(e)) });
-registerM2Kind({ kind: 'm2:town_monster', stats: { w: 54, h: 94, hp: 340, contact: 12, mass: 420 }, ai: monster, humanoid: true, gender: personGender, head: { x: 2, y: -88, r: 11 }, draw: (c, e, f) => drawMonster(c, e, f, seedOf(e)) });
+registerM2Kind({ kind: 'm2:town_monster', stats: { w: 54, h: 94, hp: 340, contact: 12, mass: 420 }, ai: monster, humanoid: true, grab: 'none', gender: personGender, head: { x: 2, y: -88, r: 11 }, draw: (c, e, f) => drawMonster(c, e, f, seedOf(e)) });
 registerM2Kind({ kind: 'm2:town_witch', stats: { w: 44, h: 56, hp: 100, contact: 10, mass: 160, air: true }, ai: witch, make: flyer, humanoid: true, gender: personGender, head: { x: 4, y: -50, r: 9 }, draw: (c, e, f) => drawWitch(c, e, f, seedOf(e)) });
 registerM2Kind({
   kind: 'm2:town_skeleton', stats: { w: 48, h: 68, hp: 160, contact: 9, mass: 260 }, ai: skeleton, humanoid: true, gender: personGender, head: { x: 2, y: -60, r: 9 },

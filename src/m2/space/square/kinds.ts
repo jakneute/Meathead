@@ -280,7 +280,7 @@ registerM2Kind({
   draw: (c, e, f) => drawGuard(c, e, f, seedOf(e)),
 });
 registerM2Kind({
-  kind: 'm2:space_robot', stats: { w: 50, h: 92, hp: 340, contact: 12, mass: 400 }, ai: robot, humanoid: true, gender: personGender, head: { x: 1, y: -84, r: 13 },
+  kind: 'm2:space_robot', stats: { w: 50, h: 92, hp: 340, contact: 12, mass: 400 }, ai: robot, humanoid: true, grab: 'none', gender: personGender, head: { x: 1, y: -84, r: 13 },
   spiky: { source: 'm2:space_robot_antenna', label: 'ZAPPED!', damage: 12 },
   draw: (c, e, f) => drawRobot(c, e, f, seedOf(e)),
 });

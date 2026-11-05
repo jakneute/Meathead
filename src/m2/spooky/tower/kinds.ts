@@ -286,7 +286,7 @@ registerM2Kind({
   draw: (c, e, f) => drawIgor(c, e, f),
 });
 registerM2Kind({
-  kind: TK.mummy, stats: { w: 46, h: 84, hp: 340, contact: 13, mass: 430 }, ai: mummyAI, humanoid: true, gender: personGender,
+  kind: TK.mummy, stats: { w: 46, h: 84, hp: 340, contact: 13, mass: 430 }, ai: mummyAI, humanoid: true, grab: 'none', gender: personGender,
   head: { x: 0, y: -74, r: 11 }, draw: (c, e, f) => drawMummy(c, e, f),
 });
 registerM2Kind({
