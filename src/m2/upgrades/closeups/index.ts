@@ -21,11 +21,14 @@ import { closeUp as limbaugh } from './limbaugh';
 import { closeUp as dole } from './dole';
 import { closeUp as newt } from './newt';
 import { closeUp as kid } from './kid';
+import { closeUp as mehphisto } from './mehphisto';
 
 export const CUSTOM_CLOSEUPS: Record<CrushId, CloseUpPaint | null> = {
   artie, donnie, steve, tucker, dad, demon, harry, piper, queen, rex, perot, falwell, limbaugh, dole, newt,
   // (the water park's kid: three of them)
   kid,
+  // (the water park's level 2: the goth son; his brother's the same as in hell)
+  mehphisto, brathazar: demon,
 };
 
 export const installCloseUps = () => {

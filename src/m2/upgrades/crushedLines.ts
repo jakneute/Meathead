@@ -9,7 +9,7 @@ export type Dressed = 'clean' | 'shitty' | 'nude';
 export type CrushPants = Record<Dressed, readonly string[]>;
 export type CrushGroup = 'hurt' | 'taunt' | 'attack';
 export type CrushId = 'artie' | 'donnie' | 'queen' | 'steve' | 'harry' | 'tucker' | 'piper' | 'dad' | 'rex' | 'demon'
-  | 'perot' | 'falwell' | 'limbaugh' | 'dole' | 'newt' | 'kid';
+  | 'perot' | 'falwell' | 'limbaugh' | 'dole' | 'newt' | 'kid' | 'mehphisto' | 'brathazar';
 
 export interface CrushSet {
   voice: string;
@@ -38,6 +38,30 @@ export const MEATHEAD_RIP: CrushPants = {
 
 const set = (voice: string, flags: Partial<Pick<CrushSet, 'female' | 'robot' | 'slapstick' | 'glitter'>>, lines: Pick<CrushSet, 'scream' | 'hurt' | 'taunt' | 'attack'>): CrushSet =>
   ({ voice, female: false, robot: false, slapstick: false, ...flags, ...lines });
+
+/** BRATHAZAR's (Spooky Land's hell; his brother's fight in the water park too). */
+const DEMON_CRUSH: CrushSet = set('m2.demon', {}, {
+    scream: {
+      clean: ['MY UNHOLY NUTS! DAD! DAAAD!', 'AAAH! DON\'T TELL MY DAD! DON\'T TELL ANYBODY!'],
+      shitty: ['MY UNHOLY NUTS! AND HE SMELLS WORSE THAN HELL!', 'AAAH! A SHITTY HAND! IN HELL! DAD!'],
+      nude: ['MY UNHOLY NUTS! A NAKED MORTAL! DAD IS GONNA LAUGH AT ME!', 'AAAH! HIS WERE RIGHT THERE! I SAW EVERYTHING!'],
+    },
+    hurt: {
+      clean: ['OW! THIS IS NOT METAL! THIS IS SO NOT METAL!', "STOP! I'M TELLING MY MOM!", 'OW! I CAN NEVER BREED A LEGION NOW!'],
+      shitty: ['OW! EVEN HELL DOES NOT SMELL THIS BAD!', 'STOP! DAD SAID MORTALS WERE CLEAN!', "OW! I'M GONNA PUKE BRIMSTONE!"],
+      nude: ['OW! NAKED AND WINNING! HOW?!', 'STOP! PUT IT AWAY! DAD MIGHT BE WATCHING!', 'OW! HIS ARE BIGGER THAN MINE WERE! UNHOLY!'],
+    },
+    taunt: {
+      clean: ["I'LL STILL IMPRESS MY DAD! I'LL DO IT SITTING DOWN!", 'I WILL SHRED YOU! ONE OCTAVE HIGHER!', "DAD! ARE YOU WATCHING?! DON'T WATCH!"],
+      shitty: ["I'LL IMPRESS DAD! I'LL KILL THE SHITTY ONE!", 'YOU SMELL LIKE THE NINTH CIRCLE! THE TOILET CIRCLE!', "DAD! DON'T SMELL THIS!"],
+      nude: ["I'LL IMPRESS DAD! I'LL KILL THE NUDIST!", 'PUT IT AWAY! I HAVE NOTHING TO COMPARE IT WITH ANYMORE!', "DAD! LOOK AWAY! BOTH OF YOU, LOOK AWAY!"],
+    },
+    attack: {
+      clean: ['FOR DAD! AND MY NUTS!', 'SHRED!', 'FACE MELTER! NUTS AVENGER!'],
+      shitty: ['FOR DAD! HOLD YOUR NOSE!', 'SHRED THE STINK!', 'FACE MELTER! PANTS MELTER!'],
+      nude: ['FOR DAD! AIM HIGH!', 'SHRED THE NAKED ONE!', 'FACE MELTER! NOT THAT FACE!'],
+    },
+  });
 
 export const CRUSHED: Record<CrushId, CrushSet> = {
   // ---- SAFARI ARTIE (pride): the greatest hunter in the park, the act, the hat; now a soprano
@@ -272,26 +296,30 @@ export const CRUSHED: Record<CrushId, CrushSet> = {
       nude: ['FOR MY NUTS, NAKED MAN!', 'SQUEAK! PUT IT AWAY AND DIE!'],
     },
   }),
-  demon: set('m2.demon', {}, {
+  demon: DEMON_CRUSH,
+  // ---- the water park's level 2: BRATHAZAR again (his brother's fight: his own set); MEHPHISTO, Satan's other son:
+  // the shrug gone in a squeak, the whatever cracking
+  brathazar: DEMON_CRUSH,
+  mehphisto: set('m2.wp.goth', {}, {
     scream: {
-      clean: ['MY UNHOLY NUTS! DAD! DAAAD!', 'AAAH! DON\'T TELL MY DAD! DON\'T TELL ANYBODY!'],
-      shitty: ['MY UNHOLY NUTS! AND HE SMELLS WORSE THAN HELL!', 'AAAH! A SHITTY HAND! IN HELL! DAD!'],
-      nude: ['MY UNHOLY NUTS! A NAKED MORTAL! DAD IS GONNA LAUGH AT ME!', 'AAAH! HIS WERE RIGHT THERE! I SAW EVERYTHING!'],
+      clean: ["MY NUTS. OH. OH NO. THAT'S NOT WHATEVER.", 'AAAH! OKAY! I CARE! I CARE NOW!'],
+      shitty: ["MY NUTS! YOUR SHITTY HAND! THAT'S NOT WHATEVER!", 'AAAH! IT STINKS AND IT TOOK THEM!'],
+      nude: ['MY NUTS! A NAKED GUY HAS MY NUTS!', "AAAH! YOURS ARE STILL ON! THAT'S NOT FAIR!"],
     },
     hurt: {
-      clean: ['OW! THIS IS NOT METAL! THIS IS SO NOT METAL!', "STOP! I'M TELLING MY MOM!", 'OW! I CAN NEVER BREED A LEGION NOW!'],
-      shitty: ['OW! EVEN HELL DOES NOT SMELL THIS BAD!', 'STOP! DAD SAID MORTALS WERE CLEAN!', "OW! I'M GONNA PUKE BRIMSTONE!"],
-      nude: ['OW! NAKED AND WINNING! HOW?!', 'STOP! PUT IT AWAY! DAD MIGHT BE WATCHING!', 'OW! HIS ARE BIGGER THAN MINE WERE! UNHOLY!'],
+      clean: ["OW. I DON'T EVEN HAVE ANYTHING LEFT TO HURT.", "STOP. I'M EMPTY.", "OW. DAD'S GONNA SAY I DESERVED THAT."],
+      shitty: ['OW. YOUR HANDS SMELL LIKE MY NUTS NOW.', "STOP. I'M EMPTY AND YOU STINK.", 'OW. EVEN THE HOLE SMELLS LIKE YOU.'],
+      nude: ["OW. STOP SWINGING YOURS. I DON'T HAVE ANY.", "STOP. YOU'RE NAKED AND I'M HOLLOW.", "OW. DON'T LOOK AT IT. THERE'S NOTHING TO LOOK AT."],
     },
     taunt: {
-      clean: ["I'LL STILL IMPRESS MY DAD! I'LL DO IT SITTING DOWN!", 'I WILL SHRED YOU! ONE OCTAVE HIGHER!', "DAD! ARE YOU WATCHING?! DON'T WATCH!"],
-      shitty: ["I'LL IMPRESS DAD! I'LL KILL THE SHITTY ONE!", 'YOU SMELL LIKE THE NINTH CIRCLE! THE TOILET CIRCLE!', "DAD! DON'T SMELL THIS!"],
-      nude: ["I'LL IMPRESS DAD! I'LL KILL THE NUDIST!", 'PUT IT AWAY! I HAVE NOTHING TO COMPARE IT WITH ANYMORE!', "DAD! LOOK AWAY! BOTH OF YOU, LOOK AWAY!"],
+      clean: ["WHATEVER. I WASN'T USING THEM.", 'MY VOICE WENT UP. GREAT. NOW I SOUND LIKE MY BROTHER.', "DAD'S NEVER GETTING GRANDKIDS. FROM ME. WHATEVER."],
+      shitty: ['WHATEVER. YOU CAN KEEP THEM. WASH THEM FIRST.', 'MY VOICE WENT UP. YOUR SMELL STAYED THE SAME.', "I LOST MY NUTS. YOU LOST YOUR BOWELS. WE'RE BOTH SAD."],
+      nude: ['WHATEVER. YOURS ARE OUT. MINE ARE GONE. WE GET IT.', "PUT THEM AWAY. YOU'RE RUBBING IT IN.", "I'M NOT JEALOUS. I'M NOT. PUT THEM AWAY."],
     },
     attack: {
-      clean: ['FOR DAD! AND MY NUTS!', 'SHRED!', 'FACE MELTER! NUTS AVENGER!'],
-      shitty: ['FOR DAD! HOLD YOUR NOSE!', 'SHRED THE STINK!', 'FACE MELTER! PANTS MELTER!'],
-      nude: ['FOR DAD! AIM HIGH!', 'SHRED THE NAKED ONE!', 'FACE MELTER! NOT THAT FACE!'],
+      clean: ['FOR MY NUTS. I GUESS.', 'SQUEAK. DIE.'],
+      shitty: ['FOR MY NUTS, STINKY.', 'SQUEAK. DIE. SHOWER.'],
+      nude: ['FOR MY NUTS, NAKED GUY.', 'SQUEAK. PUT IT AWAY. DIE.'],
     },
   }),
   // ---- THE PUNDITS (the White House: a cartoon show's): the slapstick nut shot, their own talking points

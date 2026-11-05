@@ -378,7 +378,7 @@ interface Trophy { kind: TrophyKind; x: number; y: number; vx: number; vy: numbe
 const trophies: Trophy[] = [];
 const kindOf = (id: CrushId): TrophyKind => {
   const c = CRUSHED[id];
-  return id === 'demon' ? 'demon' : id === 'kid' ? 'mutant' : c.robot ? (c.female ? 'circuits' : 'robot') : c.female ? 'ovaries' : 'balls';
+  return id === 'demon' || id === 'brathazar' || id === 'mehphisto' ? 'demon' : id === 'kid' ? 'mutant' : c.robot ? (c.female ? 'circuits' : 'robot') : c.female ? 'ovaries' : 'balls';
 };
 /** Half its height, world px (it rests on the floor by its middle this far up). */
 const T_HALF = 5;

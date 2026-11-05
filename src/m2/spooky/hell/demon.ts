@@ -48,7 +48,8 @@ import { rectsOverlap, boundsOf } from '../../../m1/game/core/utils';
 import { getAttackHitbox, recoilOff } from '../../../m1/game/player/player';
 import { BOUNCE_FRAMES } from '../../../m1/constants';
 import { subBossMelee } from '../../upgrades/bossMelee';
-import { cheapShotGate, cheapShotStunT, crushGroups, crushLines, registerClearThreats, endCheapStun } from '../../upgrades/cheapShot';
+import { cheapShotGate, cheapShotStunT, crushGroups, crushLines, registerClearThreats, endCheapStun, isCrushed } from '../../upgrades/cheapShot';
+import { keepForRevisits } from '../../store';
 import { isShat, isNude } from '../../../m1/game/player/gut';
 import { topBand, CANVAS_WIDTH } from '../../../m1/constants';
 import { solid, box, label, saidOver, meatheadSays, voice, type Said } from '../section';
@@ -76,6 +77,8 @@ const GUITAR = 'm2:demon_guitar', CRUSH = 'm2:demon_crush', WAVE = 'm2:demon_wav
 const PILLAR = 'm2:demon_pillar', BREATH = 'm2:demon_breath', AIRBODY = 'm2:demon_airbody', FIRE_BOUNCE = 'm2:demon_bounce_fire';
 /** Beaten, and past him: this checkpoint on, he's gone for good. */
 export const DONE_CP = 53;
+/** On the file (store.ts keepForRevisits, saved with the rest): he was beaten here with his nuts already torn out. */
+export const DEMON_NUTLESS = 'spooky:demon-nutless';
 
 // The numbers
 /** His health (was 2400 as the fat one, with the trip's ×2.5 window and shots cut to 55%: no trip now, so less of
@@ -386,6 +389,9 @@ const beaten = (ctx: FrameContext, d: Demon) => {
   // (from the killing blow on, his: nothing gets a hit in on him before the scene's started)
   { const p = ctx.state.player; p.inCutscene = true; p.invincibilityTimer = Math.max(p.invincibilityTimer, 30); }
   d.guitarAt = d.x + d.facing * 100;
+  // (beaten with his nuts torn out: it's on the file (the water park's level 2: his brother's fight, there's nothing
+  // left to rip; endgame/park2/boss.ts))
+  if (d.e && isCrushed(d.e)) keepForRevisits(DEMON_NUTLESS, '1');
   if (d.e) { const i = ctx.state.enemies.indexOf(d.e); if (i >= 0) ctx.state.enemies.splice(i, 1); d.e = null; }
   if (d.lock) d.lock.x = -1e7;
   if (d.back) d.back.x = -1e7;
@@ -1168,7 +1174,7 @@ const head = (c: Ctx, P: Pose, S: readonly string[], d: Demon, f: number) => {
 
 /** (the water park's level 2: him again, in his brother's fight, endgame/park2/boss.ts) Him drawn at the origin (his
  *  feet), facing right, in a state of his (`st`, `t` frames into it), any of his own fields over a fresh one's. */
-export const drawPunkAs = (c: Ctx, over: Partial<Demon>, f: number) => drawPunk(c, { ...blank(), fight: 'on', ...over, e: null }, f);
+export const drawPunkAs = (c: Ctx, over: Partial<Demon>, f: number) => drawPunk(c, { ...blank(), fight: 'on', ...over, e: over.e ?? null }, f);
 export type PunkSt = St;
 export const drawDemon = (c: Ctx, state: GameState) => {
   const d = demonOf(state);

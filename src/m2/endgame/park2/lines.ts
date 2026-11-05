@@ -169,6 +169,11 @@ export const BRO_ARRIVE = bp(
 export const MH_BRO = bp(['OH GOOD. THE CRYBABY.'], ['OH GOOD. THE CRYBABY. HE BROUGHT HIS GUITAR.'], ['OH GOOD. THE CRYBABY. HI AGAIN.']);
 /** Down on his knees (out of it till the other's down too). */
 export const SON_KNEEL = bp(["...I'M JUST GONNA SIT. WHATEVER."], ["...I'M SITTING DOWN. YOU SMELL TOO BAD TO STAND."], ["...I'M SITTING. I'M NOT LOOKING UP. EVER."]);
+/** The other one, when his brother's nuts go (the cheap shot), if he's still in it. */
+export const SON_WINCE = bp(["OH. OH NO. BRO. THAT'S... NOT WHATEVER."], ["OH NO. BRO. WITH HIS SHITTY HAND. GROSS."], ["OH NO. BRO. A NAKED GUY JUST DID THAT."]);
+export const BRO_WINCE = bp(["BRO! YOUR NUTS! DAD! HE TOOK BRO'S NUTS!"], ["BRO! YOUR NUTS! WITH HIS SHITTY HAND! DAAAD!"], ["BRO! YOUR NUTS! A NAKED GUY HAS THEM! DAAAD!"]);
+/** Y + B on the brother when his nuts went in hell already: nothing to grab. */
+export const MH_NOTHING = bp(["NOTHING THERE. I ALREADY GOT THOSE IN HELL."], ["NOTHING THERE. I TOOK THEM IN HELL. WITH THESE SAME SHITTY HANDS."], ["NOTHING THERE. I TOOK THEM IN HELL. NAKED. HE REMEMBERS."]);
 export const BRO_KNEEL = bp(["BRO! I'M DOWN! FINISH HIM! DAD, I WAS HELPING!"], ["BRO! I'M DOWN! HE GOT SHIT ON MY GUITAR!"], ["BRO! I'M DOWN! A NAKED GUY DID IT AGAIN!"]);
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -193,10 +198,10 @@ export const MH_LOUNGE = bp(['NOW THIS IS A LAZY RIVER.'], ["NOW THIS IS A LAZY 
 
 const all = (...pools: (string | string[] | ByPants)[]) => pools.flatMap(p => (typeof p === 'string' ? [p] : Array.isArray(p) ? p : Object.values(p).flat()));
 export const PARK2_VOICE_LINES: Record<string, string[]> = {
-  meathead: all(MH_MEET, MH_AFTER_MEET, MH_FIRST_VINE, MH_VINE_BURN, MH_LOG, MH_LOG_GOING, MH_TOWER, MH_TOWER_GOING, MH_GROTTO, MH_RIVER, MH_DOOR, MH_INTRO2, MH_MOCK, GRAB_SON, MH_STUB3, MH_BRO, MH_STOP, MH_PRETZEL, MH_BEER, MH_LOUNGE, ...Object.values(HURT2).map(h => h.hurt)),
+  meathead: all(MH_MEET, MH_AFTER_MEET, MH_FIRST_VINE, MH_VINE_BURN, MH_LOG, MH_LOG_GOING, MH_TOWER, MH_TOWER_GOING, MH_GROTTO, MH_RIVER, MH_DOOR, MH_INTRO2, MH_MOCK, GRAB_SON, MH_STUB3, MH_BRO, MH_NOTHING, MH_STOP, MH_PRETZEL, MH_BEER, MH_LOUNGE, ...Object.values(HURT2).map(h => h.hurt)),
   death: all(...Object.values(HURT2).map(h => h.death)),
-  [SON_VOICE]: all(SON_HELLO, SON_NAME_LINE, SON_JOB, SON_LEAK, SON_BYE, SON_INTRO, SON_INTRO2, SON_RETRY, SON_LAZY, SON_HURT, SON_LOW, SON_DEATH, SON_CALL, SON_KNEEL, SON_ESCAPE),
-  'm2.demon': all(BRO_ARRIVE, BRO_KNEEL, BRO_ESCAPE),
+  [SON_VOICE]: all(SON_HELLO, SON_NAME_LINE, SON_JOB, SON_LEAK, SON_BYE, SON_INTRO, SON_INTRO2, SON_RETRY, SON_LAZY, SON_HURT, SON_LOW, SON_DEATH, SON_CALL, SON_KNEEL, SON_ESCAPE, SON_WINCE),
+  'm2.demon': all(BRO_ARRIVE, BRO_KNEEL, BRO_ESCAPE, BRO_WINCE),
   [BEER_VOICE]: all(BEER_DEMON),
   [BURNOUT_VOICE.m]: all(BURN_BARK), [BURNOUT_VOICE.f]: all(BURN_BARK),
 };

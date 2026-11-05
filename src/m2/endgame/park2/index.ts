@@ -38,6 +38,9 @@ import { type EndScene, startEnd, updateEnd, drawEnd, drawEndHud, drawEndAfter, 
 import { drawBack2, drawFront2, drawBackdrop2, lamps2 } from './art';
 import * as L from './lines';
 import { contactSheet } from './sheet';
+import { setPiece } from '../../upgrades/state';
+import { keepForRevisits } from '../../store';
+import { DEMON_NUTLESS } from '../../spooky/hell/demon';
 
 export interface Park2 {
   meet: Meet; vines: Vines2; logs: Log2Run[]; towers: Tower2Run[];
@@ -92,7 +95,7 @@ export const buildPark2 = (state: GameState, cp: number, onSave: () => void): Pa
     fightState: killed ? 'won' : 'wait', f: null, killed, end: null, cause: null, said: {}, lineAt: {},
     backOpen: killed ? 1 : 0, door: doorDown ? 1 : 0,
   };
-  if (import.meta.env.DEV && typeof window !== 'undefined') { const w = window as unknown as Record<string, unknown>; w.__wp2 = p2; w.__wp2Sheet = contactSheet; }
+  if (import.meta.env.DEV && typeof window !== 'undefined') { const w = window as unknown as Record<string, unknown>; w.__wp2 = p2; w.__wp2Sheet = contactSheet; w.__wp2Hands = () => setPiece('hands', true); w.__wp2Nutless = (on: boolean) => keepForRevisits(DEMON_NUTLESS, on ? '1' : null); }
   if (cp > CP2.start) { p2.said.vine = true; }
   if (cp >= CP2.logJam) p2.said.log = true;
   if (cp >= CP2.tiki) p2.said.tower = true;

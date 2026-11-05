@@ -47,12 +47,15 @@ import { newSpam, spamTick, hitKey, swatOff, type Spam, BOSS_IFRAMES } from '../
 import { bossIntroSeen, markBossIntroSeen } from '../../bossIntro';
 import { TOO_BIG_BY_KIND } from '../../lines/weaponLines';
 import { box, label, saidOver, speak, voice, meatheadSays } from '../../adventure/section';
-import { drawPunkAs, type PunkSt } from '../../spooky/hell/demon';
+import { drawPunkAs, DEMON_NUTLESS, type PunkSt } from '../../spooky/hell/demon';
+import { cheapShotGate, cheapShotStunned, endCheapStun, registerClearThreats, crushGroups, crushLines, type CrushId } from '../../upgrades/cheapShot';
+import { keptForRevisits } from '../../store';
 import { DEMON_CHATTER, DEMON_HURT, HURT_CRUSH, DEATH_CRUSH, HURT_WAVE, DEATH_WAVE, HURT_GUITAR, DEATH_GUITAR, HURT_RUSH, DEATH_RUSH, HURT_BUMP, DEATH_BUMP } from '../../spooky/hell/demonLines';
 import { byPants } from '../park1/kinds';
 import { drawSon, sonHand, sonMouth, SON_W, SON_H, type SonPose } from './sonArt';
 import { drawSonGross, drawSonGrossBack, warmSonGross } from './sonGross';
-import { shoot2, lob, clearFire, FIRE } from './fire';
+import { shoot2, lob, clearFire, fireOf, FIRE } from './fire';
+const shotsNow = (state: GameState) => fireOf(state).shots;
 import { GROTTO, GY } from './geo';
 import * as L from './lines';
 
@@ -93,6 +96,8 @@ export interface Foe {
   down: boolean; said: string | null;
   /** The ring's height, the leap's landing (where his shadow is), the rush's way, a move's hit had. */
   high: boolean; aim: number; rushDir: 1 | -1; hit: boolean; shots: number;
+  /** Wincing at his brother's nuts going (frames left): a flinch, no attacking. Frozen in a cheap shot's cutscene. */
+  wince: number; frozen: boolean;
 }
 type Intro = 'kick' | 'walk' | 'view' | 'gross' | 'talk' | 'retry';
 export interface Fight2 {
@@ -118,6 +123,15 @@ for (const [kind, w, h, blood] of [[SON_KIND, SON_W, SON_H, '#7F1D1D'], [BRO_KIN
 });
 TOO_BIG_BY_KIND[SON_KIND] = L.GRAB_SON;
 TOO_BIG_BY_KIND[BRO_KIND] = L.GRAB_SON;
+// (the hand armor's cheap shot (upgrades/cheapShot.ts) on both: the son's own crushed set and close-up; his brother's
+// as in hell, unless they were torn out there (then there's nothing left: Y + B on him grabs at nothing, his line))
+crushGroups('mehphisto', { hurt: [L.SON_HURT], taunt: [L.SON_LAZY, L.SON_LOW] });
+for (const id of ['mehphisto', 'brathazar'] as CrushId[]) registerClearThreats(id, state => {
+  for (const sh of [...shotsNow(state)]) for (let i = 0; i < 6; i++) state.particles.push({ pos: { x: sh.x + (Math.random() - 0.5) * 20, y: sh.y - Math.random() * 20 }, vel: { x: (Math.random() - 0.5) * 2, y: -1 - Math.random() * 2 }, life: 30, color: i % 2 ? 'rgba(68, 64, 60, 0.6)' : '#F97316', size: 3 + Math.random() * 4 });
+  clearFire(state); playSound('flame', 0.6, 6);
+});
+/** His nuts were torn out in hell (the file says: spooky/hell/demon.ts DEMON_NUTLESS): none to have here. */
+export const broNutless = () => keptForRevisits(DEMON_NUTLESS) === '1';
 
 let token = 0;
 export const resetFight2 = () => { token++; };
@@ -143,7 +157,7 @@ const newFoe = (who: Who, x: number, y: number): Foe => {
   const e = makeKindEnemy((who === 'son' ? SON_KIND : BRO_KIND) as EnemyKind, x, y);
   e.seen = true;
   const max = who === 'son' ? SON_HP : BRO_HP;
-  return { who, e, hp: max, max, iframes: 0, flash: 0, moveSeen: e.hitByMove, spam: newSpam(), x, y, vx: 0, vy: 0, face: -1, st: 'walk', t: 0, T: 60, move: null, last: [], cd: 50, down: false, said: null, high: false, aim: 0, rushDir: -1, hit: false, shots: 0 };
+  return { who, e, hp: max, max, iframes: 0, flash: 0, moveSeen: e.hitByMove, spam: newSpam(), x, y, vx: 0, vy: 0, face: -1, st: 'walk', t: 0, T: 60, move: null, last: [], cd: 50, down: false, said: null, high: false, aim: 0, rushDir: -1, hit: false, shots: 0, wince: 0, frozen: false };
 };
 
 export const startFight2 = (state: GameState): Fight2 => {
@@ -472,7 +486,14 @@ const stepFoe = (ctx: FrameContext, f: Fight2, o: Foe) => {
   if (o.iframes > 0) o.iframes--;
   if (o.flash > 0) o.flash--;
   if (o.down) { o.st = 'kneel'; if (state.enemies.includes(o.e)) state.enemies = state.enemies.filter(q => q !== o.e); return; }
-  if (o.who === 'son') stepSon(ctx, f, o); else stepBro(ctx, f, o);
+  if (cheapShotStunned(o.e)) {
+    // (stunned off the cheap shot: planted, no attacks, taking hits; his turn given up)
+    if (f.busy === o.who) { f.busy = null; f.gap = GAP_ONE; }
+    if (o.st !== 'stun') { setSt(o, 'stun', 9999); o.move = null; }
+    o.vx = 0; o.y = GY;
+  } else if (o.st === 'stun') { setSt(o, 'walk', 0); o.cd = 30; }
+  else if (o.wince > 0) { o.wince--; o.vx *= 0.8; o.t++; if (o.wince === 0) setSt(o, 'walk', 0); }
+  else if (o.who === 'son') stepSon(ctx, f, o); else stepBro(ctx, f, o);
   const gone = o.st === 'gone' || o.st === 'fall' && o.y < GY - 200;
   const b = foeBox(o);
   // (touching him: a shove; not mid-leap (those are their own))
@@ -505,7 +526,7 @@ const takeHits = (ctx: FrameContext, f: Fight2, o: Foe, gone: boolean) => {
   playSound('gunhit', 0.6, -2);
   ctx.fx.spawnDamageNumber({ x: o.x - 10, y: o.y - 160 }, Math.max(1, Math.round(dmg)), dmg > 40);
   for (let i = 0; i < 6; i++) state.particles.push({ pos: { x: o.x, y: o.y - 90 }, vel: { x: (Math.random() - 0.5) * 4, y: -1 - Math.random() * 3 }, life: 22, color: '#7F1D1D', size: 2 + Math.random() * 3, grav: 0.3 });
-  if (o.hp > 0 && Math.random() < 0.2) bark(state, o, o.who === 'son' ? L.SON_HURT : DEMON_HURT);
+  if (o.hp > 0 && Math.random() < 0.2) bark(state, o, crushLines(o.e, o.who === 'son' ? L.SON_HURT : DEMON_HURT));
   // (the same hit landing on him ~4 s running: up and away (the son in smoke, the brother in a leap), swatted off first)
   if (o.hp > 0 && spamTick(o.spam, state.frame, hitKey(state.player, melee)) && (o.st === 'walk' || o.st === 'open' || o.st === 'pose' || o.st.endsWith('Rec') || o.st === 'land' || o.st === 'crash')) {
     if (melee) swatOff(state, o.x);
@@ -514,6 +535,7 @@ const takeHits = (ctx: FrameContext, f: Fight2, o: Foe, gone: boolean) => {
     o.T = 8;
   }
   if (o.hp <= 0) {
+    endCheapStun(o.e);
     o.hp = 0; o.down = true; o.st = 'kneel'; o.t = 0; o.vx = 0; o.y = GY; o.said = null;
     if (f.busy === o.who) { f.busy = null; f.gap = GAP_ONE; }
     state.enemies = state.enemies.filter(q => q !== e);
@@ -532,8 +554,25 @@ export const updateFight2 = (ctx: FrameContext, f: Fight2, controls: Controls, o
   if (f.gap > 0) f.gap--;
   // (the mutters: his, his brother's showing off for their dad)
   const talker = live(f)[Math.floor(Math.random() * live(f).length)];
-  if (talker && f.total > f.tauntAt && !f.son.said && !f.bro?.said) { f.tauntAt = f.total + 520 + Math.floor(Math.random() * 400); bark(state, talker, talker.who === 'son' ? L.SON_LAZY : DEMON_CHATTER); }
-  if (!f.lowSaid && f.son.hp < SON_HP * 0.62 && !f.son.said) { f.lowSaid = true; bark(state, f.son, L.SON_LOW); }
+  if (talker && f.total > f.tauntAt && !f.son.said && !f.bro?.said) { f.tauntAt = f.total + 520 + Math.floor(Math.random() * 400); bark(state, talker, crushLines(talker.e, talker.who === 'son' ? L.SON_LAZY : DEMON_CHATTER)); }
+  if (!f.lowSaid && f.son.hp < SON_HP * 0.62 && !f.son.said) { f.lowSaid = true; bark(state, f.son, crushLines(f.son.e, L.SON_LOW)); }
+  // (the cheap shot: each up for it on the floor, out in the open (not off in a leap, up in smoke, head down in the rush);
+  // his brother only with his nuts still on him. While it's on with either, the whole fight's frozen; after, the other
+  // one (if he's still in it) winces at it)
+  let frozen = false;
+  for (const o of [f.son, f.bro]) {
+    if (!o || o.down) continue;
+    // (nothing left on him to have: the cheap shot's not offered him at all)
+    if (o.who === 'bro' && broNutless()) { o.frozen = false; continue; }
+    const ok = o.y >= GY - 0.5 && !['gone', 'fall', 'air', 'rush', 'crouch'].includes(o.st);
+    const was = o.frozen;
+    o.frozen = cheapShotGate(state, o.e, o.who === 'son' ? 'mehphisto' : 'brathazar', ok) === 'frozen';
+    if (o.frozen) frozen = true;
+    if (was && !o.frozen) wince(state, f, o);
+  }
+  // (Y + B on a brother with nothing left: grabbing at nothing, his line)
+  if (f.bro && broNutless()) TOO_BIG_BY_KIND[BRO_KIND] = [...byPants(state, L.MH_NOTHING)];
+  if (frozen) return controls;
   stepFoe(ctx, f, f.son);
   if (f.bro) stepFoe(ctx, f, f.bro);
   // (half way down, his brother: between moves (not mid-attack)), the beat
@@ -542,6 +581,15 @@ export const updateFight2 = (ctx: FrameContext, f: Fight2, controls: Controls, o
   return controls;
 };
 export { BEANBAG_X as BEANBAG };
+/** One's nuts just went (`o`, the cheap shot's over): the other, if he's still in it, winces: a horrified line, a
+ *  flinch (no attacking a moment; mid-attack, he carries on, the line only: the turns as they were). */
+const wince = (state: GameState, f: Fight2, o: Foe) => {
+  const other = o.who === 'son' ? f.bro : f.son;
+  if (!other || other.down || cheapShotStunned(other.e)) return;
+  other.said = null;
+  foeSays(other, pick(byPants(state, other.who === 'son' ? L.SON_WINCE : L.BRO_WINCE)));
+  if (other.st === 'walk') { setSt(other, 'wince', 0); other.wince = 40; other.vx = 0; other.face = o.x < other.x ? -1 : 1; }
+};
 
 // ---------------------------------------------------------------------------------------------------------------
 // Drawing
@@ -549,6 +597,8 @@ export { BEANBAG_X as BEANBAG };
 const sonPose = (f: Fight2, o: Foe): SonPose => {
   if (f.mode === 'intro') return 'sit';
   if (o.down) return 'kneel';
+  if (o.st === 'stun') return 'stun';
+  if (o.st === 'wince') return 'hurt';
   if (o.flash > 4 && (o.st === 'walk' || o.st === 'open')) return 'hurt';
   switch (o.st) {
     case 'crouch': return 'crouch';
@@ -569,6 +619,7 @@ const sonPose = (f: Fight2, o: Foe): SonPose => {
 const broSt = (o: Foe): PunkSt => {
   if (o.down) return 'beaten';
   switch (o.st) {
+    case 'wince': return 'stagger';
     case 'crouch': return 'crouch';
     case 'air': case 'fall': return 'air';
     case 'land': return 'land';
@@ -622,7 +673,7 @@ export const drawFight2 = (c: Ctx, state: GameState, f: Fight2) => {
     } else {
       c.save(); c.translate(Math.round(o.x), Math.round(o.y)); c.scale(o.face, 1);
       if (alpha < 1) c.globalAlpha = alpha;
-      drawPunkAs(c, { st: broSt(o), t: o.t, vx: o.vx, facing: 1, flash: o.flash, said: o.said ? { text: o.said } : null, jumpTo: o.aim, rushDir: 1, x: o.x, y: o.y }, fr);
+      drawPunkAs(c, { st: broSt(o), t: o.t, e: cheapShotStunned(o.e) ? o.e : null, vx: o.vx, facing: 1, flash: o.flash, said: o.said ? { text: o.said } : null, jumpTo: o.aim, rushDir: 1, x: o.x, y: o.y }, fr);
       c.restore();
       if (o.said) saidOver(c, o.said, o.x, o.y - 200, '#FDBA74', 280);
     }

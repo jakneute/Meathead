@@ -27291,6 +27291,21 @@
  },
  {
   "voice": "m2.demon",
+  "text": "BRO! YOUR NUTS! A NAKED GUY HAS THEM! DAAAD!",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "m2.demon",
+  "text": "BRO! YOUR NUTS! DAD! HE TOOK BRO'S NUTS!",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "m2.demon",
+  "text": "BRO! YOUR NUTS! WITH HIS SHITTY HAND! DAAAD!",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "m2.demon",
   "text": "DAAAAAD! A NAKED GUY BEAT ME UP! MAKE HIM STOP!",
   "from": "SPOOKY"
  },
@@ -68571,6 +68586,21 @@
  },
  {
   "voice": "m2.wp.goth",
+  "text": "AAAH! IT STINKS AND IT TOOK THEM!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.wp.goth",
+  "text": "AAAH! OKAY! I CARE! I CARE NOW!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.wp.goth",
+  "text": "AAAH! YOURS ARE STILL ON! THAT'S NOT FAIR!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.wp.goth",
   "text": "BRO. RUN.",
   "from": "ENDGAME"
  },
@@ -68606,6 +68636,11 @@
  },
  {
   "voice": "m2.wp.goth",
+  "text": "DAD'S NEVER GETTING GRANDKIDS. FROM ME. WHATEVER.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.wp.goth",
   "text": "DID HE SEE? DON'T TELL HIM ABOUT THE NAKED PART.",
   "from": "ENDGAME"
  },
@@ -68636,6 +68671,21 @@
  },
  {
   "voice": "m2.wp.goth",
+  "text": "FOR MY NUTS, NAKED GUY.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.wp.goth",
+  "text": "FOR MY NUTS, STINKY.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.wp.goth",
+  "text": "FOR MY NUTS. I GUESS.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.wp.goth",
   "text": "GROSS. OW.",
   "from": "ENDGAME"
  },
@@ -68651,6 +68701,11 @@
  },
  {
   "voice": "m2.wp.goth",
+  "text": "I LOST MY NUTS. YOU LOST YOUR BOWELS. WE'RE BOTH SAD.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.wp.goth",
   "text": "I'M LOOKING AT THE CEILING. THE WHOLE TIME.",
   "from": "ENDGAME"
  },
@@ -68663,6 +68718,11 @@
   "voice": "m2.wp.goth",
   "text": "I'M LOSING TO A NAKED GUY. DAD'S GONNA FRAME IT.",
   "from": "ENDGAME"
+ },
+ {
+  "voice": "m2.wp.goth",
+  "text": "I'M NOT JEALOUS. I'M NOT. PUT THEM AWAY.",
+  "from": "UPGRADES"
  },
  {
   "voice": "m2.wp.goth",
@@ -68691,6 +68751,41 @@
  },
  {
   "voice": "m2.wp.goth",
+  "text": "MY NUTS! A NAKED GUY HAS MY NUTS!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.wp.goth",
+  "text": "MY NUTS! YOUR SHITTY HAND! THAT'S NOT WHATEVER!",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.wp.goth",
+  "text": "MY NUTS. OH. OH NO. THAT'S NOT WHATEVER.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.wp.goth",
+  "text": "MY VOICE WENT UP. GREAT. NOW I SOUND LIKE MY BROTHER.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.wp.goth",
+  "text": "MY VOICE WENT UP. YOUR SMELL STAYED THE SAME.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.wp.goth",
+  "text": "OH NO. BRO. A NAKED GUY JUST DID THAT.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "m2.wp.goth",
+  "text": "OH NO. BRO. WITH HIS SHITTY HAND. GROSS.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "m2.wp.goth",
   "text": "OH. IT'S YOU. NAKED. COOL. I'M NOT GONNA LOOK. WHATEVER.",
   "from": "ENDGAME"
  },
@@ -68706,8 +68801,18 @@
  },
  {
   "voice": "m2.wp.goth",
+  "text": "OH. OH NO. BRO. THAT'S... NOT WHATEVER.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "m2.wp.goth",
   "text": "OW. COOL.",
   "from": "ENDGAME"
+ },
+ {
+  "voice": "m2.wp.goth",
+  "text": "OW. DAD'S GONNA SAY I DESERVED THAT.",
+  "from": "UPGRADES"
  },
  {
   "voice": "m2.wp.goth",
@@ -68716,8 +68821,23 @@
  },
  {
   "voice": "m2.wp.goth",
+  "text": "OW. DON'T LOOK AT IT. THERE'S NOTHING TO LOOK AT.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.wp.goth",
+  "text": "OW. EVEN THE HOLE SMELLS LIKE YOU.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.wp.goth",
   "text": "OW. GROSS.",
   "from": "ENDGAME"
+ },
+ {
+  "voice": "m2.wp.goth",
+  "text": "OW. I DON'T EVEN HAVE ANYTHING LEFT TO HURT.",
+  "from": "UPGRADES"
  },
  {
   "voice": "m2.wp.goth",
@@ -68731,8 +68851,18 @@
  },
  {
   "voice": "m2.wp.goth",
+  "text": "OW. STOP SWINGING YOURS. I DON'T HAVE ANY.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.wp.goth",
   "text": "OW. YOU GOT IT ON MY COAT.",
   "from": "ENDGAME"
+ },
+ {
+  "voice": "m2.wp.goth",
+  "text": "OW. YOUR HANDS SMELL LIKE MY NUTS NOW.",
+  "from": "UPGRADES"
  },
  {
   "voice": "m2.wp.goth",
@@ -68743,6 +68873,41 @@
   "voice": "m2.wp.goth",
   "text": "PUT SOMETHING ON. OR DON'T. WHATEVER.",
   "from": "ENDGAME"
+ },
+ {
+  "voice": "m2.wp.goth",
+  "text": "PUT THEM AWAY. YOU'RE RUBBING IT IN.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.wp.goth",
+  "text": "SQUEAK. DIE.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.wp.goth",
+  "text": "SQUEAK. DIE. SHOWER.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.wp.goth",
+  "text": "SQUEAK. PUT IT AWAY. DIE.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.wp.goth",
+  "text": "STOP. I'M EMPTY AND YOU STINK.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.wp.goth",
+  "text": "STOP. I'M EMPTY.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.wp.goth",
+  "text": "STOP. YOU'RE NAKED AND I'M HOLLOW.",
+  "from": "UPGRADES"
  },
  {
   "voice": "m2.wp.goth",
@@ -68806,6 +68971,11 @@
  },
  {
   "voice": "m2.wp.goth",
+  "text": "WHATEVER. I WASN'T USING THEM.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.wp.goth",
   "text": "WHATEVER. PANTS.",
   "from": "ENDGAME"
  },
@@ -68813,6 +68983,16 @@
   "voice": "m2.wp.goth",
   "text": "WHATEVER. SHOWER.",
   "from": "ENDGAME"
+ },
+ {
+  "voice": "m2.wp.goth",
+  "text": "WHATEVER. YOU CAN KEEP THEM. WASH THEM FIRST.",
+  "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.wp.goth",
+  "text": "WHATEVER. YOURS ARE OUT. MINE ARE GONE. WE GET IT.",
+  "from": "UPGRADES"
  },
  {
   "voice": "m2.wp.goth",
@@ -94273,6 +94453,21 @@
   "voice": "meathead",
   "text": "NOTHING ON UNDER IT. JUST LIKE THE ASTRONAUTS.",
   "from": "SPACE"
+ },
+ {
+  "voice": "meathead",
+  "text": "NOTHING THERE. I ALREADY GOT THOSE IN HELL.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "meathead",
+  "text": "NOTHING THERE. I TOOK THEM IN HELL. NAKED. HE REMEMBERS.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "meathead",
+  "text": "NOTHING THERE. I TOOK THEM IN HELL. WITH THESE SAME SHITTY HANDS.",
+  "from": "ENDGAME"
  },
  {
   "voice": "meathead",
