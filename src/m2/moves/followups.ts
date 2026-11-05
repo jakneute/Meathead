@@ -150,13 +150,11 @@ const headSpot = (b: { e: Enemy; x: number; ground: number }, face: 1 | -1) => {
   return animal(b.e) ? { x: b.x - face * hd.r * 0.5, y: b.ground - hd.r * 1.1 } : { x: b.x + face * hd.x, y: b.ground - hd.r };
 };
 
-/** One the follow-ups can be done to: not a critter, a boss, a sub-boss; one the grabs work on. One they don't (a
- *  big one only the gloved beatdown has: handsOnlyFoe) is never picked up or thrown, gloves or not (the owner's "if an
- *  enemy cannot be beatdown without the gloves, it cannot be shaken down or air grabbed ever"): the missile and the
- *  ninja drop lift and throw, so they're out; PLANTED's a bonk on the head where it stands, no lift, so with the hand
- *  armor it still works on one. */
-const followable = (e: Enemy, move: FollowMove) => !isCritter(e) && e.type !== 'boss' && !isMidBoss(e) && e.health > 0 && !e.isBlownAway && !e.innocent
-  && (grabbable(e) || (move === 'charge' && has('hands') && handsOnlyFoe(e)));
+/** One the follow-ups can be done to: not a critter, a boss, a sub-boss; one the grabs work on, or with the hand armor,
+ *  any other (the owner: "the gloves allow follow up grabs to be allowed on any non boss enemy ... as well as standard
+ *  beatdowns": the big ones the shakedown and the air grab never take still get every follow-up with the gloves). */
+const followable = (e: Enemy, _move: FollowMove) => !isCritter(e) && e.type !== 'boss' && !isMidBoss(e) && e.health > 0 && !e.isBlownAway && !e.innocent
+  && (grabbable(e) || (has('hands') && handsOnlyFoe(e)));
 
 /** Stood on the floor (a flyer never is): the floor's top, or null. */
 const standing = (state: GameState, e: Enemy) => {
