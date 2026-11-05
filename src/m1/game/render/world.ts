@@ -457,15 +457,36 @@ const drawCylinderWorld = (ctx: CanvasRenderingContext2D, radius: number, worldP
   ctx.save();
   ctx.imageSmoothingEnabled = false;
   for (const [dx, dw, sx, sw] of cylinderRuns(radius, pad)) ctx.drawImage(cylinderStrip, sx * RENDER_SCALE, 0, sw * RENDER_SCALE, CANVAS_HEIGHT * RENDER_SCALE, dx, 0, dw, CANVAS_HEIGHT);
-  // Shading round the sides as it turns away from you
+  // Shading round the sides as it turns away from you (the same gradient, from a row of it painted once per radius and
+  // stretched down the screen: a gradient filled down the whole height of the sides every frame was a big part of the
+  // wrap's cost without a GPU)
+  const shade = cylinderShade(radius);
   for (const side of [-1, 1]) {
-    const x0 = half + side * radius * 0.35, x1 = half + side * radius;
-    const g = ctx.createLinearGradient(x0, 0, x1, 0);
-    g.addColorStop(0, 'rgba(4, 8, 20, 0)'); g.addColorStop(1, 'rgba(4, 8, 20, 0.72)');
-    ctx.fillStyle = g;
-    ctx.fillRect(Math.min(x0, x1), 0, Math.abs(x1 - x0), CANVAS_HEIGHT);
+    const a = half + side * radius * 0.35, b = half + side * radius;
+    const l = Math.max(0, Math.floor(Math.min(a, b))), r = Math.min(CANVAS_WIDTH, Math.ceil(Math.max(a, b)));
+    if (r > l) ctx.drawImage(shade, l * RENDER_SCALE, 0, (r - l) * RENDER_SCALE, 1, l, 0, r - l, CANVAS_HEIGHT);
   }
   ctx.restore();
+};
+/** The cylinder's side shading, one device row of it (cached per radius: a few, for a radius that eases in and out). */
+const cylinderShadeCache = new Map<number, HTMLCanvasElement>();
+const cylinderShade = (radius: number) => {
+  const had = cylinderShadeCache.get(radius);
+  if (had) return had;
+  const half = CANVAS_WIDTH / 2, c = document.createElement('canvas');
+  c.width = CANVAS_WIDTH * RENDER_SCALE; c.height = 1;
+  const g = c.getContext('2d')!;
+  g.setTransform(RENDER_SCALE, 0, 0, 1, 0, 0);
+  for (const side of [-1, 1]) {
+    const x0 = half + side * radius * 0.35, x1 = half + side * radius;
+    const gr = g.createLinearGradient(x0, 0, x1, 0);
+    gr.addColorStop(0, 'rgba(4, 8, 20, 0)'); gr.addColorStop(1, 'rgba(4, 8, 20, 0.72)');
+    g.fillStyle = gr;
+    g.fillRect(Math.min(x0, x1), 0, Math.abs(x1 - x0), 1);
+  }
+  if (cylinderShadeCache.size > 48) cylinderShadeCache.clear();
+  cylinderShadeCache.set(radius, c);
+  return c;
 };
 
 /**

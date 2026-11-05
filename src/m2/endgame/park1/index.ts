@@ -12,7 +12,7 @@ import type { GameState } from '../../../m1/game/core/state';
 import type { Controls } from '../../../m1/game/platform/input';
 import type { EnemyKind } from '../../../m1/types';
 import { NO_CONTROLS } from '../../../m1/game/platform/input';
-import { CANVAS_WIDTH, topBand } from '../../../m1/constants';
+import { CANVAS_WIDTH, RENDER_SCALE, topBand } from '../../../m1/constants';
 import { pickLine, isTalking } from '../../../m1/game/platform/speech';
 import { makeKindEnemy } from '../../../m1/game/enemies/kinds';
 import { playSound } from '../../../m1/game/platform/audio';
@@ -27,7 +27,7 @@ import { updateSwimAir, drawAir } from '../../frontier/air';
 import { setTubeRide } from '../../weapons/tubeRide';
 import { lay, solid, ledge, meatheadSays, saidOver } from '../../adventure/section';
 import { endgameStage, PARK_STAGE } from '../stages';
-import { GY, CP, CP_AT, CP_FLOOR, GROUND, POOLS, LEDGES, ISLANDS, SLIDES, TUBES, TOWER, SUMMIT, PLAZA_CAST, PICKUPS, L2, floorY, step } from './geo';
+import { GY, CP, CP_AT, CP_FLOOR, GROUND, POOLS, LEDGES, ISLANDS, SLIDES, TUBES, TOWER, SUMMIT, PLAZA_CAST, PICKUPS, L2, FLOORS, floorY, step } from './geo';
 import { newSlides, updateSlides, offSlide, type SlideState } from './slides';
 import { newTube, boardTube, updateTube, unboardTube, tubeOn, tubeBox, tubeFoesLeft, type TubeRide } from './tube';
 import { newTower, buildTower, updateTower, floorOf, towerCamY, climbEase, ROUND, type Tower, type TowerEvents } from './tower';
@@ -91,6 +91,19 @@ const CARD_HOLD = 90;
 /** The turning tower's radius at its most (the spiral's middle): about the screen's width across. */
 const TOWER_RADIUS = 330;
 const NOCYL = import.meta.env.DEV && typeof location !== 'undefined' && location.search.includes('nocyl');
+
+/** On the spiral, wrapped round: the part of the screen the mountain covers solid (its face and its floors, from the
+ *  summit's deck down to base camp's, round as far as the wrap goes), where the sky needn't be put down under it. */
+let trueCam: { x: number; y: number } | null = null;
+const spiralHole = (state: GameState) => {
+  const c = parkOf(state)?.tw?.climb, cyl = c ? parkLayout.cylinder?.(state) : null;
+  if (!cyl || state.screenShakeTimer > 0) return null;
+  const r = cyl.radius, half = CANVAS_WIDTH / 2, cy = state.camera.y;
+  return {
+    x0: r >= half ? 0 : Math.ceil(half - r) + 4, x1: r >= half ? CANVAS_WIDTH : Math.floor(half + r) - 4,
+    y0: Math.ceil(floorY(FLOORS) + TOWER.DECK - cy) + 10, y1: Math.floor(floorY(0) + TOWER.DECK - cy) - 10,
+  };
+};
 
 export const parkLayout: StageLayout = {
   left: -260,
@@ -326,12 +339,22 @@ export const parkLayout: StageLayout = {
     const e = Math.round(climbEase(c) * 24) / 24;
     return e < 0.04 ? null : { radius: Math.round(TOWER_RADIUS / e) };
   },
-  drawBackdrop: (c, state) => drawParkBackdrop(c, state, parkOf(state)?.shift ?? 0),
+  drawBackdrop: (c, state) => {
+    // (round the spiral and settling off it: the camera's drawn from whole device pixels (it's easing after him, between
+    // pixels nearly every frame, and every stamp put down between pixels is smoothed: several times the cost without a
+    // GPU, for a softening nobody sees); put back after the frame's drawn (drawHud), so the easing's untouched)
+    const tw = parkOf(state)?.tw;
+    if (tw && (tw.climb || tw.settle > 0)) {
+      trueCam = { x: state.camera.x, y: state.camera.y };
+      state.camera.x = Math.round(state.camera.x * RENDER_SCALE) / RENDER_SCALE; state.camera.y = Math.round(state.camera.y * RENDER_SCALE) / RENDER_SCALE;
+    }
+    return drawParkBackdrop(c, state, parkOf(state)?.shift ?? 0, spiralHole(state));
+  },
   lighting: (state) => todLight(parkLamps(state), 1),
   drawBack: (c, state) => {
     const pk = parkOf(state);
     const tw = pk?.tw;
-    drawParkBack(c, state, { gates: tw?.gate ?? [], tells: tw?.tells ?? [], locked: tw?.locked ?? null, door: pk?.f ? doorState(pk.f) : pk?.killed ? 1 : 0, greenPool: pk?.greenPool ?? 0, climb: tw?.climb ? { k: tw.climb.k, e: climbEase(tw.climb) } : null }, () => {
+    drawParkBack(c, state, { gates: tw?.gate ?? [], tells: tw?.tells ?? [], locked: tw?.locked ?? null, door: pk?.f ? doorState(pk.f) : pk?.killed ? 1 : 0, greenPool: pk?.greenPool ?? 0, climb: tw?.climb ? { k: tw.climb.k, e: climbEase(tw.climb) } : null, descent: !!pk && (!!pk.descent || pk.killed) }, () => {
       if (pk) drawGreenWater(c, state, pk.descent);
     });
     if (!pk) return;
@@ -346,7 +369,7 @@ export const parkLayout: StageLayout = {
   },
   drawFront: (c, state) => {
     const pk = parkOf(state);
-    drawParkFront(c, state, pk?.greenPool ?? 0);
+    drawParkFront(c, state, pk?.greenPool ?? 0, !!pk && (!!pk.descent || pk.killed));
     if (!pk) return;
     const T = pk.tube;
     if (tubeOn(T)) drawTubeRing(c, T.x, T.y - 4, state.player.spriteRot ?? 0, true);
@@ -356,6 +379,7 @@ export const parkLayout: StageLayout = {
     drawGrab(c, state, pk.grab);
   },
   drawHud: (c, state) => {
+    if (trueCam) { state.camera.x = trueCam.x; state.camera.y = trueCam.y; trueCam = null; }
     const pk = parkOf(state);
     if (!pk) return;
     if (pk.f && pk.fightState === 'on') drawFightHud(c, state, pk.f, topBand());

@@ -34,7 +34,9 @@ type Ctx = CanvasRenderingContext2D;
 const INK = '#0A0806';
 const R = (c: Ctx, x: number, y: number, w: number, h: number, col: string) => { c.fillStyle = col; c.fillRect(Math.round(x), Math.round(y), Math.round(w), Math.round(h)); };
 const hash = (n: number) => { const s = Math.sin(n * 127.1 + 311.7) * 43758.5453; return s - Math.floor(s); };
-const vis = (state: GameState, a: number, b: number, m = 80) => b > state.camera.x - m && a < state.camera.x + W + m;
+// (the view as drawn: on the spiral the world's drawn into a strip wider than the screen (the turning tower's sides), all
+// of which is wrapped on: culled to that, not the camera's 800)
+const vis = (state: GameState, a: number, b: number, m = 80) => { const v = state.view, x0 = v && v.w > W ? v.x : state.camera.x, w = v && v.w > W ? v.w : W; return b > x0 - m && a < x0 + w + m; };
 const visY = (state: GameState, a: number, b: number, m = 80) => b > state.camera.y - m && a < state.camera.y + H + m;
 const checker = (c: Ctx, x: number, y: number, w: number, h: number, col: string) => { c.fillStyle = col; for (let yy = 0; yy < h; yy += 2) for (let xx = (yy >> 1) & 1 ? 2 : 0; xx < w; xx += 4) c.fillRect(x + xx, y + yy, 2, 2); };
 
@@ -133,8 +135,24 @@ const paintBig = (g: Ctx, x0 = -1e9, x1 = 1e9) => {
   g.globalCompositeOperation = 'source-atop'; g.fillStyle = 'rgba(8, 12, 26, 0.58)'; g.fillRect(0, 0, BIG_W, BIG_H); g.globalCompositeOperation = 'source-over';
 };
 /** Screen space: the sky; the far horizon and the plaza's rides, dropping away as he climbs. `shift`: how far the tube
- *  rides have carried him back round their loops (the parallax carries on as if they hadn't: no jump). */
-export const drawParkBackdrop = (c: Ctx, state: GameState, shift = 0) => {
+ *  rides have carried him back round their loops (the parallax carries on as if they hadn't: no jump). `hole`: a part
+ *  of the screen the world's sure to cover, solid, this frame (the turning tower: its face and its floors), where none
+ *  of this is put down (it was, under all of it, every frame: a good part of the spiral's cost). */
+export const drawParkBackdrop = (c: Ctx, state: GameState, shift = 0, hole?: { x0: number; x1: number; y0: number; y1: number } | null) => {
+  const h = hole && hole.x1 > hole.x0 && hole.y1 > hole.y0 ? hole : null;
+  if (!h) return paintBackdrop(c, state, shift);
+  // (round it: what's over it and under it, the whole width; either side of it, its height)
+  c.save(); c.beginPath();
+  if (h.y0 > 0) c.rect(0, 0, W, h.y0);
+  if (h.y1 < H) c.rect(0, h.y1, W, H - h.y1);
+  if (h.x0 > 0) c.rect(0, h.y0, h.x0, h.y1 - h.y0);
+  if (h.x1 < W) c.rect(h.x1, h.y0, W - h.x1, h.y1 - h.y0);
+  c.clip();
+  paintBackdrop(c, state, shift);
+  c.restore();
+  return true;
+};
+const paintBackdrop = (c: Ctx, state: GameState, shift: number) => {
   const f = state.frame, cx = state.camera.x + shift, cy = state.camera.y, tod = timeOfDay();
   // (over a tube ride's drop: nothing of the backdrop's painted under the drop's top (it's the drop's, black: painted
   // once, below), so the screen's not painted twice over there)
@@ -811,15 +829,17 @@ const paintFace = (g: Ctx, k: number, cx0 = -1e9, cx1 = 1e9, cy0 = -1e9, cy1 = 1
   text(g, 'QUEUE CONTINUES', mx - 8, my - 130, INK, 6, 'center', null); arrowGlyph(g, mx + 46, my - 134, 1, '#B91C1C', 0.7);
   if (WAIT[k + 1]) { const wy = my - 210; R(g, mx + 140, wy + 32, 2, my - 40 - (wy + 32) - 30, '#9CA3AF'); R(g, mx + 80, wy, 124, 34, INK); R(g, mx + 82, wy + 2, 120, 30, '#F8FAFC'); text(g, 'WAIT FROM HERE', mx + 142, wy + 13, INK, 5, 'center', null); text(g, WAIT[k + 1], mx + 142, wy + 26, '#B91C1C', 5, 'center', null); }
 };
-const FACE_TW = 204, FACE_TH = 180;
+const FACE_TW = 204, FACE_TH = 197;
 const drawFace = (c: Ctx, state: GameState, ox: number) => {
   if (!vis(state, TR + ox, TR + FACE + ox, 0)) return;
   for (let k = 0; k < FLOORS; k++) {
-    const yt = floorY(k + 1), yb = floorY(k) + DECK;
-    if (!visY(state, yt - 160, yb + 20)) continue;
+    // (each band from its own top: what of it pokes up over that (its top stanchions, a sign's top) is under the next
+    // band's rock, put down after it, so it's not put down at all; but the top band's, under the open sky)
+    const yt = floorY(k + 1), yb = floorY(k) + DECK, y0 = k === FLOORS - 1 ? yt - 60 : yt;
+    if (!visY(state, y0, yb + 10, 0)) continue;
     // (in tiles: only what's on screen put down, the big stamp's cost was in what wasn't)
     c.save(); c.translate(ox, 0);
-    for (let tx = TR - 4; tx < TR + FACE + 4; tx += FACE_TW) for (let ty = yt - 160; ty < yb + 10; ty += FACE_TH) {
+    for (let tx = TR - 4; tx < TR + FACE + 4; tx += FACE_TW) for (let ty = y0; ty < yb + 10; ty += FACE_TH) {
       const w = Math.min(FACE_TW, TR + FACE + 4 - tx), h = Math.min(FACE_TH, yb + 10 - ty);
       if (!vis(state, tx + ox, tx + ox + w, 0) || !visY(state, ty, ty + h, 0)) continue;
       stamp(c, `wp-face-${k}-${tx}-${ty}`, tx, ty, w, h, g => { g.save(); g.beginPath(); g.rect(tx, ty, w, h); g.clip(); paintFace(g, k, tx, tx + w, ty, ty + h); g.restore(); });
@@ -862,21 +882,28 @@ const drawSummitDoor = (c: Ctx, state: GameState, down: number) => {
   stamp(c, 'wp-sdoor', x - 8, sy - 130, 16, 132, g => { R(g, x - 6, sy - 128, 12, 128, '#7C2D12'); R(g, x - 2, sy - 70, 4, 4, '#FACC15'); });
   c.restore();
 };
-/** The descent's chute (baked in tiles), its legs down to the ground. */
-const drawDescentChute = (c: Ctx, state: GameState) => {
+/** Where the descent's behind the mountain (the spiral's world: its outside face, the inside drawn round again past
+ *  it): from the tower's right wall round to where the spiral comes in again. Till the kid's dead (the descent's
+ *  ridden: then there's no face out there, just the slide in the open), what of the slide's in there isn't drawn: the
+ *  mountain's in front of it (it was drawn over the spiral's steps and its signs' posts). */
+const HIDE_X0 = TR, HIDE_X1 = TR + ROUND;
+/** The descent's chute (baked in tiles), its legs down to the ground. `behind`: the mountain's face out there, in front. */
+const drawDescentChute = (c: Ctx, state: GameState, behind: boolean) => {
   const x0 = DESCENT[0][0], x1 = DESCENT[DESCENT.length - 1][0];
   if (!vis(state, x0 - 60, x1 + 60)) return;
   // (its legs down to the ground: live boxes, a few a screen; crossbraces up them)
-  const bot = Math.min(GY, state.camera.y + H + 20);
-  for (let x = Math.ceil(Math.max(x0 + 100, state.camera.x - 40) / 200) * 200; x < Math.min(x1, state.camera.x + W + 40); x += 200) {
+  const bot = Math.min(GY, state.camera.y + H + 20), v = state.view && state.view.w > W ? state.view : { x: state.camera.x, w: W };
+  for (let x = Math.ceil(Math.max(x0 + 100, v.x - 40) / 200) * 200; x < Math.min(x1, v.x + v.w + 40); x += 200) {
+    if (behind && x > HIDE_X0 - 10 && x < HIDE_X1 + 10) continue;
     const p = DESCENT.find(([px]) => px >= x);
     if (!p || bot <= p[1] + 10) continue;
     const top = Math.max(p[1] + 10, state.camera.y - 20);
     R(c, x - 4, top, 8, bot - top, '#2A3442'); R(c, x - 4, top, 2, bot - top, '#4A5466');
     for (let yy = Math.ceil((p[1] + 80) / 160) * 160; yy < bot; yy += 160) if (yy > state.camera.y - 10) R(c, x - 26, yy, 52, 4, '#2A3442');
   }
-  for (let tx = Math.floor((state.camera.x - 60) / 600) * 600; tx < state.camera.x + W + 60; tx += 600) {
+  for (let tx = Math.floor((v.x - 60) / 600) * 600; tx < v.x + v.w + 60; tx += 600) {
     if (tx + 600 < x0 - 40 || tx > x1 + 40) continue;
+    if (behind && tx >= HIDE_X0 && tx + 600 <= HIDE_X1) continue;
     const pts = DESCENT.filter(([x]) => x > tx - 300 && x < tx + 900);
     if (pts.length < 2) continue;
     const [y0, y1] = bandOf(DESCENT, tx, 600);
@@ -888,16 +915,23 @@ const drawDescentChute = (c: Ctx, state: GameState) => {
     });
   }
 };
-const drawDescentFront = (c: Ctx, state: GameState) => {
+const drawDescentFront = (c: Ctx, state: GameState, behind: boolean) => {
   const x0 = DESCENT[0][0], x1 = DESCENT[DESCENT.length - 1][0];
   if (!vis(state, x0 - 60, x1 + 60)) return;
-  for (let tx = Math.floor((state.camera.x - 60) / 600) * 600; tx < state.camera.x + W + 60; tx += 600) {
+  const v = state.view && state.view.w > W ? state.view : { x: state.camera.x, w: W };
+  for (let tx = Math.floor((v.x - 60) / 600) * 600; tx < v.x + v.w + 60; tx += 600) {
     if (tx + 600 < x0 - 40 || tx > x1 + 40) continue;
+    // (behind the mountain: none of it in there; the one tile that's half in, cut at the tower's wall (out of the
+    // slide's mouth at the summit, then round the back))
+    if (behind && tx >= HIDE_X0 && tx + 600 <= HIDE_X1) continue;
+    const cut = behind && tx < HIDE_X0 && tx + 600 > HIDE_X0;
     const pts = DESCENT.filter(([x]) => x > tx - 300 && x < tx + 900);
     if (pts.length < 2) continue;
     const ys = pts.map(p => p[1]), y0 = Math.min(...ys) - 40, y1 = Math.max(...ys) + 40;
     if (!visY(state, y0, y1)) continue;
-    stamp(c, `wp-descf-${tx}`, tx, y0, 600, y1 - y0, g => { g.save(); g.beginPath(); g.rect(tx, y0, 600, y1 - y0); g.clip(); chuteFront(g, pts, '#0891B2'); g.restore(); });
+    // (and down at the summit's deck: what of it's under there is inside the deck and the tower's wall, not over them)
+    const w = cut ? HIDE_X0 - tx : 600, h = cut ? Math.min(y1, SUMMIT.y + 2) - y0 : y1 - y0;
+    stamp(c, `wp-descf-${tx}${cut ? '-cut' : ''}`, tx, y0, w, h, g => { g.save(); g.beginPath(); g.rect(tx, y0, w, h); g.clip(); chuteFront(g, pts, '#0891B2'); g.restore(); });
   }
 };
 /** Base camp's dressing: the big sign, the queue rails, the yeti mascot's cutout. */
@@ -934,6 +968,9 @@ export interface DrawState {
   gates: number[]; tells: { x: number; t: number }[]; locked: number | null; door: number; greenPool: number;
   /** On the spiral: off floor k, how far wrapped round (the tower's face drawn round again either side, its steps). */
   climb?: { k: number; e: number } | null;
+  /** The descent's on or done (the kid's dead): no mountain face out past the tower's right wall, the slide in the open
+   *  (he's riding it); else the face is there, in front of the slide's run behind it. */
+  descent?: boolean;
 }
 /** World space, behind everything that moves. */
 export const drawParkBack = (c: Ctx, state: GameState, d: DrawState, extra?: () => void) => {
@@ -943,12 +980,12 @@ export const drawParkBack = (c: Ctx, state: GameState, d: DrawState, extra?: () 
   drawPools(c, state, d.greenPool);
   for (const S of SLIDES) drawSlideBack(c, state, S);
   TUBES.forEach((T, i) => drawTubeBack(c, state, T, i));
-  drawDescentChute(c, state);
+  drawDescentChute(c, state, !d.descent);
   extra?.();
   drawTower(c, state, d.gates, d.tells, d.locked);
   // (the mountain's outside, round which the spiral goes (out past the way up, and again round the far side); on the
   // spiral, the inside drawn round again either side of it (where he comes in at the top: tower.ts))
-  drawFace(c, state, 0); drawFace(c, state, -ROUND);
+  if (!d.descent) { drawFace(c, state, 0); drawFace(c, state, -ROUND); }
   if (d.climb) { drawTower(c, state, d.gates, d.tells, null, -ROUND); drawTower(c, state, d.gates, d.tells, null, ROUND); }
   drawSummit(c, state);
   drawSummitDoor(c, state, d.door);
@@ -956,11 +993,11 @@ export const drawParkBack = (c: Ctx, state: GameState, d: DrawState, extra?: () 
   drawGround(c, state);
 };
 /** World space, in front of him: the near walls. */
-export const drawParkFront = (c: Ctx, state: GameState, greenPool = 0) => {
+export const drawParkFront = (c: Ctx, state: GameState, greenPool = 0, descent = false) => {
   drawPoolsFront(c, state, greenPool);
   for (const S of SLIDES) drawSlideFront(c, state, S);
   TUBES.forEach((T, i) => drawTubeFront(c, state, T, i));
-  drawDescentFront(c, state);
+  drawDescentFront(c, state, !descent);
 };
 /** The lamps (world): the plaza's light poles, the towers' work lights, a floor's lights. */
 export const parkLamps = (state: GameState): Light[] => {
