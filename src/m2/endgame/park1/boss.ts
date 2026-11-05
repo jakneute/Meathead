@@ -1,7 +1,9 @@
 // THE SUMMIT: ZORZARBLAX, Zorblax and Zarblax's kid (level 1's boss). A ROUGH DRAFT: the owner gives the real
 // mechanics and the weakness later. The owner's: "heavily erratic and unpredictable"; 999 HP like the rematches.
-// Otherwise the standing boss rules: the 75-frame breather after a hit; the ray gun and his moves in full, anything
-// else 25% (no weakness yet); no more than about five seconds of one attack (the spam breaker: he glitches away).
+// Otherwise the standing boss rules: the 75-frame breather after a hit; the ray gun and his moves in full, every special
+// 35% (the owner's rule for every water park boss, 2026-11-05: "none are a major weakness but they are generally better
+// than the ray gun. the 35 percent damage thingy should balance it"; all die the same); no more than about five seconds
+// of one attack (the spam breaker: he glitches away).
 //
 //   THE INTRO   (a cutscene, skippable, all of it; no HUD) Up the stairs onto the summit: he kicks the door in. The kid's
 //               sat at the slide's mouth at the far end, legs over the edge, looking at the view, his back to him; turns
@@ -38,6 +40,7 @@ import { makeKindEnemy } from '../../../m1/game/enemies/kinds';
 import { CANVAS_WIDTH, CANVAS_HEIGHT, BULLET_DAMAGE } from '../../../m1/constants';
 import { bossMelee } from '../../upgrades/bossMelee';
 import { registerM2Kind } from '../../kinds';
+import { ownShare } from '../../weapons/subBoss';
 import { newSpam, spamTick, hitKey, swatOff, type Spam, BOSS_IFRAMES } from '../../bossSpam';
 import { bossIntroSeen, markBossIntroSeen } from '../../bossIntro';
 import { TOO_BIG_BY_KIND } from '../../lines/weaponLines';
@@ -57,7 +60,7 @@ const pick = pickLine;
 // The numbers (tune here)
 
 export const KID_HP = 999;
-const BIG = 100000, SHARE = 0.25;
+const BIG = 100000, SHARE = 0.35;
 const G = 0.55;
 /** Tells (frames), at full health; a third left, they're quicker (LOW_K). */
 const TELL = { lunge: 32, ray: 36, tantrum: 28, blink: 24, flail: 22 };
@@ -101,6 +104,8 @@ registerM2Kind({
   ai: () => true,
 });
 TOO_BIG_BY_KIND[KID_KIND] = L.GRAB_KID;
+// (every special's 35% taken here, in the fight: not cut again as a sub-boss's)
+ownShare(KID_KIND);
 // (the hand armor's cheap shot (upgrades/cheapShot.ts): after it, his hurt and taunt lines from the crushed-nuts pool;
 // its free window, the moment the stun starts: every bolt, ice ball and crack of his in the air gone in a puff)
 crushGroups('kid', { hurt: [L.KID_HURT], taunt: [L.KID_TAUNT, L.KID_LOW] });

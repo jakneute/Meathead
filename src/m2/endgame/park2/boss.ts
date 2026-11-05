@@ -2,9 +2,10 @@
 // and, half way, his brother. The owner's spec (2026-11-05): "make him similar to his brother. A soulsborne esque boss
 // whose telegraphs must be read/avoided. When he's at 50, the boss from spooky land comes and it turns into a 2 on 1
 // fight. He has half as much health though. One one dies he falls to his knees, disabled until the other is down."
-// The owner's still to give the raw mechanics and the damage table: for now the standing boss rules (999 HP, the
-// 75-frame breather after a hit; the ray gun and his moves in full, anything else 25%; no more than about five seconds
-// of one attack: the spam breaker).
+// The owner's still to give the raw mechanics: for now the standing boss rules (999 HP, the 75-frame breather after a
+// hit; the ray gun and his moves in full, every special 35% (the owner's rule for every water park boss, 2026-11-05: no
+// weakness, the specials generally better than the ray gun; all die the same); no more than about five seconds of one
+// attack: the spam breaker).
 //
 //   THE INTRO   (a cutscene, skippable, all of it; no HUD) He walks up to the grotto's door (a plywood board: KEEP OUT.
 //               SERIOUSLY.) and kicks it in. The son's sunk in his beanbag at the back in the smoke; he doesn't get up
@@ -43,6 +44,7 @@ import { makeKindEnemy } from '../../../m1/game/enemies/kinds';
 import { CANVAS_WIDTH, CANVAS_HEIGHT, BULLET_DAMAGE } from '../../../m1/constants';
 import { bossMelee } from '../../upgrades/bossMelee';
 import { registerM2Kind, registerHurtLines } from '../../kinds';
+import { ownShare } from '../../weapons/subBoss';
 import { newSpam, spamTick, hitKey, swatOff, type Spam, BOSS_IFRAMES } from '../../bossSpam';
 import { bossIntroSeen, markBossIntroSeen } from '../../bossIntro';
 import { TOO_BIG_BY_KIND } from '../../lines/weaponLines';
@@ -68,7 +70,7 @@ const pick = pickLine;
 export const SON_HP = 999;
 /** The brother: half the son's. */
 export const BRO_HP = Math.round(SON_HP / 2);
-const BIG = 100000, SHARE = 0.25;
+const BIG = 100000, SHARE = 0.35;
 export const ARENA_L = GROTTO.door + 60, ARENA_R = GROTTO.R - 50;
 /** Where his beanbag is (he's sunk in it for the intro). */
 export const BEANBAG_X = GROTTO.R - 150;
@@ -123,6 +125,8 @@ for (const [kind, w, h, blood] of [[SON_KIND, SON_W, SON_H, '#7F1D1D'], [BRO_KIN
 });
 TOO_BIG_BY_KIND[SON_KIND] = L.GRAB_SON;
 TOO_BIG_BY_KIND[BRO_KIND] = L.GRAB_SON;
+// (every special's 35% taken here, in the fight: not cut again as a sub-boss's)
+ownShare(SON_KIND, BRO_KIND);
 // (the hand armor's cheap shot (upgrades/cheapShot.ts) on both: the son's own crushed set and close-up; his brother's
 // as in hell, unless they were torn out there (then there's nothing left: Y + B on him grabs at nothing, his line))
 crushGroups('mehphisto', { hurt: [L.SON_HURT], taunt: [L.SON_LAZY, L.SON_LOW] });

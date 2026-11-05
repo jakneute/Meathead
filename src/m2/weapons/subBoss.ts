@@ -12,9 +12,15 @@ export const SUB_BOSS_SHARE = 0.35;
 /** The land bosses (their kinds): their fights take their own share. */
 const LAND_BOSSES = new Set(['m2:safariartie', 'm2:donnie', 'm2:sp_queen', 'm2:steve', 'm2:fl_harry', 'm2:fr_tucker_boss', 'm2:piper', 'm2:ct_stupid_dad']);
 
+/** Bosses whose own fight takes the share off a special's hit (the eight above, and the water park's bosses: the
+ *  owner's rule for those, every special 35% and the ray gun in full, worked out in each fight, so it's cut once). */
+const OWN_SHARE = new Set(LAND_BOSSES);
+/** (a water park boss's fight) Its boss kinds take their share in the fight itself, not here as well. */
+export const ownShare = (...kinds: string[]) => { for (const k of kinds) OWN_SHARE.add(k); };
+
 export const landBoss = (e: Enemy) => !!e.kind && LAND_BOSSES.has(e.kind);
-/** A sub-boss: a mid-boss that isn't a land boss. */
-export const subBoss = (e: Enemy) => isMidBoss(e) && !landBoss(e);
+/** A sub-boss: a mid-boss whose fight doesn't take its own share. */
+export const subBoss = (e: Enemy) => isMidBoss(e) && !(!!e.kind && OWN_SHARE.has(e.kind));
 /**
  * A special weapon's hit on him: on a sub-boss, its share; anybody else, all of it. Whole (the default): rounded, never
  * under 1 (a hit with a number over it); not (a trickle: a bite, a burn, a drip of puke), just the share of it.
