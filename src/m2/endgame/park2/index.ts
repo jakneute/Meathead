@@ -9,7 +9,8 @@
 //   towers.ts   Cartoon Land's swaying stack-towers (the TIKI TOWERS), burning away
 //   fire.ts     the burning river (touched: dead), the jets up out of it, the patches, what's thrown
 //   kinds.ts    his crew (the burnouts), the imps; level 1's possessed and aliens too
-//   boss.ts     MEHPHISTO in SKULL GROTTO; after him, the victory callout, the hour on (12), control back
+//   boss.ts     MEHPHISTO in SKULL GROTTO (Soulsborne tells), his brother BRATHAZAR at half (two on one)
+//   end.ts      both down: the pretzel float, the beer, down the river on them (VICTORY timed to the landing), control back
 //   art.ts      the look; geo.ts where everything is; lines.ts what's said
 //
 // The checkpoints (geo.ts CP2): saved at each (endgame/stages.ts park2's list; park3's, past the grotto). A file's
@@ -18,13 +19,11 @@
 import type { GameState } from '../../../m1/game/core/state';
 import type { FrameContext } from '../../../m1/game/core/context';
 import type { Controls } from '../../../m1/game/platform/input';
-import { NO_CONTROLS } from '../../../m1/game/platform/input';
 import { CANVAS_WIDTH, topBand } from '../../../m1/constants';
 import { pickLine, isTalking } from '../../../m1/game/platform/speech';
 import { playSound } from '../../../m1/game/platform/audio';
 import { setUi } from '../../store';
 import { markBossFight } from '../../bossQuiet';
-import { type Victory, startVictory, tickVictory, drawVictory, victoryDone } from '../../victory';
 import { lay, solid, meatheadSays, saidOver } from '../../adventure/section';
 import { byPants } from '../park1/kinds';
 import { GY, DECKS, RIVER, RIVER_BED, CP2, CP2_AT, CAST2, PICKUPS2, GROTTO, L3, L2_FROM, HEAD, LOGS2, TOWERS2 } from './geo';
@@ -34,7 +33,8 @@ import { buildLogs2, updateLogs2, updateBeams, drawLogs2, drawBeamsBack, drawBea
 import { buildTowers2, updateTowers2, drawTowers2, onTower2, towerStage, type Tower2Run } from './towers';
 import { makeCast2, drawBarks2 } from './kinds';
 import { newMeet, updateMeet, drawMeet, drawMeetHud, meetOn, meetFront, meetSeen, type Meet } from './meet';
-import { type Fight2, startFight2, updateFight2, fight2Dead, drawFight2, drawFight2Hud, setOnKilled2, resetFight2, BEANBAG_X, SON_HP } from './boss';
+import { type Fight2, startFight2, updateFight2, drawFight2, drawFight2Hud, resetFight2, BEANBAG_X, SON_HP } from './boss';
+import { type EndScene, startEnd, updateEnd, drawEnd, drawEndHud, drawEndAfter, endOn } from './end';
 import { drawBack2, drawFront2, drawBackdrop2, lamps2 } from './art';
 import * as L from './lines';
 import { contactSheet } from './sheet';
@@ -45,12 +45,13 @@ export interface Park2 {
   /** The son's dead (the hour's on, the file's at level 3). */
   killed: boolean;
   /** After him: Meathead's line, VICTORY, then control back. */
-  after: { step: 'line' | 'victory' | 'done'; t: number; v: Victory | null; said: boolean } | null;
+  end: EndScene | null;
   /** What last burned away under him (a log, a tower, a vine) and when: the river's death names it. */
   cause: { src: string; at: number } | null;
   said: Record<string, boolean>; lineAt: Record<string, number>;
   /** The grotto's back (open after: the way on), its door (kicked in). */
   backOpen: number; door: number;
+  onSave?: () => void;
 }
 
 /** Is he in level 2's world (past level 1's splashdown, out of its pool)? */
@@ -88,20 +89,14 @@ export const buildPark2 = (state: GameState, cp: number, onSave: () => void): Pa
   for (const [x, y, type] of PICKUPS2) state.pickups.push({ id: `wp2-${x}-${y}`, pos: { x: x - 10, y: y - 24 }, vel: { x: 0, y: 0 }, width: 20, height: 20, type, life: 1e9 });
   const p2: Park2 = {
     meet: newMeet(cp >= CP2.river || meetSeen(state)), vines: newVines2(), logs: buildLogs2(state), towers: buildTowers2(state),
-    fightState: killed ? 'won' : 'wait', f: null, killed, after: null, cause: null, said: {}, lineAt: {},
+    fightState: killed ? 'won' : 'wait', f: null, killed, end: null, cause: null, said: {}, lineAt: {},
     backOpen: killed ? 1 : 0, door: doorDown ? 1 : 0,
   };
   if (import.meta.env.DEV && typeof window !== 'undefined') { const w = window as unknown as Record<string, unknown>; w.__wp2 = p2; w.__wp2Sheet = contactSheet; }
   if (cp > CP2.start) { p2.said.vine = true; }
   if (cp >= CP2.logJam) p2.said.log = true;
   if (cp >= CP2.tiki) p2.said.tower = true;
-  setOnKilled2(s => {
-    // (the son's dead: the hour goes on (12), and the file's at level 3)
-    p2.killed = true; p2.backOpen = 1;
-    s.blocks = s.blocks.filter(b => b.tag !== 'wp2-back');
-    onKilledHook?.(s);
-    onSave();
-  });
+  p2.onSave = onSave;
   return p2;
 };
 let onKilledHook: ((state: GameState) => void) | null = null;
@@ -112,35 +107,32 @@ export const setPark2Killed = (fn: (state: GameState) => void) => { onKilledHook
 export const updatePark2 = (ctx: FrameContext, p2: Park2, controls: Controls, save: (cp: number) => void): Controls => {
   const { state } = ctx, p = state.player, cx = p.pos.x + p.width / 2;
   let out = controls;
-  // ---- after him: Meathead's line, VICTORY, control back
-  if (p2.after) {
-    const a = p2.after;
-    a.t++;
-    p.inCutscene = true; p.untouchable = true; p.vel.x = 0;
-    if (a.step === 'line' && !a.said && a.t > 30) { a.said = true; meatheadSays(state, pickLine(byPants(state, L.MH_KILL2)), true, () => { if (a.step === 'line') { a.step = 'victory'; a.t = 0; a.v = startVictory(); } }); }
-    if (a.step === 'line' && a.t > 700) { a.step = 'victory'; a.t = 0; a.v = startVictory(); }
-    if (a.step === 'victory' && a.v) { tickVictory(state, a.v); if (victoryDone(a.v) && a.t > 60) { a.v = null; a.step = 'done'; } }
-    if (a.step === 'done') {
-      p2.after = null; p2.fightState = 'won';
-      p.inCutscene = false; p.untouchable = false; state.cameraOverride = null;
-      if (state.checkpoint < CP2.L3) save(CP2.grotto);
-    }
+  // ---- both down: the end (they run, the pretzel, the beer, down the river on them: VICTORY), then control back
+  if (p2.end && p2.f) {
+    const e = p2.end;
+    out = updateEnd(ctx, e, p2.f, () => { p2.backOpen = 1; state.blocks = state.blocks.filter(b => b.tag !== 'wp2-back'); });
+    if (!endOn(e)) { p2.fightState = 'won'; p2.end = null; setUi({ introCutscene: false }); state.cameraMinX = GROTTO.R - 400; state.cameraMaxX = L3.wall + 120 - CANVAS_WIDTH; return controls; }
     setUi({ introCutscene: true });
-    state.cameraMinX = GROTTO.L; state.cameraMaxX = GROTTO.L;
-    return { ...NO_CONTROLS };
+    state.cameraMinX = GROTTO.L; state.cameraMaxX = L3.wall + 200;
+    return out;
   }
   // ---- the grotto's fight
   if (p2.fightState === 'on' && p2.f) {
     const f = p2.f;
     markBossFight(state, 'mehphisto', { l: GROTTO.L, r: GROTTO.R });
-    out = updateFight2(ctx, f, controls);
+    out = updateFight2(ctx, f, controls, () => {
+      // (both down: the son's dead (the hour goes on (12), and the file's at level 3); the end's cutscene)
+      p2.killed = true;
+      onKilledHook?.(state);
+      p2.onSave?.();
+      p2.end = startEnd(f);
+    });
     p2.door = f.door;
     const lo = GROTTO.door - 100, hi = GROTTO.R - 4 - p.width;
     if (p.pos.x < lo && f.mode !== 'intro') { p.pos.x = lo; if (p.vel.x < 0) p.vel.x = 0; }
     if (p.pos.x > hi) { p.pos.x = hi; if (p.vel.x > 0) p.vel.x = 0; }
     state.cameraMinX = GROTTO.L; state.cameraMaxX = GROTTO.L;
     updateFire(ctx, { riverOn: false, cause: () => null, jetsOn: false });
-    if (fight2Dead(f)) { p2.fightState = 'won'; p2.after = { step: 'line', t: 0, v: null, said: false }; }
     setUi({ introCutscene: !!p.inCutscene });
     return out;
   }
@@ -172,7 +164,7 @@ export const updatePark2 = (ctx: FrameContext, p2: Park2, controls: Controls, sa
   updateFire(ctx, { riverOn: true, cause: () => (p2.cause && state.frame - p2.cause.at < 150 ? p2.cause.src : null) });
   // ---- the grotto's door: walked up to (the board's in the way: he walks into it); kicked in, walked in through
   if (p2.fightState === 'wait' && !p2.killed && p.health > 0 && p.isGrounded && !p.inCutscene) {
-    const at = p2.door ? GROTTO.L + 30 : GROTTO.door - 70;
+    const at = p2.door ? GROTTO.door + 20 : GROTTO.door - 70;
     if (cx >= at - p.width / 2) {
       p2.fightState = 'on'; p2.f = startFight2(state);
       state.blocks = state.blocks.filter(b => b.tag !== 'wp2-door');
@@ -208,7 +200,7 @@ export const level2Door = (p2: Park2) => p2.door;
 export const drawBackdrop2Over = (c: CanvasRenderingContext2D, state: GameState) => { if (state.camera.x + CANVAS_WIDTH > L2_FROM) drawBackdrop2(c, state); };
 export const drawPark2Back = (c: CanvasRenderingContext2D, state: GameState, p2: Park2) => {
   const front = meetFront(p2.meet);
-  drawBack2(c, state, { door: p2.door, backOpen: p2.backOpen, inGrotto: p2.fightState === 'on' || !!p2.after, beanbag: BEANBAG_X }, () => {
+  drawBack2(c, state, { door: p2.door, backOpen: p2.backOpen, inGrotto: p2.fightState === 'on' || !!p2.end, beanbag: BEANBAG_X }, () => {
     drawBeamsBack(c, state);
     drawRiver(c, state, front);
     drawJets(c, state);
@@ -219,7 +211,9 @@ export const drawPark2Back = (c: CanvasRenderingContext2D, state: GameState, p2:
     drawVines2(c, state, p2.vines);
   });
   drawMeet(c, state, p2.meet);
-  if (p2.f && (p2.fightState === 'on' || p2.killed)) drawFight2(c, state, p2.f);
+  if (p2.end && p2.f) drawEnd(c, state, p2.end, p2.f);
+  else if (p2.f && p2.fightState === 'on') drawFight2(c, state, p2.f);
+  if (p2.killed && !endOn(p2.end)) drawEndAfter(c, state);
 };
 export const drawPark2Front = (c: CanvasRenderingContext2D, state: GameState, p2: Park2) => {
   drawBeamsFront(c, state);
@@ -231,7 +225,7 @@ export const drawPark2Front = (c: CanvasRenderingContext2D, state: GameState, p2
 export const drawPark2Hud = (c: CanvasRenderingContext2D, state: GameState, p2: Park2) => {
   drawMeetHud(c, p2.meet);
   if (p2.f && p2.fightState === 'on') drawFight2Hud(c, state, p2.f, topBand());
-  if (p2.after?.v) drawVictory(c, p2.after.v);
+  if (p2.end && endOn(p2.end)) drawEndHud(c, p2.end);
 };
 export const lights2 = lamps2;
 export { HEAD, SON_HP, LOGS2, TOWERS2, playSound };

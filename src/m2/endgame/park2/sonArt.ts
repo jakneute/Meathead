@@ -36,9 +36,9 @@ const TAIL: Ramp = ['#B05A6A', '#7A2A3C', '#5A1A2A', '#3A0E1A', '#120408'];
 const METAL = ['#E8E8EE', '#A8A8B4', '#6A6A78', '#2A2A34'];
 const LINER = '#0A0610', BAG = '#7A6A8A', EYE_W = '#F2E6E0', EYE_R = '#C8283A', PIMPLE = '#D85A6A', LIPS = '#141018';
 
-export type SonPose = 'idle' | 'walk' | 'sit' | 'inhale' | 'blow' | 'flick' | 'burp' | 'try' | 'point' | 'throw' | 'drop' | 'hurt' | 'stagger' | 'burn' | 'talk' | 'stun';
+export type SonPose = 'idle' | 'walk' | 'sit' | 'inhale' | 'blow' | 'flick' | 'burp' | 'try' | 'point' | 'throw' | 'drop' | 'hurt' | 'stagger' | 'burn' | 'talk' | 'stun' | 'kneel' | 'crouch' | 'breath' | 'tail';
 export interface SonOpts { pose: SonPose; q: number; mouth?: boolean }
-export const SON_POSES: SonPose[] = ['idle', 'walk', 'sit', 'inhale', 'blow', 'flick', 'burp', 'try', 'point', 'throw', 'drop', 'hurt', 'stagger', 'burn', 'talk', 'stun'];
+export const SON_POSES: SonPose[] = ['idle', 'walk', 'sit', 'inhale', 'blow', 'flick', 'burp', 'try', 'point', 'throw', 'drop', 'hurt', 'stagger', 'burn', 'talk', 'stun', 'kneel', 'crouch', 'breath', 'tail'];
 
 const UA = 30, FA = 30, TH = 33, SH = 33;
 
@@ -76,6 +76,14 @@ const rig = (o: SonOpts) => {
       sh = [6, -118]; head = [10, -136]; hN = [22 + Math.sin(ph * 2) * 10, -160]; hF = [-16 - Math.sin(ph * 2) * 10, -158]; tailK = Math.sin(ph * 2);
       break;
     }
+    // (down on his knees, out of it: hunched over, hands on the floor in front)
+    case 'kneel': hip = [-4, -36]; sh = [12, -78]; head = [26, -84]; fN = [-26, 0]; fF = [-32, 0]; hN = [30, -6]; hF = [20, -6]; tailK = 0; break;
+    // (the smoke leap's wind-up: sunk low, the coat flared, about to go up)
+    case 'crouch': hip = [0, -44]; sh = [14, -86]; head = [26, -96]; fN = [16, 0]; fF = [-16, 0]; hN = [34, -40]; hF = [-24, -40]; break;
+    // (the breath: rearing back (the tell) then hunched, the jet out his mouth at waist height)
+    case 'breath': hip = [0, -62]; sh = [22, -96]; head = [40, -98]; fN = [18, 0]; fF = [-18, 0]; hN = [12, -78]; hF = [-8, -80]; break;
+    // (the tail: cocked, then whipped low out in front)
+    case 'tail': hip = [0, -64]; sh = [-2, -110]; head = [10, -126]; fN = [14, 0]; fF = [-14, 0]; hN = [24, -96]; hF = [-24, -96]; tailK = -3; break;
     case 'stun': hip = [0, -58]; sh = [16, -96]; head = [30, -102]; fN = [6, 0]; fF = [-6, 0]; hN = [6, -56]; hF = [-2, -54]; break;
   }
   return { hip, sh, head, fN, fF, hN, hF, tailK };

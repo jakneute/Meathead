@@ -15,7 +15,7 @@ import { shakeScreen } from '../../../m1/game/core/state';
 import { playSound } from '../../../m1/game/platform/audio';
 import { pickLine } from '../../../m1/game/platform/speech';
 import { meatheadSays } from '../../adventure/section';
-import { type Victory, startVictory, tickVictory, drawVictory, victoryDone } from '../../victory';
+import { type Victory, startVictory, tickVictory, drawVictory, victoryDone, VICTORY_FRAMES } from '../../victory';
 import { DESCENT, POOLS, GY } from './geo';
 import { pathOf, pointAt } from './slides';
 import { paintKidCorpse } from './kidArt';
@@ -39,11 +39,15 @@ export interface Descent {
   /** The kid: where he is (world), his turn. */
   kx: number; ky: number; ka: number;
   victory: Victory | null; said: boolean;
+  /** His line on the way down's been said (the VICTORY waits for it: never over it). */
+  lineDone: boolean;
+  /** The VICTORY's been started (once). */
+  shown: boolean;
   /** How far down the water's green (along the path), the pool's green (0..1). */
   green: number; pool: number;
   from: { x: number; y: number };
 }
-export const startDescent = (): Descent => ({ step: 'walk', t: 0, s: 0, v: 3, kx: MOUTH_AT.x, ky: MOUTH_AT.y, ka: 0, victory: null, said: false, green: 0, pool: 0, from: { x: 0, y: 0 } });
+export const startDescent = (): Descent => ({ step: 'walk', t: 0, s: 0, v: 3, kx: MOUTH_AT.x, ky: MOUTH_AT.y, ka: 0, victory: null, said: false, lineDone: false, shown: false, green: 0, pool: 0, from: { x: 0, y: 0 } });
 const hands = (): Controls => ({ left: false, right: false, up: false, down: false, jump: false, special: false, shoot: false });
 
 /** A frame of it. `onDone`: control back. */
@@ -65,7 +69,12 @@ export const updateDescent = (ctx: FrameContext, d: Descent, onSplash: () => voi
       const k = Math.min(1, d.t / 24), seat = pointAt(P, 0);
       const x = d.from.x + (seat.x - 6 - d.from.x) * k, y = d.from.y + (seat.y - SEAT - d.from.y) * k - Math.sin(k * Math.PI) * 50;
       p.carried = true; p.pos.x = x - p.width / 2; p.pos.y = y - p.height; p.vel.x = 0; p.vel.y = 0;
-      if (k >= 1) { d.step = 'ride'; d.t = 0; p.logSeat = true; playSound('splat', 0.8, -4); playSound('splash', 0.9, -6); }
+      if (k >= 1) {
+        d.step = 'ride'; d.t = 0; p.logSeat = true; playSound('splat', 0.8, -4); playSound('splash', 0.9, -6);
+        // (the owner's: the funny line about riding the kid down, said up top as they go (it waits its turn behind the
+        // one at the mouth); the VICTORY after it, timed to the bottom)
+        meatheadSays(state, pickLine(byPants(state, L.MH_SPLASH)), true, () => { d.lineDone = true; });
+      }
       return hands();
     }
     case 'ride': {
@@ -85,6 +94,11 @@ export const updateDescent = (ctx: FrameContext, d: Descent, onSplash: () => voi
       if (d.t % 5 === 0) playSound('splash', 0.25, 6 + Math.random() * 4);
       if (d.t % 40 === 0) playSound('whoosh', 0.6, -4 + d.v * 0.3);
       state.cameraOverride = { x: at.x - 330, y: at.y - 340 };
+      // (the owner's: "The victory animation for stage one should trigger during the slide. Time it so it ends when
+      // meathead hits the bottom of the slide": started once his line's done and the frames left to the bottom are the
+      // VICTORY's (or at once, if the line ran long))
+      if (!d.shown && d.lineDone && framesLeft(d) <= VICTORY_FRAMES) { d.victory = startVictory(); d.shown = true; }
+      if (d.victory) tickVictory(state, d.victory);
       if (d.s >= P.len) {
         // (the bottom: the big splash, it throws him out onto the deck)
         d.step = 'splash'; d.t = 0;
@@ -108,6 +122,7 @@ export const updateDescent = (ctx: FrameContext, d: Descent, onSplash: () => voi
       p.pos.x = x - p.width / 2; p.pos.y = y - p.height;
       if (!p.freefall) p.freefall = { style: 'flail', t: 0, rot: 0, land: 0 };
       p.freefall.t++; p.freefall.rot = k * Math.PI * 4;
+      if (d.victory) { tickVictory(state, d.victory); if (victoryDone(d.victory)) d.victory = null; }
       state.cameraOverride = { x: x - 400, y: Math.min(y, GY) - 420 };
       if (k >= 1) {
         p.freefall = undefined; p.carried = false; p.facing = -1; p.pos.y = GY - p.height; p.isGrounded = true;
@@ -116,22 +131,29 @@ export const updateDescent = (ctx: FrameContext, d: Descent, onSplash: () => voi
       }
       return hands();
     }
+    // (landed on the deck: a beat (the VICTORY's tail, if it's still going), then he's his again)
     case 'line':
+    case 'victory':
       d.pool = Math.min(1, d.pool + 0.02);
       state.cameraOverride = { x: OUT_X - 420, y: GY - 560 };
-      // (his line about riding the kid down; then VICTORY)
-      if (!d.said && d.t > 20) { d.said = true; meatheadSays(state, pickLine(byPants(state, L.MH_SPLASH)), true, () => { if (d.step === 'line') { d.step = 'victory'; d.t = 0; d.victory = startVictory(); } }); }
-      if (d.t > 600) { d.step = 'victory'; d.t = 0; d.victory = startVictory(); }
-      return hands();
-    case 'victory':
-      state.cameraOverride = { x: OUT_X - 420, y: GY - 560 };
-      if (d.victory) { tickVictory(state, d.victory); if (victoryDone(d.victory) && d.t > 60) { d.victory = null; d.step = 'done'; } }
+      // (no VICTORY yet (the line ran on past the bottom): now, here)
+      if (!d.victory && !d.said && (d.lineDone || d.t > 400)) { d.said = true; if (!victoryWasShown(d)) { d.victory = startVictory(); d.shown = true; } }
+      if (d.victory) { tickVictory(state, d.victory); if (victoryDone(d.victory)) d.victory = null; }
+      if (!d.victory && d.t > 30 && (d.said || d.lineDone)) d.step = 'done';
       return hands();
     case 'done':
       return hands();
   }
 };
 export const descentDone = (d: Descent) => d.step === 'done';
+/** Frames to the bottom from here, at the ride's own pace (its speed's law, run on ahead). */
+const framesLeft = (d: Descent) => {
+  let s = d.s, v = d.v, n = 0;
+  while (s < P.len && n < 3000) { const here = pointAt(P, s); v = Math.min(23, v + 0.4 * Math.max(0.15, Math.sin(here.a)) + 0.03); s += v; n++; }
+  return n;
+};
+/** The VICTORY's been up already (during the ride). */
+const victoryWasShown = (d: Descent) => d.shown;
 export const descentRiding = (d: Descent) => d.step === 'hop' || d.step === 'ride';
 
 // (the kid's corpse, baked the once, drawn turned with the slide (the stamp cache won't take a turned one))

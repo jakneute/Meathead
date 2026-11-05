@@ -18,7 +18,7 @@ import type { Light } from '../../../m1/game/render/lighting';
 import { CANVAS_WIDTH as W, CANVAS_HEIGHT as H } from '../../../m1/constants';
 import { stamp } from '../../../m1/game/render/stamp';
 import { mix, hazeBands } from '../../intro/art/kit';
-import { sign, drawStubAt } from '../park1/art';
+import { sign } from '../park1/art';
 import { GY, B, DECKS, HEAD, RIVER, RIVER_Y, SIGNS2, GROTTO, L3, L2_FROM, VINES2, JETS } from './geo';
 import { flame, fireRow, FIRE } from './fire';
 import { L2 } from '../park1/geo';
@@ -233,14 +233,17 @@ export const drawBack2 = (c: Ctx, state: GameState, d: Draw2, river: () => void,
     // (outside: the skull's face of rock over the mouth; inside (the fight, after it), the mouth from in here: a dark
     // arch, the night through it)
     if (!d.inGrotto) stamp(c, 'wp2-skull', GROTTO.door - 150, CAVE_TOP - 140, 320, GY - CAVE_TOP + 142, g => paintSkull(g));
-    else { R(c, GROTTO.L, CAVE_TOP, GROTTO.door - 70 - GROTTO.L, GY - CAVE_TOP, ROCK[2]); R(c, GROTTO.door - 70, GY - 200, 150, 200, '#06040A'); R(c, GROTTO.door - 70, GY - 204, 150, 6, ROCK[3]); }
+    else { R(c, GROTTO.L, CAVE_TOP, GROTTO.door - 70 - GROTTO.L, GY - CAVE_TOP, ROCK[2]); R(c, GROTTO.door - 70, GY - 200, 150, 200, '#0E1430'); for (let k = 0; k < 4; k++) R(c, GROTTO.door - 70, GY - 200 + k * 50, 150, 50, ['#0A1028', '#101838', '#162044', '#1C2650'][k]); for (const [sx, sy] of [[-40, -170], [20, -150], [50, -184], [-10, -120]]) R(c, GROTTO.door + sx, GY + sy, 2, 2, '#E0E7FF'); R(c, GROTTO.door - 76, GY - 212, 162, 12, ROCK[3]); R(c, GROTTO.door - 76, GY - 212, 162, 2, ROCK[4]); }
     drawDoor(c, d.door);
+    // (the grotto's floor: rock, over the boardwalk's run under it)
+    R(c, GROTTO.L, GY, GROTTO.R + 50 - GROTTO.L, 3, ROCK[4]); R(c, GROTTO.L, GY + 3, GROTTO.R + 50 - GROTTO.L, 120, ROCK[1]);
+    for (let x = GROTTO.L + 10; x < GROTTO.R + 40; x += 44) R(c, x, GY + 3 + (x % 3) * 6, 24, 3, ROCK[2]);
     // (the smoke inside, hanging in bands under the ceiling)
     for (let k = 0; k < 4; k++) { c.globalAlpha = 0.18; c.fillStyle = '#6A5A7A'; c.fillRect(GROTTO.L, CAVE_TOP + 30 + k * 40 + Math.sin(fr * 0.01 + k) * 6, GROTTO.R - GROTTO.L, 26); }
     c.globalAlpha = 1;
   }
-  // (level 3's gate building: THE WAVE POOL, shut)
-  drawStubAt(c, state, L3.wall, false, 'THE WAVE POOL', 'SURF THE BIG ONE');
+  // (level 3's start (a stub): the landing at the river's end, a maintenance tunnel's door, shut)
+  if (vis(state, L3.wall - 260, L3.wall + 340)) stamp(c, 'wp2-maint', L3.wall - 260, GY - 470, 600, 472, g => paintMaint(g));
 };
 /** World space, in front of him: the grotto's mouth's near rock and its ceiling over the arena (the cave's roof). */
 export const drawFront2 = (c: Ctx, state: GameState) => {
@@ -250,6 +253,29 @@ export const drawFront2 = (c: Ctx, state: GameState) => {
   for (let x = GROTTO.L; x < GROTTO.R + 60; x += 46) { c.fillStyle = ROCK[1]; c.beginPath(); c.moveTo(x, CAVE_TOP + 18); c.lineTo(x + 18, CAVE_TOP + 18); c.lineTo(x + 8, CAVE_TOP + 40 + hash(x) * 40); c.closePath(); c.fill(); }
 };
 
+/** Level 3's start: the river's end, a concrete service wall with a steel door in it, MAINTENANCE stenciled over,
+ *  AUTHORIZED PERSONNEL ONLY, a caged bulb; shut (the stub: the owner's next). */
+const paintMaint = (g: Ctx) => {
+  const x0 = L3.wall - 40, x1 = L3.wall + 340, top = GY - 470;
+  R(g, x0 - 2, top, x1 - x0 + 2, GY - top, INK); R(g, x0, top, x1 - x0, GY - top, '#4A4A52');
+  for (let y = top + 10; y < GY; y += 30) for (let x = x0 + ((y / 30) % 2) * 30; x < x1; x += 60) { R(g, x, y, 58, 28, '#55555E'); R(g, x, y, 58, 1, '#6A6A74'); }
+  R(g, x0, top, 6, GY - top, '#6A6A74');
+  // (the door: steel, riveted, its handle, a kick plate; the frame)
+  const dx = L3.wall + 10, dw = 90, dh = 170;
+  R(g, dx - 6, GY - dh - 6, dw + 12, dh + 6, INK); R(g, dx - 4, GY - dh - 4, dw + 8, dh + 4, '#2A2A30');
+  R(g, dx, GY - dh, dw, dh, '#6B7280'); R(g, dx, GY - dh, dw, 3, '#9CA3AF'); R(g, dx + dw - 4, GY - dh, 4, dh, '#4B5563');
+  for (const [rx, ry] of [[6, 8], [dw - 10, 8], [6, dh - 12], [dw - 10, dh - 12]]) R(g, dx + rx, GY - dh + ry, 3, 3, '#D1D5DB');
+  R(g, dx + dw - 22, GY - dh / 2 - 4, 14, 6, INK); R(g, dx + dw - 21, GY - dh / 2 - 3, 12, 4, '#E5E7EB');
+  R(g, dx + 4, GY - 26, dw - 8, 22, '#4B5563');
+  g.font = '8px "Press Start 2P"'; g.textAlign = 'center';
+  R(g, dx - 10, GY - dh - 46, dw + 20, 30, '#FACC15'); R(g, dx - 10, GY - dh - 46, dw + 20, 2, '#FEF08A');
+  g.fillStyle = INK; g.fillText('MAINTENANCE', dx + dw / 2, GY - dh - 27);
+  R(g, dx + 6, GY - dh + 36, dw - 12, 44, '#F8FAFC'); g.fillStyle = '#B91C1C'; g.font = '6px "Press Start 2P"'; g.fillText('AUTHORIZED', dx + dw / 2, GY - dh + 50); g.fillText('PERSONNEL', dx + dw / 2, GY - dh + 62); g.fillText('ONLY', dx + dw / 2, GY - dh + 74);
+  g.textAlign = 'left';
+  // (the caged bulb over it)
+  R(g, dx + dw / 2 - 8, GY - dh - 70, 16, 18, INK); R(g, dx + dw / 2 - 6, GY - dh - 68, 12, 14, '#FDE68A');
+  for (let k = 0; k < 3; k++) R(g, dx + dw / 2 - 6 + k * 5, GY - dh - 68, 1, 14, INK);
+};
 /** The lights: the fire's along the river (warm, low, flickering), the grotto's lamp. */
 export const lamps2 = (state: GameState): Light[] => {
   const out: Light[] = [], f = state.frame;

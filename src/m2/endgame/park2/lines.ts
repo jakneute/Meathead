@@ -104,6 +104,8 @@ export const HURT2: Record<string, { hurt: string[]; death: string[] }> = {
   'm2:wp2_sonpillar': { hurt: ['FIRE OUT OF THE FLOOR!', 'HE MEANT THAT ONE!', 'MY ASS! FROM BELOW!'], death: ['HELLFIRED', 'HE TRIED, FOR ONCE'] },
   'm2:wp2_sonball': { hurt: ['FIREBALL! HE CAN TRY!', 'HE THREW ONE FOR REAL!', 'OW! HE AIMED!'], death: ['FIREBALLED BY MEHPHISTO', 'HE ACTUALLY TRIED'] },
   'm2:wp2_sondrop': { hurt: ['HE LANDED ON ME!', 'FROM THE CEILING?!', 'GET YOUR BONY ASS OFF ME!'], death: ['SAT ON BY A GOTH', 'DROPPED ON'] },
+  'm2:wp2_sonbreath': { hurt: ['HIS BREATH IS A FLAMETHROWER!', 'WEED BREATH! ON FIRE!', 'DUCK THE BREATH, IDIOT!'], death: ['TORCHED BY WEED BREATH', 'HOTBOXED BY A GOTH'] },
+  'm2:wp2_sontail': { hurt: ['HIS TAIL GOT MY ANKLES!', 'TRIPPED BY A TAIL!', 'THE TAIL! IT WHIPS!'], death: ['TAIL WHIPPED', 'SWEPT BY A TAIL'] },
 };
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -134,24 +136,6 @@ export const MH_MOCK = bp(
   ["YOUR DAD'D BE PROUDER OF MY PANTS.", 'EVEN MY SHIT GETS MORE ATTENTION FROM YOUR DAD.', 'YOUR BROTHER AT LEAST TRIED. HE CRIED, BUT HE TRIED.', "DADDY'S WATCHING. HE'S EMBARRASSED."],
   ['YOUR DAD SEES MORE OF ME THAN HE DOES OF YOU.', 'YOUR BROTHER FOUGHT ME AND STILL TRIED HARDER.', "BET YOUR DAD DOESN'T EVEN KNOW YOUR NAME.", "DADDY'S WATCHING. NOT YOU. ME. I'M NAKED."],
 );
-/** ...he snaps: now he tries. */
-export const SON_SNAP = bp(
-  ['SHUT UP. SHUT UP! DAD, WATCH THIS!', "DON'T TALK ABOUT MY DAD!", "FINE! I'LL TRY! HAPPY?!"],
-  ["SHUT UP! YOU DON'T KNOW HIM! DAD, LOOK!", "DON'T TALK ABOUT MY DAD WITH THAT ASS!", "FINE! I'LL TRY! EVEN THOUGH YOU STINK!"],
-  ["SHUT UP! DAD, I'M TRYING! LOOK!", "DON'T TALK ABOUT MY DAD WITH YOUR DICK OUT!", "FINE! I'LL TRY! PUT IT AWAY!"],
-);
-/** Trying: yelling for his dad (the brother he says he isn't like). */
-export const SON_TRY = bp(
-  ['DAD! DAD, ARE YOU SEEING THIS?!', 'THIS IS ME TRYING! IT COUNTS!', "I'M NOT LIKE HIM! I'M BETTER!"],
-  ["DAD! I'M KILLING THE SHITTY ONE!", 'THIS COUNTS! EVEN IF HE STINKS!', 'DAD, LOOK! I TOUCHED HIM! GROSS!'],
-  ["DAD! I'M FIGHTING A NAKED GUY! THAT'S HARDCORE!", "THIS COUNTS! DON'T LOOK AT HIS DICK, DAD!", "I'M TRYING, DAD! LOOK AT ME, NOT HIM!"],
-);
-/** ...and it wears off: back on the beanbag. */
-export const SON_SULK = bp(
-  ['...WHATEVER. THIS IS STUPID.', "HE WASN'T EVEN WATCHING. WHATEVER.", "I'M TIRED NOW."],
-  ['...WHATEVER. YOU STINK ANYWAY.', "HE WASN'T WATCHING. NOBODY WATCHES ME.", "I'M TIRED. AND I SMELL YOU."],
-  ['...WHATEVER. THIS IS STUPID. AND NAKED.', "HE WASN'T WATCHING. HE'D WATCH YOU. EVERYBODY WATCHES YOU.", "I'M TIRED. PUT IT AWAY."],
-);
 export const SON_HURT = bp(['OW. COOL.', 'OW. RUDE.', 'THAT LEFT A MARK. GREAT.'], ['OW. YOU GOT IT ON MY COAT.', 'OW. NOW I SMELL LIKE YOU.', 'GROSS. OW.'], ['OW. YOUR THING TOUCHED ME.', "OW. DON'T BE NAKED AT ME.", 'OW. GROSS.']);
 export const SON_LOW = bp(
   ["DAD'S GONNA HEAR ABOUT THIS. FROM MY BROTHER. GREAT."],
@@ -161,23 +145,58 @@ export const SON_LOW = bp(
 /** His standard death: the last line (the leak), then his coat catches off his own joint. */
 export const SON_DEATH = bp(["DID HE SEE? TELL ME HE DIDN'T SEE."], ["DID HE SEE? DON'T TELL HIM YOU WERE SHITTY."], ["DID HE SEE? DON'T TELL HIM ABOUT THE NAKED PART."]);
 export const SON_BURNING = bp(["DAD! I'M ON FIRE! I THOUGHT WE WERE FIREPROOF!"], ["DAD! I'M ON FIRE! AND I SMELL LIKE HIM!"], ["DAD! I'M ON FIRE! DON'T LET THE NAKED GUY WATCH!"]);
-/** Meathead, after: the funny line before VICTORY. */
-export const MH_KILL2 = bp(
-  ["THE DEVIL'S SPARE. NOT FIREPROOF. NOTED.", 'BOTH OF SATAN\'S KIDS. ONE CRIED. ONE CAUGHT FIRE.'],
-  ["FACE DOWN IN HIS BONG. I'VE SEEN WORSE. I'VE BEEN WORSE.", 'BOTH OF SATAN\'S KIDS. AND MY PANTS. ROUGH NIGHT FOR EVERYBODY.'],
-  ["HE NEVER LOOKED. RESPECT.", 'BOTH OF SATAN\'S KIDS. NAKED. TELL HIM THAT PART.'],
-);
 /** Grabbing him (a boss: no). */
 export const GRAB_SON = ["HE'S CLAMMY. I'M NOT GRABBING THAT.", "I'M NOT HUGGING A GOTH."];
 /** Level 3's stub (shut, for now). */
-export const MH_STUB3 = bp(["THE WAVE POOL'S SHUT. FOR NOW."], ["SHUT. I'LL WAIT. I'LL STINK."], ["SHUT. I'LL WAIT. NAKED."]);
+export const MH_STUB3 = bp(["MAINTENANCE TUNNEL. LOCKED. FOR NOW."], ["LOCKED. I'LL WAIT. I'LL STINK."], ["LOCKED. I'LL WAIT. NAKED."]);
+
+
+// ---------------------------------------------------------------------------------------------------------------
+// Half way down: his brother BRATHAZAR (Spooky Land's punk: his own voice, m2.demon) comes when he's called
+
+/** The son, at half: calling his brother in (it costs him). */
+export const SON_CALL = bp(
+  ["...FINE. BRATHAZAR. GET IN HERE. NOT 'CAUSE I NEED YOU."],
+  ['...FINE. BRATHAZAR, GET IN HERE. BRING A HOSE.'],
+  ["...FINE. BRATHAZAR, GET IN HERE. DON'T LOOK AT HIM."],
+);
+/** The brother, down through the ceiling. */
+export const BRO_ARRIVE = bp(
+  ['BRO! YOU CALLED ME! DAD, HE CALLED ME! WATCH US!'],
+  ['BRO! YOU CALLED ME! EW, HE STILL SMELLS! DAD, WATCH US!'],
+  ["BRO! YOU CALLED ME! HE'S STILL NAKED! DAD, WATCH US!"],
+);
+export const MH_BRO = bp(['OH GOOD. THE CRYBABY.'], ['OH GOOD. THE CRYBABY. HE BROUGHT HIS GUITAR.'], ['OH GOOD. THE CRYBABY. HI AGAIN.']);
+/** Down on his knees (out of it till the other's down too). */
+export const SON_KNEEL = bp(["...I'M JUST GONNA SIT. WHATEVER."], ["...I'M SITTING DOWN. YOU SMELL TOO BAD TO STAND."], ["...I'M SITTING. I'M NOT LOOKING UP. EVER."]);
+export const BRO_KNEEL = bp(["BRO! I'M DOWN! FINISH HIM! DAD, I WAS HELPING!"], ["BRO! I'M DOWN! HE GOT SHIT ON MY GUITAR!"], ["BRO! I'M DOWN! A NAKED GUY DID IT AGAIN!"]);
+
+// ---------------------------------------------------------------------------------------------------------------
+// The end (both down): they try to run, he twists them into a pool float, a beer, down the river on them
+
+export const SON_ESCAPE = bp(['BRO. RUN.'], ['BRO. RUN. HE SMELLS LIKE DEATH.'], ["BRO. RUN. DON'T LOOK BACK. HE'S NAKED."]);
+export const BRO_ESCAPE = bp(['DAAAD! WAIT UP!'], ["DAAAD! THE SHITTY ONE'S COMING!"], ["DAAAD! THE NAKED ONE'S COMING!"]);
+export const MH_STOP = bp(["WHERE THE FUCK DO YOU TWO THINK YOU'RE GOING?"], ['NOBODY LEAVES. NOT EVEN ME, AND I SMELL LIKE THIS.'], ["GET BACK HERE. I'M NAKED AND I'M FAST."]);
+export const MH_PRETZEL = bp(
+  ['A PRETZEL. A LAVA-PROOF PRETZEL. MADE OF DEVIL KIDS.'],
+  ["A DEVIL KID PRETZEL. IT FLOATS. IT'S BETTER THAN MY PANTS."],
+  ['A DEVIL KID PRETZEL. IT FLOATS. NOW I HAVE A SEAT.'],
+);
+/** The demon going by with a beer cart (walking on the fire: it's nothing to him). */
+export const BEER_VOICE = 'm2.wp.beerdemon';
+export const BEER_DEMON = bp(["ICE COLD BEER! ICE COLD... OH SHIT. IT'S HIM."], ["ICE COLD BEER! OH SHIT. IT'S THE SMELLY ONE."], ["ICE COLD BEER! OH SHIT. IT'S THE NAKED ONE."]);
+export const MH_BEER = bp(["DON'T MIND IF I DO."], ["I'LL TAKE ONE. FOR THE SMELL."], ["I'LL TAKE ONE. I'LL HOLD IT WHERE MY POCKET WOULD BE."]);
+/** Lounging back on them with it: the last word, then VICTORY on the way down the river. */
+export const MH_LOUNGE = bp(['NOW THIS IS A LAZY RIVER.'], ["NOW THIS IS A LAZY RIVER. IT'S WARM UNDER ME. IT'S NOT ME."], ["NOW THIS IS A LAZY RIVER. THE FIRE'S WARMING MY ASS."]);
 
 // ---------------------------------------------------------------------------------------------------------------
 
 const all = (...pools: (string | string[] | ByPants)[]) => pools.flatMap(p => (typeof p === 'string' ? [p] : Array.isArray(p) ? p : Object.values(p).flat()));
 export const PARK2_VOICE_LINES: Record<string, string[]> = {
-  meathead: all(MH_MEET, MH_AFTER_MEET, MH_FIRST_VINE, MH_VINE_BURN, MH_LOG, MH_LOG_GOING, MH_TOWER, MH_TOWER_GOING, MH_GROTTO, MH_RIVER, MH_DOOR, MH_INTRO2, MH_MOCK, MH_KILL2, GRAB_SON, MH_STUB3, ...Object.values(HURT2).map(h => h.hurt)),
+  meathead: all(MH_MEET, MH_AFTER_MEET, MH_FIRST_VINE, MH_VINE_BURN, MH_LOG, MH_LOG_GOING, MH_TOWER, MH_TOWER_GOING, MH_GROTTO, MH_RIVER, MH_DOOR, MH_INTRO2, MH_MOCK, GRAB_SON, MH_STUB3, MH_BRO, MH_STOP, MH_PRETZEL, MH_BEER, MH_LOUNGE, ...Object.values(HURT2).map(h => h.hurt)),
   death: all(...Object.values(HURT2).map(h => h.death)),
-  [SON_VOICE]: all(SON_HELLO, SON_NAME_LINE, SON_JOB, SON_LEAK, SON_BYE, SON_INTRO, SON_INTRO2, SON_RETRY, SON_LAZY, SON_SNAP, SON_TRY, SON_SULK, SON_HURT, SON_LOW, SON_DEATH, SON_BURNING),
+  [SON_VOICE]: all(SON_HELLO, SON_NAME_LINE, SON_JOB, SON_LEAK, SON_BYE, SON_INTRO, SON_INTRO2, SON_RETRY, SON_LAZY, SON_HURT, SON_LOW, SON_DEATH, SON_CALL, SON_KNEEL, SON_ESCAPE),
+  'm2.demon': all(BRO_ARRIVE, BRO_KNEEL, BRO_ESCAPE),
+  [BEER_VOICE]: all(BEER_DEMON),
   [BURNOUT_VOICE.m]: all(BURN_BARK), [BURNOUT_VOICE.f]: all(BURN_BARK),
 };

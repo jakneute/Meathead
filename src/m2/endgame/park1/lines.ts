@@ -140,11 +140,12 @@ export const KID_LOW = bp(["I'M TELLING MOM!", "THIS ISN'T FAIR! NOTHING'S EVER 
 export const KID_DEATH = bp(["TELL MOM... I CLEANED MY POD."], ["TELL MOM... YOU SMELLED."], ["TELL MOM... I DIDN'T LOOK."]);
 /** Meathead, killing it: riding the kid down the slide. */
 export const MH_RIDE = bp(["HOP IN, KID. LET'S GO HOME."], ["MOVE OVER, KID. YOUR BODY'S MY TUBE."], ["SCOOCH, KID. NAKED BOBSLED."]);
-/** At the bottom, the big splash: the owner's "something funny about riding the alien kid down the waterslide". */
+/** On the way down, up top (the owner's "something funny about riding the alien kid down the waterslide": said as
+ *  they go; VICTORY after it, timed to the bottom: descent.ts). */
 export const MH_SPLASH = bp(
-  ["BEST TUBE I EVER RODE. A LITTLE BONY IN THE MIDDLE.", "RODE A DEAD ALIEN DOWN A THOUSAND FEET. PUT THAT ON THE BROCHURE."],
-  ["RODE THE KID ALL THE WAY DOWN. HE CUSHIONED MY SHIT.", "THE POOL'S GREEN NOW. AND BROWN. MOSTLY GREEN."],
-  ["RODE THE KID DOWN BARE ASS. HE WAS STILL WARM. DON'T THINK ABOUT IT.", "NAKED ON A DEAD ALIEN, A THOUSAND FEET. NEW RECORD."],
+  ["BEST TUBE I EVER RODE. A LITTLE BONY IN THE MIDDLE.", "RIDING A DEAD ALIEN DOWN A THOUSAND FEET. PUT THAT ON THE BROCHURE."],
+  ["THE KID'S CUSHIONING MY SHIT. ALL THE WAY DOWN.", "THE WATER'S GOING GREEN. AND BROWN. MOSTLY GREEN."],
+  ["RIDING THE KID DOWN BARE ASS. HE'S STILL WARM. DON'T THINK ABOUT IT.", "NAKED ON A DEAD ALIEN, A THOUSAND FEET. NEW RECORD."],
 );
 /** Grabbing him (too big). */
 export const GRAB_KID = ["HE'S HUGE. AND MOIST.", "TOO BIG. TOO SLIMY. TOO MANY ARMS.", "I'M NOT TOUCHING THAT."];

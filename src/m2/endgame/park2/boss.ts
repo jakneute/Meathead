@@ -1,32 +1,34 @@
-// SKULL GROTTO: MEHPHISTO, Satan's other son (level 2's boss; the demon one in the water park's alien / demon order).
-// A ROUGH DRAFT: the owner gives the real mechanics, the damage table and the weakness later. 999 HP like the
-// rematches; otherwise the standing boss rules: the 75-frame breather after a hit; the ray gun and his moves in full,
-// anything else 25% for now; no more than about five seconds of one attack (the spam breaker: he goes up in smoke and
-// comes down somewhere else).
+// SKULL GROTTO: MEHPHISTO, Satan's other son (level 2's boss; the demon one in the water park's alien / demon order),
+// and, half way, his brother. The owner's spec (2026-11-05): "make him similar to his brother. A soulsborne esque boss
+// whose telegraphs must be read/avoided. When he's at 50, the boss from spooky land comes and it turns into a 2 on 1
+// fight. He has half as much health though. One one dies he falls to his knees, disabled until the other is down."
+// The owner's still to give the raw mechanics and the damage table: for now the standing boss rules (999 HP, the
+// 75-frame breather after a hit; the ray gun and his moves in full, anything else 25%; no more than about five seconds
+// of one attack: the spam breaker).
 //
-//   THE INTRO   (a cutscene, skippable, all of it; no HUD) He walks up to the grotto's door (a plywood board in the
-//               cave's mouth: KEEP OUT. SERIOUSLY.) and kicks it in. The son's sunk in his beanbag at the back in the
-//               smoke, a lava lamp, a bong; he doesn't get up (the gross-up); his say, Meathead's, his again; on. A
-//               retry (dead, back in through the door): a beat for him to say so, then on.
-//   LAZY        His default: he fights half-assedly. Long pauses, shuffling, slumped; the moves are slow and their tells
-//               long:
-//     FLICK     the lighter clicked twice (the tell), a lit roach flicked in an arc at where he is: a patch of fire
-//               there a while.
-//     RING      the vape up, a long drag, cheeks puffing (the tell): a big slow smoke ring blown along at him, hot
-//               (high: duck it; low: jump it; which, it's held at the height it's coming at through the tell).
-//     BURP      a hand on his belly, a gurgle (the tell): a burp of fire rolled along the floor at him (jump it).
-//   TRYING      Mock him (Meathead does, on his own, as the fight goes: his dad, his brother) and he snaps: up off the
-//               slouch, horns lit, eyes open, yelling for his dad. Ten seconds of really trying, quicker, meaner:
-//     PILLARS   pointing (the tell): the floor glowing where he is and either side, then fire up out of it.
-//     VOLLEY    an arm up, a fireball in it (the tell): three, aimed, one after another.
-//     DROP      up in a puff of smoke; his shadow on the floor where he is (the tell); then down on it out of the
-//               ceiling, and a burp of fire either way off the landing (jump it).
-//               It wears off: WHATEVER, and he sits down in a sulk (a good opening), then lazy again.
-//
-// His standard death (no weakness yet; the undignified one): he staggers, his last line (the leak: did he see?); his
-// joint drops into his coat and it goes up, and so does he: screaming for his dad, running round in circles on fire
-// (he thought he was fireproof), till he trips on his coat and goes face down, ass up, smoldering, his vape rolling
-// off. Then Meathead's line, VICTORY, the hour's on (12), control's his: out through the back of the cave to level 3.
+//   THE INTRO   (a cutscene, skippable, all of it; no HUD) He walks up to the grotto's door (a plywood board: KEEP OUT.
+//               SERIOUSLY.) and kicks it in. The son's sunk in his beanbag at the back in the smoke; he doesn't get up
+//               (the gross-up); his say, Meathead's, his again; on. A retry: a beat for him to say so, then on.
+//   MEHPHISTO   Every move a long, clear wind-up to read, deadly if it lands, and a window after it to hit him in:
+//     LEAP      sinks low, the coat flaring (the tell); up in a puff of smoke, gone; his shadow on the floor following
+//               Meathead (then set); down on it out of the ceiling: crushed under him, and a burp of fire rolled out
+//               along the floor both ways off the landing (jump it). Winded after.
+//     ROACHES   the lighter clicked, clicked (the tell): three lit roaches flicked in arcs, at him and either side of
+//               him (fire where they land, a while). He takes a drag after.
+//     RING      the vape up, a long drag (the tell), the smoke gathering at the height it'll come at: a big hot ring
+//               blown along at him (high: duck it; low: jump it). Down past half, two, the second the other height.
+//     PILLARS   pointing (the tell): the floor glowing where Meathead is and either side, then hellfire up out of it.
+//               After, he looks up for his dad (an opening).
+//     BREATH    rears back, a hand on his gut, the gurgle (the tell): then hunched, a jet of fire straight out at waist
+//               height across most of the grotto (duck it, or be up over it). He coughs after.
+//     TAIL      close up (don't hug him): the tail cocked up behind him (the tell), then whipped low out in front (jump
+//               it).
+//   BRATHAZAR   At half, Meathead's mocking gets to him and he calls his brother in (a short beat, skippable): Spooky
+//               Land's punk, down through the ceiling, half the son's health, his own moves from hell (each with its
+//               tell: the LEAP's crouch and shadow, the SWEEP's floor flashing out in front, the RUSH's pawing and the
+//               arrows along the floor). They take turns: never both attacking at once, a gap between.
+//   DOWN        The first of them down drops to his knees: out of it (no attacks, nothing hits him) till the other's down.
+//               Both down: the end (end.ts: they try to run, the pretzel, the beer, the river).
 
 import type { GameState } from '../../../m1/game/core/state';
 import type { FrameContext } from '../../../m1/game/core/context';
@@ -40,15 +42,17 @@ import { hurtPlayer } from '../../../m1/game/bosses/shared';
 import { makeKindEnemy } from '../../../m1/game/enemies/kinds';
 import { CANVAS_WIDTH, CANVAS_HEIGHT, BULLET_DAMAGE } from '../../../m1/constants';
 import { bossMelee } from '../../upgrades/bossMelee';
-import { registerM2Kind } from '../../kinds';
+import { registerM2Kind, registerHurtLines } from '../../kinds';
 import { newSpam, spamTick, hitKey, swatOff, type Spam, BOSS_IFRAMES } from '../../bossSpam';
 import { bossIntroSeen, markBossIntroSeen } from '../../bossIntro';
 import { TOO_BIG_BY_KIND } from '../../lines/weaponLines';
 import { box, label, saidOver, speak, voice, meatheadSays } from '../../adventure/section';
+import { drawPunkAs, type PunkSt } from '../../spooky/hell/demon';
+import { DEMON_CHATTER, DEMON_HURT, HURT_CRUSH, DEATH_CRUSH, HURT_WAVE, DEATH_WAVE, HURT_GUITAR, DEATH_GUITAR, HURT_RUSH, DEATH_RUSH, HURT_BUMP, DEATH_BUMP } from '../../spooky/hell/demonLines';
 import { byPants } from '../park1/kinds';
-import { drawSon, sonHand, sonMouth, paintSonDead, SON_W, SON_H, type SonPose } from './sonArt';
+import { drawSon, sonHand, sonMouth, SON_W, SON_H, type SonPose } from './sonArt';
 import { drawSonGross, drawSonGrossBack, warmSonGross } from './sonGross';
-import { shoot2, fireball, lob, clearFire, flame, fireRow, FIRE } from './fire';
+import { shoot2, lob, clearFire, FIRE } from './fire';
 import { GROTTO, GY } from './geo';
 import * as L from './lines';
 
@@ -59,75 +63,96 @@ const pick = pickLine;
 // The numbers (tune here)
 
 export const SON_HP = 999;
+/** The brother: half the son's. */
+export const BRO_HP = Math.round(SON_HP / 2);
 const BIG = 100000, SHARE = 0.25;
-const ARENA_L = GROTTO.door + 60, ARENA_R = GROTTO.R - 50;
-/** Where his beanbag is (he sits in it for the intro and his sulks). */
+export const ARENA_L = GROTTO.door + 60, ARENA_R = GROTTO.R - 50;
+/** Where his beanbag is (he's sunk in it for the intro). */
 export const BEANBAG_X = GROTTO.R - 150;
-/** Tells (frames): lazy (long), trying (short). */
-const TELL = { flick: 36, ring: 44, burp: 32, pillars: 30, volley: 24, drop: 40 };
-const PAUSE_LAZY = [60, 110], PAUSE_TRY = [16, 36];
-const TRY_T = 600, SULK_T = 100;
-const DMG = { flick: 12, ring: 14, burp: 14, pillar: 18, ball: 14, drop: 20, touch: 10 };
-/** Meathead mocks him at these shares of his health (and every so long, lazy). */
-const MOCK_AT = [0.8, 0.55, 0.3], MOCK_EVERY = 1500;
+/** Damage, before Meathead 2's own cut (×0.65): deadly, meant to be dodged. */
+const DMG = { crush: 30, wave: 20, roach: 16, ring: 22, pillar: 26, breath: 26, tail: 20, touch: 10, broCrush: 30, broWave: 19, sweep: 26, rush: 30 };
+/** Wind-ups (the tells) and the openings after (frames); under half, the wind-ups a fifth quicker. */
+const WIND = { crouch: 40, flick: 36, inhale: 46, point: 34, rear: 46, cock: 28, broCrouch: 40, sweepWind: 46, rushWind: 56 };
+const OPEN = { land: 50, roach: 36, ring: 40, pose: 60, cough: 44, tail: 34, broLand: 50, sweep: 42, crash: 80 };
+const JET = { near: 40, reach: 330, top: GY - 92, bot: GY - 50, T: 36 };
+const TAIL_REACH = 170, SWEEP_REACH = 215, RUSH_SPEED = 12;
+/** The gap between one's attack and the next one's (two on one: one at a time). */
+const GAP_TWO = 44, GAP_ONE = 24;
 
-type Move = 'flick' | 'ring' | 'burp' | 'pillars' | 'volley' | 'drop';
-type Act = 'pause' | 'tell' | 'do' | 'recover' | 'gone' | 'sulk' | 'mock';
+for (const [src, hurt, death] of [['m2:wp2_brocrush', HURT_CRUSH, DEATH_CRUSH], ['m2:wp2_browave', HURT_WAVE, DEATH_WAVE], ['m2:wp2_brosweep', HURT_GUITAR, DEATH_GUITAR], ['m2:wp2_brorush', HURT_RUSH, DEATH_RUSH], ['m2:wp2_bro', HURT_BUMP, DEATH_BUMP]] as const) registerHurtLines(src, hurt, death);
+
+type Who = 'son' | 'bro';
+type SonMove = 'leap' | 'roach' | 'ring' | 'pillars' | 'breath' | 'tail';
+type BroMove = 'bleap' | 'sweep' | 'rush';
+type Move = SonMove | BroMove;
+export interface Foe {
+  who: Who; e: Enemy; hp: number; max: number; iframes: number; flash: number; moveSeen?: number; spam: Spam;
+  x: number; y: number; vx: number; vy: number; face: 1 | -1;
+  /** What he's doing: 'walk' (between), a move's own steps, 'kneel' (down). */
+  st: string; t: number; T: number; move: Move | null; last: Move[]; cd: number;
+  down: boolean; said: string | null;
+  /** The ring's height, the leap's landing (where his shadow is), the rush's way, a move's hit had. */
+  high: boolean; aim: number; rushDir: 1 | -1; hit: boolean; shots: number;
+}
 type Intro = 'kick' | 'walk' | 'view' | 'gross' | 'talk' | 'retry';
 export interface Fight2 {
-  mode: 'intro' | 'on' | 'dying' | 'dead';
-  e: Enemy;
-  hp: number; iframes: number; flash: number; moveSeen?: number; spam: Spam;
-  x: number; y: number; vy: number; face: 1 | -1; vx: number;
-  act: Act; actT: number; T: number; move: Move | null; last: Move | null; shots: number; high: boolean; dropX: number;
-  /** Trying (frames left: 0 lazy); the mocks had; frames lazy since the last. */
-  tryT: number; mocks: number; lazyT: number; total: number; tauntAt: number; lowSaid: boolean;
-  intro: Intro; introT: number; skipT: number; said: string | null; talkStep: number;
-  death: { t: number; step: 'stagger' | 'line' | 'burn' | 'trip' | 'flop' | 'done'; dir: 1 | -1 } | null;
-  /** The door (kicked in): 0 up, 1 down flat. */
+  mode: 'intro' | 'on' | 'enter' | 'end';
+  son: Foe; bro: Foe | null;
+  /** Whose turn it is to attack (null: either's, after the gap). */
+  busy: Who | null; gap: number;
+  intro: Intro; introT: number; skipT: number; talkStep: number;
+  /** The brother's coming: the beat (Meathead's mock, the call, down through the ceiling). */
+  enter: { t: number; step: 'mock' | 'call' | 'fall' | 'land' | 'hi' | 'mh' } | null;
+  total: number; tauntAt: number; lowSaid: boolean;
   door: number;
-  sitting: boolean;
 }
 
-const SON_KIND = 'm2:wp2_sonboss' as const;
-registerM2Kind({
-  kind: SON_KIND, stats: { w: SON_W, h: SON_H, hp: BIG, contact: 0, mass: 300, air: true },
+const SON_KIND = 'm2:wp2_sonboss' as const, BRO_KIND = 'm2:wp2_broboss' as const;
+for (const [kind, w, h, blood] of [[SON_KIND, SON_W, SON_H, '#7F1D1D'], [BRO_KIND, 60, 160, '#7F1D1D']] as const) registerM2Kind({
+  kind, stats: { w, h, hp: BIG, contact: 0, mass: 300, air: true },
   make: b => ({ ...b, enemyType: 'flyer', initialY: b.pos.y, harmless: true }),
-  gender: 'm', humanoid: true, grab: 'none', midBoss: true, blood: '#7F1D1D',
-  head: { x: 26, y: -124, r: 14 },
+  gender: 'm', humanoid: true, grab: 'none', midBoss: true, blood,
+  head: { x: 20, y: -h + 16, r: 14 },
   draw: () => {},
   ai: () => true,
 });
 TOO_BIG_BY_KIND[SON_KIND] = L.GRAB_SON;
+TOO_BIG_BY_KIND[BRO_KIND] = L.GRAB_SON;
 
 let token = 0;
 export const resetFight2 = () => { token++; };
-
 const pmid = (state: GameState) => ({ x: state.player.pos.x + state.player.width / 2, y: state.player.pos.y + state.player.height / 2 });
-const sonSays = (f: Fight2, text: string, onDone?: () => void) => { const tok = token; speak(L.SON_VOICE, text, s => { if (tok === token) f.said = s?.text ?? null; }, true, () => { if (tok === token) onDone?.(); }); };
-const bark = (state: GameState, f: Fight2, lines: L.ByPants) => {
-  if (f.said) return;
-  const text = pick(byPants(state, lines)), tok = token;
-  say(text, voice(L.SON_VOICE), 'casual', {
+const voiceOf = (who: Who) => (who === 'son' ? L.SON_VOICE : 'm2.demon');
+/** A line of his, its turn (waits for anybody talking), `onDone` after. */
+export const foeSays = (o: Foe, text: string, onDone?: () => void) => { const tok = token; speak(voiceOf(o.who), text, s => { if (tok === token) o.said = s?.text ?? null; }, true, () => { if (tok === token) onDone?.(); }); };
+/** A bark (dropped if anybody's talking). */
+const bark = (state: GameState, o: Foe, lines: { clean: readonly string[]; shitty: readonly string[]; nude: readonly string[] }) => {
+  if (o.said) return;
+  const text = pick([...byPants(state, lines)]), tok = token;
+  say(text, voice(voiceOf(o.who)), 'casual', {
     always: true,
-    onShow: spoken => { if (tok !== token) return; f.said = text; if (!spoken) setTimeout(() => { if (f.said === text) f.said = null; }, Math.max(1600, text.length * 65)); },
-    onHide: () => { if (f.said === text) f.said = null; },
+    onShow: spoken => { if (tok !== token) return; o.said = text; if (!spoken) setTimeout(() => { if (o.said === text) o.said = null; }, Math.max(1600, text.length * 65)); },
+    onHide: () => { if (o.said === text) o.said = null; },
   });
 };
 const hands = (): Controls => ({ left: false, right: false, up: false, down: false, jump: false, special: false, shoot: false });
-const rand = (r: number[]) => r[0] + Math.random() * (r[1] - r[0]);
-const setAct = (f: Fight2, a: Act, T: number) => { f.act = a; f.actT = 0; f.T = Math.max(1, Math.round(T)); };
+const setSt = (o: Foe, st: string, T: number) => { o.st = st; o.t = 0; o.T = Math.max(1, Math.round(T)); };
+const mad = (o: Foe) => (o.hp < o.max / 2 ? 0.8 : 1);
+
+const newFoe = (who: Who, x: number, y: number): Foe => {
+  const e = makeKindEnemy((who === 'son' ? SON_KIND : BRO_KIND) as EnemyKind, x, y);
+  e.seen = true;
+  const max = who === 'son' ? SON_HP : BRO_HP;
+  return { who, e, hp: max, max, iframes: 0, flash: 0, moveSeen: e.hitByMove, spam: newSpam(), x, y, vx: 0, vy: 0, face: -1, st: 'walk', t: 0, T: 60, move: null, last: [], cd: 50, down: false, said: null, high: false, aim: 0, rushDir: -1, hit: false, shots: 0 };
+};
 
 export const startFight2 = (state: GameState): Fight2 => {
   token++;
-  const e = makeKindEnemy(SON_KIND as EnemyKind, BEANBAG_X, GY);
-  e.seen = true;
   const f: Fight2 = {
-    mode: 'intro', e, hp: SON_HP, iframes: 0, flash: 0, moveSeen: e.hitByMove, spam: newSpam(),
-    x: BEANBAG_X, y: GY, vy: 0, face: -1, vx: 0, act: 'pause', actT: 0, T: 60, move: null, last: null, shots: 0, high: false, dropX: 0,
-    tryT: 0, mocks: 0, lazyT: 0, total: 0, tauntAt: 700, lowSaid: false,
-    intro: 'kick', introT: 0, skipT: 0, said: null, talkStep: 0, death: null, door: 0, sitting: true,
+    mode: 'intro', son: newFoe('son', BEANBAG_X, GY), bro: null, busy: null, gap: 0,
+    intro: 'kick', introT: 0, skipT: 0, talkStep: 0, enter: null, total: 0, tauntAt: 700, lowSaid: false, door: 0,
   };
+  f.son.st = 'sit';
   warmSonGross();
   state.player.inCutscene = true;
   if (bossIntroSeen(state, 'mehphisto')) { f.intro = 'retry'; f.door = 1; }
@@ -135,12 +160,12 @@ export const startFight2 = (state: GameState): Fight2 => {
 };
 const beginFight = (state: GameState, f: Fight2) => {
   token++; markBossIntroSeen(state, 'mehphisto');
-  f.said = null; state.cameraOverride = null;
+  f.son.said = null; state.cameraOverride = null;
   const p = state.player;
   p.inCutscene = false; p.kickPose = 0;
-  f.mode = 'on'; f.door = 1; f.sitting = false;
-  setAct(f, 'pause', 50);
-  if (!state.enemies.includes(f.e)) state.enemies.push(f.e);
+  f.mode = 'on'; f.door = 1;
+  setSt(f.son, 'walk', 50); f.son.cd = 50;
+  if (!state.enemies.includes(f.son.e)) state.enemies.push(f.son.e);
 };
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -168,7 +193,6 @@ const updateIntro = (ctx: FrameContext, f: Fight2): Controls => {
       if (p.pos.x + p.width / 2 > GROTTO.door + 120) { p.vel.x = 0; f.intro = 'view'; f.introT = 0; }
       break;
     case 'view':
-      // (him in his beanbag in the smoke; a bubble of the bong; a beat)
       if (t === 20) playSound('glug', 0.6, -6);
       if (t > 60) { f.intro = 'gross'; f.introT = 0; playSound('snort', 0.5, -10); }
       break;
@@ -176,14 +200,14 @@ const updateIntro = (ctx: FrameContext, f: Fight2): Controls => {
       if (t > 105) { f.intro = 'talk'; f.introT = 0; f.talkStep = 0; }
       break;
     case 'talk':
-      if (f.talkStep === 0) { f.talkStep = 1; sonSays(f, pick(byPants(state, L.SON_INTRO)), () => { f.talkStep = 2; }); }
+      if (f.talkStep === 0) { f.talkStep = 1; foeSays(f.son, pick(byPants(state, L.SON_INTRO)), () => { f.talkStep = 2; }); }
       if (f.talkStep === 2) { f.talkStep = 3; meatheadSays(state, pick(byPants(state, L.MH_INTRO2)), true, () => { f.talkStep = 4; }); }
-      if (f.talkStep === 4) { f.talkStep = 5; sonSays(f, pick(byPants(state, L.SON_INTRO2)), () => { f.talkStep = 6; }); }
+      if (f.talkStep === 4) { f.talkStep = 5; foeSays(f.son, pick(byPants(state, L.SON_INTRO2)), () => { f.talkStep = 6; }); }
       if (f.talkStep === 6) beginFight(state, f);
       if (t > 1600) beginFight(state, f);
       break;
     case 'retry':
-      if (t === 1) bark(state, f, L.SON_RETRY);
+      if (t === 1) bark(state, f.son, L.SON_RETRY);
       if (t > 70) beginFight(state, f);
       break;
   }
@@ -191,317 +215,439 @@ const updateIntro = (ctx: FrameContext, f: Fight2): Controls => {
 };
 
 // ---------------------------------------------------------------------------------------------------------------
-// The fight
+// The brother's entrance (at half): Meathead's mock, the son calls him, down through the ceiling
 
-const trying = (f: Fight2) => f.tryT > 0;
-const choose = (f: Fight2): Move => {
-  const pool: Move[] = trying(f) ? ['pillars', 'volley', 'drop', 'volley', 'pillars'] : ['flick', 'ring', 'burp', 'ring', 'flick'];
-  const ok = pool.filter(m => m !== f.last);
-  return ok[Math.floor(Math.random() * ok.length)];
+const startEnter = (state: GameState, f: Fight2) => {
+  f.mode = 'enter'; f.enter = { t: 0, step: 'mock' }; f.skipT = 0; f.busy = null;
+  clearFire(state);
+  setSt(f.son, 'walk', 30); f.son.vx = 0; f.son.y = GY; f.son.said = null;
+  state.player.inCutscene = true;
 };
-const startMove = (state: GameState, f: Fight2, m: Move) => {
-  f.move = m; f.last = m; f.shots = 0; f.high = Math.random() < 0.5;
-  f.face = pmid(state).x < f.x ? -1 : 1;
-  setAct(f, 'tell', TELL[m] * (f.hp < SON_HP / 3 ? 0.85 : 1));
-  if (m === 'flick') playSound('click', 0.6, 4);
-  if (m === 'ring') playSound('suck', 0.4, 8);
-  if (m === 'burp') playSound('glug', 0.6, -10);
-  if (m === 'pillars') playSound('ignite', 0.6, -6);
-  if (m === 'volley') playSound('ignite', 0.5, 8);
-  if (m === 'drop') { playSound('poof', 0.7, -4); puff(state, f.x, f.y - 70); }
+const broIn = (state: GameState, f: Fight2) => {
+  const x = Math.max(ARENA_L + 80, Math.min(ARENA_R - 80, pmid(state).x > (ARENA_L + ARENA_R) / 2 ? ARENA_L + 140 : ARENA_R - 140));
+  f.bro = newFoe('bro', x, GY - 520); f.bro.st = 'fall'; f.bro.face = pmid(state).x < x ? -1 : 1;
 };
-const puff = (state: GameState, x: number, y: number) => { for (let k = 0; k < 22; k++) state.particles.push({ pos: { x: x + (Math.random() - 0.5) * 60, y: y + (Math.random() - 0.5) * 90 }, vel: { x: (Math.random() - 0.5) * 2.4, y: -0.6 - Math.random() * 1.4 }, life: 40, color: k % 2 ? '#5A5266' : '#3A3444', size: 5 + Math.random() * 5 }); };
-
-/** Meathead mocks him (his line, then the son's snap): he's trying. */
-const mock = (state: GameState, f: Fight2) => {
-  f.mocks++; f.lazyT = 0;
-  setAct(f, 'mock', 400);
-  meatheadSays(state, pick(byPants(state, L.MH_MOCK)), true, () => {
-    if (f.mode !== 'on') return;
-    sonSays(f, pick(byPants(state, L.SON_SNAP)));
-    f.tryT = TRY_T; f.sitting = false;
-    playSound('roar', 0.5, 10); shakeScreen(state, 8, 4);
-    setAct(f, 'pause', 20);
-  });
+const endEnter = (state: GameState, f: Fight2) => {
+  token++;
+  if (!f.bro) broIn(state, f);
+  const b = f.bro!;
+  b.y = GY; b.vy = 0; setSt(b, 'walk', 40); b.cd = 70; b.said = null; f.son.said = null;
+  f.mode = 'on'; f.enter = null; f.gap = 40;
+  state.player.inCutscene = false;
+  if (!state.enemies.includes(b.e)) state.enemies.push(b.e);
 };
-
-const updateOn = (ctx: FrameContext, f: Fight2) => {
-  const { state } = ctx, pl = state.player, p = pmid(state);
-  f.total++; f.actT++;
-  if (f.iframes > 0) f.iframes--;
-  if (f.flash > 0) f.flash--;
-  const dx = p.x - f.x;
-  if (trying(f)) {
-    f.tryT--;
-    if (f.tryT === 0) {
-      // (it's worn off: whatever; a sulk in the beanbag)
-      bark(state, f, L.SON_SULK);
-      setAct(f, 'sulk', SULK_T); f.move = null;
-    }
-  } else if (f.act !== 'sulk' && f.act !== 'mock') f.lazyT++;
-  // (the mocks: at his health's marks, and every so long)
-  if (!trying(f) && f.act === 'pause' && !f.said && (f.mocks < MOCK_AT.length && f.hp < SON_HP * MOCK_AT[f.mocks] || f.lazyT > MOCK_EVERY)) mock(state, f);
-  // (his mutters: lazy and trying)
-  if (f.total > f.tauntAt && !f.said && f.act !== 'mock') { f.tauntAt = f.total + 560 + Math.floor(Math.random() * 400); bark(state, f, trying(f) ? L.SON_TRY : L.SON_LAZY); }
-  if (!f.lowSaid && f.hp < SON_HP / 3 && !f.said) { f.lowSaid = true; bark(state, f, L.SON_LOW); }
-  switch (f.act) {
-    case 'pause': {
-      // (shuffling about: lazy, toward the middle or not at all; trying, after him)
-      const want = trying(f) ? (Math.abs(dx) > 240 ? Math.sign(dx) : Math.abs(dx) < 110 ? -Math.sign(dx) : 0) : (Math.abs(dx) < 120 ? -Math.sign(dx) : 0);
-      f.vx += (want * (trying(f) ? 2.2 : 0.9) - f.vx) * 0.1;
-      if (Math.abs(f.vx) > 0.3) f.face = f.vx > 0 ? 1 : -1;
-      if (f.actT >= f.T) startMove(state, f, choose(f));
-      break;
-    }
-    case 'tell':
-      f.vx *= 0.75;
-      if (f.move !== 'drop') f.face = dx < 0 ? -1 : 1;
-      if (f.move === 'drop' && f.actT === 1) { f.dropX = p.x; }
-      if (f.move === 'drop') f.dropX += Math.max(-2.5, Math.min(2.5, p.x - f.dropX)) * 0.4;
-      if (f.actT >= f.T) doMove(ctx, f);
-      break;
-    case 'do': runMove(ctx, f); break;
-    case 'gone':
-      // (his shadow following him a while, then set)
-      if (f.actT < f.T - 10) f.dropX += Math.max(-3, Math.min(3, p.x - f.dropX)) * 0.5;
-      if (f.actT >= f.T) { f.act = 'do'; f.actT = 0; f.T = 60; f.x = Math.max(ARENA_L, Math.min(ARENA_R, f.dropX)); f.y = GY - 420; f.vy = 4; }
-      break;
-    case 'recover':
-      f.vx *= 0.85;
-      if (f.actT >= f.T) setAct(f, 'pause', rand(trying(f) ? PAUSE_TRY : PAUSE_LAZY));
-      break;
-    case 'sulk':
-      // (back in the beanbag, sulking: open to it)
-      f.vx = 0; f.sitting = Math.abs(f.x - BEANBAG_X) < 30;
-      if (!f.sitting) f.x += Math.sign(BEANBAG_X - f.x) * Math.min(3, Math.abs(BEANBAG_X - f.x));
-      if (f.actT >= f.T) { f.sitting = false; setAct(f, 'pause', 40); }
-      break;
+const updateEnter = (ctx: FrameContext, f: Fight2): Controls => {
+  const { state } = ctx, p = state.player, en = f.enter!;
+  en.t++; f.skipT++;
+  p.inCutscene = true; p.vel.x = 0;
+  if (f.skipT > SKIP_AFTER) offerSkip();
+  if (f.skipT > SKIP_AFTER && takeSkip()) { silenceAll(); state.playerVulgarityTimer = 0; endEnter(state, f); return hands(); }
+  f.son.face = pmid(state).x < f.son.x ? -1 : 1;
+  switch (en.step) {
     case 'mock':
-      f.vx *= 0.8;
-      if (f.actT >= f.T) setAct(f, 'pause', 30);
+      if (en.t === 10) meatheadSays(state, pick(byPants(state, L.MH_MOCK)), true, () => { if (f.enter) { f.enter.step = 'call'; f.enter.t = 0; } });
+      if (en.t > 500) { en.step = 'call'; en.t = 0; }
+      break;
+    case 'call':
+      if (en.t === 1) foeSays(f.son, pick(byPants(state, L.SON_CALL)), () => { if (f.enter) { f.enter.step = 'fall'; f.enter.t = 0; broIn(state, f); playSound('crack', 1, -12); playSound('rumble', 0.9, -8); shakeScreen(state, 10, 5); } });
+      if (en.t > 500) { en.step = 'fall'; en.t = 0; broIn(state, f); }
+      break;
+    case 'fall': {
+      // (down through the ceiling in a shower of rock)
+      const b = f.bro!;
+      b.vy += 0.9; b.y += b.vy;
+      if (en.t % 3 === 0) state.particles.push({ pos: { x: b.x + (Math.random() - 0.5) * 80, y: state.camera.y + 10 }, vel: { x: (Math.random() - 0.5) * 2, y: 3 + Math.random() * 3 }, life: 40, color: '#3A2A34', size: 4 + Math.random() * 4 });
+      if (b.y >= GY) { b.y = GY; b.vy = 0; en.step = 'land'; en.t = 0; setSt(b, 'land', 9999); playSound('slam', 1, -12); playSound('thud', 1, -14); shakeScreen(state, 18, 8); for (let k = 0; k < 24; k++) state.particles.push({ pos: { x: b.x + (Math.random() - 0.5) * 90, y: GY - 6 }, vel: { x: (Math.random() - 0.5) * 8, y: -2 - Math.random() * 5 }, life: 34, color: k % 2 ? FIRE[2] : '#3A2A34', size: 3 + Math.random() * 4 }); }
+      break;
+    }
+    case 'land':
+      if (en.t === 30) { en.step = 'hi'; en.t = 0; foeSays(f.bro!, pick(byPants(state, L.BRO_ARRIVE)), () => { if (f.enter) { f.enter.step = 'mh'; f.enter.t = 0; } }); }
+      break;
+    case 'hi':
+      if (en.t > 600) { en.step = 'mh'; en.t = 0; }
+      break;
+    case 'mh':
+      if (en.t === 1) meatheadSays(state, pick(byPants(state, L.MH_BRO)), true, () => { if (f.enter) endEnter(state, f); });
+      if (en.t > 400) endEnter(state, f);
       break;
   }
-  if (f.act !== 'gone' && !(f.act === 'do' && f.move === 'drop')) { f.x += f.vx; f.x = Math.max(ARENA_L, Math.min(ARENA_R, f.x)); }
-  // (touching him hurts, outside the drop's fall (that's its own))
-  const bx = sonBox(f);
-  if (f.act !== 'gone' && pl.health > 0 && pl.invincibilityTimer <= 0 && !pl.inCutscene && pl.pos.x + pl.width > bx.x + 6 && pl.pos.x < bx.x + bx.w - 6 && pl.pos.y + pl.height > bx.y + 10 && pl.pos.y < bx.y + bx.h) {
-    hurtPlayer(ctx, DMG.touch, 'm2:wp2_son', { x: Math.sign(dx || 1) * 7, y: -6 }, 20); shakeScreen(state, 5, 3);
-  }
-  const e = f.e;
-  e.pos.x = bx.x; e.pos.y = bx.y; e.width = bx.w; e.height = bx.h; e.vel.x = 0; e.vel.y = 0; e.facing = f.face;
-  if (f.act === 'gone' && state.enemies.includes(e)) state.enemies = state.enemies.filter(q => q !== e);
-  if (f.act !== 'gone' && !state.enemies.includes(e)) state.enemies.push(e);
-  takeHits(ctx, f);
-};
-export const sonBox = (f: Fight2) => ({ x: f.x - SON_W / 2, y: f.y - (f.sitting ? 90 : SON_H), w: SON_W, h: f.sitting ? 90 : SON_H });
-
-const doMove = (ctx: FrameContext, f: Fight2) => {
-  const { state } = ctx, p = pmid(state), pl = state.player;
-  switch (f.move) {
-    case 'flick': {
-      const [hx, hy] = sonHand('flick');
-      lob(state, f.x + hx * f.face, f.y + hy, p.x + pl.vel.x * 10, GY, 40, 'm2:wp2_sonflick', DMG.flick);
-      playSound('whoosh', 0.5, 8); setAct(f, 'do', 30); break;
-    }
-    case 'ring': {
-      const [mx] = sonMouth('blow');
-      shoot2(state, { kind: 'ring', x: f.x + mx * f.face, y: f.high ? GY - 58 : GY - 18, vx: f.face * 2.8, vy: 0, src: 'm2:wp2_sonring', dmg: DMG.ring, life: 300, r: 14 });
-      playSound('whoosh', 0.7, -10); setAct(f, 'do', 40); break;
-    }
-    case 'burp': {
-      const [mx] = sonMouth('burp');
-      shoot2(state, { kind: 'burp', x: f.x + mx * f.face, y: GY, vx: f.face * 4.4, vy: 0, src: 'm2:wp2_sonburp', dmg: DMG.burp, life: 140, r: 16, floor: GY });
-      playSound('burp', 1, -8); playSound('ignite', 0.6, -6); setAct(f, 'do', 40); break;
-    }
-    case 'pillars': {
-      const at = [p.x, p.x - 140, p.x + 140, ...(f.hp < SON_HP * 0.4 ? [p.x + (Math.random() < 0.5 ? -70 : 70)] : [])];
-      at.forEach((x, i) => shoot2(state, { kind: 'pillar', x: Math.max(GROTTO.L + 20, Math.min(GROTTO.R - 20, x)), y: GY, vx: 0, vy: 0, src: 'm2:wp2_sonpillar', dmg: DMG.pillar, life: 86 + i * 10, r: 22, tell: 40 + i * 10, floor: GY }));
-      playSound('rumble', 0.8, -6); setAct(f, 'do', 60); break;
-    }
-    case 'volley': setAct(f, 'do', 44); break;
-    case 'drop':
-      // (up in the smoke: gone, his shadow where he'll come down)
-      setAct(f, 'gone', 34); break;
-    default: setAct(f, 'pause', 30);
-  }
-};
-const runMove = (ctx: FrameContext, f: Fight2) => {
-  const { state } = ctx, p = pmid(state), pl = state.player;
-  const t = f.actT;
-  switch (f.move) {
-    case 'volley':
-      if (t % 12 === 1 && f.shots < 3) { f.shots++; const [hx, hy] = sonHand('throw'); fireball(state, f.x + hx * f.face, f.y + hy, p.x + pl.vel.x * 8, p.y, 6.5, 'm2:wp2_sonball', DMG.ball); }
-      if (t >= f.T) setAct(f, 'recover', 20);
-      break;
-    case 'drop':
-      if (f.y < GY) {
-        f.vy += 0.9; f.y += f.vy;
-        if (f.y >= GY) {
-          f.y = GY; f.vy = 0;
-          playSound('slam', 1, -10); playSound('thud', 1, -12); shakeScreen(state, 14, 6);
-          if (Math.abs(p.x - f.x) < 46 && pl.pos.y + pl.height > GY - 40 && pl.health > 0 && pl.invincibilityTimer <= 0) hurtPlayer(ctx, DMG.drop, 'm2:wp2_sondrop', { x: Math.sign(p.x - f.x || 1) * 8, y: -7 }, 22);
-          for (const d of [-1, 1]) shoot2(state, { kind: 'burp', x: f.x + d * 30, y: GY, vx: d * 4, vy: 0, src: 'm2:wp2_sonburp', dmg: DMG.burp, life: 110, r: 16, floor: GY });
-          puff(state, f.x, GY - 30);
-          setAct(f, 'recover', 34);
-        }
-      }
-      break;
-    default:
-      if (t >= f.T) setAct(f, 'recover', trying(f) ? 16 : 30);
-  }
+  return hands();
 };
 
 // ---------------------------------------------------------------------------------------------------------------
-// Hits on him
+// The fight: the two of them (or the son alone, till half)
+
+const live = (f: Fight2) => [f.son, f.bro].filter((o): o is Foe => !!o && !o.down);
+const sonPick = (f: Fight2, o: Foe, adx: number): SonMove => {
+  const pool: SonMove[] = adx < TAIL_REACH ? ['tail', 'tail', 'leap', 'breath'] : ['leap', 'roach', 'ring', 'pillars', 'breath', 'ring', 'roach'];
+  const ok = pool.filter(m => o.last[0] !== m && !(o.last[0] === m && o.last[1] === m));
+  return ok[Math.floor(Math.random() * ok.length)] ?? 'ring';
+};
+const broPick = (o: Foe, adx: number): BroMove => {
+  const pool: BroMove[] = adx < SWEEP_REACH ? ['sweep', 'sweep', 'bleap'] : ['bleap', 'rush', 'sweep', 'rush'];
+  const ok = pool.filter(m => o.last[0] !== m);
+  return ok[Math.floor(Math.random() * ok.length)] ?? 'bleap';
+};
+/** Into a move: its tell. */
+const begin = (state: GameState, f: Fight2, o: Foe, m: Move) => {
+  o.move = m; o.last = [m, ...o.last].slice(0, 3); o.shots = 0; o.hit = false;
+  f.busy = o.who;
+  const p = pmid(state);
+  o.face = p.x < o.x ? -1 : 1; o.vx = 0;
+  const k = mad(o);
+  switch (m) {
+    case 'leap': setSt(o, 'crouch', WIND.crouch * k); playSound('suck', 0.5, -4); break;
+    case 'roach': setSt(o, 'flick', WIND.flick * k); playSound('click', 0.7, 4); break;
+    case 'ring': setSt(o, 'inhale', WIND.inhale * k); o.high = Math.random() < 0.5; playSound('suck', 0.5, 8); break;
+    case 'pillars': setSt(o, 'point', WIND.point * k); playSound('ignite', 0.6, -6); break;
+    case 'breath': setSt(o, 'rear', WIND.rear * k); playSound('glug', 0.8, -12); break;
+    case 'tail': setSt(o, 'cock', WIND.cock * k); playSound('whoosh', 0.4, 10); break;
+    case 'bleap': setSt(o, 'crouch', WIND.broCrouch * k); playSound('snort', 0.6, -8); break;
+    case 'sweep': setSt(o, 'sweepWind', WIND.sweepWind * k); playSound('grind', 0.5, -4); break;
+    case 'rush': setSt(o, 'rushWind', WIND.rushWind * k); o.rushDir = o.face; break;
+  }
+};
+/** Done (the opening's over): back to walking, the turn given up. */
+const finishMove = (f: Fight2, o: Foe) => {
+  setSt(o, 'walk', 0); o.move = null; o.cd = 20 + Math.random() * 30;
+  if (f.busy === o.who) { f.busy = null; f.gap = f.bro && !f.bro.down && !f.son.down ? GAP_TWO : GAP_ONE; }
+};
+const hurtIf = (ctx: FrameContext, o: Foe, x: number, y: number, w: number, h: number, dmg: number, src: string, kx: number, ky: number) => {
+  const pl = ctx.state.player;
+  if (o.hit || pl.health <= 0 || pl.invincibilityTimer > 0 || pl.inCutscene) return;
+  const top = pl.pos.y + (pl.isDucking ? 24 : 0);
+  if (pl.pos.x + pl.width - 6 > x && pl.pos.x + 6 < x + w && pl.pos.y + pl.height > y && top < y + h) { o.hit = true; hurtPlayer(ctx, dmg, src, { x: kx, y: ky }, 22); shakeScreen(ctx.state, 8, 4); }
+};
+const waves = (state: GameState, x: number, dmg: number, src: string) => {
+  for (const d of [-1, 1]) shoot2(state, { kind: 'burp', x: x + d * 34, y: GY, vx: d * 6, vy: 0, src, dmg, life: 110, r: 16, floor: GY });
+};
+const puff = (state: GameState, x: number, y: number) => { for (let k = 0; k < 22; k++) state.particles.push({ pos: { x: x + (Math.random() - 0.5) * 60, y: y + (Math.random() - 0.5) * 90 }, vel: { x: (Math.random() - 0.5) * 2.4, y: -0.6 - Math.random() * 1.4 }, life: 40, color: k % 2 ? '#5A5266' : '#3A3444', size: 5 + Math.random() * 5 }); };
+
+const stepSon = (ctx: FrameContext, f: Fight2, o: Foe) => {
+  const { state } = ctx, p = pmid(state), dx = p.x - o.x, k = mad(o);
+  o.t++;
+  switch (o.st) {
+    case 'walk': {
+      // (keeping his distance, a slouching drift; his turn and it's time: a move)
+      const want = Math.abs(dx) > 300 ? Math.sign(dx) : Math.abs(dx) < 170 ? -Math.sign(dx) : 0;
+      o.vx += (want * 1.3 - o.vx) * 0.08;
+      o.face = dx < 0 ? -1 : 1;
+      o.cd--;
+      if (o.cd <= 0 && f.busy === null && f.gap <= 0) begin(state, f, o, sonPick(f, o, Math.abs(dx)));
+      break;
+    }
+    // LEAP: the crouch, gone (the shadow following him, then set), down on it, the fire both ways
+    case 'crouch':
+      if (o.t >= o.T) { setSt(o, 'gone', 28); o.aim = p.x; puff(state, o.x, o.y - 70); playSound('poof', 0.8, -6); }
+      break;
+    case 'gone':
+      if (o.t < o.T - 10) o.aim += Math.max(-3.2, Math.min(3.2, p.x - o.aim)) * 0.5;
+      if (o.t >= o.T) { setSt(o, 'fall', 60); o.x = Math.max(ARENA_L, Math.min(ARENA_R, o.aim)); o.y = GY - 460; o.vy = 5; }
+      break;
+    case 'fall':
+      o.vy += 1; o.y += o.vy;
+      if (o.y >= GY - 60) hurtIf(ctx, o, o.x - 30, o.y - SON_H, 60, SON_H, DMG.crush, 'm2:wp2_sondrop', Math.sign(dx || 1) * 8, -7);
+      if (o.y >= GY) { o.y = GY; o.vy = 0; playSound('slam', 1, -10); playSound('thud', 1, -12); shakeScreen(state, 14, 6); waves(state, o.x, DMG.wave, 'm2:wp2_sonburp'); puff(state, o.x, GY - 30); setSt(o, 'open', OPEN.land); }
+      break;
+    // ROACHES: the lighter, then three in arcs
+    case 'flick':
+      if (o.t === Math.round(o.T * 0.5)) playSound('click', 0.7, 6);
+      if (o.t >= o.T) { setSt(o, 'roaches', 30); }
+      break;
+    case 'roaches':
+      if (o.t % 8 === 1 && o.shots < 3) {
+        const [hx, hy] = sonHand('flick'), at = [p.x, p.x - 110 * o.face, p.x + 110 * o.face][o.shots++];
+        lob(state, o.x + hx * o.face, o.y + hy, Math.max(GROTTO.door, Math.min(GROTTO.R, at)), GY, 38, 'm2:wp2_sonflick', DMG.roach);
+        playSound('whoosh', 0.4, 8);
+      }
+      if (o.t >= o.T) setSt(o, 'open', OPEN.roach);
+      break;
+    // RING: the drag (the smoke gathering at its height), the ring (two, past half: the other height second)
+    case 'inhale':
+      if (o.t >= o.T) setSt(o, 'blow', o.hp < o.max / 2 ? 54 : 24);
+      break;
+    case 'blow':
+      if (o.t === 1 || (o.t === 34 && o.hp < o.max / 2)) {
+        if (o.t === 34) o.high = !o.high;
+        const [mx] = sonMouth('blow');
+        shoot2(state, { kind: 'ring', x: o.x + mx * o.face, y: o.high ? GY - 58 : GY - 18, vx: o.face * 3.6, vy: 0, src: 'm2:wp2_sonring', dmg: DMG.ring, life: 260, r: 14 });
+        playSound('whoosh', 0.7, -10);
+      }
+      if (o.t >= o.T) setSt(o, 'open', OPEN.ring);
+      break;
+    // PILLARS: pointing; the glow where he is and either side, then hellfire; looking up for his dad after
+    case 'point':
+      if (o.t >= o.T) {
+        const at = [p.x, p.x - 150, p.x + 150, ...(o.hp < o.max / 2 ? [p.x + (Math.random() < 0.5 ? -75 : 75)] : [])];
+        at.forEach((x, i) => shoot2(state, { kind: 'pillar', x: Math.max(GROTTO.door + 20, Math.min(GROTTO.R - 20, x)), y: GY, vx: 0, vy: 0, src: 'm2:wp2_sonpillar', dmg: DMG.pillar, life: 86 + i * 12, r: 24, tell: Math.round(42 * k) + i * 12, floor: GY }));
+        playSound('rumble', 0.8, -6); setSt(o, 'pose', OPEN.pose + 40);
+      }
+      break;
+    // BREATH: rearing back, the gurgle; the jet at waist height; the cough
+    case 'rear':
+      if (o.t >= o.T) { setSt(o, 'jet', JET.T); playSound('ignite', 1, -8); playSound('burp', 0.8, -14); }
+      break;
+    case 'jet': {
+      const reach = JET.near + (JET.reach - JET.near) * Math.min(1, o.t / 8);
+      const x0 = o.face > 0 ? o.x + JET.near : o.x - reach, w = reach - JET.near;
+      if (o.t > 2) hurtIf(ctx, o, x0, JET.top, w, JET.bot - JET.top, DMG.breath, 'm2:wp2_sonbreath', o.face * 6, -4);
+      if (o.t >= o.T) setSt(o, 'open', OPEN.cough);
+      break;
+    }
+    // TAIL: cocked up behind him, then whipped low out in front
+    case 'cock':
+      if (o.t >= o.T) { setSt(o, 'whip', 12); playSound('whoosh', 0.8, 2); }
+      break;
+    case 'whip': {
+      const x0 = o.face > 0 ? o.x : o.x - TAIL_REACH;
+      if (o.t > 2 && o.t < 9) hurtIf(ctx, o, x0, GY - 36, TAIL_REACH, 36, DMG.tail, 'm2:wp2_sontail', o.face * 7, -6);
+      if (o.t >= o.T) setSt(o, 'open', OPEN.tail);
+      break;
+    }
+    case 'pose': case 'open':
+      o.vx *= 0.8;
+      if (o.t >= o.T) finishMove(f, o);
+      break;
+  }
+  if (o.st === 'walk' || o.st === 'open' || o.st === 'pose') { o.x += o.vx; o.x = Math.max(ARENA_L, Math.min(ARENA_R, o.x)); }
+};
+
+const stepBro = (ctx: FrameContext, f: Fight2, o: Foe) => {
+  const { state } = ctx, p = pmid(state), pl = state.player, dx = p.x - o.x;
+  o.t++;
+  switch (o.st) {
+    case 'walk': {
+      // (coming at him, stalking, showing off)
+      const want = Math.abs(dx) > 200 ? Math.sign(dx) : Math.abs(dx) < 110 ? -Math.sign(dx) : 0;
+      o.vx += (want * 1.8 - o.vx) * 0.1;
+      o.face = dx < 0 ? -1 : 1;
+      o.cd--;
+      if (o.cd <= 0 && f.busy === null && f.gap <= 0) begin(state, f, o, broPick(o, Math.abs(dx)));
+      break;
+    }
+    // LEAP: the crouch (horns going red); up and over at him, his shadow where he'll land; crushed under, the shockwaves
+    case 'crouch':
+      if (o.t >= o.T) { setSt(o, 'air', 46); o.aim = Math.max(ARENA_L, Math.min(ARENA_R, p.x + pl.vel.x * 10)); o.vx = (o.aim - o.x) / 46; o.vy = -(0.6 * 46) / 2; playSound('jump', 0.9, -12); }
+      break;
+    case 'air':
+      o.vy += 0.6; o.x += o.vx; o.y += o.vy;
+      if (o.vy > 0) hurtIf(ctx, o, o.x - 36, o.y - 150, 72, 150, DMG.broCrush, 'm2:wp2_brocrush', Math.sign(dx || 1) * 8, -7);
+      if (o.y >= GY && o.vy > 0) { o.y = GY; o.vy = 0; o.vx = 0; playSound('slam', 1, -12); playSound('thud', 1, -14); shakeScreen(state, 16, 7); waves(state, o.x, DMG.broWave, 'm2:wp2_browave'); setSt(o, 'land', OPEN.broLand); }
+      break;
+    // SWEEP: the guitar dragged back, the floor flashing out in front; along the floor (jump it)
+    case 'sweepWind':
+      if (o.t >= o.T) { setSt(o, 'sweep', 10); playSound('whoosh', 1, -6); }
+      break;
+    case 'sweep': {
+      const x0 = o.face > 0 ? o.x + 20 : o.x - SWEEP_REACH;
+      if (o.t > 2 && o.t < 8) hurtIf(ctx, o, x0, GY - 40, SWEEP_REACH - 20, 40, DMG.sweep, 'm2:wp2_brosweep', o.face * 9, -6);
+      if (o.t >= o.T) setSt(o, 'sweepRec', OPEN.sweep);
+      break;
+    }
+    // RUSH: pawing the floor (thud, thud, thud), the arrows; the length of the grotto; into the wall
+    case 'rushWind':
+      if (o.t % 18 === 6) { playSound('thud', 0.8, -10); shakeScreen(state, 3, 2); }
+      if (o.t >= o.T) { setSt(o, 'rush', 200); playSound('roar', 0.6, -2); }
+      break;
+    case 'rush':
+      o.x += o.rushDir * RUSH_SPEED;
+      hurtIf(ctx, o, o.x - 36, GY - 100, 72, 100, DMG.rush, 'm2:wp2_brorush', o.rushDir * 12, -8);
+      if (o.x <= ARENA_L || o.x >= ARENA_R) { o.x = Math.max(ARENA_L, Math.min(ARENA_R, o.x)); setSt(o, 'crash', OPEN.crash); playSound('crash', 1, -8); shakeScreen(state, 14, 6); }
+      break;
+    case 'land': case 'sweepRec': case 'crash':
+      o.vx = 0;
+      if (o.t >= o.T) finishMove(f, o);
+      break;
+  }
+  if (o.st === 'walk') { o.x += o.vx; o.x = Math.max(ARENA_L, Math.min(ARENA_R, o.x)); }
+};
+
+/** His box (where he's hit and touches). */
+export const foeBox = (o: Foe) => {
+  const w = o.who === 'son' ? SON_W : 60, h = o.st === 'kneel' ? 80 : o.st === 'sit' ? 90 : o.who === 'son' ? (o.st === 'crouch' ? 100 : SON_H) : 160;
+  return { x: o.x - w / 2, y: o.y - h, w, h };
+};
+const stepFoe = (ctx: FrameContext, f: Fight2, o: Foe) => {
+  const { state } = ctx, pl = state.player;
+  if (o.iframes > 0) o.iframes--;
+  if (o.flash > 0) o.flash--;
+  if (o.down) { o.st = 'kneel'; if (state.enemies.includes(o.e)) state.enemies = state.enemies.filter(q => q !== o.e); return; }
+  if (o.who === 'son') stepSon(ctx, f, o); else stepBro(ctx, f, o);
+  const gone = o.st === 'gone' || o.st === 'fall' && o.y < GY - 200;
+  const b = foeBox(o);
+  // (touching him: a shove; not mid-leap (those are their own))
+  if (!gone && o.st !== 'air' && o.st !== 'fall' && pl.health > 0 && pl.invincibilityTimer <= 0 && !pl.inCutscene && pl.pos.x + pl.width > b.x + 8 && pl.pos.x < b.x + b.w - 8 && pl.pos.y + pl.height > b.y + 10 && pl.pos.y < b.y + b.h) {
+    hurtPlayer(ctx, DMG.touch, o.who === 'son' ? 'm2:wp2_son' : 'm2:wp2_bro', { x: Math.sign(pl.pos.x - o.x || 1) * 7, y: -6 }, 20); shakeScreen(state, 5, 3);
+  }
+  const e = o.e;
+  e.pos.x = b.x; e.pos.y = b.y; e.width = b.w; e.height = b.h; e.vel.x = 0; e.vel.y = 0; e.facing = o.face;
+  if (gone && state.enemies.includes(e)) state.enemies = state.enemies.filter(q => q !== e);
+  if (!gone && !state.enemies.includes(e)) state.enemies.push(e);
+  takeHits(ctx, f, o, gone);
+};
 
 const plainHit = (state: GameState, melee: boolean): number | null => {
   const p = state.player;
   if (melee) return bossMelee(p);
   return p.currentWeapon === 'GUN' ? BULLET_DAMAGE : null;
 };
-const takeHits = (ctx: FrameContext, f: Fight2) => {
-  const { state } = ctx, e = f.e;
+const takeHits = (ctx: FrameContext, f: Fight2, o: Foe, gone: boolean) => {
+  const { state } = ctx, e = o.e;
   const dealt = Math.max(0, BIG - e.health);
   e.health = BIG; e.maxHealth = BIG;
-  const melee = e.hitByMove !== f.moveSeen;
-  f.moveSeen = e.hitByMove;
-  if (dealt <= 0 || f.iframes > 0 || f.act === 'gone') return;
+  const melee = e.hitByMove !== o.moveSeen;
+  o.moveSeen = e.hitByMove;
+  if (dealt <= 0 || o.iframes > 0 || gone) return;
   const dmg = plainHit(state, melee) ?? Math.max(1, dealt * SHARE);
-  f.hp -= dmg; f.iframes = BOSS_IFRAMES; f.flash = 8;
+  o.hp -= dmg; o.iframes = BOSS_IFRAMES; o.flash = 8;
+  // (never down before his brother's come: he's called in at half, between moves)
+  if (o.who === 'son' && !f.bro) o.hp = Math.max(1, o.hp);
   playSound('gunhit', 0.6, -2);
-  ctx.fx.spawnDamageNumber({ x: f.x - 10, y: f.y - SON_H - 10 }, Math.max(1, Math.round(dmg)), dmg > 40);
-  for (let i = 0; i < 6; i++) state.particles.push({ pos: { x: f.x, y: f.y - 90 }, vel: { x: (Math.random() - 0.5) * 4, y: -1 - Math.random() * 3 }, life: 22, color: '#7F1D1D', size: 2 + Math.random() * 3, grav: 0.3 });
-  if (f.hp > 0 && Math.random() < 0.2) bark(state, f, L.SON_HURT);
-  // (sat on in his sulk: up off it)
-  if (f.act === 'sulk' && f.actT > 30) { f.sitting = false; setAct(f, 'pause', 20); }
-  // (the same hit for ~4 s: up in smoke, down somewhere else (swatted off his head, or out of his face, first))
-  if (f.hp > 0 && spamTick(f.spam, state.frame, hitKey(state.player, melee))) {
-    if (melee) swatOff(state, f.x);
-    f.move = 'drop'; f.last = 'drop'; puff(state, f.x, f.y - 70); playSound('poof', 0.7, -4); f.dropX = Math.random() < 0.5 ? ARENA_L + 60 : ARENA_R - 60; setAct(f, 'gone', 30);
+  ctx.fx.spawnDamageNumber({ x: o.x - 10, y: o.y - 160 }, Math.max(1, Math.round(dmg)), dmg > 40);
+  for (let i = 0; i < 6; i++) state.particles.push({ pos: { x: o.x, y: o.y - 90 }, vel: { x: (Math.random() - 0.5) * 4, y: -1 - Math.random() * 3 }, life: 22, color: '#7F1D1D', size: 2 + Math.random() * 3, grav: 0.3 });
+  if (o.hp > 0 && Math.random() < 0.2) bark(state, o, o.who === 'son' ? L.SON_HURT : DEMON_HURT);
+  // (the same hit landing on him ~4 s running: up and away (the son in smoke, the brother in a leap), swatted off first)
+  if (o.hp > 0 && spamTick(o.spam, state.frame, hitKey(state.player, melee)) && (o.st === 'walk' || o.st === 'open' || o.st === 'pose' || o.st.endsWith('Rec') || o.st === 'land' || o.st === 'crash')) {
+    if (melee) swatOff(state, o.x);
+    if (f.busy && f.busy !== o.who) return;
+    begin(state, f, o, o.who === 'son' ? 'leap' : 'bleap');
+    o.T = 8;
   }
-  if (f.hp <= 0) die(ctx, f);
+  if (o.hp <= 0) {
+    o.hp = 0; o.down = true; o.st = 'kneel'; o.t = 0; o.vx = 0; o.y = GY; o.said = null;
+    if (f.busy === o.who) { f.busy = null; f.gap = GAP_ONE; }
+    state.enemies = state.enemies.filter(q => q !== e);
+    playSound('thud', 1, -10); shakeScreen(state, 8, 4);
+    foeSays(o, pick(byPants(state, o.who === 'son' ? L.SON_KNEEL : L.BRO_KNEEL)));
+  }
 };
 
-// ---------------------------------------------------------------------------------------------------------------
-// His standard death: the stagger, the leak, the coat going up, running round on fire, face down, ass up
-
-let onKilled2: ((state: GameState) => void) | null = null;
-export const setOnKilled2 = (fn: (state: GameState) => void) => { onKilled2 = fn; };
-const die = (ctx: FrameContext, f: Fight2) => {
+/** A frame of the grotto's fight. `onBothDown`: the end (end.ts takes it from here). */
+export const updateFight2 = (ctx: FrameContext, f: Fight2, controls: Controls, onBothDown: () => void): Controls => {
   const { state } = ctx;
-  f.hp = 0; f.mode = 'dying'; f.death = { t: 0, step: 'stagger', dir: f.face }; token++; f.said = null; f.sitting = false;
-  silenceAll();
-  clearFire(state);
-  state.enemies = state.enemies.filter(q => q !== f.e);
-  state.player.inCutscene = true; state.player.untouchable = true;
-  f.y = GY; f.vy = 0; f.vx = 0;
-  playSound('roar', 0.6, 14); shakeScreen(state, 10, 5);
-  onKilled2?.(state);
-};
-const updateDying = (ctx: FrameContext, f: Fight2): Controls => {
-  const { state } = ctx, d = f.death!, p = state.player;
-  d.t++;
-  p.inCutscene = true; p.vel.x = 0;
-  switch (d.step) {
-    case 'stagger':
-      f.x += Math.sin(d.t * 0.2) * 1.4;
-      if (d.t > 40) { d.step = 'line'; d.t = 0; sonSays(f, pick(byPants(state, L.SON_DEATH)), () => { if (f.death?.step === 'line') { f.death.step = 'burn'; f.death.t = 0; } }); }
-      break;
-    case 'line':
-      if (d.t > 420) { d.step = 'burn'; d.t = 0; }
-      break;
-    case 'burn':
-      // (the joint into his coat; up he goes; round and round, screaming for his dad)
-      if (d.t === 1) { playSound('ignite', 1, -6); playSound('screams', 0.6, 8); sonSays(f, pick(byPants(state, L.SON_BURNING))); }
-      if (d.t % 40 === 0) playSound('screams', 0.4, 10);
-      f.x += d.dir * 3.4;
-      if (f.x > ARENA_R - 20 || f.x < ARENA_L + 20) d.dir = (d.dir * -1) as 1 | -1;
-      f.face = d.dir;
-      if (d.t % 3 === 0) state.particles.push({ pos: { x: f.x + (Math.random() - 0.5) * 30, y: f.y - 60 - Math.random() * 80 }, vel: { x: -d.dir * 1.5, y: -1.5 }, life: 26, color: FIRE[1 + (d.t % 4)], size: 3 + Math.random() * 3 });
-      if (d.t > 170 && !f.said) { d.step = 'trip'; d.t = 0; playSound('whoosh', 0.8, -6); }
-      if (d.t > 600) { d.step = 'trip'; d.t = 0; }
-      break;
-    case 'trip':
-      f.x += d.dir * 2;
-      if (d.t > 16) { d.step = 'flop'; d.t = 0; playSound('thud', 1, -12); playSound('crash', 0.5, -8); shakeScreen(state, 10, 4); puff(state, f.x, GY - 10); }
-      break;
-    case 'flop':
-      // (face down, ass up, smoldering; a last little puff out the back of the coat)
-      if (d.t === 50) { playSound('fart', 0.5, -4); puff(state, f.x - d.dir * 30, GY - 30); }
-      if (d.t > 90) { d.step = 'done'; f.mode = 'dead'; }
-      break;
-    case 'done': break;
-  }
-  return hands();
-};
-
-// ---------------------------------------------------------------------------------------------------------------
-
-/** A frame of the grotto's fight. */
-export const updateFight2 = (ctx: FrameContext, f: Fight2, controls: Controls): Controls => {
   if (f.mode === 'intro') return updateIntro(ctx, f);
-  if (f.mode === 'dying') return updateDying(ctx, f);
-  if (f.mode === 'dead') return hands();
-  updateOn(ctx, f);
+  if (f.mode === 'enter') return updateEnter(ctx, f);
+  if (f.mode === 'end') return hands();
+  f.total++;
+  if (f.gap > 0) f.gap--;
+  // (the mutters: his, his brother's showing off for their dad)
+  const talker = live(f)[Math.floor(Math.random() * live(f).length)];
+  if (talker && f.total > f.tauntAt && !f.son.said && !f.bro?.said) { f.tauntAt = f.total + 520 + Math.floor(Math.random() * 400); bark(state, talker, talker.who === 'son' ? L.SON_LAZY : DEMON_CHATTER); }
+  if (!f.lowSaid && f.son.hp < SON_HP * 0.62 && !f.son.said) { f.lowSaid = true; bark(state, f.son, L.SON_LOW); }
+  stepFoe(ctx, f, f.son);
+  if (f.bro) stepFoe(ctx, f, f.bro);
+  // (half way down, his brother: between moves (not mid-attack)), the beat
+  if (!f.bro && !f.son.down && f.son.hp <= SON_HP / 2 && f.son.st === 'walk') return startEnter(state, f), hands();
+  if (f.son.down && (!f.bro || f.bro.down) && f.bro) { f.mode = 'end'; token++; clearFire(state); onBothDown(); return hands(); }
   return controls;
 };
-export const fight2Dead = (f: Fight2) => f.mode === 'dead';
+export { BEANBAG_X as BEANBAG };
 
-const poseOf = (f: Fight2): SonPose => {
-  if (f.mode === 'intro') return f.intro === 'talk' && f.said ? 'sit' : 'sit';
-  if (f.mode === 'dying') { const s = f.death!.step; return s === 'burn' ? 'burn' : s === 'trip' ? 'stagger' : s === 'line' ? 'talk' : 'stagger'; }
-  if (f.sitting) return 'sit';
-  if (f.flash > 4) return 'hurt';
-  switch (f.act) {
-    case 'tell': return f.move === 'flick' ? 'flick' : f.move === 'ring' ? 'inhale' : f.move === 'burp' ? 'burp' : f.move === 'pillars' ? 'point' : f.move === 'volley' ? 'throw' : 'try';
-    case 'do': return f.move === 'ring' ? 'blow' : f.move === 'burp' ? 'burp' : f.move === 'flick' ? 'flick' : f.move === 'pillars' ? 'point' : f.move === 'volley' ? 'throw' : f.move === 'drop' ? (f.y < GY ? 'drop' : 'try') : 'idle';
-    case 'mock': return 'idle';
-    default: return f.said ? 'talk' : Math.abs(f.vx) > 0.4 ? 'walk' : trying(f) ? 'try' : 'idle';
+// ---------------------------------------------------------------------------------------------------------------
+// Drawing
+
+const sonPose = (f: Fight2, o: Foe): SonPose => {
+  if (f.mode === 'intro') return 'sit';
+  if (o.down) return 'kneel';
+  if (o.flash > 4 && (o.st === 'walk' || o.st === 'open')) return 'hurt';
+  switch (o.st) {
+    case 'crouch': return 'crouch';
+    case 'fall': return 'drop';
+    case 'flick': case 'roaches': return 'flick';
+    case 'inhale': return 'inhale';
+    case 'blow': return 'blow';
+    case 'point': return 'point';
+    case 'pose': return 'try';
+    case 'rear': return 'burp';
+    case 'jet': return 'breath';
+    case 'cock': case 'whip': return 'tail';
+    case 'open': return o.move === 'breath' ? 'hurt' : o.move === 'leap' ? 'crouch' : 'idle';
+    default: return o.said ? 'talk' : Math.abs(o.vx) > 0.4 ? 'walk' : 'idle';
+  }
+};
+/** His brother's state, as his own fight (spooky/hell/demon.ts) draws it. */
+const broSt = (o: Foe): PunkSt => {
+  if (o.down) return 'beaten';
+  switch (o.st) {
+    case 'crouch': return 'crouch';
+    case 'air': case 'fall': return 'air';
+    case 'land': return 'land';
+    case 'sweepWind': return 'sweepWind';
+    case 'sweep': return 'sweep';
+    case 'sweepRec': return 'sweepRec';
+    case 'rushWind': return 'rushWind';
+    case 'rush': return 'rush';
+    case 'crash': return 'crash';
+    default: return 'walk';
   }
 };
 
-/** World space: the beanbag (his), him, his words; the drop's shadow. */
+/** World space: the tells on the floor, the two of them, the jet, the tail, their words. */
 export const drawFight2 = (c: Ctx, state: GameState, f: Fight2) => {
   const fr = state.frame;
-  if (f.mode === 'dead' || (f.mode === 'dying' && f.death!.step === 'flop')) { drawSonDead(c, f.x, f.death?.dir ?? 1, fr); return; }
-  // (the drop's tell: his shadow on the floor where he'll come down)
-  if (f.mode === 'on' && f.move === 'drop' && (f.act === 'gone' || (f.act === 'do' && f.y < GY))) {
-    const k = f.act === 'gone' ? Math.min(1, f.actT / f.T) : 1;
-    c.globalAlpha = 0.3 + 0.4 * k; c.fillStyle = '#050208'; c.beginPath(); c.ellipse(f.dropX, GY - 2, 18 + 14 * k, 5, 0, 0, Math.PI * 2); c.fill(); c.globalAlpha = 1;
-    if (f.act === 'gone') return;
+  for (const o of [f.son, f.bro]) {
+    if (!o) continue;
+    // ---- the tells on the floor
+    if (o.st === 'gone' || (o.st === 'fall' && o.y < GY - 40) || (o.who === 'bro' && o.st === 'air')) {
+      const k = o.who === 'bro' ? Math.max(0.2, 1 - (GY - o.y) / 400) : o.st === 'gone' ? Math.min(1, o.t / o.T) : 1, x = o.who === 'bro' ? o.aim : o.st === 'gone' ? o.aim : o.x;
+      c.globalAlpha = 0.3 + 0.4 * k; c.fillStyle = '#050208'; c.beginPath(); c.ellipse(x, GY - 2, 20 + 18 * k, 5, 0, 0, Math.PI * 2); c.fill(); c.globalAlpha = 1;
+      if (k > 0.6) { c.fillStyle = fr % 6 < 3 ? '#F97316' : '#7F1D1D'; c.fillRect(Math.round(x - 30), GY - 2, 60, 2); }
+    }
+    if (o.st === 'sweepWind') { const x0 = o.face > 0 ? o.x + 20 : o.x - SWEEP_REACH, on = Math.floor(o.t / 6) % 2 === 0; box(c, x0, GY - 4, SWEEP_REACH - 20, 4, on ? '#FDE047' : '#B45309'); }
+    if (o.st === 'rushWind') { const end = o.rushDir > 0 ? ARENA_R : ARENA_L; for (let x = o.x + o.rushDir * 70, i = 1; o.rushDir > 0 ? x < end : x > end; x += o.rushDir * 70, i++) { const lit = (Math.floor(o.t / 4) - i) % 4 === 0; c.fillStyle = lit ? '#FDE047' : 'rgba(239, 68, 68, 0.55)'; c.beginPath(); c.moveTo(x - o.rushDir * 10, GY - 10); c.lineTo(x + o.rushDir * 6, GY - 5); c.lineTo(x - o.rushDir * 10, GY); c.fill(); } }
+    if (o.st === 'inhale') {
+      // (the ring's tell: the smoke gathering in front of him at the height it'll come at)
+      const k = Math.min(1, o.t / o.T), y = o.high ? GY - 58 : GY - 18, x = o.x + o.face * 40;
+      c.globalAlpha = 0.25 + 0.5 * k; c.fillStyle = '#6A6078'; c.beginPath(); c.ellipse(x, y, 8 + 10 * k, 6 + 8 * k, 0, 0, Math.PI * 2); c.fill(); c.globalAlpha = 1;
+    }
+    if (o.st === 'cock') { const x0 = o.face > 0 ? o.x : o.x - TAIL_REACH, on = Math.floor(o.t / 5) % 2 === 0; box(c, x0, GY - 3, TAIL_REACH, 3, on ? '#F0ABFC' : '#7E22CE'); }
+    if (o.st === 'gone') continue;
+    // ---- him
+    const alpha = o.iframes > 0 && Math.floor(o.iframes / 4) % 2 === 0 ? 0.7 : 1;
+    if (o.who === 'son') {
+      const pose = sonPose(f, o), q = pose === 'walk' ? Math.floor(fr / 7) % 8 : pose === 'idle' || pose === 'talk' ? Math.floor(fr / 12) % 8 : 0;
+      const sx = f.mode === 'intro' ? BEANBAG_X : o.x;
+      drawSon(c, sx, o.y - (pose === 'sit' ? 14 : 0), f.mode === 'intro' ? -1 : o.face, { pose, q, mouth: !!o.said }, fr, o.st === 'point' || o.st === 'pose' || o.st === 'rear' ? 0.9 : 0, alpha);
+      // (the jet: bands of fire straight out at his waist, white at the core)
+      if (o.st === 'jet') {
+        const reach = JET.near + (JET.reach - JET.near) * Math.min(1, o.t / 8), dying = o.t > JET.T - 8 ? (JET.T - o.t) / 8 : 1, mid = (JET.top + JET.bot) / 2;
+        for (const [hh, col] of [[22, FIRE[1]], [16, FIRE[2]], [10, FIRE[3]], [4, FIRE[5]]] as [number, string][]) for (let s = 0; s < reach - JET.near; s += 8) {
+          const kk = s / Math.max(1, reach - JET.near), hw = Math.round(hh * (0.5 + 0.6 * kk) * dying + Math.sin(fr * 0.8 + s * 0.2) * 2);
+          box(c, o.x + o.face * (JET.near + s) - (o.face < 0 ? 8 : 0), mid - hw, 8, hw * 2, col);
+        }
+      }
+      // (the tail's whip: a lash along the floor)
+      if (o.st === 'whip' && o.t < 10) { c.strokeStyle = '#7A2A3C'; c.lineWidth = 5; c.lineCap = 'round'; c.beginPath(); c.moveTo(o.x - o.face * 20, GY - 30); c.quadraticCurveTo(o.x + o.face * 80, GY - 4 - o.t, o.x + o.face * TAIL_REACH, GY - 10); c.stroke(); c.lineCap = 'butt'; }
+      if (o.said) saidOver(c, o.said, sx, o.y - SON_H - 34, '#D8B4FE', 280);
+    } else {
+      c.save(); c.translate(Math.round(o.x), Math.round(o.y)); c.scale(o.face, 1);
+      if (alpha < 1) c.globalAlpha = alpha;
+      drawPunkAs(c, { st: broSt(o), t: o.t, vx: o.vx, facing: 1, flash: o.flash, said: o.said ? { text: o.said } : null, jumpTo: o.aim, rushDir: 1, x: o.x, y: o.y }, fr);
+      c.restore();
+      if (o.said) saidOver(c, o.said, o.x, o.y - 200, '#FDBA74', 280);
+    }
   }
-  const pose = poseOf(f);
-  const q = pose === 'walk' || pose === 'burn' ? Math.floor(fr / (pose === 'burn' ? 4 : 7)) % 8 : pose === 'idle' || pose === 'talk' || pose === 'try' ? Math.floor(fr / 12) % 8 : 0;
-  const alpha = f.iframes > 0 && f.mode === 'on' && Math.floor(f.iframes / 4) % 2 === 0 ? 0.7 : 1;
-  const sitX = f.sitting || f.mode === 'intro' ? BEANBAG_X : f.x;
-  drawSon(c, sitX, f.y - (pose === 'sit' ? 14 : 0), f.mode === 'intro' ? -1 : f.face, { pose, q, mouth: !!f.said }, fr, trying(f) && f.mode === 'on' ? 0.8 + 0.2 * Math.sin(fr * 0.3) : 0, alpha);
-  // (on fire: the flames up him)
-  if (f.mode === 'dying' && (f.death!.step === 'burn' || f.death!.step === 'trip')) { for (let k = 0; k < 4; k++) flame(c, f.x - 18 + k * 12, f.y - 20 - k * 22, 14, 40, fr, 60 + k); fireRow(c, f.x - 24, f.x + 24, f.y - 100, 34, fr, 14, 9); }
-  if (f.said) saidOver(c, f.said, sitX, f.y - SON_H - 34, '#D8B4FE', 280);
-};
-let deadImg: HTMLCanvasElement | null = null;
-const drawSonDead = (c: Ctx, x: number, dir: number, fr: number) => {
-  if (!deadImg && typeof document !== 'undefined') { const S = 2, cv = document.createElement('canvas'); cv.width = 160 * S; cv.height = 60 * S; const g = cv.getContext('2d')!; g.scale(S, S); g.translate(80, 56); paintSonDead(g); deadImg = cv; }
-  if (!deadImg) return;
-  c.save(); c.translate(Math.round(x), GY); if (dir < 0) c.scale(-1, 1); c.drawImage(deadImg, -80, -56, 160, 60); c.restore();
-  // (smoldering: a thread of smoke off his back, an ember)
-  if (fr % 5 === 0) flame(c, x - dir * 10, GY - 26, 6, 10, fr, 3);
 };
 
-/** Screen space: his bar in the top band; the intro's letterbox, the gross-up, SKIP. */
+/** Screen space: their bars in the top band; the intro's letterbox, the gross-up, SKIP. */
 export const drawFight2Hud = (c: Ctx, state: GameState, f: Fight2, band: { x1: number; x2: number; mid: number }) => {
-  if (f.mode === 'intro') {
-    if (f.intro === 'retry') return;
-    if (f.intro === 'gross') { drawSonGrossBack(c, CANVAS_WIDTH, CANVAS_HEIGHT); drawSonGross(c, CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2 + 6, 0.9 + 0.1 * Math.min(1, f.introT / 10), state.frame, f.introT % 40 < 18, f.introT < 16 ? 2 : 0); }
+  if (f.mode === 'intro' || f.mode === 'enter') {
+    if (f.mode === 'intro' && f.intro === 'retry') return;
+    if (f.mode === 'intro' && f.intro === 'gross') { drawSonGrossBack(c, CANVAS_WIDTH, CANVAS_HEIGHT); drawSonGross(c, CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2 + 6, 0.9 + 0.1 * Math.min(1, f.introT / 10), state.frame, f.introT % 40 < 18, f.introT < 16 ? 2 : 0); }
     const k = Math.min(1, f.skipT / 20), bar = Math.round(k * 44);
     c.fillStyle = '#000'; c.fillRect(0, 0, CANVAS_WIDTH, bar); c.fillRect(0, CANVAS_HEIGHT - bar, CANVAS_WIDTH, bar);
     if (f.skipT > SKIP_AFTER) drawSkipPrompt(c, CANVAS_WIDTH);
     return;
   }
   if (f.mode !== 'on' || state.player.inCutscene) return;
-  const w = band.x2 - band.x1, k = Math.max(0, f.hp / SON_HP);
-  box(c, band.x1, 22, w, 14, '#18181B'); box(c, band.x1 + 2, 24, (w - 4) * k, 10, f.iframes > 0 && Math.floor(f.iframes / 4) % 2 ? '#E9D5FF' : trying(f) ? '#EF4444' : '#A855F7');
-  for (let i = 1; i < 10; i++) box(c, Math.round(band.x1 + 2 + ((w - 4) * i) / 10), 24, 1, 10, '#18181B');
-  label(c, L.SON_NAME, band.mid, 50, '#D8B4FE', 7);
+  const w = band.x2 - band.x1;
+  const bar = (o: Foe, y: number, h: number, col: string, name: string) => {
+    const k = Math.max(0, o.hp / o.max);
+    box(c, band.x1, y, w, h, '#18181B'); box(c, band.x1 + 2, y + 2, (w - 4) * k, h - 4, o.iframes > 0 && Math.floor(o.iframes / 4) % 2 ? '#FFFFFF' : o.down ? '#52525B' : col);
+    for (let i = 1; i < 10; i++) box(c, Math.round(band.x1 + 2 + ((w - 4) * i) / 10), y + 2, 1, h - 4, '#18181B');
+    label(c, name, band.mid, y + h + 12, col, 7);
+  };
+  bar(f.son, 22, 14, '#A855F7', L.SON_NAME);
+  if (f.bro) bar(f.bro, 62, 10, '#F97316', 'BRATHAZAR');
 };
 export const doorState2 = (f: Fight2 | null) => (f ? f.door : 0);

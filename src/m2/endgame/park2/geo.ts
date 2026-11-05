@@ -15,7 +15,8 @@
 //                   stack-towers): he lands, it leans his way, and it burns (from the foot, or from the top: shorter).
 //   THE MIX         all three mixed (log to towers, vines to a log, towers and vines), enemies on every deck.
 //   THE GROTTO      a big refill, then the son's hangout: the river's cave, his smoky lounge (the boss: boss.ts).
-//   LEVEL 3         (a stub: the owner designs it) out the grotto's far side, THE WAVE POOL's gate, shut.
+//   THE COAST       both brothers dead, twisted into a pool float: down the river's last stretch on them, a beer.
+//   LEVEL 3         (a stub: the owner designs it) the landing at the river's end, a maintenance tunnel's door, shut.
 //
 // The river's surface (RIVER_Y) is on fire the whole way: touched, he's burned to death (it reads: flames over all of
 // it, nothing swims in it). Bottomless? No: a death (a set-piece death, its own death screen), the body left in the
@@ -49,8 +50,10 @@ export const DECKS: [number, number][] = [
   [X(10200), X(10600)], [X(12200), X(12600)], [X(14400), X(15200)],
   [X(15650), X(15950)], [X(16900), X(17300)], [X(18500), X(19700)], [X(20900), X(21300)],
   [X(23000), X(24200)], [X(26000), X(26400)],
-  // (the last deck: the refill, the grotto's door; the grotto itself, its floor; out the far side to level 3's stub)
-  [X(28000), X(31600)],
+  // (the last deck: the refill, the grotto's door; the grotto itself, its floor (its back opens onto the river's last
+  // stretch, which he coasts down on the son's and his brother's bodies: boss.ts); the river's end, a landing, the
+  // maintenance tunnel's door (level 3's stub))
+  [X(28000), X(29870)], [X(31400), X(32300)],
 ];
 /** The river's head: level 1's ground ends here (the dock's end), and the river starts. */
 export const HEAD = X(1500);
@@ -69,14 +72,14 @@ export const inRiver = (x: number) => RIVER.some(([a, b]) => x > a && x < b);
 // when it gets to the top.
 
 export interface Vine2 { x: number; y: number; len: number; fuse?: number }
-const V = (r: number, len = 290, fuse?: number, h = 400): Vine2 => ({ x: X(r), y: GY - h, len, fuse });
+const V = (r: number, len = 290, fuse?: number, h = 380): Vine2 => ({ x: X(r), y: GY - h, len, fuse });
 export const VINES2: Vine2[] = [
   // (taught: one, over a short stretch)
   V(1680, 280),
   // (two in a chain)
   V(2330, 290), V(2660, 300),
   // (the long swing: longer ones, further apart)
-  V(3400, 340, undefined, 440), V(3750, 350, undefined, 440),
+  V(3400, 340, undefined, 420), V(3750, 350, undefined, 420),
   // (the first that burn: a fair fuse, a sign before them)
   V(4700, 290, 170), V(5010, 290, 170), V(5260, 280, 170),
   // (fire jets up out of the river between: plain, burning, plain)
@@ -162,8 +165,11 @@ export const PATCHES: [number, number][] = [
 /** The grotto: its door (a plywood board in the cave's mouth; he walks up to it, it's kicked in), the arena (the whole
  *  screen: a fixed camera), the way out (the back of the cave, opened up after: on to level 3). */
 export const GROTTO = { door: X(29180), L: X(29020), R: X(29820), out: X(29820) };
-/** Level 3's start (the stub): where he's put, and the shut way on (THE WAVE POOL's gate building, its shutter down). */
-export const L3 = { x: X(30380), wall: X(31200) };
+/** The river's last stretch, out the grotto's back: where the float goes in, where it fetches up (the landing). */
+export const COAST = { from: X(29930), to: X(31280) };
+/** Level 3's start (the stub; the owner's: "Stage 3 starts with a door that leads to a maintenance tunnel"): where he's
+ *  put (the landing at the river's end), and the door (shut: the way on, later). */
+export const L3 = { x: X(31560), wall: X(31980) };
 /** The meeting: where it starts (walking past), where the son's stood (the dock's end). */
 export const MEET = { trigger: X(700), sonX: X(1420), stopX: X(1060) };
 

@@ -45,6 +45,8 @@ const STEP = 62;
 interface Splat { x: number; y: number; vx: number; vy: number; r: number; life: number; max: number }
 export interface Victory { t: number; splats: Splat[]; stamped: number }
 
+/** How long it lasts, start to gone (frames): a set piece times itself to it. */
+export const VICTORY_FRAMES = END;
 export const startVictory = (): Victory => ({ t: 0, splats: [], stamped: 0 });
 /** The jingle over and the letters gone. */
 export const victoryDone = (v: Victory) => v.t >= END;

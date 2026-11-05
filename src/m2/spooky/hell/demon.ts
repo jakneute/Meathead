@@ -1166,6 +1166,10 @@ const head = (c: Ctx, P: Pose, S: readonly string[], d: Demon, f: number) => {
   horn(c, 8, -32, 22, -64, false, P.hornHot);
 };
 
+/** (the water park's level 2: him again, in his brother's fight, endgame/park2/boss.ts) Him drawn at the origin (his
+ *  feet), facing right, in a state of his (`st`, `t` frames into it), any of his own fields over a fresh one's. */
+export const drawPunkAs = (c: Ctx, over: Partial<Demon>, f: number) => drawPunk(c, { ...blank(), fight: 'on', ...over, e: null }, f);
+export type PunkSt = St;
 export const drawDemon = (c: Ctx, state: GameState) => {
   const d = demonOf(state);
   if (!d) return;

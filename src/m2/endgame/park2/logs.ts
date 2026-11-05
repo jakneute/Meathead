@@ -204,8 +204,8 @@ export const drawBeamsFront = (c: Ctx, state: GameState) => {
     fireRow(c, x - 34, x + 34, bottom - 2, 22, f, 14, Math.round(x / 9));
     fireRow(c, x - 34, x + 34, bottom - 70, 26, f, 18, Math.round(x / 7));
     // (a sign hung off it: DUCK)
-    c.fillStyle = '#0A0604'; c.fillRect(x - 24, bottom - 46, 48, 20); c.fillStyle = '#FDE047'; c.fillRect(x - 22, bottom - 44, 44, 16);
-    c.font = '8px "Press Start 2P"'; c.textAlign = 'center'; c.fillStyle = '#0A0604'; c.fillText('DUCK', x, bottom - 32); c.textAlign = 'left';
+    c.fillStyle = '#0A0604'; c.fillRect(x - 24, bottom - 60, 48, 20); c.fillStyle = '#FDE047'; c.fillRect(x - 22, bottom - 58, 44, 16);
+    c.font = '8px "Press Start 2P"'; c.textAlign = 'center'; c.fillStyle = '#0A0604'; c.fillText('DUCK', x, bottom - 46); c.textAlign = 'left';
     c.fillStyle = '#0A0604'; c.fillRect(x - 46, BRIDGE_TOP, 10, RIVER_Y + 30 - BRIDGE_TOP); c.fillRect(x + 36, BRIDGE_TOP, 10, RIVER_Y + 30 - BRIDGE_TOP);
     c.fillStyle = '#3A2414'; c.fillRect(x - 45, BRIDGE_TOP, 8, RIVER_Y + 30 - BRIDGE_TOP); c.fillRect(x + 37, BRIDGE_TOP, 8, RIVER_Y + 30 - BRIDGE_TOP);
     c.fillStyle = '#5E3E22'; c.fillRect(x - 45, BRIDGE_TOP, 2, RIVER_Y + 30 - BRIDGE_TOP); c.fillRect(x + 37, BRIDGE_TOP, 2, RIVER_Y + 30 - BRIDGE_TOP);
