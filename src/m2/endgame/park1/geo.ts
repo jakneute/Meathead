@@ -131,13 +131,15 @@ export interface Tube {
 const smooth = (t: number) => { const k = Math.max(0, Math.min(1, t)); return k * k * (3 - 2 * k); };
 /** A ride's chute: off the deck (x0, y0), down a sweep to the loop's height, the loop (a periodic swell, `len` long from
  *  `a`, its gaps and pipes repeating), on past it far enough to look the same as its start, then down to the pool. Every
- *  gap and pipe in [a - 500, a + len + 800] is the loop's, repeated: so what's on screen either side of the carry back
+ *  gap and pipe in [a - 500, a + len + copy] is the loop's, repeated: so what's on screen either side of the carry back
  *  is the same. Legs (art.ts) stand every 160: a and len are multiples of it. */
 const course = (o: {
   x0: number; y0: number; a: number; len: number; yl: number; amp: number;
   gaps: [number, number][]; pipes: number[]; introGaps: [number, number][]; poolX: number;
+  /** How far past the loop's end it runs on the same (he's never carried back mid-grab: room for one to finish). */
+  copy: number;
 }) => {
-  const { x0, y0, a, len, yl, amp } = o, z0 = a - 500, z1 = a + len + 800, poolY = GY - 6;
+  const { x0, y0, a, len, yl, amp } = o, z0 = a - 500, z1 = a + len + o.copy, poolY = GY - 6;
   const f = (x: number) => yl + amp * (0.6 * Math.sin(((x - a) / len) * Math.PI * 4) + 0.4 * Math.sin(((x - a) / len) * Math.PI * 6 + 1));
   const yAt = (x: number) => (x < z0 ? y0 + (f(x) - y0) * smooth((x - x0) / (z0 - x0)) : x > z1 ? f(x) + (poolY - f(x)) * smooth((x - z1) / (o.poolX - z1)) : f(x));
   const gaps: [number, number][] = [...o.introGaps.map(([x, w]) => [x, x + w] as [number, number])];
@@ -158,17 +160,17 @@ const course = (o: {
   }
   return { pieces, gaps, pipes };
 };
-const BH = course({ x0: 9990, y0: GY - 600, a: 11520, len: 2560, yl: GY - 330, amp: 40, gaps: [[600, 180], [1700, 210]], pipes: [1200, 2200], introGaps: [[10520, 150]], poolX: 15560 });
-const AB = course({ x0: 20100, y0: GY - 720, a: 21440, len: 3840, yl: GY - 390, amp: 55, gaps: [[500, 200], [1400, 240], [2300, 250], [3050, 220]], pipes: [1000, 1900, 2750, 3550], introGaps: [[20520, 170]], poolX: 27460 });
+const BH = course({ x0: 9990, y0: GY - 600, a: 11520, len: 1920, yl: GY - 330, amp: 40, gaps: [[600, 180], [1200, 200]], pipes: [990, 1680], introGaps: [[10520, 150]], poolX: 15560, copy: 1600 });
+const AB = course({ x0: 20100, y0: GY - 720, a: 21440, len: 3840, yl: GY - 390, amp: 55, gaps: [[500, 200], [1400, 240], [2300, 250], [3050, 220]], pipes: [1000, 1900, 2750, 3550], introGaps: [[20520, 170]], poolX: 27460, copy: 1700 });
 export const TUBES: Tube[] = [
   {
     id: 'blackHole', name: 'THE BLACK HOLE', stairs: { x: 9500, n: 25, rise: 24, run: 15 }, deck: { x1: 9875, x2: 9990, y: GY - 600 },
-    ...BH, loop: { a: 11520, len: 2560 }, foes: 6, most: 2,
+    ...BH, loop: { a: 11520, len: 1920 }, foes: 6, most: 3,
     pool: POOLS[1], speed: 8.2, col: '#1E1B4B',
   },
   {
     id: 'abyss', name: 'THE ABYSS', stairs: { x: 19500, n: 30, rise: 24, run: 15 }, deck: { x1: 19950, x2: 20100, y: GY - 720 },
-    ...AB, loop: { a: 21440, len: 3840 }, foes: 9, most: 3,
+    ...AB, loop: { a: 21440, len: 3840 }, foes: 9, most: 4,
     pool: POOLS[2], speed: 9, col: '#450A0A',
   },
 ];

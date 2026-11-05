@@ -23,6 +23,7 @@ import { todLight, setEndgameHour } from '../../timeOfDay';
 import { createGrab, updateGrab, drawGrab, type Grab } from '../../moves/grab';
 import { sleepFar, wakeNear } from '../../dormant';
 import { markBossFight } from '../../bossQuiet';
+import { updateSwimAir, drawAir } from '../../frontier/air';
 import { lay, solid, ledge, meatheadSays, saidOver } from '../../adventure/section';
 import { endgameStage, PARK_STAGE } from '../stages';
 import { GY, CP, CP_AT, CP_FLOOR, GROUND, POOLS, LEDGES, ISLANDS, SLIDES, TUBES, TOWER, SUMMIT, PLAZA_CAST, PICKUPS, L2, floorY, step } from './geo';
@@ -77,11 +78,14 @@ const SLIDE_TIPS = [
   { pad: ['A'], kb: ['@jump'], label: 'AT THE LIP: THROWN HIGHER' },
 ] as import('../../upgrades/equipInfo').EquipControl[];
 const TUBE_CARD_ROWS = [
-  { pad: ['A'], kb: ['@jump'], label: 'JUMP, TUBE AND ALL (GAPS, LOW SHOTS)' },
+  { pad: ['A'], kb: ['@jump'], label: 'JUMP, TUBE AND ALL (THE GAPS, LOW SHOTS)' },
   { pad: ['DPAD_DOWN'], kb: ['@down'], label: 'DUCK (HIGH SHOTS, PIPES)' },
-  { pad: ['X'], kb: ['@fire'], label: 'SHOOT' },
+  { pad: ['X'], kb: ['@fire'], label: 'SHOOT (ANY GUN: SWITCH AWAY)' },
+  { pad: ['DPAD_UP', 'B'], join: '+', kb: ['@up', '@special'], label: 'UPPERCUT' },
+  { pad: ['DPAD_DOWN', 'B'], join: '+', kb: ['@down', '@special'], label: 'DIVE KICK (IN THE AIR)' },
+  { pad: ['A', 'B'], join: '+', kb: ['@airGrab'], label: 'AIR GRAB (WATCH WHERE YOU LAND)' },
 ] as import('../../upgrades/equipInfo').EquipControl[];
-const TUBE_CARD_TEXT = "THE TUBE'S STUCK TO YOUR ASS AND IT GOES ON ITS OWN. THE CHUTE'S GOT HOLES IN IT WITH NO BOTTOM: JUMP THEM. IT KEEPS GOING TILL EVERY ALIEN ON IT'S DEAD.";
+const TUBE_CARD_TEXT = "THE TUBE'S STUCK TO YOUR ASS AND IT GOES ON ITS OWN. THE CHUTE'S GOT HOLES IN IT WITH NO BOTTOM: JUMP THEM. EVERYTHING WORKS BUT THE CHARGE MOVES, BEATDOWNS AND SHAKEDOWNS. IT KEEPS GOING TILL EVERY ALIEN ON IT'S DEAD.";
 const CARD_HOLD = 90;
 
 export const parkLayout: StageLayout = {
@@ -169,6 +173,8 @@ export const parkLayout: StageLayout = {
     if (isLeaving()) { stopWeapons(); carryGut(state.player); state.player.vel.x = 0; return { ...NO_CONTROLS }; }
     if (!pk) return controls;
     wakeNear(state);
+    // (the pools, the lagoon and the tube rides' splash pools: real water, he swims in it; his air goes while he's under)
+    updateSwimAir(ctx, (x, y) => parkLayout.waterBodyAt!(state, x, y));
     const p = state.player, cx = p.pos.x + p.width / 2;
     if (p.isGrounded || p.carried) pk.standY = p.pos.y + p.height;
     updateShots(ctx);
@@ -205,7 +211,7 @@ export const parkLayout: StageLayout = {
       pk.card.t++;
       const any = !!(controls.jump || controls.special || controls.shoot || controls.left || controls.right || controls.up || controls.down);
       if (!pk.card.armed && pk.card.t > CARD_HOLD && !any) { pk.card.armed = true; setUi({ minigameCard: { title: 'THE TUBE', rows: TUBE_CARD_ROWS, text: TUBE_CARD_TEXT, ready: true } }); }
-      if (pk.card.armed && any) { pk.card = null; setUi({ minigameCard: null }); playSound('menuok', 0.6); pk.tube.mode = 'ride'; pk.tube.jumpWas = true; mhSay(state, pk, 'tube', L.MH_TUBE, 20000); }
+      if (pk.card.armed && any) { pk.card = null; setUi({ minigameCard: null }); playSound('menuok', 0.6); pk.tube.mode = 'ride'; mhSay(state, pk, 'tube', L.MH_TUBE, 20000); }
     }
     if (tubeOn(pk.tube)) {
       out = updateTube(ctx, pk.tube, controls, {
@@ -283,6 +289,9 @@ export const parkLayout: StageLayout = {
     if (pk.fightState === 'on') return towerCamY(9);
     const k = floorOf(state);
     if (k !== null && k >= 1 && cx > TOWER.TL - 10 && cx < TOWER.TR + 10) return towerCamY(k);
+    // (down in a pool: its floor on screen)
+    const feet = p.pos.y + p.height, pool = POOLS.find(q => cx > q.x1 - 10 && cx < q.x2 + 10 && feet > q.surface + 4);
+    if (pool) return Math.max(GY - 550, pool.bottom + 70 - 600);
     // (the plaza's flat: the camera held steady over it; up a tall slide's or tube's stairs, up with him)
     return Math.min(GY - 550, pk.standY - 430);
   },
@@ -315,11 +324,12 @@ export const parkLayout: StageLayout = {
   },
   drawFront: (c, state) => {
     const pk = parkOf(state);
-    drawParkFront(c, state);
+    drawParkFront(c, state, pk?.greenPool ?? 0);
     if (!pk) return;
     const T = pk.tube;
     if (tubeOn(T)) drawTubeRing(c, T.x, T.y - 4, state.player.spriteRot ?? 0, true);
     drawShots(c, state);
+    drawAir(c, state);
     drawBarks(c, state, saidOver);
     drawGrab(c, state, pk.grab);
   },

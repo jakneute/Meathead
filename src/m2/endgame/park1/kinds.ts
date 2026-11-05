@@ -53,6 +53,8 @@ const sees = (state: GameState, e: Enemy, rx: number, ry: number) => {
 };
 /** On a tube ride (tube.ts says): the hover aliens ride along with him. Set by the stage. */
 let riding: (state: GameState) => boolean = () => false;
+/** On a tube ride: the hover aliens waiting their turn behind him (tube.ts says): they keep back and don't fire. */
+export const QUEUED = new WeakSet<Enemy>();
 export const setRidingCheck = (f: (state: GameState) => boolean) => { riding = f; };
 /** His box as the shots see it (riding a tube, it's the tube's say: ducked, it's low). Set by the stage. */
 let boxOf: (state: GameState) => { x: number; y: number; w: number; h: number } = s => ({ x: s.player.pos.x, y: s.player.pos.y, w: s.player.width, h: s.player.height });
@@ -323,16 +325,17 @@ const hover = (ctx: FrameContext, e: Enemy) => {
   const hx = e.homeX ?? e.pos.x, hy = e.homeY ?? e.pos.y;
   const awake = ride || sees(state, e, 640, 600);
   const side = (seedOf(e) % 2 ? 1 : -1) * (ride ? 1 : m.x < p.x ? -1 : 1);
-  // (on a tube: ahead of him and up, or behind; on foot: its own patch of sky)
-  const tx = ride ? p.x + (side > 0 ? 180 + (seedOf(e) % 3) * 50 : -150) - e.width / 2 : awake ? Math.max(hx - 280, Math.min(hx + 280, p.x + side * 220 - e.width / 2)) : hx;
-  const ty = (ride ? p.y - 170 - (seedOf(e) % 2) * 50 : Math.min(hy, awake ? p.y - 200 : hy)) + Math.sin((state.frame + seedOf(e)) * 0.06) * 10;
+  const queued = ride && QUEUED.has(e);
+  // (on a tube: ahead of him and up (behind him, up high and waiting, in the queue); on foot: its own patch of sky)
+  const tx = ride ? p.x + (queued ? -150 - (seedOf(e) % 3) * 40 : 180 + (seedOf(e) % 3) * 50) - e.width / 2 : awake ? Math.max(hx - 280, Math.min(hx + 280, p.x + side * 220 - e.width / 2)) : hx;
+  const ty = (ride ? p.y - (queued ? 230 : 170 + (seedOf(e) % 2) * 50) : Math.min(hy, awake ? p.y - 200 : hy)) + Math.sin((state.frame + seedOf(e)) * 0.06) * 10;
   const k = ride ? 0.12 : 0.03;
   e.vel.x = Math.max(-14, Math.min(14, (tx - e.pos.x) * k + (ride ? pl.vel.x : 0)));
   e.vel.y = Math.max(-4, Math.min(4, (ty - e.pos.y) * 0.05));
   e.facing = dirTo(e, p.x);
   switch (e.aiState) {
     default:
-      if (awake && e.aiTimer > (ride ? 120 : 100) && !holdingOff(state)) set(e, 'aim');
+      if (awake && !queued && e.aiTimer > (ride ? 120 : 100) && !holdingOff(state)) set(e, 'aim');
       break;
     case 'aim':
       if (e.aiTimer === 28) fireBolt(state, m.x + e.facing! * 20, m.y + 4, p.x + (ride ? pl.vel.x * 14 : 0), p.y, ride ? 6 : 5.5, 'm2:wp_bolt', 10);

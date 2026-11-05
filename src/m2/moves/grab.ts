@@ -858,6 +858,10 @@ export const inPlay = (state: GameState, e: Enemy) => holding === e || state.ene
 let locked = false;
 export const grabLocked = () => locked;
 let beatTip = false;
+/** The beatdown and the shakedown off (and their follow-ups, the cheap shot): a stage says (the water park's tube rides:
+ *  the owner's "beatdowns and shakedowns are disabled"). The air grab's never off for it. */
+let groundGrabsOff = false;
+export const setGroundGrabsOff = (off: boolean) => { groundGrabsOff = off; };
 export const updateGrab = (ctx: FrameContext, g: Grab, controls: Controls): Controls => {
   tintOf = ctx.state.player;
   // (dead mid-grab: whoever he had is let go and the grab's off, so his death plays, not a frozen grab pose)
@@ -1073,6 +1077,8 @@ const stepGrab = (ctx: FrameContext, g: Grab, controls: Controls): Controls => {
       const hitThru = pb > 0 && g.askAt >= 0 && g.askAt <= g.pbAt + HIT_THRU;
       if (p.isGrounded || handsOnly(state)) g.airSpent = false;
       const free = !g.airSpent && !p.isCharging && !p.isSliding && !p.isUppercutting && !p.isDivekicking && !p.inCutscene && !p.noSpecials && !p.stabbed && (!(p.pushbackTimer && p.pushbackTimer > 0) || touching || hitThru);
+      if (groundGrabsOff && (want === 'beat' || want === 'shake')) want = null;
+      if (groundGrabsOff && g.queued && g.queued.want !== 'air') g.queued = null;
       if (want) g.queued = { want, t: 0 };
       else if (g.queued && ++g.queued.t > GRAB_BUFFER) g.queued = null;
       // (an air grab's been used: no charge moves till he's down again)

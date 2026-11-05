@@ -227,17 +227,32 @@ const drawPits = (c: Ctx, state: GameState) => {
     }
   }
 };
+const waterOf = (p: (typeof POOLS)[number], greenPool: number, a: number) => {
+  const green = p === POOLS[3] ? greenPool : 0;
+  return green > 0 ? `rgba(${Math.round(40 + 30 * (1 - green))}, ${Math.round(120 + 40 * green)}, ${Math.round(200 - 140 * green)}, ${a + 0.12})` : `rgba(40, 140, 220, ${a})`;
+};
+/** The pools' water in front of him (he's in it, down in it: the water over him), its surface glinting. */
+const drawPoolsFront = (c: Ctx, state: GameState, greenPool: number) => {
+  for (const p of POOLS) {
+    if (!vis(state, p.x1, p.x2) || !visY(state, p.surface, p.bottom)) continue;
+    const green = p === POOLS[3] ? greenPool : 0;
+    c.fillStyle = waterOf(p, greenPool, 0.32); c.fillRect(p.x1, p.surface, p.x2 - p.x1, p.bottom - p.surface);
+    R(c, p.x1, p.surface, p.x2 - p.x1, 2, green > 0.5 ? '#BEF264' : '#BFE6FF');
+    for (let x = p.x1 + ((state.frame * 0.6) % 30); x < p.x2 - 8; x += 30) R(c, x, p.surface + 4, 8, 1, '#E0F2FE');
+  }
+};
 const drawPools = (c: Ctx, state: GameState, greenPool: number) => {
   for (const p of POOLS) {
     if (!vis(state, p.x1, p.x2)) continue;
     // (the tiles of its walls and floor; the water over it, banded, its surface glinting)
     R(c, p.x1, GY, p.x2 - p.x1, p.bottom - GY + 20, '#2A6AA8');
     for (let y = GY; y < p.bottom; y += 16) R(c, p.x1, y, p.x2 - p.x1, 1, '#4A8AC8');
-    const green = p === POOLS[3] ? greenPool : 0;
-    const water = green > 0 ? `rgba(${Math.round(40 + 30 * (1 - green))}, ${Math.round(120 + 40 * green)}, ${Math.round(200 - 140 * green)}, 0.78)` : 'rgba(40, 140, 220, 0.62)';
-    c.fillStyle = water; c.fillRect(p.x1, p.surface, p.x2 - p.x1, p.bottom - p.surface);
-    R(c, p.x1, p.surface, p.x2 - p.x1, 2, green > 0.5 ? '#BEF264' : '#BFE6FF');
-    for (let x = p.x1 + ((state.frame * 0.6) % 30); x < p.x2 - 8; x += 30) R(c, x, p.surface + 4, 8, 1, '#E0F2FE');
+    // (its floor: tiles, lit along the top: he stands on it)
+    R(c, p.x1, p.bottom, p.x2 - p.x1, 3, '#BFE6FF'); R(c, p.x1, p.bottom + 3, p.x2 - p.x1, 2, '#7FB4E6');
+    // (its walls: darker, a lit edge down each)
+    R(c, p.x1, GY, 6, p.bottom - GY, '#1E4E82'); R(c, p.x2 - 6, GY, 6, p.bottom - GY, '#1E4E82');
+    R(c, p.x1 + 6, GY, 2, p.bottom - GY, '#6AA8E0'); R(c, p.x2 - 8, GY, 2, p.bottom - GY, '#6AA8E0');
+    c.fillStyle = waterOf(p, greenPool, 0.5); c.fillRect(p.x1, p.surface, p.x2 - p.x1, p.bottom - p.surface);
     // (its rim: lit, a ladder at the far end)
     R(c, p.x1 - 4, GY - 2, 8, 8, '#F8FAFC'); R(c, p.x2 - 4, GY - 2, 8, 8, '#F8FAFC');
     R(c, p.x2 - 20, GY - 30, 3, 60, '#C8CCD2'); R(c, p.x2 - 10, GY - 30, 3, 60, '#C8CCD2');
@@ -734,7 +749,8 @@ export const drawParkBack = (c: Ctx, state: GameState, d: DrawState, extra?: () 
   drawGround(c, state);
 };
 /** World space, in front of him: the near walls. */
-export const drawParkFront = (c: Ctx, state: GameState) => {
+export const drawParkFront = (c: Ctx, state: GameState, greenPool = 0) => {
+  drawPoolsFront(c, state, greenPool);
   for (const S of SLIDES) drawSlideFront(c, state, S);
   TUBES.forEach((T, i) => drawTubeFront(c, state, T, i));
   drawDescentFront(c, state);
