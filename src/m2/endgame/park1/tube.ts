@@ -282,9 +282,10 @@ export const updateTube = (ctx: FrameContext, r: TubeRide, controls: Controls, e
   r.camY += (ty - r.camY) * 0.1;
   state.cameraOverride = { x: Math.max(0, cx - 250), y: r.camY };
   setUi({ pauseControls: 'tube' });
-  // ---- what's his: everything but walking (left / right only turn him), the charge moves (B on its own, B down on the
-  // chute: the shoulder charge, the slide); the uppercut (up + B) and the dive kick (down + B up in the air) are his
-  if (controls.left && !controls.right) p.facing = -1; else if (controls.right && !controls.left) p.facing = 1;
+  // ---- what's his: everything but walking and turning (the owner's "you can only face right during the tube rides":
+  // whatever he does, he faces down the chute), the charge moves (B on its own, B down on the chute: the shoulder
+  // charge, the slide); the uppercut (up + B) and the dive kick (down + B up in the air) are his
+  p.facing = 1;
   const specialOk = !!controls.up || (!!controls.down && !p.isGrounded);
   // (dev only: window.__wpAutoTube set, it jumps the gaps itself: the headless checks and the perf run ride it through)
   const auto = import.meta.env.DEV && !!(window as unknown as { __wpAutoTube?: boolean }).__wpAutoTube;

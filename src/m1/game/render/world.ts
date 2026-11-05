@@ -386,11 +386,13 @@ const drawCheckpointBanner = (ctx: CanvasRenderingContext2D, b: { text: string; 
 /** The offscreen strip the cylinder pass draws the world into (reused). */
 let cylinderStrip: HTMLCanvasElement | null = null;
 
-/** The cylinder's screen columns, merged into runs: [destX, destW, srcX, srcW] (cached per radius). */
-let cylinderRunCache: { key: string; runs: [number, number, number, number][] } | null = null;
+/** The cylinder's screen columns, merged into runs: [destX, destW, srcX, srcW] (cached per radius: a few, for a radius
+ *  that eases in and out, Meathead 2's tower stairs, stepped). */
+const cylinderRunCache = new Map<string, [number, number, number, number][]>();
 const cylinderRuns = (radius: number, pad: number) => {
   const key = `${radius}:${pad}`;
-  if (cylinderRunCache?.key === key) return cylinderRunCache.runs;
+  const had = cylinderRunCache.get(key);
+  if (had) return had;
   const half = CANVAS_WIDTH / 2, STEP = 2;
   // Each 2px screen column takes the strip column at the matching angle
   const cols: [number, number, number][] = []; // [destX, srcLeft, srcRight]
@@ -422,7 +424,8 @@ const cylinderRuns = (radius: number, pad: number) => {
     runs.push([cols[i][0], cols[j][0] + STEP - cols[i][0], cols[i][1], cols[j][2] - cols[i][1]]);
     i = j + 1;
   }
-  cylinderRunCache = { key, runs };
+  if (cylinderRunCache.size > 48) cylinderRunCache.clear();
+  cylinderRunCache.set(key, runs);
   return runs;
 };
 
@@ -437,7 +440,8 @@ const cylinderRuns = (radius: number, pad: number) => {
 const drawCylinderWorld = (ctx: CanvasRenderingContext2D, radius: number, worldPass: (w: CanvasRenderingContext2D, shiftX: number) => void) => {
   if (typeof document === 'undefined') return;
   const half = CANVAS_WIDTH / 2;
-  const reach = Math.ceil(radius * Math.PI / 2);          // how far round the visible half of the cylinder goes
+  // (how far round the visible half of the cylinder goes; wider than the screen, only as far round as the screen's edge)
+  const reach = radius > half ? Math.ceil(radius * Math.asin(half / radius)) : Math.ceil(radius * Math.PI / 2);
   const pad = Math.max(0, reach - half) + 20;
   const w = CANVAS_WIDTH + pad * 2;
   if (!cylinderStrip) cylinderStrip = document.createElement('canvas');

@@ -28,7 +28,7 @@ import { WATER_PARK_NAME } from '../stages';
 import { GY, GROUND, POOLS, LEDGES, ISLANDS, SLIDES, TUBES, TOWER, FLOORS, floorY, exitSide, FLOOR_NAMES, FLOOR_FT, SUMMIT, DESCENT, L2, step, tubeSpan, type Slide, type Tube } from './geo';
 import { SLIDE_PATHS, pointAt, type Path } from './slides';
 import { tubePaths, tubeLap, tubeLapNo, PIPE_CLEAR, GAP_WARN } from './tube';
-import { stairsOf, FLOOR_LEDGES, DOORS_X } from './tower';
+import { FLOOR_LEDGES, DOORS_X, ROUND, FACE } from './tower';
 
 type Ctx = CanvasRenderingContext2D;
 const INK = '#0A0806';
@@ -543,42 +543,110 @@ export const drawTubeRing = (c: Ctx, x: number, y: number, a: number, front: boo
 // ---------------------------------------------------------------------------------------------------------------
 // MOUNT EVEREST BUT BETTER
 
-const { TL, TR, FLOOR, DECK, STAIR } = TOWER;
-/** One floor (k) of the tower: its back wall, its props, its deck (lit). Baked once each. */
+const { TL, TR, FLOOR, DECK, CEIL } = TOWER;
+/** Each floor's look (the owner's "make them visually distinct from one another and the doors"): its back wall, its
+ *  tarp's print, its staff doors' paint, its accent (the queue's rope, the signs' boards). */
+const THEME: { wall: string; band: string; tarp: string; door: string; accent: string }[] = [
+  { wall: '#2A3448', band: '#4A5468', tarp: '#3A4A66', door: '#475569', accent: '#DC2626' },  // 0 BASE CAMP
+  { wall: '#183048', band: '#2E5878', tarp: '#5AA0C8', door: '#0E7490', accent: '#22D3EE' },  // 1 KHUMBU ICEFALL
+  { wall: '#33284A', band: '#54447A', tarp: '#7A60A8', door: '#7C3AED', accent: '#FACC15' },  // 2 CAMP 1
+  { wall: '#26381F', band: '#46603A', tarp: '#6A8A4A', door: '#15803D', accent: '#F97316' },  // 3 CAMP 2
+  { wall: '#2C3A5A', band: '#4E6290', tarp: '#C8D8EE', door: '#1D4ED8', accent: '#F8FAFC' },  // 4 THE LHOTSE FACE
+  { wall: '#4A2A22', band: '#704234', tarp: '#A0604A', door: '#B45309', accent: '#FDE047' },  // 5 CAMP 3
+  { wall: '#22222E', band: '#3A3A52', tarp: '#5A5A80', door: '#6D28D9', accent: '#4ADE80' },  // 6 CAMP 4
+  { wall: '#141218', band: '#2A2430', tarp: '#4A3A4A', door: '#7F1D1D', accent: '#EF4444' },  // 7 THE DEATH ZONE
+  { wall: '#3A2C3E', band: '#5A4460', tarp: '#9A8AA4', door: '#0F766E', accent: '#38BDF8' },  // 8 THE HILLARY STEP
+  { wall: '#2A3448', band: '#4A5468', tarp: '#3A4A66', door: '#475569', accent: '#DC2626' },  // 9 THE SUMMIT
+];
+/** The queue's wait, posted on each floor (the owner's "like a queue for a ride"): sillier the higher he gets. */
+const WAIT = ['', '45 MINUTES', '2 HOURS', '4 HOURS', '1 DAY', '3 DAYS', '2 WEEKS', 'A WHOLE SEASON', 'THE REST OF YOUR LIFE'];
+/** An arrow on a board (dir: 1 right, -1 left, 0 up). */
+const arrowGlyph = (g: Ctx, x: number, y: number, dir: number, col: string, s = 1) => {
+  g.fillStyle = col; g.beginPath();
+  if (dir === 0) { g.moveTo(x, y - 8 * s); g.lineTo(x + 7 * s, y); g.lineTo(x + 3 * s, y); g.lineTo(x + 3 * s, y + 8 * s); g.lineTo(x - 3 * s, y + 8 * s); g.lineTo(x - 3 * s, y); g.lineTo(x - 7 * s, y); }
+  else { g.moveTo(x + dir * 9 * s, y); g.lineTo(x, y - 7 * s); g.lineTo(x, y - 3 * s); g.lineTo(x - dir * 8 * s, y - 3 * s); g.lineTo(x - dir * 8 * s, y + 3 * s); g.lineTo(x, y + 3 * s); g.lineTo(x, y + 7 * s); }
+  g.closePath(); g.fill();
+};
+/** A run of queue stanchions and their sagging rope along a floor at y (background: no lit tops, nothing to stand on). */
+const queueRail = (g: Ctx, x0: number, x1: number, y: number, rope: string) => {
+  const n = Math.max(1, Math.round(Math.abs(x1 - x0) / 70));
+  for (let i = 0; i <= n; i++) {
+    const x = x0 + ((x1 - x0) * i) / n;
+    R(g, x - 2, y - 40, 4, 40, '#9CA3AF'); R(g, x - 5, y - 44, 10, 5, '#6B7280'); R(g, x - 7, y - 3, 14, 3, '#4B5563');
+    if (i < n) { const nx = x0 + ((x1 - x0) * (i + 1)) / n; g.strokeStyle = rope; g.lineWidth = 3; g.beginPath(); g.moveTo(x, y - 38); g.quadraticCurveTo((x + nx) / 2, y - 26, nx, y - 38); g.stroke(); }
+  }
+};
+/** One floor (k) of the tower: its back wall, its props, its queue, its doors, its ceiling, its deck (lit). Baked once each. */
 const paintFloor = (g: Ctx, k: number) => {
-  const y = floorY(k), top = k < FLOORS ? floorY(k + 1) + DECK : y - FLOOR;
-  // (the back wall: scaffold behind a tarp printed with a mountain; fake snow piled in the corners. Not the summit's:
-  // it's out in the open, the sky over it)
+  const y = floorY(k), top = k < FLOORS ? floorY(k + 1) + CEIL : y - FLOOR, T = THEME[k];
   if (k < FLOORS) {
-    R(g, TL, top, TR - TL, y - top, '#2A3448');
-    g.fillStyle = '#3A4A66'; g.beginPath(); g.moveTo(TL, y); g.lineTo(TL + 220, top + 60); g.lineTo(TL + 360, top + 110); g.lineTo(TL + 520, top + 30); g.lineTo(TR, y); g.closePath(); g.fill();
-    g.fillStyle = '#C8D4E4'; g.beginPath(); g.moveTo(TL + 180, top + 82); g.lineTo(TL + 220, top + 60); g.lineTo(TL + 262, top + 82); g.closePath(); g.fill();
-    g.beginPath(); g.moveTo(TL + 470, top + 52); g.lineTo(TL + 520, top + 30); g.lineTo(TL + 570, top + 56); g.closePath(); g.fill();
-    for (let x = TL; x <= TR; x += 100) { R(g, x - 3, top, 6, y - top, '#4A5468'); }
-    for (let yy = top + 60; yy < y; yy += 90) R(g, TL, yy, TR - TL, 4, '#4A5468');
-    g.strokeStyle = '#4A5468'; g.lineWidth = 2;
+    // (the back wall, in the floor's own colors: scaffold behind a tarp printed with its stretch of the mountain)
+    R(g, TL, top, TR - TL, y - top, T.wall);
+    for (let yy = top; yy < y; yy += 6) if (((yy - top) / 6) % 2) checker(g, TL, yy, TR - TL, 2, T.band);
+    g.fillStyle = T.tarp; g.beginPath(); g.moveTo(TL, y); g.lineTo(TL + 160 + k * 23, top + 50); g.lineTo(TL + 330, top + 100); g.lineTo(TL + 480 + k * 11, top + 26); g.lineTo(TR, y); g.closePath(); g.fill();
+    g.fillStyle = '#E8F0FA'; g.beginPath(); g.moveTo(TL + 120 + k * 23, top + 74); g.lineTo(TL + 160 + k * 23, top + 50); g.lineTo(TL + 200 + k * 23, top + 74); g.closePath(); g.fill();
+    for (let x = TL; x <= TR; x += 100) R(g, x - 3, top, 6, y - top, T.band);
+    g.strokeStyle = T.band; g.lineWidth = 2;
     for (let x = TL; x < TR; x += 100) { g.beginPath(); g.moveTo(x, y); g.lineTo(x + 100, top + 20); g.stroke(); }
+    // (the ceiling: the deck over's underside, I-beams, a work lamp in a cage every so far: the room's lid)
+    const cy0 = floorY(k + 1) + DECK;
+    R(g, TL, cy0, TR - TL, CEIL - DECK, '#1A1E28');
+    for (let x = TL + 20; x < TR; x += 80) { R(g, x, cy0, 12, CEIL - DECK, '#2C3342'); R(g, x + 2, cy0, 3, CEIL - DECK, '#3E4658'); }
+    R(g, TL, top - 6, TR - TL, 6, '#0C0E14'); R(g, TL, top - 8, TR - TL, 2, '#3E4658');
+    for (let x = TL + 140; x < TR; x += 260) { R(g, x - 10, top, 20, 8, '#3F3F46'); R(g, x - 7, top + 8, 14, 7, '#FDE68A'); R(g, x - 8, top + 8, 16, 1, '#3F3F46'); }
+    // (its props: what's up there of the real mountain, in plastic)
+    themeProps(g, k, y, top);
     // (prayer flags strung across under the ceiling)
-    for (let i = 0; i < 1; i++) {
-      const sy = top + 14;
-      g.strokeStyle = '#E2E8F0'; g.lineWidth = 1; g.beginPath(); g.moveTo(TL, sy); g.quadraticCurveTo((TL + TR) / 2, sy + 20, TR, sy); g.stroke();
-      for (let x = TL + 20; x < TR - 10; x += 26) { const t = (x - TL) / (TR - TL), fy = sy + 20 * 4 * t * (1 - t); R(g, x, fy, 14, 14, ['#2563EB', '#F8FAFC', '#DC2626', '#16A34A', '#FACC15'][Math.floor(x / 26) % 5]); }
+    const sy = top + 14;
+    g.strokeStyle = '#E2E8F0'; g.lineWidth = 1; g.beginPath(); g.moveTo(TL, sy); g.quadraticCurveTo((TL + TR) / 2, sy + 20, TR, sy); g.stroke();
+    for (let x = TL + 20; x < TR - 10; x += 26) { const t = (x - TL) / (TR - TL), fy = sy + 20 * 4 * t * (1 - t); R(g, x, fy, 14, 14, ['#2563EB', '#F8FAFC', '#DC2626', '#16A34A', '#FACC15'][Math.floor(x / 26) % 5]); }
+    // (the floor's name and its height, up on the wall, readable)
+    R(g, (TL + TR) / 2 - 130, top + 40, 260, 40, INK); R(g, (TL + TR) / 2 - 128, top + 42, 256, 36, '#7C2D12');
+    text(g, FLOOR_NAMES[k], (TL + TR) / 2, top + 58, '#FEF3C7', 10);
+    text(g, `ELEV. ${FLOOR_FT[k].toLocaleString('en-US')} FT`, (TL + TR) / 2, top + 72, '#FDE68A', 7);
+    // (the queue (the owner's "like a queue for a ride"): rails along the back toward the way up, its signs: an
+    // overhead QUEUE CONTINUES and its arrow by the way up, the wait from here on a post)
+    {
+      const s = exitSide(k), from = s > 0 ? TL + 60 : TR - 60, to = s > 0 ? TR - 70 : TL + 70;
+      queueRail(g, from, to, y - 4, T.accent);
+      const hx = s > 0 ? TR - 160 : TL + 160;
+      R(g, hx - 50, top, 2, 24, '#9CA3AF'); R(g, hx + 48, top, 2, 24, '#9CA3AF');
+      R(g, hx - 62, top + 24, 124, 34, INK); R(g, hx - 60, top + 26, 120, 30, '#FDE047');
+      text(g, k < FLOORS - 1 ? 'QUEUE CONTINUES' : 'TO THE SUMMIT', hx, top + 38, INK, 6, 'center', null);
+      arrowGlyph(g, hx + s * 30, top + 48, s, '#B91C1C', 0.9); arrowGlyph(g, hx - s * 8, top + 48, 0, '#B91C1C', 0.7);
+      if (WAIT[k]) {
+        const wx = (TL + TR) / 2 + (s > 0 ? -190 : 190);
+        R(g, wx - 2, y - 150, 4, 150, '#6B7280');
+        R(g, wx - 66, y - 200, 132, 52, INK); R(g, wx - 64, y - 198, 128, 48, '#F8FAFC'); R(g, wx - 64, y - 198, 128, 12, T.accent === '#F8FAFC' ? '#1D4ED8' : T.accent);
+        text(g, 'WAIT FROM THIS POINT', wx, y - 189, INK, 5, 'center', null);
+        text(g, WAIT[k], wx, y - 172, '#B91C1C', WAIT[k].length > 12 ? 6 : 8, 'center', null);
+        text(g, 'THANK YOU FOR YOUR PATIENCE', wx, y - 158, '#475569', 4, 'center', null);
+      }
     }
-    // (fake snow, piled)
-    for (const [sx, w] of [[TL, 120], [TR - 140, 140]] as const) { g.fillStyle = '#E8F0FA'; g.beginPath(); g.ellipse(sx + w / 2, y, w / 2, 24, 0, Math.PI, 0); g.fill(); g.fillStyle = '#FFFFFF'; g.fillRect(sx + 14, y - 18, w - 40, 3); }
-    // (the floor's name and its height, up on the wall, readable; the oxygen sign)
-    R(g, (TL + TR) / 2 - 130, top + 52, 260, 40, INK); R(g, (TL + TR) / 2 - 128, top + 54, 256, 36, '#7C2D12');
-    text(g, FLOOR_NAMES[k], (TL + TR) / 2, top + 70, '#FEF3C7', 10);
-    text(g, `ELEV. ${FLOOR_FT[k].toLocaleString('en-US')} FT`, (TL + TR) / 2, top + 84, '#FDE68A', 7);
-    if (k === 2 || k === 5) { R(g, TL + 520, top + 160, 140, 28, INK); R(g, TL + 522, top + 162, 136, 24, '#F8FAFC'); text(g, 'OXYGEN $40', TL + 590, top + 178, '#B91C1C', 7, 'center', null); }
-    if (k === 7) { R(g, TL + 60, top + 160, 200, 28, INK); R(g, TL + 62, top + 162, 196, 24, '#FDE047'); text(g, 'DEATH ZONE: NO REFUNDS', TL + 160, top + 178, INK, 6, 'center', null); }
-    // (the staff doors at the back: where they come out)
-    if (k > 0) for (const dx of DOORS_X) { R(g, dx - 28, y - 96, 56, 96, INK); R(g, dx - 26, y - 94, 52, 94, '#475569'); R(g, dx - 26, y - 94, 52, 3, '#94A3B8'); R(g, dx + 14, y - 50, 6, 6, '#FACC15'); text(g, 'STAFF', dx, y - 74, '#F8FAFC', 6); }
+    // (the staff doors at the back: doorways, not wall: a frame in the floor's accent, the door in its own paint, a
+    // window, a kick plate, STAFF ONLY over it)
+    if (k > 0) for (const dx of DOORS_X) {
+      R(g, dx - 34, y - 112, 68, 112, INK); R(g, dx - 32, y - 110, 64, 110, T.accent); R(g, dx - 26, y - 104, 52, 104, '#0B0D12');
+      R(g, dx - 24, y - 102, 48, 102, T.door); R(g, dx - 24, y - 102, 48, 3, 'rgba(255,255,255,0.2)');
+      R(g, dx - 12, y - 92, 24, 16, '#0F172A'); R(g, dx - 10, y - 90, 20, 12, '#334155'); R(g, dx - 10, y - 90, 20, 2, '#94A3B8');
+      for (let i = 0; i < 6; i++) R(g, dx - 24 + i * 8, y - 18, 4, 14, i % 2 ? INK : '#FACC15');
+      R(g, dx + 14, y - 56, 5, 5, '#FACC15');
+      R(g, dx - 30, y - 126, 60, 14, INK); R(g, dx - 29, y - 125, 58, 12, '#F8FAFC'); text(g, 'STAFF ONLY', dx, y - 116, '#B91C1C', 5, 'center', null);
+    }
+    // (the way down, on the left, where he came in: a plainer arch, its sign)
+    if (k > 0) { const ex = TL + 22; R(g, ex - 20, y - 130, 40, 130, INK); R(g, ex - 16, y - 126, 32, 126, '#05070C'); R(g, ex - 14, y - 152, 70, 18, INK); R(g, ex - 12, y - 150, 66, 14, '#475569'); text(g, 'WAY DOWN', ex + 21, y - 140, '#E2E8F0', 5, 'center', null); }
+    // (the way up: an archway in the side wall at its edge, striped like a queue's entrance, its sign over it)
+    {
+      const s = exitSide(k), ex = s > 0 ? TR - 22 : TL + 22;
+      R(g, ex - 22, y - 140, 44, 140, INK); R(g, ex - 18, y - 136, 36, 136, '#05070C');
+      for (let yy = y - 136; yy < y; yy += 14) { R(g, ex - 22, yy, 4, 7, T.accent); R(g, ex + 18, yy + 7, 4, 7, T.accent); }
+      R(g, ex - 44 - s * 10, y - 170, 88, 22, INK); R(g, ex - 42 - s * 10, y - 168, 84, 18, '#15803D');
+      text(g, 'WAY UP', ex - s * 10 - 8, y - 156, '#F0FDF4', 6, 'center', null); arrowGlyph(g, ex - s * 10 + 26, y - 159, s, '#F0FDF4', 0.7);
+    }
   }
   // (the ledges: crates of fake snow, oxygen tank racks: lit lips)
   for (const [x, h, w] of FLOOR_LEDGES[k]) {
     const ly = y - h;
-    // (a scaffold plank on two poles, a crossbrace; fake snow on it, an oxygen tank or two stood on it at the back)
     R(g, x + 8, ly + 16, 4, h - 16, '#64748B'); R(g, x + w - 12, ly + 16, 4, h - 16, '#64748B');
     g.strokeStyle = '#475569'; g.lineWidth = 2; g.beginPath(); g.moveTo(x + 10, ly + 20); g.lineTo(x + w - 10, y - 4); g.stroke();
     for (let t = x + 14; t < x + w - 20; t += 40) { R(g, t, ly - 22, 10, 22, '#16A34A'); R(g, t, ly - 22, 10, 3, '#86EFAC'); R(g, t + 3, ly - 26, 4, 4, '#94A3B8'); }
@@ -588,48 +656,180 @@ const paintFloor = (g: Ctx, k: number) => {
   // (the deck under it: steel, lit along its top: standable reads standable)
   if (k > 0) { R(g, TL, y, TR - TL, DECK, '#3A4252'); R(g, TL, y, TR - TL, 3, '#F1F5F9'); R(g, TL, y + 3, TR - TL, 2, '#94A3B8'); for (let x = TL; x < TR; x += 40) R(g, x, y + 8, 2, DECK - 8, '#262C38'); }
 };
-/** A switchback's stairs (outside the tower, on floor k's exit side), its landing and rails. */
-const paintStairs = (g: Ctx, k: number) => {
-  const pts = stairsOf(k);
-  // (the frame they hang off)
-  const s = exitSide(k), edge = s > 0 ? TR : TL, x1 = edge + s * STAIR;
-  R(g, Math.min(edge, x1), floorY(k + 1), 4, FLOOR, '#4A5468'); R(g, Math.max(edge, x1) - 4, floorY(k + 1), 4, FLOOR, '#4A5468');
-  // (the flights and the landing between: not the bits on the decks either end)
-  for (let i = 1; i < pts.length - 2; i++) {
-    const [ax, ay] = pts[i], [bx, by] = pts[i + 1];
-    if (Math.abs(ay - by) < 2) { R(g, Math.min(ax, bx) - 6, ay, Math.abs(bx - ax) + 12, 8, '#3A4252'); R(g, Math.min(ax, bx) - 6, ay, Math.abs(bx - ax) + 12, 2, '#E2E8F0'); continue; }
-    // (the stringer under the flight, solid; the treads on it, each lit along its top; the rail)
-    g.strokeStyle = INK; g.lineWidth = 12; g.beginPath(); g.moveTo(ax, ay + 5); g.lineTo(bx, by + 5); g.stroke();
-    g.strokeStyle = '#3A4252'; g.lineWidth = 9; g.stroke();
-    const n = Math.max(1, Math.round(Math.abs(ay - by) / 18));
-    for (let j = 0; j < n; j++) {
-      const t = j / n, x = ax + (bx - ax) * t, yy = ay + (by - ay) * t, w = Math.abs(bx - ax) / n + 3;
-      R(g, Math.min(x, x + (bx - ax) / n) - 1, yy - 5, w, 6, '#64748B');
-      R(g, Math.min(x, x + (bx - ax) / n) - 1, yy - 5, w, 2, '#E2E8F0');
+/** What's on each floor of the real mountain, done in plastic (background: dimmed, nothing to stand on). */
+const themeProps = (g: Ctx, k: number, y: number, top: number) => {
+  const tent = (x: number, col: string, w = 90) => { g.fillStyle = INK; g.beginPath(); g.moveTo(x - w / 2 - 3, y); g.lineTo(x, y - w * 0.62 - 3); g.lineTo(x + w / 2 + 3, y); g.closePath(); g.fill(); g.fillStyle = col; g.beginPath(); g.moveTo(x - w / 2, y); g.lineTo(x, y - w * 0.62); g.lineTo(x + w / 2, y); g.closePath(); g.fill(); g.fillStyle = '#0B0D12'; g.beginPath(); g.moveTo(x - 10, y); g.lineTo(x, y - 26); g.lineTo(x + 10, y); g.closePath(); g.fill(); };
+  const tank = (x: number, yy: number) => { R(g, x, yy - 24, 9, 24, '#B45309'); R(g, x, yy - 24, 9, 3, '#FDBA74'); R(g, x + 2, yy - 28, 5, 4, '#94A3B8'); };
+  switch (k) {
+    case 1: // (the icefall: blocks of fake ice, the ladders laid over the crevasses)
+      for (const [x, w, h] of [[TL + 250, 90, 70], [TL + 440, 70, 100], [TR - 260, 110, 60]]) { g.fillStyle = '#9CC8E4'; g.beginPath(); g.moveTo(x, y); g.lineTo(x + 10, y - h); g.lineTo(x + w - 14, y - h - 12); g.lineTo(x + w, y); g.closePath(); g.fill(); }
+      for (const x of [TL + 340, TR - 360]) { R(g, x, y - 6, 80, 3, '#CBD5E1'); for (let t = x; t < x + 80; t += 10) R(g, t, y - 9, 2, 6, '#CBD5E1'); }
+      break;
+    case 2: tent(TL + 260, '#FACC15'); tent(TL + 480, '#F97316', 70); tent(TR - 250, '#EAB308', 100); break;
+    case 3: // (camp 2: the mess tent, its pots, its sign)
+      tent(TL + 300, '#16A34A', 140); R(g, TL + 470, y - 40, 60, 40, '#475569'); R(g, TL + 478, y - 52, 18, 12, '#94A3B8'); R(g, TL + 502, y - 50, 20, 10, '#94A3B8');
+      R(g, TL + 260, y - 246, 80, 18, INK); R(g, TL + 261, y - 245, 78, 16, '#F8FAFC'); text(g, 'MESS TENT', TL + 300, y - 234, INK, 5, 'center', null);
+      break;
+    case 4: // (the Lhotse face: a steep wall of fake ice up the back, fixed ropes down it)
+      g.fillStyle = '#B8CCE4'; g.beginPath(); g.moveTo(TL + 200, y); g.lineTo(TL + 520, top + 30); g.lineTo(TL + 620, top + 30); g.lineTo(TL + 380, y); g.closePath(); g.fill();
+      g.strokeStyle = '#DC2626'; g.lineWidth = 2; for (const o of [0, 40]) { g.beginPath(); g.moveTo(TL + 260 + o, y); g.lineTo(TL + 560 + o, top + 34); g.stroke(); }
+      break;
+    case 5: tent(TL + 230, '#F97316', 80); tent(TL + 380, '#DC2626', 80); tent(TR - 300, '#F97316', 110); break;
+    case 6: // (camp 4, the south col: oxygen bottles, piles of them)
+      for (let i = 0; i < 9; i++) tank(TL + 220 + (i % 5) * 14 + Math.floor(i / 5) * 7, y - Math.floor(i / 5) * 24);
+      for (let i = 0; i < 7; i++) tank(TR - 320 + (i % 4) * 14, y - Math.floor(i / 4) * 24);
+      R(g, TL + 420, y - 90, 100, 18, INK); R(g, TL + 421, y - 89, 98, 16, '#F8FAFC'); text(g, 'SOUTH COL', TL + 470, y - 78, INK, 5, 'center', null);
+      break;
+    case 7: { // (the death zone: frozen mannequins in climbing gear, the famous green boots; a warning)
+      for (const [x, f] of [[TL + 260, 1], [TR - 300, -1]] as const) { R(g, x - 30 * f, y - 14, 60 * f, 12, '#475569'); R(g, x + 22 * f, y - 18, 10 * f, 16, '#E2E8F0'); R(g, x - 36 * f, y - 10, 10 * f, 10, '#22C55E'); }
+      R(g, TL + 60, y - 252, 140, 34, INK); R(g, TL + 62, y - 250, 136, 30, '#FDE047'); text(g, 'DEATH ZONE', TL + 130, y - 239, INK, 7, 'center', null); text(g, 'NO REFUNDS', TL + 130, y - 226, '#B91C1C', 5, 'center', null);
+      break;
     }
-    g.strokeStyle = '#94A3B8'; g.lineWidth = 2; g.beginPath(); g.moveTo(ax, ay - 38); g.lineTo(bx, by - 38); g.stroke();
-    for (const [px, py] of [[ax, ay], [bx, by]]) R(g, px - 1, py - 38, 2, 38, '#94A3B8');
+    case 8: // (the Hillary step: the big rock step at the back, ONE AT A TIME)
+      g.fillStyle = '#6B5E4E'; g.beginPath(); g.moveTo(TL + 240, y); g.lineTo(TL + 260, y - 120); g.lineTo(TL + 420, y - 130); g.lineTo(TL + 440, y - 60); g.lineTo(TL + 560, y - 60); g.lineTo(TL + 580, y); g.closePath(); g.fill();
+      R(g, TL + 300, y - 170, 140, 20, INK); R(g, TL + 301, y - 169, 138, 18, '#F8FAFC'); text(g, 'ONE AT A TIME, PLEASE', TL + 370, y - 157, INK, 5, 'center', null);
+      break;
   }
+  // (dimmed: behind the play, nothing to stand on)
+  g.fillStyle = 'rgba(6, 8, 16, 0.18)'; g.fillRect(TL, top, TR - TL, y - top);
 };
-const drawTower = (c: Ctx, state: GameState, gates: number[], tells: { x: number; t: number }[], lockedFloor: number | null) => {
-  if (!vis(state, TL - STAIR - 60, TR + STAIR + 60)) return;
+const drawTower = (c: Ctx, state: GameState, gates: number[], tells: { x: number; t: number }[], lockedFloor: number | null, ox = 0) => {
+  if (!vis(state, TL + ox, TR + ox, ox ? 0 : 60)) return;
+  if (ox) { c.save(); c.translate(ox, 0); }
   for (let k = 0; k <= FLOORS; k++) {
     const y = floorY(k);
-    if (!visY(state, y - FLOOR - 40, y + DECK + 40)) continue;
+    if (!visY(state, y - FLOOR - 40, y + CEIL + 40)) continue;
     stamp(c, `wp-floor-${k}`, TL - 4, y - FLOOR - 4, TR - TL + 8, FLOOR + DECK + 8, g => paintFloor(g, k));
-    if (k < FLOORS) stamp(c, `wp-stairs-${k}`, (exitSide(k) > 0 ? TR - 40 : TL - STAIR - 20), floorY(k + 1) - 50, STAIR + 60, FLOOR + 60, g => paintStairs(g, k));
-    // (the way up's gate: shut till the floor's clear, then it swings up)
+    // (the way up's gate: shut till the floor's clear, then it swings up; the way up's light, green once it's open)
     if (k < FLOORS) {
       const s = exitSide(k), gx = s > 0 ? TR - 6 : TL - 6, lift = gates[k] ?? 0;
       if (lift < 0.98) { R(c, gx, y - 100 + lift * 90, 12, 100 - lift * 90, INK); for (let yy = y - 96 + lift * 90; yy < y; yy += 12) R(c, gx + 2, yy, 8, 2, '#DC2626'); }
+      const ex = s > 0 ? TR - 22 : TL + 22, on = lift > 0.9;
+      R(c, ex - 4, y - 146, 8, 4, on ? (Math.floor(state.frame / 15) % 2 ? '#4ADE80' : '#16A34A') : '#7F1D1D');
     }
-    // (the staff doors' tells: a door rattling, its light going, before somebody comes out)
-    if (k === lockedFloor) for (const t of tells) {
+    if (k === lockedFloor && !ox) for (const t of tells) {
       const on = (t.t >> 2) % 2 === 0;
-      R(c, t.x - 26 + (on ? 2 : -2), y - 94, 52, 94, on ? '#64748B' : '#334155');
-      steppedGlow(c, t.x, y - 104, 14, '#F87171', 0.6, 0.1, 3);
+      R(c, t.x - 24 + (on ? 2 : -2), y - 102, 48, 102, on ? '#64748B' : '#334155');
+      steppedGlow(c, t.x, y - 112, 14, '#F87171', 0.6, 0.1, 3);
     }
   }
+  if (ox) c.restore();
+};
+/** The mountain's outside, round which the spiral goes (the owner's: "the 'rotating tower' thing should sell the idea of
+ *  climbing the mountain or rather, a weird floridian tacky facismile of it"): fiberglass rock with its seams and bolts,
+ *  fake snow (paint, foam, cotton) patchy and sun-faded, more of it and colder the higher, plastic icicles, prayer flags
+ *  between scaffold poles, the warm Florida night through the gaps (a palm, the back of an AC unit, pipes), its tacky
+ *  signs and statues; and the queue: the spiral's steps, its stanchions and rope, its signs. Band k: floor k up to k+1. */
+const FACE_SIGNS: [string, string][] = [
+  ['BASE CAMP', 'GIFT SHOP >'], ['KHUMBU ICEFALL', '(FIBERGLASS)'], ['OXYGEN BAR', '$12 A HUFF'], ['CAMP 2', 'NOW A GIFT SHOP'],
+  ['YETI SIGHTINGS', 'DAILY 7PM'], ['SHERPA PHOTO', '$25'], ['CREVASSE', '(DECAL)'], ['DEATH ZONE', 'PHOTO OP $40'], ['ALMOST THERE!', '(NOT REALLY)'],
+];
+const mixHex = (a: string, b: string, t: number) => {
+  const p = (h: string) => [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16));
+  const [x, y] = [p(a), p(b)];
+  return '#' + x.map((v, i) => Math.round(v + (y[i] - v) * t).toString(16).padStart(2, '0')).join('');
+};
+const paintFace = (g: Ctx, k: number, cx0 = -1e9, cx1 = 1e9, cy0 = -1e9, cy1 = 1e9) => {
+  const x0 = TR, x1 = TR + FACE, yb = floorY(k) + DECK, yt = floorY(k + 1), t = k / (FLOORS - 1);
+  const hsh = (n: number) => hash(n * 3.7 + k * 17.3);
+  // (the fake rock: warm tan fiberglass low down, colder and bluer up high; banded)
+  const ramp = [mixHex('#8A7258', '#6E7E96', t), mixHex('#76604A', '#5C6C86', t), mixHex('#5E4C3A', '#4A5874', t)];
+  R(g, x0, yt, FACE, yb - yt, ramp[1]);
+  for (let yy = yt; yy < yb; yy += 30) R(g, x0, yy, FACE, 10, ramp[0]);
+  // (the dither rows only where this tile is: the rest is clipped, and a row of it is hundreds of fills)
+  for (let yy = yt + 20; yy < yb; yy += 30) if (yy + 4 > cy0 && yy < cy1) { const a = Math.max(x0, Math.floor((cx0 - x0) / 4) * 4 + x0), b = Math.min(x1, cx1 + 4); checker(g, a, yy, b - a, 4, ramp[2]); }
+  // (facets: rock shapes moulded in, a lit top on each)
+  for (let i = 0; i < 9; i++) {
+    const fx = x0 + hsh(i) * (FACE - 120), fy = yt + 30 + hsh(i + 9) * (yb - yt - 120), w = 70 + hsh(i + 3) * 90, h = 40 + hsh(i + 5) * 60;
+    g.fillStyle = ramp[2]; g.beginPath(); g.moveTo(fx, fy + h); g.lineTo(fx + w * 0.2, fy); g.lineTo(fx + w * 0.7, fy - 8); g.lineTo(fx + w, fy + h); g.closePath(); g.fill();
+    g.fillStyle = ramp[0]; g.beginPath(); g.moveTo(fx + w * 0.2, fy); g.lineTo(fx + w * 0.7, fy - 8); g.lineTo(fx + w * 0.62, fy + 6); g.lineTo(fx + w * 0.26, fy + 10); g.closePath(); g.fill();
+  }
+  // (the panels' seams and their bolts: it's a shell)
+  for (let x = x0 + 120; x < x1; x += 160) { R(g, x, yt, 2, yb - yt, '#2A2018'); for (let yy = yt + 14; yy < yb; yy += 40) R(g, x - 3, yy, 3, 3, '#A8A29E'); }
+  for (let yy = yt + 90; yy < yb; yy += 120) { R(g, x0, yy, FACE, 2, '#2A2018'); for (let x = x0 + 30; x < x1; x += 60) R(g, x, yy - 3, 3, 3, '#A8A29E'); }
+  // (a gap in the shell: the warm Florida night behind it, a palm, the scaffold, an AC unit, its pipes)
+  if (k < 6) {
+    const gx = x0 + 80 + hsh(21) * (FACE - 260), gy = yt + 40 + hsh(22) * 80;
+    R(g, gx - 3, gy - 3, 126, 96, '#1A1410'); R(g, gx, gy, 120, 90, '#1A2448'); R(g, gx, gy + 60, 120, 30, '#2A2A40');
+    for (let i = 0; i < 6; i++) R(g, gx + hsh(30 + i) * 114, gy + 4 + hsh(40 + i) * 40, 2, 2, '#F6C860');
+    g.strokeStyle = '#0E1A12'; g.lineWidth = 4; g.beginPath(); g.moveTo(gx + 30, gy + 90); g.quadraticCurveTo(gx + 34, gy + 50, gx + 44, gy + 28); g.stroke();
+    for (let j = 0; j < 5; j++) { const a = -Math.PI / 2 + (j - 2) * 0.6; g.beginPath(); g.moveTo(gx + 44, gy + 28); g.lineTo(gx + 44 + Math.cos(a) * 26, gy + 34 + Math.sin(a) * 14); g.stroke(); }
+    R(g, gx + 60, gy, 4, 90, '#4A5468'); R(g, gx + 60, gy + 40, 60, 4, '#4A5468');
+    R(g, gx + 74, gy + 56, 40, 30, '#9CA3AF'); R(g, gx + 78, gy + 60, 32, 22, '#6B7280'); for (let i = 0; i < 4; i++) R(g, gx + 80, gy + 62 + i * 5, 28, 2, '#4B5563');
+    R(g, gx + 100, gy + 30, 4, 26, '#B45309'); R(g, gx + 100, gy + 30, 20, 4, '#B45309');
+  }
+  // (the fake snow: white paint, spray foam, cotton batting, patchy and gone yellow at the edges; more the higher)
+  const snowN = 3 + k * 2;
+  for (let i = 0; i < snowN; i++) {
+    const sx = x0 + hsh(50 + i) * (FACE - 80), sy = yt + hsh(60 + i) * (yb - yt - 30), w = 50 + hsh(70 + i) * 110;
+    g.fillStyle = mixHex('#C8B890', '#A8B8CC', t); g.beginPath(); g.ellipse(sx + w / 2, sy, w / 2 + 3, 13, 0, Math.PI, 0); g.fill();
+    g.fillStyle = mixHex('#D8D0B4', '#C8D4E4', t); g.beginPath(); g.ellipse(sx + w / 2, sy, w / 2 - 4, 9, 0, Math.PI, 0); g.fill();
+    // (plastic icicles under it, up high)
+    if (k >= 3) for (let j = 0; j < 4; j++) { const ix = sx + 8 + (j / 4) * (w - 16), il = 8 + hsh(90 + i * 4 + j) * 14; g.fillStyle = '#C8E4F8'; g.beginPath(); g.moveTo(ix - 3, sy + 1); g.lineTo(ix + 3, sy + 1); g.lineTo(ix, sy + il); g.closePath(); g.fill(); }
+  }
+  // (prayer flags strung between two scaffold poles sticking out of it)
+  { const py = yt + 40 + hsh(100) * 60, pa = x0 + 60 + hsh(101) * 200, pb = pa + 260;
+    R(g, pa - 2, py - 10, 4, 70, '#64748B'); R(g, pb - 2, py - 10, 4, 70, '#64748B');
+    g.strokeStyle = '#E2E8F0'; g.lineWidth = 1; g.beginPath(); g.moveTo(pa, py); g.quadraticCurveTo((pa + pb) / 2, py + 22, pb, py); g.stroke();
+    for (let x = pa + 10; x < pb - 8; x += 22) { const u = (x - pa) / (pb - pa); R(g, x, py + 22 * 4 * u * (1 - u), 12, 12, ['#2563EB', '#F8FAFC', '#DC2626', '#16A34A', '#FACC15'][Math.floor(x / 22) % 5]); } }
+  // (its statue: the yeti mascot, paint peeling; or the sherpa animatronic, a seized arm up; or neither)
+  if (k === 4 || k === 1) {
+    const sx = x0 + FACE - 170, sy = yb - 30;
+    g.fillStyle = '#E2E8F0'; g.beginPath(); g.ellipse(sx, sy - 50, 30, 46, 0, 0, Math.PI * 2); g.fill(); g.beginPath(); g.arc(sx, sy - 104, 20, 0, Math.PI * 2); g.fill();
+    for (let i = 0; i < 7; i++) R(g, sx - 24 + hsh(110 + i) * 44, sy - 120 + hsh(120 + i) * 100, 8, 6, '#8A7A6A');
+    R(g, sx - 9, sy - 110, 5, 4, INK); R(g, sx + 4, sy - 110, 5, 4, INK); R(g, sx - 8, sy - 98, 16, 4, '#7F1D1D');
+    R(g, sx - 34, sy - 4, 68, 8, '#57534E'); text(g, 'DO NOT CLIMB', sx, sy + 3, '#FDE68A', 4, 'center', null);
+  }
+  if (k === 5) {
+    const sx = x0 + 150, sy = yb - 30;
+    R(g, sx - 12, sy - 90, 24, 60, '#B91C1C'); R(g, sx - 10, sy - 30, 8, 30, '#3F3F46'); R(g, sx + 2, sy - 30, 8, 30, '#3F3F46');
+    g.fillStyle = '#C08A5A'; g.beginPath(); g.arc(sx, sy - 102, 12, 0, Math.PI * 2); g.fill(); R(g, sx - 12, sy - 116, 24, 8, '#FACC15');
+    R(g, sx + 12, sy - 128, 6, 40, '#B91C1C'); R(g, sx + 12, sy - 134, 6, 6, '#C08A5A'); R(g, sx - 26, sy - 80, 14, 34, '#4B5563');
+    R(g, sx - 30, sy - 4, 60, 8, '#57534E'); text(g, 'OUT OF ORDER', sx, sy + 3, '#FDE68A', 4, 'center', null);
+  }
+  if (k === 6) { g.fillStyle = '#0A1428'; g.beginPath(); g.moveTo(x0 + 280, yb - 40); g.lineTo(x0 + 330, yb - 70); g.lineTo(x0 + 420, yb - 60); g.lineTo(x0 + 470, yb - 34); g.lineTo(x0 + 380, yb - 44); g.closePath(); g.fill(); R(g, x0 + 290, yb - 72, 24, 3, '#F8FAFC'); }
+  // (its tacky sign, on two posts off the rock: readable)
+  { const [l1, l2] = FACE_SIGNS[k] ?? FACE_SIGNS[0], sx = x0 + FACE * 0.68, sy = yb - 150;
+    R(g, sx - 50, sy + 40, 4, 110, '#57534E'); R(g, sx + 46, sy + 40, 4, 110, '#57534E');
+    R(g, sx - 66, sy - 2, 132, 44, INK); R(g, sx - 64, sy, 128, 40, '#BE185D'); R(g, sx - 64, sy, 128, 3, '#F9A8D4');
+    text(g, l1, sx, sy + 16, '#FEF3C7', 7, 'center', null); text(g, l2, sx, sy + 30, '#FDE68A', 6, 'center', null); }
+  // (the shell's cut edges either side, where the inside's in: dark, its rim)
+  R(g, x0, yt, 10, yb - yt, '#120E0A'); R(g, x0 + 10, yt, 2, yb - yt, '#5E4C3A'); R(g, x1 - 10, yt, 10, yb - yt, '#120E0A'); R(g, x1 - 12, yt, 2, yb - yt, '#5E4C3A');
+  // (the queue up the spiral: its steps, lit along their tops; stanchions every other one and their rope; a sign half
+  // way, QUEUE CONTINUES and the way)
+  const ax = TR + 10, ay = floorY(k), bx = TR + FACE - 10, by = floorY(k + 1), n = 28, T = THEME[k];
+  g.strokeStyle = INK; g.lineWidth = 14; g.beginPath(); g.moveTo(ax, ay + 8); g.lineTo(bx, by + 8); g.stroke();
+  g.strokeStyle = '#3A4252'; g.lineWidth = 10; g.stroke();
+  for (let i = 0; i < n; i++) {
+    const u = i / n, x = ax + (bx - ax) * u, yy = ay + (by - ay) * u, w = (bx - ax) / n + 3;
+    R(g, x - 1, yy - 4, w, 8, '#64748B'); R(g, x - 1, yy - 4, w, 2, '#E2E8F0');
+    if (i % 2 === 0) { R(g, x + 2, yy - 44, 4, 40, '#9CA3AF'); R(g, x - 1, yy - 48, 10, 5, '#6B7280'); }
+  }
+  g.strokeStyle = T.accent; g.lineWidth = 3; g.beginPath(); g.moveTo(ax + 4, ay - 42); g.lineTo(bx + 4, by - 42); g.stroke();
+  const mx = (ax + bx) / 2, my = (ay + by) / 2;
+  R(g, mx - 1, my - 120, 2, 76, '#9CA3AF'); R(g, mx - 62, my - 150, 124, 32, INK); R(g, mx - 60, my - 148, 120, 28, '#FDE047');
+  text(g, 'QUEUE CONTINUES', mx - 8, my - 130, INK, 6, 'center', null); arrowGlyph(g, mx + 46, my - 134, 1, '#B91C1C', 0.7);
+  if (WAIT[k + 1]) { const wy = my - 210; R(g, mx + 140, wy + 32, 2, my - 40 - (wy + 32) - 30, '#9CA3AF'); R(g, mx + 80, wy, 124, 34, INK); R(g, mx + 82, wy + 2, 120, 30, '#F8FAFC'); text(g, 'WAIT FROM HERE', mx + 142, wy + 13, INK, 5, 'center', null); text(g, WAIT[k + 1], mx + 142, wy + 26, '#B91C1C', 5, 'center', null); }
+};
+const FACE_TW = 204, FACE_TH = 180;
+const drawFace = (c: Ctx, state: GameState, ox: number) => {
+  if (!vis(state, TR + ox, TR + FACE + ox, 0)) return;
+  for (let k = 0; k < FLOORS; k++) {
+    const yt = floorY(k + 1), yb = floorY(k) + DECK;
+    if (!visY(state, yt - 160, yb + 20)) continue;
+    // (in tiles: only what's on screen put down, the big stamp's cost was in what wasn't)
+    c.save(); c.translate(ox, 0);
+    for (let tx = TR - 4; tx < TR + FACE + 4; tx += FACE_TW) for (let ty = yt - 160; ty < yb + 10; ty += FACE_TH) {
+      const w = Math.min(FACE_TW, TR + FACE + 4 - tx), h = Math.min(FACE_TH, yb + 10 - ty);
+      if (!vis(state, tx + ox, tx + ox + w, 0) || !visY(state, ty, ty + h, 0)) continue;
+      stamp(c, `wp-face-${k}-${tx}-${ty}`, tx, ty, w, h, g => { g.save(); g.beginPath(); g.rect(tx, ty, w, h); g.clip(); paintFace(g, k, tx, tx + w, ty, ty + h); g.restore(); });
+    }
+    c.restore();
+  }
+};
+/** The summit: the peak's snow, the flag, the slide's mouth on its right, its sign. */
+const drawSummit = (c: Ctx, state: GameState) => {
+  const { TL, TR } = TOWER;
   // (the summit: the peak's snow, the flag, the slide's mouth on its right, its sign)
   const sy = SUMMIT.y;
   if (visY(state, sy - 300, sy + 40)) {
@@ -732,6 +932,8 @@ const drawStub = (c: Ctx, state: GameState) => {
 
 export interface DrawState {
   gates: number[]; tells: { x: number; t: number }[]; locked: number | null; door: number; greenPool: number;
+  /** On the spiral: off floor k, how far wrapped round (the tower's face drawn round again either side, its steps). */
+  climb?: { k: number; e: number } | null;
 }
 /** World space, behind everything that moves. */
 export const drawParkBack = (c: Ctx, state: GameState, d: DrawState, extra?: () => void) => {
@@ -744,6 +946,11 @@ export const drawParkBack = (c: Ctx, state: GameState, d: DrawState, extra?: () 
   drawDescentChute(c, state);
   extra?.();
   drawTower(c, state, d.gates, d.tells, d.locked);
+  // (the mountain's outside, round which the spiral goes (out past the way up, and again round the far side); on the
+  // spiral, the inside drawn round again either side of it (where he comes in at the top: tower.ts))
+  drawFace(c, state, 0); drawFace(c, state, -ROUND);
+  if (d.climb) { drawTower(c, state, d.gates, d.tells, null, -ROUND); drawTower(c, state, d.gates, d.tells, null, ROUND); }
+  drawSummit(c, state);
   drawSummitDoor(c, state, d.door);
   drawStub(c, state);
   drawGround(c, state);

@@ -1,12 +1,19 @@
 // MOUNT EVEREST BUT BETTER: the climb. The owner's: "you go up many many floors of scaffolding, forced to fight enemies
-// on each level before you can climb up the next set of stairs."
+// on each level before you can climb up the next set of stairs." And: "when going up the stairs on each level of the
+// mount everest ride, do a 'rotating tower' effect like the hurricane effect in meathead one until it 'settles' it only
+// rotates when going up the spiral stairs".
+//
+// The stairs between floors are a spiral round the tower: from the way up (at the floor's edge) once all the way round
+// the tower's face (TOWER's width: its art drawn round again either side while he's on them: art.ts), up a floor. On
+// them the world's wrapped round a turning cylinder (index.ts cylinder: climbEase eases it in and back out, flat at both
+// ends); at the top he's put back where that is on the real tower (the same picture: it repeats), and it settles flat.
 //
 // Floors stacked TOWER.FLOOR apart (geo.ts), the camera held on the floor he's on (the whole of it: everybody on it in
 // view). Floor 0 is base camp (the ground; open). On each of floors 1-7, the moment he's up on it the stairs both ways
 // are shut (locked in) and they come for him in two waves out of the floor's two staff doors at the back (each door
 // rattles and flashes first: the tell; the one away from him). The last of them down: the way up opens (its gate
-// swings up), and he walks into it: the stairs are outside the tower, a switchback (each floor's on alternate sides),
-// and he's walked up them to the next floor. DOWN at the bottom of the stairs he came up takes him back down them.
+// swings up, on the floor's right), and he walks into it: out onto the spiral round the mountain's outside, up it, in
+// on the next floor's left. DOWN at the way down (the left, where he came in) takes him back down it.
 // Floor 8 is THE HILLARY STEP (the big refill, the checkpoint: nobody there); its stairs go up to the summit's door.
 //
 // Checkpoints on floors 3 and 6 and the Hillary Step: back at one, every floor under it's cleared (the world as a run
@@ -22,7 +29,11 @@ import { makeKindEnemy } from '../../../m1/game/enemies/kinds';
 import { TOWER, FLOORS, floorY, exitSide, type Who } from './geo';
 import { KIND_OF } from './kinds';
 
-const { TL, TR, FLOOR, DECK, STAIR } = TOWER;
+const { TL, TR, FLOOR, CEIL, DECK, STAIR } = TOWER;
+/** Once round the tower: the inside's width and the outside face's (the spiral's run per floor goes over the outside:
+ *  the inside's drawn round again at ROUND either side, the face between: art.ts). */
+export const FACE = TR - TL;
+export const ROUND = (TR - TL) + FACE;
 /** Each fight floor's waves (floors 1-7). */
 const WAVES: Who[][][] = [
   [],
@@ -41,9 +52,10 @@ export const DOORS_X = [TL + 150, TR - 150];
 /** A door's tell (frames: rattling, its light going), and the gap between who comes out. */
 const TELL = 44, GAP = 26;
 /** Each floor's ledges to get up on ([x, height over the deck, w]: one-way, crates of fake snow, oxygen tank racks). */
+// (under the ceilings: the high ones low enough to stand on with room over his head)
 export const FLOOR_LEDGES: [number, number, number][][] = Array.from({ length: FLOORS + 1 }, (_, k) => k === 0 || k >= 8 ? [] : k % 2
-  ? [[TL + 230, 110, 130], [TR - 360, 110, 130], [TL + 360, 210, 100]]
-  : [[TL + 120, 120, 110], [TR - 230, 120, 110], [TR - 460, 200, 120]]);
+  ? [[TL + 230, 100, 130], [TR - 360, 100, 130], [TL + 360, 170, 100]]
+  : [[TL + 210, 100, 110], [TR - 330, 100, 110], [TR - 470, 170, 100]]);
 
 export interface Climb { k: number; up: boolean; pts: [number, number][]; s: number; len: number }
 export interface Tower {
@@ -59,11 +71,13 @@ export interface Tower {
   /** Each exit gate's lift (0 shut .. 1 up), by floor. */
   gate: number[];
   downWas: boolean;
+  /** Frames of the camera settling back onto the floor's view, off the stairs. */
+  settle: number;
 }
 export const newTower = (clearedBelow: number): Tower => ({
   cleared: Array.from({ length: FLOORS + 1 }, (_, k) => k < clearedBelow || k === 0 || k >= 8),
   locked: null, wave: 0, spawnT: 0, queue: [], tells: [], cast: [], climb: null,
-  gate: Array.from({ length: FLOORS + 1 }, (_, k) => (k < clearedBelow || k === 0 || k >= 8 ? 1 : 0)), downWas: true,
+  gate: Array.from({ length: FLOORS + 1 }, (_, k) => (k < clearedBelow || k === 0 || k >= 8 ? 1 : 0)), downWas: true, settle: 0,
 });
 
 /** The floor his feet are on (or the nearest under them), inside the tower's span; null outside it. */
@@ -76,16 +90,27 @@ export const floorOf = (state: GameState) => {
 };
 /** The tower's blocks: the decks (floors 1-9), its walls (the left one leaves base camp's way in open), the ledges. */
 export const buildTower = (state: GameState) => {
-  for (let k = 1; k <= FLOORS; k++) state.blocks.push({ x: TL, y: floorY(k), w: TR - TL, h: DECK, type: 'wall', hidden: true, tag: `ev-deck-${k}` } as Block);
+  // (each deck CEIL thick, solid: the floor of the one over, and the ceiling of the one under; the summit's open to the sky)
+  for (let k = 1; k <= FLOORS; k++) state.blocks.push({ x: TL, y: floorY(k), w: TR - TL, h: CEIL, type: 'wall', hidden: true, tag: `ev-deck-${k}` } as Block);
   state.blocks.push({ x: TL - 40, y: floorY(FLOORS) - 900, w: 40, h: floorY(1) + DECK - (floorY(FLOORS) - 900), type: 'wall', hidden: true, tag: 'ev-wall-l' } as Block);
   state.blocks.push({ x: TR, y: floorY(FLOORS) - 900, w: 40, h: floorY(0) + 40 - (floorY(FLOORS) - 900), type: 'wall', hidden: true, tag: 'ev-wall-r' } as Block);
   for (let k = 0; k <= FLOORS; k++) for (const [x, h, w] of FLOOR_LEDGES[k]) state.blocks.push({ x, y: floorY(k) - h, w, h: 16, type: 'platform', oneWay: true, hidden: true, tag: `ev-ledge-${k}` } as Block);
 };
 
-/** The stairs from floor k up to k+1 (a switchback outside the tower, on k's exit side): his feet's path. */
+/** The spiral from floor k up to k+1: out the way up on k's right, round the mountain's outside face (FACE) climbing,
+ *  in on the next floor's left (in world terms that's ROUND along from the real tower: its inside's drawn again there,
+ *  so it's the same picture: tower.ts puts him back). His feet's path. */
 export const stairsOf = (k: number): [number, number][] => {
-  const s = exitSide(k), edge = s > 0 ? TR : TL, y0 = floorY(k), y1 = floorY(k + 1);
-  return [[edge - s * 20, y0], [edge + s * 10, y0], [edge + s * (STAIR - 20), y0 - FLOOR / 2], [edge + s * (STAIR - 20), y0 - FLOOR / 2], [edge + s * 10, y1], [edge - s * 80, y1]];
+  const y0 = floorY(k), y1 = floorY(k + 1), n = 12;
+  const out: [number, number][] = [[TR - 30, y0], [TR + 10, y0]];
+  for (let i = 1; i <= n; i++) out.push([TR + 10 + (FACE - 20) * (i / n), y0 + (y1 - y0) * (i / n)]);
+  out.push([TR + FACE + 30, y1]);
+  return out;
+};
+/** How far the spiral's wrapped round (0 flat .. 1 the turning tower): in over its first stretch, back out over its last. */
+export const climbEase = (c: Climb) => {
+  const t = Math.max(0, Math.min(1, c.s / c.len)), sm = (u: number) => { const v = Math.max(0, Math.min(1, u)); return v * v * (3 - 2 * v); };
+  return Math.min(sm(t / 0.22), sm((1 - t) / 0.22));
 };
 const lenOf = (pts: [number, number][]) => pts.slice(1).reduce((n, q, i) => n + Math.hypot(q[0] - pts[i][0], q[1] - pts[i][1]), 0);
 const at = (pts: [number, number][], s: number) => {
@@ -118,16 +143,19 @@ export const updateTower = (ctx: FrameContext, tw: Tower, controls: Controls, ev
   // ---- on the stairs: walked up (or down) them, his own walk
   if (tw.climb) {
     const c = tw.climb;
-    c.s += 3.4;
+    c.s += 4.6;
     const q = at(c.pts, c.up ? c.s : c.len - c.s);
     const ahead = at(c.pts, Math.min(c.len, c.up ? c.s + 4 : c.len - c.s - 4));
     p.pos.x = q.x - p.width / 2; p.pos.y = q.y - p.height;
     const dir = Math.sign(ahead.x - q.x) || p.facing;
-    p.facing = dir > 0 ? 1 : -1; p.vel.x = dir * 3.4; p.vel.y = 0;
+    p.facing = dir > 0 ? 1 : -1; p.vel.x = dir * 4.6; p.vel.y = 0;
     if (state.frame % 9 === 0) playSound('click', 0.25, -10);
     if (c.s >= c.len) {
       tw.climb = null; p.carried = false; p.vel.x = 0; p.isGrounded = true;
+      // (up: off the far end, ROUND along: put back on the real tower, the camera with him (the same picture there))
+      if (c.up) { const d = -ROUND; p.pos.x += d; state.camera.x += d; if (state.cameraOverride) state.cameraOverride.x += d; }
       ev.arrived = c.up ? c.k + 1 : c.k;
+      tw.settle = c.up && c.k + 1 === FLOORS ? 0 : 50;
     }
     return { left: false, right: false, up: false, down: false, jump: false, special: false, shoot: false };
   }
@@ -173,8 +201,10 @@ export const updateTower = (ctx: FrameContext, tw: Tower, controls: Controls, ev
     void edge;
     return { left: false, right: false, up: false, down: false, jump: false, special: false, shoot: false };
   }
-  if (k > 0 && downEdge && atEdge(exitSide(k - 1))) {
+  if (k > 0 && downEdge && atEdge(-1)) {
     const pts = stairsOf(k - 1);
+    // (down: onto the spiral's top end, ROUND along from the real way in (the same picture there), the camera with him)
+    { const d = ROUND; p.pos.x += d; state.camera.x += d; if (state.cameraOverride) state.cameraOverride.x += d; }
     tw.climb = { k: k - 1, up: false, pts, s: 0, len: lenOf(pts) }; p.carried = true;
     return { left: false, right: false, up: false, down: false, jump: false, special: false, shoot: false };
   }

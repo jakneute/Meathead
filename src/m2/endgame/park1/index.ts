@@ -30,7 +30,7 @@ import { endgameStage, PARK_STAGE } from '../stages';
 import { GY, CP, CP_AT, CP_FLOOR, GROUND, POOLS, LEDGES, ISLANDS, SLIDES, TUBES, TOWER, SUMMIT, PLAZA_CAST, PICKUPS, L2, floorY, step } from './geo';
 import { newSlides, updateSlides, offSlide, type SlideState } from './slides';
 import { newTube, boardTube, updateTube, unboardTube, tubeOn, tubeBox, tubeFoesLeft, type TubeRide } from './tube';
-import { newTower, buildTower, updateTower, floorOf, towerCamY, type Tower, type TowerEvents } from './tower';
+import { newTower, buildTower, updateTower, floorOf, towerCamY, climbEase, ROUND, type Tower, type TowerEvents } from './tower';
 import { KIND_OF, setRidingCheck, setShotBox, updateShots, drawShots, drawBarks, byPants, clearShots } from './kinds';
 import { type Fight, startFight, updateFight, resetFight, fightDead, drawFight, drawFightHud, setOnKilled, doorState } from './boss';
 import { type Descent, startDescent, updateDescent, descentDone, drawDescentKid, drawGreenWater, drawDescentHud } from './descent';
@@ -88,6 +88,9 @@ const TUBE_CARD_ROWS = [
 ] as import('../../upgrades/equipInfo').EquipControl[];
 const TUBE_CARD_TEXT = "THE TUBE'S STUCK TO YOUR ASS AND IT GOES ON ITS OWN. THE CHUTE'S GOT HOLES IN IT WITH NO BOTTOM: JUMP THEM. EVERYTHING WORKS BUT THE CHARGE MOVES, BEATDOWNS AND SHAKEDOWNS. IT KEEPS GOING TILL EVERY ALIEN ON IT'S DEAD.";
 const CARD_HOLD = 90;
+/** The turning tower's radius at its most (the spiral's middle): about the screen's width across. */
+const TOWER_RADIUS = 330;
+const NOCYL = import.meta.env.DEV && typeof location !== 'undefined' && location.search.includes('nocyl');
 
 export const parkLayout: StageLayout = {
   left: -260,
@@ -275,8 +278,14 @@ export const parkLayout: StageLayout = {
     // ---- the camera: the floor he's on, up the tower (the whole floor in view); on the stairs, him; else the plaza
     const k = floorOf(state);
     if (pk.tw.climb) {
-      state.cameraMinX = TOWER.TL - TOWER.STAIR - 200; state.cameraMaxX = TOWER.TR + TOWER.STAIR + 200 - CANVAS_WIDTH;
-      state.cameraOverride = { x: Math.max(TOWER.TL - 260, Math.min(TOWER.TR + 260 - CANVAS_WIDTH, cx - CANVAS_WIDTH / 2)), y: p.pos.y + p.height - 400 };
+      // (round the spiral: on him, wherever round it he's got to (the tower's face repeats out there: art.ts))
+      state.cameraMinX = TOWER.TL - ROUND - 900; state.cameraMaxX = TOWER.TR + ROUND + 900;
+      state.cameraOverride = { x: cx - CANVAS_WIDTH / 2, y: p.pos.y + p.height - 400 };
+    } else if (pk.tw.settle > 0 && k !== null) {
+      // (up: settling back onto the floor's view, not snapped)
+      pk.tw.settle--;
+      state.cameraMinX = TOWER.TL - ROUND - 900; state.cameraMaxX = TOWER.TR + ROUND + 900;
+      state.cameraOverride = { x: TOWER.TL, y: towerCamY(k) };
     } else {
       if (state.cameraOverride) state.cameraOverride = null;
       if (k !== null && k >= 1 && cx > TOWER.TL - 10 && cx < TOWER.TR + 10) { state.cameraMinX = TOWER.TL; state.cameraMaxX = TOWER.TL; }
@@ -287,7 +296,7 @@ export const parkLayout: StageLayout = {
   },
   cameraFixedY: (state) => {
     const pk = parkOf(state);
-    if (!pk || pk.tw.climb || tubeOn(pk.tube) || pk.descent) return undefined;
+    if (!pk || pk.tw.climb || pk.tw.settle > 0 || tubeOn(pk.tube) || pk.descent) return undefined;
     const p = state.player, cx = p.pos.x + p.width / 2;
     if (pk.fightState === 'on') return towerCamY(9);
     const k = floorOf(state);
@@ -307,12 +316,22 @@ export const parkLayout: StageLayout = {
     if (pk?.lostTube) { pk.lostTube = false; return pickLine(L.TUBE_DEATH); }
     return undefined;
   },
+  // (the owner's: "when going up the stairs on each level of the mount everest ride, do a 'rotating tower' effect like the
+  // hurricane effect in meathead one until it 'settles' it only rotates when going up the spiral stairs": round the
+  // spiral, the world's wrapped round a cylinder, eased in off the floor and back out onto the next (stepped, so the
+  // engine's wrap is worked out a few times, not every frame); flat everywhere else)
+  cylinder: (state) => {
+    const c = parkOf(state)?.tw?.climb;
+    if (!c || NOCYL) return null;
+    const e = Math.round(climbEase(c) * 24) / 24;
+    return e < 0.04 ? null : { radius: Math.round(TOWER_RADIUS / e) };
+  },
   drawBackdrop: (c, state) => drawParkBackdrop(c, state, parkOf(state)?.shift ?? 0),
   lighting: (state) => todLight(parkLamps(state), 1),
   drawBack: (c, state) => {
     const pk = parkOf(state);
     const tw = pk?.tw;
-    drawParkBack(c, state, { gates: tw?.gate ?? [], tells: tw?.tells ?? [], locked: tw?.locked ?? null, door: pk?.f ? doorState(pk.f) : pk?.killed ? 1 : 0, greenPool: pk?.greenPool ?? 0 }, () => {
+    drawParkBack(c, state, { gates: tw?.gate ?? [], tells: tw?.tells ?? [], locked: tw?.locked ?? null, door: pk?.f ? doorState(pk.f) : pk?.killed ? 1 : 0, greenPool: pk?.greenPool ?? 0, climb: tw?.climb ? { k: tw.climb.k, e: climbEase(tw.climb) } : null }, () => {
       if (pk) drawGreenWater(c, state, pk.descent);
     });
     if (!pk) return;
@@ -321,7 +340,7 @@ export const parkLayout: StageLayout = {
     if (pk.fightState === 'won' && (pk.descent || pk.killed)) drawDescentKid(c, pk.descent, !pk.descent);
     // (the tube's back half, behind him)
     const T = pk.tube;
-    if (tubeOn(T)) drawTubeRing(c, T.x, T.y - 4, state.player.spriteRot ?? 0, false);
+    if (tubeOn(T)) { state.player.facing = 1; drawTubeRing(c, T.x, T.y - 4, state.player.spriteRot ?? 0, false); }
     // (on the stairs: drawn stood (he's walking up them))
     if (pk.tw.climb) state.player.isGrounded = true;
   },

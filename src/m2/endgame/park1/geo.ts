@@ -205,14 +205,15 @@ export const AREAS = {
 // ---------------------------------------------------------------------------------------------------------------
 // MOUNT EVEREST BUT BETTER: the tower (floors stacked FLOOR apart; floor 0 is base camp's ground), the summit on top
 
-export const TOWER = { TL: 28800, TR: 29600, FLOOR: 360, DECK: 24, STAIR: 220 };
+/** (CEIL: each deck's thickness under its top, solid: the ceiling of the floor under it (the owner's "make sure there's
+ *  a proper cieling in all the rooms"); its top DECK of it the floor, the rest the ceiling's beams) */
+export const TOWER = { TL: 28800, TR: 29600, FLOOR: 360, DECK: 24, CEIL: 84, STAIR: 220 };
 /** Floors: 0 base camp (the ground), 1..7 the fights, 8 THE HILLARY STEP (the refill, the summit's door), 9 THE SUMMIT. */
 export const FLOORS = 9;
 export const floorY = (k: number) => GY - k * TOWER.FLOOR;
-/** Which side each floor's way up is on (its stairs, outside the tower: a switchback): base camp's on the right, then
- *  they alternate; THE HILLARY STEP's up to the summit is on the left, the side he comes up on (the summit's door's on
- *  its left; the slide down's off its right). */
-export const exitSide = (k: number): 1 | -1 => (k === 8 ? -1 : k % 2 === 0 ? 1 : -1);
+/** Which side each floor's way up is on: the right, every floor (out onto the spiral round the mountain's outside, in
+ *  again on the next floor's left: tower.ts stairsOf; the summit's door's on its left, where he comes in). */
+export const exitSide = (_k: number): 1 | -1 => 1;
 /** A floor's name and the height painted up on it (FT: what the park claims). */
 export const FLOOR_NAMES = ['BASE CAMP', 'KHUMBU ICEFALL', 'CAMP 1', 'CAMP 2', 'THE LHOTSE FACE', 'CAMP 3', 'CAMP 4', 'THE DEATH ZONE', 'THE HILLARY STEP', 'THE SUMMIT'];
 export const FLOOR_FT = [0, 111, 222, 333, 444, 555, 666, 777, 888, 1000];
