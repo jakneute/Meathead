@@ -15,6 +15,8 @@ export const SCENARIOS = [
   // The water park, level 1 (endgame/park1): the plaza's start (hopping right through the possessed), the Abyss's tube
   // ride (the aliens riding along, shooting), CAMP 4's locked-in floor (two waves: hovers, a trooper, the yeti), the
   // summit's fight (up the stairs, the intro skipped, firing)
+  // (the lot outside it (endgame/lot): up and down the lot under the sky fight, the wreck to short of the gate and back)
+  { name: 'wp-lot', q: 'lot', keys: Array.from({ length: 12 }, (_, i) => [[i * 3000, 'down', i % 2 ? 'ArrowLeft' : 'ArrowRight'], [i * 3000 + 2900, 'up', i % 2 ? 'ArrowLeft' : 'ArrowRight']]).flat() },
   { name: 'wp-plaza', q: 'park=0', keys: hopRight(40) },
   { name: 'wp-tube', q: 'park=7', warm: 2, keys: [[0, 'js', 'window.__wpAutoTube = true'], [0, 'down', 'ArrowRight'], [6000, 'js', 'window.dispatchEvent(new MouseEvent("mousedown", { button: 0 }))']] },
   { name: 'wp-floor', q: 'park=10', keys: [[300, 'js', 'window.dispatchEvent(new MouseEvent("mousedown", { button: 0 }))'], ...Array.from({ length: 16 }, (_, i) => [600 + i * 1500, 'tap', i % 2 ? 'ArrowLeft' : 'ArrowRight'])] },
@@ -35,6 +37,9 @@ export const SCENARIOS = [
   // (back to the hub out of a land (BACK TO HUB, as after a boss's walk-away): the stage swap, the hub built, the walk
   // back out of the land's portal (the user's: "some slowdown during the portal exit to the hub"))
   { name: 'hub-exit', q: 'adv=0', keys: [[300, 'js', 'window.__m2GoTo("hub")']], warm: 0 },
+  // The endgame's walk out (?walkout: store.ts): put down short of his truck, left to it, the roof bursting, the beam,
+  // then the abduction's cutscene, all of it (run it with --secs=40 to see it through)
+  { name: 'walkout', q: 'intro&walkout', warm: 1, keys: [[0, 'js', 'window.__m2.player.pos.x = 20560'], [0, 'down', 'ArrowLeft']] },
   // Fairy Land: Truelling Tragons (the lift hill, the first drop, the loop; then the gauntlet)
   { name: 'tragons-lift', q: 'fantasy=31', keys: grip },
   { name: 'tragons-gauntlet', q: 'fantasy=33', keys: grip },
