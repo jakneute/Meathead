@@ -12,7 +12,7 @@ import type { GameState } from '../../../m1/game/core/state';
 import type { Controls } from '../../../m1/game/platform/input';
 import type { EnemyKind } from '../../../m1/types';
 import { NO_CONTROLS } from '../../../m1/game/platform/input';
-import { CANVAS_WIDTH, RENDER_SCALE, topBand } from '../../../m1/constants';
+import { CANVAS_WIDTH, CANVAS_HEIGHT, RENDER_SCALE, topBand } from '../../../m1/constants';
 import { pickLine, isTalking } from '../../../m1/game/platform/speech';
 import { makeKindEnemy } from '../../../m1/game/enemies/kinds';
 import { playSound } from '../../../m1/game/platform/audio';
@@ -109,6 +109,17 @@ const spiralHole = (state: GameState) => {
     x0: r >= half ? 0 : Math.ceil(half - r) + 4, x1: r >= half ? CANVAS_WIDTH : Math.floor(half + r) - 4,
     y0: Math.ceil(floorY(FLOORS) + TOWER.DECK - cy) + 10, y1: Math.floor(floorY(0) + TOWER.DECK - cy) - 10,
   };
+};
+
+/** Stood on one of the tower's floors under the top, the camera settled on it: the floors (opaque, the whole tower's
+ *  width, which is the screen's) cover all of the screen, so no sky's put down under them at all. */
+const floorHole = (state: GameState) => {
+  const pk = parkOf(state), tw = pk?.tw;
+  if (!pk || !tw || tw.climb || tw.settle > 0 || state.screenShakeTimer > 0) return null;
+  const k = floorOf(state);
+  if (k === null || k < 1 || k > FLOORS - 2) return null;
+  if (Math.abs(state.camera.x - TOWER.TL) > 0.01 || Math.abs(state.camera.y - towerCamY(k)) > 2) return null;
+  return { x0: 0, x1: CANVAS_WIDTH, y0: 0, y1: CANVAS_HEIGHT };
 };
 
 export const parkLayout: StageLayout = {
@@ -365,7 +376,7 @@ export const parkLayout: StageLayout = {
       trueCam = { x: state.camera.x, y: state.camera.y };
       state.camera.x = Math.round(state.camera.x * RENDER_SCALE) / RENDER_SCALE; state.camera.y = Math.round(state.camera.y * RENDER_SCALE) / RENDER_SCALE;
     }
-    return drawParkBackdrop(c, state, parkOf(state)?.shift ?? 0, spiralHole(state));
+    return drawParkBackdrop(c, state, parkOf(state)?.shift ?? 0, spiralHole(state) ?? floorHole(state));
   },
   lighting: (state) => todLight(parkLamps(state), 1),
   drawBack: (c, state) => {

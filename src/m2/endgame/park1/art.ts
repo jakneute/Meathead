@@ -29,6 +29,7 @@ import { GY, GROUND, POOLS, LEDGES, ISLANDS, SLIDES, TUBES, TOWER, FLOORS, floor
 import { SLIDE_PATHS, pointAt, surfaceAt, type Path } from './slides';
 import { tubePaths, tubeLap, tubeLapNo, PIPE_CLEAR, GAP_WARN } from './tube';
 import { FLOOR_LEDGES, DOORS_X, ROUND, FACE } from './tower';
+import { elbowFront, kneeFront } from '../../art/limb';
 
 type Ctx = CanvasRenderingContext2D;
 const INK = '#0A0806';
@@ -38,7 +39,6 @@ const hash = (n: number) => { const s = Math.sin(n * 127.1 + 311.7) * 43758.5453
 // of which is wrapped on: culled to that, not the camera's 800)
 const vis = (state: GameState, a: number, b: number, m = 80) => { const v = state.view, x0 = v && v.w > W ? v.x : state.camera.x, w = v && v.w > W ? v.w : W; return b > x0 - m && a < x0 + w + m; };
 const visY = (state: GameState, a: number, b: number, m = 80) => b > state.camera.y - m && a < state.camera.y + H + m;
-const checker = (c: Ctx, x: number, y: number, w: number, h: number, col: string) => { c.fillStyle = col; for (let yy = 0; yy < h; yy += 2) for (let xx = (yy >> 1) & 1 ? 2 : 0; xx < w; xx += 4) c.fillRect(x + xx, y + yy, 2, 2); };
 
 // ---------------------------------------------------------------------------------------------------------------
 // The backdrop (screen space)
@@ -230,6 +230,8 @@ const paintBig = (g: Ctx, x0 = -1e9, x1 = 1e9) => {
 export const drawParkBackdrop = (c: Ctx, state: GameState, shift = 0, hole?: { x0: number; x1: number; y0: number; y1: number } | null) => {
   const h = hole && hole.x1 > hole.x0 && hole.y1 > hole.y0 ? hole : null;
   if (!h) return paintBackdrop(c, state, shift);
+  // (the world covers the whole screen, solid: nothing of it to put down)
+  if (h.x0 <= 0 && h.y0 <= 0 && h.x1 >= W && h.y1 >= H) { backShift = shift; return true; }
   // (round it: what's over it and under it, the whole width; either side of it, its height)
   c.save(); c.beginPath();
   if (h.y0 > 0) c.rect(0, 0, W, h.y0);
@@ -1439,6 +1441,30 @@ export const drawTubeRing = (c: Ctx, x: number, y: number, a: number, front: boo
 // MOUNT EVEREST BUT BETTER
 
 const { TL, TR, FLOOR, DECK, CEIL } = TOWER;
+// The SNES pass (the owner's "snes-ify all the visual elements added since starting with the abduction"). Depth, back
+// to front, all in drawBack (world, behind him), each step's own draw in this order:
+//   drawTower, floor by floor (a stamp each, base camp up): the back wall (banded) and the scaffold behind the tarp
+//     (standards, ledgers, braces, couplers), the tarp hung off the top ledger (its mountain print, its folds, its ties,
+//     a corner torn down showing the scaffold), the prayer flags under the ceiling, the floor's props (dimmed: nothing
+//     on them to stand on), the queue's stanchions and rope, WAIT FROM THIS POINT bolted to the wall, QUEUE CONTINUES
+//     hung off the ceiling (its arrows: up, and on to the way up), the staff doors in their frames (STAFF ONLY, a red
+//     beacon over each), the way down's arch (left), the way up's striped arch and its lamp's housing (right), the
+//     ceiling (the deck over's underside: every floor its own look and color, none of them a door's; the beam along
+//     its foot carrying the floor's name board; caged lamps hung under it), the ledges (shelves on steel legs: bottles
+//     or sacks of fake snow racked under them, their lit lips), the deck (diamond plate, its lit lip, the queue's
+//     arrows painted along its face); then live over it: the way up's shutter (filling its arch, rolling up into its
+//     top), its lamp, the doors' tells (the door rattling in its dark frame, the beacon flashing);
+//   drawFace (the mountain's outside, in tiles: out past the way up, and again round the far side, which from base camp
+//     is the mountain stood over the plaza): fiberglass rock in its steps (strata, moulded boulders lit up their
+//     left), panel seams and bolts, a torn hole with the warm Florida night through it, fake snow (stained, foamed),
+//     plastic icicles, prayer flags on poles, its statue, its tacky sign on brackets (marquee bulbs), the shell's cut
+//     edges; and the queue up the spiral: the stringer on brackets into the rock, the treads (lit: he walks them), the
+//     stanchions and rope, QUEUE CONTINUES and WAIT FROM HERE on posts stood on the treads;
+//   (on the spiral: the inside drawn round again either side);
+//   drawBaseCamp (after the face: stood on the ground in front of the mountain): the big sign on its posts, the queue's
+//     start, the yeti's cutout, the base camp marker, the bottles and the fake snow.
+/** Six steps round a color: deep, shade, under, body, lit, highlight. */
+const ramp6 = (c: string) => [mix(c, INK, 0.62), mix(c, INK, 0.36), mix(c, INK, 0.14), c, mix(c, '#FFFFFF', 0.28), mix(c, '#FFFFFF', 0.56)];
 /** Each floor's look (the owner's "make them visually distinct from one another and the doors"): its back wall, its
  *  tarp's print, its staff doors' paint, its accent (the queue's rope, the signs' boards). */
 const THEME: { wall: string; band: string; tarp: string; door: string; accent: string }[] = [
@@ -1453,140 +1479,477 @@ const THEME: { wall: string; band: string; tarp: string; door: string; accent: s
   { wall: '#3A2C3E', band: '#5A4460', tarp: '#9A8AA4', door: '#0F766E', accent: '#38BDF8' },  // 8 THE HILLARY STEP
   { wall: '#2A3448', band: '#4A5468', tarp: '#3A4A66', door: '#475569', accent: '#DC2626' },  // 9 THE SUMMIT
 ];
+/** Each floor's ceiling (the deck over's underside, the room's lid): its own look and color, none of them a door's. */
+type CeilKind = 'ply' | 'ice' | 'canvas' | 'tin' | 'frost' | 'foil' | 'ducts' | 'hazard' | 'rock';
+const CEIL_LOOK: { col: string; kind: CeilKind }[] = [
+  { col: '#6A583E', kind: 'ply' },     // 0 base camp: plywood between the joists
+  { col: '#8AB4D0', kind: 'ice' },     // 1 the icefall: frosted panels, plastic icicles
+  { col: '#A08036', kind: 'canvas' },  // 2 camp 1: tent canvas sagging between the joists
+  { col: '#7A6E60', kind: 'tin' },     // 3 camp 2: corrugated tin, a string of bulbs
+  { col: '#C4D2E2', kind: 'frost' },   // 4 the Lhotse face: an ice roof, the fixed ropes looped off it
+  { col: '#66748A', kind: 'foil' },    // 5 camp 3: silver insulation, quilted
+  { col: '#34403E', kind: 'ducts' },   // 6 camp 4: the oxygen ducts run along it
+  { col: '#1C181C', kind: 'hazard' },  // 7 the death zone: black, the beams in hazard stripes, red caged lamps
+  { col: '#6A5862', kind: 'rock' },    // 8 the Hillary step: a fiberglass rock overhang
+];
+/** What's under each floor's name on its board (with its height). */
+const FLOOR_GAG = ['', 'MIND THE CREVASSES', 'TENTS ARE FOR DISPLAY', 'MESS TENT CLOSED', 'FIXED ROPES: DO NOT PULL', 'NO SHERPAS ON DUTY', 'THE SOUTH COL', 'NO REFUNDS', 'ONE AT A TIME, PLEASE'];
 /** The queue's wait, posted on each floor (the owner's "like a queue for a ride"): sillier the higher he gets. */
 const WAIT = ['', '45 MINUTES', '2 HOURS', '4 HOURS', '1 DAY', '3 DAYS', '2 WEEKS', 'A WHOLE SEASON', 'THE REST OF YOUR LIFE'];
-/** An arrow on a board (dir: 1 right, -1 left, 0 up). */
-const arrowGlyph = (g: Ctx, x: number, y: number, dir: number, col: string, s = 1) => {
-  g.fillStyle = col; g.beginPath();
-  if (dir === 0) { g.moveTo(x, y - 8 * s); g.lineTo(x + 7 * s, y); g.lineTo(x + 3 * s, y); g.lineTo(x + 3 * s, y + 8 * s); g.lineTo(x - 3 * s, y + 8 * s); g.lineTo(x - 3 * s, y); g.lineTo(x - 7 * s, y); }
+const STEEL6 = ramp6('#5A667C'), CHROME = ['#3A4250', '#5E6878', '#8E98A8', '#BCC4D0', '#E8EEF4'], WOOD6 = ramp6('#94703C');
+const FLAGS = ['#2563EB', '#F1F5F9', '#DC2626', '#16A34A', '#FACC15'].map(ramp5);
+/** An arrow (dir: 1 right, -1 left, 0 up, 2 down), inked. */
+const arrowPath = (g: Ctx, x: number, y: number, dir: number, s: number) => {
+  g.beginPath();
+  if (dir === 0 || dir === 2) { const v = dir === 0 ? 1 : -1; g.moveTo(x, y - 8 * s * v); g.lineTo(x + 7 * s, y); g.lineTo(x + 3 * s, y); g.lineTo(x + 3 * s, y + 8 * s * v); g.lineTo(x - 3 * s, y + 8 * s * v); g.lineTo(x - 3 * s, y); g.lineTo(x - 7 * s, y); }
   else { g.moveTo(x + dir * 9 * s, y); g.lineTo(x, y - 7 * s); g.lineTo(x, y - 3 * s); g.lineTo(x - dir * 8 * s, y - 3 * s); g.lineTo(x - dir * 8 * s, y + 3 * s); g.lineTo(x, y + 3 * s); g.lineTo(x, y + 7 * s); }
-  g.closePath(); g.fill();
+  g.closePath();
 };
-/** A run of queue stanchions and their sagging rope along a floor at y (background: no lit tops, nothing to stand on). */
+const arrowGlyph = (g: Ctx, x: number, y: number, dir: number, col: string, s = 1) => {
+  g.fillStyle = INK; g.save(); g.translate(1, 1); arrowPath(g, x, y, dir, s); g.fill(); g.restore();
+  g.fillStyle = col; arrowPath(g, x, y, dir, s); g.fill();
+  g.fillStyle = mix(col, '#FFFFFF', 0.4); g.save(); g.beginPath(); g.rect(x - 10 * s, y - 9 * s, 20 * s, 3 * s + 1); g.clip(); arrowPath(g, x, y, dir, s); g.fill(); g.restore();
+};
+/** A steel upright, w wide: inked, lit down its left, shaded down its right. */
+const postV = (g: Ctx, x: number, y0: number, y1: number, w: number, Rm: string[]) => {
+  const h = y1 - y0, e = Math.max(1, w >> 2);
+  R(g, x - 1, y0, w + 2, h, INK); R(g, x, y0, w, h, Rm[3]); R(g, x, y0, e, h, Rm[5] ?? Rm[4]); R(g, x + e, y0, 1, h, Rm[4]); R(g, x + w - e, y0, e, h, Rm[1]);
+};
+/** A steel run across, h tall: inked, lit along its top, shaded under. */
+const beamH = (g: Ctx, x0: number, x1: number, y: number, h: number, Rm: string[]) => {
+  R(g, x0, y - 1, x1 - x0, h + 2, INK); R(g, x0, y, x1 - x0, h, Rm[3]); R(g, x0, y, x1 - x0, 1, Rm[5] ?? Rm[4]); R(g, x0, y + h - 1, x1 - x0, 1, Rm[1]);
+};
+/** A board: inked, its paint in steps (lit along its top and left, the foot shaded, a dither seam), its corners screwed. */
+const board = (g: Ctx, x0: number, y0: number, w: number, h: number, col: string) => {
+  const B = ramp6(col);
+  R(g, x0 - 2, y0 - 2, w + 4, h + 4, INK); R(g, x0, y0, w, h, B[3]);
+  R(g, x0, y0, w, 2, B[5]); R(g, x0, y0 + 2, w, 1, B[4]); R(g, x0, y0, 1, h, B[4]);
+  dither(g, x0, y0 + h - 8, w, 4, B[2]); R(g, x0, y0 + h - 4, w, 4, B[2]); R(g, x0, y0 + h - 1, w, 1, B[1]); R(g, x0 + w - 1, y0, 1, h, B[1]);
+  for (const [sx, sy] of [[x0 + 3, y0 + 4], [x0 + w - 5, y0 + 4], [x0 + 3, y0 + h - 6], [x0 + w - 5, y0 + h - 6]]) { R(g, sx, sy, 2, 2, B[0]); R(g, sx, sy, 1, 1, B[5]); }
+};
+/** The park's sign letters, small: enamel in its steps, a drop shadow. */
+const smallLook = (col: string, sy = 1): Look => ({ sx: 1, sy, fill: rampDown(col, 0.3), dither: sy > 1, shadow: SIGN_INK, drop: 1, gap: 1 });
+/** Words set to fit a width (the look shrunk a step if they won't), centered on x, their foot at y. */
+const words = (g: Ctx, s: string, x: number, y: number, L: Look, maxW: number) => {
+  let use = L;
+  if (signW(s, use) > maxW && (use.sx ?? 1) > 1) use = { ...use, sx: 1 };
+  if (signW(s, use) > maxW && (use.gap ?? 1) > 0) use = { ...use, gap: 0 };
+  signText(g, s, x, y, use);
+};
+/** A string of prayer flags from (x0, y) to (x1, y), sagging `sag` in the middle: the cord, the flags in their five
+ *  colors, each lit along its top and shaded down its far side, its print a dark mark. */
+const prayerFlags = (g: Ctx, x0: number, x1: number, y: number, sag: number, step = 24) => {
+  const at = (x: number) => { const u = (x - x0) / (x1 - x0); return y + sag * 4 * u * (1 - u); };
+  g.strokeStyle = '#3A3630'; g.lineWidth = 2; g.beginPath(); g.moveTo(x0, y + 1); g.quadraticCurveTo((x0 + x1) / 2, y + sag * 2 + 1, x1, y + 1); g.stroke();
+  g.strokeStyle = '#CBD5E1'; g.lineWidth = 1; g.beginPath(); g.moveTo(x0, y); g.quadraticCurveTo((x0 + x1) / 2, y + sag * 2, x1, y); g.stroke();
+  for (let x = x0 + 8, i = 0; x < x1 - 12; x += step, i++) {
+    const fy = Math.round(at(x + 6)), F = FLAGS[(i + Math.round(x0 / step)) % 5], sway = i % 3 === 1 ? 1 : 0;
+    R(g, x - 1 + sway, fy, 14, 14, F[0]); R(g, x + sway, fy, 12, 13, F[2]); R(g, x + sway, fy, 12, 2, F[3]); R(g, x + sway, fy + 1, 1, 11, F[3]);
+    R(g, x + 10 + sway, fy + 2, 2, 11, F[1]); R(g, x + sway, fy + 11, 12, 2, F[1]); R(g, x + 4 + sway, fy + 4, 4, 5, F[1]); R(g, x + 5 + sway, fy + 5, 2, 1, F[0]);
+  }
+};
+/** A run of queue stanchions and their sagging rope along a floor at y (background: no lit tops, nothing to stand on):
+ *  chrome posts on weighted bases, the rope in the floor's accent (shaded under, lit along it), a hook at each end. */
 const queueRail = (g: Ctx, x0: number, x1: number, y: number, rope: string) => {
-  const n = Math.max(1, Math.round(Math.abs(x1 - x0) / 70));
+  const n = Math.max(1, Math.round(Math.abs(x1 - x0) / 70)), Rp = ramp5(rope);
   for (let i = 0; i <= n; i++) {
-    const x = x0 + ((x1 - x0) * i) / n;
-    R(g, x - 2, y - 40, 4, 40, '#9CA3AF'); R(g, x - 5, y - 44, 10, 5, '#6B7280'); R(g, x - 7, y - 3, 14, 3, '#4B5563');
-    if (i < n) { const nx = x0 + ((x1 - x0) * (i + 1)) / n; g.strokeStyle = rope; g.lineWidth = 3; g.beginPath(); g.moveTo(x, y - 38); g.quadraticCurveTo((x + nx) / 2, y - 26, nx, y - 38); g.stroke(); }
+    const x = Math.round(x0 + ((x1 - x0) * i) / n);
+    if (i < n) {
+      const nx = x0 + ((x1 - x0) * (i + 1)) / n;
+      for (const [w, col, dy] of [[4, INK, 1], [3, Rp[1], 0], [1, Rp[3], -1]] as const) { g.strokeStyle = col; g.lineWidth = w; g.beginPath(); g.moveTo(x, y - 37 + dy); g.quadraticCurveTo((x + nx) / 2, y - 24 + dy, nx, y - 37 + dy); g.stroke(); }
+    }
+    R(g, x - 3, y - 40, 6, 37, INK); R(g, x - 2, y - 40, 4, 37, CHROME[2]); R(g, x - 2, y - 40, 1, 37, CHROME[4]); R(g, x + 1, y - 40, 1, 37, CHROME[0]);
+    R(g, x - 4, y - 44, 8, 5, INK); R(g, x - 3, y - 43, 6, 3, CHROME[3]); R(g, x - 3, y - 43, 6, 1, CHROME[4]);
+    R(g, x - 8, y - 5, 16, 5, INK); R(g, x - 7, y - 4, 14, 3, CHROME[1]); R(g, x - 7, y - 4, 14, 1, CHROME[3]);
   }
 };
-/** One floor (k) of the tower: its back wall, its props, its queue, its doors, its ceiling, its deck (lit). Baked once each. */
-const paintFloor = (g: Ctx, k: number) => {
-  const y = floorY(k), top = k < FLOORS ? floorY(k + 1) + CEIL : y - FLOOR, T = THEME[k];
-  if (k < FLOORS) {
-    // (the back wall, in the floor's own colors: scaffold behind a tarp printed with its stretch of the mountain)
-    R(g, TL, top, TR - TL, y - top, T.wall);
-    for (let yy = top; yy < y; yy += 6) if (((yy - top) / 6) % 2) checker(g, TL, yy, TR - TL, 2, T.band);
-    g.fillStyle = T.tarp; g.beginPath(); g.moveTo(TL, y); g.lineTo(TL + 160 + k * 23, top + 50); g.lineTo(TL + 330, top + 100); g.lineTo(TL + 480 + k * 11, top + 26); g.lineTo(TR, y); g.closePath(); g.fill();
-    g.fillStyle = '#E8F0FA'; g.beginPath(); g.moveTo(TL + 120 + k * 23, top + 74); g.lineTo(TL + 160 + k * 23, top + 50); g.lineTo(TL + 200 + k * 23, top + 74); g.closePath(); g.fill();
-    for (let x = TL; x <= TR; x += 100) R(g, x - 3, top, 6, y - top, T.band);
-    g.strokeStyle = T.band; g.lineWidth = 2;
-    for (let x = TL; x < TR; x += 100) { g.beginPath(); g.moveTo(x, y); g.lineTo(x + 100, top + 20); g.stroke(); }
-    // (the ceiling: the deck over's underside, I-beams, a work lamp in a cage every so far: the room's lid)
-    const cy0 = floorY(k + 1) + DECK;
-    R(g, TL, cy0, TR - TL, CEIL - DECK, '#1A1E28');
-    for (let x = TL + 20; x < TR; x += 80) { R(g, x, cy0, 12, CEIL - DECK, '#2C3342'); R(g, x + 2, cy0, 3, CEIL - DECK, '#3E4658'); }
-    R(g, TL, top - 6, TR - TL, 6, '#0C0E14'); R(g, TL, top - 8, TR - TL, 2, '#3E4658');
-    for (let x = TL + 140; x < TR; x += 260) { R(g, x - 10, top, 20, 8, '#3F3F46'); R(g, x - 7, top + 8, 14, 7, '#FDE68A'); R(g, x - 8, top + 8, 16, 1, '#3F3F46'); }
-    // (prayer flags strung across under the ceiling: before the props, so the signs on the wall are in front of them, never crossed)
-    const sy = top + 14;
-    g.strokeStyle = '#E2E8F0'; g.lineWidth = 1; g.beginPath(); g.moveTo(TL, sy); g.quadraticCurveTo((TL + TR) / 2, sy + 20, TR, sy); g.stroke();
-    for (let x = TL + 20; x < TR - 10; x += 26) { const t = (x - TL) / (TR - TL), fy = sy + 20 * 4 * t * (1 - t); R(g, x, fy, 14, 14, ['#2563EB', '#F8FAFC', '#DC2626', '#16A34A', '#FACC15'][Math.floor(x / 26) % 5]); }
-    // (its props: what's up there of the real mountain, in plastic)
-    themeProps(g, k, y, top);
-    // (the floor's name and its height, up on the wall, readable)
-    R(g, (TL + TR) / 2 - 130, top + 40, 260, 40, INK); R(g, (TL + TR) / 2 - 128, top + 42, 256, 36, '#7C2D12');
-    text(g, FLOOR_NAMES[k], (TL + TR) / 2, top + 58, '#FEF3C7', 10);
-    text(g, `ELEV. ${FLOOR_FT[k].toLocaleString('en-US')} FT`, (TL + TR) / 2, top + 72, '#FDE68A', 7);
-    // (the queue (the owner's "like a queue for a ride"): rails along the back toward the way up, its signs: an
-    // overhead QUEUE CONTINUES and its arrow by the way up, the wait from here on a post)
-    {
-      const s = exitSide(k), from = s > 0 ? TL + 60 : TR - 60, to = s > 0 ? TR - 70 : TL + 70;
-      queueRail(g, from, to, y - 4, T.accent);
-      const hx = s > 0 ? TR - 160 : TL + 160;
-      R(g, hx - 50, top, 2, 24, '#9CA3AF'); R(g, hx + 48, top, 2, 24, '#9CA3AF');
-      R(g, hx - 62, top + 24, 124, 34, INK); R(g, hx - 60, top + 26, 120, 30, '#FDE047');
-      text(g, k < FLOORS - 1 ? 'QUEUE CONTINUES' : 'TO THE SUMMIT', hx, top + 38, INK, 6, 'center', null);
-      arrowGlyph(g, hx + s * 30, top + 48, s, '#B91C1C', 0.9); arrowGlyph(g, hx - s * 8, top + 48, 0, '#B91C1C', 0.7);
-      if (WAIT[k]) {
-        const wx = (TL + TR) / 2 + (s > 0 ? -190 : 190);
-        R(g, wx - 2, y - 150, 4, 150, '#6B7280');
-        R(g, wx - 66, y - 200, 132, 52, INK); R(g, wx - 64, y - 198, 128, 48, '#F8FAFC'); R(g, wx - 64, y - 198, 128, 12, T.accent === '#F8FAFC' ? '#1D4ED8' : T.accent);
-        text(g, 'WAIT FROM THIS POINT', wx, y - 189, INK, 5, 'center', null);
-        text(g, WAIT[k], wx, y - 172, '#B91C1C', WAIT[k].length > 12 ? 6 : 8, 'center', null);
-        text(g, 'THANK YOU FOR YOUR PATIENCE', wx, y - 158, '#475569', 4, 'center', null);
-      }
-    }
-    // (the staff doors at the back: doorways, not wall: a frame in the floor's accent, the door in its own paint, a
-    // window, a kick plate, STAFF ONLY over it)
-    if (k > 0) for (const dx of DOORS_X) {
-      R(g, dx - 34, y - 112, 68, 112, INK); R(g, dx - 32, y - 110, 64, 110, T.accent); R(g, dx - 26, y - 104, 52, 104, '#0B0D12');
-      R(g, dx - 24, y - 102, 48, 102, T.door); R(g, dx - 24, y - 102, 48, 3, 'rgba(255,255,255,0.2)');
-      R(g, dx - 12, y - 92, 24, 16, '#0F172A'); R(g, dx - 10, y - 90, 20, 12, '#334155'); R(g, dx - 10, y - 90, 20, 2, '#94A3B8');
-      for (let i = 0; i < 6; i++) R(g, dx - 24 + i * 8, y - 18, 4, 14, i % 2 ? INK : '#FACC15');
-      R(g, dx + 14, y - 56, 5, 5, '#FACC15');
-      R(g, dx - 30, y - 126, 60, 14, INK); R(g, dx - 29, y - 125, 58, 12, '#F8FAFC'); text(g, 'STAFF ONLY', dx, y - 116, '#B91C1C', 5, 'center', null);
-    }
-    // (the way down, on the left, where he came in: a plainer arch, its sign)
-    if (k > 0) { const ex = TL + 22; R(g, ex - 20, y - 130, 40, 130, INK); R(g, ex - 16, y - 126, 32, 126, '#05070C'); R(g, ex - 14, y - 152, 70, 18, INK); R(g, ex - 12, y - 150, 66, 14, '#475569'); text(g, 'WAY DOWN', ex + 21, y - 140, '#E2E8F0', 5, 'center', null); }
-    // (the way up: an archway in the side wall at its edge, striped like a queue's entrance, its sign over it)
-    {
-      const s = exitSide(k), ex = s > 0 ? TR - 22 : TL + 22;
-      R(g, ex - 22, y - 140, 44, 140, INK); R(g, ex - 18, y - 136, 36, 136, '#05070C');
-      for (let yy = y - 136; yy < y; yy += 14) { R(g, ex - 22, yy, 4, 7, T.accent); R(g, ex + 18, yy + 7, 4, 7, T.accent); }
-      R(g, ex - 44 - s * 10, y - 170, 88, 22, INK); R(g, ex - 42 - s * 10, y - 168, 84, 18, '#15803D');
-      text(g, 'WAY UP', ex - s * 10 - 8, y - 156, '#F0FDF4', 6, 'center', null); arrowGlyph(g, ex - s * 10 + 26, y - 159, s, '#F0FDF4', 0.7);
-    }
+/** An oxygen bottle stood up (9 wide, 24 tall, its foot at yy): steel in its paint's steps, a shoulder, the valve, a band. */
+const bottle = (g: Ctx, x: number, yy: number, col = '#C2570C') => {
+  const B = ramp5(col);
+  R(g, x - 1, yy - 25, 11, 25, INK); R(g, x, yy - 24, 9, 24, B[2]); R(g, x, yy - 24, 2, 24, B[3]); R(g, x + 1, yy - 22, 1, 18, B[4]); R(g, x + 7, yy - 24, 2, 24, B[1]);
+  R(g, x + 1, yy - 26, 7, 2, B[2]); R(g, x + 2, yy - 27, 5, 1, B[3]);
+  R(g, x + 2, yy - 31, 5, 4, INK); R(g, x + 3, yy - 30, 3, 3, '#A8B0BC'); R(g, x + 6, yy - 30, 2, 1, '#6B7280');
+  R(g, x, yy - 15, 9, 4, '#E8EEF4'); R(g, x + 7, yy - 15, 2, 4, '#9CA3AF'); R(g, x + 2, yy - 14, 4, 1, '#166534');
+};
+/** A sack of fake snow (lumpy, round-topped: nothing to stand on), FAKE SNOW printed on it. */
+const sack = (g: Ctx, x: number, yy: number, w = 30, h = 22) => {
+  const S = ramp5('#D8D2BE');
+  g.fillStyle = INK; g.beginPath(); g.ellipse(x + w / 2, yy - h / 2, w / 2 + 1, h / 2 + 1, 0, 0, Math.PI * 2); g.fill();
+  g.fillStyle = S[1]; g.beginPath(); g.ellipse(x + w / 2, yy - h / 2, w / 2, h / 2, 0, 0, Math.PI * 2); g.fill();
+  g.fillStyle = S[2]; g.beginPath(); g.ellipse(x + w / 2 - 2, yy - h / 2 - 2, w / 2 - 3, h / 2 - 3, 0, 0, Math.PI * 2); g.fill();
+  g.fillStyle = S[3]; g.beginPath(); g.ellipse(x + w / 2 - 5, yy - h / 2 - 5, w / 4, h / 5, 0, 0, Math.PI * 2); g.fill();
+  R(g, x + w / 2 - 3, yy - h - 2, 6, 4, S[1]); R(g, x + w / 2 - 2, yy - h - 4, 4, 2, '#8A6A3A');
+  R(g, x + 5, yy - h / 2 - 1, w - 10, 1, '#1D4ED8'); R(g, x + 5, yy - h / 2 + 2, w - 12, 1, '#1D4ED8'); R(g, x + 6, yy - h / 2 + 5, w - 14, 1, '#1D4ED8');
+};
+/** The back wall and the scaffold behind the tarp, the tarp with its stretch of the mountain printed on it. */
+const paintWall = (g: Ctx, k: number, y: number, top: number) => {
+  const T = THEME[k], Wl = ramp6(T.wall), S = ramp6(mix('#5A667C', T.band, 0.35)), Tp = ramp6(T.tarp), H6 = (y - top) / 6;
+  // (the wall behind it all, banded: darkest up under the ceiling and down at the deck, lightest where the lamps throw)
+  const bands = [Wl[0], Wl[1], Wl[2], Wl[2], Wl[1], Wl[0]];
+  bands.forEach((col, i) => R(g, TL, top + i * H6, TR - TL, H6 + 1, col));
+  for (let i = 1; i < 6; i++) dither(g, TL, Math.round(top + i * H6) - 2, TR - TL, 2, bands[i]);
+  // (the scaffold: standards every 100, ledgers across, braces in two tones, couplers where they meet)
+  const LEDG = [top + 26, top + 130, y - 40];
+  g.lineCap = 'butt';
+  for (let x = TL; x < TR; x += 100) for (let i = 0; i < 2; i++) {
+    const ya = LEDG[i], yb = LEDG[i + 1], [a, b] = (x / 100 + i) % 2 ? [x + 8, x + 100] : [x + 100, x + 8];
+    g.strokeStyle = INK; g.lineWidth = 4; g.beginPath(); g.moveTo(a, ya); g.lineTo(b, yb); g.stroke();
+    g.strokeStyle = S[2]; g.lineWidth = 2; g.stroke();
+    g.strokeStyle = S[4]; g.lineWidth = 1; g.beginPath(); g.moveTo(a, ya - 1); g.lineTo(b, yb - 1); g.stroke();
   }
-  // (the ledges: crates of fake snow, oxygen tank racks: lit lips)
+  for (const ly of LEDG) beamH(g, TL, TR, ly, 5, S);
+  for (let x = TL + 4; x < TR; x += 100) {
+    postV(g, x, top, y, 6, S);
+    for (const ly of LEDG) { R(g, x - 3, ly - 3, 12, 11, INK); R(g, x - 2, ly - 2, 10, 9, S[4]); R(g, x - 2, ly - 2, 10, 1, S[5]); R(g, x - 2, ly + 5, 10, 2, S[2]); R(g, x + 2, ly + 1, 2, 2, S[0]); }
+  }
+  // (the tarp, hung off the top ledger: its corner torn down on odd floors, the scaffold showing behind)
+  const tx0 = TL + 46, tx1 = TR - 46, ty0 = LEDG[0] + 4, ty1 = y - 8, torn = k % 2 === 1;
+  const edge: [number, number][] = [[tx0, ty0]];
+  for (let x = tx0 + 36; x <= tx1; x += 36) { edge.push([x - 18, ty0 + 3]); edge.push([Math.min(x, tx1), ty0]); }
+  if (torn) { edge.pop(); edge.pop(); edge.push([tx1 - 120, ty0 + 2], [tx1, ty0 + 90]); }
+  edge.push([tx1, ty1], [tx0, ty1]);
+  poly(g, edge.map(([x, yy]) => [x + 1, yy + 1] as [number, number]), INK);
+  g.save(); g.beginPath(); g.moveTo(edge[0][0], edge[0][1]); for (const [x, yy] of edge.slice(1)) g.lineTo(x, yy); g.closePath(); g.clip();
+  // (the print's sky: banded down toward its horizon)
+  const sky = [mix(T.tarp, '#101828', 0.62), mix(T.tarp, '#101828', 0.5), mix(T.tarp, '#101828', 0.38), mix(T.tarp, '#101828', 0.26)];
+  const sh = (ty1 - ty0) / 4;
+  sky.forEach((col, i) => R(g, tx0, ty0 + i * sh, tx1 - tx0, sh + 1, col));
+  for (let i = 1; i < 4; i++) dither(g, tx0, Math.round(ty0 + i * sh) - 2, tx1 - tx0, 2, sky[i]);
+  // (the far range, hazed; then the massif: its peaks lit up their left faces, shaded down their right, snow on top)
+  const far: [number, number][] = [[tx0, ty1 - 60]];
+  for (let i = 0; i <= 10; i++) far.push([tx0 + ((tx1 - tx0) * (i + 0.5)) / 10.5, ty1 - 90 - hash(i + k * 11) * 70], [tx0 + ((tx1 - tx0) * (i + 1)) / 10.5, ty1 - 70 - hash(i + k * 11 + 5) * 30]);
+  far.push([tx1, ty1], [tx0, ty1]);
+  poly(g, far, mix(T.tarp, '#101828', 0.15));
+  const peaks: [number, number][] = [[TL + 160 + k * 23, top + 60], [TL + 330, top + 110], [TL + 480 + k * 11, top + 40], [TL + 640 - k * 9, top + 96]];
+  const base = ty1;
+  for (const [px, py] of peaks) {
+    const wl = (base - py) * 0.95, wr = (base - py) * 1.1;
+    poly(g, [[px - wl, base], [px, py], [px + wr, base]], Tp[2]);
+    poly(g, [[px - wl, base], [px, py], [px + wr * 0.12, base]], Tp[3]);
+    poly(g, [[px - wl * 0.5, base - (base - py) * 0.5], [px, py], [px - wl * 0.08, base - (base - py) * 0.55]], Tp[4]);
+    poly(g, [[px + wr * 0.12, base], [px + wr * 0.35, py + (base - py) * 0.45], [px + wr, base]], Tp[1]);
+    // (its snow: white, stepped, a ragged foot dithered into the rock)
+    const sd = (base - py) * 0.3, sn: [number, number][] = [[px - wl * 0.3, py + sd]];
+    for (let j = 1; j <= 6; j++) sn.push([px - wl * 0.3 + ((wl * 0.3 + wr * 0.3) * j) / 6, py + sd + (j % 2 ? 8 : -2)]);
+    sn.push([px, py]);
+    poly(g, sn, '#E2EAF4');
+    poly(g, [[px - wl * 0.3, py + sd], [px, py], [px + wr * 0.03, py + sd * 0.7]], '#F8FAFC');
+    dither(g, Math.round(px - wl * 0.25), Math.round(py + sd + 2), Math.round(wl * 0.5), 4, '#C8D4E4');
+  }
+  // (its folds: hanging down from the ties, a shadow and a lit crease each)
+  for (let x = tx0 + 18; x < tx1; x += 36) { R(g, x - 3, ty0, 5, ty1 - ty0, 'rgba(6, 8, 18, 0.16)'); R(g, x + 2, ty0, 2, ty1 - ty0, 'rgba(255, 255, 255, 0.07)'); }
+  R(g, tx0, ty1 - 5, tx1 - tx0, 5, Tp[0]); R(g, tx0, ty0, tx1 - tx0, 3, 'rgba(255, 255, 255, 0.1)');
+  g.restore();
+  // (the ties up to the ledger, a grommet each; the torn corner's flap hanging off)
+  for (let x = tx0; x <= tx1 - (torn ? 120 : 0); x += 36) { R(g, x - 1, LEDG[0] + 2, 2, 4, '#1A1A1A'); R(g, x - 2, ty0 + 2, 5, 5, INK); R(g, x - 1, ty0 + 3, 3, 3, '#B8C0CC'); R(g, x, ty0 + 4, 1, 1, INK); }
+  if (torn) {
+  }
+  // (the prayer flags strung across under the ceiling: before the props, so the signs on the wall are in front of them)
+  prayerFlags(g, TL + 4, TR - 4, top + 12, 18, 26);
+};
+/** The ceiling (the deck over's underside, cy0 down to the room's top): its own look, the beam along its foot, the
+ *  floor's name board on that, the lamps caged under it. */
+const paintCeiling = (g: Ctx, k: number, cy0: number, top: number) => {
+  const { col, kind } = CEIL_LOOK[k], C = ramp6(col), S = STEEL6, hgt = top - cy0;
+  // (the deck's underside up top, in shadow)
+  R(g, TL, cy0, TR - TL, hgt, C[2]); R(g, TL, cy0, TR - TL, 6, C[0]); dither(g, TL, cy0 + 6, TR - TL, 2, C[0]);
+  const mid = cy0 + 8, low = top - 10;
+  switch (kind) {
+    case 'ply': // (plywood sheets between steel joists, their grain, the sheets' joins)
+      for (let x = TL; x < TR; x += 64) { R(g, x, mid, 64, low - mid, C[3]); R(g, x, mid, 64, 2, C[4]); for (let yy = mid + 6; yy < low; yy += 7) R(g, x + 4 + ((yy * 7) % 11), yy, 30 + ((yy * 3) % 20), 1, C[2]); R(g, x + 62, mid, 2, low - mid, C[1]); }
+      for (let x = TL + 30; x < TR; x += 128) postV(g, x, mid, low, 8, S);
+      break;
+    case 'ice': // (frosted panels, the frost dithered in from their edges, the ribs between)
+      for (let x = TL; x < TR; x += 100) { R(g, x, mid, 100, low - mid, C[3]); dither(g, x + 2, mid, 96, 6, C[5]); dither(g, x + 2, low - 8, 96, 6, C[2]); R(g, x + 8, mid + 10, 30, 2, C[5]); R(g, x + 12, mid + 14, 14, 1, C[4]); postV(g, x, mid, low, 5, ramp6('#4A6A88')); }
+      break;
+    case 'canvas': // (tent canvas sagging between the joists, banded into its folds)
+      for (let x = TL; x < TR; x += 80) {
+        R(g, x, mid, 80, low - mid - 8, C[3]); dither(g, x, mid + 10, 80, 4, C[4]); R(g, x, mid, 80, 8, C[4]);
+        g.fillStyle = C[2]; g.beginPath(); g.moveTo(x, low - 8); g.quadraticCurveTo(x + 40, low + 6, x + 80, low - 8); g.lineTo(x + 80, low - 16); g.quadraticCurveTo(x + 40, low - 4, x, low - 16); g.closePath(); g.fill();
+        g.fillStyle = C[1]; g.beginPath(); g.moveTo(x, low - 8); g.quadraticCurveTo(x + 40, low + 6, x + 80, low - 8); g.lineTo(x + 80, low - 6); g.quadraticCurveTo(x + 40, low + 8, x, low - 6); g.closePath(); g.fill();
+        R(g, x + 38, mid + 4, 2, low - mid - 10, C[2]); postV(g, x, mid, low, 6, WOOD6);
+      }
+      break;
+    case 'tin': // (corrugated tin, its ribs lit and shaded, rust run down it; a string of bulbs along under the beam)
+      for (let x = TL; x < TR; x += 8) { R(g, x, mid, 4, low - mid, C[4]); R(g, x + 4, mid, 4, low - mid, C[2]); R(g, x + 1, mid, 1, low - mid, C[5]); }
+      for (let i = 0; i < 9; i++) { const x = TL + 40 + hash(i + k * 3) * (TR - TL - 80); R(g, x, mid + 4, 3, 10 + hash(i + 9) * 20, '#7A3A16'); }
+      for (let x = TL + 60; x < TR; x += 160) postV(g, x, mid, low, 8, S);
+      break;
+    case 'frost': // (an ice roof: lumps of it in its steps, dithered)
+      R(g, TL, mid, TR - TL, low - mid, C[3]);
+      for (let i = 0; i < 16; i++) { const x = TL + i * 52 + hash(i + 40) * 20, w = 50 + hash(i + 41) * 30; g.fillStyle = C[4]; g.beginPath(); g.ellipse(x + w / 2, mid + 10, w / 2, 9, 0, 0, Math.PI * 2); g.fill(); g.fillStyle = C[5]; g.beginPath(); g.ellipse(x + w / 2 - 6, mid + 7, w / 4, 4, 0, 0, Math.PI * 2); g.fill(); }
+      dither(g, TL, low - 10, TR - TL, 6, C[2]);
+      break;
+    case 'foil': // (silver insulation, quilted in diamonds, a glint on each)
+      R(g, TL, mid, TR - TL, low - mid, C[3]);
+      g.strokeStyle = C[1]; g.lineWidth = 1; g.beginPath();
+      for (let x = TL - 40; x < TR + 40; x += 20) { g.moveTo(x, mid); g.lineTo(x + (low - mid), low); g.moveTo(x, low); g.lineTo(x + (low - mid), mid); }
+      g.stroke();
+      for (let x = TL + 10; x < TR; x += 20) for (let yy = mid + 6; yy < low - 4; yy += 20) R(g, x, yy, 2, 1, C[5]);
+      for (let x = TL + 80; x < TR; x += 200) postV(g, x, mid, low, 8, S);
+      break;
+    case 'ducts': { // (the oxygen ducts: two round runs along it in their steps, flanged, O2 stenciled)
+      R(g, TL, mid, TR - TL, low - mid, C[2]);
+      const Dct = ramp6('#7C8A96');
+      for (const [dy, r] of [[mid + 9, 8], [mid + 26, 6]] as const) {
+        R(g, TL, dy - r - 1, TR - TL, r * 2 + 2, INK);
+        R(g, TL, dy - r, TR - TL, r * 2, Dct[2]); R(g, TL, dy - r, TR - TL, Math.round(r * 0.6), Dct[3]); R(g, TL, dy - r + 1, TR - TL, 1, Dct[5]); R(g, TL, dy + r - 2, TR - TL, 2, Dct[0]);
+        for (let x = TL + 50; x < TR; x += 120) { R(g, x, dy - r - 2, 4, r * 2 + 4, INK); R(g, x + 1, dy - r - 1, 2, r * 2 + 2, Dct[4]); }
+      }
+      for (let x = TL + 100; x < TR; x += 240) signText(g, 'O2', x, mid + 13, { sx: 1, sy: 1, fill: '#FACC15', gap: 1 });
+      break;
+    }
+    case 'hazard': // (black, its beams in hazard stripes)
+      R(g, TL, mid, TR - TL, low - mid, C[2]);
+      for (let x = TL + 40; x < TR; x += 120) { R(g, x - 1, mid, 18, low - mid, INK); for (let yy = mid; yy < low; yy += 8) { R(g, x, yy, 16, 4, '#CA8A04'); R(g, x, yy, 16, 1, '#FDE047'); } }
+      break;
+    case 'rock': // (a fiberglass rock overhang: lumps lit along their tops, drips of it hung under)
+      R(g, TL, mid, TR - TL, low - mid, C[2]);
+      for (let i = 0; i < 18; i++) { const x = TL + i * 46 + hash(i + 60) * 16, w = 40 + hash(i + 61) * 30, yy = mid + 6 + hash(i + 62) * 12; g.fillStyle = C[3]; g.beginPath(); g.ellipse(x + w / 2, yy, w / 2, 10, 0, 0, Math.PI * 2); g.fill(); g.fillStyle = C[4]; g.beginPath(); g.ellipse(x + w / 2 - 4, yy - 4, w / 3, 4, 0, 0, Math.PI * 2); g.fill(); }
+      dither(g, TL, low - 10, TR - TL, 6, C[1]);
+      break;
+  }
+  // (the beam along its foot: the deck's edge, a flange in steel's steps; dark under, it's no lid to stand on)
+  R(g, TL, low - 1, TR - TL, 11, INK); R(g, TL, low, TR - TL, 8, S[2]); R(g, TL, low, TR - TL, 1, S[4]); R(g, TL, low + 6, TR - TL, 2, S[0]);
+  for (let x = TL + 20; x < TR; x += 40) { R(g, x, low + 3, 2, 2, S[0]); R(g, x, low + 3, 1, 1, S[4]); }
+  // (what hangs under it: plastic icicles, the canvas's ties, the bulbs, the fixed ropes looped, the rock's drips)
+  if (kind === 'ice' || kind === 'frost') for (let x = TL + 14; x < TR - 10; x += 22) { const l = 6 + Math.round(hash(x * 0.37 + k) * 10); g.fillStyle = INK; g.beginPath(); g.moveTo(x - 3, top - 1); g.lineTo(x + 4, top - 1); g.lineTo(x, top + l + 1); g.closePath(); g.fill(); g.fillStyle = '#D8ECFA'; g.beginPath(); g.moveTo(x - 2, top); g.lineTo(x + 3, top); g.lineTo(x, top + l); g.closePath(); g.fill(); R(g, x - 1, top, 1, Math.max(1, l - 4), '#FFFFFF'); }
+  if (kind === 'frost') { g.lineWidth = 2; for (let x = TL + 60; x < TR - 100; x += 180) for (const [col, o] of [['#B91C1C', 0], ['#CA8A04', 6]] as const) { g.strokeStyle = col; g.beginPath(); g.moveTo(x + o, top); g.quadraticCurveTo(x + 45 + o, top + 18, x + 90 + o, top); g.stroke(); } }
+  if (kind === 'tin') { g.strokeStyle = '#1A1612'; g.lineWidth = 1; g.beginPath(); g.moveTo(TL, top + 2); for (let x = TL; x < TR; x += 60) g.quadraticCurveTo(x + 30, top + 12, x + 60, top + 2); g.stroke(); for (let x = TL + 30, i = 0; x < TR; x += 60, i++) { const b = ['#FDE68A', '#FCA5A5', '#86EFAC', '#93C5FD'][i % 4]; R(g, x - 2, top + 6, 4, 2, '#3F3F46'); R(g, x - 2, top + 8, 4, 5, b); R(g, x - 1, top + 8, 1, 2, '#FFFFFF'); } }
+  if (kind === 'rock') for (let x = TL + 24; x < TR - 10; x += 34) { const l = 4 + Math.round(hash(x * 0.21) * 8); g.fillStyle = C[1]; g.beginPath(); g.moveTo(x - 5, top - 1); g.lineTo(x + 5, top - 1); g.lineTo(x, top + l); g.closePath(); g.fill(); }
+  if (kind === 'canvas') for (let x = TL + 40; x < TR; x += 80) { R(g, x - 1, top, 2, 8, '#5A4420'); R(g, x - 3, top + 7, 6, 3, '#5A4420'); }
+  // (its lamps, caged, hung under the beam: red in the death zone)
+  const lampCol = kind === 'hazard' ? ['#7F1D1D', '#DC2626', '#FCA5A5'] : ['#B45309', '#FDE68A', '#FFFBEB'];
+  for (let x = TL + 140; x < TR; x += 260) {
+    R(g, x - 1, top, 2, 3, INK); R(g, x - 10, top + 2, 20, 6, INK); R(g, x - 9, top + 3, 18, 4, S[3]); R(g, x - 9, top + 3, 18, 1, S[5]);
+    R(g, x - 8, top + 8, 16, 9, lampCol[0]); R(g, x - 7, top + 8, 14, 7, lampCol[1]); R(g, x - 4, top + 9, 6, 3, lampCol[2]);
+    for (let i = -8; i <= 6; i += 4) R(g, x + i, top + 8, 1, 9, INK);
+    R(g, x - 8, top + 16, 16, 1, INK);
+  }
+  // (the floor's name board on the beam: its name big, its height and its gag under; bolted up)
+  const nx = (TL + TR) / 2, bw = 300, bh = hgt - 22, by = cy0 + 9;
+  for (const bx of [nx - bw / 2 + 30, nx + bw / 2 - 34]) { R(g, bx, cy0 + 4, 4, 6, INK); R(g, bx + 1, cy0 + 4, 2, 6, S[4]); }
+  board(g, nx - bw / 2, by, bw, bh, '#7C2D12');
+  R(g, nx - bw / 2 + 4, by + 3, bw - 8, 1, '#C2410C');
+  signText(g, FLOOR_NAMES[k], nx, by + 17, nameLook('#FEF3C7'));
+  words(g, `ELEV. ${FLOOR_FT[k].toLocaleString('en-US')} FT${FLOOR_GAG[k] ? ' - ' + FLOOR_GAG[k] : ''}`, nx, by + bh - 6, smallLook('#FDE68A'), bw - 16);
+};
+/** A staff door's slab (its foot at y, middle at dx): its paint in steps, a lit edge and a shaded one, its panel, a
+ *  wired-glass window, its push plate, the hinges, a kick plate in hazard stripes. (Also the doors' tell: stamped.) */
+const paintDoorSlab = (g: Ctx, dx: number, y: number, col: string) => {
+  const D = ramp6(col);
+  R(g, dx - 24, y - 102, 48, 102, D[3]);
+  dither(g, dx - 24, y - 40, 48, 4, D[2]); R(g, dx - 24, y - 36, 48, 36, D[2]);
+  R(g, dx - 24, y - 102, 48, 2, D[5]); R(g, dx - 24, y - 102, 2, 102, D[4]); R(g, dx + 21, y - 102, 3, 102, D[1]);
+  // (the lower panel, pressed in)
+  R(g, dx - 15, y - 64, 30, 40, D[1]); R(g, dx - 14, y - 63, 29, 39, D[3]); R(g, dx - 14, y - 25, 29, 1, D[4]); R(g, dx + 14, y - 63, 1, 39, D[4]);
+  // (the window: wired glass, dark, a glint)
+  R(g, dx - 13, y - 94, 26, 22, INK); R(g, dx - 12, y - 93, 24, 20, '#1A2436'); R(g, dx - 12, y - 83, 24, 10, '#243048');
+  for (let i = 0; i < 24; i += 4) R(g, dx - 12 + i, y - 93, 1, 20, '#3A465C');
+  for (let i = 0; i < 20; i += 4) R(g, dx - 12, y - 93 + i, 24, 1, '#3A465C');
+  g.fillStyle = 'rgba(200, 220, 255, 0.35)'; g.beginPath(); g.moveTo(dx - 10, y - 75); g.lineTo(dx - 2, y - 93); g.lineTo(dx + 2, y - 93); g.lineTo(dx - 6, y - 75); g.closePath(); g.fill();
+  R(g, dx - 13, y - 72, 26, 1, D[5]);
+  // (the push plate and the handle; the hinges)
+  R(g, dx + 10, y - 62, 7, 14, INK); R(g, dx + 11, y - 61, 5, 12, CHROME[2]); R(g, dx + 11, y - 61, 1, 12, CHROME[4]);
+  for (const hy of [y - 94, y - 54, y - 16]) { R(g, dx - 25, hy, 3, 8, INK); R(g, dx - 24, hy + 1, 1, 6, CHROME[3]); }
+  // (the kick plate)
+  R(g, dx - 24, y - 19, 48, 16, INK);
+  g.save(); g.beginPath(); g.rect(dx - 23, y - 18, 46, 14); g.clip();
+  for (let i = -20; i < 50; i += 10) poly(g, [[dx - 23 + i, y - 4], [dx - 23 + i + 5, y - 4], [dx - 23 + i + 19, y - 18], [dx - 23 + i + 14, y - 18]], '#E0A90A');
+  R(g, dx - 23, y - 18, 46, 1, '#FDE68A');
+  g.restore();
+};
+/** One floor (k) of the tower: its back wall, its props, its queue, its signs, its doors, its ways down and up, its
+ *  ceiling, its ledges, its deck (lit). Baked once each. */
+const paintFloor = (g: Ctx, k: number) => {
+  const y = floorY(k), T = THEME[k], A = ramp6(T.accent);
+  if (k < FLOORS) {
+    const top = floorY(k + 1) + CEIL, cy0 = floorY(k + 1) + DECK, s = exitSide(k);
+    paintWall(g, k, y, top);
+    // (its props: what's up there of the real mountain, in plastic (dimmed))
+    themeProps(g, k, y, top);
+    // (the queue (the owner's "like a queue for a ride"): rails along the back toward the way up)
+    queueRail(g, s > 0 ? TL + 60 : TR - 60, s > 0 ? TR - 70 : TL + 70, y - 4, T.accent);
+    // (QUEUE CONTINUES, hung off the ceiling's beam on two rods by the way up: its arrows, up and on toward it)
+    {
+      const hx = s > 0 ? TR - 160 : TL + 160, by = top + 24;
+      for (const rx of [hx - 48, hx + 46]) { R(g, rx - 1, top - 2, 4, 26, INK); R(g, rx, top - 2, 2, 26, CHROME[3]); R(g, rx - 2, by - 3, 6, 4, CHROME[1]); }
+      board(g, hx - 62, by, 124, 36, '#FACC15');
+      R(g, hx - 58, by + 3, 116, 1, '#FEF08A');
+      words(g, k < FLOORS - 1 ? 'QUEUE CONTINUES' : 'TO THE SUMMIT', hx, by + 13, smallLook('#1C1206'), 116);
+      arrowGlyph(g, hx + s * 26, by + 25, s, '#DC2626', 0.85); arrowGlyph(g, hx - s * 10, by + 25, 0, '#DC2626', 0.8);
+    }
+    // (WAIT FROM THIS POINT, bolted to the scaffold's ledger on brackets, clear of the ledges and the doors)
+    if (WAIT[k]) {
+      const wx = s > 0 ? TL + 210 : TR - 210, wy = y - 214, ww = 132, wh = 52;
+      for (const bx of [wx - 50, wx + 46]) { R(g, bx, top, 3, wy - top, INK); R(g, bx + 1, top, 1, wy - top, CHROME[3]); R(g, bx - 1, wy - 8, 6, 10, INK); R(g, bx, wy - 8, 4, 10, STEEL6[3]); R(g, bx + 1, wy - 6, 2, 2, STEEL6[5]); }
+      board(g, wx - ww / 2, wy, ww, wh, '#F1F5F9');
+      R(g, wx - ww / 2, wy, ww, 12, T.accent === '#F8FAFC' ? '#1D4ED8' : A[2]); R(g, wx - ww / 2, wy, ww, 1, T.accent === '#F8FAFC' ? '#3B82F6' : A[4]);
+      words(g, 'WAIT FROM THIS POINT', wx, wy + 10, { sx: 1, sy: 1, fill: '#140A04', gap: 1 }, ww - 6);
+      words(g, WAIT[k], wx, wy + 32, { sx: 2, sy: 2, fill: rampDown('#B91C1C', 0.3), dither: true, shadow: '#F8C8C8', drop: 1, gap: 1 }, ww - 8);
+      words(g, 'THANKS FOR WAITING', wx, wy + 45, { sx: 1, sy: 1, fill: '#64748B', gap: 1 }, ww - 8);
+    }
+    // (the staff doors at the back: doorways, not wall: a frame in the floor's accent (inked, lit up its left), the door
+    // in its own paint, STAFF ONLY over it, a beacon on top (its flash: the tell, live))
+    if (k > 0) for (const dx of DOORS_X) {
+      R(g, dx - 34, y - 112, 68, 112, INK); R(g, dx - 32, y - 110, 64, 110, A[2]); R(g, dx - 32, y - 110, 3, 110, A[4]); R(g, dx - 32, y - 110, 64, 2, A[5]); R(g, dx + 29, y - 110, 3, 110, A[0]);
+      R(g, dx - 27, y - 105, 54, 105, '#06080C'); R(g, dx - 27, y - 105, 54, 2, A[0]);
+      paintDoorSlab(g, dx, y, T.door);
+      R(g, dx - 38, y - 4, 76, 4, INK); R(g, dx - 37, y - 3, 74, 2, CHROME[2]);
+      board(g, dx - 33, y - 130, 66, 16, '#F8FAFC');
+      words(g, 'STAFF ONLY', dx, y - 116, { sx: 1, sy: 2, fill: '#B91C1C', gap: 1 }, 58);
+      R(g, dx - 7, y - 135, 14, 3, INK); R(g, dx - 6, y - 134, 12, 2, STEEL6[3]);
+      R(g, dx - 5, y - 142, 10, 7, INK); R(g, dx - 4, y - 141, 8, 6, '#5A1010'); R(g, dx - 3, y - 141, 2, 2, '#9A3030');
+      for (const cx of [dx - 3, dx, dx + 3]) R(g, cx, y - 142, 1, 7, INK);
+    }
+    // (the way down, on the left, where he came in: a plain steel arch, the stair going down inside it into the dark)
+    if (k > 0) {
+      const ex = TL + 22;
+      R(g, ex - 20, y - 130, 40, 130, INK); R(g, ex - 18, y - 128, 36, 128, STEEL6[2]); R(g, ex - 18, y - 128, 2, 128, STEEL6[4]); R(g, ex - 18, y - 128, 36, 2, STEEL6[5]);
+      ['#0C1018', '#090C14', '#06080E', '#04050A'].forEach((col, i) => R(g, ex - 14, y - 122 + i * 30, 28, 31, col));
+      for (let i = 0; i < 5; i++) R(g, ex - 14 + i * 5, y - 92 + i * 18, 14, 2, i < 3 ? '#2A3240' : '#1A2030');
+      board(g, ex - 12, y - 152, 66, 14, '#475569');
+      words(g, 'WAY DOWN', ex + 16, y - 141, { sx: 1, sy: 1, fill: '#E2E8F0', shadow: INK, gap: 1 }, 50);
+      arrowGlyph(g, ex + 46, y - 145, 2, '#E2E8F0', 0.45);
+    }
+    // (the way up: an archway in the side wall at its edge, striped like a queue's entrance, the stair going up inside;
+    // its sign over it; the lamp's housing (its lens: live))
+    {
+      const ex = s > 0 ? TR - 22 : TL + 22;
+      R(g, ex - 22, y - 140, 44, 140, INK);
+      ['#0E1420', '#0A0E18', '#070A12', '#05070C'].forEach((col, i) => R(g, ex - 18, y - 136 + i * 34, 36, 35, col));
+      for (let i = 0; i < 5; i++) R(g, ex - 18 + i * 7, y - 20 - i * 22, 12, 2, '#2E3848');
+      for (let yy = y - 136; yy < y; yy += 14) { R(g, ex - 22, yy, 4, 7, A[3]); R(g, ex - 22, yy, 1, 7, A[5]); R(g, ex + 18, yy + 7, 4, 7, A[3]); }
+      R(g, ex - 22, y - 140, 44, 4, A[1]); R(g, ex - 22, y - 140, 44, 1, A[4]);
+      R(g, ex - 7, y - 151, 14, 10, INK); R(g, ex - 6, y - 150, 12, 8, STEEL6[2]); R(g, ex - 5, y - 147, 10, 6, '#111318');
+      const sx = s > 0 ? TR - 52 : TL + 52;
+      board(g, sx - 44, y - 172, 88, 18, '#15803D');
+      words(g, k < FLOORS - 1 ? 'WAY UP' : 'SUMMIT', sx - 8, y - 159, { sx: 1, sy: 2, fill: rampDown('#F0FDF4', 0.2), shadow: '#052E16', drop: 1, gap: 1 }, 60);
+      arrowGlyph(g, sx + 28, y - 163, s, '#F0FDF4', 0.6);
+    }
+    paintCeiling(g, k, cy0, top);
+  }
+  // (the ledges: shelves of planks on steel legs (stood on: their lips lit), bottles or sacks of fake snow racked under
+  // them, the snow's drips down over their fronts)
   for (const [x, h, w] of FLOOR_LEDGES[k]) {
     const ly = y - h;
-    R(g, x + 8, ly + 16, 4, h - 16, '#64748B'); R(g, x + w - 12, ly + 16, 4, h - 16, '#64748B');
-    g.strokeStyle = '#475569'; g.lineWidth = 2; g.beginPath(); g.moveTo(x + 10, ly + 20); g.lineTo(x + w - 10, y - 4); g.stroke();
-    for (let t = x + 14; t < x + w - 20; t += 40) { R(g, t, ly - 22, 10, 22, '#16A34A'); R(g, t, ly - 22, 10, 3, '#86EFAC'); R(g, t + 3, ly - 26, 4, 4, '#94A3B8'); }
-    R(g, x, ly, w, 16, INK); R(g, x + 1, ly + 1, w - 2, 14, '#8A6A3A'); R(g, x + 1, ly + 1, w - 2, 3, '#FDE68A');
-    g.fillStyle = '#F1F5F9'; g.beginPath(); g.ellipse(x + w * 0.7, ly, w * 0.18, 5, 0, Math.PI, 0); g.fill();
+    g.strokeStyle = STEEL6[1]; g.lineWidth = 2; g.beginPath(); g.moveTo(x + 12, ly + 20); g.lineTo(x + w - 12, y - 6); g.moveTo(x + w - 12, ly + 20); g.lineTo(x + 12, y - 6); g.stroke();
+    for (const lx of [x + 6, x + w - 12]) { postV(g, lx, ly + 16, y - 2, 6, STEEL6); R(g, lx - 3, y - 3, 12, 3, INK); R(g, lx - 2, y - 3, 10, 2, STEEL6[2]); }
+    if (h <= 110 && k !== 7) { if (k % 2) for (let t = x + 18; t < x + w - 24; t += 13) bottle(g, t, y - 4, (t / 13) % 3 < 1 ? '#15803D' : '#C2570C'); else for (let t = x + 16; t < x + w - 40; t += 34) sack(g, t, y - 3); }
+    else beamH(g, x + 8, x + w - 8, y - 60, 5, STEEL6);
+    R(g, x, ly, w, 16, INK); R(g, x + 1, ly + 1, w - 2, 14, WOOD6[3]); R(g, x + 1, ly + 10, w - 2, 5, WOOD6[2]); dither(g, x + 1, ly + 8, w - 2, 2, WOOD6[2]);
+    for (let px = x + 26; px < x + w - 4; px += 26) { R(g, px, ly + 4, 1, 11, WOOD6[1]); R(g, px + 1, ly + 4, 1, 11, WOOD6[4]); }
+    R(g, x + 1, ly + 1, w - 2, 2, '#FDE68A'); R(g, x + 1, ly + 3, w - 2, 1, WOOD6[5]); R(g, x + 1, ly + 14, w - 2, 1, WOOD6[0]);
+    for (let d = x + 10; d < x + w - 8; d += 17) { const l = 3 + Math.round(hash(d + k) * 6); R(g, d, ly + 15, 5, l, '#E2E8F0'); R(g, d + 1, ly + 15 + l, 3, 2, '#E2E8F0'); R(g, d + 4, ly + 15, 1, l, '#94A3B8'); }
   }
-  // (the deck under it: steel, lit along its top: standable reads standable)
-  if (k > 0) { R(g, TL, y, TR - TL, DECK, '#3A4252'); R(g, TL, y, TR - TL, 3, '#F1F5F9'); R(g, TL, y + 3, TR - TL, 2, '#94A3B8'); for (let x = TL; x < TR; x += 40) R(g, x, y + 8, 2, DECK - 8, '#262C38'); }
+  // (the deck under it: diamond plate in steel's steps, lit along its top (standable reads standable), the queue's
+  // arrows painted along its face toward the way up)
+  if (k > 0) {
+    const S = STEEL6;
+    R(g, TL, y, TR - TL, DECK, S[2]); dither(g, TL, y + 6, TR - TL, DECK - 12, S[3]); R(g, TL, y + DECK - 5, TR - TL, 5, S[1]); R(g, TL, y + DECK - 1, TR - TL, 1, INK);
+    R(g, TL, y, TR - TL, 2, '#F1F5F9'); R(g, TL, y + 2, TR - TL, 2, S[5]); R(g, TL, y + 4, TR - TL, 1, S[0]);
+    for (let x = TL + 20; x < TR; x += 40) { R(g, x, y + 8, 2, 2, S[0]); R(g, x, y + 8, 1, 1, S[5]); R(g, x, y + 16, 2, 2, S[0]); }
+    for (let x = TL + 200; x < TR; x += 200) R(g, x, y + 5, 1, DECK - 6, S[0]);
+    if (k < FLOORS) for (let x = TL + 100; x < TR - 40; x += 200) arrowGlyph(g, x, y + 13, exitSide(k), mix(T.accent === '#F8FAFC' ? '#FACC15' : T.accent, S[2], 0.15), 0.5);
+  }
 };
 /** What's on each floor of the real mountain, done in plastic (background: dimmed, nothing to stand on). */
 const themeProps = (g: Ctx, k: number, y: number, top: number) => {
-  const tent = (x: number, col: string, w = 90) => { g.fillStyle = INK; g.beginPath(); g.moveTo(x - w / 2 - 3, y); g.lineTo(x, y - w * 0.62 - 3); g.lineTo(x + w / 2 + 3, y); g.closePath(); g.fill(); g.fillStyle = col; g.beginPath(); g.moveTo(x - w / 2, y); g.lineTo(x, y - w * 0.62); g.lineTo(x + w / 2, y); g.closePath(); g.fill(); g.fillStyle = '#0B0D12'; g.beginPath(); g.moveTo(x - 10, y); g.lineTo(x, y - 26); g.lineTo(x + 10, y); g.closePath(); g.fill(); };
-  const tank = (x: number, yy: number) => { R(g, x, yy - 24, 9, 24, '#B45309'); R(g, x, yy - 24, 9, 3, '#FDBA74'); R(g, x + 2, yy - 28, 5, 4, '#94A3B8'); };
+  /** A tent: its panels lit up the near side, shaded on the far, the ridge and its seams, a door flap, guy lines. */
+  const tent = (x: number, col: string, w = 90) => {
+    const C = ramp6(col), h = Math.round(w * 0.62);
+    g.strokeStyle = '#94A3B8'; g.lineWidth = 1; g.beginPath(); g.moveTo(x, y - h); g.lineTo(x - w / 2 - 22, y); g.moveTo(x, y - h); g.lineTo(x + w / 2 + 22, y); g.stroke();
+    poly(g, [[x - w / 2 - 3, y], [x, y - h - 3], [x + w / 2 + 3, y]], INK);
+    poly(g, [[x - w / 2, y], [x, y - h], [x, y]], C[4]); poly(g, [[x, y - h], [x + w / 2, y], [x, y]], C[2]);
+    poly(g, [[x - w / 2, y], [x - w / 4, y - h / 2], [x - w / 4 + 6, y - h / 2], [x - w / 2 + 8, y]], C[3]);
+    poly(g, [[x + w / 2, y], [x + w / 4, y - h / 2], [x + w / 4 + 6, y - h / 2], [x + w / 2 - 6, y]], C[1]);
+    R(g, x - 1, y - h, 2, h, C[5]);
+    poly(g, [[x - 12, y], [x, y - 28], [x + 12, y]], '#0A0C12'); poly(g, [[x, y - 28], [x + 12, y], [x + 4, y]], C[1]); R(g, x - 1, y - 26, 1, 26, '#64748B');
+    R(g, x - w / 2 - 24, y - 3, 3, 3, '#64748B'); R(g, x + w / 2 + 21, y - 3, 3, 3, '#64748B');
+  };
   switch (k) {
-    case 1: // (the icefall: blocks of fake ice, the ladders laid over the crevasses)
-      for (const [x, w, h] of [[TL + 250, 90, 70], [TL + 440, 70, 100], [TR - 260, 110, 60]]) { g.fillStyle = '#9CC8E4'; g.beginPath(); g.moveTo(x, y); g.lineTo(x + 10, y - h); g.lineTo(x + w - 14, y - h - 12); g.lineTo(x + w, y); g.closePath(); g.fill(); }
-      for (const x of [TL + 340, TR - 360]) { R(g, x, y - 6, 80, 3, '#CBD5E1'); for (let t = x; t < x + 80; t += 10) R(g, t, y - 9, 2, 6, '#CBD5E1'); }
-      break;
-    case 2: tent(TL + 260, '#FACC15'); tent(TL + 480, '#F97316', 70); tent(TR - 250, '#EAB308', 100); break;
-    case 3: // (camp 2: the mess tent, its pots, its sign)
-      tent(TL + 300, '#16A34A', 140); R(g, TL + 470, y - 40, 60, 40, '#475569'); R(g, TL + 478, y - 52, 18, 12, '#94A3B8'); R(g, TL + 502, y - 50, 20, 10, '#94A3B8');
-      R(g, TL + 260, y - 246, 80, 18, INK); R(g, TL + 261, y - 245, 78, 16, '#F8FAFC'); text(g, 'MESS TENT', TL + 300, y - 234, INK, 5, 'center', null);
-      break;
-    case 4: // (the Lhotse face: a steep wall of fake ice up the back, fixed ropes down it)
-      g.fillStyle = '#B8CCE4'; g.beginPath(); g.moveTo(TL + 200, y); g.lineTo(TL + 520, top + 30); g.lineTo(TL + 620, top + 30); g.lineTo(TL + 380, y); g.closePath(); g.fill();
-      g.strokeStyle = '#DC2626'; g.lineWidth = 2; for (const o of [0, 40]) { g.beginPath(); g.moveTo(TL + 260 + o, y); g.lineTo(TL + 560 + o, top + 34); g.stroke(); }
-      break;
-    case 5: tent(TL + 230, '#F97316', 80); tent(TL + 380, '#DC2626', 80); tent(TR - 300, '#F97316', 110); break;
-    case 6: // (camp 4, the south col: oxygen bottles, piles of them)
-      for (let i = 0; i < 9; i++) tank(TL + 220 + (i % 5) * 14 + Math.floor(i / 5) * 7, y - Math.floor(i / 5) * 24);
-      for (let i = 0; i < 7; i++) tank(TR - 320 + (i % 4) * 14, y - Math.floor(i / 4) * 24);
-      R(g, TL + 420, y - 90, 100, 18, INK); R(g, TL + 421, y - 89, 98, 16, '#F8FAFC'); text(g, 'SOUTH COL', TL + 470, y - 78, INK, 5, 'center', null);
-      break;
-    case 7: { // (the death zone: frozen mannequins in climbing gear, the famous green boots; a warning)
-      for (const [x, f] of [[TL + 260, 1], [TR - 300, -1]] as const) { R(g, x - 30 * f, y - 14, 60 * f, 12, '#475569'); R(g, x + 22 * f, y - 18, 10 * f, 16, '#E2E8F0'); R(g, x - 36 * f, y - 10, 10 * f, 10, '#22C55E'); }
-      R(g, TL + 60, y - 252, 140, 34, INK); R(g, TL + 62, y - 250, 136, 30, '#FDE047'); text(g, 'DEATH ZONE', TL + 130, y - 239, INK, 7, 'center', null); text(g, 'NO REFUNDS', TL + 130, y - 226, '#B91C1C', 5, 'center', null);
+    case 1: { // (the icefall: blocks of fake ice in their steps, the ladders laid across between them)
+      const I = ramp6('#9CC8E4');
+      for (const [x, w, h] of [[TL + 250, 90, 70], [TL + 440, 70, 100], [TR - 260, 110, 60]]) {
+        poly(g, [[x - 2, y], [x + 8, y - h - 2], [x + w - 12, y - h - 14], [x + w + 2, y]], INK);
+        poly(g, [[x, y], [x + 10, y - h], [x + w - 14, y - h - 12], [x + w, y]], I[3]);
+        poly(g, [[x + 10, y - h], [x + w - 14, y - h - 12], [x + w * 0.55, y - h * 0.55], [x + 14, y - h * 0.7]], I[5]);
+        poly(g, [[x + w * 0.55, y - h * 0.55], [x + w - 14, y - h - 12], [x + w, y], [x + w * 0.6, y]], I[2]);
+        dither(g, x + 12, Math.round(y - h * 0.5), Math.round(w * 0.4), 4, I[4]); R(g, x + 16, y - h + 6, 2, Math.round(h * 0.4), '#FFFFFF');
+      }
+      for (const x of [TL + 340, TR - 360]) { R(g, x - 1, y - 11, 82, 3, INK); R(g, x, y - 10, 80, 2, CHROME[3]); R(g, x - 1, y - 5, 82, 3, INK); R(g, x, y - 4, 80, 2, CHROME[2]); for (let t = x + 4; t < x + 80; t += 10) R(g, t, y - 9, 2, 5, CHROME[2]); }
       break;
     }
-    case 8: // (the Hillary step: the big rock step at the back, ONE AT A TIME)
-      g.fillStyle = '#6B5E4E'; g.beginPath(); g.moveTo(TL + 240, y); g.lineTo(TL + 260, y - 120); g.lineTo(TL + 420, y - 130); g.lineTo(TL + 440, y - 60); g.lineTo(TL + 560, y - 60); g.lineTo(TL + 580, y); g.closePath(); g.fill();
-      R(g, TL + 300, y - 170, 140, 20, INK); R(g, TL + 301, y - 169, 138, 18, '#F8FAFC'); text(g, 'ONE AT A TIME, PLEASE', TL + 370, y - 157, INK, 5, 'center', null);
+    case 2: tent(TL + 260, '#FACC15'); tent(TL + 500, '#F97316', 70); tent(TR - 250, '#EAB308', 100); break;
+    case 3: { // (camp 2: the mess tent (its name on it), the table and its pots)
+      tent(TL + 300, '#16A34A', 140);
+      signText(g, 'MESS', TL + 274, y - 30, { sx: 1, sy: 1, fill: '#F0FDF4', shadow: '#052E16', gap: 1 }); signText(g, 'TENT', TL + 274, y - 21, { sx: 1, sy: 1, fill: '#F0FDF4', shadow: '#052E16', gap: 1 });
+      const Tb = ramp6('#475569');
+      R(g, TL + 469, y - 41, 62, 6, INK); R(g, TL + 470, y - 40, 60, 4, Tb[3]); R(g, TL + 470, y - 40, 60, 1, Tb[5]);
+      for (const lx of [TL + 474, TL + 522]) R(g, lx, y - 36, 4, 36, Tb[1]);
+      for (const [px, pw, ph] of [[TL + 478, 18, 12], [TL + 502, 20, 10]] as const) { R(g, px - 1, y - 41 - ph - 1, pw + 2, ph + 1, INK); R(g, px, y - 41 - ph, pw, ph, CHROME[2]); R(g, px, y - 41 - ph, 3, ph, CHROME[4]); R(g, px - 2, y - 41 - ph, pw + 4, 2, CHROME[3]); }
       break;
+    }
+    case 4: { // (the Lhotse face: a steep wall of fake ice up the back, banded, the fixed ropes down it, their anchors)
+      const I = ramp6('#7E92AC');
+      poly(g, [[TL + 197, y], [TL + 518, top + 27], [TL + 623, top + 27], [TL + 383, y]], INK);
+      poly(g, [[TL + 200, y], [TL + 520, top + 30], [TL + 620, top + 30], [TL + 380, y]], I[3]);
+      poly(g, [[TL + 330, y], [TL + 590, top + 30], [TL + 620, top + 30], [TL + 380, y]], I[2]);
+      for (let i = 1; i < 6; i++) { const yy = y - ((y - top - 30) * i) / 6, xx = TL + 200 + (320 * i) / 6; dither(g, Math.round(xx), Math.round(yy), 120, 2, I[5]); }
+      for (const [col, o] of [['#DC2626', 0], ['#CA8A04', 40]] as const) { g.strokeStyle = INK; g.lineWidth = 3; g.beginPath(); g.moveTo(TL + 260 + o, y); g.lineTo(TL + 560 + o, top + 34); g.stroke(); g.strokeStyle = col; g.lineWidth = 2; g.stroke(); for (let i = 1; i < 4; i++) { const ax = TL + 260 + o + (300 * i) / 4, ay = y - ((y - top - 34) * i) / 4; R(g, ax - 2, ay - 2, 5, 5, INK); R(g, ax - 1, ay - 1, 3, 3, CHROME[3]); } }
+      break;
+    }
+    case 5: tent(TL + 230, '#F97316', 80); tent(TL + 390, '#DC2626', 80); tent(TR - 300, '#F97316', 110); break;
+    case 6: // (camp 4, the south col: oxygen bottles, piles of them, the empties on their sides)
+      for (let i = 0; i < 9; i++) bottle(g, TL + 220 + (i % 5) * 12 + Math.floor(i / 5) * 6, y - Math.floor(i / 5) * 25, i % 3 ? '#C2570C' : '#15803D');
+      for (let i = 0; i < 7; i++) bottle(g, TR - 320 + (i % 4) * 12, y - Math.floor(i / 4) * 25, i % 2 ? '#C2570C' : '#1D4ED8');
+      for (const [bx, col] of [[TL + 400, '#C2570C'], [TL + 430, '#15803D']] as const) { const B = ramp5(col); R(g, bx - 1, y - 11, 26, 11, INK); R(g, bx, y - 10, 24, 9, B[2]); R(g, bx, y - 10, 24, 2, B[3]); R(g, bx, y - 3, 24, 2, B[1]); R(g, bx + 24, y - 8, 4, 5, '#A8B0BC'); }
+      break;
+    case 7: { // (the death zone: frozen mannequins laid out stiff in their down suits, the famous green boots)
+      for (const [x, f] of [[TL + 260, 1], [TR - 300, -1]] as const) {
+        const Su = ramp5(f > 0 ? '#C2410C' : '#1D4ED8'), Bt = ramp5('#16A34A');
+        // (its head (a helmet, goggles), the suit in its quilted rolls, the legs laid out, the boots)
+        const hx = x - 34 * f, yy = y - 2;
+        g.fillStyle = INK; g.beginPath(); g.ellipse(hx, yy - 8, 9, 8, 0, 0, Math.PI * 2); g.fill();
+        g.fillStyle = '#E2E8F0'; g.beginPath(); g.ellipse(hx, yy - 8, 8, 7, 0, 0, Math.PI * 2); g.fill();
+        R(g, hx - 5, yy - 9, 10, 4, '#0F172A'); R(g, hx - 4, yy - 9, 3, 1, '#7DD3FC');
+        R(g, Math.min(x - 24 * f, x + 22 * f) - 1, yy - 15, 47, 15, INK);
+        for (let i = 0; i < 5; i++) { const sx = x - 24 * f + i * 9 * f - (f < 0 ? 9 : 0); R(g, sx, yy - 14, 9, 13, Su[2]); R(g, sx, yy - 14, 9, 3, Su[3]); R(g, sx, yy - 4, 9, 3, Su[1]); R(g, sx + (f > 0 ? 8 : 0), yy - 14, 1, 13, Su[0]); }
+        R(g, Math.min(x + 21 * f, x + 50 * f) - 1, yy - 11, 31, 11, INK);
+        R(g, Math.min(x + 22 * f, x + 50 * f), yy - 10, 28, 9, Su[1]); R(g, Math.min(x + 22 * f, x + 50 * f), yy - 10, 28, 2, Su[2]);
+        const bx = Math.min(x + 50 * f, x + 62 * f);
+        R(g, bx - 1, yy - 15, 14, 15, INK); R(g, bx, yy - 14, 12, 13, Bt[2]); R(g, bx, yy - 14, 12, 3, Bt[3]); R(g, bx, yy - 3, 12, 2, Bt[0]); R(g, bx + 2, yy - 10, 8, 1, Bt[4]);
+      }
+      break;
+    }
+    case 8: { // (the Hillary step: the big rock step at the back, moulded fiberglass in its steps, a fixed rope up it)
+      const Rk = ramp6('#7A6A58');
+      const pts: [number, number][] = [[TL + 240, y], [TL + 260, y - 120], [TL + 420, y - 130], [TL + 440, y - 60], [TL + 560, y - 60], [TL + 580, y]];
+      poly(g, pts.map(([x, yy]) => [x + (x < TL + 400 ? -2 : 2), yy - 2] as [number, number]), INK);
+      poly(g, pts, Rk[3]);
+      poly(g, [[TL + 260, y - 120], [TL + 420, y - 130], [TL + 410, y - 112], [TL + 268, y - 104]], Rk[5]);
+      poly(g, [[TL + 440, y - 60], [TL + 560, y - 60], [TL + 552, y - 48], [TL + 446, y - 48]], Rk[5]);
+      poly(g, [[TL + 420, y - 130], [TL + 440, y - 60], [TL + 440, y], [TL + 410, y]], Rk[1]);
+      poly(g, [[TL + 560, y - 60], [TL + 580, y], [TL + 556, y]], Rk[1]);
+      dither(g, TL + 266, y - 100, 140, 4, Rk[4]); dither(g, TL + 250, y - 30, 180, 4, Rk[2]);
+      for (let i = 0; i < 7; i++) { const cx = TL + 270 + hash(i + 80) * 140, cy = y - 90 + hash(i + 81) * 70; R(g, cx, cy, 10 + hash(i + 82) * 14, 1, Rk[1]); }
+      g.strokeStyle = INK; g.lineWidth = 3; g.beginPath(); g.moveTo(TL + 230, y); g.quadraticCurveTo(TL + 270, y - 80, TL + 330, y - 126); g.stroke(); g.strokeStyle = '#DC2626'; g.lineWidth = 2; g.stroke();
+      break;
+    }
   }
   // (dimmed: behind the play, nothing to stand on)
-  g.fillStyle = 'rgba(6, 8, 16, 0.18)'; g.fillRect(TL, top, TR - TL, y - top);
+  g.fillStyle = 'rgba(6, 8, 16, 0.2)'; g.fillRect(TL, top, TR - TL, y - top);
+};
+/** The way up's shutter (live: it rolls up into its arch's top as the floor's cleared): slats in steel's steps, its
+ *  foot bar in hazard stripes; it fills the arch (no way over it). Stamped whole, cut to what's down. */
+const SHUT_H = 136;
+const paintShutter = (g: Ctx, x: number, y: number) => {
+  R(g, x - 1, y - SHUT_H, 38, SHUT_H, INK);
+  for (let yy = y - SHUT_H; yy < y - 12; yy += 8) { R(g, x, yy, 36, 7, STEEL6[3]); R(g, x, yy, 36, 1, STEEL6[5]); R(g, x, yy + 5, 36, 2, STEEL6[1]); R(g, x, yy + 3, 36, 1, STEEL6[4]); }
+  dither(g, x, y - 60, 36, 4, STEEL6[1]);
+  R(g, x, y - 12, 36, 12, INK);
+  for (let i = 0; i < 36; i += 8) R(g, x + i, y - 11, 4, 10, '#DC2626');
+  R(g, x, y - 12, 36, 1, '#FCA5A5'); R(g, x + 14, y - 9, 8, 4, CHROME[3]);
 };
 const drawTower = (c: Ctx, state: GameState, gates: number[], tells: { x: number; t: number }[], lockedFloor: number | null, ox = 0) => {
   if (!vis(state, TL + ox, TR + ox, ox ? 0 : 60)) return;
@@ -1595,17 +1958,34 @@ const drawTower = (c: Ctx, state: GameState, gates: number[], tells: { x: number
     const y = floorY(k);
     if (!visY(state, y - FLOOR - 40, y + CEIL + 40)) continue;
     stamp(c, `wp-floor-${k}`, TL - 4, y - FLOOR - 4, TR - TL + 8, FLOOR + DECK + 8, g => paintFloor(g, k));
-    // (the way up's gate: shut till the floor's clear, then it swings up; the way up's light, green once it's open)
+    // (the way up's shutter: down till the floor's clear, then it rolls up into the arch's top; the way up's lamp,
+    // green once it's open)
     if (k < FLOORS) {
-      const s = exitSide(k), gx = s > 0 ? TR - 6 : TL - 6, lift = gates[k] ?? 0;
-      if (lift < 0.98) { R(c, gx, y - 100 + lift * 90, 12, 100 - lift * 90, INK); for (let yy = y - 96 + lift * 90; yy < y; yy += 12) R(c, gx + 2, yy, 8, 2, '#DC2626'); }
-      const ex = s > 0 ? TR - 22 : TL + 22, on = lift > 0.9;
-      R(c, ex - 4, y - 146, 8, 4, on ? (Math.floor(state.frame / 15) % 2 ? '#4ADE80' : '#16A34A') : '#7F1D1D');
+      const s = exitSide(k), ex = s > 0 ? TR - 22 : TL + 22, lift = gates[k] ?? 0, gx = ex - 18;
+      if (lift < 0.98) {
+        // (one stamp for every floor's, put down where it is: (0, 0) its foot's left)
+        const down = Math.round(SHUT_H * (1 - lift));
+        if (down >= SHUT_H - 1) { c.save(); c.translate(gx, y); stamp(c, 'wp-shutter', -2, -SHUT_H - 2, 40, SHUT_H + 4, g => paintShutter(g, 0, 0)); c.restore(); }
+        else {
+          // (rolling up: live, a few slats and its foot bar (a clipped stamp cost more, without a GPU))
+          const y0 = y - SHUT_H, foot = y0 + down;
+          R(c, gx - 1, y0, 38, down, INK);
+          for (let yy = foot - 12 - 8; yy >= y0 - 7; yy -= 8) { const t = Math.max(y0, yy); R(c, gx, t, 36, yy + 7 - t, STEEL6[3]); if (yy >= y0) R(c, gx, yy, 36, 1, STEEL6[5]); }
+          if (down > 12) { R(c, gx, foot - 12, 36, 12, '#DC2626'); R(c, gx, foot - 12, 36, 1, '#FCA5A5'); R(c, gx, foot - 2, 36, 2, INK); }
+        }
+      }
+      const on = lift > 0.9, blink = Math.floor(state.frame / 15) % 2;
+      R(c, ex - 4, y - 146, 8, 4, on ? (blink ? '#4ADE80' : '#16A34A') : '#B91C1C');
+      R(c, ex - 3, y - 146, 2, 1, on ? '#DCFCE7' : '#FCA5A5');
     }
+    // (a door's tell: it rattles in its dark frame, its beacon flashing)
     if (k === lockedFloor && !ox) for (const t of tells) {
-      const on = (t.t >> 2) % 2 === 0;
-      R(c, t.x - 24 + (on ? 2 : -2), y - 102, 48, 102, on ? '#64748B' : '#334155');
-      steppedGlow(c, t.x, y - 112, 14, '#F87171', 0.6, 0.1, 3);
+      const on = (t.t >> 2) % 2 === 0, j = on ? 2 : -2;
+      R(c, t.x - 27, y - 105, 54, 105, '#06080C');
+      c.save(); c.translate(t.x + j, 0);
+      stamp(c, `wp-door-${k}`, -26, y - 104, 52, 106, g => paintDoorSlab(g, 0, y, THEME[k].door));
+      c.restore();
+      if (on) { steppedGlow(c, t.x, y - 138, 16, '#F87171', 0.6, 0.08, 3); R(c, t.x - 4, y - 141, 8, 6, '#FCA5A5'); R(c, t.x - 3, y - 141, 2, 2, '#FFFFFF'); }
     }
   }
   if (ox) c.restore();
@@ -1624,87 +2004,213 @@ const mixHex = (a: string, b: string, t: number) => {
   const [x, y] = [p(a), p(b)];
   return '#' + x.map((v, i) => Math.round(v + (y[i] - v) * t).toString(16).padStart(2, '0')).join('');
 };
+/** A statue on the face (stood on its plinth at (sx, sy)): the yeti mascot, its paint peeling; the sherpa animatronic,
+ *  seized with an arm up, its wires out. (Joints from limb.ts.) */
+const yetiStatue = (g: Ctx, sx: number, sy: number) => {
+  const F = ramp6('#DCE6F0'), Pl = ramp6('#57534E');
+  // (the plinth, its plaque)
+  R(g, sx - 37, sy - 7, 74, 15, INK); R(g, sx - 36, sy - 6, 72, 13, Pl[3]); R(g, sx - 36, sy - 6, 72, 2, Pl[5]); R(g, sx - 36, sy + 4, 72, 3, Pl[1]);
+  signText(g, 'DO NOT CLIMB', sx, sy + 4, { sx: 1, sy: 1, fill: '#FDE68A', gap: 0 });
+  // (its legs, stumpy; its body, fur in rolls; its arms hanging (the elbow from limb.ts), the fists)
+  for (const lx of [sx - 18, sx + 6]) { R(g, lx - 1, sy - 30, 14, 24, INK); R(g, lx, sy - 29, 12, 23, F[2]); R(g, lx, sy - 29, 3, 23, F[4]); R(g, lx - 2, sy - 10, 16, 4, F[1]); }
+  g.fillStyle = INK; g.beginPath(); g.ellipse(sx, sy - 58, 31, 34, 0, 0, Math.PI * 2); g.fill();
+  g.fillStyle = F[2]; g.beginPath(); g.ellipse(sx, sy - 58, 30, 33, 0, 0, Math.PI * 2); g.fill();
+  g.fillStyle = F[3]; g.beginPath(); g.ellipse(sx - 6, sy - 62, 22, 27, 0, 0, Math.PI * 2); g.fill();
+  g.fillStyle = F[4]; g.beginPath(); g.ellipse(sx - 12, sy - 70, 10, 14, 0, 0, Math.PI * 2); g.fill();
+  for (let i = 0; i < 5; i++) R(g, sx - 20 + i * 9, sy - 40 + (i % 2) * 3, 6, 2, F[1]);
+  g.lineCap = 'round';
+  for (const s of [-1, 1]) {
+    const [shx, shy] = [sx + s * 26, sy - 80], [hx, hy] = [sx + s * 34, sy - 36], [ex, ey] = elbowFront(shx, shy, hx, hy, 24, 24, s);
+    for (const [w, col] of [[14, INK], [11, F[2]], [4, F[4]]] as const) { g.strokeStyle = col; g.lineWidth = w; g.beginPath(); g.moveTo(shx - (w === 4 ? s * 3 : 0), shy); g.lineTo(ex - (w === 4 ? s * 3 : 0), ey); g.lineTo(hx - (w === 4 ? s * 3 : 0), hy); g.stroke(); }
+    g.fillStyle = INK; g.beginPath(); g.arc(hx, hy + 3, 8, 0, Math.PI * 2); g.fill(); g.fillStyle = F[1]; g.beginPath(); g.arc(hx, hy + 3, 6, 0, Math.PI * 2); g.fill();
+  }
+  g.lineCap = 'butt';
+  // (its head: the brow, the eyes, the fangs; the paint gone in patches, the gray fiberglass under)
+  g.fillStyle = INK; g.beginPath(); g.ellipse(sx, sy - 102, 21, 19, 0, 0, Math.PI * 2); g.fill();
+  g.fillStyle = F[3]; g.beginPath(); g.ellipse(sx, sy - 102, 20, 18, 0, 0, Math.PI * 2); g.fill();
+  g.fillStyle = F[4]; g.beginPath(); g.ellipse(sx - 5, sy - 108, 11, 8, 0, 0, Math.PI * 2); g.fill();
+  R(g, sx - 12, sy - 104, 24, 4, F[1]); R(g, sx - 10, sy - 102, 6, 4, '#7F1D1D'); R(g, sx + 4, sy - 102, 6, 4, '#7F1D1D'); R(g, sx - 9, sy - 102, 2, 2, '#FCA5A5'); R(g, sx + 5, sy - 102, 2, 2, '#FCA5A5');
+  R(g, sx - 9, sy - 93, 18, 6, '#3A1010'); R(g, sx - 7, sy - 93, 3, 4, '#F8FAFC'); R(g, sx + 4, sy - 93, 3, 4, '#F8FAFC');
+  for (let i = 0; i < 8; i++) { const px = sx - 24 + hash(sx + i * 3.3) * 44, py = sy - 118 + hash(sx + i * 5.1) * 96; R(g, px - 1, py - 1, 9, 7, '#5A5450'); R(g, px, py, 7, 5, '#8A847E'); R(g, px, py, 7, 1, '#A8A29E'); }
+};
+const sherpaStatue = (g: Ctx, sx: number, sy: number) => {
+  const J = ramp6('#B91C1C'), Pn = ramp6('#3F3F46'), Sk = ramp6('#B07A4A'), Pl = ramp6('#57534E');
+  R(g, sx - 31, sy - 7, 62, 15, INK); R(g, sx - 30, sy - 6, 60, 13, Pl[3]); R(g, sx - 30, sy - 6, 60, 2, Pl[5]); R(g, sx - 30, sy + 4, 60, 3, Pl[1]);
+  signText(g, 'OUT OF ORDER', sx, sy + 4, { sx: 1, sy: 1, fill: '#FDE68A', gap: 0 });
+  // (its legs (the knees from limb.ts: stood near straight), its boots)
+  g.lineCap = 'round';
+  for (const s of [-1, 1]) {
+    const [hx, hy] = [sx + s * 6, sy - 40], [fx, fy] = [sx + s * 8, sy - 10], [kx, ky] = kneeFront(hx, hy, fx, fy, 16, 16, s);
+    for (const [w, col] of [[11, INK], [8, Pn[3]], [2, Pn[5]]] as const) { g.strokeStyle = col; g.lineWidth = w; g.beginPath(); g.moveTo(hx - (w === 2 ? 2 : 0), hy); g.lineTo(kx - (w === 2 ? 2 : 0), ky); g.lineTo(fx - (w === 2 ? 2 : 0), fy); g.stroke(); }
+    R(g, fx - 6, fy - 2, 14, 8, INK); R(g, fx - 5, fy - 1, 12, 6, '#57301A'); R(g, fx - 5, fy - 1, 12, 1, '#8A5A30');
+  }
+  // (the down jacket, quilted; the arms: the left hanging, the right seized up over his head (elbows from limb.ts))
+  R(g, sx - 15, sy - 93, 30, 56, INK); R(g, sx - 14, sy - 92, 28, 54, J[3]); R(g, sx - 14, sy - 92, 6, 54, J[4]); R(g, sx + 9, sy - 92, 5, 54, J[1]);
+  for (let yy = sy - 82; yy < sy - 40; yy += 10) R(g, sx - 14, yy, 28, 2, J[1]);
+  R(g, sx - 1, sy - 92, 2, 54, J[2]);
+  const arms: [number, number, number, number][] = [[sx - 12, sy - 88, sx - 18, sy - 50], [sx + 12, sy - 88, sx + 18, sy - 136]];
+  for (const [shx, shy, hx, hy] of arms) {
+    const [ex, ey] = elbowFront(shx, shy, hx, hy, 20, 20, Math.sign(shx - sx));
+    for (const [w, col] of [[11, INK], [8, J[3]], [2, J[5]]] as const) { g.strokeStyle = col; g.lineWidth = w; g.beginPath(); g.moveTo(shx, shy); g.lineTo(ex, ey); g.lineTo(hx, hy); g.stroke(); }
+    g.fillStyle = INK; g.beginPath(); g.arc(hx, hy, 5, 0, Math.PI * 2); g.fill(); g.fillStyle = Sk[3]; g.beginPath(); g.arc(hx, hy, 4, 0, Math.PI * 2); g.fill();
+  }
+  // (a torn wire out at his shoulder, sparking no more)
+  g.strokeStyle = '#FACC15'; g.lineWidth = 1; g.beginPath(); g.moveTo(sx + 13, sy - 86); g.quadraticCurveTo(sx + 26, sy - 78, sx + 22, sy - 64); g.stroke();
+  g.strokeStyle = '#2563EB'; g.beginPath(); g.moveTo(sx + 13, sy - 84); g.quadraticCurveTo(sx + 30, sy - 74, sx + 27, sy - 60); g.stroke();
+  g.lineCap = 'butt';
+  // (his head: skin in its steps, a grin, the yellow hat)
+  g.fillStyle = INK; g.beginPath(); g.arc(sx, sy - 104, 13, 0, Math.PI * 2); g.fill();
+  g.fillStyle = Sk[3]; g.beginPath(); g.arc(sx, sy - 104, 12, 0, Math.PI * 2); g.fill();
+  g.fillStyle = Sk[4]; g.beginPath(); g.arc(sx - 4, sy - 107, 6, 0, Math.PI * 2); g.fill();
+  R(g, sx - 6, sy - 106, 3, 3, INK); R(g, sx + 3, sy - 106, 3, 3, INK); R(g, sx - 5, sy - 99, 10, 3, '#3A1010'); R(g, sx - 4, sy - 99, 8, 1, '#F8FAFC');
+  R(g, sx - 13, sy - 120, 26, 9, INK); R(g, sx - 12, sy - 119, 24, 7, '#EAB308'); R(g, sx - 12, sy - 119, 24, 2, '#FDE047'); R(g, sx - 2, sy - 124, 4, 4, '#DC2626');
+};
 const paintFace = (g: Ctx, k: number, cx0 = -1e9, cx1 = 1e9, cy0 = -1e9, cy1 = 1e9) => {
   const x0 = TR, x1 = TR + FACE, yb = floorY(k) + DECK, yt = floorY(k + 1), t = k / (FLOORS - 1);
   const hsh = (n: number) => hash(n * 3.7 + k * 17.3);
-  // (the fake rock: warm tan fiberglass low down, colder and bluer up high; banded)
-  const ramp = [mixHex('#8A7258', '#6E7E96', t), mixHex('#76604A', '#5C6C86', t), mixHex('#5E4C3A', '#4A5874', t)];
-  R(g, x0, yt, FACE, yb - yt, ramp[1]);
-  for (let yy = yt; yy < yb; yy += 30) R(g, x0, yy, FACE, 10, ramp[0]);
-  // (the dither rows only where this tile is: the rest is clipped, and a row of it is hundreds of fills)
-  for (let yy = yt + 20; yy < yb; yy += 30) if (yy + 4 > cy0 && yy < cy1) { const a = Math.max(x0, Math.floor((cx0 - x0) / 4) * 4 + x0), b = Math.min(x1, cx1 + 4); checker(g, a, yy, b - a, 4, ramp[2]); }
-  // (facets: rock shapes moulded in, a lit top on each)
-  for (let i = 0; i < 9; i++) {
-    const fx = x0 + hsh(i) * (FACE - 120), fy = yt + 30 + hsh(i + 9) * (yb - yt - 120), w = 70 + hsh(i + 3) * 90, h = 40 + hsh(i + 5) * 60;
-    g.fillStyle = ramp[2]; g.beginPath(); g.moveTo(fx, fy + h); g.lineTo(fx + w * 0.2, fy); g.lineTo(fx + w * 0.7, fy - 8); g.lineTo(fx + w, fy + h); g.closePath(); g.fill();
-    g.fillStyle = ramp[0]; g.beginPath(); g.moveTo(fx + w * 0.2, fy); g.lineTo(fx + w * 0.7, fy - 8); g.lineTo(fx + w * 0.62, fy + 6); g.lineTo(fx + w * 0.26, fy + 10); g.closePath(); g.fill();
+  /** (anything not reaching into this tile's not painted at all) */
+  const inT = (a: number, b: number, c0: number, d: number) => b > cx0 - 2 && a < cx1 + 2 && d > cy0 - 2 && c0 < cy1 + 2;
+  // (the fake rock: warm tan fiberglass low down, colder and bluer up high: its body, dithered darker down each band;
+  // ledges of it in broken runs (a lit lip, the shadow under); moulded boulders over that; cracks)
+  const Rk = ramp6(mixHex('#7E6850', '#62728C', t));
+  R(g, x0, yt, FACE, yb - yt, Rk[2]);
+  dither(g, x0, Math.round(yt + (yb - yt) * 0.6), FACE, Math.round((yb - yt) * 0.4), Rk[1]);
+  for (let i = 0; i < 14; i++) {
+    const lx = x0 + hsh(200 + i) * (FACE - 120), ly = Math.round(yt + 20 + hsh(210 + i) * (yb - yt - 40)), lw = 80 + hsh(220 + i) * 160, ld = 2 + Math.round(hsh(230 + i) * 4);
+    if (!inT(lx, lx + lw + 20, ly - 4, ly + 18)) continue;
+    poly(g, [[lx, ly], [lx + lw * 0.3, ly - ld], [lx + lw, ly - 1], [lx + lw + 16, ly + 8], [lx + 8, ly + 10]], Rk[3]);
+    poly(g, [[lx, ly], [lx + lw * 0.3, ly - ld], [lx + lw, ly - 1], [lx + lw, ly + 1], [lx + lw * 0.3, ly - ld + 2], [lx, ly + 2]], Rk[5]);
+    poly(g, [[lx + 8, ly + 10], [lx + lw + 16, ly + 8], [lx + lw + 10, ly + 13], [lx + 12, ly + 14]], Rk[0]);
   }
-  // (the panels' seams and their bolts: it's a shell)
-  for (let x = x0 + 120; x < x1; x += 160) { R(g, x, yt, 2, yb - yt, '#2A2018'); for (let yy = yt + 14; yy < yb; yy += 40) R(g, x - 3, yy, 3, 3, '#A8A29E'); }
-  for (let yy = yt + 90; yy < yb; yy += 120) { R(g, x0, yy, FACE, 2, '#2A2018'); for (let x = x0 + 30; x < x1; x += 60) R(g, x, yy - 3, 3, 3, '#A8A29E'); }
-  // (a gap in the shell: the warm Florida night behind it, a palm, the scaffold, an AC unit, its pipes)
+  // (moulded boulders: the shadow under each, its body, its lit face up its left, a highlight on its top, its shade)
+  for (let i = 0; i < 16; i++) {
+    const fx = x0 + 4 + hsh(i) * (FACE - 150), fy = yt + 30 + hsh(i + 9) * (yb - yt - 120), w = 80 + hsh(i + 3) * 120, h = 46 + hsh(i + 5) * 70, pk = 0.25 + hsh(i + 7) * 0.4;
+    if (!inT(fx - 4, fx + w + 6, fy - 14, fy + h + 6)) continue;
+    poly(g, [[fx - 3, fy + h + 4], [fx + w * 0.12, fy + h * 0.3], [fx + w * pk, fy - 4], [fx + w * 0.85, fy + h * 0.2], [fx + w + 4, fy + h + 4]], Rk[0]);
+    poly(g, [[fx, fy + h], [fx + w * 0.12, fy + h * 0.3], [fx + w * pk, fy], [fx + w * 0.85, fy + h * 0.2], [fx + w, fy + h]], Rk[2]);
+    poly(g, [[fx, fy + h], [fx + w * 0.12, fy + h * 0.3], [fx + w * pk, fy], [fx + w * (pk + 0.05), fy + h * 0.6], [fx + w * 0.35, fy + h]], Rk[3]);
+    poly(g, [[fx + w * 0.12, fy + h * 0.3], [fx + w * pk, fy], [fx + w * (pk + 0.02), fy + h * 0.25], [fx + w * 0.16, fy + h * 0.45]], Rk[4]);
+    poly(g, [[fx + w * pk, fy], [fx + w * 0.85, fy + h * 0.2], [fx + w, fy + h], [fx + w * 0.7, fy + h], [fx + w * (pk + 0.05), fy + h * 0.6]], Rk[1]);
+    R(g, Math.round(fx + w * (pk - 0.08)), Math.round(fy + 3), Math.round(w * 0.1), 1, Rk[5]);
+    dither(g, Math.round(fx + w * 0.2), Math.round(fy + h * 0.62), Math.round(w * (pk - 0.05)), 4, Rk[2]);
+    dither(g, Math.round(fx + w * (pk + 0.06)), Math.round(fy + h * 0.4), Math.round(w * 0.2), 4, Rk[0]);
+  }
+  g.strokeStyle = Rk[0]; g.lineWidth = 1; g.beginPath();
+  for (let i = 0; i < 10; i++) { let cx = x0 + hsh(240 + i) * FACE, cy = yt + hsh(250 + i) * (yb - yt); g.moveTo(cx, cy); for (let j = 0; j < 4; j++) { cx += (hsh(260 + i * 4 + j) - 0.5) * 30; cy += 8 + hsh(270 + i * 4 + j) * 10; g.lineTo(Math.round(cx), Math.round(cy)); } }
+  g.stroke();
+  // (the panels' seams (a lit lip along each) and their bolts: it's a shell)
+  for (let x = x0 + 120; x < x1; x += 160) if (inT(x - 4, x + 4, yt, yb)) { R(g, x, yt, 2, yb - yt, Rk[0]); R(g, x + 2, yt, 1, yb - yt, Rk[4]); for (let yy = yt + 14; yy < yb; yy += 40) { R(g, x - 4, yy, 4, 4, INK); R(g, x - 3, yy + 1, 2, 2, '#B8B2AA'); } }
+  for (let yy = yt + 90; yy < yb; yy += 120) if (inT(x0, x1, yy - 4, yy + 4)) { R(g, x0, yy, FACE, 2, Rk[0]); R(g, x0, yy + 2, FACE, 1, Rk[4]); for (let x = x0 + 30; x < x1; x += 60) { R(g, x, yy - 4, 4, 4, INK); R(g, x + 1, yy - 3, 2, 2, '#B8B2AA'); } }
+  // (a hole torn in the shell: the warm Florida night behind it (its sky banded, stars, a palm, the scaffold, the back
+  // of an AC unit and its pipes), the fiberglass mat frayed round its edge)
   if (k < 6) {
     const gx = x0 + 80 + hsh(21) * (FACE - 260), gy = yt + 40 + hsh(22) * 80;
-    R(g, gx - 3, gy - 3, 126, 96, '#1A1410'); R(g, gx, gy, 120, 90, '#1A2448'); R(g, gx, gy + 60, 120, 30, '#2A2A40');
-    for (let i = 0; i < 6; i++) R(g, gx + hsh(30 + i) * 114, gy + 4 + hsh(40 + i) * 40, 2, 2, '#F6C860');
-    g.strokeStyle = '#0E1A12'; g.lineWidth = 4; g.beginPath(); g.moveTo(gx + 30, gy + 90); g.quadraticCurveTo(gx + 34, gy + 50, gx + 44, gy + 28); g.stroke();
-    for (let j = 0; j < 5; j++) { const a = -Math.PI / 2 + (j - 2) * 0.6; g.beginPath(); g.moveTo(gx + 44, gy + 28); g.lineTo(gx + 44 + Math.cos(a) * 26, gy + 34 + Math.sin(a) * 14); g.stroke(); }
-    R(g, gx + 60, gy, 4, 90, '#4A5468'); R(g, gx + 60, gy + 40, 60, 4, '#4A5468');
-    R(g, gx + 74, gy + 56, 40, 30, '#9CA3AF'); R(g, gx + 78, gy + 60, 32, 22, '#6B7280'); for (let i = 0; i < 4; i++) R(g, gx + 80, gy + 62 + i * 5, 28, 2, '#4B5563');
-    R(g, gx + 100, gy + 30, 4, 26, '#B45309'); R(g, gx + 100, gy + 30, 20, 4, '#B45309');
+    if (inT(gx - 10, gx + 132, gy - 10, gy + 102)) {
+      const edge: [number, number][] = [];
+      for (let i = 0; i < 20; i++) { const a = (i / 20) * Math.PI * 2, r = 1 + (hsh(140 + i) - 0.5) * 0.24; edge.push([gx + 60 + Math.cos(a) * 64 * r, gy + 45 + Math.sin(a) * 50 * r]); }
+      poly(g, edge.map(([x, y]) => [gx + 60 + (x - gx - 60) * 1.08, gy + 45 + (y - gy - 45) * 1.1] as [number, number]), mixHex('#C8B890', Rk[3], 0.4));
+      poly(g, edge.map(([x, y]) => [gx + 60 + (x - gx - 60) * 1.03, gy + 45 + (y - gy - 45) * 1.04] as [number, number]), INK);
+      g.save(); g.beginPath(); g.moveTo(edge[0][0], edge[0][1]); for (const [x, y] of edge.slice(1)) g.lineTo(x, y); g.closePath(); g.clip();
+      ['#0E1430', '#161C40', '#22224A', '#30284E'].forEach((col, i) => R(g, gx - 8, gy - 8 + i * 28, 140, 29, col));
+      for (let i = 0; i < 10; i++) R(g, gx + hsh(30 + i) * 120, gy - 2 + hsh(40 + i) * 50, i % 3 ? 1 : 2, i % 3 ? 1 : 2, i % 2 ? '#F6C860' : '#E0E8F8');
+      R(g, gx - 8, gy + 70, 140, 30, '#141020'); for (let i = 0; i < 6; i++) R(g, gx + i * 22 + hsh(50 + i) * 8, gy + 66, 3, 2, '#F6C860');
+      const Pm = ramp5('#2A3A24');
+      g.strokeStyle = INK; g.lineWidth = 5; g.beginPath(); g.moveTo(gx + 30, gy + 100); g.quadraticCurveTo(gx + 34, gy + 50, gx + 44, gy + 26); g.stroke();
+      g.strokeStyle = '#3A2C20'; g.lineWidth = 3; g.stroke();
+      for (let j = 0; j < 6; j++) { const a = -Math.PI / 2 + (j - 2.5) * 0.55; poly(g, [[gx + 44, gy + 25], [gx + 44 + Math.cos(a) * 30, gy + 33 + Math.sin(a) * 14], [gx + 44 + Math.cos(a) * 18, gy + 29 + Math.sin(a) * 8]], j % 2 ? Pm[1] : Pm[2]); }
+      postV(g, gx + 60, gy - 8, gy + 100, 4, ramp6('#4A5468')); beamH(g, gx + 60, gx + 132, gy + 40, 4, ramp6('#4A5468'));
+      const Ac = ramp6('#9CA3AF');
+      R(g, gx + 73, gy + 55, 42, 32, INK); R(g, gx + 74, gy + 56, 40, 30, Ac[3]); R(g, gx + 74, gy + 56, 40, 2, Ac[5]); R(g, gx + 74, gy + 56, 2, 30, Ac[4]);
+      R(g, gx + 78, gy + 60, 32, 22, Ac[1]); for (let i = 0; i < 4; i++) R(g, gx + 79, gy + 62 + i * 5, 30, 2, Ac[0]);
+      g.strokeStyle = Ac[2]; g.lineWidth = 1; g.beginPath(); g.arc(gx + 94, gy + 71, 8, 0, Math.PI * 2); g.stroke();
+      R(g, gx + 100, gy + 30, 4, 26, '#8A4A14'); R(g, gx + 100, gy + 30, 1, 26, '#D08A44'); R(g, gx + 100, gy + 30, 22, 4, '#8A4A14'); R(g, gx + 100, gy + 30, 22, 1, '#D08A44');
+      g.restore();
+      for (let i = 0; i < 14; i++) { const [ax, ay] = edge[(i * 3) % 20]; R(g, ax - 2, ay - 1, 4 + hsh(150 + i) * 4, 1, '#D8C8A0'); }
+    }
   }
-  // (the fake snow: white paint, spray foam, cotton batting, patchy and gone yellow at the edges; more the higher)
-  const snowN = 3 + k * 2;
+  // (the fake snow: white paint, spray foam, cotton batting, patchy and gone yellow at the edges; more the higher;
+  // in its steps (the blue shadow under, the body, the lit top), the foam's pocks; plastic icicles under it up high)
+  const snowN = 3 + k;
+  const Sn0 = [mixHex('#8A9AB0', '#7A90B0', t), mixHex('#C8BC98', '#B4C4D8', t), mixHex('#E0D8C0', '#D4E0EE', t), mixHex('#F4F0E4', '#EEF4FA', t)], Sn = Sn0.map(col => mixHex(col, Rk[2], 0.3));
   for (let i = 0; i < snowN; i++) {
     const sx = x0 + hsh(50 + i) * (FACE - 80), sy = yt + hsh(60 + i) * (yb - yt - 30), w = 50 + hsh(70 + i) * 110;
-    g.fillStyle = mixHex('#C8B890', '#A8B8CC', t); g.beginPath(); g.ellipse(sx + w / 2, sy, w / 2 + 3, 13, 0, Math.PI, 0); g.fill();
-    g.fillStyle = mixHex('#D8D0B4', '#C8D4E4', t); g.beginPath(); g.ellipse(sx + w / 2, sy, w / 2 - 4, 9, 0, Math.PI, 0); g.fill();
-    // (plastic icicles under it, up high)
-    if (k >= 3) for (let j = 0; j < 4; j++) { const ix = sx + 8 + (j / 4) * (w - 16), il = 8 + hsh(90 + i * 4 + j) * 14; g.fillStyle = '#C8E4F8'; g.beginPath(); g.moveTo(ix - 3, sy + 1); g.lineTo(ix + 3, sy + 1); g.lineTo(ix, sy + il); g.closePath(); g.fill(); }
+    if (!inT(sx - 6, sx + w + 6, sy - 16, sy + 28)) continue;
+    g.fillStyle = INK; g.beginPath(); g.ellipse(sx + w / 2, sy + 1, w / 2 + 4, 15, 0, Math.PI, 0); g.fill();
+    g.fillStyle = Sn[0]; g.beginPath(); g.ellipse(sx + w / 2, sy, w / 2 + 3, 14, 0, Math.PI, 0); g.fill();
+    g.fillStyle = Sn[1]; g.beginPath(); g.ellipse(sx + w / 2, sy - 1, w / 2, 12, 0, Math.PI, 0); g.fill();
+    g.fillStyle = Sn[2]; g.beginPath(); g.ellipse(sx + w / 2 - 3, sy - 2, w / 2 - 6, 10, 0, Math.PI, 0); g.fill();
+    dither(g, Math.round(sx), Math.round(sy - 4), 8, 4, '#B8A060'); dither(g, Math.round(sx + w - 6), Math.round(sy - 4), 8, 4, '#B8A060');
+    for (let j = 0; j < 4; j++) R(g, sx + 8 + hsh(170 + i * 4 + j) * (w - 16), sy - 3 - hsh(180 + i * 4 + j) * 6, 2, 1, Sn[1]);
+    R(g, sx - 3, sy, w + 6, 2, Sn[0]);
+    if (k >= 3) for (let j = 0; j < 4; j++) { const ix = sx + 8 + (j / 4) * (w - 16), il = 8 + hsh(90 + i * 4 + j) * 14; g.fillStyle = INK; g.beginPath(); g.moveTo(ix - 4, sy + 1); g.lineTo(ix + 4, sy + 1); g.lineTo(ix, sy + il + 1); g.closePath(); g.fill(); g.fillStyle = '#C8E4F8'; g.beginPath(); g.moveTo(ix - 3, sy + 1); g.lineTo(ix + 3, sy + 1); g.lineTo(ix, sy + il); g.closePath(); g.fill(); R(g, ix - 1, sy + 2, 1, Math.max(1, il - 6), '#FFFFFF'); }
   }
-  // (prayer flags strung between two scaffold poles sticking out of it)
+  // (prayer flags strung between two scaffold poles clamped to it)
   { const py = yt + 40 + hsh(100) * 60, pa = x0 + 60 + hsh(101) * 200, pb = pa + 260;
-    R(g, pa - 2, py - 10, 4, 70, '#64748B'); R(g, pb - 2, py - 10, 4, 70, '#64748B');
-    g.strokeStyle = '#E2E8F0'; g.lineWidth = 1; g.beginPath(); g.moveTo(pa, py); g.quadraticCurveTo((pa + pb) / 2, py + 22, pb, py); g.stroke();
-    for (let x = pa + 10; x < pb - 8; x += 22) { const u = (x - pa) / (pb - pa); R(g, x, py + 22 * 4 * u * (1 - u), 12, 12, ['#2563EB', '#F8FAFC', '#DC2626', '#16A34A', '#FACC15'][Math.floor(x / 22) % 5]); } }
-  // (its statue: the yeti mascot, paint peeling; or the sherpa animatronic, a seized arm up; or neither)
-  if (k === 4 || k === 1) {
-    const sx = x0 + FACE - 170, sy = yb - 30;
-    g.fillStyle = '#E2E8F0'; g.beginPath(); g.ellipse(sx, sy - 50, 30, 46, 0, 0, Math.PI * 2); g.fill(); g.beginPath(); g.arc(sx, sy - 104, 20, 0, Math.PI * 2); g.fill();
-    for (let i = 0; i < 7; i++) R(g, sx - 24 + hsh(110 + i) * 44, sy - 120 + hsh(120 + i) * 100, 8, 6, '#8A7A6A');
-    R(g, sx - 9, sy - 110, 5, 4, INK); R(g, sx + 4, sy - 110, 5, 4, INK); R(g, sx - 8, sy - 98, 16, 4, '#7F1D1D');
-    R(g, sx - 34, sy - 4, 68, 8, '#57534E'); text(g, 'DO NOT CLIMB', sx, sy + 3, '#FDE68A', 4, 'center', null);
+    if (inT(pa - 6, pb + 6, py - 14, py + 64)) {
+      for (const px of [pa, pb]) { postV(g, px - 2, py - 10, py + 60, 4, STEEL6); R(g, px - 5, py + 50, 10, 6, INK); R(g, px - 4, py + 51, 8, 4, STEEL6[4]); R(g, px - 3, py - 12, 6, 3, STEEL6[5]); }
+      prayerFlags(g, pa, pb, py, 11, 22);
+    } }
+  // (its statue: the yeti mascot, its paint peeling; or the sherpa animatronic, seized; or neither)
+  if ((k === 4 || k === 1 || k === 5) && inT(x0 + FACE - 160, x0 + FACE - 50, yb - 165, yb)) {
+    const sx = x0 + FACE - 110, sy = yb - 30;
+    poly(g, [[sx - 46, sy + 8], [sx + 46, sy + 8], [sx + 40, sy + 16], [sx - 40, sy + 16]], INK);
+    poly(g, [[sx - 45, sy + 8], [sx + 45, sy + 8], [sx + 39, sy + 15], [sx - 39, sy + 15]], Rk[2]);
+    R(g, sx - 45, sy + 8, 90, 1, Rk[3]);
+    for (const bx of [sx - 26, sx + 22]) { g.strokeStyle = INK; g.lineWidth = 4; g.beginPath(); g.moveTo(bx + 2, sy + 15); g.lineTo(bx + 2, sy + 22); g.stroke(); g.strokeStyle = STEEL6[2]; g.lineWidth = 2; g.stroke(); }
+    if (k === 5) sherpaStatue(g, sx, sy); else yetiStatue(g, sx, sy);
   }
-  if (k === 5) {
-    const sx = x0 + 150, sy = yb - 30;
-    R(g, sx - 12, sy - 90, 24, 60, '#B91C1C'); R(g, sx - 10, sy - 30, 8, 30, '#3F3F46'); R(g, sx + 2, sy - 30, 8, 30, '#3F3F46');
-    g.fillStyle = '#C08A5A'; g.beginPath(); g.arc(sx, sy - 102, 12, 0, Math.PI * 2); g.fill(); R(g, sx - 12, sy - 116, 24, 8, '#FACC15');
-    R(g, sx + 12, sy - 128, 6, 40, '#B91C1C'); R(g, sx + 12, sy - 134, 6, 6, '#C08A5A'); R(g, sx - 26, sy - 80, 14, 34, '#4B5563');
-    R(g, sx - 30, sy - 4, 60, 8, '#57534E'); text(g, 'OUT OF ORDER', sx, sy + 3, '#FDE68A', 4, 'center', null);
+  // (the crevasse, a decal: a crack in blue going down into black, its white rim, a corner peeling up)
+  if (k === 6 && inT(x0 + 270, x0 + 480, yb - 80, yb - 20)) {
+    poly(g, [[x0 + 278, yb - 40], [x0 + 330, yb - 72], [x0 + 422, yb - 62], [x0 + 474, yb - 32], [x0 + 380, yb - 42]], '#8E9AAA');
+    poly(g, [[x0 + 284, yb - 41], [x0 + 330, yb - 69], [x0 + 420, yb - 60], [x0 + 466, yb - 34], [x0 + 380, yb - 45]], '#1E3A8A');
+    poly(g, [[x0 + 300, yb - 44], [x0 + 334, yb - 64], [x0 + 410, yb - 56], [x0 + 446, yb - 38], [x0 + 380, yb - 48]], '#0F1E4A');
+    poly(g, [[x0 + 330, yb - 50], [x0 + 350, yb - 58], [x0 + 400, yb - 52], [x0 + 380, yb - 49]], '#05070F');
+    poly(g, [[x0 + 466, yb - 34], [x0 + 474, yb - 32], [x0 + 470, yb - 44]], '#C8D0DA');
   }
-  if (k === 6) { g.fillStyle = '#0A1428'; g.beginPath(); g.moveTo(x0 + 280, yb - 40); g.lineTo(x0 + 330, yb - 70); g.lineTo(x0 + 420, yb - 60); g.lineTo(x0 + 470, yb - 34); g.lineTo(x0 + 380, yb - 44); g.closePath(); g.fill(); R(g, x0 + 290, yb - 72, 24, 3, '#F8FAFC'); }
-  // (its tacky sign, bolted flat to the rock on brackets (nothing under it to stand posts on): readable)
+  // (its tacky sign, bolted flat to the rock on brackets (nothing under it to stand posts on): pink enamel, a marquee's
+  // bulbs round it, readable)
   { const [l1, l2] = FACE_SIGNS[k] ?? FACE_SIGNS[0], sx = x0 + FACE * 0.68, sy = yb - 150;
-    for (const bx of [sx - 52, sx + 44]) { R(g, bx, sy - 8, 8, 20, '#3F3A36'); R(g, bx + 1, sy - 8, 2, 8, '#78716C'); R(g, bx + 2, sy - 5, 3, 3, '#A8A29E'); }
-    R(g, sx - 66, sy - 2, 132, 44, INK); R(g, sx - 64, sy, 128, 40, '#BE185D'); R(g, sx - 64, sy, 128, 3, '#F9A8D4');
-    text(g, l1, sx, sy + 16, '#FEF3C7', 7, 'center', null); text(g, l2, sx, sy + 30, '#FDE68A', 6, 'center', null); }
-  // (the shell's cut edges either side, where the inside's in: dark, its rim)
-  R(g, x0, yt, 10, yb - yt, '#120E0A'); R(g, x0 + 10, yt, 2, yb - yt, '#5E4C3A'); R(g, x1 - 10, yt, 10, yb - yt, '#120E0A'); R(g, x1 - 12, yt, 2, yb - yt, '#5E4C3A');
-  // (the queue up the spiral: its steps, lit along their tops; stanchions every other one and their rope; a sign half
-  // way, QUEUE CONTINUES and the way)
-  const ax = TR + 10, ay = floorY(k), bx = TR + FACE - 10, by = floorY(k + 1), n = 28, T = THEME[k];
-  g.strokeStyle = INK; g.lineWidth = 14; g.beginPath(); g.moveTo(ax, ay + 8); g.lineTo(bx, by + 8); g.stroke();
-  g.strokeStyle = '#3A4252'; g.lineWidth = 10; g.stroke();
-  for (let i = 0; i < n; i++) {
-    const u = i / n, x = ax + (bx - ax) * u, yy = ay + (by - ay) * u, w = (bx - ax) / n + 3;
-    R(g, x - 1, yy - 4, w, 8, '#64748B'); R(g, x - 1, yy - 4, w, 2, '#E2E8F0');
-    if (i % 2 === 0) { R(g, x + 2, yy - 44, 4, 40, '#9CA3AF'); R(g, x - 1, yy - 48, 10, 5, '#6B7280'); }
+    if (inT(sx - 72, sx + 72, sy - 12, sy + 48)) {
+      for (const bx of [sx - 52, sx + 44]) { R(g, bx - 1, sy - 9, 10, 22, INK); R(g, bx, sy - 8, 8, 20, '#3F3A36'); R(g, bx + 1, sy - 8, 2, 8, '#78716C'); R(g, bx + 2, sy - 5, 3, 3, '#A8A29E'); }
+      board(g, sx - 66, sy - 2, 132, 44, '#BE185D');
+      for (let bx = sx - 62, i = 0; bx < sx + 64; bx += 8, i++) for (const by of [sy + 1, sy + 37]) { R(g, bx, by, 3, 3, INK); R(g, bx, by, 2, 2, i % 3 ? '#FDE68A' : '#FFFBEB'); }
+      words(g, l1, sx, sy + 20, { ...smallLook('#FEF3C7', 2), bold: true }, 120);
+      words(g, l2, sx, sy + 32, { ...smallLook('#FDE68A'), bold: true }, 120);
+    } }
+  // (the shell's cut edges either side, where the inside's in: dark, its rim lit)
+  R(g, x0, yt, 10, yb - yt, '#120E0A'); R(g, x0 + 10, yt, 2, yb - yt, Rk[4]); R(g, x1 - 10, yt, 10, yb - yt, '#120E0A'); R(g, x1 - 12, yt, 2, yb - yt, Rk[1]);
+  // (the queue up the spiral: the stringer, bolted to the rock on brackets; its treads (lit along their tops: he walks
+  // them); a stanchion every other one and their rope; QUEUE CONTINUES half way, and the wait)
+  const ax = TR + 10, ay = floorY(k), bx = TR + FACE - 10, by = floorY(k + 1), n = 28, T = THEME[k], A = ramp5(T.accent), S = STEEL6;
+  const yAt = (x: number) => ay + ((by - ay) * (x - ax)) / (bx - ax);
+  if (inT(ax - 10, bx + 10, by - 60, ay + 30)) {
+    for (let x = ax + 60; x < bx - 20; x += 130) { const sy0 = yAt(x) + 16; g.strokeStyle = INK; g.lineWidth = 5; g.beginPath(); g.moveTo(x, sy0); g.lineTo(x - 30, sy0 + 30); g.stroke(); g.strokeStyle = S[2]; g.lineWidth = 3; g.stroke(); R(g, x - 36, sy0 + 26, 12, 10, INK); R(g, x - 35, sy0 + 27, 10, 8, S[3]); R(g, x - 32, sy0 + 30, 2, 2, S[5]); }
+    poly(g, [[ax, ay + 1], [bx, by + 1], [bx, by + 18], [ax, ay + 18]], INK);
+    poly(g, [[ax, ay + 3], [bx, by + 3], [bx, by + 16], [ax, ay + 16]], S[2]);
+    poly(g, [[ax, ay + 3], [bx, by + 3], [bx, by + 6], [ax, ay + 6]], S[4]);
+    poly(g, [[ax, ay + 13], [bx, by + 13], [bx, by + 16], [ax, ay + 16]], S[0]);
+    for (let i = 0; i < n; i++) {
+      const u = i / n, x = Math.round(ax + (bx - ax) * u), yy = Math.round(ay + (by - ay) * u), w = Math.round((bx - ax) / n) + 3;
+      R(g, x - 1, yy - 5, w, 9, INK); R(g, x, yy - 4, w - 2, 7, S[3]); R(g, x, yy - 4, w - 2, 2, '#E2E8F0'); R(g, x, yy - 2, w - 2, 1, S[5]); R(g, x, yy + 1, w - 2, 2, S[1]);
+      if (i % 2 === 0) { R(g, x + 1, yy - 45, 6, 41, INK); R(g, x + 2, yy - 44, 4, 40, CHROME[2]); R(g, x + 2, yy - 44, 1, 40, CHROME[4]); R(g, x, yy - 48, 8, 5, INK); R(g, x + 1, yy - 47, 6, 3, CHROME[3]); }
+    }
+    for (const [w, col, dy] of [[4, INK, 1], [3, A[1], 0], [1, A[3], -1]] as const) { g.strokeStyle = col; g.lineWidth = w; g.beginPath(); g.moveTo(ax + 4, ay - 42 + dy); g.lineTo(bx + 4, by - 42 + dy); g.stroke(); }
   }
-  g.strokeStyle = T.accent; g.lineWidth = 3; g.beginPath(); g.moveTo(ax + 4, ay - 42); g.lineTo(bx + 4, by - 42); g.stroke();
   const mx = (ax + bx) / 2, my = (ay + by) / 2;
-  R(g, mx - 1, my - 120, 2, 76, '#9CA3AF'); R(g, mx - 62, my - 150, 124, 32, INK); R(g, mx - 60, my - 148, 120, 28, '#FDE047');
-  text(g, 'QUEUE CONTINUES', mx - 8, my - 130, INK, 6, 'center', null); arrowGlyph(g, mx + 46, my - 134, 1, '#B91C1C', 0.7);
-  if (WAIT[k + 1]) { const wy = my - 210; R(g, mx + 140, wy + 32, 2, my - 40 - (wy + 32) - 30, '#9CA3AF'); R(g, mx + 80, wy, 124, 34, INK); R(g, mx + 82, wy + 2, 120, 30, '#F8FAFC'); text(g, 'WAIT FROM HERE', mx + 142, wy + 13, INK, 5, 'center', null); text(g, WAIT[k + 1], mx + 142, wy + 26, '#B91C1C', 5, 'center', null); }
+  if (inT(mx - 66, mx + 66, my - 154, my)) {
+    postV(g, mx - 2, my - 118, my - 4, 4, STEEL6);
+    board(g, mx - 60, my - 148, 120, 28, '#FACC15');
+    words(g, 'QUEUE CONTINUES', mx - 8, my - 130, { ...smallLook('#1C1206'), bold: true, gap: 0 }, 96); arrowGlyph(g, mx + 46, my - 134, 1, '#DC2626', 0.7);
+  }
+  if (WAIT[k + 1]) {
+    const wy = my - 210, px = mx + 140;
+    if (inT(px - 64, px + 66, wy - 4, yAt(px))) {
+      postV(g, px - 2, wy + 32, yAt(px) - 4, 4, STEEL6);
+      board(g, px - 60, wy, 120, 32, '#F8FAFC');
+      words(g, 'WAIT FROM HERE', px, wy + 12, { sx: 1, sy: 1, fill: '#140A04', gap: 1 }, 112);
+      words(g, WAIT[k + 1], px, wy + 25, { sx: 1, sy: 1, fill: '#B91C1C', gap: 1, bold: true }, 112);
+    }
+  }
 };
 const FACE_TW = 204, FACE_TH = 197;
 const drawFace = (c: Ctx, state: GameState, ox: number) => {
@@ -1818,22 +2324,70 @@ const drawDescentFront = (c: Ctx, state: GameState, behind: boolean) => {
     stamp(c, `wp-descf-${tx}${cut ? '-cut' : ''}`, tx, y0, w, h, g => { g.save(); g.beginPath(); g.rect(tx, y0, w, h); g.clip(); chuteFront(g, pts, '#0891B2', DESC_LIFT); g.restore(); });
   }
 };
-/** Base camp's dressing: the big sign, the queue rails, the yeti mascot's cutout. */
+/** Base camp's dressing (stamped; drawn after the mountain's face: stood on the ground in front of it): MOUNT EVEREST
+ *  BUT BETTER on its posts (icy letters, the snow piled on the board, its bulbs), the yeti's plywood cutout waving (its
+ *  arms from limb.ts), BASE CAMP 0 FT on its stake, the queue's rails on in under the sign to the way in, bottles and
+ *  sacks of fake snow, prayer flags from the sign over to the mountain. Clear of the face's own signs behind. */
 const drawBaseCamp = (c: Ctx, state: GameState) => {
-  if (!vis(state, 27900, TL + 40)) return;
-  stamp(c, 'wp-basecamp', 27900, GY - 300, TL - 27900 + 40, 302, g => {
-    R(g, 28300, GY - 240, 340, 70, INK); R(g, 28302, GY - 238, 336, 66, '#1E3A8A'); R(g, 28302, GY - 238, 336, 3, '#93C5FD');
-    text(g, 'MOUNT EVEREST', 28470, GY - 212, '#F8FAFC', 12); text(g, 'BUT BETTER', 28470, GY - 190, '#FDE047', 12);
-    R(g, 28330, GY - 170, 6, 170, '#3F3F46'); R(g, 28604, GY - 170, 6, 170, '#3F3F46');
-    for (let x = 28000; x < 28280; x += 60) { R(g, x, GY - 40, 4, 40, '#94A3B8'); }
-    R(g, 28000, GY - 40, 280, 3, '#CBD5E1');
-    // (the yeti's cutout, waving, grinning; THE YETI SAYS: NO REFUNDS)
-    g.fillStyle = INK; g.beginPath(); g.ellipse(28720, GY - 80, 44, 80, 0, 0, Math.PI * 2); g.fill();
-    g.fillStyle = '#E8F0FA'; g.beginPath(); g.ellipse(28720, GY - 80, 40, 76, 0, 0, Math.PI * 2); g.fill();
-    R(g, 28700, GY - 130, 8, 8, INK); R(g, 28730, GY - 130, 8, 8, INK); R(g, 28700, GY - 106, 40, 6, '#7F1D1D');
-    R(g, 28650, GY - 30, 140, 26, INK); R(g, 28652, GY - 28, 136, 22, '#FDE047'); text(g, 'BASE CAMP 0 FT', 28720, GY - 13, INK, 6, 'center', null);
-  });
+  if (!vis(state, 27980, TL + 40)) return;
+  stamp(c, 'wp-basecamp', 27980, GY - 300, TL - 27980 + 40, 302, paintBaseCamp);
 };
+const paintBaseCamp = (g: Ctx) => {
+  {
+    // (the prayer flags: from the big sign's right post up to the mountain by the way in)
+    prayerFlags(g, 28432, 28790, GY - 236, 22, 24);
+    R(g, 28787, GY - 246, 4, 14, INK); R(g, 28788, GY - 246, 2, 14, STEEL6[4]);
+    // (the bottles racked and the sacks of fake snow, behind the rails)
+    for (let i = 0; i < 6; i++) bottle(g, 28566 + i * 12, GY - 2, i % 2 ? '#15803D' : '#C2570C');
+    sack(g, 28644, GY - 1, 34, 24); sack(g, 28676, GY - 1, 28, 20); sack(g, 28656, GY - 20, 26, 18);
+    // (low drifts of it about, dimmed: nothing to stand on)
+    for (const [x, w] of [[28150, 70], [28480, 60], [28720, 50]] as const) { g.fillStyle = '#9AA6B8'; g.beginPath(); g.ellipse(x, GY, w / 2, 9, 0, Math.PI, 0); g.fill(); g.fillStyle = '#C8D2DE'; g.beginPath(); g.ellipse(x - 4, GY, w / 2 - 6, 6, 0, Math.PI, 0); g.fill(); dither(g, x - w / 2 + 2, GY - 4, 8, 4, '#B8A060'); }
+    // (the queue's rails, on in under the sign to the way in)
+    queueRail(g, 28210, 28780, GY - 1, '#DC2626');
+    // (the big sign on its posts: steel, lit up their left)
+    for (const px of [28150, 28426]) { postV(g, px, GY - 172, GY - 2, 8, STEEL6); R(g, px - 4, GY - 4, 16, 4, INK); R(g, px - 3, GY - 4, 14, 3, STEEL6[2]); }
+    beamH(g, 28150, 28434, GY - 120, 5, STEEL6);
+    board(g, 28120, GY - 240, 340, 72, '#13265E');
+    R(g, 28124, GY - 236, 332, 1, '#2E50A8');
+    // (the snow piled along its top, drips of it down its face; the bulbs along its foot)
+    const top: [number, number][] = [[28116, GY - 238]];
+    for (let x = 28116; x < 28464; x += 16) top.push([x + 8, GY - 246 - Math.round(hash(x) * 8)], [Math.min(28464, x + 16), GY - 242]);
+    top.push([28464, GY - 232], [28116, GY - 232]);
+    poly(g, top.map(([x, y]) => [x, y - 1] as [number, number]), INK); poly(g, top, '#DCE6F0');
+    for (let x = 28120; x < 28460; x += 16) { R(g, x + 4, GY - 242 - Math.round(hash(x - 4) * 6), 8, 2, '#F8FAFC'); }
+    for (let x = 28126; x < 28456; x += 22) { const l = 2 + Math.round(hash(x + 3) * 3); R(g, x, GY - 232, 5, l, '#DCE6F0'); R(g, x + 1, GY - 232 + l, 3, 2, '#DCE6F0'); R(g, x + 4, GY - 232, 1, l, '#94A3B8'); }
+    for (let x = 28128, i = 0; x < 28454; x += 12, i++) { R(g, x, GY - 177, 4, 4, INK); R(g, x, GY - 177, 3, 3, i % 3 ? '#FDE68A' : '#FFFBEB'); }
+    signText(g, 'MOUNT EVEREST', 28290, GY - 199, { sx: 2, sy: 3, fill: rampDown('#F0F9FF', 0.15), dither: true, shadow: '#060C24', drop: 1, gap: 1, bold: true, drip: { col: '#BAE6FD', tip: '#F0F9FF', rate: 0.35, len: 5 } });
+    signText(g, 'BUT BETTER', 28290, GY - 181, { sx: 2, sy: 2, fill: rampDown('#FDE047', 0.35), dither: true, shadow: '#0B1640', drop: 1, gap: 1 });
+    // (the yeti's plywood cutout, waving: its plywood edge showing, a stand behind it, its paint)
+    const yx = 28064, F = ramp6('#E8EEF4'), Ply = '#8A6A3A';
+    g.strokeStyle = INK; g.lineWidth = 5; g.beginPath(); g.moveTo(yx + 10, GY - 90); g.lineTo(yx + 44, GY - 1); g.stroke(); g.strokeStyle = Ply; g.lineWidth = 3; g.stroke();
+    const arms: [number, number, number, number, number][] = [[yx + 26, GY - 96, yx + 46, GY - 148, 1], [yx - 26, GY - 96, yx - 22, GY - 54, -1]];
+    const shape = (dx: number, dy: number, col: string, grow: number) => {
+      g.fillStyle = col;
+      g.beginPath(); g.ellipse(yx + dx, GY - 70 + dy, 33 + grow, 46 + grow, 0, 0, Math.PI * 2); g.fill();
+      g.beginPath(); g.arc(yx + dx, GY - 128 + dy, 21 + grow, 0, Math.PI * 2); g.fill();
+      for (const lx of [-22, 6]) g.fillRect(yx + lx + dx - grow, GY - 34 + dy - grow, 16 + grow * 2, 34 + grow);
+      g.lineCap = 'round'; g.strokeStyle = col; g.lineWidth = 13 + grow * 2;
+      for (const [shx, shy, hx, hy, s] of arms) { const [ex, ey] = elbowFront(shx, shy, hx, hy, 28, 28, s); g.beginPath(); g.moveTo(shx + dx, shy + dy); g.lineTo(ex + dx, ey + dy); g.lineTo(hx + dx, hy + dy); g.stroke(); g.beginPath(); g.arc(hx + dx, hy + dy, 9 + grow, 0, Math.PI * 2); g.fill(); }
+      g.lineCap = 'butt';
+    };
+    shape(3, 2, INK, 1); shape(3, 1, Ply, 0); shape(0, 0, INK, 2); shape(0, 0, F[2], 0);
+    g.fillStyle = F[4]; g.beginPath(); g.ellipse(yx - 8, GY - 80, 18, 28, 0, 0, Math.PI * 2); g.fill(); g.beginPath(); g.arc(yx - 6, GY - 134, 11, 0, Math.PI * 2); g.fill();
+    for (let i = 0; i < 5; i++) R(g, yx - 20 + i * 9, GY - 50 + (i % 2) * 3, 6, 2, F[1]);
+    R(g, yx - 13, GY - 136, 26, 18, '#4A86C8'); R(g, yx - 13, GY - 136, 26, 3, '#7AB0E8');
+    R(g, yx - 9, GY - 131, 6, 6, '#F8FAFC'); R(g, yx + 3, GY - 131, 6, 6, '#F8FAFC'); R(g, yx - 7, GY - 129, 3, 3, INK); R(g, yx + 5, GY - 129, 3, 3, INK);
+    R(g, yx - 10, GY - 123, 20, 7, '#3A1010'); for (let i = 0; i < 5; i++) R(g, yx - 9 + i * 4, GY - 123, 3, 3, '#F8FAFC');
+    R(g, yx - 22, GY - 34, 16, 3, F[1]); R(g, yx + 6, GY - 34, 16, 3, F[1]);
+    // (BASE CAMP 0 FT on its stake, by the way in)
+    postV(g, 28698, GY - 72, GY - 1, 4, WOOD6);
+    board(g, 28650, GY - 96, 100, 26, '#FDE047');
+    words(g, 'BASE CAMP', 28700, GY - 84, { sx: 1, sy: 1, fill: '#140A04', gap: 1 }, 92);
+    words(g, 'ELEV. 0 FT', 28700, GY - 75, { sx: 1, sy: 1, fill: '#B91C1C', gap: 1 }, 92);
+  }
+};
+// (dev only: the tower's figures and floors painted on their own, for their contact sheets)
+if (import.meta.env.DEV && typeof window !== 'undefined') (window as unknown as { __wpTowerArt: unknown }).__wpTowerArt = { yetiStatue, sherpaStatue, paintFloor, paintFace, paintBaseCamp, GY, TL, TR, floorY };
 /** Level 2's stub (the owner designs it): the deck on past the splash pool, the way on shut. */
 const drawStub = (c: Ctx, state: GameState) => {
   if (!vis(state, L2.wall - 300, L2.wall + 100)) return;
@@ -1859,7 +2413,6 @@ export interface DrawState {
 /** World space, behind everything that moves. */
 export const drawParkBack = (c: Ctx, state: GameState, d: DrawState, extra?: () => void) => {
   drawProps(c, state);
-  drawBaseCamp(c, state);
   drawPits(c, state);
   drawPools(c, state, d.greenPool);
   for (const S of SLIDES) drawSlideBack(c, state, S);
@@ -1870,6 +2423,8 @@ export const drawParkBack = (c: Ctx, state: GameState, d: DrawState, extra?: () 
   // (the mountain's outside, round which the spiral goes (out past the way up, and again round the far side); on the
   // spiral, the inside drawn round again either side of it (where he comes in at the top: tower.ts))
   if (!d.descent) { drawFace(c, state, 0); drawFace(c, state, -ROUND); }
+  // (base camp stood on the ground in front of the mountain (its far side's face, from down here))
+  drawBaseCamp(c, state);
   if (d.climb) { drawTower(c, state, d.gates, d.tells, null, -ROUND); drawTower(c, state, d.gates, d.tells, null, ROUND); }
   drawSummit(c, state);
   drawSummitDoor(c, state, d.door);
