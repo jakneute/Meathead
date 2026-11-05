@@ -7,7 +7,7 @@
 // Not cleared: none of this; the card's as it was.
 
 import { isLandCleared, LAND_FINDS, allFound, type FindKind } from '../store';
-import { benGave } from '../upgrades/state';
+import { benGave, benMet } from '../upgrades/state';
 
 export interface Stop {
   /** On the card's list. */
@@ -178,6 +178,11 @@ export const missedAt = (land: string, stop: Stop): { label: string; hint: strin
   const d = LAND_FINDS[land];
   if (!d) return [];
   const got = allFound()[land] ?? [];
+  // (CON-FUCK-TIOUS by name only once he's met him, upgrades/state.ts benMet; before: somebody's down there. The
+  // owner's: "don't mention con fuck tuous if you haven't found him once. hint at someone who may be there")
+  const met = benMet();
   return (FIND_HINTS[land] ?? []).filter(h => h.stop === stop.name && (h.find === 'armor' ? !benGave(d.piece) : !got.includes(h.find)))
-    .map(h => ({ label: FIND_LABEL[h.find === 'armor' ? 'armor' : d.finds.find(([id]) => id === h.find)?.[1] ?? 'health'], hint: h.hint }));
+    .map(h => h.find === 'armor' && !met
+      ? { label: "SOMEBODY'S ARMOR", hint: h.hint.replace(/\bHIS\b/, "SOME BIG GUY'S") }
+      : { label: FIND_LABEL[h.find === 'armor' ? 'armor' : d.finds.find(([id]) => id === h.find)?.[1] ?? 'health'], hint: h.hint });
 };
