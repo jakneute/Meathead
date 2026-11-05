@@ -20,11 +20,12 @@ import { closeUp as falwell } from './falwell';
 import { closeUp as limbaugh } from './limbaugh';
 import { closeUp as dole } from './dole';
 import { closeUp as newt } from './newt';
+import { closeUp as kid } from './kid';
 
 export const CUSTOM_CLOSEUPS: Record<CrushId, CloseUpPaint | null> = {
   artie, donnie, steve, tucker, dad, demon, harry, piper, queen, rex, perot, falwell, limbaugh, dole, newt,
-  // (the water park's kid: the generic close-up for now)
-  kid: null,
+  // (the water park's kid: three of them)
+  kid,
 };
 
 export const installCloseUps = () => {

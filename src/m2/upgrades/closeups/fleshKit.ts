@@ -204,13 +204,15 @@ export const paintTag = (g: Ctx, name: string) => {
   g.fillStyle = '#FDE68A'; g.fillText(name, 10, 33);
 };
 
-/** The sac: two veined testicles (MK's meat-pink) inside a see-through hairy wrinkled bag, 100x80. `bruised` goes purple. */
-export const bakeSac = (key: string, skin: Ramp, hair: string, bruised = false) => bakeOnce(key, g => {
+/** The sac: two veined testicles (MK's meat-pink) inside a see-through hairy wrinkled bag, 100x80. `bruised` goes purple.
+ *  `three`: three of them, crammed in (ZORZARBLAX). */
+export const bakeSac = (key: string, skin: Ramp, hair: string, bruised = false, three = false) => bakeOnce(key, g => {
   const meat = MEAT;
   // (the cords up out of the top)
-  for (const s of [-1, 1]) { g.strokeStyle = meat[4]; g.lineWidth = 7; g.beginPath(); g.moveTo(50 + s * 14, 26); g.lineTo(50 + s * 8, 0); g.stroke(); g.strokeStyle = meat[2]; g.lineWidth = 4; g.stroke(); }
-  for (const [x, y] of [[33, 44], [67, 47]] as const) {
-    banded(g, p => p.ellipse(x, y, 17, 21, 0, 0, TAU), x - 17, y - 21, 34, 42, meat, [0, 1, 2, 3], 'y', meat[4], 2);
+  for (const s of three ? [-1, 0, 1] : [-1, 1]) { g.strokeStyle = meat[4]; g.lineWidth = 7; g.beginPath(); g.moveTo(50 + s * 14, 26); g.lineTo(50 + s * 8, 0); g.stroke(); g.strokeStyle = meat[2]; g.lineWidth = 4; g.stroke(); }
+  const nuts: readonly (readonly [number, number, number, number])[] = three ? [[26, 48, 13, 18], [74, 50, 13, 18], [50, 40, 14, 18]] : [[33, 44, 17, 21], [67, 47, 17, 21]];
+  for (const [x, y, rx, ry] of nuts) {
+    banded(g, p => p.ellipse(x, y, rx, ry, 0, 0, TAU), x - rx, y - ry, rx * 2, ry * 2, meat, [0, 1, 2, 3], 'y', meat[4], 2);
     g.fillStyle = meat[2]; g.beginPath(); g.ellipse(x + (x < 50 ? -9 : 9), y - 12, 7, 9, 0, 0, TAU); g.fill();
     vein(g, x - 8, y - 10, 26, 1.2, '#6D5BD0', 1.5, x);
     vein(g, x + 6, y + 8, 18, -0.4, '#6D5BD0', 1, x + 3);
@@ -421,6 +423,8 @@ export interface FleshRun {
   over?: () => HTMLCanvasElement;
   skin: Ramp; hair: string;
   sacScale?: number; sacY?: number;
+  /** Three nuts in the sac, not two (ZORZARBLAX). */
+  three?: boolean;
   /** Frames after the tear the blood comes (default 0: there and then; a lazy one's late) and the shake lands. */
   gushAt?: number; shakeAt?: number; shakeAmp?: number;
   word: string; wordAt?: number;
@@ -448,8 +452,8 @@ const drawSacPulled = (c: Ctx, t: number, h: Hand, sac: HTMLCanvasElement, bruis
 };
 
 /** What's held up after: the torn bag, its two in it, dripping, the cords hanging off it. */
-const trophy = (key: string, skin: Ramp, hair: string) => bakeOnce(`${key}-trophy`, g => {
-  g.drawImage(bakeSac(`${key}-sacB`, skin, hair, true), 0, 6);
+const trophy = (key: string, skin: Ramp, hair: string, three = false) => bakeOnce(`${key}-trophy`, g => {
+  g.drawImage(bakeSac(`${key}-sacB`, skin, hair, true, three), 0, 6);
   // (the torn top: ragged, red; the cords hanging)
   g.fillStyle = BLOOD[3];
   g.beginPath(); g.moveTo(16, 26); for (let i = 0; i <= 8; i++) g.lineTo(16 + i * 8.5, 18 + (i % 2) * 9); g.lineTo(84, 30); g.closePath(); g.fill();
@@ -492,7 +496,7 @@ export const runFlesh = (c: Ctx, t: number, look: CloseUpLook, r: FleshRun) => {
   drawCracks(c, t - (GRIP + 18), r.id.length * 7);
   // (the sac: hanging behind whatever's in front of it (a sock, a cup, an apron); once he's got it, dragged out from
   // under it all, long, the cords and the skin stretched down to his fist)
-  const sac = () => drawSacPulled(c, t, h, bakeSac(`${r.id}-sac`, r.skin, r.hair), bakeSac(`${r.id}-sacB`, r.skin, r.hair, true), scale, sacY + jy);
+  const sac = () => drawSacPulled(c, t, h, bakeSac(`${r.id}-sac`, r.skin, r.hair, false, r.three), bakeSac(`${r.id}-sacB`, r.skin, r.hair, true, r.three), scale, sacY + jy);
   if (rip < 0 && !h.shut) sac();
   if (rip >= 0) drawBurst(c, rip, BONE_Y + 46, r.skin, r.id.length * 3, r.burstCols);
   r.front?.(c, t, rip, hook);
@@ -501,7 +505,7 @@ export const runFlesh = (c: Ctx, t: number, look: CloseUpLook, r: FleshRun) => {
     sac();
     drawTether(c, t, CX, BONE_Y - 4 + jy, h.x, h.y - 30, h.strain, [MEAT[4], MEAT[2], MEAT[0]], 2, 8, 14);
   }
-  if (h.held) { c.save(); c.translate(h.x, h.y - 8); c.rotate(h.rot * 1.5 + Math.sin(rip * 0.5) * 0.1); c.drawImage(trophy(r.id, r.skin, r.hair), -50, -80); c.restore(); }
+  if (h.held) { c.save(); c.translate(h.x, h.y - 8); c.rotate(h.rot * 1.5 + Math.sin(rip * 0.5) * 0.1); c.drawImage(trophy(r.id, r.skin, r.hair, r.three), -50, -80); c.restore(); }
   drawHand(c, h, t);
   gloveGore(c, h, [BLOOD[2], BLOOD[1], BLOOD[3]]);
   if (r.over) c.drawImage(r.over(), tw, jy);
