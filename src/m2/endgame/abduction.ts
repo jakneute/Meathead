@@ -23,7 +23,8 @@ import { holeClip, SAUCER_X, SAUCER_EMIT } from '../intro/art/upper';
 import {
   type Dressed, SAUCER_VOICE, SATAN_VOICE, WIFE_HELLO, WIFE_STANDBY, MH_STANDBY, WIFE_ANSWER, WIFE_PLAN, SATAN_GRAB, WIFE_GRABBED, SATAN_CLAIM, MH_OWE, MH_THROWN,
 } from './lines';
-import { clip, resetClip, shotWife, shotCab, shotWide, shotFlight, shotCrash } from './shots';
+import { clip, resetClip, shotWife, shotCab, shotWide, shotFlight, shotCrash, warmAbductionShots } from './shots';
+import { painting, type Painter } from '../../m1/game/scenes/art/raster';
 
 type Ctx = CanvasRenderingContext2D;
 
@@ -51,6 +52,8 @@ const dressOf = (state: GameState): Dressed => (isNude(state) ? 'nude' : isShat(
 export const startAbduction = (state: GameState): Abduction => {
   on = true;
   silenceAll();
+  // (the cutscene's pictures and her gross-up, painted ahead a slice at a time while he gets in and the roof goes)
+  warmAbductionShots(); chunkArt(0); chunkArt(1); chunkArt(2);
   state.player.vel.x = 0;
   return { t: 0, inAt: -1, scene: null, skipped: false, dress: dressOf(state) };
 };
@@ -120,6 +123,20 @@ export const tickAbduction = (state: GameState, a: Abduction, windowX: number): 
 
 const finish = (a: Abduction) => { on = false; skippedLast = a.skipped; return true; };
 
+/** A chunk of the roof's slab (three sizes): broken concrete stepped and inked, aggregate in it, a bit of rebar out of
+ *  it; painted the once at half size (the garage's two-pixel grain), drawn turned as it falls. */
+const CHUNK_S = 12;
+const CHUNK = ['#1E1E24', '#34343C', '#4C4C56', '#66666F', '#82828C', '#A2A2AC'];
+function* paintChunk(p: Painter, n: number) {
+  const r = 2.5 + n * 1.4, cx = CHUNK_S / 2, cy = CHUNK_S / 2;
+  const pts = Array.from({ length: 7 }, (_, i) => { const a = (i / 7) * Math.PI * 2 + n, rr = r * (0.75 + (((i * 37 + n * 11) % 10) / 10) * 0.45); return [cx + Math.cos(a) * rr, cy + Math.sin(a) * rr * 0.85] as [number, number]; });
+  p.form(g => { pts.forEach(([x, y], i) => (i ? g.lineTo(x, y) : g.moveTo(x, y))); g.closePath(); }, { ramp: CHUNK, bevel: 2, ink: '#101014' });
+  yield;
+  p.px(cx - 1, cy, CHUNK[1]); p.px(cx + 1, cy + 1, CHUNK[5]);
+  if (n > 0) { p.line(cx + r * 0.4, cy - r * 0.3, cx + r + 2, cy - r - 1, '#7A3A1A'); p.px(cx + r + 2, cy - r - 1, '#C0703A'); }
+}
+const chunkArt = (n: number) => painting(`abd-chunk${n}`, CHUNK_S, CHUNK_S, p => paintChunk(p, n));
+
 // ---------------------------------------------------------------------------------------------------------------
 // In the garage: the roof over the truck bursting, the bits coming down, the beam (world space, in front)
 
@@ -140,9 +157,9 @@ export const drawAbductionFront = (c: Ctx, state: GameState, a: Abduction) => {
     for (let k = 0; k < 16; k++) {
       const x0 = R(90 + ((k * 53) % 240)), y0 = CEIL_Y - 10 - (k % 3) * 8, vy0 = (k % 4) * 0.6, g = 0.4, land = (-vy0 + Math.sqrt(vy0 * vy0 + 2 * g * (UPPER - 6 - y0))) / g;
       const tt = Math.min(T, land), y = y0 + vy0 * tt + 0.5 * g * tt * tt, x = x0 + (k % 2 ? 1 : -1) * tt * 0.4;
-      const s = 4 + (k % 3) * 3;
-      c.fillStyle = '#1A1A20'; c.fillRect(Math.round(x - 1), Math.round(y - 1), s + 2, s + 1);
-      c.fillStyle = k % 3 ? '#6A6A72' : '#8A8A92'; c.fillRect(Math.round(x), Math.round(y), s, s - 1);
+      // (each one turning as it comes down, still where it lands)
+      const n = k % 3, rot = (k % 2 ? 1 : -1) * (0.3 + tt * (0.08 + (k % 4) * 0.03));
+      c.save(); c.translate(Math.round(x), Math.round(y)); c.rotate(rot); c.scale(2, 2); c.drawImage(chunkArt(n), -CHUNK_S / 2, -CHUNK_S / 2); c.restore();
     }
     // (the dust it threw up, once it's hit the floor)
     const D = T - 28;

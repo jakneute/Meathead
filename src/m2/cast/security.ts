@@ -125,14 +125,18 @@ const bone = (c: Ctx, x0: number, y0: number, x1: number, y1: number, col: strin
 /** The folding chair: its back behind him (first), or its legs crossed under the seat and the seat. Side on. */
 const chair = (c: Ctx, back: boolean) => {
   const STEEL = '#64748B', SEAT = '#334155';
+  // (steel tube, lit along one side; the seat and the back a molded slab, lit along the top, a shadow under, a scuff)
+  const tube = (x0: number, y0: number, x1: number, y1: number) => { bone(c, x0, y0, x1, y1, STEEL, 2.2); c.strokeStyle = lt(STEEL, 0.45); c.lineWidth = 0.8; c.beginPath(); c.moveTo(x0 - 0.6, y0); c.lineTo(x1 - 0.6, y1); c.stroke(); };
   if (back) {
-    bone(c, -12, -20, -15, -48, STEEL, 2.2);
+    tube(-12, -20, -15, -48);
     rect(c, -19, -52, 7, 16, SEAT, 1.5);
+    dot(c, -18.5, -51.5, 6, 1.2, lt(SEAT, 0.35)); dot(c, -14, -50, 1.4, 12, dk(SEAT, 0.3));
     return;
   }
-  bone(c, -12, -19, 8, -1, STEEL, 2.2); bone(c, 6, -19, -12, -1, STEEL, 2.2);
+  tube(-12, -19, 8, -1); tube(6, -19, -12, -1);
+  dot(c, -14, -1, 4, 1.2, dk(STEEL, 0.4)); dot(c, 5, -1, 4, 1.2, dk(STEEL, 0.4));
   rect(c, -14, -23, 24, 4, SEAT, 1.5);
-  dot(c, -13, -23, 22, 1, lt(SEAT, 0.3));
+  dot(c, -13, -23, 22, 1, lt(SEAT, 0.3)); dot(c, -13, -20, 22, 1, dk(SEAT, 0.35)); dot(c, 2, -22, 3, 1, lt(SEAT, 0.5));
 };
 
 const seated = (c: Ctx, seed: number, pose: SeatPose, yawn: boolean, glow: boolean) => {

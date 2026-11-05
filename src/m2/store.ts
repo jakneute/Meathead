@@ -347,6 +347,7 @@ export const inEndgame = () => endgame !== null;
 export const setEndgameAt = (at: import('./endgame/stages').EndgameRecord | null) => { endgame = at ? { ...at, rematches: at.rematches ?? endgame?.rematches } : null; if (endgame && !endgame.rematches) delete endgame.rematches; };
 /** (the prologue of the epilogue) The way in walked backward, out of the park to his truck: set going there
  *  (goTo('intro')), read by the intro as it's built (intro/walkOut.ts). */
-let walkOut = false;
+// (a dev start: ?intro&walkout, straight into the walk out: tools/perf's walkout scenario)
+let walkOut = import.meta.env.DEV && typeof location !== 'undefined' && new URLSearchParams(location.search).has('walkout');
 export const setWalkOut = (on: boolean) => { walkOut = on; };
 export const walkOutOn = () => walkOut;
