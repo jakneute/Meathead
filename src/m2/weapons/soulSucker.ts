@@ -23,6 +23,7 @@ import { muzzlePoint } from '../../m1/game/combat/muzzle';
 import { getEnemyMass } from '../../m1/game/combat/knockback';
 import { drawEnemyAt } from '../moves/grab';
 import { KIND_TOP_REACH } from '../../m1/game/render/enemies';
+import { tubeRide } from './tubeRide';
 import { m2Kill } from '../moves/killLines';
 import { grabCallout } from '../moves/callouts';
 import { say, MEATHEAD_VOICE, pickLine } from '../../m1/game/platform/speech';
@@ -100,6 +101,9 @@ const bleedable = (e: Enemy) => e.health > 0 && !e.isBlownAway && !e.innocent &&
 
 /** The cone: out to REACH in front of the intake, opening wide (it's a big short cone). */
 const REACH = 190, SPREAD = 1.05;
+/** How far it reaches now: on a tube ride, further (the aliens hang up over him, out of the cone's way: tubeRide.ts). */
+let reach = REACH;
+const TUBE_REACH = 330;
 /** In front of him, as near as this (melee range): the full pull, whatever height he's at. */
 const CLOSE = 60;
 /**
@@ -158,10 +162,10 @@ const inCone = (state: GameState, e: Enemy, mouth: { x: number; y: number }) => 
   const pl = state.player, front = (ex - (pl.pos.x + pl.width / 2)) * f;
   if (front > -6 && front - e.width / 2 < CLOSE && e.pos.y + e.height > pl.pos.y - 24 && e.pos.y < pl.pos.y + pl.height + 6) return 1;
   const dx = (ex - mouth.x) * f, dy = ey - mouth.y;
-  if (dx < -e.width / 2 || dx > REACH) return null;
+  if (dx < -e.width / 2 || dx > reach) return null;
   const d = Math.hypot(Math.max(0, dx), dy);
-  if (d > REACH + e.width / 2 || Math.abs(Math.atan2(dy, Math.max(1, dx))) > SPREAD) return null;
-  return 1 - Math.min(1, d / REACH);
+  if (d > reach + e.width / 2 || Math.abs(Math.atan2(dy, Math.max(1, dx))) > SPREAD) return null;
+  return 1 - Math.min(1, d / reach);
 };
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -236,7 +240,7 @@ const fire = (ctx: FrameContext) => {
   suckingAt = state.frame;
   pl.shootCooldown = 0;
   // (the cone's pull on anything in it that isn't somebody: a stage's breakables)
-  struckAt(mouth.x, mouth.y - 70, mouth.x + pl.facing * REACH, mouth.y + 70, 3);
+  struckAt(mouth.x, mouth.y - 70, mouth.x + pl.facing * reach, mouth.y + 70, 3);
   // (a unit every third frame of sucking: a full tank's half a minute of it (the playtest: it was every frame, ten
   // seconds, bled dry way too quickly))
   if (!cheats.infiniteAmmo && state.frame % SUCK_COST_EVERY === 0) pl.weaponAmmo.SOUL_SUCKER--;
@@ -247,7 +251,7 @@ const fire = (ctx: FrameContext) => {
     if (q.owner !== 'enemy' || !q.shooterKind || q.thrown || q.isBoulder || q.isSludge || q.isPoop || q.isShrapnel || q.isCocaine || q.isMethBarrel) return true;
     const qx = q.pos.x + q.width / 2, qy = q.pos.y + q.height / 2;
     const dx = (qx - mouth.x) * pl.facing, dy = qy - mouth.y, d = Math.hypot(dx, dy);
-    if (dx < -12 || d > REACH + 20 || (d > 24 && Math.abs(Math.atan2(dy, Math.max(1, dx))) > SPREAD)) return true;
+    if (dx < -12 || d > reach + 20 || (d > 24 && Math.abs(Math.atan2(dy, Math.max(1, dx))) > SPREAD)) return true;
     if (d < 24) {
       playSound('click', 0.5, 8);
       for (let i = 0; i < 3; i++) state.particles.push({ pos: { x: mouth.x, y: mouth.y }, vel: { x: (Math.random() - 0.5) * 2, y: (Math.random() - 0.5) * 2 }, life: 8, color: '#FDE047', size: 2 });
@@ -366,6 +370,7 @@ let armored = false;
 const syncArmor = (on: boolean) => { if (on !== armored) { armored = on; setArmor(on, 'soulSucker'); } };
 
 const tick = (ctx: FrameContext, input: { secondary?: boolean; moveUp: boolean; moveDown: boolean }, equipped: boolean) => {
+  reach = tubeRide(ctx.state) ? TUBE_REACH : REACH;
   syncArmor(equipped && since(ctx.state.frame, suckingAt) <= 2);
   tickGoreSlides(ctx);
   // (got over his panic, or gone: himself again; till then, running off his own way, but not shooting)
@@ -735,11 +740,11 @@ const drawSuck = (c: Ctx, state: GameState, mouth: { x: number; y: number }) => 
   c.save();
   c.lineCap = 'round'; c.lineJoin = 'round';
   // The funnel: a shade over the whole cone (it darkens a sunny day a touch), then green, thicker the nearer in
-  c.globalAlpha = 0.07 * ramp; c.fillStyle = VOID; fan(REACH); c.fill();
+  c.globalAlpha = 0.07 * ramp; c.fillStyle = VOID; fan(reach); c.fill();
   c.fillStyle = GHOST_DIM;
-  c.globalAlpha = 0.08 * ramp; fan(REACH); c.fill();
-  c.globalAlpha = 0.1 * ramp; fan(REACH * 0.62); c.fill();
-  c.globalAlpha = 0.14 * ramp; fan(REACH * 0.32); c.fill();
+  c.globalAlpha = 0.08 * ramp; fan(reach); c.fill();
+  c.globalAlpha = 0.1 * ramp; fan(reach * 0.62); c.fill();
+  c.globalAlpha = 0.14 * ramp; fan(reach * 0.32); c.fill();
   // (its rim, at the reach: dithered, dark and pale pixels both)
   c.globalAlpha = 0.6 * ramp; c.fillStyle = ditherOf(c);
   c.beginPath(); c.arc(mx, my, REACH, a0, a1); c.arc(mx, my, REACH - 8, a1, a0, true); c.closePath(); c.fill();

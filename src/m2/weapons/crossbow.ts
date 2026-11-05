@@ -34,6 +34,7 @@ import { drawComposited } from '../../m1/game/render/composite';
 import { isRobot } from '../kinds';
 import { specialsHalf, specialsOff, realMax, HALF } from './half';
 import { subBossDmg } from './subBoss';
+import { tubeRide } from './tubeRide';
 import { drawGooPuddle, drawGooOverhang, drawGooString, gooOverhangDrips, type GooPalette } from '../../m1/game/render/goo';
 
 type Ctx = CanvasRenderingContext2D;
@@ -653,6 +654,9 @@ const tick = (ctx: FrameContext, input: { moveUp: boolean; moveDown: boolean }, 
   // (down only aims (and locks) up in the air; on the ground it's the crouch, a straight shot as ever)
   const up = equipped && input.moveUp && !pl.isDucking, down = equipped && input.moveDown && !pl.isGrounded;
   locked = !pl.vine && (up || down) ? lockOn(state, up) : null;
+  // (on a tube ride, the aliens all up over him: it finds the one up there out in front for him, nothing held (the
+  // owner's "better upward tracking for the crossbow when on the tube ride"; tubeRide.ts))
+  if (equipped && !locked && !pl.vine && !down && tubeRide(state)) locked = lockOn(state, true);
   let want = !equipped ? 0 : up ? -DART.up : down && !pl.isGrounded ? DART.down : 0;
   if (locked) {
     const dx = (locked.pos.x + locked.width / 2 - (pl.pos.x + pl.width / 2)) * pl.facing, dy = locked.pos.y + locked.height / 2 - (pl.pos.y + pl.height * 0.4);

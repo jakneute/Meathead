@@ -12,6 +12,7 @@
 
 import type { Enemy } from '../../m1/types';
 import { poofEnemy } from '../../m1/game/core/cartoonKills';
+import { tubeRide } from './tubeRide';
 import type { FrameContext } from '../../m1/game/core/context';
 import type { GameState } from '../../m1/game/core/state';
 import { registerWeapon } from '../../m1/game/combat/customWeapons';
@@ -169,10 +170,15 @@ const fire = (ctx: FrameContext, input: { moveUp: boolean }, muzzle: { x: number
   const pl = state.player;
   const dir = pl.facing as 1 | -1;
   const skin = Math.floor(Math.random() * SKINS.length);
+  // (on a tube ride, nothing under them to leap off: each sent straight off the end of it at one of the aliens, the
+  // way a leap goes (tubeRide.ts))
+  const ride = tubeRide(state);
+  const at = ride ? state.enemies.filter(e => edible(state, e) && (e.pos.x + e.width / 2 - muzzle.x) * dir > 0).sort((a, b) => Math.abs(a.pos.x - muzzle.x) - Math.abs(b.pos.x - muzzle.x)) : [];
   for (let i = 0; i < LITTER; i++) {
     const max = LIFE + Math.floor((Math.random() - 0.5) * LIFE_VARY);
     aliens.push({
       x: muzzle.x, y: muzzle.y + 4, vx: dir * (7 + Math.random() * 5) + pl.vel.x * 0.5, vy: input.moveUp ? -11 - Math.random() * 3 : -3 - Math.random() * 4,
+      ...(at.length ? leapAt(at[i % at.length], muzzle, ride!.speed) : {}),
       ground: false, face: dir, life: max, max, skin: Math.random() < 0.8 ? skin : Math.floor(Math.random() * SKINS.length),
       eyes: (1 + Math.floor(Math.random() * 3)) as 1 | 2 | 3, seed: Math.random(), target: null, retarget: 0, leapWait: 0, on: null, bite: 0, chomp: 0, roamTo: null, fresh: true,
     });
@@ -188,6 +194,12 @@ const fire = (ctx: FrameContext, input: { moveUp: boolean }, muzzle: { x: number
   playSound('spawn'); playSound('chitter', 0.6, 4);
 };
 
+/** A litter's leap at one, straight off the gun (a tube ride: tubeRide.ts): in about half a second, him carried on
+ *  with the chute's pace. */
+const leapAt = (e: Enemy, from: { x: number; y: number }, pace: number) => {
+  const T = 22 + Math.random() * 8, dx = e.pos.x + e.width / 2 - from.x + pace * T, dy = e.pos.y + e.height / 2 - from.y;
+  return { vx: dx / T, vy: (dy - 0.5 * GRAVITY * T * T) / T };
+};
 /** One's time is up (or it's one too many): it bursts, a splash of goo. */
 const pop = (state: GameState, a: Alien) => {
   for (let i = 0; i < 8; i++) state.particles.push({ pos: { x: a.x, y: a.y - 6 }, vel: { x: (Math.random() - 0.5) * 4, y: -1 - Math.random() * 3 }, life: 22, color: GREEN_BLOOD[i % 3], size: 1.5 + Math.random() * 2, grav: 0.3 });

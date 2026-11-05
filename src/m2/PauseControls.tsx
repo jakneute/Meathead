@@ -103,6 +103,7 @@ export const pauseCard = (id: PauseCardId | MinigameId, nin: boolean, joycon: bo
       { label: 'UPPERCUT', parts: [{ pad: ['DPAD_UP', 'B'], kb: ['@up', '@special'], join: '+' }] },
       { label: 'DIVE KICK (IN THE AIR)', parts: [{ pad: ['DPAD_DOWN', 'B'], kb: ['@down', '@special'], join: '+' }] },
       { label: 'AIR GRAB (WATCH WHERE YOU LAND)', parts: [{ pad: ['A', 'B'], kb: ['@airGrab'], join: '+' }] },
+      one("SPELLBOOK: STUCK TILL IT'S CAST (TIME IT BETWEEN HOLES)", ['X'], ['@fire']),
     ] };
     // (space/orbit: free flight any way, the ray gun held)
     case 'orbit': return { title: 'SPACE', rows: [

@@ -12,6 +12,7 @@ import type { FrameContext } from '../../m1/game/core/context';
 import type { GameState } from '../../m1/game/core/state';
 import { registerWeapon } from '../../m1/game/combat/customWeapons';
 import { isMidBoss } from '../../m1/game/combat/midBoss';
+import { tubeRide } from './tubeRide';
 import { specialsHalf, HALF } from './half';
 import { subBossDmg } from './subBoss';
 import { gunDeathMode } from '../../m1/game/enemies/gunDeaths';
@@ -229,7 +230,8 @@ const fire = (ctx: FrameContext, input: { moveUp: boolean; moveDown: boolean }, 
   // Up + fire: a lob, a mortar's arc, high over and down on the head of whoever's out in front (no wobble: it's the
   // shot that's aimed; or, nobody about, just a high one out in front). Otherwise aimed a bit: down (in the air) sends it
   // at the floor; a little wild either way: it's junk out a pipe
-  const lob = input.moveUp;
+  // (on a tube ride, every one's the aimed one: the aliens are up over him, and a straight one's off into the drop)
+  const lob = input.moveUp || !!tubeRide(state);
   let vel: { x: number; y: number };
   if (lob) {
     const from = lobFrom(pl, muzzle), arc = lobArc(state, from, gravityOf(t), lobTarget(state, from));

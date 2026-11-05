@@ -34,6 +34,7 @@ import { grabBusy, inPlay, setGroundGrabsOff } from '../../moves/grab';
 import { TUBES, type Tube } from './geo';
 import { pathOf, surfaceAt, type Path } from './slides';
 import { HOVER, QUEUED, fire, shotsOf } from './kinds';
+import { steerShot } from '../../weapons/tubeRide';
 
 /** His seat: his feet this far over the tube's bottom (down in its hole). */
 const SEAT = 8;
@@ -178,6 +179,13 @@ export const updateTube = (ctx: FrameContext, r: TubeRide, controls: Controls, e
   const paths = tubePaths(r.i), lap = tubeLap(r.i);
   const crossedFrom = mid() < wasX ? wasX - T.loop.len : wasX;
   const cx = mid(), under = chuteAt(r.i, cx);
+  // ---- the shots: the ray gun's bolts and the crossbow's darts bent a little toward the aliens up over him (aim help
+  // only: tubeRide.ts)
+  for (const q of state.projectiles) {
+    if (q.owner !== 'player') continue;
+    if (q.isRay) steerShot(state, q, 0.06);
+    else if (q.custom === 'CROSSBOW' && (q.customData as { kind?: string } | undefined)?.kind === 'dart') steerShot(state, q, 0.05);
+  }
   // ---- the floor under him: at the chute's height, wherever he's over it and not under it (none over a gap)
   const moving = !!(p.isUppercutting || p.isDivekicking || grabBusy());
   const sy = under ? under.y - SEAT : 0;
@@ -211,7 +219,11 @@ export const updateTube = (ctx: FrameContext, r: TubeRide, controls: Controls, e
     return controls;
   }
   // ---- sat in it on the chute (not in a move): the seat, turned with the chute; else his own pose, the tube round him
-  const seated = p.isGrounded && !moving && !p.isCharging;
+  // (the spellbook and the hammer take his pose over, as on land, and keep out of a seat's (weapons/seated.ts): with
+  // one of those out he's stood up in the tube, so they work here as they do anywhere (the owner's "similar to how it
+  // works on land"); the spellbook's reading holds him still, but the chute doesn't stop: time it between the holes)
+  const poser = p.currentWeapon === 'SPELLBOOK' || p.currentWeapon === 'MALLET';
+  const seated = p.isGrounded && !moving && !p.isCharging && !poser;
   p.logSeat = seated;
   p.spriteRot = seated && under ? under.a : 0;
   r.x = cx; r.y = feet() + SEAT;

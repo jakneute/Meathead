@@ -24,6 +24,7 @@ import { createGrab, updateGrab, drawGrab, type Grab } from '../../moves/grab';
 import { sleepFar, wakeNear } from '../../dormant';
 import { markBossFight } from '../../bossQuiet';
 import { updateSwimAir, drawAir } from '../../frontier/air';
+import { setTubeRide } from '../../weapons/tubeRide';
 import { lay, solid, ledge, meatheadSays, saidOver } from '../../adventure/section';
 import { endgameStage, PARK_STAGE } from '../stages';
 import { GY, CP, CP_AT, CP_FLOOR, GROUND, POOLS, LEDGES, ISLANDS, SLIDES, TUBES, TOWER, SUMMIT, PLAZA_CAST, PICKUPS, L2, floorY, step } from './geo';
@@ -84,6 +85,7 @@ const TUBE_CARD_ROWS = [
   { pad: ['DPAD_UP', 'B'], join: '+', kb: ['@up', '@special'], label: 'UPPERCUT' },
   { pad: ['DPAD_DOWN', 'B'], join: '+', kb: ['@down', '@special'], label: 'DIVE KICK (IN THE AIR)' },
   { pad: ['A', 'B'], join: '+', kb: ['@airGrab'], label: 'AIR GRAB (WATCH WHERE YOU LAND)' },
+  { pad: ['X'], kb: ['@fire'], label: "SPELLBOOK: STUCK TILL IT'S CAST (TIME IT BETWEEN HOLES)" },
 ] as import('../../upgrades/equipInfo').EquipControl[];
 const TUBE_CARD_TEXT = "THE TUBE'S STUCK TO YOUR ASS AND IT GOES ON ITS OWN. THE CHUTE'S GOT HOLES IN IT WITH NO BOTTOM: JUMP THEM. EVERYTHING WORKS BUT THE CHARGE MOVES, BEATDOWNS AND SHAKEDOWNS. IT KEEPS GOING TILL EVERY ALIEN ON IT'S DEAD.";
 const CARD_HOLD = 90;
@@ -144,6 +146,7 @@ export const parkLayout: StageLayout = {
     if (state.checkpoint >= CP.baseCamp) pk.said.everest = true;
     state.stage = pk;
     setRidingCheck(s => { const q = parkOf(s); return !!q && tubeOn(q.tube); });
+    setTubeRide(s => { if (s.stageId !== PARK_STAGE) return null; const q = parkOf(s); return q?.tube?.mode === 'ride' ? { speed: TUBES[q.tube.i].speed } : null; });
     setShotBox(s => { const q = parkOf(s); return q && tubeOn(q.tube) ? tubeBox(s, q.tube) : { x: s.player.pos.x, y: s.player.pos.y + (s.player.isDucking ? 24 : 0), w: s.player.width, h: s.player.height - (s.player.isDucking ? 24 : 0) }; });
     setOnKilled(s => {
       const q = parkOf(s);
