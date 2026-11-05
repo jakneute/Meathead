@@ -29,7 +29,7 @@ import { endgameStage } from '../stages';
 import { takeAbductionSkipped } from '../abduction';
 import { MH_KICK } from '../park1/lines';
 import { MH_LOT, ALIEN_CLAIM, DEMON_CLAIM, ALIEN_VOICE, DEMON_VOICE, type Dressed } from '../lines';
-import { LOT, drawLotBackdrop, drawLotBack, lotLights, flyerAt, FLYER_LIST } from './art';
+import { LOT, drawLotBackdrop, drawLotBack, lotLights, flyerAt, FLYER_LIST, paintDemon } from './art';
 import { setWalkwaysBack } from '../../intro/geometry';
 
 const STAGE = endgameStage('lot')!;
@@ -105,7 +105,7 @@ export const lotLayout: StageLayout = {
   update: (ctx, controls) => {
     const { state } = ctx;
     const lot = getLot(state);
-    if (import.meta.env.DEV) (window as unknown as { __m2: GameState }).__m2 = state;
+    if (import.meta.env.DEV) { const w = window as unknown as { __m2: GameState; __lotArt: unknown }; w.__m2 = state; w.__lotArt = { paintDemon }; }
     if (isLeaving()) { stopWeapons(); carryGut(state.player); state.player.vel.x = 0; return { ...NO_CONTROLS }; }
     if (!lot) return controls;
     const p = state.player, px = p.pos.x + p.width / 2;
@@ -156,8 +156,8 @@ export const lotLayout: StageLayout = {
     return updateGrab(ctx, lot.grab, controls);
   },
   drawBackdrop: (c, state) => { drawLotBackdrop(c, state); return true; },
-  lighting: () => todLight(lotLights(), 1),
-  drawBack: (c, state) => { const lot = getLot(state); drawLotBack(c, state, { steam: lot?.steam ?? 0.5, gate: lot?.gate ?? 0 }); },
+  lighting: (state) => todLight(lotLights(state), 1),
+  drawBack: (c, state) => { const lot = getLot(state); drawLotBack(c, state, { steam: lot?.steam ?? 0.5, gate: lot?.gate ?? 0, kick: lot?.kick ?? -1 }); },
   drawFront: (c, state) => { const lot = getLot(state); if (lot) drawGrab(c, state, lot.grab); },
   drawHud: (c, state) => {
     // (whoever's yelling up there: the words over them, plain, while it's said)
