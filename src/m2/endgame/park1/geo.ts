@@ -118,6 +118,10 @@ export interface Tube {
   gaps: [number, number][];
   /** The low pipes over the chute (duck under): world x. */
   pipes: number[];
+  /** The chute, its gaps and pipes, lap by lap (tube.ts goes on to the next each time he's carried back round): the
+   *  loop's middle differs from lap to lap, its ends (all that's on screen at the carry back) the same. (pieces, gaps,
+   *  pipes above: the first lap's.) */
+  laps: { pieces: [number, number][][]; gaps: [number, number][]; pipes: number[] }[];
   /** The loop: from `a + len` he's carried back to `a` (the chute's the same either side) till the ride's cleared. */
   loop: { a: number; len: number };
   /** The aliens to kill (all of them: then the loop lets him go), at most this many at once. */
@@ -160,8 +164,22 @@ const course = (o: {
   }
   return { pieces, gaps, pipes };
 };
-const BH = course({ x0: 9990, y0: GY - 600, a: 11520, len: 1920, yl: GY - 330, amp: 40, gaps: [[600, 180], [1200, 200]], pipes: [990, 1680], introGaps: [[10520, 150]], poolX: 15560, copy: 1600 });
-const AB = course({ x0: 20100, y0: GY - 720, a: 21440, len: 3840, yl: GY - 390, amp: 55, gaps: [[500, 200], [1400, 240], [2300, 250], [3050, 220]], pipes: [1000, 1900, 2750, 3550], introGaps: [[20520, 170]], poolX: 27460, copy: 1700 });
+/** A ride's laps: its ends' gaps and pipes (the first 800 of the loop, the last 500: the same every lap) and each lap's
+ *  own middle (the owner's "go through the same obstacles as before": they're not, lap to lap). */
+const laps = (o: Omit<Parameters<typeof course>[0], 'gaps' | 'pipes'>, ends: { gaps: [number, number][]; pipes: number[] }, mids: { gaps: [number, number][]; pipes: number[] }[]) => {
+  const all = mids.map(m => course({ ...o, gaps: [...ends.gaps, ...m.gaps], pipes: [...ends.pipes, ...m.pipes] }));
+  return { ...all[0], laps: all };
+};
+const BH = laps({ x0: 9990, y0: GY - 600, a: 11520, len: 1920, yl: GY - 330, amp: 40, introGaps: [[10520, 150]], poolX: 15560, copy: 1600 },
+  { gaps: [[600, 180]], pipes: [1680] },
+  [{ gaps: [[1200, 200]], pipes: [990] }, { gaps: [[1080, 210]], pipes: [900] }, { gaps: [[1120, 230]], pipes: [880] }]);
+const AB = laps({ x0: 20100, y0: GY - 720, a: 21440, len: 3840, yl: GY - 390, amp: 55, introGaps: [[20520, 170]], poolX: 27460, copy: 1700 },
+  { gaps: [[500, 200]], pipes: [3550] },
+  [
+    { gaps: [[1400, 240], [2300, 250], [3050, 220]], pipes: [1000, 1900, 2750] },
+    { gaps: [[1100, 220], [1900, 260], [2700, 240]], pipes: [1500, 2350, 3150] },
+    { gaps: [[1600, 230], [2500, 200], [3100, 200]], pipes: [1250, 2050, 2850] },
+  ]);
 export const TUBES: Tube[] = [
   {
     id: 'blackHole', name: 'THE BLACK HOLE', stairs: { x: 9500, n: 25, rise: 24, run: 15 }, deck: { x1: 9875, x2: 9990, y: GY - 600 },

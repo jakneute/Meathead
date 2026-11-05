@@ -224,9 +224,10 @@ export const parkLayout: StageLayout = {
       setUi({ introCutscene: pk.tube.mode === 'card' });
       return updateGrab(ctx, pk.grab, out);
     }
-    // (onto a tube: walked off the rack's deck into the chute's mouth)
+    // (onto a tube: walked off the rack's deck into the chute's mouth (that deck's own end: the Abyss's stairs go up past
+    // the Black Hole's deck height, far off to its right, and used to put him on the Black Hole))
     if (!p.inCutscene && p.health > 0 && p.isGrounded) TUBES.forEach((T, i) => {
-      if (Math.abs(p.pos.y + p.height - T.deck.y) < 4 && cx > T.deck.x2 - 36 && controls.right && !tubeOn(pk.tube)) {
+      if (Math.abs(p.pos.y + p.height - T.deck.y) < 4 && cx > T.deck.x2 - 36 && cx < T.deck.x2 + 12 && controls.right && !tubeOn(pk.tube)) {
         offSlide(state, pk.sl);
         const card = !pk.cardSeen;
         boardTube(state, pk.tube, i, card);

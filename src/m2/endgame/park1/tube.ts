@@ -64,8 +64,12 @@ export interface TubeRide {
   /** The chute's floor under him (a block of the stage's, moved with him). */
   floor: Block | null;
 }
-const PATHS: Path[][] = TUBES.map(t => t.pieces.map(pathOf));
-export const tubePaths = (i: number) => PATHS[i];
+const PATHS: Path[][][] = TUBES.map(t => t.laps.map(l => l.pieces.map(pathOf)));
+/** The lap each ride's on (the chute's middle differs lap to lap: geo.ts laps). */
+const LAP = TUBES.map(() => 0);
+export const tubeLapNo = (i: number) => LAP[i];
+export const tubeLap = (i: number) => TUBES[i].laps[LAP[i]];
+export const tubePaths = (i: number) => PATHS[i][LAP[i]];
 
 export const newTube = (): TubeRide => ({ i: 0, mode: 'off', x: 0, y: 0, rideY: 0, camY: 0, t: 0, sent: 0, killed: 0, escort: [], spawnIn: 0, cleared: false, shift: 0, fallT: 0, floor: null });
 export const tubeOn = (r: TubeRide) => r.mode === 'ride' || r.mode === 'card' || r.mode === 'fall';
@@ -80,11 +84,11 @@ export const tubeBox = (state: GameState, r: TubeRide) => {
 };
 /** The chute under world x on ride `i`: its height and slope, or null over a gap. */
 const chuteAt = (i: number, x: number) => {
-  for (const P of PATHS[i]) { if (x < P.segs[0].x0 || x > P.segs[P.segs.length - 1].x1) continue; return surfaceAt(P, x); }
+  for (const P of tubePaths(i)) { if (x < P.segs[0].x0 || x > P.segs[P.segs.length - 1].x1) continue; return surfaceAt(P, x); }
   return null;
 };
 /** Over a gap: the height of the chute's far side (the next piece's start). */
-const nextStartY = (i: number, x: number) => { for (const P of PATHS[i]) if (P.segs[0].x0 > x) return P.segs[0].y0; return Infinity; };
+const nextStartY = (i: number, x: number) => { for (const P of tubePaths(i)) if (P.segs[0].x0 > x) return P.segs[0].y0; return Infinity; };
 /** The aliens left to kill on the ride he's on (the HUD's count). */
 export const tubeFoesLeft = (r: TubeRide) => (r.mode === 'ride' || r.mode === 'fall' ? Math.max(0, TUBES[r.i].foes - r.killed) : 0);
 
@@ -98,7 +102,8 @@ const floorAt = (state: GameState, r: TubeRide, cx: number, y: number) => {
 
 /** Onto a tube at the top of ride `i` (the card first, the first time). */
 export const boardTube = (state: GameState, r: TubeRide, i: number, card: boolean) => {
-  const p = state.player, at = PATHS[i][0].segs[0];
+  LAP[i] = 0;
+  const p = state.player, at = PATHS[i][0][0].segs[0];
   Object.assign(r, { i, mode: card ? 'card' : 'ride', x: at.x0, y: at.y0, rideY: at.y0, camY: at.y0 - 400, t: 0, sent: 0, killed: 0, escort: [], spawnIn: 60, cleared: false, fallT: 0 });
   p.facing = 1;
   p.isCharging = false; p.isSliding = false; p.isDivekicking = false; p.isUppercutting = false;
@@ -144,7 +149,7 @@ export interface TubeEvents { onEnd: () => void; onFall: () => void; onClear: ()
 /** A frame of the ride (before the engine moves him). Returns what the engine's to have: everything of his but walking
  *  (the chute's pace is his), the charge moves, and (grab.ts, off for the ride) the beatdown and the shakedown. */
 export const updateTube = (ctx: FrameContext, r: TubeRide, controls: Controls, ev: TubeEvents): Controls => {
-  const { state } = ctx, p = state.player, T = TUBES[r.i], paths = PATHS[r.i];
+  const { state } = ctx, p = state.player, T = TUBES[r.i];
   if (r.mode === 'off' || r.mode === 'done') return controls;
   if (p.health <= 0 && r.mode !== 'fall') { r.mode = 'off'; unboardTube(state, r); return controls; }
   if (r.mode === 'card') {
@@ -169,7 +174,8 @@ export const updateTube = (ctx: FrameContext, r: TubeRide, controls: Controls, e
   const wasX = mid();
   p.pos.x += T.speed;
   // ---- round the loop again (the aliens not all dead yet; never mid-grab): carried back to its start
-  if (!r.cleared && mid() >= T.loop.a + T.loop.len && !grabBusy()) carry(state, r, -T.loop.len);
+  if (!r.cleared && mid() >= T.loop.a + T.loop.len && !grabBusy()) { carry(state, r, -T.loop.len); LAP[r.i] = (LAP[r.i] + 1) % T.laps.length; }
+  const paths = tubePaths(r.i), lap = tubeLap(r.i);
   const crossedFrom = mid() < wasX ? wasX - T.loop.len : wasX;
   const cx = mid(), under = chuteAt(r.i, cx);
   // ---- the floor under him: at the chute's height, wherever he's over it and not under it (none over a gap)
@@ -211,18 +217,17 @@ export const updateTube = (ctx: FrameContext, r: TubeRide, controls: Controls, e
   r.x = cx; r.y = feet() + SEAT;
   if (r.t % 7 === 0 && seated) playSound('splash', 0.1, 8 + Math.random() * 4);
   // ---- the low pipes over the chute: his head (or him, up in a jump) as one goes over
-  for (const x of T.pipes) {
+  for (const x of lap.pipes) {
     if (!(crossedFrom < x && cx >= x)) continue;
     const b = tubeBox(state, r), pipeY = (chuteAt(r.i, x)?.y ?? feet()) - PIPE_CLEAR;
     if (b.y < pipeY && b.y + b.h > pipeY - 26 && p.invincibilityTimer <= 0) { hurtPlayer(ctx, 14, 'm2:wp_pipe', { x: -2, y: 0 }, 14); playSound('clang', 0.9, -4); shakeScreen(state, 8, 4); }
   }
   // ---- the aliens: sent in one at a time, no more than the ride's most at once, till its count's all dead. One held in
   // a grab's still his; one gone without dying (it shouldn't) is sent again
-  for (const e of r.escort) {
-    if (e.health <= 0) r.killed++;
-    else if (!inPlay(state, e)) r.sent--;
-  }
-  r.escort = r.escort.filter(e => e.health > 0 && inPlay(state, e));
+  // (gone from the world, however: dead (a kill that blows one away needn't zero its health); the count always comes
+  // down, the ride always ends)
+  for (const e of r.escort) if (e.health <= 0 || e.isBlownAway || !inPlay(state, e)) r.killed++;
+  r.escort = r.escort.filter(e => e.health > 0 && !e.isBlownAway && inPlay(state, e));
   // (the owner's: "make sure there is always an alien in front of you. the ones behind you are 'in queue' and won't
   // attack": the first of them (the Abyss: the first two) out in front fighting, the rest waiting behind him, harmless,
   // each moving up as one ahead dies)
@@ -271,7 +276,7 @@ export const updateTube = (ctx: FrameContext, r: TubeRide, controls: Controls, e
   const specialOk = !!controls.up || (!!controls.down && !p.isGrounded);
   // (dev only: window.__wpAutoTube set, it jumps the gaps itself: the headless checks and the perf run ride it through)
   const auto = import.meta.env.DEV && !!(window as unknown as { __wpAutoTube?: boolean }).__wpAutoTube;
-  const autoJump = auto && (p.isGrounded ? T.gaps.some(([g1]) => g1 - cx > 0 && g1 - cx < T.speed * 3) : p.vel.y < 0);
+  const autoJump = auto && (p.isGrounded ? lap.gaps.some(([g1]) => g1 - cx > 0 && g1 - cx < T.speed * 3) : p.vel.y < 0 || (!under && feet() < r.rideY + 12));
   return { ...controls, left: false, right: false, jump: !!controls.jump || autoJump, charge: false, special: !!controls.special && specialOk };
 };
 export type { Tube };

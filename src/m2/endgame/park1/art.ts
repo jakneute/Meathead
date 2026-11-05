@@ -27,7 +27,7 @@ import { text, steppedGlow } from '../../intro/art/kit';
 import { WATER_PARK_NAME } from '../stages';
 import { GY, GROUND, POOLS, LEDGES, ISLANDS, SLIDES, TUBES, TOWER, FLOORS, floorY, exitSide, FLOOR_NAMES, FLOOR_FT, SUMMIT, DESCENT, L2, step, tubeSpan, type Slide, type Tube } from './geo';
 import { SLIDE_PATHS, pointAt, type Path } from './slides';
-import { tubePaths, PIPE_CLEAR, GAP_WARN } from './tube';
+import { tubePaths, tubeLap, tubeLapNo, PIPE_CLEAR, GAP_WARN } from './tube';
 import { stairsOf, FLOOR_LEDGES, DOORS_X } from './tower';
 
 type Ctx = CanvasRenderingContext2D;
@@ -376,8 +376,8 @@ const TUBE_TILE = 900;
 const tubePts = (P: Path): [number, number][] => [[P.segs[0].x0, P.segs[0].y0], ...P.segs.map(s => [s.x1, s.y1] as [number, number])];
 /** The bottomless drop under a ride (world y): a little under the lowest of its chute on screen (the chute's the same
  *  either side of the loop's carry back, so this is too). */
-const CHUTE_PTS = TUBES.map(T => T.pieces.flat());
-const dropTopAt = (i: number, x0: number, x1: number) => { let y = -Infinity; for (const [x, yy] of CHUTE_PTS[i]) if (x > x0 && x < x1 && yy > y) y = yy; return y + 46; };
+const CHUTE_PTS = TUBES.map(T => T.laps.map(l => l.pieces.flat()));
+const dropTopAt = (i: number, x0: number, x1: number) => { let y = -Infinity; for (const [x, yy] of CHUTE_PTS[i][tubeLapNo(i)]) if (x > x0 && x < x1 && yy > y) y = yy; return y + 46; };
 const dropTop = (state: GameState, T: Tube) => dropTopAt(TUBES.indexOf(T), state.camera.x - 120, state.camera.x + W + 120);
 /** The drop on screen (the backdrop paints it: bands, then black), or null: no ride's drop in view. */
 const dropRect = (state: GameState) => {
@@ -393,7 +393,7 @@ const dropRect = (state: GameState) => {
   return null;
 };
 const LEG_RAMP = ['#2A3442', '#1E2632', '#141A24', '#0B0F18'];
-const inGap = (T: Tube, x: number, m = 0) => T.gaps.some(([a, b]) => x > a - m && x < b + m);
+const inGap = (i: number, x: number, m = 0) => tubeLap(i).gaps.some(([a, b]) => x > a - m && x < b + m);
 const drawTubeBack = (c: Ctx, state: GameState, T: Tube, i: number) => {
   const paths = tubePaths(i);
   const first = T.stairs.x, last = paths[paths.length - 1].segs[paths[paths.length - 1].segs.length - 1].x1;
@@ -417,7 +417,7 @@ const drawTubeBack = (c: Ctx, state: GameState, T: Tube, i: number) => {
   for (const P of paths) {
     const pts = tubePts(P), a = Math.max(pts[0][0], state.camera.x - 40), b = Math.min(pts[pts.length - 1][0], state.camera.x + W + 40);
     for (let x = Math.ceil(a / 160) * 160; x < b; x += 160) {
-      if (inGap(T, x, 30)) continue;
+      if (inGap(i, x, 30)) continue;
       const y = pointAt(P, Math.max(0, x - pts[0][0])).y, bot = state.camera.y + H + 20;
       if (bot <= y + 10) continue;
       R(c, x - 16, y + 60, 32, 4, '#2A3442');
@@ -432,7 +432,7 @@ const drawTubeBack = (c: Ctx, state: GameState, T: Tube, i: number) => {
     if (tx + TUBE_TILE < T.deck.x2 - 40 || tx > last + 40) continue;
     const [y0, y1] = bandOf(paths.flatMap(tubePts), tx, TUBE_TILE);
     if (y1 < y0 || !visY(state, y0 - 60, y1 + 60)) continue;
-    stamp(c, `wp-tube-${T.id}-${tx}`, tx, y0 - 60, TUBE_TILE, y1 - y0 + 100, g => {
+    stamp(c, `wp-tube-${T.id}-${tubeLapNo(i)}-${tx}`, tx, y0 - 60, TUBE_TILE, y1 - y0 + 100, g => {
       g.save(); g.beginPath(); g.rect(tx, y0 - 60, TUBE_TILE, y1 - y0 + 100); g.clip();
       paths.forEach((P, pi) => {
         chuteBack(g, tubePts(P), T.col, 26);
@@ -454,7 +454,7 @@ const drawTubeBack = (c: Ctx, state: GameState, T: Tube, i: number) => {
   }
   // (under each gap: the drop from the chute's own height down (where the chute's high, the drop's top on screen is well
   // under it): nothing under a gap but black)
-  for (const [g1, g2] of T.gaps) {
+  for (const [g1, g2] of tubeLap(i).gaps) {
     if (!vis(state, g1, g2, 0)) continue;
     const P = paths.find(q => Math.abs(q.segs[q.segs.length - 1].x1 - g1) < 1);
     if (!P) continue;
@@ -464,7 +464,7 @@ const drawTubeBack = (c: Ctx, state: GameState, T: Tube, i: number) => {
     DROP_BANDS.forEach((col, k) => R(c, g1 + 2, top + k * step, g2 - g1 - 4, step + 1, col));
   }
   // (the GAP signs: hung over the chute off a cable, well before each gap)
-  for (const [g1] of T.gaps) {
+  for (const [g1] of tubeLap(i).gaps) {
     const x = g1 - GAP_WARN;
     if (!vis(state, x - 80, x + 80)) continue;
     const P = paths.find(q => q.segs[0].x0 <= x && q.segs[q.segs.length - 1].x1 >= x);
@@ -500,14 +500,14 @@ const drawTubeFront = (c: Ctx, state: GameState, T: Tube, i: number) => {
     if (tx + TUBE_TILE < T.deck.x2 - 40 || tx > last + 40) continue;
     const [y0, y1] = bandOf(paths.flatMap(tubePts), tx, TUBE_TILE);
     if (y1 < y0 || !visY(state, y0 - 40, y1 + 40)) continue;
-    stamp(c, `wp-tubef-${T.id}-${tx}`, tx, y0 - 40, TUBE_TILE, y1 - y0 + 70, g => {
+    stamp(c, `wp-tubef-${T.id}-${tubeLapNo(i)}-${tx}`, tx, y0 - 40, TUBE_TILE, y1 - y0 + 70, g => {
       g.save(); g.beginPath(); g.rect(tx, y0 - 40, TUBE_TILE, y1 - y0 + 70); g.clip();
       for (const P of paths) chuteFront(g, tubePts(P), T.col);
       g.restore();
     });
   }
   // (the low pipes: end-on, striped, LOW on a sign under them; hung off a beam from above)
-  for (const x of T.pipes) {
+  for (const x of tubeLap(i).pipes) {
     if (!vis(state, x - 60, x + 60)) continue;
     const P = paths.find(q => q.segs[0].x0 <= x && q.segs[q.segs.length - 1].x1 >= x);
     if (!P) continue;
