@@ -356,6 +356,24 @@ const RIDE_STEPS: ((g: Ctx) => void)[] = [
     // (the work lights left on, here and there)
     for (const [x, y] of [[511, RF - 214], [663, RF - 254], [1102, RF - 284], [769, RF - 144]] as P[]) { R(g, x - 2, y - 2, 5, 4, mix(T('#FFE8A0'), '#202030', 0.4)); R(g, x - 1, y - 1, 3, 2, '#FFE8A0'); }
   },
+  // (the trapdoor drop, at the near end (the owner, 2026-11-06: "throw in other stuff too as flavor that we may have
+  // missed"): its narrow tower, the clear launch capsule on top (a rider's shape in it, waiting on the floor to go),
+  // the tube straight down out of it, the loop, the run out)
+  g => {
+    const tod = timeOfDay(), T: Tn = c => farTint(c, 0.8, tod), x = 452, top = RF - 236;
+    farTowerOf(g, T, x, 14, top, '#A855F7');
+    const cx = x + 7, Cp = ramp5('#A5F3FC').map(T);
+    R(g, cx - 7, top - 44, 14, 32, T('#0A0C18')); R(g, cx - 6, top - 43, 12, 30, Cp[0]); R(g, cx - 6, top - 43, 3, 30, Cp[3]); R(g, cx + 3, top - 43, 2, 30, Cp[1]);
+    R(g, cx - 8, top - 46, 16, 4, T('#0A0C18')); R(g, cx - 6, top - 45, 12, 2, Cp[2]);
+    R(g, cx - 1, top - 38, 3, 3, T('#1A1410')); R(g, cx - 1, top - 35, 2, 9, T('#1A1410'));
+    farTube(g, T, [cx, top - 12], [cx, RF - 150], [cx + 2, RF - 96], '#A855F7', 8);
+    // (the loop: round, the tube's own steps)
+    const lx = cx + 18, ly = RF - 82, r = 18;
+    for (const [w, col] of [[11, T('#0A0A14')], [9, T(ramp5('#A855F7')[1])], [6, T('#A855F7')], [1, T(ramp5('#A855F7')[4])]] as const) { g.strokeStyle = col; g.lineWidth = w; g.beginPath(); g.arc(lx, ly, r - (w === 1 ? 2 : 0), Math.PI, Math.PI * 2.9); g.stroke(); }
+    R(g, lx - 1, ly + r, 3, RF - ly - r, T('#0C1020'));
+    farTube(g, T, [lx + r * Math.cos(Math.PI * 2.9), ly + r * Math.sin(Math.PI * 2.9)], [lx + 24, RF - 40], [lx + 40, RF - 8], '#A855F7', 8, true);
+    if (tod.lamps > 0.3) { R(g, cx - 2, top - 50, 4, 3, mix(T('#FF4A5A'), '#2A0A14', 0.3)); }
+  },
   // (the haze along their feet, the park's hedge in front)
   g => {
     const tod = timeOfDay();
