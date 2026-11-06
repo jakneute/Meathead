@@ -108,6 +108,29 @@ const blisters = (c: Ctx, x: number, feet: number, t: number) => {
   }
 };
 
+/** The char over him, without a canvas filter (slow on a weak PC): his body drawn into a spare canvas the size of the
+ *  screen (only the box round him cleared and copied), darkened toward a burnt brown over his own pixels only
+ *  (source-atop), put down. The look of the old brightness/sepia filter, at a fill and a copy's cost. */
+let CHAR_CV: HTMLCanvasElement | null = null;
+const charred = (c: CanvasRenderingContext2D, x: number, feet: number, k: number, draw: (g: CanvasRenderingContext2D) => void) => {
+  const cw = c.canvas.width, ch = c.canvas.height;
+  if (!CHAR_CV) CHAR_CV = document.createElement('canvas');
+  if (CHAR_CV.width !== cw || CHAR_CV.height !== ch) { CHAR_CV.width = cw; CHAR_CV.height = ch; }
+  const g = CHAR_CV.getContext('2d')!, m = c.getTransform();
+  // (the box round him, on the screen)
+  let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+  for (const [px, py] of [[x - 120, feet - 210], [x + 120, feet - 210], [x - 120, feet + 30], [x + 120, feet + 30]]) { const qx = m.a * px + m.c * py + m.e, qy = m.b * px + m.d * py + m.f; x0 = Math.min(x0, qx); y0 = Math.min(y0, qy); x1 = Math.max(x1, qx); y1 = Math.max(y1, qy); }
+  x0 = Math.max(0, Math.floor(x0)); y0 = Math.max(0, Math.floor(y0)); x1 = Math.min(cw, Math.ceil(x1)); y1 = Math.min(ch, Math.ceil(y1));
+  if (x1 <= x0 || y1 <= y0) return;
+  g.setTransform(1, 0, 0, 1, 0, 0); g.clearRect(x0, y0, x1 - x0, y1 - y0);
+  g.imageSmoothingEnabled = c.imageSmoothingEnabled;
+  g.setTransform(m); draw(g);
+  g.setTransform(1, 0, 0, 1, 0, 0);
+  g.globalCompositeOperation = 'source-atop'; g.globalAlpha = Math.min(0.86, k * 0.84); g.fillStyle = '#24140A'; g.fillRect(x0, y0, x1 - x0, y1 - y0);
+  g.globalAlpha = 1; g.globalCompositeOperation = 'source-over';
+  c.save(); c.setTransform(1, 0, 0, 1, 0, 0); c.drawImage(CHAR_CV, x0, y0, x1 - x0, y1 - y0, x0, y0, x1 - x0, y1 - y0); c.restore();
+};
+
 export const drawLavaDeath: Parameters<typeof registerDeathDraw>[1] = (c, state, d, weapon, t, f) => {
   const s = d.floor ?? d.y, x = d.x;
   // (the churn where he went in: a ring of bright, boiling)
@@ -123,9 +146,9 @@ export const drawLavaDeath: Parameters<typeof registerDeathDraw>[1] = (c, state,
     c.save();
     c.translate(x + shake, feet); c.rotate(t > LV.IN ? Math.sin(t * 0.4) * 0.2 : 0); c.translate(-x, -feet);
     const char = k01((t - LV.CHAR + 20) / 40);
-    if (char > 0) c.filter = `brightness(${(1 - char * 0.82).toFixed(2)}) sepia(${(char * 0.6).toFixed(2)})`;
-    body(c, state, { ...d, x, y: feet }, weapon, { isGrounded: false, hurtTimer: 30, vel: { x: 0, y: 4 }, deathFace: t < 50 ? 'scream' : 'agony' });
-    c.filter = 'none';
+    const pose = { isGrounded: false, hurtTimer: 30, vel: { x: 0, y: 4 }, deathFace: (t < 50 ? 'scream' : 'agony') as 'scream' | 'agony' };
+    if (char <= 0) body(c, state, { ...d, x, y: feet }, weapon, pose);
+    else charred(c, x, feet, char, g => body(g, state, { ...d, x, y: feet }, weapon, pose));
     c.restore();
     if (t > LV.BLISTER && t < LV.CHAR + 10) blisters(c, x + shake, feet, t);
   } else {

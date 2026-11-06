@@ -68,8 +68,21 @@ export const flame = (c: Ctx, x: number, foot: number, w: number, h: number, f: 
   c.translate(-tx, -ty);
 };
 /** A cluster of flames along [x0, x1] (their feet at `foot`), `h` tall: a fire. */
-export const fireRow = (c: Ctx, x0: number, x1: number, foot: number, h: number, f: number, gap = 18, seed = 0) => {
-  for (let x = x0 + gap / 2, i = 0; x < x1; x += gap, i++) { const k = hash(i + seed * 13); flame(c, x, foot, gap * (1 + k * 0.5), h * (0.7 + k * 0.6), f, i + seed); }
+export const fireRow = (c: Ctx, x0: number, x1: number, foot: number, h: number, f: number, gap = 18, seed = 0, skip?: [number, number]) => {
+  for (let x = x0 + gap / 2, i = 0; x < x1; x += gap, i++) {
+    const k = hash(i + seed * 13), w = gap * (1 + k * 0.5);
+    // (`skip`: where his boots are, stood on the thing that's burning: no flame there, and the ones either side of him low
+    // (the fire's round his feet, never over them))
+    if (skip && x + w * 0.6 > skip[0] && x - w * 0.6 < skip[1]) continue;
+    const near = skip && x + w + 14 > skip[0] && x - w - 14 < skip[1];
+    flame(c, x, foot, w, h * (0.7 + k * 0.6) * (near ? 0.45 : 1), f, i + seed);
+  }
+};
+/** Where his boots are, if he's stood on something at `top` (between x0 and x1): for fireRow's `skip`. */
+export const bootsOn = (state: GameState, x0: number, x1: number, top: number): [number, number] | undefined => {
+  const p = state.player;
+  if (!p.isGrounded || Math.abs(p.pos.y + p.height - top) > 8 || p.pos.x + p.width < x0 || p.pos.x > x1) return undefined;
+  return [p.pos.x + 4, p.pos.x + p.width - 4];
 };
 
 // ---------------------------------------------------------------------------------------------------------------

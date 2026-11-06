@@ -137,6 +137,8 @@ export interface Demon {
   fight: 'wait' | 'on' | 'beaten' | 'gone';
   x: number; y: number; vx: number; vy: number; facing: 1 | -1;
   st: St; t: number; cd: number;
+  /** (dev: the contact sheet's) frames into the cheap shot's stun, without an enemy stunned. */
+  stunT?: number;
   hp: number; flash: number; hurtSince: number; hurtAt: number;
   e: Enemy | null; lock: Block | null;
   /** The fire wall over the way in: up once he's roused (no backing out), down when he's beaten. */
@@ -897,7 +899,7 @@ interface Pose {
 }
 
 /** Stunned off the hand armor's cheap shot: frames into it (-1 not). */
-const stunOf = (d: Demon) => (d.e && d.fight === 'on' ? cheapShotStunT(d.e) : -1);
+const stunOf = (d: Demon) => (d.stunT !== undefined ? d.stunT : d.e && d.fight === 'on' ? cheapShotStunT(d.e) : -1);
 
 const poseOf = (d: Demon, f: number): Pose => {
   const st = d.st, t = d.t, mad = madOf(d);
@@ -984,14 +986,14 @@ const legs = (c: Ctx, P: Pose, S: readonly string[], f: number) => {
     : P.tuck ? [[18, hipY + 44], [-6, hipY + 48]]
     : P.knock ? [[34, 0], [-28, 0]]
     : [[16 + P.stride * 22, 0], [-14 - P.stride * 22, 0]];
-  // (knock-kneed: both knees jammed in together under him, knocking)
-  const knockK = (far: boolean): P2 => [4 + (far ? -2 : 2) * (f % 6 < 3 ? 1 : 0), hipY + 34];
+  // (knock-kneed: the knees from limb.ts (forward, never back), nudged in toward each other and knocking)
+  const knockK = (far: boolean, hx: number, ank: P2): P2 => { const k = knee(hx, hipY, ank[0], ank[1], THIGH, SHIN, 1); return [k[0] + (far ? 3 : -3) + (f % 6 < 3 ? (far ? -1 : 1) : 0), k[1]]; };
   for (const [i, hx] of [[1, -8], [0, 10]] as [number, number][]) {
     const far = i === 1, J = far ? JEANS.map(x => mix(x, INK, 0.25)) : JEANS;
     const [fx, fy] = feet[i === 1 ? 1 : 0];
     const ank: P2 = [fx - 2, fy - 14];
     // (the knee always forward: src/m2/art/limb.ts)
-    const kn = P.knock ? knockK(far) : knee(hx, hipY, ank[0], ank[1], THIGH, SHIN, 1);
+    const kn = P.knock ? knockK(far, hx, ank) : knee(hx, hipY, ank[0], ank[1], THIGH, SHIN, 1);
     thick(c, hx, hipY, kn[0], kn[1], 22, J);
     thick(c, kn[0], kn[1], ank[0], ank[1], 18, J);
     // (the rip at the knee: red showing through, the white threads)

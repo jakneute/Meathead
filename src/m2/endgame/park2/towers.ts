@@ -19,10 +19,12 @@ import { playSound } from '../../../m1/game/platform/audio';
 import { shakeScreen } from '../../../m1/game/core/state';
 import { makeTowers, updateTowers, towerTop, lidW, onTower, type Tower } from '../../cartoon/sway';
 import { heard } from '../../bossQuiet';
+import { stamp } from '../../../m1/game/render/stamp';
+import { checker } from '../../intro/art/kit';
 import { CANVAS_WIDTH as W } from '../../../m1/constants';
 import { mix as mixRaw } from '../../intro/art/kit';
 import { TOWERS2, waterY } from './geo';
-import { fireRow, flame, FIRE } from './fire';
+import { fireRow, flame, FIRE, bootsOn } from './fire';
 
 type Ctx = CanvasRenderingContext2D;
 const AWAY = -99999;
@@ -87,6 +89,16 @@ export const onTower2 = (state: GameState, list: Tower2Run[]) => list.some(r => 
 // Drawing (world space, behind him): the rock it's stood on, the pole, the floats up it along the bending spine
 // (Cartoon Land's noodle bend), the lounger on top; charred and burning in its stage
 
+/** The rock a tower's stood on: a lump in its steps, lit up its left by the moon, warm along its foot off the lava,
+ *  cracked, dithered at its seams (`v` one of three shapes). */
+const paintRock = (g: Ctx, v: number) => {
+  const w = [34, 30, 38][v], h = [14, 16, 12][v];
+  const E = (x: number, y: number, rx: number, ry: number, col: string) => { g.fillStyle = col; g.beginPath(); g.ellipse(x, y, rx, ry, 0, Math.PI, 0); g.fill(); };
+  E(0, 2, w, h, INK); E(0, 2, w - 3, h - 2, ROCK[1]); E(-3, 2, w - 8, h - 4, ROCK[2]); E(-9, 1, w * 0.5, h * 0.55, ROCK[3]);
+  checker(g, -w + 4, -h * 0.5, w * 1.6, 3, ROCK[1]);
+  g.fillStyle = INK; g.fillRect(4 + v * 3, -h + 4, 1, 6); g.fillRect(5 + v * 3, -h + 9, 4, 1);
+  g.fillStyle = '#C2410C'; g.fillRect(-w + 4, 0, w * 2 - 8, 2); g.fillStyle = '#7C2D12'; checker(g, -w + 6, -3, w * 2 - 12, 3, '#7C2D12');
+};
 const FLOATS = ['#EC4899', '#22D3EE', '#FACC15', '#A3E635', '#F97316', '#A78BFA'];
 const ROCK = ['#1A1410', '#2E2620', '#463A30', '#5E5044'];
 const INK = '#0A0604';
@@ -97,9 +109,7 @@ export const drawTowers2 = (c: Ctx, state: GameState, list: Tower2Run[]) => {
     const top0 = towerTop(t.d, t.ang);
     if (Math.max(d.x, top0.x) + 140 < state.camera.x || Math.min(d.x, top0.x) - 140 > state.camera.x + W) continue;
     // (the rock it's stood on, in the river: always there)
-    c.fillStyle = INK; c.beginPath(); c.ellipse(d.x, RIVER_Y + 2, 34, 12, 0, Math.PI, 0); c.fill();
-    c.fillStyle = ROCK[2]; c.beginPath(); c.ellipse(d.x, RIVER_Y + 2, 31, 10, 0, Math.PI, 0); c.fill();
-    c.fillStyle = ROCK[3]; c.beginPath(); c.ellipse(d.x - 6, RIVER_Y, 18, 5, 0, Math.PI, 0); c.fill();
+    c.save(); c.translate(Math.round(d.x), Math.round(RIVER_Y)); stamp(c, `wp2-trock-${r.i % 3}`, -40, -18, 80, 24, g => paintRock(g, r.i % 3)); c.restore();
     if (r.gone) continue;
     // (rising: up out of the river, clipped at its surface)
     const lift = r.rise ? (1 - r.rise / RISE) * (d.h + 30) : 0;
@@ -114,7 +124,10 @@ export const drawTowers2 = (c: Ctx, state: GameState, list: Tower2Run[]) => {
     c.lineCap = 'round';
     c.strokeStyle = INK; c.lineWidth = 9; c.beginPath(); for (let s = 0; s <= 8; s++) { const q = at(s / 8); if (s) c.lineTo(q.x, q.y); else c.moveTo(q.x, q.y); } c.stroke();
     c.strokeStyle = '#8A7A3A'; c.lineWidth = 5; c.stroke();
+    c.strokeStyle = '#B8A860'; c.lineWidth = 1.5; c.beginPath(); for (let s2 = 0; s2 <= 8; s2++) { const q = at(s2 / 8); if (s2) c.lineTo(q.x - 1.5, q.y); else c.moveTo(q.x - 1.5, q.y); } c.stroke();
     c.lineCap = 'butt';
+    // (the bamboo's nodes up it, dark rings)
+    c.fillStyle = '#4A3E18'; for (let s2 = 1; s2 < 8; s2++) { const q = at(s2 / 8); c.fillRect(Math.round(q.x - 3), Math.round(q.y), 6, 2); }
     // (the floats: inner tubes threaded on it, each its plastic's ramp, stepped across, the hole dark; charred toward the
     // burning end, the char dithered in)
     for (let i = 0; i < n; i++) {
@@ -146,7 +159,7 @@ export const drawTowers2 = (c: Ctx, state: GameState, list: Tower2Run[]) => {
     // (the lit lip along its top)
     c.fillStyle = L[2]; c.fillRect(-half + 2, 0, half * 2 - 4, 2);
     c.restore();
-    if (lch > 0.3) fireRow(c, top.x - half + 8, top.x + half - 8, top.y + 2, 18 + lch * 20, f, 18, r.i * 3);
+    if (lch > 0.3) fireRow(c, top.x - half + 8, top.x + half - 8, top.y + 2, 18 + lch * 20, f, 18, r.i * 3, bootsOn(state, top.x - half, top.x + half, top.y));
     // (the smoke off it once it's caught)
     if (r.lit && f % 4 === 0) { const q = at(d.burn === 'base' ? Math.min(0.9, k) : Math.max(0.1, 1 - k)); state.particles.push({ pos: { x: q.x + (Math.random() - 0.5) * 30, y: q.y }, vel: { x: (Math.random() - 0.5) * 0.6, y: -0.9 - Math.random() * 0.6 }, life: 36, color: stage === 'catch' ? '#8A8494' : '#3F3A46', size: 3 + Math.random() * 3 }); }
     // (the tell it's leaning: wobble lines off its side, as Cartoon Land's)

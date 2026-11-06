@@ -70,9 +70,61 @@ const paintDeck = (g: Ctx, k: number, st: DeckStyle) => {
   }
   // (the stringer or the coping's shadow under it; the wall going down to the channel)
   R(g, 0, GY + 17, DECK_T, 6, st.seam); R(g, 0, GY + 17, DECK_T, 1, mix(st.seam, '#FFFFFF', 0.15));
-  R(g, 0, GY + 23, DECK_T, 61, st.under); for (let y = GY + 30; y < GY + 84; y += 12) R(g, 0, y, DECK_T, 1, mix(st.under, '#FFFFFF', 0.08));
-  checker(g, 0, GY + 23, DECK_T, 4, st.seam);
-  if (st.post && k % 2 === 0) { R(g, 20, GY + 23, 10, 61, st.post); R(g, 20, GY + 23, 2, 61, mix(st.post, '#FFFFFF', 0.2)); }
+  paintFace(g, k, st);
+};
+/** The deck's face under its stringer (in its shadow, so it never reads as a second thing to stand on: no lit
+ *  horizontal edges, only vertical ones lit from the left), down to FACE_H, then dithered into its dark: what holds it
+ *  up, by what it's made of (pilings and cross braces under a boardwalk, ashlar under temple slabs, poles under bamboo,
+ *  the pool's concrete wall, sandstone, rock), so a raised deck reads as a built thing stood up in the river, not a slab
+ *  floating over it. */
+const FACE_H = 200;
+const paintFace = (g: Ctx, k: number, st: DeckStyle) => {
+  const y0 = GY + 23, y1 = GY + FACE_H, U = st.under, P = st.planks;
+  const sh = (col: string, t: number) => mix(col, INK, t);
+  R(g, 0, y0, DECK_T, y1 - y0, U);
+  if (st.kind === 'planks') {
+    // (the pilings: a round post every other tile, lit down its left; the cross braces between, the waling beam)
+    const post = st.post ?? st.seam, pc = sh(P[1], 0.35);
+    g.strokeStyle = sh(P[0], 0.55); g.lineWidth = 4;
+    g.beginPath(); g.moveTo(k % 2 ? -39 : 25, y0 + 14); g.lineTo(k % 2 ? 25 : 89, y0 + 120); g.moveTo(k % 2 ? 25 : 89, y0 + 14); g.lineTo(k % 2 ? -39 : 25, y0 + 120); g.stroke();
+    R(g, 0, y0 + 34, DECK_T, 8, sh(P[2], 0.5)); R(g, 0, y0 + 40, DECK_T, 2, sh(P[2], 0.7));
+    if (k % 2 === 0) { R(g, 18, y0, 14, y1 - y0, INK); R(g, 19, y0, 12, y1 - y0, pc); R(g, 19, y0, 3, y1 - y0, sh(P[2], 0.1)); R(g, 28, y0, 3, y1 - y0, post); for (let y = y0 + 60; y < y1; y += 46) R(g, 19, y, 12, 2, post); }
+  } else if (st.kind === 'bamboo') {
+    // (poles, side by side, their nodes; lashed with a band of rope)
+    for (let x = 2, n = 0; x < DECK_T; x += 12, n++) { const col = sh(P[(n + k) % 4], 0.45); R(g, x, y0, 10, y1 - y0, col); R(g, x, y0, 2, y1 - y0, sh(P[2], 0.2)); R(g, x + 8, y0, 2, y1 - y0, sh(col, 0.4)); for (let y = y0 + 18 + ((n * 7) % 13); y < y1; y += 34) R(g, x, y, 10, 2, sh(col, 0.5)); }
+    R(g, 0, y0 + 8, DECK_T, 5, sh('#8A7448', 0.45)); checker(g, 0, y0 + 8, DECK_T, 5, sh('#5A4A30', 0.4));
+  } else if (st.kind === 'rock') {
+    for (let y = y0, n = 0; y < y1; y += 22, n++) for (let x = -(n % 2) * 14 + ((k * 9) % 14); x < DECK_T; x += 28) { g.fillStyle = sh(P[(n + Math.round(x)) & 3], 0.4); g.beginPath(); g.ellipse(x + 14, y + 11, 14, 10, 0, 0, Math.PI * 2); g.fill(); R(g, x + 4, y + 4, 2, 10, sh(P[2], 0.1)); }
+  } else {
+    // (blocks in courses: temple ashlar, sandstone, the pool's concrete; each lit down its left edge, its joints dark)
+    const bw = st.kind === 'tile' ? 32 : st.kind === 'sand' ? 24 : 30, ch = st.kind === 'tile' ? 40 : 20;
+    for (let y = y0, n = 0; y < y1; y += ch, n++) for (let x = -(n % 2) * (bw / 2); x < DECK_T; x += bw) {
+      const col = sh(P[Math.floor(hash(x * 0.7 + n * 3.1 + k * 17) * 4)], 0.42);
+      R(g, x, y, bw - 1, ch - 1, col); R(g, x, y, 2, ch - 1, sh(P[2], 0.15)); R(g, x + bw - 1, y, 1, ch, st.seam); R(g, x, y + ch - 1, bw, 1, st.seam);
+    }
+    if (st.kind === 'tile') R(g, 0, y0 + 2, DECK_T, 6, sh('#0E7490', 0.4));
+  }
+  // (the face's top in the stringer's shadow; its foot dithered down into the dark)
+  checker(g, 0, y0, DECK_T, 4, st.seam);
+  for (let i = 0; i < 3; i++) checker(g, 0, y1 - 36 + i * 12, DECK_T, 12 - i * 2, mix(U, INK, 0.2 + i * 0.1));
+};
+/** A deck's end (`side` -1 its left, +1 its right): the corner post of what it's made of, stood down into the river
+ *  (its outer edge lit warm by the fire below it, the lit corner of the deck's top on it), so the end reads as the side
+ *  of a built thing and where it stops. */
+const paintEnd = (g: Ctx, side: number, st: DeckStyle, drop: number) => {
+  const P = st.planks, w = 12, x = side < 0 ? 0 : -w, bot = GY + drop;
+  const col = mix(P[2], INK, 0.25), dark = mix(P[0], INK, 0.55);
+  R(g, x - (side < 0 ? 1 : 0), GY + 5, w + 1, bot - GY - 5, INK);
+  R(g, x + (side < 0 ? 1 : 0), GY + 5, w - 1, bot - GY - 5, col);
+  // (lit down its outer edge, shaded on its inner one)
+  const ox = side < 0 ? x + 1 : x + w - 3, ix = side < 0 ? x + w - 3 : x + 1;
+  R(g, ox, GY + 5, 2, bot - GY - 5, mix(P[2], '#FFFFFF', 0.15)); R(g, ix, GY + 5, 2, bot - GY - 5, dark);
+  if (st.kind === 'planks' || st.kind === 'bamboo') for (let y = GY + 30; y < bot; y += 40) R(g, x, y, w, 2, dark);
+  else for (let y = GY + 26; y < bot; y += 22) R(g, x + 1, y, w - 2, 1, dark);
+  // (the fire's light up its foot: warm bands, dithered)
+  for (let i = 0; i < 4; i++) { const yy = bot - 12 - i * 12; R(g, ox, yy, 2, 12, ['#FDBA74', '#F59E0B', '#C2410C', '#7C2D12'][i]); checker(g, x + 1, yy, w - 2, 12 - i * 2, ['#C2410C', '#9A3412', '#7C2D12', '#451A03'][i]); }
+  // (the deck's top's corner on it: its lip turned the corner)
+  R(g, x, GY, w, 3, st.lip); R(g, x, GY + 3, w, 2, st.lip2);
 };
 const drawDecks = (c: Ctx, state: GameState) => {
   DECKS.forEach(([a, b], i) => {
@@ -83,12 +135,15 @@ const drawDecks = (c: Ctx, state: GameState) => {
     for (let tx = Math.floor(x0 / DECK_T) * DECK_T; tx < x1; tx += DECK_T) {
       // (a deck's all one zone's: the one its middle's in (no change of material partway along it))
       const k = Math.floor(hash(tx / DECK_T + 0.5) * 4), z = zoneAt((a + b) / 2);
-      c.save(); c.translate(tx, dy); stamp(c, `wp2-deck-${z}-${k}`, 0, GY, DECK_T, 84, g => paintDeck(g, k, DECK_STYLE[z])); c.restore();
+      c.save(); c.translate(tx, dy); stamp(c, `wp2-deck2-${z}-${k}`, 0, GY, DECK_T, FACE_H, g => paintDeck(g, k, DECK_STYLE[z])); c.restore();
     }
-    if (bot > top + 84) R(c, x0, top + 84, x1 - x0, bot - top - 84, DECK_STYLE[zoneAt((a + b) / 2)].under);
+    if (bot > top + FACE_H) R(c, x0, top + FACE_H, x1 - x0, bot - top - FACE_H, mix(DECK_STYLE[zoneAt((a + b) / 2)].under, INK, 0.5));
     c.restore();
-    // (its ends: the cut end, lit at the corner; charred where the fire's got at it)
-    for (const e of [a, b]) if (e > x0 - 2 && e < x1 + 2) { const s2 = e === a ? 0 : -6, st = DECK_STYLE[zoneAt((a + b) / 2)]; R(c, e + s2, top, 6, 3, '#FFF0C8'); R(c, e + s2, top + 3, 6, 30, st.seam); R(c, e + s2, top + 12, 6, 6, INK); }
+    // (its ends: the corner post stood down into the river, the river's fire lighting its foot; down to the water by it)
+    for (const e of [a, b]) if (e > x0 - 14 && e < x1 + 14) {
+      const side = e === a ? -1 : 1, z = zoneAt((a + b) / 2), drop = Math.max(40, Math.round(waterY(e + side * 20) - top) + 4);
+      c.save(); c.translate(e, dy); stamp(c, `wp2-end-${z}-${side}-${drop}`, side < 0 ? -1 : -13, GY, 14, drop + 2, g => paintEnd(g, side, DECK_STYLE[z], drop)); c.restore();
+    }
   });
 };
 
@@ -227,7 +282,7 @@ const paintSkull = (g: Ctx) => {
   g.strokeStyle = INK; g.lineWidth = 2; g.beginPath(); g.moveTo(cx - 40, GY - 420); g.lineTo(cx - 30, GY - 380); g.lineTo(cx - 44, GY - 350); g.moveTo(cx + 100, GY - 360); g.lineTo(cx + 84, GY - 330); g.stroke();
   // (the mouth: the cave's opening, dark, its teeth along the top)
   R(g, GROTTO.door - 70, GY - 200, 150, 200, INK);
-  for (let k = 0; k < 6; k++) { const tx = GROTTO.door - 66 + k * 24; R(g, tx - 1, GY - 214, 22, 22, INK); R(g, tx, GY - 213, 20, 18, '#C8BCA8'); R(g, tx, GY - 213, 20, 3, '#F4ECDC'); R(g, tx, GY - 213, 3, 18, '#E2D6C2'); R(g, tx + 16, GY - 210, 4, 15, '#9A8E7C'); R(g, tx + 4, GY - 197, 12, 2, '#9A8E7C'); }
+  for (let k = 0; k < 6; k++) { const tx = GROTTO.door - 66 + k * 24; R(g, tx - 1, GY - 214, 22, 22, INK); R(g, tx, GY - 213, 20, 18, '#B4A894'); R(g, tx, GY - 213, 20, 3, '#7A6E5E'); R(g, tx, GY - 210, 3, 15, '#C8BCA8'); R(g, tx + 16, GY - 210, 4, 15, '#8A7E6C'); R(g, tx + 3, GY - 198, 14, 2, '#E2D6C2'); }
   // (its name across the brow: bone letters, inked, dropped)
   g.font = '10px "Press Start 2P"'; g.textAlign = 'center'; g.fillStyle = INK; g.fillText('SKULL GROTTO', cx + 2, GY - 387); g.fillStyle = '#A16207'; g.fillText('SKULL GROTTO', cx + 1, GY - 389); g.fillStyle = '#FDE047'; g.fillText('SKULL GROTTO', cx, GY - 390); g.textAlign = 'left';
   // (lit from below by the fire: warm bands up its foot)
@@ -251,9 +306,25 @@ const drawBackWall = (c: Ctx, open: number) => {
   stamp(c, `wp2-backwall-${open > 0 ? 1 : 0}`, x - 12, CAVE_TOP, 86, GY - CAVE_TOP, g => {
     R(g, x - 10, CAVE_TOP, 80, GY - CAVE_TOP, ROCK[2]);
     for (let y = CAVE_TOP + 10, n = 0; y < GY - (open > 0 ? 190 : 0); y += 30, n++) rockLump(g, x + 30 + (n % 2) * 10, y + 10, 34, 13);
-    if (open > 0) { R(g, x - 6, GY - 180, 76, 180, INK); for (let k = 0; k < 4; k++) R(g, x - 6, GY - 40 - k * 36, 76, 36, ['#2A1208', '#1E0E08', '#140A08', '#0E0808'][k]); checker(g, x - 6, GY - 44, 76, 4, '#2A1208'); R(g, x - 6, GY - 182, 76, 3, ROCK[4]); }
+    if (open > 0) { R(g, x - 6, GY - 180, 76, 180, INK); for (let k = 0; k < 4; k++) R(g, x - 6, GY - 40 - k * 36, 76, 36, ['#2A1208', '#1E0E08', '#140A08', '#0E0808'][k]); checker(g, x - 6, GY - 44, 76, 4, '#2A1208'); /* (the opening's top: ragged rock hanging over it, its underside shaded, no lit lip (nothing to stand on)) */ for (let k = 0; k < 6; k++) { const tx = x - 6 + k * 13; g.fillStyle = ROCK[1]; g.beginPath(); g.moveTo(tx, GY - 182); g.lineTo(tx + 13, GY - 182); g.lineTo(tx + 7, GY - 170 + (k % 2) * 5); g.closePath(); g.fill(); } R(g, x - 6, GY - 184, 76, 3, ROCK[1]); }
     R(g, x - 10, CAVE_TOP, 3, GY - CAVE_TOP, ROCK[4]);
   });
+};
+/** The cave's mouth from inside (the fight): its top a ragged hang of rock over the night (lit from below by the fire
+ *  out there along its underside, no lit lip on top: it's no ledge, nothing to stand on: standable-reads-standable). */
+const paintMouthArch = (g: Ctx) => {
+  const x0 = GROTTO.door - 82, x1 = GROTTO.door + 92, y = GY - 200;
+  R(g, x0, y - 34, x1 - x0, 26, ROCK[1]); checker(g, x0, y - 34, x1 - x0, 6, ROCK[0]);
+  // (the hang: lumps of rock, inked, shaded on top (into the dark), warm along their undersides)
+  for (let k = 0; k < 7; k++) {
+    const cx = x0 + 10 + k * 26, ry = 9 + (k % 3) * 3, cy = y - 8 + (k % 2) * 3;
+    g.fillStyle = INK; g.beginPath(); g.ellipse(cx, cy, 16, ry + 1, 0, 0, Math.PI * 2); g.fill();
+    g.fillStyle = ROCK[1]; g.beginPath(); g.ellipse(cx, cy, 15, ry, 0, 0, Math.PI * 2); g.fill();
+    g.fillStyle = ROCK[2]; g.beginPath(); g.ellipse(cx, cy + ry * 0.3, 12, ry * 0.6, 0, 0, Math.PI); g.fill();
+    R(g, cx - 8, cy + ry - 2, 16, 1, '#7A3A2A');
+  }
+  // (a drip or two of rock hanging off it)
+  for (const [dx, h] of [[30, 12], [96, 9], [140, 14]]) { g.fillStyle = INK; g.beginPath(); g.moveTo(x0 + dx - 5, y); g.lineTo(x0 + dx + 5, y); g.lineTo(x0 + dx, y + h); g.closePath(); g.fill(); g.fillStyle = ROCK[2]; g.beginPath(); g.moveTo(x0 + dx - 3, y); g.lineTo(x0 + dx + 3, y); g.lineTo(x0 + dx, y + h - 2); g.closePath(); g.fill(); }
 };
 /** The beanbag (his): a slumped black-and-purple sack, his ass's dent in it. */
 const drawBeanbag = (c: Ctx, x: number) => {
@@ -290,7 +361,7 @@ export const drawBack2 = (c: Ctx, state: GameState, d: Draw2, river: () => void,
     // (outside: the skull's face of rock over the mouth; inside (the fight, after it), the mouth from in here: a dark
     // arch, the night through it)
     if (!d.inGrotto) stamp(c, 'wp2-skull', GROTTO.door - 150, CAVE_TOP - 140, 320, GY - CAVE_TOP + 142, g => paintSkull(g));
-    else { R(c, GROTTO.L, CAVE_TOP, GROTTO.door - 70 - GROTTO.L, GY - CAVE_TOP, ROCK[2]); R(c, GROTTO.door - 70, GY - 200, 150, 200, '#0E1430'); for (let k = 0; k < 4; k++) R(c, GROTTO.door - 70, GY - 200 + k * 50, 150, 50, ['#0A1028', '#101838', '#162044', '#1C2650'][k]); for (const [sx, sy] of [[-40, -170], [20, -150], [50, -184], [-10, -120]]) R(c, GROTTO.door + sx, GY + sy, 2, 2, '#E0E7FF'); R(c, GROTTO.door - 76, GY - 212, 162, 12, ROCK[3]); R(c, GROTTO.door - 76, GY - 212, 162, 2, ROCK[4]); }
+    else { R(c, GROTTO.L, CAVE_TOP, GROTTO.door - 70 - GROTTO.L, GY - CAVE_TOP, ROCK[2]); R(c, GROTTO.door - 70, GY - 200, 150, 200, '#0E1430'); for (let k = 0; k < 4; k++) R(c, GROTTO.door - 70, GY - 200 + k * 50, 150, 50, ['#0A1028', '#101838', '#162044', '#1C2650'][k]); for (const [sx, sy] of [[-40, -170], [20, -150], [50, -184], [-10, -120]]) R(c, GROTTO.door + sx, GY + sy, 2, 2, '#E0E7FF'); stamp(c, 'wp2-mouth-in', GROTTO.door - 84, GY - 236, 178, 54, g => paintMouthArch(g)); }
     drawDoor(c, d.door);
     // (the grotto's floor: rock, over the boardwalk's run under it)
     R(c, GROTTO.L, GY, GROTTO.R + 50 - GROTTO.L, 3, ROCK[4]); R(c, GROTTO.L, GY + 3, GROTTO.R + 50 - GROTTO.L, 120, ROCK[1]);

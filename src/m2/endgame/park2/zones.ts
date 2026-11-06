@@ -266,39 +266,114 @@ const midBayou = (g: Ctx, j: number, sp: Spot[]) => {
   }
 };
 
-const midTiki = (g: Ctx, j: number, sp: Spot[]) => {
-  const Wd = ramp5(m('#7A4A26')), Th = ramp5(m('#A88A4A'));
-  const tiki = (x: number, h: number, w: number) => {
-    // (a giant tiki head: a carved log, stacked faces, the eyes lit by torches inside)
-    block(g, x - w / 2, MG - h, w, h, Wd);
-    const faces = Math.max(1, Math.floor(h / 90));
-    for (let k = 0; k < faces; k++) {
-      const y = MG - h + 10 + k * 90;
-      R(g, x - w / 2 + 4, y, w - 8, 6, Wd[1]);
-      for (const ex of [-w * 0.22, w * 0.22]) { R(g, x + ex - 10, y + 14, 20, 14, INK); R(g, x + ex - 7, y + 17, 14, 8, k === 0 ? '#FDBA74' : Wd[0]); }
-      poly(g, [[x - 6, y + 30], [x - 12, y + 52], [x + 12, y + 52], [x + 6, y + 30]], Wd[3]);
-      R(g, x - w * 0.35, y + 60, w * 0.7, 14, INK); for (let t = 0; t < 5; t++) R(g, x - w * 0.32 + t * w * 0.14, y + 62, w * 0.1, 6, Wd[4]);
+// ---- TIKI VILLAGE's pieces (shared by the far tiles and the bank)
+
+/** Thatch: rows of straw, each a fringe of strands over the one under it (lit rows and shaded rows alternating, the
+ *  strands dithered at their ends), ragged at its foot, shaded down its right; burnt black on the `burnt` side (+1 / -1). */
+const thatchRoof = (g: Ctx, cx: number, top: number, half: number, y1: number, Th: string[], burnt = 0) => {
+  poly(g, [[cx - half - 3, y1 + 2], [cx, top - 3], [cx + half + 3, y1 + 2]], INK);
+  const rows = Math.max(3, Math.round((y1 - top) / 12));
+  for (let r = 0; r < rows; r++) {
+    const ya = top + ((y1 - top) * r) / rows, yb = top + ((y1 - top) * (r + 1)) / rows, ha = (half * r) / rows, hb = (half * (r + 1)) / rows;
+    poly(g, [[cx - ha, ya], [cx + ha, ya], [cx + hb, yb], [cx - hb, yb]], Th[r % 2 ? 2 : 3]);
+    for (let x = cx - hb + 2; x < cx + hb - 2; x += 3) R(g, x, yb - 3 + ((Math.round(x) * 7) % 3), 1, 3, Th[1]);
+    checker(g, cx - hb, yb - 2, hb * 2, 2, Th[0]);
+  }
+  g.save(); g.globalAlpha = 0.4; poly(g, [[cx, top], [cx + half, y1], [cx + half * 0.3, y1]], Th[0]); g.restore();
+  for (let x = cx - half; x < cx + half; x += 6) R(g, x, y1, 3, 3 + ((Math.round(x) * 13) % 5), Th[1]);
+  if (burnt) checker(g, burnt > 0 ? cx : cx - half * 0.8, top + (y1 - top) * 0.3, half * 0.8, (y1 - top) * 0.7, '#120806');
+};
+/** A carved tiki: a log in its wood's ramp (lit band down its left, shade down its right, the seams dithered), stacked
+ *  faces (heavy brow, the eyes (torch-lit inside, or dark), the flat nose, a grimace, the tongue out, or an O), a crown
+ *  of carved feathers on top (no flat top: nothing to stand on). */
+const tikiPost = (g: Ctx, x: number, foot: number, h: number, w: number, Wd: string[], lit: boolean, seed: number) => {
+  const top = foot - h, sw = Math.max(3, Math.round(w * 0.2));
+  R(g, x - w / 2 - 1, top - 1, w + 2, h + 1, INK);
+  R(g, x - w / 2, top, w, h, Wd[2]);
+  R(g, x - w / 2, top, sw, h, Wd[3]); R(g, x - w / 2, top, 2, h, Wd[4]);
+  R(g, x + w / 2 - sw, top, sw, h, Wd[1]); checker(g, x + w / 2 - sw - 3, top, 3, h, Wd[1]);
+  const fh = Math.max(46, Math.min(90, w * 1.25)), faces = Math.max(1, Math.floor(h / fh)), s = fh / 90;
+  for (let k = 0; k < faces; k++) {
+    const y = top + 6 + k * fh, kind = (seed + k) % 3, eye = lit && k === 0;
+    R(g, x - w / 2 + 2, y + 4 * s, w - 4, 7 * s, Wd[3]); R(g, x - w / 2 + 2, y + 11 * s, w - 4, 3 * s, Wd[0]);
+    for (const ex of [-w * 0.22, w * 0.22]) {
+      if (kind === 1) { ell(g, x + ex, y + 22 * s, 10 * s, 8 * s, INK); ell(g, x + ex, y + 22 * s, 7 * s, 5 * s, eye ? '#FDBA74' : Wd[0]); }
+      else { R(g, x + ex - 10 * s, y + 15 * s, 20 * s, 14 * s, INK); R(g, x + ex - 7 * s, y + 18 * s, 14 * s, 8 * s, eye ? '#FDBA74' : Wd[0]); }
+      if (eye) R(g, x + ex - 4 * s, y + 19 * s, 3 * s, 2 * s, '#FFF7D6');
     }
-    poly(g, [[x - w / 2 - 14, MG - h], [x, MG - h - 30], [x + w / 2 + 14, MG - h]], Th[1]);
-    sp.push([x, MG - h - 6, w * 0.8, 30]);
-  };
-  const hut = (x: number, y: number) => {
-    for (const lx of [x - 30, x + 26]) R(g, lx, y, 5, MG - y, Wd[0]);
-    block(g, x - 36, y - 40, 72, 40, ramp5(m('#9A7A4A'))); R(g, x - 8, y - 30, 16, 30, INK);
-    poly(g, [[x - 52, y - 36], [x, y - 92], [x + 52, y - 36]], INK); poly(g, [[x - 48, y - 38], [x, y - 88], [x + 48, y - 38]], Th[2]);
-    for (let k = 0; k < 7; k++) R(g, x - 44 + k * 14, y - 42, 2, 8, Th[0]);
-    for (let k = 1; k < 4; k++) R(g, x - 48 + k * 10, y - 40 - k * 12, 96 - k * 20, 1, Th[3]);
-  };
-  if (j % 2 === 0) { tiki(90, 270, 70); hut(260, MG - 110); sp.push([260, MG - 196, 50, 40]); farPalm(g, 370, MG, 210, -16, sp); }
-  else {
-    // (the longhouse: an A-frame roof sweeping up to a point each end)
+    poly(g, [[x - 5 * s, y + 30 * s], [x - 12 * s, y + 50 * s], [x + 12 * s, y + 50 * s], [x + 5 * s, y + 30 * s]], Wd[3]);
+    poly(g, [[x + 1 * s, y + 30 * s], [x + 5 * s, y + 30 * s], [x + 12 * s, y + 50 * s], [x + 2 * s, y + 50 * s]], Wd[1]);
+    R(g, x - 12 * s, y + 50 * s, 24 * s, 2 * s, Wd[0]);
+    if (kind === 2) { ell(g, x, y + 66 * s, 12 * s, 9 * s, INK); ell(g, x, y + 68 * s, 6 * s, 5 * s, '#7F1D1D'); }
+    else {
+      R(g, x - w * 0.36, y + 58 * s, w * 0.72, 16 * s, INK);
+      for (let t = 0; t < 5; t++) { R(g, x - w * 0.32 + t * w * 0.135, y + 60 * s, w * 0.1, 6 * s, Wd[4]); R(g, x - w * 0.32 + t * w * 0.135, y + 66 * s, w * 0.1, 1, Wd[2]); }
+      if (kind === 0) { R(g, x - 5 * s, y + 66 * s, 10 * s, 14 * s, '#9F1239'); R(g, x - 5 * s, y + 66 * s, 3 * s, 14 * s, '#E11D48'); }
+    }
+    if (k < faces - 1) { R(g, x - w / 2, y + fh - 8, w, 3, Wd[0]); for (let zx = x - w / 2 + 2; zx < x + w / 2 - 4; zx += 6) R(g, zx, y + fh - 5, 3, 3, Wd[3]); }
+  }
+  for (let q = 0; q < 5; q++) {
+    const a = -Math.PI / 2 + (q - 2) * 0.32, len = w * 0.55 + (q % 2) * 6, bx = x + (q - 2) * w * 0.16;
+    const tip: P = [bx + Math.cos(a) * len, top + Math.sin(a) * len];
+    poly(g, [[bx - 5, top + 2], tip, [bx + 5, top + 2]], INK); poly(g, [[bx - 3, top + 1], tip, [bx, top + 1]], Wd[3]); poly(g, [[bx, top + 1], tip, [bx + 3, top + 1]], Wd[1]);
+  }
+};
+/** A tiki torch: a bamboo pole (ringed), a woven cup at its top; its flame's a spot. */
+const tikiTorch = (g: Ctx, x: number, foot: number, h: number, Bm: string[], sp: Spot[]) => {
+  R(g, x - 3, foot - h, 6, h, INK); R(g, x - 2, foot - h, 4, h, Bm[2]); R(g, x - 2, foot - h, 1, h, Bm[4]); R(g, x + 1, foot - h, 1, h, Bm[1]);
+  for (let y = foot - h + 14; y < foot; y += 16) R(g, x - 2, y, 4, 2, Bm[0]);
+  poly(g, [[x - 8, foot - h - 10], [x + 8, foot - h - 10], [x + 4, foot - h + 2], [x - 4, foot - h + 2]], INK);
+  poly(g, [[x - 6, foot - h - 9], [x + 6, foot - h - 9], [x + 3, foot - h + 1], [x - 3, foot - h + 1]], Bm[3]);
+  checker(g, x - 5, foot - h - 6, 10, 4, Bm[1]);
+  sp.push([x, foot - h - 8, 12, 22]);
+};
+/** A grass hut up on stilts (cross-braced), its woven walls, the doorway lit or dark, a ladder up; its thatch. */
+const stiltHut = (g: Ctx, x: number, foot: number, floor: number, Wd: string[], Th: string[], Bm: string[], lit: boolean, burnt: number, sp: Spot[]) => {
+  for (const lx of [x - 32, x - 4, x + 26]) { R(g, lx - 1, floor, 7, foot - floor, INK); R(g, lx, floor, 5, foot - floor, Bm[1]); R(g, lx, floor, 1, foot - floor, Bm[3]); }
+  stroke(g, [[x - 30, foot - 8], [x + 28, floor + 6]], 2, Bm[0]); stroke(g, [[x - 30, floor + 6], [x + 28, foot - 8]], 2, Bm[0]);
+  block(g, x - 42, floor - 6, 84, 6, Wd);
+  R(g, x - 36, floor - 44, 72, 38, INK); R(g, x - 35, floor - 43, 70, 37, Bm[2]);
+  for (let y = floor - 40; y < floor - 6; y += 6) { R(g, x - 35, y, 70, 2, Bm[1]); checker(g, x - 35, y + 2, 70, 2, Bm[3]); }
+  R(g, x - 35, floor - 43, 3, 37, Bm[4]);
+  R(g, x - 9, floor - 34, 18, 28, INK); R(g, x - 7, floor - 32, 14, 26, lit ? '#FDBA74' : '#140A06'); if (lit) R(g, x - 7, floor - 32, 14, 6, '#FDE68A');
+  for (const lx of [x + 34, x + 46]) R(g, lx, floor - 4, 2, foot - floor + 4, Bm[0]);
+  for (let y = floor + 6; y < foot; y += 12) R(g, x + 34, y, 14, 2, Bm[3]);
+  thatchRoof(g, x, floor - 96, 56, floor - 38, Th, burnt);
+  if (burnt) sp.push([x + burnt * 18, floor - 70, 40, 34]);
+};
+
+const midTiki = (g: Ctx, j: number, sp: Spot[]) => {
+  const Wd = ramp5(m('#7A4A26')), Dk = ramp5(m('#5A3418')), Th = ramp5(m('#A88A4A')), Bm = ramp5(m('#A8843E'));
+  const v = ((j % 4) + 4) % 4, s = hash(j * 1.7);
+  if (v === 0) {
+    // (the giant tiki: three faces tall, torch-lit eyes; a hut up on stilts beside it, its roof burning; a palm)
+    tikiPost(g, 96, MG, 280, 74, Wd, true, j);
+    stiltHut(g, 262, MG, MG - 90, Dk, Th, Bm, false, 1, sp);
+    farPalm(g, 372, MG, 200, -18, sp);
+  } else if (v === 1) {
+    // (the longhouse: its saddle roof swept up to a point each end in bands of thatch, lit windows; carved posts)
     const x = 200;
-    g.fillStyle = INK; g.beginPath(); g.moveTo(x - 160, MG - 60); g.quadraticCurveTo(x - 120, MG - 120, x - 170, MG - 220); g.quadraticCurveTo(x, MG - 150, x + 170, MG - 220); g.quadraticCurveTo(x + 120, MG - 120, x + 160, MG - 60); g.fill();
-    g.fillStyle = Th[2]; g.beginPath(); g.moveTo(x - 154, MG - 62); g.quadraticCurveTo(x - 116, MG - 120, x - 162, MG - 212); g.quadraticCurveTo(x, MG - 146, x + 162, MG - 212); g.quadraticCurveTo(x + 116, MG - 120, x + 154, MG - 62); g.fill();
-    for (let k = 0; k < 10; k++) R(g, x - 140 + k * 30, MG - 150 + Math.abs(k - 4.5) * 6, 2, 80, Th[1]);
-    block(g, x - 130, MG - 62, 260, 62, Wd); for (let k = 0; k < 6; k++) R(g, x - 110 + k * 44, MG - 50, 20, 30, k % 2 ? '#FDBA74' : INK);
-    tiki(x - 160, 120, 34); tiki(x + 160, 120, 34);
-    sp.push([x - 90, MG - 170, 50, 40]); sp.push([x + 60, MG - 160, 40, 34]);
+    g.fillStyle = INK; g.beginPath(); g.moveTo(x - 160, MG - 60); g.quadraticCurveTo(x - 120, MG - 120, x - 172, MG - 222); g.quadraticCurveTo(x, MG - 150, x + 172, MG - 222); g.quadraticCurveTo(x + 120, MG - 120, x + 160, MG - 60); g.fill();
+    g.fillStyle = Th[2]; g.beginPath(); g.moveTo(x - 154, MG - 62); g.quadraticCurveTo(x - 116, MG - 120, x - 164, MG - 214); g.quadraticCurveTo(x, MG - 146, x + 164, MG - 214); g.quadraticCurveTo(x + 116, MG - 120, x + 154, MG - 62); g.fill();
+    for (let b2 = 0; b2 < 5; b2++) { const y = MG - 150 + b2 * 18; R(g, x - 130 + b2 * 4, y, 260 - b2 * 8, 7, Th[b2 % 2 ? 3 : 1]); checker(g, x - 130 + b2 * 4, y + 7, 260 - b2 * 8, 3, Th[0]); }
+    g.save(); g.globalAlpha = 0.4; g.fillStyle = Th[0]; g.fillRect(x + 40, MG - 170, 130, 108); g.restore();
+    for (let k = 0; k < 14; k++) R(g, x - 146 + k * 22, MG - 70, 2, 10, Th[0]);
+    block(g, x - 130, MG - 62, 260, 62, Wd);
+    for (let k = 0; k < 6; k++) { const wx = x - 110 + k * 40; R(g, wx, MG - 50, 22, 30, INK); R(g, wx + 2, MG - 48, 18, 26, k % 3 === 1 ? '#FDBA74' : '#140A06'); }
+    tikiPost(g, x - 168, MG, 130, 34, Dk, false, j + 1); tikiPost(g, x + 168, MG, 150, 36, Dk, true, j + 2);
+    sp.push([x - 90, MG - 172, 50, 40]); sp.push([x + 60, MG - 160, 40, 34]);
+  } else if (v === 2) {
+    // (two huts on stilts, a rope bridge slung between them burnt through, the halves hanging; torches under)
+    stiltHut(g, 90, MG, MG - 110, Dk, Th, Bm, true, 0, sp);
+    stiltHut(g, 300, MG, MG - 140, Dk, Th, Bm, false, -1, sp);
+    stroke(g, [[136, MG - 118], [180, MG - 96], [196, MG - 70]], 2, Bm[3]); stroke(g, [[254, MG - 148], [226, MG - 130], [214, MG - 96]], 2, Bm[3]);
+    for (let k = 0; k < 5; k++) { R(g, 140 + k * 10, MG - 116 + k * 5, 7, 2, Bm[1]); R(g, 248 - k * 9, MG - 146 + k * 7, 7, 2, Bm[1]); }
+    for (const tx of [30 + s * 20, 196, 372 - s * 20]) tikiTorch(g, tx, MG, 80, Bm, sp);
+  } else {
+    // (the ceremony ground: a ring of carved posts of every height, the big one in the middle, a fire pit, palms)
+    [120, 170, 240, 150, 110].forEach((h, k) => tikiPost(g, 50 + k * 75, MG, h + Math.round(s * 20), k === 2 ? 62 : 36, k === 2 ? Wd : Dk, k === 2, j + k));
+    farPalm(g, 18, MG, 230, 22, sp); farPalm(g, 392, MG, 190, -20, sp);
+    ell(g, 200, MG - 2, 60, 8, INK); ell(g, 200, MG - 4, 52, 6, '#3A1A0A'); sp.push([200, MG - 6, 60, 40]);
   }
 };
 
@@ -573,13 +648,54 @@ const bankBayou = (g: Ctx, k: number, sp: Spot[]) => {
 };
 
 const bankTiki = (g: Ctx, k: number, sp: Spot[]) => {
-  bankFace(g, () => { const Bm = ramp5(b('#A8843E')); R(g, 0, BANK_TOP, BANK_T, BANK_FOOT - BANK_TOP, Bm[1]); for (let x = 0; x < BANK_T; x += 10) { R(g, x, BANK_TOP, 8, BANK_FOOT - BANK_TOP, Bm[2]); R(g, x, BANK_TOP, 2, BANK_FOOT - BANK_TOP, Bm[3]); for (let y = BANK_TOP + 10 + (x % 3) * 3; y < BANK_FOOT; y += 14) R(g, x, y, 8, 1, Bm[0]); } R(g, 0, BANK_TOP + 6, BANK_T, 3, b('#5A3A1E')); });
-  const Wd = ramp5(b('#7A4A26')), Th = ramp5(b('#A88A4A'));
-  // (tiki torches along it, burning; masks on posts; a little grass hut)
-  for (let i = 0; i < 4; i++) { const x = 40 + i * 120; R(g, x - 2, BANK_TOP - 90, 5, 90, Wd[1]); R(g, x - 6, BANK_TOP - 96, 13, 10, INK); R(g, x - 5, BANK_TOP - 95, 11, 8, Wd[3]); for (let y = BANK_TOP - 80; y < BANK_TOP; y += 12) R(g, x - 2, y, 5, 2, Wd[0]); sp.push([x, BANK_TOP - 94, 14, 24]); }
-  const v = Math.floor(hash(k * 3.7 + 1) * 4);
-  for (let i = 0; i < 2; i++) { const x = 100 + i * 240 + v * 6; R(g, x - 2, BANK_TOP - 60, 4, 60, Wd[0]); block(g, x - 16, BANK_TOP - 104, 32, 44, Wd); R(g, x - 10, BANK_TOP - 94, 7, 6, INK); R(g, x + 3, BANK_TOP - 94, 7, 6, INK); R(g, x - 10, BANK_TOP - 74, 20, 6, INK); for (let t = 0; t < 4; t++) R(g, x - 9 + t * 5, BANK_TOP - 73, 3, 3, Wd[4]); }
-  if (v % 2 === 0) { const x = 230; block(g, x - 36, BANK_TOP - 50, 72, 50, ramp5(b('#9A7A4A'))); R(g, x - 8, BANK_TOP - 36, 16, 36, INK); poly(g, [[x - 54, BANK_TOP - 44], [x, BANK_TOP - 100], [x + 54, BANK_TOP - 44]], INK); poly(g, [[x - 50, BANK_TOP - 46], [x, BANK_TOP - 96], [x + 50, BANK_TOP - 46]], Th[2]); for (let n = 1; n < 4; n++) R(g, x - 50 + n * 10, BANK_TOP - 46 - n * 12, 100 - n * 20, 1, Th[3]); sp.push([x + 16, BANK_TOP - 70, 34, 30]); }
+  // (the bank's face: bamboo poles lashed side by side, a rope band, each pole's nodes; in the night's ramp)
+  bankFace(g, () => { const Bm = ramp5(b('#A8843E')); R(g, 0, BANK_TOP, BANK_T, BANK_FOOT - BANK_TOP, Bm[1]); for (let x = 0; x < BANK_T; x += 10) { R(g, x, BANK_TOP, 8, BANK_FOOT - BANK_TOP, Bm[2]); R(g, x, BANK_TOP, 2, BANK_FOOT - BANK_TOP, Bm[3]); R(g, x + 7, BANK_TOP, 1, BANK_FOOT - BANK_TOP, Bm[0]); for (let y = BANK_TOP + 10 + (x % 3) * 3; y < BANK_FOOT; y += 14) R(g, x, y, 8, 1, Bm[0]); } R(g, 0, BANK_TOP + 6, BANK_T, 3, b('#5A3A1E')); checker(g, 0, BANK_TOP + 9, BANK_T, 2, b('#3A2410')); });
+  const Wd = ramp5(b('#7A4A26')), Dk = ramp5(b('#5A3418')), Th = ramp5(b('#A88A4A')), Bm = ramp5(b('#A8843E')), Fl = ramp5(b('#2A5A2A'));
+  // (each tile its own set piece, where it stands along the bank varying: never the same strip twice in a row)
+  const v = Math.floor(hash(k * 3.7 + 1) * 6), off = Math.round(hash(k * 5.3) * 80), w = (n: number) => hash(k * 11 + n);
+  // (low ferns and broad leaves all along its top, in clumps)
+  for (let i = 0; i < 7; i++) { const fx = i * 70 + w(i) * 40, fh = 14 + w(i + 9) * 18; for (let a = -2; a <= 2; a++) stroke(g, [[fx, BANK_TOP], [fx + a * 7, BANK_TOP - fh], [fx + a * 12, BANK_TOP - fh + 6]], 3, a % 2 ? Fl[1] : Fl[2]); }
+  if (v === 0) {
+    // (a big carved tiki, its eyes lit, two torches either side)
+    tikiPost(g, 150 + off, BANK_TOP, 150, 50, Wd, true, k); tikiTorch(g, 100 + off, BANK_TOP, 90, Bm, sp); tikiTorch(g, 200 + off, BANK_TOP, 96, Bm, sp);
+    tikiPost(g, 380 - off / 2, BANK_TOP, 80, 28, Dk, false, k + 3);
+  } else if (v === 1) {
+    // (a grass hut on stilts, its porch, the roof burning; a torch)
+    stiltHut(g, 200 + off, BANK_TOP, BANK_TOP - 56, Dk, Th, Bm, true, 1, sp); tikiTorch(g, 60, BANK_TOP, 84, Bm, sp);
+  } else if (v === 2) {
+    // (the tiki bar: a thatched shack, its counter, bottles on the shelf, a board: GROG; stools)
+    const x = 140 + off;
+    for (const px of [x - 70, x + 70]) { R(g, px - 4, BANK_TOP - 100, 8, 100, INK); R(g, px - 3, BANK_TOP - 100, 6, 100, Bm[2]); R(g, px - 3, BANK_TOP - 100, 2, 100, Bm[4]); }
+    thatchRoof(g, x, BANK_TOP - 150, 96, BANK_TOP - 96, Th, -1);
+    R(g, x - 66, BANK_TOP - 92, 132, 50, b('#140A06'));
+    for (let i = 0; i < 8; i++) { const bx = x - 56 + i * 15; R(g, bx, BANK_TOP - 80, 6, 16, INK); R(g, bx + 1, BANK_TOP - 79, 4, 14, ['#16A34A', '#CA8A04', '#B91C1C', '#0EA5E9'].map(b)[i % 4]); R(g, bx + 1, BANK_TOP - 79, 1, 14, b('#FFFFFF')); }
+    block(g, x - 74, BANK_TOP - 42, 148, 42, Dk);
+    for (let y = BANK_TOP - 36; y < BANK_TOP; y += 8) R(g, x - 73, y, 146, 1, Dk[1]);
+    block(g, x - 40, BANK_TOP - 128, 80, 18, ramp5(b('#9A3412'))); g.font = '8px "Press Start 2P"'; g.textAlign = 'center'; g.fillStyle = INK; g.fillText('GROG', x + 1, BANK_TOP - 114); g.fillStyle = b('#FEF3C7'); g.fillText('GROG', x, BANK_TOP - 115); g.textAlign = 'left';
+    for (const sx of [x + 96, x + 120]) { R(g, sx - 1, BANK_TOP - 26, 3, 26, Dk[0]); ell(g, sx, BANK_TOP - 28, 9, 4, Dk[2]); }
+    sp.push([x + 40, BANK_TOP - 130, 44, 30]);
+  } else if (v === 3) {
+    // (masks on posts, a row of them, each its own face; torches between, one knocked over)
+    for (let i = 0; i < 4; i++) { const x = 50 + i * 110 + Math.round(w(i) * 20); R(g, x - 2, BANK_TOP - 54, 5, 54, Dk[0]); tikiPost(g, x, BANK_TOP - 50, 56, 32, i % 2 ? Wd : Dk, i === 1, k + i); }
+    for (let i = 0; i < 2; i++) tikiTorch(g, 105 + i * 220 + off / 3, BANK_TOP, 86, Bm, sp);
+    stroke(g, [[340, BANK_TOP - 2], [400, BANK_TOP - 18]], 4, Bm[1]);
+  } else if (v === 4) {
+    // (the outrigger canoes up on a rack, a stack of surfboards against it, a fishing net hung to dry)
+    const x = 120 + off;
+    for (const px of [x - 60, x + 60]) { R(g, px - 3, BANK_TOP - 70, 6, 70, Dk[1]); R(g, px - 3, BANK_TOP - 70, 2, 70, Dk[3]); }
+    for (let i = 0; i < 2; i++) { const y = BANK_TOP - 70 + i * 30; ell(g, x, y, 90, 9, INK); ell(g, x, y - 1, 87, 7, Wd[2]); R(g, x - 70, y - 6, 140, 2, Wd[4]); ell(g, x, y + 2, 80, 4, Wd[1]); }
+    for (let i = 0; i < 4; i++) { const sx = x + 120 + i * 18; ell(g, sx, BANK_TOP - 40, 7, 40, INK); ell(g, sx, BANK_TOP - 40, 6, 38, ['#F97316', '#22D3EE', '#FACC15', '#EC4899'].map(b)[i]); R(g, sx - 1, BANK_TOP - 76, 2, 72, b('#F5F5F4')); }
+    for (let y = BANK_TOP - 110; y < BANK_TOP - 60; y += 6) for (let x2 = 340; x2 < 460; x2 += 6) R(g, x2 + ((y / 6) % 2) * 3, y, 1, 1, Bm[1]);
+    stroke(g, [[336, BANK_TOP - 112], [466, BANK_TOP - 112]], 2, Bm[0]);
+    sp.push([x + 40, BANK_TOP - 72, 40, 26]);
+  } else {
+    // (a broken tiki fountain: a big stone bowl, a carved face spouting nothing (the pumps are dead); palms)
+    const x = 220 + off / 2, S = ramp5(b('#6B6458'));
+    tikiPost(g, x, BANK_TOP - 30, 100, 44, Dk, true, k + 5);
+    ell(g, x, BANK_TOP - 30, 76, 14, INK); ell(g, x, BANK_TOP - 32, 72, 11, S[2]); ell(g, x, BANK_TOP - 34, 60, 6, S[0]); R(g, x - 66, BANK_TOP - 36, 40, 2, S[4]);
+    block(g, x - 20, BANK_TOP - 22, 40, 22, S);
+    farPalm(g, 60, BANK_TOP, 200, 24, sp, BD); farPalm(g, 420, BANK_TOP, 180, -22, sp, BD);
+  }
 };
 
 const bankPirate = (g: Ctx, k: number, sp: Spot[]) => {

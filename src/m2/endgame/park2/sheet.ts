@@ -7,6 +7,7 @@ import { drawSonGross, drawSonGrossBack } from './sonGross';
 import { drawBurnout, burnLook, drawImp, type BurnPose, type ImpPose } from './kindArt';
 import { drawPretzel, drawEndPreview } from './end';
 import { drawBrawl } from './brawl';
+import { drawPunkAs, type PunkSt } from '../../spooky/hell/demon';
 import { drawLavaDeath, LAVA_FRAMES, LAVA_KILL, paintSkeleton } from './lavaDeath';
 import type { GameState } from '../../../m1/game/core/state';
 import type { MeatheadDeath } from '../../../m1/game/player/deathAnim';
@@ -49,6 +50,23 @@ export const contactSheet = (what: string): string => {
   if (what === 'imp') {
     const poses: ImpPose[] = ['fly', 'tell', 'throw', 'dive', 'hurt'];
     return sheet(4, 5, 70, 70, 4, (g, i) => { g.translate(35, 58); drawImp(g, poses[Math.floor(i / 4)], (i % 4) * 4); return `${poses[Math.floor(i / 4)]} ${i % 4}`; });
+  }
+  if (what === 'bro') {
+    // (BRATHAZAR, his brother: every state boss.ts's broSt hands Spooky Land's drawing, at a few frames each, both
+    // facings; the cheap shot's stun too)
+    const list: [PunkSt | 'stun', number, number][] = [];
+    for (const st of ['walk', 'crouch', 'air', 'land', 'sweepWind', 'sweep', 'sweepRec', 'rushWind', 'rush', 'crash', 'stagger', 'beaten'] as PunkSt[]) for (const t of [0, 8, 20]) list.push([st, t, 1]);
+    for (const t of [0, 10, 30]) list.push(['stun', t, 1]);
+    list.push(['walk', 8, -1], ['sweep', 8, -1], ['rush', 8, -1]);
+    return sheet(8, Math.ceil(list.length / 8), 200, 240, 1, (g, i) => {
+      const it = list[i]; if (!it) return;
+      const [st, t, face] = it;
+      g.translate(100, 226); g.scale(face, 1);
+      drawPunkAs(g, { st: st === 'stun' ? 'walk' : st, t, vx: st === 'walk' ? 1 : 0, facing: 1, flash: 0, said: null, jumpTo: 0, rushDir: 1, x: 0, y: 0, ...(st === 'stun' ? { stunT: t } : {}) }, t * 3);
+      g.setTransform(1, 0, 0, 1, (i % 8) * 200, Math.floor(i / 8) * 240);
+      g.fillStyle = '#C00'; g.fillRect(99, 226, 2, 2);
+      return `${st} ${t}${face < 0 ? ' L' : ''}`;
+    });
   }
   if (what === 'pretzel') return sheet(2, 1, 280, 170, 2, (g, i) => { g.fillStyle = '#7F1D1D'; g.fillRect(0, 110, 280, 60); drawPretzel(g, 140, 100, 0, 0, i === 1); return i ? 'on the river' : 'held'; });
   if (what === 'vendor') return sheet(3, 1, 160, 160, 2, (g, i) => { g.translate(80, 140); drawEndPreview(g, i); return ['calling', 'punched', 'cart'][i]; });

@@ -24,7 +24,7 @@ import { heard } from '../../bossQuiet';
 import { stamp } from '../../intro/art/kit';
 import { CANVAS_WIDTH as W } from '../../../m1/constants';
 import { LOGS2, CURRENT, BEAMS, BEAM_GAP, RIVER_Y, GY, waterDy, waterY } from './geo';
-import { fireRow, flame, FIRE } from './fire';
+import { fireRow, flame, FIRE, bootsOn } from './fire';
 
 type Ctx = CanvasRenderingContext2D;
 const R = 14, SINK = 2, PUSH = 3.2, ANSWER = 0.08, EASE = 0.03;
@@ -184,8 +184,9 @@ export const drawLogs2 = (c: Ctx, state: GameState, logs: Log2Run[]) => {
           c.fillStyle = FIRE[2]; c.fillRect(cx, cy + 1, w, 1); c.fillRect(cx + 4, cy + 1, 1, 4);
         }
       }
-      if (stage === 'flames' || stage === 'crumble') fireRow(c, r.x + 6, r.x + L.len - 6, top + 4, stage === 'crumble' ? 50 : 30 + (k - 0.5) * 40, f, 16, r.i * 5);
-      else if (stage === 'smolder') for (let n = 0; n < 3; n++) flame(c, r.x + 30 + n * (L.len - 60) / 2, top + 3, 6, 10, f, r.i * 3 + n);
+      const boots = bootsOn(state, r.x, r.x + L.len, top);
+      if (stage === 'flames' || stage === 'crumble') fireRow(c, r.x + 6, r.x + L.len - 6, top + 4, stage === 'crumble' ? 50 : 30 + (k - 0.5) * 40, f, 16, r.i * 5, boots);
+      else if (stage === 'smolder') for (let n = 0; n < 3; n++) { const fx = r.x + 30 + n * (L.len - 60) / 2; if (!boots || fx < boots[0] - 8 || fx > boots[1] + 8) flame(c, fx, top + 3, 6, 10, f, r.i * 3 + n); }
       if (f % (stage === 'catch' ? 6 : 3) === 0) state.particles.push({ pos: { x: r.x + 10 + Math.random() * (L.len - 20), y: top }, vel: { x: (Math.random() - 0.5) * 0.5, y: -0.8 - Math.random() * 0.6 }, life: 34, color: stage === 'catch' ? '#8A8494' : '#3F3A46', size: 3 + Math.random() * 3 });
       if (stage === 'crumble' && f % 5 === 0) state.particles.push({ pos: { x: r.x + (Math.random() < 0.5 ? 6 : L.len - 6), y: top + 10 }, vel: { x: (Math.random() - 0.5) * 2, y: 1 }, life: 26, color: '#1A0E08', size: 4, grav: 0.3 });
     }
