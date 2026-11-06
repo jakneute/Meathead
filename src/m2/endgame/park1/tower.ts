@@ -84,11 +84,15 @@ export const newTower = (clearedBelow: number): Tower => ({
 });
 
 /** The floor his feet are on (or the nearest under them), inside the tower's span; null outside it. */
+/** How long each of a floor's lot has been out of the world (held, mostly). */
+const missing = new WeakMap<Enemy, number>();
 export const floorOf = (state: GameState) => {
   const p = state.player, cx = p.pos.x + p.width / 2, feet = p.pos.y + p.height;
   if (cx < TL - STAIR - 40 || cx > TR + STAIR + 40) return null;
   if (feet > floorY(0) - FLOOR + 30 && cx > TL - 900) return 0;
-  const k = Math.round((floorY(0) - feet) / FLOOR);
+  // (the floor whose room he's in: on its deck or anywhere up to its ceiling (a jump into the ceiling rounded up to the
+  // floor over him, and the camera went there for a moment))
+  const k = Math.floor((floorY(0) - feet + 8) / FLOOR);
   return Math.max(0, Math.min(FLOORS, k));
 };
 /** The tower's blocks: the decks (floors 1-9), its walls (the left one leaves base camp's way in open), the ledges. */
@@ -180,7 +184,14 @@ export const updateTower = (ctx: FrameContext, tw: Tower, controls: Controls, ev
   }
   if (tw.locked !== null) {
     const L = tw.locked;
-    tw.cast = tw.cast.filter(e => e.health > 0 && !e.isBlownAway && state.enemies.includes(e));
+    // (out of the world but alive: held (a grab, the ninja drop), and coming back: still his to beat; only gone a long
+    // while does it stop counting (the owner: a ninja-dropped one that lived counted as beaten and the door opened))
+    tw.cast = tw.cast.filter(e => {
+      if (e.health <= 0 || e.isBlownAway) return false;
+      if (state.enemies.includes(e)) { missing.delete(e); return true; }
+      const n = (missing.get(e) ?? 0) + 1; missing.set(e, n);
+      return n < 900;
+    });
     if (tw.spawnT > 0) tw.spawnT--;
     // (the next one out: a door's tell first, the door away from him)
     if (tw.spawnT === 0 && tw.queue.length) {
