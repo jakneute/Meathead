@@ -9,6 +9,7 @@ import { PARK1_VOICE_LINES } from './park1/lines';
 import { PARK2_VOICE_LINES } from './park2/lines';
 import { PARK3_VOICE_LINES } from './park3/lines';
 import { PARK4_VOICE_LINES } from './park4/lines/index';
+import { FINALE_VOICE_LINES } from './finale/lines';
 
 export type Dressed = 'clean' | 'shitty' | 'nude';
 type ByDress = Record<Dressed, string[]>;
@@ -133,3 +134,5 @@ for (const [v, l] of Object.entries(PARK2_VOICE_LINES)) (ENDGAME_VOICE_LINES[v] 
 for (const [v, l] of Object.entries(PARK3_VOICE_LINES)) (ENDGAME_VOICE_LINES[v] ??= []).push(...l);
 // (level 4: Ned, his boss rush, his fight: park4/lines/index.ts)
 for (const [v, l] of Object.entries(PARK4_VOICE_LINES)) (ENDGAME_VOICE_LINES[v] ??= []).push(...l);
+// (level 5, the kaiju finale: finale/lines.ts)
+for (const [v, l] of Object.entries(FINALE_VOICE_LINES)) (ENDGAME_VOICE_LINES[v] ??= []).push(...l);
