@@ -3003,8 +3003,8 @@ export const drawParkFront = (c: Ctx, state: GameState, greenPool = 0, descent =
  *  the Abyss's funnel), the towers' work lights, a floor's lights. */
 export const parkLamps = (state: GameState): Light[] => {
   const out: Light[] = [], k = lampGlow();
-  for (let x = Math.floor((state.camera.x - 300) / 700) * 700 + 350; x < state.camera.x + W + 300; x += 700) if (!TUBES.some(T => x > tubeSpan(T)[0] - 200 && x < tubeSpan(T)[1]) && !GROUND.every(([a, b]) => x < a + 20 || x > b - 20)) out.push({ x, y: GY - 160, r: 200, a: 0.3 * k, color: '#FDE68A' } as Light);
-  if (vis(state, TL - 200, TR + 200)) for (let j = 0; j <= FLOORS; j++) { const y = floorY(j) - 200; if (visY(state, y - 200, y + 200)) out.push({ x: (TL + TR) / 2, y, r: 420, a: 0.32, color: '#E0F2FE' } as Light); }
+  for (let x = Math.floor((state.camera.x - 300) / 700) * 700 + 350; x < state.camera.x + W + 300; x += 700) if (!TUBES.some(T => x > tubeSpan(T)[0] - 200 && x < tubeSpan(T)[1]) && !GROUND.every(([a, b]) => x < a + 20 || x > b - 20)) out.push({ x, y: GY - 160, r: 200, a: 0.3 * k, color: 'rgba(253, 230, 138, 1)' } as Light);
+  if (vis(state, TL - 200, TR + 200)) for (let j = 0; j <= FLOORS; j++) { const y = floorY(j) - 200; if (visY(state, y - 200, y + 200)) out.push({ x: (TL + TR) / 2, y, r: 420, a: 0.32, color: 'rgba(224, 242, 254, 1)' } as Light); }
   return out;
 };
 export { SLIDE_PATHS };

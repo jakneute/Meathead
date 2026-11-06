@@ -33,6 +33,9 @@ const WART = R('#D0DC98', '#B8C878', '#8A9A50', '#6A7A3A', '#4A5A2A', '#2A3214')
 const ZIT = R('#FFFFF0', '#FFE8D0', '#F4A890', '#D86A5A', '#A8403A', '#6A1E18');
 const SORE = R('#FFE6D8', '#F4A08A', '#D86A54', '#A8402E', '#6A1E10', '#3A0C04');
 const HVEIN = R('#D8B4F4', '#B48AD8', '#9A72B8', '#7A54A0', '#5B3A78', '#22142E');
+const BOILR = R('#FFD0C0', '#F4A090', '#E8685A', '#C2403C', '#8E2228', '#4A0E10');
+const PUSR = R('#FFFFF0', '#FFF4B0', '#F4E27A', '#D8BC3A', '#A88A1C', '#5A4A08');
+const CALA = R('#FFF0F0', '#FBC8C8', '#F4A6AC', '#D88A90', '#A86A70');
 const SLIME = hexU('#A8E03A'), SLIME_L = hexU('#EAFFB0'), SLIME_D = hexU('#5E8A18');
 const STUB = hexU('#1E3010'), HAIRLINE = hexU('#0A0604'), CHEETO = R('#FFD08A', '#FBA13C', '#F08A1C', '#C8650E', '#8A3E06');
 
@@ -179,6 +182,17 @@ function* build(key: Key): Generator<void, Buf> {
     ball(b, x, y, r + 2, r + 1.5, R('#E88A7A', '#D86A5A', '#B84A40', '#8A2A24'), { soft: 0.6, mat: M_OTHER });
     ball(b, x, y, r, r, ZIT, { line: true, lw: 0.6, mat: M_OTHER });
   }
+  // ---- the misery (the owner's "obvious intense discomfort"): boils, ripe, red-ringed, a yellow head on each; the
+  // neck's rash scratched raw, mom's calamine dabbed over it; tears out of dad's two
+  for (const [x, y, r] of [[26, 104, 9], [178, 34, 6], [252, 104, 6], [72, 168, 6], [200, 164, 5]] as const) {
+    tint(b, x, y + 2, r * 1.8, r * 1.5, hexU('#C24A44'), 0.55, M_SKIN, 0.6);
+    ball(b, x, y, r, r * 0.9, BOILR, { mat: M_OTHER, line: true, lw: 0.9 });
+    ball(b, x - r * 0.15, y - r * 0.3, r * 0.5, r * 0.42, PUSR, { mat: M_OTHER });
+  }
+  for (let k = 0; k < 140; k++) { const x = 96 + rnd() * 110, y = 150 + rnd() * 26; if (matAt(b, x, y) === M_SKIN) plot(b, x, y, hexU(k % 3 ? '#C24A44' : '#9A2E30')); }
+  for (let k = 0; k < 4; k++) path(b, [104 + k * 22, 152, 112 + k * 22, 174], hexU('#FFD0C0'), 1, undefined, M_SKIN);
+  ball(b, 140, 166, 12, 6, CALA, { mat: M_OTHER }); ball(b, 186, 158, 7, 4, CALA, { mat: M_OTHER });
+  for (const [ex, ey] of [[122, 98], [168, 102]] as const) { path(b, [ex, ey, ex + 2, ey + 14, ex, ey + 30], hexU('#9AD8F4'), 2, undefined, M_OTHER); plot(b, ex + 1, ey + 8, hexU('#E8F8FF')); }
   stubble(b, (x, y) => (y > 134 && y < 172 ? (Math.sin(x * 0.07) > -0.3 ? 0.9 : 0.2) : 0), STUB, 0.45);
   skinPost(b, HIDE[8], (x, y) => (((x - 216) / 22) ** 2 + ((y - 96) / 15) ** 2 < 1 ? 0.1 : y < 112 ? 0.05 : 0.03), { blackheads: (x, y) => y < 112, shine: 0.12 });
   for (let k = 0; k < 12; k++) { const x = 100 + rnd() * 90, y = 30 + rnd() * 30; if (matAt(b, x, y) === M_SKIN) bead(b, x, y, 1.2 + rnd() * 1.4, HIDE); }
