@@ -32,6 +32,7 @@ import { tubePaths, tubeLap, tubeLapNo, PIPE_CLEAR, GAP_WARN } from './tube';
 import { FLOOR_LEDGES, DOORS_X, ROUND, FACE } from './tower';
 import { elbowFront, kneeFront } from '../../art/limb';
 import { grabBusy } from '../../moves/grab';
+import { drawZonesBack, groundAt, paintZoneGround, drawRideSky, drawRideDrop } from './zones';
 import { TUBE_RING } from '../../../m1/game/render/player/tubePose';
 
 type Ctx = CanvasRenderingContext2D;
@@ -302,7 +303,9 @@ const paintBackdrop = (c: Ctx, state: GameState, shift: number) => {
     }
     if (by < H) R(c, 0, Math.round(by), W, H - Math.round(by), farTint('#0A1020', 0.8));
   }
+  // (a tube ride's own theming up in the air: its inflatables on their tethers (zones.ts))
   const dz = dropOf(state);
+  if (dz) drawRideSky(c, TUBES[dz.i].id, cx, cy);
   // (over a tube ride's drop: the mist rising out of it, thin up high, thickening down to the haze's top (drawTubeBack
   // carries on from there, in front of the legs): the slides far down under him go into it, so none of them reads as
   // somewhere a fall would land; stepped in over the drop's ends (the tower's, the splash pool's), no hard edge)
@@ -329,6 +332,8 @@ const paintBackdrop = (c: Ctx, state: GameState, shift: number) => {
     DROP_BANDS.forEach((col, k) => R(c, drop.x0, drop.y + k * 26, w, 26, col));
     const v = drop.y + DROP_BANDS.length * 26;
     if (v < H) R(c, drop.x0, v, w, H - v, VOID);
+    // (down in it: the ride's stars, or its glowing plankton (zones.ts))
+    if (dz) drawRideDrop(c, TUBES[dz.i].id, cx, drop);
   }
   return true;
 };
@@ -404,7 +409,14 @@ const drawGround = (c: Ctx, state: GameState) => {
     const x0 = Math.max(a, v.x - 40), x1 = Math.min(b, v.x + v.w + 40);
     if (x1 <= x0) continue;
     c.save(); c.beginPath(); c.rect(x0, GY, x1 - x0, bot - GY); c.clip();
-    for (let tx = Math.floor(x0 / GT) * GT; tx < x1; tx += GT) { const k = Math.floor(hash(tx / GT + 0.5) * 4); c.save(); c.translate(tx, 0); stamp(c, `wp-gnd-${k}`, 0, GY, GT, GH, g => paintGround(g, 0, k)); c.restore(); }
+    // (each area's own ground (zones.ts); the plaza's pavers at the gate and at base camp)
+    for (let tx = Math.floor(x0 / GT) * GT; tx < x1; tx += GT) {
+      const k = Math.floor(hash(tx / GT + 0.5) * 4), z = groundAt(tx);
+      c.save(); c.translate(tx, 0);
+      if (z === 'pave') stamp(c, `wp-gnd-${k}`, 0, GY, GT, GH, g => paintGround(g, 0, k));
+      else stamp(c, `wp-gnd-${z}-${k}`, 0, GY, GT, GH, g => paintZoneGround(g, z, 0, k, GT, GH));
+      c.restore();
+    }
     if (bot > GY + GH) R(c, x0, GY + GH, x1 - x0, bot - GY - GH, PAVE[0]);
     c.restore();
     // (the edge of a run: a lit corner, the slab's broken face down it)
@@ -910,8 +922,13 @@ const paintIsland = (g: Ctx, x: number, y: number, w: number) => {
 /** The plaza's back props (behind him, dimmed: nothing here to stand on), the signs, the stood-on huts. */
 const drawProps = (c: Ctx, state: GameState) => {
   const busy = (x: number, m: number) => SIGN_X.some(sx => Math.abs(sx - x) < m) || [...SLIDES, ...TUBES].some(S => x > S.stairs.x - 40 && x < S.deck.x2 + 40) || LEDGES.some(([lx, , lw]) => x > lx - 60 && x < lx + lw + 60);
-  // (palms, every so often, back from the path)
+  // (each area's own near background, furthest back (zones.ts))
+  drawZonesBack(c, state, (a, b) => vis(state, a, b));
+  // (palms, every so often, back from the path: not in the areas with no place for one (the road, the hangar's plate,
+  // the starship deck, the deep))
   for (let x = Math.floor((state.camera.x - 200) / 520) * 520 + 130; x < state.camera.x + W + 200; x += 520) {
+    const z = groundAt(x);
+    if (z === 'road' || z === 'plate' || z === 'deck' || z === 'sea') continue;
     if (GROUND.every(([a, b]) => x < a + 40 || x > b - 40) || (x > TOWER.TL - 600 && x < TOWER.TR + 300) || (x > -220 && x < 440)) continue;
     // (never over a sign, a slide's stairs or a booth)
     if (busy(x, 160)) continue;
