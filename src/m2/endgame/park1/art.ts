@@ -1423,7 +1423,8 @@ const drawTubeBack = (c: Ctx, state: GameState, T: Tube, i: number) => {
  *  loops' lengths are multiples of it: no jump at the carry back), running on faster than the tube rides it. */
 const drawTubeFlow = (c: Ctx, state: GameState, T: Tube, i: number) => {
   const paths = tubePaths(i), cx = state.camera.x, ph = (state.frame * T.speed * 1.7) % 48;
-  for (const [dx, len, dy, col] of [[0, 12, -5.5, 'rgba(255, 255, 255, 0.8)'], [26, 6, -3.5, 'rgba(191, 230, 255, 0.6)']] as const) {
+  // (opaque: the water's colors mixed in already, no see-through strokes in the frame)
+  for (const [dx, len, dy, col] of [[0, 12, -5.5, '#D6ECFB'], [26, 6, -3.5, '#7EB6E2']] as const) {
     c.beginPath();
     for (let x = Math.floor((cx - 60) / 48) * 48 + ph + dx; x < cx + W + 20; x += 48) {
       const y0 = chuteY(paths, x), y1 = chuteY(paths, x + len);
@@ -1534,30 +1535,26 @@ const RING_SPLIT = 0.75, RING_LEFT = Math.PI - 0.2;
  *  stripe, the valve on its front; squashed flat under his weight (Player.tubeSit's squash, about its bottom); the dark
  *  of the hole he's sunk into; the foam it pushes along. Sat, it's round his butt (tubePose.ts TUBE_RING); in an air
  *  grab, round his waist; stood up in it (the spellbook, the hammer), round his shins. */
-export const drawTubeRing = (c: Ctx, state: GameState, ride: string, front: boolean) => {
-  const p = state.player, Lk = RING_LOOK[ride] ?? RING_LOOK.blackHole, Rm = ramp5(Lk.col), f = state.frame;
-  const sit = p.tubeSit, grab = grabBusy() || !!p.hidden;
-  const sq = sit ? sit.squash : 0;
-  c.save();
-  c.translate(p.pos.x + p.width / 2, p.pos.y + p.height);
-  c.rotate(p.spriteRot ?? 0);
-  c.translate(TUBE_RING.x, grab ? -28 : sit ? TUBE_RING.y : -12);
+/** One half of the ring, painted (in the ring's own frame, unsquashed: its middle at 0, 0) at squash `sq`, with the
+ *  foam and drips at `phase` (0..7 of their 24-frame cycle; -1 none). Baked once per look (ringBake). */
+const RING_BOT = RING_RY + RING_TH / 2;
+const paintRing = (g: Ctx, Lk: { col: string; stripe: string }, front: boolean, sq: number, phase: number) => {
+  const Rm = ramp5(Lk.col);
   // (squashed about its bottom: flatter and a touch wider under him)
-  const bot = RING_RY + RING_TH / 2;
-  c.translate(0, bot); c.scale(1 + sq * 0.08, 1 - sq * 0.22); c.translate(0, -bot);
+  g.translate(0, RING_BOT); g.scale(1 + sq * 0.08, 1 - sq * 0.22); g.translate(0, -RING_BOT);
   const [a0, a1] = front ? [RING_SPLIT, RING_LEFT] : [RING_LEFT, Math.PI * 2 + RING_SPLIT];
   const arc = (lw: number, col: string, dy = 0, drx = 0, dash?: number[], off = 0) => {
-    c.strokeStyle = col; c.lineWidth = lw;
-    if (dash) { c.setLineDash(dash); c.lineDashOffset = off; }
-    c.beginPath(); c.ellipse(0, dy, RING_RX + drx, RING_RY + drx * 0.36, 0, a0, a1); c.stroke();
-    if (dash) { c.setLineDash([]); c.lineDashOffset = 0; }
+    g.strokeStyle = col; g.lineWidth = lw;
+    if (dash) { g.setLineDash(dash); g.lineDashOffset = off; }
+    g.beginPath(); g.ellipse(0, dy, RING_RX + drx, RING_RY + drx * 0.36, 0, a0, a1); g.stroke();
+    if (dash) { g.setLineDash([]); g.lineDashOffset = 0; }
   };
   if (!front) {
     // (the hole: dark down in it, the water's glint at its far rim)
-    c.fillStyle = '#071526'; c.beginPath(); c.ellipse(0, 1, RING_RX - 7, RING_RY - 3.5, 0, 0, Math.PI * 2); c.fill();
-    c.fillStyle = '#123A5C'; c.beginPath(); c.ellipse(0, -1, RING_RX - 9, RING_RY - 5.5, 0, Math.PI, Math.PI * 2); c.fill();
+    g.fillStyle = '#071526'; g.beginPath(); g.ellipse(0, 1, RING_RX - 7, RING_RY - 3.5, 0, 0, Math.PI * 2); g.fill();
+    g.fillStyle = '#123A5C'; g.beginPath(); g.ellipse(0, -1, RING_RX - 9, RING_RY - 5.5, 0, Math.PI, Math.PI * 2); g.fill();
   }
-  c.lineCap = 'butt';
+  g.lineCap = 'butt';
   arc(RING_TH + 3, INK);
   arc(RING_TH, Rm[1]);
   arc(RING_TH - 6, Rm[2], -2);
@@ -1574,13 +1571,49 @@ export const drawTubeRing = (c: Ctx, state: GameState, ride: string, front: bool
   if (front) {
     // (the valve: a rubber stem up off its front, the brass cap)
     const va = 2.2, vx = Math.round(Math.cos(va) * RING_RX), vy = Math.round(Math.sin(va) * RING_RY) - 6;
-    R(c, vx - 2, vy - 6, 5, 7, INK); R(c, vx - 1, vy - 5, 3, 5, '#27272A'); R(c, vx - 1, vy - 5, 1, 5, '#52525B'); R(c, vx - 2, vy - 9, 5, 4, INK); R(c, vx - 1, vy - 8, 3, 2, '#D4A017'); R(c, vx - 1, vy - 8, 1, 1, '#FFF0A0');
-    // (the foam it shoves along the chute, and drips off its bottom, sat in it on the chute)
-    if (sit && p.isGrounded && !grab) {
+    R(g, vx - 2, vy - 6, 5, 7, INK); R(g, vx - 1, vy - 5, 3, 5, '#27272A'); R(g, vx - 1, vy - 5, 1, 5, '#52525B'); R(g, vx - 2, vy - 9, 5, 4, INK); R(g, vx - 1, vy - 8, 3, 2, '#D4A017'); R(g, vx - 1, vy - 8, 1, 1, '#FFF0A0');
+    // (the foam it shoves along the chute, and drips off its bottom)
+    if (phase >= 0) {
+      const f = phase * 3;
       arc(2, 'rgba(224, 242, 254, 0.85)', 10, 2, [3, 4], -f * 0.8);
-      for (let k = 0; k < 3; k++) { const t = ((f + k * 9) % 26) / 26, dx = -14 + k * 13; R(c, dx, bot + t * 6, 1, 2, `rgba(191, 230, 255, ${(0.8 * (1 - t)).toFixed(2)})`); }
+      for (let k = 0; k < 3; k++) { const t = ((f + k * 8) % 24) / 24, dx = -14 + k * 13; R(g, dx, RING_BOT + t * 6, 1, 2, `rgba(191, 230, 255, ${(0.8 * (1 - t)).toFixed(2)})`); }
     }
   }
+};
+/** The ring's halves baked (look, half, squash in sixths, foam phase, the scale it's put down at): turned with the
+ *  chute, so not stampable (the stamp cache won't take a turn); baked once each, then put down turned. Box: the ring's
+ *  frame from (-RB_X, -RB_T), RB_W by RB_H. */
+const RB_X = 46, RB_T = 28, RB_W = 92, RB_H = 64;
+const RING_BAKES = new Map<string, HTMLCanvasElement>();
+const ringBake = (ride: string, front: boolean, sq: number, phase: number, scale: number) => {
+  const key = `${ride}|${front ? 1 : 0}|${sq}|${phase}|${scale}`;
+  let cv = RING_BAKES.get(key);
+  if (!cv) {
+    if (RING_BAKES.size > 400) RING_BAKES.clear();
+    cv = document.createElement('canvas'); cv.width = Math.ceil(RB_W * scale); cv.height = Math.ceil(RB_H * scale);
+    const g = cv.getContext('2d')!;
+    g.scale(scale, scale); g.translate(RB_X, RB_T);
+    paintRing(g, RING_LOOK[ride] ?? RING_LOOK.blackHole, front, sq, phase);
+    RING_BAKES.set(key, cv);
+  }
+  return cv;
+};
+/** The tube he's parked in. Its back half behind him (`front` false), its front half over his hips. Vinyl in its steps:
+ *  the inked edge, the shade under, the body, the lit band round its top, a specular streak and wet glints; the seam's
+ *  stitching, the printed stripe, the valve on its front; squashed flat under his weight (Player.tubeSit's squash, about
+ *  its bottom); the dark of the hole he's sunk into; the foam it pushes along and its drips (sat on the chute). Sat, it's
+ *  round his butt (tubePose.ts TUBE_RING); in an air grab, round his waist; stood up in it (the spellbook, the hammer),
+ *  round his shins. Baked (ringBake): one drawImage a half a frame. */
+export const drawTubeRing = (c: Ctx, state: GameState, ride: string, front: boolean) => {
+  const p = state.player, sit = p.tubeSit, grab = grabBusy() || !!p.hidden;
+  const sq = sit ? Math.round(sit.squash * 6) / 6 : 0;
+  const phase = front && sit && p.isGrounded && !grab ? Math.floor((state.frame % 24) / 3) : -1;
+  c.save();
+  c.translate(p.pos.x + p.width / 2, p.pos.y + p.height);
+  c.rotate(p.spriteRot ?? 0);
+  c.translate(TUBE_RING.x, grab ? -28 : sit ? TUBE_RING.y : -12);
+  const t = c.getTransform(), scale = Math.max(0.5, Math.round(Math.hypot(t.a, t.b) * 4) / 4);
+  c.drawImage(ringBake(ride, front, sq, phase, scale), -RB_X, -RB_T, RB_W, RB_H);
   c.restore();
 };
 

@@ -470,7 +470,7 @@ export const drawZonesBack = (c: Ctx, state: GameState, vis: (a: number, b: numb
   if (state.camera.y + H < GY - 260) return;
   for (const p of PIECES) {
     const K = KINDS[p.k], w = p.w ?? K.w, h = p.h ?? K.h;
-    if (!vis(p.x - 60, p.x + w + 60)) continue;
+    if (!vis(p.x - 60, p.x + w + 60) || GY < state.camera.y - 4 || GY - h - 16 > state.camera.y + H) continue;
     // (its box tight round it: a stamp's every pixel is put down each frame, empty or not)
     stamp(c, `wp-zone-${p.k}-${p.x}`, p.x - 20, GY - h - 16, w + 40, h + 20, g => K.paint(g, p.x, p.v, w, h));
   }
@@ -623,7 +623,8 @@ const paintRide = (g: Ctx, ride: string, i: number) => {
 const DROP_W = 512, DROP_H = 300;
 /** (a tile's specks: where, how big, which color) */
 const SPECKS = Array.from({ length: 34 }, (_, i) => ({ x: Math.floor(hash(i + 7) * DROP_W), y: Math.floor(hash(i * 3 + 1) * DROP_H), big: hash(i + 99) < 0.2, alt: hash(i + 51) < 0.5 }));
-const SPECK_COL: Record<string, [string, string]> = { abyss: ['rgba(103, 232, 249, 0.6)', 'rgba(167, 243, 208, 0.5)'], blackHole: ['rgba(248, 250, 252, 0.7)', 'rgba(196, 181, 253, 0.55)'] };
+// (opaque, mixed down into the drop's black already: no see-through fills in the frame)
+const SPECK_COL: Record<string, [string, string]> = { abyss: ['#3E8C9A', '#5A8A7C'], blackHole: ['#A9ABB2', '#6E6690'] };
 /** (screen space, behind the world) The ride's inflatables up in the sky: parallax 0.4 off the ride's own way along
  *  (`along`: the camera plus how far the loops have carried him back, so never the same twice round the loop). */
 export const drawRideSky = (c: Ctx, ride: string, along: number, camY: number) => {
