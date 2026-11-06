@@ -35,6 +35,7 @@ import { newTower, buildTower, updateTower, floorOf, towerCamY, climbEase, ROUND
 import { KIND_OF, setRidingCheck, setShotBox, updateShots, drawShots, drawBarks, byPants, clearShots } from './kinds';
 import { type Fight, startFight, updateFight, resetFight, fightDead, drawFight, drawFightHud, setOnKilled, doorState } from './boss';
 import { type Descent, startDescent, updateDescent, descentDone, drawDescentKid, drawGreenWater, drawDescentHud } from './descent';
+import { updateSplashes, drawSplashes, clearSplashes } from './splash';
 import { drawParkBackdrop, drawParkBack, drawParkFront, parkLamps, drawTubeRing, drawTubeHud } from './art';
 import * as L from './lines';
 import { type Park2, buildPark2, updatePark2, inLevel2, camY2, drawBackdrop2Over, drawPark2Back, drawPark2Front, drawPark2Hud, lights2, setPark2Killed } from '../park2/index';
@@ -134,6 +135,7 @@ export const parkLayout: StageLayout = {
   verticalCamera: true,
   startsStanding: true,
   build: (state) => {
+    clearSplashes();
     arrived(); stopWeapons();
     { const g = takeGut(); if (g) state.player.gut = g; }
     resetFight(); clearShots(state);
@@ -235,6 +237,7 @@ export const parkLayout: StageLayout = {
     pk.camStand += (pk.standY - pk.camStand) * 0.2;
     if (Math.abs(pk.standY - pk.camStand) < 0.5) pk.camStand = pk.standY;
     updateShots(ctx);
+    updateSplashes();
     let out: Controls = controls;
     // ---- the descent (the kid's dead): no input, no HUD, then VICTORY; then he's his again
     if (pk.descent) {
@@ -414,6 +417,8 @@ export const parkLayout: StageLayout = {
     if (tubeOn(T) && !state.player.hidden) { state.player.facing = 1; drawTubeRing(c, state, TUBES[T.i].id, false); }
     // (on the stairs: drawn stood (he's walking up them))
     if (pk.tw.climb) state.player.isGrounded = true;
+    // (the rides' splashes: their far sides, behind him)
+    drawSplashes(c, state, false);
     // (level 2's world)
     if (pk.l2 && state.camera.x + CANVAS_WIDTH > 37400) drawPark2Back(c, state, pk.l2);
   },
@@ -423,6 +428,8 @@ export const parkLayout: StageLayout = {
     if (!pk) return;
     const T = pk.tube;
     if (tubeOn(T) && !state.player.hidden) drawTubeRing(c, state, TUBES[T.i].id, true);
+    // (...and their near sides, the sheets, the drops, over him)
+    drawSplashes(c, state, true);
     drawShots(c, state);
     if (pk.l2 && state.camera.x + CANVAS_WIDTH > 37400) drawPark2Front(c, state, pk.l2);
     drawAir(c, state);

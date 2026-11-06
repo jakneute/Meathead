@@ -12,6 +12,7 @@ import type { GameState } from '../../../m1/game/core/state';
 import type { Controls } from '../../../m1/game/platform/input';
 import { playSound } from '../../../m1/game/platform/audio';
 import { SLIDES, type Slide } from './geo';
+import { splash, wake, spray } from './splash';
 
 /** How far down into the chute's water he sits (his feet under its surface line). */
 const SINK = 11;
@@ -65,7 +66,9 @@ export const onSlide = (sl: SlideState) => !!sl.ride;
 export const slideRiding = (sl: SlideState): Slide | null => (sl.ride ? SLIDES[sl.ride.i] : null);
 
 const board = (state: GameState, sl: SlideState, i: number, s: number, v: number) => {
-  const p = state.player;
+  const p = state.player, at = pointAt(PATHS[i], s);
+  // (into the chute's water: as hard as he came down on it, or a little one walked in off the top)
+  splash(at.x, at.y - 2, Math.max(3, p.vel.y), 1, at.a);
   sl.ride = { i, s, v: Math.max(MIN_V + 1, Math.min(MAX_V, v)), t: 0 }; sl.fly = null;
   p.carried = true; p.logSeat = true; p.noSpecials = true; p.isCharging = false; p.isSliding = false; p.isDivekicking = false; p.isUppercutting = false; p.isDucking = false;
   p.facing = 1;
@@ -112,8 +115,8 @@ export const updateSlides = (ctx: FrameContext, sl: SlideState, controls: Contro
     r.v = Math.max(MIN_V, Math.min(MAX_V, r.v + G * Math.sin(here.a) - DRAG * r.v + lean));
     r.s += r.v;
     if (r.t % 6 === 0) playSound('splash', 0.12, 8 + Math.random() * 4);
-    // (spray off him, going)
-    if (r.t % 2 === 0) state.particles.push({ pos: { x: here.x - 10, y: here.y - 2 }, vel: { x: -1 - Math.random() * 2, y: -1 - Math.random() * 2.5 }, life: 18, color: Math.random() < 0.5 ? '#E0F2FE' : '#93C5FD', size: 2 + Math.random() * 2 });
+    // (his wake, going)
+    wake(here.x - 4, here.y - 2, r.v, 1, here.a, r.t % 4 === 0);
     // (off the end: the lip's throw)
     if (r.s >= P.len) {
       const lip = pointAt(P, P.len), jumped = state.frame - sl.lastJump <= LIP_JUMP;
@@ -124,7 +127,7 @@ export const updateSlides = (ctx: FrameContext, sl: SlideState, controls: Contro
       p.isGrounded = false; p.jumpHoldTimer = 0; p.coyoteAirTimer = 0; p.coyoteJumpTimer = 0;
       sl.fly = { vx: p.vel.x, t: 0 };
       playSound('whoosh', 0.8, jumped ? 2 : -2); playSound('splash', 0.7, -4);
-      for (let k = 0; k < 18; k++) state.particles.push({ pos: { x: lip.x, y: lip.y - 4 }, vel: { x: 2 + Math.random() * 6, y: -2 - Math.random() * 5 }, life: 28, color: k % 2 ? '#E0F2FE' : '#7DD3FC', size: 2 + Math.random() * 3 });
+      spray(lip.x, lip.y - 4, 10, 22, vx * 0.75, vy * 0.6 - 1);
       return controls;
     }
     // (hopped off it, early: riding's speed with him)
