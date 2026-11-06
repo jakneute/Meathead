@@ -52,7 +52,7 @@ export const drawTubeLegs = (ctx: Ctx, k: TubeLook) => {
   for (const near of [false, true]) {
     const hip: P = near ? [5, -21] : [-3, -21];
     let foot: P;
-    if (k.hurt) foot = [near ? 25 : 20, near ? -34 : -31];
+    if (k.hurt) foot = [near ? 27 : 22, near ? -26 : -24];
     else if (k.air) foot = [near ? 26 : 21, (near ? -20 : -18) + k.fall * 6 + (near ? swing : -swing) * 1.5];
     else if (k.duck) foot = [near ? 27 : 23, near ? -13 : -12];
     else foot = [(near ? 29 : 24) + swing * (near ? 0.8 : -0.8), (near ? -15 : -14) + k.squash * 1.5 + (near ? swing : -swing) * 1.2];
