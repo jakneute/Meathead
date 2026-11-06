@@ -1,7 +1,7 @@
 // THE QUEEN's refight (the ROBOT): hell's knockoff of GALACTIC GROOVE, Space Land's own boss fight run whole
 // (space/queen/fight.ts) at 999. The owner's: "the aliens have infiltrated hell and have reconstructed the queen. the
 // aliens in the dj booth. meathead drops down and obliterates them. ned will be in the control booth instead during
-// this fight, taunting you instead of the two aliens." No Ned card for her (INTROS has none: he's in her booth).
+// this fight, taunting you instead of the two aliens." Ned's card first (her sin: ROBOT), then he's in her booth.
 //
 // In through Ned's portal (fresh: not a respawn): he comes down out of the dark over the DJ booth, right on top of the
 // two aliens at her controls (their last words cut short), lands in the pod on what's left of them, his say; then on

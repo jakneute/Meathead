@@ -39,7 +39,7 @@ export interface RefightDef {
   statueNow?: () => 'shot' | 'fell';
   /** What each look's called on the picker. */
   lookName: (look: string) => string;
-  /** Ned's intro: his lines are park4/lines/ned.ts INTROS[land] (none for the Queen: Ned's in her booth instead). */
+  /** Ned's intro: his lines are park4/lines/ned.ts INTROS[land] (the Queen too: her sin is ROBOT). */
   /** The stitches over him, by look (hell.ts drawStitches; null: none, his own art does it). */
   stitches: (look: string) => StitchLook | null;
   /** The land's line pools swapped for the refight's: [the land's ByPants or list, the refight's]. */

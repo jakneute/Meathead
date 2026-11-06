@@ -64166,12 +64166,22 @@
  },
  {
   "voice": "m2.ned",
+  "text": "HELL'S DISCO! THE ALIENS SNUCK IN AND BUILT IT. I'M TAKING THE CREDIT.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "m2.ned",
   "text": "HELL'S PIXIE BEDROOM! THE SHEETS GET CHANGED EVERY CENTURY.",
   "from": "ENDGAME"
  },
  {
   "voice": "m2.ned",
   "text": "HELL'S WILDERNESS! REAL FAKE TREES! HE'S BEEN LOST IN HERE FOR WEEKS.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "m2.ned",
+  "text": "HER SKIN BURNT OFF. THE ALIENS GLUED ON NEW SKIN FROM THE DOLLAR STORE. SHE SMELLS LIKE A BEACH BALL.",
   "from": "ENDGAME"
  },
  {
@@ -64252,6 +64262,21 @@
  {
   "voice": "m2.ned",
   "text": "I'LL BE IN THE PARKING LOT, MEATHEAD!",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "m2.ned",
+  "text": "I'LL BE UP IN THE BOOTH. AWAY FROM YOUR DICK.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "m2.ned",
+  "text": "I'LL BE UP IN THE BOOTH. AWAY FROM YOUR PANTS.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "m2.ned",
+  "text": "I'LL BE UP IN THE BOOTH. DON'T LOOK AT THE BOOTH.",
   "from": "ENDGAME"
  },
  {
@@ -64656,6 +64681,11 @@
  },
  {
   "voice": "m2.ned",
+  "text": "THE QUEEN. HER SIN? ROBOT. THAT'S NOT A SIN? IT IS NOW. I MADE A LIST.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "m2.ned",
   "text": "THE RHINO WENT RIGHT THROUGH HIM. I PLUGGED THE HOLE WITH A COCONUT.",
   "from": "ENDGAME"
  },
@@ -64777,6 +64807,11 @@
  {
   "voice": "m2.ned",
   "text": "YOU BURIED HIM IN CEMENT. I CHISELED HIM OUT. SOME OF HIM IS STILL CEMENT.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "m2.ned",
+  "text": "YOU FLATTENED HER HEAD WITH A MALLET. THEY BANGED IT BACK OUT. MOSTLY.",
   "from": "ENDGAME"
  },
  {
