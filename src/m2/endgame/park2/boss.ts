@@ -24,10 +24,25 @@
 //               height across most of the grotto (duck it, or be up over it). He coughs after.
 //     TAIL      close up (don't hug him): the tail cocked up behind him (the tell), then whipped low out in front (jump
 //               it).
-//   BRATHAZAR   At half, Meathead's mocking gets to him and he calls his brother in (a short beat, skippable): Spooky
-//               Land's punk, down through the ceiling, half the son's health, his own moves from hell (each with its
-//               tell: the LEAP's crouch and shadow, the SWEEP's floor flashing out in front, the RUSH's pawing and the
-//               arrows along the floor). They take turns: never both attacking at once, a gap between.
+//   BRATHAZAR   The owner (2026-11-06): "stage 2 is about managing two large threats attacking at once. a standard
+//               fromsoft surprise ambush". At half, no beat, no call: Meathead mocks him (in play), and a moment later
+//               the AMBUSH: a split-second tell (a rumble, dust off the ceiling or rocks off the wall behind Meathead,
+//               the heavy metal kicking in) and Spooky Land's punk jumps in: dropped down out of the ceiling, or
+//               leaped in over the wall behind him, landing on the far side of Meathead from his brother. The owner:
+//               "the other one shouldn't do damage to the player at all until a couple second pass ... it is immune
+//               for a moment and you are immune to it": GRACE, two seconds from the jump in, flickering: he can't
+//               hurt and can't be hurt. Then he's live, at his whole bar (half the son's health: BRO_HP), his own
+//               moves from hell (the LEAP's crouch and shadow, the SWEEP's floor flashing out in front, the RUSH's
+//               pawing and the arrows along the floor), spaced for the smaller room.
+//   TWO AT ONCE Both run their own moves at the same time (the owner: "the player should be able to see two threats
+//               going off at once"): when one starts, the other's pulled in to start too. Every move has a danger
+//               window (when it can hurt) and an answer (jump, duck, get off the spot, get out from under). The
+//               second one's move is picked to land WITH the first when the answers mix (the floor glowing or burning
+//               where he stands while the other sweeps low: get off the spot and jump; the jet at the waist while the
+//               pillars come: stand in a gap and duck; two low ones together: one jump) and otherwise to land just
+//               after it. Never two that can't both be dodged: a leap onto him (get out from under) never lands
+//               with anything. The brother stalks round to the far side of Meathead from his brother: the crossfire.
+//               The whole grotto is the screen (the camera's fixed on it), so both are always in view.
 //   DOWN        The first of them down drops to his knees: out of it (no attacks, nothing hits him) till the other's down.
 //               Both down: the end (end.ts: they try to run, the pretzel, the beer, the river).
 
@@ -76,14 +91,23 @@ export const ARENA_L = GROTTO.door + 60, ARENA_R = GROTTO.R - 50;
 /** Where his beanbag is (he's sunk in it for the intro). */
 export const BEANBAG_X = GROTTO.R - 150;
 /** Damage, before Meathead 2's own cut (×0.65): deadly, meant to be dodged. */
-const DMG = { crush: 30, wave: 20, roach: 16, ring: 22, pillar: 26, breath: 26, tail: 20, touch: 10, broCrush: 30, broWave: 19, sweep: 26, rush: 30 };
+const DMG = { crush: 33, wave: 22, roach: 18, ring: 24, pillar: 28, breath: 28, tail: 22, touch: 12, broCrush: 34, broWave: 22, sweep: 29, rush: 33 };
 /** Wind-ups (the tells) and the openings after (frames); under half, the wind-ups a fifth quicker. */
 const WIND = { crouch: 40, flick: 36, inhale: 46, point: 34, rear: 46, cock: 28, broCrouch: 40, sweepWind: 46, rushWind: 56 };
 const OPEN = { land: 50, roach: 36, ring: 40, pose: 60, cough: 44, tail: 34, broLand: 50, sweep: 42, crash: 80 };
-const JET = { near: 40, reach: 330, top: GY - 92, bot: GY - 50, T: 36 };
-const TAIL_REACH = 170, SWEEP_REACH = 215, RUSH_SPEED = 12;
-/** The gap between one's attack and the next one's (two on one: one at a time). */
-const GAP_TWO = 44, GAP_ONE = 24;
+/** Two on one, the openings after a move cut to this (the pressure: the other one's on him meanwhile). */
+const DUO_OPEN = 0.7;
+const JET = { near: 40, reach: 350, top: GY - 92, bot: GY - 50, T: 36 };
+const TAIL_REACH = 185, SWEEP_REACH = 235, RUSH_SPEED = 12, RING_R = 16, PILLAR_R = 27, BRO_BOX = 84;
+/** Alone, the rest after a move before the next (frames, and up to `ALONE_RND` more); two on one, each one's own. */
+const ALONE_CD = 44, ALONE_RND = 30, DUO_CD = { son: [8, 14], bro: [6, 10] } as const;
+/** Two on one, the longest a tell's held to land after the other's hit instead of on it (frames). */
+const HOLD_MAX = 70;
+/** The ambush: Meathead's mock to the tell (frames, and up to `AMB_RND` more); the tell (a split second); the grace
+ *  from the jump in (the owner's "a couple second": neither hurts the other); how far off Meathead he lands. */
+const AMB_WAIT = 40, AMB_RND = 50, AMB_TELL = 30, GRACE = 120, AMB_LAND = 140;
+/** Danger windows: the gap kept between two that can't share one (frames); two low ones this close: one jump. */
+const DZ_PAD = 16, DZ_TOGETHER = 8;
 
 for (const [src, hurt, death] of [['m2:wp2_brocrush', HURT_CRUSH, DEATH_CRUSH], ['m2:wp2_browave', HURT_WAVE, DEATH_WAVE], ['m2:wp2_brosweep', HURT_GUITAR, DEATH_GUITAR], ['m2:wp2_brorush', HURT_RUSH, DEATH_RUSH], ['m2:wp2_bro', HURT_BUMP, DEATH_BUMP]] as const) registerHurtLines(src, hurt, death);
 
@@ -91,6 +115,11 @@ type Who = 'son' | 'bro';
 type SonMove = 'leap' | 'roach' | 'ring' | 'pillars' | 'breath' | 'tail';
 type BroMove = 'bleap' | 'sweep' | 'rush';
 type Move = SonMove | BroMove;
+/** A move's answer: J jump it, D duck it, Z get off the spot (the floor's lit or burning where he is: a while), C get
+ *  out from under (a leap onto him: he has to be free to run), X both heights one after the other (the double ring). */
+type Ans = 'J' | 'D' | 'Z' | 'C' | 'X';
+/** When a move can hurt him (frames, absolute: the fight's `total`), and how it's dodged. */
+interface Danger { a: number; b: number; ans: Ans }
 export interface Foe {
   who: Who; e: Enemy; hp: number; max: number; iframes: number; flash: number; moveSeen?: number; spam: Spam;
   x: number; y: number; vx: number; vy: number; face: 1 | -1;
@@ -101,16 +130,20 @@ export interface Foe {
   high: boolean; aim: number; rushDir: 1 | -1; hit: boolean; shots: number;
   /** Wincing at his brother's nuts going (frames left): a flinch, no attacking. Frozen in a cheap shot's cutscene. */
   wince: number; frozen: boolean;
+  /** His move's danger window (null: none on). The grace after the brother jumps in (frames left: neither hurts the
+   *  other). A leap off to the far side (the spam breaker, two on one): harmless, just away. */
+  dz: Danger | null; grace: number; away: boolean;
 }
 type Intro = 'kick' | 'walk' | 'view' | 'gross' | 'talk' | 'retry';
 export interface Fight2 {
-  mode: 'intro' | 'on' | 'enter' | 'end';
+  mode: 'intro' | 'on' | 'end';
   son: Foe; bro: Foe | null;
-  /** Whose turn it is to attack (null: either's, after the gap). */
-  busy: Who | null; gap: number;
   intro: Intro; introT: number; skipT: number; talkStep: number;
-  /** The brother's coming: the beat (Meathead's mock, the call, down through the ceiling). */
-  enter: { t: number; step: 'mock' | 'call' | 'fall' | 'land' | 'hi' | 'mh' } | null;
+  /** The ambush (at half): frames since Meathead's mock; when the tell starts; down out of the ceiling or leaped in over
+   *  the wall; where he lands, the side he comes from (the wall's). The brother's made at the tell (the metal's on). */
+  amb: { t: number; at: number; kind: 'drop' | 'leap'; x: number; side: 1 | -1 } | null;
+  /** Where the way in broke (the ceiling, the wall): rubble and a hole, a while. */
+  hole: { x: number; y: number; t: number; wall: boolean } | null;
   total: number; tauntAt: number; lowSaid: boolean;
   door: number;
 }
@@ -165,14 +198,14 @@ const newFoe = (who: Who, x: number, y: number): Foe => {
   const e = makeKindEnemy((who === 'son' ? SON_KIND : BRO_KIND) as EnemyKind, x, y);
   e.seen = true;
   const max = who === 'son' ? SON_HP : BRO_HP;
-  return { who, e, hp: max, max, iframes: 0, flash: 0, moveSeen: e.hitByMove, spam: newSpam(), x, y, vx: 0, vy: 0, face: -1, st: 'walk', t: 0, T: 60, move: null, last: [], cd: 50, down: false, said: null, high: false, aim: 0, rushDir: -1, hit: false, shots: 0, wince: 0, frozen: false };
+  return { who, e, hp: max, max, iframes: 0, flash: 0, moveSeen: e.hitByMove, spam: newSpam(), x, y, vx: 0, vy: 0, face: -1, st: 'walk', t: 0, T: 60, move: null, last: [], cd: 50, down: false, said: null, high: false, aim: 0, rushDir: -1, hit: false, shots: 0, wince: 0, frozen: false, dz: null, grace: 0, away: false };
 };
 
 export const startFight2 = (state: GameState): Fight2 => {
   token++;
   const f: Fight2 = {
-    mode: 'intro', son: newFoe('son', BEANBAG_X, GY), bro: null, busy: null, gap: 0,
-    intro: 'kick', introT: 0, skipT: 0, talkStep: 0, enter: null, total: 0, tauntAt: 700, lowSaid: false, door: 0,
+    mode: 'intro', son: newFoe('son', BEANBAG_X, GY), bro: null,
+    intro: 'kick', introT: 0, skipT: 0, talkStep: 0, amb: null, hole: null, total: 0, tauntAt: 700, lowSaid: false, door: 0,
   };
   f.son.st = 'sit';
   warmSonGross();
@@ -239,90 +272,145 @@ const updateIntro = (ctx: FrameContext, f: Fight2): Controls => {
 };
 
 // ---------------------------------------------------------------------------------------------------------------
-// The brother's entrance (at half): Meathead's mock, the son calls him, down through the ceiling
+// The ambush (at half): Meathead's mock; a split second's tell; the brother jumps in (out of the ceiling, or over the
+// wall behind Meathead) and lands on the far side of him from his brother; two seconds' grace; live
 
-const startEnter = (state: GameState, f: Fight2) => {
-  f.mode = 'enter'; f.enter = { t: 0, step: 'mock' }; f.skipT = 0; f.busy = null;
-  clearFire(state);
-  setSt(f.son, 'walk', 30); f.son.vx = 0; f.son.y = GY; f.son.said = null;
-  state.player.inCutscene = true;
+const startAmb = (state: GameState, f: Fight2) => {
+  const p = pmid(state), pl = state.player;
+  // (out of the ceiling, or in over the wall behind him: the wall he's got his back to (the far one, if he's right up
+  // against it))
+  const kind: 'drop' | 'leap' = Math.random() < 0.5 ? 'drop' : 'leap';
+  let side: 1 | -1 = (pl.facing > 0 ? -1 : 1);
+  if ((side < 0 ? p.x - ARENA_L : ARENA_R - p.x) < 160) side = (-side) as 1 | -1;
+  f.amb = { t: 0, at: AMB_WAIT + Math.floor(Math.random() * AMB_RND), kind, x: 0, side };
+  meatheadSays(state, pick(byPants(state, L.MH_MOCK)), false);
 };
-const broIn = (state: GameState, f: Fight2) => {
-  const x = Math.max(ARENA_L + 80, Math.min(ARENA_R - 80, pmid(state).x > (ARENA_L + ARENA_R) / 2 ? ARENA_L + 140 : ARENA_R - 140));
-  f.bro = newFoe('bro', x, GY - 520); f.bro.st = 'fall'; f.bro.face = pmid(state).x < x ? -1 : 1;
+/** Where he lands: the far side of Meathead from his brother (the crossfire), in the room. */
+const ambLand = (state: GameState, f: Fight2) => {
+  const p = pmid(state), away = f.son.x < p.x ? 1 : -1;
+  let x = p.x + away * AMB_LAND;
+  if (x < ARENA_L + 40 || x > ARENA_R - 40) x = p.x - away * AMB_LAND;
+  return Math.max(ARENA_L + 40, Math.min(ARENA_R - 40, x));
 };
-const endEnter = (state: GameState, f: Fight2) => {
-  token++;
-  if (!f.bro) broIn(state, f);
-  const b = f.bro!;
-  b.y = GY; b.vy = 0; setSt(b, 'walk', 40); b.cd = 70; b.said = null; f.son.said = null;
-  f.mode = 'on'; f.enter = null; f.gap = 40;
-  state.player.inCutscene = false;
-  if (!state.enemies.includes(b.e)) state.enemies.push(b.e);
+const rubble = (state: GameState, x: number, y: number, n: number, vy: number) => {
+  for (let k = 0; k < n; k++) state.particles.push({ pos: { x: x + (Math.random() - 0.5) * 70, y: y + (Math.random() - 0.5) * 20 }, vel: { x: (Math.random() - 0.5) * 3, y: vy + Math.random() * 3 }, life: 44, color: k % 3 ? '#3A2A34' : '#6A5A64', size: 3 + Math.random() * 4, grav: 0.3 });
 };
-const updateEnter = (ctx: FrameContext, f: Fight2): Controls => {
-  const { state } = ctx, p = state.player, en = f.enter!;
-  en.t++; f.skipT++;
-  p.inCutscene = true; p.vel.x = 0;
-  if (f.skipT > SKIP_AFTER) offerSkip();
-  if (f.skipT > SKIP_AFTER && takeSkip()) { silenceAll(); state.playerVulgarityTimer = 0; endEnter(state, f); return hands(); }
-  f.son.face = pmid(state).x < f.son.x ? -1 : 1;
-  switch (en.step) {
-    case 'mock':
-      if (en.t === 10) meatheadSays(state, pick(byPants(state, L.MH_MOCK)), true, () => { if (f.enter) { f.enter.step = 'call'; f.enter.t = 0; } });
-      if (en.t > 500) { en.step = 'call'; en.t = 0; }
-      break;
-    case 'call':
-      if (en.t === 1) foeSays(f.son, pick(byPants(state, L.SON_CALL)), () => { if (f.enter) { f.enter.step = 'fall'; f.enter.t = 0; broIn(state, f); playSound('crack', 1, -12); playSound('rumble', 0.9, -8); shakeScreen(state, 10, 5); } });
-      if (en.t > 500) { en.step = 'fall'; en.t = 0; broIn(state, f); }
-      break;
-    case 'fall': {
-      // (down through the ceiling in a shower of rock)
-      const b = f.bro!;
-      b.vy += 0.9; b.y += b.vy;
-      if (en.t % 3 === 0) state.particles.push({ pos: { x: b.x + (Math.random() - 0.5) * 80, y: state.camera.y + 10 }, vel: { x: (Math.random() - 0.5) * 2, y: 3 + Math.random() * 3 }, life: 40, color: '#3A2A34', size: 4 + Math.random() * 4 });
-      if (b.y >= GY) { b.y = GY; b.vy = 0; en.step = 'land'; en.t = 0; setSt(b, 'land', 9999); playSound('slam', 1, -12); playSound('thud', 1, -14); shakeScreen(state, 18, 8); for (let k = 0; k < 24; k++) state.particles.push({ pos: { x: b.x + (Math.random() - 0.5) * 90, y: GY - 6 }, vel: { x: (Math.random() - 0.5) * 8, y: -2 - Math.random() * 5 }, life: 34, color: k % 2 ? FIRE[2] : '#3A2A34', size: 3 + Math.random() * 4 }); }
-      break;
-    }
-    case 'land':
-      if (en.t === 30) { en.step = 'hi'; en.t = 0; foeSays(f.bro!, pick(byPants(state, L.BRO_ARRIVE)), () => { if (f.enter) { f.enter.step = 'mh'; f.enter.t = 0; } }); }
-      break;
-    case 'hi':
-      if (en.t > 600) { en.step = 'mh'; en.t = 0; }
-      break;
-    case 'mh':
-      if (en.t === 1) meatheadSays(state, pick(byPants(state, L.MH_BRO)), true, () => { if (f.enter) endEnter(state, f); });
-      if (en.t > 400) endEnter(state, f);
-      break;
+const stepAmb = (state: GameState, f: Fight2) => {
+  const a = f.amb!;
+  a.t++;
+  const tell = a.t - a.at;
+  if (tell < 0) return;
+  const top = GY - 470;
+  if (tell === 0) {
+    // (the tell: his music, the rumble; the brother's made (the metal's on him), not yet anywhere)
+    a.x = ambLand(state, f);
+    f.bro = newFoe('bro', a.x, GY - 600); f.bro.st = 'lurk';
+    playSound('rumble', 1, -10); playSound('crack', 0.8, -14); shakeScreen(state, 6, 3);
   }
-  return hands();
+  if (tell < AMB_TELL) {
+    // (dust off the ceiling over where he'll come down; rocks shaken loose off the wall's top behind Meathead)
+    if (a.kind === 'drop') { if (tell < 14) a.x = ambLand(state, f); if (tell % 2 === 0) rubble(state, a.x, top + 10, 2, 1); }
+    else if (tell % 3 === 0) rubble(state, a.side > 0 ? ARENA_R + 30 : ARENA_L - 30, GY - 240 - Math.random() * 120, 2, 0);
+    if (tell % 10 === 5) shakeScreen(state, 4, 2);
+    return;
+  }
+  // (in: the jump; the grace from now)
+  const b = f.bro!;
+  b.grace = GRACE;
+  if (a.kind === 'drop') {
+    b.x = a.x; b.y = top - 60; b.vx = 0; b.vy = 6; b.aim = a.x;
+    f.hole = { x: a.x, y: top, t: 0, wall: false };
+    rubble(state, a.x, top + 10, 20, 2); playSound('crash', 1, -10);
+  } else {
+    const T = 34;
+    b.x = a.side > 0 ? ARENA_R + 70 : ARENA_L - 70; b.y = GY - 210; b.aim = a.x;
+    b.vx = (a.x - b.x) / T; b.vy = -(0.6 * T) / 2 + 210 / T;
+    f.hole = { x: a.side > 0 ? ARENA_R + 30 : ARENA_L - 30, y: GY - 230, t: 0, wall: true };
+    rubble(state, f.hole.x, f.hole.y, 20, -1); playSound('crash', 1, -10);
+  }
+  b.face = pmid(state).x < a.x ? -1 : 1;
+  setSt(b, 'air', 60); b.move = null; b.cd = 0;
+  foeSays(b, pick(byPants(state, L.BRO_ARRIVE)), () => meatheadSays(state, pick(byPants(state, L.MH_BRO)), true));
+  f.amb = null;
 };
 
 // ---------------------------------------------------------------------------------------------------------------
 // The fight: the two of them (or the son alone, till half)
 
-const live = (f: Fight2) => [f.son, f.bro].filter((o): o is Foe => !!o && !o.down);
-const sonPick = (f: Fight2, o: Foe, adx: number): SonMove => {
-  const pool: SonMove[] = adx < TAIL_REACH ? ['tail', 'tail', 'leap', 'breath'] : ['leap', 'roach', 'ring', 'pillars', 'breath', 'ring', 'roach'];
-  const ok = pool.filter(m => o.last[0] !== m && !(o.last[0] === m && o.last[1] === m));
-  return ok[Math.floor(Math.random() * ok.length)] ?? 'ring';
+const live = (f: Fight2) => [f.son, f.bro].filter((o): o is Foe => !!o && !o.down && o.st !== 'lurk');
+/** Both in it (the brother jumped in, neither down). */
+const duo = (f: Fight2) => live(f).length === 2;
+const otherOf = (f: Fight2, o: Foe) => (o.who === 'son' ? f.bro : f.son);
+const sonPool = (adx: number): SonMove[] => adx < TAIL_REACH ? ['tail', 'tail', 'leap', 'breath'] : ['leap', 'roach', 'ring', 'pillars', 'breath', 'ring', 'roach'];
+const broPool = (adx: number): BroMove[] => adx < SWEEP_REACH ? ['sweep', 'sweep', 'bleap'] : ['bleap', 'rush', 'sweep', 'rush'];
+/** A move's danger window from its start (frames) and its answer; `high`: the ring's height (rolled first). */
+const dangerOf = (state: GameState, o: Foe, m: Move, high: boolean): { a: number; b: number; ans: Ans } => {
+  const k = mad(o), adx = Math.abs(pmid(state).x - o.x), two = o.who === 'son' && o.hp < o.max / 2;
+  switch (m) {
+    case 'leap': { const a = WIND.crouch * k + 44; return { a, b: a + 70, ans: 'C' }; }
+    case 'roach': { const a = WIND.flick * k + 30; return { a, b: a + 160, ans: 'Z' }; }
+    case 'ring': { const a = WIND.inhale * k + Math.max(0, adx - 40) / 3.6; return two ? { a, b: a + 50, ans: 'X' } : { a, b: a + 16, ans: high ? 'D' : 'J' }; }
+    case 'pillars': { const a = WIND.point * k + 42 * k; return { a, b: a + 130, ans: 'Z' }; }
+    case 'breath': { const a = WIND.rear * k; return { a, b: a + JET.T, ans: 'D' }; }
+    case 'tail': { const a = WIND.cock * k + 2; return { a, b: a + 8, ans: 'J' }; }
+    case 'bleap': { const a = WIND.broCrouch * k + 20; return { a, b: a + 70, ans: 'C' }; }
+    case 'sweep': { const a = WIND.sweepWind * k + 2; return { a, b: a + 7, ans: 'J' }; }
+    case 'rush': { const a = WIND.rushWind * k + Math.max(0, adx - 40) / RUSH_SPEED; return { a, b: a + 12, ans: 'J' }; }
+  }
 };
-const broPick = (o: Foe, adx: number): BroMove => {
-  const pool: BroMove[] = adx < SWEEP_REACH ? ['sweep', 'sweep', 'bleap'] : ['bleap', 'rush', 'sweep', 'rush'];
-  const ok = pool.filter(m => o.last[0] !== m);
-  return ok[Math.floor(Math.random() * ok.length)] ?? 'bleap';
+/** Can a move with danger `d` (absolute) go with the other's on (`o`'s)? 'with': landing together (a crossfire both can
+ *  be dodged at once); 'after': clear of it; false: it'd make the two undodgeable together. */
+const fits = (d: Danger, o: Danger | null): 'with' | 'after' | false => {
+  if (!o || d.a > o.b + DZ_PAD || d.b < o.a - DZ_PAD) return 'after';
+  const [x, y] = [d.ans, o.ans];
+  // (two low ones landing together: one jump clears both)
+  if (x === 'J' && y === 'J') return Math.abs(d.a - o.a) <= DZ_TOGETHER ? 'with' : false;
+  // (ducking both)
+  if (x === 'D' && y === 'D') return 'with';
+  // (off the lit or burning spot, and over or under the other: never two spots at once, never with a leap onto him)
+  if ((x === 'Z') !== (y === 'Z') && x !== 'C' && y !== 'C') return 'with';
+  return false;
+};
+/** His turn to move: what fits with what his brother's got on (a crossfire, three times out of four when there's one),
+ *  else nothing yet (a moment, then he looks again). */
+const tryMove = (state: GameState, f: Fight2, o: Foe) => {
+  const adx = Math.abs(pmid(state).x - o.x), now = f.total;
+  const other = otherOf(f, o), od = other && !other.down && other.dz && other.dz.b > now ? other.dz : null;
+  const pool: Move[] = o.who === 'son' ? sonPool(adx) : broPool(adx);
+  const opts: { m: Move; high: boolean; d: Danger; w: number; hold: number }[] = [];
+  for (const m of new Set(pool)) {
+    if (o.last[0] === m) continue;
+    const high = Math.random() < 0.5, r = dangerOf(state, o, m, high), d = { a: now + r.a, b: now + r.b, ans: r.ans };
+    // (in his grace: nothing of his lands till it's over)
+    if (o.grace > 0 && r.a < o.grace) continue;
+    const n = pool.filter(q => q === m).length, fit = fits(d, od);
+    if (fit) { opts.push({ m, high, d, w: (fit === 'with' ? 3 : 1) * n, hold: 0 }); continue; }
+    // (it'd clash: started now anyway with its tell held longer (the crouch held, the pawing kept up), to land just
+    // after the other's: both going at once, the hits one after the other)
+    const hold = od ? od.b + DZ_PAD + 1 - d.a : 0;
+    if (hold > 0 && hold <= HOLD_MAX) opts.push({ m, high, d: { a: d.a + hold, b: d.b + hold, ans: d.ans }, w: 1.5 * n, hold });
+  }
+  if (!opts.length) { o.cd = 6; return; }
+  let r = Math.random() * opts.reduce((s, q) => s + q.w, 0), it = opts[0];
+  for (const q of opts) { r -= q.w; if (r <= 0) { it = q; break; } }
+  o.high = it.high;
+  begin(state, f, o, it.m);
+  o.T += it.hold;
+  o.dz = it.d;
+  // (two on one: the other's pulled in to start his too, so they're going off together)
+  if (other && duo(f) && other.st === 'walk' && other.wince <= 0) other.cd = Math.min(other.cd, 2 + Math.random() * 10);
 };
 /** Into a move: its tell. */
 const begin = (state: GameState, f: Fight2, o: Foe, m: Move) => {
-  o.move = m; o.last = [m, ...o.last].slice(0, 3); o.shots = 0; o.hit = false;
-  f.busy = o.who;
+  o.move = m; o.last = [m, ...o.last].slice(0, 3); o.shots = 0; o.hit = false; o.away = false; o.dz = null;
+  void f;
   const p = pmid(state);
   o.face = p.x < o.x ? -1 : 1; o.vx = 0;
   const k = mad(o);
   switch (m) {
     case 'leap': setSt(o, 'crouch', WIND.crouch * k); playSound('suck', 0.5, -4); break;
     case 'roach': setSt(o, 'flick', WIND.flick * k); playSound('click', 0.7, 4); break;
-    case 'ring': setSt(o, 'inhale', WIND.inhale * k); o.high = Math.random() < 0.5; playSound('suck', 0.5, 8); break;
+    case 'ring': setSt(o, 'inhale', WIND.inhale * k); playSound('suck', 0.5, 8); break;
     case 'pillars': setSt(o, 'point', WIND.point * k); playSound('ignite', 0.6, -6); break;
     case 'breath': setSt(o, 'rear', WIND.rear * k); playSound('glug', 0.8, -12); break;
     case 'tail': setSt(o, 'cock', WIND.cock * k); playSound('whoosh', 0.4, 10); break;
@@ -331,14 +419,17 @@ const begin = (state: GameState, f: Fight2, o: Foe, m: Move) => {
     case 'rush': setSt(o, 'rushWind', WIND.rushWind * k); o.rushDir = o.face; break;
   }
 };
-/** Done (the opening's over): back to walking, the turn given up. */
+/** Done (the opening's over): back to walking, a rest (alone, a longer one; two on one, each his own short one). */
 const finishMove = (f: Fight2, o: Foe) => {
-  setSt(o, 'walk', 0); o.move = null; o.cd = 20 + Math.random() * 30;
-  if (f.busy === o.who) { f.busy = null; f.gap = f.bro && !f.bro.down && !f.son.down ? GAP_TWO : GAP_ONE; }
+  setSt(o, 'walk', 0); o.move = null; o.away = false;
+  const [c, r] = duo(f) ? DUO_CD[o.who] : [ALONE_CD, ALONE_RND];
+  o.cd = c + Math.random() * r;
 };
+/** An opening after a move (frames): shorter two on one. */
+const opening = (f: Fight2, n: number) => (duo(f) ? n * DUO_OPEN : n);
 const hurtIf = (ctx: FrameContext, o: Foe, x: number, y: number, w: number, h: number, dmg: number, src: string, kx: number, ky: number) => {
   const pl = ctx.state.player;
-  if (o.hit || pl.health <= 0 || pl.invincibilityTimer > 0 || pl.inCutscene) return;
+  if (o.hit || o.grace > 0 || o.away || pl.health <= 0 || pl.invincibilityTimer > 0 || pl.inCutscene) return;
   const top = pl.pos.y + (pl.isDucking ? 24 : 0);
   if (pl.pos.x + pl.width - 6 > x && pl.pos.x + 6 < x + w && pl.pos.y + pl.height > y && top < y + h) { o.hit = true; hurtPlayer(ctx, dmg, src, { x: kx, y: ky }, 22); shakeScreen(ctx.state, 8, 4); }
 };
@@ -357,21 +448,22 @@ const stepSon = (ctx: FrameContext, f: Fight2, o: Foe) => {
       o.vx += (want * 1.3 - o.vx) * 0.08;
       o.face = dx < 0 ? -1 : 1;
       o.cd--;
-      if (o.cd <= 0 && f.busy === null && f.gap <= 0) begin(state, f, o, sonPick(f, o, Math.abs(dx)));
+      if (o.cd <= 0) tryMove(state, f, o);
       break;
     }
-    // LEAP: the crouch, gone (the shadow following him, then set), down on it, the fire both ways
+    // LEAP: the crouch, gone (the shadow following him, then set), down on it, the fire both ways (away: just off to
+    // the far side, harmless)
     case 'crouch':
-      if (o.t >= o.T) { setSt(o, 'gone', 28); o.aim = p.x; puff(state, o.x, o.y - 70); playSound('poof', 0.8, -6); }
+      if (o.t >= o.T) { setSt(o, 'gone', 28); o.aim = o.away ? farFrom(p.x) : p.x; puff(state, o.x, o.y - 70); playSound('poof', 0.8, -6); }
       break;
     case 'gone':
-      if (o.t < o.T - 10) o.aim += Math.max(-3.2, Math.min(3.2, p.x - o.aim)) * 0.5;
+      if (o.t < o.T - 10 && !o.away) o.aim += Math.max(-3.2, Math.min(3.2, p.x - o.aim)) * 0.5;
       if (o.t >= o.T) { setSt(o, 'fall', 60); o.x = Math.max(ARENA_L, Math.min(ARENA_R, o.aim)); o.y = GY - 460; o.vy = 5; }
       break;
     case 'fall':
       o.vy += 1; o.y += o.vy;
       if (o.y >= GY - 60) hurtIf(ctx, o, o.x - 30, o.y - SON_H, 60, SON_H, DMG.crush, 'm2:wp2_sondrop', Math.sign(dx || 1) * 8, -7);
-      if (o.y >= GY) { o.y = GY; o.vy = 0; playSound('slam', 1, -10); playSound('thud', 1, -12); shakeScreen(state, 14, 6); waves(state, o.x, DMG.wave, 'm2:wp2_sonburp'); puff(state, o.x, GY - 30); setSt(o, 'open', OPEN.land); }
+      if (o.y >= GY) { o.y = GY; o.vy = 0; playSound('slam', 1, -10); playSound('thud', 1, -12); shakeScreen(state, 14, 6); if (!o.away) waves(state, o.x, DMG.wave, 'm2:wp2_sonburp'); puff(state, o.x, GY - 30); setSt(o, 'open', opening(f, OPEN.land)); }
       break;
     // ROACHES: the lighter, then three in arcs
     case 'flick':
@@ -384,7 +476,7 @@ const stepSon = (ctx: FrameContext, f: Fight2, o: Foe) => {
         lob(state, o.x + hx * o.face, o.y + hy, Math.max(GROTTO.door, Math.min(GROTTO.R, at)), GY, 38, 'm2:wp2_sonflick', DMG.roach);
         playSound('whoosh', 0.4, 8);
       }
-      if (o.t >= o.T) setSt(o, 'open', OPEN.roach);
+      if (o.t >= o.T) setSt(o, 'open', opening(f, OPEN.roach));
       break;
     // RING: the drag (the smoke gathering at its height), the ring (two, past half: the other height second)
     case 'inhale':
@@ -394,17 +486,17 @@ const stepSon = (ctx: FrameContext, f: Fight2, o: Foe) => {
       if (o.t === 1 || (o.t === 34 && o.hp < o.max / 2)) {
         if (o.t === 34) o.high = !o.high;
         const [mx] = sonMouth('blow');
-        shoot2(state, { kind: 'ring', x: o.x + mx * o.face, y: o.high ? GY - 58 : GY - 18, vx: o.face * 3.6, vy: 0, src: 'm2:wp2_sonring', dmg: DMG.ring, life: 260, r: 14 });
+        shoot2(state, { kind: 'ring', x: o.x + mx * o.face, y: o.high ? GY - 58 : GY - 18, vx: o.face * 3.6, vy: 0, src: 'm2:wp2_sonring', dmg: DMG.ring, life: 260, r: RING_R });
         playSound('whoosh', 0.7, -10);
       }
-      if (o.t >= o.T) setSt(o, 'open', OPEN.ring);
+      if (o.t >= o.T) setSt(o, 'open', opening(f, OPEN.ring));
       break;
     // PILLARS: pointing; the glow where he is and either side, then hellfire; looking up for his dad after
     case 'point':
       if (o.t >= o.T) {
         const at = [p.x, p.x - 150, p.x + 150, ...(o.hp < o.max / 2 ? [p.x + (Math.random() < 0.5 ? -75 : 75)] : [])];
-        at.forEach((x, i) => shoot2(state, { kind: 'pillar', x: Math.max(GROTTO.door + 20, Math.min(GROTTO.R - 20, x)), y: GY, vx: 0, vy: 0, src: 'm2:wp2_sonpillar', dmg: DMG.pillar, life: 86 + i * 12, r: 24, tell: Math.round(42 * k) + i * 12, floor: GY }));
-        playSound('rumble', 0.8, -6); setSt(o, 'pose', OPEN.pose + 40);
+        at.forEach((x, i) => shoot2(state, { kind: 'pillar', x: Math.max(GROTTO.door + 20, Math.min(GROTTO.R - 20, x)), y: GY, vx: 0, vy: 0, src: 'm2:wp2_sonpillar', dmg: DMG.pillar, life: 86 + i * 12, r: PILLAR_R, tell: Math.round(42 * k) + i * 12, floor: GY }));
+        playSound('rumble', 0.8, -6); setSt(o, 'pose', opening(f, OPEN.pose + 40));
       }
       break;
     // BREATH: rearing back, the gurgle; the jet at waist height; the cough
@@ -415,7 +507,7 @@ const stepSon = (ctx: FrameContext, f: Fight2, o: Foe) => {
       const reach = JET.near + (JET.reach - JET.near) * Math.min(1, o.t / 8);
       const x0 = o.face > 0 ? o.x + JET.near : o.x - reach, w = reach - JET.near;
       if (o.t > 2) hurtIf(ctx, o, x0, JET.top, w, JET.bot - JET.top, DMG.breath, 'm2:wp2_sonbreath', o.face * 6, -4);
-      if (o.t >= o.T) setSt(o, 'open', OPEN.cough);
+      if (o.t >= o.T) setSt(o, 'open', opening(f, OPEN.cough));
       break;
     }
     // TAIL: cocked up behind him, then whipped low out in front
@@ -425,7 +517,7 @@ const stepSon = (ctx: FrameContext, f: Fight2, o: Foe) => {
     case 'whip': {
       const x0 = o.face > 0 ? o.x : o.x - TAIL_REACH;
       if (o.t > 2 && o.t < 9) hurtIf(ctx, o, x0, GY - 36, TAIL_REACH, 36, DMG.tail, 'm2:wp2_sontail', o.face * 7, -6);
-      if (o.t >= o.T) setSt(o, 'open', OPEN.tail);
+      if (o.t >= o.T) setSt(o, 'open', opening(f, OPEN.tail));
       break;
     }
     case 'pose': case 'open':
@@ -441,22 +533,33 @@ const stepBro = (ctx: FrameContext, f: Fight2, o: Foe) => {
   o.t++;
   switch (o.st) {
     case 'walk': {
-      // (coming at him, stalking, showing off)
-      const want = Math.abs(dx) > 200 ? Math.sign(dx) : Math.abs(dx) < 110 ? -Math.sign(dx) : 0;
+      // (coming at him, stalking, showing off; two on one, round to the far side of him from his brother (the
+      // crossfire), never shoving through him to get there)
+      const son = f.son, flank = duo(f) ? (son.x < p.x ? 1 : -1) : 0, wrong = flank !== 0 && Math.sign(o.x - p.x) !== flank;
+      let want = Math.abs(dx) > 200 ? Math.sign(dx) : Math.abs(dx) < 110 ? -Math.sign(dx) : 0;
+      if (flank && !wrong) { const to = Math.max(ARENA_L, Math.min(ARENA_R, p.x + flank * 160)); want = Math.abs(to - o.x) > 30 ? Math.sign(to - o.x) : 0; }
+      if (wrong && Math.abs(dx) < 130) want = 0;
       o.vx += (want * 1.8 - o.vx) * 0.1;
       o.face = dx < 0 ? -1 : 1;
       o.cd--;
-      if (o.cd <= 0 && f.busy === null && f.gap <= 0) begin(state, f, o, broPick(o, Math.abs(dx)));
+      if (o.cd <= 0) tryMove(state, f, o);
       break;
     }
     // LEAP: the crouch (horns going red); up and over at him, his shadow where he'll land; crushed under, the shockwaves
+    // (away: just off to the far side; the jump in: from the ambush, his grace on)
     case 'crouch':
-      if (o.t >= o.T) { setSt(o, 'air', 46); o.aim = Math.max(ARENA_L, Math.min(ARENA_R, p.x + pl.vel.x * 10)); o.vx = (o.aim - o.x) / 46; o.vy = -(0.6 * 46) / 2; playSound('jump', 0.9, -12); }
+      if (o.t >= o.T) { setSt(o, 'air', 46); o.aim = o.away ? farFrom(p.x) : Math.max(ARENA_L, Math.min(ARENA_R, p.x + pl.vel.x * 10)); o.vx = (o.aim - o.x) / 46; o.vy = -(0.6 * 46) / 2; playSound('jump', 0.9, -12); }
       break;
     case 'air':
       o.vy += 0.6; o.x += o.vx; o.y += o.vy;
-      if (o.vy > 0) hurtIf(ctx, o, o.x - 36, o.y - 150, 72, 150, DMG.broCrush, 'm2:wp2_brocrush', Math.sign(dx || 1) * 8, -7);
-      if (o.y >= GY && o.vy > 0) { o.y = GY; o.vy = 0; o.vx = 0; playSound('slam', 1, -12); playSound('thud', 1, -14); shakeScreen(state, 16, 7); waves(state, o.x, DMG.broWave, 'm2:wp2_browave'); setSt(o, 'land', OPEN.broLand); }
+      if (o.vy > 0) hurtIf(ctx, o, o.x - BRO_BOX / 2, o.y - 150, BRO_BOX, 150, DMG.broCrush, 'm2:wp2_brocrush', Math.sign(dx || 1) * 8, -7);
+      if (o.y >= GY && o.vy > 0) {
+        o.y = GY; o.vy = 0; o.vx = 0; playSound('slam', 1, -12); playSound('thud', 1, -14); shakeScreen(state, 16, 7);
+        if (!o.away && o.grace <= 0) waves(state, o.x, DMG.broWave, 'm2:wp2_browave');
+        for (let k = 0; k < 14; k++) state.particles.push({ pos: { x: o.x + (Math.random() - 0.5) * 90, y: GY - 6 }, vel: { x: (Math.random() - 0.5) * 7, y: -2 - Math.random() * 4 }, life: 30, color: k % 2 ? FIRE[2] : '#3A2A34', size: 3 + Math.random() * 4 });
+        // (the jump in: a showy landing, the grace running down; his first move's lined up to land as it ends)
+        if (o.grace > 0) { setSt(o, 'land', 40); o.cd = 0; } else setSt(o, 'land', opening(f, OPEN.broLand));
+      }
       break;
     // SWEEP: the guitar dragged back, the floor flashing out in front; along the floor (jump it)
     case 'sweepWind':
@@ -465,7 +568,7 @@ const stepBro = (ctx: FrameContext, f: Fight2, o: Foe) => {
     case 'sweep': {
       const x0 = o.face > 0 ? o.x + 20 : o.x - SWEEP_REACH;
       if (o.t > 2 && o.t < 8) hurtIf(ctx, o, x0, GY - 40, SWEEP_REACH - 20, 40, DMG.sweep, 'm2:wp2_brosweep', o.face * 9, -6);
-      if (o.t >= o.T) setSt(o, 'sweepRec', OPEN.sweep);
+      if (o.t >= o.T) setSt(o, 'sweepRec', opening(f, OPEN.sweep));
       break;
     }
     // RUSH: pawing the floor (thud, thud, thud), the arrows; the length of the grotto; into the wall
@@ -475,8 +578,8 @@ const stepBro = (ctx: FrameContext, f: Fight2, o: Foe) => {
       break;
     case 'rush':
       o.x += o.rushDir * RUSH_SPEED;
-      hurtIf(ctx, o, o.x - 36, GY - 100, 72, 100, DMG.rush, 'm2:wp2_brorush', o.rushDir * 12, -8);
-      if (o.x <= ARENA_L || o.x >= ARENA_R) { o.x = Math.max(ARENA_L, Math.min(ARENA_R, o.x)); setSt(o, 'crash', OPEN.crash); playSound('crash', 1, -8); shakeScreen(state, 14, 6); }
+      hurtIf(ctx, o, o.x - BRO_BOX / 2, GY - 100, BRO_BOX, 100, DMG.rush, 'm2:wp2_brorush', o.rushDir * 12, -8);
+      if (o.x <= ARENA_L || o.x >= ARENA_R) { o.x = Math.max(ARENA_L, Math.min(ARENA_R, o.x)); setSt(o, 'crash', opening(f, OPEN.crash)); playSound('crash', 1, -8); shakeScreen(state, 14, 6); }
       break;
     case 'land': case 'sweepRec': case 'crash':
       o.vx = 0;
@@ -486,6 +589,8 @@ const stepBro = (ctx: FrameContext, f: Fight2, o: Foe) => {
   if (o.st === 'walk') { o.x += o.vx; o.x = Math.max(ARENA_L, Math.min(ARENA_R, o.x)); }
 };
 
+/** The far side of the room from x. */
+const farFrom = (x: number) => (x > (ARENA_L + ARENA_R) / 2 ? ARENA_L + 70 : ARENA_R - 70);
 /** His box (where he's hit and touches). */
 export const foeBox = (o: Foe) => {
   const w = o.who === 'son' ? SON_W : 60, h = o.st === 'kneel' ? 80 : o.st === 'sit' ? 90 : o.who === 'son' ? (o.st === 'crouch' ? 100 : SON_H) : 160;
@@ -495,10 +600,13 @@ const stepFoe = (ctx: FrameContext, f: Fight2, o: Foe) => {
   const { state } = ctx, pl = state.player;
   if (o.iframes > 0) o.iframes--;
   if (o.flash > 0) o.flash--;
-  if (o.down) { o.st = 'kneel'; if (state.enemies.includes(o.e)) state.enemies = state.enemies.filter(q => q !== o.e); return; }
+  if (o.down) { o.st = 'kneel'; o.dz = null; if (state.enemies.includes(o.e)) state.enemies = state.enemies.filter(q => q !== o.e); return; }
+  // (the ambush's tell: he's not in yet)
+  if (o.st === 'lurk') return;
+  if (o.grace > 0) o.grace--;
   if (cheapShotStunned(o.e)) {
-    // (stunned off the cheap shot: planted, no attacks, taking hits; his turn given up)
-    if (f.busy === o.who) { f.busy = null; f.gap = GAP_ONE; }
+    // (stunned off the cheap shot: planted, no attacks, taking hits; his move's off)
+    o.dz = null;
     if (o.st !== 'stun') { setSt(o, 'stun', 9999); o.move = null; }
     o.vx = 0; o.y = GY;
   } else if (o.st === 'stun') { setSt(o, 'walk', 0); o.cd = 30; }
@@ -507,7 +615,7 @@ const stepFoe = (ctx: FrameContext, f: Fight2, o: Foe) => {
   const gone = o.st === 'gone' || o.st === 'fall' && o.y < GY - 200;
   const b = foeBox(o);
   // (touching him: a shove; not mid-leap (those are their own))
-  if (!gone && o.st !== 'air' && o.st !== 'fall' && pl.health > 0 && pl.invincibilityTimer <= 0 && !pl.inCutscene && pl.pos.x + pl.width > b.x + 8 && pl.pos.x < b.x + b.w - 8 && pl.pos.y + pl.height > b.y + 10 && pl.pos.y < b.y + b.h) {
+  if (!gone && o.grace <= 0 && o.st !== 'air' && o.st !== 'fall' && pl.health > 0 && pl.invincibilityTimer <= 0 && !pl.inCutscene && pl.pos.x + pl.width > b.x + 8 && pl.pos.x < b.x + b.w - 8 && pl.pos.y + pl.height > b.y + 10 && pl.pos.y < b.y + b.h) {
     hurtPlayer(ctx, DMG.touch, o.who === 'son' ? 'm2:wp2_son' : 'm2:wp2_bro', { x: Math.sign(pl.pos.x - o.x || 1) * 7, y: -6 }, 20); shakeScreen(state, 5, 3);
   }
   const e = o.e;
@@ -523,29 +631,32 @@ const takeHits = (ctx: FrameContext, f: Fight2, o: Foe, gone: boolean) => {
   e.health = BIG; e.maxHealth = BIG;
   const melee = e.hitByMove !== o.moveSeen;
   o.moveSeen = e.hitByMove;
-  // (not there to be hit: a hurl he's owed waits till he is)
-  if (gone) return;
+  // (not there to be hit: a hurl he's owed waits till he is; in his grace after the jump in, nothing lands on him)
+  if (gone || o.grace > 0) return;
   const burst = takeSickBurst(e);
   if ((!burst && (dealt <= 0 || o.iframes > 0))) return;
   const dmg = burst || endgameDamage(state, e, melee, dealt);
   o.hp -= dmg; if (!burst) o.iframes = BOSS_IFRAMES; o.flash = 8;
-  // (never down before his brother's come: he's called in at half, between moves)
-  if (o.who === 'son' && !f.bro) o.hp = Math.max(1, o.hp);
+  // (never down before his brother's in: the ambush is at half, between moves)
+  if (o.who === 'son' && (!f.bro || f.bro.st === 'lurk')) o.hp = Math.max(1, o.hp);
   playSound('gunhit', 0.6, -2);
   ctx.fx.spawnDamageNumber({ x: o.x - 10, y: o.y - 160 }, Math.max(1, Math.round(dmg)), dmg > 40);
   for (let i = 0; i < 6; i++) state.particles.push({ pos: { x: o.x, y: o.y - 90 }, vel: { x: (Math.random() - 0.5) * 4, y: -1 - Math.random() * 3 }, life: 22, color: '#7F1D1D', size: 2 + Math.random() * 3, grav: 0.3 });
   if (o.hp > 0 && Math.random() < 0.2) bark(state, o, crushLines(o.e, o.who === 'son' ? L.SON_HURT : DEMON_HURT));
-  // (the same hit landing on him ~4 s running: up and away (the son in smoke, the brother in a leap), swatted off first)
+  // (the same hit landing on him ~4 s running: up and away (the son in smoke, the brother in a leap), swatted off first:
+  // alone, the leap's onto him; two on one, or with his brother's move on, just off to the far side, harmless)
   if (o.hp > 0 && !burst && spamTick(o.spam, state.frame, hitKey(state.player, melee)) && (o.st === 'walk' || o.st === 'open' || o.st === 'pose' || o.st.endsWith('Rec') || o.st === 'land' || o.st === 'crash')) {
     if (melee) swatOff(state, o.x);
-    if (f.busy && f.busy !== o.who) return;
-    begin(state, f, o, o.who === 'son' ? 'leap' : 'bleap');
+    const m: Move = o.who === 'son' ? 'leap' : 'bleap';
+    const d = { a: f.total + 8 + (o.who === 'son' ? 44 : 20), b: 0, ans: 'C' as Ans }; d.b = d.a + 70;
+    const other = otherOf(f, o), od = other && !other.down && other.dz && other.dz.b > f.total ? other.dz : null;
+    begin(state, f, o, m);
     o.T = 8;
+    if (duo(f) || !fits(d, od)) o.away = true; else o.dz = d;
   }
   if (o.hp <= 0) {
     endCheapStun(o.e);
-    o.hp = 0; o.down = true; o.st = 'kneel'; o.t = 0; o.vx = 0; o.y = GY; o.said = null;
-    if (f.busy === o.who) { f.busy = null; f.gap = GAP_ONE; }
+    o.hp = 0; o.down = true; o.st = 'kneel'; o.t = 0; o.vx = 0; o.y = GY; o.said = null; o.dz = null;
     state.enemies = state.enemies.filter(q => q !== e);
     playSound('thud', 1, -10); shakeScreen(state, 8, 4);
     foeSays(o, pick(byPants(state, o.who === 'son' ? L.SON_KNEEL : L.BRO_KNEEL)));
@@ -556,10 +667,9 @@ const takeHits = (ctx: FrameContext, f: Fight2, o: Foe, gone: boolean) => {
 export const updateFight2 = (ctx: FrameContext, f: Fight2, controls: Controls, onBothDown: () => void): Controls => {
   const { state } = ctx;
   if (f.mode === 'intro') return updateIntro(ctx, f);
-  if (f.mode === 'enter') return updateEnter(ctx, f);
   if (f.mode === 'end') return hands();
   f.total++;
-  if (f.gap > 0) f.gap--;
+  if (f.hole) { f.hole.t++; if (f.hole.t > 240) f.hole = null; }
   // (the mutters: his, his brother's showing off for their dad)
   const talker = live(f)[Math.floor(Math.random() * live(f).length)];
   if (talker && f.total > f.tauntAt && !f.son.said && !f.bro?.said) { f.tauntAt = f.total + 520 + Math.floor(Math.random() * 400); bark(state, talker, crushLines(talker.e, talker.who === 'son' ? L.SON_LAZY : DEMON_CHATTER)); }
@@ -572,7 +682,8 @@ export const updateFight2 = (ctx: FrameContext, f: Fight2, controls: Controls, o
     if (!o || o.down) continue;
     // (nothing left on him to have: the cheap shot's not offered him at all)
     if (o.who === 'bro' && broNutless()) { o.frozen = false; continue; }
-    const ok = o.y >= GY - 0.5 && !['gone', 'fall', 'air', 'rush', 'crouch'].includes(o.st);
+    if (o.st === 'lurk') continue;
+    const ok = o.y >= GY - 0.5 && o.grace <= 0 && !['gone', 'fall', 'air', 'rush', 'crouch'].includes(o.st);
     const was = o.frozen;
     o.frozen = cheapShotGate(state, o.e, o.who === 'son' ? 'mehphisto' : 'brathazar', ok) === 'frozen';
     if (o.frozen) frozen = true;
@@ -583,8 +694,9 @@ export const updateFight2 = (ctx: FrameContext, f: Fight2, controls: Controls, o
   if (frozen) return controls;
   stepFoe(ctx, f, f.son);
   if (f.bro) stepFoe(ctx, f, f.bro);
-  // (half way down, his brother: between moves (not mid-attack)), the beat
-  if (!f.bro && !f.son.down && f.son.hp <= SON_HP / 2 && f.son.st === 'walk') return startEnter(state, f), hands();
+  // (half way down, between moves (not mid-attack): the ambush (in play: the son carries on through it))
+  if (!f.bro && !f.amb && !f.son.down && f.son.hp <= SON_HP / 2 && f.son.st === 'walk') startAmb(state, f);
+  if (f.amb) stepAmb(state, f);
   if (f.son.down && (!f.bro || f.bro.down) && f.bro) { f.mode = 'end'; token++; clearFire(state); onBothDown(); return hands(); }
   return controls;
 };
@@ -644,8 +756,20 @@ const broSt = (o: Foe): PunkSt => {
 /** World space: the tells on the floor, the two of them, the jet, the tail, their words. */
 export const drawFight2 = (c: Ctx, state: GameState, f: Fight2) => {
   const fr = state.frame;
+  // (where he broke in: a ragged black hole in the ceiling or the wall, its rim lit, fading out after a while)
+  if (f.hole) {
+    const h = f.hole, k = h.t > 180 ? 1 - (h.t - 180) / 60 : 1;
+    c.globalAlpha = k;
+    if (h.wall) {
+      const x = h.x > (ARENA_L + ARENA_R) / 2 ? GROTTO.R - 46 : GROTTO.L + 6;
+      for (let i = 0; i < 7; i++) { const w = 30 + ((i * 37) % 13), y = h.y - 60 + i * 18; box(c, x + ((i * 11) % 9) - 4, y, w + 8, 18, '#5A3A44'); box(c, x + ((i * 11) % 9), y + 2, w, 16, '#050208'); }
+    } else {
+      for (let i = 0; i < 6; i++) { const w = 96 - Math.abs(i - 2) * 22, y = h.y + i * 6; box(c, h.x - w / 2 - 4, y, w + 8, 6, '#5A3A44'); box(c, h.x - w / 2, y, w, 6 - (i === 5 ? 2 : 0), '#050208'); }
+    }
+    c.globalAlpha = 1;
+  }
   for (const o of [f.son, f.bro]) {
-    if (!o) continue;
+    if (!o || o.st === 'lurk') continue;
     // ---- the tells on the floor
     if (o.st === 'gone' || (o.st === 'fall' && o.y < GY - 40) || (o.who === 'bro' && o.st === 'air')) {
       const k = o.who === 'bro' ? Math.max(0.2, 1 - (GY - o.y) / 400) : o.st === 'gone' ? Math.min(1, o.t / o.T) : 1, x = o.who === 'bro' ? o.aim : o.st === 'gone' ? o.aim : o.x;
@@ -662,7 +786,8 @@ export const drawFight2 = (c: Ctx, state: GameState, f: Fight2) => {
     if (o.st === 'cock') { const x0 = o.face > 0 ? o.x : o.x - TAIL_REACH, on = Math.floor(o.t / 5) % 2 === 0; box(c, x0, GY - 3, TAIL_REACH, 3, on ? '#F0ABFC' : '#7E22CE'); }
     if (o.st === 'gone') continue;
     // ---- him
-    const alpha = o.iframes > 0 && Math.floor(o.iframes / 4) % 2 === 0 ? 0.7 : 1;
+    // (the grace after the jump in: a hard flicker, the whole time, so it reads as "not yet")
+    const alpha = o.grace > 0 ? (Math.floor(o.grace / 3) % 2 ? 0.35 : 1) : o.iframes > 0 && Math.floor(o.iframes / 4) % 2 === 0 ? 0.7 : 1;
     if (o.who === 'son') {
       const pose = sonPose(f, o), q = pose === 'walk' ? Math.floor(fr / 7) % 8 : pose === 'idle' || pose === 'talk' ? Math.floor(fr / 12) % 8 : 0;
       const sx = f.mode === 'intro' ? BEANBAG_X : o.x;
@@ -690,9 +815,9 @@ export const drawFight2 = (c: Ctx, state: GameState, f: Fight2) => {
 
 /** Screen space: their bars in the top band; the intro's letterbox, the gross-up, SKIP. */
 export const drawFight2Hud = (c: Ctx, state: GameState, f: Fight2, band: { x1: number; x2: number; mid: number }) => {
-  if (f.mode === 'intro' || f.mode === 'enter') {
-    if (f.mode === 'intro' && f.intro === 'retry') return;
-    if (f.mode === 'intro' && f.intro === 'gross') { drawSonGrossBack(c, CANVAS_WIDTH, CANVAS_HEIGHT); drawSonGross(c, CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2 + 6, 0.9 + 0.1 * Math.min(1, f.introT / 10), state.frame, f.introT % 40 < 18, f.introT < 16 ? 2 : 0); }
+  if (f.mode === 'intro') {
+    if (f.intro === 'retry') return;
+    if (f.intro === 'gross') { drawSonGrossBack(c, CANVAS_WIDTH, CANVAS_HEIGHT); drawSonGross(c, CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2 + 6, 0.9 + 0.1 * Math.min(1, f.introT / 10), state.frame, f.introT % 40 < 18, f.introT < 16 ? 2 : 0); }
     const k = Math.min(1, f.skipT / 20), bar = Math.round(k * 44);
     c.fillStyle = '#000'; c.fillRect(0, 0, CANVAS_WIDTH, bar); c.fillRect(0, CANVAS_HEIGHT - bar, CANVAS_WIDTH, bar);
     if (f.skipT > SKIP_AFTER) drawSkipPrompt(c, CANVAS_WIDTH);
@@ -707,6 +832,6 @@ export const drawFight2Hud = (c: Ctx, state: GameState, f: Fight2, band: { x1: n
     label(c, name, band.mid, y + h + 12, col, 7);
   };
   bar(f.son, 22, 14, '#A855F7', L.SON_NAME);
-  if (f.bro) bar(f.bro, 62, 10, '#F97316', 'BRATHAZAR');
+  if (f.bro && f.bro.st !== 'lurk') bar(f.bro, 62, 10, '#F97316', 'BRATHAZAR');
 };
 export const doorState2 = (f: Fight2 | null) => (f ? f.door : 0);

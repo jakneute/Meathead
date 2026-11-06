@@ -166,17 +166,11 @@ export const MH_STUB3 = bp(["MAINTENANCE TUNNEL. LOCKED. FOR NOW."], ["LOCKED. I
 // ---------------------------------------------------------------------------------------------------------------
 // Half way down: his brother BRATHAZAR (Spooky Land's punk: his own voice, m2.demon) comes when he's called
 
-/** The son, at half: calling his brother in (it costs him). */
-export const SON_CALL = bp(
-  ["...FINE. BRATHAZAR. GET IN HERE. NOT 'CAUSE I NEED YOU."],
-  ['...FINE. BRATHAZAR, GET IN HERE. BRING A HOSE.'],
-  ["...FINE. BRATHAZAR, GET IN HERE. DON'T LOOK AT HIM."],
-);
-/** The brother, down through the ceiling. */
+/** The brother, as he jumps in (the ambush: nobody called him). */
 export const BRO_ARRIVE = bp(
-  ['BRO! YOU CALLED ME! DAD, HE CALLED ME! WATCH US!'],
-  ['BRO! YOU CALLED ME! EW, HE STILL SMELLS! DAD, WATCH US!'],
-  ["BRO! YOU CALLED ME! HE'S STILL NAKED! DAD, WATCH US!"],
+  ['SURPRISE, ASSHOLE! DAD! DID YOU SEE MY ENTRANCE?!', "NOBODY CALLED ME! I CAME ANYWAY! DAD, WATCH!"],
+  ['SURPRISE, ASSHOLE! OH GOD, HE STILL STINKS! DAD, WATCH!', "NOBODY CALLED ME! AND IT SMELLS LIKE SHIT IN HERE! DAD!"],
+  ["SURPRISE, ASSHOLE! AW, HE'S STILL NAKED! DAD, WATCH!", "NOBODY CALLED ME! AND HIS DICK'S OUT AGAIN! DAD!"],
 );
 export const MH_BRO = bp(['OH GOOD. THE CRYBABY.'], ['OH GOOD. THE CRYBABY. HE BROUGHT HIS GUITAR.'], ['OH GOOD. THE CRYBABY. HI AGAIN.']);
 /** Down on his knees (out of it till the other's down too). */
@@ -226,7 +220,7 @@ const all = (...pools: (string | string[] | ByPants)[]) => pools.flatMap(p => (t
 export const PARK2_VOICE_LINES: Record<string, string[]> = {
   meathead: all(MH_LAVA_SCREAM, MH_MEET, MH_AFTER_MEET, MH_FIRST_VINE, MH_VINE_BURN, MH_LOG, MH_LOG_GOING, MH_TOWER, MH_TOWER_GOING, MH_NULL_FIRST, MH_NULL, MH_GROTTO, MH_RIVER, MH_DOOR, MH_INTRO2, MH_MOCK, GRAB_SON, MH_STUB3, MH_BRO, MH_NOTHING, MH_STOP, MH_PRETZEL, MH_BEER, MH_LOUNGE, MH_BACK_TO_WORK, ...Object.values(HURT2).map(h => h.hurt)),
   death: all(...Object.values(HURT2).map(h => h.death)),
-  [SON_VOICE]: all(SON_HELLO, SON_NAME_LINE, SON_JOB, SON_LEAK, SON_BYE, SON_INTRO, SON_INTRO2, SON_RETRY, SON_LAZY, SON_HURT, SON_LOW, SON_DEATH, SON_CALL, SON_KNEEL, SON_ESCAPE, SON_WINCE),
+  [SON_VOICE]: all(SON_HELLO, SON_NAME_LINE, SON_JOB, SON_LEAK, SON_BYE, SON_INTRO, SON_INTRO2, SON_RETRY, SON_LAZY, SON_HURT, SON_LOW, SON_DEATH, SON_KNEEL, SON_ESCAPE, SON_WINCE),
   'm2.demon': all(BRO_ARRIVE, BRO_KNEEL, BRO_ESCAPE, BRO_WINCE),
   [BEER_VOICE]: all(BEER_CALL, BEER_HURT),
   [BURNOUT_VOICE.m]: all(BURN_BARK), [BURNOUT_VOICE.f]: all(BURN_BARK),
