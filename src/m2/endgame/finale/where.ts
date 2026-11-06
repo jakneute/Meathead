@@ -11,3 +11,11 @@ export const FINALE_STAGE = 'M2 Kaiju Finale';
 export const FINALE_HOUR = 15;
 /** The checkpoints: the start (the cutscene, AMERICA USA), and after the 4th land (the 8th section) is flattened. */
 export const FIN_CP_START = 0, FIN_CP_MID = 1;
+/** (the test picker only) Straight to Cartoon Land's end, both of them down (the finishers' phase). */
+export const FIN_CP_DAZED = 2;
+/** (the test picker's ENDING tab) Past the fight: the ending with that finisher's id set, by its place in FIN_ENDINGS. */
+export const FIN_CP_ENDING = 100;
+export const FIN_ENDINGS: [string, string][] = [
+  ['GUN', 'RAY GUN'], ['SOUVENIR', 'SOUVENIR LAUNCHER'], ['SOUL_SUCKER', 'SOUL SUCKER'], ['FLINTLOCK', 'LASER-GUIDED FLINTLOCK'], ['SPELLBOOK', 'SPELLBOOK OF THE DAMNED'],
+  ['STUNT_CAR', 'THE CLAPPING CLAPPERBOARD'], ['MALLET', 'MALLET OF PAIN'], ['SPAWNER', 'OTHERWORLDLY SPAWNER'], ['CROSSBOW', 'CROSSBOW OF PLAGUES'], ['TOWER', 'THE WATER TOWER'], ['NOTHING', 'DO NOTHING'],
+];

@@ -52,12 +52,15 @@ export type Who = 'satan' | 'widow';
 /** What one counted hit puts in the meter (out of 100), by weapon, when it's the section's weakness; anything else a
  *  third of its number (WRONG). Counted hits are held to one each HIT_GATE frames per boss (a spray, a swarm of
  *  goblins, a three-spell storm count as a hit every gate), so the numbers are roughly "per landed hit" of each
- *  weapon's own pace: the aim is a meter full in about 6 s of decent use of the weakness, ~18 s of anything else. */
+ *  weapon's own pace: the aim is a meter full in about 5 s of decent use of the weakness, ~15 s of anything else
+ *  (two holds of 5 s a land, so the stagger's quick: each half under 30 s). */
 export const FILL: Record<string, number> = {
-  SPELLBOOK: 7, STUNT_CAR: 11, FLINTLOCK: 20, SPAWNER: 3.2, CROSSBOW: 3.2, SOUVENIR: 7.5, MALLET: 6.5, SOUL_SUCKER: 3.2,
+  SPELLBOOK: 10, STUNT_CAR: 13.5, FLINTLOCK: 30, SPAWNER: 4, CROSSBOW: 4, SOUVENIR: 9, MALLET: 8, SOUL_SUCKER: 4,
   GUN: 5.2, MELEE: 11,
 };
 export const WRONG = 1 / 3, HIT_GATE = 10;
+/** Enraged: its tells this much of the usual. */
+export const RAGE_TELL = 0.65;
 /** How long a stun lasts (frames), and the meter after it wears off ungrabbed. */
 export const STUN_T = 540, STUN_AFTER = 50;
 /** His hurts from them (before the game's own cut: M2 takes 0.65 of everything; a tenth or so of his health a big one). */
@@ -67,6 +70,10 @@ const GRAV = 0.36;
 // ---------------------------------------------------------------------------------------------------------------
 
 const BIG = 100000;
+/** Cartoon Land: once both are down (dazed), they can be hit again: each landed hit's the finishers' to count
+ *  (onKoHit). The first one down sits there out of it till then, as the grotto's two demons do. */
+let koHittable = false;
+export const setKoHittable = (on: boolean) => { koHittable = on; };
 const KIND: Record<Who, string> = { satan: 'm2:fin_satan', widow: 'm2:fin_widow' };
 for (const who of ['satan', 'widow'] as Who[]) {
   registerM2Kind({
@@ -81,7 +88,11 @@ for (const who of ['satan', 'widow'] as Who[]) {
   TOO_BIG_BY_KIND[KIND[who]] = ['TOO BIG TO GRAB. KNOCK HIM SILLY FIRST.', "SHE'S TOO BIG. STAGGER HER FIRST."];
 }
 
-export type Mode = 'off' | 'walk' | 'tell' | 'do' | 'recover' | 'stunned' | 'held' | 'carried' | 'flying' | 'wreck' | 'leave';
+/** 'away': thrown in the land's first half, sat out the second (the owner's "it cycles between two on one to one on
+ *  one"): no moves, no shots, not drawn, not there to be hit, till the next land. */
+/** 'dizzy': a land's opening, still seeing stars from the last land's throws (no moves, no hits either way) till it
+ *  shakes it off; 'ko': Cartoon Land, out of health: collapsed, staying down. */
+export type Mode = 'off' | 'walk' | 'tell' | 'do' | 'recover' | 'stunned' | 'held' | 'carried' | 'flying' | 'wreck' | 'leave' | 'away' | 'dizzy' | 'ko';
 export interface Boss {
   who: Who; e: Enemy; moveSeen?: number;
   x: number; y: number; vx: number; vy: number; air: boolean; face: 1 | -1;
@@ -95,6 +106,15 @@ export interface Boss {
   said: string | null; tauntAt: number; hurtSaidAt: number;
   /** The thrown boss's spin, its arc (throw.ts); out of the wreck. */
   spin: number; wreckT: number;
+  /** Enraged (the other one's been thrown: this land's second half): quicker tells, shorter gaps, an extra move. */
+  rage: boolean;
+  /** Health, 0..1 (only the mobile beatdown takes it: the owner's 1/8 a land at most), and the meter head start the
+   *  last beatdown bought (its next fight's meter starts there). */
+  hp: number; carry: number;
+  /** Thrown in the land's first half: out of the wreck, it sits out the second ('away'). */
+  sitOut: boolean;
+  /** Dead (Cartoon Land's water tower): lying where it went down. */
+  dead: boolean;
 }
 
 interface Shot { on: boolean; kind: 'fireball' | 'butt' | 'drop' | 'bolt' | 'wave' | 'burn'; x: number; y: number; vx: number; vy: number; t: number; life: number; dir: number }
@@ -119,7 +139,7 @@ const mk = (who: Who): Boss => {
   return {
     who, e, moveSeen: e.hitByMove, x: 0, y: 0, vx: 0, vy: 0, air: false, face: -1, meter: 0, gate: 0, flash: 0, calloutAt: 0,
     mode: 'off', move: null, last: null, t: 0, T: 0, next: 0, tx: 0, aimX: 0, aimY: 0, stunT: 0, streak: 0, lastHitAt: -999,
-    said: null, tauntAt: 400 + (who === 'widow' ? 260 : 0), hurtSaidAt: 0, spin: 0, wreckT: 0,
+    said: null, tauntAt: 400 + (who === 'widow' ? 260 : 0), hurtSaidAt: 0, spin: 0, wreckT: 0, rage: false, hp: 1, carry: 0, sitOut: false, dead: false,
   };
 };
 export const bossH = (b: Boss) => (b.who === 'satan' ? SATAN_H : WIDOW_H);
@@ -144,7 +164,7 @@ export const placeBoss = (b: Boss, x: number, face: 1 | -1) => {
 // The engine's enemy: where the hits land
 
 const syncEnemy = (state: GameState, b: Boss) => {
-  const e = b.e, live = b.mode !== 'off' && b.mode !== 'carried' && b.mode !== 'flying' && b.mode !== 'wreck' && b.mode !== 'leave';
+  const e = b.e, live = b.mode !== 'off' && b.mode !== 'carried' && b.mode !== 'flying' && b.mode !== 'wreck' && b.mode !== 'leave' && b.mode !== 'away' && b.mode !== 'dizzy' && (b.mode !== 'ko' || (koHittable && !b.dead));
   const i = state.enemies.indexOf(e);
   if (!live) { if (i >= 0) state.enemies.splice(i, 1); return; }
   const h = bossH(b) - (b.mode === 'stunned' ? 32 : 0);
@@ -154,13 +174,16 @@ const syncEnemy = (state: GameState, b: Boss) => {
 };
 
 /** What hit it this frame, and what it puts in the meter. */
-const takeHits = (ctx: FrameContext, b: Boss, weak: Weak, onWeak: (b: Boss) => void, onStun: (b: Boss) => void) => {
+/** Cartoon Land: health off a hit, per meter point it'd have been worth (the stunt car takes a full one down in about
+ *  20 s of decent use; anything else a third as fast). */
+export const HP_K = 0.0024;
+const takeHits = (ctx: FrameContext, b: Boss, weak: Weak, onWeak: (b: Boss) => void, onStun: (b: Boss) => void, hpMode = false, onKo?: (b: Boss, w: string) => void) => {
   const { state } = ctx, e = b.e;
   const dealt = Math.max(0, BIG - e.health);
   e.health = BIG; e.maxHealth = BIG;
   const melee = e.hitByMove !== b.moveSeen;
   b.moveSeen = e.hitByMove;
-  if (dealt <= 0 || b.mode === 'stunned' || b.mode === 'held' && false) return;
+  if (dealt <= 0 || b.mode === 'stunned') return;
   if (state.frame - b.gate < HIT_GATE) return;
   b.gate = state.frame;
   const tag = peekTag(state, e);
@@ -168,9 +191,21 @@ const takeHits = (ctx: FrameContext, b: Boss, weak: Weak, onWeak: (b: Boss) => v
   if (tag) { w = tag.w; move = tag.move; }
   else if (melee) { if (bulkedNow()) { w = 'SPELLBOOK'; move = 'bulk'; } else w = 'MELEE'; }
   else w = state.player.currentWeapon;
+  // (dazed, both down: the finishers' count; a charge just bounces off them)
+  if (b.mode === 'ko') {
+    if (w === 'MELEE') { playSound('boing', 0.8, 0); const p = state.player; p.vel.x = -(Math.sign(b.x - (p.pos.x + p.width / 2)) || 1) * 6; return; }
+    b.flash = 6; onKo?.(b, w); return;
+  }
   const only = b.who === 'satan' ? weak.satan : weak.widow;
   const isWeak = w === weak.w && (!only || !move || only.includes(move));
   const add = (FILL[w] ?? 4) * (isWeak ? 1 : WRONG);
+  if (hpMode) {
+    b.hp = Math.max(0, b.hp - add * HP_K); b.flash = 6;
+    playSound('gunhit', 0.5, b.who === 'satan' ? -6 : 2);
+    if (b.hp <= 0) knockOut(state, b);
+    else if (state.frame - b.hurtSaidAt > 240 && Math.random() < 0.3) { b.hurtSaidAt = state.frame; bossSays(state, b, b.who === 'satan' ? L.SATAN_HURT : L.WIDOW_HURT); }
+    return;
+  }
   b.meter = Math.min(100, b.meter + add);
   b.flash = 6;
   playSound('gunhit', 0.5, b.who === 'satan' ? -6 : 2);
@@ -185,6 +220,13 @@ const takeHits = (ctx: FrameContext, b: Boss, weak: Weak, onWeak: (b: Boss) => v
   if (state.frame - b.hurtSaidAt > 240 && Math.random() < 0.3) { b.hurtSaidAt = state.frame; bossSays(state, b, b.who === 'satan' ? L.SATAN_HURT : L.WIDOW_HURT); }
 };
 
+/** Cartoon Land: out of health: collapsed, dizzy, down for good (no longer a threat). */
+const knockOut = (state: GameState, b: Boss) => {
+  b.mode = 'ko'; b.move = null; b.vx = 0; b.air = false; b.y = floorY(b.x);
+  playSound('bonk', 1, -12); playSound('slam', 0.8, -10); shakeScreen(state, 16, 4);
+  state.damageNumbers.push({ id: `fin-ko-${state.frame}-${b.who}`, text: 'KNOCKED OUT!', pos: { x: b.x, y: b.y - bossH(b) - 20 }, vel: { x: 0, y: -1.5 }, life: 90, maxLife: 90, isCritical: true, isCallout: true, color: '#F97316' } as never);
+  b.said = null;
+};
 const stun = (state: GameState, b: Boss) => {
   b.mode = 'stunned'; b.stunT = 0; b.move = null; b.vx = 0;
   playSound('bonk', 0.9, -8); playSound('twinkle', 0.7, 0); shakeScreen(state, 10, 3);
@@ -207,6 +249,12 @@ export interface Arena {
   frozen: boolean;
   /** Nobody attacks (AMERICA USA, the run's end, a section won). */
   calm: boolean;
+  /** A stun doesn't wear off (unused now: kept for the switch). */
+  holdStun?: boolean;
+  /** Cartoon Land: no stagger; hits go straight to health (HP_K of what they'd have put in the meter), at none: KO. */
+  hpMode?: boolean;
+  /** Both down: a hit on either, with what weapon (melee: bounced off) */
+  onKoHit?: (b: Boss, w: string) => void;
   /** Something heavy came down here (a landing): flatten what's under it. */
   crush: (x0: number, x1: number) => void;
   /** Him hurt (dmg, source, frames of breather after). */
@@ -233,14 +281,16 @@ const DO: Record<string, number> = { leap: 400, breath: 72, fireballs: 20, claw:
 const pickMove = (state: GameState, b: Boss, ar: Arena) => {
   const list: string[] = b.who === 'satan' ? (ar.sec?.satan ?? ['leap']) : (ar.sec?.widow ?? ['hop']);
   const px = state.player.pos.x + state.player.width / 2, d = Math.abs(px - b.x);
-  let opts = list.filter(m => m !== b.last);
+  // (enraged: a move more)
+  const all = b.rage ? [...new Set([...list, ...(b.who === 'satan' ? ['leap', 'rain'] : ['hop', 'ufos'])])] : list;
+  let opts = all.filter(m => m !== b.last);
   if (d > 150) opts = opts.filter(m => m !== 'claw');
-  if (!opts.length) opts = list;
+  if (!opts.length) opts = all;
   return opts[Math.floor(Math.random() * opts.length)];
 };
 
 const startMove = (state: GameState, b: Boss, m: string) => {
-  b.move = m; b.last = m; b.mode = 'tell'; b.t = 0; b.T = TELL[m] ?? 30;
+  b.move = m; b.last = m; b.mode = 'tell'; b.t = 0; b.T = Math.round((TELL[m] ?? 30) * (b.rage ? RAGE_TELL : 1));
   const p = state.player, px = p.pos.x + p.width / 2;
   b.face = px >= b.x ? 1 : -1;
   if (m === 'laser') { b.aimX = px; b.aimY = floorY(px) - 44; }
@@ -331,8 +381,10 @@ export const updateBosses = (ctx: FrameContext, bs: Bosses, ar: Arena, weak: Wea
   pair.forEach((b, i) => {
     if (b.flash > 0) b.flash--;
     syncEnemy(state, b);
-    if (b.mode === 'off' || b.mode === 'carried' || b.mode === 'flying') return;
-    if (b.mode !== 'wreck' && b.mode !== 'leave') takeHits(ctx, b, weak, onWeak, onStun);
+    if (b.mode === 'off' || b.mode === 'carried' || b.mode === 'flying' || b.mode === 'away') return;
+    if (b.mode === 'ko') { if (koHittable && !b.dead) takeHits(ctx, b, weak, onWeak, onStun, false, ar.onKoHit); return; }
+    if (b.mode === 'dizzy') { b.t++; if (b.t > 120) { b.mode = 'walk'; b.next = state.frame + 30; playSound('snort', 0.5, b.who === 'satan' ? -10 : 6); } return; }
+    if (b.mode !== 'wreck' && b.mode !== 'leave') takeHits(ctx, b, weak, onWeak, onStun, !!ar.hpMode);
     if (ar.frozen) return;
     // (in the air: a leap, a hop, leaving)
     if (b.air) {
@@ -344,7 +396,7 @@ export const updateBosses = (ctx: FrameContext, bs: Bosses, ar: Arena, weak: Wea
     if (b.mode === 'stunned') {
       b.stunT++;
       if (b.stunT % 50 === 0) playSound('twinkle', 0.35, 4);
-      if (b.stunT > STUN_T) { b.mode = 'walk'; b.meter = STUN_AFTER; b.next = state.frame + 40; }
+      if (b.stunT > STUN_T && !ar.holdStun) { b.mode = 'walk'; b.meter = STUN_AFTER; b.next = state.frame + 40; }
       return;
     }
     if (b.mode === 'held') { b.face = (px >= b.x ? 1 : -1); return; }
@@ -363,13 +415,13 @@ export const updateBosses = (ctx: FrameContext, bs: Bosses, ar: Arena, weak: Wea
     // ---- the moves
     if (b.mode === 'tell') { b.t++; b.vx = 0; if (b.t >= b.T) { b.mode = 'do'; b.t = 0; b.T = DO[b.move!] ?? 30; } return; }
     if (b.mode === 'do') { doMove(ctx, bs, b, ar); b.t++; if (!b.air && b.t >= b.T) { b.mode = 'recover'; b.t = 0; b.T = 24; } return; }
-    if (b.mode === 'recover') { b.t++; if (b.t >= b.T) { b.mode = 'walk'; b.next = state.frame + 60 + Math.floor(Math.random() * 60) + i * 25; } return; }
+    if (b.mode === 'recover') { b.t++; if (b.t >= b.T) { b.mode = 'walk'; b.next = state.frame + (b.rage ? 28 + Math.floor(Math.random() * 30) : 60 + Math.floor(Math.random() * 60) + i * 25); } return; }
     // ---- walking: to their spot ahead of him; passed, back over him; their next move when it's time
     const ahead = (i === 0) === ((ar.sec?.half ?? 1) === 1) ? 230 : 410;
     const home = Math.max(ar.a + 80, Math.min(ar.b - 80, px + ahead));
     if (px > b.x + 60 && px < ar.b - 120 && !ar.calm) { b.mode = 'do'; b.move = b.who === 'satan' ? 'leap' : 'hop'; b.t = 0; b.T = 400; launch(b, home, 50); return; }
     const d = home - b.x;
-    b.vx = Math.abs(d) > 24 ? Math.sign(d) * (b.who === 'satan' ? 1.5 : 1.3) : 0;
+    b.vx = Math.abs(d) > 24 ? Math.sign(d) * (b.who === 'satan' ? 1.5 : 1.3) * (b.rage ? 1.35 : 1) : 0;
     if (Math.abs(d) > 260) b.vx *= 2.2;
     b.x += b.vx; b.y = floorY(b.x);
     b.face = px >= b.x ? 1 : -1;
@@ -439,7 +491,7 @@ export const clearShots = (bs: Bosses) => { for (const s of bs.shots) s.on = fal
 // Drawing
 
 const satanPose = (b: Boss, f: number): SatanPose => {
-  if (b.mode === 'stunned') return 'dazed';
+  if (b.mode === 'stunned' || b.mode === 'dizzy' || b.mode === 'ko') return 'dazed';
   if (b.mode === 'held') return 'held';
   if (b.mode === 'flying' || b.mode === 'carried') return 'thrown';
   if (b.air) return 'air';
@@ -451,7 +503,7 @@ const satanPose = (b: Boss, f: number): SatanPose => {
   void f;
 };
 const widowPose = (b: Boss): WidowPose => {
-  if (b.mode === 'stunned') return 'dazed';
+  if (b.mode === 'stunned' || b.mode === 'dizzy' || b.mode === 'ko') return 'dazed';
   if (b.mode === 'held') return 'held';
   if (b.mode === 'flying' || b.mode === 'carried') return 'thrown';
   if (b.air) return 'air';
@@ -463,8 +515,14 @@ const widowPose = (b: Boss): WidowPose => {
 };
 /** One of them, where they are (or wherever `at` says: carried, thrown). */
 export const drawBoss = (c: Ctx, state: GameState, b: Boss, at?: { x: number; y: number; ang: number }) => {
-  if (b.mode === 'off') return;
+  if (b.mode === 'off' || b.mode === 'away') return;
   const f = state.frame, talk = !!b.said;
+  // (enraged: a red heat off them, stepped rings, pulsing (no glow thrown, no blur))
+  if (b.rage && !at && b.mode !== 'wreck') {
+    const k = 0.5 + 0.5 * Math.sin(f * 0.25), h = bossH(b);
+    for (const [r, a] of [[1, 0.1], [0.8, 0.14], [0.6, 0.18]] as const) { c.globalAlpha = a * (0.6 + 0.4 * k); c.fillStyle = '#DC2626'; c.beginPath(); c.ellipse(Math.round(b.x), Math.round(b.y - h / 2), 50 * r + 4 * k, h * 0.58 * r, 0, 0, Math.PI * 2); c.fill(); }
+    c.globalAlpha = 1;
+  }
   c.save();
   if (at) { c.translate(Math.round(at.x), Math.round(at.y)); c.rotate(at.ang); c.translate(0, bossH(b) / 2); }
   else c.translate(Math.round(b.x), Math.round(b.y));
@@ -520,3 +578,14 @@ export const drawAttacks = (c: Ctx, state: GameState, bs: Bosses) => {
   }
 };
 export const SPAWN_TELL_FRAMES = SPAWN_TELL;
+
+/** The one still standing, the other one thrown: enraged for the rest of the land (a roar, a red flash, its line). */
+export const enrage = (state: GameState, b: Boss) => {
+  if (b.rage) return;
+  b.rage = true; b.flash = 10; b.next = Math.min(b.next, state.frame + 40);
+  playSound('roar', 0.9, b.who === 'satan' ? -10 : 6); playSound('bellow', 0.6, -6); shakeScreen(state, 18, 3);
+  state.damageNumbers.push({ id: `fin-rage-${state.frame}-${b.who}`, text: 'ENRAGED!', pos: { x: b.x, y: b.y - bossH(b) - 24 }, vel: { x: 0, y: -1.2 }, life: 90, maxLife: 90, isCritical: true, isCallout: true, color: '#EF4444' } as never);
+  for (let k = 0; k < 14; k++) state.particles.push({ pos: { x: b.x + (Math.random() - 0.5) * 60, y: b.y - Math.random() * bossH(b) }, vel: { x: (Math.random() - 0.5) * 3, y: -1 - Math.random() * 2 }, life: 30, color: k % 2 ? '#EF4444' : '#F97316', size: 3 } as never);
+  b.said = null;
+  setTimeout(() => bossSays(state, b, b.who === 'satan' ? L.SATAN_RAGE : L.WIDOW_RAGE), 350);
+};

@@ -47,12 +47,16 @@ import { meatheadSays } from '../../adventure/section';
 import { registerHurtLines } from '../../kinds';
 import { drawKidGross, drawKidGrossBack, warmKidGross } from '../park1/kidGross';
 import { drawSonGross, drawSonGrossBack, warmSonGross } from '../park2/sonGross';
-import { FINALE_ID, FINALE_STAGE, FINALE_HOUR, FIN_CP_START, FIN_CP_MID } from './where';
+import { FINALE_ID, FINALE_STAGE, FINALE_HOUR, FIN_CP_START, FIN_CP_MID, FIN_CP_DAZED, FIN_CP_ENDING, FIN_ENDINGS } from './where';
 import { SECTIONS, MID_AFTER, type SectionDef } from './sections';
-import { SEC_X, secEnd, floorY, RUN_END, WORLD_END, GROUND_RUNS } from './geo';
+import { SEC_X, secEnd, secAt, floorY, RUN_END, WORLD_END, GROUND_RUNS } from './geo';
 import { makeLandmarks, bringDown, updateLandmarks, drawLandmarks, dropTurned, type Lm } from './landmarks';
-import { newBosses, placeBoss, updateBosses, drawBoss, drawSaid, drawAttacks, clearShots, bossList, bossH, bossSays, type Bosses, type Boss, type Arena, STUN_T } from './bosses';
-import { startThrow, updateThrow, drawThrow, throwDone, T_RELEASE, type Throw } from './throw';
+import { setKoHittable } from './bosses';
+import { newBosses, placeBoss, updateBosses, drawBoss, drawSaid, drawAttacks, clearShots, bossList, bossH, bossSays, enrage, type Bosses, type Boss, type Arena, STUN_T } from './bosses';
+import { startHold, updateHold, drawHold, headStart, HEAD_MAX, type Hold } from './hold';
+import { startFinisher, FINISHER_COST, FINISHER_COLOR, isFinWeapon, type FinId } from './finishers';
+import { keepStuntCarBig } from '../../weapons/stuntCar';
+import { startThrow, updateThrow, drawThrow, throwDone, T_RELEASE, T_REACH, type Throw } from './throw';
 import { newSwarm, updateSwarm, clearSwarm, spawnMini, ALIEN_MINI, type Swarm } from './minions';
 import { scatter, updateTiny, drawTiny, callbackFor, updateCallbacks, drawCallback, callbackOn, clearTiny } from './tiny';
 import { newBen, updateBen, benTell, drawBenGiant, drawBenSaid, benSays, type Ben } from './ben';
@@ -94,7 +98,30 @@ export interface Fin {
   scattered: Set<Lm>;
   /** The minions' last bite line (frames). */
   biteLineAt: number;
+  /** The mobile beatdown on one of them (hold.ts), and how many there've been (the first ones show its buttons). */
+  holding: Hold | null; holdHelp: number;
+  /** Cartoon Land, the end: off; the fight (both of them, both halves); both down, dazed (the game's won: pick a
+   *  finisher); its cutscene; done. */
+  final: 'off' | 'fight' | 'dazed' | 'cut' | 'done';
+  /** The finisher being counted (its weapon, the hits landed), and the one that played. */
+  count: { w: FinId; n: number } | null; finId: FinId | null;
+  /** Cartoon's second half: its health pickup and Ben's weapon given. */
+  halfGiven: boolean;
+  /** Both down: frames since the last hit (the do-nothing finisher's clock). */
+  winT: number;
+  /** Where he starts (put there on the first frame: the engine's own start may have moved him). */
+  startX: number; placed: boolean;
 }
+/** Their health (the owner's: "they should lose no more than 12 percent health each section. 1/8"): a beatdown's most
+ *  off either of them a land (each is held once a land), and the floor it can't go under (a perfect run: nothing left
+ *  at the end of Cartoon Land). HP_UNIT 'section' to make it a section's instead. */
+export const HP_CAP = 1 / 8;
+export const HP_UNIT: 'land' | 'section' = 'land';
+const hpFloor = (k: number) => Math.max(0, 1 - ((HP_UNIT === 'land' ? Math.floor(k / 2) : k) + 1) * HP_CAP);
+/** For the ending (the owner's, to come): their health going into Cartoon Land (what the beatdowns left them), and
+ *  whether he took up the water tower for the victory lap. */
+export const finaleEnd = { satanIn: 1, widowIn: 1, finisher: null as string | null };
+const FINAL_SEC = 14;
 const finOf = (state: GameState) => state.stage as Fin | null;
 let introSeen = false;
 let devStarted = false;
@@ -123,14 +150,27 @@ const hurt = (ctx: FrameContext, dmg: number, src: string, breather = true) => {
 // The sections
 
 const secOf = (fin: Fin): SectionDef | null => SECTIONS[fin.cleared] ?? null;
-const gateX = (fin: Fin) => (fin.cleared < SECTIONS.length ? secEnd(fin.cleared) : WORLD_END);
+const gateX = (fin: Fin) => (fin.final !== 'off' && fin.final !== 'done' ? secEnd(SECTIONS.length - 1) : fin.cleared < SECTIONS.length ? secEnd(fin.cleared) : WORLD_END);
 
 /** Coming into the section he's on (its start): the banner, his line about the land, Ben's weapon. */
 const startSection = (state: GameState, fin: Fin) => {
   const k = fin.cleared, s = SECTIONS[k];
   fin.started = k; fin.secT = 0;
-  // (each section its own fight: both meters from empty)
-  for (const b of bossList(fin.bs)) if (b.mode !== 'stunned') b.meter = 0;
+  // (each section its own fight: the meters from empty, or from what the last beatdown on that one bought (its head
+  // start); a land's first half: both back (the one that sat out), neither enraged)
+  for (const b of bossList(fin.bs)) {
+    if (s.half === 1) {
+      b.rage = false;
+      if (b.mode === 'away') placeBoss(b, SEC_X[k] + (b.who === 'satan' ? 420 : 580), -1);
+      // (a land's opening, after the last land's two throws: both still seeing stars a beat, then up)
+      if (k > 0 && k !== FINAL_SEC) { b.mode = 'dizzy'; b.t = 0; b.air = false; b.y = floorY(b.x); }
+    }
+    // (a head start's for its next fight: not while it's sitting out)
+    if (b.mode === 'away') b.meter = 0;
+    else if (b.mode !== 'stunned') { b.meter = b.carry; b.carry = 0; }
+  }
+  // (Cartoon Land: both of them, aggressive the whole way, no stagger: straight to health)
+  if (k === FINAL_SEC) { finaleEnd.satanIn = fin.bs.satan.hp; finaleEnd.widowIn = fin.bs.widow.hp; fin.final = 'fight'; for (const b of bossList(fin.bs)) { b.mode = 'walk'; enrage(state, b); } }
   if (s.half === 1) { fin.banner = { text: s.title, t: 0 }; meatheadSays(state, pickLine(L.MH_LAND[s.land][dressed(state)]), true); }
   benTell(fin.ben, k, s.weak.ben);
   // (the rocket man's gross-up, painted in idle moments well before the needle comes down)
@@ -142,6 +182,8 @@ const throwLanded = (state: GameState, fin: Fin, th: Throw) => {
   bringDown(state, th.m, th.x, true);
   const b = th.b;
   b.mode = 'wreck'; b.wreckT = 0; b.meter = 0; b.x = th.m.x; b.y = th.m.foot;
+  // (the land's first half: this one sits out the second; the other one's left, and it's mad)
+  if (SECTIONS[fin.cleared].half === 1) { b.sitOut = true; enrage(state, b.who === 'satan' ? fin.bs.widow : fin.bs.satan); }
   debris(th.m.x, th.m.foot - 30, 20, th.m.def.debris, 6, 8);
   if (fin.ben.on && Math.random() < 0.5) setTimeout(() => benSays(fin.ben, L.BEN_NICE, true), 900);
   const k = fin.cleared;
@@ -181,6 +223,8 @@ export const finaleLayout: StageLayout = {
     setDropTable(NO_DROPS);
     { const pick = takeStartCheckpoint(); if (pick !== null) state.checkpoint = pick; }
     { const d = DEV_CP(); if (d !== null) state.checkpoint = d; }
+    // (the test picker's: straight to the finishers (both down), or past the fight to the ending with a finisher set)
+    const test = state.checkpoint === FIN_CP_DAZED || (state.checkpoint >= FIN_CP_ENDING && state.checkpoint < FIN_CP_ENDING + FIN_ENDINGS.length) ? state.checkpoint : -1;
     if (state.checkpoint !== FIN_CP_MID) state.checkpoint = FIN_CP_START;
     setEndgameHour(FINALE_HOUR);
     clearFx(); clearTiny(); dropTurned(); clearWarm();
@@ -192,11 +236,13 @@ export const finaleLayout: StageLayout = {
     const gate = { x: 0, y: -2000, w: 40, h: 4000, type: 'wall', hidden: true, tag: 'fin-gate' } as Block;
     state.cameraMinX = -500;
     // ---- what's done already (the mid checkpoint: four lands flat), the landmarks of it down
-    let cleared = state.checkpoint === FIN_CP_MID ? MID_AFTER + 1 : 0;
+    let cleared = state.checkpoint === FIN_CP_MID ? MID_AFTER + 1 : test >= 0 ? FINAL_SEC : 0;
+    if (import.meta.env.DEV) { const w = window as unknown as { __finSecWant?: number | null }; if (devSec === null && typeof w.__finSecWant === 'number') { devSec = w.__finSecWant; w.__finSecWant = null; } }
     if (import.meta.env.DEV && devSec !== null) { cleared = devSec; devSec = null; }
     const lms = makeLandmarks();
     for (const m of lms) if (m.sec < cleared && (m.sec >= 0 || cleared > 0)) { m.st = 'down'; m.said = true; if (m.def.fall === 'topple') m.ang = Math.PI / 2; }
-    const x = cleared > 0 ? SEC_X[cleared] + 120 : startAt(FIN_CP_START);
+    const towerX = SEC_X[FINAL_SEC + 1] + SECTIONS[FINAL_SEC + 1].throwRx;
+    const x = test >= 0 ? towerX - 260 : cleared > 0 ? SEC_X[cleared] + 120 : startAt(FIN_CP_START);
     const p = state.player;
     p.pos = { x: x - p.width / 2, y: floorY(x) - p.height }; p.vel = { x: 0, y: 0 }; p.facing = 1; p.hidden = false; p.inCutscene = false; p.untouchable = false;
     const intro = cleared === 0 && !introSeen;
@@ -204,7 +250,7 @@ export const finaleLayout: StageLayout = {
       grab: createGrab(state), bs: newBosses(), sw: newSwarm(), lms, ben: newBen(x - 70),
       phase: intro ? 'intro' : 'run', scene: null, cleared, started: cleared - 1, throwing: null, gate,
       weakSaid: new Set(), stunSaid: new Set(), banner: null, needleDue: false, secT: 0, times: [], endSaid: false, americaSaid: cleared > 0,
-      scattered: new Set(), biteLineAt: 0,
+      scattered: new Set(), biteLineAt: 0, holding: null, holdHelp: 0, final: 'off', halfGiven: false, winT: 0, count: null, finId: null, startX: x, placed: false,
     };
     gate.x = gateX(fin);
     state.stage = fin;
@@ -214,7 +260,16 @@ export const finaleLayout: StageLayout = {
     if (intro) { p.inCutscene = true; setUi({ introCutscene: true }); fin.scene = startIntro(state, fin.ben.on); warmKidGross(); warmSonGross(); }
     else setUi({ introCutscene: false });
     state.camera.x = x - W / 2;
-    save(state.checkpoint);
+    if (test < 0) save(state.checkpoint);
+    else {
+      // (both down at the tower, Cartoon Land's fight over; the ending tab's: past the finisher too)
+      fin.started = FINAL_SEC; fin.final = 'fight'; fin.halfGiven = true;
+      for (const m of lms) if (m.sec >= 0 && m.sec <= FINAL_SEC + 1 && m.def.id !== 'cwtower') { m.st = 'down'; m.said = true; if (m.def.fall === 'topple') m.ang = Math.PI / 2; }
+      placeBoss(fin.bs.satan, towerX + 70, -1); placeBoss(fin.bs.widow, towerX + 130, -1);
+      for (const b of bossList(fin.bs)) { b.hp = 0; b.mode = 'ko'; }
+      if (test >= FIN_CP_ENDING) { const id = FIN_ENDINGS[test - FIN_CP_ENDING][0] as FinId; fin.finId = id; finaleEnd.finisher = id; fin.final = 'done'; fin.cleared = SECTIONS.length; for (const b of bossList(fin.bs)) b.dead = true; }
+      fin.gate.x = gateX(fin);
+    }
     if (import.meta.env.DEV && typeof window !== 'undefined') { const w = window as unknown as Record<string, unknown>; w.__m2 = state; w.__fin = fin; w.__finSheet = contactSheetFin; w.__finSec = (k: number) => { devSec = k; }; w.__finWeak = () => SECTIONS[fin.cleared]?.weak.w ?? null; }
     return { x, y: floorY(x) };
   },
@@ -225,6 +280,7 @@ export const finaleLayout: StageLayout = {
     const fin = finOf(state);
     if (!fin) return controls;
     const p = state.player;
+    if (!fin.placed) { fin.placed = true; p.pos.x = fin.startX - p.width / 2; p.pos.y = floorY(fin.startX) - p.height; p.vel.x = 0; p.vel.y = 0; state.camera.x = fin.startX - W / 2; }
     setUi({ near: null, map: null, nearExit: false, upPrompt: null });
     // ---- the opening, the needle's fall: cutscenes (no input, no HUD)
     if (fin.phase === 'intro' || fin.phase === 'needle') {
@@ -260,21 +316,34 @@ export const finaleLayout: StageLayout = {
       if (throwDone(th)) { fin.throwing = null; state.cameraOverride = null; }
     }
     // ---- Ben, the bosses
-    const heldWho = updateBen(state, fin.ben, fin.bs, fighting, frozen);
+    const fin_ = fin.final === 'fight' || fin.final === 'dazed';
+    const heldWho = updateBen(state, fin.ben, fin.bs, fighting && !fin.holding && fin.final !== 'dazed', frozen);
     const ar: Arena = {
-      sec, a: fin.cleared < SECTIONS.length ? SEC_X[fin.cleared] : RUN_END, b: gateX(fin) - 60, held: heldWho,
-      frozen, calm: !fighting,
+      sec: fin_ ? SECTIONS[Math.max(FINAL_SEC, Math.min(SECTIONS.length - 1, secAt(px)))] : sec,
+      a: fin_ ? SEC_X[FINAL_SEC] : fin.cleared < SECTIONS.length ? SEC_X[fin.cleared] : RUN_END, b: gateX(fin) - 60, held: heldWho,
+      frozen: frozen || fin.final === 'cut', calm: !fighting || fin.final === 'dazed', hpMode: fin.final === 'fight', onKoHit: (b, w) => koHit(state, fin, b, w),
       crush: (x0, x1) => { for (const m of fin.lms) if (m.st === 'up' && !m.target && m.x + m.def.w / 2 > x0 && m.x - m.def.w / 2 < x1) bringDown(state, m, (x0 + x1) / 2); },
       hurt: (d, s) => hurt(ctx, d, s),
       minion: x => spawnMini(state, fin.sw, ALIEN_MINI, x),
     };
     // (the section won: out of the wreck and on, the other one with them)
     for (const b of bossList(fin.bs)) {
-      if (b.mode === 'wreck' && b.wreckT > 100) leaveFor(state, fin, b);
+      if (b.mode === 'wreck' && b.wreckT > 100) { if (b.sitOut) { b.sitOut = false; b.mode = 'away'; b.x = SEC_X[Math.min(fin.cleared + 1, SECTIONS.length - 1)] + 600; } else leaveFor(state, fin, b); }
       if (!fighting && !fin.throwing && (b.mode === 'walk') && fin.cleared > 0 && b.x < SEC_X[Math.min(fin.cleared, SECTIONS.length - 1)] && fin.cleared < SECTIONS.length) leaveFor(state, fin, b);
       if (fin.cleared >= SECTIONS.length && b.mode === 'walk' && b.x < RUN_END) leaveFor(state, fin, b);
     }
-    updateBosses(ctx, fin.bs, ar, sec?.weak ?? { w: 'GUN', ben: 'GUN' }, b => {
+    // (the stunt car embiggened with him, the whole finale)
+    keepStuntCarBig(1.5);
+    // (aggressive while its partner's down (stunned, thrown, sitting out); back to itself when both are up. Cartoon:
+    // always)
+    if (fin.final === 'off') for (const b of bossList(fin.bs)) {
+      const o = b === fin.bs.satan ? fin.bs.widow : fin.bs.satan;
+      const down = ['stunned', 'away', 'carried', 'flying', 'wreck'].includes(o.mode);
+      const up = b.mode !== 'away' && b.mode !== 'wreck' && b.mode !== 'carried' && b.mode !== 'flying' && b.mode !== 'stunned' && b.mode !== 'dizzy';
+      if (down && up && !b.rage && fighting) enrage(state, b);
+      else if (!down && b.rage) b.rage = false;
+    }
+    updateBosses(ctx, fin.bs, ar, ar.sec?.weak ?? { w: 'GUN', ben: 'GUN' }, b => {
       // (the first weakness hit of a section: his hint, if he's got the weapon and Ben's not there to have said it)
       if (fin.weakSaid.has(fin.cleared) || fin.ben.on || !p.availableWeapons?.includes(p.currentWeapon)) return;
       fin.weakSaid.add(fin.cleared); if (!isTalking()) meatheadSays(state, pickLine(L.MH_WEAK[dressed(state)]), false);
@@ -317,32 +386,58 @@ export const finaleLayout: StageLayout = {
       if (state.frame - fin.biteLineAt > 1500 && !isTalking() && !callbackOn()) { fin.biteLineAt = state.frame; ctx.fx.speakVulgarity('hurt', 'm2:fin_minion'); }
     }, (x, y, blood) => { for (let k = 0; k < 4; k++) state.particles.push({ pos: { x, y: y - 2 }, vel: { x: (Math.random() - 0.5) * 2, y: -1 - Math.random() }, life: 24, color: blood, size: 2 } as never); puff(x, y, 3, '#C8BCA8', 0, -0.3, 16); });
     if (!fighting && fin.throwing === null && fin.sw.list.length && fin.cleared >= SECTIONS.length) clearSwarm(state, fin.sw);
-    // ---- Y + B on a stunned one, close enough: the throw
-    if (!fin.throwing && fighting && sec && p.isGrounded && p.health > 0) {
+    // ---- the mobile beatdown under way: him walking them about, the blows; then the throw into the target
+    if (fin.holding) {
+      const h = fin.holding, auto = !!(import.meta.env.DEV && (window as unknown as { __finAuto?: boolean }).__finAuto);
+      let c = controls;
+      if (auto) { const o = bossList(fin.bs).find(b => b !== h.b && b.mode !== 'away' && b.mode !== 'wreck'); const away = o && Math.abs(o.x - px) < 220 ? (o.x > px ? -1 : 1) : 0; c = { ...NO_CONTROLS, left: away < 0, right: away > 0 }; }
+      updateHold(state, h, c, auto);
+      p.hidden = true; p.untouchable = false;
+      if (h.done) {
+        const b = h.b, k = fin.cleared;
+        // (what it did: its head start next time, its health (a land's share at most, never under the land's floor))
+        b.carry = headStart(h.dmg);
+        b.hp = Math.max(hpFloor(k), b.hp - (headStart(h.dmg) / HEAD_MAX) * HP_CAP);
+        const m = fin.lms.find(q => q.target && q.sec === k && q.st === 'up');
+        fin.holding = null; p.hidden = false;
+        if (m) {
+          fin.throwing = startThrow(state, b, m); fin.throwing.t = T_REACH + 10;
+          bossSays(state, b, b.who === 'satan' ? L.SATAN_THROWN : L.WIDOW_THROWN);
+          setTimeout(() => { if (!isTalking()) meatheadSays(state, pickLine(L.MH_THROW[dressed(state)]), false); }, 700);
+        } else b.mode = 'walk';
+      }
+      return { ...NO_CONTROLS };
+    }
+    // ---- Cartoon Land, the end: both down (they stay down), over by the water tower; Y + B there; the tower
+    if (fin.final !== 'off' && fin.final !== 'done') { const o = updateFinal(ctx, fin, controls); if (o) return o; }
+    // ---- Y + B on a stunned one, close enough: the mobile beatdown (then the throw)
+    if (!fin.throwing && fighting && sec && p.isGrounded && p.health > 0 && fin.final === 'off') {
       pollM2(state.frame);
       const chord = pressed('beatKey') || (btn('y') && pressed('b')) || (pressed('y') && btn('b'));
       const near = bossList(fin.bs).find(b => b.mode === 'stunned' && Math.abs(b.x - px) < 34 + 80);
       if (near && (chord || (import.meta.env.DEV && (window as unknown as { __finAuto?: boolean }).__finAuto))) {
-        const m = fin.lms.find(q => q.target && q.sec === fin.cleared);
-        if (m) {
-          fin.throwing = startThrow(state, near, m);
-          clearShots(fin.bs);
-          if (fin.ben.mode === 'hold' && fin.ben.on_) { fin.ben.on_.mode = 'walk'; fin.ben.mode = 'off'; fin.ben.on_ = null; fin.ben.t = 0; }
-          near.said = null; bossSays(state, near, near.who === 'satan' ? L.SATAN_THROWN : L.WIDOW_THROWN);
-          setTimeout(() => { if (!isTalking()) meatheadSays(state, pickLine(L.MH_THROW[dressed(state)]), false); }, 900);
+        {
+          near.said = null;
+          fin.holding = startHold(state, near);
+          fin.holdHelp++;
           fin.grab.pend = null;
           return { ...NO_CONTROLS };
         }
       }
     }
     // ---- the run's end (the owner's ending goes here)
-    if (fin.cleared >= SECTIONS.length && !fin.endSaid && px > RUN_END + 200) {
+    if (fin.final === 'done' && !fin.endSaid) {
       fin.endSaid = true;
-      meatheadSays(state, pickLine(L.MH_END[dressed(state)]), true);
-      setUi({ notice: { text: 'THE ENDING GOES HERE. (NOT BUILT YET.)', at: performance.now(), ms: 8000 } });
+      const pc = (v: number) => Math.round(v * 100);
+      setUi({ notice: { text: 'THE ENDING GOES HERE. (NOT BUILT YET.) FINISHER: ' + (FIN_ENDINGS.find(f => f[0] === fin.finId)?.[1] ?? '?') + '. HEALTH GOING INTO CARTOON LAND: SATAN ' + pc(finaleEnd.satanIn) + '%, ZARBLAX ' + pc(finaleEnd.widowIn) + '%.', at: performance.now(), ms: 9000 } });
     }
     // ---- the camera: along, never past the gate by more than shows its landmark
     if (!fin.throwing) state.cameraMaxX = Math.min(WORLD_END, gateX(fin) + 260) - W;
+    // (the run to the next section after a throw (the owner's: "forces a retreat and causes you to run to the next
+    // section"): the camera leads him, ahead to where they've gone)
+    const running = !fin.throwing && !fin.holding && fin.cleared > 0 && fin.cleared < SECTIONS.length && fin.started < fin.cleared && fin.final === 'off';
+    if (running) state.cameraOverride = { x: Math.min(px - W * 0.28, (state.cameraMaxX ?? 1e9)), y: state.camera.y };
+    else if (!fin.throwing && state.cameraOverride && fin.started === fin.cleared && fin.secT < 3) state.cameraOverride = null;
     if (import.meta.env.DEV) out = autopilot(state, fin, out);
     setUi({ introCutscene: false });
     if (fin.throwing && out === NO_CONTROLS) return out;
@@ -360,7 +455,10 @@ export const finaleLayout: StageLayout = {
   drawMid: (c, state) => {
     const fin = finOf(state);
     if (!fin) return;
-    for (const b of bossList(fin.bs)) if (b.mode !== 'carried' && b.mode !== 'flying') drawBoss(c, state, b);
+    for (const b of bossList(fin.bs)) {
+      if (b.dead) { drawBoss(c, state, b, { x: b.x, y: b.y - 26, ang: b.face * Math.PI / 2 }); continue; }
+      if (b.mode !== 'carried' && b.mode !== 'flying') drawBoss(c, state, b);
+    }
     drawBenGiant(c, state, fin.ben);
   },
   drawFront: (c, state) => {
@@ -368,9 +466,12 @@ export const finaleLayout: StageLayout = {
     if (!fin) return;
     drawAttacks(c, state, fin.bs);
     if (fin.throwing) drawThrow(c, state, fin.throwing);
+    if (fin.holding) drawHold(c, state, fin.holding, true);
+    // (both down: the tower's prompt, the pips)
+    if (fin.final === 'dazed') { const tw = towerOf(fin); if (tw) drawPrompt(c, state, null, tw.x, tw.foot - tw.def.h - 14); drawPips(c, fin); }
     drawDust(c, state);
     drawGrab(c, state, fin.grab);
-    for (const b of bossList(fin.bs)) { drawSaid(c, b); if (b.mode === 'stunned' && !fin.throwing) drawPrompt(c, state, b); }
+    for (const b of bossList(fin.bs)) { drawSaid(c, b); if (b.mode === 'stunned' && !fin.throwing && !fin.holding && fin.final === 'off') drawPrompt(c, state, b); if (b.mode === 'ko' && !b.dead) drawDown(c, b); }
     drawBenSaid(c, fin.ben);
     drawCallback(c);
   },
@@ -379,13 +480,21 @@ export const finaleLayout: StageLayout = {
     if (!fin) return;
     if (fin.scene) {
       drawScene(c, fin.scene);
-      const g = fin.phase === 'intro' ? grossBeat(fin.scene) : null;
+      const g = fin.phase === 'intro' && fin.final !== 'cut' ? grossBeat(fin.scene) : null;
       if (g) drawDeadGross(c, g, fin.scene.shotT, state.frame);
-      if (fin.phase === 'needle' && needleGross(fin.scene)) { drawMuskGrossBack(c, W, H); drawMuskGross(c, W / 2, H / 2 + 10, 0.95, fin.scene.shotT); redrawBubble(c, fin.scene); }
+      if (fin.phase === 'needle' && needleGross(fin.scene)) {
+        // (over the picture only: the words stay in the box under it; his name on a card)
+        c.save(); c.beginPath(); c.rect(16, 30, 768, 432); c.clip();
+        drawMuskGrossBack(c, W, H); drawMuskGross(c, W / 2, 246, 0.8, fin.scene.shotT);
+        c.font = '14px "Press Start 2P"'; c.textAlign = 'center'; c.fillStyle = '#000'; c.fillText(L.MUSK_NAME, W / 2 + 2, 446); c.fillStyle = '#F8FAFC'; c.fillText(L.MUSK_NAME, W / 2, 444); c.textAlign = 'left';
+        c.restore();
+      }
       return;
     }
     if (fin.banner) drawBanner(c, fin.banner);
     drawMeters(c, fin);
+    if (fin.holding && fin.holdHelp <= 2) drawHoldHelp(c);
+    if (fin.final === 'dazed') { c.font = '12px "Press Start 2P"'; c.textAlign = 'center'; c.fillStyle = '#000'; c.fillText(L.DAZED_PROMPT, W / 2 + 2, 152); c.fillStyle = '#FDE047'; c.fillText(L.DAZED_PROMPT, W / 2, 150); c.textAlign = 'left'; }
   },
 };
 
@@ -413,15 +522,6 @@ const drawDeadGross = (c: Ctx, who: 'kid' | 'son', t: number, f: number) => {
   c.restore();
   void t;
 };
-/** The scene's bubble, again, over a gross-up drawn over the scene (the needle's rocket man). */
-const redrawBubble = (c: Ctx, s: Scene) => { if (s.said) { c.save(); c.font = '10px "Press Start 2P"'; c.textAlign = 'center'; const tx = s.said.text; c.fillStyle = '#000'; c.fillRect(40, H - 92, W - 80, 54); c.fillStyle = '#F8FAFC'; c.fillRect(42, H - 90, W - 84, 50); c.fillStyle = '#111'; wrapAt(c, tx, W / 2, H - 70, W - 110); c.restore(); } };
-const wrapAt = (c: Ctx, t: string, x: number, y: number, wide: number) => {
-  const rows: string[] = []; let cur = '';
-  for (const w of t.split(' ')) { const n = cur ? `${cur} ${w}` : w; if (c.measureText(n).width > wide && cur) { rows.push(cur); cur = w; } else cur = n; }
-  if (cur) rows.push(cur);
-  rows.forEach((r, i) => c.fillText(r, x, y + i * 15 - (rows.length - 1) * 7));
-};
-
 /** The land's name across the top as he comes into it. */
 const drawBanner = (c: Ctx, b: { text: string; t: number }) => {
   const k = Math.min(1, b.t / 20, (200 - b.t) / 20), y = 150;
@@ -433,6 +533,7 @@ const drawBanner = (c: Ctx, b: { text: string; t: number }) => {
 
 /** The two stagger meters (clear of the HUD's corner: topBand). */
 const drawMeters = (c: Ctx, fin: Fin) => {
+  if (fin.final === 'dazed' || fin.final === 'cut' || fin.final === 'done') return;
   const band = topBand(), w = Math.min(200, (band.x2 - band.x1 - 20) / 2), y = 22;
   const list = bossList(fin.bs);
   list.forEach((b, i) => {
@@ -441,17 +542,21 @@ const drawMeters = (c: Ctx, fin: Fin) => {
     c.font = '8px "Press Start 2P"'; c.fillStyle = '#000'; c.fillText(b.who === 'satan' ? 'SATAN' : 'ZARBLAX', x + 1, y + 1); c.fillStyle = '#F8FAFC'; c.fillText(b.who === 'satan' ? 'SATAN' : 'ZARBLAX', x, y);
     c.fillStyle = '#000'; c.fillRect(x - 1, y + 5, w + 2, 12);
     c.fillStyle = '#3A1A1A'; c.fillRect(x, y + 6, w, 10);
-    const stun = b.mode === 'stunned', k = stun ? 1 - b.stunT / STUN_T : b.meter / 100;
-    c.fillStyle = stun ? ((b.stunT >> 3) % 2 ? '#FDE047' : '#F97316') : '#F59E0B'; c.fillRect(x, y + 6, Math.round(w * k), 10);
+    const stun = b.mode === 'stunned', hpMain = fin.final !== 'off', k = hpMain ? b.hp : stun ? 1 - b.stunT / STUN_T : b.meter / 100;
+    c.fillStyle = hpMain ? '#DC2626' : stun ? ((b.stunT >> 3) % 2 ? '#FDE047' : '#F97316') : '#F59E0B'; c.fillRect(x, y + 6, Math.round(w * k), 10);
     c.fillStyle = 'rgba(255,255,255,0.35)'; c.fillRect(x, y + 6, Math.round(w * k), 2);
-    if (stun) { c.fillStyle = '#000'; c.fillText('STUNNED', x + w / 2 - 27, y + 15); }
+    if (stun && !hpMain) { c.fillStyle = '#000'; c.fillText('STUNNED', x + w / 2 - 27, y + 15); }
+    if (hpMain && (b.mode === 'ko' || b.dead)) { c.fillStyle = '#F8FAFC'; c.fillText(b.dead ? 'DOWN FOR GOOD' : 'KNOCKED OUT', x + 4, y + 15); }
+    // (their health, thin under it: only the beatdowns take it (Cartoon Land: the main readout, above))
+    if (!hpMain) { c.fillStyle = '#000'; c.fillRect(x - 1, y + 17, w + 2, 5); c.fillStyle = '#2A0A0A'; c.fillRect(x, y + 18, w, 3); c.fillStyle = '#DC2626'; c.fillRect(x, y + 18, Math.round(w * b.hp), 3); }
+    if (b.mode === 'away') { c.fillStyle = 'rgba(0, 0, 0, 0.55)'; c.fillRect(x - 1, y - 9, w + 2, 32); c.fillStyle = '#F8FAFC'; c.font = '6px "Press Start 2P"'; c.fillText('SITTING OUT', x + w / 2 - 33, y + 14); }
   });
-  c.font = '6px "Press Start 2P"'; c.fillStyle = '#F8FAFC'; c.fillText('STAGGER', band.x1 + 10, y + 26);
+  c.font = '6px "Press Start 2P"'; c.fillStyle = '#F8FAFC'; c.fillText(fin.final !== 'off' ? 'HEALTH' : 'STAGGER / HEALTH', band.x1 + 10, y + 32);
 };
 
 /** Over a stunned one's head: the beatdown's buttons (Y + B on a pad, as the pad is; the beatdown key on the keys). */
-const drawPrompt = (c: Ctx, state: GameState, b: Boss) => {
-  const x = Math.round(b.x), y = Math.round(b.y - bossH(b) - 4), pulse = Math.floor(state.frame / 8) % 2;
+const drawPrompt = (c: Ctx, state: GameState, b: Boss | null, px = 0, py = 0) => {
+  const x = Math.round(b ? b.x : px), y = Math.round(b ? b.y - bossH(b) - 4 : py), pulse = Math.floor(state.frame / 8) % 2;
   if (inputDevice() === 'pad') {
     drawPadFace(c, x - 16, y, pulse ? 10 : 9, 'Y', padFamily());
     c.font = '10px "Press Start 2P"'; c.textAlign = 'center'; c.fillStyle = '#000'; c.fillText('+', x + 1, y + 5); c.fillStyle = '#F8FAFC'; c.fillText('+', x, y + 4); c.textAlign = 'left';
@@ -492,3 +597,107 @@ const autopilot = (state: GameState, fin: Fin, c: Controls): Controls => {
   if (bs.beam.on && !bs.beam.low) out.down = true;
   return out;
 };
+
+// ---------------------------------------------------------------------------------------------------------------
+// Cartoon Land's end: the water tower
+
+const towerOf = (fin: Fin) => fin.lms.find(m => m.def.id === 'cwtower') ?? null;
+/** The end's own business each frame (null: on as usual). Both of them down (dazed: the game's won): a breather (he
+ *  can't be hurt, the minions and shots gone); then whichever comes first: FINISHER_COST hits landed with one weapon
+ *  (switching weapons starts the count again), Y + B at the water tower, or nothing for a while (every hit puts that
+ *  off). That finisher's full cutscene; then the ending's placeholder. */
+const updateFinal = (ctx: FrameContext, fin: Fin, controls: Controls): Controls | null => {
+  const { state } = ctx, p = state.player, px = p.pos.x + p.width / 2, tw = towerOf(fin);
+  const sat = fin.bs.satan, wid = fin.bs.widow;
+  const auto = !!(import.meta.env.DEV && (window as unknown as { __finAuto?: boolean }).__finAuto);
+  // (its second half: the health pickup, Ben's weapon for it)
+  if (!fin.halfGiven && px > SEC_X[FINAL_SEC + 1]) {
+    fin.halfGiven = true;
+    state.pickups.push({ id: 'fin-hp-half', pos: { x: px + 60, y: floorY(px + 70) - 24 }, vel: { x: 0, y: 0 }, width: 20, height: 20, type: 'small_health', life: 1e9 });
+    benTell(fin.ben, FINAL_SEC + 1, SECTIONS[FINAL_SEC + 1].weak.ben);
+  }
+  // (the cutscene playing: no input, no HUD; over, the ending's placeholder)
+  if (fin.final === 'cut') {
+    p.inCutscene = true; setUi({ introCutscene: true });
+    if (fin.scene && tickScene(fin.scene)) {
+      if (fin.scene.skipped) { silenceAll(); state.playerVulgarityTimer = 0; }
+      fin.scene = null; p.inCutscene = false; setUi({ introCutscene: false });
+      for (const b of [sat, wid]) { b.dead = true; b.said = null; }
+      fin.final = 'done'; fin.cleared = SECTIONS.length;
+    }
+    return { ...NO_CONTROLS };
+  }
+  // (both down: the breather, and it's theirs to pick from)
+  if (fin.final === 'fight' && sat.mode === 'ko' && wid.mode === 'ko') {
+    fin.final = 'dazed'; fin.winT = 0; fin.count = null;
+    clearShots(fin.bs); clearSwarm(state, fin.sw); setKoHittable(true);
+    if (fin.ben.on_) { fin.ben.on_ = null; fin.ben.mode = 'off'; fin.ben.t = 0; }
+    playSound('ding', 0.8, -8);
+  }
+  if (fin.final !== 'dazed') return null;
+  fin.winT++;
+  p.invincibilityTimer = Math.max(p.invincibilityTimer, 2);
+  // (a wobble in them)
+  for (const b of [sat, wid]) b.face = px < b.x ? -1 : 1;
+  // ---- the water tower: Y + B at it, once (the owner's: "just picking it up will trigger the finisher")
+  pollM2(state.frame);
+  const chord = pressed('beatKey') || (btn('y') && pressed('b')) || (pressed('y') && btn('b'));
+  if (tw && Math.abs(px - tw.x) < 90 && p.isGrounded && (chord || (auto && fin.winT > 60 && !fin.count))) {
+    tw.gone = true; tw.st = 'down'; callbackFor(state, tw);
+    return finish(state, fin, 'TOWER');
+  }
+  // ---- nothing, long enough: they fall over by themselves
+  if (fin.winT > FINISHER_COST.NOTHING) return finish(state, fin, 'NOTHING');
+  if (auto && tw) return { ...controls, left: px > tw.x + 20, right: px < tw.x - 20, shoot: false };
+  return null;
+};
+/** A hit landed on one of them, both down: counted for its weapon's finisher (another weapon: the count from scratch);
+ *  a "HEY" out of them; the do-nothing clock put back. */
+const koHit = (state: GameState, fin: Fin, b: Boss, w: string) => {
+  if (fin.final !== 'dazed' || !isFinWeapon(w)) return;
+  fin.winT = 0;
+  if (!fin.count || fin.count.w !== w) fin.count = { w, n: 0 };
+  fin.count.n++;
+  if (Math.random() < 0.35) bossSays(state, b, b.who === 'satan' ? L.SATAN_DAZE : L.WIDOW_DAZE);
+  playSound('squish', 0.4, 6 + fin.count.n);
+  if (fin.count.n >= FINISHER_COST[w]) finish(state, fin, w);
+};
+/** That one, then: its cutscene. */
+const finish = (state: GameState, fin: Fin, id: FinId): Controls => {
+  fin.final = 'cut'; fin.finId = id; finaleEnd.finisher = id;
+  setKoHittable(false);
+  fin.scene = startFinisher(id, dressed(state));
+  state.player.inCutscene = true; setUi({ introCutscene: true });
+  return { ...NO_CONTROLS };
+};
+/** The pips by the pair: the finisher filling, in its weapon's color. */
+const drawPips = (c: Ctx, fin: Fin) => {
+  if (fin.final !== 'dazed' || !fin.count) return;
+  const n = FINISHER_COST[fin.count.w], x0 = (fin.bs.satan.x + fin.bs.widow.x) / 2 - n * 4, y = Math.min(fin.bs.satan.y, fin.bs.widow.y) - 130;
+  for (let i = 0; i < n; i++) { c.fillStyle = '#000'; c.fillRect(Math.round(x0 + i * 8) - 1, y - 1, 7, 7); c.fillStyle = i < fin.count.n ? FINISHER_COLOR[fin.count.w] : '#3F3F46'; c.fillRect(Math.round(x0 + i * 8), y, 5, 5); }
+};
+
+/** Over a Cartoon Land boss that's down (it stays down till the other's down too). */
+const drawDown = (c: Ctx, b: Boss) => {
+  const x = Math.round(b.x), y = Math.round(b.y - bossH(b) + 10);
+  c.font = '8px "Press Start 2P"'; c.textAlign = 'center';
+  c.fillStyle = '#000'; c.fillRect(x - 50, y - 10, 100, 13); c.fillStyle = '#F97316'; c.fillRect(x - 49, y - 9, 98, 11);
+  c.fillStyle = '#000'; c.fillText(L.KO_TAG, x, y); c.textAlign = 'left';
+};
+type PadFaceName = 'A' | 'B' | 'X' | 'Y';
+/** The buttons, the first times: drawn as the buttons themselves (the pad's faces, or his keys). */
+const helpRow = (c: Ctx, items: [PadFaceName, 'fire' | 'special' | 'secondary', string][], y: number) => {
+  const pad = inputDevice() === 'pad';
+  c.font = '8px "Press Start 2P"';
+  const w = 150 * items.length;
+  let x = W / 2 - w / 2 + 20;
+  c.fillStyle = 'rgba(0, 0, 0, 0.6)'; c.fillRect(W / 2 - w / 2, y - 14, w, 26);
+  for (const [face, act, word] of items) {
+    if (pad) drawPadFace(c, x, y - 2, 8, face, padFamily());
+    else { const k = keyLabel(keysFor(act)[0] ?? ''); const kw = Math.max(16, c.measureText(k).width + 8); c.fillStyle = '#E4E4E7'; c.fillRect(x - kw / 2, y - 10, kw, 16); c.fillStyle = '#18181B'; c.textAlign = 'center'; c.fillText(k, x, y + 2); c.textAlign = 'left'; }
+    c.fillStyle = '#F8FAFC'; c.fillText(word, x + 16, y + 2);
+    x += 150;
+  }
+};
+const drawHoldHelp = (c: Ctx) => helpRow(c, [['X', 'fire', 'PUNCH'], ['B', 'special', 'KNEE'], ['Y', 'secondary', 'HEADBUTT']], 130);
+

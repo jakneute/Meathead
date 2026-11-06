@@ -136,12 +136,110 @@ export const WIDOW_DAZED = bp(['I SEE STARS. ACTUAL ONES. HOME.', 'WHERE\'S MY C
 /** Thrown (in the air). */
 export const SATAN_THROWN = bp(['NOT THE RIDE!', 'PUT ME DOOOWN!'], ['NOT WITH THOSE HANDS!', 'YOU GOT SHIT ON MY WINGS!'], ['YOU TOUCHED ME WITH IT!', 'NOT NAKED! NOT NAAAKED!']);
 export const WIDOW_THROWN = bp(['MY HIP!', 'I\'M A MOTHER!'], ['YOU GOT IT ON MY HOUSECOAT!', 'YOU STINKY SON OF A...'], ['IT TOUCHED MY HOUSECOAT!', 'NOT LIKE THIS!']);
+/** Held up by the throat (the mobile beatdown), and each blow now and then. */
+export const SATAN_NECK = bp(
+  ["GHK. PUT ME. DOWN.", "NOT THE THROAT. I NEED IT FOR SCREAMING.", "I AM THE PRINCE OF DARKNESS. GHK."],
+  ["YOUR HAND SMELLS LIKE YOUR PANTS.", "GET YOUR SHIT HAND OFF MY NECK.", "I CAN TASTE IT. I CAN TASTE YOUR HAND."],
+  ["YOUR HAND. IS NAKED. LIKE THE REST.", "DON'T WALK ME AROUND. IT SWINGS.", "I CAN SEE IT FROM UP HERE. I CAN SEE IT."],
+);
+export const WIDOW_NECK = bp(
+  ["GHK. MY PEARLS.", "PUT ME DOWN. I'M SOMEBODY'S MOTHER.", "MY CURLERS ARE COMING LOOSE."],
+  ["YOUR HAND STINKS. LIKE THE POD TOILET.", "YOU'RE GETTING IT ON MY HOUSECOAT.", "OH GOD, THE SMELL IS COMING UP."],
+  ["DON'T WALK. EVERYTHING SWINGS WHEN YOU WALK.", "I SEE IT. MY ONE EYE SEES ALL OF IT.", "PUT ME DOWN. PUT IT AWAY. BOTH."],
+);
+/** The one still standing, the other one thrown: enraged. */
+export const SATAN_RAGE = bp(
+  ["NOBODY THROWS MY PARTNER. NOBODY BUT ME.", "NOW I'M MAD. NOW YOU SEE HELL.", "THAT WAS MY RIDE OUT OF HERE."],
+  ["NOW YOU DIE IN SHIT PANTS.", "I'LL BURN THOSE PANTS OFF YOU.", "NOW I'M MAD. AND YOU STILL STINK."],
+  ["NOW I'M MAD. COVER UP AND DIE.", "I'LL BURN THAT THING OFF.", "NOW YOU DIE NAKED. LIKE A BABY."],
+);
+export const WIDOW_RAGE = bp(
+  ["YOU THREW HORN BOY? HE WAS MINE TO KILL.", "NOW MOMMY'S MAD.", "THAT'S IT. NO MORE MISS NICE WIDOW."],
+  ["NOW MOMMY'S MAD. AND YOU STINK.", "I'LL LASER THE SHIT RIGHT OFF YOU.", "YOU STINKY LITTLE MAN. NOW YOU DIE."],
+  ["NOW MOMMY'S MAD. PUT IT AWAY.", "I'LL LASER THAT THING RIGHT OFF.", "YOU NAKED LITTLE MAN. NOW YOU DIE."],
+);
 /** Up out of the wreck, after it. */
 export const SATAN_UP = ['I\'M FINE. THAT WAS ON PURPOSE.', 'THAT RIDE NEEDS A HEIGHT LIMIT.'];
 export const WIDOW_UP = ['I\'M FINE. MY HIP IS NOT.', 'I LOST AN EARRING. THAT\'S ON YOU.'];
 /** Ben holding one of them. */
 export const SATAN_HELD = ['GET OFF ME, OLD MAN!', 'WHO IS THIS GUY?!', 'UNHAND ME, GYM TEACHER!'];
 export const WIDOW_HELD = ['GET YOUR HANDS OFF MY HOUSECOAT!', 'WHO\'S THE OLD MAN?!', 'BOYS! GET THIS GUY OFF ME!'];
+
+// ---------------------------------------------------------------------------------------------------------------
+// The end (Cartoon Land: the water tower)
+
+/** Out of health (Cartoon Land): down for good, no threat. */
+export const KO_TAG = 'KNOCKED OUT';
+// ---------------------------------------------------------------------------------------------------------------
+// The finishers (the owner's: "Let them fall over or use the environment to kill them spectacularly. They will be
+// 'dazed'. When that happens, the game is effectively won. Using one of the 9 weapons in their dazed state will kill
+// them in a special way too. So there's 11"): each a short full cutscene (finale/finishers.ts). Meathead's lines three
+// ways; theirs one pool each (they're past caring what he's wearing).
+
+/** Dazed (both down: the game's won): what they mumble when a hit lands on them (text only while it's said). */
+export const SATAN_DAZE = ['HEY.', 'OW. HEY.', 'NOT THE FACE.', 'I AM SO TIRED.'];
+export const WIDOW_DAZE = ['HEY!', 'OW.', 'MY CURLERS...', 'NOT NOW, SWEETIE.'];
+/** The prompt while they're dazed (his own words for it, not anybody else's game's). */
+export const DAZED_PROMPT = "THEY'RE DONE. PICK HOW.";
+
+export interface FinisherLines { mh: ByPants; satan: string[]; widow: string[]; after: ByPants }
+export const FINISH: Record<string, FinisherLines> = {
+  GUN: {
+    mh: bp(['RAY GUN. FOR OLD TIMES.'], ['RAY GUN. THE ONLY THING CLEAN ON ME.'], ['RAY GUN. THE ONLY THING I\'M WEARING.']),
+    satan: ['MY HOOVES ARE ALL THAT\'S LEFT. FIND MY HOOVES.'], widow: ['MY SLIPPERS. BURY MY SLIPPERS.'],
+    after: bp(['TWO PAIRS OF SHOES. SOMEBODY\'S MOM GETS A PACKAGE.'], ['TWO PAIRS OF SHOES. I\'LL TAKE THE SLIPPERS. MINE ARE RUINED.'], ['TWO PAIRS OF SHOES. FINALLY SOMETHING TO WEAR.']),
+  },
+  SOUVENIR: {
+    mh: bp(['ONE FROM THE GIFT SHOP.'], ['ONE FROM THE GIFT SHOP. NO RECEIPT.'], ['ONE FROM THE GIFT SHOP. I PAID IN EXPOSURE.']),
+    satan: ['IS THAT THE EASTER ISLAND HEAD? THE WHOLE GUY?'], widow: ['IT\'S LOOKING AT ME. THE HEAD IS LOOKING AT ME.'],
+    after: bp(['MADE IN A COUNTRY YOU CAN\'T PRONOUNCE. LIKE YOU TWO.'], ['FLAT. LIKE MY PANTS. WAIT. NOT LIKE MY PANTS.'], ['FLAT. TWO SOUVENIR RUGS. HELL AND SPACE.']),
+  },
+  SOUL_SUCKER: {
+    mh: bp(['FEET FIRST. BOTH OF YOU.'], ['FEET FIRST. IT\'S USED TO WORSE.'], ['FEET FIRST. DON\'T LOOK UP.']),
+    satan: ['NOT THE BAG! I\'VE SEEN WHAT\'S IN THE BAG!'], widow: ['IT\'S PULLING MY HOUSECOAT OFF!'],
+    after: bp(['WASTE NOT. HOSE DOWN THE PARK.'], ['WASTE NOT. AND IT RINSED THE PANTS.'], ['WASTE NOT. WARM, TOO.']),
+  },
+  FLINTLOCK: {
+    mh: bp(['ONE BALL. TWO HEADS. YEEHAW.'], ['ONE BALL. TWO HEADS. LINE UP.'], ['ONE BALL. TWO HEADS. THE LASER\'S POINTING AT MY THING. FINE.']),
+    satan: ['YOU\'RE NOT ALLOWED TO HEADSHOT A BOSS! THERE\'S RULES!'], widow: ['MY ONE EYE! IT\'S MY ONLY ONE!'],
+    after: bp(['THE RULES SAID NO HEADSHOTS. THE GAME\'S OVER. NO RULES.'], ['NO RULES AFTER THE GAME\'S WON. ALSO NO PANTS.'], ['NO RULES AFTER THE GAME\'S WON. NEVER WERE.']),
+  },
+  SPELLBOOK: {
+    mh: bp(['ICE FOR THE HORNS. FIRE FOR THE CURLERS.'], ['ICE FOR THE HORNS. FIRE FOR THE CURLERS. NOTHING FOR MY PANTS.'], ['ICE FOR THE HORNS. FIRE FOR THE CURLERS. NONE NEAR ME.']),
+    satan: ['COLD! I HAVEN\'T BEEN COLD IN SIX THOUSAND YEARS!'], widow: ['MY HAIR SPRAY! IT\'S FLAMMABLE! EVERYTHING I OWN IS FLAMMABLE!'],
+    after: bp(['DEVIL POPSICLE. WIDOW FLAMBE.'], ['DEVIL POPSICLE. WIDOW FLAMBE. IT SMELLS BETTER THAN ME.'], ['DEVIL POPSICLE. WIDOW FLAMBE. AND A NAKED WIZARD.']),
+  },
+  STUNT_CAR: {
+    mh: bp(['ACTION!'], ['ACTION! AND CUT THE SMELL IN POST.'], ['ACTION! THIS PART\'S NOT IN THE TRAILER.']),
+    satan: ['THAT CAR\'S AS BIG AS ME!'], widow: ['WHERE\'S MY STUNT DOUBLE?!'],
+    after: bp(['THAT\'S A WRAP. ON BOTH OF YOU.'], ['THAT\'S A WRAP. GIVE ME A TOWEL.'], ['THAT\'S A WRAP. GIVE ME A ROBE.']),
+  },
+  MALLET: {
+    mh: bp(['FLAT AS A PANCAKE. BOTH.'], ['FLAT AS A PANCAKE. LIKE THE SEAT OF MY PANTS.'], ['FLAT AS A PANCAKE. LIKE MY ASS ON A COLD BENCH.']),
+    satan: ['I SEE BIRDS. HELL HAS NO BIRDS.'], widow: ['I\'M A RUG. HE MADE ME A RUG.'],
+    after: bp(['ROLL \'EM UP. TAKE \'EM HOME. NEW CARPET.'], ['ROLL \'EM UP. THEY\'LL HIDE THE STAINS.'], ['ROLL \'EM UP. SOMETHING TO SIT ON NAKED.']),
+  },
+  SPAWNER: {
+    mh: bp(['DINNER, BOYS.'], ['DINNER, BOYS. DON\'T EAT THE PANTS.'], ['DINNER, BOYS. NOT ME. THEM.']),
+    satan: ['THEY\'RE CHEWING MY WINGS! THESE ARE DESIGNER!'], widow: ['THEY\'RE IN MY CURLERS! THEY\'RE NESTING!'],
+    after: bp(['TWO SKELETONS. ONE\'S GOT HORNS. ONE\'S GOT CURLERS.'], ['TWO SKELETONS. THE GOBLINS ARE STILL HUNGRY. I\'M LEAVING.'], ['TWO SKELETONS. THE GOBLINS ARE LOOKING AT ME. I\'M LEAVING.']),
+  },
+  CROSSBOW: {
+    mh: bp(['STICK \'EM TILL THEY HURL.'], ['STICK \'EM TILL THEY HURL. JOIN THE CLUB.'], ['STICK \'EM TILL THEY HURL. NOT ON MY FEET.']),
+    satan: ['I\'M GONNA BLOW! GET OUT OF THE WAY!'], widow: ['NOT ON MY HOUSECOAT! NOT ON MY... OH NO.'],
+    after: bp(['THEY PUKED EACH OTHER TO DEATH. CLASSIC.'], ['THEY PUKED EACH OTHER TO DEATH. NOW WE ALL SMELL THE SAME.'], ['THEY PUKED EACH OTHER TO DEATH. AND I\'M BAREFOOT IN IT.']),
+  },
+  TOWER: {
+    mh: bp(['THIS IS A CUP NOW.'], ['THIS IS A CUP NOW. I NEED THE SHOWER AFTER.'], ['THIS IS A CUP NOW. BIG ONE. LIKE ME.']),
+    satan: ['IT\'S FILLING UP! HELL HAS NO WATER! I CAN\'T SWIM!'], widow: ['GLUB. MY BABY. GLUB. MY JAR.'],
+    after: bp(['TWO BUGS UNDER A CUP. CARTOON LAND, BABY.'], ['TWO BUGS UNDER A CUP. NOW I SHOWER.'], ['TWO BUGS UNDER A CUP. NOW WHERE DO I PUT MY PANTS?']),
+  },
+  NOTHING: {
+    mh: bp(['...I\'M JUST GONNA WATCH.'], ['...I\'M JUST GONNA WATCH. AND SIT. CAREFULLY.'], ['...I\'M JUST GONNA WATCH. BREEZY.']),
+    satan: ['I\'LL BE BACK... I\'LL BE... ZZZ... *FART*'], widow: ['TELL ZORBLAX... I LEFT THE STOVE ON...'],
+    after: bp(['THEY JUST FELL OVER. THAT\'S IT. I WIN.'], ['THEY JUST FELL OVER. ONE SHIT HIMSELF. NOT JUST ME NOW.'], ['THEY JUST FELL OVER. NOW EVERYBODY\'S NAKED. WAIT. NO.']),
+  },
+};
 
 // ---------------------------------------------------------------------------------------------------------------
 // Ben (only with all eight armor pieces given): he says the section's weapon at its start, and grapples one of them
@@ -171,6 +269,7 @@ export const BEN_NICE = ['GOOD FORM.', 'HIPS. YOU USED YOUR HIPS. PROUD OF YOU.'
 // the rich guy)
 
 export const NEEDLE_COUNT = ['T-MINUS THREE. TWO.'];
+export const MUSK_NAME = 'ELON MUSK';
 export const MUSK_RAGE = ['MY ROCKET! THAT WAS GOING TO MARS!', 'WHO DID THAT?! I\'M SUING FLORIDA!', 'THAT WAS MY RIDE OFF THIS PLANET!'];
 export const MH_OOPS = bp(['OOPS.'], ['OOPS. SHIT.'], ['OOPS. NAKED OOPS.']);
 
@@ -233,18 +332,20 @@ export const CALLBACKS: Record<string, Callback[]> = {
   kabooma: [cb('m2.maint', 'staff', '#CA8A04', same(['TWELVE YEARS IN THIS BOOTH. NOTHING EVER HAPPENED. UNTIL NOW.']))],
   // ---- FOREIGN LANDS
   pavilions: [cb('m2.foreign.pa', 'staff', '#0EA5E9', same(['TEN COUNTRIES. ZERO FOREIGNERS. ZERO COUNTRIES.']))],
-  monumentsB: [cb('m2.foreign.mech_moai', 'robot', '#78716C', same(['...OW.']))],
+  monuments: [cb('m2.foreign.mech_moai', 'robot', '#78716C', same(['...OW.'])), cb('m2.foreign.mech_eiffel', 'robot', '#8A6A4A', same(['MY ELEVATOR WAS ALREADY BROKEN. NOW THIS.']))],
+  libertydig: [cb('m2.foreign.pa', 'staff', '#0EA5E9', same(['AMERICA: COMING SOON. AMERICA: CANCELED.']))],
   // ---- FUTURE LAND
   atom: [cb('m2.space.op', 'staff', '#14B8A6', same(['WELCOME TO THE FUTURE! HOW MANY IN YOUR... NEVER MIND.']))],
   needle: [cb('m2.space.needle', 'staff', '#E5E7EB', same(['SPACE NEEDLE TWO IS NOW HORIZONTAL. THE TRIP TO FLORIDA TAKES NINE SECONDS.']))],
   // ---- WILDERNESS LAND
   gulch: [cb('m2.frontier.sheriff', 'cowboy', '#92400E', same(['FOUR HUNDRED SHOWS. NOBODY EVER STEPPED ON THE TOWN.']))],
+  traincrash: [cb('m2.frontier.townsman', 'cowboy', '#92400E', same(['THE TRAIN AGAIN?! WE JUST SWEPT UP THE LAST ONE!']))],
   timber: [cb('m2.frontier.announcer', 'cowboy', '#B45309', same(['HOLD ON TO YOUR HATS! THERE GOES TIMBER TUMBLE!']))],
   // ---- SPOOKY LAND
   dracula: [cb('m2.donnie.pa', 'monster', '#581C87', same(['GOOD EVENINK. THE CASTLE IS CLOSED. ALSO FLAT. ALSO I AM DEAD.']))],
   hellevator: [cb('m2.hellop', 'staff', '#7F1D1D', same(['NO WRISTBAND, NO HELL. YOU KNOW WHAT? GO AHEAD.']))],
   // ---- CARTOON LAND
-  cwtower: [cb('m2.cartoon.guide', 'staff', '#DB2777', same(['HI! WELCOME! THE WATER TOWER IS GONE! I WANT TO DIE!']))],
+  cwtower: [cb('m2.cartoon.guide', 'staff', '#DB2777', same(["HI! WELCOME! HE'S PULLING UP THE WATER TOWER! THAT'S LOAD BEARING! I WANT TO DIE!"]))],
   amphi: [cb('m2.cartoon.bouncer', 'cop', '#111827', bp(['SHOW\'S IN PROGRESS. NO GIANTS ON STAGE.'], ['SHOW\'S OVER. AND IT SMELLS.'], ['SHOW\'S OVER. PUT IT AWAY.']))],
 };
 
@@ -271,10 +372,10 @@ const cbVoices = (): Record<string, string[]> => {
   return out;
 };
 export const FINALE_VOICE_LINES: Record<string, string[]> = {
-  meathead: flat(MH_ARRIVE, MH_KIDS, MH_RAY, MH_BEN_RAY, MH_GIANT, MH_AMERICA, ...Object.values(MH_LAND), MH_WEAK, MH_STUNNED, MH_THROW, MH_NEXT, MH_STOMP, MH_HALF, MH_END, MH_OOPS, ...Object.values(HURT).map(h => h.hurt)),
+  meathead: flat(MH_ARRIVE, MH_KIDS, MH_RAY, MH_BEN_RAY, MH_GIANT, MH_AMERICA, ...Object.values(MH_LAND), MH_WEAK, MH_STUNNED, MH_THROW, MH_NEXT, MH_STOMP, MH_HALF, MH_END, MH_OOPS, ...Object.values(FINISH).flatMap(f => [f.mh, f.after]), ...Object.values(HURT).map(h => h.hurt)),
   death: flat(...Object.values(HURT).map(h => h.death)),
-  [SATAN_VOICE]: flat(SATAN_CLAIM, SATAN_BACK, SATAN_SEE, SATAN_GRIEF, SATAN_TRUCE, SATAN_IMPRESSED, SATAN_GO, SATAN_TAUNT, SATAN_HURT, SATAN_DAZED, SATAN_THROWN, SATAN_UP, SATAN_HELD),
-  [WIDOW_VOICE]: flat(WIDOW_CLAIM, WIDOW_SEE, WIDOW_GRIEF, WIDOW_TRUCE, WIDOW_EMBIGGEN, WIDOW_GO, WIDOW_TAUNT, WIDOW_HURT, WIDOW_DAZED, WIDOW_THROWN, WIDOW_UP, WIDOW_HELD),
+  [SATAN_VOICE]: flat(SATAN_CLAIM, SATAN_BACK, SATAN_SEE, SATAN_GRIEF, SATAN_TRUCE, SATAN_IMPRESSED, SATAN_GO, SATAN_TAUNT, SATAN_HURT, SATAN_DAZED, SATAN_THROWN, SATAN_UP, SATAN_HELD, SATAN_NECK, SATAN_RAGE, SATAN_DAZE, ...Object.values(FINISH).map(f => f.satan)),
+  [WIDOW_VOICE]: flat(WIDOW_CLAIM, WIDOW_SEE, WIDOW_GRIEF, WIDOW_TRUCE, WIDOW_EMBIGGEN, WIDOW_GO, WIDOW_TAUNT, WIDOW_HURT, WIDOW_DAZED, WIDOW_THROWN, WIDOW_UP, WIDOW_HELD, WIDOW_NECK, WIDOW_RAGE, WIDOW_DAZE, ...Object.values(FINISH).map(f => f.widow)),
   [CREW_VOICE]: flat(CREW_EMBIGGEN),
   [BEN_VOICE]: flat(BEN_RAY, ...Object.values(BEN_WEAPON), BEN_GRAB, BEN_GRAB_SATAN, BEN_OFF, BEN_NICE),
   [MUSK_VOICE]: flat(MUSK_RAGE),

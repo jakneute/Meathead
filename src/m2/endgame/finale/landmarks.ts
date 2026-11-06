@@ -37,6 +37,8 @@ export interface Lm {
   ang: number; va: number;
   /** Someone's said their callback for it (or it's had its chance). */
   said: boolean;
+  /** Taken away whole (the water tower, ripped up for a club): not drawn at all. */
+  gone?: boolean;
 }
 
 export const makeLandmarks = (): Lm[] => {
@@ -48,12 +50,12 @@ export const makeLandmarks = (): Lm[] => {
   add('america', AMERICA_RX, -1, false);
   SECTIONS.forEach((s, i) => {
     for (const [id, rx] of s.stomps) add(id, SEC_X[i] + rx, i, false);
-    add(s.throwAt, SEC_X[i] + s.throwRx, i, true);
+    if (s.throwAt) add(s.throwAt, SEC_X[i] + s.throwRx, i, true);
   });
   return out;
 };
 
-const slices = (d: LandmarkDef) => Math.max(4, Math.min(16, Math.round(d.w / 22)));
+const slices = (d: LandmarkDef) => (d.fall === 'domino' ? 18 : Math.max(4, Math.min(16, Math.round(d.w / 22))));
 
 /** Brings it down (`hard`: a throw's; `from`: the world x it was hit at). */
 export const bringDown = (state: GameState, m: Lm, from: number, hard = false) => {
@@ -62,6 +64,8 @@ export const bringDown = (state: GameState, m: Lm, from: number, hard = false) =
   const n = slices(m.def), d = m.def;
   m.delay = Array.from({ length: n }, (_, i) => {
     const sx = m.x - d.w / 2 + ((i + 0.5) / n) * d.w;
+    // (dominoes: each one over into the next, a second and a half from end to end)
+    if (d.fall === 'domino') return Math.round(Math.abs(sx - from) / d.w * 90);
     return Math.round(Math.abs(sx - from) / d.w * (hard ? 10 : 22) + ((i * 37) % 7));
   });
   m.ang = 0; m.va = hard ? 0.004 : 0.002;
@@ -120,6 +124,7 @@ const paintRubble = (g: Ctx, d: LandmarkDef, long: number) => {
 /** A tower's own canvas (to be drawn turned as it topples), painted once (2 to the world's pixel: the screen's). */
 const turned = new Map<string, HTMLCanvasElement>();
 const RES = 2;
+export const towerArt = (d: LandmarkDef) => towerCanvas(d);
 const towerCanvas = (d: LandmarkDef) => {
   let cv = turned.get(d.id);
   if (!cv) {
@@ -136,6 +141,7 @@ const onScreen = (state: GameState, x0: number, x1: number) => x1 > state.camera
 
 export const drawLandmarks = (c: Ctx, state: GameState, ms: Lm[]) => {
   for (const m of ms) {
+    if (m.gone) continue;
     const d = m.def;
     // (its whole drawn reach, fallen or standing: a toppled tower lies its height along the ground)
     const reach = d.fall === 'topple' && m.st !== 'up' ? d.h + d.w : d.w / 2 + 8;

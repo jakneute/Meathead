@@ -44,8 +44,10 @@ export const satanUpper = () => {
 };
 export const warmSatan = () => { satanUpper(); };
 
-export type SatanPose = 'idle' | 'walk' | 'crouch' | 'air' | 'land' | 'inhale' | 'breath' | 'lob' | 'clawTell' | 'claw' | 'rain' | 'dazed' | 'held' | 'thrown' | 'talk';
-export const SATAN_POSES: SatanPose[] = ['idle', 'walk', 'crouch', 'air', 'land', 'inhale', 'breath', 'lob', 'clawTell', 'claw', 'rain', 'dazed', 'held', 'thrown', 'talk'];
+export type SatanPose = 'idle' | 'walk' | 'crouch' | 'air' | 'land' | 'inhale' | 'breath' | 'lob' | 'clawTell' | 'claw' | 'rain' | 'dazed' | 'held' | 'thrown' | 'talk' | 'dangle' | 'dangleHit';
+export const SATAN_POSES: SatanPose[] = ['idle', 'walk', 'crouch', 'air', 'land', 'inhale', 'breath', 'lob', 'clawTell', 'claw', 'rain', 'dazed', 'held', 'thrown', 'talk', 'dangle', 'dangleHit'];
+/** His throat (from his feet, facing right): where Meathead's hand goes in the finale's neck hold (hold.ts). */
+export const SATAN_NECK: P = [0, -112];
 
 const SH: P = [-38, -118], SH2: P = [38, -118];
 const HIP: P = [-11, -62], HIP2: P = [11, -62];
@@ -80,7 +82,9 @@ export const drawSatanBody = (c: Ctx, pose: SatanPose, t: number, talk = false, 
   c.strokeStyle = SK[2]; c.lineWidth = 4; c.stroke();
   c.fillStyle = INK; c.beginPath(); c.moveTo(-54, -20); c.lineTo(-62, -4); c.lineTo(-46, -8); c.closePath(); c.fill();
   // (the legs: the far one darker; knees forward)
-  const feet: [P, P] = pose === 'air' ? [[-14, -18], [16, -10]] : pose === 'dazed' ? [[24, -crouch + 2], [40, -crouch + 2]] : [[-12 + walk * 12, -crouch], [12 - walk * 12, -crouch]];
+  // (dangling by the neck: the legs curled up under him, kicking, the feet well off the ground)
+  const kick = Math.sin(t * 0.4) * 5;
+  const feet: [P, P] = pose === 'dangle' || pose === 'dangleHit' ? [[-14 + kick, -84], [16 - kick, -78]] : pose === 'air' ? [[-14, -18], [16, -10]] : pose === 'dazed' ? [[24, -crouch + 2], [40, -crouch + 2]] : [[-12 + walk * 12, -crouch], [12 - walk * 12, -crouch]];
   const hips: [P, P] = [HIP, HIP2];
   for (let k = 0; k < 2; k++) {
     // (he's front-on, his painting: the knees out to the sides, a wrestler's)
@@ -127,6 +131,9 @@ const satanArms = (pose: SatanPose, t: number): [P, P] => {
     case 'rain': return [[-46, -182], [46, -184]];
     case 'dazed': return [[-54, -50], [54, -50]];
     case 'held': return [[-62, -140 + sw], [64, -136 - sw]];
+    // (both claws up at the hand on his throat; hit: flung wide)
+    case 'dangle': return [[-14, -118 + sw * 0.3], [14, -120 - sw * 0.3]];
+    case 'dangleHit': return [[-70, -150], [72, -146]];
     case 'thrown': return [[-68, -150], [68, -150]];
     case 'talk': return [[-48, -80], [58, -120]];
     default: return [[-48, -80], [48, -80]];
@@ -148,8 +155,10 @@ export const WIDOW_H = 150;
 const HIDE = ['#203214', '#385424', '#527236', '#6E8E4A', '#8AA860', '#A8C27A'];
 const COAT = ['#480C30', '#86285E', '#BC4A88', '#E070AA', '#F49AC6', '#FCC0DC'];
 const CURLER = ['#6A9CF4', '#F472B6'];
-export type WidowPose = 'idle' | 'walk' | 'squat' | 'air' | 'eye' | 'laser' | 'lowlaser' | 'call' | 'flick' | 'dazed' | 'held' | 'thrown' | 'talk';
-export const WIDOW_POSES: WidowPose[] = ['idle', 'walk', 'squat', 'air', 'eye', 'laser', 'lowlaser', 'call', 'flick', 'dazed', 'held', 'thrown', 'talk'];
+export type WidowPose = 'idle' | 'walk' | 'squat' | 'air' | 'eye' | 'laser' | 'lowlaser' | 'call' | 'flick' | 'dazed' | 'held' | 'thrown' | 'talk' | 'dangle' | 'dangleHit';
+export const WIDOW_POSES: WidowPose[] = ['idle', 'walk', 'squat', 'air', 'eye', 'laser', 'lowlaser', 'call', 'flick', 'dazed', 'held', 'thrown', 'talk', 'dangle', 'dangleHit'];
+/** Her throat (in the neck rolls), from her feet facing right. */
+export const WIDOW_NECK: P = [2, -108];
 const WSH: P = [-14, -98], WSH2: P = [16, -98];
 const WHIP: P = [-8, -40], WHIP2: P = [8, -40];
 
@@ -165,6 +174,8 @@ const widowArms = (pose: WidowPose, t: number): [P, P] => {
     case 'flick': return [[-22, -64], [44, -108]];
     case 'dazed': return [[-30, -34], [30, -34]];
     case 'held': return [[-36, -112 - sw], [40, -110 + sw]];
+    case 'dangle': return [[-6, -110 + sw * 0.3], [12, -112 - sw * 0.3]];
+    case 'dangleHit': return [[-44, -130], [46, -128]];
     case 'thrown': return [[-40, -128], [40, -128]];
     case 'talk': return [[-22, -62], [34, -96]];
     default: return [[-22, -62], [24, -62]];
@@ -178,7 +189,8 @@ export const drawWidowBody = (c: Ctx, pose: WidowPose, t: number, talk = false, 
   const drop = pose === 'squat' ? 18 : pose === 'dazed' ? 30 : pose === 'lowlaser' ? 22 : 0;
   c.save(); c.translate(0, drop);
   // (the legs: short, green, knees forward; fuzzy pink slippers)
-  const feet: [P, P] = pose === 'air' ? [[-12, -14], [14, -8]] : pose === 'dazed' ? [[22, -drop + 2], [36, -drop + 2]] : [[-10 + walk * 10, -drop], [10 - walk * 10, -drop]];
+  const kick = Math.sin(t * 0.45) * 4;
+  const feet: [P, P] = pose === 'dangle' || pose === 'dangleHit' ? [[-10 + kick, -66], [12 - kick, -62]] : pose === 'air' ? [[-12, -14], [14, -8]] : pose === 'dazed' ? [[22, -drop + 2], [36, -drop + 2]] : [[-10 + walk * 10, -drop], [10 - walk * 10, -drop]];
   for (let k = 0; k < 2; k++) {
     const h = k ? WHIP2 : WHIP, f = reachTo(h[0], h[1], feet[k][0], feet[k][1], 21, 21), kn = knee(h[0], h[1], f[0], f[1], 21, 21, 1);
     limb(c, h, kn, f, 9, k ? HIDE[3] : HIDE[2], HIDE[4]);

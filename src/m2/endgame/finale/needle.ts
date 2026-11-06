@@ -1,7 +1,8 @@
 // SPACE NEEDLE 2's fall (the owner's: "when space needle two falls, show a brief minicutscene of an overhead shot of
 // central florida as the thing falls down from central florida to port canaveral, it interrupts a space launch at the
 // last second. cut to a gross up shot of a pissed off elon musk shaking his fist"). A few seconds, no input, no HUD,
-// skippable all at once (the scene player's): the map from over Florida (SNES-ish: the sea in bands, the peninsula,
+// skippable all at once (the scene player's). The owner: "it will be a brief 'full cutscene' with the space needle
+// crash": full cutscene mode, the words in the box along the bottom, never bubbles: the map from over Florida (SNES-ish: the sea in bands, the peninsula,
 // the lakes, Orlando's dot), the tower's line growing east out of the park all the way to the cape; the rocket on its
 // pad and the countdown; the tip on it at the last second; then his gross-up (screen space: finale index.ts), the rage.
 
@@ -83,9 +84,9 @@ export const startNeedle = (): Scene => {
   const map2 = (c: Ctx, t: number, talking: boolean) => { shotT = t; shotMap(c, t); void talking; };
   const beats: (Beat & { gross?: 'musk' })[] = [
     { shot: map2, hold: 50, enter: () => { playSound('rumble', 0.8, -12); playSound('whoosh', 0.7, -16); } },
-    { shot: map2, who: 'LAUNCH CONTROL', voice: 'm2.space.needle', text: pickLine(L.NEEDLE_COUNT), at: [PAD[0], PAD[1] - 12], hold: 4 },
+    { shot: map2, who: 'LAUNCH CONTROL', voice: 'm2.space.needle', text: pickLine(L.NEEDLE_COUNT), hold: 4 },
     { shot: map2, hold: 70, enter: () => { needleClip.impactAt = shotT; setTimeout(() => { playSound('boom', 1, -10); playSound('nuke', 0.6, -6); }, 200); } },
-    { shot: shotBlack, who: 'ROCKET GUY', voice: L.MUSK_VOICE, text: pickLine(L.MUSK_RAGE), at: [128, 112], hold: 30, gross: 'musk' },
+    { shot: shotBlack, who: L.MUSK_NAME, voice: L.MUSK_VOICE, text: pickLine(L.MUSK_RAGE), hold: 30, gross: 'musk' },
   ];
   return createScene(beats);
 };

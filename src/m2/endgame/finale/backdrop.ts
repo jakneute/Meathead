@@ -146,6 +146,11 @@ export const drawFinaleGround = (c: Ctx, state: GameState) => {
     c.strokeStyle = L.ground[0]; c.lineWidth = 2; c.beginPath(); for (let xx = x; xx <= xe; xx += 8) { const y = floorY(xx) + 1; if (xx === x) c.moveTo(xx, y); else c.lineTo(xx, y); } c.stroke();
     c.strokeStyle = '#FFFFFF55'; c.lineWidth = 1; c.beginPath(); for (let xx = x; xx <= xe; xx += 8) { const y = floorY(xx); if (xx === x) c.moveTo(xx, y); else c.lineTo(xx, y); } c.stroke();
     for (let xx = Math.ceil(x / 24) * 24; xx < xe; xx += 24) { const y = floorY(xx) + 6 + Math.floor(hash(xx) * 30); c.fillStyle = L.ground[2]; c.fillRect(xx, y, 3, 2); }
+    // (Wilderness Land: the railroad along the ground the whole way, ties and two rails, crunched under him)
+    if (land === 'frontier') {
+      for (let xx = Math.ceil(x / 12) * 12; xx < xe; xx += 12) { const y = floorY(xx); c.fillStyle = '#5A3A24'; c.fillRect(xx, y + 2, 8, 3); }
+      c.fillStyle = '#8A8A92'; for (let xx = x; xx < xe; xx += 8) { const y = floorY(xx); c.fillRect(xx, y + 1, 8, 1); c.fillRect(xx, y + 5, 8, 1); }
+    }
     x = xe;
   }
 };

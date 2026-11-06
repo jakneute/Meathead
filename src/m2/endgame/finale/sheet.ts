@@ -10,6 +10,8 @@ import { drawBen } from '../../upgrades/confucktious/art';
 import { drawMuskGross, drawMuskGrossBack, warmMuskGross } from './muskGross';
 import { LANDMARKS } from './sections';
 import { BEN_K } from './ben';
+import { neckPose, drawDangle, type Blow } from './hold';
+import { paintFinisherPic, FINISHER_IDS } from './finishers';
 
 const sheet = (cols: number, rows: number, cw: number, ch: number, scale: number, cell: (g: CanvasRenderingContext2D, i: number) => string | void) => {
   const cv = document.createElement('canvas');
@@ -51,6 +53,36 @@ export const contactSheetFin = (what: string): string => {
       g.save(); g.translate(14, 0); g.scale(0.62, 0.62); if (sat) drawSatanBody(g, 'held', 10); else drawWidowBody(g, 'held', 10); g.restore();
       g.save(); g.translate(10, 0); g.scale(BEN_K, BEN_K); drawBen(g, 0, 0, i < 6 ? 1 : -1, 'brace', 0, null); g.restore();
       return `holding ${sat ? 'satan' : 'widow'}`;
+    });
+  }
+  if (what === 'neck') {
+    // (the neck hold: holding, the punch (mid, landed), the knee, the headbutt, walking; Satan then the widow)
+    warmSatan();
+    const cells: [Blow | null, number, number, string][] = [[null, 0, 0, 'hold'], ['punch', 0.5, 0, 'punch'], ['knee', 0.5, 0, 'knee'], ['head', 0.5, 0, 'headbutt'], [null, 0, 1.6, 'walk']];
+    return sheet(5, 2, 200, 220, 2, (g, i) => {
+      const [blow, k, ph, name] = cells[i % 5], who = i < 5 ? 'satan' : 'widow';
+      g.translate(70, 205);
+      g.fillStyle = '#5A6A4A'; g.fillRect(-70, 0, 200, 15);
+      drawDangle(g, 20, who, 0, 0, 1, !!blow && k > 0.4);
+      drawPoseSprite(g, 0, 0, 1, c => neckPose(c, 0, blow, k, ph, ph > 0));
+      return `${name} (${who})`;
+    });
+  }
+  if (what === 'finishers') {
+    // (every finisher's four pictures, each well into its beat: 11 rows)
+    warmSatan();
+    return sheet(4, FINISHER_IDS.length, 256, 144, 1, (g, i) => { const id = FINISHER_IDS[Math.floor(i / 4)], st = i % 4; paintFinisherPic(g, id, st, 60, 'clean'); return `${id} ${st}`; });
+  }
+  if (what === 'dead') {
+    // (pinned by the tower (dazed), and dead: lying where they went down)
+    warmSatan();
+    return sheet(4, 1, 230, 200, 2, (g, i) => {
+      const sat = i % 2 === 0;
+      g.translate(115, 185); g.fillStyle = '#5A6A4A'; g.fillRect(-115, 0, 230, 15);
+      if (i < 2) { g.scale(-1, 1); if (sat) drawSatanBody(g, 'dazed', 10); else drawWidowBody(g, 'dazed', 10); return `pinned ${sat ? 'satan' : 'widow'}`; }
+      g.translate(0, -26); g.rotate(-Math.PI / 2); g.translate(0, (sat ? 168 : 150) / 2);
+      if (sat) drawSatanBody(g, 'thrown', 10); else drawWidowBody(g, 'thrown', 10);
+      return `dead ${sat ? 'satan' : 'widow'}`;
     });
   }
   if (what === 'musk') { warmMuskGross(); return sheet(2, 1, 800, 600, 1, (g, i) => { drawMuskGrossBack(g, 800, 600); drawMuskGross(g, 400, 310, 0.95, i * 7); return i ? 'fist up' : 'fist low'; }); }

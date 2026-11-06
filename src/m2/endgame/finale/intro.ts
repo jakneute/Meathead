@@ -59,7 +59,7 @@ const lot = () => {
 };
 
 /** Him, small, in the pictures: feet at (x, y), `s` how big (1: 20 art px), walking. */
-const miniMeathead = (c: Ctx, x: number, y: number, s: number, t: number, d: Dress, face = 1) => {
+export const miniMeathead = (c: Ctx, x: number, y: number, s: number, t: number, d: Dress, face = 1) => {
   c.save(); c.translate(Math.round(x), Math.round(y)); c.scale(s * face, s);
   const step = Math.sin(t * 0.25) * 2;
   const skin = '#E8A888', pants = d === 'nude' ? skin : d === 'shitty' ? '#3A5A9A' : '#2A4A8A';

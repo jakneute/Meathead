@@ -23,14 +23,14 @@ export interface LandmarkDef {
   w: number; h: number;
   paint: (g: Ctx) => void;
   /** How it comes down: sinks into its own dust in slices; topples over (a tower: it's turned); the throw's own. */
-  fall: 'sink' | 'topple';
+  fall: 'sink' | 'topple' | 'domino';
   /** Its rubble's and debris's colors. */
   debris: string[];
   /** Fire after (dimmed, no glow: the finale's wrecks). */
   fire?: boolean;
 }
 
-const lm = (id: string, name: string, land: Land, w: number, h: number, paint: (g: Ctx) => void, debris: string[], fall: 'sink' | 'topple' = 'sink', fire = false): LandmarkDef => ({ id, name, land, w, h, paint, debris, fall, fire });
+const lm = (id: string, name: string, land: Land, w: number, h: number, paint: (g: Ctx) => void, debris: string[], fall: LandmarkDef['fall'] = 'sink', fire = false): LandmarkDef => ({ id, name, land, w, h, paint, debris, fall, fire });
 
 export const LANDMARKS: Record<string, LandmarkDef> = Object.fromEntries([
   lm('america', 'AMERICA USA', 'america', 270, 76, A.paintAmerica, ['#F1EDE4', '#B4533A', '#1D4ED8', '#DC2626']),
@@ -59,10 +59,9 @@ export const LANDMARKS: Record<string, LandmarkDef> = Object.fromEntries([
   lm('rexpaddock', 'THE T. REX PADDOCK', 'adventure', 152, 74, A.paintRexPaddock, ['#7A7A7A', '#4A6A3A']),
   lm('kabooma', 'MOUNT KABOOMA', 'adventure', 204, 100, A.paintKabooma, ['#7A5A4A', '#F97316', '#5A3E30']),
   // FOREIGN LANDS (the owner's count: the pavilions are one landmark, the world monuments two)
-  lm('monumentsA', 'WORLD MONUMENTS (ONE)', 'foreign', 292, 112, A.paintMonumentsA, ['#8A6A4A', '#C8A06A', '#D8C49A']),
+  lm('monuments', 'THE WORLD MONUMENTS', 'foreign', 620, 112, A.paintMonuments, ['#8A6A4A', '#C8A06A', '#F1EDE4', '#D8B878', '#6A6A62'], 'domino'),
   lm('pavilions', 'THE WORLD SHOWCASE PAVILIONS', 'foreign', 420, 82, A.paintPavilions, ['#C89A5A', '#C81E1E', '#E8E0D0', '#3B5BBF']),
-  lm('libertydig', 'THE AMERICA DIG', 'foreign', 136, 50, A.paintLibertyDig, ['#8A6A4A', '#A8A090']),
-  lm('monumentsB', 'WORLD MONUMENTS (TWO)', 'foreign', 316, 90, A.paintMonumentsB, ['#F1EDE4', '#D8B878', '#6A6A62']),
+  lm('libertydig', 'AMERICA (UNDER CONSTRUCTION)', 'foreign', 200, 112, A.paintLibertyDig, ['#E8C44A', '#8A6A4A', '#A8A090', '#1D4ED8'], 'sink', true),
   // FUTURE LAND
   lm('futuresquare', 'THE PEOPLE MOVER', 'space', 204, 60, A.paintFutureSquare, ['#F1F5F9', '#14B8A6', '#F97316']),
   lm('atom', 'THE GIANT ATOM', 'space', 96, 96, A.paintAtom, ['#C4B5FD', '#CBD5E1', '#7C3AED']),
@@ -71,6 +70,7 @@ export const LANDMARKS: Record<string, LandmarkDef> = Object.fromEntries([
   lm('xenoscare', 'XENOSCARE', 'space', 104, 56, A.paintXenoscare, ['#3F3F46', '#D6D3D1', '#16A34A']),
   lm('needle', 'SPACE NEEDLE 2', 'space', 80, A.NEEDLE_H, A.paintNeedle, ['#F1F5F9', '#38BDF8', '#94A3B8'], 'topple'),
   // WILDERNESS LAND
+  lm('traincrash', 'THE TRAIN CRASH', 'frontier', 220, 100, A.paintTrainCrash, ['#1F2937', '#B91C1C', '#9A6A3A', '#7F1D1D'], 'sink', true),
   lm('station', 'LONESOME PINE STATION', 'frontier', 164, 52, A.paintStation, ['#9A6A3A', '#1F2937', '#8A6A3A']),
   lm('rockies', 'THE ROCKIES (PAINTED)', 'frontier', 204, 80, A.paintRockies, ['#7A8AA0', '#F8FAFC', '#8A6A44']),
   lm('gulch', 'SAWDUST GULCH', 'frontier', 252, 80, A.paintGulch, ['#9A6A3A', '#F8FAFC', '#4A2E14'], 'sink', true),
@@ -145,28 +145,35 @@ export const SECTIONS: SectionDef[] = [
   // the backlot, the water tower, DISASTER: THE RIDE, the sign up its hill; then Steve's stadium (the owner's second).
   S('h1', 'hollywood', 1, 'HOLLYWOOD LAND', 1750, SPLIT, 'thrones', 1360, [['blvd', 330], ['chinaish', 760]], [[0, 0], [500, 0], [900, -10], [1200, 0]], ['leap', 'breath', 'fireballs'], ['hop', 'laser', 'butt']),
   S('h2', 'hollywood', 2, 'HOLLYWOOD LAND', 1900, weak('STUNT_CAR'), 'stunt', 1500, [['warehouse', 260], ['backlot', 560], ['hwtower', 800], ['disaster', 980], ['hwsign', 1220]], [[0, 0], [1050, 0], [1220, -34], [1380, 0]], ['breath', 'claw', 'rain'], ['lowlaser', 'ufos', 'hop']),
-  // FAIRY: HOGSMEAT, the glen, the Fairy Wheel; the dragons, the broom port, the castle on its crag
-  S('f1', 'fantasy', 1, 'FAIRY LAND', 1700, weak('FLINTLOCK'), 'fairywheel', 1320, [['hogsmeat', 330], ['glen', 820]], [[0, 0], [600, -20], [900, -20], [1100, 0]], ['fireballs', 'claw', 'leap'], ['laser', 'ufos']),
-  S('f2', 'fantasy', 2, 'FAIRY LAND', 1750, weak('SPELLBOOK'), 'pixiecastle', 1380, [['tragons', 330], ['broomport', 760]], [[0, 0], [1000, -6], [1250, -48], [1500, -48]], ['leap', 'rain'], ['hop', 'lowlaser', 'butt']),
-  // JUNGLE: the giant tree, the cruise's river, the temple; the dino park, the rex, MOUNT KABOOMA (fiberglass)
-  S('j1', 'adventure', 1, 'JUNGLE LAND', 1700, weak('SPAWNER'), 'temple', 1340, [['bigtree', 300], ['cruise', 760]], [[0, 0], [620, 12], [900, 12], [1050, 0]], ['breath', 'claw'], ['hop', 'laser', 'ufos']),
-  S('j2', 'adventure', 2, 'JUNGLE LAND', 1800, weak('CROSSBOW'), 'kabooma', 1420, [['dinopark', 320], ['rexpaddock', 820]], [[0, 0], [400, -24], [700, -24], [900, 0]], ['leap', 'fireballs', 'rain'], ['butt', 'lowlaser']),
-  // FOREIGN: the monuments (one), the pavilions (the throw); the America dig, the monuments (two, the throw)
-  S('o1', 'foreign', 1, 'FOREIGN LANDS', 1900, weak('SOUVENIR'), 'pavilions', 1420, [['monumentsA', 460]], [[0, 0], [1900, 0]], ['claw', 'breath', 'fireballs'], ['ufos', 'hop']),
-  S('o2', 'foreign', 2, 'FOREIGN LANDS', 1800, weak('CROSSBOW'), 'monumentsB', 1380, [['libertydig', 520]], [[0, 0], [300, 0], [500, 10], [700, 0], [1100, -18]], ['leap', 'rain'], ['laser', 'lowlaser', 'butt']),
+  // FAIRY (the owner's: "for fairy land it's the tragons ride and the castle"): HOGSMEAT, the Fairy Wheel, the glen
+  // stepped on, TRUELLING TRAGONS thrown into; the broom port stepped on, the castle on its crag thrown into
+  S('f1', 'fantasy', 1, 'FAIRY LAND', 1750, weak('FLINTLOCK'), 'tragons', 1380, [['hogsmeat', 300], ['fairywheel', 700], ['glen', 1030]], [[0, 0], [550, -20], [850, -20], [1100, 0]], ['fireballs', 'claw', 'leap'], ['laser', 'ufos']),
+  S('f2', 'fantasy', 2, 'FAIRY LAND', 1750, weak('SPELLBOOK'), 'pixiecastle', 1380, [['broomport', 560]], [[0, 0], [1000, -6], [1250, -48], [1500, -48]], ['leap', 'rain'], ['hop', 'lowlaser', 'butt']),
+  // JUNGLE (the owner's: "for jungle it's the cruise ride and the temple. The other attractions just get stepped
+  // on"): the giant tree, the dino park, the cruise's river; the rex's paddock, MOUNT KABOOMA (fiberglass), the temple
+  S('j1', 'adventure', 1, 'JUNGLE LAND', 1650, weak('SPAWNER'), 'cruise', 1300, [['bigtree', 320]], [[0, 0], [1100, 0], [1200, 12], [1420, 12], [1520, 0]], ['breath', 'claw'], ['hop', 'laser', 'ufos']),
+  S('j2', 'adventure', 2, 'JUNGLE LAND', 1800, weak('CROSSBOW'), 'temple', 1420, [['dinopark', 280], ['rexpaddock', 640], ['kabooma', 1010]], [[0, 0], [400, -24], [700, -24], [900, 0]], ['leap', 'fireballs', 'rain'], ['butt', 'lowlaser']),
+  // FOREIGN (the owner's: "it's the world landmarks followed by the in construction america land. The pavillioons get
+  // stomped on during the fight"): the pavilions stepped on, the world monuments thrown into (the whole row, going
+  // over like dominoes); the America pavilion's building site thrown into
+  S('o1', 'foreign', 1, 'FOREIGN LANDS', 1900, weak('SOUVENIR'), 'monuments', 1340, [['pavilions', 480]], [[0, 0], [1900, 0]], ['claw', 'breath', 'fireballs'], ['ufos', 'hop']),
+  S('o2', 'foreign', 2, 'FOREIGN LANDS', 1800, weak('CROSSBOW'), 'libertydig', 1380, [], [[0, 0], [300, 0], [500, 10], [700, 0], [1100, -18]], ['leap', 'rain'], ['laser', 'lowlaser', 'butt']),
   // FUTURE: the people mover, VOYAGE TO 2010, the atom; the monorail, XENOSCARE, SPACE NEEDLE 2 (the Florida fall)
   S('u1', 'space', 1, 'FUTURE LAND', 1750, weak('MALLET'), 'atom', 1360, [['futuresquare', 320], ['voyage', 800]], [[0, 0], [1750, 0]], ['breath', 'fireballs'], ['laser', 'ufos', 'hop']),
   S('u2', 'space', 2, 'FUTURE LAND', 1800, weak('SPAWNER'), 'needle', 1460, [['monorail', 340], ['xenoscare', 860]], [[0, 0], [600, -14], [1000, -14], [1200, 0]], ['claw', 'leap', 'rain'], ['lowlaser', 'butt'], 'needle'),
-  // WILDERNESS: the station, the painted Rockies, SAWDUST GULCH; the mine and trestle, TIMBER TUMBLE
-  S('w1', 'frontier', 1, 'WILDERNESS LAND', 1800, weak('SOUL_SUCKER'), 'gulch', 1400, [['station', 320], ['rockies', 800]], [[0, 0], [600, -30], [900, -30], [1150, 0]], ['leap', 'breath'], ['hop', 'butt', 'laser']),
-  S('w2', 'frontier', 2, 'WILDERNESS LAND', 1700, weak('FLINTLOCK'), 'timber', 1340, [['mine', 420]], [[0, 0], [250, -40], [550, -40], [750, 0], [1700, 0]], ['fireballs', 'rain', 'claw'], ['ufos', 'lowlaser']),
+  // WILDERNESS (shorter than in the game, inside the park: the rails along it, crunched underfoot. The owner's: "for frontier land it's the train crash site followed by the log ride"): the station, the
+  // painted Rockies stepped on, the train's wreck thrown into; SAWDUST GULCH, the mine and trestle, TIMBER TUMBLE
+  S('w1', 'frontier', 1, 'WILDERNESS LAND', 1500, weak('SOUL_SUCKER'), 'traincrash', 1160, [['station', 260], ['rockies', 640]], [[0, 0], [450, -24], [750, -24], [950, 0]], ['leap', 'breath'], ['hop', 'butt', 'laser']),
+  S('w2', 'frontier', 2, 'WILDERNESS LAND', 1500, weak('FLINTLOCK'), 'timber', 1180, [['gulch', 260], ['mine', 660]], [[0, 0], [520, 0], [640, -34], [860, -34], [980, 0]], ['fireballs', 'rain', 'claw'], ['ufos', 'lowlaser']),
   // SPOOKY: the town square, the kiddie rides, DRACULA'S OTHER CASTLE; the first castle, the gift shop, the clock tower
   S('s1', 'spooky', 1, 'SPOOKY LAND', 1750, weak('SOUVENIR'), 'dracula', 1380, [['spookytown', 320], ['kiddie', 780]], [[0, 0], [1000, 0], [1200, -20], [1500, -20]], ['breath', 'claw', 'leap'], ['laser', 'hop']),
   S('s2', 'spooky', 2, 'SPOOKY LAND', 1750, weak('SOUL_SUCKER'), 'hellevator', 1400, [['firstcastle', 320], ['giftshop', 800]], [[0, 0], [200, -40], [480, -40], [650, 0]], ['rain', 'fireballs'], ['ufos', 'butt', 'lowlaser']),
-  // CARTOON: Sillyville, the water tower (stepped on: the owner's own example), the studio, the White House; the
-  // big-kid zone, Punchy & Kicky, Stupid Dad's amphitheater
-  S('c1', 'cartoon', 1, 'CARTOON LAND', 1900, weak('STUNT_CAR'), 'whitehouse', 1480, [['silly', 300], ['cwtower', 640], ['studio', 960]], [[0, 0], [1900, 0]], ['leap', 'claw', 'breath'], ['hop', 'laser', 'ufos']),
-  S('c2', 'cartoon', 2, 'CARTOON LAND', 1800, weak('MALLET'), 'amphi', 1420, [['bigkid', 320], ['punchy', 820]], [[0, 0], [500, -16], [800, 0], [1100, -16], [1300, 0]], ['leap', 'breath', 'fireballs', 'rain'], ['hop', 'laser', 'lowlaser', 'butt', 'ufos']),
+  // CARTOON (the owner's: "for cartoon land there are no throws but he will pick up the water tower and beat them
+  // both to death with it. That whole section will entirely be both of them"): one long stretch, both of them the whole
+  // way (index.ts's final); everything stepped on; the CARTOON LAND WATER TOWER at the end, his club (throwAt: not a
+  // throw, the finisher's tower: kept standing till he rips it up)
+  S('c1', 'cartoon', 1, 'CARTOON LAND', 1750, weak('STUNT_CAR'), '', 0, [['silly', 280], ['studio', 720], ['whitehouse', 1220]], [[0, 0], [1750, 0]], ['leap', 'claw', 'breath'], ['hop', 'laser', 'ufos']),
+  S('c2', 'cartoon', 2, 'CARTOON LAND', 1900, weak('STUNT_CAR'), 'cwtower', 1560, [['bigkid', 300], ['punchy', 720], ['amphi', 1120]], [[0, 0], [500, -16], [700, 0], [1000, -16], [1250, 0]], ['leap', 'breath', 'fireballs', 'rain'], ['hop', 'laser', 'lowlaser', 'butt', 'ufos']),
 ];
 
 /** The checkpoint in the fight: after the 8th section (FOREIGN's second: four lands flat). */

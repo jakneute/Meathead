@@ -34,6 +34,11 @@ const INK = '#1A0B06';
 /** The jump: how fast it comes, how high over his feet it comes in, how hard it's falling, where it comes down past him. */
 const CAR_SCALE = 1.55;
 const CAR = { speed: 18, rise: 170, vy: -4, gravity: 0.42, land: 240, w: Math.round(112 * CAR_SCALE), h: Math.round(34 * CAR_SCALE) };
+/** (the kaiju finale: the car embiggened with him, as long as the finale keeps asking: keepStuntCarBig) */
+let bigK = 1, bigAt = -1e9;
+export const keepStuntCarBig = (k: number) => { bigK = k; bigAt = typeof performance !== 'undefined' ? performance.now() : 0; };
+const big = () => (typeof performance !== 'undefined' && performance.now() - bigAt < 1000 ? bigK : 1);
+const carScale = () => CAR_SCALE * big(), carW = () => Math.round(CAR.w * big()), carH = () => Math.round(CAR.h * big()), blastR = () => BLAST.radius * big();
 /** Snapped crouching: in low (just over his ducked head), flatter, coming down further out. */
 const LOW = { rise: 62, vy: -1.2, land: 330 };
 /** The fireball at the end: this wide, this hard in the middle (falling off to the edge). */
@@ -129,16 +134,16 @@ const fire = (ctx: FrameContext) => {
     const bot = b.y + b.h;
     if (bot <= pl.pos.y + 4 && bot > ceil) ceil = bot;
   }
-  const room = feet - ceil - CAR.h - 6;
+  const room = feet - ceil - carH() - 6;
   const J = room < J0.rise ? { rise: Math.max(8, room), vy: 0, land: J0.land } : J0;
   const landY = surfaceUnder(state, px + dir * J.land, feet - 4);
   const drop = (landY < 2000 ? landY : feet) - (feet - J.rise);
   const T = (-J.vy + Math.sqrt(J.vy * J.vy + 2 * CAR.gravity * Math.max(0, drop))) / CAR.gravity;
-  const startX = px + dir * J.land - dir * CAR.speed * T - CAR.w / 2;
-  const y = feet - J.rise - CAR.h;
+  const startX = px + dir * J.land - dir * CAR.speed * T - carW() / 2;
+  const y = feet - J.rise - carH();
   playSound('whoosh', 1, -8);
   state.projectiles.push({
-    id: `stuntcar-${state.frame}`, pos: { x: startX, y }, vel: { x: dir * CAR.speed, y: J.vy }, width: CAR.w, height: CAR.h,
+    id: `stuntcar-${state.frame}`, pos: { x: startX, y }, vel: { x: dir * CAR.speed, y: J.vy }, width: carW(), height: carH(),
     health: 1, maxHealth: 1, type: 'projectile', damage: 0, owner: 'player', custom: 'STUNT_CAR',
     customData: { kind: 'car', dir, endX: px + dir * J.land, hit: [], wheel: 0, wreck: 0, through: 0, inWall: false, paint: pickPaint(state), fromX: px } satisfies Part,
   });
@@ -206,13 +211,13 @@ const stunt = (ctx: FrameContext, p: Projectile, car: Extract<Part, { kind: 'car
   fx.spawnExplosion({ x: p.pos.x + p.width / 2, y: p.pos.y }, '#57534E', 16, 0, 22);
   // The fireball: everybody within a good way of it, hurt by how near, most of them gone
   const cx = p.pos.x + p.width / 2, cy = p.pos.y + p.height / 2;
-  struckAt(cx - BLAST.radius, cy - BLAST.radius, cx + BLAST.radius, cy + BLAST.radius, BLAST.dmg);
+  struckAt(cx - blastR(), cy - blastR(), cx + blastR(), cy + blastR(), BLAST.dmg);
   for (const e of [...state.enemies]) {
     if (!alive(e) || car.hit.includes(e.id)) continue;
     const d = Math.hypot(e.pos.x + e.width / 2 - cx, e.pos.y + e.height / 2 - cy);
-    if (d > BLAST.radius + e.width / 2) continue;
+    if (d > blastR() + e.width / 2) continue;
     // (a sub-boss takes its share of it: weapons/subBoss.ts)
-    const k = Math.max(0, 1 - d / (BLAST.radius + e.width / 2)), dmg = subBossDmg(e, Math.round(BLAST.edge + (BLAST.dmg - BLAST.edge) * k));
+    const k = Math.max(0, 1 - d / (blastR() + e.width / 2)), dmg = subBossDmg(e, Math.round(BLAST.edge + (BLAST.dmg - BLAST.edge) * k));
     const away = Math.sign(e.pos.x + e.width / 2 - cx) || car.dir;
     if (specialsHalf(e)) { e.health -= dmg; fx.spawnDamageNumber(e.pos, dmg, true); e.vel = { x: away * 7 * k * HALF, y: -6 * k * HALF }; e.pauseTimer = Math.max(e.pauseTimer || 0, 40 * HALF); continue; }
     if (isMidBoss(e)) { tagHit(state, e, 'STUNT_CAR', 'blast'); e.health -= dmg; fx.spawnDamageNumber(e.pos, dmg, true); continue; }
@@ -382,7 +387,7 @@ const tick = (ctx: FrameContext) => {
  *  wheels spinning, `dents` from what it's been through. */
 const drawCar = (c: Ctx, x: number, y: number, dir: number, wheel: number, rot: number, paint: Paint, driver = true, dents = 0) => {
   const i = Math.max(0, PAINT.indexOf(paint));
-  drawCarArt(c, x, y, CAR_SCALE * ART_K, dir, wheel, rot, i, paint, { driver, dents });
+  drawCarArt(c, x, y, carScale() * ART_K, dir, wheel, rot, i, paint, { driver, dents });
 };
 
 /** The stuntman (weapons/stuntCarArt.ts). `pose`: tumbling, down, up (thumbs up, then a wave: `f` the frame), diving. */
@@ -404,7 +409,7 @@ const draw = (c: Ctx, p: Projectile, frame: number) => {
     }
   }
   // (the art's bigger than the box: its wheels' bottoms kept to the box's bottom)
-  if (part.kind === 'car') { drawCar(c, p.pos.x + p.width / 2, p.pos.y + p.height - 15 * CAR_SCALE * ART_K + 4, part.dir, part.wheel, Math.atan2(p.vel.y, Math.abs(p.vel.x)) * 0.8, PAINT[part.paint], true, Math.min(3, part.hit.length + part.through)); return; }
+  if (part.kind === 'car') { drawCar(c, p.pos.x + p.width / 2, p.pos.y + p.height - 15 * carScale() * ART_K + 4, part.dir, part.wheel, Math.atan2(p.vel.y, Math.abs(p.vel.x)) * 0.8, PAINT[part.paint], true, Math.min(3, part.hit.length + part.through)); return; }
   if (part.target && alive(part.target)) {
     // (the one he's going for, marked: a red reticle closing on it)
     const t = part.target, tx = t.pos.x + t.width / 2, ty = t.pos.y + t.height / 2, r = 14 + Math.sin(frame * 0.5) * 3;
@@ -426,7 +431,7 @@ const drawOverlay = (c: Ctx, state: GameState) => {
     if (w.t < FLIP) {
       const k = w.t / FLIP, e = k * k * (3 - 2 * k), rot = w.rot0 + (Math.PI - w.rot0) * e;
       // (up off the floor as it goes over: stood on its end it's never down through the floor)
-      const mx = w.x + w.dir * (e - 0.5) * 24, my = w.y - 15 * CAR_SCALE * ART_K + 4 - Math.sin(k * Math.PI) * 52 - Math.abs(Math.sin(rot)) * 75;
+      const mx = w.x + w.dir * (e - 0.5) * 24, my = w.y - 15 * carScale() * ART_K + 4 - Math.sin(k * Math.PI) * 52 - Math.abs(Math.sin(rot)) * 75;
       // (the arcs: three stepped curves trailing round behind the way it's turning)
       for (let i = 0; i < 3; i++) {
         const R = 58 + i * 12, a1 = (w.dir > 0 ? rot : Math.PI - rot) - Math.PI / 2 * w.dir, a0 = a1 - w.dir * (0.9 - i * 0.2);
@@ -436,7 +441,7 @@ const drawOverlay = (c: Ctx, state: GameState) => {
       drawCar(c, mx, my, w.dir, 0, rot, PAINT[w.paint], false, 3);
       continue;
     }
-    drawWreckArt(c, w.x, w.y, CAR_SCALE * ART_K, w.dir, w.paint, PAINT[w.paint], { t: w.t, f: state.frame, burn: w.t < 140 ? 1 : 0.5 });
+    drawWreckArt(c, w.x, w.y, carScale() * ART_K, w.dir, w.paint, PAINT[w.paint], { t: w.t, f: state.frame, burn: w.t < 140 ? 1 : 0.5 });
   }
   // The clapperboard over his head: the clapper snapping down, ACTION!
   if (clap > 0) {

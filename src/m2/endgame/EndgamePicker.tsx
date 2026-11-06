@@ -13,7 +13,7 @@ import { ENDGAME_STAGES } from './stages';
  *  most of all): one page a level, every checkpoint of it in order, whichever stage it's in; the eight refights on a
  *  page of their own. */
 interface Row { name: string; stage: string; cp: number; hour: number }
-const PAGE_NAME: Record<number, string> = { 1: 'LEVEL 1: THE WATER PARK', 2: 'LEVEL 2: THE LAZY RIVER', 3: 'LEVEL 3: THE MAINTENANCE TUNNELS', 4: 'LEVEL 4: NED THE NECROMANCER', 5: 'LEVEL 5: THE KAIJU FINALE' };
+const PAGE_NAME: Record<number, string> = { 1: 'LEVEL 1: THE WATER PARK', 2: 'LEVEL 2: THE LAZY RIVER', 3: 'LEVEL 3: THE MAINTENANCE TUNNELS', 4: 'LEVEL 4: NED THE NECROMANCER', 5: 'LEVEL 5: THE KAIJU FINALE', 6: 'ENDING' };
 const PAGES: { name: string; rows: Row[] }[] = (() => {
   const out: { name: string; rows: Row[] }[] = [], refights: Row[] = [];
   for (const st of ENDGAME_STAGES) {

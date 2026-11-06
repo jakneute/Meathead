@@ -8,7 +8,7 @@
 // (endgame/abduction.ts). It isn't a stage of its own here: it's the way in.
 
 import { L4_ID, L4_STAGE, L4_HOUR, LOT_CP as L4_LOT_CP, NED_CP as L4_NED_CP, AFTER_CP as L4_AFTER_CP, refightId, refightStage } from './park4/where';
-import { FINALE_ID, FINALE_STAGE, FINALE_HOUR, FIN_CP_START, FIN_CP_MID } from './finale/where';
+import { FINALE_ID, FINALE_STAGE, FINALE_HOUR, FIN_CP_START, FIN_CP_MID, FIN_CP_DAZED, FIN_CP_ENDING, FIN_ENDINGS } from './finale/where';
 
 export interface EndgameStage {
   /** Its id: goTo(id), and what the save keeps (store.ts endgameAt). */
@@ -96,7 +96,11 @@ export const ENDGAME_STAGES: EndgameStage[] = [
   // left to right through the eight lands at sunrise (endgame/finale). One checkpoint in the fight: after the 4th land.
   { id: FINALE_ID, level: 5, stage: FINALE_STAGE, name: 'LEVEL 5: THE KAIJU FINALE', hour: FINALE_HOUR, checkpoints: [
     { name: 'THE START (AMERICA USA)', cp: FIN_CP_START }, { name: 'FUTURE LAND (4 OF 8 DOWN)', cp: FIN_CP_MID },
+    { name: 'FINALE (BOTH DOWN: THE FINISHERS)', cp: FIN_CP_DAZED },
   ] },
+  // (the test picker's ENDING tab: past the final boss, straight to the ending with each finisher's id set (the
+  // owner's: "a skip that is AFTER the final boss"); not a place a file's ever saved at)
+  { id: 'finale-ending', level: 6, stage: FINALE_STAGE, name: 'ENDING', hour: FINALE_HOUR, checkpoints: FIN_ENDINGS.map(([, n], i) => ({ name: n, cp: FIN_CP_ENDING + i })) },
 ];
 export { FINALE_ID, FINALE_STAGE } from './finale/where';
 
