@@ -14,10 +14,13 @@
 // Measured on ZORZARBLAX (a headless 15 s of each, god mode, unlimited ammo, used as a decent player would): the ray
 // gun lands 10 to 12 hits in 15 s (25-30% of his 999). These numbers put each special at about 35-45% (the mallet's
 // tap about 34%, the owner's "about the same"; its tornado less, on purpose).
+// (Re-measured 2026-11-06: the bulk-up's charges land 3 to 5 times in 15 s (he's off between them), 95 a hit puts it at
+// about 38%; the pancake smash lands 4 to 8, 62 a hit about 39%, over the tap's ~32%.)
 
 import type { Enemy, Player, WeaponType } from '../../m1/types';
 import type { GameState } from '../../m1/game/core/state';
 import { bossMelee } from '../upgrades/bossMelee';
+import { BULLET_DAMAGE } from '../../m1/constants';
 
 /** What one hit that gets through his breather takes off him, by weapon and move (tune here). */
 export const ENDGAME_DAMAGE = {
@@ -31,13 +34,13 @@ export const ENDGAME_DAMAGE = {
   FLINTLOCK: { ball: 66 },
   /** ELEMENTAL STORM's three (no burn after the meteor on these: a trickle only eats his breather); BULK UP: any of his
    *  moves while he's bulked. */
-  SPELLBOOK: { meteor: 46, comet: 42, bolt: 38, bulk: 70 },
+  SPELLBOOK: { meteor: 46, comet: 42, bolt: 38, bulk: 95 },
   /** The car (the stuntman out through the windshield into him, or the car itself), and the fireball. */
   STUNT_CAR: { car: 45, blast: 41 },
   /** The owner's: "pancake smash should do the most. tap command should be about the same", and "tornado damage
    *  should probably be less than a standard bonk". The tap's the swing (X); launch (Y tap), the air smash (Y in the
    *  air), the pancake smash (Y held), the tornado (X held). */
-  MALLET: { swing: 34, launch: 36, pound: 42, smash: 56, spin: 24 },
+  MALLET: { swing: 34, launch: 36, pound: 42, smash: 62, spin: 24 },
   /** Every goblin's bite (a swarm of them on him: a hit every breather). */
   SPAWNER: { bite: 34 },
   /** A dart (a hit every breather), and the hurl: the sick bar run out, past his breather (crossbow.ts; the puke itself
@@ -65,13 +68,24 @@ export const tagHit = <W extends keyof Table>(state: GameState, e: Enemy, w: W, 
   tags.set(e, { v, frame: state.frame });
 };
 
-/** His fight's hit from a special weapon: the table's number for the move marked on him (this frame or the last),
- *  or, nothing marked, 35% of what it did (the old rule). Read every hit: it's taken. */
-export const endgameHit = (state: GameState, e: Enemy, dealt: number) => {
+/** The table's number for the special's hit marked on him this frame or the last (taken: read once), or null: nothing
+ *  marked. */
+export const taggedHit = (state: GameState, e: Enemy): number | null => {
   const t = tags.get(e);
   tags.delete(e);
-  if (t && t.frame >= state.frame - 2) return t.v;
-  return Math.max(1, dealt * 0.35);
+  return t && t.frame >= state.frame - 2 ? t.v : null;
+};
+/** His fight's hit from a special weapon: the table's number for the move marked on him (this frame or the last),
+ *  or, nothing marked, 35% of what it did (the old rule). Read every hit: it's taken. */
+export const endgameHit = (state: GameState, e: Enemy, dealt: number) => taggedHit(state, e) ?? Math.max(1, dealt * 0.35);
+/** What a hit that got through his breather takes off one of these bosses: one of his moves, as ever; else the move
+ *  the hit itself was marked with (so goblins or a spray landing after he's switched to the ray gun still count as
+ *  theirs); else, nothing marked, the ray gun's bolt if that's in his hand; else 35% of what it did. */
+export const endgameDamage = (state: GameState, e: Enemy, melee: boolean, dealt: number) => {
+  if (melee) { tags.delete(e); return endgameMelee(state.player); }
+  const t = taggedHit(state, e);
+  if (t !== null) return t;
+  return state.player.currentWeapon === 'GUN' ? BULLET_DAMAGE : Math.max(1, dealt * 0.35);
 };
 
 /** Bulked up (the spellbook's BULK UP on: spellbook.ts says so). */

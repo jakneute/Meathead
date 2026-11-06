@@ -41,8 +41,8 @@ import { say, silenceAll, pickLine } from '../../../m1/game/platform/speech';
 import { SKIP_AFTER, offerSkip, takeSkip, drawSkipPrompt } from '../../../m1/game/platform/skip';
 import { hurtPlayer } from '../../../m1/game/bosses/shared';
 import { makeKindEnemy } from '../../../m1/game/enemies/kinds';
-import { CANVAS_WIDTH, CANVAS_HEIGHT, BULLET_DAMAGE, KICK_POSE_FRAMES } from '../../../m1/constants';
-import { endgameBoss, endgameHit, endgameMelee } from '../../weapons/endgameDamage';
+import { CANVAS_WIDTH, CANVAS_HEIGHT, KICK_POSE_FRAMES } from '../../../m1/constants';
+import { endgameBoss, endgameDamage } from '../../weapons/endgameDamage';
 import { registerM2Kind, registerHurtLines } from '../../kinds';
 import { ownShare } from '../../weapons/subBoss';
 import { setSickHurl, takeSickBurst } from '../../weapons/crossbow';
@@ -517,11 +517,6 @@ const stepFoe = (ctx: FrameContext, f: Fight2, o: Foe) => {
   takeHits(ctx, f, o, gone);
 };
 
-const plainHit = (state: GameState, melee: boolean): number | null => {
-  const p = state.player;
-  if (melee) return endgameMelee(p);
-  return p.currentWeapon === 'GUN' ? BULLET_DAMAGE : null;
-};
 const takeHits = (ctx: FrameContext, f: Fight2, o: Foe, gone: boolean) => {
   const { state } = ctx, e = o.e;
   const dealt = Math.max(0, BIG - e.health);
@@ -532,7 +527,7 @@ const takeHits = (ctx: FrameContext, f: Fight2, o: Foe, gone: boolean) => {
   if (gone) return;
   const burst = takeSickBurst(e);
   if ((!burst && (dealt <= 0 || o.iframes > 0))) return;
-  const dmg = burst || (plainHit(state, melee) ?? endgameHit(state, e, dealt));
+  const dmg = burst || endgameDamage(state, e, melee, dealt);
   o.hp -= dmg; if (!burst) o.iframes = BOSS_IFRAMES; o.flash = 8;
   // (never down before his brother's come: he's called in at half, between moves)
   if (o.who === 'son' && !f.bro) o.hp = Math.max(1, o.hp);

@@ -33,8 +33,8 @@ import { say, silenceAll, pickLine } from '../../../m1/game/platform/speech';
 import { SKIP_AFTER, offerSkip, takeSkip, drawSkipPrompt } from '../../../m1/game/platform/skip';
 import { hurtPlayer } from '../../../m1/game/bosses/shared';
 import { makeKindEnemy } from '../../../m1/game/enemies/kinds';
-import { CANVAS_WIDTH, CANVAS_HEIGHT, BULLET_DAMAGE } from '../../../m1/constants';
-import { endgameBoss, endgameHit, endgameMelee } from '../../weapons/endgameDamage';
+import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../../../m1/constants';
+import { endgameBoss, endgameDamage } from '../../weapons/endgameDamage';
 import { registerM2Kind } from '../../kinds';
 import { ownShare } from '../../weapons/subBoss';
 import { setSickHurl, takeSickBurst } from '../../weapons/crossbow';
@@ -334,11 +334,6 @@ export const gupBox = (f: Fight3) => {
 };
 const under = (f: Fight3) => f.st === 'under' || f.st === 'set' || (f.st === 'sink' && f.t > f.T * 0.6);
 
-const plainHit = (state: GameState, melee: boolean): number | null => {
-  const p = state.player;
-  if (melee) return endgameMelee(p);
-  return p.currentWeapon === 'GUN' ? BULLET_DAMAGE : null;
-};
 const takeHits = (ctx: FrameContext, f: Fight3, gone: boolean) => {
   const { state } = ctx, e = f.e;
   const dealt = Math.max(0, BIG - e.health);
@@ -349,7 +344,7 @@ const takeHits = (ctx: FrameContext, f: Fight3, gone: boolean) => {
   if (gone) return;
   const burst = takeSickBurst(e);
   if ((!burst && (dealt <= 0 || f.iframes > 0))) return;
-  const dmg = burst || (plainHit(state, melee) ?? endgameHit(state, e, dealt));
+  const dmg = burst || endgameDamage(state, e, melee, dealt);
   f.hp -= dmg; if (!burst) f.iframes = BOSS_IFRAMES; f.flash = 8;
   playSound('gunhit', 0.6, -2);
   ctx.fx.spawnDamageNumber({ x: f.x - 10, y: f.y - 160 }, Math.max(1, Math.round(dmg)), dmg > 40);
