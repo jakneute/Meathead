@@ -6,6 +6,8 @@ import { benGave, type ArmorPiece } from './upgrades/state';
 import { inRefight } from './endgame/park4/hook';
 
 export interface M2Ui {
+  /** (the water park's lazy river: over the lava, in its steam) The PWR cells crossed out: nulled. */
+  pwrNull?: boolean;
   /** The hub spot he's standing at (a land's path, or the staff door), or null. */
   near: number | null;
   /** The map's up for this spot, or null. */

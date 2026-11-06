@@ -83436,6 +83436,11 @@
  },
  {
   "voice": "meathead",
+  "text": "CAN'T CHARGE IN THIS. JUMP, DUMBASS.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "meathead",
   "text": "CAN'T CHARGE. ONE'S GOT ME BY THE NUTS.",
   "from": "FRONTIER"
  },
@@ -90993,6 +90998,11 @@
   "voice": "meathead",
   "text": "HEART EXPLODED... WORTH IT",
   "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "HEAT ATE MY CHARGE AGAIN.",
+  "from": "ENDGAME"
  },
  {
   "voice": "meathead",
@@ -99346,6 +99356,11 @@
  },
  {
   "voice": "meathead",
+  "text": "MY CHARGE IS GONE. THE HEAT'S ON MY BALLS. JUST JUMP.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "meathead",
   "text": "MY CHEEKS ARE FLAPPING!",
   "from": "HOLLYWOOD"
  },
@@ -101283,6 +101298,11 @@
   "voice": "meathead",
   "text": "NO CAT. NO FUR. JUST MY HAIRY ASS ON A PLYWOOD STAGE.",
   "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "NO CHARGE OVER LAVA.",
+  "from": "ENDGAME"
  },
  {
   "voice": "meathead",
@@ -109631,6 +109651,11 @@
  },
  {
   "voice": "meathead",
+  "text": "STEAM. THERE GOES MY JUICE.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "meathead",
   "text": "STEAMING HOT MAGMA BURNS, SON OF A BITCH!",
   "from": "HAZARD_HURT"
  },
@@ -113293,6 +113318,16 @@
   "voice": "meathead",
   "text": "THE HAWK'S GOT MY SCALP! GET OFF!",
   "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "THE HEAT OFF THIS LAVA KILLED MY CHARGE. GUESS I JUMP.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "meathead",
+  "text": "THE HEAT SUCKED MY CHARGE RIGHT OUT. AND IT'S COOKING MY PANTS.",
+  "from": "ENDGAME"
  },
  {
   "voice": "meathead",

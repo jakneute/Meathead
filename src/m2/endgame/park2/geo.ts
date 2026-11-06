@@ -233,7 +233,7 @@ export const CAST2: [Who2, number, number][] = [
   ['imp', X(20300), H(300)],
   // (the mix)
   ['imp', X(22100), H(250)],
-  ['aguest', X(23480), GY], ['trooper', X(23950), GY], ['burnout', X(24100), GY], ['imp', X(23800), H(280)],
+  ['aguest', X(23180), GY], ['trooper', X(23950), GY], ['burnout', X(24100), GY], ['imp', X(23800), H(280)],
   ['imp', X(25300), H(230)], ['hover', X(25700), H(260)],
   ['imp', X(27000), H(280)],
   // (outside the grotto: his crew, waiting)

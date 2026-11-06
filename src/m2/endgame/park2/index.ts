@@ -40,6 +40,7 @@ import { type EndScene, startEnd, updateEnd, drawEnd, drawEndHud, drawEndAfter, 
 import { drawBack2, drawFront2, drawBackdrop2, lamps2 } from './art';
 import * as L from './lines';
 import { contactSheet } from './sheet';
+import { newHeat, updateHeat, heatOff, plumeSounds, drawShimmer, drawPlumes, drawNullPop, CRATE, type Heat } from './steam';
 import './lavaDeath';
 import { setPiece } from '../../upgrades/state';
 import { keepForRevisits } from '../../store';
@@ -59,6 +60,8 @@ export interface Park2 {
   backOpen: number; door: number;
   /** Level 3's way in (the MAINTENANCE door at the river's end): frames into him opening it and going in (-1 not yet). */
   l3door: number;
+  /** The lava's heat: over it (or in a plume's steam) his power's nulled (steam.ts). */
+  heat: Heat;
   onSave?: () => void;
 }
 
@@ -80,6 +83,8 @@ export const buildPark2 = (state: GameState, cp: number, onSave: () => void): Pa
   lay(state, DECKS.map(([a, b], i) => ({ x1: a, y1: GY + (DECK_DY[i] ?? 0), x2: b, y2: GY + (DECK_DY[i] ?? 0), surface: 'hard' as const })));
   // (the river's bed, hidden: where a body comes to rest, in the flames)
   for (const g of GAPS) solid(state, g.a, RIVER_BED + g.water, g.b - g.a, 400, { hidden: true, tag: 'wp2-bed' });
+  // (the crate stood by the oasis's tall vent: steam.ts)
+  solid(state, CRATE.x, GY + floorDy(CRATE.x) - CRATE.h, CRATE.w, CRATE.h, { hidden: true, tag: 'wp2-crate' });
   for (const b of state.blocks) if (!b.tag) b.hidden = true;
   const killed = cp >= CP2.L3;
   // (the grotto's door (a board in the cave's mouth: walk up to it), its back wall (shut till he's dead), level 3's shut
@@ -98,8 +103,9 @@ export const buildPark2 = (state: GameState, cp: number, onSave: () => void): Pa
   const p2: Park2 = {
     meet: newMeet(cp >= CP2.river || meetSeen(state)), vines: newVines2(), logs: buildLogs2(state), towers: buildTowers2(state),
     fightState: killed ? 'won' : 'wait', f: null, killed, end: null, cause: null, said: {}, lineAt: {},
-    backOpen: killed ? 1 : 0, door: doorDown ? 1 : 0, l3door: -1,
+    backOpen: killed ? 1 : 0, door: doorDown ? 1 : 0, l3door: -1, heat: newHeat(),
   };
+  heatOff(p2.heat);
   if (import.meta.env.DEV && typeof window !== 'undefined') { const w = window as unknown as Record<string, unknown>; w.__wp2 = p2; w.__wp2Sheet = contactSheet; w.__wp2Hands = () => setPiece('hands', true); w.__wp2Nutless = (on: boolean) => keepForRevisits(DEMON_NUTLESS, on ? '1' : null); w.__wp2Win = () => { if (p2.f) { p2.killed = true; p2.end = startEnd(p2.f); } }; }
   if (cp > CP2.start) { p2.said.vine = true; }
   if (cp >= CP2.logJam) p2.said.log = true;
@@ -119,6 +125,7 @@ export const updatePark2 = (ctx: FrameContext, p2: Park2, controls: Controls, sa
   let out = controls;
   // ---- both down: the end (they run, the pretzel, the beer, down the river on them: VICTORY), then control back
   if (p2.end && p2.f) {
+    heatOff(p2.heat);
     const e = p2.end;
     out = updateEnd(ctx, e, p2.f, () => { p2.backOpen = 1; state.blocks = state.blocks.filter(b => b.tag !== 'wp2-back'); });
     if (!endOn(e)) { p2.fightState = 'won'; p2.end = null; setUi({ introCutscene: false }); state.cameraMinX = GROTTO.R - 400; state.cameraMaxX = L3.wall + 120 - CANVAS_WIDTH; return controls; }
@@ -128,6 +135,7 @@ export const updatePark2 = (ctx: FrameContext, p2: Park2, controls: Controls, sa
   }
   // ---- the grotto's fight
   if (p2.fightState === 'on' && p2.f) {
+    heatOff(p2.heat);
     const f = p2.f;
     markBossFight(state, 'mehphisto', { l: GROTTO.L, r: GROTTO.R });
     out = updateFight2(ctx, f, controls, () => {
@@ -150,6 +158,7 @@ export const updatePark2 = (ctx: FrameContext, p2: Park2, controls: Controls, sa
   if (meetOn(p2.meet) || p2.meet.step === 'wait') {
     out = updateMeet(ctx, p2.meet, out);
     if (meetOn(p2.meet)) {
+      heatOff(p2.heat);
       updateFire(ctx, { riverOn: false, cause: () => null });
       setUi({ introCutscene: true });
       state.cameraMinX = L2_FROM - 200; state.cameraMaxX = L3.wall;
@@ -162,6 +171,9 @@ export const updatePark2 = (ctx: FrameContext, p2: Park2, controls: Controls, sa
   out = updateLogs2(ctx, p2.logs, out, onGone('m2:wp2_log', L.MH_LOG_GOING));
   updateBeams(ctx);
   out = updateVines2(ctx, p2.vines, out, onGone('m2:wp2_vine', []));
+  // (the lava's heat: over it, or in the steam, his power's nulled; the heat knocks an uppercut's height out of it)
+  updateHeat(ctx, p2.heat, p2.l3door < 0 && meetFront(p2.meet) === Infinity, first => mhSay(state, p2, 'null', first ? L.MH_NULL_FIRST : L.MH_NULL, first ? 0 : 20000));
+  plumeSounds(state);
   // (what he says the first time each burns under him; going, on the way out)
   const lg = logUnder2(state, p2.logs);
   if (lg) { once(p2, 'log', () => mhSay(state, p2, 'log', L.MH_LOG)); if (logStage(lg).stage === 'crumble') mhSay(state, p2, 'logGoing', L.MH_LOG_GOING, 8000); }
@@ -227,11 +239,13 @@ export const drawPark2Back = (c: CanvasRenderingContext2D, state: GameState, p2:
   drawBack2(c, state, { door: p2.door, backOpen: p2.backOpen, inGrotto: p2.fightState === 'on' || !!p2.end, beanbag: BEANBAG_X }, () => {
     drawBeamsBack(c, state);
     drawRiver(c, state, front);
+    if (front === Infinity) drawShimmer(c, state, GAPS);
     drawJets(c, state);
   }, () => {
     drawPatches(c, state, extraPatches(state));
     drawLogs2(c, state, p2.logs);
     drawTowers2(c, state, p2.towers);
+    drawPlumes(c, state);
     drawVines2(c, state, p2.vines);
   });
   // (level 3's door, opening: the dark doorway, the door swung in on its hinge; him going in through it)
@@ -245,6 +259,7 @@ export const drawPark2Front = (c: CanvasRenderingContext2D, state: GameState, p2
   drawBeamsFront(c, state);
   drawFront2(c, state);
   drawShots2(c, state);
+  drawNullPop(c, state, p2.heat);
   drawBarks2(c, state, saidOver);
   void p2;
 };
