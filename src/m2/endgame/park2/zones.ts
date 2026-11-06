@@ -32,8 +32,10 @@ import { CANVAS_WIDTH as W } from '../../../m1/constants';
 import { stamp } from '../../intro/art/kit';
 import { mix, checker, hazeBands } from '../../intro/art/kit';
 import { timeOfDay } from '../../timeOfDay';
-import { GY, B, RIVER_Y, L3, waterY, floorDy } from './geo';
-import { fireRow, flame, FIRE } from './fire';
+import { GY, B, RIVER_Y, L3, waterY, floorDy, gapAt, hangDy } from './geo';
+/** The far bank's height at x: the deck's there; over the river, between the two decks either side (smaller steps). */
+const bankDy = (x: number) => (gapAt(x) ? hangDy(x) : floorDy(x));
+import { flame, FIRE } from './fire';
 
 type Ctx = CanvasRenderingContext2D;
 type P = [number, number];
@@ -59,11 +61,22 @@ const block = (g: Ctx, x: number, y: number, w: number, h: number, Rm: string[],
   if (h > 8 && w > 8) checker(g, x + 2, y + h - 6, w - 4, 4, Rm[1]);
 };
 
+/** A fire on the scenery: a few flames along (x0, x1), their sizes from a short list (a handful of stamps for all of it). */
+const fireRow = (c: Ctx, x0: number, x1: number, foot: number, h: number, f: number, _gap: number, seed: number) => {
+  if (NOFIRE) return;
+  const n = Math.max(1, Math.min(2, Math.round((x1 - x0) / 18)));
+  for (let i = 0; i < n; i++) { const k = hash(i + seed * 0.37); flame(c, x0 + ((i + 0.5) * (x1 - x0)) / n, foot, k < 0.5 ? 8 : 16, Math.max(16, Math.min(40, Math.round((h * (0.7 + k * 0.5)) / 8) * 8)), f, i + seed); }
+};
+
 // ---------------------------------------------------------------------------------------------------------------
 // The zones
 
 export type ZoneId = 'head' | 'ruins' | 'canopy' | 'bayou' | 'tiki' | 'pirate' | 'oasis' | 'caves' | 'grotto' | 'back';
 const BANK_T = 480;
+/** (dev: ?wp2nomid / ?wp2nobank, the layers off, for measuring) */
+const NOMID = import.meta.env.DEV && typeof location !== 'undefined' && location.search.includes('wp2nomid');
+const NOFIRE = import.meta.env.DEV && typeof location !== 'undefined' && location.search.includes('wp2nofire');
+const NOBANK = import.meta.env.DEV && typeof location !== 'undefined' && location.search.includes('wp2nobank');
 /** Where each starts (world x, on a bank tile's edge), its name board's words (none: no board). */
 const snapT = (x: number) => Math.round(x / BANK_T) * BANK_T;
 export const ZONES: { id: ZoneId; x: number; name?: [string, string]; board?: string }[] = [
@@ -410,11 +423,11 @@ const paintMid = (g: Ctx, z: ZoneId, j: number, sp: Spot[]) => {
   MIDS[z](g, j, sp);
   g.restore();
   // (the caves' rock, where the next tile over isn't the caves: a ragged edge of it, the cave's mouth, not a cut)
-  if (z === 'caves') for (const side of [-1, 1] as const) {
-    if (zoneAt(midX(j + side)) === 'caves') continue;
+  if (z === 'caves' || z === 'grotto') for (const side of [-1, 1] as const) {
+    const n = zoneAt(midX(j + side)); if (n === 'caves' || n === 'grotto') continue;
     g.globalCompositeOperation = 'destination-out';
     g.beginPath(); const x0 = side < 0 ? 0 : MID_W; g.moveTo(x0, 0);
-    for (let y = 0; y <= MID_H; y += 20) { const d = 30 + Math.sin(y * 0.05 + j) * 22 + hash(y + j) * 18 - (y > MG - 140 ? (y - MG + 140) * 0.6 : 0); g.lineTo(x0 - side * Math.max(0, d), y); }
+    for (let y = 0; y <= MID_H; y += 12) { const u = y / MID_H, d = 20 + 190 * Math.pow(Math.sin(u * Math.PI * 0.85), 1.6) + Math.sin(y * 0.11 + j) * 14 + hash(y + j) * 22; g.lineTo(x0 - side * Math.max(0, d), y); }
     g.lineTo(x0, MID_H); g.closePath(); g.fill();
     g.globalCompositeOperation = 'source-over';
   }
@@ -429,9 +442,24 @@ const spotsOf = (key: string, paint: (g: Ctx, sp: Spot[]) => void): Spot[] => {
   return s;
 };
 
+/** The bank's tiles, baked (1x), the last ten kept. */
+const BANK_CV = new Map<string, HTMLCanvasElement>();
+/** The mid tiles, baked (1x), the last dozen kept. */
+const MID_CV = new Map<string, HTMLCanvasElement>();
+const midCanvas = (key: string, top: number, z: ZoneId, j: number) => {
+  let cv = MID_CV.get(key);
+  if (cv) { MID_CV.delete(key); MID_CV.set(key, cv); return cv; }
+  if (typeof document === 'undefined' || !document.fonts?.check('8px "Press Start 2P"')) return null;
+  cv = document.createElement('canvas'); cv.width = MID_W; cv.height = MID_H - top;
+  const g = cv.getContext('2d')!; g.translate(0, -top); paintMid(g, z, j, []);
+  MID_CV.set(key, cv);
+  if (MID_CV.size > 12) MID_CV.delete(MID_CV.keys().next().value!);
+  return cv;
+};
 /** Screen space (in the backdrop): the zones' far landmarks, parallax, their fires. `from`: no tile for world before it
  *  (level 1's stretch). */
 export const drawZoneMid = (c: Ctx, state: GameState, from: number) => {
+  if (NOMID) return;
   const f = state.frame, L = state.camera.x * PAR, dy = 0;
   const tod = timeOfDay().key;
   for (let j = Math.floor(L / MID_W); j * MID_W < L + W; j++) {
@@ -439,7 +467,11 @@ export const drawZoneMid = (c: Ctx, state: GameState, from: number) => {
     if (X < from) continue;
     const z = zoneAt(X), sx = Math.round(j * MID_W - L), key = `wp2-mid-${z}-${j}-${tod}`;
     c.save(); c.translate(sx, dy);
-    stamp(c, key, 0, 0, MID_W, MID_H, g => paintMid(g, z, j, []));
+    // (nothing of it up top but the caves' rock: the stamp's only as tall as what's painted)
+    const top = z === 'caves' ? 0 : 70, cv = midCanvas(key, top, z, j);
+    // (baked at the game's own pixels, put down pixel for pixel scaled up: far scenery at a third of the texture a
+    // screen-scale stamp would take (with the park's big slides behind it, two of those a frame tipped a weak PC over))
+    if (cv) { const sm = c.imageSmoothingEnabled; c.imageSmoothingEnabled = false; c.drawImage(cv, 0, top, MID_W, MID_H - top); c.imageSmoothingEnabled = sm; }
     for (const [x0, y, w, h] of spotsOf(`${z}-${j}`, (g, sp) => MIDS[z](g, j, sp))) { const x = mirrored(z, j) ? MID_W - x0 : x0; fireRow(c, x - w / 2, x + w / 2, y, h, f, Math.max(8, w / 3), j * 7 + Math.round(x)); }
     c.restore();
   }
@@ -448,7 +480,7 @@ export const drawZoneMid = (c: Ctx, state: GameState, from: number) => {
 // ---------------------------------------------------------------------------------------------------------------
 // The near bank (world): the river's far side, its face to the far water, the props on its top
 
-const BANK_TOP = GY - 24, BANK_FOOT = GY + 16, BANK_H = 300;
+const BANK_TOP = GY - 24, BANK_FOOT = GY + 16, BANK_H = 290;
 const BD = 0.34;
 const b = (col: string) => nt(col, BD);
 
@@ -456,7 +488,7 @@ const b = (col: string) => nt(col, BD);
  *  (dark, banded, the fire's glimmer on it). */
 const bankFace = (g: Ctx, face: () => void) => {
   face();
-  R(g, 0, BANK_FOOT, BANK_T, RIVER_Y - BANK_FOOT + 200, '#1C0A08');
+  R(g, 0, BANK_FOOT, BANK_T, RIVER_Y - BANK_FOOT + 60, '#1C0A08');
   R(g, 0, BANK_FOOT, BANK_T, 2, '#5A1E0A');
   for (let x = 0; x < BANK_T; x += 12) R(g, x + ((x / 12) % 3) * 3, BANK_FOOT + 6 + ((x / 12) % 2) * 6, 6, 1, '#7A2A0A');
 };
@@ -639,19 +671,31 @@ const paintGate = (g: Ctx, x: number, z: (typeof ZONES)[number]) => {
 
 /** World space, first in drawBack2: the far bank, zone by zone, its fires; the zones' name boards over the seams. */
 export const drawZoneBank = (c: Ctx, state: GameState, from: number) => {
+  if (NOBANK) return;
   const f = state.frame, tod = timeOfDay().key;
   const x0 = Math.max(from, Math.floor((state.camera.x - 160) / BANK_T) * BANK_T), x1 = Math.min(L3.wall + 400, state.camera.x + W + 160);
   for (let tx = x0 - (((x0 % BANK_T) + BANK_T) % BANK_T); tx < x1; tx += BANK_T) {
     // (each tile its own (no strip of the same props cycling by), stood at the decks' height there)
-    const k = Math.floor(tx / BANK_T), z = zoneAt(tx + 1), dy = floorDy(tx + BANK_T / 2);
+    const k = Math.floor(tx / BANK_T), z = zoneAt(tx + 1), dy = bankDy(tx + BANK_T / 2);
     c.save(); c.translate(tx, dy);
-    stamp(c, `wp2-bank-${z}-${k}-${tod}`, 0, GY - BANK_H, BANK_T, BANK_H + RIVER_Y - GY + 200, g => BANKS[z](g, k, []));
+    { // (baked at the game's own pixels like the far tiles: see drawZoneMid)
+      const key = `wp2-bank-${z}-${k}-${tod}`, hh = BANK_H + RIVER_Y - GY + 60;
+      let cv = BANK_CV.get(key);
+      if (cv) { BANK_CV.delete(key); BANK_CV.set(key, cv); }
+      else if (typeof document !== 'undefined' && document.fonts?.check('8px "Press Start 2P"')) {
+        cv = document.createElement('canvas'); cv.width = BANK_T; cv.height = hh;
+        const g = cv.getContext('2d')!; g.translate(0, -(GY - BANK_H)); BANKS[z](g, k, []);
+        BANK_CV.set(key, cv); if (BANK_CV.size > 10) BANK_CV.delete(BANK_CV.keys().next().value!);
+      }
+      if (cv) { const sm = c.imageSmoothingEnabled; c.imageSmoothingEnabled = false; c.drawImage(cv, 0, GY - BANK_H, BANK_T, hh); c.imageSmoothingEnabled = sm; }
+    }
     for (const [x, y, w, h] of spotsOf(`bank-${z}-${k}`, (g, sp) => BANKS[z](g, k, sp))) fireRow(c, x - w / 2, x + w / 2, y, h, f, Math.max(8, w / 3), k * 5 + Math.round(x));
     c.restore();
   }
   for (const z of ZONES) {
     if (!z.name || z.x < state.camera.x - 200 || z.x > state.camera.x + W + 200) continue;
-    const dy = floorDy(z.x);
+    // (at its bank tile's own height: stood on that bank's top)
+    const dy = bankDy(z.x + BANK_T / 2);
     c.save(); c.translate(0, dy); stamp(c, `wp2-gate-${z.id}`, z.x - 120, BANK_TOP - 210, 240, 250, g => paintGate(g, z.x, z));
     flame(c, z.x + 88, BANK_TOP - 140, 10, 18, f, 3); c.restore();
   }

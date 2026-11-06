@@ -57,11 +57,15 @@ const paintFlame = (g: Ctx, w: number, h: number, fr: number, seed: number) => {
 /** A flame, its foot at (x, foot): `w` wide, `h` tall; `seed` its own flicker (a few of them side by side don't move
  *  together). Stamped: one drawImage. */
 export const flame = (c: Ctx, x: number, foot: number, w: number, h: number, f: number, seed = 0) => {
-  const wq = Math.max(6, Math.round(w / 4) * 4), hq = Math.max(8, Math.round(h / 4) * 4), sq = seed % 3;
+  // (sizes in steps of 8: a few dozen stamps for every fire in the level, not hundreds (past the stamp cache's count of
+  // asked-for keys none would ever be painted, and every flame was painted afresh every frame))
+  const wq = Math.max(8, Math.round(w / 8) * 8), hq = Math.max(8, Math.round(h / 8) * 8), sq = ((seed % 3) + 3) % 3;
   const fr = (Math.floor((f + seed * 5) / 6) + sq) & 3;
-  c.save(); c.translate(Math.round(x), Math.round(foot));
+  // (moved there and back, not saved and restored: a save is most of what a flame cost, and there are a lot of them)
+  const tx = Math.round(x), ty = Math.round(foot);
+  c.translate(tx, ty);
   stamp(c, `wp2-fl-${wq}x${hq}-${sq}-${fr}`, -wq, -hq * 1.4, wq * 2, hq * 1.5, g => paintFlame(g, wq, hq, fr, sq));
-  c.restore();
+  c.translate(-tx, -ty);
 };
 /** A cluster of flames along [x0, x1] (their feet at `foot`), `h` tall: a fire. */
 export const fireRow = (c: Ctx, x0: number, x1: number, foot: number, h: number, f: number, gap = 18, seed = 0) => {

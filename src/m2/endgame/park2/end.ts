@@ -59,6 +59,8 @@ export const startEnd = (f: Fight2): EndScene => ({
   dx: COAST.from + 330, dy: BANK_TOP, dvx: 0, dvy: 0, hit: false, said: null, cartX: 0, beer: false, v: null, speed: 0, from: { x: 0, y: 0 },
   calls: 0, next: 0, speaking: false,
 });
+/** The beer man punched: up and over his cart, down in a heap on the walkway past it (he stays there, complaining). */
+const fly = (s: EndScene) => { if (s.dvx === 0 && s.dvy === 0) return; s.dvy += 0.45; s.dx += s.dvx; s.dy += s.dvy; if (s.dy >= BANK_TOP && s.dvy > 0) { s.dy = BANK_TOP; s.dvx = 0; s.dvy = 0; } };
 let token = 0;
 const demonSays = (s: EndScene, text: string, onDone: () => void) => { const tok = ++token; speak(L.BEER_VOICE, text, x => { if (tok === token) s.said = x?.text ?? null; }, true, () => { if (tok === token) onDone(); }); };
 const sit = (state: GameState, s: EndScene) => {
@@ -150,17 +152,17 @@ export const updateEnd = (ctx: FrameContext, s: EndScene, f: Fight2, opened: () 
       s.fx += 0.6; sit(state, s);
       p.seatPunch = Math.min(3, t / 10);
       if (t === 20 && !s.hit) {
-        s.hit = true; s.cartX = s.dx + 46; s.dvx = 6; s.dvy = -11; playSound('punch', 1, -6); playSound('crunch', 0.8, -4); shakeScreen(state, 12, 6);
+        s.hit = true; s.cartX = s.dx + 46; s.dvx = 3.2; s.dvy = -8; playSound('punch', 1, -6); playSound('crunch', 0.8, -4); shakeScreen(state, 12, 6);
         // (his complaint, flying: a working stiff's, never a villain's)
         s.speaking = true; demonSays(s, pickLine(byPants(state, L.BEER_HURT)), () => { s.speaking = false; s.talk = 1; });
       }
-      if (s.hit) { s.dvy += 0.45; s.dx += s.dvx; s.dy += s.dvy; }
+      if (s.hit) fly(s);
       if (t === 30) { p.seatPunch = undefined; s.beer = true; playSound('canopen', 0.9, 0); }
       if (t >= 30 && (s.talk === 1 || t > 400)) { s.step = 'beer'; s.t = 0; s.talk = 0; meatheadSays(state, pickLine(byPants(state, L.MH_BEER)), true, () => { s.talk = 1; }); }
       break;
     case 'beer':
       s.fx += 0.6; sit(state, s);
-      if (s.hit) { s.dvy += 0.5; s.dx += s.dvx; s.dy += s.dvy; }
+      if (s.hit) fly(s);
       if (s.talk === 1) { s.talk = 2; meatheadSays(state, pickLine(byPants(state, L.MH_LOUNGE)), true, () => { s.talk = 3; }); }
       if (s.talk === 3 || t > 900) {
         // (the talking's done: VICTORY, the float coasting on at the pace that has it at the landing as it's gone)
@@ -382,7 +384,9 @@ export const drawEnd = (c: Ctx, state: GameState, s: EndScene, f: Fight2) => {
   if (s.step === 'cart' || s.step === 'punch' || s.step === 'beer' || s.step === 'coast') {
     const cx = s.hit ? s.cartX : s.dx + 46;
     c.save(); c.translate(Math.round(cx), BANK_TOP); stamp(c, 'wp2-beercart', -54, -114, 100, 120, paintCart); c.restore();
-    if (!s.hit || s.dy < RIVER_Y + 200) drawVendor(c, s.dx, s.dy, s.hit, s.hit ? s.t * 0.3 : 0);
+    // (flying, spinning; then down in a heap on his back, on the walkway)
+    const down = s.hit && s.dvx === 0 && s.dvy === 0;
+    drawVendor(c, s.dx, down ? s.dy + 28 : s.dy, s.hit, down ? -1.45 : s.hit ? s.t * 0.3 : 0);
     if (s.said) saidOver(c, s.said, s.dx, Math.min(s.dy, BANK_TOP) - 110, '#FCA5A5', 240);
   }
   // (the float)
@@ -411,7 +415,7 @@ export const drawEndHud = (c: Ctx, s: EndScene) => {
 export const drawEndAfter = (c: Ctx, state: GameState) => {
   if (state.camera.x + CANVAS_WIDTH > COAST.to - 200) drawPretzel(c, COAST.to, FLOAT_Y, Math.sin(state.frame * 0.04) * 0.03, state.frame, true);
   const cx = COAST.from + 376;
-  if (state.camera.x + CANVAS_WIDTH > cx - 80 && state.camera.x < cx + 80) { c.save(); c.translate(cx, BANK_TOP); stamp(c, 'wp2-beercart', -54, -114, 100, 120, paintCart); c.restore(); }
+  if (state.camera.x + CANVAS_WIDTH > cx - 80 && state.camera.x < cx + 160) { c.save(); c.translate(cx, BANK_TOP); stamp(c, 'wp2-beercart', -54, -114, 100, 120, paintCart); c.restore(); drawVendor(c, COAST.from + 444, BANK_TOP + 28, true, -1.45); }
 };
 /** (the contact sheet) The beer man calling (0), punched (1), his cart (2), feet at the origin. */
 export const drawEndPreview = (c: Ctx, i: number) => { if (i < 2) drawVendor(c, 0, 0, i === 1, 0); else paintCart(c); };

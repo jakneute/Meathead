@@ -81,13 +81,14 @@ const drawDecks = (c: Ctx, state: GameState) => {
     const x0 = Math.max(a, state.camera.x - 40), x1 = Math.min(b, state.camera.x + W + 40);
     c.save(); c.beginPath(); c.rect(x0, top, x1 - x0, bot - top); c.clip();
     for (let tx = Math.floor(x0 / DECK_T) * DECK_T; tx < x1; tx += DECK_T) {
-      const k = Math.floor(hash(tx / DECK_T + 0.5) * 4), z = zoneAt(tx + DECK_T / 2);
+      // (a deck's all one zone's: the one its middle's in (no change of material partway along it))
+      const k = Math.floor(hash(tx / DECK_T + 0.5) * 4), z = zoneAt((a + b) / 2);
       c.save(); c.translate(tx, dy); stamp(c, `wp2-deck-${z}-${k}`, 0, GY, DECK_T, 84, g => paintDeck(g, k, DECK_STYLE[z])); c.restore();
     }
     if (bot > top + 84) R(c, x0, top + 84, x1 - x0, bot - top - 84, DECK_STYLE[zoneAt((a + b) / 2)].under);
     c.restore();
     // (its ends: the cut end, lit at the corner; charred where the fire's got at it)
-    for (const e of [a, b]) if (e > x0 - 2 && e < x1 + 2) { const s2 = e === a ? 0 : -6, st = DECK_STYLE[zoneAt(e + (e === a ? 4 : -4))]; R(c, e + s2, top, 6, 3, '#FFF0C8'); R(c, e + s2, top + 3, 6, 30, st.seam); R(c, e + s2, top + 12, 6, 6, INK); }
+    for (const e of [a, b]) if (e > x0 - 2 && e < x1 + 2) { const s2 = e === a ? 0 : -6, st = DECK_STYLE[zoneAt((a + b) / 2)]; R(c, e + s2, top, 6, 3, '#FFF0C8'); R(c, e + s2, top + 3, 6, 30, st.seam); R(c, e + s2, top + 12, 6, 6, INK); }
   });
 };
 
