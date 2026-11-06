@@ -11,9 +11,9 @@ import { CANVAS_WIDTH as W, CANVAS_HEIGHT as H } from '../../../m1/constants';
 import { stamp, prestamp } from '../../../m1/game/render/stamp';
 import { RENDER_SCALE } from '../../../m1/constants';
 import { timeOfDay } from '../../timeOfDay';
-import { landAt, floorY, GY } from './geo';
+import { landAt, floorY } from './geo';
 import type { Land } from './sections';
-import { R, poly, ell, tree, INK } from './landmarkArt';
+import { R, poly, tree, INK } from './landmarkArt';
 
 type Ctx = CanvasRenderingContext2D;
 
@@ -117,7 +117,7 @@ export const drawFinaleBackdrop = (c: Ctx, state: GameState) => {
     for (let i = i0; i <= i0 + 2; i++) {
       const sx = Math.round(i * NEAR_W - off), land = landAt((i * NEAR_W + NEAR_W / 2) / NEAR_K);
       if (sx > W || sx + NEAR_W < 0) continue;
-      c.save(); c.translate(sx, HORIZON); stamp(c, `fin-near-${land}-${((i % 4) + 4) % 4}`, 0, -40, NEAR_W, NEAR_FOOT - HORIZON + 40, g => { g.translate(0, 0); paintNear(g, land, ((i % 4) + 4) % 4); }); c.restore();
+      c.save(); c.translate(sx, HORIZON); stamp(c, `fin-near-${land}-${((i % 4) + 4) % 4}`, 0, -40, NEAR_W, NEAR_FOOT - HORIZON + 40, g => paintNear(g, land, ((i % 4) + 4) % 4)); c.restore();
     }
   }
   // (between the miniature's foot and the walking line: the near ground, flat, the land's front color)
@@ -128,7 +128,6 @@ export const drawFinaleBackdrop = (c: Ctx, state: GameState) => {
     R(c, x, NEAR_FOOT, Math.min(W, e) - x, H - NEAR_FOOT, LOOK[land].ground[2]);
     x = e;
   }
-  void ell;
 };
 
 /** The ground he walks on (world space, before everything on it): from the profile down, in each land's color, a lit
@@ -149,7 +148,6 @@ export const drawFinaleGround = (c: Ctx, state: GameState) => {
     for (let xx = Math.ceil(x / 24) * 24; xx < xe; xx += 24) { const y = floorY(xx) + 6 + Math.floor(hash(xx) * 30); c.fillStyle = L.ground[2]; c.fillRect(xx, y, 3, 2); }
     x = xe;
   }
-  void GY;
 };
 
 // ---------------------------------------------------------------------------------------------------------------
