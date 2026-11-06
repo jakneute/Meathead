@@ -91,15 +91,15 @@ function* build(key: Key): Generator<void, Buf> {
   for (let x = mx0 + 6; x < mx1 - 6; x += 6) for (let ty = 0; ty < 5; ty++) for (let tx = 0; tx < 5; tx++) if (matAt(b, x + tx, top(x) + ty + 2) === M_MOUTH) plot(b, x + tx, top(x) + ty + 2, TOOTH_B[tx === 0 ? 0 : tx === 4 ? 3 : 1], M_OTHER);
   // (the fake ones over them: a pink plastic gum strip, slipped down at one end, two big white fangs)
   for (let x = mx0 + 4; x < mx1 - 4; x++) { const y = top(x) + (x > 170 ? 3 : 0); for (let d = 0; d < 3; d++) plot(b, x, y + d, GUMS[d === 0 ? 1 : 3], M_OTHER); }
-  for (const fx of [140, 182]) { const y0 = top(fx) + (fx > 170 ? 5 : 2); poly(b, [fx - 4, y0, fx + 4, y0, fx, y0 + (open ? 14 : 10)], FANG, M_OTHER, { line: true, tilt: 0.2 }); }
+  for (const fx of [140, 182]) { const y0 = top(fx) + (fx > 170 ? 5 : 2); poly(b, [fx - 7, y0, fx + 7, y0, fx + 1, y0 + (open ? 22 : 16)], FANG, M_OTHER, { line: true, tilt: 0.2 }); }
   for (let x = mx0 - 2; x <= mx1 + 2; x++) { for (let d = 1; d <= 4; d++) plot(b, x, top(x) - d, SKIN[d < 2 ? 7 : 5], M_SKIN); for (let d = 1; d <= 6; d++) plot(b, x, bot(x) + d, SKIN[d < 2 ? 7 : d < 4 ? 3 : 4], M_SKIN); }
   ball(b, mx1 + 4, my + 4, 6, 5, SORE, { line: true, lw: 0.6, mat: M_OTHER });
   void TOOTH;
   yield;
   // ---- the soul patch (his pride); the stubble over the jowls; pores, grease, the sweat beading
-  stubble(b, (x, y) => (y > 176 && y < 200 && x > 150 && x < 176 ? 0.9 : y > 150 && (x < 120 || x > 210) ? 0.35 : 0), hexU('#2A1A14'), 0.4);
+  stubble(b, (x, y) => (y > 176 && y < 196 && x > 150 && x < 176 ? 0.9 : y > 140 && y < 174 && (x < 116 || x > 212) ? 0.3 : 0), hexU('#2A1A14'), 0.4);
   hairs(b, 10, () => [158 + rnd() * 14, 180 + rnd() * 6], 10, Math.PI / 2, hexU('#2A1A14'), undefined, 0.3);
-  skinPost(b, SKIN[8], (x, y) => (x > 160 && y > 96 && y < 150 ? 0.1 : 0.016), { blackheads: (x, y) => x > 164 && x < 210 && y > 100 && y < 140, shine: 0.2 });
+  skinPost(b, SKIN[8], (x, y) => (y > 178 ? 0.004 : x > 160 && y > 96 && y < 150 ? 0.1 : 0.016), { blackheads: (x, y) => x > 164 && x < 210 && y > 100 && y < 140, shine: 0.2 });
   for (let k = 0; k < 18; k++) { const x = 70 + rnd() * 150, y = 40 + rnd() * 100; if (matAt(b, x, y) !== M_SKIN) continue; plot(b, x, y, SWEAT); plot(b, x, y + 1, SWEAT_D); plot(b, x + 1, y, SWEAT); }
   inkEdges(b, M_SKIN, SKIN[8], [M_OTHER, M_MOUTH, M_HAIR, M_CLOTH]);
   yield;

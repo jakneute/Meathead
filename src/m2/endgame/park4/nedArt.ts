@@ -51,7 +51,7 @@ const rig = (o: NedOpts) => {
   switch (o.pose) {
     case 'idle': case 'talk': sh = [2, -78 + bob * 0.4]; head = [8, -92 + bob * 0.6]; hN = [18, -50 + bob]; break;
     case 'float': hip = [0, -46 + bob * 2]; sh = [2, -80 + bob * 2]; head = [8, -94 + bob * 2]; fN = [5, -6 + bob * 2]; fF = [-6, -4 + bob * 2]; hN = [20, -64 + bob]; hF = [-20, -66 + bob]; break;
-    case 'cast': sh = [0, -80]; head = [4, -96]; hN = [16, -106]; hF = [-24, -86]; staff = -0.05; break;
+    case 'cast': sh = [0, -80]; head = [4, -96]; hN = [20, -92]; hF = [-24, -86]; staff = 0.1; break;
     case 'point': sh = [4, -78]; head = [12, -92]; hN = [16, -50]; hF = [36, -82]; break;
     case 'hurt': sh = [-6, -76]; head = [-4, -90]; hN = [10, -60]; hF = [-24, -84]; fN = [10, 0]; fF = [-10, -3]; staff = -0.4; break;
     case 'crouch': hip = [0, -30]; sh = [6, -60]; head = [14, -70]; fN = [12, 0]; fF = [-12, 0]; hN = [22, -34]; hF = [-14, -34]; break;
@@ -234,13 +234,13 @@ export const drawNed = (c: Ctx, x: number, feet: number, face: 1 | -1, o: NedOpt
   c.save(); c.translate(Math.round(x), Math.round(feet));
   if (face < 0) c.scale(-1, 1);
   if (alpha < 1) c.globalAlpha = alpha;
-  stamp(c, `wp4-ned-${o.pose}-${o.q}-${o.mouth ? 1 : 0}`, -70, -150, 140, 156, g => paintNed(g, o));
+  stamp(c, `wp4-ned-${o.pose}-${o.q}-${o.mouth ? 1 : 0}`, -80, -190, 160, 196, g => paintNed(g, o));
   // (casting: a green glow off his hands and the skull)
   if (o.pose === 'cast' || o.pose === 'dying') {
     const r = rig(o), k = 0.5 + 0.5 * Math.sin(f * 0.4);
     c.globalAlpha = alpha * (0.35 + 0.3 * k); c.fillStyle = GLOW;
     c.beginPath(); c.arc(r.hF[0], r.hF[1], 7 + k * 3, 0, TAU); c.fill();
-    c.beginPath(); c.arc(r.hN[0], r.hN[1] - 60, 9 + k * 3, 0, TAU); c.fill();
+    c.beginPath(); c.arc(r.hN[0] + Math.sin(r.staff) * 67, r.hN[1] - Math.cos(r.staff) * 67, 9 + k * 3, 0, TAU); c.fill();
     c.globalAlpha = alpha;
   }
   if (flash) { c.globalAlpha = 0.5 * alpha; c.fillStyle = '#FFFFFF'; c.fillRect(-24, -120, 48, 120); }

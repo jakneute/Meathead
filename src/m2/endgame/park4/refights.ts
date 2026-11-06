@@ -19,3 +19,5 @@ export const REFIGHTS: Record<string, RefightDef> = {
 };
 /** Every refight's engine stage and its layout (App.tsx: registerStageLayout each). */
 export const REFIGHT_LAYOUTS: [string, StageLayout][] = Object.values(REFIGHTS).map(d => [d.stage, refightLayout(d)]);
+// (dev: the contact sheets on the window: window.__wp4Sheet)
+if (import.meta.env.DEV) void import('./sheet');

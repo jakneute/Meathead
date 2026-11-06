@@ -154,7 +154,7 @@ const tickCard = (def: RefightDef, state: GameState): boolean => {
   if (c.step === 'intro') {
     c.t++;
     if (c.t > SKIP_AFTER) offerSkip();
-    if (c.t > SKIP_AFTER && takeSkip()) { silenceAll(); c.step = 'done'; }
+    if (c.t > SKIP_AFTER && (takeSkip() || pressed('back'))) { silenceAll(); c.step = 'done'; }
     // (a line that never ends (nothing heard back): on after a long while anyway)
     if (c.t > 60 * 40) c.step = 'done';
   }
@@ -190,7 +190,7 @@ const drawCard = (def: RefightDef, c: Ctx, state: GameState) => {
   }
   // (Ned's gross-up, his mouth going while he talks; the portal's frame round it all)
   const talk = !!k.said && Math.floor(k.n / 6) % 2 === 0;
-  drawNedGross(c, 270, 300, 0.78, k.n, talk);
+  drawNedGross(c, 230, 300, 0.7, k.n, talk);
   // (who's next, the sin, big on the right)
   c.font = '10px "Press Start 2P"'; c.textAlign = 'center';
   c.fillStyle = '#000'; c.fillText('NOW RAISED FROM THE DEAD', 601, 121);
