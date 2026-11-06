@@ -6651,6 +6651,11 @@
  },
  {
   "voice": "death",
+  "text": "A BURNING OUTHOUSE",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "death",
   "text": "A CAR FELL ON YOU. AT SEA.",
   "from": "content/deaths"
  },
@@ -7523,6 +7528,11 @@
   "voice": "death",
   "text": "BODY-BLOCKED TO DEATH",
   "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "BOILED BALLS FIRST",
+  "from": "ENDGAME"
  },
  {
   "voice": "death",
@@ -8506,7 +8516,7 @@
  },
  {
   "voice": "death",
-  "text": "COOKED IN TANNING OIL",
+  "text": "COOKED IN HIS OWN GRAVY",
   "from": "ENDGAME"
  },
  {
@@ -8941,8 +8951,18 @@
  },
  {
   "voice": "death",
+  "text": "DEEP FRIED IN THE NUDE",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "death",
   "text": "DEEP FRIED, PANTS AND ALL",
   "from": "SPACE"
+ },
+ {
+  "voice": "death",
+  "text": "DEEP FRIED, SHIT AND ALL",
+  "from": "ENDGAME"
  },
  {
   "voice": "death",
@@ -13146,6 +13166,11 @@
  },
  {
   "voice": "death",
+  "text": "MELTED TO THE BONE",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "death",
   "text": "METHOD ACTING",
   "from": "ADVENTURE"
  },
@@ -14343,6 +14368,11 @@
   "voice": "death",
   "text": "RENDERED",
   "from": "SPOOKY"
+ },
+ {
+  "voice": "death",
+  "text": "RENDERED DOWN TO A SKELETON",
+  "from": "ENDGAME"
  },
  {
   "voice": "death",
@@ -15693,6 +15723,11 @@
   "voice": "death",
   "text": "SKINNY ARMS, BIG RESULTS",
   "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "SKINNY DIPPED IN LAVA",
+  "from": "ENDGAME"
  },
  {
   "voice": "death",
@@ -75376,17 +75411,77 @@
  },
  {
   "voice": "m2.wp.beerdemon",
-  "text": "ICE COLD BEER! ICE COLD... OH SHIT. IT'S HIM.",
+  "text": "BEER HERE!",
   "from": "ENDGAME"
  },
  {
   "voice": "m2.wp.beerdemon",
-  "text": "ICE COLD BEER! OH SHIT. IT'S THE NAKED ONE.",
+  "text": "BEER HERE! BEER!",
   "from": "ENDGAME"
  },
  {
   "voice": "m2.wp.beerdemon",
-  "text": "ICE COLD BEER! OH SHIT. IT'S THE SMELLY ONE.",
+  "text": "BEER! ICE COLD BEER!",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "m2.wp.beerdemon",
+  "text": "COLD BEER! GET YOUR COLD BEER!",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "m2.wp.beerdemon",
+  "text": "GET YOUR BEER! LAST CALL!",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "m2.wp.beerdemon",
+  "text": "I DO NOT GET PAID ENOUGH FOR NAKED GUYS!",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "m2.wp.beerdemon",
+  "text": "I GOT THREE KIDS AT HOME! IN HELL!",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "m2.wp.beerdemon",
+  "text": "I WAS TWO HOURS FROM MY BREAK!",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "m2.wp.beerdemon",
+  "text": "I'M JUST TRYING TO MAKE AN HONEST LIVING!",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "m2.wp.beerdemon",
+  "text": "OW! A NAKED GUY! I'M JUST TRYING TO MAKE A LIVING!",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "m2.wp.beerdemon",
+  "text": "OW! AND YOU STINK! I'M JUST WORKING HERE!",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "m2.wp.beerdemon",
+  "text": "OW! I'M JUST TRYING TO MAKE AN HONEST LIVING!",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "m2.wp.beerdemon",
+  "text": "THAT'S COMING OUT OF MY PAY, MAN!",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "m2.wp.beerdemon",
+  "text": "THREE KIDS! AND NOW I SAW THAT!",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "m2.wp.beerdemon",
+  "text": "YOU SHIT YOURSELF AND YOU STILL DON'T TIP?",
   "from": "ENDGAME"
  },
  {
@@ -80521,6 +80616,21 @@
  },
  {
   "voice": "meathead",
+  "text": "AAAGH! IT BURNS! IT BURNS!",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "meathead",
+  "text": "AAAGH! IT'S COOKING THE SHIT IN MY PANTS!",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "meathead",
+  "text": "AAAGH! MY DICK! MY DICK IS IN THE LAVA!",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "meathead",
   "text": "AAAH-EE-AAAH-EE-AAAAAH!",
   "from": "ADVENTURE"
  },
@@ -82808,6 +82918,31 @@
   "voice": "meathead",
   "text": "BRAWL'S OVER. THE STOOLS ARE RUINED.",
   "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
+  "text": "BREAK TIME'S OVER. BACK TO WORK.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "meathead",
+  "text": "BREAK TIME'S OVER. BACK TO WORK. BALLS OUT.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "meathead",
+  "text": "BREAK TIME'S OVER. BACK TO WORK. NO PANTS REQUIRED.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "meathead",
+  "text": "BREAK TIME'S OVER. BACK TO WORK. STILL SHITTY.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "meathead",
+  "text": "BREAK TIME'S OVER. BACK TO WORK. THE SHIT COMES WITH ME.",
+  "from": "ENDGAME"
  },
  {
   "voice": "meathead",
@@ -93666,6 +93801,11 @@
  },
  {
   "voice": "meathead",
+  "text": "I SMELL LIKE A BURNING OUTHOUSE!",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "meathead",
   "text": "I SMELL LIKE CRUDE OIL AND BURNT CALORIES!",
   "from": "HURT"
  },
@@ -94313,6 +94453,11 @@
   "voice": "meathead",
   "text": "I'M BACK. YOU GOT FATTER. HOW?",
   "from": "FANTASY"
+ },
+ {
+  "voice": "meathead",
+  "text": "I'M BEING DEEP FRIED NAKED!",
+  "from": "ENDGAME"
  },
  {
   "voice": "meathead",
@@ -99731,6 +99876,11 @@
  },
  {
   "voice": "meathead",
+  "text": "MY PANTS ARE ON FIRE! THE SHIT'S ON FIRE!",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "meathead",
   "text": "MY PANTS WOULD BURN BETTER THAN THAT.",
   "from": "SPACE"
  },
@@ -99802,6 +99952,11 @@
  {
   "voice": "meathead",
   "text": "MY SKIN! IT BURNS!",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "meathead",
+  "text": "MY SKIN! IT'S BUBBLING!",
   "from": "ENDGAME"
  },
  {
@@ -102236,6 +102391,11 @@
  },
  {
   "voice": "meathead",
+  "text": "NOT THE BALLS! NOT THE BALLS!",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "meathead",
   "text": "NOT THE BEES!",
   "from": "FRONTIER"
  },
@@ -102791,6 +102951,11 @@
  },
  {
   "voice": "meathead",
+  "text": "OH GOD, MY LEGS ARE SOUP!",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "meathead",
   "text": "OH GOD. IT CAME OUT HER ASS.",
   "from": "SPACE"
  },
@@ -103138,6 +103303,11 @@
   "voice": "meathead",
   "text": "OKAY! YOU WIN THE STARING CONTEST!",
   "from": "ADVENTURE"
+ },
+ {
+  "voice": "meathead",
+  "text": "OKAY. BREAK TIME'S OVER. BACK TO WORK.",
+  "from": "ENDGAME"
  },
  {
   "voice": "meathead",

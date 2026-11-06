@@ -138,11 +138,11 @@ export const updateEnd = (ctx: FrameContext, s: EndScene, f: Fight2, opened: () 
       // ballpark vendor; held off him while he's mid-call (no punching over his line))
       const call = () => { s.calls++; s.speaking = true; demonSays(s, pickLine(L.BEER_CALL), () => { s.speaking = false; s.next = s.t + 36; }); };
       s.fx += 0.6;
-      if (s.speaking && s.dx - s.fx < 90) s.fx -= 0.6;
+      if (s.speaking && s.dx - s.fx < 60) s.fx -= 0.6;
       sit(state, s);
       if (t === 20) call();
       if (s.next && t >= s.next && !s.speaking && s.calls < 3 && s.dx - s.fx > 130) { s.next = 0; call(); }
-      if ((!s.speaking && s.calls > 0 && s.dx - s.fx < 90) || t > 900) { s.step = 'punch'; s.t = 0; s.talk = 0; }
+      if ((!s.speaking && s.calls > 0 && s.dx - s.fx < 60) || t > 900) { s.step = 'punch'; s.t = 0; s.talk = 0; }
       break;
     }
     case 'punch':

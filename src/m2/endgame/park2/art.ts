@@ -116,20 +116,42 @@ const drawPergola = (c: Ctx, state: GameState) => { for (const v of VINES2) draw
 
 const HUT_X = B + 160;
 const paintHead = (g: Ctx) => {
-  // (the hut: thatch roof, bamboo posts, a counter; TUBE RENTAL on a board; behind the play: dimmed)
+  // (the hut: a thatched roof in bands of straw, bamboo posts ringed, a counter with its lit lip (not stood on: dimmed),
+  // the dark inside with racks of tubes, TUBE RENTAL on a board; behind the play: dimmed)
   const d = (col: string) => dim(col, 0.35);
-  R(g, HUT_X, GY - 150, 260, 150, d('#3A2A1A')); R(g, HUT_X + 6, GY - 140, 248, 70, d('#140C08'));
-  R(g, HUT_X, GY - 70, 260, 10, d('#6A4A2A')); R(g, HUT_X, GY - 70, 260, 2, d('#9A7448'));
-  g.fillStyle = d('#7A6438'); g.beginPath(); g.moveTo(HUT_X - 30, GY - 140); g.lineTo(HUT_X + 130, GY - 210); g.lineTo(HUT_X + 290, GY - 140); g.closePath(); g.fill();
-  for (let x = HUT_X - 26; x < HUT_X + 290; x += 8) R(g, x, GY - 146 + Math.abs(x - HUT_X - 130) * 0.0, 3, 8, d('#5A4A28'));
-  R(g, HUT_X + 60, GY - 190, 140, 28, d('#0E7490')); g.font = '10px "Press Start 2P"'; g.textAlign = 'center'; g.fillStyle = d('#FEF3C7'); g.fillText('TUBE RENTAL', HUT_X + 130, GY - 171); g.textAlign = 'left';
-  // (stacks of tubes against it, in the park's colors)
+  const ramp = (col: string) => [d(mix(col, INK, 0.5)), d(mix(col, INK, 0.25)), d(col), d(mix(col, '#FFFFFF', 0.2)), d(mix(col, '#FFFFFF', 0.4))];
+  const W5 = ramp('#6A4A2A'), T5 = ramp('#B08A48'), Bm = ramp('#A8843E');
+  R(g, HUT_X - 1, GY - 151, 262, 152, INK); R(g, HUT_X, GY - 150, 260, 150, W5[1]);
+  for (let y = GY - 146; y < GY; y += 10) { R(g, HUT_X, y, 260, 8, W5[2]); R(g, HUT_X, y, 260, 1, W5[3]); }
+  R(g, HUT_X + 6, GY - 140, 248, 70, d('#140C08'));
+  for (let k = 0; k < 6; k++) { const x = HUT_X + 20 + k * 38; for (let n = 0; n < 3; n++) { g.fillStyle = d(['#EC4899', '#22D3EE', '#FACC15', '#A3E635'][(k + n) % 4]); g.beginPath(); g.ellipse(x, GY - 118 + n * 16, 15, 5, 0, 0, Math.PI * 2); g.fill(); g.fillStyle = d('#0A0608'); g.beginPath(); g.ellipse(x, GY - 119 + n * 16, 5, 1.5, 0, 0, Math.PI * 2); g.fill(); } }
+  checker(g, HUT_X + 6, GY - 80, 248, 10, d('#2A1A10'));
+  R(g, HUT_X - 2, GY - 72, 264, 12, INK); R(g, HUT_X, GY - 71, 260, 10, W5[2]); R(g, HUT_X, GY - 71, 260, 2, W5[3]); R(g, HUT_X, GY - 63, 260, 2, W5[0]);
+  for (const px of [HUT_X - 4, HUT_X + 252]) { R(g, px, GY - 150, 12, 150, INK); R(g, px + 1, GY - 150, 10, 150, Bm[2]); R(g, px + 1, GY - 150, 3, 150, Bm[3]); R(g, px + 8, GY - 150, 3, 150, Bm[1]); for (let y = GY - 140; y < GY; y += 18) { R(g, px + 1, y, 10, 2, Bm[0]); R(g, px + 1, y + 2, 10, 1, Bm[4]); } }
+  // (the thatch: bands of straw, each a fringe of strands over the one under it, burnt black at one corner)
+  for (let b = 0; b < 5; b++) {
+    const y0 = GY - 210 + b * 14, half = 40 + b * 32;
+    g.fillStyle = INK; g.beginPath(); g.moveTo(HUT_X + 130 - half - 2, y0 + 16); g.lineTo(HUT_X + 130, y0 - 2); g.lineTo(HUT_X + 130 + half + 2, y0 + 16); g.closePath(); g.fill();
+    g.fillStyle = T5[b % 2 ? 2 : 3]; g.beginPath(); g.moveTo(HUT_X + 130 - half, y0 + 15); g.lineTo(HUT_X + 130, y0); g.lineTo(HUT_X + 130 + half, y0 + 15); g.closePath(); g.fill();
+    for (let x = HUT_X + 130 - half + 2; x < HUT_X + 130 + half - 2; x += 4) R(g, x, y0 + 12 - Math.abs(x - HUT_X - 130) * 0.1, 1, 4, T5[0]);
+  }
+  checker(g, HUT_X + 200, GY - 168, 90, 26, d('#120806'));
+  R(g, HUT_X + 58, GY - 192, 144, 32, INK); R(g, HUT_X + 60, GY - 190, 140, 28, d('#0E7490')); R(g, HUT_X + 60, GY - 190, 140, 2, d('#38BDF8')); R(g, HUT_X + 60, GY - 164, 140, 2, d('#155E75'));
+  g.font = '10px "Press Start 2P"'; g.textAlign = 'center'; g.fillStyle = INK; g.fillText('TUBE RENTAL', HUT_X + 131, GY - 170); g.fillStyle = d('#FEF3C7'); g.fillText('TUBE RENTAL', HUT_X + 130, GY - 171); g.textAlign = 'left';
+  // (stacks of tubes against it, in the park's colors, each stepped: shade under, a lit band, the hole dark)
   const C = ['#EC4899', '#22D3EE', '#FACC15', '#A3E635', '#F97316'];
-  for (let s = 0; s < 3; s++) for (let k = 0; k < 4 + s; k++) { const x = HUT_X + 280 + s * 54, y = GY - 10 - k * 14; g.fillStyle = INK; g.beginPath(); g.ellipse(x, y, 24, 8, 0, 0, Math.PI * 2); g.fill(); g.fillStyle = d(C[(s + k) % 5]); g.beginPath(); g.ellipse(x, y, 22, 6.5, 0, 0, Math.PI * 2); g.fill(); g.fillStyle = d('#0A0608'); g.beginPath(); g.ellipse(x, y - 1, 8, 2, 0, 0, Math.PI * 2); g.fill(); }
+  for (let s = 0; s < 3; s++) for (let k = 0; k < 4 + s; k++) {
+    const x = HUT_X + 280 + s * 54, y = GY - 10 - k * 14, col = C[(s + k) % 5];
+    g.fillStyle = INK; g.beginPath(); g.ellipse(x, y, 24, 8, 0, 0, Math.PI * 2); g.fill();
+    g.fillStyle = d(mix(col, INK, 0.3)); g.beginPath(); g.ellipse(x, y, 22, 6.5, 0, 0, Math.PI * 2); g.fill();
+    g.fillStyle = d(col); g.beginPath(); g.ellipse(x - 1, y - 1, 20, 5, 0, 0, Math.PI * 2); g.fill();
+    R(g, x - 14, y - 5, 10, 1, d(mix(col, '#FFFFFF', 0.4)));
+    g.fillStyle = d('#0A0608'); g.beginPath(); g.ellipse(x, y - 1, 8, 2, 0, 0, Math.PI * 2); g.fill();
+  }
 };
 const drawHead = (c: Ctx, state: GameState) => {
   if (!vis(state, HUT_X - 60, HEAD + 60)) return;
-  stamp(c, 'wp2-head', HUT_X - 40, GY - 220, 520, 222, g => paintHead(g));
+  stamp(c, 'wp2-head2', HUT_X - 40, GY - 220, 520, 222, g => paintHead(g));
   // (the dock's end over the river: a few planks out past the deck, posts down into it, a mooring cleat; drawn on
   // the deck's own run (it is the deck's end))
   R(c, HEAD - 6, GY + 3, 8, RIVER_Y - GY + 8, '#3A2412');
