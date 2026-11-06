@@ -19,8 +19,9 @@ const intros = Object.values(N.INTROS).flatMap(i => [i.place, i.sin, ...Object.v
 export const PARK4_VOICE_LINES: Record<string, string[]> = {
   [N.NED_VOICE]: [
     ...all(N.NED_APPEAR, N.NED_TAUNT, N.NED_BYE), ...intros,
-    ...all(N.NED_FIGHT_HELLO, N.NED_ARCHERS, N.NED_MAGES, N.NED_DOGS, N.NED_ONE, N.NED_ALL_DEAD, N.NED_HURT, N.NED_TAUNTS, N.NED_BLINK, N.NED_LOW, N.NED_DYING),
+    ...all(N.NED_FIGHT_HELLO, N.NED_ARCHERS, N.NED_MAGES, N.NED_DOGS, N.NED_ONE, N.NED_ALL_DEAD, N.NED_HURT, N.NED_TAUNTS, N.NED_BLINK, N.NED_LOW, N.NED_DYING, N.NED_DUD, N.NED_PARTY),
   ],
+  [N.NED_RITE_VOICE]: all(N.NED_RITE, N.NED_RITE_SHORT, N.NED_RITE_LAST),
   meathead: [...all(N.MH_WHO, N.MH_AFTER, N.MH_BACK, N.MH_SPENT, N.MH_FIGHT_HELLO, N.MH_NED_DEAD, N.MH_LAST), ...Object.values(N.HURT4).flatMap(h => h.hurt)],
   death: Object.values(N.HURT4).flatMap(h => h.death),
   [N.SKEL_VOICE]: [...N.SKEL_BARK],

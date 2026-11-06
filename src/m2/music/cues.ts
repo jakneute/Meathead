@@ -680,6 +680,8 @@ const gameWants = (s: GameState | null): Want => {
   // boss's song (level 2's); after him, the water park's own. Till the owner scores them.)
   if (stage === L4_STAGE) {
     const sc = (s.stage as { scene?: string } | null)?.scene;
+    // (his rite (park4/ned.ts): no music, its own drone and choir; back on at the payoff)
+    if (sc === 'fight' && (s.stage as { fight?: { rite?: unknown } | null }).fight?.rite) return none;
     if (sc === 'fight' || sc === 'nedIn') return { cands: [{ song: 'boss:demon', arrs: ['main'] }, { song: 'land:spooky', arrs: ['hell', 'main'] }], cutscene: false };
     if (sc === 'after') return { cands: [{ song: 'land:park1', arrs: ['plaza'] }], cutscene: false };
     return { cands: [{ song: 'land:spooky', arrs: ['hell', 'main'] }], cutscene: sc === 'intro' || cutscene };

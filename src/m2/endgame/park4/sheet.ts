@@ -5,7 +5,7 @@
 
 import { paintNed, paintNedSkin, drawPoof, NED_POSES } from './nedArt';
 import { drawNedGross, drawNedGrossBack } from './nedGross';
-import { paintSkel, paintDog, drawSkel, type SkelPose } from './skelArt';
+import { paintSkel, paintDog, drawSkel, paintDeadHand, drawDeadHand, type SkelPose } from './skelArt';
 import { drawStitches } from './hell';
 import { REFIGHTS } from './refights';
 
@@ -48,6 +48,17 @@ export const contactSheet4 = (what: string): string => {
       const r = rows[Math.floor(i / 5)], k = i % 5;
       if (k === 4) { drawSkel(g, r[0] as never, 45, 100, -1, 'stand', 0, 0.55); return `${r[0]} rising`; }
       g.translate(45, 100); return r[1](g, k);
+    });
+  }
+  if (what === 'rite') {
+    // (the rite's dead hands, every curl both leans, rising; the party store skeletons, every pose)
+    return sheet(6, 3, 90, 110, 3, (g, i) => {
+      if (i < 8) { g.translate(45, 96); g.fillStyle = '#2A2A2E'; g.fillRect(-45, 0, 90, 14); paintDeadHand(g, i % 4, i < 4 ? 1 : -1); return `hand ${i % 4}${i < 4 ? '' : ' L'}`; }
+      if (i < 10) { g.fillStyle = '#2A2A2E'; g.fillRect(0, 96, 90, 14); drawDeadHand(g, 45, 96, 2, 1, i === 8 ? 0.4 : 0.8); return `hand rising ${i === 8 ? 0.4 : 0.8}`; }
+      const list: [('archer' | 'mage' | 'plain'), SkelPose][] = [['archer', 'stand'], ['archer', 'draw'], ['mage', 'stand'], ['mage', 'cast'], ['plain', 'stand'], ['plain', 'bark'], ['archer', 'stand'], ['mage', 'stand']];
+      const it = list[i - 10]; if (!it) return;
+      g.translate(45, 100); paintSkel(g, it[0], it[1], i - 10 < 6 ? 2 : 6, true, i - 10 < 6);
+      return `${it[0]} ${it[1]}${i - 10 < 6 ? ' party' : ' real q6'}`;
     });
   }
   if (what === 'stitch') {

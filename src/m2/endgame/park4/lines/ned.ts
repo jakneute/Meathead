@@ -179,6 +179,34 @@ export const NED_ARCHERS = ["OH YEAH! HERE'S SOME SKELETON ARCHERS!", "OH YEAH?!
 export const NED_MAGES = ["OH YEAH? HERE'S SOME SKELETON MAGES!", "OH YEAH?! SKELETON MAGES! FIRE AND ICE!", "OH YEAH? MAGES! I READ A BOOK ABOUT THEM!"];
 export const NED_DOGS = ["OH YEAH?! HERE'S SOME SKELETON DOGS!", "OH YEAH! SKELETON DOGS! THEY DON'T FETCH!"];
 export const NED_ONE = ["OH YEAH? HERE'S... ONE SKELETON.", "OH YEAH?! HERE'S A SKELETON! HE'S... TRYING."];
+/** The necromancy itself (the rite before each summon, park4/ned.ts): played straight, in his other voice (deep, slow,
+ *  wrong: NED_RITE_VOICE). It calls back to the eight he raised. The full one (the first two, and his last), then the
+ *  short one. */
+export const NED_RITE_VOICE = 'm2.ned.rite';
+export const NED_RITE = bp(
+  ['I RAISED EIGHT. I CAN RAISE EIGHT HUNDRED. RISE.', 'EVERY BODY UNDER THIS LOT. RISE.'],
+  ['THE DEAD CAN SMELL YOU. RISE.', 'I RAISED EIGHT. THEY REMEMBER YOUR STINK. RISE.'],
+  ['THE DEAD SEE ALL OF YOU. RISE.', 'I RAISED EIGHT. THE REST WANT A LOOK. RISE.'],
+);
+export const NED_RITE_SHORT = bp(['RISE.', 'AGAIN. RISE.'], ['RISE. SMELL HIM.', 'RISE.'], ['RISE. SEE HIM.', 'RISE.']);
+/** Low: the last of it, everything he's got (then: one skeleton). */
+export const NED_RITE_LAST = bp(
+  ['EVERY GRAVE. EVERY BONE. RISE!'],
+  ['EVERY GRAVE. EVERY BONE. DROWN HIM. RISE!'],
+  ['EVERY GRAVE. EVERY BONE. BURY HIM. RISE!'],
+);
+/** One of them falls to bits as soon as it's up. */
+export const NED_DUD = bp(
+  ["THAT ONE'S... RESTING.", 'HE WAS OLD. HE HAD A GOOD RUN.'],
+  ['THAT ONE SMELLED YOU AND GAVE UP.', 'HE DIED AGAIN. FROM YOUR PANTS.'],
+  ['THAT ONE SAW YOUR DICK AND GAVE UP.', 'HE DIED AGAIN. LOOKING AT YOU.'],
+);
+/** One of them's from a party store (plastic, the price tag still on). */
+export const NED_PARTY = bp(
+  ['THAT ONE IS REAL! THE TAG IS PART OF HIM!', "IT WAS ON SALE! IT'S STILL CURSED!"],
+  ["THAT ONE IS REAL! IT'S SCARIER THAN YOUR PANTS!", "IT WAS ON SALE! LIKE YOUR DIAPERS!"],
+  ['THAT ONE IS REAL! IT HAS MORE ON THAN YOU!', "IT WAS ON SALE! IT'S STILL BETTER DRESSED!"],
+);
 /** When his summons all crumble. */
 export const NED_ALL_DEAD = ['THEY HAD HOMES TO GO TO.', 'THOSE WERE RENTALS!', 'I PAID FOR THOSE!', 'THEY WERE NEW!'];
 export const NED_HURT = bp(

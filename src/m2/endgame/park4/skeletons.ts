@@ -8,6 +8,8 @@
 //               lobbed at him, slow; it alternates.
 //   wp4_dog     a dog's bones: sits, barks; now and then trots at him and nips (it wags).
 //   wp4_bones   just a skeleton (Ned running low): stands there, the jaw going. Hits nobody.
+// Any of them can come out the party store one (plastic, a price tag on) or a dud (falls apart as soon as it's up).
+// Every hit of theirs is a chip (the owner's "don't do much damage").
 // Their shots are their own (a few, slow, kept here, drawn here), and every one of them hurts the skeletons too.
 
 import type { Enemy, EnemyKind } from '../../../m1/types';
@@ -30,9 +32,14 @@ export const isSkel = (e: Enemy) => !!KIND_ART[e.kind as string];
 
 /** How long one takes to climb up out of the ground (frames: harmless meanwhile). */
 export const RISE = 46;
-const ARROW = { tell: 60, every: 220, v: 3.6, dmg: 6 };
-const BALL = { tell: 56, every: 240, t: 70, dmg: 7 };
-const DOGB = { every: 200, v: 2.4, dmg: 4 };
+// (the owner, 2026-11-06: "all he has are pathetic skeletons who die in one hit and don't do much damage if they hit
+// you": a chip each, a quarter of a regular water park enemy's hit (those are 11 to 14); one hit of anything kills one)
+const ARROW = { tell: 60, every: 220, v: 3.6, dmg: 3 };
+const BALL = { tell: 56, every: 240, t: 70, dmg: 3 };
+const DOGB = { every: 200, v: 2.4, dmg: 2 };
+/** A summon's own flags (ned.ts sets them): the party store one (plastic, the price tag), the dud (falls to bits as
+ *  soon as it's up: frames from up), crumbled (done with). */
+export type SkelE = Enemy & { party?: boolean; dud?: number; crumbled?: boolean };
 
 interface Shot { kind: 'arrow' | 'fire' | 'ice'; x: number; y: number; vx: number; vy: number; life: number; dead: boolean }
 const SHOTS = new WeakMap<GameState, Shot[]>();
@@ -105,7 +112,7 @@ const drawOne = (c: Ctx, e: Enemy, f: number) => {
   const k = KIND_ART[e.kind as string];
   const rise = e.aiState === 'rise' || e.aiState === undefined ? Math.min(1, (e.aiTimer ?? 0) / RISE) : 1;
   // (the engine's drawn us at the feet, facing right, turned for it: drawSkel turns by itself, so face right here)
-  drawSkel(c, k, 0, 0, 1, poseOf(e), Math.floor(f / 8) % 8, rise, e.kind !== MAGE || e.aiX !== 0);
+  drawSkel(c, k, 0, 0, 1, poseOf(e), Math.floor(f / 8) % 8, rise, e.kind !== MAGE || e.aiX !== 0, !!(e as SkelE).party);
 };
 for (const [kind, w, h, ai] of [[ARCHER, 26, SKEL_H, archer], [MAGE, 26, SKEL_H, mage], [DOG, 40, 34, dog], [BONES, 26, SKEL_H, bones]] as const) {
   registerM2Kind({

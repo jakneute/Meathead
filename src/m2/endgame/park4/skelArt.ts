@@ -15,7 +15,12 @@ export type SkelKind = 'archer' | 'mage' | 'plain' | 'dog';
 export type SkelPose = 'stand' | 'draw' | 'shoot' | 'cast' | 'walk' | 'bark';
 export const SKEL_H = 74, SKEL_W = 26;
 
-const BONE = '#E4D8B8', BONE_D = '#B4A47E', BONE_L = '#FFF8E4', INK = '#3A2E1A';
+// (the bones' ramp: real bone, yellowed; or the PARTY STORE one: a plastic Halloween decoration, chalk white, a hard
+// black outline, the hanging loop on its skull and the price tag still on its hip (paintSkel's `party`))
+const REAL = { BONE: '#E4D8B8', BONE_D: '#B4A47E', BONE_L: '#FFF8E4', INK: '#3A2E1A' };
+const PLASTIC = { BONE: '#F4F4EE', BONE_D: '#C8C8C0', BONE_L: '#FFFFFF', INK: '#111111' };
+let BONE = REAL.BONE, BONE_D = REAL.BONE_D, BONE_L = REAL.BONE_L, INK = REAL.INK;
+const palette = (party: boolean) => { const p = party ? PLASTIC : REAL; BONE = p.BONE; BONE_D = p.BONE_D; BONE_L = p.BONE_L; INK = p.INK; };
 
 const bone = (c: Ctx, a: P, b: P, w = 2.6) => {
   line(c, [a[0], a[1], b[0], b[1]], w + 1.6, INK); line(c, [a[0], a[1], b[0], b[1]], w, BONE);
@@ -24,9 +29,21 @@ const bone = (c: Ctx, a: P, b: P, w = 2.6) => {
 };
 const UA = 15, FA = 15, TH = 16, SH = 16;
 
-/** A skeleton: archer, mage or plain, in a pose, `q` 0..7 its sway. `fire`: the mage's cast is fire (else ice). */
-export const paintSkel = (g: Ctx, kind: Exclude<SkelKind, 'dog'>, pose: SkelPose, q: number, fire = true) => {
-  const sway = Math.sin((q / 8) * Math.PI * 2) * 1.2;
+/** A skeleton: archer, mage or plain, in a pose, `q` 0..7 its sway (a wobble: it can barely hold itself up). `fire`:
+ *  the mage's cast is fire (else ice). `party`: the party store one (plastic, the loop, the price tag). */
+export const paintSkel = (g: Ctx, kind: Exclude<SkelKind, 'dog'>, pose: SkelPose, q: number, fire = true, party = false) => {
+  palette(party);
+  try { paintSkel0(g, kind, pose, q, fire); if (party) partyBits(g, q); } finally { palette(false); }
+};
+/** The party store one's tells: the hanging loop of string up off its skull, the price tag on a string at its hip. */
+const partyBits = (g: Ctx, q: number) => {
+  const sway = Math.sin((q / 8) * Math.PI * 2) * 2.6, hx = 5 + sway, hy = -68;
+  g.strokeStyle = '#111111'; g.lineWidth = 0.8; g.beginPath(); g.ellipse(hx, hy - 10, 2.6, 4, 0, 0, Math.PI * 2); g.stroke();
+  line(g, [1, -36, 4, -30], 0.6, '#111111');
+  px(g, 2, -30, 9, 6, '#111111'); px(g, 3, -29, 7, 4, '#FDE047'); px(g, 4, -28, 1, 2, '#B91C1C'); px(g, 6, -28, 1, 2, '#B91C1C'); px(g, 8, -28, 1, 2, '#B91C1C');
+};
+const paintSkel0 = (g: Ctx, kind: Exclude<SkelKind, 'dog'>, pose: SkelPose, q: number, fire: boolean) => {
+  const sway = Math.sin((q / 8) * Math.PI * 2) * 2.6;
   const hip: P = [0, -36], sh: P = [2 + sway, -60], hd: P = [5 + sway, -68];
   let hN: P = [8, -36], hF: P = [-6, -36];
   if (kind === 'archer' && (pose === 'draw' || pose === 'shoot')) { hN = [24, -58]; hF = pose === 'draw' ? [2, -58] : [10, -58]; }
@@ -91,13 +108,56 @@ export const paintDog = (g: Ctx, pose: SkelPose, q: number) => {
 };
 
 /** One in the world: (x, feet), facing, rising `rise` 0..1 (clipped at the ground till it's up). */
-export const drawSkel = (c: Ctx, kind: SkelKind, x: number, feet: number, face: 1 | -1, pose: SkelPose, q: number, rise = 1, fire = true) => {
+export const drawSkel = (c: Ctx, kind: SkelKind, x: number, feet: number, face: 1 | -1, pose: SkelPose, q: number, rise = 1, fire = true, party = false) => {
   c.save(); c.translate(Math.round(x), Math.round(feet));
   if (rise < 1) { c.beginPath(); c.rect(-60, -200, 120, 200); c.clip(); c.translate(0, Math.round((1 - rise) * (kind === 'dog' ? 40 : SKEL_H + 6))); }
   if (face < 0) c.scale(-1, 1);
   if (kind === 'dog') stamp(c, `wp4-dog-${pose}-${q}`, -40, -50, 80, 54, g => paintDog(g, pose, q));
-  else stamp(c, `wp4-skel-${kind}-${pose}-${q}-${fire ? 1 : 0}`, -40, -100, 80, 104, g => paintSkel(g, kind, pose, q, fire));
+  else stamp(c, `wp4-skel-${kind}-${pose}-${q}-${fire ? 1 : 0}${party ? '-p' : ''}`, -40, -100, 80, 104, g => paintSkel(g, kind, pose, q, fire, party));
   c.restore();
   // (the dirt it's coming up through)
   if (rise < 1) { c.fillStyle = '#5A4A3A'; for (let i = 0; i < 5; i++) c.fillRect(Math.round(x - 14 + i * 7), Math.round(feet - 3 - ((i * 3) % 4)), 5, 3); }
+};
+
+// ---------------------------------------------------------------------------------------------------------------
+// The necromancy (ned.ts's rite): the dead under the lot clawing up out of the asphalt. Played straight: a rotted
+// forearm, grey-green skin gone to leather, split at the knuckles with the bone showing through, the fingers hooked and
+// clawing (four frames of the curl). The elbow's under the ground (one bone showing: no joint to place). Its base at
+// the origin, reaching up about 56; stamped per frame.
+
+const ROT = ['#1E2418', '#3A4430', '#56624A', '#7A8466'], NAIL = '#2A2018', RBONE = '#C8BC98';
+/** A hand of the dead: `q` 0..3 the curl of its fingers (0 open, reaching; 3 hooked in); `lean` -1 / 1 its tilt. */
+export const paintDeadHand = (g: Ctx, q: number, lean: 1 | -1) => {
+  const top: P = [lean * 6, -40];
+  // (the forearm: the ramp dark to light across it, a dither band on the shadow side)
+  line(g, [0, 4, top[0], top[1]], 9, ROT[0]); line(g, [0.6, 4, top[0] + 0.6, top[1]], 7, ROT[1]); line(g, [1.6, 4, top[0] + 1.4, top[1]], 3.6, ROT[2]);
+  for (let y = -2; y > top[1]; y -= 4) { const x = (top[0] * y) / top[1]; px(g, x - 3, y, 1, 1, ROT[0]); px(g, x - 2, y - 2, 1, 1, ROT[0]); }
+  // (a split in the skin: the bone through it)
+  line(g, [top[0] * 0.4 + 1, -14, top[0] * 0.6 + 1, -24], 1.6, RBONE);
+  // (the hand: the palm, then four fingers and the thumb, each two pieces, hooking by the curl)
+  const pc: P = [top[0] + lean * 1, top[1] - 6];
+  ell(g, pc[0], pc[1], 6, 5.4, ROT[0]); ell(g, pc[0] + 0.5, pc[1] - 0.4, 4.8, 4.2, ROT[2]); ell(g, pc[0] + 1.2, pc[1] - 1.2, 2, 1.6, ROT[3]);
+  const curl = q / 3;
+  for (let k = 0; k < 4; k++) {
+    const bx = pc[0] - 4.5 + k * 3, by = pc[1] - 4, a1 = -Math.PI / 2 + (k - 1.5) * 0.18, l1 = 7 - Math.abs(k - 1.5);
+    const m: P = [bx + Math.cos(a1) * l1, by + Math.sin(a1) * l1];
+    const a2 = a1 + lean * (0.4 + curl * 1.5), tip: P = [m[0] + Math.cos(a2) * 6, m[1] + Math.sin(a2) * 6];
+    line(g, [bx, by, m[0], m[1], tip[0], tip[1]], 2.6, ROT[0]); line(g, [bx + 0.4, by, m[0] + 0.4, m[1], tip[0] + 0.3, tip[1]], 1.4, ROT[2]);
+    px(g, tip[0] - 0.8, tip[1] - 0.8, 1.8, 1.8, NAIL);
+    if (k === 1) px(g, m[0] - 0.5, m[1] - 0.5, 1.4, 1.4, RBONE);
+  }
+  const ta = -Math.PI / 2 - lean * (1.1 - curl * 0.5), tm: P = [pc[0] - lean * 5 + Math.cos(ta) * 5, pc[1] + Math.sin(ta) * 5];
+  line(g, [pc[0] - lean * 4, pc[1], tm[0], tm[1]], 2.6, ROT[0]); line(g, [pc[0] - lean * 4, pc[1], tm[0], tm[1]], 1.4, ROT[1]);
+};
+/** One in the world, at (x, the ground), up `rise` 0..1 out of it (clipped at the ground line), the curl `q`. */
+export const drawDeadHand = (c: Ctx, x: number, ground: number, q: number, lean: 1 | -1, rise: number) => {
+  if (rise <= 0) return;
+  c.save(); c.translate(Math.round(x), Math.round(ground));
+  c.beginPath(); c.rect(-30, -90, 60, 90); c.clip();
+  c.translate(0, Math.round((1 - rise) * 62));
+  stamp(c, `wp4-hand-${q}-${lean}`, -24, -70, 48, 76, g => paintDeadHand(g, q, lean));
+  c.restore();
+  // (the asphalt cracked open round it, the faint sick light under)
+  c.fillStyle = '#0C1A10'; c.fillRect(Math.round(x - 12), Math.round(ground - 2), 24, 3);
+  c.fillStyle = '#4ADE80'; c.fillRect(Math.round(x - 7), Math.round(ground - 1), 14, 1);
 };
