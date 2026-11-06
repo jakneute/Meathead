@@ -33,14 +33,24 @@ const blob = (c: Ctx, x: number, y: number, rx: number, ry: number, L: string[],
   ell(c, x - rx * 0.4, y - ry * 0.48, rx * 0.16, ry * 0.12, L[5], rot);
 };
 
-export type GupPose = 'idle' | 'swim' | 'whistle' | 'blow' | 'hork' | 'spit' | 'crouch' | 'leap' | 'flop' | 'dive' | 'breach' | 'hurt' | 'talk' | 'chair' | 'dead' | 'puffed' | 'skin';
-export const GUP_POSES: GupPose[] = ['idle', 'swim', 'whistle', 'blow', 'hork', 'spit', 'crouch', 'leap', 'flop', 'dive', 'breach', 'hurt', 'talk', 'chair', 'dead', 'puffed', 'skin'];
-export interface GupLook { pose: GupPose; q: number; mouth?: boolean; crushed?: boolean }
+export type GupPose = 'idle' | 'swim' | 'whistle' | 'blow' | 'hork' | 'spit' | 'crouch' | 'leap' | 'flop' | 'dive' | 'breach' | 'hurt' | 'talk' | 'chair' | 'dead' | 'puffed' | 'skin'
+  | 'glide' | 'ram' | 'bite' | 'sneeze' | 'slow';
+export const GUP_POSES: GupPose[] = ['idle', 'swim', 'glide', 'ram', 'bite', 'sneeze', 'slow', 'whistle', 'blow', 'hork', 'spit', 'crouch', 'leap', 'flop', 'dive', 'breach', 'hurt', 'talk', 'chair', 'dead', 'puffed', 'skin'];
+/** `arm`: the chlorine tanks burst so far (0: full armor, no hives ... 5: the armor all popped off him, swollen up with
+ *  hives, his eyes puffed shut: the sitting duck). */
+export interface GupLook { pose: GupPose; q: number; mouth?: boolean; crushed?: boolean; arm?: number }
+/** His armor (scrap off the pool: a drain grate beaten into a breastplate, a stockpot of a helmet, a pauldron off a
+ *  ladder's handrail), in steps; it goes green and pitted as the chlorine gets in. */
+const STEEL = ['#1E242C', '#3A4450', '#5E6A78', '#8A96A4', '#BAC6D2', '#E8EEF4'];
+const steelAt = (a: number) => STEEL.map(col => mix(col, '#4A7A2A', Math.min(0.45, a * 0.1)));
+const HIVE = ['#7A1A2A', '#C8384A', '#F07A8A'];
+/** Where the hives come up (body coords), in the order they do. */
+const HIVES: P[] = [[-20, -40], [30, -20], [-34, -8], [12, -52], [40, -40], [-8, -24], [22, -14], [-40, -30], [0, -60], [30, -58], [-26, -20], [16, -34], [-12, -48], [44, -24], [-44, -16], [6, -44], [28, -50], [-30, -52], [38, -30], [-4, -12]];
 
 export const paintGup = (c: Ctx, L: GupLook, face: 1 | -1 = 1) => {
-  const { pose, q } = L, ph = (q / 8) * Math.PI * 2;
+  const { pose, q } = L, ph = (q / 8) * Math.PI * 2, A = L.arm ?? 0, ST = steelAt(A);
   if (pose === 'skin') return paintSkin(c, q);
-  if (pose === 'dead' || pose === 'puffed') return paintDead(c, pose === 'puffed', q);
+  if (pose === 'dead' || pose === 'puffed') return paintDead(c, pose === 'puffed', q, L.arm ?? 0);
   const puff = pose === 'blow' ? 1 : pose === 'whistle' ? 0.6 : 0;
   // ---- the skeleton (where the head, the hands and the feet go)
   let headY = -80, headX = 6, bodyTilt = 0, sq = 1;
@@ -58,6 +68,16 @@ export const paintGup = (c: Ctx, L: GupLook, face: 1 | -1 = 1) => {
     case 'breach': hN = [56, -120]; hF = [-40, -124]; headY = -88; break;
     case 'hurt': hN = [20, -70]; hF = [-50, -40]; headX = -6; bodyTilt = -0.14; break;
     case 'chair': hN = [44, -20]; hF = [-38, -24]; fN = [36, 40]; fF = [16, 44]; break;
+    // (flat out, swimming: rolled forward onto his front, arms out ahead, the feet kicking)
+    case 'glide': hN = [44 + Math.sin(ph) * 8, -110]; hF = [22 - Math.sin(ph) * 8, -114]; fN = [26, 58 + Math.sin(ph) * 12]; fF = [-18, 58 - Math.sin(ph) * 12]; bodyTilt = 1.2; break;
+    // (the ram: flat out, head first, jaws open, arms swept back along him)
+    case 'ram': hN = [44, 26]; hF = [-30, 30]; fN = [12, 62]; fF = [-4, 62]; bodyTilt = 1.3; headX = 10; break;
+    // (the chomp: leaning in, arms out to grab, jaws wide)
+    case 'bite': hN = [72, -66]; hF = [58, -84]; headX = 14; bodyTilt = 0.45; break;
+    // (the sneeze: head thrown forward, arms flung, everything screwed shut)
+    case 'sneeze': hN = [56, -30]; hF = [-60, -44]; headX = 16; headY = -76; bodyTilt = 0.22; break;
+    // (the sitting duck: slumped, swollen, arms hanging, wheezing)
+    case 'slow': hN = [50, 14]; hF = [-44, 16]; fN = [24, 58]; fF = [-20, 60]; headY = -72; headX = 6; sq = 0.94; bodyTilt = 0.08; break;
     default: hN = [46, -12 + Math.sin(ph) * 3]; hF = [-40, -10 - Math.sin(ph) * 3]; break;
   }
   c.save(); c.rotate(bodyTilt); c.scale(1, sq);
@@ -101,6 +121,25 @@ export const paintGup = (c: Ctx, L: GupLook, face: 1 | -1 = 1) => {
   c.save(); c.translate(-2, 10); c.scale(face, 1); c.font = '7px "Press Start 2P"'; c.textAlign = 'center'; c.fillStyle = '#F1EFEA'; c.fillText('GUARD', 0, 4); c.textAlign = 'left'; c.restore();
   // (his gut hanging over the waistband)
   c.fillStyle = FLESH[2]; c.beginPath(); c.ellipse(4, -6, 46, 9, 0, Math.PI, 0); c.fill();
+  // ---- the hives (the chlorine: more with every tank)
+  for (let i = 0; i < Math.min(HIVES.length, A * 4); i++) { const [x, y] = HIVES[i]; ell(c, x, y, 5, 4, HIVE[0]); ell(c, x, y - 0.5, 4, 3, HIVE[1]); ell(c, x - 1, y - 1.5, 1.6, 1.2, HIVE[2]); }
+  // ---- the breastplate (a drain grate beaten round him, strapped on); askew on one strap at 4 tanks; gone at 5
+  if (A < 5) {
+    c.save();
+    if (A >= 4) { c.translate(-30, -58); c.rotate(-0.5); c.translate(30, 58); }
+    c.fillStyle = INK; c.beginPath(); c.moveTo(-46, -58); c.quadraticCurveTo(2, -72, 48, -58); c.lineTo(46, -10); c.quadraticCurveTo(2, 2, -44, -10); c.closePath(); c.fill();
+    for (let k = 0; k < 5; k++) { c.fillStyle = ST[[2, 4, 3, 2, 1][k]]; c.beginPath(); const y0 = -64 + k * 11; c.moveTo(-43, y0 + 6); c.quadraticCurveTo(2, y0 - 6, 45, y0 + 6); c.lineTo(45, y0 + 17); c.quadraticCurveTo(2, y0 + 5, -43, y0 + 17); c.closePath(); c.fill(); }
+    c.fillStyle = ST[5]; c.fillRect(-36, -58, 20, 2);
+    // (the grate's slots, the rivets)
+    for (let r = 0; r < 3; r++) for (let k = 0; k < 5; k++) { rect(c, -30 + k * 14, -48 + r * 12, 9, 4, INK); rect(c, -30 + k * 14, -48 + r * 12, 9, 1, ST[0]); }
+    for (const [x, y] of [[-40, -54], [42, -54], [-40, -16], [42, -16], [2, -62]] as P[]) { rect(c, x - 2, y - 2, 4, 4, INK); rect(c, x - 1, y - 1, 2, 2, ST[5]); }
+    // (the chlorine eating it: green pits, fizzing)
+    for (let i = 0; i < A * 3; i++) { const x = -34 + ((i * 29) % 72), y = -52 + ((i * 17) % 38); ell(c, x, y, 3, 2.4, '#3A6A1A'); rect(c, x - 1, y - 1, 1, 1, '#B8F070'); }
+    // (the straps)
+    line(c, [[-40, -56], [-26, -76]], 5, INK); line(c, [[-40, -56], [-26, -76]], 3, '#5A3A1A');
+    if (A < 4) { line(c, [[42, -56], [30, -76]], 5, INK); line(c, [[42, -56], [30, -76]], 3, '#5A3A1A'); }
+    c.restore();
+  } else { line(c, [[-40, -56], [-30, -40], [-36, -24]], 4, INK); line(c, [[-40, -56], [-30, -40], [-36, -24]], 2, '#5A3A1A'); }
   leg([16, 14], fN, true);
   // ---- the head: too big, on a fat neck with gills
   const hx = headX, hy = headY;
@@ -113,28 +152,56 @@ export const paintGup = (c: Ctx, L: GupLook, face: 1 | -1 = 1) => {
   ell(c, hx - 24, hy - 8, 3.5, 3, FLESH[1]); line(c, [[hx - 24, hy - 10], [hx - 27, hy - 17]], 1, INK);
   // (the cheeks, ballooned when he blows)
   if (puff > 0) { blob(c, hx + 24, hy + 10, 14 + puff * 10, 11 + puff * 8, FLESH); }
+  // (the hives on his face; the helmet: a stockpot riveted round, holes for his stalks; dented at 2, split at 3, gone at 4)
+  for (let i = 0; i < Math.min(6, A * 2); i++) { const x = hx - 30 + ((i * 23) % 56), y = hy - 14 + ((i * 13) % 26); ell(c, x, y, 4.5, 3.5, HIVE[0]); ell(c, x, y - 0.5, 3.5, 2.6, HIVE[1]); }
+  if (A < 4) {
+    c.fillStyle = INK; c.beginPath(); c.ellipse(hx, hy - 12, 44, 30, 0, Math.PI, 0); c.closePath(); c.fill();
+    for (let k = 0; k < 4; k++) { c.fillStyle = ST[[1, 2, 3, 4][k]]; c.beginPath(); c.ellipse(hx - k * 3, hy - 13 - k * 2, 42 - k * 9, 28 - k * 6, 0, Math.PI, 0); c.closePath(); c.fill(); }
+    rect(c, hx - 46, hy - 16, 92, 8, INK); rect(c, hx - 45, hy - 15, 90, 6, ST[2]); rect(c, hx - 45, hy - 15, 90, 2, ST[4]);
+    for (let k = 0; k < 7; k++) { rect(c, hx - 40 + k * 13, hy - 14, 3, 3, INK); rect(c, hx - 39 + k * 13, hy - 13, 1, 1, ST[5]); }
+    // (the red cross painted on its side, flaking)
+    rect(c, hx - 26, hy - 34, 12, 4, '#A01A1A'); rect(c, hx - 22, hy - 38, 4, 12, '#A01A1A');
+    for (const sx of [-8, 12]) { ell(c, hx + sx, hy - 28, 7, 5, INK); }
+    if (A >= 2) { c.fillStyle = ST[0]; c.beginPath(); c.ellipse(hx + 20, hy - 30, 9, 5, 0.4, 0, Math.PI * 2); c.fill(); rect(c, hx + 16, hy - 33, 6, 1, ST[4]); }
+    if (A >= 3) line(c, [[hx - 4, hy - 40], [hx + 2, hy - 30], [hx - 2, hy - 22], [hx + 4, hy - 14]], 2, INK);
+    for (let i = 0; i < A * 2; i++) { const x = hx - 34 + ((i * 19) % 64); ell(c, x, hy - 22 + (i % 3) * 3, 2.6, 2, '#3A6A1A'); }
+  }
   // (the eyestalks: two, veiny, waving; the eyes on them yellow, slit-pupiled, bloodshot)
   for (const [k, sx] of [[0, -8], [1, 12]] as const) {
-    const wave = Math.sin(ph + k * 2) * 6 + (pose === 'hurt' ? -8 : 0), tip: P = [hx + sx + wave, hy - 52 - k * 6 + (pose === 'blow' ? -8 : 0)];
+    const wave = Math.sin(ph + k * 2) * 6 + (pose === 'hurt' ? -8 : 0) + (pose === 'sneeze' ? -14 : 0) + (pose === 'ram' ? -10 : 0) + (pose === 'slow' ? (k ? 16 : -16) : 0);
+    const tip: P = [hx + sx + wave, hy - 52 - k * 6 + (pose === 'blow' ? -8 : 0) + (pose === 'slow' ? 26 : 0) + (pose === 'sneeze' ? 8 : 0)];
+    const shut = pose === 'sneeze' || (A >= 5 && k === 1);
     line(c, [[hx + sx, hy - 26], [hx + sx + wave * 0.5, hy - 40], tip], 8, INK); line(c, [[hx + sx, hy - 26], [hx + sx + wave * 0.5, hy - 40], tip], 5, FLESH[2]);
     line(c, [[hx + sx + 1, hy - 28], [tip[0] + 1, tip[1] + 6]], 1, '#C04A6A');
-    ell(c, tip[0], tip[1], 10, 9, INK); ell(c, tip[0], tip[1], 8.5, 7.5, '#F4E86A'); ell(c, tip[0] - 2, tip[1] - 2, 3, 2, '#FFFBD0');
-    line(c, [[tip[0] - 7, tip[1] + 2], [tip[0] - 3, tip[1] + 1]], 1, '#D03030'); line(c, [[tip[0] + 6, tip[1] - 3], [tip[0] + 3, tip[1] - 1]], 1, '#D03030');
-    rect(c, tip[0] + 1, tip[1] - 5, 2, 9, INK);
+    ell(c, tip[0], tip[1], 10, 9, INK);
+    if (shut) { ell(c, tip[0], tip[1], 8.5, 7.5, A >= 3 ? '#C85A6A' : FLESH[3]); line(c, [[tip[0] - 6, tip[1]], [tip[0] + 6, tip[1] + 1]], 2, INK); }
+    else {
+      ell(c, tip[0], tip[1], 8.5, 7.5, A >= 3 ? '#F0C080' : '#F4E86A'); ell(c, tip[0] - 2, tip[1] - 2, 3, 2, '#FFFBD0');
+      line(c, [[tip[0] - 7, tip[1] + 2], [tip[0] - 3, tip[1] + 1]], 1, '#D03030'); line(c, [[tip[0] + 6, tip[1] - 3], [tip[0] + 3, tip[1] - 1]], 1, '#D03030');
+      rect(c, tip[0] + 1, tip[1] - 5, 2, 9, INK);
+      // (puffed up round it: the hives' swelling)
+      if (A >= 3) { c.strokeStyle = HIVE[1]; c.lineWidth = 2; c.beginPath(); c.ellipse(tip[0], tip[1], 9, 8, 0, 0, Math.PI * 2); c.stroke(); }
+    }
   }
   // (the two sunk in the face: little, mean, pink-rimmed)
-  for (const ex of [10, 26]) { ell(c, hx + ex, hy - 4, 6, 5, INK); ell(c, hx + ex, hy - 4, 4.5, 3.5, '#F4E86A'); rect(c, hx + ex, hy - 6, 1.5, 4, INK); c.strokeStyle = '#D06080'; c.lineWidth = 1; c.beginPath(); c.ellipse(hx + ex, hy - 4, 6, 5, 0, 0, Math.PI * 2); c.stroke(); }
+  for (const ex of [10, 26]) {
+    if (pose === 'sneeze' || A >= 4) { ell(c, hx + ex, hy - 4, 7, 5, A >= 3 ? HIVE[1] : FLESH[3]); line(c, [[hx + ex - 5, hy - 6], [hx + ex, hy - 3], [hx + ex + 5, hy - 6]], 1.5, INK); continue; }
+    ell(c, hx + ex, hy - 4, 6, 5, INK); ell(c, hx + ex, hy - 4, 4.5, 3.5, '#F4E86A'); rect(c, hx + ex, hy - 6, 1.5, 4, INK); c.strokeStyle = '#D06080'; c.lineWidth = 1; c.beginPath(); c.ellipse(hx + ex, hy - 4, 6, 5, 0, 0, Math.PI * 2); c.stroke();
+  }
   // (the nose: fat, a bulb, striped with zinc)
   ell(c, hx + 36, hy + 4, 11, 9, INK); ell(c, hx + 36, hy + 4, 9.5, 7.5, FLESH[3]); rect(c, hx + 30, hy, 13, 4, '#F8FAFC'); rect(c, hx + 31, hy + 4, 11, 2, '#E2E8F0');
   ell(c, hx + 40, hy + 9, 2, 1.5, INK);
   // (the mouth: buck teeth with gaps, the whistle in it (or not: open, spitting, talking), drool)
-  const open = pose === 'spit' || pose === 'breach' ? 14 : pose === 'hork' ? 4 : pose === 'hurt' ? 9 : L.mouth || pose === 'talk' ? 7 : 2;
+  const open = pose === 'spit' || pose === 'breach' || pose === 'ram' ? 14 : pose === 'bite' ? 18 : pose === 'sneeze' ? 12 : pose === 'slow' ? 8 : pose === 'hork' ? 4 : pose === 'hurt' ? 9 : L.mouth || pose === 'talk' ? 7 : 2;
   const mx = hx + 22, my = hy + 18;
   ell(c, mx, my + open / 2, 18, 4 + open / 2, INK);
   if (open > 3) { ell(c, mx, my + open / 2, 16, 2 + open / 2, '#4A0A1A'); ell(c, mx + 2, my + open - 2, 8, 3, '#C04A5A'); }
   for (const tx of [-8, -1, 8]) rect(c, mx + tx, my - 1, 5, 6, '#F0E6B8');
   rect(c, mx - 8, my + 4, 5, 1, '#A89A60'); rect(c, mx + 8, my + 4, 5, 1, '#A89A60');
-  if (pose === 'breach') { for (let k = 0; k < 6; k++) rect(c, mx - 12 + k * 5, my + open - 4, 3, 5, '#F0E6B8'); }
+  if (pose === 'breach' || pose === 'ram' || pose === 'bite') { for (let k = 0; k < 6; k++) rect(c, mx - 12 + k * 5, my + open - 4, 3, 5, '#F0E6B8'); }
+  // (the sneeze's spray; the sitting duck's tongue lolling out)
+  if (pose === 'sneeze') for (let k = 0; k < 7; k++) ell(c, mx + 22 + k * 6, my + 4 + Math.sin(k * 1.7) * 6, 3 - k * 0.3, 2.4 - k * 0.25, k % 2 ? '#C8F59A' : '#8AD050');
+  if (pose === 'slow') { ell(c, mx + 4, my + open + 6, 6, 9, INK); ell(c, mx + 4, my + open + 5, 4.5, 7.5, '#C04A6A'); rect(c, mx + 3, my + open, 1, 9, '#7A1A3A'); }
   // (the throat's bulge, glowing, in the hork)
   if (pose === 'hork') { ell(c, hx - 2, hy + 32, 14, 10, INK); ell(c, hx - 2, hy + 32, 12, 8, '#8AF040'); ell(c, hx - 5, hy + 29, 4, 3, '#E0FFB0'); }
   // (the whistle: on its lanyard round the neck; in the mouth (whistle, blow, idle, swim, chair))
@@ -144,14 +211,17 @@ export const paintGup = (c: Ctx, L: GupLook, face: 1 | -1 = 1) => {
   rect(c, wx - 6, wy - 4, 14, 8, INK); rect(c, wx - 5, wy - 3, 12, 6, '#E8C020'); rect(c, wx - 5, wy - 3, 12, 2, '#FFF2A0'); rect(c, wx + 4, wy - 2, 2, 2, INK);
   if (pose !== 'blow' && pose !== 'whistle') { rect(c, mx - 12, my + 4 + open, 2, 6 + (q % 4), '#B8F0A0'); }
   arm(sN, hN, true);
+  // (the pauldron on his near shoulder: three lames off a ladder's handrail; the first to go, at 2 tanks)
+  if (A < 2) for (let k = 2; k >= 0; k--) { c.fillStyle = INK; c.beginPath(); c.ellipse(sN[0] + 2, sN[1] - 4 + k * 7, 20 - k * 2, 11, -0.2, Math.PI, 0); c.closePath(); c.fill(); c.fillStyle = ST[[4, 3, 2][k]]; c.beginPath(); c.ellipse(sN[0] + 2, sN[1] - 4 + k * 7, 18 - k * 2, 9, -0.2, Math.PI, 0); c.closePath(); c.fill(); rect(c, sN[0] - 8 + k * 2, sN[1] - 9 + k * 7, 3, 3, ST[5]); }
   c.restore();
 };
 /** Dead: belly up on the water, X'd eyes on their stalks drooping, tongue out; `puffed`: swollen up round, purple
  *  blotches, the whistle stuck in his throat. */
-const paintDead = (c: Ctx, puffed: boolean, q: number) => {
+const paintDead = (c: Ctx, puffed: boolean, q: number, A = 0) => {
   const k = puffed ? 1.25 : 1;
   blob(c, 0, -10, 64 * k, 34 * k, puffed ? FLESH.map(col => mix(col, '#7A3A8A', 0.3)) : FLESH);
   if (puffed) for (let i = 0; i < 6; i++) ell(c, -40 + i * 16, -14 + (i % 2) * 10, 6, 5, '#6A2A7A');
+  for (let i = 0; i < A * 3; i++) { const x = -54 + ((i * 37) % 108) * k, y = -30 + ((i * 23) % 36); ell(c, x, y, 5, 4, HIVE[0]); ell(c, x, y - 0.5, 4, 3, HIVE[1]); }
   for (let r = 0; r < 3; r++) ell(c, -20 + r * 18, -30 * k, 3, 2.4, '#7A4A6A');
   // (the trunks up top, the head off to the side, upside down)
   rect(c, -10, -44 * k, 34, 12, INK); rect(c, -9, -43 * k, 32, 10, TRUNK[2]);
@@ -175,10 +245,10 @@ const paintSkin = (c: Ctx, q: number) => {
 const BOX = { x: -150, y: -200, w: 300, h: 290 };
 /** Him, at (x, y: his waist), facing. Stamped per pose and frame; `alpha` (his breather's flicker). */
 export const drawGup = (c: Ctx, x: number, y: number, face: 1 | -1, L: GupLook, f: number, alpha = 1) => {
-  const q = L.pose === 'swim' ? Math.floor(f / 6) % 8 : L.pose === 'idle' || L.pose === 'talk' || L.pose === 'chair' ? Math.floor(f / 10) % 8 : L.pose === 'dead' || L.pose === 'skin' ? Math.floor(f / 16) % 3 : 0;
+  const q = L.pose === 'swim' || L.pose === 'glide' ? Math.floor(f / 6) % 8 : L.pose === 'idle' || L.pose === 'talk' || L.pose === 'chair' ? Math.floor(f / 10) % 8 : L.pose === 'dead' || L.pose === 'skin' ? Math.floor(f / 16) % 3 : 0;
   c.save(); c.translate(Math.round(x), Math.round(y));
   if (alpha < 1) c.globalAlpha = alpha;
-  stamp(c, `wp3-gup-${L.pose}-${q}-${L.mouth ? 1 : 0}-${face}`, BOX.x, BOX.y, BOX.w, BOX.h, g => { g.scale(face, 1); paintGup(g, { ...L, q }, face); });
+  stamp(c, `wp3-gup-${L.pose}-${q}-${L.mouth ? 1 : 0}-${face}-a${L.arm ?? 0}`, BOX.x, BOX.y, BOX.w, BOX.h, g => { g.scale(face, 1); paintGup(g, { ...L, q }, face); });
   c.restore();
 };
 export const GUP_W = 110, GUP_H = 150;

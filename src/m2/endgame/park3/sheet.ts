@@ -1,5 +1,6 @@
 // (dev only) Contact sheets of level 3's new figures, for checking every pose: window.__wp3Sheet(name) gives a PNG data
-// URL. 'gup' (GUPPLAX, every pose), 'gross' (his gross-up, shut and open), 'janitor' / 'tech' (six looks, every pose),
+// URL. 'gup' (GUPPLAX, every pose), 'gupArmor' (his armor and hives,
+// 0 to 5 tanks burst, on six poses), 'gross' (his gross-up, shut and open), 'janitor' / 'tech' (six looks, every pose),
 // 'critters' (the grubs and the eels, every pose).
 
 import { paintGup, GUP_POSES } from './gupArt';
@@ -25,10 +26,15 @@ const sheet = (cols: number, rows: number, cw: number, ch: number, scale: number
 
 export const contactSheet = (what: string): string => {
   if (what === 'gup') {
-    return sheet(6, 3, 300, 300, 1, (g, i) => {
-      if (i >= GUP_POSES.length) { if (i === GUP_POSES.length) { g.translate(150, 210); g.scale(-1, 1); paintGup(g, { pose: 'spit', q: 0 }, -1); return 'spit (left)'; } return; }
+    return sheet(8, 3, 300, 300, 1, (g, i) => {
+      if (i >= GUP_POSES.length) { if (i === GUP_POSES.length) { g.translate(150, 210); g.scale(-1, 1); paintGup(g, { pose: 'ram', q: 0 }, -1); return 'ram (left)'; } return; }
       g.translate(150, 210); paintGup(g, { pose: GUP_POSES[i], q: 2, mouth: GUP_POSES[i] === 'talk' }); g.fillStyle = '#C00'; g.fillRect(-1, 0, 2, 2); return GUP_POSES[i];
     });
+  }
+  // (his armor and hives by tanks burst, 0 to 5, across; a row a pose)
+  if (what === 'gupArmor') {
+    const poses = ['idle', 'glide', 'ram', 'bite', 'sneeze', 'slow'] as const;
+    return sheet(6, 6, 300, 300, 1, (g, i) => { const pose = poses[Math.floor(i / 6)], a = i % 6; g.translate(150, 210); paintGup(g, { pose, q: 2, arm: a }); return pose + ' a' + a; });
   }
   if (what === 'gross') return sheet(1, 2, 800, 600, 1, (g, i) => { drawGupGrossBack(g, 800, 600); drawGupGross(g, 400, 306, 1, 0, i === 1); return i ? 'open' : 'shut'; });
   if (what === 'janitor' || what === 'tech') {
