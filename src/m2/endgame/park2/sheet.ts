@@ -5,6 +5,11 @@
 import { paintSon, paintSonDead, SON_POSES, type SonPose } from './sonArt';
 import { drawSonGross, drawSonGrossBack } from './sonGross';
 import { drawBurnout, burnLook, drawImp, type BurnPose, type ImpPose } from './kindArt';
+import { drawPretzel, drawEndPreview } from './end';
+import { drawBrawl } from './brawl';
+import { drawLavaDeath, LAVA_FRAMES, LAVA_KILL, paintSkeleton } from './lavaDeath';
+import type { GameState } from '../../../m1/game/core/state';
+import type { MeatheadDeath } from '../../../m1/game/player/deathAnim';
 
 const sheet = (cols: number, rows: number, cw: number, ch: number, scale: number, cell: (g: CanvasRenderingContext2D, i: number) => string | void) => {
   const cv = document.createElement('canvas');
@@ -44,6 +49,19 @@ export const contactSheet = (what: string): string => {
   if (what === 'imp') {
     const poses: ImpPose[] = ['fly', 'tell', 'throw', 'dive', 'hurt'];
     return sheet(4, 5, 70, 70, 4, (g, i) => { g.translate(35, 58); drawImp(g, poses[Math.floor(i / 4)], (i % 4) * 4); return `${poses[Math.floor(i / 4)]} ${i % 4}`; });
+  }
+  if (what === 'pretzel') return sheet(2, 1, 280, 170, 2, (g, i) => { g.fillStyle = '#7F1D1D'; g.fillRect(0, 110, 280, 60); drawPretzel(g, 140, 100, 0, 0, i === 1); return i ? 'on the river' : 'held'; });
+  if (what === 'vendor') return sheet(3, 1, 160, 160, 2, (g, i) => { g.translate(80, 140); drawEndPreview(g, i); return ['calling', 'punched', 'cart'][i]; });
+  if (what === 'brawl') return sheet(3, 4, 520, 340, 1, (g, i) => { g.translate(260 - 0, 170 - (550 - 130)); g.translate(0, 0); drawBrawl(g, 0, 550 - 130, i < 10 ? 4 + i * 9 : 200 + (i - 10) * 14, i < 10 ? 0 : (i - 9) / 3); return i < 10 ? `t ${4 + i * 9}` : `clearing ${(i - 9)}/3`; });
+  if (what === 'skeleton') return sheet(4, 1, 100, 150, 3, (g, i) => { g.translate(50, 140); paintSkeleton(g, i * 1.2, i < 2); return `bones ${i}`; });
+  if (what === 'lava') {
+    const state = (window as unknown as { __m2: GameState }).__m2;
+    return sheet(6, 2, 200, 220, 2, (g, i) => {
+      const t = LAVA_FRAMES[i], d = { kind: LAVA_KILL, x: 100, y: 160, floor: 160, facing: 1 } as unknown as MeatheadDeath;
+      g.fillStyle = '#B91C1C'; g.fillRect(0, 160, 200, 60); g.fillStyle = '#EA580C'; g.fillRect(0, 158, 200, 4);
+      drawLavaDeath(g, state, d, 'GUN', t, t);
+      return `t ${t}`;
+    });
   }
   return '';
 };

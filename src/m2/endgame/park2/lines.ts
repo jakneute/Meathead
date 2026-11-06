@@ -198,7 +198,21 @@ export const MH_PRETZEL = bp(
 );
 /** The demon going by with a beer cart (walking on the fire: it's nothing to him). */
 export const BEER_VOICE = 'm2.wp.beerdemon';
-export const BEER_DEMON = bp(["ICE COLD BEER! ICE COLD... OH SHIT. IT'S HIM."], ["ICE COLD BEER! OH SHIT. IT'S THE SMELLY ONE."], ["ICE COLD BEER! OH SHIT. IT'S THE NAKED ONE."]);
+/** The beer man (the owner: "the beer demon calls out beer. he isn't in the river but on the walkway next to the river
+ *  ... the funny thing about the demon is he's just trying to make an honest living"): a vendor's calls, on his walkway
+ *  by the river; then, punched, a working stiff's complaint (by what he's just been punched by). */
+export const BEER_CALL = ['BEER HERE!', 'COLD BEER! GET YOUR COLD BEER!', 'BEER! ICE COLD BEER!', 'BEER HERE! BEER!', 'GET YOUR BEER! LAST CALL!'];
+export const BEER_HURT = bp(
+  ["OW! I'M JUST TRYING TO MAKE AN HONEST LIVING!", "THAT'S COMING OUT OF MY PAY, MAN!", 'I GOT THREE KIDS AT HOME! IN HELL!', 'I WAS TWO HOURS FROM MY BREAK!'],
+  ["OW! AND YOU STINK! I'M JUST WORKING HERE!", "YOU SHIT YOURSELF AND YOU STILL DON'T TIP?", "I'M JUST TRYING TO MAKE AN HONEST LIVING!"],
+  ["OW! A NAKED GUY! I'M JUST TRYING TO MAKE A LIVING!", 'I DO NOT GET PAID ENOUGH FOR NAKED GUYS!', 'THREE KIDS! AND NOW I SAW THAT!'],
+);
+/** (the owner: "when the 'beer' sequence ends he's like 'break time's over. back to work'") As control comes back. */
+export const MH_BACK_TO_WORK = bp(
+  ["BREAK TIME'S OVER. BACK TO WORK.", "OKAY. BREAK TIME'S OVER. BACK TO WORK."],
+  ["BREAK TIME'S OVER. BACK TO WORK. STILL SHITTY.", "BREAK TIME'S OVER. BACK TO WORK. THE SHIT COMES WITH ME."],
+  ["BREAK TIME'S OVER. BACK TO WORK. NO PANTS REQUIRED.", "BREAK TIME'S OVER. BACK TO WORK. BALLS OUT."],
+);
 export const MH_BEER = bp(["DON'T MIND IF I DO."], ["I'LL TAKE ONE. FOR THE SMELL."], ["I'LL TAKE ONE. I'LL HOLD IT WHERE MY POCKET WOULD BE."]);
 /** Lounging back on them with it: the last word, then VICTORY on the way down the river. */
 export const MH_LOUNGE = bp(['NOW THIS IS A LAZY RIVER.'], ["NOW THIS IS A LAZY RIVER. IT'S WARM UNDER ME. IT'S NOT ME."], ["NOW THIS IS A LAZY RIVER. THE FIRE'S WARMING MY ASS."]);
@@ -207,10 +221,10 @@ export const MH_LOUNGE = bp(['NOW THIS IS A LAZY RIVER.'], ["NOW THIS IS A LAZY 
 
 const all = (...pools: (string | string[] | ByPants)[]) => pools.flatMap(p => (typeof p === 'string' ? [p] : Array.isArray(p) ? p : Object.values(p).flat()));
 export const PARK2_VOICE_LINES: Record<string, string[]> = {
-  meathead: all(MH_LAVA_SCREAM, MH_MEET, MH_AFTER_MEET, MH_FIRST_VINE, MH_VINE_BURN, MH_LOG, MH_LOG_GOING, MH_TOWER, MH_TOWER_GOING, MH_GROTTO, MH_RIVER, MH_DOOR, MH_INTRO2, MH_MOCK, GRAB_SON, MH_STUB3, MH_BRO, MH_NOTHING, MH_STOP, MH_PRETZEL, MH_BEER, MH_LOUNGE, ...Object.values(HURT2).map(h => h.hurt)),
+  meathead: all(MH_LAVA_SCREAM, MH_MEET, MH_AFTER_MEET, MH_FIRST_VINE, MH_VINE_BURN, MH_LOG, MH_LOG_GOING, MH_TOWER, MH_TOWER_GOING, MH_GROTTO, MH_RIVER, MH_DOOR, MH_INTRO2, MH_MOCK, GRAB_SON, MH_STUB3, MH_BRO, MH_NOTHING, MH_STOP, MH_PRETZEL, MH_BEER, MH_LOUNGE, MH_BACK_TO_WORK, ...Object.values(HURT2).map(h => h.hurt)),
   death: all(...Object.values(HURT2).map(h => h.death)),
   [SON_VOICE]: all(SON_HELLO, SON_NAME_LINE, SON_JOB, SON_LEAK, SON_BYE, SON_INTRO, SON_INTRO2, SON_RETRY, SON_LAZY, SON_HURT, SON_LOW, SON_DEATH, SON_CALL, SON_KNEEL, SON_ESCAPE, SON_WINCE),
   'm2.demon': all(BRO_ARRIVE, BRO_KNEEL, BRO_ESCAPE, BRO_WINCE),
-  [BEER_VOICE]: all(BEER_DEMON),
+  [BEER_VOICE]: all(BEER_CALL, BEER_HURT),
   [BURNOUT_VOICE.m]: all(BURN_BARK), [BURNOUT_VOICE.f]: all(BURN_BARK),
 };

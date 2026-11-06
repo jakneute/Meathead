@@ -100,7 +100,7 @@ export const buildPark2 = (state: GameState, cp: number, onSave: () => void): Pa
     fightState: killed ? 'won' : 'wait', f: null, killed, end: null, cause: null, said: {}, lineAt: {},
     backOpen: killed ? 1 : 0, door: doorDown ? 1 : 0, l3door: -1,
   };
-  if (import.meta.env.DEV && typeof window !== 'undefined') { const w = window as unknown as Record<string, unknown>; w.__wp2 = p2; w.__wp2Sheet = contactSheet; w.__wp2Hands = () => setPiece('hands', true); w.__wp2Nutless = (on: boolean) => keepForRevisits(DEMON_NUTLESS, on ? '1' : null); }
+  if (import.meta.env.DEV && typeof window !== 'undefined') { const w = window as unknown as Record<string, unknown>; w.__wp2 = p2; w.__wp2Sheet = contactSheet; w.__wp2Hands = () => setPiece('hands', true); w.__wp2Nutless = (on: boolean) => keepForRevisits(DEMON_NUTLESS, on ? '1' : null); w.__wp2Win = () => { if (p2.f) { p2.killed = true; p2.end = startEnd(p2.f); } }; }
   if (cp > CP2.start) { p2.said.vine = true; }
   if (cp >= CP2.logJam) p2.said.log = true;
   if (cp >= CP2.tiki) p2.said.tower = true;

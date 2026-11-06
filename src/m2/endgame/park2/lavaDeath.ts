@@ -116,7 +116,7 @@ export const drawLavaDeath: Parameters<typeof registerDeathDraw>[1] = (c, state,
   c.fillStyle = FIRE[2]; c.beginPath(); c.ellipse(x, s, r, 5, 0, 0, Math.PI * 2); c.fill();
   c.fillStyle = FIRE[4]; c.beginPath(); c.ellipse(x, s - 1, r * 0.55, 2.5, 0, 0, Math.PI * 2); c.fill();
   // Him: into it to the waist, flailing, blistering, on fire, charring black, then the bones (clipped at the surface)
-  const sink = t < LV.IN ? t * 3.6 : t < LV.CHAR ? 36 + Math.sin(t * 0.6) * 4 : t < LV.BONES ? 36 + (t - LV.CHAR) * 0.7 : 60 + (t - LV.BONES) * 2.4;
+  const sink = t < LV.IN ? t * 2.4 : t < LV.CHAR ? 24 + Math.sin(t * 0.6) * 4 : t < LV.BONES ? 24 + (t - LV.CHAR) * 0.8 : 40 + (t - LV.BONES) * 2.6;
   const feet = s + sink, shake = t > LV.IN && t < LV.BONES ? Math.sin(f * 1.7) * 3 : 0;
   c.save(); c.beginPath(); c.rect(x - 200, s - 400, 400, 401); c.clip();
   if (t < LV.BONES) {
@@ -132,7 +132,9 @@ export const drawLavaDeath: Parameters<typeof registerDeathDraw>[1] = (c, state,
     c.save(); c.translate(Math.round(x), Math.round(feet)); stamp(c, `wp2-lavaskel-${Math.floor(t / 4) % 4}-${t < LV.GLASSES ? 1 : 0}`, -40, -130, 80, 134, g => paintSkeleton(g, (Math.floor(t / 4) % 4) * 1.2, t < LV.GLASSES)); c.restore();
   }
   // (the flames up over him: from the feet as he catches, all over him while he burns)
-  if (t > LV.FIRE - 12 && t < LV.UNDER) { const k = k01((t - LV.FIRE + 12) / 20), top = feet - 100; for (let n = 0; n < 5; n++) flame(c, x - 20 + n * 10 + shake, Math.min(s, feet - 10 - n % 2 * 30), 12, 20 + k * 30, f, n * 3); if (k > 0.5) flame(c, x + shake, top + 30, 14, 34, f, 7); }
+  if (t > LV.FIRE - 12 && t < LV.BONES + 8) { const k = k01((t - LV.FIRE + 12) / 20), fade = t > LV.BONES ? 0.4 : 1; for (let n = 0; n < 3; n++) flame(c, x - 14 + n * 14 + shake, s - 2, 10, (16 + k * 18) * fade, f, n * 3); if (k > 0.5 && t < LV.BONES) flame(c, x + 8 + shake, feet - 62, 9, 20, f, 7); }
+  // (the last of it burning off the bones: little licks)
+  if (t >= LV.BONES && t < LV.UNDER) for (let n = 0; n < 2; n++) flame(c, x - 8 + n * 16, s - 2, 6, 10, f, 11 + n);
   c.restore();
   // (his glasses: up off the skull, bobbing on the surface)
   if (t >= LV.GLASSES) {

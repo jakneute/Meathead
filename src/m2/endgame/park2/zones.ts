@@ -393,7 +393,7 @@ const midBack = (g: Ctx, j: number, sp: Spot[]) => {
     block(g, x, MG - h, 110, h, Pw);
     for (let y = MG - h + 40; y < MG; y += 40) R(g, x, y, 110, 2, Pw[1]);
     stroke(g, [[x + 110, MG - h + 20], [x + 150, MG]], 5, Pw[0]); stroke(g, [[x + 110, MG - h + 20], [x + 150, MG]], 3, Pw[3]);
-    g.font = '8px "Press Start 2P"'; g.fillStyle = m('#1A1410'); g.fillText(['FLAT 7', 'RUINS B', 'TIKI 3'][k], x + 10, MG - h + 20);
+    g.font = '8px "Press Start 2P"'; g.fillStyle = m('#1A1410'); g.fillText(['FLAT 7', 'RUINS B', 'TIKI 3', 'COVE 2', 'GATOR 4', 'OASIS A', 'FLAT 12', 'CANOPY 9'][(j * 3 + k) % 8], x + 10, MG - h + 20);
   }
   if (j % 2 === 0) { for (const lx of [300, 360]) R(g, lx, MG - 300, 4, 300, Sc[1]); for (let y = MG - 290; y < MG; y += 40) { R(g, 300, y, 64, 3, Sc[2]); stroke(g, [[300, y], [364, y + 40]], 2, Sc[0]); } block(g, 286, MG - 340, 92, 50, ramp5(m('#52525B'))); g.font = '8px "Press Start 2P"'; g.fillStyle = Sc[4]; g.fillText('H2O', 316, MG - 310); }
   else { R(g, 330, MG - 360, 6, 360, Sc[1]); block(g, 300, MG - 380, 66, 26, Sc); for (let k = 0; k < 4; k++) R(g, 304 + k * 16, MG - 376, 12, 18, '#FEF3C7'); }
@@ -601,6 +601,10 @@ const bankGrotto = (g: Ctx, k: number, sp: Spot[]) => {
 const bankBack = (g: Ctx, k: number, sp: Spot[]) => {
   // (the theming's over: a concrete channel wall, pipes along it, a valve wheel, a chain-link fence, EMPLOYEES ONLY)
   bankFace(g, () => { const C = ramp5(b('#6B7280')); R(g, 0, BANK_TOP, BANK_T, BANK_FOOT - BANK_TOP, C[2]); for (let x = 0; x < BANK_T; x += 60) R(g, x, BANK_TOP, 1, BANK_FOOT - BANK_TOP, C[1]); R(g, 0, BANK_TOP, BANK_T, 2, C[3]); R(g, 0, BANK_TOP + 14, BANK_T, 8, b('#4B5563')); R(g, 0, BANK_TOP + 14, BANK_T, 2, b('#9CA3AF')); });
+  // (the service walkway along it (the beer man's, after the fight): planks on the channel wall's top, a pipe rail
+  // behind; dimmed, back from the play)
+  const Wk = ramp5(b('#6B5A44'));
+  R(g, 0, BANK_TOP - 4, BANK_T, 8, Wk[1]); R(g, 0, BANK_TOP - 4, BANK_T, 2, Wk[3]); for (let x = 0; x < BANK_T; x += 20) R(g, x, BANK_TOP - 2, 1, 6, Wk[0]);
   const Fe = ramp5(b('#71717A'));
   for (let x = 10; x < BANK_T; x += 60) { R(g, x, BANK_TOP - 110, 4, 110, Fe[1]); R(g, x, BANK_TOP - 110, 1, 110, Fe[3]); }
   for (let y = BANK_TOP - 104; y < BANK_TOP; y += 6) for (let x = 0; x < BANK_T; x += 6) R(g, x + ((y / 6) % 2) * 3, y, 1, 1, Fe[2]);
