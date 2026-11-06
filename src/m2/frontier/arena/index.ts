@@ -54,10 +54,15 @@ import { drawArenaCast, drawTuckerWords } from './cast';
 import { drawArenaBackdrop, drawArenaBack, drawBoulder, drawLeaves, tickLeaves, drawFallingTree, drawRemainsMark, SIGN_X } from './art';
 import { startFight, updateFight, fightOver, endFight, tickFightWon, resetFight, holdIn, killedByWeakness, drawFightBack, drawFightFront, drawFightHud, fightZoom, deathNeed, fightHoldTick } from './fight';
 import { frameDeath } from '../../deathFrame';
-import { leaveEmptyArena } from '../../emptyArena';
+import { leaveEmptyArena, bossGone } from '../../emptyArena';
+import { inRefight } from '../../endgame/park4/hook';
 
 /** The arena as far as a camera taking his death in may go (its two ends; the woods' sky over it; the fight's row). */
 const FIGHT_ROOM = { x0: ARENA_L, y0: GY - 1200, x1: ARENA_R, y1: GY - 550 + CANVAS_HEIGHT };
+/** (Ned's boss rush: endgame/park4/rf/frontier.ts) Hell's touches along the arena's back, behind the boulder and him; only
+ *  while his refight's on (never in Wilderness Land itself). */
+let rfBack: ((c: CanvasRenderingContext2D, state: GameState) => void) | null = null;
+export const setRefightBack = (fn: typeof rfBack) => { rfBack = fn; };
 /** A revisit's say in the empty arena (picked once a build). */
 let emptyLine: string | undefined;
 const pmid = (state: GameState) => state.player.pos.x + state.player.width / 2;
@@ -68,7 +73,7 @@ const setUp = (state: GameState, s: Arena) => {
   // the entry's been, the tree down, him split)
   if (state.checkpoint >= 60) setBranchMemos(state);
   if (state.checkpoint >= 61) { state.stageMemo[UP_MEMO] = '1'; state.stageMemo[SPLIT_MEMO] = '1'; markIntroSeen(state); }
-  if (isLandCleared('frontier')) { s.phase = 'body'; s.tMode = 'gone'; s.snapped = true; s.wreck = true; s.mx = MH_PARK; setFelled(state, s); return; }
+  if (bossGone('frontier')) { s.phase = 'body'; s.tMode = 'gone'; s.snapped = true; s.wreck = true; s.mx = MH_PARK; setFelled(state, s); return; }
   if (!branchDone(state)) { s.phase = 'wait'; s.tMode = 'gone'; s.wreck = false; s.mx = null; return; }
   s.phase = 'body'; s.wreck = true; s.mx = MH_PARK;
   // (a retry this visit: the axe tree down, him flat by it, split, the branch up out of his chest, waiting to pop up
@@ -101,7 +106,7 @@ const fightOn = (state: GameState) => {
 /** Beaten: off he walks (the walk-away, the FLINTLOCK, HEADING BACK TO PARK), and then, in place of the hub, the walk
  *  back in from the intro's parking lot (job H: intro/index.ts). The land's cleared first, so the lot's at the new hour. */
 const leave = (state: GameState, weakness: boolean) => {
-  markBossDeath('frontier', weakness); markLandCleared('frontier'); noteBossKill();
+  markBossDeath('frontier', weakness); markLandCleared('frontier'); if (!inRefight('frontier')) noteBossKill();
   arenaOf(state).walk = playWalkAway(state, { boss: 'tucker', weakness, onDone: () => { setWalkBack(true); goTo('intro'); } });
 };
 
@@ -146,11 +151,11 @@ export const arena: FrontierSection = {
         runExits(state, endExits('arena', { left: false }));
         // (a revisit: into the empty arena, his say, and back out to the parking lot, as after Tucker (the owner's: "you
         // teleport back when you reach the boss fight area"))
-        if (isLandCleared('frontier') && p.health > 0 && pmid(state) > ARENA_L + 60) {
+        if (bossGone('frontier') && p.health > 0 && pmid(state) > ARENA_L + 60) {
           leaveEmptyArena(state, emptyLine ??= pickLine(byPants(state, L.MH_EMPTY_ARENA)), () => { setWalkBack(true); goTo('intro'); });
           return hands();
         }
-        if (isLandCleared('frontier') || p.health <= 0 || p.inCutscene) return controls;
+        if (bossGone('frontier') || p.health <= 0 || p.inCutscene) return controls;
         // (walking past the lions board: his say on it, the once a visit)
         if (!state.stageMemo['fr-sign-said'] && Math.abs(p.pos.x + p.width / 2 - SIGN_X) < 60) { state.stageMemo['fr-sign-said'] = '1'; meatheadSays(state, pickLine(byPants(state, L.MH_SIGN)), false); }
         // (up to the body: the fake-out; a retry: he pops up again as he comes near)
@@ -170,7 +175,7 @@ export const arena: FrontierSection = {
           openWalls(state, s);
           s.victory = startVictory();
           // (the walk-away's art painted in idle slices under the VICTORY, at the hour it'll be once the land's cleared)
-          prewarmWalkAway('tucker', s.weak, isLandCleared('frontier') ? null : landsCleared() + 1);
+          if (!inRefight('frontier')) prewarmWalkAway('tucker', s.weak, isLandCleared('frontier') ? null : landsCleared() + 1);
         }
         return out ?? controls;
       }
@@ -197,8 +202,9 @@ export const arena: FrontierSection = {
   drawBack: (c, state) => {
     if (arenaOf(state).walk) return;
     drawArenaBack(c, state);
+    if (rfBack && inRefight('frontier')) rfBack(c, state);
     drawBoulder(c, state);
-    if (isLandCleared('frontier') && !arenaOf(state).fight) drawRemainsMark(c, state);
+    if (bossGone('frontier') && !arenaOf(state).fight) drawRemainsMark(c, state);
     drawArenaCast(c, state);
     const f = arenaOf(state).fight;
     // (and after it, what's left of him, under the VICTORY)

@@ -6,6 +6,7 @@
 
 import { pickFreshLine, pickLine } from '../../m1/game/platform/speech';
 import { isLandCleared } from '../store';
+import { inRefight, refightPool } from '../endgame/park4/hook';
 import type { ByPants } from './talk';
 
 const said = new Set<string>();
@@ -15,6 +16,8 @@ export const clearPiperLines = () => { said.clear(); };
 
 /** One of these she hasn't said this life (marked said), or null if she's said them all. */
 export const piperLine = (pool: readonly string[]): string | null => {
+  // (Ned's boss rush: her refight's pools in place of these (pickLine's swap; this picks for itself, so it asks too))
+  if (inRefight('fantasy')) pool = refightPool(pool);
   const left = pool.filter(l => !said.has(l));
   if (!left.length) return null;
   const line = pickFreshLine(left) ?? left[Math.floor(Math.random() * left.length)];
@@ -23,7 +26,7 @@ export const piperLine = (pool: readonly string[]): string | null => {
 };
 
 /** For a scripted beat that waits on her line: a fresh one this life if there is one, else pickLine (never stalls). */
-export const piperMust = (pool: readonly string[]): string => piperLine(pool) ?? pickLine(pool);
+export const piperMust = (pool: readonly string[]): string => piperLine(pool) ?? pickLine(inRefight('fantasy') ? refightPool(pool) : pool);
 
 // ---------------------------------------------------------------------------------------------------------------
 // After she's dead (the owner's revisit brief, 2026-11-02: "piper no longer speaks on the megaphone. you still fight

@@ -1,4 +1,74 @@
-// The fantasy refight's new lines (Ned's boss rush): FIRST-PASS STUB, to be filled in (park4/rf/fantasy.ts swaps them in). Every
-// line goes in RF_FANTASY_VOICE_LINES by its voice (park4/lines/index.ts folds it into the recordings).
+// PIPER THE PIXIE, raised (Ned's boss rush): her sin, lust, bloodlust (she wanted men dead for her, then wanted him dead
+// so bad she could taste it). The owner's: "piper seems to find her having to interact with meathead once more truly a
+// sign she must be in hell". So: him again is the proof she's damned, and the bloodlust's still there. In the land's own
+// pools' places (park4/rf/fantasy.ts swaps them in; fantasy/piperLines.ts picks her lines, it asks for the swap too).
+// Voice m2.fantasy.piper, like the original. Clean / shitty / naked.
 
-export const RF_FANTASY_VOICE_LINES: Record<string, string[]> = {};
+const bp = (clean: string[], shitty: string[], nude: string[]) => ({ clean, shitty, nude });
+
+/** Her entrance (the retry's: the door's down, she's waiting). */
+export const RF_PIPER_AGAIN = bp(
+  ["YOU. OF ALL THE MEN IN HELL. NOW I KNOW I'M DAMNED.", "I PRAYED FOR FIRE. I PRAYED FOR PITCHFORKS. I GOT YOU."],
+  ["THAT SMELL. NOW I KNOW IT'S HELL. HEAVEN HAS PLUMBING.", "ETERNAL TORMENT. IT SMELLS EXACTLY LIKE YOU."],
+  ["THAT LITTLE THING AGAIN. YES. THIS IS HELL.", "I ASKED FOR ETERNAL PUNISHMENT. THEY SENT YOUR DICK."],
+);
+export const RF_PIPER_TAUNT = bp(
+  ["I GET TO KILL YOU FOREVER. MAYBE HELL ISN'T SO BAD.", "MEN DIED FOR ME UP THERE. DOWN HERE YOU'LL DIE FOR ME OVER AND OVER.", "THE DEVIL MADE ME WATCH YOU ON A LOOP. NOW I GET TO DO SOMETHING ABOUT IT."],
+  ["I'VE SMELLED SULFUR FOR A MONTH. YOU'RE WORSE.", "STAND STILL, SHIT PANTS. I'VE GOT ETERNITY.", "EVEN THE DEMONS WON'T SIT NEXT TO YOU."],
+  ["STILL LIMP. STILL TINY. STILL NAKED. HELL IS CONSISTENT.", "I'VE SEEN BIGGER IMPS. AND IMPS ARE SMALL.", "PUT IT AWAY SO I CAN CRUSH THE REST OF YOU."],
+);
+export const RF_PIPER_LEAP = bp(
+  ['BELLY FLOP FROM HELL!', 'MOMMA FELL FROM GRACE!', 'INCOMING DAMNED ASS!'],
+  ['SQUISH THE SHIT BACK IN!', 'HELL CANNONBALL!', 'MOMMA FELL FROM GRACE!'],
+  ['SIT ON IT! FOREVER!', 'BELLY FLOP FROM HELL!', 'FLATTEN THE IMP!'],
+);
+export const RF_PIPER_HURT = bp(
+  ['OW! MY STITCHES!', "NOT THE PATCH! IT'S HOLDING ME IN!", 'YOU FUCKING BRUTE! AGAIN!'],
+  ["DON'T TOUCH MY SEAMS WITH THOSE HANDS!", 'EW! NOW THE STITCHES SMELL!'],
+  ["DON'T RUB IT ON MY STITCHES!", 'GET THAT LITTLE THING AWAY FROM MY PATCH!'],
+);
+export const RF_PIPER_HOLE = bp(
+  ["NOT AGAIN! NOT THE HOLES AGAIN!", "I'M LEAKING! NED! THE PATCH KIT! NED!", 'WHEEEE! NO! I KNOW HOW THIS ENDS!'],
+  ['WE ARE BOTH LEAKING! AGAIN!', "IT'S COMING OUT OF ME! LIKE LAST TIME! LIKE YOU!"],
+  ["I'M DEFLATING! AND IT'S STILL BIGGER THAN YOURS!", 'PLUG IT! NOT WITH THAT! NEVER WITH THAT!'],
+);
+export const RF_PIPER_LOW = bp(
+  ["I'M IN HELL AND I'M LOSING TO YOU. THERE'S A LOWER HELL.", "NOT AGAIN! I ALREADY DIED FOR THIS ROOM!"],
+  ['I WILL NOT DIE TWICE TO SHIT PANTS!', 'NOT LIKE THIS! NOT AGAIN! NOT TO THAT SMELL!'],
+  ['I WILL NOT DIE TWICE TO A LIMP NAKED MAN!', 'NOT TO A BABY CARROT! NOT TWICE!'],
+);
+/** The elemental throws (the owner's shouts come first, as she said them the first time; she never says one twice in
+ *  a life, so plenty). */
+export const RF_ELEMENT_FIRE = ['FIRE BALL!', 'HELLFIRE BALL!', 'BURN AGAIN, SHRIMP!', "IT'S HOT DOWN HERE ANYWAY!", 'FIRE! FROM THE PIT!', 'ROAST, LITTLE MAN!', 'EAT BRIMSTONE!', 'COOK FOREVER!'];
+export const RF_ELEMENT_ICE = ['ICE BALL!', 'HELL FROZE OVER!', 'FREEZE, SHRIMP!', 'THE ONLY COLD THING DOWN HERE!', 'ICE! HOLD STILL FOREVER!', 'CHILL OUT! YOU CAN\'T DOWN HERE!', 'HAVE AN ICE BALL!', 'COLD ONE, DAMNED ONE!'];
+export const RF_ELEMENT_SHOCK = ['LIGHTNING BOLT!', 'ZAP! FOREVER!', 'FRY, SHRIMP!', 'LIGHT UP HELL!', 'FEEL THE BUZZ!', 'HELL HAS GREAT WIRING!', 'SHOCKING! AGAIN!', 'BOLT FROM BELOW!'];
+export const RF_PIPER_LAST = bp(
+  ['ONE LAST BELLY FLOP! AGAIN!', "IF I GO TO A LOWER HELL, I'M TAKING THE FLOOR!"],
+  ['ONE MORE! RIGHT ON YOUR SHITTY HEAD! AGAIN!', "I'LL POP YOU LIKE A PIMPLE! IN HELL THEY POP FOREVER!"],
+  ['ONE MORE! RIGHT ON YOUR LITTLE DICK! AGAIN!', "I'LL FLATTEN IT FOR ETERNITY!"],
+);
+export const RF_PIPER_STUCK = bp(
+  ["STUCK AGAIN! THE SAME HOLE! NED BUILT THE SAME HOLE!", "GET ME OUT! MY LEGS ARE IN A LOWER CIRCLE!"],
+  ["STUCK AGAIN! AND IT SMELLS UP HERE AGAIN!", "PULL ME OUT! NOT WITH THOSE HANDS! NOT IN ANY LIFE!"],
+  ["STUCK AGAIN! KEEP THAT THING AWAY FROM MY FACE!", "DON'T COME NEAR ME! NOT IN LIFE! NOT IN DEATH!"],
+);
+export const RF_PIPER_POP = ['NOT THE CORK AGAIIIIN!', 'WHY DID NED BUILD A TALL CASTLE!'];
+export const RF_PIPER_SUPERMODEL = bp(
+  ["I'M GORGEOUS. AGAIN. AND I'M IN HELL. TYPICAL.", "A TEN. A DAMNED TEN. FUCK ALL OF YOU."],
+  ['GORGEOUS AGAIN! AND YOU STILL STINK!', "TOO GOOD FOR YOU IN LIFE! TOO GOOD FOR YOU IN HELL!"],
+  ['OH, NOW IT WAKES UP? AGAIN? TYPICAL.', "STAND UP ALL YOU WANT. THERE'S NO TOUCHING IN HELL."],
+);
+export const RF_PIPER_TOO_THIN = bp(
+  ['NO. NO NO. THE PATCHES! THEY CAME OFF!', 'I CAN SEE MY SEAMS FROM THE INSIDE.'],
+  ["STOP! I CAN'T EVEN SMELL YOU! THAT'S THE ONE GOOD PART!", "STOP! I'M A SIZE ZERO AGAIN!"],
+  ["IT'S GOING DOWN AGAIN, ISN'T IT. IT ALWAYS DOES.", "DON'T LOOK AT ME LIKE THAT. NOT TWICE."],
+);
+export const RF_PIPER_CRUMBLE = ['WORTH IT... AGAIN...', 'SEE YOU... NEXT... ETERNITY...'];
+
+const all = (...ps: { clean: string[]; shitty: string[]; nude: string[] }[]) => ps.flatMap(p => [...p.clean, ...p.shitty, ...p.nude]);
+export const RF_FANTASY_VOICE_LINES: Record<string, string[]> = {
+  'm2.fantasy.piper': [
+    ...all(RF_PIPER_AGAIN, RF_PIPER_TAUNT, RF_PIPER_LEAP, RF_PIPER_HURT, RF_PIPER_HOLE, RF_PIPER_LOW, RF_PIPER_LAST, RF_PIPER_STUCK, RF_PIPER_SUPERMODEL, RF_PIPER_TOO_THIN),
+    ...RF_ELEMENT_FIRE, ...RF_ELEMENT_ICE, ...RF_ELEMENT_SHOCK, ...RF_PIPER_POP, ...RF_PIPER_CRUMBLE,
+  ],
+};

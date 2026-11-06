@@ -16,7 +16,7 @@ import type { GameState } from '../../../m1/game/core/state';
 import { pickLine, pickFreshLine } from '../../../m1/game/platform/speech';
 import { playSound, stopSound } from '../../../m1/game/platform/audio';
 import { speak } from '../section';
-import { isLandCleared } from '../../store';
+import { bossGone } from '../../emptyArena';
 import type { Amphi, Speaker, DadPose } from './state';
 import type { DadFace } from './dad';
 import type { Anim } from './family';
@@ -147,7 +147,7 @@ const lerp = (a: number, b: number, k: number) => a + (b - a) * k;
 
 export const stageLook = (state: GameState, s: Amphi): StageLook => {
   const f = state.frame, sh = s.show, intro = s.intro;
-  const over = isLandCleared('cartoon');
+  const over = bossGone('cartoon');
   const cu = intro?.couchU ?? 0, couch = { x: lerp(COUCH.x, COUCH_HOME, cu), d: lerp(COUCH.d, 1, cu) };
   const glitch = intro && !over ? (intro.step === 'walk' ? 0.4 : 1) : 0;
   const mode: Anim['mode'] = over ? 'off' : glitch >= 0.4 ? 'glitch' : 'run';
@@ -180,7 +180,7 @@ export const stageLook = (state: GameState, s: Amphi): StageLook => {
     boy: { ...anim('boy', 5), u: sh.boyU, beer: sh.boyBeer, arm: sh.boyArm },
     tv: over ? 'off' : intro ? 'roll' : 'game',
     applause: !over && laughing(state),
-    crowd: !isLandCleared('cartoon'),
+    crowd: !bossGone('cartoon'),
     couch, mallet: !over,
   };
 };

@@ -30,7 +30,7 @@ import { frameDeath } from '../../deathFrame';
 import type { FantasySection } from '../section';
 import { layOwn, endWalls, fantasyState, hands, ledge, solid, landVisit, meatheadSays, byPants } from '../section';
 import { DOORS } from '../geometry';
-import { goTo, markLandCleared, markBossDeath, noteBossKill, isLandCleared, setUi, keepForRevisits, keptForRevisits } from '../../store';
+import { goTo, markLandCleared, markBossDeath, noteBossKill, setUi, keepForRevisits, keptForRevisits } from '../../store';
 import { type Victory, startVictory, tickVictory, drawVictory, victoryDone } from '../../victory';
 import { type WalkAway, playWalkAway, tickWalkAway, drawWalkAway } from '../../walkAway';
 import { markBossFight } from '../../bossQuiet';
@@ -43,7 +43,8 @@ import {
 } from './fight';
 import { MH_HALL } from './lines';
 import { EMPTY_ROOM } from '../revisitLines';
-import { leaveEmptyArena } from '../../emptyArena';
+import { leaveEmptyArena, bossGone } from '../../emptyArena';
+import { inRefight } from '../../endgame/park4/hook';
 
 /** How she died (for a revisit's look): `cork:<x>` or `balloon:<x>` in state.stageMemo. */
 export const PIPER_END_MEMO = 'fa-piper-end';
@@ -65,7 +66,7 @@ let hallVisit = -1;
 
 const leave = (state: GameState, weakness: boolean) => {
   const s = bedroomOf(state);
-  markBossDeath('fantasy', weakness); markLandCleared('fantasy'); noteBossKill();
+  markBossDeath('fantasy', weakness); markLandCleared('fantasy'); if (!inRefight('fantasy')) noteBossKill();
   s.walk = playWalkAway(state, { boss: 'piper', weakness, onDone: () => goTo('hub') });
 };
 const endOf = (state: GameState): { how: 'cork' | 'balloon'; x: number } | null => {
@@ -93,7 +94,7 @@ export const bedroom: FantasySection = {
     { name: 'PIPER THE PIXIE', cp: CP_FIGHT, x: DOOR_X - 200, y: GY, clear: [400, 3000], manual: true },
   ],
   build: (state) => {
-    const cleared = isLandCleared('fantasy');
+    const cleared = bossGone('fantasy');
     layOwn(state, [{ x1: x0 - 200, y1: GY, x2: ARENA_R + 600, y2: GY, surface: 'wood' }]);
     endWalls(state, 'bedroom', { right: false });
     // (her room's far wall: the end of the land; the wall over her door; her door, till it's kicked in; her ceiling)
@@ -113,7 +114,7 @@ export const bedroom: FantasySection = {
   },
   update: (ctx, controls) => {
     const { state } = ctx, p = state.player, s = bedroomOf(state);
-    const cleared = isLandCleared('fantasy');
+    const cleared = bossGone('fantasy');
     if (s.fight === 'wait') {
       // (no way back out to the broomsticks: he came in through the window, one-way (the user's rule); the hall's left
       // end is a wall)
@@ -183,7 +184,7 @@ export const bedroom: FantasySection = {
     const s = bedroomOf(state);
     if (s.walls.length) return { min: ARENA_L, max: ARENA_R - CANVAS_WIDTH };
     // (in the hall with her door shut: nothing past it shows (her room's hidden till he's in it))
-    if (s.fight === 'wait' && !introSeen(state) && !isLandCleared('fantasy')) return { min: x0, max: DOOR_X + 60 - CANVAS_WIDTH };
+    if (s.fight === 'wait' && !introSeen(state) && !bossGone('fantasy')) return { min: x0, max: DOOR_X + 60 - CANVAS_WIDTH };
     return { min: x0, max: ARENA_R - CANVAS_WIDTH };
   },
   // (his feet wherever he is, the camera's top held at CAM_Y: the floor low, the ceiling up under the HUD's band)
@@ -194,7 +195,7 @@ export const bedroom: FantasySection = {
   // (the sky by the hour: only seen round the spire's cone when the camera pulls out over the dollhouse cut)
   drawBackdrop: (c) => { drawTodSky(c, 0, 0, CANVAS_WIDTH, 600, ['#23307A', '#3A55B4', '#6E8EDC', '#A8C4F0', '#E8D4F0', '#F8C8D8'], { horizon: 600, moon: [620, 80], sun: [160, 90] }); return true; },
   drawBack: (c, state) => {
-    const s = bedroomOf(state), f = s.f, cleared = isLandCleared('fantasy') && !f;
+    const s = bedroomOf(state), f = s.f, cleared = bossGone('fantasy') && !f;
     const end = cleared ? endOf(state) : null;
     const bits = roomBits(f);
     const look = cleared

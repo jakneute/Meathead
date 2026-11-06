@@ -55,7 +55,7 @@
 //   his head and his hands out the end; the laugh track; he shits himself under there (the seep, his line); one can rolls
 //   out across the stage to Meathead's feet and cracks open.
 
-import { refightHp } from '../../endgame/park4/hook';
+import { refightHp, inRefight } from '../../endgame/park4/hook';
 import type { GameState } from '../../../m1/game/core/state';
 import type { FrameContext } from '../../../m1/game/core/context';
 import type { Controls } from '../../../m1/game/platform/input';
@@ -156,7 +156,7 @@ const PUKE_TIER = [
 // (by his health left or his family left, whichever's lower (the user's: "the puke attack from stupid dad's intensity can
 // come either from how much health is lost or the percentage of family members dead, whichever is lower"): two of the
 // four flattened is the middle tier, three the top)
-const pukeTierOf = (f: Fight) => { const k = Math.min(f.hp / HP, alive(f).length / MEMBERS.length); return k > 0.6 ? 0 : k > 0.35 ? 1 : 2; };
+const pukeTierOf = (f: Fight) => { const k = Math.min(f.hp / HP, alive(f).length / f.ids.length); return k > 0.6 ? 0 : k > 0.35 ? 1 : 2; };
 /** The couch stopped off its spot: how fast he scoots it back (px a frame, while his heels are down). */
 const SCOOT = 3.4;
 const PUKE_DMG = 8, COUCH_DMG = 16, COUCH_HURTS = 3.4;
@@ -191,21 +191,47 @@ const CHAT_EVERY: [number, number] = [520, 820], HINT_GAP = 600;
 type Act = 'enter' | 'sit' | 'swat' | 'catch' | 'drink' | 'pukeWind' | 'puke' | 'rise' | 'rage' | 'tired' | 'return' | 'baffled'
   | 'thrown' | 'up' | 'trip' | 'heave';
 const MEMBERS: Member[] = ['mom', 'boy', 'sis', 'gramps'];
+/** Who's on the tracks: the family; in Ned's boss rush, two guests besides (CastRefight below). */
+type Guest = 'guest1' | 'guest2';
+type Who = Member | Guest;
+const GUESTS: Guest[] = ['guest1', 'guest2'];
+const isGuest = (w: Who): w is Guest => w === 'guest1' || w === 'guest2';
+/** NED'S BOSS RUSH (endgame/park4/rf/cartoon.ts sets it; read only while Dad Guy's refight is on, so Cartoon Land's own
+ *  fight never sees it): the owner's "the 'family members' in the dad guy fight are actually the actors who played them
+ *  instead of robots ... dad guy has 6 family members instead of 4", "two new 'guest' characters now take up the arena.
+ *  they still block shots, but they scream in pain 'why can't i die!'". The guests' places, voices and lines, the
+ *  screams (each, on a shot or a move it eats), and their drawing. */
+export interface CastRefight {
+  guests: Record<Guest, {
+    home: { x: number; d: number }; track: { a: number; b: number; d: number; sh: number };
+    voice: string; beerFor: ByPants; fetch: readonly string[]; die: readonly string[]; blocked: ByPants;
+  }>;
+  screams: Record<Who, readonly string[]>;
+  drawGuest: (c: Ctx, who: Guest, x: number, floorY: number, a: Anim, arm: number, beer: boolean) => void;
+  drawGuestDead: (c: Ctx, who: Guest, x: number, floorY: number, fr: number, dir: 1 | -1) => void;
+  /** Over one of the family's carnage: what's human in there (blood, not just sparks). */
+  drawDeadExtra: (c: Ctx, who: Member, x: number, floorY: number, fr: number, dir: 1 | -1) => void;
+}
+let castRf: CastRefight | null = null;
+export const setCastRefight = (h: CastRefight | null) => { castRf = h; };
+const rfCast = () => (castRf && inRefight('cartoon') ? castRf : null);
+const trackOf = (w: Who) => (isGuest(w) ? castRf!.guests[w].track : TRACKS[w]);
+const voiceOf = (w: Who) => (isGuest(w) ? castRf!.guests[w].voice : L.VOICES[w]);
 interface Fam {
-  id: Member; alive: boolean; x: number; d: number; home: { x: number; d: number }; stepT: number; dir: 1 | -1;
+  id: Who; alive: boolean; x: number; d: number; home: { x: number; d: number }; stepT: number; dir: 1 | -1;
   /** Its patrol (which way along its track), its slap (wind-up, swing, rest) and its clock, the frame it may slap again. */
   way: 1 | -1;
   /** Stopped on its track this many frames more. */
   idle: number;
 }
-interface Errand { who: Member; step: 'ready' | 'go' | 'open' | 'toss' | 'back'; t: number; left: number; called: boolean; wait: number }
+interface Errand { who: Who; step: 'ready' | 'go' | 'open' | 'toss' | 'back'; t: number; left: number; called: boolean; wait: number }
 type Miss = 'short' | 'long' | 'head' | 'wall' | 'catch' | 'spray';
 interface Bottle { t: number; T: number; ax: number; ay: number; ad: number; bx: number; by: number; bd: number; kind: Miss; rot: number; arc: number }
 interface Drop { x: number; y: number; vx: number; vy: number; r: number; k: number }
 interface Puddle { x: number; w: number; t: number }
 interface Car {
   t: number; T: number; ax: number; ay: number; bx: number; by: number; bd: number; dir: 1 | -1; paint: number; wheel: number;
-  target: Member | 'dad'; hop: boolean; couch: boolean;
+  target: Who | 'dad'; hop: boolean; couch: boolean;
 }
 interface Wreck { x: number; d: number; dir: 1 | -1; paint: number; t: number; onCouch: boolean }
 interface Flung { x: number; y: number; d: number; vx: number; vy: number; t: number; dir: 1 | -1; seed: number; stuck: boolean }
@@ -243,7 +269,8 @@ export interface Fight {
   /** The couch: where (its middle), going how fast, squashed (a bounce), crushed. */
   couch: { x: number; vx: number; squash: number; crushed: boolean; rot: number };
   fridge: { open: number; dx: number; tilt: number; jolt: number };
-  family: Record<Member, Fam>;
+  /** Who's on the tracks (the family; the refight's six), and each. */
+  ids: Who[]; family: Record<Who, Fam>;
   errand: Errand | null; callAt: number;
   bottles: Bottle[]; drops: Drop[]; puddles: Puddle[];
   cars: Car[]; wrecks: Wreck[]; flung: Flung[];
@@ -251,7 +278,9 @@ export interface Fight {
   /** Since the last snap; his counter (or the throw off the couch) seen since it (the next take's ready after it). */
   /** A kill landed mid-counter: the next counter's owed, started once this one's done (back to sitting). */
   takeT: number; owed: boolean;
-  words: Map<'dad' | Member | 'crew', string>;
+  words: Map<'dad' | Who | 'crew', string>;
+  /** (the refight's: the last scream) */
+  screamAt: number;
   /** The zoom (eased: out to take in the whole set while it's on), the clapperboard's ready flash, the crew's last excuse. */
   zoom: number; readyFlash: number; crewAt: number; blocked: number; blockSaidAt: number;
   /** The puke's tier for this ride (set as it winds up: PUKE_TIER). */
@@ -269,7 +298,7 @@ const tokened = (fn: () => void) => { const tok = token; return () => { if (tok 
 
 const rnd = (a: number, b: number) => a + Math.random() * (b - a);
 const pmid = (state: GameState) => ({ x: state.player.pos.x + state.player.width / 2 - x0, feet: state.player.pos.y + state.player.height });
-const alive = (f: Fight) => MEMBERS.filter(m => f.family[m].alive);
+const alive = (f: Fight) => f.ids.filter(m => f.family[m].alive);
 const attacking = (state: GameState) => { const p = state.player; return p.isCharging || p.isUppercutting || !!p.isDivekicking || p.isSliding; };
 const grabbing = (state: GameState) => ((getCartoon(state) as unknown as { grab?: { phase?: string } } | null)?.grab?.phase ?? 'idle') !== 'idle';
 
@@ -364,16 +393,16 @@ const dadSays = (f: Fight, state: GameState, pool: ByPants, onDone?: () => void)
 /** A bark: dropped if anybody's talking. */
 const bark = (f: Fight, state: GameState, pool: ByPants) => { if (quiet()) dadSays(f, state, pool); };
 /** One of the family's tapes (not at him: one pool each). */
-const tape = (f: Fight, who: Member, pool: readonly string[], onDone?: () => void) => {
+const tape = (f: Fight, who: Who, pool: readonly string[], onDone?: () => void) => {
   const tok = token;
-  speak(L.VOICES[who], pick(pool), s => { if (tok !== token) return; if (s) f.words.set(who, s.text); else f.words.delete(who); }, true, () => { if (tok === token) onDone?.(); });
+  speak(voiceOf(who), pick(pool), s => { if (tok !== token) return; if (s) f.words.set(who, s.text); else f.words.delete(who); }, true, () => { if (tok === token) onDone?.(); });
 };
 const meathead = (state: GameState, pool: ByPants, after = false, onDone?: () => void) => meatheadSays(state, pick(byPants(state, pool)), after, onDone);
 
 // ---------------------------------------------------------------------------------------------------------------
 // Starting
 
-const homeOf = (m: Member) => (m === 'mom' ? MOM : m === 'sis' ? SIS : m === 'gramps' ? GRAMPS : BOY_TRACK.a);
+const homeOf = (m: Who) => (isGuest(m) ? castRf!.guests[m].home : m === 'mom' ? MOM : m === 'sis' ? SIS : m === 'gramps' ? GRAMPS : BOY_TRACK.a);
 
 /** On: him on the couch up front, the mallet by him, the family where the show left them; `retry`: straight back on
  *  (a beat for his entrance first, no swats, no beer). */
@@ -384,17 +413,18 @@ export const startFight = (state: GameState, retry: boolean): Fight => {
   const x = COUCH_HOME + SEAT_DX;
   const e = makeKindEnemy(KIND as EnemyKind, X(x), STAGE_Y);
   e.facing = -1; e.seen = true;
-  const fam = {} as Record<Member, Fam>;
-  for (const m of MEMBERS) { const h = homeOf(m); fam[m] = { id: m, alive: true, x: h.x, d: h.d, home: { x: h.x, d: h.d }, stepT: 0, dir: -1, way: Math.random() < 0.5 ? 1 : -1, idle: 0 }; }
+  const ids: Who[] = rfCast() ? [...MEMBERS, ...GUESTS] : MEMBERS;
+  const fam = {} as Record<Who, Fam>;
+  for (const m of ids) { const h = homeOf(m); fam[m] = { id: m, alive: true, x: h.x, d: h.d, home: { x: h.x, d: h.d }, stepT: 0, dir: -1, way: Math.random() < 0.5 ? 1 : -1, idle: 0 }; }
   const f: Fight = {
     mode: 'on', t: 0, stage: String(state.stageId), hp: (HP = refightHp(666)), iframes: 0, flash: 0, e, moveSeen: e.hitByMove, spam: newSpam(),
     act: retry ? 'enter' : 'sit', actT: 0, x, y: 0, vy: 0, facing: -1, seated: true, landT: -999,
     swatWind: SWAT_WIND, swatAt: -999, swatHit: false, nextAtk: 'puke', pukes: 0, rages: 0, hopAt: 0,
     couch: { x: COUCH_HOME, vx: 0, squash: 0, crushed: false, rot: 0 },
     fridge: { open: 0, dx: 0, tilt: 0, jolt: 0 },
-    family: fam, errand: null, callAt: retry ? 240 : 160,
+    ids, family: fam, errand: null, callAt: retry ? 240 : 160,
     bottles: [], drops: [], puddles: [], cars: [], wrecks: [], flung: [],
-    kills: 0, recharge: 0, sad: false, takeT: 0, owed: false, words: new Map(),
+    kills: 0, recharge: 0, sad: false, takeT: 0, owed: false, words: new Map(), screamAt: -9999,
     chatAt: rnd(...CHAT_EVERY) * 0.6, bundy: 0, lowSaid: false, wrongN: 0, hintAt: -9999, dudAt: -9999, saidPuke: false, saidRage: false,
     flat: 1, death: null, deathSaid: 0, cam: null, zoom: 1, readyFlash: 0, crewAt: -9999, blocked: 0, blockSaidAt: -9999, pukeTier: 0,
   };
@@ -566,7 +596,7 @@ const dad = (ctx: FrameContext, f: Fight) => {
         // goes once he's said it)
         const er: Errand = { who, step: 'ready', t: 0, left: Math.floor(rnd(BOTTLES[0], BOTTLES[1] + 1)), called: false, wait: 0 };
         f.errand = er;
-        dadSays(f, state, L.DAD_BEER_FOR[who], () => { er.called = true; });
+        dadSays(f, state, isGuest(who) ? castRf!.guests[who].beerFor : L.DAD_BEER_FOR[who], () => { er.called = true; });
       }
       break;
     }
@@ -866,10 +896,10 @@ const hammered = (ctx: FrameContext, f: Fight) => {
  *  now and then. They never hurt him (the user's: "the robots don't hurt you anymore but they do obstruct your shots"). */
 const family = (ctx: FrameContext, f: Fight) => {
   void ctx;
-  for (const id of MEMBERS) {
+  for (const id of f.ids) {
     const m = f.family[id];
     if (!m.alive || f.errand?.who === id) continue;
-    const tr = TRACKS[id];
+    const tr = trackOf(id);
     if (m.idle > 0) { m.idle--; continue; }
     // (the patrol, along the very front of the set (in front of everything on it, so what eats his shots is always in
     // sight): off its track (just back from the fridge, the fight's start) it heads to it; on it, a jerk at a time end
@@ -888,7 +918,7 @@ const family = (ctx: FrameContext, f: Fight) => {
 };
 /** A living one of the family's body on screen (its depth's projection): what eats his shots. */
 const famRect = (state: GameState, m: Fam): R => {
-  const E = eyeOf(state), at = proj(E, X(m.x), STAGE_Y, m.d), h = TRACKS[m.id].sh + 34;
+  const E = eyeOf(state), at = proj(E, X(m.x), STAGE_Y, m.d), h = trackOf(m.id).sh + 34;
   return { x0: at.x - 20, x1: at.x + 20, y0: at.y - h, y1: at.y };
 };
 /** The user's: "you gotta have clearance for stupid dad, if an animatronic is in the way, it will eat the shot. they
@@ -898,7 +928,7 @@ const blockShots = (ctx: FrameContext, f: Fight) => {
   const { state } = ctx;
   // (stunned off the cheap shot: a free window, the family eat nothing, shots and moves go clean through to him)
   if (f.mode !== 'on' || cheapShotStunned(f.e)) return;
-  const ids = MEMBERS.filter(id => f.family[id].alive && f.errand?.who !== id), rects = ids.map(id => famRect(state, f.family[id]));
+  const ids = f.ids.filter(id => f.family[id].alive && f.errand?.who !== id), rects = ids.map(id => famRect(state, f.family[id]));
   if (!rects.length) return;
   // (they can't be pushed, flung or grabbed (the user's): a charge, a slide, a dive kick into one stops dead and
   // bounces off it, a clang; it never hurts him)
@@ -922,17 +952,20 @@ const blockShots = (ctx: FrameContext, f: Fight) => {
   });
 };
 /** A shot (or a move) eaten by one of them: the ping, the sparks, and his gripe every so often. */
-const eaten = (state: GameState, f: Fight, x: number, y: number, who: Member) => {
+const eaten = (state: GameState, f: Fight, x: number, y: number, who: Who) => {
+  // (the refight: it's a person in there, and it felt that: the scream (the owner's "WHY CAN'T I DIE!"), not too often)
+  const rc = rfCast();
+  if (rc && f.t - f.screamAt > 100 && quiet()) { f.screamAt = f.t; tape(f, who, rc.screams[who]); }
   playSound('clang', 0.6, 6 + Math.random() * 3);
   for (let i = 0; i < 8; i++) state.particles.push({ pos: { x, y }, vel: { x: (Math.random() - 0.5) * 5, y: -1 - Math.random() * 3 }, life: 14, color: i % 2 ? '#FDE047' : '#FFFFFF', size: 1.5 + Math.random(), grav: 0.2 });
   f.blocked++;
-  if (f.blocked >= 3 && f.t - f.blockSaidAt > 420 && quiet()) { f.blocked = 0; f.blockSaidAt = f.t; meathead(state, Math.random() < 0.6 ? L.MH_BLOCKED_BY[who] : L.MH_BLOCKED); }
+  if (f.blocked >= 3 && f.t - f.blockSaidAt > 420 && quiet()) { f.blocked = 0; f.blockSaidAt = f.t; meathead(state, Math.random() < 0.6 ? (isGuest(who) ? castRf!.guests[who].blocked : L.MH_BLOCKED_BY[who]) : L.MH_BLOCKED); }
 };
 /** Something of the family between him and Dad (for his moves: they eat those too). */
 /** (which one, or undefined) */
-const famBetween = (state: GameState, f: Fight): Member | undefined => {
+const famBetween = (state: GameState, f: Fight): Who | undefined => {
   const pr = pRect(state), px = (pr.x0 + pr.x1) / 2, dx = X(f.x);
-  return MEMBERS.find(id => {
+  return f.ids.find(id => {
     const m = f.family[id];
     if (!m.alive || f.errand?.who === id) return false;
     const r = famRect(state, m), mx = (r.x0 + r.x1) / 2;
@@ -1005,7 +1038,7 @@ const errand = (ctx: FrameContext, f: Fight) => {
       if (er.t === 14) playSound('alarm', 0.5, 6);
       if (er.t >= READY_T) { er.step = 'go'; er.t = 0; playSound('whoosh', 0.8, 4); }
       break;
-    case 'go': if (walk(AT_FRIDGE)) { er.step = 'open'; er.t = 0; tape(f, er.who, L.FETCH_TAPE[er.who]); } break;
+    case 'go': if (walk(AT_FRIDGE)) { er.step = 'open'; er.t = 0; tape(f, er.who, isGuest(er.who) ? castRf!.guests[er.who].fetch : L.FETCH_TAPE[er.who]); } break;
     case 'open':
       f.fridge.open = Math.min(1, f.fridge.open + 0.07);
       if (er.t >= 24) { er.step = 'toss'; er.t = TOSS_GAP - 6; }
@@ -1028,7 +1061,7 @@ const errand = (ctx: FrameContext, f: Fight) => {
     case 'back': {
       // (back to the nearest spot on its own track)
       f.fridge.open = Math.max(0, f.fridge.open - 0.06);
-      const tr = TRACKS[er.who];
+      const tr = trackOf(er.who);
       if (walk({ x: Math.max(tr.a, Math.min(tr.b, m.x)), d: tr.d }) && !f.bottles.some(b => b.kind === 'catch')) f.errand = null;
       break;
     }
@@ -1107,7 +1140,7 @@ const smash = (state: GameState, x: number, y: number) => {
  *  user's; a couch somehow still standing gets the next one). */
 const launchCar = (state: GameState, f: Fight) => {
   const m = pmid(state), al = alive(f);
-  const target: Member | 'dad' = al.length ? al.sort((a, b) => Math.abs(f.family[a].x - m.x) - Math.abs(f.family[b].x - m.x))[0] : 'dad';
+  const target: Who | 'dad' = al.length ? al.sort((a, b) => Math.abs(f.family[a].x - m.x) - Math.abs(f.family[b].x - m.x))[0] : 'dad';
   const couch = target === 'dad' && !f.couch.crushed;
   const to = couch ? { x: f.couch.x, d: 1 } : target === 'dad' ? { x: f.x, d: 1 } : { x: f.family[target].x, d: f.family[target].d };
   // (out of nowhere, up off a ramp nobody can see, from behind him)
@@ -1166,19 +1199,19 @@ const boom = (ctx: FrameContext, x: number, y: number) => {
 };
 
 /** One of the family flattened: him more baffled each time, the laugh track, and (the first two) his counter. */
-const onKill = (ctx: FrameContext, f: Fight, who: Member, couchToo = false) => {
+const onKill = (ctx: FrameContext, f: Fight, who: Who, couchToo = false) => {
   const { state } = ctx;
   f.kills++;
   if (f.errand?.who === who) f.errand = null;
   f.words.delete(who);
-  tape(f, who, L.DIE_TAPE[who]);
+  tape(f, who, isGuest(who) ? castRf!.guests[who].die : L.DIE_TAPE[who]);
   laughTrack(state, 0.8);
   if (Math.random() < 0.6) meathead(state, L.MH_KILL);
   // (whatever he was at, he stops; the puke's cut off; the couch slides on by itself)
   const n = f.kills;
   // (1, 2, 3, then that's everybody (the couch's line is crushCouch's: with the last one it says that instead))
   if (couchToo) return;
-  dadSays(f, state, L.DAD_KILL[n >= MEMBERS.length ? 4 : Math.min(2, n - 1)]);
+  dadSays(f, state, L.DAD_KILL[n >= f.ids.length ? 4 : Math.min(2, n - 1)]);
   // (mid-counter: he finishes it, then the next one's straight on (owed); otherwise baffled, then the counter)
   if (COUNTER_ACTS.has(f.act)) f.owed = true;
   else setAct(f, 'baffled');
@@ -1544,7 +1577,7 @@ const fridgeDeath = (ctx: FrameContext, f: Fight, d: Death): Controls => {
   if (d.t < 120) {
     const lo = STAND_AT - 260, hi = FRIDGE.x + 60;
     let slot = 0;
-    for (const id of MEMBERS) {
+    for (const id of f.ids) {
       const m = f.family[id];
       if (m.alive) { const to = ARENA.a + 40 + slot++ * 70; m.x += Math.sign(to - m.x) * Math.min(6, Math.abs(to - m.x)); m.d += (0.9 - m.d) * 0.08; }
       else if (m.x > lo && m.x < hi) m.x = Math.max(lo - 20, m.x - 6);
@@ -1554,6 +1587,13 @@ const fridgeDeath = (ctx: FrameContext, f: Fight, d: Death): Controls => {
     f.puddles = f.puddles.filter(pu => pu.x < X(lo) || pu.x > X(hi));
   }
   return out;
+};
+
+/** (Ned's boss rush: the stitches over him) Where he's drawn just now: his feet (world), how tall (sat or stood), facing. */
+export const dadNow = () => {
+  const f = live;
+  if (!f || f.mode !== 'on') return null;
+  return { x: X(f.x), feet: STAGE_Y - f.y, w: 50, h: f.seated ? DAD_SIT_H : DAD_H, face: f.facing };
 };
 
 /** Done with: his death played out, everybody's had their say. */
@@ -1678,7 +1718,7 @@ export const fightItems = (c: Ctx, state: GameState, f: Fight): Item[] => {
     } else drawFridge(c, X(FRIDGE.x + f.fridge.dx), STAGE_Y, fr, { open: f.fridge.open, tilt: f.fridge.tilt, stuffed });
   });
   // (the family: going about it, or flattened)
-  for (const m of MEMBERS) {
+  for (const m of f.ids) {
     const fm = f.family[m];
     if (fm.alive) {
       const er = f.errand, out = er?.who === m;
@@ -1687,10 +1727,16 @@ export const fightItems = (c: Ctx, state: GameState, f: Fight): Item[] => {
       const lean = out && er?.step === 'ready' ? fm.dir * 0.16 : out && (er?.step === 'go' || er?.step === 'back') ? fm.dir * 0.08 : 0;
       at(fm.d, X(fm.x), () => {
         if (lean) { c.save(); c.translate(X(fm.x), STAGE_Y); c.rotate(lean); c.translate(-X(fm.x), -STAGE_Y); }
-        drawMember(c, m, X(fm.x), STAGE_Y, a, throwing ? 1 : 0, throwing);
+        if (isGuest(m)) castRf?.drawGuest(c, m, X(fm.x), STAGE_Y, a, throwing ? 1 : 0, throwing);
+        else drawMember(c, m, X(fm.x), STAGE_Y, a, throwing ? 1 : 0, throwing);
         if (lean) c.restore();
       });
-    } else at(fm.d - 0.0004, X(fm.x), () => drawDeadMember(c, m, X(fm.x), STAGE_Y, fr, (fm.x > f.x ? 1 : -1) as 1 | -1));
+    } else at(fm.d - 0.0004, X(fm.x), () => {
+      const dir = (fm.x > f.x ? 1 : -1) as 1 | -1;
+      if (isGuest(m)) { castRf?.drawGuestDead(c, m, X(fm.x), STAGE_Y, fr, dir); return; }
+      drawDeadMember(c, m, X(fm.x), STAGE_Y, fr, dir);
+      rfCast()?.drawDeadExtra(c, m, X(fm.x), STAGE_Y, fr, dir);
+    });
   }
   // (the wrecks drawn where they crashed but under him and Meathead (the user's: they stay in front of the cars): sorted
   // just behind the couch, him on it or off it)

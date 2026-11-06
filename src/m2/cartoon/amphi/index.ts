@@ -32,7 +32,7 @@ import { pickLine, pickFreshLine } from '../../../m1/game/platform/speech';
 import type { GameState } from '../../../m1/game/core/state';
 import type { CartoonSection } from '../section';
 import { layOwn, endWalls, endExits, runExits, hands, solid, meatheadSays, byPants, saidOver, speak } from '../section';
-import { goTo, markLandCleared, markBossDeath, noteBossKill, isLandCleared } from '../../store';
+import { goTo, markLandCleared, markBossDeath, noteBossKill } from '../../store';
 import { startVictory, tickVictory, drawVictory, victoryDone } from '../../victory';
 import { playWalkAway, tickWalkAway, drawWalkAway } from '../../walkAway';
 import { markBossFight } from '../../bossQuiet';
@@ -55,7 +55,8 @@ import { drawAmphiFar } from './far';
 import { DAD_K, DAD_H, DAD_SIT_H } from './dad';
 import { guardHeadAt } from './guard';
 import { ARRIVE, REVISIT, GAGS, GUARD_GROAN, GUARD_LATER, VOICES, EMPTY_STAGE } from './lines';
-import { leaveEmptyArena } from '../../emptyArena';
+import { leaveEmptyArena, bossGone } from '../../emptyArena';
+import { inRefight } from '../../endgame/park4/hook';
 import { CANVAS_WIDTH, CANVAS_HEIGHT, topBand } from '../../../m1/constants';
 
 export { GUARD_DOWN };
@@ -67,7 +68,7 @@ const pmidX = (state: GameState) => state.player.pos.x + state.player.width / 2;
 
 /** Over: the land's cleared, the walk-away with the MALLET, the hub. */
 const leave = (state: GameState, s: Amphi) => {
-  markBossDeath('cartoon', !!s.fight && killedByWeakness(s.fight)); markLandCleared('cartoon'); noteBossKill();
+  markBossDeath('cartoon', !!s.fight && killedByWeakness(s.fight)); markLandCleared('cartoon'); if (!inRefight('cartoon')) noteBossKill();
   s.walk = playWalkAway(state, { boss: 'stupid-dad', weakness: !!s.fight && killedByWeakness(s.fight), onDone: () => goTo('hub') });
 };
 
@@ -109,7 +110,7 @@ export const amphi: CartoonSection = {
   ],
   build: (state) => {
     resetFight();
-    const s = amphiOf(state), cleared = isLandCleared('cartoon');
+    const s = amphiOf(state), cleared = bossGone('cartoon');
     // (a start past the guard (a checkpoint, the checkpoint cheat, a save): he's down, the way a run there left him)
     if (state.checkpoint >= CP_STEPS) state.stageMemo[GUARD_DOWN] = '1';
     const down = cleared || !!state.stageMemo[GUARD_DOWN];
@@ -135,7 +136,7 @@ export const amphi: CartoonSection = {
   },
   update: (ctx, controls) => {
     const { state } = ctx, p = state.player, s = amphiOf(state);
-    const cleared = isLandCleared('cartoon');
+    const cleared = bossGone('cartoon');
     // Over: VICTORY, then the walk-away
     if (s.won) {
       p.inCutscene = true;
@@ -204,7 +205,7 @@ export const amphi: CartoonSection = {
   },
   drawBackdrop: (c, state) => { drawAmphiFar(c, state); return true; },
   drawBack: (c, state) => {
-    const s = amphiOf(state), cleared = isLandCleared('cartoon');
+    const s = amphiOf(state), cleared = bossGone('cartoon');
     const look = stageLook(state, s);
     const g = guardPoseOf(s);
     const u = s.show.boyU;

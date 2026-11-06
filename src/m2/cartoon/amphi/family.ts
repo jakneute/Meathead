@@ -12,6 +12,12 @@
 import { mix } from '../kit';
 import { DAD_K } from './dad';
 import { type Ctx, type Ramp, rampOf, rampMix, shape, shapeTop, ell, px, line, limb, fill, sparks } from './paint';
+import { inRefight } from '../../endgame/park4/hook';
+
+/** (Ned's boss rush: endgame/park4/rf/cartoon.ts) The real actors under the wax: drawn over each face (its middle, its
+ *  size, the anim, whose: the seed, 1 MOM, 5 THE BOY, 7 SIS, 3 GRAMPS), only while Dad Guy's refight is on. */
+let faceHook: ((c: Ctx, hx: number, hy: number, r: number, a: Anim, seed: number) => void) | null = null;
+export const setActorFace = (fn: typeof faceHook) => { faceHook = fn; };
 
 export type Mode = 'run' | 'glitch' | 'off';
 export interface Anim { mode: Mode; f: number; talking: boolean }
@@ -64,6 +70,7 @@ const face = (c: Ctx, hx: number, hy: number, r: number, a: Anim, o: { cheeks?: 
   else line(c, [hx - r * 0.52, jy, hx - r * 0.1, jy], 0.9, W[4]);
   px(c, hx - r * 0.6, jy + drop, jw - 1, 0.8, W[2]);
   if (o.braces && smile && drop < 0.5) px(c, hx - r * 0.5, jy - r * 0.04, r * 0.36, 0.8, '#C9CDD4');
+  if (faceHook && inRefight('cartoon')) faceHook(c, hx, hy, r, a, o.seed);
 };
 /** A hobby servo showing where the skin doesn't cover it: a gray case, its label, the horn on top ticking round in
  *  steps, two wires off it. */
