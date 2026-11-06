@@ -345,8 +345,10 @@ const takeHits = (ctx: FrameContext, f: Fight3, gone: boolean) => {
   e.health = BIG; e.maxHealth = BIG;
   const melee = e.hitByMove !== f.moveSeen;
   f.moveSeen = e.hitByMove;
+  // (not there to be hit: a hurl he's owed waits till he is)
+  if (gone) return;
   const burst = takeSickBurst(e);
-  if (gone || (!burst && (dealt <= 0 || f.iframes > 0))) return;
+  if ((!burst && (dealt <= 0 || f.iframes > 0))) return;
   const dmg = burst || (plainHit(state, melee) ?? endgameHit(state, e, dealt));
   f.hp -= dmg; if (!burst) f.iframes = BOSS_IFRAMES; f.flash = 8;
   playSound('gunhit', 0.6, -2);

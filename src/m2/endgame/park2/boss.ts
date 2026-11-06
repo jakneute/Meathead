@@ -528,8 +528,10 @@ const takeHits = (ctx: FrameContext, f: Fight2, o: Foe, gone: boolean) => {
   e.health = BIG; e.maxHealth = BIG;
   const melee = e.hitByMove !== o.moveSeen;
   o.moveSeen = e.hitByMove;
+  // (not there to be hit: a hurl he's owed waits till he is)
+  if (gone) return;
   const burst = takeSickBurst(e);
-  if (gone || (!burst && (dealt <= 0 || o.iframes > 0))) return;
+  if ((!burst && (dealt <= 0 || o.iframes > 0))) return;
   const dmg = burst || (plainHit(state, melee) ?? endgameHit(state, e, dealt));
   o.hp -= dmg; if (!burst) o.iframes = BOSS_IFRAMES; o.flash = 8;
   // (never down before his brother's come: he's called in at half, between moves)

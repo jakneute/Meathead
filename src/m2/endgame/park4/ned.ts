@@ -139,8 +139,10 @@ const takeHits = (ctx: FrameContext, f: NedFight) => {
   e.health = BIG; e.maxHealth = BIG;
   const melee = e.hitByMove !== f.moveSeen;
   f.moveSeen = e.hitByMove;
+  // (not there to be hit: a hurl he's owed waits till he is)
+  if (f.mode !== 'on') return;
   const burst = takeSickBurst(e);
-  if (f.mode !== 'on' || (!burst && (dealt <= 0 || f.iframes > 0))) return;
+  if ((!burst && (dealt <= 0 || f.iframes > 0))) return;
   const p = state.player;
   const dmg = burst || (melee ? endgameMelee(p) : p.currentWeapon === 'GUN' ? BULLET_DAMAGE : endgameHit(state, e, dealt));
   f.hp -= dmg; if (!burst) f.iframes = BOSS_IFRAMES; f.flash = 8; setPose(f, 'hurt', 20);

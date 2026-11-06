@@ -707,7 +707,8 @@ const tick = (ctx: FrameContext, input: { moveUp: boolean; moveDown: boolean }, 
     const s = sickness.get(e);
     if (!s || !alive(e) || !state.enemies.includes(e)) {
       // (dead, or picked up: he's not being sick any more; picked up and put down, he's himself again)
-      e.pose = undefined; if (s) { s.t = -1; s.tol = s.max; recover(e, s); }
+      // (an endgame boss stepped out of the world (a blink, a dive, a leap): his bar keeps what it had till he's back)
+      e.pose = undefined; if (s && !(e.kind && hurlers.has(e.kind) && alive(e))) { s.t = -1; s.tol = s.max; recover(e, s); }
       tracked.delete(e); continue;
     }
     if (s.hurk > 0) s.hurk--;
