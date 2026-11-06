@@ -125,7 +125,13 @@ const paintFarOnce = (g: Ctx) => {
     poly(g, [[x - 8, foot - h - 2], [x + 7, foot - h - 14], [x + 22, foot - h - 2]], Rc[2]); poly(g, [[x + 7, foot - h - 14], [x + 22, foot - h - 2], [x + 7, foot - h - 2]], Rc[1]);
     const pts = bez(x + 14, foot - h + 6, x + 46, foot - h, x + 62, foot - h * 0.4, x + 84, foot - 4, 16);
     for (let k = 3; k < pts.length - 1; k += 3) R(g, pts[k][0] - 1, pts[k][1] + 2, 2, foot - pts[k][1] - 2, Rt[0]);
-    tubeAlong(g, pts, 5, ramp5(t(FL[i % 5], 0.6)), t(INK, 0.6));
+    // (the fourth: the mat racer (the owner, 2026-11-06: "throw in other stuff too as flavor that we may have missed"):
+    // four open lanes side by side in their own colors, down off the tower over its humps to the run-out)
+    if (i === 3) {
+      const lane = (k: number): [number, number][] => Array.from({ length: 21 }, (_, n) => { const s = n / 20; return [x + 14 + s * 84, foot - h + 6 + k * 3 + (h - 14 - k * 3) * s - Math.max(0, Math.sin(s * Math.PI * 4)) * 7 * (1 - s)]; });
+      for (let k = 3; k >= 0; k--) { along(g, lane(k), 0, 4, t(INK, 0.6)); along(g, lane(k), 0, 2, t(['#DC2626', '#FACC15', '#2563EB', '#16A34A'][k], 0.6)); }
+      R(g, x + 92, foot - 8, 16, 4, t('#14507E', 0.7));
+    } else tubeAlong(g, pts, 5, ramp5(t(FL[i % 5], 0.6)), t(INK, 0.6));
   }
   // (the wave pool's wall and its big bowl ride, a funnel on its side)
   { const x = 1550, Rw = ramp5(t('#3A4A6A', 0.7)); R(g, x - 30, foot - 26, 80, 26, Rw[1]); R(g, x - 30, foot - 26, 80, 3, Rw[2]); for (let k = 0; k < 5; k++) R(g, x - 26 + k * 16, foot - 20, 8, 6, Rw[0]); }

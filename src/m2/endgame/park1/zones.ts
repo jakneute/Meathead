@@ -89,6 +89,25 @@ const arcade: Paint = (g, x, v, w, h) => {
   plate(g, x + w / 2, top + 4, w - 60, 18, '#1E293B', '#FDE68A', ['SPLASH & STUFF', 'TOWELS $40', 'SUNBURN OUTLET'][v % 3]);
   R(g, x, GY - 6, w, 6, S[0]);
 };
+/** The changing rooms (the owner, 2026-11-06: "throw in other stuff too as flavor that we may have missed"): the long
+ *  low block behind the ticket booths (they stand in front of it, nearer), its parapet in waves (no flat top), frosted
+ *  vents along it, the board over the booths, MEN and WOMEN between them, a puddle out of the men's. */
+const changing: Paint = (g, x, v, w, h) => {
+  const S = bk5('#C9D6DF'), T = bk5('#0E7490'), top = GY - h + 18, cx = x + w / 2;
+  box(g, x, top, w, GY - top, S);
+  for (let k = 0; k < w; k += 22) { disc(g, x + k + 11, top, 12, INK); disc(g, x + k + 11, top, 10, S[2]); R(g, x + k + 5, top - 8, 5, 2, S[4]); }
+  R(g, x, top + 12, w, 6, T[2]); R(g, x, top + 18, w, 2, T[0]);
+  for (let k = x + 14; k < x + w - 24; k += 26) { R(g, k - 1, GY - 166, 20, 10, INK); R(g, k, GY - 165, 18, 8, back('#E0F2FE')); dither(g, k, GY - 165, 18, 8, back('#9FB8C8')); }
+  plate(g, cx, top - 14, 200, 22, '#0E7490', '#FEF3C7', 'CHANGING ROOMS', true);
+  plate(g, cx, GY - 188, 176, 14, '#F8FAFC', '#7F1D1D', 'SHOWER FIRST. NOBODY DOES.');
+  // (the doors, between the booths: dark, a kick plate each, their words over them; the men's puddle, yellow)
+  for (const [dx, s2] of [[-42, 'MEN'], [6, 'WOMEN']] as const) {
+    const dx0 = cx + dx; R(g, dx0 - 1, GY - 111, 38, 111, INK); R(g, dx0, GY - 110, 36, 110, back('#1E1A2A')); R(g, dx0, GY - 22, 36, 6, S[1]); R(g, dx0 + 28, GY - 60, 4, 4, S[3]);
+    plate(g, dx0 + 18, GY - 128, 40, 13, '#1E293B', '#F8FAFC', s2);
+  }
+  ell(g, cx - 24, GY - 2, 26, 3, back('#CA8A04')); ell(g, cx - 28, GY - 2, 12, 1.5, back('#FDE047'));
+  void v;
+};
 const mapboard: Paint = (g, x, v, w, h) => {
   const P = bk5('#6B4F2A'), bx = x + 8, bw = w - 16, by = GY - h + 6, bh = 80;
   for (const px of [bx + 12, bx + bw - 18]) { R(g, px - 1, by + bh, 8, GY - by - bh, INK); R(g, px, by + bh, 6, GY - by - bh, P[2]); R(g, px, by + bh, 2, GY - by - bh, P[3]); }
@@ -431,7 +450,7 @@ const kelp: Paint = (g, x, v, w, h) => {
 };
 
 const KINDS: Record<string, Kind> = {
-  arcade: { w: 260, h: 170, paint: arcade }, mapboard: { w: 130, h: 150, paint: mapboard },
+  changing: { w: 410, h: 230, paint: changing }, arcade: { w: 260, h: 170, paint: arcade }, mapboard: { w: 130, h: 150, paint: mapboard },
   picket: { w: 180, h: 60, paint: picket }, bucket: { w: 120, h: 230, paint: bucket }, mushroom: { w: 76, h: 100, paint: mushroom }, frog: { w: 120, h: 60, paint: frog },
   barn: { w: 200, h: 180, paint: barn }, windmill: { w: 80, h: 240, paint: windmill }, siren: { w: 50, h: 190, paint: siren }, trailer: { w: 170, h: 70, paint: trailer }, cow: { w: 90, h: 50, paint: cow },
   rocks: { w: 220, h: 170, paint: rocks }, torch: { w: 30, h: 120, paint: torch }, bamboo: { w: 160, h: 80, paint: bamboo }, hammock: { w: 130, h: 80, paint: hammock },
@@ -444,7 +463,7 @@ const KINDS: Record<string, Kind> = {
  *  pits' edges; one area to the next. */
 const PIECES: { x: number; k: string; v: number; w?: number; h?: number }[] = [
   // THE ENTRY PLAZA
-  { x: 860, k: 'arcade', v: 0 }, { x: 1150, k: 'mapboard', v: 0 },
+  { x: 440, k: 'changing', v: 0 }, { x: 860, k: 'arcade', v: 0 }, { x: 1150, k: 'mapboard', v: 0 },
   // SPLASH TOT TOWN
   { x: 1290, k: 'picket', v: 0, w: 200 }, { x: 1700, k: 'mushroom', v: 0, h: 110 }, { x: 1790, k: 'bucket', v: 1 }, { x: 1930, k: 'picket', v: 2, w: 120 },
   { x: 2070, k: 'frog', v: 0 }, { x: 2200, k: 'mushroom', v: 1, h: 86 }, { x: 2290, k: 'picket', v: 3, w: 140 },
