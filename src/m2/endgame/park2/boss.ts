@@ -42,7 +42,7 @@ import { SKIP_AFTER, offerSkip, takeSkip, drawSkipPrompt } from '../../../m1/gam
 import { hurtPlayer } from '../../../m1/game/bosses/shared';
 import { makeKindEnemy } from '../../../m1/game/enemies/kinds';
 import { CANVAS_WIDTH, CANVAS_HEIGHT, BULLET_DAMAGE, KICK_POSE_FRAMES } from '../../../m1/constants';
-import { bossMelee } from '../../upgrades/bossMelee';
+import { endgameBoss, endgameHit, endgameMelee } from '../../weapons/endgameDamage';
 import { registerM2Kind, registerHurtLines } from '../../kinds';
 import { ownShare } from '../../weapons/subBoss';
 import { setSickHurl, takeSickBurst } from '../../weapons/crossbow';
@@ -71,7 +71,7 @@ const pick = pickLine;
 export const SON_HP = 999;
 /** The brother: half the son's. */
 export const BRO_HP = Math.round(SON_HP / 2);
-const BIG = 100000, SHARE = 0.35;
+const BIG = 100000;
 export const ARENA_L = GROTTO.door + 60, ARENA_R = GROTTO.R - 50;
 /** Where his beanbag is (he's sunk in it for the intro). */
 export const BEANBAG_X = GROTTO.R - 150;
@@ -126,8 +126,10 @@ for (const [kind, w, h, blood] of [[SON_KIND, SON_W, SON_H, '#7F1D1D'], [BRO_KIN
 });
 TOO_BIG_BY_KIND[SON_KIND] = L.GRAB_SON;
 TOO_BIG_BY_KIND[BRO_KIND] = L.GRAB_SON;
-// (every special's 35% taken here, in the fight: not cut again as a sub-boss's)
+// (every special's hit worked out here, in the fight, off the table: not cut again as a sub-boss's)
 ownShare(SON_KIND, BRO_KIND);
+// (every special's hit off the water park's own damage table, by weapon and move: weapons/endgameDamage.ts)
+endgameBoss(SON_KIND, BRO_KIND);
 setSickHurl(SON_KIND, BRO_KIND);
 // (the hand armor's cheap shot (upgrades/cheapShot.ts) on both: the son's own crushed set and close-up; his brother's
 // as in hell, unless they were torn out there (then there's nothing left: Y + B on him grabs at nothing, his line))
@@ -517,7 +519,7 @@ const stepFoe = (ctx: FrameContext, f: Fight2, o: Foe) => {
 
 const plainHit = (state: GameState, melee: boolean): number | null => {
   const p = state.player;
-  if (melee) return bossMelee(p);
+  if (melee) return endgameMelee(p);
   return p.currentWeapon === 'GUN' ? BULLET_DAMAGE : null;
 };
 const takeHits = (ctx: FrameContext, f: Fight2, o: Foe, gone: boolean) => {
@@ -528,7 +530,7 @@ const takeHits = (ctx: FrameContext, f: Fight2, o: Foe, gone: boolean) => {
   o.moveSeen = e.hitByMove;
   const burst = takeSickBurst(e);
   if (gone || (!burst && (dealt <= 0 || o.iframes > 0))) return;
-  const dmg = burst || (plainHit(state, melee) ?? Math.max(1, dealt * SHARE));
+  const dmg = burst || (plainHit(state, melee) ?? endgameHit(state, e, dealt));
   o.hp -= dmg; if (!burst) o.iframes = BOSS_IFRAMES; o.flash = 8;
   // (never down before his brother's come: he's called in at half, between moves)
   if (o.who === 'son' && !f.bro) o.hp = Math.max(1, o.hp);

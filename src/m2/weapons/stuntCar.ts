@@ -17,6 +17,7 @@ import { registerWeapon } from '../../m1/game/combat/customWeapons';
 import { isMidBoss } from '../../m1/game/combat/midBoss';
 import { specialsHalf, heavyHit, HALF } from './half';
 import { subBossDmg } from './subBoss';
+import { tagHit } from './endgameDamage';
 import { playSound } from '../../m1/game/platform/audio';
 import { groundLineAt } from '../../m1/game/core/terrain';
 import { CANVAS_WIDTH } from '../../m1/constants';
@@ -159,7 +160,7 @@ const runDown = (ctx: FrameContext, e: Enemy, dir: number, speed: number, how: '
     return;
   }
   // (a sub-boss: its share of it, weapons/subBoss.ts)
-  if (isMidBoss(e)) { const dmg = subBossDmg(e, MIDBOSS_HIT); e.health -= dmg; fx.spawnDamageNumber(e.pos, dmg, true); return; }
+  if (isMidBoss(e)) { const dmg = subBossDmg(e, MIDBOSS_HIT); tagHit(state, e, 'STUNT_CAR', 'car'); e.health -= dmg; fx.spawnDamageNumber(e.pos, dmg, true); return; }
   if (how === 'stuntman' && e.health > STUNTMAN.dmg) {
     e.health -= STUNTMAN.dmg; fx.spawnDamageNumber(e.pos, STUNTMAN.dmg, true);
     e.vel = { x: dir * 6, y: -5 }; e.pauseTimer = Math.max(e.pauseTimer || 0, 40);
@@ -214,7 +215,7 @@ const stunt = (ctx: FrameContext, p: Projectile, car: Extract<Part, { kind: 'car
     const k = Math.max(0, 1 - d / (BLAST.radius + e.width / 2)), dmg = subBossDmg(e, Math.round(BLAST.edge + (BLAST.dmg - BLAST.edge) * k));
     const away = Math.sign(e.pos.x + e.width / 2 - cx) || car.dir;
     if (specialsHalf(e)) { e.health -= dmg; fx.spawnDamageNumber(e.pos, dmg, true); e.vel = { x: away * 7 * k * HALF, y: -6 * k * HALF }; e.pauseTimer = Math.max(e.pauseTimer || 0, 40 * HALF); continue; }
-    if (isMidBoss(e)) { e.health -= dmg; fx.spawnDamageNumber(e.pos, dmg, true); continue; }
+    if (isMidBoss(e)) { tagHit(state, e, 'STUNT_CAR', 'blast'); e.health -= dmg; fx.spawnDamageNumber(e.pos, dmg, true); continue; }
     e.health -= dmg;
     if (e.health <= 0) { fx.blowAwayEnemy(e, { x: away * (8 + 10 * k), y: -10 - 8 * k }, m2Kill('stunt_kill'), away, 1.5); e.meleeFlung = true; fx.spawnKillCallout(e, grabCallout('stunt')); }
     else { fx.spawnDamageNumber(e.pos, dmg, true); e.vel = { x: away * 7 * k, y: -6 * k }; e.pauseTimer = Math.max(e.pauseTimer || 0, 40); }

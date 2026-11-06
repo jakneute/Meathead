@@ -34,7 +34,7 @@ import { SKIP_AFTER, offerSkip, takeSkip, drawSkipPrompt } from '../../../m1/gam
 import { hurtPlayer } from '../../../m1/game/bosses/shared';
 import { makeKindEnemy } from '../../../m1/game/enemies/kinds';
 import { CANVAS_WIDTH, CANVAS_HEIGHT, BULLET_DAMAGE } from '../../../m1/constants';
-import { bossMelee } from '../../upgrades/bossMelee';
+import { endgameBoss, endgameHit, endgameMelee } from '../../weapons/endgameDamage';
 import { registerM2Kind } from '../../kinds';
 import { ownShare } from '../../weapons/subBoss';
 import { setSickHurl, takeSickBurst } from '../../weapons/crossbow';
@@ -55,7 +55,7 @@ const pick = pickLine;
 // The numbers (tune here)
 
 export const GUP_HP = 999;
-const BIG = 100000, SHARE = 0.35;
+const BIG = 100000;
 /** His stretch of the deep end; his tower (on the deck past the deep end's wall). */
 export const GX0 = WP.x0 + 1180, GX1 = WP.x1 - 110;
 export const TOWER = { x: WP.x1 + 70, seat: WP.surf - 170 };
@@ -95,8 +95,10 @@ registerM2Kind({
   ai: () => true,
 });
 TOO_BIG_BY_KIND[KIND] = L.GRAB_GUP;
-// (every special's 35% taken here, in the fight: not cut again as a sub-boss's)
+// (every special's hit worked out here, in the fight, off the table: not cut again as a sub-boss's)
 ownShare(KIND);
+// (every special's hit off the water park's own damage table, by weapon and move: weapons/endgameDamage.ts)
+endgameBoss(KIND);
 setSickHurl(KIND);
 // (the hand armor's cheap shot (upgrades/cheapShot.ts): his own crushed set)
 crushGroups('gupplax', { hurt: [L.GUP_HURT], taunt: [L.GUP_PATTER, L.GUP_TAUNT] });
@@ -334,7 +336,7 @@ const under = (f: Fight3) => f.st === 'under' || f.st === 'set' || (f.st === 'si
 
 const plainHit = (state: GameState, melee: boolean): number | null => {
   const p = state.player;
-  if (melee) return bossMelee(p);
+  if (melee) return endgameMelee(p);
   return p.currentWeapon === 'GUN' ? BULLET_DAMAGE : null;
 };
 const takeHits = (ctx: FrameContext, f: Fight3, gone: boolean) => {
@@ -345,7 +347,7 @@ const takeHits = (ctx: FrameContext, f: Fight3, gone: boolean) => {
   f.moveSeen = e.hitByMove;
   const burst = takeSickBurst(e);
   if (gone || (!burst && (dealt <= 0 || f.iframes > 0))) return;
-  const dmg = burst || (plainHit(state, melee) ?? Math.max(1, dealt * SHARE));
+  const dmg = burst || (plainHit(state, melee) ?? endgameHit(state, e, dealt));
   f.hp -= dmg; if (!burst) f.iframes = BOSS_IFRAMES; f.flash = 8;
   playSound('gunhit', 0.6, -2);
   ctx.fx.spawnDamageNumber({ x: f.x - 10, y: f.y - 160 }, Math.max(1, Math.round(dmg)), dmg > 40);

@@ -18,6 +18,7 @@ import type { GameState } from '../../m1/game/core/state';
 import { registerWeapon } from '../../m1/game/combat/customWeapons';
 import { isMidBoss } from '../../m1/game/combat/midBoss';
 import { subBossDmg } from './subBoss';
+import { tagHit } from './endgameDamage';
 import { playSound } from '../../m1/game/platform/audio';
 import { groundLineAt } from '../../m1/game/core/terrain';
 import { isHumanoidKind, kindFacing } from '../../m1/game/render/enemies';
@@ -337,6 +338,7 @@ const gnaw = (ctx: FrameContext, a: Alien) => {
   // (a sub-boss (the Ensemble Cast, opted in, too): they get their teeth into it, but only its share as deep:
   // weapons/subBoss.ts)
   const bite = subBossDmg(e, BITE.dmg, false);
+  tagHit(state, e, 'SPAWNER', 'bite');
   e.health -= bite;
   bitten.set(e, (bitten.get(e) ?? 0) + bite);
   // (a squirt of him)

@@ -25,7 +25,7 @@ import { hurtPlayer } from '../../../m1/game/bosses/shared';
 import { makeKindEnemy } from '../../../m1/game/enemies/kinds';
 import { BULLET_DAMAGE, CANVAS_WIDTH } from '../../../m1/constants';
 import { isShat, isNude } from '../../../m1/game/player/gut';
-import { bossMelee } from '../../upgrades/bossMelee';
+import { endgameBoss, endgameHit, endgameMelee } from '../../weapons/endgameDamage';
 import { registerM2Kind } from '../../kinds';
 import { ownShare } from '../../weapons/subBoss';
 import { setSickHurl, takeSickBurst } from '../../weapons/crossbow';
@@ -43,7 +43,7 @@ type Dressed = 'clean' | 'shitty' | 'nude';
 const dressed = (state: GameState): Dressed => (isNude(state) ? 'nude' : isShat(state) ? 'shitty' : 'clean');
 
 export const NED_HP = 333;
-const BIG = 100000, SHARE = 0.35;
+const BIG = 100000;
 const NED_KIND = 'm2:wp4_ned' as const;
 registerM2Kind({
   kind: NED_KIND, stats: { w: NED_W, h: NED_H, hp: BIG, contact: 0, mass: 160, air: true },
@@ -52,6 +52,8 @@ registerM2Kind({
   head: { x: 8, y: -92, r: 12 }, draw: () => {}, ai: () => true,
 });
 ownShare(NED_KIND);
+// (every special's hit off the water park's own damage table, by weapon and move: weapons/endgameDamage.ts)
+endgameBoss(NED_KIND);
 setSickHurl(NED_KIND);
 TOO_BIG_BY_KIND[NED_KIND] = ["HE'S ALL ROBE. THERE'S NOTHING TO GRAB.", 'GREASY LITTLE HACK.'];
 
@@ -140,7 +142,7 @@ const takeHits = (ctx: FrameContext, f: NedFight) => {
   const burst = takeSickBurst(e);
   if (f.mode !== 'on' || (!burst && (dealt <= 0 || f.iframes > 0))) return;
   const p = state.player;
-  const dmg = burst || (melee ? bossMelee(p) : p.currentWeapon === 'GUN' ? BULLET_DAMAGE : Math.max(1, dealt * SHARE));
+  const dmg = burst || (melee ? endgameMelee(p) : p.currentWeapon === 'GUN' ? BULLET_DAMAGE : endgameHit(state, e, dealt));
   f.hp -= dmg; if (!burst) f.iframes = BOSS_IFRAMES; f.flash = 8; setPose(f, 'hurt', 20);
   playSound('gunhit', 0.6, 2);
   ctx.fx.spawnDamageNumber({ x: f.x - 10, y: f.floor - NED_H - 10 }, Math.max(1, Math.round(dmg)), dmg > 40);

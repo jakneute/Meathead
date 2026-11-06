@@ -36,6 +36,7 @@ import { setArmor } from '../../m1/game/core/resist';
 import { vineGrip } from '../../m1/game/combat/muzzle';
 import { specialsHalf, specialsOff, realMax, HALF } from './half';
 import { subBossDmg, landBoss } from './subBoss';
+import { tagHit, setBulked, isEndgameBoss } from './endgameDamage';
 import { since } from '../frames';
 import { struckAt } from './strikes';
 
@@ -153,6 +154,7 @@ const spellKill = (ctx: FrameContext, e: Enemy, how: 'charred' | 'fried' | 'panc
 const hurt = (ctx: FrameContext, e: Enemy, dmg: number, how: 'charred' | 'fried' | 'pancaked') => {
   // (a land boss: half, and his fight takes its own share of that; a sub-boss: its share, weapons/subBoss.ts)
   if (specialsOff(e)) dmg = landBoss(e) ? dmg * 0.5 : subBossDmg(e, dmg, false);
+  tagHit(ctx.state, e, 'SPELLBOOK', how === 'charred' ? 'meteor' : how === 'pancaked' ? 'comet' : 'bolt');
   e.health -= dmg;
   if (e.health <= 0) { if (isMidBoss(e)) e.health = 1; else { spellKill(ctx, e, how); return true; } }
   ctx.fx.spawnDamageNumber(e.pos, Math.round(dmg), dmg > 30);
@@ -312,7 +314,8 @@ const meteorBlast = (ctx: FrameContext, at: { x: number; y: number }, three: Ene
     if (half && !three.includes(e)) continue;
     if (stormHit?.(ctx, e, 'meteor', METEOR.edge + (METEOR.dmg - METEOR.edge) * k)) continue;
     if (!hurt(ctx, e, half ? realMax(e) * ON_CAST.meteor : METEOR.edge + (METEOR.dmg - METEOR.edge) * k, 'charred')) {
-      burning.set(e, half ? METEOR.burn * HALF : METEOR.burn);
+      // (a water park boss: no burn after it, a trickle that'd only eat his breather; the meteor's hit is its own: endgameDamage.ts)
+      if (!isEndgameBoss(e)) burning.set(e, half ? METEOR.burn * HALF : METEOR.burn);
       e.vel = { x: Math.sign(mid(e).x - at.x || 1) * 4 * k, y: -4 * k };
     }
   }
@@ -442,6 +445,8 @@ const tick = (ctx: FrameContext, input: { secondary?: boolean }, equipped: boole
       for (let i = 0; i < 28; i++) { const a = (i / 28) * Math.PI * 2; state.particles.push({ pos: { x: pl.pos.x + pl.width / 2, y: pl.pos.y + pl.height / 2 }, vel: { x: Math.cos(a) * 6, y: Math.sin(a) * 6 }, life: 22, color: i % 2 ? '#F87171' : '#FDE047', size: 4 }); }
     }
   }
+  // (the water park's bosses take his moves bulked up by their own table: endgameDamage.ts)
+  setBulked(bulkLeft > 0);
   if (bulkLeft > 0) {
     // (steam coming off him, red)
     if (state.frame % 3 === 0) state.particles.push({ pos: { x: pl.pos.x + Math.random() * pl.width, y: pl.pos.y + Math.random() * pl.height * 0.6 }, vel: { x: (Math.random() - 0.5), y: -1.5 - Math.random() }, life: 24, color: 'rgba(248, 113, 113, 0.45)', size: 4 + Math.random() * 4 });

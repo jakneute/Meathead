@@ -34,6 +34,7 @@ import { drawComposited } from '../../m1/game/render/composite';
 import { isRobot } from '../kinds';
 import { specialsHalf, specialsOff, realMax, HALF } from './half';
 import { subBossDmg } from './subBoss';
+import { tagHit, isEndgameBoss, ENDGAME_DAMAGE } from './endgameDamage';
 import { tubeRide } from './tubeRide';
 import { drawGooPuddle, drawGooOverhang, drawGooString, gooOverhangDrips, type GooPalette } from '../../m1/game/render/goo';
 
@@ -60,15 +61,15 @@ const takerOf = (e: Enemy) => (e.kind ? dartTakers.get(e.kind) : undefined);
  *  it won't be a 'weakness' but a way to build up a decent 'burst' of damage. sick meter can fill during i frames even if
  *  they don't hurt. it will be a one time hurl. similar to the soul sucker"): each dart in him wears his bar down (all
  *  the time, his breather or not); gone, he hurls, the once (one big gush out front, no being sick for a while), and his
- *  fight takes SICK_BURST off him whatever his breather (takeSickBurst, in its hits), then the bar's full again. The darts
+ *  fight takes the hurl's burst (endgameDamage.ts) off him whatever his breather (takeSickBurst, in its hits), then the bar's full again. The darts
  *  still hit him as ever besides. */
 const hurlers = new Set<string>();
 export const setSickHurl = (...kinds: string[]) => { for (const k of kinds) hurlers.add(k); };
 const bursts = new WeakMap<Enemy, number>();
 /** A hurl's burst waiting on `e` (his fight's hits take it, past his breather: no breather after it either), or 0. */
 export const takeSickBurst = (e: Enemy) => { const n = bursts.get(e) ?? 0; if (n) bursts.delete(e); return n; };
-/** Darts to fill him (~3.5 s held on him), and the burst's hurt (a boss's 999: about a twelfth). */
-const SICK_DARTS = 30, SICK_BURST = 85;
+/** Darts to fill him (~3.5 s held on him), and the burst's hurt (the water park's table: endgameDamage.ts). */
+const SICK_DARTS = 30;
 const hurl = (ctx: FrameContext, e: Enemy) => {
   const { state } = ctx;
   playSound('retch'); playSound('gush');
@@ -82,7 +83,7 @@ const hurl = (ctx: FrameContext, e: Enemy) => {
     });
   }
   for (let i = 0; i < 14; i++) puff(state, { pos: { x: m.x, y: m.y }, vel: { x: dir * (1 + Math.random() * 4), y: -1 - Math.random() * 3 }, life: 22, color: isRobot(e) ? OIL_BITS[i % 3] : PUKE_COLORS[i % 3], size: 3 + Math.random() * 3, grav: 0.3 });
-  bursts.set(e, (bursts.get(e) ?? 0) + SICK_BURST);
+  bursts.set(e, (bursts.get(e) ?? 0) + ENDGAME_DAMAGE.CROSSBOW.hurl);
 };
 const airborne = (e: Enemy) => e.enemyType === 'flyer' || e.enemyType === 'drone' || (e.vel.y !== 0 && Math.abs(e.vel.y) > 0.5);
 const lockOn = (state: GameState, up: boolean): Enemy | null => {
@@ -230,7 +231,7 @@ const darted = (ctx: FrameContext, e: Enemy, p: Projectile, through = 1) => {
     }
   }
   // (a sub-boss: its share of it, in hurt; the Ensemble Cast's share stands in for the half it was)
-  if (specialsOff(e)) { const n = hurt(ctx, e, BOSS_DART_DMG); e.hitFlash = 2; ctx.fx.spawnDamageNumber(e.pos, Math.round(n)); return; }
+  if (specialsOff(e)) { tagHit(ctx.state, e, 'CROSSBOW', 'dart'); const n = hurt(ctx, e, BOSS_DART_DMG); e.hitFlash = 2; ctx.fx.spawnDamageNumber(e.pos, Math.round(n)); return; }
   if (specialsHalf(e)) { hurt(ctx, e, BOSS_DART_DMG * through); e.hitFlash = 2; }
   else hurt(ctx, e, DART.dmg * through);
   if (!alive(e)) return;
@@ -463,6 +464,8 @@ const pukedOn = (ctx: FrameContext, e: Enemy, p: Projectile, part: Extract<Part,
   else splashes.push({ x: p.pos.x + G / 2, y: p.pos.y + G / 2, dir: -Math.sign(p.vel.x || 1), t: 0, seed: Math.random() });
   if (splashes.length > MAX_SPLASHES) splashes.shift();
   if (Math.random() < 0.3) playSound('splat', 0.3, 6);
+  // (a water park boss: no trickles off it, they'd only eat his breather; the hurl's burst is the puke's: endgameDamage.ts)
+  if (isEndgameBoss(e)) return;
   hurt(ctx, e, own ? PUKE.selfDmg : PUKE.dmg);
   if (!alive(e) || specialsOff(e)) return;
   const s = sickOf(e); tracked.add(e);
@@ -579,7 +582,7 @@ const dripHits = (ctx: FrameContext, x: number, y: number, big: boolean) => {
     splashes.push({ x, y, dir: Math.random() < 0.5 ? -1 : 1, t: 0, seed: Math.random() });
     if (splashes.length > MAX_SPLASHES) splashes.shift();
     if (Math.random() < (big ? 0.6 : 0.2)) playSound('splat', 0.3, 6);
-    hurt(ctx, e, big ? PUKE.dmg : DRIP.dmg);
+    if (!isEndgameBoss(e)) hurt(ctx, e, big ? PUKE.dmg : DRIP.dmg);
     if (!alive(e) || specialsOff(e)) return true;
     const s = sickOf(e); tracked.add(e);
     s.doused = Math.max(s.doused, big ? 120 : 50); s.lastHit = state.frame;
@@ -729,7 +732,7 @@ const tick = (ctx: FrameContext, input: { moveUp: boolean; moveDown: boolean }, 
       // (on the slope it's lying along, where he's stood)
       if (!puddles.some(q => { const sh = puddleShape(q), g = q.lo === -Infinity ? groundLineAt(state.groundRuns, cx) : q.y; return cx > sh.pos.x - e.width * 0.3 && cx < sh.pos.x + sh.width + e.width * 0.3 && Math.abs(fy - (Math.abs(g - q.y) < 24 ? g : q.y)) < 6; })) continue;
       puff(state, { pos: { x: cx + (Math.random() - 0.5) * e.width * 0.6, y: fy - 2 }, vel: { x: 0, y: -0.8 }, life: 14, color: 'rgba(163, 179, 32, 0.8)', size: 2 });
-      hurt(ctx, e, PUDDLE_STING.dmg);
+      if (!isEndgameBoss(e)) hurt(ctx, e, PUDDLE_STING.dmg);
     }
   }
   drip(ctx);

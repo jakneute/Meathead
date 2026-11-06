@@ -15,6 +15,7 @@ import { isMidBoss } from '../../m1/game/combat/midBoss';
 import { tubeRide } from './tubeRide';
 import { specialsHalf, HALF } from './half';
 import { subBossDmg } from './subBoss';
+import { tagHit, type EndgameMove } from './endgameDamage';
 import { gunDeathMode } from '../../m1/game/enemies/gunDeaths';
 import { startGunKill } from '../../m1/game/enemies/deaths';
 import { spared } from '../../m1/game/enemies/enemies';
@@ -379,6 +380,7 @@ const hitEnemy = (ctx: FrameContext, p: Projectile, e: Enemy) => {
   const dmg = subBossDmg(e, Math.round(t.dmg * Math.max(0.5 + t.mass * 0.45, Math.min(1.2, speed / t.speed))));
   const dir = Math.sign(p.vel.x) || 1;
   if (hitHook?.(e, t.id, dmg)) f.gone = true;
+  tagHit(state, e, 'SOUVENIR', t.id as EndgameMove<'SOUVENIR'>);
   e.health -= dmg;
   const at = { x: e.pos.x + e.width / 2, y: p.pos.y + p.height / 2 };
   fx.spawnExplosion(at, '#8B0000', 4 + Math.round(t.mass * 8), 0, 6);

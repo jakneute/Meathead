@@ -23,6 +23,7 @@ import { grabCallout } from '../moves/callouts';
 import { isRobot } from '../kinds';
 import { specialsHalf, halfKill } from './half';
 import { subBossDmg } from './subBoss';
+import { tagHit } from './endgameDamage';
 import { since } from '../frames';
 import * as H from './heldArt';
 import { struckAt } from './strikes';
@@ -126,6 +127,7 @@ const bossHit = (ctx: FrameContext, e: Enemy, x: number, y: number, dx: number, 
   const { state, fx } = ctx;
   // (a sub-boss: its share of it, weapons/subBoss.ts)
   const dmg = subBossDmg(e, BOSS_HIT);
+  tagHit(state, e, 'FLINTLOCK', 'ball');
   e.health -= dmg; e.hitFlash = 4;
   fx.spawnDamageNumber(e.pos, dmg, true);
   const robot = isRobot(e);

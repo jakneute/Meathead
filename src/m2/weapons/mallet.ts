@@ -29,6 +29,7 @@ import { registerWeapon } from '../../m1/game/combat/customWeapons';
 import { isMidBoss } from '../../m1/game/combat/midBoss';
 import { specialsHalf, heavyHit, HALF } from './half';
 import { subBossDmg } from './subBoss';
+import { tagHit } from './endgameDamage';
 import { playSound } from '../../m1/game/platform/audio';
 import { setArmor } from '../../m1/game/core/resist';
 import { CANVAS_WIDTH, HUD_CLEAR_X, HUD_CLEAR_Y, maxAmmo } from '../../m1/constants';
@@ -70,6 +71,9 @@ const SMASH = { windup: 42, len: 18, reach: 120 };
 const WINDUP_WALK = 2.2;
 /** wear: one durability for every so many rounds that hit somebody. */
 const TORNADO = { after: 50, max: 300, every: 9, radius: 76, dmg: 30, knock: 17, speed: 3.6, wear: 1 };
+/** The tornado's one hit on a boss with a breather (the queen): less than a plain swing's (the owner's: "tornado damage
+ *  should probably be less than a standard bonk"; it was a swing's). */
+const TORNADO_BOSS = 50;
 /** What each wears off it, when it connects: the swings a little, the launch a bit more, coming down on a head or the
  *  ground more again, the pancake smash most; the tornado a point every round it bonks somebody. */
 const WEAR = { swing: 2, launch: 3, head: 2, pound: 4, pancake: 6 };
@@ -101,6 +105,8 @@ const alive = (e: Enemy) => e.health > 0 && !e.isBlownAway && !e.innocent && e.t
 export type MalletHow = 'swing' | 'launch' | 'pound' | 'smash' | 'spin';
 let lastBig: { e: Enemy; how: MalletHow; frame: number } | null = null;
 const noteBig = (state: GameState, e: Enemy, how: MalletHow) => {
+  // (the water park's bosses: the move's own number off their table, endgameDamage.ts)
+  tagHit(state, e, 'MALLET', how);
   // (the heaviest of a frame's kept: a smash isn't overwritten by anything lesser)
   if (lastBig && lastBig.e === e && lastBig.how === 'smash' && how !== 'smash') return;
   lastBig = { e, how, frame: state.frame };
@@ -474,8 +480,8 @@ const tick = (ctx: FrameContext, input: { shoot: boolean }, equipped: boolean) =
         let off: Enemy | null = null;
         for (const e of hits) {
           const side = Math.sign(e.pos.x + e.width / 2 - px) || dir;
-          // (one with a breather after a hit (the queen): one hit, a plain swing's, and that's the tornado done)
-          if (isMidBoss(e) && hasBreather(e)) { if (!off) { bonk(ctx, e, SWING.dmg, { x: 0, y: 0 }, 'fling', 'swing'); off = e; } continue; }
+          // (one with a breather after a hit (the queen): one hit, less than a plain swing's, and that's the tornado done)
+          if (isMidBoss(e) && hasBreather(e)) { if (!off) { bonk(ctx, e, TORNADO_BOSS, { x: 0, y: 0 }, 'fling', 'spin'); off = e; } continue; }
           bonk(ctx, e, TORNADO.dmg, { x: side * TORNADO.knock, y: -9 }, 'fling');
         }
         // (worn by what it hits, a bit a go round, never by spinning at nothing)

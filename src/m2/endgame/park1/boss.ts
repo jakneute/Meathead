@@ -38,7 +38,7 @@ import { SKIP_AFTER, offerSkip, takeSkip, drawSkipPrompt } from '../../../m1/gam
 import { hurtPlayer } from '../../../m1/game/bosses/shared';
 import { makeKindEnemy } from '../../../m1/game/enemies/kinds';
 import { CANVAS_WIDTH, CANVAS_HEIGHT, BULLET_DAMAGE, KICK_POSE_FRAMES } from '../../../m1/constants';
-import { bossMelee } from '../../upgrades/bossMelee';
+import { endgameBoss, endgameHit, endgameMelee } from '../../weapons/endgameDamage';
 import { registerM2Kind } from '../../kinds';
 import { ownShare } from '../../weapons/subBoss';
 import { setSickHurl, takeSickBurst } from '../../weapons/crossbow';
@@ -61,7 +61,7 @@ const pick = pickLine;
 // The numbers (tune here)
 
 export const KID_HP = 999;
-const BIG = 100000, SHARE = 0.35;
+const BIG = 100000;
 const G = 0.55;
 /** Tells (frames), at full health; a third left, they're quicker (LOW_K). */
 const TELL = { lunge: 32, ray: 36, tantrum: 28, blink: 24, flail: 22 };
@@ -105,8 +105,10 @@ registerM2Kind({
   ai: () => true,
 });
 TOO_BIG_BY_KIND[KID_KIND] = L.GRAB_KID;
-// (every special's 35% taken here, in the fight: not cut again as a sub-boss's)
+// (every special's hit worked out here, in the fight, off the table: not cut again as a sub-boss's)
 ownShare(KID_KIND);
+// (every special's hit off the water park's own damage table, by weapon and move: weapons/endgameDamage.ts)
+endgameBoss(KID_KIND);
 setSickHurl(KID_KIND);
 // (the hand armor's cheap shot (upgrades/cheapShot.ts): after it, his hurt and taunt lines from the crushed-nuts pool;
 // its free window, the moment the stun starts: every bolt, ice ball and crack of his in the air gone in a puff)
@@ -417,7 +419,7 @@ const landed = (ctx: FrameContext, f: Fight) => {
 
 const plainHit = (state: GameState, melee: boolean): number | null => {
   const p = state.player;
-  if (melee) return bossMelee(p);
+  if (melee) return endgameMelee(p);
   return p.currentWeapon === 'GUN' ? BULLET_DAMAGE : null;
 };
 const takeHits = (ctx: FrameContext, f: Fight) => {
@@ -428,7 +430,7 @@ const takeHits = (ctx: FrameContext, f: Fight) => {
   f.moveSeen = e.hitByMove;
   const burst = takeSickBurst(e);
   if (f.act === 'gone' || (!burst && (dealt <= 0 || f.iframes > 0))) return;
-  const dmg = burst || (plainHit(state, melee) ?? Math.max(1, dealt * SHARE));
+  const dmg = burst || (plainHit(state, melee) ?? endgameHit(state, e, dealt));
   f.hp -= dmg; if (!burst) f.iframes = BOSS_IFRAMES; f.flash = 8;
   playSound('gunhit', 0.6, -2);
   ctx.fx.spawnDamageNumber({ x: f.x - 10, y: f.y - KID_H - 10 }, Math.max(1, Math.round(dmg)), dmg > 40);

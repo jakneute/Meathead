@@ -32,6 +32,7 @@ import { emptyCue } from './dry';
 import { isRobot } from '../kinds';
 import { specialsHalf, specialsOff, realMax, halfKill } from './half';
 import { subBossDmg } from './subBoss';
+import { tagHit } from './endgameDamage';
 import { since } from '../frames';
 import { setUi } from '../store';
 import { struckAt } from './strikes';
@@ -211,6 +212,7 @@ const bleed = (ctx: FrameContext, e: Enemy, near: number, mouth: { x: number; y:
   if (dmg <= 0) return;
   // (a sub-boss loses its share of what's drawn (weapons/subBoss.ts); the bag fills by all of it, as ever)
   const lost = subBossDmg(e, dmg);
+  tagHit(state, e, 'SOUL_SUCKER', 'drain');
   e.health -= lost; e.hitFlash = 3;
   fx.spawnDamageNumber(e.pos, lost);
   if (!noBagFrom.has(e)) intoBag(e, dmg * BLEED.bag * bagMul(e));
@@ -458,6 +460,7 @@ const update = (ctx: FrameContext, p: Projectile): boolean => {
     if (!g.scrap && [...globHooks].some(h => h(ctx, e))) { splat(); return false; }
     // (a sub-boss: its share of it: weapons/subBoss.ts)
     const dmg = subBossDmg(e, p.damage);
+    if (!g.scrap) tagHit(state, e, 'SOUL_SUCKER', 'spray');
     e.health -= dmg;
     splat();
     const dir = Math.sign(p.vel.x) || 1;
