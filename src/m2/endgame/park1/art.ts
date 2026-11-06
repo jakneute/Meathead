@@ -76,7 +76,11 @@ const tubeAlong = (g: Ctx, pts: [number, number][], w: number, R: string[], ink:
  *  Land's lands' landmarks as they are now (their own painters, parkFar.ts); the water park's own further rides in
  *  steps (towers, flumes and their legs, a wave-pool's wall, a bowl ride), the hotels' lit windows; a treeline of palms
  *  along the foot, banded into the haze. Busy, but dark: it's ten at night. No volcanoes. */
-const paintFar = (g: Ctx) => {
+/** A seamless strip: painted at x and x ± FAR_W, so it wraps every FAR_W with no jump. (It used to wrap every FAR_W - W
+ *  with only one copy, so the whole far strip jumped 800 px once a long way along, or round and round a tube ride's
+ *  loops: the owner's "mid distance background elements show then abruptly disappear".) */
+const paintFar = (g: Ctx) => { for (const off of [-FAR_W, 0, FAR_W]) { g.save(); g.translate(off, 0); paintFarOnce(g); g.restore(); } };
+const paintFarOnce = (g: Ctx) => {
   const tod = timeOfDay(), t = (col: string, k = 1) => farTint(col, k, tod);
   const foot = FAR_H - 4;
   // (the haze low down: the lights of the park on it, banded up into the sky)
@@ -268,9 +272,13 @@ const paintBackdrop = (c: Ctx, state: GameState, shift: number) => {
   const up = Math.max(0, -cy);
   const hz = 420 + up * 0.05;
   if (hz - FAR_H < H) {
-    c.save(); c.translate(-Math.round(((cx * 0.03) % (FAR_W - W) + (FAR_W - W)) % (FAR_W - W)), Math.round(hz - FAR_H));
-    stamp(c, `wp-far-${tod.key}`, 0, 0, FAR_W, FAR_H, paintFar);
-    c.restore();
+    const o = Math.round(((cx * 0.03) % FAR_W + FAR_W) % FAR_W);
+    for (const dx of [-o, FAR_W - o]) {
+      if (dx >= W || dx + FAR_W <= 0) continue;
+      c.save(); c.translate(dx, Math.round(hz - FAR_H));
+      stamp(c, `wp-far-${tod.key}`, 0, 0, FAR_W, FAR_H, paintFar);
+      c.restore();
+    }
   }
   const my = 470 + up * 0.22;
   // (the haze down at the horizon, and under it the dark of the land)
