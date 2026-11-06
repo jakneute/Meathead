@@ -616,6 +616,9 @@ const wearMarks = (c: Ctx, wear: number) => {
 };
 
 /** Everything of her but her right arm (and, toppling, that too: `arm` draws it in her frame). */
+/** (Ned's boss rush only: endgame/park4/rf/foreign.ts sets it; it draws nothing outside that refight) Over her, in her own
+ *  frame (sunk, toppled, shaken as she is). */
+export const LIB_HOOKS: { over?: (c: Ctx, L: LibLook) => void } = {};
 export const drawLibertyBody = (c: Ctx, L: LibLook, arm?: (c: Ctx) => void) => {
   c.save();
   frame(c, L);
@@ -649,6 +652,8 @@ export const drawLibertyBody = (c: Ctx, L: LibLook, arm?: (c: Ctx) => void) => {
   // (goo.ts: a splat stuck to her, chunks in it, a run creeping down off it, globs dropping off the end)
   L.stains.forEach((s, i) => gooRun(c, hx + s.x, hy + s.y, s.r, PUKE_GOO, 20 + i, ageOf(s, L.f), L.f));
   if (L.wear) wearMarks(c, L.wear);
+  // (Ned's boss rush only: her raised, stitched up the way she went (endgame/park4/rf/foreign.ts); unset otherwise)
+  LIB_HOOKS.over?.(c, L);
   if (L.broken > 0) hole(c, L.hand, L.f);
   if (arm) arm(c);
   c.restore();

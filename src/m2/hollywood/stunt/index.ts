@@ -34,6 +34,7 @@ import { FLUNG_IN, LAND_FALL } from './state';
 import { MH_STAGE_EMPTY } from './lines';
 import { byPants } from '../blvd/kinds';
 import { pickLine } from '../../../m1/game/platform/speech';
+import { inRefight } from '../../endgame/park4/hook';
 import { playSound } from '../../../m1/game/platform/audio';
 import { shakeScreen } from '../../../m1/game/core/state';
 
@@ -50,7 +51,9 @@ const stuntOf = (state: GameState) => hollywoodState<Stunt>(state, 'stunt', () =
 
 const leave = (state: GameState, weakness: boolean) => {
   const s = stuntOf(state);
-  markBossDeath('hollywood', weakness); markLandCleared('hollywood'); noteBossKill();
+  markBossDeath('hollywood', weakness);
+  // (Ned's boss rush: nothing of the land's to mark; the walk-away hands it to the refight (back to the lot))
+  if (!inRefight('hollywood')) { markLandCleared('hollywood'); noteBossKill(); }
   s.walk = playWalkAway(state, { boss: 'stuntman-steve', weakness, onDone: () => goTo('hub') });
 };
 
@@ -111,7 +114,7 @@ export const stunt: HollywoodSection = {
       // (no way back to the havoc: the tornado's fling put him here, one-way (the user's rule); a retry from the
       // checkpoint outside walks in through the havoc's way on; the land's end: no way on either)
       // (on the stage, not cleared: it's on; the walls up, the truss over it)
-      if (!isLandCleared('hollywood') && p.pos.x + p.width / 2 > ARENA_L + 40 && p.pos.x + p.width / 2 < ARENA_R) {
+      if ((!isLandCleared('hollywood') || inRefight('hollywood')) && p.pos.x + p.width / 2 > ARENA_L + 40 && p.pos.x + p.width / 2 < ARENA_R) {
         s.fight = 'on';
         s.f = startFight(state);
         s.walls = [
@@ -154,7 +157,7 @@ export const stunt: HollywoodSection = {
   drawBack: (c, state) => {
     const s = stuntOf(state), f = s.f;
     const sc = f ? screenState(f) : { replay: 0, hurtFlash: 0, hype: 0 };
-    drawStage(c, state, { cleared: isLandCleared('hollywood') && !f, hype: sc.hype, replay: sc.replay, hurtFlash: sc.hurtFlash, doorsLit: !!f, bays: f ? bayLooks(f) : undefined });
+    drawStage(c, state, { cleared: isLandCleared('hollywood') && !f && !inRefight('hollywood'), hype: sc.hype, replay: sc.replay, hurtFlash: sc.hurtFlash, doorsLit: !!f, bays: f ? bayLooks(f) : undefined });
     if (f) drawFightBack(c, state, f);
   },
   drawFront: (c, state) => {

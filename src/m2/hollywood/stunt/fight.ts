@@ -36,7 +36,7 @@
 //   beat, and folds over in a heap; a beat of silence, then the crowd's OOOH. Meathead strolls in for the last word.
 //   Every shot's camera is kept to the arena (camFor, the kill cam's focus too): nothing past its ends.
 
-import { refightHp } from '../../endgame/park4/hook';
+import { refightHp, inRefight } from '../../endgame/park4/hook';
 import type { GameState } from '../../../m1/game/core/state';
 import type { FrameContext } from '../../../m1/game/core/context';
 import type { Controls } from '../../../m1/game/platform/input';
@@ -295,7 +295,9 @@ export const startFight = (state: GameState): Fight => {
   live = f;
   // (a retry: straight in, but a beat for his entrance first: the user's "give a beat for him to make his entrance
   // before you can take damage")
-  if (bossIntroSeen(state, 'steve')) { beginFight(state, f); f.entrance = ENTRANCE_T; f.act = 'wave'; f.hype = 1; return f; }
+  // (Ned's boss rush: flung in through his portal, the fall and the intro play again (his refight lines); a respawn in it
+  // walks in for the retry's entrance as ever)
+  if (bossIntroSeen(state, 'steve') && !(inRefight('hollywood') && f.fall)) { beginFight(state, f); f.entrance = ENTRANCE_T; f.act = 'wave'; f.hype = 1; return f; }
   state.player.inCutscene = true;
   f.replay = 1;
   return f;
@@ -773,11 +775,16 @@ const watchGrab = (ctx: FrameContext, f: Fight) => {
 };
 
 /** The crowd: words up over the barrier (not too often). */
+/** (Ned's boss rush: what hell's crowd mutters, now and then) */
+let boredAt = -999;
+const BORED = ['MEH.', 'YAWN.', 'BOO.', 'BORING.', '*COUGH*', 'WHATEVER.', 'SUCKS.'];
 const crowd = (ctx: FrameContext, f: Fight, x: number, what: 'ooh' | 'boom' | 'wow', always = false) => {
   f.hype = Math.max(f.hype, what === 'ooh' ? 0.7 : 1);
   if (!always && f.total - f.crowdAt < 25) return;
   f.crowdAt = f.total;
   const s = ctx.state, cx = Math.max(s.camera.x + 60, Math.min(s.camera.x + CANVAS_WIDTH - 60, x + (Math.random() - 0.5) * 160));
+  // (Ned's boss rush: hell's crowd couldn't care less (the owner's: "uninterested demons watching"))
+  if (inRefight('hollywood')) { if (f.total - boredAt < 100 && f.total >= boredAt) return; boredAt = f.total; ctx.fx.spawnDamageNumber({ x: cx - 20, y: BARRIER_Y + 30 }, BORED[(f.total >> 4) % BORED.length], false, '#A8A29E'); playSound('screams', 0.06, -14); return; }
   ctx.fx.spawnDamageNumber({ x: cx - 20, y: BARRIER_Y + 30 }, what === 'ooh' ? 'OOOH!' : what === 'boom' ? 'WOOO!' : 'WHOA!', true, '#FDE68A');
   playSound('screams', 0.15, 12);
 };

@@ -587,11 +587,16 @@ export interface SceneState {
   aftermath: { crumbled: boolean; him: ((c: Ctx) => void) | null; outline: boolean } | null;
 }
 
+/** (Ned's boss rush only: endgame/park4/rf/foreign.ts sets it; it draws nothing outside that refight) On the berm's top,
+ *  behind the slab and everybody on it. */
+export const SCENE_HOOKS: { berm?: (c: Ctx, state: GameState) => void } = {};
 export const drawScene = (c: Ctx, state: GameState, S: SceneState) => {
   const v = viewIn(state), f = state.frame;
   pavilion(c, state);
   if (S.between) S.between(c);
   if (onScreen(v, VIEW_X - 100, VIEW_X + 900)) drawBerm(c, state);
+  // (Ned's boss rush only: the hell's own along the berm's top (endgame/park4/rf/foreign.ts); unset otherwise)
+  SCENE_HOOKS.berm?.(c, state);
   floor(c, state);
   if (onScreen(v, WRECK_X - 220, WRECK_X + 220)) crash(c, f);
   // (the pavilion's sign, on the way in, clear of everything; its flags)

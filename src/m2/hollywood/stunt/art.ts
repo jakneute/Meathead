@@ -40,6 +40,15 @@ import {
   RUBBER, MAT, STAND, SEAT_Y, SEAT_R, RED_R, near, scen, stillH, parCan, cone, sview, SET_D, EYE_Y, inView, shown,
 } from './paint';
 
+/** (Ned's boss rush only: endgame/park4/rf/hollywood.ts sets these; each returns false (or isn't set) outside it, and
+ *  the stage draws as it always has) The hell's props along the set's foot (after the set, before the stands); a fan
+ *  in the stands and one at the barrier drawn some other way (true: drawn, skip the usual one). */
+export const STUNT_HOOKS: {
+  stage?: (c: Ctx, state: GameState) => void;
+  fan?: (c: Ctx, x: number, y: number, seed: number, s: -1 | 1) => boolean;
+  back?: (c: Ctx, px: number, py: number, n: number, f: number) => boolean;
+} = {};
+
 const h01 = (n: number) => { const s = Math.sin(n * 127.1 + 311.7) * 43758.5453; return s - Math.floor(s); };
 
 /** Painted once for the hour (big canvases: the set, the floor). */
@@ -551,6 +560,7 @@ const iline = (c: Ctx, p: [number, number], q: [number, number], col = INK, w = 
 
 /** A fan on the stands: a person by seed (sat, or up cheering), turned toward the stage; painted once. */
 const fanAt = (c: Ctx, x: number, y: number, seed: number, s: -1 | 1, up: boolean) => {
+  if (STUNT_HOOKS.fan?.(c, x, y, seed, s)) return;
   const sd = seed % 28;
   stillH(c, `fan-${sd}-${up ? 'u' : 's'}-${s}`, x, y, -40, -110, 80, 124, g => {
     g.scale(-s * 0.82, 0.82);
@@ -844,6 +854,7 @@ export const drawStage = (c: Ctx, state: GameState, opts: { cleared: boolean; hy
   const v = sview(state), f = state.frame;
   drawFloor(c, state, v);
   drawSet(c, state, opts.doorsLit, opts.bays);
+  STUNT_HOOKS.stage?.(c, state);
   // The stands up both ends, going back to the set (over its ends, the floor's edges)
   drawStand(c, v, -1, opts.hype, f);
   drawStand(c, v, 1, opts.hype, f);
@@ -1077,6 +1088,7 @@ const SHIRTS = ['#C82828', '#2A5AC8', '#2A8A4A', '#F4F0E8', '#7A3AA8', '#E87A1A'
 /** A fan from behind: their build, their hair (long, a ponytail, a bun, short, bald, a mullet, a cap, a cowboy hat),
  *  the shirt (a yellow STEVE one now and then), shading in steps; arms up when it's good, a phone, a foam finger. */
 const fanBack = (c: Ctx, px: number, py: number, n: number, hype: number, f: number) => {
+  if (STUNT_HOOKS.back?.(c, px, py, n, f)) return;
   const woman = h01(n * 13.1) < 0.45, w = Math.round(26 + h01(n * 11.3) * 12) + (woman ? -2 : 0);
   const skin = SKINS[Math.floor(h01(n * 3.7) * SKINS.length)], hair = HAIRS[Math.floor(h01(n * 5.9) * HAIRS.length)];
   const steveShirt = h01(n * 17.7) < 0.22, shirt = steveShirt ? '#EAB516' : SHIRTS[n % SHIRTS.length];

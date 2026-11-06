@@ -10,6 +10,7 @@ import { HARRY, MECH_VOICE, GOON, GUEST, type MechId } from './lines';
 import { pickLine } from '../../../m1/game/platform/speech';
 import { isShat, isNude } from '../../../m1/game/player/gut';
 import type { ByPants } from '../talk';
+import { refightPool } from '../../endgame/park4/hook';
 
 export const quiet = (state: GameState) => { const h = heliOf(state); return !h.harry && !h.harryBusy && !h.mech && !h.guest && !h.goonSaid; };
 
@@ -17,7 +18,8 @@ export const quiet = (state: GameState) => { const h = heliOf(state); return !h.
  *  cleared each stage build (a death starts the stage again: heli/index.ts build), here and in his arena. */
 export const harrySaid = new Set<string>();
 /** Harry's pool for Meathead's pants: his state's own lines, and the clean ones on top (the general abuse). */
-export const harryPool = (bp: ByPants, pants: 'clean' | 'shitty' | 'nude') => (pants === 'clean' ? bp.clean : [...bp[pants], ...bp.clean]);
+// (refightPool: Ned's boss rush swaps his pools for the refight's, each pants state's list as it is; a no-op otherwise)
+export const harryPool = (bp: ByPants, pants: 'clean' | 'shitty' | 'nude') => (pants === 'clean' ? refightPool(bp.clean) : [...refightPool(bp[pants]), ...refightPool(bp.clean)]);
 /** A line of Harry's he hasn't said this life (then pickLine's 45 s rule); none left: null (he goes quiet). */
 export const harryPick = (pool: readonly string[]): string | null => { const fresh = pool.filter(l => !harrySaid.has(l)); return fresh.length ? pickLine(fresh) : null; };
 /** byPants's state for him. */

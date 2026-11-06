@@ -36,6 +36,7 @@ import { leaveEmptyArena } from '../../emptyArena';
 import { pickLine } from '../../../m1/game/platform/speech';
 import { byPants } from '../cast';
 import { MH_EMPTY_ARENA } from './lines';
+import { inRefight } from '../../endgame/park4/hook';
 
 /** The fight's one screen: as far as a camera taking his death in may go. */
 const SHOT = { x0: VIEW_X, y0: sy(0), x1: VIEW_X + CANVAS_WIDTH, y1: sy(CANVAS_HEIGHT) };
@@ -91,7 +92,9 @@ const GATE_MEMO = 'foreign-harry-gate';
 
 const leave = (state: GameState, weakness: boolean) => {
   const s = harryOf(state);
-  markBossDeath('foreign', weakness); markLandCleared('foreign'); noteBossKill();
+  markBossDeath('foreign', weakness);
+  // (Ned's boss rush: nothing of the land's to mark; the walk-away hands it to the refight (back to the lot))
+  if (!inRefight('foreign')) { markLandCleared('foreign'); noteBossKill(); }
   s.walk = playWalkAway(state, { boss: 'helicopter-harry', weakness, onDone: () => goTo('hub') });
 };
 
@@ -139,8 +142,8 @@ export const harry: ForeignSection = {
       // (through the gate onto the slab, not cleared: it's on; the gate shut behind him)
       const cx = p.pos.x + p.width / 2;
       // (a revisit: the slab's empty; his say, then the hub)
-      if (isLandCleared('foreign') && cx > ARENA_L + 60 && cx < ARENA_R && p.health > 0) { leaveEmptyArena(state, s.emptyLine ??= pickLine(byPants(state, MH_EMPTY_ARENA))); return hands(); }
-      if (!isLandCleared('foreign') && cx > ARENA_L + 60 && cx < ARENA_R) {
+      if (isLandCleared('foreign') && !inRefight('foreign') && cx > ARENA_L + 60 && cx < ARENA_R && p.health > 0) { leaveEmptyArena(state, s.emptyLine ??= pickLine(byPants(state, MH_EMPTY_ARENA))); return hands(); }
+      if ((!isLandCleared('foreign') || inRefight('foreign')) && cx > ARENA_L + 60 && cx < ARENA_R) {
         s.fight = 'on';
         s.f = startFight(state);
         s.walls = [
@@ -185,7 +188,7 @@ export const harry: ForeignSection = {
   cameraRow: () => CAM_ROW,
   drawBackdrop: (c, state) => drawSky(c, state),
   drawBack: (c, state) => {
-    const s = harryOf(state), f = s.f, cleared = isLandCleared('foreign');
+    const s = harryOf(state), f = s.f, cleared = isLandCleared('foreign') && !inRefight('foreign');
     // (a retry, before he's on the slab: her up already, him waiting)
     const waiting = !f && !cleared && introSeen(state) ? drawWaiting(c, state) : null;
     drawScene(c, state, {
