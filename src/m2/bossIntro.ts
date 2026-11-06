@@ -11,11 +11,13 @@
 // which counts as a run that's been there: the world as a run left it.)
 
 import type { GameState } from '../m1/game/core/state';
+import { inRefight } from './endgame/park4/hook';
 
 export type IntroBoss = 'artie' | 'donnie' | 'queen' | 'steve' | 'harry' | 'tucker' | 'piper' | 'dad' | 'zorzarblax' | 'mehphisto';
 
 const key = (boss: IntroBoss) => `m2:boss-intro:${boss}`;
 /** The intro's been seen this visit (a retry: the short entrance). */
-export const bossIntroSeen = (state: GameState, boss: IntroBoss) => state.stageMemo[key(boss)] === '1';
+/** (Ned's boss rush, endgame/park4: a refight's always the retry's entrance: Ned's intro is its intro) */
+export const bossIntroSeen = (state: GameState, boss: IntroBoss) => state.stageMemo[key(boss)] === '1' || inRefight();
 /** The intro's over (played through or skipped): from here, this visit, back in is a retry. */
 export const markBossIntroSeen = (state: GameState, boss: IntroBoss) => { state.stageMemo[key(boss)] = '1'; };

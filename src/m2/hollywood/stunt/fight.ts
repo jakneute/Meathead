@@ -36,6 +36,7 @@
 //   beat, and folds over in a heap; a beat of silence, then the crowd's OOOH. Meathead strolls in for the last word.
 //   Every shot's camera is kept to the arena (camFor, the kill cam's focus too): nothing past its ends.
 
+import { refightHp } from '../../endgame/park4/hook';
 import type { GameState } from '../../../m1/game/core/state';
 import type { FrameContext } from '../../../m1/game/core/context';
 import type { Controls } from '../../../m1/game/platform/input';
@@ -78,7 +79,9 @@ const pick = pickLine;
 // The numbers (tune here)
 
 /** His health (the land bosses'), and the enemy's (never runs out: the hits come off ours). */
-const HP = 666, BIG = 100000;
+// (999 in Ned's boss rush: endgame/park4/hook.ts refightHp, set as the fight starts)
+let HP = 666;
+const BIG = 100000;
 /** Anything but the ray gun, his moves and the book: this share; the breather after a hit. */
 const SHARE = 0.25, IFRAMES = BOSS_IFRAMES;
 /** The lightning on him: the first strike of a storm, each one after (no breather: it's one long hit); stunned this
@@ -276,7 +279,7 @@ export const startFight = (state: GameState): Fight => {
   const f: Fight = {
     cars: [], ramps: newRamps(), skids: [], nextId: 0, launch: null, hype: 0, hot: false, doorOpen: DOORS_X.map(() => 0),
     steveBox: () => null, onThrownHit: () => {}, onCrowd: () => {},
-    mode: 'intro', t: 0, total: 0, hp: HP, iframes: 0, flash: 0,
+    mode: 'intro', t: 0, total: 0, hp: (HP = refightHp(666)), iframes: 0, flash: 0,
     sx: STEVE_AT(side), sz: 0, side, facing: -1, act: 'idle', actT: 0,
     zapT: 0, frizz: 0, singe: 0, zappedOnce: false, closeT: 0, flailAt: -999, pushAt: -999, tauntT: 0, tow: null,
     redT: 0, beat: 0, beatPh: 1, pyro: null, fire: new Map(),

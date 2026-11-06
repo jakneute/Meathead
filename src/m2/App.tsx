@@ -63,6 +63,7 @@ import { SPOTS, LANDS } from './hub/lands';
 import { introLayout, INTRO_STAGE, registerIntro, introGender } from './intro/index';
 import { lotLayout, LOT_STAGE } from './endgame/lot/index';
 import { parkLayout, PARK_STAGE } from './endgame/park1/index';
+import { REFIGHT_LAYOUTS } from './endgame/park4/refights';
 import { endgameStage, endgameLevelStart } from './endgame/stages';
 import { setGenderOf, unpaired } from '../m1/content/gender';
 import { m2KindGender } from './kinds';
@@ -185,6 +186,8 @@ registerStageLayout(GYM_STAGE, gymLayout);
 // (the endgame's stages: endgame/stages.ts)
 registerStageLayout(LOT_STAGE, lotLayout);
 registerStageLayout(PARK_STAGE, parkLayout);
+// (level 4: Ned's boss rush, each refight its land's own stage run again in hell: endgame/park4)
+for (const [name, layout] of REFIGHT_LAYOUTS) registerStageLayout(name, layout);
 registerIntro();
 registerGmen();
 loadVoicePack(voicePackUrl);

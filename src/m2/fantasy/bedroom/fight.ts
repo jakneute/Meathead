@@ -42,6 +42,7 @@
 //     him too: naked, it's back up, hopeful), then on down, dangerously thin, skin and bone, and she CRUMBLES (a heap
 //     of gown, a tiara on top, dust).
 
+import { refightHp } from '../../endgame/park4/hook';
 import { bossIntroSeen, markBossIntroSeen } from '../../bossIntro';
 import type { GameState } from '../../../m1/game/core/state';
 import type { FrameContext } from '../../../m1/game/core/context';
@@ -84,7 +85,9 @@ const pick = pickLine;
 // The numbers (tune here)
 
 /** Her health (the land bosses'), and the enemy's (never runs out: the hits come off ours). */
-const HP = 666, BIG = 100000;
+// (999 in Ned's boss rush: endgame/park4/hook.ts refightHp, set as the fight starts)
+let HP = 666;
+const BIG = 100000;
 /** Anything but the ray gun and his moves: this share; the breather after a hit. */
 const SHARE = 0.25, IFRAMES = BOSS_IFRAMES;
 /** The flintlock: a hole's damage (the ball's own boss hit, as the number that comes up says), holes to kill her. */
@@ -265,7 +268,7 @@ const camFor = (x: number, inHall = false) => clampCam(x - CANVAS_WIDTH / 2, inH
 const pmid = (state: GameState) => ({ x: state.player.pos.x + state.player.width / 2, y: state.player.pos.y + state.player.height / 2 });
 
 const fresh = (state: GameState, e: Enemy): Fight => ({
-  mode: 'intro', total: 0, hp: HP, iframes: 0, flash: 0,
+  mode: 'intro', total: 0, hp: (HP = refightHp(666)), iframes: 0, flash: 0,
   x: CHAISE_X, y: GY, vy: 0, facing: -1, act: 'walk', actT: 0, actLen: 160, rot: 0, ang: 0,
   slams: 0, stage: 0, slamHit: false,
   hazards: [], debris: [], rubble: [], shots: [], patches: [], splats: [], holes: [], thin: 0,

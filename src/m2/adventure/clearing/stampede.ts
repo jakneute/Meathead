@@ -802,8 +802,13 @@ export const drawBeastAt = (c: Ctx, kind: Beast, cx: number, dir: 1 | -1, fr: nu
   c.fillStyle = 'rgba(26, 11, 6, 0.22)'; c.fillRect(Math.round(-b.w * 0.55), -3, Math.round(b.w * 1.15), 4);
   c.fillStyle = 'rgba(26, 11, 6, 0.2)'; c.fillRect(Math.round(-b.w * 0.4), -2, Math.round(b.w * 0.85), 3);
   stampBeast(c, kind, fr, bloody);
+  beastOver?.(c, kind, b.w, b.h, fr);
   c.restore();
 };
+/** (Ned's boss rush, endgame/park4/rf/adventure.ts: the hell versions of the herd, drawn over each one; facing right
+ *  from its feet's middle) */
+let beastOver: ((c: Ctx, kind: Beast, w: number, h: number, fr: number) => void) | null = null;
+export const setBeastOverlay = (fn: typeof beastOver) => { beastOver = fn; };
 
 // ---------------------------------------------------------------------------------------------------------------
 // The rhino that gored Artie, after the wall (his standard death, fight.ts): crumpled up against it. Its head's been

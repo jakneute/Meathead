@@ -7,6 +7,8 @@
 // USA, the way in walked backward to his truck (intro/walkOut.ts), the abduction in the garage and Satan's throw
 // (endgame/abduction.ts). It isn't a stage of its own here: it's the way in.
 
+import { L4_ID, L4_STAGE, L4_HOUR, LOT_CP as L4_LOT_CP, NED_CP as L4_NED_CP, AFTER_CP as L4_AFTER_CP, refightId, refightStage } from './park4/where';
+
 export interface EndgameStage {
   /** Its id: goTo(id), and what the save keeps (store.ts endgameAt). */
   id: string;
@@ -43,6 +45,14 @@ export const L2_CP = 40;
  *  RIVER (endgame/park2/geo.ts CP2.L3). Hour 12 from there (the son's dead). */
 export const L3_CP = 49;
 
+/** Level 4 (endgame/park4/where.ts): the lot, and the refights (each land, its boss, his checkpoint in the land: the
+ *  same numbers as park4/rf/<land>.ts's). */
+export { L4_ID, L4_STAGE, L4_HOUR, LOT_CP as L4_LOT_CP, NED_CP as L4_NED_CP, AFTER_CP as L4_AFTER_CP } from './park4/where';
+const REFIGHT_LIST: [string, string, number][] = [
+  ['adventure', 'SAFARI ARTIE', 71], ['spooky', 'DONNIE DRACULA', 62], ['space', 'THE QUEEN', 74], ['hollywood', 'STUNTMAN STEVE', 60],
+  ['foreign', 'HELICOPTER HARRY', 120], ['frontier', 'TUCKER', 60], ['fantasy', 'PIPER THE PIXIE', 61], ['cartoon', 'DAD GUY', 62],
+];
+
 export const ENDGAME_STAGES: EndgameStage[] = [
   // Level 1, its start: the lot just outside the water park, where Satan threw his truck
   { id: 'lot', level: 1, stage: LOT_STAGE, name: 'LEVEL 1: THE LOT', hour: 10, checkpoints: [{ name: 'THE WRECK', cp: 0 }, { name: 'THE GATE', cp: 1 }] },
@@ -64,6 +74,14 @@ export const ENDGAME_STAGES: EndgameStage[] = [
   // Level 3 (the owner designs it): for now just its start, out the far side of the son's grotto; the son's dead, the
   // hour's on (12)
   { id: 'park3', level: 3, stage: PARK_STAGE, name: 'LEVEL 3: (STUB)', hour: 12, checkpoints: [{ name: 'THE WAVE POOL', cp: L3_CP }] },
+  // Level 4 (the owner's brief 2026-11-05): the lot outside, NED THE NECROMANCER's portals, the eight refights (each
+  // its own stage: the land's own boss fight, through his portal, endgame/park4), then Ned. Hour 13 (level 3's boss
+  // dead). The file keeps which refights are done (EndgameRecord.rematches): CONTINUE puts him in the lot, those
+  // skipped. Level 3's end calls goTo(L4_ID) with setStartCheckpoint(L4_LOT_CP).
+  { id: L4_ID, level: 4, stage: L4_STAGE, name: 'LEVEL 4: THE LOT (NED)', hour: L4_HOUR, checkpoints: [
+    { name: 'THE PORTALS', cp: L4_LOT_CP }, { name: 'NED THE NECROMANCER', cp: L4_NED_CP }, { name: 'AFTER NED (THE LAST BATTLE STUB)', cp: L4_AFTER_CP },
+  ] },
+  ...REFIGHT_LIST.map(([land, boss, cp]) => ({ id: refightId(land), level: 4, stage: refightStage(land), name: `LEVEL 4: REFIGHT, ${boss}`, hour: L4_HOUR, checkpoints: [{ name: boss, cp }] })),
 ];
 
 export const endgameStage = (id: string) => ENDGAME_STAGES.find(s => s.id === id) ?? null;

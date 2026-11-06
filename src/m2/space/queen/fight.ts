@@ -46,6 +46,7 @@
 //
 // A retry (killed in it, back at the checkpoint inside the door): no cutscene; she's in the hall, on, and it's on.
 
+import { refightHp } from '../../endgame/park4/hook';
 import type { GameState } from '../../../m1/game/core/state';
 import type { FrameContext } from '../../../m1/game/core/context';
 import type { Controls } from '../../../m1/game/platform/input';
@@ -100,7 +101,9 @@ const dressed = (state: GameState): L.Dressed => (isNude(state) ? 'nude' : isSha
 // The numbers (tune here)
 
 /** Her health (a main boss's); the enemy's (never runs out: the hits are taken off ours). */
-const HP = 666, BIG = 100000;
+// (999 in Ned's boss rush: endgame/park4/hook.ts refightHp, set as the fight starts)
+let HP = 666;
+const BIG = 100000;
 /** Any special weapon that isn't her weakness (the mallet): this share gets through; after each hit, the breather. */
 const SHARE = 0.25, IFRAMES = BOSS_IFRAMES;
 /** Her two sides (where she stands: her feet's middle). */
@@ -261,7 +264,7 @@ export interface Fight {
 export const makeFight = (state: GameState): Fight => {
   const seen = bossIntroSeen(state, 'queen');
   return {
-    mode: 'wait', t: 0, total: 0, hp: HP, iframes: 0, flash: 0, moveSeen: undefined, spam: newSpam(),
+    mode: 'wait', t: 0, total: 0, hp: (HP = refightHp(666)), iframes: 0, flash: 0, moveSeen: undefined, spam: newSpam(),
     side: 1, x: seen ? SIDE_X[1] : INTRO_X, y: 0, facing: -1, ext: 0, ph: null,
     step: 'lights', stepT: 0, skipT: 0, token: 0,
     glass: !seen, booth: 1, beam: 0, alive: 1,

@@ -55,6 +55,7 @@
 //   his head and his hands out the end; the laugh track; he shits himself under there (the seep, his line); one can rolls
 //   out across the stage to Meathead's feet and cracks open.
 
+import { refightHp } from '../../endgame/park4/hook';
 import type { GameState } from '../../../m1/game/core/state';
 import type { FrameContext } from '../../../m1/game/core/context';
 import type { Controls } from '../../../m1/game/platform/input';
@@ -100,7 +101,9 @@ const pick = pickLine;
 
 /** His health (the land bosses'), the enemy's (never runs out: the hits come off ours); the share anything but the ray
  *  gun and his moves does; the breather; up and pathetic: twice the hurt, half the breather. */
-const HP = 666, BIG = 100000, SHARE = 0.25, IFRAMES = BOSS_IFRAMES, SAD_MULT = 1, SAD_IFRAMES = 0;
+// (999 in Ned's boss rush: endgame/park4/hook.ts refightHp, set as the fight starts)
+let HP = 666;
+const BIG = 100000, SHARE = 0.25, IFRAMES = BOSS_IFRAMES, SAD_MULT = 1, SAD_IFRAMES = 0;
 // (no multiplier and no breather up off his crushed couch (the user's: "he gets zero there. no damage multipliers
 // though"): every hit lands as it is; were x2 and 30 frames)
 /** His seat on the couch (from its middle), half the couch's width (the arena, the couch's spot, the fridge: layout.ts). */
@@ -384,7 +387,7 @@ export const startFight = (state: GameState, retry: boolean): Fight => {
   const fam = {} as Record<Member, Fam>;
   for (const m of MEMBERS) { const h = homeOf(m); fam[m] = { id: m, alive: true, x: h.x, d: h.d, home: { x: h.x, d: h.d }, stepT: 0, dir: -1, way: Math.random() < 0.5 ? 1 : -1, idle: 0 }; }
   const f: Fight = {
-    mode: 'on', t: 0, stage: String(state.stageId), hp: HP, iframes: 0, flash: 0, e, moveSeen: e.hitByMove, spam: newSpam(),
+    mode: 'on', t: 0, stage: String(state.stageId), hp: (HP = refightHp(666)), iframes: 0, flash: 0, e, moveSeen: e.hitByMove, spam: newSpam(),
     act: retry ? 'enter' : 'sit', actT: 0, x, y: 0, vy: 0, facing: -1, seated: true, landT: -999,
     swatWind: SWAT_WIND, swatAt: -999, swatHit: false, nextAtk: 'puke', pukes: 0, rages: 0, hopAt: 0,
     couch: { x: COUCH_HOME, vx: 0, squash: 0, crushed: false, rot: 0 },

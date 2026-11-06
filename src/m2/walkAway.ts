@@ -9,6 +9,7 @@
 // stage plays it after its VICTORY (playWalkAway; tick it, draw it over everything in drawHud; onDone off A).
 
 import type { GameState } from '../m1/game/core/state';
+import { refightBeaten } from './endgame/park4/hook';
 import type { WeaponType } from '../m1/types';
 import type { Controls } from '../m1/game/platform/input';
 import { CANVAS_WIDTH as W, CANVAS_HEIGHT as H } from '../m1/constants';
@@ -65,6 +66,8 @@ export interface WalkAway {
   lastStep: number; farted: number;
   /** The alpha's end walk, out through America USA (endWalk.ts: the PA, his weapons one after another, THE END?). */
   end?: EndWalk;
+  /** (a refight's: not played at all, nothing drawn) */
+  skip?: boolean;
 }
 
 /** How long before A does anything (so a mashed jump off the boss's death doesn't skip it unseen). */
@@ -86,6 +89,8 @@ const listenKeys = (on: boolean) => {
 export const playWalkAway = (state: GameState | null, opts: WalkAwayOpts): WalkAway => {
   const ending = opts.boss === 'america-exit';
   const def = ending ? AMERICA_EXIT : WALK_AWAY_SCENES[opts.boss as WalkAwayBoss];
+  // (a refight in Ned's boss rush (endgame/park4): no walk-away, back to the lot; nothing to tick or draw)
+  if (!ending && refightBeaten(!!opts.weakness)) return { def, boss: opts.boss, weakness: !!opts.weakness, weapon: null, onDone: () => {}, t: 0, done: true, skip: true, armed: false, nude: false, shat: false, props: [], bits: [], embers: [], lastStep: 0, farted: 0 };
   listenKeys(true);
   return {
     def, boss: opts.boss, weakness: !!opts.weakness, weapon: opts.weapon ?? def.weapon, onDone: opts.onDone, t: 0, done: false, armed: false,
@@ -372,7 +377,7 @@ const drawBottom = (c: Ctx, w: WalkAway) => {
 
 /** Draws it over the whole screen (call it from the stage's drawHud, screen space, last). */
 export const drawWalkAway = (c: Ctx, w: WalkAway) => {
-  if (typeof document === 'undefined') return;
+  if (typeof document === 'undefined' || w.skip) return;
   // (the fireworks' wash isn't for the bars: fireworks.ts)
   skipFireworksWash();
   const pic = lowRes();

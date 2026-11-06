@@ -44,6 +44,7 @@
 // (He's a mid-boss to the engine, so every weapon hits him its mid-boss way; his own health is kept here, the enemy's
 // is just what tells us he's been hit.)
 
+import { refightHp } from '../../endgame/park4/hook';
 import type { GameState } from '../../../m1/game/core/state';
 import type { FrameContext } from '../../../m1/game/core/context';
 import type { Controls } from '../../../m1/game/platform/input';
@@ -84,7 +85,9 @@ const pick = pickLine;
 // The numbers
 
 /** His health (Meathead 1's bosses: 666), and the enemy's (never runs out: the hits are taken off ours). */
-const HP = 666, BIG = 100000;
+// (999 in Ned's boss rush: endgame/park4/hook.ts refightHp, set as the fight starts)
+let HP = 666;
+const BIG = 100000;
 /** The breather after a hit (Meathead 1's). */
 const IFRAMES = BOSS_IFRAMES;
 /** A bush: how much chewing it takes (a litter of three on it eats one in about five seconds). */
@@ -394,7 +397,7 @@ export const startFight = (state: GameState, retry = false): Fight => {
   const e = makeKindEnemy(ARTIE_KIND as EnemyKind, BLIND_X, BLIND_Y);
   e.facing = -1; e.seen = true;
   const f: Fight = {
-    hp: HP, iframes: 0, flash: 0, mode: 'intro', t: 0, x: BLIND_X, y: BLIND_Y, vx: 0, vy: 0, facing: -1, arc: null,
+    hp: (HP = refightHp(666)), iframes: 0, flash: 0, mode: 'intro', t: 0, x: BLIND_X, y: BLIND_Y, vx: 0, vy: 0, facing: -1, arc: null,
     bush: 2, bushes: [], moves: [], moveI: 0, decoy: -1, wait: 0, after: 'whistle', stunLen: STUN,
     agitated: false, calmT: 0, swatT: 0, herd: [], stampedes: 0, overT: 0, darts: [], poison: 0, pokes: 0,
     said: null, nextCups: 0, byWeakness: false, death: null, gore: null, eaten: null, eatenSaid: 0, eatenOver: false, cam: null, puke: null, noBushesSaid: false,

@@ -7,6 +7,7 @@
 
 import { PARK1_VOICE_LINES } from './park1/lines';
 import { PARK2_VOICE_LINES } from './park2/lines';
+import { PARK4_VOICE_LINES } from './park4/lines/index';
 
 export type Dressed = 'clean' | 'shitty' | 'nude';
 type ByDress = Record<Dressed, string[]>;
@@ -127,3 +128,5 @@ export const ENDGAME_VOICE_LINES: Record<string, string[]> = {
 for (const [v, l] of Object.entries(PARK1_VOICE_LINES)) (ENDGAME_VOICE_LINES[v] ??= []).push(...l);
 // (level 2: park2/lines.ts)
 for (const [v, l] of Object.entries(PARK2_VOICE_LINES)) (ENDGAME_VOICE_LINES[v] ??= []).push(...l);
+// (level 4: Ned, his boss rush, his fight: park4/lines/index.ts)
+for (const [v, l] of Object.entries(PARK4_VOICE_LINES)) (ENDGAME_VOICE_LINES[v] ??= []).push(...l);

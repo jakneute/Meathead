@@ -39,6 +39,7 @@
 // a spray; the body slumps, the stump pumping; the bear walks off with his head. Both cutscenes (no HUD, no controls;
 // SKIP >> all of it). The pieces of him: gore.ts (sprites, stretched; never repainted a frame).
 
+import { refightHp } from '../../endgame/park4/hook';
 import type { GameState } from '../../../m1/game/core/state';
 import type { FrameContext } from '../../../m1/game/core/context';
 import type { Enemy, EnemyKind } from '../../../m1/types';
@@ -76,7 +77,9 @@ import * as L from './lines';
 // The numbers (tune here). Pairs are [at full health, near dead]: he gets faster and more erratic as he goes.
 
 /** His health (the land bosses'), and the engine's stand-in (never runs out: the hits come off ours). */
-const HP = 666, BIG = 100000;
+// (999 in Ned's boss rush: endgame/park4/hook.ts refightHp, set as the fight starts)
+let HP = 666;
+const BIG = 100000;
 /** Anything but the ray gun and his moves: this share; the breather after a hit. */
 const SHARE = 0.25, IFRAMES = BOSS_IFRAMES;
 /** The routine (frames): listening between shots, the cock, the aim, the flash in the pan, the kick after, the reload. */
@@ -286,7 +289,7 @@ export const startFight = (state: GameState, tx: number, facing: 1 | -1): Fight 
   setGoreBag(0);
   const m = pmid(state);
   const f: Fight = {
-    mode: 'on', t: 0, hp: HP, iframes: 0, flash: 0, e, moveSeen: e.hitByMove, spam: newSpam(),
+    mode: 'on', t: 0, hp: (HP = refightHp(666)), iframes: 0, flash: 0, e, moveSeen: e.hitByMove, spam: newSpam(),
     tx, facing, act: 'listen', actT: 20, aim: 0.6, aimX: m.x, aimY: m.y, jerkX: 0, jerkY: 0, shove: 0, bumped: 0,
     heard: { x: m.x, y: m.y, at: 0 }, runDir: 1, runN: 0, runFire: 0, runShot: 0, wasGrounded: state.player.isGrounded, pShots: 0, stepT: 0,
     shots: [], smoke: [], queue: [], rustle: null, stampedes: 0, swarms: [],

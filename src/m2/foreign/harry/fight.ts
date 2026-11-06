@@ -38,6 +38,7 @@
 //   smash, no suicide after; Harry enraged (faster, the walls more often); the crossbow's sickness is grief and
 //   airsickness, doubled over puking on the floor, wide open; and his third death: BARFED TO DEATH.
 
+import { refightHp } from '../../endgame/park4/hook';
 import { bossIntroSeen, markBossIntroSeen } from '../../bossIntro';
 import { drawHarryGross, drawHarryGrossBack, warmHarryGross } from './harryGross';
 import type { GameState } from '../../../m1/game/core/state';
@@ -81,7 +82,9 @@ const pick = pickLine;
 // The numbers (tune here)
 
 /** His health (the land bosses'), and the enemy's (never runs out: the hits come off ours). */
-const HP = 666, BIG = 100000;
+// (999 in Ned's boss rush: endgame/park4/hook.ts refightHp, set as the fight starts)
+let HP = 666;
+const BIG = 100000;
 /** Anything but the ray gun and his moves: this share; the breather after a hit. */
 const SHARE = 0.25, IFRAMES = BOSS_IFRAMES;
 /** A dart: its scratch (never the last of him: only her concrete or a real hit kills), how many make him sick, how
@@ -311,7 +314,7 @@ export const startFight = (state: GameState): Fight => {
   e.facing = -1; e.seen = true;
   const seen = introSeen(state);
   const f: Fight = {
-    mode: 'intro', t: 0, total: 0, entrance: 0, hp: HP, iframes: 0, flash: 0,
+    mode: 'intro', t: 0, total: 0, entrance: 0, hp: (HP = refightHp(666)), iframes: 0, flash: 0,
     hx: HARRY_START, hy: seen ? GY : sy(-80), facing: -1, act: 'idle', actT: 0, aim: 0, firing: false, moving: false, scale: 1, called: false,
     leap: null, move: 'walk', moveT: 0, queue: ['walk', 'crown'], burst: 0, burstT: 30,
     cling: null, clingKind: 1, stuckN: 0, barfs: 0,

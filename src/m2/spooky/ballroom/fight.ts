@@ -39,6 +39,7 @@
 // out of the hole (then not), never to come down. Satan takes his soul either way. (A cutscene, skippable: SKIP lands
 // him up there, still.)
 
+import { refightHp } from '../../endgame/park4/hook';
 import { paintSatan, drawSatanFace } from '../hell/satanArt';
 import type { GameState } from '../../../m1/game/core/state';
 import type { FrameContext } from '../../../m1/game/core/context';
@@ -85,7 +86,9 @@ const pick = pickLine;
 // The numbers (tune here)
 
 /** His health (Meathead 1's bosses'), and the enemy's (never runs out: the hits are taken off ours). */
-const HP = 666, BIG = 100000;
+// (999 in Ned's boss rush: endgame/park4/hook.ts refightHp, set as the fight starts)
+let HP = 666;
+const BIG = 100000;
 /** Most weapons: what of their usual damage gets through (a land boss shrugs off what isn't his weakness; at least 1); after each hit, a boss's breather (the
  *  standard one, as every boss has it: blinking, nothing lands). */
 const SHARE = 0.25, IFRAMES = BOSS_IFRAMES;
@@ -385,7 +388,7 @@ export const startFight = (state: GameState): Fight => {
   const e = makeKindEnemy(DONNIE_KIND as EnemyKind, CORNER_X, GY);
   e.facing = -1; e.seen = true;
   const f: Fight = {
-    hp: HP, iframes: 0, flash: 0, mode: 'intro', t: 0, total: 0, x: CORNER_X, y: GY, vx: 0, vy: 0, facing: -1,
+    hp: (HP = refightHp(666)), iframes: 0, flash: 0, mode: 'intro', t: 0, total: 0, x: CORNER_X, y: GY, vx: 0, vy: 0, facing: -1,
     intro: 'plead', introT: 0, skipT: 0, admireT: 0, circle: 0, pit: newPit(), powered: false, dive: null, chain: 0, mark: null, held: null,
     guests: [], guestT: 0, prey: null, drops: [], splats: [], aimX: 0, aimY: 0, stunT: 0, side: -1, redeemAt: 0, staggerAt: -99999, wrongN: 0, hintAt: -99999, knockedLoose: false,
     said: null, satanSaid: null, nagT: 0, tauntT: 0, souvenir: null, moveSeen: e.hitByMove, spam: newSpam(),

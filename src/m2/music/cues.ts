@@ -39,6 +39,7 @@ import { PEN_STAGE } from '../pen/index';
 import { INTRO_STAGE } from '../intro/index';
 import { abductionOn } from '../endgame/abduction';
 import { PARK_STAGE, LOT_STAGE } from '../endgame/stages';
+import { REFIGHT_LANDS, refightStage } from '../endgame/park4/where';
 import { CP as PARK_CP_IDS, CP_AT as PARK_CP_AT, TOWER, GY as PARK_GY } from '../endgame/park1/geo';
 import { KID_HP } from '../endgame/park1/boss';
 import { GYM_STAGE } from '../intro/gym/course';
@@ -110,6 +111,8 @@ export type { Cue };
 const LAND_OF_STAGE: Record<string, string> = {
   [ADV_STAGE]: 'adventure', [SPOOKY_STAGE]: 'spooky', [SPACE_STAGE]: 'space', [HOLLYWOOD_STAGE]: 'hollywood', [FOREIGN_STAGE]: 'foreign', [FRONTIER_STAGE]: 'frontier',
   [FANTASY_STAGE]: 'fantasy', [CARTOON_STAGE]: 'cartoon',
+  // (Ned's boss rush, endgame/park4: each refight is its land's own stage again, its boss's own theme with it)
+  ...Object.fromEntries(REFIGHT_LANDS.map(l => [refightStage(l), l])),
 };
 /** The special sequences: a land's section that's a ride or a chase of its own ('seq:<name>'). */
 export const SEQUENCES: Record<string, Record<string, string>> = {

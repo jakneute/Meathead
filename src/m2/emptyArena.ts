@@ -7,9 +7,11 @@
 import type { GameState } from '../m1/game/core/state';
 import { goTo, isLandCleared } from './store';
 import { meatheadSays } from './adventure/section';
+import { inRefight } from './endgame/park4/hook';
 
 /** The land's boss is dead on this save: the revisit plays without him. */
-export const bossGone = (land: string) => isLandCleared(land);
+/** (Ned's boss rush, endgame/park4: raised and back in his arena, he's there again) */
+export const bossGone = (land: string) => isLandCleared(land) && !inRefight(land);
 
 // (keyed on the land's own stage object, built new every time a land loads: the GameState itself lives the whole
 // session, so keyed on that, only the first empty arena of a session ever let him go)

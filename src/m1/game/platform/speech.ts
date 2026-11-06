@@ -64,7 +64,12 @@ export const pickFreshLine = (lines: readonly string[]): string | null => {
  * One of these, for saying: a line not said in the last 45 seconds if there is one; if every one's been said lately,
  * the one said longest ago (a scripted line still has to be said). A pool of anything but lines: one at random.
  */
+/** (Meathead 2's boss rush: a raised boss's lines in place of his old ones, endgame/park4/hook.ts) A pool swapped for
+ *  another before it's picked from; none set, as picked. */
+let poolSwap: (<T>(pool: readonly T[]) => readonly T[]) | null = null;
+export const setPoolSwap = (fn: (<T>(pool: readonly T[]) => readonly T[]) | null) => { poolSwap = fn; };
 export const pickLine = <T,>(pool: readonly T[]): T => {
+  if (poolSwap) pool = poolSwap(pool);
   if (!pool.length || typeof pool[0] !== 'string') return pool[Math.floor(Math.random() * pool.length)];
   const now = Date.now(), lines = pool as unknown as readonly string[];
   const fresh = lines.filter(l => isFresh(l, now));
