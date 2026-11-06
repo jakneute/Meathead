@@ -9,7 +9,7 @@ export type Dressed = 'clean' | 'shitty' | 'nude';
 export type CrushPants = Record<Dressed, readonly string[]>;
 export type CrushGroup = 'hurt' | 'taunt' | 'attack';
 export type CrushId = 'artie' | 'donnie' | 'queen' | 'steve' | 'harry' | 'tucker' | 'piper' | 'dad' | 'rex' | 'demon'
-  | 'perot' | 'falwell' | 'limbaugh' | 'dole' | 'newt' | 'kid' | 'mehphisto' | 'brathazar';
+  | 'perot' | 'falwell' | 'limbaugh' | 'dole' | 'newt' | 'kid' | 'mehphisto' | 'brathazar' | 'gupplax';
 
 export interface CrushSet {
   voice: string;
@@ -320,6 +320,30 @@ export const CRUSHED: Record<CrushId, CrushSet> = {
       clean: ['FOR MY NUTS. I GUESS.', 'SQUEAK. DIE.'],
       shitty: ['FOR MY NUTS, STINKY.', 'SQUEAK. DIE. SHOWER.'],
       nude: ['FOR MY NUTS, NAKED GUY.', 'SQUEAK. PUT IT AWAY. DIE.'],
+    },
+  }),
+  // ---- GUPPLAX, the water park's level 3 (the wave pool's alien lifeguard): his whistle gone up an octave, still yelling
+  // the rules
+  gupplax: set('m2.wp.gupplax', {}, {
+    scream: {
+      clean: ['TWEEEEEEEEE! MY NUTS! NO HORSEPLAY! NO HORSEPLAY!', 'AAAH! FOUL! THAT IS A FOUL! ALL FOUR OF THEM!'],
+      shitty: ['TWEEEEEEE! MY NUTS! WITH YOUR POOPY HAND!', "AAAH! CODE BROWN! CODE NUTS! CODE BROWN NUTS!"],
+      nude: ['TWEEEEEEE! MY NUTS! THE NAKED MAN HAS MY NUTS!', "AAAH! YOURS ARE OUT AND MINE ARE OFF!"],
+    },
+    hurt: {
+      clean: ['OW! NO RUNNING! NO NUTS!', "TWEET! STOP! THERE'S NOTHING LEFT TO WHISTLE AT!", 'OW! I NEED A LIFEGUARD! I AM THE LIFEGUARD!'],
+      shitty: ["OW! THERE'S POOP IN THE HOLE!", 'TWEET! STOP! HYGIENE! MY HYGIENE!', 'OW! SHOCK THE POOL! SHOCK MY CROTCH!'],
+      nude: ['OW! PUT YOURS AWAY! MINE ARE GONE!', 'TWEET! STOP SWINGING THEM! I HAVE NONE!', "OW! THE CHLORINE'S IN THE HOLE!"],
+    },
+    taunt: {
+      clean: ['COME BACK TO THE DEEP END! I SOUND LIKE A WHISTLE NOW!', "ADULT SWIM! I'M NOT AN ADULT ANYMORE!", 'TWEET! TWEET! THAT WAS MY VOICE!'],
+      shitty: ['COME BACK TO THE DEEP END, POOPY! IN A HIGHER KEY!', "I LOST MY NUTS! YOU LOST THE POOL!", 'TWEET! THAT WAS MY VOICE! AND THE SMELL!'],
+      nude: ['COME BACK TO THE DEEP END! STOP BOBBING THOSE AT ME!', "I'M NOT JEALOUS! I'M A LIFEGUARD!", "TWEET! THAT WAS MY VOICE! COVER UP!"],
+    },
+    attack: {
+      clean: ['FOR MY NUTS! TWEEEET!', 'SQUEAK! ADULT SWIM!'],
+      shitty: ['FOR MY NUTS, POOPY!', 'SQUEAK! CODE BROWN!'],
+      nude: ['FOR MY NUTS, NAKED!', 'SQUEAK! COVER UP AND DIE!'],
     },
   }),
   // ---- THE PUNDITS (the White House: a cartoon show's): the slapstick nut shot, their own talking points

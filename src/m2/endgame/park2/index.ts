@@ -22,7 +22,9 @@ import type { Controls } from '../../../m1/game/platform/input';
 import { CANVAS_WIDTH, topBand } from '../../../m1/constants';
 import { pickLine, isTalking } from '../../../m1/game/platform/speech';
 import { playSound } from '../../../m1/game/platform/audio';
-import { setUi } from '../../store';
+import { setUi, goTo, setStartCheckpoint } from '../../store';
+import { NO_CONTROLS } from '../../../m1/game/platform/input';
+import { MH_DOOR3 } from '../park3/lines';
 import { markBossFight } from '../../bossQuiet';
 import { lay, solid, meatheadSays, saidOver } from '../../adventure/section';
 import { byPants } from '../park1/kinds';
@@ -54,6 +56,8 @@ export interface Park2 {
   said: Record<string, boolean>; lineAt: Record<string, number>;
   /** The grotto's back (open after: the way on), its door (kicked in). */
   backOpen: number; door: number;
+  /** Level 3's way in (the MAINTENANCE door at the river's end): frames into him opening it and going in (-1 not yet). */
+  l3door: number;
   onSave?: () => void;
 }
 
@@ -93,7 +97,7 @@ export const buildPark2 = (state: GameState, cp: number, onSave: () => void): Pa
   const p2: Park2 = {
     meet: newMeet(cp >= CP2.river || meetSeen(state)), vines: newVines2(), logs: buildLogs2(state), towers: buildTowers2(state),
     fightState: killed ? 'won' : 'wait', f: null, killed, end: null, cause: null, said: {}, lineAt: {},
-    backOpen: killed ? 1 : 0, door: doorDown ? 1 : 0,
+    backOpen: killed ? 1 : 0, door: doorDown ? 1 : 0, l3door: -1,
   };
   if (import.meta.env.DEV && typeof window !== 'undefined') { const w = window as unknown as Record<string, unknown>; w.__wp2 = p2; w.__wp2Sheet = contactSheet; w.__wp2Hands = () => setPiece('hands', true); w.__wp2Nutless = (on: boolean) => keepForRevisits(DEMON_NUTLESS, on ? '1' : null); }
   if (cp > CP2.start) { p2.said.vine = true; }
@@ -181,7 +185,17 @@ export const updatePark2 = (ctx: FrameContext, p2: Park2, controls: Controls, sa
   // ---- what he says on the way (each once; never over anybody)
   if (!p.inCutscene && p.health > 0) {
     if (cx > GROTTO.door - 600 && cx < GROTTO.door - 200) once(p2, 'grotto', () => mhSay(state, p2, 'grotto', L.MH_GROTTO));
-    if (p2.killed && cx > L3.wall - 260) mhSay(state, p2, 'stub3', L.MH_STUB3, 45000);
+  }
+  // ---- level 3's way in: the MAINTENANCE door at the river's end, walked up to: he opens it (a beat, no input), his
+  // line, in he goes (level 3: endgame/park3, its own stage)
+  if (p2.l3door < 0 && p2.killed && p2.fightState === 'won' && cx > L3.wall - 64 && p.isGrounded && !p.inCutscene && p.health > 0) { p2.l3door = 0; state.blocks = state.blocks.filter(b => b.tag !== 'wp2-l3'); meatheadSays(state, pickLine(byPants(state, MH_DOOR3)), true); }
+  if (p2.l3door >= 0) {
+    p2.l3door++;
+    p.inCutscene = true; p.facing = 1; setUi({ introCutscene: true });
+    if (p2.l3door === 18) playSound('clang', 0.8, -6);
+    if (p2.l3door > 40) { p.carried = true; p.vel.x = 0; p.vel.y = 0; p.pos.x += 1.8; }
+    if (p2.l3door === 96) { setStartCheckpoint(0); goTo('park3t'); }
+    return { ...NO_CONTROLS };
   }
   // ---- the camera's reach: the whole run (the grotto's back's shut till he's dead: up to it)
   state.cameraMinX = L2_FROM - 400; state.cameraMaxX = (p2.killed ? L3.wall + 120 : GROTTO.R + 20) - CANVAS_WIDTH;
@@ -213,6 +227,8 @@ export const drawPark2Back = (c: CanvasRenderingContext2D, state: GameState, p2:
     drawTowers2(c, state, p2.towers);
     drawVines2(c, state, p2.vines);
   });
+  // (level 3's door, opening: the dark doorway, the door swung in on its hinge; him going in through it)
+  if (p2.l3door > 0) drawL3Door(c, state, p2.l3door);
   drawMeet(c, state, p2.meet);
   if (p2.end && p2.f) drawEnd(c, state, p2.end, p2.f);
   else if (p2.f && p2.fightState === 'on') drawFight2(c, state, p2.f);
@@ -231,4 +247,14 @@ export const drawPark2Hud = (c: CanvasRenderingContext2D, state: GameState, p2: 
   if (p2.end && endOn(p2.end)) drawEndHud(c, p2.end);
 };
 export const lights2 = lamps2;
+/** The MAINTENANCE door (park2/art.ts paints it shut at L3.wall + 10, 90 wide, 170 tall), opening. */
+const drawL3Door = (c: CanvasRenderingContext2D, state: GameState, t: number) => {
+  const dx = L3.wall + 10, dw = 90, dh = 170, k = Math.min(1, Math.max(0, (t - 14) / 20));
+  c.fillStyle = '#05070A'; c.fillRect(dx, GY - dh, dw * k, dh);
+  c.fillStyle = '#1A1E24'; for (let y = GY - dh + 20; y < GY; y += 30) c.fillRect(dx + 4, y, dw * k - 8, 2);
+  // (the door itself, swung in: foreshortened to a slab at its hinge)
+  const w = Math.max(6, dw * (1 - k)); c.fillStyle = '#4B5563'; c.fillRect(dx, GY - dh, w, dh); c.fillStyle = '#9CA3AF'; c.fillRect(dx, GY - dh, 3, dh);
+  // (him: gone through it once he's past the frame)
+  if (t > 60) state.player.hidden = state.player.pos.x > dx + 10;
+};
 export { HEAD, SON_HP, LOGS2, TOWERS2, playSound };

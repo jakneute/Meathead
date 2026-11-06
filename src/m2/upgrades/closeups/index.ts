@@ -29,6 +29,8 @@ export const CUSTOM_CLOSEUPS: Record<CrushId, CloseUpPaint | null> = {
   kid,
   // (the water park's level 2: the goth son; his brother's the same as in hell)
   mehphisto, brathazar: demon,
+  // (the water park's level 3: GUPPLAX: the standard close-up for now)
+  gupplax: null,
 };
 
 export const installCloseUps = () => {

@@ -63,7 +63,9 @@ import { SPOTS, LANDS } from './hub/lands';
 import { introLayout, INTRO_STAGE, registerIntro, introGender } from './intro/index';
 import { lotLayout, LOT_STAGE } from './endgame/lot/index';
 import { parkLayout, PARK_STAGE } from './endgame/park1/index';
+import { tunnelLayout, TUNNEL_STAGE } from './endgame/park3/index';
 import { REFIGHT_LAYOUTS } from './endgame/park4/refights';
+import { lot4Layout, LOT4_STAGE } from './endgame/park4/lot';
 import { endgameStage, endgameLevelStart } from './endgame/stages';
 import { setGenderOf, unpaired } from '../m1/content/gender';
 import { m2KindGender } from './kinds';
@@ -160,7 +162,7 @@ import { registerGrabCallouts } from './moves/callouts';
 // test pen behind the staff door (try out the beatdown and the shakedown on whoever walks in).
 
 // (in Meathead 2, what's thrown up off the top of the screen comes back down: no "TO THE MOON")
-for (const l of [hubLayout, penLayout, advLayout, spookyLayout, spaceLayout, hollywoodLayout, foreignLayout, frontierLayout, fantasyLayout, cartoonLayout, introLayout, gymLayout, lotLayout, parkLayout]) l.noMoonKills = true;
+for (const l of [hubLayout, penLayout, advLayout, spookyLayout, spaceLayout, hollywoodLayout, foreignLayout, frontierLayout, fantasyLayout, cartoonLayout, introLayout, gymLayout, lotLayout, parkLayout, tunnelLayout]) l.noMoonKills = true;
 // (and the camera glides where it'd jump in the lands: out of a cutscene's view, onto a fight's arena)
 advLayout.smoothCameraSnaps = true;
 spookyLayout.smoothCameraSnaps = true;
@@ -171,6 +173,7 @@ frontierLayout.smoothCameraSnaps = true;
 fantasyLayout.smoothCameraSnaps = true;
 cartoonLayout.smoothCameraSnaps = true;
 parkLayout.smoothCameraSnaps = true;
+tunnelLayout.smoothCameraSnaps = true;
 registerStageLayout(HUB_STAGE, hubLayout);
 registerStageLayout(PEN_STAGE, penLayout);
 registerStageLayout(ADV_STAGE, advLayout);
@@ -186,8 +189,10 @@ registerStageLayout(GYM_STAGE, gymLayout);
 // (the endgame's stages: endgame/stages.ts)
 registerStageLayout(LOT_STAGE, lotLayout);
 registerStageLayout(PARK_STAGE, parkLayout);
+registerStageLayout(TUNNEL_STAGE, tunnelLayout);
 // (level 4: Ned's boss rush, each refight its land's own stage run again in hell: endgame/park4)
 for (const [name, layout] of REFIGHT_LAYOUTS) registerStageLayout(name, layout);
+registerStageLayout(LOT4_STAGE, lot4Layout);
 registerIntro();
 registerGmen();
 loadVoicePack(voicePackUrl);
@@ -293,7 +298,7 @@ const App2: React.FC = () => {
   // Spooky Land, ?space=<checkpoint> in Space Land, ?hollywood=<checkpoint> in Hollywood Land, ?foreign=<checkpoint> in
   // Foreign Lands, ?hub=<spot> at the hub, ?pen in the staff room)
   const devQ = import.meta.env.DEV ? new URLSearchParams(location.search) : null;
-  const first = devQ?.has('adv') ? ADV_STAGE : devQ?.has('spooky') ? SPOOKY_STAGE : devQ?.has('space') ? SPACE_STAGE : devQ?.has('hollywood') ? HOLLYWOOD_STAGE : devQ?.has('foreign') ? FOREIGN_STAGE : devQ?.has('frontier') ? FRONTIER_STAGE : devQ?.has('fantasy') ? FANTASY_STAGE : devQ?.has('cartoon') ? CARTOON_STAGE :devQ?.has('hub') ? HUB_STAGE : devQ?.has('pen') ? PEN_STAGE : devQ?.has('intro') ? INTRO_STAGE : devQ?.has('park') ? PARK_STAGE : devQ?.has('lot') ? LOT_STAGE : GYM_STAGE;
+  const first = devQ?.has('adv') ? ADV_STAGE : devQ?.has('spooky') ? SPOOKY_STAGE : devQ?.has('space') ? SPACE_STAGE : devQ?.has('hollywood') ? HOLLYWOOD_STAGE : devQ?.has('foreign') ? FOREIGN_STAGE : devQ?.has('frontier') ? FRONTIER_STAGE : devQ?.has('fantasy') ? FANTASY_STAGE : devQ?.has('cartoon') ? CARTOON_STAGE :devQ?.has('hub') ? HUB_STAGE : devQ?.has('pen') ? PEN_STAGE : devQ?.has('intro') ? INTRO_STAGE : devQ?.has('park') ? PARK_STAGE : devQ?.has('tunnel') ? TUNNEL_STAGE : devQ?.has('lot') ? LOT_STAGE : GYM_STAGE;
   const [stage, setStage] = useState(first);
   // (the hidden upgrades changing (the cheats, a find): the HUD's max health, cells and ammo redrawn)
   useSyncExternalStore(subscribeUpgrades, upgradesVersion);

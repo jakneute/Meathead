@@ -38,8 +38,9 @@ import { SPOTS, LANDS } from '../hub/lands';
 import { PEN_STAGE } from '../pen/index';
 import { INTRO_STAGE } from '../intro/index';
 import { abductionOn } from '../endgame/abduction';
-import { PARK_STAGE, LOT_STAGE } from '../endgame/stages';
-import { REFIGHT_LANDS, refightStage } from '../endgame/park4/where';
+import { PARK_STAGE, LOT_STAGE, TUNNEL_STAGE } from '../endgame/stages';
+import { SEC as TUN_SEC, CELL as TUN_CELL } from '../endgame/park3/geo';
+import { REFIGHT_LANDS, refightStage, L4_STAGE } from '../endgame/park4/where';
 import { CP as PARK_CP_IDS, CP_AT as PARK_CP_AT, TOWER, GY as PARK_GY } from '../endgame/park1/geo';
 import { KID_HP } from '../endgame/park1/boss';
 import { GYM_STAGE } from '../intro/gym/course';
@@ -587,6 +588,18 @@ const everestArr = (s: GameState) => {
 /** The lot: the park's theme heard over the wall ('gate'), the full song from the boot that knocks the gate down. The
  *  park: the summit's kid's song (his intro, the fight, his last third, his death); the slide down after; a tube ride's
  *  (the controls card, THE BLACK HOLE, THE ABYSS); the climb's, by the floor; the middle plaza's; the plaza's. */
+/** Level 3 (endgame/park3) as the music hears it: the tunnels (Future Land's XENOSCARE arrangement for now: the aliens'
+ *  turn, dark), the flooded pipes and the flush (Jungle Land's underwater), the wave pool's fight (Zorblax's saucer's
+ *  song for GUPPLAX, his brother: its intro on the tower), the drain out after (the water park's slide-down). For now,
+ *  till the owner scores it. */
+interface TunOwn { pool?: { step?: string; f?: { mode?: string } | null } }
+const tunnelWants = (s: GameState): Want => {
+  const pl = (s.stage as TunOwn | null)?.pool, step = pl?.step;
+  if (step === 'fight') return { cands: [{ song: 'boss:ufo', arrs: [pl?.f?.mode === 'intro' ? 'intro' : 'main', 'main'] }], cutscene: false };
+  if (step && step !== 'idle' && step !== 'flush') return { cands: [{ song: 'land:park1', arrs: ['descent', 'plaza'] }], cutscene: true };
+  if (step === 'flush' || s.player.swimming || s.player.pos.x > TUN_SEC.pipes * TUN_CELL) return { cands: [{ song: 'land:adventure', arrs: ['underwater', 'main'] }], cutscene: step === 'flush' };
+  return { cands: [{ song: 'land:space', arrs: ['xenoscare', 'main'] }], cutscene: false };
+};
 const parkWants = (s: GameState, lot: boolean): Want => {
   if (lot) {
     const kicked = ((s.stage as LotOwn | null)?.kick ?? -1) >= 14;
@@ -653,6 +666,15 @@ const gameWants = (s: GameState | null): Want => {
   // (the water park, the endgame's level 1: its own songs by where he is (parkWants); the lot outside, its theme
   // muffled over the wall till he kicks the gate in)
   if (stage === LOT_STAGE || stage === PARK_STAGE) return parkWants(s, stage === LOT_STAGE);
+  // (level 4, the lot with Ned's portals (endgame/park4/lot.ts): Spooky Land's hell for now; Ned's fight, the demon
+  // boss's song (level 2's); after him, the water park's own. Till the owner scores them.)
+  if (stage === L4_STAGE) {
+    const sc = (s.stage as { scene?: string } | null)?.scene;
+    if (sc === 'fight' || sc === 'nedIn') return { cands: [{ song: 'boss:demon', arrs: ['main'] }, { song: 'land:spooky', arrs: ['hell', 'main'] }], cutscene: false };
+    if (sc === 'after') return { cands: [{ song: 'land:park1', arrs: ['plaza'] }], cutscene: false };
+    return { cands: [{ song: 'land:spooky', arrs: ['hell', 'main'] }], cutscene: sc === 'intro' || cutscene };
+  }
+  if (stage === TUNNEL_STAGE) return tunnelWants(s);
   const land = LAND_OF_STAGE[stage];
   if (!land) return none;
   const sec = sectionOf(s) ?? '';
@@ -729,7 +751,7 @@ const apply = () => {
     else play(cue.song, SONGS[cue.song], cue.arr ?? 'main', !!test);
   } else if (cue && !nowPlaying() && !SONGS[cue.song].once) play(cue.song, SONGS[cue.song], cue.arr ?? 'main');
   setSpace(space);
-  setMix(isTalking(), !test && (paused || (!!state?.player.swimming && !!LAND_OF_STAGE[stage ?? ''])), !test && quiet);
+  setMix(isTalking(), !test && (paused || (!!state?.player.swimming && (!!LAND_OF_STAGE[stage ?? ''] || stage === TUNNEL_STAGE))), !test && quiet);
   warmLand(stage ? LAND_OF_STAGE[stage] ?? null : null);
   // (the water park's songs, made ahead from the lot on)
   if ((stage === LOT_STAGE || stage === PARK_STAGE) && !parkWarm) { parkWarm = true; for (const id of ['land:park1', 'seq:wp-tube', 'seq:wp-everest', 'boss:zorzarblax']) if (SONGS[id]) prewarm(SONGS[id]); }

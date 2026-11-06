@@ -41,16 +41,18 @@ export const PARK_STAGE = 'M2 Water Park';
 /** Level 2's start, in PARK_STAGE: the splashdown at the foot of MOUNT EVEREST BUT BETTER's slide (endgame/park1/geo.ts
  *  CP.L2). Hour 11 from there (the kid's dead). Level 2's own checkpoints run on from it (endgame/park2/geo.ts CP2). */
 export const L2_CP = 40;
-/** Level 3's start (a stub: the owner designs it), in PARK_STAGE too: out of the goth son's grotto, past THE LAZY
- *  RIVER (endgame/park2/geo.ts CP2.L3). Hour 12 from there (the son's dead). */
+/** Level 3's very start, in PARK_STAGE too: out of the goth son's grotto, past THE LAZY RIVER, at the MAINTENANCE door
+ *  (endgame/park2/geo.ts CP2.L3). Hour 12 from there (the son's dead). */
 export const L3_CP = 49;
+/** Level 3 itself (THE MAINTENANCE TUNNELS, THE WAVE POOL: endgame/park3): its own engine stage, in through that door. */
+export const TUNNEL_STAGE = 'M2 Water Park Tunnels';
 
 /** Level 4 (endgame/park4/where.ts): the lot, and the refights (each land, its boss, his checkpoint in the land: the
  *  same numbers as park4/rf/<land>.ts's). */
 export { L4_ID, L4_STAGE, L4_HOUR, LOT_CP as L4_LOT_CP, NED_CP as L4_NED_CP, AFTER_CP as L4_AFTER_CP } from './park4/where';
 const REFIGHT_LIST: [string, string, number][] = [
   ['adventure', 'SAFARI ARTIE', 71], ['spooky', 'DONNIE DRACULA', 62], ['space', 'THE QUEEN', 74], ['hollywood', 'STUNTMAN STEVE', 60],
-  ['foreign', 'HELICOPTER HARRY', 120], ['frontier', 'TUCKER', 60], ['fantasy', 'PIPER THE PIXIE', 61], ['cartoon', 'DAD GUY', 62],
+  ['foreign', 'HELICOPTER HARRY', 120], ['frontier', 'TUCKER', 61], ['fantasy', 'PIPER THE PIXIE', 61], ['cartoon', 'DAD GUY', 62],
 ];
 
 export const ENDGAME_STAGES: EndgameStage[] = [
@@ -71,9 +73,16 @@ export const ENDGAME_STAGES: EndgameStage[] = [
     { name: 'THE SWIM-UP BAR', cp: 44 }, { name: 'THE TIKI TOWERS', cp: 45 }, { name: 'THE SOUP', cp: 46 }, { name: 'THE LAST BEND', cp: 47 },
     { name: 'THE GROTTO', cp: 48 },
   ] },
-  // Level 3 (the owner designs it): for now just its start, out the far side of the son's grotto; the son's dead, the
-  // hour's on (12)
-  { id: 'park3', level: 3, stage: PARK_STAGE, name: 'LEVEL 3: (STUB)', hour: 12, checkpoints: [{ name: 'THE WAVE POOL', cp: L3_CP }] },
+  // Level 3 (the owner's brief 2026-11-05): its very start, the MAINTENANCE door at the end of THE LAZY RIVER (a file's
+  // CONTINUE comes back here); the son's dead, the hour's on (12)
+  { id: 'park3', level: 3, stage: PARK_STAGE, name: 'LEVEL 3: THE MAINTENANCE DOOR', hour: 12, checkpoints: [{ name: 'THE DOOR', cp: L3_CP }] },
+  // ...and in through it: THE MAINTENANCE TUNNELS, the flooded pipes, the pump room, the outflow to THE WAVE POOL and
+  // GUPPLAX (endgame/park3/geo.ts CP3: these match it). Level 3's end goes on to level 4 (the lot: goTo(L4_ID)).
+  { id: 'park3t', level: 3, stage: TUNNEL_STAGE, name: 'LEVEL 3: THE MAINTENANCE TUNNELS', hour: 12, checkpoints: [
+    { name: 'THE SERVICE DOOR', cp: 0 }, { name: 'THE LOWER CORRIDOR', cp: 1 }, { name: 'THE PISS FILTER', cp: 2 }, { name: 'CHEMICAL STORAGE', cp: 3 },
+    { name: 'THE GANGWAYS', cp: 4 }, { name: 'THE SHAFT', cp: 5 }, { name: 'THE FLOODED PIPES', cp: 6 }, { name: 'THE JUNCTIONS', cp: 7 },
+    { name: 'THE PUMP ROOM (GUPPLAX)', cp: 8 },
+  ] },
   // Level 4 (the owner's brief 2026-11-05): the lot outside, NED THE NECROMANCER's portals, the eight refights (each
   // its own stage: the land's own boss fight, through his portal, endgame/park4), then Ned. Hour 13 (level 3's boss
   // dead). The file keeps which refights are done (EndgameRecord.rematches): CONTINUE puts him in the lot, those

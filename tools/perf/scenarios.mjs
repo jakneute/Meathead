@@ -33,6 +33,12 @@ export const SCENARIOS = [
   { name: 'wp2-logs', q: 'park=43', warm: 2, keys: [[0, 'js', 'window.__m2.player.pos.x = 39600 + 12580'], [200, 'down', 'ArrowRight']] },
   { name: 'wp2-towers', q: 'park=44', warm: 2, keys: [[0, 'js', '{ const t = window.__wp2.towers[4].t, p = window.__m2.player; p.pos.x = t.b.x + 30; p.pos.y = t.b.y - p.height - 1; p.vel.y = 0; }'], ...Array.from({ length: 10 }, (_, i) => [1500 + i * 2200, 'js', `{ const t = window.__wp2.towers[${4 + (i % 4)}], p = window.__m2.player; if (!t.gone && !t.fall && !t.rise) { p.pos.x = t.t.b.x + 30; p.pos.y = t.t.b.y - p.height - 1; p.vel.y = 0; } }`])] },
   { name: 'wp2-boss', q: 'park=48', warm: 12, keys: [[0, 'js', 'window.__m2.stageMemo["m2:boss-intro:mehphisto"] = "1"'], [100, 'down', 'ArrowRight'], [6500, 'up', 'ArrowRight'], [6700, 'js', 'window.dispatchEvent(new MouseEvent("mousedown", { button: 0 }))'], ...Array.from({ length: 14 }, (_, i) => [7000 + i * 1600, 'tap', i % 3 === 2 ? 'Space' : i % 2 ? 'ArrowLeft' : 'ArrowRight'])] },
+  // The water park's level 3 (endgame/park3): the chemical storage's drums and puddles, the piss filter (the vat, the
+  // spurts, the wires), the flooded junctions, GUPPLAX in the wave pool (in through the outflow, the intro skipped)
+  { name: 'wp3-chem', q: 'tunnel=3', warm: 3, keys: hopRight(24) },
+  { name: 'wp3-piss', q: 'tunnel=2', warm: 3, keys: [[0, 'js', '{ const p = window.__m2.player; p.pos.x = 4250 - 22; p.pos.y = 830 - 64; p.vel.y = 0; }'], [300, 'down', 'ArrowRight'], [900, 'up', 'ArrowRight'], ...Array.from({ length: 10 }, (_, i) => [1500 + i * 2000, 'tap', i % 2 ? 'ArrowLeft' : 'ArrowRight'])] },
+  { name: 'wp3-pipes', q: 'tunnel=7', warm: 3, keys: Array.from({ length: 12 }, (_, i) => [[i * 2000, 'down', i % 3 ? 'Space' : 'ArrowRight'], [i * 2000 + 1500, 'up', i % 3 ? 'Space' : 'ArrowRight']]).flat() },
+  { name: 'wp3-boss', q: 'tunnel=8', warm: 4, keys: [[0, 'js', 'window.__m2.stageMemo["m2:boss-intro:gupplax"] = "1"'], [100, 'down', 'ArrowRight'], [3000, 'up', 'ArrowRight'], ...Array.from({ length: 14 }, (_, i) => [7000 + i * 1500, 'tap', i % 3 === 2 ? 'Space' : i % 2 ? 'ArrowLeft' : 'ArrowRight']), [7200, 'down', 'ArrowRight']] },
   // The crossbow on a crowd (the user's: slowdown "when using the crossbow and a ton of people are hurling and i move
   // back and forth", in the break room): every weapon on, the crossbow (9), fire held, pacing left and right
   { name: 'crossbow-crowd', q: 'pen', warm: 8, keys: [
