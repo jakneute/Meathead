@@ -2265,7 +2265,7 @@ const sherpaStatue = (g: Ctx, sx: number, sy: number) => {
   R(g, sx - 6, sy - 106, 3, 3, INK); R(g, sx + 3, sy - 106, 3, 3, INK); R(g, sx - 5, sy - 99, 10, 3, '#3A1010'); R(g, sx - 4, sy - 99, 8, 1, '#F8FAFC');
   R(g, sx - 13, sy - 120, 26, 9, INK); R(g, sx - 12, sy - 119, 24, 7, '#EAB308'); R(g, sx - 12, sy - 119, 24, 2, '#FDE047'); R(g, sx - 2, sy - 124, 4, 4, '#DC2626');
 };
-const paintFace = (g: Ctx, k: number, cx0 = -1e9, cx1 = 1e9, cy0 = -1e9, cy1 = 1e9) => {
+const paintFace = (g: Ctx, k: number, cx0 = -1e9, cx1 = 1e9, cy0 = -1e9, cy1 = 1e9, queue = true) => {
   const x0 = TR, x1 = TR + FACE, yb = floorY(k) + DECK, yt = floorY(k + 1), t = k / (FLOORS - 1);
   const hsh = (n: number) => hash(n * 3.7 + k * 17.3);
   /** (anything not reaching into this tile's not painted at all) */
@@ -2351,7 +2351,7 @@ const paintFace = (g: Ctx, k: number, cx0 = -1e9, cx1 = 1e9, cy0 = -1e9, cy1 = 1
       prayerFlags(g, pa, pb, py, 11, 22);
     } }
   // (its statue: the yeti mascot, its paint peeling; or the sherpa animatronic, seized; or neither)
-  if ((k === 4 || k === 1 || k === 5) && inT(x0 + FACE - 160, x0 + FACE - 50, yb - 165, yb)) {
+  if (queue && (k === 4 || k === 1 || k === 5) && inT(x0 + FACE - 160, x0 + FACE - 50, yb - 165, yb)) {
     const sx = x0 + FACE - 110, sy = yb - 30;
     poly(g, [[sx - 46, sy + 8], [sx + 46, sy + 8], [sx + 40, sy + 16], [sx - 40, sy + 16]], INK);
     poly(g, [[sx - 45, sy + 8], [sx + 45, sy + 8], [sx + 39, sy + 15], [sx - 39, sy + 15]], Rk[2]);
@@ -2379,6 +2379,10 @@ const paintFace = (g: Ctx, k: number, cx0 = -1e9, cx1 = 1e9, cy0 = -1e9, cy1 = 1
     } }
   // (the shell's cut edges either side, where the inside's in: dark, its rim lit)
   R(g, x0, yt, 10, yb - yt, '#120E0A'); R(g, x0 + 10, yt, 2, yb - yt, Rk[4]); R(g, x1 - 10, yt, 10, yb - yt, '#120E0A'); R(g, x1 - 12, yt, 2, yb - yt, Rk[1]);
+  // (the face round the far side, seen from base camp's ground, is bare rock: no queue on it (the owner's "fix the
+  // visual representation of the start of the everest ride so that it doesn't show a bunch of stairs and shit you can
+  // allegedly climb but cannot"); the way up's the tower's floors, its spiral the one out past each floor's way up)
+  if (!queue) { if (k === 0) faceRubble(g, x0, yb - DECK, inT); return; }
   // (the queue up the spiral: the stringer, bolted to the rock on brackets; its treads (lit along their tops: he walks
   // them); a stanchion every other one and their rope; QUEUE CONTINUES half way, and the wait)
   const ax = TR + 10, ay = floorY(k), bx = TR + FACE - 10, by = floorY(k + 1), n = 28, T = THEME[k], A = ramp5(T.accent), S = STEEL6;
@@ -2428,8 +2432,31 @@ const paintFace = (g: Ctx, k: number, cx0 = -1e9, cx1 = 1e9, cy0 = -1e9, cy1 = 1
     }
   }
 };
+/** The bare face's foot at base camp (where the queue's flight came down, before it was taken off this side): fiberglass
+ *  rock come down off the shell in a heap, a snapped-off bit of the old stringer in it. All of it dimmed and banded down into the face's shade, no lit tops (nothing there to stand on): back on the
+ *  face's own depth, behind base camp's sign and rails. */
+const faceRubble = (g: Ctx, x0: number, gy: number, inT: (a: number, b: number, c0: number, d: number) => boolean) => {
+  const Rk = ramp6('#5E4E3C'), S = ramp6('#3A4250'), hs = (n: number) => hash(n * 5.3 + 77.1);
+  // (the heap: broken panels of the shell, their cut edges pale, piled low along the foot, darker toward the ground)
+  const hx = x0 + 40, hw = 300;
+  if (inT(hx - 10, hx + hw + 10, gy - 70, gy + 2)) {
+    for (let i = 0; i < 9; i++) {
+      const px = hx + hs(i) * (hw - 70), pw = 40 + hs(i + 20) * 50, ph = 18 + hs(i + 40) * 30, tilt = (hs(i + 60) - 0.5) * 16;
+      poly(g, [[px - 2, gy + 1], [px + 4, gy - ph + tilt], [px + pw * 0.6, gy - ph - 4 - tilt], [px + pw + 2, gy - ph * 0.4], [px + pw + 4, gy + 1]], INK);
+      poly(g, [[px, gy], [px + 5, gy - ph + 2 + tilt], [px + pw * 0.6, gy - ph - 2 - tilt], [px + pw, gy - ph * 0.4 + 1], [px + pw + 2, gy]], Rk[i % 2 ? 1 : 2]);
+      dither(g, Math.round(px + 4), Math.round(gy - ph * 0.45), Math.round(pw - 6), Math.round(ph * 0.45), Rk[0]);
+      R(g, Math.round(px + 6), Math.round(gy - ph * 0.7), 2, 2, Rk[3]);
+    }
+    // (a snapped-off length of the old stringer, its end jagged, lying in it at a slant: dark steel, no lit edge)
+    poly(g, [[hx + 120, gy - 6], [hx + 250, gy - 40], [hx + 254, gy - 32], [hx + 124, gy + 2]], INK);
+    poly(g, [[hx + 122, gy - 5], [hx + 248, gy - 38], [hx + 251, gy - 33], [hx + 125, gy]], S[1]);
+    for (let i = 0; i < 4; i++) { const u = 0.2 + i * 0.2; R(g, Math.round(hx + 122 + 126 * u), Math.round(gy - 5 - 33 * u), 2, 2, S[0]); }
+    // (fallen snow foam, gone gray, over the heap)
+    for (let i = 0; i < 3; i++) { const sx = hx + 30 + i * 90 + hs(i + 80) * 30; g.fillStyle = '#6A7282'; g.beginPath(); g.ellipse(sx, gy - 8, 22, 7, 0, Math.PI, 0); g.fill(); dither(g, Math.round(sx - 18), Math.round(gy - 12), 36, 4, '#535A68'); }
+  }
+};
 const FACE_TW = 204, FACE_TH = 197;
-const drawFace = (c: Ctx, state: GameState, ox: number) => {
+const drawFace = (c: Ctx, state: GameState, ox: number, queue = true) => {
   if (!vis(state, TR + ox, TR + FACE + ox, 0)) return;
   for (let k = 0; k < FLOORS; k++) {
     // (each band from its own top: what of it pokes up over that (its top stanchions, a sign's top) is under the next
@@ -2441,7 +2468,7 @@ const drawFace = (c: Ctx, state: GameState, ox: number) => {
     for (let tx = TR - 4; tx < TR + FACE + 4; tx += FACE_TW) for (let ty = y0; ty < yb + 10; ty += FACE_TH) {
       const w = Math.min(FACE_TW, TR + FACE + 4 - tx), h = Math.min(FACE_TH, yb + 10 - ty);
       if (!vis(state, tx + ox, tx + ox + w, 0) || !visY(state, ty, ty + h, 0)) continue;
-      stamp(c, `wp-face-${k}-${tx}-${ty}`, tx, ty, w, h, g => { g.save(); g.beginPath(); g.rect(tx, ty, w, h); g.clip(); paintFace(g, k, tx, tx + w, ty, ty + h); g.restore(); });
+      stamp(c, `wp-face-${k}-${tx}-${ty}${queue ? '' : '-bare'}`, tx, ty, w, h, g => { g.save(); g.beginPath(); g.rect(tx, ty, w, h); g.clip(); paintFace(g, k, tx, tx + w, ty, ty + h, queue); g.restore(); });
     }
     c.restore();
   }
@@ -2925,6 +2952,9 @@ export interface DrawState {
   gates: number[]; tells: { x: number; t: number }[]; locked: number | null; door: number; greenPool: number;
   /** On the spiral: off floor k, how far wrapped round (the tower's face drawn round again either side, its steps). */
   climb?: { k: number; e: number } | null;
+  /** On the spiral or just off it (the camera still settling): the face round the far side has its queue (its steps
+   *  are the ones he's just come up); else it's bare rock (from base camp, where nothing on it's climbable). */
+  spiral?: boolean;
   /** The descent's on or done (the kid's dead): no mountain face out past the tower's right wall, the slide in the open
    *  (he's riding it); else the face is there, in front of the slide's run behind it. */
   descent?: boolean;
@@ -2943,7 +2973,7 @@ export const drawParkBack = (c: Ctx, state: GameState, d: DrawState, extra?: () 
   drawTower(c, state, d.gates, d.tells, d.locked);
   // (the mountain's outside, round which the spiral goes (out past the way up, and again round the far side); on the
   // spiral, the inside drawn round again either side of it (where he comes in at the top: tower.ts))
-  if (!d.descent) { drawFace(c, state, 0); drawFace(c, state, -ROUND); }
+  if (!d.descent) { drawFace(c, state, 0); drawFace(c, state, -ROUND, !!d.spiral); }
   // (base camp stood on the ground in front of the mountain (its far side's face, from down here))
   drawBaseCamp(c, state);
   if (d.climb) { drawTower(c, state, d.gates, d.tells, null, -ROUND); drawTower(c, state, d.gates, d.tells, null, ROUND); }
