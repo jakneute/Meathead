@@ -21,8 +21,13 @@ const lineP = (c: Ctx, a: P, b: P, w: number, col: string) => { c.strokeStyle = 
 /** A limb in two bones, inked: (root, joint, end), its color and its width. */
 const bone2 = (c: Ctx, a: P, j: P, e: P, w: number, col: string) => {
   for (const [ww, cc] of [[w + 2, INK], [w, col]] as const) { c.strokeStyle = cc; c.lineWidth = ww; c.lineCap = 'round'; c.lineJoin = 'round'; c.beginPath(); c.moveTo(a[0], a[1]); c.lineTo(j[0], j[1]); c.lineTo(e[0], e[1]); c.stroke(); }
+  // (the SNES pass: stepped across, the shade along its far side, the lit band along its near, a glint)
+  c.strokeStyle = mix(col, INK, 0.35); c.lineWidth = Math.max(1, w * 0.35); c.beginPath(); c.moveTo(a[0] + w * 0.3, a[1] + 1); c.lineTo(j[0] + w * 0.3, j[1] + 1); c.lineTo(e[0] + w * 0.25, e[1]); c.stroke();
   c.strokeStyle = mix(col, '#FFFFFF', 0.25); c.lineWidth = Math.max(1, w * 0.3); c.beginPath(); c.moveTo(a[0] - 1, a[1]); c.lineTo(j[0] - 1, j[1]); c.stroke();
+  c.strokeStyle = mix(col, '#FFFFFF', 0.45); c.lineWidth = 1; c.beginPath(); c.moveTo(a[0] - 1.5, a[1] + 1); c.lineTo((a[0] + j[0]) / 2 - 1.5, (a[1] + j[1]) / 2); c.stroke();
 };
+/** A checker of `col` over (x, y, w, h): the dither at a ramp's step. */
+const dith = (c: Ctx, x: number, y: number, w: number, h: number, col: string) => { c.fillStyle = col; for (let yy = Math.round(y); yy < y + h; yy++) for (let xx = Math.round(x) + (yy & 1); xx < x + w; xx += 2) c.fillRect(xx, yy, 1, 1); };
 const ell = (c: Ctx, x: number, y: number, rx: number, ry: number, col: string, rot = 0) => { c.fillStyle = col; c.beginPath(); c.ellipse(x, y, Math.max(0.1, rx), Math.max(0.1, ry), rot, 0, Math.PI * 2); c.fill(); };
 const rect = (c: Ctx, x: number, y: number, w: number, h: number, col: string) => { c.fillStyle = col; c.fillRect(x, y, w, h); };
 
@@ -82,6 +87,11 @@ const paintBurnout = (c: Ctx, L: BurnLook, pose: BurnPose, q: number) => {
   // (the body: the coat (long, to the knee, open) or the hoodie; the band tee under)
   c.fillStyle = INK; c.beginPath(); c.moveTo(sh[0] - 9 * w, sh[1] - 1); c.lineTo(sh[0] + 9 * w, sh[1] - 1); c.lineTo(hip[0] + 9 * w, hip[1] + (L.coat ? 18 : 3)); c.lineTo(hip[0] - 10 * w, hip[1] + (L.coat ? 18 : 3)); c.closePath(); c.fill();
   c.fillStyle = L.coat ? '#1A1820' : L.top; c.beginPath(); c.moveTo(sh[0] - 8 * w, sh[1]); c.lineTo(sh[0] + 8 * w, sh[1]); c.lineTo(hip[0] + 8 * w, hip[1] + (L.coat ? 17 : 2)); c.lineTo(hip[0] - 9 * w, hip[1] + (L.coat ? 17 : 2)); c.closePath(); c.fill();
+  // (the coat or hoodie in its steps: the lit edge down its near side, the shade down its back, dithered between)
+  const body = L.coat ? '#1A1820' : L.top;
+  c.fillStyle = mix(body, '#FFFFFF', 0.16); c.beginPath(); c.moveTo(sh[0] + 5 * w, sh[1]); c.lineTo(sh[0] + 8 * w, sh[1]); c.lineTo(hip[0] + 8 * w, hip[1] + (L.coat ? 17 : 2)); c.lineTo(hip[0] + 5 * w, hip[1] + (L.coat ? 17 : 2)); c.closePath(); c.fill();
+  c.fillStyle = mix(body, INK, 0.4); c.beginPath(); c.moveTo(sh[0] - 8 * w, sh[1]); c.lineTo(sh[0] - 4 * w, sh[1]); c.lineTo(hip[0] - 5 * w, hip[1] + (L.coat ? 17 : 2)); c.lineTo(hip[0] - 9 * w, hip[1] + (L.coat ? 17 : 2)); c.closePath(); c.fill();
+  dith(c, hip[0] - 5 * w, hip[1] - 8, 3, 8, mix(body, INK, 0.4));
   // (the tee showing: a skull print, gray on black)
   rect(c, sh[0] - 3, sh[1] + 4, 8, 14, '#26242A');
   ell(c, sh[0] + 1, sh[1] + 9, 2.6, 2.4, '#9A94A4'); rect(c, sh[0] - 0.5, sh[1] + 9, 1, 1, INK); rect(c, sh[0] + 1.5, sh[1] + 9, 1, 1, INK);
@@ -92,8 +102,9 @@ const paintBurnout = (c: Ctx, L: BurnLook, pose: BurnPose, q: number) => {
   leg(fN, true);
   // (the head: pale-ish of its own skin, eyeliner raccoon rings, the half-lidded eyes, the hair over one eye)
   const [hx, hy] = head;
-  ell(c, hx, hy, 8.5, 9.5, INK); ell(c, hx, hy, 7.5, 8.5, L.skin);
-  ell(c, hx + 2, hy + 3, 5, 4, mix(L.skin, INK, 0.12));
+  ell(c, hx, hy, 8.5, 9.5, INK); ell(c, hx, hy, 7.5, 8.5, mix(L.skin, INK, 0.22)); ell(c, hx + 0.8, hy - 0.6, 6.6, 7.6, L.skin);
+  ell(c, hx + 2, hy + 3, 5, 4, mix(L.skin, INK, 0.12)); ell(c, hx + 3, hy - 4, 2.4, 1.6, mix(L.skin, '#FFFFFF', 0.3));
+  dith(c, hx - 6, hy + 2, 4, 5, mix(L.skin, INK, 0.3));
   // (the eye: ringed black, a lid half down; the mouth: a flat line, the lip ring)
   ell(c, hx + 4, hy - 1, 2.8, 2.2, INK); rect(c, hx + 3, hy - 1, 3, 1, '#E8E2D8'); rect(c, hx + 4, hy - 1, 1, 1, '#4A2A5A');
   rect(c, hx + 2, hy - 3, 5, 1, mix(L.skin, INK, 0.35));
@@ -132,6 +143,8 @@ const paintImp = (c: Ctx, pose: ImpPose, q: number) => {
     const tipY = -30 - flap * 10 * s;
     c.fillStyle = line; c.beginPath(); c.moveTo(-2, -20); c.lineTo(-16, tipY - 2); c.lineTo(-22, -16 - flap * 4); c.lineTo(-14, -14); c.lineTo(-8, -10); c.closePath(); c.fill();
     c.fillStyle = col; c.beginPath(); c.moveTo(-3, -19); c.lineTo(-15, tipY); c.lineTo(-19, -16 - flap * 4); c.lineTo(-13, -15); c.lineTo(-7, -11); c.closePath(); c.fill();
+    // (its ribs, the lit leading edge)
+    lineP(c, [-3, -19], [-15, tipY], 1.2, mix(col, '#FFFFFF', 0.3)); lineP(c, [-4, -18], [-18, -16 - flap * 4], 0.8, line); lineP(c, [-5, -15], [-13, -15], 0.8, line);
   };
   wing(1, '#4A0E0A', INK);
   // (the tail: a curl off the back, spade-tipped)

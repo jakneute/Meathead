@@ -140,68 +140,110 @@ const drawHead = (c: Ctx, state: GameState) => {
 // teeth over the door), the son's hangout inside (the back wall in purple rock, his beanbag, a lava lamp, a bong, a
 // black-light poster); its back wall at the right (opened after: the way out to level 3)
 
-const ROCK = ['#1A1218', '#2A1E26', '#3A2A34', '#4E3A46', '#6A525E'];
+const ROCK = ['#1A1218', '#2A1E26', '#3A2A34', '#4E3A46', '#6A525E', '#8A6E7C'];
 const CAVE_TOP = GY - 470;
+/** A lump of fiberglass rock in its steps: inked, lit up its top-left (the lamp's violet), shaded under, dithered. */
+const rockLump = (g: Ctx, x: number, y: number, rx: number, ry: number, R5 = ROCK) => {
+  g.fillStyle = INK; g.beginPath(); g.ellipse(x, y, rx + 1.5, ry + 1.5, 0, 0, Math.PI * 2); g.fill();
+  g.fillStyle = R5[1]; g.beginPath(); g.ellipse(x, y, rx, ry, 0, 0, Math.PI * 2); g.fill();
+  g.fillStyle = R5[2]; g.beginPath(); g.ellipse(x - rx * 0.12, y - ry * 0.14, rx * 0.84, ry * 0.78, 0, 0, Math.PI * 2); g.fill();
+  g.fillStyle = R5[3]; g.beginPath(); g.ellipse(x - rx * 0.3, y - ry * 0.34, rx * 0.5, ry * 0.44, 0, 0, Math.PI * 2); g.fill();
+  checker(g, x - rx * 0.7, y + ry * 0.3, rx * 1.2, Math.max(2, ry * 0.3), R5[0]);
+  R(g, x - rx * 0.42, y - ry * 0.6, rx * 0.3, 1, R5[4]);
+};
+/** Inside: the cave's back wall in banded rock (lit violet by the lava lamp from the right, black up top in the smoke),
+ *  stepped lumps of it, the black-light posters, the rug, the crate and the lava lamp, the bong, a pizza box. */
 const paintGrotto = (g: Ctx) => {
   const L = GROTTO.L, Rr = GROTTO.R;
-  // (inside: the back wall, rock in bands, lit purple by the lamp; the floor's rug)
   R(g, L, CAVE_TOP, Rr - L, GY - CAVE_TOP, ROCK[1]);
-  for (let y = CAVE_TOP + 20; y < GY; y += 40) for (let x = L + ((y / 40) % 2) * 30; x < Rr; x += 70) { g.fillStyle = ROCK[2]; g.beginPath(); g.ellipse(x + 30, y + 12, 34, 16, 0, 0, Math.PI * 2); g.fill(); R(g, x + 10, y, 30, 2, ROCK[3]); }
-  hazeBands(g, L, CAVE_TOP, Rr - L, 160, '#05030A', 0.6, 0, 5);
-  // (a black-light poster: a skull in a triangle, glowing; another, torn)
-  R(g, L + 220, GY - 300, 90, 120, INK); R(g, L + 224, GY - 296, 82, 112, '#1A0A2A');
-  g.strokeStyle = '#A3E635'; g.lineWidth = 3; g.beginPath(); g.moveTo(L + 265, GY - 280); g.lineTo(L + 296, GY - 200); g.lineTo(L + 234, GY - 200); g.closePath(); g.stroke();
-  g.fillStyle = '#F0ABFC'; g.beginPath(); g.ellipse(L + 265, GY - 226, 12, 11, 0, 0, Math.PI * 2); g.fill(); R(g, L + 259, GY - 228, 4, 4, '#1A0A2A'); R(g, L + 268, GY - 228, 4, 4, '#1A0A2A');
-  R(g, Rr - 330, GY - 280, 70, 90, INK); R(g, Rr - 326, GY - 276, 62, 82, '#2A0A18'); g.font = '8px "Press Start 2P"'; g.textAlign = 'center'; g.fillStyle = '#F472B6'; g.fillText('NOTHING', Rr - 295, GY - 240); g.fillText('MATTERS', Rr - 295, GY - 226); g.textAlign = 'left';
-  // (the rug: round, black and purple rings)
-  for (let k = 0; k < 4; k++) { g.fillStyle = ['#1A0A20', '#3A1450', '#1A0A20', '#2A0E3A'][k]; g.beginPath(); g.ellipse(L + 420, GY - 2, 240 - k * 50, 10 - k * 2, 0, 0, Math.PI * 2); g.fill(); }
-  // (the lava lamp on a crate; the bong; a pizza box)
-  R(g, Rr - 240, GY - 40, 44, 40, '#4A3220'); R(g, Rr - 240, GY - 40, 44, 3, '#7A5A38');
-  R(g, Rr - 228, GY - 96, 20, 56, INK); R(g, Rr - 226, GY - 94, 16, 52, '#7E22CE'); R(g, Rr - 230, GY - 46, 24, 6, '#A1A1AA'); R(g, Rr - 228, GY - 100, 20, 6, '#A1A1AA');
-  R(g, L + 520, GY - 70, 16, 70, INK); R(g, L + 522, GY - 68, 12, 66, 'rgba(120, 200, 160, 0.6)'); R(g, L + 534, GY - 40, 12, 3, '#A1A1AA'); R(g, L + 518, GY - 8, 20, 8, INK);
-  R(g, L + 140, GY - 8, 60, 8, INK); R(g, L + 142, GY - 7, 56, 6, '#C2A070'); g.font = '6px "Press Start 2P"'; g.fillStyle = '#B91C1C'; g.fillText('PIZZA', L + 152, GY - 2);
+  for (let y = CAVE_TOP + 10, n = 0; y < GY; y += 34, n++) for (let x = L + (n % 2) * 36 - 20; x < Rr + 30; x += 72) rockLump(g, x + 30, y + 14, 34 + hash(x + y) * 8, 15);
+  hazeBands(g, L, CAVE_TOP, Rr - L, 200, '#05030A', 0.7, 0, 6);
+  hazeBands(g, Rr - 360, GY - 260, 360, 260, '#7E22CE', 0, 0.16, 5);
+  // (a black-light poster: a skull in a triangle, glowing; another, torn: NOTHING MATTERS)
+  R(g, L + 218, GY - 302, 94, 124, INK); R(g, L + 222, GY - 298, 86, 116, '#1A0A2A'); checker(g, L + 222, GY - 298, 86, 116, '#240E38');
+  g.strokeStyle = '#3F6212'; g.lineWidth = 5; g.beginPath(); g.moveTo(L + 265, GY - 280); g.lineTo(L + 296, GY - 200); g.lineTo(L + 234, GY - 200); g.closePath(); g.stroke();
+  g.strokeStyle = '#A3E635'; g.lineWidth = 2; g.stroke();
+  g.fillStyle = '#86198F'; g.beginPath(); g.ellipse(L + 265, GY - 225, 13, 12, 0, 0, Math.PI * 2); g.fill();
+  g.fillStyle = '#F0ABFC'; g.beginPath(); g.ellipse(L + 264, GY - 227, 11, 10, 0, 0, Math.PI * 2); g.fill();
+  R(g, L + 258, GY - 229, 4, 4, '#1A0A2A'); R(g, L + 267, GY - 229, 4, 4, '#1A0A2A'); R(g, L + 261, GY - 220, 7, 2, '#1A0A2A');
+  R(g, L + 222, GY - 298, 86, 2, '#3A1A50');
+  R(g, Rr - 332, GY - 282, 74, 94, INK); R(g, Rr - 328, GY - 278, 66, 86, '#2A0A18'); checker(g, Rr - 328, GY - 278, 66, 86, '#3A0E22');
+  g.fillStyle = INK; g.beginPath(); g.moveTo(Rr - 262, GY - 282); g.lineTo(Rr - 258, GY - 240); g.lineTo(Rr - 276, GY - 230); g.lineTo(Rr - 258, GY - 188); g.lineTo(Rr - 258, GY - 282); g.fill();
+  g.font = '8px "Press Start 2P"'; g.textAlign = 'center'; g.fillStyle = '#831843'; g.fillText('NOTHING', Rr - 296, GY - 239); g.fillText('MATTERS', Rr - 296, GY - 225); g.fillStyle = '#F472B6'; g.fillText('NOTHING', Rr - 297, GY - 240); g.fillText('MATTERS', Rr - 297, GY - 226); g.textAlign = 'left';
+  // (the rug: round, black and purple rings, its fringe)
+  for (let k = 0; k < 5; k++) { g.fillStyle = ['#0E0612', '#1A0A20', '#3A1450', '#1A0A20', '#2A0E3A'][k]; g.beginPath(); g.ellipse(L + 420, GY - 2, 244 - k * 48, 11 - k * 2, 0, 0, Math.PI * 2); g.fill(); }
+  for (let x = L + 190; x < L + 650; x += 6) R(g, x, GY - 2 + Math.round(Math.abs(Math.sin((x - L - 420) / 244 * 1.5)) * 2), 2, 3, '#4A1D5A');
+  // (the crate the lava lamp's on; the bong; a pizza box)
+  const C = ['#2A1A0E', '#4A3220', '#6A4A2E', '#8A6A44'];
+  R(g, Rr - 241, GY - 41, 46, 41, INK); R(g, Rr - 240, GY - 40, 44, 40, C[1]); R(g, Rr - 240, GY - 40, 44, 3, C[3]); R(g, Rr - 240, GY - 40, 3, 40, C[2]); for (let y = GY - 30; y < GY; y += 10) R(g, Rr - 238, y, 40, 1, C[0]);
+  g.strokeStyle = C[0]; g.lineWidth = 2; g.beginPath(); g.moveTo(Rr - 238, GY - 38); g.lineTo(Rr - 198, GY - 2); g.stroke();
+  R(g, Rr - 229, GY - 98, 22, 60, INK); R(g, Rr - 227, GY - 96, 18, 54, '#581C87'); R(g, Rr - 227, GY - 96, 4, 54, '#7E22CE'); R(g, Rr - 213, GY - 96, 3, 54, '#3B0764');
+  R(g, Rr - 231, GY - 47, 26, 8, INK); R(g, Rr - 230, GY - 46, 24, 6, '#71717A'); R(g, Rr - 230, GY - 46, 24, 2, '#D4D4D8');
+  R(g, Rr - 229, GY - 102, 22, 8, INK); R(g, Rr - 228, GY - 101, 20, 6, '#71717A'); R(g, Rr - 228, GY - 101, 20, 2, '#D4D4D8');
+  R(g, L + 519, GY - 71, 18, 71, INK); R(g, L + 521, GY - 69, 14, 67, '#2A5A4A'); R(g, L + 522, GY - 68, 4, 64, '#5AAA8A'); R(g, L + 521, GY - 30, 14, 26, '#3A6A4A');
+  R(g, L + 534, GY - 42, 14, 4, INK); R(g, L + 535, GY - 41, 12, 2, '#A1A1AA'); R(g, L + 516, GY - 9, 24, 9, INK); R(g, L + 518, GY - 8, 20, 6, '#3A3A44');
+  R(g, L + 139, GY - 9, 62, 9, INK); R(g, L + 141, GY - 8, 58, 7, '#C2A070'); R(g, L + 141, GY - 8, 58, 2, '#E2C898'); g.font = '6px "Press Start 2P"'; g.fillStyle = '#B91C1C'; g.fillText('PIZZA', L + 152, GY - 2);
+  R(g, L + 156, GY - 12, 14, 4, '#F5D27A'); R(g, L + 158, GY - 12, 3, 2, '#B91C1C');
 };
-/** Its outside: the skull of rock over the mouth (its eyes glowing with the smoke inside, teeth over the door), the
- *  rock off up out of the screen either side; the grotto's sign stands on the deck before it (SIGNS2). */
+/** Its outside: the skull of rock over the mouth (its eye holes, its nose hole, its teeth over the door), lit from below
+ *  by the fire, a candle in each eye; SKULL GROTTO across its brow; rock off up out of the screen either side. */
 const paintSkull = (g: Ctx) => {
-  const x0 = GROTTO.door - 150, x1 = GROTTO.door + 170, top = CAVE_TOP - 140;
+  const x0 = GROTTO.door - 150, x1 = GROTTO.door + 170, top = CAVE_TOP - 140, cx = GROTTO.door + 10;
   R(g, x0, top, x1 - x0, GY - top, ROCK[2]);
-  for (let y = top; y < GY; y += 36) R(g, x0, y, x1 - x0, 2, ROCK[1]);
-  // (the skull: a dome over the mouth, two eye holes, a nose hole, teeth along the top of the door)
-  g.fillStyle = INK; g.beginPath(); g.ellipse(GROTTO.door + 10, GY - 260, 150, 170, 0, Math.PI, 0); g.fill();
-  g.fillStyle = ROCK[3]; g.beginPath(); g.ellipse(GROTTO.door + 10, GY - 260, 144, 164, 0, Math.PI, 0); g.fill();
-  R(g, GROTTO.door - 134, GY - 262, 288, 262, ROCK[3]);
-  for (const ex of [-60, 70]) { g.fillStyle = INK; g.beginPath(); g.ellipse(GROTTO.door + 10 + ex, GY - 300, 34, 28, 0, 0, Math.PI * 2); g.fill(); }
-  g.fillStyle = INK; g.beginPath(); g.moveTo(GROTTO.door + 10, GY - 270); g.lineTo(GROTTO.door - 4, GY - 236); g.lineTo(GROTTO.door + 24, GY - 236); g.closePath(); g.fill();
-  // (the mouth: the cave's opening, dark, the door in it)
+  for (let y = top, n = 0; y < GY; y += 30, n++) for (let x = x0 - 20 + (n % 2) * 30; x < x1 + 20; x += 60) rockLump(g, x + 30, y + 12, 30, 13);
+  // (the skull: a dome over the mouth, banded in its bone-rock ramp, cheekbones, eye holes, a nose hole)
+  const S = ['#3A2A30', '#5A4650', '#7A6470', '#9A8490', '#BCA8B0'];
+  g.fillStyle = INK; g.beginPath(); g.ellipse(cx, GY - 260, 152, 172, 0, Math.PI, 0); g.fill(); R(g, cx - 152, GY - 262, 304, 262, INK);
+  for (let k = 0; k < 4; k++) { g.fillStyle = S[1 + k]; g.beginPath(); g.ellipse(cx - k * 10, GY - 262 - k * 8, 148 - k * 30, 168 - k * 34, 0, Math.PI, 0); g.fill(); }
+  R(g, cx - 148, GY - 262, 296, 262, S[1]); R(g, cx - 148, GY - 262, 296, 40, S[2]); checker(g, cx - 148, GY - 226, 296, 4, S[1]);
+  R(g, cx - 148, GY - 262, 30, 262, S[3]); R(g, cx + 118, GY - 262, 30, 262, S[0]);
+  for (const ex of [-60, 70]) { g.fillStyle = INK; g.beginPath(); g.ellipse(cx + ex, GY - 300, 36, 30, 0, 0, Math.PI * 2); g.fill(); g.fillStyle = '#1A0A10'; g.beginPath(); g.ellipse(cx + ex + 4, GY - 296, 26, 20, 0, 0, Math.PI * 2); g.fill(); R(g, cx + ex - 30, GY - 322, 40, 3, S[4]); }
+  g.fillStyle = INK; g.beginPath(); g.moveTo(cx, GY - 270); g.lineTo(cx - 16, GY - 234); g.lineTo(cx + 16, GY - 234); g.closePath(); g.fill();
+  for (const sx of [-1, 1]) { g.fillStyle = S[0]; g.beginPath(); g.ellipse(cx + sx * 96, GY - 240, 40, 12, 0, 0, Math.PI); g.fill(); }
+  // (cracks across it)
+  g.strokeStyle = INK; g.lineWidth = 2; g.beginPath(); g.moveTo(cx - 40, GY - 420); g.lineTo(cx - 30, GY - 380); g.lineTo(cx - 44, GY - 350); g.moveTo(cx + 100, GY - 360); g.lineTo(cx + 84, GY - 330); g.stroke();
+  // (the mouth: the cave's opening, dark, its teeth along the top)
   R(g, GROTTO.door - 70, GY - 200, 150, 200, INK);
-  for (let k = 0; k < 6; k++) { R(g, GROTTO.door - 66 + k * 24, GY - 212, 20, 18, '#D8CCB8'); R(g, GROTTO.door - 66 + k * 24, GY - 212, 20, 3, '#F4ECDC'); R(g, GROTTO.door - 48 + k * 24, GY - 212, 2, 18, INK); }
-  g.font = '10px "Press Start 2P"'; g.textAlign = 'center'; g.fillStyle = INK; g.fillText('SKULL GROTTO', GROTTO.door + 11, GY - 389); g.fillStyle = '#FDE047'; g.fillText('SKULL GROTTO', GROTTO.door + 10, GY - 390); g.textAlign = 'left';
+  for (let k = 0; k < 6; k++) { const tx = GROTTO.door - 66 + k * 24; R(g, tx - 1, GY - 214, 22, 22, INK); R(g, tx, GY - 213, 20, 18, '#C8BCA8'); R(g, tx, GY - 213, 20, 3, '#F4ECDC'); R(g, tx, GY - 213, 3, 18, '#E2D6C2'); R(g, tx + 16, GY - 210, 4, 15, '#9A8E7C'); R(g, tx + 4, GY - 197, 12, 2, '#9A8E7C'); }
+  // (its name across the brow: bone letters, inked, dropped)
+  g.font = '10px "Press Start 2P"'; g.textAlign = 'center'; g.fillStyle = INK; g.fillText('SKULL GROTTO', cx + 2, GY - 387); g.fillStyle = '#A16207'; g.fillText('SKULL GROTTO', cx + 1, GY - 389); g.fillStyle = '#FDE047'; g.fillText('SKULL GROTTO', cx, GY - 390); g.textAlign = 'left';
+  // (lit from below by the fire: warm bands up its foot)
+  g.globalCompositeOperation = 'source-atop'; hazeBands(g, x0, GY - 160, x1 - x0, 160, '#C2410C', 0, 0.3, 5); g.globalCompositeOperation = 'source-over';
 };
 /** The door: a plywood board over the mouth (KEEP OUT. SERIOUSLY. sprayed on), `down` 0..1 kicked in flat. */
+const PLY = ['#6A4A26', '#A8824C', '#C8A26C', '#DEC08A', '#F2DCAE'];
 const drawDoor = (c: Ctx, down: number) => {
   const x = GROTTO.door - 60, w = 130, h = 196;
-  if (down >= 1) { R(c, x - 8, GY - 10, w + 16, 10, INK); R(c, x - 6, GY - 9, w + 12, 8, '#B08A58'); return; }
+  if (down >= 1) { R(c, x - 8, GY - 10, w + 16, 10, INK); R(c, x - 6, GY - 9, w + 12, 8, PLY[2]); R(c, x - 6, GY - 9, w + 12, 2, PLY[4]); R(c, x - 6, GY - 3, w + 12, 2, PLY[0]); return; }
   const k = down, hh = h * (1 - k * 0.95);
-  R(c, x, GY - hh, w, hh, INK); R(c, x + 2, GY - hh + 2, w - 4, hh - 2, '#C8A26C');
-  for (let y = GY - hh + 18; y < GY; y += 22) R(c, x + 2, y, w - 4, 1, '#A8824C');
-  if (k < 0.3) { c.font = '9px "Press Start 2P"'; c.textAlign = 'center'; c.fillStyle = '#1A1A1A'; c.fillText('KEEP OUT.', x + w / 2, GY - hh + 70); c.fillText('SERIOUSLY.', x + w / 2, GY - hh + 90); c.fillStyle = '#B91C1C'; c.fillText('- M', x + w / 2 + 30, GY - hh + 114); c.textAlign = 'left'; }
+  R(c, x, GY - hh, w, hh, INK); R(c, x + 2, GY - hh + 2, w - 4, hh - 2, PLY[2]);
+  R(c, x + 2, GY - hh + 2, w - 4, 2, PLY[4]); R(c, x + 2, GY - hh + 2, 3, hh - 2, PLY[3]); R(c, x + w - 6, GY - hh + 2, 4, hh - 2, PLY[1]);
+  for (let y = GY - hh + 18; y < GY; y += 22) { R(c, x + 2, y, w - 4, 1, PLY[1]); R(c, x + 2, y + 1, w - 4, 1, PLY[3]); }
+  for (let y = GY - hh + 10; y < GY - 8; y += 40) for (const nx of [x + 8, x + w - 10]) R(c, nx, y, 2, 2, '#52525B');
+  if (k < 0.3) { c.font = '9px "Press Start 2P"'; c.textAlign = 'center'; c.fillStyle = '#7F1D1D'; c.fillText('KEEP OUT.', x + w / 2 + 1, GY - hh + 71); c.fillText('SERIOUSLY.', x + w / 2 + 1, GY - hh + 91); c.fillStyle = '#1A1A1A'; c.fillText('KEEP OUT.', x + w / 2, GY - hh + 70); c.fillText('SERIOUSLY.', x + w / 2, GY - hh + 90); c.fillStyle = '#B91C1C'; c.fillText('- M', x + w / 2 + 30, GY - hh + 114); c.textAlign = 'left'; for (let k2 = 0; k2 < 3; k2++) R(c, x + 30 + k2 * 26, GY - hh + 74, 1, 6 + k2 * 3, '#1A1A1A'); }
 };
 /** The back of the grotto (the way out, after): a wall of rock (shut), or the rock slab rolled aside (`open`). */
 const drawBackWall = (c: Ctx, open: number) => {
   const x = GROTTO.R;
-  R(c, x - 10, CAVE_TOP, 80, GY - CAVE_TOP, ROCK[2]);
-  if (open > 0) { R(c, x - 6, GY - 180, 76, 180, INK); for (let k = 0; k < 4; k++) R(c, x - 6, GY - 40 - k * 36, 76, 36, ['#2A1208', '#1E0E08', '#140A08', '#0E0808'][k]); }
-  for (let y = CAVE_TOP; y < GY - (open > 0 ? 180 : 0); y += 30) R(c, x - 10, y, 80, 2, ROCK[1]);
+  stamp(c, `wp2-backwall-${open > 0 ? 1 : 0}`, x - 12, CAVE_TOP, 86, GY - CAVE_TOP, g => {
+    R(g, x - 10, CAVE_TOP, 80, GY - CAVE_TOP, ROCK[2]);
+    for (let y = CAVE_TOP + 10, n = 0; y < GY - (open > 0 ? 190 : 0); y += 30, n++) rockLump(g, x + 30 + (n % 2) * 10, y + 10, 34, 13);
+    if (open > 0) { R(g, x - 6, GY - 180, 76, 180, INK); for (let k = 0; k < 4; k++) R(g, x - 6, GY - 40 - k * 36, 76, 36, ['#2A1208', '#1E0E08', '#140A08', '#0E0808'][k]); checker(g, x - 6, GY - 44, 76, 4, '#2A1208'); R(g, x - 6, GY - 182, 76, 3, ROCK[4]); }
+    R(g, x - 10, CAVE_TOP, 3, GY - CAVE_TOP, ROCK[4]);
+  });
 };
 /** The beanbag (his): a slumped black-and-purple sack, his ass's dent in it. */
 const drawBeanbag = (c: Ctx, x: number) => {
-  c.fillStyle = INK; c.beginPath(); c.ellipse(x, GY - 24, 50, 28, 0, 0, Math.PI * 2); c.fill();
-  c.fillStyle = '#2A1440'; c.beginPath(); c.ellipse(x, GY - 24, 47, 25, 0, 0, Math.PI * 2); c.fill();
-  c.fillStyle = '#3E1E5A'; c.beginPath(); c.ellipse(x - 12, GY - 32, 26, 12, 0, 0, Math.PI * 2); c.fill();
-  c.fillStyle = '#160A22'; c.beginPath(); c.ellipse(x + 6, GY - 34, 20, 8, 0, 0, Math.PI * 2); c.fill();
+  c.save(); c.translate(Math.round(x), GY);
+  stamp(c, 'wp2-beanbag', -54, -56, 108, 60, g => {
+    g.fillStyle = INK; g.beginPath(); g.ellipse(0, -24, 51, 29, 0, 0, Math.PI * 2); g.fill();
+    for (const [rx, ry, dx, dy, col] of [[48, 26, 0, 0, '#1E0E30'], [44, 22, -2, -2, '#2A1440'], [32, 15, -10, -8, '#3E1E5A'], [16, 7, -18, -14, '#5A2E7A']] as const) { g.fillStyle = col; g.beginPath(); g.ellipse(dx, -24 + dy, rx, ry, 0, 0, Math.PI * 2); g.fill(); }
+    g.fillStyle = '#160A22'; g.beginPath(); g.ellipse(6, -34, 20, 8, 0, 0, Math.PI * 2); g.fill();
+    checker(g, -40, -12, 80, 6, '#160A22');
+    g.strokeStyle = '#4A2A6A'; g.lineWidth = 1; g.beginPath(); g.moveTo(-30, -40); g.quadraticCurveTo(0, -48, 30, -40); g.stroke();
+  });
+  c.restore();
 };
-
 export interface Draw2 { door: number; backOpen: number; inGrotto: boolean; beanbag: number }
 /** World space, behind everything that moves. */
 export const drawBack2 = (c: Ctx, state: GameState, d: Draw2, river: () => void, mid: () => void) => {
@@ -241,8 +283,18 @@ export const drawBack2 = (c: Ctx, state: GameState, d: Draw2, river: () => void,
 export const drawFront2 = (c: Ctx, state: GameState) => {
   if (!vis(state, GROTTO.L - 40, GROTTO.R + 80)) return;
   // (the ceiling: rock hanging over the top of the screen, stalactites)
-  R(c, GROTTO.L - 20, CAVE_TOP - 400, GROTTO.R - GROTTO.L + 100, 420, ROCK[0]);
-  for (let x = GROTTO.L; x < GROTTO.R + 60; x += 46) { c.fillStyle = ROCK[1]; c.beginPath(); c.moveTo(x, CAVE_TOP + 18); c.lineTo(x + 18, CAVE_TOP + 18); c.lineTo(x + 8, CAVE_TOP + 40 + hash(x) * 40); c.closePath(); c.fill(); }
+  stamp(c, 'wp2-ceiling', GROTTO.L - 20, CAVE_TOP - 400, GROTTO.R - GROTTO.L + 100, 490, g => {
+    R(g, GROTTO.L - 20, CAVE_TOP - 400, GROTTO.R - GROTTO.L + 100, 420, ROCK[0]);
+    checker(g, GROTTO.L - 20, CAVE_TOP + 10, GROTTO.R - GROTTO.L + 100, 6, ROCK[1]);
+    // (stalactites: inked, lit down their left, dripping)
+    for (let x = GROTTO.L; x < GROTTO.R + 60; x += 46) {
+      const h = 40 + hash(x) * 40;
+      g.fillStyle = INK; g.beginPath(); g.moveTo(x - 1, CAVE_TOP + 16); g.lineTo(x + 19, CAVE_TOP + 16); g.lineTo(x + 8, CAVE_TOP + h + 2); g.closePath(); g.fill();
+      g.fillStyle = ROCK[2]; g.beginPath(); g.moveTo(x, CAVE_TOP + 18); g.lineTo(x + 18, CAVE_TOP + 18); g.lineTo(x + 8, CAVE_TOP + h); g.closePath(); g.fill();
+      g.fillStyle = ROCK[3]; g.beginPath(); g.moveTo(x + 1, CAVE_TOP + 18); g.lineTo(x + 7, CAVE_TOP + 18); g.lineTo(x + 8, CAVE_TOP + h - 4); g.closePath(); g.fill();
+      R(g, x + 7, CAVE_TOP + h, 2, 3, ROCK[4]);
+    }
+  });
 };
 
 /** Level 3's start: the river's end, a concrete service wall with a steel door in it, MAINTENANCE stenciled over,
