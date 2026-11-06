@@ -74,6 +74,16 @@ export interface TubeRide {
   air: { vy: number; hold: number } | null; hurtWas: number;
 }
 const PATHS: Path[][][] = TUBES.map(t => t.laps.map(l => l.pieces.map(pathOf)));
+/** How far the tube's squashed flat under him (looks only: Player.tubeSit, art.ts drawTubeRing): settled under his
+ *  weight sat, flexing with the chute, slammed flat on a landing, sprung back round up in the air. */
+let squash = 0;
+const sitIn = (state: GameState, sat: boolean, landed: boolean) => {
+  const p = state.player;
+  if (landed) squash = 1;
+  const want = sat ? 0.5 + Math.sin(state.frame * 0.13) * 0.12 : 0;
+  squash += (want - squash) * (squash > want ? 0.12 : 0.25);
+  p.tubeSit = { squash };
+};
 /** The lap each ride's on (the chute's middle differs lap to lap: geo.ts laps). */
 const LAP = TUBES.map(() => 0);
 export const tubeLapNo = (i: number) => LAP[i];
@@ -120,14 +130,14 @@ export const boardTube = (state: GameState, r: TubeRide, i: number, card: boolea
   p.isCharging = false; p.isSliding = false; p.isDivekicking = false; p.isUppercutting = false;
   p.pos.x = at.x0 - p.width / 2; p.pos.y = at.y0 - SEAT - p.height; p.vel.x = 0; p.vel.y = 0;
   // (the card: sat still in it till it's closed)
-  p.carried = card; p.logSeat = true;
+  p.carried = card; p.logSeat = true; p.tubeSit = { squash: 0.5 }; squash = 0.5;
   setGroundGrabsOff(true);
   playSound('splash', 0.8, -2);
   setUi({ pauseControls: 'tube' });
 };
 export const unboardTube = (state: GameState, r: TubeRide) => {
   const p = state.player;
-  p.carried = false; p.logSeat = false; p.spriteRot = 0;
+  p.carried = false; p.logSeat = false; p.spriteRot = 0; p.tubeSit = null;
   state.cameraOverride = null;
   floorOff(state, r);
   setGroundGrabsOff(false);
@@ -165,6 +175,7 @@ export const updateTube = (ctx: FrameContext, r: TubeRide, controls: Controls, e
   if (p.health <= 0 && r.mode !== 'fall') { r.mode = 'off'; unboardTube(state, r); return controls; }
   if (r.mode === 'card') {
     p.carried = true; p.logSeat = true; p.isGrounded = true; p.vel.x = 0; p.vel.y = 0;
+    sitIn(state, true, false);
     state.cameraOverride = { x: Math.max(0, r.x - 250), y: r.camY };
     return { left: false, right: false, up: false, down: false, jump: false, special: false, shoot: false };
   }
@@ -189,6 +200,7 @@ export const updateTube = (ctx: FrameContext, r: TubeRide, controls: Controls, e
     floorOff(state, r);
     r.x = mid(); r.y = feet() + SEAT;
     p.logSeat = true; p.spriteRot = Math.min(1.2, r.fallT * 0.03);
+    sitIn(state, false, false);
     state.cameraOverride = { x: state.cameraOverride?.x ?? Math.max(0, r.x - 250), y: r.camY };
     setUi({ pauseControls: 'tube' });
     return { ...controls, left: false, right: false, jump: false, special: false, charge: false, up: false, shoot: false };
@@ -246,6 +258,9 @@ export const updateTube = (ctx: FrameContext, r: TubeRide, controls: Controls, e
   const seated = p.isGrounded && !moving && !p.isCharging && !poser;
   p.logSeat = seated;
   p.spriteRot = seated && under ? under.a : 0;
+  // (the look of him in it: sat in its hole whatever he's doing but an air grab (the grab draws him) or the spellbook or
+  // the hammer (stood up in it, as on land))
+  if (grabBusy() || poser) p.tubeSit = null; else sitIn(state, seated, seated && !!r.air);
   r.x = cx; r.y = feet() + SEAT;
   if (r.t % 7 === 0 && seated) playSound('splash', 0.1, 8 + Math.random() * 4);
   // ---- the low pipes over the chute: his head (or him, up in a jump) as one goes over

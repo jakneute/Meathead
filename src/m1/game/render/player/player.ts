@@ -10,6 +10,7 @@ import { drawTragonPose } from './tragonPose';
 import { drawBroomRidePose } from './broomPose';
 import { seatPunchLean, drawSeatPunchArm, drawSeatPunchBackArm } from './seatPunch';
 import { paddleLean, drawPaddleBackArm, drawPaddleFront, paddleShown } from './paddlePose';
+import { tubeLean, drawTubeBackArm, drawTubeLegs, TUBE_PIVOT, type TubeLook } from './tubePose';
 import { drawCatPlayer, setCatBody } from './catBody';
 import { BOULDER_THROW_FRAMES, GUN_COOLDOWN, COLORS, INITIAL_PLAYER_HEALTH, PLAYER_TERMINAL_VELOCITY, PLAYER_MOVE_SPEED, PLAYER_INVINCIBILITY_FRAMES, SPECIAL_HURT_FRAMES } from '../../../constants';
 import { peeProgress } from '../../scenes/victoryPee';
@@ -183,6 +184,9 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
   const vineMode = vine?.mode;
   // (on a ladder, Meathead 2's: he's on a vine, hanging, as far as everything else knows; these are his poses on it)
   const ladder = vine && p.ladder ? p.ladder : null;
+  // (parked in an inner tube, Meathead 2's water park: sat in its hole whatever he's doing but a move (render/player/tubePose.ts))
+  const tubeLook: TubeLook | null = p.tubeSit && hurtT < 0 && !isCharging && !isUppercutting && !isDivekicking && !vine
+    ? { air: isAirborne, duck: isDucking, hurt: isHurt, squash: p.tubeSit.squash, f: animFrame, fall: Math.max(0, Math.min(1, (p.vel.y + 6) / 12)) } : null;
   // On skis: a racer's crouch going along (knees bent, leaning into it, the off arm back for balance), knees tucked up
   // in the air, and right down in an egg tuck ducking
   const isSki = !!p.skiing && !p.jetski && hurtT < 0 && !isCharging && !isUppercutting && !isDivekicking;
@@ -463,6 +467,9 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
   } else if (isUppercutting) {
     bodyRot = -0.15; // Dynamic backward launch arch
     bodyY = -6;
+  } else if (tubeLook) {
+    // Parked in the tube: slouched back in its hole (turned about his butt: below)
+    const l = tubeLean(tubeLook); bodyRot = l.rot; bodyY = l.y;
   } else if (lounging && !logSeated && p.seatPunch !== undefined) {
     // A haymaker from the seat: leaning back to load it, then up out of it and right into the throw
     const l = seatPunchLean(p.seatPunch); bodyRot = l.rot; bodyY = l.y;
@@ -528,6 +535,10 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
     ctx.translate(GRIP[0], GRIP[1] + bodyY);
     ctx.rotate(bodyRot);
     ctx.translate(-GRIP[0], -GRIP[1]);
+  } else if (tubeLook) {
+    ctx.translate(0, bodyY + TUBE_PIVOT);
+    ctx.rotate(bodyRot);
+    ctx.translate(0, -TUBE_PIVOT);
   } else if (spinAroundCenter) {
     ctx.translate(0, bodyY - 32);
     ctx.rotate(bodyRot);
@@ -613,6 +624,9 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
     ctx.arc(-30, -34, 5, 0, Math.PI * 2); // Fist
     ctx.fill();
     armorLimb(ctx, [-14, -38], [-16, -34], [-26, -34], [-30, -34], 5, true);
+  } else if (tubeLook) {
+    // Thrown back over the tube's back rim
+    drawTubeBackArm(ctx, tubeLook);
   } else if (lounging && !logSeated && p.seatPunch !== undefined) {
     // (the haymaker: braced on the seat in front)
     drawSeatPunchBackArm(ctx);
@@ -772,6 +786,9 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
       const s = Math.sin(ph + off), up = Math.max(0, Math.cos(ph + off));
       drawJointedLeg(ctx, hip, -22, -0.25 + s * 0.45 - up * 0.35, 0.35 + up * 0.85, col, near);
     }
+  } else if (tubeLook) {
+    // Hung over the tube's front, the boots dangling
+    drawTubeLegs(ctx, tubeLook);
   } else if (isSeated && p.bike) {
     // On the bike: feet on the pedals, going round (how far round's how far he's gone)
     drawPedalLegs(ctx, p.pos.x / 14);

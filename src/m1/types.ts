@@ -275,6 +275,10 @@ export interface Player extends Entity {
   /** Sat down inside a log-flume log (Meathead 2's Wilderness Land, frontier/logride/ride.ts): the cart's seat, sat up,
    *  legs out forward down in the log, the free hand gripping its side, the gun hand his own; ducked, hunched down in it. */
   logSeat?: boolean;
+  /** Parked in an inner tube (Meathead 2's water park tube rides, endgame/park1/tube.ts): drawn sat down in its hole,
+   *  his butt in the ring, legs hung over its front, the free arm over its back; in the air too (the tube's stuck to
+   *  him). Looks only: `squash` how far the tube's flattened under him right now (0..1), set by the ride. */
+  tubeSit?: { squash: number } | null;
   /** Paddling the log (Meathead 2's log ride, sat in it, not mid-hop): `mode` 1 boosting (hard strokes), -1 braking
    *  (the blade planted, braced); `t` frames into it (render/player/paddlePose.ts). */
   logPaddle?: { mode: 1 | -1; t: number };

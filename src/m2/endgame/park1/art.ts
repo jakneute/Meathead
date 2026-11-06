@@ -31,6 +31,8 @@ import { SLIDE_PATHS, pointAt, surfaceAt, type Path } from './slides';
 import { tubePaths, tubeLap, tubeLapNo, PIPE_CLEAR, GAP_WARN } from './tube';
 import { FLOOR_LEDGES, DOORS_X, ROUND, FACE } from './tower';
 import { elbowFront, kneeFront } from '../../art/limb';
+import { grabBusy } from '../../moves/grab';
+import { TUBE_RING } from '../../../m1/game/render/player/tubePose';
 
 type Ctx = CanvasRenderingContext2D;
 const INK = '#0A0806';
@@ -300,10 +302,10 @@ const paintBackdrop = (c: Ctx, state: GameState, shift: number) => {
     }
     if (by < H) R(c, 0, Math.round(by), W, H - Math.round(by), farTint('#0A1020', 0.8));
   }
+  const dz = dropOf(state);
   // (over a tube ride's drop: the mist rising out of it, thin up high, thickening down to the haze's top (drawTubeBack
   // carries on from there, in front of the legs): the slides far down under him go into it, so none of them reads as
   // somewhere a fall would land; stepped in over the drop's ends (the tower's, the splash pool's), no hard edge)
-  const dz = dropOf(state);
   if (dz) {
     const x0 = Math.max(0, Math.round(dz.a - state.camera.x)), x1 = Math.min(W, Math.round(dz.b - state.camera.x));
     const ST = 5, SW = 28, SH = 36, base = Math.min(H + 20, dz.top - Math.round(state.camera.y)), y1 = Math.min(H, base, drop ? drop.y : H);
@@ -1099,11 +1101,19 @@ const lowestAt = (i: number, x0: number, x1: number) => { let y = -Infinity; for
 //   drawTubeFront (world, in front of him): the chute's near wall, the pipes' ends (end on, coming at us off their risers'
 //     elbows, a LOW plate on struts on top).
 
-/** The rides' looks: the stripe along the near wall (and the canopy's color), the print on the plastic (the Black Hole's
- *  stars, the Abyss's embers). */
-const TUBE_LOOK: Record<string, { accent: string; print: string[] }> = {
+/** The rides' looks: the chute's plastic (the Black Hole's deep-space indigo; the Abyss's deep-sea teal), the stripe
+ *  along the near wall (and the canopy's color), the print on the plastic (the Black Hole's stars, the Abyss's glowing
+ *  plankton). */
+const TUBE_LOOK: Record<string, { body?: string; accent: string; print: string[] }> = {
   blackHole: { accent: '#7C3AED', print: ['#F8FAFC', '#C4B5FD', '#818CF8'] },
-  abyss: { accent: '#EA580C', print: ['#FDBA74', '#F97316', '#FDE047'] },
+  abyss: { body: '#0F3A50', accent: '#F59E0B', print: ['#67E8F9', '#A7F3D0', '#22D3EE'] },
+};
+const tubeCol = (T: Tube) => (TUBE_LOOK[T.id]?.body ?? T.col);
+/** Dotted along a line (1 on, 1 off), two rows staggered: a dithered seam between two of a ramp's steps. */
+const ditherAlong = (g: Ctx, pts: [number, number][], dy: number, col: string) => {
+  g.lineCap = 'butt';
+  for (const [d, o] of [[0, 0], [1, 1]] as const) { g.lineDashOffset = o; along(g, pts, dy + d, 1, col, [1, 1]); }
+  g.lineDashOffset = 0;
 };
 /** Marks along the chute (its joints, its print, the foam) are anchored to the world and repeat every PERIOD: both
  *  loops' lengths are multiples of it, so the carry back shows the same marks either side. */
@@ -1124,14 +1134,21 @@ const GOLD = ['#6B4A04', '#A87A0A', '#FACC15', '#FDE68A', '#FFF9DB'];
 const tubeBack = (g: Ctx, P: Path, T: Tube, x0: number, x1: number) => {
   const pts = near(tubePts(P), x0 - 80, x1 + 80);
   if (pts.length < 2) return;
-  const C = ramp5(T.col), Lk = TUBE_LOOK[T.id] ?? TUBE_LOOK.blackHole;
+  const C = ramp5(tubeCol(T)), Lk = TUBE_LOOK[T.id] ?? TUBE_LOOK.blackHole;
   g.lineCap = 'round'; g.lineJoin = 'round';
-  along(g, pts, -7, 30, INK);
-  along(g, pts, -7, 26, C[1]);
-  along(g, pts, -9, 17, C[2]);
-  along(g, pts, -18, 4, C[3]);
-  along(g, pts, -19, 1.5, C[4]);
+  // (the trough: inked, its shade, the inside of its far wall in its body color, stepped up to the rolled rim along its
+  // top (lit, a glint along it), the seams dithered; dark under)
+  along(g, pts, -7, 31, INK);
+  along(g, pts, -7, 27, C[1]);
+  along(g, pts, -10, 17, C[2]);
+  along(g, pts, -15, 6, mix(C[2], C[3], 0.5));
+  along(g, pts, -19, 4, C[3]);
+  along(g, pts, -20.5, 1.5, C[4]);
+  along(g, pts, -20.5, 1, '#FFFFFF', [3, 17]);
+  ditherAlong(g, pts, -2, C[1]);
+  ditherAlong(g, pts, -13, C[2]);
   along(g, pts, 5, 3, C[0]);
+  along(g, pts, 7.5, 1, INK);
   g.lineCap = 'butt'; g.lineJoin = 'miter';
   const lo = Math.max(x0 - 24, pts[0][0]), hi = Math.min(x1 + 24, pts[pts.length - 1][0]);
   for (let x = Math.ceil(lo / 16) * 16; x <= hi; x += 16) {
@@ -1142,18 +1159,23 @@ const tubeBack = (g: Ctx, P: Path, T: Tube, x0: number, x1: number) => {
     const n = hash(m * 0.37);
     if (n < 0.45) R(g, x + Math.floor(hash(m + 3) * 12), y - 16 + Math.floor(hash(m + 7) * 8), n < 0.1 ? 2 : 1, 1, Lk.print[Math.floor(hash(m + 11) * 3) % 3]);
   }
+  // (the water running down it, in bands: the deep of it, the run, the bright of the rush, its foam along the top (its
+  // streaks rushing on: drawTubeFlow, live))
   g.lineCap = 'round'; g.lineJoin = 'round';
-  along(g, pts, -2, 9, '#1D5C99');
-  along(g, pts, -3, 6, 'rgba(120, 205, 255, 0.95)');
-  along(g, pts, -5, 2, '#E0F2FE');
+  along(g, pts, -2, 11, '#123F72');
+  along(g, pts, -2.5, 8, '#1F64A8');
+  along(g, pts, -3.5, 5, '#3E92D6');
+  along(g, pts, -5, 2.5, '#8FD3FF');
+  along(g, pts, -6.5, 1, '#E0F2FE');
+  ditherAlong(g, pts, 0.5, '#1F64A8');
   g.lineCap = 'butt'; g.lineJoin = 'miter';
-  for (let x = Math.ceil(lo / 24) * 24; x <= hi; x += 24) { const q = surfaceAt(P, x); if (q && hash(mod(x) * 0.71) < 0.6) R(g, x, Math.round(q.y) - 6, 3, 1, '#FFFFFF'); }
+  for (let x = Math.ceil(lo / 24) * 24; x <= hi; x += 24) { const q = surfaceAt(P, x); if (q && hash(mod(x) * 0.71) < 0.6) R(g, x, Math.round(q.y) - 7, 3, 1, '#FFFFFF'); }
 };
 /** A piece's ends at the gaps (`first`: its start, `last`: its end): the last stretch of the trough striped yellow and
  *  black (lit along the top), the end snapped off ragged (a cracked lip of the plastic, a shard hanging), a bolt rod
  *  bent out of the break. */
 const brokenEnds = (g: Ctx, P: Path, T: Tube, first: boolean, last: boolean) => {
-  const C = ramp5(T.col), ends: [number, number][] = [];
+  const C = ramp5(tubeCol(T)), ends: [number, number][] = [];
   if (last) ends.push([P.len - 64, P.len]);
   if (first) ends.push([0, 40]);
   for (const [s0, s1] of ends) {
@@ -1180,15 +1202,20 @@ const brokenEnds = (g: Ctx, P: Path, T: Tube, first: boolean, last: boolean) => 
 const tubeFrontPaint = (g: Ctx, P: Path, T: Tube, x0: number, x1: number) => {
   const pts = near(tubePts(P), x0 - 80, x1 + 80);
   if (pts.length < 2) return;
-  const C = ramp5(T.col), Lk = TUBE_LOOK[T.id] ?? TUBE_LOOK.blackHole;
+  const C = ramp5(tubeCol(T)), Lk = TUBE_LOOK[T.id] ?? TUBE_LOOK.blackHole;
   g.lineCap = 'round'; g.lineJoin = 'round';
-  along(g, pts, 2, 15, INK);
-  along(g, pts, 2, 11, C[1]);
-  along(g, pts, 1, 7, C[2]);
-  along(g, pts, 3.5, 2, Lk.accent);
-  along(g, pts, -2.5, 2, C[3]);
+  // (the near wall: inked, its shade, its body, the rolled lip along its top (lit, a glint, wet), the ride's stripe
+  // (inked under), the shade dithered in toward its foot)
+  along(g, pts, 2, 16, INK);
+  along(g, pts, 2, 12, C[1]);
+  along(g, pts, 0.5, 8, C[2]);
+  along(g, pts, -2.5, 3, C[3]);
   along(g, pts, -3.5, 1, C[4]);
-  along(g, pts, 7.5, 1.5, C[0]);
+  along(g, pts, -3.5, 1, '#FFFFFF', [2, 21]);
+  along(g, pts, 4, 2.5, mix(Lk.accent, INK, 0.5));
+  along(g, pts, 3.5, 1.5, Lk.accent);
+  ditherAlong(g, pts, 5.5, C[0]);
+  along(g, pts, 8, 1.5, C[0]);
   g.lineCap = 'butt'; g.lineJoin = 'miter';
   const lo = Math.max(x0 - 24, pts[0][0]), hi = Math.min(x1 + 24, pts[pts.length - 1][0]);
   for (let x = Math.ceil(lo / 80) * 80; x <= hi; x += 80) { const q = surfaceAt(P, x); if (!q) continue; const y = Math.round(q.y); R(g, x - 1, y - 3, 2, 11, C[0]); R(g, x + 1, y - 3, 1, 11, C[3]); R(g, x - 1, y + 2, 2, 2, C[4]); }
@@ -1373,6 +1400,21 @@ const drawTubeBack = (c: Ctx, state: GameState, T: Tube, i: number) => {
       g.restore();
     });
   }
+  drawTubeFlow(c, state, T, i);
+};
+/** The water rushing down the chute (live: two strokes a frame): foam streaks on its top, world-anchored every 48 (the
+ *  loops' lengths are multiples of it: no jump at the carry back), running on faster than the tube rides it. */
+const drawTubeFlow = (c: Ctx, state: GameState, T: Tube, i: number) => {
+  const paths = tubePaths(i), cx = state.camera.x, ph = (state.frame * T.speed * 1.7) % 48;
+  for (const [dx, len, dy, col] of [[0, 12, -5.5, 'rgba(255, 255, 255, 0.8)'], [26, 6, -3.5, 'rgba(191, 230, 255, 0.6)']] as const) {
+    c.beginPath();
+    for (let x = Math.floor((cx - 60) / 48) * 48 + ph + dx; x < cx + W + 20; x += 48) {
+      const y0 = chuteY(paths, x), y1 = chuteY(paths, x + len);
+      if (y0 === null || y1 === null || !visY(state, y0 - 10, y0 + 10, 0)) continue;
+      c.moveTo(Math.round(x), Math.round(y0 + dy)); c.lineTo(Math.round(x + len), Math.round(y1 + dy));
+    }
+    c.strokeStyle = col; c.lineWidth = 1; c.stroke();
+  }
 };
 /** The GAP sign's letters: the warning stenciled in ink, JUMP in red enamel. */
 const GAP_L1: Look = { sx: 1, sy: 2, fill: '#1A1206', gap: 1, bold: true };
@@ -1459,13 +1501,69 @@ export const drawTubeHud = (c: Ctx, left: number, band: { x1: number; x2: number
   R(c, band.mid - w / 2, 22, w, 16, 'rgba(10, 8, 6, 0.75)');
   text(c, s, band.mid, 34, left > 0 ? '#BEF264' : '#FDE047', 8);
 };
-/** The tube round him (its back half behind him, its front half over his legs). */
-export const drawTubeRing = (c: Ctx, x: number, y: number, a: number, front: boolean, col = '#F97316') => {
-  c.save(); c.translate(x, y); c.rotate(a);
-  c.strokeStyle = INK; c.lineWidth = 15;
-  c.beginPath(); c.ellipse(0, -10, 30, 10, 0, front ? 0 : Math.PI, front ? Math.PI : Math.PI * 2); c.stroke();
-  c.strokeStyle = col; c.lineWidth = 11; c.stroke();
-  c.strokeStyle = 'rgba(255,255,255,0.5)'; c.lineWidth = 3; c.beginPath(); c.ellipse(0, -13, 26, 8, 0, front ? 0.3 : Math.PI + 0.3, front ? 1.2 : Math.PI + 1.2); c.stroke();
+/** Each ride's inner tubes: vinyl, in its ramp (the Black Hole's orange against its indigo chute, the Abyss's aqua
+ *  against its dark red one), and the stripe printed round it. */
+const RING_LOOK: Record<string, { col: string; stripe: string }> = {
+  blackHole: { col: '#F97316', stripe: '#FEF3C7' },
+  abyss: { col: '#14B8C8', stripe: '#FDE047' },
+};
+const RING_RX = TUBE_RING.rx, RING_RY = 8, RING_TH = TUBE_RING.th;
+/** The ring's two halves: the back one round over the top and on down past its front end (where his legs hang over
+ *  it: they're in front of that end), the front one across his hips (his butt down in the hole behind it). */
+const RING_SPLIT = 0.75, RING_LEFT = Math.PI - 0.2;
+/** The tube he's parked in (live: a dozen strokes, turned with the chute; nothing here could be stamped turned). Its
+ *  back half behind him (`front` false), its front half over his hips. Vinyl in its steps: the inked edge, the shade
+ *  under, the body, the lit band round its top, a specular streak and wet glints; the seam's stitching, the printed
+ *  stripe, the valve on its front; squashed flat under his weight (Player.tubeSit's squash, about its bottom); the dark
+ *  of the hole he's sunk into; the foam it pushes along. Sat, it's round his butt (tubePose.ts TUBE_RING); in an air
+ *  grab, round his waist; stood up in it (the spellbook, the hammer), round his shins. */
+export const drawTubeRing = (c: Ctx, state: GameState, ride: string, front: boolean) => {
+  const p = state.player, Lk = RING_LOOK[ride] ?? RING_LOOK.blackHole, Rm = ramp5(Lk.col), f = state.frame;
+  const sit = p.tubeSit, grab = grabBusy() || !!p.hidden;
+  const sq = sit ? sit.squash : 0;
+  c.save();
+  c.translate(p.pos.x + p.width / 2, p.pos.y + p.height);
+  c.rotate(p.spriteRot ?? 0);
+  c.translate(TUBE_RING.x, grab ? -28 : sit ? TUBE_RING.y : -12);
+  // (squashed about its bottom: flatter and a touch wider under him)
+  const bot = RING_RY + RING_TH / 2;
+  c.translate(0, bot); c.scale(1 + sq * 0.08, 1 - sq * 0.22); c.translate(0, -bot);
+  const [a0, a1] = front ? [RING_SPLIT, RING_LEFT] : [RING_LEFT, Math.PI * 2 + RING_SPLIT];
+  const arc = (lw: number, col: string, dy = 0, drx = 0, dash?: number[], off = 0) => {
+    c.strokeStyle = col; c.lineWidth = lw;
+    if (dash) { c.setLineDash(dash); c.lineDashOffset = off; }
+    c.beginPath(); c.ellipse(0, dy, RING_RX + drx, RING_RY + drx * 0.36, 0, a0, a1); c.stroke();
+    if (dash) { c.setLineDash([]); c.lineDashOffset = 0; }
+  };
+  if (!front) {
+    // (the hole: dark down in it, the water's glint at its far rim)
+    c.fillStyle = '#071526'; c.beginPath(); c.ellipse(0, 1, RING_RX - 7, RING_RY - 3.5, 0, 0, Math.PI * 2); c.fill();
+    c.fillStyle = '#123A5C'; c.beginPath(); c.ellipse(0, -1, RING_RX - 9, RING_RY - 5.5, 0, Math.PI, Math.PI * 2); c.fill();
+  }
+  c.lineCap = 'butt';
+  arc(RING_TH + 3, INK);
+  arc(RING_TH, Rm[1]);
+  arc(RING_TH - 6, Rm[2], -2);
+  // (the printed stripe round it, on the body's middle, inked either side)
+  arc(4, mix(Lk.stripe, INK, 0.45), 1);
+  arc(2, Lk.stripe, 1);
+  arc(5, Rm[3], -5.5);
+  arc(2, Rm[4], -7.5, -1, [8, 10]);
+  arc(3, Rm[0], 8);
+  // (the seam's stitches round its outside)
+  arc(1, Rm[1], 4.5, 8, [1, 3]);
+  // (wet: glints along the top, and a streak of it running off)
+  arc(1, '#FFFFFF', -7, -2, [2, 13], 5);
+  if (front) {
+    // (the valve: a rubber stem up off its front, the brass cap)
+    const va = 2.2, vx = Math.round(Math.cos(va) * RING_RX), vy = Math.round(Math.sin(va) * RING_RY) - 6;
+    R(c, vx - 2, vy - 6, 5, 7, INK); R(c, vx - 1, vy - 5, 3, 5, '#27272A'); R(c, vx - 1, vy - 5, 1, 5, '#52525B'); R(c, vx - 2, vy - 9, 5, 4, INK); R(c, vx - 1, vy - 8, 3, 2, '#D4A017'); R(c, vx - 1, vy - 8, 1, 1, '#FFF0A0');
+    // (the foam it shoves along the chute, and drips off its bottom, sat in it on the chute)
+    if (sit && p.isGrounded && !grab) {
+      arc(2, 'rgba(224, 242, 254, 0.85)', 10, 2, [3, 4], -f * 0.8);
+      for (let k = 0; k < 3; k++) { const t = ((f + k * 9) % 26) / 26, dx = -14 + k * 13; R(c, dx, bot + t * 6, 1, 2, `rgba(191, 230, 255, ${(0.8 * (1 - t)).toFixed(2)})`); }
+    }
+  }
   c.restore();
 };
 

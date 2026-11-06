@@ -209,7 +209,7 @@ export const parkLayout: StageLayout = {
     // ---- him, where he starts
     const p = state.player, at = AT[state.checkpoint];
     p.pos = { x: at.x - p.width / 2, y: at.y - p.height }; p.vel = { x: 0, y: 0 }; p.facing = 1;
-    p.noSpecials = false; p.carried = false; p.logSeat = false; p.kickPose = 0; p.inCutscene = false;
+    p.noSpecials = false; p.carried = false; p.logSeat = false; p.tubeSit = null; p.kickPose = 0; p.inCutscene = false;
     setUi({ noSwitch: false, pauseControls: null, introCutscene: false, chordTips: null, minigameCard: null });
     state.camera.x = at.x - CANVAS_WIDTH / 2;
     const k = state.checkpoint >= CP.camp2 && state.checkpoint < CP.L2 ? CP_FLOOR[state.checkpoint] : null;
@@ -242,7 +242,7 @@ export const parkLayout: StageLayout = {
       if (pk.descent.step === 'thrown' || pk.descent.step === 'line' || pk.descent.step === 'victory') pk.greenPool = Math.max(pk.greenPool, pk.descent.pool);
       if (descentDone(pk.descent)) {
         pk.descent = null; pk.greenPool = 1;
-        p.inCutscene = false; p.untouchable = false; p.carried = false; p.logSeat = false; p.spriteRot = 0;
+        p.inCutscene = false; p.untouchable = false; p.carried = false; p.logSeat = false; p.tubeSit = null; p.spriteRot = 0;
         state.cameraOverride = null;
         state.checkpoint = CP.L2; savePoint(state, pk);
       }
@@ -409,7 +409,7 @@ export const parkLayout: StageLayout = {
     if (pk.fightState === 'won' && (pk.descent || pk.killed)) drawDescentKid(c, pk.descent, !pk.descent);
     // (the tube's back half, behind him)
     const T = pk.tube;
-    if (tubeOn(T)) { state.player.facing = 1; drawTubeRing(c, T.x, T.y - 4, state.player.spriteRot ?? 0, false); }
+    if (tubeOn(T)) { state.player.facing = 1; drawTubeRing(c, state, TUBES[T.i].id, false); }
     // (on the stairs: drawn stood (he's walking up them))
     if (pk.tw.climb) state.player.isGrounded = true;
     // (level 2's world)
@@ -420,7 +420,7 @@ export const parkLayout: StageLayout = {
     drawParkFront(c, state, pk?.greenPool ?? 0, !!pk && (!!pk.descent || pk.killed));
     if (!pk) return;
     const T = pk.tube;
-    if (tubeOn(T)) drawTubeRing(c, T.x, T.y - 4, state.player.spriteRot ?? 0, true);
+    if (tubeOn(T)) drawTubeRing(c, state, TUBES[T.i].id, true);
     drawShots(c, state);
     if (pk.l2 && state.camera.x + CANVAS_WIDTH > 37400) drawPark2Front(c, state, pk.l2);
     drawAir(c, state);
