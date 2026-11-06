@@ -25,7 +25,6 @@ import { sleepFar, wakeNear } from '../../dormant';
 import { markBossFight } from '../../bossQuiet';
 import { updateSwimAir, drawAir } from '../../frontier/air';
 import { setTubeRide } from '../../weapons/tubeRide';
-import { has } from '../../upgrades/state';
 import { lay, solid, ledge, meatheadSays, saidOver } from '../../adventure/section';
 import { endgameStage, endgameAtCheckpoint, PARK_STAGE, L3_CP } from '../stages';
 import { GY, CP, CP_AT, CP_FLOOR, GROUND, POOLS, LEDGES, ISLANDS, SLIDES, TUBES, TOWER, SUMMIT, PLAZA_CAST, PICKUPS, L2, FLOORS, floorY } from './geo';
@@ -90,14 +89,13 @@ const SLIDE_TIPS = [
   { pad: ['DPAD_LEFT'], kb: ['@left'], label: 'SLOWER' },
   { pad: ['A'], kb: ['@jump'], label: 'AT THE LIP: THROWN HIGHER' },
 ] as import('../../upgrades/equipInfo').EquipControl[];
-// (the owner's "disable all charge moves on the tube slides. just shooting or air grabs", and "the cape can still be
-// used on the tube slide though": its line only when he has it)
+// (the owner's "disable all charge moves on the tube slides. just shooting or air grabs"; the cape still works on them,
+// unsaid: "Remove mention of the cape in the inner tube tutorial. Let the player find out")
 const tubeCardRows = () => [
   { pad: ['A'], kb: ['@jump'], label: 'JUMP, TUBE AND ALL (THE GAPS, LOW SHOTS)' },
   { pad: ['DPAD_DOWN'], kb: ['@down'], label: 'DUCK (HIGH SHOTS, PIPES)' },
   { pad: ['X'], kb: ['@fire'], label: 'SHOOT (ANY GUN: SWITCH AWAY)' },
   { pad: ['A', 'B'], join: '+', kb: ['@airGrab'], label: 'AIR GRAB (WATCH WHERE YOU LAND)' },
-  ...(has('cape') ? [{ pad: ['A'], kb: ['@jump'], label: 'CAPE: STILL WORKS (HOLD: HIGHER, FLOAT DOWN)' }] : []),
 ] as import('../../upgrades/equipInfo').EquipControl[];
 const TUBE_CARD_TEXT = "THE TUBE'S STUCK TO YOUR ASS AND IT GOES ON ITS OWN. THE CHUTE'S GOT HOLES IN IT WITH NO BOTTOM: JUMP THEM. JUST SHOOTING AND AIR GRABS: NO UPPERCUTS, DIVE KICKS, SLIDES, CHARGES, BEATDOWNS OR SHAKEDOWNS. IT KEEPS GOING TILL EVERY ALIEN ON IT'S DEAD.";
 const CARD_HOLD = 90;
