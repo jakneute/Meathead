@@ -120,6 +120,19 @@ const actorsOf = (state: GameState) => {
   return out;
 };
 
+/** A light's color at alpha `a` (rgba, rgb or hex: a hex one used to stay solid, a white disk over the lit figure:
+ *  the owner's "like staring into a light bulb"). */
+const withAlpha = (c: string, a: string) => {
+  if (c[0] === '#') {
+    const h = c.length === 4 ? c.slice(1).split('').map(x => x + x).join('') : c.slice(1, 7);
+    const n = parseInt(h, 16);
+    return `rgba(${(n >> 16) & 255}, ${(n >> 8) & 255}, ${n & 255}, ${a})`;
+  }
+  if (c.startsWith('rgba(')) return c.replace(/[\d.]+\)$/, `${a})`);
+  if (c.startsWith('rgb(')) return c.replace('rgb(', 'rgba(').replace(/\)$/, `, ${a})`);
+  return c;
+};
+
 let shade: HTMLCanvasElement | null = null;
 /** Meathead 2's: the lights' color and the actors' glow laid on screened, not added (added, a few lights over one
  *  figure in the dark blew it out white: the owner's "like staring into a light bulb"), the glow softer. Meathead 1
@@ -217,7 +230,9 @@ export const drawSceneLighting = (ctx: Ctx, state: GameState, scene: SceneLight,
     const x = sx(wx), y = sy(wy), rr = Math.max(a.w, a.h) * 0.9 * zs;
     // (one with a broken position (NaN) never takes the frame down with it)
     if (!Number.isFinite(x) || !Number.isFinite(y) || !Number.isFinite(rr) || rr <= 4) continue;
-    const tint = best?.color ? best.color.replace(/[\d.]+\)$/, `${((soft ? 0.16 : 0.3) * lit).toFixed(3)})`) : `rgba(255, 220, 160, ${((soft ? 0.16 : 0.3) * lit).toFixed(3)})`;
+    const ta = ((soft ? 0.16 : 0.3) * lit).toFixed(3);
+    // (Meathead 1 keeps its own: only rgba lights fade there)
+    const tint = best?.color ? (soft ? withAlpha(best.color, ta) : best.color.replace(/[\d.]+\)$/, `${ta})`)) : `rgba(255, 220, 160, ${ta})`;
     const grad = ctx.createRadialGradient(x, y - 6 * zs, 4, x, y, rr);
     grad.addColorStop(0, tint); grad.addColorStop(1, 'rgba(0,0,0,0)');
     ctx.fillStyle = grad;
