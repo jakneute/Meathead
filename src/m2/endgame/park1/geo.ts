@@ -128,6 +128,8 @@ export interface Tube {
   foes: number; most: number;
   /** The splash pool it comes down into at the end. */
   pool: Pool;
+  /** The funnel it pours into at the end, over its pool (the Abyss's: FUNNEL), or none (straight into the pool). */
+  funnel?: Funnel;
   /** Its pace (px a frame, an autorunner's): steady, but for a lap's fast stretches (laps' fast: tubeSpeedAt). */
   speed: number;
   col: string;
@@ -142,6 +144,8 @@ const course = (o: {
   gaps: [number, number][]; pipes: number[]; introGaps: [number, number][]; poolX: number;
   /** How far past the loop's end it runs on the same (he's never carried back mid-grab: room for one to finish). */
   copy: number;
+  /** Where its last point comes down to (world y): the pool's edge (GY - 6), or a funnel's rim. */
+  endY?: number;
   /** The plunges and the humps: [where in the loop, how deep (down; less than 0 a hump up), half its width] (a cosine
    *  bell). The middle's own (the loop's ends stay the same): kept inside its first 800 and last 500. */
   dips?: [number, number, number][];
@@ -149,7 +153,7 @@ const course = (o: {
    *  and kept off the steep climbs (a jump's rise has to beat the chute's). */
   fast?: [number, number, number][];
 }) => {
-  const { x0, y0, a, len, yl, amp } = o, z0 = a - 500, z1 = a + len + o.copy, poolY = GY - 6;
+  const { x0, y0, a, len, yl, amp } = o, z0 = a - 500, z1 = a + len + o.copy, poolY = o.endY ?? GY - 6;
   const dips = o.dips ?? [];
   const bell = (x: number) => {
     let d = 0;
@@ -188,12 +192,23 @@ const laps = (o: Omit<Parameters<typeof course>[0], 'gaps' | 'pipes' | 'dips' | 
 const BH = laps({ x0: 9990, y0: GY - 600, a: 11520, len: 1920, yl: GY - 330, amp: 40, introGaps: [[10520, 150]], poolX: 15560, copy: 1600 },
   { gaps: [[600, 180]], pipes: [1680] },
   [{ gaps: [[1200, 200]], pipes: [990] }, { gaps: [[1080, 210]], pipes: [900] }, { gaps: [[1120, 230]], pipes: [880] }]);
+/** THE ABYSS's end, the owner's: "The second tube ride should end in one of those funnels. You know, for the fun of it.
+ *  Then drops down into the pool." A big fiberglass bowl up on struts over its splash pool, the chute pouring in over
+ *  its rim's left end (`rx` either side of `cx`, the rim's ellipse `ry` deep); he swings side to side up its walls, the
+ *  swings dying away, then down its hole (`holeY`: its middle, on the bowl's floor) and out of the spout under it
+ *  (`spoutY`: its mouth) into the pool (tube.ts updateFunnel, funnel.ts). `dip`: how far down his seat comes, at the
+ *  bottom of a swing, under the rim's line. */
+export interface Funnel { cx: number; rx: number; rimY: number; ry: number; dip: number; holeY: number; coneY: number; spoutY: number }
+export const FUNNEL: Funnel = { cx: 27660, rx: 200, rimY: GY - 250, ry: 64, dip: 62, holeY: GY - 250 + 38, coneY: GY - 250 + 168, spoutY: GY - 250 + 196 };
+/** His seat in the bowl `u` of the way across from its middle (-1: the rim's left end, 1: its right): where the tube's
+ *  bottom is, and the wall's slope there (the way he's tipped). */
+export const funnelSeat = (F: Funnel, u: number) => ({ x: F.cx + u * F.rx, y: F.rimY + F.dip * (1 - u * u), a: Math.atan2(-2 * F.dip * u, F.rx) });
 // THE ABYSS (the owner's "make the second tube slide more 'gnarly'"): a deeper swell, and each lap's middle its own
 // plunges and humps (the steep drops and climbs), longer gaps, gaps back to back (one sign for both), a pipe straight
 // after a gap, and fast stretches. Every gap clears with a held jump wherever it's taken in its window, whatever the
 // drop or the climb either side (the numbers checked: 16 to 30 frames of window at each, a pipe 10 frames or more past
 // the latest landing; the climbs gentle enough for a jump's rise to leave them).
-const AB = laps({ x0: 20100, y0: GY - 720, a: 21440, len: 3840, yl: GY - 390, amp: 75, introGaps: [[20520, 190]], poolX: 27460, copy: 1700 },
+const AB = laps({ x0: 20100, y0: GY - 720, a: 21440, len: 3840, yl: GY - 390, amp: 75, introGaps: [[20520, 190]], poolX: FUNNEL.cx - FUNNEL.rx, copy: 1700, endY: FUNNEL.rimY + 4 },
   { gaps: [[480, 250]], pipes: [3640] },
   [
     { gaps: [[1000, 320], [1780, 230], [2330, 280], [3000, 300]], pipes: [1570, 2880], dips: [[1330, 170, 560], [2900, -120, 440]], fast: [[2000, 2450, 11.5], [2950, 3100, 11.5]] },
@@ -209,7 +224,7 @@ export const TUBES: Tube[] = [
   {
     id: 'abyss', name: 'THE ABYSS', stairs: { x: 19500, n: 30, rise: 24, run: 15 }, deck: { x1: 19950, x2: 20100, y: GY - 720 },
     ...AB, loop: { a: 21440, len: 3840 }, foes: 9, most: 4,
-    pool: POOLS[2], speed: 9, col: '#450A0A',
+    pool: POOLS[2], funnel: FUNNEL, speed: 9, col: '#450A0A',
   },
 ];
 /** A ride's pace at world x on a lap: its own, but up to a fast stretch's through it (eased in and out over 200). */

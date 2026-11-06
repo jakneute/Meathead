@@ -29,7 +29,8 @@ import { lay, solid, ledge, meatheadSays, saidOver } from '../../adventure/secti
 import { endgameStage, endgameAtCheckpoint, PARK_STAGE, L3_CP } from '../stages';
 import { GY, CP, CP_AT, CP_FLOOR, GROUND, POOLS, LEDGES, ISLANDS, SLIDES, TUBES, TOWER, SUMMIT, PLAZA_CAST, PICKUPS, L2, FLOORS, floorY } from './geo';
 import { newSlides, updateSlides, offSlide, type SlideState } from './slides';
-import { newTube, boardTube, updateTube, unboardTube, tubeOn, tubeBox, tubeFoesLeft, type TubeRide } from './tube';
+import { newTube, boardTube, updateTube, unboardTube, tubeOn, tubeBox, tubeFoesLeft, funnelShot, type TubeRide } from './tube';
+import { drawFunnelShot, prebakeFunnelShot, funnelSheet } from './funnel';
 import { newTower, buildTower, updateTower, floorOf, towerCamY, climbEase, ROUND, type Tower, type TowerEvents } from './tower';
 import { KIND_OF, setRidingCheck, setShotBox, updateShots, drawShots, drawBarks, byPants, clearShots } from './kinds';
 import { type Fight, startFight, updateFight, resetFight, fightDead, drawFight, drawFightHud, setOnKilled, doorState } from './boss';
@@ -220,6 +221,7 @@ export const parkLayout: StageLayout = {
   update: (ctx, controls) => {
     const { state } = ctx;
     const pk = parkOf(state);
+    if (import.meta.env.DEV) { const w = window as unknown as Record<string, unknown>; w.__wpFunnelSheet = funnelSheet; }
     if (import.meta.env.DEV) { (window as unknown as { __m2: GameState }).__m2 = state; (window as unknown as { __wp: unknown }).__wp = pk; (window as unknown as { __wpProbe: () => unknown }).__wpProbe = () => { const q = state.player, x = q.pos.x + q.width / 2, f = q.pos.y + q.height; return [x | 0, f | 0, +q.vel.x.toFixed(1), +q.vel.y.toFixed(1), q.isGrounded, state.blocks.filter(b => x >= b.x && x <= b.x + b.w && Math.abs(b.y - f) < 6).map(b => `${b.tag}:${b.type}:${b.x},${b.y},${b.w}`)]; }; }
     if (isLeaving()) { stopWeapons(); carryGut(state.player); state.player.vel.x = 0; return { ...NO_CONTROLS }; }
     if (!pk) return controls;
@@ -281,7 +283,9 @@ export const parkLayout: StageLayout = {
         onClear: () => { mhSay(state, pk, 'tubeClear', L.MH_TUBE_CLEAR, 20000); },
       });
       pk.shift = pk.tube.shift;
-      setUi({ introCutscene: pk.tube.mode === 'card' });
+      // (the funnel at the Abyss's end: a cutscene, no HUD; its top-down shot baked ahead, on the ride's last stretch)
+      setUi({ introCutscene: pk.tube.mode === 'card' || pk.tube.mode === 'funnel' });
+      if (pk.tube.mode === 'ride' && pk.tube.cleared && TUBES[pk.tube.i].funnel) prebakeFunnelShot();
       return updateGrab(ctx, pk.grab, out);
     }
     // (onto a tube: walked off the rack's deck into the chute's mouth (that deck's own end: the Abyss's stairs go up past
@@ -407,7 +411,7 @@ export const parkLayout: StageLayout = {
     if (pk.fightState === 'won' && (pk.descent || pk.killed)) drawDescentKid(c, pk.descent, !pk.descent);
     // (the tube's back half, behind him)
     const T = pk.tube;
-    if (tubeOn(T)) { state.player.facing = 1; drawTubeRing(c, state, TUBES[T.i].id, false); }
+    if (tubeOn(T) && !state.player.hidden) { state.player.facing = 1; drawTubeRing(c, state, TUBES[T.i].id, false); }
     // (on the stairs: drawn stood (he's walking up them))
     if (pk.tw.climb) state.player.isGrounded = true;
     // (level 2's world)
@@ -418,7 +422,7 @@ export const parkLayout: StageLayout = {
     drawParkFront(c, state, pk?.greenPool ?? 0, !!pk && (!!pk.descent || pk.killed));
     if (!pk) return;
     const T = pk.tube;
-    if (tubeOn(T)) drawTubeRing(c, state, TUBES[T.i].id, true);
+    if (tubeOn(T) && !state.player.hidden) drawTubeRing(c, state, TUBES[T.i].id, true);
     drawShots(c, state);
     if (pk.l2 && state.camera.x + CANVAS_WIDTH > 37400) drawPark2Front(c, state, pk.l2);
     drawAir(c, state);
@@ -429,6 +433,9 @@ export const parkLayout: StageLayout = {
     if (trueCam) { state.camera.x = trueCam.x; state.camera.y = trueCam.y; trueCam = null; }
     const pk = parkOf(state);
     if (!pk) return;
+    // (the funnel's top-down shot, over the lot)
+    const shot = funnelShot(pk.tube);
+    if (shot !== null) { drawFunnelShot(c, shot, state.frame); return; }
     if (pk.f && pk.fightState === 'on') drawFightHud(c, state, pk.f, topBand());
     drawDescentHud(c, pk.descent);
     if (pk.tube.mode === 'ride' || pk.tube.mode === 'fall') drawTubeHud(c, tubeFoesLeft(pk.tube), topBand());

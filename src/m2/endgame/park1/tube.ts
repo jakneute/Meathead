@@ -33,7 +33,7 @@ import { hurtPlayer } from '../../../m1/game/bosses/shared';
 import { makeKindEnemy } from '../../../m1/game/enemies/kinds';
 import { setUi } from '../../store';
 import { grabBusy, inPlay, setGroundGrabsOff } from '../../moves/grab';
-import { TUBES, tubeSpeedAt, type Tube } from './geo';
+import { TUBES, tubeSpeedAt, funnelSeat, type Tube } from './geo';
 import { pathOf, surfaceAt, type Path } from './slides';
 import { HOVER, QUEUED, fire, shotsOf, setRideAim } from './kinds';
 import { steerShot, setTubeFoes } from '../../weapons/tubeRide';
@@ -52,7 +52,7 @@ const SPAWN_GAP = 100;
 const FLOOR_W = 64;
 
 export interface TubeRide {
-  i: number; mode: 'off' | 'card' | 'ride' | 'fall' | 'done';
+  i: number; mode: 'off' | 'card' | 'ride' | 'fall' | 'funnel' | 'done';
   /** The tube (where it's drawn: round his hips, its bottom at his feet + SEAT). */
   x: number; y: number;
   /** The chute's height he last rode (the camera keeps to it, not his jumps). */
@@ -72,7 +72,16 @@ export interface TubeRide {
   /** Up in the air on the ride: his rise and his jump's hold as the last frame left them (a hit in the air hurts him
    *  but doesn't spoil the jump); and how hurt he was then (a fresh hit: his hurt's gone up). */
   air: { vy: number; hold: number } | null; hurtWas: number;
+  /** In the Abyss's funnel at the end (updateFunnel): frames in, the stage, the swing's turns so far (a whoosh each),
+   *  where he was across it when he went for the hole, his fall out of the spout. */
+  fun: { t: number; stage: 'swing' | 'sink' | 'gone' | 'drop'; k: number; turn: number; u0: number; vy: number } | null;
 }
+/** The funnel's frames: a swing across and back is 2 FUN_HALF; the top-down shot (funnel.ts drawFunnelShot, the
+ *  owner's "a fun little mini cutscene of him spinning in the funnel using a mode 7 ish effect") from FUN_TOP for
+ *  FUN_TOP_T; down the hole at FUN_SINK; the swings die away over FUN_DECAY. */
+export const FUN_HALF = 46, FUN_TOP = 104, FUN_TOP_T = 240, FUN_SINK = 392, FUN_DECAY = 170;
+/** The top-down shot's on, and how far into it (0..1), else null. */
+export const funnelShot = (r: TubeRide) => (r.mode === 'funnel' && r.fun && r.fun.stage === 'swing' && r.fun.t >= FUN_TOP && r.fun.t < FUN_TOP + FUN_TOP_T ? (r.fun.t - FUN_TOP) / FUN_TOP_T : null);
 const PATHS: Path[][][] = TUBES.map(t => t.laps.map(l => l.pieces.map(pathOf)));
 /** How far the tube's squashed flat under him (looks only: Player.tubeSit, art.ts drawTubeRing): settled under his
  *  weight sat, flexing with the chute, slammed flat on a landing, sprung back round up in the air. */
@@ -90,8 +99,8 @@ export const tubeLapNo = (i: number) => LAP[i];
 export const tubeLap = (i: number) => TUBES[i].laps[LAP[i]];
 export const tubePaths = (i: number) => PATHS[i][LAP[i]];
 
-export const newTube = (): TubeRide => ({ i: 0, mode: 'off', x: 0, y: 0, rideY: 0, camY: 0, t: 0, sent: 0, killed: 0, escort: [], spawnIn: 0, cleared: false, shift: 0, fallT: 0, floor: null, above: false, air: null, hurtWas: 0 });
-export const tubeOn = (r: TubeRide) => r.mode === 'ride' || r.mode === 'card' || r.mode === 'fall';
+export const newTube = (): TubeRide => ({ i: 0, mode: 'off', x: 0, y: 0, rideY: 0, camY: 0, t: 0, sent: 0, killed: 0, escort: [], spawnIn: 0, cleared: false, shift: 0, fallT: 0, floor: null, above: false, air: null, hurtWas: 0, fun: null });
+export const tubeOn = (r: TubeRide) => r.mode === 'ride' || r.mode === 'card' || r.mode === 'fall' || r.mode === 'funnel';
 /** Ducked down in it. */
 export const tubeDucked = (state: GameState, _r: TubeRide) => !!state.player.isDucking;
 /** His box riding: sat up or ducked (stood up in a move: his own). */
@@ -123,7 +132,7 @@ const floorAt = (state: GameState, r: TubeRide, cx: number, y: number) => {
 export const boardTube = (state: GameState, r: TubeRide, i: number, card: boolean) => {
   LAP[i] = 0;
   const p = state.player, at = PATHS[i][0][0].segs[0];
-  Object.assign(r, { i, mode: card ? 'card' : 'ride', x: at.x0, y: at.y0, rideY: at.y0, camY: at.y0 - 400, t: 0, sent: 0, killed: 0, escort: [], spawnIn: 60, cleared: false, fallT: 0, above: true, air: null, hurtWas: 0 });
+  Object.assign(r, { i, mode: card ? 'card' : 'ride', x: at.x0, y: at.y0, rideY: at.y0, camY: at.y0 - 400, t: 0, sent: 0, killed: 0, escort: [], spawnIn: 60, cleared: false, fallT: 0, above: true, air: null, hurtWas: 0, fun: null });
   // (the Abyss's aliens shoot down at him sooner)
   setRideAim(i === 0 ? 120 : 85);
   p.facing = 1;
@@ -138,6 +147,8 @@ export const boardTube = (state: GameState, r: TubeRide, i: number, card: boolea
 export const unboardTube = (state: GameState, r: TubeRide) => {
   const p = state.player;
   p.carried = false; p.logSeat = false; p.spriteRot = 0; p.tubeSit = null;
+  // (out of the funnel's cutscene, if he was in it)
+  if (r.fun) { p.inCutscene = false; p.hidden = false; r.fun = null; }
   state.cameraOverride = null;
   floorOff(state, r);
   setGroundGrabsOff(false);
@@ -167,6 +178,89 @@ const carry = (state: GameState, r: TubeRide, d: number) => {
 
 export interface TubeEvents { onEnd: () => void; onFall: () => void; onClear: () => void }
 
+/** The splash into a ride's pool at its end (the owner's "make sure a big splash shows at the end": a wall of it up out
+ *  of the pool, and the spray after); `big`: more of it, wider and higher (out of the funnel's spout, from up there). */
+const poolSplash = (state: GameState, T: Tube, sx: number, big: number) => {
+  playSound('splash', 1, -12); playSound('splash', 1, -4); playSound('thud', 0.7, -8); shakeScreen(state, 16 * big, 8 + 4 * (big - 1));
+  for (let k = 0; k < 120 * big; k++) state.particles.push({ pos: { x: sx + (Math.random() - 0.5) * 120 * big, y: T.pool.surface - Math.random() * 6 }, vel: { x: (Math.random() - (big > 1 ? 0.5 : 0.35)) * 9 * big, y: -4 - Math.random() * 15 * big }, life: 50 + Math.random() * 30, color: k % 4 === 0 ? '#FFFFFF' : k % 3 ? '#E0F2FE' : '#7DD3FC', size: 3 + Math.random() * 6 });
+  for (let k = 0; k < 30 * big; k++) state.particles.push({ pos: { x: sx + (Math.random() - 0.5) * 200 * big, y: T.pool.surface }, vel: { x: (Math.random() - 0.5) * 14 * big, y: -1 - Math.random() * 3 }, life: 34, color: '#BFE6FF', size: 2 + Math.random() * 3 });
+};
+
+const NONE: Controls = { left: false, right: false, up: false, down: false, jump: false, special: false, shoot: false, charge: false };
+/** A frame in the Abyss's funnel (no input: he's along for it, a cutscene: no HUD). Swung side to side up its walls (the
+ *  wall's slope tips him; a whoosh at each turn), the swings dying away; the top-down shot cut in partway (funnel.ts,
+ *  drawn over the world: the swings go on under it, so it cuts back to where they've got to); then to the middle and
+ *  down the hole in its floor, gone a beat (in its neck), out of the spout and down into the pool: the big splash, out of
+ *  the tube, swimming, as the rides end. Nothing can hurt him in here (every alien's dead before he's let in). */
+const updateFunnel = (ctx: FrameContext, r: TubeRide, ev: TubeEvents): Controls => {
+  const { state } = ctx, p = state.player, T = TUBES[r.i], F = T.funnel!, fu = r.fun!;
+  fu.t++;
+  p.inCutscene = true; p.facing = 1; p.vel.x = 0; p.pushbackTimer = 0;
+  p.isCharging = false; p.isSliding = false; p.isDivekicking = false; p.isUppercutting = false; p.isDucking = false;
+  // (the camera over to the funnel, framing it and the pool under it)
+  const want = { x: F.cx - CANVAS_WIDTH / 2, y: F.rimY - 250 }, co = state.cameraOverride ?? want;
+  state.cameraOverride = { x: co.x + (want.x - co.x) * 0.08, y: co.y + (want.y - co.y) * 0.08 };
+  r.camY = state.cameraOverride.y;
+  const seat = (u: number, down: number) => {
+    const q = funnelSeat(F, u), y = q.y + down;
+    p.carried = false; p.hidden = false;
+    p.pos.x = q.x - p.width / 2; p.pos.y = y - SEAT - p.height; p.vel.y = 0; p.isGrounded = true;
+    floorAt(state, r, q.x, y - SEAT);
+    p.logSeat = true; p.spriteRot = q.a;
+    sitIn(state, true, false);
+    r.x = q.x; r.y = y;
+    // (the water sheeting round the bowl, kicked up off the tube)
+    if (state.frame % 3 === 0) state.particles.push({ pos: { x: q.x + (Math.random() - 0.5) * 40, y: y - 2 }, vel: { x: (Math.random() - 0.5) * 3, y: -1 - Math.random() * 2 }, life: 18, color: Math.random() < 0.5 ? '#E0F2FE' : '#7DD3FC', size: 2 + Math.random() * 2, grav: 0.2 });
+  };
+  if (fu.stage === 'swing') {
+    // (in over the rim's left end, swinging across: as wide as the bowl at first, dying away)
+    const A = Math.max(0.06, Math.exp(-fu.t / FUN_DECAY)), u = -A * Math.cos((fu.t * Math.PI) / FUN_HALF);
+    const turn = Math.floor(fu.t / FUN_HALF);
+    if (turn !== fu.turn) { fu.turn = turn; playSound('whoosh', 0.25 + 0.6 * A, -6 + Math.min(8, turn)); }
+    seat(u, 0);
+    if (fu.t >= FUN_SINK) { fu.stage = 'sink'; fu.k = 0; fu.u0 = u; }
+  } else if (fu.stage === 'sink') {
+    // (to the middle and down into the hole)
+    fu.k++;
+    const k = Math.min(1, fu.k / 16);
+    seat(fu.u0 * (1 - k), k * k * 26);
+    if (fu.k >= 16) {
+      fu.stage = 'gone'; fu.k = 0;
+      p.hidden = true; p.carried = true; floorOff(state, r);
+      playSound('whoosh', 0.9, -12); playSound('splash', 0.5, 6);
+      for (let k2 = 0; k2 < 24; k2++) state.particles.push({ pos: { x: F.cx + (Math.random() - 0.5) * 50, y: F.holeY }, vel: { x: (Math.random() - 0.5) * 5, y: -2 - Math.random() * 4 }, life: 26, color: k2 % 3 ? '#E0F2FE' : '#FFFFFF', size: 2 + Math.random() * 3, grav: 0.3 });
+    }
+  } else if (fu.stage === 'gone') {
+    // (down the funnel's neck, out of sight)
+    fu.k++;
+    p.hidden = true; p.carried = true; p.vel.y = 0;
+    if (fu.k >= 12) {
+      fu.stage = 'drop'; fu.vy = 3;
+      p.hidden = false; p.spriteRot = 0; p.isGrounded = false;
+      p.pos.x = F.cx - p.width / 2; p.pos.y = F.spoutY - p.height + 6;
+      playSound('splash', 0.6, 2);
+      for (let k2 = 0; k2 < 30; k2++) state.particles.push({ pos: { x: F.cx + (Math.random() - 0.5) * 50, y: F.spoutY }, vel: { x: (Math.random() - 0.5) * 7, y: Math.random() * 3 }, life: 24, color: k2 % 3 ? '#BFE6FF' : '#FFFFFF', size: 2 + Math.random() * 4, grav: 0.35 });
+    }
+  } else {
+    // (out of the spout, falling, tube and all, into the pool)
+    p.carried = true; p.hidden = false; p.isGrounded = false; p.logSeat = true;
+    fu.vy = Math.min(14, fu.vy + 0.6);
+    p.pos.y += fu.vy;
+    r.x = p.pos.x + p.width / 2; r.y = p.pos.y + p.height + SEAT;
+    sitIn(state, false, false);
+    if (p.pos.y + p.height >= T.pool.surface - 4) {
+      const vy = fu.vy;
+      r.mode = 'done';
+      unboardTube(state, r);
+      p.vel.x = 0; p.vel.y = Math.min(8, vy); p.isGrounded = false;
+      poolSplash(state, T, F.cx, 1.6);
+      ev.onEnd();
+    }
+  }
+  setUi({ pauseControls: 'tube' });
+  return NONE;
+};
+
 /** A frame of the ride (before the engine moves him). Returns what the engine's to have: everything of his but walking
  *  (the chute's pace is his), the charge moves, and (grab.ts, off for the ride) the beatdown and the shakedown. */
 export const updateTube = (ctx: FrameContext, r: TubeRide, controls: Controls, ev: TubeEvents): Controls => {
@@ -179,6 +273,7 @@ export const updateTube = (ctx: FrameContext, r: TubeRide, controls: Controls, e
     state.cameraOverride = { x: Math.max(0, r.x - 250), y: r.camY };
     return { left: false, right: false, up: false, down: false, jump: false, special: false, shoot: false };
   }
+  if (r.mode === 'funnel') return updateFunnel(ctx, r, ev);
   p.carried = false;
   r.t++;
   // (hit on the chute (a pipe, a bolt): hurt, but never knocked about by it: the chute's pace is all that carries him,
@@ -238,15 +333,18 @@ export const updateTube = (ctx: FrameContext, r: TubeRide, controls: Controls, e
   }
   // ---- the end: into the splash pool, out of the tube, into the water
   const last = paths[paths.length - 1], endX = last.segs[last.segs.length - 1].x1;
+  if (cx >= endX - 2 && T.funnel) {
+    // (the Abyss: into its funnel. The aliens are all dead (the loop only lets him go once they are))
+    r.mode = 'funnel'; r.fun = { t: 0, stage: 'swing', k: 0, turn: 0, u0: -1, vy: 0 };
+    p.tubeSit = { squash }; p.isGrounded = true;
+    playSound('splash', 0.7, -4); playSound('whoosh', 0.8, -8);
+    return updateFunnel(ctx, r, ev);
+  }
   if (cx >= endX - 2) {
     r.mode = 'done';
     unboardTube(state, r);
     p.vel.x = 6; p.vel.y = -5; p.isGrounded = false;
-    // (the owner's "make sure a big splash shows at the end": a wall of it up out of the pool, and the spray after)
-    playSound('splash', 1, -12); playSound('splash', 1, -4); playSound('thud', 0.7, -8); shakeScreen(state, 16, 8);
-    const sx = Math.min(T.pool.x2 - 60, cx + 80);
-    for (let k = 0; k < 120; k++) state.particles.push({ pos: { x: sx + (Math.random() - 0.5) * 120, y: T.pool.surface - Math.random() * 6 }, vel: { x: (Math.random() - 0.35) * 9, y: -4 - Math.random() * 15 }, life: 50 + Math.random() * 30, color: k % 4 === 0 ? '#FFFFFF' : k % 3 ? '#E0F2FE' : '#7DD3FC', size: 3 + Math.random() * 6 });
-    for (let k = 0; k < 30; k++) state.particles.push({ pos: { x: sx + (Math.random() - 0.5) * 200, y: T.pool.surface }, vel: { x: (Math.random() - 0.5) * 14, y: -1 - Math.random() * 3 }, life: 34, color: '#BFE6FF', size: 2 + Math.random() * 3 });
+    poolSplash(state, T, Math.min(T.pool.x2 - 60, cx + 80), 1);
     ev.onEnd();
     return controls;
   }

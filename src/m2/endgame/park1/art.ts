@@ -34,6 +34,7 @@ import { elbowFront, kneeFront } from '../../art/limb';
 import { grabBusy } from '../../moves/grab';
 import { drawZonesBack, groundAt, paintZoneGround, drawRideSky, drawRideDrop } from './zones';
 import { TUBE_RING } from '../../../m1/game/render/player/tubePose';
+import { drawFunnelBack, drawFunnelFront } from './funnel';
 
 type Ctx = CanvasRenderingContext2D;
 const INK = '#0A0806';
@@ -2935,6 +2936,8 @@ export const drawParkBack = (c: Ctx, state: GameState, d: DrawState, extra?: () 
   drawPools(c, state, d.greenPool);
   for (const S of SLIDES) drawSlideBack(c, state, S);
   TUBES.forEach((T, i) => drawTubeBack(c, state, T, i));
+  // (the Abyss's funnel over its pool: its inside and back rim behind him (funnel.ts))
+  for (const T of TUBES) if (T.funnel) drawFunnelBack(c, state, T.funnel, T.pool);
   drawDescentChute(c, state, !d.descent);
   extra?.();
   drawTower(c, state, d.gates, d.tells, d.locked);
@@ -2956,6 +2959,8 @@ export const drawParkFront = (c: Ctx, state: GameState, greenPool = 0, descent =
   drawPoolsFront(c, state, greenPool);
   for (const S of SLIDES) drawSlideFront(c, state, S);
   TUBES.forEach((T, i) => drawTubeFront(c, state, T, i));
+  // (...its outside, spout and front lip in front of him)
+  for (const T of TUBES) if (T.funnel) drawFunnelFront(c, state, T.funnel);
   drawDescentFront(c, state, !descent);
 };
 /** The lamps (world): the plaza's light poles, the towers' work lights, a floor's lights. */
