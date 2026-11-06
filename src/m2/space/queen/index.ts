@@ -206,7 +206,7 @@ export const queen: SpaceSection = {
         leaveEmptyArena(state, q.emptyLine);
         return hands();
       }
-      if (doorIn(h) && !isLandCleared('space') && cx > DISCO_TRIGGER && p.isGrounded && p.health > 0) beginDisco(state, q, f);
+      if (doorIn(h) && !bossGone('space') && cx > DISCO_TRIGGER && p.isGrounded && p.health > 0) beginDisco(state, q, f);
       runExits(state, endExits('queen').filter(e => e.x0 < x0 + 100));
       return controls;
     }
@@ -281,7 +281,7 @@ export const queen: SpaceSection = {
       if (lair) return lair;
       const dark = hunterLighting(state, hunterOf(state));
       if (dark && cx < DOOR_X + 10) { dark.lights.push(...hallLights(state)); return dark; }
-      const l = discoLighting(state, isLandCleared('space') ? 1 : discoLights(f));
+      const l = discoLighting(state, bossGone('space') ? 1 : discoLights(f));
       if (queenOf(state).fight === 'on') l.lights.push(...poolLights(f), ...oilLights(f), ...tellLights(f), ...deathLights(f));
       return l;
     }
@@ -293,7 +293,8 @@ export const queen: SpaceSection = {
     ] };
   },
   drawBack: (c, state) => {
-    const s = showOf(state), f = fightOf(state), h = hunterOf(state), cleared = isLandCleared('space');
+    // (bossGone, not isLandCleared, down here: rebuilt for Ned's boss rush (endgame/park4), she's back on the floor)
+    const s = showOf(state), f = fightOf(state), h = hunterOf(state), cleared = bossGone('space');
     // The hold
     drawRoomBack(c, state, { glass: s.glass, booth: s.step === 'done' ? 0 : s.booth, splat: false, operators: s.step !== 'done', beam: s.beam, head: showHead(s) });
     if (s.step === 'done') drawAfterFall(c, state, HOLE); else drawShowQueen(c, state, s);
@@ -338,7 +339,7 @@ export const queen: SpaceSection = {
       c.save();
       if (z && z.scale !== 1) { c.translate(z.x + (z.shiftX ?? 0) - cam.x, z.y + (z.shiftY ?? 0) - cam.y); c.scale(z.scale, z.scale); c.translate(-z.x, -z.y); }
       else c.translate(-cam.x, -cam.y);
-      discoGlow(c, state, isLandCleared('space') ? 1 : discoLights(f));
+      discoGlow(c, state, bossGone('space') ? 1 : discoLights(f));
       c.restore();
     }
     drawHunterFront(c, state, h);

@@ -690,6 +690,10 @@ const tile = (c: Ctx, x: number, y: number, w: number, h: number, k: number) => 
   px(c, x + 2, y + 2, w - 4, 1, r[4]);
 };
 
+/** (Ned's boss rush, endgame/park4/rf/space.ts) Drawn in the booth in the two operators' place, in its glass, behind
+ *  the console; true: they're not drawn (only ever while that refight's on: it says so itself). */
+let boothSwap: ((c: Ctx, ops: BoothOps | null, f: number) => boolean) | null = null;
+export const setBoothSwap = (fn: typeof boothSwap) => { boothSwap = fn; };
 export const drawDisco = (c: Ctx, state: GameState, o: { lights: number; ops: BoothOps | null; extinguisher: boolean }) => {
   if (!shown(state, DISCO_L - 60, DISCO_R + 60)) return;
   const f = state.frame, on = o.lights > 0.5;
@@ -780,7 +784,7 @@ export const drawDisco = (c: Ctx, state: GameState, o: { lights: number; ops: Bo
     });
     // (the back door out of it, at the right: open once they've run)
     stamp(c, open ? 'sp-q-booth-door-open' : 'sp-q-booth-door-shut', DOOR_BX, DOOR_BY, DOOR_BW, DOOR_BH, paintBoothDoor(open));
-    if (ops && ops.mode !== 'gone') for (let i = 0; i < 2; i++) {
+    if (!boothSwap?.(c, ops, f) && ops && ops.mode !== 'gone') for (let i = 0; i < 2; i++) {
       let x = DJ.x + 50 + i * 100, bob = 0;
       let pose: AlienPose = 'operate';
       if (ops.mode === 'mad') { pose = (ops.t + i * 5) % 12 < 6 ? 'point' : 'tell'; bob = (ops.t + i * 3) % 10 < 5 ? -3 : 0; x += Math.sin(ops.t * 0.9 + i) * 2; }

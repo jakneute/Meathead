@@ -46,7 +46,7 @@
 //
 // A retry (killed in it, back at the checkpoint inside the door): no cutscene; she's in the hall, on, and it's on.
 
-import { refightHp } from '../../endgame/park4/hook';
+import { refightHp, inRefight } from '../../endgame/park4/hook';
 import type { GameState } from '../../../m1/game/core/state';
 import type { FrameContext } from '../../../m1/game/core/context';
 import type { Controls } from '../../../m1/game/platform/input';
@@ -321,10 +321,12 @@ const queenSays = (state: GameState, f: Fight, lines: L.ByPants, onDone?: () => 
   speak('m2.space.queen', pick(lines[dressed(state)]), s => { if (tok === f.token) f.said = s?.text ?? null; }, true, () => { if (tok === f.token) onDone?.(); });
 };
 const quiet = (f: Fight) => !f.said && !f.boothSaid;
+/** Who's in the booth: the two aliens; in Ned's boss rush (endgame/park4/rf/space.ts), Ned (they're squashed). */
+const boothVoice = () => (inRefight('space') ? 'm2.ned' : 'm2.space.alien');
 /** The booth says one of these, and then (its line done) whatever's next. */
 const boothSays = (state: GameState, f: Fight, lines: L.ByPants, onDone?: () => void) => {
   const tok = f.token;
-  speak('m2.space.alien', pick(lines[dressed(state)]), x => { if (tok === f.token) f.boothSaid = x?.text ?? null; }, true, () => { if (tok === f.token) onDone?.(); });
+  speak(boothVoice(), pick(lines[dressed(state)]), x => { if (tok === f.token) f.boothSaid = x?.text ?? null; }, true, () => { if (tok === f.token) onDone?.(); });
 };
 // (after the hand armor's cheap shot, these come out of her crushed-ovaries lines: upgrades/cheapShot.ts)
 crushGroups('queen', {
@@ -341,7 +343,7 @@ const bark = (state: GameState, f: Fight, lines: L.ByPants, who: 'queen' | 'boot
   f.barked.add(text);
   const set = (v: string | null) => { if (who === 'queen') f.said = v; else f.boothSaid = v; };
   const get = () => (who === 'queen' ? f.said : f.boothSaid);
-  say(text, voice(who === 'queen' ? 'm2.space.queen' : 'm2.space.alien'), 'casual', {
+  say(text, voice(who === 'queen' ? 'm2.space.queen' : boothVoice()), 'casual', {
     always: true,
     onShow: spoken => { set(text); if (!spoken) setTimeout(() => { if (get() === text) set(null); }, Math.max(1600, text.length * 65)); },
     onHide: () => { if (get() === text) set(null); },

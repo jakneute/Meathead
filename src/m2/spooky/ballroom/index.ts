@@ -21,7 +21,7 @@ import { drawBallroomArt, drawBallroomFront, ballroomLighting } from './art';
 import { GY } from '../geometry';
 import { CANVAS_WIDTH, CANVAS_HEIGHT, topBand } from '../../../m1/constants';
 import { drawSkipPrompt, SKIP_AFTER } from '../../../m1/game/platform/skip';
-import { goTo, markLandCleared, markBossDeath, noteBossKill, isLandCleared, bossDeath, keptForRevisits } from '../../store';
+import { goTo, markLandCleared, markBossDeath, noteBossKill, bossDeath, keptForRevisits } from '../../store';
 import { type Victory, startVictory, tickVictory, drawVictory, victoryDone } from '../../victory';
 import { type WalkAway, playWalkAway, tickWalkAway, drawWalkAway } from '../../walkAway';
 import { markBossFight } from '../../bossQuiet';
@@ -33,7 +33,8 @@ import { type Fight, startFight, updateFight, fightOver, endFight, resetFight, d
 import { frameDeath } from '../../deathFrame';
 import { CEIL } from '../control/paint';
 import { setStampHold } from '../../../m1/game/render/stamp';
-import { leaveEmptyArena } from '../../emptyArena';
+// (bossGone: the land's cleared, unless he's raised again for Ned's boss rush (endgame/park4): then the fight's on again)
+import { leaveEmptyArena, bossGone } from '../../emptyArena';
 import { pickLine } from '../../../m1/game/platform/speech';
 import { isShat, isNude } from '../../../m1/game/player/gut';
 import { MEATHEAD_EMPTY_STUCK, MEATHEAD_EMPTY_BURNT } from './lines';
@@ -82,14 +83,14 @@ export const ballroom: SpookySection = {
     const { state } = ctx, p = state.player, b = ballOf(state);
     if (b.fight === 'wait') {
       runExits(state, endExits('ballroom'));
-      if (!isLandCleared('spooky') && p.pos.x + p.width / 2 > TRIGGER_X && p.isGrounded) {
+      if (!bossGone('spooky') && p.pos.x + p.width / 2 > TRIGGER_X && p.isGrounded) {
         b.fight = 'on';
         b.f = startFight(state);
         b.gate = { x: ARENA_L - 30, y: -4000, w: 30, h: 4000 + GY, type: 'wall', hidden: true, tag: 'ballroom-gate' } as Block;
         state.blocks.push(b.gate);
       }
       // (back after he's dead: out onto the empty floor, his say about what's left of him, and back to the hub)
-      if (isLandCleared('spooky') && p.pos.x + p.width / 2 > TRIGGER_X && p.isGrounded) {
+      if (bossGone('spooky') && p.pos.x + p.width / 2 > TRIGGER_X && p.isGrounded) {
         if (b.emptyLine === undefined) {
           const pool = bossDeath('spooky') === 'weakness' ? MEATHEAD_EMPTY_BURNT : MEATHEAD_EMPTY_STUCK;
           b.emptyLine = pickLine(pool[isNude(state) ? 'nude' : isShat(state) ? 'shitty' : 'clean']);
@@ -157,7 +158,7 @@ export const ballroom: SpookySection = {
 const drawBallroom = (c: Ctx, state: GameState) => {
   const v = state.view ?? { x: state.camera.x, y: state.camera.y, w: CANVAS_WIDTH, h: CANVAS_HEIGHT };
   if (v.x > x1 + 200 || v.x + v.w < x0 - 200) return;
-  const b = ballOf(state), cleared = isLandCleared('spooky');
+  const b = ballOf(state), cleared = bossGone('spooky');
   // (the disco ball: down on the floor once it's all over (burnt up); the usual way, still up, swinging if he clipped it)
   const usual = cleared && bossDeath('spooky') !== 'weakness';
   drawBallroomArt(c, state, { cleared, ballDown: cleared && !usual, swing: b.f ? ballSwing(b.f) : 0 });
