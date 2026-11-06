@@ -16,6 +16,7 @@ import { raged } from './amulet';
 import { installGear } from './gear';
 import { installArmorArt } from './armorArt';
 import { setScreenOverlay, setUnderEnemies } from '../../m1/game/render/world';
+import { setSoftLighting } from '../../m1/game/render/lighting';
 import { drawCheapShotPanel, drawCheapShotFloor } from './cheapShot';
 import { installCloseUps } from './closeups';
 import { drawFireworksWash } from '../fireworks';
@@ -43,6 +44,8 @@ export const installUpgrades = () => {
   // (and what it tore out, lying on the floor under everyone after)
   setUnderEnemies(drawCheapShotFloor);
   installCloseUps();
+  // (lit figures in the dark: screened, never blown out white (lighting.ts))
+  setSoftLighting(true);
   // (the power rule: no cell refills through a dive kick or the flash kick either; the engine already holds them through
   // a charge, a slide and an uppercut)
   setPowerHold(p => !!p.isDivekicking || !!p.flashKick);

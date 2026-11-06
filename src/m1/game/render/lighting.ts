@@ -121,6 +121,11 @@ const actorsOf = (state: GameState) => {
 };
 
 let shade: HTMLCanvasElement | null = null;
+/** Meathead 2's: the lights' color and the actors' glow laid on screened, not added (added, a few lights over one
+ *  figure in the dark blew it out white: the owner's "like staring into a light bulb"), the glow softer. Meathead 1
+ *  keeps its own look. */
+let soft = false;
+export const setSoftLighting = (on: boolean) => { soft = on; };
 const SHADE_SCALE = 0.5;
 
 /** The dark over the finished frame, the lights cut out of it, their color, the actors lit. Screen space. */
@@ -180,7 +185,7 @@ export const drawSceneLighting = (ctx: Ctx, state: GameState, scene: SceneLight,
   ctx.drawImage(shade, 0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
 
   // The lights' own color over what they light
-  ctx.globalCompositeOperation = 'lighter';
+  ctx.globalCompositeOperation = soft ? 'screen' : 'lighter';
   for (const l of onScreen) {
     if (!l.color) continue;
     ctx.globalAlpha = Math.min(1, l.a) * Math.min(1, d * 1.6);
@@ -212,7 +217,7 @@ export const drawSceneLighting = (ctx: Ctx, state: GameState, scene: SceneLight,
     const x = sx(wx), y = sy(wy), rr = Math.max(a.w, a.h) * 0.9 * zs;
     // (one with a broken position (NaN) never takes the frame down with it)
     if (!Number.isFinite(x) || !Number.isFinite(y) || !Number.isFinite(rr) || rr <= 4) continue;
-    const tint = best?.color ? best.color.replace(/[\d.]+\)$/, `${(0.3 * lit).toFixed(3)})`) : `rgba(255, 220, 160, ${(0.3 * lit).toFixed(3)})`;
+    const tint = best?.color ? best.color.replace(/[\d.]+\)$/, `${((soft ? 0.16 : 0.3) * lit).toFixed(3)})`) : `rgba(255, 220, 160, ${((soft ? 0.16 : 0.3) * lit).toFixed(3)})`;
     const grad = ctx.createRadialGradient(x, y - 6 * zs, 4, x, y, rr);
     grad.addColorStop(0, tint); grad.addColorStop(1, 'rgba(0,0,0,0)');
     ctx.fillStyle = grad;
