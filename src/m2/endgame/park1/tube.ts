@@ -267,12 +267,12 @@ export const updateTube = (ctx: FrameContext, r: TubeRide, controls: Controls, e
   r.escort.forEach((e, k) => { if (k < front) QUEUED.delete(e); else QUEUED.add(e); });
   // (who's out in front fighting, and the pace: the weapons' tube-only aim help seeks those, never the queue)
   setTubeFoes(pace, r.escort.filter(e => !QUEUED.has(e)));
-  // ---- the shots: the ray gun's bolts and the crossbow's darts sent after the aliens out in front, up over him, down on
-  // the chute, ahead on a rise or in a dip (aim help only, never more damage: tubeRide.ts)
+  // ---- the shots: the crossbow's darts sent after the aliens out in front, up over him, down on the chute, ahead on a
+  // rise or in a dip (aim help only, never more damage: tubeRide.ts). The ray gun goes straight where it's fired (the
+  // owner's "remove the 'homing' elements of the ray gun during the tube slide parts")
   for (const q of state.projectiles) {
     if (q.owner !== 'player') continue;
-    if (q.isRay) steerShot(state, q, 'ray');
-    else if (q.custom === 'CROSSBOW' && (q.customData as { kind?: string } | undefined)?.kind === 'dart') steerShot(state, q, 'dart');
+    if (q.custom === 'CROSSBOW' && (q.customData as { kind?: string } | undefined)?.kind === 'dart') steerShot(state, q, 'dart');
   }
   if (!r.cleared && r.killed >= T.foes) { r.cleared = true; ev.onClear(); }
   r.spawnIn--;
