@@ -41,6 +41,7 @@ import { abductionOn } from '../endgame/abduction';
 import { PARK_STAGE, LOT_STAGE, TUNNEL_STAGE } from '../endgame/stages';
 import { SEC as TUN_SEC, CELL as TUN_CELL } from '../endgame/park3/geo';
 import { REFIGHT_LANDS, refightStage, L4_STAGE } from '../endgame/park4/where';
+import { FINALE_STAGE } from '../endgame/finale/where';
 import { CP as PARK_CP_IDS, CP_AT as PARK_CP_AT, TOWER, GY as PARK_GY } from '../endgame/park1/geo';
 import { KID_HP } from '../endgame/park1/boss';
 import { L2_FROM, CP2 as P2_CP, CP2_AT as P2_CP_AT } from '../endgame/park2/geo';
@@ -687,6 +688,9 @@ const gameWants = (s: GameState | null): Want => {
     return { cands: [{ song: 'land:spooky', arrs: ['hell', 'main'] }], cutscene: sc === 'intro' || cutscene };
   }
   if (stage === TUNNEL_STAGE) return tunnelWants(s);
+  // (level 5, the kaiju finale (endgame/finale): Satan's own song from Spooky Land's hell (his rise), the whole run,
+  // the opening's cutscene and all. Till the owner scores a finale of its own)
+  if (stage === FINALE_STAGE) return { cands: [{ song: 'seq:satan', arrs: ['satan'] }, { song: 'boss:demon', arrs: ['main'] }], cutscene: false };
   const land = LAND_OF_STAGE[stage];
   if (!land) return none;
   const sec = sectionOf(s) ?? '';

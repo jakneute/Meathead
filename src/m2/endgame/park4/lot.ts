@@ -41,6 +41,7 @@ import { setRefightOn } from './hook';
 import { REFIGHTS } from './refights';
 import type { RefightDef, SignPic } from './defs';
 import { L4_ID, L4_STAGE, L4_HOUR, LOT_CP, NED_CP, AFTER_CP, REFIGHT_LANDS, refightId } from './where';
+import { FINALE_ID, FIN_CP_START } from '../finale/where';
 import { drawNed, drawPoof, type NedPose } from './nedArt';
 import { drawNedGross, drawNedGrossBack, warmNedGross } from './nedGross';
 import { type NedFight, startNed, updateNed, drawNedFight, drawNedHud } from './ned';
@@ -140,14 +141,11 @@ const runIntro = (state: GameState, lot: Lot4) => {
 // ---------------------------------------------------------------------------------------------------------------
 // After Ned: the last battle's stub
 
-/** TODO(the last battle): STUB. The kaiju finale (Satan and Zarblax at sunrise, m2-endgame-plan.md) starts here, once
- *  it's built: its first stage in endgame/stages.ts, then `setStartCheckpoint(<its first cp>); goTo(<its id>)` in place
- *  of the notice. Till then he's left in the lot, the ring spent, with a notice saying so. */
+/** The last battle: the kaiju finale (endgame/finale), level 5, from its start (Ned's dead: his line, then on). */
 export const startLastBattle = (state: GameState, lot: Lot4) => {
   if (lot.stubbed) return;
   lot.stubbed = true;
-  meatheadSays(state, pickLine(L.MH_LAST[dressed(state)]), false);
-  setUi({ notice: { text: 'THE LAST BATTLE STARTS HERE. (NOT BUILT YET.)', at: performance.now(), ms: 6000 } });
+  meatheadSays(state, pickLine(L.MH_LAST[dressed(state)]), false, () => { setStartCheckpoint(FIN_CP_START); goTo(FINALE_ID); });
 };
 
 // ---------------------------------------------------------------------------------------------------------------

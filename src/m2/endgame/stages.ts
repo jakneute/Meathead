@@ -8,6 +8,7 @@
 // (endgame/abduction.ts). It isn't a stage of its own here: it's the way in.
 
 import { L4_ID, L4_STAGE, L4_HOUR, LOT_CP as L4_LOT_CP, NED_CP as L4_NED_CP, AFTER_CP as L4_AFTER_CP, refightId, refightStage } from './park4/where';
+import { FINALE_ID, FINALE_STAGE, FINALE_HOUR, FIN_CP_START, FIN_CP_MID } from './finale/where';
 
 export interface EndgameStage {
   /** Its id: goTo(id), and what the save keeps (store.ts endgameAt). */
@@ -91,7 +92,13 @@ export const ENDGAME_STAGES: EndgameStage[] = [
     { name: 'THE PORTALS', cp: L4_LOT_CP }, { name: 'NED THE NECROMANCER', cp: L4_NED_CP }, { name: 'AFTER NED (THE LAST BATTLE STUB)', cp: L4_AFTER_CP },
   ] },
   ...REFIGHT_LIST.map(([land, boss, cp]) => ({ id: refightId(land), level: 4, stage: refightStage(land), name: `LEVEL 4: REFIGHT, ${boss}`, hour: L4_HOUR, checkpoints: [{ name: boss, cp }] })),
+  // Level 5 (the owner's brief 2026-11-06): the kaiju finale. Giant Meathead against the embiggened widow and Satan,
+  // left to right through the eight lands at sunrise (endgame/finale). One checkpoint in the fight: after the 4th land.
+  { id: FINALE_ID, level: 5, stage: FINALE_STAGE, name: 'LEVEL 5: THE KAIJU FINALE', hour: FINALE_HOUR, checkpoints: [
+    { name: 'THE START (AMERICA USA)', cp: FIN_CP_START }, { name: 'FUTURE LAND (4 OF 8 DOWN)', cp: FIN_CP_MID },
+  ] },
 ];
+export { FINALE_ID, FINALE_STAGE } from './finale/where';
 
 export const endgameStage = (id: string) => ENDGAME_STAGES.find(s => s.id === id) ?? null;
 export const endgameOfStage = (stage: string) => ENDGAME_STAGES.find(s => s.stage === stage) ?? null;

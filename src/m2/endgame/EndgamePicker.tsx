@@ -13,7 +13,7 @@ import { ENDGAME_STAGES } from './stages';
  *  most of all): one page a level, every checkpoint of it in order, whichever stage it's in; the eight refights on a
  *  page of their own. */
 interface Row { name: string; stage: string; cp: number; hour: number }
-const PAGE_NAME: Record<number, string> = { 1: 'LEVEL 1: THE WATER PARK', 2: 'LEVEL 2: THE LAZY RIVER', 3: 'LEVEL 3: THE MAINTENANCE TUNNELS', 4: 'LEVEL 4: NED THE NECROMANCER' };
+const PAGE_NAME: Record<number, string> = { 1: 'LEVEL 1: THE WATER PARK', 2: 'LEVEL 2: THE LAZY RIVER', 3: 'LEVEL 3: THE MAINTENANCE TUNNELS', 4: 'LEVEL 4: NED THE NECROMANCER', 5: 'LEVEL 5: THE KAIJU FINALE' };
 const PAGES: { name: string; rows: Row[] }[] = (() => {
   const out: { name: string; rows: Row[] }[] = [], refights: Row[] = [];
   for (const st of ENDGAME_STAGES) {
@@ -25,7 +25,8 @@ const PAGES: { name: string; rows: Row[] }[] = (() => {
   }
   // (a name twice on one page (the gate, outside it and in): the first's told apart)
   for (const pg of out) for (const r of pg.rows) if (pg.rows.filter(q => q.name === r.name).length > 1 && pg.rows.find(q => q.name === r.name) === r) r.name += ' (OUTSIDE)';
-  if (refights.length) out.push({ name: 'LEVEL 4: THE REFIGHTS', rows: refights });
+  // (the refights' page right after level 4's, before the finale's)
+  if (refights.length) { const at = out.findIndex(p => p.name === PAGE_NAME[4]); out.splice(at >= 0 ? at + 1 : out.length, 0, { name: 'LEVEL 4: THE REFIGHTS', rows: refights }); }
   return out;
 })();
 

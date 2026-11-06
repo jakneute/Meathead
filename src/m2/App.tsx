@@ -66,6 +66,7 @@ import { parkLayout, PARK_STAGE } from './endgame/park1/index';
 import { tunnelLayout, TUNNEL_STAGE } from './endgame/park3/index';
 import { REFIGHT_LAYOUTS } from './endgame/park4/refights';
 import { lot4Layout, LOT4_STAGE } from './endgame/park4/lot';
+import { finaleLayout, FINALE_STAGE } from './endgame/finale/index';
 import { endgameStage, endgameLevelStart } from './endgame/stages';
 import { setGenderOf, unpaired } from '../m1/content/gender';
 import { m2KindGender } from './kinds';
@@ -193,6 +194,9 @@ registerStageLayout(TUNNEL_STAGE, tunnelLayout);
 // (level 4: Ned's boss rush, each refight its land's own stage run again in hell: endgame/park4)
 for (const [name, layout] of REFIGHT_LAYOUTS) registerStageLayout(name, layout);
 registerStageLayout(LOT4_STAGE, lot4Layout);
+// (level 5: the kaiju finale)
+registerStageLayout(FINALE_STAGE, finaleLayout);
+finaleLayout.noMoonKills = true;
 registerIntro();
 registerGmen();
 loadVoicePack(voicePackUrl);
@@ -298,7 +302,7 @@ const App2: React.FC = () => {
   // Spooky Land, ?space=<checkpoint> in Space Land, ?hollywood=<checkpoint> in Hollywood Land, ?foreign=<checkpoint> in
   // Foreign Lands, ?hub=<spot> at the hub, ?pen in the staff room)
   const devQ = import.meta.env.DEV ? new URLSearchParams(location.search) : null;
-  const first = devQ?.has('adv') ? ADV_STAGE : devQ?.has('spooky') ? SPOOKY_STAGE : devQ?.has('space') ? SPACE_STAGE : devQ?.has('hollywood') ? HOLLYWOOD_STAGE : devQ?.has('foreign') ? FOREIGN_STAGE : devQ?.has('frontier') ? FRONTIER_STAGE : devQ?.has('fantasy') ? FANTASY_STAGE : devQ?.has('cartoon') ? CARTOON_STAGE :devQ?.has('hub') ? HUB_STAGE : devQ?.has('pen') ? PEN_STAGE : devQ?.has('intro') ? INTRO_STAGE : devQ?.has('park') ? PARK_STAGE : devQ?.has('tunnel') ? TUNNEL_STAGE : devQ?.has('lot') ? LOT_STAGE : GYM_STAGE;
+  const first = devQ?.has('adv') ? ADV_STAGE : devQ?.has('spooky') ? SPOOKY_STAGE : devQ?.has('space') ? SPACE_STAGE : devQ?.has('hollywood') ? HOLLYWOOD_STAGE : devQ?.has('foreign') ? FOREIGN_STAGE : devQ?.has('frontier') ? FRONTIER_STAGE : devQ?.has('fantasy') ? FANTASY_STAGE : devQ?.has('cartoon') ? CARTOON_STAGE :devQ?.has('hub') ? HUB_STAGE : devQ?.has('pen') ? PEN_STAGE : devQ?.has('intro') ? INTRO_STAGE : devQ?.has('park') ? PARK_STAGE : devQ?.has('tunnel') ? TUNNEL_STAGE : devQ?.has('lot') ? LOT_STAGE : devQ?.has('finale') ? FINALE_STAGE : GYM_STAGE;
   const [stage, setStage] = useState(first);
   // (the hidden upgrades changing (the cheats, a find): the HUD's max health, cells and ammo redrawn)
   useSyncExternalStore(subscribeUpgrades, upgradesVersion);

@@ -56,7 +56,7 @@ const KINDS = new Set<string>();
 export const endgameBoss = (...kinds: string[]) => { for (const k of kinds) KINDS.add(k); };
 export const isEndgameBoss = (e: Enemy) => !!e.kind && KINDS.has(e.kind);
 
-const tags = new WeakMap<Enemy, { v: number; frame: number }>();
+const tags = new WeakMap<Enemy, { v: number; frame: number; w: string; move: string }>();
 /** A special's hit landed on him (one of the water park's bosses: nobody else is marked): which move it was. The
  *  biggest of a frame's kept. */
 export const tagHit = <W extends keyof Table>(state: GameState, e: Enemy, w: W, move: EndgameMove<W>) => {
@@ -65,7 +65,13 @@ export const tagHit = <W extends keyof Table>(state: GameState, e: Enemy, w: W, 
   if (v === undefined) return;
   const t = tags.get(e);
   if (t && t.frame >= state.frame - 1 && t.v >= v) return;
-  tags.set(e, { v, frame: state.frame });
+  tags.set(e, { v, frame: state.frame, w, move });
+};
+/** The special marked on him this frame or the last (its weapon and move), not taken (the kaiju finale's stagger
+ *  meters read which weapon landed, not its number: finale/bosses.ts). */
+export const peekTag = (state: GameState, e: Enemy): { w: string; move: string } | null => {
+  const t = tags.get(e);
+  return t && t.frame >= state.frame - 2 ? { w: t.w, move: t.move } : null;
 };
 
 /** The table's number for the special's hit marked on him this frame or the last (taken: read once), or null: nothing
@@ -91,5 +97,6 @@ export const endgameDamage = (state: GameState, e: Enemy, melee: boolean, dealt:
 /** Bulked up (the spellbook's BULK UP on: spellbook.ts says so). */
 let bulked = false;
 export const setBulked = (on: boolean) => { bulked = on; };
+export const bulkedNow = () => bulked;
 /** One of his moves on him: bulked up, the spellbook's number; otherwise his plain move's, as on any boss. */
 export const endgameMelee = (p: Player) => (bulked ? ENDGAME_DAMAGE.SPELLBOOK.bulk : bossMelee(p));

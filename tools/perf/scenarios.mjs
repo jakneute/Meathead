@@ -39,6 +39,11 @@ export const SCENARIOS = [
   { name: 'wp3-piss', q: 'tunnel=2', warm: 3, keys: [[0, 'js', '{ const p = window.__m2.player; p.pos.x = 4250 - 22; p.pos.y = 830 - 64; p.vel.y = 0; }'], [300, 'down', 'ArrowRight'], [900, 'up', 'ArrowRight'], ...Array.from({ length: 10 }, (_, i) => [1500 + i * 2000, 'tap', i % 2 ? 'ArrowLeft' : 'ArrowRight'])] },
   { name: 'wp3-pipes', q: 'tunnel=7', warm: 3, keys: Array.from({ length: 12 }, (_, i) => [[i * 2000, 'down', i % 3 ? 'Space' : 'ArrowRight'], [i * 2000 + 1500, 'up', i % 3 ? 'Space' : 'ArrowRight']]).flat() },
   { name: 'wp3-boss', q: 'tunnel=8', warm: 4, keys: [[0, 'js', 'window.__m2.stageMemo["m2:boss-intro:gupplax"] = "1"'], [100, 'down', 'ArrowRight'], [3000, 'up', 'ArrowRight'], ...Array.from({ length: 14 }, (_, i) => [7000 + i * 1500, 'tap', i % 3 === 2 ? 'Space' : i % 2 ? 'ArrowLeft' : 'ArrowRight']), [7200, 'down', 'ArrowRight']] },
+  // The kaiju finale (endgame/finale): the opening skipped, the dev autopilot playing it (window.__finAuto: the weakness
+  // in hand, walking on, firing, dodging, throwing). HOLLYWOOD from the start (the spellbook), and FUTURE LAND from the
+  // mid checkpoint (the mallet, then the spawner: SPACE NEEDLE 2's fall)
+  { name: 'finale-h1', q: 'finale=0', warm: 4, keys: [[0, 'js', '{ const s = window.__fin.scene; if (s) { s.over = true; s.skipped = true; } window.__m2SetCheat("allWeapons", true); }'], [600, 'tap', '5'], [900, 'js', 'window.__finAuto = true'], [16000, 'tap', '6']] },
+  { name: 'finale-future', q: 'finale=1', warm: 4, keys: [[0, 'js', 'window.__m2SetCheat("allWeapons", true)'], [600, 'tap', '7'], [900, 'js', 'window.__finAuto = true'], [14000, 'tap', '8']] },
   // The crossbow on a crowd (the user's: slowdown "when using the crossbow and a ton of people are hurling and i move
   // back and forth", in the break room): every weapon on, the crossbow (9), fire held, pacing left and right
   { name: 'crossbow-crowd', q: 'pen', warm: 8, keys: [

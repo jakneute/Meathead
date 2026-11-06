@@ -30,7 +30,7 @@ export const LAND_COUNT = 9;
  *  own (out through America USA, past the point of no return: endgame/stages.ts gives each stage its hour). The owner:
  *  "'10' from then on regardless: the same skyline as 9 but with no fireworks"; it'll run on through the night to
  *  sunrise as the endgame's built (more keys past 10 then). */
-export const LAST_HOUR = 13;
+export const LAST_HOUR = 15;
 
 // ---------------------------------------------------------------------------------------------------------------
 // Where in the day it is
@@ -133,6 +133,13 @@ const KEYS: Key[] = [
   // gone, the horizon a bruised violet with a thin dirty rose along it: still dark, but you can tell it's coming)
   { at: 13, name: 'before dawn', sky: ['#070A24', '#101636', '#1C224C', '#2E3262', '#4A3E70', '#6E4C72'], skyK: 0.94,
     sunH: -0.6, sun: '#F2683A', sunGlow: '#C24A44', moon: 0.3, stars: 0.6, cloud: '#6A6896', mul: '#AAAED8', dark: 0.22, shade: [12, 12, 42], haze: '#4A3C6C', lamps: 1 },
+  // (Ned dead (level 4's boss): the dawn. The stars nearly gone, the sky lifting through violet to a hot rose along the
+  // horizon; the sun not up yet)
+  { at: 14, name: 'dawn', sky: ['#1C2050', '#30306A', '#56427E', '#8A5480', '#C86E6E', '#F0965E'], skyK: 0.86,
+    sunH: -0.15, sun: '#FFB060', sunGlow: '#F2804A', moon: 0, stars: 0.15, cloud: '#C88AA0', mul: '#D8C4D8', dark: 0.1, shade: [40, 20, 50], haze: '#C27A78', lamps: 0.6 },
+  // (the kaiju finale: sunrise. The sun's disc on the horizon, the sky banded gold up to a clean morning blue)
+  { at: 15, name: 'sunrise', sky: ['#3A5AA8', '#5A74B4', '#8A8CB4', '#C8A094', '#F2B878', '#FFD890'], skyK: 0.7,
+    sunH: 0.05, sun: '#FFE2A0', sunGlow: '#FFB870', moon: 0, stars: 0, cloud: '#FFD4B8', mul: '#FFE8D8', dark: 0.02, shade: [60, 30, 30], haze: '#F4C49A', lamps: 0.1 },
 ];
 
 /** The look at this point in the day: everything a scene needs to light itself by. */
