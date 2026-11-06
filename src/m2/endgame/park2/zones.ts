@@ -36,6 +36,8 @@ import { GY, B, RIVER_Y, L3, waterY, floorDy, gapAt, hangDy } from './geo';
 /** The far bank's height at x: the deck's there; over the river, between the two decks either side (smaller steps). */
 const bankDy = (x: number) => (gapAt(x) ? hangDy(x) : floorDy(x));
 import { flame, FIRE } from './fire';
+import { paintSkeleton } from './lavaDeath';
+import { paintGuest, guestOf, type GuestPose, type Possession } from '../park1/kindArt';
 
 type Ctx = CanvasRenderingContext2D;
 type P = [number, number];
@@ -123,8 +125,211 @@ const nightWash = (g: Ctx, w: number, h: number, foot: number) => {
   g.globalCompositeOperation = 'source-over';
 };
 
+// ---- The flavor (the owner, 2026-11-06: "throw in other stuff too as flavor that we may have missed in the
+// background"): the other things a real water park has, each where it would stand, seen far off past the zones as they
+// are now. Scenery only (nothing to stand on: no lit tops). Words on them: those tiles are never mirrored.
+
+/** Which of a zone's tiles a tile is (j's remainder, never negative). */
+const vr = (j: number, n: number) => ((j % n) + n) % n;
+/** A far sign held up on two posts down to the ground at `foot`: the board (no lit top: it's not a ledge), its words
+ *  (the first line big, the rest small), readable over the night. */
+const farSign = (g: Ctx, cx: number, top: number, w: number, lines: string[], board: string, foot = MG, ink = '#FEF3C7') => {
+  const h = 16 + (lines.length - 1) * 10, Bd = ramp5(m(board)), Pt = ramp5(m('#4A3424'));
+  for (const px of [cx - w / 2 + 10, cx + w / 2 - 14]) { R(g, px - 1, top + h, 6, foot - top - h, INK); R(g, px, top + h, 4, foot - top - h, Pt[1]); R(g, px, top + h, 1, foot - top - h, Pt[3]); }
+  R(g, cx - w / 2 - 1, top - 1, w + 2, h + 2, INK); R(g, cx - w / 2, top, w, h, Bd[2]); R(g, cx - w / 2, top + h - 2, w, 2, Bd[0]); R(g, cx - w / 2, top, 2, h, Bd[3]);
+  g.textAlign = 'center';
+  lines.forEach((l, i) => { g.font = i ? '6px "Press Start 2P"' : '8px "Press Start 2P"'; const y = top + 11 + (i ? 3 + i * 10 - 2 : 0); g.fillStyle = INK; g.fillText(l, cx + 1, y + 1); g.fillStyle = i ? '#FDE68A' : ink; g.fillText(l, cx, y); });
+  g.textAlign = 'left';
+};
+/** Painted on a scratch canvas, then put down dimmed toward the night by `k` (a figure in its own bright colors would
+ *  stand out of the far scenery). Bake time only. */
+const dimmedOn = (g: Ctx, x0: number, y0: number, w: number, h: number, k: number, paint: (s: Ctx) => void) => {
+  if (typeof document === 'undefined') return;
+  const cv = document.createElement('canvas'); cv.width = w; cv.height = h;
+  const s = cv.getContext('2d')!; s.translate(-x0, -y0); paint(s);
+  s.setTransform(1, 0, 0, 1, 0, 0); s.globalCompositeOperation = 'source-atop'; s.globalAlpha = k; s.fillStyle = '#0B0A1E'; s.fillRect(0, 0, w, h);
+  g.drawImage(cv, x0, y0);
+};
+/** A far guest (park1's possessed guests, the same drawing, its limbs off limb.ts), shrunk, dimmed; the eyes lit. */
+const farGuest = (g: Ctx, x: number, foot: number, s: number, seed: number, pos: Possession, pose: GuestPose, face: 1 | -1) => {
+  const G = guestOf(seed), H = G.tall ? 76 : 70;
+  dimmedOn(g, x - 50 * s, foot - 104 * s, Math.ceil(100 * s) + 2, Math.ceil(108 * s) + 2, 0.4, s2 => { s2.translate(x, foot); s2.scale(s * face, s); paintGuest(s2, G, pos, pose, 0); });
+  const ey = foot - H * 0.9 * s - (pose === 'crouch' ? -13 * s : 0);
+  R(g, x + face * 6 * s - 1, ey - 1, 2, 2, pos === 'demon' ? '#FF3B1F' : '#7CFF3A');
+};
+
+/** THE RIVER'S HEAD's third tile: on the pool deck, the TINY BALLS kiosk (the little frozen balls of ice cream) and
+ *  its long sad line of the possessed; or guest services (first aid, lost and found, the swim diaper machine, a
+ *  sunscreen pump). */
+const midHeadDeck = (g: Ctx, j: number, sp: Spot[]) => {
+  if (vr(j, 2) === 0) {
+    // (the kiosk: a round hut, its dome roof in bands, the window lit, a giant cup of tiny balls on top spilling)
+    const x = 320, Kb = ramp5(m('#E0F2FE')), Pk = ramp5(m('#EC4899'));
+    block(g, x - 50, MG - 90, 100, 90, Kb, true); R(g, x - 50, MG - 60, 100, 6, Pk[2]);
+    R(g, x - 36, MG - 82, 72, 30, INK); R(g, x - 34, MG - 80, 68, 26, '#FDE68A'); R(g, x - 34, MG - 80, 68, 6, '#FFF7D6');
+    R(g, x - 54, MG - 54, 108, 8, INK); R(g, x - 53, MG - 53, 106, 6, Kb[1]);
+    g.fillStyle = INK; g.beginPath(); g.ellipse(x, MG - 90, 60, 30, 0, Math.PI, 0); g.fill();
+    for (let k = 0; k < 4; k++) { g.fillStyle = k % 2 ? Pk[1] : Pk[2]; g.beginPath(); g.ellipse(x, MG - 90, 57 - k * 13, 27 - k * 6, 0, Math.PI, 0); g.fill(); }
+    // (the cup: striped, the tiny balls heaped and spilling down the dome)
+    poly(g, [[x - 26, MG - 172], [x + 26, MG - 172], [x + 18, MG - 116], [x - 18, MG - 116]], INK);
+    for (let k = 0; k < 5; k++) poly(g, [[x - 24 + k * 10, MG - 170], [x - 14 + k * 10, MG - 170], [x - 10 + k * 7.2, MG - 118], [x - 17 + k * 7.2, MG - 118]], k % 2 ? m('#F5F5F4') : Pk[2]);
+    const BALL = ['#FDE68A', '#F9A8D4', '#86EFAC', '#93C5FD', '#FDBA74'];
+    for (let k = 0; k < 40; k++) { const bx = x - 24 + hash(j + k) * 48, by = MG - 172 - hash(k * 3 + 1) * 14 * (1 - Math.abs(bx - x) / 30); R(g, bx, by, 3, 3, m(BALL[k % 5])); }
+    for (let k = 0; k < 14; k++) R(g, x - 50 + hash(k * 7) * 100, MG - 116 + hash(k * 5) * 26, 2, 2, m(BALL[k % 5]));
+    farSign(g, x, MG - 250, 150, ['TINY BALLS', 'THEY SHRINK IN THE COLD'], '#0E7490', MG - 172);
+    // (the line: stanchions and a sagging rope back along the deck, the possessed in it, slumped, one of them
+    // complaining at the sky)
+    const Po = ramp5(m('#CA8A04'));
+    for (let px = 20; px < x - 50; px += 44) { R(g, px - 2, MG - 30, 4, 30, INK); R(g, px - 1, MG - 30, 2, 30, Po[2]); R(g, px - 5, MG - 2, 10, 2, Po[0]); }
+    for (let px = 20; px + 44 < x - 50; px += 44) stroke(g, [[px, MG - 28], [px + 22, MG - 22], [px + 44, MG - 28]], 1, m('#B91C1C'));
+    for (let k = 0; k < 7; k++) farGuest(g, 30 + k * 30 + Math.round(hash(j * 3 + k) * 8), MG, 0.42, j * 11 + k * 5 + 1, k % 3 === 1 ? 'alien' : 'demon', k === 4 ? 'tell' : 'stand', 1);
+    farSign(g, 60, MG - 120, 108, ['WAIT', 'FROM HERE: 3 HRS'], '#7F1D1D', MG - 30);
+    sp.push([x - 30, MG - 92, 30, 26]);
+  } else {
+    // (guest services: one long low block, its awning; FIRST AID (the door shut, a note on it), LOST AND FOUND (its
+    // window heaped with single flip-flops), the swim diaper machine; the sunscreen pump on its post)
+    const x0 = 36, x1 = 366, top = MG - 120, Bl = ramp5(m('#E7E5E4')), Rd = ramp5(m('#B91C1C')), Aw = ramp5(m('#0369A1'));
+    block(g, x0, top, x1 - x0, MG - top, Bl);
+    for (let k = 0; k < 6; k++) poly(g, [[x0 - 6 + k * 58, top + 4], [x0 + 52 + k * 58, top + 4], [x0 + 48 + k * 58, top + 22], [x0 - 2 + k * 58, top + 22]], k % 2 ? Aw[1] : Aw[2]);
+    R(g, x0 - 6, top + 2, x1 - x0 + 12, 2, Aw[0]);
+    // (FIRST AID)
+    R(g, x0 + 20, top + 40, 50, 80, INK); R(g, x0 + 22, top + 42, 46, 78, Bl[1]); R(g, x0 + 34, top + 58, 22, 6, Rd[2]); R(g, x0 + 42, top + 50, 6, 22, Rd[2]);
+    R(g, x0 + 30, top + 84, 30, 16, m('#FEF9C3'));
+    g.font = '6px "Press Start 2P"'; g.fillStyle = INK; g.fillText('OUT', x0 + 36, top + 92); g.fillText('SICK', x0 + 33, top + 99);
+    farSign(g, x0 + 45, top - 34, 84, ['FIRST AID', 'BANDAGES $12'], '#B91C1C', top);
+    // (LOST AND FOUND: the window, its heap)
+    R(g, x0 + 110, top + 44, 100, 46, INK); R(g, x0 + 112, top + 46, 96, 42, '#3A2A1A');
+    const FL = ['#F97316', '#22D3EE', '#FACC15', '#EC4899', '#A3E635', '#F5F5F4'];
+    for (let k = 0; k < 34; k++) { const fx = x0 + 114 + hash(k * 2.3) * 88, fy = top + 88 - hash(k * 4.1) * 30 * (1 - Math.abs(fx - x0 - 160) / 60); R(g, fx, fy, 6, 3, m(FL[k % 6])); }
+    R(g, x0 + 150, top + 60, 4, 6, '#F5F5F4');
+    farSign(g, x0 + 165, top - 44, 150, ['LOST AND FOUND', '1 TOOTH. 900 FLIP-FLOPS'], '#1E3A5F', top);
+    // (the swim diaper machine: a vending box, the packs in its glass, one door hanging)
+    const vx = x0 + 240; block(g, vx, top + 20, 54, MG - top - 20, ramp5(m('#0E7490')));
+    R(g, vx + 6, top + 30, 34, 60, INK); for (let k = 0; k < 3; k++) for (let q = 0; q < 2; q++) R(g, vx + 9 + q * 16, top + 33 + k * 19, 12, 14, m('#F5F5F4'));
+    g.font = '6px "Press Start 2P"'; g.fillStyle = m('#FEF3C7'); g.fillText('SWIM', vx + 8, top + 104); g.fillText('DIAPERS', vx + 4, top + 112);
+    farSign(g, vx + 40, top - 24, 76, ['ADULT', 'SIZES'], '#0E7490', top + 20);
+    // (the sunscreen pump on its post: a big white bottle, its label)
+    const sx = 384; R(g, sx - 2, MG - 70, 4, 70, INK);
+    ell(g, sx, MG - 84, 9, 16, INK); ell(g, sx, MG - 84, 7, 14, m('#F8FAFC')); R(g, sx - 5, MG - 88, 10, 6, m('#F97316')); R(g, sx - 2, MG - 104, 4, 6, INK);
+    g.font = '6px "Press Start 2P"'; g.fillStyle = INK; g.fillText('SPF', sx - 9, MG - 74); g.fillText('2', sx - 3, MG - 66);
+    // (two of them waiting at first aid)
+    farGuest(g, x0 + 90, MG, 0.42, j * 7 + 3, 'demon', 'stand', -1); farGuest(g, x0 + 104, MG, 0.42, j * 7 + 19, 'alien', 'crouch', -1);
+    sp.push([x0 + 300, top + 2, 40, 30]);
+  }
+};
+
+/** THE LOST RUINS' third: the high dive, a carved rock tower (the cliff jump), its three boards, the plunge pool. */
+const midHighDive = (g: Ctx, j: number, sp: Spot[]) => {
+  const S = ramp5(m('#8A7A5A')), Wd = ramp5(m('#6B4A2A')), Mo = ramp5(m('#3F5A2A'));
+  const x0 = 190, x1 = 300, top = MG - 340;
+  const face: P[] = [[x0 - 22, MG], [x0 - 8, top + 70], [x0 + 6, top + 6], [x1 - 16, top], [x1 - 2, top + 60], [x1 + 8, MG]];
+  poly(g, face.map(([x, y]) => [x + (x < 245 ? -2 : 2), y - 2] as P), INK); poly(g, face, S[2]);
+  poly(g, [[x0 - 22, MG], [x0 - 8, top + 70], [x0 + 6, top + 6], [x0 + 22, top + 8], [x0 + 10, MG]], S[3]);
+  poly(g, [[x1 - 20, top + 2], [x1 - 2, top + 60], [x1 + 8, MG], [x1 - 14, MG]], S[1]);
+  for (let y = top + 24; y < MG; y += 22) R(g, x0 - 2, y, x1 - x0 - 2, 1, S[0]);
+  for (let y = top + 24, n = 0; y < MG; y += 22, n++) for (let x = x0 + 8 + (n % 2) * 14; x < x1 - 8; x += 28) R(g, x, y, 1, Math.min(22, MG - y), S[1]);
+  // (a carved face up top, its eyes lit, vines down it)
+  R(g, 228, top + 30, 10, 6, INK); R(g, 252, top + 30, 10, 6, INK); R(g, 230, top + 32, 6, 2, '#FDBA74'); R(g, 254, top + 32, 6, 2, '#FDBA74'); R(g, 232, top + 50, 26, 6, INK);
+  for (const vx of [204, 276]) stroke(g, [[vx, top + 20], [vx + 4, top + 100], [vx - 2, top + 160]], 3, Mo[1]);
+  // (the boards off its right face: wood in shade (no lit tops), iron brackets; the top one snapped, hanging)
+  for (const [h, len] of [[110, 64], [210, 56]] as const) { const y = MG - h; R(g, x1 - 6, y - 1, len + 2, 8, INK); R(g, x1 - 5, y, len, 6, Wd[1]); R(g, x1 - 5, y + 4, len, 2, Wd[0]); stroke(g, [[x1 - 2, y + 26], [x1 + len * 0.6, y + 6]], 2, m('#3F3F46')); }
+  { const y = MG - 310; R(g, x1 - 12, y - 1, 30, 8, INK); R(g, x1 - 11, y, 28, 6, Wd[1]); poly(g, [[x1 + 16, y], [x1 + 22, y + 2], [x1 + 30, y + 46], [x1 + 24, y + 48]], INK); poly(g, [[x1 + 17, y + 2], [x1 + 21, y + 3], [x1 + 28, y + 44], [x1 + 25, y + 45]], Wd[1]); }
+  // (a ladder up its left face)
+  for (const lx of [x0 - 30, x0 - 18]) R(g, lx, top + 80, 2, MG - top - 80, m('#3F3F46'));
+  for (let y = top + 86; y < MG; y += 10) R(g, x0 - 30, y, 14, 1, m('#52525B'));
+  // (the plunge pool at its foot, a pair of trunks floating in it; another pair snagged on the middle board)
+  ell(g, 352, MG - 2, 56, 9, INK); ell(g, 352, MG - 3, 53, 7, m('#0B2A4A')); for (let k = 0; k < 5; k++) R(g, 310 + k * 18, MG - 4 + (k % 2) * 2, 8, 1, m('#38BDF8'));
+  const trunks = (x: number, y: number) => { poly(g, [[x - 7, y], [x + 7, y], [x + 8, y + 9], [x + 1, y + 9], [x, y + 4], [x - 1, y + 9], [x - 8, y + 9]], INK); poly(g, [[x - 6, y + 1], [x + 6, y + 1], [x + 7, y + 8], [x + 2, y + 8], [x, y + 3], [x - 2, y + 8], [x - 7, y + 8]], m('#DC2626')); R(g, x - 6, y + 1, 12, 2, m('#F5F5F4')); };
+  trunks(352, MG - 8); trunks(x1 + 50, MG - 210 + 6);
+  farSign(g, 95, MG - 300, 156, ['LEAP OF FAITH', '70 FT. TIE YOUR TRUNKS'], '#6B5B3A');
+  sp.push([250, top + 4, 50, 34]);
+};
+/** PIRATE COVE's third: the family raft ride (THE PLANK): a ship's mast for a tower, its crow's nest the start, the
+ *  wide open flume down to its pool, a raft stuck halfway, burning. */
+const midRaftRide = (g: Ctx, j: number, sp: Spot[]) => {
+  const Hl = ramp5(m('#5A3A1E')), Fl = ramp5(m('#EAB308')), Rf = ramp5(m('#F97316'));
+  R(g, 64, MG - 330, 14, 330, INK); R(g, 66, MG - 330, 10, 330, Hl[2]); R(g, 66, MG - 330, 3, 330, Hl[3]);
+  for (let y = MG - 300; y < MG; y += 30) stroke(g, [[30, MG], [70, y]], 1, Hl[1]);
+  block(g, 40, MG - 320, 70, 22, Hl); poly(g, [[78, MG - 380], [118, MG - 368], [78, MG - 356]], INK); ell(g, 92, MG - 368, 4, 4, m('#E7E5E4'));
+  // (the flume: wide, open (its far wall lit inside, the near rim dark), off the crow's nest, down round to the pool)
+  const path = (dy: number) => { g.beginPath(); g.moveTo(110, MG - 304 + dy); g.bezierCurveTo(300, MG - 300 + dy, 380, MG - 220 + dy, 300, MG - 130 + dy); g.bezierCurveTo(240, MG - 70 + dy, 300, MG - 20 + dy, 380, MG - 14 + dy); };
+  g.lineCap = 'round'; g.lineJoin = 'round';
+  path(0); g.strokeStyle = INK; g.lineWidth = 30; g.stroke();
+  path(0); g.strokeStyle = Fl[1]; g.lineWidth = 26; g.stroke();
+  path(-4); g.strokeStyle = Fl[0]; g.lineWidth = 12; g.stroke();
+  path(-10); g.strokeStyle = Fl[3]; g.lineWidth = 2; g.stroke();
+  g.lineCap = 'butt'; g.lineJoin = 'miter';
+  for (const [lx, ly] of [[200, MG - 296], [300, MG - 240], [330, MG - 180], [270, MG - 100]] as const) { R(g, lx - 2, ly + 14, 4, MG - ly - 14, INK); R(g, lx - 1, ly + 14, 2, MG - ly - 14, m('#71717A')); }
+  // (the raft, a ring of four seats, wedged in the bend, on fire)
+  ell(g, 334, MG - 196, 26, 10, INK); ell(g, 334, MG - 197, 24, 8, Rf[2]); ell(g, 334, MG - 199, 14, 4, Rf[0]);
+  for (let k = 0; k < 4; k++) R(g, 314 + k * 12, MG - 200, 3, 3, Rf[4]);
+  sp.push([334, MG - 200, 40, 34]);
+  ell(g, 372, MG - 2, 40, 8, INK); ell(g, 372, MG - 3, 37, 6, m('#0B2A4A'));
+  farSign(g, 190, MG - 120, 150, ['THE PLANK', 'MAX 4 RIDERS OR 1 DAD'], '#1E3A5F');
+  void j;
+};
+/** MIRAGE OASIS' third: the water coaster (CAMEL HUMPS): its flume up and over the humps (the blasters' belts on the
+ *  climbs, dead), a raft stuck on top of the second, down into its pool. */
+const midCoaster = (g: Ctx, j: number, sp: Spot[]) => {
+  const Tk = ramp5(m('#0891B2')), Bt = ramp5(m('#27272A'));
+  const pts: P[] = [[-10, MG - 110], [70, MG - 230], [140, MG - 120], [230, MG - 290], [310, MG - 110], [380, MG - 20]];
+  // (the legs, steel, down from it to the sand)
+  const at = (t: number): P => { const n = pts.length - 1, k = Math.min(n - 1, Math.floor(t * n)), u = t * n - k, a = pts[k], b = pts[k + 1], s = (1 - Math.cos(u * Math.PI)) / 2; return [a[0] + (b[0] - a[0]) * u, a[1] + (b[1] - a[1]) * s]; };
+  for (let t = 0.02; t < 0.96; t += 0.04) { const [x, y] = at(t); R(g, x - 1, y + 8, 3, MG - y - 8, INK); R(g, x, y + 8, 1, MG - y - 8, m('#71717A')); }
+  const line = (w: number, col: string, dy: number) => { g.strokeStyle = col; g.lineWidth = w; g.lineCap = 'round'; g.lineJoin = 'round'; g.beginPath(); for (let t = 0; t <= 1.0001; t += 0.01) { const [x, y] = at(t); if (t === 0) g.moveTo(x, y + dy); else g.lineTo(x, y + dy); } g.stroke(); g.lineCap = 'butt'; g.lineJoin = 'miter'; };
+  line(16, INK, 0); line(12, Tk[1], 0); line(5, Tk[0], -2); line(1, Tk[3], -5);
+  // (the blaster belts up the climbs: black stripes across the flume, dead)
+  for (const [a, b] of [[0.2, 0.38], [0.6, 0.77]] as const) for (let t = a; t < b; t += 0.02) { const [x, y] = at(t); R(g, x - 1, y - 5, 3, 10, Bt[1]); }
+  // (the raft, stuck on the top of the big hump, burning)
+  { const [x, y] = at(0.6); ell(g, x, y - 6, 16, 6, INK); ell(g, x, y - 7, 14, 4, m('#F97316')); sp.push([x, y - 8, 30, 30]); }
+  ell(g, 380, MG - 2, 40, 8, INK); ell(g, 380, MG - 3, 37, 6, m('#0B2A4A'));
+  farSign(g, 150, MG - 92, 130, ['CAMEL HUMPS', 'RIDE THE HUMPS'], '#B45309');
+  void j;
+};
+/** BACKSTAGE's others: past the plywood, the wave pool's clock tower (NEXT WAVE IN: 6:66); or the surf machine (SHEET
+ *  HAPPENS), its sheet of water still running, one of the possessed mid wipeout. */
+const midBackPast = (g: Ctx, j: number, sp: Spot[], clock: boolean) => {
+  const Pw = ramp5(m('#A8906A'));
+  const flat = (x: number, w: number, h: number, word: string) => { block(g, x, MG - h, w, h, Pw); for (let y = MG - h + 40; y < MG; y += 40) R(g, x, y, w, 2, Pw[1]); stroke(g, [[x + w, MG - h + 20], [x + w + 30, MG]], 5, Pw[0]); g.font = '8px "Press Start 2P"'; g.fillStyle = m('#1A1410'); g.fillText(word, x + 8, MG - h + 20); };
+  if (clock) {
+    // (the clock tower: the wave pool's, tall, in the park's blue and yellow; the clock face lit; under it the
+    // countdown board stuck on the devil's number)
+    const x = 250, Tw = ramp5(m('#0369A1')), Yl = ramp5(m('#CA8A04'));
+    block(g, x - 30, MG - 300, 60, 300, Tw); for (let y = MG - 280; y < MG; y += 24) R(g, x - 28, y, 56, 1, Tw[1]);
+    block(g, x - 42, MG - 370, 84, 70, Yl);
+    poly(g, [[x - 48, MG - 370], [x, MG - 382], [x + 48, MG - 370]], Tw[1]);
+    ell(g, x, MG - 336, 27, 27, INK); ell(g, x, MG - 336, 24, 24, '#FEF3C7'); ell(g, x, MG - 336, 20, 20, '#FDE68A');
+    for (let k = 0; k < 12; k++) R(g, x + Math.cos(k * 0.5236) * 18 - 1, MG - 336 + Math.sin(k * 0.5236) * 18 - 1, 2, 2, INK);
+    stroke(g, [[x, MG - 336], [x - 8, MG - 350]], 2, INK); stroke(g, [[x, MG - 336], [x + 12, MG - 330]], 2, INK);
+    R(g, x - 40, MG - 270, 80, 40, INK); R(g, x - 38, MG - 268, 76, 36, '#140808');
+    g.font = '6px "Press Start 2P"'; g.textAlign = 'center'; g.fillStyle = '#FCA5A5'; g.fillText('NEXT WAVE IN', x, MG - 256);
+    g.textAlign = 'left';
+    // (the digits: seven-segment, lit red (the font's sixes read as Gs that small))
+    const six = (dx: number) => { const X0 = x + dx, Y0 = MG - 252; for (const [a, b2, w, h] of [[1, 0, 8, 2], [0, 1, 2, 7], [1, 8, 8, 2], [0, 9, 2, 7], [9, 9, 2, 7], [1, 16, 8, 2]] as const) R(g, X0 + a, Y0 + b2, w, h, '#EF4444'); };
+    six(-23); six(-4); six(11); R(g, x - 9, MG - 246, 2, 2, '#EF4444'); R(g, x - 9, MG - 240, 2, 2, '#EF4444');
+    sp.push([x + 30, MG - 372, 30, 30]);
+    flat(20, 110, 190, 'WAVE 1'); flat(140, 70, 150, 'FLAT 2');
+  } else {
+    // (the surf machine: its concrete base, the padded slope rising to the curl, the sheet of water down it in bands,
+    // the pump nozzles at its foot; one of the possessed going over the curl backward, his board away)
+    const Cc = ramp5(m('#6B7280')), Bl = ramp5(m('#0EA5E9'));
+    block(g, 110, MG - 60, 290, 60, Cc);
+    poly(g, [[118, MG - 60], [400, MG - 60], [400, MG - 170], [376, MG - 176], [340, MG - 140]], INK);
+    poly(g, [[120, MG - 62], [398, MG - 62], [398, MG - 168], [378, MG - 172], [340, MG - 138]], Bl[2]);
+    for (let k = 0; k < 7; k++) { const y = MG - 70 - k * 12; R(g, 160 + k * 26, y, 398 - 160 - k * 26, 2, Bl[k % 2 ? 3 : 1]); }
+    poly(g, [[372, MG - 172], [398, MG - 168], [398, MG - 186], [384, MG - 190]], Bl[4]);
+    for (let k = 0; k < 5; k++) { R(g, 124 + k * 22, MG - 58, 12, 10, INK); R(g, 126 + k * 22, MG - 56, 8, 6, Cc[3]); }
+    farGuest(g, 330, MG - 150, 0.42, j * 13 + 7, 'demon', 'hurt', -1);
+    { const bx = 360, by = MG - 214; ell(g, bx, by, 14, 4, INK); ell(g, bx, by, 12, 3, m('#F97316')); }
+    farSign(g, 200, MG - 170, 140, ['SHEET HAPPENS', 'WIPEOUTS FREE'], '#0369A1', MG - 60);
+    flat(10, 90, 170, 'COVE 2');
+    sp.push([60, MG - 172, 24, 24]);
+  }
+};
+
 const midHead = (g: Ctx, j: number, sp: Spot[]) => {
-  if (j % 2 === 0) {
+  if (vr(j, 3) === 2) { midHeadDeck(g, j, sp); return; }
+  if (vr(j, 3) === 0) {
     // (the splash playground's bucket tower: a scaffold of pipes in the park's colors, platforms, the giant tipping
     // bucket on top; a slide off it)
     const x = 200, top = MG - 300, S = ramp5(m('#0E7490')), Y = ramp5(m('#CA8A04')), Rd = ramp5(m('#B91C1C'));
@@ -157,7 +362,8 @@ const midHead = (g: Ctx, j: number, sp: Spot[]) => {
 
 const midRuins = (g: Ctx, j: number, sp: Spot[]) => {
   const S = ramp5(m('#8A7A5A')), Mo = ramp5(m('#3F5A2A'));
-  if (j % 2 === 0) {
+  if (vr(j, 3) === 2) { midHighDive(g, j, sp); return; }
+  if (vr(j, 3) === 0) {
     // (the stepped temple: five tiers, a stair up its middle, a shrine on top, its doorway dark; vines down it)
     const x = 200;
     for (let k = 0; k < 5; k++) { const w = 320 - k * 56, y = MG - (k + 1) * 46; block(g, x - w / 2, y, w, 46, S); for (let bx = x - w / 2 + 14; bx < x + w / 2 - 14; bx += 22) R(g, bx, y + 22, 1, 22, S[1]); }
@@ -208,7 +414,8 @@ const midCanopy = (g: Ctx, j: number, sp: Spot[]) => {
     for (let k = 0; k < 6; k++) R(g, x - 36 + k * 13, y - 40 + Math.abs(k - 2.5) * 2, 2, 6, Th[1]);
     if (burnt) sp.push([x, y - 40, 40, 40]);
   };
-  if (j % 2 === 0) {
+  if (vr(j, 3) === 2) { ropeSwing(g, tree, Tr, j, sp); return; }
+  if (vr(j, 3) === 0) {
     tree(110, 26, MG - 330); tree(310, 22, MG - 290);
     house(110, MG - 190, false); house(310, MG - 170, true);
     // (a rope bridge between, snapped in the middle, its halves hanging)
@@ -239,7 +446,8 @@ const midBayou = (g: Ctx, j: number, sp: Spot[]) => {
     // (the Spanish moss: hanging strands, dithered)
     for (let k = 0; k < 9; k++) { const sx = x - 44 + k * 11, sy = MG - h + 14 + (k % 3) * 18, len = 20 + hash(x + k) * 40; R(g, sx, sy, 2, len, Mo[1]); checker(g, sx - 2, sy + 4, 6, len - 8, Mo[2]); }
   };
-  if (j % 2 === 0) {
+  if (vr(j, 4) === 2) { lilyPads(g, cypress, j, sp); return; }
+  if (vr(j, 2) === 0) {
     cypress(70, 260); cypress(330, 230);
     // (the paddlewheeler: a riverboat wreck aground, its stacks, its wheel, burning)
     const x = 200, Hl = ramp5(m('#E7E5E4')), Rd = ramp5(m('#9F1239'));
@@ -342,6 +550,72 @@ const stiltHut = (g: Ctx, x: number, foot: number, floor: number, Wd: string[], 
   if (burnt) sp.push([x + burnt * 18, floor - 70, 40, 34]);
 };
 
+/** THE CANOPY's third: the rope swing off a giant branch over its plunge pool, a burnt skeleton still on the bar (he
+ *  never let go). */
+const ropeSwing = (g: Ctx, tree: (x: number, w: number, top: number) => void, Tr: string[], j: number, sp: Spot[]) => {
+  tree(100, 30, MG - 340);
+  stroke(g, [[110, MG - 246], [230, MG - 266], [350, MG - 258]], 13, INK); stroke(g, [[110, MG - 246], [230, MG - 266], [350, MG - 258]], 9, Tr[2]); stroke(g, [[112, MG - 242], [230, MG - 262], [348, MG - 254]], 3, Tr[1]);
+  stroke(g, [[300, MG - 260], [300, MG - 162]], 3, INK); stroke(g, [[300, MG - 260], [300, MG - 162]], 1, m('#C8B48A'));
+  R(g, 284, MG - 164, 32, 5, INK); R(g, 285, MG - 163, 30, 3, Tr[1]);
+  dimmedOn(g, 270, MG - 180, 60, 76, 0.35, s => { s.translate(300, MG - 111); s.scale(0.5, 0.5); paintSkeleton(s, 0, false); });
+  ell(g, 300, MG - 2, 62, 9, INK); ell(g, 300, MG - 3, 59, 7, m('#0B2A4A')); for (let k = 0; k < 5; k++) R(g, 252 + k * 22, MG - 4 + (k % 2) * 2, 9, 1, m('#38BDF8'));
+  farSign(g, 200, MG - 122, 132, ['ROPE SWING', 'LET GO AT THE BOTTOM'], '#3F6212');
+  sp.push([350, MG - 262, 22, 24]);
+  void j;
+};
+/** GATOR BAYOU's third: the lily pad walk (foam pads in a row across a pond, the rope net strung over them off a
+ *  frame); a real gator's eyes up between the pads; a flip-flop left on one. */
+const lilyPads = (g: Ctx, cypress: (x: number, h: number) => void, j: number, sp: Spot[]) => {
+  const Fr = ramp5(m('#57534E')), Pd = ramp5(m('#4D7C0F'));
+  cypress(46, 250);
+  ell(g, 245, MG - 2, 150, 12, INK); ell(g, 245, MG - 3, 147, 10, m('#0E1E1A')); for (let k = 0; k < 8; k++) R(g, 110 + k * 34, MG - 4 + (k % 2) * 3, 10, 1, m('#7A2A0A'));
+  for (const px of [110, 372]) { R(g, px - 4, MG - 112, 8, 112, INK); R(g, px - 3, MG - 112, 6, 112, Fr[1]); R(g, px - 3, MG - 112, 2, 112, Fr[3]); }
+  R(g, 104, MG - 114, 276, 8, INK); R(g, 105, MG - 113, 274, 6, Fr[1]); R(g, 105, MG - 109, 274, 2, Fr[0]);
+  // (the net: drops off the beam to a sagging mesh at hand height)
+  const Rp = m('#B8A47A');
+  for (let x = 120; x <= 362; x += 22) stroke(g, [[x, MG - 106], [x, MG - 58 - Math.sin(((x - 110) / 262) * Math.PI) * -8]], 1, Rp);
+  for (let k = 0; k < 3; k++) { g.strokeStyle = Rp; g.lineWidth = 1; g.beginPath(); g.moveTo(112, MG - 70 + k * 8); g.quadraticCurveTo(241, MG - 46 + k * 8, 370, MG - 70 + k * 8); g.stroke(); }
+  // (the pads: foam discs, a notch each, one flipped over (its pale underside), a flip-flop on one)
+  for (let k = 0; k < 7; k++) {
+    const x = 132 + k * 36 + Math.round(hash(j + k) * 8), y = MG - 6 + (k % 2), flip = k === 5;
+    ell(g, x, y, 15, 4, INK); ell(g, x, y - 1, 13, 3, flip ? m('#D9F99D') : Pd[2]); if (!flip) { ell(g, x - 3, y - 2, 6, 1, Pd[3]); poly(g, [[x, y - 1], [x + 12, y - 3], [x + 12, y + 1]], INK); }
+  }
+  R(g, 200, MG - 10, 7, 3, m('#EC4899')); R(g, 202, MG - 11, 1, 2, INK);
+  // (the gator's eyes and snout, up between the pads)
+  for (const ex of [276, 286]) { ell(g, ex, MG - 7, 4, 3, INK); ell(g, ex, MG - 8, 3, 2, m('#3F5A2A')); R(g, ex - 1, MG - 9, 2, 1, '#FDE047'); }
+  R(g, 290, MG - 7, 18, 2, m('#3F5A2A'));
+  farSign(g, 241, MG - 142, 142, ['LILY PAD WALK', 'GATORS FAKE (MOSTLY)'], '#4B5563', MG - 114);
+  sp.push([372, MG - 116, 20, 22]);
+};
+/** PIRATE COVE's fourth (the tile next to TIKI VILLAGE, so thatched): the snack shacks, the PRETZEL HUT (its prices, a giant pretzel up on the thatch) and the
+ *  FUNNEL CAKE shack (the same oil since 1987), the torches. */
+const snackShacks = (g: Ctx, j: number, sp: Spot[]) => {
+  const Dk = ramp5(m('#5A3418')), Th = ramp5(m('#A88A4A')), Bm = ramp5(m('#A8843E')), Pz = ramp5(m('#9A5A1E'));
+  for (const px of [46, 174]) { R(g, px - 4, MG - 110, 8, 110, INK); R(g, px - 3, MG - 110, 6, 110, Bm[2]); R(g, px - 3, MG - 110, 2, 110, Bm[4]); }
+  R(g, 46, MG - 108, 128, 60, '#140A06');
+  for (let k = 0; k < 5; k++) { const px = 64 + k * 23; R(g, px, MG - 104, 1, 10, Bm[1]); ell(g, px, MG - 88, 7, 6, INK); ell(g, px, MG - 88, 5, 4, Pz[2]); R(g, px - 1, MG - 90, 2, 4, INK); }
+  block(g, 36, MG - 48, 148, 48, Dk); for (let y = MG - 42; y < MG; y += 8) R(g, 37, y, 146, 1, Dk[1]);
+  thatchRoof(g, 110, MG - 190, 92, MG - 106, Th, 1);
+  // (the giant pretzel on the roof's peak)
+  const pz = (w: number, col: string) => { g.strokeStyle = col; g.lineWidth = w; g.lineCap = 'round'; g.beginPath(); g.moveTo(92, MG - 196); g.bezierCurveTo(70, MG - 230, 100, MG - 246, 110, MG - 222); g.bezierCurveTo(120, MG - 246, 150, MG - 230, 128, MG - 196); g.moveTo(96, MG - 200); g.lineTo(124, MG - 222); g.moveTo(124, MG - 200); g.lineTo(96, MG - 222); g.stroke(); g.lineCap = 'butt'; };
+  pz(9, INK); pz(6, Pz[2]); pz(2, Pz[3]);
+  for (let k = 0; k < 8; k++) R(g, 86 + hash(k * 3) * 46, MG - 236 + hash(k * 5) * 36, 1, 1, m('#F5F5F4'));
+  farSign(g, 110, MG - 74, 124, ['PRETZEL $24', 'CHEESE $9. SALT $2'], '#9A3412', MG - 48);
+  // (the funnel cake shack: a plank box, its striped awning (dark along the top: no ledge), the fryer's stack
+  // smoking, the roof alight; a giant funnel cake on its roof, dusted)
+  const Sh = ramp5(m('#9F1239'));
+  block(g, 226, MG - 100, 140, 100, Sh); for (let x = 236; x < 360; x += 14) R(g, x, MG - 98, 1, 96, Sh[1]);
+  R(g, 244, MG - 82, 104, 34, INK); R(g, 246, MG - 80, 100, 30, '#FDBA74'); R(g, 246, MG - 80, 100, 6, '#FDE68A');
+  for (let k = 0; k < 7; k++) poly(g, [[220 + k * 22, MG - 48], [242 + k * 22, MG - 48], [240 + k * 22, MG - 36], [222 + k * 22, MG - 36]], k % 2 ? m('#F5F5F4') : Sh[2]);
+  R(g, 218, MG - 49, 154, 2, Sh[0]);
+  R(g, 340, MG - 150, 10, 50, INK); R(g, 341, MG - 150, 8, 50, m('#52525B'));
+  for (let k = 0; k < 4; k++) ell(g, 346 + k * 6, MG - 160 - k * 14, 8 + k * 2, 6 + k, m('#3F3F46'));
+  ell(g, 270, MG - 106, 34, 8, INK); ell(g, 270, MG - 108, 31, 6, m('#D6A45A')); for (let k = 0; k < 16; k++) R(g, 244 + hash(k * 9) * 52, MG - 112 + hash(k * 4) * 6, 2, 1, m('#FFFFFF'));
+  farSign(g, 294, MG - 160, 130, ['FUNNEL CAKE', 'SAME OIL SINCE 1987'], '#7F1D1D', MG - 114);
+  sp.push([320, MG - 102, 40, 30]);
+  tikiTorch(g, 200, MG, 80, Bm, sp); tikiTorch(g, 388, MG, 86, Bm, sp);
+  void j;
+};
 const midTiki = (g: Ctx, j: number, sp: Spot[]) => {
   const Wd = ramp5(m('#7A4A26')), Dk = ramp5(m('#5A3418')), Th = ramp5(m('#A88A4A')), Bm = ramp5(m('#A8843E'));
   const v = ((j % 4) + 4) % 4, s = hash(j * 1.7);
@@ -379,7 +653,9 @@ const midTiki = (g: Ctx, j: number, sp: Spot[]) => {
 
 const midPirate = (g: Ctx, j: number, sp: Spot[]) => {
   const Hl = ramp5(m('#5A3A1E')), Sl = ramp5(m('#D6CFC0'));
-  if (j % 2 === 0) {
+  if (vr(j, 4) === 2) { midRaftRide(g, j, sp); return; }
+  if (vr(j, 4) === 3) { snackShacks(g, j, sp); return; }
+  if (vr(j, 2) === 0) {
     // (the galleon, run aground, listing, sails torn and burning, the jolly roger)
     const x = 200;
     g.save(); g.translate(x, MG); g.rotate(-0.06);
@@ -417,7 +693,8 @@ const midOasis = (g: Ctx, j: number, sp: Spot[]) => {
   const Sd = ramp5(m('#C2A05A')), St = ramp5(m('#B8955A'));
   // (the dunes behind: humps of sand in bands)
   for (let k = 0; k < 3; k++) { const cx = 60 + k * 150 + (j % 2) * 40; ell(g, cx, MG + 20, 130, 90, INK, Math.PI, 0); ell(g, cx, MG + 20, 128, 88, Sd[1], Math.PI, 0); ell(g, cx - 20, MG + 20, 90, 70, Sd[2], Math.PI, 0); checker(g, cx - 100, MG - 50, 120, 6, Sd[3]); }
-  if (j % 2 === 0) {
+  if (vr(j, 3) === 2) { midCoaster(g, j, sp); return; }
+  if (vr(j, 3) === 0) {
     // (the pyramid: stepped courses, its lit face and shaded face, a crack; the capstone gold)
     const x = 220, h = 300;
     poly(g, [[x - 190, MG], [x, MG - h], [x + 190, MG]], INK);
@@ -473,6 +750,7 @@ const midGrotto = (g: Ctx, j: number, sp: Spot[]) => {
 };
 
 const midBack = (g: Ctx, j: number, sp: Spot[]) => {
+  if (vr(j, 3) !== 0) { midBackPast(g, j, sp, vr(j, 3) === 1); return; }
   // (the backs of the theming: plywood flats on 2x4 braces, a cutout palm's back, scaffold, a water tank, a light
   // tower; the park's lights beyond)
   const Pw = ramp5(m('#A8906A')), Sc = ramp5(m('#71717A'));
@@ -492,7 +770,7 @@ const MIDS: Record<ZoneId, (g: Ctx, j: number, sp: Spot[]) => void> = {
   head: midHead, ruins: midRuins, canopy: midCanopy, bayou: midBayou, tiki: midTiki, pirate: midPirate, oasis: midOasis, caves: midCaves, grotto: midGrotto, back: midBack,
 };
 /** Every other pair of tiles mirrored (where there are no words on it): a zone's four or so tiles never read A B A B. */
-const mirrored = (z: ZoneId, j: number) => j % 4 >= 2 && z !== 'head' && z !== 'bayou' && z !== 'back';
+const mirrored = (z: ZoneId, j: number) => j % 4 >= 2 && z !== 'head' && z !== 'bayou' && z !== 'back' && !(z === 'pirate' ? vr(j, 4) >= 2 : (z === 'ruins' || z === 'canopy' || z === 'oasis') && vr(j, 3) === 2);
 const paintMid = (g: Ctx, z: ZoneId, j: number, sp: Spot[]) => {
   g.save(); if (mirrored(z, j)) { g.translate(MID_W, 0); g.scale(-1, 1); }
   MIDS[z](g, j, sp);
@@ -508,6 +786,9 @@ const paintMid = (g: Ctx, z: ZoneId, j: number, sp: Spot[]) => {
   }
   if (z !== 'caves') nightWash(g, MID_W, MID_H, MG);
 };
+
+/** (dev: the contact sheet of the flavor tiles, sheet.ts) */
+export const paintMidTile = (g: Ctx, z: ZoneId, j: number) => paintMid(g, z, j, []);
 
 /** Spots recorded off a painter, without painting (run once against a 1x1 canvas, kept). */
 const SPOTS = new Map<string, Spot[]>();

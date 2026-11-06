@@ -7,6 +7,7 @@ import { drawSonGross, drawSonGrossBack } from './sonGross';
 import { drawBurnout, burnLook, drawImp, type BurnPose, type ImpPose } from './kindArt';
 import { drawPretzel, drawEndPreview } from './end';
 import { drawBrawl } from './brawl';
+import { paintMidTile, type ZoneId } from './zones';
 import { drawPunkAs, type PunkSt } from '../../spooky/hell/demon';
 import { drawLavaDeath, LAVA_FRAMES, LAVA_KILL, paintSkeleton } from './lavaDeath';
 import type { GameState } from '../../../m1/game/core/state';
@@ -67,6 +68,11 @@ export const contactSheet = (what: string): string => {
       g.fillStyle = '#C00'; g.fillRect(99, 226, 2, 2);
       return `${st} ${t}${face < 0 ? ' L' : ''}`;
     });
+  }
+  if (what === 'flavor') {
+    // (the far tiles with the water park's other attractions on them: as baked (dimmed, the night wash))
+    const list: [ZoneId, number][] = [['head', 38], ['head', 41], ['ruins', 2], ['canopy', 2], ['bayou', 2], ['pirate', 3], ['pirate', 2], ['oasis', 2], ['back', 70], ['back', 71]];
+    return sheet(5, 2, 400, 400, 1, (g, i) => { const it = list[i]; if (!it) return; g.translate(0, -70); paintMidTile(g, it[0], it[1]); return `${it[0]} ${it[1]}`; });
   }
   if (what === 'pretzel') return sheet(2, 1, 280, 170, 2, (g, i) => { g.fillStyle = '#7F1D1D'; g.fillRect(0, 110, 280, 60); drawPretzel(g, 140, 100, 0, 0, i === 1); return i ? 'on the river' : 'held'; });
   if (what === 'vendor') return sheet(3, 1, 160, 160, 2, (g, i) => { g.translate(80, 140); drawEndPreview(g, i); return ['calling', 'punched', 'cart'][i]; });
