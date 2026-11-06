@@ -41,6 +41,7 @@ import { CANVAS_WIDTH, CANVAS_HEIGHT, BULLET_DAMAGE } from '../../../m1/constant
 import { bossMelee } from '../../upgrades/bossMelee';
 import { registerM2Kind } from '../../kinds';
 import { ownShare } from '../../weapons/subBoss';
+import { setSickHurl, takeSickBurst } from '../../weapons/crossbow';
 import { newSpam, spamTick, hitKey, swatOff, type Spam, BOSS_IFRAMES } from '../../bossSpam';
 import { bossIntroSeen, markBossIntroSeen } from '../../bossIntro';
 import { TOO_BIG_BY_KIND } from '../../lines/weaponLines';
@@ -106,6 +107,7 @@ registerM2Kind({
 TOO_BIG_BY_KIND[KID_KIND] = L.GRAB_KID;
 // (every special's 35% taken here, in the fight: not cut again as a sub-boss's)
 ownShare(KID_KIND);
+setSickHurl(KID_KIND);
 // (the hand armor's cheap shot (upgrades/cheapShot.ts): after it, his hurt and taunt lines from the crushed-nuts pool;
 // its free window, the moment the stun starts: every bolt, ice ball and crack of his in the air gone in a puff)
 crushGroups('kid', { hurt: [L.KID_HURT], taunt: [L.KID_TAUNT, L.KID_LOW] });
@@ -422,15 +424,16 @@ const takeHits = (ctx: FrameContext, f: Fight) => {
   e.health = BIG; e.maxHealth = BIG;
   const melee = e.hitByMove !== f.moveSeen;
   f.moveSeen = e.hitByMove;
-  if (dealt <= 0 || f.iframes > 0 || f.act === 'gone') return;
-  const dmg = plainHit(state, melee) ?? Math.max(1, dealt * SHARE);
-  f.hp -= dmg; f.iframes = BOSS_IFRAMES; f.flash = 8;
+  const burst = takeSickBurst(e);
+  if (f.act === 'gone' || (!burst && (dealt <= 0 || f.iframes > 0))) return;
+  const dmg = burst || (plainHit(state, melee) ?? Math.max(1, dealt * SHARE));
+  f.hp -= dmg; if (!burst) f.iframes = BOSS_IFRAMES; f.flash = 8;
   playSound('gunhit', 0.6, -2);
   ctx.fx.spawnDamageNumber({ x: f.x - 10, y: f.y - KID_H - 10 }, Math.max(1, Math.round(dmg)), dmg > 40);
   for (let i = 0; i < 6; i++) state.particles.push({ pos: { x: f.x, y: f.y - 90 }, vel: { x: (Math.random() - 0.5) * 4, y: -1 - Math.random() * 3 }, life: 22, color: '#3FA34D', size: 2 + Math.random() * 3, grav: 0.3 });
   if (f.hp > 0 && Math.random() < 0.2) bark(state, f, crushLines(f.e, L.KID_HURT));
   // (the same hit landing on him for ~4 s: he glitches off somewhere else; off his head or out of his face first)
-  if (f.hp > 0 && spamTick(f.spam, state.frame, hitKey(state.player, melee))) {
+  if (f.hp > 0 && !burst && spamTick(f.spam, state.frame, hitKey(state.player, melee))) {
     if (melee) swatOff(state, f.x);
     f.move = 'blink'; f.last = 'blink'; setAct(f, 'tell', 8);
   }

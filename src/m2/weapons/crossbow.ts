@@ -56,6 +56,34 @@ let locked: Enemy | null = null;
 const dartTakers = new Map<string, (ctx: FrameContext, e: Enemy) => boolean>();
 export const setDartTaker = (kind: string, take: (ctx: FrameContext, e: Enemy) => boolean) => { dartTakers.set(kind, take); };
 const takerOf = (e: Enemy) => (e.kind ? dartTakers.get(e.kind) : undefined);
+/** The endgame's bosses (the owner's, 2026-11-05: "you can 'sick' them with the bar for the crossbow and they will puke.
+ *  it won't be a 'weakness' but a way to build up a decent 'burst' of damage. sick meter can fill during i frames even if
+ *  they don't hurt. it will be a one time hurl. similar to the soul sucker"): each dart in him wears his bar down (all
+ *  the time, his breather or not); gone, he hurls, the once (one big gush out front, no being sick for a while), and his
+ *  fight takes SICK_BURST off him whatever his breather (takeSickBurst, in its hits), then the bar's full again. The darts
+ *  still hit him as ever besides. */
+const hurlers = new Set<string>();
+export const setSickHurl = (...kinds: string[]) => { for (const k of kinds) hurlers.add(k); };
+const bursts = new WeakMap<Enemy, number>();
+/** A hurl's burst waiting on `e` (his fight's hits take it, past his breather: no breather after it either), or 0. */
+export const takeSickBurst = (e: Enemy) => { const n = bursts.get(e) ?? 0; if (n) bursts.delete(e); return n; };
+/** Darts to fill him (~3.5 s held on him), and the burst's hurt (a boss's 999: about a twelfth). */
+const SICK_DARTS = 30, SICK_BURST = 85;
+const hurl = (ctx: FrameContext, e: Enemy) => {
+  const { state } = ctx;
+  playSound('retch'); playSound('gush');
+  const pl = state.player, dir = (Math.sign(pl.pos.x + pl.width / 2 - (e.pos.x + e.width / 2)) || 1) as 1 | -1;
+  const m = mouthOf(e, dir, dir * 0.3);
+  // (one gush: a fan of it out front and down, splattering the floor; it never touches Meathead)
+  for (let i = 0; i < 16 && globs < MAX_GLOBS; i++, globs++) {
+    state.projectiles.push({
+      id: `puke-${state.frame}-${i}-${Math.random()}`, pos: { x: m.x - G / 2, y: m.y - G / 2 }, vel: { x: dir * (3 + Math.random() * 6), y: -3 + Math.random() * 4 }, width: G, height: G, health: 1, maxHealth: 1, type: 'projectile', damage: 0, owner: 'player', custom: 'CROSSBOW',
+      customData: { kind: 'puke', from: e, self: false, t: 0, seed: Math.random() } satisfies Part,
+    });
+  }
+  for (let i = 0; i < 14; i++) puff(state, { pos: { x: m.x, y: m.y }, vel: { x: dir * (1 + Math.random() * 4), y: -1 - Math.random() * 3 }, life: 22, color: isRobot(e) ? OIL_BITS[i % 3] : PUKE_COLORS[i % 3], size: 3 + Math.random() * 3, grav: 0.3 });
+  bursts.set(e, (bursts.get(e) ?? 0) + SICK_BURST);
+};
 const airborne = (e: Enemy) => e.enemyType === 'flyer' || e.enemyType === 'drone' || (e.vel.y !== 0 && Math.abs(e.vel.y) > 0.5);
 const lockOn = (state: GameState, up: boolean): Enemy | null => {
   const pl = state.player, f = pl.facing, mx = pl.pos.x + pl.width / 2;
@@ -194,6 +222,13 @@ const darted = (ctx: FrameContext, e: Enemy, p: Projectile, through = 1) => {
   for (let i = 0; i < 2; i++) puff(state, { pos: { x: cx, y: cy }, vel: { x: -Math.sign(p.vel.x) * Math.random() * 2, y: -Math.random() * 2 }, life: 12, color: i ? '#B91C1C' : '#84CC16', size: 1.5 });
   playSound('click', 0.4, 10);
   { const take = takerOf(e); if (take && take(ctx, e)) return; }
+  { if (e.kind && hurlers.has(e.kind)) {
+      const s = sickOf(e); tracked.add(e);
+      if (s.max !== SICK_DARTS) { s.max = SICK_DARTS; s.tol = SICK_DARTS; }
+      s.lastHit = state.frame;
+      if (--s.tol <= 0) { s.tol = s.max; hurl(ctx, e); }
+    }
+  }
   // (a sub-boss: its share of it, in hurt; the Ensemble Cast's share stands in for the half it was)
   if (specialsOff(e)) { const n = hurt(ctx, e, BOSS_DART_DMG); e.hitFlash = 2; ctx.fx.spawnDamageNumber(e.pos, Math.round(n)); return; }
   if (specialsHalf(e)) { hurt(ctx, e, BOSS_DART_DMG * through); e.hitFlash = 2; }

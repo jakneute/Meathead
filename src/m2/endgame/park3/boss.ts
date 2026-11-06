@@ -37,6 +37,7 @@ import { CANVAS_WIDTH, CANVAS_HEIGHT, BULLET_DAMAGE } from '../../../m1/constant
 import { bossMelee } from '../../upgrades/bossMelee';
 import { registerM2Kind } from '../../kinds';
 import { ownShare } from '../../weapons/subBoss';
+import { setSickHurl, takeSickBurst } from '../../weapons/crossbow';
 import { newSpam, spamTick, hitKey, swatOff, type Spam, BOSS_IFRAMES } from '../../bossSpam';
 import { TOO_BIG_BY_KIND } from '../../lines/weaponLines';
 import { box, label, saidOver, speak, voice, meatheadSays } from '../../adventure/section';
@@ -96,6 +97,7 @@ registerM2Kind({
 TOO_BIG_BY_KIND[KIND] = L.GRAB_GUP;
 // (every special's 35% taken here, in the fight: not cut again as a sub-boss's)
 ownShare(KIND);
+setSickHurl(KIND);
 // (the hand armor's cheap shot (upgrades/cheapShot.ts): his own crushed set)
 crushGroups('gupplax', { hurt: [L.GUP_HURT], taunt: [L.GUP_PATTER, L.GUP_TAUNT] });
 registerClearThreats('gupplax', state => {
@@ -341,15 +343,16 @@ const takeHits = (ctx: FrameContext, f: Fight3, gone: boolean) => {
   e.health = BIG; e.maxHealth = BIG;
   const melee = e.hitByMove !== f.moveSeen;
   f.moveSeen = e.hitByMove;
-  if (dealt <= 0 || f.iframes > 0 || gone) return;
-  const dmg = plainHit(state, melee) ?? Math.max(1, dealt * SHARE);
-  f.hp -= dmg; f.iframes = BOSS_IFRAMES; f.flash = 8;
+  const burst = takeSickBurst(e);
+  if (gone || (!burst && (dealt <= 0 || f.iframes > 0))) return;
+  const dmg = burst || (plainHit(state, melee) ?? Math.max(1, dealt * SHARE));
+  f.hp -= dmg; if (!burst) f.iframes = BOSS_IFRAMES; f.flash = 8;
   playSound('gunhit', 0.6, -2);
   ctx.fx.spawnDamageNumber({ x: f.x - 10, y: f.y - 160 }, Math.max(1, Math.round(dmg)), dmg > 40);
   for (let i = 0; i < 6; i++) state.particles.push({ pos: { x: f.x, y: f.y - 80 }, vel: { x: (Math.random() - 0.5) * 4, y: -1 - Math.random() * 3 }, life: 22, color: '#3FA34D', size: 2 + Math.random() * 3, grav: 0.3 });
   if (f.hp > 0 && Math.random() < 0.22) bark(state, f, crushLines(f.e, L.GUP_HURT));
   // (the same hit landing on him ~4 s running: under and away, swatted off first)
-  if (f.hp > 0 && spamTick(f.spam, state.frame, hitKey(state.player, melee)) && (f.st === 'swim' || f.st === 'open' || f.st === 'flopped')) {
+  if (f.hp > 0 && !burst && spamTick(f.spam, state.frame, hitKey(state.player, melee)) && (f.st === 'swim' || f.st === 'open' || f.st === 'flopped')) {
     if (melee) swatOff(state, f.x);
     begin(state, f, 'breach'); f.T = 10;
   }

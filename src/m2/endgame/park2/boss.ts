@@ -45,6 +45,7 @@ import { CANVAS_WIDTH, CANVAS_HEIGHT, BULLET_DAMAGE } from '../../../m1/constant
 import { bossMelee } from '../../upgrades/bossMelee';
 import { registerM2Kind, registerHurtLines } from '../../kinds';
 import { ownShare } from '../../weapons/subBoss';
+import { setSickHurl, takeSickBurst } from '../../weapons/crossbow';
 import { newSpam, spamTick, hitKey, swatOff, type Spam, BOSS_IFRAMES } from '../../bossSpam';
 import { bossIntroSeen, markBossIntroSeen } from '../../bossIntro';
 import { TOO_BIG_BY_KIND } from '../../lines/weaponLines';
@@ -127,6 +128,7 @@ TOO_BIG_BY_KIND[SON_KIND] = L.GRAB_SON;
 TOO_BIG_BY_KIND[BRO_KIND] = L.GRAB_SON;
 // (every special's 35% taken here, in the fight: not cut again as a sub-boss's)
 ownShare(SON_KIND, BRO_KIND);
+setSickHurl(SON_KIND, BRO_KIND);
 // (the hand armor's cheap shot (upgrades/cheapShot.ts) on both: the son's own crushed set and close-up; his brother's
 // as in hell, unless they were torn out there (then there's nothing left: Y + B on him grabs at nothing, his line))
 crushGroups('mehphisto', { hurt: [L.SON_HURT], taunt: [L.SON_LAZY, L.SON_LOW] });
@@ -522,9 +524,10 @@ const takeHits = (ctx: FrameContext, f: Fight2, o: Foe, gone: boolean) => {
   e.health = BIG; e.maxHealth = BIG;
   const melee = e.hitByMove !== o.moveSeen;
   o.moveSeen = e.hitByMove;
-  if (dealt <= 0 || o.iframes > 0 || gone) return;
-  const dmg = plainHit(state, melee) ?? Math.max(1, dealt * SHARE);
-  o.hp -= dmg; o.iframes = BOSS_IFRAMES; o.flash = 8;
+  const burst = takeSickBurst(e);
+  if (gone || (!burst && (dealt <= 0 || o.iframes > 0))) return;
+  const dmg = burst || (plainHit(state, melee) ?? Math.max(1, dealt * SHARE));
+  o.hp -= dmg; if (!burst) o.iframes = BOSS_IFRAMES; o.flash = 8;
   // (never down before his brother's come: he's called in at half, between moves)
   if (o.who === 'son' && !f.bro) o.hp = Math.max(1, o.hp);
   playSound('gunhit', 0.6, -2);
@@ -532,7 +535,7 @@ const takeHits = (ctx: FrameContext, f: Fight2, o: Foe, gone: boolean) => {
   for (let i = 0; i < 6; i++) state.particles.push({ pos: { x: o.x, y: o.y - 90 }, vel: { x: (Math.random() - 0.5) * 4, y: -1 - Math.random() * 3 }, life: 22, color: '#7F1D1D', size: 2 + Math.random() * 3, grav: 0.3 });
   if (o.hp > 0 && Math.random() < 0.2) bark(state, o, crushLines(o.e, o.who === 'son' ? L.SON_HURT : DEMON_HURT));
   // (the same hit landing on him ~4 s running: up and away (the son in smoke, the brother in a leap), swatted off first)
-  if (o.hp > 0 && spamTick(o.spam, state.frame, hitKey(state.player, melee)) && (o.st === 'walk' || o.st === 'open' || o.st === 'pose' || o.st.endsWith('Rec') || o.st === 'land' || o.st === 'crash')) {
+  if (o.hp > 0 && !burst && spamTick(o.spam, state.frame, hitKey(state.player, melee)) && (o.st === 'walk' || o.st === 'open' || o.st === 'pose' || o.st.endsWith('Rec') || o.st === 'land' || o.st === 'crash')) {
     if (melee) swatOff(state, o.x);
     if (f.busy && f.busy !== o.who) return;
     begin(state, f, o, o.who === 'son' ? 'leap' : 'bleap');

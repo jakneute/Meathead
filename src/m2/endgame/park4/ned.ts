@@ -28,6 +28,7 @@ import { isShat, isNude } from '../../../m1/game/player/gut';
 import { bossMelee } from '../../upgrades/bossMelee';
 import { registerM2Kind } from '../../kinds';
 import { ownShare } from '../../weapons/subBoss';
+import { setSickHurl, takeSickBurst } from '../../weapons/crossbow';
 import { newSpam, spamTick, hitKey, swatOff, type Spam, BOSS_IFRAMES } from '../../bossSpam';
 import { TOO_BIG_BY_KIND } from '../../lines/weaponLines';
 import { box, label, saidOver, speak, voice, meatheadSays } from '../../adventure/section';
@@ -51,6 +52,7 @@ registerM2Kind({
   head: { x: 8, y: -92, r: 12 }, draw: () => {}, ai: () => true,
 });
 ownShare(NED_KIND);
+setSickHurl(NED_KIND);
 TOO_BIG_BY_KIND[NED_KIND] = ["HE'S ALL ROBE. THERE'S NOTHING TO GRAB.", 'GREASY LITTLE HACK.'];
 
 export interface NedFight {
@@ -135,17 +137,18 @@ const takeHits = (ctx: FrameContext, f: NedFight) => {
   e.health = BIG; e.maxHealth = BIG;
   const melee = e.hitByMove !== f.moveSeen;
   f.moveSeen = e.hitByMove;
-  if (dealt <= 0 || f.iframes > 0 || f.mode !== 'on') return;
+  const burst = takeSickBurst(e);
+  if (f.mode !== 'on' || (!burst && (dealt <= 0 || f.iframes > 0))) return;
   const p = state.player;
-  const dmg = melee ? bossMelee(p) : p.currentWeapon === 'GUN' ? BULLET_DAMAGE : Math.max(1, dealt * SHARE);
-  f.hp -= dmg; f.iframes = BOSS_IFRAMES; f.flash = 8; setPose(f, 'hurt', 20);
+  const dmg = burst || (melee ? bossMelee(p) : p.currentWeapon === 'GUN' ? BULLET_DAMAGE : Math.max(1, dealt * SHARE));
+  f.hp -= dmg; if (!burst) f.iframes = BOSS_IFRAMES; f.flash = 8; setPose(f, 'hurt', 20);
   playSound('gunhit', 0.6, 2);
   ctx.fx.spawnDamageNumber({ x: f.x - 10, y: f.floor - NED_H - 10 }, Math.max(1, Math.round(dmg)), dmg > 40);
   for (let i = 0; i < 6; i++) state.particles.push({ pos: { x: f.x, y: f.floor - 70 }, vel: { x: (Math.random() - 0.5) * 4, y: -1 - Math.random() * 3 }, life: 22, color: '#7F1D1D', size: 2 + Math.random() * 3, grav: 0.3 });
   if (f.hp > 0 && Math.random() < 0.45) bark(f, pickLine(L.NED_HURT[dressed(state)]));
   if (f.hp > 0 && f.hp < NED_HP * 0.3 && !f.lowSaid) { f.lowSaid = true; f.said = null; bark(f, pickLine(L.NED_LOW[dressed(state)])); }
   // (the same hit ~4 s running: he blinks off, swatted off him first)
-  if (f.hp > 0 && spamTick(f.spam, state.frame, hitKey(p, melee))) { if (melee) swatOff(state, f.x); blink(state, f); }
+  if (f.hp > 0 && !burst && spamTick(f.spam, state.frame, hitKey(p, melee))) { if (melee) swatOff(state, f.x); blink(state, f); }
   if (f.hp <= 0) die(state, f);
 };
 
