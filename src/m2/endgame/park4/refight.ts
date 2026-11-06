@@ -230,6 +230,16 @@ const won = (def: RefightDef) => {
   goTo(L4_ID);
 };
 
+/** The owner's "be sure to drop a big health and ammo refill before each refight too": the big health and the big
+ *  ammo by where he starts (in through the portal or back after dying), unless the land's own boss-door refill is
+ *  already there. */
+const bigRefill = (state: GameState) => {
+  const p = state.player, cx = p.pos.x + p.width / 2, feet = p.pos.y + p.height;
+  const near = (t: string) => state.pickups.some(k => k.type === t && Math.abs(k.pos.x - cx) < 600 && Math.abs(k.pos.y - feet) < 300);
+  const f = p.facing || 1;
+  if (!near('large_health')) state.pickups.push({ id: 'rf-refill-health', pos: { x: cx + f * 70 - 10, y: feet - 20 }, vel: { x: 0, y: 0 }, width: 20, height: 20, type: 'large_health', life: 1e9 });
+  if (!near('large_ammo')) state.pickups.push({ id: 'rf-refill-ammo', pos: { x: cx + f * 110 - 10, y: feet - 20 }, vel: { x: 0, y: 0 }, width: 20, height: 20, type: 'large_ammo', life: 1e9 });
+};
 export const refightLayout = (def: RefightDef): StageLayout => {
   const inner = def.inner;
   const t = () => touchRefight();
@@ -248,6 +258,7 @@ export const refightLayout = (def: RefightDef): StageLayout => {
       // (the hour again: the land's build may have set its own)
       setEndgameHour(L4_HOUR);
       def.build?.(state, fresh);
+      bigRefill(state);
       // (on the file: still level 4 (CONTINUE puts him in the lot, his rematches kept))
       if (fresh) { setEndgameAt({ stage: L4_ID, cp: LOT_CP }); saveProgress(); }
       startCard(def, state, fresh);
