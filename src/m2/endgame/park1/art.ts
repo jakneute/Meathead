@@ -20,7 +20,7 @@
 import type { GameState } from '../../../m1/game/core/state';
 import type { Light } from '../../../m1/game/render/lighting';
 import { CANVAS_WIDTH as W, CANVAS_HEIGHT as H } from '../../../m1/constants';
-import { stamp } from '../../../m1/game/render/stamp';
+import { stamp, prestamp } from '../../../m1/game/render/stamp';
 import { drawTodSky, timeOfDay, farTint, lampGlow, skyAt } from '../../timeOfDay';
 import { drawTowerAt } from '../../cartoon/monument';
 import { farMark, farTreeline } from '../../parkFar';
@@ -1191,10 +1191,13 @@ const tubeBack = (g: Ctx, P: Path, T: Tube, x0: number, x1: number) => {
 /** A piece's ends at the gaps (`first`: its start, `last`: its end): the last stretch of the trough striped yellow and
  *  black (lit along the top), the end snapped off ragged (a cracked lip of the plastic, a shard hanging), a bolt rod
  *  bent out of the break. */
-const brokenEnds = (g: Ctx, P: Path, T: Tube, first: boolean, last: boolean) => {
+const brokenEnds = (g: Ctx, P: Path, T: Tube, first: boolean, last: boolean, x0 = -Infinity, x1 = Infinity) => {
   const C = ramp5(tubeCol(T)), ends: [number, number][] = [];
-  if (last) ends.push([P.len - 64, P.len]);
-  if (first) ends.push([0, 40]);
+  // (only an end that's in the tile being painted (x0..x1, its bits sticking out round it): the rest were stroked into
+  // every tile of the piece and clipped away)
+  const near = (s: number) => { const e = pointAt(P, s).x; return e > x0 - 40 && e < x1 + 40; };
+  if (last && near(P.len)) ends.push([P.len - 64, P.len]);
+  if (first && near(0)) ends.push([0, 40]);
   for (const [s0, s1] of ends) {
     g.lineCap = 'butt';
     for (let s = s0, k = 0; s < s1; s += 12, k++) {
@@ -1402,17 +1405,18 @@ const drawTubeBack = (c: Ctx, state: GameState, T: Tube, i: number) => {
       if (lit) { R(c, lx + 1, top + 18, 2, 2, '#FECACA'); c.fillStyle = 'rgba(239, 68, 68, 0.22)'; c.fillRect(lx - 3, top + 14, 12, 12); }
     }
   }
-  // (the chute: baked in tiles along its length; the ends at the gaps broken off, striped)
-  for (let tx = Math.floor(state.camera.x / TUBE_TILE) * TUBE_TILE; tx < state.camera.x + W; tx += TUBE_TILE) {
+  // (the chute: baked in tiles along its length; the ends at the gaps broken off, striped. The tile either side just off
+  // the screen baked ahead (prestamp): a tile coming on was painted twice, live its first frame, then into its stamp)
+  for (let tx = Math.floor(state.camera.x / TUBE_TILE) * TUBE_TILE - TUBE_TILE; tx < state.camera.x + W + TUBE_TILE; tx += TUBE_TILE) {
     if (tx + TUBE_TILE < d.x2 - 40 || tx > last + 40) continue;
     const [y0, y1] = tileBand(T, paths, tx);
     if (y1 < y0 || !visY(state, y0 - 32, y1 + 26, 0)) continue;
-    stamp(c, `wp-tube-${T.id}-${tubeLapNo(i)}-${tx}`, tx, y0 - 32, TUBE_TILE, y1 - y0 + 58, g => {
+    (tx + TUBE_TILE <= state.camera.x || tx >= state.camera.x + W ? prestamp : stamp)(c, `wp-tube-${T.id}-${tubeLapNo(i)}-${tx}`, tx, y0 - 32, TUBE_TILE, y1 - y0 + 58, g => {
       g.save(); g.beginPath(); g.rect(tx, y0 - 32, TUBE_TILE, y1 - y0 + 58); g.clip();
       paths.forEach((P, pi) => {
         if (P.segs[P.segs.length - 1].x1 < tx - 80 || P.segs[0].x0 > tx + TUBE_TILE + 80) return;
         tubeBack(g, P, T, tx, tx + TUBE_TILE);
-        brokenEnds(g, P, T, pi > 0, pi < paths.length - 1);
+        brokenEnds(g, P, T, pi > 0, pi < paths.length - 1, tx, tx + TUBE_TILE);
       });
       g.restore();
     });
@@ -1492,11 +1496,12 @@ const paintPipeEnd = (g: Ctx, x: number, y: number) => {
 const drawTubeFront = (c: Ctx, state: GameState, T: Tube, i: number) => {
   const paths = tubePaths(i);
   const last = paths[paths.length - 1].segs[paths[paths.length - 1].segs.length - 1].x1;
-  for (let tx = Math.floor(state.camera.x / TUBE_TILE) * TUBE_TILE; tx < state.camera.x + W; tx += TUBE_TILE) {
+  // (baked a tile ahead either side, as the back half's)
+  for (let tx = Math.floor(state.camera.x / TUBE_TILE) * TUBE_TILE - TUBE_TILE; tx < state.camera.x + W + TUBE_TILE; tx += TUBE_TILE) {
     if (tx + TUBE_TILE < T.deck.x2 - 40 || tx > last + 40) continue;
     const [y0, y1] = tileBand(T, paths, tx);
     if (y1 < y0 || !visY(state, y0 - 14, y1 + 18, 0)) continue;
-    stamp(c, `wp-tubef-${T.id}-${tubeLapNo(i)}-${tx}`, tx, y0 - 14, TUBE_TILE, y1 - y0 + 32, g => {
+    (tx + TUBE_TILE <= state.camera.x || tx >= state.camera.x + W ? prestamp : stamp)(c, `wp-tubef-${T.id}-${tubeLapNo(i)}-${tx}`, tx, y0 - 14, TUBE_TILE, y1 - y0 + 32, g => {
       g.save(); g.beginPath(); g.rect(tx, y0 - 14, TUBE_TILE, y1 - y0 + 32); g.clip();
       for (const P of paths) if (P.segs[P.segs.length - 1].x1 >= tx - 80 && P.segs[0].x0 <= tx + TUBE_TILE + 80) tubeFrontPaint(g, P, T, tx, tx + TUBE_TILE);
       g.restore();

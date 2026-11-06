@@ -567,6 +567,17 @@ const rideObj = (ride: string, i: number) => ({
   s: 0.7 + hash(i * 3 + 9) * 0.8, k: (i * 5 + (ride === 'abyss' ? 2 : 0)) % 6,
 });
 const TETHER = mix('#8A94A8', '#1A2040', 0.58);
+/** Each one's reach about its middle, in its size (left, up, right, down: paintRide's shapes, their ink and strokes):
+ *  its stamp's box cut to that (it was 150 by 110 of its size, mostly sky, every one of it put down every frame). */
+const RIDE_BOX: Record<string, [number, number, number, number][]> = {
+  blackHole: [[46, 26, 46, 26], [26, 26, 26, 26], [26, 26, 26, 26], [26, 26, 26, 26], [32, 12, 32, 12], [20, 32, 20, 32]],
+  abyss: [[48, 22, 64, 22], [42, 42, 24, 24], [22, 16, 22, 34], [22, 16, 22, 34], [36, 36, 36, 16], [26, 26, 30, 40]],
+};
+const rideBox = (ride: string, q: { x: number; y: number; s: number; k: number }) => {
+  const [l, u, r, d] = (RIDE_BOX[ride] ?? RIDE_BOX.blackHole)[q.k], P = 4;
+  const x0 = Math.floor(q.x - l * q.s - P), y0 = Math.floor(q.y - u * q.s - P);
+  return { x0, y0, w: Math.ceil(q.x + r * q.s + P) - x0, h: Math.ceil(q.y + d * q.s + P) - y0 };
+};
 /** One of them (stamped in its own small box: the strip's mostly sky). */
 const paintRide = (g: Ctx, ride: string, i: number) => {
   const T = (col: string) => mix(col, '#1A2040', 0.58);
@@ -633,14 +644,16 @@ export const drawRideSky = (c: Ctx, ride: string, along: number, camY: number) =
   for (const dx of [-o, RIDE_W - o]) {
     const x0 = Math.round(dx);
     for (let i = 0; i < RIDE_N; i++) {
-      const q = rideObj(ride, i), bw = Math.ceil(150 * q.s), bh = Math.ceil(110 * q.s);
+      const q = rideObj(ride, i), b = rideBox(ride, q);
       const sx = x0 + q.x;
-      if (sx - bw / 2 >= W || sx + bw / 2 <= 0) continue;
+      if (x0 + b.x0 >= W || x0 + b.x0 + b.w <= 0) continue;
       // (its tether, live: one fill, on down into the drop)
       const ty = top + q.y + Math.round(20 * q.s);
       if (ty < H) R(c, sx, ty, 1, H - ty, TETHER);
+      // (its box off the top or the bottom of the screen: nothing of it to put down, just the tether)
+      if (top + b.y0 + b.h <= 0 || top + b.y0 >= H) continue;
       c.save(); c.translate(x0, top);
-      stamp(c, `wp-ride-${ride}-${i}`, q.x - bw / 2, q.y - bh / 2, bw, bh, g => paintRide(g, ride, i));
+      stamp(c, `wp-ride-${ride}-${i}`, b.x0, b.y0, b.w, b.h, g => paintRide(g, ride, i));
       c.restore();
     }
   }
