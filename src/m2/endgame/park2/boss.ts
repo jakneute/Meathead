@@ -41,7 +41,7 @@ import { say, silenceAll, pickLine } from '../../../m1/game/platform/speech';
 import { SKIP_AFTER, offerSkip, takeSkip, drawSkipPrompt } from '../../../m1/game/platform/skip';
 import { hurtPlayer } from '../../../m1/game/bosses/shared';
 import { makeKindEnemy } from '../../../m1/game/enemies/kinds';
-import { CANVAS_WIDTH, CANVAS_HEIGHT, BULLET_DAMAGE } from '../../../m1/constants';
+import { CANVAS_WIDTH, CANVAS_HEIGHT, BULLET_DAMAGE, KICK_POSE_FRAMES } from '../../../m1/constants';
 import { bossMelee } from '../../upgrades/bossMelee';
 import { registerM2Kind, registerHurtLines } from '../../kinds';
 import { ownShare } from '../../weapons/subBoss';
@@ -202,8 +202,10 @@ const updateIntro = (ctx: FrameContext, f: Fight2): Controls => {
   switch (f.intro) {
     case 'kick':
       p.facing = 1;
+      // (the kick plays through, frame by frame: nothing else counts it down here, so it held its first frame)
+      if ((p.kickPose || 0) > 0) p.kickPose!--;
       if (t === 2) meatheadSays(state, pick(byPants(state, L.MH_DOOR)), false);
-      if (t === 8) p.kickPose = 22;
+      if (t === 8) p.kickPose = KICK_POSE_FRAMES;
       if (t === 16) { f.door = 0.01; playSound('crash', 1, -6); playSound('crack', 0.9, -4); shakeScreen(state, 12, 5); }
       if (f.door > 0) f.door = Math.min(1, f.door + 0.12);
       if (t > 36) { f.intro = 'walk'; f.introT = 0; p.kickPose = 0; }

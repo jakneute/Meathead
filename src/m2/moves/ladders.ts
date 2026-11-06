@@ -228,7 +228,9 @@ export const updateLadders = (ctx: FrameContext, defs: LadderDef[], c: Controls)
       // Stood at its top, down held a moment: back down it
       if (top && h.downT >= DOWN_HOLD && (dx < REACH_TOP || Math.abs(cx - top.x) < 14) && p.isGrounded && Math.abs(feet - top.y) < 6) {
         const up = d.bottom - feetMin(d, top);
-        if (blocked(state, box(state, d.x, d.bottom - up))) continue;
+        // (his box a little narrower than he's drawn: a ladder down a one-cell hole in the floor (the water park's
+        // tunnels) was "blocked" by the hole's own sides, and down just ducked him)
+        { const r = box(state, d.x, d.bottom - up); if (blocked(state, { x: r.x + 8, y: r.y, w: Math.max(4, r.w - 16), h: r.h })) continue; }
         // (back over the top onto it: the climb over, the other way, from where he's stood)
         const sx = cx, sy = feet;
         grab(state, h, defs, i, up, c); h.downLatch = true; h.mount = { dir: -1, t: 0 };

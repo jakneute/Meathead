@@ -9,16 +9,36 @@ import { getActiveGamepad, getGamepadMovement, isButtonPressed, menuButtons } fr
 import { Prompt } from '../../m1/components/ButtonIcons';
 import { ENDGAME_STAGES } from './stages';
 
+/** The pages (the owner's "clean up the checkpoint skip": a level split over engine stages showed up twice, LEVEL 3
+ *  most of all): one page a level, every checkpoint of it in order, whichever stage it's in; the eight refights on a
+ *  page of their own. */
+interface Row { name: string; stage: string; cp: number; hour: number }
+const PAGE_NAME: Record<number, string> = { 1: 'LEVEL 1: THE WATER PARK', 2: 'LEVEL 2: THE LAZY RIVER', 3: 'LEVEL 3: THE MAINTENANCE TUNNELS', 4: 'LEVEL 4: NED THE NECROMANCER' };
+const PAGES: { name: string; rows: Row[] }[] = (() => {
+  const out: { name: string; rows: Row[] }[] = [], refights: Row[] = [];
+  for (const st of ENDGAME_STAGES) {
+    const rows = st.checkpoints.map(c => ({ name: c.name, stage: st.id, cp: c.cp, hour: st.hour }));
+    if (st.id.startsWith('rf')) { refights.push(...rows); continue; }
+    const name = PAGE_NAME[st.level] ?? `LEVEL ${st.level}`;
+    const page = out.find(p => p.name === name);
+    if (page) page.rows.push(...rows); else out.push({ name, rows });
+  }
+  // (a name twice on one page (the gate, outside it and in): the first's told apart)
+  for (const pg of out) for (const r of pg.rows) if (pg.rows.filter(q => q.name === r.name).length > 1 && pg.rows.find(q => q.name === r.name) === r) r.name += ' (OUTSIDE)';
+  if (refights.length) out.push({ name: 'LEVEL 4: THE REFIGHTS', rows: refights });
+  return out;
+})();
+
 const EndgamePicker: React.FC<{ onPick: (stage: string, cp: number) => void; onCancel: () => void }> = ({ onPick, onCancel }) => {
   const [s, setS] = useState(0), [c, setC] = useState(0);
   useCursorSound(s * 100 + c);
   const ref = useRef({ s, c, onPick, onCancel });
   ref.current = { s, c, onPick, onCancel };
   useEffect(() => {
-    const N = ENDGAME_STAGES.length;
+    const N = PAGES.length;
     const stage = (d: number) => { setS(v => (v + d + N) % N); setC(0); };
-    const cp = (d: number) => { const n = ENDGAME_STAGES[ref.current.s].checkpoints.length; setC(v => (v + d + n) % n); };
-    const go = () => { const r = ref.current, st = ENDGAME_STAGES[r.s]; r.onPick(st.id, st.checkpoints[r.c].cp); };
+    const cp = (d: number) => { const n = PAGES[ref.current.s].rows.length; setC(v => (v + d + n) % n); };
+    const go = () => { const r = ref.current, it = PAGES[r.s].rows[r.c]; r.onPick(it.stage, it.cp); };
     const onKey = (e: KeyboardEvent) => {
       const k = e.key.toLowerCase();
       e.stopPropagation();
@@ -46,18 +66,18 @@ const EndgamePicker: React.FC<{ onPick: (stage: string, cp: number) => void; onC
     raf = requestAnimationFrame(poll);
     return () => { window.removeEventListener('keydown', onKey, true); cancelAnimationFrame(raf); };
   }, []);
-  const st = ENDGAME_STAGES[s];
+  const pg = PAGES[s], cur = pg.rows[c] ?? pg.rows[0];
   return (
     <div className="absolute inset-0 z-[78] flex items-center justify-center bg-black/80 select-none" style={{ fontFamily: '"Press Start 2P", monospace' }}>
       <div className="w-[420px] max-h-[92%] flex flex-col p-3 border-4 border-red-600 bg-zinc-950 shadow-[4px_4px_0_#000]">
         <div className="text-[8px] text-red-500 tracking-widest">ENDGAME TEST</div>
         <div className="mt-2 flex items-center justify-between text-[10px] text-yellow-300">
-          <span>◀</span><span>{st.name}</span><span>▶</span>
+          <span>◀</span><span>{pg.name}</span><span>▶</span>
         </div>
-        <div className="mt-1 text-center text-[7px] text-zinc-400">{`STAGE ${s + 1} OF ${ENDGAME_STAGES.length} · HOUR ${st.hour}`}</div>
+        <div className="mt-1 text-center text-[7px] text-zinc-400">{`PAGE ${s + 1} OF ${PAGES.length} · HOUR ${cur.hour}`}</div>
         <div className="mt-3 flex flex-col gap-1 min-h-0 overflow-y-auto pr-1">
-          {st.checkpoints.map((it, k) => (
-            <button key={it.name + k} onMouseEnter={() => setC(k)} onClick={() => onPick(st.id, it.cp)}
+          {pg.rows.map((it, k) => (
+            <button key={it.name + k} ref={k === c ? el => el?.scrollIntoView({ block: 'nearest' }) : undefined} onMouseEnter={() => setC(k)} onClick={() => onPick(it.stage, it.cp)}
               className={`shrink-0 text-left px-2 py-[5px] text-[8px] border-2 ${k === c ? 'bg-yellow-400 text-black border-yellow-400' : 'bg-zinc-900 text-white border-zinc-700'}`}>
               {k === c ? '▶ ' : '  '}{`${k + 1}. ${it.name}`}
             </button>

@@ -37,7 +37,7 @@ import { say, silenceAll, pickLine } from '../../../m1/game/platform/speech';
 import { SKIP_AFTER, offerSkip, takeSkip, drawSkipPrompt } from '../../../m1/game/platform/skip';
 import { hurtPlayer } from '../../../m1/game/bosses/shared';
 import { makeKindEnemy } from '../../../m1/game/enemies/kinds';
-import { CANVAS_WIDTH, CANVAS_HEIGHT, BULLET_DAMAGE } from '../../../m1/constants';
+import { CANVAS_WIDTH, CANVAS_HEIGHT, BULLET_DAMAGE, KICK_POSE_FRAMES } from '../../../m1/constants';
 import { bossMelee } from '../../upgrades/bossMelee';
 import { registerM2Kind } from '../../kinds';
 import { ownShare } from '../../weapons/subBoss';
@@ -181,7 +181,9 @@ const updateIntro = (ctx: FrameContext, f: Fight): Controls => {
     case 'kick':
       // (the door kicked in: his boot, the door down flat inward)
       p.facing = 1;
-      if (t === 6) p.kickPose = 22;
+      // (the kick plays through, frame by frame: nothing else counts it down here, so it held its first frame on in)
+      if ((p.kickPose || 0) > 0) p.kickPose!--;
+      if (t === 6) p.kickPose = KICK_POSE_FRAMES;
       if (t === 14) { f.door = 0.01; playSound('crash', 1, -6); playSound('slam', 0.9, -8); shakeScreen(state, 12, 5); }
       if (f.door > 0) f.door = Math.min(1, f.door + 0.12);
       if (t > 34) { f.intro = 'walk'; f.introT = 0; }
