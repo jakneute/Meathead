@@ -73,11 +73,14 @@ export interface Tower {
   downWas: boolean;
   /** Frames of the camera settling back onto the floor's view, off the stairs. */
   settle: number;
+  /** Off the stairs with a button still held from the walk: held buttons don't act till let go (a B pressed on the
+   *  stairs was a charge the frame he stepped off). */
+  eat: boolean;
 }
 export const newTower = (clearedBelow: number): Tower => ({
   cleared: Array.from({ length: FLOORS + 1 }, (_, k) => k < clearedBelow || k === 0 || k >= 8),
   locked: null, wave: 0, spawnT: 0, queue: [], tells: [], cast: [], climb: null,
-  gate: Array.from({ length: FLOORS + 1 }, (_, k) => (k < clearedBelow || k === 0 || k >= 8 ? 1 : 0)), downWas: true, settle: 0,
+  gate: Array.from({ length: FLOORS + 1 }, (_, k) => (k < clearedBelow || k === 0 || k >= 8 ? 1 : 0)), downWas: true, settle: 0, eat: false,
 });
 
 /** The floor his feet are on (or the nearest under them), inside the tower's span; null outside it. */
@@ -140,8 +143,14 @@ export const updateTower = (ctx: FrameContext, tw: Tower, controls: Controls, ev
   const downEdge = !!controls.down && !tw.downWas;
   tw.downWas = !!controls.down;
   for (let k = 0; k <= FLOORS; k++) tw.gate[k] += ((tw.cleared[k] && tw.locked !== k ? 1 : 0) - tw.gate[k]) * 0.12;
+  // ---- off the stairs: what was held through the walk does nothing till it's let go (no input read on the walk)
+  if (!tw.climb && tw.eat) {
+    if (controls.special || controls.charge || controls.jump || controls.shoot || controls.secondary) controls = { ...controls, special: false, charge: false, jump: false, shoot: false, secondary: false };
+    else tw.eat = false;
+  }
   // ---- on the stairs: walked up (or down) them, his own walk
   if (tw.climb) {
+    tw.eat = true;
     const c = tw.climb;
     c.s += 4.6;
     const q = at(c.pts, c.up ? c.s : c.len - c.s);
