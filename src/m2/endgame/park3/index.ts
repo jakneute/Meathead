@@ -41,7 +41,7 @@ import { newHazards, updateHazards, drawHazardsBack, drawHazardsFront, updateAir
 import { newJunctions, updateJunctions, drawJunctions, junctionBlocks, type Junctions } from './junctions';
 import { makeGangways, updateGangways, drawGangways, type Gangways } from './gangways';
 import { makeCast3, drawBarks3, updateShots3, drawShots3, clearShots3 } from './kinds';
-import { type Pool, newPool, updatePool, poolOn, drawPoolBackdrop, drawPoolBack, drawPoolFront, drawPoolHud, poolLights, poolWater, poolCamY, poolDeath } from './pool';
+import { type Pool, newPool, updatePool, poolOn, drawPoolBackdrop, drawPoolBack, drawPoolFront, drawPoolHud, poolLights, poolWater, poolCamY, poolDeath, POOL_AIR } from './pool';
 import * as L from './lines';
 import { contactSheet } from './sheet';
 import { setCheat } from '../../cheats';
@@ -171,7 +171,7 @@ export const tunnelLayout: StageLayout = {
     if (!t) return controls;
     wakeNear(state);
     const p = state.player, cx = p.pos.x + p.width / 2;
-    updateAir3(ctx, (x, y) => tunnelLayout.waterBodyAt!(state, x, y));
+    updateAir3(ctx, (x, y) => tunnelLayout.waterBodyAt!(state, x, y), cx > WP.x0 - 100 ? POOL_AIR : undefined);
     updateShots3(ctx);
     // ---- the wave pool (the flush in, the fight, the drain out): pool.ts's
     if (poolOn(t.pool) || cx > WP.x0 - 200) {

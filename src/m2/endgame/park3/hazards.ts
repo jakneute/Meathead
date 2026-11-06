@@ -127,7 +127,10 @@ const AIR_FRAMES = 1350, AIR_REFILL = 7.5, DROWN_EVERY = 45, DROWN_DAMAGE = 7;
 interface Air { o2: number; drownT: number; lowSaid: boolean }
 const AIRS = new WeakMap<object, Air>();
 const airOf = (state: GameState): Air => { const k = state.stage as object; let a = AIRS.get(k); if (!a) { a = { o2: 1, drownT: 0, lowSaid: false }; AIRS.set(k, a); } return a; };
-export const updateAir3 = (ctx: FrameContext, bodyAt: (x: number, y: number) => WaterBody | null) => {
+/** His air (0..1), for a gauge. */
+export const air3 = (state: GameState) => (state.stage ? airOf(state).o2 : 1);
+/** `o`: the wave pool's own (longer air, a quicker breath at the top, its own death). */
+export const updateAir3 = (ctx: FrameContext, bodyAt: (x: number, y: number) => WaterBody | null, o: { frames?: number; refill?: number; src?: string } = {}) => {
   const { state } = ctx, p = state.player;
   if (!state.stage) return;
   const a = airOf(state);
@@ -140,13 +143,13 @@ export const updateAir3 = (ctx: FrameContext, bodyAt: (x: number, y: number) => 
   if (state.deathTimer > 0 || p.health <= 0) return;
   const under = p.swimming && !!body && p.pos.y + 6 > body.surface;
   if (under && !ctx.cheats.invincible) {
-    a.o2 = Math.max(0, a.o2 - 1 / AIR_FRAMES);
+    a.o2 = Math.max(0, a.o2 - 1 / (o.frames ?? AIR_FRAMES));
     if (a.o2 < 0.3 && !a.lowSaid) { a.lowSaid = true; meatheadSays(state, pickLine(L.MH_AIR_LOW), false); }
     if (a.o2 < 0.25 && state.frame % 20 === 0) playSound('beep');
     if (state.frame % 14 === 0) state.particles.push({ pos: { x: cx + p.facing * 8, y: p.pos.y + 10 }, vel: { x: 0, y: -1.2 }, life: 40, color: 'rgba(204, 251, 241, 0.8)', size: 3 });
-    if (a.o2 <= 0 && ++a.drownT >= DROWN_EVERY) { a.drownT = 0; p.invincibilityTimer = 0; hurtPlayer(ctx, DROWN_DAMAGE, 'm2:wp3_drown'); }
+    if (a.o2 <= 0 && ++a.drownT >= DROWN_EVERY) { a.drownT = 0; p.invincibilityTimer = 0; hurtPlayer(ctx, DROWN_DAMAGE, o.src ?? 'm2:wp3_drown'); }
   } else {
-    a.o2 = Math.min(1, a.o2 + AIR_REFILL / AIR_FRAMES);
+    a.o2 = Math.min(1, a.o2 + (o.refill ?? AIR_REFILL) / (o.frames ?? AIR_FRAMES));
     a.drownT = 0;
     if (a.o2 > 0.6) a.lowSaid = false;
   }

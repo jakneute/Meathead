@@ -5,7 +5,8 @@
 // GUPPLAX: the wave pool's lifeguard, an alien (the aliens' turn). Zorblax and Zarblax's brother (the family's what it
 // is: so the kid on the summit was his nephew twice over). A bloated, sweating, gill-flapping slob in a lifeguard's
 // red trunks two sizes small, zinc on his nose, a whistle he never stops blowing. Erratic: giggles, screams, blows the
-// whistle at nothing. He runs the deep end and calls everything he doesn't like a pussy. His grudge: Meathead killed
+// whistle at nothing. He runs the deep end and calls everything he doesn't like a pussy. Armored in scrap off the pool (a drain
+// grate breastplate, a stockpot helmet) and allergic to chlorine: a lifeguard who never shocks his pool. His grudge: Meathead killed
 // his nephew on the mountain. Undignified to the end.
 
 import type { ByPants } from '../park1/lines';
@@ -128,6 +129,121 @@ export const MH_DRAIN = bp(['THE DRAIN! WHO PULLED THE PLUG?!'], ['THE DRAIN! FI
 /** Grabbing at him (too big, too slimy). */
 export const GRAB_GUP = ["HE'S TOO SLIPPERY. HE'S LIKE A WET HOT DOG.", "TOO BIG. TOO GREASY. TOO MANY NIPPLES.", "I'M NOT GRABBING THAT. IT'S MOIST."];
 
+
+// ---------------------------------------------------------------------------------------------------------------
+// The rebuild (the owner's, 2026-11-06): GUPPLAX armored and allergic to chlorine, the tanks in the dead body mazes,
+// the surges, the flanks.
+
+/** A hit clanking off his armor (now and then). */
+export const GUP_ARMOR = bp(
+  ['HA! ARMOR! I GOT IT AT THE DUMP!', 'BOUNCES RIGHT OFF! LIKE YOUR DAD!', "IT'S A DRAIN GRATE! IT'S TOUGHER THAN YOU!"],
+  ['HA! ARMOR! AND A NOSE PLUG!', "BOUNCES RIGHT OFF! YOUR STINK DOESN'T!", "IT'S A DRAIN GRATE! I KNOW WHAT GOES DOWN IT! YOU!"],
+  ['HA! ARMOR! ONE OF US IS DRESSED!', 'BOUNCES RIGHT OFF! LIKE EVERYTHING ON YOU!', "IT'S A DRAIN GRATE! IT COVERS MORE THAN YOU DO!"],
+);
+/** The first tank burst. */
+export const GUP_CHLORINE1 = bp(
+  ['IS THAT CHLORINE?! WHO PUT CHLORINE IN MY POOL?!'],
+  ['IS THAT CHLORINE?! IN MY POOL?! THE SHIT WAS FINE! NOT THIS!'],
+  ['IS THAT CHLORINE?! ON YOUR NAKED ASS?! IN MY POOL?!'],
+);
+/** Every burst after. */
+export const GUP_CHLORINE = bp(
+  ['AAH... AAAH... CHOO! MY GILLS!', "I'M ALLERGIC! I'M A LIFEGUARD AND I'M ALLERGIC!", 'STOP CLEANING MY POOL!', 'MY EYES! ALL FOUR!'],
+  ['AAH... CHOO! CHLORINE AND SHIT! MY GILLS!', "I'M ALLERGIC! TO CHLORINE AND TO YOU!", 'STOP CLEANING MY POOL! CLEAN YOUR ASS!', 'MY EYES! ALL FOUR! AND MY NOSE!'],
+  ["AAH... CHOO! IT'S ALL OVER ME! LIKE YOUR BALLS!", "I'M ALLERGIC! I'M SWELLING UP! STOP LOOKING AT ME LIKE THAT!", 'STOP CLEANING MY POOL! PUT ON PANTS!', 'MY EYES! ALL FOUR! ALL FOUR ON YOU!'],
+);
+/** The sneezes (in a cloud of it; the sitting duck). */
+export const GUP_SNEEZE = bp(
+  ['AAH-CHOO!', 'HUP... HUP... CHOO!', 'ACHOO! TWEET!'],
+  ['AAH-CHOO! I INHALED YOU!', 'HUP... CHOO! CHLORINATED ASS!', 'ACHOO! CODE BROWN!'],
+  ['AAH-CHOO! DON\'T LOOK!', 'HUP... CHOO! COVER IT UP!', 'ACHOO! INDECENT!'],
+);
+/** Coming in from behind. */
+export const GUP_FLANK = bp(
+  ['BEHIND YOU, PUSSY!', 'SURPRISE INSPECTION!', 'NO RUNNING! NO SWIMMING!'],
+  ["BEHIND YOU! THAT'S NOT YOUR GOOD SIDE!", 'SURPRISE INSPECTION! YOU FAILED!', 'NO RUNNING! IT ALREADY RAN DOWN YOUR LEG!'],
+  ['BEHIND YOU! OH GOD, I SAW IT!', 'SURPRISE INSPECTION! TOO MUCH TO INSPECT!', 'NO RUNNING! NOTHING SHOULD BOUNCE LIKE THAT!'],
+);
+/** Rammed head first into a pile. */
+export const GUP_BONK = bp(
+  ['OW! WHO PUT DEAD GUYS IN MY POOL?! OH. ME.', 'MY HEAD! RIGHT INTO A GRANDMA!', 'BONK! THE PILE MOVED!'],
+  ['OW! THE DEAD GUYS SMELL BETTER THAN YOU!', 'MY HEAD! RIGHT INTO A SWIM DIAPER!', 'BONK! SOMEBODY SHIT IN THE PILE! YOU!'],
+  ['OW! THE DEAD GUYS ARE WEARING MORE THAN YOU!', 'MY HEAD! RIGHT INTO A NAKED GRANDPA!', 'BONK! EVEN THE CORPSES ARE EMBARRASSED!'],
+);
+/** He's in one of the mazes (GUPPLAX can't fit). */
+export const GUP_MAZE = bp(
+  ['COME OUT OF MY DEAD GUYS!', "THAT'S MY PILE! NO SWIMMING IN THE PILE!", 'I CAN WAIT! I HAVE GILLS!'],
+  ["COME OUT OF MY DEAD GUYS! YOU'RE MAKING THEM SMELL!", "THAT'S MY PILE! STOP ADDING TO IT!", "I CAN WAIT! THE SMELL CAN'T!"],
+  ["COME OUT OF MY DEAD GUYS! STOP RUBBING ON THEM!", "THAT'S MY PILE! THEY DON'T WANT YOUR NAKED ASS EITHER!", 'I CAN WAIT! FIND SOME TRUNKS IN THERE!'],
+);
+/** He's near a tank (the first time). */
+export const GUP_TANKWARN = bp(
+  ["DON'T TOUCH THAT! IT'S NOT CHLORINE! IT'S SNACKS!", 'GET AWAY FROM THE YELLOW THING!'],
+  ["DON'T TOUCH THAT! YOUR HANDS ARE DIRTY! THAT'S THE POINT, ISN'T IT!", 'GET AWAY FROM THE YELLOW THING! YOU HAVE YOUR OWN!'],
+  ["DON'T TOUCH THAT! DON'T TOUCH ANYTHING!", 'GET AWAY FROM THE YELLOW THING! AND PUT THAT THING AWAY!'],
+);
+/** The last tank: the armor's off, he's swollen up. */
+export const GUP_ALL = bp(
+  ["I'M PUFFY! I'M SO PUFFY! MY ARMOR POPPED OFF!"],
+  ["I'M PUFFY! MY ARMOR POPPED OFF! NOW I CAN SMELL YOU THROUGH MY SKIN!"],
+  ["I'M PUFFY! MY ARMOR POPPED OFF! NOW WE'RE BOTH NAKED! I HATE IT!"],
+);
+/** The sitting duck's mutters. */
+export const GUP_SLOW = bp(
+  ["CAN'T... BREATHE... TWEET...", 'MOUTH TO MOUTH... SOMEBODY...', 'I NEED A BENADRYL... I NEED A HUNDRED...'],
+  ["CAN'T BREATHE... YOUR FAULT TWICE...", 'MOUTH TO MOUTH... NOT YOU... NEVER YOU...', 'BENADRYL... AND A NOSE PLUG...'],
+  ["CAN'T BREATHE... STOP POSING...", 'MOUTH TO MOUTH... PUT IT AWAY FIRST...', 'BENADRYL... AND A BLINDFOLD...'],
+);
+/** His last, swollen shut (every tank burst). */
+export const GUP_DEATH_ALL = bp(
+  ["MY THROAT'S CLOSING... I'M ALLERGIC TO MY OWN JOB..."],
+  ["MY THROAT'S CLOSING... THE LAST THING I SMELLED... WAS YOU..."],
+  ["MY THROAT'S CLOSING... THE LAST THING I SAW... WAS THAT..."],
+);
+
+/** Out past the shallow end: how deep it gets. */
+export const MH_DEEP = bp(
+  ['TWELVE FEET MY ASS.', "THIS ISN'T A WAVE POOL. IT'S A TRENCH."],
+  ['THIS POOL IS DEEPER THAN MY SHAME. ALMOST.', 'A TRENCH. WITH ME IN IT. AGAIN.'],
+  ["THIS IS DEEP. EVERYTHING'S SHRINKING.", 'A TRENCH. AND IT GETS COLDER. GREAT.'],
+);
+/** The first hits clanking off. */
+export const MH_ARMOR = bp(
+  ["IT BOUNCES OFF. HE'S WEARING A DRAIN.", "HE'S ARMORED. A FISH IN ARMOR."],
+  ["IT BOUNCES OFF. NOTHING BOUNCES OFF ME. IT STICKS.", "HE'S ARMORED. I'M JUST CRUSTED."],
+  ["IT BOUNCES OFF. HE'S GOT ARMOR AND I'VE GOT NOTHING.", "HE'S ARMORED. I'M NOT EVEN DRESSED."],
+);
+/** Into a maze (each, the first time). */
+export const MH_MAZE = bp(
+  ['A PILE OF DEAD GUESTS. NOBODY READ THE SIGN.', 'A WHOLE MAZE OF DEAD PEOPLE. CLASSIC WATER PARK.', 'SWIMMING THROUGH CORPSES. SIX BUCKS A TUBE.'],
+  ['DEAD GUYS. THEY STILL SMELL BETTER THAN ME.', 'A MAZE OF DEAD PEOPLE. FINALLY I FIT IN.', "CORPSES. AT LEAST THEY CAN'T SMELL ME."],
+  ['NAKED IN A PILE OF DEAD GUYS. MOM WOULD BE PROUD.', "A MAZE OF CORPSES. DON'T BRUSH UP AGAINST ANYTHING.", "CORPSES. THEY'RE WEARING MORE THAN ME."],
+);
+/** A tank in sight (the first). */
+export const MH_TANK_SEE = bp(
+  ["A CHLORINE TANK. A LIFEGUARD WHO WON'T SHOCK HIS POOL. HMM.", 'CHLORINE. BUST IT. SEE WHAT HAPPENS.'],
+  ['CHLORINE. I NEED IT MORE THAN THE POOL DOES.', 'A CHLORINE TANK. BUST IT. CLEAN SOMETHING.'],
+  ["CHLORINE. THIS IS GONNA STING IN PLACES.", 'A CHLORINE TANK. BUST IT. KEEP YOUR BITS CLEAR.'],
+);
+/** A tank burst. */
+export const MH_TANK = bp(
+  ['TAKE YOUR MEDICINE!', 'SHOCK THE POOL!', 'CLEAN WATER! YOUR WORST NIGHTMARE!'],
+  ['SHOCK THE POOL! I HELPED!', 'TAKE YOUR MEDICINE! I TOOK MINE IN MY PANTS!', 'CLEAN WATER! FOR ONCE!'],
+  ['SHOCK THE POOL! OOH, IT STINGS!', 'TAKE YOUR MEDICINE! IT BURNS MY EVERYTHING!', 'CLEAN WATER! EVERY INCH OF ME!'],
+);
+/** The last one. */
+export const MH_ALL = bp(
+  ["HE'S A SITTING DUCK. A SWOLLEN GREEN DUCK."],
+  ["HE'S A SITTING DUCK. I'M A SHITTING DUCK."],
+  ["HE'S A SITTING DUCK. A NAKED MAN AND A DUCK. CLASSIC."],
+);
+/** A surge (the first, then now and then). */
+export const MH_SURGE = bp(
+  ['HERE COMES THE WAVE!', 'THE WAVE MACHINE! HOLD ON!'],
+  ['HERE COMES THE WAVE! WASH ME!', "THE WAVE MACHINE! IT'S PUSHING ME AND MY LOAD!"],
+  ["HERE COMES THE WAVE! EVERYTHING'S FLAPPING!", "THE WAVE MACHINE! IT'S GOING RIGHT UP MY ASS!"],
+);
+
 // ---------------------------------------------------------------------------------------------------------------
 // What hurts him here: the callouts, and the death screen (one line, short)
 
@@ -152,6 +268,11 @@ export const HURT3: Record<string, { hurt: string[]; death: string[] }> = {
   'm2:wp3_slick': { hurt: ['THE SNOT SLICK! IT BURNS!', 'I SWAM INTO HIS SNOT!', 'GREEN WATER! GREEN WATER!'], death: ['SWAM IN ALIEN SNOT', 'DISSOLVED IN BOOGERS'] },
   'm2:wp3_flop': { hurt: ['BELLY FLOP! ON ME!', 'HE LANDED ON ME!', "HE'S SO HEAVY!"], death: ['BELLY FLOPPED ON', 'CRUSHED BY A LIFEGUARD'] },
   'm2:wp3_breach': { hurt: ['HE CAME UP UNDER ME!', 'HE BIT ME FROM BELOW!', 'JAWS! ALIEN JAWS!'], death: ['EATEN FROM BELOW', 'JAWSED'] },
+  'm2:wp3_ram': { hurt: ['HE RAMMED ME!', 'FROM BEHIND! HE CAME FROM BEHIND!', 'HEADBUTT! AN ARMORED HEADBUTT!'], death: ['RAMMED FROM BEHIND', 'FLANKED BY A FISH'] },
+  'm2:wp3_chomp': { hurt: ['HE BIT ME!', 'BUCK TEETH! IN MY ARM!', 'HE ATE A PIECE OF ME!'], death: ['EATEN BY A LIFEGUARD', 'CHEWED UP AND SPAT OUT'] },
+  'm2:wp3_hand': { hurt: ['A DEAD GUY GRABBED ME!', "LET GO! YOU'RE DEAD!", 'THE CORPSE HAS ME!'], death: ['HELD DOWN BY THE DEAD', 'ONE OF THE PILE NOW'] },
+  'm2:wp3_snag': { hurt: ['REBAR! IN MY SIDE!', 'A FISH HOOK! IN MY NIPPLE!', 'A BONE! I GOT STABBED BY A BONE!'], death: ['SNAGGED ON A DEAD GUY', 'HUNG UP ON THE PILE'] },
+  'm2:wp3_pooldrown': { hurt: ['GLUB! GLUB!', 'NO AIR! NO AIR!', 'TOO DEEP! TOO DEEP!'], death: ['DROWNED IN THE DEEP END', 'DROWNED IN A WAVE POOL'] },
   'm2:wp3_gup': { hurt: ['HE BUMPED ME! WITH HIS GUT!', 'GET YOUR GUT OFF ME!', "HE'S SLIMY!"], death: ['KILLED BY A LIFEGUARD', 'GUTTED BY GUPPLAX'] },
 };
 
@@ -159,8 +280,8 @@ export const HURT3: Record<string, { hurt: string[]; death: string[] }> = {
 
 const all = (...pools: (string | string[] | ByPants)[]) => pools.flatMap(p => (typeof p === 'string' ? [p] : Array.isArray(p) ? p : Object.values(p).flat()));
 export const PARK3_VOICE_LINES: Record<string, string[]> = {
-  meathead: all(MH_DOOR3, MH_IN, MH_PISS, MH_CHEM, MH_GANG, MH_SHAFT, MH_SWIM, MH_VALVE, MH_PUSHED, MH_PUMP, MH_AIR_LOW, MH_FLUSHED, MH_GUP, MH_GUP_DEAD, MH_DRAIN, GRAB_GUP, ...Object.values(HURT3).map(h => h.hurt)),
+  meathead: all(MH_DOOR3, MH_IN, MH_PISS, MH_CHEM, MH_GANG, MH_SHAFT, MH_SWIM, MH_VALVE, MH_PUSHED, MH_PUMP, MH_AIR_LOW, MH_FLUSHED, MH_GUP, MH_GUP_DEAD, MH_DRAIN, GRAB_GUP, MH_DEEP, MH_ARMOR, MH_MAZE, MH_TANK_SEE, MH_TANK, MH_ALL, MH_SURGE, ...Object.values(HURT3).map(h => h.hurt)),
   death: all(...Object.values(HURT3).map(h => h.death)),
-  [GUP_VOICE]: all(GUP_INTRO, GUP_INTRO2, GUP_RETRY, GUP_TAUNT, GUP_PATTER, GUP_WAVE, GUP_HURT, GUP_LOW, GUP_DEATH),
+  [GUP_VOICE]: all(GUP_INTRO, GUP_INTRO2, GUP_RETRY, GUP_TAUNT, GUP_PATTER, GUP_WAVE, GUP_HURT, GUP_LOW, GUP_DEATH, GUP_ARMOR, GUP_CHLORINE1, GUP_CHLORINE, GUP_SNEEZE, GUP_FLANK, GUP_BONK, GUP_MAZE, GUP_TANKWARN, GUP_ALL, GUP_SLOW, GUP_DEATH_ALL),
   [STAFF_VOICE.m]: all(STAFF_BARK), [STAFF_VOICE.f]: all(STAFF_BARK),
 };

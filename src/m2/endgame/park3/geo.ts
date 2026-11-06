@@ -385,29 +385,157 @@ export const isWater = (ch: string) => ch === '~' || ch === 'F' || ch === 'Z';
 export const isDeadly = (ch: string) => ch === 'P' || ch === 'C';
 
 // ---------------------------------------------------------------------------------------------------------------
-// THE WAVE POOL (the boss's: boss.ts): out on its own past the tunnels. The beach (the shallow end: zero entry, dry
-// at its top) on the left; the floor slopes down into the deep end, out to the right; the wave machine's housing over
-// the deep end's wall; the grate he's shot out of low in that wall.
+// THE WAVE POOL (the boss's: boss.ts, pool.ts, mazes.ts, waves.ts): out on its own past the tunnels. The owner's
+// (2026-11-06): "ridiculously deep and long. much more than a real wave pool... by far the largest boss arena in the
+// game". Nine screens long, three deep. The beach (the shallow end: zero entry, dry at its top) on the left, where he's
+// flushed in; the floor slopes down to a long run at 16 FT, a second slope, THE SHELF (the first body maze), then THE
+// DROP: a wall straight down to the deep end's floor (120 FT), four more body mazes along it, the wave machine's
+// housing over the far wall. The waves come from there and push everything back toward the beach.
 
 const WX = (COLS + 60) * CELL;
+/** How deep (px under the surface) the shelf's floor and the deep end's floor are. */
+const SHELF_D = 680, DEEP_D = 1800;
 export const WP = {
-  x0: WX, beach: WX + 520, slopeEnd: WX + 1000, x1: WX + 2400,
+  x0: WX, beach: WX + 520, x1: WX + 7200,
   /** The water's surface; the beach's top (just over it); the deep end's floor. */
-  surf: GY + 10, beachTop: GY, deep: GY + 380,
-  /** The grate (low in the deep end's wall: its middle). */
-  grateY: GY + 260,
+  surf: GY + 10, beachTop: GY, deep: GY + 10 + DEEP_D,
+  /** The shelf (the first maze's floor); the drop (the shelf's edge, and the foot of the wall under it). */
+  shelf: GY + 10 + SHELF_D, dropA: WX + 3100, dropB: WX + 3300,
   /** Where the shallow end is (he's in it: the taunts). */
-  shallow: WX + 700,
-  /** The main drain (the after: it opens, and down it everything goes). */
-  drain: WX + 1700,
+  shallow: WX + 1300,
+  /** The outflow pipe he's flushed out of (in the deck's back wall, over the beach: its mouth). */
+  pipe: { x: WX + 70, y: GY - 150 },
 };
+/** The pool's floor, as runs (the ground: lay()), left to right: [x1, y1, x2, y2]. */
+export const POOL_RUNS: [number, number, number, number][] = [
+  [WX - 300, GY, WP.beach, GY],
+  [WP.beach, GY, WX + 1300, WP.surf + 240],
+  [WX + 1300, WP.surf + 240, WX + 2100, WP.surf + 240],
+  [WX + 2100, WP.surf + 240, WX + 2500, WP.shelf],
+  [WX + 2500, WP.shelf, WP.dropA, WP.shelf],
+  [WP.dropA, WP.shelf, WP.dropB, WP.deep],
+  [WP.dropB, WP.deep, WP.x1, WP.deep],
+];
 /** The pool's floor under x. */
-export const poolFloor = (x: number) => (x <= WP.beach ? WP.beachTop : x >= WP.slopeEnd ? WP.deep : WP.beachTop + ((x - WP.beach) / (WP.slopeEnd - WP.beach)) * (WP.deep - WP.beachTop));
+export const poolFloor = (x: number) => {
+  if (x <= WP.beach) return WP.beachTop;
+  for (const [a, ya, b, yb] of POOL_RUNS) if (x >= a && x <= b) return b === a ? ya : ya + ((x - a) / (b - a)) * (yb - ya);
+  return WP.deep;
+};
+/** Feet of depth at y (the markings, his depth gauge): 15 px a foot (120 FT at the bottom: it's a wave pool). */
+export const feetAt = (y: number) => Math.max(0, Math.round((y - WP.surf) / 15));
 /** The stage's right end (past the pool). */
 export const STAGE_END = WP.x1 + 400;
 
 /** Signs round the pool. */
 export const POOL_SIGNS: SignDef3[] = [
-  { x: WP.x0 + 120, y: WP.beachTop, lines: ['THE WAVE POOL', 'ADULT SWIM ONLY'] },
-  { x: WP.x0 + 380, y: WP.beachTop, lines: ['NO DIVING', 'NO RUNNING', 'NO HUMANS'] },
+  { x: WP.x0 + 190, y: WP.beachTop, lines: ['THE WAVE POOL', 'ADULT SWIM ONLY'] },
+  { x: WP.x0 + 360, y: WP.beachTop, lines: ['NO DIVING', 'NO RUNNING', 'NO HUMANS'] },
 ];
+
+// ---------------------------------------------------------------------------------------------------------------
+// THE DEAD BODY MAZES (the owner's: "you need to swim through some treacherous piles of dead bodies in several 'dead
+// body mazes' to find chlorine tanks and dash into them"). Every guest the aliens drowned, heaped on the bottom. A grid
+// of their own: 40 px cells, row 0 the cells just under the surface, so a maze's bottom row (44 in the deep end, 16 on
+// the shelf) sits on the floor. Corridors two cells (80 px: he's 64 tall) or three; GUPPLAX is too fat to get in.
+//
+//   #  the pile (solid; its top lit where it can be stood on)       .  water
+//   T  a chlorine tank (its pocket's top-left cell: the tank fills 2 x 2 cells of water)
+//   x  a snag (rebar, fish hooks, a broken femur: in the water, it hurts)
+//   h  a dead hand (out of the wall beside it, across the corridor, on a clock: it grabs and holds him)
+//
+// Each one's a timing run (the owner's: "stage 3 is about timed navigation"): the surges shove him back toward the
+// beach the whole time, so the dash into each tank goes in between them; his air runs out down there; the hands are on
+// clocks; and the way out puts him back in open water, where GUPPLAX is waiting.
+
+export interface MazeDef { name: string; c0: number; r0: number; map: string[] }
+export const MAZES: MazeDef[] = [
+  // THE PILE-UP, on the shelf: taught. In at the top, along, down the left, along to the tank: dash right.
+  { name: 'THE PILE-UP', c0: 63, r0: 7, map: [
+    '#####..#######',
+    '#####..#######',
+    '##..........x#',
+    '##h..........#',
+    '##..##########',
+    '##..##########',
+    '##......T....#',
+    '##.x.........#',
+    '##############',
+    '##############',
+  ] },
+  // THE BODY FARM: in from the right, along the top, down the left, back along, the dash DOWN into the tank (the surge
+  // shoving him off the line of it while he lines up).
+  { name: 'THE BODY FARM', c0: 86, r0: 31, map: [
+    '.############.',
+    '##############',
+    '##.......x....',
+    '##h...........',
+    '##..##########',
+    '##..##########',
+    '##..##########',
+    '##..##########',
+    '##.........###',
+    '##...h.....###',
+    '#########..###',
+    '#########T.###',
+    '#########..###',
+    '##############',
+  ] },
+  // THE MASS GRAVE: the tallest. Down a shaft from the top, along, down past a hand, back along, down the left, along
+  // the bottom under another hand to the tank at the far end: dash right, into the surge.
+  { name: 'THE MASS GRAVE', c0: 106, r0: 27, map: [
+    '#######..#######',
+    '#######..#######',
+    '###...........##',
+    '###x..........##',
+    '###########..###',
+    '###########..###',
+    '###########h.###',
+    '##...........###',
+    '##..........x###',
+    '##..############',
+    '##..############',
+    '##..############',
+    '##.......h....##',
+    '##.........T..##',
+    '##x...........##',
+    '################',
+    '################',
+    '################',
+  ] },
+  // THE MEAT LOCKER: low on the deep floor, one long tunnel in from the left (the surges blow straight down it, out),
+  // three hands on it out of step; the tank at its far end.
+  { name: 'THE MEAT LOCKER', c0: 128, r0: 33, map: [
+    '..##########..',
+    '.############.',
+    '##############',
+    '##############',
+    '##############',
+    '##############',
+    '##############',
+    '...h...h..T..#',
+    '..x....h.....#',
+    '##############',
+    '##############',
+    '##############',
+  ] },
+  // THE TOWER OF BODIES: two ways in (low on the left, or down the shaft on the right), along to the middle, the dash UP
+  // a shaft past a hand into the tank at the top.
+  { name: 'THE TOWER OF BODIES', c0: 150, r0: 33, map: [
+    '############..##',
+    '######.T.###..##',
+    '######....##..##',
+    '#######..###..##',
+    '#######..###.h##',
+    '#######h.###..##',
+    '#######..###..##',
+    '..............##',
+    '...x..........##',
+    '################',
+    '################',
+    '################',
+  ] },
+];
+/** The maze grid's cell (col, row) to world. */
+export const mzX = (c: number) => WX + c * CELL;
+export const mzY = (r: number) => WP.surf + r * CELL;
