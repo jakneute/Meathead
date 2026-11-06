@@ -43,6 +43,7 @@ import { SEC as TUN_SEC, CELL as TUN_CELL } from '../endgame/park3/geo';
 import { REFIGHT_LANDS, refightStage, L4_STAGE } from '../endgame/park4/where';
 import { CP as PARK_CP_IDS, CP_AT as PARK_CP_AT, TOWER, GY as PARK_GY } from '../endgame/park1/geo';
 import { KID_HP } from '../endgame/park1/boss';
+import { L2_FROM, CP2 as P2_CP, CP2_AT as P2_CP_AT } from '../endgame/park2/geo';
 import { GYM_STAGE } from '../intro/gym/course';
 import { ADV_STAGE } from '../adventure/index';
 import { SPOOKY_STAGE } from '../spooky/index';
@@ -572,7 +573,7 @@ interface ParkOwn {
   fightState?: string; f?: { mode?: string; hp?: number } | null;
   descent?: unknown; killed?: boolean;
   /** Level 2 (THE LAZY RIVER, endgame/park2): the son's meeting, his fight, after him. */
-  l2?: { meet?: { step?: string }; fightState?: string; f?: { mode?: string } | null; end?: { step?: string } | null; killed?: boolean } | null;
+  l2?: { meet?: { step?: string }; fightState?: string; f?: { mode?: string; bro?: unknown } | null; end?: { step?: string } | null; killed?: boolean } | null;
 }
 const PARK_CP = () => PARK_CP_IDS as Record<string, number>;
 /** Where the climb's music starts: a little short of base camp's checkpoint (the Abyss's splash pool behind him). */
@@ -607,16 +608,25 @@ const parkWants = (s: GameState, lot: boolean): Want => {
   }
   const pk = (s.stage as ParkOwn | null) ?? {};
   const theme = (arr: string): Cand => ({ song: 'land:park1', arrs: [arr, 'plaza'] });
-  // (level 2, past the splashdown: for now (the owner's to score) his brother's song for MEHPHISTO, the meeting and the
-  // fight (its intro, trying: the same, 'main'); the burning river, Spooky Land's hell arrangement)
-  if (pk.killed && pk.l2 && s.player.pos.x + s.player.width / 2 >= 37700) {
-    const l2 = pk.l2, m = l2.f?.mode;
-    if (l2.fightState === 'on' && l2.f && !l2.end) return { cands: [{ song: 'boss:demon', arrs: [m === 'intro' ? 'intro' : 'main', 'main'] }, { song: 'land:spooky', arrs: ['hell', 'main'] }], cutscene: false };
-    if (l2.end && l2.end.step !== 'done') return { cands: [{ song: 'land:spooky', arrs: ['hell', 'main'] }], cutscene: true };
-    const meeting = l2.meet?.step && l2.meet.step !== 'done' && l2.meet.step !== 'wait';
-    if (meeting) return { cands: [{ song: 'boss:demon', arrs: ['intro', 'main'] }, theme('plaza')], cutscene: true };
-    if (l2.killed) return { cands: [theme('plaza')], cutscene: false };
-    return { cands: [{ song: 'land:spooky', arrs: ['hell', 'main'] }, theme('plaza')], cutscene: false };
+  // (level 2, THE LAZY RIVER, past the splashdown: its own song, FLOAT ON (FIRE): calm at the river's head till the son
+  // sets it alight, the burning river, under the rock from CRYSTAL CAVERNS to the grotto, the coast after the fight. The
+  // meeting and the fight, MEHPHISTO's own (its intro, the beat calling his brother: hush); from the ceiling cracking
+  // (his brother on the way down: the fight's f.bro) its heavy metal version, to the fight's end. A retry starts a new
+  // fight with no brother: the son's again.)
+  if (pk.killed && pk.l2 && s.player.pos.x + s.player.width / 2 >= L2_FROM) {
+    const l2 = pk.l2, f = l2.f, m = f?.mode;
+    const river = (arr: string): Cand => ({ song: 'land:park2', arrs: [arr, 'main'] });
+    if (l2.fightState === 'on' && f && !l2.end) {
+      if (f.bro) return { cands: [{ song: 'boss:mehphisto-metal', arrs: ['main'] }, { song: 'boss:mehphisto', arrs: ['main'] }, river('caverns')], cutscene: false };
+      return { cands: [{ song: 'boss:mehphisto', arrs: [m === 'intro' ? 'intro' : m === 'enter' ? 'hush' : 'main', 'main'] }, river('caverns')], cutscene: false };
+    }
+    if (l2.end && l2.end.step !== 'done') return { cands: [river('coast')], cutscene: true };
+    if (l2.killed) return { cands: [river('coast')], cutscene: false };
+    const ms = l2.meet?.step;
+    if (ms === 'wait') return { cands: [river('calm')], cutscene: false };
+    if (ms && ms !== 'done') return { cands: [{ song: 'boss:mehphisto', arrs: ['intro', 'main'] }, river('calm')], cutscene: true };
+    const cx = s.player.pos.x + s.player.width / 2;
+    return { cands: [river(cx >= (P2_CP_AT[P2_CP.bend]?.x ?? Infinity) - 200 ? 'caverns' : 'main')], cutscene: false };
   }
   // (the kid: the fight's on from his intro through his death; the slide down after it)
   if (pk.fightState === 'on' && pk.f) {
@@ -754,7 +764,7 @@ const apply = () => {
   setMix(isTalking(), !test && (paused || (!!state?.player.swimming && (!!LAND_OF_STAGE[stage ?? ''] || stage === TUNNEL_STAGE))), !test && quiet);
   warmLand(stage ? LAND_OF_STAGE[stage] ?? null : null);
   // (the water park's songs, made ahead from the lot on)
-  if ((stage === LOT_STAGE || stage === PARK_STAGE) && !parkWarm) { parkWarm = true; for (const id of ['land:park1', 'seq:wp-tube', 'seq:wp-everest', 'boss:zorzarblax']) if (SONGS[id]) prewarm(SONGS[id]); }
+  if ((stage === LOT_STAGE || stage === PARK_STAGE) && !parkWarm) { parkWarm = true; for (const id of ['land:park1', 'seq:wp-tube', 'seq:wp-everest', 'boss:zorzarblax', 'land:park2', 'boss:mehphisto', 'boss:mehphisto-metal']) if (SONGS[id]) prewarm(SONGS[id]); }
 };
 
 const start = () => {

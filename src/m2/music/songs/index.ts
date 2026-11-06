@@ -28,6 +28,7 @@ import { BOSS_FAIRY_WHEEL, BOSS_BROOMSTICKS, BOSS_PIPER } from './fantasyBosses'
 import { LAND_CARTOON } from './cartoon';
 import { BOSS_PUNDITS, BOSS_STUPID_DAD } from './cartoonBosses';
 import { LAND_PARK1, SEQ_WP_TUBE, SEQ_WP_EVEREST, BOSS_ZORZARBLAX } from './waterpark';
+import { LAND_PARK2, BOSS_MEHPHISTO, BOSS_MEHPHISTO_METAL } from './lazyriver';
 import {
   GAME_HACK, GAME_HACK_GRANTED, GAME_LOCKPICK, GAME_LOCKPICK_OPEN, GAME_MASH_SELECT, GAME_MASH_FIGHT, GAME_MASH_WIN, GAME_MASH_LOSE,
   GAME_PLUNGE, GAME_PLUNGE_WIN, GAME_GALLERY, GAME_GALLERY_END, GAME_BUMPER, GAME_BUMPER_WIN, GAME_BUMPER_LOSE,
@@ -113,6 +114,11 @@ export const SONGS: Record<string, Song> = {
   'seq:wp-tube': SEQ_WP_TUBE,
   'seq:wp-everest': SEQ_WP_EVEREST,
   'boss:zorzarblax': BOSS_ZORZARBLAX,
+  // (level 2, THE LAZY RIVER: the river by where he is, MEHPHISTO's fight, and its metal version from his brother's
+  // arrival on: cues.ts parkWants)
+  'land:park2': LAND_PARK2,
+  'boss:mehphisto': BOSS_MEHPHISTO,
+  'boss:mehphisto-metal': BOSS_MEHPHISTO_METAL,
   // (the minigames: a song each while it's on, a sting on a win or a loss: games.ts, cues.ts gameCand)
   'game:hack': GAME_HACK,
   'game:hack-granted': GAME_HACK_GRANTED,
