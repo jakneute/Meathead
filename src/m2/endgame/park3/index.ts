@@ -44,6 +44,7 @@ import { makeCast3, drawBarks3, updateShots3, drawShots3, clearShots3 } from './
 import { type Pool, newPool, updatePool, poolOn, drawPoolBackdrop, drawPoolBack, drawPoolFront, drawPoolHud, poolLights, poolWater, poolCamY, poolDeath, POOL_AIR } from './pool';
 import * as L from './lines';
 import { contactSheet } from './sheet';
+import { newTeases, updateTeases, drawTeases, teaseLights, type Teases } from './tease';
 import { setCheat } from '../../cheats';
 
 export { TUNNEL_STAGE };
@@ -53,6 +54,8 @@ const WIRES: StuntWire[] = WIRES3.map(w => ({ from: w.from, to: w.to, rigY: w.ri
 
 export interface Tunnels {
   grab: Grab; hz: Hazards; jn: Junctions; gw: Gangways; pool: Pool;
+  /** GUPPLAX glimpsed in the tanks on the way (tease.ts). */
+  tz: Teases;
   said: Record<string, boolean>; lineAt: Record<string, number>;
   /** Where his feet last stood (or held on, or swam): the camera's eased after it. */
   standY: number; camY: number;
@@ -147,7 +150,7 @@ export const tunnelLayout: StageLayout = {
     });
     for (const [x, y, type] of PICKUPS3) state.pickups.push({ id: `wp3-${x}-${y}`, pos: { x: x - 10, y: y - 24 }, vel: { x: 0, y: 0 }, width: 20, height: 20, type, life: 1e9 });
     const t: Tunnels = {
-      grab: createGrab(state), hz: newHazards(), jn: newJunctions(state, state.checkpoint), gw: makeGangways(state), pool: newPool(state, state.checkpoint),
+      grab: createGrab(state), hz: newHazards(), jn: newJunctions(state, state.checkpoint), gw: makeGangways(state), pool: newPool(state, state.checkpoint), tz: newTeases(state.checkpoint),
       said: {}, lineAt: {}, standY: at0.y, camY: at0.y - 430, cause: null,
     };
     state.blocks.push(...junctionBlocks(t.jn));
@@ -185,6 +188,7 @@ export const tunnelLayout: StageLayout = {
     updateGangways(ctx, t.gw);
     updateJunctions(ctx, t.jn);
     updateHazards(ctx, t.hz, src => { t.cause = src; });
+    updateTeases(state, t.tz, (k, lines) => { if (isTalking()) return false; mhSay3(state, t, k, lines); return true; });
     // ---- the outflow's intake (the boss's door: walked, jumped or dropped into): the flush (pool.ts)
     if (p.health > 0 && !p.inCutscene && cx > PUMP_ROOM.outA + 4 && cx < PUMP_ROOM.outB - 4 && p.pos.y + p.height > PUMP_ROOM.floor - 4) {
       if (state.checkpoint < CP3.pump) { state.checkpoint = CP3.pump; savePoint(state); }
@@ -247,7 +251,7 @@ export const tunnelLayout: StageLayout = {
   lighting: (state) => {
     const t = tunOf(state);
     if (t && state.camera.x + CANVAS_WIDTH > WP.x0 - 100) return poolLights(state, t.pool);
-    return { dark: 0.42, shade: [6, 20, 14], rim: 0.5, lights: tunnelLights(state) };
+    return { dark: 0.42, shade: [6, 20, 14], rim: 0.5, lights: [...tunnelLights(state), ...teaseLights(state)] };
   },
   drawBack: (c, state) => {
     const t = tunOf(state);
@@ -255,6 +259,7 @@ export const tunnelLayout: StageLayout = {
     if (state.camera.x + CANVAS_WIDTH > WP.x0 - 100) { drawPoolBack(c, state, t.pool); return; }
     drawTunnels(c, state);
     drawProps(c, state);
+    drawTeases(c, state, t.tz);
     drawSigns(c, state);
     drawLadders(c, state, LADDERS);
     drawGangways(c, state, t.gw);

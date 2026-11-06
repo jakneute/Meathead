@@ -80511,6 +80511,11 @@
  },
  {
   "voice": "meathead",
+  "text": "A FISH WEARING A COOKING POT. STARING AT ME.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "meathead",
   "text": "A FISH! A FLYING FISH!",
   "from": "CARTOON"
  },
@@ -89976,6 +89981,21 @@
  },
  {
   "voice": "meathead",
+  "text": "FOUR EYES. ALL OF THEM ON ME.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "meathead",
+  "text": "FOUR EYES. ALL OF THEM ON MY JUNK.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "meathead",
+  "text": "FOUR EYES. ALL OF THEM ON MY PANTS.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "meathead",
   "text": "FOUR FIRES. THAT KID RULES.",
   "from": "SPOOKY"
  },
@@ -92981,6 +93001,11 @@
  },
  {
   "voice": "meathead",
+  "text": "HE SAW EVERYTHING. HE'S GOT FOUR EYES FOR IT.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "meathead",
   "text": "HE SAW IT. THEN HE WAS SMOKE.",
   "from": "CARTOON"
  },
@@ -93148,6 +93173,11 @@
   "voice": "meathead",
   "text": "HE SMELLED BETTER COOKED. ME, NOT SO MUCH.",
   "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
+  "text": "HE SMELLED ME. THROUGH THE GLASS.",
+  "from": "ENDGAME"
  },
  {
   "voice": "meathead",
@@ -112281,6 +112311,16 @@
  },
  {
   "voice": "meathead",
+  "text": "SOMETHING HIT THE GLASS. EVERYTHING ON ME RAN AND HID.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "meathead",
+  "text": "SOMETHING HIT THE GLASS. I HIT MY PANTS.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "meathead",
   "text": "SOMETHING IN THERE IS STILL HIDING FROM ME. I HATE THAT.",
   "from": "HUB"
  },
@@ -112318,6 +112358,11 @@
   "voice": "meathead",
   "text": "SOMETHING'S GUTS!",
   "from": "FOR_AN_ANIMAL"
+ },
+ {
+  "voice": "meathead",
+  "text": "SOMETHING'S IN THE TANK. SOMETHING BIG.",
+  "from": "ENDGAME"
  },
  {
   "voice": "meathead",
@@ -114216,8 +114261,23 @@
  },
  {
   "voice": "meathead",
+  "text": "THAT GLASS CRACKED. AND I'VE GOT NOTHING ON.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "meathead",
+  "text": "THAT GLASS CRACKED. SO DID I. BACK THERE.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "meathead",
   "text": "THAT GLASS LOOKS CHEAP.",
   "from": "SPACE"
+ },
+ {
+  "voice": "meathead",
+  "text": "THAT GLASS WASN'T BUILT FOR THAT.",
+  "from": "ENDGAME"
  },
  {
   "voice": "meathead",

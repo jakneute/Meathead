@@ -59,6 +59,17 @@ export const MH_PUMP = bp(
   ['WAVE POOL OUTFLOW. AT LEAST IT RINSES.', 'BIG REFILL. BIG STINK. BIG FIGHT.'],
   ['WAVE POOL OUTFLOW. GOING DOWN NAKED.', 'BIG REFILL. NOW INTO THE DRAIN. NAKED.'],
 );
+/** GUPPLAX in the tanks on the way (tease.ts): the glass he thumps and cracks; the close look in the pump room. */
+export const MH_TEASE_THUMP = bp(
+  ["SOMETHING'S IN THE TANK. SOMETHING BIG.", "THAT GLASS WASN'T BUILT FOR THAT."],
+  ['SOMETHING HIT THE GLASS. I HIT MY PANTS.', 'THAT GLASS CRACKED. SO DID I. BACK THERE.'],
+  ['SOMETHING HIT THE GLASS. EVERYTHING ON ME RAN AND HID.', "THAT GLASS CRACKED. AND I'VE GOT NOTHING ON."],
+);
+export const MH_TEASE_LOOK = bp(
+  ['FOUR EYES. ALL OF THEM ON ME.', 'A FISH WEARING A COOKING POT. STARING AT ME.'],
+  ['FOUR EYES. ALL OF THEM ON MY PANTS.', 'HE SMELLED ME. THROUGH THE GLASS.'],
+  ['FOUR EYES. ALL OF THEM ON MY JUNK.', "HE SAW EVERYTHING. HE'S GOT FOUR EYES FOR IT."],
+);
 export const MH_AIR_LOW = ['AIR! I NEED AIR!', "MY LUNGS! THEY'RE EMPTY!", 'UP! GET UP!'];
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -280,7 +291,7 @@ export const HURT3: Record<string, { hurt: string[]; death: string[] }> = {
 
 const all = (...pools: (string | string[] | ByPants)[]) => pools.flatMap(p => (typeof p === 'string' ? [p] : Array.isArray(p) ? p : Object.values(p).flat()));
 export const PARK3_VOICE_LINES: Record<string, string[]> = {
-  meathead: all(MH_DOOR3, MH_IN, MH_PISS, MH_CHEM, MH_GANG, MH_SHAFT, MH_SWIM, MH_VALVE, MH_PUSHED, MH_PUMP, MH_AIR_LOW, MH_FLUSHED, MH_GUP, MH_GUP_DEAD, MH_DRAIN, GRAB_GUP, MH_DEEP, MH_ARMOR, MH_MAZE, MH_TANK_SEE, MH_TANK, MH_ALL, MH_SURGE, ...Object.values(HURT3).map(h => h.hurt)),
+  meathead: all(MH_DOOR3, MH_IN, MH_PISS, MH_CHEM, MH_GANG, MH_SHAFT, MH_SWIM, MH_VALVE, MH_PUSHED, MH_PUMP, MH_TEASE_THUMP, MH_TEASE_LOOK, MH_AIR_LOW, MH_FLUSHED, MH_GUP, MH_GUP_DEAD, MH_DRAIN, GRAB_GUP, MH_DEEP, MH_ARMOR, MH_MAZE, MH_TANK_SEE, MH_TANK, MH_ALL, MH_SURGE, ...Object.values(HURT3).map(h => h.hurt)),
   death: all(...Object.values(HURT3).map(h => h.death)),
   [GUP_VOICE]: all(GUP_INTRO, GUP_INTRO2, GUP_RETRY, GUP_TAUNT, GUP_PATTER, GUP_WAVE, GUP_HURT, GUP_LOW, GUP_DEATH, GUP_ARMOR, GUP_CHLORINE1, GUP_CHLORINE, GUP_SNEEZE, GUP_FLANK, GUP_BONK, GUP_MAZE, GUP_TANKWARN, GUP_ALL, GUP_SLOW, GUP_DEATH_ALL),
   [STAFF_VOICE.m]: all(STAFF_BARK), [STAFF_VOICE.f]: all(STAFF_BARK),

@@ -1,10 +1,12 @@
 // (dev only) Contact sheets of level 3's new figures, for checking every pose: window.__wp3Sheet(name) gives a PNG data
 // URL. 'gup' (GUPPLAX, every pose), 'gupArmor' (his armor and hives,
 // 0 to 5 tanks burst, on six poses), 'gross' (his gross-up, shut and open), 'janitor' / 'tech' (six looks, every pose),
-// 'critters' (the grubs and the eels, every pose).
+// 'critters' (the grubs and the eels, every pose), 'tease' (the tanks on the way, each glimpse across its frames),
+// 'teaseEye' (the eye close up: lids by look).
 
 import { paintGup, GUP_POSES } from './gupArt';
 import { drawGupGross, drawGupGrossBack } from './gupGross';
+import { TANKS, drawTankAt, paintEye } from './tease';
 import { paintStaffPose, staffLook, STAFF_POSES, drawGrub, GRUB_POSES, drawEel, EEL_POSES, type StaffKind } from './kindArt';
 
 const sheet = (cols: number, rows: number, cw: number, ch: number, scale: number, cell: (g: CanvasRenderingContext2D, i: number) => string | void) => {
@@ -49,5 +51,16 @@ export const contactSheet = (what: string): string => {
       if (k < EEL_POSES.length) { drawEel(g, EEL_POSES[k], 10); return `eel ${EEL_POSES[k]}`; }
     });
   }
+  if (what === 'tease') {
+    const at: number[][] = [[20, 60, 90, 130, 190, 215], [30, 100, 165, 230, 290, 320], [50, 100, 140, 160, 185, 215], [50, 100, 170, 214, 230, 270], [40, 80, 120, 180, 230, 260]];
+    return sheet(6, 5, 420, 270, 1, (g, i) => {
+      const tk = TANKS[Math.floor(i / 6)], t = at[Math.floor(i / 6)][i % 6], side = i % 2 ? -1 : 1;
+      g.fillStyle = '#304038'; g.fillRect(0, 0, 420, 270);
+      g.translate(Math.round(210 - tk.w / 2 - tk.x), Math.round(120 - tk.h / 2 - tk.y));
+      drawTankAt(g, tk, t, side, tk.id === 'scrape' && t >= 222, t);
+      return `${tk.id} t${t} ${side > 0 ? 'R' : 'L'}`;
+    });
+  }
+  if (what === 'teaseEye') return sheet(4, 3, 70, 130, 3, (g, i) => { g.translate(35, 40); paintEye(g, i % 4, Math.floor(i / 4) - 1); });
   return '';
 };
