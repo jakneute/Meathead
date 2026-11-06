@@ -59,6 +59,19 @@ const stripe = (g: Ctx, pts: [number, number][], ws: number[]) => {
 /** The bowl's inside at depth k (0 the rim, 1 the hole): its ellipse (the rim's, closing in on the hole). */
 const ring = (F: Funnel, k: number) => ({ y: F.rimY + (F.holeY - F.rimY) * k, rx: F.rx + (HOLE_RX - F.rx) * k, ry: F.ry + (HOLE_RY - F.ry) * k });
 
+/** The tower the chute's end and the rim's left end stand on: concrete, banded on down into the drop's dark (the drop's
+ *  black ended in a cut at the pool's wall there). Its top's under the chute: nothing to stand on. */
+const PIER = 34, PIER_DOWN = 640;
+const paintPier = (g: Ctx, F: Funnel) => {
+  const x = F.cx - F.rx - PIER + 4, top = F.rimY + 6, C = ramp5('#4A5568'), bands = 8;
+  R(g, x - 2, top, PIER + 4, PIER_DOWN, INK);
+  for (let b = 0; b < bands; b++) {
+    const y = top + (b * PIER_DOWN) / bands, h = PIER_DOWN / bands + 1, k = b / (bands - 1), d = (col: string) => mix(col, '#03050C', 0.15 + k * 0.85);
+    R(g, x, y, PIER, h, d(C[1])); R(g, x, y, 8, h, d(C[3])); R(g, x, y, 2, h, d(C[4])); R(g, x + PIER - 8, y, 8, h, d(C[0]));
+    if (b) { const p = checkerFill(g, d(C[1])); if (p) { g.fillStyle = p; g.fillRect(x, Math.round(y) - 2, PIER, 2); } }
+  }
+  for (let y = top + 30; y < top + PIER_DOWN * 0.6; y += 46) R(g, x, y, PIER, 2, mix(C[0], '#03050C', (y - top) / PIER_DOWN));
+};
 const paintBack = (g: Ctx, F: Funnel, pool: Pool) => {
   // (the struts: two behind (darker), two out at the sides, from under the bowl down into the pool; braced)
   for (const [dx, far] of [[-70, true], [70, true], [-150, false], [150, false]] as const) {
@@ -161,6 +174,9 @@ const paintFront = (g: Ctx, F: Funnel) => {
 
 /** Behind him (world): the struts, the bowl's inside, the rim's back half. One stamp. */
 export const drawFunnelBack = (c: Ctx, state: GameState, F: Funnel, pool: Pool) => {
+  // (the pier under the chute's end: a stamp of its own, narrow)
+  const px = F.cx - F.rx - PIER, py = F.rimY + 4;
+  if (visX(state, px - 4, px + PIER + 8) && visY(state, py, py + PIER_DOWN)) stamp(c, 'wp-funnel-pier', px - 4, py, PIER + 10, PIER_DOWN + 4, g => paintPier(g, F));
   const x0 = F.cx - F.rx - 24, y0 = F.rimY - F.ry - 14;
   if (!visX(state, x0, F.cx + F.rx + 24) || !visY(state, y0, pool.bottom)) return;
   stamp(c, 'wp-funnel-back', x0, y0, F.rx * 2 + 48, pool.bottom - y0 + 4, g => paintBack(g, F, pool));
@@ -271,15 +287,17 @@ export const drawFunnelShot = (c: Ctx, k: number, frame: number) => {
   c.save();
   c.imageSmoothingEnabled = false;
   R(c, 0, 0, W, H, '#020617');
-  const s = 1.9 + 1.8 * k * k, th = k * 5.5, cx = W / 2, cy = H / 2 + 10;
+  // (the hole at the screen's middle, the bowl filling it; the camera turning with him, so he's kept out to its left
+  // (the screen's widest way), the bowl spinning round under him as he goes round it, spiraling in)
+  const s = 4 + 1.5 * k, phi = -k * 15, th = Math.PI - phi, cx = W / 2, cy = H / 2;
   c.save(); c.translate(cx, cy); c.rotate(th); c.scale(s, s); c.drawImage(T, -TEX / 2, -TEX / 2); c.restore();
   // (rings sliding in toward the hole: depth, the bowl going down under him)
   c.lineWidth = 2; c.strokeStyle = mix(BOWL[0], INK, 0.3);
   for (let j = 0; j < 3; j++) { const f = (j / 3 + k * 2.2) % 1, r = (TR - 10) * s * (1 - f) + 18 * s * f; if (r > 22 * s) { c.beginPath(); c.arc(cx, cy, r, 0, Math.PI * 2); c.stroke(); } }
   // (him: round and round it (faster than it turns), feet first, spiraling in; a wobble)
-  const rho = (TR - 30) * (1 - 0.72 * k), phi = -k * 15, a = th + phi;
+  const rho = 80 * (1 - 0.7 * k), a = Math.PI + Math.sin(k * 9) * 0.25;
   const px = cx + Math.cos(a) * rho * s, py = cy + Math.sin(a) * rho * s;
-  c.save(); c.translate(Math.round(px), Math.round(py)); c.rotate(a + Math.sin(frame * 0.3) * 0.12); c.scale(s * 0.42, s * 0.42);
+  c.save(); c.translate(Math.round(px), Math.round(py)); c.rotate(a + Math.sin(frame * 0.3) * 0.12); c.scale(s * 0.3, s * 0.3);
   c.drawImage(S, -TOP / 2, -TOP / 2); c.restore();
   // (letterboxed: a cutscene)
   R(c, 0, 0, W, 44, '#000000'); R(c, 0, H - 44, W, 44, '#000000');
