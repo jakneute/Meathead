@@ -17,9 +17,10 @@ import type { GameState } from '../../../m1/game/core/state';
 import type { Light } from '../../../m1/game/render/lighting';
 import { CANVAS_WIDTH as W, CANVAS_HEIGHT as H } from '../../../m1/constants';
 import { stamp } from '../../../m1/game/render/stamp';
-import { mix, hazeBands } from '../../intro/art/kit';
+import { mix, hazeBands, checker } from '../../intro/art/kit';
 import { sign } from '../park1/art';
-import { GY, B, DECKS, HEAD, RIVER, RIVER_Y, SIGNS2, GROTTO, L3, L2_FROM, VINES2, JETS } from './geo';
+import { GY, B, DECKS, DECK_DY, GAPS, HEAD, RIVER_Y, SIGNS2, GROTTO, L3, L2_FROM, VINES2, JETS, deckY, waterY } from './geo';
+import { zoneAt, drawZoneMid, drawZoneBank, drawPergolaPost, DECK_STYLE, type DeckStyle } from './zones';
 import { flame, fireRow, FIRE } from './fire';
 import { L2 } from '../park1/geo';
 
@@ -37,6 +38,7 @@ const dim = (col: string, k = 0.5) => mix(col, '#0A0818', k);
 export const drawBackdrop2 = (c: Ctx, state: GameState) => {
   const f = state.frame, cy = state.camera.y, horizon = Math.round(GY - 120 - cy);
   hazeBands(c, 0, horizon - 120, W, 160, '#B91C1C', 0, 0.28, 6);
+  drawZoneMid(c, state, L2_FROM - 200);
   // (the smoke: big dark banks drifting slowly left, parallax a little)
   for (let i = 0; i < 7; i++) {
     const x = ((i * 190 - state.camera.x * 0.25 - f * 0.15) % (W + 300) + W + 300) % (W + 300) - 150, y = horizon - 140 - (i % 3) * 60;
@@ -48,77 +50,66 @@ export const drawBackdrop2 = (c: Ctx, state: GameState) => {
 };
 
 // ---------------------------------------------------------------------------------------------------------------
-// The far bank (world, dimmed): fake jungle rockwork along the river's far side, palms on it, burning
-
-const FAR_TILE = 480;
-const paintFarBank = (g: Ctx, k: number) => {
-  // (the rockwork: humps of fiberglass rock in steps, dimmed; the waterline's glow)
-  const rk = ['#2A2026', '#3A2C30', '#4A383A', '#5A4644'].map(c => dim(c, 0.35));
-  R(g, 0, GY - 70, FAR_TILE, 70, rk[0]);
-  for (let i = 0; i < 6; i++) {
-    const x = i * 80 + hash(k * 7 + i) * 30, w = 70 + hash(k + i * 3) * 50, h = 40 + hash(k * 3 + i) * 60;
-    g.fillStyle = rk[1]; g.beginPath(); g.ellipse(x + w / 2, GY - 40, w / 2, h, 0, Math.PI, 0); g.fill();
-    g.fillStyle = rk[2]; g.beginPath(); g.ellipse(x + w / 2 - 8, GY - 44, w / 3, h * 0.7, 0, Math.PI, 0); g.fill();
-    R(g, x + w * 0.3, GY - 40 - h * 0.8, w * 0.2, 2, rk[3]);
-  }
-  // (palms: two or three, leaning, their trunks ringed; the crowns are the live fire's (drawn over))
-  for (let i = 0; i < 3; i++) {
-    const x = 60 + i * 160 + hash(k * 11 + i) * 60, h = 200 + hash(k + i) * 90, lean = (hash(k * 5 + i) - 0.5) * 60;
-    g.strokeStyle = dim('#2A1A10', 0.3); g.lineWidth = 9; g.beginPath(); g.moveTo(x, GY - 40); g.quadraticCurveTo(x + lean * 0.3, GY - 40 - h * 0.6, x + lean, GY - 40 - h); g.stroke();
-    g.strokeStyle = dim('#4A3020', 0.3); g.lineWidth = 5; g.stroke();
-    // (the burnt fronds: black ribs)
-    for (let a = 0; a < 6; a++) { const ang = Math.PI + 0.3 + a * 0.5; g.strokeStyle = '#120A08'; g.lineWidth = 2; g.beginPath(); g.moveTo(x + lean, GY - 40 - h); g.quadraticCurveTo(x + lean + Math.cos(ang) * 30, GY - 40 - h + Math.sin(ang) * 20 - 10, x + lean + Math.cos(ang) * 50, GY - 40 - h + Math.sin(ang) * 30 + 14); g.stroke(); }
-  }
-};
-const palmTops = (k: number) => [0, 1, 2].map(i => ({ x: 60 + i * 160 + hash(k * 11 + i) * 60 + (hash(k * 5 + i) - 0.5) * 60, y: GY - 40 - (200 + hash(k + i) * 90) }));
-
-const drawFarBank = (c: Ctx, state: GameState) => {
-  const f = state.frame, x0 = Math.max(HEAD - 600, Math.floor((state.camera.x - 100) / FAR_TILE) * FAR_TILE), x1 = Math.min(L3.wall, state.camera.x + W + 100);
-  for (let tx = x0 - (x0 % FAR_TILE); tx < x1; tx += FAR_TILE) {
-    const k = Math.floor(tx / FAR_TILE);
-    c.save(); c.translate(tx, -70); stamp(c, `wp2-farbank-${k % 8}`, 0, GY - 420, FAR_TILE, 420, g => paintFarBank(g, k % 8)); c.restore();
-    // (their crowns burning: live, stamped flames)
-    for (const p of palmTops(k % 8)) fireRow(c, tx + p.x - 26, tx + p.x + 26, p.y - 70 + 10, 30, f, 16, k * 3);
-  }
-};
-
-// ---------------------------------------------------------------------------------------------------------------
-// The decks: a boardwalk of planks on piles, its top edge lit (stood on); the channel's concrete under it
+// The decks: what each zone's made of (zones.ts DECK_STYLE: pool-deck tile, temple slabs, boardwalk planks, bamboo,
+// ship's planking, sandstone, rock), at its own height (geo.ts DECK_DY); its top edge lit always (stood on); the
+// channel's wall under it down out of sight
 
 const DECK_T = 64;
-const paintDeck = (g: Ctx, k: number) => {
-  // (the top: the lit lip, the planks' ends in steps, a nail or two)
-  R(g, 0, GY, DECK_T, 3, '#F0D8A8'); R(g, 0, GY + 3, DECK_T, 2, '#C8A070');
-  for (let x = 0; x < DECK_T; x += 16) { R(g, x, GY + 5, 15, 12, ['#8A6238', '#7A5430', '#946A3E', '#82582E'][(x / 16 + k) % 4]); R(g, x, GY + 5, 15, 1, '#A88050'); R(g, x + 15, GY + 5, 1, 12, '#3A2412'); R(g, x + 3, GY + 8, 1, 1, '#2A1A0A'); }
-  // (the stringer under it, dark; the piles going down to the channel's wall)
-  R(g, 0, GY + 17, DECK_T, 6, '#3A2412'); R(g, 0, GY + 17, DECK_T, 1, '#5A3A1C');
-  R(g, 0, GY + 23, DECK_T, 60, '#2A2420'); for (let y = GY + 30; y < GY + 83; y += 12) R(g, 0, y, DECK_T, 1, '#3A322C');
-  if (k % 2 === 0) { R(g, 20, GY + 23, 10, 60, '#3A2412'); R(g, 20, GY + 23, 2, 60, '#5A3A1C'); }
+const paintDeck = (g: Ctx, k: number, st: DeckStyle) => {
+  const P = st.planks;
+  R(g, 0, GY, DECK_T, 3, st.lip); R(g, 0, GY + 3, DECK_T, 2, st.lip2);
+  if (st.kind === 'planks') {
+    for (let x = 0; x < DECK_T; x += 16) { const col = P[(x / 16 + k) % 4]; R(g, x, GY + 5, 15, 12, col); R(g, x, GY + 5, 15, 1, mix(col, '#FFFFFF', 0.2)); R(g, x + 15, GY + 5, 1, 12, st.seam); R(g, x + 3, GY + 8, 1, 1, st.seam); R(g, x + 6, GY + 12, 6, 1, mix(P[0], INK, 0.3)); }
+  } else if (st.kind === 'bamboo') {
+    for (let y = GY + 5, n = 0; y < GY + 17; y += 4, n++) { const col = P[(n + k) % 4]; R(g, 0, y, DECK_T, 4, col); R(g, 0, y, DECK_T, 1, mix(col, '#FFFFFF', 0.3)); R(g, 0, y + 3, DECK_T, 1, st.seam); for (let x = (n * 13 + k * 7) % 22; x < DECK_T; x += 22) R(g, x, y, 2, 4, st.seam); }
+  } else {
+    const bw = st.kind === 'tile' ? 16 : st.kind === 'rock' ? 21 : 32;
+    for (let x = -(k % 2) * (bw / 2); x < DECK_T; x += bw) { const col = P[Math.floor(hash(x + k * 17) * 4)]; R(g, x, GY + 5, bw - 1, 12, col); R(g, x, GY + 5, bw - 1, 1, mix(col, '#FFFFFF', 0.25)); R(g, x + bw - 1, GY + 5, 1, 12, st.seam); }
+    if (st.kind === 'rock') for (let x = 4; x < DECK_T; x += 11) R(g, x, GY + 9 + (x % 3) * 2, 3, 2, mix(P[0], INK, 0.3));
+    if (st.kind === 'sand') checker(g, 0, GY + 13, DECK_T, 4, mix(P[0], INK, 0.15));
+  }
+  // (the stringer or the coping's shadow under it; the wall going down to the channel)
+  R(g, 0, GY + 17, DECK_T, 6, st.seam); R(g, 0, GY + 17, DECK_T, 1, mix(st.seam, '#FFFFFF', 0.15));
+  R(g, 0, GY + 23, DECK_T, 61, st.under); for (let y = GY + 30; y < GY + 84; y += 12) R(g, 0, y, DECK_T, 1, mix(st.under, '#FFFFFF', 0.08));
+  checker(g, 0, GY + 23, DECK_T, 4, st.seam);
+  if (st.post && k % 2 === 0) { R(g, 20, GY + 23, 10, 61, st.post); R(g, 20, GY + 23, 2, 61, mix(st.post, '#FFFFFF', 0.2)); }
 };
 const drawDecks = (c: Ctx, state: GameState) => {
-  const bot = state.camera.y + H + 40;
-  for (const [a, b] of DECKS) {
-    if (!vis(state, a, b, 20)) continue;
+  DECKS.forEach(([a, b], i) => {
+    if (!vis(state, a, b, 20)) return;
+    const dy = DECK_DY[i] ?? 0, top = GY + dy, bot = state.camera.y + H + 40;
     const x0 = Math.max(a, state.camera.x - 40), x1 = Math.min(b, state.camera.x + W + 40);
-    c.save(); c.beginPath(); c.rect(x0, GY, x1 - x0, bot - GY); c.clip();
-    for (let tx = Math.floor(x0 / DECK_T) * DECK_T; tx < x1; tx += DECK_T) { const k = Math.floor(hash(tx / DECK_T + 0.5) * 4); c.save(); c.translate(tx, 0); stamp(c, `wp2-deck-${k}`, 0, GY, DECK_T, 84, g => paintDeck(g, k)); c.restore(); }
-    if (bot > GY + 84) R(c, x0, GY + 84, x1 - x0, bot - GY - 84, '#1A1410');
+    c.save(); c.beginPath(); c.rect(x0, top, x1 - x0, bot - top); c.clip();
+    for (let tx = Math.floor(x0 / DECK_T) * DECK_T; tx < x1; tx += DECK_T) {
+      const k = Math.floor(hash(tx / DECK_T + 0.5) * 4), z = zoneAt(tx + DECK_T / 2);
+      c.save(); c.translate(tx, dy); stamp(c, `wp2-deck-${z}-${k}`, 0, GY, DECK_T, 84, g => paintDeck(g, k, DECK_STYLE[z])); c.restore();
+    }
+    if (bot > top + 84) R(c, x0, top + 84, x1 - x0, bot - top - 84, DECK_STYLE[zoneAt((a + b) / 2)].under);
     c.restore();
-    // (its ends: the boardwalk's cut end, lit at the corner; charred where the fire's got at it)
-    for (const e of [a, b]) if (e > x0 - 2 && e < x1 + 2) { const s = e === a ? 0 : -6; R(c, e + s, GY, 6, 3, '#FFF0C8'); R(c, e + s, GY + 3, 6, 30, '#2A1A10'); R(c, e + s, GY + 12, 6, 6, '#120A06'); }
+    // (its ends: the cut end, lit at the corner; charred where the fire's got at it)
+    for (const e of [a, b]) if (e > x0 - 2 && e < x1 + 2) { const s2 = e === a ? 0 : -6, st = DECK_STYLE[zoneAt(e + (e === a ? 4 : -4))]; R(c, e + s2, top, 6, 3, '#FFF0C8'); R(c, e + s2, top + 3, 6, 30, st.seam); R(c, e + s2, top + 12, 6, 6, INK); }
+  });
+};
+
+/** Where the river steps down (geo.ts: a gap's water lower than the last's), it pours out of a culvert in the deck's
+ *  wall between them: a burning cascade, the splash at its foot (over the lower gap's left end: the river's own). */
+const drawCascades = (c: Ctx, state: GameState) => {
+  const f = state.frame;
+  for (let i = 1; i < GAPS.length; i++) {
+    const g0 = GAPS[i - 1], g1 = GAPS[i], drop = g1.water - g0.water;
+    if (drop <= 0 || !vis(state, g1.a - 40, g1.a + 60)) continue;
+    const x = g1.a, y0 = RIVER_Y + g0.water - 6, y1 = RIVER_Y + g1.water;
+    // (the culvert's mouth in the wall: a concrete lip, the dark pipe)
+    R(c, x - 2, y0 - 14, 22, 20, INK); R(c, x, y0 - 12, 18, 16, '#14100E'); R(c, x - 2, y0 - 16, 24, 4, '#6A5E52'); R(c, x - 2, y0 - 16, 24, 1, '#9A8E80');
+    // (the sheet of burning oil pouring out and down, in bands, flames up it, the splash)
+    for (let y = y0; y < y1; y += 6) { const k = (y - y0) / Math.max(1, y1 - y0), w = 14 + k * 8; R(c, x + 2, y, w, 6, ((y + f * 2) >> 3) % 2 ? FIRE[2] : FIRE[1]); R(c, x + 2, y, 3, 6, FIRE[3]); }
+    for (let y = y0 + 8; y < y1 - 6; y += 20) flame(c, x + 12, y + 14, 10, 16, f, i * 3 + y);
+    fireRow(c, x - 4, x + 40, y1 + 2, 30, f, 12, i * 11);
   }
 };
 
-// ---------------------------------------------------------------------------------------------------------------
-// The pergola: posts back in the river (dimmed) under each vine's beam, its crossbeams up off the top of the screen
-
-const drawPergola = (c: Ctx, state: GameState) => {
-  for (const v of VINES2) {
-    if (!vis(state, v.x - 70, v.x + 70)) continue;
-    for (const dx of [-50, 50]) { R(c, v.x + dx - 4, v.y - 200, 9, RIVER_Y - v.y + 200, dim('#2A1A10', 0.55)); R(c, v.x + dx - 4, v.y - 200, 2, RIVER_Y - v.y + 200, dim('#4A3020', 0.55)); }
-    R(c, v.x - 60, v.y - 26, 120, 8, dim('#2A1A10', 0.5));
-  }
-};
+/** The pergola: posts back in the river (dimmed) under each vine's beam, their crossbeams; the zone's own (zones.ts). */
+const drawPergola = (c: Ctx, state: GameState) => { for (const v of VINES2) drawPergolaPost(c, state, v.x, v.y); };
 
 // ---------------------------------------------------------------------------------------------------------------
 // The head: the tube rental hut (back, dimmed), its stacks of tubes, the dock at the end where the son was
@@ -215,12 +206,13 @@ export interface Draw2 { door: number; backOpen: number; inGrotto: boolean; bean
 /** World space, behind everything that moves. */
 export const drawBack2 = (c: Ctx, state: GameState, d: Draw2, river: () => void, mid: () => void) => {
   if (state.camera.x + W < L2_FROM - 200) return;
-  drawFarBank(c, state);
+  drawZoneBank(c, state, HEAD - 960);
   drawPergola(c, state);
   river();
   drawHead(c, state);
   drawDecks(c, state);
-  for (const [x, a, b2] of SIGNS2) if (vis(state, x - 120, x + 120)) sign(c, x, GY, [a, b2], x === SIGNS2[SIGNS2.length - 1][0] ? '#4A1D5A' : '#7C2D12', '#FEF3C7', `wp2-${x}`);
+  drawCascades(c, state);
+  for (const [x, a, b2] of SIGNS2) if (vis(state, x - 120, x + 120)) sign(c, x, deckY(x), [a, b2], x === SIGNS2[SIGNS2.length - 1][0] ? '#4A1D5A' : '#7C2D12', '#FEF3C7', `wp2-${x}`);
   mid();
   // (the grotto: its outside, its inside, the door, the back wall, the beanbag)
   if (vis(state, GROTTO.door - 220, GROTTO.R + 80)) {
@@ -279,11 +271,11 @@ const paintMaint = (g: Ctx) => {
 /** The lights: the fire's along the river (warm, low, flickering), the grotto's lamp. */
 export const lamps2 = (state: GameState): Light[] => {
   const out: Light[] = [], f = state.frame;
-  for (const [a, b] of RIVER) {
+  for (const { a, b, water } of GAPS) {
     if (!vis(state, a, b, 200)) continue;
-    for (let x = Math.max(a, Math.floor((state.camera.x - 200) / 260) * 260); x < Math.min(b, state.camera.x + W + 200); x += 260) out.push({ x: x + 130, y: RIVER_Y - 30, r: 260, a: 0.34 + 0.06 * Math.sin(f * 0.13 + x), color: '#F97316' } as Light);
+    for (let x = Math.max(a, Math.floor((state.camera.x - 200) / 260) * 260); x < Math.min(b, state.camera.x + W + 200); x += 260) out.push({ x: x + 130, y: RIVER_Y + water - 30, r: 260, a: 0.34 + 0.06 * Math.sin(f * 0.13 + x), color: '#F97316' } as Light);
   }
-  for (const [x] of JETS) if (vis(state, x - 100, x + 100)) out.push({ x, y: RIVER_Y - 120, r: 220, a: 0.2, color: '#FDE047' } as Light);
+  for (const [x] of JETS) if (vis(state, x - 100, x + 100)) out.push({ x, y: waterY(x) - 120, r: 220, a: 0.2, color: '#FDE047' } as Light);
   if (vis(state, GROTTO.L, GROTTO.R)) out.push({ x: GROTTO.R - 218, y: GY - 70, r: 300, a: 0.4, color: '#C084FC' } as Light);
   return out;
 };

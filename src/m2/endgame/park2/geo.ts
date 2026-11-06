@@ -55,16 +55,36 @@ export const DECKS: [number, number][] = [
   // maintenance tunnel's door (level 3's stub))
   [X(28000), X(29870)], [X(31400), X(32300)],
 ];
+/** How far each deck stands below GY (the owner, 2026-11-05: "throw in a bit more verticality in the lazy river level.
+ *  Still flatter than other levels but diversify it, especially during the log parts"): raised walkways in the ruins
+ *  and the canopy, the river stepping down through GATOR BAYOU's log jam (each log run a step lower, a burning cascade
+ *  pouring out of a culvert at each step), back up to the swim-up bar, a raised quay in the cove, a step down into the
+ *  oasis. Negative: higher. The meeting, the grotto and level 3's landing stay at GY. */
+export const DECK_DY: number[] = [0, -40, 0, 0, -50, 0, 60, 120, 60, 60, 0, 0, -40, 40, 0, 0, 0];
 /** The river's head: level 1's ground ends here (the dock's end), and the river starts. */
 export const HEAD = X(1500);
-/** The river: every gap between the decks (from the head on). */
-export const RIVER: [number, number][] = (() => {
-  const out: [number, number][] = [];
-  let a = HEAD;
-  for (const [x1, x2] of DECKS) { if (x1 > a) out.push([a, x1]); a = x2; }
+/** The river: every gap between the decks (from the head on), with the decks either side's heights (dy) and its own
+ *  water's (the lower deck's: the water's always under both). */
+export interface Gap { a: number; b: number; dyL: number; dyR: number; water: number }
+export const GAPS: Gap[] = (() => {
+  const out: Gap[] = [];
+  let a = HEAD, dyL = 0;
+  DECKS.forEach(([x1, x2], i) => { const dyR = DECK_DY[i] ?? 0; if (x1 > a) out.push({ a, b: x1, dyL, dyR, water: Math.max(dyL, dyR) }); a = x2; dyL = dyR; });
   return out;
 })();
+export const RIVER: [number, number][] = GAPS.map(g => [g.a, g.b]);
 export const inRiver = (x: number) => RIVER.some(([a, b]) => x > a && x < b);
+export const gapAt = (x: number) => GAPS.find(g => x > g.a && x < g.b) ?? null;
+/** The deck's height (dy) at x: on a deck its own; over the river, the higher of the two either side (for what's hung
+ *  over it); short of the river (level 1's ground) and past it, 0. */
+export const floorDy = (x: number) => { const i = DECKS.findIndex(([a, b]) => x >= a && x <= b); if (i >= 0) return DECK_DY[i] ?? 0; const g = gapAt(x); return g ? Math.min(g.dyL, g.dyR) : 0; };
+/** The deck's top at x (GY on the flat). */
+export const deckY = (x: number) => GY + floorDy(x);
+/** The water's dy at x (its gap's; 0 elsewhere), and its burning surface. */
+export const waterDy = (x: number) => gapAt(x)?.water ?? 0;
+export const waterY = (x: number) => RIVER_Y + waterDy(x);
+/** Where a vine hangs over its gap: between the two decks' heights. */
+export const hangDy = (x: number) => { const g = gapAt(x); return g ? Math.round((g.dyL + g.dyR) / 2) : 0; };
 
 // ---------------------------------------------------------------------------------------------------------------
 // The vines (over the river): hung off the burnt beams of the old jungle pergola. Jungle Land's vines (VineDef), and
@@ -72,7 +92,7 @@ export const inRiver = (x: number) => RIVER.some(([a, b]) => x > a && x < b);
 // when it gets to the top.
 
 export interface Vine2 { x: number; y: number; len: number; fuse?: number }
-const V = (r: number, len = 290, fuse?: number, h = 380): Vine2 => ({ x: X(r), y: GY - h, len, fuse });
+const V = (r: number, len = 290, fuse?: number, h = 380): Vine2 => ({ x: X(r), y: GY - h + hangDy(X(r)), len, fuse });
 export const VINES2: Vine2[] = [
   // (taught: one, over a short stretch)
   V(1680, 280),
@@ -178,14 +198,14 @@ export const MEET = { trigger: X(700), sonX: X(1420), stopX: X(1060) };
 
 export const CP2_AT: Record<number, { x: number; y: number }> = {
   [CP2.start]: { x: L2.x, y: GY },
-  [CP2.river]: { x: X(1150), y: GY },
-  [CP2.canopy]: { x: X(5480), y: GY },
-  [CP2.logJam]: { x: X(10300), y: GY },
-  [CP2.bar]: { x: X(14480), y: GY },
-  [CP2.tiki]: { x: X(18580), y: GY },
-  [CP2.soup]: { x: X(20980), y: GY },
-  [CP2.bend]: { x: X(26080), y: GY },
-  [CP2.grotto]: { x: X(28140), y: GY },
+  [CP2.river]: { x: X(1150), y: deckY(X(1150)) },
+  [CP2.canopy]: { x: X(5480), y: deckY(X(5480)) },
+  [CP2.logJam]: { x: X(10300), y: deckY(X(10300)) },
+  [CP2.bar]: { x: X(14480), y: deckY(X(14480)) },
+  [CP2.tiki]: { x: X(18580), y: deckY(X(18580)) },
+  [CP2.soup]: { x: X(20980), y: deckY(X(20980)) },
+  [CP2.bend]: { x: X(26080), y: deckY(X(26080)) },
+  [CP2.grotto]: { x: X(28140), y: deckY(X(28140)) },
   [CP2.L3]: { x: L3.x, y: GY },
 };
 

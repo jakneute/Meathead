@@ -28,7 +28,7 @@ import { MH_DOOR3 } from '../park3/lines';
 import { markBossFight } from '../../bossQuiet';
 import { lay, solid, meatheadSays, saidOver } from '../../adventure/section';
 import { byPants } from '../park1/kinds';
-import { GY, DECKS, RIVER, RIVER_BED, CP2, CP2_AT, CAST2, PICKUPS2, GROTTO, L3, L2_FROM, HEAD, LOGS2, TOWERS2 } from './geo';
+import { GY, DECKS, DECK_DY, GAPS, RIVER, floorDy, gapAt, RIVER_BED, CP2, CP2_AT, CAST2, PICKUPS2, GROTTO, L3, L2_FROM, HEAD, LOGS2, TOWERS2 } from './geo';
 import { updateFire, drawRiver, drawJets, drawPatches, drawShots2, extraPatches, clearFire } from './fire';
 import { newVines2, updateVines2, drawVines2, onVine2, type Vines2 } from './vines';
 import { buildLogs2, updateLogs2, updateBeams, drawLogs2, drawBeamsBack, drawBeamsFront, logUnder2, logStage, type Log2Run } from './logs';
@@ -40,6 +40,7 @@ import { type EndScene, startEnd, updateEnd, drawEnd, drawEndHud, drawEndAfter, 
 import { drawBack2, drawFront2, drawBackdrop2, lamps2 } from './art';
 import * as L from './lines';
 import { contactSheet } from './sheet';
+import './lavaDeath';
 import { setPiece } from '../../upgrades/state';
 import { keepForRevisits } from '../../store';
 import { DEMON_NUTLESS } from '../../spooky/hell/demon';
@@ -76,9 +77,9 @@ const mhSay = (state: GameState, p2: Park2, k: string, lines: string[] | L.ByPan
  *  the pickups (none at or near where he starts: safe-checkpoints). `cp`: the checkpoint he starts at. */
 export const buildPark2 = (state: GameState, cp: number, onSave: () => void): Park2 => {
   resetFight2(); clearFire(state);
-  lay(state, DECKS.map(([a, b]) => ({ x1: a, y1: GY, x2: b, y2: GY, surface: 'hard' as const })));
+  lay(state, DECKS.map(([a, b], i) => ({ x1: a, y1: GY + (DECK_DY[i] ?? 0), x2: b, y2: GY + (DECK_DY[i] ?? 0), surface: 'hard' as const })));
   // (the river's bed, hidden: where a body comes to rest, in the flames)
-  for (const [a, b] of RIVER) solid(state, a, RIVER_BED, b - a, 400, { hidden: true, tag: 'wp2-bed' });
+  for (const g of GAPS) solid(state, g.a, RIVER_BED + g.water, g.b - g.a, 400, { hidden: true, tag: 'wp2-bed' });
   for (const b of state.blocks) if (!b.tag) b.hidden = true;
   const killed = cp >= CP2.L3;
   // (the grotto's door (a board in the cave's mouth: walk up to it), its back wall (shut till he's dead), level 3's shut
@@ -91,9 +92,9 @@ export const buildPark2 = (state: GameState, cp: number, onSave: () => void): Pa
   CAST2.forEach(([who, x, y], i) => {
     if (killed && x < GROTTO.R) return;
     if (cp > CP2.start && x > at0.x - 700 && x < at0.x + 360) return;
-    state.enemies.push(makeCast2(who, x, y, i));
+    state.enemies.push(makeCast2(who, x, y + floorDy(x), i));
   });
-  for (const [x, y, type] of PICKUPS2) state.pickups.push({ id: `wp2-${x}-${y}`, pos: { x: x - 10, y: y - 24 }, vel: { x: 0, y: 0 }, width: 20, height: 20, type, life: 1e9 });
+  for (const [x, y0, type] of PICKUPS2) { const y = y0 + floorDy(x); state.pickups.push({ id: `wp2-${x}-${y0}`, pos: { x: x - 10, y: y - 24 }, vel: { x: 0, y: 0 }, width: 20, height: 20, type, life: 1e9 }); }
   const p2: Park2 = {
     meet: newMeet(cp >= CP2.river || meetSeen(state)), vines: newVines2(), logs: buildLogs2(state), towers: buildTowers2(state),
     fightState: killed ? 'won' : 'wait', f: null, killed, end: null, cause: null, said: {}, lineAt: {},
@@ -104,6 +105,7 @@ export const buildPark2 = (state: GameState, cp: number, onSave: () => void): Pa
   if (cp >= CP2.logJam) p2.said.log = true;
   if (cp >= CP2.tiki) p2.said.tower = true;
   p2.onSave = onSave;
+  camDy = camTarget(at0.x);
   return p2;
 };
 let onKilledHook: ((state: GameState) => void) | null = null;
@@ -113,6 +115,7 @@ export const setPark2Killed = (fn: (state: GameState) => void) => { onKilledHook
 /** A frame of level 2 (park1's update hands over to it here). `save`: the checkpoint's his (it's saved). */
 export const updatePark2 = (ctx: FrameContext, p2: Park2, controls: Controls, save: (cp: number) => void): Controls => {
   const { state } = ctx, p = state.player, cx = p.pos.x + p.width / 2;
+  easeCam(state);
   let out = controls;
   // ---- both down: the end (they run, the pretzel, the beer, down the river on them: VICTORY), then control back
   if (p2.end && p2.f) {
@@ -166,7 +169,7 @@ export const updatePark2 = (ctx: FrameContext, p2: Park2, controls: Controls, sa
   if (onVine2(state, p2.vines) && p2.vines.burn.some(b => b && !b.gone && b.t > 6)) once(p2, 'vineBurn', () => mhSay(state, p2, 'vineBurn', L.MH_VINE_BURN));
   // ---- the fire: the river, the jets, the patches, the shots
   const fell = !p.isGrounded && !p.carried && p.vel.y > 0;
-  if (fell && p.pos.y + p.height > GY + 10 && RIVER.some(([a, b]) => cx > a && cx < b) && !p2.said.screamAt) { p2.said.screamAt = true; meatheadSays(state, pickLine(L.MH_RIVER), false); }
+  if (fell && p.pos.y + p.height > GY + floorDy(cx) + 10 && RIVER.some(([a, b]) => cx > a && cx < b) && !p2.said.screamAt) { p2.said.screamAt = true; meatheadSays(state, pickLine(L.MH_RIVER), false); }
   if (p.isGrounded) p2.said.screamAt = false;
   updateFire(ctx, { riverOn: true, cause: () => (p2.cause && state.frame - p2.cause.at < 150 ? p2.cause.src : null) });
   // ---- the grotto's door: walked up to (the board's in the way: he walks into it); kicked in, walked in through
@@ -180,7 +183,7 @@ export const updatePark2 = (ctx: FrameContext, p2: Park2, controls: Controls, sa
   }
   // ---- the checkpoints along the way (passing one: it's his, saved there)
   for (const c of [CP2.river, CP2.canopy, CP2.logJam, CP2.bar, CP2.tiki, CP2.soup, CP2.bend, CP2.grotto, CP2.L3]) {
-    if (c > state.checkpoint && cx >= CP2_AT[c].x && p.isGrounded && Math.abs(p.pos.y + p.height - GY) < 4 && p.health > 0 && (c !== CP2.L3 || p2.killed)) save(c);
+    if (c > state.checkpoint && cx >= CP2_AT[c].x && p.isGrounded && Math.abs(p.pos.y + p.height - GY - floorDy(cx)) < 4 && p.health > 0 && (c !== CP2.L3 || p2.killed)) save(c);
   }
   // ---- what he says on the way (each once; never over anybody)
   if (!p.inCutscene && p.health > 0) {
@@ -206,7 +209,11 @@ export const updatePark2 = (ctx: FrameContext, p2: Park2, controls: Controls, sa
 
 /** The camera's height in level 2: held steady over the decks (the river's flames along the bottom of the screen, the
  *  vines' beams along the top). */
-export const camY2 = () => GY - 470;
+export const camY2 = () => GY - 470 + Math.round(camDy);
+/** (the camera's height follows the decks' (the river steps up and down: geo.ts DECK_DY), eased) */
+let camDy = 0;
+const camTarget = (x: number) => { const g = gapAt(x); return g ? (g.dyL + g.dyR) / 2 : floorDy(x); };
+const easeCam = (state: GameState, snap = false) => { const t = camTarget(state.player.pos.x + state.player.width / 2); camDy = snap ? t : camDy + (t - camDy) * 0.05; };
 
 /** The building at the gate (it's level 1's art) and level 2's door. */
 export const level2Door = (p2: Park2) => p2.door;

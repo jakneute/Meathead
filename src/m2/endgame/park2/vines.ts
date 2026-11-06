@@ -14,6 +14,7 @@ import { heard } from '../../bossQuiet';
 import { CANVAS_WIDTH as W } from '../../../m1/constants';
 import { VINES2 } from './geo';
 import { flame, FIRE } from './fire';
+import { drawVineBeam } from './zones';
 import * as L from './lines';
 
 type Ctx = CanvasRenderingContext2D;
@@ -69,17 +70,9 @@ export const onVine2 = (state: GameState, v: Vines2) => onVine(state, optsOf(v))
  *  wisp off the tips of the ones with a fuse that haven't caught: they're soaked in tanning oil, it says so). */
 export const drawVines2 = (c: Ctx, state: GameState, v: Vines2) => {
   const f = state.frame, x0 = state.camera.x - 120, x1 = state.camera.x + W + 120;
-  // (the beams: a burnt crossbeam stub each, dark (not a ledge), smoldering along its top)
-  VINES2.forEach(def => {
-    if (def.x < x0 || def.x > x1) return;
-    const y = def.y;
-    c.fillStyle = '#0A0604'; c.fillRect(Math.round(def.x - 46), Math.round(y - 14), 92, 14);
-    c.fillStyle = '#2A1A12'; c.fillRect(Math.round(def.x - 44), Math.round(y - 12), 88, 10);
-    c.fillStyle = '#1A100A'; c.fillRect(Math.round(def.x - 44), Math.round(y - 5), 88, 3);
-    for (let k = 0; k < 5; k++) if (((k + (f >> 4)) % 3) === 0) { c.fillStyle = FIRE[2]; c.fillRect(Math.round(def.x - 40 + k * 18), Math.round(y - 13), 4, 1); }
-    // (a rope lashing round it where the vine's tied on)
-    c.fillStyle = '#5A4A30'; c.fillRect(Math.round(def.x - 5), Math.round(y - 14), 10, 14); c.fillStyle = '#8A7448'; c.fillRect(Math.round(def.x - 5), Math.round(y - 14), 10, 2);
-  });
+  // (the beams: the zone's own (a stone lintel, a branch, a ship's yard, a palm log, a rock ledge: zones.ts), burnt,
+  // smoldering along the top, the rope lashed where the vine's tied on)
+  VINES2.forEach(def => { if (def.x >= x0 && def.x <= x1) drawVineBeam(c, state, def.x, def.y); });
   drawVines(c, state, v.defs, optsOf(v));
   // (the flames: the burning ones' tips, climbing)
   VINES2.forEach((def, i) => {

@@ -21,7 +21,7 @@ import { makeTowers, updateTowers, towerTop, lidW, onTower, type Tower } from '.
 import { heard } from '../../bossQuiet';
 import { CANVAS_WIDTH as W } from '../../../m1/constants';
 import { mix as mixRaw } from '../../intro/art/kit';
-import { TOWERS2, RIVER_Y } from './geo';
+import { TOWERS2, waterY } from './geo';
 import { fireRow, flame, FIRE } from './fire';
 
 type Ctx = CanvasRenderingContext2D;
@@ -33,7 +33,7 @@ const BACK = 360, RISE = 70, FALL = 46;
 
 export interface Tower2Run { i: number; t: Tower; burn: number; lit: boolean; fall: number; dir: number; gone: number; rise: number }
 export const buildTowers2 = (state: GameState): Tower2Run[] => {
-  const list = makeTowers(state, TOWERS2.map(d => ({ x: d.x, y: RIVER_Y, h: d.h, w: 92, lean: d.lean ?? 0.42 })));
+  const list = makeTowers(state, TOWERS2.map(d => ({ x: d.x, y: waterY(d.x), h: d.h, w: 92, lean: d.lean ?? 0.42 })));
   return list.map((t, i) => ({ i, t, burn: 0, lit: false, fall: 0, dir: 1, gone: 0, rise: 0 }));
 };
 export const towerStage = (r: Tower2Run) => { const k = r.burn / TOWERS2[r.i].fuse; return { k, stage: !r.lit ? 'whole' : k < 0.2 ? 'catch' : k < 0.5 ? 'smolder' : k < 0.85 ? 'flames' : 'crumble' }; };
@@ -56,7 +56,7 @@ export const updateTowers2 = (ctx: FrameContext, list: Tower2Run[], onFall: () =
       r.fall++;
       t.ang += r.dir * (0.01 + r.fall * 0.0022);
       t.b.y = AWAY;
-      if (r.fall === 30 && heard(state, d.x)) { playSound('ignite', 0.8, -10); for (let n = 0; n < 20; n++) state.particles.push({ pos: { x: d.x + r.dir * d.h * 0.7 + (Math.random() - 0.5) * 60, y: RIVER_Y - 6 }, vel: { x: (Math.random() - 0.5) * 5, y: -2 - Math.random() * 5 }, life: 30, color: FIRE[1 + (n % 4)], size: 3 + Math.random() * 3 }); }
+      if (r.fall === 30 && heard(state, d.x)) { playSound('ignite', 0.8, -10); for (let n = 0; n < 20; n++) state.particles.push({ pos: { x: d.x + r.dir * d.h * 0.7 + (Math.random() - 0.5) * 60, y: waterY(d.x) - 6 }, vel: { x: (Math.random() - 0.5) * 5, y: -2 - Math.random() * 5 }, life: 30, color: FIRE[1 + (n % 4)], size: 3 + Math.random() * 3 }); }
       if (r.fall > FALL) { r.gone = 1; r.fall = 0; }
       continue;
     }
@@ -93,7 +93,7 @@ const INK = '#0A0604';
 export const drawTowers2 = (c: Ctx, state: GameState, list: Tower2Run[]) => {
   const f = state.frame;
   for (const r of list) {
-    const d = TOWERS2[r.i], t = r.t, half = lidW(t.d) / 2;
+    const d = TOWERS2[r.i], t = r.t, half = lidW(t.d) / 2, RIVER_Y = waterY(d.x);
     const top0 = towerTop(t.d, t.ang);
     if (Math.max(d.x, top0.x) + 140 < state.camera.x || Math.min(d.x, top0.x) - 140 > state.camera.x + W) continue;
     // (the rock it's stood on, in the river: always there)

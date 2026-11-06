@@ -84,8 +84,17 @@ export const BURN_BARK = bp(
 // ---------------------------------------------------------------------------------------------------------------
 // Hurt and death (his hurt callouts, the death screen's one line: 28 characters at most)
 
+/** Into the river (lavaDeath.ts): his scream as he goes under, by pants. */
+export const MH_LAVA_SCREAM = bp(
+  ['AAAGH! IT BURNS! IT BURNS!', "MY SKIN! IT'S BUBBLING!", 'OH GOD, MY LEGS ARE SOUP!'],
+  ["MY PANTS ARE ON FIRE! THE SHIT'S ON FIRE!", "AAAGH! IT'S COOKING THE SHIT IN MY PANTS!", 'I SMELL LIKE A BURNING OUTHOUSE!'],
+  ['AAAGH! MY DICK! MY DICK IS IN THE LAVA!', "NOT THE BALLS! NOT THE BALLS!", "I'M BEING DEEP FRIED NAKED!"],
+);
+const RIVER_HURT = ["I'M ON FIRE!", 'HOT! HOT! HOT!', 'THE RIVER!'];
 export const HURT2: Record<string, { hurt: string[]; death: string[] }> = {
-  'm2:wp2_river': { hurt: ["I'M ON FIRE!", 'HOT! HOT! HOT!', 'THE RIVER!'], death: ['DEEP FRIED IN THE LAZY RIVER', 'COOKED IN TANNING OIL'] },
+  'm2:wp2_river': { hurt: RIVER_HURT, death: ['DEEP FRIED IN THE LAZY RIVER', 'MELTED TO THE BONE', 'RENDERED DOWN TO A SKELETON'] },
+  'm2:wp2_river.shat': { hurt: RIVER_HURT, death: ['DEEP FRIED, SHIT AND ALL', 'COOKED IN HIS OWN GRAVY', 'A BURNING OUTHOUSE'] },
+  'm2:wp2_river.nude': { hurt: RIVER_HURT, death: ['SKINNY DIPPED IN LAVA', 'BOILED BALLS FIRST', 'DEEP FRIED IN THE NUDE'] },
   'm2:wp2_log': { hurt: ['THE LOG!', "IT'S GONE!", 'NO LOG!'], death: ['THE LOG BURNED AWAY', 'STOOD ON IT TOO LONG'] },
   'm2:wp2_tower': { hurt: ['THE TOWER!', "IT'S GOING OVER!", 'POOL TOYS!'], death: ['THE TOWER BURNED DOWN', 'POOL TOYS ARE FLAMMABLE'] },
   'm2:wp2_vine': { hurt: ['THE VINE!', 'IT SNAPPED!', 'NO VINE!'], death: ['THE VINE SNAPPED', 'HUNG AROUND TOO LONG'] },
@@ -198,7 +207,7 @@ export const MH_LOUNGE = bp(['NOW THIS IS A LAZY RIVER.'], ["NOW THIS IS A LAZY 
 
 const all = (...pools: (string | string[] | ByPants)[]) => pools.flatMap(p => (typeof p === 'string' ? [p] : Array.isArray(p) ? p : Object.values(p).flat()));
 export const PARK2_VOICE_LINES: Record<string, string[]> = {
-  meathead: all(MH_MEET, MH_AFTER_MEET, MH_FIRST_VINE, MH_VINE_BURN, MH_LOG, MH_LOG_GOING, MH_TOWER, MH_TOWER_GOING, MH_GROTTO, MH_RIVER, MH_DOOR, MH_INTRO2, MH_MOCK, GRAB_SON, MH_STUB3, MH_BRO, MH_NOTHING, MH_STOP, MH_PRETZEL, MH_BEER, MH_LOUNGE, ...Object.values(HURT2).map(h => h.hurt)),
+  meathead: all(MH_LAVA_SCREAM, MH_MEET, MH_AFTER_MEET, MH_FIRST_VINE, MH_VINE_BURN, MH_LOG, MH_LOG_GOING, MH_TOWER, MH_TOWER_GOING, MH_GROTTO, MH_RIVER, MH_DOOR, MH_INTRO2, MH_MOCK, GRAB_SON, MH_STUB3, MH_BRO, MH_NOTHING, MH_STOP, MH_PRETZEL, MH_BEER, MH_LOUNGE, ...Object.values(HURT2).map(h => h.hurt)),
   death: all(...Object.values(HURT2).map(h => h.death)),
   [SON_VOICE]: all(SON_HELLO, SON_NAME_LINE, SON_JOB, SON_LEAK, SON_BYE, SON_INTRO, SON_INTRO2, SON_RETRY, SON_LAZY, SON_HURT, SON_LOW, SON_DEATH, SON_CALL, SON_KNEEL, SON_ESCAPE, SON_WINCE),
   'm2.demon': all(BRO_ARRIVE, BRO_KNEEL, BRO_ESCAPE, BRO_WINCE),
