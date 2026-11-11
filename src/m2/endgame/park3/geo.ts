@@ -105,6 +105,11 @@ const serviceDoor = () => {
   // (the lower corridor; the ladder down to it through a hole in the floor)
   s.fill(38, 23, 71, 27, '.');
   s.fill(45, 18, 45, 27, 'H');
+  // (the hole's two cells wide: he's 44 across, a cell's 40. In a one-cell hole he could take hold and never climb,
+  // and let go in it he was popped out of the rock)
+  s.fill(46, 18, 46, 22, '.');
+  // (and the corridor ends at the hole: with a lip of floor past it he ran clean over the gap half the time)
+  s.fill(47, 13, 47, 17, '#');
   // (a puddle under a dangling cable, short of the ladder: taught on the flat)
   s.put(39, 17, 'w');
   s.put(3, 17, '0'); s.put(50, 27, '1');
@@ -363,7 +368,8 @@ export const PUDDLES = spots(ch => ch === 'w').map(s => ({ x: cellX(s.c), y: cel
 /** The vents: the cell, and which way it blasts (into the air beside it). */
 export const VENTS = spots(ch => ch === 'v').map(s => ({ x: cellX(s.c), y: cellY(s.r), dir: (at(s.c + 1, s.r) === '#' ? -1 : 1) as 1 | -1 }));
 
-export interface Ladder3 { x: number; top: number; bottom: number }
+const isRockCh = (ch: string | undefined) => ch === '#' || ch === 'v' || ch === undefined;
+export interface Ladder3 { x: number; top: number; bottom: number; wet?: boolean }
 /** The ladders: each column's runs of H (its top the top of the run; its foot the bottom of it, on the floor there or
  *  in the water). */
 export const LADDERS3: Ladder3[] = (() => {
@@ -373,7 +379,12 @@ export const LADDERS3: Ladder3[] = (() => {
     while (r < ROWS) {
       if (GRID[r][c] !== 'H') { r++; continue; }
       const a = r; while (r < ROWS && GRID[r][c] === 'H') r++;
-      out.push({ x: cellX(c) + CELL / 2, top: cellY(a), bottom: cellY(r) });
+      // (a foot over water: the rails run on down into it, so he can take hold swimming and climb back out)
+      const wet = r < ROWS && (GRID[r][c] === '~');
+      // (up a shaft two cells wide (rock, the ladder's cell, a cell of air, rock): stood in the middle of it, clear of
+      // both walls. He's 44 across: in the left cell alone his box was 2 px into the wall the whole way)
+      const mid = isRockCh(GRID[a][c - 1]) && GRID[a][c + 1] === '.' && isRockCh(GRID[a][c + 2]);
+      out.push({ x: cellX(c) + (mid ? CELL : CELL / 2), top: cellY(a), bottom: cellY(r) + (wet ? 56 : 0), wet });
     }
   }
   return out;

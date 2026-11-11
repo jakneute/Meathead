@@ -57,6 +57,9 @@ export interface LadderDef {
   top: number; bottom: number;
   /** Where he's stood (feet) when he climbs off the top of it. Left out: the top of whatever floor's there, if any. */
   ledge?: { x: number; y: number };
+  /** Its foot's under water (the water park's shaft): he can take hold of it swimming, and down at its foot lets him
+   *  go into the water (not stood on anything). */
+  wet?: boolean;
 }
 
 /** The rungs' spacing (from the foot up). */
@@ -103,6 +106,10 @@ export const onLadder = (state: GameState) => holdOf(state).on >= 0;
 const feetMin = (d: LadderDef, top: { x: number; y: number } | undefined) => d.top + (top ? OFF_FEET : TOP_FEET);
 const box = (state: GameState, x: number, feet: number): Rect => { const p = state.player; return { x: x - p.width / 2, y: feet - p.height, w: p.width, h: p.height }; };
 const blocked = (state: GameState, r: Rect) => state.blocks.some(b => b.type !== 'pit' && !b.oneWay && rectsOverlap(r, b));
+/** His box on a ladder, as narrow as the ladder (he's 44 wide and drawn hanging on its 28): what's tested against
+ *  ceilings and walls while he's on one. His whole box was "blocked" by the sides of a one-cell (40 px) shaft, or by a
+ *  wall right beside the rails, at every step: he took hold and then couldn't climb at all (the water park's tunnels). */
+const slim = (r: Rect): Rect => ({ x: r.x + 8, y: r.y, w: Math.max(4, r.w - 16), h: r.h });
 /** Something to stand on right at y, under x (the ledge at its top found, or the ground at its foot). */
 const floorAt = (state: GameState, x: number, y: number, slack = 6) => state.blocks.find(b => b.type !== 'pit' && Math.abs(b.y - y) <= slack && x >= b.x - 4 && x <= b.x + b.w + 4);
 /** Where he's put when he climbs off the top: its ledge, or the floor at its top (nudged in onto it, clear). */
@@ -146,10 +153,20 @@ const letGo = (state: GameState, h: Hold, c: Controls, hop: boolean, knocked = f
   p.carried = false; p.vine = undefined; p.ladder = undefined;
   if (h.zip) { p.isUppercutting = false; p.isDivekicking = false; }
   h.last = h.on; h.on = -1; h.zip = 0; h.held = 0; h.cd = 24; h.mount = null;
+  unstick(state);
   if (knocked) return;
   p.vel.x = hop ? dir * PLAYER_MOVE_SPEED : 0;
   p.vel.y = hop && dir ? -6 : 0;
   h.jumpLatch = !!c.jump;
+};
+
+/** Let go beside a wall (the rails within a few px of it: a ladder up a shaft's side), his whole box is a little way
+ *  into it, and the engine's way out of a wall is its top or its bottom: he popped up to the head of the shaft, or out
+ *  through the floor of the world. Sidled clear of it first. */
+const unstick = (state: GameState) => {
+  const p = state.player, r: Rect = { x: p.pos.x, y: p.pos.y, w: p.width, h: p.height };
+  if (!blocked(state, r)) return;
+  for (let k = 1; k <= 14; k++) for (const s of [1, -1]) if (!blocked(state, { ...r, x: r.x + s * k })) { p.pos.x += s * k; return; }
 };
 
 const pose = (state: GameState, h: Hold, mode: 'rest' | 'hang' | 'climb' | 'rush' | 'slide' | 'mount', k = 0) => {
@@ -213,15 +230,17 @@ export const updateLadders = (ctx: FrameContext, defs: LadderDef[], c: Controls)
   // ---- Not on one: taking hold of one
   if (h.on < 0) {
     const out: Controls = { ...c, jump: c.jump && !h.jumpLatch };
-    if (p.health <= 0 || p.carried || p.inCutscene || p.swimming || p.isCharging || p.isSliding || p.isUppercutting || p.isDivekicking || (p.pushbackTimer ?? 0) > 0) { h.downT = 0; return out; }
+    const wetOk = p.swimming && defs.some(d => d.wet);
+    if (p.health <= 0 || p.carried || p.inCutscene || (p.swimming && !wetOk) || p.isCharging || p.isSliding || p.isUppercutting || p.isDivekicking || (p.pushbackTimer ?? 0) > 0) { h.downT = 0; return out; }
     const cx = p.pos.x + p.width / 2, feet = p.pos.y + p.height;
     h.downT = c.down && !h.downLatch && !dir && p.isGrounded ? h.downT + 1 : 0;
     for (let i = 0; i < defs.length; i++) {
       const d = defs[i];
       if (i === h.last && h.cd > 0) continue;
       const top = topOf(state, d), dx = Math.abs(cx - d.x);
-      // Up, across it (on its foot, or in the air by it)
-      if (c.up && dx < REACH && feet > feetMin(d, top) - 30 && feet <= d.bottom + 2) {
+      if (p.swimming && !d.wet) continue;
+      // Up, across it (on its foot, or in the air by it; swimming at the foot of one that stands in water)
+      if (c.up && dx < REACH && feet > feetMin(d, top) - 30 && feet <= d.bottom + (d.wet ? 40 : 2)) {
         grab(state, h, defs, i, d.bottom - Math.min(d.bottom - 2, feet), c);
         return hands(c);
       }
@@ -230,7 +249,7 @@ export const updateLadders = (ctx: FrameContext, defs: LadderDef[], c: Controls)
         const up = d.bottom - feetMin(d, top);
         // (his box a little narrower than he's drawn: a ladder down a one-cell hole in the floor (the water park's
         // tunnels) was "blocked" by the hole's own sides, and down just ducked him)
-        { const r = box(state, d.x, d.bottom - up); if (blocked(state, { x: r.x + 8, y: r.y, w: Math.max(4, r.w - 16), h: r.h })) continue; }
+        if (blocked(state, slim(box(state, d.x, d.bottom - up)))) continue;
         // (back over the top onto it: the climb over, the other way, from where he's stood)
         const sx = cx, sy = feet;
         grab(state, h, defs, i, up, c); h.downLatch = true; h.mount = { dir: -1, t: 0 };
@@ -292,14 +311,14 @@ export const updateLadders = (ctx: FrameContext, defs: LadderDef[], c: Controls)
     h.up = 0;
     const ground = !!floorAt(state, d.x, d.bottom);
     if ((h.zip === 1 && ground) || (h.zip === 0 && h.held === 0 && c.down && !firing)) {
-      letGo(state, h, c, false); place(state, d, 0); p.isGrounded = true;
+      letGo(state, h, c, false); place(state, d, 0); unstick(state); p.isGrounded = ground || !d.wet;
       h.specialLatch = !!(c.special || c.charge);
       return hands(c);
     }
     if (h.zip === 1) { h.zip = 0; h.held = 1; }
   }
   // (into a ceiling, a wall: back)
-  if (h.up !== up0 && blocked(state, box(state, d.x, d.bottom - h.up))) { h.up = up0; if (h.zip === -1) { h.zip = 0; h.held = -1; } }
+  if (h.up !== up0 && blocked(state, slim(box(state, d.x, d.bottom - h.up)))) { h.up = up0; if (h.zip === -1) { h.zip = 0; h.held = -1; } }
   // (the rush hits like an uppercut, the slide like a dive kick, till it's over)
   p.isUppercutting = h.zip === -1; p.isDivekicking = h.zip === 1;
   if (p.isUppercutting) p.uppercutTimer = 2;

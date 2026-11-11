@@ -49,7 +49,7 @@ import { setCheat } from '../../cheats';
 
 export { TUNNEL_STAGE };
 const STAGE = endgameStage('park3t')!;
-const LADDERS: LadderDef[] = LADDERS3.map(l => ({ x: l.x, top: l.top, bottom: l.bottom }));
+const LADDERS: LadderDef[] = LADDERS3.map(l => ({ x: l.x, top: l.top, bottom: l.bottom, wet: l.wet }));
 const WIRES: StuntWire[] = WIRES3.map(w => ({ from: w.from, to: w.to, rigY: w.rigY }));
 
 export interface Tunnels {
@@ -212,6 +212,8 @@ export const tunnelLayout: StageLayout = {
     }
     // ---- the camera: along the tunnels; up and down after where he stands (or holds on, or swims), eased
     if (p.isGrounded || p.carried || onLadder(state) || onWire(state) || p.swimming) t.standY = p.pos.y + p.height;
+    // (falling past where he last stood (down a shaft, off a ladder): after him on the way, not all at once when he lands)
+    else if (p.vel.y > 0 && p.pos.y + p.height > t.standY) t.standY = p.pos.y + p.height;
     state.cameraMinX = 0; state.cameraMaxX = COLS * CELL - CANVAS_WIDTH;
     if (state.cameraOverride) state.cameraOverride = null;
     setUi({ near: null, map: null, nearExit: false, introCutscene: !!p.inCutscene });
