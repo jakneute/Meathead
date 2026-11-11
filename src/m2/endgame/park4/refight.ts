@@ -29,7 +29,7 @@ import { M2_PUBLIC } from '../../build';
 import { pollM2, pressed, keyHeld } from '../../input';
 import { voice } from '../../adventure/section';
 import { setRefightOn, setRefightWon, swapLines, touchRefight, refightOn, refightPool } from './hook';
-import { hellLight, drawHellSky, drawHellProps, drawStitches, bossBox } from './hell';
+import { hellLight, drawHellSky, drawPlaceSky, drawHellProps } from './hell';
 import { drawNedGross, drawNedGrossBack, warmNedGross } from './nedGross';
 import type { RefightDef, Pool } from './defs';
 import { INTROS, NED_VOICE } from './lines/ned';
@@ -276,12 +276,12 @@ export const refightLayout = (def: RefightDef): StageLayout => {
       if (card) return tickCard(def, ctx.state);
       return inner.holdTick?.(ctx) ?? false;
     },
-    lighting: (state) => { t(); return hellLight(inner.lighting?.(state)); },
+    lighting: (state) => { t(); return hellLight(inner.lighting?.(state), def.place); },
     drawBackdrop: (c, state) => {
       t();
       const r = inner.drawBackdrop ? inner.drawBackdrop(c, state) : false;
       if (!r) { c.fillStyle = '#1A0206'; c.fillRect(0, 0, W, H); }
-      drawHellSky(c, state.frame);
+      if (def.place) drawPlaceSky(c, state, def.land, def.place); else drawHellSky(c, state.frame);
       return true;
     },
     drawBack: (c, state) => {
@@ -293,10 +293,7 @@ export const refightLayout = (def: RefightDef): StageLayout => {
     },
     drawFront: (c, state) => {
       inner.drawFront?.(c, state);
-      // (him stitched up the way he died)
-      const look = refightOn()?.look ?? def.lookNow(), s = def.stitches(look);
-      const at = def.bossAt ? def.bossAt(state) : bossBox(state);
-      if (s && at) drawStitches(c, at, s);
+      // (him stitched up the way he died: in his own art (park4/looks.ts, through each boss's own draw))
       def.drawFront?.(c, state);
     },
     drawHud: (c, state) => {

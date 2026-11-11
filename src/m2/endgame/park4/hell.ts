@@ -12,18 +12,32 @@ import type { GameState } from '../../../m1/game/core/state';
 import type { SceneLight } from '../../../m1/game/render/lighting';
 import { CANVAS_WIDTH as W, CANVAS_HEIGHT as H } from '../../../m1/constants';
 import { stamp } from '../../../m1/game/render/stamp';
-import type { Sin } from './defs';
+import type { Sin, HellPlace } from './defs';
 
 type Ctx = CanvasRenderingContext2D;
 
 /** The land's light, made hell's. */
-export const hellLight = (base: SceneLight | null | undefined): SceneLight => ({
+export const hellLight = (base: SceneLight | null | undefined, place?: HellPlace): SceneLight => ({
   ...(base ?? { lights: [] }),
   lights: base?.lights ?? [],
-  dark: Math.max(base?.dark ?? 0, 0.3),
-  shade: [70, 6, 10],
-  grade: '#FFB2A0',
+  dark: Math.max(base?.dark ?? 0, place?.light.dark ?? 0.3),
+  shade: place?.light.shade ?? [70, 6, 10],
+  grade: place?.light.grade ?? '#FFB2A0',
 });
+
+/** A place's own sky (painted once, kept), over the land's backdrop; its moving bits after. */
+const skies = new Map<string, HTMLCanvasElement>();
+export const placeSky = (land: string, place: HellPlace): HTMLCanvasElement | null => {
+  if (!place.sky || typeof document === 'undefined') return null;
+  let cv = skies.get(land);
+  if (!cv) { cv = document.createElement('canvas'); cv.width = W; cv.height = H; const g = cv.getContext('2d')!; g.imageSmoothingEnabled = false; place.sky.paint(g); skies.set(land, cv); }
+  return cv;
+};
+export const drawPlaceSky = (c: Ctx, state: GameState, land: string, place: HellPlace) => {
+  const cv = placeSky(land, place);
+  if (cv) { c.save(); c.globalAlpha = place.sky!.alpha; c.drawImage(cv, 0, 0); c.restore(); }
+  place.skyLive?.(c, state);
+};
 
 // ---------------------------------------------------------------------------------------------------------------
 // The sky's haze (screen space, over the land's backdrop)

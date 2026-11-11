@@ -19,6 +19,19 @@ export type Sin = 'PRIDE' | 'GLUTTONY' | 'ENVY' | 'WRATH' | 'GREED' | 'LUST' | '
 /** The lot's pylon sign for its portal (theme-park lot style: a picture and a word). */
 export type SignPic = 'dinosaur' | 'bat' | 'rocket' | 'star' | 'statue' | 'train' | 'castle' | 'anvil';
 
+/** A refight's own place in hell (park4/place/<land>.ts each): not the land's arena under a red filter, its own
+ *  light and its own sky; the near background's set pieces go in through the land's own back pass (hooks), at their
+ *  own depth. */
+export interface HellPlace {
+  /** The light: how dark, the shadows' color, the grade over it all (each hell its own: they aren't all red). */
+  light: { dark: number; shade: [number, number, number]; grade: string };
+  /** The sky and the far vista (screen space, 800 x 600, painted once), over the land's own backdrop: `alpha` 1 hides
+   *  the land's altogether. */
+  sky?: { paint: (g: Ctx) => void; alpha: number };
+  /** Cheap moving bits over the sky, each frame (screen space: embers, ash, a far thing going by). No pixel work. */
+  skyLive?: (c: Ctx, state: GameState) => void;
+}
+
 export interface RefightDef {
   land: RefightLand;
   /** Its endgame stage id (endgame/stages.ts), and its engine stage's name (App.tsx registers it). */
@@ -40,8 +53,10 @@ export interface RefightDef {
   /** What each look's called on the picker. */
   lookName: (look: string) => string;
   /** Ned's intro: his lines are park4/lines/ned.ts INTROS[land] (the Queen too: her sin is ROBOT). */
-  /** The stitches over him, by look (hell.ts drawStitches; null: none, his own art does it). */
-  stitches: (look: string) => StitchLook | null;
+  /** (the first pass's: seams over his hit box. Not drawn any more: his body's stitched in his own art, park4/looks.ts) */
+  stitches?: (look: string) => StitchLook | null;
+  /** Its own place in hell (none: the first pass's red haze). */
+  place?: HellPlace;
   /** The land's line pools swapped for the refight's: [the land's ByPants or list, the refight's]. */
   swaps: () => [Pool, Pool][];
   /** The arena in the world (the hell's props go along its back, at its floor). */
