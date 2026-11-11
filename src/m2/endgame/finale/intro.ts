@@ -26,6 +26,9 @@ import { drawSaucer } from '../../space/orbit/art';
 import { drawSatanFace } from '../../spooky/hell/satanArt';
 import { satanUpper, warmSatan, drawWidowBody, drawSatanBody } from './bossArt';
 import { drawBen } from '../../upgrades/confucktious/art';
+import { CANVAS_WIDTH as W, CANVAS_HEIGHT as H } from '../../../m1/constants';
+import { drawKidGross, drawKidGrossBack, warmKidGross } from '../park1/kidGross';
+import { drawSonGross, drawSonGrossBack, warmSonGross } from '../park2/sonGross';
 import * as L from './lines';
 
 type Ctx = CanvasRenderingContext2D;
@@ -177,6 +180,32 @@ const AT_WIDOW_OUT: [number, number] = [176, 114], AT_WIDOW_BIG: [number, number
 
 /** Which beats are the gross-ups (the stage draws those over the picture): 'kid' | 'son' | null. */
 export const grossBeat = (s: Scene): 'kid' | 'son' | null => { const b = s.beats[s.i] as Beat & { gross?: 'kid' | 'son' }; return b?.gross ?? null; };
+
+/** The gross-ups of their dead boys (over the scene's black picture): gray, cold, the flies at them. */
+const drawDeadGross = (c: Ctx, who: 'kid' | 'son', t: number, f: number) => {
+  c.save();
+  if (who === 'kid') { drawKidGrossBack(c, W, H); drawKidGross(c, W / 2, H / 2 + 6, 0.92, 0, true, 0); }
+  else { drawSonGrossBack(c, W, H); drawSonGross(c, W / 2, H / 2 + 6, 0.92, 0, true, 0); }
+  // (dead: the color gone out of them, a cold cast over it)
+  c.globalCompositeOperation = 'saturation'; c.fillStyle = 'rgba(128, 128, 128, 0.75)'; c.fillRect(0, 0, W, H);
+  c.globalCompositeOperation = 'multiply'; c.fillStyle = '#B8C4C8'; c.fillRect(0, 0, W, H);
+  c.globalCompositeOperation = 'source-over';
+  // (the flies)
+  for (let k = 0; k < 9; k++) {
+    const a = f * 0.09 + k * 2.1, x = W / 2 + Math.cos(a * (1 + (k % 3) * 0.3)) * (120 + k * 18), y = H / 2 - 40 + Math.sin(a * 1.7 + k) * (70 + k * 6);
+    c.fillStyle = '#0A0A0A'; c.fillRect(Math.round(x), Math.round(y), 4, 3); c.fillStyle = 'rgba(220, 230, 240, 0.7)'; c.fillRect(Math.round(x) - 2, Math.round(y) - 2, 3, 2);
+  }
+  c.font = '14px "Press Start 2P"'; c.textAlign = 'center';
+  const name = who === 'kid' ? 'ZORZARBLAX' : 'MEHPHISTO';
+  c.fillStyle = '#000'; c.fillText(name, W / 2 + 2, H - 40 + 2); c.fillStyle = '#DC2626'; c.fillText(name, W / 2, H - 40);
+  c.textAlign = 'left';
+  c.restore();
+  void t;
+};
+/** Over the scene's picture, screen space (the stage's HUD pass calls it while the opening plays): the gross-ups. */
+export const drawIntroOver = (c: Ctx, s: Scene, frame: number) => { const g = grossBeat(s); if (g) drawDeadGross(c, g, s.shotT, frame); };
+/** The opening's gross-ups, painted ahead in idle slices. */
+export const warmIntro = () => { warmKidGross(); warmSonGross(); };
 
 export const startIntro = (state: GameState, ben: boolean): Scene => {
   const d: Dress = isNude(state) ? 'nude' : isShat(state) ? 'shitty' : 'clean';

@@ -45,8 +45,6 @@ import { createGrab, updateGrab, drawGrab, type Grab } from '../../moves/grab';
 import { btn, pressed, pollM2 } from '../../input';
 import { meatheadSays } from '../../adventure/section';
 import { registerHurtLines } from '../../kinds';
-import { drawKidGross, drawKidGrossBack, warmKidGross } from '../park1/kidGross';
-import { drawSonGross, drawSonGrossBack, warmSonGross } from '../park2/sonGross';
 import { FINALE_ID, FINALE_STAGE, FINALE_HOUR, FIN_CP_START, FIN_CP_MID, FIN_CP_DAZED, FIN_CP_ENDING, FIN_ENDINGS } from './where';
 import { SECTIONS, MID_AFTER, type SectionDef } from './sections';
 import { SEC_X, secEnd, secAt, floorY, RUN_END, WORLD_END, GROUND_RUNS } from './geo';
@@ -60,7 +58,7 @@ import { startThrow, updateThrow, drawThrow, throwDone, T_RELEASE, T_REACH, type
 import { newSwarm, updateSwarm, clearSwarm, spawnMini, ALIEN_MINI, type Swarm } from './minions';
 import { scatter, updateTiny, drawTiny, callbackFor, updateCallbacks, drawCallback, callbackOn, clearTiny } from './tiny';
 import { newBen, updateBen, benTell, drawBenGiant, drawBenSaid, benSays, type Ben } from './ben';
-import { startIntro, grossBeat } from './intro';
+import { startIntro, drawIntroOver, warmIntro } from './intro';
 import { startNeedle, needleGross } from './needle';
 import { drawMuskGross, drawMuskGrossBack } from './muskGross';
 import { updateFx, drawFx, drawDust, clearFx, debris, puff } from './fx';
@@ -257,7 +255,7 @@ export const finaleLayout: StageLayout = {
     // (the two of them ahead, walking on into the park)
     const bx = cleared > 0 ? SEC_X[cleared] + 420 : 640;
     placeBoss(fin.bs.satan, bx, -1); placeBoss(fin.bs.widow, bx + 170, -1);
-    if (intro) { p.inCutscene = true; setUi({ introCutscene: true }); fin.scene = startIntro(state, fin.ben.on); warmKidGross(); warmSonGross(); }
+    if (intro) { p.inCutscene = true; setUi({ introCutscene: true }); fin.scene = startIntro(state, fin.ben.on); warmIntro(); }
     else setUi({ introCutscene: false });
     state.camera.x = x - W / 2;
     if (test < 0) save(state.checkpoint);
@@ -480,8 +478,7 @@ export const finaleLayout: StageLayout = {
     if (!fin) return;
     if (fin.scene) {
       drawScene(c, fin.scene);
-      const g = fin.phase === 'intro' && fin.final !== 'cut' ? grossBeat(fin.scene) : null;
-      if (g) drawDeadGross(c, g, fin.scene.shotT, state.frame);
+      if (fin.phase === 'intro' && fin.final !== 'cut') drawIntroOver(c, fin.scene, state.frame);
       if (fin.phase === 'needle' && needleGross(fin.scene)) {
         // (over the picture only: the words stay in the box under it; his name on a card)
         c.save(); c.beginPath(); c.rect(16, 30, 768, 432); c.clip();
@@ -501,27 +498,6 @@ export const finaleLayout: StageLayout = {
 // ---------------------------------------------------------------------------------------------------------------
 // The HUD bits
 
-/** The gross-ups of their dead boys (over the scene's black picture): gray, cold, the flies at them. */
-const drawDeadGross = (c: Ctx, who: 'kid' | 'son', t: number, f: number) => {
-  c.save();
-  if (who === 'kid') { drawKidGrossBack(c, W, H); drawKidGross(c, W / 2, H / 2 + 6, 0.92, 0, true, 0); }
-  else { drawSonGrossBack(c, W, H); drawSonGross(c, W / 2, H / 2 + 6, 0.92, 0, true, 0); }
-  // (dead: the color gone out of them, a cold cast over it)
-  c.globalCompositeOperation = 'saturation'; c.fillStyle = 'rgba(128, 128, 128, 0.75)'; c.fillRect(0, 0, W, H);
-  c.globalCompositeOperation = 'multiply'; c.fillStyle = '#B8C4C8'; c.fillRect(0, 0, W, H);
-  c.globalCompositeOperation = 'source-over';
-  // (the flies)
-  for (let k = 0; k < 9; k++) {
-    const a = f * 0.09 + k * 2.1, x = W / 2 + Math.cos(a * (1 + (k % 3) * 0.3)) * (120 + k * 18), y = H / 2 - 40 + Math.sin(a * 1.7 + k) * (70 + k * 6);
-    c.fillStyle = '#0A0A0A'; c.fillRect(Math.round(x), Math.round(y), 4, 3); c.fillStyle = 'rgba(220, 230, 240, 0.7)'; c.fillRect(Math.round(x) - 2, Math.round(y) - 2, 3, 2);
-  }
-  c.font = '14px "Press Start 2P"'; c.textAlign = 'center';
-  const name = who === 'kid' ? 'ZORZARBLAX' : 'MEHPHISTO';
-  c.fillStyle = '#000'; c.fillText(name, W / 2 + 2, H - 40 + 2); c.fillStyle = '#DC2626'; c.fillText(name, W / 2, H - 40);
-  c.textAlign = 'left';
-  c.restore();
-  void t;
-};
 /** The land's name across the top as he comes into it. */
 const drawBanner = (c: Ctx, b: { text: string; t: number }) => {
   const k = Math.min(1, b.t / 20, (200 - b.t) / 20), y = 150;
