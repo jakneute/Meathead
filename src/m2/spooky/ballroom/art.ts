@@ -28,11 +28,24 @@ import { pitLights } from './pit';
 import { x0, ARENA_L, ARENA_R, ARENA_MID, CIRCLE_X, CHANDELIERS, RISER } from './arena';
 import { signAt, signW, haunt, print, candle, blood } from '../letters';
 import { bust, drawBust, SKIN, HAIR, CLOTH, IRIS, type BustSpec } from '../../grossBust';
+import { inRefight } from '../../endgame/park4/hook';
 
 /** Somebody's idea of a count: deathly, a widow's peak slicked back, a high collar, bloodshot, grinning. */
 const COUNT: BustSpec = { seed: 777, skin: SKIN.ghoul, hair: 'slick', hairRamp: HAIR.black, iris: IRIS.yellow, sclera: 'red', mouth: 'grin', coat: CLOTH.black, extras: ['ruff', 'mole', 'drool'], tall: 1.1, wide: 0.9, nose: 1.15, bulge: 1.25 };
 
 type Ctx = CanvasRenderingContext2D;
+
+/** Ned's boss rush (endgame/park4/place/spooky.ts fills these in): hell's cheap recreation of the room, asked only
+ *  while Donnie's refight is on. Each stands in for the land's own piece, at its depth: the back wall's tile, the
+ *  buffet, DJ table and banner against it (drawn at the wall's depth), a chandelier (stood on: the same lip), the dance
+ *  floor's colors. The ballroom itself never reads them. */
+export const BALL_HOOKS: {
+  wallTile?: (g: Ctx, x: number, v: number) => void;
+  tables?: (c: Ctx, frame: number) => void;
+  chandelier?: (g: Ctx, x: number, top: number, w: number) => void;
+  floor?: { lit: string[]; dark: [string, string] };
+} = {};
+const NO_HOOKS: typeof BALL_HOOKS = {};
 
 const GOLD = '#CA8A04', VELVET = '#8E1414';
 /** Gilt, dark to lit (7 steps); the velvet's (6); the flock's (7); purple satin (6); pink satin (6); the stage's boards. */
@@ -771,6 +784,7 @@ export interface BallLook { cleared: boolean; ballDown: boolean; swing?: number 
 export const BALL_WIRE = GY - 366 - CEIL;
 
 const LIT = ['#F472B6', '#60A5FA', '#FDE047', '#A78BFA'];
+const DANCE_DARK: [string, string] = ['#2E1065', '#4C1D95'];
 /** Quads batched by fill color (one path, one fill per color). */
 const batch = new Map<string, number[]>();
 const toBatch = (col: string, q: P[]) => { let a = batch.get(col); if (!a) { a = []; batch.set(col, a); } for (const v of q) a.push(v[0], v[1]); };
@@ -792,11 +806,13 @@ export const drawBallroomArt = (c: Ctx, state: GameState, look: BallLook) => {
   const f = state.frame, eye = eyeOf(state);
   const vis = (a: number, z: number) => z > v.x - 100 && a < v.x + v.w + 100;
   const L = x0 - 260, R = ARENA_R + 400;
+  const hk = inRefight('spooky') ? BALL_HOOKS : NO_HOOKS;
   box(c, L, CEIL - 900, R - L, 900, '#0A0310');
-  wallRun(c, eye, 'ball-wall', L, R, 200, 4, paintWallTile, 'rgba(10, 3, 18, 0.34)');
+  wallRun(c, eye, hk.wallTile ? 'ball-wall-rf' : 'ball-wall', L, R, 200, 4, hk.wallTile ?? paintWallTile, 'rgba(10, 3, 18, 0.34)');
   ceiling(c, eye, L, R, ['#2A1238', '#24102F', '#1E0C28', '#180A22'], 100, '#3A2410');
   coffers(c, eye, L, R);
   inDepth(c, eye, WALL_D, () => {
+    if (hk.tables) { hk.tables(c, f); return; }
     stamp(c, 'ball-buffet', BUF_X - 4, GY - 152, 252, 154, paintBuffet);
     stamp(c, 'ball-dj', DJ_X - 44, GY - 162, 240, 164, paintDJ);
     // (the tables dimmed a step: background, not stood on)
@@ -810,6 +826,7 @@ export const drawBallroomArt = (c: Ctx, state: GameState, look: BallLook) => {
   {
     const [s0, s1] = [Math.max(L, v.x - 200), Math.min(R, v.x + v.w + 200)];
     const rows = 3;
+    const LITS = hk.floor?.lit ?? LIT, DK = hk.floor?.dark ?? DANCE_DARK;
     const q = (xa: number, xb: number, e0: number, e1: number): P[] => [at(eye, xa, GY, e0), at(eye, xb, GY, e0), at(eye, xb, GY, e1), at(eye, xa, GY, e1)];
     for (let r = 0; r < rows; r++) {
       const d0 = WALL_D + (1 - WALL_D) * (r / rows), d1 = WALL_D + (1 - WALL_D) * ((r + 1) / rows), k = (rows - 1 - r) * 0.1, dd = d1 - d0;
@@ -822,7 +839,7 @@ export const drawBallroomArt = (c: Ctx, state: GameState, look: BallLook) => {
           toBatch(rp[3], q(x + 1, x + 49, d0 + dd * 0.02, d0 + dd * 0.1));
         } else {
           const lit = (n + r * 3 + Math.floor(f / 30)) % 5 === 0;
-          const col = mixFor(lit ? LIT[(n + r) % 4] : (n + r) % 2 ? '#2E1065' : '#4C1D95', k + (lit ? 0.12 : 0)), rp = rampFor(col);
+          const col = mixFor(lit ? LITS[(n + r) % 4] : (n + r) % 2 ? DK[0] : DK[1], k + (lit ? 0.12 : 0)), rp = rampFor(col);
           toBatch(rp[1], q(x, x + 50, d0, d1));
           toBatch(col, q(x + 3, x + 47, d0 + dd * 0.1, d1 - dd * 0.06));
           toBatch(rp[3], q(x + 3, x + 47, d0 + dd * 0.1, d0 + dd * 0.2));
@@ -839,7 +856,7 @@ export const drawBallroomArt = (c: Ctx, state: GameState, look: BallLook) => {
     for (let x = Math.floor(s0 / 50) * 50; x < s1; x += 50) {
       const n = Math.floor(x / 50), foyer = x < END_L;
       const lit = !foyer && (n + 9 + Math.floor(f / 30)) % 5 === 0;
-      const col = foyer ? (n % 2 ? '#78350F' : '#8A4A1C') : lit ? LIT[(n + 3) % 4] : n % 2 ? '#2E1065' : '#4C1D95';
+      const col = foyer ? (n % 2 ? '#78350F' : '#8A4A1C') : lit ? LITS[(n + 3) % 4] : n % 2 ? DK[0] : DK[1];
       const r = rampFor(col);
       box(c, x, GY, 50, 400, r[1]); box(c, x, GY + 14, 50, 400, r[0]); checker(c, x, GY + 12, 50, 2, r[0]);
       box(c, x, GY, 50, 2, r[4]); box(c, x, GY + 2, 50, 2, r[3]); box(c, x + 49, GY, 1, 400, '#14061F');
@@ -875,11 +892,12 @@ export const drawBallroomArt = (c: Ctx, state: GameState, look: BallLook) => {
   for (const ch of CHANDELIERS) {
     const top = GY - ch.h;
     c.save(); c.translate(ch.x, 0);
-    stamp(c, 'ball-chandelier', -4, CEIL - 2, ch.w + 8, top - CEIL + 82, g => paintChandelier(g, 0, top, ch.w));
+    const hoop = hk.chandelier;
+    stamp(c, hoop ? 'ball-chandelier-rf' : 'ball-chandelier', -4, CEIL - 2, ch.w + 8, top - CEIL + 82, g => (hoop ?? paintChandelier)(g, 0, top, ch.w));
     c.restore();
     const ps = prismsOf(ch.w);
     for (let i = 0; i < ps.length; i++) {
-      if ((i * 5 + Math.floor(f / 7)) % 6) continue;
+      if (hoop || (i * 5 + Math.floor(f / 7)) % 6) continue;
       const gx = Math.round(ch.x + ps[i][0]), gy = top + ps[i][1] + 3;
       box(c, gx - 1, gy - 2, 1, 5, '#FFFFFF'); box(c, gx - 3, gy, 5, 1, '#FFFFFF');
     }

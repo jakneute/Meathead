@@ -16,7 +16,7 @@ import type { GameState } from '../../../../m1/game/core/state';
 import type { RefightDef } from '../defs';
 import { spookyLayout } from '../../../spooky/index';
 import { GY } from '../../../spooky/geometry';
-import { ARENA_L, RISER, CHANDELIERS } from '../../../spooky/ballroom/arena';
+import { ARENA_L } from '../../../spooky/ballroom/arena';
 import * as B from '../../../spooky/ballroom/lines';
 import { speak, saidOver } from '../../../adventure/section';
 import { pickLine } from '../../../../m1/game/platform/speech';
@@ -24,7 +24,7 @@ import { isShat, isNude } from '../../../../m1/game/player/gut';
 import { bossDeath } from '../../../store';
 import { refightOn } from '../hook';
 import { drawNed } from '../nedArt';
-import { drawHellProps } from '../hell';
+import { spookyPlace, installSpookyPlace } from '../place/spooky';
 import { refightId, refightStage } from '../where';
 import * as L from '../lines/spooky';
 import { NED_VOICE } from '../lines/ned';
@@ -135,17 +135,9 @@ export const spookyRefight: RefightDef = {
     [B.SATAN_LOW, L.RF_SATAN_LOW], [B.SATAN_STUCK, L.RF_SATAN_STUCK], [B.SATAN_CLAIM, L.RF_SATAN_CLAIM],
     [B.GUEST_SCREAM, L.RF_DAMNED_SCREAM],
   ],
-  // (the props: drawn here (drawBack), not by the wrapper, so the chandeliers (stood on) stay in front of them)
+  // (the place: hell's cheap recreation of the ballroom (place/spooky.ts), in through the land's own art at its depths)
   arena: () => null,
-  drawBack: (c, state) => {
-    // (the dance floor, the gate to the stage wall; kept off the bandstand's riser (stood on) at the far end, and cut out
-    // round the two chandeliers: the rock's behind them, not over them)
-    c.save(); c.beginPath(); c.rect(ARENA_L - 400, GY - 600, 1800, 640);
-    for (const ch of CHANDELIERS) c.rect(ch.x + ch.w + 14, GY - ch.h - 48, -(ch.w + 28), 104);
-    c.clip('evenodd');
-    drawHellProps(c, state, 'GLUTTONY', { l: ARENA_L, r: RISER.x - 130, floor: GY });
-    c.restore();
-  },
+  place: spookyPlace,
   bossAt,
   stitches: look => look === 'weakness'
     // (out of the ash: ashy-gray patches where he'd crumbled most (face, chest, a thigh), dark thread, gravy for glue)
@@ -154,5 +146,5 @@ export const spookyRefight: RefightDef = {
     : { thread: '#F5F5F4', patch: '#7F1D1D', seams: [[0.02, 0.62, 0.3, 0.8], [0.02, 0.8, 0.3, 0.62], [0.32, 0.12, 0.8, 0.17]], staples: [[0.44, 0.14], [0.66, 0.16], [0.55, 0.4]], stain: { col: '#5C3A12', k: 0.18 } },
   update,
   drawFront: (c, state) => { drawLook(c, state); drawPortal(c, state.frame); },
-  build: () => { lastSatan = null; nedSaid = null; nedOpen = 0; nedShut = 99; },
+  build: () => { installSpookyPlace(); lastSatan = null; nedSaid = null; nedOpen = 0; nedShut = 99; },
 };
