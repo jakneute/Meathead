@@ -61,6 +61,14 @@ export const startEnd = (f: Fight2): EndScene => ({
 });
 /** The beer man punched: up and over his cart, down in a heap on the walkway past it (he stays there, complaining). */
 const fly = (s: EndScene) => { if (s.dvx === 0 && s.dvy === 0) return; s.dvy += 0.45; s.dx += s.dvx; s.dy += s.dvy; if (s.dy >= BANK_TOP && s.dvy > 0) { s.dy = BANK_TOP; s.dvx = 0; s.dvy = 0; } };
+/** The two of them running for the back: hobbling, slower the nearer the way out (never stood waiting for him: the
+ *  owner's). Returns the son's pace this frame. */
+const flee = (s: EndScene): number => {
+  const run = (x: number, lim: number, top: number) => Math.min(lim, x + Math.max(0.5, Math.min(top, (lim - x) * 0.012)));
+  const was = s.sonX;
+  s.sonX = run(s.sonX, GROTTO.R - 150, 2.2); s.broX = run(s.broX, GROTTO.R - 50, 2.5);
+  return s.sonX - was;
+};
 let token = 0;
 const demonSays = (s: EndScene, text: string, onDone: () => void) => { const tok = ++token; speak(L.BEER_VOICE, text, x => { if (tok === token) s.said = x?.text ?? null; }, true, () => { if (tok === token) onDone(); }); };
 const sit = (state: GameState, s: EndScene) => {
@@ -94,19 +102,23 @@ export const updateEnd = (ctx: FrameContext, s: EndScene, f: Fight2, opened: () 
   state.cameraOverride = { x: camX, y: GY - 470 };
   switch (s.step) {
     case 'rise':
-      // (up off their knees, running for the back (it's opened: the rock rolled aside), each his line)
+      // (the owner: "the second endgame boss just kinda stand there because they are talking too long, allowing meathead
+      // to come up on them ... time it so it seems like he is catching up to them": one short line between them (the
+      // son's), said as they scramble up and run; they never stop running; his line as he goes after them)
       if (t === 1) { opened(); playSound('rumble', 0.8, -10); foeSays(f.son, pickLine(byPants(state, L.SON_ESCAPE)), () => { s.talk = 1; }); }
-      if (s.talk === 1) { s.talk = 2; if (f.bro) foeSays(f.bro, pickLine(byPants(state, L.BRO_ESCAPE)), () => { s.talk = 3; }); else s.talk = 3; }
-      if (t > 40) { s.sonX = Math.min(s.sonX + 2.4, GROTTO.R - 150); s.broX = Math.min(s.broX + 2.8, GROTTO.R - 50); }
-      if (s.talk === 3 || t > 500) { s.step = 'chase'; s.t = 0; s.talk = 0; }
+      if (t > 20) flee(s);
+      if (s.talk === 1 || t > 300) { s.step = 'chase'; s.t = 0; s.talk = 0; }
       break;
-    case 'chase':
-      // (his line; he's after them, and on them)
-      if (t === 1) meatheadSays(state, pickLine(byPants(state, L.MH_STOP)), true, () => { s.talk = 1; });
-      s.sonX = Math.min(s.sonX + 1.6, GROTTO.R - 130); s.broX = Math.min(s.broX + 1.8, GROTTO.R - 50);
-      p.facing = 1; p.vel.x = cx < s.sonX - 50 ? 6.5 : 0;
-      if ((s.talk === 1 && cx >= s.sonX - 60) || t > 600) { s.step = 'brawl'; s.t = 0; s.talk = 0; p.vel.x = 0; p.pos.x = s.sonX - 50 - p.width / 2; foeSays(f.son, pickLine(byPants(state, L.SON_DEATH)), () => { s.talk = 1; }); }
+    case 'chase': {
+      // (after them, his line on the run: paced to be on them as it ends (its length guessed off its letters); early,
+      // he's on their heels, still running, till it's said; then the lunge)
+      if (t === 1) { const line = pickLine(byPants(state, L.MH_STOP)); s.speed = Math.max(2.6, Math.min(7, (s.sonX - 60 - cx) / (24 + line.length * 3.6))); meatheadSays(state, line, true, () => { s.talk = 1; }); }
+      const sv = flee(s), gap = s.sonX - 60 - cx;
+      p.facing = 1;
+      p.vel.x = gap <= 0 ? 0 : s.talk === 1 ? 8 : gap < 70 ? sv : s.speed;
+      if ((s.talk === 1 && gap <= 0) || t > 600) { s.step = 'brawl'; s.t = 0; s.talk = 0; s.speed = 0; p.vel.x = 0; p.pos.x = s.sonX - 50 - p.width / 2; foeSays(f.son, pickLine(byPants(state, L.SON_DEATH)), () => { s.talk = 1; }); }
       break;
+    }
     case 'brawl':
       // (the brawl cloud: crunching, limbs out of it, the screams; the son's last line out of the middle of it)
       p.vel.x = 0; p.holstered = true; p.hidden = true;
@@ -369,7 +381,7 @@ const paintCart = (g: Ctx) => {
 export const drawEnd = (c: Ctx, state: GameState, s: EndScene, f: Fight2) => {
   const fr = state.frame, p = state.player;
   if (s.step === 'rise' || s.step === 'chase') {
-    const up = s.step === 'chase' || s.t > 40, runS = up && s.sonX < GROTTO.R - 151, runB = up && s.broX < GROTTO.R - 51;
+    const up = s.step === 'chase' || s.t > 20, runS = up && s.sonX < GROTTO.R - 151, runB = up && s.broX < GROTTO.R - 51;
     drawSon(c, s.sonX, GY, 1, { pose: up ? (runS ? 'walk' : 'idle') : 'kneel', q: Math.floor(fr / 5) % 8, mouth: !!f.son.said }, fr);
     if (f.son.said) saidOver(c, f.son.said, s.sonX, GY - 180, '#D8B4FE', 260);
     if (f.bro) { c.save(); c.translate(Math.round(s.broX), GY); drawPunkAs(c, { st: up ? 'walk' : 'beaten', t: s.t, vx: runB ? 2.8 : 0, facing: 1, said: f.bro.said ? { text: f.bro.said } : null }, fr); c.restore(); if (f.bro.said) saidOver(c, f.bro.said, s.broX, GY - 200, '#FDBA74', 260); }

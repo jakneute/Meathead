@@ -71,9 +71,10 @@ export const updateDescent = (ctx: FrameContext, d: Descent, onSplash: () => voi
       p.carried = true; p.pos.x = x - p.width / 2; p.pos.y = y - p.height; p.vel.x = 0; p.vel.y = 0;
       if (k >= 1) {
         d.step = 'ride'; d.t = 0; p.logSeat = true; playSound('splat', 0.8, -4); playSound('splash', 0.9, -6);
-        // (the owner's: the funny line about riding the kid down, said up top as they go (it waits its turn behind the
-        // one at the mouth); the VICTORY after it, timed to the bottom)
-        meatheadSays(state, pickLine(byPants(state, L.MH_SPLASH)), true, () => { d.lineDone = true; });
+        // (the owner's: "the talking when beating endgame boss 1 is too long. i want it to be short and punchy and i
+        // want the victory callout to happen during the slide down": his one short line was at the mouth; nothing said
+        // on the way down, the VICTORY over the ride)
+        d.lineDone = true;
       }
       return hands();
     }

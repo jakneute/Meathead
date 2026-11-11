@@ -757,7 +757,6 @@ const updateDying = (ctx: FrameContext, f: Fight): Controls => {
       if (k >= 1) {
         d.step = 'flop'; d.t = 0; playSound('splash', 1, -8); playSound('splat', 0.9, -6); shakeScreen(state, 10, 4);
         for (let i = 0; i < 26; i++) state.particles.push({ pos: { x: MOUTH_AT.x, y: GY - 6 }, vel: { x: (Math.random() - 0.5) * 7, y: -2 - Math.random() * 6 }, life: 34, color: i % 3 ? '#7DD3FC' : '#3FA34D', size: 2 + Math.random() * 3 });
-        meatheadSays(state, pick(byPants(state, L.MH_POP)), true);
       }
       break;
     }
