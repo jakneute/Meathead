@@ -4,6 +4,7 @@
 import type { StageLayout } from '../../../m1/game/stages/index';
 import type { RefightDef } from './defs';
 import { refightLayout } from './refight';
+import './looks';
 import { adventureRefight } from './rf/adventure';
 import { spookyRefight } from './rf/spooky';
 import { spaceRefight } from './rf/space';

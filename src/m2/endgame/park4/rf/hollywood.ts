@@ -167,15 +167,6 @@ const ashFlakes = (c: Ctx, x: number, feet: number, fr: number) => {
     c.fillStyle = k % 2 ? '#57534E' : '#A8A29E'; c.fillRect(Math.round(fx), Math.round(fy), 2, 2);
   }
 };
-/** Glue run out of his seams (struck to ash, glued back), dried in yellow drips. */
-const glue = (c: Ctx, x: number, feet: number, face: number) => {
-  for (const [fx, fy, len] of [[-6, 0.24, 7], [8, 0.27, 5], [-2, 0.5, 9], [5, 0.62, 6], [-9, 0.78, 5]] as const) {
-    const gx = x + fx * face, gy = feet - STEVE_H + STEVE_H * fy;
-    c.fillStyle = '#7A5A10'; c.fillRect(Math.round(gx) - 1, Math.round(gy), 3, len + 1);
-    c.fillStyle = '#FDE68A'; c.fillRect(Math.round(gx), Math.round(gy), 1, len); c.fillRect(Math.round(gx) - 1, Math.round(gy + len - 1), 3, 2);
-  }
-};
-
 export const hollywoodRefight: RefightDef = {
   land: 'hollywood', id: refightId('hollywood'), stage: refightStage('hollywood'),
   boss: 'STUNTMAN STEVE', sin: 'ENVY',
@@ -208,11 +199,10 @@ export const hollywoodRefight: RefightDef = {
     // where it hit, the spine seamed where it folded)
     : { thread: '#F5F5F4', patch: '#7F1D1D', seams: [[0.28, 0.215, 0.78, 0.225], [0.38, 0.03, 0.66, 0.05], [0.42, 0.3, 0.4, 0.62]], staples: [[0.3, 0.215], [0.76, 0.225], [0.52, 0.04], [0.41, 0.46]] },
   drawFront: (c, state) => {
-    // (the look's own touches over the stitches: the glue and the ash for STRUCK TO ASH)
+    // (STRUCK TO ASH: ash still coming off him (the glue and the patches are on his figure: park4/looks.ts))
     if ((refightOn()?.look ?? hollywoodRefight.lookNow()) !== 'weakness') return;
     const at = hollywoodRefight.bossAt!(state);
     if (!at) return;
-    glue(c, at.x, at.feet, at.face);
     ashFlakes(c, at.x, at.feet, state.frame);
   },
   build: (_state, fresh) => { flingDue = fresh; },

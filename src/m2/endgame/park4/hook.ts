@@ -62,3 +62,18 @@ let won: ((weakness: boolean) => void) | null = null;
 export const setRefightWon = (fn: ((weakness: boolean) => void) | null) => { won = fn; };
 /** (walkAway.ts playWalkAway) A boss beaten: in a refight, it's handled here (true: no walk-away). */
 export const refightBeaten = (weakness: boolean) => { if (!live() || !won) return false; const fn = won; won = null; fn(weakness); return true; };
+
+// ---------------------------------------------------------------------------------------------------------------
+// Stitched up the way he died, on his own figure (park4/looks.ts sets it): each boss's own draw code calls stitchOver
+// right after it draws a part (his body, his head), in that part's own frame, so the seams move with him; a no-op
+// outside a refight.
+
+export type StitchPart = 'body' | 'head';
+let stitchFn: ((c: CanvasRenderingContext2D, who: string, part: StitchPart, look: string) => void) | null = null;
+export const setStitch = (fn: typeof stitchFn) => { stitchFn = fn; };
+/** (each land's boss art) His part just drawn, in its frame: the refight's look over it. */
+export const stitchOver = (c: CanvasRenderingContext2D, who: string, part: StitchPart) => {
+  const on = live();
+  if (!on || !stitchFn || on.land !== who) return;
+  stitchFn(c, who, part, on.look);
+};

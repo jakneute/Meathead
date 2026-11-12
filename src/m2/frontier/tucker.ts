@@ -25,6 +25,7 @@
 //
 // drawTucker(c, x, feetY, facing, frame, pose, opts): world (or screen) point of his feet, facing 1 right / -1 left.
 
+import { stitchOver } from '../endgame/park4/hook';
 import { type Ctx } from '../cast/kit';
 import { drawGrossBody, drawGrossHead, drawGoreGap, drawGoreMaking, grossCloseupsOn, splitStep } from './tuckerCloseGross';
 
@@ -240,6 +241,7 @@ export const drawTucker = (c: Ctx, x: number, feetY: number, facing: number, fra
   drawArm(c, far, false, pose, f);
   drawBody(c, pose, f);
   drawWounds(c, wounds, 'body', f, false, !!opts.onBranch);
+  stitchOver(c, 'frontier', 'body');
   // ---- the head, on his neck
   const hy = pose === 'sit' ? -71 + Math.sin(f * 0.1) * 1.2 : pose === 'hurt' ? -70 : pose === 'impaled' ? -70 : pose === 'clutch' ? -70.5 : -72;
   const hx = pose === 'sit' ? Math.sin(f * 0.1) * 2 : pose === 'hurt' ? -2 : pose === 'run' ? 1.5 : pose === 'impaled' ? 2.5 : pose === 'grope' ? 1.5 : pose === 'clutch' ? 2.5 : 0.5;
@@ -248,6 +250,7 @@ export const drawTucker = (c: Ctx, x: number, feetY: number, facing: number, fra
   if (!opts.headless) {
     c.save(); c.translate(hx, hy); c.rotate(nod); c.scale(HS, HS);
     drawHead(c, face, f, !!opts.talking, opts.capless || pose === 'sit' || pose === 'flat', pose === 'furious' || face === 'yell', wounds);
+    stitchOver(c, 'frontier', 'head');
     c.restore();
   }
   // (the flintlock: behind the near hand's fist in the aim and the cock; up in the far hand for the reload, the rod down

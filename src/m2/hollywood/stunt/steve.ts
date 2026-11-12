@@ -30,6 +30,7 @@
 // head (drawn the right way up: the fight turns him over), 'heap' where he came down. Their elbows and knees from
 // art/limb.ts.
 
+import { stitchOver } from '../../endgame/park4/hook';
 import { type Ctx } from '../../cast/kit';
 import { smear, drip, cut, bloodFresh, bloodDark } from '../../../m1/game/render/player/gore';
 import { elbow, knee, reachTo } from '../../art/limb';
@@ -408,11 +409,12 @@ const figure = (c: Ctx, R: Rig, pose: StevePose, f: number, d: number, L: SteveL
   c.translate(0, HIP_Y); c.rotate(R.lean); c.translate(0, -HIP_Y);
   drawArm(c, R.far, false, R.fk, d, f);
   drawBody(c, f, d, L, bare);
+  stitchOver(c, 'hollywood', 'body');
   const late = R.near.hy < -72;
   if (!late) drawArm(c, R.near, true, R.nk, d, f);
   const [hdx, hdy, nod] = R.head, bo = R.braceOff ?? [0, 0];
   if (!L.noBrace) { c.save(); c.translate(bo[0], bo[1]); drawBrace(c, d, f); c.restore(); }
-  c.save(); c.translate(HEAD_X + hdx, HEAD_Y + hdy); c.rotate(nod); drawHead(c, R.mood, f, d, L, pose); c.restore();
+  c.save(); c.translate(HEAD_X + hdx, HEAD_Y + hdy); c.rotate(nod); drawHead(c, R.mood, f, d, L, pose); stitchOver(c, 'hollywood', 'head'); c.restore();
   if (late) drawArm(c, R.near, true, R.nk, d, f);
   if (pose === 'sidestep' && L.back) crick(c, f);
   c.restore();

@@ -8,6 +8,9 @@ import { drawNedGross, drawNedGrossBack } from './nedGross';
 import { paintSkel, paintDog, drawSkel, paintDeadHand, drawDeadHand, type SkelPose } from './skelArt';
 import { drawStitches } from './hell';
 import { REFIGHTS } from './refights';
+import { setRefightOn } from './hook';
+import { drawSteve } from '../../hollywood/stunt/steve';
+import { drawTucker } from '../../frontier/tucker';
 
 const sheet = (cols: number, rows: number, cw: number, ch: number, scale: number, cell: (g: CanvasRenderingContext2D, i: number) => string | void) => {
   const cv = document.createElement('canvas');
@@ -59,6 +62,22 @@ export const contactSheet4 = (what: string): string => {
       const it = list[i - 10]; if (!it) return;
       g.translate(45, 100); paintSkel(g, it[0], it[1], i - 10 < 6 ? 2 : 6, true, i - 10 < 6);
       return `${it[0]} ${it[1]}${i - 10 < 6 ? ' party' : ' real q6'}`;
+    });
+  }
+  if (what === 'looks') {
+    // (every refight boss in every look, a few poses each, on his own figure: the look forced on as if in the refight)
+    const rows: { land: string; look: string; draw: (g: CanvasRenderingContext2D, k: number) => void }[] = [];
+    const add = (land: string, looks: string[], draw: (g: CanvasRenderingContext2D, k: number) => void) => { for (const look of looks) rows.push({ land, look, draw }); };
+    add('hollywood', ['normal', 'weakness'], (g, k) => drawSteve(g, 0, 0, k % 2 ? -1 : 1, (['idle', 'flail', 'hurt', 'angry'] as const)[k], 10, {}));
+    add('frontier', ['normal', 'weakness'], (g, k) => drawTucker(g, 0, 0, k % 2 ? -1 : 1, 10, (['stand', 'aim', 'hurt', 'reload'] as const)[k], { wounds: { eye: true } }));
+    const cols = 4, cw = 130, ch = 170;
+    return sheet(cols, rows.length, cw, ch, 2, (g, i) => {
+      const r = rows[Math.floor(i / cols)], k = i % cols;
+      if (!r) return;
+      setRefightOn({ land: r.land as never, look: r.look });
+      g.translate(cw / 2, ch - 12); r.draw(g, k);
+      setRefightOn(null);
+      return k === 0 ? `${r.land} ${r.look}` : undefined;
     });
   }
   if (what === 'stitch') {
