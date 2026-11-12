@@ -691,11 +691,31 @@ const drawFloor = (c: Ctx, v: View) => {
 /** The lot: sky, hills, the jungle round the loop, its floor (the path's far side on it), the temple, back to front.
  *  `extra`: something else stood out there (Artie's blind, tower.ts), put in order with the rest; or, coming round
  *  onto the strip, over the lot. */
+/** Ned's boss rush (endgame/park4/rf/adventure.ts sets these; each a no-op outside the refight): the sky and the far off
+ *  some other way, out to the horizon (`hy`), turned to `phi` (true: drawn: the land's sky, sun, clouds, peaks, hills
+ *  and the park out past them not); the ridge's and the canopy's colors (fill, crest, then the bands down). */
+export const ORBIT_HOOKS: { sky?: (c: Ctx, hy: number, phi: number, state: GameState) => boolean; pal?: () => { ridge: string[]; canopy: string[] } | null; after?: (c: Ctx, hy: number, state: GameState) => void } = {};
+
 export const drawOrbitBackdrop = (c: Ctx, state: GameState, templeHit: boolean, extra?: { item: OrbitItem; over: boolean } | null) => {
   const v = viewOf(state);
+  const tod = timeOfDay();
+  const useGl = gpu.ok();
+  const pal = ORBIT_HOOKS.pal?.() ?? null;
+  if (!ORBIT_HOOKS.sky?.(c, Math.max(0, Math.min(v.hy, CANVAS_HEIGHT)), v.phi, state)) drawOrbitSky(c, state, v, tod, useGl);
+  const P = pal ?? { ridge: [farTint('#4A7A5E', 0.7, tod), farTint('#6A9A6E', 0.7, tod), farTint('#3E6C50', 0.7, tod), farTint('#346046', 0.7, tod)], canopy: ['#1B5E2E', '#2E7A3A', '#185428', '#144822', '#103C1C'] };
+  const ridge = bandShape(v, 3000, a => 380 + 120 * Math.sin(5 * a + 2) + 70 * Math.sin(13 * a) + 26 * Math.abs(Math.sin(70 * a)), P.ridge[0], 600, P.ridge[1],
+    [[14, P.ridge[2]], [32, P.ridge[3]]]);
+  // (then the floor over it; and the jungle's canopy round the loop (its far side) over that: its crowns bumping along
+  // the top, lit along the crest, in darker steps going down into the shade under it)
+  const canopy = bandShape(v, PR + 520, a => 330 + 60 * Math.sin(9 * a) + 40 * Math.sin(23 * a + 1) + 22 * Math.abs(Math.sin(61 * a)) + 10 * Math.abs(Math.sin(149 * a + 2)), P.canopy[0], DC - 150, P.canopy[1],
+    [[12, P.canopy[2]], [30, P.canopy[3]], [56, P.canopy[4]]]);
+  if (!(useGl && gpu.draw(c, [ridge], floorEye(v), canopy))) { paintBand(c, ridge); drawFloor(c, v); paintBand(c, canopy); }
+  drawOrbitItems(c, state, v, templeHit, extra);
+  ORBIT_HOOKS.after?.(c, Math.max(0, Math.min(v.hy, CANVAS_HEIGHT)), state);
+};
+const drawOrbitSky = (c: Ctx, state: GameState, v: View, tod: ReturnType<typeof timeOfDay>, useGl: boolean) => {
   // Sky, in bands (no smooth gradient: the old way)
   // (as the hour has it: timeOfDay.ts)
-  const tod = timeOfDay();
   const SKY = skyRamp(['#2A7FC9', '#3A8FD3', '#4C9FDB', '#62AFE0', '#7CBFE4', '#98CEE6', '#B4DCE6'], tod);
   const top = Math.max(0, Math.min(v.hy, CANVAS_HEIGHT));
   for (let i = 0; i < SKY.length; i++) { c.fillStyle = SKY[i]; c.fillRect(0, Math.floor((top * i) / SKY.length), CANVAS_WIDTH, Math.ceil(top / SKY.length) + 1); }
@@ -717,7 +737,6 @@ export const drawOrbitBackdrop = (c: Ctx, state: GameState, templeHit: boolean, 
   // darker and greener, banded darker going down)
   const hzd = (col: string, k: number, far = 1) => mix(farTint(col, far, tod), SKY[SKY.length - 1], k);
   const jagA = (a: number, n: number, seed: number) => { const x = Math.sin(Math.floor(a * n) * 91.7 + seed) * 43758.5; return x - Math.floor(x) - 0.5; };
-  const useGl = gpu.ok();
   primeSprites();
   const peaks = bandShape(v, 5600, a => 1250 + 420 * Math.sin(4 * a + 0.5) + 200 * Math.sin(9 * a + 2) + 90 * Math.sin(23 * a) + 70 * jagA(a, 160, 3), hzd('#7A9AAE', 0.45), 600, hzd('#B8D0DC', 0.45),
     [[10, hzd('#6A889C', 0.45)], [26, hzd('#5E7C90', 0.5)]]);
@@ -726,13 +745,9 @@ export const drawOrbitBackdrop = (c: Ctx, state: GameState, templeHit: boolean, 
   if (!(useGl && gpu.draw(c, [peaks, hills], null, null))) { paintBand(c, peaks); paintBand(c, hills); }
   // (the park out past the hills: the cruise, the dino park, the other lands: far.ts)
   drawParkRing(c, v, state.frame);
-  const ridge = bandShape(v, 3000, a => 380 + 120 * Math.sin(5 * a + 2) + 70 * Math.sin(13 * a) + 26 * Math.abs(Math.sin(70 * a)), farTint('#4A7A5E', 0.7, tod), 600, farTint('#6A9A6E', 0.7, tod),
-    [[14, farTint('#3E6C50', 0.7, tod)], [32, farTint('#346046', 0.7, tod)]]);
-  // (then the floor over it; and the jungle's canopy round the loop (its far side) over that: its crowns bumping along
-  // the top, lit along the crest, in darker steps going down into the shade under it)
-  const canopy = bandShape(v, PR + 520, a => 330 + 60 * Math.sin(9 * a) + 40 * Math.sin(23 * a + 1) + 22 * Math.abs(Math.sin(61 * a)) + 10 * Math.abs(Math.sin(149 * a + 2)), '#1B5E2E', DC - 150, '#2E7A3A',
-    [[12, '#185428'], [30, '#144822'], [56, '#103C1C']]);
-  if (!(useGl && gpu.draw(c, [ridge], floorEye(v), canopy))) { paintBand(c, ridge); drawFloor(c, v); paintBand(c, canopy); }
+};
+const drawOrbitItems = (c: Ctx, state: GameState, v: View, templeHit: boolean, extra?: { item: OrbitItem; over: boolean } | null) => {
+  primeSprites();
   // The trees round about, the temple and its wing, back to front (the near side of the loop is the play strip's)
   const items: OrbitItem[] = [];
   TREES.forEach((p, i) => { const z = depth(v, p.x, p.z); if (z > F + 420) items.push({ foot: [p], y0: 0, y1: 370 + ((i * 37) % 120), z, draw: () => drawTree(c, v, p.x, p.z, i) }); });

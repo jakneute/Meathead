@@ -21,7 +21,7 @@ import { hazardZones } from '../../hazardHit';
 import { makeKindEnemy } from '../../../m1/game/enemies/kinds';
 import { GUIDE_KIND } from '../guides';
 import { lay, solid, speak, meatheadSays, saidOver, hands, sectionState } from '../section';
-import { drawTentFlap, drawPath, drawPathTufts, drawCamp, drawRock, drawHuntSign, drawAidStop, drawTree, drawWing, drawFence, CAMPFIRE, SPEAKER, drawSpeaker, drawUnderstory, drawFogger, drawSpeakerRock, drawParrot, drawSpeakerPole } from './art';
+import { drawTentFlap, drawPath, drawPathTufts, drawCamp, drawRock, drawHuntSign, drawAidStop, drawTree, drawWing, drawFence, CAMPFIRE, SPEAKER, drawSpeaker, drawUnderstory, drawFogger, drawSpeakerRock, drawParrot, drawSpeakerPole, CLEARING_HOOKS } from './art';
 import { GY } from '../geometry';
 import { setStampHold } from '../../../m1/game/render/stamp';
 import { goTo, setUi, markLandCleared, markBossDeath, noteBossKill } from '../../store';
@@ -474,6 +474,7 @@ const drawClearing = (c: CanvasRenderingContext2D, state: GameState) => {
   drawUnderstory(c, Math.max(x0 - 400, v.x - 60), Math.min(TEMPLE_X + 40, v.x + v.w + 60));
   // (the grass creeping in over the path's lip: over the understory's shaded foot)
   drawPathTufts(c, Math.max(x0 - 1200, v.x - 400), Math.min(x1 + 1200, v.x + v.w + 400));
+  CLEARING_HOOKS.back?.(c, state);
   if (vis(x0 + 790, x0 + 1000)) { drawFogger(c, x0 + 812, f); drawSpeakerRock(c, x0 + 890, f); drawParrot(c, x0 + 975, f); }
   for (const [px, ph] of PA_POLES) if (vis(px - 40, px + 40)) drawSpeakerPole(c, px, ph);
   // The junior guides' camp, back off the path

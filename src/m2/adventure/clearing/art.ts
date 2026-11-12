@@ -15,6 +15,7 @@
 //   The fight: the bamboo fence behind him, the five bushes (lush, leaf on leaf, thinning as they're chewed down to
 //     twigs), his vine (twisted, leafy, chewed thin where they've been at it).
 
+import type { GameState } from '../../../m1/game/core/state';
 import { INK, box, checker, mix, hash, pixelBlob, pole, ball, stamp, dim } from '../../intro/art/kit';
 import { STONE, MOSS, PLY, SHELL, DARK, stoneWall, vineDown, plaque, glyph } from '../roof/stone';
 import { GY } from '../geometry';
@@ -316,8 +317,14 @@ const plant = (g: Ctx, x: number, y: number, kind: number, s: number) => {
     if (s > 0.9) { box(g, x - 3, y - 14 * s, 3, 3, dim('#F4F0E8')); box(g, x - 2, y - 13 * s, 1, 1, dim('#F2C21E')); }
   }
 };
+/** Ned's boss rush (endgame/park4/rf/adventure.ts sets these; each a no-op outside the refight): the understory some
+ *  other way (true: drawn, the land's not); more of the place stood along the back, after it (behind everything at
+ *  the play plane: the poles, the blind, the trees, the bushes, the fence). */
+export const CLEARING_HOOKS: { under?: (c: Ctx, L: number, R: number) => boolean; back?: (c: Ctx, state: GameState) => void } = {};
+
 /** The understory from L to R, along the back of the path: painted in chunks, once each. */
 export const drawUnderstory = (c: Ctx, L: number, R: number) => {
+  if (CLEARING_HOOKS.under?.(c, L, R)) return;
   const CH = 400;
   for (let cx = Math.floor(L / CH) * CH; cx < R; cx += CH) {
     stamp(c, `clUnder:${cx}`, cx, GY - 74, CH, 72, g => {
