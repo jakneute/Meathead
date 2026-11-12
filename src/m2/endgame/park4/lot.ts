@@ -47,6 +47,7 @@ import { drawNedGross, drawNedGrossBack, warmNedGross } from './nedGross';
 import { type NedFight, startNed, updateNed, drawNedFight, drawNedHud } from './ned';
 import { markBossFight } from '../../bossQuiet';
 import * as L from './lines/ned';
+import { updateCrash, drawCrash } from '../park3/ride';
 
 type Ctx = CanvasRenderingContext2D;
 type Dressed = 'clean' | 'shitty' | 'nude';
@@ -205,6 +206,8 @@ export const lot4Layout: StageLayout = {
     if (isLeaving()) { stopWeapons(); carryGut(state.player); state.player.vel.x = 0; return { ...NO_CONTROLS }; }
     const lot = lotOf(state);
     if (!lot) return controls;
+    // (in from level 3 on GUPPLAX's corpse: the crash landing first (park3/ride.ts), then on as ever)
+    if (updateCrash(state)) return { ...NO_CONTROLS };
     const p = state.player;
     let cx = p.pos.x + p.width / 2;
     // (round the lap: never runs out of ring; not in Ned's fight, his arena's held still)
@@ -286,7 +289,7 @@ export const lot4Layout: StageLayout = {
     }
     return todLight(lights, 1);
   },
-  drawBack: (c, state) => drawRing(c, state),
+  drawBack: (c, state) => { drawRing(c, state); drawCrash(c, state); },
   drawFront: (c, state) => {
     const lot = lotOf(state);
     if (!lot) return;
