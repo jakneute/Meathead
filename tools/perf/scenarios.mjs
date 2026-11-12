@@ -23,8 +23,8 @@ export const SCENARIOS = [
   // (up and down the spiral between the Hillary step and the death zone: the turning tower, all the way)
   { name: 'wp-stairs', q: 'park=11', keys: [[0, 'down', 'ArrowLeft'], ...Array.from({ length: 12 }, (_, i) => [1500 + i * 2600, 'tap', 'ArrowDown'])] },
   // (its intro marked seen: the retry's short entrance, straight into it. The way up off THE HILLARY STEP is on its
-  // right now (the spiral): right held till he's up and the fight's on, well inside the lead-in, even throttled)
-  { name: 'wp-boss', q: 'park=11', warm: 16, keys: [[0, 'js', 'window.__m2.stageMemo["m2:boss-intro:zorzarblax"] = "1"'], [100, 'down', 'ArrowRight'], [12000, 'up', 'ArrowRight'], [12200, 'js', 'window.dispatchEvent(new MouseEvent("mousedown", { button: 0 }))'], ...Array.from({ length: 14 }, (_, i) => [12600 + i * 1600, 'tap', i % 3 === 2 ? 'Space' : i % 2 ? 'ArrowLeft' : 'ArrowRight'])] },
+  // right now (the spiral): put down at its foot, right held till he's up and the fight's on, inside the lead-in)
+  { name: 'wp-boss', q: 'park=11', warm: 18, keys: [[0, 'js', 'window.__m2.stageMemo["m2:boss-intro:zorzarblax"] = "1"; window.__m2.player.pos.x = 29520'], [100, 'down', 'ArrowRight'], [15000, 'up', 'ArrowRight'], [15200, 'js', 'window.dispatchEvent(new MouseEvent("mousedown", { button: 0 }))'], ...Array.from({ length: 14 }, (_, i) => [15600 + i * 1600, 'tap', i % 3 === 2 ? 'Space' : i % 2 ? 'ArrowLeft' : 'ArrowRight'])] },
   // The water park, level 2 (endgame/park2: THE LAZY RIVER): the meeting at the river's head (the cutscene, the river
   // going up and the fire racing off); hopping right along the burning canopy's vines and jets; stood on a burning log
   // walking it across (the three-log run: imps, a hover alien, the footbridges); stood on the TIKI TOWERS' four-tower
