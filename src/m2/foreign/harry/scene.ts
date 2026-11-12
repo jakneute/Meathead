@@ -589,7 +589,7 @@ export interface SceneState {
 
 /** (Ned's boss rush only: endgame/park4/rf/foreign.ts sets it; it draws nothing outside that refight) On the berm's top,
  *  behind the slab and everybody on it. */
-export const SCENE_HOOKS: { berm?: (c: Ctx, state: GameState) => void } = {};
+export const SCENE_HOOKS: { berm?: (c: Ctx, state: GameState) => void; sign?: () => string[] | null } = {};
 export const drawScene = (c: Ctx, state: GameState, S: SceneState) => {
   const v = viewIn(state), f = state.frame;
   pavilion(c, state);
@@ -603,7 +603,7 @@ export const drawScene = (c: Ctx, state: GameState, S: SceneState) => {
   if (onScreen(v, X(SIGN_X) - 180, X(SIGN_X) + 180)) {
     gloryPole(c, X(SIGN_X) - 128, GY, 190, f);
     gloryPole(c, X(SIGN_X) + 128, GY, 190, f + 40);
-    postBoard(c, X(SIGN_X), GY, ['AMERICA', 'THE ONLY COUNTRY', 'COMING SOON'], LOOKS.land(2), '#1E3A8A', undefined, 140);
+    postBoard(c, X(SIGN_X), GY, SCENE_HOOKS.sign?.() ?? ['AMERICA', 'THE ONLY COUNTRY', 'COMING SOON'], LOOKS.land(2), '#1E3A8A', undefined, 140);
   }
   if (onScreen(v, VIEW_X - 60, VIEW_X + 860)) {
     tower(c, ARENA_L - WALL_W, -1, S.gate, f);

@@ -24,11 +24,12 @@ import { keptForRevisits } from '../../../store';
 import { MEMO_CRUMBLED, MEMO_DEATH, type Fight } from '../../../foreign/harry/fight';
 import { LIB_HOOKS, gunLine, type LibLook } from '../../../foreign/harry/liberty';
 import { SCENE_HOOKS } from '../../../foreign/harry/scene';
-import { LIB, VIEW_X, BERM_Y, sy } from '../../../foreign/harry/arena';
+import { LIB, sy } from '../../../foreign/harry/arena';
 import * as H from '../../../foreign/harry/lines';
 import { stamp } from '../../../../m1/game/render/stamp';
 import { inRefight, refightOn } from '../hook';
 import { refightId, refightStage } from '../where';
+import { foreignPlace, drawForeignBerm, FOREIGN_SIGN } from '../place/foreign';
 import * as L from '../lines/foreign';
 
 type Ctx = CanvasRenderingContext2D;
@@ -155,51 +156,11 @@ LIB_HOOKS.over = (c: Ctx, Lk: LibLook) => {
 };
 
 // ---------------------------------------------------------------------------------------------------------------
-// The hell along the berm's top (low: behind the slab, under her)
+// His place: HELL'S AMERICA PAVILION (park4/place/foreign.ts): along the berm's top (behind the slab, under her), and
+// the pavilion's sign reworded
 
-const paintBerm = (g: Ctx) => {
-  const y = BERM_Y, x0 = VIEW_X;
-  // (bones and skulls along it)
-  for (let i = 0; i < 12; i++) {
-    const x = x0 + 50 + i * 62 + (i * 29) % 20;
-    g.save(); g.translate(x, y - 2); g.rotate((i * 0.9) % 3);
-    g.fillStyle = INK; g.fillRect(-9, -3, 18, 6); g.fillStyle = '#C8B89A'; g.fillRect(-8, -2, 16, 4); g.fillRect(-10, -3, 4, 6); g.fillRect(6, -3, 4, 6);
-    g.restore();
-  }
-  for (const [x, s] of [[x0 + 120, 1], [x0 + 470, 0.8], [x0 + 690, 1.1]] as const) {
-    g.fillStyle = INK; g.beginPath(); g.arc(x, y - 9 * s, 9.4 * s, 0, Math.PI * 2); g.fill(); g.fillRect(x - 6 * s, y - 5 * s, 12 * s, 7 * s);
-    g.fillStyle = '#D8CCB0'; g.beginPath(); g.arc(x, y - 9 * s, 8 * s, 0, Math.PI * 2); g.fill(); g.fillRect(x - 5 * s, y - 4 * s, 10 * s, 6 * s);
-    g.fillStyle = '#2A0A0A'; g.fillRect(x - 5 * s, y - 11 * s, 3 * s, 3 * s); g.fillRect(x + 2 * s, y - 11 * s, 3 * s, 3 * s);
-    // (shot through: his wrath took it out on the dead too)
-    g.fillRect(x - 1, y - 16 * s, 2, 2);
-  }
-  // (a TV, kicked in, shot full of holes)
-  const tx = x0 + 250;
-  g.fillStyle = INK; g.fillRect(tx - 18, y - 30, 36, 30); g.fillStyle = '#3A3A40'; g.fillRect(tx - 17, y - 29, 34, 28); g.fillStyle = '#4A5A6A'; g.fillRect(tx - 13, y - 25, 24, 18);
-  g.strokeStyle = '#E8F0FF'; g.lineWidth = 1; g.beginPath(); g.moveTo(tx - 10, y - 22); g.lineTo(tx, y - 14); g.lineTo(tx - 6, y - 9); g.moveTo(tx, y - 14); g.lineTo(tx + 8, y - 20); g.stroke();
-  g.fillStyle = INK; for (const [dx, dy] of [[-8, -18], [4, -12], [8, -24], [-14, -6]]) g.fillRect(tx + dx, y + dy, 3, 3);
-  // (a mailbox, US Mail, more holes than mailbox)
-  const mx = x0 + 560;
-  g.fillStyle = INK; g.fillRect(mx - 2, y - 28, 5, 28); g.fillRect(mx - 12, y - 42, 24, 16);
-  g.fillStyle = '#5A3A1A'; g.fillRect(mx - 1, y - 27, 3, 27); g.fillStyle = '#1E40AF'; g.fillRect(mx - 11, y - 41, 22, 14); g.fillStyle = '#3B5FD0'; g.fillRect(mx - 11, y - 41, 22, 3);
-  g.fillStyle = INK; for (const [dx, dy] of [[-7, -36], [-2, -32], [4, -38], [7, -31], [0, -36]]) g.fillRect(mx + dx, y + dy, 2, 2);
-  // (burning barrels)
-  for (const bx of [x0 + 180, x0 + 400, x0 + 640]) {
-    g.fillStyle = INK; g.fillRect(bx - 11, y - 28, 22, 28); g.fillStyle = '#4A3A2A'; g.fillRect(bx - 10, y - 27, 20, 27); g.fillStyle = '#6A5A3A'; g.fillRect(bx - 10, y - 20, 20, 2); g.fillRect(bx - 10, y - 8, 20, 2);
-  }
-};
-SCENE_HOOKS.berm = (c, state) => {
-  if (!on()) return;
-  c.save(); c.globalAlpha = 0.8;
-  stamp(c, 'rf-harry-berm', VIEW_X, BERM_Y - 60, 800, 64, paintBerm);
-  c.restore();
-  // (the barrels' fire, live: stepped tongues)
-  const f = state.frame;
-  for (const [i, bx] of [VIEW_X + 180, VIEW_X + 400, VIEW_X + 640].entries()) for (let k = 0; k < 3; k++) {
-    const h = 12 + ((f >> 2) + k * 3 + i) % 4 * 4, x = bx - 8 + k * 6;
-    c.fillStyle = k === 1 ? '#FDE047' : '#F97316'; c.fillRect(x, BERM_Y - 28 - h, 5, h);
-  }
-};
+SCENE_HOOKS.berm = (c, state) => { if (on()) drawForeignBerm(c, state); };
+SCENE_HOOKS.sign = () => (on() ? FOREIGN_SIGN : null);
 
 // ---------------------------------------------------------------------------------------------------------------
 // Him
@@ -229,6 +190,7 @@ export const foreignRefight: RefightDef = {
   ],
   // (the hell's low props go along the berm from the scene's own hook (SCENE_HOOKS.berm): the generic ones, drawn after
   // the land's whole back, would stand over her and him, both drawn in it)
+  place: foreignPlace,
   arena: () => null,
   bossAt: (state) => {
     const f = fightOf(state);
