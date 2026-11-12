@@ -133,10 +133,14 @@ export const drawFlown = (c: Ctx, rx: number, n: number, bar: number) => {
 };
 
 /** The banner hung off the shell on chains (DAD GUY LIVE!), the APPLAUSE box under it (lit with the laughs). */
+/** Ned's boss rush (endgame/park4/rf/cartoon.ts sets these; each a no-op outside the refight): the banner's small line
+ *  some other one; more hung off the shell, after the banner. */
+export const STAGE_HOOKS: { bannerSub?: () => string | null; shell?: (c: Ctx, f: number, bx: number, by: number) => void } = {};
 export const drawBanner = (c: Ctx, f: number, applause: boolean) => {
   const mid = (SET.a + SET.b) / 2, bx = X(mid), by = STAGE_Y - 300, S = NR(STEEL);
   for (const s of [-1, 1]) for (let y = STAGE_Y - shellH(mid + s * 160) + 8; y < by + 2; y += 6) { box(c, bx + s * 160 - 1, y, 3, 4, S[1]); box(c, bx + s * 160, y + 1, 1, 2, S[4]); }
-  stamp(c, key(`banner2${goneKey()}`), bx - 196, by - 8, 392, 92, g => {
+  const sub = STAGE_HOOKS.bannerSub?.() ?? null;
+  stamp(c, key(`banner2${goneKey()}${sub ? '-rf' : ''}`), bx - 196, by - 8, 392, 92, g => {
     const R = NR(RED), w = 364, h = 72, l = bx - w / 2;
     const sheet = () => { g.beginPath(); g.moveTo(l, by); g.lineTo(l + w, by); g.lineTo(l + w, by + h - 10); g.lineTo(l + w - 14, by + h - 2); g.lineTo(l + w - 22, by + h + 6); g.lineTo(l + w - 30, by + h); g.quadraticCurveTo(bx, by + h + 6, l, by + h); g.closePath(); };
     g.fillStyle = INK; g.save(); g.translate(0, 0); sheet(); g.lineWidth = 4; g.strokeStyle = INK; g.stroke(); g.restore();
@@ -150,7 +154,7 @@ export const drawBanner = (c: Ctx, f: number, applause: boolean) => {
     for (const gx of [l + 8, l + w - 8, bx]) { box(g, gx - 3, by + 3, 6, 6, INK); box(g, gx - 2, by + 4, 4, 4, NR(BRASS)[4]); box(g, gx - 1, by + 5, 2, 2, INK); }
     signText(g, 'DAD GUY', bx - 40, by + 44, SHOWL(3));
     signText(g, 'LIVE!', bx + 120, by + 44, { sx: 3, sy: 3, bold: true, slant: 1, fill: ['#FFFFFF', '#FDE68A'], dither: true, ink: INK, shadow: '#3B0764', drop: 2 });
-    signText(g, 'PRESENTED BY SWILL LITE', bx, by + 62, tiny(mix('#FDE68A', R[3], 0.3)));
+    signText(g, sub ?? 'PRESENTED BY SWILL LITE', bx, by + 62, tiny(mix('#FDE68A', R[3], 0.3)));
     // (he's dead on this save: a CANCELED bill pasted across it)
     if (dadGone()) { g.save(); sheet(); g.clip(); canceledSlap(g, bx, by + 34, w + 60, 3, -0.12); g.restore(); }
   });
@@ -164,6 +168,7 @@ export const drawBanner = (c: Ctx, f: number, applause: boolean) => {
   if (on) { box(c, bx - 50, ay + 3, 100, 4, '#FF8A80'); checker(c, bx - 50, ay + 7, 100, 2, '#FF8A80', 0, 1); }
   else { box(c, bx - 50, ay + 3, 100, 2, '#5A1A1A'); box(c, bx - 46, ay + 5, 20, 2, '#6A2A2A'); }
   signText(c, 'APPLAUSE', bx, ay + 18, on ? { sx: 1, sy: 2, bold: true, fill: '#FFFFFF', glow: '#FF6060' } : { sx: 1, sy: 2, bold: true, fill: '#6A2828' });
+  STAGE_HOOKS.shell?.(c, f, bx, by);
 };
 
 // ---------------------------------------------------------------------------------------------------------------

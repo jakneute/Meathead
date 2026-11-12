@@ -16,8 +16,8 @@
 //   - Stitched up the way he died: drowned in beer (wrung out: seams twisted round him like a towel, a beer stain) or
 //     flattened by a stunt car (pumped back up: a bike valve in his belly, a tread mark sewn across him).
 //   - CLAUDE.md's rule stays: up off his crushed couch, no breather and no multiplier (the fight's own SAD_*).
-//   - No hell props along the back (arena() null): the whole stage, him and the family are drawn in the land's back
-//     pass, so the framework's props would go over them. The hell's light and haze are the framework's.
+//   - The place: DAD GUY, LIVE IN HELL (park4/place/cartoon.ts): dead air for a sky, a mountain of TVs showing snow,
+//     HELL TV's billboard, ON AIR over the banner (cartoon/amphi/stage.ts STAGE_HOOKS).
 
 import type { RefightDef } from '../defs';
 import type { GameState } from '../../../../m1/game/core/state';
@@ -29,7 +29,9 @@ import { DAD_K } from '../../../cartoon/amphi/dad';
 import { type Ramp, rampOf, shape, shapeTop, ell, px, line, limb, fill } from '../../../cartoon/amphi/paint';
 import { elbow, knee } from '../../../art/limb';
 import { bossDeath } from '../../../store';
-import { refightOn } from '../hook';
+import { refightOn, inRefight } from '../hook';
+import { STAGE_HOOKS } from '../../../cartoon/amphi/stage';
+import { cartoonPlace, drawOnAir, CARTOON_BANNER } from '../place/cartoon';
 import { refightId, refightStage } from '../where';
 import * as L from '../lines/cartoon';
 
@@ -266,6 +268,11 @@ const drawLook = (c: Ctx, state: GameState) => {
   c.restore();
 };
 
+// (his place: DAD GUY, LIVE IN HELL (park4/place/cartoon.ts): the banner's line, the ON AIR box over it: only while
+// this refight's on)
+STAGE_HOOKS.bannerSub = () => (inRefight('cartoon') ? CARTOON_BANNER : null);
+STAGE_HOOKS.shell = (c, f, bx, by) => { if (inRefight('cartoon')) drawOnAir(c, f, bx, by); };
+
 export const cartoonRefight: RefightDef = {
   land: 'cartoon', id: refightId('cartoon'), stage: refightStage('cartoon'),
   boss: 'DAD GUY', sin: 'SLOTH',
@@ -287,6 +294,7 @@ export const cartoonRefight: RefightDef = {
     [A.FETCH_TAPE.mom, L.RF_FETCH_TAPE.mom], [A.FETCH_TAPE.boy, L.RF_FETCH_TAPE.boy], [A.FETCH_TAPE.sis, L.RF_FETCH_TAPE.sis], [A.FETCH_TAPE.gramps, L.RF_FETCH_TAPE.gramps],
     [A.DIE_TAPE.mom, L.RF_DIE_TAPE.mom], [A.DIE_TAPE.boy, L.RF_DIE_TAPE.boy], [A.DIE_TAPE.sis, L.RF_DIE_TAPE.sis], [A.DIE_TAPE.gramps, L.RF_DIE_TAPE.gramps],
   ],
+  place: cartoonPlace,
   arena: () => null,
   bossAt: () => dadNow(),
   stitches: look => look === 'weakness'
