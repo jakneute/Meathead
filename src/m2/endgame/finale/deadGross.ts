@@ -452,8 +452,8 @@ export const DEAD_CARDS: Record<DeadKid, Card> = {
   zorz: { paint: 'zorz', name: 'ZORZARBLAX', whose: 'HER BOY', fx: 136, fy: 114, zoom: 1, back: ['#04061A', '#080E2A', '#121A40', '#1C2854', '#2A3868'], ink: '#A3E635', flies: [136, 96], drip: [60, 130, '#F4E27A'] },
   meh: { paint: 'knot', name: 'MEHPHISTO', whose: 'HIS BOY', fx: 100, fy: 106, zoom: 1, back: ['#0C0610', '#1A0C1E', '#2A1028', '#3A1430', '#4A1A30'], ink: '#EF4444', flies: [60, 80], drip: [80, 150, '#B01C1C'] },
   brat: { paint: 'knot', name: 'BRATHAZAR', whose: 'HIS OTHER BOY', fx: 172, fy: 106, zoom: 1, back: ['#160404', '#2A0808', '#3E0C0C', '#521212', '#661818'], ink: '#EF4444', flies: [220, 76], drip: [180, 152, '#B01C1C'] },
-  gup: { paint: 'gup', name: 'GUPPLAX', whose: 'HER BABY', fx: 136, fy: 116, zoom: 1, back: ['#04121A', '#06202A', '#0A3038', '#0E4048', '#14505A'], ink: '#A3E635', flies: [136, 60], drip: [150, 84, '#D04848'] },
-  ned: { paint: 'ned', name: 'NED', whose: 'HIS OLDEST', fx: 136, fy: 114, zoom: 1, back: ['#12040A', '#240812', '#380C1A', '#4C1220', '#601826'], ink: '#EF4444', flies: [140, 110] },
+  gup: { paint: 'gup', name: 'GUPPLAX', whose: 'HER BIG BOY', fx: 136, fy: 116, zoom: 1, back: ['#04121A', '#06202A', '#0A3038', '#0E4048', '#14505A'], ink: '#A3E635', flies: [136, 60], drip: [150, 84, '#D04848'] },
+  ned: { paint: 'ned', name: 'NED', whose: 'HIS MIDDLE ONE', fx: 136, fy: 114, zoom: 1, back: ['#12040A', '#240812', '#380C1A', '#4C1220', '#601826'], ink: '#EF4444', flies: [140, 110] },
 };
 export const DEAD_ORDER: DeadKid[] = ['zorz', 'meh', 'brat', 'gup', 'ned'];
 
