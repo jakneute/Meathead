@@ -265,7 +265,8 @@ export const updateCrash = (state: GameState): boolean => {
   if (!cr && pending) {
     pending = false;
     const x = p.pos.x + p.width / 2;
-    cr = { t: 0, cx: x - 150, from: { x: x - 150, y: GROUND_Y - 40 }, to: x, done: false };
+    // (the corpse's head reaches 148 px right of its saddle: laid 210 back, it ends clear of his heels)
+    cr = { t: 0, cx: x - 210, from: { x: x - 210, y: GROUND_Y - 40 }, to: x, done: false };
     crashes.set(key, cr);
   }
   if (!cr || cr.done) return false;
