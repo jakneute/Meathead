@@ -81,15 +81,16 @@ const NOFIRE = import.meta.env.DEV && typeof location !== 'undefined' && locatio
 const NOBANK = import.meta.env.DEV && typeof location !== 'undefined' && location.search.includes('wp2nobank');
 /** Where each starts (world x, on a bank tile's edge), its name board's words (none: no board). */
 const snapT = (x: number) => Math.round(x / BANK_T) * BANK_T;
-export const ZONES: { id: ZoneId; x: number; name?: [string, string]; board?: string }[] = [
+/** `bx`: where its board stands, if not at its start (clear of the vines' posts: signs-unobstructed). */
+export const ZONES: { id: ZoneId; x: number; name?: [string, string]; board?: string; bx?: number }[] = [
   { id: 'head', x: -1e9 },
-  { id: 'ruins', x: snapT(B + 1500), name: ['THE LOST RUINS', 'MIND THE CURSE'], board: '#6B5B3A' },
+  { id: 'ruins', x: snapT(B + 1500), name: ['THE LOST RUINS', 'MIND THE CURSE'], board: '#6B5B3A', bx: B + 2000 },
   { id: 'canopy', x: snapT(B + 5400), name: ['THE CANOPY', 'TREEHOUSE TRAIL'], board: '#3F6212' },
   { id: 'bayou', x: snapT(B + 9300), name: ['GATOR BAYOU', 'KEEP ARMS IN TUBE'], board: '#4B5563' },
   { id: 'tiki', x: snapT(B + 14400), name: ['TIKI VILLAGE', 'ALOHA, Y\'ALL'], board: '#9A3412' },
   { id: 'pirate', x: snapT(B + 18500), name: ['PIRATE COVE', 'ARR. NO REFUNDS.'], board: '#1E3A5F' },
-  { id: 'oasis', x: snapT(B + 23000), name: ['MIRAGE OASIS', 'IT\'S A DRY HEAT'], board: '#B45309' },
-  { id: 'caves', x: snapT(B + 26400), name: ['CRYSTAL CAVERNS', 'WATCH YOUR HEAD'], board: '#4C1D95' },
+  { id: 'oasis', x: snapT(B + 23000), name: ['MIRAGE OASIS', 'IT\'S A DRY HEAT'], board: '#B45309', bx: B + 23180 },
+  { id: 'caves', x: snapT(B + 26400), name: ['CRYSTAL CAVERNS', 'WATCH YOUR HEAD'], board: '#4C1D95', bx: B + 26200 },
   { id: 'grotto', x: snapT(B + 28000) },
   { id: 'back', x: snapT(B + 29930) },
 ];
@@ -1122,11 +1123,12 @@ export const drawZoneBank = (c: Ctx, state: GameState, from: number) => {
     c.restore();
   }
   for (const z of ZONES) {
-    if (!z.name || z.x < state.camera.x - 200 || z.x > state.camera.x + W + 200) continue;
+    const zx = z.bx ?? z.x;
+    if (!z.name || zx < state.camera.x - 200 || zx > state.camera.x + W + 200) continue;
     // (at its bank tile's own height: stood on that bank's top)
-    const dy = bankDy(z.x + BANK_T / 2);
-    c.save(); c.translate(0, dy); stamp(c, `wp2-gate-${z.id}`, z.x - 120, BANK_TOP - 210, 240, 250, g => paintGate(g, z.x, z));
-    flame(c, z.x + 88, BANK_TOP - 140, 10, 18, f, 3); c.restore();
+    const dy = bankDy(zx + BANK_T / 2);
+    c.save(); c.translate(0, dy); stamp(c, `wp2-gate-${z.id}`, zx - 120, BANK_TOP - 210, 240, 250, g => paintGate(g, zx, z));
+    flame(c, zx + 88, BANK_TOP - 140, 10, 18, f, 3); c.restore();
   }
 };
 export { BANK_TOP };

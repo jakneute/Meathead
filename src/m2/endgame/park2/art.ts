@@ -126,10 +126,14 @@ const paintEnd = (g: Ctx, side: number, st: DeckStyle, drop: number) => {
   // (the deck's top's corner on it: its lip turned the corner)
   R(g, x, GY, w, 3, st.lip); R(g, x, GY + 3, w, 2, st.lip2);
 };
+/** The decks, and first the river's head (level 1's ground from where level 2 takes over to the dock's end: its face
+ *  the head's tiled walkway, not a bare dark under it). */
+const RUNS: [number, number][] = [[L2_FROM, HEAD], ...DECKS];
 const drawDecks = (c: Ctx, state: GameState) => {
-  DECKS.forEach(([a, b], i) => {
+  RUNS.forEach(([a, b], ri) => {
+    const i = ri - 1;
     if (!vis(state, a, b, 20)) return;
-    const dy = DECK_DY[i] ?? 0, top = GY + dy, bot = state.camera.y + H + 40;
+    const dy = i < 0 ? 0 : DECK_DY[i] ?? 0, top = GY + dy, bot = state.camera.y + H + 40;
     const x0 = Math.max(a, state.camera.x - 40), x1 = Math.min(b, state.camera.x + W + 40);
     c.save(); c.beginPath(); c.rect(x0, top, x1 - x0, bot - top); c.clip();
     for (let tx = Math.floor(x0 / DECK_T) * DECK_T; tx < x1; tx += DECK_T) {
@@ -140,7 +144,7 @@ const drawDecks = (c: Ctx, state: GameState) => {
     if (bot > top + FACE_H) R(c, x0, top + FACE_H, x1 - x0, bot - top - FACE_H, mix(DECK_STYLE[zoneAt((a + b) / 2)].under, INK, 0.5));
     c.restore();
     // (its ends: the corner post stood down into the river, the river's fire lighting its foot; down to the water by it)
-    for (const e of [a, b]) if (e > x0 - 14 && e < x1 + 14) {
+    for (const e of [a, b]) if (e > x0 - 14 && e < x1 + 14 && !(i < 0 && e === a)) {
       const side = e === a ? -1 : 1, z = zoneAt((a + b) / 2), drop = Math.max(40, Math.round(waterY(e + side * 20) - top) + 4);
       c.save(); c.translate(e, dy); stamp(c, `wp2-end-${z}-${side}-${drop}`, side < 0 ? -1 : -13, GY, 14, drop + 2, g => paintEnd(g, side, DECK_STYLE[z], drop)); c.restore();
     }
