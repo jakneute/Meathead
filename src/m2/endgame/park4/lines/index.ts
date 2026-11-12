@@ -14,7 +14,7 @@ import { RF_CARTOON_VOICE_LINES } from './cartoon';
 
 type Pool = string | readonly string[] | { clean: readonly string[]; shitty: readonly string[]; nude: readonly string[] };
 const all = (...ps: Pool[]): string[] => ps.flatMap(p => { if (typeof p === 'string') return [p]; if (Array.isArray(p)) return [...(p as readonly string[])]; const o = p as { clean: readonly string[]; shitty: readonly string[]; nude: readonly string[] }; return [...o.clean, ...o.shitty, ...o.nude]; });
-const intros = Object.values(N.INTROS).flatMap(i => [i.place, i.sin, ...Object.values(i.looks), ...Object.values(i.statue ?? {}), ...all(i.close)]);
+const intros = Object.values(N.INTROS).flatMap(i => [i.sin, i.punish, i.why, ...all(i.kick)]);
 
 export const PARK4_VOICE_LINES: Record<string, string[]> = {
   [N.NED_VOICE]: [

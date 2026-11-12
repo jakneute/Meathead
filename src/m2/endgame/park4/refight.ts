@@ -30,7 +30,8 @@ import { pollM2, pressed, keyHeld } from '../../input';
 import { voice } from '../../adventure/section';
 import { setRefightOn, setRefightWon, swapLines, touchRefight, refightOn, refightPool } from './hook';
 import { hellLight, drawHellSky, drawPlaceSky, drawHellProps } from './hell';
-import { drawNedGross, drawNedGrossBack, warmNedGross } from './nedGross';
+import { drawNedGrossBack, warmNedGross } from './nedGross';
+import { drawIntroCard, SLAM_AT } from './card';
 import type { RefightDef, Pool } from './defs';
 import { INTROS, NED_VOICE } from './lines/ned';
 import { L4_HOUR, L4_ID, LOT_CP } from './where';
@@ -42,11 +43,12 @@ const dressed = (state: GameState): Dressed => (isNude(state) ? 'nude' : isShat(
 // (the refight's line pools: m1 speech.ts's pickLine asks hook.ts first, only while one's on)
 setPoolSwap(refightPool);
 
-/** Ned's intro to this one, in order: the place, the sin, how he put him back together (and the statue), the close. */
-export const introLines = (def: RefightDef, d: Dressed, look: string, statue?: 'shot' | 'fell') => {
+/** Ned's intro to this one, in order: the sin (named, and what he did), the punishment, why it fits, the kicker (by
+ *  Meathead's pants). None for the Queen (she's the robot; Ned's up in her booth). */
+export const introLines = (def: RefightDef, d: Dressed) => {
   const i = INTROS[def.land];
   if (!i) return [];
-  return [i.place, i.sin, i.looks[look] ?? Object.values(i.looks)[0], ...(i.statue && statue ? [i.statue[statue]] : []), i.close[d][0]];
+  return [i.sin, i.punish, i.why, i.kick[d][0]];
 };
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -66,10 +68,6 @@ interface Card {
 let card: Card | null = null;
 let tokens = 0;
 
-const lookOn = (def: RefightDef, c: Card | null) => {
-  const r = refightOn();
-  return { look: r?.look ?? def.lookNow(), statue: r?.statue };
-};
 const applyPick = (def: RefightDef, c: Card) => {
   setRefightOn({ land: def.land, look: def.looks[c.look] ?? def.lookNow(), statue: def.statueNow ? (c.statue ? 'fell' : 'shot') : undefined });
   installSwaps(def);
@@ -107,10 +105,11 @@ const startCard = (def: RefightDef, state: GameState, fresh: boolean) => {
 };
 const beginIntro = (def: RefightDef, state: GameState, c: Card) => {
   if (!INTROS[def.land]) { c.step = 'done'; return; }
-  const { look, statue } = lookOn(def, c);
-  c.step = 'intro'; c.t = 0; c.at = 0; c.lines = introLines(def, dressed(state), look, statue);
-  playSound('whoosh', 0.7, -8); playSound('thud', 0.5, -10);
-  nextLine(c);
+  c.step = 'intro'; c.t = 0; c.at = 0; c.lines = introLines(def, dressed(state));
+  // (the sting: a cymbal-ish crash, a low hit, a whoosh in; his first line after a beat)
+  playSound('whoosh', 0.7, -8); playSound('thud', 0.6, -14); playSound('ding', 0.5, -12);
+  warmNedGross();
+  setTimeout(() => { if (card === c) nextLine(c); }, 350);
 };
 const endCard = (state: GameState) => {
   card = null; tokens++;
@@ -153,6 +152,7 @@ const tickCard = (def: RefightDef, state: GameState): boolean => {
   }
   if (c.step === 'intro') {
     c.t++;
+    if (c.t === SLAM_AT) { playSound('crash', 0.7, -6); playSound('thud', 0.8, -18); }
     if (c.t > SKIP_AFTER) offerSkip();
     if (c.t > SKIP_AFTER && (takeSkip() || pressed('back'))) { silenceAll(); c.step = 'done'; }
     // (a line that never ends (nothing heard back): on after a long while anyway)
@@ -188,20 +188,8 @@ const drawCard = (def: RefightDef, c: Ctx, state: GameState) => {
     c.restore();
     return;
   }
-  // (Ned's gross-up, his mouth going while he talks; the portal's frame round it all)
-  const talk = !!k.said && Math.floor(k.n / 6) % 2 === 0;
-  drawNedGross(c, 230, 300, 0.7, k.n, talk);
-  // (who's next, the sin, big on the right)
-  c.font = '10px "Press Start 2P"'; c.textAlign = 'center';
-  c.fillStyle = '#000'; c.fillText('NOW RAISED FROM THE DEAD', 601, 121);
-  c.fillStyle = '#FCA5A5'; c.fillText('NOW RAISED FROM THE DEAD', 600, 120);
-  c.font = '14px "Press Start 2P"';
-  c.fillStyle = '#000'; c.fillText(def.boss, 602, 162);
-  c.fillStyle = '#FDE047'; c.fillText(def.boss, 600, 160);
-  c.font = '28px "Press Start 2P"';
-  const flick = 0.85 + 0.15 * Math.sin(k.n * 0.3);
-  c.fillStyle = '#000'; c.fillText(def.sin, 604, 224);
-  c.fillStyle = `rgba(239, 68, 68, ${flick})`; c.fillText(def.sin, 600, 220);
+  // (the title card: the sin slammed on, the sinner stitched up in his frame, his hell behind it, Ned the MC: card.ts)
+  drawIntroCard(c, def, { n: k.n, t: k.t, at: k.at, said: k.said, look: refightOn()?.look ?? def.lookNow() }, state, INTROS[def.land]?.place ?? '');
   // (the black bars, the box at the bottom: his words, only while they're said)
   c.fillStyle = '#000'; c.fillRect(0, 0, W, 40); c.fillRect(0, H - 120, W, 120);
   c.strokeStyle = '#7F1D1D'; c.lineWidth = 3; c.strokeRect(10, H - 112, W - 20, 100);
