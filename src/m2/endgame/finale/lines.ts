@@ -275,29 +275,63 @@ export const CALLBACKS: Record<string, Callback[]> = {
     cb('m2.hollywood.pa', 'staff', '#B91C1C', same(['STUNTMAN STEVE\'S STUPENDOUS STUNTERY IS CANCELED. AGAIN. HARDER.', 'AND THAT WAS THE STADIUM, FOLKS. IT MISSED THE MAT. NO REFUNDS.'])),
     cb('m2.hollywood.stuntco', 'staff', '#EA580C', same(['STEVE WOULD HAVE WANTED THIS. HE\'D HAVE WANTED TO BE THROWN IN IT.', 'NOBODY SHOWS UP STEVE! EXCEPT EVERYBODY, APPARENTLY!'])),
   ],
-  // ---- FAIRY LAND (placeholders: a line each, more to come)
-  hogsmeat: [cb('m2.fantasy.troll', 'monster', '#4D7C0F', bp(['TROLL TOLL! YOU OWE ME A WHOLE TOWN!'], ['TROLL TOLL! AND A CLEANING FEE!'], ['TROLL TOLL! AND PUT SOMETHING ON!']))],
-  fairywheel: [cb('m2.fantasy.suitor_chad', 'guest', '#2563EB', same(['PIPER\'S GONNA LOVE THESE GUNS, BRO. OH. THE WHEEL\'S GONE, BRO.']))],
-  pixiecastle: [cb('m2.fantasy.courtier', 'suit', '#9D174D', same(['HOW DARE YOU! THE GREAT PIXIE IS DEAD! SHE WAS RESTING!']))],
+  // ---- FAIRY LAND (Piper's trials: the wheel's suitors, the three-car coaster, the broom deathmatch, her castle)
+  hogsmeat: [
+    cb('m2.fantasy.troll', 'monster', '#4D7C0F', bp(['TROLL TOLL! YOU OWE ME A WHOLE TOWN!'], ['TROLL TOLL! AND A CLEANING FEE!'], ['TROLL TOLL! AND PUT SOMETHING ON!'])),
+    cb('m2.fantasy.clerk', 'staff', '#7C3AED', same(["THE WANDS WERE PLASTIC. NOW THEY'RE FLAT PLASTIC.", 'NO REFUNDS ON WANDS. OR TOWNS.'])),
+  ],
+  fairywheel: [cb('m2.fantasy.suitor_chad', 'guest', '#2563EB', bp(['I WAS WINNING, BRO. I WAS SO CLOSE TO THE AUDIENCE.', 'BRO. THE WHEEL. I WAS STILL ON IT, BRO.'], ['BRO. YOU SHIT ON THE WHEEL. FROM UP THERE.'], ['BRO. I CAN SEE YOUR WHOLE AUDIENCE, BRO.']))],
+  glen: [cb('m2.fantasy.dwarf', 'costume', '#DC2626', same(["THE GLEN WAS ENCHANTED. NOW IT'S A FOOTPRINT."]))],
+  tragons: [cb('m2.fantasy.tragons_spiel', 'staff', '#4C1D95', same(['FIRE, ICE, LIGHTNING. AND NOW DEVIL. DEVIL IS NOT A CAR.', 'PLEASE REMAIN SEATED UNTIL THE DRAGONS... NEVER MIND.']))],
+  broomport: [cb('m2.fantasy.castman', 'costume', '#1E1B4B', same(["THE BROOM DEATHMATCH IS CANCELED. NOBODY'S LEFT TO DIE.", 'THOSE BROOMS ARE KINDLING NOW.']))],
+  pixiecastle: [
+    cb('m2.fantasy.courtier', 'suit', '#9D174D', same(['HOW DARE YOU! THE GREAT PIXIE IS DEAD! SHE WAS RESTING!'])),
+    cb('m2.fantasy.castwoman', 'costume', '#F472B6', bp(['HER BED WAS IN THERE. EVERY GUY IN THE PARK HAS BEEN ON IT. NOW HIM.'], ['HER BED WAS IN THERE. NOW IT SMELLS LIKE HIS PANTS.'], ['HER BED WAS IN THERE. AND NOW SO IS HIS ASS.'])),
+  ],
   // ---- JUNGLE LAND
-  cruise: [cb('m2.operator', 'staff', '#15803D', same(['THEY DON\'T PAY ME ENOUGH TO STOP THAT.']))],
+  bigtree: [cb('m2.guest', 'guest', '#16A34A', same(['I CLIMBED THAT TREE WITH A BABY ON MY BACK. FOR NOTHING.']))],
+  cruise: [cb('m2.operator', 'staff', '#15803D', same(["THEY DON'T PAY ME ENOUGH TO STOP THAT.", 'THE HIPPOS WERE FAKE. THAT FOOT IS NOT.']))],
   temple: [cb('m2.guest', 'guest', '#F59E0B', same(['OH MY GOD! THE TEMPLE! ...SO IS THE WAIT GONNA BE LONGER?', 'THEY JUST FIXED THAT ROOF!']))],
+  dinopark: [cb('m2.rex', 'robot', '#4A6A3A', same(['WARNING. PARK CLOSED. AGAIN.', 'TYRANNOSAURUS. WRECKED.']))],
+  rexpaddock: [cb('m2.rex', 'robot', '#4A6A3A', bp(['NUT HATCH. STEPPED ON. AGAIN.'], ['WARNING. FECAL MATTER IN THE PADDOCK. NOT MINE.'], ['WARNING. LARGER TESTICLES DETECTED. RECALIBRATING.']))],
   kabooma: [cb('m2.maint', 'staff', '#CA8A04', same(['TWELVE YEARS IN THIS BOOTH. NOTHING EVER HAPPENED. UNTIL NOW.']))],
   // ---- FOREIGN LANDS
-  pavilions: [cb('m2.foreign.pa', 'staff', '#0EA5E9', same(['TEN COUNTRIES. ZERO FOREIGNERS. ZERO COUNTRIES.']))],
+  pavilions: [
+    cb('m2.foreign.pa', 'staff', '#0EA5E9', same(['TEN COUNTRIES. ZERO FOREIGNERS. ZERO COUNTRIES.', 'THE GREAT WALL KEPT NOTHING OUT. AS USUAL.'])),
+    cb('m2.foreign.mariachi', 'costume', '#16A34A', same(['MEXICO WAS FIRST IN LINE. MEXICO GETS STEPPED ON FIRST.'])),
+  ],
   monuments: [cb('m2.foreign.mech_moai', 'robot', '#78716C', same(['...OW.'])), cb('m2.foreign.mech_eiffel', 'robot', '#8A6A4A', same(['MY ELEVATOR WAS ALREADY BROKEN. NOW THIS.']))],
-  libertydig: [cb('m2.foreign.pa', 'staff', '#0EA5E9', same(['AMERICA: COMING SOON. AMERICA: CANCELED.']))],
+  libertydig: [cb('m2.foreign.pa', 'staff', '#0EA5E9', same(['AMERICA: COMING SOON. AMERICA: CANCELED.', 'THE STATUE OF LIBERTY WILL NOT BE ATTENDING. SHE KILLED HERSELF.']))],
   // ---- FUTURE LAND
+  futuresquare: [cb('m2.space.futurepa', 'staff', '#14B8A6', same(['THE PEOPLE MOVER HAS MOVED ITS LAST PEOPLE.']))],
   atom: [cb('m2.space.op', 'staff', '#14B8A6', same(['WELCOME TO THE FUTURE! HOW MANY IN YOUR... NEVER MIND.']))],
+  voyage: [cb('m2.space.ridepa', 'staff', '#0EA5E9', same(['VOYAGE TO 2010 HAS BEEN DELAYED. IT WAS ALREADY LATE.']))],
+  monorail: [cb('m2.space.futurepa', 'staff', '#DC2626', same(['MONORAIL SERVICE IS SUSPENDED. SO IS THE MONORAIL. FROM A TREE.']))],
+  xenoscare: [cb('m2.guest2', 'guest', '#3F3F46', bp(["XENOSCARE WAS NEVER SCARY. OKAY. NOW IT'S SCARY."], ['XENOSCARE MADE ME SHIT ONCE. NOW HE DID.'], ['XENOSCARE NEVER SHOWED ME ANYTHING THAT SCARY.']))],
   needle: [cb('m2.space.needle', 'staff', '#E5E7EB', same(['SPACE NEEDLE TWO IS NOW HORIZONTAL. THE TRIP TO FLORIDA TAKES NINE SECONDS.']))],
   // ---- WILDERNESS LAND
+  station: [cb('m2.frontier.townsman', 'cowboy', '#92400E', same(['NO TICKET, NO TRAIN. HE NEVER BOUGHT ONE THE FIRST TIME EITHER.']))],
+  rockies: [cb('m2.frontier.salesman', 'cowboy', '#B45309', same(['THOSE MOUNTAINS WERE PAINTED BY HAND. MY HAND.']))],
   gulch: [cb('m2.frontier.sheriff', 'cowboy', '#92400E', same(['FOUR HUNDRED SHOWS. NOBODY EVER STEPPED ON THE TOWN.']))],
-  traincrash: [cb('m2.frontier.townsman', 'cowboy', '#92400E', same(['THE TRAIN AGAIN?! WE JUST SWEPT UP THE LAST ONE!']))],
+  traincrash: [
+    cb('m2.frontier.townsman', 'cowboy', '#92400E', same(['THE TRAIN AGAIN?! WE JUST SWEPT UP THE LAST ONE!'])),
+    cb('m2.frontier.townswoman', 'cowboy', '#9D174D', same(['FIRST THE TRAIN THROUGH THE DEPOT. NOW A DEVIL THROUGH THE TRAIN.'])),
+  ],
+  mine: [cb('m2.frontier.prospector', 'cowboy', '#7A6A54', same(["FORTY YEARS DIGGIN'. HE FOUND THE BOTTOM IN ONE STEP."]))],
   timber: [cb('m2.frontier.announcer', 'cowboy', '#B45309', same(['HOLD ON TO YOUR HATS! THERE GOES TIMBER TUMBLE!']))],
   // ---- SPOOKY LAND
+  spookytown: [cb('m2.spooky.clerk', 'monster', '#4C1D95', same(['THE DRIVE-THRU IS CLOSED. HE DROVE THROUGH.']))],
+  kiddie: [cb('m2.spooky.mashkid', 'costume', '#7C3AED', bp(["HE SAID THESE RIDES WERE FOR BABIES. NOW THEY'RE FOR NOBODY."], ["HE SAID THESE RIDES WERE FOR BABIES. HE'S THE ONE IN A DIAPER."], ['HE SAID THESE RIDES WERE FOR BABIES. MOM, WHY IS HIS THING OUT?']))],
   dracula: [cb('m2.donnie.pa', 'monster', '#581C87', same(['GOOD EVENINK. THE CASTLE IS CLOSED. ALSO FLAT. ALSO I AM DEAD.']))],
+  firstcastle: [cb('m2.donnie.pa', 'monster', '#581C87', same(['THE FIRST CASTLE. HISTORIC. ALSO A SHED.']))],
+  giftshop: [cb('m2.spooky.clerkf', 'staff', '#B91C1C', same(['EVERYTHING IN HELL MUST GO. IT WENT.']))],
   hellevator: [cb('m2.hellop', 'staff', '#7F1D1D', same(['NO WRISTBAND, NO HELL. YOU KNOW WHAT? GO AHEAD.']))],
   // ---- CARTOON LAND
+  silly: [cb('m2.cartoon.rideop', 'staff', '#DB2777', same(["HE SAID THERE'S NO GOOD RIDES HERE. NOW THERE'S NO RIDES HERE."]))],
+  studio: [cb('m2.cartoon.narrator', 'staff', '#FDE68A', same(['THIS PROCESS WAS USED TO MAKE... NOTHING. EVER AGAIN.']))],
+  whitehouse: [cb('m2.cartoon.chelsea', 'guest', '#F9A8D4', bp(["MEAN MAN! MOM AND DAD ARE AT THE U.N.! YOU CAN'T STEP ON THE HOUSE!"], ['MEAN MAN! YOU SMELL LIKE THE OVAL OFFICE!'], ['MEAN MAN! SOCKS IS LOOKING AT YOUR THING!']))],
+  bigkid: [cb('m2.cartoon.rideopf', 'staff', '#22D3EE', same(['NO TRACK, HE SAID. PUSSY RIDE, HE SAID. THEN HE STEPPED ON IT.']))],
+  punchy: [cb('m2.cartoon.punchy', 'costume', '#FDE047', same(['NOT THE KILL-O-RAMA! WE WERE GONNA BE BIGGER THAN STUPID DAD!']))],
   cwtower: [cb('m2.cartoon.guide', 'staff', '#DB2777', same(["HI! WELCOME! HE'S PULLING UP THE WATER TOWER! THAT'S LOAD BEARING! I WANT TO DIE!"]))],
   amphi: [cb('m2.cartoon.bouncer', 'cop', '#111827', bp(['SHOW\'S IN PROGRESS. NO GIANTS ON STAGE.'], ['SHOW\'S OVER. AND IT SMELLS.'], ['SHOW\'S OVER. PUT IT AWAY.']))],
 };
