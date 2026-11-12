@@ -77876,6 +77876,21 @@
  },
  {
   "voice": "m2.wp.gupplax",
+  "text": "AND MY DAD! MOM CRIED FOR A WEEK! ADULT SWIM! TWEEEET!",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "m2.wp.gupplax",
+  "text": "AND MY DAD! MOM SAYS DROWN YOU AND DON'T LOOK DOWN! TWEEEET!",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "m2.wp.gupplax",
+  "text": "AND MY DAD! MOM SAYS DROWN YOU, THEN DRAIN THE POOL! TWEEEET!",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "m2.wp.gupplax",
   "text": "BEHIND YOU, PUSSY!",
   "from": "ENDGAME"
  },
@@ -78071,21 +78086,6 @@
  },
  {
   "voice": "m2.wp.gupplax",
-  "text": "HE WAS ALSO MY SON! IT'S COMPLICATED! ADULT SWIM! TWEEEET!",
-  "from": "ENDGAME"
- },
- {
-  "voice": "m2.wp.gupplax",
-  "text": "HE WAS ALSO MY SON! IT'S COMPLICATED! COVER THAT UP AND DIE! TWEEEET!",
-  "from": "ENDGAME"
- },
- {
-  "voice": "m2.wp.gupplax",
-  "text": "HE WAS ALSO MY SON! IT'S COMPLICATED! YOU'RE GOING IN THE POOL AND STAYING THERE! TWEEEET!",
-  "from": "ENDGAME"
- },
- {
-  "voice": "m2.wp.gupplax",
   "text": "HUP... CHOO! CHLORINATED ASS!",
   "from": "ENDGAME"
  },
@@ -78116,17 +78116,17 @@
  },
  {
   "voice": "m2.wp.gupplax",
-  "text": "I CAN'T SWIM! I'M A LIFEGUARD AND I CAN'T SWIM! I NEVER COULD!",
+  "text": "I CAN'T SWIM! I NEVER COULD! MOM SAID IT DIDN'T MATTER!",
   "from": "ENDGAME"
  },
  {
   "voice": "m2.wp.gupplax",
-  "text": "I CAN'T SWIM! NEVER COULD! AND NOW THE POOL'S BROWN!",
+  "text": "I CAN'T SWIM! NEVER COULD! DON'T TELL MOM A NAKED MAN DID THIS!",
   "from": "ENDGAME"
  },
  {
   "voice": "m2.wp.gupplax",
-  "text": "I CAN'T SWIM! NEVER COULD! AND NOW THERE'S A NAKED MAN IN IT!",
+  "text": "I CAN'T SWIM! NEVER COULD! TELL MOM THE POOL WAS BROWN!",
   "from": "ENDGAME"
  },
  {
@@ -78276,17 +78276,17 @@
  },
  {
   "voice": "m2.wp.gupplax",
-  "text": "MY THROAT'S CLOSING... I'M ALLERGIC TO MY OWN JOB...",
+  "text": "MY THROAT'S CLOSING... TELL MOM... I'M ALLERGIC TO MY OWN JOB...",
   "from": "ENDGAME"
  },
  {
   "voice": "m2.wp.gupplax",
-  "text": "MY THROAT'S CLOSING... THE LAST THING I SAW... WAS THAT...",
+  "text": "MY THROAT'S CLOSING... TELL MOM... THE LAST THING I SAW WAS THAT...",
   "from": "ENDGAME"
  },
  {
   "voice": "m2.wp.gupplax",
-  "text": "MY THROAT'S CLOSING... THE LAST THING I SMELLED... WAS YOU...",
+  "text": "MY THROAT'S CLOSING... TELL MOM... THE LAST THING I SMELLED WAS YOU...",
   "from": "ENDGAME"
  },
  {
@@ -78516,17 +78516,17 @@
  },
  {
   "voice": "m2.wp.gupplax",
-  "text": "TWEE... TWEEE... HELP! HE POOPED AND NOW I'M DYING!",
+  "text": "TWEE... DON'T TELL MOM WHAT I SAW... WAIT UP, LITTLE BROTHER...",
   "from": "ENDGAME"
  },
  {
   "voice": "m2.wp.gupplax",
-  "text": "TWEE... TWEEE... HELP! THE LAST THING I SAW WAS HIS DICK!",
+  "text": "TWEE... TELL MOM I'M SORRY... WAIT UP, LITTLE BROTHER...",
   "from": "ENDGAME"
  },
  {
   "voice": "m2.wp.gupplax",
-  "text": "TWEE... TWEEEE... HELP! LIFEGUARD! WHERE'S THE LIFEGUARD?!",
+  "text": "TWEE... TELL MOM IT WAS THE SMELL... WAIT UP, LITTLE BROTHER...",
   "from": "ENDGAME"
  },
  {
@@ -78551,17 +78551,17 @@
  },
  {
   "voice": "m2.wp.gupplax",
-  "text": "TWEEEET! NO RUNNING! NO DIVING! NO HUMANS! I'M GUPPLAX! YOU KILLED MY NEPHEW!",
+  "text": "TWEEEET! NO RUNNING! NO DIVING! NO HUMANS! I'M GUPPLAX! YOU KILLED MY LITTLE BROTHER!",
   "from": "ENDGAME"
  },
  {
   "voice": "m2.wp.gupplax",
-  "text": "TWEEEET! NO RUNNING! NO DIVING! NO SHITTING IN THE POOL! I'M GUPPLAX! YOU KILLED MY NEPHEW!",
+  "text": "TWEEEET! NO RUNNING! NO SHITTING IN THE POOL! I'M GUPPLAX! YOU KILLED MY LITTLE BROTHER!",
   "from": "ENDGAME"
  },
  {
   "voice": "m2.wp.gupplax",
-  "text": "TWEEEET! NO RUNNING! NO DIVING! NO SWIMMING NUDE! I'M GUPPLAX! YOU KILLED MY NEPHEW!",
+  "text": "TWEEEET! NO RUNNING! NO SWIMMING NUDE! I'M GUPPLAX! YOU KILLED MY LITTLE BROTHER!",
   "from": "ENDGAME"
  },
  {
@@ -80763,11 +80763,6 @@
   "voice": "meathead",
   "text": "A FISH JUMPED IN MY FACE!",
   "from": "FRONTIER"
- },
- {
-  "voice": "meathead",
-  "text": "A FISH WEARING A COOKING POT. STARING AT ME.",
-  "from": "ENDGAME"
  },
  {
   "voice": "meathead",
@@ -83333,21 +83328,6 @@
   "voice": "meathead",
   "text": "ADDICTED TO DEATH",
   "from": "VULGARITIES"
- },
- {
-  "voice": "meathead",
-  "text": "ADULT SWIM IS OVER.",
-  "from": "ENDGAME"
- },
- {
-  "voice": "meathead",
-  "text": "ADULT SWIM IS OVER. NUDE SWIM IS ALL DAY.",
-  "from": "ENDGAME"
- },
- {
-  "voice": "meathead",
-  "text": "ADULT SWIM IS OVER. SOMEBODY SHOCK THE POOL.",
-  "from": "ENDGAME"
  },
  {
   "voice": "meathead",
@@ -89166,21 +89146,6 @@
  },
  {
   "voice": "meathead",
-  "text": "EVERYBODY OUT OF THE POOL. HE'S IN IT.",
-  "from": "ENDGAME"
- },
- {
-  "voice": "meathead",
-  "text": "EVERYBODY OUT. THAT BROWN ISN'T HIM.",
-  "from": "ENDGAME"
- },
- {
-  "voice": "meathead",
-  "text": "EVERYBODY OUT. THE NAKED GUY WON.",
-  "from": "ENDGAME"
- },
- {
-  "voice": "meathead",
   "text": "EVERYBODY STAY DOWNWIND.",
   "from": "CARTOON"
  },
@@ -91531,6 +91496,21 @@
  },
  {
   "voice": "meathead",
+  "text": "GIDDY UP, FISH STICK!",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "meathead",
+  "text": "GIDDY UP! NOTHING BETWEEN US!",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "meathead",
+  "text": "GIDDY UP! WE BOTH STINK!",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "meathead",
   "text": "GIVE IT A SECOND. LET IT FILL UP.",
   "from": "m1/game/stages/oscar/bar.ts:189"
  },
@@ -93256,11 +93236,6 @@
  },
  {
   "voice": "meathead",
-  "text": "HE SAW EVERYTHING. HE'S GOT FOUR EYES FOR IT.",
-  "from": "ENDGAME"
- },
- {
-  "voice": "meathead",
   "text": "HE SAW IT. THEN HE WAS SMOKE.",
   "from": "CARTOON"
  },
@@ -93428,11 +93403,6 @@
   "voice": "meathead",
   "text": "HE SMELLED BETTER COOKED. ME, NOT SO MUCH.",
   "from": "SPOOKY"
- },
- {
-  "voice": "meathead",
-  "text": "HE SMELLED ME. THROUGH THE GLASS.",
-  "from": "ENDGAME"
  },
  {
   "voice": "meathead",
@@ -110261,6 +110231,16 @@
  },
  {
   "voice": "meathead",
+  "text": "SAME FACE AS THE KID ON THE MOUNTAIN. FAMILY.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "meathead",
+  "text": "SAME FACE AS THE KID ON THE MOUNTAIN. SAME STARE.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "meathead",
   "text": "SAME GULCH. SAME CRASH.",
   "from": "FRONTIER"
  },
@@ -110288,6 +110268,11 @@
   "voice": "meathead",
   "text": "SAME TIME TOMORROW, CHAMP?",
   "from": "KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "SAME UGLY AS THE KID ON THE MOUNTAIN. BIGGER.",
+  "from": "ENDGAME"
  },
  {
   "voice": "meathead",
@@ -116643,21 +116628,6 @@
   "voice": "meathead",
   "text": "THE DRAIN AGAIN. NOTHING LEFT ON ME FOR IT TO SUCK OFF.",
   "from": "ADVENTURE"
- },
- {
-  "voice": "meathead",
-  "text": "THE DRAIN! FINALLY SOMETHING FLUSHES ME!",
-  "from": "ENDGAME"
- },
- {
-  "voice": "meathead",
-  "text": "THE DRAIN! KEEP EVERYTHING TUCKED!",
-  "from": "ENDGAME"
- },
- {
-  "voice": "meathead",
-  "text": "THE DRAIN! WHO PULLED THE PLUG?!",
-  "from": "ENDGAME"
  },
  {
   "voice": "meathead",
@@ -123746,6 +123716,21 @@
  },
  {
   "voice": "meathead",
+  "text": "YEE-HAW!",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "meathead",
+  "text": "YEE-HAW! HOLD IT IN!",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "meathead",
+  "text": "YEE-HAW! WIND IN MY EVERYTHING!",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "meathead",
   "text": "YEEHAW, MOTHERFUCKER!",
   "from": "M2_KILL_LINES"
  },
@@ -124421,6 +124406,21 @@
  },
  {
   "voice": "meathead",
+  "text": "YOUR BROTHER HAD THREE ARMS AND NO CHIN.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "meathead",
+  "text": "YOUR BROTHER HAD THREE ARMS AND STILL LESS GOING ON THAN ME.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "meathead",
+  "text": "YOUR BROTHER HAD THREE ARMS. I'VE HAD WORSE DAYS. TODAY, ACTUALLY.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "meathead",
   "text": "YOUR BUDDY IN THE CLOSET LOOKS HOT! WANT ME TO PUT HIM ON ICE?",
   "from": "m1/game/stages/dale/junkie.ts:769"
  },
@@ -124528,21 +124528,6 @@
   "voice": "meathead",
   "text": "YOUR NECK'S A HAT RACK NOW!",
   "from": "M2_KILL_LINES"
- },
- {
-  "voice": "meathead",
-  "text": "YOUR NEPHEW HAD SIX ARMS AND STILL LESS GOING ON THAN ME.",
-  "from": "ENDGAME"
- },
- {
-  "voice": "meathead",
-  "text": "YOUR NEPHEW HAD SIX ARMS AND THREE NUTS.",
-  "from": "ENDGAME"
- },
- {
-  "voice": "meathead",
-  "text": "YOUR NEPHEW HAD SIX ARMS. I'VE HAD WORSE DAYS. TODAY, ACTUALLY.",
-  "from": "ENDGAME"
  },
  {
   "voice": "meathead",
