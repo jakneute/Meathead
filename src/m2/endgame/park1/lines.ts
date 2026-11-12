@@ -115,22 +115,24 @@ export const TUBE_DEATH = ['MISSED THE JUMP', 'THE SLIDE HAD A HOLE IN IT', 'NO 
 
 export const KID_NAME = 'ZORZARBLAX';
 /** The intro: on the summit, the kid with the view. */
+// (the owner's, 2026-11-11: every endgame boss is a child of Satan or the alien widow, and the lines let the player
+// know: he's the widow's son (MOM, widowed by Meathead), GUPPLAX (level 3's) his big brother)
 export const KID_INTRO = bp(
-  ["YOU'RE THE GUY WHO KILLED MY DAD. AND MY UNCLE. SAME GUY. HE WAS BOTH."],
-  ["YOU'RE THE GUY WHO KILLED MY DAD. YOU SMELL LIKE YOU KILLED HIM WITH YOUR ASS."],
-  ["YOU'RE THE GUY WHO KILLED MY DAD. AND YOU'RE NAKED. MOM DIDN'T SAY THAT."],
+  ["YOU KILLED MY DAD. HE WAS MY UNCLE TOO. MOM'S A WIDOW NOW."],
+  ["YOU KILLED MY DAD. WITH YOUR ASS, BY THE SMELL. MOM'S A WIDOW NOW."],
+  ["YOU KILLED MY DAD. NAKED? MOM'S A WIDOW AND YOU'RE NAKED."],
 );
 export const MH_INTRO = bp(["WHAT THE FUCK ARE YOU?"], ["WHAT THE FUCK IS THAT. AND I SAY THAT SMELLING LIKE THIS."], ["WHAT THE FUCK. AND I'M THE ONE WITH MY DICK OUT."]);
 export const KID_INTRO2 = bp(
-  ["MOM SAYS IF I KILL YOU I CAN HAVE MY OWN POD. I'M TWENTY-SIX."],
-  ["MOM SAYS KILL YOU AND I GET MY OWN POD. AND WASH MY HANDS AFTER."],
-  ["MOM SAYS KILL YOU AND I GET MY OWN POD. DON'T MAKE IT WEIRD."],
+  ["MOM SAYS KILL YOU AND I GET MY OWN POD. BEFORE MY BIG BROTHER GUPPLAX DOES."],
+  ["MOM SAYS KILL YOU AND I GET MY OWN POD. MY BIG BROTHER GUPPLAX GETS THE SMELL."],
+  ["MOM SAYS KILL YOU AND I GET MY OWN POD. MY BIG BROTHER GUPPLAX CAN'T SEE THIS."],
 );
 /** Taunts mid-fight. */
 export const KID_TAUNT = bp(
-  ["I HAVE THREE ARMS. YOU HAVE TWO. DO THE MATH.", "MY EYES DON'T AGREE WHERE YOU ARE. ALL OF THEM ARE RIGHT.", "DAD WAS MY DAD AND MY UNCLE. CHRISTMAS WAS CHEAP."],
-  ["YOU SMELL LIKE MY ROOM.", "MOM'S GONNA MAKE ME HOSE OFF THE SUMMIT.", "I CAN SMELL YOU WITH ALL MY NOSES."],
-  ["PUT IT AWAY, MAN.", "I'M NOT LOOKING AT IT. TWO OF MY EYES ARE.", "MOM WARNED ME ABOUT NAKED HUMANS. SHE WAS RIGHT."],
+  ["I HAVE THREE ARMS. YOU HAVE TWO. DO THE MATH.", "MY EYES DON'T AGREE WHERE YOU ARE. ALL OF THEM ARE RIGHT.", "DAD WAS MY DAD AND MY UNCLE. CHRISTMAS WAS CHEAP.", "GUPPLAX IS MOM'S FAVORITE. SHE SENT ME FIRST."],
+  ["YOU SMELL LIKE MY ROOM.", "MOM'S GONNA MAKE ME HOSE OFF THE SUMMIT.", "I CAN SMELL YOU WITH ALL MY NOSES.", "YOU SMELL LIKE MY BROTHER GUPPLAX'S TANK."],
+  ["PUT IT AWAY, MAN.", "I'M NOT LOOKING AT IT. TWO OF MY EYES ARE.", "MOM WARNED ME ABOUT NAKED HUMANS. SHE WAS RIGHT.", "MY BROTHER GUPPLAX SWIMS NAKED TOO. I HATE IT."],
 );
 /** Hurt. */
 export const KID_HURT = bp(
@@ -139,18 +141,19 @@ export const KID_HURT = bp(
   ['OW! YOUR THING TOUCHED ME!', 'OW! COVER IT!'],
 );
 /** Its tantrum (low health). */
-export const KID_LOW = bp(["I'M TELLING MOM!", "THIS ISN'T FAIR! NOTHING'S EVER FAIR!"], ["I'M TELLING MOM YOU'RE GROSS!"], ["I'M TELLING MOM YOU WERE NAKED!"]);
+export const KID_LOW = bp(
+  ["I'M TELLING MOM!", "THIS ISN'T FAIR! NOTHING'S EVER FAIR!", "GUPPLAX! HELP! HE NEVER HELPS!"],
+  ["I'M TELLING MOM YOU'RE GROSS!", "GUPPLAX! HE STINKS! HELP!"],
+  ["I'M TELLING MOM YOU WERE NAKED!", "GUPPLAX! HE'S NAKED! HELP!"],
+);
 /** Its standard death: a last line, slumped in the slide's mouth. */
-export const KID_DEATH = bp(["TELL MOM... I CLEANED MY POD."], ["TELL MOM... YOU SMELLED."], ["TELL MOM... I DIDN'T LOOK."]);
+export const KID_DEATH = bp(
+  ["TELL MOM... I CLEANED MY POD.", "TELL GUPPLAX... HE CAN HAVE MY POD."],
+  ["TELL MOM... YOU SMELLED.", "TELL GUPPLAX... BRING A HOSE."],
+  ["TELL MOM... I DIDN'T LOOK.", "TELL GUPPLAX... DON'T LOOK AT IT."],
+);
 /** Meathead, killing it: riding the kid down the slide. */
 export const MH_RIDE = bp(["HOP IN, KID. LET'S GO HOME."], ["MOVE OVER, KID. YOUR BODY'S MY TUBE."], ["SCOOCH, KID. NAKED BOBSLED."]);
-/** On the way down, up top (the owner's "something funny about riding the alien kid down the waterslide": said as
- *  they go; VICTORY after it, timed to the bottom: descent.ts). */
-export const MH_SPLASH = bp(
-  ["BEST TUBE I EVER RODE. A LITTLE BONY IN THE MIDDLE.", "RIDING A DEAD ALIEN DOWN A THOUSAND FEET. PUT THAT ON THE BROCHURE."],
-  ["THE KID'S CUSHIONING MY SHIT. ALL THE WAY DOWN.", "THE WATER'S GOING GREEN. AND BROWN. MOSTLY GREEN."],
-  ["RIDING THE KID DOWN BARE ASS. HE'S STILL WARM. DON'T THINK ABOUT IT.", "NAKED ON A DEAD ALIEN, A THOUSAND FEET. NEW RECORD."],
-);
 /** Grabbing him (too big). */
 export const GRAB_KID = ["HE'S HUGE. AND MOIST.", "TOO BIG. TOO SLIMY. TOO MANY ARMS.", "I'M NOT TOUCHING THAT."];
 /** His misery (the owner's "obvious intense discomfort"): stopped mid-walk to whine. */
@@ -201,12 +204,6 @@ export const MH_REACT = bp(
   ['AND I THOUGHT I WAS GROSS RIGHT NOW.', "YOU'RE GROSSER THAN MY PANTS. CONGRATS.", "WE'RE BOTH LEAKING. IT'S NOT A CONTEST."],
   ["PUT CREAM ON IT. I'M NAKED, I'M NOT JUDGING.", "YOU'RE UGLIER THAN ME AND I'M NAKED.", 'AT LEAST MY RASH IS ON THE INSIDE.'],
 );
-/** Meathead, after he pops (deflated, in the slide's mouth). */
-export const MH_POP = bp(
-  ['HE POPPED. HE WAS MOSTLY PUS.', 'HE DEFLATED. LIKE A BOUNCY CASTLE. A GROSS ONE.'],
-  ["HE POPPED. IT'S ON ME. IT'S WITH THE OTHER STUFF.", 'HE DEFLATED. NOW WE BOTH SMELL.'],
-  ['HE POPPED ON MY BARE EVERYTHING.', "HE DEFLATED. I'M STILL NAKED. NOBODY WINS."],
-);
 /** A retry: the short entrance's line. */
 export const KID_RETRY = bp(["YOU AGAIN. MOM SAID YOU'D COME BACK."], ["YOU AGAIN. STILL STINKY."], ["YOU AGAIN. STILL NAKED."]);
 /** (the death screen at the summit, whatever got him: the stage's say) */
@@ -216,7 +213,7 @@ export const SUMMIT_DEATH = ['KILLED BY THE INBRED KID', 'DEAD AT 1,000 FEET'];
 
 const all = (...pools: (string | string[] | ByPants)[]) => pools.flatMap(p => (typeof p === 'string' ? [p] : Array.isArray(p) ? p : Object.values(p).flat()));
 export const PARK1_VOICE_LINES: Record<string, string[]> = {
-  meathead: all(GRAB_KID, MH_KICK, MH_IN, MH_POSSESSED, MH_SLIDE, MH_CRATER, MH_PELICAN, MH_TUBE, MH_TUBE_DONE, MH_TUBE_CLEAR, MH_EVEREST, MH_LOCKED, MH_FLOOR_DONE, MH_SUMMIT, MH_STUB, MH_FALL, MH_INTRO, MH_RIDE, MH_SPLASH, MH_GRABBED, MH_REACT, MH_POP, ...Object.values(HURT).map(h => h.hurt)),
+  meathead: all(GRAB_KID, MH_KICK, MH_IN, MH_POSSESSED, MH_SLIDE, MH_CRATER, MH_PELICAN, MH_TUBE, MH_TUBE_DONE, MH_TUBE_CLEAR, MH_EVEREST, MH_LOCKED, MH_FLOOR_DONE, MH_SUMMIT, MH_STUB, MH_FALL, MH_INTRO, MH_RIDE, MH_GRABBED, MH_REACT, ...Object.values(HURT).map(h => h.hurt)),
   death: all(...Object.values(HURT).map(h => h.death), TUBE_DEATH, SUMMIT_DEATH),
   [KID_VOICE]: all(KID_INTRO, KID_INTRO2, KID_TAUNT, KID_HURT, KID_LOW, KID_DEATH, KID_RETRY, KID_WHINE, KID_SCRATCH, KID_BOIL, KID_BUCKLE, KID_RETCH, KID_GRAB),
 

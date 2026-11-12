@@ -33,7 +33,7 @@ import { newTube, boardTube, updateTube, unboardTube, tubeOn, tubeBox, tubeFoesL
 import { drawFunnelShot, prebakeFunnelShot, funnelSheet } from './funnel';
 import { newTower, buildTower, updateTower, floorOf, towerCamY, climbEase, ROUND, type Tower, type TowerEvents } from './tower';
 import { KIND_OF, setRidingCheck, setShotBox, updateShots, drawShots, drawBarks, byPants, clearShots } from './kinds';
-import { type Fight, startFight, updateFight, resetFight, fightDead, drawFight, drawFightHud, setOnKilled, doorState } from './boss';
+import { type Fight, startFight, updateFight, resetFight, fightDead, fightHeld, drawFight, drawFightHud, setOnKilled, doorState } from './boss';
 import { type Descent, startDescent, updateDescent, descentDone, drawDescentKid, drawGreenWater, drawDescentHud } from './descent';
 import { updateSplashes, drawSplashes, clearSplashes } from './splash';
 import { drawParkBackdrop, drawParkBack, drawParkFront, parkLamps, drawTubeRing, drawTubeHud } from './art';
@@ -100,6 +100,7 @@ const tubeCardRows = () => [
   { pad: ['A', 'B'], join: '+', kb: ['@airGrab'], label: 'AIR GRAB (WATCH WHERE YOU LAND)' },
 ] as import('../../upgrades/equipInfo').EquipControl[];
 const TUBE_CARD_TEXT = "THE TUBE'S STUCK TO YOUR ASS AND IT GOES ON ITS OWN. THE CHUTE'S GOT HOLES IN IT WITH NO BOTTOM: JUMP THEM. JUST SHOOTING AND AIR GRABS: NO UPPERCUTS, DIVE KICKS, SLIDES, CHARGES, BEATDOWNS OR SHAKEDOWNS. IT KEEPS GOING TILL EVERY ALIEN ON IT'S DEAD.";
+const MASH_TIP = [{ pad: ['A'], kb: ['@jump'], label: 'MASH: BREAK HIS HUG' }] as import('../../upgrades/equipInfo').EquipControl[];
 const CARD_HOLD = 90;
 /** The turning tower's radius at its most (the spiral's middle): about the screen's width across. */
 const TOWER_RADIUS = 330;
@@ -268,7 +269,8 @@ export const parkLayout: StageLayout = {
       if (p.pos.x > hi) { p.pos.x = hi; if (p.vel.x > 0) p.vel.x = 0; }
       state.cameraMinX = SUMMIT.L; state.cameraMaxX = SUMMIT.L;
       if (fightDead(f)) { pk.fightState = 'won'; pk.descent = startDescent(); }
-      setUi({ introCutscene: !!p.inCutscene });
+      // (held in his squeeze: the mash's real button, live (pad or keys), while it lasts)
+      setUi({ introCutscene: !!p.inCutscene, chordTips: fightHeld(f) && p.health > 0 ? MASH_TIP : null });
       return updateGrab(ctx, pk.grab, out);
     }
     // ---- the tube rides

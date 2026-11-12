@@ -38,8 +38,8 @@
 //
 // His death (standard; no weakness yet): he staggers over toward the slide's mouth, his last line; then he POPS: every
 // boil at once, pus everywhere, and he goes down like a punctured bouncy castle (wheezing, farting the air out) to the
-// size of the scrawny manchild underneath; over backward, flat on his belly into the slide's mouth. Meathead's say.
-// Then THE DESCENT (descent.ts).
+// size of the scrawny manchild underneath; over backward, flat on his belly into the slide's mouth. (The
+// stagger's at most about 3 s, however far off he died.) Then THE DESCENT (descent.ts): Meathead's one short line.
 
 import type { GameState } from '../../../m1/game/core/state';
 import type { FrameContext } from '../../../m1/game/core/context';
@@ -115,13 +115,16 @@ export interface Fight {
   scale: number;
   act: Act; actT: number; T: number; move: Move | null; last: Move | null; pending: Move | null; arm: 0 | 1 | 2; shots: number;
   total: number; dest: number; walkPh: number; swings: number; misery: boolean; under: number; lastRay: number; chain: boolean; flee: boolean;
+  /** The stomp's the spam breaker's: no lumbering off after it, straight into a swing at him. */
+  answer: boolean;
   /** The whip's end (art units out from his feet); the grab's mashes; a squeeze's clock. */
   lash: number; mash: number; mashPrev: boolean;
   boil: { t: number; at: 'hump' | 'gut' | 'jaw' } | null; boilAt: number; wheezeAt: number; reactAt: number;
   globs: Glob[]; puddles: Puddle[];
   intro: Intro; introT: number; skipT: number; said: string | null; talkStep: number;
   tauntAt: number; lowSaid: boolean;
-  death: { t: number; step: 'stagger' | 'line' | 'pop' | 'fall' | 'flop' | 'done' } | null;
+  /** (far: how far from the slide's mouth he died: the stagger's lurches are sized to get him there in about 2 s) */
+  death: { t: number; step: 'stagger' | 'line' | 'pop' | 'fall' | 'flop' | 'done'; far: number } | null;
   /** The door (kicked in): 0 up, 1 down flat. */
   door: number;
 }
@@ -203,7 +206,7 @@ export const startFight = (state: GameState): Fight => {
     mode: 'intro', e, hp: KID_HP, iframes: 0, flash: 0, moveSeen: e.hitByMove, spam: newSpam(),
     x: SUMMIT.R - 70, y: GY, vx: 0, face: 1, scale: S,
     act: 'walk', actT: 0, T: 40, move: null, last: null, pending: null, arm: 0, shots: 0,
-    total: 0, dest: SUMMIT.L + 300, walkPh: 0, swings: 0, misery: false, under: 0, lastRay: -9999, chain: false, flee: false,
+    total: 0, dest: SUMMIT.L + 300, walkPh: 0, swings: 0, misery: false, under: 0, lastRay: -9999, chain: false, flee: false, answer: false,
     lash: 0, mash: 0, mashPrev: true, boil: null, boilAt: 420, wheezeAt: 90, reactAt: 600, globs: [], puddles: [],
     intro: 'kick', introT: 0, skipT: 0, said: null, talkStep: 0, tauntAt: 700, lowSaid: false, death: null, door: 0,
   };
@@ -423,7 +426,12 @@ const updateOn = (ctx: FrameContext, f: Fight, controls: Controls): Controls => 
     case 'recover':
       f.vx *= 0.8;
       if (f.move === 'slam' && f.actT % 12 === 6 && f.actT < f.T - 10) { playSound('crunch', 0.4, 4); state.particles.push({ pos: { x: f.x + f.face * SLAM_AT, y: GY - 6 }, vel: { x: (Math.random() - 0.5) * 3, y: -2 }, life: 20, color: '#CBD5E1', size: 3, grav: 0.3 }); }
-      if (f.actT >= f.T) { if (f.chain) { f.chain = false; startMove(state, f, f.move === 'low' ? 'high' : 'slam', true); } else next(state, f); }
+      if (f.actT >= f.T) {
+        if (f.chain) { f.chain = false; startMove(state, f, f.move === 'low' ? 'high' : 'slam', true); }
+        // (the spam breaker's stomp: no walk off, no whine: a swing at him, wherever he's stood)
+        else if (f.answer) { f.answer = false; f.misery = true; f.swings = 0; startMove(state, f, choose(state, f)); }
+        else next(state, f);
+      }
       break;
     case 'spasm':
       f.vx = 0;
@@ -592,7 +600,7 @@ const runMove = (ctx: FrameContext, f: Fight) => {
       break;
     }
     case 'stomp':
-      if (t >= f.T) { f.flee = true; setAct(f, 'recover', 10); }
+      if (t >= f.T) { f.flee = !f.answer; setAct(f, 'recover', 10); }
       break;
     default:
       next(state, f);
@@ -680,12 +688,16 @@ const takeHits = (ctx: FrameContext, f: Fight) => {
   ctx.fx.spawnDamageNumber({ x: f.x - 10, y: f.y - KID_H * S - 10 }, Math.max(1, Math.round(dmg)), dmg > 40);
   for (let i = 0; i < 8; i++) state.particles.push({ pos: { x: f.x + f.face * 20, y: f.y - 120 }, vel: { x: (Math.random() - 0.5) * 4, y: -1 - Math.random() * 3 }, life: 22, color: i % 3 ? '#3FA34D' : '#F4E27A', size: 2 + Math.random() * 3, grav: 0.3 });
   if (f.hp > 0 && Math.random() < 0.2) bark(state, f, crushLines(f.e, L.KID_HURT));
-  // (the same hit landing on him for ~4 s: off his head or out of his face, he stamps the floor and lumbers off)
+  // (the same hit landing on him for ~4 s: off his head or out of his face. He used to stamp the floor and lumber off
+  // to the far end, shot in the back the whole way, then be stamped out again: docile. Now it's an answer: from far
+  // off, the whip right along the floor at him (jump it); close, the stamp (the quake both ways), and straight out of
+  // it a swing at wherever he's stood)
   if (f.hp > 0 && !burst && spamTick(f.spam, state.frame, hitKey(state.player, melee)) && f.act !== 'hold') {
     if (melee) swatOff(state, f.x);
     spamReset(f.spam);
-    f.move = null; f.chain = false; f.pending = null;
-    f.move = 'stomp'; f.last = 'stomp'; setAct(f, 'tell', TELL.stomp * 0.6); playSound('roar', 0.5, 6);
+    f.chain = false; f.pending = null; f.flee = false; f.lash = 0;
+    if (!melee && Math.abs(pmid(state).x - f.x) > 200) startMove(state, f, 'whip');
+    else { f.answer = true; f.move = 'stomp'; f.last = 'stomp'; setAct(f, 'tell', TELL.stomp * 0.6); playSound('roar', 0.5, 6); }
   }
   if (f.hp <= 0) die(ctx, f);
 };
@@ -701,7 +713,7 @@ const die = (ctx: FrameContext, f: Fight) => {
   const { state } = ctx, p = state.player;
   endCheapStun(f.e);
   if (p.carried) { p.carried = false; p.noSpecials = false; }
-  f.hp = 0; f.mode = 'dying'; f.death = { t: 0, step: 'stagger' }; token++; f.said = null;
+  f.hp = 0; f.mode = 'dying'; f.death = { t: 0, step: 'stagger', far: Math.abs(MOUTH_AT.x - 70 - f.x) }; token++; f.said = null; f.answer = false;
   silenceAll();
   clearShots(state);
   f.globs = f.globs.filter(g => g.pus);
@@ -724,13 +736,13 @@ const updateDying = (ctx: FrameContext, f: Fight): Controls => {
       // (staggering about, all three arms going, green and pus out of him: drunken lurches, always on toward the
       // slide's mouth (the owner's "the level one boss will stumble and fall over so he's always near the slide on
       // death"))
-      { const to = MOUTH_AT.x - 70, lurch = Math.max(0, Math.sin(d.t * 0.18)) * 2.6;
+      { const to = MOUTH_AT.x - 70, lurch = Math.max(0, Math.sin(d.t * 0.18)) * Math.max(2.6, d.far / 40);
         f.x += Math.sign(to - f.x) * Math.min(Math.abs(to - f.x), lurch) + Math.sin(d.t * 0.5) * 1;
         if (Math.abs(to - f.x) > 6) f.face = to > f.x ? 1 : -1;
         if (d.t % 22 === 11) { playSound('thud', 0.7, -10); shakeScreen(state, 4, 2); } }
       f.x = Math.max(SUMMIT.L + 70, Math.min(MOUTH_AT.x - 40, f.x));
       if (d.t % 6 === 0) state.particles.push({ pos: { x: f.x, y: f.y - 150 }, vel: { x: (Math.random() - 0.5) * 5, y: -2 - Math.random() * 3 }, life: 30, color: '#3FA34D', size: 3 + Math.random() * 3, grav: 0.3 });
-      if (d.t > 60 && Math.abs(MOUTH_AT.x - 70 - f.x) < 40 || d.t > 420) { f.face = MOUTH_AT.x > f.x ? -1 : 1; d.step = 'line'; d.t = 0; kidSays(f, pick(byPants(state, L.KID_DEATH)), true, () => { if (f.death) { f.death.step = 'pop'; f.death.t = 0; } }); }
+      if (d.t > 60 && Math.abs(MOUTH_AT.x - 70 - f.x) < 40 || d.t > 200) { f.face = MOUTH_AT.x > f.x ? -1 : 1; d.step = 'line'; d.t = 0; kidSays(f, pick(byPants(state, L.KID_DEATH)), true, () => { if (f.death) { f.death.step = 'pop'; f.death.t = 0; } }); }
       break;
     case 'line':
       if (d.t > 400) { d.step = 'pop'; d.t = 0; }
@@ -778,6 +790,8 @@ export const updateFight = (ctx: FrameContext, f: Fight, controls: Controls): Co
   return updateOn(ctx, f, controls);
 };
 export const fightDead = (f: Fight) => f.mode === 'dead';
+/** Held in the squeeze right now (the stage puts the mash's real button up: ui.chordTips). */
+export const fightHeld = (f: Fight) => f.mode === 'on' && f.act === 'hold';
 
 /** The kid's pose this frame (q below 0: the pose's own loop off the frame count). */
 const poseOf = (f: Fight): { pose: KidPose; q: number; noHand?: boolean } => {

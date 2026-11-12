@@ -3,10 +3,11 @@
 // callout after meathead says something funny about riding the alien kid down the waterslide").
 //
 // No input, no HUD (a set piece, short, not skippable). The kid's flopped belly-down in the slide's mouth: Meathead
-// walks up (his line), hops on his back, and they go: all the way down MOUNT EVEREST BUT BETTER's slide (geo.ts
+// runs up (his one short line), hops on his back, and they go: all the way down MOUNT EVEREST BUT BETTER's slide (geo.ts
 // DESCENT), a thousand feet, faster and faster, the kid's green coming out of him into the water behind them, the
 // chute's water going green the whole way down. The splash pool at the bottom: the big splash (it throws him out onto
-// the deck), the pool gone green, the kid floating in it. His line; VICTORY; control's his again, on he walks.
+// the deck), the pool gone green, the kid floating in it. VICTORY's over the ride (it ends at the
+// bottom); nothing more said; control's his again, on he walks.
 
 import type { GameState } from '../../../m1/game/core/state';
 import type { FrameContext } from '../../../m1/game/core/context';
@@ -32,6 +33,8 @@ const SEAT = 12;
 const POOL = POOLS[3];
 /** Where the splash throws him: the deck past the pool. */
 const OUT_X = POOL.x2 + 110;
+/** His run up to the kid in the slide's mouth (px a frame). */
+const RUN = 4.6;
 
 export interface Descent {
   step: 'walk' | 'hop' | 'ride' | 'splash' | 'thrown' | 'line' | 'victory' | 'done';
@@ -59,9 +62,11 @@ export const updateDescent = (ctx: FrameContext, d: Descent, onSplash: () => voi
   switch (d.step) {
     case 'walk':
       // (up to the kid in the mouth; his line on the way)
-      if (!d.said) { d.said = true; meatheadSays(state, pickLine(byPants(state, L.MH_RIDE)), true); }
+      // (a run, not a walk: the summit's 800 across and he may be at its far end (it was 5 s of walking, half of it in
+      // silence). The hop waits for his line (short: a second or two), so the VICTORY's jingle never starts under it)
+      if (!d.said) { d.said = true; meatheadSays(state, pickLine(byPants(state, L.MH_RIDE)), true, () => { d.lineDone = true; }); }
       p.facing = 1;
-      if (cx < MOUTH_AT.x - 70) p.vel.x = 2.4; else { p.vel.x = 0; if (d.t > 50) { d.step = 'hop'; d.t = 0; d.from = { x: cx, y: p.pos.y + p.height }; playSound('jump', 0.8); } }
+      if (cx < MOUTH_AT.x - 70) p.vel.x = RUN; else { p.vel.x = 0; if (d.t > 30 && (d.lineDone || d.t > 260)) { d.step = 'hop'; d.t = 0; d.from = { x: cx, y: p.pos.y + p.height }; playSound('jump', 0.8); } }
       if (d.t > 400) { d.step = 'hop'; d.t = 0; d.from = { x: cx, y: p.pos.y + p.height }; }
       return hands();
     case 'hop': {
