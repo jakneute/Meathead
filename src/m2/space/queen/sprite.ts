@@ -13,6 +13,7 @@
 // claws clamped over it, knees knocked in, hunched and twitching, her face glitching). Drawn facing right from her middle
 // on the floor (flipped to face left).
 
+import { stitchOver } from '../../endgame/park4/hook';
 import { GY } from '../geometry';
 import { stencil } from './letters';
 import { ALIEN } from '../../../m1/game/scenes/alienLook';
@@ -119,6 +120,7 @@ export const drawQueen = (c: Ctx, x: number, facing: 1 | -1, q: QueenDraw) => {
   const A = armsOf(pose, t, stride);
   arm(c, A[1], LATF, pose);
   torso(c, q, t);
+  stitchOver(c, 'space', 'body');
   if (pose === 'cheap') rippedPanel(c, t);
   // --- The small arms, out of her chest (the cheap shot: down over the hole too, all four on it) ---
   if (pose === 'cheap') {
@@ -402,6 +404,7 @@ const head = (c: Ctx, q: QueenDraw, t: number, sag: number, glow: number) => {
     }
     px(c, 20 + o * 2, -6, 22, 6, LAT[1]); px(c, 20 + o * 2, -6, 22, 1, LAT[4]);
   }
+  stitchOver(c, 'space', 'head');
   c.restore();
 };
 

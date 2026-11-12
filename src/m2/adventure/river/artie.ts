@@ -15,6 +15,7 @@
 // tooth out, a sleeve gone and a chunk out of the helmet, a scalp gash running down his face, the seat of his shorts
 // ripped (heart boxers), a sock down, blood dripping off him.
 
+import { stitchOver } from '../../endgame/park4/hook';
 import { type Ctx } from '../../cast/kit';
 import { smear, drip, cut, bloodFresh, bloodDark } from '../../../m1/game/render/player/gore';
 import { elbow, reachTo } from '../../art/limb';
@@ -216,6 +217,7 @@ export const drawSafariArtie = (c: Ctx, x: number, feetY: number, facing: number
   bend();
   // ---- the shirt, the belt and what's on it
   drawShirt(c, pose, f, d);
+  stitchOver(c, 'adventure', 'body');
   // ---- the arms (the far one first), the neck, the head, what's in his hands
   const hy = pose === 'duck' ? -63.5 : pose === 'hurt' ? -66 : pose === 'stunned' ? -66 + Math.sin(f * 0.12) * 1.5 : -68;
   // (arms straight up over him: his head ducked back out of the way of the near one, which goes on over it)
@@ -234,6 +236,7 @@ export const drawSafariArtie = (c: Ctx, x: number, feetY: number, facing: number
     : pose === 'skewered' ? -0.3 + Math.sin(f * 0.45) * 0.25 : pose === 'broken' ? -0.45 : 0;
   c.save(); c.translate(hx, hy); c.rotate(nod); c.scale(HS, HS);
   drawHead(c, pose, f, d, tilt);
+  stitchOver(c, 'adventure', 'head');
   c.restore();
   if (up) { hand(c, far, false, pose, f); if (reach) drawArm(c, near, true, d, pose, f); else hand(c, near, true, pose, f); }
   // (the radio, the whistle: brought up across his chest to his mouth by the far hand, over his chin)

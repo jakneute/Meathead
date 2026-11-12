@@ -34,7 +34,7 @@ import { playSound } from '../../../../m1/game/platform/audio';
 import { shakeScreen } from '../../../../m1/game/core/state';
 import { isShat, isNude } from '../../../../m1/game/player/gut';
 import { bossDeath, setUi } from '../../../store';
-import { inRefight, refightOn } from '../hook';
+import { inRefight } from '../hook';
 import { drawNed, drawPoof } from '../nedArt';
 import { refightId, refightStage } from '../where';
 import * as L from '../lines/space';
@@ -184,22 +184,6 @@ const bossAt = (state: GameState) => {
   return { x: f.x, feet: GY - f.y, w: 110, h: 240, face: f.facing };
 };
 
-/** The mallet's: her head hammered back out, dents in it, a plate bolted over the worst. */
-const drawLook = (c: Ctx, state: GameState) => {
-  const at = bossAt(state);
-  if (at && (refightOn()?.look ?? lookNow()) === 'weakness') drawQueenDents(c, at);
-};
-export const drawQueenDents = (c: Ctx, at: { x: number; feet: number; face: number }) => {
-  const hx = at.x + at.face * 40, hy = at.feet - 250;
-  c.save();
-  c.fillStyle = '#6B7280'; c.fillRect(Math.round(hx - 12), Math.round(hy - 16), 24, 10);
-  c.fillStyle = '#9CA3AF'; c.fillRect(Math.round(hx - 12), Math.round(hy - 16), 24, 3);
-  c.fillStyle = '#D1D5DB'; for (const dx of [-9, 0, 9]) c.fillRect(Math.round(hx + dx - 1), Math.round(hy - 12), 2, 2);
-  c.fillStyle = 'rgba(10, 10, 14, 0.7)';
-  for (const [dx, dy, r] of [[-14, 0, 5], [8, 8, 4], [-4, 14, 3]] as const) { c.beginPath(); c.ellipse(hx + dx * at.face, hy + dy, r, r * 0.6, 0.4, 0, Math.PI * 2); c.fill(); }
-  c.restore();
-};
-
 const lookNow = () => bossDeath('space') ?? 'normal';
 
 /** Her land's layout, with the drop's hold on him (no input from the portal till he's on the floor). */
@@ -242,7 +226,6 @@ export const spaceRefight: RefightDef = {
     : { thread: '#E5E7EB', patch: '#D9A08A', seams: [[0.2, 0.3, 0.8, 0.34], [0.3, 0.6, 0.75, 0.56], [0.5, 0.34, 0.48, 0.56]], patches: [[0.3, 0.18, 0.3, 0.1], [0.55, 0.4, 0.25, 0.12], [0.25, 0.66, 0.22, 0.12], [0.72, 0.02, 0.18, 0.06]], staples: [[0.3, 0.32], [0.7, 0.33], [0.4, 0.58], [0.66, 0.57]] },
   update,
   drawFront: (c, state) => {
-    drawLook(c, state);
     // (the two's last words, cut short)
     if (alienSaid) saidOver(c, alienSaid, DJ.x + DJ.w / 2, DJ.y - 30, '#D9F99D', 220);
   },

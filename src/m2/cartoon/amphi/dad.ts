@@ -17,6 +17,7 @@
 // squints at Meathead and thinks it's the Boy). drawCouch(c, x, floorY, frame, opts): the show's couch (orange plaid,
 // sagging, the dent he's worn in it), his seat on it at DAD_SEAT.
 
+import { stitchOver } from '../../endgame/park4/hook';
 import { mix } from '../kit';
 import { elbow as elbowAt, knee as kneeAt, reachTo } from '../../art/limb';
 import { drawDadGross } from './dadGross';
@@ -139,6 +140,7 @@ const head = (c: Ctx, hx: number, hy: number, face: DadFace, f: number, dir: num
   ell(c, -9, 10.4, 1.4, 1.4, '#222222');
   // (sweat on the dome, now and then)
   if ((f + 13) % 90 < 40) { ell(c, -13, -12 + ((f + 13) % 90) * 0.12, 0.8, 1.2, '#E8F4FF'); }
+  stitchOver(c, 'cartoon', 'head');
   c.restore();
 };
 
@@ -489,6 +491,7 @@ export const drawDad = (c: Ctx, x: number, feetY: number, pose: DadPose, f: numb
   // (the shoulders and the chest behind the belly: the tank top's straps, grey chest hair over its neckline)
   shape(c, () => { c.moveTo(shN[0] - 4, shN[1] + 6); c.quadraticCurveTo(shN[0], shN[1] - 4, (shN[0] + shF[0]) / 2, shN[1] - 3); c.quadraticCurveTo(shF[0], shF[1] - 4, shF[0] + 6, shF[1] + 6); c.lineTo(bx + brx * 0.6, by - bry * 0.4); c.lineTo(bx - brx * 0.7, by - bry * 0.4); c.closePath(); }, SKIN, shN[0] - 6, shF[0] + 6);
   belly(c, bx, by, brx, bry);
+  c.save(); c.translate(bx, by); c.scale(-brx / 30, bry / 30); stitchOver(c, 'cartoon', 'body'); c.restore();
   // (sat (or getting up), his near knee sticks out past the gut: its kneecap over the belly's edge (the far one's behind
   // the near thigh))
   if (up < 0.6) kneecap(c, hipN, kneeN, true);

@@ -13,6 +13,11 @@ import { drawSteve } from '../../hollywood/stunt/steve';
 import { drawTucker } from '../../frontier/tucker';
 import { drawDonnie } from '../../spooky/donnie';
 import { drawPiper } from '../../fantasy/piper';
+import { drawRambo } from '../../foreign/harry/rambo';
+import { drawQueen } from '../../space/queen/sprite';
+import { drawDad } from '../../cartoon/amphi/dad';
+import { drawSafariArtie } from '../../adventure/river/artie';
+import { GY as SPACE_GY } from '../../space/geometry';
 
 const sheet = (cols: number, rows: number, cw: number, ch: number, scale: number, cell: (g: CanvasRenderingContext2D, i: number) => string | void) => {
   const cv = document.createElement('canvas');
@@ -74,6 +79,10 @@ export const contactSheet4 = (what: string): string => {
     add('frontier', ['normal', 'weakness'], (g, k) => drawTucker(g, 0, 0, k % 2 ? -1 : 1, 10, (['stand', 'aim', 'hurt', 'reload'] as const)[k], { wounds: { eye: true } }));
     add('spooky', ['normal', 'weakness'], (g, k) => drawDonnie(g, 0, 0, k % 2 ? -1 : 1, 10, (['stand', 'hurt', 'lunge', 'run'] as const)[k], 0, { cape: true, wig: true, fangs: true }));
     add('fantasy', ['normal', 'weakness'], (g, k) => { g.scale(0.62, 0.62); drawPiper(g, 0, 0, k % 2 ? -1 : 1, 10, (['stand', 'enraged', 'hurt', 'gloat'] as const)[k], {}); });
+    add('foreign', ['spin', 'buried', 'barfed'], (g, k) => drawRambo(g, 0, 0, { pose: (['stand', 'fire', 'hurt', 'walk'] as const)[k], f: 10, facing: k % 2 ? -1 : 1 }));
+    add('space', ['normal', 'weakness'], (g, k) => { g.scale(0.45, 0.45); g.translate(0, -SPACE_GY); drawQueen(g, 0, k % 2 ? -1 : 1, { pose: (['idle', 'roar', 'swipe', 'tell'] as const)[k], t: 10, ext: 0, alive: 1, beat: 0, free: true }); });
+    add('cartoon', ['normal', 'weakness'], (g, k) => drawDad(g, 0, 0, (['stand', 'shuffle', 'sit', 'hammer'] as const)[k], 10, { facing: k % 2 ? 1 : -1 }));
+    add('adventure', ['normal', 'weakness'], (g, k) => drawSafariArtie(g, 0, 0, k % 2 ? -1 : 1, 10, (['stand', 'point', 'hurt', 'grab'] as const)[k]));
     const cols = 4, cw = 130, ch = 170;
     return sheet(cols, rows.length, cw, ch, 2, (g, i) => {
       const r = rows[Math.floor(i / cols)], k = i % cols;

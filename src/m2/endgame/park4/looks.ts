@@ -201,6 +201,147 @@ BOSSES.fantasy = {
   },
 };
 
+// HELICOPTER HARRY (foreign/harry/rambo.ts): body in his feet frame, leaned (bare torso, the V: shoulders x -16..17 at
+// y -71, the jeans' top about y -42); head about its middle (heli/harryArt.ts's head at (1, -86): face about x -10..12,
+// y -12..12, the ponytail off the back).
+//   spin: SHOT BY HIS OWN ROUNDS (the spin): holes all over him, every one sewn shut in a cross.
+//   buried: BURIED IN CEMENT (her puke): chiseled out, some of him still cement: gray crust patches, seamed round.
+//   barfed: PUKED HIMSELF TO DEATH: a seam right across his gut where a new stomach went in, green round it; his lips
+//           sewn shut in crosses so it can't happen again.
+const CEM = '#9A968E', CEM_HI = '#C4C0B8', SICK = '#5E8A2A';
+BOSSES.foreign = {
+  body: (c, look) => {
+    if (look === 'buried') {
+      patch(c, [-14, -68, -4, -70, -2, -60, -12, -58], CEM, '#3A3630', CEM_HI);
+      patch(c, [6, -56, 16, -58, 15, -48, 5, -46], CEM, '#3A3630', CEM_HI);
+      patch(c, [-8, -50, 0, -51, 0, -44, -9, -43], CEM, '#3A3630');
+      return;
+    }
+    if (look === 'barfed') {
+      blot(c, 1, -50, 14, 5, SICK, 0.35);
+      seam(c, [-14, -51, -4, -48, 6, -48, 16, -51], '#E8E0D0', 2.4);
+      staple(c, -9, -49.6, 0.15); staple(c, 11, -49.6, -0.15);
+      return;
+    }
+    for (const [x, y] of [[-10, -64], [-3, -58], [8, -66], [12, -56], [-6, -48], [4, -46], [14, -46], [-12, -54], [2, -68]] as const) holeX(c, x, y, '#E8E0D0', 1.3);
+  },
+  head: (c, look) => {
+    if (look === 'buried') { patch(c, [-6, -8, 11, -7, 12, 6, 2, 9, -6, 4], CEM, '#3A3630', CEM_HI, 2.2); return; }
+    if (look === 'barfed') {
+      c.strokeStyle = '#E8E0D0'; c.lineWidth = 0.6; c.beginPath();
+      for (let k = 0; k < 4; k++) { const x = 3 + k * 2.4; c.moveTo(x - 1, 5); c.lineTo(x + 1, 8.6); c.moveTo(x + 1, 5); c.lineTo(x - 1, 8.6); }
+      c.stroke();
+      blot(c, 7, 2, 5, 3, SICK, 0.3);
+      return;
+    }
+    holeX(c, 4, -6, '#E8E0D0', 1.7); holeX(c, -4, 2, '#E8E0D0', 1.7); holeX(c, 9, 5, '#E8E0D0', 1.5); holeX(c, 0, 9, '#E8E0D0', 1.4);
+  },
+};
+
+// THE QUEEN (space/queen/sprite.ts): body in her frame, leaned (the ribbed torso x -38..48, y -238..-110); head about
+// her dome's root, turned (the dome x -14..56, y -28..8, the snout and jaws on forward to 60, the crest back to -110).
+// She's rebuilt, not raised: the aliens put her back.
+//   normal: BURNT TO THE SKELETON: a dollar store's peach latex glued back over her in patches, riveted, the price tag
+//           still on her dome.
+//   weakness: FLATTENED BY THE MALLET: her dome hammered back out (dents all over it), a steel plate bolted over the
+//           worst, a seam down her neck; dents in her chest.
+const LATEX = '#D8A08A', LATEX_HI = '#F0C4AE';
+const rivet = (c: Ctx, x: number, y: number) => { c.fillStyle = INK; c.fillRect(x - 1.6, y - 1.6, 3.2, 3.2); c.fillStyle = '#C8CCD4'; c.fillRect(x - 1, y - 1, 2, 2); c.fillStyle = '#FFFFFF'; c.fillRect(x - 1, y - 1, 1, 1); };
+const dent = (c: Ctx, x: number, y: number, r: number) => {
+  c.fillStyle = 'rgba(8, 6, 12, 0.55)'; c.beginPath(); c.ellipse(x, y, r, r * 0.7, 0.3, 0, Math.PI * 2); c.fill();
+  c.strokeStyle = 'rgba(200, 200, 220, 0.5)'; c.lineWidth = 1; c.beginPath(); c.ellipse(x, y, r, r * 0.7, 0.3, Math.PI * 0.9, Math.PI * 1.7); c.stroke();
+};
+BOSSES.space = {
+  body: (c, look) => {
+    if (look === 'weakness') { for (const [x, y, r] of [[-10, -200, 7], [14, -178, 6], [-20, -150, 5], [20, -140, 6]] as const) dent(c, x, y, r); return; }
+    for (const pts of [[-24, -214, 8, -220, 10, -196, -22, -190], [-30, -160, -4, -164, -6, -138, -26, -132], [14, -170, 38, -176, 34, -150, 12, -146]]) {
+      patch(c, pts, LATEX, '#8A8A90', LATEX_HI, 4);
+      for (let i = 0; i < pts.length; i += 2) rivet(c, pts[i], pts[i + 1]);
+    }
+  },
+  head: (c, look) => {
+    if (look === 'weakness') {
+      for (const [x, y, r] of [[4, -16, 6], [32, -18, 5], [46, -10, 4], [18, -6, 4]] as const) dent(c, x, y, r);
+      c.fillStyle = INK; c.fillRect(10, -27, 28, 13); c.fillStyle = '#6B7280'; c.fillRect(11, -26, 26, 11); c.fillStyle = '#9CA3AF'; c.fillRect(11, -26, 26, 3);
+      for (const x of [13, 24, 34]) rivet(c, x, -18);
+      seam(c, [-8, 6, -14, 18, -18, 32], '#D1D5DB', 4, 1.6);
+      return;
+    }
+    patch(c, [2, -24, 30, -27, 34, -10, 6, -6], LATEX, '#8A8A90', LATEX_HI, 4);
+    for (const [x, y] of [[2, -24], [30, -27], [34, -10], [6, -6]] as const) rivet(c, x, y);
+    // (the price tag, on its string)
+    c.strokeStyle = '#E8E0D0'; c.lineWidth = 1; c.beginPath(); c.moveTo(20, -26); c.lineTo(24, -36); c.stroke();
+    c.fillStyle = INK; c.fillRect(20, -46, 18, 11); c.fillStyle = '#F4F0E0'; c.fillRect(21, -45, 16, 9); c.fillStyle = '#C81E1E'; c.fillRect(23, -43, 12, 2); c.fillRect(23, -40, 8, 2);
+  },
+};
+
+// DAD GUY (cartoon/amphi/dad.ts): body about his belly's middle, in its own units (the belly a disc of radius 30, his
+// front +x); head in his head's own frame (the skull about (-2, -4), radius 14 or so, his face toward -x).
+//   normal: DROWNED IN BEER (wrung out like a towel): the seams twisted round his gut like a wrung rag, beer still soaked
+//           into him in yellow blots, a drip off his chin.
+//   weakness: FLATTENED BY THE STUNT CAR (pumped back up with a bike pump): a bike valve in his belly, its cap on a chain;
+//           the tire's tread sewn across his gut and across his face.
+const BEER = '#E9B23A';
+const tread = (c: Ctx, x0: number, y0: number, x1: number, y1: number, w: number) => {
+  const len = Math.hypot(x1 - x0, y1 - y0), a = Math.atan2(y1 - y0, x1 - x0);
+  c.save(); c.translate(x0, y0); c.rotate(a);
+  c.fillStyle = 'rgba(20, 18, 22, 0.55)'; c.fillRect(0, -w / 2, len, w);
+  c.fillStyle = 'rgba(20, 18, 22, 0.75)'; for (let x = 2; x < len - 2; x += 5) { c.beginPath(); c.moveTo(x, -w / 2); c.lineTo(x + 3, 0); c.lineTo(x, w / 2); c.lineTo(x + 1.6, 0); c.closePath(); c.fill(); }
+  c.restore();
+  seam(c, [x0, y0, x1, y1], '#F5F5F4', 3);
+};
+BOSSES.cartoon = {
+  body: (c, look) => {
+    if (look === 'weakness') {
+      tread(c, -26, -16, 26, 18, 9);
+      c.fillStyle = INK; c.fillRect(2.4, -6, 5.2, 12); c.fillStyle = '#B8BCC4'; c.fillRect(3, -6, 4, 11); c.fillStyle = '#E5E7EB'; c.fillRect(3, -6, 1.4, 11);
+      c.fillStyle = '#1F2937'; c.fillRect(1.6, -10, 6.8, 5); c.strokeStyle = '#9CA3AF'; c.lineWidth = 0.8; c.beginPath(); c.moveTo(8, -8); c.quadraticCurveTo(13, -2, 8, 4); c.stroke();
+      return;
+    }
+    for (const k of [-1, 0, 1]) seam(c, [-26, -14 + k * 12, -8, -6 + k * 12, 10, -12 + k * 12, 26, -4 + k * 12], '#F5F5F4', 3.4, 1.2);
+    blot(c, -10, 10, 9, 6, BEER, 0.4); blot(c, 14, -8, 7, 5, BEER, 0.35);
+  },
+  head: (c, look) => {
+    if (look === 'weakness') { tread(c, -14, -14, 8, 8, 6); staple(c, 4, -2, 0.8); return; }
+    seam(c, [-14, -10, -4, -16, 6, -12, 10, -4], '#F5F5F4', 2.6);
+    drip(c, -8, 15, 4, BEER, '#FFE08A');
+  },
+};
+
+// SAFARI ARTIE (adventure/river/artie.ts): body in his feet frame, bent (the shirt x -10.5..10.5, the belt at y -31, up
+// to his shoulders about y -60); head about its middle, its own units (crown about -15, jaw 13).
+//   normal: GORED BY THE RHINO: the hole the horn left through his gut plugged with half a coconut, sewn round; his spine
+//           seamed down his back where it folded, stapled.
+//   weakness: EATEN ALIVE (the litter): what they ate made up out of a store mannequin: smooth beige plastic sewn into
+//           his shirt and half his face, a bolt at the joint, a painted-on eye.
+const MANNY = '#E8D2B4', MANNY_HI = '#FFF0DC';
+BOSSES.adventure = {
+  body: (c, look) => {
+    if (look === 'weakness') {
+      patch(c, [-10, -58, 4, -56, 3, -44, -10, -46], MANNY, '#3A2A1A', MANNY_HI);
+      patch(c, [2, -42, 10, -43, 10, -33, 1, -34], MANNY, '#3A2A1A', MANNY_HI);
+      c.fillStyle = '#6A6A70'; c.beginPath(); c.arc(-3, -50, 1.6, 0, Math.PI * 2); c.fill();
+      return;
+    }
+    // (the coconut half, plugged in the hole: its husk, its three eyes; sewn round)
+    c.fillStyle = INK; c.beginPath(); c.arc(2, -40, 6.2, 0, Math.PI * 2); c.fill();
+    c.fillStyle = '#6A4220'; c.beginPath(); c.arc(2, -40, 5.4, 0, Math.PI * 2); c.fill();
+    c.fillStyle = '#8A5A2E'; c.beginPath(); c.arc(1, -41, 3.4, 0, Math.PI * 2); c.fill();
+    c.fillStyle = '#3A2410'; for (const [x, y] of [[0, -42], [3, -42], [1.5, -39.4]] as const) c.fillRect(x, y, 1.2, 1.2);
+    seam(c, [-5, -44, 2, -47.4, 9, -44, 9, -36, 2, -32.6, -5, -36, -5, -44], '#F5F5F4', 2.4);
+    seam(c, [-10.6, -58, -11.4, -48, -10.6, -36], '#F5F5F4', 2.4);
+    staple(c, -11.2, -52, 0.1); staple(c, -11, -42, -0.1);
+  },
+  head: (c, look) => {
+    if (look === 'weakness') {
+      patch(c, [0, -6, 12, -5, 13, 8, 2, 11, -1, 1], MANNY, '#3A2A1A', MANNY_HI, 2.2);
+      c.fillStyle = '#1A1A2A'; c.fillRect(6, -3, 3, 2); c.fillStyle = '#2A3A8A'; c.fillRect(6, -3, 2, 1);
+      return;
+    }
+    seam(c, [-12, 8, -6, 12, 2, 12.6], '#F5F5F4', 2.2);
+  },
+};
+
 setStitch((c, who, part, look) => {
   const p = BOSSES[who]?.[part];
   if (!p) return;

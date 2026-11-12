@@ -20,7 +20,6 @@
 //     HELL TV's billboard, ON AIR over the banner (cartoon/amphi/stage.ts STAGE_HOOKS).
 
 import type { RefightDef } from '../defs';
-import type { GameState } from '../../../../m1/game/core/state';
 import { cartoonLayout } from '../../../cartoon/index';
 import * as A from '../../../cartoon/amphi/lines';
 import { setCastRefight, dadNow } from '../../../cartoon/amphi/fight';
@@ -29,7 +28,7 @@ import { DAD_K } from '../../../cartoon/amphi/dad';
 import { type Ramp, rampOf, shape, shapeTop, ell, px, line, limb, fill } from '../../../cartoon/amphi/paint';
 import { elbow, knee } from '../../../art/limb';
 import { bossDeath } from '../../../store';
-import { refightOn, inRefight } from '../hook';
+import { inRefight } from '../hook';
 import { STAGE_HOOKS } from '../../../cartoon/amphi/stage';
 import { cartoonPlace, drawOnAir, CARTOON_BANNER } from '../place/cartoon';
 import { refightId, refightStage } from '../where';
@@ -246,27 +245,6 @@ export const rfCartoonSheet = { drawDwayne, drawRhonda, drawFlatGuest, actorFace
 // ---------------------------------------------------------------------------------------------------------------
 // His look's own bits (drawStitches does the seams): the beer still sloshing in him, or the valve he was pumped up by
 
-const drawLook = (c: Ctx, state: GameState) => {
-  void state;
-  const at = dadNow();
-  if (!at) return;
-  const look = refightOn()?.look ?? 'normal';
-  const top = at.feet - at.h;
-  c.save();
-  if (look === 'weakness') {
-    // (the bike valve in his belly, its cap on a little chain; a tread mark sewn across him)
-    const vx = at.x - at.face * 10, vy = top + at.h * 0.58;
-    px(c, Math.round(vx - 1.5), Math.round(vy - 8), 3, 8, '#9CA3AF'); px(c, Math.round(vx - 2.5), Math.round(vy - 10), 5, 3, '#1F2937');
-    px(c, Math.round(vx - 1), Math.round(vy - 8), 1, 7, '#E5E7EB');
-  } else {
-    // (beer dripping off him still, wrung out but never dry)
-    for (let k = 0; k < 3; k++) {
-      const t = ((state.frame + k * 29) % 70) / 70;
-      ell(c, at.x - 16 + k * 14, top + at.h * (0.5 + t * 0.5), 1.6, 2.4, '#E9B23A');
-    }
-  }
-  c.restore();
-};
 
 // (his place: DAD GUY, LIVE IN HELL (park4/place/cartoon.ts): the banner's line, the ON AIR box over it: only while
 // this refight's on)
@@ -302,5 +280,4 @@ export const cartoonRefight: RefightDef = {
     ? { thread: '#1A1A1A', patch: '#3F3F46', seams: [[0.0, 0.35, 1.0, 0.45], [0.0, 0.45, 1.0, 0.55], [0.3, 0.1, 0.35, 0.9]], patches: [[0.6, 0.2, 0.25, 0.12]], staples: [[0.2, 0.4], [0.8, 0.5]] }
     // (drowned in beer, wrung out: seams twisted round him like a towel, the beer stain)
     : { thread: '#F5F5F4', patch: '#D9A520', seams: [[0.0, 0.25, 1.0, 0.4], [0.0, 0.5, 1.0, 0.65], [0.0, 0.75, 1.0, 0.9]], staples: [[0.5, 0.33], [0.5, 0.58]], stain: { col: '#D9A520', k: 0.22 } },
-  drawFront: drawLook,
 };
