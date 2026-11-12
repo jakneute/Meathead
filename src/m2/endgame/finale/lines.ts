@@ -18,54 +18,7 @@ export const CREW_VOICE = 'm2.space.alien';
 export const BEN_VOICE = 'm2.ben';
 export const MUSK_VOICE = 'm2.fin.musk';
 
-// ---------------------------------------------------------------------------------------------------------------
-// The opening (a skippable cutscene: no input, no HUD, bubbles, nobody over anybody)
-
-/** The two of them, squabbling over him (the owner's: "still fighting over their claim to meathead"). */
-export const SATAN_CLAIM = ['HE OWES ME A SOUL, FRISBEE. I HAD DIBS AT THE CASTLE.', 'BACK IN YOUR HUBCAP. THE FAT ONE IS MINE.'];
-export const WIDOW_CLAIM = ['HE MADE ME A WIDOW, HORN BOY. HE GOES IN A JAR. MY JAR.', "I'VE GOT A JAR WITH HIS NAME ON IT. LABEL MAKER AND EVERYTHING."];
-export const SATAN_BACK = ["JARS ARE FOR PICKLES. HE'S GOING IN THE LAKE.", 'YOUR HUSBAND WAS YOUR BROTHER. SIT DOWN.'];
-/** Him, walking up on the two of them (they glance over). */
-export const MH_ARRIVE = bp(
-  ['MORNING, ASSHOLES. WHO WANTS TO DIE FIRST?', 'YOU TWO STILL FIGHTING OVER ME? I GET IT. LOOK AT ME.'],
-  ["MORNING. DON'T MIND THE PANTS. WHO'S FIRST?", "YOU TWO STILL FIGHTING OVER ME? EVEN LIKE THIS? FLATTERED."],
-  ['MORNING. YES, I WALKED HERE NAKED. WHO DIES FIRST?', 'STILL FIGHTING OVER ME? I GET IT. LOOK AT ALL OF ME.'],
-);
-/** What he's carrying: their kids (each over the other's look at their own). */
-export const WIDOW_SEE = ['...IS THAT MY BABY?', '...ZORZARBLAX?'];
-export const SATAN_SEE = ["...THAT'S MY BOY.", '...MEHPHISTO? MY MOODY LITTLE BOY?'];
-/** After the gross-ups: grief, the gag way. */
-export const WIDOW_GRIEF = ['HE HAD HIS FATHER\'S EYE. HE HAD ALL OF HIS FATHER, REALLY.', 'I CARRIED HIM FOR NINE YEARS.'];
-export const SATAN_GRIEF = ['HE NEVER SAID HE LOVED ME. NOW HE NEVER WILL.', 'HE WAS GOING TO BE A DISAPPOINTMENT. MY DISAPPOINTMENT.'];
-export const MH_KIDS = bp(
-  ['THEY HAD IT COMING. ONE OF THEM HAD THREE ARMS.', "WHAT? THEY STARTED IT. I'M PRETTY SURE."],
-  ["THEY HAD IT COMING. I SHIT MYSELF FIGHTING THEM. THAT'S ON THEM.", 'WHAT? THE SMELL IS FROM THE FIGHT. MOSTLY.'],
-  ['THEY HAD IT COMING. THEY SAW ME NAKED. THEY WERE DONE ANYWAY.', "WHAT? I LOST MY PANTS KILLING THEM. WE'RE EVEN."],
-);
-/** The truce. */
-export const WIDOW_TRUCE = ['TRUCE, HORN BOY. WE KILL HIM TOGETHER. THEN I KILL YOU.', 'TRUCE. HIM FIRST. THEN YOU.'];
-export const SATAN_TRUCE = ['FINE. TOGETHER. THEN YOU GO IN THE LAKE TOO.', "DEAL. BUT YOU'RE TOO SHORT TO HELP."];
-/** Out of the saucer, onto the asphalt: "EMBIGGEN ME". */
-export const WIDOW_EMBIGGEN = ["BOYS! EMBIGGEN MOMMY! ALL THE WAY UP!", 'BOYS! THE BIG RAY! MAKE MOMMY HUGE!'];
-export const CREW_EMBIGGEN = ['EMBIGGENING, MA\'AM!', 'YES, MOTHER! FULL POWER!'];
-export const SATAN_IMPRESSED = ['...HUH. NOT BAD FOR A FRISBEE.', '...OKAY. NOW YOU\'RE TALL.'];
-/** Him, walking into the ray. */
-export const MH_RAY = bp(
-  ['OH, A FREE RAY? I\'M IN.', 'MOVE. ME NEXT. I LOVE A RAY.'],
-  ['A RAY. MAYBE IT SHRINKS THE SHIT.', 'ME NEXT. DON\'T EMBIGGEN THE PANTS.'],
-  ['A RAY. AIM IT AT MY DICK. WORTH A TRY.', 'ME NEXT. ALL OF ME. ESPECIALLY THE BOTTOM HALF.'],
-);
-/** Ben, in after him (only with all eight given). */
-export const BEN_RAY = ['THE BIGGER THE MAN, THE BIGGER THE PUMP. MOVE OVER.', 'NEVER SKIP A FREE PUMP. SCOOT.'];
-export const MH_BEN_RAY = bp(['CON-FUCK-TIOUS! YOU CAME!'], ['CON-FUCK-TIOUS! DON\'T EMBIGGEN BEHIND ME!'], ['CON-FUCK-TIOUS! DON\'T LOOK DOWN!']);
-/** Giant. */
-export const MH_GIANT = bp(
-  ['HOLY SHIT. I\'M HUGE.', 'I\'M BIGGER THAN THE PARK. FINALLY.'],
-  ['HOLY SHIT. I\'M HUGE. SO IS THE SHIT.', 'I\'M BIGGER THAN THE PARK. THE SMELL TOO.'],
-  ['HOLY SHIT. I\'M HUGE. ALL OF ME. YOU\'RE WELCOME, FLORIDA.', 'BIGGER THAN THE PARK. AND I\'M HANGING OVER IT.'],
-);
-export const SATAN_GO = ['TO THE PARK. WE GRIND HIM INTO IT.', 'COME, FRISBEE. WE STOMP.'];
-export const WIDOW_GO = ['THIS WAY. I PARKED BY THE GIFT SHOP.', 'FOLLOW ME, HORN BOY. MIND THE TOURISTS.'];
+// (The opening's lines: introLines.ts, folded in with the rest in endgame/lines.ts.)
 
 // ---------------------------------------------------------------------------------------------------------------
 // The run
@@ -372,12 +325,11 @@ const cbVoices = (): Record<string, string[]> => {
   return out;
 };
 export const FINALE_VOICE_LINES: Record<string, string[]> = {
-  meathead: flat(MH_ARRIVE, MH_KIDS, MH_RAY, MH_BEN_RAY, MH_GIANT, MH_AMERICA, ...Object.values(MH_LAND), MH_WEAK, MH_STUNNED, MH_THROW, MH_NEXT, MH_STOMP, MH_HALF, MH_END, MH_OOPS, ...Object.values(FINISH).flatMap(f => [f.mh, f.after]), ...Object.values(HURT).map(h => h.hurt)),
+  meathead: flat(MH_AMERICA, ...Object.values(MH_LAND), MH_WEAK, MH_STUNNED, MH_THROW, MH_NEXT, MH_STOMP, MH_HALF, MH_END, MH_OOPS, ...Object.values(FINISH).flatMap(f => [f.mh, f.after]), ...Object.values(HURT).map(h => h.hurt)),
   death: flat(...Object.values(HURT).map(h => h.death)),
-  [SATAN_VOICE]: flat(SATAN_CLAIM, SATAN_BACK, SATAN_SEE, SATAN_GRIEF, SATAN_TRUCE, SATAN_IMPRESSED, SATAN_GO, SATAN_TAUNT, SATAN_HURT, SATAN_DAZED, SATAN_THROWN, SATAN_UP, SATAN_HELD, SATAN_NECK, SATAN_RAGE, SATAN_DAZE, ...Object.values(FINISH).map(f => f.satan)),
-  [WIDOW_VOICE]: flat(WIDOW_CLAIM, WIDOW_SEE, WIDOW_GRIEF, WIDOW_TRUCE, WIDOW_EMBIGGEN, WIDOW_GO, WIDOW_TAUNT, WIDOW_HURT, WIDOW_DAZED, WIDOW_THROWN, WIDOW_UP, WIDOW_HELD, WIDOW_NECK, WIDOW_RAGE, WIDOW_DAZE, ...Object.values(FINISH).map(f => f.widow)),
-  [CREW_VOICE]: flat(CREW_EMBIGGEN),
-  [BEN_VOICE]: flat(BEN_RAY, ...Object.values(BEN_WEAPON), BEN_GRAB, BEN_GRAB_SATAN, BEN_OFF, BEN_NICE),
+  [SATAN_VOICE]: flat(SATAN_TAUNT, SATAN_HURT, SATAN_DAZED, SATAN_THROWN, SATAN_UP, SATAN_HELD, SATAN_NECK, SATAN_RAGE, SATAN_DAZE, ...Object.values(FINISH).map(f => f.satan)),
+  [WIDOW_VOICE]: flat(WIDOW_TAUNT, WIDOW_HURT, WIDOW_DAZED, WIDOW_THROWN, WIDOW_UP, WIDOW_HELD, WIDOW_NECK, WIDOW_RAGE, WIDOW_DAZE, ...Object.values(FINISH).map(f => f.widow)),
+  [BEN_VOICE]: flat(...Object.values(BEN_WEAPON), BEN_GRAB, BEN_GRAB_SATAN, BEN_OFF, BEN_NICE),
   [MUSK_VOICE]: flat(MUSK_RAGE),
   'm2.space.needle': flat(NEEDLE_COUNT),
 };
