@@ -354,13 +354,19 @@ const drawPlayFloor = (c: Ctx, v: View) => {
 // ---------------------------------------------------------------------------------------------------------------
 // The world, behind the cast
 
+/** Ned's boss rush (endgame/park4/rf/frontier.ts sets these; each a no-op outside his refight): the woods behind the
+ *  glade some other way (true: drawn, the land's trees not), and the sign before it some other one. */
+export const ARENA_HOOKS: { trees?: (c: Ctx, v: View, dMin: number, dMax: number) => boolean; sign?: () => { key: string; paint: (g: Ctx) => void } | null } = {};
+
 export const drawArenaBack = (c: Ctx, state: GameState) => {
   const v = viewOf(state);
+  const trees = (a: number, b: number) => { if (!ARENA_HOOKS.trees?.(c, v, a, b)) drawTrees(c, v, a, b); };
+  const sg = ARENA_HOOKS.sign?.() ?? null;
   // (deepest first: nothing stood back is drawn over anything nearer)
   drawGoingBack(c, v);
-  drawTrees(c, v, 0, SIGN_D);
-  if (seen(v, SIGN_X - 70, SIGN_X + 70, SIGN_D)) atDepth(c, v.eye, SIGN_D, () => put(c, 'ar-bearsign', SIGN_X, GY, -66, -140, 132, 144, paintBearSign));
-  drawTrees(c, v, SIGN_D, 1.01);
+  trees(0, SIGN_D);
+  if (seen(v, SIGN_X - 70, SIGN_X + 70, SIGN_D)) atDepth(c, v.eye, SIGN_D, () => put(c, sg ? sg.key : 'ar-bearsign', SIGN_X, GY, -66, -140, 132, 144, sg ? sg.paint : paintBearSign));
+  trees(SIGN_D, 1.01);
   // ---- the trail coming toward him; the oak at the play plane, over it (its roots aren't bent with the floor)
   drawPlayFloor(c, v);
   if (onScreen(state, TREE_X - 300, TREE_X + 300)) put(c, 'ar-oak', TREE_X, GY, -300, -510, 600, 520, paintOak);

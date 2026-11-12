@@ -8,27 +8,25 @@
 // Stitched up the way he died: the grizzly (claw seams down him, a bear's brown fur sewn in where it ate) or the lions
 // (torn in half at the waist, the halves sewn back on a bit crooked, staples where the thread ran out).
 //
-// The hell's props go along the glade's back through the land's own hook (frontier/arena/index.ts setRefightBack:
-// behind the boulder and him), not the framework's arena() (that's drawn after the land's back, over Tucker: he's
-// drawn in the land's back pass).
+// The place: HELL'S WILDERNESS (park4/place/frontier.ts): his own sky, the woods behind the glade dead and sold off
+// (frontier/arena/art.ts ARENA_HOOKS.trees), the sign before it his (ARENA_HOOKS.sign).
 
 import type { RefightDef } from '../defs';
 import type { GameState } from '../../../../m1/game/core/state';
 import { frontierLayout } from '../../../frontier/index';
-import { setRefightBack } from '../../../frontier/arena/index';
-import { ARENA_L, ARENA_R, GY } from '../../../frontier/arena/layout';
+import { ARENA_HOOKS } from '../../../frontier/arena/art';
 import * as A from '../../../frontier/arena/lines';
 import { bossDeath } from '../../../store';
-import { refightOn } from '../hook';
-import { drawHellProps, bossBox } from '../hell';
+import { refightOn, inRefight } from '../hook';
+import { bossBox } from '../hell';
+import { frontierPlace, frontierWoods, frontierSign } from '../place/frontier';
 import { refightId, refightStage } from '../where';
 import * as L from '../lines/frontier';
 
 type Ctx = CanvasRenderingContext2D;
-const ARENA = { l: ARENA_L - 60, r: ARENA_R + 60, floor: GY };
-
-// (hell's wilderness along the glade's back: behind the boulder and him)
-setRefightBack((c, state) => drawHellProps(c, state, 'GREED', ARENA));
+// (hell's wilderness behind the glade, in the land's own woods' place; the sign before it: only while his refight's on)
+ARENA_HOOKS.trees = (c, v, a, b) => inRefight('frontier') && frontierWoods(c, v, a, b);
+ARENA_HOOKS.sign = () => (inRefight('frontier') ? frontierSign() : null);
 
 /** The bear's fur sewn into him (the grizzly's look): a few tufts of it over the patches (the seams are drawStitches'). */
 const furTufts = (c: Ctx, state: GameState) => {
@@ -60,7 +58,7 @@ export const frontierRefight: RefightDef = {
     [A.TF_LOW, L.RF_TF_LOW], [A.TF_FALL, L.RF_TF_FALL], [A.TF_POP, L.RF_TF_POP], [A.TF_GLOAT, L.RF_TF_GLOAT],
     [A.TF_LAST_BEAR, L.RF_TF_LAST_BEAR], [A.TF_LAST_LIONS, L.RF_TF_LAST_LIONS],
   ],
-  // (none from the framework: its props would go over him (see the top); the land's hook draws them behind)
+  place: frontierPlace,
   arena: () => null,
   stitches: look => look === 'weakness'
     // (torn in half: the waist seam right round him, a hand's width off true (sewn back crooked), a second seam where
