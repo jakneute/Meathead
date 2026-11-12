@@ -1270,24 +1270,31 @@ export const drawFallenChandelier = (c: Ctx, x: number, f: number) => drawChande
 
 /** The bedroom, behind everything: the cut above, the walls, the wreck as far as it's gone, her portraits and trophies,
  *  the furniture, the chandeliers, the hole she went out through. */
+/** Ned's boss rush (endgame/park4/rf/fantasy.ts sets these; each a no-op outside the refight): a suffix for the still
+ *  art's keys that's painted some other way (the walls, the trophies, the balcony's view, the hall); more over her
+ *  walls (after their own paint); the trophy wall some other one; more of the room over it all, after the furniture. */
+export const ROOM_HOOKS: { key?: () => string | null; wallOver?: (g: Ctx, a: number, b: number) => void; trophies?: () => ((g: Ctx) => void) | null; after?: (c: Ctx, state: GameState) => void } = {};
+
 export const drawChamber = (c: Ctx, state: GameState, look: RoomLook) => {
-  const f = state.frame, s = look.stage;
+  const f = state.frame, s = look.stage, rk = ROOM_HOOKS.key?.() ?? '';
   if (state.camera.x + 1800 < ARENA_L - 100 || state.camera.x - 920 > ARENA_R + 300) return;
   const x0 = ARENA_L - 60, x1 = ARENA_R + 120;
   runW(c, state, 'cut', ARENA_MID - CONE_HW - 30, ARENA_MID + CONE_HW + 30, PEAK - 80, CEIL_Y, (g, a, b) => paintCut(g, a, b));
-  runW(c, state, 'wall', x0, x1, CEIL_Y, GY + 140, (g, a, b) => paintWall(g, a, b));
+  runW(c, state, `wall${rk}`, x0, x1, CEIL_Y, GY + 140, (g, a, b) => { paintWall(g, a, b); ROOM_HOOKS.wallOver?.(g, a, b); });
   if (s >= 1) runW(c, state, `wreck${s}`, x0, x1, CEIL_Y, GY + 30, (g, a, b) => paintWreck(g, a, b, s));
   // (the drip from the holes, live)
   if (s >= 2) for (let k = 0; k < ceilHoles(s); k++) { const { x } = holeAt(k), t = (f + k * 23) % 70; if (t < 40) B(c, x + 6, CEIL_Y + 34 + t * 3, 1, 3, '#9ACCE8'); if (t > 66) B(c, x + 4, GY - 1, 4, 1, '#9ACCE8'); }
   // (the trophy wall and its scoreboard; the portraits, askew as it goes; the corona over the bed)
-  stillW(c, 'trophies', TROPHY_X, GY, -120, -464, 300, 304, g => {
+  const trophies = ROOM_HOOKS.trophies?.() ?? null;
+  stillW(c, `trophies${rk}`, TROPHY_X, GY, -120, -464, 300, 304, g => {
+    if (trophies) { trophies(g); return; }
     scoreboard(g, TROPHY_X + 45, GY - 450);
     TROPHIES.forEach((T, i) => trophyArt(g, TROPHY_X - 30 + (i % 3) * 75, GY - 328 + Math.floor(i / 3) * 114, T, i));
   });
   const ti = s >= 5 ? 2 : s >= 3 ? 1 : 0;
   for (const P of PORTRAITS) stillW(c, `portrait-${P.x}-${ti}`, R(P.x), P.y, -P.w, -40, P.w * 2, P.h + 70, g => portraitArt(g, R(P.x), P.y, P.w, P.h, P.k, P.pose, P.bg, P.tilt[ti]));
   stillW(c, 'corona', R(1150), GY - 440, -200, -40, 400, 260, g => corona(g));
-  stillW(c, 'balcony', R(WIN.l), GY, -70,WIN.top - GY - 20, WIN.r - WIN.l + 110, GY - WIN.top + 24, g => balconyArt(g));
+  stillW(c, `balcony${rk}`, R(WIN.l), GY, -70,WIN.top - GY - 20, WIN.r - WIN.l + 110, GY - WIN.top + 24, g => balconyArt(g));
   // (balloons drifting past out there)
   c.save(); c.beginPath(); c.rect(R(WIN.l) + 8, WIN.top + 70, WIN.r - WIN.l - 16, WIN.bot - WIN.top - 70); c.clip();
   for (let k = 0; k < 2; k++) { const bx = R(WIN.l) + 20 + ((f * 0.15 + k * 70) % (WIN.r - WIN.l)), by = WIN.top + 150 - k * 40 + Math.sin(f * 0.02 + k) * 5; ballR(c, bx, by, 4, k ? ['#3A0A24', '#6A1440', '#A8206A', '#F43F8E', '#FF8AC0', '#FFFFFF'] : ['#3A2A08', '#6A4A10', '#A07A1C', '#F2C84A', '#FFE08A', '#FFFFFF']); B(c, bx, by + 4, 1, 8, '#E4E4E7'); }
@@ -1304,6 +1311,7 @@ export const drawChamber = (c: Ctx, state: GameState, look: RoomLook) => {
   // (the chandeliers: up, or the one that's come down; the hole she went out through)
   CHANDELIERS.forEach((cx, i) => drawChandelier(c, R(cx), look.chandelierDown === i ? GY : CHANDELIER_Y, f + i * 17, look.chandelierDown === i));
   if (look.roofHole !== null) { const hx = Math.round(look.roofHole); stillW(c, `roofhole-${hx}`, hx, CEIL_Y, -120, PEAK - CEIL_Y - 60, 240, CEIL_Y - PEAK + 120, g => paintRoofHole(g, hx)); if (f % 6 < 3) B(c, hx - 30 + ((f * 13) % 60), CEIL_Y + 10 + ((f * 7) % 40), 1, 1, '#FDE68A'); }
+  ROOM_HOOKS.after?.(c, state);
 };
 
 /** Her room's far end wall (no way on: the end of the land): the castle's own pale ashlar past the room's last corner. */
@@ -1519,7 +1527,7 @@ export const drawHall = (c: Ctx, state: GameState, look: RoomLook) => {
   // not dropped with the hall (the owner's: "the door sprites disappear too soon, before they are off screen"))
   if (state.camera.x + 1580 < x0) return;
   if (state.camera.x > DOOR_X + 200) { if (look.doorT !== null && state.camera.x < DOOR_X + 340 + LEAF_H) door(c, look.doorT); return; }
-  runW(c, state, 'hall', x0, ARENA_L, VAULT_T, GY + 140, (g, a, b) => paintHall(g, a, b));
+  runW(c, state, `hall${ROOM_HOOKS.key?.() ?? ''}`, x0, ARENA_L, VAULT_T, GY + 140, (g, a, b) => paintHall(g, a, b));
   // (the sconces' flames; glints in the glass on the runner)
   for (const p of HALL_PIL) flame(c, HALL_L + p, GY - 262, f, 0.18);
   for (let k = 0; k < 4; k++) { const ph = (f + k * 41) % 80; if (ph < 5) { const sx = WIN_X - 60 + hash(k * 9.1 + Math.floor((f + k * 41) / 80)) * 360, sy = GY + 4 + hash(k * 2.3 + Math.floor(f / 80)) * 40; B(c, sx - 2, sy, 5, 1, '#FFFFFF'); B(c, sx, sy - 2, 1, 5, '#FFFFFF'); } }

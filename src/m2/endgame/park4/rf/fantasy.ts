@@ -9,15 +9,17 @@
 // middle where the floor had her wedged) or popped (the flintlock's holes under black tire patches off a bike kit, the
 // orange edge round each).
 //
-// No hell props along the back (arena() null): it's a bedroom, and the framework draws them after the land's back pass,
-// where she's drawn (they'd go over her). The hell's light and haze are the framework's.
+// The place: HELL'S PIXIE BEDROOM (park4/place/fantasy.ts), in through the room's own hooks.
 
 import type { RefightDef } from '../defs';
 import type { GameState } from '../../../../m1/game/core/state';
 import { fantasyLayout } from '../../../fantasy/index';
 import * as A from '../../../fantasy/bedroom/lines';
 import { bossDeath } from '../../../store';
-import { refightOn } from '../hook';
+import { refightOn, inRefight } from '../hook';
+import { ROOM_HOOKS } from '../../../fantasy/bedroom/room';
+import { VIEW_HOOKS } from '../../../fantasy/bedroom/view';
+import { fantasyPlace, FANTASY_HOOKS } from '../place/fantasy';
 import { bossBox } from '../hell';
 import { refightId, refightStage } from '../where';
 import * as L from '../lines/fantasy';
@@ -55,6 +57,15 @@ const drawLook = (c: Ctx, state: GameState) => {
   c.restore();
 };
 
+// (her place: HELL'S PIXIE BEDROOM (park4/place/fantasy.ts), in through the room's own hooks: only while her refight's
+// on)
+const rfOn = () => inRefight('fantasy');
+ROOM_HOOKS.key = () => (rfOn() ? FANTASY_HOOKS.key : null);
+ROOM_HOOKS.wallOver = (g, a, b) => { if (rfOn()) FANTASY_HOOKS.wallOver(g, a, b); };
+ROOM_HOOKS.trophies = () => (rfOn() ? FANTASY_HOOKS.trophies : null);
+ROOM_HOOKS.after = (c, state) => { if (rfOn()) FANTASY_HOOKS.after(c, state); };
+VIEW_HOOKS.view = (g, l, r, top, bot, hY) => { if (!rfOn()) return false; FANTASY_HOOKS.view(g, l, r, top, bot, hY); return true; };
+
 export const fantasyRefight: RefightDef = {
   land: 'fantasy', id: refightId('fantasy'), stage: refightStage('fantasy'),
   boss: 'PIPER THE PIXIE', sin: 'LUST',
@@ -70,6 +81,7 @@ export const fantasyRefight: RefightDef = {
     [A.ELEMENT_SHOUT.fire, L.RF_ELEMENT_FIRE], [A.ELEMENT_SHOUT.ice, L.RF_ELEMENT_ICE], [A.ELEMENT_SHOUT.shock, L.RF_ELEMENT_SHOCK],
     [A.PIPER_POP, L.RF_PIPER_POP], [A.PIPER_CRUMBLE, L.RF_PIPER_CRUMBLE],
   ],
+  place: fantasyPlace,
   arena: () => null,
   stitches: look => look === 'weakness'
     // (popped: the holes the patches don't cover, crossed shut; a seam down her where she split)

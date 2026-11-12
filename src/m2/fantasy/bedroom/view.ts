@@ -18,8 +18,13 @@ const poly = (g: Ctx, pts: [number, number][], col: string) => { g.fillStyle = c
 const farCol = (tod: TimeOfDay, k: number) => (col: string) => mix(farTint(hourMix(col, mix(col, '#8A5A7A', 0.2), mix(col, '#141832', 0.46), tod), 1, tod), skyAt(0.86, tod), k);
 const LANES = [['#FACC15', '#6D28D9'], ['#EA580C', '#991B1B'], ['#38BDF8', '#1D4ED8']];
 
+/** Ned's boss rush (endgame/park4/rf/fantasy.ts sets it; a no-op outside the refight): the view some other one (true:
+ *  painted). */
+export const VIEW_HOOKS: { view?: (g: Ctx, l: number, r: number, top: number, bot: number, hY: number) => boolean } = {};
+
 /** Paints the view into l..r, top..bot, its horizon (the Alps' feet) at hY. */
 export const parkView = (g: Ctx, l: number, r: number, top: number, bot: number, hY: number) => {
+  if (VIEW_HOOKS.view?.(g, l, r, top, bot, hY)) return;
   const tod = timeOfDay(), w = r - l, lamps = tod.lamps > 0.35;
   // (the sky: banded, dithered where the bands meet)
   const S = skyRamp(['#23307A', '#3A55B4', '#6E8EDC', '#A8C4F0', '#E8D4F0', '#F8C8D8'], tod);
