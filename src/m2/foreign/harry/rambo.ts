@@ -439,7 +439,6 @@ export const drawRambo = (c: Ctx, x: number, y: number, L: RamboLook) => {
   else if (pose === 'fall' || pose === 'spin' || pose === 'dead') arm(c, shB[0], shB[1], -28, pose === 'dead' ? -66 : -86, S, -1, false, 1, false, true);
   else if (pose === 'cheap') { crotchBlood(c, f); arm(c, shB[0], shB[1], 1, -36 + ((f >> 1) % 2), S, 1, true, 1, false, true); }
   torso(c, S, f);
-  stitchOver(c, 'foreign', 'body');
   head(c, f, true, !!L.talking, 1, -86, { bandana: true, green: L.green, mood: moodOf(L), slip: !!L.dead, gray: (L.concrete ?? 0) > 0.5 ? (L.concrete! - 0.5) : 0 });
   c.save(); c.translate(1, -86); stitchOver(c, 'foreign', 'head'); c.restore();
   if ((pose === 'rant' && L.talking) || pose === 'cheap') steamOff(c, f, 2, -104);
@@ -474,6 +473,8 @@ export const drawRambo = (c: Ctx, x: number, y: number, L: RamboLook) => {
   if (pose === 'flex' && (f >> 3) % 4 === 0) { pxR(c, 29, -96, 1, 5, '#FFFFFF'); pxR(c, 27, -94, 5, 1, '#FFFFFF'); }
   concreteCoat(c, L.concrete ?? 0, f);
   if (L.holes) bodyHoles(c, L.holes, f);
+  // (Ned's boss rush: his look over him after his arms and the gun, as his own holes and cement are, kept to his torso)
+  c.save(); c.beginPath(); torsoPath(c); c.clip(); stitchOver(c, 'foreign', 'body'); c.restore();
   c.restore();
   c.restore();
 };
