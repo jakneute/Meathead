@@ -47,6 +47,14 @@ export const STUNT_HOOKS: {
   stage?: (c: Ctx, state: GameState) => void;
   fan?: (c: Ctx, x: number, y: number, seed: number, s: -1 | 1) => boolean;
   back?: (c: Ctx, px: number, py: number, n: number, f: number) => boolean;
+  /** The street set along the back, some other one (its own painted canvas, `h` tall, the bays painted on it by `bay`). */
+  set?: () => { key: string; h: number; paint: (g: Ctx, o: { w: number; h: number; bays: number[]; port: number; bay: (g: Ctx, dx: number, B: number, n: number) => void }) => void } | null;
+  /** STEVE-O-VISION's usual picture drawn some other way (true: drawn); the marquee's words; over the banner, after it;
+   *  the stands' concrete, seats and ad boards in other ramps. */
+  screen?: (c: Ctx, x: number, y: number, f: number) => boolean;
+  marquee?: () => string | null;
+  banner?: (c: Ctx, x: number, y: number) => void;
+  pal?: () => { stand: string[]; seatA: string[]; seatB: string[]; adA: string[]; adB: string[] } | null;
 } = {};
 
 const h01 = (n: number) => { const s = Math.sin(n * 127.1 + 311.7) * 43758.5453; return s - Math.floor(s); };
@@ -530,9 +538,10 @@ export const drawTells = (c: Ctx, tells: { x: number; color: CarColor; k: number
 const drawSet = (c: Ctx, state: GameState, doorsLit: boolean, bays?: BayLook[]) => {
   const base = FLOOR_BACK_Y + 2;
   if (!inView(state, SET_X, SET_X + SET_W)) return;
-  const cv = painted('hst-set', SET_W, SET_H, paintSet);
+  const hell = STUNT_HOOKS.set?.() ?? null, SH = hell ? hell.h : SET_H;
+  const cv = hell ? painted(hell.key, SET_W, SH, g => hell.paint(g, { w: SET_W, h: SH, bays: BAYS, port: PORT, bay: paintBay })) : painted('hst-set', SET_W, SET_H, paintSet);
   const s = shown(state), sx = Math.max(0, Math.floor(s.x0 - SET_X - 60)), sw = Math.min(SET_W - sx, s.x1 - s.x0 + 120);
-  if (sw > 0) c.drawImage(cv, sx, 0, sw, SET_H, SET_X + sx, base - SET_H, sw, SET_H);
+  if (sw > 0) c.drawImage(cv, sx, 0, sw, SH, SET_X + sx, base - SH, sw, SH);
   DOORS_X.forEach((dx, i) => { if (inView(state, dx - PORT, dx + PORT)) drawBayLive(c, dx, base, doorsLit, state.frame, bays?.[i]); });
 };
 
@@ -573,9 +582,10 @@ const drawStand = (c: Ctx, v: View, s: -1 | 1, hype: number, f: number) => {
   // (on screen at all: its back corner (the nearest the middle) or its cut)
   const [bx] = at(eye, e, GY, SET_D);
   if (s < 0 ? bx < cam - 40 && e < cam - 40 : bx > cam + CANVAS_WIDTH + 40 && e > cam + CANVAS_WIDTH + 40) return;
-  const St = STAND.map(c2 => hour(c2, 0.1)), lit2 = s > 0;
+  const P = STUNT_HOOKS.pal?.() ?? null, RedR = P?.adB ?? RED_R;
+  const St = (P?.stand ?? STAND).map(c2 => hour(c2, 0.1)), lit2 = s > 0;
   const shades = (k: number) => [St[Math.min(5, k)], St[Math.max(0, k - 1)], St[Math.max(0, k - 1)], St[Math.max(0, k - 2)]];
-  const Sy = SEAT_Y.map(c2 => hour(c2, 0.1)), Sr = SEAT_R.map(c2 => hour(c2, 0.1));
+  const Sy = (P?.seatA ?? SEAT_Y).map(c2 => hour(c2, 0.1)), Sr = (P?.seatB ?? SEAT_R).map(c2 => hour(c2, 0.1));
   const dOf = (j: number) => 1 - ((1 - SET_D) * (j + 0.5)) / SEATS;
   // The rows, outermost first: each riser, its tread (when he can see it), its seats and fans back to front
   for (let i = ROWS - 1; i >= 0; i--) {
@@ -603,11 +613,11 @@ const drawStand = (c: Ctx, v: View, s: -1 | 1, hype: number, f: number) => {
   const x0r = rowX(s, 0), yp = GY - POD;
   lface(c, eye, Math.min(e, x0r), Math.max(e, x0r), yp, 1, SET_D, St[3]);
   vface(c, eye, e, yp, GY - 120, 1, SET_D, shades(lit2 ? 5 : 4));
-  const Y = STEVE.map(c2 => hour(c2, 0.1));
+  const Y = (P?.adA ?? STEVE).map(c2 => hour(c2, 0.1));
   for (let k = 0; k < 6; k++) {
     const a = 1 - ((1 - SET_D) * k) / 6, b = 1 - ((1 - SET_D) * (k + 0.85)) / 6;
-    poly(c, [at(eye, e, yp + 10, a), at(eye, e, yp + 10, b), at(eye, e, GY - 128, b), at(eye, e, GY - 128, a)], k % 2 ? Y[lit2 ? 4 : 3] : RED_R[lit2 ? 4 : 3]);
-    iline(c, at(eye, e, yp + 10, a), at(eye, e, yp + 10, b), k % 2 ? Y[5] : RED_R[5]);
+    poly(c, [at(eye, e, yp + 10, a), at(eye, e, yp + 10, b), at(eye, e, GY - 128, b), at(eye, e, GY - 128, a)], k % 2 ? Y[lit2 ? 4 : 3] : RedR[lit2 ? 4 : 3]);
+    iline(c, at(eye, e, yp + 10, a), at(eye, e, yp + 10, b), k % 2 ? Y[5] : RedR[5]);
   }
   iline(c, at(eye, e, yp, 1), at(eye, e, yp, SET_D), St[5]);
   // (the rail: posts going back, the top rail; dim, a rail never a ledge)
@@ -714,7 +724,7 @@ const drawCones = (c: Ctx, state: GameState) => {
 
 /** The marquee on top of the truss: a black box framed in steel, a chaser border of bulbs, the name in bulbs. */
 const MARQ = "STUNTMAN STEVE'S STUPENDOUS STUNTERY";
-const paintMarquee = (g: Ctx, on: boolean, phase: number) => {
+const paintMarquee = (g: Ctx, on: boolean, phase: number, text = MARQ) => {
   const w = 900, h = 56, S = STEEL.map(c2 => hour(c2, 0.06));
   box(g, 0, 0, w, h, INK);
   box(g, 2, 2, w - 4, h - 4, S[2]); box(g, 2, 2, w - 4, 1, S[5]); box(g, 2, h - 3, w - 4, 1, S[0]);
@@ -723,7 +733,7 @@ const paintMarquee = (g: Ctx, on: boolean, phase: number) => {
     const x = 9 + k * 10, lit2 = on && (k + phase) % 3 !== 0;
     for (const y of [8, h - 12]) { box(g, x, y, 4, 4, INK); box(g, x, y, 3, 3, lit2 ? '#FFF2B0' : '#6A5A3A'); }
   }
-  words(g, MARQ, w / 2, 41, marqueeLook(3, 3, '#FACC15', on));
+  words(g, text, w / 2, 41, marqueeLook(3, 3, '#FACC15', on));
 };
 
 /** Steve's banner off the truss: vinyl, yellow, its folds in steps, grommets and ropes; him on it, his name. */
@@ -825,6 +835,8 @@ const drawJumbotron = (c: Ctx, x: number, y: number, f: number, o: { replay: num
     box(c, x - 116, y + 4, 232, 110, '#5A0A0A');
     for (let i = 0; i < 16; i++) { const a = (i * Math.PI) / 8 + f * 0.05; c.fillStyle = i % 2 ? '#8E1616' : '#BC2222'; c.beginPath(); c.moveTo(x, y + 60); c.lineTo(x + Math.cos(a) * 160, y + 60 + Math.sin(a) * 160); c.lineTo(x + Math.cos(a + 0.39) * 160, y + 60 + Math.sin(a + 0.39) * 160); c.closePath(); c.fill(); }
     words(c, 'OUCH', x, y + 76, { sx: 4, sy: 4, fill: ['#FFF2B0', '#FDE047', '#FACC15'], dither: true, shadow: INK, drop: 2, gap: 1 });
+  } else if (STUNT_HOOKS.screen?.(c, x, y, f)) {
+    // (Ned's boss rush: somebody else's picture on it)
   } else {
     // (his two seconds, FILM 1986: a sepia street, a red car tearing by; for a beat, there he is behind it; then gone)
     const t = f % 240;
@@ -865,7 +877,8 @@ export const drawStage = (c: Ctx, state: GameState, opts: { cleared: boolean; hy
     const on = !opts.cleared;
     const phase = on ? (f >> 3) % 3 : 0;
     for (const s of [-420, 420]) { tubeV(c, mq + s, TRUSS_Y - 12, TRUSS_Y, 4, TRUSS); }
-    stillH(c, `marq-${on ? phase : 'x'}`, mq - 450, TRUSS_Y - 66, 0, 0, 900, 56, g => paintMarquee(g, on, phase));
+    const mt = STUNT_HOOKS.marquee?.() ?? null;
+    stillH(c, `marq${mt ? '-rf' : ''}-${on ? phase : 'x'}`, mq - 450, TRUSS_Y - 66, 0, 0, 900, 56, g => paintMarquee(g, on, phase, mt ?? MARQ));
     if (opts.cleared) {
       // (SHOW CANCELED, taped over it crooked)
       // (crooked: turned on a whole pixel, so the live paint doesn't crawl)
@@ -881,6 +894,7 @@ export const drawStage = (c: Ctx, state: GameState, opts: { cleared: boolean; hy
   if (inView(state, bx - 130, bx + 130)) {
     for (const s of [-1, 0, 1]) { const rx = bx + s * 112; c.strokeStyle = INK; c.lineWidth = 2; c.beginPath(); c.moveTo(rx, TRUSS_Y + 22); c.lineTo(rx + s * 4, TRUSS_Y + 52); c.stroke(); c.strokeStyle = '#D6B98C'; c.lineWidth = 1; c.stroke(); }
     stillH(c, 'banner', bx - 120, TRUSS_Y + 46, 0, 0, 240, 210, paintBanner);
+    STUNT_HOOKS.banner?.(c, bx - 120, TRUSS_Y + 46);
   }
   const jx = ARENA_R - 560;
   if (inView(state, jx - 180, jx + 180)) drawJumbotron(c, jx, TRUSS_Y + 60, f, opts);

@@ -6,7 +6,7 @@
 //     a respawn walks in from the checkpoint outside for the retry's entrance, as in the land;
 //   - the crowd: demons, in the stands and at the barrier, bored stiff (slumped, chin on a hand, on their phones,
 //     asleep), never cheering; the crowd's OOOH! and WOOO! are MEH. and YAWN. now (stunt/fight.ts crowd, gated);
-//   - the hell's props along the set's foot, between the garage doors (the posse's tells stay clear), behind the stands;
+//   - the place: THE COLOSSEUM OF THE DAMNED (park4/place/hollywood.ts), in through the stage's own hooks;
 //   - him stitched up the way he died: MISSED THE MAT (folded on his head: the neck seamed round where it was turned
 //     back the right way, the crown of his skull stapled, his spine seamed) or STRUCK TO ASH (glued back together: ashy
 //     gray patches, glue run down out of the seams, ash flaking off him).
@@ -16,7 +16,7 @@ import type { GameState } from '../../../../m1/game/core/state';
 import { hollywoodLayout } from '../../../hollywood/index';
 import { DOORS } from '../../../hollywood/geometry';
 import { teleport } from '../../../hollywood/section';
-import { ARENA_L, ARENA_R, DOORS_X, FLOOR_BACK_Y, GY } from '../../../hollywood/stunt/arena';
+import { GY } from '../../../hollywood/stunt/arena';
 import { FLUNG_IN, LAND_FALL } from '../../../hollywood/stunt/state';
 import type { Fight } from '../../../hollywood/stunt/fight';
 import { STEVE_H } from '../../../hollywood/stunt/steve';
@@ -25,7 +25,7 @@ import * as S from '../../../hollywood/stunt/lines';
 import { playSound } from '../../../../m1/game/platform/audio';
 import { bossDeath } from '../../../store';
 import { inRefight, refightOn } from '../hook';
-import { drawHellProps } from '../hell';
+import { hollywoodPlace, COL_H, paintColosseum, drawColosseumLive, drawBetterReel, drawOpeningAct, COLOSSEUM_PAL, COLOSSEUM_MARQUEE } from '../place/hollywood';
 import { refightId, refightStage } from '../where';
 import * as L from '../lines/hollywood';
 import { elbow, knee } from '../../../art/limb';
@@ -143,18 +143,15 @@ STUNT_HOOKS.back = (c, px, py, n) => {
   c.drawImage(backCanvas(n), Math.round(px - 32), Math.round(py - 32));
   return true;
 };
-/** The garage doors' half widths, kept clear (the posse's tells: headlights, the door going up). */
-const PORT = 125;
-STUNT_HOOKS.stage = (c, state) => {
-  if (!on()) return;
-  c.save();
-  c.beginPath();
-  const edges = [ARENA_L + 40, ...DOORS_X.flatMap(d => [d - PORT, d + PORT]), ARENA_R - 40];
-  for (let i = 0; i + 1 < edges.length; i += 2) if (edges[i + 1] > edges[i]) c.rect(edges[i], FLOOR_BACK_Y - 400, edges[i + 1] - edges[i], 402);
-  c.clip();
-  drawHellProps(c, state, 'ENVY', { l: ARENA_L, r: ARENA_R, floor: FLOOR_BACK_Y });
-  c.restore();
-};
+// (his place in hell, THE COLOSSEUM OF THE DAMNED (park4/place/hollywood.ts): the wall in place of the street set, its
+// torches' flames after it (behind the stands, the cars, him), A BETTER STUNTMAN on his screen, the marquee, the banner,
+// the stands in black stone)
+STUNT_HOOKS.set = () => (on() ? { key: 'hst-hellset', h: COL_H, paint: (g, o) => paintColosseum(g, o, paintDemonSat) } : null);
+STUNT_HOOKS.stage = (c, state) => { if (on()) drawColosseumLive(c, state); };
+STUNT_HOOKS.screen = (c, x, y, f) => on() && drawBetterReel(c, x, y, f);
+STUNT_HOOKS.marquee = () => (on() ? COLOSSEUM_MARQUEE : null);
+STUNT_HOOKS.banner = (c, x, y) => { if (on()) drawOpeningAct(c, x, y); };
+STUNT_HOOKS.pal = () => (on() ? COLOSSEUM_PAL : null);
 
 // ---------------------------------------------------------------------------------------------------------------
 // Him
@@ -196,8 +193,8 @@ export const hollywoodRefight: RefightDef = {
     [S.STEVE_SLUMPED, L.RF_STEVE_SLUMPED], [S.STEVE_FRIED, L.RF_STEVE_FRIED], [S.PA_DEATH, L.RF_PA_DEATH], [S.PA_DEATH_FRIED, L.RF_PA_DEATH_FRIED],
     [S.MEATHEAD_WON, L.RF_MEATHEAD_WON], [S.MEATHEAD_WON_WEAK, L.RF_MEATHEAD_WON_WEAK],
   ],
-  // (the props go along the set's foot from the stage's own hook (STUNT_HOOKS.stage): drawn after the land's whole back,
-  // they'd be over Steve, his cars and the ramps, which the land draws in its back too)
+  place: hollywoodPlace,
+  // (no props strip: his place's set pieces go in through the stage's own hooks (STUNT_HOOKS), at their own depth)
   arena: () => null,
   bossAt: (state) => {
     const f = fightOf(state) as FightLook | null;
