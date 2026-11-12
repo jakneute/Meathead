@@ -46,7 +46,7 @@ import { markBossFight } from '../../bossQuiet';
 import { type Victory, startVictory, tickVictory, drawVictory, VICTORY_FRAMES } from '../../victory';
 import { stamp, checker, bandedGradient, mix, hash } from '../../intro/art/kit';
 import { byPants } from '../park1/kinds';
-import { ENDGAME_STAGES } from '../stages';
+import { ENDGAME_STAGES, WATER_PARK_NAME } from '../stages';
 import { WP, poolFloor, POOL_RUNS, POOL_SIGNS, PUMP_ROOM, CP3, feetAt } from './geo';
 import { drawSigns } from './art';
 import { air3 } from './hazards';
@@ -355,12 +355,29 @@ export const drawPoolBackdrop = (c: Ctx, state: GameState, pl: Pool) => {
   for (let k = 0; k < 2; k++) { const x = ((k * 480 + f * 0.4 - state.camera.x * 0.1) % 1000 + 1000) % 1000 - 100, y = horizon - 150 - k * 40 + Math.sin(f * 0.03 + k) * 8; R(c, x - 20, y, 40, 6, '#3A4A5A'); R(c, x - 10, y - 6, 20, 6, '#5A6A7A'); if (f % 30 < 15) R(c, x - 2, y + 6, 4, 3, '#86EFAC'); }
 };
 const paintFar = (g: Ctx, x0: number, y0: number) => {
-  const dim = (col: string) => mix(col, '#1A2244', 0.55);
-  g.fillStyle = dim('#5A5A6A'); g.beginPath(); g.moveTo(x0 + 520, y0 + 200); g.lineTo(x0 + 640, y0 + 30); g.lineTo(x0 + 700, y0 + 70); g.lineTo(x0 + 800, y0 + 200); g.closePath(); g.fill();
-  g.fillStyle = dim('#E8ECF0'); g.beginPath(); g.moveTo(x0 + 610, y0 + 74); g.lineTo(x0 + 640, y0 + 30); g.lineTo(x0 + 668, y0 + 60); g.closePath(); g.fill();
-  for (const [x, h] of [[80, 120], [200, 90], [330, 140]] as const) { R(g, x0 + x, y0 + 200 - h, 14, h, dim('#4A5A6A')); g.strokeStyle = dim(['#E04A3A', '#3A8AE0', '#E0C03A'][x % 3]); g.lineWidth = 8; g.beginPath(); g.moveTo(x0 + x + 7, y0 + 200 - h); g.bezierCurveTo(x0 + x + 80, y0 + 200 - h, x0 + x - 40, y0 + 200 - h / 2, x0 + x + 60, y0 + 196); g.stroke(); }
-  for (let k = 0; k < 14; k++) R(g, x0 + 40 + k * 60, y0 + 186 - (k % 3) * 8, 4, 4, dim('#FDE68A'));
-  R(g, x0, y0 + 196, 900, 4, dim('#2A3446'));
+  // (the rest of the water park, far off at night, in two layers of silhouette and the haze between: MOUNT EVEREST
+  // BUT BETTER (a snowy point: not a volcano), the slide towers and their loops, the lazy river's palms burnt to
+  // sticks, the park's lights; banded haze along the foot)
+  const far = (col: string) => mix(col, '#1A2244', 0.62), near = (col: string) => mix(col, '#141A30', 0.45);
+  const B = y0 + 200;
+  // ---- the far layer: the mountain, its snow, its flags; a ridge of trees
+  g.fillStyle = far('#5A5A6A'); g.beginPath(); g.moveTo(x0 + 470, B); g.lineTo(x0 + 610, y0 + 26); g.lineTo(x0 + 650, y0 + 22); g.lineTo(x0 + 820, B); g.closePath(); g.fill();
+  g.fillStyle = far('#3A3A4A'); g.beginPath(); g.moveTo(x0 + 650, y0 + 22); g.lineTo(x0 + 820, B); g.lineTo(x0 + 720, B); g.lineTo(x0 + 640, y0 + 60); g.closePath(); g.fill();
+  g.fillStyle = far('#E8ECF0'); g.beginPath(); g.moveTo(x0 + 610, y0 + 26); g.lineTo(x0 + 650, y0 + 22); g.lineTo(x0 + 690, y0 + 70); g.lineTo(x0 + 664, y0 + 62); g.lineTo(x0 + 640, y0 + 80); g.lineTo(x0 + 616, y0 + 64); g.lineTo(x0 + 592, y0 + 74); g.closePath(); g.fill();
+  for (let k = 0; k < 6; k++) R(g, x0 + 600 + k * 9, y0 + 34 + k * 6, 4, 4, far(['#E04A3A', '#F0D040', '#3A9A4A'][k % 3]));
+  for (let x = x0; x < x0 + 900; x += 14) { const h = 14 + Math.floor(hash(x * 0.37) * 18); R(g, x, B - 20 - h, 14, h + 20, far('#2A3A3A')); }
+  checker(g, x0, B - 30, 900, 4, far('#2A3A3A'), 0, 2);
+  // (the haze between)
+  for (let b = 0; b < 3; b++) { g.globalAlpha = 0.25 + b * 0.1; R(g, x0, B - 30 + b * 6, 900, 6, '#26305A'); }
+  g.globalAlpha = 1;
+  // ---- the near layer: the slide towers and their loops, the burnt palms, the lamps' dots
+  for (const [x, h, col] of [[90, 130, '#E04A3A'], [230, 96, '#3A8AE0'], [360, 150, '#E0C03A']] as const) {
+    R(g, x0 + x - 1, B - h - 1, 16, h + 1, '#0A0E1A'); R(g, x0 + x, B - h, 14, h, near('#4A5A6A')); R(g, x0 + x, B - h, 3, h, near('#6A7A8A'));
+    for (const [w, cc] of [[10, '#0A0E1A'], [7, col], [2, mix(col, '#FFFFFF', 0.4)]] as const) { g.strokeStyle = w === 10 ? cc : near(cc); g.lineWidth = w; g.beginPath(); g.moveTo(x0 + x + 7, B - h); g.bezierCurveTo(x0 + x + 90, B - h, x0 + x - 50, B - h / 2, x0 + x + 70, B - 4); g.stroke(); }
+  }
+  for (const px of [470, 540, 820, 870]) { R(g, x0 + px, B - 54, 4, 54, '#0A0806'); R(g, x0 + px - 6, B - 56, 16, 3, '#0A0806'); R(g, x0 + px + 1, B - 56, 2, 2, '#E0601A'); }
+  for (let k = 0; k < 16; k++) { R(g, x0 + 30 + k * 56, B - 10 - (k % 3) * 8, 3, 3, '#FDE68A'); R(g, x0 + 31 + k * 56, B - 7 - (k % 3) * 8, 1, 7, '#1A1A24'); }
+  R(g, x0, B - 4, 900, 4, near('#2A3446'));
 };
 
 // ---- the pool's tiled back wall (one strip, banded darker by depth, dithered between bands, the tiles' grout, cracked
@@ -393,6 +410,60 @@ const backPattern = (c: Ctx) => {
   backPat?.setTransform(new DOMMatrix().translate(0, WP.surf));
   return backPat;
 };
+// ---- the pool's back wall, below the surface: tile pictures along it now and then (so the long swim reads as going
+// somewhere): the park's mascot dolphin, HAPPY WATERS in mosaic, a NO DIVING pictogram somebody's added to, a lane T,
+// a grate on the deep floor's wall. Tiles 10 px, darker the deeper they are (the wall's bands), drawn on the wall: behind
+// the mazes, GUPPLAX and him; the water's wash goes over them.
+interface Mural { x: number; y: number; w: number; h: number; kind: 'dolphin' | 'logo' | 'nodive' | 'lane' | 'grate' }
+const MURALS: Mural[] = [
+  { x: WP.beach + 560, y: WP.surf + 40, w: 200, h: 120, kind: 'dolphin' },
+  { x: WP.x0 + 1750, y: WP.surf + 50, w: 260, h: 90, kind: 'logo' },
+  { x: WP.x0 + 2850, y: WP.surf + 90, w: 120, h: 120, kind: 'nodive' },
+  { x: WP.x0 + 3500, y: WP.surf + 300, w: 60, h: 420, kind: 'lane' },
+  { x: WP.x0 + 4700, y: WP.surf + 160, w: 260, h: 90, kind: 'logo' },
+  { x: WP.x0 + 5900, y: WP.surf + 400, w: 200, h: 120, kind: 'dolphin' },
+  { x: WP.x0 + 6600, y: WP.surf + 1100, w: 140, h: 120, kind: 'grate' },
+];
+const DOLPHIN = [
+  '..........##........',
+  '.........###........',
+  '...#############....',
+  '..###############...',
+  '.####o############..',
+  '##################..',
+  '.#######wwwwww######',
+  '..####wwwwwwwww.....',
+  '....###.......###...',
+  '.....#.........###..',
+  '................##..',
+  '....................',
+];
+const paintMural = (g: Ctx, m: Mural) => {
+  const depthK = Math.max(0, Math.min(1, (m.y - WP.surf) / (WP.deep - WP.surf)));
+  const d = (col: string) => mix(col, '#03101E', 0.25 + depthK * 0.6);
+  const tile = (tx: number, ty: number, col: string) => { R(g, tx, ty, 10, 10, d(col)); R(g, tx, ty, 10, 1, d(mix(col, '#000000', 0.35))); R(g, tx, ty, 1, 10, d(mix(col, '#000000', 0.35))); R(g, tx + 2, ty + 2, 2, 1, d(mix(col, '#FFFFFF', 0.4))); };
+  if (m.kind === 'dolphin') {
+    for (let r = 0; r < DOLPHIN.length; r++) for (let c = 0; c < DOLPHIN[r].length; c++) { const ch = DOLPHIN[r][c]; if (ch === '.') continue; tile(m.x + c * 10, m.y + r * 10, ch === 'w' ? '#E8F4FC' : ch === 'o' ? '#0A1A2A' : '#5A9AD0'); }
+    // (somebody's drawn fangs on it)
+    for (let k = 0; k < 3; k++) R(g, m.x + 60 + k * 14, m.y + 70, 4, 8, d('#F8FAFC'));
+  } else if (m.kind === 'logo') {
+    for (let r = 0; r < 9; r++) for (let c = 0; c < 26; c++) tile(m.x + c * 10, m.y + r * 10, r === 0 || r === 8 || c === 0 || c === 25 ? '#F0C040' : '#2A6AB0');
+    g.font = '14px "Press Start 2P"'; g.textAlign = 'center'; g.fillStyle = d('#0A1A2A'); g.fillText(WATER_PARK_NAME, m.x + m.w / 2 + 2, m.y + 54); g.fillStyle = d('#F8FAFC'); g.fillText(WATER_PARK_NAME, m.x + m.w / 2, m.y + 52); g.textAlign = 'left';
+  } else if (m.kind === 'nodive') {
+    for (let r = 0; r < 12; r++) for (let c = 0; c < 12; c++) { const dx = c - 5.5, dy = r - 5.5, rr = Math.sqrt(dx * dx + dy * dy); if (rr > 6) continue; tile(m.x + c * 10, m.y + r * 10, rr > 4.6 || Math.abs(dx - dy) < 1 ? '#C83A2A' : '#E8F4FC'); }
+    // (the diver in it, and the extra arms somebody's added)
+    R(g, m.x + 40, m.y + 30, 10, 40, d('#0A1A2A')); R(g, m.x + 30, m.y + 40, 30, 6, d('#0A1A2A')); R(g, m.x + 26, m.y + 54, 38, 4, d('#2A8A3A'));
+  } else if (m.kind === 'lane') {
+    for (let r = 0; r < m.h / 10; r++) for (let c = 0; c < 2; c++) tile(m.x + 20 + c * 10, m.y + r * 10, '#0A1A3A');
+    for (let c = 0; c < 6; c++) tile(m.x + c * 10, m.y + m.h - 10, '#0A1A3A');
+  } else {
+    R(g, m.x - 2, m.y - 2, m.w + 4, m.h + 4, INK); R(g, m.x, m.y, m.w, m.h, d('#3A4048'));
+    for (let k = 0; k < 8; k++) { R(g, m.x + 8, m.y + 8 + k * 14, m.w - 16, 8, d('#0A0C10')); R(g, m.x + 8, m.y + 16 + k * 14, m.w - 16, 2, d('#6A7078')); }
+    // (a sneaker caught in it)
+    R(g, m.x + 40, m.y + 50, 30, 12, d('#E8E4DC')); R(g, m.x + 40, m.y + 58, 30, 4, d('#C83A2A'));
+  }
+};
+
 /** The visible stretch of the pool's water (x range) as a path: the surface (swelling), then back along the floor. */
 const waterPath = (c: Ctx, x0: number, x1: number, wv: Waves | null, swell: boolean) => {
   c.beginPath();
@@ -422,6 +493,7 @@ export const drawPoolBack = (c: Ctx, state: GameState, pl: Pool) => {
   if (deepVis && vx1 > vx0) {
     const pat = backPattern(c);
     if (pat) { c.fillStyle = pat; waterPath(c, vx0, vx1, null, false); c.fill(); }
+    for (const m of MURALS) if (m.x < cam.x + W + 20 && m.x + m.w > cam.x - 20 && m.y < cam.y + H && m.y + m.h > cam.y) stamp(c, `wp3-mural-${m.x}`, m.x - 4, m.y - 4, m.w + 8, m.h + 8, g => paintMural(g, m));
     // (the depth markings along the waterline; the drop's warning; the lights set in the walls)
     c.font = '7px "Press Start 2P"'; c.fillStyle = '#F8FAFC';
     for (let x = WP.beach + 200; x < WP.x1 - 60; x += 700) if (x > cam.x - 60 && x < cam.x + W) c.fillText(`${feetAt(poolFloor(x + 40))} FT`, x, WP.surf + 22);
@@ -479,31 +551,129 @@ export const drawPoolBack = (c: Ctx, state: GameState, pl: Pool) => {
     if (pl.t > SWELL - 30 && state.frame % 6 < 3) { c.globalAlpha = 0.35; c.fillStyle = '#F07A8A'; c.beginPath(); c.ellipse(f.x, WP.surf - 36 * S, 80 * S, 44 * S, 0, 0, Math.PI * 2); c.fill(); c.globalAlpha = 1; }
   }
 };
+// ---- the deck, by zone along the pool (the owner's: no going in circles; the water park as distinct attractions):
+// THE BEACH (lounge chairs, umbrellas, palms: the tower's there), THE SNACK SHACK (SNAX, the towel hut, the bins
+// overflowing), THE CABANAS (striped tents, a slide tower behind, tubes off it), THE DEEP END (the high dive, CLOSED,
+// the first aid hut), THE MACHINE (chain-link, pipes, the housing). All of it behind the coping, dimmed toward the
+// night (nothing there to stand on: no lit tops); the beach in front of it lit (stood on).
+type DeckZone = 'beach' | 'snack' | 'cabana' | 'dive' | 'machine';
+const deckZone = (x: number): DeckZone => { const d = x - WP.x0; return d < 1300 ? 'beach' : d < 2600 ? 'snack' : d < 4200 ? 'cabana' : d < 6000 ? 'dive' : 'machine'; };
+const dimC = (col: string, k = 0.42) => mix(col, '#1A2244', k);
+/** A box in steps, dimmed (back on the deck). */
+const dbox = (g: Ctx, x: number, y: number, w: number, h: number, col: string, k = 0.42) => {
+  R(g, x - 1, y - 1, w + 2, h + 2, INK); R(g, x, y, w, h, dimC(col, k));
+  R(g, x, y, w, 2, dimC(mix(col, '#FFFFFF', 0.2), k + 0.08)); R(g, x, y, 2, h, dimC(mix(col, '#FFFFFF', 0.12), k + 0.05));
+  R(g, x, y + h - 3, w, 3, dimC(mix(col, '#000000', 0.35), k)); R(g, x + w - 3, y, 3, h, dimC(mix(col, '#000000', 0.25), k));
+};
+const palmTree = (g: Ctx, x: number, base: number, hgt: number) => {
+  // (a trunk in rings, curving; fronds in two greens, drooping, each with a lit spine)
+  for (let i = 0; i < hgt; i += 8) { const k = i / hgt, tx = x + Math.sin(k * 1.6) * 14; R(g, tx - 5, base - i - 8, 10, 8, INK); R(g, tx - 4, base - i - 8, 8, 7, dimC(i % 16 ? '#7A5A3A' : '#6A4A2A')); R(g, tx - 4, base - i - 8, 2, 7, dimC('#9A7A50')); }
+  const top = base - hgt, tx = x + Math.sin(1.6) * 14;
+  for (let a = 0; a < 7; a++) {
+    const ang = -Math.PI + (a / 6) * Math.PI, len = 60 + (a % 3) * 10, ex = tx + Math.cos(ang) * len, ey = top + 24 + Math.abs(Math.cos(ang)) * 20;
+    for (const [w, col] of [[9, INK], [7, a % 2 ? '#2A6A3A' : '#3A7A3A'], [2, '#5A9A4A']] as const) { g.strokeStyle = w === 9 ? INK : dimC(col); g.lineWidth = w; g.lineCap = 'round'; g.beginPath(); g.moveTo(tx, top); g.quadraticCurveTo(tx + Math.cos(ang) * len * 0.5, top - 22, ex, ey); g.stroke(); }
+  }
+  g.lineCap = 'butt';
+  g.fillStyle = INK; g.beginPath(); g.arc(tx - 4, top + 6, 6, 0, Math.PI * 2); g.arc(tx + 6, top + 8, 6, 0, Math.PI * 2); g.fill();
+  g.fillStyle = dimC('#6A4A2A'); g.beginPath(); g.arc(tx - 4, top + 6, 4, 0, Math.PI * 2); g.arc(tx + 6, top + 8, 4, 0, Math.PI * 2); g.fill();
+};
 const paintDeck = (g: Ctx, k: number) => {
-  const x0 = WP.x0 + k * 400, x1 = x0 + 400;
-  const dimC = (col: string) => mix(col, '#1A2244', 0.4);
-  // ---- the deck's back: a low wall, palms in planters behind it (dimmed: nothing back there to stand on)
-  R(g, x0, WP.beachTop - 70, 400, 70, dimC('#7A7468')); R(g, x0, WP.beachTop - 70, 400, 4, dimC('#A8A090'));
-  checker(g, x0, WP.beachTop - 66, 400, 4, dimC('#6A6458'), 0, 2);
-  for (let x = x0 + 60 + (k % 2) * 90; x < x1; x += 260) {
-    const hgt = 200 + Math.floor(hash(x) * 80);
-    R(g, x - 4, WP.beachTop - 70 - hgt, 8, hgt, dimC('#6A4A2A'));
-    for (let a = 0; a < 6; a++) { g.strokeStyle = dimC('#2A6A3A'); g.lineWidth = 6; g.beginPath(); g.moveTo(x, WP.beachTop - 70 - hgt); g.quadraticCurveTo(x + Math.cos(a) * 60, WP.beachTop - 110 - hgt + Math.sin(a) * 10, x + Math.cos(a) * 90, WP.beachTop - 50 - hgt + Math.abs(Math.sin(a)) * 30); g.stroke(); }
+  const x0 = WP.x0 + k * 400, x1 = x0 + 400, bt = WP.beachTop, wallTop = bt - 70;
+  const zone = deckZone(x0 + 200);
+  // ---- the deck's back wall: stucco in steps, a tile band along its top, banded darker down to the deck
+  for (let b = 0; b < 5; b++) R(g, x0, wallTop + b * 14, 400, 14, dimC(['#C8B8A0', '#B8A890', '#A89880', '#988870', '#887860'][b]));
+  for (let b = 1; b < 5; b++) checker(g, x0, wallTop + b * 14 - 2, 400, 2, dimC(['#C8B8A0', '#B8A890', '#A89880', '#988870', '#887860'][b]), 0, 2);
+  for (let x = x0; x < x1; x += 10) R(g, x, wallTop, 10, 6, dimC((x / 10) % 2 ? '#2A7AB8' : '#E8E4DC'));
+  R(g, x0, wallTop - 2, 400, 2, INK);
+  // ---- the zone's things, behind the wall's top and in front of it
+  const r = (n: number) => hash(x0 * 0.13 + n);
+  if (zone === 'beach') {
+    palmTree(g, x0 + 80 + r(1) * 60, wallTop, 190 + r(2) * 60);
+    if (k % 2 === 0) palmTree(g, x0 + 300 + r(3) * 40, wallTop, 160 + r(4) * 50);
+    for (let i = 0; i < 2; i++) {
+      // (a lounge chair, a folded umbrella stood by it)
+      const cx = x0 + 60 + i * 190 + r(5 + i) * 40, cy = bt - 6;
+      R(g, cx - 1, cy - 9, 62, 7, INK); for (let s = 0; s < 6; s++) R(g, cx + s * 10, cy - 8, 9, 5, dimC(s % 2 ? '#E8E4DC' : '#2A8AC8', 0.3));
+      R(g, cx + 44, cy - 26, 16, 20, INK); R(g, cx + 45, cy - 25, 14, 18, dimC('#2A8AC8', 0.3)); R(g, cx + 2, cy - 2, 3, 6, INK); R(g, cx + 54, cy - 2, 3, 6, INK);
+      R(g, cx + 76, cy - 90, 4, 90, dimC('#E8E4DC', 0.35)); g.fillStyle = dimC(i ? '#E04A3A' : '#F0C040', 0.3); g.beginPath(); g.moveTo(cx + 70, cy - 90); g.lineTo(cx + 78, cy - 98); g.lineTo(cx + 86, cy - 90); g.lineTo(cx + 82, cy - 40); g.lineTo(cx + 74, cy - 40); g.closePath(); g.fill();
+    }
+  } else if (zone === 'snack') {
+    if (k % 3 === 0) {
+      // (SNAX: the shack, its counter shuttered, the menu board, the awning dimmed (not a ledge))
+      dbox(g, x0 + 60, bt - 150, 220, 150, '#D8A040');
+      for (let s = 0; s < 11; s++) { g.fillStyle = dimC(s % 2 ? '#E8E4DC' : '#C83A2A', 0.5); g.beginPath(); g.moveTo(x0 + 50 + s * 22, bt - 160); g.lineTo(x0 + 72 + s * 22, bt - 160); g.lineTo(x0 + 72 + s * 22, bt - 140); g.lineTo(x0 + 61 + s * 22, bt - 134); g.lineTo(x0 + 50 + s * 22, bt - 140); g.closePath(); g.fill(); }
+      for (let v = 0; v < 6; v++) R(g, x0 + 80, bt - 120 + v * 8, 120, 5, dimC('#7A7A80'));
+      dbox(g, x0 + 210, bt - 124, 56, 44, '#2A2A2A'); for (let v = 0; v < 4; v++) R(g, x0 + 216, bt - 116 + v * 9, 30 + (v % 2) * 10, 2, dimC('#F0E070', 0.3));
+      g.font = '12px "Press Start 2P"'; g.fillStyle = INK; g.fillText('SNAX', x0 + 125, bt - 168); g.fillStyle = dimC('#F0D040', 0.2); g.fillText('SNAX', x0 + 124, bt - 169);
+    } else {
+      // (the towel hut, the bins overflowing)
+      dbox(g, x0 + 40, bt - 110, 120, 110, '#3A8AC8');
+      for (let v = 0; v < 4; v++) R(g, x0 + 50, bt - 96 + v * 18, 100, 12, dimC(['#E04A3A', '#F0C040', '#E8E4DC', '#3AA04A'][v], 0.4));
+      for (const bx of [x0 + 240, x0 + 300]) { dbox(g, bx, bt - 50, 36, 50, '#3A5A3A'); for (let q = 0; q < 4; q++) R(g, bx + 2 + q * 8, bt - 58 - (q % 2) * 6, 8, 10, dimC(['#E8E4DC', '#C83A2A', '#F0C040', '#8A6A3A'][q], 0.35)); }
+    }
+  } else if (zone === 'cabana') {
+    // (the slide tower behind, its tubes off it; the striped cabanas in front of the wall)
+    if (k % 2 === 1) {
+      R(g, x0 + 260, bt - 330, 50, 260, INK); R(g, x0 + 262, bt - 328, 46, 258, dimC('#8A8E98', 0.5));
+      for (let y = bt - 320; y < bt - 70; y += 26) { g.strokeStyle = dimC('#5A5E68', 0.5); g.lineWidth = 2; g.beginPath(); g.moveTo(x0 + 262, y); g.lineTo(x0 + 308, y + 26); g.stroke(); }
+      g.lineCap = 'round';
+      for (const [col, pts] of [['#E04A3A', [[x0 + 285, bt - 320], [x0 + 380, bt - 260], [x0 + 200, bt - 190], [x0 + 330, bt - 110]]], ['#3A8AE0', [[x0 + 285, bt - 300], [x0 + 150, bt - 240], [x0 + 260, bt - 150], [x0 + 120, bt - 90]]]] as [string, [number, number][]][]) for (const [w, cc] of [[22, INK], [18, col], [6, mix(col, '#FFFFFF', 0.35)]] as const) { g.strokeStyle = w === 22 ? INK : dimC(cc, 0.5); g.lineWidth = w; g.beginPath(); g.moveTo(pts[0][0], pts[0][1]); for (const q of pts.slice(1)) g.lineTo(q[0], q[1]); g.stroke(); }
+      g.lineCap = 'butt';
+    }
+    for (let i = 0; i < 2; i++) {
+      const cx = x0 + 40 + i * 200 + r(9 + i) * 30, col = ['#E04A3A', '#2A8AC8', '#3AA04A', '#F0A030'][(k + i) % 4];
+      g.fillStyle = INK; g.beginPath(); g.moveTo(cx - 2, bt); g.lineTo(cx + 60, bt - 112); g.lineTo(cx + 122, bt); g.closePath(); g.fill();
+      for (let s = 0; s < 6; s++) { g.fillStyle = dimC(s % 2 ? '#E8E4DC' : col, 0.45); g.beginPath(); g.moveTo(cx + 60, bt - 108); g.lineTo(cx + s * 20, bt); g.lineTo(cx + s * 20 + 20, bt); g.closePath(); g.fill(); }
+      g.fillStyle = dimC('#0A0A10', 0.2); g.beginPath(); g.moveTo(cx + 60, bt - 60); g.lineTo(cx + 44, bt); g.lineTo(cx + 76, bt); g.closePath(); g.fill();
+      R(g, cx + 58, bt - 126, 4, 16, INK); R(g, cx + 62, bt - 126, 12, 7, dimC(col, 0.3));
+    }
+  } else if (zone === 'dive') {
+    if (k % 3 === 0) {
+      // (the high dive: a tower of scaffold, the board off its top, a chain across the ladder: CLOSED)
+      for (const lx of [x0 + 160, x0 + 220]) { R(g, lx - 3, bt - 300, 6, 300, INK); R(g, lx - 2, bt - 300, 4, 300, dimC('#C8CCD4', 0.5)); }
+      for (let y = bt - 290; y < bt; y += 30) R(g, x0 + 160, y, 60, 3, dimC('#8A8E98', 0.5));
+      R(g, x0 + 150, bt - 306, 180, 10, INK); R(g, x0 + 152, bt - 304, 176, 6, dimC('#2A8AC8', 0.45));
+      R(g, x0 + 150, bt - 200, 80, 14, INK); R(g, x0 + 152, bt - 198, 76, 10, dimC('#C83A2A', 0.35));
+      g.font = '7px "Press Start 2P"'; g.fillStyle = dimC('#F8FAFC', 0.2); g.fillText('CLOSED', x0 + 165, bt - 189);
+    } else if (k % 3 === 1) {
+      // (FIRST AID: a hut, its cross, its door hanging open, the light out)
+      dbox(g, x0 + 100, bt - 120, 160, 120, '#E8E4DC');
+      R(g, x0 + 160, bt - 108, 40, 12, dimC('#C83A2A', 0.3)); R(g, x0 + 174, bt - 122, 12, 40, dimC('#C83A2A', 0.3));
+      R(g, x0 + 120, bt - 70, 34, 70, INK); R(g, x0 + 150, bt - 70, 10, 70, dimC('#7A7A80'));
+      g.font = '7px "Press Start 2P"'; g.fillStyle = INK; g.fillText('FIRST AID', x0 + 186, bt - 60);
+    } else palmTree(g, x0 + 200 + r(7) * 80, wallTop, 210);
+  } else {
+    // (the machine end: chain-link over the wall, pipes along it, a warning board)
+    for (let x = x0; x < x1; x += 12) { g.strokeStyle = dimC('#7A7E88', 0.5); g.lineWidth = 1; g.beginPath(); g.moveTo(x, wallTop - 90); g.lineTo(x + 12, wallTop - 78); g.moveTo(x + 12, wallTop - 90); g.lineTo(x, wallTop - 78); g.stroke(); }
+    for (let x = x0; x < x1; x += 100) R(g, x, wallTop - 96, 4, 96, dimC('#5A5E68', 0.4));
+    R(g, x0, wallTop - 98, 400, 3, dimC('#8A8E98', 0.4));
+    for (const py of [wallTop + 20, wallTop + 40]) { R(g, x0, py, 400, 10, INK); R(g, x0, py + 1, 400, 8, dimC('#4A6A7A', 0.4)); R(g, x0, py + 1, 400, 2, dimC('#7A9AAA', 0.4)); for (let x = x0 + 30; x < x1; x += 90) R(g, x, py - 2, 8, 14, dimC('#2A3A44', 0.4)); }
+    if (k % 2 === 0) { dbox(g, x0 + 140, wallTop - 70, 120, 44, '#F0C040', 0.3); g.font = '7px "Press Start 2P"'; g.fillStyle = INK; g.fillText('DANGER', x0 + 170, wallTop - 52); g.fillText('WAVE MACHINE', x0 + 150, wallTop - 38); }
   }
-  // (a deck chair now and then, behind the coping; a lamp post)
-  if (k % 3 === 1) { R(g, x0 + 200, WP.beachTop - 30, 60, 6, dimC('#E8E4DC')); R(g, x0 + 250, WP.beachTop - 56, 6, 30, dimC('#E8E4DC')); }
-  if (k % 4 === 2) { R(g, x0 + 320, WP.beachTop - 260, 6, 190, dimC('#3A3A44')); R(g, x0 + 310, WP.beachTop - 270, 26, 10, dimC('#FDE68A')); }
-  // ---- the beach (zero-entry concrete, warm, its top lit: stood on); past it, the pool's coping behind the water
+  // ---- the beach (zero-entry concrete, warm, its top lit in steps: stood on; wet and darker toward the water); past
+  // it, the pool's coping behind the water (dimmed)
   for (let x = x0; x < x1; x += 20) {
-    if (x + 20 <= WP.beach) { R(g, x, WP.beachTop, 20, 100, '#C8B898'); R(g, x, WP.beachTop, 20, 3, '#F0E4C8'); R(g, x, WP.beachTop + 3, 20, 2, '#D8CCB0'); checker(g, x, WP.beachTop + 20, 20, 80, '#B0A080', 0, 2); }
-    else if (x < WP.x1) { R(g, x, WP.beachTop, 20, WP.surf - WP.beachTop, dimC('#B8B0A0')); R(g, x, WP.beachTop, 20, 2, dimC('#D8D0C0')); }
+    if (x + 20 <= WP.beach) {
+      const wet = Math.max(0, Math.min(1, (x - (WP.beach - 200)) / 200));
+      const col = mix('#C8B898', '#8A8070', wet * 0.6);
+      R(g, x, bt, 20, 100, col); R(g, x, bt, 20, 3, mix('#F8ECD0', col, wet * 0.5)); R(g, x, bt + 3, 20, 3, mix(col, '#FFFFFF', 0.18));
+      checker(g, x, bt + 6, 20, 4, mix(col, '#FFFFFF', 0.18), 0, 2); checker(g, x, bt + 30, 20, 70, mix(col, '#000000', 0.15), 0, 2);
+      if (wet > 0.3 && (x / 20) % 3 === 0) R(g, x + 4, bt + 1, 10, 1, '#E0F2FE');
+    }
+    else if (x < WP.x1) {
+      R(g, x, bt, 20, WP.surf - bt, dimC('#B8B0A0')); R(g, x, bt, 20, 2, dimC('#D8D0C0'));
+      R(g, x, WP.surf - 6, 20, 6, dimC((x / 20) % 2 ? '#2A7AB8' : '#E8E4DC', 0.3));
+    }
   }
-  // ---- the wave machine's housing over the far wall: concrete, louvers, WAVE POOL in big letters
+  // ---- the wave machine's housing over the far wall: concrete in steps, louvers, WAVE POOL in big letters
   if (x1 > WP.x1) {
-    const hx = WP.x1, top = WP.beachTop - 340;
-    R(g, hx, top, 400, WP.surf - top + 100, '#5A6068'); R(g, hx, top, 400, 6, '#7A8088');
-    for (let y = top + 60; y < WP.beachTop - 40; y += 30) for (let k2 = 0; k2 < 3; k2++) R(g, hx + 70 + k2 * 70, y, 50, 4, '#2A3038');
-    g.font = '10px "Press Start 2P"'; g.fillStyle = '#FACC15'; g.fillText('WAVE', hx + 14, top + 40); g.fillText('POOL', hx + 14, top + 56);
+    const hx = WP.x1, top = bt - 340;
+    R(g, hx - 2, top - 2, 404, WP.surf - top + 104, INK);
+    for (let b = 0; b < 6; b++) R(g, hx, top + b * 60, 400, 60, ['#6A7078', '#62686F', '#5A6068', '#52585F', '#4A5058', '#42484F'][b]);
+    R(g, hx, top, 400, 6, '#8A9098'); R(g, hx, top + 6, 400, 2, '#7A8088');
+    for (let y = top + 60; y < bt - 40; y += 30) for (let k2 = 0; k2 < 3; k2++) { R(g, hx + 70 + k2 * 70, y, 50, 5, '#22282F'); R(g, hx + 70 + k2 * 70, y + 5, 50, 1, '#8A9098'); }
+    g.font = '10px "Press Start 2P"'; g.fillStyle = INK; g.fillText('WAVE', hx + 15, top + 41); g.fillText('POOL', hx + 15, top + 57); g.fillStyle = '#FACC15'; g.fillText('WAVE', hx + 14, top + 40); g.fillText('POOL', hx + 14, top + 56);
+    if (k % 2 === 0) { g.fillStyle = '#DC2626'; g.beginPath(); g.arc(hx + 30, top + 80, 6, 0, Math.PI * 2); g.fill(); }
   }
 };
 const paintFarWall = (g: Ctx, y0: number) => {

@@ -30,8 +30,16 @@ const blob = (c: Ctx, x: number, y: number, rx: number, ry: number, L: string[],
   ell(c, x, y, rx, ry, L[2], rot);
   ell(c, x + rx * 0.08, y + ry * 0.18, rx * 0.86, ry * 0.78, L[1], rot);
   ell(c, x - rx * 0.06, y - ry * 0.06, rx * 0.8, ry * 0.72, L[2], rot);
+  // (the steps dithered into each other: the shade's edge, the light's; the light through his edge, low on the right)
+  c.save(); c.beginPath(); c.ellipse(x, y, Math.max(0.1, rx), Math.max(0.1, ry), rot, 0, Math.PI * 2); c.clip();
+  checker(c, x - rx, y + ry * 0.56, rx * 2, Math.max(2, Math.round(ry * 0.12)), L[1], 0, 2);
+  checker(c, x - rx, y + ry * 0.78, rx * 2, ry * 0.3, L[0], 1, 2);
+  checker(c, x - rx, y - ry * 0.66, rx * 1.4, Math.max(2, Math.round(ry * 0.14)), L[3], 1, 2);
+  c.restore();
   ell(c, x - rx * 0.3, y - ry * 0.36, rx * 0.42, ry * 0.3, L[3], rot);
+  ell(c, x - rx * 0.36, y - ry * 0.42, rx * 0.26, ry * 0.18, L[4], rot);
   ell(c, x - rx * 0.4, y - ry * 0.48, rx * 0.16, ry * 0.12, L[5], rot);
+  c.strokeStyle = L[3]; c.lineWidth = Math.max(1, rx * 0.04); c.beginPath(); c.ellipse(x, y, rx * 0.9, ry * 0.88, rot, 0.15, 1.3); c.stroke();
 };
 
 export type GupPose = 'idle' | 'swim' | 'whistle' | 'blow' | 'hork' | 'spit' | 'crouch' | 'leap' | 'flop' | 'dive' | 'breach' | 'hurt' | 'talk' | 'chair' | 'dead' | 'puffed' | 'skin'
@@ -87,7 +95,9 @@ export const paintGup = (c: Ctx, L: GupLook, face: 1 | -1 = 1) => {
   const arm = (s: P, h: P, near: boolean) => {
     const e = elbow(s[0], s[1], h[0], h[1], 28, 26, 1), end = reachTo(s[0], s[1], h[0], h[1], 28, 26);
     const col = near ? FLESH[2] : FLESH[1];
-    line(c, [s, e, end], 17, INK); line(c, [s, e, end], 14, col); line(c, [[s[0] - 2, s[1] - 2], [e[0] - 2, e[1] - 2]], 4, near ? FLESH[3] : FLESH[2]);
+    line(c, [s, e, end], 17, INK); line(c, [s, e, end], 14, col);
+    line(c, [[s[0] + 2, s[1] + 4], [e[0] + 2, e[1] + 4], [end[0] + 2, end[1] + 3]], 4, near ? FLESH[1] : FLESH[0]);
+    line(c, [[s[0] - 2, s[1] - 2], [e[0] - 2, e[1] - 2]], 4, near ? FLESH[3] : FLESH[2]); line(c, [[s[0] - 3, s[1] - 3], [e[0] - 3, e[1] - 3]], 1.5, near ? FLESH[4] : FLESH[3]);
     // (the flab hanging off the upper arm)
     ell(c, (s[0] + e[0]) / 2, (s[1] + e[1]) / 2 + 7, 8, 6, col);
     // (the hand: webbed, four fat fingers)
@@ -100,6 +110,8 @@ export const paintGup = (c: Ctx, L: GupLook, face: 1 | -1 = 1) => {
     const k = knee(hip[0], hip[1], f[0], f[1], 26, 24, 1), end = reachTo(hip[0], hip[1], f[0], f[1], 26, 24);
     const col = near ? FLESH[2] : FLESH[1];
     line(c, [hip, k, end], 19, INK); line(c, [hip, k, end], 16, col);
+    line(c, [[hip[0] + 3, hip[1] + 2], [k[0] + 3, k[1] + 2], [end[0] + 3, end[1] - 2]], 5, near ? FLESH[1] : FLESH[0]);
+    line(c, [[hip[0] - 3, hip[1]], [k[0] - 4, k[1]]], 3, near ? FLESH[3] : FLESH[2]);
     // (the foot: webbed, flat, splayed)
     c.fillStyle = INK; c.beginPath(); c.moveTo(end[0] - 8, end[1] - 4); c.lineTo(end[0] + 22, end[1] + 2); c.lineTo(end[0] + 20, end[1] + 8); c.lineTo(end[0] - 8, end[1] + 6); c.closePath(); c.fill();
     c.fillStyle = near ? FLESH[3] : FLESH[2]; c.beginPath(); c.moveTo(end[0] - 6, end[1] - 2); c.lineTo(end[0] + 19, end[1] + 3); c.lineTo(end[0] + 17, end[1] + 6); c.lineTo(end[0] - 6, end[1] + 4); c.closePath(); c.fill();
