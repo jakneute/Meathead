@@ -157,8 +157,9 @@ for (const [kind, w, h, blood] of [[SON_KIND, SON_W, SON_H, '#7F1D1D'], [BRO_KIN
   draw: () => {},
   ai: () => true,
 });
-TOO_BIG_BY_KIND[SON_KIND] = L.GRAB_SON;
-TOO_BIG_BY_KIND[BRO_KIND] = L.GRAB_SON;
+// (grabbing either: his line, by his pants (set as the fight goes: updateFight2))
+TOO_BIG_BY_KIND[SON_KIND] = L.GRAB_SON.clean;
+TOO_BIG_BY_KIND[BRO_KIND] = L.GRAB_SON.clean;
 // (every special's hit worked out here, in the fight, off the table: not cut again as a sub-boss's)
 ownShare(SON_KIND, BRO_KIND);
 // (every special's hit off the water park's own damage table, by weapon and move: weapons/endgameDamage.ts)
@@ -659,7 +660,9 @@ const takeHits = (ctx: FrameContext, f: Fight2, o: Foe, gone: boolean) => {
     o.hp = 0; o.down = true; o.st = 'kneel'; o.t = 0; o.vx = 0; o.y = GY; o.said = null; o.dz = null;
     state.enemies = state.enemies.filter(q => q !== e);
     playSound('thud', 1, -10); shakeScreen(state, 8, 4);
-    foeSays(o, pick(byPants(state, o.who === 'son' ? L.SON_KNEEL : L.BRO_KNEEL)));
+    // (the first one down says so; the second's down is the end: they're up and running (end.ts), no line held over it)
+    const other = otherOf(f, o);
+    if (other && !other.down) foeSays(o, pick(byPants(state, o.who === 'son' ? L.SON_KNEEL : L.BRO_KNEEL)));
   }
 };
 
@@ -672,7 +675,7 @@ export const updateFight2 = (ctx: FrameContext, f: Fight2, controls: Controls, o
   if (f.hole) { f.hole.t++; if (f.hole.t > 240) f.hole = null; }
   // (the mutters: his, his brother's showing off for their dad)
   const talker = live(f)[Math.floor(Math.random() * live(f).length)];
-  if (talker && f.total > f.tauntAt && !f.son.said && !f.bro?.said) { f.tauntAt = f.total + 520 + Math.floor(Math.random() * 400); bark(state, talker, crushLines(talker.e, talker.who === 'son' ? L.SON_LAZY : DEMON_CHATTER)); }
+  if (talker && f.total > f.tauntAt && !f.son.said && !f.bro?.said) { f.tauntAt = f.total + 520 + Math.floor(Math.random() * 400); bark(state, talker, crushLines(talker.e, talker.who === 'son' ? L.SON_LAZY : duo(f) && Math.random() < 0.6 ? L.BRO_DUO : DEMON_CHATTER)); }
   if (!f.lowSaid && f.son.hp < SON_HP * 0.62 && !f.son.said) { f.lowSaid = true; bark(state, f.son, crushLines(f.son.e, L.SON_LOW)); }
   // (the cheap shot: each up for it on the floor, out in the open (not off in a leap, up in smoke, head down in the rush);
   // his brother only with his nuts still on him. While it's on with either, the whole fight's frozen; after, the other
@@ -690,7 +693,8 @@ export const updateFight2 = (ctx: FrameContext, f: Fight2, controls: Controls, o
     if (was && !o.frozen) wince(state, f, o);
   }
   // (Y + B on a brother with nothing left: grabbing at nothing, his line)
-  if (f.bro && broNutless()) TOO_BIG_BY_KIND[BRO_KIND] = [...byPants(state, L.MH_NOTHING)];
+  TOO_BIG_BY_KIND[SON_KIND] = byPants(state, L.GRAB_SON);
+  TOO_BIG_BY_KIND[BRO_KIND] = f.bro && broNutless() ? byPants(state, L.MH_NOTHING) : byPants(state, L.GRAB_SON);
   if (frozen) return controls;
   stepFoe(ctx, f, f.son);
   if (f.bro) stepFoe(ctx, f, f.bro);

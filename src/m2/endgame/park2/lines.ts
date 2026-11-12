@@ -52,26 +52,46 @@ export const MH_AFTER_MEET = bp(
 // ---------------------------------------------------------------------------------------------------------------
 // Meathead, going
 
-export const MH_FIRST_VINE = ['A VINE OVER A RIVER ON FIRE. GREAT.', "SWING. DON'T THINK. DON'T LOOK DOWN."];
+export const MH_FIRST_VINE = bp(
+  ['A VINE OVER A RIVER ON FIRE. GREAT.', "SWING. DON'T THINK. DON'T LOOK DOWN."],
+  ['A VINE OVER A RIVER ON FIRE. IN SHITTY PANTS. GREAT.', "SWING. DON'T THINK. DON'T DRIP."],
+  ['A VINE OVER A RIVER ON FIRE. NAKED. GREAT.', "SWING. DON'T THINK. BALLS OVER LAVA."],
+);
 export const MH_VINE_BURN = bp(
   ["THE VINE'S ON FIRE! WHY IS THE VINE ON FIRE?!"],
   ["THE VINE'S ON FIRE! IT'S COMING FOR MY ASS!"],
   ["THE VINE'S ON FIRE! IT'S COMING FOR MY BALLS!"],
 );
 export const MH_LOG = bp(["A BURNING LOG IN A BURNING RIVER. KEEP MOVING."], ["A BURNING LOG. MY ASS IS ALREADY HOT."], ["A BURNING LOG. BETWEEN MY LEGS. HURRY."]);
-export const MH_LOG_GOING = ["IT'S FALLING APART! MOVE!", "THE LOG'S DONE! JUMP!", 'OFF THE LOG! OFF!'];
+export const MH_LOG_GOING = bp(
+  ["IT'S FALLING APART! MOVE!", "THE LOG'S DONE! JUMP!", 'OFF THE LOG! OFF!'],
+  ["THE LOG'S DONE! MY ASS IS NEXT!", "OFF THE LOG! THE SHIT'S COOKING!", "IT'S FALLING APART! LIKE MY PANTS!"],
+  ["THE LOG'S DONE! BALLS UP! JUMP!", 'OFF THE LOG! NAKED! NOW!', "IT'S FALLING APART! SPLINTERS! BALLS!"],
+);
 export const MH_TOWER = bp(["A TOWER OF POOL TOYS. ON FIRE. ON A ROCK. IN A FIRE."], ["POOL TOYS ON FIRE. SMELLS BETTER THAN ME."], ["POOL TOYS ON FIRE. DON'T LET IT TOUCH ANYTHING."]);
 /** The lava's heat nulls his power (steam.ts): the first time (by his pants), and now and then after. */
 export const MH_NULL_FIRST = bp(["THE HEAT OFF THIS LAVA KILLED MY CHARGE. GUESS I JUMP."], ["THE HEAT SUCKED MY CHARGE RIGHT OUT. AND IT'S COOKING MY PANTS."], ["MY CHARGE IS GONE. THE HEAT'S ON MY BALLS. JUST JUMP."]);
-export const MH_NULL = ["NO CHARGE OVER LAVA.", "HEAT ATE MY CHARGE AGAIN.", "STEAM. THERE GOES MY JUICE.", "CAN'T CHARGE IN THIS. JUMP, DUMBASS."];
-export const MH_TOWER_GOING = ["IT'S GOING OVER!", 'OFF! GET OFF IT!', "IT'S MELTING!"];
+export const MH_NULL = bp(
+  ["NO CHARGE OVER LAVA.", "HEAT ATE MY CHARGE AGAIN.", "STEAM. THERE GOES MY JUICE.", "CAN'T CHARGE IN THIS. JUMP, DUMBASS."],
+  ["NO CHARGE OVER LAVA. JUST STINK.", "HEAT ATE MY CHARGE. LEFT THE SHIT.", "STEAM. NOW I'M A STEAMED TURD."],
+  ["NO CHARGE OVER LAVA. JUST BALLS.", "HEAT ATE MY CHARGE. AND MY LEG HAIR.", "STEAM. RIGHT UP THE CRACK."],
+);
+export const MH_TOWER_GOING = bp(
+  ["IT'S GOING OVER!", 'OFF! GET OFF IT!', "IT'S MELTING!"],
+  ["IT'S GOING OVER! SHIT AND ALL!", "IT'S MELTING INTO MY PANTS!", 'OFF! BEFORE IT COOKS MY LOAD!'],
+  ["IT'S GOING OVER! NAKED! OFF!", "IT'S MELTING! NOT ON MY DICK!", 'OFF! HOT PLASTIC! BARE ASS!'],
+);
 export const MH_GROTTO = bp(
   ["SKULL GROTTO. SMELLS LIKE WEED AND SULFUR. HE'S IN THERE."],
   ["SMELLS LIKE WEED AND SULFUR. AND ME."],
   ["SMELLS LIKE WEED IN THERE. GOING IN NAKED. FINE."],
 );
 /** Into the river, as he goes in. */
-export const MH_RIVER = ["I'M ON FIRE! I'M ON FIRE!", 'HOT HOT HOT HOT!', 'NOT THE RIVER!'];
+export const MH_RIVER = bp(
+  ["I'M ON FIRE! I'M ON FIRE!", 'HOT HOT HOT HOT!', 'NOT THE RIVER!'],
+  ["MY SHIT'S ON FIRE!", 'HOT SHIT! HOT SHIT!', 'NOT THE RIVER! NOT IN THESE PANTS!'],
+  ['MY BALLS! MY BALLS!', 'NOT NAKED! NOT THE RIVER!', 'HOT! HOT! DICK FIRST!'],
+);
 /** Kicking the grotto's door in. */
 export const MH_DOOR = bp(['KNOCK KNOCK, DEVIL BOY.'], ['KNOCK KNOCK. SMELL THAT? ME.'], ['KNOCK KNOCK. NAKED GUY.']);
 
@@ -138,9 +158,15 @@ export const SON_INTRO2 = bp(
 export const SON_RETRY = bp(['YOU AGAIN. COOL. WHATEVER.'], ['YOU AGAIN. STILL GROSS.'], ['YOU AGAIN. STILL NAKED. COOL.']);
 /** Lazy: muttered now and then. */
 export const SON_LAZY = bp(
-  ['THIS IS SO MUCH EFFORT.', 'I COULD BE NAPPING RIGHT NOW.', 'MY BROTHER WOULD BE SCREAMING BY NOW. LAME.', "I DON'T EVEN WANT TO BE HERE."],
-  ["YOU SMELL LIKE MY BROTHER'S BAND.", "UGH. YOU'RE DRIPPING ON MY RUG.", "I'M NOT TOUCHING YOU. YOU'RE WET.", 'THIS IS SO MUCH EFFORT. AND IT STINKS.'],
-  ["PUT SOMETHING ON. OR DON'T. WHATEVER.", "I'M LOOKING AT THE CEILING. THE WHOLE TIME.", "YOU'RE NOT EVEN WEIRD. JUST NAKED.", "THIS IS SO MUCH EFFORT. AND IT'S NAKED."],
+  ['THIS IS SO MUCH EFFORT.', 'I COULD BE NAPPING RIGHT NOW.', 'MY BROTHER WOULD BE SCREAMING BY NOW. LAME.', "I DON'T EVEN WANT TO BE HERE.", 'NED GOT A WHOLE PARKING LOT. DAD GAVE ME A CAVE.', "DAD'S NOT WATCHING. HE NEVER IS. WHATEVER."],
+  ["YOU SMELL LIKE MY BROTHER'S BAND.", "UGH. YOU'RE DRIPPING ON MY RUG.", "I'M NOT TOUCHING YOU. YOU'RE WET.", 'THIS IS SO MUCH EFFORT. AND IT STINKS.', "MY BROTHER NED DIGS UP CORPSES. THEY SMELL BETTER THAN YOU.", "DAD'S GONNA SMELL YOU FROM HELL."],
+  ["PUT SOMETHING ON. OR DON'T. WHATEVER.", "I'M LOOKING AT THE CEILING. THE WHOLE TIME.", "YOU'RE NOT EVEN WEIRD. JUST NAKED.", "THIS IS SO MUCH EFFORT. AND IT'S NAKED.", "MY BROTHER NED RAISES THE DEAD. HE COULDN'T RAISE THAT.", "DAD SAID KILL YOU. HE DIDN'T SAY YOU'D BE NAKED."],
+);
+/** His brother, two on one: showing off for their dad, and for Ned (the third of them: level 4's). */
+export const BRO_DUO = bp(
+  ['DAD! TWO SONS ON ONE GUY! WATCH!', "NED'S GONNA BE SO JEALOUS! WE GOT HIM FIRST!", "BRO! TRY HARDER! DAD'S WATCHING! PROBABLY!"],
+  ["DAD! WE GOT THE SHITTY ONE CORNERED!", 'NED CAN HAVE THE BODY! IT STINKS!', "BRO! DON'T LET HIM DRIP ON YOU! DAD'S WATCHING!"],
+  ["DAD! DON'T LOOK AT HIS DICK! LOOK AT ME!", 'NED CAN SEW HIS DICK BACK ON AFTER!', "BRO! HE'S STILL NAKED! TELL DAD I DIDN'T LOOK!"],
 );
 /** Meathead, mocking him (his dad, his brother): it gets to him. */
 export const MH_MOCK = bp(
@@ -150,15 +176,19 @@ export const MH_MOCK = bp(
 );
 export const SON_HURT = bp(['OW. COOL.', 'OW. RUDE.', 'THAT LEFT A MARK. GREAT.'], ['OW. YOU GOT IT ON MY COAT.', 'OW. NOW I SMELL LIKE YOU.', 'GROSS. OW.'], ['OW. YOUR THING TOUCHED ME.', "OW. DON'T BE NAKED AT ME.", 'OW. GROSS.']);
 export const SON_LOW = bp(
-  ["DAD'S GONNA HEAR ABOUT THIS. FROM MY BROTHER. GREAT."],
-  ["I'M LOSING TO A GUY WHO SHIT HIMSELF. DAD'S GONNA LOVE THAT."],
-  ["I'M LOSING TO A NAKED GUY. DAD'S GONNA FRAME IT."],
+  ["DAD'S GONNA HEAR ABOUT THIS. FROM MY BROTHER. GREAT.", "NED'S GONNA TELL DAD. NED TELLS DAD EVERYTHING."],
+  ["I'M LOSING TO A GUY WHO SHIT HIMSELF. DAD'S GONNA LOVE THAT.", "NED'S GONNA TELL DAD A SHITTY GUY DID THIS."],
+  ["I'M LOSING TO A NAKED GUY. DAD'S GONNA FRAME IT.", "NED'S GONNA TELL DAD A NAKED GUY DID THIS."],
 );
-/** His standard death: the last line (the leak), then his coat catches off his own joint. */
-export const SON_DEATH = bp(["DID HE SEE? TELL ME HE DIDN'T SEE."], ["DID HE SEE? DON'T TELL HIM YOU WERE SHITTY."], ["DID HE SEE? DON'T TELL HIM ABOUT THE NAKED PART."]);
+/** His last line, out of the middle of the brawl (the leak: did Dad see). */
+export const SON_DEATH = bp(["DID DAD SEE? DON'T TELL NED."], ["DID DAD SEE? DON'T TELL NED HE WAS SHITTY."], ["DID DAD SEE? DON'T TELL NED HE WAS NAKED."]);
 export const SON_BURNING = bp(["DAD! I'M ON FIRE! I THOUGHT WE WERE FIREPROOF!"], ["DAD! I'M ON FIRE! AND I SMELL LIKE HIM!"], ["DAD! I'M ON FIRE! DON'T LET THE NAKED GUY WATCH!"]);
 /** Grabbing him (a boss: no). */
-export const GRAB_SON = ["HE'S CLAMMY. I'M NOT GRABBING THAT.", "I'M NOT HUGGING A GOTH."];
+export const GRAB_SON = bp(
+  ["HE'S CLAMMY. I'M NOT GRABBING THAT.", "I'M NOT HUGGING A GOTH."],
+  ["HE'S CLAMMY. I'M SHITTY. NO.", "I'M NOT HUGGING A GOTH IN THESE PANTS."],
+  ["HE'S CLAMMY. I'M NAKED. NO.", "I'M NOT HUGGING A GOTH NAKED."],
+);
 /** Level 3's stub (shut, for now). */
 export const MH_STUB3 = bp(["MAINTENANCE TUNNEL. LOCKED. FOR NOW."], ["LOCKED. I'LL WAIT. I'LL STINK."], ["LOCKED. I'LL WAIT. NAKED."]);
 
@@ -185,14 +215,11 @@ export const BRO_KNEEL = bp(["BRO! I'M DOWN! FINISH HIM! DAD, I WAS HELPING!"], 
 // ---------------------------------------------------------------------------------------------------------------
 // The end (both down): they try to run, he twists them into a pool float, a beer, down the river on them
 
-export const SON_ESCAPE = bp(['BRO. RUN.'], ['BRO. RUN. HE SMELLS LIKE DEATH.'], ["BRO. RUN. DON'T LOOK BACK. HE'S NAKED."]);
-export const BRO_ESCAPE = bp(['DAAAD! WAIT UP!'], ["DAAAD! THE SHITTY ONE'S COMING!"], ["DAAAD! THE NAKED ONE'S COMING!"]);
-export const MH_STOP = bp(["WHERE THE FUCK DO YOU TWO THINK YOU'RE GOING?"], ['NOBODY LEAVES. NOT EVEN ME, AND I SMELL LIKE THIS.'], ["GET BACK HERE. I'M NAKED AND I'M FAST."]);
-export const MH_PRETZEL = bp(
-  ['A PRETZEL. A LAVA-PROOF PRETZEL. MADE OF DEVIL KIDS.'],
-  ["A DEVIL KID PRETZEL. IT FLOATS. IT'S BETTER THAN MY PANTS."],
-  ['A DEVIL KID PRETZEL. IT FLOATS. NOW I HAVE A SEAT.'],
-);
+/** The one line between them as they scramble up and run (short: they never stand about talking). */
+export const SON_ESCAPE = bp(['BRO. RUN. GET DAD.'], ['BRO. RUN. GET DAD. HE REEKS.'], ["BRO. RUN. GET DAD. HE'S NAKED."]);
+/** His, on the run after them (end.ts paces the chase to it: he's on them as it ends). */
+export const MH_STOP = bp(["WHERE THE FUCK DO YOU TWO THINK YOU'RE GOING?"], ["GET BACK HERE! YOU CAN'T OUTRUN THE SMELL!"], ["GET BACK HERE! I'M NAKED AND I'M FAST!"]);
+export const MH_PRETZEL = bp(['DEVIL KID PRETZEL. LAVA PROOF.'], ['DEVIL KID PRETZEL. CLEANER THAN MY PANTS.'], ['DEVIL KID PRETZEL. FINALLY, A SEAT.']);
 /** The demon going by with a beer cart (walking on the fire: it's nothing to him). */
 export const BEER_VOICE = 'm2.wp.beerdemon';
 /** The beer man (the owner: "the beer demon calls out beer. he isn't in the river but on the walkway next to the river
@@ -210,18 +237,17 @@ export const MH_BACK_TO_WORK = bp(
   ["BREAK TIME'S OVER. BACK TO WORK. STILL SHITTY.", "BREAK TIME'S OVER. BACK TO WORK. THE SHIT COMES WITH ME."],
   ["BREAK TIME'S OVER. BACK TO WORK. NO PANTS REQUIRED.", "BREAK TIME'S OVER. BACK TO WORK. BALLS OUT."],
 );
-export const MH_BEER = bp(["DON'T MIND IF I DO."], ["I'LL TAKE ONE. FOR THE SMELL."], ["I'LL TAKE ONE. I'LL HOLD IT WHERE MY POCKET WOULD BE."]);
-/** Lounging back on them with it: the last word, then VICTORY on the way down the river. */
-export const MH_LOUNGE = bp(['NOW THIS IS A LAZY RIVER.'], ["NOW THIS IS A LAZY RIVER. IT'S WARM UNDER ME. IT'S NOT ME."], ["NOW THIS IS A LAZY RIVER. THE FIRE'S WARMING MY ASS."]);
+/** Lounging back on them with the beer: the last word (the only one), then VICTORY on the way down the river. */
+export const MH_LOUNGE = bp(['NOW THIS IS A LAZY RIVER.'], ["NOW THIS IS A LAZY RIVER. THE WARM SPOT'S NOT ME."], ['NOW THIS IS A LAZY RIVER. WARM ON THE BALLS.']);
 
 // ---------------------------------------------------------------------------------------------------------------
 
 const all = (...pools: (string | string[] | ByPants)[]) => pools.flatMap(p => (typeof p === 'string' ? [p] : Array.isArray(p) ? p : Object.values(p).flat()));
 export const PARK2_VOICE_LINES: Record<string, string[]> = {
-  meathead: all(MH_LAVA_SCREAM, MH_MEET, MH_AFTER_MEET, MH_FIRST_VINE, MH_VINE_BURN, MH_LOG, MH_LOG_GOING, MH_TOWER, MH_TOWER_GOING, MH_NULL_FIRST, MH_NULL, MH_GROTTO, MH_RIVER, MH_DOOR, MH_INTRO2, MH_MOCK, GRAB_SON, MH_STUB3, MH_BRO, MH_NOTHING, MH_STOP, MH_PRETZEL, MH_BEER, MH_LOUNGE, MH_BACK_TO_WORK, ...Object.values(HURT2).map(h => h.hurt)),
+  meathead: all(MH_LAVA_SCREAM, MH_MEET, MH_AFTER_MEET, MH_FIRST_VINE, MH_VINE_BURN, MH_LOG, MH_LOG_GOING, MH_TOWER, MH_TOWER_GOING, MH_NULL_FIRST, MH_NULL, MH_GROTTO, MH_RIVER, MH_DOOR, MH_INTRO2, MH_MOCK, GRAB_SON, MH_STUB3, MH_BRO, MH_NOTHING, MH_STOP, MH_PRETZEL, MH_LOUNGE, MH_BACK_TO_WORK, ...Object.values(HURT2).map(h => h.hurt)),
   death: all(...Object.values(HURT2).map(h => h.death)),
   [SON_VOICE]: all(SON_HELLO, SON_NAME_LINE, SON_JOB, SON_LEAK, SON_BYE, SON_INTRO, SON_INTRO2, SON_RETRY, SON_LAZY, SON_HURT, SON_LOW, SON_DEATH, SON_KNEEL, SON_ESCAPE, SON_WINCE),
-  'm2.demon': all(BRO_ARRIVE, BRO_KNEEL, BRO_ESCAPE, BRO_WINCE),
+  'm2.demon': all(BRO_ARRIVE, BRO_KNEEL, BRO_DUO, BRO_WINCE),
   [BEER_VOICE]: all(BEER_CALL, BEER_HURT),
   [BURNOUT_VOICE.m]: all(BURN_BARK), [BURNOUT_VOICE.f]: all(BURN_BARK),
 };

@@ -16,6 +16,7 @@ import { VINES2 } from './geo';
 import { flame, FIRE } from './fire';
 import { drawVineBeam } from './zones';
 import * as L from './lines';
+import { byPants } from '../park1/kinds';
 
 type Ctx = CanvasRenderingContext2D;
 const AWAY = -99999;
@@ -28,7 +29,7 @@ export const newVines2 = (): Vines2 => ({
   defs: VINES2.map(v => ({ x: v.x, y: v.y, len: v.len, kind: 'swing' })),
   burn: VINES2.map(() => null),
 });
-const optsOf = (v: Vines2): VineOpts => ({ store: () => v.store, style: 'liana', firstLines: L.MH_FIRST_VINE });
+const optsOf = (v: Vines2, state?: GameState): VineOpts => ({ store: () => v.store, style: 'liana', firstLines: state ? byPants(state, L.MH_FIRST_VINE) : L.MH_FIRST_VINE.clean });
 
 /** A frame of them (before he moves). `onSnap`: one gave way with him on it. */
 export const updateVines2 = (ctx: FrameContext, v: Vines2, c: Controls, onSnap: () => void): Controls => {
@@ -61,7 +62,7 @@ export const updateVines2 = (ctx: FrameContext, v: Vines2, c: Controls, onSnap: 
       b.gone = 1; d.y = AWAY;
     }
   });
-  return updateVines(ctx, v.defs, c, optsOf(v));
+  return updateVines(ctx, v.defs, c, optsOf(v, ctx.state));
 };
 /** He's on one. */
 export const onVine2 = (state: GameState, v: Vines2) => onVine(state, optsOf(v));

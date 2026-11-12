@@ -166,7 +166,7 @@ export const updatePark2 = (ctx: FrameContext, p2: Park2, controls: Controls, sa
     }
   }
   // ---- the obstacles (before he moves)
-  const onGone = (src: string, lines: string[]) => () => { p2.cause = { src, at: state.frame }; mhSay(state, p2, src, lines, 6000); };
+  const onGone = (src: string, lines: string[] | L.ByPants) => () => { p2.cause = { src, at: state.frame }; mhSay(state, p2, src, lines, 6000); };
   updateTowers2(ctx, p2.towers, onGone('m2:wp2_tower', L.MH_TOWER_GOING));
   out = updateLogs2(ctx, p2.logs, out, onGone('m2:wp2_log', L.MH_LOG_GOING));
   updateBeams(ctx);
@@ -181,7 +181,7 @@ export const updatePark2 = (ctx: FrameContext, p2: Park2, controls: Controls, sa
   if (onVine2(state, p2.vines) && p2.vines.burn.some(b => b && !b.gone && b.t > 6)) once(p2, 'vineBurn', () => mhSay(state, p2, 'vineBurn', L.MH_VINE_BURN));
   // ---- the fire: the river, the jets, the patches, the shots
   const fell = !p.isGrounded && !p.carried && p.vel.y > 0;
-  if (fell && p.pos.y + p.height > GY + floorDy(cx) + 10 && RIVER.some(([a, b]) => cx > a && cx < b) && !p2.said.screamAt) { p2.said.screamAt = true; meatheadSays(state, pickLine(L.MH_RIVER), false); }
+  if (fell && p.pos.y + p.height > GY + floorDy(cx) + 10 && RIVER.some(([a, b]) => cx > a && cx < b) && !p2.said.screamAt) { p2.said.screamAt = true; meatheadSays(state, pickLine(byPants(state, L.MH_RIVER)), false); }
   if (p.isGrounded) p2.said.screamAt = false;
   updateFire(ctx, { riverOn: true, cause: () => (p2.cause && state.frame - p2.cause.at < 150 ? p2.cause.src : null) });
   // ---- the grotto's door: walked up to (the board's in the way: he walks into it); kicked in, walked in through
