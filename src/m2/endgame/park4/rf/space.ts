@@ -22,9 +22,10 @@ import type { RefightDef } from '../defs';
 import { spaceLayout } from '../../../space/index';
 import { GY } from '../../../space/geometry';
 import { hands } from '../../../space/section';
-import { DISCO_L, DISCO_R, DJ } from '../../../space/queen/geo';
+import { DJ } from '../../../space/queen/geo';
 import { DISCO_CP } from '../../../space/queen/basement';
-import { setBoothSwap, type BoothOps } from '../../../space/queen/disco';
+import { setBoothSwap, DISCO_HOOKS, type BoothOps } from '../../../space/queen/disco';
+import { spacePlace, SPACE_WALL, SPACE_NEON } from '../place/space';
 import { drawAlien } from '../../../space/crater/aliens';
 import * as Q from '../../../space/queen/lines';
 import { speak, saidOver, meatheadSays } from '../../../adventure/section';
@@ -113,6 +114,10 @@ const tickDrop = (state: GameState, q: QState | null) => {
   if ((p.isGrounded && p.pos.y + p.height >= GY - 2) || d.t > 300) { drop = null; p.inCutscene = false; setUi({ introCutscene: false }); }
   void q;
 };
+
+// (her place: HELL'S DISCO (park4/place/space.ts): the hall's walls and the neon, only while her refight's on)
+DISCO_HOOKS.wall = () => (inRefight('space') ? SPACE_WALL : null);
+DISCO_HOOKS.neon = () => (inRefight('space') ? SPACE_NEON : null);
 
 /** In the booth's glass, in the two's place (disco.ts): what's left of them, Ned over it. */
 setBoothSwap((c, ops, f) => {
@@ -227,8 +232,8 @@ export const spaceRefight: RefightDef = {
     [Q.BOOTH_CURSES, L.RF_NED_CURSES], [Q.BOOTH_EXIT, L.RF_NED_EXIT],
     [Q.MH_OPS_GONE, L.RF_MH_NED_GONE],
   ],
-  // (the hall wall to wall, the props kept in from both ends: nothing in it to stand on)
-  arena: () => ({ l: DISCO_L + 120, r: DISCO_R - 120, floor: GY }),
+  place: spacePlace,
+  arena: () => null,
   bossAt,
   stitches: look => look === 'weakness'
     // (the mallet's: her head (up at the top, out front) seamed back together, riveted; a seam down her neck)

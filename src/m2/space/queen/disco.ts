@@ -694,13 +694,17 @@ const tile = (c: Ctx, x: number, y: number, w: number, h: number, k: number) => 
  *  the console; true: they're not drawn (only ever while that refight's on: it says so itself). */
 let boothSwap: ((c: Ctx, ops: BoothOps | null, f: number) => boolean) | null = null;
 export const setBoothSwap = (fn: typeof boothSwap) => { boothSwap = fn; };
+/** Ned's boss rush (endgame/park4/rf/space.ts sets these; each a no-op outside the refight): the hall's walls painted
+ *  some other way (a tile 400 wide at tx, as paintWall), and the neon's first word. */
+export const DISCO_HOOKS: { wall?: () => { key: string; paint: (g: Ctx, tx: number) => void } | null; neon?: () => string | null } = {};
 export const drawDisco = (c: Ctx, state: GameState, o: { lights: number; ops: BoothOps | null; extinguisher: boolean }) => {
   if (!shown(state, DISCO_L - 60, DISCO_R + 60)) return;
   const f = state.frame, on = o.lights > 0.5;
   // (the hall's walls, in tiles)
   for (let tx = DISCO_L - 40; tx < DISCO_R + 40; tx += 400) {
     if (!shown(state, tx, tx + 400)) continue;
-    stamp(c, `sp-q-disco2-${tx - DISCO_L}`, tx, GY - 600, 400, 604, g => paintWall(g, tx));
+    const hw = DISCO_HOOKS.wall?.() ?? null;
+    stamp(c, `${hw ? hw.key : 'sp-q-disco2'}-${tx - DISCO_L}`, tx, GY - 600, 400, 604, g => (hw ? hw.paint(g, tx) : paintWall(g, tx)));
   }
   stamp(c, 'sp-q-disco2-fix', DISCO_L - 40, GY - 600, W + 80, 604, paintFixtures);
   // The ball's spots on the walls (the light itself is the lighting's; these are the bright cores)
@@ -716,7 +720,7 @@ export const drawDisco = (c: Ctx, state: GameState, o: { lights: number; ops: Bo
     stamp(c, 'sp-q-neon-board', N.x - 4, TRUSS_Y + 8, N.w + 8, N.y + N.h + 4 - (TRUSS_Y + 8), paintNeonBoard);
     if (on) for (let i = 0; i < 24; i++) if ((i + (f >> 2)) % 4 === 0) { const bx = N.x + 6 + i * ((N.w - 12) / 24); px(c, bx, N.y + N.h - 7, 3, 2, '#FDE047'); px(c, bx + 1, N.y + N.h - 7, 1, 1, '#FFFFF0'); }
     const lit = (k: number) => (i: number) => { const j = i + k; return !on || ((j + Math.floor(f / 5)) % 9 === 0 && f % 4 < 2) ? 0 : (j + Math.floor(f / 5)) % 4 === 0 ? 2 : 1; };
-    neon(c, 'GALACTIC', N.ga, N.y + 10, NEON_S, N_PINK, { slant: 1, lit: lit(0) });
+    neon(c, DISCO_HOOKS.neon?.() ?? 'GALACTIC', N.ga, N.y + 10, NEON_S, N_PINK, { slant: 1, lit: lit(0) });
     neon(c, 'GROOVE', N.gr, N.y + 10, NEON_S, N_CYAN, { slant: 1, lit: lit(9) });
   }
   // The floor: light-up tiles, two rows, the patterns stepping on the beat; its lip lit (stand on it)
