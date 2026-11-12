@@ -22,7 +22,6 @@ import { speak, saidOver } from '../../../adventure/section';
 import { pickLine } from '../../../../m1/game/platform/speech';
 import { isShat, isNude } from '../../../../m1/game/player/gut';
 import { bossDeath } from '../../../store';
-import { refightOn } from '../hook';
 import { drawNed } from '../nedArt';
 import { spookyPlace, installSpookyPlace } from '../place/spooky';
 import { refightId, refightStage } from '../where';
@@ -87,32 +86,7 @@ const bossAt = (state: GameState) => {
   return { x: f.x, feet: f.y, w: 46, h: 90, face: f.facing };
 };
 
-/** The extras the stitches can't do: the cork in his sewn-up ass; the gravy weeping out of the ash. */
-export const drawDonnieLook = (c: Ctx, at: { x: number; feet: number; w: number; h: number; face: number }, look: string, fr: number) => {
-  const back = -at.face;
-  if (look === 'weakness') {
-    // (gravy: brown runs down out of his seams, a drip falling now and then)
-    for (const [fx, fy, len] of [[-0.1, 0.28, 10], [0.18, 0.5, 14], [-0.22, 0.56, 8], [0.05, 0.3, 6]] as const) {
-      const x = at.x + fx * at.w * at.face, y = at.feet - at.h + fy * at.h;
-      c.fillStyle = '#5C3A1A'; c.fillRect(Math.round(x) - 1, Math.round(y), 3, len);
-      c.fillStyle = '#8A5A2A'; c.fillRect(Math.round(x), Math.round(y), 1, len - 2);
-      const u = (fr + fx * 97 + fy * 61) % 50;
-      if (u < 30) { c.fillStyle = '#6B4420'; c.fillRect(Math.round(x), Math.round(y + len + u * 1.2), 2, 3); }
-    }
-  } else {
-    // (the cork, stuck in the seat of his trousers, the seam crossed over it)
-    const x = at.x + back * at.w * 0.38, y = at.feet - 26;
-    c.fillStyle = '#3A2410'; c.fillRect(Math.round(x) - 5, Math.round(y) - 4, 10, 8);
-    c.fillStyle = '#B07A3A'; c.fillRect(Math.round(x) - 4, Math.round(y) - 3, 8, 6);
-    c.fillStyle = '#D8A060'; c.fillRect(Math.round(x) - 4, Math.round(y) - 3, 8, 2);
-  }
-};
-
 const lookNow = () => bossDeath('spooky') ?? 'normal';
-const drawLook = (c: Ctx, state: GameState) => {
-  const at = bossAt(state);
-  if (at) drawDonnieLook(c, at, refightOn()?.look ?? lookNow(), state.frame);
-};
 
 export const spookyRefight: RefightDef = {
   land: 'spooky', id: refightId('spooky'), stage: refightStage('spooky'),
@@ -145,6 +119,6 @@ export const spookyRefight: RefightDef = {
     // (the usual way: his ass sewn shut in a big X, his dome seamed and stapled where it went through the ceiling)
     : { thread: '#F5F5F4', patch: '#7F1D1D', seams: [[0.02, 0.62, 0.3, 0.8], [0.02, 0.8, 0.3, 0.62], [0.32, 0.12, 0.8, 0.17]], staples: [[0.44, 0.14], [0.66, 0.16], [0.55, 0.4]], stain: { col: '#5C3A12', k: 0.18 } },
   update,
-  drawFront: (c, state) => { drawLook(c, state); drawPortal(c, state.frame); },
+  drawFront: (c, state) => drawPortal(c, state.frame),
   build: () => { installSpookyPlace(); lastSatan = null; nedSaid = null; nedOpen = 0; nedShut = 99; },
 };

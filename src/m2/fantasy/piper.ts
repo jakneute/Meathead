@@ -19,6 +19,7 @@
 // reaction, the fight's taunts).
 // opts.thin (her fight's flintlock holes, the deflated balloon: bedroom/): 0 her .. 1 a SUPERMODEL .. 2 skin and bone.
 
+import { stitchOver } from '../endgame/park4/hook';
 import { drawGrossUp } from './piperGross';
 import { elbow, reachTo } from '../art/limb';
 
@@ -709,10 +710,12 @@ export const drawPiper = (c: Ctx, x: number, feetY: number, facing: 1 | -1, f: n
   else armTo(c, -34 * bw, sh, farHand[0] * hk, farHand[1], false, farHand[2], f, enraged, thin);
   legs(c, stamp, thin, clutch);
   body(c, j, f, thin);
+  c.save(); c.scale(bw, 1); stitchOver(c, 'fantasy', 'body'); c.restore();
   // the head (its beehive behind it)
   const hx = 8 * hk, hy = -138 + breathe;
   beehive(c, hx, hy - 4, mess, f);
   head(c, hx, hy, face, f, talking, mess, thin);
+  c.save(); c.translate(hx, hy); stitchOver(c, 'fantasy', 'head'); c.restore();
   // the near arm, in front
   const nearHand: [number, number, 'open' | 'fist' | 'wand' | 'clasp' | 'bonbon'] =
     enraged ? [52, -146 - (f % 8 < 4 ? 6 : 0), 'fist']

@@ -140,6 +140,67 @@ BOSSES.frontier = {
   },
 };
 
+// DONNIE DRACULA (spooky/donnie.ts): body in his feet frame, leaned (his shirt over the gut x -14..18.7, y -60..-22;
+// the seat of his trousers at the back, -x, y -24..-12); head about its middle, its own units (crown about -15, jaw 13).
+//   normal: SHAT HIMSELF INTO THE CEILING: his ass sewn shut in a big X with a cork in it, the brown still soaked in
+//           round it; his dome seamed and stapled where it went up through the ceiling.
+//   weakness: BURNT TO ASH (the little Jesus): put back together out of the ash, bound with gravy: ash-gray patches on
+//           his face and his shirt, gravy weeping out of the seams.
+const GRAVY = '#6A4420', GRAVY_HI = '#9A6A34', ASH2 = '#8A8682', ASH2_HI = '#B4B0AA';
+BOSSES.spooky = {
+  body: (c, look) => {
+    if (look === 'weakness') {
+      patch(c, [0, -54, 10, -52, 12, -44, 2, -42], ASH2, '#2A1A0A', ASH2_HI);
+      patch(c, [-12, -40, -2, -38, -3, -30, -12, -31], ASH2, '#2A1A0A', ASH2_HI);
+      for (const [x, y, l] of [[2, -42, 6], [-6, -30, 5], [11, -44, 4]] as const) drip(c, x, y, l, GRAVY, GRAVY_HI);
+      return;
+    }
+    blot(c, -12, -17, 5, 6, '#5C3A12', 0.45);
+    seam(c, [-15, -24, -9, -12], '#F5F5F4', 2.2); seam(c, [-9, -24, -15, -12], '#F5F5F4', 2.2);
+    c.fillStyle = INK; c.fillRect(-14.4, -20.6, 5.2, 4.4); c.fillStyle = '#B07A3A'; c.fillRect(-13.8, -20, 4, 3.2); c.fillStyle = '#D8A060'; c.fillRect(-13.8, -20, 4, 1.2);
+  },
+  head: (c, look) => {
+    if (look === 'weakness') {
+      patch(c, [-2, -12, 9, -9, 10, 1, 1, 3, -3, -4], ASH2, '#2A1A0A', ASH2_HI, 2.2);
+      drip(c, 5, 3, 5, GRAVY, GRAVY_HI);
+      return;
+    }
+    seam(c, [-10, -11, -3, -15.4, 5, -15, 11, -10], '#F5F5F4', 2.2);
+    staple(c, -6, -13.6, -0.5); staple(c, 1, -15.4, 0); staple(c, 8, -12.8, 0.6);
+  },
+};
+
+// PIPER THE PIXIE (fantasy/piper.ts): body in her feet frame drawn to her width (the gown x -58..66, y -114..-18; she's
+// 176 tall); head about her face's middle (the face about 36 across, 32 tall).
+//   normal: CORKED (a cork went through her head; the floor had her to the waist): a cork jammed back in the top of her
+//           head, a nicer one, sewn round; a seam right round her middle, staples where it pinched.
+//   weakness: POPPED (the flintlock let the air out of her): black bike-tire patches glued over the holes, their orange
+//           feathered edges; a seam down her front where she split; one on her cheek.
+const tire = (c: Ctx, x: number, y: number, r: number) => {
+  c.fillStyle = '#EA580C'; c.beginPath(); c.ellipse(x, y, r + 1.6, r * 0.8 + 1.6, 0.3, 0, Math.PI * 2); c.fill();
+  c.fillStyle = '#18181B'; c.beginPath(); c.ellipse(x, y, r, r * 0.8, 0.3, 0, Math.PI * 2); c.fill();
+  c.fillStyle = '#52525B'; c.fillRect(x - r * 0.5, y - r * 0.4, r * 0.7, 1);
+};
+BOSSES.fantasy = {
+  body: (c, look) => {
+    if (look === 'weakness') {
+      seam(c, [4, -110, 6, -80, 3, -50, 5, -22], INK, 3);
+      for (const [x, y, r] of [[-30, -88, 6], [30, -72, 5], [-14, -50, 7], [40, -96, 4.4], [18, -40, 5]] as const) tire(c, x, y, r);
+      return;
+    }
+    seam(c, [-56, -66, -20, -62, 20, -61, 62, -66], '#F5F5F4', 3);
+    for (const x of [-38, -6, 26, 52]) staple(c, x, -63.4, 0.05, 1.3);
+  },
+  head: (c, look) => {
+    if (look === 'weakness') { tire(c, -9, 6, 4.4); seam(c, [6, -14, 9, -4], INK, 2.4); return; }
+    // (the cork, in the top of her head, the beehive's foot: a nicer one, its brand on it)
+    c.fillStyle = INK; c.fillRect(-9, -26, 18, 14);
+    c.fillStyle = '#9A7040'; c.fillRect(-8, -25, 16, 12); c.fillStyle = '#C49A60'; c.fillRect(-8, -25, 16, 3); c.fillStyle = '#6A4A24'; c.fillRect(4, -25, 4, 12);
+    for (let k = 0; k < 6; k++) c.fillRect(-6 + k * 2.4, -20 + (k % 2) * 3, 1, 1);
+    seam(c, [-12, -12, -4, -9.6, 4, -9.6, 12, -12], '#F5F5F4', 2.4);
+  },
+};
+
 setStitch((c, who, part, look) => {
   const p = BOSSES[who]?.[part];
   if (!p) return;

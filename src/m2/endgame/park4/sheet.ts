@@ -11,6 +11,8 @@ import { REFIGHTS } from './refights';
 import { setRefightOn } from './hook';
 import { drawSteve } from '../../hollywood/stunt/steve';
 import { drawTucker } from '../../frontier/tucker';
+import { drawDonnie } from '../../spooky/donnie';
+import { drawPiper } from '../../fantasy/piper';
 
 const sheet = (cols: number, rows: number, cw: number, ch: number, scale: number, cell: (g: CanvasRenderingContext2D, i: number) => string | void) => {
   const cv = document.createElement('canvas');
@@ -70,6 +72,8 @@ export const contactSheet4 = (what: string): string => {
     const add = (land: string, looks: string[], draw: (g: CanvasRenderingContext2D, k: number) => void) => { for (const look of looks) rows.push({ land, look, draw }); };
     add('hollywood', ['normal', 'weakness'], (g, k) => drawSteve(g, 0, 0, k % 2 ? -1 : 1, (['idle', 'flail', 'hurt', 'angry'] as const)[k], 10, {}));
     add('frontier', ['normal', 'weakness'], (g, k) => drawTucker(g, 0, 0, k % 2 ? -1 : 1, 10, (['stand', 'aim', 'hurt', 'reload'] as const)[k], { wounds: { eye: true } }));
+    add('spooky', ['normal', 'weakness'], (g, k) => drawDonnie(g, 0, 0, k % 2 ? -1 : 1, 10, (['stand', 'hurt', 'lunge', 'run'] as const)[k], 0, { cape: true, wig: true, fangs: true }));
+    add('fantasy', ['normal', 'weakness'], (g, k) => { g.scale(0.62, 0.62); drawPiper(g, 0, 0, k % 2 ? -1 : 1, 10, (['stand', 'enraged', 'hurt', 'gloat'] as const)[k], {}); });
     const cols = 4, cw = 130, ch = 170;
     return sheet(cols, rows.length, cw, ch, 2, (g, i) => {
       const r = rows[Math.floor(i / cols)], k = i % cols;

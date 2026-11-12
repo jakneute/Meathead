@@ -20,6 +20,7 @@
 // his last moments, his trousers down, `look.soiled` spreads the stain across the seat of his bat boxers, and
 // `look.kick` kicks his legs (hung up in the ceiling by it).
 
+import { stitchOver } from '../endgame/park4/hook';
 import { type Ctx } from '../cast/kit';
 import { smear, drip, cut, bloodFresh, bloodDark } from '../../m1/game/render/player/gore';
 import { knee } from '../art/limb';
@@ -219,6 +220,7 @@ export const drawDonnie = (c: Ctx, x: number, feetY: number, facing: number, fra
   c.save();
   if (bl) { c.translate(-12, -58); c.scale(1 + bl * 0.13, 1 + bl * 0.045); c.translate(12, 58); }
   drawBody(c, pose, f, d, bl);
+  stitchOver(c, 'spooky', 'body');
   if (L.cape && !SPREAD.has(pose)) drawLapel(c, f, d);
   drawMedallion(c, pose, f, d);
   c.restore();
@@ -228,6 +230,7 @@ export const drawDonnie = (c: Ctx, x: number, feetY: number, facing: number, fra
   const nod = pose === 'stunned' ? 0.25 + Math.sin(f * 0.12) * 0.12 : pose === 'clutch' ? 0.22 + Math.abs(Math.sin(f * 0.16)) * 0.08 : pose === 'hurt' ? -0.22 : pose === 'fumble' ? -0.5 : pose === 'lunge' ? -0.2 : pose === 'dead' ? 0.35 : pose === 'panic' ? Math.sin(f * 0.5) * 0.08 : 0;
   c.save(); c.translate(hx, hy); c.rotate(nod); c.scale(HS, HS);
   drawHead(c, pose, f, d, L);
+  stitchOver(c, 'spooky', 'head');
   c.restore();
   // (hands up at his face or over his head: back on over it)
   if (UP.has(pose)) { hand(c, far, false, pose, f, L); hand(c, near, true, pose, f, L); }
