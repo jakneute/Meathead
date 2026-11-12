@@ -304,6 +304,37 @@ const drawDoor = (c: Ctx, down: number) => {
   for (let y = GY - hh + 10; y < GY - 8; y += 40) for (const nx of [x + 8, x + w - 10]) R(c, nx, y, 2, 2, '#52525B');
   if (k < 0.3) { c.font = '9px "Press Start 2P"'; c.textAlign = 'center'; c.fillStyle = '#7F1D1D'; c.fillText('KEEP OUT.', x + w / 2 + 1, GY - hh + 71); c.fillText('SERIOUSLY.', x + w / 2 + 1, GY - hh + 91); c.fillStyle = '#1A1A1A'; c.fillText('KEEP OUT.', x + w / 2, GY - hh + 70); c.fillText('SERIOUSLY.', x + w / 2, GY - hh + 90); c.fillStyle = '#B91C1C'; c.fillText('- M', x + w / 2 + 30, GY - hh + 114); c.textAlign = 'left'; for (let k2 = 0; k2 < 3; k2++) R(c, x + 30 + k2 * 26, GY - hh + 74, 1, 6 + k2 * 3, '#1A1A1A'); }
 };
+/** The grotto's floor (stood on: its lit lip), baked: flagstones of the cave's rock in rows going back into the dark,
+ *  each lit along its top and shaded under, the rows darker the deeper, dithered between; cracks; candle wax dripped
+ *  and pooled; a few bones and a roach kicked into the seams; a rug under the beanbag. */
+const BEANBAG_AT = GROTTO.R - 150;
+const paintGrottoFloor = (g: Ctx) => {
+  const x0 = GROTTO.L, w = GROTTO.R + 50 - GROTTO.L;
+  R(g, x0, GY, w, 122, ROCK[1]);
+  const rows: [number, number, string, string][] = [[GY + 3, 16, ROCK[3], ROCK[2]], [GY + 19, 20, ROCK[2], ROCK[1]], [GY + 39, 26, ROCK[1], ROCK[0]], [GY + 65, 57, ROCK[0], '#0C080E']];
+  rows.forEach(([y, h, lit, body], r) => {
+    R(g, x0, y, w, h, body);
+    let x = x0 - ((r * 37) % 60);
+    for (let n = 0; x < x0 + w; n++) {
+      const sw = 46 + ((n * 29 + r * 13) % 30);
+      R(g, x, y, 2, h, INK); R(g, x + 2, y, sw - 2, 2, lit); if (r < 2) R(g, x + 2, y + 2, 2, h - 4, lit);
+      R(g, x + 2, y + h - 3, sw - 2, 2, mix(body, INK, 0.4));
+      if ((n + r) % 3 === 0) { const cx = x + 10 + ((n * 7) % 20); R(g, cx, y + 3, 1, Math.min(6, h - 5), INK); R(g, cx + 1, y + 5, 5, 1, INK); }
+      x += sw;
+    }
+    R(g, x0, y + h - 1, w, 1, INK);
+    if (r) checker(g, x0, y, w, 2, rows[r - 1][3]);
+  });
+  // (its lit lip: stood on)
+  R(g, x0, GY, w, 2, ROCK[4]); R(g, x0, GY + 2, w, 1, ROCK[3]);
+  // (wax: pooled and dripped off the candles along the back)
+  for (let k = 0; k < 6; k++) { const x = x0 + 60 + k * 120 + ((k * 37) % 40); R(g, x - 6, GY + 4, 12, 3, '#E7E0D0'); R(g, x - 4, GY + 4, 8, 1, '#FFFBF0'); R(g, x + 4, GY + 7, 2, 4, '#C8BFAE'); }
+  // (bones and a roach in the seams)
+  for (let k = 0; k < 4; k++) { const x = x0 + 120 + k * 170, y = GY + 24 + (k % 2) * 20; R(g, x, y, 16, 3, INK); R(g, x + 1, y, 14, 2, '#D6CDB8'); R(g, x - 1, y - 1, 3, 4, '#E7E0D0'); R(g, x + 14, y - 1, 3, 4, '#E7E0D0'); }
+  R(g, x0 + 470, GY + 8, 6, 2, '#F5F0E6'); R(g, x0 + 476, GY + 8, 2, 2, '#F97316');
+  // (the rug, worn, under where the beanbag is)
+  const rx = BEANBAG_AT - 90; R(g, rx - 1, GY + 3, 182, 14, INK); R(g, rx, GY + 4, 180, 12, '#3B1F4A'); R(g, rx, GY + 4, 180, 2, '#5B3270'); checker(g, rx + 4, GY + 8, 172, 6, '#2A1436'); for (let x = rx + 6; x < rx + 176; x += 14) R(g, x, GY + 9, 6, 2, '#7E22CE');
+};
 /** The back of the grotto (the way out, after): a wall of rock (shut), or the rock slab rolled aside (`open`). */
 const drawBackWall = (c: Ctx, open: number) => {
   const x = GROTTO.R;
@@ -368,8 +399,7 @@ export const drawBack2 = (c: Ctx, state: GameState, d: Draw2, river: () => void,
     else { R(c, GROTTO.L, CAVE_TOP, GROTTO.door - 70 - GROTTO.L, GY - CAVE_TOP, ROCK[2]); R(c, GROTTO.door - 70, GY - 200, 150, 200, '#0E1430'); for (let k = 0; k < 4; k++) R(c, GROTTO.door - 70, GY - 200 + k * 50, 150, 50, ['#0A1028', '#101838', '#162044', '#1C2650'][k]); for (const [sx, sy] of [[-40, -170], [20, -150], [50, -184], [-10, -120]]) R(c, GROTTO.door + sx, GY + sy, 2, 2, '#E0E7FF'); stamp(c, 'wp2-mouth-in', GROTTO.door - 84, GY - 236, 178, 54, g => paintMouthArch(g)); }
     drawDoor(c, d.door);
     // (the grotto's floor: rock, over the boardwalk's run under it)
-    R(c, GROTTO.L, GY, GROTTO.R + 50 - GROTTO.L, 3, ROCK[4]); R(c, GROTTO.L, GY + 3, GROTTO.R + 50 - GROTTO.L, 120, ROCK[1]);
-    for (let x = GROTTO.L + 10; x < GROTTO.R + 40; x += 44) R(c, x, GY + 3 + (x % 3) * 6, 24, 3, ROCK[2]);
+    stamp(c, 'wp2-grotto-floor', GROTTO.L, GY, GROTTO.R + 50 - GROTTO.L, 122, g => paintGrottoFloor(g));
     // (the smoke inside, hanging in bands under the ceiling)
     for (let k = 0; k < 4; k++) { c.globalAlpha = 0.18; c.fillStyle = '#6A5A7A'; c.fillRect(GROTTO.L, CAVE_TOP + 30 + k * 40 + Math.sin(fr * 0.01 + k) * 6, GROTTO.R - GROTTO.L, 26); }
     c.globalAlpha = 1;
