@@ -4,7 +4,7 @@
 // 'critters' (the grubs and the eels, every pose), 'tease' (the tanks on the way, each glimpse across its frames),
 // 'teaseEye' (the eye close up: lids by look).
 
-import { paintGup, GUP_POSES } from './gupArt';
+import { paintGup, GUP_POSES, paintBurst } from './gupArt';
 import { drawGupGross, drawGupGrossBack } from './gupGross';
 import { TANKS, drawTankAt, paintEye } from './tease';
 import { paintStaffPose, staffLook, STAFF_POSES, drawGrub, GRUB_POSES, drawEel, EEL_POSES, type StaffKind } from './kindArt';
@@ -38,6 +38,8 @@ export const contactSheet = (what: string): string => {
     const poses = ['idle', 'glide', 'ram', 'bite', 'sneeze', 'slow'] as const;
     return sheet(6, 6, 300, 300, 1, (g, i) => { const pose = poses[Math.floor(i / 6)], a = i % 6; g.translate(150, 210); paintGup(g, { pose, q: 2, arm: a }); return pose + ' a' + a; });
   }
+  // (the burst corpse he rides to the lot: its four flap frames, then the first at 1.6x)
+  if (what === 'burst') return sheet(2, 3, 420, 190, 2, (g, i) => { if (i > 4) return; g.translate(250, 70); if (i === 4) { g.translate(-40, 10); g.scale(1.6, 1.6); } paintBurst(g, i % 4); g.fillStyle = '#F00'; g.fillRect(-1, -1, 2, 2); return i === 4 ? 'q0 x1.6' : 'burst q' + i; });
   if (what === 'gross') return sheet(1, 2, 800, 600, 1, (g, i) => { drawGupGrossBack(g, 800, 600); drawGupGross(g, 400, 306, 1, 0, i === 1); return i ? 'open' : 'shut'; });
   if (what === 'janitor' || what === 'tech') {
     const kind = what as StaffKind;

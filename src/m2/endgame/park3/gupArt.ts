@@ -1,5 +1,5 @@
 // GUPPLAX, drawn (the wave pool's boss: full detail even in the first pass, like the other water park bosses). An
-// alien lifeguard, Zorblax and Zarblax's brother: a bloated pear of translucent green flesh in steps (the light through
+// alien lifeguard, the alien widow's son, ZORZARBLAX's big brother: a bloated pear of translucent green flesh in steps (the light through
 // it, the guts dimly showing), six nipples in two rows down his gut, rolls, a big head too heavy for the neck, four
 // eyes (two on veiny stalks waving, two sunk in the face), gills on the neck flapping, a fat nose striped with zinc,
 // buck teeth with gaps, a whistle on a lanyard he's always got in his mouth; red lifeguard trunks two sizes small
@@ -10,6 +10,7 @@
 
 import { stamp } from '../../../m1/game/render/stamp';
 import { elbow, knee, reachTo } from '../../art/limb';
+import { RENDER_SCALE } from '../../../m1/constants';
 import { mix } from '../../intro/art/kit';
 import { checker } from '../../../m1/game/render/pixelArt';
 
@@ -252,3 +253,133 @@ export const drawGup = (c: Ctx, x: number, y: number, face: 1 | -1, L: GupLook, 
   c.restore();
 };
 export const GUP_W = 110, GUP_H = 150;
+
+// ---------------------------------------------------------------------------------------------------------------
+// BURST: what the chlorine left of him (the owner's: "endgame boss 3 should explode in the wave pool and meathead rides
+// his dead body in the air, as it flies to the parking lot"). Belly up, head first (to the right), blown open: the
+// back end's a ragged crater with the skin peeled back round it in petals and his guts streaming out behind on the
+// wind; swollen purple and blistered with hives (the allergy, all of it at once); the head thrown back, the tongue
+// out a foot and flapping, the whistle still in his teeth; one stalk eye snapped and swinging on its nerve, the other
+// stalk bent back in the wind; the drain-grate breastplate still strapped round his chest: Meathead's saddle. The
+// trunks blown half off, round one knee. Arms and legs trailing, every joint from art/limb.ts (a body on its back,
+// head right, is a figure facing left turned a quarter: facing -1 to the helper).
+//
+// Origin: the saddle (where Meathead's sat). Baked once per frame of the flap (4), at the render scale, and drawn
+// turned with drawImage (the stamp cache won't take a rotation: bake once, draw turned).
+
+const GUTS = ['#240E28', '#46224E', '#6E3A7A', '#9A62A6', '#C89AD0'];
+const SICK = FLESH.map(col => mix(col, '#7A3A8A', 0.28));
+const PETAL = ['#3A0A14', '#7A1A2A', '#B83A4A', '#E07A7A'];
+/** The burst corpse, painted (q: the flap's frame, 0..3). */
+export const paintBurst = (c: Ctx, q: number) => {
+  const ph = (q / 4) * Math.PI * 2, wv = (k: number) => Math.sin(ph + k) * 6;
+  // ---- the guts out of the back end, streaming behind on the wind (three loops, wavering)
+  for (let g = 0; g < 3; g++) {
+    const pts: P[] = [];
+    for (let i = 0; i <= 8; i++) { const x = -70 - i * 17, y = 30 + (g - 1) * 10 + Math.sin(ph + i * 0.9 + g * 2) * (3 + i * 1.3) + i * (g - 1) * 2; pts.push([x, y]); }
+    line(c, pts, 13 - g * 2, INK); line(c, pts, 10 - g * 2, GUTS[2 + (g % 2)]);
+    line(c, pts.map(([x, y]) => [x, y - 2] as P), 3, GUTS[4]);
+    for (let i = 1; i < 8; i += 2) ell(c, pts[i][0], pts[i][1] + 2, 3, 2, GUTS[1]);
+  }
+  // (a drip of green off the end of each)
+  for (let g = 0; g < 3; g++) { const x = -206 - g * 6, y = 34 + (g - 1) * 18 + wv(g); ell(c, x, y, 4, 3, INK); ell(c, x, y, 3, 2, '#7ADA4A'); }
+  // ---- the far arm and leg (behind him, darker): trailing back
+  const limb = (a: P, e: P, w: number, col: string, kneeJ: boolean, len: [number, number]) => {
+    const j = kneeJ ? knee(a[0], a[1], e[0], e[1], len[0], len[1], -1) : elbow(a[0], a[1], e[0], e[1], len[0], len[1], -1);
+    const end = reachTo(a[0], a[1], e[0], e[1], len[0], len[1]);
+    line(c, [a, j, end], w + 3, INK); line(c, [a, j, end], w, col); line(c, [[a[0], a[1] - w * 0.25], [j[0], j[1] - w * 0.25]], Math.max(2, w * 0.3), mix(col, '#FFFFFF', 0.25));
+    return end;
+  };
+  { const h = limb([40, 18], [-14, 62 + wv(1)], 11, SICK[1], false, [30, 28]); blob(c, h[0], h[1], 8, 6, SICK.map(x => mix(x, '#000000', 0.25))); }
+  { const f = limb([-58, 28], [-104, 66 + wv(2)], 13, SICK[1], true, [28, 26]); blob(c, f[0] - 6, f[1] + 2, 11, 5, SICK.map(x => mix(x, '#000000', 0.25))); }
+  // ---- the body: swollen, purple-mottled, banded light to dark down it
+  blob(c, -8, 30, 82, 32, SICK);
+  // (the stepped shade under him, dithered into the body)
+  c.save(); c.beginPath(); c.ellipse(-8, 30, 82, 32, 0, 0, Math.PI * 2); c.clip();
+  rect(c, -92, 42, 170, 22, SICK[1]); checker(c, -92, 38, 170, 4, SICK[1], 0, 2); rect(c, -92, 54, 170, 12, SICK[0]); checker(c, -92, 50, 170, 4, SICK[0], 0, 2);
+  // (the mottling: bruise-purple blotches; the hives, everywhere; blisters lit on top)
+  for (let i = 0; i < 9; i++) ell(c, -70 + i * 17, 20 + ((i * 7) % 3) * 9, 7, 4, '#5A2A6A');
+  for (let i = 0; i < 26; i++) { const x = -80 + ((i * 37) % 150), y = 6 + ((i * 23) % 40); ell(c, x, y, 4, 3, HIVE[0]); ell(c, x, y - 0.5, 3, 2, HIVE[1]); rect(c, x - 1, y - 2, 2, 1, HIVE[2]); }
+  for (let i = 0; i < 7; i++) { const x = -60 + i * 22, y = 4 + (i % 2) * 6; ell(c, x, y, 5, 4, INK); ell(c, x, y, 4, 3, '#D8F0B0'); rect(c, x - 2, y - 2, 2, 1, '#FFFFFF'); }
+  // (his six nipples, two rows, up top: belly up)
+  for (const [x, y] of [[-40, 6], [-14, 3], [12, 4], [-36, 16], [-10, 14], [16, 15]] as P[]) { ell(c, x, y, 3, 2, INK); ell(c, x, y, 2, 1.4, '#C86A7A'); }
+  c.restore();
+  // ---- the crater at the back end: ragged, dark inside, the skin peeled back in petals round it
+  ell(c, -78, 28, 22, 26, INK);
+  ell(c, -78, 28, 19, 23, PETAL[0]); ell(c, -76, 26, 13, 16, PETAL[1]); ell(c, -80, 34, 8, 9, GUTS[1]);
+  for (let i = 0; i < 9; i++) {
+    const a = (i / 9) * Math.PI * 2 + 0.2, r0 = 20, r1 = 34 + (i % 3) * 6, bx = -78 + Math.cos(a) * r0, by = 28 + Math.sin(a) * r0 * 1.1;
+    const tx = -78 + Math.cos(a) * r1 + wv(i) * 0.3, ty = 28 + Math.sin(a) * r1 * 1.1;
+    const nx = -Math.sin(a) * 6, ny = Math.cos(a) * 6;
+    c.fillStyle = INK; c.beginPath(); c.moveTo(bx + nx * 1.3, by + ny * 1.3); c.lineTo(tx, ty); c.lineTo(bx - nx * 1.3, by - ny * 1.3); c.closePath(); c.fill();
+    c.fillStyle = i % 2 ? SICK[2] : SICK[3]; c.beginPath(); c.moveTo(bx + nx, by + ny); c.lineTo(tx - Math.cos(a) * 2, ty - Math.sin(a) * 2); c.lineTo(bx - nx, by - ny); c.closePath(); c.fill();
+    c.fillStyle = PETAL[2]; c.beginPath(); c.moveTo(bx + nx * 0.5, by + ny * 0.5); c.lineTo(bx + Math.cos(a) * 8, by + Math.sin(a) * 8); c.lineTo(bx - nx * 0.5, by - ny * 0.5); c.closePath(); c.fill();
+  }
+  // (a second split along his side, gaping: the seam he gave way at)
+  line(c, [[-40, 46], [-20, 52], [4, 49], [26, 54]], 7, INK); line(c, [[-38, 46], [-20, 51], [4, 48], [24, 53]], 4, PETAL[1]); line(c, [[-36, 45], [-20, 49], [4, 46]], 1.5, PETAL[3]);
+  // (green blood dribbling out of both)
+  for (const [x, y, l] of [[-90, 50, 14], [-66, 52, 10], [-10, 54, 12], [14, 56, 8]] as [number, number, number][]) { line(c, [[x, y], [x - 2, y + l]], 4, INK); line(c, [[x, y], [x - 2, y + l]], 2.4, '#5ACA3A'); ell(c, x - 2, y + l + 1, 2.5, 2.5, '#7ADA4A'); }
+  // ---- the near leg (trailing, the foot webbed; the trunks blown down round its knee), then the near arm
+  {
+    const f = limb([-54, 40], [-98, 82 + wv(3)], 15, SICK[2], true, [28, 26]);
+    const k = knee(-54, 40, -98, 82 + wv(3), 28, 26, -1);
+    rect(c, k[0] - 14, k[1] - 8, 28, 12, INK); rect(c, k[0] - 13, k[1] - 7, 26, 10, TRUNK[2]); rect(c, k[0] - 13, k[1] - 7, 26, 3, TRUNK[3]); rect(c, k[0] - 13, k[1] + 1, 26, 2, TRUNK[1]);
+    for (let t = -1; t <= 1; t++) line(c, [[f[0], f[1]], [f[0] - 14, f[1] + 4 + t * 5]], 4, INK);
+    ell(c, f[0] - 8, f[1] + 3, 10, 5, SICK[3]);
+  }
+  { const h = limb([48, 26], [0, 72 + wv(4)], 13, SICK[2], false, [30, 28]); ell(c, h[0], h[1], 9, 7, INK); ell(c, h[0], h[1], 7.5, 5.5, SICK[3]); for (let t = 0; t < 3; t++) line(c, [[h[0], h[1]], [h[0] - 9 + t * 4, h[1] + 9]], 3, SICK[2]); }
+  // ---- the saddle: the drain-grate breastplate still strapped round his chest (bent, chlorine-green), its straps
+  const ST = steelAt(5);
+  line(c, [[-14, 2], [-18, 54]], 5, INK); line(c, [[-14, 2], [-18, 54]], 3, '#5A3A1A'); line(c, [[22, 2], [26, 54]], 5, INK); line(c, [[22, 2], [26, 54]], 3, '#5A3A1A');
+  c.fillStyle = INK; c.beginPath(); c.moveTo(-26, 4); c.quadraticCurveTo(4, -10, 34, 4); c.lineTo(32, 14); c.quadraticCurveTo(4, 2, -24, 14); c.closePath(); c.fill();
+  c.fillStyle = ST[3]; c.beginPath(); c.moveTo(-23, 5); c.quadraticCurveTo(4, -7, 31, 5); c.lineTo(30, 11); c.quadraticCurveTo(4, 0, -22, 11); c.closePath(); c.fill();
+  for (let i = 0; i < 7; i++) rect(c, -18 + i * 7, -1 + Math.abs(i - 3) * 1.2, 2, 8, ST[1]);
+  line(c, [[-22, 5], [4, -5], [30, 5]], 1.2, ST[5]);
+  // ---- the head: thrown back, mouth gaping up, the tongue out and flapping back over him, the whistle in his teeth
+  blob(c, 96, 22, 34, 27, SICK);
+  // (the gills, burst open)
+  for (let i = 0; i < 3; i++) { line(c, [[66 + i * 6, 6], [64 + i * 6, 34]], 4, INK); line(c, [[66 + i * 6, 8], [64 + i * 6, 32]], 2, PETAL[1]); }
+  // (the mouth: a gaping hole up top, the buck teeth)
+  ell(c, 108, 4, 18, 9, INK); ell(c, 108, 5, 15, 7, '#3A0A14'); for (let t = 0; t < 3; t++) { rect(c, 98 + t * 8, -2, 5, 6, INK); rect(c, 99 + t * 8, -1, 3, 4, '#F4ECC8'); }
+  // (the tongue: out a foot, back along over his face on the wind)
+  { const pts: P[] = []; for (let i = 0; i <= 6; i++) pts.push([106 - i * 12, 2 - i * 3 - Math.sin(ph + i * 0.8) * (1 + i * 1.6)]); line(c, pts, 12, INK); line(c, pts, 9, '#C04A5A'); line(c, pts.map(([x, y]) => [x, y - 2] as P), 2, '#F08A9A'); }
+  // (the whistle, still clamped in his teeth, the lanyard flapping)
+  rect(c, 118, -6, 14, 8, INK); rect(c, 119, -5, 12, 6, '#E8C020'); rect(c, 119, -5, 12, 2, '#FFF2A0');
+  line(c, [[124, 2], [112, 18 + wv(5) * 0.5], [96, 30 + wv(6) * 0.6]], 2, '#F8FAFC');
+  // (the nose, zinc-striped; the sunk eyes, X'd)
+  ell(c, 124, 16, 9, 7, INK); ell(c, 124, 16, 7.5, 5.5, SICK[3]); rect(c, 119, 13, 10, 2, '#F8FAFC');
+  for (const [x, y] of [[104, 26], [118, 30]] as P[]) { ell(c, x, y, 6, 5, INK); ell(c, x, y, 5, 4, '#F4E86A'); line(c, [[x - 3, y - 3], [x + 3, y + 3]], 2, INK); line(c, [[x + 3, y - 3], [x - 3, y + 3]], 2, INK); }
+  // (the stalks: one bent back flat in the wind, its eye bulging; one snapped, the eye swinging on its nerve)
+  { const ey = -20 + wv(7) * 0.4;
+    line(c, [[90, 4], [72, -14], [52, ey]], 6, INK); line(c, [[90, 4], [72, -14], [52, ey]], 3.5, SICK[2]);
+    ell(c, 48, ey - 1, 9, 8, INK); ell(c, 48, ey - 1, 7.5, 6.5, '#F4E86A'); ell(c, 45, ey - 1, 3, 3, INK); rect(c, 50, ey - 5, 2, 2, '#FFFFFF');
+    for (let i = 0; i < 4; i++) line(c, [[43 + i * 3, ey + 3], [42 + i * 3, ey + 7]], 1, '#C83A3A'); }
+  line(c, [[100, 0], [96, -10]], 6, INK); line(c, [[100, 0], [96, -10]], 3.5, SICK[2]); ell(c, 96, -11, 4, 3, PETAL[1]);
+  { const sw = Math.sin(ph) * 10, ex = 92 + sw, ey = 48 + Math.cos(ph) * 3; line(c, [[96, -10], [86, 10], [ex, ey]], 1.5, '#C83A3A'); ell(c, ex, ey, 7, 6, INK); ell(c, ex, ey, 6, 5, '#F4E86A'); ell(c, ex + 2, ey + 1, 2.5, 2.5, INK); }
+  // ---- smoke curling off the crater's edge (painted wisps: the live smoke's particles)
+  for (let i = 0; i < 3; i++) { const x = -96 - i * 6, y = 4 - i * 9 + wv(i) * 0.4; ell(c, x, y, 7 - i, 5 - i, mix('#4A4A50', '#9A9AA0', i / 3)); }
+};
+
+/** The burst corpse's box (round the saddle) and its baked frames. */
+export const BURST_BOX = { x: -232, y: -48, w: 380, h: 150 };
+const burstCv: (HTMLCanvasElement | null)[] = [null, null, null, null];
+const bakeBurst = (q: number) => {
+  let cv = burstCv[q];
+  if (cv) return cv;
+  cv = document.createElement('canvas');
+  cv.width = BURST_BOX.w * RENDER_SCALE; cv.height = BURST_BOX.h * RENDER_SCALE;
+  const g = cv.getContext('2d')!;
+  g.scale(RENDER_SCALE, RENDER_SCALE); g.translate(-BURST_BOX.x, -BURST_BOX.y);
+  paintBurst(g, q);
+  burstCv[q] = cv;
+  return cv;
+};
+/** (paint them ahead, one a call: during the swell, so the flight never paints) */
+export const warmBurst = () => { const q = burstCv.findIndex(v => !v); if (q >= 0) bakeBurst(q); };
+/** The burst corpse at (x, y: the saddle), turned `rot`, its flap by the frame, scaled `s`. */
+export const drawBurst = (c: Ctx, x: number, y: number, rot: number, f: number, s = 1) => {
+  const cv = bakeBurst(Math.floor(f / 5) % 4);
+  c.save(); c.translate(x, y); if (rot) c.rotate(rot); if (s !== 1) c.scale(s, s);
+  c.drawImage(cv, BURST_BOX.x, BURST_BOX.y, BURST_BOX.w, BURST_BOX.h);
+  c.restore();
+};

@@ -2,12 +2,14 @@
 // shitty / naked wherever it's his or said to him). Every line here is in PARK3_VOICE_LINES (endgame/lines.ts folds it
 // into ENDGAME_VOICE_LINES, recorded by npm run voices).
 //
-// GUPPLAX: the wave pool's lifeguard, an alien (the aliens' turn). Zorblax and Zarblax's brother (the family's what it
-// is: so the kid on the summit was his nephew twice over). A bloated, sweating, gill-flapping slob in a lifeguard's
+// GUPPLAX: the wave pool's lifeguard, an alien (the aliens' turn): the alien widow's son, big brother to ZORZARBLAX (the
+// kid on the summit, level 1's). Mom sent the little one first; Meathead killed him, and their dad before that (the
+// owner's, 2026-11-11: every endgame boss is one of Satan's and the widow's kids, and the lines let the player know).
+// A bloated, sweating, gill-flapping slob in a lifeguard's
 // red trunks two sizes small, zinc on his nose, a whistle he never stops blowing. Erratic: giggles, screams, blows the
 // whistle at nothing. He runs the deep end and calls everything he doesn't like a pussy. Armored in scrap off the pool (a drain
 // grate breastplate, a stockpot helmet) and allergic to chlorine: a lifeguard who never shocks his pool. His grudge: Meathead killed
-// his nephew on the mountain. Undignified to the end.
+// his little brother on the mountain. Undignified to the end.
 
 import type { ByPants } from '../park1/lines';
 export type { ByPants };
@@ -66,9 +68,9 @@ export const MH_TEASE_THUMP = bp(
   ['SOMETHING HIT THE GLASS. EVERYTHING ON ME RAN AND HID.', "THAT GLASS CRACKED. AND I'VE GOT NOTHING ON."],
 );
 export const MH_TEASE_LOOK = bp(
-  ['FOUR EYES. ALL OF THEM ON ME.', 'A FISH WEARING A COOKING POT. STARING AT ME.'],
-  ['FOUR EYES. ALL OF THEM ON MY PANTS.', 'HE SMELLED ME. THROUGH THE GLASS.'],
-  ['FOUR EYES. ALL OF THEM ON MY JUNK.', "HE SAW EVERYTHING. HE'S GOT FOUR EYES FOR IT."],
+  ['FOUR EYES. ALL OF THEM ON ME.', 'SAME UGLY AS THE KID ON THE MOUNTAIN. BIGGER.'],
+  ['FOUR EYES. ALL OF THEM ON MY PANTS.', 'SAME FACE AS THE KID ON THE MOUNTAIN. FAMILY.'],
+  ['FOUR EYES. ALL OF THEM ON MY JUNK.', 'SAME FACE AS THE KID ON THE MOUNTAIN. SAME STARE.'],
 );
 export const MH_AIR_LOW = ['AIR! I NEED AIR!', "MY LUNGS! THEY'RE EMPTY!", 'UP! GET UP!'];
 
@@ -88,19 +90,19 @@ export const STAFF_BARK = bp(
 export const MH_FLUSHED = bp(['WHO FLUSHED?!'], ['WHO FLUSHED?! WAIT. THAT WAS ME.'], ['WHO FLUSHED?! IN THE NUDE!']);
 /** The intro (the gross-up): who he is, the grudge. */
 export const GUP_INTRO = bp(
-  ["TWEEEET! NO RUNNING! NO DIVING! NO HUMANS! I'M GUPPLAX! YOU KILLED MY NEPHEW!"],
-  ["TWEEEET! NO RUNNING! NO DIVING! NO SHITTING IN THE POOL! I'M GUPPLAX! YOU KILLED MY NEPHEW!"],
-  ["TWEEEET! NO RUNNING! NO DIVING! NO SWIMMING NUDE! I'M GUPPLAX! YOU KILLED MY NEPHEW!"],
+  ["TWEEEET! NO RUNNING! NO DIVING! NO HUMANS! I'M GUPPLAX! YOU KILLED MY LITTLE BROTHER!"],
+  ["TWEEEET! NO RUNNING! NO SHITTING IN THE POOL! I'M GUPPLAX! YOU KILLED MY LITTLE BROTHER!"],
+  ["TWEEEET! NO RUNNING! NO SWIMMING NUDE! I'M GUPPLAX! YOU KILLED MY LITTLE BROTHER!"],
 );
 export const MH_GUP = bp(
-  ['YOUR NEPHEW HAD SIX ARMS AND THREE NUTS.'],
-  ["YOUR NEPHEW HAD SIX ARMS. I'VE HAD WORSE DAYS. TODAY, ACTUALLY."],
-  ['YOUR NEPHEW HAD SIX ARMS AND STILL LESS GOING ON THAN ME.'],
+  ['YOUR BROTHER HAD THREE ARMS AND NO CHIN.'],
+  ["YOUR BROTHER HAD THREE ARMS. I'VE HAD WORSE DAYS. TODAY, ACTUALLY."],
+  ['YOUR BROTHER HAD THREE ARMS AND STILL LESS GOING ON THAN ME.'],
 );
 export const GUP_INTRO2 = bp(
-  ["HE WAS ALSO MY SON! IT'S COMPLICATED! ADULT SWIM! TWEEEET!"],
-  ["HE WAS ALSO MY SON! IT'S COMPLICATED! YOU'RE GOING IN THE POOL AND STAYING THERE! TWEEEET!"],
-  ["HE WAS ALSO MY SON! IT'S COMPLICATED! COVER THAT UP AND DIE! TWEEEET!"],
+  ["AND MY DAD! MOM CRIED FOR A WEEK! ADULT SWIM! TWEEEET!"],
+  ["AND MY DAD! MOM SAYS DROWN YOU, THEN DRAIN THE POOL! TWEEEET!"],
+  ["AND MY DAD! MOM SAYS DROWN YOU AND DON'T LOOK DOWN! TWEEEET!"],
 );
 export const GUP_RETRY = bp(
   ['TWEEEET! BACK IN THE POOL! NO REFUNDS!', 'YOU AGAIN! ADULT SWIM!'],
@@ -127,16 +129,14 @@ export const GUP_HURT = bp(
   ['OW! NO NUDE HORSEPLAY!', 'TWEET! PENALTY! INDECENT EXPOSURE!', "IT TOUCHED ME! YOUR THING TOUCHED ME!"],
 );
 export const GUP_LOW = bp(
-  ["I CAN'T SWIM! I'M A LIFEGUARD AND I CAN'T SWIM! I NEVER COULD!"],
-  ["I CAN'T SWIM! NEVER COULD! AND NOW THE POOL'S BROWN!"],
-  ["I CAN'T SWIM! NEVER COULD! AND NOW THERE'S A NAKED MAN IN IT!"],
+  ["I CAN'T SWIM! I NEVER COULD! MOM SAID IT DIDN'T MATTER!"],
+  ["I CAN'T SWIM! NEVER COULD! TELL MOM THE POOL WAS BROWN!"],
+  ["I CAN'T SWIM! NEVER COULD! DON'T TELL MOM A NAKED MAN DID THIS!"],
 );
 /** His last (it goes sideways: the whistle). */
-export const GUP_DEATH = bp(["TWEE... TWEEEE... HELP! LIFEGUARD! WHERE'S THE LIFEGUARD?!"], ['TWEE... TWEEE... HELP! HE POOPED AND NOW I\'M DYING!'], ["TWEE... TWEEE... HELP! THE LAST THING I SAW WAS HIS DICK!"]);
-/** Meathead, over him floating (the drain about to go). */
-export const MH_GUP_DEAD = bp(['ADULT SWIM IS OVER.', "EVERYBODY OUT OF THE POOL. HE'S IN IT."], ["ADULT SWIM IS OVER. SOMEBODY SHOCK THE POOL.", "EVERYBODY OUT. THAT BROWN ISN'T HIM."], ['ADULT SWIM IS OVER. NUDE SWIM IS ALL DAY.', 'EVERYBODY OUT. THE NAKED GUY WON.']);
-/** The drain opening under him: down he goes (a scream, a line), out the other end. */
-export const MH_DRAIN = bp(['THE DRAIN! WHO PULLED THE PLUG?!'], ['THE DRAIN! FINALLY SOMETHING FLUSHES ME!'], ['THE DRAIN! KEEP EVERYTHING TUCKED!']);
+export const GUP_DEATH = bp(["TWEE... TELL MOM I'M SORRY... WAIT UP, LITTLE BROTHER..."], ["TWEE... TELL MOM IT WAS THE SMELL... WAIT UP, LITTLE BROTHER..."], ["TWEE... DON'T TELL MOM WHAT I SAW... WAIT UP, LITTLE BROTHER..."]);
+/** Meathead, blown up into the sky astride him (ride.ts): his one line, as they go. */
+export const MH_LAUNCH = bp(['YEE-HAW!', 'GIDDY UP, FISH STICK!'], ['YEE-HAW! HOLD IT IN!', 'GIDDY UP! WE BOTH STINK!'], ['YEE-HAW! WIND IN MY EVERYTHING!', 'GIDDY UP! NOTHING BETWEEN US!']);
 /** Grabbing at him (too big, too slimy). */
 export const GRAB_GUP = ["HE'S TOO SLIPPERY. HE'S LIKE A WET HOT DOG.", "TOO BIG. TOO GREASY. TOO MANY NIPPLES.", "I'M NOT GRABBING THAT. IT'S MOIST."];
 
@@ -207,9 +207,9 @@ export const GUP_SLOW = bp(
 );
 /** His last, swollen shut (every tank burst). */
 export const GUP_DEATH_ALL = bp(
-  ["MY THROAT'S CLOSING... I'M ALLERGIC TO MY OWN JOB..."],
-  ["MY THROAT'S CLOSING... THE LAST THING I SMELLED... WAS YOU..."],
-  ["MY THROAT'S CLOSING... THE LAST THING I SAW... WAS THAT..."],
+  ["MY THROAT'S CLOSING... TELL MOM... I'M ALLERGIC TO MY OWN JOB..."],
+  ["MY THROAT'S CLOSING... TELL MOM... THE LAST THING I SMELLED WAS YOU..."],
+  ["MY THROAT'S CLOSING... TELL MOM... THE LAST THING I SAW WAS THAT..."],
 );
 
 /** Out past the shallow end: how deep it gets. */
@@ -291,7 +291,7 @@ export const HURT3: Record<string, { hurt: string[]; death: string[] }> = {
 
 const all = (...pools: (string | string[] | ByPants)[]) => pools.flatMap(p => (typeof p === 'string' ? [p] : Array.isArray(p) ? p : Object.values(p).flat()));
 export const PARK3_VOICE_LINES: Record<string, string[]> = {
-  meathead: all(MH_DOOR3, MH_IN, MH_PISS, MH_CHEM, MH_GANG, MH_SHAFT, MH_SWIM, MH_VALVE, MH_PUSHED, MH_PUMP, MH_TEASE_THUMP, MH_TEASE_LOOK, MH_AIR_LOW, MH_FLUSHED, MH_GUP, MH_GUP_DEAD, MH_DRAIN, GRAB_GUP, MH_DEEP, MH_ARMOR, MH_MAZE, MH_TANK_SEE, MH_TANK, MH_ALL, MH_SURGE, ...Object.values(HURT3).map(h => h.hurt)),
+  meathead: all(MH_DOOR3, MH_IN, MH_PISS, MH_CHEM, MH_GANG, MH_SHAFT, MH_SWIM, MH_VALVE, MH_PUSHED, MH_PUMP, MH_TEASE_THUMP, MH_TEASE_LOOK, MH_AIR_LOW, MH_FLUSHED, MH_GUP, MH_LAUNCH, GRAB_GUP, MH_DEEP, MH_ARMOR, MH_MAZE, MH_TANK_SEE, MH_TANK, MH_ALL, MH_SURGE, ...Object.values(HURT3).map(h => h.hurt)),
   death: all(...Object.values(HURT3).map(h => h.death)),
   [GUP_VOICE]: all(GUP_INTRO, GUP_INTRO2, GUP_RETRY, GUP_TAUNT, GUP_PATTER, GUP_WAVE, GUP_HURT, GUP_LOW, GUP_DEATH, GUP_ARMOR, GUP_CHLORINE1, GUP_CHLORINE, GUP_SNEEZE, GUP_FLANK, GUP_BONK, GUP_MAZE, GUP_TANKWARN, GUP_ALL, GUP_SLOW, GUP_DEATH_ALL),
   [STAFF_VOICE.m]: all(STAFF_BARK), [STAFF_VOICE.f]: all(STAFF_BARK),

@@ -14,12 +14,12 @@
 //   THE FIGHT   GUPPLAX (boss.ts); the surges (waves.ts) shoving him back toward the beach at any depth; his air (the
 //               tunnels' air, longer here: hazards.ts updateAir3, the gauge on the HUD with his depth); the mazes and
 //               their tanks (mazes.ts). The camera follows him all over (no fixed screen).
-//   THE END     (a cutscene, skippable all-or-nothing) GUPPLAX's death: up to the surface, choking on his whistle (every
-//               tank burst: his throat swelling shut), swelling, his last line, belly up; then the air goes out of him: a
-//               squeal, he zips round like a let-go balloon and slaps down flat, a skin on the water. Meathead's line.
-//               The wave machine dies and the main drain opens under him: a whirlpool; the skin goes down it, then him
-//               (his line), down the drain into the dark: tumbling through the storm pipes, VICTORY (timed to end as he
-//               comes out), spat out at the parking lot (level 4's start: stages.ts). The hour's on (13).
+//   THE END     (a cutscene, skippable all-or-nothing: the skip goes straight to level 4's lot) GUPPLAX's death:
+//               up to the surface belly up, his throat swelling shut (the chlorine), his last line (Mom, his little
+//               brother). Meathead hops up on his belly. He swells under him, beeping, and bursts: a flash, the bang, a
+//               column of water; the corpse goes up with Meathead astride it, his one line, and they fly over the
+//               park to the parking lot (ride.ts), VICTORY over the flight, timed to end as they come down. Level 4's
+//               lot starts with the crash landing (ride.ts updateCrash, called by park4/lot.ts). The hour's on (13).
 //
 // Depth (what's in front of what): the sky and the far park (screen); the deck's back wall and palms (dimmed: nothing to
 // stand on), the beach (stood on: lit top), the tower, the signs, the outflow pipe; under the surface the pool's tiled
@@ -43,7 +43,7 @@ import { setUi, goTo, setStartCheckpoint, setEndgameAt } from '../../store';
 import { saveProgress } from '../../save';
 import { setEndgameHour, timeOfDay, todLight, drawNightSky } from '../../timeOfDay';
 import { markBossFight } from '../../bossQuiet';
-import { type Victory, startVictory, tickVictory, drawVictory, victoryDone, VICTORY_FRAMES } from '../../victory';
+import { type Victory, startVictory, tickVictory, drawVictory, VICTORY_FRAMES } from '../../victory';
 import { stamp, checker, bandedGradient, mix, hash } from '../../intro/art/kit';
 import { byPants } from '../park1/kinds';
 import { ENDGAME_STAGES } from '../stages';
@@ -53,7 +53,8 @@ import { air3 } from './hazards';
 import { type Fight3, startGup, updateGup, gupDead, gupTank, drawGup3, drawGupFront, drawGupHud, splash, TOWER, AIR_GAUGE } from './boss';
 import { type Mazes, newMazes, updateMazes, mazeBlocks, drawMazesBack, drawMazesFront, mazeLights, mazeAt, tankInView, TANK_COUNT, MAZE_BOX } from './mazes';
 import { type Waves, newWaves, updateWaves, surgeOf, swellAt, drawWaves } from './waves';
-import { drawGup } from './gupArt';
+import { drawGup, drawBurst, warmBurst } from './gupArt';
+import { type Flight, drawFlightBackdrop, warmRide, arriveByCrash, SEAT_SCREEN } from './ride';
 import * as L from './lines';
 
 type Ctx = CanvasRenderingContext2D;
@@ -64,17 +65,16 @@ const hands = (): Controls => ({ ...NO_CONTROLS });
 /** His air in the pool (frames from full to none: ~38 s; the tunnels' is 22), and how fast it comes back at the top. */
 export const POOL_AIR = { frames: 2300, refill: 15, src: 'm2:wp3_pooldrown' };
 
-type Step = 'idle' | 'flush' | 'fight' | 'dying' | 'deflate' | 'skin' | 'drain' | 'ride' | 'done';
+type Step = 'idle' | 'flush' | 'fight' | 'dying' | 'mount' | 'swell' | 'fly' | 'done';
 export interface Pool {
   step: Step; t: number; skipT: number; talk: number;
   f: Fight3 | null; mz: Mazes; wv: Waves;
   /** He's been through the flush this visit (the next: the retry's intro). */
   seen: boolean;
-  /** The deflate's path (where he is, zipping round), the skin's spot, the drain (where, how open). */
-  bx: number; by: number; ba: number; skinX: number; drainX: number; drain: number;
-  v: Victory | null; said: string | null;
-  /** (the stub, if level 4 isn't in yet) He's come back up out of the drain. */
-  stubbed: boolean;
+  /** The flush's start (bx, by); the hop up onto him (from); the flight (fl), the corpse's turn in it, the blast's
+   *  flash (frames left); the VICTORY, and when (frame, how far along) it started; his line done; the whistle down. */
+  bx: number; by: number; from: { x: number; y: number }; fl: Flight; rot: number; flash: number;
+  v: Victory | null; vt0: number; vk0: number; lineDone: boolean; whistled: boolean; said: string | null;
   /** The camera's height (eased after him). */
   camY: number;
   /** His lines: when each was last said; one owed (said when nobody's talking). */
@@ -94,13 +94,13 @@ export const newPool = (state: GameState, _cp: number): Pool => {
   state.blocks.push(...mazeBlocks());
   return {
     step: 'idle', t: 0, skipT: 0, talk: 0, f: null, mz: newMazes(), wv: newWaves(), seen: state.stageMemo['m2:wp3-flushed'] === '1',
-    bx: 0, by: 0, ba: 0, skinX: 0, drainX: 0, drain: 0, v: null, said: null, stubbed: false, camY: WP.surf - 400,
+    bx: 0, by: 0, from: { x: 0, y: 0 }, fl: { k: 0, up: 0, t: 0 }, rot: 0, flash: 0, v: null, vt0: -1, vk0: 0, lineDone: false, whistled: false, said: null, camY: WP.surf - 400,
     lineAt: {}, owe: null, once: {},
   };
 };
 export const poolOn = (pl: Pool) => pl.step !== 'idle';
 
-/** Level 4's start (the first stage of level 4 in stages.ts), or null (not in yet: the stub). */
+/** Level 4's start (the first stage of level 4 in stages.ts). */
 const level4 = () => { const s = ENDGAME_STAGES.find(e => e.level === 4); return s ? { id: s.id, cp: s.checkpoints[0].cp } : null; };
 
 /** A line of his in the fight (not over anybody), no more than once in `gap` ms. */
@@ -184,7 +184,7 @@ export const updatePool = (ctx: FrameContext, pl: Pool, controls: Controls, save
       if (gupDead(f)) {
         pl.step = 'dying'; pl.t = 0; pl.skipT = 0; pl.talk = 0;
         p.inCutscene = true; p.untouchable = true;
-        // (the hour on, the file on to level 4's start (CONTINUE: its start); level 4's not in: still here)
+        // (the hour on, the file on to level 4's start (CONTINUE, a death or a reload from here on: its start))
         setEndgameHour(HOUR_AFTER);
         const l4 = level4();
         if (l4) { setEndgameAt({ stage: l4.id, cp: l4.cp }); saveProgress(); }
@@ -192,88 +192,109 @@ export const updatePool = (ctx: FrameContext, pl: Pool, controls: Controls, save
       return out;
     }
   }
-  // ---- THE END (a cutscene: skippable, all of it)
+  // ---- THE END (a cutscene: skippable, all of it: the skip goes straight to level 4's lot)
   const f = pl.f!;
   p.inCutscene = true; p.untouchable = true; setUi({ introCutscene: true });
-  if (pl.step !== 'ride' && pl.step !== 'done') {
+  if (pl.step !== 'done') {
     if (pl.skipT > SKIP_AFTER) offerSkip();
-    if (pl.skipT > SKIP_AFTER && takeSkip()) { silenceAll(); state.playerVulgarityTimer = 0; pl.said = null; pl.step = 'ride'; pl.t = 0; pl.v = startVictory(); p.hidden = true; return hands(); }
+    if (pl.skipT > SKIP_AFTER && takeSkip()) { silenceAll(); state.playerVulgarityTimer = 0; pl.said = null; pl.v = null; toLevel4(state, pl, false); return hands(); }
   }
+  // (warming what the flight draws, a piece a frame, while he dies and swells: nothing painted mid-flight)
+  if (pl.step === 'dying' || pl.step === 'mount' || pl.step === 'swell') { warmBurst(); warmRide(); }
   const t = pl.t, camAt = (x: number) => ({ x: Math.max(WP.x0 - 60, Math.min(WP.x1 + 200 - W, x - W / 2)), y: WP.surf - 260 });
-  if (pl.step === 'dying' || pl.step === 'deflate' || pl.step === 'skin') {
-    // (him: up at the surface, treading water off to the side, watching)
-    p.carried = true; p.vel.x = 0; p.vel.y = 0; p.facing = 1;
-    const at = pl.step === 'skin' ? pl.skinX : f.x;
-    const tx = Math.max(WP.beach + 200, at - 260) - p.width / 2, ty = WP.surf - p.height * 0.45 + Math.sin(state.frame * 0.08) * 2;
-    p.pos.x += (tx - p.pos.x) * 0.06; p.pos.y += (ty - p.pos.y) * 0.08;
-  }
   switch (pl.step) {
     case 'dying': {
-      // (up to the surface, choking on his whistle (or his throat swelling shut: every tank), swelling up; his last
-      // line; belly up)
+      // (up to the surface, belly up, his throat swelling shut (the chlorine), his last line (Mom, his brother); him
+      // treading water up to him, waiting)
       f.y += (WP.surf + 6 - f.y) * 0.08;
-      state.cameraOverride = camAt(f.x);
+      state.cameraOverride = camAt(f.x); pl.camY = WP.surf - 260;
+      p.carried = true; p.vel.x = 0; p.vel.y = 0; p.facing = 1;
+      const tx = Math.max(WP.beach + 200, f.x - 150) - p.width / 2, ty = WP.surf - p.height * 0.45 + Math.sin(state.frame * 0.08) * 2;
+      p.pos.x += (tx - p.pos.x) * 0.06; p.pos.y += (ty - p.pos.y) * 0.08;
       const all = f.tanks >= TANK_COUNT;
       if (t === 1) { playSound('retch', 0.9, 8); speakGup(pl, pickLine(byPants(state, all ? L.GUP_DEATH_ALL : L.GUP_DEATH)), () => { pl.talk = 1; }); }
       if (t % 20 === 5) playSound(all ? 'snort' : 'beep', 0.4, 18 - Math.min(16, t / 10));
-      if ((pl.talk === 1 && t > 90) || t > 700) { pl.step = 'deflate'; pl.t = 0; pl.bx = f.x; pl.by = WP.surf - 60; pl.ba = 0; playSound('fart', 1, 6); }
+      if ((pl.talk === 1 && t > 90) || t > 700) { pl.step = 'mount'; pl.t = 0; pl.from = { x: p.pos.x + p.width / 2, y: p.pos.y + p.height }; playSound('jump', 0.8); }
       break;
     }
-    case 'deflate': {
-      // (the air going out of him: zipping round like a let-go balloon, squealing, then slapped down flat)
-      const k = t / 110;
-      pl.ba += 0.21 + k * 0.1;
-      pl.bx += Math.cos(pl.ba) * 9 - 1.2; pl.by += Math.sin(pl.ba * 1.3) * 7;
-      pl.bx = Math.max(WP.beach + 300, Math.min(WP.x1 - 80, pl.bx)); pl.by = Math.max(WP.surf - 300, Math.min(WP.surf - 30, pl.by));
-      state.cameraOverride = camAt(pl.bx);
-      if (t % 7 === 0) playSound('fart', 0.7, 4 + (t % 21) / 3);
-      if (t % 3 === 0) state.particles.push({ pos: { x: pl.bx - Math.cos(pl.ba) * 40, y: pl.by - Math.sin(pl.ba * 1.3) * 30 }, vel: { x: -Math.cos(pl.ba) * 2, y: -Math.sin(pl.ba) * 2 }, life: 24, color: '#9AF060', size: 4 });
-      if (t >= 110) { pl.step = 'skin'; pl.t = 0; pl.skinX = pl.bx; pl.drainX = Math.max(WP.beach + 400, Math.min(WP.x1 - 200, pl.bx + 160)); splash(state, pl.skinX, 26); playSound('splat', 1, -10); playSound('splash', 0.8, -8); shakeScreen(state, 8, 4); }
+    case 'mount': {
+      // (a hop up onto his belly: sat on the breastplate)
+      const k = Math.min(1, t / 26), seat = gupSeat(f, 1);
+      const x = pl.from.x + (seat.x - pl.from.x) * k, y = pl.from.y + (seat.y - pl.from.y) * k - Math.sin(k * Math.PI) * 60;
+      p.carried = true; p.pos.x = x - p.width / 2; p.pos.y = y - p.height; p.vel.x = 0; p.vel.y = 0;
+      state.cameraOverride = camAt(f.x);
+      if (k >= 1) { pl.step = 'swell'; pl.t = 0; p.logSeat = true; playSound('squish', 1, -6); playSound('splash', 0.6, -4); }
       break;
     }
-    case 'skin':
-      // (flat on the water; his line over it)
-      state.cameraOverride = camAt(pl.skinX);
-      if (t === 30) meatheadSays(state, pickLine(byPants(state, L.MH_GUP_DEAD)), true, () => { pl.talk = 2; });
-      if ((pl.talk === 2 && t > 60) || t > 600) { pl.step = 'drain'; pl.t = 0; playSound('rumble', 1, -14); playSound('glug', 1, -12); shakeScreen(state, 10, 5); }
-      break;
-    case 'drain': {
-      // (the wave machine dies, the main drain opens: a whirlpool; the skin goes down, then him (his line), into it)
-      pl.drain = Math.min(1, pl.drain + 0.012);
-      state.cameraOverride = camAt(pl.drainX);
-      pl.skinX += (pl.drainX - pl.skinX) * 0.03;
-      p.carried = true; p.vel.x = 0; p.vel.y = 0;
-      const a = t * 0.18, r = Math.max(0, 260 - t * 2.2);
-      const tx = pl.drainX + Math.cos(a) * r - p.width / 2, ty = WP.surf - p.height + 10 + Math.max(0, t - 100) * 2.5;
-      p.pos.x += (tx - p.pos.x) * 0.12; p.pos.y += (ty - p.pos.y) * 0.12;
-      p.spriteRot = t > 60 ? a * 0.5 : 0;
-      if (t === 40) meatheadSays(state, pickLine(byPants(state, L.MH_DRAIN)), false);
-      if (t % 15 === 0) playSound('gush', 0.6, -10);
-      if (t >= 150) { p.hidden = true; pl.step = 'ride'; pl.t = 0; pl.v = startVictory(); playSound('fallwhistle', 0.6, -4); }
-      break;
-    }
-    case 'ride':
-      if (pl.v) tickVictory(state, pl.v);
-      if (t % 24 === 0) playSound('gush', 0.4, -6 + (t % 5));
-      if (t >= VICTORY_FRAMES || (pl.v && victoryDone(pl.v))) {
-        pl.v = null; pl.step = 'done'; pl.t = 0;
-        p.spriteRot = 0; p.untouchable = false;
-        const l4 = level4();
-        if (l4) { setStartCheckpoint(l4.cp); goTo(l4.id); }
-        else {
-          // TODO(level 4): STUB, for level 4's agent to wire up: when stages.ts has a level-4 stage, the line above goes
-          // there (its first checkpoint: the parking lot). Till then he's put back on the beach, his control back.
-          pl.stubbed = true; p.inCutscene = false; p.hidden = false; p.carried = false; state.cameraOverride = null;
-          p.pos.x = WP.x0 + 200; p.pos.y = WP.beachTop - p.height; p.vel.x = 0; p.vel.y = 0;
-          setUi({ introCutscene: false });
-        }
+    case 'swell': {
+      // (the chlorine's last of him: he swells up under him, creaking, hives popping, beeping quicker and quicker)
+      const S = swellOf(t), seat = gupSeat(f, S);
+      sitOn(p, seat.x, seat.y, Math.sin(t * 0.9) * 0.04 * (t / SWELL));
+      state.cameraOverride = { x: camAt(f.x).x + (Math.random() - 0.5) * t * 0.06, y: WP.surf - 300 };
+      if (t % Math.max(3, 16 - Math.floor(t / 8)) === 0) playSound('beep', 0.5, 6 + t / 8);
+      if (t % 14 === 0) { playSound('squish', 0.6, 4 + t / 20); shakeScreen(state, 2 + t / 25, 2); }
+      if (t % 4 === 0) state.particles.push({ pos: { x: f.x + (Math.random() - 0.5) * 120 * S, y: seat.y + Math.random() * 40 }, vel: { x: (Math.random() - 0.5) * 3, y: -2 - Math.random() * 2 }, life: 20, color: Math.random() < 0.5 ? '#F07A8A' : '#9AF060', size: 2 + Math.random() * 2 });
+      if (t >= SWELL) {
+        // (POP: the flash, the bang, the water column, the guts; up they go)
+        pl.step = 'fly'; pl.t = 0; pl.flash = 16; pl.fl = { k: 0, up: 0, t: 0 }; pl.vt0 = -1; pl.lineDone = false;
+        playSound('nuke', 0.9, -4); playSound('boom', 1, -10); playSound('gorespray', 1, -6); playSound('tsunami', 0.7, -2);
+        shakeScreen(state, 26, 16);
+        for (let i = 0; i < 90; i++) state.particles.push({ pos: { x: f.x + (Math.random() - 0.5) * 140, y: WP.surf - 30 }, vel: { x: (Math.random() - 0.5) * 14, y: -3 - Math.random() * 14 }, life: 50 + Math.random() * 40, color: ['#5ACA3A', '#7A4A8A', '#C04A5A', '#E0F2FE'][i % 4], size: 2 + Math.random() * 5, grav: 0.35 });
       }
       break;
+    }
+    case 'fly': {
+      // (the flight: his one line as they go up; VICTORY started once it's done, timed to end as they come down in the lot)
+      const fl = pl.fl;
+      fl.t = t;
+      if (t === 2) meatheadSays(state, pickLine(byPants(state, L.MH_LAUNCH)), true, () => { pl.lineDone = true; });
+      if (!pl.v && (pl.lineDone || t >= 150)) { pl.v = startVictory(); pl.vt0 = t; pl.vk0 = fl.k; }
+      if (pl.v) tickVictory(state, pl.v);
+      // (how far along: a guess at the pace till the VICTORY's started, then exactly to land as it ends)
+      fl.k = pl.vt0 < 0 ? t / FLY_GUESS : Math.min(1, pl.vk0 + (1 - pl.vk0) * (t - pl.vt0) / VICTORY_FRAMES);
+      fl.up = Math.sin(Math.PI * fl.k);
+      const rot = -0.42 * Math.cos(Math.PI * fl.k) + Math.sin(t * 0.13) * 0.05;
+      const sx = f.x, sy = WP.surf - 60 - fl.up * 900;
+      sitOn(p, sx, sy, rot);
+      pl.rot = rot;
+      state.cameraOverride = { x: sx - SEAT_SCREEN.x, y: sy - SEAT_SCREEN.y }; pl.camY = sy - SEAT_SCREEN.y;
+      // (smoke off him, green out of him: left behind in the air)
+      if (t % 3 === 0) state.particles.push({ pos: { x: sx - 110 * Math.cos(rot), y: sy + 20 - 110 * Math.sin(rot) }, vel: { x: -1.5, y: 0.5 }, life: 46, color: t % 6 ? '#4A4A52' : '#6A6A72', size: 6 + Math.random() * 4 });
+      if (t % 4 === 0) state.particles.push({ pos: { x: sx - 60, y: sy + 40 }, vel: { x: -2 - Math.random() * 2, y: 1 + Math.random() * 2 }, life: 40, color: Math.random() < 0.6 ? '#5ACA3A' : '#7A4A8A', size: 2 + Math.random() * 3, grav: 0.2 });
+      if (t % 40 === 0) playSound('whoosh', 0.6, -6 + (t % 7));
+      if (fl.k > 0.82 && !pl.whistled) { pl.whistled = true; playSound('fallwhistle', 0.7, -6); }
+      if (fl.k >= 1) toLevel4(state, pl, true);
+      break;
+    }
     case 'done':
-      if (pl.stubbed) { p.inCutscene = false; p.untouchable = false; setUi({ introCutscene: false }); state.cameraMinX = WP.x0 - 60; state.cameraMaxX = WP.x1 + 200 - W; return controls; }
       break;
   }
+  if (pl.flash > 0) pl.flash--;
   return hands();
+};
+/** How swollen he is, `t` frames into the swell (1 .. 1.7, quicker at the end). */
+const SWELL = 96;
+const swellOf = (t: number) => 1 + 0.7 * Math.pow(Math.min(1, t / SWELL), 1.6);
+/** The flight's length before the VICTORY's started (its pace till then). */
+const FLY_GUESS = 90 + VICTORY_FRAMES;
+/** Where he sits on GUPPLAX belly up (puffed), swollen `S`: on his chest, the top of him. */
+const gupSeat = (f: Fight3, S: number) => ({ x: f.x - 10 * S, y: WP.surf - 24 - 52 * S });
+/** Him sat at (x, y: his seat), turned `rot` (the seat's the pivot). */
+const sitOn = (p: GameState['player'], x: number, y: number, rot: number) => {
+  const up = p.height / 2 - 10;
+  p.carried = true; p.logSeat = true; p.facing = 1; p.spriteRot = rot; p.vel.x = 0; p.vel.y = 0; p.isGrounded = false;
+  p.pos.x = x + Math.sin(rot) * up - p.width / 2; p.pos.y = y - Math.cos(rot) * up - p.height / 2;
+};
+/** On to level 4's lot (`crash`: in on the corpse; the skip's: just there). */
+const toLevel4 = (state: GameState, pl: Pool, crash: boolean) => {
+  if (pl.step === 'done') return;
+  pl.step = 'done'; pl.t = 0;
+  const p = state.player;
+  p.spriteRot = 0; p.untouchable = false; p.logSeat = false;
+  const l4 = level4();
+  if (!l4) return;
+  if (crash) arriveByCrash();
+  setStartCheckpoint(l4.cp); goTo(l4.id);
 };
 let gupTok = 0;
 const speakGup = (pl: Pool, text: string, onDone: () => void) => {
@@ -301,11 +322,12 @@ const depthK = (state: GameState) => Math.max(0, Math.min(1, (state.camera.y + H
 /** The pool's lighting: the night's, darker the deeper the camera; the deck's lamps; the lights in the pool's walls; the
  *  tanks' glow; a little of the surface's light round him (so the piles near him read). */
 export const poolLights = (state: GameState, pl: Pool): SceneLight | null => {
+  if (pl.step === 'fly' || pl.step === 'done') { const p = state.player; return todLight([{ x: p.pos.x + p.width / 2, y: p.pos.y + 30, r: 260, a: 0.3, color: '#FDE68A' }], 0.8); }
   const ls: Light[] = [
     { x: TOWER.x - 10, y: TOWER.seat - 90, r: 320, a: 0.45, color: '#FDE68A' },
     { x: WP.x0 + 300, y: WP.beachTop - 200, r: 360, a: 0.4, color: '#FDE68A' },
   ];
-  for (let x = WP.beach + 400; x < WP.x1; x += 500) ls.push({ x, y: poolFloor(x) - 60, r: 230, a: pl.step === 'drain' ? 0.05 : 0.3, color: '#7DD3FC' });
+  for (let x = WP.beach + 400; x < WP.x1; x += 500) ls.push({ x, y: poolFloor(x) - 60, r: 230, a: 0.3, color: '#7DD3FC' });
   const dk = depthK(state), p = state.player;
   ls.push({ x: p.pos.x + p.width / 2, y: p.pos.y + 30, r: 300, a: 0.14 * dk, color: '#7DC8E8' });
   ls.push(...mazeLights(state, pl.mz));
@@ -319,7 +341,8 @@ export const poolLights = (state: GameState, pl: Pool): SceneLight | null => {
 
 /** Screen space: the sky by the hour, the stars and the moon, the rest of the water park far off (busy: lit, the
  *  aliens' saucers and the demons' fires over it). Under the surface it's all covered. */
-export const drawPoolBackdrop = (c: Ctx, state: GameState, _pl: Pool) => {
+export const drawPoolBackdrop = (c: Ctx, state: GameState, pl: Pool) => {
+  if (pl.step === 'fly' || pl.step === 'done') { drawFlightBackdrop(c, state, pl.fl); return; }
   const tod = timeOfDay(), cy = state.camera.y, horizon = Math.round(WP.beachTop - 180 - cy);
   if (horizon + 200 < 0) { R(c, 0, 0, W, H, '#020A14'); return; }
   bandedGradient(c, 0, 0, W, Math.max(40, horizon + 40), tod.sky, 14);
@@ -386,6 +409,8 @@ const waterPath = (c: Ctx, x0: number, x1: number, wv: Waves | null, swell: bool
 /** World space, behind him: the deck, the beach, the pool's tiled inside, the floor, the far wall, the tower, the
  *  signs, the outflow pipe, the drain; the mazes; then GUPPLAX. */
 export const drawPoolBack = (c: Ctx, state: GameState, pl: Pool) => {
+  // (the flight: the pool's down there in the backdrop; here only the corpse, under him)
+  if (pl.step === 'fly' || pl.step === 'done') { if (pl.f && pl.step === 'fly') { const p = state.player, up = p.height / 2 - 10, cx = p.pos.x + p.width / 2 - Math.sin(pl.rot) * up, cy = p.pos.y + p.height / 2 + Math.cos(pl.rot) * up; drawBurst(c, cx, cy, pl.rot, state.frame); } return; }
   const cam = state.camera, vx0 = Math.max(WP.beach, cam.x - 20), vx1 = Math.min(WP.x1, cam.x + W + 20);
   const topVis = cam.y < WP.surf + 20, deepVis = cam.y + H > WP.surf;
   // ---- above the surface: the deck's back wall, the palms, the beach (chunks)
@@ -437,8 +462,6 @@ export const drawPoolBack = (c: Ctx, state: GameState, pl: Pool) => {
     R(c, WP.pipe.x + 20, WP.pipe.y - 16, 12, 32, '#1A1208');
     if (pl.seen && state.frame % 4 < 2) R(c, WP.pipe.x + 30, WP.pipe.y + 10 + (state.frame % 8), 3, 4, '#6A4A20');
   }
-  // (the main drain on the deep floor, opened under him at the end: a black hole)
-  if (pl.drain > 0) { c.fillStyle = '#000'; c.beginPath(); c.ellipse(pl.drainX, WP.surf + 4, 40 * pl.drain + 6, 6, 0, 0, Math.PI * 2); c.fill(); }
   if (topVis && state.camera.x < TOWER.x + 200) stamp(c, 'wp3-tower', TOWER.x - 70, TOWER.seat - 120, 140, WP.beachTop - TOWER.seat + 124, g => paintTower(g));
   // ---- the mazes, then GUPPLAX (on the tower, in the pool; dead: belly up, puffed; the deflating balloon of him; the skin)
   drawMazesBack(c, state, pl.mz);
@@ -446,8 +469,15 @@ export const drawPoolBack = (c: Ctx, state: GameState, pl: Pool) => {
   const arm = f ? Math.min(5, f.tanks) : 0;
   if (f && (pl.step === 'fight' || pl.step === 'flush')) drawGup3(c, state, f);
   else if (f && pl.step === 'dying') drawGup(c, f.x, Math.min(f.y, WP.surf + 6) - Math.min(30, pl.t * 0.4), f.face, { pose: pl.t > 50 ? 'puffed' : 'hurt', q: 0, mouth: !!pl.said, arm }, state.frame);
-  else if (f && pl.step === 'deflate') { const k = Math.max(0.35, 1 - pl.t / 140); c.save(); c.translate(pl.bx, pl.by); c.scale(k, k); drawGup(c, 0, 0, Math.cos(pl.ba) < 0 ? -1 : 1, { pose: 'puffed', q: 0, arm }, state.frame); c.restore(); }
-  else if (f && (pl.step === 'skin' || pl.step === 'drain')) { const k = pl.step === 'drain' ? Math.min(1, pl.t / 80) : 0; c.save(); c.translate(pl.skinX, WP.surf + k * 30); c.scale(1 - k * 0.7, 1 - k * 0.7); drawGup(c, 0, 0, 1, { pose: 'skin', q: 0 }, state.frame); c.restore(); }
+  else if (f && pl.step === 'mount') drawGup(c, f.x, WP.surf - 24, f.face, { pose: 'puffed', q: 0, arm }, state.frame);
+  else if (f && pl.step === 'swell') {
+    // (swelling: scaled up round his middle, shaking; flashing pink the last of it)
+    const S = swellOf(pl.t), j = (Math.random() - 0.5) * pl.t * 0.05;
+    c.save(); c.translate(f.x + j, WP.surf - 24); c.scale(S, S);
+    drawGup(c, 0, 0, f.face, { pose: 'puffed', q: 0, arm }, state.frame);
+    c.restore();
+    if (pl.t > SWELL - 30 && state.frame % 6 < 3) { c.globalAlpha = 0.35; c.fillStyle = '#F07A8A'; c.beginPath(); c.ellipse(f.x, WP.surf - 36 * S, 80 * S, 44 * S, 0, 0, Math.PI * 2); c.fill(); c.globalAlpha = 1; }
+  }
 };
 const paintDeck = (g: Ctx, k: number) => {
   const x0 = WP.x0 + k * 400, x1 = x0 + 400;
@@ -504,6 +534,7 @@ const WASH = ['rgba(30, 120, 160, 0.30)', 'rgba(24, 100, 140, 0.34)', 'rgba(18, 
 /** World space, in front: the wash, the surface (swelling before a surge), the wave lines, the surge's streaks, the
  *  chlorine, GUPPLAX's crests and globs and words; the whirlpool. */
 export const drawPoolFront = (c: Ctx, state: GameState, pl: Pool) => {
+  if (pl.step === 'fly' || pl.step === 'done') return;
   const cam = state.camera, x0 = Math.max(WP.beach, cam.x - 20), x1 = Math.min(WP.x1, cam.x + W + 20), f = state.frame;
   const wv = pl.step === 'fight' ? pl.wv : null;
   if (x1 > x0 && cam.y + H > WP.surf - 30) {
@@ -525,10 +556,6 @@ export const drawPoolFront = (c: Ctx, state: GameState, pl: Pool) => {
   drawMazesFront(c, state, pl.mz);
   if (pl.f && pl.step === 'fight') drawGupFront(c, state, pl.f);
   if (pl.step === 'dying' && pl.said && pl.f) saidOver3(c, state, pl.said, pl.f.x, WP.surf - 200);
-  if (pl.drain > 0 && pl.step !== 'done') {
-    c.strokeStyle = 'rgba(220, 245, 255, 0.7)'; c.lineWidth = 2;
-    for (let k = 0; k < 5; k++) { const r = (30 + k * 40) * pl.drain; c.beginPath(); c.ellipse(pl.drainX, WP.surf + 4, r, r * 0.12, 0, f * 0.15 + k, f * 0.15 + k + 4); c.stroke(); }
-  }
 };
 const saidOver3 = (c: Ctx, state: GameState, text: string, x: number, y: number) => {
   c.font = '7px "Press Start 2P"'; c.textAlign = 'center';
@@ -563,25 +590,12 @@ export const drawPoolHud = (c: Ctx, state: GameState, pl: Pool) => {
       }
     }
   }
-  if (pl.step === 'done' && !pl.stubbed) { drawRide(c, state, pl); return; }
-  if (pl.step === 'flush' || (pl.step !== 'fight' && pl.step !== 'idle' && pl.step !== 'done')) {
+  if (pl.step === 'flush' || (pl.step !== 'fight' && pl.step !== 'idle')) {
     const k = Math.min(1, (pl.step === 'flush' ? pl.t : pl.skipT) / 20), bar = Math.round(k * 44);
-    if (pl.step === 'ride') drawRide(c, state, pl);
     c.fillStyle = '#000'; c.fillRect(0, 0, W, bar); c.fillRect(0, H - bar, W, bar);
-    if (pl.step !== 'flush' && pl.step !== 'ride' && pl.skipT > SKIP_AFTER) drawSkipPrompt(c, W);
+    if (pl.step !== 'flush' && pl.step !== 'done' && pl.skipT > SKIP_AFTER) drawSkipPrompt(c, W);
+    if (pl.flash > 0) { c.globalAlpha = Math.min(1, pl.flash / 8); c.fillStyle = pl.flash > 10 ? '#FFFFFF' : '#E8FFD0'; c.fillRect(0, 0, W, H); c.globalAlpha = 1; }
     if (pl.v) drawVictory(c, pl.v);
   }
-};
-/** Down the storm pipes: the dark, ribs of the pipe rushing by, him tumbling in the brown water, a grate of light at
- *  the end growing (the lot). */
-const drawRide = (c: Ctx, state: GameState, pl: Pool) => {
-  const f = state.frame, k = Math.min(1, pl.t / VICTORY_FRAMES);
-  R(c, 0, 0, W, H, '#060806');
-  for (let i = 0; i < 9; i++) { const z = ((i / 9) + pl.t * 0.02) % 1, r = 30 + z * z * 600; c.strokeStyle = mix('#2A2418', '#6A5A3A', z); c.lineWidth = 2 + z * 14; c.beginPath(); c.ellipse(W / 2, H / 2, r, r * 0.8, 0, 0, Math.PI * 2); c.stroke(); }
-  c.fillStyle = '#FDE68A'; c.globalAlpha = k * 0.9; c.beginPath(); c.ellipse(W / 2, H / 2, 10 + k * 90, (10 + k * 90) * 0.8, 0, 0, Math.PI * 2); c.fill(); c.globalAlpha = 1;
-  for (let i = 0; i < 16; i++) { const a = i * 0.7 + f * 0.05, r = 80 + ((i * 53 + f * 6) % 260); R(c, W / 2 + Math.cos(a) * r, H / 2 + Math.sin(a) * r * 0.8, 6, 4, i % 2 ? '#6A4A20' : '#8A6A30'); }
-  c.save(); c.translate(W / 2 + Math.sin(f * 0.07) * 40, H / 2 + Math.cos(f * 0.05) * 30); c.rotate(f * 0.2);
-  R(c, -12, -26, 24, 40, '#1A1410'); R(c, -9, -36, 18, 14, '#1A1410'); R(c, -24, -18, 12, 8, '#1A1410'); R(c, 12, -10, 12, 8, '#1A1410'); R(c, -10, 14, 8, 16, '#1A1410'); R(c, 4, 14, 8, 16, '#1A1410');
-  c.restore();
 };
 export { MAZE_BOX };
