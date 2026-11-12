@@ -21641,6 +21641,21 @@
  },
  {
   "voice": "m2.cartoon.chelsea",
+  "text": "MEAN MAN! MOM AND DAD ARE AT THE U.N.! YOU CAN'T STEP ON THE HOUSE!",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "m2.cartoon.chelsea",
+  "text": "MEAN MAN! SOCKS IS LOOKING AT YOUR THING!",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "m2.cartoon.chelsea",
+  "text": "MEAN MAN! YOU SMELL LIKE THE OVAL OFFICE!",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "m2.cartoon.chelsea",
   "text": "MOM SAYS DRESS FOR THE JOB YOU WANT, SOCKS!",
   "from": "CARTOON"
  },
@@ -27006,6 +27021,11 @@
  },
  {
   "voice": "m2.cartoon.narrator",
+  "text": "THIS PROCESS WAS USED TO MAKE... NOTHING. EVER AGAIN.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "m2.cartoon.narrator",
   "text": "TWENTY FOUR TIMES A SECOND. TAKE A BOW, CAMERA!",
   "from": "CARTOON"
  },
@@ -27841,6 +27861,11 @@
  },
  {
   "voice": "m2.cartoon.punchy",
+  "text": "NOT THE KILL-O-RAMA! WE WERE GONNA BE BIGGER THAN STUPID DAD!",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "m2.cartoon.punchy",
   "text": "PUNCHY PUNCH-PUNCH!",
   "from": "CARTOON"
  },
@@ -27926,6 +27951,11 @@
  },
  {
   "voice": "m2.cartoon.rideop",
+  "text": "HE SAID THERE'S NO GOOD RIDES HERE. NOW THERE'S NO RIDES HERE.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "m2.cartoon.rideop",
   "text": "I GET FOUR TWENTY-FIVE AN HOUR FOR THIS.",
   "from": "CARTOON"
  },
@@ -28003,6 +28033,11 @@
   "voice": "m2.cartoon.rideopf",
   "text": "KEEP YOUR ARMS AND LEGS... WHATEVER. LOSE THEM. I DON'T CARE.",
   "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.rideopf",
+  "text": "NO TRACK, HE SAID. PUSSY RIDE, HE SAID. THEN HE STEPPED ON IT.",
+  "from": "ENDGAME"
  },
  {
   "voice": "m2.cartoon.rideopf",
@@ -28796,6 +28831,16 @@
  },
  {
   "voice": "m2.demon",
+  "text": "BRO! DON'T LET HIM DRIP ON YOU! DAD'S WATCHING!",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "m2.demon",
+  "text": "BRO! HE'S STILL NAKED! TELL DAD I DIDN'T LOOK!",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "m2.demon",
   "text": "BRO! I'M DOWN! A NAKED GUY DID IT AGAIN!",
   "from": "ENDGAME"
  },
@@ -28807,6 +28852,11 @@
  {
   "voice": "m2.demon",
   "text": "BRO! I'M DOWN! HE GOT SHIT ON MY GUITAR!",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "m2.demon",
+  "text": "BRO! TRY HARDER! DAD'S WATCHING! PROBABLY!",
   "from": "ENDGAME"
  },
  {
@@ -28838,21 +28888,6 @@
   "voice": "m2.demon",
   "text": "DAAAAAD! THE SHITTY MORTAL'S HITTING ME!",
   "from": "SPOOKY"
- },
- {
-  "voice": "m2.demon",
-  "text": "DAAAD! THE NAKED ONE'S COMING!",
-  "from": "ENDGAME"
- },
- {
-  "voice": "m2.demon",
-  "text": "DAAAD! THE SHITTY ONE'S COMING!",
-  "from": "ENDGAME"
- },
- {
-  "voice": "m2.demon",
-  "text": "DAAAD! WAIT UP!",
-  "from": "ENDGAME"
  },
  {
   "voice": "m2.demon",
@@ -28951,6 +28986,11 @@
  },
  {
   "voice": "m2.demon",
+  "text": "DAD! DON'T LOOK AT HIS DICK! LOOK AT ME!",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "m2.demon",
   "text": "DAD! DON'T SMELL THIS!",
   "from": "UPGRADES"
  },
@@ -28986,8 +29026,18 @@
  },
  {
   "voice": "m2.demon",
+  "text": "DAD! TWO SONS ON ONE GUY! WATCH!",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "m2.demon",
   "text": "DAD! WATCH ME KILL THE SHITTY GUY!",
   "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.demon",
+  "text": "DAD! WE GOT THE SHITTY ONE CORNERED!",
+  "from": "ENDGAME"
  },
  {
   "voice": "m2.demon",
@@ -29148,6 +29198,21 @@
   "voice": "m2.demon",
   "text": "MY UNHOLY NUTS! DAD! DAAAD!",
   "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.demon",
+  "text": "NED CAN HAVE THE BODY! IT STINKS!",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "m2.demon",
+  "text": "NED CAN SEW HIS DICK BACK ON AFTER!",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "m2.demon",
+  "text": "NED'S GONNA BE SO JEALOUS! WE GOT HIM FIRST!",
+  "from": "ENDGAME"
  },
  {
   "voice": "m2.demon",
@@ -32106,6 +32171,11 @@
  },
  {
   "voice": "m2.donnie.pa",
+  "text": "THE FIRST CASTLE. HISTORIC. ALSO A SHED.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "m2.donnie.pa",
   "text": "THE INTRUDER VITH THE LOADED DIAPER HAS BEEN DEALT VITH. *SLURP*. OPEN A VINDOW.",
   "from": "SPOOKY"
  },
@@ -32376,6 +32446,11 @@
  },
  {
   "voice": "m2.fantasy.castman",
+  "text": "THE BROOM DEATHMATCH IS CANCELED. NOBODY'S LEFT TO DIE.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "m2.fantasy.castman",
   "text": "THE QUEEN WANTS YOUR HEART. IN A BOX.",
   "from": "FANTASY"
  },
@@ -32383,6 +32458,11 @@
   "voice": "m2.fantasy.castman",
   "text": "THE SMELL STOPS HERE! IT'S IN MY CONTRACT!",
   "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.castman",
+  "text": "THOSE BROOMS ARE KINDLING NOW.",
+  "from": "ENDGAME"
  },
  {
   "voice": "m2.fantasy.castman",
@@ -32438,6 +32518,21 @@
   "voice": "m2.fantasy.castwoman",
   "text": "HAVE AT THEE! I GET TIME AND A HALF!",
   "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.castwoman",
+  "text": "HER BED WAS IN THERE. AND NOW SO IS HIS ASS.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "m2.fantasy.castwoman",
+  "text": "HER BED WAS IN THERE. EVERY GUY IN THE PARK HAS BEEN ON IT. NOW HIM.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "m2.fantasy.castwoman",
+  "text": "HER BED WAS IN THERE. NOW IT SMELLS LIKE HIS PANTS.",
+  "from": "ENDGAME"
  },
  {
   "voice": "m2.fantasy.castwoman",
@@ -32566,6 +32661,11 @@
  },
  {
   "voice": "m2.fantasy.clerk",
+  "text": "NO REFUNDS ON WANDS. OR TOWNS.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "m2.fantasy.clerk",
   "text": "NO WAND, NO SERVICE.",
   "from": "FANTASY"
  },
@@ -32603,6 +32703,11 @@
   "voice": "m2.fantasy.clerk",
   "text": "THE WAND CHOOSES THE WIZARD. THIS ONE CHOSE YOUR EYE.",
   "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.clerk",
+  "text": "THE WANDS WERE PLASTIC. NOW THEY'RE FLAT PLASTIC.",
+  "from": "ENDGAME"
  },
  {
   "voice": "m2.fantasy.clerk",
@@ -32993,6 +33098,11 @@
   "voice": "m2.fantasy.dwarf",
   "text": "THAT'S A SMALLER PICKAXE THAN DOPEY'S!",
   "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.dwarf",
+  "text": "THE GLEN WAS ENCHANTED. NOW IT'S A FOOTPRINT.",
+  "from": "ENDGAME"
  },
  {
   "voice": "m2.fantasy.dwarf",
@@ -35391,6 +35501,21 @@
  },
  {
   "voice": "m2.fantasy.suitor_chad",
+  "text": "BRO. I CAN SEE YOUR WHOLE AUDIENCE, BRO.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "m2.fantasy.suitor_chad",
+  "text": "BRO. THE WHEEL. I WAS STILL ON IT, BRO.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "m2.fantasy.suitor_chad",
+  "text": "BRO. YOU SHIT ON THE WHEEL. FROM UP THERE.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "m2.fantasy.suitor_chad",
   "text": "BULLETS? FROM A GUY WHO SHAT HIMSELF?",
   "from": "FANTASY"
  },
@@ -35471,6 +35596,11 @@
  },
  {
   "voice": "m2.fantasy.suitor_chad",
+  "text": "I WAS WINNING, BRO. I WAS SO CLOSE TO THE AUDIENCE.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "m2.fantasy.suitor_chad",
   "text": "I'M GONNA SHART!",
   "from": "FANTASY"
  },
@@ -35543,11 +35673,6 @@
   "voice": "m2.fantasy.suitor_chad",
   "text": "PIPER'S GONNA LOVE THESE GUNS, BRO.",
   "from": "FANTASY"
- },
- {
-  "voice": "m2.fantasy.suitor_chad",
-  "text": "PIPER'S GONNA LOVE THESE GUNS, BRO. OH. THE WHEEL'S GONE, BRO.",
-  "from": "ENDGAME"
  },
  {
   "voice": "m2.fantasy.suitor_chad",
@@ -38161,6 +38286,11 @@
  },
  {
   "voice": "m2.fantasy.tragons_spiel",
+  "text": "FIRE, ICE, LIGHTNING. AND NOW DEVIL. DEVIL IS NOT A CAR.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "m2.fantasy.tragons_spiel",
   "text": "HARK! THE BOLTS ARE STILL OUT. THE GREAT PIXIE DIED BEFORE SHE TOLD US WHERE SHE HID THEM.",
   "from": "FANTASY"
  },
@@ -38218,6 +38348,11 @@
   "voice": "m2.fantasy.tragons_spiel",
   "text": "PLEASE REMAIN ON THE DRAGON AT ALL TIMES!",
   "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.tragons_spiel",
+  "text": "PLEASE REMAIN SEATED UNTIL THE DRAGONS... NEVER MIND.",
+  "from": "ENDGAME"
  },
  {
   "voice": "m2.fantasy.tragons_spiel",
@@ -38561,12 +38696,12 @@
  },
  {
   "voice": "m2.fin.zarblax",
-  "text": "...IS THAT MY BABY?",
+  "text": "...THOSE ARE MY BOYS.",
   "from": "ENDGAME"
  },
  {
   "voice": "m2.fin.zarblax",
-  "text": "...ZORZARBLAX?",
+  "text": "...ZORZARBLAX? GUPPLAX? BABIES?",
   "from": "ENDGAME"
  },
  {
@@ -38576,17 +38711,17 @@
  },
  {
   "voice": "m2.fin.zarblax",
-  "text": "BOYS! EMBIGGEN MOMMY! ALL THE WAY UP!",
-  "from": "ENDGAME"
- },
- {
-  "voice": "m2.fin.zarblax",
   "text": "BOYS! GET THIS GUY OFF ME!",
   "from": "ENDGAME"
  },
  {
   "voice": "m2.fin.zarblax",
-  "text": "BOYS! THE BIG RAY! MAKE MOMMY HUGE!",
+  "text": "CREW! EMBIGGEN MOMMY! ALL THE WAY UP!",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "m2.fin.zarblax",
+  "text": "CREW! THE BIG RAY! MAKE MOMMY HUGE!",
   "from": "ENDGAME"
  },
  {
@@ -38616,6 +38751,11 @@
  },
  {
   "voice": "m2.fin.zarblax",
+  "text": "FOR MY BABIES. THIS WAY. I PARKED BY THE GIFT SHOP.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "m2.fin.zarblax",
   "text": "GET YOUR HANDS OFF MY HOUSECOAT!",
   "from": "ENDGAME"
  },
@@ -38631,11 +38771,6 @@
  },
  {
   "voice": "m2.fin.zarblax",
-  "text": "HE HAD HIS FATHER'S EYE. HE HAD ALL OF HIS FATHER, REALLY.",
-  "from": "ENDGAME"
- },
- {
-  "voice": "m2.fin.zarblax",
   "text": "HE MADE ME A WIDOW, HORN BOY. HE GOES IN A JAR. MY JAR.",
   "from": "ENDGAME"
  },
@@ -38647,11 +38782,6 @@
  {
   "voice": "m2.fin.zarblax",
   "text": "HOLD STILL, SWEETIE. MOMMY HAS A JAR.",
-  "from": "ENDGAME"
- },
- {
-  "voice": "m2.fin.zarblax",
-  "text": "I CARRIED HIM FOR NINE YEARS.",
   "from": "ENDGAME"
  },
  {
@@ -38776,6 +38906,11 @@
  },
  {
   "voice": "m2.fin.zarblax",
+  "text": "MY ZORZARBLAX. MY GUPPLAX. I CARRIED EACH OF THEM NINE YEARS.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "m2.fin.zarblax",
   "text": "NAKED? AT MY AGE? I'M FLATTERED, ASSHOLE.",
   "from": "ENDGAME"
  },
@@ -38866,17 +39001,12 @@
  },
  {
   "voice": "m2.fin.zarblax",
-  "text": "THIS WAY. I PARKED BY THE GIFT SHOP.",
-  "from": "ENDGAME"
- },
- {
-  "voice": "m2.fin.zarblax",
   "text": "TRUCE, HORN BOY. WE KILL HIM TOGETHER. THEN I KILL YOU.",
   "from": "ENDGAME"
  },
  {
   "voice": "m2.fin.zarblax",
-  "text": "TRUCE. HIM FIRST. THEN YOU.",
+  "text": "TRUCE. HIM FIRST. FOR THE KIDS. THEN YOU.",
   "from": "ENDGAME"
  },
  {
@@ -38937,6 +39067,11 @@
  {
   "voice": "m2.fin.zarblax",
   "text": "YOUR HAND STINKS. LIKE THE POD TOILET.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "m2.fin.zarblax",
+  "text": "ZORZARBLAX. GUPPLAX. BOTH MY BOYS. ONE POPPED. ONE BURST.",
   "from": "ENDGAME"
  },
  {
@@ -44641,6 +44776,11 @@
  },
  {
   "voice": "m2.foreign.mariachi",
+  "text": "MEXICO WAS FIRST IN LINE. MEXICO GETS STEPPED ON FIRST.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "m2.foreign.mariachi",
   "text": "OLE! MY MUSTACHE IS GLUED ON! IT'S IN MY MOUTH!",
   "from": "FOREIGN"
  },
@@ -45957,6 +46097,16 @@
  {
   "voice": "m2.foreign.pa",
   "text": "TEN COUNTRIES. ZERO FOREIGNERS. ZERO COUNTRIES.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "m2.foreign.pa",
+  "text": "THE GREAT WALL KEPT NOTHING OUT. AS USUAL.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "m2.foreign.pa",
+  "text": "THE STATUE OF LIBERTY WILL NOT BE ATTENDING. SHE KILLED HERSELF.",
   "from": "ENDGAME"
  },
  {
@@ -48441,6 +48591,11 @@
  },
  {
   "voice": "m2.frontier.prospector",
+  "text": "FORTY YEARS DIGGIN'. HE FOUND THE BOTTOM IN ONE STEP.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "m2.frontier.prospector",
   "text": "I'VE PANNED BIGGER NUGGETS THAN THAT, SON!",
   "from": "FRONTIER"
  },
@@ -48558,6 +48713,11 @@
   "voice": "m2.frontier.salesman",
   "text": "ONE BOTTLE TO THE FACE! FREE OF CHARGE!",
   "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.salesman",
+  "text": "THOSE MOUNTAINS WERE PAINTED BY HAND. MY HAND.",
+  "from": "ENDGAME"
  },
  {
   "voice": "m2.frontier.salesman",
@@ -50916,6 +51076,11 @@
  },
  {
   "voice": "m2.frontier.townsman",
+  "text": "NO TICKET, NO TRAIN. HE NEVER BOUGHT ONE THE FIRST TIME EITHER.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "m2.frontier.townsman",
   "text": "NO TOUCHING THE GOLD! IT'S SPRAY PAINT, BUT NO TOUCHING!",
   "from": "FRONTIER"
  },
@@ -51213,6 +51378,11 @@
   "voice": "m2.frontier.townswoman",
   "text": "DRAW! UGH. HE'S LEAKING.",
   "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.townswoman",
+  "text": "FIRST THE TRAIN THROUGH THE DEPOT. NOW A DEVIL THROUGH THE TRAIN.",
+  "from": "ENDGAME"
  },
  {
   "voice": "m2.frontier.townswoman",
@@ -56056,6 +56226,11 @@
  },
  {
   "voice": "m2.guest",
+  "text": "I CLIMBED THAT TREE WITH A BABY ON MY BACK. FOR NOTHING.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "m2.guest",
   "text": "I DIDN'T PAY TO SEE YOUR ASS! MOVE!",
   "from": "INTRO"
  },
@@ -58533,6 +58708,21 @@
   "voice": "m2.guest2",
   "text": "WOOOOOOOO!",
   "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.guest2",
+  "text": "XENOSCARE MADE ME SHIT ONCE. NOW HE DID.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "m2.guest2",
+  "text": "XENOSCARE NEVER SHOWED ME ANYTHING THAT SCARY.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "m2.guest2",
+  "text": "XENOSCARE WAS NEVER SCARY. OKAY. NOW IT'S SCARY.",
+  "from": "ENDGAME"
  },
  {
   "voice": "m2.guest2",
@@ -66191,6 +66381,11 @@
  },
  {
   "voice": "m2.operator",
+  "text": "THE HIPPOS WERE FAKE. THAT FOOT IS NOT.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "m2.operator",
   "text": "THEY DON'T PAY ME ENOUGH TO STOP THAT.",
   "from": "ENDGAME"
  },
@@ -66986,6 +67181,11 @@
  },
  {
   "voice": "m2.rex",
+  "text": "NUT HATCH. STEPPED ON. AGAIN.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "m2.rex",
   "text": "OH GOOD, A GROWN-UP! MORE MEAT!",
   "from": "ADVENTURE"
  },
@@ -67181,6 +67381,11 @@
  },
  {
   "voice": "m2.rex",
+  "text": "TYRANNOSAURUS. WRECKED.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "m2.rex",
   "text": "VISION OFFLINE! WHO TURNED OFF THE- OH. THAT WAS MY FACE.",
   "from": "ADVENTURE"
  },
@@ -67188,6 +67393,16 @@
   "voice": "m2.rex",
   "text": "WARNING! LIVE VOLTAGE! DO NOT LICK THE DINOSAUR!",
   "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.rex",
+  "text": "WARNING. FECAL MATTER IN THE PADDOCK. NOT MINE.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "m2.rex",
+  "text": "WARNING. LARGER TESTICLES DETECTED. RECALIBRATING.",
+  "from": "ENDGAME"
  },
  {
   "voice": "m2.rex",
@@ -67203,6 +67418,11 @@
   "voice": "m2.rex",
   "text": "WARNING. NUT HATCH. BREACHED.",
   "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.rex",
+  "text": "WARNING. PARK CLOSED. AGAIN.",
+  "from": "ENDGAME"
  },
  {
   "voice": "m2.rex",
@@ -70641,12 +70861,12 @@
  },
  {
   "voice": "m2.satan",
-  "text": "...HUH. NOT BAD FOR A FRISBEE.",
+  "text": "...AND MINE. ALL THREE OF MINE.",
   "from": "ENDGAME"
  },
  {
   "voice": "m2.satan",
-  "text": "...MEHPHISTO? MY MOODY LITTLE BOY?",
+  "text": "...HUH. NOT BAD FOR A FRISBEE.",
   "from": "ENDGAME"
  },
  {
@@ -70656,7 +70876,7 @@
  },
  {
   "voice": "m2.satan",
-  "text": "...THAT'S MY BOY.",
+  "text": "...THAT'S MY WHOLE FAMILY ON A ROPE.",
   "from": "ENDGAME"
  },
  {
@@ -70751,7 +70971,7 @@
  },
  {
   "voice": "m2.satan",
-  "text": "COME, FRISBEE. WE STOMP.",
+  "text": "COME, FRISBEE. WE STOMP HIM. FOR THE KIDS.",
   "from": "ENDGAME"
  },
  {
@@ -70901,6 +71121,11 @@
  },
  {
   "voice": "m2.satan",
+  "text": "FOR MY BOYS. WE GRIND HIM INTO THE PARK.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "m2.satan",
   "text": "GET OFF ME, OLD MAN!",
   "from": "ENDGAME"
  },
@@ -70951,17 +71176,7 @@
  },
  {
   "voice": "m2.satan",
-  "text": "HE NEVER SAID HE LOVED ME. NOW HE NEVER WILL.",
-  "from": "ENDGAME"
- },
- {
-  "voice": "m2.satan",
   "text": "HE OWES ME A SOUL, FRISBEE. I HAD DIBS AT THE CASTLE.",
-  "from": "ENDGAME"
- },
- {
-  "voice": "m2.satan",
-  "text": "HE WAS GOING TO BE A DISAPPOINTMENT. MY DISAPPOINTMENT.",
   "from": "ENDGAME"
  },
  {
@@ -71158,6 +71373,11 @@
   "voice": "m2.satan",
   "text": "MEATHEAD. ONE OF THESE DAYS YOUR SOUL WILL BE MINE FOREVER. THAT TIME IS NOT NOW.",
   "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.satan",
+  "text": "MEHPHISTO. BRATHAZAR. NED. THREE SONS. THREE DISAPPOINTMENTS. MINE.",
+  "from": "ENDGAME"
  },
  {
   "voice": "m2.satan",
@@ -71581,6 +71801,11 @@
  },
  {
   "voice": "m2.satan",
+  "text": "THE MOODY ONE. THE LOUD ONE. AND NED. HE KILLED ALL MY BOYS.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "m2.satan",
   "text": "THE ROOM IS SPINNING. AND I MADE THE ROOM.",
   "from": "ENDGAME"
  },
@@ -71633,11 +71858,6 @@
   "voice": "m2.satan",
   "text": "TICK TOCK, DONALD. YOUR SOUL, OR THE NAKED ONE.",
   "from": "SPOOKY"
- },
- {
-  "voice": "m2.satan",
-  "text": "TO THE PARK. WE GRIND HIM INTO IT.",
-  "from": "ENDGAME"
  },
  {
   "voice": "m2.satan",
@@ -72651,7 +72871,7 @@
  },
  {
   "voice": "m2.space.alien",
-  "text": "YES, MOTHER! FULL POWER!",
+  "text": "YES, MA'AM! FULL POWER!",
   "from": "ENDGAME"
  },
  {
@@ -73391,6 +73611,11 @@
  },
  {
   "voice": "m2.space.futurepa",
+  "text": "MONORAIL SERVICE IS SUSPENDED. SO IS THE MONORAIL. FROM A TREE.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "m2.space.futurepa",
   "text": "NOW ENTERING THE GIANT ATOM: ONE NUDE MAN. GOD HELP THE NEUTRONS.",
   "from": "SPACE"
  },
@@ -73453,6 +73678,11 @@
   "voice": "m2.space.futurepa",
   "text": "THE MONORAIL OF TOMORROW IS EXPRESS ONLY. IT HAS NEVER STOPPED. IT CANNOT STOP.",
   "from": "SPACE"
+ },
+ {
+  "voice": "m2.space.futurepa",
+  "text": "THE PEOPLE MOVER HAS MOVED ITS LAST PEOPLE.",
+  "from": "ENDGAME"
  },
  {
   "voice": "m2.space.futurepa",
@@ -75301,6 +75531,11 @@
  },
  {
   "voice": "m2.space.ridepa",
+  "text": "VOYAGE TO 2010 HAS BEEN DELAYED. IT WAS ALREADY LATE.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "m2.space.ridepa",
   "text": "WELCOME ABOARD THE ALL NEW VOYAGE TO 2010! REBUILT AFTER AN INCIDENT! PRESENTED BY PROGRESSCO.",
   "from": "SPACE"
  },
@@ -75931,6 +76166,11 @@
  },
  {
   "voice": "m2.spooky.clerk",
+  "text": "THE DRIVE-THRU IS CLOSED. HE DROVE THROUGH.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "m2.spooky.clerk",
   "text": "WELCOME TO THE GIFT SHOP OF THE DAMNED! DIE!",
   "from": "SPOOKY"
  },
@@ -75973,6 +76213,11 @@
   "voice": "m2.spooky.clerkf",
   "text": "COVER IT WITH A TOTE BAG! A SMALL ONE WILL DO!",
   "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.spooky.clerkf",
+  "text": "EVERYTHING IN HELL MUST GO. IT WENT.",
+  "from": "ENDGAME"
  },
  {
   "voice": "m2.spooky.clerkf",
@@ -76233,6 +76478,21 @@
   "voice": "m2.spooky.mashkid",
   "text": "HE RINGS BELLS. YOU RING NOTHING.",
   "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.spooky.mashkid",
+  "text": "HE SAID THESE RIDES WERE FOR BABIES. HE'S THE ONE IN A DIAPER.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "m2.spooky.mashkid",
+  "text": "HE SAID THESE RIDES WERE FOR BABIES. MOM, WHY IS HIS THING OUT?",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "m2.spooky.mashkid",
+  "text": "HE SAID THESE RIDES WERE FOR BABIES. NOW THEY'RE FOR NOBODY.",
+  "from": "ENDGAME"
  },
  {
   "voice": "m2.spooky.mashkid",
@@ -77166,17 +77426,22 @@
  },
  {
   "voice": "m2.wp.goth",
-  "text": "BRO. RUN.",
+  "text": "BRO. RUN. GET DAD.",
   "from": "ENDGAME"
  },
  {
   "voice": "m2.wp.goth",
-  "text": "BRO. RUN. DON'T LOOK BACK. HE'S NAKED.",
+  "text": "BRO. RUN. GET DAD. HE REEKS.",
   "from": "ENDGAME"
  },
  {
   "voice": "m2.wp.goth",
-  "text": "BRO. RUN. HE SMELLS LIKE DEATH.",
+  "text": "BRO. RUN. GET DAD. HE'S NAKED.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "m2.wp.goth",
+  "text": "DAD SAID KILL YOU. HE DIDN'T SAY YOU'D BE NAKED.",
   "from": "ENDGAME"
  },
  {
@@ -77201,22 +77466,32 @@
  },
  {
   "voice": "m2.wp.goth",
+  "text": "DAD'S GONNA SMELL YOU FROM HELL.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "m2.wp.goth",
   "text": "DAD'S NEVER GETTING GRANDKIDS. FROM ME. WHATEVER.",
   "from": "UPGRADES"
  },
  {
   "voice": "m2.wp.goth",
-  "text": "DID HE SEE? DON'T TELL HIM ABOUT THE NAKED PART.",
+  "text": "DAD'S NOT WATCHING. HE NEVER IS. WHATEVER.",
   "from": "ENDGAME"
  },
  {
   "voice": "m2.wp.goth",
-  "text": "DID HE SEE? DON'T TELL HIM YOU WERE SHITTY.",
+  "text": "DID DAD SEE? DON'T TELL NED HE WAS NAKED.",
   "from": "ENDGAME"
  },
  {
   "voice": "m2.wp.goth",
-  "text": "DID HE SEE? TELL ME HE DIDN'T SEE.",
+  "text": "DID DAD SEE? DON'T TELL NED HE WAS SHITTY.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "m2.wp.goth",
+  "text": "DID DAD SEE? DON'T TELL NED.",
   "from": "ENDGAME"
  },
  {
@@ -77311,6 +77586,16 @@
  },
  {
   "voice": "m2.wp.goth",
+  "text": "MY BROTHER NED DIGS UP CORPSES. THEY SMELL BETTER THAN YOU.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "m2.wp.goth",
+  "text": "MY BROTHER NED RAISES THE DEAD. HE COULDN'T RAISE THAT.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "m2.wp.goth",
   "text": "MY BROTHER WOULD BE SCREAMING BY NOW. LAME.",
   "from": "ENDGAME"
  },
@@ -77338,6 +77623,26 @@
   "voice": "m2.wp.goth",
   "text": "MY VOICE WENT UP. YOUR SMELL STAYED THE SAME.",
   "from": "UPGRADES"
+ },
+ {
+  "voice": "m2.wp.goth",
+  "text": "NED GOT A WHOLE PARKING LOT. DAD GAVE ME A CAVE.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "m2.wp.goth",
+  "text": "NED'S GONNA TELL DAD A NAKED GUY DID THIS.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "m2.wp.goth",
+  "text": "NED'S GONNA TELL DAD A SHITTY GUY DID THIS.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "m2.wp.goth",
+  "text": "NED'S GONNA TELL DAD. NED TELLS DAD EVERYTHING.",
+  "from": "ENDGAME"
  },
  {
   "voice": "m2.wp.goth",
@@ -78541,6 +78846,26 @@
  },
  {
   "voice": "m2.wp.kid",
+  "text": "GUPPLAX IS MOM'S FAVORITE. SHE SENT ME FIRST.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "m2.wp.kid",
+  "text": "GUPPLAX! HE STINKS! HELP!",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "m2.wp.kid",
+  "text": "GUPPLAX! HE'S NAKED! HELP!",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "m2.wp.kid",
+  "text": "GUPPLAX! HELP! HE NEVER HELPS!",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "m2.wp.kid",
   "text": "HOLD STILL. I'M SQUEEZING.",
   "from": "ENDGAME"
  },
@@ -78731,17 +79056,17 @@
  },
  {
   "voice": "m2.wp.kid",
-  "text": "MOM SAYS IF I KILL YOU I CAN HAVE MY OWN POD. I'M TWENTY-SIX.",
+  "text": "MOM SAYS KILL YOU AND I GET MY OWN POD. BEFORE MY BROTHER GUPPLAX DOES.",
   "from": "ENDGAME"
  },
  {
   "voice": "m2.wp.kid",
-  "text": "MOM SAYS KILL YOU AND I GET MY OWN POD. AND WASH MY HANDS AFTER.",
+  "text": "MOM SAYS KILL YOU AND I GET MY OWN POD. MY BROTHER GUPPLAX CAN'T SEE THIS.",
   "from": "ENDGAME"
  },
  {
   "voice": "m2.wp.kid",
-  "text": "MOM SAYS KILL YOU AND I GET MY OWN POD. DON'T MAKE IT WEIRD.",
+  "text": "MOM SAYS KILL YOU AND I GET MY OWN POD. MY BROTHER GUPPLAX GETS THE SMELL.",
   "from": "ENDGAME"
  },
  {
@@ -78787,6 +79112,11 @@
  {
   "voice": "m2.wp.kid",
   "text": "MY BACK HAS A BACK. IT HURTS TOO.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "m2.wp.kid",
+  "text": "MY BROTHER GUPPLAX SWIMS NAKED TOO. I HATE IT.",
   "from": "ENDGAME"
  },
  {
@@ -78976,6 +79306,21 @@
  },
  {
   "voice": "m2.wp.kid",
+  "text": "TELL GUPPLAX... BRING A HOSE.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "m2.wp.kid",
+  "text": "TELL GUPPLAX... DON'T LOOK AT IT.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "m2.wp.kid",
+  "text": "TELL GUPPLAX... HE CAN HAVE MY POD.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "m2.wp.kid",
   "text": "TELL MOM... I CLEANED MY POD.",
   "from": "ENDGAME"
  },
@@ -79056,7 +79401,27 @@
  },
  {
   "voice": "m2.wp.kid",
+  "text": "YOU KILLED MY DAD. HE WAS MY UNCLE TOO. MOM'S A WIDOW NOW.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "m2.wp.kid",
+  "text": "YOU KILLED MY DAD. NAKED? MOM'S A WIDOW AND YOU'RE NAKED.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "m2.wp.kid",
+  "text": "YOU KILLED MY DAD. WITH YOUR ASS, BY THE SMELL. MOM'S A WIDOW NOW.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "m2.wp.kid",
   "text": "YOU SMELL AND I HURT. WORST DAY EVER.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "m2.wp.kid",
+  "text": "YOU SMELL LIKE MY BROTHER GUPPLAX'S TANK.",
   "from": "ENDGAME"
  },
  {
@@ -79077,21 +79442,6 @@
  {
   "voice": "m2.wp.kid",
   "text": "YOU'RE SO SMOOTH. I HATE THIS.",
-  "from": "ENDGAME"
- },
- {
-  "voice": "m2.wp.kid",
-  "text": "YOU'RE THE GUY WHO KILLED MY DAD. AND MY UNCLE. SAME GUY. HE WAS BOTH.",
-  "from": "ENDGAME"
- },
- {
-  "voice": "m2.wp.kid",
-  "text": "YOU'RE THE GUY WHO KILLED MY DAD. AND YOU'RE NAKED. MOM DIDN'T SAY THAT.",
-  "from": "ENDGAME"
- },
- {
-  "voice": "m2.wp.kid",
-  "text": "YOU'RE THE GUY WHO KILLED MY DAD. YOU SMELL LIKE YOU KILLED HIM WITH YOUR ASS.",
   "from": "ENDGAME"
  },
  {
@@ -80263,16 +80613,6 @@
   "voice": "meathead",
   "text": "A DESK DRAWER REVOLVER! WHAT KIND OF OFFICE IS THIS?!",
   "from": "HAZARD_HURT"
- },
- {
-  "voice": "meathead",
-  "text": "A DEVIL KID PRETZEL. IT FLOATS. IT'S BETTER THAN MY PANTS.",
-  "from": "ENDGAME"
- },
- {
-  "voice": "meathead",
-  "text": "A DEVIL KID PRETZEL. IT FLOATS. NOW I HAVE A SEAT.",
-  "from": "ENDGAME"
  },
  {
   "voice": "meathead",
@@ -81776,11 +82116,6 @@
  },
  {
   "voice": "meathead",
-  "text": "A PRETZEL. A LAVA-PROOF PRETZEL. MADE OF DEVIL KIDS.",
-  "from": "ENDGAME"
- },
- {
-  "voice": "meathead",
   "text": "A PRINCESS MAKEOVER. I AM ALREADY A TEN.",
   "from": "FANTASY"
  },
@@ -82701,6 +83036,16 @@
  },
  {
   "voice": "meathead",
+  "text": "A VINE OVER A RIVER ON FIRE. IN SHITTY PANTS. GREAT.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "meathead",
+  "text": "A VINE OVER A RIVER ON FIRE. NAKED. GREAT.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "meathead",
   "text": "A VIRGIN SNIPED ME!",
   "from": "FANTASY"
  },
@@ -83218,6 +83563,21 @@
   "voice": "meathead",
   "text": "ALL DEAD. THE WINDOW AGAIN. I KNOW THE WAY.",
   "from": "FANTASY"
+ },
+ {
+  "voice": "meathead",
+  "text": "ALL FIVE WERE YOURS? ONE MADE ME SHIT MYSELF. WE'RE NOT EVEN.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "meathead",
+  "text": "ALL FIVE WERE YOURS? THEN YOU RAISED FIVE ASSHOLES.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "meathead",
+  "text": "ALL FIVE WERE YOURS? THEY SAW ME NAKED. THEY WERE DONE ANYWAY.",
+  "from": "ENDGAME"
  },
  {
   "voice": "meathead",
@@ -84703,11 +85063,6 @@
   "voice": "meathead",
   "text": "BEST THING I'VE SEEN ALL DAY. AND I'VE SEEN MY PANTS.",
   "from": "CARTOON"
- },
- {
-  "voice": "meathead",
-  "text": "BEST TUBE I EVER RODE. A LITTLE BONY IN THE MIDDLE.",
-  "from": "ENDGAME"
  },
  {
   "voice": "meathead",
@@ -87626,6 +87981,21 @@
  },
  {
   "voice": "meathead",
+  "text": "DEVIL KID PRETZEL. CLEANER THAN MY PANTS.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "meathead",
+  "text": "DEVIL KID PRETZEL. FINALLY, A SEAT.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "meathead",
+  "text": "DEVIL KID PRETZEL. LAVA PROOF.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "meathead",
   "text": "DEVIL POPSICLE. WIDOW FLAMBE.",
   "from": "ENDGAME"
  },
@@ -87963,11 +88333,6 @@
   "voice": "meathead",
   "text": "DON'T LOOK UP, EVERYBODY. IT DRIPS.",
   "from": "CARTOON"
- },
- {
-  "voice": "meathead",
-  "text": "DON'T MIND IF I DO.",
-  "from": "ENDGAME"
  },
  {
   "voice": "meathead",
@@ -90566,7 +90931,12 @@
  },
  {
   "voice": "meathead",
-  "text": "GET BACK HERE. I'M NAKED AND I'M FAST.",
+  "text": "GET BACK HERE! I'M NAKED AND I'M FAST!",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "meathead",
+  "text": "GET BACK HERE! YOU CAN'T OUTRUN THE SMELL!",
   "from": "ENDGAME"
  },
  {
@@ -92421,21 +92791,6 @@
  },
  {
   "voice": "meathead",
-  "text": "HE DEFLATED. I'M STILL NAKED. NOBODY WINS.",
-  "from": "ENDGAME"
- },
- {
-  "voice": "meathead",
-  "text": "HE DEFLATED. LIKE A BOUNCY CASTLE. A GROSS ONE.",
-  "from": "ENDGAME"
- },
- {
-  "voice": "meathead",
-  "text": "HE DEFLATED. NOW WE BOTH SMELL.",
-  "from": "ENDGAME"
- },
- {
-  "voice": "meathead",
   "text": "HE DIED IN THE SHIT FOG.",
   "from": "FANTASY"
  },
@@ -92878,21 +93233,6 @@
   "voice": "meathead",
   "text": "HE POLLED MY FACE!",
   "from": "CARTOON"
- },
- {
-  "voice": "meathead",
-  "text": "HE POPPED ON MY BARE EVERYTHING.",
-  "from": "ENDGAME"
- },
- {
-  "voice": "meathead",
-  "text": "HE POPPED. HE WAS MOSTLY PUS.",
-  "from": "ENDGAME"
- },
- {
-  "voice": "meathead",
-  "text": "HE POPPED. IT'S ON ME. IT'S WITH THE OTHER STUFF.",
-  "from": "ENDGAME"
  },
  {
   "voice": "meathead",
@@ -93556,7 +93896,17 @@
  },
  {
   "voice": "meathead",
+  "text": "HE'S CLAMMY. I'M NAKED. NO.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "meathead",
   "text": "HE'S CLAMMY. I'M NOT GRABBING THAT.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "meathead",
+  "text": "HE'S CLAMMY. I'M SHITTY. NO.",
   "from": "ENDGAME"
  },
  {
@@ -93862,6 +94212,16 @@
  {
   "voice": "meathead",
   "text": "HEAT ATE MY CHARGE AGAIN.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "meathead",
+  "text": "HEAT ATE MY CHARGE. AND MY LEG HAIR.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "meathead",
+  "text": "HEAT ATE MY CHARGE. LEFT THE SHIT.",
   "from": "ENDGAME"
  },
  {
@@ -94991,6 +95351,11 @@
  },
  {
   "voice": "meathead",
+  "text": "HOT SHIT! HOT SHIT!",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "meathead",
   "text": "HOT STEAM IN MY FACE! STOP SCALDING THE MERCHANDISE!",
   "from": "HAZARD_HURT"
  },
@@ -95017,6 +95382,11 @@
  {
   "voice": "meathead",
   "text": "HOT! HOT! A SKELETON THREW FIRE!",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "meathead",
+  "text": "HOT! HOT! DICK FIRST!",
   "from": "ENDGAME"
  },
  {
@@ -97246,16 +97616,6 @@
  },
  {
   "voice": "meathead",
-  "text": "I'LL TAKE ONE. FOR THE SMELL.",
-  "from": "ENDGAME"
- },
- {
-  "voice": "meathead",
-  "text": "I'LL TAKE ONE. I'LL HOLD IT WHERE MY POCKET WOULD BE.",
-  "from": "ENDGAME"
- },
- {
-  "voice": "meathead",
   "text": "I'LL TAKE THE BIKE. AND THE GUN.",
   "from": "m1/game/stages/oscar/bunker.ts:505"
  },
@@ -97798,6 +98158,16 @@
   "voice": "meathead",
   "text": "I'M NOT HERE FOR THE RIDES. I'M HERE TO GET RODE.",
   "from": "FANTASY"
+ },
+ {
+  "voice": "meathead",
+  "text": "I'M NOT HUGGING A GOTH IN THESE PANTS.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "meathead",
+  "text": "I'M NOT HUGGING A GOTH NAKED.",
+  "from": "ENDGAME"
  },
  {
   "voice": "meathead",
@@ -99511,7 +99881,17 @@
  },
  {
   "voice": "meathead",
+  "text": "IT'S FALLING APART! LIKE MY PANTS!",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "meathead",
   "text": "IT'S FALLING APART! MOVE!",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "meathead",
+  "text": "IT'S FALLING APART! SPLINTERS! BALLS!",
   "from": "ENDGAME"
  },
  {
@@ -99552,6 +99932,16 @@
  {
   "voice": "meathead",
   "text": "IT'S GOING OVER!",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "meathead",
+  "text": "IT'S GOING OVER! NAKED! OFF!",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "meathead",
+  "text": "IT'S GOING OVER! SHIT AND ALL!",
   "from": "ENDGAME"
  },
  {
@@ -99716,7 +100106,17 @@
  },
  {
   "voice": "meathead",
+  "text": "IT'S MELTING INTO MY PANTS!",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "meathead",
   "text": "IT'S MELTING!",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "meathead",
+  "text": "IT'S MELTING! NOT ON MY DICK!",
   "from": "ENDGAME"
  },
  {
@@ -101851,7 +102251,7 @@
  },
  {
   "voice": "meathead",
-  "text": "MORNING, ASSHOLES. WHO WANTS TO DIE FIRST?",
+  "text": "MORNING, ASSHOLES. THESE FIVE YOURS? THEY WERE IN MY WAY.",
   "from": "ENDGAME"
  },
  {
@@ -101861,12 +102261,12 @@
  },
  {
   "voice": "meathead",
-  "text": "MORNING. DON'T MIND THE PANTS. WHO'S FIRST?",
+  "text": "MORNING. THESE FIVE YOURS? DON'T LOOK AT MY DICK. LOOK AT THEM.",
   "from": "ENDGAME"
  },
  {
   "voice": "meathead",
-  "text": "MORNING. YES, I WALKED HERE NAKED. WHO DIES FIRST?",
+  "text": "MORNING. THESE FIVE YOURS? ONE OF THEM MADE ME SHIT.",
   "from": "ENDGAME"
  },
  {
@@ -103006,6 +103406,11 @@
  },
  {
   "voice": "meathead",
+  "text": "MY SHIT'S ON FIRE!",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "meathead",
   "text": "MY SHOULDER JUST BOUNCES OFF THIS GUY. WHAT ELSE I GOT?",
   "from": "FINALE_LINES"
  },
@@ -103493,11 +103898,6 @@
   "voice": "meathead",
   "text": "NAKED ON A COASTER. WIND IN MY EVERYTHING.",
   "from": "FANTASY"
- },
- {
-  "voice": "meathead",
-  "text": "NAKED ON A DEAD ALIEN, A THOUSAND FEET. NEW RECORD.",
-  "from": "ENDGAME"
  },
  {
   "voice": "meathead",
@@ -104386,6 +104786,16 @@
  },
  {
   "voice": "meathead",
+  "text": "NO CHARGE OVER LAVA. JUST BALLS.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "meathead",
+  "text": "NO CHARGE OVER LAVA. JUST STINK.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "meathead",
   "text": "NO CHARGE!",
   "from": "ENEMY_KILL_LINES"
  },
@@ -105111,11 +105521,6 @@
  },
  {
   "voice": "meathead",
-  "text": "NOBODY LEAVES. NOT EVEN ME, AND I SMELL LIKE THIS.",
-  "from": "ENDGAME"
- },
- {
-  "voice": "meathead",
   "text": "NOBODY LEFT TO CHARGE ME FOR THE SMELL. I AM OUT.",
   "from": "FRONTIER"
  },
@@ -105416,6 +105821,11 @@
  },
  {
   "voice": "meathead",
+  "text": "NOT NAKED! NOT THE RIVER!",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "meathead",
   "text": "NOT NOW. MY ASS IS A CRIME SCENE.",
   "from": "CARTOON"
  },
@@ -105582,6 +105992,11 @@
  {
   "voice": "meathead",
   "text": "NOT THE RIVER!",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "meathead",
+  "text": "NOT THE RIVER! NOT IN THESE PANTS!",
   "from": "ENDGAME"
  },
  {
@@ -105921,12 +106336,12 @@
  },
  {
   "voice": "meathead",
-  "text": "NOW THIS IS A LAZY RIVER. IT'S WARM UNDER ME. IT'S NOT ME.",
+  "text": "NOW THIS IS A LAZY RIVER. THE WARM SPOT'S NOT ME.",
   "from": "ENDGAME"
  },
  {
   "voice": "meathead",
-  "text": "NOW THIS IS A LAZY RIVER. THE FIRE'S WARMING MY ASS.",
+  "text": "NOW THIS IS A LAZY RIVER. WARM ON THE BALLS.",
   "from": "ENDGAME"
  },
  {
@@ -106041,7 +106456,17 @@
  },
  {
   "voice": "meathead",
+  "text": "OFF THE LOG! NAKED! NOW!",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "meathead",
   "text": "OFF THE LOG! OFF!",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "meathead",
+  "text": "OFF THE LOG! THE SHIT'S COOKING!",
   "from": "ENDGAME"
  },
  {
@@ -106061,7 +106486,17 @@
  },
  {
   "voice": "meathead",
+  "text": "OFF! BEFORE IT COOKS MY LOAD!",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "meathead",
   "text": "OFF! GET OFF IT!",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "meathead",
+  "text": "OFF! HOT PLASTIC! BARE ASS!",
   "from": "ENDGAME"
  },
  {
@@ -109211,11 +109646,6 @@
  },
  {
   "voice": "meathead",
-  "text": "RIDING A DEAD ALIEN DOWN A THOUSAND FEET. PUT THAT ON THE BROCHURE.",
-  "from": "ENDGAME"
- },
- {
-  "voice": "meathead",
   "text": "RIDING A DRAGON IN SHIT PANTS. CLASSY.",
   "from": "FANTASY"
  },
@@ -109223,11 +109653,6 @@
   "voice": "meathead",
   "text": "RIDING IN A FULL DIAPER. LET'S GO.",
   "from": "FRONTIER"
- },
- {
-  "voice": "meathead",
-  "text": "RIDING THE KID DOWN BARE ASS. HE'S STILL WARM. DON'T THINK ABOUT IT.",
-  "from": "ENDGAME"
  },
  {
   "voice": "meathead",
@@ -112946,7 +113371,17 @@
  },
  {
   "voice": "meathead",
+  "text": "STEAM. NOW I'M A STEAMED TURD.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "meathead",
   "text": "STEAM. ON MY BARE ASS.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "meathead",
+  "text": "STEAM. RIGHT UP THE CRACK.",
   "from": "ENDGAME"
  },
  {
@@ -113163,11 +113598,6 @@
   "voice": "meathead",
   "text": "STILL DON'T KNOW YOU. YOU LOOK LIKE A DAD AT TEE BALL.",
   "from": "CARTOON"
- },
- {
-  "voice": "meathead",
-  "text": "STILL FIGHTING OVER ME? I GET IT. LOOK AT ALL OF ME.",
-  "from": "ENDGAME"
  },
  {
   "voice": "meathead",
@@ -113832,6 +114262,16 @@
  {
   "voice": "meathead",
   "text": "SWIMMING THROUGH CORPSES. SIX BUCKS A TUBE.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "meathead",
+  "text": "SWING. DON'T THINK. BALLS OVER LAVA.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "meathead",
+  "text": "SWING. DON'T THINK. DON'T DRIP.",
   "from": "ENDGAME"
  },
  {
@@ -116901,11 +117341,6 @@
  },
  {
   "voice": "meathead",
-  "text": "THE KID'S CUSHIONING MY SHIT. ALL THE WAY DOWN.",
-  "from": "ENDGAME"
- },
- {
-  "voice": "meathead",
   "text": "THE KID'S ON A TRACK. FINALLY, A RIDE WITH A TRACK. IT'S A ROBOT.",
   "from": "CARTOON"
  },
@@ -117061,7 +117496,17 @@
  },
  {
   "voice": "meathead",
+  "text": "THE LOG'S DONE! BALLS UP! JUMP!",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "meathead",
   "text": "THE LOG'S DONE! JUMP!",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "meathead",
+  "text": "THE LOG'S DONE! MY ASS IS NEXT!",
   "from": "ENDGAME"
  },
  {
@@ -118406,11 +118851,6 @@
  },
  {
   "voice": "meathead",
-  "text": "THE WATER'S GOING GREEN. AND BROWN. MOSTLY GREEN.",
-  "from": "ENDGAME"
- },
- {
-  "voice": "meathead",
   "text": "THE WATER'S ON FIRE! HOW IS THE WATER ON FIRE?!",
   "from": "HOLLYWOOD"
  },
@@ -118508,6 +118948,11 @@
   "voice": "meathead",
   "text": "THE WHOLE THEATER'S PLYWOOD AND SANDBAGS. JUST LIKE MY UNCLE'S HOUSE.",
   "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "meathead",
+  "text": "THE WHOLE WATER PARK WAS YOUR KIDS? GET A SITTER.",
+  "from": "ENDGAME"
  },
  {
   "voice": "meathead",
@@ -119006,23 +119451,8 @@
  },
  {
   "voice": "meathead",
-  "text": "THEY HAD IT COMING. I SHIT MYSELF FIGHTING THEM. THAT'S ON THEM.",
-  "from": "ENDGAME"
- },
- {
-  "voice": "meathead",
-  "text": "THEY HAD IT COMING. ONE OF THEM HAD THREE ARMS.",
-  "from": "ENDGAME"
- },
- {
-  "voice": "meathead",
   "text": "THEY HAD IT COMING. SO DO YOU, FOUR EYES.",
   "from": "FRONTIER"
- },
- {
-  "voice": "meathead",
-  "text": "THEY HAD IT COMING. THEY SAW ME NAKED. THEY WERE DONE ANYWAY.",
-  "from": "ENDGAME"
  },
  {
   "voice": "meathead",
@@ -121741,23 +122171,8 @@
  },
  {
   "voice": "meathead",
-  "text": "WHAT? I LOST MY PANTS KILLING THEM. WE'RE EVEN.",
-  "from": "ENDGAME"
- },
- {
-  "voice": "meathead",
   "text": "WHAT? MY GUN TALKS? AND IT'S BETTER NOW?",
   "from": "SPACE"
- },
- {
-  "voice": "meathead",
-  "text": "WHAT? THE SMELL IS FROM THE FIGHT. MOSTLY.",
-  "from": "ENDGAME"
- },
- {
-  "voice": "meathead",
-  "text": "WHAT? THEY STARTED IT. I'M PRETTY SURE.",
-  "from": "ENDGAME"
  },
  {
   "voice": "meathead",
@@ -122408,6 +122823,21 @@
   "voice": "meathead",
   "text": "WHO MINES SPACE?!",
   "from": "SPACE"
+ },
+ {
+  "voice": "meathead",
+  "text": "WHO ORDERED FIVE DEAD WEIRDOS?",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "meathead",
+  "text": "WHO ORDERED FIVE DEAD WEIRDOS? THE NAKED GUY DELIVERS.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "meathead",
+  "text": "WHO ORDERED FIVE DEAD WEIRDOS? THE SMELL IS ME. MOSTLY.",
+  "from": "ENDGAME"
  },
  {
   "voice": "meathead",
@@ -123826,16 +124256,6 @@
  },
  {
   "voice": "meathead",
-  "text": "YOU TWO STILL FIGHTING OVER ME? EVEN LIKE THIS? FLATTERED.",
-  "from": "ENDGAME"
- },
- {
-  "voice": "meathead",
-  "text": "YOU TWO STILL FIGHTING OVER ME? I GET IT. LOOK AT ME.",
-  "from": "ENDGAME"
- },
- {
-  "voice": "meathead",
   "text": "YOU WANNA GO? LET'S GO, GECKOS.",
   "from": "ADVENTURE"
  },
@@ -124163,6 +124583,16 @@
   "voice": "meathead",
   "text": "YOUR HEAD SMELLS LIKE A WHOLE FOODS DUMPSTER!",
   "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
+  "text": "YOUR KIDS? I LOST MY PANTS KILLING THEM. YOU OWE ME PANTS.",
+  "from": "ENDGAME"
+ },
+ {
+  "voice": "meathead",
+  "text": "YOUR KIDS? THEY STARTED IT. THE SMELL FINISHED IT.",
+  "from": "ENDGAME"
  },
  {
   "voice": "meathead",
