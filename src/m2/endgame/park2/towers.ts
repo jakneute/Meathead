@@ -99,6 +99,72 @@ const paintRock = (g: Ctx, v: number) => {
   g.fillStyle = INK; g.fillRect(4 + v * 3, -h + 4, 1, 6); g.fillRect(5 + v * 3, -h + 9, 4, 1);
   g.fillStyle = '#C2410C'; g.fillRect(-w + 4, 0, w * 2 - 8, 2); g.fillStyle = '#7C2D12'; checker(g, -w + 6, -3, w * 2 - 12, 3, '#7C2D12');
 };
+/** An inner tube, baked (its own canvas, not a stamp: it's drawn turned with the tower's lean): `ci` its plastic, `cs`
+ *  how charred (0..4), `rw` its half width; painted at a nominal half height TUBE_RH (squashed to fit when drawn).
+ *  The plastic in five steps (the shade under, the body, the lit band, the shine up top-left), each step's edge
+ *  dithered; the dark of the hole where the pole goes through; the valve stem; charred, the color sunk toward black
+ *  in a dithered char, a melted drip, embers. */
+const TUBE_RH = 9;
+const TUBES = new Map<string, HTMLCanvasElement>();
+const tubeImg = (ci: number, cs: number, rw: number) => {
+  const key = `${ci}-${cs}-${rw}`;
+  let cv = TUBES.get(key);
+  if (cv) return cv;
+  cv = document.createElement('canvas'); cv.width = rw * 2 + 6; cv.height = TUBE_RH * 2 + 6;
+  const g = cv.getContext('2d')!, ox = rw + 3, oy = TUBE_RH + 3, k = cs / 4;
+  const base = FLOATS[ci], ramp = [mix(base, INK, 0.62), mix(base, INK, 0.35), base, mix(base, '#FFFFFF', 0.3), mix(base, '#FFFFFF', 0.7)].map(q => mix(q, '#120806', k * 0.85));
+  const E = (x: number, y: number, rx: number, ry: number, col: string) => { g.fillStyle = col; g.beginPath(); g.ellipse(ox + x, oy + y, Math.max(0.5, rx), Math.max(0.5, ry), 0, 0, Math.PI * 2); g.fill(); };
+  E(0, 0, rw + 2, TUBE_RH + 2, INK);
+  E(0, 0, rw, TUBE_RH, ramp[0]);
+  E(-1, -1, rw - 2, TUBE_RH - 2, ramp[1]);
+  E(-2, -2, rw - 5, TUBE_RH - 4, ramp[2]);
+  E(-rw * 0.3, -4, rw * 0.45, 2.5, ramp[3]);
+  // (the steps' edges dithered: every other pixel of the step under it, along each band's foot)
+  const id = g.getImageData(0, 0, cv.width, cv.height), px = id.data;
+  for (let y = 1; y < cv.height - 1; y++) for (let x = 1; x < cv.width - 1; x++) {
+    if ((x + y) % 2) continue;
+    const i = (y * cv.width + x) * 4, j = ((y + 1) * cv.width + x) * 4;
+    if (px[i + 3] && px[j + 3] && (px[i] !== px[j] || px[i + 1] !== px[j + 1] || px[i + 2] !== px[j + 2])) { px[i] = px[j]; px[i + 1] = px[j + 1]; px[i + 2] = px[j + 2]; }
+  }
+  g.putImageData(id, 0, 0);
+  // (the shine: a short bright streak and a fleck, up top-left)
+  g.fillStyle = ramp[4]; g.fillRect(ox - rw * 0.55, oy - TUBE_RH + 2, rw * 0.35, 1); g.fillRect(ox - rw * 0.15, oy - TUBE_RH + 2, 2, 1);
+  // (the hole the pole's through: dark, its far rim lit)
+  E(0, -2, 6, 2.5, INK); g.fillStyle = ramp[1]; g.fillRect(ox - 4, oy - 5, 8, 1);
+  // (a seam round it)
+  g.fillStyle = ramp[1]; for (let x = -rw + 4; x < rw - 4; x += 3) g.fillRect(ox + x, oy + 3, 2, 1);
+  if (cs < 2) { g.fillStyle = INK; g.fillRect(ox + rw * 0.5, oy - 3, 4, 4); g.fillStyle = '#52525B'; g.fillRect(ox + rw * 0.5 + 1, oy - 2, 2, 2); }
+  if (cs >= 1) {
+    // (char: black blotches dithered in, the worse the more of them; a melted drip; embers in the char)
+    for (let n = 0; n < cs * 9; n++) { const x = ox - rw + 3 + ((n * 37) % (rw * 2 - 6)), y = oy - TUBE_RH + 3 + ((n * 13) % (TUBE_RH * 2 - 6)); if (Math.hypot((x - ox) / rw, (y - oy) / TUBE_RH) < 0.9) { g.fillStyle = n % 3 ? '#120806' : '#2A120A'; g.fillRect(x, y, 2, 1); } }
+    g.fillStyle = '#1A0A06'; g.fillRect(ox - rw * 0.3, oy + TUBE_RH - 2, 3, 3 + cs);
+    if (cs >= 2) { g.fillStyle = FIRE[2]; for (let n = 0; n < cs * 2; n++) g.fillRect(ox - rw * 0.6 + ((n * 23) % (rw * 1.2)), oy - 2 + (n % 3) * 2, 1, 1); }
+  }
+  TUBES.set(key, cv);
+  return cv;
+};
+/** The lounger on top, baked: foam in its ramp, banded, slats, the lit lip along its top (stood on); charred in steps. */
+const LOUNGERS = new Map<string, HTMLCanvasElement>();
+const loungerImg = (cs: number, half: number) => {
+  const key = `${cs}-${half}`;
+  let cv = LOUNGERS.get(key);
+  if (cv) return cv;
+  cv = document.createElement('canvas'); cv.width = Math.round(half * 2 + 6); cv.height = 18;
+  const g = cv.getContext('2d')!, k = cs / 4, w = half * 2;
+  const Lr = ['#075985', '#0284C7', '#0EA5E9', '#38BDF8', '#BAE6FD', '#F0F9FF'].map(q => mix(q, '#120806', k * 0.82));
+  g.fillStyle = INK; g.beginPath(); g.roundRect(0, 0, w + 6, 18, 6); g.fill();
+  g.fillStyle = Lr[1]; g.beginPath(); g.roundRect(3, 3, w, 13, 5); g.fill();
+  g.fillStyle = Lr[2]; g.fillRect(5, 4, w - 4, 7);
+  g.fillStyle = Lr[3]; g.fillRect(6, 4, w - 6, 3);
+  checker(g, 5, 10, w - 4, 2, Lr[1]); checker(g, 6, 6, w - 6, 1, Lr[2]);
+  g.fillStyle = Lr[0]; g.fillRect(5, 13, w - 4, 2);
+  for (let x = 13; x < w - 3; x += 16) { g.fillStyle = Lr[0]; g.fillRect(x, 4, 2, 11); g.fillStyle = Lr[3]; g.fillRect(x + 2, 4, 1, 9); }
+  // (the lit lip along its top)
+  g.fillStyle = Lr[4]; g.fillRect(5, 3, w - 4, 2); g.fillStyle = Lr[5]; g.fillRect(10, 3, w * 0.4, 1);
+  if (cs >= 1) for (let n = 0; n < cs * 8; n++) { g.fillStyle = n % 3 ? '#120806' : '#2A120A'; g.fillRect(6 + ((n * 29) % (w - 8)), 5 + ((n * 7) % 9), 2, 1); }
+  LOUNGERS.set(key, cv);
+  return cv;
+};
 const FLOATS = ['#EC4899', '#22D3EE', '#FACC15', '#A3E635', '#F97316', '#A78BFA'];
 const ROCK = ['#1A1410', '#2E2620', '#463A30', '#5E5044'];
 const INK = '#0A0604';
@@ -135,15 +201,11 @@ export const drawTowers2 = (c: Ctx, state: GameState, list: Tower2Run[]) => {
       const ch = burnt((u0 + u1) / 2);
       // (crumbling from the foot: the bottom tubes sagging, squashed)
       const sq = stage === 'crumble' && d.burn === 'base' && i < 2 ? 0.7 : 1;
-      const col = mix(FLOATS[(i + r.i) % FLOATS.length], '#120806', ch * 0.85), rw = 24 + ((i * 7 + r.i * 3) % 3) * 3, rh = Math.max(7, (Math.hypot(p1.x - p0.x, p1.y - p0.y) / 2 + 2) * sq);
+      const rw = 24 + ((i * 7 + r.i * 3) % 3) * 3, rh = Math.max(7, (Math.hypot(p1.x - p0.x, p1.y - p0.y) / 2 + 2) * sq);
       c.save(); c.translate(cx, cy); c.rotate((p0.a + p1.a) / 2);
-      c.fillStyle = INK; c.beginPath(); c.ellipse(0, 0, rw + 2, rh + 2, 0, 0, Math.PI * 2); c.fill();
-      c.fillStyle = mix(col, INK, 0.3); c.beginPath(); c.ellipse(0, 0, rw, rh, 0, 0, Math.PI * 2); c.fill();
-      c.fillStyle = col; c.beginPath(); c.ellipse(-2, -1, rw - 3, rh - 2.5, 0, 0, Math.PI * 2); c.fill();
-      c.fillStyle = mix(col, '#FFFFFF', 0.35 * (1 - ch)); c.fillRect(-rw * 0.6, -rh + 2, rw * 0.5, 2);
-      // (the valve stem; a melted drip off the charred ones)
-      if (ch < 0.5) { c.fillStyle = '#18181B'; c.fillRect(rw * 0.5, -2, 3, 3); }
-      else { c.fillStyle = '#1A0A06'; c.fillRect(-rw * 0.3, rh - 2, 3, 5 + (i % 2) * 3); }
+      // (baked: the tube in its plastic's ramp, charred in steps; put down turned and squashed to fit)
+      const tc = tubeImg((i + r.i) % FLOATS.length, Math.round(ch * 4), rw);
+      c.drawImage(tc, -rw - 3, -rh - 3, rw * 2 + 6, rh * 2 + 6);
       if (ch > 0.2 && ch < 1) { c.fillStyle = (f + i * 7) % 24 < 12 ? FIRE[3] : FIRE[2]; c.fillRect(-rw * 0.5 + (i % 3) * 6, -1, 6, 1); }
       c.restore();
       if (ch > 0.55) flame(c, cx + Math.cos(t.ang) * (rw * 0.4), cy - rh + 4, 9, 18 + ch * 14, f, r.i * 7 + i);
@@ -151,13 +213,8 @@ export const drawTowers2 = (c: Ctx, state: GameState, list: Tower2Run[]) => {
     // (the lounger on top: foam, banded, its lit top edge (stood on); charred, burning when it's 'top' and going)
     const top = at(1), tilt = t.ang * 0.3, lch = burnt(1);
     c.save(); c.translate(top.x, top.y); c.rotate(tilt);
-    const L = [mix('#0EA5E9', '#120806', lch * 0.8), mix('#38BDF8', '#120806', lch * 0.8), mix('#BAE6FD', '#120806', lch * 0.85)];
-    c.fillStyle = INK; c.beginPath(); c.roundRect(-half - 3, -3, half * 2 + 6, 18, 6); c.fill();
-    c.fillStyle = L[0]; c.beginPath(); c.roundRect(-half, 0, half * 2, 13, 5); c.fill();
-    c.fillStyle = L[1]; c.fillRect(-half + 3, 2, half * 2 - 6, 5);
-    for (let x = -half + 10; x < half - 6; x += 16) { c.fillStyle = L[0]; c.fillRect(x, 1, 2, 11); }
-    // (the lit lip along its top)
-    c.fillStyle = L[2]; c.fillRect(-half + 2, 0, half * 2 - 4, 2);
+    // (baked: the foam in its ramp, its slats, the lit lip along its top; charred in steps)
+    c.drawImage(loungerImg(Math.round(lch * 4), half), -half - 3, -3, half * 2 + 6, 18);
     c.restore();
     if (lch > 0.3) fireRow(c, top.x - half + 8, top.x + half - 8, top.y + 2, 18 + lch * 20, f, 18, r.i * 3, bootsOn(state, top.x - half, top.x + half, top.y));
     // (the smoke off it once it's caught)

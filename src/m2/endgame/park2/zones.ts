@@ -741,12 +741,43 @@ const midCaves = (g: Ctx, j: number, sp: Spot[]) => {
 };
 
 const midGrotto = (g: Ctx, j: number, sp: Spot[]) => {
-  // (purple rock cliffs, skull-ish knobs worn into them, a few bones, candles burning in niches)
+  // (purple rock cliffs, the fiberglass kind: lit along the ridge by the moon, banded down darker into the shadow at the
+  // foot, each band's edge dithered; strata lines across it, lit on their upper lips; cracks; skull-ish knobs worn into
+  // it, each shaded round (lit top-left, shade under), their sockets deep; a candle burning in a niche over each; bones)
   const Rk = ramp5(m('#4A2A5A'));
-  g.fillStyle = INK; g.beginPath(); g.moveTo(0, MG); for (let x = 0; x <= MID_W; x += 20) g.lineTo(x, MG - 260 - Math.sin(x * 0.02 + j) * 60 - hash(x + j) * 30); g.lineTo(MID_W, MG); g.fill();
-  g.fillStyle = Rk[2]; g.beginPath(); g.moveTo(0, MG); for (let x = 0; x <= MID_W; x += 20) g.lineTo(x, MG - 256 - Math.sin(x * 0.02 + j) * 60 - hash(x + j) * 30); g.lineTo(MID_W, MG); g.fill();
-  for (let y = MG - 300; y < MG; y += 26) checker(g, 0, y, MID_W, 4, Rk[1]);
-  for (let k = 0; k < 3; k++) { const x = 60 + k * 130, y = MG - 140 - (k % 2) * 50; ell(g, x, y, 24, 22, Rk[3]); ell(g, x - 8, y, 6, 7, INK); ell(g, x + 8, y, 6, 7, INK); R(g, x - 8, y + 12, 16, 4, INK); R(g, x - 4, y - 40, 8, 10, INK); R(g, x - 2, y - 38, 4, 6, '#F5F0E6'); sp.push([x, y - 40, 8, 12]); }
+  const ridge = (x: number) => MG - 256 - Math.sin(x * 0.02 + j) * 60 - hash(x + j) * 30;
+  const shape = (dy: number) => { g.beginPath(); g.moveTo(0, MG); for (let x = 0; x <= MID_W; x += 20) g.lineTo(x, ridge(x) + dy); g.lineTo(MID_W, MG); g.closePath(); };
+  g.fillStyle = INK; shape(-4); g.fill();
+  g.save(); shape(0); g.clip();
+  // (the bands down it: lit at the ridge, the body, darker toward the foot)
+  const top = MG - 340;
+  const bands: [number, string][] = [[top, Rk[3]], [MG - 300, Rk[2]], [MG - 170, Rk[1]], [MG - 70, Rk[0]]];
+  bands.forEach(([y, col], k) => { const y1 = k < bands.length - 1 ? bands[k + 1][0] : MG; R(g, 0, y, MID_W, y1 - y, col); if (k) checker(g, 0, y - 4, MID_W, 4, col); });
+  // (the ridge's lit lip, following it down a little)
+  for (let x = 0; x < MID_W; x += 2) { const y = Math.round(ridge(x)); R(g, x, y, 2, 3, Rk[4]); if ((x >> 1) % 2) R(g, x, y + 3, 2, 2, Rk[3]); }
+  // (strata across it: a dark line, lit just over it)
+  for (let n = 0; n < 6; n++) {
+    let y = MG - 250 + n * 40 + hash(j * 5 + n) * 10;
+    for (let x = 0; x < MID_W; x += 4) { y += (hash(n * 17 + x + j) - 0.5) * 2; R(g, x, y, 4, 2, Rk[0]); if (n < 4) R(g, x, y - 1, 4, 1, Rk[n < 2 ? 3 : 2]); }
+  }
+  // (cracks: a jag down from a stratum)
+  for (let n = 0; n < 4; n++) { let x = 30 + hash(j * 3 + n) * 340, y = MG - 230 + hash(n + j) * 120; for (let q = 0; q < 8; q++) { const nx = x + (hash(q + n * 9) - 0.5) * 10, ny = y + 6; stroke(g, [[x, y], [nx, ny]], 2, INK); x = nx; y = ny; } }
+  g.restore();
+  // (the skulls worn into it: round, shaded, the sockets deep and lit faintly red from inside; a candle in a niche over each)
+  for (let k = 0; k < 3; k++) {
+    const x = 60 + k * 130, y = MG - 140 - (k % 2) * 50;
+    ell(g, x + 1, y + 1, 26, 24, INK); ell(g, x, y, 24, 22, Rk[2]); ell(g, x - 4, y - 4, 19, 16, Rk[3]); ell(g, x - 9, y - 10, 8, 6, Rk[4]);
+    checker(g, x - 20, y + 6, 40, 4, Rk[1]); ell(g, x + 6, y + 14, 14, 6, Rk[1]);
+    for (const ex of [-8, 8]) { ell(g, x + ex, y, 7, 8, Rk[0]); ell(g, x + ex, y + 1, 6, 7, INK); R(g, x + ex - 1, y + 2, 2, 2, '#7F1D1D'); }
+    R(g, x - 2, y + 7, 4, 4, INK);
+    for (let t = 0; t < 4; t++) { R(g, x - 9 + t * 5, y + 12, 4, 5, Rk[4]); R(g, x - 9 + t * 5, y + 16, 4, 1, Rk[1]); }
+    // (the niche over it, the candle in it)
+    R(g, x - 7, y - 44, 14, 14, INK); R(g, x - 6, y - 43, 12, 12, '#1A0E22'); R(g, x - 7, y - 30, 14, 2, Rk[3]);
+    R(g, x - 2, y - 38, 4, 6, '#F5F0E6'); R(g, x + 1, y - 38, 1, 6, '#C8BFAE'); sp.push([x, y - 40, 8, 12]);
+  }
+  // (bones lying along its foot)
+  const Bn = ramp5(m('#E7E0D0'));
+  for (let k = 0; k < 4; k++) { const x = 20 + k * 100 + hash(j + k * 7) * 40, y = MG - 6; R(g, x, y - 1, 22, 4, INK); R(g, x + 1, y, 20, 2, Bn[2]); R(g, x + 1, y, 20, 1, Bn[3]); for (const bx of [x, x + 21]) { ell(g, bx, y - 1, 3, 3, INK); ell(g, bx, y - 1, 2, 2, Bn[3]); } }
 };
 
 const midBack = (g: Ctx, j: number, sp: Spot[]) => {
@@ -775,12 +806,13 @@ const paintMid = (g: Ctx, z: ZoneId, j: number, sp: Spot[]) => {
   g.save(); if (mirrored(z, j)) { g.translate(MID_W, 0); g.scale(-1, 1); }
   MIDS[z](g, j, sp);
   g.restore();
-  // (the caves' rock, where the next tile over isn't the caves: a ragged edge of it, the cave's mouth, not a cut)
+  // (the caves' rock and the grotto's cliffs, where the next tile over is another zone (the one into the other too): a
+  // ragged edge of it, not a straight cut; the grotto's only a shallow one, short of its skulls and candles)
   if (z === 'caves' || z === 'grotto') for (const side of [-1, 1] as const) {
-    const n = zoneAt(midX(j + side)); if (n === 'caves' || n === 'grotto') continue;
+    const n = zoneAt(midX(j + side)); if (n === z) continue;
     g.globalCompositeOperation = 'destination-out';
     g.beginPath(); const x0 = side < 0 ? 0 : MID_W; g.moveTo(x0, 0);
-    for (let y = 0; y <= MID_H; y += 12) { const u = y / MID_H, d = 20 + 190 * Math.pow(Math.sin(u * Math.PI * 0.85), 1.6) + Math.sin(y * 0.11 + j) * 14 + hash(y + j) * 22; g.lineTo(x0 - side * Math.max(0, d), y); }
+    for (let y = 0; y <= MID_H; y += 12) { const u = y / MID_H, d = z === 'grotto' ? 6 + 22 * Math.pow(Math.sin(u * Math.PI * 0.85), 1.6) + Math.sin(y * 0.13 + j) * 5 + hash(y + j) * 6 : 20 + 190 * Math.pow(Math.sin(u * Math.PI * 0.85), 1.6) + Math.sin(y * 0.11 + j) * 14 + hash(y + j) * 22; g.lineTo(x0 - side * Math.max(0, d), y); }
     g.lineTo(x0, MID_H); g.closePath(); g.fill();
     g.globalCompositeOperation = 'source-over';
   }

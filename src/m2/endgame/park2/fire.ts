@@ -123,6 +123,30 @@ const paintRiverTile = (g: Ctx, fr: number, v: number) => {
     for (const [k, col] of [[1, FIRE[0]], [0.75, FIRE[1]], [0.5, FIRE[2]], [0.26, FIRE[4]]] as const) { g.fillStyle = col; g.beginPath(); g.moveTo(x - w * k, -3); g.quadraticCurveTo(x - w * k * 0.6, -h * k * 0.6 - h * (1 - k) * 0.3, x + lean * k, -h * (0.4 + k * 0.6)); g.quadraticCurveTo(x + w * k * 0.6, -h * k * 0.55, x + w * k, -3); g.closePath(); g.fill(); }
   }
 };
+/** The lava's body under the surface (a tile BODY_H tall, from RIVER_Y + 10 down; `v` its variant): the ramp banded
+ *  down into the black-red depths, dithered at each step; plates of crust sunk in it (inked, lit along their tops by the
+ *  glow over them, shaded under), glowing veins wandering between them, a few bright bubbles rising. Painted the once
+ *  per variant, stamped; slid along with the current. */
+const BODY_H = 110;
+const paintRiverBody = (g: Ctx, v: number) => {
+  const bands = [LAVA[4], LAVA[5], '#5E0E08', LAVA[6], '#360604', LAVA[7]];
+  bands.forEach((col, k) => { R(g, 0, k * 18, TILE, k === bands.length - 1 ? BODY_H - k * 18 : 18, col); if (k) checker(g, 0, k * 18 - 2, TILE, 2, col); });
+  // (glowing veins: a thin bright line wandering across, dimmer the deeper it is)
+  for (let n = 0; n < 3; n++) {
+    let y = 10 + n * 30 + hash(v * 9 + n) * 10;
+    const col = [LAVA[2], LAVA[3], LAVA[4]][n], hi = [LAVA[1], LAVA[2], LAVA[3]][n];
+    for (let x = 0; x < TILE; x += 2) { y += (hash(v * 31 + n * 7 + x) - 0.5) * 2.2; y = Math.max(4 + n * 26, Math.min(28 + n * 30, y)); R(g, x, y, 2, 1, col); if (x % 8 === 0) R(g, x, y - 1, 1, 1, hi); }
+  }
+  // (the crust plates, sunk: darker and smaller the deeper)
+  for (let k = 0; k < 4; k++) {
+    const d = k % 2, x0 = ((hash(v * 13 + k) * TILE) | 0) - 6, y0 = 6 + d * 30 + ((hash(v + k * 5) * 14) | 0), w = 16 + ((hash(k * 3 + v) * 14) | 0) - d * 4, h = 6 - d;
+    g.fillStyle = INK; g.beginPath(); g.moveTo(x0, y0 + 2); g.lineTo(x0 + 3, y0 - 1); g.lineTo(x0 + w - 2, y0); g.lineTo(x0 + w + 1, y0 + h - 2); g.lineTo(x0 + w - 4, y0 + h + 1); g.lineTo(x0 + 2, y0 + h); g.closePath(); g.fill();
+    R(g, x0 + 2, y0, w - 4, h - 1, CRUST[d ? 0 : 1]); R(g, x0 + 3, y0, w - 7, 1, d ? CRUST[1] : CRUST[3]); R(g, x0 + 3, y0 + h - 2, w - 6, 1, '#0A0302');
+    if (!d) { R(g, x0 + (w >> 1), y0 + 1, 1, 2, LAVA[2]); R(g, x0 + (w >> 1) + 1, y0 + 2, 3, 1, LAVA[3]); }
+  }
+  // (bubbles rising: a hot core, a ring)
+  for (let k = 0; k < 4; k++) { const x = (hash(v * 17 + k * 3) * (TILE - 6)) | 0, y = 8 + ((hash(k + v * 4) * 60) | 0), r = 1 + (k % 2); R(g, x - r, y - r, r * 2 + 1, r * 2 + 1, LAVA[4]); R(g, x, y - r, 1, 1, LAVA[1]); R(g, x - r + 1, y - r + 1, r * 2 - 1, r * 2 - 1, LAVA[2]); }
+};
 /** The lava under the surface: banded down, dithered at each step, into the black-red depths. */
 const RIVER_BANDS = [LAVA[4], LAVA[5], LAVA[6], '#3A0804', LAVA[7], '#1A0302'];
 export const drawRiver = (c: Ctx, state: GameState, front = Infinity, lit = true) => {
@@ -136,6 +160,11 @@ export const drawRiver = (c: Ctx, state: GameState, front = Infinity, lit = true
     // (short of the fire's front (the meeting): the oil slick's sheen, no fire)
     const fx = Math.max(x0, Math.min(x1, front));
     if (fx > x0 && lit) {
+      // (its body under the surface: the baked tiles, sliding along with the current)
+      { const sh = (f * 0.45) % TILE, b0 = Math.floor((x0 - sh) / TILE) * TILE + sh;
+        c.save(); c.beginPath(); c.rect(x0, RIVER_Y + 10, fx - x0, BODY_H); c.clip();
+        for (let tx = b0; tx < fx; tx += TILE) { const vv = Math.floor(hash(Math.round((tx - sh) / TILE) + 101) * 3); c.save(); c.translate(Math.round(tx), RIVER_Y + 10); stamp(c, `wp2-lavabody-${vv}`, 0, 0, TILE, BODY_H, g => paintRiverBody(g, vv)); c.restore(); }
+        c.restore(); }
       // (the fire's glow down into the water, stepped)
       // (the heat shimmer over it: thin bright bands wavering up off the surface)
       for (let k = 0; k < 3; k++) { c.fillStyle = `rgba(253, 186, 116, ${(0.1 - k * 0.03).toFixed(2)})`; c.fillRect(x0, Math.round(RIVER_Y - 30 - k * 14 + Math.sin(f * 0.11 + k * 2) * 3), fx - x0, 2); }
